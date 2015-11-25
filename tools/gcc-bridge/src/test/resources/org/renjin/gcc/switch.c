@@ -26,8 +26,6 @@ int R_distance(int *method, int x, int y)
 	dist = x*x;
 	break;
     case CANBERRA:
-	dist = x+y;
-	break;
     case BINARY:
 	dist = (x == y);
 	break;

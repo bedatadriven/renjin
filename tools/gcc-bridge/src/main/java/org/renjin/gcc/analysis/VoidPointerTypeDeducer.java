@@ -1,6 +1,7 @@
 package org.renjin.gcc.analysis;
 
 import com.google.common.collect.Sets;
+import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleVarDecl;
@@ -32,7 +33,9 @@ public class VoidPointerTypeDeducer implements FunctionBodyTransformer {
     
     for(GimpleVarDecl decl : fn.getVariableDeclarations()) {
       if(isVoidPtr(decl.getType())) {
-        System.out.println("Deducing type of " + decl + "...");
+        if(GimpleCompiler.TRACE) {
+          System.out.println("Deducing type of " + decl + "...");
+        }
         if(tryToDeduceType(unit, fn, decl)) {
           updated = true;
         }
@@ -55,7 +58,9 @@ public class VoidPointerTypeDeducer implements FunctionBodyTransformer {
     
     if(finder.possibleTypes.size() == 1) {
       GimpleType deducedType = finder.possibleTypes.iterator().next();
-      System.out.println("...resolved to " + deducedType);
+      if(GimpleCompiler.TRACE) {
+        System.out.println("...resolved to " + deducedType);
+      }
       decl.setType(deducedType);
       updateVarRefTypes(fn, decl);
       return true;

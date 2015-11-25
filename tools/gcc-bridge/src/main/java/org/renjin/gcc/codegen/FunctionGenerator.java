@@ -193,16 +193,16 @@ public class FunctionGenerator {
     valueGenerator.emitPrimitiveValue(mv);
     Label defaultLabel = labels.of(ins.getDefaultCase().getBasicBlockIndex());
 
-    int numCases = ins.getCases().size();
+    int numCases = ins.getCaseCount();
     Label[] caseLabels = new Label[numCases];
     int[] caseValues = new int[numCases];
 
-    for(int i=0;i < numCases; i++){
-      GimpleSwitch.Case aCase = ins.getCases().get(i);
-      caseLabels[i] = labels.of(aCase.getBasicBlockIndex());
-      caseValues[i] = aCase.getLow();
-      if(aCase.getLow() != aCase.getHigh()) {
-        throw new UnsupportedOperationException("Tablelookup not yet supported.\n");
+    int i = 0;
+    for (GimpleSwitch.Case aCase : ins.getCases()) {
+      for(int value = aCase.getLow(); value <= aCase.getHigh(); ++value) {
+        caseLabels[i] = labels.of(aCase.getBasicBlockIndex());
+        caseValues[i] = value;
+        i++;
       }
     }
     mv.visitLookupSwitchInsn(defaultLabel, caseValues, caseLabels);

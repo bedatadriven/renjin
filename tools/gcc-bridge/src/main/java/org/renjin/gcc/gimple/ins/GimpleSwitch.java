@@ -1,6 +1,7 @@
 package org.renjin.gcc.gimple.ins;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import org.renjin.gcc.gimple.GimpleVisitor;
@@ -49,6 +50,11 @@ public class GimpleSwitch extends GimpleIns {
     public String toString(){
       return String.format("[ %d, %d]: %d",this.low,this.high,this.basicBlockIndex);
     }
+
+    public int getRange() {
+      Preconditions.checkState(low <= high);
+      return high - low + 1;
+    }
   }
 
   private GimpleExpr value;
@@ -62,6 +68,21 @@ public class GimpleSwitch extends GimpleIns {
     return cases;
   }
 
+  /**
+   * 
+   * Finds the total number of distinct cases. When a case has a range (low != high), then
+   * each value in the range is considered a distinct case.
+   * 
+   * @return the total count of cases. 
+   */
+  public int getCaseCount() {
+    int count = 0;
+    for (Case aCase : cases) {
+      count += aCase.getRange();
+    }
+    return count;
+  }
+  
   public Case getDefaultCase() {
     return defaultCase;
   }

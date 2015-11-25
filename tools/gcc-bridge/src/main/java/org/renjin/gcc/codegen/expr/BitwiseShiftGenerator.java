@@ -2,6 +2,7 @@ package org.renjin.gcc.codegen.expr;
 
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.pointers.AddressOfPrimitiveValue;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.type.GimpleType;
 
@@ -47,5 +48,11 @@ public class BitwiseShiftGenerator extends AbstractExprGenerator implements Expr
   @Override
   public GimpleType getGimpleType() {
     return x.getGimpleType();
+  }
+
+
+  @Override
+  public ExprGenerator addressOf() {
+    return new AddressOfPrimitiveValue(this);
   }
 }

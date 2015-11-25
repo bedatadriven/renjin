@@ -111,7 +111,6 @@ public abstract class AbstractExprGenerator implements ExprGenerator {
   @Override
   public void emitPushMethodHandle(MethodVisitor mv) {
     throw new UnimplementedException(getClass(), "emitPushMethodHandle");
-
   }
 
   @Override

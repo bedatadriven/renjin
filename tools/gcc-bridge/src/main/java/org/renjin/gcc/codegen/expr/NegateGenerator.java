@@ -2,6 +2,7 @@ package org.renjin.gcc.codegen.expr;
 
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.renjin.gcc.codegen.pointers.AddressOfPrimitiveValue;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 /**
@@ -25,5 +26,11 @@ public class NegateGenerator extends AbstractExprGenerator implements ExprGenera
   @Override
   public GimpleType getGimpleType() {
     return operand.getGimpleType();
+  }
+
+
+  @Override
+  public ExprGenerator addressOf() {
+    return new AddressOfPrimitiveValue(this);
   }
 }

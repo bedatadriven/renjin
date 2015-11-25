@@ -2,6 +2,7 @@ package org.renjin.gcc.codegen.expr;
 
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.renjin.gcc.codegen.pointers.AddressOfPrimitiveValue;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 
@@ -45,5 +46,10 @@ public class BitwiseLRotateGenerator extends AbstractExprGenerator {
     mv.visitInsn(Opcodes.ISUB);
     mv.visitInsn(Opcodes.ISHL);
     mv.visitInsn(Opcodes.IOR);
+  }
+  
+  @Override
+  public ExprGenerator addressOf() {
+    return new AddressOfPrimitiveValue(this);
   }
 }

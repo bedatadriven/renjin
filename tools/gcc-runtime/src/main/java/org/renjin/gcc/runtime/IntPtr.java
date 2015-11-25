@@ -21,6 +21,10 @@ public class IntPtr implements Ptr {
     return array[offset];
   }
   
+  public void set(int value) {
+    array[offset] = value;
+  }
+  
   public void update(int[] array, int offset) {
     this.array = array;
     this.offset = offset;

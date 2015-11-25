@@ -26,15 +26,10 @@ public class StaticMethodCallGenerator implements CallGenerator {
 
   private List<ParamGenerator> paramGenerators = null;
   private ReturnGenerator returnGenerator = null;
-  
-  private boolean variadic;
-  
+
   public StaticMethodCallGenerator(GeneratorFactory factory, Method method) {
     this.factory = factory;
     this.method = method;
-    
-    this.variadic = method.isVarArgs();
-    
   }
 
   private ReturnGenerator returnGenerator() {

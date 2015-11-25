@@ -4,12 +4,15 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.pointers.DereferencedPrimitiveValue;
 import org.renjin.gcc.codegen.pointers.PrimitivePtrPlus;
 import org.renjin.gcc.gimple.GimpleVarDecl;
+import org.renjin.gcc.gimple.expr.GimpleExpr;
+import org.renjin.gcc.gimple.expr.GimpleIntegerConstant;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
@@ -42,9 +45,24 @@ public class PrimitivePtrFieldGenerator extends FieldGenerator {
 
   @Override
   public void emitStaticField(ClassVisitor cv, GimpleVarDecl decl) {
-    assertNoInitialValue(decl);
-
+    if(!isNull(decl.getValue())) {
+      throw new InternalCompilerException("Unsupport initial value: " + decl.getValue());
+    }
+    
     emitField(Opcodes.ACC_STATIC | Opcodes.ACC_PUBLIC, cv);
+  }
+
+  private boolean isNull(GimpleExpr initialValue) {
+    if(initialValue == null) {
+      return true;
+      
+    } else if(initialValue instanceof GimpleIntegerConstant) {
+      GimpleIntegerConstant constant = (GimpleIntegerConstant) initialValue;
+      if(constant.getValue() == 0) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Override

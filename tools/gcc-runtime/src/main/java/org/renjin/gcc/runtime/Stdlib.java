@@ -1,5 +1,7 @@
 package org.renjin.gcc.runtime;
 
+import java.lang.invoke.MethodHandle;
+
 /**
  * C standard library functions
  */
@@ -68,4 +70,9 @@ public class Stdlib {
       return argument;
     }
   }
+  
+  public static void qsort(Ptr base, int nitems, int size, MethodHandle comparator) {
+    throw new UnsupportedOperationException();
+  }
+
 }

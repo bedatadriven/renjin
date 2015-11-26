@@ -56,7 +56,7 @@ public class Mathlib {
     // Adapted from:
     // http://stackoverflow.com/questions/1552738/is-there-a-java-equivalent-of-frexp
 
-    long bits = Double.doubleToLongBits(value);
+    long bits = Double.doubleToRawLongBits(value);
     double realMant = 1.;
 
     // Test for NaN, infinity, and zero.
@@ -66,6 +66,7 @@ public class Mathlib {
       pExponent.set(0);
       return value;
 
+      
     } else {
 
       boolean neg = (bits < 0);
@@ -85,7 +86,7 @@ public class Mathlib {
       realMant = mantissa;
 
       // normalize
-      while (realMant > 1.0) {
+      while (realMant >= 1.0) {
         mantissa >>= 1;
         realMant /= 2.;
         exponent++;
@@ -95,7 +96,7 @@ public class Mathlib {
         realMant = realMant * -1;
       }
 
-      pExponent.set(exponent);
+      pExponent.set((int)exponent);
       return realMant;
     }
   }
@@ -105,9 +106,14 @@ public class Mathlib {
    * The returned value is the mantissa and the integer pointed to by exponent is the exponent. 
    * The resultant value is x = mantissa * 2 ^ exponent.
    */
-  public static double ldexp(double x, int exponent) {
-    // slow
-    return x*Math.exp(exponent);
+  public static double ldexp(double x, int d) {
+      for (; d > 0; d--) {
+        x *= 2.0;
+      }
+      for (; d < 0; d++) {
+        x *= 0.5;
+      }
+      return x;
   }
 
   /**

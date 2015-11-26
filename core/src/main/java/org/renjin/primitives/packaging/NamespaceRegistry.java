@@ -207,12 +207,17 @@ public class NamespaceRegistry {
    */
   private void setupImportsExports(Package pkg, Namespace namespace) throws IOException {
 
-    CharSource namespaceSource = pkg.getResource("NAMESPACE").asCharSource(Charsets.UTF_8);
-    NamespaceFile namespaceFile = NamespaceFile.parse(context, namespaceSource);
+    try {
+      CharSource namespaceSource = pkg.getResource("NAMESPACE").asCharSource(Charsets.UTF_8);
+      NamespaceFile namespaceFile = NamespaceFile.parse(context, namespaceSource);
 
-    namespace.initImports(this, namespaceFile);
-    namespace.initExports(namespaceFile);
-    namespace.registerS3Methods(context, namespaceFile);
+      namespace.initImports(this, namespaceFile);
+      namespace.initExports(namespaceFile);
+      namespace.registerS3Methods(context, namespaceFile);
+    } catch (Exception e) {
+      throw new EvalException("Exception setting up imports/exports for namespace " + namespace.getName() +
+          ": " + e.getMessage(), e);
+    }
   }
 
 

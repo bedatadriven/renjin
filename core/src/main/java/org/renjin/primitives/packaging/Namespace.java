@@ -10,6 +10,8 @@ import org.renjin.primitives.S3;
 import org.renjin.primitives.text.regex.ExtendedRE;
 import org.renjin.sexp.*;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -196,9 +198,11 @@ public class Namespace {
       } else {
 
         // Use the symbol list explicitly declared in the useDynLib directive
-        for (NamespaceFile.DynLibSymbol symbol : entry.getSymbols()) {
-          Method method = findGnurMethod(clazz, symbol.getSymbolName());
-          addGnurMethod(entry.getPrefix() + symbol.getAlias(), method);
+        for (NamespaceFile.DynLibSymbol declaredSymbol : entry.getSymbols()) {
+          DllSymbol symbol = new DllSymbol(info);
+          symbol.setName(declaredSymbol.getSymbolName());
+          symbol.setMethodHandle(findGnurMethod(clazz, declaredSymbol.getSymbolName()));
+          getImportsEnvironment().setVariable(entry.getPrefix() + declaredSymbol.getAlias(), symbol.createObject());
         }
       }
     } catch(Exception e) {
@@ -238,19 +242,18 @@ public class Namespace {
     return Optional.absent();
   }
 
-
-  private void addGnurMethod(String name, Method method) {
-    getImportsEnvironment().setVariable(name, new ExternalPtr<Method>(method));
-  }
-
   private boolean isPublicStatic(Method method) {
     return Modifier.isStatic(method.getModifiers()) && Modifier.isPublic(method.getModifiers());
   }
 
-  private Method findGnurMethod(Class clazz, String symbolName) {
+  private MethodHandle findGnurMethod(Class clazz, String symbolName) {
     for(Method method : clazz.getMethods()) {
       if(method.getName().equals(symbolName) && isPublicStatic(method)) {
-        return method;
+        try {
+          return MethodHandles.publicLookup().unreflect(method);
+        } catch (IllegalAccessException e) {
+          throw new RuntimeException(e);
+        }
       }
     }
     throw new RuntimeException("Couldn't find method '" + symbolName + "'");

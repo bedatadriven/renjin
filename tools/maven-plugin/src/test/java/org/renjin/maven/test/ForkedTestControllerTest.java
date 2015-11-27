@@ -86,7 +86,6 @@ public class ForkedTestControllerTest extends TestCase {
     forkedTestController.executeTest(testFile);
 
     assertTestCaseSucceeded(testFile, false);
-    assertOutputContains(testFile, "[1] 42");
   }
   
   public void testOutOfMemory() throws MojoExecutionException, IOException {

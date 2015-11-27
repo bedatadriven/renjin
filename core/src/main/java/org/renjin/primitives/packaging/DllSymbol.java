@@ -75,8 +75,14 @@ public class DllSymbol {
         AttributeMap.builder().setClass("RegisteredNativeSymbol").build()));
 
     symbol.add("numParameters", methodHandle.type().parameterCount());
-    
-    symbol.setAttribute(Symbols.CLASS, new StringArrayVector(convention.getClassName(), "NativeSymbolInfo"));
+
+
+
+    if (convention!=null){
+      symbol.setAttribute(Symbols.CLASS, new StringArrayVector(convention.getClassName(), "NativeSymbolInfo"));
+    } else {
+      symbol.setAttribute(Symbols.CLASS, new StringArrayVector("NativeSymbolInfo"));
+    }
     
     return symbol.build();
   }

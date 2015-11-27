@@ -14,7 +14,7 @@ useDynLib(stats, .registration = FALSE, .fixes="C_",
     psmirnov2x,
     pkstwo,
     loglin,
-    C_R_cutree = R_cutree
+    R_cutree
     )
 
 # exportPattern("^[^\\.]")

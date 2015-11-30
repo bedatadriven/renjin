@@ -1,6 +1,7 @@
 package org.renjin.repl;
 
 import com.google.common.base.Strings;
+import com.google.common.base.Throwables;
 import jline.UnsupportedTerminal;
 import jline.console.ConsoleReader;
 import jline.console.UserInterruptException;
@@ -200,6 +201,9 @@ public class JlineRepl {
 
   private void printEvalException(EvalException e) throws IOException {
     reader.getOutput().append("ERROR: ").append(e.getMessage()).append("\n");
+    if (e.getCause() != null) {
+      reader.getOutput().write(Throwables.getStackTraceAsString(e.getCause()));
+    }
     e.printRStackTrace(reader.getOutput());
     reader.getOutput().flush();
   }

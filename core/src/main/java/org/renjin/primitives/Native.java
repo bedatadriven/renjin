@@ -297,7 +297,7 @@ public class Native {
       } catch (Error e) {
         throw e;
       } catch (Throwable e) {
-        throw new EvalException("Exception calling " + methodExp, e);
+        throw new EvalException("Exception calling " + methodExp + " : " + e.getMessage(), e);
       }
 
     } else if(methodExp instanceof StringVector) {

@@ -135,7 +135,7 @@ function (x, file = "", append = FALSE, quote = TRUE, sep = " ",
         })
     }
 
-    WriteTable$write(x, file, nrow(x), p, rnames, sep, eol, na, dec,
+    WriteTable$write(as.data.frame(x), file, nrow(x), p, rnames, sep, eol, na, dec,
                           as.integer(quote), qmethod != "double")
 }
 

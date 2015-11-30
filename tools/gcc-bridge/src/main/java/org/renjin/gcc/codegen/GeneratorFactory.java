@@ -158,7 +158,12 @@ public class GeneratorFactory {
 
     List<ParamGenerator> generators = new ArrayList<ParamGenerator>();
 
-    int numParams = method.getParameterTypes().length;
+    int numParams;
+    if(method.isVarArgs()) {
+      numParams = method.getParameterTypes().length - 1;
+    } else {
+      numParams = method.getParameterTypes().length;
+    }
     
     int index = 0;
     while(index < numParams) {

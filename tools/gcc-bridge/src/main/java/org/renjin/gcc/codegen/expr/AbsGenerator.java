@@ -3,6 +3,7 @@ package org.renjin.gcc.codegen.expr;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.pointers.AddressOfPrimitiveValue;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 
@@ -41,5 +42,11 @@ public class AbsGenerator extends  AbstractExprGenerator implements ExprGenerato
       throw new UnsupportedOperationException(String.format("abs (%s)", x.getJvmPrimitiveType()));
     }
   }
+
+  @Override
+  public ExprGenerator addressOf() {
+    return new AddressOfPrimitiveValue(this);
+  }
+  
 
 }

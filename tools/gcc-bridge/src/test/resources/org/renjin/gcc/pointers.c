@@ -58,3 +58,14 @@ double realloc_test() {
   
   return sum_array(y, 4);
 }
+
+int test_cmp() {
+  int *x = malloc(2 * sizeof(int));
+  int *y = x + 1;
+  
+  if(x == y) {
+    return 0;  
+  } else {
+    return 1;
+  }
+}

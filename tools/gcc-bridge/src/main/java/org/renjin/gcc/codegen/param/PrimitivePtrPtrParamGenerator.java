@@ -11,6 +11,7 @@ import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.pointers.DereferencedPrimitivePtr;
 import org.renjin.gcc.codegen.pointers.PrimitivePtrPtrPlus;
+import org.renjin.gcc.gimple.GimpleParameter;
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.runtime.ObjectPtr;
@@ -44,7 +45,7 @@ public class PrimitivePtrPtrParamGenerator extends ParamGenerator {
   }
 
   @Override
-  public ExprGenerator emitInitialization(MethodVisitor methodVisitor, int startIndex, LocalVarAllocator localVars) {
+  public ExprGenerator emitInitialization(MethodVisitor methodVisitor, GimpleParameter parameter, int startIndex, LocalVarAllocator localVars) {
     return new PtrPtrExpr(startIndex);
   }
 

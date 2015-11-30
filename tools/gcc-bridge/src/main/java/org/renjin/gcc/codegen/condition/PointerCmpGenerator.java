@@ -68,7 +68,19 @@ public class PointerCmpGenerator implements ConditionGenerator {
 
 
     x.emitPushPtrArrayAndOffset(mv);
+    // stack: array1, offset1
+    
     y.emitPushPtrArrayAndOffset(mv);
+    // stack: array1, offset1, array2, offset2
+    
+    mv.visitInsn(Opcodes.SWAP);
+    // stack: array1, offset1, offset2, array2 
+    
+    mv.visitInsn(Opcodes.DUP_X2);
+    // stack: array1, array2, offset1, offset2, array2 
+
+    mv.visitInsn(Opcodes.POP);
+    // stack: array1, array2, offset1, offset2 
 
     // first compare offsets, which are on top of the stack
     Label offsetsEqual = new Label();
@@ -81,6 +93,7 @@ public class PointerCmpGenerator implements ConditionGenerator {
 
     // if the offsets are equal, we need to compare the pointers, which
     // are the next two words on the stack
+    mv.visitLabel(offsetsEqual);
     mv.visitJumpInsn(Opcodes.IF_ACMPEQ, equalLabel);
     mv.visitJumpInsn(Opcodes.GOTO, notEqualLabel);
   }

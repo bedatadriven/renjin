@@ -6,7 +6,8 @@ public class GimpleParameter {
   private GimpleType type;
   private String name;
   private int id;
-
+  private boolean addressable;
+  
   /**
    * Compiler-assigned unique identifier for this parameter.
    */
@@ -28,6 +29,14 @@ public class GimpleParameter {
 
   public String getName() {
     return name;
+  }
+
+  public boolean isAddressable() {
+    return addressable;
+  }
+
+  public void setAddressable(boolean addressable) {
+    this.addressable = addressable;
   }
 
   @Override

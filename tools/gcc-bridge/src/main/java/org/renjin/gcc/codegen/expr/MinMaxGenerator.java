@@ -4,6 +4,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.Types;
+import org.renjin.gcc.codegen.pointers.AddressOfPrimitiveValue;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.type.GimpleType;
 
@@ -52,4 +53,10 @@ public class MinMaxGenerator extends  AbstractExprGenerator implements ExprGener
         throw new InternalCompilerException("op: " + op);
     }
   }
+
+  @Override
+  public ExprGenerator addressOf() {
+    return new AddressOfPrimitiveValue(this);
+  }
+  
 }

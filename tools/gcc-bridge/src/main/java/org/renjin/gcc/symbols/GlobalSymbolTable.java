@@ -8,12 +8,16 @@ import org.renjin.gcc.codegen.FunctionGenerator;
 import org.renjin.gcc.codegen.GeneratorFactory;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.call.FunctionCallGenerator;
+import org.renjin.gcc.codegen.call.MemCopyCallGenerator;
 import org.renjin.gcc.codegen.call.StaticMethodCallGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.expr.FreeCallGenerator;
 import org.renjin.gcc.gimple.CallingConvention;
 import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
 import org.renjin.gcc.gimple.expr.GimpleSymbolRef;
 import org.renjin.gcc.runtime.Builtins;
+import org.renjin.gcc.runtime.Mathlib;
+import org.renjin.gcc.runtime.Stdlib;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -56,22 +60,16 @@ public class GlobalSymbolTable implements SymbolTable {
 
 
   public void addDefaults() {
-
-    // G77 builtins
-    addMethod("__builtin_sin__", Math.class, "sin");
-    addMethod("__builtin_log__", Math.class, "log");
-    addMethod("__builtin_cos__", Math.class, "cos");
-    addMethod("__builtin_sqrt__", Math.class, "sqrt");
-    addMethod("__builtin_pow__", Math.class, "pow");
-    addMethod("pow", Math.class, "pow");
-
-    //addMethod("__builtin_copysign__", Math.class, "copySign");
-
-    addMethod("sqrt", Math.class);
-    addMethod("floor", Math.class);
+    
+    addFunction("__builtin_memcpy", new MemCopyCallGenerator());
+    addFunction("memcpy", new MemCopyCallGenerator());
+    addFunction("free", new FreeCallGenerator());
 
     addMethods(Builtins.class);
+    addMethods(Stdlib.class);
+    addMethods(Mathlib.class);
   }
+  
 
   public void addMethod(String functionName, Class<?> declaringClass) {
     addFunction(functionName, findMethod(declaringClass, functionName));
@@ -81,6 +79,10 @@ public class GlobalSymbolTable implements SymbolTable {
     addFunction(functionName, findMethod(declaringClass, methodName));
   }
 
+  public void addFunction(String name, CallGenerator callGenerator) {
+    functions.put(name, callGenerator);
+  }
+  
   public void addFunction(String className, FunctionGenerator function) {
     functions.put(function.getMangledName(), new FunctionCallGenerator(function));
   }
@@ -93,6 +95,12 @@ public class GlobalSymbolTable implements SymbolTable {
   public void addMethods(Class<?> clazz) {
     for (Method method : clazz.getMethods()) {
       if(Modifier.isPublic(method.getModifiers()) && Modifier.isStatic(method.getModifiers())) {
+        
+        // skip methods that have been @Deprecated
+        if(method.getAnnotation(Deprecated.class) != null) {
+          continue;
+        }
+        
         addFunction(method.getName(), method);
       }
     }

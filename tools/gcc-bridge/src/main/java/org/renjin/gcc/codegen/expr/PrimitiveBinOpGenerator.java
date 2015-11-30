@@ -98,4 +98,5 @@ public class PrimitiveBinOpGenerator extends AbstractExprGenerator implements Ex
   public GimpleType getGimpleType() {
     return x.getGimpleType();
   }
+  
 }

@@ -39,7 +39,27 @@ public class Builtins {
   public static float  __builtin_sinf__ (double x) {
     return (float) Math.sin(x);
   }
-
+  
+  public static double __builtin_sin__(double x) {
+    return Math.sin(x);
+  }
+  
+  public static double __builtin_log__(double x) {
+    return Math.log(x);
+  }
+  
+  public static double __builtin_cos__(double x) {
+    return Math.cos(x);
+  }
+  
+  public static double __builtin_sqrt__(double x) {
+    return Math.sqrt(x);
+  }
+  
+  public static double __builtin_pow__(double x, double y) {
+    return Math.pow(x, y);
+  }
+  
   public static int __fpclassifyd(double x) {
 		// TODO: lookup the exact behavior of this function
 		return Double.isNaN(x) ? 0 : 1;
@@ -77,12 +97,14 @@ public class Builtins {
     return Double.isNaN(x) || Double.isNaN(y);
   }
 
+  @Deprecated
   public static double fmax(double x, double y) {
-     return Math.max(x,y);
+    return Mathlib.fmax(x, y);
   }
 
+  @Deprecated
   public static double hypot(double x, double y) {
-    return Math.hypot(x, y);
+    return Mathlib.hypot(x, y);
   }
   
   

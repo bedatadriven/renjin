@@ -4,6 +4,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.LocalVarAllocator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.gimple.GimpleParameter;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 import java.util.ArrayList;
@@ -34,12 +35,13 @@ public abstract class ParamGenerator {
    * and returns an ExprGenerator which can be used to retrieve its value
    * 
    * @param methodVisitor MethodVisitor to write its value
+   * @param parameter
    * @param startIndex the first index among the parameters
    * @param localVars an {@link LocalVarAllocator} which can be used to reserve additional local variable slots
    *                   if needed.
    * @return an {@code ExprGenerator} which can be used to access this parameter's value.
    */
-  public abstract ExprGenerator emitInitialization(MethodVisitor methodVisitor, int startIndex, LocalVarAllocator localVars);
+  public abstract ExprGenerator emitInitialization(MethodVisitor methodVisitor, GimpleParameter parameter, int startIndex, LocalVarAllocator localVars);
 
   public abstract void emitPushParameter(MethodVisitor mv, ExprGenerator parameterValueGenerator);
   

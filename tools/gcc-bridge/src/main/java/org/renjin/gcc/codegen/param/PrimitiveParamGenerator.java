@@ -4,7 +4,9 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.LocalVarAllocator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.var.AddressablePrimitiveVarGenerator;
 import org.renjin.gcc.codegen.var.PrimitiveVarGenerator;
+import org.renjin.gcc.gimple.GimpleParameter;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
@@ -37,9 +39,20 @@ public class PrimitiveParamGenerator extends ParamGenerator {
   }
 
   @Override
-  public ExprGenerator emitInitialization(MethodVisitor methodVisitor, int startIndex, LocalVarAllocator localVars) {
-    // No initialization required, already set to the local variable
-    return new PrimitiveVarGenerator(type, startIndex);
+  public ExprGenerator emitInitialization(MethodVisitor mv, GimpleParameter parameter, int startIndex, LocalVarAllocator localVars) {
+    PrimitiveVarGenerator var = new PrimitiveVarGenerator(type, startIndex);
+
+    if(parameter.isAddressable()) {
+      AddressablePrimitiveVarGenerator addressableVar = new AddressablePrimitiveVarGenerator(
+          type, localVars.reserve(type.jvmType()));  
+      
+      addressableVar.emitStore(mv, var);
+      return addressableVar;
+    
+    } else {
+      // No initialization required, already set to the local variable
+      return var;
+    }
   }
 
   @Override

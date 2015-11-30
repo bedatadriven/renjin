@@ -5,12 +5,15 @@ import com.google.common.base.Preconditions;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.InternalCompilerException;
+import org.renjin.gcc.analysis.AddressableFinder;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
-import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Opcodes.ILOAD;
+import static org.objectweb.asm.Opcodes.ISTORE;
 
 public class PrimitiveVarGenerator extends AbstractExprGenerator implements VarGenerator {
   private GimplePrimitiveType type;
@@ -68,7 +71,15 @@ public class PrimitiveVarGenerator extends AbstractExprGenerator implements VarG
   }
 
   @Override
+  public ExprGenerator addressOf() {
+    throw new InternalCompilerException("Variable is not addressable. Apparently, " +
+        AddressableFinder.class.getName() + " failed to mark this variable as addressable " +
+        "during the analysis pass.");
+  }
+
+  @Override
   public GimpleType getGimpleType() {
     return type;
   }
+
 }

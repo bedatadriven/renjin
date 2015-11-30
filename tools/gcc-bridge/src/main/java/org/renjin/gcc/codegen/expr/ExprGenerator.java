@@ -78,7 +78,10 @@ public interface ExprGenerator {
    * @throws UnsupportedOperationException if this is not a value expression
    */
   void emitPrimitiveValue(MethodVisitor mv);
-  
+
+  void emitPushBoxedPrimitiveValue(MethodVisitor mv);
+
+
 
   /**
    * Writes the code push the array and offset backing this pointer onto the stack
@@ -128,4 +131,5 @@ public interface ExprGenerator {
    * @return a new ExprGenerator that divides this value by the constant divisor
    */
   ExprGenerator divideBy(int divisor);
+
 }

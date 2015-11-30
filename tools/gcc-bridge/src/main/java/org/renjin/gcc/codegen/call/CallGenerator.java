@@ -17,9 +17,7 @@ public interface CallGenerator  {
   Type returnType();
   
   GimpleType getGimpleReturnType();
-  
-  List<GimpleType> getGimpleParameterTypes();
-  
+
   ExprGenerator expressionGenerator(List<ExprGenerator> argumentGenerators);
   
 }

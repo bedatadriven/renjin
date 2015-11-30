@@ -3,6 +3,8 @@ package org.renjin.gnur.api;
 
 import org.renjin.eval.EvalException;
 import org.renjin.gcc.runtime.*;
+import org.renjin.primitives.Types;
+import org.renjin.primitives.Vectors;
 import org.renjin.sexp.*;
 
 import java.util.Arrays;
@@ -564,7 +566,13 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_asChar");
   }
 
-  public static SEXP Rf_coerceVector(SEXP p0, /*SEXPTYPE*/ int p1) {
+  public static SEXP Rf_coerceVector(SEXP p0, /*SEXPTYPE*/ int type) {
+    switch(type){
+      case SexpType.INTSXP:
+        return Vectors.asInteger((Vector)p0).setAttributes(p0.getAttributes());
+      case SexpType.REALSXP:
+        return Vectors.asDouble((Vector)p0).setAttributes(p0.getAttributes());
+    }
     throw new UnimplementedGnuApiMethod("Rf_coerceVector");
   }
 
@@ -664,8 +672,16 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_allocFormalsList6");
   }
 
-  public static SEXP Rf_allocMatrix(/*SEXPTYPE*/ int p0, int p1, int p2) {
-    throw new UnimplementedGnuApiMethod("Rf_allocMatrix");
+  public static SEXP Rf_allocMatrix(/*SEXPTYPE*/ int type, int numRows, int numCols) {
+    AttributeMap attributes = AttributeMap.builder().setDim(numRows, numCols).build();
+    switch (type){
+      case SexpType.INTSXP:
+        return new IntArrayVector(new int[numRows * numCols],attributes);
+      case SexpType.REALSXP:
+        return new DoubleArrayVector(new double[numRows * numCols], attributes);
+      default:
+        throw new IllegalArgumentException("type: " + type);
+    }
   }
 
   public static SEXP Rf_allocList(int p0) {

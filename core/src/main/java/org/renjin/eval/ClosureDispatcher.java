@@ -127,7 +127,7 @@ public class ClosureDispatcher {
       if(value == Symbol.MISSING_ARG) {
         SEXP defaultValue = formals.findByTag(node.getTag());
         if(defaultValue != Symbol.MISSING_ARG) {
-          value =  Promise.repromise(innerEnv, defaultValue);
+          value =  Promise.promiseMissing(innerEnv, defaultValue);
         }
       }
       innerEnv.setVariable(node.getTag(), value);

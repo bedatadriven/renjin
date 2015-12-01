@@ -214,6 +214,23 @@ public class EvaluationTest extends EvalTestCase {
 
     assertThat( eval("f()"), equalTo( c(true)));
   }
+  
+  @Test
+  public void missingWithDefaultPropagates() {
+    eval("f<-function(y, x=1) missing(x) ");
+    eval("g<-function(z, ...) f(y=z,...) ");
+    
+    assertThat( eval("g(4)"), equalTo(c(true)));  
+  }
+
+  @Test
+  public void defaultToMissingIsNotMissing() {
+    eval("f<-function(x) { print(x); missing(x) } ");
+    eval("g<-function(z=1) f(z) ");
+
+    assertThat( eval("g(4)"), equalTo(c(false)));
+  }
+
 
   @Test
   public void missingWithNullDefaultAndGenerics() {
@@ -229,7 +246,7 @@ public class EvaluationTest extends EvalTestCase {
     eval("y <- 4");
     eval("f<-function(x=1) missing(x) ");
 
-    assertThat( eval("f(y)"), equalTo( c(false)));
+    assertThat( eval("f(y)"), equalTo(c(false)));
   }
 
   @Test
@@ -244,7 +261,7 @@ public class EvaluationTest extends EvalTestCase {
     eval(" f<-function() { on.exit( .Internal(eval(quote(launchMissiles<-42), globalenv(), NULL))) }");
     eval(" f() ");
 
-    assertThat( eval(" launchMissiles "), equalTo(c(42)) );
+    assertThat(eval(" launchMissiles "), equalTo(c(42)));
   }
 
   @Test
@@ -278,7 +295,7 @@ public class EvaluationTest extends EvalTestCase {
   public void complexReassignment() {
     eval( " x <- list(a = 1)");
     eval( " f<- function() x$a <<- 3 ");
-    eval( " f()");
+    eval(" f()");
 
     assertThat( eval("x$a"), equalTo( c(3)));
   }
@@ -289,7 +306,7 @@ public class EvaluationTest extends EvalTestCase {
     eval( " class(x$a) <- 'foo' ");
 
     assertThat(eval(" x$a "), equalTo(c(1)));
-    assertThat( eval(" class(x$a) "), equalTo( c("foo")));
+    assertThat(eval(" class(x$a) "), equalTo(c("foo")));
   }
 
   @Test
@@ -380,7 +397,7 @@ public class EvaluationTest extends EvalTestCase {
   public void listFromArgs() {
     eval(" f<- function(...) list(...) ");
     
-    assertThat( eval("f(1,2,3)"), equalTo(list(1d,2d,3d)));
+    assertThat( eval("f(1,2,3)"), equalTo(list(1d, 2d, 3d)));
   }
 
   @Test
@@ -413,16 +430,16 @@ public class EvaluationTest extends EvalTestCase {
     
     assertThat( eval("switch('z', alligator=4,aardvark=2, 44)"), equalTo( c(44)));
     assertThat( eval("switch('a', alligator=4,aardvark=2, 44)"), equalTo( c(44)));
-    assertThat( eval("switch('a', alligator=4,aardvark=2)"), equalTo( NULL ));
-    assertThat( eval("switch('all', alligator=4,aardvark=2)"), equalTo( c(4) ));
-    assertThat( eval("switch('all')"), equalTo( NULL ));
+    assertThat(eval("switch('a', alligator=4,aardvark=2)"), equalTo(NULL));
+    assertThat(eval("switch('all', alligator=4,aardvark=2)"), equalTo(c(4)));
+    assertThat(eval("switch('all')"), equalTo(NULL));
 
-    assertThat( eval("switch(1, 'first', 'second')"), equalTo( c("first") ));
-    assertThat( eval("switch(2, 'first', 'second')"), equalTo( c("second") ));
+    assertThat(eval("switch(1, 'first', 'second')"), equalTo(c("first")));
+    assertThat(eval("switch(2, 'first', 'second')"), equalTo(c("second")));
     assertThat( eval("switch(99, 'first', 'second')"), equalTo( NULL ));
     assertThat( eval("switch(4)"), equalTo( NULL ));
 
-    assertThat( eval("switch('a', a=,b=,c=3) "), equalTo( c(3)));
+    assertThat(eval("switch('a', a=,b=,c=3) "), equalTo(c(3)));
     assertThat( eval("switch(NA_character_, a=1,b=2)"), equalTo( NULL ));
   }
 
@@ -436,11 +453,11 @@ public class EvaluationTest extends EvalTestCase {
     eval("class(x) <- 'foo'");
 
     assertThat( eval("fry(1,5)"), equalTo( eval("list(desc='fried numbers', what=1, howlong=5)") ) );
-    assertThat( eval("fry(x,15)"), equalTo( eval("list(desc='fried stuff', what=33, howlong=15)") ) );
+    assertThat(eval("fry(x,15)"), equalTo(eval("list(desc='fried stuff', what=33, howlong=15)")));
 
     eval("cook <- function() { eggs<-6; fry(eggs, 5) }");
 
-    assertThat( eval("cook()"), equalTo( eval("list(desc='fried numbers', what=6, howlong=5) ")));
+    assertThat(eval("cook()"), equalTo(eval("list(desc='fried numbers', what=6, howlong=5) ")));
   }
   
   @Test(expected=EvalException.class)
@@ -511,7 +528,7 @@ public class EvaluationTest extends EvalTestCase {
     eval(" k <- list(1,2,3) ");
     eval(" k[[2]] <- onlyonce()");
 
-    assertThat( eval("k"), equalTo(list(1d, 16d, 3d)));
+    assertThat(eval("k"), equalTo(list(1d, 16d, 3d)));
 
   }
 

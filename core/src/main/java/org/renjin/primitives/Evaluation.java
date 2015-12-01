@@ -23,7 +23,6 @@ package org.renjin.primitives;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import org.renjin.eval.Calls;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Builtin;
@@ -328,23 +327,9 @@ public class Evaluation {
       throw new EvalException("'missing' can only be used for arguments");
     } else if(value == Symbol.MISSING_ARG) {
       return true;
-    } else if(isPromisedMissingArg(value)) {
-      return true;
+    } else {
+      return isPromisedMissingArg(value);
     } 
-    
-    
-    // we need to rematch the arguments to determine whether the value was actually provided
-    // or whether 'value' contains the default value
-    //
-    // this seems quite expensive, perhaps there's a faster way?
-    PairList rematched = Calls.matchArguments(
-        Calls.stripDefaultValues(context.getClosure().getFormals()),
-        context.getCall().getArguments(), true);
-    SEXP providedValue = rematched.findByTag(symbol);
-
-    return providedValue == Symbol.MISSING_ARG;
-    //return false;
-    
   }
 
   private static boolean isVarArgMissing(Environment rho, int varArgReferenceIndex) {
@@ -363,9 +348,12 @@ public class Evaluation {
   private static boolean isPromisedMissingArg(SEXP exp) {
     if(exp instanceof Promise) {
       Promise promise = (Promise)exp;
-      if(!promise.isEvaluated() && promise.getExpression() instanceof Symbol) {
+      if(promise.isMissingArgument()) {
+         return true;
+      }
+      if(promise.getExpression() instanceof Symbol) {
         Symbol argumentName = (Symbol) promise.getExpression();
-        SEXP argumentValue = promise.getEnvironment().getVariable(argumentName);
+          SEXP argumentValue = promise.getEnvironment().getVariable(argumentName);
         if(argumentValue == Symbol.MISSING_ARG) {
           return true;          
         } else if(isPromisedMissingArg(argumentValue)) {

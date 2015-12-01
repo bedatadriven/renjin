@@ -6,10 +6,7 @@ import org.objectweb.asm.Handle;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.FunctionGenerator;
 import org.renjin.gcc.codegen.GeneratorFactory;
-import org.renjin.gcc.codegen.call.CallGenerator;
-import org.renjin.gcc.codegen.call.FunctionCallGenerator;
-import org.renjin.gcc.codegen.call.MemCopyCallGenerator;
-import org.renjin.gcc.codegen.call.StaticMethodCallGenerator;
+import org.renjin.gcc.codegen.call.*;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.expr.FreeCallGenerator;
 import org.renjin.gcc.gimple.CallingConvention;
@@ -60,11 +57,18 @@ public class GlobalSymbolTable implements SymbolTable {
 
 
   public void addDefaults() {
-    
-    addFunction("__builtin_memcpy", new MemCopyCallGenerator());
-    addFunction("memcpy", new MemCopyCallGenerator());
-    addFunction("free", new FreeCallGenerator());
 
+    addFunction("malloc", new MallocCallGenerator(generators));
+    addFunction("free", new FreeCallGenerator());
+    addFunction("realloc", new ReallocCallGenerator());
+
+    addFunction("__builtin_malloc__", new MallocCallGenerator(generators));
+    addFunction("__builtin_free__", new MallocCallGenerator(generators));
+    addFunction("__builtin_memcpy", new MemCopyCallGenerator());
+    
+    addFunction(CharTypeBLocCall.NAME, new CharTypeBLocCall());
+    addFunction("memcpy", new MemCopyCallGenerator());
+    
     addMethods(Builtins.class);
     addMethods(Stdlib.class);
     addMethods(Mathlib.class);

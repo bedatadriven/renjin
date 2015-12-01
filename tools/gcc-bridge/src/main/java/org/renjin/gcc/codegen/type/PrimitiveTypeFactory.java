@@ -131,7 +131,7 @@ public class PrimitiveTypeFactory extends TypeFactory {
 
     @Override
     public ExprGenerator mallocExpression(ExprGenerator size) {
-      return new MallocGenerator(type.jvmType(), pointerType.getBaseType().sizeOf(), size);
+      return new MallocGenerator(type.pointerTo(), type.jvmType(), pointerType.getBaseType().sizeOf(), size);
     }
   }
 
@@ -167,7 +167,7 @@ public class PrimitiveTypeFactory extends TypeFactory {
 
     @Override
     public ExprGenerator mallocExpression(ExprGenerator size) {
-      return new MallocGenerator(WrapperType.of(type).getWrapperType(), pointerType.getBaseType().sizeOf(), size);
+      return new MallocGenerator(pointerType, WrapperType.of(type).getWrapperType(), pointerType.getBaseType().sizeOf(), size);
     }
   }
 
@@ -246,7 +246,7 @@ public class PrimitiveTypeFactory extends TypeFactory {
 
     @Override
     public ExprGenerator mallocExpression(ExprGenerator size) {
-      return new MallocGenerator(type.jvmType(), type.sizeOf(), size);
+      return new MallocGenerator(arrayPtrType,  type.jvmType(), type.sizeOf(), size);
     }
   }
 

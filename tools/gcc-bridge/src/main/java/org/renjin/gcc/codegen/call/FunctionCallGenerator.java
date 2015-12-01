@@ -3,13 +3,9 @@ package org.renjin.gcc.codegen.call;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.FunctionGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.param.ParamGenerator;
-import org.renjin.gcc.gimple.type.GimpleBooleanType;
-import org.renjin.gcc.gimple.type.GimpleIntegerType;
-import org.renjin.gcc.gimple.type.GimpleRealType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 import java.util.List;
@@ -50,30 +46,26 @@ public class FunctionCallGenerator implements CallGenerator {
   }
 
   @Override
-  public Type returnType() {
-    return functionGenerator.getReturnGenerator().getType();
+  public void emitCallAndPopResult(MethodVisitor mv, List<ExprGenerator> argumentGenerators) {
+    emitCall(mv, argumentGenerators);
+    switch (functionGenerator.getReturnGenerator().getType().getSize()) {
+      case 0:
+        // NOOP
+        break;
+      case 1:
+        mv.visitInsn(Opcodes.POP);
+        break;
+      case 2:
+        mv.visitInsn(Opcodes.POP2);
+        break;
+      default:
+        throw new UnsupportedOperationException();
+    }
+    
   }
 
   @Override
-  public GimpleType getGimpleReturnType() {
-    Type returnType = returnType();    
-    if(returnType.equals(Type.INT_TYPE)) {
-      return new GimpleIntegerType(32);
-    } else if(returnType.equals(Type.LONG_TYPE)) {
-      return new GimpleIntegerType(64);
-    } else if(returnType.equals(Type.FLOAT_TYPE)) {
-      return new GimpleRealType(32);
-    } else if(returnType.equals(Type.DOUBLE_TYPE)) {
-      return new GimpleRealType(64);
-    } else if(returnType.equals(Type.BOOLEAN_TYPE)) {
-      return new GimpleBooleanType();
-    } else {
-      throw new UnsupportedOperationException("returnType: " + returnType);
-    }
-  } 
-
-  @Override
-  public ExprGenerator expressionGenerator(List<ExprGenerator> argumentGenerators) {
+  public ExprGenerator expressionGenerator(GimpleType returnType, List<ExprGenerator> argumentGenerators) {
     return functionGenerator.getReturnGenerator().callExpression(this, argumentGenerators);
   }
 

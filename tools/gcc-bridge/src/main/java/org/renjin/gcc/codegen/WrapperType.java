@@ -22,6 +22,7 @@ public class WrapperType {
   private static final List<WrapperType> TYPES = ImmutableList.of(
       new WrapperType(BytePtr.class),
       new WrapperType(IntPtr.class),
+      new WrapperType(ShortPtr.class),
       new WrapperType(LongPtr.class),
       new WrapperType(BooleanPtr.class),
       new WrapperType(CharPtr.class),

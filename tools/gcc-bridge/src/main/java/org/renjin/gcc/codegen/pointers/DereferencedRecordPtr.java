@@ -2,36 +2,29 @@ package org.renjin.gcc.codegen.pointers;
 
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.renjin.gcc.codegen.RecordClassGenerator;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
-/**
- * Generates the value of a primitive pointer, such as {@code double*}, dereferenced
- * from the provided pointer generator.
- */
-public class DereferencedPrimitivePtr extends AbstractExprGenerator {
-  
-  private ExprGenerator pointerPointer;
-  private WrapperType wrapperType;
 
-  public DereferencedPrimitivePtr(ExprGenerator pointerPointer) {
+public class DereferencedRecordPtr extends AbstractExprGenerator {
+  
+  private RecordClassGenerator recordClassGenerator;
+  private ExprGenerator pointerPointer;
+
+  public DereferencedRecordPtr(RecordClassGenerator recordClassGenerator, ExprGenerator pointerPointer) {
+    this.recordClassGenerator = recordClassGenerator;
     this.pointerPointer = pointerPointer;
-    this.wrapperType = WrapperType.of(pointerPointer.getGimpleType().getBaseType().getBaseType());
   }
 
   @Override
   public GimpleType getGimpleType() {
-    return pointerPointer.getGimpleType().getBaseType();
+    return new GimplePointerType(recordClassGenerator.getGimpleType());
   }
-
-
-  @Override
-  public ExprGenerator pointerPlus(ExprGenerator offsetInBytes) {
-    return new PrimitivePtrPlus(this, offsetInBytes);
-  }
-
+  
   @Override
   public ExprGenerator addressOf() {
     return pointerPointer;
@@ -53,11 +46,13 @@ public class DereferencedPrimitivePtr extends AbstractExprGenerator {
   @Override
   public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
     emitPushPointerWrapper(mv);
-    wrapperType.emitUnpackArrayAndOffset(mv);
+    WrapperType.OBJECT_PTR.emitUnpackArrayAndOffset(mv);
   }
 
   @Override
-  public ExprGenerator valueOf() {
-    return new DereferencedPrimitiveValue(this);
+  public void emitPushRecordRef(MethodVisitor mv) {
+    emitPushPtrArrayAndOffset(mv);
+    mv.visitInsn(Opcodes.AALOAD);
+    mv.visitTypeInsn(Opcodes.CHECKCAST, recordClassGenerator.getType().getInternalName());
   }
 }

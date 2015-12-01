@@ -4,11 +4,9 @@ import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.gimple.GimpleBasicBlock;
-import org.renjin.gcc.gimple.expr.GimpleExpr;
-import org.renjin.gcc.gimple.expr.GimpleOpExpr;
-import org.renjin.gcc.gimple.expr.GimpleSymbolRef;
-import org.renjin.gcc.gimple.expr.GimpleVariableRef;
+import org.renjin.gcc.gimple.expr.*;
 import org.renjin.gcc.gimple.ins.GimpleAssign;
+import org.renjin.gcc.gimple.ins.GimpleCall;
 import org.renjin.gcc.gimple.ins.GimpleIns;
 
 import java.util.Iterator;
@@ -33,6 +31,12 @@ public class StatementNode {
       GimpleAssign assignment = (GimpleAssign) statement;
       if(assignment.getLHS() instanceof GimpleVariableRef) {
         return (GimpleVariableRef)assignment.getLHS();
+      }
+    }
+    if(statement instanceof GimpleCall) {
+      GimpleCall call = (GimpleCall) statement;
+      if(call.getLhs() instanceof GimpleVariableRef) {
+        return (GimpleVariableRef) call.getLhs();
       }
     }
     return null;
@@ -114,16 +118,19 @@ public class StatementNode {
         case MEM_REF:
         case ADDR_EXPR:
           // Can only unwrap if casting is not required
-          if(assignment.getOperands().get(0).getType().equals(assignment.getLHS().getType())) {
+          if (assignment.getOperands().get(0).getType().equals(assignment.getLHS().getType())) {
             return assignment.getOperands().get(0);
           }
-        
+
         default:
           GimpleOpExpr expr = new GimpleOpExpr(assignment.getOperator(), assignment.getOperands());
           expr.setType(assignment.getLHS().getType());
           expr.setLine(getLhs().getLine());
-          return expr;        
+          return expr;
       }
+    } else if(statement instanceof GimpleCall) {
+      GimpleCall call = (GimpleCall) statement;
+      return new GimpleCallExpr(call);
     } else {
       throw new InternalCompilerException();
     }

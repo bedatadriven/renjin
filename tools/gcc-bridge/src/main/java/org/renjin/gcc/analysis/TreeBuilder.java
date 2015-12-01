@@ -35,9 +35,11 @@ public class TreeBuilder implements FunctionBodyTransformer {
     if(!basicBlock.isEmpty()) {
       Set<Integer> variablesToNest = findUnnamedSingleUseVariable(function);
 
+      System.out.println(basicBlock);
+      
       StatementNode head = StatementNode.createLinkedList(basicBlock);
       StatementNode current = head.firstDefinition();
-
+      
       while (current != null) {
         GimpleVariableRef var = current.getLhs();
         if (var != null && variablesToNest.contains(var.getId())) {
@@ -75,9 +77,9 @@ public class TreeBuilder implements FunctionBodyTransformer {
     Set<Integer> usedOnce = new HashSet<>();
 
     for (GimpleVarDecl decl : function.getVariableDeclarations()) {
-      if(!decl.isNamed()) {
+     // if(!decl.isNamed()) {
         localVariables.add(decl.getId());
-      }
+     // }
     }
 
     for (GimpleBasicBlock basicBlock : function.getBasicBlocks()) {

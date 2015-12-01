@@ -4,6 +4,14 @@ public class ObjectPtr<T> implements Ptr {
   public Object[] array;
   public int offset;
 
+  /**
+   * Constructs a new ObjectPtr to a single value.
+   */
+  public ObjectPtr(T value) {
+    array = new Object[] { value };
+    offset = 0;
+  }
+  
   public ObjectPtr(Object[] array, int offset) {
     this.array = array;
     this.offset = offset;

@@ -86,6 +86,9 @@ public class GimpleIntegerType extends GimplePrimitiveType {
       
     } else if(precision == 8) {
       return Type.BYTE_TYPE;
+
+    } else if(precision == 16) {
+      return Type.SHORT_TYPE;
       
     } else {
       return Type.INT_TYPE;

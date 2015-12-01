@@ -2,11 +2,9 @@ package org.renjin.gcc.codegen.expr;
 
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.gimple.type.GimpleType;
-import org.renjin.gcc.gimple.type.GimpleVoidType;
 
 import java.util.List;
 
@@ -29,17 +27,12 @@ public class FreeCallGenerator implements CallGenerator {
   }
 
   @Override
-  public Type returnType() {
-    return Type.VOID_TYPE;
+  public void emitCallAndPopResult(MethodVisitor visitor, List<ExprGenerator> argumentGenerators) {
+    emitCall(visitor, argumentGenerators);
   }
 
   @Override
-  public GimpleType getGimpleReturnType() {
-    return new GimpleVoidType();
-  }
-
-  @Override
-  public ExprGenerator expressionGenerator(List<ExprGenerator> argumentGenerators) {
+  public ExprGenerator expressionGenerator(GimpleType returnType, List<ExprGenerator> argumentGenerators) {
     throw new UnsupportedOperationException();
   }
 }

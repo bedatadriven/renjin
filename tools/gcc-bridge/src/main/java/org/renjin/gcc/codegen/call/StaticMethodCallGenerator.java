@@ -72,6 +72,22 @@ public class StaticMethodCallGenerator implements CallGenerator {
         method.getName(), Type.getMethodDescriptor(method), false);
   }
 
+  @Override
+  public void emitCallAndPopResult(MethodVisitor mv, List<ExprGenerator> argumentGenerators) {
+    emitCall(mv, argumentGenerators);
+    switch (Type.getReturnType(method).getSize()) {
+      case 0:
+        // NOOP
+        break;
+      case 1:
+        mv.visitInsn(Opcodes.POP);
+        break;
+      case 2:
+        mv.visitInsn(Opcodes.POP2);
+        break;
+    }
+  }
+
   private void pushVarArg(MethodVisitor mv, ExprGenerator exprGenerator) {
     GimpleType type = exprGenerator.getGimpleType();
     if(type instanceof GimplePrimitiveType) {
@@ -114,17 +130,7 @@ public class StaticMethodCallGenerator implements CallGenerator {
   }
 
   @Override
-  public Type returnType() {
-    return returnGenerator().getType();
-  }
-
-  @Override
-  public GimpleType getGimpleReturnType() {
-    return returnGenerator().getGimpleType();
-  }
-
-  @Override
-  public ExprGenerator expressionGenerator(List<ExprGenerator> argumentGenerators) {
+  public ExprGenerator expressionGenerator(GimpleType returnType, List<ExprGenerator> argumentGenerators) {
     return returnGenerator().callExpression(this, argumentGenerators);
   }
 }

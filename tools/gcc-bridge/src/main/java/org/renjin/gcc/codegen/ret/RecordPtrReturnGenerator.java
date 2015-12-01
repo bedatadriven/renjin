@@ -70,6 +70,19 @@ public class RecordPtrReturnGenerator implements ReturnGenerator {
       callGenerator.emitCall(mv, arguments);
       // Record ref is now on stack
     }
+
+    @Override
+    public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+      mv.visitInsn(Opcodes.ICONST_0);
+      mv.visitTypeInsn(Opcodes.ANEWARRAY, recordClassGenerator.getType().getInternalName());
+      mv.visitInsn(Opcodes.DUP);
+      mv.visitInsn(Opcodes.ICONST_0);
+      mv.visitTypeInsn(Opcodes.NEW, recordClassGenerator.getType().getInternalName());
+      mv.visitInsn(Opcodes.DUP);
+      mv.visitMethodInsn(Opcodes.INVOKESPECIAL, recordClassGenerator.getType().getInternalName(), "<init>", "()V", false);
+      mv.visitInsn(Opcodes.AASTORE);
+      mv.visitInsn(Opcodes.ICONST_0);
+    }
   }
   
 }

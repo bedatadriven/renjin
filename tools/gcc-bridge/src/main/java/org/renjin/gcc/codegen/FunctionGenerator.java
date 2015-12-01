@@ -10,7 +10,6 @@ import org.renjin.gcc.codegen.call.MallocGenerator;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.expr.ReallocExpr;
 import org.renjin.gcc.codegen.param.ParamGenerator;
 import org.renjin.gcc.codegen.ret.ReturnGenerator;
 import org.renjin.gcc.codegen.type.TypeFactory;
@@ -234,14 +233,7 @@ public class FunctionGenerator {
 
     if(MallocGenerator.isMalloc(ins.getFunction())) {
       emitMalloc(ins);
-
-    } else if(MallocGenerator.isRealloc(ins.getFunction())) {
-      emitRealloc(ins);
       
-    } else if(MallocGenerator.isFree(ins.getFunction())) {
-      // NO OP
-      // We have a garbage collector, muwahaha :-)
-
     } else {
       List<ExprGenerator> arguments = new ArrayList<ExprGenerator>();
       for (GimpleExpr argumentExpr : ins.getArguments()) {
@@ -252,31 +244,17 @@ public class FunctionGenerator {
       
       if(ins.getLhs() == null) {
         // call the function for its side effects
-        callGenerator.emitCall(mv, arguments);
-        discardReturnValue(mv, callGenerator.returnType());
+        callGenerator.emitCallAndPopResult(mv, arguments);
         
       } else {
         ExprGenerator lhs = exprFactory.findGenerator(ins.getLhs());
-        ExprGenerator callResult =  callGenerator.expressionGenerator(arguments);
+        ExprGenerator callResult =  callGenerator.expressionGenerator(ins.getLhs().getType(), arguments);
         
         lhs.emitStore(mv, exprFactory.maybeCast(callResult, lhs.getGimpleType()));
       }
     }
   }
 
-
-  private void discardReturnValue(MethodVisitor mv, Type type) {
-    if(!type.equals(Type.VOID_TYPE)) {
-      int stackSize = type.getSize();
-      if(stackSize == 1) {
-        mv.visitInsn(Opcodes.POP);
-      } else if(stackSize == 2) {
-        mv.visitInsn(Opcodes.POP2);
-      } else {
-        throw new InternalCompilerException("Unexpected size: " + stackSize);
-      }
-    }
-  }
 
   private void emitMalloc(GimpleCall ins) {
     ExprGenerator lhs = exprFactory.findGenerator(ins.getLhs());
@@ -285,14 +263,6 @@ public class FunctionGenerator {
     lhs.emitStore(mv, generatorFactory.forType(lhs.getGimpleType()).mallocExpression(size) );
   }
 
-
-  private void emitRealloc(GimpleCall ins) {
-    ExprGenerator lhs = exprFactory.findGenerator(ins.getLhs());
-    ExprGenerator ptr = exprFactory.findGenerator(ins.getArguments().get(0));
-    ExprGenerator size = exprFactory.findGenerator(ins.getArguments().get(1));
-
-    lhs.emitStore(mv, new ReallocExpr(ptr, size));
-  }
 
   private void emitReturn(GimpleReturn ins) {
     if(ins.getValue() == null) {

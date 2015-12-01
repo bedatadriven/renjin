@@ -42,11 +42,6 @@ public class PrimitivePtrVarGenerator extends AbstractExprGenerator implements V
 
   @Override
   public void emitDefaultInit(MethodVisitor mv, Optional<ExprGenerator> initialValue) {
-//    mv.visitInsn(Opcodes.ACONST_NULL);
-//    mv.visitVarInsn(ASTORE, arrayVariableIndex);
-//    mv.visitInsn(Opcodes.ICONST_0);
-//    mv.visitVarInsn(ISTORE, offsetVariableIndex);
-//    
     if(initialValue.isPresent()) {
       emitStore(mv, initialValue.get());
     }

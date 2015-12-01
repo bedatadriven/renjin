@@ -30,4 +30,8 @@ public class InternalCompilerException extends RuntimeException {
   public InternalCompilerException(FunctionGenerator functionGenerator, Exception e) {
     this(functionGenerator.getFunction(), e);
   }
+
+  public InternalCompilerException(Exception e) {
+    super(e);
+  }
 }

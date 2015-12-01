@@ -7,6 +7,8 @@ import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.pointers.DereferencedPrimitiveValue;
+import org.renjin.gcc.codegen.pointers.PrimitivePtrPlus;
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
@@ -77,7 +79,7 @@ public class PrimitivePtrReturnGenerator implements ReturnGenerator {
       callGenerator.emitCall(mv, arguments);
     
     }
-
+    
     @Override
     public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
    
@@ -99,6 +101,16 @@ public class PrimitivePtrReturnGenerator implements ReturnGenerator {
       mv.visitFieldInsn(GETFIELD, wrapperType.getWrapperType().getInternalName(), "offset", "I");
 
       // stack: [ array, offset ]
+    }
+
+    @Override
+    public ExprGenerator pointerPlus(ExprGenerator offsetInBytes) {
+      return new PrimitivePtrPlus(this, offsetInBytes);
+    }
+
+    @Override
+    public ExprGenerator valueOf() {
+      return new DereferencedPrimitiveValue(this);
     }
   }
 }

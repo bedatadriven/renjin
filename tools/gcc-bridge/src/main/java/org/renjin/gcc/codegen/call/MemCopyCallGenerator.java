@@ -7,7 +7,6 @@ import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.ret.VoidReturnGenerator;
 import org.renjin.gcc.gimple.type.GimpleType;
-import org.renjin.gcc.gimple.type.GimpleVoidType;
 
 import java.util.List;
 
@@ -43,17 +42,12 @@ public class MemCopyCallGenerator implements CallGenerator {
   }
 
   @Override
-  public Type returnType() {
-    return Type.VOID_TYPE;
+  public void emitCallAndPopResult(MethodVisitor mv, List<ExprGenerator> argumentGenerators) {
+    emitCall(mv, argumentGenerators);
   }
 
   @Override
-  public GimpleType getGimpleReturnType() {
-    return new GimpleVoidType();
-  }
-
-  @Override
-  public ExprGenerator expressionGenerator(List<ExprGenerator> argumentGenerators) {
+  public ExprGenerator expressionGenerator(GimpleType returnType, List<ExprGenerator> argumentGenerators) {
     return new VoidReturnGenerator().callExpression(this, argumentGenerators);
   }
 }

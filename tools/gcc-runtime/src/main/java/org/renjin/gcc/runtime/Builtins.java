@@ -120,68 +120,43 @@ public class Builtins {
     // TODO
   }
 
+  @Deprecated
   public static double[] realloc(double[] p, int offset, int newCount) {
-    double[] np = new double[newCount];
-    if(p != null) {
-      System.arraycopy(p, offset, np, 0, Math.min(p.length - offset, newCount));
-    }
-    return np;
+    return Realloc.realloc(p, offset, newCount);
   }
 
+  @Deprecated
   public static int[] realloc(int[] p, int offset, int newCount) {
-    int[] np = new int[newCount];
-    if(p != null) {
-      System.arraycopy(p, offset, np, 0, Math.min(p.length - offset, newCount));
-    }
-    return np;
+    return Realloc.realloc(p, offset, newCount);
   }
 
+  @Deprecated
   public static long[] realloc(long[] p, int offset, int newCount) {
-    long[] np = new long[newCount];
-    if(p != null) {
-      System.arraycopy(p, offset, np, 0, Math.min(p.length - offset, newCount));
-    }
-    return np;
+    return Realloc.realloc(p, offset, newCount);
   }
-  
+
+  @Deprecated
   public static boolean[] realloc(boolean[] p, int offset, int newCount) {
-    boolean[] np = new boolean[newCount];
-    if(p != null) {
-      System.arraycopy(p, offset, np, 0, Math.min(p.length - offset, newCount));
-    }
-    return np;
+    return Realloc.realloc(p, offset, newCount);
   }
-  
+
+  @Deprecated
   public static float[] realloc(float[] p, int offset, int newCount) {
-    float[] np = new float[newCount];
-    if(p != null) {
-      System.arraycopy(p, offset, np, 0, Math.min(p.length - offset, newCount));
-    }
-    return np;
+    return Realloc.realloc(p, offset, newCount);
   }
 
+  @Deprecated
   public static short[] realloc(short[] p, int offset, int newCount) {
-    short[] np = new short[newCount];
-    if(p != null) {
-      System.arraycopy(p, offset, np, 0, Math.min(p.length - offset, newCount));
-    }
-    return np;
+    return Realloc.realloc(p, offset, newCount);
   }
 
+  @Deprecated
   public static byte[] realloc(byte[] p, int offset, int newCount) {
-    byte[] np = new byte[newCount];
-    if(p != null) {
-      System.arraycopy(p, offset, np, 0, Math.min(p.length - offset, newCount));
-    }
-    return np;
+    return Realloc.realloc(p, offset, newCount);
   }
 
+  @Deprecated
   public static Object[] realloc(Object[] p, int offset, int newCount) {
-    Object[] np = new Object[newCount];
-    if(p != null) {
-      System.arraycopy(p, offset, np, 0, Math.min(p.length - offset, newCount));
-    }
-    return np;
+    return Realloc.realloc(p, offset, newCount);
   }
-
 }

@@ -665,4 +665,13 @@ public class GimpleCompilerTest extends AbstractGccTest {
 
     assertThat(message.nullTerminatedString(), equalTo("Hello Bob, you have 99 messages"));
   }
+  
+  @Test
+  public void ctypes() throws Exception {
+    Class clazz = compile("ctype.c");
+    Method countWhitespace = clazz.getMethod("count_whitespace", BytePtr.class);
+    assertThat((Integer)countWhitespace.invoke(null, 
+        BytePtr.nullTerminatedString("Hello World!", Charsets.US_ASCII)), equalTo(1));
+    
+  }
 }

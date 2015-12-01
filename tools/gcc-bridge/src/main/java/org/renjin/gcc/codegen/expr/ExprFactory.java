@@ -15,6 +15,7 @@ import org.renjin.gcc.gimple.expr.*;
 import org.renjin.gcc.gimple.type.*;
 import org.renjin.gcc.symbols.SymbolTable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -93,6 +94,11 @@ public class ExprFactory {
       GimpleOpExpr opExpr = (GimpleOpExpr) expr;
       return findGenerator(opExpr.getOp(), opExpr.getOperands(), opExpr.getType());
 
+    } else if(expr instanceof GimpleCallExpr) {
+      // Another artificial node for nested calls
+      GimpleCallExpr callExpr = (GimpleCallExpr) expr;
+      return findCallExpression(callExpr.getType(), callExpr.getFunction(), callExpr.getArguments());
+      
     } else if(expr instanceof GimpleMemRef) {
       ExprGenerator pointerExpr = findGenerator(((GimpleMemRef) expr).getPointer());
       ExprGenerator offsetExpr = findGenerator(((GimpleMemRef) expr).getOffset());
@@ -126,6 +132,16 @@ public class ExprFactory {
       return valueExprGenerator.memberOf(componentRef.memberName());
     }
     throw new UnsupportedOperationException(expr + " [" + expr.getClass().getSimpleName() + "]");
+  }
+
+  private ExprGenerator findCallExpression(GimpleType returnType, GimpleExpr function, List<GimpleExpr> argumentExprs) {
+    List<ExprGenerator> arguments = new ArrayList<>();
+    for (GimpleExpr argumentExpr : argumentExprs) {
+      arguments.add(findGenerator(argumentExpr));
+    }
+
+    CallGenerator callGenerator = findCallGenerator(function); 
+    return callGenerator.expressionGenerator(returnType, arguments);
   }
 
   private ExprGenerator forConstructor(GimpleConstructor expr) {

@@ -12,7 +12,7 @@ public class GimpleComponentRef extends GimpleLValue {
   public GimpleExpr getValue() {
     return value;
   }
-  
+
   public void setMember(GimpleExpr member) {
     this.member = member;
   }
@@ -39,12 +39,20 @@ public class GimpleComponentRef extends GimpleLValue {
     if(predicate.apply(value)) {
       value = replacement;
       return true;
-    } else if(predicate.apply(member)) {
+    }
+    if(value.replace(predicate, replacement)) {
+      return true;
+    }
+
+    if(predicate.apply(member)) {
       member = replacement;
       return true;
-    } else {
-      return false;
     }
+    if(member.replace(predicate, replacement)) {
+      return true;
+    }
+    
+    return false;
   }
 
   @Override

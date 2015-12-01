@@ -3,7 +3,6 @@ package org.renjin.gcc.codegen.call;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
-import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.expr.PrimitiveConstValueGenerator;
@@ -19,6 +18,7 @@ import static org.objectweb.asm.Opcodes.IDIV;
  * Generates a {@code malloc} call
  */
 public class MallocGenerator extends AbstractExprGenerator implements ExprGenerator {
+  private GimpleType gimpleType;
   private Type elementType;
   private int elementSize;
   private final ExprGenerator totalSizeGenerator;
@@ -29,7 +29,8 @@ public class MallocGenerator extends AbstractExprGenerator implements ExprGenera
    * @param baseTypeSize the size, in bytes of the original Gimple base type
    * @param sizeGenerator an expression generator for the total number of bytes to allocate
    */
-  public MallocGenerator(Type baseType, int baseTypeSize, ExprGenerator sizeGenerator) {
+  public MallocGenerator(GimpleType gimpleType, Type baseType, int baseTypeSize, ExprGenerator sizeGenerator) {
+    this.gimpleType = gimpleType;
     this.elementType = baseType;
     this.elementSize = baseTypeSize;
     this.totalSizeGenerator = sizeGenerator;
@@ -40,14 +41,6 @@ public class MallocGenerator extends AbstractExprGenerator implements ExprGenera
            isFunctionNamed(functionExpr, "__builtin_malloc");
   }
 
-
-  public static boolean isFree(GimpleExpr functionExpr) {
-    return isFunctionNamed(functionExpr, "__builtin_free");
-  }
-  
-  public static boolean isRealloc(GimpleExpr functionExpr) {
-    return isFunctionNamed(functionExpr, "realloc");
-  }
 
   private static boolean isFunctionNamed(GimpleExpr functionExpr, String name) {
     if (functionExpr instanceof GimpleAddressOf) {
@@ -103,14 +96,9 @@ public class MallocGenerator extends AbstractExprGenerator implements ExprGenera
     }
   }
 
-  @Override
-  public WrapperType getPointerType() {
-    return super.getPointerType();
-  }
 
   @Override
   public GimpleType getGimpleType() {
-    throw new UnsupportedOperationException();
+    return gimpleType;
   }
-
 }

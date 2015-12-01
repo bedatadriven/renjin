@@ -2,9 +2,11 @@ package org.renjin.gcc.codegen.type;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.LocalVarAllocator;
 import org.renjin.gcc.codegen.RecordClassGenerator;
+import org.renjin.gcc.codegen.call.MallocGenerator;
 import org.renjin.gcc.codegen.call.RecordMallocGenerator;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
@@ -12,11 +14,14 @@ import org.renjin.gcc.codegen.field.*;
 import org.renjin.gcc.codegen.param.ParamGenerator;
 import org.renjin.gcc.codegen.param.RecordPtrParamGenerator;
 import org.renjin.gcc.codegen.param.RecordPtrPtrParamGenerator;
+import org.renjin.gcc.codegen.ret.RecordPtrPtrReturnGenerator;
 import org.renjin.gcc.codegen.ret.RecordPtrReturnGenerator;
 import org.renjin.gcc.codegen.ret.ReturnGenerator;
 import org.renjin.gcc.codegen.var.*;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
+import org.renjin.gcc.gimple.type.GimplePointerType;
+import org.renjin.gcc.runtime.ObjectPtr;
 
 import java.util.List;
 import java.util.Map;
@@ -159,7 +164,24 @@ public class RecordTypeFactory extends TypeFactory {
     public ParamGenerator paramGenerator() {
       return new RecordPtrPtrParamGenerator(generator);
     }
-    
-    
+
+    @Override
+    public VarGenerator varGenerator(LocalVarAllocator allocator) {
+      return new RecordPtrPtrVarGenerator(generator, allocator.reserveObject(), allocator.reserveInt());
+    }
+
+    @Override
+    public ExprGenerator mallocExpression(ExprGenerator size) {
+      return new MallocGenerator(
+          generator.getGimpleType().pointerTo().pointerTo(),
+          Type.getType(ObjectPtr.class), 
+          GimplePointerType.SIZE_OF, 
+          size);
+    }
+
+    @Override
+    public ReturnGenerator returnGenerator() {
+      return new RecordPtrPtrReturnGenerator();
+    }
   }
 }

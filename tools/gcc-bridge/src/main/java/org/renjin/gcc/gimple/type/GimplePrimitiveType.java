@@ -36,6 +36,9 @@ public abstract class GimplePrimitiveType extends AbstractGimpleType {
       } else if(type.equals(Type.CHAR_TYPE)) {
         throw new UnsupportedOperationException("???");
 
+      } else if(type.equals(Type.SHORT_TYPE)) {
+        return new GimpleIntegerType(16);
+        
       } else if(type.equals(Type.BYTE_TYPE)) {
         return new GimpleIntegerType(8);
 

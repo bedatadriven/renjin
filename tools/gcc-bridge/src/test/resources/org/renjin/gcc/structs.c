@@ -38,4 +38,15 @@ double test_malloc() {
   return account_value(pa);
 }
 
+account** test_pointer_pointer(int n) {
+  account **pa = malloc(n * sizeof(account*));
+  int i;
+  for(i=0;i<n;++i) {
+    pa[i] = malloc(sizeof(account));
+    pa[i]->years_open = i;
+    pa[i]->plan_type = 2;
+  }
+  return pa;
+}
+
 

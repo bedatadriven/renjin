@@ -56,23 +56,35 @@ public class FunPtrCallGenerator implements CallGenerator {
     mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/invoke/MethodHandle", "invoke", signature(types), false);
   }
 
+  @Override
+  public void emitCallAndPopResult(MethodVisitor mv, List<ExprGenerator> argumentGenerators) {
+    emitCall(mv, argumentGenerators);
+    switch (returnGenerator.getType().getSize()) {
+      case 0:
+        // NOOP;
+        break;
+      case 1:
+        mv.visitInsn(Opcodes.POP);
+        break;
+      case 2:
+        mv.visitInsn(Opcodes.POP2);
+        break;
+      default:
+        throw new UnsupportedOperationException();
+    }
+  }
+
   private String signature(List<Type> types) {
     return Type.getMethodDescriptor(returnType(), types.toArray(new Type[types.size()]));
   }
 
   @Override
-  public ExprGenerator expressionGenerator(List<ExprGenerator> argumentGenerators) {
+  public ExprGenerator expressionGenerator(GimpleType returnType, List<ExprGenerator> argumentGenerators) {
     return returnGenerator.callExpression(this, argumentGenerators);
   }
   
-  @Override
-  public Type returnType() {
+  private Type returnType() {
     return returnGenerator.getType();
-  }
-
-  @Override
-  public GimpleType getGimpleReturnType() {
-    return functionType.getReturnType();
   }
 
 }

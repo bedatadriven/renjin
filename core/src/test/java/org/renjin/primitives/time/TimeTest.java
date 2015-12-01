@@ -38,6 +38,12 @@ public class TimeTest extends EvalTestCase {
   }
   
   @Test
+  public void seq() {
+    eval("length(seq(from=Sys.Date(),to = as.Date('2017-01-01'), by = 'month'))");
+    
+  }
+  
+  @Test
   public void timeZones() {
     eval("t <- .Internal(strptime('2011-11-06 09:27', '%Y-%m-%d %H:%M', tz='HST'))");
     assertThat(eval("t$hour"), equalTo(c_i(9)));

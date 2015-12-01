@@ -2,6 +2,7 @@ package org.renjin.primitives.time;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.renjin.eval.EvalException;
 import org.renjin.sexp.*;
 
 
@@ -21,23 +22,23 @@ public class PosixLtVector extends TimeVector {
   public static final String SECOND_FIELD = "sec";
   
   private final ListVector vector;
-  private final IntVector seconds;
-  private final IntVector minutes;
-  private final IntVector hours;
-  private final IntVector daysOfMonth;
-  private final IntVector monthsOfYear;
-  private final IntVector years;
+  private final AtomicVector seconds;
+  private final AtomicVector minutes;
+  private final AtomicVector hours;
+  private final AtomicVector daysOfMonth;
+  private final AtomicVector monthsOfYear;
+  private final AtomicVector years;
   
   private final DateTimeZone timeZone;
   
   public PosixLtVector(ListVector x) {
     this.vector = x;
-    seconds = (IntVector)vector.getElementAsSEXP(x.getIndexByName(SECOND_FIELD));
-    minutes = (IntVector)vector.getElementAsSEXP(x.getIndexByName(MINUTE_FIELD));
-    hours = (IntVector)vector.getElementAsSEXP(x.getIndexByName(HOUR_FIELD));
-    monthsOfYear = (IntVector)vector.getElementAsSEXP(x.getIndexByName(MONTH_FIELD));
-    daysOfMonth = (IntVector)vector.getElementAsSEXP(x.getIndexByName(DAY_OF_MONTH_FIELD));
-    years = (IntVector)vector.getElementAsSEXP(x.getIndexByName(YEAR_FIELD));    
+    seconds = getElementAsVector(x, SECOND_FIELD);
+    minutes = getElementAsVector(x, MINUTE_FIELD);
+    hours = getElementAsVector(x, HOUR_FIELD);
+    monthsOfYear = getElementAsVector(x, MONTH_FIELD);
+    daysOfMonth = getElementAsVector(x, DAY_OF_MONTH_FIELD);
+    years = getElementAsVector(x, YEAR_FIELD);    
     
     Vector tzoneAttribute = (Vector) vector.getAttribute(Symbols.TZONE);
     if(tzoneAttribute.length() >= 1) {
@@ -46,7 +47,16 @@ public class PosixLtVector extends TimeVector {
       timeZone = DateTimeZone.getDefault();
     }
   }
-  
+
+  private AtomicVector getElementAsVector(ListVector x, String fieldName) {
+    SEXP sexp = vector.getElementAsSEXP(x.getIndexByName(fieldName));
+    if(!(sexp instanceof IntVector) && !(sexp instanceof DoubleVector)) {
+      throw new EvalException("Expected element '%s' to be of type integer or numeric, was %s", 
+          fieldName, sexp.getTypeName());
+    }
+    return (AtomicVector) sexp;
+  }
+
   @Override
   public int length() {
     return seconds.length();

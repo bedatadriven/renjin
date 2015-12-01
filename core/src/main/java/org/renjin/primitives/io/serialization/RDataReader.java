@@ -42,10 +42,12 @@ import java.nio.channels.ReadableByteChannel;
 import java.util.List;
 
 import static org.renjin.primitives.io.serialization.SerializationFormat.*;
+import static org.renjin.sexp.SexpType.LANGSXP;
+import static org.renjin.sexp.SexpType.LISTSXP;
 
 
 public class RDataReader {
-  
+
   private InputStream conn;
   private StreamReader in;
 
@@ -67,7 +69,7 @@ public class RDataReader {
     this(context, conn);
     this.restorer = restorer;
   }
-  
+
   public RDataReader(InputStream conn) {
     this.readContext = new NullReadContext();
     this.conn = conn;
@@ -95,7 +97,7 @@ public class RDataReader {
       }
     }
   }
-  
+
   public static boolean isRDataFile(ByteSource inputSupplier) throws IOException {
     InputStream in = inputSupplier.openStream();
     try {
@@ -105,12 +107,12 @@ public class RDataReader {
       Closeables.closeQuietly(in);
     }
   }
-  
+
   public static byte readStreamType(InputStream in) throws IOException {
     byte bytes[] = new byte[7];
     bytes[0] = (byte) in.read();
     bytes[1] = (byte) in.read();
-    
+
     if(bytes[1] == '\n') {
       switch(bytes[0]) {
         case XDR_FORMAT:
@@ -179,9 +181,9 @@ public class RDataReader {
         return readNamespace();
       case SexpType.ENVSXP:
         return readEnv(flags);
-      case SexpType.LISTSXP:
+      case LISTSXP:
         return readPairList(flags);
-      case SexpType.LANGSXP:
+      case LANGSXP:
         return readLangExp(flags);
       case SexpType.CLOSXP:
         return readClosure(flags);
@@ -213,7 +215,7 @@ public class RDataReader {
       case SexpType.EXPRSXP:
         return readExpExp(flags);
       case SexpType.BCODESXP:
-        throw new IOException("Byte code expressions are not supported.");
+        return readBytecode(flags);
       case CLASSREFSXP:
         throw new IOException("this version of R cannot read class references");
       case GENERICREFSXP:
@@ -224,9 +226,10 @@ public class RDataReader {
         return readS4XP(flags);
       default:
         throw new IOException(String.format("ReadItem: unknown type %d, perhaps written by later version of R",
-          Flags.getType(flags)));
+            Flags.getType(flags)));
     }
   }
+
 
 
   private SEXP rawRawVector(int flags) throws IOException {
@@ -264,6 +267,125 @@ public class RDataReader {
     SEXP function = readExp();
     PairList arguments = (PairList) readExp();
     return new FunctionCall(function, arguments, attributes);
+  }
+
+  /**
+   * Reads a GNU R Byte code object.
+   * 
+   * <p>Renjin does not use the GNU R byte code format, but for the purpose of interoperability, 
+   * we want to be able to read in functions byte-code compiled by GNU R. Fortunately, we can do this 
+   * quite simply because the original S-Expression is retained along with the byte code as a constant
+   * pool entry.</p>
+   * 
+   */
+  private SEXP readBytecode(int flags) throws IOException {
+    int nReps = in.readInt();
+    SEXP[] reps = new SEXP[nReps];
+    return readBC1(reps);
+  }
+
+  private SEXP readBC1(SEXP[] reps) throws IOException {
+    // Read (and discard) the byte code, which is encoded as IntVector
+    SEXP code = readExp();
+
+    // Read the constant pool
+    SEXP[] constants = readBytecodeConstants(reps);
+    
+    // The original S-Expression is stored as the first entry in the constant pool.
+    return constants[0];
+  }
+
+  /**
+   * Reads the constant pool associated with a bytecode object.
+   */
+  private SEXP[] readBytecodeConstants(SEXP[] reps) throws IOException {
+    // Read the constant pool, which contains the original SEXP that we're looking for
+    int nEntries = in.readInt();
+    SEXP[] pool = new SEXP[nEntries];
+    for(int i=0; i < nEntries; ++i) {
+      int type = in.readInt();
+      switch (type) {
+        case SexpType.BCODESXP:
+          pool[i] = readBC1(reps);
+          break;
+        case LANGSXP:
+        case LISTSXP:
+        case BCREPDEF:
+        case BCREPREF:
+        case ATTRLANGSXP:
+        case ATTRLISTSXP:
+          pool[i] = readBCLang(type, reps);
+          break;
+        default:
+          pool[i] = readExp();
+      }
+    }
+    return pool;
+  }
+
+  private SEXP readBCLang(int type, SEXP[] reps) throws IOException {
+    switch (type) {
+      case BCREPREF:
+        return reps[in.readInt()];
+      
+      case BCREPDEF:
+      case LANGSXP:
+      case LISTSXP:
+      case ATTRLANGSXP:
+      case ATTRLISTSXP:
+      {
+        PairList.Node ans;
+        int pos = -1;
+        if (type == BCREPDEF) {
+          pos = in.readInt();
+          type = in.readInt();
+        }
+        
+        // Read attributes if defined
+        AttributeMap attributes;
+        switch (type) {
+          case ATTRLANGSXP:
+          case ATTRLISTSXP:
+            attributes = readAttributes();
+            break;
+          
+          default:
+            attributes = AttributeMap.EMPTY;
+            break;
+        }
+        
+        // Create either a function call or a plain pair list
+        switch (type) {
+          case ATTRLANGSXP:
+          case LANGSXP:
+            ans = new FunctionCall(Null.INSTANCE, Null.INSTANCE, attributes);
+            break;
+          case ATTRLISTSXP:
+          case LISTSXP:
+            ans = new PairList.Node(Null.INSTANCE, Null.INSTANCE, attributes, Null.INSTANCE);
+            break;
+          
+          default:
+            throw new UnsupportedOperationException("BCLang type: " + type);
+        }
+        
+        if (pos >= 0) {
+          reps[pos] = ans;
+        }
+
+        ans.setTag(readExp());
+        ans.setValue(readBCLang(in.readInt(), reps));
+        
+        SEXP next = readBCLang(in.readInt(), reps);
+        if(next != Null.INSTANCE) {
+          ans.setNextNode((PairList.Node) next);
+        }
+        return ans;
+      }
+
+      default:
+        return readExp();
+    }
   }
 
   private SEXP readDotExp(int flags) throws IOException {
@@ -305,29 +427,33 @@ public class RDataReader {
 
   private AttributeMap readAttributes(int flags) throws IOException {
     if(Flags.hasAttributes(flags)) {
-      SEXP pairList = readExp();
-      AttributeMap am = AttributeMap.fromPairList((PairList) pairList);
-      SEXP rns = am.get(Symbols.ROW_NAMES);
+      return readAttributes();
+    } else {
+      return AttributeMap.EMPTY;
+    }
+  }
+
+  private AttributeMap readAttributes() throws IOException {
+    SEXP pairList = readExp();
+    AttributeMap am = AttributeMap.fromPairList((PairList) pairList);
+    SEXP rns = am.get(Symbols.ROW_NAMES);
       /* 
        * There is a special case when GNU R serializes a empty 
        * row names vector, it uses an integer vector with two entries, 
        * first is NA, the second is the number of rows.
        */
-      if (rns instanceof IntVector) {
-        IntVector rniv = (IntVector)rns;
-        if (rniv.length() == 2 && rniv.isElementNA(0)) {
-          ConvertingStringVector csv = new ConvertingStringVector(
-              IntSequence.fromTo(1, rniv.getElementAsInt(1)), AttributeMap.EMPTY);
-          AttributeMap.Builder amb = new AttributeMap.Builder();
-          amb.addAllFrom(am);
-          amb.set(Symbols.ROW_NAMES, csv);
-          am = amb.build();
-        }
+    if (rns instanceof IntVector) {
+      IntVector rniv = (IntVector)rns;
+      if (rniv.length() == 2 && rniv.isElementNA(0)) {
+        ConvertingStringVector csv = new ConvertingStringVector(
+            IntSequence.fromTo(1, rniv.getElementAsInt(1)), AttributeMap.EMPTY);
+        AttributeMap.Builder amb = new AttributeMap.Builder();
+        amb.addAllFrom(am);
+        amb.set(Symbols.ROW_NAMES, csv);
+        am = amb.build();
       }
-      return am;
-    } else {
-      return AttributeMap.EMPTY;
     }
+    return am;
   }
 
   private SEXP readPackage() throws IOException {
@@ -382,20 +508,20 @@ public class RDataReader {
 
     Environment env = Environment.createChildEnvironment(Environment.EMPTY);
     addReadRef(env);
-    
+
     boolean locked = in.readInt() == 1;
     SEXP parent = readExp();
     SEXP frame = readExp();
     SEXP hashtab = readExp(); // unused
-    
+
     // NB: environment's attributes is ALWAYS written,
     // regardless of flag
     SEXP attributes = readExp();
 
     env.setParent( parent == Null.INSTANCE ? Environment.EMPTY : (Environment)parent );
     env.setVariables( (PairList) frame );
-    
-    
+
+
     if(locked) {
       env.lock(true);
     }
@@ -608,24 +734,24 @@ public class RDataReader {
             throw new EOFException();
           }
         } while(Character.isWhitespace(codePoint));
-        
+
         for(int i = 0; i < length; i++) {
           if(codePoint == '\\') {
             codePoint = reader.read();
             switch(codePoint) {
-            case 'n': buf[i] = '\n'; break;
-            case 't': buf[i] = '\t'; break;
-            case 'v': buf[i] = '\013'; break;
-            case 'b' : buf[i] = '\b'; break;
-            case 'r' : buf[i] = '\r'; break;
-            case 'f' : buf[i] = '\f'; break;
-            case 'a' : buf[i] = '\007'; break;
-            case '\\': buf[i] = '\\'; break;
-            case '?' : buf[i] = '\177'; break;
-            case '\'': buf[i] = '\''; break;
-            case '\"': buf[i] = '\"'; break; /* closing " for emacs */
-            case '0': case '1': case '2': case '3':
-            case '4': case '5': case '6': case '7':
+              case 'n': buf[i] = '\n'; break;
+              case 't': buf[i] = '\t'; break;
+              case 'v': buf[i] = '\013'; break;
+              case 'b' : buf[i] = '\b'; break;
+              case 'r' : buf[i] = '\r'; break;
+              case 'f' : buf[i] = '\f'; break;
+              case 'a' : buf[i] = '\007'; break;
+              case '\\': buf[i] = '\\'; break;
+              case '?' : buf[i] = '\177'; break;
+              case '\'': buf[i] = '\''; break;
+              case '\"': buf[i] = '\"'; break; /* closing " for emacs */
+              case '0': case '1': case '2': case '3':
+              case '4': case '5': case '6': case '7':
                 int d = 0, j = 0;
                 while('0' <= codePoint && codePoint < '8' && j < 3) {
                   d = d * 8 + (codePoint - '0');
@@ -634,7 +760,7 @@ public class RDataReader {
                 }
                 buf[i] = (byte)d;
                 continue;
-            default  : buf[i] = (byte)codePoint;
+              default  : buf[i] = (byte)codePoint;
             }
           } else {
             buf[i] = (byte)codePoint;
@@ -645,7 +771,7 @@ public class RDataReader {
           }
         }
       }
-      
+
       return buf;
     }
   }

@@ -45,6 +45,13 @@ class SerializationFormat {
   public static final int  GENERICREFSXP  =   245;
   public static final int  EMPTYENV_SXP	= 242;
   public static final int  BASEENV_SXP	=  241;
+
+  public static final int BCREPDEF = 244;
+  public static final int BCREPREF = 243;
+  public static final int ATTRLANGSXP = 240;
+  public static final int ATTRLISTSXP = 239;
+  
+
   static final int CE_NATIVE = 0;
   static final int CE_UTF8   = 1;
   static final int CE_LATIN1 = 2;

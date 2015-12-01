@@ -135,6 +135,40 @@ public class RDataReaderTest extends EvalTestCase {
   }
 
   @Test
+  public void loadBytecode() throws IOException {
+    
+    // bytecode.rds was generated using GNU R 3.2.0 as follows:
+    // library(compiler)
+    // f <- cmpfun(function(x) x*x))
+    // saveRDS(f, "bytecode.rds")
+    
+    InputStream in = getClass().getResourceAsStream("bytecode.rds");
+    GZIPInputStream gzipIn = new GZIPInputStream(in);
+    RDataReader reader = new RDataReader(topLevelContext, gzipIn);
+
+    topLevelContext.getGlobalEnvironment().setVariable("f", reader.readFile());
+    
+    assertThat(eval("identical(body(f), quote(x*x))"), equalTo(c(true)));
+    assertThat(eval("f(8)"), equalTo(c(64)));
+  }
+  
+  @Test
+  public void loadComplicatedBytecode() throws IOException {
+    // bytecode2.rds was generated using GNU R 3.2.0 as follows:
+    // saveRDS(list(a=ls,b=data.frame,c=42), "bytecode2.rds")
+    
+    InputStream in = getClass().getResourceAsStream("bytecode2.rds");
+    GZIPInputStream gzipIn = new GZIPInputStream(in);
+    RDataReader reader = new RDataReader(topLevelContext, gzipIn);
+
+    SEXP list = reader.readFile();
+    assertThat(list.getElementAsSEXP(0), instanceOf(Closure.class));
+    assertThat(list.getElementAsSEXP(1), instanceOf(Closure.class));
+    assertThat(list.getElementAsSEXP(2), equalTo(c(42)));
+
+  }
+  
+  @Test
   public void loadDataFrameWithGnuRCompactRowNames() throws IOException {
     InputStream in = getClass().getResourceAsStream("rownames.rds");
     GZIPInputStream gzipIn = new GZIPInputStream(in);
@@ -143,7 +177,6 @@ public class RDataReaderTest extends EvalTestCase {
 
     assertThat(df.getS3Class().getElementAsString(0), equalTo("data.frame"));
     assertThat(df.getAttribute(Symbol.get("row.names")).length(), equalTo(1000));
-
   }
 
   protected Symbol symbol(String name){

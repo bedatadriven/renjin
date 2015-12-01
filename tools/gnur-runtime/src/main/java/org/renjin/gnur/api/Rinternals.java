@@ -918,7 +918,11 @@ public final class Rinternals {
   }
 
   public static SEXP Rf_mkChar(BytePtr string) {
-    return new GnuCharSexp(string);
+    int length = string.nullTerminatedStringLength();
+    byte[] copy = new byte[length+1];
+    System.arraycopy(string.array, string.offset, copy, 0, length);
+    
+    return new GnuCharSexp(copy);
   }
 
   public static SEXP Rf_mkCharLen(BytePtr p0, int p1) {

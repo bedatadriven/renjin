@@ -10,14 +10,14 @@ import org.renjin.sexp.SexpVisitor;
  */
 public class GnuCharSexp extends AbstractSEXP {
   
-  private BytePtr value;
+  private byte[] value;
 
-  public GnuCharSexp(BytePtr value) {
+  public GnuCharSexp(byte[] value) {
     this.value = value;
   }
 
   public GnuCharSexp(String value) {
-    this(BytePtr.nullTerminatedString(value, Charsets.UTF_8));
+    this(BytePtr.nullTerminatedString(value, Charsets.UTF_8).array);
   }
 
   @Override
@@ -30,6 +30,6 @@ public class GnuCharSexp extends AbstractSEXP {
   }
 
   public BytePtr getValue() {
-    return value;
+    return new BytePtr(value, 0);
   }
 }

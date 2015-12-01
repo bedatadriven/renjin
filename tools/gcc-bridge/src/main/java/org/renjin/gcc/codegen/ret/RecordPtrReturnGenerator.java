@@ -16,7 +16,7 @@ import java.util.List;
  * Handles Recorded-typed returning
  */
 public class RecordPtrReturnGenerator implements ReturnGenerator {
-  
+
   private RecordClassGenerator recordClassGenerator;
 
   public RecordPtrReturnGenerator(RecordClassGenerator recordClassGenerator) {
@@ -48,7 +48,7 @@ public class RecordPtrReturnGenerator implements ReturnGenerator {
   public ExprGenerator callExpression(CallGenerator callGenerator, List<ExprGenerator> arguments) {
     return new ReturnExpr(callGenerator, arguments);
   }
-  
+
   private class ReturnExpr extends AbstractExprGenerator {
 
 
@@ -73,16 +73,14 @@ public class RecordPtrReturnGenerator implements ReturnGenerator {
 
     @Override
     public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
-      mv.visitInsn(Opcodes.ICONST_0);
+      mv.visitInsn(Opcodes.ICONST_1);
       mv.visitTypeInsn(Opcodes.ANEWARRAY, recordClassGenerator.getType().getInternalName());
       mv.visitInsn(Opcodes.DUP);
       mv.visitInsn(Opcodes.ICONST_0);
-      mv.visitTypeInsn(Opcodes.NEW, recordClassGenerator.getType().getInternalName());
-      mv.visitInsn(Opcodes.DUP);
-      mv.visitMethodInsn(Opcodes.INVOKESPECIAL, recordClassGenerator.getType().getInternalName(), "<init>", "()V", false);
+      emitPushRecordRef(mv);
       mv.visitInsn(Opcodes.AASTORE);
       mv.visitInsn(Opcodes.ICONST_0);
     }
   }
-  
+
 }

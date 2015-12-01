@@ -1,14 +1,13 @@
 package org.renjin.primitives;
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.renjin.base.Base;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.gcc.runtime.BooleanPtr;
-import org.renjin.gcc.runtime.DoublePtr;
-import org.renjin.gcc.runtime.IntPtr;
+import org.renjin.gcc.runtime.*;
 import org.renjin.invoke.annotations.ArgumentList;
 import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Current;
@@ -77,6 +76,8 @@ public class Native {
         nativeArguments[i] = intPtrFromVector(callArguments.get(i));
       } else if(type.equals(DoublePtr.class)) {
         nativeArguments[i] = doublePtrFromVector(callArguments.get(i));
+      } else if(type.equals(ObjectPtr.class)) {
+        nativeArguments[i] = stringPtrToCharPtrPtr(callArguments.get(i));
       } else {
         throw new EvalException("Don't know how to marshall type " + callArguments.get(i).getClass().getName() +
                 " to for C argument " +  type + " in call to " + method);
@@ -104,6 +105,24 @@ public class Native {
     return builder.build();
   }
 
+  /**
+   * Converts a StringVector to an array of null-terminated strings.
+   */
+  private static ObjectPtr stringPtrToCharPtrPtr(SEXP sexp) {
+    if(!((sexp instanceof StringVector))) {
+      throw new EvalException(".C function expected 'character', but argument was '%s'", sexp.getTypeName());
+    }
+    StringVector vector = (StringVector) sexp;
+    BytePtr[] strings = new BytePtr[sexp.length()];
+    for(int i=0;i<sexp.length();++i) {
+      String element = vector.getElementAsString(i);
+      if(element != null) {
+        strings[i] = BytePtr.nullTerminatedString(element, Charsets.UTF_8);
+      }
+    }
+    return new ObjectPtr(strings, 0);
+  }
+
   private static void dumpCall(String methodName, String packageName, ListVector callArguments) {
     java.lang.System.out.print(".C('" + methodName + "', ");
     for(NamedValue arg : callArguments.namedValues()) {
@@ -116,13 +135,14 @@ public class Native {
   }
 
   public static SEXP sexpFromPointer(Object ptr, AttributeMap attributes) {
-    // Currently, our GCC bridge doesn't support storing values
-    // to fields, so we can be confident that no other references
-    // to these pointers exist
+    // We are trusting the C code not to modify the arrays after the call
+    // returns. 
     if(ptr instanceof DoublePtr) {
       return DoubleArrayVector.unsafe(((DoublePtr) ptr).array, attributes);
     } else if(ptr instanceof IntPtr) {
       return new IntArrayVector(((IntPtr) ptr).array, attributes);
+    } else if(ptr instanceof ObjectPtr) {
+      return new NativeStringVector((ObjectPtr)ptr, attributes);
     } else {
       throw new UnsupportedOperationException(ptr.toString());
     }

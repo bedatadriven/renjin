@@ -30,6 +30,10 @@ public abstract class StringVector extends AbstractAtomicVector implements Itera
   @Override
   public int getElementAsRawLogical(int index) {
     String value = getElementAsString(index);
+    return logicalFromString(value);
+  }
+
+  public static int logicalFromString(String value) {
     if(isNA(value)) {
       return IntVector.NA;
     } else if(value.equals("T") || value.equals("TRUE") || value.equals("true")) {

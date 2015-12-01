@@ -7,6 +7,7 @@ import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.pointers.DereferencedPrimitiveValue;
 import org.renjin.gcc.codegen.pointers.PrimitivePtrPlus;
 import org.renjin.gcc.gimple.type.*;
 
@@ -79,7 +80,7 @@ public class PrimitivePtrVarGenerator extends AbstractExprGenerator implements V
         return new PrimitiveArray(arrayType);
       }
     } else if (type.getBaseType() instanceof GimplePrimitiveType) {
-      return new PrimitiveValueType();
+      return new DereferencedPrimitiveValue(this);
     } 
 
     throw new UnsupportedOperationException("baseType: " + type.getBaseType());
@@ -194,37 +195,5 @@ public class PrimitivePtrVarGenerator extends AbstractExprGenerator implements V
     }
   }
 
-  private class PrimitiveValueType extends AbstractExprGenerator {
-
-    @Override
-    public GimplePrimitiveType getGimpleType() {
-      return type.getBaseType();
-    }
-
-    @Override
-    public ExprGenerator addressOf() {
-      return PrimitivePtrVarGenerator.this;
-    }
-    
-
-    @Override
-    public void emitPrimitiveValue(MethodVisitor mv) {
-      // IALOAD : (array, offset) 
-      PrimitivePtrVarGenerator.this.emitPushPtrArray(mv);
-      mv.visitVarInsn(ILOAD, offsetVariableIndex);
-      mv.visitInsn(getJvmPrimitiveType().getOpcode(IALOAD));
-    }
-
-    @Override
-    public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
-      Preconditions.checkState(valueGenerator.getJvmPrimitiveType().equals(getJvmPrimitiveType()));
-
-      // IASTORE (array, offset, value)
-      PrimitivePtrVarGenerator.this.emitPushPtrArray(mv);
-      mv.visitVarInsn(ILOAD, offsetVariableIndex);
-      valueGenerator.emitPrimitiveValue(mv);
-      mv.visitInsn(getJvmPrimitiveType().getOpcode(IASTORE));
-    }
-  }
 }
 

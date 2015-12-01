@@ -3,7 +3,6 @@ package org.renjin.gnur.api;
 
 import org.renjin.eval.EvalException;
 import org.renjin.gcc.runtime.*;
-import org.renjin.primitives.Types;
 import org.renjin.primitives.Vectors;
 import org.renjin.sexp.*;
 
@@ -76,7 +75,8 @@ public final class Rinternals {
 
 
   public static BytePtr R_CHAR(SEXP x) {
-    throw new UnimplementedGnuApiMethod("R_CHAR");
+    GnuCharSexp charSexp = (GnuCharSexp) x;
+    return charSexp.getValue();
   }
 
   public static boolean Rf_isNull(SEXP s) {
@@ -285,7 +285,10 @@ public final class Rinternals {
   // Rcomplex*() COMPLEX (SEXP x)
 
   public static SEXP STRING_ELT(SEXP x, /*R_xlen_t*/ int i) {
-    throw new UnimplementedGnuApiMethod("STRING_ELT");
+    StringVector stringVector = (StringVector) x;
+    String string = stringVector.getElementAsString(i);
+    
+    return new GnuCharSexp(string);
   }
 
   public static SEXP VECTOR_ELT(SEXP x, /*R_xlen_t*/ int i) {
@@ -589,7 +592,20 @@ public final class Rinternals {
   }
 
   public static int Rf_asLogical(SEXP x) {
-    throw new UnimplementedGnuApiMethod("Rf_asLogical");
+    int warn = 0;
+
+    if (Rf_isVectorAtomic(x)) {
+      if (XLENGTH(x) < 1) {
+        return IntVector.NA;
+      }
+      
+      return ((AtomicVector) x).getElementAsRawLogical(0);
+      
+    } else if(x instanceof GnuCharSexp) {
+      return StringVector.logicalFromString(((GnuCharSexp) x).getValue().nullTerminatedString());
+    }
+
+    return LogicalVector.NA;
   }
 
   public static int Rf_asInteger(SEXP x) {

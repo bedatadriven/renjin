@@ -60,6 +60,10 @@ public class Builtins {
     return Math.pow(x, y);
   }
   
+  public static void __builtin_puts(BytePtr string) {
+    System.out.println(string.nullTerminatedString());
+  }
+  
   public static int __fpclassifyd(double x) {
 		// TODO: lookup the exact behavior of this function
 		return Double.isNaN(x) ? 0 : 1;

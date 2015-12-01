@@ -17,7 +17,7 @@ public class GnuCharSexp extends AbstractSEXP {
   }
 
   public GnuCharSexp(String value) {
-    this(BytePtr.asciiString(value));
+    this(BytePtr.nullTerminatedString(value, Charsets.UTF_8));
   }
 
   @Override

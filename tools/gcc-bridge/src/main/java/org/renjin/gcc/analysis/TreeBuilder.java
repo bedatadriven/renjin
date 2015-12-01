@@ -35,8 +35,6 @@ public class TreeBuilder implements FunctionBodyTransformer {
     if(!basicBlock.isEmpty()) {
       Set<Integer> variablesToNest = findUnnamedSingleUseVariable(function);
 
-      System.out.println(basicBlock);
-      
       StatementNode head = StatementNode.createLinkedList(basicBlock);
       StatementNode current = head.firstDefinition();
       

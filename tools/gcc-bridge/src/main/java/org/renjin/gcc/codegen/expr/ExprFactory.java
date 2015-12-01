@@ -141,7 +141,7 @@ public class ExprFactory {
     }
 
     CallGenerator callGenerator = findCallGenerator(function); 
-    return callGenerator.expressionGenerator(returnType, arguments);
+    return maybeCast(callGenerator.expressionGenerator(returnType, arguments), returnType);
   }
 
   private ExprGenerator forConstructor(GimpleConstructor expr) {

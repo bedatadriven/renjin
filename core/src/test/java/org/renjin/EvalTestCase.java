@@ -285,4 +285,9 @@ public abstract class EvalTestCase {
     IntVector connSexp = topLevelContext.getSession().getConnectionTable().newConnection(conn);
     return connSexp;
   }
+  
+  protected final String getString(String variableName) {
+    SEXP sexp = topLevelContext.getGlobalEnvironment().getVariable(variableName);
+    return ((StringVector) sexp).getElementAsString(0);
+  }
 }

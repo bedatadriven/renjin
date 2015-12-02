@@ -62,6 +62,11 @@ public class RecordTypeFactory extends TypeFactory {
   }
 
   @Override
+  public FieldGenerator addressableFieldGenerator(String className, String fieldName) {
+    return new AddressableRecordField(className, fieldName, generator);
+  }
+
+  @Override
   public ExprGenerator constructorExpr(ExprFactory exprFactory, GimpleConstructor value) {
     Map<String, ExprGenerator> fields = Maps.newHashMap();
     for (GimpleConstructor.Element element : value.getElements()) {

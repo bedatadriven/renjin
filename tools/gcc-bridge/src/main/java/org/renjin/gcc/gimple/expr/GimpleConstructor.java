@@ -1,5 +1,7 @@
 package org.renjin.gcc.gimple.expr;
 
+import com.google.common.base.Joiner;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,6 +35,15 @@ public class GimpleConstructor extends GimpleExpr {
     public void setValue(GimpleExpr value) {
       this.value = value;
     }
+
+    @Override
+    public String toString() {
+      if(field == null) {
+        return value.toString();
+      } else {
+        return field + " = " + value;
+      }
+    }
   }
  
   private List<Element> elements = new ArrayList<Element>();
@@ -44,5 +55,10 @@ public class GimpleConstructor extends GimpleExpr {
 
   public <X extends GimpleExpr> X getElement(int i) {
     return (X)elements.get(i).getValue();
+  }
+
+  @Override
+  public String toString() {
+    return "{" + Joiner.on(", ").join(elements) + "}";
   }
 }

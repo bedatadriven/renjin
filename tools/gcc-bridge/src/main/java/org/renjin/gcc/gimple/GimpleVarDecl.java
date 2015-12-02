@@ -84,7 +84,7 @@ public class GimpleVarDecl {
 
   @Override
   public String toString() {
-    return type + " " + (name == null ? "T" + Math.abs(id) : name);
+    return type + getName() + " = " + value;
   }
 
   /**

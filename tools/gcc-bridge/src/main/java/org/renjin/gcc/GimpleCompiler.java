@@ -28,7 +28,7 @@ import java.util.logging.Logger;
  */
 public class GimpleCompiler  {
 
-  public static boolean TRACE = false;
+  public static boolean TRACE = true;
 
   private File outputDirectory;
 
@@ -224,6 +224,7 @@ public class GimpleCompiler  {
 
   private void transform(List<GimpleCompilationUnit> units) {
     for (GimpleCompilationUnit unit : units) {
+      System.out.println(unit);
       for (GimpleFunction function : unit.getFunctions()) {
         transformFunctionBody(unit, function);
       }

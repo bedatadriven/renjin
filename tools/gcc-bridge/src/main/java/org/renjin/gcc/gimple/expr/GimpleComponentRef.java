@@ -1,6 +1,7 @@
 package org.renjin.gcc.gimple.expr;
 
 import com.google.common.base.Predicate;
+import com.google.common.base.Strings;
 
 import java.util.List;
 
@@ -23,7 +24,7 @@ public class GimpleComponentRef extends GimpleLValue {
 
   public String memberName() {
     if(member instanceof GimpleFieldRef) {
-      return ((GimpleFieldRef) member).getName();
+      return Strings.nullToEmpty(((GimpleFieldRef) member).getName());
     }
     throw new UnsupportedOperationException(member.getClass().getSimpleName());
   }

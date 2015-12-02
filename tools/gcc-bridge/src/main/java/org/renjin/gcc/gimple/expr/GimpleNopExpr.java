@@ -32,4 +32,9 @@ public class GimpleNopExpr extends GimpleExpr {
       return false;
     }
   }
+
+  @Override
+  public String toString() {
+    return value.toString();
+  }
 }

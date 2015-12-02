@@ -55,6 +55,7 @@ public class UnitClassGenerator {
     this.symbolTable = new UnitSymbolTable(functionTable, className);
 
     for (GimpleVarDecl decl : unit.getGlobalVariables()) {
+      System.out.println(decl);
       if(isProvided(providedVariables, decl)) {
         // TODO: this requires the jvm field to use the same representation as we would
         // use when compiling. Should check and perhaps provide an adaptation

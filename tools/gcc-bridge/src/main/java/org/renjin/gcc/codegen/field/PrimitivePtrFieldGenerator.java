@@ -173,8 +173,11 @@ public class PrimitivePtrFieldGenerator extends FieldGenerator {
     @Override
     public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
       instance.emitPushRecordRef(mv);
+      mv.visitInsn(Opcodes.DUP);
       mv.visitFieldInsn(Opcodes.GETFIELD, className, arrayFieldName, arrayTypeDescriptor());
-      instance.emitPushRecordRef(mv);
+      // stack : [instance, array]
+      mv.visitInsn(Opcodes.SWAP);
+      // stack: [array, instance]
       mv.visitFieldInsn(Opcodes.GETFIELD, className, offsetFieldName, "I");
     }
 

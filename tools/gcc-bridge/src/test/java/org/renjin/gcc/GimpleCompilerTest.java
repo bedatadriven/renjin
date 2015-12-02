@@ -444,7 +444,6 @@ public class GimpleCompilerTest extends AbstractGccTest {
   }
   
   @Test
-  @Ignore
   public void cpp() throws Exception {
     Class clazz = compile("rect.cpp");
 
@@ -457,7 +456,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
   }
 
   @Test
-  @Ignore
+  @Ignore("wip")
   public void virtualCpp() throws Exception {
 
     Class clazz = compile("shape.cpp");

@@ -14,7 +14,7 @@ import org.renjin.gcc.gimple.type.GimpleType;
 import java.lang.invoke.MethodHandle;
 
 /**
- * Generates 
+ * Field containing a pointer to a function 
  */
 public class FunPtrFieldGenerator extends FieldGenerator {
 

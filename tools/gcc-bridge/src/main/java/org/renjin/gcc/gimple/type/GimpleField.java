@@ -1,5 +1,7 @@
 package org.renjin.gcc.gimple.type;
 
+import com.google.common.base.Strings;
+
 public class GimpleField {
   private String name;
   private GimpleType type;
@@ -23,7 +25,7 @@ public class GimpleField {
 
   
   public String getName() {
-    return name;
+    return Strings.nullToEmpty(name);
   }
   public void setName(String name) {
     this.name = name;

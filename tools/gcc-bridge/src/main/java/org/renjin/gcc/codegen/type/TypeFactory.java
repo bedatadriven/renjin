@@ -73,5 +73,4 @@ public abstract class TypeFactory {
     throw new UnimplementedException(getClass(), "addressableFieldGenerator");
   }
   
-  
 }

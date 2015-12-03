@@ -243,6 +243,21 @@ public strictfp class TypesTest extends EvalTestCase {
   }
 
   @Test
+  public void isNa() {
+    assertThat( eval("is.na(1)"), equalTo(c(false)));
+    assertThat( eval("is.na(NA)"), equalTo(c(true)));
+    assertThat( eval("is.na(NA_integer_)"), equalTo(c(true)));
+    assertThat( eval("is.na(NA_character_)"), equalTo(c(true)));
+    assertThat( eval("is.na(NA_real_)"), equalTo(c(true)));
+    assertThat( eval("is.na(NA_complex_)"), equalTo(c(true)));
+
+    assertThat( eval("is.na(NaN)"), equalTo(c(true)));
+    
+    assertThat( eval("is.na(1/0)"), equalTo(c(false)));
+    assertThat( eval("is.na(0/0)"), equalTo(c(true)));
+  }
+  
+  @Test
   public void naList() {
     assertThat( eval(" is.na(list(NULL,  1,     FALSE, c(NA,4), NA_integer_, NA_real_)) "),
                        equalTo( c(FALSE, FALSE, FALSE, FALSE,   TRUE,        TRUE)) );

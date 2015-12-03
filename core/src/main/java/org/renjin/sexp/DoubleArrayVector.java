@@ -129,7 +129,7 @@ public final class DoubleArrayVector extends DoubleVector {
 
   @Override
   public boolean isElementNA(int index) {
-    return isNA(values[index]);
+    return Double.isNaN(values[index]);
   }
   
   @Override

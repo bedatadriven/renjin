@@ -31,6 +31,8 @@ public class PosixLtVector extends TimeVector {
   
   private final DateTimeZone timeZone;
   
+  private int length;
+  
   public PosixLtVector(ListVector x) {
     this.vector = x;
     seconds = getElementAsVector(x, SECOND_FIELD);
@@ -46,6 +48,18 @@ public class PosixLtVector extends TimeVector {
     } else {
       timeZone = DateTimeZone.getDefault();
     }
+    
+    length = maxLength(seconds, minutes, hours, monthsOfYear, daysOfMonth, years);
+  }
+
+  private int maxLength(AtomicVector... components) {
+    int maxLength = 0;
+    for (AtomicVector component : components) {
+      if(component.length() > maxLength) {
+        maxLength = component.length();
+      }
+    }
+    return maxLength;
   }
 
   private AtomicVector getElementAsVector(ListVector x, String fieldName) {
@@ -59,23 +73,27 @@ public class PosixLtVector extends TimeVector {
 
   @Override
   public int length() {
-    return seconds.length();
+    return length;
   }
 
   @Override
   public DateTime getElementAsDateTime(int index) {
     return new DateTime(
-        years.getElementAsInt(index)+1900,
-        monthsOfYear.getElementAsInt(index)+1,
-        daysOfMonth.getElementAsInt(index),
-        hours.getElementAsInt(index),
-        minutes.getElementAsInt(index),
-        seconds.getElementAsInt(index),
+        elementAt(years, index) +1900,
+        elementAt(monthsOfYear, index) +1,
+        elementAt(daysOfMonth, index),
+        elementAt(hours, index),
+        elementAt(minutes, index),
+        elementAt(seconds, index),
         timeZone);
   }
 
+  private int elementAt(AtomicVector component, int index) {
+    return component.getElementAsInt(index % component.length());
+  }
+
   public static class Builder {
-    private ListVector.NamedBuilder list = new ListVector.NamedBuilder(9);
+    private ListVector.NamedBuilder list = new ListVector.NamedBuilder(0, 9);
     private IntArrayVector.Builder second = new IntArrayVector.Builder();
     private IntArrayVector.Builder minute = new IntArrayVector.Builder();
     private IntArrayVector.Builder hour = new IntArrayVector.Builder();

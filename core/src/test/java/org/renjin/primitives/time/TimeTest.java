@@ -39,7 +39,9 @@ public class TimeTest extends EvalTestCase {
   
   @Test
   public void seq() {
-    eval("length(seq(from=Sys.Date(),to = as.Date('2017-01-01'), by = 'month'))");
+    assertThat(eval("s <- seq(from=as.Date('2015-01-01'), to = as.Date('2015-04-01'), by = 'month')"),
+        equalTo(c(16436, 16467, 16495, 16526)));
+      
     
   }
   
@@ -58,6 +60,26 @@ public class TimeTest extends EvalTestCase {
     assertThat(eval("ct"), equalTo(c(1246399200d)));
     assertThat(eval("format(ct)"), equalTo(c("2009-07-01")));
     assertThat(eval("names(format(ct))"), equalTo(NULL));
+  }
+  
+  @Test
+  public void dateAsPosixLt() {
+    eval("d <- as.Date(c('2015-02-15', '2015-04-29'))");
+      eval("lt <- as.POSIXlt(d)");
+    assertThat(eval("class(lt)"), equalTo(c("POSIXlt", "POSIXt")));
+    assertThat(eval("names(unclass(lt))"), 
+        equalTo(c("sec" ,"min", "hour","mday", "mon", "year", "wday","yday", "isdst")));
+
+    assertThat(eval("lt$sec"), equalTo(c_i(0, 0)));
+    assertThat(eval("lt$min"), equalTo(c_i(0, 0)));
+    assertThat(eval("lt$hour"), equalTo(c_i(0, 0)));
+    assertThat(eval("lt$mday"), equalTo(c_i(15, 29)));
+    assertThat(eval("lt$mon"), equalTo(c_i(1, 3)));
+    assertThat(eval("lt$year"), equalTo(c_i(115, 115)));
+    assertThat(eval("lt$wday"), equalTo(c_i(0, 3)));
+    assertThat(eval("lt$yday"), equalTo(c_i(45, 118)));
+//    assertThat(eval("lt$isdst"), equalTo(c_i(0, 0)));
+
   }
 
   @Ignore("This test seems to depend on the location or time settings.")

@@ -38,11 +38,15 @@ public class TimeTest extends EvalTestCase {
   }
   
   @Test
-  public void seq() {
+  public void seqByMonth() {
     assertThat(eval("s <- seq(from=as.Date('2015-01-01'), to = as.Date('2015-04-01'), by = 'month')"),
         equalTo(c(16436, 16467, 16495, 16526)));
-      
-    
+  }
+  
+  @Test
+  public void seqByDay() {
+    assertThat(eval("seq(from= as.Date('2005-01-01'), to= as.Date('2005-01-05'), by= 'day')"),
+        equalTo(c(12784, 12785, 12786, 12787, 12788)));
   }
   
   @Test
@@ -68,7 +72,7 @@ public class TimeTest extends EvalTestCase {
       eval("lt <- as.POSIXlt(d)");
     assertThat(eval("class(lt)"), equalTo(c("POSIXlt", "POSIXt")));
     assertThat(eval("names(unclass(lt))"), 
-        equalTo(c("sec" ,"min", "hour","mday", "mon", "year", "wday","yday", "isdst")));
+        equalTo(c("sec", "min", "hour", "mday", "mon", "year", "wday", "yday", "isdst")));
 
     assertThat(eval("lt$sec"), equalTo(c_i(0, 0)));
     assertThat(eval("lt$min"), equalTo(c_i(0, 0)));
@@ -107,11 +111,8 @@ public class TimeTest extends EvalTestCase {
   public void strptimeExtra() {
     eval("t <- .Internal(strptime('2000-01-01 00:00:00 GMT', '%Y-%m-%d %H:%M:%OS', ''))");
     assertThat(eval("t$year"), equalTo(c_i(100)));
-
-
   }
-  
-  
+    
   @Test
   public void strptimeBadInput() {
     eval("t <- .Internal(strptime('FOOOO!!!', '%Y-%m-%d %H:%M:%OS', ''))");

@@ -37,7 +37,6 @@ public class PosixLtVector extends TimeVector {
   private final AtomicVector daysOfMonth;
   private final AtomicVector monthsOfYear;
   private final AtomicVector years;
-  private final AtomicVector gmtOffset;
 
   private final DateTimeZone timeZone;
 
@@ -51,7 +50,6 @@ public class PosixLtVector extends TimeVector {
     monthsOfYear = getElementAsVector(x, MONTH_FIELD);
     daysOfMonth = getElementAsVector(x, DAY_OF_MONTH_FIELD);
     years = getElementAsVector(x, YEAR_FIELD);
-    gmtOffset = getElementAsVector(x, GMT_OFFSET_FIELD);
 
     Vector tzoneAttribute = (Vector) vector.getAttribute(Symbols.TZONE);
     if(tzoneAttribute.length() >= 1) {

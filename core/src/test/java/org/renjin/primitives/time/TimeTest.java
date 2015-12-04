@@ -51,10 +51,6 @@ public class TimeTest extends EvalTestCase {
     assertThat(eval("as.POSIXlt('2015-12-30', tz='America/New_York')$isdst"), equalTo(c_i(0)));
   }
   
-  @Test
-  public void strpTimeWithZone() {
-    eval("lt <- strptime('2015-15");
-  }
   
   @Test
   public void strptimeWithOffset() {
@@ -160,7 +156,7 @@ public class TimeTest extends EvalTestCase {
     eval("lt <- as.POSIXlt(d)");
     assertThat(eval("class(lt)"), equalTo(c("POSIXlt", "POSIXt")));
     assertThat(eval("names(unclass(lt))"), 
-        equalTo(c("sec", "min", "hour", "mday", "mon", "year", "wday", "yday", "isdst")));
+        equalTo(c("sec", "min", "hour", "mday", "mon", "year", "wday", "yday", "isdst", "gmtoff")));
 
     assertThat(eval("lt$sec"), equalTo(c_i(0, 0)));
     assertThat(eval("lt$min"), equalTo(c_i(0, 0)));

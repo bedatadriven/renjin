@@ -192,9 +192,9 @@ public class TimeTest extends EvalTestCase {
     StringWriter stringWriter = new StringWriter();
     topLevelContext.getSession().setStdOut(new PrintWriter(stringWriter));
 
-    eval("print(as.POSIXct('2009-07-01 00:00:00', tz = 'Europe/Amsterdam'))");
+    eval("print(as.POSIXct('2009-07-01 00:00:00', tz = 'Pacific/Honolulu'))");
 
-    assertThat(stringWriter.toString(), equalTo("[1] \"2009-07-01 CEST\"\n"));
+    assertThat(stringWriter.toString(), equalTo("[1] \"2009-07-01 HST\"\n"));
   }
 
   @Test

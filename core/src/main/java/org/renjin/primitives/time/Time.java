@@ -201,9 +201,8 @@ public class Time {
   @Internal("format.POSIXlt")
   public static StringVector formatPOSIXlt(ListVector x, StringVector patterns, boolean useTz) {
 
-    
     PosixLtVector dateTimes = new PosixLtVector(x);
-    List<DateTimeFormatter> formatters = DateTimeFormat.forPatterns(patterns, DateTimeZone.getDefault(), useTz);
+    List<DateTimeFormatter> formatters = DateTimeFormat.forPatterns(patterns, dateTimes.getTimeZone(), useTz);
     
     StringVector.Builder result = new StringVector.Builder();
     int resultLength = Math.max(dateTimes.length(), patterns.length());

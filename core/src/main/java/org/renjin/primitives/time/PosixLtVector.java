@@ -63,6 +63,10 @@ public class PosixLtVector extends TimeVector {
     length = maxLength(seconds, minutes, hours, monthsOfYear, daysOfMonth, years);
   }
 
+  public DateTimeZone getTimeZone() {
+    return timeZone;
+  }
+
   private int maxLength(AtomicVector... components) {
     int maxLength = 0;
     for (AtomicVector component : components) {

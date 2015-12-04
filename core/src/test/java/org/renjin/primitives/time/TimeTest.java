@@ -100,6 +100,20 @@ public class TimeTest extends EvalTestCase {
   }
 
   @Test
+  public void strpTimeSeconds() {
+
+    eval("tt <-  strptime('1978-02-16 12:30:15', format='%Y-%m-%d %H:%M:%S', tz='GMT')");
+    assertThat(eval("tt$sec"), equalTo(c_i(15)));
+    assertThat(eval("tt$min"), equalTo(c_i(30)));
+    assertThat(eval("tt$hour"), equalTo(c_i(12)));
+    assertThat(eval("tt$mday"), equalTo(c_i(16)));
+    assertThat(eval("tt$mon"), equalTo(c_i(1)));
+    assertThat(eval("tt$year"), equalTo(c_i(78)));
+    assertThat(eval("tt$wday"), equalTo(c_i(4)));
+    assertThat(eval("tt$yday"), equalTo(c_i(46)));
+  }
+  
+  @Test
   public void timeZoneProvided() {
     assumingBasePackagesLoad();
     

@@ -1,15 +1,13 @@
 package org.renjin.primitives.time;
 
-import java.util.List;
-
+import com.google.common.collect.Lists;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.DateTimeFormatterBuilder;
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.StringVector;
 
-
-import com.google.common.collect.Lists;
+import java.util.List;
 
 /**
  * Factory that creates instances of DateTimeFormatter from 
@@ -110,7 +108,7 @@ public class DateTimeFormat  {
           // leap seconds).
           // TODO: I have no idea what the docs are talking about in relation
           // to leap seconds
-          builder.appendSecondOfDay(2);
+          builder.appendSecondOfMinute(2);
           break;
           // case 'U':
           // Week of the year as decimal number (00-53) using Sunday as

@@ -22,10 +22,7 @@
 package org.renjin.primitives.time;
 
 import com.google.common.base.Strings;
-import org.joda.time.Chronology;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Days;
+import org.joda.time.*;
 import org.joda.time.chrono.ISOChronology;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.DateTimeParser;
@@ -52,7 +49,7 @@ import java.util.Locale;
  */
 public class Time {
 
-  public static DateTime EPOCH = new DateTime(1970, 1, 1, 0, 0, 0);
+  public static LocalDate EPOCH = new LocalDate(1970, 1, 1);
 
   /**
    * Parses a string value into a date time value.
@@ -171,13 +168,16 @@ public class Time {
       if(date == null) {
         dateVector.addNA();
       } else {
-        dateVector.add(Days.daysBetween(EPOCH, date).getDays());
+        dateVector.add(Days.daysBetween(EPOCH, date.toLocalDate()).getDays());
       }
     }
     dateVector.setAttribute(Symbols.CLASS, StringVector.valueOf("Date"));
     return dateVector.build();
   }
 
+  /**
+   * Converts a {@code Date} object to a POSIXlt date time, always in the UTC timezone.
+   */
   @Internal
   public static ListVector Date2POSIXlt(DoubleVector x) {
     PosixLtVector.Builder ltVector = new PosixLtVector.Builder();
@@ -186,7 +186,7 @@ public class Time {
       if(IntVector.isNA(daysSinceEpoch)) {
         ltVector.addNA();
       } else {
-        ltVector.add(EPOCH.plusDays(daysSinceEpoch));
+        ltVector.add(EPOCH.plusDays(daysSinceEpoch).toDateTimeAtStartOfDay(DateTimeZone.UTC));
       }
     }
     return ltVector.buildListVector();
@@ -226,6 +226,14 @@ public class Time {
   
   /**
    * Creates a Joda {@link DateTimeZone} instance from an R timezone string.
+   * 
+   * <p>The <a href="https://stat.ethz.ch/R-manual/R-devel/library/base/html/timezones.html">R documentation</a>
+   * states that timezones are platform-dependent, but that "GMT" and "UTC" are guaranteed to be accepted on all 
+   * platforms.</p>
+   * 
+   * <p>We rely on Joda to map IDs to the correct timezone, and JOda in turn relies on the Olson or "tz" 
+   * database, which is commonly the source of timezones on platforms running R.</p>
+   * 
    */
   public static DateTimeZone timeZoneFromRSpecification(String tz) {
     if(Strings.isNullOrEmpty(tz)) {
@@ -233,7 +241,6 @@ public class Time {
     } else if("GMT".equals(tz)) {
       return DateTimeZone.UTC;
     } else {
-      // TODO: this probably isn't right..
       return DateTimeZone.forID(tz);
     }
   }

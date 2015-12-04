@@ -1,7 +1,9 @@
 package org.renjin.primitives.time;
 
-import org.junit.Ignore;
+import org.joda.time.DateTimeZone;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import org.renjin.EvalTestCase;
 import org.renjin.sexp.IntVector;
 import org.renjin.sexp.Null;
@@ -10,13 +12,43 @@ import org.renjin.sexp.SEXP;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Arrays;
+import java.util.Collection;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
-
+/**
+ * Tests the POSIXlt/POSIXct/Date parsing, conversion, and formatting routines.
+ * 
+ * <p>This test is parameterized with several timezones to ensure that the test results 
+ * are valid regardless of local timezone</p>
+ */
+@RunWith(Parameterized.class)
 public class TimeTest extends EvalTestCase {
+
+
+  @Parameterized.Parameters
+  public static Collection<Object[]> data() {
+    return Arrays.asList(new Object[][]{
+        {"Pacific/Pago_Pago"},    // -11:00 / -11:00
+        {"Pacific/Honolulu"},     // -10:00
+        {"America/Los_Angeles"},  // -08:00 / -07;00
+        {"Europe/London"},        //  00:00 / +01:00
+        {"UTC"},                  //  00:00
+        {"Europe/Amsterdam"},     // +01:00 / -02:00
+        {"Africa/Lubumbashi"},    // +02:00
+        {"Asia/Kabul"},           // +04:30
+        {"Asia/Hong_Kong"},       // +08:00
+        {"Pacific/Fiji"},         // +12:00 / +13:00
+        {"Pacific/Kiritimati"}    // +14:00
+    });
+  }
   
+  public TimeTest(String defaultTimeZoneId) {
+    DateTimeZone.setDefault(DateTimeZone.forID(defaultTimeZoneId));
+  }
+
   @Test
   public void strptime() {
     
@@ -54,13 +86,17 @@ public class TimeTest extends EvalTestCase {
   
   
   @Test
-  @Ignore("uses default timezone")
   public void strptimeWithOffset() {
-    eval("t <- strptime('24/Aug/2014:17:57:26 +0200', '%d/%b/%Y:%H:%M:%S %z')");
-    
+
+
     // while the string above will be unambiguously parsed thanks to the timezone
     // offset, it will be essentially _converted_ to a POSIXlt object in the default 
     // timezone, making the output to R dependent on the current timezone in which the test is run
+    // So for this test only, set the "default" time zone
+    DateTimeZone.setDefault(DateTimeZone.forID("Europe/Amsterdam"));
+
+    eval("t <- strptime('24/Aug/2014:17:57:26 +0200', '%d/%b/%Y:%H:%M:%S %z')");
+
     
     assertThat(eval("t$sec"), equalTo(c_i(26)));
     assertThat(eval("t$min"), equalTo(c_i(57)));

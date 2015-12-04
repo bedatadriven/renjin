@@ -1,5 +1,6 @@
 package org.renjin.primitives.time;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.sexp.IntVector;
@@ -53,8 +54,14 @@ public class TimeTest extends EvalTestCase {
   
   
   @Test
+  @Ignore("uses default timezone")
   public void strptimeWithOffset() {
     eval("t <- strptime('24/Aug/2014:17:57:26 +0200', '%d/%b/%Y:%H:%M:%S %z')");
+    
+    // while the string above will be unambiguously parsed thanks to the timezone
+    // offset, it will be essentially _converted_ to a POSIXlt object in the default 
+    // timezone, making the output to R dependent on the current timezone in which the test is run
+    
     assertThat(eval("t$sec"), equalTo(c_i(26)));
     assertThat(eval("t$min"), equalTo(c_i(57)));
     assertThat(eval("t$hour"), equalTo(c_i(17)));
@@ -173,10 +180,10 @@ public class TimeTest extends EvalTestCase {
     eval("lt <- as.POSIXlt(strptime(c('2014-01-01','xxx'), format='%Y-%m-%d'))");
 
     assertThat(eval("lt$year"), equalTo(c_i(114, IntVector.NA)));
-    ;
 
     eval("d <- as.Date(lt)");
     eval("print(d)");
+    assertThat(eval("format(d)"), equalTo(c("2014-01-01", null)));
     assertThat(eval("is.na(d)"), equalTo(c(false, true)));
     assertThat(eval("is.na(d[2])"), equalTo(c(true)));
   }

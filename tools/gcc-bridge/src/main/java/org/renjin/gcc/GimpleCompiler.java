@@ -28,7 +28,7 @@ import java.util.logging.Logger;
  */
 public class GimpleCompiler  {
 
-  public static boolean TRACE = true;
+  public static boolean TRACE = false;
 
   private File outputDirectory;
 

@@ -699,7 +699,7 @@ public class Text {
       List<String> elements) {
     StringVector.Builder result = new StringVector.Builder();
     result.addAll(elements);
-    result.copySomeAttributesFrom(x, Symbols.DIM, Symbols.NAMES);
+    result.copySomeAttributesFrom(x, Symbols.DIM, Symbols.DIMNAMES, Symbols.NAMES);
     
     return result.build();
   }

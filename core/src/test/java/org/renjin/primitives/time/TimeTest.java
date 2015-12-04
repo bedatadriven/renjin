@@ -1,8 +1,8 @@
 package org.renjin.primitives.time;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
+import org.renjin.sexp.IntVector;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -13,13 +13,11 @@ import static org.junit.Assert.assertThat;
 
 
 public class TimeTest extends EvalTestCase {
-
-
   
   @Test
   public void strptime() {
     
-    eval("t <- .Internal(strptime('2009-07-01 18:14:05', '%Y-%m-%d %H:%M:%OS', ''))");
+    eval("t <- .Internal(strptime('2009-07-01 18:14:05', '%Y-%m-%d %H:%M:%OS', 'Europe/Amsterdam'))");
     
     assertThat(eval("t$sec"), equalTo(c_i(5)));
     assertThat(eval("t$min"), equalTo(c_i(14)));
@@ -30,11 +28,9 @@ public class TimeTest extends EvalTestCase {
     assertThat(eval("t$wday"), equalTo(c_i(3)));
     assertThat(eval("t$yday"), equalTo(c_i(181)));
     
-    /**
-     * FIXME Unless I'm mistaken, this is not worth keeping the build broken. This could depend on where the code
-     * is running from, since not all places use DST.
-     */
-//    assertThat(eval("t$isdst"), equalTo(c_i(1)));
+    // Verify that the daylight savings flag is set 
+    // Because we specified timezone above, this should not be dependent on local settings
+    assertThat(eval("t$isdst"), equalTo(c_i(1)));
   }
   
   @Test
@@ -50,18 +46,50 @@ public class TimeTest extends EvalTestCase {
   }
   
   @Test
+  public void cutByWeek() {
+    eval("everyday = seq(from= as.Date('2005-1-1'), to= as.Date('2005-1-14'), by= 'day')");
+    eval("res<-cut(everyday, breaks= 'week')");
+    assertThat(eval("res"), equalTo(c_i( 1, 1, 2, 2, 2, 2 ,2, 2, 2, 3, 3, 3, 3, 3)));
+    assertThat(eval("levels(res)"), equalTo(c("2004-12-27", "2005-01-03", "2005-01-10")));
+  }
+  
+  @Test
   public void timeZones() {
     eval("t <- .Internal(strptime('2011-11-06 09:27', '%Y-%m-%d %H:%M', tz='HST'))");
     assertThat(eval("t$hour"), equalTo(c_i(9)));
+    assertThat(eval("attr(t, 'tzone')"), equalTo(c("HST")));
+    
+    // _t_ now contains a time value expressed as calander date + time offset + time zone
+    // as.POSIXct must convert this value to milliseconds since 1970-01-01 UTC.
     assertThat(eval(".Internal(as.POSIXct(t, 'HST'))"), equalTo(c(1320607620d)));
   }
   
-  @Ignore("This test seems to depend on the location or time settings.")
+  @Test
+  public void posixLtWithNegativeFields() {
+    eval("lt <-  list(sec = 0L, min = 0L, hour = 0L, mday = -4L, mon = 0L, year = 105L, wday = 6L, yday = 0L, isdst = -1L)");
+    eval("class(lt) <- c('POSIXlt', 'POSIXt')");
+    
+    assertThat(eval("as.character(lt)"), equalTo(c("2004-12-27")));
+  }
+  
   @Test
   public void asPosixLt() throws IOException {
     topLevelContext.init();
-    eval("ct <- as.POSIXct('2009-07-01 00:00:00')");
-    assertThat(eval("ct"), equalTo(c(1246399200d)));
+    eval("ct <- as.POSIXct('2009-07-01 00:00:00', tz = 'UTC')");
+    assertThat(eval("ct"), equalTo(c(1246406400d)));
+    assertThat(eval("attr(ct, 'tzone')"), equalTo(c("UTC")));
+    
+    eval("lt <- as.POSIXlt(ct)");
+    assertThat(eval("lt$sec"), equalTo(c_i(0)));
+    assertThat(eval("lt$min"), equalTo(c_i(0)));
+    assertThat(eval("lt$hour"), equalTo(c_i(0)));
+    assertThat(eval("lt$mday"), equalTo(c_i(1)));
+    assertThat(eval("lt$mon"), equalTo(c_i(7-1)));
+    assertThat(eval("lt$year"), equalTo(c_i(2009-1900)));
+    assertThat(eval("lt$wday"), equalTo(c_i(3)));
+    assertThat(eval("lt$yday"), equalTo(c_i(181)));
+    assertThat(eval("attr(lt, 'tzone')"), equalTo(c("UTC")));
+    
     assertThat(eval("format(ct)"), equalTo(c("2009-07-01")));
     assertThat(eval("names(format(ct))"), equalTo(NULL));
   }
@@ -69,7 +97,7 @@ public class TimeTest extends EvalTestCase {
   @Test
   public void dateAsPosixLt() {
     eval("d <- as.Date(c('2015-02-15', '2015-04-29'))");
-      eval("lt <- as.POSIXlt(d)");
+    eval("lt <- as.POSIXlt(d)");
     assertThat(eval("class(lt)"), equalTo(c("POSIXlt", "POSIXt")));
     assertThat(eval("names(unclass(lt))"), 
         equalTo(c("sec", "min", "hour", "mday", "mon", "year", "wday", "yday", "isdst")));
@@ -85,8 +113,20 @@ public class TimeTest extends EvalTestCase {
 //    assertThat(eval("lt$isdst"), equalTo(c_i(0, 0)));
 
   }
+  
+  @Test
+  public void naPosixLtToDate() {
+    eval("lt <- as.POSIXlt(strptime(c('2014-01-01','xxx'), format='%Y-%m-%d'))");
 
-  @Ignore("This test seems to depend on the location or time settings.")
+    assertThat(eval("lt$year"), equalTo(c_i(114, IntVector.NA)));
+    ;
+
+    eval("d <- as.Date(lt)");
+    eval("print(d)");
+    assertThat(eval("is.na(d)"), equalTo(c(false, true)));
+    assertThat(eval("is.na(d[2])"), equalTo(c(true)));
+  }
+
   @Test
   public void printTime() throws IOException {
     topLevelContext.init();
@@ -94,7 +134,7 @@ public class TimeTest extends EvalTestCase {
     StringWriter stringWriter = new StringWriter();
     topLevelContext.getSession().setStdOut(new PrintWriter(stringWriter));
 
-    eval("print(as.POSIXct('2009-07-01 00:00:00'))");
+    eval("print(as.POSIXct('2009-07-01 00:00:00', tz = 'Europe/Amsterdam'))");
 
     assertThat(stringWriter.toString(), equalTo("[1] \"2009-07-01 CEST\"\n"));
   }
@@ -117,8 +157,8 @@ public class TimeTest extends EvalTestCase {
   public void timeZoneProvided() {
     assumingBasePackagesLoad();
     
-    eval("as.Date(as.POSIXct('2000-01-01 00:00:00 GMT', tz = 'GMT'))");
-    
+    eval("d <- as.Date(as.POSIXct('2000-01-01 00:00:00 GMT', tz = 'GMT'))");
+    assertThat(eval("d"), equalTo(c(10957)));
   }
 
   @Test
@@ -144,5 +184,4 @@ public class TimeTest extends EvalTestCase {
     eval("print(y)");
     assertThat(eval("y"), equalTo(c(12418d, 12420d, 12422d, 12424d, 12457, 12459, 12461, 12492, 12494, 12527)));
   }
-  
 }

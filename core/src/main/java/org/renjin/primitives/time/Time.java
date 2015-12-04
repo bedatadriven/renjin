@@ -123,14 +123,31 @@ public class Time {
    */
   @Internal("as.POSIXct")
   public static DoubleVector asPOSIXct(ListVector x, String tz) {
+    
+    SEXP timeZoneAttribute;
+    if(Strings.isNullOrEmpty(tz)) {
+      timeZoneAttribute = x.getAttribute(Symbols.TZONE);
+    } else {
+      timeZoneAttribute = StringArrayVector.valueOf(tz);
+    }
+    
     return new PosixCtVector.Builder()
+        .setTimeZone(timeZoneAttribute)
         .addAll(new PosixLtVector(x))
         .buildDoubleVector();
   }
   
   @Internal("as.POSIXlt")
   public static ListVector asPOSIXlt(DoubleVector x, String tz) {
+    SEXP timeZoneAttribute;
+    if(Strings.isNullOrEmpty(tz)) {
+      timeZoneAttribute = x.getAttribute(Symbols.TZONE);
+    } else {
+      timeZoneAttribute = StringArrayVector.valueOf(tz);
+    }
+    
     return new PosixLtVector.Builder()
+      .withTimeZone(timeZoneAttribute)
       .addAll(new PosixCtVector(x))
       .buildListVector();
   }
@@ -146,7 +163,11 @@ public class Time {
     DoubleArrayVector.Builder dateVector = DoubleArrayVector.Builder.withInitialCapacity(ltVector.length());
     for(int i=0;i!=ltVector.length();++i) {
       DateTime date = ltVector.getElementAsDateTime(i);
-      dateVector.add(Days.daysBetween(EPOCH, date).getDays());
+      if(date == null) {
+        dateVector.addNA();
+      } else {
+        dateVector.add(Days.daysBetween(EPOCH, date).getDays());
+      }
     }
     dateVector.setAttribute(Symbols.CLASS, StringVector.valueOf("Date"));
     return dateVector.build();
@@ -185,8 +206,11 @@ public class Time {
     for(int i=0;i!=resultLength;++i) {
       DateTimeFormatter formatter = formatters.get(i % formatters.size());
       DateTime dateTime = dateTimes.getElementAsDateTime(i % dateTimes.length());
-      
-      result.add(formatter.print(dateTime));
+      if (dateTime == null) {
+        result.addNA();
+      } else {
+        result.add(formatter.print(dateTime));
+      }
     }
     
     return result.build();
@@ -213,6 +237,10 @@ public class Time {
    */
   public static DateTimeZone timeZoneFromPosixObject(SEXP lt) {
     SEXP attribute = lt.getAttribute(Symbols.TZONE);
+    return timeZoneFromTzoneAttribute(attribute);
+  }
+
+  public static DateTimeZone timeZoneFromTzoneAttribute(SEXP attribute) {
     if(attribute instanceof StringVector) {
       return timeZoneFromRSpecification(((StringVector) attribute).getElementAsString(0));
     } else {

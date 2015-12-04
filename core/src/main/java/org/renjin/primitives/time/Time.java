@@ -183,7 +183,11 @@ public class Time {
     PosixLtVector.Builder ltVector = new PosixLtVector.Builder();
     for(int i=0;i!=x.length();++i) {
       int daysSinceEpoch = x.getElementAsInt(i);
-      ltVector.add(EPOCH.plusDays(daysSinceEpoch));
+      if(IntVector.isNA(daysSinceEpoch)) {
+        ltVector.addNA();
+      } else {
+        ltVector.add(EPOCH.plusDays(daysSinceEpoch));
+      }
     }
     return ltVector.buildListVector();
   }

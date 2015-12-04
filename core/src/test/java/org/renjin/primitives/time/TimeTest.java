@@ -3,6 +3,8 @@ package org.renjin.primitives.time;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.sexp.IntVector;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.SEXP;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -28,9 +30,67 @@ public class TimeTest extends EvalTestCase {
     assertThat(eval("t$wday"), equalTo(c_i(3)));
     assertThat(eval("t$yday"), equalTo(c_i(181)));
     
+    
     // Verify that the daylight savings flag is set 
     // Because we specified timezone above, this should not be dependent on local settings
     assertThat(eval("t$isdst"), equalTo(c_i(1)));
+  }
+  
+  @Test
+  public void strptimeDst() {
+    // 2015
+    // NL: DST (CET) ended on 25 Oct
+    // US: DST (EDT) ended on 2 Nov
+
+
+    assertThat(eval("as.POSIXlt('2015-10-30', tz='Europe/Amsterdam')$isdst"), equalTo(c_i(0)));
+    assertThat(eval("as.POSIXlt('2015-10-30', tz='America/New_York')$isdst"), equalTo(c_i(1)));
+
+
+    assertThat(eval("as.POSIXlt('2015-12-30', tz='Europe/Amsterdam')$isdst"), equalTo(c_i(0)));
+    assertThat(eval("as.POSIXlt('2015-12-30', tz='America/New_York')$isdst"), equalTo(c_i(0)));
+  }
+  
+  @Test
+  public void strpTimeWithZone() {
+    eval("lt <- strptime('2015-15");
+  }
+  
+  @Test
+  public void strptimeWithOffset() {
+    eval("t <- strptime('24/Aug/2014:17:57:26 +0200', '%d/%b/%Y:%H:%M:%S %z')");
+    assertThat(eval("t$sec"), equalTo(c_i(26)));
+    assertThat(eval("t$min"), equalTo(c_i(57)));
+    assertThat(eval("t$hour"), equalTo(c_i(17)));
+    assertThat(eval("t$mday"), equalTo(c_i(24)));
+    assertThat(eval("t$mon"), equalTo(c_i(7)));
+    assertThat(eval("t$year"), equalTo(c_i(114)));
+    assertThat(eval("t$wday"), equalTo(c_i(0)));
+    assertThat(eval("t$yday"), equalTo(c_i(235)));
+    assertThat(eval("t$isdst"), equalTo(c_i(1)));
+    assertThat(eval("t$gmtoff"), equalTo(c_i(7200)));
+    assertThat(eval("attr(t, 'tzone')"), equalTo((SEXP)Null.INSTANCE));
+  }
+
+
+  @Test
+  public void strptimeWithOffsetWithTzParam() {
+    eval("t <- strptime('24/Aug/2014:17:57:26 +0200', '%d/%b/%Y:%H:%M:%S %z', tz = 'Pacific/Honolulu')");
+    assertThat(eval("t$sec"), equalTo(c_i(26)));
+    assertThat(eval("t$min"), equalTo(c_i(57)));
+    assertThat(eval("t$hour"), equalTo(c_i(5)));
+    assertThat(eval("t$mday"), equalTo(c_i(24)));
+    assertThat(eval("t$mon"), equalTo(c_i(7)));
+    assertThat(eval("t$year"), equalTo(c_i(114)));
+    assertThat(eval("t$wday"), equalTo(c_i(0)));
+    assertThat(eval("t$yday"), equalTo(c_i(235)));
+    assertThat(eval("t$isdst"), equalTo(c_i(0)));
+    assertThat(eval("attr(t, 'tzone')"), equalTo(c( "Pacific/Honolulu")));
+
+    // GNU R 3.2.2 says this should be -7200, but that doesn't make much sense to me. 
+    // Waiting for response from https://bugs.r-project.org/bugzilla/show_bug.cgi?id=16621
+    assertThat(eval("t$gmtoff"), equalTo(c_i(-36000))); 
+
   }
   
   @Test
@@ -110,8 +170,6 @@ public class TimeTest extends EvalTestCase {
     assertThat(eval("lt$year"), equalTo(c_i(115, 115)));
     assertThat(eval("lt$wday"), equalTo(c_i(0, 3)));
     assertThat(eval("lt$yday"), equalTo(c_i(45, 118)));
-//    assertThat(eval("lt$isdst"), equalTo(c_i(0, 0)));
-
   }
   
   @Test

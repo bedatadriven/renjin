@@ -7,6 +7,8 @@ import org.joda.time.chrono.ISOChronology;
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.*;
 
+import java.util.concurrent.TimeUnit;
+
 import static org.renjin.sexp.IntVector.isNA;
 
 
@@ -24,6 +26,7 @@ public class PosixLtVector extends TimeVector {
   public static final String HOUR_FIELD = "hour";
   public static final String MINUTE_FIELD = "min";
   public static final String SECOND_FIELD = "sec";
+  public static final String GMT_OFFSET_FIELD = "gmtoff";
   public static final String ZONE_FIELD = "zone";
 
 
@@ -34,6 +37,7 @@ public class PosixLtVector extends TimeVector {
   private final AtomicVector daysOfMonth;
   private final AtomicVector monthsOfYear;
   private final AtomicVector years;
+  private final AtomicVector gmtOffset;
 
   private final DateTimeZone timeZone;
 
@@ -47,6 +51,7 @@ public class PosixLtVector extends TimeVector {
     monthsOfYear = getElementAsVector(x, MONTH_FIELD);
     daysOfMonth = getElementAsVector(x, DAY_OF_MONTH_FIELD);
     years = getElementAsVector(x, YEAR_FIELD);
+    gmtOffset = getElementAsVector(x, GMT_OFFSET_FIELD);
 
     Vector tzoneAttribute = (Vector) vector.getAttribute(Symbols.TZONE);
     if(tzoneAttribute.length() >= 1) {
@@ -168,6 +173,7 @@ public class PosixLtVector extends TimeVector {
     private IntArrayVector.Builder weekday = new IntArrayVector.Builder();
     private IntArrayVector.Builder dayOfYear = new IntArrayVector.Builder();
     private IntArrayVector.Builder dst = new IntArrayVector.Builder();
+    private IntArrayVector.Builder gmtOffset = new IntArrayVector.Builder();
     private DateTimeZone zone;
 
     public Builder add(DateTime time) {
@@ -179,9 +185,12 @@ public class PosixLtVector extends TimeVector {
       year.add(time.getYear()-1900);
       weekday.add(getRDayOfWeek(time));
       dayOfYear.add(time.getDayOfYear()-1);
-      dst.add(getDstFlag(time));
+      dst.add(computeDaylightSavingsFlag(time));
+      gmtOffset.add(computeGmtOffset(time));
       return this;
     }
+
+
 
     public Builder addAll(Iterable<DateTime> dateTimes) {
       for(DateTime dateTime : dateTimes) {
@@ -200,6 +209,7 @@ public class PosixLtVector extends TimeVector {
       weekday.addNA();
       dayOfYear.addNA();
       dst.add(-1);
+      gmtOffset.addNA();
       return this;
     }
 
@@ -214,12 +224,19 @@ public class PosixLtVector extends TimeVector {
       return this;
     }
 
-    private static int getDstFlag(DateTime time) {
+    private static int computeDaylightSavingsFlag(DateTime time) {
       if( time == null ) {
         return -1;
       } else {
         return time.getZone().isStandardOffset(time.getMillis()) ? 0 : 1;
       }
+    }
+
+    /**
+     * Computes the offset of this timezone from GMT in seconds, or NA if not known
+     */
+    private int computeGmtOffset(DateTime time) {
+      return (int)TimeUnit.MILLISECONDS.toSeconds(time.getZone().getOffset(time));
     }
 
     private static int getRDayOfWeek(DateTime time) {
@@ -240,6 +257,7 @@ public class PosixLtVector extends TimeVector {
       list.add(WEEKDAY_FIELD, weekday);
       list.add(DAY_OF_YEAR_FIELD, dayOfYear);
       list.add(DST_FIELD, dst);
+      list.add(GMT_OFFSET_FIELD, gmtOffset);
       if(zone != null) {
         list.setAttribute(Symbols.TZONE, StringArrayVector.valueOf(zone.getID()));
       }

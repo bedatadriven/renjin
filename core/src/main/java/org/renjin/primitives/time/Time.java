@@ -22,7 +22,11 @@
 package org.renjin.primitives.time;
 
 import com.google.common.base.Strings;
-import org.joda.time.*;
+import org.joda.time.Chronology;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.Days;
+import org.joda.time.chrono.ISOChronology;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.DateTimeParser;
 import org.joda.time.format.DateTimeParserBucket;
@@ -66,27 +70,32 @@ public class Time {
     List<DateTimeFormatter> formatters = DateTimeFormat.forPatterns(formats, timeZone, false);
     
     PosixLtVector.Builder result = new PosixLtVector.Builder();
+    if(!Strings.isNullOrEmpty(tz)) {
+      result.withTimeZone(timeZone);
+    }
+    
     int resultLength = Math.max(x.length(), formats.length());
     for(int i=0;i!=resultLength;++i) {
       DateTimeFormatter formatter = formatters.get(i % formatters.size());
       String string = x.getElementAsString(i % x.length());
       try {
-        result.add(parseIgnoreTrailingCharacters(formatter, string));
+        result.add(parseIgnoreTrailingCharacters(formatter, timeZone, string));
       } catch(IllegalArgumentException e) {
         result.addNA();
       }
     }   
-    if(!Strings.isNullOrEmpty(tz)) {
-      result.withTimeZone(timeZone);
-    }
+
     return result.buildListVector();
   }
 
-  private static DateTime parseIgnoreTrailingCharacters(DateTimeFormatter formatter, String text) {
+  private static DateTime parseIgnoreTrailingCharacters(
+      DateTimeFormatter formatter, 
+      DateTimeZone defaultTimeZone, 
+      String text) {
     // this is a modified version of DateTimeFormatter.parseDateTime() that does not
     // throw an exception on trailing characters
     
-    Chronology chronology = DateTimeUtils.getChronology(null);
+    Chronology chronology = ISOChronology.getInstance().withZone(defaultTimeZone);
     DateTimeParser parser = formatter.getParser();
     
     Locale locale = null;
@@ -104,12 +113,8 @@ public class Time {
         chronology = chronology.withZone(parsedZone);
       } else if (bucket.getZone() != null) {
         chronology = chronology.withZone(bucket.getZone());
-      }
-      DateTime dt = new DateTime(millis, chronology);
-      if (timeZone != null) {
-        dt = dt.withZone(timeZone);
-      }
-      return dt;
+      } 
+      return new DateTime(millis, chronology);
     }
     throw new IllegalArgumentException();
   }

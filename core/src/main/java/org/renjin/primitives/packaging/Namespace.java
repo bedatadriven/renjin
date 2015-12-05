@@ -192,7 +192,7 @@ public class Namespace {
 
         // Use the symbols registered by the R_init_xxx() function
         for (DllSymbol symbol : info.getSymbols()) {
-          getImportsEnvironment().setVariable(symbol.getName(), symbol.createObject());
+          namespaceEnvironment.setVariable(symbol.getName(), symbol.createObject());
         }
 
       } else {
@@ -202,7 +202,7 @@ public class Namespace {
           DllSymbol symbol = new DllSymbol(info);
           symbol.setName(declaredSymbol.getSymbolName());
           symbol.setMethodHandle(findGnurMethod(clazz, declaredSymbol.getSymbolName()));
-          getImportsEnvironment().setVariable(entry.getPrefix() + declaredSymbol.getAlias(), symbol.createObject());
+          namespaceEnvironment.setVariable(entry.getPrefix() + declaredSymbol.getAlias(), symbol.createObject());
         }
       }
     } catch(Exception e) {

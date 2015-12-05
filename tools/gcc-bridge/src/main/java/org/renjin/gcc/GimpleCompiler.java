@@ -224,7 +224,9 @@ public class GimpleCompiler  {
 
   private void transform(List<GimpleCompilationUnit> units) {
     for (GimpleCompilationUnit unit : units) {
-      System.out.println(unit);
+      if(TRACE) {
+        System.out.println(unit);
+      }
       for (GimpleFunction function : unit.getFunctions()) {
         transformFunctionBody(unit, function);
       }

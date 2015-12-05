@@ -61,6 +61,9 @@ public class FunTypeFactory extends TypeFactory {
     public TypeFactory arrayOf(GimpleArrayType arrayType) {
       return new PointerArray(arrayType);
     }
+    
+
+    
   }
   
   private class PointerPointer extends TypeFactory {

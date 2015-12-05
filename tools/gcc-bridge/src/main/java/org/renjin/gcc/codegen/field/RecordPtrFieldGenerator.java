@@ -6,6 +6,7 @@ import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.codegen.RecordClassGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.expr.RecordUnitPtrGenerator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.gimple.type.GimpleType;
@@ -55,7 +56,7 @@ public class RecordPtrFieldGenerator extends FieldGenerator {
     return new Member(instanceGenerator);
   }
 
-  private class StaticFieldExpr extends AbstractExprGenerator {
+  private class StaticFieldExpr extends AbstractExprGenerator implements RecordUnitPtrGenerator {
 
     @Override
     public GimpleType getGimpleType() {
@@ -68,7 +69,7 @@ public class RecordPtrFieldGenerator extends FieldGenerator {
     }
   }
 
-  private class Member extends AbstractExprGenerator {
+  private class Member extends AbstractExprGenerator implements RecordUnitPtrGenerator {
 
     private ExprGenerator instanceGenerator;
 

@@ -4,10 +4,11 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.expr.RecordUnitPtrGenerator;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 
-public class DereferencedUnitRecordPtr extends AbstractExprGenerator {
+public class DereferencedUnitRecordPtr extends AbstractExprGenerator implements RecordUnitPtrGenerator {
   private ExprGenerator pointerPointer;
 
   public DereferencedUnitRecordPtr(ExprGenerator pointerPointer) {

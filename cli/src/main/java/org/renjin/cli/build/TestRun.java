@@ -5,6 +5,7 @@ import jline.console.ConsoleReader;
 import org.apache.commons.vfs2.FileObject;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
+import org.renjin.eval.SessionController;
 import org.renjin.primitives.packaging.ClasspathPackageLoader;
 import org.renjin.primitives.packaging.PackageLoader;
 import org.renjin.repl.JlineRepl;
@@ -73,6 +74,7 @@ public class TestRun {
   private Session newSession() {
     SessionBuilder builder = new SessionBuilder().withDefaultPackages();
     builder.bind(PackageLoader.class, createPackageLoader());
+//    builder.bind(SessionController.class, createSessionControler)
     Session session = builder.build();
     session.setWorkingDirectory(resolveTestDir(session));
     return session;
@@ -115,6 +117,7 @@ public class TestRun {
       InputStream in = new FileInputStream(testFile);
       ConsoleReader consoleReader = new ConsoleReader(in, output, term);
       JlineRepl repl = new JlineRepl(session, consoleReader);
+      repl.setInteractive(false);
       repl.setEcho(true);
       repl.setStopOnError(true);
 
@@ -123,6 +126,13 @@ public class TestRun {
 
     } catch (Exception e) {
       e.printStackTrace(output);
+      return false;
+    }
+  }
+  
+  private class TestSessionController extends SessionController {
+    @Override
+    public boolean isInteractive() {
       return false;
     }
   }

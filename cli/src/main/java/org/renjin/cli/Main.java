@@ -107,6 +107,7 @@ public class Main {
 
   private void startInteractive() throws Exception {
     JlineRepl repl = new JlineRepl(session);
+    repl.setInteractive(true);
     JLineAetherListener listener = new JLineAetherListener(repl.getReader());
     packageLoader.setTransferListener(listener);
     packageLoader.setPackageListener(listener);
@@ -132,6 +133,7 @@ public class Main {
     JlineRepl repl = new JlineRepl(session, consoleReader);
     repl.setEcho(true);
     repl.setStopOnError(true);
+    repl.setInteractive(false);
 
     try {
       repl.run();

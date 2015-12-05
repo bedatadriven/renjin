@@ -168,6 +168,7 @@ public class TestExecutor {
       InputStream in = new ByteArrayInputStream(sourceText.getBytes(Charsets.UTF_8));
       ConsoleReader consoleReader = new ConsoleReader(in, new PrintStream(testOutput), term);
       JlineRepl repl = new JlineRepl(session, consoleReader);
+      repl.setInteractive(false);
       repl.setEcho(true);
       repl.setStopOnError(true);
 

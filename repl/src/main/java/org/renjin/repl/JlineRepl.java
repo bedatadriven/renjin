@@ -40,6 +40,7 @@ public class JlineRepl {
    * Whether to abort evaluation if an error is encountered
    */
   private boolean stopOnError;
+  private JlineSessionController sessionController;
 
   public static void main(String[] args) throws Exception {
     JlineRepl repl = new JlineRepl(SessionBuilder.buildDefault());
@@ -70,12 +71,20 @@ public class JlineRepl {
 
   public JlineRepl(Session session, ConsoleReader reader) throws IOException {
     this.session = session;
-    this.session.setSessionController(new JlineSessionController(reader.getTerminal()));
+    sessionController = new JlineSessionController(reader.getTerminal());
+    this.session.setSessionController(sessionController);
     this.topLevelContext = session.getTopLevelContext();
     this.reader = reader;
   }
+  
+  public void setInteractive(boolean interactive) {
+    sessionController.setInteractive(interactive);
+  }
 
-
+  public boolean isInteractive() {
+    return sessionController.isInteractive();
+  }
+  
   public void setEcho(boolean echo) {
     this.echo = echo;
   }

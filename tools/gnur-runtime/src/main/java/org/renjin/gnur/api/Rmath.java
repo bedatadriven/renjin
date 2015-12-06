@@ -577,20 +577,34 @@ public final class Rmath {
      throw new UnimplementedGnuApiMethod("Rf_pythag");
   }
 
-  public static int Rf_imax2(int p0, int p1) {
-     throw new UnimplementedGnuApiMethod("Rf_imax2");
+  public static int Rf_imax2(int x, int y) {
+    // from src/nmath/imax2.c
+    return (x < y) ? y : x;
   }
 
-  public static int Rf_imin2(int p0, int p1) {
-     throw new UnimplementedGnuApiMethod("Rf_imin2");
+  public static int Rf_imin2(int x, int y) {
+    // from src/nmath/imin2
+    return (x < y) ? x : y;
   }
 
-  public static double Rf_fmax2(double p0, double p1) {
-     throw new UnimplementedGnuApiMethod("Rf_fmax2");
+  /**
+   * @return the maximum of {@code x} and {@code y}, or Nan if either x or y is NaN.
+   */
+  public static double Rf_fmax2(double x, double y) {
+    if(Double.isNaN(x) || Double.isNaN(y)) {
+      return x + y;
+    }
+    return Math.max(x, y);
   }
 
-  public static double Rf_fmin2(double p0, double p1) {
-     throw new UnimplementedGnuApiMethod("Rf_fmin2");
+  /**
+   * @return the minimum of {@code x} and {@code y}, or Nan if either x or y is NaN.
+   */
+  public static double Rf_fmin2(double x, double y) {
+    if(Double.isNaN(x) || Double.isNaN(y)) {
+      return x + y;
+    }
+    return Math.min(x, y);
   }
 
   public static double Rf_sign(double p0) {

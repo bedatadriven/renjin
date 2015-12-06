@@ -11,6 +11,7 @@ import java.util.Arrays;
 @SuppressWarnings("unused")
 public final class Rinternals {
 
+  
   private Rinternals() { }
 
   /* Evaluation Environment */
@@ -821,8 +822,8 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_findVarInFrame3");
   }
 
-  public static SEXP Rf_getAttrib(SEXP p0, SEXP p1) {
-    throw new UnimplementedGnuApiMethod("Rf_getAttrib");
+  public static SEXP Rf_getAttrib(SEXP sexp, SEXP attributeSexp) {
+    return sexp.getAttribute((Symbol)attributeSexp);
   }
 
   public static SEXP Rf_GetArrayDimnames(SEXP p0) {

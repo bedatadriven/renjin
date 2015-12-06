@@ -1,10 +1,7 @@
 // Initial template generated from Print.h from R 3.2.2
 package org.renjin.gnur.api;
 
-import org.renjin.gcc.runtime.BytePtr;
-import org.renjin.gcc.runtime.CharPtr;
-import org.renjin.gcc.runtime.DoublePtr;
-import org.renjin.gcc.runtime.IntPtr;
+import org.renjin.gcc.runtime.*;
 import org.renjin.sexp.SEXP;
 
 @SuppressWarnings("unused")
@@ -13,9 +10,12 @@ public final class Print {
   private Print() { }
 
   public static void Rprintf(BytePtr format, Object... formatArgs) {
-    System.out.println(format.nullTerminatedString());
+    Stdlib.printf(format, formatArgs);
   }
 
+  public static void REprintf(BytePtr format, Object... formatArgs) {
+    Stdlib.printf(format, formatArgs);
+  }
 
   public static void Rf_formatRaw(BytePtr p0, /*R_xlen_t*/ int p1, IntPtr p2) {
      throw new UnimplementedGnuApiMethod("Rf_formatRaw");

@@ -3,15 +3,20 @@ package org.renjin.gnur.api;
 
 import org.renjin.eval.EvalException;
 import org.renjin.gcc.runtime.BytePtr;
+import org.renjin.gcc.runtime.Stdlib;
 
 @SuppressWarnings("unused")
 public final class Error {
 
   private Error() { }
   
+  @Deprecated
   public static void Rf_warning(BytePtr text) {
-    // TODO, properly
-    System.err.println(text.nullTerminatedString());
+    Rf_warning(text, new Object[0]);
+  }
+  
+  public static void Rf_warning(BytePtr text, Object... formatArgs) {
+    Stdlib.printf(text, formatArgs);
   }
 
   public static void Rf_error(BytePtr text, Object... formatArguments) {

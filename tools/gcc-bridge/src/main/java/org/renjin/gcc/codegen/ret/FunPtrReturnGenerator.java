@@ -52,10 +52,16 @@ public class FunPtrReturnGenerator implements ReturnGenerator {
       this.arguments = arguments;
     }
 
-
     @Override
     public GimpleType getGimpleType() {
       return functionType.pointerTo();
     }
+
+    @Override
+    public void emitPushMethodHandle(MethodVisitor mv) {
+      callGenerator.emitCall(mv, arguments);
+    }
   }
+  
+  
 }

@@ -28,7 +28,7 @@ export("?", .DollarNames, CRAN.packages, Rprof, Rprofmem, RShowDoc,
        memory.limit, memory.size, menu, methods, mirror2html,
        modifyList, new.packages, news, object.size, old.packages,
        package.contents, package.skeleton, packageDescription,
-       packageVersion, packageStatus, page, person, personList, pico,
+       packageVersion,  page, person, personList, pico,
        prompt, promptData, promptPackage, rc.getOption, rc.options,
        rc.settings, rc.status, readCitationFile, read.DIF, read.csv,
        read.csv2, read.delim, read.delim2, read.fwf, read.fortran,
@@ -37,7 +37,7 @@ export("?", .DollarNames, CRAN.packages, Rprof, Rprofmem, RShowDoc,
        setBreakpoint, setRepositories, stack, str, strOptions,
        summaryRprof, suppressForeignCheck, tail, tail.matrix, tar, timestamp, toBibtex,
        toLatex, type.convert, unstack, untar, unzip,
-       update.packageStatus, update.packages, upgrade, url.show, vi,
+       update.packages, upgrade, url.show, vi,
        vignette, write.csv, write.csv2, write.socket, write.table,
        wsbrowser, xedit, xemacs, zip, zip.file.extract)
 
@@ -76,11 +76,9 @@ S3method(print, "news_db")
 S3method(print, "object_size")
 S3method(print, packageDescription)
 S3method(print, packageIQR)
-S3method(print, packageStatus)
 S3method(print, roman)
 S3method(print, sessionInfo)
 S3method(print, socket)
-S3method(print, summary.packageStatus)
 S3method(print, vignette)
 S3method(print, browseVignettes)
 S3method(prompt, data.frame)
@@ -96,7 +94,6 @@ S3method(str, Date)
 S3method(str, data.frame)
 S3method(str, default)
 #S3method(summary, aspell)
-S3method(summary, packageStatus)
 S3method(tail, data.frame)
 S3method(tail, default)
 S3method(tail, "function")
@@ -108,9 +105,6 @@ S3method(toLatex, sessionInfo)
 S3method(unlist, relistable)
 S3method(unstack, data.frame)
 S3method(unstack, default)
-S3method(upgrade, packageStatus)
-## can't register update.packageStatus as update is in stats
-## and would create a cycle.
 
 export("bibentry")
 S3method("$", "bibentry")

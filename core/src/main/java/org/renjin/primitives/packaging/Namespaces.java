@@ -142,6 +142,7 @@ public class Namespaces {
     }
     return result.build();
   }
+  
 
   @Builtin
   public static StringVector getNamespaceImports(@Current NamespaceRegistry registry, final SEXP sexp) {

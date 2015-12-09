@@ -30,6 +30,10 @@ import java.io.PrintWriter;
  */
 public class JlineRepl {
 
+  private final Session session;
+  private final Context topLevelContext;
+  private final ConsoleReader reader;
+  private final JlineSessionController sessionController;
 
   /**
    * Echo lines to standard out.
@@ -40,21 +44,22 @@ public class JlineRepl {
    * Whether to abort evaluation if an error is encountered
    */
   private boolean stopOnError;
-  private JlineSessionController sessionController;
 
-  public static void main(String[] args) throws Exception {
-    JlineRepl repl = new JlineRepl(SessionBuilder.buildDefault());
-    repl.run();
-  }
 
-  private final Session session;
-  private final Context topLevelContext;
-  private ConsoleReader reader;
-
-  public JlineRepl(Session session) throws Exception {
+  public JlineRepl(Session session, ConsoleReader reader) throws IOException {
     this.session = session;
     this.topLevelContext = session.getTopLevelContext();
+    this.reader = reader;
+    this.sessionController = new JlineSessionController(reader.getTerminal());
+    this.session.setSessionController(sessionController);
+  }
+  
+  public JlineRepl(Session session) throws Exception {
+    this(session, createInteractiveConsoleReader());
+  }
 
+  private static ConsoleReader createInteractiveConsoleReader() throws IOException {
+    ConsoleReader reader;
     if(Strings.nullToEmpty(System.getProperty("os.name")).startsWith("Windows")) {
       // AnsiWindowsTerminal does not work properly in WIndows 7
       // so disabling across the board for now
@@ -62,20 +67,11 @@ public class JlineRepl {
     } else {
       reader = new ConsoleReader();
     }
-
-    // disable events triggered by ! (this is valid R !!)
-    reader.setExpandEvents(false);
+    reader.setExpandEvents(false); // disable events triggered by "!", which is a valid R token
     reader.setHandleUserInterrupt(true);
-    session.setSessionController(new JlineSessionController(reader.getTerminal()));
+    return reader;
   }
 
-  public JlineRepl(Session session, ConsoleReader reader) throws IOException {
-    this.session = session;
-    sessionController = new JlineSessionController(reader.getTerminal());
-    this.session.setSessionController(sessionController);
-    this.topLevelContext = session.getTopLevelContext();
-    this.reader = reader;
-  }
   
   public void setInteractive(boolean interactive) {
     sessionController.setInteractive(interactive);
@@ -232,4 +228,11 @@ public class JlineRepl {
   public ConsoleReader getReader() {
     return reader;
   }
+
+  public static void main(String[] args) throws Exception {
+    JlineRepl repl = new JlineRepl(SessionBuilder.buildDefault());
+    repl.run();
+  }
+
+
 }

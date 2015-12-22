@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
 import java.util.Map;
@@ -14,53 +15,55 @@ import java.util.Map;
 public class LocalVarAllocator {
   
   
-  private static class VarDescriptor {
+  private static class LocalVar implements Var {
     private int index;
     private Type type;
 
-    public VarDescriptor(int index, Type type) {
+    public LocalVar(int index, Type type) {
       this.index = index;
       this.type = type;
+    }
+
+    @Override
+    public void load(MethodVisitor mv) {
+      mv.visitVarInsn(type.getOpcode(Opcodes.ILOAD), index);
+    }
+
+    @Override
+    public void store(MethodVisitor mv) {
+      mv.visitVarInsn(type.getOpcode(Opcodes.ISTORE), index);
     }
   }
   
   private int slots = 0;
-  private Map<String, VarDescriptor> names = Maps.newHashMap();
-  
-  public int reserve(int numSlots) {
-    int index = slots;
-    slots += numSlots;
-    return index;
-  }
-  
-  public int reserve(String name, Type type) {
+  private Map<String, LocalVar> names = Maps.newHashMap();
+
+  public Var reserve(String name, Type type) {
     Preconditions.checkState(!names.containsKey(name), "Variable name already used: " + name);
-    int index = reserve(type.getSize());
-    names.put(name, new VarDescriptor(index, type));
-    return index;
+    int index = slots;
+    slots += type.getSize();
+    LocalVar var = new LocalVar(index, type);
+    names.put(name, var);
+    return var;
   }
   
-  public final int reserve(String name, Class type) {
+  public final Var reserve(String name, Class type) {
     return reserve(name, Type.getType(type));
   }
 
-  public final int reserveArrayRef(String name, Type componentType) {
+  public final Var reserveArrayRef(String name, Type componentType) {
     return reserve(name, Type.getType("[" + componentType.getDescriptor()));
   }
 
-  public final int reserveInt(String name) {
+  public final Var reserveInt(String name) {
     return reserve(name, Type.INT_TYPE);
   }
-  
-  public int size() {
-    return slots;
-  }
-  
+
   public void emitDebugging(MethodVisitor mv, Label start, Label end) {
 
-    for (Map.Entry<String, VarDescriptor> entry : names.entrySet()) {
+    for (Map.Entry<String, LocalVar> entry : names.entrySet()) {
       String name = entry.getKey();
-      VarDescriptor desc = entry.getValue();
+      LocalVar desc = entry.getValue();
 
       mv.visitLocalVariable(name, desc.type.getDescriptor(), null, start, end, desc.index);
     }

@@ -5,6 +5,7 @@ import com.google.common.base.Preconditions;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.codegen.RecordClassGenerator;
+import org.renjin.gcc.codegen.Var;
 import org.renjin.gcc.codegen.arrays.RecordArrayElement;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
@@ -15,11 +16,11 @@ import org.renjin.gcc.gimple.type.GimpleType;
 
 public class RecordArrayVarGenerator extends AbstractExprGenerator implements VarGenerator {
 
-  private final int varIndex;
+  private final Var varIndex;
   private GimpleArrayType arrayType;
   private RecordClassGenerator generator;
 
-  public RecordArrayVarGenerator(GimpleArrayType arrayType, RecordClassGenerator generator, int varIndex) {
+  public RecordArrayVarGenerator(GimpleArrayType arrayType, RecordClassGenerator generator, Var varIndex) {
     this.arrayType = arrayType;
     this.generator = generator;
     this.varIndex = varIndex;
@@ -49,7 +50,7 @@ public class RecordArrayVarGenerator extends AbstractExprGenerator implements Va
     }
     
     // Store the array to the local variable
-    mv.visitVarInsn(Opcodes.ASTORE, varIndex);
+    varIndex.store(mv);
     
     if(initialValue.isPresent()) {
       emitStore(mv, initialValue.get());
@@ -58,7 +59,7 @@ public class RecordArrayVarGenerator extends AbstractExprGenerator implements Va
 
   @Override
   public void emitPushArray(MethodVisitor mv) {
-    mv.visitVarInsn(Opcodes.ALOAD, varIndex);
+    varIndex.load(mv);
   }
 
   @Override

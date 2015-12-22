@@ -2,25 +2,22 @@ package org.renjin.gcc.codegen.var;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
-import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.analysis.AddressableFinder;
+import org.renjin.gcc.codegen.Var;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
-import static org.objectweb.asm.Opcodes.ILOAD;
-import static org.objectweb.asm.Opcodes.ISTORE;
-
 public class PrimitiveVarGenerator extends AbstractExprGenerator implements VarGenerator {
   private GimplePrimitiveType type;
-  private int localVarIndex;
+  private Var var;
 
-  public PrimitiveVarGenerator(GimpleType type, int localVarIndex) {
-    this.localVarIndex = localVarIndex;
+  public PrimitiveVarGenerator(GimpleType type, Var var) {
+    this.var = var;
     this.type = (GimplePrimitiveType) type;
   }
 
@@ -35,8 +32,7 @@ public class PrimitiveVarGenerator extends AbstractExprGenerator implements VarG
         this,
         getJvmPrimitiveType());
     
-    mv.visitVarInsn(getJvmPrimitiveType().getOpcode(ISTORE), localVarIndex);
-
+    var.store(mv);
   }
 
   private boolean checkTypes(ExprGenerator valueGenerator) {
@@ -55,7 +51,7 @@ public class PrimitiveVarGenerator extends AbstractExprGenerator implements VarG
 
   @Override
   public void emitPrimitiveValue(MethodVisitor mv) {
-    mv.visitVarInsn(getJvmPrimitiveType().getOpcode(ILOAD), localVarIndex);
+    var.load(mv);
   }
 
   @Override
@@ -63,10 +59,6 @@ public class PrimitiveVarGenerator extends AbstractExprGenerator implements VarG
     if(initialValue.isPresent()) {
       emitStore(mv, initialValue.get());
     }
-  }
-
-  public void emitDebugging(MethodVisitor mv, String name, Label start, Label end) {
-    mv.visitLocalVariable(name, type.jvmType().getDescriptor(), null, start, end, localVarIndex);
   }
 
   @Override

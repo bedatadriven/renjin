@@ -5,6 +5,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
+import org.renjin.gcc.codegen.Var;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
@@ -20,16 +21,16 @@ public class ComplexArrayPtrVarGenerator extends AbstractExprGenerator implement
   private final GimpleComplexType complexType;
   private final Type partType;
 
-  private int arrayIndex;
-  private int offsetIndex;
+  private Var arrayVar;
+  private Var offsetVar;
 
-  public ComplexArrayPtrVarGenerator(GimpleIndirectType pointerType, int arrayIndex, int offsetIndex) {
+  public ComplexArrayPtrVarGenerator(GimpleIndirectType pointerType, Var arrayVar, Var offsetVar) {
     this.pointerType = pointerType;
     this.arrayType = pointerType.getBaseType();
     this.complexType = (GimpleComplexType) arrayType.getComponentType();
     this.partType = complexType.getJvmPartType();
-    this.arrayIndex = arrayIndex;
-    this.offsetIndex = offsetIndex;
+    this.arrayVar = arrayVar;
+    this.offsetVar = offsetVar;
 
     if (!complexType.hasValidSize()) {
       throw new InternalCompilerException("Invalid complex size: " + complexType.getSize());
@@ -49,7 +50,7 @@ public class ComplexArrayPtrVarGenerator extends AbstractExprGenerator implement
 
   @Override
   public void emitPushPtrArray(MethodVisitor mv) {
-    mv.visitVarInsn(Opcodes.ALOAD, arrayIndex);
+    arrayVar.load(mv);
   }
 
   @Override
@@ -101,7 +102,7 @@ public class ComplexArrayPtrVarGenerator extends AbstractExprGenerator implement
 
     private void emitPushIndex(MethodVisitor mv) {
       // first we need the base offset within the array
-      mv.visitVarInsn(Opcodes.ILOAD, offsetIndex);
+      offsetVar.load(mv);
 
       // Now compute the index into the array, relative to the
       // base offset. Since each element requires two double elements,
@@ -216,7 +217,7 @@ public class ComplexArrayPtrVarGenerator extends AbstractExprGenerator implement
 
     @Override
     public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
-      mv.visitVarInsn(Opcodes.ALOAD, arrayIndex);
+      arrayVar.load(mv);
       element.emitPushIndex(mv);
     }
   }

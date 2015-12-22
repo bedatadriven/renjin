@@ -4,6 +4,7 @@ import com.google.common.base.Optional;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.Var;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.call.MallocGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
@@ -19,12 +20,12 @@ import org.renjin.gcc.gimple.type.GimpleType;
  *
  */
 public class AddressablePrimitiveVarGenerator extends AbstractExprGenerator implements VarGenerator {
-  private int index;
+  private Var arrayVar;
   private GimpleType type;
   private Type componentType;
   
-  public AddressablePrimitiveVarGenerator(GimpleType type, int index) {
-    this.index = index;
+  public AddressablePrimitiveVarGenerator(GimpleType type, Var arrayVar) {
+    this.arrayVar = arrayVar;
     this.type = type;
     componentType = ((GimplePrimitiveType) type).jvmType();
   }
@@ -38,7 +39,7 @@ public class AddressablePrimitiveVarGenerator extends AbstractExprGenerator impl
   public void emitDefaultInit(MethodVisitor mv, Optional<ExprGenerator> initialValue) {
     mv.visitInsn(Opcodes.ICONST_1);
     MallocGenerator.emitNewArray(mv, componentType);
-    mv.visitVarInsn(Opcodes.ASTORE, index);
+    arrayVar.store(mv);
     
     if(initialValue.isPresent() && !defaultValue(initialValue.get())) {
       emitStore(mv, initialValue.get());
@@ -58,14 +59,14 @@ public class AddressablePrimitiveVarGenerator extends AbstractExprGenerator impl
 
   @Override
   public void emitPrimitiveValue(MethodVisitor mv) {
-    mv.visitVarInsn(Opcodes.ALOAD, index);
+    arrayVar.load(mv);
     mv.visitInsn(Opcodes.ICONST_0);
     mv.visitInsn(componentType.getOpcode(Opcodes.IALOAD));
   }
 
   @Override
   public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
-    mv.visitVarInsn(Opcodes.ALOAD, index);
+    arrayVar.load(mv);
     mv.visitInsn(Opcodes.ICONST_0);
     valueGenerator.emitPrimitiveValue(mv);
     mv.visitInsn(componentType.getOpcode(Opcodes.IASTORE));
@@ -85,7 +86,7 @@ public class AddressablePrimitiveVarGenerator extends AbstractExprGenerator impl
 
     @Override
     public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
-      mv.visitVarInsn(Opcodes.ALOAD, index);
+      arrayVar.load(mv);
       mv.visitInsn(Opcodes.ICONST_0);
     }
 

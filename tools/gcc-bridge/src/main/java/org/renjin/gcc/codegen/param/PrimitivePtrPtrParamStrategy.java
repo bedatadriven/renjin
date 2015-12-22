@@ -2,10 +2,10 @@ package org.renjin.gcc.codegen.param;
 
 
 import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.LocalVarAllocator;
+import org.renjin.gcc.codegen.Var;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
@@ -45,8 +45,8 @@ public class PrimitivePtrPtrParamStrategy extends ParamStrategy {
   }
 
   @Override
-  public ExprGenerator emitInitialization(MethodVisitor methodVisitor, GimpleParameter parameter, int startIndex, LocalVarAllocator localVars) {
-    return new PtrPtrExpr(startIndex);
+  public ExprGenerator emitInitialization(MethodVisitor methodVisitor, GimpleParameter parameter, List<Var> paramVars, LocalVarAllocator localVars) {
+    return new PtrPtrExpr(paramVars.get(0));
   }
 
   @Override
@@ -59,9 +59,9 @@ public class PrimitivePtrPtrParamStrategy extends ParamStrategy {
   
   private class PtrPtrExpr extends AbstractExprGenerator {
 
-    private int varIndex;
+    private Var varIndex;
     
-    public PtrPtrExpr(int varIndex) {
+    public PtrPtrExpr(Var varIndex) {
       this.varIndex = varIndex;
     }
 
@@ -73,7 +73,7 @@ public class PrimitivePtrPtrParamStrategy extends ParamStrategy {
 
     @Override
     public void emitPushPointerWrapper(MethodVisitor mv) {
-      mv.visitVarInsn(Opcodes.ALOAD, varIndex);
+      varIndex.load(mv);
     }
 
     @Override
@@ -85,7 +85,7 @@ public class PrimitivePtrPtrParamStrategy extends ParamStrategy {
     @Override
     public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
       valueGenerator.emitPushPointerWrapper(mv);
-      mv.visitVarInsn(Opcodes.ASTORE, varIndex);
+      varIndex.store(mv);
     }
 
     @Override

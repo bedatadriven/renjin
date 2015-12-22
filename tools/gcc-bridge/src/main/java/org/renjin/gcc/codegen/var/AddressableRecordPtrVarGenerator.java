@@ -4,6 +4,7 @@ import com.google.common.base.Optional;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.codegen.RecordClassGenerator;
+import org.renjin.gcc.codegen.Var;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.expr.NullPtrGenerator;
@@ -14,9 +15,9 @@ import org.renjin.gcc.gimple.type.GimpleType;
 public class AddressableRecordPtrVarGenerator extends AbstractExprGenerator implements VarGenerator {
 
   private RecordClassGenerator generator;
-  private int varIndex;
+  private Var varIndex;
 
-  public AddressableRecordPtrVarGenerator(RecordClassGenerator generator, int varIndex) {
+  public AddressableRecordPtrVarGenerator(RecordClassGenerator generator, Var varIndex) {
     this.generator = generator;
     this.varIndex = varIndex;
   }
@@ -27,7 +28,7 @@ public class AddressableRecordPtrVarGenerator extends AbstractExprGenerator impl
     // allocate a unit array so that we can provide an "address" for this pointer
     mv.visitInsn(Opcodes.ICONST_1);
     mv.visitTypeInsn(Opcodes.ANEWARRAY, generator.getType().getInternalName());
-    mv.visitVarInsn(Opcodes.ASTORE, varIndex);
+    varIndex.store(mv);
     
     if(initialValue.isPresent()) {
       if(initialValue.get() instanceof NullPtrGenerator) {
@@ -41,14 +42,14 @@ public class AddressableRecordPtrVarGenerator extends AbstractExprGenerator impl
 
   @Override
   public void emitPushRecordRef(MethodVisitor mv) {
-    mv.visitVarInsn(Opcodes.ALOAD, varIndex);
+    varIndex.load(mv);
     mv.visitInsn(Opcodes.ICONST_0);
     mv.visitInsn(Opcodes.AALOAD);
   }
 
   @Override
   public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
-    mv.visitVarInsn(Opcodes.ALOAD, varIndex);
+    varIndex.load(mv);
     mv.visitInsn(Opcodes.ICONST_0);
     valueGenerator.emitPushRecordRef(mv);
     mv.visitInsn(Opcodes.AASTORE);
@@ -66,7 +67,7 @@ public class AddressableRecordPtrVarGenerator extends AbstractExprGenerator impl
 
   @Override
   public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
-    mv.visitVarInsn(Opcodes.ALOAD, varIndex);
+    varIndex.load(mv);
     mv.visitInsn(Opcodes.ICONST_0);
     mv.visitInsn(Opcodes.AALOAD);
   }
@@ -81,7 +82,7 @@ public class AddressableRecordPtrVarGenerator extends AbstractExprGenerator impl
 
     @Override
     public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
-      mv.visitVarInsn(Opcodes.ALOAD, varIndex);
+      varIndex.load(mv);
       mv.visitInsn(Opcodes.ICONST_0);
     }
   }

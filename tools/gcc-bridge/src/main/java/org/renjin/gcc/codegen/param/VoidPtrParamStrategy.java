@@ -1,9 +1,9 @@
 package org.renjin.gcc.codegen.param;
 
 import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.LocalVarAllocator;
+import org.renjin.gcc.codegen.Var;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.GimpleParameter;
@@ -25,8 +25,8 @@ public class VoidPtrParamStrategy extends ParamStrategy {
   }
 
   @Override
-  public ExprGenerator emitInitialization(MethodVisitor methodVisitor, GimpleParameter parameter, int startIndex, LocalVarAllocator localVars) {
-    return new Expr(startIndex);
+  public ExprGenerator emitInitialization(MethodVisitor methodVisitor, GimpleParameter parameter, List<Var> paramVars, LocalVarAllocator localVars) {
+    return new Expr(paramVars.get(0));
   }
 
   @Override
@@ -35,10 +35,10 @@ public class VoidPtrParamStrategy extends ParamStrategy {
   }
 
   private class Expr extends AbstractExprGenerator {
-    private int varIndex;
+    private Var var;
 
-    public Expr(int varIndex) {
-      this.varIndex = varIndex;
+    public Expr(Var var) {
+      this.var = var;
     }
 
     @Override
@@ -49,7 +49,7 @@ public class VoidPtrParamStrategy extends ParamStrategy {
 
     @Override
     public void emitPushRecordRef(MethodVisitor mv) {
-      mv.visitVarInsn(Opcodes.ALOAD, varIndex);
+      var.load(mv);
     }
   }
 }

@@ -4,9 +4,9 @@ import com.google.common.base.Optional;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.Var;
 import org.renjin.gcc.codegen.call.MallocGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
-import org.renjin.gcc.codegen.expr.ComplexConstGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.type.GimpleComplexType;
 import org.renjin.gcc.gimple.type.GimplePointerType;
@@ -26,12 +26,12 @@ public class AddressableComplexVarGenerator extends AbstractExprGenerator implem
   /**
    * Local variable index of the backing double[] array
    */
-  private int arrayIndex;
+  private Var arrayVar;
 
-  public AddressableComplexVarGenerator(GimpleComplexType type, int arrayIndex) {
+  public AddressableComplexVarGenerator(GimpleComplexType type, Var arrayVar) {
     this.type = type;
     this.partType = type.getJvmPartType();
-    this.arrayIndex = arrayIndex;
+    this.arrayVar = arrayVar;
   }
 
   @Override
@@ -43,7 +43,7 @@ public class AddressableComplexVarGenerator extends AbstractExprGenerator implem
 
   @Override
   public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
-    mv.visitVarInsn(Opcodes.ALOAD, arrayIndex);
+    arrayVar.load(mv);
     mv.visitInsn(Opcodes.DUP);
     
     // stack (array, array)
@@ -62,7 +62,7 @@ public class AddressableComplexVarGenerator extends AbstractExprGenerator implem
   public void emitDefaultInit(MethodVisitor mv, Optional<ExprGenerator> initialValue) {
     mv.visitInsn(Opcodes.ICONST_2);
     MallocGenerator.emitNewArray(mv, partType);
-    mv.visitVarInsn(Opcodes.ASTORE, arrayIndex);  
+    arrayVar.store(mv);
     
     if(initialValue.isPresent() && !isDefaultValue(initialValue.get())) {
       emitStore(mv, initialValue.get());
@@ -105,7 +105,7 @@ public class AddressableComplexVarGenerator extends AbstractExprGenerator implem
 
     @Override
     public void emitPrimitiveValue(MethodVisitor mv) {
-      mv.visitVarInsn(Opcodes.ALOAD, arrayIndex);
+      arrayVar.load(mv);
       mv.visitInsn(Opcodes.ICONST_0 + offset);
       mv.visitInsn(partType.getOpcode(Opcodes.IALOAD));
     }
@@ -120,7 +120,7 @@ public class AddressableComplexVarGenerator extends AbstractExprGenerator implem
 
     @Override
     public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
-      mv.visitVarInsn(Opcodes.ALOAD, arrayIndex);
+      arrayVar.load(mv);
       mv.visitInsn(Opcodes.ICONST_0);
     }
   }

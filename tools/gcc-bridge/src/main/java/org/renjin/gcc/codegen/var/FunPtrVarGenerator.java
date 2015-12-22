@@ -2,7 +2,7 @@ package org.renjin.gcc.codegen.var;
 
 import com.google.common.base.Optional;
 import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
+import org.renjin.gcc.codegen.Var;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.type.GimpleFunctionType;
@@ -17,11 +17,11 @@ import org.renjin.gcc.gimple.type.GimpleType;
 public class FunPtrVarGenerator extends AbstractExprGenerator implements VarGenerator {
   
   private GimpleFunctionType type;
-  private int index;
+  private Var var;
 
-  public FunPtrVarGenerator(GimpleFunctionType type, int index) {
+  public FunPtrVarGenerator(GimpleFunctionType type, Var var) {
     this.type = type;
-    this.index = index;
+    this.var = var;
   }
 
   @Override
@@ -38,12 +38,12 @@ public class FunPtrVarGenerator extends AbstractExprGenerator implements VarGene
 
   @Override
   public void emitPushMethodHandle(MethodVisitor mv) {
-    mv.visitVarInsn(Opcodes.ALOAD, index);
+    var.load(mv);
   }
 
   @Override
   public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
     valueGenerator.emitPushMethodHandle(mv);
-    mv.visitVarInsn(Opcodes.ASTORE, index);
+    var.store(mv);
   }
 }

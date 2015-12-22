@@ -3,6 +3,7 @@ package org.renjin.gcc.codegen.var;
 import com.google.common.base.Optional;
 import org.objectweb.asm.MethodVisitor;
 import org.renjin.gcc.codegen.RecordClassGenerator;
+import org.renjin.gcc.codegen.Var;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.type.GimplePointerType;
@@ -12,12 +13,12 @@ import static org.objectweb.asm.Opcodes.*;
 
 public class RecordVarGenerator extends AbstractExprGenerator implements VarGenerator {
 
-  private int varIndex;
+  private Var var;
   private RecordClassGenerator recordGenerator;
 
-  public RecordVarGenerator(RecordClassGenerator recordGenerator, int varIndex) {
+  public RecordVarGenerator(RecordClassGenerator recordGenerator, Var var) {
     this.recordGenerator = recordGenerator;
-    this.varIndex = varIndex;
+    this.var = var;
   }
 
   @Override
@@ -25,7 +26,7 @@ public class RecordVarGenerator extends AbstractExprGenerator implements VarGene
     mv.visitTypeInsn(NEW, recordGenerator.getClassName());
     mv.visitInsn(DUP);
     mv.visitMethodInsn(INVOKESPECIAL, recordGenerator.getClassName(), "<init>", "()V", false);
-    mv.visitVarInsn(ASTORE, varIndex);
+    var.store(mv);
     
     if(initialValue.isPresent()) {
       emitStore(mv, initialValue.get());
@@ -55,7 +56,7 @@ public class RecordVarGenerator extends AbstractExprGenerator implements VarGene
 
     @Override
     public void emitPushRecordRef(MethodVisitor mv) {
-      mv.visitVarInsn(ALOAD, varIndex);
+      var.load(mv);
     }
   }
 }

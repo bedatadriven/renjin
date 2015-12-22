@@ -2,8 +2,8 @@ package org.renjin.gcc.codegen.var;
 
 import com.google.common.base.Optional;
 import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.Var;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.arrays.PrimitiveArrayElement;
 import org.renjin.gcc.codegen.call.MallocGenerator;
@@ -16,8 +16,6 @@ import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
-import static org.objectweb.asm.Opcodes.ALOAD;
-
 /**
  * Emits bytecode for loading / storing array variables.
  * 
@@ -27,13 +25,13 @@ public class PrimitiveArrayVar extends AbstractExprGenerator implements VarGener
   /**
    * The local variable index of the array
    */
-  private final int arrayIndex;
-  private Type componentType;
-  private GimpleArrayType gimpleType;
+  private final Var arrayIndex;
+  private final Type componentType;
+  private final GimpleArrayType gimpleType;
 
-  public PrimitiveArrayVar(GimpleArrayType gimpleType, int arrayIndex) {
+  public PrimitiveArrayVar(GimpleArrayType gimpleType, Var arrayVar) {
     this.gimpleType = gimpleType;
-    this.arrayIndex = arrayIndex;
+    this.arrayIndex = arrayVar;
 
     GimpleType componentType = gimpleType.getComponentType();
     if(componentType instanceof GimplePrimitiveType) {
@@ -41,7 +39,7 @@ public class PrimitiveArrayVar extends AbstractExprGenerator implements VarGener
     } else if(componentType instanceof GimplePointerType) {
       this.componentType = WrapperType.wrapperType(componentType.getBaseType());
     } else {
-      throw new UnsupportedOperationException("componentType: " + this.componentType);
+      throw new UnsupportedOperationException("componentType: " + componentType);
     }
   }
 
@@ -57,18 +55,18 @@ public class PrimitiveArrayVar extends AbstractExprGenerator implements VarGener
       MallocGenerator.emitNewArray(mv, componentType);
 
     }
-    mv.visitVarInsn(Opcodes.ASTORE, arrayIndex);
+    arrayIndex.store(mv);
   }
 
   @Override
   public void emitPushArray(MethodVisitor mv) {
-    mv.visitVarInsn(ALOAD, arrayIndex);
+    arrayIndex.load(mv);
   }
 
   @Override
   public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
     valueGenerator.emitPushArray(mv);
-    mv.visitVarInsn(Opcodes.ASTORE, arrayIndex);
+    arrayIndex.store(mv);
   }
 
   @Override

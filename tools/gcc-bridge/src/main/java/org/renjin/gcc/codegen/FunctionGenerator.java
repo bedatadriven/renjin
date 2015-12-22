@@ -95,18 +95,28 @@ public class FunctionGenerator {
   private void emitParamInitialization() {
     // first we need to map the parameters to their indexes in the local variable table
     int numParameters = function.getParameters().size();
-    int[] paramIndexes = new int[numParameters];
+    List<List<Var>> paramIndexes = new ArrayList<>();
 
     for (int i = 0; i < numParameters; i++) {
-      ParamStrategy generator = params.get(function.getParameters().get(i));
-      paramIndexes[i] = localVarAllocator.reserve(generator.numSlots());
+      List<Var> paramVars = new ArrayList<>();
+      GimpleParameter param = function.getParameters().get(i);
+      ParamStrategy paramStrategy = params.get(param);
+      List<Type> parameterTypes = paramStrategy.getParameterTypes();
+      if(parameterTypes.size() == 1) {
+        paramVars.add(localVarAllocator.reserve(param.getName(), parameterTypes.get(0)));
+      } else {
+        for (int typeIndex = 0; typeIndex < parameterTypes.size(); typeIndex++) {
+          paramVars.add(localVarAllocator.reserve(param.getName() + "$" + typeIndex, parameterTypes.get(typeIndex)));
+        }
+      }
+      paramIndexes.add(paramVars);
     }
 
     // Now do any required initialization
     for (int i = 0; i < numParameters; i++) {
       GimpleParameter param = function.getParameters().get(i);
       ParamStrategy generator = params.get(param);
-      ExprGenerator exprGenerator = generator.emitInitialization(mv, param, paramIndexes[i], localVarAllocator);
+      ExprGenerator exprGenerator = generator.emitInitialization(mv, param, paramIndexes.get(i), localVarAllocator);
       symbolTable.addVariable(param.getId(), exprGenerator);
     }
   }

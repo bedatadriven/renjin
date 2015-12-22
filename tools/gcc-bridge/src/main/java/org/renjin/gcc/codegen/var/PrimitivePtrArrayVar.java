@@ -3,6 +3,7 @@ package org.renjin.gcc.codegen.var;
 import com.google.common.base.Optional;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.renjin.gcc.codegen.Var;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
@@ -23,12 +24,12 @@ import org.renjin.gcc.gimple.type.GimpleType;
 public class PrimitivePtrArrayVar extends AbstractExprGenerator implements VarGenerator {
   
   private GimpleArrayType arrayType;
-  private int varIndex;
+  private Var arrayVar;
   private WrapperType wrapperType;
 
-  public PrimitivePtrArrayVar(GimpleArrayType arrayType, int varIndex) {
+  public PrimitivePtrArrayVar(GimpleArrayType arrayType, Var arrayVar) {
     this.arrayType = arrayType;
-    this.varIndex = varIndex;
+    this.arrayVar = arrayVar;
     this.wrapperType = WrapperType.forPointerType((GimpleIndirectType) arrayType.getComponentType()); 
   }
 
@@ -45,14 +46,14 @@ public class PrimitivePtrArrayVar extends AbstractExprGenerator implements VarGe
     } else {
       mv.visitInsn(arrayType.getElementCount());
       mv.visitTypeInsn(Opcodes.ANEWARRAY, wrapperType.getWrapperType().getInternalName());
-      mv.visitVarInsn(Opcodes.ASTORE, varIndex);
+      arrayVar.store(mv);
     }
   }
 
   @Override
   public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
     valueGenerator.emitPushArray(mv);
-    mv.visitVarInsn(Opcodes.ASTORE, varIndex);
+    arrayVar.store(mv);
   }
 
   @Override
@@ -82,7 +83,7 @@ public class PrimitivePtrArrayVar extends AbstractExprGenerator implements VarGe
 
     @Override
     public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
-      mv.visitVarInsn(Opcodes.ALOAD, varIndex);
+      arrayVar.load(mv);
       mv.visitInsn(Opcodes.ICONST_0);
     }
   }
@@ -114,7 +115,7 @@ public class PrimitivePtrArrayVar extends AbstractExprGenerator implements VarGe
     public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
       // Push the pointer in valueGenerator onto the stack as a DoublePtr
       // and store it to this index
-      mv.visitVarInsn(Opcodes.ALOAD, varIndex);
+      arrayVar.load(mv);
       indexGenerator.emitPrimitiveValue(mv);
       valueGenerator.emitPushPointerWrapper(mv);
       mv.visitInsn(Opcodes.AASTORE);
@@ -124,7 +125,7 @@ public class PrimitivePtrArrayVar extends AbstractExprGenerator implements VarGe
     @Override
     public void emitPushPointerWrapper(MethodVisitor mv) {
       // Push the pointer wrapper onto the stack
-      mv.visitVarInsn(Opcodes.ALOAD, varIndex);
+      arrayVar.load(mv);
       indexGenerator.emitPrimitiveValue(mv);
       mv.visitInsn(Opcodes.AALOAD);  
     }

@@ -3,6 +3,7 @@ package org.renjin.gcc.codegen.param;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.LocalVarAllocator;
+import org.renjin.gcc.codegen.Var;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.var.AddressablePrimitiveVarGenerator;
 import org.renjin.gcc.codegen.var.PrimitiveVarGenerator;
@@ -34,8 +35,8 @@ public class PrimitiveParamStrategy extends ParamStrategy {
   }
 
   @Override
-  public ExprGenerator emitInitialization(MethodVisitor mv, GimpleParameter parameter, int startIndex, LocalVarAllocator localVars) {
-    PrimitiveVarGenerator var = new PrimitiveVarGenerator(type, startIndex);
+  public ExprGenerator emitInitialization(MethodVisitor mv, GimpleParameter parameter, List<Var> paramVars, LocalVarAllocator localVars) {
+    PrimitiveVarGenerator var = new PrimitiveVarGenerator(type, paramVars.get(0));
 
     if(parameter.isAddressable()) {
       AddressablePrimitiveVarGenerator addressableVar = new AddressablePrimitiveVarGenerator(

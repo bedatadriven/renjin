@@ -4,23 +4,21 @@ import com.google.common.base.Optional;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.codegen.RecordClassGenerator;
+import org.renjin.gcc.codegen.Var;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.expr.RecordUnitPtrGenerator;
 import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
-import static org.objectweb.asm.Opcodes.ALOAD;
-import static org.objectweb.asm.Opcodes.ASTORE;
-
 public class RecordPtrVarGenerator extends AbstractExprGenerator implements VarGenerator, RecordUnitPtrGenerator {
-  private int varIndex;
+  private Var var;
   private RecordClassGenerator recordGenerator;
   private GimpleType pointerType;
 
-  public RecordPtrVarGenerator(RecordClassGenerator recordGenerator, int varIndex) {
+  public RecordPtrVarGenerator(RecordClassGenerator recordGenerator, Var var) {
     this.recordGenerator = recordGenerator;
-    this.varIndex = varIndex;
+    this.var = var;
     this.pointerType = new GimplePointerType(recordGenerator.getGimpleType());
   }
   
@@ -37,13 +35,13 @@ public class RecordPtrVarGenerator extends AbstractExprGenerator implements VarG
 
   @Override
   public void emitPushRecordRef(MethodVisitor mv) {
-    mv.visitVarInsn(ALOAD, varIndex);
+    var.load(mv);
   }
 
   @Override
   public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
     valueGenerator.emitPushRecordRef(mv);
-    mv.visitVarInsn(ASTORE, varIndex);
+    var.store(mv);
   }
 
   @Override

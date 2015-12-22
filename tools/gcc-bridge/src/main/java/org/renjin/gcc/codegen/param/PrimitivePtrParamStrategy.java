@@ -3,6 +3,7 @@ package org.renjin.gcc.codegen.param;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.LocalVarAllocator;
+import org.renjin.gcc.codegen.Var;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.var.PrimitivePtrVarGenerator;
@@ -14,7 +15,8 @@ import org.renjin.gcc.runtime.Ptr;
 import java.util.Collections;
 import java.util.List;
 
-import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Opcodes.DUP;
+import static org.objectweb.asm.Opcodes.GETFIELD;
 
 
 /**
@@ -42,14 +44,14 @@ public class PrimitivePtrParamStrategy extends ParamStrategy {
   }
 
   @Override
-  public ExprGenerator emitInitialization(MethodVisitor mv, GimpleParameter parameter, int localVariableIndex, LocalVarAllocator localVars) {
+  public ExprGenerator emitInitialization(MethodVisitor mv, GimpleParameter parameter, List<Var> paramVars, LocalVarAllocator localVars) {
     
     // Unpack the wrapper into seperate array and offset fields
-    int arrayVariable = localVars.reserve(parameter.getName() + "$array", pointerType.getArrayType());
-    int offsetVariable = localVars.reserve(parameter.getName() + "$offset", Type.INT_TYPE);
+    Var arrayVariable = localVars.reserve(parameter.getName() + "$array", pointerType.getArrayType());
+    Var offsetVariable = localVars.reserve(parameter.getName() + "$offset", Type.INT_TYPE);
     
     // Load the parameter on the stack
-    mv.visitVarInsn(ALOAD, localVariableIndex);
+    paramVars.get(0).load(mv);
     
     // duplicate the wrapper instance so we can call GETFIELD twice.
     mv.visitInsn(DUP);
@@ -58,13 +60,13 @@ public class PrimitivePtrParamStrategy extends ParamStrategy {
     mv.visitFieldInsn(GETFIELD, pointerType.getWrapperType().getInternalName(), "array", pointerType.getArrayType().getDescriptor());
 
     // Store the array reference in the local variable
-    mv.visitVarInsn(ASTORE, arrayVariable);
+    arrayVariable.store(mv);
     
     // Consume the second reference 
     mv.visitFieldInsn(GETFIELD, pointerType.getWrapperType().getInternalName(), "offset", "I");
 
     // Store the array reference in the local variable
-    mv.visitVarInsn(ISTORE, offsetVariable);
+    offsetVariable.store(mv);
     
     return new PrimitivePtrVarGenerator(type, arrayVariable, offsetVariable);
   }

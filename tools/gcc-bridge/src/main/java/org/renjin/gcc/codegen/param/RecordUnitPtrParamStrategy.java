@@ -5,6 +5,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.LocalVarAllocator;
 import org.renjin.gcc.codegen.RecordClassGenerator;
+import org.renjin.gcc.codegen.Var;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.var.RecordPtrVarGenerator;
 import org.renjin.gcc.gimple.GimpleParameter;
@@ -30,8 +31,8 @@ public class RecordUnitPtrParamStrategy extends ParamStrategy {
     }
 
     @Override
-    public ExprGenerator emitInitialization(MethodVisitor methodVisitor, GimpleParameter parameter, int startIndex, LocalVarAllocator localVars) {
-        return new RecordPtrVarGenerator(generator, startIndex);
+    public ExprGenerator emitInitialization(MethodVisitor methodVisitor, GimpleParameter parameter, List<Var> paramVars, LocalVarAllocator localVars) {
+        return new RecordPtrVarGenerator(generator, paramVars.get(0));
     }
 
     @Override

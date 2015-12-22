@@ -4,6 +4,7 @@ import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.renjin.gcc.codegen.Var;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.arrays.PrimitiveArrayPtrElement;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
@@ -20,14 +21,14 @@ public class PrimitiveArrayPtrVar extends AbstractExprGenerator implements VarGe
   
   private GimpleIndirectType gimpleType;
   private GimpleArrayType arrayType;
-  private int arrayIndex;
-  private int offsetIndex;
+  private Var arrayVar;
+  private Var offsetVar;
 
-  public PrimitiveArrayPtrVar(GimpleIndirectType gimpleType, int arrayIndex, int offsetIndex) {
+  public PrimitiveArrayPtrVar(GimpleIndirectType gimpleType, Var arrayVar, Var offsetVar) {
     this.gimpleType = gimpleType;
     this.arrayType = gimpleType.getBaseType();
-    this.arrayIndex = arrayIndex;
-    this.offsetIndex = offsetIndex;
+    this.arrayVar = arrayVar;
+    this.offsetVar = offsetVar;
 
     Preconditions.checkArgument(arrayType.getLbound() == 0);
   }
@@ -35,9 +36,9 @@ public class PrimitiveArrayPtrVar extends AbstractExprGenerator implements VarGe
   @Override
   public void emitDefaultInit(MethodVisitor mv, Optional<ExprGenerator> initialValue) {
     mv.visitInsn(Opcodes.ACONST_NULL);
-    mv.visitVarInsn(Opcodes.ASTORE, arrayIndex);
+    arrayVar.store(mv);
     mv.visitInsn(Opcodes.ICONST_0);
-    mv.visitVarInsn(Opcodes.ISTORE, offsetIndex);
+    offsetVar.store(mv);
     
     if(initialValue.isPresent() && !isDefaultValue(initialValue.get())) {
       emitStore(mv, initialValue.get());
@@ -61,16 +62,16 @@ public class PrimitiveArrayPtrVar extends AbstractExprGenerator implements VarGe
 
   @Override
   public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
-    mv.visitVarInsn(Opcodes.ALOAD, arrayIndex);
-    mv.visitVarInsn(Opcodes.ILOAD, offsetIndex);
+    arrayVar.load(mv);
+    offsetVar.load(mv);
   }
 
   @Override
   public void emitStore(MethodVisitor mv, ExprGenerator ptrGenerator) {
     ptrGenerator.emitPushPtrArrayAndOffset(mv);
 
-    mv.visitVarInsn(Opcodes.ISTORE, offsetIndex);
-    mv.visitVarInsn(Opcodes.ASTORE, arrayIndex);
+    offsetVar.store(mv);
+    arrayVar.store(mv);
   }
 
   @Override

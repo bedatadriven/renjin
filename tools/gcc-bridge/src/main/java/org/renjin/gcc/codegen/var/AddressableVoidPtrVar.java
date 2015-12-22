@@ -3,6 +3,7 @@ package org.renjin.gcc.codegen.var;
 import com.google.common.base.Optional;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.renjin.gcc.codegen.Var;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.type.GimplePointerType;
@@ -12,17 +13,17 @@ import org.renjin.gcc.gimple.type.GimpleVoidType;
 
 public class AddressableVoidPtrVar extends AbstractExprGenerator implements VarGenerator {
   
-  private int arrayIndex;
+  private Var arrayIndex;
 
-  public AddressableVoidPtrVar(int arrayIndex) {
-    this.arrayIndex = arrayIndex;
+  public AddressableVoidPtrVar(Var arrayVar) {
+    this.arrayIndex = arrayVar;
   }
 
   @Override
   public void emitDefaultInit(MethodVisitor mv, Optional<ExprGenerator> initialValue) {
     mv.visitInsn(Opcodes.ICONST_1);
     mv.visitTypeInsn(Opcodes.ANEWARRAY, "java/lang/Object");
-    mv.visitVarInsn(Opcodes.ASTORE, arrayIndex);
+    arrayIndex.store(mv);
   }
 
   @Override
@@ -32,7 +33,7 @@ public class AddressableVoidPtrVar extends AbstractExprGenerator implements VarG
 
   @Override
   public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
-    mv.visitVarInsn(Opcodes.ALOAD, arrayIndex);
+    arrayIndex.load(mv);
     mv.visitInsn(Opcodes.ICONST_0);
     valueGenerator.emitPushPtrArrayAndOffset(mv);
     mv.visitInsn(Opcodes.AASTORE);
@@ -52,13 +53,13 @@ public class AddressableVoidPtrVar extends AbstractExprGenerator implements VarG
 
     @Override
     public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
-      mv.visitVarInsn(Opcodes.ALOAD, arrayIndex);
+      arrayIndex.load(mv);
       mv.visitInsn(Opcodes.ICONST_0);
     }
 
     @Override
     public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
-      mv.visitVarInsn(Opcodes.ALOAD, arrayIndex);
+      arrayIndex.load(mv);
       mv.visitInsn(Opcodes.ICONST_0);
       valueGenerator.emitPushPointerWrapper(mv);
       mv.visitInsn(Opcodes.AASTORE);

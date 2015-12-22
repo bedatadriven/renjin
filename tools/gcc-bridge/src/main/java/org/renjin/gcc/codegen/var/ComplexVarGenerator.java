@@ -2,8 +2,8 @@ package org.renjin.gcc.codegen.var;
 
 import com.google.common.base.Optional;
 import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.Var;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.type.GimpleComplexType;
@@ -17,14 +17,14 @@ public class ComplexVarGenerator extends AbstractExprGenerator implements VarGen
   
   private GimpleComplexType type;
   private Type partType;
-  private int realIndex;
-  private int imaginaryIndex;
+  private Var realVar;
+  private Var imaginaryVar;
 
-  public ComplexVarGenerator(GimpleComplexType type, int realIndex, int imaginaryIndex) {
+  public ComplexVarGenerator(GimpleComplexType type, Var realVar, Var imaginaryVar) {
     this.type = type;
     this.partType = type.getJvmPartType();
-    this.realIndex = realIndex;
-    this.imaginaryIndex = imaginaryIndex;
+    this.realVar = realVar;
+    this.imaginaryVar = imaginaryVar;
   }
 
   @Override
@@ -42,23 +42,23 @@ public class ComplexVarGenerator extends AbstractExprGenerator implements VarGen
 
   @Override
   public ExprGenerator realPart() {
-    return new PrimitiveVarGenerator(type.getPartType(), realIndex);
+    return new PrimitiveVarGenerator(type.getPartType(), realVar);
   }
 
   @Override
   public ExprGenerator imaginaryPart() {
-    return new PrimitiveVarGenerator(type.getPartType(), imaginaryIndex);
+    return new PrimitiveVarGenerator(type.getPartType(), imaginaryVar);
   }
 
   @Override
   public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
     // store real part
     valueGenerator.realPart().emitPrimitiveValue(mv);
-    mv.visitVarInsn(partType.getOpcode(Opcodes.ISTORE), realIndex);
+    realVar.store(mv);
     
     // store imaginary part
     valueGenerator.imaginaryPart().emitPrimitiveValue(mv);
-    mv.visitVarInsn(partType.getOpcode(Opcodes.ISTORE), imaginaryIndex);
+    imaginaryVar.store(mv);
   }
 
 }

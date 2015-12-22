@@ -3,7 +3,7 @@ package org.renjin.gcc.codegen.var;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
+import org.renjin.gcc.codegen.Var;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
@@ -23,17 +23,17 @@ public class PrimitivePtrVarGenerator extends AbstractExprGenerator implements V
   /**
    * The local variable index storing the array backing the pointer
    */
-  private int arrayVariableIndex;
+  private Var arrayVar;
 
   /**
    * The local varaible index storing the offset within the array
    */
-  private int offsetVariableIndex;
+  private Var offsetVar;
 
-  public PrimitivePtrVarGenerator(GimpleType type, int arrayVariableIndex, int offsetVariableIndex) {
+  public PrimitivePtrVarGenerator(GimpleType type, Var arrayVar, Var offsetVar) {
     this.type = (GimpleIndirectType) type;
-    this.arrayVariableIndex = arrayVariableIndex;
-    this.offsetVariableIndex = offsetVariableIndex;
+    this.arrayVar = arrayVar;
+    this.offsetVar = offsetVar;
   }
   
   @Override
@@ -50,21 +50,21 @@ public class PrimitivePtrVarGenerator extends AbstractExprGenerator implements V
 
   @Override
   public void emitPushPtrArray(MethodVisitor mv) {
-    mv.visitVarInsn(ALOAD, arrayVariableIndex);
+    arrayVar.load(mv);
   }
   
   @Override
   public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
     emitPushPtrArray(mv);
-    mv.visitVarInsn(ILOAD, offsetVariableIndex);
+    offsetVar.load(mv);
   }
 
   @Override
   public void emitStore(MethodVisitor mv, ExprGenerator ptrGenerator) {
     ptrGenerator.emitPushPtrArrayAndOffset(mv);
 
-    mv.visitVarInsn(Opcodes.ISTORE, offsetVariableIndex);
-    mv.visitVarInsn(Opcodes.ASTORE, arrayVariableIndex);
+    offsetVar.store(mv);
+    arrayVar.store(mv);
   }
 
   @Override
@@ -153,7 +153,7 @@ public class PrimitivePtrVarGenerator extends AbstractExprGenerator implements V
 
     private void pushComputeIndex(MethodVisitor mv) {
       // original pointer offset + array index
-      mv.visitVarInsn(ILOAD, offsetVariableIndex);
+      offsetVar.load(mv);
       indexGenerator.emitPrimitiveValue(mv);
       mv.visitInsn(IADD);
       if(lowerBound != 0) {

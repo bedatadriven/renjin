@@ -3,6 +3,7 @@ package org.renjin.gcc.codegen.param;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.LocalVarAllocator;
+import org.renjin.gcc.codegen.Var;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.GimpleParameter;
 
@@ -51,12 +52,12 @@ public abstract class ParamStrategy {
    * and returns an ExprGenerator which can be used to retrieve its value
    * 
    * @param methodVisitor MethodVisitor to write its value
-   * @param startIndex the first index among the parameters
+   * @param paramVars the first index among the parameters
    * @param localVars an {@link LocalVarAllocator} which can be used to reserve additional local variable slots
    *                   if needed.
    * @return an {@code ExprGenerator} which can be used to access this parameter's value.
    */
-  public abstract ExprGenerator emitInitialization(MethodVisitor methodVisitor, GimpleParameter parameter, int startIndex, LocalVarAllocator localVars);
+  public abstract ExprGenerator emitInitialization(MethodVisitor methodVisitor, GimpleParameter parameter, List<Var> paramVars, LocalVarAllocator localVars);
 
   
   /**

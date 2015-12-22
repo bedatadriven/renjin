@@ -2,8 +2,8 @@ package org.renjin.gcc.codegen.var;
 
 import com.google.common.base.Optional;
 import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.codegen.RecordClassGenerator;
+import org.renjin.gcc.codegen.Var;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.pointers.DereferencedRecordPtr;
@@ -19,13 +19,13 @@ import org.renjin.gcc.gimple.type.GimpleType;
 public class RecordPtrPtrVarGenerator extends AbstractExprGenerator implements VarGenerator {
   
   private RecordClassGenerator recordClassGenerator;
-  private final int arrayIndex;
-  private final int offsetIndex;
+  private final Var arrayVar;
+  private final Var offsetVar;
 
-  public RecordPtrPtrVarGenerator(RecordClassGenerator recordClassGenerator, int arrayIndex, int offsetIndex) {
+  public RecordPtrPtrVarGenerator(RecordClassGenerator recordClassGenerator, Var arrayVar, Var offsetVar) {
     this.recordClassGenerator = recordClassGenerator;
-    this.arrayIndex = arrayIndex;
-    this.offsetIndex = offsetIndex;
+    this.arrayVar = arrayVar;
+    this.offsetVar = offsetVar;
   }
 
   @Override
@@ -37,15 +37,15 @@ public class RecordPtrPtrVarGenerator extends AbstractExprGenerator implements V
 
   @Override
   public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
-    mv.visitVarInsn(Opcodes.ALOAD, arrayIndex);
-    mv.visitVarInsn(Opcodes.ILOAD, offsetIndex);
+    arrayVar.load(mv);
+    offsetVar.load(mv);
   }
 
   @Override
   public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
     valueGenerator.emitPushPtrArrayAndOffset(mv);
-    mv.visitVarInsn(Opcodes.ISTORE, offsetIndex);
-    mv.visitVarInsn(Opcodes.ASTORE, arrayIndex);
+    offsetVar.store(mv);
+    arrayVar.store(mv);
   }
 
   @Override

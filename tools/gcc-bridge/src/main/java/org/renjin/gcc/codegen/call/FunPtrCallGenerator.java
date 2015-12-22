@@ -7,7 +7,7 @@ import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.GeneratorFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.param.ParamGenerator;
-import org.renjin.gcc.codegen.ret.ReturnGenerator;
+import org.renjin.gcc.codegen.ret.ReturnStrategy;
 import org.renjin.gcc.gimple.type.GimpleFunctionType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
@@ -21,7 +21,7 @@ public class FunPtrCallGenerator implements CallGenerator {
   private GeneratorFactory factory;
   private ExprGenerator funPtrGenerator;
   private final List<ParamGenerator> parameters;
-  private final ReturnGenerator returnGenerator;
+  private final ReturnStrategy returnStrategy;
   private final GimpleFunctionType functionType;
 
   public FunPtrCallGenerator(GeneratorFactory factory, ExprGenerator funPtrGenerator) {
@@ -29,7 +29,7 @@ public class FunPtrCallGenerator implements CallGenerator {
     this.funPtrGenerator = funPtrGenerator;
     functionType = funPtrGenerator.getGimpleType().getBaseType();
     parameters = factory.forParameterTypes(functionType.getArgumentTypes());
-    returnGenerator = factory.findReturnGenerator(functionType.getReturnType());
+    returnStrategy = factory.findReturnGenerator(functionType.getReturnType());
   }
 
   /**
@@ -59,7 +59,7 @@ public class FunPtrCallGenerator implements CallGenerator {
   @Override
   public void emitCallAndPopResult(MethodVisitor mv, List<ExprGenerator> argumentGenerators) {
     emitCall(mv, argumentGenerators);
-    switch (returnGenerator.getType().getSize()) {
+    switch (returnStrategy.getType().getSize()) {
       case 0:
         // NOOP;
         break;
@@ -80,11 +80,11 @@ public class FunPtrCallGenerator implements CallGenerator {
 
   @Override
   public ExprGenerator expressionGenerator(GimpleType returnType, List<ExprGenerator> argumentGenerators) {
-    return returnGenerator.callExpression(this, argumentGenerators);
+    return returnStrategy.callExpression(this, argumentGenerators);
   }
   
   private Type returnType() {
-    return returnGenerator.getType();
+    return returnStrategy.getType();
   }
 
 }

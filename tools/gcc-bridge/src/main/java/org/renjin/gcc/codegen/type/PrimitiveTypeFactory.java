@@ -14,10 +14,10 @@ import org.renjin.gcc.codegen.param.ParamGenerator;
 import org.renjin.gcc.codegen.param.PrimitiveParamGenerator;
 import org.renjin.gcc.codegen.param.PrimitivePtrParamGenerator;
 import org.renjin.gcc.codegen.param.PrimitivePtrPtrParamGenerator;
-import org.renjin.gcc.codegen.ret.PrimitivePtrPtrReturnGenerator;
-import org.renjin.gcc.codegen.ret.PrimitivePtrReturnGenerator;
-import org.renjin.gcc.codegen.ret.PrimitiveReturnGenerator;
-import org.renjin.gcc.codegen.ret.ReturnGenerator;
+import org.renjin.gcc.codegen.ret.PrimitivePtrPtrReturnStrategy;
+import org.renjin.gcc.codegen.ret.PrimitivePtrReturnStrategy;
+import org.renjin.gcc.codegen.ret.PrimitiveReturnStrategy;
+import org.renjin.gcc.codegen.ret.ReturnStrategy;
 import org.renjin.gcc.codegen.var.*;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
@@ -48,8 +48,8 @@ public class PrimitiveTypeFactory extends TypeFactory {
   }
 
   @Override
-  public ReturnGenerator returnGenerator() {
-    return new PrimitiveReturnGenerator(type);
+  public ReturnStrategy returnGenerator() {
+    return new PrimitiveReturnStrategy(type);
   }
 
   @Override
@@ -92,8 +92,8 @@ public class PrimitiveTypeFactory extends TypeFactory {
     }
 
     @Override
-    public ReturnGenerator returnGenerator() {
-      return new PrimitivePtrReturnGenerator(new GimplePointerType(type));
+    public ReturnStrategy returnGenerator() {
+      return new PrimitivePtrReturnStrategy(new GimplePointerType(type));
     }
 
     @Override
@@ -156,8 +156,8 @@ public class PrimitiveTypeFactory extends TypeFactory {
       return new PrimitivePtrPtrFieldGenerator(className, fieldName, pointerType);
     }
     @Override
-    public ReturnGenerator returnGenerator() {
-      return new PrimitivePtrPtrReturnGenerator(pointerType);
+    public ReturnStrategy returnGenerator() {
+      return new PrimitivePtrPtrReturnStrategy(pointerType);
     }
 
     @Override

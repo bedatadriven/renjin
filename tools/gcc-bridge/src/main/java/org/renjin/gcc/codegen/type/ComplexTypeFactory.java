@@ -5,8 +5,8 @@ import org.renjin.gcc.codegen.LocalVarAllocator;
 import org.renjin.gcc.codegen.param.ComplexArrayPtrParamGenerator;
 import org.renjin.gcc.codegen.param.ComplexPtrParamGenerator;
 import org.renjin.gcc.codegen.param.ParamGenerator;
-import org.renjin.gcc.codegen.ret.ComplexReturnGenerator;
-import org.renjin.gcc.codegen.ret.ReturnGenerator;
+import org.renjin.gcc.codegen.ret.ComplexReturnStrategy;
+import org.renjin.gcc.codegen.ret.ReturnStrategy;
 import org.renjin.gcc.codegen.var.*;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleComplexType;
@@ -51,8 +51,8 @@ public class ComplexTypeFactory extends TypeFactory {
   }
 
   @Override
-  public ReturnGenerator returnGenerator() {
-    return new ComplexReturnGenerator(type);
+  public ReturnStrategy returnGenerator() {
+    return new ComplexReturnStrategy(type);
   }
 
   @Override

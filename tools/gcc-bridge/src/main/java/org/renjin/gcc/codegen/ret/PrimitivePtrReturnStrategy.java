@@ -18,14 +18,15 @@ import static org.objectweb.asm.Opcodes.GETFIELD;
 import static org.objectweb.asm.Opcodes.SWAP;
 
 /**
- * Generates the code to wrap and return a pointer
+ * Strategy for returning pointer to primitive values using wrapped fat pointers such
+ * as {@link org.renjin.gcc.runtime.IntPtr} or {@link org.renjin.gcc.runtime.DoublePtr}.
  */
-public class PrimitivePtrReturnGenerator implements ReturnGenerator {
+public class PrimitivePtrReturnStrategy implements ReturnStrategy {
   
   private GimpleIndirectType type;
   private WrapperType wrapperType;
 
-  public PrimitivePtrReturnGenerator(GimpleType type) {
+  public PrimitivePtrReturnStrategy(GimpleType type) {
     this.type = (GimpleIndirectType) type;
     this.wrapperType = WrapperType.of(this.type.getBaseType());
   }
@@ -36,12 +37,7 @@ public class PrimitivePtrReturnGenerator implements ReturnGenerator {
   }
 
   @Override
-  public GimpleType getGimpleType() {
-    return type;
-  }
-
-  @Override
-  public void emitReturn(MethodVisitor mv, ExprGenerator valueGenerator) {
+  public void emitReturnValue(MethodVisitor mv, ExprGenerator valueGenerator) {
     wrapperType.emitPushNewWrapper(mv, valueGenerator);
 
     // return
@@ -49,7 +45,7 @@ public class PrimitivePtrReturnGenerator implements ReturnGenerator {
   }
 
   @Override
-  public void emitVoidReturn(MethodVisitor mv) {
+  public void emitReturnDefault(MethodVisitor mv) {
     throw new UnsupportedOperationException();
   }
 

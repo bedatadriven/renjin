@@ -15,12 +15,15 @@ import java.util.List;
 import static org.objectweb.asm.Opcodes.IRETURN;
 
 
-public class PrimitiveReturnGenerator implements ReturnGenerator {
+/**
+ * Strategy for returning primitive value using {@code IRETURN}, {@code DRETURN}, etc
+ */
+public class PrimitiveReturnStrategy implements ReturnStrategy {
   
   private GimplePrimitiveType gimpleType;
   private Type type;
   
-  public PrimitiveReturnGenerator(GimpleType gimpleType) {
+  public PrimitiveReturnStrategy(GimpleType gimpleType) {
     Preconditions.checkNotNull(gimpleType);
     this.gimpleType = (GimplePrimitiveType) gimpleType;
     this.type = ((GimplePrimitiveType) gimpleType).jvmType();
@@ -32,18 +35,13 @@ public class PrimitiveReturnGenerator implements ReturnGenerator {
   }
 
   @Override
-  public GimpleType getGimpleType() {
-    return gimpleType;
-  }
-
-  @Override
-  public void emitReturn(MethodVisitor mv, ExprGenerator valueGenerator) {
+  public void emitReturnValue(MethodVisitor mv, ExprGenerator valueGenerator) {
     valueGenerator.emitPrimitiveValue(mv);
     mv.visitInsn(type.getOpcode(IRETURN));
   }
 
   @Override
-  public void emitVoidReturn(MethodVisitor mv) {
+  public void emitReturnDefault(MethodVisitor mv) {
     // GCC allows not returning a value from a method.
     // we need to return the default for this type to satifisfy the JVM
     if(type.equals(Type.DOUBLE_TYPE)) {

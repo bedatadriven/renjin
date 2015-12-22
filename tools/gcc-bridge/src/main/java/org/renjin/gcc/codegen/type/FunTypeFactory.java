@@ -7,8 +7,8 @@ import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.field.*;
 import org.renjin.gcc.codegen.param.FunPtrParamGenerator;
 import org.renjin.gcc.codegen.param.ParamGenerator;
-import org.renjin.gcc.codegen.ret.FunPtrReturnGenerator;
-import org.renjin.gcc.codegen.ret.ReturnGenerator;
+import org.renjin.gcc.codegen.ret.FunPtrReturnStrategy;
+import org.renjin.gcc.codegen.ret.ReturnStrategy;
 import org.renjin.gcc.codegen.var.FunPtrVarGenerator;
 import org.renjin.gcc.codegen.var.VarGenerator;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
@@ -55,8 +55,8 @@ public class FunTypeFactory extends TypeFactory {
     }
 
     @Override
-    public ReturnGenerator returnGenerator() {
-      return new FunPtrReturnGenerator();
+    public ReturnStrategy returnGenerator() {
+      return new FunPtrReturnStrategy();
     }
 
     @Override

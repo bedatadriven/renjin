@@ -12,11 +12,14 @@ import org.renjin.gcc.gimple.type.GimpleType;
 
 import java.util.List;
 
-public class ComplexReturnGenerator implements ReturnGenerator {
+/**
+ * Strategy for returning a complex value as a {@code double[2]} or {@code float[2]}
+ */
+public class ComplexReturnStrategy implements ReturnStrategy {
   
   private GimpleComplexType type;
 
-  public ComplexReturnGenerator(GimpleComplexType type) {
+  public ComplexReturnStrategy(GimpleComplexType type) {
     this.type = type;
   }
 
@@ -26,18 +29,13 @@ public class ComplexReturnGenerator implements ReturnGenerator {
   }
 
   @Override
-  public GimpleType getGimpleType() {
-    return type;
-  }
-
-  @Override
-  public void emitReturn(MethodVisitor mv, ExprGenerator valueGenerator) {
+  public void emitReturnValue(MethodVisitor mv, ExprGenerator valueGenerator) {
     valueGenerator.emitPushComplexAsArray(mv);
     mv.visitInsn(Opcodes.ARETURN);
   }
 
   @Override
-  public void emitVoidReturn(MethodVisitor mv) {
+  public void emitReturnDefault(MethodVisitor mv) {
     throw new UnsupportedOperationException();
   }
 

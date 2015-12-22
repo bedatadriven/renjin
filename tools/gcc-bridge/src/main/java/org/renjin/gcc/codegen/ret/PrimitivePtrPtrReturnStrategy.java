@@ -14,11 +14,18 @@ import org.renjin.gcc.runtime.ObjectPtr;
 import java.util.List;
 
 
-public class PrimitivePtrPtrReturnGenerator implements ReturnGenerator {
+/**
+ * Strategy for returning a pointer to pointers of primitive values, such as {@code double**},
+ * using an {@link ObjectPtr}.
+ * 
+ * <p>Each element of the {@link ObjectPtr#array} will be an instance of a primitive pointer
+ * wrapper such as {@link org.renjin.gcc.runtime.IntPtr} or {@link org.renjin.gcc.runtime.DoublePtr}.</p>
+ */
+public class PrimitivePtrPtrReturnStrategy implements ReturnStrategy {
   
   private GimpleType pointerPointerType;
 
-  public PrimitivePtrPtrReturnGenerator(GimpleType pointerPointerType) {
+  public PrimitivePtrPtrReturnStrategy(GimpleType pointerPointerType) {
     this.pointerPointerType = pointerPointerType;
   }
 
@@ -28,18 +35,13 @@ public class PrimitivePtrPtrReturnGenerator implements ReturnGenerator {
   }
 
   @Override
-  public GimpleType getGimpleType() {
-    return pointerPointerType;
-  }
-
-  @Override
-  public void emitReturn(MethodVisitor mv, ExprGenerator valueGenerator) {
+  public void emitReturnValue(MethodVisitor mv, ExprGenerator valueGenerator) {
     valueGenerator.emitPushPointerWrapper(mv);
     mv.visitInsn(Opcodes.ARETURN);
   }
 
   @Override
-  public void emitVoidReturn(MethodVisitor mv) {
+  public void emitReturnDefault(MethodVisitor mv) {
     throw new UnsupportedOperationException();
   }
 

@@ -7,9 +7,9 @@ import org.renjin.gcc.codegen.field.FieldGenerator;
 import org.renjin.gcc.codegen.field.VoidPtrField;
 import org.renjin.gcc.codegen.param.ParamGenerator;
 import org.renjin.gcc.codegen.param.VoidPtrParamGenerator;
-import org.renjin.gcc.codegen.ret.ReturnGenerator;
-import org.renjin.gcc.codegen.ret.VoidPtrReturnGenerator;
-import org.renjin.gcc.codegen.ret.VoidReturnGenerator;
+import org.renjin.gcc.codegen.ret.ReturnStrategy;
+import org.renjin.gcc.codegen.ret.VoidPtrReturnStrategy;
+import org.renjin.gcc.codegen.ret.VoidReturnStrategy;
 import org.renjin.gcc.codegen.var.AddressableVoidPtrVar;
 import org.renjin.gcc.codegen.var.VarGenerator;
 
@@ -19,8 +19,8 @@ import org.renjin.gcc.codegen.var.VarGenerator;
 public class VoidTypeFactory extends TypeFactory {
 
   @Override
-  public ReturnGenerator returnGenerator() {
-    return new VoidReturnGenerator();
+  public ReturnStrategy returnGenerator() {
+    return new VoidReturnStrategy();
   }
 
   @Override
@@ -55,8 +55,8 @@ public class VoidTypeFactory extends TypeFactory {
     }
 
     @Override
-    public ReturnGenerator returnGenerator() {
-      return new VoidPtrReturnGenerator();
+    public ReturnStrategy returnGenerator() {
+      return new VoidPtrReturnStrategy();
     }
 
     @Override

@@ -48,7 +48,7 @@ public class FunctionCallGenerator implements CallGenerator {
   @Override
   public void emitCallAndPopResult(MethodVisitor mv, List<ExprGenerator> argumentGenerators) {
     emitCall(mv, argumentGenerators);
-    switch (functionGenerator.getReturnGenerator().getType().getSize()) {
+    switch (functionGenerator.getReturnStrategy().getType().getSize()) {
       case 0:
         // NOOP
         break;
@@ -66,7 +66,7 @@ public class FunctionCallGenerator implements CallGenerator {
 
   @Override
   public ExprGenerator expressionGenerator(GimpleType returnType, List<ExprGenerator> argumentGenerators) {
-    return functionGenerator.getReturnGenerator().callExpression(this, argumentGenerators);
+    return functionGenerator.getReturnStrategy().callExpression(this, argumentGenerators);
   }
 
   public String getClassName() {

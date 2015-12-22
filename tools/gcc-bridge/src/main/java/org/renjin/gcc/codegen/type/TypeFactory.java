@@ -6,7 +6,7 @@ import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.field.FieldGenerator;
 import org.renjin.gcc.codegen.param.ParamGenerator;
-import org.renjin.gcc.codegen.ret.ReturnGenerator;
+import org.renjin.gcc.codegen.ret.ReturnStrategy;
 import org.renjin.gcc.codegen.var.VarGenerator;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
@@ -29,7 +29,7 @@ public abstract class TypeFactory {
    * 
    * @return a new {@code ReturnGenerator} for this type.
    */
-  public ReturnGenerator returnGenerator() {
+  public ReturnStrategy returnGenerator() {
     throw new UnimplementedException(getClass(), "returnGenerator");
   }
 

@@ -11,7 +11,7 @@ import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.param.ParamGenerator;
-import org.renjin.gcc.codegen.ret.ReturnGenerator;
+import org.renjin.gcc.codegen.ret.ReturnStrategy;
 import org.renjin.gcc.codegen.type.TypeFactory;
 import org.renjin.gcc.codegen.var.VarGenerator;
 import org.renjin.gcc.gimple.*;
@@ -34,7 +34,7 @@ public class FunctionGenerator {
   private String className;
   private GimpleFunction function;
   private Map<GimpleParameter, ParamGenerator> params = Maps.newHashMap();
-  private ReturnGenerator returnGenerator;
+  private ReturnStrategy returnStrategy;
   private LocalVarAllocator localVarAllocator;
   
   private Labels labels = new Labels();
@@ -52,7 +52,7 @@ public class FunctionGenerator {
     this.function = function;
     this.generatorFactory = generatorFactory;
     this.params = this.generatorFactory.forParameters(function.getParameters());
-    this.returnGenerator = this.generatorFactory.findReturnGenerator(function.getReturnType());
+    this.returnStrategy = this.generatorFactory.findReturnGenerator(function.getReturnType());
     this.symbolTable = new LocalVariableTable(symbolTable);
     this.localVarAllocator = new LocalVarAllocator();
     this.exprFactory = new ExprFactory(generatorFactory, this.symbolTable, function.getCallingConvention());
@@ -260,21 +260,21 @@ public class FunctionGenerator {
     ExprGenerator lhs = exprFactory.findGenerator(ins.getLhs());
     ExprGenerator size = exprFactory.findGenerator(ins.getArguments().get(0));
     
-    lhs.emitStore(mv, generatorFactory.forType(lhs.getGimpleType()).mallocExpression(size) );
+    lhs.emitStore(mv, generatorFactory.forType(lhs.getGimpleType()).mallocExpression(size));
   }
 
 
   private void emitReturn(GimpleReturn ins) {
     if(ins.getValue() == null) {
-      returnGenerator.emitVoidReturn(mv);
+      returnStrategy.emitReturnDefault(mv);
       
     } else {
-      returnGenerator.emitReturn(mv, exprFactory.findGenerator(ins.getValue(), function.getReturnType()));
+      returnStrategy.emitReturnValue(mv, exprFactory.findGenerator(ins.getValue(), function.getReturnType()));
     }
   }
 
   public String getFunctionDescriptor() {
-    return Type.getMethodDescriptor(returnGenerator.getType(), parameterTypes());
+    return Type.getMethodDescriptor(returnStrategy.getType(), parameterTypes());
   }
 
   public List<ParamGenerator> getParamGenerators() {
@@ -291,11 +291,11 @@ public class FunctionGenerator {
   }
   
   public Type returnType() {
-    return returnGenerator.getType();
+    return returnStrategy.getType();
   }
 
-  public ReturnGenerator getReturnGenerator() {
-    return returnGenerator;
+  public ReturnStrategy getReturnStrategy() {
+    return returnStrategy;
   }
 
   public GimpleCompilationUnit getCompilationUnit() {

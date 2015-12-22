@@ -13,13 +13,14 @@ import org.renjin.gcc.gimple.type.GimpleType;
 import java.util.List;
 
 /**
- * Handles Recorded-typed returning
+ * Strategy for returning a pointer to a single record as a simple JVM object reference.
+ * 
  */
-public class RecordPtrReturnGenerator implements ReturnGenerator {
+public class RecordUnitPtrReturnStrategy implements ReturnStrategy {
 
   private RecordClassGenerator recordClassGenerator;
 
-  public RecordPtrReturnGenerator(RecordClassGenerator recordClassGenerator) {
+  public RecordUnitPtrReturnStrategy(RecordClassGenerator recordClassGenerator) {
     this.recordClassGenerator = recordClassGenerator;
   }
 
@@ -29,19 +30,15 @@ public class RecordPtrReturnGenerator implements ReturnGenerator {
   }
 
   @Override
-  public GimpleType getGimpleType() {
-    return recordClassGenerator.getGimpleType();
-  }
-
-  @Override
-  public void emitReturn(MethodVisitor mv, ExprGenerator valueGenerator) {
+  public void emitReturnValue(MethodVisitor mv, ExprGenerator valueGenerator) {
     valueGenerator.emitPushRecordRef(mv);
     mv.visitInsn(Opcodes.ARETURN);
   }
 
   @Override
-  public void emitVoidReturn(MethodVisitor mv) {
-    throw new UnsupportedOperationException();
+  public void emitReturnDefault(MethodVisitor mv) {
+    mv.visitInsn(Opcodes.ACONST_NULL);
+    mv.visitInsn(Opcodes.ARETURN);
   }
 
   @Override

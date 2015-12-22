@@ -14,9 +14,9 @@ import org.renjin.gcc.codegen.field.*;
 import org.renjin.gcc.codegen.param.ParamGenerator;
 import org.renjin.gcc.codegen.param.RecordPtrParamGenerator;
 import org.renjin.gcc.codegen.param.RecordPtrPtrParamGenerator;
-import org.renjin.gcc.codegen.ret.RecordPtrPtrReturnGenerator;
-import org.renjin.gcc.codegen.ret.RecordPtrReturnGenerator;
-import org.renjin.gcc.codegen.ret.ReturnGenerator;
+import org.renjin.gcc.codegen.ret.RecordPtrPtrReturnStrategy;
+import org.renjin.gcc.codegen.ret.RecordUnitPtrReturnStrategy;
+import org.renjin.gcc.codegen.ret.ReturnStrategy;
 import org.renjin.gcc.codegen.var.*;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
@@ -138,8 +138,8 @@ public class RecordTypeFactory extends TypeFactory {
     }
 
     @Override
-    public ReturnGenerator returnGenerator() {
-      return new RecordPtrReturnGenerator(generator);
+    public ReturnStrategy returnGenerator() {
+      return new RecordUnitPtrReturnStrategy(generator);
     }
 
     @Override
@@ -185,8 +185,8 @@ public class RecordTypeFactory extends TypeFactory {
     }
 
     @Override
-    public ReturnGenerator returnGenerator() {
-      return new RecordPtrPtrReturnGenerator();
+    public ReturnStrategy returnGenerator() {
+      return new RecordPtrPtrReturnStrategy();
     }
   }
 }

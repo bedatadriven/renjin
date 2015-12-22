@@ -8,7 +8,7 @@ import org.renjin.gcc.codegen.GeneratorFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.expr.PrimitiveConstValueGenerator;
 import org.renjin.gcc.codegen.param.ParamGenerator;
-import org.renjin.gcc.codegen.ret.ReturnGenerator;
+import org.renjin.gcc.codegen.ret.ReturnStrategy;
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
@@ -25,18 +25,18 @@ public class StaticMethodCallGenerator implements CallGenerator {
   private Method method;
 
   private List<ParamGenerator> paramGenerators = null;
-  private ReturnGenerator returnGenerator = null;
+  private ReturnStrategy returnStrategy = null;
 
   public StaticMethodCallGenerator(GeneratorFactory factory, Method method) {
     this.factory = factory;
     this.method = method;
   }
 
-  private ReturnGenerator returnGenerator() {
-    if(returnGenerator == null) {
-      returnGenerator = factory.forReturnValue(method);
+  private ReturnStrategy returnGenerator() {
+    if(returnStrategy == null) {
+      returnStrategy = factory.forReturnValue(method);
     }
-    return returnGenerator;
+    return returnStrategy;
   }
 
   @Override

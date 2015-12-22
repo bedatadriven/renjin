@@ -5,7 +5,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.ret.VoidReturnGenerator;
+import org.renjin.gcc.codegen.ret.VoidReturnStrategy;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 import java.util.List;
@@ -48,6 +48,6 @@ public class MemCopyCallGenerator implements CallGenerator {
 
   @Override
   public ExprGenerator expressionGenerator(GimpleType returnType, List<ExprGenerator> argumentGenerators) {
-    return new VoidReturnGenerator().callExpression(this, argumentGenerators);
+    return new VoidReturnStrategy().callExpression(this, argumentGenerators);
   }
 }

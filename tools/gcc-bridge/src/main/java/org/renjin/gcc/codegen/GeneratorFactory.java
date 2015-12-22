@@ -109,25 +109,25 @@ public class GeneratorFactory {
     }
   }
 
-  public ReturnGenerator findReturnGenerator(GimpleType returnType) {
+  public ReturnStrategy findReturnGenerator(GimpleType returnType) {
     return forType(returnType).returnGenerator();
   }
 
-  public ReturnGenerator forReturnValue(Method method) {
+  public ReturnStrategy forReturnValue(Method method) {
     Class<?> returnType = method.getReturnType();
     if(returnType.equals(void.class)) {
-      return new VoidReturnGenerator();
+      return new VoidReturnStrategy();
 
     } else if(returnType.isPrimitive()) {
-      return new PrimitiveReturnGenerator(GimplePrimitiveType.fromJvmType(returnType));
+      return new PrimitiveReturnStrategy(GimplePrimitiveType.fromJvmType(returnType));
 
     } else if(WrapperType.is(returnType)) {
       WrapperType wrapperType = WrapperType.valueOf(returnType);
-      return new PrimitivePtrReturnGenerator(wrapperType.getGimpleType());
+      return new PrimitivePtrReturnStrategy(wrapperType.getGimpleType());
 
     } else if(classTypes.containsKey(Type.getInternalName(returnType))) {
       GimpleRecordType recordType = classTypes.get(Type.getInternalName(returnType));
-      return new RecordPtrReturnGenerator(recordTypes.get(recordType.getId()));
+      return new RecordUnitPtrReturnStrategy(recordTypes.get(recordType.getId()));
 
     } else {
       throw new UnsupportedOperationException(String.format(

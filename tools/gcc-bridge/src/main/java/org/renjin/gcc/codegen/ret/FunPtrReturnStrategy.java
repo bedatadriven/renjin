@@ -12,7 +12,10 @@ import org.renjin.gcc.gimple.type.GimpleType;
 import java.lang.invoke.MethodHandle;
 import java.util.List;
 
-public class FunPtrReturnGenerator implements ReturnGenerator {
+/**
+ * Strategy for returning a pointer to a function using a {@link MethodHandle}.
+ */
+public class FunPtrReturnStrategy implements ReturnStrategy {
   
   private GimpleFunctionType functionType;
   
@@ -22,18 +25,13 @@ public class FunPtrReturnGenerator implements ReturnGenerator {
   }
 
   @Override
-  public GimpleType getGimpleType() {
-    return functionType.pointerTo();
-  }
-
-  @Override
-  public void emitReturn(MethodVisitor mv, ExprGenerator valueGenerator) {
+  public void emitReturnValue(MethodVisitor mv, ExprGenerator valueGenerator) {
     valueGenerator.emitPushMethodHandle(mv);
     mv.visitInsn(Opcodes.ARETURN);
   }
 
   @Override
-  public void emitVoidReturn(MethodVisitor mv) {
+  public void emitReturnDefault(MethodVisitor mv) {
     mv.visitInsn(Opcodes.ACONST_NULL);
     mv.visitInsn(Opcodes.ARETURN);
   }

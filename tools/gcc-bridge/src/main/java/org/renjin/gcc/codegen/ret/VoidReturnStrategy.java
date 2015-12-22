@@ -5,12 +5,17 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.gimple.type.GimpleType;
-import org.renjin.gcc.gimple.type.GimpleVoidType;
 
 import java.util.List;
 
-public class VoidReturnGenerator implements ReturnGenerator {
+/**
+ * Strategy for returning from a void-typed function.
+ * 
+ * <p>Only {@link VoidReturnStrategy#emitReturnDefault(MethodVisitor)} is supported, 
+ * {@link VoidReturnStrategy#emitReturnValue(MethodVisitor, ExprGenerator)} always
+ * throws {@code UnsupportedOperationException}</p>
+ */
+public class VoidReturnStrategy implements ReturnStrategy {
 
   @Override
   public Type getType() {
@@ -18,17 +23,12 @@ public class VoidReturnGenerator implements ReturnGenerator {
   }
 
   @Override
-  public GimpleType getGimpleType() {
-    return new GimpleVoidType();
-  }
-
-  @Override
-  public void emitReturn(MethodVisitor mv, ExprGenerator valueGenerator) {
+  public void emitReturnValue(MethodVisitor mv, ExprGenerator valueGenerator) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void emitVoidReturn(MethodVisitor mv) {
+  public void emitReturnDefault(MethodVisitor mv) {
     mv.visitInsn(Opcodes.RETURN);
   }
 

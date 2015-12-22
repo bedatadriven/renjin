@@ -77,7 +77,7 @@ public class TrampolineClassGenerator {
         functionGenerator.getFunctionDescriptor(),
         false);
     
-    Type returnType = functionGenerator.getReturnGenerator().getType();
+    Type returnType = functionGenerator.getReturnStrategy().getType();
 
     if (returnType.equals(Type.VOID_TYPE)) {
       mv.visitInsn(Opcodes.RETURN);

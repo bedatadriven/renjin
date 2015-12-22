@@ -13,28 +13,24 @@ import org.renjin.gcc.runtime.Ptr;
 
 import java.util.List;
 
-/**
- * Created by alex on 23-11-15.
- */
-public class VoidPtrReturnGenerator implements ReturnGenerator {
+public class VoidPtrReturnStrategy implements ReturnStrategy {
   @Override
   public Type getType() {
     return Type.getType(Ptr.class);
   }
 
-  @Override
-  public GimpleType getGimpleType() {
+  private GimpleType getGimpleType() {
     return new GimplePointerType(new GimpleVoidType());
   }
 
   @Override
-  public void emitReturn(MethodVisitor mv, ExprGenerator valueGenerator) {
+  public void emitReturnValue(MethodVisitor mv, ExprGenerator valueGenerator) {
     valueGenerator.emitPushPointerWrapper(mv);
     mv.visitInsn(Opcodes.ARETURN);
   }
 
   @Override
-  public void emitVoidReturn(MethodVisitor mv) {
+  public void emitReturnDefault(MethodVisitor mv) {
     mv.visitInsn(Opcodes.ACONST_NULL);
     mv.visitInsn(Opcodes.ARETURN);
   }
@@ -53,7 +49,7 @@ public class VoidPtrReturnGenerator implements ReturnGenerator {
 
     @Override
     public GimpleType getGimpleType() {
-      return VoidPtrReturnGenerator.this.getGimpleType();
+      return VoidPtrReturnStrategy.this.getGimpleType();
     }
 
     @Override

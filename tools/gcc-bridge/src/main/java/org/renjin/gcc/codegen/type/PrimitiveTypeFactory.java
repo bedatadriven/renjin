@@ -10,10 +10,10 @@ import org.renjin.gcc.codegen.call.MallocGenerator;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.field.*;
-import org.renjin.gcc.codegen.param.ParamGenerator;
-import org.renjin.gcc.codegen.param.PrimitiveParamGenerator;
-import org.renjin.gcc.codegen.param.PrimitivePtrParamGenerator;
-import org.renjin.gcc.codegen.param.PrimitivePtrPtrParamGenerator;
+import org.renjin.gcc.codegen.param.ParamStrategy;
+import org.renjin.gcc.codegen.param.PrimitiveParamStrategy;
+import org.renjin.gcc.codegen.param.PrimitivePtrParamStrategy;
+import org.renjin.gcc.codegen.param.PrimitivePtrPtrParamStrategy;
 import org.renjin.gcc.codegen.ret.PrimitivePtrPtrReturnStrategy;
 import org.renjin.gcc.codegen.ret.PrimitivePtrReturnStrategy;
 import org.renjin.gcc.codegen.ret.PrimitiveReturnStrategy;
@@ -43,8 +43,8 @@ public class PrimitiveTypeFactory extends TypeFactory {
   }
 
   @Override
-  public ParamGenerator paramGenerator() {
-    return new PrimitiveParamGenerator(type);
+  public ParamStrategy paramGenerator() {
+    return new PrimitiveParamStrategy(type);
   }
 
   @Override
@@ -87,8 +87,8 @@ public class PrimitiveTypeFactory extends TypeFactory {
     private GimplePointerType pointerType = new GimplePointerType(type);
 
     @Override
-    public ParamGenerator paramGenerator() {
-      return new PrimitivePtrParamGenerator(pointerType);
+    public ParamStrategy paramGenerator() {
+      return new PrimitivePtrParamStrategy(pointerType);
     }
 
     @Override
@@ -147,8 +147,8 @@ public class PrimitiveTypeFactory extends TypeFactory {
     }
 
     @Override
-    public ParamGenerator paramGenerator() {
-      return new PrimitivePtrPtrParamGenerator(pointerType);
+    public ParamStrategy paramGenerator() {
+      return new PrimitivePtrPtrParamStrategy(pointerType);
     }
 
     @Override
@@ -225,11 +225,11 @@ public class PrimitiveTypeFactory extends TypeFactory {
     }
 
     @Override
-    public ParamGenerator paramGenerator() {
+    public ParamStrategy paramGenerator() {
       // A pointer to an array of primitives is essentially the same thing as
       // a pointer to a single primitive value, the only difference is that the memory
       // region to which the parameter points is longer than a single value...
-      return new PrimitivePtrParamGenerator(arrayPtrType);
+      return new PrimitivePtrParamStrategy(arrayPtrType);
     }
 
     @Override

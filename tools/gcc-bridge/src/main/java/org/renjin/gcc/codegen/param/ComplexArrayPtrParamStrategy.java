@@ -9,19 +9,22 @@ import org.renjin.gcc.gimple.GimpleParameter;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleComplexType;
 import org.renjin.gcc.gimple.type.GimplePointerType;
-import org.renjin.gcc.gimple.type.GimpleType;
 
 import java.util.Arrays;
 import java.util.List;
 
 
-public class ComplexArrayPtrParamGenerator extends ParamGenerator {
+/**
+ * Strategy for parameters which are pointers to array of complex values that uses two JVM arguments:
+ * one for an array of {@code double} or {@code float}s, and one for an offset into the array.
+ */
+public class ComplexArrayPtrParamStrategy extends ParamStrategy {
 
   private GimplePointerType type;
   private GimpleArrayType arrayType;
   private GimpleComplexType componentType;
 
-  public ComplexArrayPtrParamGenerator(GimplePointerType type) {
+  public ComplexArrayPtrParamStrategy(GimplePointerType type) {
     this.type = type;
     this.arrayType = type.getBaseType();
     this.componentType = (GimpleComplexType) arrayType.getComponentType();
@@ -33,17 +36,13 @@ public class ComplexArrayPtrParamGenerator extends ParamGenerator {
   }
 
   @Override
-  public ExprGenerator emitInitialization(MethodVisitor methodVisitor, GimpleParameter parameter, int startIndex, LocalVarAllocator localVars) {
+  public ExprGenerator emitInitialization(MethodVisitor methodVisitor, GimpleParameter parameter, int startIndex, 
+                                          LocalVarAllocator localVars) {
     return new ComplexArrayPtrVarGenerator(type, startIndex, startIndex+1);
   }
 
   @Override
   public void emitPushParameter(MethodVisitor mv, ExprGenerator parameterValueGenerator) {
     throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public GimpleType getGimpleType() {
-    return type;
   }
 }

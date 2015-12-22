@@ -18,11 +18,15 @@ import org.renjin.gcc.runtime.ObjectPtr;
 import java.util.Collections;
 import java.util.List;
 
-public class RecordPtrPtrParamGenerator extends ParamGenerator {
+/**
+ * Strategy for a parameter that is a pointer to one or more unit record pointers, implemented using a single
+ * {@link ObjectPtr} parameter. Each element of {@link ObjectPtr#array} is a reference to the record's JVM class.
+ */
+public class RecordUnitPtrPtrParamStrategy extends ParamStrategy {
   
   private RecordClassGenerator generator;
 
-  public RecordPtrPtrParamGenerator(RecordClassGenerator generator) {
+  public RecordUnitPtrPtrParamStrategy(RecordClassGenerator generator) {
     this.generator = generator;
   }
 
@@ -41,11 +45,6 @@ public class RecordPtrPtrParamGenerator extends ParamGenerator {
     parameterValueGenerator.emitPushPointerWrapper(mv);
   }
 
-  @Override
-  public GimpleType getGimpleType() {
-    return generator.getGimpleType();
-  }
-  
   private class ParamExpr extends AbstractExprGenerator {
 
     private int varIndex;

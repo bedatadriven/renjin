@@ -11,9 +11,9 @@ import org.renjin.gcc.codegen.call.RecordMallocGenerator;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.field.*;
-import org.renjin.gcc.codegen.param.ParamGenerator;
-import org.renjin.gcc.codegen.param.RecordPtrParamGenerator;
-import org.renjin.gcc.codegen.param.RecordPtrPtrParamGenerator;
+import org.renjin.gcc.codegen.param.ParamStrategy;
+import org.renjin.gcc.codegen.param.RecordUnitPtrParamStrategy;
+import org.renjin.gcc.codegen.param.RecordUnitPtrPtrParamStrategy;
 import org.renjin.gcc.codegen.ret.RecordPtrPtrReturnStrategy;
 import org.renjin.gcc.codegen.ret.RecordUnitPtrReturnStrategy;
 import org.renjin.gcc.codegen.ret.ReturnStrategy;
@@ -128,8 +128,8 @@ public class RecordTypeFactory extends TypeFactory {
   public class Pointer extends TypeFactory {
 
     @Override
-    public ParamGenerator paramGenerator() {
-      return new RecordPtrParamGenerator(generator);
+    public ParamStrategy paramGenerator() {
+      return new RecordUnitPtrParamStrategy(generator);
     }
 
     @Override
@@ -166,8 +166,8 @@ public class RecordTypeFactory extends TypeFactory {
   public class PointerPointer extends TypeFactory {
 
     @Override
-    public ParamGenerator paramGenerator() {
-      return new RecordPtrPtrParamGenerator(generator);
+    public ParamStrategy paramGenerator() {
+      return new RecordUnitPtrPtrParamStrategy(generator);
     }
 
     @Override

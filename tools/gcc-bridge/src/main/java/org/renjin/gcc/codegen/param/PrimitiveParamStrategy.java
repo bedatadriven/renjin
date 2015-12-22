@@ -14,22 +14,17 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Parameter that is a simple primitive (e.g. double, int, etc)
+ * Strategy for simple primitive parameters (e.g. double, int, etc)
  */
-public class PrimitiveParamGenerator extends ParamGenerator {
+public class PrimitiveParamStrategy extends ParamStrategy {
 
   private GimplePrimitiveType type;
 
-  public PrimitiveParamGenerator(GimpleType gimpleType) {
+  public PrimitiveParamStrategy(GimpleType gimpleType) {
     this.type = (GimplePrimitiveType) gimpleType;
   }
 
   public GimplePrimitiveType getType() {
-    return type;
-  }
-
-  @Override
-  public GimpleType getGimpleType() {
     return type;
   }
 

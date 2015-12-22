@@ -2,9 +2,9 @@ package org.renjin.gcc.codegen.type;
 
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.LocalVarAllocator;
-import org.renjin.gcc.codegen.param.ComplexArrayPtrParamGenerator;
-import org.renjin.gcc.codegen.param.ComplexPtrParamGenerator;
-import org.renjin.gcc.codegen.param.ParamGenerator;
+import org.renjin.gcc.codegen.param.ComplexArrayPtrParamStrategy;
+import org.renjin.gcc.codegen.param.ComplexPtrParamStrategy;
+import org.renjin.gcc.codegen.param.ParamStrategy;
 import org.renjin.gcc.codegen.ret.ComplexReturnStrategy;
 import org.renjin.gcc.codegen.ret.ReturnStrategy;
 import org.renjin.gcc.codegen.var.*;
@@ -68,8 +68,8 @@ public class ComplexTypeFactory extends TypeFactory {
   private class Pointer extends TypeFactory {
 
     @Override
-    public ParamGenerator paramGenerator() {
-      return new ComplexPtrParamGenerator(new GimplePointerType(type));
+    public ParamStrategy paramGenerator() {
+      return new ComplexPtrParamStrategy(new GimplePointerType(type));
     }
 
     @Override
@@ -102,8 +102,8 @@ public class ComplexTypeFactory extends TypeFactory {
     }
 
     @Override
-    public ParamGenerator paramGenerator() {
-      return new ComplexArrayPtrParamGenerator(pointerType);
+    public ParamStrategy paramGenerator() {
+      return new ComplexArrayPtrParamStrategy(pointerType);
     }
 
     @Override

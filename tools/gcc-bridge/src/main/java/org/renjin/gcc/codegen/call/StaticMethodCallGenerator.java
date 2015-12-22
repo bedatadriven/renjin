@@ -7,7 +7,7 @@ import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.GeneratorFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.expr.PrimitiveConstValueGenerator;
-import org.renjin.gcc.codegen.param.ParamGenerator;
+import org.renjin.gcc.codegen.param.ParamStrategy;
 import org.renjin.gcc.codegen.ret.ReturnStrategy;
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
@@ -24,7 +24,7 @@ public class StaticMethodCallGenerator implements CallGenerator {
   private GeneratorFactory factory;
   private Method method;
 
-  private List<ParamGenerator> paramGenerators = null;
+  private List<ParamStrategy> paramStrategies = null;
   private ReturnStrategy returnStrategy = null;
 
   public StaticMethodCallGenerator(GeneratorFactory factory, Method method) {
@@ -46,13 +46,13 @@ public class StaticMethodCallGenerator implements CallGenerator {
 
     // The number of fixed (gimple) parameters expected, excluding var args
     // the number of Jvm arguments may be greater
-    int fixedArgCount = paramGenerators.size();
+    int fixedArgCount = paramStrategies.size();
 
 
     // Push all (fixed) parameters on the stack
     for (int i = 0; i < fixedArgCount; i++) {
-      ParamGenerator paramGenerator = getParamGenerators().get(i);
-      paramGenerator.emitPushParameter(mv, argumentGenerators.get(i));
+      ParamStrategy paramStrategy = getParamStrategies().get(i);
+      paramStrategy.emitPushParameter(mv, argumentGenerators.get(i));
     }
     
     // if this method accepts var args, then we pass the remaining arguments as an Object[] array
@@ -101,19 +101,19 @@ public class StaticMethodCallGenerator implements CallGenerator {
 
   private void checkArity(List<ExprGenerator> argumentGenerators) {
     if(method.isVarArgs()) {
-      if(argumentGenerators.size() < getParamGenerators().size()) {
+      if(argumentGenerators.size() < getParamStrategies().size()) {
         throw new InternalCompilerException(String.format(
             "Arity mismatch: expected at least %d args to method %s.%s(), called with %d" ,
-            paramGenerators.size(),
+            paramStrategies.size(),
             method.getDeclaringClass().getName(),
             method.getName(),
             argumentGenerators.size()));
       }  
     } else {
-      if(argumentGenerators.size() != getParamGenerators().size()) {
+      if(argumentGenerators.size() != getParamStrategies().size()) {
         throw new InternalCompilerException(String.format(
             "Arity mismatch: expected %d args to method %s.%s(), called with %d" ,
-            paramGenerators.size(),
+            paramStrategies.size(),
             method.getDeclaringClass().getName(),
             method.getName(),
             argumentGenerators.size()));
@@ -122,11 +122,11 @@ public class StaticMethodCallGenerator implements CallGenerator {
     
   }
 
-  private List<ParamGenerator> getParamGenerators() {
-    if(paramGenerators == null) {
-      paramGenerators = factory.forParameterTypesOf(method);
+  private List<ParamStrategy> getParamStrategies() {
+    if(paramStrategies == null) {
+      paramStrategies = factory.forParameterTypesOf(method);
     }
-    return paramGenerators;
+    return paramStrategies;
   }
 
   @Override

@@ -6,7 +6,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.GeneratorFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.param.ParamGenerator;
+import org.renjin.gcc.codegen.param.ParamStrategy;
 import org.renjin.gcc.codegen.ret.ReturnStrategy;
 import org.renjin.gcc.gimple.type.GimpleFunctionType;
 import org.renjin.gcc.gimple.type.GimpleType;
@@ -20,7 +20,7 @@ public class FunPtrCallGenerator implements CallGenerator {
 
   private GeneratorFactory factory;
   private ExprGenerator funPtrGenerator;
-  private final List<ParamGenerator> parameters;
+  private final List<ParamStrategy> parameters;
   private final ReturnStrategy returnStrategy;
   private final GimpleFunctionType functionType;
 
@@ -47,9 +47,9 @@ public class FunPtrCallGenerator implements CallGenerator {
     // Infer the parameters types from the arguments provided
     List<Type> types = Lists.newArrayList();
     for (ExprGenerator argumentGenerator : argumentGenerators) {
-      ParamGenerator paramGenerator = factory.forParameter(argumentGenerator.getGimpleType());
-      paramGenerator.emitPushParameter(mv, argumentGenerator);
-      types.addAll(paramGenerator.getParameterTypes());
+      ParamStrategy paramStrategy = factory.forParameter(argumentGenerator.getGimpleType());
+      paramStrategy.emitPushParameter(mv, argumentGenerator);
+      types.addAll(paramStrategy.getParameterTypes());
     }
     
     // Use invoke() rather than invokeExact() to smooth over any type differences

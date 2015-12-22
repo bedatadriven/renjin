@@ -6,7 +6,7 @@ import org.objectweb.asm.*;
 import org.objectweb.asm.util.TraceClassVisitor;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.codegen.field.FieldGenerator;
-import org.renjin.gcc.codegen.param.ParamGenerator;
+import org.renjin.gcc.codegen.param.ParamStrategy;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -66,7 +66,7 @@ public class TrampolineClassGenerator {
     mv.visitCode();
     
     int varIndex = 0;
-    for (ParamGenerator generator : functionGenerator.getParamGenerators()) {
+    for (ParamStrategy generator : functionGenerator.getParamGenerators()) {
       for (Type type : generator.getParameterTypes()) {
         mv.visitVarInsn(type.getOpcode(Opcodes.ILOAD), varIndex);
         varIndex += type.getSize();

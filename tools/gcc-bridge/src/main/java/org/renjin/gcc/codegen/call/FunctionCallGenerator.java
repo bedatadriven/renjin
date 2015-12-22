@@ -5,7 +5,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.codegen.FunctionGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.param.ParamGenerator;
+import org.renjin.gcc.codegen.param.ParamStrategy;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 import java.util.List;
@@ -34,10 +34,10 @@ public class FunctionCallGenerator implements CallGenerator {
   public void emitCall(MethodVisitor mv, List<ExprGenerator> argumentGenerators) {
 
     // Push all parameters on the stack
-    List<ParamGenerator> paramGenerators = functionGenerator.getParamGenerators();
-    for (int i = 0; i < paramGenerators.size(); i++) {
-      ParamGenerator paramGenerator = paramGenerators.get(i);
-      paramGenerator.emitPushParameter(mv, argumentGenerators.get(i));
+    List<ParamStrategy> paramStrategies = functionGenerator.getParamGenerators();
+    for (int i = 0; i < paramStrategies.size(); i++) {
+      ParamStrategy paramStrategy = paramStrategies.get(i);
+      paramStrategy.emitPushParameter(mv, argumentGenerators.get(i));
     }
     
     mv.visitMethodInsn(Opcodes.INVOKESTATIC, 

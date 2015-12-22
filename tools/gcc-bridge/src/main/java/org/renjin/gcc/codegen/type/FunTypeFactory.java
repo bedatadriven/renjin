@@ -5,8 +5,8 @@ import org.renjin.gcc.codegen.LocalVarAllocator;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.field.*;
-import org.renjin.gcc.codegen.param.FunPtrParamGenerator;
-import org.renjin.gcc.codegen.param.ParamGenerator;
+import org.renjin.gcc.codegen.param.FunPtrParamStrategy;
+import org.renjin.gcc.codegen.param.ParamStrategy;
 import org.renjin.gcc.codegen.ret.FunPtrReturnStrategy;
 import org.renjin.gcc.codegen.ret.ReturnStrategy;
 import org.renjin.gcc.codegen.var.FunPtrVarGenerator;
@@ -40,8 +40,8 @@ public class FunTypeFactory extends TypeFactory {
 
   private class Pointer extends TypeFactory {
     @Override
-    public ParamGenerator paramGenerator() {
-      return new FunPtrParamGenerator(new GimplePointerType(type));
+    public ParamStrategy paramGenerator() {
+      return new FunPtrParamStrategy(new GimplePointerType(type));
     }
 
     @Override

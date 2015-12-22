@@ -18,10 +18,10 @@ import static org.objectweb.asm.Opcodes.*;
 
 
 /**
- * Parameter that is a pointer (e.g. {@code double*} and is mapped to a wrapped
- * Pointer type, such as DoublePtr or ObjectPtr.
+ * Strategy for primitive pointer parameters (e.g. {@code double*} using a wrapped
+ * fat pointer type, such as {@link org.renjin.gcc.runtime.IntPtr} or {@link org.renjin.gcc.runtime.DoublePtr}.
  */
-public class PrimitivePtrParamGenerator extends ParamGenerator {
+public class PrimitivePtrParamStrategy extends ParamStrategy {
 
   private final GimpleIndirectType type;
 
@@ -31,14 +31,9 @@ public class PrimitivePtrParamGenerator extends ParamGenerator {
   private final WrapperType pointerType;
   
 
-  public PrimitivePtrParamGenerator(GimpleType type) {
+  public PrimitivePtrParamStrategy(GimpleType type) {
     this.type = (GimpleIndirectType) type;
     this.pointerType = WrapperType.forPointerType(this.type);
-  }
-
-  @Override
-  public GimpleType getGimpleType() {
-    return type;
   }
 
   @Override

@@ -20,7 +20,12 @@ import org.renjin.gcc.runtime.Ptr;
 import java.util.Collections;
 import java.util.List;
 
-public class PrimitivePtrPtrParamGenerator extends ParamGenerator {
+/**
+ * Strategy for pointer to primitive pointer parameters, for example {@code double**} that use a single
+ * {@link ObjectPtr} parameter. Each element of {@link ObjectPtr#array} is an instance of a primitive fat pointer 
+ * wrapper, such as {@link org.renjin.gcc.runtime.IntPtr} or {@link org.renjin.gcc.runtime.DoublePtr}.
+ */
+public class PrimitivePtrPtrParamStrategy extends ParamStrategy {
 
   private final GimpleIndirectType type;
 
@@ -29,14 +34,9 @@ public class PrimitivePtrPtrParamGenerator extends ParamGenerator {
    */
   private final WrapperType pointerType;
   
-  public PrimitivePtrPtrParamGenerator(GimpleType type) {
+  public PrimitivePtrPtrParamStrategy(GimpleType type) {
     this.type = (GimpleIndirectType) type;
     this.pointerType = WrapperType.forPointerType((GimpleIndirectType) type.getBaseType());
-  }
-
-  @Override
-  public GimpleType getGimpleType() {
-    return type;
   }
 
   @Override

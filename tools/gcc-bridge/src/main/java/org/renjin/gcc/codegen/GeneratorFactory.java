@@ -81,7 +81,7 @@ public class GeneratorFactory {
   }
   
 
-  public ParamGenerator forParameter(GimpleType parameterType) {
+  public ParamStrategy forParameter(GimpleType parameterType) {
     return forType(parameterType).paramGenerator();
   }
 
@@ -137,10 +137,10 @@ public class GeneratorFactory {
     }
   }
   
-  public List<ParamGenerator> forParameterTypes(List<GimpleType> parameterTypes) {
-    List<ParamGenerator> generators = new ArrayList<ParamGenerator>();
+  public List<ParamStrategy> forParameterTypes(List<GimpleType> parameterTypes) {
+    List<ParamStrategy> generators = new ArrayList<ParamStrategy>();
     for (GimpleType parameterType : parameterTypes) {
-      ParamGenerator param = forParameter(parameterType);
+      ParamStrategy param = forParameter(parameterType);
       generators.add(param);
     }
     return generators;
@@ -154,9 +154,9 @@ public class GeneratorFactory {
    * our {@code ParamGenerators}; a complex pointer is represented as a {@code double[]} and an 
    * {@code int} offset, for example.</p>
    */
-  public List<ParamGenerator> forParameterTypesOf(Method method) {
+  public List<ParamStrategy> forParameterTypesOf(Method method) {
 
-    List<ParamGenerator> generators = new ArrayList<ParamGenerator>();
+    List<ParamStrategy> generators = new ArrayList<ParamStrategy>();
 
     int numParams;
     if(method.isVarArgs()) {
@@ -174,15 +174,15 @@ public class GeneratorFactory {
         
       } else if (WrapperType.is(paramClass) && !paramClass.equals(CharPtr.class)) {
         WrapperType wrapperType = WrapperType.valueOf(paramClass);
-        generators.add(new PrimitivePtrParamGenerator(wrapperType.getGimpleType()));
+        generators.add(new PrimitivePtrParamStrategy(wrapperType.getGimpleType()));
         index++;
 
       } else if (paramClass.isPrimitive()) {
-        generators.add(new PrimitiveParamGenerator(GimplePrimitiveType.fromJvmType(paramClass)));
+        generators.add(new PrimitiveParamStrategy(GimplePrimitiveType.fromJvmType(paramClass)));
         index++;
 
       } else if (paramClass.equals(String.class)) {
-        generators.add(new StringParamGenerator());
+        generators.add(new StringParamStrategy());
         index++;
 
       } else if (classTypes.containsKey(Type.getInternalName(paramClass))) {
@@ -200,7 +200,7 @@ public class GeneratorFactory {
     return generators;
   }
   
-  private ParamGenerator forObjectPtrParam(java.lang.reflect.Type type) {
+  private ParamStrategy forObjectPtrParam(java.lang.reflect.Type type) {
     if(!(type instanceof ParameterizedType)) {
       throw new InternalCompilerException(ObjectPtr.class.getSimpleName() + " parameters must be parameterized");
     }
@@ -214,14 +214,14 @@ public class GeneratorFactory {
       if(classTypes.containsKey(baseTypeInternalName)) {
         GimpleRecordType mappedType = classTypes.get(baseTypeInternalName);
         RecordClassGenerator recordClassGenerator = recordTypes.get(mappedType.getId());
-        return new WrappedRecordPtrParamGenerator(recordClassGenerator);
+        return new RecordFatPtrParamStrategy(recordClassGenerator);
       }
     }
     throw new UnsupportedOperationException("TODO: baseType = " + baseType);
   }
 
-  public Map<GimpleParameter, ParamGenerator> forParameters(List<GimpleParameter> parameters) {
-    Map<GimpleParameter, ParamGenerator> map = new HashMap<GimpleParameter, ParamGenerator>();
+  public Map<GimpleParameter, ParamStrategy> forParameters(List<GimpleParameter> parameters) {
+    Map<GimpleParameter, ParamStrategy> map = new HashMap<GimpleParameter, ParamStrategy>();
     for (GimpleParameter parameter : parameters) {
       map.put(parameter, forParameter(parameter.getType()));
     }

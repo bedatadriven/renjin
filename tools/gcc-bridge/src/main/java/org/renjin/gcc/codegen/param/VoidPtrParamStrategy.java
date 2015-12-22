@@ -15,8 +15,10 @@ import org.renjin.gcc.runtime.Ptr;
 import java.util.Collections;
 import java.util.List;
 
-
-public class VoidPtrParamGenerator extends ParamGenerator {
+/**
+ * Strategy for {@code void*} parameters, implemented using a {@link Ptr} parameter.
+ */
+public class VoidPtrParamStrategy extends ParamStrategy {
   @Override
   public List<Type> getParameterTypes() {
     return Collections.singletonList(Type.getType(Ptr.class));
@@ -30,11 +32,6 @@ public class VoidPtrParamGenerator extends ParamGenerator {
   @Override
   public void emitPushParameter(MethodVisitor mv, ExprGenerator parameterValueGenerator) {
     parameterValueGenerator.emitPushRecordRef(mv);
-  }
-
-  @Override
-  public GimpleType getGimpleType() {
-    return new GimplePointerType(new GimpleVoidType());
   }
 
   private class Expr extends AbstractExprGenerator {

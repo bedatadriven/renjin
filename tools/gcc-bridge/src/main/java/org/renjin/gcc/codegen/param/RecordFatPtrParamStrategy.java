@@ -6,19 +6,21 @@ import org.renjin.gcc.codegen.LocalVarAllocator;
 import org.renjin.gcc.codegen.RecordClassGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.GimpleParameter;
-import org.renjin.gcc.gimple.type.GimplePointerType;
-import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.runtime.ObjectPtr;
 
 import java.util.Collections;
 import java.util.List;
 
-
-public class WrappedRecordPtrParamGenerator extends ParamGenerator {
+/**
+ * Strategy for a record pointer parameter that may point to more than one record value, implemented using
+ * a {@link ObjectPtr} reference, where each element of the {@link ObjectPtr#array} is an instance of the 
+ * JVM class backing the parameter's record type.
+ */
+public class RecordFatPtrParamStrategy extends ParamStrategy {
   
   private RecordClassGenerator recordClassGenerator;
 
-  public WrappedRecordPtrParamGenerator(RecordClassGenerator recordClassGenerator) {
+  public RecordFatPtrParamStrategy(RecordClassGenerator recordClassGenerator) {
     this.recordClassGenerator = recordClassGenerator;
   }
 
@@ -37,8 +39,4 @@ public class WrappedRecordPtrParamGenerator extends ParamGenerator {
     parameterValueGenerator.emitPushPointerWrapper(mv);
   }
 
-  @Override
-  public GimpleType getGimpleType() {
-    return new GimplePointerType(recordClassGenerator.getGimpleType());
-  }
 }

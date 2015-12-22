@@ -10,7 +10,7 @@ import org.renjin.gcc.codegen.call.MallocGenerator;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.param.ParamGenerator;
+import org.renjin.gcc.codegen.param.ParamStrategy;
 import org.renjin.gcc.codegen.ret.ReturnStrategy;
 import org.renjin.gcc.codegen.type.TypeFactory;
 import org.renjin.gcc.codegen.var.VarGenerator;
@@ -33,7 +33,7 @@ public class FunctionGenerator {
 
   private String className;
   private GimpleFunction function;
-  private Map<GimpleParameter, ParamGenerator> params = Maps.newHashMap();
+  private Map<GimpleParameter, ParamStrategy> params = Maps.newHashMap();
   private ReturnStrategy returnStrategy;
   private LocalVarAllocator localVarAllocator;
   
@@ -98,14 +98,14 @@ public class FunctionGenerator {
     int[] paramIndexes = new int[numParameters];
 
     for (int i = 0; i < numParameters; i++) {
-      ParamGenerator generator = params.get(function.getParameters().get(i));
+      ParamStrategy generator = params.get(function.getParameters().get(i));
       paramIndexes[i] = localVarAllocator.reserve(generator.numSlots());
     }
 
     // Now do any required initialization
     for (int i = 0; i < numParameters; i++) {
       GimpleParameter param = function.getParameters().get(i);
-      ParamGenerator generator = params.get(param);
+      ParamStrategy generator = params.get(param);
       ExprGenerator exprGenerator = generator.emitInitialization(mv, param, paramIndexes[i], localVarAllocator);
       symbolTable.addVariable(param.getId(), exprGenerator);
     }
@@ -277,17 +277,21 @@ public class FunctionGenerator {
     return Type.getMethodDescriptor(returnStrategy.getType(), parameterTypes());
   }
 
-  public List<ParamGenerator> getParamGenerators() {
-    List<ParamGenerator> parameterTypes = new ArrayList<ParamGenerator>();
+  public List<ParamStrategy> getParamGenerators() {
+    List<ParamStrategy> parameterTypes = new ArrayList<ParamStrategy>();
     for (GimpleParameter parameter : function.getParameters()) {
-      ParamGenerator generator = params.get(parameter);
+      ParamStrategy generator = params.get(parameter);
       parameterTypes.add(generator);
     }
     return parameterTypes;
   }
   
   public Type[] parameterTypes() {
-    return ParamGenerator.parameterTypes(getParamGenerators());
+    List<Type> types = new ArrayList<Type>();
+    for (ParamStrategy generator : getParamGenerators()) {
+      types.addAll(generator.getParameterTypes());
+    }
+    return types.toArray(new Type[types.size()]);
   }
   
   public Type returnType() {

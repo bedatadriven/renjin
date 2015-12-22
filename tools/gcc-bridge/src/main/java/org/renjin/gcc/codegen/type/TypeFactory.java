@@ -5,7 +5,7 @@ import org.renjin.gcc.codegen.UnimplementedException;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.field.FieldGenerator;
-import org.renjin.gcc.codegen.param.ParamGenerator;
+import org.renjin.gcc.codegen.param.ParamStrategy;
 import org.renjin.gcc.codegen.ret.ReturnStrategy;
 import org.renjin.gcc.codegen.var.VarGenerator;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
@@ -21,7 +21,7 @@ public abstract class TypeFactory {
    * 
    * @return a new {@code ParamGenerator} for this type.
    */
-  public ParamGenerator paramGenerator() {
+  public ParamStrategy paramGenerator() {
     throw new UnimplementedException(getClass(), "paramGenerator");
   }
 

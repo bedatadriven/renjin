@@ -8,18 +8,19 @@ import org.renjin.gcc.codegen.RecordClassGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.var.RecordPtrVarGenerator;
 import org.renjin.gcc.gimple.GimpleParameter;
-import org.renjin.gcc.gimple.type.GimplePointerType;
-import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.gimple.type.GimpleVoidType;
 
 import java.util.Collections;
 import java.util.List;
 
-public class RecordPtrParamGenerator extends ParamGenerator {
+/**
+ * Strategy for a parameter that is a pointer to a single record value, implemented with a simple JVM reference type.
+ */
+public class RecordUnitPtrParamStrategy extends ParamStrategy {
 
     private RecordClassGenerator generator;
 
-    public RecordPtrParamGenerator(RecordClassGenerator generator) {
+    public RecordUnitPtrParamStrategy(RecordClassGenerator generator) {
         this.generator = generator;
     }
 
@@ -41,8 +42,4 @@ public class RecordPtrParamGenerator extends ParamGenerator {
         }
     }
 
-    @Override
-    public GimpleType getGimpleType() {
-        return new GimplePointerType(generator.getGimpleType());
-    }
 }

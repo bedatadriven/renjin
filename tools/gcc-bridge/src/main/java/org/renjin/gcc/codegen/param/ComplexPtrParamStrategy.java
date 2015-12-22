@@ -13,23 +13,17 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Generates a parameter for a pointer to a complex number value.
- * 
- * <p>This is compiled as two parameters: a double[] array and an integer offset</p>
+ * Strategy for parameters of type {@code complex *} that uses two arguments: a {@code double} or {@code float}
+ * array and an integer offset parameter.
  */
-public class ComplexPtrParamGenerator extends ParamGenerator {
+public class ComplexPtrParamStrategy extends ParamStrategy {
   
   private GimpleType type;
   private GimpleComplexType baseType;
   
-  public ComplexPtrParamGenerator(GimpleType type) {
+  public ComplexPtrParamStrategy(GimpleType type) {
     this.type = type;
     this.baseType = type.getBaseType();
-  }
-
-  @Override
-  public GimpleType getGimpleType() {
-    return type;
   }
 
   @Override

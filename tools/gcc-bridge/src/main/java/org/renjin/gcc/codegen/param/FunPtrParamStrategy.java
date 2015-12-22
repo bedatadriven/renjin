@@ -14,13 +14,13 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Generates a parameter for a function pointer using the MethodHandle type.
+ * Strategy for function pointer parameters implemented using a {@link MethodHandle} parameter.
  */
-public class FunPtrParamGenerator extends ParamGenerator {
+public class FunPtrParamStrategy extends ParamStrategy {
 
   private GimpleType parameterType;
 
-  public FunPtrParamGenerator(GimpleType parameterType) {
+  public FunPtrParamStrategy(GimpleType parameterType) {
     this.parameterType = parameterType;
   }
   
@@ -32,11 +32,6 @@ public class FunPtrParamGenerator extends ParamGenerator {
   @Override
   public ExprGenerator emitInitialization(MethodVisitor methodVisitor, GimpleParameter parameter, int localVarIndex, LocalVarAllocator localVars) {
     return new FunPtrVarGenerator((GimpleFunctionType) parameterType.getBaseType(), localVarIndex);
-  }
-
-  @Override
-  public GimpleType getGimpleType() {
-    return parameterType;
   }
 
   @Override

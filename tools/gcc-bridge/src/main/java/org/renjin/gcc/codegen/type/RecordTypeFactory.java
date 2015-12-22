@@ -18,6 +18,7 @@ import org.renjin.gcc.codegen.ret.RecordPtrPtrReturnStrategy;
 import org.renjin.gcc.codegen.ret.RecordUnitPtrReturnStrategy;
 import org.renjin.gcc.codegen.ret.ReturnStrategy;
 import org.renjin.gcc.codegen.var.*;
+import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimplePointerType;
@@ -42,13 +43,8 @@ public class RecordTypeFactory extends TypeFactory {
   }
 
   @Override
-  public VarGenerator varGenerator(LocalVarAllocator allocator) {
-    return new RecordVarGenerator(generator, allocator.reserveObject());
-  }
-
-  @Override
-  public VarGenerator addressableVarGenerator(LocalVarAllocator allocator) {
-    return new RecordVarGenerator(generator, allocator.reserveObject());
+  public VarGenerator varGenerator(GimpleVarDecl decl, LocalVarAllocator allocator) {
+    return new RecordVarGenerator(generator, allocator.reserve(decl.getName(), generator.getType()));
   }
 
   @Override
@@ -95,16 +91,11 @@ public class RecordTypeFactory extends TypeFactory {
     }
 
     @Override
-    public VarGenerator varGenerator(LocalVarAllocator allocator) {
-      return new RecordArrayVarGenerator(arrayType, generator, allocator.reserveObject());
+    public VarGenerator varGenerator(GimpleVarDecl decl, LocalVarAllocator allocator) {
+      return new RecordArrayVarGenerator(arrayType, generator, 
+          allocator.reserveArrayRef(decl.getName(), generator.getType()));
     }
-
     
-    @Override
-    public VarGenerator addressableVarGenerator(LocalVarAllocator allocator) {
-      return varGenerator(allocator);
-    }
-
     @Override
     public ExprGenerator constructorExpr(ExprFactory exprFactory, GimpleConstructor value) {
 
@@ -142,14 +133,17 @@ public class RecordTypeFactory extends TypeFactory {
       return new RecordUnitPtrReturnStrategy(generator);
     }
 
-    @Override
-    public VarGenerator addressableVarGenerator(LocalVarAllocator allocator) {
-      return new AddressableRecordPtrVarGenerator(generator, allocator.reserveObject());
-    }
 
     @Override
-    public VarGenerator varGenerator(LocalVarAllocator allocator) {
-      return new RecordPtrVarGenerator(generator, allocator.reserveObject());
+    public VarGenerator varGenerator(GimpleVarDecl decl, LocalVarAllocator allocator) {
+      if(decl.isAddressable()) {
+        return new AddressableRecordPtrVarGenerator(generator, 
+            allocator.reserveArrayRef(decl.getName(), generator.getType()));
+        
+      } else {
+        return new RecordPtrVarGenerator(generator, 
+            allocator.reserve(decl.getName(), generator.getType()));
+      }
     }
 
     @Override
@@ -171,8 +165,10 @@ public class RecordTypeFactory extends TypeFactory {
     }
 
     @Override
-    public VarGenerator varGenerator(LocalVarAllocator allocator) {
-      return new RecordPtrPtrVarGenerator(generator, allocator.reserveObject(), allocator.reserveInt());
+    public VarGenerator varGenerator(GimpleVarDecl decl, LocalVarAllocator allocator) {
+      return new RecordPtrPtrVarGenerator(generator, 
+          allocator.reserve(decl.getName(), ObjectPtr.class), 
+          allocator.reserveInt(decl.getName() + "$offset"));
     }
 
     @Override

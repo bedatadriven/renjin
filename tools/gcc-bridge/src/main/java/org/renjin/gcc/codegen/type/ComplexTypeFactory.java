@@ -1,6 +1,5 @@
 package org.renjin.gcc.codegen.type;
 
-import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.LocalVarAllocator;
 import org.renjin.gcc.codegen.param.ComplexArrayPtrParamStrategy;
 import org.renjin.gcc.codegen.param.ComplexPtrParamStrategy;
@@ -8,6 +7,7 @@ import org.renjin.gcc.codegen.param.ParamStrategy;
 import org.renjin.gcc.codegen.ret.ComplexReturnStrategy;
 import org.renjin.gcc.codegen.ret.ReturnStrategy;
 import org.renjin.gcc.codegen.var.*;
+import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleComplexType;
 import org.renjin.gcc.gimple.type.GimplePointerType;
@@ -38,17 +38,17 @@ public class ComplexTypeFactory extends TypeFactory {
   }
 
   @Override
-  public VarGenerator varGenerator(LocalVarAllocator allocator) {
-    return new ComplexVarGenerator(type,
-        allocator.reserve(Type.DOUBLE_TYPE),
-        allocator.reserve(Type.DOUBLE_TYPE));
+  public VarGenerator varGenerator(GimpleVarDecl decl, LocalVarAllocator allocator) {
+    if(decl.isAddressable()) {
+      return new AddressableComplexVarGenerator(type,
+          allocator.reserveArrayRef(decl.getName(), type.getJvmPartType()));
+    } else {
+      return new ComplexVarGenerator(type,
+          allocator.reserve(decl.getName() + "$real", type.getJvmPartType()),
+          allocator.reserve(decl.getName() + "$im", type.getJvmPartType()));
+    }
   }
 
-  @Override
-  public VarGenerator addressableVarGenerator(LocalVarAllocator allocator) {
-    return new AddressableComplexVarGenerator(type,
-        allocator.reserveArrayRef());
-  }
 
   @Override
   public ReturnStrategy returnGenerator() {
@@ -73,10 +73,10 @@ public class ComplexTypeFactory extends TypeFactory {
     }
 
     @Override
-    public VarGenerator varGenerator(LocalVarAllocator allocator) {
+    public VarGenerator varGenerator(GimpleVarDecl decl, LocalVarAllocator allocator) {
       return new ComplexPtrVarGenerator(type.pointerTo(), 
-          allocator.reserveArrayRef(),
-          allocator.reserveInt());
+          allocator.reserveArrayRef(decl.getName(), type.getJvmPartType()),
+          allocator.reserveInt(decl.getName() + "$offset"));
     }
   }
   
@@ -107,10 +107,10 @@ public class ComplexTypeFactory extends TypeFactory {
     }
 
     @Override
-    public VarGenerator varGenerator(LocalVarAllocator allocator) {
+    public VarGenerator varGenerator(GimpleVarDecl decl, LocalVarAllocator allocator) {
       return new ComplexArrayPtrVarGenerator(pointerType,
-          allocator.reserveArrayRef(),
-          allocator.reserveInt());
+          allocator.reserveArrayRef(decl.getName(), type.getJvmPartType()),
+          allocator.reserveInt(decl.getName() + "$offset"));
     }
   }
 }

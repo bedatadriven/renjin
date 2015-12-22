@@ -39,7 +39,7 @@ public class PrimitiveParamStrategy extends ParamStrategy {
 
     if(parameter.isAddressable()) {
       AddressablePrimitiveVarGenerator addressableVar = new AddressablePrimitiveVarGenerator(
-          type, localVars.reserve(type.jvmType()));  
+          type, localVars.reserve(parameter.getName() + "$array", type.jvmType()));  
       
       addressableVar.emitStore(mv, var);
       return addressableVar;

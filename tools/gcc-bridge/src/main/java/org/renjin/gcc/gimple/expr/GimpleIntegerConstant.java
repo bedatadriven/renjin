@@ -9,7 +9,6 @@ public class GimpleIntegerConstant extends GimplePrimitiveConstant {
   public GimpleIntegerConstant() {
   }
   
-  
   public GimpleIntegerConstant(GimpleIntegerType type, long value) {
     setType(type);
     this.value = value;

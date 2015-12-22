@@ -8,6 +8,7 @@ import org.renjin.gcc.codegen.field.FieldGenerator;
 import org.renjin.gcc.codegen.param.ParamStrategy;
 import org.renjin.gcc.codegen.ret.ReturnStrategy;
 import org.renjin.gcc.codegen.var.VarGenerator;
+import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 
@@ -34,14 +35,9 @@ public abstract class TypeFactory {
   }
 
 
-  public VarGenerator varGenerator(LocalVarAllocator allocator) {
+  public VarGenerator varGenerator(GimpleVarDecl decl, LocalVarAllocator allocator) {
     throw new UnimplementedException(getClass(), "varGenerator");
   }
-
-  public VarGenerator addressableVarGenerator(LocalVarAllocator allocator) {
-    throw new UnimplementedException(getClass(), "addressableVarGenerator");
-  }
-
 
   public TypeFactory pointerTo() {
     throw new UnimplementedException(getClass(), "pointerTo");

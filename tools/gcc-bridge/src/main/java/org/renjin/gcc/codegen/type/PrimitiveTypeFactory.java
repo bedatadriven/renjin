@@ -19,6 +19,7 @@ import org.renjin.gcc.codegen.ret.PrimitivePtrReturnStrategy;
 import org.renjin.gcc.codegen.ret.PrimitiveReturnStrategy;
 import org.renjin.gcc.codegen.ret.ReturnStrategy;
 import org.renjin.gcc.codegen.var.*;
+import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
@@ -68,13 +69,14 @@ public class PrimitiveTypeFactory extends TypeFactory {
   }
 
   @Override
-  public VarGenerator varGenerator(LocalVarAllocator allocator) {
-    return new PrimitiveVarGenerator(type, allocator.reserve(type.jvmType()));
-  }
-
-  @Override
-  public VarGenerator addressableVarGenerator(LocalVarAllocator allocator) {
-    return new AddressablePrimitiveVarGenerator(type, allocator.reserveArrayRef());
+  public VarGenerator varGenerator(GimpleVarDecl decl, LocalVarAllocator allocator) {
+    if(decl.isAddressable()) {
+      return new AddressablePrimitiveVarGenerator(type, 
+          allocator.reserveArrayRef(decl.getName(), type.jvmType()));
+    } else {
+      return new PrimitiveVarGenerator(type, 
+          allocator.reserve(decl.getName(), type.jvmType()));
+    }
   }
 
   @Override
@@ -97,16 +99,15 @@ public class PrimitiveTypeFactory extends TypeFactory {
     }
 
     @Override
-    public VarGenerator varGenerator(LocalVarAllocator allocator) {
-      return new PrimitivePtrVarGenerator(pointerType,
-          allocator.reserveArrayRef(),
-          allocator.reserve(Type.INT_TYPE));
-    }
-
-    @Override
-    public VarGenerator addressableVarGenerator(LocalVarAllocator allocator) {
-      return new AddressablePrimitivePtrVar(pointerType,
-          allocator.reserveObject());
+    public VarGenerator varGenerator(GimpleVarDecl decl, LocalVarAllocator allocator) {
+      if(decl.isAddressable()) {
+        return new AddressablePrimitivePtrVar(pointerType,
+            allocator.reserveArrayRef(decl.getName(), WrapperType.wrapperType(type)));
+      } else {
+        return new PrimitivePtrVarGenerator(pointerType,
+            allocator.reserveArrayRef(decl.getName(), type.jvmType()),
+            allocator.reserve(decl.getName() + "$offset", Type.INT_TYPE));
+      }
     }
 
     @Override
@@ -161,8 +162,10 @@ public class PrimitiveTypeFactory extends TypeFactory {
     }
 
     @Override
-    public VarGenerator varGenerator(LocalVarAllocator allocator) {
-      return new PrimitivePtrPtrVarGenerator(pointerType, allocator.reserveObject(), allocator.reserveInt());
+    public VarGenerator varGenerator(GimpleVarDecl decl, LocalVarAllocator allocator) {
+      return new PrimitivePtrPtrVarGenerator(pointerType, 
+          allocator.reserveArrayRef(decl.getName(), WrapperType.of(type).getWrapperType()), 
+          allocator.reserveInt(decl.getName() + "$offset"));
     }
 
     @Override
@@ -188,8 +191,9 @@ public class PrimitiveTypeFactory extends TypeFactory {
     }
 
     @Override
-    public VarGenerator varGenerator(LocalVarAllocator allocator) {
-      return new PrimitiveArrayVar(arrayType, allocator.reserveArrayRef());
+    public VarGenerator varGenerator(GimpleVarDecl decl, LocalVarAllocator allocator) {
+      return new PrimitiveArrayVar(arrayType, 
+          allocator.reserveArrayRef(decl.getName(), type.jvmType()));
     }
 
     @Override
@@ -200,10 +204,6 @@ public class PrimitiveTypeFactory extends TypeFactory {
     @Override
     public FieldGenerator addressableFieldGenerator(String className, String fieldName) {
       return fieldGenerator(className, fieldName);
-    }
-    @Override
-    public VarGenerator addressableVarGenerator(LocalVarAllocator allocator) {
-      return varGenerator(allocator);
     }
 
     @Override
@@ -238,10 +238,10 @@ public class PrimitiveTypeFactory extends TypeFactory {
     }
 
     @Override
-    public VarGenerator varGenerator(LocalVarAllocator allocator) {
+    public VarGenerator varGenerator(GimpleVarDecl decl, LocalVarAllocator allocator) {
       return new PrimitiveArrayPtrVar(arrayPtrType, 
-          allocator.reserveArrayRef(), 
-          allocator.reserveInt());
+          allocator.reserveArrayRef(decl.getName(), type.jvmType()), 
+          allocator.reserveInt(decl.getName() + "$offset"));
     }
 
     @Override
@@ -258,13 +258,9 @@ public class PrimitiveTypeFactory extends TypeFactory {
     }
 
     @Override
-    public VarGenerator varGenerator(LocalVarAllocator allocator) {
-      return new PrimitivePtrArrayVar(arrayType, allocator.reserveObject());
-    }
-
-    @Override
-    public VarGenerator addressableVarGenerator(LocalVarAllocator allocator) {
-      return varGenerator(allocator);
+    public VarGenerator varGenerator(GimpleVarDecl decl, LocalVarAllocator allocator) {
+      return new PrimitivePtrArrayVar(arrayType, allocator.reserveArrayRef(decl.getName(), 
+          WrapperType.of(arrayType.getComponentType()).getWrapperType()));
     }
 
     @Override

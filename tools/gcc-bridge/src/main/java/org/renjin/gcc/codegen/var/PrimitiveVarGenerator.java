@@ -65,7 +65,6 @@ public class PrimitiveVarGenerator extends AbstractExprGenerator implements VarG
     }
   }
 
-  @Override
   public void emitDebugging(MethodVisitor mv, String name, Label start, Label end) {
     mv.visitLocalVariable(name, type.jvmType().getDescriptor(), null, start, end, localVarIndex);
   }

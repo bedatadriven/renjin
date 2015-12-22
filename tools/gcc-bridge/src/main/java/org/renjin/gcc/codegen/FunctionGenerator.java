@@ -86,7 +86,7 @@ public class FunctionGenerator {
       emitBasicBlock(basicBlock);
     }
     mv.visitLabel(endLabel);
-    emitVariableDebugging();
+    localVarAllocator.emitDebugging(mv, beginLabel, endLabel);
     
     mv.visitMaxs(1, 1);
     mv.visitEnd();
@@ -141,11 +141,7 @@ public class FunctionGenerator {
       try {
         VarGenerator generator;
         TypeFactory factory = generatorFactory.forType(varDecl.getType());
-        if (varDecl.isAddressable()) {
-          generator = factory.addressableVarGenerator(localVarAllocator);
-        } else {
-          generator = factory.varGenerator(localVarAllocator);
-        }
+        generator = factory.varGenerator(varDecl, localVarAllocator);
 
         symbolTable.addVariable(varDecl.getId(), generator);
       } catch (Exception e) {
@@ -304,17 +300,6 @@ public class FunctionGenerator {
 
   public GimpleCompilationUnit getCompilationUnit() {
     return function.getUnit();
-  }
-
-  private void emitVariableDebugging() {
-    for (GimpleVarDecl decl : function.getVariableDeclarations()) {
-      if(decl.isNamed()) {
-        ExprGenerator generator = symbolTable.getVariable(decl);
-        if (generator instanceof VarGenerator) {
-          ((VarGenerator) generator).emitDebugging(mv, toJavaSafeName(decl.getName()), beginLabel, endLabel);
-        }
-      }
-    }
   }
 
   private String toJavaSafeName(String name) {

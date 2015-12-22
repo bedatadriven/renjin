@@ -45,8 +45,8 @@ public class PrimitivePtrParamStrategy extends ParamStrategy {
   public ExprGenerator emitInitialization(MethodVisitor mv, GimpleParameter parameter, int localVariableIndex, LocalVarAllocator localVars) {
     
     // Unpack the wrapper into seperate array and offset fields
-    int arrayVariable = localVars.reserve(1);
-    int offsetVariable = localVars.reserve(1);
+    int arrayVariable = localVars.reserve(parameter.getName() + "$array", pointerType.getArrayType());
+    int offsetVariable = localVars.reserve(parameter.getName() + "$offset", Type.INT_TYPE);
     
     // Load the parameter on the stack
     mv.visitVarInsn(ALOAD, localVariableIndex);

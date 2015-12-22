@@ -1,6 +1,7 @@
 package org.renjin.gcc.codegen.type;
 
 import com.google.common.collect.Lists;
+import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.LocalVarAllocator;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
@@ -11,11 +12,13 @@ import org.renjin.gcc.codegen.ret.FunPtrReturnStrategy;
 import org.renjin.gcc.codegen.ret.ReturnStrategy;
 import org.renjin.gcc.codegen.var.FunPtrVarGenerator;
 import org.renjin.gcc.codegen.var.VarGenerator;
+import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleFunctionType;
 import org.renjin.gcc.gimple.type.GimplePointerType;
 
+import java.lang.invoke.MethodHandle;
 import java.util.List;
 
 /**
@@ -45,8 +48,8 @@ public class FunTypeFactory extends TypeFactory {
     }
 
     @Override
-    public VarGenerator varGenerator(LocalVarAllocator allocator) {
-      return new FunPtrVarGenerator(type, allocator.reserveObject());
+    public VarGenerator varGenerator(GimpleVarDecl decl, LocalVarAllocator allocator) {
+      return new FunPtrVarGenerator(type, allocator.reserve(decl.getName(), Type.getType(MethodHandle.class)));
     }
 
     @Override

@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.type;
 
+import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.LocalVarAllocator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
@@ -12,6 +13,7 @@ import org.renjin.gcc.codegen.ret.VoidPtrReturnStrategy;
 import org.renjin.gcc.codegen.ret.VoidReturnStrategy;
 import org.renjin.gcc.codegen.var.AddressableVoidPtrVar;
 import org.renjin.gcc.codegen.var.VarGenerator;
+import org.renjin.gcc.gimple.GimpleVarDecl;
 
 /**
  * Creates generators for void value types. Only used for return types.
@@ -45,8 +47,9 @@ public class VoidTypeFactory extends TypeFactory {
     }
 
     @Override
-    public VarGenerator addressableVarGenerator(LocalVarAllocator allocator) {
-      return new AddressableVoidPtrVar(allocator.reserveObject());
+    public VarGenerator varGenerator(GimpleVarDecl decl, LocalVarAllocator allocator) {
+      return new AddressableVoidPtrVar(
+          allocator.reserveArrayRef(decl.getName(), Type.getType(Object.class)));
     }
 
     @Override

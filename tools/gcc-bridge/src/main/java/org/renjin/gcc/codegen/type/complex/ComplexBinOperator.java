@@ -11,7 +11,6 @@ import org.renjin.gcc.gimple.type.GimpleType;
 
 /**
  * Generates the result of a binary operation on two complex numbers
- * 
  */
 public class ComplexBinOperator extends AbstractExprGenerator {
 

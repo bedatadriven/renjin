@@ -69,7 +69,6 @@ public class PrimitiveFieldGenerator extends FieldGenerator {
       emitStoreMember(mv, valueGenerator);
     }
 
-
     @Override
     public void emitPrimitiveValue(MethodVisitor mv) {
       instance.emitPushRecordRef(mv);

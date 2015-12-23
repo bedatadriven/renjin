@@ -6,7 +6,7 @@ import org.renjin.gcc.codegen.expr.ExprGenerator;
 
 
 /**
- * Generates loads and stores for a local variable
+ * Generates loads and stores for a variable
  */
 public interface VarGenerator extends ExprGenerator {
 

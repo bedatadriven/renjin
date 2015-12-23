@@ -2,8 +2,8 @@ package org.renjin.gcc.codegen.type.primitive.op;
 
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
-import org.renjin.gcc.codegen.Types;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.primitive.AddressOfPrimitiveValue;
@@ -27,21 +27,31 @@ public class MinMaxGenerator extends AbstractExprGenerator implements ExprGenera
   public GimpleType getGimpleType() {
     return x.getGimpleType();
   }
-  
+
   @Override
   public void emitPrimitiveValue(MethodVisitor mv) {
-    
+
     x.emitPrimitiveValue(mv);
     y.emitPrimitiveValue(mv);
+
+    if(!x.getGimpleType().equals(y.getGimpleType())) {
+      throw new UnsupportedOperationException(String.format(
+          "Types must be the same: %s != %s", x.getGimpleType(), y.getGimpleType()));
+    }
     
-    if(Types.isInt(x) && Types.isInt(y)) {
-      mv.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/Math", methodName(), "(II)I", false);
-   
-    } else if(Types.isLong(x) && Types.isLong(y)) {
+    Type type = x.getJvmPrimitiveType();
+
+    if (type.equals(Type.LONG_TYPE)) {
       mv.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/Math", methodName(), "(JJ)J", false);
-   
+
+    } else if (type.equals(Type.FLOAT_TYPE)) {
+      mv.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/Math", methodName(), "(FF)F", false);
+
+    } else if (type.equals(Type.DOUBLE_TYPE)) {
+      mv.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/Math", methodName(), "(DD)D", false);
+
     } else {
-      throw new UnsupportedOperationException(String.format("max (%s, %s)", x.getGimpleType(), y.getGimpleType()));
+      mv.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/Math", methodName(), "(II)I", false);
     }
   }
 
@@ -60,5 +70,5 @@ public class MinMaxGenerator extends AbstractExprGenerator implements ExprGenera
   public ExprGenerator addressOf() {
     return new AddressOfPrimitiveValue(this);
   }
-  
+
 }

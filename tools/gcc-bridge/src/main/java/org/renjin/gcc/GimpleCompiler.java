@@ -49,10 +49,8 @@ public class GimpleCompiler  {
   private final Map<String, Class> providedRecordTypes = Maps.newHashMap();
   private final Map<String, Field> providedVariables = Maps.newHashMap();
 
-
   private String trampolineClassName;
   private String recordClassPrefix = "record";
-
 
   public GimpleCompiler() {
     functionBodyTransformers.add(VoidPointerTypeDeducer.INSTANCE);

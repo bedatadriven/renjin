@@ -7,9 +7,9 @@ import org.renjin.gcc.gimple.GimpleBasicBlock;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.*;
-import org.renjin.gcc.gimple.ins.GimpleAssign;
-import org.renjin.gcc.gimple.ins.GimpleCall;
-import org.renjin.gcc.gimple.ins.GimpleIns;
+import org.renjin.gcc.gimple.statement.GimpleAssignment;
+import org.renjin.gcc.gimple.statement.GimpleCall;
+import org.renjin.gcc.gimple.statement.GimpleStatement;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
 
@@ -96,7 +96,7 @@ public class InitDataFlowAnalysis {
       
       // Now go statement-by-statement to see if there are any possible
       // uses before definition
-      for (GimpleIns statement : node.getBasicBlock().getInstructions()) {
+      for (GimpleStatement statement : node.getBasicBlock().getInstructions()) {
         for (GimpleSymbolRef symbolRef : statement.findVariableUses()) {
           if(localVariables.containsKey(symbolRef.getId())) {
             // we're using a local variable. Are we sure it's been initialized?
@@ -135,7 +135,7 @@ public class InitDataFlowAnalysis {
     Set<Integer> exitState = new HashSet<>(initialState);
 
     if(basicBlock != null) {
-      for (GimpleIns ins : basicBlock.getInstructions()) {
+      for (GimpleStatement ins : basicBlock.getInstructions()) {
         updateInitializedSet(ins, exitState);
       }
     }
@@ -147,10 +147,10 @@ public class InitDataFlowAnalysis {
    * @param statement the statement
    * @param initializedVariables the set of variableIds that have definitely been initialized
    */
-  private void updateInitializedSet(GimpleIns statement, Set<Integer> initializedVariables) {
+  private void updateInitializedSet(GimpleStatement statement, Set<Integer> initializedVariables) {
     Optional<GimpleVariableRef> variableRef = Optional.absent();
-    if (statement instanceof GimpleAssign) {
-      variableRef = findVariableRef(((GimpleAssign) statement).getLHS());
+    if (statement instanceof GimpleAssignment) {
+      variableRef = findVariableRef(((GimpleAssignment) statement).getLHS());
     } else if (statement instanceof GimpleCall) {
       variableRef = findVariableRef(((GimpleCall) statement).getLhs());
     }

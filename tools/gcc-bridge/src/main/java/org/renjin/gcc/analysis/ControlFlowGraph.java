@@ -5,7 +5,6 @@ import com.google.common.escape.Escaper;
 import com.google.common.escape.Escapers;
 import org.renjin.gcc.gimple.GimpleBasicBlock;
 import org.renjin.gcc.gimple.GimpleFunction;
-import org.renjin.gcc.gimple.ins.*;
 
 import java.io.File;
 import java.io.FileWriter;

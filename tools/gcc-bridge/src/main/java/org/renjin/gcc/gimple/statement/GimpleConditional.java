@@ -1,4 +1,4 @@
-package org.renjin.gcc.gimple.ins;
+package org.renjin.gcc.gimple.statement;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
@@ -10,7 +10,7 @@ import org.renjin.gcc.gimple.expr.GimpleExpr;
 import java.util.List;
 import java.util.Set;
 
-public class GimpleConditional extends GimpleIns {
+public class GimpleConditional extends GimpleStatement {
   // gimple_cond <ne_expr, i_4, j_6, NULL, NULL>
   // goto <bb 46>;
   // else

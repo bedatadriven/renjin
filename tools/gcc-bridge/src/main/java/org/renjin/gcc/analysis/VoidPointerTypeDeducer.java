@@ -8,7 +8,7 @@ import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.GimpleVisitor;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleVariableRef;
-import org.renjin.gcc.gimple.ins.GimpleAssign;
+import org.renjin.gcc.gimple.statement.GimpleAssignment;
 import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.gimple.type.GimpleVoidType;
@@ -90,7 +90,7 @@ public class VoidPointerTypeDeducer implements FunctionBodyTransformer {
     }
 
     @Override
-    public void visitAssignment(GimpleAssign assignment) {
+    public void visitAssignment(GimpleAssignment assignment) {
       
       switch (assignment.getOperator()) {
       case VAR_DECL:

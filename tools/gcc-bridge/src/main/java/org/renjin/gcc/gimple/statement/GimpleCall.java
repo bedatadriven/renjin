@@ -1,4 +1,4 @@
-package org.renjin.gcc.gimple.ins;
+package org.renjin.gcc.gimple.statement;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
@@ -10,7 +10,7 @@ import org.renjin.gcc.gimple.expr.GimpleSymbolRef;
 
 import java.util.List;
 
-public class GimpleCall extends GimpleIns {
+public class GimpleCall extends GimpleStatement {
 
   private GimpleExpr function;
   private List<GimpleExpr> arguments = Lists.newArrayList();

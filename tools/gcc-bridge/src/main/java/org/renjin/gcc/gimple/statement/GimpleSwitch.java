@@ -1,4 +1,4 @@
-package org.renjin.gcc.gimple.ins;
+package org.renjin.gcc.gimple.statement;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
@@ -11,7 +11,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class GimpleSwitch extends GimpleIns {
+public class GimpleSwitch extends GimpleStatement {
 
   public static class Case {
     private int low;

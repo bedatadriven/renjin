@@ -1,13 +1,12 @@
-package org.renjin.gcc.gimple.ins;
+package org.renjin.gcc.gimple.statement;
 
 import org.renjin.gcc.gimple.GimpleLabel;
 import org.renjin.gcc.gimple.GimpleVisitor;
-import org.renjin.gcc.gimple.ins.GimpleIns;
 
 import java.util.Collections;
 import java.util.Set;
 
-public class GimpleGoto extends GimpleIns {
+public class GimpleGoto extends GimpleStatement {
   private int target;
 
   public GimpleLabel getTargetLabel() {

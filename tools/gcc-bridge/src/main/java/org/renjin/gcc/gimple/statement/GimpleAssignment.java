@@ -1,4 +1,4 @@
-package org.renjin.gcc.gimple.ins;
+package org.renjin.gcc.gimple.statement;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
@@ -12,15 +12,15 @@ import org.renjin.gcc.gimple.expr.GimpleSymbolRef;
 import java.util.Arrays;
 import java.util.List;
 
-public class GimpleAssign extends GimpleIns {
+public class GimpleAssignment extends GimpleStatement {
   private GimpleOp operator;
   private GimpleLValue lhs;
   private List<GimpleExpr> operands = Lists.newArrayList();
 
-  public GimpleAssign() {
+  public GimpleAssignment() {
   }
 
-  public GimpleAssign(GimpleOp op, GimpleLValue lhs, GimpleExpr... arguments) {
+  public GimpleAssignment(GimpleOp op, GimpleLValue lhs, GimpleExpr... arguments) {
     this.operator = op;
     this.lhs = lhs;
     this.operands.addAll(Arrays.asList(arguments));

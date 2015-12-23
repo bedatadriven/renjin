@@ -8,7 +8,7 @@ import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleLValue;
 import org.renjin.gcc.gimple.expr.GimpleVariableRef;
-import org.renjin.gcc.gimple.ins.GimpleIns;
+import org.renjin.gcc.gimple.statement.GimpleStatement;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 import java.util.Arrays;
@@ -129,7 +129,7 @@ public class GimpleFunction {
   public void visitIns(GimpleVisitor visitor) {
     for (GimpleBasicBlock bb : basicBlocks) {
       visitor.blockStart(bb);
-      for (GimpleIns ins : bb.getInstructions()) {
+      for (GimpleStatement ins : bb.getInstructions()) {
         ins.visit(visitor);
       }
     }
@@ -172,7 +172,7 @@ public class GimpleFunction {
 
   public boolean lhsMatches(Predicate<? super GimpleLValue> predicate) {
     for (GimpleBasicBlock basicBlock : basicBlocks) {
-      for (GimpleIns ins : basicBlock.getInstructions()) {
+      for (GimpleStatement ins : basicBlock.getInstructions()) {
         if(ins.lhsMatches(predicate)) {
           return true;
         }

@@ -1,10 +1,10 @@
 package org.renjin.gcc.gimple;
 
-import org.renjin.gcc.gimple.ins.*;
+import org.renjin.gcc.gimple.statement.*;
 
 public class GimpleVisitor {
 
-  public void visitAssignment(GimpleAssign assignment) {
+  public void visitAssignment(GimpleAssignment assignment) {
 
   }
 

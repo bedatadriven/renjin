@@ -1,4 +1,4 @@
-package org.renjin.gcc.gimple.ins;
+package org.renjin.gcc.gimple.statement;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
@@ -24,17 +24,14 @@ import java.util.Set;
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes({
-    @Type(value = GimpleAssign.class, name = "assign"),
+    @Type(value = GimpleAssignment.class, name = "assign"),
     @Type(value = GimpleCall.class, name = "call"),
     @Type(value = GimpleConditional.class, name = "conditional"),
     @Type(value = GimpleReturn.class, name = "return"),
     @Type(value = GimpleGoto.class, name = "goto"),
     @Type(value = GimpleSwitch.class, name = "switch"),
-    @Type(value = GimpleOffset.class, name = "offset_type"),
-    @Type(value = GimpleComplexType.class, name = "complex_type"),
-    @Type(value = GimpleVectorTypeIns.class, name = "vector_type"),
     @Type(value = GimpleBlock.class, name = "block")})
-public abstract class GimpleIns {
+public abstract class GimpleStatement {
 
   public abstract void visit(GimpleVisitor visitor);
     

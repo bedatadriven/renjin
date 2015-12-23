@@ -6,9 +6,9 @@ import org.renjin.gcc.gimple.expr.GimpleAddressOf;
 import org.renjin.gcc.gimple.expr.GimpleComponentRef;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleSymbolRef;
-import org.renjin.gcc.gimple.ins.GimpleAssign;
-import org.renjin.gcc.gimple.ins.GimpleCall;
-import org.renjin.gcc.gimple.ins.GimpleIns;
+import org.renjin.gcc.gimple.statement.GimpleAssignment;
+import org.renjin.gcc.gimple.statement.GimpleCall;
+import org.renjin.gcc.gimple.statement.GimpleStatement;
 import org.renjin.gcc.gimple.type.GimpleField;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
@@ -31,13 +31,13 @@ public class AddressableFinder implements FunctionBodyTransformer {
     Marker marker = new Marker(unit, fn);
     
     for (GimpleBasicBlock basicBlock : fn.getBasicBlocks()) {
-      for (GimpleIns gimpleIns : basicBlock.getInstructions()) {
+      for (GimpleStatement gimpleIns : basicBlock.getInstructions()) {
         if(gimpleIns instanceof GimpleCall) {
           if(marker.mark(((GimpleCall) gimpleIns).getArguments())) {
             updated = true;
           }
-        } else if(gimpleIns instanceof GimpleAssign) {
-          if (marker.mark(((GimpleAssign) gimpleIns).getOperands())) {
+        } else if(gimpleIns instanceof GimpleAssignment) {
+          if (marker.mark(((GimpleAssignment) gimpleIns).getOperands())) {
             updated = true;
           }
         }

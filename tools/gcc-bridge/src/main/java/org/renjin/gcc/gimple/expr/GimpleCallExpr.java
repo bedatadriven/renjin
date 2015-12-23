@@ -3,7 +3,7 @@ package org.renjin.gcc.gimple.expr;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
-import org.renjin.gcc.gimple.ins.GimpleCall;
+import org.renjin.gcc.gimple.statement.GimpleCall;
 
 import java.util.List;
 

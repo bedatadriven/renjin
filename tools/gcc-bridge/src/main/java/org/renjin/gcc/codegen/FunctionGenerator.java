@@ -15,7 +15,7 @@ import org.renjin.gcc.codegen.var.LocalVarAllocator;
 import org.renjin.gcc.codegen.var.Var;
 import org.renjin.gcc.gimple.*;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
-import org.renjin.gcc.gimple.ins.*;
+import org.renjin.gcc.gimple.statement.*;
 import org.renjin.gcc.symbols.LocalVariableTable;
 import org.renjin.gcc.symbols.UnitSymbolTable;
 
@@ -162,13 +162,13 @@ public class FunctionGenerator {
   private void emitBasicBlock(GimpleBasicBlock basicBlock) {
     mv.visitLabel(labels.of(basicBlock));
 
-    for (GimpleIns ins : basicBlock.getInstructions()) {
+    for (GimpleStatement ins : basicBlock.getInstructions()) {
       Label insLabel = new Label();
       mv.visitLabel(insLabel);
       
       try {
-        if (ins instanceof GimpleAssign) {
-          emitAssignment((GimpleAssign) ins);
+        if (ins instanceof GimpleAssignment) {
+          emitAssignment((GimpleAssignment) ins);
         } else if (ins instanceof GimpleReturn) {
           emitReturn((GimpleReturn) ins);
         } else if (ins instanceof GimpleGoto) {
@@ -213,7 +213,7 @@ public class FunctionGenerator {
     
   }
 
-  private void emitAssignment(GimpleAssign ins) {
+  private void emitAssignment(GimpleAssignment ins) {
     try {
       ExprGenerator lhs = exprFactory.findGenerator(ins.getLHS());
       ExprGenerator rhs = exprFactory.findGenerator(ins.getOperator(), ins.getOperands(), lhs.getGimpleType());

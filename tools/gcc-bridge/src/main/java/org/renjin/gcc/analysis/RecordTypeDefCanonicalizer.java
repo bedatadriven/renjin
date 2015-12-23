@@ -4,7 +4,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.renjin.gcc.gimple.*;
 import org.renjin.gcc.gimple.expr.*;
-import org.renjin.gcc.gimple.ins.*;
+import org.renjin.gcc.gimple.statement.*;
 import org.renjin.gcc.gimple.type.*;
 import org.renjin.gcc.gimple.type.GimpleComplexType;
 
@@ -184,8 +184,8 @@ public class RecordTypeDefCanonicalizer {
           updateType(decl.getType());
         }
         for (GimpleBasicBlock basicBlock : function.getBasicBlocks()) {
-          for (GimpleIns gimpleIns : basicBlock.getInstructions()) {
-            updateTypes(gimpleIns);
+          for (GimpleStatement statement : basicBlock.getInstructions()) {
+            updateTypes(statement);
           }
         }
       }
@@ -225,11 +225,11 @@ public class RecordTypeDefCanonicalizer {
   }
 
 
-  private void updateTypes(GimpleIns gimpleIns) {
+  private void updateTypes(GimpleStatement gimpleIns) {
     if(gimpleIns instanceof GimpleReturn) {
       updateTypes(((GimpleReturn) gimpleIns).getValue());
-    } else if(gimpleIns instanceof GimpleAssign) {
-      GimpleAssign assignment = (GimpleAssign) gimpleIns;
+    } else if(gimpleIns instanceof GimpleAssignment) {
+      GimpleAssignment assignment = (GimpleAssignment) gimpleIns;
       updateTypes(assignment.getLHS());
       updateTypes(assignment.getOperands());
     } else if(gimpleIns instanceof GimpleCall) {

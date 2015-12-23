@@ -1,4 +1,4 @@
-package org.renjin.gcc.gimple.ins;
+package org.renjin.gcc.gimple.statement;
 
 import com.google.common.base.Predicate;
 import org.renjin.gcc.gimple.GimpleVisitor;
@@ -6,7 +6,7 @@ import org.renjin.gcc.gimple.expr.GimpleExpr;
 
 import java.util.List;
 
-public class GimpleReturn extends GimpleIns {
+public class GimpleReturn extends GimpleStatement {
   private GimpleExpr value;
 
   public GimpleReturn() {

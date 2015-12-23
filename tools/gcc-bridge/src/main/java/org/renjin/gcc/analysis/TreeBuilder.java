@@ -6,7 +6,7 @@ import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleVariableRef;
-import org.renjin.gcc.gimple.ins.GimpleIns;
+import org.renjin.gcc.gimple.statement.GimpleStatement;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -81,7 +81,7 @@ public class TreeBuilder implements FunctionBodyTransformer {
     }
 
     for (GimpleBasicBlock basicBlock : function.getBasicBlocks()) {
-      for (GimpleIns statement : basicBlock.getInstructions()) {
+      for (GimpleStatement statement : basicBlock.getInstructions()) {
         for (GimpleVariableRef ref : statement.findUses(GimpleVariableRef.class)) {
           if(localVariables.contains(ref.getId())) {
             boolean firstUse = used.add(ref.getId());

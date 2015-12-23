@@ -5,9 +5,9 @@ import com.google.common.collect.Iterables;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.gimple.GimpleBasicBlock;
 import org.renjin.gcc.gimple.expr.*;
-import org.renjin.gcc.gimple.ins.GimpleAssign;
-import org.renjin.gcc.gimple.ins.GimpleCall;
-import org.renjin.gcc.gimple.ins.GimpleIns;
+import org.renjin.gcc.gimple.statement.GimpleAssignment;
+import org.renjin.gcc.gimple.statement.GimpleCall;
+import org.renjin.gcc.gimple.statement.GimpleStatement;
 
 import java.util.Iterator;
 
@@ -15,20 +15,20 @@ import java.util.Iterator;
  * Doubly-linked list of {@code GimpleStatements}.
  */
 public class StatementNode {
-  private GimpleIns statement;
+  private GimpleStatement statement;
   private StatementNode predecessor;
   private StatementNode successor;
   
   private final GimpleVariableRef def;
 
-  public StatementNode(GimpleIns statement) {
+  public StatementNode(GimpleStatement statement) {
     this.statement = statement;
     this.def = isLhs(statement);
   }
 
-  private GimpleVariableRef isLhs(GimpleIns statement) {
-    if(statement instanceof GimpleAssign) {
-      GimpleAssign assignment = (GimpleAssign) statement;
+  private GimpleVariableRef isLhs(GimpleStatement statement) {
+    if(statement instanceof GimpleAssignment) {
+      GimpleAssignment assignment = (GimpleAssignment) statement;
       if(assignment.getLHS() instanceof GimpleVariableRef) {
         return (GimpleVariableRef)assignment.getLHS();
       }
@@ -46,13 +46,13 @@ public class StatementNode {
     return Iterables.contains(statement.getUsedExpressions(), ref);
   }
 
-  public GimpleIns getStatement() {
+  public GimpleStatement getStatement() {
     return statement;
   }
 
   public static StatementNode createLinkedList(GimpleBasicBlock block) {
 
-    Iterator<GimpleIns> it = block.getInstructions().iterator();
+    Iterator<GimpleStatement> it = block.getInstructions().iterator();
     if(!it.hasNext()) {
       throw new IllegalArgumentException("Empty basic block");
     }
@@ -107,8 +107,8 @@ public class StatementNode {
   }
 
   public GimpleExpr nested() {
-    if(statement instanceof GimpleAssign) {
-      GimpleAssign assignment = (GimpleAssign) statement;
+    if(statement instanceof GimpleAssignment) {
+      GimpleAssignment assignment = (GimpleAssignment) statement;
       switch (assignment.getOperator()) {
         // many of these operators have no effect, and we can just unwrap their
         // operand

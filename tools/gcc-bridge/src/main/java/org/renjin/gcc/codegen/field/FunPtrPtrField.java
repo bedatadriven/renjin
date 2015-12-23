@@ -8,7 +8,6 @@ import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.pointers.DereferencedFunPtr;
-import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.type.GimpleFunctionType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
@@ -39,19 +38,9 @@ public class FunPtrPtrField extends FieldGenerator {
   }
 
   @Override
-  public void emitStaticField(ClassVisitor cv, GimpleVarDecl decl) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
   public void emitInstanceField(ClassVisitor cv) {
     cv.visitField(Opcodes.ACC_PUBLIC, arrayFieldName, arrayFieldDescriptor, null, null).visitEnd();
     cv.visitField(Opcodes.ACC_PUBLIC, offsetFieldName, "I", null, 0).visitEnd();
-  }
-
-  @Override
-  public ExprGenerator staticExprGenerator() {
-    throw new UnsupportedOperationException();
   }
 
   @Override

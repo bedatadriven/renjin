@@ -6,7 +6,6 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.type.GimpleFunctionType;
 import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.gimple.type.GimpleType;
@@ -34,13 +33,6 @@ public class FunPtrFieldGenerator extends FieldGenerator {
   }
 
   @Override
-  public void emitStaticField(ClassVisitor cv, GimpleVarDecl decl) {
-    assertNoInitialValue(decl);
-    
-    emitField(Opcodes.ACC_STATIC | Opcodes.ACC_PUBLIC, cv);
-  }
-
-  @Override
   public void emitInstanceField(ClassVisitor cv) {
     emitField(Opcodes.ACC_PUBLIC, cv);
   }
@@ -52,11 +44,6 @@ public class FunPtrFieldGenerator extends FieldGenerator {
   public void emitStoreMember(MethodVisitor mv, ExprGenerator valueGenerator) {
     valueGenerator.emitPushMethodHandle(mv);
     mv.visitFieldInsn(Opcodes.PUTFIELD, className, fieldName, Type.getDescriptor(MethodHandle.class));
-  }
-  
-  @Override
-  public ExprGenerator staticExprGenerator() {
-    return new StaticExpr();
   }
 
   @Override
@@ -94,25 +81,4 @@ public class FunPtrFieldGenerator extends FieldGenerator {
     }
   }
 
-  /**
-   * ExprGenerator for a static field's value
-   */
-  private class StaticExpr extends AbstractExprGenerator {
-
-    @Override
-    public GimpleType getGimpleType() {
-      return new GimplePointerType(functionType);
-    }
-
-    @Override
-    public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
-      valueGenerator.emitPushMethodHandle(mv);
-      mv.visitFieldInsn(Opcodes.PUTSTATIC, className, fieldName, Type.getDescriptor(MethodHandle.class));
-    }
-
-    @Override
-    public void emitPushMethodHandle(MethodVisitor mv) {
-      mv.visitFieldInsn(Opcodes.GETSTATIC, className, fieldName, Type.getDescriptor(MethodHandle.class));
-    }
-  }
 }

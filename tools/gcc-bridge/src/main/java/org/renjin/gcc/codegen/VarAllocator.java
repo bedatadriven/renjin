@@ -3,7 +3,10 @@ package org.renjin.gcc.codegen;
 import org.objectweb.asm.Type;
 
 /**
- * Created by alex on 22-12-15.
+ * Common interface to generating code for local and global variables.
+ *
+ * @see LocalVarAllocator
+ * @see GlobalVarAllocator
  */
 public abstract class VarAllocator {
   

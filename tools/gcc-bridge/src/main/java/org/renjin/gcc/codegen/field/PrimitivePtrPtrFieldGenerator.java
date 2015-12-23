@@ -8,7 +8,6 @@ import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.pointers.DereferencedPrimitivePtr;
 import org.renjin.gcc.codegen.pointers.PrimitivePtrPtrPlus;
-import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
@@ -50,13 +49,6 @@ public class PrimitivePtrPtrFieldGenerator extends FieldGenerator {
   }
 
   @Override
-  public void emitStaticField(ClassVisitor cv, GimpleVarDecl decl) {
-    assertNoInitialValue(decl);
-
-    emitField(Opcodes.ACC_STATIC | Opcodes.ACC_PUBLIC, cv);
-  }
-
-  @Override
   public void emitInstanceField(ClassVisitor cv) {
     emitField(Opcodes.ACC_PUBLIC, cv);
   }
@@ -64,11 +56,6 @@ public class PrimitivePtrPtrFieldGenerator extends FieldGenerator {
   private void emitField(int access, ClassVisitor cv) {
     cv.visitField(access, fieldName, arrayFieldDescriptor, null, null).visitEnd();
     cv.visitField(access, fieldName + "$offset", "I", null, null).visitEnd();
-  }
-
-  @Override
-  public ExprGenerator staticExprGenerator() {
-    return new StaticFieldPtrPtr();
   }
 
   @Override

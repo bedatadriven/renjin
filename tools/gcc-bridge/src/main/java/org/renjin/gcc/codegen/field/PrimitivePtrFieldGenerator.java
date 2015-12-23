@@ -4,13 +4,11 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
-import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.pointers.DereferencedPrimitiveValue;
 import org.renjin.gcc.codegen.pointers.PrimitivePtrPlus;
-import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleIntegerConstant;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
@@ -43,15 +41,6 @@ public class PrimitivePtrFieldGenerator extends FieldGenerator {
     return gimpleType;
   }
 
-  @Override
-  public void emitStaticField(ClassVisitor cv, GimpleVarDecl decl) {
-    if(!isNull(decl.getValue())) {
-      throw new InternalCompilerException("Unsupport initial value: " + decl.getValue());
-    }
-    
-    emitField(Opcodes.ACC_STATIC | Opcodes.ACC_PUBLIC, cv);
-  }
-
   private boolean isNull(GimpleExpr initialValue) {
     if(initialValue == null) {
       return true;
@@ -75,7 +64,6 @@ public class PrimitivePtrFieldGenerator extends FieldGenerator {
     cv.visitField(access, offsetFieldName, "I", null, 0).visitEnd();
   }
 
-  
   
   @Override
   public void emitStoreMember(MethodVisitor mv, ExprGenerator ptr) {
@@ -105,52 +93,8 @@ public class PrimitivePtrFieldGenerator extends FieldGenerator {
   }
 
   @Override
-  public ExprGenerator staticExprGenerator() {
-    return new StaticMemberExpr();
-  }
-
-  @Override
   public ExprGenerator memberExprGenerator(ExprGenerator instanceGenerator) {
     return new MemberPtrExpr(instanceGenerator);
-  }
-
-  private class StaticMemberExpr extends AbstractExprGenerator {
-
-    @Override
-    public GimpleType getGimpleType() {
-      return gimpleType;
-    }
-
-    @Override
-    public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
-      mv.visitFieldInsn(Opcodes.GETSTATIC, className, arrayFieldName, arrayTypeDescriptor());
-      mv.visitFieldInsn(Opcodes.GETSTATIC, className, offsetFieldName, "I");
-    }
-
-    @Override
-    public void emitStore(MethodVisitor mv, ExprGenerator ptr) {
-      
-      // Store field
-      ptr.emitPushPtrArrayAndOffset(mv);
-
-      mv.visitFieldInsn(Opcodes.PUTSTATIC, className, offsetFieldName, "I");
-      mv.visitFieldInsn(Opcodes.PUTSTATIC, className, arrayFieldName, arrayTypeDescriptor());
-    }
-
-    @Override
-    public WrapperType getPointerType() {
-      return wrapperType;
-    }
-
-    @Override
-    public ExprGenerator pointerPlus(ExprGenerator offsetInBytes) {
-      return new PrimitivePtrPlus(this, offsetInBytes);
-    }
-
-    @Override
-    public ExprGenerator valueOf() {
-      return new DereferencedPrimitiveValue(this);
-    }
   }
 
   private class MemberPtrExpr extends AbstractExprGenerator {

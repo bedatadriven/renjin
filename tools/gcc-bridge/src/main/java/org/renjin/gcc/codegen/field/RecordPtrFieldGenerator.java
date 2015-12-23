@@ -7,12 +7,10 @@ import org.renjin.gcc.codegen.RecordClassGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.expr.RecordUnitPtrGenerator;
-import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
-import static org.objectweb.asm.Opcodes.ACC_STATIC;
 
 public class RecordPtrFieldGenerator extends FieldGenerator {
   private String className;
@@ -31,13 +29,6 @@ public class RecordPtrFieldGenerator extends FieldGenerator {
   }
 
   @Override
-  public void emitStaticField(ClassVisitor cv, GimpleVarDecl decl) {
-    assertNoInitialValue(decl);
-
-    emitField(ACC_PUBLIC | ACC_STATIC, cv);
-  }
-
-  @Override
   public void emitInstanceField(ClassVisitor cv) {
     emitField(ACC_PUBLIC, cv);
   }
@@ -47,26 +38,8 @@ public class RecordPtrFieldGenerator extends FieldGenerator {
   }
 
   @Override
-  public ExprGenerator staticExprGenerator() {
-    return new StaticFieldExpr();
-  }
-
-  @Override
   public ExprGenerator memberExprGenerator(ExprGenerator instanceGenerator) {
     return new Member(instanceGenerator);
-  }
-
-  private class StaticFieldExpr extends AbstractExprGenerator implements RecordUnitPtrGenerator {
-
-    @Override
-    public GimpleType getGimpleType() {
-      return new GimplePointerType(recordGenerator.getGimpleType());
-    }
-
-    @Override
-    public void emitPushRecordRef(MethodVisitor mv) {
-      mv.visitFieldInsn(Opcodes.GETSTATIC, className, fieldName, recordGenerator.getDescriptor());
-    }
   }
 
   private class Member extends AbstractExprGenerator implements RecordUnitPtrGenerator {

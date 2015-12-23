@@ -7,7 +7,6 @@ import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.pointers.DereferencedPrimitivePtr;
-import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
 import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.gimple.type.GimpleType;
@@ -38,11 +37,6 @@ public class AddressablePrimitivePtrField extends FieldGenerator {
   }
 
   @Override
-  public void emitStaticField(ClassVisitor cv, GimpleVarDecl decl) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
   public void emitInstanceField(ClassVisitor cv) {
     cv.visitField(Opcodes.ACC_PUBLIC, fieldName, fieldDescriptor, null, null).visitEnd();
   }
@@ -53,11 +47,6 @@ public class AddressablePrimitivePtrField extends FieldGenerator {
     mv.visitInsn(Opcodes.ICONST_1);
     mv.visitTypeInsn(Opcodes.ANEWARRAY, wrapperType.getWrapperType().getInternalName());
     mv.visitFieldInsn(Opcodes.PUTFIELD, className, fieldName, fieldDescriptor);
-  }
-
-  @Override
-  public ExprGenerator staticExprGenerator() {
-    throw new UnsupportedOperationException();
   }
 
   @Override

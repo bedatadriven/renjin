@@ -9,12 +9,12 @@ import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.expr.PrimitiveConstValueGenerator;
 import org.renjin.gcc.codegen.pointers.AddressOfPrimitiveArray;
-import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
-import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
+import static org.objectweb.asm.Opcodes.PUTFIELD;
 
 
 public class PrimitiveArrayFieldGenerator extends FieldGenerator {
@@ -38,11 +38,6 @@ public class PrimitiveArrayFieldGenerator extends FieldGenerator {
   }
 
   @Override
-  public void emitStaticField(ClassVisitor cv, GimpleVarDecl decl) {
-    cv.visitField(ACC_STATIC | ACC_PUBLIC, fieldName, fieldDescriptor, null, null).visitEnd();
-  }
-
-  @Override
   public void emitInstanceField(ClassVisitor cv) {
     cv.visitField(ACC_PUBLIC, fieldName, fieldDescriptor, null, null).visitEnd();
   }
@@ -53,18 +48,6 @@ public class PrimitiveArrayFieldGenerator extends FieldGenerator {
     PrimitiveConstValueGenerator.emitInt(mv, arrayType.getElementCount());
     MallocGenerator.emitNewArray(mv, componentType.jvmType());
     mv.visitFieldInsn(Opcodes.PUTFIELD, className, fieldName, fieldDescriptor);
-  }
-
-  @Override
-  public void emitStaticInit(MethodVisitor mv) {
-    PrimitiveConstValueGenerator.emitInt(mv, arrayType.getElementCount());
-    MallocGenerator.emitNewArray(mv, componentType.jvmType());
-    mv.visitFieldInsn(Opcodes.PUTSTATIC, className, fieldName, fieldDescriptor);
-  }
-
-  @Override
-  public ExprGenerator staticExprGenerator() {
-    return new StaticExpr();
   }
 
   @Override
@@ -107,35 +90,5 @@ public class PrimitiveArrayFieldGenerator extends FieldGenerator {
       return new AddressOfPrimitiveArray(this);
     }
   }
-  
-  private class StaticExpr extends AbstractExprGenerator {
 
-
-    @Override
-    public GimpleType getGimpleType() {
-      return arrayType;
-    }
-
-    @Override
-    public void emitPushArray(MethodVisitor mv) {
-      mv.visitFieldInsn(Opcodes.GETSTATIC, className, fieldName, fieldDescriptor);
-    }
-
-    @Override
-    public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
-      valueGenerator.emitPushArray(mv);
-      mv.visitFieldInsn(Opcodes.PUTSTATIC, className, fieldName, fieldDescriptor);
-    }
-
-    @Override
-    public ExprGenerator addressOf() {
-      return new AddressOfPrimitiveArray(this);
-    }
-
-    @Override
-    public ExprGenerator elementAt(ExprGenerator indexGenerator) {
-      return new PrimitiveArrayElement(this, indexGenerator);
-    }
-  }
-  
 }

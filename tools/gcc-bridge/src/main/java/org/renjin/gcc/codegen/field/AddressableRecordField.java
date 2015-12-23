@@ -7,11 +7,9 @@ import org.renjin.gcc.codegen.RecordClassGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.pointers.DereferencedUnitRecordPtr;
-import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
-import static org.objectweb.asm.Opcodes.ACC_STATIC;
 
 public class AddressableRecordField extends FieldGenerator {
 
@@ -32,18 +30,7 @@ public class AddressableRecordField extends FieldGenerator {
     return generator.getGimpleType();
   }
 
-  @Override
-  public void emitStaticField(ClassVisitor cv, GimpleVarDecl decl) {
-    cv.visitField(ACC_STATIC | ACC_PUBLIC, fieldName, fieldDescriptor, null, null).visitEnd();
-  }
 
-
-  @Override
-  public void emitStaticInit(MethodVisitor mv) {
-    emitNewArray(mv);
-    mv.visitFieldInsn(Opcodes.PUTSTATIC, generator.getType().getInternalName(), fieldName, fieldDescriptor);
-  }
-  
   @Override
   public void emitInstanceField(ClassVisitor cv) {
     cv.visitField(ACC_PUBLIC, fieldName, fieldDescriptor, null, null).visitEnd();
@@ -65,11 +52,6 @@ public class AddressableRecordField extends FieldGenerator {
     mv.visitInsn(Opcodes.DUP);
     mv.visitMethodInsn(Opcodes.INVOKESPECIAL, generator.getType().getInternalName(), "<init>", "()V", false);
     mv.visitInsn(Opcodes.AASTORE);
-  }
-
-  @Override
-  public ExprGenerator staticExprGenerator() {
-    throw new UnsupportedOperationException();
   }
 
   @Override

@@ -4,10 +4,8 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
-import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.expr.PrimitiveConstValueGenerator;
-import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.runtime.ObjectPtr;
@@ -35,11 +33,6 @@ public class FunPtrArrayField extends FieldGenerator {
   }
 
   @Override
-  public void emitStaticField(ClassVisitor cv, GimpleVarDecl decl) {
-    cv.visitField(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, className, fieldDescriptor, null, null).visitEnd();
-  }
-
-  @Override
   public void emitInstanceField(ClassVisitor cv) {
     cv.visitField(Opcodes.ACC_PUBLIC, className, fieldDescriptor, null, null).visitEnd();
   }
@@ -53,22 +46,8 @@ public class FunPtrArrayField extends FieldGenerator {
   }
 
   @Override
-  public ExprGenerator staticExprGenerator() {
-    return new StaticExpr();
-  }
-
-  @Override
   public ExprGenerator memberExprGenerator(ExprGenerator instanceGenerator) {
     throw new UnsupportedOperationException();
   }
-  
-  private class StaticExpr extends AbstractExprGenerator {
 
-    @Override
-    public GimpleType getGimpleType() {
-      return arrayType;
-    }
-    
-  }
-  
 }

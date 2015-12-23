@@ -8,12 +8,10 @@ import org.renjin.gcc.codegen.arrays.RecordArrayElement;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.pointers.AddressOfRecordArray;
-import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
-import static org.objectweb.asm.Opcodes.ACC_STATIC;
 
 public class RecordArrayFieldGenerator extends FieldGenerator {
 
@@ -38,22 +36,12 @@ public class RecordArrayFieldGenerator extends FieldGenerator {
   }
 
   @Override
-  public void emitStaticField(ClassVisitor cv, GimpleVarDecl decl) {
-    emitField(ACC_PUBLIC | ACC_STATIC, cv);
-  }
-
-  @Override
   public void emitInstanceField(ClassVisitor cv) {
     emitField(ACC_PUBLIC, cv);
   }
 
   private void emitField(int access, ClassVisitor cv) {
     cv.visitField(access, fieldName, fieldDescriptor, null, null).visitEnd();
-  }
-
-  @Override
-  public ExprGenerator staticExprGenerator() {
-    return new StaticArrayValue();
   }
 
   @Override

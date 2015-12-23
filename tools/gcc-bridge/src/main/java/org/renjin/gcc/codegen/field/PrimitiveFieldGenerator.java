@@ -2,14 +2,9 @@ package org.renjin.gcc.codegen.field;
 
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.gimple.GimpleVarDecl;
-import org.renjin.gcc.gimple.expr.GimpleExpr;
-import org.renjin.gcc.gimple.expr.GimpleIntegerConstant;
-import org.renjin.gcc.gimple.expr.GimpleRealConstant;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
@@ -36,11 +31,6 @@ public class PrimitiveFieldGenerator extends FieldGenerator {
     return gimpleType;
   }
 
-  @Override
-  public void emitStaticField(ClassVisitor cv, GimpleVarDecl varDecl) {
-    cv.visitField(ACC_STATIC | ACC_PUBLIC | isFinal(varDecl), fieldName, type.getDescriptor(), null, initialValue(varDecl)).visitEnd();
-  }
-
 
   @Override
   public void emitInstanceField(ClassVisitor cv) {
@@ -53,59 +43,10 @@ public class PrimitiveFieldGenerator extends FieldGenerator {
     mv.visitFieldInsn(PUTFIELD, className, fieldName, type.getDescriptor());
   }
 
-  private int isFinal(GimpleVarDecl varDecl) {
-    if(varDecl.isConstant()) {
-      return ACC_FINAL;
-    } else {
-      return 0;
-    }
-  }
-
-
-  private Object initialValue(GimpleVarDecl varDecl) {
-    GimpleExpr initialValue = varDecl.getValue();
-    if(initialValue == null) {
-      return null;
-    } else if(type.equals(Type.INT_TYPE)) {
-      return ((GimpleIntegerConstant) initialValue).getNumberValue().intValue();
-    } else if(type.equals(Type.DOUBLE_TYPE)) {
-      return ((GimpleRealConstant) initialValue).getNumberValue().doubleValue();
-    } else if(type.equals(Type.LONG_TYPE)) {
-      return ((GimpleIntegerConstant) initialValue).getNumberValue().longValue();
-    } else if(type.equals(Type.FLOAT_TYPE)) {
-      return ((GimpleRealConstant) initialValue).getNumberValue().floatValue();
-    } else {
-      throw new UnsupportedOperationException("initial value: " + initialValue);
-    }
-  }
-
-  @Override
-  public ExprGenerator staticExprGenerator() {
-    return new StaticMemberExpr();
-  }
 
   @Override
   public ExprGenerator memberExprGenerator(ExprGenerator instanceGenerator) {
     return new MemberExpr(instanceGenerator);
-  }
-
-  private class StaticMemberExpr extends AbstractExprGenerator {
-
-    @Override
-    public GimpleType getGimpleType() {
-      return gimpleType;
-    }
-
-    @Override
-    public void emitPrimitiveValue(MethodVisitor mv) {
-      mv.visitFieldInsn(Opcodes.GETSTATIC, className, fieldName, type.getDescriptor());
-    }
-
-    @Override
-    public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
-      valueGenerator.emitPrimitiveValue(mv);
-      mv.visitFieldInsn(Opcodes.PUTSTATIC, className, fieldName, type.getDescriptor());
-    }
   }
 
   public class MemberExpr extends AbstractExprGenerator{

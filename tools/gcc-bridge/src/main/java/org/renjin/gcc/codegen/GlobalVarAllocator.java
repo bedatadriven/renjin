@@ -45,7 +45,7 @@ public class GlobalVarAllocator extends VarAllocator {
   @Override
   public Var reserve(String name, Type type) {
     if(name.contains(".")) {
-      throw new InternalCompilerException("name: " + name);
+      throw new InternalCompilerException("illegal global variable name: " + name);
     }
     StaticField field = new StaticField(name, type);
     fields.add(field);

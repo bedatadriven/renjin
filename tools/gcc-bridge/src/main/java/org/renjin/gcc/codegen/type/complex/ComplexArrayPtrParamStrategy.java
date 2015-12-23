@@ -19,7 +19,7 @@ import java.util.List;
  * Strategy for parameters which are pointers to array of complex values that uses two JVM arguments:
  * one for an array of {@code double} or {@code float}s, and one for an offset into the array.
  */
-public class ComplexArrayPtrParamStrategy extends ParamStrategy {
+public class ComplexArrayPtrParamStrategy implements ParamStrategy {
 
   private GimplePointerType type;
   private GimpleArrayType arrayType;

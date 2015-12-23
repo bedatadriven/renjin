@@ -1,4 +1,4 @@
-package org.renjin.gcc.codegen;
+package org.renjin.gcc.codegen.var;
 
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;

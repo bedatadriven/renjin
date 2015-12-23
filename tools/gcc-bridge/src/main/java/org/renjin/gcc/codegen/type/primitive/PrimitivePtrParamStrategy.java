@@ -23,7 +23,7 @@ import static org.objectweb.asm.Opcodes.GETFIELD;
  * Strategy for primitive pointer parameters (e.g. {@code double*} using a wrapped
  * fat pointer type, such as {@link org.renjin.gcc.runtime.IntPtr} or {@link org.renjin.gcc.runtime.DoublePtr}.
  */
-public class PrimitivePtrParamStrategy extends ParamStrategy {
+public class PrimitivePtrParamStrategy implements ParamStrategy {
 
   private final GimpleIndirectType type;
 

@@ -14,7 +14,7 @@ import java.util.List;
 /**
  * Strategy for {@code String} parameters, used only for interfacing with external JVM methods.
  */
-public class StringParamStrategy extends ParamStrategy {
+public class StringParamStrategy implements ParamStrategy {
   @Override
   public List<Type> getParameterTypes() {
     return Collections.singletonList(Type.getType(String.class));

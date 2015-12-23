@@ -26,7 +26,7 @@ import java.util.Map;
 import static org.objectweb.asm.Opcodes.*;
 
 /**
- * Emits the bytecode for a Gimple function
+ * Generates the bytecode for a {@link GimpleFunction}
  */
 public class FunctionGenerator {
 

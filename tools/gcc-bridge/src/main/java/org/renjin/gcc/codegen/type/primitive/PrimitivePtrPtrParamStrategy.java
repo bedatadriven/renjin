@@ -24,7 +24,7 @@ import java.util.List;
  * {@link ObjectPtr} parameter. Each element of {@link ObjectPtr#array} is an instance of a primitive fat pointer 
  * wrapper, such as {@link org.renjin.gcc.runtime.IntPtr} or {@link org.renjin.gcc.runtime.DoublePtr}.
  */
-public class PrimitivePtrPtrParamStrategy extends ParamStrategy {
+public class PrimitivePtrPtrParamStrategy implements ParamStrategy {
 
   private final GimpleIndirectType type;
 

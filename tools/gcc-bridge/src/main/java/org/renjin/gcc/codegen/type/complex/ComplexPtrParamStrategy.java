@@ -17,7 +17,7 @@ import java.util.List;
  * Strategy for parameters of type {@code complex *} that uses two arguments: a {@code double} or {@code float}
  * array and an integer offset parameter.
  */
-public class ComplexPtrParamStrategy extends ParamStrategy {
+public class ComplexPtrParamStrategy implements ParamStrategy {
   
   private GimpleType type;
   private GimpleComplexType baseType;

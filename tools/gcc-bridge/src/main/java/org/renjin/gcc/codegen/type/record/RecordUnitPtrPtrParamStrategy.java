@@ -23,7 +23,7 @@ import java.util.List;
  * Strategy for a parameter that is a pointer to one or more unit record pointers, implemented using a single
  * {@link ObjectPtr} parameter. Each element of {@link ObjectPtr#array} is a reference to the record's JVM class.
  */
-public class RecordUnitPtrPtrParamStrategy extends ParamStrategy {
+public class RecordUnitPtrPtrParamStrategy implements ParamStrategy {
   
   private RecordClassGenerator generator;
 

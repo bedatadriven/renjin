@@ -17,7 +17,7 @@ import java.util.List;
 /**
  * Strategy for a parameter that is a pointer to a single record value, implemented with a simple JVM reference type.
  */
-public class RecordUnitPtrParamStrategy extends ParamStrategy {
+public class RecordUnitPtrParamStrategy implements ParamStrategy {
 
     private RecordClassGenerator generator;
 

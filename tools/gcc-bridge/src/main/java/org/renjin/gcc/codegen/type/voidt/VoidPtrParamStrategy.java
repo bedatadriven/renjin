@@ -19,7 +19,7 @@ import java.util.List;
 /**
  * Strategy for {@code void*} parameters, implemented using a {@link Ptr} parameter.
  */
-public class VoidPtrParamStrategy extends ParamStrategy {
+public class VoidPtrParamStrategy implements ParamStrategy {
   @Override
   public List<Type> getParameterTypes() {
     return Collections.singletonList(Type.getType(Ptr.class));

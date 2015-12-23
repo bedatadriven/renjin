@@ -18,7 +18,7 @@ import java.util.List;
  * a {@link ObjectPtr} reference, where each element of the {@link ObjectPtr#array} is an instance of the 
  * JVM class backing the parameter's record type.
  */
-public class RecordFatPtrParamStrategy extends ParamStrategy {
+public class RecordFatPtrParamStrategy implements ParamStrategy {
   
   private RecordClassGenerator recordClassGenerator;
 

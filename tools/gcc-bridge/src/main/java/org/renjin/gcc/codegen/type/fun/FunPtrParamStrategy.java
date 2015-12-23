@@ -17,7 +17,7 @@ import java.util.List;
 /**
  * Strategy for function pointer parameters implemented using a {@link MethodHandle} parameter.
  */
-public class FunPtrParamStrategy extends ParamStrategy {
+public class FunPtrParamStrategy implements ParamStrategy {
 
   private GimpleType parameterType;
 

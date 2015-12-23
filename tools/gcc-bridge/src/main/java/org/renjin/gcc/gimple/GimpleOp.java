@@ -1,5 +1,8 @@
 package org.renjin.gcc.gimple;
 
+/**
+ * Enumeration of Gimple operations
+ */
 public enum GimpleOp {
   NOP_EXPR, MULT_EXPR, RDIV_EXPR,
 

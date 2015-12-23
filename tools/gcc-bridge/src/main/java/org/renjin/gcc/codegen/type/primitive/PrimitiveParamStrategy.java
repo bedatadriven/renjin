@@ -16,7 +16,7 @@ import java.util.List;
 /**
  * Strategy for simple primitive parameters (e.g. double, int, etc)
  */
-public class PrimitiveParamStrategy extends ParamStrategy {
+public class PrimitiveParamStrategy implements ParamStrategy {
 
   private GimplePrimitiveType type;
 

@@ -19,6 +19,9 @@ import java.util.Map;
 import static org.objectweb.asm.Opcodes.*;
 
 
+/**
+ * Generates a JVM class for a {@link GimpleRecordTypeDef}
+ */
 public class RecordClassGenerator {
 
   private ClassWriter cw;

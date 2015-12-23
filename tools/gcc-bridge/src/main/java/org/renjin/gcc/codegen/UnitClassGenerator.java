@@ -13,6 +13,7 @@ import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.type.VarGenerator;
 import org.renjin.gcc.codegen.var.GlobalVarAllocator;
+import org.renjin.gcc.codegen.var.ProvidedVarAllocator;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleVarDecl;

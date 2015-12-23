@@ -12,7 +12,7 @@ import java.io.PrintWriter;
 import static org.objectweb.asm.Opcodes.*;
 
 /**
- * Writes a single "trampoline" class that provides a method for all the functions
+ * Generates a single "trampoline" class that provides a method for all the functions
  * with external linkage.
  */
 public class TrampolineClassGenerator {

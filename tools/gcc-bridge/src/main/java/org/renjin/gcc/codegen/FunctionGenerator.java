@@ -312,9 +312,6 @@ public class FunctionGenerator {
     return function.getUnit();
   }
 
-  private String toJavaSafeName(String name) {
-    return name.replace('.', '$');
-  }
 
   public Handle getMethodHandle() {
     return new Handle(H_INVOKESTATIC, className, function.getMangledName(), getFunctionDescriptor());

@@ -4,8 +4,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
-import org.renjin.gcc.codegen.LocalVarAllocator;
 import org.renjin.gcc.codegen.RecordClassGenerator;
+import org.renjin.gcc.codegen.VarAllocator;
 import org.renjin.gcc.codegen.call.MallocGenerator;
 import org.renjin.gcc.codegen.call.RecordMallocGenerator;
 import org.renjin.gcc.codegen.expr.ExprFactory;
@@ -43,7 +43,7 @@ public class RecordTypeFactory extends TypeFactory {
   }
 
   @Override
-  public VarGenerator varGenerator(GimpleVarDecl decl, LocalVarAllocator allocator) {
+  public VarGenerator varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
     return new RecordVarGenerator(generator, allocator.reserve(decl.getName(), generator.getType()));
   }
 
@@ -91,7 +91,7 @@ public class RecordTypeFactory extends TypeFactory {
     }
 
     @Override
-    public VarGenerator varGenerator(GimpleVarDecl decl, LocalVarAllocator allocator) {
+    public VarGenerator varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
       return new RecordArrayVarGenerator(arrayType, generator, 
           allocator.reserveArrayRef(decl.getName(), generator.getType()));
     }
@@ -135,7 +135,7 @@ public class RecordTypeFactory extends TypeFactory {
 
 
     @Override
-    public VarGenerator varGenerator(GimpleVarDecl decl, LocalVarAllocator allocator) {
+    public VarGenerator varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
       if(decl.isAddressable()) {
         return new AddressableRecordPtrVarGenerator(generator, 
             allocator.reserveArrayRef(decl.getName(), generator.getType()));
@@ -165,7 +165,7 @@ public class RecordTypeFactory extends TypeFactory {
     }
 
     @Override
-    public VarGenerator varGenerator(GimpleVarDecl decl, LocalVarAllocator allocator) {
+    public VarGenerator varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
       return new RecordPtrPtrVarGenerator(generator, 
           allocator.reserve(decl.getName(), ObjectPtr.class), 
           allocator.reserveInt(decl.getName() + "$offset"));

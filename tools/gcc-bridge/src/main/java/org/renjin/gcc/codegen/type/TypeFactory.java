@@ -1,7 +1,7 @@
 package org.renjin.gcc.codegen.type;
 
-import org.renjin.gcc.codegen.LocalVarAllocator;
 import org.renjin.gcc.codegen.UnimplementedException;
+import org.renjin.gcc.codegen.VarAllocator;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.field.FieldGenerator;
@@ -35,7 +35,7 @@ public abstract class TypeFactory {
   }
 
 
-  public VarGenerator varGenerator(GimpleVarDecl decl, LocalVarAllocator allocator) {
+  public VarGenerator varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
     throw new UnimplementedException(getClass(), "varGenerator");
   }
 

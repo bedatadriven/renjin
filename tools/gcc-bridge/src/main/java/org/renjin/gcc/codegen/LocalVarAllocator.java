@@ -12,7 +12,7 @@ import java.util.Map;
 /**
  * Allocates local variable slots
  */
-public class LocalVarAllocator {
+public class LocalVarAllocator extends VarAllocator {
   
   
   private static class LocalVar implements Var {
@@ -35,9 +35,12 @@ public class LocalVarAllocator {
     }
   }
   
+  
+  
   private int slots = 0;
   private Map<String, LocalVar> names = Maps.newHashMap();
 
+  @Override
   public Var reserve(String name, Type type) {
     Preconditions.checkState(!names.containsKey(name), "Variable name already used: " + name);
     int index = slots;
@@ -46,18 +49,6 @@ public class LocalVarAllocator {
     names.put(name, var);
     return var;
   }
-  
-  public final Var reserve(String name, Class type) {
-    return reserve(name, Type.getType(type));
-  }
-
-  public final Var reserveArrayRef(String name, Type componentType) {
-    return reserve(name, Type.getType("[" + componentType.getDescriptor()));
-  }
-
-  public final Var reserveInt(String name) {
-    return reserve(name, Type.INT_TYPE);
-  }
 
   public void emitDebugging(MethodVisitor mv, Label start, Label end) {
 
@@ -65,7 +56,12 @@ public class LocalVarAllocator {
       String name = entry.getKey();
       LocalVar desc = entry.getValue();
 
-      mv.visitLocalVariable(name, desc.type.getDescriptor(), null, start, end, desc.index);
+      mv.visitLocalVariable(toJavaSafeName(name), desc.type.getDescriptor(), null, start, end, desc.index);
     }
+  }
+
+
+  private String toJavaSafeName(String name) {
+    return name.replace('.', '$');
   }
 }

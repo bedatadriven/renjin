@@ -4,6 +4,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.LocalVarAllocator;
 import org.renjin.gcc.codegen.Var;
+import org.renjin.gcc.codegen.VarAllocator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.GimpleParameter;
 
@@ -57,7 +58,7 @@ public abstract class ParamStrategy {
    *                   if needed.
    * @return an {@code ExprGenerator} which can be used to access this parameter's value.
    */
-  public abstract ExprGenerator emitInitialization(MethodVisitor methodVisitor, GimpleParameter parameter, List<Var> paramVars, LocalVarAllocator localVars);
+  public abstract ExprGenerator emitInitialization(MethodVisitor methodVisitor, GimpleParameter parameter, List<Var> paramVars, VarAllocator localVars);
 
   
   /**

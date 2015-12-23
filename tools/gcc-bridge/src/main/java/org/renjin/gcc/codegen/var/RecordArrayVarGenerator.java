@@ -16,14 +16,14 @@ import org.renjin.gcc.gimple.type.GimpleType;
 
 public class RecordArrayVarGenerator extends AbstractExprGenerator implements VarGenerator {
 
-  private final Var varIndex;
+  private final Var arrayVar;
   private GimpleArrayType arrayType;
   private RecordClassGenerator generator;
 
-  public RecordArrayVarGenerator(GimpleArrayType arrayType, RecordClassGenerator generator, Var varIndex) {
+  public RecordArrayVarGenerator(GimpleArrayType arrayType, RecordClassGenerator generator, Var arrayVar) {
     this.arrayType = arrayType;
     this.generator = generator;
-    this.varIndex = varIndex;
+    this.arrayVar = arrayVar;
     Preconditions.checkArgument(arrayType.getLbound() == 0);
   }
   @Override
@@ -50,7 +50,7 @@ public class RecordArrayVarGenerator extends AbstractExprGenerator implements Va
     }
     
     // Store the array to the local variable
-    varIndex.store(mv);
+    arrayVar.store(mv);
     
     if(initialValue.isPresent()) {
       emitStore(mv, initialValue.get());
@@ -59,7 +59,13 @@ public class RecordArrayVarGenerator extends AbstractExprGenerator implements Va
 
   @Override
   public void emitPushArray(MethodVisitor mv) {
-    varIndex.load(mv);
+    arrayVar.load(mv);
+  }
+
+  @Override
+  public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
+    valueGenerator.emitPushArray(mv);
+    arrayVar.store(mv);
   }
 
   @Override

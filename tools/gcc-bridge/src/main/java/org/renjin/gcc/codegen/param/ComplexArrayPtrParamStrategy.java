@@ -2,8 +2,8 @@ package org.renjin.gcc.codegen.param;
 
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
-import org.renjin.gcc.codegen.LocalVarAllocator;
 import org.renjin.gcc.codegen.Var;
+import org.renjin.gcc.codegen.VarAllocator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.var.ComplexArrayPtrVarGenerator;
 import org.renjin.gcc.gimple.GimpleParameter;
@@ -38,7 +38,7 @@ public class ComplexArrayPtrParamStrategy extends ParamStrategy {
 
   @Override
   public ExprGenerator emitInitialization(MethodVisitor methodVisitor, GimpleParameter parameter, List<Var> paramVars, 
-                                          LocalVarAllocator localVars) {
+                                          VarAllocator localVars) {
     return new ComplexArrayPtrVarGenerator(type, paramVars.get(0), paramVars.get(1));
   }
 

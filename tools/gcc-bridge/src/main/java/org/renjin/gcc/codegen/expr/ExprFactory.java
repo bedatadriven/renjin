@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.expr;
 
+import com.google.common.base.Optional;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.GeneratorFactory;
 import org.renjin.gcc.codegen.call.CallGenerator;
@@ -335,5 +336,11 @@ public class ExprFactory {
   }
 
 
-
+  public Optional<ExprGenerator> findGenerator(Optional<GimpleExpr> expr) {
+    if(expr.isPresent()) {
+      return Optional.of(findGenerator(expr.get()));
+    } else {
+      return Optional.absent();
+    }
+  }
 }

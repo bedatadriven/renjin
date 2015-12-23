@@ -278,9 +278,9 @@ public class GimpleCompiler  {
     Files.write(classByteArray, classFile);
   }
 
-  public void addVariable(String globalVariableName, Class<?> declaringClass, String fieldName) {
+  public void addVariable(String globalVariableName, Class<?> declaringClass) {
     try {
-      addVariable(globalVariableName, declaringClass.getField(fieldName));
+      addVariable(globalVariableName, declaringClass.getField(globalVariableName));
     } catch (NoSuchFieldException e) {
       throw new InternalCompilerException("Cannot find field", e);
     }

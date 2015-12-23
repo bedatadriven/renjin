@@ -1,6 +1,6 @@
 package org.renjin.gcc.codegen.type;
 
-import org.renjin.gcc.codegen.LocalVarAllocator;
+import org.renjin.gcc.codegen.VarAllocator;
 import org.renjin.gcc.codegen.param.ComplexArrayPtrParamStrategy;
 import org.renjin.gcc.codegen.param.ComplexPtrParamStrategy;
 import org.renjin.gcc.codegen.param.ParamStrategy;
@@ -38,7 +38,7 @@ public class ComplexTypeFactory extends TypeFactory {
   }
 
   @Override
-  public VarGenerator varGenerator(GimpleVarDecl decl, LocalVarAllocator allocator) {
+  public VarGenerator varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
     if(decl.isAddressable()) {
       return new AddressableComplexVarGenerator(type,
           allocator.reserveArrayRef(decl.getName(), type.getJvmPartType()));
@@ -73,7 +73,7 @@ public class ComplexTypeFactory extends TypeFactory {
     }
 
     @Override
-    public VarGenerator varGenerator(GimpleVarDecl decl, LocalVarAllocator allocator) {
+    public VarGenerator varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
       return new ComplexPtrVarGenerator(type.pointerTo(), 
           allocator.reserveArrayRef(decl.getName(), type.getJvmPartType()),
           allocator.reserveInt(decl.getName() + "$offset"));
@@ -107,7 +107,7 @@ public class ComplexTypeFactory extends TypeFactory {
     }
 
     @Override
-    public VarGenerator varGenerator(GimpleVarDecl decl, LocalVarAllocator allocator) {
+    public VarGenerator varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
       return new ComplexArrayPtrVarGenerator(pointerType,
           allocator.reserveArrayRef(decl.getName(), type.getJvmPartType()),
           allocator.reserveInt(decl.getName() + "$offset"));

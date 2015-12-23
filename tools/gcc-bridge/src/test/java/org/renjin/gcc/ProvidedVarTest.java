@@ -12,7 +12,7 @@ import static org.junit.Assert.assertThat;
 
 public class ProvidedVarTest extends AbstractGccTest {
   
-  public static int JVM_FIELD = 92;
+  public static int jvm_field = 92;
   
   @Test
   public void test() throws Exception {
@@ -23,7 +23,7 @@ public class ProvidedVarTest extends AbstractGccTest {
     compiler.setOutputDirectory(new File("target/test-classes"));
     compiler.setPackageName("org.renjin.gcc");
     compiler.setVerbose(true);
-    compiler.addVariable("jvm_field", ProvidedVarTest.class, "JVM_FIELD");
+    compiler.addVariable("jvm_field", ProvidedVarTest.class);
 
     compiler.compile(Collections.singletonList(unit));
 

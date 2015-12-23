@@ -2,7 +2,7 @@ package org.renjin.gcc.codegen.type;
 
 import com.google.common.collect.Lists;
 import org.objectweb.asm.Type;
-import org.renjin.gcc.codegen.LocalVarAllocator;
+import org.renjin.gcc.codegen.VarAllocator;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.field.*;
@@ -48,7 +48,7 @@ public class FunTypeFactory extends TypeFactory {
     }
 
     @Override
-    public VarGenerator varGenerator(GimpleVarDecl decl, LocalVarAllocator allocator) {
+    public VarGenerator varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
       return new FunPtrVarGenerator(type, allocator.reserve(decl.getName(), Type.getType(MethodHandle.class)));
     }
 

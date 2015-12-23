@@ -1,16 +1,16 @@
 package org.renjin.gcc.codegen;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Type;
 import org.objectweb.asm.util.TraceClassVisitor;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.expr.ExprFactory;
-import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.field.FieldGenerator;
+import org.renjin.gcc.codegen.type.TypeFactory;
+import org.renjin.gcc.codegen.var.VarGenerator;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleVarDecl;
@@ -37,6 +37,8 @@ public class UnitClassGenerator {
   private UnitSymbolTable symbolTable;
   private final GeneratorFactory generatorFactory;
   
+  
+  private GlobalVarAllocator globalVarAllocator;
   private List<GimpleVarDecl> varToGenerate = Lists.newArrayList();
 
   private ClassWriter cw;
@@ -52,20 +54,23 @@ public class UnitClassGenerator {
     this.unit = unit;
     this.className = className;
     this.generatorFactory = generatorFactory;
+    this.globalVarAllocator = new GlobalVarAllocator(className);
     this.symbolTable = new UnitSymbolTable(functionTable, className);
-
+  
     for (GimpleVarDecl decl : unit.getGlobalVariables()) {
-      System.out.println(decl);
+      TypeFactory typeStrategy = generatorFactory.forType(decl.getType());
+      VarGenerator varGenerator;
+      
       if(isProvided(providedVariables, decl)) {
-        // TODO: this requires the jvm field to use the same representation as we would
-        // use when compiling. Should check and perhaps provide an adaptation
         Field providedField = providedVariables.get(decl.getName());
-        symbolTable.addGlobalVariable(decl, generatorFactory.forType(decl.getType())
-            .fieldGenerator(Type.getInternalName(providedField.getDeclaringClass()), providedField.getName()));
+        varGenerator = typeStrategy.varGenerator(decl, new ProvidedVarAllocator(providedField.getDeclaringClass()));
+        
       } else {
-        symbolTable.addGlobalVariable(decl, generatorFactory.forGlobalVariable(className, decl));
+        varGenerator = typeStrategy.varGenerator(decl, globalVarAllocator);
         varToGenerate.add(decl);
       }
+
+      symbolTable.addGlobalVariable(decl, varGenerator);
     }
 
     for (GimpleFunction function : unit.getFunctions()) {
@@ -121,16 +126,8 @@ public class UnitClassGenerator {
 
   private void emitGlobalVariables() {
     
-    // write the field declarations
-    for (GimpleVarDecl decl : varToGenerate) {
-      try {
-        FieldGenerator generator = symbolTable.getVariable(decl);
-        generator.emitStaticField(cv, decl);
-      } catch (Exception e) {
-        throw new InternalCompilerException("Exception writing static variable " + decl.getName() +
-            " defined in " + unit.getSourceFile().getName(), e);
-      }
-    }
+    // write actual field declarations
+    globalVarAllocator.writeFields(cv);
     
     // and any static initialization that is required
     ExprFactory exprFactory = new ExprFactory(generatorFactory, symbolTable, unit.getCallingConvention());
@@ -138,19 +135,13 @@ public class UnitClassGenerator {
     mv.visitCode();
 
     for (GimpleVarDecl decl : varToGenerate) {
-      if(decl.getValue() != null) {
-        try {
-          FieldGenerator field = symbolTable.getVariable(decl);
-          field.emitStaticInit(mv);
-          
-          ExprGenerator globalVariable = field.staticExprGenerator();
-          ExprGenerator value = exprFactory.findGenerator(decl.getValue());
-          globalVariable.emitStore(mv, value);
+      try {
+        VarGenerator varGenerator = symbolTable.getGlobalVariable(decl);
+        varGenerator.emitDefaultInit(mv, exprFactory.findGenerator(Optional.fromNullable(decl.getValue())));
 
-        } catch (Exception e) {
-          throw new InternalCompilerException("Exception writing static variable initializer " + decl.getName() +
-              " defined in " + unit.getSourceFile().getName(), e);
-        }
+      } catch (Exception e) {
+        throw new InternalCompilerException("Exception writing static variable initializer " + decl.getName() +
+            " defined in " + unit.getSourceFile().getName(), e);
       }
     }
     mv.visitInsn(RETURN);

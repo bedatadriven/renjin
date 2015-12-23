@@ -2,8 +2,8 @@ package org.renjin.gcc.codegen.param;
 
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
-import org.renjin.gcc.codegen.LocalVarAllocator;
 import org.renjin.gcc.codegen.Var;
+import org.renjin.gcc.codegen.VarAllocator;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.var.PrimitivePtrVarGenerator;
@@ -44,7 +44,7 @@ public class PrimitivePtrParamStrategy extends ParamStrategy {
   }
 
   @Override
-  public ExprGenerator emitInitialization(MethodVisitor mv, GimpleParameter parameter, List<Var> paramVars, LocalVarAllocator localVars) {
+  public ExprGenerator emitInitialization(MethodVisitor mv, GimpleParameter parameter, List<Var> paramVars, VarAllocator localVars) {
     
     // Unpack the wrapper into seperate array and offset fields
     Var arrayVariable = localVars.reserve(parameter.getName() + "$array", pointerType.getArrayType());

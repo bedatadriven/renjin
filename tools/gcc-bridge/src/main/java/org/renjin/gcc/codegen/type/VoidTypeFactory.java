@@ -2,7 +2,7 @@ package org.renjin.gcc.codegen.type;
 
 import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
-import org.renjin.gcc.codegen.LocalVarAllocator;
+import org.renjin.gcc.codegen.VarAllocator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.field.FieldGenerator;
 import org.renjin.gcc.codegen.field.VoidPtrField;
@@ -47,7 +47,7 @@ public class VoidTypeFactory extends TypeFactory {
     }
 
     @Override
-    public VarGenerator varGenerator(GimpleVarDecl decl, LocalVarAllocator allocator) {
+    public VarGenerator varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
       return new AddressableVoidPtrVar(
           allocator.reserveArrayRef(decl.getName(), Type.getType(Object.class)));
     }

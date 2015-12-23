@@ -31,7 +31,7 @@ public class InitializingPackage extends Package {
     try {
       return getClass().getClassLoader().loadClass(className);
     } catch (ClassNotFoundException e) {
-      throw new EvalException("Could not load class %s from package %s", className, getName());
+      throw new EvalException("Could not load class %s from package %s", className, getName(), e);
     }
   }
 }

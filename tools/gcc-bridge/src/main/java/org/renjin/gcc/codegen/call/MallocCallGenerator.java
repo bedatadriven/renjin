@@ -8,7 +8,7 @@ import org.renjin.gcc.gimple.type.GimpleType;
 import java.util.List;
 
 /**
- * Created by alex on 1-12-15.
+ * Generates function calls to {@code malloc()}
  */
 public class MallocCallGenerator implements CallGenerator {
   

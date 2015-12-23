@@ -5,7 +5,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.expr.PrimitiveConstValueGenerator;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveConstGenerator;
 import org.renjin.gcc.gimple.expr.GimpleAddressOf;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
@@ -58,7 +58,7 @@ public class MallocGenerator extends AbstractExprGenerator implements ExprGenera
     // first calculate the size of the array from the argument,
     // which is in bytes
     totalSizeGenerator.emitPrimitiveValue(mv);
-    PrimitiveConstValueGenerator.emitInt(mv, elementSize);
+    PrimitiveConstGenerator.emitInt(mv, elementSize);
     mv.visitInsn(IDIV);
 
     // now create the array

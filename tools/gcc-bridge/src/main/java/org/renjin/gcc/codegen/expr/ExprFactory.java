@@ -2,11 +2,20 @@ package org.renjin.gcc.codegen.expr;
 
 import com.google.common.base.Optional;
 import org.renjin.gcc.InternalCompilerException;
-import org.renjin.gcc.codegen.TypeOracle;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.call.FunPtrCallGenerator;
-import org.renjin.gcc.codegen.condition.*;
-import org.renjin.gcc.codegen.pointers.VoidCastExprGenerator;
+import org.renjin.gcc.codegen.condition.ConditionGenerator;
+import org.renjin.gcc.codegen.condition.PointerCmpGenerator;
+import org.renjin.gcc.codegen.type.TypeOracle;
+import org.renjin.gcc.codegen.type.complex.*;
+import org.renjin.gcc.codegen.type.fun.FunctionRefGenerator;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveCmpGenerator;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveConstGenerator;
+import org.renjin.gcc.codegen.type.primitive.StringConstantGenerator;
+import org.renjin.gcc.codegen.type.primitive.op.*;
+import org.renjin.gcc.codegen.type.record.RecordUnitPtrCmpGenerator;
+import org.renjin.gcc.codegen.type.record.RecordUnitPtrGenerator;
+import org.renjin.gcc.codegen.type.voidt.VoidCastExprGenerator;
 import org.renjin.gcc.gimple.CallingConvention;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.expr.*;
@@ -249,7 +258,7 @@ public class ExprFactory {
         return findGenerator(operands.get(0));
 
       case COMPLEX_EXPR:
-        return new ComplexGenerator(findGenerator(operands.get(0)));
+        return new ComplexConstructorGenerator(findGenerator(operands.get(0)));
 
       case NEGATE_EXPR:
         return new NegateGenerator(findGenerator(operands.get(0)));
@@ -325,7 +334,7 @@ public class ExprFactory {
     if (constant.isNull()) {
       return new NullPtrGenerator(constant.getType());
     } else if (constant instanceof GimplePrimitiveConstant) {
-      return new PrimitiveConstValueGenerator((GimplePrimitiveConstant) constant);
+      return new PrimitiveConstGenerator((GimplePrimitiveConstant) constant);
     } else if (constant instanceof GimpleComplexConstant) {
       return new ComplexConstGenerator((GimpleComplexConstant) constant);
     } else if (constant instanceof GimpleStringConstant) {

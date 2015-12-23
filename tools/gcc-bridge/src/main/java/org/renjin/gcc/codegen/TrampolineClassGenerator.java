@@ -4,7 +4,7 @@ package org.renjin.gcc.codegen;
 import org.objectweb.asm.*;
 import org.objectweb.asm.util.TraceClassVisitor;
 import org.renjin.gcc.GimpleCompiler;
-import org.renjin.gcc.codegen.param.ParamStrategy;
+import org.renjin.gcc.codegen.type.ParamStrategy;
 
 import java.io.IOException;
 import java.io.PrintWriter;

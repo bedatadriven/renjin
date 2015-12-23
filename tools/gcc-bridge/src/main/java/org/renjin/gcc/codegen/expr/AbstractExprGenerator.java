@@ -7,6 +7,8 @@ import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.UnimplementedException;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.call.MallocGenerator;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveConstGenerator;
+import org.renjin.gcc.codegen.type.primitive.op.PrimitiveBinOpGenerator;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
 import org.renjin.gcc.gimple.type.GimpleIntegerType;
@@ -161,12 +163,6 @@ public abstract class AbstractExprGenerator implements ExprGenerator {
     throw new UnimplementedException(getClass(), "emitPushRecordRef");
   }
 
-  @Override
-  public ExprGenerator divideBy(int divisor) {
-    return new PrimitiveBinOpGenerator(GimpleOp.EXACT_DIV_EXPR, this,
-        new PrimitiveConstValueGenerator((GimpleIntegerType)getGimpleType(), divisor));
-  }
-
   protected final void addOffsetInBytes(MethodVisitor mv, ExprGenerator offsetInBytes) {
 
     // convert bytes to elements by dividing by the element size in bytes
@@ -202,16 +198,16 @@ public abstract class AbstractExprGenerator implements ExprGenerator {
           return op.getX();
         }
       }
-    } else if(exprGenerator instanceof PrimitiveConstValueGenerator) {
+    } else if(exprGenerator instanceof PrimitiveConstGenerator) {
       // if the offset in bytes is a constant, then we can compute the value now
-      PrimitiveConstValueGenerator constant = (PrimitiveConstValueGenerator) exprGenerator;
-      return new PrimitiveConstValueGenerator(constant.getGimpleType(), 
+      PrimitiveConstGenerator constant = (PrimitiveConstGenerator) exprGenerator;
+      return new PrimitiveConstGenerator(constant.getGimpleType(), 
           constant.getValue().intValue() / elementSize);
       
     } 
     // grr, need to compute at runtime
     return new PrimitiveBinOpGenerator(GimpleOp.EXACT_DIV_EXPR, exprGenerator, 
-        new PrimitiveConstValueGenerator(new GimpleIntegerType(32), elementSize));
+        new PrimitiveConstGenerator(new GimpleIntegerType(32), elementSize));
   }
 
 

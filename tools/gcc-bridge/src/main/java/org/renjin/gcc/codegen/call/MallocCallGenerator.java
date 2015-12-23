@@ -1,8 +1,8 @@
 package org.renjin.gcc.codegen.call;
 
 import org.objectweb.asm.MethodVisitor;
-import org.renjin.gcc.codegen.TypeOracle;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 import java.util.List;

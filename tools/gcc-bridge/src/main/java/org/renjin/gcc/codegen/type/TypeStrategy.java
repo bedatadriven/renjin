@@ -1,13 +1,9 @@
 package org.renjin.gcc.codegen.type;
 
 import org.renjin.gcc.codegen.UnimplementedException;
-import org.renjin.gcc.codegen.VarAllocator;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.field.FieldGenerator;
-import org.renjin.gcc.codegen.param.ParamStrategy;
-import org.renjin.gcc.codegen.ret.ReturnStrategy;
-import org.renjin.gcc.codegen.var.VarGenerator;
+import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;

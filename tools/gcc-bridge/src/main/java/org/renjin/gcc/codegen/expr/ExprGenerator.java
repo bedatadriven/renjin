@@ -127,9 +127,4 @@ public interface ExprGenerator {
   void emitPushRecordRef(MethodVisitor mv);
 
 
-  /**
-   * @return a new ExprGenerator that divides this value by the constant divisor
-   */
-  ExprGenerator divideBy(int divisor);
-
 }

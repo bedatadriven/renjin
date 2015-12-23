@@ -4,10 +4,10 @@ import com.google.common.collect.Lists;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
-import org.renjin.gcc.codegen.TypeOracle;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.param.ParamStrategy;
-import org.renjin.gcc.codegen.ret.ReturnStrategy;
+import org.renjin.gcc.codegen.type.ParamStrategy;
+import org.renjin.gcc.codegen.type.ReturnStrategy;
+import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.gimple.type.GimpleFunctionType;
 import org.renjin.gcc.gimple.type.GimpleType;
 

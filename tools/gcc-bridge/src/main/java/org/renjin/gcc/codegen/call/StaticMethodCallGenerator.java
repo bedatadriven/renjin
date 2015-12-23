@@ -4,11 +4,11 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
-import org.renjin.gcc.codegen.TypeOracle;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.expr.PrimitiveConstValueGenerator;
-import org.renjin.gcc.codegen.param.ParamStrategy;
-import org.renjin.gcc.codegen.ret.ReturnStrategy;
+import org.renjin.gcc.codegen.type.ParamStrategy;
+import org.renjin.gcc.codegen.type.ReturnStrategy;
+import org.renjin.gcc.codegen.type.TypeOracle;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveConstGenerator;
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
@@ -58,12 +58,12 @@ public class StaticMethodCallGenerator implements CallGenerator {
     // if this method accepts var args, then we pass the remaining arguments as an Object[] array
     if(method.isVarArgs()) {
       int varArgCount = argumentGenerators.size() - fixedArgCount;
-      PrimitiveConstValueGenerator.emitInt(mv, varArgCount);
+      PrimitiveConstGenerator.emitInt(mv, varArgCount);
       mv.visitTypeInsn(Opcodes.ANEWARRAY, Type.getInternalName(Object.class));
       
       for(int i=0;i<varArgCount;++i) {
         mv.visitInsn(Opcodes.DUP);
-        PrimitiveConstValueGenerator.emitInt(mv, i);
+        PrimitiveConstGenerator.emitInt(mv, i);
         pushVarArg(mv, argumentGenerators.get(fixedArgCount + i));
         mv.visitInsn(Opcodes.AASTORE);
       }

@@ -23,11 +23,6 @@ public class NullPtrGenerator extends AbstractExprGenerator implements ExprGener
   }
 
   @Override
-  public ExprGenerator divideBy(int divisor) {
-    return this;
-  }
-
-  @Override
   public void emitPrimitiveValue(MethodVisitor mv) {
     mv.visitInsn(Opcodes.ICONST_0);
   }

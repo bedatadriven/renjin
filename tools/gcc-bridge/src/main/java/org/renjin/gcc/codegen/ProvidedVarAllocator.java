@@ -4,6 +4,8 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
+import org.renjin.gcc.codegen.var.Var;
+import org.renjin.gcc.codegen.var.VarAllocator;
 
 import java.lang.reflect.Field;
 

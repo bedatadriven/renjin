@@ -5,7 +5,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.codegen.FunctionGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.param.ParamStrategy;
+import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 import java.util.List;

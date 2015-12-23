@@ -4,7 +4,7 @@ import org.renjin.gcc.codegen.FunctionGenerator;
 import org.renjin.gcc.gimple.GimpleFunction;
 
 /**
- * Exception thrown because of a problem or unfinished implementation in the 
+ * Thrown because of a problem or unfinished implementation in the 
  * GimpleCompiler
  */
 public class InternalCompilerException extends RuntimeException {

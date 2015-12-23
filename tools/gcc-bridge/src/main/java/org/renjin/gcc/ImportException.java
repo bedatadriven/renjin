@@ -1,7 +1,7 @@
 package org.renjin.gcc;
 
 /**
- * Exception thrown when importing external symbols
+ * Thrown when problems occur importing external symbols
  */
 public class ImportException extends RuntimeException {
 

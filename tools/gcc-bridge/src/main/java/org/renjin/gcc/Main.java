@@ -5,8 +5,10 @@ import io.airlift.command.Cli;
 import io.airlift.command.Help;
 import io.airlift.command.ParseException;
 
-
-public class Bridge {
+/**
+ * Main class for invoking the gcc bridge compiler from the command line
+ */
+public class Main {
 
   public static void main(String[] args) {
 

@@ -1,4 +1,4 @@
 /**
- * Classes which model the Gimple Abstract Syntax Tree (AST)
+ * Gimple Abstract Syntax Tree (AST) model classes
  */
 package org.renjin.gcc.gimple;

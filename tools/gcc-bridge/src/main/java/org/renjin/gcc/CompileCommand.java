@@ -1,8 +1,6 @@
 package org.renjin.gcc;
 
 
-import com.google.common.base.Joiner;
-import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import io.airlift.command.Arguments;
 import io.airlift.command.Command;
@@ -11,9 +9,11 @@ import org.renjin.gcc.gimple.GimpleCompilationUnit;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Command line "compile" command
+ */
 @Command(name = "compile", description = "Compile C/Fortran files to a JVM class file")
 public class CompileCommand implements Runnable {
 

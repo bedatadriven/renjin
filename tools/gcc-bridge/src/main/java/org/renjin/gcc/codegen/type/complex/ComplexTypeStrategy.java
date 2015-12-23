@@ -11,7 +11,7 @@ import org.renjin.gcc.gimple.type.GimpleComplexType;
 import org.renjin.gcc.gimple.type.GimplePointerType;
 
 /**
- * Creates generators for complex number types.
+ * Strategy  complex number types.
  * 
  * <p>The JVM does not have builtin support for complex number types, so we have to
  * be a bit creative in representing parameters and variables.</p>

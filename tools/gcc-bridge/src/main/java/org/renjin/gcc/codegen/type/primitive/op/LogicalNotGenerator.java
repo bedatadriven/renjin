@@ -8,6 +8,7 @@ import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.primitive.AddressOfPrimitiveValue;
 import org.renjin.gcc.gimple.type.GimpleType;
 
+
 public class LogicalNotGenerator extends AbstractExprGenerator implements ExprGenerator {
   
   private ExprGenerator operand;

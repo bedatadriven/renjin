@@ -19,6 +19,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 
+/**
+ * Invokes the GCC command line compiler
+ *
+ */
 public class Gcc {
 
   private File workingDirectory;

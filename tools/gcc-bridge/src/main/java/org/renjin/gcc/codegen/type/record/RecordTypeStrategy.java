@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Creates generators for variables and values of type {@code GimpleRecordType}
+ * Strateg for variables and values of type {@code GimpleRecordType}
  */
 public class RecordTypeStrategy extends TypeStrategy {
   private final RecordClassGenerator generator;

@@ -1,7 +1,7 @@
 package org.renjin.gcc.codegen.call;
 
 import org.objectweb.asm.MethodVisitor;
-import org.renjin.gcc.codegen.GeneratorFactory;
+import org.renjin.gcc.codegen.TypeOracle;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.type.GimpleType;
 
@@ -12,10 +12,10 @@ import java.util.List;
  */
 public class MallocCallGenerator implements CallGenerator {
   
-  private GeneratorFactory generators;
+  private TypeOracle typeOracle;
 
-  public MallocCallGenerator(GeneratorFactory generators) {
-    this.generators = generators;
+  public MallocCallGenerator(TypeOracle typeOracle) {
+    this.typeOracle = typeOracle;
   }
 
   @Override
@@ -31,6 +31,6 @@ public class MallocCallGenerator implements CallGenerator {
   @Override
   public ExprGenerator expressionGenerator(GimpleType returnType, List<ExprGenerator> argumentGenerators) {
     ExprGenerator size = argumentGenerators.get(0);
-    return generators.forType(returnType).mallocExpression(size);
+    return typeOracle.forType(returnType).mallocExpression(size);
   }
 }

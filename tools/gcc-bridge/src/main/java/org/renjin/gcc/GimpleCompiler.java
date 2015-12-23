@@ -44,7 +44,7 @@ public class GimpleCompiler  {
 
   private List<FunctionBodyTransformer> functionBodyTransformers = Lists.newArrayList();
 
-  private final GeneratorFactory generatorFactory = new GeneratorFactory();
+  private final TypeOracle typeOracle = new TypeOracle();
 
   private final Map<String, Class> providedRecordTypes = Maps.newHashMap();
   private final Map<String, Field> providedVariables = Maps.newHashMap();
@@ -58,7 +58,7 @@ public class GimpleCompiler  {
     functionBodyTransformers.add(ResultDeclRewriter.INSTANCE);
     functionBodyTransformers.add(LocalVariableInitializer.INSTANCE);
     functionBodyTransformers.add(TreeBuilder.INSTANCE);
-    globalSymbolTable = new GlobalSymbolTable(generatorFactory);
+    globalSymbolTable = new GlobalSymbolTable(typeOracle);
     globalSymbolTable.addDefaults();
   }
 
@@ -116,7 +116,7 @@ public class GimpleCompiler  {
     for (GimpleCompilationUnit unit : units) {
       String className = getInternalClassName(unit.getName());
       UnitClassGenerator generator = new UnitClassGenerator(
-          generatorFactory,
+          typeOracle,
           globalSymbolTable,
           providedVariables,
           unit, className);
@@ -154,7 +154,7 @@ public class GimpleCompiler  {
 
           // Map this record type to an existing JVM class
           Class existingClass = providedRecordTypes.get(recordTypeDef.getName());
-          recordGenerator = new RecordClassGenerator(generatorFactory, Type.getInternalName(existingClass), recordTypeDef);
+          recordGenerator = new RecordClassGenerator(typeOracle, Type.getInternalName(existingClass), recordTypeDef);
 
         } else {
           // Create a new JVM class for this record type
@@ -166,12 +166,12 @@ public class GimpleCompiler  {
             recordClassName = String.format("%s$Record%d", recordClassPrefix, recordsToWrite.size());
           }
           recordGenerator =
-              new RecordClassGenerator(generatorFactory, getInternalClassName(recordClassName), recordTypeDef);
+              new RecordClassGenerator(typeOracle, getInternalClassName(recordClassName), recordTypeDef);
           
           recordsToWrite.add(recordGenerator);
         }
 
-        generatorFactory.addRecordType(recordTypeDef, recordGenerator);
+        typeOracle.addRecordType(recordTypeDef, recordGenerator);
         recordsToLink.add(recordGenerator);
         
         

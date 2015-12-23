@@ -8,7 +8,6 @@ import org.renjin.gcc.codegen.param.*;
 import org.renjin.gcc.codegen.ret.*;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.gimple.GimpleParameter;
-import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.type.*;
 import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.CharPtr;
@@ -22,9 +21,13 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Constructs a set of parameter generators for a list of {@code GimpleParameter}s
+ * Provides the {@link TypeStrategy} for each {@link GimpleType}
+ * 
+ * <p>There is a single instance of the {@code TypeOracle} for each compilation, which
+ * might compile several compilation units simultaneously. The {@code TypeOracle} holds all information about 
+ * Gimple types at compile time, and so can provide the right strategy for code generation.</p>
  */
-public class GeneratorFactory {
+public class TypeOracle {
 
   private final Map<String, RecordClassGenerator> recordTypes = Maps.newHashMap();
 
@@ -46,18 +49,18 @@ public class GeneratorFactory {
     return recordClassGenerator.getType();
   }
   
-  public TypeFactory forType(GimpleType type) {
+  public TypeStrategy forType(GimpleType type) {
     if(type instanceof GimplePrimitiveType) {
-      return new PrimitiveTypeFactory((GimplePrimitiveType) type);
+      return new PrimitiveTypeStrategy((GimplePrimitiveType) type);
 
     } else if(type instanceof GimpleComplexType) {
-      return new ComplexTypeFactory((GimpleComplexType) type);
+      return new ComplexTypeStrategy((GimpleComplexType) type);
     
     } else if(type instanceof GimpleFunctionType) {
-      return new FunTypeFactory((GimpleFunctionType) type);
+      return new FunTypeStrategy((GimpleFunctionType) type);
 
     } else if(type instanceof GimpleVoidType) {
-      return new VoidTypeFactory();
+      return new VoidTypeStrategy();
       
     } else if (type instanceof GimpleRecordType) {
       GimpleRecordType recordType = (GimpleRecordType) type;
@@ -66,7 +69,7 @@ public class GeneratorFactory {
         throw new InternalCompilerException(String.format(
             "No record type for GimpleRecordType[name: %s, id: %s]", recordType.getName(), recordType.getId()));
       }
-      return new RecordTypeFactory(recordGenerator);
+      return new RecordTypeStrategy(recordGenerator);
       
     } else if(type instanceof GimpleIndirectType) {
       return forType(type.getBaseType()).pointerTo();
@@ -82,7 +85,7 @@ public class GeneratorFactory {
   
 
   public ParamStrategy forParameter(GimpleType parameterType) {
-    return forType(parameterType).paramGenerator();
+    return forType(parameterType).getParamStrategy();
   }
 
   /**
@@ -92,25 +95,16 @@ public class GeneratorFactory {
    * @param field the gimple field
    */
   public FieldGenerator forField(String className, GimpleField field) {
-    TypeFactory type = forType(field.getType());
+    TypeStrategy type = forType(field.getType());
     if(field.isAddressed()) {
       return type.addressableFieldGenerator(className, field.getName());
     } else {
       return type.fieldGenerator(className, field.getName());
     }
   }
-  
-  public FieldGenerator forGlobalVariable(String className, GimpleVarDecl decl) {
-    TypeFactory type = forType(decl.getType());
-    if(decl.isAddressable()) {
-      return type.addressableFieldGenerator(className, decl.getName());
-    } else {
-      return type.fieldGenerator(className, decl.getName());
-    }
-  }
 
   public ReturnStrategy findReturnGenerator(GimpleType returnType) {
-    return forType(returnType).returnGenerator();
+    return forType(returnType).getReturnStrategy();
   }
 
   public ReturnStrategy forReturnValue(Method method) {
@@ -187,7 +181,7 @@ public class GeneratorFactory {
 
       } else if (classTypes.containsKey(Type.getInternalName(paramClass))) {
         GimpleRecordType mappedType = classTypes.get(Type.getInternalName(paramClass));
-        generators.add(forType(mappedType).pointerTo().paramGenerator());
+        generators.add(forType(mappedType).pointerTo().getParamStrategy());
         index++;
         
       } else {
@@ -208,7 +202,7 @@ public class GeneratorFactory {
     java.lang.reflect.Type baseType = parameterizedType.getActualTypeArguments()[0];
     
     if(baseType.equals(BytePtr.class)) {
-      return forType(new GimpleIntegerType(8)).pointerTo().pointerTo().paramGenerator();
+      return forType(new GimpleIntegerType(8)).pointerTo().pointerTo().getParamStrategy();
     } else {
       String baseTypeInternalName = Type.getInternalName((Class)baseType);
       if(classTypes.containsKey(baseTypeInternalName)) {

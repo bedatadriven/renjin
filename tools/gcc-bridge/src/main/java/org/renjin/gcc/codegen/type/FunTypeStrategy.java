@@ -28,22 +28,22 @@ import java.util.List;
  * is statically typed, we don't need the {@code invokedynamic} bytecode and can simply use
  * {@link java.lang.invoke.MethodHandle#invokeExact(Object...)} to invoke function calls.</p>
  */ 
-public class FunTypeFactory extends TypeFactory {
+public class FunTypeStrategy extends TypeStrategy {
 
   private GimpleFunctionType type;
 
-  public FunTypeFactory(GimpleFunctionType type) {
+  public FunTypeStrategy(GimpleFunctionType type) {
     this.type = type;
   }
 
   @Override
-  public TypeFactory pointerTo() {
+  public TypeStrategy pointerTo() {
     return new Pointer();
   }
 
-  private class Pointer extends TypeFactory {
+  private class Pointer extends TypeStrategy {
     @Override
-    public ParamStrategy paramGenerator() {
+    public ParamStrategy getParamStrategy() {
       return new FunPtrParamStrategy(new GimplePointerType(type));
     }
 
@@ -58,23 +58,23 @@ public class FunTypeFactory extends TypeFactory {
     }
 
     @Override
-    public ReturnStrategy returnGenerator() {
+    public ReturnStrategy getReturnStrategy() {
       return new FunPtrReturnStrategy();
     }
 
     @Override
-    public TypeFactory pointerTo() {
+    public TypeStrategy pointerTo() {
       return new PointerPointer();
     }
 
     @Override
-    public TypeFactory arrayOf(GimpleArrayType arrayType) {
+    public TypeStrategy arrayOf(GimpleArrayType arrayType) {
       return new PointerArray(arrayType);
     }
     
   }
   
-  private class PointerPointer extends TypeFactory {
+  private class PointerPointer extends TypeStrategy {
 
     @Override
     public FieldGenerator fieldGenerator(String className, String fieldName) {
@@ -82,7 +82,7 @@ public class FunTypeFactory extends TypeFactory {
     }
   }
   
-  private class PointerArray extends TypeFactory {
+  private class PointerArray extends TypeStrategy {
     private GimpleArrayType arrayType;
 
     public PointerArray(GimpleArrayType arrayType) {

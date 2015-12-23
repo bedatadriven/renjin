@@ -5,7 +5,7 @@ import com.google.common.collect.Maps;
 import org.objectweb.asm.Handle;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.FunctionGenerator;
-import org.renjin.gcc.codegen.GeneratorFactory;
+import org.renjin.gcc.codegen.TypeOracle;
 import org.renjin.gcc.codegen.call.*;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.expr.FreeCallGenerator;
@@ -31,12 +31,12 @@ import static java.lang.String.format;
  */
 public class GlobalSymbolTable implements SymbolTable {
 
-  private GeneratorFactory generators;
+  private TypeOracle typeOracle;
   private Map<String, CallGenerator> functions = Maps.newHashMap();
   private Map<String, ExprGenerator> globalVariables = Maps.newHashMap();
 
-  public GlobalSymbolTable(GeneratorFactory generators) {
-    this.generators = generators;
+  public GlobalSymbolTable(TypeOracle typeOracle) {
+    this.typeOracle = typeOracle;
   }
 
   @Override
@@ -58,12 +58,12 @@ public class GlobalSymbolTable implements SymbolTable {
 
   public void addDefaults() {
 
-    addFunction("malloc", new MallocCallGenerator(generators));
+    addFunction("malloc", new MallocCallGenerator(typeOracle));
     addFunction("free", new FreeCallGenerator());
     addFunction("realloc", new ReallocCallGenerator());
 
-    addFunction("__builtin_malloc__", new MallocCallGenerator(generators));
-    addFunction("__builtin_free__", new MallocCallGenerator(generators));
+    addFunction("__builtin_malloc__", new MallocCallGenerator(typeOracle));
+    addFunction("__builtin_free__", new MallocCallGenerator(typeOracle));
     addFunction("__builtin_memcpy", new MemCopyCallGenerator());
     
     addFunction(CharTypeBLocCall.NAME, new CharTypeBLocCall());
@@ -93,7 +93,7 @@ public class GlobalSymbolTable implements SymbolTable {
   
   public void addFunction(String functionName, Method method) {
     Preconditions.checkArgument(Modifier.isStatic(method.getModifiers()), "Method '%s' must be static", method);
-    functions.put(functionName, new StaticMethodCallGenerator(generators, method));
+    functions.put(functionName, new StaticMethodCallGenerator(typeOracle, method));
   }
 
   public void addMethods(Class<?> clazz) {

@@ -2,7 +2,7 @@ package org.renjin.gcc.codegen.expr;
 
 import com.google.common.base.Optional;
 import org.renjin.gcc.InternalCompilerException;
-import org.renjin.gcc.codegen.GeneratorFactory;
+import org.renjin.gcc.codegen.TypeOracle;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.call.FunPtrCallGenerator;
 import org.renjin.gcc.codegen.condition.*;
@@ -21,12 +21,12 @@ import java.util.List;
  * Creates {@code ExprGenerator}s from {@code GimpleExpr}s
  */
 public class ExprFactory {
-  private final GeneratorFactory generatorFactory;
+  private final TypeOracle typeOracle;
   private final SymbolTable symbolTable;
   private final CallingConvention callingConvention;
 
-  public ExprFactory(GeneratorFactory generatorFactory, SymbolTable symbolTable, CallingConvention callingConvention) {
-    this.generatorFactory = generatorFactory;
+  public ExprFactory(TypeOracle typeOracle, SymbolTable symbolTable, CallingConvention callingConvention) {
+    this.typeOracle = typeOracle;
     this.symbolTable = symbolTable;
     this.callingConvention = callingConvention;
   }
@@ -53,7 +53,7 @@ public class ExprFactory {
             rhs.getGimpleType().isPointerTo(GimpleVoidType.class)) {
 
       GimpleRecordType recordType = lhsType.getBaseType();
-      return new VoidCastExprGenerator(rhs, lhsType, generatorFactory.typeForRecord(recordType));
+      return new VoidCastExprGenerator(rhs, lhsType, typeOracle.typeForRecord(recordType));
     }
     return rhs;
   }
@@ -143,7 +143,7 @@ public class ExprFactory {
   }
 
   private ExprGenerator forConstructor(GimpleConstructor expr) {
-    return generatorFactory.forType(expr.getType()).constructorExpr(this, expr);
+    return typeOracle.forType(expr.getType()).constructorExpr(this, expr);
   }
 
   public CallGenerator findCallGenerator(GimpleExpr functionExpr) {
@@ -166,7 +166,7 @@ public class ExprFactory {
 
     // Assume this is a funciton ptr expression  
     ExprGenerator exprGenerator = findGenerator(functionExpr);
-    return new FunPtrCallGenerator(generatorFactory, exprGenerator);
+    return new FunPtrCallGenerator(typeOracle, exprGenerator);
   }
 
   public ConditionGenerator findConditionGenerator(GimpleOp op, List<GimpleExpr> operands) {

@@ -35,21 +35,21 @@ import java.util.List;
  * <p>This is the easiest case, because there is a one-to-one correspondence between primitive
  * types in {@code Gimple} and on the JVM.</p>
  */
-public class PrimitiveTypeFactory extends TypeFactory {
+public class PrimitiveTypeStrategy extends TypeStrategy {
   
   private GimplePrimitiveType type;
 
-  public PrimitiveTypeFactory(GimplePrimitiveType type) {
+  public PrimitiveTypeStrategy(GimplePrimitiveType type) {
     this.type = type;
   }
 
   @Override
-  public ParamStrategy paramGenerator() {
+  public ParamStrategy getParamStrategy() {
     return new PrimitiveParamStrategy(type);
   }
 
   @Override
-  public ReturnStrategy returnGenerator() {
+  public ReturnStrategy getReturnStrategy() {
     return new PrimitiveReturnStrategy(type);
   }
 
@@ -64,7 +64,7 @@ public class PrimitiveTypeFactory extends TypeFactory {
   }
 
   @Override
-  public TypeFactory pointerTo() {
+  public TypeStrategy pointerTo() {
     return new Pointer();
   }
 
@@ -80,21 +80,21 @@ public class PrimitiveTypeFactory extends TypeFactory {
   }
 
   @Override
-  public TypeFactory arrayOf(GimpleArrayType arrayType) {
+  public TypeStrategy arrayOf(GimpleArrayType arrayType) {
     return new Array(arrayType);
   }
 
-  private class Pointer extends TypeFactory {
+  private class Pointer extends TypeStrategy {
     
     private GimplePointerType pointerType = new GimplePointerType(type);
 
     @Override
-    public ParamStrategy paramGenerator() {
+    public ParamStrategy getParamStrategy() {
       return new PrimitivePtrParamStrategy(pointerType);
     }
 
     @Override
-    public ReturnStrategy returnGenerator() {
+    public ReturnStrategy getReturnStrategy() {
       return new PrimitivePtrReturnStrategy(new GimplePointerType(type));
     }
 
@@ -111,12 +111,12 @@ public class PrimitiveTypeFactory extends TypeFactory {
     }
 
     @Override
-    public TypeFactory pointerTo() {
+    public TypeStrategy pointerTo() {
       return new PointerPointer(new GimplePointerType(pointerType));
     }
 
     @Override
-    public TypeFactory arrayOf(GimpleArrayType arrayType) {
+    public TypeStrategy arrayOf(GimpleArrayType arrayType) {
       return new PointerArray(arrayType);
     }
 
@@ -139,7 +139,7 @@ public class PrimitiveTypeFactory extends TypeFactory {
   /**
    * Pointer to a pointer to a primitive value or array
    */
-  private class PointerPointer extends TypeFactory {
+  private class PointerPointer extends TypeStrategy {
     
     private GimpleIndirectType pointerType;
 
@@ -148,7 +148,7 @@ public class PrimitiveTypeFactory extends TypeFactory {
     }
 
     @Override
-    public ParamStrategy paramGenerator() {
+    public ParamStrategy getParamStrategy() {
       return new PrimitivePtrPtrParamStrategy(pointerType);
     }
 
@@ -157,7 +157,7 @@ public class PrimitiveTypeFactory extends TypeFactory {
       return new PrimitivePtrPtrFieldGenerator(className, fieldName, pointerType);
     }
     @Override
-    public ReturnStrategy returnGenerator() {
+    public ReturnStrategy getReturnStrategy() {
       return new PrimitivePtrPtrReturnStrategy(pointerType);
     }
 
@@ -177,7 +177,7 @@ public class PrimitiveTypeFactory extends TypeFactory {
   /**
    * Array of primitives
    */
-  private class Array extends TypeFactory {
+  private class Array extends TypeStrategy {
 
     private final GimpleArrayType arrayType;
 
@@ -186,7 +186,7 @@ public class PrimitiveTypeFactory extends TypeFactory {
     }
 
     @Override
-    public TypeFactory pointerTo() {
+    public TypeStrategy pointerTo() {
       return new ArrayPtr(new GimplePointerType(arrayType));
     }
 
@@ -217,7 +217,7 @@ public class PrimitiveTypeFactory extends TypeFactory {
     }
   }
   
-  private class ArrayPtr extends TypeFactory {
+  private class ArrayPtr extends TypeStrategy {
     private GimplePointerType arrayPtrType;
 
     public ArrayPtr(GimplePointerType arrayPtrType) {
@@ -225,7 +225,7 @@ public class PrimitiveTypeFactory extends TypeFactory {
     }
 
     @Override
-    public ParamStrategy paramGenerator() {
+    public ParamStrategy getParamStrategy() {
       // A pointer to an array of primitives is essentially the same thing as
       // a pointer to a single primitive value, the only difference is that the memory
       // region to which the parameter points is longer than a single value...
@@ -233,7 +233,7 @@ public class PrimitiveTypeFactory extends TypeFactory {
     }
 
     @Override
-    public TypeFactory pointerTo() {
+    public TypeStrategy pointerTo() {
       return new PointerPointer(arrayPtrType);
     }
 
@@ -250,7 +250,7 @@ public class PrimitiveTypeFactory extends TypeFactory {
     }
   }
 
-  private class PointerArray extends TypeFactory {
+  private class PointerArray extends TypeStrategy {
     private GimpleArrayType arrayType;
 
     public PointerArray(GimpleArrayType arrayType) {

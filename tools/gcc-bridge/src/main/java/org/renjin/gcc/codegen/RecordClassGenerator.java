@@ -5,7 +5,6 @@ import org.objectweb.asm.util.TraceClassVisitor;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.field.FieldGenerator;
-import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleField;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
@@ -30,10 +29,10 @@ public class RecordClassGenerator {
   private final GimpleRecordTypeDef recordType;
 
   private Map<String, FieldGenerator> fields = null;
-  private GeneratorFactory factory;
+  private TypeOracle typeOracle;
 
-  public RecordClassGenerator(GeneratorFactory factory, String className, GimpleRecordTypeDef recordType) {
-    this.factory = factory;
+  public RecordClassGenerator(TypeOracle typeOracle, String className, GimpleRecordTypeDef recordType) {
+    this.typeOracle = typeOracle;
     this.className = className;
     this.recordType = recordType;
     
@@ -50,7 +49,7 @@ public class RecordClassGenerator {
   public void linkFields() {
     fields = new HashMap<>();
     for (GimpleField gimpleField : recordType.getFields()) {
-      FieldGenerator fieldGenerator = factory.forField(this.className, gimpleField);
+      FieldGenerator fieldGenerator = typeOracle.forField(this.className, gimpleField);
       fields.put(gimpleField.getName(), fieldGenerator);
     }
   }
@@ -139,13 +138,5 @@ public class RecordClassGenerator {
     mv.visitInsn(Opcodes.DUP);
     mv.visitMethodInsn(Opcodes.INVOKESPECIAL, className, "<init>", "()V", false);
   }
-  
-  public void emitConstructor(MethodVisitor mv, GimpleConstructor recordConstructor) {
-    emitConstructor(mv);
 
-    for (GimpleConstructor.Element element : recordConstructor.getElements()) {
-      FieldGenerator fieldGenerator = getFieldGenerator(element.getFieldName());
-    }
-    // TODO
-  }
 }

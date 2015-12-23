@@ -4,7 +4,7 @@ import com.google.common.collect.Lists;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
-import org.renjin.gcc.codegen.GeneratorFactory;
+import org.renjin.gcc.codegen.TypeOracle;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.param.ParamStrategy;
 import org.renjin.gcc.codegen.ret.ReturnStrategy;
@@ -18,18 +18,16 @@ import java.util.List;
  */
 public class FunPtrCallGenerator implements CallGenerator {
 
-  private GeneratorFactory factory;
+  private TypeOracle typeOracle;
   private ExprGenerator funPtrGenerator;
-  private final List<ParamStrategy> parameters;
   private final ReturnStrategy returnStrategy;
   private final GimpleFunctionType functionType;
 
-  public FunPtrCallGenerator(GeneratorFactory factory, ExprGenerator funPtrGenerator) {
-    this.factory = factory;
+  public FunPtrCallGenerator(TypeOracle typeOracle, ExprGenerator funPtrGenerator) {
+    this.typeOracle = typeOracle;
     this.funPtrGenerator = funPtrGenerator;
     functionType = funPtrGenerator.getGimpleType().getBaseType();
-    parameters = factory.forParameterTypes(functionType.getArgumentTypes());
-    returnStrategy = factory.findReturnGenerator(functionType.getReturnType());
+    returnStrategy = typeOracle.findReturnGenerator(functionType.getReturnType());
   }
 
   /**
@@ -47,7 +45,7 @@ public class FunPtrCallGenerator implements CallGenerator {
     // Infer the parameters types from the arguments provided
     List<Type> types = Lists.newArrayList();
     for (ExprGenerator argumentGenerator : argumentGenerators) {
-      ParamStrategy paramStrategy = factory.forParameter(argumentGenerator.getGimpleType());
+      ParamStrategy paramStrategy = typeOracle.forParameter(argumentGenerator.getGimpleType());
       paramStrategy.emitPushParameter(mv, argumentGenerator);
       types.addAll(paramStrategy.getParameterTypes());
     }

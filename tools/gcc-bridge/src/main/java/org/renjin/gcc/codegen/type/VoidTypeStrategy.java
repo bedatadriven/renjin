@@ -18,15 +18,15 @@ import org.renjin.gcc.gimple.GimpleVarDecl;
 /**
  * Creates generators for void value types. Only used for return types.
  */
-public class VoidTypeFactory extends TypeFactory {
+public class VoidTypeStrategy extends TypeStrategy {
 
   @Override
-  public ReturnStrategy returnGenerator() {
+  public ReturnStrategy getReturnStrategy() {
     return new VoidReturnStrategy();
   }
 
   @Override
-  public TypeFactory pointerTo() {
+  public TypeStrategy pointerTo() {
     return new Pointer();
   }
 
@@ -35,9 +35,9 @@ public class VoidTypeFactory extends TypeFactory {
     throw new InternalCompilerException("Cannot allocate VOID type");
   }
 
-  private class Pointer extends TypeFactory {
+  private class Pointer extends TypeStrategy {
     @Override
-    public ParamStrategy paramGenerator() {
+    public ParamStrategy getParamStrategy() {
       return new VoidPtrParamStrategy();
     }
 
@@ -58,21 +58,21 @@ public class VoidTypeFactory extends TypeFactory {
     }
 
     @Override
-    public ReturnStrategy returnGenerator() {
+    public ReturnStrategy getReturnStrategy() {
       return new VoidPtrReturnStrategy();
     }
 
     @Override
-    public TypeFactory pointerTo() {
+    public TypeStrategy pointerTo() {
       return new PointerPointer();
     }
   }
 
-  private class PointerPointer extends TypeFactory {
+  private class PointerPointer extends TypeStrategy {
 
     @Override
-    public ParamStrategy paramGenerator() {
-      return super.paramGenerator();
+    public ParamStrategy getParamStrategy() {
+      return super.getParamStrategy();
     }
   }
 }

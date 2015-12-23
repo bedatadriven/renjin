@@ -9,7 +9,7 @@ import org.objectweb.asm.util.TraceClassVisitor;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.expr.ExprFactory;
-import org.renjin.gcc.codegen.type.TypeFactory;
+import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.var.VarGenerator;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
@@ -31,15 +31,14 @@ import static org.objectweb.asm.Opcodes.*;
  */
 public class UnitClassGenerator {
 
-  private GimpleCompilationUnit unit;
-  private String className;
+  private final GimpleCompilationUnit unit;
+  private final String className;
 
-  private UnitSymbolTable symbolTable;
-  private final GeneratorFactory generatorFactory;
+  private final UnitSymbolTable symbolTable;
+  private final TypeOracle typeOracle;
   
-  
-  private GlobalVarAllocator globalVarAllocator;
-  private List<GimpleVarDecl> varToGenerate = Lists.newArrayList();
+  private final GlobalVarAllocator globalVarAllocator;
+  private final List<GimpleVarDecl> varToGenerate = Lists.newArrayList();
 
   private ClassWriter cw;
   private ClassVisitor cv;
@@ -47,18 +46,18 @@ public class UnitClassGenerator {
   private PrintWriter pw;
 
 
-  public UnitClassGenerator(GeneratorFactory generatorFactory,
+  public UnitClassGenerator(TypeOracle typeOracle,
                             GlobalSymbolTable functionTable,
                             Map<String, Field> providedVariables, GimpleCompilationUnit unit,
                             String className) {
     this.unit = unit;
     this.className = className;
-    this.generatorFactory = generatorFactory;
+    this.typeOracle = typeOracle;
     this.globalVarAllocator = new GlobalVarAllocator(className);
     this.symbolTable = new UnitSymbolTable(functionTable, className);
   
     for (GimpleVarDecl decl : unit.getGlobalVariables()) {
-      TypeFactory typeStrategy = generatorFactory.forType(decl.getType());
+      TypeStrategy typeStrategy = typeOracle.forType(decl.getType());
       VarGenerator varGenerator;
       
       if(isProvided(providedVariables, decl)) {
@@ -76,7 +75,7 @@ public class UnitClassGenerator {
     for (GimpleFunction function : unit.getFunctions()) {
       try {
         symbolTable.addFunction(className, function,
-            new FunctionGenerator(className, function, generatorFactory, symbolTable));
+            new FunctionGenerator(className, function, typeOracle, symbolTable));
       } catch (Exception e) {
         throw new InternalCompilerException(String.format("Exception creating %s for %s in %s: %s",
             FunctionGenerator.class.getSimpleName(),
@@ -130,7 +129,7 @@ public class UnitClassGenerator {
     globalVarAllocator.writeFields(cv);
     
     // and any static initialization that is required
-    ExprFactory exprFactory = new ExprFactory(generatorFactory, symbolTable, unit.getCallingConvention());
+    ExprFactory exprFactory = new ExprFactory(typeOracle, symbolTable, unit.getCallingConvention());
     MethodVisitor mv = cv.visitMethod(ACC_STATIC, "<clinit>", "()V", null, null);
     mv.visitCode();
 
@@ -150,7 +149,6 @@ public class UnitClassGenerator {
   }
 
   private void emitFunctions(GimpleCompilationUnit unit) {
-
 
     // Now actually emit the function bodies
     for (FunctionGenerator functionGenerator : symbolTable.getFunctions()) {

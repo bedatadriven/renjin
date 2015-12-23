@@ -30,15 +30,15 @@ import java.util.Map;
 /**
  * Creates generators for variables and values of type {@code GimpleRecordType}
  */
-public class RecordTypeFactory extends TypeFactory {
+public class RecordTypeStrategy extends TypeStrategy {
   private final RecordClassGenerator generator;
 
-  public RecordTypeFactory(RecordClassGenerator generator) {
+  public RecordTypeStrategy(RecordClassGenerator generator) {
     this.generator = generator;
   }
 
   @Override
-  public TypeFactory pointerTo() {
+  public TypeStrategy pointerTo() {
     return new Pointer();
   }
 
@@ -48,7 +48,7 @@ public class RecordTypeFactory extends TypeFactory {
   }
 
   @Override
-  public TypeFactory arrayOf(GimpleArrayType arrayType) {
+  public TypeStrategy arrayOf(GimpleArrayType arrayType) {
     return new Array(arrayType);
   }
 
@@ -72,7 +72,7 @@ public class RecordTypeFactory extends TypeFactory {
     return new RecordConstructor(generator, fields);
   }
 
-  public class Array extends TypeFactory {
+  public class Array extends TypeStrategy {
 
     private GimpleArrayType arrayType;
 
@@ -116,10 +116,10 @@ public class RecordTypeFactory extends TypeFactory {
     }
   }
 
-  public class Pointer extends TypeFactory {
+  public class Pointer extends TypeStrategy {
 
     @Override
-    public ParamStrategy paramGenerator() {
+    public ParamStrategy getParamStrategy() {
       return new RecordUnitPtrParamStrategy(generator);
     }
 
@@ -129,7 +129,7 @@ public class RecordTypeFactory extends TypeFactory {
     }
 
     @Override
-    public ReturnStrategy returnGenerator() {
+    public ReturnStrategy getReturnStrategy() {
       return new RecordUnitPtrReturnStrategy(generator);
     }
 
@@ -147,7 +147,7 @@ public class RecordTypeFactory extends TypeFactory {
     }
 
     @Override
-    public TypeFactory pointerTo() {
+    public TypeStrategy pointerTo() {
       return new PointerPointer();
     }
 
@@ -157,10 +157,10 @@ public class RecordTypeFactory extends TypeFactory {
     }
   }
   
-  public class PointerPointer extends TypeFactory {
+  public class PointerPointer extends TypeStrategy {
 
     @Override
-    public ParamStrategy paramGenerator() {
+    public ParamStrategy getParamStrategy() {
       return new RecordUnitPtrPtrParamStrategy(generator);
     }
 
@@ -181,7 +181,7 @@ public class RecordTypeFactory extends TypeFactory {
     }
 
     @Override
-    public ReturnStrategy returnGenerator() {
+    public ReturnStrategy getReturnStrategy() {
       return new RecordPtrPtrReturnStrategy();
     }
   }

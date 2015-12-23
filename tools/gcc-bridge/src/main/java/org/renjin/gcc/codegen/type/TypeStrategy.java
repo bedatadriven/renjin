@@ -13,37 +13,43 @@ import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 
 /**
- * Responsible for creating Generators for parameters, local variables, and return values
- * for a specific Gimple type.
+ *  Provides strategies for code generation for a specific {@code GimpleType}
+ *  
  */
-public abstract class TypeFactory {
+public abstract class TypeStrategy {
 
   /**
    * 
-   * @return a new {@code ParamGenerator} for this type.
+   * @return the {@link ParamStrategy} for this type.
    */
-  public ParamStrategy paramGenerator() {
-    throw new UnimplementedException(getClass(), "paramGenerator");
+  public ParamStrategy getParamStrategy() {
+    throw new UnimplementedException(getClass(), "getParamStrategy");
   }
 
   /**
    * 
-   * @return a new {@code ReturnGenerator} for this type.
+   * @return the {@link ReturnStrategy} for this type.
    */
-  public ReturnStrategy returnGenerator() {
-    throw new UnimplementedException(getClass(), "returnGenerator");
+  public ReturnStrategy getReturnStrategy() {
+    throw new UnimplementedException(getClass(), "getReturnStrategy");
   }
 
 
+  /**
+   * Creates a {@link VarGenerator} for a {@link GimpleVarDecl} of this type
+   */
   public VarGenerator varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
     throw new UnimplementedException(getClass(), "varGenerator");
   }
 
-  public TypeFactory pointerTo() {
+  /**
+   * @return a {@code TypeStrategy} for the pointer type to this type.
+   */
+  public TypeStrategy pointerTo() {
     throw new UnimplementedException(getClass(), "pointerTo");
   }
 
-  public TypeFactory arrayOf(GimpleArrayType arrayType) {
+  public TypeStrategy arrayOf(GimpleArrayType arrayType) {
     throw new UnimplementedException(getClass(), "arrayOf");
   }
 

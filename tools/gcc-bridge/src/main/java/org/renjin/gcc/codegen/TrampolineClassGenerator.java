@@ -1,17 +1,13 @@
 package org.renjin.gcc.codegen;
 
 
-import com.google.common.collect.Maps;
 import org.objectweb.asm.*;
 import org.objectweb.asm.util.TraceClassVisitor;
 import org.renjin.gcc.GimpleCompiler;
-import org.renjin.gcc.codegen.field.FieldGenerator;
 import org.renjin.gcc.codegen.param.ParamStrategy;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.util.Map;
 
 import static org.objectweb.asm.Opcodes.*;
 
@@ -23,17 +19,8 @@ public class TrampolineClassGenerator {
 
   private ClassWriter cw;
   private ClassVisitor cv;
-  private StringWriter sw;
-  private PrintWriter pw;
-  private String className;
-
-  private final Map<String, FieldGenerator> fields = Maps.newHashMap();
-  private GeneratorFactory factory;
 
   public TrampolineClassGenerator(String className) {
-    this.className = className;
-    sw = new StringWriter();
-    pw = new PrintWriter(sw);
     cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
     cv = new TraceClassVisitor(cw, new PrintWriter(System.out));
     if(GimpleCompiler.TRACE) {
@@ -45,7 +32,6 @@ public class TrampolineClassGenerator {
   
     emitDefaultConstructor();
   }
-
 
   private void emitDefaultConstructor() {
     MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);

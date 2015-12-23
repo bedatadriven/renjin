@@ -29,11 +29,11 @@ import org.renjin.gcc.gimple.type.GimplePointerType;
  * to return a complex value. This is something we could eliminate with aggressive inlining.</p>
  * 
  */
-public class ComplexTypeFactory extends TypeFactory {
+public class ComplexTypeStrategy extends TypeStrategy {
 
   private GimpleComplexType type;
 
-  public ComplexTypeFactory(GimpleComplexType type) {
+  public ComplexTypeStrategy(GimpleComplexType type) {
     this.type = type;
   }
 
@@ -51,24 +51,24 @@ public class ComplexTypeFactory extends TypeFactory {
 
 
   @Override
-  public ReturnStrategy returnGenerator() {
+  public ReturnStrategy getReturnStrategy() {
     return new ComplexReturnStrategy(type);
   }
 
   @Override
-  public TypeFactory pointerTo() {
+  public TypeStrategy pointerTo() {
     return new Pointer();
   }
 
   @Override
-  public TypeFactory arrayOf(GimpleArrayType arrayType) {
+  public TypeStrategy arrayOf(GimpleArrayType arrayType) {
     return new Array(arrayType);
   }
 
-  private class Pointer extends TypeFactory {
+  private class Pointer extends TypeStrategy {
 
     @Override
-    public ParamStrategy paramGenerator() {
+    public ParamStrategy getParamStrategy() {
       return new ComplexPtrParamStrategy(new GimplePointerType(type));
     }
 
@@ -80,7 +80,7 @@ public class ComplexTypeFactory extends TypeFactory {
     }
   }
   
-  private class Array extends TypeFactory {
+  private class Array extends TypeStrategy {
 
     private final GimpleArrayType arrayType;
 
@@ -89,12 +89,12 @@ public class ComplexTypeFactory extends TypeFactory {
     }
 
     @Override
-    public TypeFactory pointerTo() {
+    public TypeStrategy pointerTo() {
       return new ArrayPtr(new GimplePointerType(arrayType));
     }
   }
   
-  private class ArrayPtr extends TypeFactory {
+  private class ArrayPtr extends TypeStrategy {
     private final GimplePointerType pointerType;
 
     public ArrayPtr(GimplePointerType pointerType) {
@@ -102,7 +102,7 @@ public class ComplexTypeFactory extends TypeFactory {
     }
 
     @Override
-    public ParamStrategy paramGenerator() {
+    public ParamStrategy getParamStrategy() {
       return new ComplexArrayPtrParamStrategy(pointerType);
     }
 

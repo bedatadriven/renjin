@@ -4,7 +4,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
-import org.renjin.gcc.codegen.GeneratorFactory;
+import org.renjin.gcc.codegen.TypeOracle;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.expr.PrimitiveConstValueGenerator;
 import org.renjin.gcc.codegen.param.ParamStrategy;
@@ -21,20 +21,20 @@ import java.util.List;
  */
 public class StaticMethodCallGenerator implements CallGenerator {
   
-  private GeneratorFactory factory;
+  private TypeOracle typeOracle;
   private Method method;
 
   private List<ParamStrategy> paramStrategies = null;
   private ReturnStrategy returnStrategy = null;
 
-  public StaticMethodCallGenerator(GeneratorFactory factory, Method method) {
-    this.factory = factory;
+  public StaticMethodCallGenerator(TypeOracle typeOracle, Method method) {
+    this.typeOracle = typeOracle;
     this.method = method;
   }
 
   private ReturnStrategy returnGenerator() {
     if(returnStrategy == null) {
-      returnStrategy = factory.forReturnValue(method);
+      returnStrategy = typeOracle.forReturnValue(method);
     }
     return returnStrategy;
   }
@@ -124,7 +124,7 @@ public class StaticMethodCallGenerator implements CallGenerator {
 
   private List<ParamStrategy> getParamStrategies() {
     if(paramStrategies == null) {
-      paramStrategies = factory.forParameterTypesOf(method);
+      paramStrategies = typeOracle.forParameterTypesOf(method);
     }
     return paramStrategies;
   }

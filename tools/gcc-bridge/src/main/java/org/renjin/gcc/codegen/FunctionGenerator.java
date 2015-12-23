@@ -12,7 +12,7 @@ import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.param.ParamStrategy;
 import org.renjin.gcc.codegen.ret.ReturnStrategy;
-import org.renjin.gcc.codegen.type.TypeFactory;
+import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.var.VarGenerator;
 import org.renjin.gcc.gimple.*;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
@@ -38,7 +38,7 @@ public class FunctionGenerator {
   private LocalVarAllocator localVarAllocator;
   
   private Labels labels = new Labels();
-  private GeneratorFactory generatorFactory;
+  private TypeOracle typeOracle;
   private ExprFactory exprFactory;
   private LocalVariableTable symbolTable;
   
@@ -47,15 +47,15 @@ public class FunctionGenerator {
   
   private MethodVisitor mv;
 
-  public FunctionGenerator(String className, GimpleFunction function, GeneratorFactory generatorFactory, UnitSymbolTable symbolTable) {
+  public FunctionGenerator(String className, GimpleFunction function, TypeOracle typeOracle, UnitSymbolTable symbolTable) {
     this.className = className;
     this.function = function;
-    this.generatorFactory = generatorFactory;
-    this.params = this.generatorFactory.forParameters(function.getParameters());
-    this.returnStrategy = this.generatorFactory.findReturnGenerator(function.getReturnType());
+    this.typeOracle = typeOracle;
+    this.params = this.typeOracle.forParameters(function.getParameters());
+    this.returnStrategy = this.typeOracle.findReturnGenerator(function.getReturnType());
     this.symbolTable = new LocalVariableTable(symbolTable);
     this.localVarAllocator = new LocalVarAllocator();
-    this.exprFactory = new ExprFactory(generatorFactory, this.symbolTable, function.getCallingConvention());
+    this.exprFactory = new ExprFactory(typeOracle, this.symbolTable, function.getCallingConvention());
   }
 
   public String getMangledName() {
@@ -150,7 +150,7 @@ public class FunctionGenerator {
       
       try {
         VarGenerator generator;
-        TypeFactory factory = generatorFactory.forType(varDecl.getType());
+        TypeStrategy factory = typeOracle.forType(varDecl.getType());
         generator = factory.varGenerator(varDecl, localVarAllocator);
 
         symbolTable.addVariable(varDecl.getId(), generator);
@@ -266,7 +266,7 @@ public class FunctionGenerator {
     ExprGenerator lhs = exprFactory.findGenerator(ins.getLhs());
     ExprGenerator size = exprFactory.findGenerator(ins.getArguments().get(0));
     
-    lhs.emitStore(mv, generatorFactory.forType(lhs.getGimpleType()).mallocExpression(size));
+    lhs.emitStore(mv, typeOracle.forType(lhs.getGimpleType()).mallocExpression(size));
   }
 
 

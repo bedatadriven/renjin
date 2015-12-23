@@ -184,7 +184,7 @@ public class RecordTypeDefCanonicalizer {
           updateType(decl.getType());
         }
         for (GimpleBasicBlock basicBlock : function.getBasicBlocks()) {
-          for (GimpleStatement statement : basicBlock.getInstructions()) {
+          for (GimpleStatement statement : basicBlock.getStatements()) {
             updateTypes(statement);
           }
         }

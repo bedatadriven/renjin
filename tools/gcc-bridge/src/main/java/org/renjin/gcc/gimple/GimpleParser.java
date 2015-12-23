@@ -9,12 +9,11 @@ import java.io.*;
 import java.net.URL;
 
 /**
- * Invokes Jackson to parse the JSON-encoded Gimple emitted from our
- * GCC plugin into the Gimple tree.
+ * Parses a JSON-encoded {@link GimpleCompilationUnit} emitted from our GCC plugin
  */
 public class GimpleParser {
 
-  private ObjectMapper mapper;
+  private final ObjectMapper mapper;
 
   public GimpleParser() {
     super();

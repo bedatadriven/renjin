@@ -96,7 +96,7 @@ public class InitDataFlowAnalysis {
       
       // Now go statement-by-statement to see if there are any possible
       // uses before definition
-      for (GimpleStatement statement : node.getBasicBlock().getInstructions()) {
+      for (GimpleStatement statement : node.getBasicBlock().getStatements()) {
         for (GimpleSymbolRef symbolRef : statement.findVariableUses()) {
           if(localVariables.containsKey(symbolRef.getId())) {
             // we're using a local variable. Are we sure it's been initialized?
@@ -135,7 +135,7 @@ public class InitDataFlowAnalysis {
     Set<Integer> exitState = new HashSet<>(initialState);
 
     if(basicBlock != null) {
-      for (GimpleStatement ins : basicBlock.getInstructions()) {
+      for (GimpleStatement ins : basicBlock.getStatements()) {
         updateInitializedSet(ins, exitState);
       }
     }

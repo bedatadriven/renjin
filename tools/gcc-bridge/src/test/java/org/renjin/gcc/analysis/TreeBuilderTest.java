@@ -51,7 +51,7 @@ public class TreeBuilderTest {
     builder.buildTrees(function, basicBlock);
     
     // we should have one return statement, with all expressions nested
-    assertThat(basicBlock.getInstructions().size(), equalTo(1));
+    assertThat(basicBlock.getStatements().size(), equalTo(1));
     
     // all the local variables should be removed
     assertThat(function.getVariableDeclarations().size(), equalTo(0));

@@ -882,7 +882,7 @@ static void dump_basic_block(basic_block bb) {
 
   json_start_object();
   json_int_field("index", bb->index);
-  json_array_field("instructions");
+  json_array_field("statements");
       
   gimple_stmt_iterator gsi;
   

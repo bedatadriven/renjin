@@ -52,7 +52,7 @@ public class StatementNode {
 
   public static StatementNode createLinkedList(GimpleBasicBlock block) {
 
-    Iterator<GimpleStatement> it = block.getInstructions().iterator();
+    Iterator<GimpleStatement> it = block.getStatements().iterator();
     if(!it.hasNext()) {
       throw new IllegalArgumentException("Empty basic block");
     }

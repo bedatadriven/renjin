@@ -52,7 +52,7 @@ public class TreeBuilder implements FunctionBodyTransformer {
               function.removeVariable(var);
 
               // remove the definition from the basic block
-              basicBlock.getInstructions().remove(current.getStatement());
+              basicBlock.getStatements().remove(current.getStatement());
 
               // remove this node and back up to the predecessor
               current = current.remove();
@@ -81,7 +81,7 @@ public class TreeBuilder implements FunctionBodyTransformer {
     }
 
     for (GimpleBasicBlock basicBlock : function.getBasicBlocks()) {
-      for (GimpleStatement statement : basicBlock.getInstructions()) {
+      for (GimpleStatement statement : basicBlock.getStatements()) {
         for (GimpleVariableRef ref : statement.findUses(GimpleVariableRef.class)) {
           if(localVariables.contains(ref.getId())) {
             boolean firstUse = used.add(ref.getId());

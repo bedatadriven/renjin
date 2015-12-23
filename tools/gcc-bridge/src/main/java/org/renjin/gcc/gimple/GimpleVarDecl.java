@@ -7,6 +7,9 @@ import org.renjin.gcc.gimple.expr.GimpleSymbolRef;
 import org.renjin.gcc.gimple.expr.GimpleVariableRef;
 import org.renjin.gcc.gimple.type.GimpleType;
 
+/**
+ * Gimple Variable Declaration
+ */
 public class GimpleVarDecl {
   private int id;
   private GimpleType type;

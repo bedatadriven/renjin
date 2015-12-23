@@ -12,16 +12,21 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Sequence of {@code GimpleStatement}s with no branches in except to the entry and no branches out except at the exit.
+ * 
+ * @see <a href="https://en.wikipedia.org/wiki/Basic_block">Basic Block</a> on Wikipedia
+ */
 public class GimpleBasicBlock {
 
   private int index;
-  private List<GimpleStatement> instructions = Lists.newArrayList();
+  private List<GimpleStatement> statements = Lists.newArrayList();
 
   public GimpleBasicBlock() {
   }
   
   public GimpleBasicBlock(GimpleStatement... statements) {
-    this.instructions.addAll(Arrays.asList(statements));
+    this.statements.addAll(Arrays.asList(statements));
   }
 
   public int getIndex() {
@@ -40,37 +45,40 @@ public class GimpleBasicBlock {
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("<").append(index).append(">:\n");
-    for (GimpleStatement ins : instructions) {
+    for (GimpleStatement ins : statements) {
       sb.append("  ").append(ins).append("\n");
     }
     return sb.toString();
   }
 
-  public void addIns(GimpleStatement ins) {
-    instructions.add(ins);
-  }
-  
-
-  public List<GimpleStatement> getInstructions() {
-    return instructions;
-  }
-
-  public void setInstructions(List<GimpleStatement> instructions) {
-    this.instructions = instructions;
+  /**
+   * 
+   * @return the statements in this basic block
+   */
+  public List<GimpleStatement> getStatements() {
+    return statements;
   }
 
+  public void setStatements(List<GimpleStatement> statements) {
+    this.statements = statements;
+  }
+
+  /**
+   * Replaces all {@link GimpleExpr}s within this basic block that match the given {@code predicate} with
+   * the given {@code newExpr}.
+   */
   public void replaceAll(Predicate<? super GimpleExpr> predicate, GimpleExpr newExpr) {
-    for (GimpleStatement instruction : instructions) {
+    for (GimpleStatement instruction : statements) {
       instruction.replaceAll(predicate, newExpr);
     }
   }
 
-  public <T extends GimpleStatement> Iterable<T> getInstructions(Class<T> insClass) {
-    return Iterables.filter(instructions, insClass);
-  }
-
+  /**
+   * 
+   * @return the last {@code GimpleStatement} in this basic block
+   */
   public GimpleStatement getLast() {
-    return instructions.get(instructions.size() - 1);
+    return statements.get(statements.size() - 1);
   }
 
   /**
@@ -78,7 +86,7 @@ public class GimpleBasicBlock {
    * @return true if this basic block ends with a return statement.
    */
   public boolean isReturning() {
-    if(instructions.isEmpty()) {
+    if(statements.isEmpty()) {
       return false;
     } else {
       return getLast() instanceof GimpleReturn;
@@ -90,14 +98,18 @@ public class GimpleBasicBlock {
    * @return the set of basic block indexes to which this statement might jump
    */
   public Set<Integer> getJumpTargets() {
-    if(instructions.isEmpty()) {
+    if(statements.isEmpty()) {
       return Collections.emptySet();
     } else {
       return getLast().getJumpTargets();
     }
   }
 
+  /**
+   * 
+   * @return {@code true} if this basic block is empty
+   */
   public boolean isEmpty() {
-    return instructions.isEmpty();
+    return statements.isEmpty();
   }
 }

@@ -15,6 +15,9 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * Gimple Function Model
+ */
 public class GimpleFunction {
   private int id;
   private String name;
@@ -129,7 +132,7 @@ public class GimpleFunction {
   public void visitIns(GimpleVisitor visitor) {
     for (GimpleBasicBlock bb : basicBlocks) {
       visitor.blockStart(bb);
-      for (GimpleStatement ins : bb.getInstructions()) {
+      for (GimpleStatement ins : bb.getStatements()) {
         ins.visit(visitor);
       }
     }
@@ -172,7 +175,7 @@ public class GimpleFunction {
 
   public boolean lhsMatches(Predicate<? super GimpleLValue> predicate) {
     for (GimpleBasicBlock basicBlock : basicBlocks) {
-      for (GimpleStatement ins : basicBlock.getInstructions()) {
+      for (GimpleStatement ins : basicBlock.getStatements()) {
         if(ins.lhsMatches(predicate)) {
           return true;
         }

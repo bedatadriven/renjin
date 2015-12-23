@@ -31,7 +31,7 @@ public class AddressableFinder implements FunctionBodyTransformer {
     Marker marker = new Marker(unit, fn);
     
     for (GimpleBasicBlock basicBlock : fn.getBasicBlocks()) {
-      for (GimpleStatement gimpleIns : basicBlock.getInstructions()) {
+      for (GimpleStatement gimpleIns : basicBlock.getStatements()) {
         if(gimpleIns instanceof GimpleCall) {
           if(marker.mark(((GimpleCall) gimpleIns).getArguments())) {
             updated = true;

@@ -18,7 +18,10 @@ import java.util.*;
  * @see <a href="https://en.wikipedia.org/wiki/Control_flow_graph">Control Flow Graphs</a> on Wikipedia
  */
 public class ControlFlowGraph {
-  
+
+  /**
+   * 
+   */
   public class Node {
     private String id;
     private GimpleBasicBlock basicBlock;
@@ -55,7 +58,11 @@ public class ControlFlowGraph {
   private Node exitNode = new Node("Exit");
   
   private Map<Integer, Node> nodes = Maps.newHashMap();
-  
+
+  /**
+   * Creates a new {@code ControlFlowGraph} from a {@code  GimpleFunction}.
+   * 
+   */
   public ControlFlowGraph(GimpleFunction function) {
     // Create nodes
     for (GimpleBasicBlock basicBlock : function.getBasicBlocks()) {
@@ -90,7 +97,12 @@ public class ControlFlowGraph {
       }
     }
   }
-  
+
+  /**
+   * 
+   * @return all the nodes in this {@code ControlFlowGraph}. There is a node for each
+   * basic block in the function, as well as entry and exit node.
+   */
   public Iterable<Node> getNodes() {
     Set<Node> nodes = new HashSet<>();
     nodes.add(entryNode);

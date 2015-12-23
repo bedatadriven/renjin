@@ -162,7 +162,7 @@ public class FunctionGenerator {
   private void emitBasicBlock(GimpleBasicBlock basicBlock) {
     mv.visitLabel(labels.of(basicBlock));
 
-    for (GimpleStatement ins : basicBlock.getInstructions()) {
+    for (GimpleStatement ins : basicBlock.getStatements()) {
       Label insLabel = new Label();
       mv.visitLabel(insLabel);
       

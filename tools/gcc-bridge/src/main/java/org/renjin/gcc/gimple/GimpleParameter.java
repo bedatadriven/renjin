@@ -2,6 +2,9 @@ package org.renjin.gcc.gimple;
 
 import org.renjin.gcc.gimple.type.GimpleType;
 
+/**
+ * Gimple parameter to a {@link GimpleFunction}
+ */
 public class GimpleParameter {
   private GimpleType type;
   private String name;
@@ -19,6 +22,9 @@ public class GimpleParameter {
     this.id = id;
   }
 
+  /**
+   * @return the parameter's type
+   */
   public GimpleType getType() {
     return type;
   }
@@ -27,10 +33,18 @@ public class GimpleParameter {
     this.name = name;
   }
 
+  /**
+   * 
+   * @return the name of the parameter
+   */
   public String getName() {
     return name;
   }
 
+  /**
+   * 
+   * @return true if this parameter is addressed within the function. Set during the analysis phase.
+   */
   public boolean isAddressable() {
     return addressable;
   }

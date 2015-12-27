@@ -13,7 +13,9 @@
   <name>Renjin GCC Bridge Parent</name>
 
   <modules>
+    <module>runtime</module>
     <module>compiler</module>
     <module>gcc-plugin</module>
+    <module>maven-plugin</module>
   </modules>
 </project>

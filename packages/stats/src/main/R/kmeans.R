@@ -22,7 +22,8 @@ function(x, centers, iter.max = 10, nstart = 1,
         Z <-
             switch(nmeth,
                    { # 1
-                       Z <- .Fortran(C_kmns, as.double(x), as.integer(m),
+                      
+                       Zargs <- list(C_kmns, as.double(x), as.integer(m),
                                 as.integer(ncol(x)),
                                 centers = as.double(centers),
                                 as.integer(k), c1 = integer(m), integer(m),
@@ -30,6 +31,8 @@ function(x, centers, iter.max = 10, nstart = 1,
                                 double(m), integer(k), integer(k),
                                 as.integer(iter.max), wss = double(k),
                                 ifault = 0L)
+                        str(Zargs)
+                       Z <- do.call(.Fortran, Zargs)
                        switch(Z$ifault,
                               stop("empty cluster: try a better set of initial centers",
                                    call.=FALSE),

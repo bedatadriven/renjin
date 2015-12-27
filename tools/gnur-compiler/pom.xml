@@ -34,7 +34,7 @@
     </dependency>
     <dependency>
       <groupId>org.renjin</groupId>
-      <artifactId>gcc-bridge</artifactId>
+      <artifactId>gcc-bridge-compiler</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

@@ -23,7 +23,7 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
 
-  <artifactId>gcc-bridge</artifactId>
+  <artifactId>gcc-bridge-compiler</artifactId>
   <name>Renjin GCC Bridge Compiler</name>
   <description>Compiles C, Fortran, C++ to JVM classfiles</description>
 

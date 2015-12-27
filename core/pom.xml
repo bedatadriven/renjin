@@ -41,14 +41,7 @@
       <artifactId>gcc-runtime</artifactId>
       <version>${project.version}</version>
     </dependency>
-
-    <dependency>
-      <groupId>org.renjin</groupId>
-      <artifactId>gcc-bridge</artifactId>
-      <version>${project.version}</version>
-      <scope>provided</scope>
-    </dependency>
-
+    
     <dependency>
       <groupId>org.netlib</groupId>
       <artifactId>netlib-java</artifactId>

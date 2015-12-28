@@ -1,5 +1,6 @@
 package org.renjin.gcc.gimple;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -20,6 +21,7 @@ import java.util.Set;
 public class GimpleBasicBlock {
 
   private int index;
+  
   private List<GimpleStatement> statements = Lists.newArrayList();
 
   public GimpleBasicBlock() {

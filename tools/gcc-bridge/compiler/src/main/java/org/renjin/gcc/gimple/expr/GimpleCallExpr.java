@@ -16,7 +16,7 @@ public class GimpleCallExpr extends GimpleExpr {
 
   public GimpleCallExpr(GimpleCall call) {
     this.function = call.getFunction();
-    this.arguments = call.getArguments();
+    this.arguments = call.getOperands();
     this.setType(call.getLhs().getType());
   }
 

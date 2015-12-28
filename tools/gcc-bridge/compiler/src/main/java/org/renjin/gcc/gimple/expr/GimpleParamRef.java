@@ -1,5 +1,7 @@
 package org.renjin.gcc.gimple.expr;
 
+import org.renjin.gcc.gimple.GimpleParameter;
+
 public class GimpleParamRef extends GimpleLValue implements GimpleSymbolRef {
 
   private int id;
@@ -11,6 +13,12 @@ public class GimpleParamRef extends GimpleLValue implements GimpleSymbolRef {
   public GimpleParamRef(int id, String name) {
     this.id = id;
     this.name = name;
+  }
+
+  public GimpleParamRef(GimpleParameter parameter) {
+    this.id = parameter.getId();
+    this.name = parameter.getName();
+    setType(parameter.getType());
   }
 
   public String getName() {

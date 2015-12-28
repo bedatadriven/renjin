@@ -247,7 +247,7 @@ public class FunctionGenerator {
       
     } else {
       List<ExprGenerator> arguments = new ArrayList<ExprGenerator>();
-      for (GimpleExpr argumentExpr : ins.getArguments()) {
+      for (GimpleExpr argumentExpr : ins.getOperands()) {
         arguments.add(exprFactory.findGenerator(argumentExpr));
       }
       
@@ -269,7 +269,7 @@ public class FunctionGenerator {
 
   private void emitMalloc(GimpleCall ins) {
     ExprGenerator lhs = exprFactory.findGenerator(ins.getLhs());
-    ExprGenerator size = exprFactory.findGenerator(ins.getArguments().get(0));
+    ExprGenerator size = exprFactory.findGenerator(ins.getOperands().get(0));
     
     lhs.emitStore(mv, typeOracle.forType(lhs.getGimpleType()).mallocExpression(size));
   }

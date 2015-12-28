@@ -36,6 +36,7 @@ public class GimpleConditional extends GimpleStatement {
     return operator;
   }
 
+  @Override
   public List<GimpleExpr> getOperands() {
     return operands;
   }

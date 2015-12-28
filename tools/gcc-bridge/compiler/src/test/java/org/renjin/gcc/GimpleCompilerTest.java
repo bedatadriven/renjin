@@ -162,9 +162,9 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void arraysNonZeroLowerBound() throws Exception {
     Class clazz = compile("lbound.f");
 
-    Method test = clazz.getMethod("test_", DoublePtr.class, IntPtr.class);
+    Method test = clazz.getMethod("test_", DoublePtr.class, int.class);
     DoublePtr x = new DoublePtr( 0,0,0,0  );
-    test.invoke(null, x, new IntPtr(4));
+    test.invoke(null, x, 4);
 
     assertThat(x.array[0], equalTo(1d*3d));
     assertThat(x.array[1], equalTo(2d*3d));
@@ -207,9 +207,9 @@ public class GimpleCompilerTest extends AbstractGccTest {
   @Test
   public void logicalToInt() throws Exception {
     Class clazz = compile("bool2int.f");
-    Method method = clazz.getMethod("test_", IntPtr.class, IntPtr.class);
+    Method method = clazz.getMethod("test_", int.class, IntPtr.class);
 
-    IntPtr x = new IntPtr(43);
+    int x = 43;
     IntPtr y = new IntPtr(0);
 
     method.invoke(null, x, y);
@@ -220,10 +220,10 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void switchStatement() throws Exception {
     Class clazz = compile("switch.c");
 
-    Method distance = clazz.getMethod("R_distance", IntPtr.class, int.class, int.class);
+    Method distance = clazz.getMethod("R_distance", int.class, int.class, int.class);
 
-    assertThat((Integer)distance.invoke(null, new IntPtr(1), 13, 14), equalTo(1));
-    assertThat((Integer) distance.invoke(null, new IntPtr(2), 3, 4), equalTo(-1));
+    assertThat((Integer)distance.invoke(null, 1, 13, 14), equalTo(1));
+    assertThat((Integer) distance.invoke(null, 2, 3, 4), equalTo(-1));
   }
 
   @Test
@@ -232,10 +232,10 @@ public class GimpleCompilerTest extends AbstractGccTest {
 
     clazz.getMethod("runtest_").invoke(null);
 
-    Method iftest = clazz.getMethod("iftest_", IntPtr.class, IntPtr.class);
+    Method iftest = clazz.getMethod("iftest_", int.class, IntPtr.class);
     IntPtr x = new IntPtr(0);
 
-    iftest.invoke(null, new IntPtr(12), x);
+    iftest.invoke(null, 12, x);
 
     assertThat(x.unwrap(), equalTo(1));
 
@@ -249,8 +249,6 @@ public class GimpleCompilerTest extends AbstractGccTest {
     assertThat((Integer)testMethod.invoke(null, 1, 0d), equalTo(0));
     assertThat((Integer) testMethod.invoke(null, 1, 3d), equalTo(41));
     assertThat((Integer)testMethod.invoke(null, -1, 3d), equalTo(0));
-
-
   }
 
   @Test
@@ -296,11 +294,11 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void fortran2darrays() throws Exception {
     Class clazz = compile("2darray.f");
 
-    Method method = clazz.getMethod("test_", DoublePtr.class, IntPtr.class);
+    Method method = clazz.getMethod("test_", DoublePtr.class, int.class);
     
     double[] x = new double[9];
 
-    method.invoke(null, new DoublePtr(x, 0), new IntPtr(3));
+    method.invoke(null, new DoublePtr(x, 0), 3);
     
     System.out.println(Arrays.toString(x));
     
@@ -432,14 +430,14 @@ public class GimpleCompilerTest extends AbstractGccTest {
 
 //       SUBROUTINE HCLUST(R, DMIN)
 
-    Method hclust = clazz.getMethod("hclust_", DoublePtr.class, DoublePtr.class);
+    Method hclust = clazz.getMethod("hclust_", double.class, DoublePtr.class);
     
-    DoublePtr r = new DoublePtr(43.4);
+    double r = 43.4;
     DoublePtr dmin = new DoublePtr(0);
     
     hclust.invoke(null, r, dmin);
     
-    assertThat(dmin.unwrap(), equalTo(r.unwrap()));
+    assertThat(dmin.unwrap(), equalTo(r));
 
   }
   
@@ -483,9 +481,9 @@ public class GimpleCompilerTest extends AbstractGccTest {
     assertThat((Double) dcabs.invoke(null, new double[]{1, 0}, 0), equalTo(1.0));
     assertThat((Double) dcabs.invoke(null, new double[]{0, 3}, 0), equalTo(3.0));
     
-    Method clast = clazz.getMethod("clast_", double[].class, int.class, IntPtr.class);
+    Method clast = clazz.getMethod("clast_", double[].class, int.class, int.class);
     double[] x = {1, 2, 3, 4, 5, 6};
-    IntPtr n = new IntPtr(3);
+    int n = 3;
     double[] last = (double[]) clast.invoke(null, x, 0, n);
     
     assertThat(last[0], equalTo(5.0));
@@ -547,9 +545,9 @@ public class GimpleCompilerTest extends AbstractGccTest {
     assertThat((Float) dcabs.invoke(null, new float[]{1, 0}, 0), equalTo(1f));
     assertThat((Float) dcabs.invoke(null, new float[]{0, 3}, 0), equalTo(3f));
 
-    Method clast = clazz.getMethod("clast_", float[].class, int.class, IntPtr.class);
+    Method clast = clazz.getMethod("clast_", float[].class, int.class, int.class);
     float[] x = {1, 2, 3, 4, 5, 6};
-    IntPtr n = new IntPtr(3);
+    int n = 3;
     float[] last = (float[]) clast.invoke(null, x, 0, n);
 
     assertThat(last[0], equalTo(5f));

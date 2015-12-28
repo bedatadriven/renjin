@@ -29,6 +29,10 @@ public class GimpleParameter {
     return type;
   }
 
+  public void setType(GimpleType type) {
+    this.type = type;
+  }
+
   public void setName(String name) {
     this.name = name;
   }
@@ -43,7 +47,8 @@ public class GimpleParameter {
 
   /**
    * 
-   * @return true if this parameter is addressed within the function. Set during the analysis phase.
+   * @return true if this parameter is addressed within the function. Updated
+   * by {@link org.renjin.gcc.analysis.AddressableFinder}
    */
   public boolean isAddressable() {
     return addressable;

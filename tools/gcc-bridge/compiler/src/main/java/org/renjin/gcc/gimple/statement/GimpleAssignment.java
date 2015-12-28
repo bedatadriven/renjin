@@ -38,6 +38,7 @@ public class GimpleAssignment extends GimpleStatement {
     return lhs;
   }
 
+  @Override
   public List<GimpleExpr> getOperands() {
     return operands;
   }

@@ -1,10 +1,13 @@
 package org.renjin.gcc.gimple.statement;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
+import org.renjin.gcc.gimple.GimpleBasicBlock;
 import org.renjin.gcc.gimple.GimpleVisitor;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleLValue;
@@ -33,12 +36,17 @@ import java.util.Set;
     @Type(value = GimpleBlock.class, name = "block")})
 public abstract class GimpleStatement {
 
+  
   public abstract void visit(GimpleVisitor visitor);
     
   public boolean lhsMatches(Predicate<? super GimpleLValue> predicate) {
     return false;
   }
-
+  
+  public List<GimpleExpr> getOperands() {
+    return Collections.emptyList();
+  }
+  
   /**
    * @return the set of {@code SymbolRef}s that are read by this statement
    */

@@ -15,10 +15,17 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 @State(Scope.Thread)
-@BenchmarkMode({ Mode.AverageTime, Mode.SingleShotTime })
+@BenchmarkMode({ Mode.SingleShotTime,  Mode.AverageTime })
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
 @Measurement(iterations = 5, time = 1, timeUnit = TimeUnit.MILLISECONDS)
-@Fork(value = 1, jvmArgsAppend = "-Djmh.stack.lines=3")
+@Fork(value = 1)
+//@Fork(value = 1, jvmArgsAppend = { 
+//    "-Djmh.stack.lines=3", 
+//    "-XX:+UnlockDiagnosticVMOptions", 
+//    "-XX:+TraceClassLoading",
+//    "-XX:+LogCompilation",
+//    "-XX:LogFile=kmeans.log",
+//    "-XX:+PrintAssembly"})
 public class KmeansBenchmark {
 
   double[] a;
@@ -77,10 +84,10 @@ public class KmeansBenchmark {
 
     org.renjin.gcc.kmns.kmns_(
         new DoublePtr(a),
-        new IntPtr(m),
-        new IntPtr(n),
+        m,
+        n,
         new DoublePtr(c),
-        new IntPtr(k),
+        k,
         new IntPtr(ic1),
         new IntPtr(ic2),
         new IntPtr(nc),
@@ -90,7 +97,7 @@ public class KmeansBenchmark {
         new DoublePtr(d),
         new IntPtr(itran),
         new IntPtr(live),
-        new IntPtr(iter),
+        iter,
         new DoublePtr(wss),
         new IntPtr(ifault));
 

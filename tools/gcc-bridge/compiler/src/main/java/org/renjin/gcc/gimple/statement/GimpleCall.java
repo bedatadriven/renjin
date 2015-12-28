@@ -1,5 +1,6 @@
 package org.renjin.gcc.gimple.statement;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
@@ -13,21 +14,19 @@ import java.util.List;
 public class GimpleCall extends GimpleStatement {
 
   private GimpleExpr function;
-  private List<GimpleExpr> arguments = Lists.newArrayList();
+  private List<GimpleExpr> operands = Lists.newArrayList();
   private GimpleLValue lhs;
 
   public GimpleExpr getFunction() {
     return function;
   }
 
-  public int getParamCount() {
-    return arguments.size();
+  @Override
+  @JsonProperty("arguments")
+  public List<GimpleExpr> getOperands() {
+    return operands;
   }
-
-  public List<GimpleExpr> getArguments() {
-    return arguments;
-  }
-
+  
   public GimpleLValue getLhs() {
     return lhs;
   }
@@ -44,7 +43,7 @@ public class GimpleCall extends GimpleStatement {
   public Integer getLineNumber() {
     if(lhs == null) {
       Integer max = null;
-      for (GimpleExpr argument : arguments) {
+      for (GimpleExpr argument : operands) {
         if(argument.getLine() != null) {
           return argument.getLine();
         }
@@ -53,7 +52,6 @@ public class GimpleCall extends GimpleStatement {
     } else {
       return lhs.getLine();
     }
-    
   }
 
   @Override
@@ -62,11 +60,11 @@ public class GimpleCall extends GimpleStatement {
       function = replacement;
       return true;
     }
-    for (int i = 0; i < arguments.size(); i++) {
-      if(predicate.apply(arguments.get(i))) {
-        arguments.set(i, replacement);
+    for (int i = 0; i < operands.size(); i++) {
+      if(predicate.apply(operands.get(i))) {
+        operands.set(i, replacement);
         return true;
-      } else if(arguments.get(i).replace(predicate, replacement)) {
+      } else if(operands.get(i).replace(predicate, replacement)) {
         return true;
       }
     }
@@ -76,7 +74,7 @@ public class GimpleCall extends GimpleStatement {
   @Override
   protected void findUses(Predicate<? super GimpleExpr> predicate, List<GimpleExpr> results) {
     function.findOrDescend(predicate, results);
-    for (GimpleExpr argument : arguments) {
+    for (GimpleExpr argument : operands) {
       argument.findOrDescend(predicate, results);
     }
     // if the lhs is a compound expression, such as
@@ -97,7 +95,7 @@ public class GimpleCall extends GimpleStatement {
     sb.append(lhs);
     sb.append(" = ");
     sb.append("gimple_call <").append(function).append(", ");
-    Joiner.on(", ").appendTo(sb, arguments);
+    Joiner.on(", ").appendTo(sb, operands);
     sb.append(">");
     return sb.toString();
   }
@@ -121,6 +119,6 @@ public class GimpleCall extends GimpleStatement {
     if(predicate.apply(lhs)) {
       lhs = (GimpleLValue) newExpr;
     }
-    replaceAll(predicate, arguments, newExpr);
+    replaceAll(predicate, operands, newExpr);
   }
 }

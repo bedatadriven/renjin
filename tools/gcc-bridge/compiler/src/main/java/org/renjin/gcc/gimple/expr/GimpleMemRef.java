@@ -16,6 +16,7 @@ public class GimpleMemRef extends GimpleLValue {
     this.pointer = pointer;
     this.offset = new GimpleIntegerConstant();
     this.offset.setType(pointer.getType());
+    setType(pointer.getType().getBaseType());
   }
 
   public GimpleExpr getPointer() {

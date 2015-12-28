@@ -7,6 +7,7 @@ import com.google.common.collect.Lists;
 import org.renjin.gcc.gimple.GimpleVisitor;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -95,6 +96,11 @@ public class GimpleSwitch extends GimpleStatement {
     this.value = value;
   }
 
+  @Override
+  public List<GimpleExpr> getOperands() {
+    return Collections.singletonList(value);
+  }
+  
   @Override
   protected void findUses(Predicate<? super GimpleExpr> predicate, List<GimpleExpr> results) {
     value.findOrDescend(predicate, results);

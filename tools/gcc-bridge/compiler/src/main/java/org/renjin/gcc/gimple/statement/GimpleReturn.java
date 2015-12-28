@@ -4,6 +4,7 @@ import com.google.common.base.Predicate;
 import org.renjin.gcc.gimple.GimpleVisitor;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 
+import java.util.Collections;
 import java.util.List;
 
 public class GimpleReturn extends GimpleStatement {
@@ -22,6 +23,15 @@ public class GimpleReturn extends GimpleStatement {
 
   public GimpleExpr getValue() {
     return value;
+  }
+
+  @Override
+  public List<GimpleExpr> getOperands() {
+    if(value == null) {
+      return Collections.emptyList();
+    } else {
+      return Collections.singletonList(value);
+    }
   }
 
   @Override

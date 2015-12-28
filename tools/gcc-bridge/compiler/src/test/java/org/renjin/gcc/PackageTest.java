@@ -26,9 +26,9 @@ public class PackageTest extends AbstractGccTest {
     // x <- rnorm(20)
     // ash1(bin1(x,nbin=10),5)
     
-    IntPtr m = new IntPtr(5);
+    int m = 5;
     IntPtr nc = new IntPtr( 1, 1, 2, 1, 3, 2, 4, 2, 3, 1);
-    IntPtr nbin = new IntPtr(10);
+    int nbin = 10;
     DoublePtr ab = new DoublePtr( -2.347650,  1.912399);
     IntPtr kopt = new IntPtr(2, 2);
     DoublePtr t = new DoublePtr(0, 0, 0, 0, 0, 0, 0, 0, 0, 0);

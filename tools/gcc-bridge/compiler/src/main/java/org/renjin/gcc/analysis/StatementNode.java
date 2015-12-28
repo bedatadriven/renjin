@@ -118,6 +118,10 @@ public class StatementNode {
         case MEM_REF:
         case ADDR_EXPR:
           // Can only unwrap if casting is not required
+          assert assignment.getLHS() != null;
+          assert assignment.getOperands().get(0) != null;
+          assert assignment.getOperands().get(0).getType() != null : "missing type: " + assignment.getOperands().get(0);
+          assert assignment.getLHS().getType() != null;
           if (assignment.getOperands().get(0).getType().equals(assignment.getLHS().getType())) {
             return assignment.getOperands().get(0);
           }

@@ -15,10 +15,10 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 @State(Scope.Thread)
-@BenchmarkMode({ Mode.SingleShotTime,  Mode.AverageTime })
+@BenchmarkMode({ Mode.AverageTime, Mode.SingleShotTime })
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
-@Measurement(iterations = 5, time = 1, timeUnit = TimeUnit.MILLISECONDS)
-@Fork(value = 1)
+@Measurement(iterations = 1, time = 1, timeUnit = TimeUnit.MILLISECONDS)
+@Fork(value = 2)
 //@Fork(value = 1, jvmArgsAppend = { 
 //    "-Djmh.stack.lines=3", 
 //    "-XX:+UnlockDiagnosticVMOptions", 

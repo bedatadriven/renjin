@@ -85,8 +85,14 @@ public class FunctionGenerator {
       emitBasicBlock(basicBlock);
     }
     mv.visitLabel(endLabel);
-    localVarAllocator.emitDebugging(mv, beginLabel, endLabel);
-    
+
+    // Javac does not like our variable table
+    // https://bugs.openjdk.java.net/browse/JDK-8132697
+    // Bug is somewhere in ClassReader.java
+    // http://hg.openjdk.java.net/jdk8u/jdk8u/langtools/file/78f0aa619915/src/share/classes/com/sun/tools/javac/jvm/ClassReader.java
+
+    // localVarAllocator.emitDebugging(mv, beginLabel, endLabel);
+
     mv.visitMaxs(1, 1);
     mv.visitEnd();
   }

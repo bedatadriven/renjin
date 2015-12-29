@@ -663,7 +663,8 @@ public class GimpleCompilerTest extends AbstractGccTest {
 
     assertThat(message.nullTerminatedString(), equalTo("Hello Bob, you have 99 messages"));
   }
-  
+
+  @Ignore
   @Test
   public void ctypes() throws Exception {
     Class clazz = compile("ctype.c");

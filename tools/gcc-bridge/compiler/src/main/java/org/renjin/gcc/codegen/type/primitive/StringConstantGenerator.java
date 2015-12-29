@@ -49,6 +49,8 @@ public class StringConstantGenerator extends AbstractExprGenerator {
     PrimitiveConstGenerator.emitInt(mv, firstChar);
   }
 
+  
+  
   @Override
   public void emitPushArray(MethodVisitor mv) {
     mv.visitLdcInsn(constantExpr.getValue());

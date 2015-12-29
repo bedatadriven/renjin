@@ -18,9 +18,9 @@ C
       INTEGER IC1(M), IC2(M), NC(K), NCP(K), ITRAN(K), LIVE(K)
       DOUBLE PRECISION A(M,N), D(M), C(K,N), AN1(K), AN2(K), WSS(K)
 C
-      DOUBLE PRECISION DT(2), ZERO, ONE
-      INTEGER I,IL,J,L,INDX,IJ,II
-      DOUBLE PRECISION BIG, DA, TEMP, DB, DC,AA
+      DOUBLE PRECISION ZERO, ONE
+      INTEGER I,J,L,INDX,IJ,II
+      DOUBLE PRECISION BIG,AA
 C
 C     Define BIG to be a very large positive number
 C
@@ -29,42 +29,7 @@ C
       IFAULT = 3
       IF (K .LE. 1 .OR. K .GE. M) RETURN
       IFAULT = 0
-C
-C     For each point I, find its two closest centres, IC1(I) and
-C     IC2(I).     Assign it to IC1(I).
-C
-      DO 50 I = 1, M
-        IC1(I) = 1
-        IC2(I) = 2
-        DO 10 IL = 1, 2
-          DT(IL) = ZERO
-          DO 10 J = 1, N
-            DA = A(I,J) - C(IL,J)
-            DT(IL) = DT(IL) + DA*DA
-   10   CONTINUE
-        IF (DT(1) .GT. DT(2)) THEN
-          IC1(I) = 2
-          IC2(I) = 1
-          TEMP = DT(1)
-          DT(1) = DT(2)
-          DT(2) = TEMP
-        END IF
-        DO 50 L = 3, K
-          DB = ZERO
-          DO 30 J = 1, N
-            DC = A(I,J) - C(L,J)
-            DB = DB + DC*DC
-            IF (DB .GE. DT(2)) GO TO 50
-   30     CONTINUE
-          IF (DB .LT. DT(1)) GO TO 40
-          DT(2) = DB
-          IC2(I) = L
-          GO TO 50
-   40     DT(2) = DT(1)
-          IC2(I) = IC1(I)
-          DT(1) = DB
-          IC1(I) = L
-   50 CONTINUE
+   50 CALL CLASSIGN(A, M, N, K, C, IC1, IC2 )
 C
 C     Update cluster centres to be the average of points contained
 C     within them.
@@ -149,6 +114,74 @@ C
 C
 C     Compute within-cluster sum of squares for each cluster.
 C
+  150 CALL CALCWSS(N, M, K, A, C, IC1, NC, WSS) 
+C
+      RETURN
+      END
+C
+C
+
+      SUBROUTINE CLASSIGN(A, M, N, K, C, IC1, IC2 )
+      INTEGER M,N,K
+      INTEGER IC1(M), IC2(M)
+      DOUBLE PRECISION A(M,N), C(K,N)
+C
+      DOUBLE PRECISION DT(2), ZERO
+      INTEGER I,IL,J,L
+      DOUBLE PRECISION DA, TEMP, DB, DC
+
+      DATA ZERO /0.0/
+
+C
+C     For each point I, find its two closest centres, IC1(I) and
+C     IC2(I).     Assign it to IC1(I).
+C
+      DO 50 I = 1, M
+        IC1(I) = 1
+        IC2(I) = 2
+        DO 10 IL = 1, 2
+          DT(IL) = ZERO
+          DO 10 J = 1, N
+            DA = A(I,J) - C(IL,J)
+            DT(IL) = DT(IL) + DA*DA
+   10   CONTINUE
+        IF (DT(1) .GT. DT(2)) THEN
+          IC1(I) = 2
+          IC2(I) = 1
+          TEMP = DT(1)
+          DT(1) = DT(2)
+          DT(2) = TEMP
+        END IF
+        DO 50 L = 3, K
+          DB = ZERO
+          DO 30 J = 1, N
+            DC = A(I,J) - C(L,J)
+            DB = DB + DC*DC
+            IF (DB .GE. DT(2)) GO TO 50
+   30     CONTINUE
+          IF (DB .LT. DT(1)) GO TO 40
+          DT(2) = DB
+          IC2(I) = L
+          GO TO 50
+   40     DT(2) = DT(1)
+          IC2(I) = IC1(I)
+          DT(1) = DB
+          IC1(I) = L
+   50 CONTINUE
+      RETURN
+      END
+      
+      SUBROUTINE CALCWSS(N, M, K, A, C, IC1, NC, WSS) 
+      INTEGER M,N,K
+      INTEGER IC1(M), NC(K)
+      DOUBLE PRECISION A(M,N), C(K,N), WSS(K)
+C
+      DOUBLE PRECISION ZERO
+      INTEGER I,J,L
+      DOUBLE PRECISION DA
+
+      DATA ZERO /0.0/
+      
   150 DO 160 L = 1, K
         WSS(L) = ZERO
         DO 160 J = 1, N
@@ -167,11 +200,11 @@ C
           DA = A(I,J) - C(II,J)
           WSS(II) = WSS(II) + DA*DA
   190 CONTINUE
-C
+      
       RETURN
       END
-C
-C
+      
+
       SUBROUTINE OPTRA(A, M, N, C, K, IC1, IC2, NC, AN1, AN2, NCP, D,
      *      ITRAN, LIVE, INDX)
 C

@@ -15,17 +15,16 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 @State(Scope.Thread)
-@BenchmarkMode({ Mode.AverageTime, Mode.SingleShotTime })
+@BenchmarkMode({  Mode.AverageTime })
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
-@Measurement(iterations = 1, time = 1, timeUnit = TimeUnit.MILLISECONDS)
-@Fork(value = 2)
-//@Fork(value = 1, jvmArgsAppend = { 
-//    "-Djmh.stack.lines=3", 
-//    "-XX:+UnlockDiagnosticVMOptions", 
-//    "-XX:+TraceClassLoading",
-//    "-XX:+LogCompilation",
-//    "-XX:LogFile=kmeans.log",
-//    "-XX:+PrintAssembly"})
+@Measurement(iterations = 5, time = 1, timeUnit = TimeUnit.MILLISECONDS)
+@Fork(value = 1, jvmArgsAppend = {
+    "-XX:+UnlockDiagnosticVMOptions",
+    "-XX:+TraceClassLoading",
+    "-XX:+LogCompilation",
+    "-XX:LogFile=kmeans.log",
+    "-XX:+PrintAssembly"})
+//@Fork(value = 1)
 public class KmeansBenchmark {
 
   double[] a;
@@ -47,7 +46,7 @@ public class KmeansBenchmark {
   int ifault[];
   
   
-  @Setup
+  @Setup(Level.Invocation)
   public void prepare() {
     a = new double[m * n];
     int ai = 0;
@@ -80,8 +79,8 @@ public class KmeansBenchmark {
   }
 
   @Benchmark
-  public int benchmark() {
-
+  public double[] benchmark() {
+    
     org.renjin.gcc.kmns.kmns_(
         new DoublePtr(a),
         m,
@@ -100,8 +99,8 @@ public class KmeansBenchmark {
         iter,
         new DoublePtr(wss),
         new IntPtr(ifault));
-
-    return ic1[0];
+    
+    return wss;
   }
 
   public static void main(String[] args) throws RunnerException {

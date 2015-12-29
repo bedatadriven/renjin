@@ -52,6 +52,9 @@ public class GimpleAssignment extends GimpleStatement {
     sb.append("gimple_assign<").append(operator).append(", ").append(lhs).append(", ");
     Joiner.on(", ").appendTo(sb, operands);
     sb.append(">");
+    if(getLineNumber() != null) {
+      sb.append("  #").append(getLineNumber());
+    }
     return sb.toString();
   }
 
@@ -65,11 +68,6 @@ public class GimpleAssignment extends GimpleStatement {
     return predicate.apply(lhs);
   }
 
-
-  @Override
-  public Integer getLineNumber() {
-    return lhs.getLine();
-  }
 
   @Override
   protected void findUses(Predicate<? super GimpleExpr> predicate, List<GimpleExpr> results) {

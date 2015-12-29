@@ -492,10 +492,6 @@ static void dump_op(tree op) {
 
     json_start_object();
     json_string_field("code", tree_code_name[TREE_CODE(op)]);
-   
-    if(EXPR_LINENO(op) < MAX_LINE_NUMBER) {
-      json_int_field("line", EXPR_LINENO(op));
-    }
     
     json_field("type");
     dump_type(TREE_TYPE(op));
@@ -625,8 +621,10 @@ static void dump_ops(gimple stmt) {
 static void dump_assignment(gimple stmt) {
   json_start_object();
   json_string_field("type", "assign");
+  json_int_field("line", gimple_lineno(stmt));
 
   json_string_field("operator", tree_code_name[gimple_assign_rhs_code(stmt)]);
+
 
   json_field("lhs");
   dump_op(gimple_assign_lhs(stmt));
@@ -647,6 +645,8 @@ static void dump_cond(basic_block bb, gimple stmt) {
 
   json_start_object();
   json_string_field("type", "conditional");
+  json_int_field("line", gimple_lineno(stmt));
+
   json_string_field("operator", tree_code_name[gimple_assign_rhs_code(stmt)]);
   
   dump_ops(stmt);
@@ -662,13 +662,16 @@ static void dump_cond(basic_block bb, gimple stmt) {
 static void dump_nop(gimple stmt) {
   json_start_object();
   json_string_field("type", "nop");
+  json_int_field("line", gimple_lineno(stmt));
+
   json_end_object();
 }
 
 static void dump_return(gimple stmt) {
   json_start_object();
   json_string_field("type", "return");
-  
+  json_int_field("line", gimple_lineno(stmt));
+
   tree retval = gimple_return_retval(stmt);
   if(retval) {
     json_field("value");
@@ -680,6 +683,8 @@ static void dump_return(gimple stmt) {
 static void dump_call(gimple stmt) {
   json_start_object();
   json_string_field("type", "call");
+  json_int_field("line", gimple_lineno(stmt));
+
   
   json_field("lhs");
   dump_op(gimple_call_lhs(stmt));
@@ -706,6 +711,8 @@ static void dump_switch(gimple stmt) {
   int num_ops = gimple_num_ops(stmt);
   
   json_string_field("type", "switch");
+  json_int_field("line", gimple_lineno(stmt));
+
   
   json_field("value");
   dump_op(gimple_op(stmt, 0));
@@ -762,6 +769,8 @@ static void dump_statement(basic_block bb, gimple stmt) {
     // predicted unlikely by continue predictor
     return;
   }
+
+  
 
   switch(gimple_code(stmt)) {
   case GIMPLE_ASSIGN:

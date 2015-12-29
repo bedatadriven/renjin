@@ -38,21 +38,7 @@ public class GimpleCall extends GimpleStatement {
   public void setLhs(GimpleLValue lhs) {
     this.lhs = lhs;
   }
-
-  @Override
-  public Integer getLineNumber() {
-    if(lhs == null) {
-      Integer max = null;
-      for (GimpleExpr argument : operands) {
-        if(argument.getLine() != null) {
-          return argument.getLine();
-        }
-      }
-      return max;
-    } else {
-      return lhs.getLine();
-    }
-  }
+  
 
   @Override
   public boolean replace(Predicate<? super GimpleExpr> predicate, GimpleExpr replacement) {

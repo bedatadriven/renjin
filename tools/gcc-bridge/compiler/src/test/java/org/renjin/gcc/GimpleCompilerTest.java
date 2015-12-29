@@ -652,6 +652,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
     assertThat(result, equalTo(1));
   }
   
+  @Ignore
   @Test
   public void varArgsCalls() throws Exception {
     Class clazz = compile("varargs.c");

@@ -18,3 +18,8 @@ static int test() {
 double sum_x(point *p1, point *p2) {
   return p1->x + p2->x;
 }
+
+extern int dummy1() {
+  test();
+  get_unit_number();
+}

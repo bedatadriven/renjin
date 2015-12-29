@@ -28,3 +28,8 @@ extern double test_points() {
   b.x = 1;
   return sum_x(&a, &b);
 }
+
+extern int dummy2() {
+  test();
+  get_unit_number();
+}

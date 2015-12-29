@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 // Creates a "jagged" matrix,
-static double **cmatrix(double *data, int nrow, int ncol) {
+double **cmatrix(double *data, int nrow, int ncol) {
 
   int i,j;
   double **pointer;
@@ -24,11 +24,11 @@ static double **cmatrix(double *data, int nrow, int ncol) {
   return(pointer);
 }
 
-static double* get_at(double **matrix, int row, int col) {
+double* get_at(double **matrix, int row, int col) {
   return &matrix[row][col];
 }
 
-static double sum_second_col(double *data, int nrow, int ncol) {
+double sum_second_col(double *data, int nrow, int ncol) {
   double ** matrix = cmatrix(data, nrow, ncol);
   
   int i;

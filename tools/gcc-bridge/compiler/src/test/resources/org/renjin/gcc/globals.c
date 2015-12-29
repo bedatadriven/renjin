@@ -10,7 +10,7 @@ static int my_mutable_global;
 
 static int my_addressable_global;
 
-static int magic_number() {
+int magic_number() {
     return my_global;
 }
 

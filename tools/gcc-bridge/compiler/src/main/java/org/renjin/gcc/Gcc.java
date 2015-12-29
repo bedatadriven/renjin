@@ -79,6 +79,7 @@ public class Gcc {
 
     arguments.add("-c"); // compile only, do not link
     arguments.add("-S"); // stop at assembly generation
+    arguments.add("-O3"); // aggressive optimization
     arguments.addAll(Arrays.asList(compilerFlags));
     // command.add("-O9"); // highest optimization
 

@@ -8,7 +8,10 @@ import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleStringConstant;
-import org.renjin.gcc.gimple.type.*;
+import org.renjin.gcc.gimple.type.GimpleArrayType;
+import org.renjin.gcc.gimple.type.GimpleIntegerType;
+import org.renjin.gcc.gimple.type.GimplePointerType;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.runtime.BytePtr;
 
 /**
@@ -18,13 +21,11 @@ import org.renjin.gcc.runtime.BytePtr;
 public class StringConstantGenerator extends AbstractExprGenerator {
 
   private final GimpleStringConstant constantExpr;
-  private final GimplePrimitiveType type;
-  private final GimpleArrayType arrayType;
+  private final GimpleArrayType type;
 
   public StringConstantGenerator(GimpleExpr value) {
     this.constantExpr = (GimpleStringConstant) value;
-    arrayType = constantExpr.getType();
-    this.type = (GimplePrimitiveType) arrayType.getComponentType();
+    this.type = constantExpr.getType();
   }
 
   @Override
@@ -75,7 +76,7 @@ public class StringConstantGenerator extends AbstractExprGenerator {
 
     @Override
     public ExprGenerator addressOf() {
-      if(indexGenerator.isConstantIntEqualTo(arrayType.getLbound())) {
+      if(indexGenerator.isConstantIntEqualTo(type.getLbound())) {
         return new AddressOf();
       } else {
         return new AddressOffset(indexGenerator);

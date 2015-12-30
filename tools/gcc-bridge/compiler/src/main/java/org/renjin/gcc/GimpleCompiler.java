@@ -24,6 +24,7 @@ import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 /**
  * Compiles a set of {@link GimpleCompilationUnit}s to bytecode
@@ -65,6 +66,7 @@ public class GimpleCompiler  {
     functionBodyTransformers.add(AddressableFinder.INSTANCE);
     functionBodyTransformers.add(ResultDeclRewriter.INSTANCE);
     functionBodyTransformers.add(LocalVariableInitializer.INSTANCE);
+ //   functionBodyTransformers.add(TreeBuilder.INSTANCE);
     globalSymbolTable = new GlobalSymbolTable(typeOracle);
     globalSymbolTable.addDefaults();
   }

@@ -11,7 +11,6 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
 
-import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 @State(Scope.Thread)
@@ -80,13 +79,13 @@ public class KmeansBenchmark {
 
   @Benchmark
   public double[] benchmark() {
-    
+
     org.renjin.gcc.kmns.kmns_(
         new DoublePtr(a),
-        m,
-        n,
+        new IntPtr(m),
+        new IntPtr(n),
         new DoublePtr(c),
-        k,
+        new IntPtr(k),
         new IntPtr(ic1),
         new IntPtr(ic2),
         new IntPtr(nc),
@@ -96,7 +95,7 @@ public class KmeansBenchmark {
         new DoublePtr(d),
         new IntPtr(itran),
         new IntPtr(live),
-        iter,
+        new IntPtr(iter),
         new DoublePtr(wss),
         new IntPtr(ifault));
     

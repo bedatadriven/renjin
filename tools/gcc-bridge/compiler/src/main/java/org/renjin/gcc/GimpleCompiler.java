@@ -244,10 +244,10 @@ public class GimpleCompiler  {
 
   private void transform(List<GimpleCompilationUnit> units) {
 
-    CallGraph callGraph = new CallGraph(units);
-    
-    Depointerizer depointerizer = new Depointerizer(callGraph);
-    depointerizer.run();
+//    CallGraph callGraph = new CallGraph(units);
+//    
+//    Depointerizer depointerizer = new Depointerizer(callGraph);
+//    depointerizer.run();
 
     for (GimpleCompilationUnit unit : units) {
       if(TRACE) {

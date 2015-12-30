@@ -78,10 +78,6 @@ public class Native {
         nativeArguments[i] = doublePtrFromVector(callArguments.get(i));
       } else if(type.equals(ObjectPtr.class)) {
         nativeArguments[i] = stringPtrToCharPtrPtr(callArguments.get(i));
-      } else if(type.equals(int.class)) {
-        nativeArguments[i] = intFromVector(callArguments.get(i));
-      } else if(type.equals(double.class)) {
-        nativeArguments[i] = doubleFromVector(callArguments.get(i));
       } else {
         throw new EvalException("Don't know how to marshall type " + callArguments.get(i).getClass().getName() +
                 " to for C argument " +  type + " in call to " + method);
@@ -107,26 +103,6 @@ public class Native {
               callArguments.get(i).getAttributes()));
     }
     return builder.build();
-  }
-
-  private static int intFromVector(SEXP sexp) {
-    if(sexp instanceof AtomicVector) {
-      if(sexp.length() < 1) {
-        throw new EvalException("Expected integer vector with at least one element");
-      }
-      return ((AtomicVector) sexp).getElementAsInt(0);
-    }
-    throw new EvalException("Expected integer, found: " + sexp.getTypeName());
-  }
-
-  private static double doubleFromVector(SEXP sexp) {
-    if(sexp instanceof AtomicVector) {
-      if(sexp.length() < 1) {
-        throw new EvalException("Expected numeric vector with at least one element");
-      }
-      return ((AtomicVector) sexp).getElementAsDouble(0);
-    }
-    throw new EvalException("Expected numeric, found: " + sexp.getTypeName());
   }
 
   /**
@@ -258,16 +234,6 @@ public class Native {
         fortranArgs[i] = new IntPtr(array, 0);
         returnValues.add(callArguments.getName(i), IntArrayVector.unsafe(array, vector.getAttributes()));
 
-      } else if(fortranTypes[i].equals(int.class)) {
-        int scalar = vector.getElementAsInt(0);
-        fortranArgs[i] = scalar;
-        returnValues.add(new IntArrayVector(scalar));
-
-      } else if(fortranTypes[i].equals(double.class)) {
-        double scalar = vector.getElementAsDouble(0);
-        fortranArgs[i] = scalar;
-        returnValues.add(new DoubleArrayVector(scalar));
-        
       } else if(fortranTypes[i].equals(BooleanPtr.class)) {
         boolean[] array = toBooleanArray(vector);
         fortranArgs[i] = new BooleanPtr(array);

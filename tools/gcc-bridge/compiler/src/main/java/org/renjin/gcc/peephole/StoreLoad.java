@@ -24,6 +24,10 @@ public class StoreLoad implements PeepholeOptimization {
         if(countLoads(it.getList(), store.var) == 1) {
           it.remove(2);
           return true; 
+        } else {
+          // if we can't completely remove the instruction pair, then at least eliminate the load 
+          // instruction by preceding the 
+          
         }
       }
     }

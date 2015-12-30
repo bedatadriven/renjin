@@ -4,7 +4,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.tree.AbstractInsnNode;
-import org.objectweb.asm.tree.InsnList;
 import org.objectweb.asm.tree.JumpInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.util.Textifier;
@@ -28,7 +27,7 @@ public class PeepholeOptimizer {
 
   public PeepholeOptimizer() {
     optimizations.add(new StoreLoad());
-  //  optimizations.add(new LoadLoad());
+    optimizations.add(new LoadLoad());
     optimizations.add(new IntegerIncrement());
   }
 

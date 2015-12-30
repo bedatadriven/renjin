@@ -7,6 +7,7 @@ import org.objectweb.asm.tree.VarInsnNode;
 
 /**
  * Replaces two consecutive LOAD instructions with a LOAD, DUP pair
+ * 
  */
 public class LoadLoad implements PeepholeOptimization {
   @Override
@@ -26,9 +27,9 @@ public class LoadLoad implements PeepholeOptimization {
     switch (load.getOpcode()) {
       case Opcodes.DLOAD:
       case Opcodes.LLOAD:
-        return new InsnNode(Opcodes.DUP);
-      default:
         return new InsnNode(Opcodes.DUP2);
+      default:
+        return new InsnNode(Opcodes.DUP);
     }
   }
 }

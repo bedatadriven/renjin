@@ -94,18 +94,7 @@ public class ExprFactory {
         ExprGenerator value = findGenerator(addressOf.getValue());
         return value.addressOf();
       }
-
-    } else if(expr instanceof GimpleOpExpr) {
-      // This is an artificial node we introduce during analysis to produce
-      // code better suited to a stack-based interpreter
-      GimpleOpExpr opExpr = (GimpleOpExpr) expr;
-      return findGenerator(opExpr.getOp(), opExpr.getOperands(), opExpr.getType());
-
-    } else if(expr instanceof GimpleCallExpr) {
-      // Another artificial node for nested calls
-      GimpleCallExpr callExpr = (GimpleCallExpr) expr;
-      return findCallExpression(callExpr.getType(), callExpr.getFunction(), callExpr.getArguments());
-
+      
     } else if(expr instanceof GimpleMemRef) {
       ExprGenerator pointerExpr = findGenerator(((GimpleMemRef) expr).getPointer());
       ExprGenerator offsetExpr = findGenerator(((GimpleMemRef) expr).getOffset());
@@ -165,12 +154,6 @@ public class ExprFactory {
       GimpleAddressOf address = (GimpleAddressOf) functionExpr;
       throw new UnsupportedOperationException("function ref: " + address.getValue() +
           " [" + address.getValue().getClass().getSimpleName() + "]");
-
-    } else if(functionExpr instanceof GimpleOpExpr) {
-      GimpleOp op = ((GimpleOpExpr) functionExpr).getOp();
-      if(op == GimpleOp.VAR_DECL || op == GimpleOp.NOP_EXPR) {
-        return findCallGenerator(((GimpleOpExpr) functionExpr).getOperands().get(0));
-      }
     }
 
     // Assume this is a funciton ptr expression  

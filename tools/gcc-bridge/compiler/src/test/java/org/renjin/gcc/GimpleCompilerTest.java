@@ -249,9 +249,22 @@ public class GimpleCompilerTest extends AbstractGccTest {
     assertThat((Integer)testMethod.invoke(null, 1, 0d), equalTo(0));
     assertThat((Integer) testMethod.invoke(null, 1, 3d), equalTo(41));
     assertThat((Integer)testMethod.invoke(null, -1, 3d), equalTo(0));
-
-
   }
+
+  @Test
+  public void logicalOr() throws Exception {
+    Class clazz = compile("or.f");
+    Method testMethod = clazz.getMethod("stlest_", IntPtr.class, IntPtr.class, DoublePtr.class);
+
+    DoublePtr result = new DoublePtr(0);
+    
+    testMethod.invoke(null, new IntPtr(41), new IntPtr(42), result);
+    assertThat(result.unwrap(), equalTo(42.0));
+
+    testMethod.invoke(null, new IntPtr(49), new IntPtr(42), result);
+    assertThat(result.unwrap(), equalTo(49.0));
+  }
+
 
   @Test
   public void chars() throws Exception {

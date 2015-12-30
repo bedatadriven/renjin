@@ -42,7 +42,6 @@ public class LogicalOrGenerator extends AbstractExprGenerator {
     jumpIfTrue(mv, trueLabel);
     
     // FALSE: emit 0
-    mv.visitLabel(trueLabel);
     mv.visitInsn(Opcodes.ICONST_0);
     mv.visitJumpInsn(Opcodes.GOTO, exitLabel);
     

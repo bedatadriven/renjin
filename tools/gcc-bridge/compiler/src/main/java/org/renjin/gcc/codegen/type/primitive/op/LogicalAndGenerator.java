@@ -41,7 +41,6 @@ public class LogicalAndGenerator extends AbstractExprGenerator {
     jumpIfFalse(mv, falseLabel);
     
     // TRUE: emit 1
-    mv.visitLabel(falseLabel);
     mv.visitInsn(Opcodes.ICONST_1);
     mv.visitJumpInsn(Opcodes.GOTO, exitLabel);
     

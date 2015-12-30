@@ -17,6 +17,7 @@ import org.renjin.gcc.codegen.var.Var;
 import org.renjin.gcc.gimple.*;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.statement.*;
+import org.renjin.gcc.peephole.PeepholeOptimizer;
 import org.renjin.gcc.symbols.LocalVariableTable;
 import org.renjin.gcc.symbols.UnitSymbolTable;
 
@@ -100,9 +101,10 @@ public class FunctionGenerator {
     mv.visitMaxs(1, 1);
     mv.visitEnd();
 
-
-
-    //PeepholeOptimizer.INSTANCE.optimize(methodNode);
+    // Reduce the size of the bytecode by applying simple optimizations
+    PeepholeOptimizer.INSTANCE.optimize(methodNode);
+    
+    
     methodNode.accept(cw);
 
 

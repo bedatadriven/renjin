@@ -58,7 +58,7 @@ public class PeepholeOptimizer {
       AbstractInsnNode node = it.next();
       if(node instanceof JumpInsnNode) {
         JumpInsnNode jumpNode = (JumpInsnNode) node;
-        targets.add(((JumpInsnNode) node).label.getLabel());
+        targets.add(jumpNode.label.getLabel());
       }
     }
     return targets;

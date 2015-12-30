@@ -122,7 +122,6 @@ public class GimpleCompilerTest extends AbstractGccTest {
     double sum = (Double)sum_second_col.invoke(null, array, 2, 5);
     
     assertThat(sum, equalTo(9d));
-    
   }
 
   @Test
@@ -652,7 +651,6 @@ public class GimpleCompilerTest extends AbstractGccTest {
     assertThat(result, equalTo(1));
   }
   
-  @Ignore
   @Test
   public void varArgsCalls() throws Exception {
     Class clazz = compile("varargs.c");

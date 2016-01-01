@@ -45,7 +45,6 @@
     <module>dist/generic</module>
     <module>dist/deb</module>
     <module>appl</module>
-    <module>dist/webstart</module>
     <module>math</module>
   </modules>
 

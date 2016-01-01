@@ -5,7 +5,6 @@ import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.InsnList;
 import org.objectweb.asm.tree.LabelNode;
 import org.objectweb.asm.tree.LineNumberNode;
-import org.objectweb.asm.util.Textifier;
 
 import java.util.Set;
 
@@ -13,7 +12,7 @@ import java.util.Set;
  * Iterator over instruction nodes. 
  */
 public class NodeIt {
-  
+
   private InsnList list;
   private Set<Label> jumpTargets;
   private AbstractInsnNode current;
@@ -22,13 +21,13 @@ public class NodeIt {
     this.list = list;
     this.jumpTargets = jumpTargets;
     this.current = list.getFirst();
-    
+
     if(current == null) {
       throw new IllegalStateException("Empty instruction list");
     }
   }
 
-  
+
   public boolean matches(Pattern... patterns) {
     AbstractInsnNode node = current;
     for (Pattern pattern : patterns) {
@@ -62,10 +61,10 @@ public class NodeIt {
 
   /**
    * Removes the given {@code count} of instructions, starting with the current instruction pointer.
-   * 
+   *
    * <p>After removal, the current instruction is set to the node before the previously current instruction,
    * or the beginning of the list if the iterator was the first element of the list.</p>
-   * 
+   *
    * @param count the number of instructions to delete
    */
   public void remove(int count) {
@@ -77,33 +76,30 @@ public class NodeIt {
     }
     AbstractInsnNode deleting = current;
     current = current.getPrevious();
-    
+
     while(count > 0) {
       AbstractInsnNode next = deleting.getNext();
       if(!ignored(deleting)) {
-        System.out.println("REMOVING " + Textifier.OPCODES[deleting.getOpcode()]);
-            list.remove(deleting);
+        list.remove(deleting);
         count--;
-      } else {
-        System.out.println("SKIPPING " + deleting);
       }
       deleting = next;
     }
-    
+
     if(current == null) {
       current = list.getFirst();
     }
   }
-  
+
   public void replace(int offset, AbstractInsnNode node) {
     list.set(get(offset), node);
   }
 
   /**
    * Inserts a new instruction after the current position. 
-   * 
+   *
    * <p>Does not change the current instruction pointer.</p>
-   * 
+   *
    * @param node the node to insert
    */
   public void insert(AbstractInsnNode... nodes) {
@@ -116,7 +112,7 @@ public class NodeIt {
 
   public boolean next() {
     current = nextIgnoringLabels(current);
-    
+
     return (current != null);
   }
 
@@ -140,11 +136,11 @@ public class NodeIt {
       // this is a target of a jump instruction, which we can't delete
       LabelNode labelNode = (LabelNode) node;
       return !jumpTargets.contains(labelNode.getLabel());
-    } 
+    }
     if(node instanceof LineNumberNode) {
       return true;
     }
-    
+
     return false;
   }
 }

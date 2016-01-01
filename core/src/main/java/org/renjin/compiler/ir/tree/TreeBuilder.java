@@ -1,27 +1,18 @@
 package org.renjin.compiler.ir.tree;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.renjin.compiler.cfg.BasicBlock;
-import org.renjin.compiler.ir.tac.expressions.DynamicCall;
-import org.renjin.compiler.ir.tac.expressions.ElementAccess;
-import org.renjin.compiler.ir.tac.expressions.Expression;
-import org.renjin.compiler.ir.tac.expressions.LValue;
-import org.renjin.compiler.ir.tac.expressions.MakeClosure;
-import org.renjin.compiler.ir.tac.expressions.PrimitiveCall;
-import org.renjin.compiler.ir.tac.expressions.SimpleExpression;
-import org.renjin.compiler.ir.tac.expressions.Temp;
-import org.renjin.compiler.ir.tac.expressions.Variable;
-import org.renjin.compiler.ir.tac.statements.Assignment;
-import org.renjin.compiler.ir.tac.statements.Statement;
-
-
-
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import org.renjin.compiler.cfg.BasicBlock;
+import org.renjin.compiler.ir.tac.expressions.Expression;
+import org.renjin.compiler.ir.tac.expressions.LValue;
+import org.renjin.compiler.ir.tac.expressions.Temp;
+import org.renjin.compiler.ir.tac.statements.Assignment;
+import org.renjin.compiler.ir.tac.statements.Statement;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class TreeBuilder {
 
@@ -43,7 +34,7 @@ public class TreeBuilder {
         Assignment assn = (Assignment) stmt;
         definition.put(assn.getLHS(), assn);
       }
-      trees.add(stmt);
+      trees.add(stmt);  
     }
 
     // variables that are only used once can be stored on the stack

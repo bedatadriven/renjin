@@ -1,6 +1,8 @@
 package org.renjin.gcc.peephole;
 
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.IincInsnNode;
 import org.objectweb.asm.tree.InsnList;
 import org.objectweb.asm.tree.VarInsnNode;
 
@@ -42,6 +44,11 @@ public class StoreLoad implements PeepholeOptimization {
       if (Pattern.LOAD.match(node)) {
         VarInsnNode load = (VarInsnNode) node;
         if(load.var == var) {
+          count++;
+        }
+      } else if(node.getOpcode() == Opcodes.IINC) {
+        IincInsnNode inc = (IincInsnNode) node;
+        if(inc.var == var) {
           count++;
         }
       }

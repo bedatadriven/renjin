@@ -355,14 +355,7 @@ public class RLexer implements RParser.Lexer {
     //xxcharsave = xxcharcount; /* want to be able to go back one token */
 
     c = skipSpace();
-    if (c == '\r') {
-      c = xxgetc();
-      if(c != '\n') {
-        // Treat a single '\r' as a new line
-        xxungetc(c);
-        c = '\n';
-      }
-    }
+
     if (c == '#') c = skipComment();
 
     tokenBegin.line = srcRef.xxlineno;
@@ -639,6 +632,13 @@ an ANSI digit or not */
     int c;
     try {
       c = reader.read();
+      if(c == '\r') {
+        c = reader.read();
+        if(c != '\n') {
+          reader.unread(c);
+          c = '\n';
+        }
+      }
     } catch (IOException e) {
       throw new RLexException(e);
     }

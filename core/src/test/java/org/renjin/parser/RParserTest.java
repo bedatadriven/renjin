@@ -24,14 +24,11 @@ package org.renjin.parser;
 import org.hamcrest.CoreMatchers;
 import org.junit.Before;
 import org.junit.Test;
-import org.renjin.parser.RParser.StatusResult;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.PipedInputStream;
-import java.io.Reader;
 import java.io.StringReader;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -171,6 +168,17 @@ public class RParserTest {
 
     assertThat(exprList.length(), equalTo(1));
   }
+  
+  @Test
+  public void crOnlyLineEndings() throws IOException {
+    parseAll("f <- function(x) {\rc(x)\r}\r");
+  }
+
+  @Test
+  public void crlfLineEndings() throws IOException {
+    parseAll("f <- function(x) {\r\nc(x)\r\n}\r\n");
+  }
+
 
   @Test
   public void stringWithEscapes() throws IOException {
@@ -210,6 +218,12 @@ public class RParserTest {
     ExpressionVector result = (ExpressionVector) parseResource("/testScript.R");
 
     assertThat(result.length(), equalTo(1));
+  }
+  
+  @Test
+  public void parseAddPs() throws IOException {
+    ExpressionVector result = (ExpressionVector) parseResource("add.ps.R");
+
   }
 
   private ExpressionVector parseAll(String source) throws IOException {

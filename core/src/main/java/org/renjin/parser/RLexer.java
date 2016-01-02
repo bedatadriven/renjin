@@ -358,8 +358,9 @@ public class RLexer implements RParser.Lexer {
     if (c == '\r') {
       c = xxgetc();
       if(c != '\n') {
+        // Treat a single '\r' as a new line
         xxungetc(c);
-        c = '\r';
+        c = '\n';
       }
     }
     if (c == '#') c = skipComment();

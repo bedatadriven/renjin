@@ -26,7 +26,7 @@ public class LazyLoadFrameBuilderTest {
     Namespace ns = tlContext.getNamespaceRegistry().createNamespace(new TestPackage());
     
     Context ctx = tlContext.beginEvalContext(ns.getNamespaceEnvironment());
-    ctx.evaluate(RParser.parseSource("f <- function(x) x*x*42\n"));
+    ctx.evaluate(RParser.parseInlineSource("f <- function(x) x*x*42\n"));
     
     File envFile = File.createTempFile("nstest", ".RData");
     envFile.deleteOnExit();

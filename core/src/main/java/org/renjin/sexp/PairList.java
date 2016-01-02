@@ -92,6 +92,9 @@ public interface PairList extends SEXP {
       super(attributes);
       this.tag = tag;
       this.value = value;
+      if (value==null) {
+          throw new IllegalArgumentException("Node value can't be null");
+      }
       if(nextNode instanceof Node) {
         this.nextNode = (Node) nextNode;
       }
@@ -103,6 +106,9 @@ public interface PairList extends SEXP {
       this.value = value;
       if(nextNode instanceof Node) {
        this.nextNode = nextNode;
+      }
+      if (value==null) {
+          throw new IllegalArgumentException("Node value can't be null");
       }
     }
 
@@ -321,6 +327,7 @@ public interface PairList extends SEXP {
       return builder.buildNode();
     }
 
+
     public String toString() {
       if (value == this) {
         // so-called "stretchy lists" used by the parser
@@ -364,6 +371,7 @@ public interface PairList extends SEXP {
     public static Node singleton(SEXP value) {
       return new Node(Null.INSTANCE, value, Null.INSTANCE);
     }
+
 
 
     /**
@@ -480,7 +488,7 @@ public interface PairList extends SEXP {
   public class Builder implements ListBuilder {
     protected Node head = null;
     protected Node tail;
-    protected AttributeMap attributes = AttributeMap.EMPTY;
+    protected AttributeMap.Builder attributesBuilder = new AttributeMap.Builder();
 
     public Builder() {
     }
@@ -491,7 +499,17 @@ public interface PairList extends SEXP {
     }
 
     public Builder withAttributes(AttributeMap attributes) {
-      this.attributes = attributes;
+      this.attributesBuilder.addAllFrom(attributes);
+      return this;
+    }
+
+    public Builder setAttribute(Symbol name, SEXP value) {
+      attributesBuilder.set(name,value);
+      return this;
+    }
+
+    public Builder setAttribute(String name, SEXP value) {
+      attributesBuilder.set(name,value);
       return this;
     }
     
@@ -548,7 +566,7 @@ public interface PairList extends SEXP {
 
     public Builder add(SEXP tag, SEXP s) {
       if (head == null) {
-        head = new Node(tag, s, attributes, Null.INSTANCE);
+        head = new Node(tag, s, attributesBuilder.build(), Null.INSTANCE);
         tail = head;
       } else {
         Node next = new Node(tag, s, Null.INSTANCE);
@@ -620,7 +638,7 @@ public interface PairList extends SEXP {
       if(head == null) {
         return Null.INSTANCE;
       } else {
-        return head;
+        return buildNode();
       }
     }
 
@@ -628,6 +646,7 @@ public interface PairList extends SEXP {
       if(head == null) {
         throw new IllegalStateException("no SEXPs have been added");
       }
+      head._setAttributesInPlace(attributesBuilder.build());
       return head;
     }
   }

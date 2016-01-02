@@ -24,7 +24,7 @@ public class CompilerTestCase {
   protected IRFunctionTable functionTable = new IRFunctionTable();
 
   protected IRBody buildScope(String rcode) {
-    ExpressionVector ast = RParser.parseSource(rcode + "\n");
+    ExpressionVector ast = RParser.parseInlineSource(rcode + "\n");
     return new IRBodyBuilder(functionTable).build(ast);
   }  
   

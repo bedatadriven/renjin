@@ -5,7 +5,7 @@ package org.renjin.sexp;
  * Common interface to builders of ListVector and PairLists
  *
  */
-public interface ListBuilder {
+public interface ListBuilder extends SEXPBuilder {
 
   ListBuilder add(SEXP value);
   
@@ -22,6 +22,5 @@ public interface ListBuilder {
   SEXP build();
 
   int getIndexByName(String name);
-
 
 }

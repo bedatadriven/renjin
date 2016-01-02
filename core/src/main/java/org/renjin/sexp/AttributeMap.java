@@ -340,6 +340,8 @@ public class AttributeMap {
   }
 
 
+  public static Builder newBuilder()
+  { return new Builder(); }
 
   public static class Builder {
     private StringVector classes = null;
@@ -477,7 +479,7 @@ public class AttributeMap {
      * Copies all non-null attributes from {@code attributes} to this {@code Builder}
      * @param attributes
      */
-    public void addAllFrom(AttributeMap attributes) {
+    public Builder addAllFrom(AttributeMap attributes) {
       if(attributes.classes != null) {
         this.classes = attributes.classes;
         this.empty = false;
@@ -499,6 +501,7 @@ public class AttributeMap {
           this.empty = false;
         }
       }
+      return this;
     }
 
     public Builder addIfNotNull(AttributeMap source, Symbol symbol) {

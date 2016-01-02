@@ -34,7 +34,7 @@ public class CfgExplorer {
 
   private static void showCfg(String rcode) {
 
-    ExpressionVector ast = RParser.parseSource(rcode + "\n");
+    ExpressionVector ast = RParser.parseInlineSource(rcode + "\n");
     IRFunctionTable functionTable = new IRFunctionTable();
     IRBody block = new IRBodyBuilder(functionTable).build(ast);
 

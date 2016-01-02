@@ -21,6 +21,9 @@
 
 package org.renjin.parser;
 
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Null;
+
 /**
  * ParseState contains the shared state of the
  * Lexer and Parser.
@@ -32,11 +35,22 @@ public class ParseState {
 
   boolean eatLines = false;
 
+  /**
+   * Whether to attach srcrefs to objects as they are parsed
+   */
+  boolean keepSrcRefs = true;
+
+  /**
+   * The srcfile object currently being parsed
+   */
+  SEXP srcFile = Null.INSTANCE;
+
+  /**
+   * The SrcFile may change
+   */
+  int srcFileProt;
+
   private FunctionSourceBuffer functionSource = new FunctionSourceBuffer();
-
-  public ParseState() {
-
-  }
 
   public FunctionSourceBuffer getFunctionSource() {
     return functionSource;
@@ -49,5 +63,12 @@ public class ParseState {
   public boolean getEatLines() {
     return eatLines;
   }
+
+  public SEXP getSrcFile()
+  { return srcFile; }
+
+  public void setSrcFile(SEXP srcFile)
+  { this.srcFile = srcFile; }
+
 
 }

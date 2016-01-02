@@ -254,6 +254,11 @@ public class CDefines {
     /** NO OP -- JVM is handling memory alloc **/
   }
 
+  public static void REPROTECT(Object x, int i) {
+    /** NO OP -- JVM is handling memory alloc **/
+  }
+  
+
   /**
    * Creates a new linked list Lexp
    *
@@ -261,15 +266,19 @@ public class CDefines {
    * @param cdr the next node in the linked list. Either a ListExp or NilExp.INSTANCE
    * @return
    */
-  public static PairList.Node CONS(SEXP car, SEXP cdr) {
+  public static PairList.Node CONS(SEXP car, SEXP cdr, AttributeMap attributes) {
     Preconditions.checkNotNull(car);
     Preconditions.checkNotNull(cdr);
 
     if (cdr == R_NilValue) {
-      return new PairList.Node(car, null);
+      return new PairList.Node(Null.INSTANCE, car, attributes, null);
     } else {
-      return new PairList.Node(car, (PairList.Node) cdr);
+      return new PairList.Node(Null.INSTANCE, car, attributes, (PairList.Node) cdr);
     }
+  }
+
+  public static PairList.Node CONS(SEXP car, SEXP cdr) {
+     return CONS(car,cdr,AttributeMap.EMPTY);
   }
 
   public static PairList.Node list1(SEXP s) {
@@ -442,6 +451,9 @@ public class CDefines {
   }
   
   public static final Symbol R_NamesSymbol = Symbols.NAMES;
+  public static final Symbol R_SrcrefSymbol = Symbols.SRC_REF;
+  public static final Symbol R_SrcfileSymbol = Symbols.SRC_FILE;
+  public static final Symbol R_ClassSymbol = Symbols.CLASS;
   
   public static final CHARSEXP R_BlankString = new CHARSEXP("");
   
@@ -461,13 +473,14 @@ public class CDefines {
     ((ListVector.Builder)newnames).set(i,  tag);
   }
   
-  public static void setAttrib(Builder builder, Symbol name, SEXP value) {
+  public static void setAttrib(SEXPBuilder builder, Symbol name, SEXP value) {
     builder.setAttribute(name, value);
   }
 
-  public static void setAttrib(Builder builder, Symbol name, Builder valueBuilder) {
+  public static void setAttrib(SEXPBuilder builder, Symbol name, Builder valueBuilder) {
     builder.setAttribute(name, valueBuilder.build());
   }
+
 
   public static SEXP ScalarInteger(int flag) {
     return new IntArrayVector(flag);
@@ -477,6 +490,10 @@ public class CDefines {
     return exp == Null.INSTANCE;
   }
 
+  public static final CHARSEXP mkString(String s)
+  {
+     return new CHARSEXP(s);
+  }
   
   
   public enum ArithOpType {

@@ -216,24 +216,24 @@ public class RParserTest {
   }
 
   private ExpressionVector parseAll(String source) throws IOException {
-    return RParser.parseSource(new StringReader(source));
+    return RParser.parseSource(new StringReader(source), new CHARSEXP("inline-string"));
   }
 
   private SEXP parseSingle(String source) throws IOException {
-    ExpressionVector exp = RParser.parseSource(source);
+    ExpressionVector exp = RParser.parseInlineSource(source);
     return exp.get(0);
   }
 
   private SEXP parseResource(String source) throws IOException {
     InputStream stream = getClass().getResourceAsStream(source);
-    ExpressionVector result = RParser.parseSource(new InputStreamReader(stream));
+    ExpressionVector result = RParser.parseSource(new InputStreamReader(stream), new CHARSEXP(source));
     stream.close();
     return result;
   }
   
   @Test
   public void matrixProduct() throws IOException{ 
-   ExpressionVector result = RParser.parseSource(new StringReader("c(1,2,3) %*% c(7,8,7)\n"));
+   ExpressionVector result = RParser.parseSource(new StringReader("c(1,2,3) %*% c(7,8,7)\n"), new CHARSEXP("inline sring"));
    FunctionCall call = (FunctionCall)result.getElementAsSEXP(0);
    Symbol function = (Symbol) call.getFunction();
    assertThat(function.getPrintName(), equalTo("%*%")); 

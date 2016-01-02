@@ -50,9 +50,11 @@ class FunctionSourceBuffer {
   public void maybeAppendSourceCodePoint(int c) {
     if (level > 0) {
       if (source.length() > MAXFUNSIZE) {
+        // TODO: warnong instead ?
         throw new RLexException("function is too long to keep source");
       }
     }
+    source.appendCodePoint(c);
   }
 
   public void ascend() {

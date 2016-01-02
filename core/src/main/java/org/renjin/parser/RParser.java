@@ -17,6 +17,9 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * TODO: move 'edited y hand' parts in helpers and .y file.
+ *  Here is code not only generated, but added by hands. [need to be fixed]
  */
 
 package org.renjin.parser;
@@ -63,13 +66,12 @@ import static org.renjin.util.CDefines.*;
  */
 public class RParser {
 
-  public static ExpressionVector parseSource(Reader reader) throws IOException {
- 
+  public static ExpressionVector parseSource(Reader reader, SEXP srcFile) throws IOException {
     ParseState parseState = new ParseState();
+    parseState.srcFile = srcFile;
     ParseOptions parseOptions = ParseOptions.defaults();
     RLexer lexer = new RLexer(parseOptions, parseState, reader);
     RParser parser = new RParser(parseOptions, parseState, lexer);
-
     return parser.parseAll();
     
   }
@@ -80,30 +82,42 @@ public class RParser {
    * @return
    * @throws IOException
    */
-  public static ExpressionVector parseAllSource(Reader reader) throws IOException {
+  public static ExpressionVector parseAllSource(Reader reader, SEXP srcFile) throws IOException {
     String source = CharStreams.toString(reader);
     if(!source.endsWith("\n")) {
       source = source + "\n";
     }
-    return parseSource(source);
+    return parseSource(source, srcFile);
   }
   
+  public static ExpressionVector parseAllSource(Reader reader, String srcFile) throws IOException {
+    return parseAllSource(reader, new CHARSEXP(srcFile));
+  }
 
-  public static ExpressionVector parseSource(CharSource source) throws IOException {
+  public static ExpressionVector parseSource(CharSource source, SEXP srcFile) throws IOException {
     Reader reader = source.openStream();
     try {
-      return parseAllSource(reader);
+      return parseAllSource(reader, srcFile);
     } finally {
       Closeables.closeQuietly(reader);
     }
   }
   
-  public static ExpressionVector parseSource(String source) {
+  public static ExpressionVector parseSource(String source, SEXP srcFile) {
     try {
-      return parseSource(new StringReader(source));
+      return parseSource(new StringReader(source), srcFile);
     } catch (IOException e) {
       throw new RuntimeException(e); // shouldn't happen when reading from a string.
     }
+  }
+
+  public static ExpressionVector parseSource(String source, String srcFile) {
+     return parseSource(source, new CHARSEXP(srcFile));
+  }
+
+
+  public static ExpressionVector parseInlineSource(String source) {
+     return parseSource(source,"iniline-string");
   }
 
   private ExpressionVector parseAll() throws IOException {
@@ -150,6 +164,7 @@ public class RParser {
 
   private ParseState state;
   private ParseOptions options;
+  
 
   /**
    * Version number for the Bison executable that generated this parser.
@@ -169,7 +184,19 @@ public class RParser {
   private StatusResult extendedParseResult;
 
   private SEXP result;
+ 
+  /**
+   * list of srcRefs (analog of SrcRefs in original R code (src/main/gram.y)
+   * each element contains SrcRef SEXP. When parsing list of expressions, 
+   * src-refs of list element collected here, than attachSrcRef attach those 
+   * objects.
+   */
+  private SEXP srcRefs = NewList();
 
+  /**
+   * Unused, here is too keep 'REPROTECT(..)' calls the same, as in original R code (in C).
+   */
+  private int srindex = 0; 
 
   /**
    * A class defining a pair of positions.  Positions, defined by the
@@ -592,6 +619,7 @@ public class RParser {
       for (int i = 0; i < height; i++) {
         out.print(' ');
         out.print(stateStack[i]);
+        out.print( "("+locStack[i]+")");
       }
       out.println();
     }
@@ -1113,7 +1141,7 @@ public class RParser {
 
 /* Line 354 of lalr1.java  */
 /* Line 300 of "gram.y"  */ {
-          yyval = xxdefun(((yystack.valueAt(6 - (1)))), ((yystack.valueAt(6 - (3)))), ((yystack.valueAt(6 - (6)))));
+          yyval = xxdefun(((yystack.valueAt(6 - (1)))), ((yystack.valueAt(6 - (3)))), ((yystack.valueAt(6 - (6)))),yystack.locationAt(0));
         }
         ;
         break;
@@ -1731,7 +1759,7 @@ public class RParser {
     Location yyerrloc = null;
 
     /// Location of the lookahead.
-    Location yylloc = new Location(null, null);
+    Location yylloc = new Location(new Position());
 
     /// @$.
     Location yyloc;
@@ -2453,7 +2481,11 @@ public class RParser {
     values[2] = lloc.end.line;
     values[3] = lloc.end.charIndex;
     values[4] = lloc.begin.column;
-    values[6] = lloc.end.column;
+    values[5] = lloc.end.column;
+
+    if (srcfile==null) {
+        srcfile=Null.INSTANCE;
+    }
 
     PairList attributes = PairList.Node.newBuilder()
         .add(Symbols.SRC_FILE, srcfile)
@@ -2463,29 +2495,42 @@ public class RParser {
     return new IntArrayVector(values, AttributeMap.fromPairList(attributes));
   }
 
-  static SEXP attachSrcrefs(SEXP val, SEXP srcfile) {
-//    SEXP t, srval;
-//    int n;
-//
-//    PROTECT(val);
-//    t = CDR(SrcRefs);
-//    srval = allocVector(VECSXP, length(t));
-//    for (n = 0 ; n < LENGTH(srval) ; n++, t = CDR(t))
-//      SET_VECTOR_ELT(srval, n, CAR(t));
-//    setAttrib(val, R_SrcrefSymbol, srval);
-//    setAttrib(val, R_SrcfileSymbol, srcfile);
-//    UNPROTECT(1);
-//    SrcRefs = NULL;
+  SEXP attachSrcrefs(PairList.Node val, SEXP srcfile) {
+    SEXP t;
+    Vector.Builder srval;
+    int n;
+
+    PROTECT(val);
+    t = CDR(srcRefs);
+    int tlen = length(t);
+    srval = allocVector(VECSXP, tlen);
+    for (n = 0 ; n < tlen; n++, t = CDR(t)) {
+       SET_VECTOR_ELT(srval, n, CAR(t));
+    }
+    //setAttrib(val, R_SrcrefSymbol, srval);
+    //setAttrib(val, R_SrcfileSymbol, srcfile);
+    val._setAttributesInPlace(
+       AttributeMap.newBuilder().
+                       set(R_SrcrefSymbol,srval.build()).
+                       set(R_SrcfileSymbol, srcfile).
+                       build()
+    );
+    UNPROTECT(1);
+    srcRefs = NewList();
     return val;
   }
 
   private int xxvalue(SEXP v, StatusResult result, Location lloc) {
-//    if (k > 2) {
-//      // TODO: srcrefs
-////      if (SrcRefState.keepSrcRefs)
-////        REPROTECT(SrcRefs = GrowList(SrcRefs, makeSrcref(lloc, SrcRefState.SrcFile)), srindex);
-//      UNPROTECT_PTR(v);
-//    }
+    if (result != StatusResult.EMPTY && result != StatusResult.OK) {
+       if (state.keepSrcRefs) {
+         if (lloc == null) {
+            lloc = new Location(yylexer.getStartPos(),yylexer.getEndPos());
+         }
+         SEXP srcRef = makeSrcref(lloc, state.srcFile);
+         REPROTECT(srcRefs = GrowList(srcRefs, srcRef), srindex);
+       }
+       UNPROTECT_PTR(v);
+    }
     this.result = v;
     this.extendedParseResult = result;
     return YYACCEPT;
@@ -2546,26 +2591,31 @@ public class RParser {
   private SEXP xxexprlist0() {
     SEXP ans;
     if (options.isGenerateCode()) {
-      PROTECT(ans = NewList());
-      // TODO: srcrefs
-//      if (state.keepSrcRefs) {
-//        setAttrib(ans, R_SrcrefSymbol, SrcRefs);
-//        REPROTECT(SrcRefs = NewList(), srindex);
-//      }
-    } else
+      if (state.keepSrcRefs) {
+        //setAttrib(ans, R_SrcrefSymbol, srcRefs);
+        PROTECT(ans = NewList(
+                          AttributeMap.newBuilder().set(R_SrcrefSymbol,srcRefs).build()
+               )      );
+        REPROTECT(srcRefs = NewList(), srindex);
+      } else {
+        PROTECT(ans = NewList());
+      }
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     return ans;
   }
 
   private SEXP xxexprlist1(SEXP expr, Location lloc) {
     SEXP ans, tmp;
     if (options.isGenerateCode()) {
-      PROTECT(tmp = NewList());
-//      if (state.ParseState.keepSrcRefs) {
-//        setAttrib(tmp, R_SrcrefSymbol, SrcRefs);
-//        REPROTECT(SrcRefs = NewList(), srindex);
-//        REPROTECT(SrcRefs = GrowList(SrcRefs, makeSrcref(lloc, SrcRefState.SrcFile)), srindex);
-//      }
+      AttributeMap attrs = AttributeMap.EMPTY;
+      if (state.keepSrcRefs) {
+         attrs = AttributeMap.newBuilder().set(R_SrcrefSymbol, srcRefs).build();
+         REPROTECT(srcRefs = NewList(), srindex);
+         REPROTECT(srcRefs = GrowList(srcRefs, makeSrcref(lloc, state.srcFile)), srindex);
+      } 
+      PROTECT(tmp = NewList(attrs));
       PROTECT(ans = GrowList(tmp, expr));
       UNPROTECT_PTR(tmp);
     } else
@@ -2577,8 +2627,8 @@ public class RParser {
   private SEXP xxexprlist2(SEXP exprlist, SEXP expr, Location lloc) {
     SEXP ans;
     if (options.isGenerateCode()) {
-//      if (SrcRefState.keepSrcRefs)
-//        REPROTECT(SrcRefs = GrowList(SrcRefs, makeSrcref(lloc, SrcRefState.SrcFile)), srindex);
+      if (state.keepSrcRefs)
+          REPROTECT(srcRefs = GrowList(srcRefs, makeSrcref(lloc, state.srcFile)), srindex);
       PROTECT(ans = GrowList(exprlist, expr));
     } else
       PROTECT(ans = R_NilValue);
@@ -2776,58 +2826,17 @@ public class RParser {
   }
 
 
-  private SEXP xxdefun(SEXP fname, SEXP formals, SEXP body) {
+  private SEXP xxdefun(SEXP fname, SEXP formals, SEXP body, Location loc) {
 
     SEXP ans;
     SEXP source;
 
     if (options.isGenerateCode()) {
-      //if (!state.KeepSource)
-      PROTECT(source = R_NilValue);
-//      else {
-//        unsigned char *p, *p0, *end;
-//        int lines = 0, nc;
-//
-//        /*  If the function ends with an endline comment,  e.g.
-//
-//        function()
-//            print("Hey") # This comment
-//
-//        we need some special handling to keep it from getting
-//        chopped off. Normally, we will have read one token too
-//        far, which is what xxcharcount and xxcharsave keeps
-//        track of.
-//
-//          */
-//        end = SourcePtr - (xxcharcount - xxcharsave);
-//        /* FIXME: this should be whitespace */
-//        for (p = end ; p < SourcePtr && (*p == ' ' || *p == '\t') ; p++)
-//        ;
-//        if (*p == '#') {
-//          while (p < SourcePtr && *p != '\n')
-//          p++;
-//          end = p;
-//        }
-//
-//        for (p = FunctionStart[FunctionLevel]; p < end ; p++)
-//          if (*p == '\n') lines++;
-//        if ( *(end - 1) != '\n' ) lines++;
-//        PROTECT(source = allocVector(STRSXP, lines));
-//        p0 = FunctionStart[FunctionLevel];
-//        lines = 0;
-//        for (p = FunctionStart[FunctionLevel]; p < end ; p++)
-//          if (*p == '\n' || p == end - 1) {
-//          cetype_t enc = CE_NATIVE;
-//          nc = p - p0;
-//          if (*p != '\n') nc++;
-//          if(known_to_be_latin1) enc = CE_LATIN1;
-//          else if(known_to_be_utf8) enc = CE_UTF8;
-//          SET_STRING_ELT(source, lines++,
-//              mkCharLenCE((char *)p0, nc, enc));
-//          p0 = p + 1;
-//        }
-//        /* PrintValue(source); */
-//      }
+      if (!state.keepSrcRefs) {
+         PROTECT(source = R_NilValue);
+      } else {
+         source = makeSrcref(loc,state.srcFile);
+      }
       if(formals == Null.INSTANCE) {
         ans = lang4(fname, Null.INSTANCE, body, source);
       } else {
@@ -2895,19 +2904,25 @@ public class RParser {
 
     state.setEatLines(false);
     if (options.isGenerateCode()) {
+      SEXP prevA2 = a2;
       a2 = FunctionCall.fromListExp((PairList.Node) a2);
       SETCAR(a2, a1);
-//      if (SrcRefState.keepSrcRefs) {
-//        PROTECT(prevSrcrefs = getAttrib(a2, R_SrcrefSymbol));
-//        REPROTECT(SrcRefs = Insert(SrcRefs, makeSrcref(lloc, SrcRefState.SrcFile)), srindex);
-//        PROTECT(ans = attachSrcrefs(a2, SrcRefState.SrcFile));
-//        REPROTECT(SrcRefs = prevSrcrefs, srindex);
-//        /* SrcRefs got NAMED by being an attribute... */
-//        SET_NAMED(SrcRefs, 0);
-//        UNPROTECT_PTR(prevSrcrefs);
-//      }
-//      else
-      PROTECT(ans = a2);
+      if (state.keepSrcRefs) {
+        PROTECT(prevSrcrefs = getAttrib(prevA2, R_SrcrefSymbol));
+        REPROTECT(srcRefs = Insert(srcRefs, makeSrcref(lloc, state.srcFile)), srindex);
+        PROTECT(ans = attachSrcrefs((PairList.Node)a2, state.srcFile));
+        if (isNull(prevSrcrefs)) {
+           prevSrcrefs = NewList();
+        }
+        REPROTECT(srcRefs = prevSrcrefs, srindex);
+        /* SrcRefs got NAMED by being an attribute... */
+        //  this is related to memory managing in R, in java gc is work of jvm, so ignore
+        //  named flags.
+        //SET_NAMED(srcRefs, 0);
+        UNPROTECT_PTR(prevSrcrefs);
+      }
+      else
+        PROTECT(ans = a2);
     } else
       PROTECT(ans = R_NilValue);
     UNPROTECT_PTR(a2);
@@ -2941,10 +2956,15 @@ public class RParser {
 /* Create a stretchy-list dotted pair */
 
   static SEXP NewList() {
-    SEXP s = CONS(R_NilValue, R_NilValue);
+    return NewList(AttributeMap.EMPTY);
+  }
+
+  static SEXP NewList(AttributeMap attributes) {
+    SEXP s = CONS(R_NilValue, R_NilValue, attributes);
     SETCAR(s, s);
     return s;
   }
+
 
 /* Add a new element at the end of a stretchy list */
 
@@ -2957,6 +2977,8 @@ public class RParser {
     SETCAR(l, tmp);
     return l;
   }
+
+
 
 /* Insert a new element at the head of a stretchy list */
 

@@ -210,6 +210,9 @@ public class JlineRepl {
       reader.getOutput().write(Throwables.getStackTraceAsString(e.getCause()));
     }
     e.printRStackTrace(reader.getOutput());
+    PrintWriter printWriter = new PrintWriter(reader.getOutput());
+    e.printRStackTrace(printWriter);    
+    printWriter.flush();
     reader.getOutput().flush();
   }
 

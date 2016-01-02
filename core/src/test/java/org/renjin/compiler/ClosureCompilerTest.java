@@ -60,10 +60,7 @@ public class ClosureCompilerTest extends EvalTestCase {
   }
 
   private void source(String string) throws IOException {
-    ExpressionVector source = RParser.parseSource(
-                                new InputStreamReader(getClass().getResourceAsStream(string)),
-                                new CHARSEXP(string)
-                              );
+    ExpressionVector source = RParser.parseSource(new InputStreamReader(getClass().getResourceAsStream(string)));
     topLevelContext.evaluate(source);
   }
   

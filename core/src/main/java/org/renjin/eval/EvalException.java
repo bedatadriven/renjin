@@ -26,19 +26,15 @@ import org.renjin.sexp.ListVector;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.StringArrayVector;
 import org.renjin.sexp.Symbols;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.Vector;
 
-import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
-import java.io.Writer;
 
 
 public class EvalException extends RuntimeException {
   private SEXP condition;
   private Context context;
-  
+
   public EvalException(String message, Throwable t) {
     super(message, t);
     ListVector.NamedBuilder condition = ListVector.newNamedBuilder();
@@ -46,12 +42,12 @@ public class EvalException extends RuntimeException {
     condition.setAttribute(Symbols.CLASS, new StringArrayVector("simpleError",  "error", "condition"));
     this.condition = condition.build();
   }
-  
+
   public EvalException(String message, Object... args) {
     this(args.length == 0 ? message : String.format(message, args), (Throwable)null);
   }
 
-  
+
   public EvalException(Context context, String message, Object... args) {
     this(args.length == 0 ? message : String.format(message, args), (Throwable)null);
     this.context = context;
@@ -79,30 +75,31 @@ public class EvalException extends RuntimeException {
 
       while(!context.isTopLevel()) {
         if(context.getType() == Type.FUNCTION) {
-            writer.append("  at ").append(context.getFunctionName().toString()).append("()");
-            SEXP callFile = context.getSrcFile();
-            SEXP callSrcref = context.getSrcRef();
-            if (callFile != Null.INSTANCE) {
-               writer.append("  ");
-               writer.append(callFile.toString());
-               if (callSrcref != Null.INSTANCE) {
-                 int lineNumber = ((Vector)callSrcref).getElementAsInt(0);
-                 writer.append("##").append(Integer.toString(lineNumber));
-               }
-            }
-            writer.append("\n");
+          writer.append("  at ").append(context.getFunctionName().toString()).append("()");
+//
+//          SEXP callFile = context.getSrcFile();
+//          SEXP callSrcref = context.getSrcRef();
+//          if (callFile != Null.INSTANCE) {
+//            writer.append("  ");
+//            writer.append(callFile.toString());
+//            if (callSrcref != Null.INSTANCE) {
+//              int lineNumber = ((Vector)callSrcref).getElementAsInt(0);
+//              writer.append("##").append(Integer.toString(lineNumber));
+//            }
+//          }
+          writer.append("\n");
         }
         context = context.getParent();
       }
 
       if (getCause()!=null) {
-         writer.append("Caused by:");
-         Throwable excause = getCause();
-         if (excause instanceof EvalException) {
-             ((EvalException)excause).printRStackTrace(writer);
-         } else {
-             excause.printStackTrace(writer);
-         }
+        writer.append("Caused by:");
+        Throwable excause = getCause();
+        if (excause instanceof EvalException) {
+          ((EvalException)excause).printRStackTrace(writer);
+        } else {
+          excause.printStackTrace(writer);
+        }
       }
 
     } else {
@@ -110,7 +107,7 @@ public class EvalException extends RuntimeException {
     }
 
   }
-  
+
   public void printRStackTrace(PrintStream stream) {
     PrintWriter writer = new PrintWriter(stream);
     printRStackTrace(writer);

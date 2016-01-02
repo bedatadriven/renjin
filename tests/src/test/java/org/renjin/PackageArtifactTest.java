@@ -1,11 +1,11 @@
 package org.renjin;
 
-import java.io.IOException;
-
 import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.eval.Context;
 import org.renjin.parser.RParser;
+
+import java.io.IOException;
 
 
 public class PackageArtifactTest {
@@ -16,6 +16,6 @@ public class PackageArtifactTest {
 	    Context context = Context.newTopLevelContext();
 	    context.init();
 	  
-	    context.evaluate(RParser.parseInlineSource("library(aspect, verbose=TRUE)\n"));
+	    context.evaluate(RParser.parseSource("library(aspect, verbose=TRUE)\n"));
 	}
 }

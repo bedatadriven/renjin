@@ -1,6 +1,5 @@
 package org.renjin.primitives.packaging;
 
-import com.google.common.io.ByteSource;
 import org.renjin.eval.Context;
 import org.renjin.sexp.NamedValue;
 import org.renjin.util.NamedByteSource;

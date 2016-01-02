@@ -340,8 +340,9 @@ public class AttributeMap {
   }
 
 
-  public static Builder newBuilder()
-  { return new Builder(); }
+  public static Builder newBuilder() { 
+    return new Builder(); 
+  }
 
   public static class Builder {
     private StringVector classes = null;

@@ -90,9 +90,15 @@ public class RParser {
     return parseSource(source, srcFile);
   }
   
-  public static ExpressionVector parseAllSource(Reader reader, String srcFile) throws IOException {
-    return parseAllSource(reader, new CHARSEXP(srcFile));
+  public static ExpressionVector parseAllSource(Reader reader) throws IOException {
+    return parseAllSource(reader, new CHARSEXP("inline-source"));
   }
+
+
+  public static ExpressionVector parseSource(Reader reader) throws IOException {
+    return parseAllSource(reader);
+  }
+
 
   public static ExpressionVector parseSource(CharSource source, SEXP srcFile) throws IOException {
     Reader reader = source.openStream();
@@ -100,6 +106,14 @@ public class RParser {
       return parseAllSource(reader, srcFile);
     } finally {
       Closeables.closeQuietly(reader);
+    }
+  }
+  
+  public static ExpressionVector parseSource(String source) {
+    try {
+      return parseAllSource(new StringReader(source));
+    } catch (IOException e) {
+      throw new RuntimeException(e); // shouldn't happen when reading from a string
     }
   }
   
@@ -117,7 +131,7 @@ public class RParser {
 
 
   public static ExpressionVector parseInlineSource(String source) {
-     return parseSource(source,"iniline-string");
+     return parseSource(source, new CHARSEXP("iniline-string"));
   }
 
   private ExpressionVector parseAll() throws IOException {
@@ -2509,11 +2523,11 @@ public class RParser {
     }
     //setAttrib(val, R_SrcrefSymbol, srval);
     //setAttrib(val, R_SrcfileSymbol, srcfile);
-    val._setAttributesInPlace(
-       AttributeMap.newBuilder().
-                       set(R_SrcrefSymbol,srval.build()).
-                       set(R_SrcfileSymbol, srcfile).
-                       build()
+    val.unsafeSetAttributes(
+        AttributeMap.newBuilder().
+            set(R_SrcrefSymbol, srval.build()).
+            set(R_SrcfileSymbol, srcfile).
+            build()
     );
     UNPROTECT(1);
     srcRefs = NewList();
@@ -2965,7 +2979,6 @@ public class RParser {
     return s;
   }
 
-
 /* Add a new element at the end of a stretchy list */
 
   static SEXP GrowList(SEXP l, SEXP s) {
@@ -2977,8 +2990,6 @@ public class RParser {
     SETCAR(l, tmp);
     return l;
   }
-
-
 
 /* Insert a new element at the head of a stretchy list */
 

@@ -173,8 +173,7 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
     return ((RenjinScriptContext)scriptContext).getContext();
   }
 
-  private String getFilenameFromContext(ScriptContext ctx, String defaultValue)
-  {
+  private String getFilenameFromContext(ScriptContext ctx, String defaultValue) {
     String fileName = defaultValue;
     Object oFileName = scriptContext.getAttribute(ScriptEngine.FILENAME);
     if (oFileName!=null) {

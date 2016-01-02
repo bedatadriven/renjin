@@ -22,8 +22,6 @@
 
 package org.renjin.sexp;
 
-import org.renjin.eval.Context;
-
 /**
  * Base builder for SEXP.  
  */

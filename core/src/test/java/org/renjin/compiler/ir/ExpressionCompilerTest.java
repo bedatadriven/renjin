@@ -36,7 +36,7 @@ public class ExpressionCompilerTest extends EvalTestCase {
   
   @Test
   public void dynamicCallToClosure() throws Exception {
-    topLevelContext.evaluate(RParser.parseInlineSource("f<-function(x) sqrt(x);"));
+    topLevelContext.evaluate(RParser.parseSource("f<-function(x) sqrt(x);"));
     assertThat( compileAndEval("y<-16; f(y)\n"), equalTo(c(4)));
     assertThat( compileAndEval("f(16)\n"), equalTo(c(4)));
     //assertThat( compileAndEval("f(1+1)\n"), equalTo(c(4)));
@@ -62,7 +62,7 @@ public class ExpressionCompilerTest extends EvalTestCase {
 
   private SEXP compileAndEval(String code)
       throws InstantiationException, IllegalAccessException {
-    ExpressionVector exp = RParser.parseInlineSource(code);
+    ExpressionVector exp = RParser.parseSource(code);
     ThunkMap thunkMap = new ThunkMap("r/anon/Thunk");
     Class<CompiledBody> compiled = ExpressionCompiler.compile(thunkMap, exp);
     

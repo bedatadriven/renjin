@@ -6,10 +6,10 @@ import javax.script.Bindings;
 import javax.script.ScriptContext;
 import java.io.Reader;
 import java.io.Writer;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.Arrays;
 
 
 public class RenjinScriptContext implements ScriptContext{
@@ -18,7 +18,7 @@ public class RenjinScriptContext implements ScriptContext{
   private Reader reader;
   private Writer writer;
   private Writer errorWriter;
-  private Map<String,Object> attributes = new TreeMap<String,Object>();
+  private Map<String,Object> attributes = new TreeMap<>();
   
   RenjinScriptContext(Context context) {
     this.context = context;

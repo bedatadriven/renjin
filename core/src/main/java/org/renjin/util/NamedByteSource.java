@@ -1,7 +1,9 @@
 package org.renjin.util;
 
-import java.io.*;
-import com.google.common.io.*;
+import com.google.common.io.ByteSource;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 public class NamedByteSource extends ByteSource
 {

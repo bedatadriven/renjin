@@ -1,6 +1,5 @@
 package org.renjin.packaging;
 
-import com.google.common.io.ByteSource;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.packaging.FqPackageName;

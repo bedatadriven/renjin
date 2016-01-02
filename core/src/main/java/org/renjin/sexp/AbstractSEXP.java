@@ -240,5 +240,4 @@ public abstract class AbstractSEXP implements SEXP {
   public void unsafeSetAttributes(AttributeMap attributeMap) {
     this.attributes = attributeMap;
   }
-
 }

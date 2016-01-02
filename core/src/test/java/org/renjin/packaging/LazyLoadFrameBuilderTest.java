@@ -1,6 +1,5 @@
 package org.renjin.packaging;
 
-import com.google.common.io.Files;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.eval.Context;
@@ -9,7 +8,6 @@ import org.renjin.primitives.packaging.FqPackageName;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.sexp.Closure;
 import org.renjin.sexp.NamedValue;
-import org.renjin.sexp.Symbol;
 
 import java.io.File;
 
@@ -26,7 +24,7 @@ public class LazyLoadFrameBuilderTest {
     Namespace ns = tlContext.getNamespaceRegistry().createNamespace(new TestPackage());
     
     Context ctx = tlContext.beginEvalContext(ns.getNamespaceEnvironment());
-    ctx.evaluate(RParser.parseInlineSource("f <- function(x) x*x*42\n"));
+    ctx.evaluate(RParser.parseSource("f <- function(x) x*x*42\n"));
     
     File envFile = File.createTempFile("nstest", ".RData");
     envFile.deleteOnExit();

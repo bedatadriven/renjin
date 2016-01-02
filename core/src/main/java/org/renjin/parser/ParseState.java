@@ -21,8 +21,8 @@
 
 package org.renjin.parser;
 
-import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Null;
+import org.renjin.sexp.SEXP;
 
 /**
  * ParseState contains the shared state of the
@@ -64,11 +64,11 @@ public class ParseState {
     return eatLines;
   }
 
-  public SEXP getSrcFile()
-  { return srcFile; }
+  public SEXP getSrcFile() { 
+    return srcFile; 
+  }
 
-  public void setSrcFile(SEXP srcFile)
-  { this.srcFile = srcFile; }
-
-
+  public void setSrcFile(SEXP srcFile) { 
+    this.srcFile = srcFile; 
+  }
 }

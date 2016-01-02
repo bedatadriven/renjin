@@ -78,13 +78,11 @@ public class RLexerReader {
     return c;
   }
 
-  public int getLineNumber()
-  {
+  public int getLineNumber() {
     return lineNumber;
   }
 
-  public int getColumnNumber()
-  {
+  public int getColumnNumber() {
     return columnNumber;
   }
 
@@ -97,5 +95,4 @@ public class RLexerReader {
     this.lineNumber = lineNumber;
     this.columnNumber = 0;
   }
-
 }

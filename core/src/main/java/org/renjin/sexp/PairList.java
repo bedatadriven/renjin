@@ -327,7 +327,6 @@ public interface PairList extends SEXP {
       return builder.buildNode();
     }
 
-
     public String toString() {
       if (value == this) {
         // so-called "stretchy lists" used by the parser
@@ -371,7 +370,6 @@ public interface PairList extends SEXP {
     public static Node singleton(SEXP value) {
       return new Node(Null.INSTANCE, value, Null.INSTANCE);
     }
-
 
 
     /**
@@ -646,7 +644,7 @@ public interface PairList extends SEXP {
       if(head == null) {
         throw new IllegalStateException("no SEXPs have been added");
       }
-      head._setAttributesInPlace(attributesBuilder.build());
+      head.unsafeSetAttributes(attributesBuilder.build());
       return head;
     }
   }

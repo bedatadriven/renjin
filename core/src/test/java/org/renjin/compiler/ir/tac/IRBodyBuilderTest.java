@@ -1,24 +1,16 @@
 package org.renjin.compiler.ir.tac;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.renjin.EvalTestCase;
+import org.renjin.parser.RParser;
+import org.renjin.sexp.*;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-import org.junit.Ignore;
-import org.junit.Test;
-import org.renjin.EvalTestCase;
-import org.renjin.compiler.ir.tac.IRBody;
-import org.renjin.compiler.ir.tac.IRBodyBuilder;
-import org.renjin.compiler.ir.tac.IRFunctionTable;
-import org.renjin.parser.RParser;
-import org.renjin.sexp.Closure;
-import org.renjin.sexp.ExpressionVector;
-import org.renjin.sexp.Logical;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.CHARSEXP;
-import org.renjin.sexp.Symbol;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 
 public class IRBodyBuilderTest extends EvalTestCase {

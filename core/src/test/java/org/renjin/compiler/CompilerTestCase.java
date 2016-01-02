@@ -1,9 +1,7 @@
 package org.renjin.compiler;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
-
+import com.google.common.base.Charsets;
+import com.google.common.io.Resources;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
@@ -15,16 +13,16 @@ import org.renjin.compiler.ir.tac.IRFunctionTable;
 import org.renjin.parser.RParser;
 import org.renjin.sexp.ExpressionVector;
 
-
-import com.google.common.base.Charsets;
-import com.google.common.io.Resources;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
 
 public class CompilerTestCase {
 
   protected IRFunctionTable functionTable = new IRFunctionTable();
 
   protected IRBody buildScope(String rcode) {
-    ExpressionVector ast = RParser.parseInlineSource(rcode + "\n");
+    ExpressionVector ast = RParser.parseSource(rcode + "\n");
     return new IRBodyBuilder(functionTable).build(ast);
   }  
   

@@ -15,7 +15,6 @@ import org.renjin.primitives.combine.Combine;
 import org.renjin.primitives.files.Files;
 import org.renjin.primitives.io.Cat;
 import org.renjin.primitives.io.DebianControlFiles;
-import org.renjin.primitives.io.DebugOut;
 import org.renjin.primitives.io.connections.Connections;
 import org.renjin.primitives.io.serialization.Serialization;
 import org.renjin.primitives.match.Duplicates;
@@ -1002,10 +1001,6 @@ public class Primitives {
     f("library", Packages.class, 0);
     f("require", Packages.class, 0);
 
-    // renjin-specifiv debug entries
-    f("debug.stderr",DebugOut.class,0);
-    f("debug.filename",DebugLocation.class,0);
-    f("debug.lineno",DebugLocation.class,0);
   }
 
   private void add(SpecialFunction fn) {

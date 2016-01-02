@@ -1,6 +1,5 @@
 package org.renjin.primitives.packaging;
 
-import com.google.common.io.ByteSource;
 import com.google.common.io.Resources;
 import org.renjin.eval.EvalException;
 import org.renjin.util.NamedByteSource;
@@ -29,17 +28,14 @@ public class ClasspathPackage extends FileBasedPackage {
   }
 
   @Override
-  public ByteSource getResource(String name) throws IOException {
+  public NamedByteSource getResource(String name) throws IOException {
     String qualifiedName = qualifyResourceName(name);
     URL url = classLoader.getResource(qualifiedName);
-    if(url == null) {
+    if (url == null) {
       throw new IOException(String.format("Could not find %s (%s)", name, qualifiedName));
     }
-  public NamedByteSource getResource(String name) throws IOException {
-    String url = resourceUrl(name);
     try {
-      return Resources.asByteSource(url);
-      return new NamedByteSource(url,Resources.asByteSource(Resources.getResource(url)));
+      return new NamedByteSource(name, Resources.asByteSource(url));
     } catch(Exception e) {
       throw new IOException(String.format("Could not load %s (%s)", name, url.toString()), e);
     }

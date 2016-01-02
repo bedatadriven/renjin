@@ -1,10 +1,6 @@
 package org.renjin.stats.internals.models;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-
-import java.util.List;
-
+import com.google.common.collect.Lists;
 import org.junit.Test;
 import org.renjin.eval.EvalException;
 import org.renjin.parser.RParser;
@@ -13,12 +9,10 @@ import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
 
+import java.util.List;
 
-import org.renjin.stats.internals.models.Formula;
-import org.renjin.stats.internals.models.FormulaInterpreter;
-import org.renjin.stats.internals.models.Term;
-
-import com.google.common.collect.Lists;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 public class FormulaInterpreterTest {
 
@@ -78,7 +72,7 @@ public class FormulaInterpreterTest {
   }
 
   private SEXP parse(String source) {
-    ExpressionVector tree = RParser.parseInlineSource(source + "\n");
+    ExpressionVector tree = RParser.parseSource(source + "\n");
     SEXP expr = tree.getElementAsSEXP(0);
     return expr;
   }

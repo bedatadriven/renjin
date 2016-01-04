@@ -423,7 +423,7 @@ public class BasePackageTest extends EvalTestCase {
     assumingBasePackagesLoad();
     
     eval("x <- factor(c('Yes','No','No'))");
-    eval("m <- matrix(c(1:6), 3, 2)");
+    eval("m <- matrix(c(1:6), 2, 3)");
     eval("rownames(m) <- unique(x)");
     assertThat(eval("rownames(m)"), equalTo(c("Yes","No")));
   }

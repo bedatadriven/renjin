@@ -3,7 +3,6 @@ package org.renjin.gcc.gimple.type;
 import org.objectweb.asm.Type;
 
 public class GimpleIntegerType extends GimplePrimitiveType {
-  private int precision;
   private boolean unsigned;
   
   public GimpleIntegerType() {
@@ -11,7 +10,6 @@ public class GimpleIntegerType extends GimplePrimitiveType {
   }
   
   public GimpleIntegerType(int precision) {
-    this.precision = precision;
     setSize(precision);
   }
 
@@ -20,13 +18,9 @@ public class GimpleIntegerType extends GimplePrimitiveType {
    * @return The number of bits of precision
    */
   public int getPrecision() {
-    return precision;
+    return getSize();
   }
-
-  public void setPrecision(int precision) {
-    this.precision = precision;
-  }
-
+  
   public boolean isUnsigned() {
     return unsigned;
   }
@@ -41,7 +35,7 @@ public class GimpleIntegerType extends GimplePrimitiveType {
     if (unsigned) {
       s.append("unsigned ");
     }
-    s.append("int" + precision);
+    s.append("int" + getPrecision());
     return s.toString();
   }
 
@@ -49,7 +43,7 @@ public class GimpleIntegerType extends GimplePrimitiveType {
   public int hashCode() {
     final int prime = 31;
     int result = 1;
-    result = prime * result + precision;
+    result = prime * result + getSize();
     result = prime * result + (unsigned ? 1231 : 1237);
     return result;
   }
@@ -63,7 +57,7 @@ public class GimpleIntegerType extends GimplePrimitiveType {
     if (getClass() != obj.getClass())
       return false;
     GimpleIntegerType other = (GimpleIntegerType) obj;
-    if (precision != other.precision)
+    if (getPrecision() != other.getPrecision())
       return false;
     if (unsigned != other.unsigned)
       return false;
@@ -72,7 +66,7 @@ public class GimpleIntegerType extends GimplePrimitiveType {
 
   @Override
   public int localVariableSlots() {
-    if(precision > 32) {
+    if(getPrecision() > 32) {
       return 2;
     } else {
       return 1;
@@ -81,14 +75,18 @@ public class GimpleIntegerType extends GimplePrimitiveType {
 
   @Override
   public Type jvmType() {
-    if(precision == 64) {
+    if(getPrecision() == 64) {
       return Type.LONG_TYPE;
       
-    } else if(precision == 8) {
+    } else if(getPrecision() == 8) {
       return Type.BYTE_TYPE;
 
-    } else if(precision == 16) {
-      return Type.SHORT_TYPE;
+    } else if(getPrecision() == 16) {
+      if(unsigned) {
+        return Type.CHAR_TYPE;
+      } else {
+        return Type.SHORT_TYPE;
+      }
       
     } else {
       return Type.INT_TYPE;
@@ -97,6 +95,14 @@ public class GimpleIntegerType extends GimplePrimitiveType {
 
   @Override
   public int sizeOf() {
-    return Math.max(1, precision / 8);
+    return Math.max(1, getSize() / 8);
   }
+  
+  public static GimpleIntegerType unsigned(int bits) {
+    GimpleIntegerType type = new GimpleIntegerType(bits);
+    type.unsigned = true;
+    return type;
+  }
+  
+  
 }

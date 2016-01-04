@@ -5,6 +5,12 @@ package org.renjin.gcc.runtime;
  */
 public class Mathlib {
 
+  public static final double FLT_RADIX = 2.0;
+  
+  private static final double LN_FLT_RADIX = log(FLT_RADIX);
+  
+  private static final double LN_2 = log(2);
+
   public static double acos(double x) {
     return Math.acos(x);
   }
@@ -121,6 +127,22 @@ public class Mathlib {
    */
   public static double log(double x) {
     return Math.log(x);
+  }
+
+  /**
+   * @return Returns the binary (base-2) logarithm of x.
+   */
+  public static double log2(double x) {
+    return Math.log(x) / LN_2;
+  }
+
+  /**
+   * Returns the logarithm of |x|, using FLT_RADIX as base for the logarithm.
+   * 
+   * @param x Value whose logarithm is calculated.
+   */
+  public static double logb(double x) {
+    return Math.floor(Math.log(Math.abs(x)) / LN_FLT_RADIX);
   }
 
   /**

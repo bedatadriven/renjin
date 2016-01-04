@@ -7,7 +7,7 @@ public abstract class AbstractGimpleType implements GimpleType {
    * 
    * @return the size of values of this type, in bits
    */
-  public int getSize() {
+  public final int getSize() {
     return size;
   }
 

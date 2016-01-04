@@ -86,11 +86,10 @@ public class Native {
 
     try {
       method.invokeWithArguments(nativeArguments);
-    } catch (EvalException e) {
+    } catch (EvalException | Error e) {
       throw e;
     } catch (Throwable e) {
-      e.printStackTrace();
-      throw new EvalException(e.getCause().getMessage(), e);
+      throw new EvalException(e.getMessage(), e);
     }
 
     ListVector.NamedBuilder builder = new ListVector.NamedBuilder();

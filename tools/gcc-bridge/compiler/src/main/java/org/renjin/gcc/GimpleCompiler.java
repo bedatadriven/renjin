@@ -1,5 +1,7 @@
 package org.renjin.gcc;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
@@ -232,7 +234,36 @@ public class GimpleCompiler  {
   }
 
   private String getInternalClassName(String className) {
-    return (packageName + "." + className).replace('.', '/');
+    
+    // sanitize class name: file names may not be legal class names, for example,
+    // bit-ops.c
+    
+    return (packageName + "." + sanitize(className)).replace('.', '/');
+  }
+
+  @VisibleForTesting
+  static String sanitize(String name) {
+    Preconditions.checkArgument(name.length() >= 1);
+    
+    StringBuilder className = new StringBuilder();
+    
+    int i = 0;
+    if(Character.isJavaIdentifierStart(name.charAt(0))) {
+      className.append(name.charAt(0));
+      i++;
+    } else {
+      className.append('_');
+    }
+    
+    for(;i<name.length();++i) {
+      char c = name.charAt(i);
+      if(Character.isJavaIdentifierPart(c)) {
+        className.append(c);
+      } else {
+        className.append("_");
+      }
+    }
+    return className.toString();
   }
 
   public boolean isVerbose() {

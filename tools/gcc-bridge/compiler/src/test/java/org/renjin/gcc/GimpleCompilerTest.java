@@ -20,6 +20,14 @@ import static org.junit.Assert.assertTrue;
 public class GimpleCompilerTest extends AbstractGccTest {
 
   @Test
+  public void sanitizeClassName() {
+    assertThat(GimpleCompiler.sanitize("bit-ops"), equalTo("bit_ops"));
+    assertThat(GimpleCompiler.sanitize("survey"), equalTo("survey"));
+    assertThat(GimpleCompiler.sanitize("12345"), equalTo("_12345"));
+//    assertThat(GimpleCompiler.sanitize("class"), equalTo("class_"));
+  }
+  
+  @Test
   public void simpleTest() throws Exception {
 
     Class clazz = compile("area.c");
@@ -222,7 +230,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
 
     Method distance = clazz.getMethod("R_distance", IntPtr.class, int.class, int.class);
 
-    assertThat((Integer)distance.invoke(null, new IntPtr(1), 13, 14), equalTo(1));
+    assertThat((Integer) distance.invoke(null, new IntPtr(1), 13, 14), equalTo(1));
     assertThat((Integer) distance.invoke(null, new IntPtr(2), 3, 4), equalTo(-1));
   }
 
@@ -307,7 +315,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
 
   @Test
   public void fortran2darrays() throws Exception {
-    Class clazz = compile("2darray.f");
+    Class clazz = compile("two_d_array.f");
 
     Method method = clazz.getMethod("test_", DoublePtr.class, IntPtr.class);
     
@@ -685,6 +693,25 @@ public class GimpleCompilerTest extends AbstractGccTest {
     Method countWhitespace = clazz.getMethod("count_whitespace", BytePtr.class);
     assertThat((Integer)countWhitespace.invoke(null, 
         BytePtr.nullTerminatedString("Hello World!", Charsets.US_ASCII)), equalTo(1));
-    
   }
+  
+  @Test
+  public void unsigned() throws Exception {
+    Class clazz = compile("unsigned.c");
+    
+    // check conversions
+    Method bitflip = clazz.getMethod("bitflip", double.class);
+    assertThat((Double) bitflip.invoke(null, 0d), equalTo(4294967295d));
+    
+    Method bitand = clazz.getMethod("bitand", double.class, double.class);
+    assertThat((Double) bitand.invoke(null, 0d, 4294967295d), equalTo(0d));
+    
+    // check double to unsigned int and back
+    Method unsignedIntRoundTrip = clazz.getMethod("unsignedIntRoundTrip", double.class);
+    assertThat((Double)unsignedIntRoundTrip.invoke(null, 0d), equalTo(0d));
+    assertThat((Double) unsignedIntRoundTrip.invoke(null, -1), equalTo(4294967295d));
+    assertThat((Double) unsignedIntRoundTrip.invoke(null, 2147483653d), equalTo(2147483653d));
+  }
+  
+
 }

@@ -87,7 +87,7 @@ public class GimpleVarDecl {
 
   @Override
   public String toString() {
-    return type + getName() + " = " + value;
+    return type + " " + getName() + " = " + value;
   }
 
   /**

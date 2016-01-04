@@ -415,11 +415,9 @@ static void dump_type(tree type) {
   
   switch(TREE_CODE(type)) {
   case INTEGER_TYPE:
-    json_int_field("precision", TYPE_PRECISION(type));
     json_bool_field("unsigned", TYPE_UNSIGNED(type));
     break;
   case REAL_TYPE:
-    json_int_field("precision", TYPE_PRECISION(type));
     break;
   case POINTER_TYPE:
   case REFERENCE_TYPE:

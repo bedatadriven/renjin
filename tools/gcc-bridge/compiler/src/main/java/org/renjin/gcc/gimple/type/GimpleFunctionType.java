@@ -7,19 +7,9 @@ import java.util.List;
 
 public class GimpleFunctionType extends AbstractGimpleType {
   private GimpleType returnType;
-  private int size;
   private List<GimpleType> argumentTypes = Lists.newArrayList();
   private boolean variableArguments;
-
-
-  public int getSize() {
-    return size;
-  }
-
-  public void setSize(int size) {
-    this.size = size;
-  }
-
+  
   public GimpleType getReturnType() {
     return returnType;
   }

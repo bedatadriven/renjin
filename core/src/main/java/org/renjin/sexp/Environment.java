@@ -218,6 +218,13 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
   }
 
   public void setVariable(Symbol symbol, SEXP value) {
+    
+    if(symbol.getPrintName().equals("...")) {
+      if(!(value instanceof PromisePairList)) {
+        throw new AssertionError("Expected PromisePairList");
+      }
+    }
+    
     if(bindingIsLocked(symbol)) {
       throw new EvalException("cannot change value of locked binding for '%s'", symbol.getPrintName());
     } else if(locked && frame.getVariable(symbol) != Symbol.UNBOUND_VALUE) {

@@ -178,16 +178,20 @@ public class ClosureDispatcher {
       PairList.Node formal = formalIt.next();
       if(formal.hasTag()) {
         Symbol name = formal.getTag();
-        Collection<PairList.Node> matches = Collections2.filter(unmatchedActuals, PairList.Predicates.matches(name));
+        if(name != Symbols.ELLIPSES) {
+          Collection<PairList.Node> matches = Collections2.filter(unmatchedActuals, PairList.Predicates.matches(name));
 
-        if(matches.size() == 1) {
-          PairList.Node match = first(matches);
-          result.add(name, match.getValue());
-          formalIt.remove();
-          unmatchedActuals.remove(match);
+          if (matches.size() == 1) {
+            PairList.Node match = first(matches);
+            SEXP value = match.getValue();
+         
+            result.add(name, value);
+            formalIt.remove();
+            unmatchedActuals.remove(match);
 
-        } else if(matches.size() > 1) {
-          throw new EvalException(String.format("Multiple named values provided for argument '%s'", name.getPrintName()));
+          } else if (matches.size() > 1) {
+            throw new EvalException(String.format("Multiple named values provided for argument '%s'", name.getPrintName()));
+          }
         }
       }
     }
@@ -196,7 +200,7 @@ public class ClosureDispatcher {
     Collection<PairList.Node> remainingNamedFormals = filter(unmatchedFormals, PairList.Predicates.hasTag());
     for (Iterator<PairList.Node> actualIt = unmatchedActuals.iterator(); actualIt.hasNext(); ) {
       PairList.Node actual = actualIt.next();
-      if (actual.hasTag()) {
+      if (actual.hasTag() && actual.getTag() != Symbols.ELLIPSES) {
         PairList.Node partialMatch = matchPartial(actual.getTag().getPrintName(), remainingNamedFormals);
         if (partialMatch != null) {
           result.add(partialMatch.getTag(), actual.getValue());

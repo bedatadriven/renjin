@@ -792,5 +792,35 @@ public class EvaluationTest extends EvalTestCase {
     assertThat(eval("x$message"), equalTo(c("foo")));
     assertThat(eval("x$call[[1]]"), equalTo(symbol("doTryCatch")));
   }
+  
+  @Test
+  public void namedElipses() {
+    eval("g <- function(...) list(...) ");
+    eval("f <- function(...) g(...)");
+    
+    eval(" x <- f(...=1, 2) ");
+    
+    assertThat(eval("x"), equalTo(list(1d, 2d)));
+    assertThat(eval("names(x)"), equalTo(c("...", "")));
+  }
+
+  @Test
+  public void elipsesAsArg() {
+    eval("g <- function(...) list(...) ");
+    eval("f <- function(...) g(...)");
+    
+    eval("f(a=1,2)");
+  }
+  
+  
+  @Test
+  public void namedEllipsesToBuiltin() {
+    ListVector x = (ListVector) eval("list(... = 1, b = 2, 3) ");
+    
+    assertThat(x.length(), equalTo(3));
+    assertThat(x.getNames().getElementAsString(0), equalTo("..."));
+    assertThat(x.getNames().getElementAsString(1), equalTo("b"));
+
+  }
 }
 

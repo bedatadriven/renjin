@@ -1,13 +1,12 @@
 package org.renjin.gcc.codegen.var;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
+import com.google.common.collect.Lists;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * Allocates local variable slots
@@ -16,10 +15,12 @@ public class LocalVarAllocator extends VarAllocator {
   
   
   private static class LocalVar implements Var {
+    private String name;
     private int index;
     private Type type;
 
-    public LocalVar(int index, Type type) {
+    public LocalVar(String name, int index, Type type) {
+      this.name = name;
       this.index = index;
       this.type = type;
     }
@@ -38,25 +39,22 @@ public class LocalVarAllocator extends VarAllocator {
   
   
   private int slots = 0;
-  private Map<String, LocalVar> names = Maps.newHashMap();
+  private List<LocalVar> names = Lists.newArrayList();
 
   @Override
   public Var reserve(String name, Type type) {
-    Preconditions.checkState(!names.containsKey(name), "Variable name already used: " + name);
     int index = slots;
     slots += type.getSize();
-    LocalVar var = new LocalVar(index, type);
-    names.put(name, var);
+    LocalVar var = new LocalVar(name, index, type);
+    names.add(var);
     return var;
   }
 
   public void emitDebugging(MethodVisitor mv, Label start, Label end) {
 
-    for (Map.Entry<String, LocalVar> entry : names.entrySet()) {
-      String name = entry.getKey();
-      LocalVar desc = entry.getValue();
+    for (LocalVar entry : names) {
 
-      mv.visitLocalVariable(toJavaSafeName(name), desc.type.getDescriptor(), null, start, end, desc.index);
+      mv.visitLocalVariable(toJavaSafeName(entry.name), entry.type.getDescriptor(), null, start, end, entry.index);
     }
   }
 

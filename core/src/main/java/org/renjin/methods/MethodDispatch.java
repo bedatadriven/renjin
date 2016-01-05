@@ -21,7 +21,7 @@ public class MethodDispatch {
   public static final Symbol DOT_TARGET = Symbol.get(".target");
 
   
-  public static final Symbol dot_Generic =  Symbol.get(".Generic");
+  public static final Symbol DOT_GENERIC =  Symbol.get(".Generic");
   public static final Symbol GENERIC = Symbol.get("generic");
 
 
@@ -254,7 +254,7 @@ public class MethodDispatch {
       mlist = value;
       /* now look again.  This time the necessary method should
        have been inserted in the MethodsList object */
-      f = do_dispatch(context, fname, (Environment)ev, mlist, false, true);
+      f = do_dispatch(context, fname, (Environment) ev, mlist, false, true);
     }
     //    /* loadMethod methods */
     if(f.isObject()) {
@@ -463,7 +463,7 @@ public class MethodDispatch {
     /* create a new environment frame enclosed by the lexical
        environment of the method */
     Environment newrho = Environment.createChildEnvironment(op.getEnclosingEnvironment());
-
+    
     /* copy the bindings for the formal environment from the top frame
        of the internal environment of the generic call to the new
        frame.  need to make sure missingness information is preserved
@@ -517,14 +517,14 @@ public class MethodDispatch {
 
     /* copy the bindings of the spacial dispatch variables in the top
        frame of the generic call to the new frame */
-    newrho.setVariable(DOT_DEFINED, rho.getVariable(DOT_DEFINED));
-    newrho.setVariable(DOT_METHOD, rho.getVariable(DOT_METHOD));
-    newrho.setVariable(DOT_TARGET, rho.getVariable(DOT_TARGET));
+    newrho.setVariable(DOT_DEFINED, rho.findVariableOrThrow(DOT_DEFINED));
+    newrho.setVariable(DOT_METHOD, rho.findVariableOrThrow(DOT_METHOD));
+    newrho.setVariable(DOT_TARGET, rho.findVariableOrThrow(DOT_TARGET));
 
     /* copy the bindings for .Generic and .Methods.  We know (I think)
        that they are in the second frame, so we could use that. */
-    newrho.setVariable(Symbols.GENERIC, newrho.getVariable(".Generic"));
-    newrho.setVariable(DOT_METHODS, newrho.getVariable(DOT_METHODS));
+    newrho.setVariable(DOT_GENERIC, rho.findVariableOrThrow(DOT_GENERIC));
+    newrho.setVariable(DOT_METHODS, rho.findVariableOrThrow(DOT_METHODS));
 
     /* Find the calling context.  Should be R_GlobalContext unless
        profiling has inserted a CTXT_BUILTIN frame. */
@@ -549,7 +549,7 @@ public class MethodDispatch {
 
   private static SEXP R_execClosure(Context context, FunctionCall call, Closure op, PairList arglist,
       Environment callerenv, Environment newrho) {
-    return Calls.applyClosure(op, context, callerenv, call, arglist, newrho, new HashFrame());
+    return Calls.applyClosure(op, context, callerenv, call, arglist,  newrho.getFrame());
   }
   
   

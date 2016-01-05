@@ -219,6 +219,10 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
 
   public void setVariable(Symbol symbol, SEXP value) {
     
+    if(value == Symbol.UNBOUND_VALUE) {
+      throw new EvalException("Unbound: " + symbol);
+    }
+    
     if(bindingIsLocked(symbol)) {
       throw new EvalException("cannot change value of locked binding for '%s'", symbol.getPrintName());
     } else if(locked && frame.getVariable(symbol) != Symbol.UNBOUND_VALUE) {
@@ -285,14 +289,18 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     return varArgs.getElementAsSEXP(varArgReferenceIndex - 1);
   }
 
-  public SEXP findVariableOrThrow(String name) {
-    SEXP value = findVariable(Symbol.get(name));
+  public SEXP findVariableOrThrow(Symbol name) {
+    SEXP value = findVariable(name);
     if(value == Symbol.UNBOUND_VALUE) {
-      throw new EvalException("object '" + name + "' not found");
+      throw new EvalException("object '" + name.getPrintName() + "' not found");
     }
     return value;
   }
-  
+
+  public SEXP findVariableOrThrow(String name) {
+    return findVariableOrThrow(Symbol.get(name));
+  }
+
   public Function findFunction(Context context, Symbol symbol) {
     if(frame.isMissingArgument(symbol)) {
       throw new EvalException("argument '%s' is missing, with no default", symbol.toString());

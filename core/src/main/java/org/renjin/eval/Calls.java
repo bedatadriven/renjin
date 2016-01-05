@@ -40,8 +40,8 @@ public class Calls {
   }
 
 
-  public static SEXP applyClosure(Closure closure, Context context, Environment callingEnvironment, FunctionCall call, PairList promisedArgs, Environment rho,
-                                        Frame suppliedEnvironment) {
+  public static SEXP applyClosure(Closure closure, Context context, Environment callingEnvironment, FunctionCall call, PairList promisedArgs,
+                                  Frame suppliedEnvironment) {
 
     Context functionContext = context.beginFunction(callingEnvironment, call, closure, promisedArgs);
     Environment functionEnvironment = functionContext.getEnvironment();

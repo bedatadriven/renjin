@@ -550,7 +550,7 @@ public class Methods {
 
 
   private static boolean isGenericFunction(SEXP fun) {
-    SEXP value = ((Closure) fun).getEnclosingEnvironment().getVariable(MethodDispatch.dot_Generic);
+    SEXP value = ((Closure) fun).getEnclosingEnvironment().getVariable(MethodDispatch.DOT_GENERIC);
     return value != Symbol.UNBOUND_VALUE;
   }
 }

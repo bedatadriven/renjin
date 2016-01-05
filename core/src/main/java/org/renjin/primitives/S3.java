@@ -586,7 +586,7 @@ public class S3 {
 
       if(function instanceof Closure) {
         return Calls.applyClosure((Closure) function, callContext, callEnvironment,  newCall,
-                args, callEnvironment, persistChain());
+                args, persistChain());
       } else {
         // primitive
         return function.apply(callContext, callEnvironment, newCall, args);

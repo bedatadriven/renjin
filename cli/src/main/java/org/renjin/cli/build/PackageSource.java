@@ -1,11 +1,13 @@
 package org.renjin.cli.build;
 
 
+import com.google.common.base.Strings;
 import joptsimple.OptionSet;
 import org.renjin.packaging.PackageDescription;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 public class PackageSource {
@@ -74,6 +76,10 @@ public class PackageSource {
   }
 
   public List<String> getSourceFiles() {
+    String sourceFileList = description.getFirstProperty("Collate");
+    if(!Strings.isNullOrEmpty(sourceFileList)) {
+      return Arrays.asList(sourceFileList.split("\\s+"));
+    }
     return null;
   }
 

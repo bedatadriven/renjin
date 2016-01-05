@@ -25,6 +25,7 @@ import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.PairList;
 import org.renjin.sexp.SEXP;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -69,8 +70,8 @@ public class ContextTest extends EvalTestCase {
     eval(" g <- function() sys.frame(-1)$z ");
     eval(" h <- function() { z<-99; g() } ");
 
-    assertThat( eval("sys.frame(0)"), is((SEXP)global));
-    assertThat( eval("f()"), is((SEXP)global));
+    assertThat(eval("sys.frame(0)"), is((SEXP) global));
+    assertThat(eval("f()"), is((SEXP) global));
     assertThat( eval("h()"), equalTo(c(99)));
   }
 
@@ -91,9 +92,9 @@ public class ContextTest extends EvalTestCase {
   @Test
   public void parentFrameInGlobal2() {
     eval( "parent.frame <- function(n = 1) .Internal(parent.frame(n)) ");
-    eval( "f <- function() parent.frame(2)$xx");
-    eval( "g <- function() f() ");
-    eval( "h <- function() { xx <- 99; g() } ");
+    eval("f <- function() parent.frame(2)$xx");
+    eval("g <- function() f() ");
+    eval("h <- function() { xx <- 99; g() } ");
     
     assertThat(eval("h()"), equalTo(c(99)));
   }
@@ -110,7 +111,7 @@ public class ContextTest extends EvalTestCase {
     eval(" g <- function() { parent.frame()$zz + 1 } ");
     eval(" f <- function() { zz<-41; g() } ");
 
-    assertThat( eval("f()"), equalTo( c(42) ));
+    assertThat(eval("f()"), equalTo(c(42)));
   }
 
   @Test
@@ -141,7 +142,7 @@ public class ContextTest extends EvalTestCase {
     eval(" f <- function() sys.parent() ");
     eval(" g <- function() f() ");
 
-    assertThat( eval("f()"), equalTo( c_i(0) ));
+    assertThat(eval("f()"), equalTo(c_i(0)));
     assertThat( eval("g()"), equalTo( c_i(1) ));
   }
 
@@ -191,7 +192,18 @@ public class ContextTest extends EvalTestCase {
     // now MyNextMethod() is evaluated in the new context for myClosure and
     // sys.frame(-1) refers to myClosure's environment.
     assertThat(eval("x[1]"), equalTo(NULL));
-
-
   }
+
+  @Test
+  public void sysCalls() {
+    eval("g <- function(x) sys.calls() ");
+    eval("f <- function(x) g(x)");
+    PairList calls = (PairList) eval("x <- f(1)");
+    
+    assertThat(calls.length(), equalTo(2));
+  }
+
+
 }
+
+

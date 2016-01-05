@@ -24,13 +24,10 @@ package org.renjin.primitives;
 import org.renjin.eval.Context;
 import org.renjin.eval.Context.Type;
 import org.renjin.eval.EvalException;
-import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
-import org.renjin.sexp.Closure;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.Function;
-import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.*;
+
 
 
 /**
@@ -265,6 +262,19 @@ public class Contexts {
   @Internal("sys.call")
   public static FunctionCall sysCall(@Current Context context, int which) {
     return R_syscall(which, findStartingContext(context));
+  }
+  
+  @Internal("sys.calls") 
+  public static PairList sysCalls(@Current Context context) {
+    Context current = findStartingContext(context);
+    PairList head = Null.INSTANCE;
+    while(!current.isTopLevel()) {
+      if(current.getCall() != null) {
+        head = new PairList.Node(current.getCall(), head);
+      }
+      current = current.getParent();
+    }
+    return head;
   }
 
   @Internal("sys.function")

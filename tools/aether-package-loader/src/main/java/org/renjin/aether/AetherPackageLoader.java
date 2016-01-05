@@ -14,10 +14,8 @@ import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.resolution.*;
 import org.eclipse.aether.transfer.TransferListener;
 import org.eclipse.aether.version.Version;
-import org.renjin.primitives.packaging.ClasspathPackageLoader;
-import org.renjin.primitives.packaging.FqPackageName;
+import org.renjin.primitives.packaging.*;
 import org.renjin.primitives.packaging.Package;
-import org.renjin.primitives.packaging.PackageLoader;
 
 import java.util.HashSet;
 import java.util.List;
@@ -54,12 +52,9 @@ public class AetherPackageLoader implements PackageLoader {
     loadedPackages.add("org.renjin:renjin-core");
     loadedPackages.add("org.renjin:renjin-appl");
     loadedPackages.add("org.renjin:renjin-gnur-runtime");
-    loadedPackages.add("org.renjin:stats");
-    loadedPackages.add("org.renjin:methods");
-    loadedPackages.add("org.renjin:utils");
-    loadedPackages.add("org.renjin:datasets");
-    loadedPackages.add("org.renjin:graphics");
-    loadedPackages.add("org.renjin:grDevices");
+    for (String corePackage : NamespaceRegistry.CORE_PACKAGES) {
+      loadedPackages.add("org.renjin:" + corePackage);
+    }
   }
 
   @Override

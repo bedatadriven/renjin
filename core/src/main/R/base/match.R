@@ -1,6 +1,8 @@
 #  File src/library/base/R/match.R
 #  Part of the R package, http://www.R-project.org
 #
+#  Copyright (C) 1995-2015 The R Core Team
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
@@ -18,8 +20,24 @@ match <- function(x, table, nomatch = NA_integer_, incomparables = NULL)
     .Internal(match(x, table, nomatch, incomparables))
 
 match.call <-
-    function(definition=NULL, call=sys.call(sys.parent()), expand.dots=TRUE)
-    .Internal(match.call(definition,call,expand.dots))
+    function(definition=sys.function(sys.parent()),
+             call=sys.call(sys.parent()), expand.dots=TRUE,
+             envir=parent.frame(2L))
+{
+    envirSym <- substitute(envir)
+    
+    if (!missing(definition) && is.null(definition)) {
+        definition <- sys.function(sys.parent())
+    }
+    result <-  .Internal(match.call(definition,call,expand.dots,envir))
+    
+    if(!missing(envir)) {
+        cat(sprintf("match.call: call = %s, expand.dots = %s, envir = %s\n", deparse(call), deparse(expand.dots), deparse(envirSym)))
+        cat(sprintf("   result = %s\n", deparse(result)))
+    }
+    
+    result
+}
 
 pmatch <- function(x, table, nomatch = NA_integer_, duplicates.ok = FALSE)
     .Internal(pmatch(as.character(x), as.character(table), nomatch,
@@ -64,6 +82,6 @@ char.expand <- function(input, target, nomatch = stop("no match"))
     if(!(is.character(input) && is.character(target)))
 	stop("'input' and 'target' must be character vectors")
     y <- .Internal(charmatch(input, target, NA_integer_))
-    if(any(is.na(y))) eval(nomatch)
+    if(anyNA(y)) eval(nomatch)
     target[y]
 }

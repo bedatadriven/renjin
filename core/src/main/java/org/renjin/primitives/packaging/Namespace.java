@@ -116,7 +116,12 @@ public class Namespace {
    */
   public void copyExportsTo(Environment packageEnv) {
     for(Symbol name : exports) {
-      packageEnv.setVariable(name, namespaceEnvironment.getVariable(name));
+      SEXP exportValue = namespaceEnvironment.findVariable(name);
+      if(exportValue == Symbol.UNBOUND_VALUE) {
+        throw new EvalException("Symbol '%s' is not defined in package '%s'", 
+            name.getPrintName(), pkg.getName());
+      }
+      packageEnv.setVariable(name, exportValue);
     }
   }
 

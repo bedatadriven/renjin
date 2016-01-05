@@ -179,7 +179,7 @@ public class NamespaceRegistry {
 
         return Optional.of(namespace);
 
-      } catch(IOException e) {
+      } catch(Exception e) {
         throw new EvalException("IOException while loading package " + fqName + ": " + e.getMessage(), e);
       }
     }

@@ -21,6 +21,8 @@
 
 package org.renjin.primitives.packaging;
 
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Builtin;
@@ -148,5 +150,17 @@ public class Namespaces {
   public static StringVector getNamespaceImports(@Current NamespaceRegistry registry, final SEXP sexp) {
     Namespace ns = resolveNamespace(registry, sexp);
     throw new UnsupportedOperationException("TODO: implement getNamespaceImports!");
+  }
+  
+  @Internal("find.package")
+  public static StringVector findPackage(@Current Context context, final AtomicVector packageNames) throws FileSystemException {
+    StringArrayVector.Builder result = new StringArrayVector.Builder();
+    for (int i = 0; i < packageNames.length(); i++) {
+      String packageName = packageNames.getElementAsString(i);
+      Namespace namespace = context.getNamespaceRegistry().getNamespace(packageName);
+      FileObject fileObject = namespace.getPackage().resolvePackageRoot(context.getFileSystemManager());
+      result.add(fileObject.getURL().toString());
+    }
+    return result.build();
   }
 }

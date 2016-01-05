@@ -283,7 +283,9 @@ public final class Rinternals {
     }
   }
 
-  // Rcomplex*() COMPLEX (SEXP x)
+  public static DoublePtr COMPLEX (SEXP x) {
+    throw new UnimplementedGnuApiMethod("COMPLEX");
+  }
 
   public static SEXP STRING_ELT(SEXP x, /*R_xlen_t*/ int i) {
     StringVector stringVector = (StringVector) x;

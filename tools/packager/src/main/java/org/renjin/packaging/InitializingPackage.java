@@ -1,19 +1,26 @@
 package org.renjin.packaging;
 
 import com.google.common.io.ByteSource;
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.FileSystemManager;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.packaging.FqPackageName;
 import org.renjin.primitives.packaging.Package;
 import org.renjin.sexp.NamedValue;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 
 public class InitializingPackage extends Package {
 
-  protected InitializingPackage(FqPackageName name) {
+  private final File packageRoot;
+
+  protected InitializingPackage(FqPackageName name, File packageRoot) {
     super(name);
+    this.packageRoot = packageRoot;
   }
 
   @Override
@@ -33,5 +40,10 @@ public class InitializingPackage extends Package {
     } catch (ClassNotFoundException e) {
       throw new EvalException(String.format("Could not load class %s from package %s", className, getName()), e);
     }
+  }
+
+  @Override
+  public FileObject resolvePackageRoot(FileSystemManager fileSystemManager) throws FileSystemException {
+    return fileSystemManager.toFileObject(packageRoot);
   }
 }

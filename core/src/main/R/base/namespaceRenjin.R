@@ -46,6 +46,14 @@ isBaseNamespace <- function(ns) identical(ns, .BaseNamespaceEnv)
 
 .getNamespace <- function(what) getNamespace(what)
 
+
+find.package <- function(package = NULL, lib.loc = NULL, quiet = FALSE, verbose = getOption("verbose")) {
+	if(is.null(package)) {
+		stop("package = NULL not supported by Renjin.")
+	}
+	.Internal(find.package(package))
+}
+
 loadNamespaceMethods <- function(package, ns, expClasses, expClassPatterns) {
   ## cache generics, classes in this namespace (but not methods itself,
 	## which pre-cached at install time

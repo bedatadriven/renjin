@@ -2,6 +2,9 @@ package org.renjin.primitives.packaging;
 
 import com.google.common.io.ByteSource;
 import com.google.common.io.Resources;
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.FileSystemManager;
 import org.renjin.eval.EvalException;
 
 import java.io.IOException;
@@ -20,7 +23,7 @@ public class ClasspathPackage extends FileBasedPackage {
   }
   
   public ClasspathPackage(FqPackageName name) {
-    super(name);
+    this(ClasspathPackage.class.getClassLoader(), name);
   }
   
   public boolean exists() {
@@ -49,6 +52,16 @@ public class ClasspathPackage extends FileBasedPackage {
       throw new EvalException(e.getMessage(), e);
     }
   }
+
+  @Override
+  public FileObject resolvePackageRoot(FileSystemManager fileSystemManager) throws FileSystemException {
+    // Find the URL where the package is located
+    String qualifiedName = qualifyResourceName("environment");
+    URL url = classLoader.getResource(qualifiedName);
+    
+    return fileSystemManager.resolveFile(url.toString()).getParent();
+  }
+
 
   private String qualifyResourceName(String name) {
     return

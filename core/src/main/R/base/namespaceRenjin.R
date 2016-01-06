@@ -39,7 +39,8 @@ getNamespaceInfo <- function(ns, which) {
 	switch(which,
 		"imports" = getNamespaceImports(ns),
 		"exports" = getNamespaceExports(ns),
-				 	stop(sprintf("getNamespaceInfo(which='%s') not implemented")))
+		"path" = find.package(ns),
+				 	stop(sprintf("getNamespaceInfo(which='%s') not implemented", which)))
 }
 
 isBaseNamespace <- function(ns) identical(ns, .BaseNamespaceEnv)

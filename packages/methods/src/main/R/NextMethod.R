@@ -130,7 +130,7 @@ callNextMethod <- function(...) {
         else
             call <- match.call(maybeMethod, mcall, expand.dots = FALSE,
                                envir = dotsenv)
-        .Call(C_R_nextMethodCall, call, callEnv)
+        .Call("R_nextMethod", call, callEnv, PACKAGE="methods")
     }
 }
 

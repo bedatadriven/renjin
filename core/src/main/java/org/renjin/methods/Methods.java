@@ -466,7 +466,7 @@ public class Methods {
 
 
   public static SEXP data_part(Context context, SEXP obj) {
-    SEXP val = context.evaluate(FunctionCall.newCall(MethodDispatch.s_getDataPart, obj), 
+    SEXP val = context.evaluate(FunctionCall.newCall(MethodDispatch.s_getDataPart, obj),
         context.getSession().getSingleton(MethodDispatch.class).getMethodsNamespace());
 
     return val.setAttribute(Symbols.S4_BIT, Null.INSTANCE);
@@ -552,5 +552,65 @@ public class Methods {
   private static boolean isGenericFunction(SEXP fun) {
     SEXP value = ((Closure) fun).getEnclosingEnvironment().getVariable(MethodDispatch.DOT_GENERIC);
     return value != Symbol.UNBOUND_VALUE;
+  }
+
+
+  public static SEXP R_nextMethod(@Current Context context, FunctionCall matched_call, Environment ev) {
+    SEXP val, this_sym, op;
+    int i, nargs = matched_call.length()-1;
+    boolean prim_case;
+    
+    /* for primitive .nextMethod's, suppress further dispatch to avoid
+     * going into an infinite loop of method calls
+    */
+    op =  ev.findVariable(MethodDispatch.R_dot_nextMethod);
+
+    if(op == Symbol.UNBOUND_VALUE) {
+      throw new EvalException(
+          "internal error in 'callNextMethod': '.nextMethod' was not assigned in the frame of the method call");
+    }
+
+    PairList.Node e = (PairList.Node) matched_call.newCopyBuilder().build();
+
+    prim_case = (op instanceof PrimitiveFunction);
+    if(prim_case) {
+      /* retain call to primitive function, suppress method
+         dispatch for it */
+      // todo: do_set_prim_method(op, "suppress", R_NilValue, R_NilValue);
+      throw new UnsupportedOperationException();
+    } else {
+      e.setValue(MethodDispatch.R_dot_nextMethod); /* call .nextMethod instead */
+    }
+    PairList args = e.getNext();
+    /* e is a copy of a match.call, with expand.dots=FALSE.  Turn each
+    <TAG>=value into <TAG> = <TAG>, except  ...= is skipped (if it
+    appears) in which case ... was appended. */
+    for(i=0; i<nargs; i++) {
+      PairList.Node argsNode = (PairList.Node) args;
+      this_sym = args.getRawTag();
+      if(argsNode.getValue() != Symbol.MISSING_ARG) { /* "missing" only possible in primitive */
+        argsNode.setValue(this_sym);
+      }
+      args = argsNode.getNext();
+    }
+
+    if(prim_case) {
+      throw new UnsupportedOperationException("todo: do_set_prim_method");
+//
+//      try {
+//        val = context.evaluate(e, ev);
+//      } catch (EvalException ex) {
+//        throw new EvalException("error in evaluating a 'primitive' next method: %s", ex.getMessage());
+//      } finally {
+//        /* reset the methods:  R_NilValue for the mlist argument
+//           leaves the previous function, methods list unchanged */
+//        //do_set_prim_method(op, "set", R_NilValue, R_NilValue);
+//      
+//      }
+
+    } else {
+      val = context.evaluate(e, ev);
+    }
+    return val;
   }
 }

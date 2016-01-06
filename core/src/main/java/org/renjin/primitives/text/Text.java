@@ -117,12 +117,12 @@ public class Text {
     
     // count cycles
     int cycles = formatters.length;
-    for(int i=0;i!=formatArgs.length;++i) {
-      if(formatArgs[i].length() == 0) {
+    for (AtomicVector formatArg : formatArgs) {
+      if (formatArg.length() == 0) {
         return StringVector.EMPTY;
       }
-      if(formatArgs[i].length() > cycles) {
-        cycles = formatArgs[i].length();
+      if (formatArg.length() > cycles) {
+        cycles = formatArg.length();
       }
     }
     

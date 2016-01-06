@@ -449,6 +449,12 @@ import java.util.Vector;
  *              round up/down when last digits are 50000...
  */
 public class Formatter {
+
+  /**
+   * The input format string
+   */
+  private final String fmtArg;
+
   /**
    * Constructs an array of control specifications
    * possibly preceded, separated, or followed by
@@ -479,6 +485,7 @@ public class Formatter {
    */
   public Formatter(Locale locale, String fmtArg)
       throws EvalException {
+    this.fmtArg = fmtArg;
     dfs = new DecimalFormatSymbols(locale);
     int ePos=0;
     ConversionSpecification sFmt=null;
@@ -615,6 +622,9 @@ public class Formatter {
             cs.setPrecisionWithArg( getInteger(o, i, cycleIndex));
             i++;
           }
+        }
+        if(i >= o.length) {
+          throw new EvalException("too few arguments for pattern '" + this.fmtArg + "'");
         }
         AtomicVector vector = o[i];
         

@@ -129,6 +129,7 @@ public class PackageBuild {
       compileNativeSources();
     }
     compileDatasets();
+    copyResources();
     compileNamespace();
     runTests();
     writePomFile();
@@ -158,8 +159,8 @@ public class PackageBuild {
     try {
       compiler.compile();
     } catch (Exception e) {
-      throw new RuntimeException(e);
-      //reporter.warn("Compilation of GNU R sources failed", e);
+     // throw new RuntimeException(e);
+      reporter.warn("Compilation of GNU R sources failed", e);
     }
   }
 
@@ -172,7 +173,21 @@ public class PackageBuild {
     return dir;
   }
 
+  /**
+   * Copies files that should be available to installed packages
+   */
+  private void copyResources()  {
+    try {
+      Files.copy(source.getNamespaceFile(), new File(outputDir, "NAMESPACE"));
+      Files.copy(source.getDescriptionFile(), new File(outputDir, "DESCRIPTION"));
+      
+    } catch (IOException e) {
+      throw new BuildException("Exception copying package resources");
+    }
+  }
+
   private void compileNamespace() {
+    
     NamespaceBuilder builder = new NamespaceBuilder();
     try {
       builder.build(source.getGroupId(), source.getName(), source.getNamespaceFile(),
@@ -181,7 +196,6 @@ public class PackageBuild {
           environmentFile,
           Session.DEFAULT_PACKAGES);
       
-      Files.copy(source.getNamespaceFile(), new File(outputDir, "NAMESPACE"));
 
     } catch (IOException e) {
       throw new BuildException("Exception building namespace: " + e.getMessage(), e);
@@ -198,7 +212,7 @@ public class PackageBuild {
     try {
       Files.write(builder.getXml(), getPomFile(), Charsets.UTF_8);
     } catch (IOException e) {
-      throw new BuildException("Exception writing " + getPomFile().getAbsolutePath());
+      throw new BuildException("Exception writing "   + getPomFile().getAbsolutePath());
     }
   }
   

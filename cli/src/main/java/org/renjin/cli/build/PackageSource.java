@@ -37,7 +37,7 @@ public class PackageSource {
 
 
   private PackageDescription readDescription() {
-    File descriptionFile = new File(packageDir, "DESCRIPTION");
+    File descriptionFile = getDescriptionFile();
     check(descriptionFile.exists(), "DESCRIPTION file does not exist at '%s'", descriptionFile);
 
     PackageDescription description = null;
@@ -47,6 +47,10 @@ public class PackageSource {
       throw new BuildException("Exception reading DESCRIPTION file: " + e.getMessage());
     }
     return description;
+  }
+
+  public File getDescriptionFile() {
+    return new File(packageDir, "DESCRIPTION");
   }
 
   private void check(boolean condition, String message, Object... args) {
@@ -66,7 +70,8 @@ public class PackageSource {
   public File getNamespaceFile() {
     return namespaceFile;
   }
-
+  
+  
   public File getSourceDir() {
     return sourceDir;
   }
@@ -110,4 +115,5 @@ public class PackageSource {
   public File getTestsDir() {
     return new File(packageDir, "tests");
   }
+
 }

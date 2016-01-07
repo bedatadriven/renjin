@@ -57,7 +57,8 @@ public class Tables {
    * @param dec
    * @return
    */
-  public static Vector typeconvert(StringVector vector, StringVector naStrings, boolean asIs, String dec) {
+  public static Vector typeconvert(StringVector vector, StringVector naStrings, boolean asIs, 
+                                   String dec, String numerals) {
 
     Set<String> naSet = createHashSet(naStrings);
     Converter<?> converter = getConverter(vector, naSet);

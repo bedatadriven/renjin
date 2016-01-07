@@ -92,7 +92,7 @@ function(file, header = FALSE, sep = "", quote = "\"'", dec = ".",
                       strip.white = TRUE,
                       blank.lines.skip = blank.lines.skip,
                       comment.char = comment.char, allowEscapes = allowEscapes,
-                      encoding = encoding, skipNul = skipNul)
+                      encoding = encoding)
         col1 <- if(missing(col.names)) length(first) else length(col.names)
         col <- numeric(nlines - 1L)
         if (nlines > 1L)
@@ -104,8 +104,7 @@ function(file, header = FALSE, sep = "", quote = "\"'", dec = ".",
                                       blank.lines.skip = blank.lines.skip,
                                       comment.char = comment.char,
                                       allowEscapes = allowEscapes,
-				      encoding = encoding,
-                                      skipNul = skipNul))
+				                      encoding = encoding))
         cols <- max(col1, col)
 
         ##	basic column counting and header determination;
@@ -172,7 +171,7 @@ function(file, header = FALSE, sep = "", quote = "\"'", dec = ".",
                  strip.white = strip.white,
                  blank.lines.skip = blank.lines.skip, multi.line = FALSE,
                  comment.char = comment.char, allowEscapes = allowEscapes,
-                 flush = flush, encoding = encoding, skipNul = skipNul)
+                 flush = flush, encoding = encoding)
 
     nlines <- length(data[[ which.max(keep) ]])
 

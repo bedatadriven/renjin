@@ -33,7 +33,6 @@ public class PeepholeOptimizer {
 
   public void optimize(MethodNode methodNode) {
 
-    System.out.println("BEFORE " + methodNode.name);
     methodNode.accept(new TraceMethodVisitor(new Textifier()));
 
     NodeIt it = new NodeIt(methodNode.instructions, findJumpTargets(methodNode));

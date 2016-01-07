@@ -23,20 +23,11 @@ match.call <-
     function(definition=sys.function(sys.parent()),
              call=sys.call(sys.parent()), expand.dots=TRUE,
              envir=parent.frame(2L))
-{
-    envirSym <- substitute(envir)
-    
+{    
     if (!missing(definition) && is.null(definition)) {
         definition <- sys.function(sys.parent())
     }
-    result <-  .Internal(match.call(definition,call,expand.dots,envir))
-    
-    if(!missing(envir)) {
-        cat(sprintf("match.call: call = %s, expand.dots = %s, envir = %s\n", deparse(call), deparse(expand.dots), deparse(envirSym)))
-        cat(sprintf("   result = %s\n", deparse(result)))
-    }
-    
-    result
+    .Internal(match.call(definition,call,expand.dots,envir))
 }
 
 pmatch <- function(x, table, nomatch = NA_integer_, duplicates.ok = FALSE)

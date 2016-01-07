@@ -1,6 +1,5 @@
 package org.renjin.packaging;
 
-import com.google.common.io.Files;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.eval.Context;
@@ -9,7 +8,6 @@ import org.renjin.primitives.packaging.FqPackageName;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.sexp.Closure;
 import org.renjin.sexp.NamedValue;
-import org.renjin.sexp.Symbol;
 
 import java.io.File;
 

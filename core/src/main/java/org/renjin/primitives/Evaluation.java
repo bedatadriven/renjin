@@ -373,13 +373,13 @@ public class Evaluation {
       if(text != Null.INSTANCE) {
         for(int i=0;i!=text.length();++i) {
           String line = text.getElementAsString(i);
-          ExpressionVector result = RParser.parseSource(new StringReader(line + "\n"));
+          ExpressionVector result = RParser.parseAllSource(new StringReader(line + "\n"), sourceFile);
           Iterables.addAll(expressions, result);
         }
       } else if(file.inherits("connection")) {
         Connection conn = Connections.getConnection(context, file);
         Reader reader = new InputStreamReader(conn.getInputStream());
-        ExpressionVector result = RParser.parseSource(reader);
+        ExpressionVector result = RParser.parseAllSource(reader, sourceFile);
         Iterables.addAll(expressions, result);
       }
 //      AttributeMap.Builder attributes = AttributeMap.builder();

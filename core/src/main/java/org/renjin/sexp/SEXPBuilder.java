@@ -4,6 +4,7 @@
  * Copyright (C) 1997-2008  The R Development Core Team
  * Copyright (C) 2003, 2004  The R Foundation
  * Copyright (C) 2010 bedatadriven
+ * Copyright (C) 2014 Ruslan Shevchenko
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,37 +20,31 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.renjin.parser;
-
-import org.renjin.sexp.SEXP;
+package org.renjin.sexp;
 
 /**
- * Reference to a specific point in the source code.
- * <p/>
- * Translated from the C {@code SrcRefState }
+ * Base builder for SEXP.  
  */
-public class SrcRefState {
+public interface SEXPBuilder {
 
   /**
-   * Whether to attach srcrefs to objects as they are parsed
+   * build SEXP
    */
-  public boolean keepSrcRefs;
+  SEXP build();
 
   /**
-   * The srcfile object currently being parsed
+   * return length of SEXP which is already build.
    */
-  public SEXP SrcFile;
+  int length();
 
   /**
-   * The SrcFile may change
+   * set attribute.
    */
-  public int SrcFileProt;
+  SEXPBuilder setAttribute(String attributeName, SEXP value);
 
   /**
-   * Position information about the current parse
+   * set attibutr
    */
-  public int xxlineno;
-  public int xxcolno;
-  public int charIndex;
-
+  SEXPBuilder setAttribute(Symbol attributeName, SEXP value);
+  
 }

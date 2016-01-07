@@ -102,13 +102,13 @@ public class Primitives {
   private static PrimitiveFunction createFunction(final Entry entry) {
    try {
       return (PrimitiveFunction) Class.forName(WrapperGenerator2.toFullJavaName(entry.name)).newInstance();
-    } catch(Exception e) {
+    } catch(final Exception e) {
       return new BuiltinFunction(entry.name) {
 
         @Override
         public SEXP apply(Context context, Environment rho,
             FunctionCall call, PairList args) {
-          throw new EvalException("Sorry! " + entry.name + " not yet implemented!");
+          throw new EvalException("Sorry! " + entry.name + " not yet implemented!", e);
         }
       };
     }

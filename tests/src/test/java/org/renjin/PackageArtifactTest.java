@@ -1,11 +1,11 @@
 package org.renjin;
 
-import java.io.IOException;
-
 import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.eval.Context;
 import org.renjin.parser.RParser;
+
+import java.io.IOException;
 
 
 public class PackageArtifactTest {

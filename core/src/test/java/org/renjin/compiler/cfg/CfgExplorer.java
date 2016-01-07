@@ -1,25 +1,17 @@
 package org.renjin.compiler.cfg;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-
-import javax.swing.JFrame;
-import javax.swing.JScrollPane;
-
-import org.renjin.compiler.cfg.BasicBlock;
-import org.renjin.compiler.cfg.ControlFlowGraph;
-import org.renjin.compiler.cfg.Edge;
+import com.google.common.base.Charsets;
+import com.google.common.io.Resources;
+import edu.uci.ics.jung.visualization.BasicVisualizationServer;
 import org.renjin.compiler.ir.tac.IRBody;
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
 import org.renjin.compiler.ir.tac.IRFunctionTable;
 import org.renjin.parser.RParser;
 import org.renjin.sexp.ExpressionVector;
 
-
-import com.google.common.base.Charsets;
-import com.google.common.io.Resources;
-
-import edu.uci.ics.jung.visualization.BasicVisualizationServer;
+import javax.swing.*;
+import java.io.IOException;
+import java.net.MalformedURLException;
 
 public class CfgExplorer {
 

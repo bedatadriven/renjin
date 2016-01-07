@@ -9,6 +9,7 @@ import org.renjin.eval.EvalException;
 import org.renjin.sexp.NamedValue;
 import org.renjin.sexp.Null;
 import org.renjin.sexp.SEXP;
+import org.renjin.util.NamedByteSource;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -39,7 +40,7 @@ public abstract class Package {
   }
 
 
-  public ByteSource getResource(String name) throws IOException {
+  public NamedByteSource getResource(String name) throws IOException {
     throw new IOException();
   }
 

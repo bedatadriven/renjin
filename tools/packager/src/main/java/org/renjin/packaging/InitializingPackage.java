@@ -1,6 +1,5 @@
 package org.renjin.packaging;
 
-import com.google.common.io.ByteSource;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
@@ -9,6 +8,7 @@ import org.renjin.eval.EvalException;
 import org.renjin.primitives.packaging.FqPackageName;
 import org.renjin.primitives.packaging.Package;
 import org.renjin.sexp.NamedValue;
+import org.renjin.util.NamedByteSource;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,7 +29,7 @@ public class InitializingPackage extends Package {
   }
 
   @Override
-  public ByteSource getResource(String name) throws IOException {
+  public NamedByteSource getResource(String name) throws IOException {
     throw new UnsupportedOperationException();
   }
 

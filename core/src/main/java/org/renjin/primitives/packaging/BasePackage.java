@@ -1,8 +1,8 @@
 package org.renjin.primitives.packaging;
 
-import com.google.common.io.ByteSource;
 import org.renjin.eval.Context;
 import org.renjin.sexp.NamedValue;
+import org.renjin.util.NamedByteSource;
 
 import java.io.IOException;
 
@@ -18,7 +18,7 @@ public class BasePackage extends Package {
   }
 
   @Override
-  public ByteSource getResource(String name) throws IOException {
+  public NamedByteSource getResource(String name) throws IOException {
     throw new UnsupportedOperationException();
   }
 

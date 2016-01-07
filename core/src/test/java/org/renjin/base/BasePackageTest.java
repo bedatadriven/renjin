@@ -271,7 +271,8 @@ public class BasePackageTest extends EvalTestCase {
     loadBasePackage();
 
     assertThat(eval(" parse(text='1') "), equalTo(expression(1d)));
-
+    
+    eval("attributes(parse(text='1+1'))");
   }
 
   @Test

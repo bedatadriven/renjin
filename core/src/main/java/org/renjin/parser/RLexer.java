@@ -32,7 +32,7 @@ import java.util.logging.Logger;
 import static java.lang.Character.isDigit;
 import static org.renjin.parser.RParser.*;
 import static org.renjin.parser.Tokens.*;
-
+import static org.renjin.util.CDefines.*;
 
 public class RLexer implements RParser.Lexer {
 
@@ -53,8 +53,6 @@ public class RLexer implements RParser.Lexer {
   private final ParseState parseState;
 
   private final ParseOptions parseOptions;
-
-  private SrcRefState srcRef = new SrcRefState();
 
   private Position tokenBegin = new Position();
   private Position tokenEnd = new Position();
@@ -105,7 +103,6 @@ public class RLexer implements RParser.Lexer {
     this.reader = new RLexerReader(reader);
     this.parseOptions = options;
     this.parseState = state;
-    this.srcRef.charIndex = -1;
   }
 
 
@@ -358,9 +355,9 @@ public class RLexer implements RParser.Lexer {
 
     if (c == '#') c = skipComment();
 
-    tokenBegin.line = srcRef.xxlineno;
-    tokenBegin.column = srcRef.xxcolno;
-    tokenBegin.charIndex = srcRef.charIndex;
+    tokenBegin.line = reader.getLineNumber();
+    tokenBegin.column = reader.getColumnNumber();
+    tokenBegin.charIndex = reader.getCharacterIndex();
 
     if (c == R_EOF) return END_OF_INPUT;
 
@@ -592,9 +589,9 @@ an ANSI digit or not */
  */
 
   void setlastloc() {
-    tokenEnd.line = srcRef.xxlineno;
-    tokenEnd.column = srcRef.xxcolno;
-    tokenEnd.charIndex = srcRef.charIndex;
+    tokenEnd.line = reader.getLineNumber();
+    tokenEnd.column = reader.getColumnNumber();
+    tokenEnd.charIndex = reader.getCharacterIndex();
   }
 
 
@@ -606,7 +603,7 @@ an ANSI digit or not */
 
   private int skipComment() {
     int c = '#', i;
-    boolean maybeLine = (srcRef.xxcolno == 1);
+    boolean maybeLine = (reader.getColumnNumber() == 1);
     if (maybeLine) {
       String lineDirective = "#line";
       for (i = 1; i < 5; i++) {
@@ -649,7 +646,7 @@ an ANSI digit or not */
     // R_ParseContextLast = (R_ParseContextLast + 1) % PARSE_CONTEXT_SIZE;
     // R_ParseContext[R_ParseContextLast] = c;
 
-    R_ParseContextLine = srcRef.xxlineno;
+    R_ParseContextLine = reader.getLineNumber();
 
     if (parseOptions.isKeepSource() && parseOptions.isGenerateCode()) {
       parseState.getFunctionSource().maybeAppendSourceCodePoint(c);
@@ -663,17 +660,23 @@ an ANSI digit or not */
     c = skipSpace();
     if (!isDigit(c)) return (c);
     tok = consumeNumericValue(c);
-    // linenumber = Integer.parseInt(yytext);   // TODO: who is filling yytext?
+    if (parseOptions.isGenerateCode()) {
+       // TODO: can we receive incorrect value here ? need to rethink.
+       linenumber = (int)(yylval.asReal());
+    } else {
+       // ignored. 
+       linenumber = 0;
+    }
     c = skipSpace();
     if (c == '"')
       tok = consumeStringValue(c, false);
     if (tok == STR_CONST)
-      //  setParseFilename(yylval);
+      setParseFilename(yylval);
       do {
         c = xxgetc();
       } while (c != '\n' && c != R_EOF);
-    //ParseState.xxlineno = linenumber;
-    //R_ParseContext[R_ParseContextLast] = '\0';  /* Context report shouldn't show the directive */s
+      reader.setLineNumber(linenumber);
+      //R_ParseContext[R_ParseContextLast] = '\0';  /* Context report shouldn't show the directive */s
     return (c);
   }
 
@@ -682,18 +685,22 @@ an ANSI digit or not */
   }
 
   private void setParseFilename(SEXP newname) {
-// TODO
-//    if (isEnvironment(SrcRefState.SrcFile)) {
-//    	SEXP oldname = findVar(Symbol.get("filename"), SrcRefState.SrcFile);
-//    	if (isString(oldname) && length(oldname) > 0 &&
-//    	    strcmp(CHAR(STRING_ELT(oldname, 0)),
-//    	           CHAR(STRING_ELT(newname, 0))) == 0) return;
-//    }
-//    REPROTECT(SrcRefState.SrcFile = NewEnvironment(Null.INSTANCE, Null.INSTANCE, R_EmptyEnv), SrcRefState.SrcFileProt);
-//
-//    defineVar(Symbol.get("filename"), newname, SrcRefState.SrcFile);
-//    setAttrib(SrcRefState.SrcFile, R_ClassSymbol, mkString("srcfile"));
-//    UNPROTECT_PTR(newname);
+    if (isEnvironment(parseState.srcFile)) {
+        Environment env = (Environment)parseState.srcFile;
+    	SEXP oldname = env.findVariable(Symbol.get("filename"));
+    	if (isString(oldname) && oldname.length() > 0 &&
+            oldname.asString().equals(newname.asString())) return;
+        REPROTECT(parseState.srcFile = new Environment(
+                                         AttributeMap.newBuilder().set(R_ClassSymbol,mkString("srcfile")).
+                                         build()
+                                       ), 
+                  parseState.srcFileProt);
+        env.setVariable(Symbol.get("filename"), newname);
+        env.setVariable(Symbol.get("original"), oldname);
+    } else {
+        REPROTECT(parseState.srcFile = /*duplicate(*/newname/*)*/, parseState.srcFileProt);
+    }
+    UNPROTECT_PTR(newname);
   }
 
   private int consumeNumericValue(int c) {
@@ -929,7 +936,7 @@ an ANSI digit or not */
           boolean delim = false;
 
           if (forSymbol) {
-            throw new RLexException(String.format("\\uxxxx sequences not supported inside backticks (line %d)", srcRef.xxlineno));
+            throw new RLexException(String.format("\\uxxxx sequences not supported inside backticks (line %d)", reader.getColumnNumber()));
           }
           if ((c = xxgetc()) == '{') {
             delim = true;
@@ -963,7 +970,7 @@ an ANSI digit or not */
           if (delim) {
             if ((c = xxgetc()) != '}') {
               throw new RLexException(String.format("invalid \\u{xxxx} sequence (line %d)",
-                  srcRef.xxlineno));
+                  reader.getLineNumber()));
             } else {
               ctext.push(c);
             }
@@ -978,7 +985,7 @@ an ANSI digit or not */
           int ext;
           boolean delim = false;
           if (forSymbol) {
-            throw new RLexException(String.format("\\Uxxxxxxxx sequences not supported inside backticks (line %d)", srcRef.xxlineno));
+            throw new RLexException(String.format("\\Uxxxxxxxx sequences not supported inside backticks (line %d)", reader.getLineNumber()));
           }
           if ((c = xxgetc()) == '{') {
             delim = true;
@@ -1011,7 +1018,7 @@ an ANSI digit or not */
           }
           if (delim) {
             if ((c = xxgetc()) != '}') {
-              logger.severe(String.format("invalid \\U{xxxxxxxx} sequence (line %d)", srcRef.xxlineno));
+              logger.severe(String.format("invalid \\U{xxxxxxxx} sequence (line %d)", reader.getLineNumber()));
             } else {
               ctext.push(c);
             }

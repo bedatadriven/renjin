@@ -128,6 +128,11 @@ public class CastGenerator extends AbstractExprGenerator implements ExprGenerato
 
   /** From Int8 (byte) **/
   
+  public static void castInt8ToBool(MethodVisitor mv) {
+    // NOOP
+    // same representation on stack
+  }
+  
   public static void castInt8ToUnsignedInt8(MethodVisitor mv) { 
     // NOOP
     // same bitwise representation
@@ -171,6 +176,11 @@ public class CastGenerator extends AbstractExprGenerator implements ExprGenerato
   
   /*** FROM UNSIGNED INT 8 (Unsigned byte) **/
 
+  public static void castUnsignedInt8ToBool(MethodVisitor mv) {
+    // NOOP
+    // same representation on stack
+  }
+  
   public static void castUnsignedInt8ToInt8(MethodVisitor mv) { 
     // NOOP 
     // same bitwise pattern
@@ -216,6 +226,11 @@ public class CastGenerator extends AbstractExprGenerator implements ExprGenerato
 
   /** FROM SIGNED INT 16 (short) **/
   
+  public static void castInt16ToBool(MethodVisitor mv) {
+    // NOOP
+    // same representation on stack
+  }
+  
   public static void castInt16ToInt8(MethodVisitor mv) { 
     mv.visitInsn(Opcodes.I2B);
   }
@@ -256,6 +271,11 @@ public class CastGenerator extends AbstractExprGenerator implements ExprGenerato
   
   /** UNSIGNED INT (char) **/
 
+  public static void castUnsignedInt16ToBool(MethodVisitor mv) {
+    // NOOP
+    // same representation on stack
+  }
+  
   public static void castUnsignedInt16ToInt8(MethodVisitor mv) { 
     mv.visitInsn(Opcodes.I2B);
   }
@@ -294,6 +314,11 @@ public class CastGenerator extends AbstractExprGenerator implements ExprGenerato
   
   /** SIGNED INT 32 (int) **/
   
+  public static void castInt32ToBool(MethodVisitor mv) {
+    // NOOP
+    // same representation on stack
+  }
+  
   public static void castInt32ToInt8(MethodVisitor mv) { 
     mv.visitInsn(Opcodes.I2B);
   }
@@ -331,7 +356,11 @@ public class CastGenerator extends AbstractExprGenerator implements ExprGenerato
   
   /** FROM UNSIGNED INT 32 */
   
-
+  public static void castUnsignedInt32ToBool(MethodVisitor mv) {
+    // NOOP
+    // same representation on stack
+  }
+  
   public static void castUnsignedInt32ToInt8(MethodVisitor mv) { 
     throw new UnsupportedOperationException(); 
   }
@@ -377,6 +406,10 @@ public class CastGenerator extends AbstractExprGenerator implements ExprGenerato
 
   /* FROM INT 64 (long) */
   
+  public static void castInt64ToBool(MethodVisitor mv) {
+    mv.visitInsn(Opcodes.L2I);
+  }
+  
   public static void castInt64ToInt8(MethodVisitor mv) { 
     mv.visitInsn(Opcodes.L2I);
     mv.visitInsn(Opcodes.I2B);
@@ -419,6 +452,9 @@ public class CastGenerator extends AbstractExprGenerator implements ExprGenerato
 
   /* FROM UNSIGNED INT 64 (longish) */
    
+  public static void castUnsignedInt64ToBool(MethodVisitor mv) {
+    mv.visitInsn(Opcodes.L2I);
+  }
   
   public static void castUnsignedInt64ToInt8(MethodVisitor mv) {
     throw new UnsupportedOperationException();
@@ -449,6 +485,10 @@ public class CastGenerator extends AbstractExprGenerator implements ExprGenerato
   }
 
   /** FROM REAL 32 (float) */
+  
+  public static void castReal32ToBool(MethodVisitor mv) {
+    mv.visitInsn(Opcodes.F2I);
+  }
   
   public static void castReal32ToInt8(MethodVisitor mv) { 
     mv.visitInsn(Opcodes.F2I);
@@ -493,6 +533,10 @@ public class CastGenerator extends AbstractExprGenerator implements ExprGenerato
 
 
   /** FROM REAL 64 (double) */
+  
+  public static void castReal64ToBool(MethodVisitor mv) {
+    mv.visitInsn(Opcodes.D2I);
+  }
   
   public static void castReal64ToInt8(MethodVisitor mv) { 
     mv.visitInsn(Opcodes.D2I);

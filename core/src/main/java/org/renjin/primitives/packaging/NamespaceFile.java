@@ -466,9 +466,17 @@ public class NamespaceFile {
 
   private void parseS3Export(FunctionCall call) {
     if(call.getArguments().length() == 2) {
-      exportedS3Methods.add(new S3MethodEntry(
-          parseStringArgument(call.getArgument(0)),
-          parseStringArgument(call.getArgument(1))));
+      if(call.getArgument(1) == Null.INSTANCE) {
+        // S3method(functionName, NULL)
+        // just exports the generic function?
+        exportedSymbols.add(parseSymbolArgument(call.getArgument(0)));
+        
+      } else {
+        // S3method(functionName, 
+        exportedS3Methods.add(new S3MethodEntry(
+            parseStringArgument(call.getArgument(0)),
+            parseStringArgument(call.getArgument(1))));
+      }
     } else if(call.getArguments().length() == 3) {
       exportedS3Methods.add(new S3MethodEntry(
           parseStringArgument(call.getArgument(0)),

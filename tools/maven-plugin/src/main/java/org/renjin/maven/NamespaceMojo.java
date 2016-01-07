@@ -117,8 +117,8 @@ public class NamespaceMojo extends AbstractMojo {
 
 	@Override
 	public void execute() throws MojoExecutionException, MojoFailureException {
+    copyResources();
 	  compileNamespaceEnvironment();
-		copyNamespace();
     writeRequires();
 		compileDatasets();
 	}
@@ -167,10 +167,6 @@ public class NamespaceMojo extends AbstractMojo {
     return new File(getPackageRoot(), "environment");
   }
 
-  private File getNamespaceOutput() {
-    return new File(getPackageRoot(), "NAMESPACE");
-  }
-
   private File getPackageRoot() {
     File packageRoot = new File(outputDirectory.getAbsoluteFile() + File.separator + 
     		groupId.replace(".", File.separator) + File.separator + packageName);
@@ -178,17 +174,24 @@ public class NamespaceMojo extends AbstractMojo {
     return packageRoot;
   }
 
-  private void copyNamespace() {
+  private void copyResources() {
     try {
       if(!namespaceFile.exists()) {
         System.err.println("NAMESPACE file is missing. (looked in " + namespaceFile.getAbsolutePath() + ")");
         throw new RuntimeException("Missing NAMESPACE file");
       }
-      Files.copy(namespaceFile, getNamespaceOutput());
+      Files.copy(namespaceFile, new File(getPackageRoot(), "NAMESPACE"));
+
+      if(descriptionFile.exists()) {
+        Files.copy(descriptionFile, new File(getPackageRoot(), "DESCRIPTION"));
+      }
+
     } catch (IOException e) {
       throw new RuntimeException("Exception copying NAMESPACE file", e);
     }
+    
   }
+
 
   private void writeRequires() {
     // save a list of packages that are to be loaded onto the

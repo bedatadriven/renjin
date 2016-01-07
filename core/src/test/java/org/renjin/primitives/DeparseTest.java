@@ -101,4 +101,13 @@ public class DeparseTest extends EvalTestCase {
     assertThat(eval("deparse(quote(`a#$#2`(x,y)))"), equalTo(c("`a#$#2`(x, y)")));
 
   }
+  
+  @Test
+  public void deparseCustomInfix() {
+    assertThat(eval("deparse(quote(`%foo%`(1,2)))"), equalTo(c("1 %foo% 2")));
+
+    // Only special formatting if exactly two arguments
+    assertThat(eval("deparse(quote(`%foo%`(1)))"), equalTo(c("`%foo%`(1)")));
+    assertThat(eval("deparse(quote(`%foo%`(1, 2, 3)))"), equalTo(c("`%foo%`(1, 2, 3)")));
+  }
 }

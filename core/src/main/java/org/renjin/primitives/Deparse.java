@@ -260,6 +260,8 @@ public class Deparse {
           deparseParen(call);
         } else if(is(name, CONTROL_STATEMENTS)) {
           deparseControlStatement(name);
+        } else if(name.startsWith("%") && name.endsWith("%")) {
+          deparseUserInfixOp(name, call);
         } else if(call.getArguments().length() == 2 && is(name, BINARY_OPS)) {
           deparseBinaryOp(name, call.getArguments());
         } else if(call.getArguments().length() == 1 && is(name, UNARY_OPS)) {
@@ -273,6 +275,21 @@ public class Deparse {
         }
       } else {
         deparseNormalCall(call);
+      }
+    }
+
+    private void deparseUserInfixOp(String name, FunctionCall call) {
+      if(call.getArguments().length() == 2) {
+        // only if the function has exactly two arguments do we treat it as an infix operator
+        deparse(call.getArgument(0));
+        deparsed.append(" ").append(name).append(" ");
+        deparse(call.getArgument(1));
+      } else {
+        // otherwise it must be backticked
+        deparsed.append("`").append(name).append("`");
+        deparsed.append("(");
+        deparseArgumentList(call.getArguments().nodes());
+        deparsed.append(")");
       }
     }
 

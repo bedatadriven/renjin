@@ -382,6 +382,10 @@ public class Evaluation {
         ExpressionVector result = RParser.parseSource(reader);
         Iterables.addAll(expressions, result);
       }
+//      AttributeMap.Builder attributes = AttributeMap.builder();
+//      attributes.set("srcfile", sourceFile);
+//      attributes.set("wholeSrcRef", )
+
       return new ExpressionVector(expressions);
     } catch (ParseException e) {
       throw new EvalException(e.getMessage(), e);

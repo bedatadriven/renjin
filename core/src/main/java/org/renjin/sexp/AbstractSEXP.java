@@ -35,7 +35,7 @@ public abstract class AbstractSEXP implements SEXP {
 
   protected AttributeMap attributes;
 
-  private final boolean object;
+  private boolean object;
 
   protected AbstractSEXP() {
     this.attributes = AttributeMap.EMPTY;
@@ -239,5 +239,6 @@ public abstract class AbstractSEXP implements SEXP {
    */
   public void unsafeSetAttributes(AttributeMap attributeMap) {
     this.attributes = attributeMap;
+    this.object = attributes.hasClass();
   }
 }

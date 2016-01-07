@@ -427,7 +427,7 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
 
   @Override
   protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
-    this.attributes = attributes;
+    unsafeSetAttributes(attributes);
     return this;
   }
 

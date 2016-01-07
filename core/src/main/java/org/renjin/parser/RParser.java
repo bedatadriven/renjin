@@ -73,7 +73,6 @@ public class RParser {
     RLexer lexer = new RLexer(parseOptions, parseState, reader);
     RParser parser = new RParser(parseOptions, parseState, lexer);
     return parser.parseAll();
-    
   }
 
   /**
@@ -91,7 +90,7 @@ public class RParser {
   }
   
   public static ExpressionVector parseAllSource(Reader reader) throws IOException {
-    return parseAllSource(reader, new CHARSEXP("inline-source"));
+    return parseAllSource(reader, new CHARSEXP("<text>"));
   }
 
 
@@ -131,7 +130,7 @@ public class RParser {
 
 
   public static ExpressionVector parseInlineSource(String source) {
-     return parseSource(source, new CHARSEXP("iniline-string"));
+     return parseSource(source, new CHARSEXP("<text>"));
   }
 
   private ExpressionVector parseAll() throws IOException {
@@ -141,7 +140,7 @@ public class RParser {
       
       // check to see if we are at the end of the file
       if(yylexer.isEof()) {
-        return new ExpressionVector(exprList);
+        return attachSrcrefs(new ExpressionVector(exprList), state.srcFile);
       }
 
       if (!parse()) {
@@ -163,7 +162,7 @@ public class RParser {
       case ERROR:
         throw new ParseException(getResultStatus().toString());
       case EOF:
-        return new ExpressionVector(exprList);
+        return attachSrcrefs(new ExpressionVector(exprList), state.srcFile);
       }
     }
   }
@@ -2509,7 +2508,7 @@ public class RParser {
     return new IntArrayVector(values, AttributeMap.fromPairList(attributes));
   }
 
-  SEXP attachSrcrefs(PairList.Node val, SEXP srcfile) {
+  <T extends AbstractSEXP> T attachSrcrefs(T val, SEXP srcfile) {
     SEXP t;
     Vector.Builder srval;
     int n;

@@ -21,8 +21,8 @@
 
 package org.renjin.primitives;
 
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.io.CharSource;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Builtin;
@@ -39,7 +39,6 @@ import org.renjin.sexp.*;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.io.StringReader;
 import java.util.List;
 
 public class Evaluation {
@@ -369,24 +368,24 @@ public class Evaluation {
   public static ExpressionVector parse(@Current Context context, SEXP file, SEXP maxExpressions, Vector text,
                                        String prompt, SEXP sourceFile, String encoding) throws IOException {
     try {
-      List<SEXP> expressions = Lists.newArrayList();
       if(text != Null.INSTANCE) {
+        List<CharSource> lines = Lists.newArrayList();
+        CharSource newLine = CharSource.wrap("\n");
         for(int i=0;i!=text.length();++i) {
-          String line = text.getElementAsString(i);
-          ExpressionVector result = RParser.parseAllSource(new StringReader(line + "\n"), sourceFile);
-          Iterables.addAll(expressions, result);
+          lines.add(CharSource.wrap(text.getElementAsString(i)));
+          lines.add(newLine);
         }
+        return RParser.parseAllSource(CharSource.concat(lines).openStream(), sourceFile);
+            
       } else if(file.inherits("connection")) {
         Connection conn = Connections.getConnection(context, file);
         Reader reader = new InputStreamReader(conn.getInputStream());
-        ExpressionVector result = RParser.parseAllSource(reader, sourceFile);
-        Iterables.addAll(expressions, result);
+        return RParser.parseAllSource(reader, sourceFile);
+      
+      } else {
+        throw new EvalException("unsupported parsing source");
       }
-//      AttributeMap.Builder attributes = AttributeMap.builder();
-//      attributes.set("srcfile", sourceFile);
-//      attributes.set("wholeSrcRef", )
-
-      return new ExpressionVector(expressions);
+      
     } catch (ParseException e) {
       throw new EvalException(e.getMessage(), e);
     } catch (IOException e) {

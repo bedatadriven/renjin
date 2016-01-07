@@ -33,7 +33,9 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 
 /**
@@ -270,9 +272,17 @@ public class BasePackageTest extends EvalTestCase {
   public void parse() throws IOException {
     loadBasePackage();
 
-    assertThat(eval(" parse(text='1') "), equalTo(expression(1d)));
+    SEXP sexp = eval(" parse(text='1', keep.source=TRUE) ");
     
-    eval("attributes(parse(text='1+1'))");
+    assertThat(sexp, equalTo(expression(1d)));
+    
+    SEXP srcref = sexp.getAttribute(Symbols.SRC_REF).getElementAsSEXP(0);
+    assertThat(srcref.getS3Class(), equalTo(c("srcref")));
+    
+    SEXP srcfile = srcref.getAttribute(Symbols.SRC_FILE);
+    assertThat(srcfile, instanceOf(Environment.class));
+    assertTrue(srcfile.inherits("srcfilecopy"));
+    assertTrue(srcfile.inherits("srcfile"));
   }
 
   @Test

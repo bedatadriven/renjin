@@ -32,6 +32,13 @@
             </goals>
             <phase>compile</phase>
           </execution>
+          <execution>
+            <id>test-package</id>
+            <goals>
+              <goal>test</goal>
+            </goals>
+            <phase>test</phase>
+          </execution>
         </executions>
       </plugin>
     </plugins>

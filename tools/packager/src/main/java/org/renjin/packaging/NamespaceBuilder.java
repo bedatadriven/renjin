@@ -65,7 +65,6 @@ public class NamespaceBuilder {
     NamespaceFile namespaceFile = NamespaceFile.parse(context, namespaceSource);
 
     namespace.initImports(context.getNamespaceRegistry(), namespaceFile);
-
   }
 
   private boolean isUpToDate(List<File> sources) {

@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit;
 public class TestMojo extends AbstractMojo {
 
   /**
-   * @parameter expression="${project.groupId}.${project.artifactId}"
+   * @parameter expression="${project.groupId}:${project.artifactId}"
    * @required
    */
   private String namespaceName;

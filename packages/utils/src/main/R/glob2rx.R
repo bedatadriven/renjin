@@ -1,6 +1,8 @@
 #  File src/library/utils/R/glob2rx.R
 #  Part of the R package, http://www.R-project.org
 #
+#  Copyright (C) 1995-2015 The R Core Team
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
@@ -16,12 +18,15 @@
 
 glob2rx <- function(pattern, trim.head = FALSE, trim.tail = TRUE)
 {
+    ## special case, since paste ignores 0-length inputs (PR#16205)
+    if(!length(pattern)) return(character())
+
     ## Purpose: Change 'ls' aka 'wildcard' aka 'globbing' _pattern_ to
     ##	      Regular Expression (as in grep, perl, emacs, ...)
     ## -------------------------------------------------------------------------
     ## Author: Martin Maechler ETH Zurich, ~ 1991
     ##	       New version using [g]sub() : 2004
-    p <- gsub("\\.","\\\\.", paste("^", pattern, "$", sep=""))
+    p <- gsub("\\.","\\\\.", paste0("^", pattern, "$"))
     p <- gsub("\\?",	 ".",  gsub("\\*",  ".*", p))
     ## 'Escaping hell' : at least for '(', '[' and '{'
     p <- gsub("([^\\])\\(", "\\1\\\\(", p)

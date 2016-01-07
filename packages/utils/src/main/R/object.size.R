@@ -1,6 +1,8 @@
 #  File src/library/utils/R/object.size.R
 #  Part of the R package, http://www.R-project.org
 #
+#  Copyright (C) 1995-2013 The R Core Team
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
@@ -17,8 +19,8 @@
 object.size <- function(x)
     structure(.Internal(object.size(x)), class="object_size")
 
-print.object_size <-
-    function(x, quote = FALSE, units = "b", ...)
+format.object_size <-
+    function(x, units = "b", ...)
 {
     units <- match.arg(units, c("b", "auto", "Kb", "Mb", "Gb",
                                 "B", "KB", "MB", "GB"))
@@ -28,12 +30,18 @@ print.object_size <-
         else if (x >= 1024) units <- "Kb"
         else units <- "b"
     }
-    y <- switch(units,
-                "b" =, "B" = paste(x, "bytes"),
-                "Kb" =, "KB" = paste(round(x/1024, 1L), "Kb"),
-                "Mb" =, "MB" = paste(round(x/1024^2, 1L), "Mb"),
-                "Gb" =, "GB" = paste(round(x/1024^3, 1L), "Gb")
-                )
-    if(quote) print.default(y, ...) else cat(y, "\n", sep="")
+     switch(units,
+            "b" =, "B" = paste(x, "bytes"),
+            "Kb" =, "KB" = paste(round(x/1024, 1L), "Kb"),
+            "Mb" =, "MB" = paste(round(x/1024^2, 1L), "Mb"),
+            "Gb" =, "GB" = paste(round(x/1024^3, 1L), "Gb")
+            )
+}
+
+print.object_size <-
+    function(x, quote = FALSE, units = "b", ...)
+{
+    y <- format.object_size(x, units = units)
+    if(quote) print.default(y, ...) else cat(y, "\n", sep = "")
     invisible(x)
 }

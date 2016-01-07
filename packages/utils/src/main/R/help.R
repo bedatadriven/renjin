@@ -1,6 +1,8 @@
 #  File src/library/utils/R/help.R
 #  Part of the R package, http://www.R-project.org
 #
+#  Copyright (C) 1995-2015 The R Core Team
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
@@ -20,36 +22,33 @@ function(topic, package = NULL, lib.loc = NULL,
          try.all.packages = getOption("help.try.all.packages"),
          help_type = getOption("help_type"))
 {
-    types <- c("text", "html", "postscript", "ps", "pdf")
-    if(!missing(package))
+    types <- c("text", "html", "pdf")
+    if(!missing(package)) # Don't check for NULL; may be nonstandard eval
         if(is.name(y <- substitute(package)))
             package <- as.character(y)
 
     ## If no topic was given ...
     if(missing(topic)) {
-        if(!missing(package)) {         # "Help" on package.
+        if(!is.null(package)) {	# "Help" on package.
             help_type <- if(!length(help_type)) "text"
             else match.arg(tolower(help_type), types)
             ## Carter Butts and others misuse 'help(package=)' in startup
             if (interactive() && help_type == "html") {
-                if (tools:::httpdPort == 0L) tools::startDynamicHelp()
-                if (tools:::httpdPort <= 0L) # fallback to text help
+                port <- tools::startDynamicHelp(NA)
+                if (port <= 0L) # fallback to text help
                     return(library(help = package, lib.loc = lib.loc,
                                    character.only = TRUE))
                 browser <- if (.Platform$GUI == "AQUA") {
-                    function(x, ...) {
-                        .Internal(aqua.custom.print("help-files", x))
-                        return(invisible(x))
-                    }
+                    get("aqua.browser", envir = as.environment("tools:RGUI"))
                 } else getOption("browser")
- 		browseURL(paste("http://127.0.0.1:", tools:::httpdPort,
-                                "/library/", package, "/html/00Index.html",
-                                sep = ""), browser)
+ 		browseURL(paste0("http://127.0.0.1:", port,
+                                 "/library/", package, "/html/00Index.html"),
+                          browser)
                 return(invisible())
             } else return(library(help = package, lib.loc = lib.loc,
                                   character.only = TRUE))
         }
-        if(!missing(lib.loc))           # text "Help" on library.
+        if(!is.null(lib.loc))           # text "Help" on library.
             return(library(lib.loc = lib.loc))
         ## ultimate default is to give help on help()
         topic <- "help"; package <- "utils"; lib.loc <- .Library
@@ -72,23 +71,21 @@ function(topic, package = NULL, lib.loc = NULL,
 
     help_type <- if(!length(help_type)) "text"
     else match.arg(tolower(help_type), types)
-    if (help_type %in% c("postscript", "ps"))
-        warning("Postscript offline help is deprecated",
-                call. = FALSE, immediate. = TRUE)
 
     paths <- index.search(topic,
-                          find.package(package, lib.loc, verbose = verbose))
+                          find.package(if (is.null(package)) loadedNamespaces() else package,
+			               lib.loc, verbose = verbose))
     tried_all_packages <- FALSE
     if(!length(paths)
        && is.logical(try.all.packages) && !is.na(try.all.packages)
-       && try.all.packages && missing(package) && missing(lib.loc)) {
+       && try.all.packages && is.null(package) && is.null(lib.loc)) {
         ## Try all the remaining packages.
         for(lib in .libPaths()) {
             packages <- .packages(TRUE, lib)
             packages <- packages[is.na(match(packages, .packages()))]
             paths <- c(paths, index.search(topic, file.path(lib, packages)))
         }
-        paths <- paths[paths != ""]
+        paths <- paths[nzchar(paths)]
         tried_all_packages <- TRUE
     }
 
@@ -100,58 +97,52 @@ function(topic, package = NULL, lib.loc = NULL,
     paths
 }
 
-print.help_files_with_topic <-
-function(x, ...)
+print.help_files_with_topic <- function(x, ...)
 {
     browser <- getOption("browser")
     topic <- attr(x, "topic")
     type <- attr(x, "type")
-    if (.Platform$GUI == "AQUA" && type == "html") {
-        browser <- function(x, ...) {
-            .Internal(aqua.custom.print("help-files", x))
-    	    return(invisible(x))
-        }
-    }
+    if (.Platform$GUI == "AQUA" && type == "html")
+        browser <- get("aqua.browser", envir = as.environment("tools:RGUI"))
     paths <- as.character(x)
     if(!length(paths)) {
         writeLines(c(gettextf("No documentation for %s in specified packages and libraries:",
                               sQuote(topic)),
                      gettextf("you could try %s",
-                              sQuote(paste("??", topic, sep = "")))))
+                              sQuote(paste0("??", topic)))))
         return(invisible(x))
     }
 
-    if(type == "html")
-        if (tools:::httpdPort == 0L) tools::startDynamicHelp()
+    port <- if(type == "html") tools::startDynamicHelp(NA) else NULL
 
     if(attr(x, "tried_all_packages")) {
         paths <- unique(dirname(dirname(paths)))
         msg <- gettextf("Help for topic %s is not in any loaded package but can be found in the following packages:",
                         sQuote(topic))
-        if (type == "html" && tools:::httpdPort > 0L) {
+        if (type == "html" && port > 0L) {
             path <- file.path(tempdir(), ".R/doc/html")
             dir.create(path, recursive = TRUE, showWarnings = FALSE)
-            out <- paste('<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">\n',
-                         '<html><head><title>R: help</title>\n',
-                         '<meta http-equiv="Content-Type" content="text/html; charset="UTF-8">\n',
-                         '<link rel="stylesheet" type="text/css" href="/doc/html/R.css">\n',
-                         '</head><body>\n\n<hr>\n', sep="")
+            out <- paste0('<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">\n',
+                          '<html><head><title>R: help</title>\n',
+                          '<meta http-equiv="Content-Type" content="text/html; charset="UTF-8">\n',
+                          '<link rel="stylesheet" type="text/css" href="/doc/html/R.css">\n',
+                          '</head><body>\n\n<hr>\n')
             out <- c(out, '<p>', msg, '</p><br>')
             out <- c(out, '<table width="100%" summary="R Package list">\n',
                      '<tr align="left" valign="top">\n',
                      '<td width="25%">Package</td><td>Library</td></tr>\n')
             pkgs <- basename(paths)
-            links <- paste('<a href="http://127.0.0.1:', tools:::httpdPort,
-                           '/library/', pkgs, '/help/', topic, '">',
-                           pkgs, '</a>', sep = "")
-            out <- c(out, paste('<tr align="left" valign="top">\n',
+            links <- paste0('<a href="http://127.0.0.1:', port,
+                            '/library/', pkgs, '/help/', topic, '">',
+                            pkgs, '</a>')
+            out <- c(out, paste0('<tr align="left" valign="top">\n',
                                 '<td>', links, '</td><td>',
-                                dirname(paths), '</td></tr>\n',
-                                sep = ""))
+                                dirname(paths), '</td></tr>\n'))
             out <- c(out, "</table>\n</p>\n<hr>\n</body></html>")
             writeLines(out, file.path(path, "all.available.html"))
-            browseURL(paste("http://127.0.0.1:", tools:::httpdPort,
-                            "/doc/html/all.available.html", sep=""), browser)
+            browseURL(paste0("http://127.0.0.1:", port,
+                             "/doc/html/all.available.html"),
+                      browser)
         } else {
             writeLines(c(strwrap(msg), "",
                          paste(" ",
@@ -161,9 +152,11 @@ function(x, ...)
         }
     } else {
         if(length(paths) > 1L) {
-            if (type == "html" && tools:::httpdPort > 0L) { # Redo the search if dynamic help is running
-		browseURL(paste("http://127.0.0.1:", tools:::httpdPort,
-                                "/library/NULL/help/", topic, sep=""), browser)
+            if (type == "html" && port > 0L) { # Redo the search if dynamic help is running
+		browseURL(paste0("http://127.0.0.1:", port,
+                                 "/library/NULL/help/",
+                                 URLencode(topic, reserved = TRUE)),
+                          browser)
 		return(invisible(x))
 	    }
             file <- paths[1L]
@@ -187,7 +180,7 @@ function(x, ...)
                         "unknown title" else
                     tmp[tools::file_path_sans_ext(tmp$File) == tp[i], "Title"]
                 }
-                txt <- paste(titles, " {", basename(paths), "}", sep="")
+                txt <- paste0(titles, " {", basename(paths), "}")
                 ## the default on menu() is currtently graphics = FALSE
                 res <- menu(txt, title = gettext("Choose one"),
                             graphics = getOption("menu.graphics"))
@@ -200,13 +193,14 @@ function(x, ...)
             file <- paths
 
         if(type == "html") {
-            if (tools:::httpdPort > 0L) {
+            if (port > 0L) {
 		path <- dirname(file)
 		dirpath <- dirname(path)
 		pkgname <- basename(dirpath)
-		browseURL(paste("http://127.0.0.1:", tools:::httpdPort,
-                                "/library/", pkgname, "/html/", basename(file),
-                                ".html", sep = ""), browser)
+		browseURL(paste0("http://127.0.0.1:", port,
+                                 "/library/", pkgname, "/html/", basename(file),
+                                 ".html"),
+                          browser)
             } else {
                 warning("HTML help is unavailable", call. = FALSE)
                 att <- attributes(x)
@@ -222,12 +216,12 @@ function(x, ...)
             file.show(temp, title = gettextf("R Help on %s", sQuote(topic)),
                       delete.file = TRUE)
         }
-        else if(type %in% c("ps", "postscript", "pdf")) {
+        else if(type %in% "pdf") {
             path <- dirname(file)
             dirpath <- dirname(path)
             texinputs <- file.path(dirpath, "help", "figures")
             tf2 <- tempfile("Rlatex")
-            tools::Rd2latex(.getHelpFile(file), tf2)
+            tools::Rd2latex(.getHelpFile(file), out = tf2)
             .show_help_on_topic_offline(tf2, topic, type, texinputs)
             unlink(tf2)
         }
@@ -245,13 +239,9 @@ function(x, ...)
     if(length(res <- grep(encpatt, lines, perl = TRUE, useBytes = TRUE)))
         encoding <- sub(encpatt, "\\1", lines[res],
                         perl = TRUE, useBytes = TRUE)
-    texfile <- paste(topic, ".tex", sep = "")
+    texfile <- paste0(topic, ".tex")
     on.exit(unlink(texfile)) ## ? leave to helper
-    opt <- if(tolower(type) == "pdf") {
-        if(nzchar(opt <- Sys.getenv("R_RD4PDF"))) opt else "times,inconsolata"
-    } else {
-        if(nzchar(opt <- Sys.getenv("R_RD4DVI"))) opt else "ae"
-    }
+    if(nzchar(opt <- Sys.getenv("R_RD4PDF"))) opt else "times,inconsolata"
     has_figure <- any(grepl("\\Figure", lines))
     cat("\\documentclass[", getOption("papersize"), "paper]{article}\n",
         "\\usepackage[", opt, "]{Rd}\n",
@@ -279,40 +269,29 @@ function(x, ...)
         stop(gettextf("invalid %s argument", sQuote("file")), domain = NA)
     pkgname <- basename(dirpath)
     RdDB <- file.path(path, pkgname)
-    if(!file.exists(paste(RdDB, "rdx", sep=".")))
+    if(!file.exists(paste(RdDB, "rdx", sep = ".")))
         stop(gettextf("package %s exists but was not installed under R >= 2.10.0 so help cannot be accessed", sQuote(pkgname)), domain = NA)
     tools:::fetchRdDB(RdDB, basename(file))
 }
 
 
-offline_help_helper <- function(texfile, type = "postscript", texinputs = NULL)
+offline_help_helper <- function(texfile, type, texinputs = NULL)
 {
-    PDF <- type == "pdf"
     ## Some systems have problems with texfile names like ".C.tex"
     tf <- tempfile("tex", tmpdir = ".", fileext = ".tex"); on.exit(unlink(tf))
     file.copy(texfile, tf)
-    tools::texi2dvi(tf, pdf = PDF, clean = TRUE, texinputs = texinputs)
-    ofile <- sub("tex$", if(PDF) "pdf" else "ps", tf)
-    if(!PDF) {
-        dfile <- sub("tex$", "dvi", tf)
-        on.exit(unlink(dfile))
-        dvips <- getOption("dvipscmd", default = "dvips")
-        res <- system2(dvips, dfile, stdout = FALSE, stderr = FALSE)
-        if(res)
-            stop(gettextf("running %s failed", sQuote(dvips)), domain = NA)
-        if(!file.exists(ofile)) {
-            message(gettextf("%s produced no output file: sent to printer?",
-                             sQuote(dvips)), domain = NA)
-            return(invisible())
-        }
-    } else if(!file.exists(ofile))
-        stop(gettextf("creation of %s failed", sQuote(ofile)), domain = NA)
-    ofile2 <- sub("tex$", if(PDF) "pdf" else "ps", texfile)
+    tools::texi2pdf(tf, clean = TRUE, texinputs = texinputs)
+    ofile <- sub("tex$", "pdf", tf)
+    ofile2 <- sub("tex$", "pdf", texfile)
+    if(!file.exists(ofile))
+        stop(gettextf("creation of %s failed", sQuote(ofile2)), domain = NA)
     if(file.copy(ofile, ofile2, overwrite = TRUE)) {
         unlink(ofile)
-        message("Saving help page to ", sQuote(basename(ofile2)))
+        message(gettextf("Saving help page to %s", sQuote(basename(ofile2))),
+                domain = NA)
     } else {
-        message("Saving help page to ", sQuote(ofile))
+        message(gettextf("Saving help page to %s", sQuote(ofile)), domain = NA)
     }
     invisible()
 }
+

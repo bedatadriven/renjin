@@ -1,6 +1,8 @@
 #  File src/library/utils/R/zip.R
 #  Part of the R package, http://www.R-project.org
 #
+#  Copyright (C) 1995-2013 The R Core Team
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
@@ -22,12 +24,12 @@ unzip <-
     if(identical(unzip, "internal")) {
         if(!list && !missing(exdir))
             dir.create(exdir, showWarnings = FALSE, recursive = TRUE)
-        res <- .Internal(unzip(zipfile, files, exdir, list, overwrite,
-                               junkpaths, setTimes))
+        res <- .External(C_unzip, zipfile, files, exdir, list, overwrite,
+                         junkpaths, setTimes)
         if(list) {
             dates <- as.POSIXct(res[[3]], "%Y-%m-%d %H:%M",  tz="UTC")
             data.frame(Name = res[[1]], Length = res[[2]], Date = dates,
-                       stringsAsFactors = TRUE)
+                       stringsAsFactors = FALSE)
         } else invisible(attr(res, "extracted"))
     } else {
         WINDOWS <- .Platform$OS.type == "windows"
@@ -85,6 +87,8 @@ zip <- function(zipfile, files, flags = "-r9X", extras = "",
         stop("'files' must a character vector specifying one or more filepaths")
     args <- c(flags, shQuote(path.expand(zipfile)),
               shQuote(files), extras)
-    invisible(system2(zip, args, invisible = TRUE))
+    if (.Platform$OS.type == "windows")
+        invisible(system2(zip, args, invisible = TRUE))
+    else invisible(system2(zip, args))
 }
 

@@ -1,6 +1,8 @@
 #  File src/library/utils/R/iconv.R
 #  Part of the R package, http://www.R-project.org
 #
+#  Copyright (C) 1995-2014 The R Core Team
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
@@ -71,12 +73,13 @@ localeToCharset <- function(locale = Sys.getlocale("LC_CTYPE"))
               # "1256" = return("ISO8859-6"),
                "1257" = return("ISO8859-13")
                )
-        return(paste("CP", x[2L], sep=""))
+        return(paste0("CP", x[2L]))
     } else {
         ## Assume locales are like  en_US[.utf8[@euro]]
         x <- strsplit(locale, ".", fixed=TRUE)[[1L]]
         enc <- if(length(x) == 2) gsub("@.*$o", "", x[2L]) else ""
-        if(enc == "UTF-8") enc <- "utf8" # for AIX
+        # AIX uses UTF-8, OS X utf-8
+        if(toupper(enc) == "UTF-8") enc <- "utf8"
         if(nzchar(enc) && enc != "utf8") {
             enc <- tolower(enc)
             known <-
@@ -95,7 +98,7 @@ localeToCharset <- function(locale = Sys.getlocale("LC_CTYPE"))
                   "georgianps", "koi8r", "koi8u", "tcvn",
                   "big5" , "gb2312", "gb18030", "gbk",
                   "tis-620", "sjis", "eucn", "big5-hkscs")
-	    if (length(grep("darwin",R.version$os))) {
+	    if (grepl("darwin",R.version$os)) {
 	        k <- c(known, "ISO8859-1", "ISO8859-2", "ISO8859-4",
 		  "ISO8859-7", "ISO8859-9", "ISO8859-13", "ISO8859-15",
 		  "KOI8-U", "KOI8-R", "PT154", "ASCII", "ARMSCII-8",
@@ -122,7 +125,7 @@ localeToCharset <- function(locale = Sys.getlocale("LC_CTYPE"))
 	## HOWEVER! unlike the C code, we cannot filter out
 	## invalid locales, so it will be wrong for non-supported
 	## locales (why is this duplicated in R code anyway?)
-	if (length(grep("darwin", R.version$os))) return("UTF-8")
+	if (grepl("darwin", R.version$os)) return("UTF-8")
         ## let's hope it is a ll_* name.
         if(length(grep("^[[:alpha:]]{2}_", x[1L], perl = TRUE))) {
             ll <- substr(x[1L], 1L, 2L)

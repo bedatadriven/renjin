@@ -1,6 +1,8 @@
 #   File src/library/utils/R/Sweave.R
 #  Part of the R package, http://www.R-project.org
 #
+#  Copyright (C) 1995-2015 The R Core Team
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
@@ -27,7 +29,9 @@
 ### routine.  Unless it is "" or "ASCII", the RweaveLatex driver
 ### re-encodes the output back to 'encoding': the Rtangle driver
 ### leaves it in the encoding of the current locale and records what
-### that is in a comment.
+### that is in a comment.  The "UTF-8" encoding is preserved on
+### both input and output in RweaveLatex, but is handled like
+### other encodings in Rtangle.
 ###
 ### SweaveReadFile first looks for a call to one of the LaTeX packages
 ### inputen[cx] and deduces the vignette encoding from that, falling
@@ -90,11 +94,17 @@ Sweave <- function(file, driver = RweaveLatex(),
 
     namedchunks <- list()
     prevfilenum <- 0L
-    prevlinediff <- 0L    
+    prevlinediff <- 0L
     for (linenum in seq_along(text)) {
     	line <- text[linenum]
     	filenum <- srcFilenum[linenum]
     	linediff <- srcLinenum[linenum] - linenum
+	if(nzchar(Sys.getenv("R_DEBUG_Sweave"))) {
+	    ## Extensive logging for debugging, needs 'ls' (unix-like or Rtools):
+	    cat(sprintf("l.%3d: %30s -'%4s'- ", linenum, substr(line,1,30), mode))
+	    cat(sprintf("%16s\n", system(paste("ls -s",
+				   summary(drobj$output)$description), intern=TRUE)))
+	}
         if (length(grep(syntax$doc, line))) { # start new documentation chunk
             if (mode == "doc") {
                 if (!is.null(chunk)) drobj <- driver$writedoc(drobj, chunk)
@@ -122,9 +132,10 @@ Sweave <- function(file, driver = RweaveLatex(),
                                             driver$checkopts)
             ## these #line directives are used for error messages when parsing
             file <- srcFilenames[filenum]
-            chunk <- paste("#line ", linenum+linediff+1L, ' "', basename(file), '"', sep="")
+            chunk <- paste0("#line ", linenum+linediff+1L, ' "', basename(file), '"')
             attr(chunk, "srclines") <- linenum + linediff
             attr(chunk, "srcFilenum") <- filenum
+            attr(chunk, "srcFilenames") <- srcFilenames
             chunknr <- chunknr + 1L  # this is really 'code chunk number'
             chunkopts$chunknr <- chunknr
         } else {  # continuation of current chunk
@@ -141,22 +152,23 @@ Sweave <- function(file, driver = RweaveLatex(),
                     ## when parsing
                     file <- srcFilenames[filenum]
                     line <- c(namedchunks[[chunkref]],
-                              paste("#line ", linenum+linediff+1L, ' "',
-                                    basename(file), '"', sep=""))
+			      paste0("#line ", linenum+linediff+1L,
+				     ' "', basename(file), '"'))
                 }
             }
-            if (mode == "code" && 
+            if (mode == "code" &&
                 (prevfilenum != filenum ||
                  prevlinediff != linediff)) {
                 file <- srcFilenames[filenum]
-                line <- c(paste("#line ", linenum+linediff, ' "', basename(file), '"', sep=""),
+                line <- c(paste0("#line ", linenum+linediff, ' "', basename(file), '"'),
                           line)
-            }             
+            }
             srclines <- c(attr(chunk, "srclines"), rep(linenum+linediff, length(line)))
             srcfilenum <- c(attr(chunk, "srcFilenum"), rep(filenum, length(line)))
 	    chunk <- c(chunk, line)
             attr(chunk, "srclines") <- srclines
             attr(chunk, "srcFilenum") <- srcfilenum
+            attr(chunk, "srcFilenames") <- srcFilenames
 	}
 	prevfilenum <- filenum
 	prevlinediff <- linediff
@@ -184,15 +196,17 @@ SweaveReadFile <- function(file, syntax, encoding = "")
     df <- dirname(f)
     if (!file.exists(f)) {
         f <- list.files(df, full.names = TRUE,
-                        pattern = paste(bf, syntax$extension, sep = ""))
+                        pattern = paste0(bf, syntax$extension))
 
         if (length(f) == 0L)
             stop(gettextf("no Sweave file with name %s found",
                           sQuote(file[1L])), domain = NA)
         else if (length(f) > 1L)
-            stop(paste(gettextf("%d Sweave files for basename %s found:",
-                                length(f), sQuote(file[1L])),
-                       paste("\n         ", f, collapse="")),
+            stop(paste(sprintf(ngettext(length(f), "%d Sweave file for basename %s found",
+                                        "%d Sweave files for basename %s found",
+
+                                domain = "R-utils"),
+                                length(f), sQuote(file[1L])), paste(":\n         ", f, collapse = "")),
                  domain = NA)
     }
 
@@ -202,39 +216,44 @@ SweaveReadFile <- function(file, syntax, encoding = "")
 
     if (encoding != "bytes")  {
         ## now sort out an encoding, if needed.
-        enc <- tools:::.getVignetteEncoding(text, convert = TRUE)
+        enc <- tools:::.getVignetteEncoding(text,
+			    default = if (identical(encoding, "")) NA else encoding)
         if (enc == "non-ASCII") {
             enc <- if (nzchar(encoding)) {
                 encoding
             } else {
-                warning(sQuote(basename(file)),
-                        " has unknown encoding: assuming Latin-1",
+                stop(sQuote(basename(file)),
+                        " is not ASCII and does not declare an encoding",
                         domain = NA, call. = FALSE)
-                "latin1"
             }
         } else if (enc == "unknown") {
             stop(sQuote(basename(file)),
                  " declares an encoding that Sweave does not know about",
                  domain = NA, call. = FALSE)
         }
-        if (nzchar(enc)) text <- iconv(text, enc, "") else enc <- "ASCII"
+        if (enc == "UTF-8")
+            Encoding(text) <- enc
+        else {
+            if (nzchar(enc)) text <- iconv(text, enc, "") else enc <- "ASCII"
+        }
     } else enc <- "bytes"
 
     pos <- grep(syntax$syntaxname, text)
 
     if (length(pos) > 1L)
-        warning(gettextf("more than one syntax specification found, using the first one"), domain = NA)
+        warning(gettextf("more than one syntax specification found, using the first one"),
+		domain = NA)
 
     if (length(pos) > 0L) {
         sname <- sub(syntax$syntaxname, "\\1", text[pos[1L]])
         syntax <- get(sname, mode = "list")
-        if (class(syntax) != "SweaveSyntax")
+        if (!identical(class(syntax), "SweaveSyntax"))
             stop(gettextf("object %s does not have class \"SweaveSyntax\"",
                           sQuote(sname)), domain = NA)
         text <- text[-pos]
-        srcLinenum <- srcLinenum[-pos]       
+        srcLinenum <- srcLinenum[-pos]
     }
-    srcFilenum <- rep(1, length(srcLinenum))
+    srcFilenum <- rep_len(1, length(srcLinenum))
 
     if (!is.null(syntax$input)) {
         while(length(pos <- grep(syntax$input, text))) {
@@ -252,7 +271,7 @@ SweaveReadFile <- function(file, syntax, encoding = "")
 	    pre <- seq_len(pos-1L)
 	    post <- seq_len(length(text) - pos) + pos
 	    text <- c(text[pre], itext, text[post])
-	    
+
 	    srcLinenum <- c(srcLinenum[pre], attr(itext, "srcLinenum"),
 	    		    srcLinenum[post])
 	    srcFilenum <- c(srcFilenum[pre], attr(itext, "srcFilenum")+length(f),
@@ -265,7 +284,7 @@ SweaveReadFile <- function(file, syntax, encoding = "")
     attr(text, "files") <- f
     attr(text, "encoding") <- enc
     attr(text, "srcLinenum") <- srcLinenum
-    attr(text, "srcFilenum") <- srcFilenum    
+    attr(text, "srcFilenum") <- srcFilenum
     text
 }
 
@@ -273,15 +292,16 @@ SweaveReadFile <- function(file, syntax, encoding = "")
 
 ###**********************************************************
 
+## NB: } should not be escaped in [] .
 SweaveSyntaxNoweb <-
     list(doc = "^@",
          code = "^<<(.*)>>=.*",
          coderef = "^<<(.*)>>.*",
-         docopt = "^[[:space:]]*\\\\SweaveOpts\\{([^\\}]*)\\}",
-         docexpr = "\\\\Sexpr\\{([^\\}]*)\\}",
+         docopt = "^[[:space:]]*\\\\SweaveOpts\\{([^}]*)\\}",
+         docexpr = "\\\\Sexpr\\{([^}]*)\\}",
          extension = "\\.[rsRS]?nw$",
-         syntaxname = "^[[:space:]]*\\\\SweaveSyntax\\{([^\\}]*)\\}",
-         input = "^[[:space:]]*\\\\SweaveInput\\{([^\\}]*)\\}",
+         syntaxname = "^[[:space:]]*\\\\SweaveSyntax\\{([^}]*)\\}",
+         input = "^[[:space:]]*\\\\SweaveInput\\{([^}]*)\\}",
          trans = list(
              doc = "@",
              code = "<<\\1>>=",
@@ -297,8 +317,8 @@ class(SweaveSyntaxNoweb) <- "SweaveSyntax"
 
 SweaveSyntaxLatex <- SweaveSyntaxNoweb
 SweaveSyntaxLatex$doc <-  "^[[:space:]]*\\\\end\\{Scode\\}"
-SweaveSyntaxLatex$code <- "^[[:space:]]*\\\\begin\\{Scode\\}\\{?([^\\}]*)\\}?.*"
-SweaveSyntaxLatex$coderef <- "^[[:space:]]*\\\\Scoderef\\{([^\\}]*)\\}.*"
+SweaveSyntaxLatex$code <- "^[[:space:]]*\\\\begin\\{Scode\\}\\{?([^}]*)\\}?.*"
+SweaveSyntaxLatex$coderef <- "^[[:space:]]*\\\\Scoderef\\{([^}]*)\\}.*"
 SweaveSyntaxLatex$extension <- "\\.[rsRS]tex$"
 
 SweaveSyntaxLatex$trans$doc <-  "\\\\end{Scode}"
@@ -312,7 +332,7 @@ SweaveGetSyntax <- function(file)
     synt <- apropos("SweaveSyntax", mode = "list")
     for (sname in synt) {
         s <- get(sname, mode = "list")
-        if (class(s) != "SweaveSyntax") next
+        if (!identical(class(s), "SweaveSyntax")) next
         if (length(grep(s$extension, file))) return(s)
     }
     SweaveSyntaxNoweb
@@ -323,9 +343,10 @@ SweaveSyntConv <- function(file, syntax, output=NULL)
 {
     if (is.character(syntax)) syntax <- get(syntax)
 
-    if (class(syntax) != "SweaveSyntax")
-        stop("target syntax not of class \"SweaveSyntax\"")
-
+    if (!identical(class(syntax), "SweaveSyntax"))
+        stop(gettextf("target syntax not of class %s",
+                      dQuote("SweaveSyntax")),
+             domain = NA)
     if (is.null(syntax$trans))
         stop("target syntax contains no translation table")
 
@@ -365,7 +386,7 @@ SweaveParseOptions <- function(text, defaults = list(), check = NULL)
         if (length(x[[1L]]) == 1L) x[[1L]] <- c("label", x[[1L]])
     } else return(defaults)
 
-    if (any(sapply(x, length) != 2L))
+    if (any(lengths(x) != 2L))
         stop(gettextf("parse error or empty option in\n%s", text), domain = NA)
 
     options <- defaults
@@ -374,7 +395,7 @@ SweaveParseOptions <- function(text, defaults = list(), check = NULL)
     ## This is undocumented
     if (!is.null(options[["label"]]) && !is.null(options[["engine"]]))
         options[["label"]] <-
-            sub(paste("\\.", options[["engine"]], "$", sep=""),
+            sub(paste0("\\.", options[["engine"]], "$"),
                 "", options[["label"]])
 
     if (!is.null(check)) check(options) else options
@@ -408,17 +429,25 @@ SweaveHooks <- function(options, run = FALSE, envir = .GlobalEnv)
     Usage <- function() {
         cat("Usage: R CMD Sweave [options] file",
             "",
-            "A front-end for Sweave",
+            "A front-end for Sweave and other vignette engines, via buildVignette()",
             "",
             "Options:",
             "  -h, --help      print this help message and exit",
             "  -v, --version   print version info and exit",
             "  --driver=name   use named Sweave driver",
+            "  --engine=pkg::engine  use named vignette engine",
             "  --encoding=enc  default encoding 'enc' for file",
-            "  --options=      comma-separated list of Sweave options",
+	    "  --clean         corresponds to --clean=default",
+	    "  --clean=        remove some of the created files:",
+            '                  "default" removes those the same initial name;',
+            '                  "keepOuts" keeps e.g. *.tex even when PDF is produced',
+            "  --options=      comma-separated list of Sweave/engine options",
             "  --pdf           convert to PDF document",
+            "  --compact=      try to compact PDF document:",
+            '                  "no" (default), "qpdf", "gs", "gs+qpdf", "both"',
+            "  --compact       same as --compact=qpdf",
             "",
-            "Report bugs to <r-bugs@r-project.org>.",
+            "Report bugs at bugs.r-project.org .",
             sep = "\n")
     }
     do_exit <- function(status = 0L)
@@ -430,7 +459,10 @@ SweaveHooks <- function(options, run = FALSE, envir = .GlobalEnv)
     }
     file <- character()
     driver <- encoding <- options <- ""
+    engine <- NULL
     toPDF <- FALSE
+    compact <- Sys.getenv("_R_SWEAVE_COMPACT_PDF_", "no")
+    clean <- FALSE ## default!
     while(length(args)) {
         a <- args[1L]
         if (a %in% c("-h", "--help")) {
@@ -442,21 +474,37 @@ SweaveHooks <- function(options, run = FALSE, envir = .GlobalEnv)
                 R.version[["major"]], ".",  R.version[["minor"]],
                 " (r", R.version[["svn rev"]], ")\n", sep = "")
             cat("",
-                "Copyright (C) 2006-2011 The R Core Development Team.",
+                "Copyright (C) 2006-2014 The R Core Team.",
                 "This is free software; see the GNU General Public License version 2",
                 "or later for copying conditions.  There is NO warranty.",
                 sep = "\n")
             do_exit()
         } else if (substr(a, 1, 9) == "--driver=") {
             driver <- substr(a, 10, 1000)
+        } else if (substr(a, 1, 9) == "--engine=") {
+            engine <- substr(a, 10, 1000)
         } else if (substr(a, 1, 11) == "--encoding=") {
             encoding <- substr(a, 12, 1000)
+	} else if (a == "--clean") {
+	    clean <- TRUE
+	} else if (substr(a, 1, 8) == "--clean=") {
+	    clean. <- substr(a, 9, 1000)
+	    clean <- switch(clean.,
+			    "default" = TRUE,
+			    "keepOuts" = NA,
+			    message(gettextf("Warning: unknown option '--clean='%s",
+					     clean.), domain = NA))
         } else if (substr(a, 1, 10) == "--options=") {
             options <- substr(a, 11, 1000)
         } else if (a == "--pdf") {
             toPDF <- TRUE
+        } else if (substr(a, 1, 10) == "--compact=") {
+            compact <- substr(a, 11, 1000)
+        } else if (a == "--compact") {
+            compact <- "qpdf"
         } else if (substr(a, 1, 1) == "-") {
-            message("Warning: unknown option ", sQuote(a))
+            message(gettextf("Warning: unknown option %s", sQuote(a)),
+                    domain = NA)
         } else file <- c(file, a)
        args <- args[-1L]
     }
@@ -464,19 +512,37 @@ SweaveHooks <- function(options, run = FALSE, envir = .GlobalEnv)
         Usage()
         do_exit(1L)
     }
-    args <- list(file)
+    args <- list(file=file, tangle=FALSE, latex=toPDF, engine=engine, clean=clean)
     if(nzchar(driver)) args <- c(args, driver)
     args <- c(args, encoding = encoding)
     if(nzchar(options)) {
         opts <- eval(parse(text = paste("list(", options, ")")))
         args <- c(args, opts)
     }
-    do.call(Sweave, args)
-    if (toPDF) {
-        texfile <- sub("\\.[rsRS][[:alpha:]]+$", ".tex", file)
-        tools::texi2pdf(texfile, clean = TRUE)
-        ofile <- sub("\\.tex$", ".pdf", texfile)
-        message("Created PDF document ", sQuote(basename(ofile)))
+    output <- do.call(tools::buildVignette, args)
+    message("Output file:  ", output)
+    if (toPDF && compact != "no"
+        && length(output) == 1 && grepl(".pdf$", output, ignore.case=TRUE)) {
+	## <NOTE>
+	## Same code as used for --compact-vignettes in
+	## .build_packages() ...
+	message("Compacting PDF document")
+	if(compact %in% c("gs", "gs+qpdf", "both")) {
+	    gs_cmd <- tools:::find_gs_cmd(Sys.getenv("R_GSCMD", ""))
+	    gs_quality <- "ebook"
+	} else {
+	    gs_cmd <- ""
+	    gs_quality <- "none"
+	}
+	qpdf <- if(compact %in% c("qpdf", "gs+qpdf", "both"))
+	    Sys.which(Sys.getenv("R_QPDF", "qpdf"))
+	else ""
+	res <- tools::compactPDF(output, qpdf = qpdf,
+				 gs_cmd = gs_cmd,
+				 gs_quality = gs_quality)
+	res <- format(res, diff = 1e5)
+	if(length(res))
+	    message(paste(format(res), collapse = "\n"))
     }
     do_exit()
 }
@@ -493,15 +559,16 @@ SweaveHooks <- function(options, run = FALSE, envir = .GlobalEnv)
     Usage <- function() {
         cat("Usage: R CMD Stangle file",
             "",
-            "A front-end for Stangle",
+            "A front-end for Stangle and other vignette engines",
             "",
             "Options:",
             "  -h, --help     print this help message and exit",
             "  -v, --version  print version info and exit",
+	    "  --engine=pkg::engine  use named vignette engine",
             "  --encoding=enc  assume encoding 'enc' for file",
             "  --options=      comma-separated list of Stangle options",
             "",
-            "Report bugs to <r-bugs@r-project.org>.",
+            "Report bugs at bugs@r-project.org .",
             sep = "\n")
     }
     do_exit <- function(status = 0L)
@@ -514,6 +581,7 @@ SweaveHooks <- function(options, run = FALSE, envir = .GlobalEnv)
 
     file <- character()
     encoding <- options <- ""
+    engine <- NULL
     while(length(args)) {
         a <- args[1L]
         if (a %in% c("-h", "--help")) {
@@ -525,17 +593,20 @@ SweaveHooks <- function(options, run = FALSE, envir = .GlobalEnv)
                 R.version[["major"]], ".",  R.version[["minor"]],
                 " (r", R.version[["svn rev"]], ")\n", sep = "")
             cat("",
-                "Copyright (C) 2006-2011 The R Core Development Team.",
+                "Copyright (C) 2006-2011 The R Core Team.",
                 "This is free software; see the GNU General Public License version 2",
                 "or later for copying conditions.  There is NO warranty.",
                 sep = "\n")
             do_exit()
+        } else if (substr(a, 1, 9) == "--engine=") {
+            engine <- substr(a, 10, 1000)
         } else if (substr(a, 1, 11) == "--encoding=") {
             encoding <- substr(a, 12, 1000)
         } else if (substr(a, 1, 10) == "--options=") {
             options <- substr(a, 11, 1000)
         } else if (substr(a, 1, 1) == "-") {
-            message("Warning: unknown option ", sQuote(a))
+            message(gettextf("Warning: unknown option %s", sQuote(a)),
+                    domain = NA)
         } else file <- c(file, a)
         args <- args[-1L]
     }
@@ -543,12 +614,13 @@ SweaveHooks <- function(options, run = FALSE, envir = .GlobalEnv)
         Usage()
         do_exit(1L)
     }
-    args <- list(file)
-    args <- c(args, encoding = encoding)
+    args <- list(file=file, tangle=TRUE, weave=FALSE, engine=engine,
+                 encoding=encoding)
     if(nzchar(options)) {
         opts <- eval(parse(text = paste("list(", options, ")")))
         args <- c(args, opts)
     }
-    do.call(Stangle, args)
+    output <- do.call(tools::buildVignette, args)
+    message("Output file:  ", output)
     do_exit()
 }

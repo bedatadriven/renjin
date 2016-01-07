@@ -1,6 +1,8 @@
 #  File src/library/utils/R/widgets.R
 #  Part of the R package, http://www.R-project.org
 #
+#  Copyright (C) 1995-2012 The R Core Team
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
@@ -23,7 +25,7 @@ select.list <-
         stop("'title' must be NULL or a length-1 character vector")
     if(isTRUE(graphics)) {
         if (.Platform$OS.type == "windows" || .Platform$GUI == "AQUA")
-        return(.Internal(select.list(choices, preselect, multiple, title)))
+        return(.External2(C_selectlist, choices, preselect, multiple, title))
         ## must be Unix here
         ## Tk might not require X11 on Mac OS X, but if DISPLAY is set
         ## this will work for Aqua Tcl/Tk.
@@ -43,20 +45,20 @@ select.list <-
             cat(title, "\n", sep = "")
         def <- if(is.null(preselect)) rep(FALSE, nc)
         else choices %in% preselect
-        op <- paste(format(seq_len(nc)), ": ",
-                    ifelse(def, "+", " "), " ", choices, sep="")
+        op <- paste0(format(seq_len(nc)), ": ",
+                     ifelse(def, "+", " "), " ", choices)
         if(nc > 10L) {
             fop <- format(op)
             nw <- nchar(fop[1L], "w") + 2L
             ncol <- getOption("width") %/% nw
             if(ncol > 1L)
                 op <- paste(fop, c(rep("  ", ncol - 1L), "\n"),
-                            sep ="", collapse="")
-            cat("", op, sep="\n")
-        } else cat("", op, "", sep="\n")
+                            sep = "", collapse="")
+            cat("", op, sep = "\n")
+        } else cat("", op, "", sep = "\n")
         cat(gettext("Enter one or more numbers separated by spaces, or an empty line to cancel\n"))
 	repeat {
-            res <- tryCatch(scan("", what=0, quiet=TRUE, nlines=1),
+            res <- tryCatch(scan("", what = 0, quiet = TRUE, nlines = 1),
                             error = identity)
 	    if(!inherits(res, "error")) break
 	    cat(gettext("Invalid input, please try again\n"))
@@ -67,6 +69,6 @@ select.list <-
     }
 }
 
-flush.console <- function()
-    if (.Platform$GUI == "AQUA" || .Platform$OS.type == "windows")
-        .Internal(flush.console())
+flush.console <- function() invisible(.Call(C_flushconsole))
+
+process.events <- function() invisible(.Call(C_processevents))

@@ -653,7 +653,6 @@ public class Primitives {
     f("quit", Sessions.class, 111);
     f("interactive", Sessions.class, 0);
     f("readline", /*readln*/ null, 11);
-    f("menu", Sessions.class, 11);
     f("print.default", Print.class, 111);
     f("print.function", Print.class, 111);
     f("prmatrix", /*prmatrix*/ null, 111);
@@ -709,8 +708,6 @@ public class Primitives {
     f("missing", Evaluation.class, "missing", 0);
     f("nargs", Evaluation.class, 0);
     f("scan", Scan.class, 11);
-    f("count.fields", /*countfields*/ null, 11);
-    f("readTableHead", Scan.class, 11);
     f("t.default", Matrices.class, 11);
     f("aperm", Matrices.class, 11);
     f("builtins", /*builtins*/ null, 11);

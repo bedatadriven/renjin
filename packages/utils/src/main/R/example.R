@@ -1,6 +1,8 @@
 #  File src/library/utils/R/example.R
 #  Part of the R package, http://www.R-project.org
 #
+#  Copyright (C) 1995-2015 The R Core Team
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
@@ -20,7 +22,8 @@ function(topic, package = NULL, lib.loc = NULL,
          character.only = FALSE, give.lines = FALSE, local = FALSE,
 	 echo = TRUE, verbose = getOption("verbose"), setRNG = FALSE,
          ask = getOption("example.ask"),
-	 prompt.prefix = abbreviate(topic, 6))
+	 prompt.prefix = abbreviate(topic, 6),
+	 run.dontrun = FALSE, run.donttest = interactive())
 {
     if (!character.only) {
         topic <- substitute(topic)
@@ -37,9 +40,10 @@ function(topic, package = NULL, lib.loc = NULL,
     pkgname <- basename(packagePath)
     lib <- dirname(packagePath)
     tf <- tempfile("Rex")
-    tools::Rd2ex(.getHelpFile(file), tf)
+    tools::Rd2ex(.getHelpFile(file), tf, commentDontrun = !run.dontrun,
+		 commentDonttest = !run.donttest)
     if (!file.exists(tf)) {
-	if(give.lines) return(character(0))
+	if(give.lines) return(character())
         warning(gettextf("%s has a help file but no examples", sQuote(topic)),
                 domain = NA)
         return(invisible())
@@ -93,8 +97,8 @@ function(topic, package = NULL, lib.loc = NULL,
         on.exit(options(op), add = TRUE)
     }
     source(tf, local, echo = echo,
-           prompt.echo = paste(prompt.prefix, getOption("prompt"), sep=""),
-           continue.echo = paste(prompt.prefix, getOption("continue"), sep=""),
+           prompt.echo = paste0(prompt.prefix, getOption("prompt")),
+           continue.echo = paste0(prompt.prefix, getOption("continue")),
            verbose = verbose, max.deparse.length = Inf, encoding = "UTF-8",
     	   skip.echo = skips, keep.source=TRUE)
 }

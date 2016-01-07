@@ -1,6 +1,8 @@
 #  File src/library/utils/R/debugger.R
 #  Part of the R package, http://www.R-project.org
 #
+#  Copyright (C) 1995-2013 The R Core Team
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
@@ -24,7 +26,7 @@ dump.frames <- function(dumpto = "last.dump", to.file = FALSE)
     class(last.dump) <- "dump.frames"
     if(dumpto != "last.dump") assign(dumpto, last.dump)
     if (to.file) # compress=TRUE is now the default.
-        save(list=dumpto, file = paste(dumpto, "rda", sep="."))
+        save(list=dumpto, file = paste(dumpto, "rda", sep = "."))
     else assign(dumpto, last.dump, envir=.GlobalEnv)
     invisible()
 }
@@ -38,12 +40,13 @@ debugger <- function(dump = last.dump)
             tryCatch(assign(.obj, get(.obj, envir=dump[[.selection]])),
                      error=function(e) {})
         cat(gettext("Browsing in the environment with call:\n   "),
-            calls[.selection], "\n", sep="")
+            calls[.selection], "\n", sep = "")
         rm(.obj, .selection)
         browser()
     }
-    if (class(dump) != "dump.frames") {
-        cat(gettext("'dump' is not an object of class 'dump.frames'\n"))
+    if (!inherits(dump, "dump.frames")) {
+        cat(gettextf("'dump' is not an object of class %s\n",
+                     dQuote("dump.frames")))
         return(invisible())
     }
     err.action <- getOption("error")
@@ -51,13 +54,17 @@ debugger <- function(dump = last.dump)
     if (length(msg <- attr(dump, "error.message")))
         cat(gettext("Message: "), msg)
     n <- length(dump)
+    if (!n) {
+	cat(gettextf("'dump' is empty\n"))
+	return(invisible())
+    }
     calls <- names(dump)
     repeat {
         cat(gettext("Available environments had calls:\n"))
-        cat(paste(1L:n, ": ", calls,  sep=""), sep="\n")
+        cat(paste0(1L:n, ": ", calls), sep = "\n")
         cat(gettext("\nEnter an environment number, or 0 to exit  "))
         repeat {
-            ind <- .Internal(menu(as.character(calls)))
+            ind <- .Call(C_menu, as.character(calls))
             if(ind <= n) break
         }
         if(ind == 0L) return(invisible())
@@ -71,9 +78,9 @@ limitedLabels <- function(value, maxwidth = getOption("width") - 5L)
     srcrefs <- sapply(value, function(v)
                       if (!is.null(srcref <- attr(v, "srcref"))) {
                           srcfile <- attr(srcref, "srcfile")
-                          paste(basename(srcfile$filename), "#", srcref[1L],": ", sep="")
+                          paste0(basename(srcfile$filename), "#", srcref[1L],": ")
                       } else "")
-    value <- paste(srcrefs, as.character(value), sep="")
+    value <- paste0(srcrefs, as.character(value))
     if(is.null(maxwidth) || maxwidth < 40L) maxwidth <- 40L
     maxwidth <- min(maxwidth, 1000L)
     strtrim(value, maxwidth)

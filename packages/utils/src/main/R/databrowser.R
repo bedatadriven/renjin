@@ -1,6 +1,8 @@
 #  File src/library/utils/R/databrowser.R
 #  Part of the R package, http://www.R-project.org
 #
+#  Copyright (C) 1995-2013 The R Core Team
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
@@ -16,7 +18,7 @@
 
 browseEnv <- function(envir = .GlobalEnv, pattern,
                       excludepatt = "^last\\.warning",
-		      html = .Platform$OS.type != "mac",
+		      html = .Platform$GUI != "AQUA",
 		      expanded = TRUE, properties = NULL,
 		      main = NULL, debugMe = FALSE)
 {
@@ -86,11 +88,11 @@ browseEnv <- function(envir = .GlobalEnv, pattern,
 	    Container[N] <- TRUE
 	    ItemsPerContainer[N] <- lg
 	    nm <- names(obj)
-	    if(is.null(nm)) nm <- paste("[[", format(1L:lg), "]]", sep="")
+	    if(is.null(nm)) nm <- paste0("[[", format(1L:lg), "]]")
 	    for(i in 1L:lg) {
 		M <- M+1
 		ParentID[M] <- N
-		if(nm[i] == "") nm[i] <- paste("[[", i, "]]", sep="")
+		if(nm[i] == "") nm[i] <- paste0("[[", i, "]]")
 
 		s.l <- str1(obj[[i]])
 		##cat("	   objname:",nm[i],", type=",md.l,",",dim.field.l,"\n")
@@ -112,10 +114,10 @@ browseEnv <- function(envir = .GlobalEnv, pattern,
 		    nm <- rep.int("", lg)
 		Container[N] <- TRUE
 		ItemsPerContainer[N] <- lg
-		for(i in 1L:lg){
+		for(i in seq_len(lg)){
 		    M <- M+1L
 		    ParentID[M] <- N
-		    if(nm[i] == "") nm[i] = paste("[[",i,"]]",sep="")
+		    if(nm[i] == "") nm[i] = paste0("[[",i,"]]")
 		    md.l  <- mode(obj.nms[[i]])
 		    objdim.l <- dim(obj.nms[[i]])
 		    if(length(objdim.l) == 0L)
@@ -139,7 +141,7 @@ browseEnv <- function(envir = .GlobalEnv, pattern,
 		lg <- length(nm)
 		Container[N] <- TRUE
 		ItemsPerContainer[N] <- lg
-		for(i in 1L:lg){
+		for(i in seq_len(lg)){
 		    M <- M+1L
 		    ParentID[M] <- N
 		    md.l  <- mode(obj[[i]])
@@ -172,14 +174,15 @@ browseEnv <- function(envir = .GlobalEnv, pattern,
 				    si[c("user","nodename","sysname")]})))
     }
     if(html)
-	wsbrowser(IDS,IsRoot,Container,ItemsPerContainer, ParentID,
-		  NAMES,TYPES,DIMS,
-		  kind = "HTML", main = main, properties = properties,
-		  expanded)
-    else ## currently only for Mac:
-	.Internal(wsbrowser(as.integer(IDS),IsRoot,Container,
-			    as.integer(ItemsPerContainer),as.integer(ParentID),
-			    NAMES,TYPES,DIMS))
+	wsbrowser(IDS, IsRoot, Container, ItemsPerContainer, ParentID,
+		  NAMES, TYPES, DIMS, kind = "HTML", main = main,
+                  properties = properties, expanded)
+    else if(.Platform$GUI == "AQUA") {
+        awsbrowser <- get("wsbrowser", envir = as.environment("tools:RGUI"))
+ 	awsbrowser(as.integer(IDS), IsRoot, Container,
+                   as.integer(ItemsPerContainer), as.integer(ParentID),
+                   NAMES, TYPES, DIMS)
+   } else stop("only 'html = TRUE' is supported on this platform")
 }
 
 wsbrowser <- function(IDS, IsRoot, IsContainer, ItemsPerContainer,
@@ -191,12 +194,10 @@ wsbrowser <- function(IDS, IsRoot, IsContainer, ItemsPerContainer,
     if(kind != "HTML")
         stop(gettextf("kind '%s' not yet implemented", kind), domain = NA)
 
-    Pst <- function(...) paste(..., sep="")
-
-    bold <- function(ch) Pst("<b>",ch,"</b>")
-    ital <- function(ch) Pst("<i>",ch,"</i>")
-    entry<- function(ch) Pst("<td>",ch,"</td>")
-    Par	 <- function(ch) Pst("<P>",ch,"</P>")
+    bold <- function(ch) paste0("<b>",ch,"</b>")
+    ital <- function(ch) paste0("<i>",ch,"</i>")
+    entry <- function(ch) paste0("<td>",ch,"</td>")
+    Par	<- function(ch) paste0("<P>",ch,"</P>")
     Trow <- function(N, ...) {
 	if(length(list(...)) != N) stop("wrong number of table row entries")
 	paste("<tr>", ..., "</tr>\n")
@@ -210,7 +211,7 @@ wsbrowser <- function(IDS, IsRoot, IsContainer, ItemsPerContainer,
     props <- properties
     if(length(props)) { ## translate named list into 2-column (vertical) table
 	nms <- names(props)
-	nms <- unlist(lapply(unlist(lapply(Pst(nms,":"),
+	nms <- unlist(lapply(unlist(lapply(paste0(nms,":"),
 					   bold)),
 			     entry))
 	props <- unlist(lapply(props, entry))
@@ -232,7 +233,7 @@ wsbrowser <- function(IDS, IsRoot, IsContainer, ItemsPerContainer,
 	   entry(bold("Type")),
 	   entry(bold("Property")))
 
-    for(i in 1L:NumOfRoots) {
+    for(i in seq_len(NumOfRoots)) {
 	iid <- RootItems[i]
 	catRow(entry(NAMES[iid]),
 	       if(expanded) entry(""),
@@ -240,10 +241,10 @@ wsbrowser <- function(IDS, IsRoot, IsContainer, ItemsPerContainer,
 	       entry(DIMS[iid]))
 	if(IsContainer[i] && expanded) {
 	    items <- which(ParentID == i)
-	    for(j in 1L:ItemsPerContainer[i]) {
+	    for(j in seq_len(ItemsPerContainer[i])) {
 		id <- IDS[items[j]]
 		catRow(entry(""),
-		       entry(NAMES[id]),#was Pst("$",NAMES[id]) : ugly for [[i]]
+		       entry(NAMES[id]),#was paste0("$",NAMES[id]) : ugly for [[i]]
 		       entry(ital(TYPES[id])),
 		       entry(DIMS[id]))
 	    }
@@ -257,12 +258,12 @@ wsbrowser <- function(IDS, IsRoot, IsContainer, ItemsPerContainer,
 	   unix = { url <- fname },
 	   )
     if(substr(url, 1L, 1L) != "/")
-	url <- paste("/", url, sep = "")
-    url <- paste("file://", URLencode(url), sep = "")
+	url <- paste0("/", url)
+    url <- paste0("file://", URLencode(url))
 
     browseURL(url = url, browser = browser)
     cat(main, "environment is shown in browser",
-        if (is.character(browser)) paste("`",browser, "'", sep=""),"\n")
+	if(is.character(browser)) sQuote(browser),"\n")
 
     invisible(fname)
 }

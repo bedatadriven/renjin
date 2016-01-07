@@ -1,6 +1,8 @@
 #  File src/library/utils/R/unix/help.request.R
 #  Part of the R package, http://www.R-project.org
 #
+#  Copyright (C) 1995-2013 The R Core Team
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
@@ -56,7 +58,7 @@ help.request <- function (subject = "", address = "r-help@R-project.org",
 	    update <- readMyLine("The following installed packages are out-of-date:\n",
 				 paste(strwrap(rownames(old),
 					       width = 0.7 *getOption("width"),
-					       indent= 0.15*getOption("width")),
+					       indent = 0.15*getOption("width")),
 				       collapse="\n"),
 				 "would you like to update now?")
 	    if (yes(update)) update.packages(oldPkgs = old, ask = FALSE)
@@ -70,9 +72,9 @@ help.request <- function (subject = "", address = "r-help@R-project.org",
     if (no(FAQ)) return(go("http://cran.r-project.org/faqs.html"))
     intro <- readline("Have you checked An Introduction to R? (y/n) ")
     if (no(intro))
-	return(go("http://cran.r-project.org/doc/manuals/R-intro.html"))
+	return(go("http://cran.r-project.org/manuals.html"))
     NEWS <- readMyLine("Have you checked the NEWS of the latest development release?")
-    if (no(NEWS)) return(go("https://svn.r-project.org/R/trunk/NEWS"))
+    if (no(NEWS)) return(go("http://cran.r-project.org/doc/manuals/r-devel/NEWS.html"))
     rsitesearch <- readline("Have you looked on RSiteSearch? (y/n) ")
     if (no(rsitesearch)) {
 	catPlease()
@@ -84,7 +86,7 @@ help.request <- function (subject = "", address = "r-help@R-project.org",
         ## FIXME: inf$otherPkgs is a list of packageDescription()s
 	other <-
 	    readMyLine("You have packages",
-                       paste("(", paste(sQuote(oPkgs), collapse=", "),")", sep=""),
+                       paste0("(", paste(sQuote(oPkgs), collapse=", "),")"),
                        "other than the base packages loaded. ",
 		       "If your query relates to one of these, have you ",
 		       "checked any corresponding books/manuals and",
@@ -93,10 +95,9 @@ help.request <- function (subject = "", address = "r-help@R-project.org",
 	if(no(other)) return("Please do this first.")
     }
 
-    man <- url("http://cran.r-project.org/manuals.html")
-    ver <- scan(man, what = character(0L), sep = "\n", skip = 13L, nlines = 1L,
-		quiet = TRUE)
-    ver <- strsplit(ver, " ")[[1L]][3L]
+    page <- url("http://cran.r-project.org/bin/windows/base")
+    title <- grep("<title>", readLines(page, 10L), fixed = TRUE, value = TRUE)
+    ver <- sub("^.*R-([^ ]*) for Windows.*$", "\\1", title)
     if (getRversion() < numeric_version(ver)) {
 	update <- readMyLine("Your R version is out-of-date,",
 			     "would you like to update now?")

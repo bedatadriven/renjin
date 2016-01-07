@@ -1,6 +1,8 @@
 #  File src/library/utils/R/package.skeleton.R
 #  Part of the R package, http://www.R-project.org
 #
+#  Copyright (C) 1995-2014 The R Core Team
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
@@ -16,13 +18,12 @@
 
 package.skeleton <-
     function(name = "anRpackage", list = character(), environment = .GlobalEnv,
-	     path = ".", force = FALSE, namespace = TRUE,
+	     path = ".", force = FALSE,
              code_files = character())
 {
     safe.dir.create <- function(path)
     {
-	dirTest <- function(x) !is.na(isdir <- file.info(x)$isdir) & isdir
-	if(!dirTest(path) && !dir.create(path))
+	if(!dir.exists(path) && !dir.create(path))
 	    stop(gettextf("cannot create directory '%s'", path), domain = NA)
     }
 
@@ -61,9 +62,10 @@ package.skeleton <-
     curLocale <- Sys.getlocale("LC_CTYPE")
     on.exit(Sys.setlocale("LC_CTYPE", curLocale), add = TRUE)
     if(Sys.setlocale("LC_CTYPE", "C") != "C")
-        warning("cannot turn off locale-specific chars via LC_CTYPE")
+        warning("cannot turn off locale-specific chars via LC_CTYPE",
+                domain = NA)
 
-    have <- unlist(lapply(list, exists, envir = environment))
+    have <- vapply(list, exists, NA, envir = environment)
     if(any(!have))
         warning(sprintf(ngettext(sum(!have),
                                  "object '%s' not found",
@@ -74,7 +76,7 @@ package.skeleton <-
     if(!length(list))
 	stop("no R objects specified or available")
 
-    message("Creating directories ...")
+    message("Creating directories ...", domain = NA)
     ## Make the directories
     dir <- file.path(path, name)
     if(file.exists(dir) && !force)
@@ -86,7 +88,7 @@ package.skeleton <-
     safe.dir.create(data_dir <- file.path(dir, "data"))
 
     ## DESCRIPTION
-    message("Creating DESCRIPTION ...")
+    message("Creating DESCRIPTION ...", domain = NA)
     description <- file(file.path(dir, "DESCRIPTION"), "wt")
     cat("Package: ", name, "\n",
 	"Type: Package\n",
@@ -101,30 +103,27 @@ package.skeleton <-
 	file = description, sep = "")
     close(description)
 
-    if(!namespace)
-	warning("From R 2.14.0 on, every package gets a NAMESPACE.",
-		" Argument 'namespace' is deprecated.")
     ## NAMESPACE
     ## <NOTE>
     ## For the time being, we export all non-internal objects using the pattern
     ## of names beginning with alpha.  All S4 methods and classes are exported.
     ## S3 methods will be exported if the function's name would be exported.
     ## </NOTE>
-    message("Creating NAMESPACE ...")
+    message("Creating NAMESPACE ...", domain = NA)
     out <- file(file.path(dir, "NAMESPACE"), "wt")
     writeLines("exportPattern(\"^[[:alpha:]]+\")", out)
     if(length(methodsList)) {
 	cat("exportMethods(\n    ", file = out)
-	cat(paste('"', methodsList, '"', sep="", collapse = ",\n    "), "\n)\n", file = out)
+	cat(paste0('"', methodsList, '"', collapse = ",\n    "), "\n)\n", file = out)
     }
     if(length(classesList)) {
 	cat("exportClasses(\n    ", file = out)
-	cat(paste('"', classesList, '"', sep="", collapse = ",\n     "), "\n)\n", file = out)
+	cat(paste0('"', classesList, '"', collapse = ",\n     "), "\n)\n", file = out)
     }
     close(out)
 
     ## Read-and-delete-me
-    message("Creating Read-and-delete-me ...")
+    message("Creating Read-and-delete-me ...", domain = NA)
     out <- file(file.path(dir, "Read-and-delete-me"), "wt")
     msg <-
         c("* Edit the help file skeletons in 'man', possibly combining help files for multiple functions.",
@@ -148,25 +147,26 @@ package.skeleton <-
 
     ## Dump the items in 'data' or 'R'
     if(!use_code_files) {
-        message("Saving functions and data ...")
+        message("Saving functions and data ...", domain = NA)
         if(length(internalObjInds))
             dump(internalObjs,
-                 file = file.path(code_dir,
-                 sprintf("%s-internal.R", name)))
+                 file = file.path(code_dir, sprintf("%s-internal.R", name)),
+                 envir = environment)
         for(item in list){
             objItem <- get(item, envir = environment)
             if(is.function(objItem))  {
                 if(isS4(objItem))
-                    stop(gettextf("Generic functions and other S4 objects (e.g., '%s') cannot be dumped; use the code_files= argument", item), domain = NA)
+                    stop(gettextf("generic functions and other S4 objects (e.g., '%s') cannot be dumped; use the 'code_files' argument", item), domain = NA)
                 dump(item,
-                     file = file.path(code_dir, sprintf("%s.R", list0[item])))
+                     file = file.path(code_dir, sprintf("%s.R", list0[item])),
+                     envir = environment)
             }
             else       # we cannot guarantee this is a valid file name
                 try(save(list = item, envir = environment,
                          file = file.path(data_dir, sprintf("%s.rda", item))))
         }
     } else {
-        message("Copying code files ...")
+        message("Copying code files ...", domain = NA)
         file.copy(code_files, code_dir)
         ## Only "abc.R"-like files are really ok:
 	R_files <- tools::list_files_with_type(code_dir, "code",
@@ -177,15 +177,15 @@ package.skeleton <-
 	if(length(wrong)) {
 	    warning("Invalid file name(s) for R code in ", code_dir,":\n",
 		    strwrap(paste(sQuote(wrong), collapse = ", "), indent=2),
-		    "\n are now renamed to 'z<name>.R'")
+		    "\n are now renamed to 'z<name>.R'", domain = NA)
 	    file.rename(from = file.path(code_dir, wrong),
 			to = file.path(code_dir,
-			paste("z", sub("(\\.[^.]*)?$", ".R", wrong), sep="")))
+			paste0("z", sub("(\\.[^.]*)?$", ".R", wrong))))
         }
     }
 
     ## Make help file skeletons in 'man'
-    message("Making help files ...")
+    message("Making help files ...", domain = NA)
     ## Suppress partially inappropriate messages from prompt().
     yy <- try(suppressMessages({
 	promptPackage(name,
@@ -235,8 +235,8 @@ package.skeleton <-
     if(length(list.files(data_dir)) == 0L)
         unlink(data_dir, recursive = TRUE)
 
-    message("Done.")
-    message(gettextf("Further steps are described in '%s'.",
+    message("Done.", domain = NA)
+    message(sprintf("Further steps are described in '%s'.",
                      file.path(dir, "Read-and-delete-me")),
             domain = NA)
 }
@@ -255,14 +255,14 @@ package.skeleton <-
         wrong <- grep("^(con|prn|aux|clock\\$|nul|lpt[1-3]|com[1-4])(\\..*|)$",
                       list0)
         if(length(wrong))
-            list0[wrong] <- paste("zz", list0[wrong], sep="")
+            list0[wrong] <- paste0("zz", list0[wrong])
         ## using grep was wrong, as could give -integer(0)
         ok <- grepl("^[[:alnum:]]", list0)
         if(any(!ok))
-            list0[!ok] <- paste("z", list0[!ok], sep="")
+            list0[!ok] <- paste0("z", list0[!ok])
         ## now on Mac/Windows lower/uppercase will collide too
         list1 <- tolower(list0)
-        list2 <- make.unique(list1, sep="_")
+        list2 <- make.unique(list1, sep = "_")
         changed <- (list2 != list1)
         list0[changed] <- list2[changed]
         list0

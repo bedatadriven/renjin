@@ -152,7 +152,7 @@ truncate.connection <- function(con, ...)
     .Internal(truncate(con))
 }
 
-pushBack <- function(data, connection, newLine = TRUE)
+pushBack <- function(data, connection, newLine = TRUE, encoding = c("bytes", "UTF-8"))
     invisible(.Internal(pushBack(data, connection, newLine)))
 
 pushBackLength <- function(connection)

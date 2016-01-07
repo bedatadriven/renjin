@@ -1,6 +1,8 @@
 #  File src/library/utils/R/indices.R
 #  Part of the R package, http://www.R-project.org
 #
+#  Copyright (C) 1995-2015 The R Core Team
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
@@ -14,8 +16,8 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-packageDescription <- function(pkg, lib.loc=NULL, fields=NULL, drop=TRUE,
-			       encoding = "")
+packageDescription <-
+    function(pkg, lib.loc = NULL, fields = NULL, drop = TRUE, encoding = "")
 {
     retval <- list()
     if(!is.null(fields)){
@@ -23,20 +25,19 @@ packageDescription <- function(pkg, lib.loc=NULL, fields=NULL, drop=TRUE,
         retval[fields] <- NA
     }
 
-    ## If the NULL default for lib.loc is used, the loaded packages are
-    ## searched before the libraries.
+    ## If the NULL default for lib.loc is used,
+    ## the loaded packages/namespaces are searched before the libraries.
     pkgpath <-
 	if(is.null(lib.loc)) {
 	    if(pkg == "base")
 		file.path(.Library, "base")
-	    else if((envname <- paste("package:", pkg, sep = ""))
-		    %in% search()) {
-		pp <- attr(as.environment(envname), "path")
+	    else if(isNamespaceLoaded(pkg))
+		getNamespaceInfo(pkg, "path")
+	    else if((envname <- paste0("package:", pkg)) %in% search()) {
+		attr(as.environment(envname), "path")
 		## could be NULL if a perverse user has been naming
 		## environments to look like packages.
-	    } else if(pkg %in% loadedNamespaces())
-		## correct path for a loaded (not attached) namespace:
-		getNamespaceInfo(pkg, "path")
+	    }
 	}
     if(is.null(pkgpath)) pkgpath <- ""
 
@@ -72,7 +73,7 @@ packageDescription <- function(pkg, lib.loc=NULL, fields=NULL, drop=TRUE,
         desc <- as.list(dcf[1,])
     } else file <- ""
 
-    if(file != "") {
+    if(nzchar(file)) {
         ## read the Encoding field if any
         enc <- desc[["Encoding"]]
         if(!is.null(enc) && !is.na(encoding)) {
@@ -108,15 +109,22 @@ packageDescription <- function(pkg, lib.loc=NULL, fields=NULL, drop=TRUE,
 }
 
 
-print.packageDescription <- function(x, ...)
+print.packageDescription <-
+    function(x, abbrCollate = 0.8 * getOption("width"), ...)
 {
     xx <- x
     xx[] <- lapply(xx, function(x) if(is.na(x)) "NA" else x)
+    if(abbrCollate > 0 && any(names(xx) == "Collate")) {
+        ## trim a long "Collate" field -- respecting word boundaries
+	wrds <- strsplit(xx$Collate,"[ \n]")[[1L]]
+	k <- which.max(cumsum(nchar(wrds)) > abbrCollate) - 1L
+	xx$Collate <- paste(c(wrds[seq_len(k)], "....."), collapse=" ")
+    }
     write.dcf(as.data.frame.list(xx, optional = TRUE))
     cat("\n-- File:", attr(x, "file"), "\n")
     if(!is.null(attr(x, "fields"))){
         cat("-- Fields read: ")
-        cat(attr(x, "fields"), sep=", ")
+        cat(attr(x, "fields"), sep = ", ")
         cat("\n")
     }
     invisible(x)
@@ -124,17 +132,20 @@ print.packageDescription <- function(x, ...)
 
 # Simple convenience functions
 
-maintainer <- function(pkg){
-  pkg # force evaluation
-  return(packageDescription(pkg)$Maintainer)
+maintainer <- function(pkg)
+{
+    force(pkg)
+    desc <- packageDescription(pkg)
+    if(is.list(desc)) gsub("\n", " ", desc$Maintainer, fixed = TRUE)
+    else NA_character_
 }
 
-packageVersion <- function(pkg, lib.loc=NULL)
+packageVersion <- function(pkg, lib.loc = NULL)
 {
     res <- suppressWarnings(packageDescription(pkg, lib.loc=lib.loc,
                                                fields = "Version"))
     if (!is.na(res)) package_version(res) else
-    stop("package ", sQuote(pkg), " not found")
+    stop(gettextf("package %s not found", sQuote(pkg)), domain = NA)
 }
 
 ## used with firstOnly = TRUE for example()
@@ -159,24 +170,19 @@ index.search <- function(topic, paths, firstOnly = FALSE)
     res
 }
 
-print.packageIQR <-
-function(x, ...)
+print.packageIQR <- function(x, ...)
 {
     db <- x$results
     ## Split according to Package.
-    out <- if(nrow(db) == 0L)
-         NULL
-    else
-        lapply(split(1 : nrow(db), db[, "Package"]),
-               function(ind) db[ind, c("Item", "Title"),
-                                drop = FALSE])
+    out <- if(nrow(db) > 0L)
+	       lapply(split(seq_len(nrow(db)), db[, "Package"]),
+		      function(ind) db[ind, c("Item", "Title"), drop = FALSE])
     outFile <- tempfile("RpackageIQR")
     outConn <- file(outFile, open = "w")
     first <- TRUE
     for(pkg in names(out)) {
-        writeLines(paste(ifelse(first, "", "\n"), x$title,
-                         " in package ", sQuote(pkg), ":\n",
-                         sep = ""),
+        writeLines(paste0(ifelse(first, "", "\n"), x$title,
+                          " in package ", sQuote(pkg), ":\n"),
                    outConn)
         writeLines(formatDL(out[[pkg]][, "Item"],
                             out[[pkg]][, "Title"]),

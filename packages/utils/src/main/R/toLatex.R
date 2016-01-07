@@ -1,6 +1,8 @@
 #  File src/library/utils/R/toLatex.R
 #  Part of the R package, http://www.R-project.org
 #
+#  Copyright (C) 1995-2013 The R Core Team
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
@@ -16,16 +18,10 @@
 
 toBibtex <- function(object, ...) UseMethod("toBibtex")
 
-print.Bibtex <- function(x, prefix="", ...)
-{
-    writeLines(paste(prefix, unclass(x), sep=""))
-    invisible(x)
-}
-
 toLatex <- function(object, ...) UseMethod("toLatex")
-    
-print.Latex <- function(x, prefix="", ...)
+
+print.Bibtex <- print.Latex <- function(x, prefix = "", ...)
 {
-    writeLines(paste(prefix, unclass(x), sep=""))
+    writeLines(paste0(prefix, unclass(x)), ...)
     invisible(x)
 }

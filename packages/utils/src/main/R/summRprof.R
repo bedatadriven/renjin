@@ -1,6 +1,8 @@
 #  File src/library/utils/R/summRprof.R
 #  Part of the R package, http://www.R-project.org
 #
+#  Copyright (C) 1995-2015 The R Core Team
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
@@ -14,11 +16,18 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
+# The profile file always starts with a single header line followed by stack lines
+#   If the header contains "memory profiling", the stack lines have memory info
+#     The memory info is a fixed width prefix on each line of the form :[0-9]+:[0-9]+:[0-9]+:[0-9]+:
+#   If the header contains "line profiling", there will be filename lines and stack lines will contain
+#     line number info of the form [0-9]+#[0-9]+
+#   The filename lines will start #File [0-9]+:
 
 summaryRprof <-
     function(filename = "Rprof.out", chunksize = 5000,
              memory = c("none", "both", "tseries", "stats"),
-             index = 2, diff = TRUE, exclude = NULL)
+             lines = c("hide", "show", "both"),
+             index = 2, diff = TRUE, exclude = NULL, basenames = 1)
 {
     con <- file(filename, "rt")
     on.exit(close(con))
@@ -27,6 +36,9 @@ summaryRprof <-
         stop(gettextf("no lines found in %s", sQuote(filename)), domain = NA)
     sample.interval <- as.numeric(strsplit(firstline, "=")[[1L]][2L])/1e6
     memory.profiling <- substr(firstline, 1L, 6L) == "memory"
+    line.profiling <- grepl("line profiling", firstline)
+    if (line.profiling)
+    	filenames <- character(0)
 
     memory <- match.arg(memory)
     if(memory != "none" && !memory.profiling)
@@ -40,6 +52,9 @@ summaryRprof <-
                                     aggregate = index, diff = diff, exclude = exclude,
                                     sample.interval = sample.interval))
 
+    lines <- match.arg(lines)
+    if (lines != "hide" && !line.profiling)
+    	stop("profile does not contain line information")
 
     fnames <- NULL
     ucounts <- NULL
@@ -50,14 +65,41 @@ summaryRprof <-
     repeat({
 
        chunk <- readLines(con, n = chunksize)
+
+       if (line.profiling) {
+       	   filenamelines <- grep("^#File [0-9]+: ", chunk)
+       	   if (length(filenamelines)) {
+       	   	fnum <- as.integer(sub("^#File ([0-9]+): .*", "\\1", chunk[filenamelines]))
+       	   	filenames[fnum] <- sub("^#File [0-9]+: ", "", chunk[filenamelines])
+       	   	if (basenames) {
+       		    dirnames <- dirname(filenames[fnum])
+       	   	    filenames[fnum] <- basename(filenames[fnum])
+       	   	    for (i in seq_len(basenames - 1)) {
+       	   	        tail <- basename(dirnames)
+       	   	    	filenames[fnum] <- ifelse(tail == ".", filenames[fnum],
+       	   	    	                          paste0(tail, "/", filenames[fnum]))
+       	   	    	# May have Windows-style names here where dirname("c:/") == "c:/"
+       	   	    	parent <- dirname(dirnames)
+       	   	    	dirnames <- ifelse(dirnames == parent, ".", parent)
+       	   	    }
+       	   	}
+       	   	chunk <- chunk[-filenamelines]
+       	   }
+       }
+
        if (length(chunk) == 0L)
            break
+
        if (memory.profiling) {
            memprefix <- attr(regexpr(":[0-9]+:[0-9]+:[0-9]+:[0-9]+:", chunk), "match.length")
-           if (memory == "both"){
+           if (memory == "both") {
                memstuff <- substr(chunk, 2L, memprefix-1L)
                memcounts <- pmax(apply(sapply(strsplit(memstuff, ":"), as.numeric), 1, diff), 0)
-               memcounts <- c(0, rowSums(memcounts[, 1L:3L]))
+	       if (!is.matrix(memcounts)) # Need a matrix result (PR#16395)
+	           memcounts <- matrix(memcounts, nrow = 1)
+               ##  memcounts <- c(0, rowSums(memcounts[, 1L:3L]))
+               ## convert to bytes.
+               memcounts <- c(0, rowSums(cbind(memcounts[, 1L:2L, drop = FALSE] * 8, memcounts[, 3L, drop = FALSE])))
                rm(memstuff)
            }
            chunk <- substr(chunk, memprefix+1L, nchar(chunk,  "c"))
@@ -68,10 +110,23 @@ summaryRprof <-
        }
 
        chunk <- strsplit(chunk, " ")
-
+       if (line.profiling)
+           chunk <- lapply(chunk, function(x) {
+           	locations <- !grepl("^\"", x)
+           	if (lines != "hide") {
+           	    fnum <- sub("#.*", "", x[locations])
+           	    lnum <- sub(".*#", "", x[locations])
+           	    x[locations] <- paste0(filenames[as.integer(fnum)], "#", lnum)
+                }
+           	switch(lines,
+           	    hide = x <- x[!locations],
+           	    show = x <- x[locations]
+           	)
+       	      	if (length(x)) x else "<no location>"
+       	     })
        newfirsts <- sapply(chunk,  "[[",  1L)
        newuniques <- lapply(chunk,  unique)
-       ulen <- sapply(newuniques, length)
+       ulen <- lengths(newuniques)
        newuniques <- unlist(newuniques)
 
        new.utable <- table(newuniques)
@@ -87,13 +142,7 @@ summaryRprof <-
            umem <- rowsum(c(new.umem, umem), c(names(new.utable), fnames))
 
        fnames <- sort(unique(c(fnames, names(new.utable))))
-
-       if (length(chunk) < chunksize) break
     })
-
-    if (sum(fcounts) == 0)
-        stop("no events were recorded")
-
 
     firstnum <- fcounts*sample.interval
     uniquenum <- ucounts*sample.interval
@@ -101,6 +150,14 @@ summaryRprof <-
     ## sort and form % on unrounded numbers
     index1 <- order(-firstnum, -uniquenum)
     index2 <- order(-uniquenum, -firstnum)
+
+    if (lines == "show") {
+    	filename <- sub("#.*$", "", fnames)
+    	linenum <- rep(0, length(filename))
+    	hasline <- filename != fnames
+    	linenum[hasline] <- as.numeric(sub("^.*#", "", fnames[hasline]))
+    	index3 <- order(filename, linenum)
+    }
 
     firstpct <- round(100*firstnum/sum(firstnum), 2)
     uniquepct <- round(100*uniquenum/sum(firstnum), 2)
@@ -119,7 +176,13 @@ summaryRprof <-
     by.self <- rval[index1, ]
     by.self <- by.self[by.self[,1L] > 0, ]
     by.total <- rval[index2, c(3L, 4L,  if(memory == "both") 5L, 1L, 2L)]
-    list(by.self = by.self, by.total = by.total,
+
+    result <- list(by.self = by.self, by.total = by.total)
+
+    if (lines == "show")
+    	result <- c(result, list(by.line = rval[index3,]))
+
+    c(result,
          sample.interval = sample.interval,
          sampling.time = sum(fcounts)*sample.interval)
 }
@@ -129,7 +192,6 @@ Rprof_memory_summary <- function(filename, chunksize = 5000,
                                  exclude = NULL, sample.interval)
 {
 
-    fnames <- NULL
     memcounts <- NULL
     firsts <- NULL
     labels <- vector("list", length(label))

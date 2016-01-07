@@ -1,7 +1,7 @@
-#  File src/library/utils/R/utils-deprecated.R
+#  File src/library/utils/R/packages2.R
 #  Part of the R package, http://www.R-project.org
 #
-#  Copyright (C) 1995-2012 The R Core Team
+#  Copyright (C) 1995-2015 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -16,3 +16,14 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
+
+packageName <- function(env = parent.frame()) {
+    if (!is.environment(env)) stop("'env' must be an environment")
+    env <- topenv(env)
+    if (exists(".packageName", envir = env, inherits = FALSE))
+	get(".packageName", envir = env, inherits = FALSE)
+    else if (identical(env, .BaseNamespaceEnv))
+	"base"
+    else
+	NULL
+}

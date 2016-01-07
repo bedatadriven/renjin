@@ -1,6 +1,8 @@
 #  File src/library/utils/R/URLencode.R
 #  Part of the R package, http://www.R-project.org
 #
+#  Copyright (C) 1995-2015 The R Core Team
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
@@ -14,22 +16,27 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-URLencode <- function(URL, reserved = FALSE)
+URLencode <- function(URL, reserved = FALSE, repeated = FALSE)
 {
+    if(!repeated && grepl("%[[:xdigit:]]{2}", URL, useBytes = TRUE))
+        return(URL)
     ## It is unsafe to use ranges here as collation is locale-dependent.
     ## We want to do this on characters and not on bytes.
-    OK <- paste("[^-ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-		"abcdefghijklmnopqrstuvwxyz0123456789$_.+!*'(),",
-		if(!reserved) ";/?:@=&", "]", sep="")
+    OK <- paste0("[^",
+                 if(!reserved) "][!$&'()*+,;=:/?@#",
+                 "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+                 "abcdefghijklmnopqrstuvwxyz0123456789._~-",
+                 "]")
     x <- strsplit(URL, "")[[1L]]
     z <- grep(OK, x)
     if(length(z)) {
-        y <- sapply(x[z], function(x)
-                    paste("%", as.character(charToRaw(x)), sep="",
-                          collapse = ""))
+        y <- sapply(x[z],
+                    function(x)
+                        paste0("%", toupper(as.character(charToRaw(x))),
+                               collapse = ""))
         x[z] <- y
     }
-    paste(x, collapse="")
+    paste(x, collapse = "")
 }
 
 URLdecode <- function(URL)

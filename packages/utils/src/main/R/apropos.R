@@ -1,6 +1,8 @@
 #  File src/library/utils/R/apropos.R
 #  Part of the R package, http://www.R-project.org
 #
+#  Copyright (C) 1995-2012 The R Core Team
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
@@ -44,7 +46,7 @@ find <- function(what, mode = "any", numeric = FALSE, simple.words=TRUE)
     }
 #   would need to escape at least + * | as well
 #     if(simple.words)
-# 	what <- gsub("([.[])", "\\\\\\1", paste("^",what,"$", sep=""))
+# 	what <- gsub("([.[])", "\\\\\\1", paste0("^",what,"$"))
     len.s <- length(sp <- search())
     ind <- logical(len.s)
     check.mode <- mode != "any"
@@ -61,8 +63,10 @@ find <- function(what, mode = "any", numeric = FALSE, simple.words=TRUE)
                 mode.ok <- sapply(li, exists, where = i, mode = mode,
                                   inherits = FALSE)
                 ll <- sum(mode.ok)
-                if(ll >= 2)
-                    warning(gettextf("%d occurrences in %s", ll, sp[i]),
+                if(ll >= 2) # some languages have multiple plurals
+                    warning(sprintf(ngettext(ll,
+                                             "%d occurrence in %s",
+                                             "%d occurrences in %s"), ll, sp[i]),
                             domain = NA)
             }
             ind[i] <- ll > 0L

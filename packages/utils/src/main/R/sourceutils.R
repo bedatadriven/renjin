@@ -114,40 +114,7 @@ substr_with_tabs <- function(x, start, stop, tabsize = 8) {
 }
 
 getParseData <- function(x, includeText = NA) {
-    if (inherits(x, "srcfile")) 
-	srcfile <- x
-    else 
-	srcfile <- getSrcfile(x)
-
-    if (is.null(srcfile))
-    	return(NULL)
-    else
-    	data <- srcfile$parseData
-    if (!is.null(data)) {
-        tokens <- attr(data, "tokens")
-        data <- t(unclass(data))
-        colnames(data) <- c( "line1", "col1",
-		 	     "line2", "col2",
-		 	     "terminal", "token.num", "id", "parent" )
-    	data <- data.frame(data[, -c(5,6), drop = FALSE], token = tokens,
-    	                   terminal = as.logical(data[,"terminal"]),
-    	                   text = attr(data, "text"),
-    			   stringsAsFactors = FALSE)
-    	o <- order(data[,1], data[,2], -data[,3], -data[,4])
-    	data <- data[o,]
-    	rownames(data) <- data$id
-    	attr(data, "srcfile") <- srcfile
-    	if (isTRUE(includeText)) gettext <- which(!nzchar(data$text))
-        else if (is.na(includeText)) gettext <- which(!nzchar(data$text) & data$terminal)
-        else {
-            gettext <- integer(0)
-            data$text <- NULL
-        }
-
-        if (length(gettext))
-	    data$text[gettext] <- getParseText(data, data$id[gettext])
-    }
-    data	
+    stop("getParseData() is not currently supported by Renjin")
 }
 
 getParseText <- function(parseData, id) {

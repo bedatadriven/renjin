@@ -66,7 +66,11 @@ public class RecordPtrFieldGenerator extends FieldGenerator {
       instanceGenerator.emitPushRecordRef(mv);
       valueGenerator.emitPushRecordRef(mv);
       mv.visitFieldInsn(Opcodes.PUTFIELD, className, fieldName, recordGenerator.getDescriptor());
+    }
 
+    @Override
+    public ExprGenerator valueOf() {
+      return new DereferencedUnitRecordPtr(recordGenerator, this);
     }
   }
 }

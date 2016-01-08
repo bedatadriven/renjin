@@ -61,7 +61,7 @@ public class RecordUnitPtrPtrParamStrategy implements ParamStrategy {
 
     @Override
     public ExprGenerator valueOf() {
-      return new DereferencedUnitRecordPtr(this);
+      return new DereferencedUnitRecordPtr(generator, this);
     }
 
     @Override

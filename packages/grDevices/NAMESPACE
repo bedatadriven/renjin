@@ -67,6 +67,5 @@ S3method("print", "raster")
 S3method(pretty, Date)
 S3method(pretty, POSIXt)
 
-export(cairo_pdf, cairo_ps, X11.options, X11Font, X11Fonts,
-           quartz, quartz.options, quartzFont, quartzFonts, svg)
+export(cairo_pdf, cairo_ps, svg)
 

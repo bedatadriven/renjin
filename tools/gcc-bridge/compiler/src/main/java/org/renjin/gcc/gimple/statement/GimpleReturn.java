@@ -53,11 +53,13 @@ public class GimpleReturn extends GimpleStatement {
 
   @Override
   public boolean replace(Predicate<? super GimpleExpr> predicate, GimpleExpr replacement) {
-    if(predicate.apply(value)) {
-      value = replacement;
-      return true;
-    } else if(value.replace(predicate, replacement)) {
-      return true;
+    if(value != null) {
+      if (predicate.apply(value)) {
+        value = replacement;
+        return true;
+      } else if (value.replace(predicate, replacement)) {
+        return true;
+      }
     }
     return false;
   }

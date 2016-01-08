@@ -33,7 +33,9 @@ public class CastGenerator extends AbstractExprGenerator implements ExprGenerato
 
     valueGenerator.emitPrimitiveValue(mv);
     
-    cast(mv, (GimplePrimitiveType) valueGenerator.getGimpleType(), destinationType);
+    if(!valueGenerator.getGimpleType().equals(destinationType)) {
+      cast(mv, (GimplePrimitiveType) valueGenerator.getGimpleType(), destinationType);
+    }
   }
   
   private void cast(MethodVisitor mv, GimplePrimitiveType sourceType, GimplePrimitiveType destinationType) {

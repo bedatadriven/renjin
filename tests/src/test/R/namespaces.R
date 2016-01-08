@@ -21,6 +21,10 @@ test.getNamespaceExports <- function() {
     assertTrue("for" %in% getNamespaceExports("base"))
 }
 
+test.isNamespaceLoaded <- function() {
+    assertTrue(isNamespaceLoaded("stats"))
+}
+
 # Not yet implemented
 ignore.test.getNamespaceImports <- function() {
 

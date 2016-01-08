@@ -24,6 +24,10 @@ loadNamespace <- function(package) {
 	getNamespace(package)
 }
 
+isNamespaceLoaded <- function(name) {
+	name %in% loadedNamespaces()
+}
+
 asNamespace <- function(ns, base.OK = TRUE) {
 	if (is.character(ns) || is.name(ns))
 		ns <- getNamespace(ns)

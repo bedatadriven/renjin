@@ -67,7 +67,8 @@ public class GimpleCompiler  {
     functionBodyTransformers.add(AddressableFinder.INSTANCE);
     functionBodyTransformers.add(ResultDeclRewriter.INSTANCE);
     functionBodyTransformers.add(LocalVariableInitializer.INSTANCE);
-    functionBodyTransformers.add(TreeBuilder.INSTANCE);
+//    Disabled for now, leads to too many errors
+//    functionBodyTransformers.add(TreeBuilder.INSTANCE);
     globalSymbolTable = new GlobalSymbolTable(typeOracle);
     globalSymbolTable.addDefaults();
   }

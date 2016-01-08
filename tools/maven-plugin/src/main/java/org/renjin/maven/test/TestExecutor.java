@@ -104,7 +104,7 @@ public class TestExecutor {
   @VisibleForTesting
   void executeTest(File testFile) throws IOException {
     
-    if (testFile.getName().endsWith(".Rd")) {
+    if (testFile.getName().toLowerCase().endsWith(".rd")) {
       executeTestFile(testFile, ExamplesParser.parseExamples(testFile));
     } else {
       executeTestFile(testFile, Files.toString(testFile, Charsets.UTF_8));

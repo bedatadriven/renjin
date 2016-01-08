@@ -67,15 +67,6 @@ S3method("print", "raster")
 S3method(pretty, Date)
 S3method(pretty, POSIXt)
 
+export(cairo_pdf, cairo_ps, X11.options, X11Font, X11Fonts,
+           quartz, quartz.options, quartzFont, quartzFonts, svg)
 
-#if(tools:::.OStype() == "windows") {
-#    export(bringToTop, msgWindow, win.graph, win.metafile, win.print,
-#           windows, windows.options, windowsFont, windowsFonts)
-#    export(cairo_pdf, cairo_ps, svg)
-#
-#   S3method("[", SavedPlots)
-#    S3method(print, SavedPlots)
-#} else {
-#    export(cairo_pdf, cairo_ps, X11.options, X11Font, X11Fonts,
-#           quartz, quartz.options, quartzFont, quartzFonts, svg)
-#}

@@ -66,11 +66,6 @@ public class CastGenerator extends AbstractExprGenerator implements ExprGenerato
       if(precision == 0) {
         throw new AssertionError("precision == 0");
       }
-      
-//      // enum type seem to get emitted with precision of 0
-//      if(precision == 0) {
-//        precision = 32;
-//      }
 
       if(intType.isUnsigned()) {
         return "UnsignedInt" + precision;
@@ -332,13 +327,22 @@ public class CastGenerator extends AbstractExprGenerator implements ExprGenerato
   public static void castInt32ToInt16(MethodVisitor mv) { 
     mv.visitInsn(Opcodes.I2S);
   }
+
   public static void castInt32ToUnsignedInt16(MethodVisitor mv) { 
     mv.visitInsn(Opcodes.I2C);
   }
+
+  public static void castInt32ToInt32(MethodVisitor mv) {
+    // NOOP
+    // Only present because strictly speaking enumerated and integer types are not considered
+    // to be exactly the same type
+  }
+
   public static void castInt32ToUnsignedInt32(MethodVisitor mv) { 
     // NOOP 
     // same bitwise representation
   }
+  
   public static void castInt32ToInt64(MethodVisitor mv) { 
     mv.visitInsn(Opcodes.I2L);
   }

@@ -140,7 +140,7 @@ public class GimpleCompiler  {
     // This allows us to effectively do linking at the same time as code generation
     List<UnitClassGenerator> unitClassGenerators = Lists.newArrayList();
     for (GimpleCompilationUnit unit : units) {
-      String className = getInternalClassName(unit.getName());
+      String className = classNameForUnit(unit.getName());
       UnitClassGenerator generator = new UnitClassGenerator(
           typeOracle,
           globalSymbolTable,
@@ -234,11 +234,20 @@ public class GimpleCompiler  {
     }
   }
 
+  private String classNameForUnit(String className) {
+    // if we are using a trampoline class, then decorate the 
+    // classes with the actual implementation to avoid conflict
+    if(trampolineClassName != null) {
+      return getInternalClassName(className) + "__";
+    } else {
+      return getInternalClassName(className);
+    }
+  }
+
   private String getInternalClassName(String className) {
-    
     // sanitize class name: file names may not be legal class names, for example,
     // bit-ops.c
-    
+
     return (packageName + "." + sanitize(className)).replace('.', '/');
   }
 

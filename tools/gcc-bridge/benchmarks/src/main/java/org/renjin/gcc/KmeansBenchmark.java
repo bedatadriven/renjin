@@ -80,7 +80,7 @@ public class KmeansBenchmark {
   @Benchmark
   public double[] benchmark() {
 
-    org.renjin.gcc.kmns.kmns_(
+    org.renjin.gcc.kmns__.kmns_(
         new DoublePtr(a),
         new IntPtr(m),
         new IntPtr(n),

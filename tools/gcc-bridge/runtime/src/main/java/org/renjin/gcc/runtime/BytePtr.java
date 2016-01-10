@@ -9,6 +9,10 @@ public class BytePtr implements Ptr {
   public final byte[] array;
   public final int offset;
 
+  public BytePtr(byte... array) {
+    this(array, 0);
+  }
+  
   public BytePtr(byte[] array, int offset) {
     this.array = array;
     this.offset = offset;

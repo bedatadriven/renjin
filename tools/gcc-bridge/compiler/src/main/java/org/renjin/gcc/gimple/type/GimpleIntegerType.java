@@ -13,6 +13,8 @@ public class GimpleIntegerType extends GimplePrimitiveType {
     setSize(precision);
   }
 
+  
+  
   /**
    * 
    * @return The number of bits of precision

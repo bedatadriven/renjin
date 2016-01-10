@@ -99,5 +99,9 @@ public class Stdlib {
   public static void qsort(Ptr base, int nitems, int size, MethodHandle comparator) {
     throw new UnsupportedOperationException();
   }
+  
+  public static ObjectPtr<CharPtr> __ctype_b_loc() {
+    return CharTypes.TABLE_PTR;
+  }
 
 }

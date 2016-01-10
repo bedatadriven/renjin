@@ -24,7 +24,6 @@ public class GimpleCompilerTest extends AbstractGccTest {
     assertThat(GimpleCompiler.sanitize("bit-ops"), equalTo("bit_ops"));
     assertThat(GimpleCompiler.sanitize("survey"), equalTo("survey"));
     assertThat(GimpleCompiler.sanitize("12345"), equalTo("_12345"));
-//    assertThat(GimpleCompiler.sanitize("class"), equalTo("class_"));
   }
   
   @Test
@@ -686,7 +685,6 @@ public class GimpleCompilerTest extends AbstractGccTest {
     assertThat(message.nullTerminatedString(), equalTo("Hello Bob, you have 99 messages"));
   }
 
-  @Ignore
   @Test
   public void ctypes() throws Exception {
     Class clazz = compile("ctype.c");

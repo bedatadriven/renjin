@@ -13,7 +13,6 @@ import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
 import org.renjin.gcc.codegen.type.record.RecordUnitPtrReturnStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidReturnStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidTypeStrategy;
-import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleParameter;
 import org.renjin.gcc.gimple.type.*;
 import org.renjin.gcc.runtime.BytePtr;
@@ -113,7 +112,7 @@ public class TypeOracle {
   public ReturnStrategy findReturnGenerator(GimpleType returnType) {
     return forType(returnType).getReturnStrategy();
   }
-
+  
   public ReturnStrategy forReturnValue(Method method) {
     Class<?> returnType = method.getReturnType();
     if(returnType.equals(void.class)) {
@@ -124,8 +123,24 @@ public class TypeOracle {
 
     } else if(WrapperType.is(returnType)) {
       WrapperType wrapperType = WrapperType.valueOf(returnType);
-      return new PrimitivePtrReturnStrategy(wrapperType.getGimpleType());
-
+      if(wrapperType.equals(WrapperType.OBJECT_PTR)) {
+        // Signature should be in the form ObjectPtr<BaseT>
+        // Use generics to get the base type 
+        java.lang.reflect.Type genericReturnType = method.getGenericReturnType();
+        Class baseType = objectPtrBaseType(genericReturnType);
+        
+        if(baseType.equals(ObjectPtr.class)) {
+          throw new UnsupportedOperationException(genericReturnType.toString());
+        } else if(WrapperType.is(baseType)) {
+          WrapperType innerWrapper = WrapperType.valueOf(baseType);
+          GimplePointerType pointerPointerType = innerWrapper.getGimpleType().pointerTo();
+          return new PrimitivePtrPtrReturnStrategy(pointerPointerType);
+        } else {
+          throw new UnsupportedOperationException("baseType: " + baseType);
+        }
+      } else {
+        return new PrimitivePtrReturnStrategy(wrapperType.getGimpleType());
+      }
     } else if(classTypes.containsKey(Type.getInternalName(returnType))) {
       GimpleRecordType recordType = classTypes.get(Type.getInternalName(returnType));
       return new RecordUnitPtrReturnStrategy(recordTypes.get(recordType.getId()));
@@ -201,13 +216,16 @@ public class TypeOracle {
     return generators;
   }
   
-  private ParamStrategy forObjectPtrParam(java.lang.reflect.Type type) {
-    if(!(type instanceof ParameterizedType)) {
+  private Class objectPtrBaseType(java.lang.reflect.Type type) {
+    if (!(type instanceof ParameterizedType)) {
       throw new InternalCompilerException(ObjectPtr.class.getSimpleName() + " parameters must be parameterized");
     }
     ParameterizedType parameterizedType = (ParameterizedType) type;
-    java.lang.reflect.Type baseType = parameterizedType.getActualTypeArguments()[0];
-    
+    return (Class) parameterizedType.getActualTypeArguments()[0];
+  }
+  
+  private ParamStrategy forObjectPtrParam(java.lang.reflect.Type type) {
+    Class baseType = objectPtrBaseType(type);
     if(baseType.equals(BytePtr.class)) {
       return forType(new GimpleIntegerType(8)).pointerTo().pointerTo().getParamStrategy();
     } else {

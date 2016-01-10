@@ -7,8 +7,8 @@ public class ObjectPtr<T> implements Ptr {
   /**
    * Constructs a new ObjectPtr to a single value.
    */
-  public ObjectPtr(T value) {
-    array = new Object[] { value };
+  public ObjectPtr(T... array) {
+    this.array = array;
     offset = 0;
   }
   

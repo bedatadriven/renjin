@@ -5,7 +5,7 @@ public class CharTypes {
 
   // Adapted from https://github.com/evanphx/ulysses-libc/blob/master/src/ctype/__ctype_b_loc.c
   
-  public static final short[] TABLE = new short[] {
+  public static final char[] TABLE = new char[] {
       0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
       0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
       0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -29,13 +29,13 @@ public class CharTypes {
       0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
       0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
       0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-      0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  };
-
-  private static short X(int x) {
-    return (short) ( ((x)/256 | (x)*256) % 65536 );
-  }
-
+      0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
 
   public static final int OFFSET = 128;
+
+  public static final ObjectPtr<CharPtr> TABLE_PTR = new ObjectPtr<>(new CharPtr(TABLE, OFFSET));
+
+  private static char X(int x) {
+    return (char) ( ((x)/256 | (x)*256) % 65536 );
+  }
 }

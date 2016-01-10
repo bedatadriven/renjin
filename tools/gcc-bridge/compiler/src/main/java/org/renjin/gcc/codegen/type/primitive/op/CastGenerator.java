@@ -141,26 +141,30 @@ public class CastGenerator extends AbstractExprGenerator implements ExprGenerato
   }
   
   public static void castInt8ToUnsignedInt16(MethodVisitor mv) { 
-    throw new UnsupportedOperationException();
+    mv.visitLdcInsn(-1 >>> 16);
+    mv.visitInsn(Opcodes.IAND);
   }
   
   public static void castInt8ToInt32(MethodVisitor mv) { 
     // NOOP
-  }
-  public static void castInt8ToUnsignedInt32(MethodVisitor mv) { 
-    // NOOP
     // operand will always be less than < Integer.MAX_VALUE
     // so signed/unsigned representation is the same
   }
+  public static void castInt8ToUnsignedInt32(MethodVisitor mv) { 
+    // NOOP
+    mv.visitLdcInsn(-1 >>> 32);
+    mv.visitInsn(Opcodes.IAND);
+  }
   
-  public static void castInt8ToInt64(MethodVisitor mv) { 
+  public static void castInt8ToInt64(MethodVisitor mv) {
+    // operand will always be less than < Long.MAX_VALUE
+    // so signed/unsigned representation is the same
     mv.visitInsn(Opcodes.I2L);
   }
   
   public static void castInt8ToUnsignedInt64(MethodVisitor mv) { 
     mv.visitInsn(Opcodes.I2L);
-    // operand will always be less than < Long.MAX_VALUE
-    // so signed/unsigned representation is the same
+
   }
   
   public static void castInt8ToReal32(MethodVisitor mv) { 
@@ -261,6 +265,7 @@ public class CastGenerator extends AbstractExprGenerator implements ExprGenerato
   public static void castInt16ToReal32(MethodVisitor mv) { 
     mv.visitInsn(Opcodes.I2F);
   }
+  
   public static void castInt16ToReal64(MethodVisitor mv) { 
     mv.visitInsn(Opcodes.I2D);
   }
@@ -350,6 +355,7 @@ public class CastGenerator extends AbstractExprGenerator implements ExprGenerato
   public static void castInt32ToUnsignedInt64(MethodVisitor mv) {
     throw new UnsupportedOperationException();
   }
+  
   public static void castInt32ToReal32(MethodVisitor mv) { 
     mv.visitInsn(Opcodes.I2F);
   }

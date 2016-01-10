@@ -26,4 +26,22 @@ public class UnsignedTest {
     
   }
   
+  @Test
+  public void signedInt8ToUnsignedInt16() {
+    
+   // assertThat((int) Math.pow(2, 8), equalTo(2 << 8));
+    
+    // C Standard says:
+    // If the destination type is unsigned, the resulting value is the least unsigned integer congruent 
+    // to the source integer (modulo 2^n where n is the number of bits used to represent the unsigned type).
+    
+
+    int signed = -62;
+    int unsigned = (-62) & (-1 >>> 16);
+  
+    System.out.println(-1 >>> 16);
+    
+    assertThat(unsigned, equalTo( 65474));
+  }
+  
 }

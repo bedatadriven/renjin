@@ -37,10 +37,7 @@ public class PrimitiveConstGenerator extends AbstractExprGenerator implements Ex
   @Override
   public void emitPrimitiveValue(MethodVisitor mv) {
     Type type = this.gimpleType.jvmType();
-    if(type.equals(Type.INT_TYPE) || type.equals(Type.BOOLEAN_TYPE) || type.equals(Type.BYTE_TYPE)) {
-      emitInt(mv, value.intValue());
-    
-    } else if(type.equals(Type.LONG_TYPE)) {
+    if(type.equals(Type.LONG_TYPE)) {
       emitLong(mv, value.longValue());
     
     } else if(type.equals(Type.FLOAT_TYPE)) {
@@ -48,9 +45,9 @@ public class PrimitiveConstGenerator extends AbstractExprGenerator implements Ex
     
     } else if(type.equals(Type.DOUBLE_TYPE)) {
       emitDouble(mv, value.doubleValue());
-    
+
     } else {
-      throw new UnsupportedOperationException(type.toString());
+      emitInt(mv, value.intValue());
     }
   }
 

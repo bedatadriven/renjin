@@ -712,4 +712,23 @@ public class GimpleCompilerTest extends AbstractGccTest {
   }
   
 
+  @Test
+  public void unsignedToSigned() throws Exception {
+    Class clazz = compile("to_signed.c");
+    Method charToUnsigned16 = clazz.getMethod("charToUnsigned16", byte.class);
+    
+    assertThat((Integer)charToUnsigned16.invoke(null, (byte) 0), equalTo(0));
+    assertThat((Integer) charToUnsigned16.invoke(null, (byte) 120), equalTo(120));
+    assertThat((Integer) charToUnsigned16.invoke(null, (byte) -62), equalTo(65474));
+
+
+    Method int16ToUnsigned32 = clazz.getMethod("int16ToUnsigned32", short.class);
+    assertThat((Integer)int16ToUnsigned32.invoke(null, (short)0), equalTo(0));
+    assertThat((Integer)int16ToUnsigned32.invoke(null, (short) 4096), equalTo(0x1000));
+    assertThat((Integer)int16ToUnsigned32.invoke(null, (short) -34), equalTo(0xffffffde));
+    assertThat((Integer) int16ToUnsigned32.invoke(null, (short) -4142), equalTo(0xffffefd2));
+    
+  }
+  
+  
 }

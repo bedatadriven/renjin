@@ -82,15 +82,24 @@ public class Namespace {
   }
 
   public SEXP getExport(Symbol entry) {
+    SEXP value = getExportIfExists(entry);
+    if (value == Symbol.UNBOUND_VALUE) {
+      throw new EvalException("Namespace " + pkg.getName() + " has no exported symbol named '" + entry.getPrintName() + "'");
+    }
+    return value;
+  }
+  
+  public SEXP getExportIfExists(Symbol entry) {
     // the base package's namespace is treated specially for historical reasons:
     // all symbols are considered to be exported.
     if(FqPackageName.BASE.equals(pkg.getName())) {
-      return getEntry(entry);
+      return namespaceEnvironment.getVariable(entry);
+
     }
     if(exports.contains(entry)) {
-      return this.namespaceEnvironment.getVariable(entry);
+      return this.namespaceEnvironment.findVariable(entry);
     }
-    throw new EvalException("Namespace " + pkg.getName() + " has no exported symbol named '" + entry.getPrintName() + "'");
+    return Symbol.UNBOUND_VALUE;
   }
 
   /**
@@ -143,12 +152,26 @@ public class Namespace {
         importedNamespace.copyExportsTo(context, importsEnvironment);
       } else {
         for (Symbol symbol : entry.getSymbols()) {
-          importsEnvironment.setVariable(symbol, importedNamespace.getExport(symbol));
+          SEXP export = importedNamespace.getExportIfExists(symbol);
+          if(export == Symbol.UNBOUND_VALUE) {
+            context.warn(String.format("Symbol '%s' not exported from namespace '%s'", 
+                symbol.getPrintName(), 
+                importedNamespace.getName()));
+          } else {
+            importsEnvironment.setVariable(symbol, export);
+          }
         }
 
         for (String className : entry.getClasses()) {
           Symbol symbol = S4.classNameMetadata(className);
-          importsEnvironment.setVariable(symbol, importedNamespace.getExport(symbol));
+          SEXP export = importedNamespace.getExportIfExists(symbol);
+          if(export == Symbol.UNBOUND_VALUE) {
+            context.warn(String.format("Class '%s' is not exported from namespace '%s'", 
+                className, 
+                importedNamespace.getName()));
+          } else {
+            importsEnvironment.setVariable(symbol, export);
+          }
         }
       }
     }
@@ -309,15 +332,18 @@ public class Namespace {
     Function method = resolveFunction(context, entry.getFunctionName());
 
     // Find the environment in which the original generic function was defined
-    Environment definitionEnv = resolveGenericFunctionNamespace(context, entry.getGenericMethod());
-
+    Optional<Environment> definitionEnv = resolveGenericFunctionNamespace(context, entry.getGenericMethod());
+    if(!definitionEnv.isPresent()) {
+      context.warn("Cannot resolve namespace environment from generic function '%s'");
+      return;
+    } 
+    
     // Add an entry in a special .__S3MethodsTable__. so that UseMethod() can find this specialization
-    if (!definitionEnv.hasVariable(S3.METHODS_TABLE)) {
-      definitionEnv.setVariable(S3.METHODS_TABLE, Environment.createChildEnvironment(context.getBaseEnvironment()));
+    if (!definitionEnv.get().hasVariable(S3.METHODS_TABLE)) {
+      definitionEnv.get().setVariable(S3.METHODS_TABLE, Environment.createChildEnvironment(context.getBaseEnvironment()));
     }
-    Environment methodsTable = (Environment) definitionEnv.getVariable(S3.METHODS_TABLE);
+    Environment methodsTable = (Environment) definitionEnv.get().getVariable(S3.METHODS_TABLE);
     methodsTable.setVariable(entry.getGenericMethod() + "." + entry.getClassName(), method);
-
   }
 
   private Function resolveFunction(Context context, String functionName) {
@@ -336,28 +362,28 @@ public class Namespace {
    *
    * @param context the current evaluation context
    * @param genericName the name of the generic function (for example, "print" or "summary")
-   * @return the namespace environment in which the function was defined
+   * @return the namespace environment in which the function was defined, or {@code Optional.absent()} if
+   * the function could not be resolved.
    */
-  private Environment resolveGenericFunctionNamespace(Context context, String genericName) {
+  private Optional<Environment> resolveGenericFunctionNamespace(Context context, String genericName) {
 
     if (S3.GROUPS.contains(genericName)) {
-      return baseNamespaceEnvironment;
+      return Optional.of(baseNamespaceEnvironment);
 
     } else {
       SEXP genericFunction = namespaceEnvironment.findFunction(context, Symbol.get(genericName));
       if (genericFunction == null) {
-        throw new EvalException("Cannot find S3 method definition '" + genericName + "'");
+        return Optional.absent();
       }
       if (genericFunction instanceof Closure) {
-        return ((Closure) genericFunction).getEnclosingEnvironment();
+        return Optional.of(((Closure) genericFunction).getEnclosingEnvironment());
 
       } else if (genericFunction instanceof PrimitiveFunction) {
-        return baseNamespaceEnvironment;
+        return Optional.of(baseNamespaceEnvironment);
 
       } else {
         throw new EvalException("Cannot resolve namespace environment from generic function '%s' of type '%s'",
             genericName, genericFunction.getTypeName());
-
       }
     }
   }

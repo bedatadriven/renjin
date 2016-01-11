@@ -14,6 +14,7 @@ import org.renjin.sexp.*;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 import static org.renjin.util.CDefines.*;
 
@@ -185,8 +186,12 @@ public class Serialization {
   public static SEXP loadFromConn2(@Current Context context, SEXP conn,
       Environment env) throws IOException {
 
-    RDataReader reader = new RDataReader(context,
-        Connections.getConnection(context, conn).getInputStream());
+    InputStream inputStream = Connections.getConnection(context, conn).getInputStream();
+    return load(context, env, inputStream);
+  }
+
+  public static SEXP load(@Current Context context, Environment env, InputStream inputStream) throws IOException {
+    RDataReader reader = new RDataReader(context, inputStream);
     HasNamedValues data = EvalException.checkedCast(reader.readFile());
 
     StringArrayVector.Builder names = new StringArrayVector.Builder();

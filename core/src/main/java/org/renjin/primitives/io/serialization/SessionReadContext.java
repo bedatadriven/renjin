@@ -8,15 +8,24 @@ import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
 
 public class SessionReadContext implements ReadContext {
-  private Session session;
+  private Context context;
 
+  /**
+   * @deprecated Use {@link SessionReadContext#SessionReadContext(Context)}  to ensure that 
+   * any code evaluated during namespace loading is evaluated within the correct context.
+   */
+  @Deprecated
   public SessionReadContext(Session session) {
-    this.session = session;
+    this(session.getTopLevelContext());
+  }
+  
+  public SessionReadContext(Context context) {
+    this.context = context;
   }
 
   @Override
   public Environment getBaseEnvironment() {
-    return session.getBaseEnvironment();
+    return context.getBaseEnvironment();
   }
 
   @Override
@@ -26,16 +35,16 @@ public class SessionReadContext implements ReadContext {
 
   @Override
   public Environment findNamespace(Symbol symbol) {
-    return session.getNamespaceRegistry().getNamespace(symbol).getNamespaceEnvironment();
+    return context.getNamespaceRegistry().getNamespace(context, symbol).getNamespaceEnvironment();
   }
 
   @Override
   public Environment getBaseNamespaceEnvironment() {
-    return session.getBaseNamespaceEnv();
+    return context.getSession().getBaseNamespaceEnv();
   }
 
   @Override
   public Environment getGlobalEnvironment() {
-    return session.getGlobalEnvironment();
+    return context.getGlobalEnvironment();
   }
 }

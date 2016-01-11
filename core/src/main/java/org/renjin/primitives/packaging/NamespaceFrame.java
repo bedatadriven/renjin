@@ -1,5 +1,6 @@
 package org.renjin.primitives.packaging;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
@@ -12,7 +13,7 @@ import java.util.Set;
 
 
 public class NamespaceFrame implements Frame {
-    
+
     private final NamespaceRegistry registry;
 
     public NamespaceFrame(NamespaceRegistry registry) {
@@ -26,12 +27,12 @@ public class NamespaceFrame implements Frame {
 
     @Override
     public SEXP getVariable(Symbol name) {
-        for (Symbol symbol : registry.getLoadedNamespaces()) {
-            if(symbol == name) {
-                return registry.getNamespace(symbol).getNamespaceEnvironment();
-            }
+        Optional<Namespace> namespace = registry.getNamespaceIfPresent(name);
+        if(namespace.isPresent()) {
+            return namespace.get().getNamespaceEnvironment();
+        } else {
+            return Symbol.UNBOUND_VALUE;
         }
-        return Symbol.UNBOUND_VALUE;
     }
 
     @Override

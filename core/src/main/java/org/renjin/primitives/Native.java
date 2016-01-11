@@ -385,7 +385,7 @@ public class Native {
     } else if(packageName.equals("grDevices")) {
       return Graphics.class;
     } else {
-      Namespace namespace = context.getNamespaceRegistry().getNamespace(packageName);
+      Namespace namespace = context.getNamespaceRegistry().getNamespace(context, packageName);
       FqPackageName fqname = namespace.getFullyQualifiedName();
       String packageClassName = fqname.getGroupId()+"."+fqname.getPackageName() + "." +
               fqname.getPackageName();

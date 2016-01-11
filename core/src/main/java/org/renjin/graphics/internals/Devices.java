@@ -7,7 +7,6 @@ import org.renjin.graphics.GraphicsDevices;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.sexp.SEXP;
 
-
 import static org.renjin.util.CDefines.*;
 
 
@@ -37,7 +36,7 @@ public class Devices {
              The option is unlikely to be set if it is not loaded,
              as the default setting is in grDevices:::.onLoad.
           */
-          SEXP ns = context.getSession().getNamespaceRegistry().getNamespace("grDevices").getNamespaceEnvironment();
+          SEXP ns = context.getSession().getNamespaceRegistry().getNamespace(context, "grDevices").getNamespaceEnvironment();
           if(ns != R_UnboundValue &&
                   findVar(devName, ns) != R_UnboundValue) {
             PROTECT(defdev = lang1(devName));

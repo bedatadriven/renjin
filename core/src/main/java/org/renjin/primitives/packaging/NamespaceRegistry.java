@@ -11,6 +11,7 @@ import org.renjin.invoke.annotations.SessionScoped;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -41,12 +42,10 @@ public class NamespaceRegistry {
 
   private Map<Environment, Namespace> envirMap = Maps.newIdentityHashMap();
 
-  private Context context;
   private final Namespace baseNamespace;
 
   public NamespaceRegistry(PackageLoader loader, Context context, Environment baseNamespaceEnv) {
     this.loader = loader;
-    this.context = context;
 
     baseNamespace = new BaseNamespace(baseNamespaceEnv);
     localNameMap.put(BASE, baseNamespace);
@@ -73,12 +72,21 @@ public class NamespaceRegistry {
   public Iterable<Symbol> getLoadedNamespaces() {
     return localNameMap.keySet();
   }
-
-  public Namespace getNamespace(String name) {
-    return getNamespace(Symbol.get(name));
+  
+  public Optional<Namespace> getNamespaceIfPresent(Symbol name) {
+    Collection<Namespace> matching = localNameMap.get(name);
+    if(matching.size() == 1) {
+      return Optional.of(matching.iterator().next());
+    } else {
+      return Optional.absent();
+    }
+  }
+  
+  public Namespace getNamespace(Context context, String name) {
+    return getNamespace(context, Symbol.get(name));
   }
 
-  public Namespace getNamespace(Symbol symbol) {
+  public Namespace getNamespace(Context context, Symbol symbol) {
     if(symbol.getPrintName().equals("base")) {
       return baseNamespace;
     }
@@ -94,8 +102,9 @@ public class NamespaceRegistry {
     // There are a small number of "core" packages that are part of the 
     // the GNU R source, and now the Renjin source. (e.g., stats, methods, datasets, etc)
     // These have the groupId "org.renjin"
+    
     if(CORE_PACKAGES.contains(symbol.getPrintName())) {
-      return getNamespace(FqPackageName.corePackage(symbol));
+      return getNamespace(context, FqPackageName.corePackage(symbol));
     }
 
     // Otherwise, try to guess the groupId
@@ -112,7 +121,7 @@ public class NamespaceRegistry {
     Optional<Namespace> namespace = Optional.absent();
 
     for (FqPackageName candidate : candidates) {
-      namespace = tryGetNamespace(candidate);
+      namespace = tryGetNamespace(context, candidate);
       if(namespace.isPresent()) {
         break;
       }
@@ -130,8 +139,8 @@ public class NamespaceRegistry {
     return CORE_PACKAGES;
   }
 
-  public Namespace getNamespace(FqPackageName fqPackageName) {
-    Optional<Namespace> namespace = tryGetNamespace(fqPackageName);
+  public Namespace getNamespace(Context context, FqPackageName fqPackageName) {
+    Optional<Namespace> namespace = tryGetNamespace(context, fqPackageName);
     if(!namespace.isPresent()) {
       throw new EvalException("Could not load package " + fqPackageName);
     }
@@ -141,18 +150,20 @@ public class NamespaceRegistry {
   /**
    * Tries to obtain a reference to a namespace using it's fully qualified name,
    * either from among those loaded or those available through the package loader.
+   *
+   * @param context
    * @param fqName the fully-qualified package name
    * @return the corresponding {@code Namespace}, or {@code null}
    */
-  private Optional<Namespace> tryGetNamespace(FqPackageName fqName) {
+  private Optional<Namespace> tryGetNamespace(Context context, FqPackageName fqName) {
     if(namespaceMap.containsKey(fqName)) {
       return Optional.of(namespaceMap.get(fqName));
     } else {
-      return tryLoad(fqName);
+      return tryLoad(context, fqName);
     }
   }
 
-  private Optional<Namespace> tryLoad(FqPackageName fqName) {
+  private Optional<Namespace> tryLoad(Context context, FqPackageName fqName) {
 
     Optional<Package> loadResult = loader.load(fqName);
     if(!loadResult.isPresent()) {
@@ -165,10 +176,10 @@ public class NamespaceRegistry {
         Namespace namespace = createNamespace(pkg);
 
         // set up the namespace
-        populateNamespace(pkg, namespace);
+        populateNamespace(context, pkg, namespace);
 
         // setup namespace from NAMESPACE file
-        setupImportsExports(pkg, namespace);
+        setupImportsExports(context, pkg, namespace);
 
         // invoke the .onLoad hook
         if(namespace.getNamespaceEnvironment().hasVariable(Symbol.get(".onLoad"))) {
@@ -195,7 +206,7 @@ public class NamespaceRegistry {
    * in this namespace.
    *
    */
-  private void populateNamespace(Package pkg, Namespace namespace) throws IOException {
+  private void populateNamespace(Context context, Package pkg, Namespace namespace) throws IOException {
     for(NamedValue value : pkg.loadSymbols(context)) {
       namespace.getNamespaceEnvironment().setVariable(Symbol.get(value.getName()), value.getValue());
     }
@@ -205,13 +216,13 @@ public class NamespaceRegistry {
    * Sets up imports and exports defined in the NAMESPACE file.
    *
    */
-  private void setupImportsExports(Package pkg, Namespace namespace) throws IOException {
+  private void setupImportsExports(Context context, Package pkg, Namespace namespace) throws IOException {
 
     try {
       CharSource namespaceSource = pkg.getResource("NAMESPACE").asCharSource(Charsets.UTF_8);
       NamespaceFile namespaceFile = NamespaceFile.parse(context, namespaceSource);
 
-      namespace.initImports(this, namespaceFile);
+      namespace.initImports(context, this, namespaceFile);
       namespace.initExports(namespaceFile);
       namespace.registerS3Methods(context, namespaceFile);
     } catch (Exception e) {

@@ -4,6 +4,7 @@ import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.common.io.CharSource;
 import com.google.common.io.Files;
+import com.google.common.primitives.UnsignedBytes;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.SessionBuilder;
@@ -64,7 +65,7 @@ public class NamespaceBuilder {
     CharSource namespaceSource = Files.asCharSource(namespaceFile, Charsets.UTF_8);
     NamespaceFile namespaceFile = NamespaceFile.parse(context, namespaceSource);
 
-    namespace.initImports(context.getNamespaceRegistry(), namespaceFile);
+    namespace.initImports(context, context.getNamespaceRegistry(), namespaceFile);
   }
 
   private boolean isUpToDate(List<File> sources) {
@@ -137,17 +138,18 @@ public class NamespaceBuilder {
         }
       }
     }
-    
+
     // Sort by filename, IGNORING extension
+    // AND using platform-independent BYTE for BYTE sort order
     Collections.sort(list, new Comparator<File>() {
       @Override
       public int compare(File file1, File file2) {
-        String name1 = Files.getNameWithoutExtension(file1.getName()).toLowerCase();
-        String name2 = Files.getNameWithoutExtension(file2.getName()).toLowerCase();
-        return name1.compareTo(name2);
+        byte[] name1 = Files.getNameWithoutExtension(file1.getName()).getBytes();
+        byte[] name2 = Files.getNameWithoutExtension(file2.getName()).getBytes();
+        return UnsignedBytes.lexicographicalComparator().compare(name1, name2);
       }
     });
-    
+
     return list;
   }
 

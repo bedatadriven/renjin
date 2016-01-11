@@ -19,7 +19,7 @@ public class Packages {
 
     String packageName = parsePackageName(packageNameExp);
 
-    Namespace namespace = namespaceRegistry.getNamespace(packageName);
+    Namespace namespace = namespaceRegistry.getNamespace(context, packageName);
     
     // Add "Depends" packages to the global search path
     // (But not "Imports" !)
@@ -33,7 +33,7 @@ public class Packages {
     packageEnv.setAttribute(Symbols.NAME, StringVector.valueOf("package:" + packageName));
     
     // Copy in the namespace's exports
-    namespace.copyExportsTo(packageEnv);
+    namespace.copyExportsTo(context, packageEnv);
     
     // Load dataset objects as promises
     for(Dataset dataset : namespace.getPackage().getDatasets()) {

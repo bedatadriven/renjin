@@ -36,9 +36,9 @@ import java.io.IOException;
 public class Namespaces {
 
   @Internal
-  public static SEXP getRegisteredNamespace(@Current NamespaceRegistry registry, Symbol name) {
+  public static SEXP getRegisteredNamespace(@Current Context context, @Current NamespaceRegistry registry, Symbol name) {
     if(registry.isRegistered(name)) {
-      return registry.getNamespace(name).getNamespaceEnvironment();
+      return registry.getNamespace(context, name).getNamespaceEnvironment();
     } else {
       return Null.INSTANCE;
     }
@@ -50,13 +50,13 @@ public class Namespaces {
   }
 
   @Builtin
-  public static SEXP getNamespace(@Current NamespaceRegistry registry, Symbol name) {
-    return registry.getNamespace(name).getNamespaceEnvironment();
+  public static SEXP getNamespace(@Current Context context, @Current NamespaceRegistry registry, Symbol name) {
+    return registry.getNamespace(context, name).getNamespaceEnvironment();
   }
 
   @Builtin
-  public static SEXP getNamespace(@Current NamespaceRegistry registry, String name) {
-    return registry.getNamespace(name).getNamespaceEnvironment();
+  public static SEXP getNamespace(@Current Context context, @Current NamespaceRegistry registry, String name) {
+    return registry.getNamespace(context, name).getNamespaceEnvironment();
   }
 
   @Builtin
@@ -83,7 +83,7 @@ public class Namespaces {
                                        @Unevaluated Symbol namespace,
                                        @Unevaluated Symbol entry) {
 
-    return registry.getNamespace(namespace).getEntry(entry).force(context);
+    return registry.getNamespace(context, namespace).getEntry(entry).force(context);
   }
 
   @Builtin("::")
@@ -92,17 +92,18 @@ public class Namespaces {
                                                @Unevaluated Symbol namespace,
                                                @Unevaluated Symbol entry) {
 
-    return registry.getNamespace(namespace).getExport(entry).force(context);
+    return registry.getNamespace(context, namespace).getExport(entry).force(context);
   }
 
   @Internal
-  public static SEXP getDataset(@Current NamespaceRegistry registry,
+  public static SEXP getDataset(@Current Context context, 
+                                @Current NamespaceRegistry registry,
                                 String namespaceName,
                                 String datasetName) throws IOException {
-    return registry.getNamespace(namespaceName).getPackage().getDataset(datasetName);
+    return registry.getNamespace(context, namespaceName).getPackage().getDataset(datasetName);
   }
 
-  private static Namespace resolveNamespace(NamespaceRegistry registry, SEXP sexp) {
+  private static Namespace resolveNamespace(Context context, NamespaceRegistry registry, SEXP sexp) {
 
     if (sexp instanceof Environment) {
       Environment environment = (Environment) sexp;
@@ -110,16 +111,17 @@ public class Namespaces {
         return registry.getNamespace(environment);
       }
     } else if(sexp instanceof StringVector && sexp.length() == 1) {
-      return registry.getNamespace(((StringVector) sexp).getElementAsString(0));
+      return registry.getNamespace(context, ((StringVector) sexp).getElementAsString(0));
     }
     throw new EvalException("Error in argument " + sexp + " : not a namespace");
   }
 
   @Builtin
-  public static StringVector getNamespaceName(@Current NamespaceRegistry registry,
+  public static StringVector getNamespaceName(@Current Context context,
+                                              @Current NamespaceRegistry registry,
                                               final SEXP envExp) {
 
-    Namespace namespace = resolveNamespace(registry, envExp);
+    Namespace namespace = resolveNamespace(context, registry, envExp);
 
     if(namespace == registry.getBaseNamespace()) {
       // For whatever reason R3.2.0 returns a simple character vector without attributes
@@ -135,8 +137,8 @@ public class Namespaces {
   }
 
   @Builtin
-  public static StringVector getNamespaceExports(@Current NamespaceRegistry registry, final SEXP sexp) {
-    final Namespace ns = resolveNamespace(registry, sexp);
+  public static StringVector getNamespaceExports(@Current Context context, @Current NamespaceRegistry registry, final SEXP sexp) {
+    final Namespace ns = resolveNamespace(context, registry, sexp);
 
     StringVector.Builder result = new StringVector.Builder();
     for (Symbol name : ns.getExports()) {
@@ -147,8 +149,8 @@ public class Namespaces {
   
 
   @Builtin
-  public static StringVector getNamespaceImports(@Current NamespaceRegistry registry, final SEXP sexp) {
-    Namespace ns = resolveNamespace(registry, sexp);
+  public static StringVector getNamespaceImports(@Current Context context, @Current NamespaceRegistry registry, final SEXP sexp) {
+    Namespace ns = resolveNamespace(context, registry, sexp);
     throw new UnsupportedOperationException("TODO: implement getNamespaceImports!");
   }
   
@@ -157,7 +159,7 @@ public class Namespaces {
     StringArrayVector.Builder result = new StringArrayVector.Builder();
     for (int i = 0; i < packageNames.length(); i++) {
       String packageName = packageNames.getElementAsString(i);
-      Namespace namespace = context.getNamespaceRegistry().getNamespace(packageName);
+      Namespace namespace = context.getNamespaceRegistry().getNamespace(context, packageName);
       FileObject fileObject = namespace.getPackage().resolvePackageRoot(context.getFileSystemManager());
       result.add(fileObject.getURL().toString());
     }

@@ -114,14 +114,14 @@ public class Namespace {
    * to the given package environment
    *
    */
-  public void copyExportsTo(Environment packageEnv) {
+  public void copyExportsTo(Context context, Environment packageEnv) {
     for(Symbol name : exports) {
       SEXP exportValue = namespaceEnvironment.findVariable(name);
       if(exportValue == Symbol.UNBOUND_VALUE) {
-        throw new EvalException("Symbol '%s' is not defined in package '%s'", 
-            name.getPrintName(), pkg.getName());
+        context.warn(String.format("Symbol '%s' is not defined in package '%s'", name.getPrintName(), pkg.getName()));
+      } else {
+        packageEnv.setVariable(name, exportValue);
       }
-      packageEnv.setVariable(name, exportValue);
     }
   }
 
@@ -134,13 +134,13 @@ public class Namespace {
   }
 
 
-  public void initImports(NamespaceRegistry registry, NamespaceFile file) {
+  public void initImports(Context context, NamespaceRegistry registry, NamespaceFile file) {
 
     // Import symbols from other package namespaces
     for (NamespaceFile.PackageImportEntry entry : file.getPackageImports()) {
-      Namespace importedNamespace = registry.getNamespace(entry.getPackageName());
+      Namespace importedNamespace = registry.getNamespace(context, entry.getPackageName());
       if(entry.isAllSymbols()) {
-        importedNamespace.copyExportsTo(importsEnvironment);
+        importedNamespace.copyExportsTo(context, importsEnvironment);
       } else {
         for (Symbol symbol : entry.getSymbols()) {
           importsEnvironment.setVariable(symbol, importedNamespace.getExport(symbol));

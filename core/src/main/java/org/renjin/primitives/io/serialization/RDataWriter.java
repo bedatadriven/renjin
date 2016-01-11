@@ -74,11 +74,11 @@ public class RDataWriter {
   }
   
   public RDataWriter(Context context, PersistenceHook hook, OutputStream out) throws IOException {
-    this(new SessionWriteContext(context.getSession()), hook, out, SERIALIZATION_TYPE.XDR);
+    this(new SessionWriteContext(context), hook, out, SERIALIZATION_TYPE.XDR);
   }
 
   public RDataWriter(Context context, OutputStream out, SERIALIZATION_TYPE st) throws IOException {
-    this(new SessionWriteContext(context.getSession()), null, out, st);
+    this(new SessionWriteContext(context), null, out, st);
   }
   
   public RDataWriter(Context context, OutputStream out) throws IOException {

@@ -115,6 +115,8 @@ public class Repl implements Runnable {
     if(warnings != Symbol.UNBOUND_VALUE) {
       topLevelContext.evaluate( FunctionCall.newCall(Symbol.get("print.warnings"), warnings),
         topLevelContext.getBaseEnvironment());
+      
+      console.getOut().println();
     }
   }
 

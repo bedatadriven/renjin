@@ -42,7 +42,10 @@ public class LazyLoadFrameBuilderTest {
     assertThat(namedValue.getName(),equalTo("f"));
     Closure f = (Closure) namedValue.getValue().force(tlContext);
     
-    assertThat(f.getEnclosingEnvironment(), equalTo(tlContext.getNamespaceRegistry().getNamespace("testns").getNamespaceEnvironment()));
+    assertThat(f.getEnclosingEnvironment(), equalTo(
+        tlContext.getNamespaceRegistry()
+                 .getNamespace(ctx, "testns")
+                 .getNamespaceEnvironment()));
     
   }
   

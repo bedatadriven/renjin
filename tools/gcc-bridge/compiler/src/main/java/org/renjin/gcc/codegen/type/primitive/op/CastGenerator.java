@@ -237,8 +237,9 @@ public class CastGenerator extends AbstractExprGenerator implements ExprGenerato
   }
   
   public static void castInt16ToUnsignedInt8(MethodVisitor mv) {
-    throw new UnsupportedOperationException();
+    mv.visitInsn(Opcodes.I2B);
   }
+
   public static void castInt16ToUnsignedInt16(MethodVisitor mv) { 
     // NOOP 
     // Same bitwise representation
@@ -374,7 +375,7 @@ public class CastGenerator extends AbstractExprGenerator implements ExprGenerato
   }
   
   public static void castUnsignedInt32ToInt8(MethodVisitor mv) { 
-    throw new UnsupportedOperationException(); 
+    mv.visitInsn(Opcodes.I2B);
   }
   
   public static void castUnsignedInt32ToUnsignedInt8(MethodVisitor mv) {
@@ -386,7 +387,7 @@ public class CastGenerator extends AbstractExprGenerator implements ExprGenerato
   }
   
   public static void castUnsignedInt32ToUnsignedInt16(MethodVisitor mv) { 
-    throw new UnsupportedOperationException();
+    mv.visitInsn(Opcodes.I2C);
   }
   
   public static void castUnsignedInt32ToInt32(MethodVisitor mv) { 
@@ -456,7 +457,6 @@ public class CastGenerator extends AbstractExprGenerator implements ExprGenerato
   public static void castInt64ToReal32(MethodVisitor mv) { 
     mv.visitInsn(Opcodes.L2F);
   }
-  
   
   public static void castInt64ToReal64(MethodVisitor mv) { 
     mv.visitInsn(Opcodes.L2D);

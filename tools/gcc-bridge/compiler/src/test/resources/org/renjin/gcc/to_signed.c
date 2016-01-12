@@ -32,6 +32,3 @@ uint64_t uint32ToUint64(uint32_t x) {
     uint64_t y = x;
     return y;
 }
-
-uint16_t 
-castInt16ToUnsignedInt8

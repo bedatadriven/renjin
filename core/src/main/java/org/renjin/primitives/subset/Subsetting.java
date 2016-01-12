@@ -55,7 +55,6 @@ public class Subsetting {
     }
   }
 
-  @Generic
   @Builtin("$<-")
   public static SEXP setElementByName(ExternalPtr<?> externalPtr, @Unevaluated SEXP nameExp, SEXP value) {
     externalPtr.setMember(asSymbol(nameExp), value);
@@ -101,14 +100,12 @@ public class Subsetting {
   }
 
 
-  @Generic
   @Builtin("$<-")
   public static SEXP setElementByName(ListVector list,
       @Unevaluated Symbol name, SEXP value) {
     return setSingleElement(list.newCopyNamedBuilder(), name.getPrintName(), value);
   }
 
-  @Generic
   @Builtin("$<-")
   public static SEXP setElementByName(AtomicVector vector, @Unevaluated Symbol nameToReplace, SEXP value) {
     // Coerce the atomic vector to a list first
@@ -124,14 +121,12 @@ public class Subsetting {
     return setSingleElement(copyBuilder, nameToReplace.getPrintName(), value);
   }
   
-  @Generic
   @Builtin("$<-")
   public static SEXP setElementByName(PairList.Node pairList,
       @Unevaluated Symbol name, SEXP value) {
     return setSingleElement(pairList.newCopyBuilder(), name.getPrintName(), value);
   }
 
-  @Generic
   @Builtin("$<-")
   public static SEXP setElementByName(Environment env,
       @Unevaluated Symbol name, SEXP value) {

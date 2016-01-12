@@ -163,7 +163,7 @@ public class Primitives {
     f(".subset2", Subsetting.class, 1);
     f("[",Subsetting.class, -1);
     f("[[", Subsetting.class, -1);
-    f("$", Subsetting.class, 2);
+    add(new DollarFunction());
     f("@", Subsetting.class, 2);
     f("[<-", Subsetting.class, 3);
     f("[[<-", Subsetting.class, 3);

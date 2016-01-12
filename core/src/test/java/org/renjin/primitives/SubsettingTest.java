@@ -25,7 +25,7 @@ import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.eval.EvalException;
-import org.renjin.primitives.subset.Subsetting;
+import org.renjin.primitives.special.DollarFunction;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
@@ -382,7 +382,7 @@ public class SubsettingTest extends EvalTestCase {
         .add(symbol("aardvark"), c(3))
         .build();
 
-    SEXP result = Subsetting.getElementByName(list, Symbol.get("all"));
+    SEXP result = DollarFunction.fromPairList(list, "all");
     assertThat(result, equalTo((SEXP)c(1)));
   }
 
@@ -739,5 +739,13 @@ public class SubsettingTest extends EvalTestCase {
   public void outOfBounds() {
     eval("x <- c(X=1,a=2)");
     eval("x[c('a','X','a','b')] <- list(3,TRUE,FALSE)");
+  }
+  
+  @Test
+  public void genericDollar() {
+    eval("`$.foo` <- function(obj, name) name");
+    eval("x <- 1");
+    eval("class(x) <- 'foo'");
+    assertThat(eval("x$bar"), equalTo(c("bar")));
   }
 }

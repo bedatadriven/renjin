@@ -34,22 +34,6 @@ public class Subsetting {
 
   }
 
-  @Builtin("$")
-  public static SEXP getElementByName(PairList list, @Unevaluated SEXP nameExp) {
-    String name = asString(nameExp);
-    SEXP match = null;
-    int matchCount = 0;
-
-    for (PairList.Node node : list.nodes()) {
-      if (node.hasTag()) {
-        if (node.getTag().getPrintName().startsWith(name)) {
-          match = node.getValue();
-          matchCount++;
-        }
-      }
-    }
-    return matchCount == 1 ? match : Null.INSTANCE;
-  }
 
   private static Symbol asSymbol(SEXP nameExp) {
     if(nameExp instanceof Symbol) {
@@ -71,21 +55,7 @@ public class Subsetting {
     }
   }
 
-  @Builtin("$")
-  public static SEXP getElementByName(Environment env, @Unevaluated SEXP nameExp) {
-    String name = asString(nameExp);
-    SEXP value = env.getVariable(name);
-    if (value == Symbol.UNBOUND_VALUE) {
-      return Null.INSTANCE;
-    }
-    return value;
-  }
-
-  @Builtin("$")
-  public static SEXP getMemberByName(ExternalPtr<?> externalPtr, @Unevaluated SEXP nameExp) {
-    return externalPtr.getMember(asSymbol(nameExp));
-  }
-
+  @Generic
   @Builtin("$<-")
   public static SEXP setElementByName(ExternalPtr<?> externalPtr, @Unevaluated SEXP nameExp, SEXP value) {
     externalPtr.setMember(asSymbol(nameExp), value);
@@ -130,33 +100,15 @@ public class Subsetting {
     }
   }
 
-  @Builtin("$")
-  public static SEXP getElementByName(ListVector list,
-      @Unevaluated SEXP nameExp) {
-    String name = asString(nameExp);
-    SEXP match = null;
-    int matchCount = 0;
 
-    for (int i = 0; i != list.length(); ++i) {
-      String elementName = list.getName(i);
-      if (!StringVector.isNA(elementName)) {
-        if (elementName.equals(name)) {
-          return list.getElementAsSEXP(i);
-        } else if (elementName.startsWith(name)) {
-          match = list.get(i);
-          matchCount++;
-        }
-      }
-    }
-    return matchCount == 1 ? match : Null.INSTANCE;
-  }
-
+  @Generic
   @Builtin("$<-")
   public static SEXP setElementByName(ListVector list,
       @Unevaluated Symbol name, SEXP value) {
     return setSingleElement(list.newCopyNamedBuilder(), name.getPrintName(), value);
   }
 
+  @Generic
   @Builtin("$<-")
   public static SEXP setElementByName(AtomicVector vector, @Unevaluated Symbol nameToReplace, SEXP value) {
     // Coerce the atomic vector to a list first
@@ -172,12 +124,14 @@ public class Subsetting {
     return setSingleElement(copyBuilder, nameToReplace.getPrintName(), value);
   }
   
+  @Generic
   @Builtin("$<-")
   public static SEXP setElementByName(PairList.Node pairList,
       @Unevaluated Symbol name, SEXP value) {
     return setSingleElement(pairList.newCopyBuilder(), name.getPrintName(), value);
   }
 
+  @Generic
   @Builtin("$<-")
   public static SEXP setElementByName(Environment env,
       @Unevaluated Symbol name, SEXP value) {

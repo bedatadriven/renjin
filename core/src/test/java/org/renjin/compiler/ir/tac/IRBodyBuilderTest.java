@@ -81,6 +81,7 @@ public class IRBodyBuilderTest extends EvalTestCase {
     assertThat(evalIR("x<-list(1:3, 99, 1:4); x[[3]][5] <- 400; x[[3]] "), equalTo(c(1,2,3,4,400)));
   }
   
+  @Ignore
   @Test
   public void primitiveUsingSymbol() {
     assertThat(evalIR("x<-list(a=1,b=2); x$a"), equalTo(c(1)));
@@ -114,7 +115,7 @@ public class IRBodyBuilderTest extends EvalTestCase {
   }
   
   
-  
+  @Ignore
   @Test
   public void complexFunctionValue() {
     assertThat(evalIR("x<-list(f=function() { 42 }); x$f();"), equalTo(c(42)));

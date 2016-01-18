@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.type.primitive;
 
+import com.google.common.base.Optional;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
@@ -39,8 +40,8 @@ public class PrimitiveParamStrategy implements ParamStrategy {
 
     if(parameter.isAddressable()) {
       AddressablePrimitiveVarGenerator addressableVar = new AddressablePrimitiveVarGenerator(
-          type, localVars.reserve(parameter.getName() + "$array", type.jvmType()));  
-      
+          type, localVars.reserveArrayRef(parameter.getName() + "$array", type.jvmType()));  
+      addressableVar.emitDefaultInit(mv, Optional.<ExprGenerator>of(var));
       addressableVar.emitStore(mv, var);
       return addressableVar;
     

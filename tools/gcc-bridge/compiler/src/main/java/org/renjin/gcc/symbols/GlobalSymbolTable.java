@@ -67,6 +67,7 @@ public class GlobalSymbolTable implements SymbolTable {
     
     addFunction("memcpy", new MemCopyCallGenerator());
     addFunction("memcmp", new MemCmpCallGenerator());
+    addFunction("memset", new MemSetGenerator());
     
     addMethods(Builtins.class);
     addMethods(Stdlib.class);

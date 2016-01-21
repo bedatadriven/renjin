@@ -61,4 +61,18 @@ public class BytePtr implements Ptr {
   public String toString(int length) {
     return new String(array, offset, length, StandardCharsets.UTF_8);
   }
+
+
+  /**
+   * Copies the character c (an unsigned char) to 
+   * the first n characters of the string pointed to, by the argument str.
+   *
+   * @param str an array of doubles
+   * @param strOffset the first element to set
+   * @param c the byte value to set
+   * @param n the number of bytes to set
+   */
+  public static void memset(byte[] str, int strOffset, int c, int n) {
+    Arrays.fill(str, strOffset, strOffset + (c / Double.SIZE), (byte)c);
+  }
 }

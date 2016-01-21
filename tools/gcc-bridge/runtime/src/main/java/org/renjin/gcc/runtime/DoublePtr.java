@@ -63,4 +63,32 @@ public class DoublePtr implements Ptr {
     }
     return 0;
   }
+
+  /**
+   * Copies the character c (an unsigned char) to 
+   * the first n characters of the string pointed to, by the argument str.
+   * 
+   * @param str an array of doubles
+   * @param strOffset the first element to set
+   * @param c the byte value to set
+   * @param n the number of bytes to set
+   */
+  public static void memset(double[] str, int strOffset, int c, int n) {
+
+    assert n % Double.SIZE == 0;
+
+    long longValue =  
+        (c & 0xFFL) << 56
+        | (c & 0xFFL) << 48
+        | (c & 0xFFL) << 40
+        | (c & 0xFFL) << 32
+        | (c & 0xFFL) << 24
+        | (c & 0xFFL) << 16
+        | (c & 0xFFL) << 8
+        | (c & 0xFFL);
+    
+    double doubleValue = Double.longBitsToDouble(longValue);
+    
+    Arrays.fill(str, strOffset, strOffset + (c / Double.SIZE), doubleValue);
+  }
 }

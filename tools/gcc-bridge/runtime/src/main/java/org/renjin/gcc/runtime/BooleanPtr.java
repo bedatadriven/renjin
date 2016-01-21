@@ -18,4 +18,5 @@ public class BooleanPtr implements Ptr {
   public boolean unwrap() {
     return array[offset];
   }
+
 }

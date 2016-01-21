@@ -47,8 +47,7 @@ public class ClassBindingImpl implements ClassBinding {
 
     
     for(Method method : clazz.getMethods()) {
-      if((method.getModifiers() & Modifier.PUBLIC) != 0 &&
-          method.getDeclaringClass() != Object.class) {
+      if((method.getModifiers() & Modifier.PUBLIC) != 0) {
        
         if((method.getModifiers() & Modifier.STATIC) != 0 ) {
           staticMethods.put(Symbol.get(method.getName()), method);

@@ -127,7 +127,7 @@ public class JvmiTest extends EvalTestCase {
     eval("import(org.renjin.primitives.MyBean)");
     eval("x <- MyBean$new()");
     
-    assertThat( eval("sapply(x$childBeans, function(x) x$count)"), equalTo(c_i(42,42)));
+    assertThat(eval("sapply(x$childBeans, function(x) x$count)"), equalTo(c_i(42, 42)));
   }
 
   @Test
@@ -139,5 +139,11 @@ public class JvmiTest extends EvalTestCase {
 
   }
 
-  
+  @Test
+  public void classProperty() {
+    eval("import(java.util.HashMap)");
+    eval("ageMap <- HashMap$new()");
+
+    assertThat(eval("ageMap$class$name"), equalTo(c("java.util.HashMap")));
+  }
 }

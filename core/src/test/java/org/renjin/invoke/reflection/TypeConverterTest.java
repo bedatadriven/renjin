@@ -80,4 +80,5 @@ public class TypeConverterTest extends EvalTestCase {
     // assertThat(eval("if(instance$cakeConverted==cake) TRUE else FALSE"),logicalVectorOf(Logical.TRUE));
   }
 
+  
 }

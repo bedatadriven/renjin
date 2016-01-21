@@ -1,6 +1,8 @@
 package org.renjin.invoke.reflection;
 
-import com.google.common.collect.*;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.ClassBinding;
@@ -53,34 +55,36 @@ public class ClassBindingImpl implements ClassBinding {
           staticMethods.put(Symbol.get(method.getName()), method);
 
         } else {
+          methods.put(Symbol.get(method.getName()), method);
+
           String propertyName;
-          if((propertyName=isGetter(method)) != null) {
+          if((propertyName = isGetter(method)) != null) {
             getters.put(Symbol.get(propertyName), method);
-          } else if((propertyName=isSetter(method)) != null) {
+          } else if((propertyName = isSetter(method)) != null) {
             setters.put(Symbol.get(propertyName), method);
-          } else {
-            methods.put(Symbol.get(method.getName()), method);
-          }
+          } 
         }
+        
       }
     }
     
-    // any setters without matching getters will be treated as methods
-    for(Symbol name : Lists.newArrayList(setters.keySet())) {
-      if(!getters.containsKey(name)) {
-        for(Method setter : setters.removeAll(name)) {
-          methods.put(Symbol.get(setter.getName()), setter);
-        }
-      }
+    // Combine method overloads like getElement(String), getElement(int) into
+    // a single binding
+    for (Symbol methodName : methods.keySet()) {
+      this.members.put(methodName, new MethodBinding(methodName, methods.get(methodName)));
     }
-    
-    for(Symbol name : Sets.union(methods.keySet(), Sets.union(getters.keySet(), setters.keySet()))) {
-      if(methods.containsKey(name)) {
-        members.put(name, new MethodBinding(name, methods.get(name)));
-      
-        // TODO: add hidden getters / setters as methods
-      } else {
-        members.put(name, new PropertyBinding(name, getters.get(name), setters.get(name)));
+
+    // Add any getters as properties so that getAge() for example can be 
+    // accessed as object$age or object$age <- 4
+    for (Map.Entry<Symbol, Method> getterEntry : getters.entrySet()) {
+      // Do NOT add property if it masks an existing method
+      Symbol propertySymbol = getterEntry.getKey();
+      if(!methods.containsKey(propertySymbol)) {
+        this.members.put(propertySymbol,
+            new PropertyBinding(
+                propertySymbol, 
+                getterEntry.getValue(), 
+                setters.get(propertySymbol)));
       }
     }
     

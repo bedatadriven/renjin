@@ -71,6 +71,19 @@ public class JvmiTest extends EvalTestCase {
     
     assertThat( eval("x$name"), equalTo(c("fred")));
     assertThat( eval("x$count"), equalTo(c_i(92)));
+
+    // Should also be able to use getters explicitly
+    assertThat( eval("x$getName()"), equalTo(c("fred")));
+    assertThat( eval("x$getCount()"), equalTo(c_i(92)));
+    
+    // Property notation setting...
+    eval("x$name <- 'bob'");
+    assertThat( eval("x$name"), equalTo(c("bob")));
+
+    // As well as explicit setters
+    eval("x$setCount(433L)");
+    assertThat( eval("x$getCount()"), equalTo(c_i(433)));
+
   }
   
   @Test
@@ -145,5 +158,7 @@ public class JvmiTest extends EvalTestCase {
     eval("ageMap <- HashMap$new()");
 
     assertThat(eval("ageMap$class$name"), equalTo(c("java.util.HashMap")));
+    assertThat(eval("ageMap$getClass()$getName()"), equalTo(c("java.util.HashMap")));
+
   }
 }

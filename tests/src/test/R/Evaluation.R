@@ -37,3 +37,30 @@ test.DoCallFunctionLookup <- function() {
     do.call("list", list(1,2,3))
 
 }
+
+test.EmptyFirstArgumentInTextSubstr <- function() {
+  out <- try(substr(c("abcd"), c(), 1));
+  assertThat( class(out), equalTo("try-error"));
+}
+
+test.EmptySecondArgumentInTextSubstr <- function() {
+  out <- try( substr(c("abcd"), 1, c()) );
+assertThat( class( out ), equalTo("try-error"));
+}
+
+test.ZeroFirstArgumentInTextSubstr <- function() {
+  assertThat( substr(c("abcd"), 0, 1), equalTo("a"));
+}
+
+test.ZeroSecondArgumentInTextSubstr <- function() {
+  assertThat( substr(c("abcd"), 1, 0), equalTo(""));
+}
+
+test.ZeroBothArgumentsInTextSubstr <- function() {
+  assertThat( substr(c("abcd"), 0, 0), equalTo(""));
+}
+
+test.EmptyInputStringInTextSubstr <- function() {
+  out <- substr(c(), 1, 1);
+  assertThat( out, identicalTo(character(0)));
+}

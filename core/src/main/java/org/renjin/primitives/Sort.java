@@ -159,12 +159,37 @@ public class Sort {
     return (IntVector)sorted
             .setAttribute(Symbols.NAMES, Null.INSTANCE);  
   }
-  
+
   @Internal
   public static IntVector psort(IntVector x, Vector indexes) {
     return qsort(x, LogicalVector.FALSE);
   }
+
+
+  @Internal
+  public static LogicalVector qsort(LogicalVector x, boolean returnIndexes) {
+
+    if(returnIndexes) {
+      throw new EvalException("qsort(indexes=TRUE) not yet implemented");
+    }
+    
+    int[] array = x.toIntArray();
+    
+    Arrays.sort(array);
+
+    LogicalVector sorted = new LogicalArrayVector(array, x.getAttributes());
+    
+
+    // drop the names attributes if present because it will not be sorted
+    return (LogicalVector)sorted
+        .setAttribute(Symbols.NAMES, Null.INSTANCE);
+  }
   
+  @Internal
+  public static LogicalVector psort(LogicalVector x, Vector indexes) {
+    return qsort(x, false);
+  }
+
   private static void reverse(int[] b) {
     int left  = 0;          
     int right = b.length-1; 

@@ -34,7 +34,14 @@ public class SortTest extends EvalTestCase {
       assertThat(eval(".Internal(sort(c(1L,5L,2L,9L,1L), decreasing=TRUE))"), equalTo(c_i(9,5,2,1,1)));
       assertThat(eval(".Internal(sort(c(1L,5L,2L,9L,1L), decreasing=FALSE))"), equalTo(c_i(1,1,2,5,9)));
     }
-  
+
+    @Test
+    public void sortLogical (){
+        assertThat(eval(".Internal(psort(c(TRUE,FALSE,FALSE,TRUE,FALSE), 1:3))"), equalTo(c(false,false,false,true,true)));
+    }
+
+
+
     @Test
     public void sortStringsDescending (){
         assertThat(eval(".Internal(sort(c('5','8','7','50'), decreasing=TRUE))"), equalTo(c("8","7","50","5")));

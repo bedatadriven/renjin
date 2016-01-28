@@ -467,10 +467,16 @@ public class Text {
 
   @Internal
   public static StringVector substr(StringVector x, Vector start, Vector stop) {
-    StringVector.Builder result = new StringVector.Builder();
     int len = x.length();
+    if ( len == 0 ) {
+      return StringVector.EMPTY;
+    }
+    StringVector.Builder result = new StringVector.Builder();
     int k = start.length();
     int l = stop.length();
+    if ( k == 0 || l == 0 ) {
+      throw new EvalException("invalid substring arguments");
+    }
     for (int i = 0; i < len; i++) {
       int s = start.getElementAsInt(i % k);
       int e = stop.getElementAsInt(i % l);

@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.type.primitive;
 
+import com.google.common.base.Preconditions;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
@@ -20,6 +21,8 @@ public class PrimitiveFieldGenerator extends FieldGenerator {
   private Type type;
 
   public PrimitiveFieldGenerator(String className, String fieldName, GimpleType gimpleType, Type type) {
+    Preconditions.checkNotNull(className);
+    
     this.fieldName = fieldName;
     this.className = className;
     this.gimpleType = (GimplePrimitiveType) gimpleType;

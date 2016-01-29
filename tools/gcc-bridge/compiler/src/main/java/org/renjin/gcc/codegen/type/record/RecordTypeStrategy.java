@@ -2,56 +2,114 @@ package org.renjin.gcc.codegen.type.record;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.RecordClassGenerator;
-import org.renjin.gcc.codegen.call.MallocGenerator;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.*;
+import org.renjin.gcc.codegen.type.record.fat.RecordArrayFieldGenerator;
+import org.renjin.gcc.codegen.type.record.fat.RecordFatPtrStrategy;
+import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrStrategy;
+import org.renjin.gcc.codegen.type.voidt.VoidCastExprGenerator;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
-import org.renjin.gcc.gimple.type.GimplePointerType;
-import org.renjin.gcc.runtime.ObjectPtr;
+import org.renjin.gcc.gimple.type.GimpleField;
+import org.renjin.gcc.gimple.type.GimpleRecordType;
+import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Strateg for variables and values of type {@code GimpleRecordType}
+ * Strategy for variables and values of type {@code GimpleRecordType}
  */
 public class RecordTypeStrategy extends TypeStrategy {
-  private final RecordClassGenerator generator;
 
-  public RecordTypeStrategy(RecordClassGenerator generator) {
-    this.generator = generator;
+  protected final GimpleRecordTypeDef recordTypeDef;
+  protected final GimpleRecordType recordType;
+
+  private Type jvmType;
+  private boolean provided;
+  private boolean unitPointer;
+  
+  private Map<String, FieldGenerator> fields = null;
+  
+  
+
+  public RecordTypeStrategy(GimpleRecordTypeDef recordTypeDef) {
+    this.recordTypeDef = recordTypeDef;
+    this.recordType = new GimpleRecordType(recordTypeDef);
+  }
+
+  public Type getJvmType() {
+    if(jvmType == null) {
+      throw new IllegalStateException("Type name of record " + recordType.getName() + " has not been initialized.");
+    }
+    return jvmType;
+  }
+
+  public void setJvmType(Type jvmType) {
+    this.jvmType = jvmType;
+  }
+
+  /**
+   *
+   * @return true if the class backing this record type is already provided by an existing JVM class
+   */
+  public boolean isProvided() {
+    return provided;
+  }
+
+  public void setProvided(boolean provided) {
+    this.provided = provided;
+  }
+
+  public boolean isUnitPointer() {
+    return unitPointer;
+  }
+
+  public void setUnitPointer(boolean unitPointer) {
+    this.unitPointer = unitPointer;
+  }
+
+  public void linkFields(TypeOracle typeOracle) {
+    fields = new HashMap<>();
+    for (GimpleField gimpleField : recordTypeDef.getFields()) {
+      FieldGenerator fieldGenerator = typeOracle.forField(getJvmType().getInternalName(), gimpleField);
+      fields.put(gimpleField.getName(), fieldGenerator);
+    }
   }
 
   @Override
-  public TypeStrategy pointerTo() {
-    return new Pointer();
+  public final ParamStrategy getParamStrategy() {
+    return new RecordParamStrategy(this);
   }
 
   @Override
   public VarGenerator varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
-    return new RecordVarGenerator(generator, allocator.reserve(decl.getName(), generator.getType()));
-  }
-
-  @Override
-  public TypeStrategy arrayOf(GimpleArrayType arrayType) {
-    return new Array(arrayType);
+    return new RecordVarGenerator(this, allocator.reserve(decl.getName(), jvmType));
   }
 
   @Override
   public FieldGenerator fieldGenerator(String className, String fieldName) {
-    return new RecordFieldGenerator(className, fieldName, generator);
+    return new RecordFieldGenerator(className, fieldName, this);
   }
 
   @Override
   public FieldGenerator addressableFieldGenerator(String className, String fieldName) {
-    return new AddressableRecordField(className, fieldName, generator);
+    return new AddressableRecordField(className, fieldName, this);
+  }
+
+  public ExprGenerator voidCast(ExprGenerator voidPtr) {
+    return new VoidCastExprGenerator(voidPtr, recordType, jvmType);
   }
 
   @Override
@@ -61,8 +119,50 @@ public class RecordTypeStrategy extends TypeStrategy {
       ExprGenerator fieldValue = exprFactory.findGenerator(element.getValue());
       fields.put(element.getFieldName(), fieldValue);
     }
-    return new RecordConstructor(generator, fields);
+    return new RecordConstructor(this, fields);
   }
+
+  public GimpleRecordType getRecordType() {
+    return recordType;
+  }
+
+
+  public FieldGenerator getFieldGenerator(String name) {
+    if(fields == null) {
+      throw new IllegalStateException("Fields map is not yet initialized.");
+    }
+    FieldGenerator fieldGenerator = fields.get(name);
+    if(fieldGenerator == null) {
+      throw new InternalCompilerException(String.format("No field named '%s' in record type '%s'", name, jvmType));
+    }
+    return fieldGenerator;
+  }
+
+  public void emitConstructor(MethodVisitor mv) {
+    mv.visitTypeInsn(Opcodes.NEW, getJvmType().getInternalName());
+    mv.visitInsn(Opcodes.DUP);
+    mv.visitMethodInsn(Opcodes.INVOKESPECIAL, getJvmType().getInternalName(), "<init>", "()V", false);
+  }
+
+  public GimpleRecordTypeDef getRecordTypeDef() {
+    return recordTypeDef;
+  }
+
+  public void writeClassFiles(File outputDirectory) throws IOException {
+    if(isProvided()) {
+      return;
+    }
+
+    RecordClassGenerator classGenerator = new RecordClassGenerator(jvmType, fields.values());
+    classGenerator.writeClassFile(outputDirectory);
+  }
+
+
+  @Override
+  public TypeStrategy arrayOf(GimpleArrayType arrayType) {
+    return new Array(arrayType);
+  }
+
 
   public class Array extends TypeStrategy {
 
@@ -74,7 +174,7 @@ public class RecordTypeStrategy extends TypeStrategy {
 
     @Override
     public FieldGenerator fieldGenerator(String className, String fieldName) {
-      return new RecordArrayFieldGenerator(className, fieldName, generator, arrayType);
+      return new RecordArrayFieldGenerator(className, fieldName, RecordTypeStrategy.this, arrayType);
     }
 
     @Override
@@ -84,17 +184,17 @@ public class RecordTypeStrategy extends TypeStrategy {
 
     @Override
     public VarGenerator varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
-      return new RecordArrayVarGenerator(arrayType, generator, 
-          allocator.reserveArrayRef(decl.getName(), generator.getType()));
+      return new RecordArrayVarGenerator(arrayType, RecordTypeStrategy.this,
+          allocator.reserveArrayRef(decl.getName(), getJvmType()));
     }
-    
+
     @Override
     public ExprGenerator constructorExpr(ExprFactory exprFactory, GimpleConstructor value) {
 
       if(arrayType.getElementCount() != value.getElements().size()) {
         throw new InternalCompilerException(String.format(
             "array type defined as size of %d, only %d constructors provided",
-              arrayType.getElementCount(), value.getElements().size()));
+            arrayType.getElementCount(), value.getElements().size()));
       }
 
       List<ExprGenerator> elements = Lists.newArrayList();
@@ -104,77 +204,20 @@ public class RecordTypeStrategy extends TypeStrategy {
         elements.add(elementConstructor);
       }
 
-      return new RecordArrayConstructor(generator, arrayType, elements);
+      return new RecordArrayConstructor(RecordTypeStrategy.this, arrayType, elements);
     }
   }
 
-  public class Pointer extends TypeStrategy {
-
-    @Override
-    public ParamStrategy getParamStrategy() {
-      return new RecordUnitPtrParamStrategy(generator);
-    }
-
-    @Override
-    public FieldGenerator fieldGenerator(String className, String fieldName) {
-      return new RecordPtrFieldGenerator(className, fieldName, generator);
-    }
-
-    @Override
-    public ReturnStrategy getReturnStrategy() {
-      return new RecordUnitPtrReturnStrategy(generator);
-    }
-
-
-    @Override
-    public VarGenerator varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
-      if(decl.isAddressable()) {
-        return new AddressableRecordPtrVarGenerator(generator, 
-            allocator.reserveArrayRef(decl.getName(), generator.getType()));
-        
-      } else {
-        return new RecordPtrVarGenerator(generator, 
-            allocator.reserve(decl.getName(), generator.getType()));
-      }
-    }
-
-    @Override
-    public TypeStrategy pointerTo() {
-      return new PointerPointer();
-    }
-
-    @Override
-    public ExprGenerator mallocExpression(ExprGenerator size) {
-      return new RecordMallocGenerator(generator, size);
+  @Override
+  public TypeStrategy pointerTo() {
+    if(unitPointer) {
+      return new RecordUnitPtrStrategy(this);
+    } else {
+      return new RecordFatPtrStrategy(this);
     }
   }
   
-  public class PointerPointer extends TypeStrategy {
-
-    @Override
-    public ParamStrategy getParamStrategy() {
-      return new RecordUnitPtrPtrParamStrategy(generator);
-    }
-
-    @Override
-    public VarGenerator varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
-      return new RecordPtrPtrVarGenerator(generator, 
-          allocator.reserve(decl.getName(), ObjectPtr.class), 
-          allocator.reserveInt(decl.getName() + "$offset"));
-    }
-
-    @Override
-    public ExprGenerator mallocExpression(ExprGenerator size) {
-      return new MallocGenerator(
-          generator.getGimpleType().pointerTo().pointerTo(),
-          Type.getType(ObjectPtr.class), 
-          GimplePointerType.SIZE_OF, 
-          size);
-    }
-
-    @Override
-    public ReturnStrategy getReturnStrategy() {
-      return new RecordPtrPtrReturnStrategy();
-    }
+  public RecordUnitPtrStrategy pointerToUnit() {
+    return new RecordUnitPtrStrategy(this);
   }
 }

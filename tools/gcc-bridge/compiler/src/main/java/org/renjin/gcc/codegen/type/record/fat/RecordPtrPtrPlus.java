@@ -1,20 +1,20 @@
-package org.renjin.gcc.codegen.type.record;
+package org.renjin.gcc.codegen.type.record.fat;
 
 import org.objectweb.asm.MethodVisitor;
-import org.renjin.gcc.codegen.RecordClassGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 
 public class RecordPtrPtrPlus extends AbstractExprGenerator {
 
-  private RecordClassGenerator recordClassGenerator;
+  private RecordTypeStrategy strategy;
   private ExprGenerator basePointer;
   private ExprGenerator offsetInBytes;
 
-  public RecordPtrPtrPlus(RecordClassGenerator recordClassGenerator, ExprGenerator basePointer, ExprGenerator offsetInBytes) {
-    this.recordClassGenerator = recordClassGenerator;
+  public RecordPtrPtrPlus(RecordTypeStrategy strategy, ExprGenerator basePointer, ExprGenerator offsetInBytes) {
+    this.strategy = strategy;
     this.basePointer = basePointer;
     this.offsetInBytes = offsetInBytes;
   }
@@ -26,7 +26,7 @@ public class RecordPtrPtrPlus extends AbstractExprGenerator {
 
   @Override
   public ExprGenerator valueOf() {
-    return new DereferencedRecordPtr(recordClassGenerator, this);
+    return new DereferencedRecordPtr(strategy, this);
   }
 
   @Override

@@ -1,4 +1,4 @@
-package org.renjin.gcc.codegen.type.record;
+package org.renjin.gcc.codegen.type.record.unit;
 
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;

@@ -1,25 +1,25 @@
-package org.renjin.gcc.codegen.type.record;
+package org.renjin.gcc.codegen.type.record.unit;
 
 import com.google.common.base.Optional;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import org.renjin.gcc.codegen.RecordClassGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.expr.NullPtrGenerator;
 import org.renjin.gcc.codegen.type.VarGenerator;
+import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
 import org.renjin.gcc.codegen.var.Var;
 import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 
-public class AddressableRecordPtrVarGenerator extends AbstractExprGenerator implements VarGenerator {
+public class AddressableRecordUnitPtrVarGenerator extends AbstractExprGenerator implements VarGenerator {
 
-  private RecordClassGenerator generator;
+  private RecordTypeStrategy strategy;
   private Var varIndex;
 
-  public AddressableRecordPtrVarGenerator(RecordClassGenerator generator, Var varIndex) {
-    this.generator = generator;
+  public AddressableRecordUnitPtrVarGenerator(RecordTypeStrategy strategy, Var varIndex) {
+    this.strategy = strategy;
     this.varIndex = varIndex;
   }
 
@@ -28,7 +28,7 @@ public class AddressableRecordPtrVarGenerator extends AbstractExprGenerator impl
     
     // allocate a unit array so that we can provide an "address" for this pointer
     mv.visitInsn(Opcodes.ICONST_1);
-    mv.visitTypeInsn(Opcodes.ANEWARRAY, generator.getType().getInternalName());
+    mv.visitTypeInsn(Opcodes.ANEWARRAY, strategy.getJvmType().getInternalName());
     varIndex.store(mv);
     
     if(initialValue.isPresent()) {
@@ -58,7 +58,7 @@ public class AddressableRecordPtrVarGenerator extends AbstractExprGenerator impl
 
   @Override
   public GimpleType getGimpleType() {
-    return generator.getGimpleType();
+    return strategy.getRecordType().pointerTo();
   }
 
   @Override
@@ -78,7 +78,7 @@ public class AddressableRecordPtrVarGenerator extends AbstractExprGenerator impl
 
     @Override
     public GimpleType getGimpleType() {
-      return new GimplePointerType(generator.getGimpleType());
+      return strategy.getRecordType().pointerTo().pointerTo();
     }
 
     @Override

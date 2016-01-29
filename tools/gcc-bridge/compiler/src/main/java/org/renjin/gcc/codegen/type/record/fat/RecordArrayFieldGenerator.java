@@ -1,12 +1,12 @@
-package org.renjin.gcc.codegen.type.record;
+package org.renjin.gcc.codegen.type.record.fat;
 
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import org.renjin.gcc.codegen.RecordClassGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.FieldGenerator;
+import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
@@ -17,16 +17,16 @@ public class RecordArrayFieldGenerator extends FieldGenerator {
   private GimpleArrayType arrayType;
   private String className;
   private String fieldName;
-  private RecordClassGenerator recordGenerator;
+  private RecordTypeStrategy strategy;
   private String fieldDescriptor;
 
-  public RecordArrayFieldGenerator(String className, String fieldName, 
-                                   RecordClassGenerator recordGenerator, GimpleArrayType arrayType) {
+  public RecordArrayFieldGenerator(String className, String fieldName,
+                                   RecordTypeStrategy strategy, GimpleArrayType arrayType) {
     this.className = className;
     this.fieldName = fieldName;
-    this.recordGenerator = recordGenerator;
+    this.strategy = strategy;
     this.arrayType = arrayType;
-    fieldDescriptor = "[" + recordGenerator.getDescriptor();
+    fieldDescriptor = "[" + strategy.getJvmType().getDescriptor();
   }
 
   @Override
@@ -47,7 +47,7 @@ public class RecordArrayFieldGenerator extends FieldGenerator {
   public void emitInstanceInit(MethodVisitor mv) {
     mv.visitVarInsn(Opcodes.ALOAD, 0); // this;
     mv.visitInsn(arrayType.getElementCount());
-    mv.visitTypeInsn(Opcodes.ANEWARRAY, recordGenerator.getType().getInternalName());
+    mv.visitTypeInsn(Opcodes.ANEWARRAY, strategy.getJvmType().getInternalName());
     mv.visitFieldInsn(Opcodes.PUTFIELD, className, fieldName, fieldDescriptor);
   }
 
@@ -81,7 +81,7 @@ public class RecordArrayFieldGenerator extends FieldGenerator {
 
     @Override
     public ExprGenerator elementAt(ExprGenerator indexGenerator) {
-      return new RecordArrayElement(recordGenerator, this, indexGenerator);
+      return new RecordArrayElement(strategy, this, indexGenerator);
     }
   }
   
@@ -111,7 +111,7 @@ public class RecordArrayFieldGenerator extends FieldGenerator {
 
     @Override
     public ExprGenerator elementAt(ExprGenerator indexGenerator) {
-      return new RecordArrayElement(recordGenerator, this, indexGenerator);
+      return new RecordArrayElement(strategy, this, indexGenerator);
     }
   }
 }

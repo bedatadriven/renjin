@@ -6,6 +6,8 @@ import org.renjin.gcc.codegen.RecordClassGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.VarGenerator;
+import org.renjin.gcc.codegen.type.record.fat.DereferencedRecordPtr;
+import org.renjin.gcc.codegen.type.record.fat.RecordPtrPtrPlus;
 import org.renjin.gcc.codegen.var.Var;
 import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.gimple.type.GimpleType;
@@ -17,12 +19,12 @@ import org.renjin.gcc.gimple.type.GimpleType;
  */
 public class RecordPtrPtrVarGenerator extends AbstractExprGenerator implements VarGenerator {
   
-  private RecordClassGenerator recordClassGenerator;
+  private RecordTypeStrategy strategy;
   private final Var arrayVar;
   private final Var offsetVar;
 
-  public RecordPtrPtrVarGenerator(RecordClassGenerator recordClassGenerator, Var arrayVar, Var offsetVar) {
-    this.recordClassGenerator = recordClassGenerator;
+  public RecordPtrPtrVarGenerator(RecordTypeStrategy strategy, Var arrayVar, Var offsetVar) {
+    this.strategy = strategy;
     this.arrayVar = arrayVar;
     this.offsetVar = offsetVar;
   }
@@ -49,16 +51,16 @@ public class RecordPtrPtrVarGenerator extends AbstractExprGenerator implements V
 
   @Override
   public GimpleType getGimpleType() {
-    return new GimplePointerType(new GimplePointerType(recordClassGenerator.getGimpleType()));
+    return new GimplePointerType(new GimplePointerType(strategy.getRecordType()));
   }
 
   @Override
   public ExprGenerator pointerPlus(ExprGenerator offsetInBytes) {
-    return new RecordPtrPtrPlus(recordClassGenerator, this, offsetInBytes);
+    return new RecordPtrPtrPlus(strategy, this, offsetInBytes);
   }
 
   @Override
   public ExprGenerator valueOf() {
-    return new DereferencedRecordPtr(recordClassGenerator, this);
+    return new DereferencedRecordPtr(strategy, this);
   }
 }

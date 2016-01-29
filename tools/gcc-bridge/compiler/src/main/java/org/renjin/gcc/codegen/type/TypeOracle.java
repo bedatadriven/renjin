@@ -8,9 +8,9 @@ import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.type.complex.ComplexTypeStrategy;
 import org.renjin.gcc.codegen.type.fun.FunTypeStrategy;
 import org.renjin.gcc.codegen.type.primitive.*;
-import org.renjin.gcc.codegen.type.record.RecordFatPtrParamStrategy;
+import org.renjin.gcc.codegen.type.record.fat.RecordFatPtrParamStrategy;
 import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
-import org.renjin.gcc.codegen.type.record.RecordUnitPtrReturnStrategy;
+import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrReturnStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidReturnStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidTypeStrategy;
 import org.renjin.gcc.gimple.GimpleParameter;
@@ -21,10 +21,7 @@ import org.renjin.gcc.runtime.ObjectPtr;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Provides the {@link TypeStrategy} for each {@link GimpleType}
@@ -35,26 +32,22 @@ import java.util.Map;
  */
 public class TypeOracle {
 
-  private final Map<String, RecordClassGenerator> recordTypes = Maps.newHashMap();
+  private final Map<String, RecordTypeStrategy> recordTypes = Maps.newHashMap();
 
   /**
    * Map from internal JVM class name to a GimpleType
    */
   private final Map<String, GimpleRecordType> classTypes = Maps.newHashMap();
 
-  public void addRecordType(GimpleRecordTypeDef type, RecordClassGenerator generator) {
-    recordTypes.put(type.getId(), generator);
-    classTypes.put(generator.getClassName(), generator.getGimpleType());
+  public void addRecordType(GimpleRecordTypeDef type, RecordTypeStrategy strategy) {
+    recordTypes.put(type.getId(), strategy);
+    classTypes.put(strategy.getJvmType().getInternalName(), strategy.getRecordType());
   }
-  
-  public Type typeForRecord(GimpleRecordType type) {
-    RecordClassGenerator recordClassGenerator = recordTypes.get(type.getId());
-    if(recordClassGenerator == null) {
-      throw new InternalCompilerException("No such record type: " + type);
-    }
-    return recordClassGenerator.getType();
+
+  public Collection<RecordTypeStrategy> getRecordTypes() {
+    return recordTypes.values();
   }
-  
+
   public TypeStrategy forType(GimpleType type) {
     if(type instanceof GimplePrimitiveType) {
       return new PrimitiveTypeStrategy((GimplePrimitiveType) type);
@@ -70,12 +63,7 @@ public class TypeOracle {
       
     } else if (type instanceof GimpleRecordType) {
       GimpleRecordType recordType = (GimpleRecordType) type;
-      RecordClassGenerator recordGenerator = recordTypes.get(recordType.getId());
-      if(recordGenerator == null) {
-        throw new InternalCompilerException(String.format(
-            "No record type for GimpleRecordType[name: %s, id: %s]", recordType.getName(), recordType.getId()));
-      }
-      return new RecordTypeStrategy(recordGenerator);
+      return forRecordType(recordType);
       
     } else if(type instanceof GimpleIndirectType) {
       return forType(type.getBaseType()).pointerTo();
@@ -87,6 +75,16 @@ public class TypeOracle {
     } else {
       throw new UnsupportedOperationException("Unsupported type: " + type);
     }
+  }
+
+
+  private RecordTypeStrategy forRecordType(GimpleRecordType recordType) {
+    RecordTypeStrategy recordTypeStrategy = recordTypes.get(recordType.getId());
+    if(recordTypeStrategy == null) {
+      throw new InternalCompilerException(String.format(
+          "No record type for GimpleRecordType[name: %s, id: %s]", recordType.getName(), recordType.getId()));
+    }
+    return recordTypeStrategy;
   }
   
 
@@ -143,7 +141,7 @@ public class TypeOracle {
       }
     } else if(classTypes.containsKey(Type.getInternalName(returnType))) {
       GimpleRecordType recordType = classTypes.get(Type.getInternalName(returnType));
-      return new RecordUnitPtrReturnStrategy(recordTypes.get(recordType.getId()));
+      return recordTypes.get(recordType.getId()).pointerTo().getReturnStrategy();
 
     } else {
       throw new UnsupportedOperationException(String.format(
@@ -151,15 +149,6 @@ public class TypeOracle {
           returnType.getName(),
           method.getDeclaringClass().getName(), method.getName()));
     }
-  }
-  
-  public List<ParamStrategy> forParameterTypes(List<GimpleType> parameterTypes) {
-    List<ParamStrategy> generators = new ArrayList<ParamStrategy>();
-    for (GimpleType parameterType : parameterTypes) {
-      ParamStrategy param = forParameter(parameterType);
-      generators.add(param);
-    }
-    return generators;
   }
 
 
@@ -172,7 +161,7 @@ public class TypeOracle {
    */
   public List<ParamStrategy> forParameterTypesOf(Method method) {
 
-    List<ParamStrategy> generators = new ArrayList<ParamStrategy>();
+    List<ParamStrategy> generators = new ArrayList<>();
 
     int numParams;
     if(method.isVarArgs()) {
@@ -203,7 +192,7 @@ public class TypeOracle {
 
       } else if (classTypes.containsKey(Type.getInternalName(paramClass))) {
         GimpleRecordType mappedType = classTypes.get(Type.getInternalName(paramClass));
-        generators.add(forType(mappedType).pointerTo().getParamStrategy());
+        generators.add(forRecordType(mappedType).pointerToUnit().getParamStrategy());
         index++;
         
       } else {
@@ -215,7 +204,8 @@ public class TypeOracle {
     }
     return generators;
   }
-  
+
+
   private Class objectPtrBaseType(java.lang.reflect.Type type) {
     if (!(type instanceof ParameterizedType)) {
       throw new InternalCompilerException(ObjectPtr.class.getSimpleName() + " parameters must be parameterized");
@@ -232,8 +222,7 @@ public class TypeOracle {
       String baseTypeInternalName = Type.getInternalName((Class)baseType);
       if(classTypes.containsKey(baseTypeInternalName)) {
         GimpleRecordType mappedType = classTypes.get(baseTypeInternalName);
-        RecordClassGenerator recordClassGenerator = recordTypes.get(mappedType.getId());
-        return new RecordFatPtrParamStrategy(recordClassGenerator);
+        return recordTypes.get(mappedType.getId()).pointerTo().getParamStrategy();
       }
     }
     throw new UnsupportedOperationException("TODO: baseType = " + baseType);
@@ -246,4 +235,5 @@ public class TypeOracle {
     }
     return map;
   }
+
 }

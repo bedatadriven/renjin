@@ -1,11 +1,11 @@
-package org.renjin.gcc.codegen.type.record;
+package org.renjin.gcc.codegen.type.record.unit;
 
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
-import org.renjin.gcc.codegen.RecordClassGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.ParamStrategy;
+import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
 import org.renjin.gcc.codegen.var.Var;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleParameter;
@@ -19,27 +19,27 @@ import java.util.List;
  */
 public class RecordUnitPtrParamStrategy implements ParamStrategy {
 
-    private RecordClassGenerator generator;
+    private RecordTypeStrategy strategy;
 
-    public RecordUnitPtrParamStrategy(RecordClassGenerator generator) {
-        this.generator = generator;
+    public RecordUnitPtrParamStrategy(RecordTypeStrategy strategy) {
+        this.strategy = strategy;
     }
 
     @Override
     public List<Type> getParameterTypes() {
-        return Collections.singletonList(Type.getType(generator.getDescriptor()));
+        return Collections.singletonList(Type.getType(strategy.getJvmType().getDescriptor()));
     }
 
     @Override
     public ExprGenerator emitInitialization(MethodVisitor methodVisitor, GimpleParameter parameter, List<Var> paramVars, VarAllocator localVars) {
-        return new RecordPtrVarGenerator(generator, paramVars.get(0));
+        return new RecordUnitPtrVarGenerator(strategy, paramVars.get(0));
     }
 
     @Override
     public void emitPushParameter(MethodVisitor mv, ExprGenerator parameterValueGenerator) {
         parameterValueGenerator.emitPushRecordRef(mv);
         if(parameterValueGenerator.getGimpleType().isPointerTo(GimpleVoidType.class)) {
-            mv.visitTypeInsn(Opcodes.CHECKCAST, generator.getType().getInternalName());
+            mv.visitTypeInsn(Opcodes.CHECKCAST, strategy.getJvmType().getInternalName());
         }
     }
 

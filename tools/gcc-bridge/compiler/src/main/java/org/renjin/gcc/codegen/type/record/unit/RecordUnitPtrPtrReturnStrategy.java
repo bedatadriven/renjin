@@ -1,4 +1,4 @@
-package org.renjin.gcc.codegen.type.record;
+package org.renjin.gcc.codegen.type.record.unit;
 
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -12,7 +12,7 @@ import org.renjin.gcc.runtime.ObjectPtr;
 import java.util.List;
 
 
-public class RecordPtrPtrReturnStrategy implements ReturnStrategy {
+public class RecordUnitPtrPtrReturnStrategy implements ReturnStrategy {
   
   private RecordClassGenerator recordClassGenerator;
   

@@ -4,11 +4,13 @@ import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import org.renjin.gcc.codegen.RecordClassGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.VarGenerator;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveConstGenerator;
+import org.renjin.gcc.codegen.type.record.fat.AddressOfRecordArray;
+import org.renjin.gcc.codegen.type.record.fat.RecordFatPtrStrategy;
+import org.renjin.gcc.codegen.type.record.fat.RecordArrayElement;
 import org.renjin.gcc.codegen.var.Var;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleType;
@@ -17,11 +19,11 @@ public class RecordArrayVarGenerator extends AbstractExprGenerator implements Va
 
   private final Var arrayVar;
   private GimpleArrayType arrayType;
-  private RecordClassGenerator generator;
+  private RecordTypeStrategy strategy;
 
-  public RecordArrayVarGenerator(GimpleArrayType arrayType, RecordClassGenerator generator, Var arrayVar) {
+  public RecordArrayVarGenerator(GimpleArrayType arrayType, RecordTypeStrategy strategy, Var arrayVar) {
     this.arrayType = arrayType;
-    this.generator = generator;
+    this.strategy = strategy;
     this.arrayVar = arrayVar;
     Preconditions.checkArgument(arrayType.getLbound() == 0);
   }
@@ -33,7 +35,7 @@ public class RecordArrayVarGenerator extends AbstractExprGenerator implements Va
   @Override
   public void emitDefaultInit(MethodVisitor mv, Optional<ExprGenerator> initialValue) {
     PrimitiveConstGenerator.emitInt(mv, arrayType.getElementCount());
-    mv.visitTypeInsn(Opcodes.ANEWARRAY, generator.getType().getInternalName());
+    mv.visitTypeInsn(Opcodes.ANEWARRAY, strategy.getJvmType().getInternalName());
     for(int i=0;i<arrayType.getElementCount();++i) {
       // keep the array on the stack
       mv.visitInsn(Opcodes.DUP);
@@ -42,7 +44,7 @@ public class RecordArrayVarGenerator extends AbstractExprGenerator implements Va
       PrimitiveConstGenerator.emitInt(mv, i);
       
       // create a new instance of the record class
-      generator.emitConstructor(mv);
+      strategy.emitConstructor(mv);
       
       // store the new instance to the array
       mv.visitInsn(Opcodes.AASTORE);
@@ -69,7 +71,7 @@ public class RecordArrayVarGenerator extends AbstractExprGenerator implements Va
 
   @Override
   public ExprGenerator elementAt(ExprGenerator indexGenerator) {
-    return new RecordArrayElement(generator, this, indexGenerator);  
+    return new RecordArrayElement(strategy, this, indexGenerator);  
   }
 
   @Override

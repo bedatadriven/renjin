@@ -183,7 +183,7 @@ public class GimpleFunction {
     }
     return false;
   }
-
+  
   public void replaceAll(Predicate<? super GimpleExpr> predicate, GimpleExpr newExpr) {
     for (GimpleBasicBlock basicBlock : basicBlocks) {
       basicBlock.replaceAll(predicate, newExpr);

@@ -9,6 +9,7 @@ public class GimpleRecordTypeDef {
   private String id;
   private String name;
   private boolean union;
+  private int size;
 
   private List<GimpleField> fields = Lists.newArrayList();
 
@@ -43,6 +44,10 @@ public class GimpleRecordTypeDef {
 
   public List<GimpleField> getFields() {
     return fields;
+  }
+
+  public int getSize() {
+    return size;
   }
 
   public String toString() {

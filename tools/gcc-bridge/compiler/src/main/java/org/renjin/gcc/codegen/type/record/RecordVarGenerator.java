@@ -15,18 +15,18 @@ import static org.objectweb.asm.Opcodes.*;
 public class RecordVarGenerator extends AbstractExprGenerator implements VarGenerator {
 
   private Var var;
-  private RecordClassGenerator recordGenerator;
+  private RecordTypeStrategy strategy;
 
-  public RecordVarGenerator(RecordClassGenerator recordGenerator, Var var) {
-    this.recordGenerator = recordGenerator;
+  public RecordVarGenerator(RecordTypeStrategy strategy, Var var) {
+    this.strategy = strategy;
     this.var = var;
   }
 
   @Override
   public void emitDefaultInit(MethodVisitor mv, Optional<ExprGenerator> initialValue) {
-    mv.visitTypeInsn(NEW, recordGenerator.getClassName());
+    mv.visitTypeInsn(NEW, strategy.getJvmType().getInternalName());
     mv.visitInsn(DUP);
-    mv.visitMethodInsn(INVOKESPECIAL, recordGenerator.getClassName(), "<init>", "()V", false);
+    mv.visitMethodInsn(INVOKESPECIAL, strategy.getJvmType().getInternalName(), "<init>", "()V", false);
     var.store(mv);
     
     if(initialValue.isPresent()) {
@@ -41,18 +41,18 @@ public class RecordVarGenerator extends AbstractExprGenerator implements VarGene
 
   @Override
   public GimpleType getGimpleType() {
-    return recordGenerator.getGimpleType();
+    return strategy.getRecordType();
   }
 
   public ExprGenerator memberOf(String name) {
-    return recordGenerator.getFieldGenerator(name).memberExprGenerator(addressOf());
+    return strategy.getFieldGenerator(name).memberExprGenerator(addressOf());
   }
   
   public class Pointer extends AbstractExprGenerator {
 
     @Override
     public GimpleType getGimpleType() {
-      return new GimplePointerType(recordGenerator.getGimpleType());
+      return new GimplePointerType(strategy.getRecordType());
     }
 
     @Override

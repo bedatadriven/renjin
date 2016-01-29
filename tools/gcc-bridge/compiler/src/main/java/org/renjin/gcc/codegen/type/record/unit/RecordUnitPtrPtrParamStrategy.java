@@ -1,18 +1,17 @@
-package org.renjin.gcc.codegen.type.record;
+package org.renjin.gcc.codegen.type.record.unit;
 
 import com.google.common.base.Optional;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
-import org.renjin.gcc.codegen.RecordClassGenerator;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.ParamStrategy;
+import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
 import org.renjin.gcc.codegen.var.Var;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleParameter;
-import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.runtime.ObjectPtr;
 
@@ -25,10 +24,10 @@ import java.util.List;
  */
 public class RecordUnitPtrPtrParamStrategy implements ParamStrategy {
   
-  private RecordClassGenerator generator;
+  private RecordTypeStrategy strategy;
 
-  public RecordUnitPtrPtrParamStrategy(RecordClassGenerator generator) {
-    this.generator = generator;
+  public RecordUnitPtrPtrParamStrategy(RecordTypeStrategy strategy) {
+    this.strategy = strategy;
   }
 
   @Override
@@ -56,18 +55,18 @@ public class RecordUnitPtrPtrParamStrategy implements ParamStrategy {
 
     @Override
     public GimpleType getGimpleType() {
-      return new GimplePointerType(new GimplePointerType(generator.getGimpleType()));
+      return strategy.getRecordType().pointerTo().pointerTo();
     }
 
     @Override
     public ExprGenerator valueOf() {
-      return new DereferencedUnitRecordPtr(generator, this);
+      return new DereferencedUnitRecordPtr(strategy, this);
     }
 
     @Override
     public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
       var.load(mv);
-      Type arrayType = Type.getType("[" + generator.getType().getDescriptor());
+      Type arrayType = Type.getType("[" + strategy.getJvmType().getDescriptor());
       WrapperType.OBJECT_PTR.emitUnpackArrayAndOffset(mv, Optional.of(arrayType));
     }
 

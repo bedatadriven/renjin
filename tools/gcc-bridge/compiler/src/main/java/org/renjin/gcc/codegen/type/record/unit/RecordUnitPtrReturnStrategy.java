@@ -1,13 +1,13 @@
-package org.renjin.gcc.codegen.type.record;
+package org.renjin.gcc.codegen.type.record.unit;
 
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
-import org.renjin.gcc.codegen.RecordClassGenerator;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.ReturnStrategy;
+import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
 import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
@@ -15,19 +15,18 @@ import java.util.List;
 
 /**
  * Strategy for returning a pointer to a single record as a simple JVM object reference.
- * 
  */
 public class RecordUnitPtrReturnStrategy implements ReturnStrategy {
 
-  private RecordClassGenerator recordClassGenerator;
+  private RecordTypeStrategy strategy;
 
-  public RecordUnitPtrReturnStrategy(RecordClassGenerator recordClassGenerator) {
-    this.recordClassGenerator = recordClassGenerator;
+  public RecordUnitPtrReturnStrategy(RecordTypeStrategy strategy) {
+    this.strategy = strategy;
   }
 
   @Override
   public Type getType() {
-    return recordClassGenerator.getType();
+    return strategy.getJvmType();
   }
 
   @Override
@@ -60,7 +59,7 @@ public class RecordUnitPtrReturnStrategy implements ReturnStrategy {
 
     @Override
     public GimpleType getGimpleType() {
-      return new GimplePointerType(recordClassGenerator.getGimpleType());
+      return new GimplePointerType(strategy.getRecordType());
     }
 
     @Override
@@ -72,7 +71,7 @@ public class RecordUnitPtrReturnStrategy implements ReturnStrategy {
     @Override
     public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
       mv.visitInsn(Opcodes.ICONST_1);
-      mv.visitTypeInsn(Opcodes.ANEWARRAY, recordClassGenerator.getType().getInternalName());
+      mv.visitTypeInsn(Opcodes.ANEWARRAY, strategy.getJvmType().getInternalName());
       mv.visitInsn(Opcodes.DUP);
       mv.visitInsn(Opcodes.ICONST_0);
       emitPushRecordRef(mv);

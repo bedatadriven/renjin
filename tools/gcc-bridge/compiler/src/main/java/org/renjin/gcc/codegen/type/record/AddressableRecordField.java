@@ -7,6 +7,7 @@ import org.renjin.gcc.codegen.RecordClassGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.FieldGenerator;
+import org.renjin.gcc.codegen.type.record.unit.DereferencedUnitRecordPtr;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
@@ -16,18 +17,18 @@ public class AddressableRecordField extends FieldGenerator {
   private final String className;
   private final String fieldName;
   private final String fieldDescriptor;
-  private RecordClassGenerator generator;
+  private RecordTypeStrategy strategy;
 
-  public AddressableRecordField(String className, String fieldName, RecordClassGenerator generator) {
+  public AddressableRecordField(String className, String fieldName, RecordTypeStrategy strategy) {
     this.className = className;
     this.fieldName = fieldName;
-    this.generator = generator;
-    this.fieldDescriptor = "[" + generator.getType().getDescriptor();
+    this.strategy = strategy;
+    this.fieldDescriptor = "[" + strategy.getJvmType().getDescriptor();
   }
 
   @Override
   public GimpleType getType() {
-    return generator.getGimpleType();
+    return strategy.getRecordType();
   }
 
 
@@ -40,17 +41,17 @@ public class AddressableRecordField extends FieldGenerator {
   public void emitInstanceInit(MethodVisitor mv) {
     mv.visitVarInsn(Opcodes.ALOAD, 0); // this
     emitNewArray(mv);
-    mv.visitFieldInsn(Opcodes.PUTFIELD, generator.getType().getInternalName(), fieldName, fieldDescriptor);
+    mv.visitFieldInsn(Opcodes.PUTFIELD, strategy.getJvmType().getInternalName(), fieldName, fieldDescriptor);
   }
 
   private void emitNewArray(MethodVisitor mv) {
     mv.visitInsn(Opcodes.ICONST_1);
-    mv.visitTypeInsn(Opcodes.ANEWARRAY, generator.getType().getInternalName());
+    mv.visitTypeInsn(Opcodes.ANEWARRAY, strategy.getJvmType().getInternalName());
     mv.visitInsn(Opcodes.DUP);
     mv.visitInsn(Opcodes.ICONST_0);
-    mv.visitTypeInsn(Opcodes.NEW, generator.getType().getInternalName());
+    mv.visitTypeInsn(Opcodes.NEW, strategy.getJvmType().getInternalName());
     mv.visitInsn(Opcodes.DUP);
-    mv.visitMethodInsn(Opcodes.INVOKESPECIAL, generator.getType().getInternalName(), "<init>", "()V", false);
+    mv.visitMethodInsn(Opcodes.INVOKESPECIAL, strategy.getJvmType().getInternalName(), "<init>", "()V", false);
     mv.visitInsn(Opcodes.AASTORE);
   }
 
@@ -68,7 +69,7 @@ public class AddressableRecordField extends FieldGenerator {
 
     @Override
     public GimpleType getGimpleType() {
-      return generator.getGimpleType();
+      return strategy.getRecordType();
     }
 
     @Override
@@ -80,7 +81,7 @@ public class AddressableRecordField extends FieldGenerator {
 
     @Override
     public ExprGenerator valueOf() {
-      return new DereferencedUnitRecordPtr(generator, this);
+      return new DereferencedUnitRecordPtr(strategy, this);
     }
   }
 }

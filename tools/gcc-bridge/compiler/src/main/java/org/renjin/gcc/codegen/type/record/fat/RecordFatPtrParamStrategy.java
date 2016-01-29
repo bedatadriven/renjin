@@ -1,13 +1,18 @@
-package org.renjin.gcc.codegen.type.record;
+package org.renjin.gcc.codegen.type.record.fat;
 
+import com.google.common.base.Optional;
+import com.google.common.collect.Iterables;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
-import org.renjin.gcc.codegen.RecordClassGenerator;
+import org.renjin.gcc.codegen.WrapperType;
+import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.var.Var;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleParameter;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.runtime.ObjectPtr;
 
 import java.util.Collections;
@@ -20,10 +25,10 @@ import java.util.List;
  */
 public class RecordFatPtrParamStrategy implements ParamStrategy {
   
-  private RecordClassGenerator recordClassGenerator;
+  private RecordFatPtrStrategy strategy;
 
-  public RecordFatPtrParamStrategy(RecordClassGenerator recordClassGenerator) {
-    this.recordClassGenerator = recordClassGenerator;
+  public RecordFatPtrParamStrategy(RecordFatPtrStrategy strategy) {
+    this.strategy = strategy;
   }
 
   @Override
@@ -33,12 +38,39 @@ public class RecordFatPtrParamStrategy implements ParamStrategy {
 
   @Override
   public ExprGenerator emitInitialization(MethodVisitor methodVisitor, GimpleParameter parameter, List<Var> paramVars, VarAllocator localVars) {
-    throw new UnsupportedOperationException();
+    return new Expr(Iterables.getOnlyElement(paramVars));
   }
 
   @Override
   public void emitPushParameter(MethodVisitor mv, ExprGenerator parameterValueGenerator) {
     parameterValueGenerator.emitPushPointerWrapper(mv);
   }
+  
+  private class Expr extends AbstractExprGenerator {
+    private Var param;
 
+    public Expr(Var param) {
+      this.param = param;
+    }
+
+    @Override
+    public GimpleType getGimpleType() {
+      return strategy.getGimpleType();
+    }
+
+    @Override
+    public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+      param.load(mv);
+      WrapperType.OBJECT_PTR.emitUnpackArrayAndOffset(mv, Optional.of(strategy.getJvmArrayType()));
+    }
+
+    @Override
+    public void emitPushRecordRef(MethodVisitor mv) {
+      emitPushPtrArrayAndOffset(mv);
+      mv.visitInsn(Opcodes.AALOAD);
+    }
+  }
+
+  
+  
 }

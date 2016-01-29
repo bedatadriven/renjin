@@ -1,4 +1,4 @@
-package org.renjin.gcc.codegen.type.record;
+package org.renjin.gcc.codegen.type.record.fat;
 
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;

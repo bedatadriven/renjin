@@ -353,6 +353,11 @@ static void dump_record_type_decl(tree type) {
     TRACE("dump_record_type_decl: name = %s\n", name);
   } 
   
+  
+  if(TYPE_SIZE(type)) {
+    json_int_field("size", TREE_INT_CST_LOW(TYPE_SIZE(type)));
+  }
+    
   TRACE("dump_record_type_decl: writing fields\n");
   tree field =  TYPE_FIELDS(type);
   json_array_field("fields");

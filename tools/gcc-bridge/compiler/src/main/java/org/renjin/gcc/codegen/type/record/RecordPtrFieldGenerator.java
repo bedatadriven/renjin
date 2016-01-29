@@ -3,10 +3,11 @@ package org.renjin.gcc.codegen.type.record;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import org.renjin.gcc.codegen.RecordClassGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.FieldGenerator;
+import org.renjin.gcc.codegen.type.record.unit.DereferencedUnitRecordPtr;
+import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrGenerator;
 import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
@@ -15,17 +16,17 @@ import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 public class RecordPtrFieldGenerator extends FieldGenerator {
   private String className;
   private String fieldName;
-  private RecordClassGenerator recordGenerator;
+  private RecordTypeStrategy strategy;
 
-  public RecordPtrFieldGenerator(String className, String fieldName, RecordClassGenerator recordGenerator) {
+  public RecordPtrFieldGenerator(String className, String fieldName, RecordTypeStrategy strategy) {
     this.className = className;
     this.fieldName = fieldName;
-    this.recordGenerator = recordGenerator;
+    this.strategy = strategy;
   }
 
   @Override
   public GimpleType getType() {
-    return new GimplePointerType(recordGenerator.getGimpleType());
+    return new GimplePointerType(strategy.getRecordType());
   }
 
   @Override
@@ -34,7 +35,7 @@ public class RecordPtrFieldGenerator extends FieldGenerator {
   }
 
   private void emitField(int access, ClassVisitor cv) {
-    cv.visitField(access, fieldName, recordGenerator.getDescriptor(), null, null).visitEnd();
+    cv.visitField(access, fieldName, strategy.getJvmType().getDescriptor(), null, null).visitEnd();
   }
 
   @Override
@@ -52,25 +53,25 @@ public class RecordPtrFieldGenerator extends FieldGenerator {
 
     @Override
     public GimpleType getGimpleType() {
-      return new GimplePointerType(recordGenerator.getGimpleType());
+      return new GimplePointerType(strategy.getRecordType());
     }
 
     @Override
     public void emitPushRecordRef(MethodVisitor mv) {
       instanceGenerator.emitPushRecordRef(mv);
-      mv.visitFieldInsn(Opcodes.GETFIELD, className, fieldName, recordGenerator.getDescriptor());
+      mv.visitFieldInsn(Opcodes.GETFIELD, className, fieldName, strategy.getJvmType().getDescriptor());
     }
 
     @Override
     public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
       instanceGenerator.emitPushRecordRef(mv);
       valueGenerator.emitPushRecordRef(mv);
-      mv.visitFieldInsn(Opcodes.PUTFIELD, className, fieldName, recordGenerator.getDescriptor());
+      mv.visitFieldInsn(Opcodes.PUTFIELD, className, fieldName, strategy.getJvmType().getDescriptor());
     }
 
     @Override
     public ExprGenerator valueOf() {
-      return new DereferencedUnitRecordPtr(recordGenerator, this);
+      return new DereferencedUnitRecordPtr(strategy, this);
     }
   }
 }

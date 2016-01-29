@@ -753,10 +753,20 @@ public class GimpleCompilerTest extends AbstractGccTest {
     assertThat((Long)uint32ToUint64.invoke(null, 0xFFFFFFFF), equalTo(0xFFFFFFFFL));
 
     Method uint16ToUint64 = clazz.getMethod("uint32ToUint64", int.class);
-    assertThat((Long)uint32ToUint64.invoke(null, 0), equalTo((long)0));
-    assertThat((Long)uint32ToUint64.invoke(null, 0xFF), equalTo(0xFFL));
-    assertThat((Long)uint32ToUint64.invoke(null, 0xFFFFFFFF), equalTo(0xFFFFFFFFL));
+    assertThat((Long)uint16ToUint64.invoke(null, 0), equalTo((long)0));
+    assertThat((Long)uint16ToUint64.invoke(null, 0xFF), equalTo(0xFFL));
+    assertThat((Long)uint16ToUint64.invoke(null, 0xFFFFFFFF), equalTo(0xFFFFFFFFL));
+  }
+  
+  @Test
+  public void memcmpTest() throws Exception {
+    Class clazz = compile("memcmp.c");
 
+    Method long_memcmp = clazz.getMethod("long_memcmp", long.class, long.class);
+
+    assertThat((Integer)long_memcmp.invoke(null, 0xFFFFFFFFFFFFFFFFL, 0xFFFL), greaterThan(0));
+    assertThat((Integer)long_memcmp.invoke(null, 0xCAFEBABE, 0xCAFEBABE), equalTo(0));
+    
 
   }
 }

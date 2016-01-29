@@ -1,25 +1,25 @@
-package org.renjin.gcc.codegen.type.record;
+package org.renjin.gcc.codegen.type.record.unit;
 
 import com.google.common.base.Optional;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import org.renjin.gcc.codegen.RecordClassGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.VarGenerator;
+import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
 import org.renjin.gcc.codegen.var.Var;
 import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
-public class RecordPtrVarGenerator extends AbstractExprGenerator implements VarGenerator, RecordUnitPtrGenerator {
+public class RecordUnitPtrVarGenerator extends AbstractExprGenerator implements VarGenerator, RecordUnitPtrGenerator {
   private Var var;
-  private RecordClassGenerator recordGenerator;
+  private RecordTypeStrategy strategy;
   private GimpleType pointerType;
 
-  public RecordPtrVarGenerator(RecordClassGenerator recordGenerator, Var var) {
-    this.recordGenerator = recordGenerator;
+  public RecordUnitPtrVarGenerator(RecordTypeStrategy strategy, Var var) {
+    this.strategy = strategy;
     this.var = var;
-    this.pointerType = new GimplePointerType(recordGenerator.getGimpleType());
+    this.pointerType = new GimplePointerType(strategy.getRecordType());
   }
   
   @Override
@@ -54,7 +54,7 @@ public class RecordPtrVarGenerator extends AbstractExprGenerator implements VarG
   @Override
   public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
     mv.visitInsn(Opcodes.ICONST_1);
-    mv.visitTypeInsn(Opcodes.ANEWARRAY, recordGenerator.getType().getInternalName());
+    mv.visitTypeInsn(Opcodes.ANEWARRAY, strategy.getJvmType().getInternalName());
     mv.visitInsn(Opcodes.ICONST_0);
   }
 
@@ -67,12 +67,12 @@ public class RecordPtrVarGenerator extends AbstractExprGenerator implements VarG
 
     @Override
     public ExprGenerator addressOf() {
-      return RecordPtrVarGenerator.this;
+      return RecordUnitPtrVarGenerator.this;
     }
 
     @Override
     public ExprGenerator memberOf(String memberName) {
-      return recordGenerator.getFieldGenerator(memberName).memberExprGenerator(RecordPtrVarGenerator.this);
+      return strategy.getFieldGenerator(memberName).memberExprGenerator(RecordUnitPtrVarGenerator.this);
     }
   }
 }

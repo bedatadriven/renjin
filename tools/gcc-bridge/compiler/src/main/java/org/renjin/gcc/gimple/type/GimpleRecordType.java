@@ -6,6 +6,12 @@ public class GimpleRecordType extends AbstractGimpleType {
 
   public GimpleRecordType() {
   }
+  
+  public GimpleRecordType(GimpleRecordTypeDef typeDef) {
+    this.id = typeDef.getId();
+    this.setSize(typeDef.getSize());
+    this.setName(typeDef.getName());
+  }
 
   public GimpleRecordType(String id) {
     this.id = id;

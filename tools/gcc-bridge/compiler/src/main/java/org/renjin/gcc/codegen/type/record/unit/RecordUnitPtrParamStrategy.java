@@ -5,7 +5,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.ParamStrategy;
-import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
+import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.codegen.var.Var;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleParameter;
@@ -19,9 +19,9 @@ import java.util.List;
  */
 public class RecordUnitPtrParamStrategy implements ParamStrategy {
 
-    private RecordTypeStrategy strategy;
+    private RecordClassTypeStrategy strategy;
 
-    public RecordUnitPtrParamStrategy(RecordTypeStrategy strategy) {
+    public RecordUnitPtrParamStrategy(RecordClassTypeStrategy strategy) {
         this.strategy = strategy;
     }
 

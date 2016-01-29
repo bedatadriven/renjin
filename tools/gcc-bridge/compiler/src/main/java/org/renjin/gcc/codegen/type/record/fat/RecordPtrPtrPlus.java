@@ -3,17 +3,17 @@ package org.renjin.gcc.codegen.type.record.fat;
 import org.objectweb.asm.MethodVisitor;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
+import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 
 public class RecordPtrPtrPlus extends AbstractExprGenerator {
 
-  private RecordTypeStrategy strategy;
+  private RecordClassTypeStrategy strategy;
   private ExprGenerator basePointer;
   private ExprGenerator offsetInBytes;
 
-  public RecordPtrPtrPlus(RecordTypeStrategy strategy, ExprGenerator basePointer, ExprGenerator offsetInBytes) {
+  public RecordPtrPtrPlus(RecordClassTypeStrategy strategy, ExprGenerator basePointer, ExprGenerator offsetInBytes) {
     this.strategy = strategy;
     this.basePointer = basePointer;
     this.offsetInBytes = offsetInBytes;

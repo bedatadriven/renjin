@@ -16,9 +16,9 @@ import java.util.List;
  */
 public class RecordParamStrategy implements ParamStrategy {
   
-  private RecordTypeStrategy strategy;
+  private RecordClassTypeStrategy strategy;
 
-  public RecordParamStrategy(RecordTypeStrategy strategy) {
+  public RecordParamStrategy(RecordClassTypeStrategy strategy) {
     this.strategy = strategy;
   }
 

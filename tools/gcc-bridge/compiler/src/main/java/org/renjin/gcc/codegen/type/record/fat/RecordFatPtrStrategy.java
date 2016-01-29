@@ -6,7 +6,7 @@ import org.renjin.gcc.codegen.type.FieldGenerator;
 import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.type.VarGenerator;
-import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
+import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.codegen.var.Var;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
@@ -17,9 +17,9 @@ import org.renjin.gcc.gimple.type.GimpleType;
  */
 public class RecordFatPtrStrategy extends TypeStrategy {
 
-  private final RecordTypeStrategy strategy;
+  private final RecordClassTypeStrategy strategy;
 
-  public RecordFatPtrStrategy(RecordTypeStrategy strategy) {
+  public RecordFatPtrStrategy(RecordClassTypeStrategy strategy) {
     this.strategy = strategy;
   }
   

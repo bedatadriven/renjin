@@ -3,7 +3,6 @@ package org.renjin.gcc.codegen.type.record;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import org.renjin.gcc.codegen.RecordClassGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.FieldGenerator;
@@ -17,9 +16,9 @@ public class AddressableRecordField extends FieldGenerator {
   private final String className;
   private final String fieldName;
   private final String fieldDescriptor;
-  private RecordTypeStrategy strategy;
+  private RecordClassTypeStrategy strategy;
 
-  public AddressableRecordField(String className, String fieldName, RecordTypeStrategy strategy) {
+  public AddressableRecordField(String className, String fieldName, RecordClassTypeStrategy strategy) {
     this.className = className;
     this.fieldName = fieldName;
     this.strategy = strategy;

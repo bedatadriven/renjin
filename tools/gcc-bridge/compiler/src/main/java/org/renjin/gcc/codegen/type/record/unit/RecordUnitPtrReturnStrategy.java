@@ -7,7 +7,7 @@ import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.ReturnStrategy;
-import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
+import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
@@ -18,9 +18,9 @@ import java.util.List;
  */
 public class RecordUnitPtrReturnStrategy implements ReturnStrategy {
 
-  private RecordTypeStrategy strategy;
+  private RecordClassTypeStrategy strategy;
 
-  public RecordUnitPtrReturnStrategy(RecordTypeStrategy strategy) {
+  public RecordUnitPtrReturnStrategy(RecordClassTypeStrategy strategy) {
     this.strategy = strategy;
   }
 

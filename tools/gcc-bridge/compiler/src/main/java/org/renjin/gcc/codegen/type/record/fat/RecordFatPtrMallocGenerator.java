@@ -47,7 +47,6 @@ public class RecordFatPtrMallocGenerator extends AbstractExprGenerator {
 
       Type type = strategy.getJvmType();
 
-
       for(int i=0; i< constantCount; ++i) {
         mv.visitInsn(Opcodes.DUP);
         PrimitiveConstGenerator.emitInt(mv, i);

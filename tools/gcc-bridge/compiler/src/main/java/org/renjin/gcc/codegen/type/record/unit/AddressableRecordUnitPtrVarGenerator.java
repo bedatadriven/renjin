@@ -7,18 +7,17 @@ import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.expr.NullPtrGenerator;
 import org.renjin.gcc.codegen.type.VarGenerator;
-import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
+import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.codegen.var.Var;
-import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 
 public class AddressableRecordUnitPtrVarGenerator extends AbstractExprGenerator implements VarGenerator {
 
-  private RecordTypeStrategy strategy;
+  private RecordClassTypeStrategy strategy;
   private Var varIndex;
 
-  public AddressableRecordUnitPtrVarGenerator(RecordTypeStrategy strategy, Var varIndex) {
+  public AddressableRecordUnitPtrVarGenerator(RecordClassTypeStrategy strategy, Var varIndex) {
     this.strategy = strategy;
     this.varIndex = varIndex;
   }

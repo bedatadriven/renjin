@@ -5,7 +5,6 @@ import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveConstGenerator;
-import org.renjin.gcc.codegen.type.record.fat.RecordFatPtrStrategy;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
@@ -14,11 +13,11 @@ import java.util.List;
 
 public class RecordArrayConstructor extends AbstractExprGenerator {
 
-  private RecordTypeStrategy strategy;
+  private RecordClassTypeStrategy strategy;
   private final GimpleArrayType arrayType;
   private List<ExprGenerator> elements;
 
-  public RecordArrayConstructor(RecordTypeStrategy strategy, GimpleArrayType arrayType, List<ExprGenerator> elements) {
+  public RecordArrayConstructor(RecordClassTypeStrategy strategy, GimpleArrayType arrayType, List<ExprGenerator> elements) {
     this.strategy = strategy;
     this.arrayType = arrayType;
     this.elements = elements;

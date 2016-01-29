@@ -6,7 +6,7 @@ import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.FieldGenerator;
-import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
+import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 /**
@@ -18,9 +18,9 @@ public class RecordFatPtrFieldGenerator extends FieldGenerator {
   private String arrayName;
   private String arrayDescriptor;
   private String offsetName;
-  private RecordTypeStrategy recordStrategy;
+  private RecordClassTypeStrategy recordStrategy;
 
-  public RecordFatPtrFieldGenerator(String ownerClass, String name, RecordTypeStrategy recordStrategy) {
+  public RecordFatPtrFieldGenerator(String ownerClass, String name, RecordClassTypeStrategy recordStrategy) {
     this.ownerClass = ownerClass;
     this.arrayName = name;
     this.offsetName = arrayName + "$offset";

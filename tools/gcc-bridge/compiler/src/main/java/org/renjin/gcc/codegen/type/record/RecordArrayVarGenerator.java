@@ -9,7 +9,6 @@ import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.VarGenerator;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveConstGenerator;
 import org.renjin.gcc.codegen.type.record.fat.AddressOfRecordArray;
-import org.renjin.gcc.codegen.type.record.fat.RecordFatPtrStrategy;
 import org.renjin.gcc.codegen.type.record.fat.RecordArrayElement;
 import org.renjin.gcc.codegen.var.Var;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
@@ -19,9 +18,9 @@ public class RecordArrayVarGenerator extends AbstractExprGenerator implements Va
 
   private final Var arrayVar;
   private GimpleArrayType arrayType;
-  private RecordTypeStrategy strategy;
+  private RecordClassTypeStrategy strategy;
 
-  public RecordArrayVarGenerator(GimpleArrayType arrayType, RecordTypeStrategy strategy, Var arrayVar) {
+  public RecordArrayVarGenerator(GimpleArrayType arrayType, RecordClassTypeStrategy strategy, Var arrayVar) {
     this.arrayType = arrayType;
     this.strategy = strategy;
     this.arrayVar = arrayVar;

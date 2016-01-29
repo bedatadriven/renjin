@@ -2,7 +2,7 @@ package org.renjin.gcc.analysis;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
-import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
+import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.codegen.type.record.fat.RecordFatPtrStrategy;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrStrategy;
 import org.renjin.gcc.gimple.GimpleBasicBlock;
@@ -143,8 +143,8 @@ public class RecordUsageAnalyzer  {
     return false;
   }
 
-  public RecordTypeStrategy getStrategyFor(GimpleRecordTypeDef recordTypeDef) {
-    RecordTypeStrategy strategy = new RecordTypeStrategy(recordTypeDef);
+  public RecordClassTypeStrategy getStrategyFor(GimpleRecordTypeDef recordTypeDef) {
+    RecordClassTypeStrategy strategy = new RecordClassTypeStrategy(recordTypeDef);
     strategy.setUnitPointer(unitPointerAssumptionsHold.contains(recordTypeDef.getId()));
 
     return strategy;

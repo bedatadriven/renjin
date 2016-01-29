@@ -5,17 +5,16 @@ import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
-import org.renjin.gcc.gimple.type.GimplePointerType;
+import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 
 public class DereferencedRecordPtr extends AbstractExprGenerator {
   
-  private RecordTypeStrategy strategy;
+  private RecordClassTypeStrategy strategy;
   private ExprGenerator pointerPointer;
 
-  public DereferencedRecordPtr(RecordTypeStrategy strategy, ExprGenerator pointerPointer) {
+  public DereferencedRecordPtr(RecordClassTypeStrategy strategy, ExprGenerator pointerPointer) {
     this.strategy = strategy;
     this.pointerPointer = pointerPointer;
   }

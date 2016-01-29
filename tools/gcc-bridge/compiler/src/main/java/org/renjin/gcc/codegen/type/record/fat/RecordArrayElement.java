@@ -4,18 +4,18 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
+import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 
 public class RecordArrayElement extends AbstractExprGenerator {
-  private RecordTypeStrategy strategy;
+  private RecordClassTypeStrategy strategy;
   private ExprGenerator array;
   private GimpleArrayType arrayType;
   private ExprGenerator indexGenerator;
 
-  public RecordArrayElement(RecordTypeStrategy strategy, ExprGenerator array, ExprGenerator indexGenerator) {
+  public RecordArrayElement(RecordClassTypeStrategy strategy, ExprGenerator array, ExprGenerator indexGenerator) {
     this.strategy = strategy;
     this.array = array;
     this.arrayType = (GimpleArrayType) array.getGimpleType();

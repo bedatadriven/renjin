@@ -4,15 +4,15 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
+import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 public class DereferencedRecordFatPtr extends AbstractExprGenerator {
   
-  private RecordTypeStrategy recordTypeStrategy;
+  private RecordClassTypeStrategy recordTypeStrategy;
   private ExprGenerator fatPointer;
 
-  public DereferencedRecordFatPtr(RecordTypeStrategy recordTypeStrategy, ExprGenerator fatPointer) {
+  public DereferencedRecordFatPtr(RecordClassTypeStrategy recordTypeStrategy, ExprGenerator fatPointer) {
     this.recordTypeStrategy = recordTypeStrategy;
     this.fatPointer = fatPointer;
   }

@@ -6,7 +6,7 @@ import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.FieldGenerator;
-import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
+import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
@@ -17,11 +17,11 @@ public class RecordArrayFieldGenerator extends FieldGenerator {
   private GimpleArrayType arrayType;
   private String className;
   private String fieldName;
-  private RecordTypeStrategy strategy;
+  private RecordClassTypeStrategy strategy;
   private String fieldDescriptor;
 
   public RecordArrayFieldGenerator(String className, String fieldName,
-                                   RecordTypeStrategy strategy, GimpleArrayType arrayType) {
+                                   RecordClassTypeStrategy strategy, GimpleArrayType arrayType) {
     this.className = className;
     this.fieldName = fieldName;
     this.strategy = strategy;

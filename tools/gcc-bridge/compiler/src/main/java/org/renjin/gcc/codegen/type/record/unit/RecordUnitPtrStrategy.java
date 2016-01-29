@@ -5,8 +5,8 @@ import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.call.MallocGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.*;
+import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.codegen.type.record.RecordPtrPtrVarGenerator;
-import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.type.GimplePointerType;
@@ -15,9 +15,9 @@ import org.renjin.gcc.runtime.ObjectPtr;
 
 public class RecordUnitPtrStrategy extends TypeStrategy {
   
-  private RecordTypeStrategy strategy;
+  private RecordClassTypeStrategy strategy;
 
-  public RecordUnitPtrStrategy(RecordTypeStrategy strategy) {
+  public RecordUnitPtrStrategy(RecordClassTypeStrategy strategy) {
     this.strategy = strategy;
   }
 

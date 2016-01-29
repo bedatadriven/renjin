@@ -5,17 +5,17 @@ import org.objectweb.asm.MethodVisitor;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.VarGenerator;
-import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
+import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.codegen.var.Var;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 public class RecordFatPtrVarGenerator extends AbstractExprGenerator implements VarGenerator {
 
-  private final RecordTypeStrategy recordTypeStrategy;
+  private final RecordClassTypeStrategy recordTypeStrategy;
   private final Var array;
   private final Var offset;
 
-  public RecordFatPtrVarGenerator(RecordTypeStrategy recordTypeStrategy, Var array, Var offset) {
+  public RecordFatPtrVarGenerator(RecordClassTypeStrategy recordTypeStrategy, Var array, Var offset) {
     this.recordTypeStrategy = recordTypeStrategy;
     this.array = array;
     this.offset = offset;

@@ -8,7 +8,7 @@ import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.ParamStrategy;
-import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
+import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.codegen.var.Var;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleParameter;
@@ -24,9 +24,9 @@ import java.util.List;
  */
 public class RecordUnitPtrPtrParamStrategy implements ParamStrategy {
   
-  private RecordTypeStrategy strategy;
+  private RecordClassTypeStrategy strategy;
 
-  public RecordUnitPtrPtrParamStrategy(RecordTypeStrategy strategy) {
+  public RecordUnitPtrPtrParamStrategy(RecordClassTypeStrategy strategy) {
     this.strategy = strategy;
   }
 

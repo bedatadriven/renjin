@@ -13,7 +13,7 @@ import org.renjin.gcc.codegen.type.primitive.PrimitiveCmpGenerator;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveConstGenerator;
 import org.renjin.gcc.codegen.type.primitive.StringConstantGenerator;
 import org.renjin.gcc.codegen.type.primitive.op.*;
-import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
+import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrCmpGenerator;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrGenerator;
 import org.renjin.gcc.gimple.CallingConvention;
@@ -62,7 +62,7 @@ public class ExprFactory {
             rhs.getGimpleType().isPointerTo(GimpleVoidType.class)) {
 
       GimpleRecordType recordType = lhsType.getBaseType();
-      return ((RecordTypeStrategy) typeOracle.forType(recordType)).voidCast(rhs);
+      return ((RecordClassTypeStrategy) typeOracle.forType(recordType)).voidCast(rhs);
     }
     return rhs;
   }

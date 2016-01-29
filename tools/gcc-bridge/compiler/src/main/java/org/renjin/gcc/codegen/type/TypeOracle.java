@@ -3,14 +3,12 @@ package org.renjin.gcc.codegen.type;
 import com.google.common.collect.Maps;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
-import org.renjin.gcc.codegen.RecordClassGenerator;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.type.complex.ComplexTypeStrategy;
 import org.renjin.gcc.codegen.type.fun.FunTypeStrategy;
 import org.renjin.gcc.codegen.type.primitive.*;
-import org.renjin.gcc.codegen.type.record.fat.RecordFatPtrParamStrategy;
+import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
-import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrReturnStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidReturnStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidTypeStrategy;
 import org.renjin.gcc.gimple.GimpleParameter;
@@ -41,7 +39,9 @@ public class TypeOracle {
 
   public void addRecordType(GimpleRecordTypeDef type, RecordTypeStrategy strategy) {
     recordTypes.put(type.getId(), strategy);
-    classTypes.put(strategy.getJvmType().getInternalName(), strategy.getRecordType());
+    if(strategy instanceof RecordClassTypeStrategy) {
+      classTypes.put(((RecordClassTypeStrategy) strategy).getJvmType().getInternalName(), strategy.getRecordType());
+    }
   }
 
   public Collection<RecordTypeStrategy> getRecordTypes() {
@@ -192,7 +192,7 @@ public class TypeOracle {
 
       } else if (classTypes.containsKey(Type.getInternalName(paramClass))) {
         GimpleRecordType mappedType = classTypes.get(Type.getInternalName(paramClass));
-        generators.add(forRecordType(mappedType).pointerToUnit().getParamStrategy());
+        generators.add(((RecordClassTypeStrategy) forRecordType(mappedType)).pointerToUnit().getParamStrategy());
         index++;
         
       } else {

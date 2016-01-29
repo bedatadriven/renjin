@@ -2,7 +2,6 @@ package org.renjin.gcc.codegen.type.record;
 
 import com.google.common.base.Optional;
 import org.objectweb.asm.MethodVisitor;
-import org.renjin.gcc.codegen.RecordClassGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.VarGenerator;
@@ -19,11 +18,11 @@ import org.renjin.gcc.gimple.type.GimpleType;
  */
 public class RecordPtrPtrVarGenerator extends AbstractExprGenerator implements VarGenerator {
   
-  private RecordTypeStrategy strategy;
+  private RecordClassTypeStrategy strategy;
   private final Var arrayVar;
   private final Var offsetVar;
 
-  public RecordPtrPtrVarGenerator(RecordTypeStrategy strategy, Var arrayVar, Var offsetVar) {
+  public RecordPtrPtrVarGenerator(RecordClassTypeStrategy strategy, Var arrayVar, Var offsetVar) {
     this.strategy = strategy;
     this.arrayVar = arrayVar;
     this.offsetVar = offsetVar;

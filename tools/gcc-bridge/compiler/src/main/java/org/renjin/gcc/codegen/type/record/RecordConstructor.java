@@ -11,10 +11,10 @@ import java.util.Map;
 
 public class RecordConstructor extends AbstractExprGenerator {
   
-  private RecordTypeStrategy strategy;
+  private RecordClassTypeStrategy strategy;
   private Map<String, ExprGenerator> fields;
 
-  public RecordConstructor(RecordTypeStrategy strategy, Map<String, ExprGenerator> fields) {
+  public RecordConstructor(RecordClassTypeStrategy strategy, Map<String, ExprGenerator> fields) {
     this.strategy = strategy;
     this.fields = fields;
   }

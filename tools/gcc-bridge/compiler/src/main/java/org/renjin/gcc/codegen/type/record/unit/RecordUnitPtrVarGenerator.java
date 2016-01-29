@@ -6,17 +6,17 @@ import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.VarGenerator;
-import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
+import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.codegen.var.Var;
 import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 public class RecordUnitPtrVarGenerator extends AbstractExprGenerator implements VarGenerator, RecordUnitPtrGenerator {
   private Var var;
-  private RecordTypeStrategy strategy;
+  private RecordClassTypeStrategy strategy;
   private GimpleType pointerType;
 
-  public RecordUnitPtrVarGenerator(RecordTypeStrategy strategy, Var var) {
+  public RecordUnitPtrVarGenerator(RecordClassTypeStrategy strategy, Var var) {
     this.strategy = strategy;
     this.var = var;
     this.pointerType = new GimplePointerType(strategy.getRecordType());

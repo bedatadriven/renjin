@@ -2,7 +2,6 @@ package org.renjin.gcc.codegen.type.record;
 
 import com.google.common.base.Optional;
 import org.objectweb.asm.MethodVisitor;
-import org.renjin.gcc.codegen.RecordClassGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.VarGenerator;
@@ -15,9 +14,9 @@ import static org.objectweb.asm.Opcodes.*;
 public class RecordVarGenerator extends AbstractExprGenerator implements VarGenerator {
 
   private Var var;
-  private RecordTypeStrategy strategy;
+  private RecordClassTypeStrategy strategy;
 
-  public RecordVarGenerator(RecordTypeStrategy strategy, Var var) {
+  public RecordVarGenerator(RecordClassTypeStrategy strategy, Var var) {
     this.strategy = strategy;
     this.var = var;
   }

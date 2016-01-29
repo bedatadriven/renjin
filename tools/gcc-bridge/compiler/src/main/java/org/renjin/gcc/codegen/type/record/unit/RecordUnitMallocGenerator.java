@@ -2,16 +2,16 @@ package org.renjin.gcc.codegen.type.record.unit;
 
 import org.objectweb.asm.MethodVisitor;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
-import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
+import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 /**
  * Allocates a new Record
  */
 public class RecordUnitMallocGenerator extends AbstractExprGenerator {
-  private RecordTypeStrategy strategy;
+  private RecordClassTypeStrategy strategy;
 
-  public RecordUnitMallocGenerator(RecordTypeStrategy strategy) {
+  public RecordUnitMallocGenerator(RecordClassTypeStrategy strategy) {
     this.strategy = strategy;
   }
 

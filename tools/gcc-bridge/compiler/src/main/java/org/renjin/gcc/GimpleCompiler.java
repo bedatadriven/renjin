@@ -8,12 +8,12 @@ import com.google.common.io.Files;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.analysis.*;
 import org.renjin.gcc.codegen.FunctionGenerator;
-import org.renjin.gcc.codegen.RecordClassGenerator;
 import org.renjin.gcc.codegen.TrampolineClassGenerator;
 import org.renjin.gcc.codegen.UnitClassGenerator;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.call.FunctionCallGenerator;
 import org.renjin.gcc.codegen.type.TypeOracle;
+import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
@@ -175,7 +175,7 @@ public class GimpleCompiler  {
     int recordIndex = 0;
     for (GimpleRecordTypeDef recordTypeDef : recordTypeDefs) {
       
-      RecordTypeStrategy strategy = recordUsage.getStrategyFor(recordTypeDef);
+      RecordClassTypeStrategy strategy = recordUsage.getStrategyFor(recordTypeDef);
     
       if (isProvided(recordTypeDef)) {
 

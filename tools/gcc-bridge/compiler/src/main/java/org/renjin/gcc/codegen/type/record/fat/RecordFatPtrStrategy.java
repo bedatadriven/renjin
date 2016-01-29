@@ -1,26 +1,16 @@
 package org.renjin.gcc.codegen.type.record.fat;
 
-import com.fasterxml.jackson.databind.introspect.BeanPropertyDefinition;
-import com.google.common.collect.Lists;
 import org.objectweb.asm.Type;
-import org.renjin.gcc.InternalCompilerException;
-import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.FieldGenerator;
 import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.type.VarGenerator;
-import org.renjin.gcc.codegen.type.record.RecordArrayConstructor;
-import org.renjin.gcc.codegen.type.record.RecordArrayVarGenerator;
 import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
+import org.renjin.gcc.codegen.var.Var;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
-import org.renjin.gcc.gimple.expr.GimpleConstructor;
-import org.renjin.gcc.gimple.type.GimpleArrayType;
-import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
 import org.renjin.gcc.gimple.type.GimpleType;
-
-import java.util.List;
 
 /**
  * Strategy for record types that are allocated in blocks with more than one record. 
@@ -50,7 +40,23 @@ public class RecordFatPtrStrategy extends TypeStrategy {
   public ParamStrategy getParamStrategy() {
     return new RecordFatPtrParamStrategy(RecordFatPtrStrategy.this);
   }
-  
-  
 
+
+  @Override
+  public FieldGenerator fieldGenerator(String className, String fieldName) {
+    return new RecordFatPtrFieldGenerator(className, fieldName, strategy);
+  }
+
+  @Override
+  public VarGenerator varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
+    Var array = allocator.reserve(decl.getName(), getJvmArrayType());
+    Var offset = allocator.reserveInt(decl.getName() + "$offset");
+    
+    return new RecordFatPtrVarGenerator(strategy, array, offset);
+  }
+
+  @Override
+  public ExprGenerator mallocExpression(ExprGenerator size) {
+    return new RecordFatPtrMallocGenerator(this, size);
+  }
 }

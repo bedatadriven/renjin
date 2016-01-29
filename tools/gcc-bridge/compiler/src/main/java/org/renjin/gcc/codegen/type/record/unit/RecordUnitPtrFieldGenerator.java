@@ -1,4 +1,4 @@
-package org.renjin.gcc.codegen.type.record;
+package org.renjin.gcc.codegen.type.record.unit;
 
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
@@ -6,19 +6,18 @@ import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.FieldGenerator;
-import org.renjin.gcc.codegen.type.record.unit.DereferencedUnitRecordPtr;
-import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrGenerator;
+import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
 import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 
-public class RecordPtrFieldGenerator extends FieldGenerator {
+public class RecordUnitPtrFieldGenerator extends FieldGenerator {
   private String className;
   private String fieldName;
   private RecordTypeStrategy strategy;
 
-  public RecordPtrFieldGenerator(String className, String fieldName, RecordTypeStrategy strategy) {
+  public RecordUnitPtrFieldGenerator(String className, String fieldName, RecordTypeStrategy strategy) {
     this.className = className;
     this.fieldName = fieldName;
     this.strategy = strategy;

@@ -16,7 +16,6 @@ import org.renjin.gcc.codegen.type.primitive.op.*;
 import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrCmpGenerator;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrGenerator;
-import org.renjin.gcc.codegen.type.voidt.VoidCastExprGenerator;
 import org.renjin.gcc.gimple.CallingConvention;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.expr.*;
@@ -274,6 +273,11 @@ public class ExprFactory {
 
       case TRUTH_OR_EXPR:
         return new LogicalOrGenerator(
+            findGenerator(operands.get(0)),
+            findGenerator(operands.get(1)));
+      
+      case TRUTH_XOR_EXPR:
+        return new LogicalXorGenerator(
             findGenerator(operands.get(0)),
             findGenerator(operands.get(1)));
 

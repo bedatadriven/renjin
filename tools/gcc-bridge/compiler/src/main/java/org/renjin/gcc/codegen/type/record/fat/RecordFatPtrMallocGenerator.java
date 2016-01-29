@@ -13,6 +13,7 @@ import org.renjin.gcc.gimple.type.GimpleType;
  */
 public class RecordFatPtrMallocGenerator extends AbstractExprGenerator {
 
+  public static final int MAX_LOOP_UNROLLS = 5;
   private RecordFatPtrStrategy strategy;
   private final ExprGenerator sizeGenerator;
 
@@ -28,16 +29,21 @@ public class RecordFatPtrMallocGenerator extends AbstractExprGenerator {
 
   @Override
   public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+
+    // Allocate the new array
+    sizeGenerator.emitPrimitiveValue(mv);
+    PrimitiveConstGenerator.emitInt(mv, strategy.getGimpleType().sizeOf());
+    mv.visitInsn(Opcodes.IDIV);
+    mv.visitTypeInsn(Opcodes.ANEWARRAY, strategy.getJvmType().getInternalName());
+
+
     int constantCount = isConstantCount(sizeGenerator);
 
-    if(constantCount < 0) {
+    if(constantCount < 0 || constantCount > MAX_LOOP_UNROLLS) {
+      
       throw new UnsupportedOperationException("TODO: dynamic record allocation size");
     } else {
 
-      sizeGenerator.emitPrimitiveValue(mv);
-      PrimitiveConstGenerator.emitInt(mv, strategy.getGimpleType().sizeOf());
-      mv.visitInsn(Opcodes.IDIV);
-      mv.visitTypeInsn(Opcodes.ANEWARRAY, strategy.getJvmType().getInternalName());
 
       Type type = strategy.getJvmType();
 
@@ -53,6 +59,8 @@ public class RecordFatPtrMallocGenerator extends AbstractExprGenerator {
     }
     mv.visitInsn(Opcodes.ICONST_0);
   }
+  
+  
 
   private int isConstantCount(ExprGenerator sizeGenerator) {
     if(sizeGenerator instanceof PrimitiveConstGenerator) {

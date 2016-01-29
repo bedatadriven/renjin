@@ -1,9 +1,9 @@
 package org.renjin.gcc.codegen.type.fun;
 
 import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.FieldGenerator;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveConstGenerator;
@@ -39,7 +39,7 @@ public class FunPtrArrayField extends FieldGenerator {
   }
 
   @Override
-  public void emitInstanceInit(MethodVisitor mv) {
+  public void emitInstanceInit(MethodGenerator mv) {
     mv.visitVarInsn(Opcodes.ALOAD, 0);
     PrimitiveConstGenerator.emitInt(mv, arrayType.getElementCount());
     mv.visitTypeInsn(Opcodes.ANEWARRAY, Type.getDescriptor(ObjectPtr.class));

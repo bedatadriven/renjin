@@ -1,8 +1,8 @@
 package org.renjin.gcc.codegen.type.voidt;
 
 import com.google.common.base.Optional;
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.VarGenerator;
@@ -21,7 +21,7 @@ public class AddressableVoidPtrVar extends AbstractExprGenerator implements VarG
   }
 
   @Override
-  public void emitDefaultInit(MethodVisitor mv, Optional<ExprGenerator> initialValue) {
+  public void emitDefaultInit(MethodGenerator mv, Optional<ExprGenerator> initialValue) {
     mv.visitInsn(Opcodes.ICONST_1);
     mv.visitTypeInsn(Opcodes.ANEWARRAY, "java/lang/Object");
     arrayIndex.store(mv);
@@ -33,7 +33,7 @@ public class AddressableVoidPtrVar extends AbstractExprGenerator implements VarG
   }
 
   @Override
-  public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
+  public void emitStore(MethodGenerator mv, ExprGenerator valueGenerator) {
     arrayIndex.load(mv);
     mv.visitInsn(Opcodes.ICONST_0);
     valueGenerator.emitPushPtrArrayAndOffset(mv);
@@ -53,13 +53,13 @@ public class AddressableVoidPtrVar extends AbstractExprGenerator implements VarG
     }
 
     @Override
-    public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+    public void emitPushPtrArrayAndOffset(MethodGenerator mv) {
       arrayIndex.load(mv);
       mv.visitInsn(Opcodes.ICONST_0);
     }
 
     @Override
-    public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
+    public void emitStore(MethodGenerator mv, ExprGenerator valueGenerator) {
       arrayIndex.load(mv);
       mv.visitInsn(Opcodes.ICONST_0);
       valueGenerator.emitPushPointerWrapper(mv);

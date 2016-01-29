@@ -1,7 +1,7 @@
 package org.renjin.gcc.codegen.type.record;
 
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveConstGenerator;
@@ -29,7 +29,7 @@ public class RecordArrayConstructor extends AbstractExprGenerator {
   }
 
   @Override
-  public void emitPushArray(MethodVisitor mv) {
+  public void emitPushArray(MethodGenerator mv) {
     // create a new array
     PrimitiveConstGenerator.emitInt(mv, arrayType.getElementCount());
     mv.visitTypeInsn(Opcodes.ANEWARRAY, strategy.getJvmType().getInternalName());

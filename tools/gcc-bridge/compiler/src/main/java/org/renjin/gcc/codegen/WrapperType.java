@@ -2,7 +2,6 @@ package org.renjin.gcc.codegen;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
@@ -220,7 +219,7 @@ public class WrapperType {
    * Emits the bytecode to consume a reference to a wrapper instance on the stack
    * and push the array and offset onto the stack. ( wrapper pointer -> array, offset)
    */
-  public void emitUnpackArrayAndOffset(MethodVisitor mv, Optional<Type> castTo) {
+  public void emitUnpackArrayAndOffset(MethodGenerator mv, Optional<Type> castTo) {
     
     // duplicate the wrapper instance so we can call GETFIELD twice.
     mv.visitInsn(DUP);
@@ -239,19 +238,19 @@ public class WrapperType {
     mv.visitFieldInsn(GETFIELD, wrapperType.getInternalName(), "offset", "I");
   }
 
-  public void emitUnpackArrayAndOffset(MethodVisitor mv, WrapperType castTo) {
+  public void emitUnpackArrayAndOffset(MethodGenerator mv, WrapperType castTo) {
     Type wrapperArray = Type.getType("[" + castTo.getWrapperType().getDescriptor());
     emitUnpackArrayAndOffset(mv, Optional.of(wrapperArray));
   }
   
-  public void emitUnpackArrayAndOffset(MethodVisitor mv) {
+  public void emitUnpackArrayAndOffset(MethodGenerator mv) {
     emitUnpackArrayAndOffset(mv, Optional.<Type>absent());
   }
 
     /**
      * Emits the bytecode to consume a reference to the array 
      */
-  public void emitPushNewWrapper(MethodVisitor mv, ExprGenerator ptrGenerator) {
+  public void emitPushNewWrapper(MethodGenerator mv, ExprGenerator ptrGenerator) {
 
     // sanity check type we're trying to create here
     if(!ptrGenerator.getPointerType().equals(this)) {
@@ -271,7 +270,7 @@ public class WrapperType {
     mv.visitMethodInsn(INVOKESPECIAL, wrapperClass, "<init>", getConstructorDescriptor(), false);
   }
 
-  public void emitInvokeUpdate(MethodVisitor mv) {
+  public void emitInvokeUpdate(MethodGenerator mv) {
     mv.visitMethodInsn(INVOKEVIRTUAL, wrapperType.getInternalName(), "update", getConstructorDescriptor(), false);
   }
 

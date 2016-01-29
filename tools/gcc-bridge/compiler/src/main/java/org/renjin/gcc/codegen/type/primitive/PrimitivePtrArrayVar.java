@@ -1,8 +1,8 @@
 package org.renjin.gcc.codegen.type.primitive;
 
 import com.google.common.base.Optional;
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
@@ -39,7 +39,7 @@ public class PrimitivePtrArrayVar extends AbstractExprGenerator implements VarGe
   }
 
   @Override
-  public void emitDefaultInit(MethodVisitor mv, Optional<ExprGenerator> initialValue) {
+  public void emitDefaultInit(MethodGenerator mv, Optional<ExprGenerator> initialValue) {
 
     if(initialValue.isPresent()) {
       emitStore(mv, initialValue.get());
@@ -51,7 +51,7 @@ public class PrimitivePtrArrayVar extends AbstractExprGenerator implements VarGe
   }
 
   @Override
-  public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
+  public void emitStore(MethodGenerator mv, ExprGenerator valueGenerator) {
     valueGenerator.emitPushArray(mv);
     arrayVar.store(mv);
   }
@@ -82,7 +82,7 @@ public class PrimitivePtrArrayVar extends AbstractExprGenerator implements VarGe
     }
 
     @Override
-    public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+    public void emitPushPtrArrayAndOffset(MethodGenerator mv) {
       arrayVar.load(mv);
       mv.visitInsn(Opcodes.ICONST_0);
     }
@@ -112,7 +112,7 @@ public class PrimitivePtrArrayVar extends AbstractExprGenerator implements VarGe
     }
 
     @Override
-    public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
+    public void emitStore(MethodGenerator mv, ExprGenerator valueGenerator) {
       // Push the pointer in valueGenerator onto the stack as a DoublePtr
       // and store it to this index
       arrayVar.load(mv);
@@ -123,7 +123,7 @@ public class PrimitivePtrArrayVar extends AbstractExprGenerator implements VarGe
 
 
     @Override
-    public void emitPushPointerWrapper(MethodVisitor mv) {
+    public void emitPushPointerWrapper(MethodGenerator mv) {
       // Push the pointer wrapper onto the stack
       arrayVar.load(mv);
       indexGenerator.emitPrimitiveValue(mv);
@@ -131,7 +131,7 @@ public class PrimitivePtrArrayVar extends AbstractExprGenerator implements VarGe
     }
     
     @Override
-    public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+    public void emitPushPtrArrayAndOffset(MethodGenerator mv) {
       emitPushPointerWrapper(mv);
       wrapperType.emitUnpackArrayAndOffset(mv);
     }

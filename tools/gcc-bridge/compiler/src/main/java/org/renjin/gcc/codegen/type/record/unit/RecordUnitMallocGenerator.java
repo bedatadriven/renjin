@@ -1,6 +1,6 @@
 package org.renjin.gcc.codegen.type.record.unit;
 
-import org.objectweb.asm.MethodVisitor;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.gimple.type.GimpleType;
@@ -21,7 +21,7 @@ public class RecordUnitMallocGenerator extends AbstractExprGenerator {
   }
 
   @Override
-  public void emitPushRecordRef(MethodVisitor mv) { 
+  public void emitPushRecordRef(MethodGenerator mv) { 
     strategy.emitConstructor(mv);
   }
 }

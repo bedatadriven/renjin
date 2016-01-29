@@ -1,7 +1,7 @@
 package org.renjin.gcc.codegen.type.primitive;
 
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
@@ -32,14 +32,14 @@ public class PrimitiveArrayElement extends AbstractExprGenerator {
   }
 
   @Override
-  public void emitPrimitiveValue(MethodVisitor mv) {
+  public void emitPrimitiveValue(MethodGenerator mv) {
     arrayGenerator.emitPushArray(mv);
     indexGenerator.emitPrimitiveValue(mv);
     mv.visitInsn(componentType.getOpcode(IALOAD));
   }
 
   @Override
-  public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
+  public void emitStore(MethodGenerator mv, ExprGenerator valueGenerator) {
     arrayGenerator.emitPushArray(mv);
     indexGenerator.emitPrimitiveValue(mv);
     valueGenerator.emitPrimitiveValue(mv);
@@ -59,7 +59,7 @@ public class PrimitiveArrayElement extends AbstractExprGenerator {
     }
 
     @Override
-    public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+    public void emitPushPtrArrayAndOffset(MethodGenerator mv) {
       arrayGenerator.emitPushArray(mv);
       indexGenerator.emitPrimitiveValue(mv);
     }

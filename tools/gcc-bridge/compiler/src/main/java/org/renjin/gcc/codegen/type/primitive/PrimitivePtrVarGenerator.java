@@ -2,7 +2,7 @@ package org.renjin.gcc.codegen.type.primitive;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
-import org.objectweb.asm.MethodVisitor;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
@@ -41,25 +41,25 @@ public class PrimitivePtrVarGenerator extends AbstractExprGenerator implements V
   }
 
   @Override
-  public void emitDefaultInit(MethodVisitor mv, Optional<ExprGenerator> initialValue) {
+  public void emitDefaultInit(MethodGenerator mv, Optional<ExprGenerator> initialValue) {
     if(initialValue.isPresent()) {
       emitStore(mv, initialValue.get());
     }
   }
 
   @Override
-  public void emitPushPtrArray(MethodVisitor mv) {
+  public void emitPushPtrArray(MethodGenerator mv) {
     arrayVar.load(mv);
   }
   
   @Override
-  public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+  public void emitPushPtrArrayAndOffset(MethodGenerator mv) {
     emitPushPtrArray(mv);
     offsetVar.load(mv);
   }
 
   @Override
-  public void emitStore(MethodVisitor mv, ExprGenerator ptrGenerator) {
+  public void emitStore(MethodGenerator mv, ExprGenerator ptrGenerator) {
     ptrGenerator.emitPushPtrArrayAndOffset(mv);
 
     offsetVar.store(mv);
@@ -127,7 +127,7 @@ public class PrimitivePtrVarGenerator extends AbstractExprGenerator implements V
     }
     
     @Override
-    public void emitPrimitiveValue(MethodVisitor mv) {
+    public void emitPrimitiveValue(MethodGenerator mv) {
       // IALOAD (array, offset) => (value)
       PrimitivePtrVarGenerator.this.emitPushPtrArray(mv);
       // compute index ( pointer offset + array index)
@@ -138,7 +138,7 @@ public class PrimitivePtrVarGenerator extends AbstractExprGenerator implements V
     }
 
     @Override
-    public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
+    public void emitStore(MethodGenerator mv, ExprGenerator valueGenerator) {
       Preconditions.checkState(valueGenerator.getJvmPrimitiveType().equals(componentType.jvmType()));
 
       // IALOAD (array, offset) => (value)
@@ -150,7 +150,7 @@ public class PrimitivePtrVarGenerator extends AbstractExprGenerator implements V
       mv.visitInsn(componentType.jvmType().getOpcode(IASTORE));
     }
 
-    private void pushComputeIndex(MethodVisitor mv) {
+    private void pushComputeIndex(MethodGenerator mv) {
       // original pointer offset + array index
       offsetVar.load(mv);
       indexGenerator.emitPrimitiveValue(mv);
@@ -188,7 +188,7 @@ public class PrimitivePtrVarGenerator extends AbstractExprGenerator implements V
     }
 
     @Override
-    public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+    public void emitPushPtrArrayAndOffset(MethodGenerator mv) {
       PrimitivePtrVarGenerator.this.emitPushPtrArray(mv);
       element.pushComputeIndex(mv);
     }

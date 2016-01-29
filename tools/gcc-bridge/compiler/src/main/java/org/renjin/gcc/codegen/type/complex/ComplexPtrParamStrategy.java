@@ -1,7 +1,7 @@
 package org.renjin.gcc.codegen.type.complex;
 
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.var.Var;
@@ -33,12 +33,12 @@ public class ComplexPtrParamStrategy implements ParamStrategy {
   }
 
   @Override
-  public ExprGenerator emitInitialization(MethodVisitor methodVisitor, GimpleParameter parameter, List<Var> paramVars, VarAllocator localVars) {
+  public ExprGenerator emitInitialization(MethodGenerator methodVisitor, GimpleParameter parameter, List<Var> paramVars, VarAllocator localVars) {
     return new ComplexPtrVarGenerator(type, paramVars.get(0), paramVars.get(1));
   }
 
   @Override
-  public void emitPushParameter(MethodVisitor mv, ExprGenerator parameterValueGenerator) {
+  public void emitPushParameter(MethodGenerator mv, ExprGenerator parameterValueGenerator) {
     // Need to push both the double[] array
     // and the int offset
     parameterValueGenerator.emitPushPtrArrayAndOffset(mv);

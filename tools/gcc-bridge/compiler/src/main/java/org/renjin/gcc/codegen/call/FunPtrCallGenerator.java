@@ -1,9 +1,9 @@
 package org.renjin.gcc.codegen.call;
 
 import com.google.common.collect.Lists;
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.type.ReturnStrategy;
@@ -38,7 +38,7 @@ public class FunPtrCallGenerator implements CallGenerator {
    * @see <a href="http://stackoverflow.com/questions/559581/casting-a-function-pointer-to-another-type">Stack Overflow discussion</a>
    */
   @Override
-  public void emitCall(MethodVisitor mv, List<ExprGenerator> argumentGenerators) {
+  public void emitCall(MethodGenerator mv, List<ExprGenerator> argumentGenerators) {
 
     funPtrGenerator.emitPushMethodHandle(mv);
     
@@ -55,7 +55,7 @@ public class FunPtrCallGenerator implements CallGenerator {
   }
 
   @Override
-  public void emitCallAndPopResult(MethodVisitor mv, List<ExprGenerator> argumentGenerators) {
+  public void emitCallAndPopResult(MethodGenerator mv, List<ExprGenerator> argumentGenerators) {
     emitCall(mv, argumentGenerators);
     switch (returnStrategy.getType().getSize()) {
       case 0:

@@ -2,9 +2,11 @@ package org.renjin.gcc.codegen;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Maps;
-import org.objectweb.asm.*;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.Handle;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.MethodNode;
-import org.objectweb.asm.util.Printer;
 import org.objectweb.asm.util.Textifier;
 import org.objectweb.asm.util.TraceMethodVisitor;
 import org.renjin.gcc.GimpleCompiler;
@@ -15,7 +17,6 @@ import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.*;
-import org.renjin.gcc.codegen.var.LocalVarAllocator;
 import org.renjin.gcc.codegen.var.Var;
 import org.renjin.gcc.gimple.*;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
@@ -41,7 +42,6 @@ public class FunctionGenerator {
   private GimpleFunction function;
   private Map<GimpleParameter, ParamStrategy> params = Maps.newHashMap();
   private ReturnStrategy returnStrategy;
-  private LocalVarAllocator localVarAllocator;
   
   private Labels labels = new Labels();
   private TypeOracle typeOracle;
@@ -51,7 +51,7 @@ public class FunctionGenerator {
   private Label beginLabel = new Label();
   private Label endLabel = new Label();
   
-  private MethodVisitor mv;
+  private MethodGenerator mv;
 
   public FunctionGenerator(String className, GimpleFunction function, TypeOracle typeOracle, UnitSymbolTable symbolTable) {
     this.className = className;
@@ -60,7 +60,6 @@ public class FunctionGenerator {
     this.params = this.typeOracle.forParameters(function.getParameters());
     this.returnStrategy = this.typeOracle.findReturnGenerator(function.getReturnType());
     this.symbolTable = new LocalVariableTable(symbolTable);
-    this.localVarAllocator = new LocalVarAllocator();
     this.exprFactory = new ExprFactory(typeOracle, this.symbolTable, function.getCallingConvention());
   }
 
@@ -82,7 +81,7 @@ public class FunctionGenerator {
         function.getMangledName(), 
         getFunctionDescriptor(), null, null);
 
-    mv = methodNode;
+    mv = new MethodGenerator(methodNode);
     mv.visitCode();
     mv.visitLabel(beginLabel);
     
@@ -142,10 +141,10 @@ public class FunctionGenerator {
       ParamStrategy paramStrategy = params.get(param);
       List<Type> parameterTypes = paramStrategy.getParameterTypes();
       if(parameterTypes.size() == 1) {
-        paramVars.add(localVarAllocator.reserve(param.getName(), parameterTypes.get(0)));
+        paramVars.add(mv.getLocalVarAllocator().reserve(param.getName(), parameterTypes.get(0)));
       } else {
         for (int typeIndex = 0; typeIndex < parameterTypes.size(); typeIndex++) {
-          paramVars.add(localVarAllocator.reserve(param.getName() + "$" + typeIndex, parameterTypes.get(typeIndex)));
+          paramVars.add(mv.getLocalVarAllocator().reserve(param.getName() + "$" + typeIndex, parameterTypes.get(typeIndex)));
         }
       }
       paramIndexes.add(paramVars);
@@ -155,7 +154,7 @@ public class FunctionGenerator {
     for (int i = 0; i < numParameters; i++) {
       GimpleParameter param = function.getParameters().get(i);
       ParamStrategy generator = params.get(param);
-      ExprGenerator exprGenerator = generator.emitInitialization(mv, param, paramIndexes.get(i), localVarAllocator);
+      ExprGenerator exprGenerator = generator.emitInitialization(mv, param, paramIndexes.get(i), mv.getLocalVarAllocator());
       symbolTable.addVariable(param.getId(), exprGenerator);
     }
   }
@@ -190,7 +189,7 @@ public class FunctionGenerator {
       try {
         VarGenerator generator;
         TypeStrategy factory = typeOracle.forType(varDecl.getType());
-        generator = factory.varGenerator(varDecl, localVarAllocator);
+        generator = factory.varGenerator(varDecl, mv.getLocalVarAllocator());
 
         symbolTable.addVariable(varDecl.getId(), generator);
       } catch (Exception e) {

@@ -1,9 +1,9 @@
 package org.renjin.gcc.codegen.type.primitive.op;
 
 
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.primitive.AddressOfPrimitiveValue;
@@ -19,7 +19,7 @@ public class BitwiseNotGenerator extends AbstractExprGenerator implements ExprGe
   
 
   @Override
-  public void emitPrimitiveValue(MethodVisitor mv) {
+  public void emitPrimitiveValue(MethodGenerator mv) {
     
     if(!valueGenerator.getJvmPrimitiveType().equals(Type.INT_TYPE)) {
       throw new UnsupportedOperationException("Bitwise not only supported for int32 operands.");

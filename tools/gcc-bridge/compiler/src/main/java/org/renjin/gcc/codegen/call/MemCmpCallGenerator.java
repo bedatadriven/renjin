@@ -1,8 +1,8 @@
 package org.renjin.gcc.codegen.call;
 
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveReturnStrategy;
 import org.renjin.gcc.gimple.type.GimpleIntegerType;
@@ -17,7 +17,7 @@ import java.util.List;
 public class MemCmpCallGenerator implements CallGenerator {
   
   @Override
-  public void emitCall(MethodVisitor mv, List<ExprGenerator> argumentGenerators) {
+  public void emitCall(MethodGenerator mv, List<ExprGenerator> argumentGenerators) {
     ExprGenerator p1 = argumentGenerators.get(0);
     ExprGenerator p2 = argumentGenerators.get(1);
     ExprGenerator n = argumentGenerators.get(2);
@@ -46,7 +46,7 @@ public class MemCmpCallGenerator implements CallGenerator {
   }
 
   @Override
-  public void emitCallAndPopResult(MethodVisitor visitor, List<ExprGenerator> argumentGenerators) {
+  public void emitCallAndPopResult(MethodGenerator visitor, List<ExprGenerator> argumentGenerators) {
     // this function has no side effects
     
   }

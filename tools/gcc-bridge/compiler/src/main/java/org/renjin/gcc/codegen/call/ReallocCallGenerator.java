@@ -1,8 +1,8 @@
 package org.renjin.gcc.codegen.call;
 
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.type.GimpleType;
@@ -15,12 +15,12 @@ import java.util.List;
  */
 public class ReallocCallGenerator implements CallGenerator {
   @Override
-  public void emitCall(MethodVisitor visitor, List<ExprGenerator> argumentGenerators) {
+  public void emitCall(MethodGenerator visitor, List<ExprGenerator> argumentGenerators) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void emitCallAndPopResult(MethodVisitor visitor, List<ExprGenerator> argumentGenerators) {
+  public void emitCallAndPopResult(MethodGenerator visitor, List<ExprGenerator> argumentGenerators) {
     // NOOP
   }
 
@@ -49,7 +49,7 @@ public class ReallocCallGenerator implements CallGenerator {
     }
     
     @Override
-    public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+    public void emitPushPtrArrayAndOffset(MethodGenerator mv) {
       // push [array, offset, newCount]
       pointer.emitPushPtrArrayAndOffset(mv);
       offsetToElements(size, pointer.getGimpleType().getBaseType().sizeOf()).emitPrimitiveValue(mv);

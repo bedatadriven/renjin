@@ -1,7 +1,7 @@
 package org.renjin.gcc.codegen.type.record;
 
 import com.google.common.base.Optional;
-import org.objectweb.asm.MethodVisitor;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.VarGenerator;
@@ -29,20 +29,20 @@ public class RecordPtrPtrVarGenerator extends AbstractExprGenerator implements V
   }
 
   @Override
-  public void emitDefaultInit(MethodVisitor mv, Optional<ExprGenerator> initialValue) {
+  public void emitDefaultInit(MethodGenerator mv, Optional<ExprGenerator> initialValue) {
     if(initialValue.isPresent()) {
       emitStore(mv, initialValue.get());
     }
   }
 
   @Override
-  public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+  public void emitPushPtrArrayAndOffset(MethodGenerator mv) {
     arrayVar.load(mv);
     offsetVar.load(mv);
   }
 
   @Override
-  public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
+  public void emitStore(MethodGenerator mv, ExprGenerator valueGenerator) {
     valueGenerator.emitPushPtrArrayAndOffset(mv);
     offsetVar.store(mv);
     arrayVar.store(mv);

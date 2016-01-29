@@ -1,7 +1,7 @@
 package org.renjin.gcc.codegen.expr;
 
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
@@ -77,9 +77,9 @@ public interface ExprGenerator {
    * Writes the code to push this value on the stack.
    * @throws UnsupportedOperationException if this is not a value expression
    */
-  void emitPrimitiveValue(MethodVisitor mv);
+  void emitPrimitiveValue(MethodGenerator mv);
 
-  void emitPushBoxedPrimitiveValue(MethodVisitor mv);
+  void emitPushBoxedPrimitiveValue(MethodGenerator mv);
 
 
 
@@ -87,32 +87,32 @@ public interface ExprGenerator {
    * Writes the code push the array and offset backing this pointer onto the stack
    * @throws UnsupportedOperationException if this is not a pointer expression
    */
-  void emitPushPtrArrayAndOffset(MethodVisitor mv);
+  void emitPushPtrArrayAndOffset(MethodGenerator mv);
 
-  void emitPushPtrArray(MethodVisitor mv);
+  void emitPushPtrArray(MethodGenerator mv);
 
-  void emitPushPtrRefForNullComparison(MethodVisitor mv);
+  void emitPushPtrRefForNullComparison(MethodGenerator mv);
 
-  void emitPushArray(MethodVisitor mv);
+  void emitPushArray(MethodGenerator mv);
   
   /**
    * Writes the code to push the reference onto the stack
    * @throws UnsupportedOperationException if this is not a pointer with a reference representation
    */
-  void emitPushMethodHandle(MethodVisitor mv);
+  void emitPushMethodHandle(MethodGenerator mv);
 
   /**
    * Writes the code to push a pointer wrapper instance onto the stack 
    * @throws UnsupportedOperationException if this is not a pointer expression
    */ 
-  void emitPushPointerWrapper(MethodVisitor mv);
+  void emitPushPointerWrapper(MethodGenerator mv);
 
 
   /**
    * Writes the code to push this complex value onto the stack as a {@code double[]} or {@code float[]} of length 2
    * @throws UnsupportedOperationException if this is not a complex number expression
    */
-  void emitPushComplexAsArray(MethodVisitor mv);
+  void emitPushComplexAsArray(MethodGenerator mv);
   
   /**
    * 
@@ -120,11 +120,11 @@ public interface ExprGenerator {
    * 
    * @param valueGenerator the generator which produces the value to be stored
    */
-  void emitStore(MethodVisitor mv, ExprGenerator valueGenerator);
+  void emitStore(MethodGenerator mv, ExprGenerator valueGenerator);
 
   ExprGenerator memberOf(String memberName);
 
-  void emitPushRecordRef(MethodVisitor mv);
+  void emitPushRecordRef(MethodGenerator mv);
 
 
 }

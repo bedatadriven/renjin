@@ -1,8 +1,8 @@
 package org.renjin.gcc.codegen.type.voidt;
 
 import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.FieldGenerator;
@@ -54,13 +54,13 @@ public class VoidPtrField extends FieldGenerator {
     }
 
     @Override
-    public void emitPushArray(MethodVisitor mv) {
+    public void emitPushArray(MethodGenerator mv) {
       instanceGenerator.emitPushRecordRef(mv);
       mv.visitFieldInsn(Opcodes.GETFIELD, className, arrayFieldName, arrayFieldDescriptor);
     }
 
     @Override
-    public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+    public void emitPushPtrArrayAndOffset(MethodGenerator mv) {
       instanceGenerator.emitPushRecordRef(mv);
       mv.visitInsn(Opcodes.DUP);
       // stack: (instance, instance)
@@ -73,7 +73,7 @@ public class VoidPtrField extends FieldGenerator {
     }
 
     @Override
-    public void emitStore(MethodVisitor mv, ExprGenerator ptr) {
+    public void emitStore(MethodGenerator mv, ExprGenerator ptr) {
 
       instanceGenerator.emitPushRecordRef(mv);
       

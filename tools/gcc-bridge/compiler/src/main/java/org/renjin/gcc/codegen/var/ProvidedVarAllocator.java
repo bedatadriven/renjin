@@ -1,11 +1,9 @@
 package org.renjin.gcc.codegen.var;
 
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
-import org.renjin.gcc.codegen.var.Var;
-import org.renjin.gcc.codegen.var.VarAllocator;
+import org.renjin.gcc.codegen.MethodGenerator;
 
 import java.lang.reflect.Field;
 
@@ -38,12 +36,12 @@ public class ProvidedVarAllocator extends VarAllocator {
     }
     return new Var() {
       @Override
-      public void load(MethodVisitor mv) {
+      public void load(MethodGenerator mv) {
         mv.visitFieldInsn(Opcodes.GETSTATIC, Type.getInternalName(declaringClass), name, type.getDescriptor());
       }
 
       @Override
-      public void store(MethodVisitor mv) {
+      public void store(MethodGenerator mv) {
         mv.visitFieldInsn(Opcodes.PUTSTATIC, Type.getInternalName(declaringClass), name, type.getDescriptor());
       }
     };

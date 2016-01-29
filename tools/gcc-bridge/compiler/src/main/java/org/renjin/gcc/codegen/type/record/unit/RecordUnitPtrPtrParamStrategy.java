@@ -1,9 +1,9 @@
 package org.renjin.gcc.codegen.type.record.unit;
 
 import com.google.common.base.Optional;
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
@@ -36,12 +36,12 @@ public class RecordUnitPtrPtrParamStrategy implements ParamStrategy {
   }
 
   @Override
-  public ExprGenerator emitInitialization(MethodVisitor methodVisitor, GimpleParameter parameter, List<Var> paramVars, VarAllocator localVars) {
+  public ExprGenerator emitInitialization(MethodGenerator methodVisitor, GimpleParameter parameter, List<Var> paramVars, VarAllocator localVars) {
     return new ParamExpr(paramVars.get(0));
   }
 
   @Override
-  public void emitPushParameter(MethodVisitor mv, ExprGenerator parameterValueGenerator) {
+  public void emitPushParameter(MethodGenerator mv, ExprGenerator parameterValueGenerator) {
     parameterValueGenerator.emitPushPointerWrapper(mv);
   }
 
@@ -64,14 +64,14 @@ public class RecordUnitPtrPtrParamStrategy implements ParamStrategy {
     }
 
     @Override
-    public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+    public void emitPushPtrArrayAndOffset(MethodGenerator mv) {
       var.load(mv);
       Type arrayType = Type.getType("[" + strategy.getJvmType().getDescriptor());
       WrapperType.OBJECT_PTR.emitUnpackArrayAndOffset(mv, Optional.of(arrayType));
     }
 
     @Override
-    public void emitPushPtrRefForNullComparison(MethodVisitor mv) {
+    public void emitPushPtrRefForNullComparison(MethodGenerator mv) {
       var.load(mv);
       mv.visitFieldInsn(Opcodes.GETFIELD, Type.getInternalName(ObjectPtr.class), "array", "[Ljava/lang/Object;");
     }

@@ -1,8 +1,8 @@
 package org.renjin.gcc.codegen.type.primitive.op;
 
 import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.primitive.AddressOfPrimitiveValue;
@@ -30,7 +30,7 @@ public class UnorderedExprGenerator extends AbstractExprGenerator {
   }
 
   @Override
-  public void emitPrimitiveValue(MethodVisitor mv) {
+  public void emitPrimitiveValue(MethodGenerator mv) {
 
     Label unordered = new Label();
     Label exit = new Label();
@@ -57,7 +57,7 @@ public class UnorderedExprGenerator extends AbstractExprGenerator {
     mv.visitLabel(exit);
   }
 
-  private void emitIsNaN(MethodVisitor mv, ExprGenerator x) {
+  private void emitIsNaN(MethodGenerator mv, ExprGenerator x) {
     x.emitPrimitiveValue(mv);
     
     GimpleRealType type = (GimpleRealType) x.getGimpleType();

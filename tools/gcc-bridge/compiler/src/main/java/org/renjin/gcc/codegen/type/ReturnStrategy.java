@@ -1,7 +1,7 @@
 package org.renjin.gcc.codegen.type;
 
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.complex.ComplexReturnStrategy;
@@ -30,7 +30,7 @@ public interface ReturnStrategy {
   /**
    * Generate the bytecode to return the given {@code valueGenerator} from the method.
    */
-  void emitReturnValue(MethodVisitor mv, ExprGenerator valueGenerator);
+  void emitReturnValue(MethodGenerator mv, ExprGenerator valueGenerator);
 
   /**
    * Generate the bytecode to return a default or empty value for this type.
@@ -38,7 +38,7 @@ public interface ReturnStrategy {
    * <p>Often required because GCC allows functions to return without explicitly
    * requiring a return value, while the JVM is not so lax.</p>
    */
-  void emitReturnDefault(MethodVisitor mv);
+  void emitReturnDefault(MethodGenerator mv);
 
 
   /**

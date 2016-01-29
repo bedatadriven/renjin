@@ -1,7 +1,7 @@
 package org.renjin.gcc.codegen.type.record;
 
 import com.google.common.base.Optional;
-import org.objectweb.asm.MethodVisitor;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.VarGenerator;
@@ -22,7 +22,7 @@ public class RecordVarGenerator extends AbstractExprGenerator implements VarGene
   }
 
   @Override
-  public void emitDefaultInit(MethodVisitor mv, Optional<ExprGenerator> initialValue) {
+  public void emitDefaultInit(MethodGenerator mv, Optional<ExprGenerator> initialValue) {
     mv.visitTypeInsn(NEW, strategy.getJvmType().getInternalName());
     mv.visitInsn(DUP);
     mv.visitMethodInsn(INVOKESPECIAL, strategy.getJvmType().getInternalName(), "<init>", "()V", false);
@@ -55,7 +55,7 @@ public class RecordVarGenerator extends AbstractExprGenerator implements VarGene
     }
 
     @Override
-    public void emitPushRecordRef(MethodVisitor mv) {
+    public void emitPushRecordRef(MethodGenerator mv) {
       var.load(mv);
     }
   }

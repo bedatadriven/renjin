@@ -1,9 +1,9 @@
 package org.renjin.gcc.codegen.type.fun;
 
 import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.FieldGenerator;
@@ -42,7 +42,7 @@ public class FunPtrFieldGenerator extends FieldGenerator {
     cv.visitField(access, fieldName, Type.getDescriptor(MethodHandle.class), null, null).visitEnd();
   }
   
-  public void emitStoreMember(MethodVisitor mv, ExprGenerator valueGenerator) {
+  public void emitStoreMember(MethodGenerator mv, ExprGenerator valueGenerator) {
     valueGenerator.emitPushMethodHandle(mv);
     mv.visitFieldInsn(Opcodes.PUTFIELD, className, fieldName, Type.getDescriptor(MethodHandle.class));
   }
@@ -65,19 +65,19 @@ public class FunPtrFieldGenerator extends FieldGenerator {
     }
 
     @Override
-    public void emitPushMethodHandle(MethodVisitor mv) {
+    public void emitPushMethodHandle(MethodGenerator mv) {
       instanceGenerator.emitPushRecordRef(mv);
       mv.visitFieldInsn(Opcodes.GETFIELD, className, fieldName, Type.getDescriptor(MethodHandle.class));
     }
 
     @Override
-    public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
+    public void emitStore(MethodGenerator mv, ExprGenerator valueGenerator) {
       instanceGenerator.emitPushRecordRef(mv);
       emitStoreMember(mv, valueGenerator);
     }
 
     @Override
-    public void emitPushPtrRefForNullComparison(MethodVisitor mv) {
+    public void emitPushPtrRefForNullComparison(MethodGenerator mv) {
       emitPushMethodHandle(mv);
     }
   }

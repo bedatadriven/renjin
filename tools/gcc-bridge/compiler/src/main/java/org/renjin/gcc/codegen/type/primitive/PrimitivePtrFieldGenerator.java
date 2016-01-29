@@ -1,9 +1,9 @@
 package org.renjin.gcc.codegen.type.primitive;
 
 import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
@@ -65,7 +65,7 @@ public class PrimitivePtrFieldGenerator extends FieldGenerator {
 
   
   @Override
-  public void emitStoreMember(MethodVisitor mv, ExprGenerator ptr) {
+  public void emitStoreMember(MethodGenerator mv, ExprGenerator ptr) {
     
     // Need two copies of the instance on the stack for the store stores
     mv.visitInsn(Opcodes.DUP);
@@ -114,7 +114,7 @@ public class PrimitivePtrFieldGenerator extends FieldGenerator {
     }
 
     @Override
-    public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+    public void emitPushPtrArrayAndOffset(MethodGenerator mv) {
       instance.emitPushRecordRef(mv);
       mv.visitInsn(Opcodes.DUP);
       mv.visitFieldInsn(Opcodes.GETFIELD, className, arrayFieldName, arrayTypeDescriptor());
@@ -125,7 +125,7 @@ public class PrimitivePtrFieldGenerator extends FieldGenerator {
     }
 
     @Override
-    public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
+    public void emitStore(MethodGenerator mv, ExprGenerator valueGenerator) {
       instance.emitPushRecordRef(mv);
       emitStoreMember(mv, valueGenerator);
     }

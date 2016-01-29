@@ -1,7 +1,7 @@
 package org.renjin.gcc.codegen.type;
 
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveParamStrategy;
 import org.renjin.gcc.codegen.var.LocalVarAllocator;
@@ -48,13 +48,13 @@ public interface ParamStrategy {
    *                   if needed.
    * @return an {@code ExprGenerator} which can be used to access this parameter's value.
    */
-  ExprGenerator emitInitialization(MethodVisitor methodVisitor, GimpleParameter parameter, List<Var> paramVars, VarAllocator localVars);
+  ExprGenerator emitInitialization(MethodGenerator methodVisitor, GimpleParameter parameter, List<Var> paramVars, VarAllocator localVars);
 
 
   /**
    * Pushes a value onto the stack in the format neccessary for function paramter using this strategy.
    */
-  void emitPushParameter(MethodVisitor mv, ExprGenerator parameterValueGenerator);
+  void emitPushParameter(MethodGenerator mv, ExprGenerator parameterValueGenerator);
 
 
 }

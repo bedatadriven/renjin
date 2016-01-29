@@ -1,7 +1,7 @@
 package org.renjin.gcc.codegen.type.primitive;
 
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
@@ -26,13 +26,13 @@ public class DereferencedPrimitiveValue extends AbstractExprGenerator {
   }
 
   @Override
-  public void emitPrimitiveValue(MethodVisitor mv) {
+  public void emitPrimitiveValue(MethodGenerator mv) {
     pointer.emitPushPtrArrayAndOffset(mv);
     mv.visitInsn(type.jvmType().getOpcode(Opcodes.IALOAD));
   }
 
   @Override
-  public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
+  public void emitStore(MethodGenerator mv, ExprGenerator valueGenerator) {
     pointer.emitPushPtrArrayAndOffset(mv);
     valueGenerator.emitPrimitiveValue(mv);
     mv.visitInsn(type.jvmType().getOpcode(Opcodes.IASTORE));

@@ -2,8 +2,8 @@ package org.renjin.gcc.codegen.type.primitive;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
@@ -34,7 +34,7 @@ public class PrimitiveArrayPtrVar extends AbstractExprGenerator implements VarGe
   }
 
   @Override
-  public void emitDefaultInit(MethodVisitor mv, Optional<ExprGenerator> initialValue) {
+  public void emitDefaultInit(MethodGenerator mv, Optional<ExprGenerator> initialValue) {
     mv.visitInsn(Opcodes.ACONST_NULL);
     arrayVar.store(mv);
     mv.visitInsn(Opcodes.ICONST_0);
@@ -61,13 +61,13 @@ public class PrimitiveArrayPtrVar extends AbstractExprGenerator implements VarGe
   }
 
   @Override
-  public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+  public void emitPushPtrArrayAndOffset(MethodGenerator mv) {
     arrayVar.load(mv);
     offsetVar.load(mv);
   }
 
   @Override
-  public void emitStore(MethodVisitor mv, ExprGenerator ptrGenerator) {
+  public void emitStore(MethodGenerator mv, ExprGenerator ptrGenerator) {
     ptrGenerator.emitPushPtrArrayAndOffset(mv);
 
     offsetVar.store(mv);

@@ -133,7 +133,7 @@ public class UnitClassGenerator {
     
     // and any static initialization that is required
     ExprFactory exprFactory = new ExprFactory(typeOracle, symbolTable, unit.getCallingConvention());
-    MethodVisitor mv = cv.visitMethod(ACC_STATIC, "<clinit>", "()V", null, null);
+    MethodGenerator mv = new MethodGenerator(cv.visitMethod(ACC_STATIC, "<clinit>", "()V", null, null));
     mv.visitCode();
 
     for (GimpleVarDecl decl : varToGenerate) {

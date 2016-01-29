@@ -1,8 +1,8 @@
 package org.renjin.gcc.codegen.call;
 
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.InternalCompilerException;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.type.GimpleType;
 
@@ -13,7 +13,7 @@ import java.util.List;
  */
 public class FreeCallGenerator implements CallGenerator {
   @Override
-  public void emitCall(MethodVisitor mv, List<ExprGenerator> argumentGenerators) {
+  public void emitCall(MethodGenerator mv, List<ExprGenerator> argumentGenerators) {
     if(argumentGenerators.size() != 1) {
       throw new InternalCompilerException("Expected single argument to free, found " +
         argumentGenerators.size() + " arguments");
@@ -27,7 +27,7 @@ public class FreeCallGenerator implements CallGenerator {
   }
 
   @Override
-  public void emitCallAndPopResult(MethodVisitor visitor, List<ExprGenerator> argumentGenerators) {
+  public void emitCallAndPopResult(MethodGenerator visitor, List<ExprGenerator> argumentGenerators) {
     emitCall(visitor, argumentGenerators);
   }
 

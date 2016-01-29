@@ -2,8 +2,8 @@ package org.renjin.gcc.codegen.type.primitive;
 
 import com.google.common.base.Preconditions;
 import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.FieldGenerator;
@@ -42,7 +42,7 @@ public class PrimitiveFieldGenerator extends FieldGenerator {
   }
 
   @Override
-  public void emitStoreMember(MethodVisitor mv, ExprGenerator valueGenerator) {
+  public void emitStoreMember(MethodGenerator mv, ExprGenerator valueGenerator) {
     valueGenerator.emitPrimitiveValue(mv);
     mv.visitFieldInsn(PUTFIELD, className, fieldName, type.getDescriptor());
   }
@@ -67,13 +67,13 @@ public class PrimitiveFieldGenerator extends FieldGenerator {
     }
 
     @Override
-    public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
+    public void emitStore(MethodGenerator mv, ExprGenerator valueGenerator) {
       instance.emitPushRecordRef(mv);
       emitStoreMember(mv, valueGenerator);
     }
 
     @Override
-    public void emitPrimitiveValue(MethodVisitor mv) {
+    public void emitPrimitiveValue(MethodGenerator mv) {
       instance.emitPushRecordRef(mv);
       mv.visitFieldInsn(GETFIELD, className, fieldName, type.getDescriptor());
     }

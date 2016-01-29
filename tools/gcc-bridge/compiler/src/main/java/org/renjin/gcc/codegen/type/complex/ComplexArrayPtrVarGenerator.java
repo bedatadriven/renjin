@@ -1,10 +1,10 @@
 package org.renjin.gcc.codegen.type.complex;
 
 import com.google.common.base.Optional;
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
@@ -45,12 +45,12 @@ public class ComplexArrayPtrVarGenerator extends AbstractExprGenerator implement
 
 
   @Override
-  public void emitDefaultInit(MethodVisitor mv, Optional<ExprGenerator> initialValue) {
+  public void emitDefaultInit(MethodGenerator mv, Optional<ExprGenerator> initialValue) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void emitPushPtrArray(MethodVisitor mv) {
+  public void emitPushPtrArray(MethodGenerator mv) {
     arrayVar.load(mv);
   }
 
@@ -101,7 +101,7 @@ public class ComplexArrayPtrVarGenerator extends AbstractExprGenerator implement
     }
 
 
-    private void emitPushIndex(MethodVisitor mv) {
+    private void emitPushIndex(MethodGenerator mv) {
       // first we need the base offset within the array
       offsetVar.load(mv);
 
@@ -118,7 +118,7 @@ public class ComplexArrayPtrVarGenerator extends AbstractExprGenerator implement
     }
 
     @Override
-    public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
+    public void emitStore(MethodGenerator mv, ExprGenerator valueGenerator) {
       ComplexArrayPtrVarGenerator.this.emitPushPtrArray(mv);
       mv.visitInsn(Opcodes.DUP);
       // stack: (array, array)
@@ -164,14 +164,14 @@ public class ComplexArrayPtrVarGenerator extends AbstractExprGenerator implement
     }
 
     @Override
-    public void emitPrimitiveValue(MethodVisitor mv) {
+    public void emitPrimitiveValue(MethodGenerator mv) {
       ComplexArrayPtrVarGenerator.this.emitPushPtrArray(mv);
       emitPushIndex(mv);
       mv.visitInsn(partType.getOpcode(Opcodes.IALOAD));
     }
 
     @Override
-    public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
+    public void emitStore(MethodGenerator mv, ExprGenerator valueGenerator) {
       ComplexArrayPtrVarGenerator.this.emitPushPtrArray(mv);
       emitPushIndex(mv);
 
@@ -180,7 +180,7 @@ public class ComplexArrayPtrVarGenerator extends AbstractExprGenerator implement
       mv.visitInsn(partType.getOpcode(Opcodes.IASTORE));
     }
 
-    private void emitPushIndex(MethodVisitor mv) {
+    private void emitPushIndex(MethodGenerator mv) {
       // push the array index of this element
       element.emitPushIndex(mv);
 
@@ -217,7 +217,7 @@ public class ComplexArrayPtrVarGenerator extends AbstractExprGenerator implement
     }
 
     @Override
-    public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+    public void emitPushPtrArrayAndOffset(MethodGenerator mv) {
       arrayVar.load(mv);
       element.emitPushIndex(mv);
     }

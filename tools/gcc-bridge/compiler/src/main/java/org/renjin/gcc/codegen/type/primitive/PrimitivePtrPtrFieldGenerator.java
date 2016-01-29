@@ -1,8 +1,8 @@
 package org.renjin.gcc.codegen.type.primitive;
 
 import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
@@ -71,13 +71,13 @@ public class PrimitivePtrPtrFieldGenerator extends FieldGenerator {
     }
 
     @Override
-    public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+    public void emitPushPtrArrayAndOffset(MethodGenerator mv) {
       mv.visitFieldInsn(Opcodes.GETSTATIC, className, fieldName, arrayFieldDescriptor);
       mv.visitFieldInsn(Opcodes.GETSTATIC, className, fieldName + "$offset", "I");
     }
 
     @Override
-    public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
+    public void emitStore(MethodGenerator mv, ExprGenerator valueGenerator) {
       valueGenerator.emitPushPtrArrayAndOffset(mv);
       mv.visitFieldInsn(Opcodes.PUTSTATIC, className, fieldName + "$offset", "I");
       mv.visitFieldInsn(Opcodes.PUTSTATIC, className, fieldName, arrayFieldDescriptor);

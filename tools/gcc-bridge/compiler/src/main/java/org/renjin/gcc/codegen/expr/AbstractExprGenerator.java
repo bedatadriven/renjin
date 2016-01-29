@@ -1,9 +1,9 @@
 package org.renjin.gcc.codegen.expr;
 
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.UnimplementedException;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.call.MallocGenerator;
@@ -58,12 +58,12 @@ public abstract class AbstractExprGenerator implements ExprGenerator {
   }
 
   @Override
-  public void emitPrimitiveValue(MethodVisitor mv) {
+  public void emitPrimitiveValue(MethodGenerator mv) {
     throw new UnimplementedException(getClass(), "emitPrimitiveValue");
   }
 
   @Override
-  public final void emitPushBoxedPrimitiveValue(MethodVisitor mv) {
+  public final void emitPushBoxedPrimitiveValue(MethodGenerator mv) {
     emitPrimitiveValue(mv);
     
     Type type = ((GimplePrimitiveType) getGimpleType()).jvmType();
@@ -89,28 +89,28 @@ public abstract class AbstractExprGenerator implements ExprGenerator {
   }
 
   @Override
-  public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+  public void emitPushPtrArrayAndOffset(MethodGenerator mv) {
     throw new UnimplementedException(getClass(), "emitPushPtrArrayAndOffset");
   }
 
   @Override
-  public void emitPushPtrArray(MethodVisitor mv) {
+  public void emitPushPtrArray(MethodGenerator mv) {
     emitPushPtrArrayAndOffset(mv);
     mv.visitInsn(Opcodes.POP);
   }
 
   @Override
-  public void emitPushPtrRefForNullComparison(MethodVisitor mv) {
+  public void emitPushPtrRefForNullComparison(MethodGenerator mv) {
     emitPushPtrArray(mv);
   }
   
   @Override
-  public void emitPushArray(MethodVisitor mv) {
+  public void emitPushArray(MethodGenerator mv) {
     throw new UnimplementedException(getClass(), "emitPushArray");
   }
 
   @Override
-  public void emitPushMethodHandle(MethodVisitor mv) {
+  public void emitPushMethodHandle(MethodGenerator mv) {
     throw new UnimplementedException(getClass(), "emitPushMethodHandle");
   }
 
@@ -123,12 +123,12 @@ public abstract class AbstractExprGenerator implements ExprGenerator {
   }
 
   @Override
-  public void emitPushPointerWrapper(MethodVisitor mv) {
+  public void emitPushPointerWrapper(MethodGenerator mv) {
     getPointerType().emitPushNewWrapper(mv, this);
   }
 
   @Override
-  public void emitPushComplexAsArray(MethodVisitor mv) {
+  public void emitPushComplexAsArray(MethodGenerator mv) {
     Type partType = realPart().getJvmPrimitiveType();
     
     mv.visitInsn(Opcodes.ICONST_2);
@@ -144,7 +144,7 @@ public abstract class AbstractExprGenerator implements ExprGenerator {
   }
 
   @Override
-  public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
+  public void emitStore(MethodGenerator mv, ExprGenerator valueGenerator) {
     throw new UnimplementedException(getClass(), "emitStore");
   }
 
@@ -159,11 +159,11 @@ public abstract class AbstractExprGenerator implements ExprGenerator {
   }
 
   @Override
-  public void emitPushRecordRef(MethodVisitor mv) {
+  public void emitPushRecordRef(MethodGenerator mv) {
     throw new UnimplementedException(getClass(), "emitPushRecordRef");
   }
 
-  protected final void addOffsetInBytes(MethodVisitor mv, ExprGenerator offsetInBytes) {
+  protected final void addOffsetInBytes(MethodGenerator mv, ExprGenerator offsetInBytes) {
 
     // convert bytes to elements by dividing by the element size in bytes
     ExprGenerator offsetCount = offsetToElements(offsetInBytes, getGimpleType().getBaseType().sizeOf());

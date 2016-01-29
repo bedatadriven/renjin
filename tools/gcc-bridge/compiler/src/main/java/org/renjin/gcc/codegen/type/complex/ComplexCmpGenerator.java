@@ -1,10 +1,10 @@
 package org.renjin.gcc.codegen.type.complex;
 
 import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
+import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.type.GimpleComplexType;
@@ -34,7 +34,7 @@ public class ComplexCmpGenerator extends AbstractExprGenerator implements Condit
 
 
   @Override
-  public void emitJump(MethodVisitor mv, Label trueLabel, Label falseLabel) {
+  public void emitJump(MethodGenerator mv, Label trueLabel, Label falseLabel) {
     switch (op) {
       case EQ_EXPR:
         emitJumpIfEqual(mv, trueLabel, falseLabel);
@@ -47,7 +47,7 @@ public class ComplexCmpGenerator extends AbstractExprGenerator implements Condit
     }
   }
 
-  private void emitJumpIfEqual(MethodVisitor mv, Label equalLabel, Label notEqualLabel) {
+  private void emitJumpIfEqual(MethodGenerator mv, Label equalLabel, Label notEqualLabel) {
     
     // First check real part 
     x.realPart().emitPrimitiveValue(mv);
@@ -77,7 +77,7 @@ public class ComplexCmpGenerator extends AbstractExprGenerator implements Condit
     mv.visitJumpInsn(Opcodes.GOTO, equalLabel);
   }
 
-  private void emitCompareParts(MethodVisitor mv) {
+  private void emitCompareParts(MethodGenerator mv) {
     if(type.getPartType().getPrecision() == 64) {
       mv.visitInsn(Opcodes.DCMPG);
     } else {

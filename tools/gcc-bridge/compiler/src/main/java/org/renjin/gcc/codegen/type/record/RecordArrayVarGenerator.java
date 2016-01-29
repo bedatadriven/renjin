@@ -2,8 +2,8 @@ package org.renjin.gcc.codegen.type.record;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.VarGenerator;
@@ -32,7 +32,7 @@ public class RecordArrayVarGenerator extends AbstractExprGenerator implements Va
   }
 
   @Override
-  public void emitDefaultInit(MethodVisitor mv, Optional<ExprGenerator> initialValue) {
+  public void emitDefaultInit(MethodGenerator mv, Optional<ExprGenerator> initialValue) {
     PrimitiveConstGenerator.emitInt(mv, arrayType.getElementCount());
     mv.visitTypeInsn(Opcodes.ANEWARRAY, strategy.getJvmType().getInternalName());
     for(int i=0;i<arrayType.getElementCount();++i) {
@@ -58,12 +58,12 @@ public class RecordArrayVarGenerator extends AbstractExprGenerator implements Va
   }
 
   @Override
-  public void emitPushArray(MethodVisitor mv) {
+  public void emitPushArray(MethodGenerator mv) {
     arrayVar.load(mv);
   }
 
   @Override
-  public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
+  public void emitStore(MethodGenerator mv, ExprGenerator valueGenerator) {
     valueGenerator.emitPushArray(mv);
     arrayVar.store(mv);
   }

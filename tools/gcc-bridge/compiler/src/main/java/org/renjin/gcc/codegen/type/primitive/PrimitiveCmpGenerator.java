@@ -1,8 +1,8 @@
 package org.renjin.gcc.codegen.type.primitive;
 
 import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.GimpleOp;
@@ -25,7 +25,7 @@ public class PrimitiveCmpGenerator implements ConditionGenerator {
   }
 
   @Override
-  public void emitJump(MethodVisitor mv, Label trueLabel, Label falseLabel) {
+  public void emitJump(MethodGenerator mv, Label trueLabel, Label falseLabel) {
 
     Type tx = x.getJvmPrimitiveType();
     Type ty = y.getJvmPrimitiveType();
@@ -70,7 +70,7 @@ public class PrimitiveCmpGenerator implements ConditionGenerator {
   }
 
 
-  private void emitRealJump(MethodVisitor mv, Label trueLabel) {
+  private void emitRealJump(MethodGenerator mv, Label trueLabel) {
 
 
     // Branching on floating point comparisons requires two steps:

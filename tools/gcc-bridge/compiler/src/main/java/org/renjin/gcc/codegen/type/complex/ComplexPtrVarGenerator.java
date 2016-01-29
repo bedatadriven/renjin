@@ -1,9 +1,9 @@
 package org.renjin.gcc.codegen.type.complex;
 
 import com.google.common.base.Optional;
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
@@ -43,7 +43,7 @@ public class ComplexPtrVarGenerator extends AbstractExprGenerator implements Var
   }
 
   @Override
-  public void emitDefaultInit(MethodVisitor mv, Optional<ExprGenerator> initialValue) {
+  public void emitDefaultInit(MethodGenerator mv, Optional<ExprGenerator> initialValue) {
     mv.visitInsn(Opcodes.ACONST_NULL);
     arrayVar.store(mv);
     mv.visitInsn(Opcodes.ICONST_0);
@@ -69,13 +69,13 @@ public class ComplexPtrVarGenerator extends AbstractExprGenerator implements Var
   }
 
   @Override
-  public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+  public void emitPushPtrArrayAndOffset(MethodGenerator mv) {
     arrayVar.load(mv);
     offsetVar.load(mv);
   }
 
   @Override
-  public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
+  public void emitStore(MethodGenerator mv, ExprGenerator valueGenerator) {
     valueGenerator.emitPushPtrArrayAndOffset(mv);
     
     // stack: (array, index)
@@ -106,7 +106,7 @@ public class ComplexPtrVarGenerator extends AbstractExprGenerator implements Var
     }
 
     @Override
-    public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
+    public void emitStore(MethodGenerator mv, ExprGenerator valueGenerator) {
       // Load our array onto the stack
       arrayVar.load(mv);
       // Duplicate it so we can store to it twice
@@ -141,7 +141,7 @@ public class ComplexPtrVarGenerator extends AbstractExprGenerator implements Var
       return baseType.getPartType();
     }
     
-    private void pushIndex(MethodVisitor mv) {
+    private void pushIndex(MethodGenerator mv) {
       offsetVar.load(mv);
       if(offset == IM_OFFSET) {
         mv.visitInsn(Opcodes.ICONST_1);
@@ -150,7 +150,7 @@ public class ComplexPtrVarGenerator extends AbstractExprGenerator implements Var
     }
 
     @Override
-    public void emitPrimitiveValue(MethodVisitor mv) {
+    public void emitPrimitiveValue(MethodGenerator mv) {
       arrayVar.load(mv);
       pushIndex(mv);
       mv.visitInsn(partType.getOpcode(Opcodes.IALOAD));

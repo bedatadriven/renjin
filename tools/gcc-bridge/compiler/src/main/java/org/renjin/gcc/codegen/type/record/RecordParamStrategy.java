@@ -1,7 +1,7 @@
 package org.renjin.gcc.codegen.type.record;
 
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.var.Var;
@@ -28,13 +28,13 @@ public class RecordParamStrategy implements ParamStrategy {
   }
 
   @Override
-  public ExprGenerator emitInitialization(MethodVisitor methodVisitor, GimpleParameter parameter, 
+  public ExprGenerator emitInitialization(MethodGenerator methodVisitor, GimpleParameter parameter, 
                                           List<Var> paramVars, VarAllocator localVars) {
     return new RecordVarGenerator(strategy, paramVars.get(0));
   }
 
   @Override
-  public void emitPushParameter(MethodVisitor mv, ExprGenerator parameterValueGenerator) {
+  public void emitPushParameter(MethodGenerator mv, ExprGenerator parameterValueGenerator) {
     parameterValueGenerator.addressOf().emitPushRecordRef(mv);
   }
   

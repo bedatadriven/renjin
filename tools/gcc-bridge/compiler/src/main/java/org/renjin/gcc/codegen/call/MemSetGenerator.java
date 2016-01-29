@@ -1,8 +1,8 @@
 package org.renjin.gcc.codegen.call;
 
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
@@ -16,13 +16,13 @@ import java.util.List;
  */
 public class MemSetGenerator implements CallGenerator {
   @Override
-  public void emitCall(MethodVisitor mv, List<ExprGenerator> argumentGenerators) {
+  public void emitCall(MethodGenerator mv, List<ExprGenerator> argumentGenerators) {
     // Not used
     throw new UnsupportedOperationException();
   }
   
   @Override
-  public void emitCallAndPopResult(MethodVisitor mv, List<ExprGenerator> argumentGenerators) {
+  public void emitCallAndPopResult(MethodGenerator mv, List<ExprGenerator> argumentGenerators) {
     ExprGenerator pointer = argumentGenerators.get(0);
     ExprGenerator byteValue = argumentGenerators.get(1);
     ExprGenerator length = argumentGenerators.get(2);
@@ -55,7 +55,7 @@ public class MemSetGenerator implements CallGenerator {
     }
 
     @Override
-    public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+    public void emitPushPtrArrayAndOffset(MethodGenerator mv) {
       ExprGenerator pointer = arguments.get(0);
       ExprGenerator byteValue = arguments.get(1);
       ExprGenerator length = arguments.get(2);
@@ -77,7 +77,7 @@ public class MemSetGenerator implements CallGenerator {
   }
 
 
-  private void invokeMemset(MethodVisitor mv, ExprGenerator pointer) {
+  private void invokeMemset(MethodGenerator mv, ExprGenerator pointer) {
     // compose the signature based on the arguments
     WrapperType wrapperType = WrapperType.forPointerType((GimpleIndirectType) pointer.getGimpleType());
 

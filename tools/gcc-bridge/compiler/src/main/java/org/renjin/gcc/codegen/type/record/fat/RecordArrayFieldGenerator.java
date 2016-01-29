@@ -1,8 +1,8 @@
 package org.renjin.gcc.codegen.type.record.fat;
 
 import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.FieldGenerator;
@@ -44,7 +44,7 @@ public class RecordArrayFieldGenerator extends FieldGenerator {
   }
 
   @Override
-  public void emitInstanceInit(MethodVisitor mv) {
+  public void emitInstanceInit(MethodGenerator mv) {
     mv.visitVarInsn(Opcodes.ALOAD, 0); // this;
     mv.visitInsn(arrayType.getElementCount());
     mv.visitTypeInsn(Opcodes.ANEWARRAY, strategy.getJvmType().getInternalName());
@@ -69,13 +69,13 @@ public class RecordArrayFieldGenerator extends FieldGenerator {
     }
 
     @Override
-    public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
+    public void emitStore(MethodGenerator mv, ExprGenerator valueGenerator) {
       valueGenerator.emitPushArray(mv);
       mv.visitFieldInsn(Opcodes.PUTSTATIC, className, fieldName, fieldDescriptor);
     }
 
     @Override
-    public void emitPushArray(MethodVisitor mv) {
+    public void emitPushArray(MethodGenerator mv) {
       mv.visitFieldInsn(Opcodes.GETSTATIC, className, fieldName, fieldDescriptor);
     }
 
@@ -99,7 +99,7 @@ public class RecordArrayFieldGenerator extends FieldGenerator {
     }
 
     @Override
-    public void emitPushArray(MethodVisitor mv) {
+    public void emitPushArray(MethodGenerator mv) {
       instanceGenerator.emitPushRecordRef(mv);
       mv.visitFieldInsn(Opcodes.GETFIELD, className, fieldName, fieldDescriptor);
     }

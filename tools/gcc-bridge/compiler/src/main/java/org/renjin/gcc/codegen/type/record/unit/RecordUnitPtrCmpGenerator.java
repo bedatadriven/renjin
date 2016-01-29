@@ -1,8 +1,8 @@
 package org.renjin.gcc.codegen.type.record.unit;
 
 import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.GimpleOp;
@@ -20,7 +20,7 @@ public class RecordUnitPtrCmpGenerator implements ConditionGenerator {
   }
 
   @Override
-  public void emitJump(MethodVisitor mv, Label trueLabel, Label falseLabel) {
+  public void emitJump(MethodGenerator mv, Label trueLabel, Label falseLabel) {
     // push both refs on the stack
     x.emitPushRecordRef(mv);
     y.emitPushRecordRef(mv);

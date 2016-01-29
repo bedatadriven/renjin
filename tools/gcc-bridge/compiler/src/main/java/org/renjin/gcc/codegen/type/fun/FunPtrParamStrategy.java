@@ -1,7 +1,7 @@
 package org.renjin.gcc.codegen.type.fun;
 
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.var.Var;
@@ -31,12 +31,12 @@ public class FunPtrParamStrategy implements ParamStrategy {
   }
 
   @Override
-  public ExprGenerator emitInitialization(MethodVisitor methodVisitor, GimpleParameter parameter, List<Var> paramVars, VarAllocator localVars) {
+  public ExprGenerator emitInitialization(MethodGenerator methodVisitor, GimpleParameter parameter, List<Var> paramVars, VarAllocator localVars) {
     return new FunPtrVarGenerator((GimpleFunctionType) parameterType.getBaseType(), paramVars.get(0));
   }
 
   @Override
-  public void emitPushParameter(MethodVisitor mv, ExprGenerator generator) {
+  public void emitPushParameter(MethodGenerator mv, ExprGenerator generator) {
     generator.emitPushMethodHandle(mv);
   }
 }

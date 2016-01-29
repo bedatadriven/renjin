@@ -1,6 +1,6 @@
 package org.renjin.gcc.codegen.type.primitive;
 
-import org.objectweb.asm.MethodVisitor;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.type.GimplePointerType;
@@ -24,7 +24,7 @@ public class AddressOfPrimitiveArray extends AbstractExprGenerator {
 
 
   @Override
-  public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+  public void emitPushPtrArrayAndOffset(MethodGenerator mv) {
     array.emitPushArray(mv);
     mv.visitInsn(ICONST_0);
   }

@@ -1,8 +1,8 @@
 package org.renjin.gcc.codegen.type.record;
 
 import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.FieldGenerator;
@@ -37,13 +37,13 @@ public class AddressableRecordField extends FieldGenerator {
   }
 
   @Override
-  public void emitInstanceInit(MethodVisitor mv) {
+  public void emitInstanceInit(MethodGenerator mv) {
     mv.visitVarInsn(Opcodes.ALOAD, 0); // this
     emitNewArray(mv);
     mv.visitFieldInsn(Opcodes.PUTFIELD, strategy.getJvmType().getInternalName(), fieldName, fieldDescriptor);
   }
 
-  private void emitNewArray(MethodVisitor mv) {
+  private void emitNewArray(MethodGenerator mv) {
     mv.visitInsn(Opcodes.ICONST_1);
     mv.visitTypeInsn(Opcodes.ANEWARRAY, strategy.getJvmType().getInternalName());
     mv.visitInsn(Opcodes.DUP);
@@ -72,7 +72,7 @@ public class AddressableRecordField extends FieldGenerator {
     }
 
     @Override
-    public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+    public void emitPushPtrArrayAndOffset(MethodGenerator mv) {
       instance.emitPushRecordRef(mv);
       mv.visitFieldInsn(Opcodes.GETFIELD, className, fieldName, fieldDescriptor);
       mv.visitInsn(Opcodes.ICONST_0); 

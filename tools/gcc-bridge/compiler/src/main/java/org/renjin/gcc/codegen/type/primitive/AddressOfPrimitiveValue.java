@@ -1,7 +1,7 @@
 package org.renjin.gcc.codegen.type.primitive;
 
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.call.MallocGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
@@ -25,7 +25,7 @@ public class AddressOfPrimitiveValue extends AbstractExprGenerator {
   }
 
   @Override
-  public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+  public void emitPushPtrArrayAndOffset(MethodGenerator mv) {
     Type type = valueGenerator.getJvmPrimitiveType();
 
     // Allocate a new array of size 1 and push to the stack

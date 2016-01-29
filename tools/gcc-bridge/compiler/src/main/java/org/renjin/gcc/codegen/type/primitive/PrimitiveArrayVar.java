@@ -1,8 +1,8 @@
 package org.renjin.gcc.codegen.type.primitive;
 
 import com.google.common.base.Optional;
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.call.MallocGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
@@ -42,7 +42,7 @@ public class PrimitiveArrayVar extends AbstractExprGenerator implements VarGener
   }
 
   @Override
-  public void emitDefaultInit(MethodVisitor mv, Optional<ExprGenerator> initialValue) {
+  public void emitDefaultInit(MethodGenerator mv, Optional<ExprGenerator> initialValue) {
 
     if(initialValue.isPresent()) {
       // provided an initial value for this array
@@ -57,12 +57,12 @@ public class PrimitiveArrayVar extends AbstractExprGenerator implements VarGener
   }
 
   @Override
-  public void emitPushArray(MethodVisitor mv) {
+  public void emitPushArray(MethodGenerator mv) {
     arrayIndex.load(mv);
   }
 
   @Override
-  public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
+  public void emitStore(MethodGenerator mv, ExprGenerator valueGenerator) {
     valueGenerator.emitPushArray(mv);
     arrayIndex.store(mv);
   }

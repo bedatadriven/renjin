@@ -1,8 +1,8 @@
 package org.renjin.gcc.codegen.type.record.unit;
 
 import com.google.common.base.Optional;
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.VarGenerator;
@@ -34,25 +34,25 @@ public class RecordUnitPtrVarGenerator extends AbstractExprGenerator implements 
 
 
   @Override
-  public void emitPushRecordRef(MethodVisitor mv) {
+  public void emitPushRecordRef(MethodGenerator mv) {
     var.load(mv);
   }
 
   @Override
-  public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
+  public void emitStore(MethodGenerator mv, ExprGenerator valueGenerator) {
     valueGenerator.emitPushRecordRef(mv);
     var.store(mv);
   }
 
   @Override
-  public void emitDefaultInit(MethodVisitor mv, Optional<ExprGenerator> initialValue) {
+  public void emitDefaultInit(MethodGenerator mv, Optional<ExprGenerator> initialValue) {
     if(initialValue.isPresent()) {
       emitStore(mv, initialValue.get());
     }
   }
 
   @Override
-  public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+  public void emitPushPtrArrayAndOffset(MethodGenerator mv) {
     mv.visitInsn(Opcodes.ICONST_1);
     mv.visitTypeInsn(Opcodes.ANEWARRAY, strategy.getJvmType().getInternalName());
     mv.visitInsn(Opcodes.ICONST_0);

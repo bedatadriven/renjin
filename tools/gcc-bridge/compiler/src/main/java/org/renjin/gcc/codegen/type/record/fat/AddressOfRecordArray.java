@@ -1,7 +1,7 @@
 package org.renjin.gcc.codegen.type.record.fat;
 
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.type.GimplePointerType;
@@ -21,7 +21,7 @@ public class AddressOfRecordArray extends AbstractExprGenerator {
   }
 
   @Override
-  public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+  public void emitPushPtrArrayAndOffset(MethodGenerator mv) {
     array.emitPushArray(mv);
     mv.visitInsn(Opcodes.ICONST_0);
   }

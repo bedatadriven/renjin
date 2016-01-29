@@ -2,10 +2,10 @@ package org.renjin.gcc.codegen.type.primitive;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.analysis.AddressableFinder;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.VarGenerator;
@@ -23,7 +23,7 @@ public class PrimitiveVarGenerator extends AbstractExprGenerator implements VarG
   }
 
   @Override
-  public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
+  public void emitStore(MethodGenerator mv, ExprGenerator valueGenerator) {
     valueGenerator.emitPrimitiveValue(mv);
 
     Preconditions.checkArgument(checkTypes(valueGenerator),
@@ -51,12 +51,12 @@ public class PrimitiveVarGenerator extends AbstractExprGenerator implements VarG
   }
 
   @Override
-  public void emitPrimitiveValue(MethodVisitor mv) {
+  public void emitPrimitiveValue(MethodGenerator mv) {
     var.load(mv);
   }
 
   @Override
-  public void emitDefaultInit(MethodVisitor mv, Optional<ExprGenerator> initialValue) {
+  public void emitDefaultInit(MethodGenerator mv, Optional<ExprGenerator> initialValue) {
     if(initialValue.isPresent()) {
       emitStore(mv, initialValue.get());
     }

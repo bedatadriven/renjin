@@ -1,9 +1,9 @@
 package org.renjin.gcc.codegen.type.primitive.op;
 
 import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
-import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
+import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.gimple.type.GimpleBooleanType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
@@ -26,7 +26,7 @@ public class ConditionExprGenerator extends AbstractExprGenerator {
   }
 
   @Override
-  public void emitPrimitiveValue(MethodVisitor mv) {
+  public void emitPrimitiveValue(MethodGenerator mv) {
     // Push this value as a boolean on the stack.
     // Requires a jump
     Label trueLabel = new Label();

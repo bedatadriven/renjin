@@ -1,14 +1,11 @@
 package org.renjin.gcc.codegen.call;
 
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveConstGenerator;
-import org.renjin.gcc.gimple.expr.GimpleAddressOf;
-import org.renjin.gcc.gimple.expr.GimpleExpr;
-import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 import static org.objectweb.asm.Opcodes.ICONST_0;
@@ -38,7 +35,7 @@ public class MallocGenerator extends AbstractExprGenerator implements ExprGenera
 
 
   @Override
-  public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+  public void emitPushPtrArrayAndOffset(MethodGenerator mv) {
     // first calculate the size of the array from the argument,
     // which is in bytes
     totalSizeGenerator.emitPrimitiveValue(mv);
@@ -51,7 +48,7 @@ public class MallocGenerator extends AbstractExprGenerator implements ExprGenera
     mv.visitInsn(ICONST_0);
   }
 
-  public static void emitNewArray(MethodVisitor mv, Type componentType) {
+  public static void emitNewArray(MethodGenerator mv, Type componentType) {
     switch (componentType.getSort()) {
       case Type.BOOLEAN:
         mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_BOOLEAN);

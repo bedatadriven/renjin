@@ -1,8 +1,8 @@
 package org.renjin.gcc.codegen.type.primitive.op;
 
 import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.primitive.AddressOfPrimitiveValue;
@@ -28,7 +28,7 @@ public class LogicalAndGenerator extends AbstractExprGenerator {
   }
 
   @Override
-  public void emitPrimitiveValue(MethodVisitor mv) {
+  public void emitPrimitiveValue(MethodGenerator mv) {
     Label falseLabel = new Label();
     Label exitLabel = new Label();
 
@@ -51,7 +51,7 @@ public class LogicalAndGenerator extends AbstractExprGenerator {
     mv.visitLabel(exitLabel);
   }
 
-  private void jumpIfFalse(MethodVisitor mv, Label trueLabel) {
+  private void jumpIfFalse(MethodGenerator mv, Label trueLabel) {
     mv.visitJumpInsn(Opcodes.IFEQ, trueLabel);
   }
 

@@ -1,7 +1,7 @@
 package org.renjin.gcc.codegen.type.primitive;
 
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.ParamStrategy;
@@ -44,7 +44,7 @@ public class PrimitivePtrParamStrategy implements ParamStrategy {
   }
 
   @Override
-  public ExprGenerator emitInitialization(MethodVisitor mv, GimpleParameter parameter, List<Var> paramVars, VarAllocator localVars) {
+  public ExprGenerator emitInitialization(MethodGenerator mv, GimpleParameter parameter, List<Var> paramVars, VarAllocator localVars) {
     
     // Unpack the wrapper into seperate array and offset fields
     Var arrayVariable = localVars.reserve(parameter.getName() + "$array", pointerType.getArrayType());
@@ -72,7 +72,7 @@ public class PrimitivePtrParamStrategy implements ParamStrategy {
   }
 
   @Override
-  public void emitPushParameter(MethodVisitor mv, ExprGenerator parameterValueGenerator) {
+  public void emitPushParameter(MethodGenerator mv, ExprGenerator parameterValueGenerator) {
     parameterValueGenerator.emitPushPointerWrapper(mv);
   }
   

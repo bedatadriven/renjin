@@ -1,9 +1,9 @@
 package org.renjin.gcc.codegen.type.primitive;
 
 
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
@@ -44,12 +44,12 @@ public class PrimitivePtrPtrParamStrategy implements ParamStrategy {
   }
 
   @Override
-  public ExprGenerator emitInitialization(MethodVisitor methodVisitor, GimpleParameter parameter, List<Var> paramVars, VarAllocator localVars) {
+  public ExprGenerator emitInitialization(MethodGenerator methodVisitor, GimpleParameter parameter, List<Var> paramVars, VarAllocator localVars) {
     return new PtrPtrExpr(paramVars.get(0));
   }
 
   @Override
-  public void emitPushParameter(MethodVisitor mv, ExprGenerator parameterValueGenerator) {
+  public void emitPushParameter(MethodGenerator mv, ExprGenerator parameterValueGenerator) {
     if(!parameterValueGenerator.getPointerType().equals(WrapperType.OBJECT_PTR)) {
       throw new InternalCompilerException("Type mismatch: " + parameterValueGenerator.getClass().getName());
     }
@@ -71,18 +71,18 @@ public class PrimitivePtrPtrParamStrategy implements ParamStrategy {
 
 
     @Override
-    public void emitPushPointerWrapper(MethodVisitor mv) {
+    public void emitPushPointerWrapper(MethodGenerator mv) {
       varIndex.load(mv);
     }
 
     @Override
-    public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+    public void emitPushPtrArrayAndOffset(MethodGenerator mv) {
       emitPushPointerWrapper(mv);
       WrapperType.OBJECT_PTR.emitUnpackArrayAndOffset(mv, pointerType);
     }
 
     @Override
-    public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
+    public void emitStore(MethodGenerator mv, ExprGenerator valueGenerator) {
       valueGenerator.emitPushPointerWrapper(mv);
       varIndex.store(mv);
     }

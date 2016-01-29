@@ -1,6 +1,6 @@
 package org.renjin.gcc.codegen.type.primitive;
 
-import org.objectweb.asm.MethodVisitor;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
@@ -28,7 +28,7 @@ public class PrimitivePtrPlus extends AbstractExprGenerator {
   }
 
   @Override
-  public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+  public void emitPushPtrArrayAndOffset(MethodGenerator mv) {
     basePointer.emitPushPtrArrayAndOffset(mv);
     addOffsetInBytes(mv, offsetInBytes);
   }

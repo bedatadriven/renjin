@@ -1,7 +1,7 @@
 package org.renjin.gcc.codegen.type.primitive;
 
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.call.MallocGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
@@ -29,7 +29,7 @@ public class PrimitiveArrayConstructor extends AbstractExprGenerator {
   }
 
   @Override
-  public void emitPushArray(MethodVisitor mv) {
+  public void emitPushArray(MethodGenerator mv) {
     PrimitiveConstGenerator.emitInt(mv, arrayType.getElementCount());
     MallocGenerator.emitNewArray(mv, componentType.jvmType());
 

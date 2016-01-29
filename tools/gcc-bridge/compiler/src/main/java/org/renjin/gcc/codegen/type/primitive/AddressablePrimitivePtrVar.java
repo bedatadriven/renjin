@@ -1,8 +1,8 @@
 package org.renjin.gcc.codegen.type.primitive;
 
 import com.google.common.base.Optional;
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
@@ -43,7 +43,7 @@ public class AddressablePrimitivePtrVar extends AbstractExprGenerator implements
   }
 
   @Override
-  public void emitDefaultInit(MethodVisitor mv, Optional<ExprGenerator> initialValue) {
+  public void emitDefaultInit(MethodGenerator mv, Optional<ExprGenerator> initialValue) {
 
     // Create the unit array to hold the value
     mv.visitInsn(Opcodes.ICONST_1);
@@ -60,7 +60,7 @@ public class AddressablePrimitivePtrVar extends AbstractExprGenerator implements
   }
 
   @Override
-  public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+  public void emitPushPtrArrayAndOffset(MethodGenerator mv) {
     // Push reference to DoublePtr[0].array and DoublePtr[0].offset
     // first push DoublePtr[0]
     arrayVar.load(mv);
@@ -82,7 +82,7 @@ public class AddressablePrimitivePtrVar extends AbstractExprGenerator implements
   }
 
   @Override
-  public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
+  public void emitStore(MethodGenerator mv, ExprGenerator valueGenerator) {
     // Store reference to DoublePtr at array index 0
     
     arrayVar.load(mv);
@@ -114,7 +114,7 @@ public class AddressablePrimitivePtrVar extends AbstractExprGenerator implements
     }
 
     @Override
-    public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+    public void emitPushPtrArrayAndOffset(MethodGenerator mv) {
       // push Object[] and offset
       arrayVar.load(mv);
       mv.visitInsn(Opcodes.ICONST_0);

@@ -1,7 +1,7 @@
 package org.renjin.gcc.codegen.type.record.unit;
 
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
@@ -23,13 +23,13 @@ public class DereferencedUnitRecordPtr extends AbstractExprGenerator implements 
   }
 
   @Override
-  public void emitPushRecordRef(MethodVisitor mv) {
+  public void emitPushRecordRef(MethodGenerator mv) {
     pointerPointer.emitPushPtrArrayAndOffset(mv);
     mv.visitInsn(Opcodes.AALOAD);
   }
 
   @Override
-  public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
+  public void emitStore(MethodGenerator mv, ExprGenerator valueGenerator) {
     pointerPointer.emitPushPtrArrayAndOffset(mv);
     valueGenerator.emitPushRecordRef(mv);
     mv.visitInsn(Opcodes.AASTORE);

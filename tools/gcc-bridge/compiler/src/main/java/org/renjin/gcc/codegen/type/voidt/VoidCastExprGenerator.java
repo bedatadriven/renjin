@@ -1,8 +1,8 @@
 package org.renjin.gcc.codegen.type.voidt;
 
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.type.GimpleType;
@@ -28,7 +28,7 @@ public class VoidCastExprGenerator extends AbstractExprGenerator {
   }
 
   @Override
-  public void emitPushRecordRef(MethodVisitor mv) {
+  public void emitPushRecordRef(MethodGenerator mv) {
     voidPtr.emitPushRecordRef(mv);
     mv.visitTypeInsn(Opcodes.CHECKCAST, jvmType.getInternalName());
   }

@@ -2,10 +2,10 @@ package org.renjin.gcc.codegen.type.record;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.RecordClassGenerator;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
@@ -130,7 +130,7 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy {
     return fieldGenerator;
   }
 
-  public void emitConstructor(MethodVisitor mv) {
+  public void emitConstructor(MethodGenerator mv) {
     mv.visitTypeInsn(Opcodes.NEW, getJvmType().getInternalName());
     mv.visitInsn(Opcodes.DUP);
     mv.visitMethodInsn(Opcodes.INVOKESPECIAL, getJvmType().getInternalName(), "<init>", "()V", false);

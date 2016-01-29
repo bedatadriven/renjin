@@ -1,8 +1,8 @@
 package org.renjin.gcc.codegen.type.record.unit;
 
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
@@ -31,12 +31,12 @@ public class RecordUnitPtrParamStrategy implements ParamStrategy {
     }
 
     @Override
-    public ExprGenerator emitInitialization(MethodVisitor methodVisitor, GimpleParameter parameter, List<Var> paramVars, VarAllocator localVars) {
+    public ExprGenerator emitInitialization(MethodGenerator methodVisitor, GimpleParameter parameter, List<Var> paramVars, VarAllocator localVars) {
         return new RecordUnitPtrVarGenerator(strategy, paramVars.get(0));
     }
 
     @Override
-    public void emitPushParameter(MethodVisitor mv, ExprGenerator parameterValueGenerator) {
+    public void emitPushParameter(MethodGenerator mv, ExprGenerator parameterValueGenerator) {
         parameterValueGenerator.emitPushRecordRef(mv);
         if(parameterValueGenerator.getGimpleType().isPointerTo(GimpleVoidType.class)) {
             mv.visitTypeInsn(Opcodes.CHECKCAST, strategy.getJvmType().getInternalName());

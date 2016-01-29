@@ -1,7 +1,7 @@
 package org.renjin.gcc.codegen.type.record;
 
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.FieldGenerator;
@@ -25,7 +25,7 @@ public class RecordConstructor extends AbstractExprGenerator {
   }
   
   @Override
-  public void emitPushRecordRef(MethodVisitor mv) {
+  public void emitPushRecordRef(MethodGenerator mv) {
     mv.visitTypeInsn(Opcodes.NEW, strategy.getJvmType().getInternalName());
     mv.visitInsn(Opcodes.DUP);
     mv.visitMethodInsn(Opcodes.INVOKESPECIAL, strategy.getJvmType().getInternalName(), "<init>", "()V", false);

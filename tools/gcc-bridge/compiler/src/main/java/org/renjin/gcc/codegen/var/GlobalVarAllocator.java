@@ -2,10 +2,10 @@ package org.renjin.gcc.codegen.var;
 
 import com.google.common.collect.Lists;
 import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
+import org.renjin.gcc.codegen.MethodGenerator;
 
 import java.util.List;
 
@@ -25,12 +25,12 @@ public class GlobalVarAllocator extends VarAllocator {
     }
 
     @Override
-    public void load(MethodVisitor mv) {
+    public void load(MethodGenerator mv) {
       mv.visitFieldInsn(Opcodes.GETSTATIC, declaringClass.getInternalName(), name, type.getDescriptor());
     }
 
     @Override
-    public void store(MethodVisitor mv) {
+    public void store(MethodGenerator mv) {
       mv.visitFieldInsn(Opcodes.PUTSTATIC, declaringClass.getInternalName(), name, type.getDescriptor());
     }
   }

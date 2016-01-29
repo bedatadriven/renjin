@@ -1,9 +1,9 @@
 package org.renjin.gcc.codegen.type.primitive;
 
 import com.google.common.base.Optional;
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.call.MallocGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
@@ -37,7 +37,7 @@ public class AddressablePrimitiveVarGenerator extends AbstractExprGenerator impl
   }
 
   @Override
-  public void emitDefaultInit(MethodVisitor mv, Optional<ExprGenerator> initialValue) {
+  public void emitDefaultInit(MethodGenerator mv, Optional<ExprGenerator> initialValue) {
     mv.visitInsn(Opcodes.ICONST_1);
     MallocGenerator.emitNewArray(mv, componentType);
     arrayVar.store(mv);
@@ -59,14 +59,14 @@ public class AddressablePrimitiveVarGenerator extends AbstractExprGenerator impl
   
 
   @Override
-  public void emitPrimitiveValue(MethodVisitor mv) {
+  public void emitPrimitiveValue(MethodGenerator mv) {
     arrayVar.load(mv);
     mv.visitInsn(Opcodes.ICONST_0);
     mv.visitInsn(componentType.getOpcode(Opcodes.IALOAD));
   }
 
   @Override
-  public void emitStore(MethodVisitor mv, ExprGenerator valueGenerator) {
+  public void emitStore(MethodGenerator mv, ExprGenerator valueGenerator) {
     arrayVar.load(mv);
     mv.visitInsn(Opcodes.ICONST_0);
     valueGenerator.emitPrimitiveValue(mv);
@@ -86,7 +86,7 @@ public class AddressablePrimitiveVarGenerator extends AbstractExprGenerator impl
     }
 
     @Override
-    public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+    public void emitPushPtrArrayAndOffset(MethodGenerator mv) {
       arrayVar.load(mv);
       mv.visitInsn(Opcodes.ICONST_0);
     }

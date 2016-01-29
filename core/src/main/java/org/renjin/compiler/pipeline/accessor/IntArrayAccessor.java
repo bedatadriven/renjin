@@ -1,10 +1,9 @@
 package org.renjin.compiler.pipeline.accessor;
 
-import static org.objectweb.asm.Opcodes.*;
-
 import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
 import org.renjin.compiler.pipeline.ComputeMethod;
+
+import static org.objectweb.asm.Opcodes.*;
 
 public class IntArrayAccessor extends Accessor {
 

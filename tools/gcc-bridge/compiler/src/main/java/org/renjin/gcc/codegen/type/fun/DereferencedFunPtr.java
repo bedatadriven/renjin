@@ -1,7 +1,7 @@
 package org.renjin.gcc.codegen.type.fun;
 
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.type.GimpleType;
@@ -21,7 +21,7 @@ public class DereferencedFunPtr extends AbstractExprGenerator {
   }
 
   @Override
-  public void emitPushMethodHandle(MethodVisitor mv) {
+  public void emitPushMethodHandle(MethodGenerator mv) {
     pointerPointer.emitPushPtrArrayAndOffset(mv);
     mv.visitInsn(Opcodes.AALOAD);
   }

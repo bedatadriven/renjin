@@ -1,7 +1,7 @@
 package org.renjin.gcc.codegen.type.primitive;
 
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
@@ -31,7 +31,7 @@ public class PrimitivePtrArrayConstructor extends AbstractExprGenerator {
   }
 
   @Override
-  public void emitPushArray(MethodVisitor mv) {
+  public void emitPushArray(MethodGenerator mv) {
     PrimitiveConstGenerator.emitInt(mv, arrayType.getElementCount());
     mv.visitTypeInsn(Opcodes.ANEWARRAY, componentType.getWrapperType().getInternalName());
 

@@ -1,7 +1,9 @@
 package org.renjin.gcc.codegen;
 
 import com.google.common.io.Files;
-import org.objectweb.asm.*;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.Type;
 import org.objectweb.asm.util.TraceClassVisitor;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.codegen.type.FieldGenerator;
@@ -12,7 +14,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Collection;
-import java.util.List;
 
 import static org.objectweb.asm.Opcodes.*;
 
@@ -71,7 +72,7 @@ public class RecordClassGenerator {
   }
 
   private void emitDefaultConstructor() {
-    MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
+    MethodGenerator mv = new MethodGenerator(cv.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null));
     mv.visitCode();
     mv.visitVarInsn(ALOAD, 0);
     mv.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);

@@ -2,9 +2,9 @@ package org.renjin.gcc.codegen.type.record.fat;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Iterables;
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
@@ -37,12 +37,12 @@ public class RecordFatPtrParamStrategy implements ParamStrategy {
   }
 
   @Override
-  public ExprGenerator emitInitialization(MethodVisitor methodVisitor, GimpleParameter parameter, List<Var> paramVars, VarAllocator localVars) {
+  public ExprGenerator emitInitialization(MethodGenerator methodVisitor, GimpleParameter parameter, List<Var> paramVars, VarAllocator localVars) {
     return new Expr(Iterables.getOnlyElement(paramVars));
   }
 
   @Override
-  public void emitPushParameter(MethodVisitor mv, ExprGenerator parameterValueGenerator) {
+  public void emitPushParameter(MethodGenerator mv, ExprGenerator parameterValueGenerator) {
     parameterValueGenerator.emitPushPointerWrapper(mv);
   }
   
@@ -59,13 +59,13 @@ public class RecordFatPtrParamStrategy implements ParamStrategy {
     }
 
     @Override
-    public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+    public void emitPushPtrArrayAndOffset(MethodGenerator mv) {
       param.load(mv);
       WrapperType.OBJECT_PTR.emitUnpackArrayAndOffset(mv, Optional.of(strategy.getJvmArrayType()));
     }
 
     @Override
-    public void emitPushRecordRef(MethodVisitor mv) {
+    public void emitPushRecordRef(MethodGenerator mv) {
       emitPushPtrArrayAndOffset(mv);
       mv.visitInsn(Opcodes.AALOAD);
     }

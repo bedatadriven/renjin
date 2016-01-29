@@ -1,9 +1,9 @@
 package org.renjin.gcc.codegen.call;
 
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.voidt.VoidReturnStrategy;
 import org.renjin.gcc.gimple.type.GimpleType;
@@ -17,7 +17,7 @@ public class MemCopyCallGenerator implements CallGenerator {
   
   
   @Override
-  public void emitCall(MethodVisitor mv, List<ExprGenerator> argumentGenerators) {
+  public void emitCall(MethodGenerator mv, List<ExprGenerator> argumentGenerators) {
     if(argumentGenerators.size() != 3) {
       throw new InternalCompilerException("__builtin_memcpy expects 3 args.");
     }
@@ -42,7 +42,7 @@ public class MemCopyCallGenerator implements CallGenerator {
   }
 
   @Override
-  public void emitCallAndPopResult(MethodVisitor mv, List<ExprGenerator> argumentGenerators) {
+  public void emitCallAndPopResult(MethodGenerator mv, List<ExprGenerator> argumentGenerators) {
     emitCall(mv, argumentGenerators);
   }
 

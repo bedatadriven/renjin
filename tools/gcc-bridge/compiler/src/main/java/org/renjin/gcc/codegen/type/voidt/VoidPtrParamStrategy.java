@@ -1,7 +1,7 @@
 package org.renjin.gcc.codegen.type.voidt;
 
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.ParamStrategy;
@@ -26,12 +26,12 @@ public class VoidPtrParamStrategy implements ParamStrategy {
   }
 
   @Override
-  public ExprGenerator emitInitialization(MethodVisitor methodVisitor, GimpleParameter parameter, List<Var> paramVars, VarAllocator localVars) {
+  public ExprGenerator emitInitialization(MethodGenerator methodVisitor, GimpleParameter parameter, List<Var> paramVars, VarAllocator localVars) {
     return new Expr(paramVars.get(0));
   }
 
   @Override
-  public void emitPushParameter(MethodVisitor mv, ExprGenerator parameterValueGenerator) {
+  public void emitPushParameter(MethodGenerator mv, ExprGenerator parameterValueGenerator) {
     parameterValueGenerator.emitPushRecordRef(mv);
   }
 
@@ -49,7 +49,7 @@ public class VoidPtrParamStrategy implements ParamStrategy {
 
 
     @Override
-    public void emitPushRecordRef(MethodVisitor mv) {
+    public void emitPushRecordRef(MethodGenerator mv) {
       var.load(mv);
     }
   }

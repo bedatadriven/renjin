@@ -1,8 +1,8 @@
 package org.renjin.gcc.codegen.condition;
 
 import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.expr.NullPtrGenerator;
 import org.renjin.gcc.gimple.GimpleOp;
@@ -22,7 +22,7 @@ public class PointerCmpGenerator implements ConditionGenerator {
   }
 
   @Override
-  public void emitJump(MethodVisitor mv, Label trueLabel, Label falseLabel) {
+  public void emitJump(MethodGenerator mv, Label trueLabel, Label falseLabel) {
     if(x instanceof NullPtrGenerator) {
       emitJumpOnNullCondition(mv, y, trueLabel, falseLabel);
     } else if(y instanceof NullPtrGenerator) {
@@ -42,7 +42,7 @@ public class PointerCmpGenerator implements ConditionGenerator {
     }
   }
 
-  private void emitJumpOnNullCondition(MethodVisitor mv, ExprGenerator ptr, Label trueLabel, Label falseLabel) {
+  private void emitJumpOnNullCondition(MethodGenerator mv, ExprGenerator ptr, Label trueLabel, Label falseLabel) {
     
     ptr.emitPushPtrRefForNullComparison(mv);
     
@@ -64,7 +64,7 @@ public class PointerCmpGenerator implements ConditionGenerator {
     }
   }
 
-  private void emitJumpOnPointerComparison(MethodVisitor mv, Label equalLabel, Label notEqualLabel) {
+  private void emitJumpOnPointerComparison(MethodGenerator mv, Label equalLabel, Label notEqualLabel) {
 
 
     x.emitPushPtrArrayAndOffset(mv);

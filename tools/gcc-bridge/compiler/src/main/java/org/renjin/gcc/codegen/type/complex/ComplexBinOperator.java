@@ -1,7 +1,7 @@
 package org.renjin.gcc.codegen.type.complex;
 
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.GimpleOp;
@@ -53,7 +53,7 @@ public class ComplexBinOperator extends AbstractExprGenerator {
     }
     
     @Override
-    public void emitPrimitiveValue(MethodVisitor mv) {
+    public void emitPrimitiveValue(MethodGenerator mv) {
       switch (op) {
         case MULT_EXPR:
           //x.real * y.real - x.imaginary * y.rhs.imaginary
@@ -94,7 +94,7 @@ public class ComplexBinOperator extends AbstractExprGenerator {
     }
     
     @Override
-    public void emitPrimitiveValue(MethodVisitor mv) {
+    public void emitPrimitiveValue(MethodGenerator mv) {
       switch (op) {
         case MULT_EXPR:
           // x.real * y.imaginary + x.imaginary * y.real

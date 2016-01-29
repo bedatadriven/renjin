@@ -1,8 +1,8 @@
 package org.renjin.gcc.codegen.type.fun;
 
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
@@ -26,13 +26,13 @@ public class FunPtrReturnStrategy implements ReturnStrategy {
   }
 
   @Override
-  public void emitReturnValue(MethodVisitor mv, ExprGenerator valueGenerator) {
+  public void emitReturnValue(MethodGenerator mv, ExprGenerator valueGenerator) {
     valueGenerator.emitPushMethodHandle(mv);
     mv.visitInsn(Opcodes.ARETURN);
   }
 
   @Override
-  public void emitReturnDefault(MethodVisitor mv) {
+  public void emitReturnDefault(MethodGenerator mv) {
     mv.visitInsn(Opcodes.ACONST_NULL);
     mv.visitInsn(Opcodes.ARETURN);
   }
@@ -57,7 +57,7 @@ public class FunPtrReturnStrategy implements ReturnStrategy {
     }
 
     @Override
-    public void emitPushMethodHandle(MethodVisitor mv) {
+    public void emitPushMethodHandle(MethodGenerator mv) {
       callGenerator.emitCall(mv, arguments);
     }
   }

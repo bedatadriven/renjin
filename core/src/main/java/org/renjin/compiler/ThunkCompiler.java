@@ -1,7 +1,5 @@
 package org.renjin.compiler;
 
-import java.io.PrintWriter;
-
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
@@ -12,7 +10,8 @@ import org.renjin.compiler.cfg.ControlFlowGraph;
 import org.renjin.compiler.ir.tac.IRBody;
 import org.renjin.compiler.ir.tac.expressions.IRThunk;
 import org.renjin.compiler.ir.tac.statements.Statement;
-import org.renjin.sexp.Closure;
+
+import java.io.PrintWriter;
 
 
 /**

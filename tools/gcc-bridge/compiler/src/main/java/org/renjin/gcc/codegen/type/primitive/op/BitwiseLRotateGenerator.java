@@ -1,7 +1,7 @@
 package org.renjin.gcc.codegen.type.primitive.op;
 
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.primitive.AddressOfPrimitiveValue;
@@ -24,7 +24,7 @@ public class BitwiseLRotateGenerator extends AbstractExprGenerator {
   }
 
   @Override
-  public void emitPrimitiveValue(MethodVisitor mv) {
+  public void emitPrimitiveValue(MethodGenerator mv) {
     
     //(bits >>> k) | (bits << (Integer.SIZE - k));
 

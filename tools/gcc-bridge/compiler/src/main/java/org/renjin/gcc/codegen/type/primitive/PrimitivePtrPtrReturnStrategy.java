@@ -1,8 +1,8 @@
 package org.renjin.gcc.codegen.type.primitive;
 
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
@@ -36,13 +36,13 @@ public class PrimitivePtrPtrReturnStrategy implements ReturnStrategy {
   }
 
   @Override
-  public void emitReturnValue(MethodVisitor mv, ExprGenerator valueGenerator) {
+  public void emitReturnValue(MethodGenerator mv, ExprGenerator valueGenerator) {
     valueGenerator.emitPushPointerWrapper(mv);
     mv.visitInsn(Opcodes.ARETURN);
   }
 
   @Override
-  public void emitReturnDefault(MethodVisitor mv) {
+  public void emitReturnDefault(MethodGenerator mv) {
     throw new UnsupportedOperationException();
   }
 
@@ -67,7 +67,7 @@ public class PrimitivePtrPtrReturnStrategy implements ReturnStrategy {
     }
 
     @Override
-    public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+    public void emitPushPtrArrayAndOffset(MethodGenerator mv) {
       // Invoke the method, which will push the ObjectPtr wrapper onto the stack
       callGenerator.emitCall(mv, arguments);
     

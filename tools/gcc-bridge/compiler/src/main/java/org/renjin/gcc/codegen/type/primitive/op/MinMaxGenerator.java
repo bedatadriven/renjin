@@ -1,9 +1,9 @@
 package org.renjin.gcc.codegen.type.primitive.op;
 
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.primitive.AddressOfPrimitiveValue;
@@ -29,7 +29,7 @@ public class MinMaxGenerator extends AbstractExprGenerator implements ExprGenera
   }
 
   @Override
-  public void emitPrimitiveValue(MethodVisitor mv) {
+  public void emitPrimitiveValue(MethodGenerator mv) {
 
     x.emitPrimitiveValue(mv);
     y.emitPrimitiveValue(mv);

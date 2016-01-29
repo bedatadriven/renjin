@@ -1,8 +1,8 @@
 package org.renjin.gcc.codegen.type.primitive;
 
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
@@ -44,7 +44,7 @@ public class StringConstantGenerator extends AbstractExprGenerator {
   }
 
   @Override
-  public void emitPrimitiveValue(MethodVisitor mv) {
+  public void emitPrimitiveValue(MethodGenerator mv) {
     int firstChar = constantExpr.getValue().charAt(0);
     PrimitiveConstGenerator.emitInt(mv, firstChar);
   }
@@ -52,7 +52,7 @@ public class StringConstantGenerator extends AbstractExprGenerator {
   
   
   @Override
-  public void emitPushArray(MethodVisitor mv) {
+  public void emitPushArray(MethodGenerator mv) {
     mv.visitLdcInsn(constantExpr.getValue());
 
     // consume the string constant and push the array reference
@@ -88,7 +88,7 @@ public class StringConstantGenerator extends AbstractExprGenerator {
 
 
     @Override
-    public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+    public void emitPushPtrArrayAndOffset(MethodGenerator mv) {
 
       // push the string as an array
       StringConstantGenerator.this.emitPushArray(mv);
@@ -132,7 +132,7 @@ public class StringConstantGenerator extends AbstractExprGenerator {
     }
 
     @Override
-    public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+    public void emitPushPtrArrayAndOffset(MethodGenerator mv) {
       StringConstantGenerator.this.emitPushArray(mv);
       indexGenerator.emitPrimitiveValue(mv);
     }

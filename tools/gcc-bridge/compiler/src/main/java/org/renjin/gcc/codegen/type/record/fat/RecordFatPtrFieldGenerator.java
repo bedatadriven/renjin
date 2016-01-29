@@ -1,8 +1,8 @@
 package org.renjin.gcc.codegen.type.record.fat;
 
 import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.FieldGenerator;
@@ -58,7 +58,7 @@ public class RecordFatPtrFieldGenerator extends FieldGenerator {
     }
 
     @Override
-    public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
+    public void emitPushPtrArrayAndOffset(MethodGenerator mv) {
       instance.emitPushRecordRef(mv);
       mv.visitFieldInsn(Opcodes.GETFIELD, ownerClass, arrayName, arrayDescriptor);
       instance.emitPushRecordRef(mv);

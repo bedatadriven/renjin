@@ -1,9 +1,9 @@
 package org.renjin.gcc.codegen.type.primitive;
 
 import com.google.common.base.Preconditions;
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
@@ -36,13 +36,13 @@ public class PrimitiveReturnStrategy implements ReturnStrategy {
   }
 
   @Override
-  public void emitReturnValue(MethodVisitor mv, ExprGenerator valueGenerator) {
+  public void emitReturnValue(MethodGenerator mv, ExprGenerator valueGenerator) {
     valueGenerator.emitPrimitiveValue(mv);
     mv.visitInsn(type.getOpcode(IRETURN));
   }
 
   @Override
-  public void emitReturnDefault(MethodVisitor mv) {
+  public void emitReturnDefault(MethodGenerator mv) {
     // GCC allows not returning a value from a method.
     // we need to return the default for this type to satifisfy the JVM
     if(type.equals(Type.DOUBLE_TYPE)) {
@@ -78,7 +78,7 @@ public class PrimitiveReturnStrategy implements ReturnStrategy {
     }
 
     @Override
-    public void emitPrimitiveValue(MethodVisitor mv) {
+    public void emitPrimitiveValue(MethodGenerator mv) {
       callGenerator.emitCall(mv, argumentGenerators);
     }
   }

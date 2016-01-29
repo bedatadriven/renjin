@@ -1,7 +1,7 @@
 package org.renjin.gcc.codegen.type.primitive;
 
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.expr.GimplePrimitiveConstant;
@@ -35,7 +35,7 @@ public class PrimitiveConstGenerator extends AbstractExprGenerator implements Ex
   }
 
   @Override
-  public void emitPrimitiveValue(MethodVisitor mv) {
+  public void emitPrimitiveValue(MethodGenerator mv) {
     Type type = this.gimpleType.jvmType();
     if(type.equals(Type.LONG_TYPE)) {
       emitLong(mv, value.longValue());
@@ -51,7 +51,7 @@ public class PrimitiveConstGenerator extends AbstractExprGenerator implements Ex
     }
   }
 
-  public static void emitInt(MethodVisitor mv, int value) {
+  public static void emitInt(MethodGenerator mv, int value) {
     if(value == -1) {
       mv.visitInsn(ICONST_M1);
     } else if(value >= 0 && value <= 5) {
@@ -63,7 +63,7 @@ public class PrimitiveConstGenerator extends AbstractExprGenerator implements Ex
     }
   }
 
-  public static void emitLong(MethodVisitor mv, long value) {
+  public static void emitLong(MethodGenerator mv, long value) {
     if(value == 0) {
       mv.visitInsn(LCONST_0);
     } else if(value == 1) {
@@ -73,7 +73,7 @@ public class PrimitiveConstGenerator extends AbstractExprGenerator implements Ex
     }
   }
 
-  public static void emitFloat(MethodVisitor mv, float value) {
+  public static void emitFloat(MethodGenerator mv, float value) {
     if(value == 0) {
       mv.visitInsn(FCONST_0);
     } else if(value == 1) {
@@ -85,7 +85,7 @@ public class PrimitiveConstGenerator extends AbstractExprGenerator implements Ex
     }
   }
 
-  public static void emitDouble(MethodVisitor mv, double v) {
+  public static void emitDouble(MethodGenerator mv, double v) {
     if(v == 0) {
       mv.visitInsn(DCONST_0);
     } else if(v == 1) {

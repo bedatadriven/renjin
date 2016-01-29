@@ -1,7 +1,7 @@
 package org.renjin.gcc.codegen.type;
 
 import com.google.common.base.Optional;
-import org.objectweb.asm.MethodVisitor;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 
 
@@ -17,6 +17,6 @@ public interface VarGenerator extends ExprGenerator {
    * @param mv the {@code MethodVisitor} to write to
    * @param initialValue the initial value of this variable, if it has one.
    */
-  void emitDefaultInit(MethodVisitor mv, Optional<ExprGenerator> initialValue);
+  void emitDefaultInit(MethodGenerator mv, Optional<ExprGenerator> initialValue);
 
 }

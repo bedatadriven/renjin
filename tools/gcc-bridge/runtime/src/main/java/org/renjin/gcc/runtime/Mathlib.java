@@ -52,6 +52,10 @@ public class Mathlib {
     return Math.exp(x);
   }
 
+  public static double expm1(double x) {
+    return Math.expm1(x);
+  }
+  
   /**
    * The returned value is the mantissa and the integer pointed to by exponent is the exponent.
    * The resultant value is x = mantissa * 2 ^ exponent.

@@ -151,7 +151,11 @@ public class Mathlib {
   public static double log10(double x) {
     return Math.log10(x);
   }
-
+  
+  public static double log1p(double x) {
+    return Math.log1p(x);
+  }
+  
   /**
    *  The returned value is the fraction component (part after the decimal), and sets integer to the integer component.
    */

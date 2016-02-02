@@ -54,13 +54,13 @@ str.Date <- str.POSIXt <- function(object, ...) {
     ## use 'give.length' when specified, else default = give.head
     if(length(larg <- list(...))) {
 	nl <- names(larg)
-	iGiveHead <- which(nl == "give.head")
+	giveHeadIndex <- which(nl == "give.head")
 	if (any(Bgl <- nl == "give.length"))
 	    give.length <- larg[[which(Bgl)]]
-	else if(length(iGiveHead))
-	    give.length <- larg[[iGiveHead]]
-	if(length(iGiveHead)) # eliminate it from arg.list
-	    larg <- larg[ - iGiveHead ]
+	else if(length(giveHeadIndex))
+	    give.length <- larg[[giveHeadIndex]]
+	if(length(giveHeadIndex)) # eliminate it from arg.list
+	    larg <- larg[ - giveHeadIndex ]
 	if(is.numeric(larg[["nest.lev"]]) &&
 	   is.numeric(larg[["vec.len"]])) # typical call from data.frame
 	    ## reduce length for typical call:

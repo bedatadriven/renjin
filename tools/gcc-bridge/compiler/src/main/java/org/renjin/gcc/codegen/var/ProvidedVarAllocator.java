@@ -41,7 +41,8 @@ public class ProvidedVarAllocator extends VarAllocator {
       }
 
       @Override
-      public void store(MethodGenerator mv) {
+      public void store(MethodGenerator mv, Value value) {
+        value.load(mv);
         mv.visitFieldInsn(Opcodes.PUTSTATIC, Type.getInternalName(declaringClass), name, type.getDescriptor());
       }
     };

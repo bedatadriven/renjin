@@ -4,8 +4,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.type.primitive.PrimitiveReturnStrategy;
-import org.renjin.gcc.gimple.type.GimpleIntegerType;
+import org.renjin.gcc.codegen.type.ValueReturnStrategy;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.runtime.DoublePtr;
@@ -53,7 +52,7 @@ public class MemCmpCallGenerator implements CallGenerator {
 
   @Override
   public ExprGenerator expressionGenerator(GimpleType returnType, List<ExprGenerator> argumentGenerators) {
-    return new PrimitiveReturnStrategy(new GimpleIntegerType(32))
+    return new ValueReturnStrategy(Type.INT_TYPE)
         .callExpression(this, argumentGenerators);
   }
 

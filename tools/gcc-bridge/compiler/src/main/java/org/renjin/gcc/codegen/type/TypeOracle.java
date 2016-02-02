@@ -98,7 +98,7 @@ public class TypeOracle {
    * @param className the full internal name of the class in which the field is declared (for example, "org/renjin/gcc/Struct")
    * @param field the gimple field
    */
-  public FieldGenerator forField(String className, GimpleField field) {
+  public FieldStrategy forField(String className, GimpleField field) {
     TypeStrategy type = forType(field.getType());
     if(field.isAddressed()) {
       return type.addressableFieldGenerator(className, field.getName());
@@ -117,7 +117,7 @@ public class TypeOracle {
       return new VoidReturnStrategy();
 
     } else if(returnType.isPrimitive()) {
-      return new PrimitiveReturnStrategy(GimplePrimitiveType.fromJvmType(returnType));
+      return new ValueReturnStrategy(Type.getType(returnType));
 
     } else if(WrapperType.is(returnType)) {
       WrapperType wrapperType = WrapperType.valueOf(returnType);
@@ -183,7 +183,7 @@ public class TypeOracle {
         index++;
 
       } else if (paramClass.isPrimitive()) {
-        generators.add(new PrimitiveParamStrategy(GimplePrimitiveType.fromJvmType(paramClass)));
+        generators.add(new ValueParamStrategy(Type.getType(paramClass)));
         index++;
 
       } else if (paramClass.equals(String.class)) {

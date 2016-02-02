@@ -42,11 +42,6 @@ public class PrimitivePtrPtrVarGenerator extends AbstractExprGenerator implement
   }
 
   @Override
-  public GimpleType getGimpleType() {
-    return pointerType;
-  }
-
-  @Override
   public WrapperType getPointerType() {
     return WrapperType.valueOf(ObjectPtr.class);
   }
@@ -54,8 +49,8 @@ public class PrimitivePtrPtrVarGenerator extends AbstractExprGenerator implement
   @Override
   public void emitStore(MethodGenerator mv, ExprGenerator valueGenerator) {
     valueGenerator.emitPushPtrArrayAndOffset(mv);
-    offsetVar.store(mv);
-    arrayVar.store(mv);
+    offsetVar.store(mv, );
+    arrayVar.store(mv, );
   }
 
   @Override

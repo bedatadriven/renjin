@@ -34,7 +34,7 @@ public class VoidTypeStrategy extends TypeStrategy {
     }
 
     @Override
-    public FieldGenerator fieldGenerator(String className, String fieldName) {
+    public FieldStrategy fieldGenerator(String className, String fieldName) {
       return new VoidPtrField(className, fieldName);
     }
 

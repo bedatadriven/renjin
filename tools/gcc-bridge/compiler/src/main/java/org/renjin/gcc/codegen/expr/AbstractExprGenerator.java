@@ -9,6 +9,7 @@ import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.call.MallocGenerator;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveConstGenerator;
 import org.renjin.gcc.codegen.type.primitive.op.PrimitiveBinOpGenerator;
+import org.renjin.gcc.codegen.var.Value;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
 import org.renjin.gcc.gimple.type.GimpleIntegerType;
@@ -163,6 +164,55 @@ public abstract class AbstractExprGenerator implements ExprGenerator {
     throw new UnimplementedException(getClass(), "emitPushRecordRef");
   }
 
+  @Override
+  public Value getRecordRef() {
+    return new Value() {
+      @Override
+      public Type getType() {
+        return null;
+      }
+
+      @Override
+      public void load(MethodGenerator mv) {
+
+      }
+    }
+    
+  }
+
+  @Override
+  public Value getPointerArray() {
+    return new Value() {
+      @Override
+      public Type getType() {
+        return getPointerType().getArrayType();
+      }
+
+      @Override
+      public void load(MethodGenerator mv) {
+        emitPushPtrArrayAndOffset(mv);
+        mv.pop();
+      }
+    };
+  }
+
+  @Override
+  public Value getPointerOffset() {
+    return new Value() {
+      @Override
+      public Type getType() {
+        return Type.INT_TYPE;
+      }
+
+      @Override
+      public void load(MethodGenerator mv) {
+        emitPushPtrArrayAndOffset(mv);
+        mv.swap();
+        mv.pop();
+      }
+    };
+  }
+
   protected final void addOffsetInBytes(MethodGenerator mv, ExprGenerator offsetInBytes) {
 
     // convert bytes to elements by dividing by the element size in bytes
@@ -179,33 +229,6 @@ public abstract class AbstractExprGenerator implements ExprGenerator {
    * @return
    */
   protected final ExprGenerator offsetToElements(ExprGenerator exprGenerator, int elementSize) {
-    if(exprGenerator instanceof PrimitiveBinOpGenerator) {
-      PrimitiveBinOpGenerator op = (PrimitiveBinOpGenerator) exprGenerator;
-      if(op.getOp() == GimpleOp.MULT_EXPR) {
-        // optimize for a common case where GCC will emit the offset as 
-        // the product between i and the element size.
-        // For example, if you have:
-        //
-        // double *x  
-        // for(i=0;i<len;++i) sum += x[i]
-        //
-        // then GCC will emit x[i] as *(x + i*8)
-        // To avoid the extra work of computing i*8/8, we should just use i
-
-        if (op.getX().isConstantIntEqualTo(elementSize)) {
-          return op.getY();
-        } else if (op.getY().isConstantIntEqualTo(elementSize)) {
-          return op.getX();
-        }
-      }
-    } else if(exprGenerator instanceof PrimitiveConstGenerator) {
-      // if the offset in bytes is a constant, then we can compute the value now
-      PrimitiveConstGenerator constant = (PrimitiveConstGenerator) exprGenerator;
-      return new PrimitiveConstGenerator(constant.getGimpleType(), 
-          constant.getValue().intValue() / elementSize);
-      
-    } 
-    // grr, need to compute at runtime
     return new PrimitiveBinOpGenerator(GimpleOp.EXACT_DIV_EXPR, exprGenerator, 
         new PrimitiveConstGenerator(new GimpleIntegerType(32), elementSize));
   }

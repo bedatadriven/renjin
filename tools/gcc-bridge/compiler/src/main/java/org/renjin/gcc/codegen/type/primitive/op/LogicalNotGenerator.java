@@ -2,49 +2,45 @@ package org.renjin.gcc.codegen.type.primitive.op;
 
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.primitive.AddressOfPrimitiveValue;
+import org.renjin.gcc.codegen.var.Value;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 
-public class LogicalNotGenerator extends AbstractExprGenerator implements ExprGenerator {
+public class LogicalNotGenerator implements Value {
   
-  private ExprGenerator operand;
+  private Value operand;
 
-  public LogicalNotGenerator(ExprGenerator operand) {
+  public LogicalNotGenerator(Value operand) {
     this.operand = operand;
   }
 
   @Override
-  public void emitPrimitiveValue(MethodGenerator mv) {
+  public Type getType() {
+    return Type.BOOLEAN_TYPE;
+  }
+
+  @Override
+  public void load(MethodGenerator mv) {
     Label trueLabel = new Label();
     Label exit = new Label();
-    
-    operand.emitPrimitiveValue(mv);
-    mv.visitJumpInsn(Opcodes.IFNE, trueLabel);
-    
+
+    operand.load(mv);
+    mv.ifne(trueLabel);
+
     // operand is FALSE, push TRUE onto stack
-    mv.visitInsn(Opcodes.ICONST_1);
-    mv.visitJumpInsn(Opcodes.GOTO, exit);
-    
+    mv.iconst(1);
+    mv.goTo(exit);
+
     // operand is TRUE, push FALSE onto stack
-    mv.visitLabel(trueLabel);
-    mv.visitInsn(Opcodes.ICONST_0);
-    
+    mv.mark(trueLabel);
+    mv.iconst(0);
+
     // Exit point
-    mv.visitLabel(exit);
-  }
-
-  @Override
-  public GimpleType getGimpleType() {
-    return operand.getGimpleType();
-  }
-
-
-  @Override
-  public ExprGenerator addressOf() {
-    return new AddressOfPrimitiveValue(this);
+    mv.mark(exit);
   }
 }

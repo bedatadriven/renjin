@@ -9,9 +9,7 @@ import org.renjin.gcc.gimple.type.GimpleType;
 /**
  * Generates field definitions, loads and stores for global variables
  */
-public abstract class FieldGenerator {
-  
-  public abstract GimpleType getType();
+public abstract class FieldStrategy {
 
   public void emitInstanceInit(MethodGenerator mv) {
   }

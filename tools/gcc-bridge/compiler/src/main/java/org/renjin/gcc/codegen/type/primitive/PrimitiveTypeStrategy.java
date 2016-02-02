@@ -34,22 +34,22 @@ public class PrimitiveTypeStrategy extends TypeStrategy {
 
   @Override
   public ParamStrategy getParamStrategy() {
-    return new PrimitiveParamStrategy(type);
+    return new ValueParamStrategy(type.jvmType());
   }
 
   @Override
   public ReturnStrategy getReturnStrategy() {
-    return new PrimitiveReturnStrategy(type);
+    return new ValueReturnStrategy(type.jvmType());
   }
 
   @Override
-  public FieldGenerator addressableFieldGenerator(String className, String fieldName) {
+  public FieldStrategy addressableFieldGenerator(String className, String fieldName) {
     return new AddressablePrimitiveField(className, fieldName, type, type.jvmType());
   }
 
   @Override
-  public FieldGenerator fieldGenerator(String className, String fieldName) {
-    return new PrimitiveFieldGenerator(className, fieldName, type, type.jvmType());
+  public FieldStrategy fieldGenerator(String className, String fieldName) {
+    return new ValueFieldStrategy(type.jvmType(), fieldName);
   }
 
   @Override
@@ -58,13 +58,12 @@ public class PrimitiveTypeStrategy extends TypeStrategy {
   }
 
   @Override
-  public VarGenerator varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
+  public ExprGenerator varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
     if(decl.isAddressable()) {
       return new AddressablePrimitiveVarGenerator(type, 
           allocator.reserveArrayRef(decl.getName(), type.jvmType()));
     } else {
-      return new PrimitiveVarGenerator(type, 
-          allocator.reserve(decl.getName(), type.jvmType()));
+      return allocator.reserve(decl.getName(), type.jvmType());
     }
   }
 
@@ -110,12 +109,12 @@ public class PrimitiveTypeStrategy extends TypeStrategy {
     }
 
     @Override
-    public FieldGenerator fieldGenerator(String className, String fieldName) {
-      return new PrimitivePtrFieldGenerator(className, fieldName, pointerType);
+    public FieldStrategy fieldGenerator(String className, String fieldName) {
+      return new PrimitivePtrFieldStrategy(className, fieldName, pointerType);
     }
 
     @Override
-    public FieldGenerator addressableFieldGenerator(String className, String fieldName) {
+    public FieldStrategy addressableFieldGenerator(String className, String fieldName) {
       return new AddressablePrimitivePtrField(className, fieldName, pointerType);
     }
 
@@ -142,8 +141,8 @@ public class PrimitiveTypeStrategy extends TypeStrategy {
     }
 
     @Override
-    public FieldGenerator fieldGenerator(String className, String fieldName) {
-      return new PrimitivePtrPtrFieldGenerator(className, fieldName, pointerType);
+    public FieldStrategy fieldGenerator(String className, String fieldName) {
+      return new PrimitivePtrPtrFieldStrategy(className, fieldName, pointerType);
     }
     @Override
     public ReturnStrategy getReturnStrategy() {
@@ -186,12 +185,12 @@ public class PrimitiveTypeStrategy extends TypeStrategy {
     }
 
     @Override
-    public FieldGenerator fieldGenerator(String className, String fieldName) {
-      return new PrimitiveArrayFieldGenerator(className, fieldName, arrayType);
+    public FieldStrategy fieldGenerator(String className, String fieldName) {
+      return new PrimitiveArrayFieldStrategy(className, fieldName, arrayType);
     }
     
     @Override
-    public FieldGenerator addressableFieldGenerator(String className, String fieldName) {
+    public FieldStrategy addressableFieldGenerator(String className, String fieldName) {
       return fieldGenerator(className, fieldName);
     }
 
@@ -263,7 +262,7 @@ public class PrimitiveTypeStrategy extends TypeStrategy {
     }
 
     @Override
-    public FieldGenerator fieldGenerator(String className, String fieldName) {
+    public FieldStrategy fieldGenerator(String className, String fieldName) {
       return new PrimitivePtrArrayField(className, fieldName, arrayType);
     }
   }

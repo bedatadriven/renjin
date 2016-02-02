@@ -5,13 +5,10 @@ import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.type.FieldGenerator;
-import org.renjin.gcc.gimple.type.GimplePointerType;
-import org.renjin.gcc.gimple.type.GimpleType;
-import org.renjin.gcc.gimple.type.GimpleVoidType;
+import org.renjin.gcc.codegen.type.FieldStrategy;
 
 
-public class VoidPtrField extends FieldGenerator {
+public class VoidPtrField extends FieldStrategy {
 
   private final String className;
   private final String arrayFieldName;
@@ -23,11 +20,6 @@ public class VoidPtrField extends FieldGenerator {
     this.arrayFieldName = fieldName;
     this.offsetFieldName = fieldName + "$offset";
     this.arrayFieldDescriptor = "[Ljava/lang/Object;";
-  }
-
-  @Override
-  public GimpleType getType() {
-    return new GimplePointerType(new GimpleVoidType());
   }
 
   @Override
@@ -46,11 +38,6 @@ public class VoidPtrField extends FieldGenerator {
 
     public MemberExpr(ExprGenerator instanceGenerator) {
       this.instanceGenerator = instanceGenerator;
-    }
-
-    @Override
-    public GimpleType getGimpleType() {
-      return VoidPtrField.this.getType();
     }
 
     @Override

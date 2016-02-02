@@ -36,9 +36,9 @@ public class PrimitiveArrayPtrVar extends AbstractExprGenerator implements VarGe
   @Override
   public void emitDefaultInit(MethodGenerator mv, Optional<ExprGenerator> initialValue) {
     mv.visitInsn(Opcodes.ACONST_NULL);
-    arrayVar.store(mv);
+    arrayVar.store(mv, );
     mv.visitInsn(Opcodes.ICONST_0);
-    offsetVar.store(mv);
+    offsetVar.store(mv, );
     
     if(initialValue.isPresent() && !isDefaultValue(initialValue.get())) {
       emitStore(mv, initialValue.get());
@@ -70,8 +70,8 @@ public class PrimitiveArrayPtrVar extends AbstractExprGenerator implements VarGe
   public void emitStore(MethodGenerator mv, ExprGenerator ptrGenerator) {
     ptrGenerator.emitPushPtrArrayAndOffset(mv);
 
-    offsetVar.store(mv);
-    arrayVar.store(mv);
+    offsetVar.store(mv, );
+    arrayVar.store(mv, );
   }
 
   @Override

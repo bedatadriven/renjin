@@ -31,7 +31,8 @@ public class LocalVarAllocator extends VarAllocator {
     }
 
     @Override
-    public void store(MethodGenerator mv) {
+    public void store(MethodGenerator mv, Value value) {
+      value.load(mv);
       mv.visitVarInsn(type.getOpcode(Opcodes.ISTORE), index);
     }
   }

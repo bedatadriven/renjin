@@ -8,6 +8,7 @@ import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.expr.NullPtrGenerator;
 import org.renjin.gcc.codegen.type.VarGenerator;
+import org.renjin.gcc.codegen.var.Values;
 import org.renjin.gcc.codegen.var.Var;
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
 import org.renjin.gcc.gimple.type.GimplePointerType;
@@ -46,9 +47,7 @@ public class AddressablePrimitivePtrVar extends AbstractExprGenerator implements
   public void emitDefaultInit(MethodGenerator mv, Optional<ExprGenerator> initialValue) {
 
     // Create the unit array to hold the value
-    mv.visitInsn(Opcodes.ICONST_1);
-    mv.visitTypeInsn(Opcodes.ANEWARRAY, wrapperType.getWrapperType().getInternalName());
-    arrayVar.store(mv);
+    arrayVar.store(mv, Values.newArray(wrapperType, 1));
     
     if(initialValue.isPresent() && !isDefaultValue(initialValue.get())) {
       emitStore(mv, initialValue.get());

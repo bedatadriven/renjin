@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.type.complex;
 
+import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.type.ReturnStrategy;
 import org.renjin.gcc.codegen.type.TypeStrategy;
@@ -36,17 +37,16 @@ public class ComplexTypeStrategy extends TypeStrategy {
   }
 
   @Override
-  public VarGenerator varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
+  public ExprGenerator varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
     if(decl.isAddressable()) {
       return new AddressableComplexVarGenerator(type,
           allocator.reserveArrayRef(decl.getName(), type.getJvmPartType()));
     } else {
-      return new ComplexVarGenerator(type,
+      return new ComplexValue(
           allocator.reserve(decl.getName() + "$real", type.getJvmPartType()),
           allocator.reserve(decl.getName() + "$im", type.getJvmPartType()));
     }
   }
-
 
   @Override
   public ReturnStrategy getReturnStrategy() {

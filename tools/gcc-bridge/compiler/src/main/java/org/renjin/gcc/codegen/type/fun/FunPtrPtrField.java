@@ -7,16 +7,15 @@ import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.type.FieldGenerator;
+import org.renjin.gcc.codegen.type.FieldStrategy;
 import org.renjin.gcc.gimple.type.GimpleFunctionType;
-import org.renjin.gcc.gimple.type.GimpleType;
 
 import java.lang.invoke.MethodHandle;
 
 /**
  * A field pointing to one or more function pointers. Compiled as an array+offset of MethodHandles.
  */
-public class FunPtrPtrField extends FieldGenerator {
+public class FunPtrPtrField extends FieldStrategy {
 
   private String className;
   private String arrayFieldName;
@@ -30,11 +29,6 @@ public class FunPtrPtrField extends FieldGenerator {
     this.arrayFieldDescriptor = "[" + Type.getDescriptor(MethodHandle.class);
     this.offsetFieldName = fieldName + "$offset";
     this.functionType = functionType;
-  }
-
-  @Override
-  public GimpleType getType() {
-    return functionType.pointerTo().pointerTo();
   }
 
   @Override
@@ -64,11 +58,6 @@ public class FunPtrPtrField extends FieldGenerator {
       mv.visitInsn(Opcodes.SWAP);
       // stack: [array, instance]
       mv.visitFieldInsn(Opcodes.GETFIELD, className, offsetFieldName, "I");
-    }
-
-    @Override
-    public GimpleType getGimpleType() {
-      return FunPtrPtrField.this.getType();
     }
 
     @Override

@@ -16,6 +16,7 @@ import org.renjin.gcc.codegen.type.primitive.op.*;
 import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrCmpGenerator;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrGenerator;
+import org.renjin.gcc.codegen.var.Value;
 import org.renjin.gcc.gimple.CallingConvention;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.expr.*;
@@ -208,6 +209,109 @@ public class ExprFactory {
           x.getGimpleType() + " and " + y.getGimpleType());
     }
   }
+  
+  private Value forPrimitive(GimpleExpr operand) {
+    
+  }
+  
+  private Value forPrimitive(GimpleOp op, List<GimpleExpr> operands) {
+    switch (op) {
+      case PLUS_EXPR:
+      case MINUS_EXPR:
+      case MULT_EXPR:
+      case RDIV_EXPR:
+      case TRUNC_DIV_EXPR:
+      case EXACT_DIV_EXPR:
+      case TRUNC_MOD_EXPR:
+      case BIT_IOR_EXPR:
+      case BIT_XOR_EXPR:
+      case BIT_AND_EXPR:
+        return new PrimitiveBinOpGenerator(op, 
+            forPrimitive(operands.get(0)),
+            forPrimitive(operands.get(1)));
+
+      case BIT_NOT_EXPR:
+        return new BitwiseNotGenerator(forPrimitive(operands.get(0)));
+
+      case LSHIFT_EXPR:
+      case RSHIFT_EXPR:
+        return new BitwiseShiftGenerator(
+            op,
+            operands.get(0).getType(),
+            forPrimitive(operands.get(0)),
+            forPrimitive(operands.get(1)));
+
+      case CONVERT_EXPR:
+      case FIX_TRUNC_EXPR:
+      case FLOAT_EXPR:
+      case PAREN_EXPR:
+      case VAR_DECL:
+      case PARM_DECL:
+      case NOP_EXPR:
+      case MEM_REF:
+      case INTEGER_CST:
+      case REAL_CST:
+      case STRING_CST:
+      case COMPLEX_CST:
+      case ADDR_EXPR:
+      case ARRAY_REF:
+      case COMPONENT_REF:
+      case REALPART_EXPR:
+      case IMAGPART_EXPR:
+        return forPrimitive(operands.get(0));
+
+      case NEGATE_EXPR:
+        return new NegateGenerator(forPrimitive(operands.get(0)));
+
+      case TRUTH_NOT_EXPR:
+        return new LogicalNotGenerator(forPrimitive(operands.get(0)));
+
+      case TRUTH_AND_EXPR:
+        return new LogicalAndGenerator(
+            forPrimitive(operands.get(0)),
+            forPrimitive(operands.get(1)));
+
+      case TRUTH_OR_EXPR:
+        return new LogicalOrGenerator(
+            forPrimitive(operands.get(0)),
+            forPrimitive(operands.get(1)));
+
+      case TRUTH_XOR_EXPR:
+        return new LogicalXorGenerator(
+            forPrimitive(operands.get(0)),
+            forPrimitive(operands.get(1)));
+
+      case EQ_EXPR:
+      case LT_EXPR:
+      case LE_EXPR:
+      case NE_EXPR:
+      case GT_EXPR:
+      case GE_EXPR:
+        return new ConditionExprGenerator(
+            findComparisonGenerator(op,
+                findGenerator(operands.get(0)),
+                findGenerator(operands.get(1))));
+
+      case MAX_EXPR:
+      case MIN_EXPR:
+        return new MinMaxGenerator(op,
+            forPrimitive(operands.get(0)),
+            forPrimitive(operands.get(1)));
+
+      case ABS_EXPR:
+        return new AbsGenerator(
+            forPrimitive(operands.get(0)));
+
+      case UNORDERED_EXPR:
+        return new UnorderedExprGenerator(
+            forPrimitive(operands.get(0)),
+            forPrimitive(operands.get(1)));
+      
+      
+      default:
+        throw new UnsupportedOperationException("op: " + op);
+    }
+  }
 
   private ExprGenerator findGenerator(GimpleOp op, List<GimpleExpr> operands) {
     switch (op) {
@@ -235,6 +339,7 @@ public class ExprFactory {
       case RSHIFT_EXPR:
         return new BitwiseShiftGenerator(
             op,
+            operands.get(0).getType(),
             findGenerator(operands.get(0)),
             findGenerator(operands.get(1)));
 
@@ -341,7 +446,8 @@ public class ExprFactory {
     } else if (constant instanceof GimplePrimitiveConstant) {
       return new PrimitiveConstGenerator((GimplePrimitiveConstant) constant);
     } else if (constant instanceof GimpleComplexConstant) {
-      return new ComplexConstGenerator((GimpleComplexConstant) constant);
+      GimpleComplexConstant complexConstant = (GimpleComplexConstant) constant;
+      return new ComplexValue(complexConstant)
     } else if (constant instanceof GimpleStringConstant) {
       return new StringConstantGenerator(constant);
     } else {

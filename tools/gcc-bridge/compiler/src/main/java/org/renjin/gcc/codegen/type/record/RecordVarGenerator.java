@@ -26,7 +26,7 @@ public class RecordVarGenerator extends AbstractExprGenerator implements VarGene
     mv.visitTypeInsn(NEW, strategy.getJvmType().getInternalName());
     mv.visitInsn(DUP);
     mv.visitMethodInsn(INVOKESPECIAL, strategy.getJvmType().getInternalName(), "<init>", "()V", false);
-    var.store(mv);
+    var.store(mv, );
     
     if(initialValue.isPresent()) {
       emitStore(mv, initialValue.get());

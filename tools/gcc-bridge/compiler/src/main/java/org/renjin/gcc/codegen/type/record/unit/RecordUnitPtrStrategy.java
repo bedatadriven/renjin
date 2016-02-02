@@ -27,8 +27,8 @@ public class RecordUnitPtrStrategy extends TypeStrategy {
   }
 
   @Override
-  public FieldGenerator fieldGenerator(String className, String fieldName) {
-    return new RecordUnitPtrFieldGenerator(className, fieldName, strategy);
+  public FieldStrategy fieldGenerator(String className, String fieldName) {
+    return new ValueFieldStrategy(fieldName, strategy);
   }
 
   @Override

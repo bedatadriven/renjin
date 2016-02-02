@@ -9,6 +9,7 @@ import org.renjin.gcc.codegen.call.MallocGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.VarGenerator;
+import org.renjin.gcc.codegen.var.Values;
 import org.renjin.gcc.codegen.var.Var;
 import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
@@ -38,9 +39,7 @@ public class AddressablePrimitiveVarGenerator extends AbstractExprGenerator impl
 
   @Override
   public void emitDefaultInit(MethodGenerator mv, Optional<ExprGenerator> initialValue) {
-    mv.visitInsn(Opcodes.ICONST_1);
-    MallocGenerator.emitNewArray(mv, componentType);
-    arrayVar.store(mv);
+    arrayVar.store(mv, Values.newArray(componentType, 1));
     
     if(initialValue.isPresent() && !defaultValue(initialValue.get())) {
       emitStore(mv, initialValue.get());

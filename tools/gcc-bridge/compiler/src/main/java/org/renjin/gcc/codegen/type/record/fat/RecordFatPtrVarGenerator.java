@@ -40,8 +40,8 @@ public class RecordFatPtrVarGenerator extends AbstractExprGenerator implements V
   @Override
   public void emitStore(MethodGenerator mv, ExprGenerator valueGenerator) {
     valueGenerator.emitPushPtrArrayAndOffset(mv);
-    offset.store(mv);
-    array.store(mv);
+    offset.store(mv, );
+    array.store(mv, );
   }
 
   @Override

@@ -62,8 +62,8 @@ public class PrimitivePtrVarGenerator extends AbstractExprGenerator implements V
   public void emitStore(MethodGenerator mv, ExprGenerator ptrGenerator) {
     ptrGenerator.emitPushPtrArrayAndOffset(mv);
 
-    offsetVar.store(mv);
-    arrayVar.store(mv);
+    offsetVar.store(mv, );
+    arrayVar.store(mv, );
   }
 
   @Override

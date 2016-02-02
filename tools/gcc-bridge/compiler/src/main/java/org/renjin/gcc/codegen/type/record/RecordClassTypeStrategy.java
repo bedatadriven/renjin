@@ -10,7 +10,7 @@ import org.renjin.gcc.codegen.RecordClassGenerator;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.*;
-import org.renjin.gcc.codegen.type.record.fat.RecordArrayFieldGenerator;
+import org.renjin.gcc.codegen.type.record.fat.RecordArrayFieldStrategy;
 import org.renjin.gcc.codegen.type.record.fat.RecordFatPtrStrategy;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidCastExprGenerator;
@@ -36,7 +36,7 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy {
   private boolean provided;
   private boolean unitPointer;
   
-  private Map<String, FieldGenerator> fields = null;
+  private Map<String, FieldStrategy> fields = null;
   
   
 
@@ -79,8 +79,8 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy {
   public void linkFields(TypeOracle typeOracle) {
     fields = new HashMap<>();
     for (GimpleField gimpleField : getRecordTypeDef().getFields()) {
-      FieldGenerator fieldGenerator = typeOracle.forField(getJvmType().getInternalName(), gimpleField);
-      fields.put(gimpleField.getName(), fieldGenerator);
+      FieldStrategy fieldStrategy = typeOracle.forField(getJvmType().getInternalName(), gimpleField);
+      fields.put(gimpleField.getName(), fieldStrategy);
     }
   }
 
@@ -95,12 +95,12 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy {
   }
 
   @Override
-  public FieldGenerator fieldGenerator(String className, String fieldName) {
-    return new RecordFieldGenerator(className, fieldName, this);
+  public FieldStrategy fieldGenerator(String className, String fieldName) {
+    return new RecordFieldStrategy(className, fieldName, this);
   }
 
   @Override
-  public FieldGenerator addressableFieldGenerator(String className, String fieldName) {
+  public FieldStrategy addressableFieldGenerator(String className, String fieldName) {
     return new AddressableRecordField(className, fieldName, this);
   }
 
@@ -119,15 +119,15 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy {
   }
 
 
-  public FieldGenerator getFieldGenerator(String name) {
+  public FieldStrategy getFieldGenerator(String name) {
     if(fields == null) {
       throw new IllegalStateException("Fields map is not yet initialized.");
     }
-    FieldGenerator fieldGenerator = fields.get(name);
-    if(fieldGenerator == null) {
+    FieldStrategy fieldStrategy = fields.get(name);
+    if(fieldStrategy == null) {
       throw new InternalCompilerException(String.format("No field named '%s' in record type '%s'", name, jvmType));
     }
-    return fieldGenerator;
+    return fieldStrategy;
   }
 
   public void emitConstructor(MethodGenerator mv) {
@@ -161,12 +161,12 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy {
     }
 
     @Override
-    public FieldGenerator fieldGenerator(String className, String fieldName) {
-      return new RecordArrayFieldGenerator(className, fieldName, RecordClassTypeStrategy.this, arrayType);
+    public FieldStrategy fieldGenerator(String className, String fieldName) {
+      return new RecordArrayFieldStrategy(className, fieldName, RecordClassTypeStrategy.this, arrayType);
     }
 
     @Override
-    public FieldGenerator addressableFieldGenerator(String className, String fieldName) {
+    public FieldStrategy addressableFieldGenerator(String className, String fieldName) {
       return fieldGenerator(className, fieldName);
     }
 

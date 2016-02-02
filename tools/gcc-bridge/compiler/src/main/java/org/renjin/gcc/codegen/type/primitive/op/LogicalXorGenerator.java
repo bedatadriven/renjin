@@ -1,66 +1,34 @@
 package org.renjin.gcc.codegen.type.primitive.op;
 
-import org.objectweb.asm.Label;
-import org.objectweb.asm.Opcodes;
+import com.google.common.base.Preconditions;
+import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
-import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.gimple.type.GimpleBooleanType;
-import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.gcc.codegen.var.Value;
 
 /**
  * TRUTH_XOR_EXPR
  */
-public class LogicalXorGenerator extends AbstractExprGenerator {
+public class LogicalXorGenerator implements Value {
   
-  private final ExprGenerator x;
-  private final ExprGenerator y;
+  private final Value x;
+  private final Value y;
 
-  public LogicalXorGenerator(ExprGenerator y, ExprGenerator x) {
+  public LogicalXorGenerator(Value x, Value y) {
     this.y = y;
     this.x = x;
+    Preconditions.checkArgument(x.getType().equals(Type.BOOLEAN_TYPE) &&
+                                y.getType().equals(Type.BOOLEAN_TYPE));
   }
 
   @Override
-  public GimpleType getGimpleType() {
-    return new GimpleBooleanType();
+  public Type getType() {
+    return Type.BOOLEAN_TYPE;
   }
 
   @Override
-  public void emitPrimitiveValue(MethodGenerator mv) {
-    Label trueLabel = new Label();
-    Label exitLabel = new Label();
-
-    x.emitPrimitiveValue(mv);
-    y.emitPrimitiveValue(mv);
-    mv.visitInsn(Opcodes.IXOR);
-//    
-//    // if x is true, then we need to check y to make sure it is false
-//    jumpIfTrue(mv, trueLabel);
-//
-//    // Otherwise  if x is false we know the result will be false
-//    mv.visitInsn(Opcodes.ICONST_0);
-//    mv.visitJumpInsn(Opcodes.GOTO, exitLabel);
-//    
-//    // Otherwise need to check y if false --
-//    // (if x and y are true, then the results is false
-//    y.emitPrimitiveValue(mv);
-//    jumpIfTrue(mv, trueLabel);
-//
-//    // FALSE: emit 0
-//    mv.visitInsn(Opcodes.ICONST_0);
-//    mv.visitJumpInsn(Opcodes.GOTO, exitLabel);
-//
-//    // TRUE: emit 1
-//    mv.visitLabel(trueLabel);
-//    mv.visitInsn(Opcodes.ICONST_1);
-//
-//    mv.visitLabel(exitLabel);
+  public void load(MethodGenerator mv) {
+    x.load(mv);
+    y.load(mv);
+    mv.xor(Type.INT_TYPE);
   }
-
-  private void jumpIfTrue(MethodGenerator mv, Label trueLabel) {
-    mv.visitJumpInsn(Opcodes.IFNE, trueLabel);
-  }
-
-
 }

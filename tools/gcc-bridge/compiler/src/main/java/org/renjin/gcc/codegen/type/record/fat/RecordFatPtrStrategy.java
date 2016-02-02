@@ -2,7 +2,7 @@ package org.renjin.gcc.codegen.type.record.fat;
 
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.type.FieldGenerator;
+import org.renjin.gcc.codegen.type.FieldStrategy;
 import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.type.VarGenerator;
@@ -43,8 +43,8 @@ public class RecordFatPtrStrategy extends TypeStrategy {
 
 
   @Override
-  public FieldGenerator fieldGenerator(String className, String fieldName) {
-    return new RecordFatPtrFieldGenerator(className, fieldName, strategy);
+  public FieldStrategy fieldGenerator(String className, String fieldName) {
+    return new RecordFatPtrFieldStrategy(className, fieldName, strategy);
   }
 
   @Override

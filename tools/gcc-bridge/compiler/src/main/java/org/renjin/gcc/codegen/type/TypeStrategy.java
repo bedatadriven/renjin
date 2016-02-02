@@ -34,7 +34,7 @@ public abstract class TypeStrategy {
   /**
    * Creates a {@link VarGenerator} for a {@link GimpleVarDecl} of this type
    */
-  public VarGenerator varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
+  public ExprGenerator varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
     throw new UnimplementedException(getClass(), "varGenerator");
   }
 
@@ -55,7 +55,7 @@ public abstract class TypeStrategy {
    * @param className the full internal name of the class, for example, "org/renjin/gcc/Record$1"
    * @param fieldName the name of the field
    */
-  public FieldGenerator fieldGenerator(String className, String fieldName) {
+  public FieldStrategy fieldGenerator(String className, String fieldName) {
     throw new UnsupportedOperationException("TODO: implement fieldGenerator() in " + getClass().getName());
   }
 
@@ -67,7 +67,7 @@ public abstract class TypeStrategy {
     throw new UnsupportedOperationException("TODO: implement constructorExpr() in " + getClass().getName());
   }
 
-  public FieldGenerator addressableFieldGenerator(String className, String fieldName) {
+  public FieldStrategy addressableFieldGenerator(String className, String fieldName) {
     throw new UnimplementedException(getClass(), "addressableFieldGenerator");
   }
   

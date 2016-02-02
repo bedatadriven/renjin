@@ -1,45 +1,33 @@
 package org.renjin.gcc.codegen.type.primitive.op;
 
 
-import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
-import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.type.primitive.AddressOfPrimitiveValue;
-import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.gcc.codegen.var.Value;
 
-public class BitwiseNotGenerator extends AbstractExprGenerator implements ExprGenerator {
+public class BitwiseNotGenerator implements Value {
 
-  private final ExprGenerator valueGenerator;
+  private final Value argument;
 
-  public BitwiseNotGenerator(ExprGenerator valueGenerator) {
-    this.valueGenerator = valueGenerator;
+  public BitwiseNotGenerator(Value argument) {
+    this.argument = argument;
   }
-  
 
   @Override
-  public void emitPrimitiveValue(MethodGenerator mv) {
-    
-    if(!valueGenerator.getJvmPrimitiveType().equals(Type.INT_TYPE)) {
+  public Type getType() {
+    return argument.getType();
+  }
+
+  @Override
+  public void load(MethodGenerator mv) {
+    if(!argument.getType().equals(Type.INT_TYPE)) {
       throw new UnsupportedOperationException("Bitwise not only supported for int32 operands.");
     }
-    
+
     // Unary bitwise complement operator is implemented
     // as an XOR operation with -1 (all bits set)
-    valueGenerator.emitPrimitiveValue(mv);
-    mv.visitInsn(Opcodes.ICONST_M1);
-    mv.visitInsn(Opcodes.IXOR);
-  }
-
-  @Override
-  public GimpleType getGimpleType() {
-    return valueGenerator.getGimpleType();
-  }
-
-
-  @Override
-  public ExprGenerator addressOf() {
-    return new AddressOfPrimitiveValue(this);
+    argument.load(mv);
+    mv.iconst(-1);
+    mv.xor(Type.INT_TYPE);
   }
 }

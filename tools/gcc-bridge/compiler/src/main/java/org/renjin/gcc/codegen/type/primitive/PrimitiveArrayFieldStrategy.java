@@ -6,7 +6,7 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.call.MallocGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.type.FieldGenerator;
+import org.renjin.gcc.codegen.type.FieldStrategy;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
@@ -15,24 +15,19 @@ import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 import static org.objectweb.asm.Opcodes.PUTFIELD;
 
 
-public class PrimitiveArrayFieldGenerator extends FieldGenerator {
+public class PrimitiveArrayFieldStrategy extends FieldStrategy {
   private String className;
   private String fieldName;
   private GimpleArrayType arrayType;
   private GimplePrimitiveType componentType;
   private final String fieldDescriptor;
   
-  public PrimitiveArrayFieldGenerator(String className, String fieldName, GimpleArrayType arrayType) {
+  public PrimitiveArrayFieldStrategy(String className, String fieldName, GimpleArrayType arrayType) {
     this.className = className;
     this.fieldName = fieldName;
     this.arrayType = arrayType;
     this.componentType = (GimplePrimitiveType) arrayType.getComponentType();
     this.fieldDescriptor = "[" + componentType.jvmType().getDescriptor();
-  }
-
-  @Override
-  public GimpleType getType() {
-    return arrayType;
   }
 
   @Override

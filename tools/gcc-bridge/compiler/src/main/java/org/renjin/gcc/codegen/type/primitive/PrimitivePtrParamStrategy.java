@@ -60,13 +60,13 @@ public class PrimitivePtrParamStrategy implements ParamStrategy {
     mv.visitFieldInsn(GETFIELD, pointerType.getWrapperType().getInternalName(), "array", pointerType.getArrayType().getDescriptor());
 
     // Store the array reference in the local variable
-    arrayVariable.store(mv);
+    arrayVariable.store(mv, );
     
     // Consume the second reference 
     mv.visitFieldInsn(GETFIELD, pointerType.getWrapperType().getInternalName(), "offset", "I");
 
     // Store the array reference in the local variable
-    offsetVariable.store(mv);
+    offsetVariable.store(mv, );
     
     return new PrimitivePtrVarGenerator(type, arrayVariable, offsetVariable);
   }

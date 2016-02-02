@@ -41,7 +41,7 @@ public class RecordUnitPtrVarGenerator extends AbstractExprGenerator implements 
   @Override
   public void emitStore(MethodGenerator mv, ExprGenerator valueGenerator) {
     valueGenerator.emitPushRecordRef(mv);
-    var.store(mv);
+    var.store(mv, );
   }
 
   @Override

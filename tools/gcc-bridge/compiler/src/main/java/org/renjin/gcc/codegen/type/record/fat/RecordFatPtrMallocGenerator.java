@@ -25,11 +25,6 @@ public class RecordFatPtrMallocGenerator extends AbstractExprGenerator {
   }
 
   @Override
-  public GimpleType getGimpleType() {
-    return strategy.getGimpleType();
-  }
-
-  @Override
   public void emitPushPtrArrayAndOffset(MethodGenerator mv) {
 
     // Allocate the new array
@@ -59,11 +54,11 @@ public class RecordFatPtrMallocGenerator extends AbstractExprGenerator {
     
     // Currently on stack:
     // Record[]
-    array.store(mv);
+    array.store(mv, );
     
     // Initialize index
     mv.iconst(0);
-    index.store(mv);
+    index.store(mv, );
     
     // Labels:
     Label loopHead = new Label();

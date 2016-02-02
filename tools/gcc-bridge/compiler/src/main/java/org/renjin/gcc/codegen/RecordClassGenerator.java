@@ -6,7 +6,7 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.util.TraceClassVisitor;
 import org.renjin.gcc.GimpleCompiler;
-import org.renjin.gcc.codegen.type.FieldGenerator;
+import org.renjin.gcc.codegen.type.FieldStrategy;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
 
 import java.io.File;
@@ -28,9 +28,9 @@ public class RecordClassGenerator {
   private StringWriter sw;
   private PrintWriter pw;
   private Type className;
-  private Collection<FieldGenerator> fields;
+  private Collection<FieldStrategy> fields;
 
-  public RecordClassGenerator(Type className, Collection<FieldGenerator> fields) {
+  public RecordClassGenerator(Type className, Collection<FieldStrategy> fields) {
     this.fields = fields;
     this.className = className;
   }
@@ -66,8 +66,8 @@ public class RecordClassGenerator {
   }
 
   private void emitFields() {
-    for (FieldGenerator fieldGenerator : fields) {
-      fieldGenerator.emitInstanceField(cv);
+    for (FieldStrategy fieldStrategy : fields) {
+      fieldStrategy.emitInstanceField(cv);
     }
   }
 
@@ -77,8 +77,8 @@ public class RecordClassGenerator {
     mv.visitVarInsn(ALOAD, 0);
     mv.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
 
-    for (FieldGenerator fieldGenerator : fields) {
-      fieldGenerator.emitInstanceInit(mv);
+    for (FieldStrategy fieldStrategy : fields) {
+      fieldStrategy.emitInstanceInit(mv);
     }
 
     mv.visitInsn(RETURN);

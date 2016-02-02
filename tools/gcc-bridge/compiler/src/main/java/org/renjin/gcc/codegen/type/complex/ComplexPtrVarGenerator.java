@@ -9,6 +9,7 @@ import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.expr.NullPtrGenerator;
 import org.renjin.gcc.codegen.type.VarGenerator;
+import org.renjin.gcc.codegen.var.Values;
 import org.renjin.gcc.codegen.var.Var;
 import org.renjin.gcc.gimple.type.GimpleComplexType;
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
@@ -44,10 +45,8 @@ public class ComplexPtrVarGenerator extends AbstractExprGenerator implements Var
 
   @Override
   public void emitDefaultInit(MethodGenerator mv, Optional<ExprGenerator> initialValue) {
-    mv.visitInsn(Opcodes.ACONST_NULL);
-    arrayVar.store(mv);
-    mv.visitInsn(Opcodes.ICONST_0);
-    offsetVar.store(mv);
+    arrayVar.store(mv, Values.nullRef());
+    offsetVar.store(mv, Values.zero());
     
     if(initialValue.isPresent() && !isDefaultValue(initialValue.get())) {
       emitStore(mv, initialValue.get());
@@ -76,18 +75,18 @@ public class ComplexPtrVarGenerator extends AbstractExprGenerator implements Var
 
   @Override
   public void emitStore(MethodGenerator mv, ExprGenerator valueGenerator) {
-    valueGenerator.emitPushPtrArrayAndOffset(mv);
-    
-    // stack: (array, index)
-    offsetVar.store(mv);
-    arrayVar.store(mv);
+    arrayVar.store(mv, valueGenerator.getPointerArray());
+    offsetVar.store(mv, valueGenerator.getPointerOffset());
   }
   
   @Override
   public WrapperType getPointerType() {
     return WrapperType.of(partType);
   }
-  
+
+  /**
+   * Generates loads and stores to the array value pointed to by the offset value
+   */
   private class Value extends AbstractExprGenerator {
 
     @Override
@@ -107,25 +106,9 @@ public class ComplexPtrVarGenerator extends AbstractExprGenerator implements Var
 
     @Override
     public void emitStore(MethodGenerator mv, ExprGenerator valueGenerator) {
-      // Load our array onto the stack
-      arrayVar.load(mv);
-      // Duplicate it so we can store to it twice
-      // Stack: (array, array)
-      mv.visitInsn(Opcodes.DUP);
-
-      // Store the real part first
-      offsetVar.load(mv);
-      valueGenerator.realPart().emitPrimitiveValue(mv);
-      mv.visitInsn(partType.getOpcode(Opcodes.IASTORE));
-
-      // Now store the complex part
-      offsetVar.load(mv);
-      mv.visitInsn(Opcodes.ICONST_1);
-      mv.visitInsn(Opcodes.IADD);
-      valueGenerator.imaginaryPart().emitPrimitiveValue(mv);
-      mv.visitInsn(partType.getOpcode(Opcodes.IASTORE));
+      realPart().emitStore(mv, valueGenerator.realPart());
+      imaginaryPart().emitStore(mv, valueGenerator.imaginaryPart());
     }
-
   }
   
   private class PartExpr extends AbstractExprGenerator {

@@ -84,7 +84,7 @@ public class PrimitivePtrPtrParamStrategy implements ParamStrategy {
     @Override
     public void emitStore(MethodGenerator mv, ExprGenerator valueGenerator) {
       valueGenerator.emitPushPointerWrapper(mv);
-      varIndex.store(mv);
+      varIndex.store(mv, );
     }
 
     @Override

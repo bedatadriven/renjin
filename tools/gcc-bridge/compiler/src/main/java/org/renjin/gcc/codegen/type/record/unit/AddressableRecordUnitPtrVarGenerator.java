@@ -8,6 +8,7 @@ import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.expr.NullPtrGenerator;
 import org.renjin.gcc.codegen.type.VarGenerator;
 import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
+import org.renjin.gcc.codegen.var.Values;
 import org.renjin.gcc.codegen.var.Var;
 import org.renjin.gcc.gimple.type.GimpleType;
 
@@ -26,9 +27,7 @@ public class AddressableRecordUnitPtrVarGenerator extends AbstractExprGenerator 
   public void emitDefaultInit(MethodGenerator mv, Optional<ExprGenerator> initialValue) {
     
     // allocate a unit array so that we can provide an "address" for this pointer
-    mv.visitInsn(Opcodes.ICONST_1);
-    mv.visitTypeInsn(Opcodes.ANEWARRAY, strategy.getJvmType().getInternalName());
-    varIndex.store(mv);
+    varIndex.store(mv, Values.newArray(strategy.getJvmType(), 1));
     
     if(initialValue.isPresent()) {
       if(initialValue.get() instanceof NullPtrGenerator) {

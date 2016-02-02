@@ -7,7 +7,7 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.call.MallocGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.type.FieldGenerator;
+import org.renjin.gcc.codegen.type.FieldStrategy;
 import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
@@ -17,7 +17,7 @@ import static org.objectweb.asm.Opcodes.*;
 /**
  * FieldGenerator for primitive fields that must be addressed. 
  */
-public class AddressablePrimitiveField extends FieldGenerator {
+public class AddressablePrimitiveField extends FieldStrategy {
 
   private String fieldName;
   private String className;
@@ -31,12 +31,6 @@ public class AddressablePrimitiveField extends FieldGenerator {
     this.gimpleType = (GimplePrimitiveType) gimpleType;
     this.type = type;
     this.fieldDescriptor = "[" + type.getDescriptor();
-  }
-
-
-  @Override
-  public GimpleType getType() {
-    return gimpleType;
   }
 
   @Override

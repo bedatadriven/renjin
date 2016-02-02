@@ -50,7 +50,7 @@ public class RecordArrayVarGenerator extends AbstractExprGenerator implements Va
     }
     
     // Store the array to the local variable
-    arrayVar.store(mv);
+    arrayVar.store(mv, );
     
     if(initialValue.isPresent()) {
       emitStore(mv, initialValue.get());
@@ -65,7 +65,7 @@ public class RecordArrayVarGenerator extends AbstractExprGenerator implements Va
   @Override
   public void emitStore(MethodGenerator mv, ExprGenerator valueGenerator) {
     valueGenerator.emitPushArray(mv);
-    arrayVar.store(mv);
+    arrayVar.store(mv, );
   }
 
   @Override

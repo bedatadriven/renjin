@@ -6,6 +6,7 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.VarGenerator;
+import org.renjin.gcc.codegen.var.Values;
 import org.renjin.gcc.codegen.var.Var;
 import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.gimple.type.GimpleType;
@@ -24,7 +25,7 @@ public class AddressableVoidPtrVar extends AbstractExprGenerator implements VarG
   public void emitDefaultInit(MethodGenerator mv, Optional<ExprGenerator> initialValue) {
     mv.visitInsn(Opcodes.ICONST_1);
     mv.visitTypeInsn(Opcodes.ANEWARRAY, "java/lang/Object");
-    arrayIndex.store(mv);
+    arrayIndex.store(mv, Values.newArray(Object.class, 1));
   }
 
   @Override

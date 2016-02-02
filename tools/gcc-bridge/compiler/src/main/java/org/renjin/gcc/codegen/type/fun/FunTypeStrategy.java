@@ -5,12 +5,12 @@ import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.*;
+import org.renjin.gcc.codegen.var.Var;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleFunctionType;
-import org.renjin.gcc.gimple.type.GimplePointerType;
 
 import java.lang.invoke.MethodHandle;
 import java.util.List;
@@ -24,6 +24,8 @@ import java.util.List;
  */ 
 public class FunTypeStrategy extends TypeStrategy {
 
+  private static final Type METHOD_HANDLE_TYPE = Type.getType(MethodHandle.class);
+  
   private GimpleFunctionType type;
 
   public FunTypeStrategy(GimpleFunctionType type) {
@@ -35,25 +37,28 @@ public class FunTypeStrategy extends TypeStrategy {
     return new Pointer();
   }
 
+  /**
+   * Strategy for Function Pointers
+   */
   private class Pointer extends TypeStrategy {
     @Override
     public ParamStrategy getParamStrategy() {
-      return new FunPtrParamStrategy(new GimplePointerType(type));
+      return new ValueParamStrategy(METHOD_HANDLE_TYPE);
     }
 
     @Override
-    public VarGenerator varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
-      return new FunPtrVarGenerator(type, allocator.reserve(decl.getName(), Type.getType(MethodHandle.class)));
+    public Var varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
+      return allocator.reserve(decl.getName(), Type.getType(MethodHandle.class));
     }
 
     @Override
-    public FieldGenerator fieldGenerator(String className, String fieldName) {
-      return new FunPtrFieldGenerator(className, fieldName, type);
+    public FieldStrategy fieldGenerator(String className, String fieldName) {
+      return new ValueFieldStrategy(METHOD_HANDLE_TYPE, fieldName);
     }
 
     @Override
     public ReturnStrategy getReturnStrategy() {
-      return new FunPtrReturnStrategy();
+      return new ValueReturnStrategy(METHOD_HANDLE_TYPE);
     }
 
     @Override
@@ -71,7 +76,7 @@ public class FunTypeStrategy extends TypeStrategy {
   private class PointerPointer extends TypeStrategy {
 
     @Override
-    public FieldGenerator fieldGenerator(String className, String fieldName) {
+    public FieldStrategy fieldGenerator(String className, String fieldName) {
       return new FunPtrPtrField(className, fieldName, type); 
     }
   }
@@ -84,7 +89,7 @@ public class FunTypeStrategy extends TypeStrategy {
     }
 
     @Override
-    public FieldGenerator fieldGenerator(String className, String fieldName) {
+    public FieldStrategy fieldGenerator(String className, String fieldName) {
       return new FunPtrArrayField(className, fieldName, arrayType);
     }
 

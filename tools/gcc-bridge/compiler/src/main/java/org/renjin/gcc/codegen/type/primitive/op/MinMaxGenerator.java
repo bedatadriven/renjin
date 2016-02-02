@@ -7,68 +7,51 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.primitive.AddressOfPrimitiveValue;
+import org.renjin.gcc.codegen.var.Value;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 
-public class MinMaxGenerator extends AbstractExprGenerator implements ExprGenerator {
+public class MinMaxGenerator implements Value {
 
   private GimpleOp op;
-  private ExprGenerator x;
-  private ExprGenerator y;
+  private Value x;
+  private Value y;
 
-  public MinMaxGenerator(GimpleOp op, ExprGenerator x, ExprGenerator y) {
+  public MinMaxGenerator(GimpleOp op, Value x, Value y) {
     this.op = op;
     this.x = x;
     this.y = y;
   }
 
   @Override
-  public GimpleType getGimpleType() {
-    return x.getGimpleType();
+  public Type getType() {
+    return x.getType();
   }
 
   @Override
-  public void emitPrimitiveValue(MethodGenerator mv) {
+  public void load(MethodGenerator mv) {
+    x.load(mv);
+    y.load(mv);
 
-    x.emitPrimitiveValue(mv);
-    y.emitPrimitiveValue(mv);
-
-    if(!x.getGimpleType().equals(y.getGimpleType())) {
+    Type type = x.getType();
+    if(!type.equals(y.getType())) {
       throw new UnsupportedOperationException(String.format(
-          "Types must be the same: %s != %s", x.getGimpleType(), y.getGimpleType()));
+          "Types must be the same: %s != %s", x.getType(), y.getType()));
     }
     
-    Type type = x.getJvmPrimitiveType();
-
-    if (type.equals(Type.LONG_TYPE)) {
-      mv.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/Math", methodName(), "(JJ)J", false);
-
-    } else if (type.equals(Type.FLOAT_TYPE)) {
-      mv.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/Math", methodName(), "(FF)F", false);
-
-    } else if (type.equals(Type.DOUBLE_TYPE)) {
-      mv.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/Math", methodName(), "(DD)D", false);
-
-    } else {
-      mv.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/Math", methodName(), "(II)I", false);
-    }
-  }
-
-  private String methodName() {
+    String methodName;
     switch (op) {
-      case MAX_EXPR:
-        return "max";
       case MIN_EXPR:
-        return "min";
+        methodName = "min";
+        break;
+      case MAX_EXPR:
+        methodName = "max";
+        break;
       default:
-        throw new InternalCompilerException("op: " + op);
+        throw new IllegalArgumentException("op: " + op);
     }
-  }
 
-  @Override
-  public ExprGenerator addressOf() {
-    return new AddressOfPrimitiveValue(this);
+    mv.invokestatic(Math.class, methodName, Type.getMethodDescriptor(type, type, type));
   }
-
 }

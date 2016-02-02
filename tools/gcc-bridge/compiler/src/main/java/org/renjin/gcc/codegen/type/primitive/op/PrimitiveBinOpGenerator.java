@@ -4,24 +4,19 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.util.Printer;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
-import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.type.primitive.AddressOfPrimitiveValue;
+import org.renjin.gcc.codegen.var.Value;
 import org.renjin.gcc.gimple.GimpleOp;
-import org.renjin.gcc.gimple.type.GimpleType;
 
 /**
  * Generates bytecode for a binary operation on primitives (IMUL, DMUL, IADD, etc)
  */
-public class PrimitiveBinOpGenerator extends AbstractExprGenerator implements ExprGenerator {
+public class PrimitiveBinOpGenerator implements Value {
 
-  private GimpleOp op;
   private int opCode;
-  private final ExprGenerator x;
-  private final ExprGenerator y;
+  private final Value x;
+  private final Value y;
 
-  public PrimitiveBinOpGenerator(GimpleOp op, ExprGenerator x, ExprGenerator y) {
-    this.op = op;
+  public PrimitiveBinOpGenerator(GimpleOp op, Value x, Value y) {
     this.opCode = opCodeFor(op);
     this.x = x;
     this.y = y;
@@ -29,16 +24,16 @@ public class PrimitiveBinOpGenerator extends AbstractExprGenerator implements Ex
     checkTypes();
   }
 
-  public ExprGenerator getX() {
-    return x;
+  @Override
+  public Type getType() {
+    return x.getType();
   }
 
-  public ExprGenerator getY() {
-    return y;
-  }
-
-  public GimpleOp getOp() {
-    return op;
+  @Override
+  public void load(MethodGenerator mv) {
+    x.load(mv);
+    y.load(mv);
+    mv.visitInsn(getType().getOpcode(opCode));
   }
 
   private static int opCodeFor(GimpleOp op) {
@@ -70,8 +65,8 @@ public class PrimitiveBinOpGenerator extends AbstractExprGenerator implements Ex
   }
 
   private void checkTypes() {
-    Type tx = x.getJvmPrimitiveType();
-    Type ty = y.getJvmPrimitiveType();
+    Type tx = x.getType();
+    Type ty = y.getType();
 
     if(!tx.equals(ty)) {
       throw new IllegalStateException(String.format(
@@ -80,25 +75,8 @@ public class PrimitiveBinOpGenerator extends AbstractExprGenerator implements Ex
   }
 
   @Override
-  public ExprGenerator addressOf() {
-    return new AddressOfPrimitiveValue(this);
-  }
-
-  @Override
-  public void emitPrimitiveValue(MethodGenerator mv) {
-    x.emitPrimitiveValue(mv);
-    y.emitPrimitiveValue(mv);
-    mv.visitInsn(getJvmPrimitiveType().getOpcode(opCode));
-  }
-
-  @Override
   public String toString() {
     return "(" + x + " " + Printer.OPCODES[opCode] + " " + y + ")";
   }
 
-  @Override
-  public GimpleType getGimpleType() {
-    return x.getGimpleType();
-  }
-  
 }

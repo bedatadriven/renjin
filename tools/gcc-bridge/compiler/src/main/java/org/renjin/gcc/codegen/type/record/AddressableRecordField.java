@@ -5,13 +5,13 @@ import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.type.FieldGenerator;
+import org.renjin.gcc.codegen.type.FieldStrategy;
 import org.renjin.gcc.codegen.type.record.unit.DereferencedUnitRecordPtr;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 
-public class AddressableRecordField extends FieldGenerator {
+public class AddressableRecordField extends FieldStrategy {
 
   private final String className;
   private final String fieldName;
@@ -23,11 +23,6 @@ public class AddressableRecordField extends FieldGenerator {
     this.fieldName = fieldName;
     this.strategy = strategy;
     this.fieldDescriptor = "[" + strategy.getJvmType().getDescriptor();
-  }
-
-  @Override
-  public GimpleType getType() {
-    return strategy.getRecordType();
   }
 
 

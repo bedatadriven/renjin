@@ -2,61 +2,56 @@ package org.renjin.gcc.codegen.type.primitive.op;
 
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.primitive.AddressOfPrimitiveValue;
-import org.renjin.gcc.gimple.type.GimpleBooleanType;
-import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.gcc.codegen.var.Value;
 
 /**
  * Logical binary operator, such as TRUTH_OR, TRUTH_AND
  */
-public class LogicalAndGenerator extends AbstractExprGenerator {
+public class LogicalAndGenerator implements Value {
   
-  private ExprGenerator x;
-  private ExprGenerator y;
+  private Value x;
+  private Value y;
 
-  public LogicalAndGenerator(ExprGenerator x, ExprGenerator y) {
+  public LogicalAndGenerator(Value x, Value y) {
     this.x = x;
     this.y = y;
   }
 
+
   @Override
-  public GimpleType getGimpleType() {
-    return new GimpleBooleanType();
+  public Type getType() {
+    return x.getType();
   }
 
   @Override
-  public void emitPrimitiveValue(MethodGenerator mv) {
+  public void load(MethodGenerator mv) {
     Label falseLabel = new Label();
     Label exitLabel = new Label();
 
     // if x is false, then can jump right away to false
-    x.emitPrimitiveValue(mv);
+    x.load(mv);
     jumpIfFalse(mv, falseLabel);
 
     // Otherwise need to check y
-    y.emitPrimitiveValue(mv);
+    y.load(mv);
     jumpIfFalse(mv, falseLabel);
     
     // TRUE: emit 1
-    mv.visitInsn(Opcodes.ICONST_1);
-    mv.visitJumpInsn(Opcodes.GOTO, exitLabel);
+    mv.iconst(1);
+    mv.goTo(exitLabel);
     
     // FALSE: emit 0
-    mv.visitLabel(falseLabel);
-    mv.visitInsn(Opcodes.ICONST_0);
+    mv.mark(falseLabel);
+    mv.iconst(0);
     
-    mv.visitLabel(exitLabel);
+    mv.mark(exitLabel);
   }
 
   private void jumpIfFalse(MethodGenerator mv, Label trueLabel) {
     mv.visitJumpInsn(Opcodes.IFEQ, trueLabel);
-  }
-
-  @Override
-  public ExprGenerator addressOf() {
-    return new AddressOfPrimitiveValue(this);
   }
 }

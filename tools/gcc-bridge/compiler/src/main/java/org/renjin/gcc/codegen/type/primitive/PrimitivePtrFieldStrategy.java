@@ -7,7 +7,7 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.type.FieldGenerator;
+import org.renjin.gcc.codegen.type.FieldStrategy;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleIntegerConstant;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
@@ -17,7 +17,7 @@ import org.renjin.gcc.gimple.type.GimpleType;
  * Generates two fields for a global pointer variable, one for an array, and the other for 
  * an offset into the array.
  */
-public class PrimitivePtrFieldGenerator extends FieldGenerator {
+public class PrimitivePtrFieldStrategy extends FieldStrategy {
 
   private String className;
   private String arrayFieldName;
@@ -26,18 +26,13 @@ public class PrimitivePtrFieldGenerator extends FieldGenerator {
   private Type baseType;
   private WrapperType wrapperType;
 
-  public PrimitivePtrFieldGenerator(String className, String fieldName, GimpleType type) {
+  public PrimitivePtrFieldStrategy(String className, String fieldName, GimpleType type) {
     this.className = className;
     this.arrayFieldName = fieldName;
     this.offsetFieldName = fieldName + "$offset";
     this.gimpleType = type;
     this.baseType = ((GimplePrimitiveType)type.getBaseType()).jvmType();
     wrapperType = WrapperType.of(baseType);
-  }
-
-  @Override
-  public GimpleType getType() {
-    return gimpleType;
   }
 
   private boolean isNull(GimpleExpr initialValue) {

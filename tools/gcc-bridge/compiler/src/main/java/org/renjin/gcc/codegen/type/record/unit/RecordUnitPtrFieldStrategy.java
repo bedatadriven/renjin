@@ -5,27 +5,22 @@ import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.type.FieldGenerator;
+import org.renjin.gcc.codegen.type.FieldStrategy;
 import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 
-public class RecordUnitPtrFieldGenerator extends FieldGenerator {
+public class RecordUnitPtrFieldStrategy extends FieldStrategy {
   private String className;
   private String fieldName;
   private RecordClassTypeStrategy strategy;
 
-  public RecordUnitPtrFieldGenerator(String className, String fieldName, RecordClassTypeStrategy strategy) {
+  public RecordUnitPtrFieldStrategy(String className, String fieldName, RecordClassTypeStrategy strategy) {
     this.className = className;
     this.fieldName = fieldName;
     this.strategy = strategy;
-  }
-
-  @Override
-  public GimpleType getType() {
-    return new GimplePointerType(strategy.getRecordType());
   }
 
   @Override

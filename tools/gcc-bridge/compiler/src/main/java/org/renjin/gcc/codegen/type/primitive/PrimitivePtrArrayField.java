@@ -3,16 +3,15 @@ package org.renjin.gcc.codegen.type.primitive;
 import org.objectweb.asm.ClassVisitor;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.type.FieldGenerator;
+import org.renjin.gcc.codegen.type.FieldStrategy;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
-import org.renjin.gcc.gimple.type.GimpleType;
 
 
 /**
  * Field storing an array of primitive pointers, for example, double*[] or char*[]
  */
-public class PrimitivePtrArrayField extends FieldGenerator {
+public class PrimitivePtrArrayField extends FieldStrategy {
 
   private final String className;
   private final String fieldName;
@@ -26,11 +25,6 @@ public class PrimitivePtrArrayField extends FieldGenerator {
     this.arrayType = arrayType;
     this.primitiveType = arrayType.getComponentType().getBaseType();
     this.fieldDescriptor = "[" + WrapperType.of(primitiveType).getWrapperType().getDescriptor();
-  }
-
-  @Override
-  public GimpleType getType() {
-    return arrayType;
   }
 
   @Override

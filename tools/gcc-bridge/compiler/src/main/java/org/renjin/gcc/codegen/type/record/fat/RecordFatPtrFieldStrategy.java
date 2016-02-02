@@ -5,14 +5,14 @@ import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.type.FieldGenerator;
+import org.renjin.gcc.codegen.type.FieldStrategy;
 import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 /**
  * Strategy for fat pointer fields, using an record_t[] and record_t$offset field
  */
-public class RecordFatPtrFieldGenerator extends FieldGenerator {
+public class RecordFatPtrFieldStrategy extends FieldStrategy {
 
   private String ownerClass;
   private String arrayName;
@@ -20,17 +20,12 @@ public class RecordFatPtrFieldGenerator extends FieldGenerator {
   private String offsetName;
   private RecordClassTypeStrategy recordStrategy;
 
-  public RecordFatPtrFieldGenerator(String ownerClass, String name, RecordClassTypeStrategy recordStrategy) {
+  public RecordFatPtrFieldStrategy(String ownerClass, String name, RecordClassTypeStrategy recordStrategy) {
     this.ownerClass = ownerClass;
     this.arrayName = name;
     this.offsetName = arrayName + "$offset";
     this.arrayDescriptor = "[" + recordStrategy.getJvmType().getDescriptor();
     this.recordStrategy = recordStrategy;
-  }
-
-  @Override
-  public GimpleType getType() {
-    return recordStrategy.getRecordType().pointerTo();
   }
 
   @Override

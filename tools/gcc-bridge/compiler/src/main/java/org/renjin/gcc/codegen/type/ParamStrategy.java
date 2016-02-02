@@ -3,7 +3,6 @@ package org.renjin.gcc.codegen.type;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.type.primitive.PrimitiveParamStrategy;
 import org.renjin.gcc.codegen.var.LocalVarAllocator;
 import org.renjin.gcc.codegen.var.Var;
 import org.renjin.gcc.codegen.var.VarAllocator;
@@ -22,7 +21,7 @@ import java.util.List;
  *   <li>How to store or load the value of the parameter within a function body</li>
  * </ul>
  *
- * <p>The simplest strategy is the {@link PrimitiveParamStrategy}, which maps a Gimple argument
+ * <p>The simplest strategy is the {@link ValueParamStrategy}, which maps a Gimple argument
  * to a JVM argument of the corresponding type.</p>
  *
  * <p>However types like {@code complex} require more sophisticated handling: a single complex-valued argument

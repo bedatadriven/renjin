@@ -33,10 +33,6 @@ public class PrimitivePtrArrayVar extends AbstractExprGenerator implements VarGe
     this.wrapperType = WrapperType.forPointerType((GimpleIndirectType) arrayType.getComponentType()); 
   }
 
-  @Override
-  public GimpleType getGimpleType() {
-    return arrayType;
-  }
 
   @Override
   public void emitDefaultInit(MethodGenerator mv, Optional<ExprGenerator> initialValue) {
@@ -46,14 +42,14 @@ public class PrimitivePtrArrayVar extends AbstractExprGenerator implements VarGe
     } else {
       mv.visitInsn(arrayType.getElementCount());
       mv.visitTypeInsn(Opcodes.ANEWARRAY, wrapperType.getWrapperType().getInternalName());
-      arrayVar.store(mv);
+      arrayVar.store(mv, );
     }
   }
 
   @Override
   public void emitStore(MethodGenerator mv, ExprGenerator valueGenerator) {
     valueGenerator.emitPushArray(mv);
-    arrayVar.store(mv);
+    arrayVar.store(mv, );
   }
 
   @Override

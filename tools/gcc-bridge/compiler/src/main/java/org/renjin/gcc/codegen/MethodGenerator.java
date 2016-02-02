@@ -2,6 +2,7 @@ package org.renjin.gcc.codegen;
 
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.InstructionAdapter;
 import org.renjin.gcc.codegen.var.LocalVarAllocator;
 
@@ -16,5 +17,9 @@ public class MethodGenerator extends InstructionAdapter {
 
   public LocalVarAllocator getLocalVarAllocator() {
     return localVarAllocator;
+  }
+  
+  public void invokestatic(Class<?> ownerClass, String methodName, String descriptor) {
+    invokestatic(Type.getInternalName(ownerClass), methodName, descriptor, false);
   }
 }

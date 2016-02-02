@@ -53,7 +53,7 @@ public class PrimitiveArrayVar extends AbstractExprGenerator implements VarGener
       MallocGenerator.emitNewArray(mv, componentType);
 
     }
-    arrayIndex.store(mv);
+    arrayIndex.store(mv, );
   }
 
   @Override
@@ -64,12 +64,7 @@ public class PrimitiveArrayVar extends AbstractExprGenerator implements VarGener
   @Override
   public void emitStore(MethodGenerator mv, ExprGenerator valueGenerator) {
     valueGenerator.emitPushArray(mv);
-    arrayIndex.store(mv);
-  }
-
-  @Override
-  public GimpleArrayType getGimpleType() {
-    return gimpleType;
+    arrayIndex.store(mv, );
   }
   
   @Override

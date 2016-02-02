@@ -4,7 +4,7 @@ import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.type.FieldGenerator;
+import org.renjin.gcc.codegen.type.FieldStrategy;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 import java.util.Map;
@@ -18,11 +18,6 @@ public class RecordConstructor extends AbstractExprGenerator {
     this.strategy = strategy;
     this.fields = fields;
   }
-
-  @Override
-  public GimpleType getGimpleType() {
-    return strategy.getRecordType();
-  }
   
   @Override
   public void emitPushRecordRef(MethodGenerator mv) {
@@ -35,8 +30,8 @@ public class RecordConstructor extends AbstractExprGenerator {
       mv.visitInsn(Opcodes.DUP);
 
       // Push the value onto the stack and save to the field
-      FieldGenerator fieldGenerator = strategy.getFieldGenerator(field.getKey());
-      fieldGenerator.emitStoreMember(mv, field.getValue());
+      FieldStrategy fieldStrategy = strategy.getFieldGenerator(field.getKey());
+      fieldStrategy.emitStoreMember(mv, field.getValue());
     }
   }
 }

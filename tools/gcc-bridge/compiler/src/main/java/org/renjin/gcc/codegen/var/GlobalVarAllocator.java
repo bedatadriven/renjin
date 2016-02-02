@@ -25,12 +25,18 @@ public class GlobalVarAllocator extends VarAllocator {
     }
 
     @Override
+    public Type getType() {
+      return type;
+    }
+
+    @Override
     public void load(MethodGenerator mv) {
       mv.visitFieldInsn(Opcodes.GETSTATIC, declaringClass.getInternalName(), name, type.getDescriptor());
     }
 
     @Override
-    public void store(MethodGenerator mv) {
+    public void store(MethodGenerator mv, Value value) {
+      value.load(mv);
       mv.visitFieldInsn(Opcodes.PUTSTATIC, declaringClass.getInternalName(), name, type.getDescriptor());
     }
   }

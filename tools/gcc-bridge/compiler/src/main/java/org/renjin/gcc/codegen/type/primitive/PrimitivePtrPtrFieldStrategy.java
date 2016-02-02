@@ -6,14 +6,14 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.type.FieldGenerator;
+import org.renjin.gcc.codegen.type.FieldStrategy;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 /**
  * Generates fields that are pointers to pointers
  */
-public class PrimitivePtrPtrFieldGenerator extends FieldGenerator {
+public class PrimitivePtrPtrFieldStrategy extends FieldStrategy {
   
   private String className;
   private String fieldName;
@@ -33,18 +33,13 @@ public class PrimitivePtrPtrFieldGenerator extends FieldGenerator {
    */
   private String arrayFieldDescriptor;
   
-  public PrimitivePtrPtrFieldGenerator(String className, String fieldName, GimpleType type) {
+  public PrimitivePtrPtrFieldStrategy(String className, String fieldName, GimpleType type) {
     this.className = className;
     this.fieldName = fieldName;
     this.pointerType = type;
     this.primitiveType = type.getBaseType().getBaseType();
     this.wrapperType = WrapperType.of(primitiveType);
     this.arrayFieldDescriptor = "[" + wrapperType.getWrapperType().getDescriptor();
-  }
-
-  @Override
-  public GimpleType getType() {
-    return pointerType;
   }
 
   @Override

@@ -5,14 +5,14 @@ import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.type.FieldGenerator;
+import org.renjin.gcc.codegen.type.FieldStrategy;
 import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 
-public class RecordArrayFieldGenerator extends FieldGenerator {
+public class RecordArrayFieldStrategy extends FieldStrategy {
 
   private GimpleArrayType arrayType;
   private String className;
@@ -20,18 +20,13 @@ public class RecordArrayFieldGenerator extends FieldGenerator {
   private RecordClassTypeStrategy strategy;
   private String fieldDescriptor;
 
-  public RecordArrayFieldGenerator(String className, String fieldName,
-                                   RecordClassTypeStrategy strategy, GimpleArrayType arrayType) {
+  public RecordArrayFieldStrategy(String className, String fieldName,
+                                  RecordClassTypeStrategy strategy, GimpleArrayType arrayType) {
     this.className = className;
     this.fieldName = fieldName;
     this.strategy = strategy;
     this.arrayType = arrayType;
     fieldDescriptor = "[" + strategy.getJvmType().getDescriptor();
-  }
-
-  @Override
-  public GimpleType getType() {
-    return arrayType;
   }
 
   @Override

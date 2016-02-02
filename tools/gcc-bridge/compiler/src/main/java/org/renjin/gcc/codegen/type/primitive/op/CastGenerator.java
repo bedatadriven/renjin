@@ -1,10 +1,12 @@
 package org.renjin.gcc.codegen.type.primitive.op;
 
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.var.Value;
 import org.renjin.gcc.gimple.type.*;
 
 import java.lang.reflect.InvocationTargetException;
@@ -13,28 +15,31 @@ import java.lang.reflect.Method;
 /**
  * Generates the bytecode to cast a primitive value to a new type
  */
-public class CastGenerator extends AbstractExprGenerator implements ExprGenerator {
+@SuppressWarnings("unused")
+public class CastGenerator implements Value {
   
-  private ExprGenerator valueGenerator;
+  private Value valueGenerator;
+  private GimplePrimitiveType sourceType;
   private GimplePrimitiveType destinationType;
 
-  public CastGenerator(ExprGenerator valueGenerator, GimplePrimitiveType destinationType) {
+  public CastGenerator(Value valueGenerator, GimplePrimitiveType sourceType, GimplePrimitiveType destinationType) {
     this.valueGenerator = valueGenerator;
+    this.sourceType = sourceType;
     this.destinationType = destinationType;
   }
 
+
   @Override
-  public GimpleType getGimpleType() {
-    return destinationType;
+  public Type getType() {
+    return destinationType.jvmType();
   }
 
   @Override
-  public void emitPrimitiveValue(MethodGenerator mv) {
-
-    valueGenerator.emitPrimitiveValue(mv);
+  public void load(MethodGenerator mv) {
+    valueGenerator.load(mv);
     
-    if(!valueGenerator.getGimpleType().equals(destinationType)) {
-      cast(mv, (GimplePrimitiveType) valueGenerator.getGimpleType(), destinationType);
+    if(!sourceType.equals(destinationType)) {
+      cast(mv, this.sourceType, destinationType);
     }
   }
   

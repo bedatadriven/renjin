@@ -17,31 +17,32 @@ public class MemCmpCallGenerator implements CallGenerator {
   
   @Override
   public void emitCall(MethodGenerator mv, List<ExprGenerator> argumentGenerators) {
-    ExprGenerator p1 = argumentGenerators.get(0);
-    ExprGenerator p2 = argumentGenerators.get(1);
-    ExprGenerator n = argumentGenerators.get(2);
-    
-    GimpleType baseType = p1.getGimpleType().getBaseType();
-
-    if(baseType instanceof GimplePrimitiveType) {
-      p1.emitPushPtrArrayAndOffset(mv);
-      p2.emitPushPtrArrayAndOffset(mv);
-      n.emitPrimitiveValue(mv);
-
-      Type type = ((GimplePrimitiveType) baseType).jvmType();
-      
-      if(type.equals(Type.DOUBLE_TYPE)) {
-        mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(DoublePtr.class), "memcmp", "([DI[DII)I", false);
-
-      } else if(type.equals(Type.LONG_TYPE)) {
-        mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(LongPtr.class), "memcmp", "([JI[JII)I", false);
-        
-      } else {
-        throw new UnsupportedOperationException("Todo: " + type); 
-      }
-    } else {
-      throw new UnsupportedOperationException("Unsupported type: " + baseType);
-    }
+//    ExprGenerator p1 = argumentGenerators.get(0);
+//    ExprGenerator p2 = argumentGenerators.get(1);
+//    ExprGenerator n = argumentGenerators.get(2);
+//    
+//    GimpleType baseType = p1.getGimpleType().getBaseType();
+//
+//    if(baseType instanceof GimplePrimitiveType) {
+//      p1.emitPushPtrArrayAndOffset(mv);
+//      p2.emitPushPtrArrayAndOffset(mv);
+//      n.load(mv);
+//
+//      Type type = ((GimplePrimitiveType) baseType).jvmType();
+//      
+//      if(type.equals(Type.DOUBLE_TYPE)) {
+//        mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(DoublePtr.class), "memcmp", "([DI[DII)I", false);
+//
+//      } else if(type.equals(Type.LONG_TYPE)) {
+//        mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(LongPtr.class), "memcmp", "([JI[JII)I", false);
+//        
+//      } else {
+//        throw new UnsupportedOperationException("Todo: " + type); 
+//      }
+//    } else {
+//      throw new UnsupportedOperationException("Unsupported type: " + baseType);
+//    }
+    throw new UnsupportedOperationException();
   }
 
   @Override

@@ -17,54 +17,10 @@ public class VoidTypeStrategy extends TypeStrategy {
     return new VoidReturnStrategy();
   }
 
-  @Override
-  public TypeStrategy pointerTo() {
-    return new Pointer();
-  }
 
   @Override
   public ExprGenerator mallocExpression(ExprGenerator size) {
     throw new InternalCompilerException("Cannot allocate VOID type");
   }
 
-  private class Pointer extends TypeStrategy {
-    @Override
-    public ParamStrategy getParamStrategy() {
-      return new VoidPtrParamStrategy();
-    }
-
-    @Override
-    public FieldStrategy fieldGenerator(String className, String fieldName) {
-      return new VoidPtrField(className, fieldName);
-    }
-
-    @Override
-    public VarGenerator varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
-      return new AddressableVoidPtrVar(
-          allocator.reserveArrayRef(decl.getName(), Type.getType(Object.class)));
-    }
-
-    @Override
-    public ExprGenerator mallocExpression(ExprGenerator size) {
-      throw new InternalCompilerException("Cannot allocate void* type");
-    }
-
-    @Override
-    public ReturnStrategy getReturnStrategy() {
-      return new VoidPtrReturnStrategy();
-    }
-
-    @Override
-    public TypeStrategy pointerTo() {
-      return new PointerPointer();
-    }
-  }
-
-  private class PointerPointer extends TypeStrategy {
-
-    @Override
-    public ParamStrategy getParamStrategy() {
-      return super.getParamStrategy();
-    }
-  }
 }

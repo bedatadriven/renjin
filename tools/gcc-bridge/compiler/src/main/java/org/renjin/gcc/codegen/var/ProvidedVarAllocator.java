@@ -35,6 +35,12 @@ public class ProvidedVarAllocator extends VarAllocator {
           "Type mismatch between provided field '%s: expected %s but found %s", name, type, declaredType));
     }
     return new Var() {
+
+      @Override
+      public Type getType() {
+        return type;
+      }
+
       @Override
       public void load(MethodGenerator mv) {
         mv.visitFieldInsn(Opcodes.GETSTATIC, Type.getInternalName(declaringClass), name, type.getDescriptor());

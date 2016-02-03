@@ -17,11 +17,6 @@ public class FunPtrArrayConstructor extends AbstractExprGenerator {
     this.arrayType = arrayType;
     this.elements = elements;
   }
-
-  @Override
-  public GimpleType getGimpleType() {
-    return arrayType;
-  }
   
   
 }

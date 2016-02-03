@@ -247,29 +247,6 @@ public class WrapperType {
     emitUnpackArrayAndOffset(mv, Optional.<Type>absent());
   }
 
-    /**
-     * Emits the bytecode to consume a reference to the array 
-     */
-  public void emitPushNewWrapper(MethodGenerator mv, ExprGenerator ptrGenerator) {
-
-    // sanity check type we're trying to create here
-    if(!ptrGenerator.getPointerType().equals(this)) {
-        throw new InternalCompilerException(String.format(
-            "Type mismatch: cannot create FatPtr (%s) from pointer of type %s [%s]", 
-            wrapperType, ptrGenerator.getGimpleType(), ptrGenerator.getPointerType()));
-    }
-    
-    String wrapperClass = wrapperType.getInternalName();
-
-    // Create a new instance of the wrapper
-    mv.visitTypeInsn(Opcodes.NEW, wrapperClass);
-
-    // Initialize it with the array and offset
-    mv.visitInsn(Opcodes.DUP);
-    ptrGenerator.emitPushPtrArrayAndOffset(mv);
-    mv.visitMethodInsn(INVOKESPECIAL, wrapperClass, "<init>", getConstructorDescriptor(), false);
-  }
-
   public void emitInvokeUpdate(MethodGenerator mv) {
     mv.visitMethodInsn(INVOKEVIRTUAL, wrapperType.getInternalName(), "update", getConstructorDescriptor(), false);
   }

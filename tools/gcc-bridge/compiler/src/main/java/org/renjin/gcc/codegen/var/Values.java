@@ -1,8 +1,13 @@
 package org.renjin.gcc.codegen.var;
 
+import com.google.common.base.Preconditions;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.WrapperType;
+import org.renjin.gcc.codegen.type.primitive.ConstantValue;
+import org.renjin.gcc.codegen.type.primitive.op.PrimitiveBinOpGenerator;
+import org.renjin.gcc.gimple.GimpleOp;
+import org.renjin.gcc.gimple.expr.GimpleImPartExpr;
 
 /**
  * Functions to create value instances
@@ -47,17 +52,7 @@ public class Values {
   }
   
   public static Value constantInt(final int value) {
-    return new Value() {
-      @Override
-      public Type getType() {
-        return Type.INT_TYPE;
-      }
-
-      @Override
-      public void load(MethodGenerator mv) {
-        mv.iconst(value);
-      }
-    };
+    return new ConstantValue(Type.INT_TYPE, value);
   }
   
   public static Value zero() {
@@ -85,5 +80,21 @@ public class Values {
         mv.aload(componentType);
       }
     };
+  }
+
+  public static Value zero(final Type type) {
+    return new ConstantValue(type, 0);
+  }
+  
+  public static Value add(final Value x, final Value y) {
+    return new PrimitiveBinOpGenerator(GimpleOp.PLUS_EXPR, x, y);
+  }
+
+  public static Value difference(Value x, Value y) {
+    return new PrimitiveBinOpGenerator(GimpleOp.MINUS_EXPR, x, y);
+  }
+
+  public static Value product(Value x, Value y) {
+    return new PrimitiveBinOpGenerator(GimpleOp.MULT_EXPR, x, y);
   }
 }

@@ -18,27 +18,28 @@ public class MemCopyCallGenerator implements CallGenerator {
   
   @Override
   public void emitCall(MethodGenerator mv, List<ExprGenerator> argumentGenerators) {
-    if(argumentGenerators.size() != 3) {
-      throw new InternalCompilerException("__builtin_memcpy expects 3 args.");
-    }
-    ExprGenerator destination = argumentGenerators.get(0);
-    ExprGenerator source = argumentGenerators.get(1);
-    ExprGenerator length = argumentGenerators.get(2);
+//    if(argumentGenerators.size() != 3) {
+//      throw new InternalCompilerException("__builtin_memcpy expects 3 args.");
+//    }
+//    ExprGenerator destination = argumentGenerators.get(0);
+//    ExprGenerator source = argumentGenerators.get(1);
+//    ExprGenerator length = argumentGenerators.get(2);
+//
+//    source.emitPushPtrArrayAndOffset(mv);
+//    destination.emitPushPtrArrayAndOffset(mv);
+//    length.load(mv);
+//
+//    // public static native void arraycopy(
+//    //     Object src,  int  srcPos,
+//    // Object dest, int destPos,
+//    // int length);
+//    mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(System.class), "arraycopy", 
+//        Type.getMethodDescriptor(Type.VOID_TYPE, 
+//              Type.getType(Object.class), Type.INT_TYPE, 
+//              Type.getType(Object.class), Type.INT_TYPE,
+//              Type.INT_TYPE), false);
 
-    source.emitPushPtrArrayAndOffset(mv);
-    destination.emitPushPtrArrayAndOffset(mv);
-    length.emitPrimitiveValue(mv);
-
-    // public static native void arraycopy(
-    //     Object src,  int  srcPos,
-    // Object dest, int destPos,
-    // int length);
-    mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(System.class), "arraycopy", 
-        Type.getMethodDescriptor(Type.VOID_TYPE, 
-              Type.getType(Object.class), Type.INT_TYPE, 
-              Type.getType(Object.class), Type.INT_TYPE,
-              Type.INT_TYPE), false);
-
+    throw new UnsupportedOperationException();
   }
 
   @Override

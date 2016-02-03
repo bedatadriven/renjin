@@ -3,7 +3,9 @@ package org.renjin.gcc.codegen.type.complex;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.type.primitive.op.NegateGenerator;
 import org.renjin.gcc.codegen.var.Value;
+import org.renjin.gcc.codegen.var.Values;
 import org.renjin.gcc.codegen.var.Var;
 
 
@@ -26,6 +28,11 @@ public class ComplexValue implements ExprGenerator {
     this.componentType = realValue.getType();
   }
 
+  public ComplexValue(Value realValue) {
+    this.realValue = realValue;
+    this.imaginaryValue = Values.zero(realValue.getType());
+  }
+
   public Type getComponentType() {
     return componentType;
   }
@@ -42,4 +49,15 @@ public class ComplexValue implements ExprGenerator {
     ((Var) realValue).store(mv, complexValue.getRealValue());
     ((Var) imaginaryValue).store(mv, complexValue.getImaginaryValue());
   }
+
+  /**
+   * Generates the complex conjugate of a complex number 
+   *
+   * <p>The conjugate is the number with equal real part and imaginary part equal in magnitude but opposite in sign. 
+   * For example, the complex conjugate of 3 + 4i is 3 − 4i.
+   */
+  public ComplexValue conjugate() {
+    return new ComplexValue(realValue, new NegateGenerator(imaginaryValue));
+  }
+
 }

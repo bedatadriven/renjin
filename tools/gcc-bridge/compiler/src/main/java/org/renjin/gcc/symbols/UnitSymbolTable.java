@@ -25,7 +25,7 @@ public class UnitSymbolTable implements SymbolTable {
   
   private final GlobalSymbolTable globalSymbolTable;
   private String className;
-  private final Map<Integer, VarGenerator> variableMap = Maps.newHashMap();
+  private final Map<Integer, ExprGenerator> variableMap = Maps.newHashMap();
   private final Map<String, FunctionGenerator> functions = Maps.newHashMap();
 
   public UnitSymbolTable(GlobalSymbolTable globalSymbolTable, String className) {
@@ -34,7 +34,7 @@ public class UnitSymbolTable implements SymbolTable {
   }
   
   public ExprGenerator getVariable(GimpleSymbolRef ref) {
-    VarGenerator exprGenerator = variableMap.get(ref.getId());
+    ExprGenerator exprGenerator = variableMap.get(ref.getId());
     if(exprGenerator != null) {
       return exprGenerator;
     }
@@ -42,15 +42,15 @@ public class UnitSymbolTable implements SymbolTable {
     return globalSymbolTable.getVariable(ref);
   }
 
-  public VarGenerator getGlobalVariable(GimpleVarDecl decl) {
-    VarGenerator exprGenerator = variableMap.get(decl.getId());
+  public ExprGenerator getGlobalVariable(GimpleVarDecl decl) {
+    ExprGenerator exprGenerator = variableMap.get(decl.getId());
     if(exprGenerator == null) {
       throw new IllegalArgumentException("decl: " + decl);
     }
     return exprGenerator;
   }
 
-  public void addGlobalVariable(GimpleVarDecl decl, VarGenerator globalVar) {
+  public void addGlobalVariable(GimpleVarDecl decl, ExprGenerator globalVar) {
     variableMap.put(decl.getId(), globalVar);
     if(decl.isExtern()) {
       globalSymbolTable.addVariable(decl.getName(), globalVar);

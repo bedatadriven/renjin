@@ -31,8 +31,10 @@ public class ComplexReturnStrategy implements ReturnStrategy {
 
   @Override
   public void emitReturnValue(MethodGenerator mv, ExprGenerator valueGenerator) {
-    valueGenerator.emitPushComplexAsArray(mv);
-    mv.visitInsn(Opcodes.ARETURN);
+//    valueGenerator.emitPushComplexAsArray(mv);
+//    mv.visitInsn(Opcodes.ARETURN);
+    // TODO
+    throw new UnsupportedOperationException("TODO");
   }
 
   @Override
@@ -42,26 +44,7 @@ public class ComplexReturnStrategy implements ReturnStrategy {
 
   @Override
   public ExprGenerator callExpression(CallGenerator callGenerator, List<ExprGenerator> arguments) {
-    return new CallExpr(callGenerator, arguments);
+    throw new UnsupportedOperationException("TODO");
   }
 
-  private class CallExpr extends AbstractExprGenerator {
-    private CallGenerator callGenerator;
-    private List<ExprGenerator> argumentGenerators;
-
-    public CallExpr(CallGenerator callGenerator, List<ExprGenerator> argumentGenerators) {
-      this.callGenerator = callGenerator;
-      this.argumentGenerators = argumentGenerators;
-    }
-
-    @Override
-    public GimpleType getGimpleType() {
-      return type;
-    }
-
-    @Override
-    public void emitPushComplexAsArray(MethodGenerator mv) {
-      callGenerator.emitCall(mv, argumentGenerators);
-    }
-  }
 }

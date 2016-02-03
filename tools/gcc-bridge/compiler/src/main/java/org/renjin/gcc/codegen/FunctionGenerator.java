@@ -17,6 +17,8 @@ import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.*;
+import org.renjin.gcc.codegen.var.Lhs;
+import org.renjin.gcc.codegen.var.Value;
 import org.renjin.gcc.codegen.var.Var;
 import org.renjin.gcc.gimple.*;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
@@ -161,20 +163,10 @@ public class FunctionGenerator {
 
   private void emitLocalVarInitialization() {
     for (GimpleVarDecl decl : function.getVariableDeclarations()) {
-      VarGenerator lhs = (VarGenerator) symbolTable.getVariable(decl);
-      Optional<ExprGenerator> initialValue;
-      if(decl.getValue() == null) {
-        initialValue = Optional.absent();
-      } else {
-        initialValue = Optional.of(exprFactory.findGenerator(decl.getValue()));
+      Lhs<ExprGenerator> lhs = (Lhs<ExprGenerator>) symbolTable.getVariable(decl);
+      if(decl.getValue() != null) {
+        lhs.store(mv, exprFactory.findGenerator(decl.getValue()));
       }
-      
-      if(GimpleCompiler.TRACE) {
-        System.out.println(getCompilationUnit().getName() + ": " + decl + " = " + initialValue +
-            " [" + lhs.getClass().getName() + "]");
-      }
-      
-      lhs.emitDefaultInit(mv, initialValue);
     }
   }
 
@@ -187,7 +179,7 @@ public class FunctionGenerator {
     for (GimpleVarDecl varDecl : function.getVariableDeclarations()) {
       
       try {
-        VarGenerator generator;
+        ExprGenerator generator;
         TypeStrategy factory = typeOracle.forType(varDecl.getType());
         generator = factory.varGenerator(varDecl, mv.getLocalVarAllocator());
 
@@ -232,8 +224,8 @@ public class FunctionGenerator {
   }
 
   private void emitSwitch(GimpleSwitch ins) {
-    ExprGenerator valueGenerator = exprFactory.findGenerator(ins.getValue());
-    valueGenerator.emitPrimitiveValue(mv);
+    Value valueGenerator = exprFactory.findValueGenerator(ins.getValue());
+    valueGenerator.load(mv);
     Label defaultLabel = labels.of(ins.getDefaultCase().getBasicBlockIndex());
 
     int numCases = ins.getCaseCount();
@@ -255,8 +247,14 @@ public class FunctionGenerator {
   private void emitAssignment(GimpleAssignment ins) {
     try {
       ExprGenerator lhs = exprFactory.findGenerator(ins.getLHS());
-      ExprGenerator rhs = exprFactory.findGenerator(ins.getOperator(), ins.getOperands(), lhs.getGimpleType());
-      lhs.emitStore(mv, rhs);
+      ExprGenerator rhs = exprFactory.findGenerator(ins.getOperator(), ins.getOperands(), ins.getLHS().getType());
+      
+      if(!(lhs instanceof Lhs)) {
+        throw new InternalCompilerException(ins.getLHS() + " is not an LHS expression: " + lhs.getClass().getName());
+      }
+
+      ((Lhs) lhs).store(mv, rhs);
+      
     } catch (Exception e) {
       throw new RuntimeException("Exception compiling assignment " + ins, e);
     }
@@ -293,8 +291,8 @@ public class FunctionGenerator {
       } else {
         ExprGenerator lhs = exprFactory.findGenerator(ins.getLhs());
         ExprGenerator callResult =  callGenerator.expressionGenerator(ins.getLhs().getType(), arguments);
-        
-        lhs.emitStore(mv, exprFactory.maybeCast(callResult, lhs.getGimpleType()));
+
+        ((Lhs) lhs).store(mv, exprFactory.maybeCast(callResult, ins.getLhs().getType(), /*TODO:*/ ins.getLhs().getType()));
       }
     }
   }
@@ -303,8 +301,8 @@ public class FunctionGenerator {
   private void emitMalloc(GimpleCall ins) {
     ExprGenerator lhs = exprFactory.findGenerator(ins.getLhs());
     ExprGenerator size = exprFactory.findGenerator(ins.getOperands().get(0));
-    
-    lhs.emitStore(mv, typeOracle.forType(lhs.getGimpleType()).mallocExpression(size));
+
+    ((Lhs) lhs).store(mv, typeOracle.forType(ins.getLhs().getType()).mallocExpression(size));
   }
 
 

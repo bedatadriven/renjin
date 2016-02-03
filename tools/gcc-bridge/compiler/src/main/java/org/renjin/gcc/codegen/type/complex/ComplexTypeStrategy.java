@@ -39,8 +39,9 @@ public class ComplexTypeStrategy extends TypeStrategy {
   @Override
   public ExprGenerator varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
     if(decl.isAddressable()) {
-      return new AddressableComplexVarGenerator(type,
-          allocator.reserveArrayRef(decl.getName(), type.getJvmPartType()));
+//      return new AddressableComplexVarGenerator(type,
+//          allocator.reserveArrayRef(decl.getName(), type.getJvmPartType()));
+      throw new UnsupportedOperationException("TODO");
     } else {
       return new ComplexValue(
           allocator.reserve(decl.getName() + "$real", type.getJvmPartType()),
@@ -67,14 +68,16 @@ public class ComplexTypeStrategy extends TypeStrategy {
 
     @Override
     public ParamStrategy getParamStrategy() {
-      return new ComplexPtrParamStrategy(new GimplePointerType(type));
+      //return new ComplexPtrParamStrategy(new GimplePointerType(type));
+      throw new UnsupportedOperationException();
     }
 
     @Override
     public VarGenerator varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
-      return new ComplexPtrVarGenerator(type.pointerTo(), 
-          allocator.reserveArrayRef(decl.getName(), type.getJvmPartType()),
-          allocator.reserveInt(decl.getName() + "$offset"));
+//      return new ComplexPtrVarGenerator(type.pointerTo(), 
+//          allocator.reserveArrayRef(decl.getName(), type.getJvmPartType()),
+//          allocator.reserveInt(decl.getName() + "$offset"));
+      throw new UnsupportedOperationException("TODO");
     }
   }
   
@@ -98,17 +101,12 @@ public class ComplexTypeStrategy extends TypeStrategy {
     public ArrayPtr(GimplePointerType pointerType) {
       this.pointerType = pointerType;
     }
-
-    @Override
-    public ParamStrategy getParamStrategy() {
-      return new ComplexArrayPtrParamStrategy(pointerType);
-    }
-
     @Override
     public VarGenerator varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
-      return new ComplexArrayPtrVarGenerator(pointerType,
-          allocator.reserveArrayRef(decl.getName(), type.getJvmPartType()),
-          allocator.reserveInt(decl.getName() + "$offset"));
+//      return new ComplexArrayPtrVarGenerator(pointerType,
+//          allocator.reserveArrayRef(decl.getName(), type.getJvmPartType()),
+//          allocator.reserveInt(decl.getName() + "$offset"));
+      throw new UnsupportedOperationException();
     }
   }
 }

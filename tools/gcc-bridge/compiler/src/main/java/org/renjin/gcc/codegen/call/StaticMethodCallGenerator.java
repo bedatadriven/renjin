@@ -8,7 +8,8 @@ import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.type.ReturnStrategy;
 import org.renjin.gcc.codegen.type.TypeOracle;
-import org.renjin.gcc.codegen.type.primitive.PrimitiveConstGenerator;
+import org.renjin.gcc.codegen.type.primitive.ConstantValue;
+import org.renjin.gcc.codegen.var.Values;
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
@@ -58,12 +59,12 @@ public class StaticMethodCallGenerator implements CallGenerator {
     // if this method accepts var args, then we pass the remaining arguments as an Object[] array
     if(method.isVarArgs()) {
       int varArgCount = argumentGenerators.size() - fixedArgCount;
-      PrimitiveConstGenerator.emitInt(mv, varArgCount);
+      Values.constantInt(varArgCount).load(mv);
       mv.visitTypeInsn(Opcodes.ANEWARRAY, Type.getInternalName(Object.class));
       
       for(int i=0;i<varArgCount;++i) {
         mv.visitInsn(Opcodes.DUP);
-        PrimitiveConstGenerator.emitInt(mv, i);
+        Values.constantInt(i).load(mv);
         pushVarArg(mv, argumentGenerators.get(fixedArgCount + i));
         mv.visitInsn(Opcodes.AASTORE);
       }
@@ -89,14 +90,15 @@ public class StaticMethodCallGenerator implements CallGenerator {
   }
 
   private void pushVarArg(MethodGenerator mv, ExprGenerator exprGenerator) {
-    GimpleType type = exprGenerator.getGimpleType();
-    if(type instanceof GimplePrimitiveType) {
-      exprGenerator.emitPushBoxedPrimitiveValue(mv);
-    } else if(type instanceof GimpleIndirectType) {
-      exprGenerator.emitPushPointerWrapper(mv);
-    } else {
-      throw new UnsupportedOperationException("type: " + type);
-    }
+//    GimpleType type = exprGenerator.getGimpleType();
+//    if(type instanceof GimplePrimitiveType) {
+//      exprGenerator.emitPushBoxedPrimitiveValue(mv);
+//    } else if(type instanceof GimpleIndirectType) {
+//      exprGenerator.emitPushPointerWrapper(mv);
+//    } else {
+//      throw new UnsupportedOperationException("type: " + type);
+//    }
+    throw new UnsupportedOperationException();
   }
 
   private void checkArity(List<ExprGenerator> argumentGenerators) {

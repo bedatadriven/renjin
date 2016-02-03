@@ -5,7 +5,6 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.complex.ComplexReturnStrategy;
-import org.renjin.gcc.codegen.type.primitive.PrimitivePtrReturnStrategy;
 
 import java.util.List;
 

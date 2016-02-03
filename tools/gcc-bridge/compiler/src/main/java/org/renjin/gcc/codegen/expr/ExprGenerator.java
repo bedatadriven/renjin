@@ -10,7 +10,5 @@ import org.renjin.gcc.gimple.type.GimpleType;
  * Root interface for generators which emit bytecode instructions
  */
 public interface ExprGenerator {
-
-  
   
 }

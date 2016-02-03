@@ -14,16 +14,17 @@ import java.util.List;
 public class FreeCallGenerator implements CallGenerator {
   @Override
   public void emitCall(MethodGenerator mv, List<ExprGenerator> argumentGenerators) {
-    if(argumentGenerators.size() != 1) {
-      throw new InternalCompilerException("Expected single argument to free, found " +
-        argumentGenerators.size() + " arguments");
-    }
-
-    // this is a no op - but not sure we can be sure that 
-    // there are no side effects 
-    ExprGenerator ptr = argumentGenerators.get(0);
-    ptr.emitPushPtrArrayAndOffset(mv);
-    mv.visitInsn(Opcodes.POP2);
+//    if(argumentGenerators.size() != 1) {
+//      throw new InternalCompilerException("Expected single argument to free, found " +
+//        argumentGenerators.size() + " arguments");
+//    }
+//
+//    // this is a no op - but not sure we can be sure that 
+//    // there are no side effects 
+//    ExprGenerator ptr = argumentGenerators.get(0);
+//    ptr.emitPushPtrArrayAndOffset(mv);
+//    mv.visitInsn(Opcodes.POP2);
+    throw new UnsupportedOperationException();
   }
 
   @Override

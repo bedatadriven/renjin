@@ -10,10 +10,7 @@ import org.renjin.gcc.codegen.RecordClassGenerator;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.*;
-import org.renjin.gcc.codegen.type.record.fat.RecordArrayFieldStrategy;
-import org.renjin.gcc.codegen.type.record.fat.RecordFatPtrStrategy;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrStrategy;
-import org.renjin.gcc.codegen.type.voidt.VoidCastExprGenerator;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
@@ -86,12 +83,13 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy {
 
   @Override
   public final ParamStrategy getParamStrategy() {
-    return new RecordParamStrategy(this);
+    return new ValueParamStrategy(jvmType);
   }
 
   @Override
   public VarGenerator varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
-    return new RecordVarGenerator(this, allocator.reserve(decl.getName(), jvmType));
+  //  return new RecordVarGenerator(this, allocator.reserve(decl.getName(), jvmType));
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -101,11 +99,13 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy {
 
   @Override
   public FieldStrategy addressableFieldGenerator(String className, String fieldName) {
-    return new AddressableRecordField(className, fieldName, this);
+    // TODO: return new AddressableRecordField(className, fieldName, this);
+    throw new UnsupportedOperationException("TODO");
   }
 
   public ExprGenerator voidCast(ExprGenerator voidPtr) {
-    return new VoidCastExprGenerator(voidPtr, getRecordType(), jvmType);
+    //return new VoidCastExprGenerator(voidPtr, getRecordType(), jvmType);
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -162,7 +162,8 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy {
 
     @Override
     public FieldStrategy fieldGenerator(String className, String fieldName) {
-      return new RecordArrayFieldStrategy(className, fieldName, RecordClassTypeStrategy.this, arrayType);
+      //return new RecordArrayFieldStrategy(className, fieldName, RecordClassTypeStrategy.this, arrayType);
+      throw new UnsupportedOperationException();
     }
 
     @Override
@@ -172,8 +173,9 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy {
 
     @Override
     public VarGenerator varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
-      return new RecordArrayVarGenerator(arrayType, RecordClassTypeStrategy.this,
-          allocator.reserveArrayRef(decl.getName(), getJvmType()));
+//      return new RecordArrayVarGenerator(arrayType, RecordClassTypeStrategy.this,
+//          allocator.reserveArrayRef(decl.getName(), getJvmType()));
+      throw new UnsupportedOperationException();
     }
 
     @Override
@@ -192,7 +194,8 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy {
         elements.add(elementConstructor);
       }
 
-      return new RecordArrayConstructor(RecordClassTypeStrategy.this, arrayType, elements);
+     // return new RecordArrayConstructor(RecordClassTypeStrategy.this, arrayType, elements);
+      throw new UnsupportedOperationException();
     }
   }
 
@@ -201,7 +204,8 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy {
     if(unitPointer) {
       return new RecordUnitPtrStrategy(this);
     } else {
-      return new RecordFatPtrStrategy(this);
+      //return new RecordFatPtrStrategy(this);
+      throw new UnsupportedOperationException();
     }
   }
   

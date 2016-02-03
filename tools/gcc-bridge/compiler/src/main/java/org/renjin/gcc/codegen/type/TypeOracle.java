@@ -132,12 +132,14 @@ public class TypeOracle {
         } else if(WrapperType.is(baseType)) {
           WrapperType innerWrapper = WrapperType.valueOf(baseType);
           GimplePointerType pointerPointerType = innerWrapper.getGimpleType().pointerTo();
-          return new PrimitivePtrPtrReturnStrategy(pointerPointerType);
+          //return new PrimitivePtrPtrReturnStrategy(pointerPointerType);
+          throw new UnsupportedOperationException();
         } else {
           throw new UnsupportedOperationException("baseType: " + baseType);
         }
       } else {
-        return new PrimitivePtrReturnStrategy(wrapperType.getGimpleType());
+        // TODO: return new PrimitivePtrReturnStrategy(wrapperType.getGimpleType());
+        throw new UnsupportedOperationException("TODO");
       }
     } else if(classTypes.containsKey(Type.getInternalName(returnType))) {
       GimpleRecordType recordType = classTypes.get(Type.getInternalName(returnType));
@@ -179,8 +181,9 @@ public class TypeOracle {
         
       } else if (WrapperType.is(paramClass) && !paramClass.equals(CharPtr.class)) {
         WrapperType wrapperType = WrapperType.valueOf(paramClass);
-        generators.add(new PrimitivePtrParamStrategy(wrapperType.getGimpleType()));
-        index++;
+        // TODO: generators.add(new PrimitivePtrParamStrategy(wrapperType.getGimpleType()));
+//        index++;
+        throw new UnsupportedOperationException("TODO");
 
       } else if (paramClass.isPrimitive()) {
         generators.add(new ValueParamStrategy(Type.getType(paramClass)));

@@ -29,44 +29,45 @@ public class ReallocCallGenerator implements CallGenerator {
     ExprGenerator pointer = argumentGenerators.get(0);
     ExprGenerator size = argumentGenerators.get(1);
     
-    return new ReallocExpr(pointer, size);
+   // return new ReallocExpr(pointer, size);
+    throw new UnsupportedOperationException();
   }
-
-  public static class ReallocExpr extends AbstractExprGenerator {
-    
-    private ExprGenerator pointer;
-    private ExprGenerator size;
-  
-    public ReallocExpr(ExprGenerator pointer, ExprGenerator size) {
-      this.pointer = pointer;
-      this.size = size;
-    }
-  
-  
-    @Override
-    public GimpleType getGimpleType() {
-      return pointer.getGimpleType();
-    }
-    
-    @Override
-    public void emitPushPtrArrayAndOffset(MethodGenerator mv) {
-      // push [array, offset, newCount]
-      pointer.emitPushPtrArrayAndOffset(mv);
-      offsetToElements(size, pointer.getGimpleType().getBaseType().sizeOf()).emitPrimitiveValue(mv);
-      
-      mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(Builtins.class), "realloc", 
-          reallocDescriptor(), false);
-      
-      // new array on stack
-      // offset is zero
-      mv.visitInsn(Opcodes.ICONST_0);
-      
-    }
-  
-    private String reallocDescriptor() {
-      Type arrayType = pointer.getPointerType().getArrayType();
-      
-      return Type.getMethodDescriptor(arrayType, arrayType, Type.INT_TYPE, Type.INT_TYPE);
-    }
-  }
+//
+//  public static class ReallocExpr extends AbstractExprGenerator {
+//    
+//    private ExprGenerator pointer;
+//    private ExprGenerator size;
+//  
+//    public ReallocExpr(ExprGenerator pointer, ExprGenerator size) {
+//      this.pointer = pointer;
+//      this.size = size;
+//    }
+//  
+//  
+//    @Override
+//    public GimpleType getGimpleType() {
+//      return pointer.getGimpleType();
+//    }
+//    
+//    @Override
+//    public void emitPushPtrArrayAndOffset(MethodGenerator mv) {
+//      // push [array, offset, newCount]
+//      pointer.emitPushPtrArrayAndOffset(mv);
+//      offsetToElements(size, pointer.getGimpleType().getBaseType().sizeOf()).load(mv);
+//      
+//      mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(Builtins.class), "realloc", 
+//          reallocDescriptor(), false);
+//      
+//      // new array on stack
+//      // offset is zero
+//      mv.visitInsn(Opcodes.ICONST_0);
+//      
+//    }
+//  
+//    private String reallocDescriptor() {
+//      Type arrayType = pointer.getPointerType().getArrayType();
+//      
+//      return Type.getMethodDescriptor(arrayType, arrayType, Type.INT_TYPE, Type.INT_TYPE);
+//    }
+//  }
 }

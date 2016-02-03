@@ -8,6 +8,7 @@ import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.type.ReturnStrategy;
 import org.renjin.gcc.codegen.type.TypeOracle;
+import org.renjin.gcc.codegen.var.Value;
 import org.renjin.gcc.gimple.type.GimpleFunctionType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
@@ -19,14 +20,14 @@ import java.util.List;
 public class FunPtrCallGenerator implements CallGenerator {
 
   private TypeOracle typeOracle;
-  private ExprGenerator funPtrGenerator;
+  private Value funPtrGenerator;
   private final ReturnStrategy returnStrategy;
   private final GimpleFunctionType functionType;
 
-  public FunPtrCallGenerator(TypeOracle typeOracle, ExprGenerator funPtrGenerator) {
+  public FunPtrCallGenerator(TypeOracle typeOracle, GimpleFunctionType type, Value funPtrGenerator) {
     this.typeOracle = typeOracle;
     this.funPtrGenerator = funPtrGenerator;
-    functionType = funPtrGenerator.getGimpleType().getBaseType();
+    functionType = type;
     returnStrategy = typeOracle.findReturnGenerator(functionType.getReturnType());
   }
 
@@ -40,14 +41,16 @@ public class FunPtrCallGenerator implements CallGenerator {
   @Override
   public void emitCall(MethodGenerator mv, List<ExprGenerator> argumentGenerators) {
 
-    funPtrGenerator.emitPushMethodHandle(mv);
+    funPtrGenerator.load(mv);
     
     // Infer the parameters types from the arguments provided
     List<Type> types = Lists.newArrayList();
     for (ExprGenerator argumentGenerator : argumentGenerators) {
-      ParamStrategy paramStrategy = typeOracle.forParameter(argumentGenerator.getGimpleType());
-      paramStrategy.emitPushParameter(mv, argumentGenerator);
-      types.addAll(paramStrategy.getParameterTypes());
+      // TODO
+      //ParamStrategy paramStrategy = typeOracle.forParameter(argumentGenerator.getGimpleType());
+//      paramStrategy.emitPushParameter(mv, argumentGenerator);
+//      types.addAll(paramStrategy.getParameterTypes());
+      throw new UnsupportedOperationException("TODO");
     }
     
     // Use invoke() rather than invokeExact() to smooth over any type differences

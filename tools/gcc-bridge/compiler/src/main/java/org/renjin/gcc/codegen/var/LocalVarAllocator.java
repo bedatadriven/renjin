@@ -26,6 +26,11 @@ public class LocalVarAllocator extends VarAllocator {
     }
 
     @Override
+    public Type getType() {
+      return type;
+    }
+
+    @Override
     public void load(MethodGenerator mv) {
       mv.visitVarInsn(type.getOpcode(Opcodes.ILOAD), index);
     }

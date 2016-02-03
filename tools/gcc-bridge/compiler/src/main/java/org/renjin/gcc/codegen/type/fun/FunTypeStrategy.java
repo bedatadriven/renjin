@@ -77,7 +77,7 @@ public class FunTypeStrategy extends TypeStrategy {
 
     @Override
     public FieldStrategy fieldGenerator(String className, String fieldName) {
-      return new FunPtrPtrField(className, fieldName, type); 
+      return new ValueFieldStrategy(METHOD_HANDLE_TYPE, fieldName); 
     }
   }
   
@@ -90,7 +90,8 @@ public class FunTypeStrategy extends TypeStrategy {
 
     @Override
     public FieldStrategy fieldGenerator(String className, String fieldName) {
-      return new FunPtrArrayField(className, fieldName, arrayType);
+     // TODO: return new FunPtrArrayField(className, fieldName, arrayType);
+      throw new UnsupportedOperationException();
     }
 
     @Override

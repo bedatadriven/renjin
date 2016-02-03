@@ -1,29 +1,28 @@
 package org.renjin.gcc.codegen.call;
 
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.type.voidt.VoidReturnStrategy;
-import org.renjin.gcc.gimple.type.GimpleType;
-
-import java.util.List;
+import org.renjin.gcc.gimple.statement.GimpleCall;
 
 
 public class MemCopyCallGenerator implements CallGenerator {
   
   public static final String NAME = "__builtin_memcpy";
-  
-  
+
+
   @Override
-  public void emitCall(MethodGenerator mv, List<ExprGenerator> argumentGenerators) {
-//    if(argumentGenerators.size() != 3) {
-//      throw new InternalCompilerException("__builtin_memcpy expects 3 args.");
-//    }
-//    ExprGenerator destination = argumentGenerators.get(0);
-//    ExprGenerator source = argumentGenerators.get(1);
-//    ExprGenerator length = argumentGenerators.get(2);
+  public void emitCall(MethodGenerator mv, ExprFactory exprFactory, GimpleCall call) {
+    
+    if(call.getOperands().size() != 3) {
+      throw new InternalCompilerException("__builtin_memcpy expects 3 args.");
+    }
+    ExprGenerator destination = exprFactory.findPointerGenerator(call.getOperand(0));
+    ExprGenerator source =  exprFactory.findPointerGenerator(call.getOperand(1));
+    ExprGenerator length = exprFactory.findValueGenerator(call.getOperand(2));
+    
+    throw new UnsupportedOperationException("TODO");
 //
 //    source.emitPushPtrArrayAndOffset(mv);
 //    destination.emitPushPtrArrayAndOffset(mv);
@@ -38,17 +37,8 @@ public class MemCopyCallGenerator implements CallGenerator {
 //              Type.getType(Object.class), Type.INT_TYPE, 
 //              Type.getType(Object.class), Type.INT_TYPE,
 //              Type.INT_TYPE), false);
-
-    throw new UnsupportedOperationException();
+//
+//    throw new UnsupportedOperationException();
   }
 
-  @Override
-  public void emitCallAndPopResult(MethodGenerator mv, List<ExprGenerator> argumentGenerators) {
-    emitCall(mv, argumentGenerators);
-  }
-
-  @Override
-  public ExprGenerator expressionGenerator(GimpleType returnType, List<ExprGenerator> argumentGenerators) {
-    return new VoidReturnStrategy().callExpression(this, argumentGenerators);
-  }
 }

@@ -1,6 +1,5 @@
 package org.renjin.gcc.codegen;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -12,9 +11,8 @@ import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.TypeStrategy;
-import org.renjin.gcc.codegen.type.VarGenerator;
 import org.renjin.gcc.codegen.var.GlobalVarAllocator;
-import org.renjin.gcc.codegen.var.Lhs;
+import org.renjin.gcc.codegen.var.LValue;
 import org.renjin.gcc.codegen.var.ProvidedVarAllocator;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
@@ -140,7 +138,7 @@ public class UnitClassGenerator {
 
     for (GimpleVarDecl decl : varToGenerate) {
       try {
-        Lhs varGenerator = (Lhs) symbolTable.getGlobalVariable(decl);
+        LValue varGenerator = (LValue) symbolTable.getGlobalVariable(decl);
         if(decl.getValue() != null) {
           varGenerator.store(mv, exprFactory.findGenerator(decl.getValue()));
         }

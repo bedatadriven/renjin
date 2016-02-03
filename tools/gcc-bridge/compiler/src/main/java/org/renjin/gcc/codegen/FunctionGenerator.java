@@ -1,6 +1,5 @@
 package org.renjin.gcc.codegen;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.Maps;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Handle;
@@ -17,12 +16,15 @@ import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.*;
-import org.renjin.gcc.codegen.var.Lhs;
+import org.renjin.gcc.codegen.var.LValue;
 import org.renjin.gcc.codegen.var.Value;
+import org.renjin.gcc.codegen.var.Values;
 import org.renjin.gcc.codegen.var.Var;
 import org.renjin.gcc.gimple.*;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.statement.*;
+import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.gcc.gimple.type.GimpleVoidType;
 import org.renjin.gcc.peephole.PeepholeOptimizer;
 import org.renjin.gcc.symbols.LocalVariableTable;
 import org.renjin.gcc.symbols.UnitSymbolTable;
@@ -163,7 +165,7 @@ public class FunctionGenerator {
 
   private void emitLocalVarInitialization() {
     for (GimpleVarDecl decl : function.getVariableDeclarations()) {
-      Lhs<ExprGenerator> lhs = (Lhs<ExprGenerator>) symbolTable.getVariable(decl);
+      LValue<ExprGenerator> lhs = (LValue<ExprGenerator>) symbolTable.getVariable(decl);
       if(decl.getValue() != null) {
         lhs.store(mv, exprFactory.findGenerator(decl.getValue()));
       }
@@ -249,11 +251,11 @@ public class FunctionGenerator {
       ExprGenerator lhs = exprFactory.findGenerator(ins.getLHS());
       ExprGenerator rhs = exprFactory.findGenerator(ins.getOperator(), ins.getOperands(), ins.getLHS().getType());
       
-      if(!(lhs instanceof Lhs)) {
+      if(!(lhs instanceof LValue)) {
         throw new InternalCompilerException(ins.getLHS() + " is not an LHS expression: " + lhs.getClass().getName());
       }
 
-      ((Lhs) lhs).store(mv, rhs);
+      ((LValue) lhs).store(mv, rhs);
       
     } catch (Exception e) {
       throw new RuntimeException("Exception compiling assignment " + ins, e);
@@ -272,46 +274,22 @@ public class FunctionGenerator {
 
 
   private void emitCall(GimpleCall ins) {
-
-    if(Malloc.isMalloc(ins.getFunction())) {
-      emitMalloc(ins);
-      
-    } else {
-      List<ExprGenerator> arguments = new ArrayList<ExprGenerator>();
-      for (GimpleExpr argumentExpr : ins.getOperands()) {
-        arguments.add(exprFactory.findGenerator(argumentExpr));
-      }
-      
-      CallGenerator callGenerator = exprFactory.findCallGenerator(ins.getFunction());
-      
-      if(ins.getLhs() == null) {
-        // call the function for its side effects
-        callGenerator.emitCallAndPopResult(mv, arguments);
-        
-      } else {
-        ExprGenerator lhs = exprFactory.findGenerator(ins.getLhs());
-        ExprGenerator callResult =  callGenerator.expressionGenerator(ins.getLhs().getType(), arguments);
-
-        ((Lhs) lhs).store(mv, exprFactory.maybeCast(callResult, ins.getLhs().getType(), /*TODO:*/ ins.getLhs().getType()));
-      }
-    }
-  }
-
-
-  private void emitMalloc(GimpleCall ins) {
-    ExprGenerator lhs = exprFactory.findGenerator(ins.getLhs());
-    ExprGenerator size = exprFactory.findGenerator(ins.getOperands().get(0));
-
-    ((Lhs) lhs).store(mv, typeOracle.forType(ins.getLhs().getType()).mallocExpression(size));
+    CallGenerator callGenerator = exprFactory.findCallGenerator(ins.getFunction());
+    callGenerator.emitCall(mv, exprFactory, ins);
   }
 
 
   private void emitReturn(GimpleReturn ins) {
-    if(ins.getValue() == null) {
-      returnStrategy.emitReturnDefault(mv);
-      
+    if(function.getReturnType() instanceof GimpleVoidType) {
+      mv.areturn(Type.VOID_TYPE);
     } else {
-      returnStrategy.emitReturnValue(mv, exprFactory.findGenerator(ins.getValue(), function.getReturnType()));
+      if(ins.getValue() == null) {
+        throw new InternalCompilerException("Missing return value");
+      }
+      ExprGenerator returnExpr = exprFactory.findGenerator(ins.getValue(), function.getReturnType());
+      Value returnValue = returnStrategy.marshall(returnExpr);
+      returnValue.load(mv);
+      mv.areturn(returnValue.getType());
     }
   }
 

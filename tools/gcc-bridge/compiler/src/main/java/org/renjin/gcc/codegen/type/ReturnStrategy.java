@@ -5,6 +5,7 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.complex.ComplexReturnStrategy;
+import org.renjin.gcc.codegen.var.Value;
 
 import java.util.List;
 
@@ -26,24 +27,16 @@ public interface ReturnStrategy {
    */
   Type getType();
 
-  /**
-   * Generate the bytecode to return the given {@code valueGenerator} from the method.
-   */
-  void emitReturnValue(MethodGenerator mv, ExprGenerator valueGenerator);
 
   /**
-   * Generate the bytecode to return a default or empty value for this type.
-   * 
-   * <p>Often required because GCC allows functions to return without explicitly
-   * requiring a return value, while the JVM is not so lax.</p>
+   * Converts if necessary the expression to be returned to a single value.
    */
-  void emitReturnDefault(MethodGenerator mv);
+  Value marshall(ExprGenerator expr);
 
 
   /**
-   * Provides an {@link ExprGenerator} for accessing the return value of a call to a function
-   * using this {@code ReturnStrategy}.
+   * Converts a function call return value to an expression if necessary.
    */
-  ExprGenerator callExpression(CallGenerator callGenerator, List<ExprGenerator> arguments);
+  ExprGenerator unmarshall(MethodGenerator mv, Value returnValue);
 
 }

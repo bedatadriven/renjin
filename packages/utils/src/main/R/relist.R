@@ -122,10 +122,10 @@ relist.list <- function(flesh, skeleton=attr(flesh, "skeleton"))
     ind <- 1L
     result <- skeleton
     for (i in seq_along(skeleton)) {
-	size <- length(unlist(result[[i]]))
+	length <- length(unlist(result[[i]]))
 	result[[i]] <-
-	    relist(flesh[seq.int(ind, length.out = size)], result[[i]])
-	ind <- ind + size
+	    relist(flesh[seq.int(ind, length.out = length)], result[[i]])
+	ind <- ind + length
     }
     result
 }
@@ -142,10 +142,10 @@ relist.matrix <- function(flesh, skeleton=attr(flesh, "skeleton"))
     ind <- 1L
     for (j in seq_len(m))
 	for (i in seq_len(n)) {
-	    size <- length(unlist(skeleton[[i, j]]))
-	    result[[i, j]] <- relist(flesh[seq.int(ind, length.out = size)],
+	    length <- length(unlist(skeleton[[i, j]]))
+	    result[[i, j]] <- relist(flesh[seq.int(ind, length.out = length)],
 				     skeleton[[i, j]])
-	    ind <- ind + size
+	    ind <- ind + length
 	}
     result
 }

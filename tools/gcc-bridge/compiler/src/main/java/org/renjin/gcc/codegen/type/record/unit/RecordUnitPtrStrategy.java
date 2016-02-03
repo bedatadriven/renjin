@@ -1,9 +1,10 @@
 package org.renjin.gcc.codegen.type.record.unit;
 
-import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.expr.PtrExpr;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.codegen.type.record.RecordValue;
+import org.renjin.gcc.codegen.var.Value;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 
@@ -45,7 +46,7 @@ public class RecordUnitPtrStrategy extends TypeStrategy {
   }
 
   @Override
-  public ExprGenerator mallocExpression(ExprGenerator size) {
+  public PtrExpr malloc(Value length) {
     
 //    if(!size.isConstantIntEqualTo(strategy.getRecordType().sizeOf())) {
 //      throw new InternalCompilerException(getClass().getSimpleName() + " does not support (T)malloc(size) where " +

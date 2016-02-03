@@ -6,6 +6,7 @@ import org.objectweb.asm.Handle;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.FunctionGenerator;
 import org.renjin.gcc.codegen.call.*;
+import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.gimple.CallingConvention;
@@ -59,7 +60,7 @@ public class GlobalSymbolTable implements SymbolTable {
 
     addFunction("malloc", new MallocCallGenerator(typeOracle));
     addFunction("free", new FreeCallGenerator());
-    addFunction("realloc", new ReallocCallGenerator());
+    addFunction("realloc", new ReallocCallGenerator(typeOracle));
 
     addFunction("__builtin_malloc__", new MallocCallGenerator(typeOracle));
     addFunction("__builtin_free__", new MallocCallGenerator(typeOracle));

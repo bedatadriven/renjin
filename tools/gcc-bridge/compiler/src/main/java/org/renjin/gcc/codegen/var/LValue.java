@@ -6,7 +6,7 @@ import org.renjin.gcc.codegen.expr.ExprGenerator;
 /**
  * Generator for Left Hand Side (LHS) expressions
  */
-public interface Lhs <T extends ExprGenerator> {
+public interface LValue<T extends ExprGenerator> {
   
   void store(MethodGenerator mv, T rhs);
 }

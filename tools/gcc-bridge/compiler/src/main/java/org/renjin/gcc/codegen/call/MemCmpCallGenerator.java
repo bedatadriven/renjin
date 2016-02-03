@@ -3,8 +3,11 @@ package org.renjin.gcc.codegen.call;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.expr.PtrExpr;
 import org.renjin.gcc.codegen.type.ValueReturnStrategy;
+import org.renjin.gcc.gimple.statement.GimpleCall;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.runtime.DoublePtr;
@@ -14,13 +17,17 @@ import java.util.List;
 
 
 public class MemCmpCallGenerator implements CallGenerator {
-  
+
   @Override
-  public void emitCall(MethodGenerator mv, List<ExprGenerator> argumentGenerators) {
-//    ExprGenerator p1 = argumentGenerators.get(0);
-//    ExprGenerator p2 = argumentGenerators.get(1);
-//    ExprGenerator n = argumentGenerators.get(2);
-//    
+  public void emitCall(MethodGenerator mv, ExprFactory exprFactory, GimpleCall call) {
+    
+    
+    PtrExpr p1 = exprFactory.findPointerGenerator(call.getOperand(0));
+    PtrExpr p2 = exprFactory.findPointerGenerator(call.getOperand(1));
+    ExprGenerator n = exprFactory.findValueGenerator(call.getOperand(2));
+    
+    
+    
 //    GimpleType baseType = p1.getGimpleType().getBaseType();
 //
 //    if(baseType instanceof GimplePrimitiveType) {
@@ -44,17 +51,4 @@ public class MemCmpCallGenerator implements CallGenerator {
 //    }
     throw new UnsupportedOperationException();
   }
-
-  @Override
-  public void emitCallAndPopResult(MethodGenerator visitor, List<ExprGenerator> argumentGenerators) {
-    // this function has no side effects
-    
-  }
-
-  @Override
-  public ExprGenerator expressionGenerator(GimpleType returnType, List<ExprGenerator> argumentGenerators) {
-    return new ValueReturnStrategy(Type.INT_TYPE)
-        .callExpression(this, argumentGenerators);
-  }
-
 }

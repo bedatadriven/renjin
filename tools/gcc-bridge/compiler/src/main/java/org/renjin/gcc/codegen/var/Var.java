@@ -5,7 +5,7 @@ import org.renjin.gcc.codegen.MethodGenerator;
 /**
  * Generic interface to generation of load/stores for either local variables or static fields
  */
-public interface Var extends Value, Lhs<Value> {
+public interface Var extends Value, LValue<Value> {
   
   
   void store(MethodGenerator mv, Value value);

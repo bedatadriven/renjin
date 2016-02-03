@@ -107,7 +107,7 @@ heightDetails.default <- function(x) {
 # So this function takes a unit and returns absolute values
 # untouched and replaces other values with unit(1, "null")
 
-absolute.size <- function(unit) {
+absolute.length <- function(unit) {
   absolute.units(unit)
 }
 

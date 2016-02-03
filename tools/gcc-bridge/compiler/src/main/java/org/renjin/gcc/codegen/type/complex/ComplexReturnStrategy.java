@@ -1,17 +1,14 @@
 package org.renjin.gcc.codegen.type.complex;
 
 
-import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.call.CallGenerator;
-import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.ReturnStrategy;
+import org.renjin.gcc.codegen.var.Value;
+import org.renjin.gcc.codegen.var.Values;
+import org.renjin.gcc.codegen.var.Var;
 import org.renjin.gcc.gimple.type.GimpleComplexType;
-import org.renjin.gcc.gimple.type.GimpleType;
-
-import java.util.List;
 
 /**
  * Strategy for returning a complex value as a {@code double[2]} or {@code float[2]}
@@ -30,21 +27,23 @@ public class ComplexReturnStrategy implements ReturnStrategy {
   }
 
   @Override
-  public void emitReturnValue(MethodGenerator mv, ExprGenerator valueGenerator) {
-//    valueGenerator.emitPushComplexAsArray(mv);
-//    mv.visitInsn(Opcodes.ARETURN);
-    // TODO
-    throw new UnsupportedOperationException("TODO");
+  public Value marshall(ExprGenerator expr) {
+    ComplexValue complexValue = (ComplexValue) expr;
+    return Values.newArray(
+        complexValue.getRealValue(), 
+        complexValue.getImaginaryValue());
   }
 
   @Override
-  public void emitReturnDefault(MethodGenerator mv) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public ExprGenerator callExpression(CallGenerator callGenerator, List<ExprGenerator> arguments) {
-    throw new UnsupportedOperationException("TODO");
+  public ExprGenerator unmarshall(MethodGenerator mv, Value returnValue) {
+    // Allocate a temporary variable for the array so that it's 
+    // components can be accessed
+    Var array = mv.getLocalVarAllocator().reserve("retval", returnValue.getType());
+    array.store(mv, returnValue);
+    Value realValue = Values.elementAt(array, 0);
+    Value imaginaryValue = Values.elementAt(array, 1);
+    
+    return new ComplexValue(realValue, imaginaryValue);
   }
 
 }

@@ -3,6 +3,9 @@ package org.renjin.gcc.codegen.type;
 import org.renjin.gcc.codegen.UnimplementedException;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.expr.PtrExpr;
+import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
+import org.renjin.gcc.codegen.var.Value;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
@@ -23,7 +26,6 @@ public abstract class TypeStrategy {
   }
 
   /**
-   * 
    * @return the {@link ReturnStrategy} for this type.
    */
   public ReturnStrategy getReturnStrategy() {
@@ -59,10 +61,18 @@ public abstract class TypeStrategy {
     throw new UnsupportedOperationException("TODO: implement fieldGenerator() in " + getClass().getName());
   }
 
-  public ExprGenerator mallocExpression(ExprGenerator size) {
+  /**
+   * Creates a new ExprGenerator that allocates a new pointer
+   * @param length the size of the memory to allocate, <strong>in number of elements, not bytes!</strong>
+   */
+  public PtrExpr malloc(Value length) {
     throw new UnsupportedOperationException("TODO: implement mallocExpression() in " + getClass().getName());
   }
 
+  public PtrExpr realloc(FatPtrExpr pointer, Value length) {
+    throw new UnsupportedOperationException("TODO: implement realloc() in " + getClass().getName());
+  }
+  
   public ExprGenerator constructorExpr(ExprFactory exprFactory, GimpleConstructor value) {
     throw new UnsupportedOperationException("TODO: implement constructorExpr() in " + getClass().getName());
   }
@@ -70,5 +80,5 @@ public abstract class TypeStrategy {
   public FieldStrategy addressableFieldGenerator(String className, String fieldName) {
     throw new UnimplementedException(getClass(), "addressableFieldGenerator");
   }
-  
+
 }

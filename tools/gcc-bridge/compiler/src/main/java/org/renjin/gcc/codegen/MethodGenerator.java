@@ -22,4 +22,25 @@ public class MethodGenerator extends InstructionAdapter {
   public void invokestatic(Class<?> ownerClass, String methodName, String descriptor) {
     invokestatic(Type.getInternalName(ownerClass), methodName, descriptor, false);
   }
+
+  public void invokeconstructor(Type ownerClass, Type... argumentTypes) {
+    invokespecial(ownerClass.getInternalName(), "<init>", Type.getMethodDescriptor(Type.VOID_TYPE, argumentTypes), false);
+  }
+
+  public void pop(Type type) {
+    switch (type.getSort()) {
+      case Type.VOID:
+        // NOOP
+        break;
+    
+      case Type.LONG:
+      case Type.DOUBLE:
+        pop2();
+        break;
+      
+      default:
+        pop();
+    }
+    
+  }
 }

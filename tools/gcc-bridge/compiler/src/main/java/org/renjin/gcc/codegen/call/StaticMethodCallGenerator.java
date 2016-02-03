@@ -4,12 +4,14 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.type.ReturnStrategy;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.primitive.ConstantValue;
 import org.renjin.gcc.codegen.var.Values;
+import org.renjin.gcc.gimple.statement.GimpleCall;
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
@@ -40,54 +42,61 @@ public class StaticMethodCallGenerator implements CallGenerator {
     return returnStrategy;
   }
 
-  @Override
-  public void emitCall(MethodGenerator mv, List<ExprGenerator> argumentGenerators) {
-
-    checkArity(argumentGenerators);
-
-    // The number of fixed (gimple) parameters expected, excluding var args
-    // the number of Jvm arguments may be greater
-    int fixedArgCount = paramStrategies.size();
-
-
-    // Push all (fixed) parameters on the stack
-    for (int i = 0; i < fixedArgCount; i++) {
-      ParamStrategy paramStrategy = getParamStrategies().get(i);
-      paramStrategy.emitPushParameter(mv, argumentGenerators.get(i));
-    }
-    
-    // if this method accepts var args, then we pass the remaining arguments as an Object[] array
-    if(method.isVarArgs()) {
-      int varArgCount = argumentGenerators.size() - fixedArgCount;
-      Values.constantInt(varArgCount).load(mv);
-      mv.visitTypeInsn(Opcodes.ANEWARRAY, Type.getInternalName(Object.class));
-      
-      for(int i=0;i<varArgCount;++i) {
-        mv.visitInsn(Opcodes.DUP);
-        Values.constantInt(i).load(mv);
-        pushVarArg(mv, argumentGenerators.get(fixedArgCount + i));
-        mv.visitInsn(Opcodes.AASTORE);
-      }
-    }
-    mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(method.getDeclaringClass()),
-        method.getName(), Type.getMethodDescriptor(method), false);
-  }
 
   @Override
-  public void emitCallAndPopResult(MethodGenerator mv, List<ExprGenerator> argumentGenerators) {
-    emitCall(mv, argumentGenerators);
-    switch (Type.getReturnType(method).getSize()) {
-      case 0:
-        // NOOP
-        break;
-      case 1:
-        mv.visitInsn(Opcodes.POP);
-        break;
-      case 2:
-        mv.visitInsn(Opcodes.POP2);
-        break;
-    }
+  public void emitCall(MethodGenerator mv, ExprFactory exprFactory, GimpleCall call) {
+    throw new UnsupportedOperationException();
   }
+  
+//  
+//  @Override
+//  public void emitCall(MethodGenerator mv, List<ExprGenerator> argumentGenerators) {
+//
+//    checkArity(argumentGenerators);
+//
+//    // The number of fixed (gimple) parameters expected, excluding var args
+//    // the number of Jvm arguments may be greater
+//    int fixedArgCount = paramStrategies.size();
+//
+//
+//    // Push all (fixed) parameters on the stack
+//    for (int i = 0; i < fixedArgCount; i++) {
+//      ParamStrategy paramStrategy = getParamStrategies().get(i);
+//      paramStrategy.emitPushParameter(mv, argumentGenerators.get(i));
+//    }
+//    
+//    // if this method accepts var args, then we pass the remaining arguments as an Object[] array
+//    if(method.isVarArgs()) {
+//      int varArgCount = argumentGenerators.size() - fixedArgCount;
+//      Values.constantInt(varArgCount).load(mv);
+//      mv.visitTypeInsn(Opcodes.ANEWARRAY, Type.getInternalName(Object.class));
+//      
+//      for(int i=0;i<varArgCount;++i) {
+//        mv.visitInsn(Opcodes.DUP);
+//        Values.constantInt(i).load(mv);
+//        pushVarArg(mv, argumentGenerators.get(fixedArgCount + i));
+//        mv.visitInsn(Opcodes.AASTORE);
+//      }
+//    }
+//    mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(method.getDeclaringClass()),
+//        method.getName(), Type.getMethodDescriptor(method), false);
+//  }
+//
+//  @Override
+//  public void emitCallAndPopResult(MethodGenerator mv, List<ExprGenerator> argumentGenerators) {
+//    emitCall(mv, argumentGenerators);
+//    switch (Type.getReturnType(method).getSize()) {
+//      case 0:
+//        // NOOP
+//        break;
+//      case 1:
+//        mv.visitInsn(Opcodes.POP);
+//        break;
+//      case 2:
+//        mv.visitInsn(Opcodes.POP2);
+//        break;
+//    }
+//  }
 
   private void pushVarArg(MethodGenerator mv, ExprGenerator exprGenerator) {
 //    GimpleType type = exprGenerator.getGimpleType();
@@ -131,8 +140,4 @@ public class StaticMethodCallGenerator implements CallGenerator {
     return paramStrategies;
   }
 
-  @Override
-  public ExprGenerator expressionGenerator(GimpleType returnType, List<ExprGenerator> argumentGenerators) {
-    return returnGenerator().callExpression(this, argumentGenerators);
-  }
 }

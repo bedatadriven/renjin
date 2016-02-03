@@ -1,7 +1,11 @@
 package org.renjin.gcc.codegen.type.primitive;
 
+import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
+import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.*;
+import org.renjin.gcc.codegen.var.Value;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
@@ -53,4 +57,21 @@ public class PrimitiveTypeStrategy extends TypeStrategy {
     }
   }
 
+  @Override
+  public TypeStrategy pointerTo() {
+    return new FatPtrStrategy(new PrimitiveValueFunction());
+  }
+  
+  private class PrimitiveValueFunction implements ValueFunction {
+
+    @Override
+    public Type getValueType() {
+      return type.jvmType();
+    }
+
+    @Override
+    public Value dereference(Value arrayElement) {
+      return arrayElement;
+    }
+  }
 }

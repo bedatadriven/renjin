@@ -97,7 +97,7 @@ testS4.class1 = function(){
     setMethod(f="setSize",
         signature="Molecule",
         definition=function(object,size){
-            object@size <- size
+            object@size <- length
             validObject(object)
             return(object)
         }

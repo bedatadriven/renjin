@@ -1,13 +1,9 @@
 package org.renjin.gcc.codegen.type;
 
-import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.var.Value;
-
-import java.util.List;
 
 /**
  * Returns a Value
@@ -26,19 +22,13 @@ public final class ValueReturnStrategy implements ReturnStrategy {
   }
 
   @Override
-  public void emitReturnValue(MethodGenerator mv, ExprGenerator valueGenerator) {
-    Value value = (Value) valueGenerator;
-    value.load(mv);
-    mv.areturn(value.getType());
+  public Value marshall(ExprGenerator expr) {
+    return (Value)expr;
   }
 
   @Override
-  public void emitReturnDefault(MethodGenerator mv) {
-    throw new UnsupportedOperationException();
+  public Value unmarshall(MethodGenerator mv, Value returnValue) {
+    return returnValue;
   }
 
-  @Override
-  public ExprGenerator callExpression(CallGenerator callGenerator, List<ExprGenerator> arguments) {
-    return null;
-  }
 }

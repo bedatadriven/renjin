@@ -68,8 +68,8 @@ sunflowerplot.default <-
         i.multi <- (1L:n)[number > 1]
         ppin <- par("pin")
         pusr <- par("usr")
-        xr <- size * abs(pusr[2L] - pusr[1L])/ppin[1L]
-        yr <- size * abs(pusr[4L] - pusr[3L])/ppin[2L]
+        xr <- length * abs(pusr[2L] - pusr[1L])/ppin[1L]
+        yr <- length * abs(pusr[4L] - pusr[3L])/ppin[2L]
 
         i.rep <- rep.int(i.multi, number[number > 1])
         z <- numeric()

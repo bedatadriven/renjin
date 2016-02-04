@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.fatptr;
 
+import com.google.common.base.Preconditions;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.var.Value;
 import org.renjin.gcc.codegen.var.Values;
@@ -37,6 +38,10 @@ public class Wrappers {
     Type valueType = valueType(wrapperType);
     Type arrayType = Type.getType("[" + valueType.getDescriptor());
     return arrayType;
+  }
+  
+  public static Type valueArrayType(Type valueType) {
+    return Type.getType("[" + valueType.getDescriptor());
   }
   
   public static Value getArray(Value wrapperInstance) {

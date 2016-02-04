@@ -4,7 +4,10 @@ import com.google.common.collect.Lists;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.expr.PtrExpr;
 import org.renjin.gcc.codegen.type.*;
+import org.renjin.gcc.codegen.var.Value;
+import org.renjin.gcc.codegen.var.Values;
 import org.renjin.gcc.codegen.var.Var;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
@@ -70,7 +73,11 @@ public class FunTypeStrategy extends TypeStrategy {
     public TypeStrategy arrayOf(GimpleArrayType arrayType) {
       return new PointerArray(arrayType);
     }
-    
+
+    @Override
+    public Value nullPointer() {
+      return Values.nullRef();
+    }
   }
   
   private class PointerPointer extends TypeStrategy {

@@ -9,7 +9,7 @@ import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 
 
-public class RecordUnitPtrStrategy extends TypeStrategy {
+public class RecordUnitPtrStrategy extends TypeStrategy<Value> {
   
   private RecordClassTypeStrategy strategy;
 
@@ -46,7 +46,7 @@ public class RecordUnitPtrStrategy extends TypeStrategy {
   }
 
   @Override
-  public PtrExpr malloc(Value length) {
+  public Value malloc(Value length) {
     
 //    if(!size.isConstantIntEqualTo(strategy.getRecordType().sizeOf())) {
 //      throw new InternalCompilerException(getClass().getSimpleName() + " does not support (T)malloc(size) where " +

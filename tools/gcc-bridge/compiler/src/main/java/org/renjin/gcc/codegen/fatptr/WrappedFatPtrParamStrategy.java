@@ -38,7 +38,7 @@ public class WrappedFatPtrParamStrategy implements ParamStrategy {
     array.store(mv, Wrappers.getArray(wrapper));
     offset.store(mv, Wrappers.getOffset(wrapper));
     
-    return new FatPtrExpr(array, offset, valueFunction);
+    return new FatPtrExpr(array, offset);
   }
 
   @Override

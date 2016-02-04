@@ -2,7 +2,7 @@ package org.renjin.gcc.codegen.fatptr;
 
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.expr.PtrExpr;
+import org.renjin.gcc.codegen.type.FieldStrategy;
 import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.type.ReturnStrategy;
 import org.renjin.gcc.codegen.type.TypeStrategy;
@@ -16,9 +16,10 @@ import org.renjin.gcc.runtime.*;
 /**
  * Strategy for pointer types that uses a combination of an array value and an offset value
  */
-public class FatPtrStrategy extends TypeStrategy {
+public class FatPtrStrategy extends TypeStrategy<FatPtrExpr> {
 
   private ValueFunction valueFunction;
+  private boolean parametersWrapped = true;
 
   /**
    * The JVM type of the array used to back the pointer
@@ -30,17 +31,35 @@ public class FatPtrStrategy extends TypeStrategy {
     this.arrayType = Type.getType("[" + valueFunction.getValueType().getDescriptor());
   }
 
+  public boolean isParametersWrapped() {
+    return parametersWrapped;
+  }
+
+  public FatPtrStrategy setParametersWrapped(boolean parametersWrapped) {
+    this.parametersWrapped = parametersWrapped;
+    return this;
+  }
+
   @Override
   public ExprGenerator varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
     Var array = allocator.reserve(decl.getName(), arrayType);
     Var offset = allocator.reserveInt(decl.getName() + "$offset");
     
-    return new FatPtrExpr(array, offset, valueFunction);
+    return new FatPtrExpr(array, offset);
+  }
+
+  @Override
+  public FieldStrategy fieldGenerator(String className, String fieldName) {
+    return new FatPtrFieldStrategy(valueFunction, fieldName);
   }
 
   @Override
   public ParamStrategy getParamStrategy() {
-    return new WrappedFatPtrParamStrategy(valueFunction);
+    if(isParametersWrapped()) {
+      return new WrappedFatPtrParamStrategy(valueFunction);
+    } else {
+      return new FatPtrParamStrategy(valueFunction);
+    }
   }
 
   @Override
@@ -49,16 +68,30 @@ public class FatPtrStrategy extends TypeStrategy {
   }
 
   @Override
-  public PtrExpr malloc(Value length) {
+  public FatPtrExpr malloc(Value length) {
     return FatPtrExpr.alloc(valueFunction, length);
   }
 
   @Override
-  public PtrExpr realloc(FatPtrExpr pointer, Value length) {
+  public FatPtrExpr realloc(FatPtrExpr pointer, Value length) {
     Value array = new FatPtrRealloc(pointer, length);
     Value offset = Values.zero();
     
-    return new FatPtrExpr(array, offset, valueFunction);
+    return new FatPtrExpr(array, offset);
+  }
+
+  @Override
+  public ExprGenerator valueOf(FatPtrExpr pointerExpr) {
+    return valueFunction.dereference(pointerExpr.getArray(), pointerExpr.getOffset());
+  }
+
+  @Override
+  public FatPtrExpr pointerPlus(FatPtrExpr pointer, Value offsetInBytes) {
+    int bytesPerArrayElement = valueFunction.getElementSize() / valueFunction.getElementLength();
+    Value offsetInArrayElements = Values.divide(offsetInBytes, bytesPerArrayElement);
+    Value newOffset = Values.sum(pointer.getOffset(), offsetInArrayElements);
+    
+    return new FatPtrExpr(pointer.getArray(), newOffset);
   }
 
   public static Type wrapperType(Type valueType) {

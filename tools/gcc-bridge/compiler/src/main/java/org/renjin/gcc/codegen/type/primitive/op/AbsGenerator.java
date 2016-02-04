@@ -21,6 +21,6 @@ public class AbsGenerator implements Value {
   @Override
   public void load(MethodGenerator mv) {
     x.load(mv);
-    mv.invokestatic(Math.class, "abs", Type.getMethodDescriptor(x.getType(), x.getType(), x.getType()));
+    mv.invokestatic(Math.class, "abs", Type.getMethodDescriptor(x.getType(), x.getType()));
   }
 }

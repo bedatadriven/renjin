@@ -59,4 +59,23 @@ public class ConstantValue extends AbstractExprGenerator implements Value {
         throw new IllegalStateException("type: " + type);
     }
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    ConstantValue that = (ConstantValue) o;
+
+    if (!value.equals(that.value)) return false;
+    return type.equals(that.type);
+
+  }
+
+  @Override
+  public int hashCode() {
+    int result = value.hashCode();
+    result = 31 * result + type.hashCode();
+    return result;
+  }
 }

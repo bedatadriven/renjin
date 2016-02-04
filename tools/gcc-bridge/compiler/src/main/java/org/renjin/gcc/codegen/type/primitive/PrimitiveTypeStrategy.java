@@ -1,13 +1,16 @@
 package org.renjin.gcc.codegen.type.primitive;
 
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.var.Value;
+import org.renjin.gcc.codegen.var.Values;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
+import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 
 /**
@@ -45,7 +48,6 @@ public class PrimitiveTypeStrategy extends TypeStrategy {
     return new ValueFieldStrategy(type.jvmType(), fieldName);
   }
 
-
   @Override
   public ExprGenerator varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
     if(decl.isAddressable()) {
@@ -61,7 +63,12 @@ public class PrimitiveTypeStrategy extends TypeStrategy {
   public TypeStrategy pointerTo() {
     return new FatPtrStrategy(new PrimitiveValueFunction());
   }
-  
+
+  @Override
+  public TypeStrategy arrayOf(GimpleArrayType arrayType) {
+    return new ArrayTypeStrategy(new PrimitiveValueFunction());
+  }
+
   private class PrimitiveValueFunction implements ValueFunction {
 
     @Override
@@ -70,8 +77,18 @@ public class PrimitiveTypeStrategy extends TypeStrategy {
     }
 
     @Override
-    public Value dereference(Value arrayElement) {
-      return arrayElement;
+    public int getElementLength() {
+      return 1;
+    }
+
+    @Override
+    public int getElementSize() {
+      return type.sizeOf();
+    }
+
+    @Override
+    public ExprGenerator dereference(Value array, Value offset) {
+      return Values.elementAt(array, offset);
     }
   }
 }

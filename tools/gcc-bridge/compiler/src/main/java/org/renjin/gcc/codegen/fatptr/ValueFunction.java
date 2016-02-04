@@ -10,7 +10,21 @@ import org.renjin.gcc.codegen.var.Value;
 public interface ValueFunction {
   
   Type getValueType();
-  
-  ExprGenerator dereference(Value arrayElement);
+
+  /**
+   * Returns the number of array elements required for each value.
+   * 
+   * <p>For an array of doubles, for example, the length is 1. By contrast, a complex number value requires
+   * two array elements per value.</p>
+   */
+  int getElementLength();
+
+  /**
+   * Returns the size of the value in bytes, as understood by GCC/Gimple. 
+   * 
+   */
+  int getElementSize();
+
+  ExprGenerator dereference(Value array, Value offset);
   
 }

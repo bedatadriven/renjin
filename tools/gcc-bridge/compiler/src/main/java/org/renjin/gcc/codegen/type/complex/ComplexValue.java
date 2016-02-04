@@ -4,6 +4,7 @@ import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.primitive.op.NegateGenerator;
+import org.renjin.gcc.codegen.var.LValue;
 import org.renjin.gcc.codegen.var.Value;
 import org.renjin.gcc.codegen.var.Values;
 import org.renjin.gcc.codegen.var.Var;
@@ -12,7 +13,7 @@ import org.renjin.gcc.codegen.var.Var;
 /**
  * Complex numerical value
  */
-public class ComplexValue implements ExprGenerator {
+public class ComplexValue implements ExprGenerator, LValue<ComplexValue> {
   private Value realValue;
   private Value imaginaryValue;
   private Type componentType;
@@ -45,6 +46,7 @@ public class ComplexValue implements ExprGenerator {
     return imaginaryValue;
   }
   
+  @Override
   public void store(MethodGenerator mv, ComplexValue complexValue) {
     ((Var) realValue).store(mv, complexValue.getRealValue());
     ((Var) imaginaryValue).store(mv, complexValue.getImaginaryValue());

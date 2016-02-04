@@ -1,6 +1,8 @@
 package org.renjin.gcc.codegen.type.complex;
 
+import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
 import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.type.ReturnStrategy;
 import org.renjin.gcc.codegen.type.TypeStrategy;
@@ -56,57 +58,13 @@ public class ComplexTypeStrategy extends TypeStrategy {
 
   @Override
   public TypeStrategy pointerTo() {
-    return new Pointer();
+    return new FatPtrStrategy(new ComplexValueFunction(type.getJvmPartType()))
+        .setParametersWrapped(false);
   }
 
   @Override
   public TypeStrategy arrayOf(GimpleArrayType arrayType) {
-    return new Array(arrayType);
-  }
-
-  private class Pointer extends TypeStrategy {
-
-    @Override
-    public ParamStrategy getParamStrategy() {
-      //return new ComplexPtrParamStrategy(new GimplePointerType(type));
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public VarGenerator varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
-//      return new ComplexPtrVarGenerator(type.pointerTo(), 
-//          allocator.reserveArrayRef(decl.getName(), type.getJvmPartType()),
-//          allocator.reserveInt(decl.getName() + "$offset"));
-      throw new UnsupportedOperationException("TODO");
-    }
-  }
-  
-  private class Array extends TypeStrategy {
-
-    private final GimpleArrayType arrayType;
-
-    public Array(GimpleArrayType arrayType) {
-      this.arrayType = arrayType;
-    }
-
-    @Override
-    public TypeStrategy pointerTo() {
-      return new ArrayPtr(new GimplePointerType(arrayType));
-    }
-  }
-  
-  private class ArrayPtr extends TypeStrategy {
-    private final GimplePointerType pointerType;
-
-    public ArrayPtr(GimplePointerType pointerType) {
-      this.pointerType = pointerType;
-    }
-    @Override
-    public VarGenerator varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
-//      return new ComplexArrayPtrVarGenerator(pointerType,
-//          allocator.reserveArrayRef(decl.getName(), type.getJvmPartType()),
-//          allocator.reserveInt(decl.getName() + "$offset"));
-      throw new UnsupportedOperationException();
-    }
+    return new ArrayTypeStrategy(new ComplexValueFunction(type.getJvmPartType()))
+        .setParameterWrapped(false);
   }
 }

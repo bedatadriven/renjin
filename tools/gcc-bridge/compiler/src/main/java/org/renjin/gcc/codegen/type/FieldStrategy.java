@@ -4,6 +4,7 @@ import org.objectweb.asm.ClassVisitor;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.UnimplementedException;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.var.Value;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 /**
@@ -21,7 +22,7 @@ public abstract class FieldStrategy {
    * @param instanceGenerator an {@code ExprGenerator} that can read the record's instance 
    * @return an {@code ExprGenerator} that can generate loads/stores for this field.
    */
-  public abstract ExprGenerator memberExprGenerator(ExprGenerator instanceGenerator);
+  public abstract ExprGenerator memberExprGenerator(Value instanceGenerator);
 
   /**
    * Emits the bytecode to store a value to the record currently on the stack.

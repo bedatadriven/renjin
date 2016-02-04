@@ -21,12 +21,12 @@ public class MemCmpCallGenerator implements CallGenerator {
   @Override
   public void emitCall(MethodGenerator mv, ExprFactory exprFactory, GimpleCall call) {
     
-    
-    PtrExpr p1 = exprFactory.findPointerGenerator(call.getOperand(0));
-    PtrExpr p2 = exprFactory.findPointerGenerator(call.getOperand(1));
-    ExprGenerator n = exprFactory.findValueGenerator(call.getOperand(2));
-    
-    
+//    
+//    PtrExpr p1 = exprFactory.findPointerGenerator(call.getOperand(0));
+//    PtrExpr p2 = exprFactory.findPointerGenerator(call.getOperand(1));
+//    ExprGenerator n = exprFactory.findValueGenerator(call.getOperand(2));
+//    
+//    
     
 //    GimpleType baseType = p1.getGimpleType().getBaseType();
 //

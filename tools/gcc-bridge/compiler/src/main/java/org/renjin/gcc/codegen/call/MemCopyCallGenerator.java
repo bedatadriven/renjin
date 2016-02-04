@@ -18,9 +18,9 @@ public class MemCopyCallGenerator implements CallGenerator {
     if(call.getOperands().size() != 3) {
       throw new InternalCompilerException("__builtin_memcpy expects 3 args.");
     }
-    ExprGenerator destination = exprFactory.findPointerGenerator(call.getOperand(0));
-    ExprGenerator source =  exprFactory.findPointerGenerator(call.getOperand(1));
-    ExprGenerator length = exprFactory.findValueGenerator(call.getOperand(2));
+//    ExprGenerator destination = exprFactory.findPointerGenerator(call.getOperand(0));
+//    ExprGenerator source =  exprFactory.findPointerGenerator(call.getOperand(1));
+//    ExprGenerator length = exprFactory.findValueGenerator(call.getOperand(2));
     
     throw new UnsupportedOperationException("TODO");
 //

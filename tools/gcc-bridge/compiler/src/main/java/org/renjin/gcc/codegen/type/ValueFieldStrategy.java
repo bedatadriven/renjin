@@ -24,7 +24,7 @@ public class ValueFieldStrategy extends FieldStrategy {
   }
 
   @Override
-  public ExprGenerator memberExprGenerator(ExprGenerator instanceGenerator) {
+  public ExprGenerator memberExprGenerator(Value instanceGenerator) {
     return new FieldValue((Value) instanceGenerator, name, type);
   }
 }

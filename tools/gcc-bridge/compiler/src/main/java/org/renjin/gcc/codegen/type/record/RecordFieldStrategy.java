@@ -4,6 +4,7 @@ import org.objectweb.asm.ClassVisitor;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.FieldStrategy;
+import org.renjin.gcc.codegen.var.Value;
 
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 
@@ -31,7 +32,7 @@ public class RecordFieldStrategy extends FieldStrategy {
   }
 
   @Override
-  public ExprGenerator memberExprGenerator(ExprGenerator instanceGenerator) {
+  public ExprGenerator memberExprGenerator(Value instanceGenerator) {
     throw new InternalCompilerException("todo");
   }
 

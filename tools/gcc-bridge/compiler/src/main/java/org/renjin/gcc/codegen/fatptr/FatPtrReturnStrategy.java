@@ -41,6 +41,6 @@ public class FatPtrReturnStrategy implements ReturnStrategy {
     Value array = Wrappers.getArray(wrapper);
     Value offset = Wrappers.getOffset(wrapper);
 
-    return new FatPtrExpr(array, offset, valueFunction);
+    return new FatPtrExpr(array, offset);
   }
 }

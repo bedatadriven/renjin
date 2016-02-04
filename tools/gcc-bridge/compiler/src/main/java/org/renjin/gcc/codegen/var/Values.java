@@ -148,7 +148,7 @@ public class Values {
     return new ConstantValue(type, 0);
   }
 
-  public static Value add(final Value x, final Value y) {
+  public static Value sum(final Value x, final Value y) {
     return new PrimitiveBinOpGenerator(GimpleOp.PLUS_EXPR, x, y);
   }
 
@@ -158,6 +158,18 @@ public class Values {
 
   public static Value product(Value x, Value y) {
     return new PrimitiveBinOpGenerator(GimpleOp.MULT_EXPR, x, y);
+  }
+  
+  public static Value product(Value x, int y) {
+    Preconditions.checkArgument(x.getType().equals(Type.INT_TYPE));
+    
+    if(y == 0) {
+      return zero(x.getType());
+    } else if(y == 1) {
+      return x;
+    } else {
+      return product(x, constantInt(y));
+    }
   }
 
   public static Value divide(Value x, Value y) {

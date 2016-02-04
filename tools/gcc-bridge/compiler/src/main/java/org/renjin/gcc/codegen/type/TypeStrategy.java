@@ -1,12 +1,14 @@
 package org.renjin.gcc.codegen.type;
 
 import org.renjin.gcc.codegen.UnimplementedException;
+import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.expr.PtrExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
 import org.renjin.gcc.codegen.var.Value;
 import org.renjin.gcc.codegen.var.VarAllocator;
+import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
@@ -15,7 +17,7 @@ import org.renjin.gcc.gimple.type.GimpleArrayType;
  *  Provides strategies for code generation for a specific {@code GimpleType}
  *  
  */
-public abstract class TypeStrategy {
+public abstract class TypeStrategy<ExprT extends ExprGenerator> {
 
   /**
    * 
@@ -51,6 +53,10 @@ public abstract class TypeStrategy {
     throw new UnimplementedException(getClass(), "arrayOf");
   }
 
+  public ExprGenerator elementAt(ExprGenerator array, ExprGenerator index) {
+    throw new UnimplementedException(getClass(), "elementAt");
+  }
+  
   /**
    * Creates a new FieldGenerator for fields of this type.
    * 
@@ -65,15 +71,27 @@ public abstract class TypeStrategy {
    * Creates a new ExprGenerator that allocates a new pointer
    * @param length the size of the memory to allocate, <strong>in number of elements, not bytes!</strong>
    */
-  public PtrExpr malloc(Value length) {
-    throw new UnsupportedOperationException("TODO: implement mallocExpression() in " + getClass().getName());
+  public ExprT malloc(Value length) {
+    throw new UnsupportedOperationException("TODO: implement malloc() in " + getClass().getName());
   }
 
-  public PtrExpr realloc(FatPtrExpr pointer, Value length) {
+  public ExprT realloc(ExprT pointer, Value length) {
     throw new UnsupportedOperationException("TODO: implement realloc() in " + getClass().getName());
   }
+
+  public ExprT pointerPlus(ExprT pointer, Value offsetInBytes) {
+    throw new UnimplementedException(getClass(), "pointerPlus");
+  }
+
+  public ExprGenerator valueOf(ExprT pointerExpr) {
+    throw new UnsupportedOperationException("TODO: implement valueOf() in " + getClass().getName());
+  }
   
-  public ExprGenerator constructorExpr(ExprFactory exprFactory, GimpleConstructor value) {
+  public ExprT nullPointer() {
+    throw new UnsupportedOperationException("TODO: implement nullPointer() in " + getClass().getName());
+  }
+  
+  public ExprT constructorExpr(ExprFactory exprFactory, GimpleConstructor value) {
     throw new UnsupportedOperationException("TODO: implement constructorExpr() in " + getClass().getName());
   }
 
@@ -81,4 +99,11 @@ public abstract class TypeStrategy {
     throw new UnimplementedException(getClass(), "addressableFieldGenerator");
   }
 
+  public ConditionGenerator comparePointers(GimpleOp op, ExprGenerator x, ExprGenerator y) {
+    throw new UnimplementedException(getClass(), "comparePointers");
+  }
+
+  public ExprGenerator addressOf(ExprT value) {
+    throw new UnimplementedException(getClass(), "addressOf");
+  }
 }

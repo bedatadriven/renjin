@@ -9,8 +9,8 @@ import org.renjin.gcc.codegen.var.Values;
 public class ComplexValues {
   
   public static ComplexValue add(ComplexValue x, ComplexValue y) {
-    Value real = Values.add(x.getRealValue(), y.getRealValue());
-    Value im = Values.add(x.getImaginaryValue(), y.getImaginaryValue());
+    Value real = Values.sum(x.getRealValue(), y.getRealValue());
+    Value im = Values.sum(x.getImaginaryValue(), y.getImaginaryValue());
     return new ComplexValue(real, im);
   }
   
@@ -28,7 +28,7 @@ public class ComplexValues {
     Value d = y.getImaginaryValue();
     
     Value real = Values.difference(Values.product(a, c), Values.product(b, d));
-    Value im = Values.add(Values.product(b, c), Values.product(a, d));
+    Value im = Values.sum(Values.product(b, c), Values.product(a, d));
     
     return new ComplexValue(real, im);
   }

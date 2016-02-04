@@ -2,6 +2,7 @@ package org.renjin.gcc.codegen.call;
 
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.ExprFactory;
+import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.expr.PtrExpr;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.var.LValue;
@@ -35,7 +36,7 @@ public class MallocCallGenerator implements CallGenerator {
     Value size = exprFactory.findValueGenerator(call.getOperands().get(0));
     Value length = Values.divide(size, pointerType.getBaseType().sizeOf());
     
-    PtrExpr mallocGenerator = typeOracle.forType(pointerType).malloc(length);
+    ExprGenerator mallocGenerator = typeOracle.forType(pointerType).malloc(length);
     LValue lhs = (LValue) exprFactory.findGenerator(call.getLhs());
     lhs.store(mv, mallocGenerator);
   }

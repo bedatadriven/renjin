@@ -9,6 +9,7 @@ import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.fatptr.FatPtrCmp;
 import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
 import org.renjin.gcc.codegen.type.TypeOracle;
+import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.type.complex.ComplexCmpGenerator;
 import org.renjin.gcc.codegen.type.complex.ComplexValue;
 import org.renjin.gcc.codegen.type.complex.ComplexValues;
@@ -92,9 +93,8 @@ public class ExprFactory {
         return new FunctionRefGenerator(symbolTable.findHandle(functionRef, callingConvention));
 
       } else {
-//        ExprGenerator value = findGenerator(addressOf.getValue());
-//        return value.addressOf();
-        throw new UnsupportedOperationException();
+        ExprGenerator value = findGenerator(addressOf.getValue());
+        return typeOracle.forType(addressOf.getValue().getType()).addressOf(value);
       }
 
     } else if(expr instanceof GimpleOpExpr) {
@@ -110,16 +110,23 @@ public class ExprFactory {
 
     } else if(expr instanceof GimpleMemRef) {
       GimpleMemRef memRefExpr = (GimpleMemRef) expr;
-      PtrExpr pointerExpr = pointerPlus(memRefExpr.getPointer(), memRefExpr.getOffset());
-      return pointerExpr.valueOf();
+      TypeStrategy typeStrategy = typeOracle.forType(memRefExpr.getPointer().getType());
+      ExprGenerator ptrGenerator = findGenerator(memRefExpr.getPointer());
+
+      if(!memRefExpr.isOffsetZero()) {
+        Value offsetInBytes = findValueGenerator(memRefExpr.getOffset());
+        ptrGenerator =  typeStrategy.pointerPlus(ptrGenerator, offsetInBytes);
+      }
+      
+      return typeStrategy.valueOf(ptrGenerator);
       
     } else if(expr instanceof GimpleArrayRef) {
       GimpleArrayRef arrayRef = (GimpleArrayRef) expr;
-      ExprGenerator arrayGenerator = findGenerator(arrayRef.getArray());
-      ExprGenerator indexGenerator = findGenerator(arrayRef.getIndex());
-//      return arrayGenerator.elementAt(indexGenerator);
-
-      throw new UnsupportedOperationException();
+      TypeStrategy arrayStrategy = typeOracle.forType(arrayRef.getArray().getType());
+      ExprGenerator array = findGenerator(arrayRef.getArray());
+      ExprGenerator index = findGenerator(arrayRef.getIndex());
+      
+      return arrayStrategy.elementAt(array, index);
       
     } else if(expr instanceof GimpleConstantRef) {
       GimpleConstant constant = ((GimpleConstantRef) expr).getValue();
@@ -176,9 +183,10 @@ public class ExprFactory {
       }
     }
 
-    // Assume this is a funciton ptr expression  
+    // Assume this is a function pointer ptr expression  
     ExprGenerator exprGenerator = findGenerator(functionExpr);
-    return new FunPtrCallGenerator(typeOracle, (GimpleFunctionType) functionExpr.getType(), (Value)exprGenerator);
+    return new FunPtrCallGenerator(typeOracle, (GimpleFunctionType) functionExpr.getType().getBaseType(), 
+        (Value)exprGenerator);
   }
 
   public ConditionGenerator findConditionGenerator(GimpleOp op, List<GimpleExpr> operands) {
@@ -209,14 +217,14 @@ public class ExprFactory {
 
   private ConditionGenerator comparePointers(GimpleOp op, GimpleExpr x, GimpleExpr y) {
     
-    PtrExpr ptrX = findPointerGenerator(x);
-    PtrExpr ptrY = findPointerGenerator(y);
-    
-    if(ptrX instanceof FatPtrExpr && ptrY instanceof FatPtrExpr) {
-      return new FatPtrCmp(op, (FatPtrExpr)ptrX, (FatPtrExpr)ptrY);
+    if(!x.getType().equals(y.getType())) {
+      throw new InternalCompilerException(String.format("pointer comparison types do not match: %s != %s", 
+          x.getType(), y.getType()));
     }
-
-    throw new UnsupportedOperationException("todo: " + ptrX.getClass().getName());
+    ExprGenerator ptrX = findGenerator(x);
+    ExprGenerator ptrY = findGenerator(y);
+    
+    return typeOracle.forType(x.getType()).comparePointers(op, ptrX, ptrY);
   }
 
   public ExprGenerator findGenerator(GimpleOp op, List<GimpleExpr> operands, GimpleType expectedType) {
@@ -322,11 +330,11 @@ public class ExprFactory {
     }
   }
 
-  private PtrExpr pointerPlus(GimpleExpr pointerExpr, GimpleExpr offsetExpr) {
-    PtrExpr pointer = (PtrExpr)findGenerator(pointerExpr);
+  private ExprGenerator pointerPlus(GimpleExpr pointerExpr, GimpleExpr offsetExpr) {
+    ExprGenerator pointer = findGenerator(pointerExpr);
     Value offsetInBytes = findValueGenerator(offsetExpr);
-    Value offset = Values.divide(offsetInBytes, pointerExpr.getType().getBaseType().sizeOf());
-    return pointer.pointerPlus(offset);
+    
+    return typeOracle.forType(pointerExpr.getType()).pointerPlus(pointer, offsetInBytes);
   }
 
   private <T extends ExprGenerator> T findGenerator(GimpleExpr gimpleExpr, Class<T> exprClass) {
@@ -354,10 +362,6 @@ public class ExprFactory {
     return findGenerator(gimpleExpr, ComplexValue.class);
   }
   
-  public PtrExpr findPointerGenerator(GimpleExpr gimpleExpr) {
-    return findGenerator(gimpleExpr, PtrExpr.class);
-  }
-
   private ExprGenerator findBinOpGenerator(GimpleOp op, List<GimpleExpr> operands) {
     GimpleExpr x = operands.get(0);
     GimpleExpr y = operands.get(1);
@@ -392,9 +396,10 @@ public class ExprFactory {
     }
   }
 
-  public static ExprGenerator forConstant(GimpleConstant constant) {
+  public ExprGenerator forConstant(GimpleConstant constant) {
     if (constant.isNull()) {
-      return new NullPtrGenerator(constant.getType());
+      return typeOracle.forType(constant.getType()).nullPointer();
+      
     } else if (constant instanceof GimplePrimitiveConstant) {
       return new ConstantValue((GimplePrimitiveConstant) constant);
     } else if (constant instanceof GimpleComplexConstant) {

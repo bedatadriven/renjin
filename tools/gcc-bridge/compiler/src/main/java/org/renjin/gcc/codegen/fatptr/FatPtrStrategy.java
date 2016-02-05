@@ -1,6 +1,8 @@
 package org.renjin.gcc.codegen.fatptr;
 
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
+import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.FieldStrategy;
 import org.renjin.gcc.codegen.type.ParamStrategy;
@@ -10,8 +12,12 @@ import org.renjin.gcc.codegen.var.Value;
 import org.renjin.gcc.codegen.var.Values;
 import org.renjin.gcc.codegen.var.Var;
 import org.renjin.gcc.codegen.var.VarAllocator;
+import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.GimpleVarDecl;
-import org.renjin.gcc.runtime.*;
+import org.renjin.gcc.gimple.type.GimpleArrayType;
+
+import static org.renjin.gcc.codegen.fatptr.Wrappers.newWrapper;
+import static org.renjin.gcc.codegen.var.Values.newArray;
 
 /**
  * Strategy for pointer types that uses a combination of an array value and an offset value
@@ -42,10 +48,59 @@ public class FatPtrStrategy extends TypeStrategy<FatPtrExpr> {
 
   @Override
   public ExprGenerator varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
-    Var array = allocator.reserve(decl.getName(), arrayType);
-    Var offset = allocator.reserveInt(decl.getName() + "$offset");
-    
-    return new FatPtrExpr(array, offset);
+    if(decl.isAddressable()) {
+      // If this variable needs to be addressable, then we need to store in a unit length pointer
+      // so that we can later get its "address"
+      // For example, if creating a double pointer variable that needs to be later:
+      
+      // C:
+      //
+      // void init(double **pp) {
+      //   double *p = malloc(3 * sizeof(double));
+      //   p[1] = 42.0;
+      //   p[2] = 33.4;
+      //   *pp = p+1;
+      // }      
+      // 
+      // void test() {
+      //   double *p;
+      //   init(&p)
+      //   double x = *p + *(p+1)
+      // }
+
+      
+      // The solution is to store the pointer as unit-length array of wrappers. Then we can pass this 
+      // to other methods and allow them to set the array and offset
+      
+      // void init(ObjectPtr pp) {
+      //   double p[] = new double[3];
+      //   int p$offset = 0;
+      //   p[p$offset + 1] = 42.0;
+      //   p[p$offset + 2] = 33.4;
+      //   pp.array[pp.offset] = new DoublePtr(p, p$offset)
+      // }      
+      // 
+      // void test() {
+      //   DoublePtr[] p = new DoublePtr[] { new DoublePtr() };
+      //   init(new ObjectPtr(p, 0));
+      //   double x = p.array[p.offset] + p.array[p.offset+1]
+      // }
+
+      Type wrapperType = Wrappers.wrapperType(valueFunction.getValueType());
+      Type wrapperArrayType = Wrappers.valueArrayType(wrapperType);
+      Var unitArray = allocator.reserve(decl.getName(), wrapperArrayType, newArray(newWrapper(wrapperType)));
+      FatPtrExpr address = new FatPtrExpr(unitArray); 
+      Value instance = Values.elementAt(unitArray, 0);
+      Value unwrappedArray = Wrappers.arrayField(instance, valueFunction.getValueType());
+      Value unwrappedOffset = Wrappers.offsetField(instance);      
+      return new FatPtrExpr(address, unwrappedArray, unwrappedOffset);
+
+    } else {
+      Var array = allocator.reserve(decl.getName(), arrayType);
+      Var offset = allocator.reserveInt(decl.getName() + "$offset");
+
+      return new FatPtrExpr(array, offset);
+    }
   }
 
   @Override
@@ -86,6 +141,16 @@ public class FatPtrStrategy extends TypeStrategy<FatPtrExpr> {
   }
 
   @Override
+  public TypeStrategy pointerTo() {
+    return new FatPtrStrategy(new FatPtrValueFunction(valueFunction));
+  }
+
+  @Override
+  public TypeStrategy arrayOf(GimpleArrayType arrayType) {
+    return new ArrayTypeStrategy(new FatPtrValueFunction(valueFunction));
+  }
+
+  @Override
   public FatPtrExpr pointerPlus(FatPtrExpr pointer, Value offsetInBytes) {
     int bytesPerArrayElement = valueFunction.getElementSize() / valueFunction.getElementLength();
     Value offsetInArrayElements = Values.divide(offsetInBytes, bytesPerArrayElement);
@@ -94,30 +159,13 @@ public class FatPtrStrategy extends TypeStrategy<FatPtrExpr> {
     return new FatPtrExpr(pointer.getArray(), newOffset);
   }
 
-  public static Type wrapperType(Type valueType) {
-    switch (valueType.getSort()) {
-      case Type.BOOLEAN:
-        return Type.getType(BooleanPtr.class);
-      case Type.SHORT:
-        return Type.getType(ShortPtr.class);
-      case Type.BYTE:
-        return Type.getType(BytePtr.class);
-      case Type.CHAR:
-        return Type.getType(CharPtr.class);
-      case Type.INT:
-        return Type.getType(IntPtr.class);
-      case Type.LONG:
-        return Type.getType(LongPtr.class);
-      case Type.FLOAT:
-        return Type.getType(FloatPtr.class);
-      case Type.DOUBLE:
-        return Type.getType(DoublePtr.class);
-      case Type.OBJECT:
-        return Type.getType(ObjectPtr.class);
-    }
-    throw new UnsupportedOperationException("No wrapper for type: " + valueType);
+  @Override
+  public ConditionGenerator comparePointers(GimpleOp op, FatPtrExpr x, FatPtrExpr y) {
+    return new FatPtrCmp(op, x, y);
   }
-  
-  
-  
+
+  @Override
+  public FatPtrExpr nullPointer() {
+    return new FatPtrExpr(Values.nullRef(), Values.zero());
+  }
 }

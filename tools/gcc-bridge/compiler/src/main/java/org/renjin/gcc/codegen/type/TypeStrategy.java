@@ -4,8 +4,6 @@ import org.renjin.gcc.codegen.UnimplementedException;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.expr.PtrExpr;
-import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
 import org.renjin.gcc.codegen.var.Value;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleOp;
@@ -99,11 +97,11 @@ public abstract class TypeStrategy<ExprT extends ExprGenerator> {
     throw new UnimplementedException(getClass(), "addressableFieldGenerator");
   }
 
-  public ConditionGenerator comparePointers(GimpleOp op, ExprGenerator x, ExprGenerator y) {
+  public ConditionGenerator comparePointers(GimpleOp op, ExprT x, ExprT y) {
     throw new UnimplementedException(getClass(), "comparePointers");
   }
 
   public ExprGenerator addressOf(ExprT value) {
-    throw new UnimplementedException(getClass(), "addressOf");
+    throw new UnimplementedException(getClass(), "addressableFieldGenerator");
   }
 }

@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.var;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Opcodes;
@@ -18,10 +19,12 @@ public class GlobalVarAllocator extends VarAllocator {
 
     private String name;
     private Type type;
+    private Optional<Value> initialValue;
 
-    public StaticField(String name, Type type) {
+    public StaticField(String name, Type type, Optional<Value> initialValue) {
       this.name = name;
       this.type = type;
+      this.initialValue = initialValue;
     }
 
     @Override
@@ -47,17 +50,26 @@ public class GlobalVarAllocator extends VarAllocator {
   public GlobalVarAllocator(String declaringClass) {
     this.declaringClass = Type.getType(declaringClass);
   }
-  
+
   @Override
   public Var reserve(String name, Type type) {
+    return reserve(name, type, Optional.<Value>absent());
+  }
+
+  public Var reserve(String name, Type type, Optional<Value> initialValue) {
     if(name.contains(".")) {
       throw new InternalCompilerException("illegal global variable name: " + name);
     }
-    StaticField field = new StaticField(name, type);
+    StaticField field = new StaticField(name, type, initialValue);
     fields.add(field);
     return field;
   }
-  
+
+  @Override
+  public Var reserve(String name, Type type, Value initialValue) {
+    return reserve(name, type, Optional.of(initialValue));
+  }
+
   public void writeFields(ClassVisitor cv) {
     for (StaticField field : fields) {
       cv.visitField(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, field.name, field.type.getDescriptor(), null, null);

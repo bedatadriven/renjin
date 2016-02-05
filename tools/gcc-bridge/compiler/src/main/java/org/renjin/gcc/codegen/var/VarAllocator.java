@@ -11,6 +11,8 @@ import org.objectweb.asm.Type;
 public abstract class VarAllocator {
   
   public abstract Var reserve(String name, Type type);
+  
+  public abstract Var reserve(String name, Type type, Value initialValue);
 
   public final Var reserve(String name, Class type) {
     return reserve(name, Type.getType(type));
@@ -18,6 +20,10 @@ public abstract class VarAllocator {
 
   public final Var reserveArrayRef(String name, Type componentType) {
     return reserve(name, Type.getType("[" + componentType.getDescriptor()));
+  }
+  
+  public final Var reserveUnitArray(String name, Type componentType) {
+    return reserve(name, Type.getType("[" + componentType.getDescriptor()), Values.newArray(componentType, 1));
   }
 
   public final Var reserveInt(String name) {

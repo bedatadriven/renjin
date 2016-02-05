@@ -33,11 +33,11 @@ public class AddressableFinder implements FunctionBodyTransformer {
     for (GimpleBasicBlock basicBlock : fn.getBasicBlocks()) {
       for (GimpleStatement gimpleIns : basicBlock.getStatements()) {
         if(gimpleIns instanceof GimpleCall) {
-          if(marker.mark(((GimpleCall) gimpleIns).getOperands())) {
+          if(marker.mark(gimpleIns.getOperands())) {
             updated = true;
           }
         } else if(gimpleIns instanceof GimpleAssignment) {
-          if (marker.mark(((GimpleAssignment) gimpleIns).getOperands())) {
+          if (marker.mark(gimpleIns.getOperands())) {
             updated = true;
           }
         }

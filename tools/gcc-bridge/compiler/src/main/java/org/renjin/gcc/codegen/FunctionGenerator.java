@@ -10,20 +10,19 @@ import org.objectweb.asm.util.Textifier;
 import org.objectweb.asm.util.TraceMethodVisitor;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.InternalCompilerException;
-import org.renjin.gcc.analysis.Malloc;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.type.*;
+import org.renjin.gcc.codegen.type.ParamStrategy;
+import org.renjin.gcc.codegen.type.ReturnStrategy;
+import org.renjin.gcc.codegen.type.TypeOracle;
+import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.var.LValue;
 import org.renjin.gcc.codegen.var.Value;
-import org.renjin.gcc.codegen.var.Values;
 import org.renjin.gcc.codegen.var.Var;
 import org.renjin.gcc.gimple.*;
-import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.statement.*;
-import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.gimple.type.GimpleVoidType;
 import org.renjin.gcc.peephole.PeepholeOptimizer;
 import org.renjin.gcc.symbols.LocalVariableTable;
@@ -164,6 +163,9 @@ public class FunctionGenerator {
   }
 
   private void emitLocalVarInitialization() {
+    
+    mv.getLocalVarAllocator().initializeVariables(mv);
+    
     for (GimpleVarDecl decl : function.getVariableDeclarations()) {
       LValue<ExprGenerator> lhs = (LValue<ExprGenerator>) symbolTable.getVariable(decl);
       if(decl.getValue() != null) {

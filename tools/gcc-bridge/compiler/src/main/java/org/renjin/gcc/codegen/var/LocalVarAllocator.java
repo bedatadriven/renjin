@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.var;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
@@ -12,24 +13,26 @@ import java.util.List;
  * Allocates local variable slots
  */
 public class LocalVarAllocator extends VarAllocator {
-  
-  
+
+
   private static class LocalVar implements Var {
     private String name;
     private int index;
     private Type type;
+    private Optional<Value> initialValue;
 
-    public LocalVar(String name, int index, Type type) {
+    public LocalVar(String name, int index, Type type, Optional<Value> value) {
       this.name = name;
       this.index = index;
       this.type = type;
+      this.initialValue = value;
     }
 
     @Override
     public Type getType() {
       return type;
     }
-
+    
     @Override
     public void load(MethodGenerator mv) {
       mv.visitVarInsn(type.getOpcode(Opcodes.ILOAD), index);
@@ -41,19 +44,34 @@ public class LocalVarAllocator extends VarAllocator {
       mv.visitVarInsn(type.getOpcode(Opcodes.ISTORE), index);
     }
   }
-  
-  
-  
+
   private int slots = 0;
   private List<LocalVar> names = Lists.newArrayList();
 
   @Override
   public Var reserve(String name, Type type) {
+    return reserve(name, type, Optional.<Value>absent());
+  }
+
+  @Override
+  public Var reserve(String name, Type type, Value initialValue) {
+    return reserve(name, type, Optional.of(initialValue));
+  }
+  
+  private Var reserve(String name, Type type, Optional<Value> initialValue) {
     int index = slots;
     slots += type.getSize();
-    LocalVar var = new LocalVar(name, index, type);
+    LocalVar var = new LocalVar(name, index, type, initialValue);
     names.add(var);
     return var;
+  }
+  
+  public void initializeVariables(MethodGenerator mv) {
+    for (LocalVar name : names) {
+      if(name.initialValue.isPresent()) {
+        name.store(mv, name.initialValue.get());
+      }
+    }
   }
 
   public void emitDebugging(MethodGenerator mv, Label start, Label end) {

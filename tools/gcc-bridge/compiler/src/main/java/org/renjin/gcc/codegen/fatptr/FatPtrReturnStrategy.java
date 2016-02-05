@@ -23,7 +23,7 @@ public class FatPtrReturnStrategy implements ReturnStrategy {
 
   @Override
   public Type getType() {
-    return FatPtrStrategy.wrapperType(valueFunction.getValueType());
+    return Wrappers.wrapperType(valueFunction.getValueType());
   }
 
   @Override
@@ -38,8 +38,8 @@ public class FatPtrReturnStrategy implements ReturnStrategy {
     Var wrapper = mv.getLocalVarAllocator().reserve("retval", returnValue.getType());
     wrapper.store(mv, returnValue);
 
-    Value array = Wrappers.getArray(wrapper);
-    Value offset = Wrappers.getOffset(wrapper);
+    Value array = Wrappers.arrayField(wrapper, valueFunction.getValueType());
+    Value offset = Wrappers.offsetField(wrapper);
 
     return new FatPtrExpr(array, offset);
   }

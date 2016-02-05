@@ -1,7 +1,7 @@
 package org.renjin.gcc.codegen.fatptr;
 
-import com.google.common.base.Preconditions;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.var.Value;
 import org.renjin.gcc.codegen.var.Values;
 import org.renjin.gcc.runtime.*;
@@ -34,7 +34,10 @@ public class Wrappers {
     throw new IllegalArgumentException("not a wrapper type: " + wrapperType);
   }
   
-  private static Type arrayType(Type wrapperType) {
+  public static Type fieldArrayType(Type wrapperType) {
+    if (wrapperType.equals(Type.getType(ObjectPtr.class))) {
+      return Type.getType("[Ljava/lang/Object;");
+    }
     Type valueType = valueType(wrapperType);
     Type arrayType = Type.getType("[" + valueType.getDescriptor());
     return arrayType;
@@ -44,11 +47,67 @@ public class Wrappers {
     return Type.getType("[" + valueType.getDescriptor());
   }
   
-  public static Value getArray(Value wrapperInstance) {
-    return Values.field(wrapperInstance, arrayType(wrapperInstance.getType()), "array");
+  public static Value arrayField(Value wrapperInstance) {
+    return Values.field(wrapperInstance, fieldArrayType(wrapperInstance.getType()), "array");
   }
-  
-  public static Value getOffset(Value wrapperInstance) {
+
+  public static Value arrayField(Value instance, Type valueType) {
+    Value array = arrayField(instance);
+    Type arrayType = arrayType(valueType);
+    if(!array.getType().equals(arrayType)) {
+      array = Values.cast(array, arrayType);
+    }
+    return array;
+  }
+
+  private static Type arrayType(Type valueType) {
+    return Type.getType("[" + valueType.getDescriptor());
+  }
+
+  public static Value offsetField(Value wrapperInstance) {
     return Values.field(wrapperInstance, Type.INT_TYPE, "offset");
+  }
+
+  public static Type wrapperType(Type valueType) {
+    switch (valueType.getSort()) {
+      case Type.BOOLEAN:
+        return Type.getType(BooleanPtr.class);
+      case Type.SHORT:
+        return Type.getType(ShortPtr.class);
+      case Type.BYTE:
+        return Type.getType(BytePtr.class);
+      case Type.CHAR:
+        return Type.getType(CharPtr.class);
+      case Type.INT:
+        return Type.getType(IntPtr.class);
+      case Type.LONG:
+        return Type.getType(LongPtr.class);
+      case Type.FLOAT:
+        return Type.getType(FloatPtr.class);
+      case Type.DOUBLE:
+        return Type.getType(DoublePtr.class);
+      case Type.OBJECT:
+        return Type.getType(ObjectPtr.class);
+    }
+    throw new UnsupportedOperationException("No wrapper for type: " + valueType);
+  }
+
+  public static Value newWrapper(final Type wrapperType) {
+    return new Value() {
+
+      @Override
+      public Type getType() {
+        return wrapperType;
+      }
+
+      @Override
+      public void load(MethodGenerator mv) {
+        mv.anew(wrapperType);
+        mv.dup();
+        mv.aconst(null);
+        mv.iconst(0);
+        mv.invokeconstructor(wrapperType, fieldArrayType(wrapperType), Type.INT_TYPE);
+      }
+    };
   }
 }

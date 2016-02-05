@@ -2,12 +2,15 @@ package org.renjin.gcc.codegen.type.primitive;
 
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
+import org.renjin.gcc.codegen.expr.AddressableValue;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.var.Value;
 import org.renjin.gcc.codegen.var.Values;
+import org.renjin.gcc.codegen.var.Var;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
@@ -51,9 +54,11 @@ public class PrimitiveTypeStrategy extends TypeStrategy {
   @Override
   public ExprGenerator varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
     if(decl.isAddressable()) {
-// TODO     return new AddressablePrimitiveVarGenerator(type, 
-//          allocator.reserveArrayRef(decl.getName(), type.jvmType()));
-      throw new UnsupportedOperationException("TODO");
+      Var unitArray = allocator.reserveUnitArray(decl.getName(), type.jvmType());
+      FatPtrExpr address = new FatPtrExpr(unitArray);
+      Value value = Values.elementAt(address.getArray(), 0);
+      return new AddressableValue(value, address);
+      
     } else {
       return allocator.reserve(decl.getName(), type.jvmType());
     }
@@ -88,7 +93,10 @@ public class PrimitiveTypeStrategy extends TypeStrategy {
 
     @Override
     public ExprGenerator dereference(Value array, Value offset) {
-      return Values.elementAt(array, offset);
+      FatPtrExpr address = new FatPtrExpr(array, offset);
+      Value value = Values.elementAt(array, offset);
+      
+      return new AddressableValue(value, address);
     }
   }
 }

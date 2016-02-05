@@ -25,7 +25,7 @@ public class WrappedFatPtrParamStrategy implements ParamStrategy {
 
   @Override
   public List<Type> getParameterTypes() {
-    return Lists.newArrayList(FatPtrStrategy.wrapperType(valueFunction.getValueType()));
+    return Lists.newArrayList(Wrappers.wrapperType(valueFunction.getValueType()));
   }
 
   @Override
@@ -35,8 +35,8 @@ public class WrappedFatPtrParamStrategy implements ParamStrategy {
 
     Value wrapper = paramVars.get(0);
     
-    array.store(mv, Wrappers.getArray(wrapper));
-    offset.store(mv, Wrappers.getOffset(wrapper));
+    array.store(mv, Wrappers.arrayField(wrapper, valueFunction.getValueType()));
+    offset.store(mv, Wrappers.offsetField(wrapper));
     
     return new FatPtrExpr(array, offset);
   }

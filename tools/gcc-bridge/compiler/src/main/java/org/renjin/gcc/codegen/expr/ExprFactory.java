@@ -6,7 +6,6 @@ import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.call.FunPtrCallGenerator;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
-import org.renjin.gcc.codegen.fatptr.FatPtrCmp;
 import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.TypeStrategy;
@@ -92,9 +91,20 @@ public class ExprFactory {
         GimpleFunctionRef functionRef = (GimpleFunctionRef) addressOf.getValue();
         return new FunctionRefGenerator(symbolTable.findHandle(functionRef, callingConvention));
 
-      } else {
+      } else if(addressOf.getValue() instanceof GimpleConstant) {
+        // Exceptionally, gimple often contains to address of constants when
+        // passing them to functions
+
+        Value value = findValueGenerator(addressOf.getValue());
+        return new FatPtrExpr(Values.newArray(value));
+
+      } else  {
         ExprGenerator value = findGenerator(addressOf.getValue());
-        return typeOracle.forType(addressOf.getValue().getType()).addressOf(value);
+        try {
+          return ((Addressable) value).addressOf();
+        } catch (ClassCastException | UnsupportedOperationException ignored) {
+          throw new InternalCompilerException(addressOf.getValue() + " [" + value.getClass().getName() + "] is not addressable");
+        }
       }
 
     } else if(expr instanceof GimpleOpExpr) {

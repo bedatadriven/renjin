@@ -1,10 +1,10 @@
 package org.renjin.gcc.codegen.fatptr;
 
 import com.google.common.base.Preconditions;
-import com.sun.corba.se.impl.orbutil.closure.Constant;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.expr.Addressable;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.primitive.ConstantValue;
 import org.renjin.gcc.codegen.var.LValue;
@@ -12,14 +12,24 @@ import org.renjin.gcc.codegen.var.Value;
 import org.renjin.gcc.codegen.var.Values;
 
 
-public class FatPtrExpr implements ExprGenerator, LValue<FatPtrExpr> {
+public class FatPtrExpr implements ExprGenerator, LValue<FatPtrExpr>, Addressable {
 
   private Value array;
   private Value offset;
+  private ExprGenerator address;
 
-  public FatPtrExpr(Value array, Value offset) {
+  public FatPtrExpr(ExprGenerator address, Value array, Value offset) {
+    this.address = address;
     this.array = array;
     this.offset = offset;
+  }
+
+  public FatPtrExpr(Value array, Value offset) {
+    this(null, array, offset);
+  }
+  
+  public FatPtrExpr(Value array) {
+    this(array, Values.zero());
   }
 
   public Value getArray() {
@@ -37,6 +47,7 @@ public class FatPtrExpr implements ExprGenerator, LValue<FatPtrExpr> {
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public void store(MethodGenerator mv, FatPtrExpr rhs) {
     if(!(array instanceof LValue)) {
       throw new InternalCompilerException(array + " is not an LValue");
@@ -55,8 +66,6 @@ public class FatPtrExpr implements ExprGenerator, LValue<FatPtrExpr> {
     if(!(offset instanceof LValue)) {
       throw new InternalCompilerException(offset + " offset is not an Lvalue");
     }
-
-    ((LValue<Value>) array).store(mv, rhs.getArray());
     ((LValue<Value>) offset).store(mv, rhs.getOffset());
   }
   
@@ -70,7 +79,7 @@ public class FatPtrExpr implements ExprGenerator, LValue<FatPtrExpr> {
   }
 
   public Value wrap() {
-    final Type wrapperType = FatPtrStrategy.wrapperType(getValueType());
+    final Type wrapperType = Wrappers.wrapperType(getValueType());
     
     return new Value() {
       @Override
@@ -84,8 +93,16 @@ public class FatPtrExpr implements ExprGenerator, LValue<FatPtrExpr> {
         mv.dup();
         array.load(mv);
         offset.load(mv);
-        mv.invokeconstructor(wrapperType, array.getType(), offset.getType());
+        mv.invokeconstructor(wrapperType, Wrappers.fieldArrayType(wrapperType), offset.getType());
       }
     };
+  }
+
+  @Override
+  public ExprGenerator addressOf() {
+    if(address == null) {
+      throw new UnsupportedOperationException("Not addressable");
+    }
+    return address;
   }
 }

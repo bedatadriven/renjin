@@ -18,6 +18,7 @@ public class ProvidedVarAllocator extends VarAllocator {
     this.declaringClass = declaringClass;
   }
 
+  
 
   @Override
   public Var reserve(final String name, final Type type) {
@@ -53,4 +54,10 @@ public class ProvidedVarAllocator extends VarAllocator {
       }
     };
   }
+
+  @Override
+  public Var reserve(String name, Type type, Value initialValue) {
+    throw new UnsupportedOperationException("TO CHECK");
+  }
+  
 }

@@ -1,7 +1,6 @@
 package org.renjin.gcc.codegen.var;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.WrapperType;
@@ -12,7 +11,6 @@ import org.renjin.gcc.gimple.GimpleOp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Vector;
 
 /**
  * Functions to create value instances
@@ -186,7 +184,9 @@ public class Values {
   public static Value field(final Value instance, final Type fieldType, final String fieldName) {
     checkType("instance", instance, Type.OBJECT);
     
-    return new Value() {
+    return new Var() {
+
+
       @Override
       public Type getType() {
         return fieldType;
@@ -196,6 +196,13 @@ public class Values {
       public void load(MethodGenerator mv) {
         instance.load(mv);
         mv.getfield(instance.getType().getInternalName(), fieldName, fieldType.getDescriptor());
+      }
+
+      @Override
+      public void store(MethodGenerator mv, Value value) {
+        instance.load(mv);
+        value.load(mv);
+        mv.putfield(instance.getType().getInternalName(), fieldName, fieldType.getDescriptor());
       }
     };
   }
@@ -209,6 +216,54 @@ public class Values {
     if(!value.getType().equals(expectedType)) {
       throw new IllegalArgumentException(String.format("Illegal type %s for %s: Expected %s",
           value.getType(), argName, expectedType));
+    }
+  }
+
+  public static Value cast(final Value object, final Type type) {
+    
+    // Can we reduce this to a NOOP ?
+    if(object.getType().equals(type)) {
+      return object;
+    }
+    // Verify that this is in the realm of possibility
+    checkCast(object.getType(), type);
+    
+    return new Var() {
+
+      @Override
+      public Type getType() {
+        return type;
+      }
+
+      @Override
+      public void load(MethodGenerator mv) {
+        object.load(mv);
+        mv.checkcast(type);
+      }
+      
+      @Override
+      @SuppressWarnings("unchecked")
+      public void store(MethodGenerator mv, Value value) {
+        if(!(object instanceof LValue)) {
+          throw new UnsupportedOperationException();
+        }
+        ((LValue) object).store(mv, value);
+      }
+    };
+  }
+
+  private static void checkCast(Type fromType, Type toType) {
+    if(toType.getSort() != Type.OBJECT && 
+       toType.getSort() != Type.ARRAY) {
+      throw new IllegalArgumentException("Target type for cast must be an array or object: " + toType);
+    }
+    int fromSort = fromType.getSort();
+    int toSort = toType.getSort();
+    if(fromSort != toSort) {
+      throw new IllegalArgumentException("Invalid cast from " + fromType + " to " + toType);
+    }
+    if(fromSort == Type.ARRAY) {
+      checkCast(fromType.getElementType(), toType.getElementType());
     }
   }
 

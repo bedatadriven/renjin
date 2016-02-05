@@ -1,17 +1,20 @@
 package org.renjin.gcc.codegen.array;
 
 import com.google.common.collect.Lists;
+import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
+import org.renjin.gcc.codegen.fatptr.Wrappers;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.var.Value;
 import org.renjin.gcc.codegen.var.Values;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
+import org.renjin.gcc.gimple.type.GimpleArrayType;
 
 import java.util.List;
 
@@ -57,10 +60,14 @@ public class ArrayTypeStrategy extends TypeStrategy<FatPtrExpr> {
 
   @Override
   public ExprGenerator varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
-    Value array = allocator.reserveArrayRef(decl.getName(), valueFunction.getValueType());
+    Type arrayType = Wrappers.valueArrayType(valueFunction.getValueType());
+    int arrayLength = ((GimpleArrayType) decl.getType()).getElementCount() * valueFunction.getElementLength();
+
+    Value initialValue = Values.newArray(valueFunction.getValueType(), arrayLength);
+    Value array = allocator.reserve(decl.getName(), arrayType, initialValue);
     Value offset = Values.zero();
     
-    return new FatPtrExpr(array, offset);
+    return new FatPtrExpr(new FatPtrExpr(array, offset), array, offset);
   }
 
   @Override
@@ -80,8 +87,4 @@ public class ArrayTypeStrategy extends TypeStrategy<FatPtrExpr> {
     return valueFunction.dereference(arrayFatPtr.getArray(), newOffset);
   }
 
-  @Override
-  public ExprGenerator addressOf(FatPtrExpr pointer) {
-    return pointer;
-  }
 }

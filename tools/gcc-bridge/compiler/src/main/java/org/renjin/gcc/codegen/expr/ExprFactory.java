@@ -1,6 +1,5 @@
 package org.renjin.gcc.codegen.expr;
 
-import com.google.common.base.Optional;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.call.CallGenerator;
@@ -108,17 +107,6 @@ public class ExprFactory {
         }
       }
 
-    } else if(expr instanceof GimpleOpExpr) {
-      // This is an artificial node we introduce during analysis to produce
-      // code better suited to a stack-based interpreter
-      GimpleOpExpr opExpr = (GimpleOpExpr) expr;
-      return findGenerator(opExpr.getOp(), opExpr.getOperands(), opExpr.getType());
-
-    } else if(expr instanceof GimpleCallExpr) {
-      // Another artificial node for nested calls
-      GimpleCallExpr callExpr = (GimpleCallExpr) expr;
-      return findCallExpression(callExpr.getType(), callExpr.getFunction(), callExpr.getArguments());
-
     } else if(expr instanceof GimpleMemRef) {
       GimpleMemRef memRefExpr = (GimpleMemRef) expr;
       TypeStrategy typeStrategy = typeOracle.forType(memRefExpr.getPointer().getType());
@@ -187,11 +175,6 @@ public class ExprFactory {
       throw new UnsupportedOperationException("function ref: " + address.getValue() +
           " [" + address.getValue().getClass().getSimpleName() + "]");
 
-    } else if(functionExpr instanceof GimpleOpExpr) {
-      GimpleOp op = ((GimpleOpExpr) functionExpr).getOp();
-      if(op == GimpleOp.VAR_DECL || op == GimpleOp.NOP_EXPR) {
-        return findCallGenerator(((GimpleOpExpr) functionExpr).getOperands().get(0));
-      }
     }
 
     // Assume this is a function pointer ptr expression  
@@ -432,11 +415,4 @@ public class ExprFactory {
   }
 
 
-  public Optional<ExprGenerator> findGenerator(Optional<GimpleExpr> expr) {
-    if(expr.isPresent()) {
-      return Optional.of(findGenerator(expr.get()));
-    } else {
-      return Optional.absent();
-    }
-  }
 }

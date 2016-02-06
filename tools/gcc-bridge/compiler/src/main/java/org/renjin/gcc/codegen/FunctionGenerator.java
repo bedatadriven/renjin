@@ -11,6 +11,7 @@ import org.objectweb.asm.util.TraceMethodVisitor;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.call.CallGenerator;
+import org.renjin.gcc.codegen.call.InvocationStrategy;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
@@ -39,7 +40,7 @@ import static org.objectweb.asm.Opcodes.*;
 /**
  * Generates the bytecode for a {@link GimpleFunction}
  */
-public class FunctionGenerator {
+public class FunctionGenerator implements InvocationStrategy {
 
   private String className;
   private GimpleFunction function;
@@ -61,7 +62,7 @@ public class FunctionGenerator {
     this.function = function;
     this.typeOracle = typeOracle;
     this.params = this.typeOracle.forParameters(function.getParameters());
-    this.returnStrategy = this.typeOracle.findReturnGenerator(function.getReturnType());
+    this.returnStrategy = this.typeOracle.returnStrategyFor(function.getReturnType());
     this.symbolTable = new LocalVariableTable(symbolTable);
     this.exprFactory = new ExprFactory(typeOracle, this.symbolTable, function.getCallingConvention());
   }
@@ -296,10 +297,11 @@ public class FunctionGenerator {
   }
 
   public String getFunctionDescriptor() {
-    return Type.getMethodDescriptor(returnStrategy.getType(), parameterTypes());
+    return TypeOracle.getMethodDescriptor(returnStrategy, getParamStrategies());
   }
 
-  public List<ParamStrategy> getParamGenerators() {
+  @Override
+  public List<ParamStrategy> getParamStrategies() {
     List<ParamStrategy> parameterTypes = new ArrayList<ParamStrategy>();
     for (GimpleParameter parameter : function.getParameters()) {
       ParamStrategy generator = params.get(parameter);
@@ -307,15 +309,7 @@ public class FunctionGenerator {
     }
     return parameterTypes;
   }
-  
-  public Type[] parameterTypes() {
-    List<Type> types = new ArrayList<Type>();
-    for (ParamStrategy generator : getParamGenerators()) {
-      types.addAll(generator.getParameterTypes());
-    }
-    return types.toArray(new Type[types.size()]);
-  }
-  
+
   public Type returnType() {
     return returnStrategy.getType();
   }
@@ -324,15 +318,18 @@ public class FunctionGenerator {
     return returnStrategy;
   }
 
+  @Override
+  public void invoke(MethodGenerator mv) {
+    mv.invokestatic(getClassName(), getMangledName(), getFunctionDescriptor(), false);
+  }
+
   public GimpleCompilationUnit getCompilationUnit() {
     return function.getUnit();
   }
 
-
   public Handle getMethodHandle() {
     return new Handle(H_INVOKESTATIC, className, function.getMangledName(), getFunctionDescriptor());
   }
-
 
   public String getClassName() {
     return className;

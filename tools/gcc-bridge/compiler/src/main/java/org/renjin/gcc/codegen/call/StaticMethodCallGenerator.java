@@ -1,58 +1,79 @@
-package org.renjin.gcc.codegen.call;
-
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
-import org.renjin.gcc.InternalCompilerException;
-import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.ExprFactory;
-import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.type.ParamStrategy;
-import org.renjin.gcc.codegen.type.ReturnStrategy;
-import org.renjin.gcc.codegen.type.TypeOracle;
-import org.renjin.gcc.codegen.type.primitive.ConstantValue;
-import org.renjin.gcc.codegen.var.Values;
-import org.renjin.gcc.gimple.statement.GimpleCall;
-import org.renjin.gcc.gimple.type.GimpleIndirectType;
-import org.renjin.gcc.gimple.type.GimplePrimitiveType;
-import org.renjin.gcc.gimple.type.GimpleType;
-
-import java.lang.reflect.Method;
-import java.util.List;
-
-/**
- * Generates a call to an existing JVM method.
- */
-public class StaticMethodCallGenerator implements CallGenerator {
-  
-  private TypeOracle typeOracle;
-  private Method method;
-
-  private List<ParamStrategy> paramStrategies = null;
-  private ReturnStrategy returnStrategy = null;
-
-  public StaticMethodCallGenerator(TypeOracle typeOracle, Method method) {
-    this.typeOracle = typeOracle;
-    this.method = method;
-  }
-
-  private ReturnStrategy returnGenerator() {
-    if(returnStrategy == null) {
-      returnStrategy = typeOracle.forReturnValue(method);
-    }
-    return returnStrategy;
-  }
-
-
-  @Override
-  public void emitCall(MethodGenerator mv, ExprFactory exprFactory, GimpleCall call) {
-    throw new UnsupportedOperationException();
-  }
-  
+//package org.renjin.gcc.codegen.call;
+//
+//import com.google.common.collect.Lists;
+//import org.objectweb.asm.Opcodes;
+//import org.objectweb.asm.Type;
+//import org.renjin.gcc.InternalCompilerException;
+//import org.renjin.gcc.codegen.MethodGenerator;
+//import org.renjin.gcc.codegen.expr.ExprFactory;
+//import org.renjin.gcc.codegen.expr.ExprGenerator;
+//import org.renjin.gcc.codegen.type.ParamStrategy;
+//import org.renjin.gcc.codegen.type.ReturnStrategy;
+//import org.renjin.gcc.codegen.type.TypeOracle;
+//import org.renjin.gcc.codegen.type.primitive.ConstantValue;
+//import org.renjin.gcc.codegen.var.LValue;
+//import org.renjin.gcc.codegen.var.Values;
+//import org.renjin.gcc.gimple.expr.GimpleExpr;
+//import org.renjin.gcc.gimple.statement.GimpleCall;
+//import org.renjin.gcc.gimple.type.GimpleIndirectType;
+//import org.renjin.gcc.gimple.type.GimplePrimitiveType;
+//import org.renjin.gcc.gimple.type.GimpleType;
+//
+//import java.lang.reflect.Method;
+//import java.util.List;
+//
+///**
+// * Generates a call to an existing JVM method.
+// */
+//public class StaticMethodCallGenerator implements CallGenerator {
 //  
+//  private TypeOracle typeOracle;
+//  private Method method;
+//
+//  private List<ParamStrategy> paramStrategies = null;
+//  private ReturnStrategy returnStrategy = null;
+//
+//  public StaticMethodCallGenerator(TypeOracle typeOracle, Method method) {
+//    this.typeOracle = typeOracle;
+//    this.method = method;
+//  }
+//
+//  private ReturnStrategy returnGenerator() {
+//    if(returnStrategy == null) {
+//      returnStrategy = typeOracle.forReturnValue(method);
+//    }
+//    return returnStrategy;
+//  }
+//
+//
 //  @Override
-//  public void emitCall(MethodGenerator mv, List<ExprGenerator> argumentGenerators) {
+//  public void emitCall(MethodGenerator mv, ExprFactory exprFactory, GimpleCall call) {
+//
+//
+//    // Make a list of call arguments
+//    List<ExprGenerator> argumentGenerators = Lists.newArrayList();
+//    for (GimpleExpr gimpleExpr : call.getOperands()) {
+//      argumentGenerators.add(exprFactory.findGenerator(gimpleExpr));
+//    }
 //
 //    checkArity(argumentGenerators);
+//
+//    CallExpr returnValue = new CallExpr(argumentGenerators);
+//
+//    // If we don't need the return value, then invoke and pop any result off the stack
+//    if(call.getLhs() == null) {
+//      returnValue.load(mv);
+//      mv.pop(returnValue.getType());
+//
+//    } else {
+//
+//      ExprGenerator callExpr = functionGenerator.getReturnStrategy().unmarshall(mv, returnValue);
+//      LValue lhs = (LValue) exprFactory.findGenerator(call.getLhs());
+//
+//      lhs.store(mv, callExpr);
+//    }
+//    
+//    
 //
 //    // The number of fixed (gimple) parameters expected, excluding var args
 //    // the number of Jvm arguments may be greater
@@ -82,62 +103,58 @@ public class StaticMethodCallGenerator implements CallGenerator {
 //        method.getName(), Type.getMethodDescriptor(method), false);
 //  }
 //
-//  @Override
-//  public void emitCallAndPopResult(MethodGenerator mv, List<ExprGenerator> argumentGenerators) {
-//    emitCall(mv, argumentGenerators);
-//    switch (Type.getReturnType(method).getSize()) {
-//      case 0:
-//        // NOOP
-//        break;
-//      case 1:
-//        mv.visitInsn(Opcodes.POP);
-//        break;
-//      case 2:
-//        mv.visitInsn(Opcodes.POP2);
-//        break;
-//    }
+//
+////
+////  @Override
+////  public void emitCallAndPopResult(MethodGenerator mv, List<ExprGenerator> argumentGenerators) {
+////    emitCall(mv, argumentGenerators);
+////    switch (Type.getReturnType(method).getSize()) {
+////      case 0:
+////        // NOOP
+////        break;
+////      case 1:
+////        mv.visitInsn(Opcodes.POP);
+////        break;
+////      case 2:
+////        mv.visitInsn(Opcodes.POP2);
+////        break;
+////    }
+////  }
+//
+//  private void pushVarArg(MethodGenerator mv, ExprGenerator exprGenerator) {
+////    GimpleType type = exprGenerator.getGimpleType();
+////    if(type instanceof GimplePrimitiveType) {
+////      exprGenerator.emitPushBoxedPrimitiveValue(mv);
+////    } else if(type instanceof GimpleIndirectType) {
+////      exprGenerator.emitPushPointerWrapper(mv);
+////    } else {
+////      throw new UnsupportedOperationException("type: " + type);
+////    }
+//    throw new UnsupportedOperationException();
 //  }
-
-  private void pushVarArg(MethodGenerator mv, ExprGenerator exprGenerator) {
-//    GimpleType type = exprGenerator.getGimpleType();
-//    if(type instanceof GimplePrimitiveType) {
-//      exprGenerator.emitPushBoxedPrimitiveValue(mv);
-//    } else if(type instanceof GimpleIndirectType) {
-//      exprGenerator.emitPushPointerWrapper(mv);
+//
+//  private void checkArity(List<ExprGenerator> argumentGenerators) {
+//    if(method.isVarArgs()) {
+//      if(argumentGenerators.size() < getParamStrategies().size()) {
+//        throw new InternalCompilerException(String.format(
+//            "Arity mismatch: expected at least %d args to method %s.%s(), called with %d" ,
+//            paramStrategies.size(),
+//            method.getDeclaringClass().getName(),
+//            method.getName(),
+//            argumentGenerators.size()));
+//      }  
 //    } else {
-//      throw new UnsupportedOperationException("type: " + type);
+//      if(argumentGenerators.size() != getParamStrategies().size()) {
+//        throw new InternalCompilerException(String.format(
+//            "Arity mismatch: expected %d args to method %s.%s(), called with %d" ,
+//            paramStrategies.size(),
+//            method.getDeclaringClass().getName(),
+//            method.getName(),
+//            argumentGenerators.size()));
+//      }
 //    }
-    throw new UnsupportedOperationException();
-  }
-
-  private void checkArity(List<ExprGenerator> argumentGenerators) {
-    if(method.isVarArgs()) {
-      if(argumentGenerators.size() < getParamStrategies().size()) {
-        throw new InternalCompilerException(String.format(
-            "Arity mismatch: expected at least %d args to method %s.%s(), called with %d" ,
-            paramStrategies.size(),
-            method.getDeclaringClass().getName(),
-            method.getName(),
-            argumentGenerators.size()));
-      }  
-    } else {
-      if(argumentGenerators.size() != getParamStrategies().size()) {
-        throw new InternalCompilerException(String.format(
-            "Arity mismatch: expected %d args to method %s.%s(), called with %d" ,
-            paramStrategies.size(),
-            method.getDeclaringClass().getName(),
-            method.getName(),
-            argumentGenerators.size()));
-      }
-    }
-    
-  }
-
-  private List<ParamStrategy> getParamStrategies() {
-    if(paramStrategies == null) {
-      paramStrategies = typeOracle.forParameterTypesOf(method);
-    }
-    return paramStrategies;
-  }
-
-}
+//    
+//  }
+//
+// 
+//}

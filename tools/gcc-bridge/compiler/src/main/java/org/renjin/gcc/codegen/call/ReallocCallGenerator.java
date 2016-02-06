@@ -1,21 +1,17 @@
 package org.renjin.gcc.codegen.call;
 
-import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.expr.PtrExpr;
-import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.var.LValue;
 import org.renjin.gcc.codegen.var.Value;
 import org.renjin.gcc.codegen.var.Values;
 import org.renjin.gcc.gimple.statement.GimpleCall;
 import org.renjin.gcc.gimple.type.GimpleType;
-import org.renjin.gcc.runtime.Builtins;
 
 /**
- * Handles calls to realloc().
+ * Generates calls to realloc().
  *
  * <p>The C library function void *realloc(void *ptr, size_t size) attempts to resize the memory block pointed to
  * by ptr that was previously allocated with a call to malloc or calloc. .</p>

@@ -15,6 +15,7 @@ import org.renjin.gcc.codegen.type.complex.ComplexValues;
 import org.renjin.gcc.codegen.type.fun.FunctionRefGenerator;
 import org.renjin.gcc.codegen.type.primitive.ConstantValue;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveCmpGenerator;
+import org.renjin.gcc.codegen.type.primitive.StringConstant;
 import org.renjin.gcc.codegen.type.primitive.op.*;
 import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.codegen.var.Value;
@@ -151,7 +152,7 @@ public class ExprFactory {
         return complexGenerator.getImaginaryValue();
       }
     } else if (expr instanceof GimpleComponentRef) {
-      throw new UnsupportedOperationException("Todo");
+     throw new UnsupportedOperationException("Todo");
 //      GimpleComponentRef componentRef = (GimpleComponentRef) expr;
 //      GimpleExpr valueExpr = componentRef.getValue();
 //      ExprGenerator valueExprGenerator = findGenerator(valueExpr);
@@ -412,14 +413,19 @@ public class ExprFactory {
       
     } else if (constant instanceof GimplePrimitiveConstant) {
       return new ConstantValue((GimplePrimitiveConstant) constant);
+      
     } else if (constant instanceof GimpleComplexConstant) {
       GimpleComplexConstant complexConstant = (GimpleComplexConstant) constant;
       return new ComplexValue(
           (Value)forConstant(complexConstant.getReal()), 
           (Value)forConstant(complexConstant.getIm()));
+      
     } else if (constant instanceof GimpleStringConstant) {
-      // TODO: return new StringConstantGenerator(constant);
-      throw new UnsupportedOperationException();
+      StringConstant array = new StringConstant(((GimpleStringConstant) constant).getValue());
+      FatPtrExpr address = new FatPtrExpr(array);
+      FatPtrExpr arrayExpr = new FatPtrExpr(address, array, Values.zero());
+      return arrayExpr;
+      
     } else {
       throw new UnsupportedOperationException("constant: " + constant);
     }

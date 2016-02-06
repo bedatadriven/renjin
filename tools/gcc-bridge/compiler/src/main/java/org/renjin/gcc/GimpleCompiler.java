@@ -316,7 +316,7 @@ public class GimpleCompiler  {
     for (Map.Entry<String, CallGenerator> entry : globalSymbolTable.getFunctions()) {
       if(entry.getValue() instanceof FunctionCallGenerator) {
         FunctionCallGenerator functionCallGenerator = (FunctionCallGenerator) entry.getValue();
-        FunctionGenerator functionGenerator = functionCallGenerator.getFunctionGenerator();
+        FunctionGenerator functionGenerator = (FunctionGenerator) functionCallGenerator.getStrategy();
 
         classGenerator.emitTrampolineMethod(functionGenerator);
       }

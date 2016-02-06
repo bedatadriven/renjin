@@ -6,7 +6,6 @@ import org.objectweb.asm.Handle;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.FunctionGenerator;
 import org.renjin.gcc.codegen.call.*;
-import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.gimple.CallingConvention;
@@ -52,7 +51,8 @@ public class GlobalSymbolTable implements SymbolTable {
   @Override
   public Handle findHandle(GimpleFunctionRef ref, CallingConvention callingConvention) {
     FunctionCallGenerator functionCallGenerator = (FunctionCallGenerator) findCallGenerator(ref, callingConvention);
-    return functionCallGenerator.getHandle();
+    throw new UnsupportedOperationException();
+ //   return functionCallGenerator.getHandle();
   }
 
 
@@ -94,7 +94,7 @@ public class GlobalSymbolTable implements SymbolTable {
   
   public void addFunction(String functionName, Method method) {
     Preconditions.checkArgument(Modifier.isStatic(method.getModifiers()), "Method '%s' must be static", method);
-    functions.put(functionName, new StaticMethodCallGenerator(typeOracle, method));
+    functions.put(functionName, new FunctionCallGenerator(new StaticMethodStrategy(typeOracle, method)));
   }
 
   public void addMethods(Class<?> clazz) {

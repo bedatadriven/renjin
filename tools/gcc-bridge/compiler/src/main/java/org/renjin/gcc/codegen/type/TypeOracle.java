@@ -1,12 +1,14 @@
 package org.renjin.gcc.codegen.type;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.type.complex.ComplexTypeStrategy;
 import org.renjin.gcc.codegen.type.fun.FunTypeStrategy;
-import org.renjin.gcc.codegen.type.primitive.*;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveTypeStrategy;
+import org.renjin.gcc.codegen.type.primitive.StringParamStrategy;
 import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidReturnStrategy;
@@ -107,7 +109,7 @@ public class TypeOracle {
     }
   }
 
-  public ReturnStrategy findReturnGenerator(GimpleType returnType) {
+  public ReturnStrategy returnStrategyFor(GimpleType returnType) {
     return forType(returnType).getReturnStrategy();
   }
   
@@ -237,6 +239,17 @@ public class TypeOracle {
       map.put(parameter, forParameter(parameter.getType()));
     }
     return map;
+  }
+  
+  public static String getMethodDescriptor(ReturnStrategy returnStrategy, List<ParamStrategy> paramStrategies) {
+    List<Type> types = Lists.newArrayList();
+    for (ParamStrategy paramStrategy : paramStrategies) {
+      types.addAll(paramStrategy.getParameterTypes());
+    }
+
+    Type[] typesArray = types.toArray(new Type[types.size()]);
+    
+    return Type.getMethodDescriptor(returnStrategy.getType(), typesArray);
   }
 
 }

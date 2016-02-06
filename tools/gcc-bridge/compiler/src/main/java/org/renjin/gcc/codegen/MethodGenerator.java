@@ -26,6 +26,13 @@ public class MethodGenerator extends InstructionAdapter {
   public void invokeconstructor(Type ownerClass, Type... argumentTypes) {
     invokespecial(ownerClass.getInternalName(), "<init>", Type.getMethodDescriptor(Type.VOID_TYPE, argumentTypes), false);
   }
+  
+  public void invokevirtual(Class<?> declaringClass, String methodName, Type returnType, Type... argumentTypes) {
+    invokevirtual(Type.getType(declaringClass).getInternalName(), 
+        methodName,
+        Type.getMethodDescriptor(returnType, argumentTypes),
+        declaringClass.isInterface());
+  }
 
   public void pop(Type type) {
     switch (type.getSort()) {

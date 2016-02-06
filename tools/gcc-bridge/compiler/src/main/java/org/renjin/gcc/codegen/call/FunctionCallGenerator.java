@@ -1,9 +1,7 @@
 package org.renjin.gcc.codegen.call;
 
 import com.google.common.collect.Lists;
-import org.objectweb.asm.Handle;
 import org.objectweb.asm.Type;
-import org.renjin.gcc.codegen.FunctionGenerator;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
@@ -16,25 +14,20 @@ import org.renjin.gcc.gimple.statement.GimpleCall;
 import java.util.List;
 
 /**
- * Generates a call to a soon-to-be compiled Gimple function
+ * Generates a call to a method.
  */
 public class FunctionCallGenerator implements CallGenerator {
 
-  private final FunctionGenerator functionGenerator;
+  private final InvocationStrategy strategy;
 
-
-  public FunctionCallGenerator(FunctionGenerator functionGenerator) {
-    this.functionGenerator = functionGenerator;
+  public FunctionCallGenerator(InvocationStrategy invocationStrategy) {
+    this.strategy = invocationStrategy;
   }
 
-  public FunctionGenerator getFunctionGenerator() {
-    return functionGenerator;
+  public InvocationStrategy getStrategy() {
+    return strategy;
   }
-
-  public Handle getHandle() {
-    return functionGenerator.getMethodHandle();
-  }
-
+  
   @Override
   public void emitCall(MethodGenerator mv, ExprFactory exprFactory, GimpleCall call) {
 
@@ -53,7 +46,7 @@ public class FunctionCallGenerator implements CallGenerator {
     
     } else {
 
-      ExprGenerator callExpr = functionGenerator.getReturnStrategy().unmarshall(mv, returnValue);
+      ExprGenerator callExpr = strategy.getReturnStrategy().unmarshall(mv, returnValue);
       LValue lhs = (LValue) exprFactory.findGenerator(call.getLhs());
       
       lhs.store(mv, callExpr);
@@ -70,28 +63,20 @@ public class FunctionCallGenerator implements CallGenerator {
 
     @Override
     public Type getType() {
-      return functionGenerator.getReturnStrategy().getType();
+      return strategy.getReturnStrategy().getType();
     }
 
     @Override
     public void load(MethodGenerator mv) {
       // Push all parameters on the stack
-      List<ParamStrategy> paramStrategies = functionGenerator.getParamGenerators();
+      List<ParamStrategy> paramStrategies = strategy.getParamStrategies();
       for (int i = 0; i < paramStrategies.size(); i++) {
         ParamStrategy paramStrategy = paramStrategies.get(i);
         paramStrategy.emitPushParameter(mv, arguments.get(i));
       }
       // Now invoke the method
-      mv.invokestatic(functionGenerator.getClassName(),
-          functionGenerator.getMangledName(), descriptor(), false);
+      strategy.invoke(mv);
     }
   }
-  
-  public String getClassName() {
-    return functionGenerator.getClassName();
-  }
 
-  private String descriptor() {
-    return functionGenerator.getFunctionDescriptor();
-  }
 }

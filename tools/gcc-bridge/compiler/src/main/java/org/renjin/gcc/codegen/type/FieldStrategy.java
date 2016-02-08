@@ -15,6 +15,6 @@ public abstract class FieldStrategy {
 
   public abstract void writeFields(ClassVisitor cv);
 
-  public abstract Expr memberExprGenerator(SimpleExpr instanceGenerator);
+  public abstract Expr memberExprGenerator(SimpleExpr instance);
 
 }

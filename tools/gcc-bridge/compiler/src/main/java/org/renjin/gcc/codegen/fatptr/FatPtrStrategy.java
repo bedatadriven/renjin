@@ -112,13 +112,13 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtrExpr> {
   }
 
   @Override
-  public FieldStrategy fieldGenerator(String className, String fieldName) {
+  public FieldStrategy fieldGenerator(Type className, String fieldName) {
     return new FatPtrFieldStrategy(valueFunction, fieldName);
   }
 
   @Override
-  public FieldStrategy addressableFieldGenerator(String className, String fieldName) {
-    return new AddressableField(Type.getType(className), fieldName, new FatPtrValueFunction(valueFunction));
+  public FieldStrategy addressableFieldGenerator(Type className, String fieldName) {
+    return new AddressableField(className, fieldName, new FatPtrValueFunction(valueFunction));
   }
 
   @Override

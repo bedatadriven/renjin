@@ -121,7 +121,7 @@ public class TypeOracle {
    * @param className the full internal name of the class in which the field is declared (for example, "org/renjin/gcc/Struct")
    * @param field the gimple field
    */
-  public FieldStrategy forField(String className, GimpleField field) {
+  public FieldStrategy forField(Type className, GimpleField field) {
     TypeStrategy type = forType(field.getType());
     if(field.isAddressed()) {
       return type.addressableFieldGenerator(className, field.getName());

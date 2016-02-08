@@ -73,7 +73,7 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<SimpleExpr> {
   public void linkFields(TypeOracle typeOracle) {
     fields = new HashMap<>();
     for (GimpleField gimpleField : getRecordTypeDef().getFields()) {
-      FieldStrategy fieldStrategy = typeOracle.forField(getJvmType().getInternalName(), gimpleField);
+      FieldStrategy fieldStrategy = typeOracle.forField(getJvmType(), gimpleField);
       fields.put(gimpleField.getName(), fieldStrategy);
     }
   }
@@ -100,12 +100,12 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<SimpleExpr> {
   }
 
   @Override
-  public FieldStrategy fieldGenerator(String className, String fieldName) {
+  public FieldStrategy fieldGenerator(Type className, String fieldName) {
     return new RecordFieldStrategy(this, fieldName);
   }
 
   @Override
-  public FieldStrategy addressableFieldGenerator(String className, String fieldName) {
+  public FieldStrategy addressableFieldGenerator(Type className, String fieldName) {
     return new AddressableField(getJvmType(), fieldName, new RecordValueFunction(this));
   }
 

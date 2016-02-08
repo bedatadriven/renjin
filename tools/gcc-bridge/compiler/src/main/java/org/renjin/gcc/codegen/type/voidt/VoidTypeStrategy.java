@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.type.voidt;
 
+import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.SimpleExpr;
@@ -35,12 +36,12 @@ public class VoidTypeStrategy implements TypeStrategy<SimpleExpr> {
   }
 
   @Override
-  public FieldStrategy fieldGenerator(String className, String fieldName) {
+  public FieldStrategy fieldGenerator(Type className, String fieldName) {
     throw new UnsupportedOperationException("fields cannot have 'void' type");
   }
 
   @Override
-  public FieldStrategy addressableFieldGenerator(String className, String fieldName) {
+  public FieldStrategy addressableFieldGenerator(Type className, String fieldName) {
     throw new UnsupportedOperationException("fields cannot have 'void' type");
   }
 

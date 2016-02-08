@@ -22,6 +22,12 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
   })
 public interface GimpleType {
 
+  /**
+   * 
+   * @return the size of this type's values, in bits
+   */
+  int getSize();
+
   boolean isPointerTo(Class<? extends GimpleType> clazz);
   
   /**

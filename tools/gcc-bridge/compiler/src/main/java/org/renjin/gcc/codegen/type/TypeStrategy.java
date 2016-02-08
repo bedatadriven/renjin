@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.type;
 
+import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.expr.ExprFactory;
@@ -41,10 +42,10 @@ public interface TypeStrategy<ExprT extends Expr> {
    * @param className the full internal name of the class, for example, "org/renjin/gcc/Record$1"
    * @param fieldName the name of the field
    */
-  FieldStrategy fieldGenerator(String className, String fieldName);
+  FieldStrategy fieldGenerator(Type className, String fieldName);
 
 
-  FieldStrategy addressableFieldGenerator(String className, String fieldName);
+  FieldStrategy addressableFieldGenerator(Type className, String fieldName);
   
   /**
    * @return a {@code PointerTypeStrategy} for pointers of this type

@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.type.complex;
 
+import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
@@ -57,12 +58,12 @@ public class ComplexTypeStrategy implements TypeStrategy<ComplexValue> {
   }
 
   @Override
-  public FieldStrategy fieldGenerator(String className, String fieldName) {
+  public FieldStrategy fieldGenerator(Type className, String fieldName) {
     throw new UnsupportedOperationException("TODO");
   }
 
   @Override
-  public FieldStrategy addressableFieldGenerator(String className, String fieldName) {
+  public FieldStrategy addressableFieldGenerator(Type className, String fieldName) {
     throw new UnsupportedOperationException("TODO");
   }
 

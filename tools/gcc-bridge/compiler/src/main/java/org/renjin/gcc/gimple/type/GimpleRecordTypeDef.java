@@ -2,6 +2,7 @@ package org.renjin.gcc.gimple.type;
 
 
 import com.google.common.collect.Lists;
+import org.renjin.gcc.gimple.expr.GimpleFieldRef;
 
 import java.util.List;
 
@@ -60,13 +61,16 @@ public class GimpleRecordTypeDef {
     return out.toString();
   }
 
-  public GimpleField getField(String fieldName) {
+  public GimpleField findField(GimpleFieldRef fieldRef) {
     for (GimpleField field : fields) {
-      if(field.getName().equals(fieldName)) {
+      int fieldStart = field.getOffset();
+      int fieldEnd = fieldStart + field.getType().getSize();
+      if(fieldRef.getOffset() >=  fieldStart && 
+         fieldRef.getOffset() < fieldEnd) {
         return field;
       }
     }
-    throw new IllegalArgumentException("No such field: " + fieldName);
+    
+    throw new IllegalArgumentException("No such field: " + fieldRef.getName());
   }
-
 }

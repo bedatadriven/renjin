@@ -21,33 +21,35 @@ public final class FatPtrMalloc {
   private FatPtrMalloc() {}
 
   public static FatPtrExpr alloc(MethodGenerator mv, ValueFunction valueFunction, SimpleExpr length) {
-    
+    return new FatPtrExpr(allocArray(mv, valueFunction, length));
+  }
+
+  public static SimpleExpr allocArray(MethodGenerator mv, ValueFunction valueFunction, SimpleExpr length) {
+
     SimpleExpr totalLength = Expressions.product(length, valueFunction.getElementLength());
 
     // If the values don't require any initialization (for example, an array of 
     // double is initialized by the JVM to zeros)
     // Then we can just return a new array expression
     if(!valueFunction.getValueConstructor().isPresent()) {
-    SimpleExpr array = Expressions.newArray(valueFunction.getValueType(), totalLength);
-
-      return new FatPtrExpr(array);
+      return Expressions.newArray(valueFunction.getValueType(), totalLength);
     }
-    
+
     // If we *do* need to construct the array elements, but the length is short and known at compile time,
     // we can unroll it the loop. 
-    
+
     if(length instanceof ConstantValue) {
       ConstantValue constantLength = (ConstantValue) length;
-      
+
       if(constantLength.getIntValue() <= MAX_UNROLL_COUNT) {
         List<SimpleExpr> arrayValues = Lists.newArrayList();
         for(int i=0;i<constantLength.getIntValue();++i) {
           arrayValues.add(valueFunction.getValueConstructor().get());
         }
-        return new FatPtrExpr(Expressions.newArray(valueFunction.getValueType(), arrayValues));
+        return Expressions.newArray(valueFunction.getValueType(), arrayValues);
       }
-    } 
-    
+    }
+
     // Otherwise we need to actually emit a loop to initialize the array at runtime
 
     // Reserve local variables for the array and for our counter
@@ -86,7 +88,7 @@ public final class FatPtrMalloc {
     mv.ificmplt(loopHead);
 
     // Load the array back on the stack
-    return new FatPtrExpr(array);
+    return array;
   }
-  
+
 }

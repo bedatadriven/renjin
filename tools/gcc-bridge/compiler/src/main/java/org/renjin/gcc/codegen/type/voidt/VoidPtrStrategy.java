@@ -84,12 +84,12 @@ public class VoidPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
   }
 
   @Override
-  public FieldStrategy fieldGenerator(String className, String fieldName) {
+  public FieldStrategy fieldGenerator(Type className, String fieldName) {
     throw new UnsupportedOperationException("TODO");
   }
 
   @Override
-  public FieldStrategy addressableFieldGenerator(String className, String fieldName) {
+  public FieldStrategy addressableFieldGenerator(Type className, String fieldName) {
     throw new UnsupportedOperationException("TODO");
   }
 

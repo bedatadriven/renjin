@@ -214,7 +214,7 @@ public class Expressions {
     return divide(size, constantInt(divisor));
   }
 
-  public static SimpleExpr field(final SimpleExpr instance, final Type fieldType, final String fieldName) {
+  public static SimpleLValue field(final SimpleExpr instance, final Type fieldType, final String fieldName) {
     checkType("instance", instance, Type.OBJECT);
     
     return new SimpleLValue() {

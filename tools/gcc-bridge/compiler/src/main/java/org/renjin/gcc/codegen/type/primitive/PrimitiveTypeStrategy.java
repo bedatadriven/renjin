@@ -40,12 +40,12 @@ public class PrimitiveTypeStrategy implements TypeStrategy<SimpleExpr> {
   }
 
   @Override
-  public FieldStrategy addressableFieldGenerator(String className, String fieldName) {
-    return new AddressableField(Type.getType(className), fieldName, valueFunction());
+  public FieldStrategy addressableFieldGenerator(Type className, String fieldName) {
+    return new AddressableField(className, fieldName, valueFunction());
   }
 
   @Override
-  public FieldStrategy fieldGenerator(String className, String fieldName) {
+  public FieldStrategy fieldGenerator(Type className, String fieldName) {
     return new SimpleFieldStrategy(type.jvmType(), fieldName);
   }
 

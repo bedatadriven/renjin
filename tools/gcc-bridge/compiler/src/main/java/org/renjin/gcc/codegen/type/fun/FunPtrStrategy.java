@@ -38,7 +38,7 @@ public class FunPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
   }
 
   @Override
-  public FieldStrategy fieldGenerator(String className, String fieldName) {
+  public FieldStrategy fieldGenerator(Type className, String fieldName) {
     return new SimpleFieldStrategy(METHOD_HANDLE_TYPE, fieldName);
   }
 
@@ -48,7 +48,7 @@ public class FunPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
   }
 
   @Override
-  public FieldStrategy addressableFieldGenerator(String className, String fieldName) {
+  public FieldStrategy addressableFieldGenerator(Type className, String fieldName) {
     throw new UnsupportedOperationException("TODO");
   }
 

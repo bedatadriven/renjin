@@ -25,13 +25,13 @@ import java.util.List;
  * Type strategy for arrays of values
  */
 public class ArrayTypeStrategy implements TypeStrategy<FatPtrExpr> {
-
-  private int lowerBound;
+  
   private final ValueFunction valueFunction;
+  private GimpleArrayType arrayType;
   private boolean parameterWrapped = true;
 
   public ArrayTypeStrategy(GimpleArrayType arrayType, ValueFunction valueFunction) {
-    this.lowerBound = arrayType.getLbound();
+    this.arrayType = arrayType;
     this.valueFunction = valueFunction;
   }
 
@@ -52,7 +52,7 @@ public class ArrayTypeStrategy implements TypeStrategy<FatPtrExpr> {
 
   @Override
   public ArrayTypeStrategy arrayOf(GimpleArrayType arrayType) {
-    return null;
+    throw new UnsupportedOperationException("TODO");
   }
 
   @Override
@@ -73,13 +73,13 @@ public class ArrayTypeStrategy implements TypeStrategy<FatPtrExpr> {
   }
 
   @Override
-  public FieldStrategy fieldGenerator(String className, String fieldName) {
-    throw new UnsupportedOperationException("TODO");
+  public FieldStrategy fieldGenerator(Type className, String fieldName) { 
+    return new ArrayField(className, fieldName, arrayType.getElementCount(), valueFunction);
   }
 
   @Override
-  public FieldStrategy addressableFieldGenerator(String className, String fieldName) {
-    throw new UnsupportedOperationException("TODO");
+  public FieldStrategy addressableFieldGenerator(Type className, String fieldName) {
+    return fieldGenerator(className, fieldName);
   }
 
   @Override
@@ -137,7 +137,7 @@ public class ArrayTypeStrategy implements TypeStrategy<FatPtrExpr> {
     SimpleExpr newOffset = Expressions.sum(
         arrayFatPtr.getOffset(),
         Expressions.product(
-            Expressions.difference(indexValue, lowerBound),
+            Expressions.difference(indexValue, arrayType.getLbound()),
             valueFunction.getElementLength()));
     
     return valueFunction.dereference(arrayFatPtr.getArray(), newOffset);

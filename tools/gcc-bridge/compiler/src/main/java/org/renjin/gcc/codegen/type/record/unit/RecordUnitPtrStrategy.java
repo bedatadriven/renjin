@@ -35,7 +35,7 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
   }
 
   @Override
-  public FieldStrategy fieldGenerator(String className, String fieldName) {
+  public FieldStrategy fieldGenerator(Type className, String fieldName) {
     return new SimpleFieldStrategy(strategy.getJvmType(), fieldName);
   }
 
@@ -45,7 +45,7 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
   }
 
   @Override
-  public FieldStrategy addressableFieldGenerator(String className, String fieldName) {
+  public FieldStrategy addressableFieldGenerator(Type className, String fieldName) {
     throw new UnsupportedOperationException("TODO");
   }
 

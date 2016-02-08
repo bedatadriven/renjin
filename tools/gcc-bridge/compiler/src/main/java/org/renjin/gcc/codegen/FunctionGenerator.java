@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.Maps;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Handle;
@@ -306,6 +307,11 @@ public class FunctionGenerator implements InvocationStrategy {
       parameterTypes.add(generator);
     }
     return parameterTypes;
+  }
+
+  @Override
+  public Optional<ParamStrategy> getVariadicParamStrategy() {
+    return Optional.absent();
   }
 
   public Type returnType() {

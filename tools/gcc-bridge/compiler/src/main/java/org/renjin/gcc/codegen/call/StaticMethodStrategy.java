@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.call;
 
+import com.google.common.base.Optional;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.type.ParamStrategy;
@@ -38,6 +39,15 @@ public class StaticMethodStrategy implements InvocationStrategy {
       paramStrategies = typeOracle.forParameterTypesOf(method);
     }
     return paramStrategies;
+  }
+
+  @Override
+  public Optional<ParamStrategy> getVariadicParamStrategy() {
+    if(method.isVarArgs()) {
+      throw new UnsupportedOperationException("TODO");
+    } else {
+      return Optional.absent();
+    }
   }
 
   @Override

@@ -6,6 +6,7 @@ import org.renjin.gcc.codegen.expr.SimpleExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 
+import java.util.Collections;
 import java.util.List;
 
 
@@ -40,6 +41,12 @@ public class ArrayValueFunction implements ValueFunction {
   @Override
   public Expr dereference(SimpleExpr array, SimpleExpr offset) {
     return new FatPtrExpr(array, offset);
+  }
+
+  @Override
+  public List<SimpleExpr> toArrayValues(Expr expr) {
+    FatPtrExpr fatPtrExpr = (FatPtrExpr) expr;
+    return Collections.singletonList(fatPtrExpr.wrap());
   }
 
   @Override

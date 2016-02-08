@@ -14,6 +14,7 @@ public class Wrappers {
 
   public static Type valueType(Class<?> wrapperClass) {
     return valueType(Type.getType(wrapperClass));
+
   }
   
   public static Type valueType(Type wrapperType) {

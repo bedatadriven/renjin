@@ -6,6 +6,8 @@ import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
+import org.renjin.gcc.codegen.fatptr.FatPtrReturnStrategy;
+import org.renjin.gcc.codegen.fatptr.FatPtrValueFunction;
 import org.renjin.gcc.codegen.fatptr.WrappedFatPtrParamStrategy;
 import org.renjin.gcc.codegen.fatptr.Wrappers;
 import org.renjin.gcc.codegen.type.complex.ComplexTypeStrategy;
@@ -151,10 +153,9 @@ public class TypeOracle {
         if(baseType.equals(ObjectPtr.class)) {
           throw new UnsupportedOperationException(genericReturnType.toString());
         } else if(WrapperType.is(baseType)) {
-          WrapperType innerWrapper = Wrappers.valueOf(baseType);
-          GimplePointerType pointerPointerType = innerWrapper.getGimpleType().pointerTo();
-          //return new PrimitivePtrPtrReturnStrategy(pointerPointerType);
-          throw new UnsupportedOperationException();
+          Type valueType = Wrappers.valueType(baseType);
+          return new FatPtrReturnStrategy(new FatPtrValueFunction(new PrimitiveValueFunction(valueType)));
+
         } else {
           throw new UnsupportedOperationException("baseType: " + baseType);
         }

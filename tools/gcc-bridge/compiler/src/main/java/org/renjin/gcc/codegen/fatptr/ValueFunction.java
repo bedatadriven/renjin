@@ -27,7 +27,16 @@ public interface ValueFunction {
    */
   int getElementSize();
 
+  List<SimpleExpr> getDefaultValue();
+
+
   Expr dereference(SimpleExpr array, SimpleExpr offset);
 
-  List<SimpleExpr> getDefaultValue();
+  /**
+   * Transforms the given expression to one or more array element values.
+   * @param expr
+   * @return
+   */
+  List<SimpleExpr> toArrayValues(Expr expr);
 }
+

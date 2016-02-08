@@ -59,6 +59,12 @@ public class FatPtrValueFunction implements ValueFunction {
   }
 
   @Override
+  public List<SimpleExpr> toArrayValues(Expr expr) {
+    FatPtrExpr fatPtrExpr = (FatPtrExpr) expr;
+    return Collections.singletonList(fatPtrExpr.wrap());
+  }
+
+  @Override
   public List<SimpleExpr> getDefaultValue() {
     return Collections.singletonList(FatPtrExpr.nullPtr(baseValueFunction).wrap());
   }

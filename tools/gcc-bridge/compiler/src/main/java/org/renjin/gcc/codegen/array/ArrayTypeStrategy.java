@@ -59,7 +59,11 @@ public class ArrayTypeStrategy implements TypeStrategy<FatPtrExpr> {
   public FatPtrExpr constructorExpr(ExprFactory exprFactory, GimpleConstructor constructor) {
     List<SimpleExpr> values = Lists.newArrayList();
     for (GimpleConstructor.Element element : constructor.getElements()) {
-     values.add(exprFactory.findValueGenerator(element.getValue())); 
+      Expr elementExpr = exprFactory.findGenerator(element.getValue());
+      List<SimpleExpr> arrayValues = valueFunction.toArrayValues(elementExpr);
+      assert arrayValues.size() == valueFunction.getElementLength();
+      
+     values.addAll(arrayValues);
     }
     
     SimpleExpr array = Expressions.newArray(valueFunction.getValueType(), values);

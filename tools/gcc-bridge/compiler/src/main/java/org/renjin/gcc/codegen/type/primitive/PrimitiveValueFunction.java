@@ -73,6 +73,11 @@ public class PrimitiveValueFunction implements ValueFunction {
   }
 
   @Override
+  public List<SimpleExpr> toArrayValues(Expr expr) {
+    return Collections.singletonList((SimpleExpr)expr);
+  }
+
+  @Override
   public List<SimpleExpr> getDefaultValue() {
     return Collections.emptyList();
   }

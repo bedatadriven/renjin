@@ -1,6 +1,7 @@
 package org.renjin.gcc.codegen.type.complex;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.expr.Expressions;
@@ -52,6 +53,12 @@ public class ComplexValueFunction implements ValueFunction {
     SimpleExpr imaginary = Expressions.elementAt(array, imaginaryOffset);
     
     return new ComplexValue(real, imaginary);
+  }
+
+  @Override
+  public List<SimpleExpr> toArrayValues(Expr expr) {
+    ComplexValue value = (ComplexValue) expr;
+    return Lists.newArrayList(value.getRealValue(), value.getImaginaryValue());
   }
 
   @Override

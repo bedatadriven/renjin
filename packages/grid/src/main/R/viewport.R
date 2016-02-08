@@ -151,11 +151,11 @@ print.viewport <- function(x, ...) {
 }
 
 width.details.viewport <- function(x) {
-  absolute.length(x$width)
+  absolute.size(x$width)
 }
 
 height.details.viewport <- function(x) {
-  absolute.length(x$height)
+  absolute.size(x$height)
 }
 
 # How many "levels" in viewport object

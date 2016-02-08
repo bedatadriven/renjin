@@ -23,6 +23,6 @@ assign <-
 list2env <- function(x, envir = NULL, parent = parent.frame(),
 		     hash = (length(x) > 100), size = max(29L, length(x)))
 {
-    if (is.null(envir)) envir <- new.env(hash=hash, parent=parent, size=length)
+    if (is.null(envir)) envir <- new.env(hash=hash, parent=parent, size=size)
     .Internal(list2env(x, envir))
 }

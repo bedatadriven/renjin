@@ -34,7 +34,7 @@ evalq <-
       .Internal(eval(substitute(expr), envir, enclos))
 
 new.env <- function (hash = TRUE, parent = parent.frame(), size = 29L)
-    .Internal(new.env(hash, parent, length))
+    .Internal(new.env(hash, parent, size))
 
 parent.env <- function(env)
     .Internal(parent.env(env))

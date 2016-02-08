@@ -242,7 +242,7 @@ utils::globalVariables(".addBasicGeneric")
     setGeneric("sample", function(x, size, replace = FALSE, prob = NULL, ...)
 			standardGeneric("sample"),
 	       useAsDefault = function(x, size, replace = FALSE, prob = NULL, ...)
-			base::sample(x, length, replace=replace, prob=prob, ...),
+			base::sample(x, size, replace=replace, prob=prob, ...),
 	       signature = c("x", "size"), where = where)
     setGenericImplicit("sample", where, FALSE)
 

@@ -67,7 +67,7 @@ public class RecordClassGenerator {
 
   private void emitFields() {
     for (FieldStrategy fieldStrategy : fields) {
-      fieldStrategy.emitInstanceField(cv);
+      fieldStrategy.writeFields(cv);
     }
   }
 

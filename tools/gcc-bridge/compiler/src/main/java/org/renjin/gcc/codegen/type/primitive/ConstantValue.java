@@ -3,13 +3,13 @@ package org.renjin.gcc.codegen.type.primitive;
 import com.google.common.base.Preconditions;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.var.Value;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
 import org.renjin.gcc.gimple.expr.GimplePrimitiveConstant;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 
 import javax.annotation.Nonnull;
 
-public class ConstantValue implements Value {
+public class ConstantValue implements SimpleExpr {
 
   private Number value;
   private Type type;

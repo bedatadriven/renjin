@@ -1,10 +1,10 @@
 package org.renjin.gcc.codegen.expr;
 
 /**
- * Expression whose address can be retreived
+ * Expression whose address can be retrieved
  */
-public interface Addressable extends ExprGenerator {
+public interface Addressable extends Expr {
   
-  ExprGenerator addressOf();
+  Expr addressOf();
   
 }

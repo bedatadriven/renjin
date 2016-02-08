@@ -3,10 +3,10 @@ package org.renjin.gcc.codegen.fatptr;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
-import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.expr.Expr;
+import org.renjin.gcc.codegen.expr.Expressions;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
 import org.renjin.gcc.codegen.type.FieldStrategy;
-import org.renjin.gcc.codegen.var.Value;
-import org.renjin.gcc.codegen.var.Values;
 
 
 public class FatPtrFieldStrategy extends FieldStrategy {
@@ -24,15 +24,15 @@ public class FatPtrFieldStrategy extends FieldStrategy {
   }
 
   @Override
-  public void emitInstanceField(ClassVisitor cv) {
+  public void writeFields(ClassVisitor cv) {
     cv.visitField(Opcodes.ACC_PUBLIC, arrayField, arrayType.getDescriptor(), null, null);
     cv.visitField(Opcodes.ACC_PUBLIC, offsetField, "I", null, null);
   }
 
   @Override
-  public ExprGenerator memberExprGenerator(Value instance) {
-    Value array = Values.field(instance, arrayType, arrayField);
-    Value offset = Values.field(instance, Type.INT_TYPE, offsetField);
+  public Expr memberExprGenerator(SimpleExpr instance) {
+    SimpleExpr array = Expressions.field(instance, arrayType, arrayField);
+    SimpleExpr offset = Expressions.field(instance, Type.INT_TYPE, offsetField);
     return new FatPtrExpr(array, offset);
   }
 }

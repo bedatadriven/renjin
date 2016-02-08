@@ -2,9 +2,8 @@ package org.renjin.gcc.codegen.type;
 
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.type.complex.ComplexReturnStrategy;
-import org.renjin.gcc.codegen.var.Value;
+import org.renjin.gcc.codegen.expr.Expr;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
 
 /**
  * Provides a strategy for return values from methods.
@@ -13,8 +12,8 @@ import org.renjin.gcc.codegen.var.Value;
  * we have to be sometimes creative in returning things like fat pointers, which
  * we represent using an array <i>and</i> and integer offset.</p>
  * 
- * @see PrimitivePtrReturnStrategy
- * @see ComplexReturnStrategy
+ * @see org.renjin.gcc.codegen.fatptr.FatPtrReturnStrategy
+ * @see org.renjin.gcc.codegen.type.complex.ComplexReturnStrategy
  */
 public interface ReturnStrategy {
 
@@ -28,17 +27,17 @@ public interface ReturnStrategy {
   /**
    * Converts if necessary the expression to be returned to a single value.
    */
-  Value marshall(ExprGenerator expr);
+  SimpleExpr marshall(Expr expr);
 
 
   /**
    * Converts a function call return value to an expression if necessary.
    */
-  ExprGenerator unmarshall(MethodGenerator mv, Value returnValue);
+  Expr unmarshall(MethodGenerator mv, SimpleExpr returnValue);
 
   /**
    * Sometimes C code doesn't return a value despite having a non-void return type. In this case, 
    * we just need to push SOMETHING onto the stack.
    */
-  Value getDefaultReturnValue();
+  SimpleExpr getDefaultReturnValue();
 }

@@ -2,14 +2,14 @@ package org.renjin.gcc.codegen.type.primitive;
 
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.var.Value;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
 
 import javax.annotation.Nonnull;
 
 /**
  * Loads a string constant as an array of bytes
  */
-public class StringConstant implements Value {
+public class StringConstant implements SimpleExpr {
   
   private String constant;
 

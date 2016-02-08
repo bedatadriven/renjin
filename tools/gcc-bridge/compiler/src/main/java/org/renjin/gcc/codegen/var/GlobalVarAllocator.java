@@ -7,6 +7,8 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.SimpleLValue;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -16,13 +18,13 @@ import java.util.List;
  */
 public class GlobalVarAllocator extends VarAllocator {
 
-  private class StaticField implements Var {
+  private class StaticField implements SimpleLValue {
 
     private String name;
     private Type type;
-    private Optional<Value> initialValue;
+    private Optional<SimpleExpr> initialValue;
 
-    public StaticField(String name, Type type, Optional<Value> initialValue) {
+    public StaticField(String name, Type type, Optional<SimpleExpr> initialValue) {
       this.name = name;
       this.type = type;
       this.initialValue = initialValue;
@@ -40,7 +42,7 @@ public class GlobalVarAllocator extends VarAllocator {
     }
 
     @Override
-    public void store(MethodGenerator mv, Value value) {
+    public void store(MethodGenerator mv, SimpleExpr value) {
       value.load(mv);
       mv.visitFieldInsn(Opcodes.PUTSTATIC, declaringClass.getInternalName(), name, type.getDescriptor());
     }
@@ -54,11 +56,11 @@ public class GlobalVarAllocator extends VarAllocator {
   }
 
   @Override
-  public Var reserve(String name, Type type) {
-    return reserve(name, type, Optional.<Value>absent());
+  public SimpleLValue reserve(String name, Type type) {
+    return reserve(name, type, Optional.<SimpleExpr>absent());
   }
 
-  public Var reserve(String name, Type type, Optional<Value> initialValue) {
+  public SimpleLValue reserve(String name, Type type, Optional<SimpleExpr> initialValue) {
     if(name.contains(".")) {
       throw new InternalCompilerException("illegal global variable name: " + name);
     }
@@ -68,7 +70,7 @@ public class GlobalVarAllocator extends VarAllocator {
   }
 
   @Override
-  public Var reserve(String name, Type type, Value initialValue) {
+  public SimpleLValue reserve(String name, Type type, SimpleExpr initialValue) {
     return reserve(name, type, Optional.of(initialValue));
   }
 

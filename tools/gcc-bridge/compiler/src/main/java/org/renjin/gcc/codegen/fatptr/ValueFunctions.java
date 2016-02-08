@@ -1,6 +1,6 @@
 package org.renjin.gcc.codegen.fatptr;
 
-import org.renjin.gcc.codegen.var.Value;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
 
 import java.util.List;
 
@@ -9,9 +9,9 @@ import java.util.List;
  */
 public class ValueFunctions {
   
-  public static List<Value> getConstructorsChecked(ValueFunction valueFunction) {
+  public static List<SimpleExpr> getConstructorsChecked(ValueFunction valueFunction) {
 
-    List<Value> initialValues = valueFunction.getDefaultValue();
+    List<SimpleExpr> initialValues = valueFunction.getDefaultValue();
     
     if(initialValues.isEmpty()) {
       return initialValues;

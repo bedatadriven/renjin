@@ -2,10 +2,10 @@ package org.renjin.gcc.codegen.type.voidt;
 
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.expr.Expr;
+import org.renjin.gcc.codegen.expr.Expressions;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
 import org.renjin.gcc.codegen.type.ReturnStrategy;
-import org.renjin.gcc.codegen.var.Value;
-import org.renjin.gcc.codegen.var.Values;
 
 /**
  * Strategy for returning from a void-typed function.
@@ -19,17 +19,17 @@ public class VoidReturnStrategy implements ReturnStrategy {
   }
 
   @Override
-  public Value marshall(ExprGenerator expr) {
+  public SimpleExpr marshall(Expr expr) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public ExprGenerator unmarshall(MethodGenerator mv, Value returnValue) {
+  public Expr unmarshall(MethodGenerator mv, SimpleExpr returnValue) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public Value getDefaultReturnValue() {
-    return Values.voidValue();
+  public SimpleExpr getDefaultReturnValue() {
+    return Expressions.voidValue();
   }
 }

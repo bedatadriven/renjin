@@ -1,17 +1,8 @@
 package org.renjin.gcc.codegen.call;
 
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.WrapperType;
-import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
 import org.renjin.gcc.codegen.expr.ExprFactory;
-import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.gimple.statement.GimpleCall;
-import org.renjin.gcc.gimple.type.GimpleIndirectType;
-import org.renjin.gcc.gimple.type.GimpleType;
-
-import java.util.List;
 
 /**
  * Generates bytecode for calls to memset()

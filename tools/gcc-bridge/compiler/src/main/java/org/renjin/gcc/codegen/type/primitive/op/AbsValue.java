@@ -2,16 +2,16 @@ package org.renjin.gcc.codegen.type.primitive.op;
 
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.var.Value;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
 
 import javax.annotation.Nonnull;
 
 
-public class AbsGenerator implements Value {
+public class AbsValue implements SimpleExpr {
 
-  private Value x;
+  private SimpleExpr x;
 
-  public AbsGenerator(Value x) {
+  public AbsValue(SimpleExpr x) {
     this.x = x;
   }
 

@@ -8,12 +8,12 @@ import org.renjin.gcc.gimple.GimpleOp;
 /**
  * Generates a conditional jump based on pointer equality
  */
-public class FatPtrCmp implements ConditionGenerator {
+public class FatPtrConditionGenerator implements ConditionGenerator {
   private GimpleOp op;
   private FatPtrExpr x;
   private FatPtrExpr y;
 
-  public FatPtrCmp(GimpleOp op, FatPtrExpr x, FatPtrExpr y) {
+  public FatPtrConditionGenerator(GimpleOp op, FatPtrExpr x, FatPtrExpr y) {
     this.op = op;
     this.x = x;
     this.y = y;

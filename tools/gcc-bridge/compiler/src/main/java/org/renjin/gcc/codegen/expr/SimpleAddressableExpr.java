@@ -3,24 +3,24 @@ package org.renjin.gcc.codegen.expr;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.var.LValue;
-import org.renjin.gcc.codegen.var.Value;
 
 import javax.annotation.Nonnull;
 
-
-public class AddressableValue implements Addressable, Value, LValue<Value> {
+/**
+ * Container for {@link SimpleExpr} which also have an address.
+ */
+public final class SimpleAddressableExpr implements Addressable, SimpleExpr, LValue<SimpleExpr> {
   
-  private Value value;
-  private ExprGenerator address;
+  private SimpleExpr value;
+  private Expr address;
 
-  public AddressableValue(Value value, ExprGenerator address) {
+  public SimpleAddressableExpr(SimpleExpr value, Expr address) {
     this.value = value;
     this.address = address;
   }
 
   @Override
-  public ExprGenerator addressOf() {
+  public Expr addressOf() {
     return address;
   }
 
@@ -37,7 +37,7 @@ public class AddressableValue implements Addressable, Value, LValue<Value> {
 
   @Override
   @SuppressWarnings("unchecked")
-  public void store(MethodGenerator mv, Value rhs) {
+  public void store(MethodGenerator mv, SimpleExpr rhs) {
     if(!(value instanceof LValue)) {
       throw new InternalCompilerException("not addressable");
     }

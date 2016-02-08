@@ -4,25 +4,23 @@ import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
-import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.type.FieldStrategy;
 import org.renjin.gcc.codegen.type.ParamStrategy;
+import org.renjin.gcc.codegen.type.PointerTypeStrategy;
 import org.renjin.gcc.codegen.type.ReturnStrategy;
-import org.renjin.gcc.codegen.type.TypeStrategy;
-import org.renjin.gcc.codegen.var.Value;
-import org.renjin.gcc.codegen.var.Values;
-import org.renjin.gcc.codegen.var.Var;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.GimpleVarDecl;
+import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 
-import static org.renjin.gcc.codegen.var.Values.newArray;
+import static org.renjin.gcc.codegen.expr.Expressions.newArray;
 
 /**
  * Strategy for pointer types that uses a combination of an array value and an offset value
  */
-public class FatPtrStrategy extends TypeStrategy<FatPtrExpr> {
+public class FatPtrStrategy implements PointerTypeStrategy<FatPtrExpr> {
 
   private ValueFunction valueFunction;
   private boolean parametersWrapped = true;
@@ -47,7 +45,7 @@ public class FatPtrStrategy extends TypeStrategy<FatPtrExpr> {
   }
 
   @Override
-  public FatPtrExpr varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
+  public FatPtrExpr variable(GimpleVarDecl decl, VarAllocator allocator) {
     if(decl.isAddressable()) {
       // If this variable needs to be addressable, then we need to store in a unit length pointer
       // so that we can later get its "address"
@@ -91,19 +89,24 @@ public class FatPtrStrategy extends TypeStrategy<FatPtrExpr> {
       
       FatPtrExpr nullPtr = FatPtrExpr.nullPtr(valueFunction);
       
-      Var unitArray = allocator.reserve(decl.getName(), wrapperArrayType, newArray(nullPtr.wrap()));
+      SimpleLValue unitArray = allocator.reserve(decl.getName(), wrapperArrayType, newArray(nullPtr.wrap()));
       FatPtrExpr address = new FatPtrExpr(unitArray); 
-      Value instance = Values.elementAt(unitArray, 0);
-      Value unwrappedArray = Wrappers.arrayField(instance, valueFunction.getValueType());
-      Value unwrappedOffset = Wrappers.offsetField(instance);      
+      SimpleExpr instance = Expressions.elementAt(unitArray, 0);
+      SimpleExpr unwrappedArray = Wrappers.arrayField(instance, valueFunction.getValueType());
+      SimpleExpr unwrappedOffset = Wrappers.offsetField(instance);      
       return new FatPtrExpr(address, unwrappedArray, unwrappedOffset);
 
     } else {
-      Var array = allocator.reserve(decl.getName(), arrayType);
-      Var offset = allocator.reserveInt(decl.getName() + "$offset");
+      SimpleLValue array = allocator.reserve(decl.getName(), arrayType);
+      SimpleLValue offset = allocator.reserveInt(decl.getName() + "$offset");
 
       return new FatPtrExpr(array, offset);
     }
+  }
+
+  @Override
+  public FatPtrExpr constructorExpr(ExprFactory exprFactory, GimpleConstructor value) {
+    throw new UnsupportedOperationException("TODO");
   }
 
   @Override
@@ -131,54 +134,57 @@ public class FatPtrStrategy extends TypeStrategy<FatPtrExpr> {
   }
 
   @Override
-  public FatPtrExpr malloc(MethodGenerator mv, Value length) {
+  public FatPtrExpr malloc(MethodGenerator mv, SimpleExpr length) {
     return FatPtrMalloc.alloc(mv, valueFunction, length);
   }
 
   @Override
-  public FatPtrExpr realloc(FatPtrExpr pointer, Value length) {
-    Value array = new FatPtrRealloc(pointer, length);
-    Value offset = Values.zero();
+  public FatPtrExpr realloc(FatPtrExpr pointer, SimpleExpr length) {
+    SimpleExpr array = new FatPtrRealloc(pointer, length);
+    SimpleExpr offset = Expressions.zero();
     
     return new FatPtrExpr(array, offset);
   }
 
   @Override
-  public ExprGenerator valueOf(FatPtrExpr pointerExpr) {
+  public Expr valueOf(FatPtrExpr pointerExpr) {
     return valueFunction.dereference(pointerExpr.getArray(), pointerExpr.getOffset());
   }
 
   @Override
-  public TypeStrategy pointerTo() {
+  public FatPtrStrategy pointerTo() {
     return new FatPtrStrategy(new FatPtrValueFunction(valueFunction));
   }
 
   @Override
-  public TypeStrategy arrayOf(GimpleArrayType arrayType) {
+  public ArrayTypeStrategy arrayOf(GimpleArrayType arrayType) {
     return new ArrayTypeStrategy(arrayType, new FatPtrValueFunction(valueFunction));
   }
 
   @Override
-  public FatPtrExpr pointerPlus(FatPtrExpr pointer, Value offsetInBytes) {
+  public FatPtrExpr pointerPlus(FatPtrExpr pointer, SimpleExpr offsetInBytes) {
     int bytesPerArrayElement = valueFunction.getElementSize() / valueFunction.getElementLength();
-    Value offsetInArrayElements = Values.divide(offsetInBytes, bytesPerArrayElement);
-    Value newOffset = Values.sum(pointer.getOffset(), offsetInArrayElements);
+    SimpleExpr offsetInArrayElements = Expressions.divide(offsetInBytes, bytesPerArrayElement);
+    SimpleExpr newOffset = Expressions.sum(pointer.getOffset(), offsetInArrayElements);
     
     return new FatPtrExpr(pointer.getArray(), newOffset);
   }
 
   @Override
   public ConditionGenerator comparePointers(GimpleOp op, FatPtrExpr x, FatPtrExpr y) {
-    return new FatPtrCmp(op, x, y);
+    return new FatPtrConditionGenerator(op, x, y);
   }
 
   @Override
-  public Value memoryCompare(FatPtrExpr p1, FatPtrExpr p2, Value n) {
+  public SimpleExpr memoryCompare(FatPtrExpr p1, FatPtrExpr p2, SimpleExpr n) {
     return new FatPtrMemCmp(p1, p2, n);
   }
 
   @Override
-  public void memoryCopy(MethodGenerator mv, FatPtrExpr destination, FatPtrExpr source, Value length) {
+  public void memoryCopy(MethodGenerator mv, FatPtrExpr destination, FatPtrExpr source, SimpleExpr length) {
+    
+    // TODO: Is this correct for pointers to record types?
+    
     source.getArray().load(mv);
     source.getOffset().load(mv);
     destination.getArray().load(mv);

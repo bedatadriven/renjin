@@ -2,11 +2,11 @@ package org.renjin.gcc.codegen.fatptr;
 
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.expr.Expr;
+import org.renjin.gcc.codegen.expr.Expressions;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.SimpleLValue;
 import org.renjin.gcc.codegen.type.ReturnStrategy;
-import org.renjin.gcc.codegen.var.Value;
-import org.renjin.gcc.codegen.var.Values;
-import org.renjin.gcc.codegen.var.Var;
 
 /**
  * Strategy for returning fat pointers from methods.  
@@ -28,26 +28,26 @@ public class FatPtrReturnStrategy implements ReturnStrategy {
   }
 
   @Override
-  public Value marshall(ExprGenerator expr) {
+  public SimpleExpr marshall(Expr expr) {
     FatPtrExpr fatPtr = (FatPtrExpr) expr;
     return fatPtr.wrap();
   }
 
   @Override
-  public ExprGenerator unmarshall(MethodGenerator mv, Value returnValue) {
+  public Expr unmarshall(MethodGenerator mv, SimpleExpr returnValue) {
     // Store the returned Ptr wrapper to a local variable
-    Var wrapper = mv.getLocalVarAllocator().reserve("retval", returnValue.getType());
+    SimpleLValue wrapper = mv.getLocalVarAllocator().reserve("retval", returnValue.getType());
     wrapper.store(mv, returnValue);
 
-    Value array = Wrappers.arrayField(wrapper, valueFunction.getValueType());
-    Value offset = Wrappers.offsetField(wrapper);
+    SimpleExpr array = Wrappers.arrayField(wrapper, valueFunction.getValueType());
+    SimpleExpr offset = Wrappers.offsetField(wrapper);
 
     return new FatPtrExpr(array, offset);
   }
 
   @Override
-  public Value getDefaultReturnValue() {
+  public SimpleExpr getDefaultReturnValue() {
     Type arrayType = Wrappers.valueArrayType(valueFunction.getValueType());
-    return new FatPtrExpr(Values.nullRef(arrayType)).wrap();
+    return new FatPtrExpr(Expressions.nullRef(arrayType)).wrap();
   }
 }

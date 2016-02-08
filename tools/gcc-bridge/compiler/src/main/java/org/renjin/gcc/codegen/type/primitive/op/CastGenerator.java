@@ -4,7 +4,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.var.Value;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
 import org.renjin.gcc.gimple.type.GimpleBooleanType;
 import org.renjin.gcc.gimple.type.GimpleIntegerType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
@@ -18,13 +18,13 @@ import java.lang.reflect.Method;
  * Generates the bytecode to cast a primitive value to a new type
  */
 @SuppressWarnings("unused")
-public class CastGenerator implements Value {
+public class CastGenerator implements SimpleExpr {
   
-  private Value valueGenerator;
+  private SimpleExpr valueGenerator;
   private GimplePrimitiveType sourceType;
   private GimplePrimitiveType destinationType;
 
-  public CastGenerator(Value valueGenerator, GimplePrimitiveType sourceType, GimplePrimitiveType destinationType) {
+  public CastGenerator(SimpleExpr valueGenerator, GimplePrimitiveType sourceType, GimplePrimitiveType destinationType) {
     this.valueGenerator = valueGenerator;
     this.sourceType = sourceType;
     this.destinationType = destinationType;

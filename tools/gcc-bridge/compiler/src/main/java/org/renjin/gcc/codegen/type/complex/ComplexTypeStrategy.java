@@ -1,12 +1,15 @@
 package org.renjin.gcc.codegen.type.complex;
 
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
-import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
+import org.renjin.gcc.codegen.type.FieldStrategy;
+import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.type.ReturnStrategy;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
+import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleComplexType;
 
@@ -27,7 +30,7 @@ import org.renjin.gcc.gimple.type.GimpleComplexType;
  * to return a complex value. This is something we could eliminate with aggressive inlining.</p>
  * 
  */
-public class ComplexTypeStrategy extends TypeStrategy {
+public class ComplexTypeStrategy implements TypeStrategy<ComplexValue> {
 
   private GimpleComplexType type;
 
@@ -36,7 +39,7 @@ public class ComplexTypeStrategy extends TypeStrategy {
   }
 
   @Override
-  public ExprGenerator varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
+  public ComplexValue variable(GimpleVarDecl decl, VarAllocator allocator) {
     if(decl.isAddressable()) {
 //      return new AddressableComplexVarGenerator(type,
 //          allocator.reserveArrayRef(decl.getName(), type.getJvmPartType()));
@@ -49,18 +52,38 @@ public class ComplexTypeStrategy extends TypeStrategy {
   }
 
   @Override
+  public ComplexValue constructorExpr(ExprFactory exprFactory, GimpleConstructor value) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public FieldStrategy fieldGenerator(String className, String fieldName) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public FieldStrategy addressableFieldGenerator(String className, String fieldName) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public ParamStrategy getParamStrategy() {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public ReturnStrategy getReturnStrategy() {
     return new ComplexReturnStrategy(type);
   }
 
   @Override
-  public TypeStrategy pointerTo() {
+  public FatPtrStrategy pointerTo() {
     return new FatPtrStrategy(new ComplexValueFunction(type.getJvmPartType()))
         .setParametersWrapped(false);
   }
 
   @Override
-  public TypeStrategy arrayOf(GimpleArrayType arrayType) {
+  public ArrayTypeStrategy arrayOf(GimpleArrayType arrayType) {
     return new ArrayTypeStrategy(arrayType, new ComplexValueFunction(type.getJvmPartType()))
         .setParameterWrapped(false);
   }

@@ -1,9 +1,9 @@
 package org.renjin.gcc.codegen.type.record;
 
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.expr.Expressions;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
-import org.renjin.gcc.codegen.var.Value;
-import org.renjin.gcc.codegen.var.Values;
 
 import java.util.Collections;
 import java.util.List;
@@ -33,12 +33,12 @@ public class RecordValueFunction implements ValueFunction {
   }
 
   @Override
-  public Value dereference(Value array, Value offset) {
-    return Values.elementAt(array, offset);
+  public SimpleExpr dereference(SimpleExpr array, SimpleExpr offset) {
+    return Expressions.elementAt(array, offset);
   }
 
   @Override
-  public List<Value> getDefaultValue() {
-    return Collections.<Value>singletonList(new RecordConstructor(strategy));
+  public List<SimpleExpr> getDefaultValue() {
+    return Collections.<SimpleExpr>singletonList(new RecordConstructor(strategy));
   }
 }

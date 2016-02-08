@@ -3,11 +3,11 @@ package org.renjin.gcc.codegen.call;
 import com.google.common.collect.Lists;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.expr.ExprFactory;
-import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.expr.LValue;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
 import org.renjin.gcc.codegen.type.ParamStrategy;
-import org.renjin.gcc.codegen.var.LValue;
-import org.renjin.gcc.codegen.var.Value;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.statement.GimpleCall;
 
@@ -33,7 +33,7 @@ public class FunctionCallGenerator implements CallGenerator {
   public void emitCall(MethodGenerator mv, ExprFactory exprFactory, GimpleCall call) {
 
     // Make a list of call arguments
-    List<ExprGenerator> argumentExpressions = Lists.newArrayList();
+    List<Expr> argumentExpressions = Lists.newArrayList();
     for (GimpleExpr gimpleExpr : call.getOperands()) {
       argumentExpressions.add(exprFactory.findGenerator(gimpleExpr));
     }
@@ -47,18 +47,18 @@ public class FunctionCallGenerator implements CallGenerator {
     
     } else {
 
-      ExprGenerator callExpr = strategy.getReturnStrategy().unmarshall(mv, returnValue);
+      Expr callExpr = strategy.getReturnStrategy().unmarshall(mv, returnValue);
       LValue lhs = (LValue) exprFactory.findGenerator(call.getLhs());
       
       lhs.store(mv, callExpr);
     }
   }
   
-  private class CallExpr implements Value {
+  private class CallExpr implements SimpleExpr {
 
-    private List<ExprGenerator> arguments;
+    private List<Expr> arguments;
 
-    public CallExpr(List<ExprGenerator> arguments) {
+    public CallExpr(List<Expr> arguments) {
       this.arguments = arguments;
     }
 

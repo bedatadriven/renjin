@@ -4,18 +4,18 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
-import org.renjin.gcc.codegen.var.Value;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
 
 import javax.annotation.Nonnull;
 
 /**
  * Generates a boolean value based on a condition
  */
-public class ConditionExprGenerator implements Value {
+public class ConditionExpr implements SimpleExpr {
   
   private ConditionGenerator condition;
 
-  public ConditionExprGenerator(ConditionGenerator condition) {
+  public ConditionExpr(ConditionGenerator condition) {
     this.condition = condition;
   }
 

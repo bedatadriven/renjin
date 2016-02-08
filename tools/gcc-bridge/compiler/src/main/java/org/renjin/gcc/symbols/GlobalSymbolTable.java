@@ -6,7 +6,7 @@ import org.objectweb.asm.Handle;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.FunctionGenerator;
 import org.renjin.gcc.codegen.call.*;
-import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.gimple.CallingConvention;
 import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
@@ -32,7 +32,7 @@ public class GlobalSymbolTable implements SymbolTable {
 
   private TypeOracle typeOracle;
   private Map<String, CallGenerator> functions = Maps.newHashMap();
-  private Map<String, ExprGenerator> globalVariables = Maps.newHashMap();
+  private Map<String, Expr> globalVariables = Maps.newHashMap();
 
   public GlobalSymbolTable(TypeOracle typeOracle) {
     this.typeOracle = typeOracle;
@@ -121,21 +121,21 @@ public class GlobalSymbolTable implements SymbolTable {
   }
 
   @Override
-  public ExprGenerator getVariable(GimpleSymbolRef ref) {
+  public Expr getVariable(GimpleSymbolRef ref) {
     // Global variables are only resolved by name...
     if(ref.getName() == null) {
       return null;
     } else {
-      ExprGenerator exprGenerator = globalVariables.get(ref.getName());
-      if(exprGenerator == null) {
+      Expr expr = globalVariables.get(ref.getName());
+      if(expr == null) {
         throw new InternalCompilerException("No such variable: " + ref);
       }
-      return exprGenerator;
+      return expr;
     }
   }
   
-  public void addVariable(String name, ExprGenerator exprGenerator) {
-    globalVariables.put(name, exprGenerator);
+  public void addVariable(String name, Expr expr) {
+    globalVariables.put(name, expr);
   }
   
   public Set<Map.Entry<String, CallGenerator>> getFunctions() {

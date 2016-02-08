@@ -1,8 +1,9 @@
 package org.renjin.gcc.codegen.fatptr;
 
 import org.objectweb.asm.Type;
-import org.renjin.gcc.codegen.var.Value;
-import org.renjin.gcc.codegen.var.Values;
+import org.renjin.gcc.codegen.WrapperType;
+import org.renjin.gcc.codegen.expr.Expressions;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
 import org.renjin.gcc.runtime.*;
 
 /**
@@ -46,15 +47,15 @@ public class Wrappers {
     return Type.getType("[" + valueType.getDescriptor());
   }
   
-  public static Value arrayField(Value wrapperInstance) {
-    return Values.field(wrapperInstance, fieldArrayType(wrapperInstance.getType()), "array");
+  public static SimpleExpr arrayField(SimpleExpr wrapperInstance) {
+    return Expressions.field(wrapperInstance, fieldArrayType(wrapperInstance.getType()), "array");
   }
 
-  public static Value arrayField(Value instance, Type valueType) {
-    Value array = arrayField(instance);
+  public static SimpleExpr arrayField(SimpleExpr instance, Type valueType) {
+    SimpleExpr array = arrayField(instance);
     Type arrayType = arrayType(valueType);
     if(!array.getType().equals(arrayType)) {
-      array = Values.cast(array, arrayType);
+      array = Expressions.cast(array, arrayType);
     }
     return array;
   }
@@ -63,8 +64,8 @@ public class Wrappers {
     return Type.getType("[" + valueType.getDescriptor());
   }
 
-  public static Value offsetField(Value wrapperInstance) {
-    return Values.field(wrapperInstance, Type.INT_TYPE, "offset");
+  public static SimpleExpr offsetField(SimpleExpr wrapperInstance) {
+    return Expressions.field(wrapperInstance, Type.INT_TYPE, "offset");
   }
 
   public static Type wrapperType(Type valueType) {
@@ -91,4 +92,7 @@ public class Wrappers {
     throw new UnsupportedOperationException("No wrapper for type: " + valueType);
   }
 
+  public static WrapperType valueOf(Class<?> wrapperClass) {
+    return WrapperType.valueOf(Type.getType(wrapperClass));
+  }
 }

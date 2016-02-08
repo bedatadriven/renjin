@@ -2,19 +2,19 @@ package org.renjin.gcc.codegen.type.primitive;
 
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.var.Value;
-import org.renjin.gcc.codegen.var.Var;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.SimpleLValue;
 
 import javax.annotation.Nonnull;
 
 
-public class FieldValue implements Var {
+public class FieldValue implements SimpleLValue {
   
-  private Value instance;
+  private SimpleExpr instance;
   private String fieldName;
   private Type fieldType;
 
-  public FieldValue(Value instance, String fieldName, Type fieldType) {
+  public FieldValue(SimpleExpr instance, String fieldName, Type fieldType) {
     this.instance = instance;
     this.fieldName = fieldName;
     this.fieldType = fieldType;
@@ -33,7 +33,7 @@ public class FieldValue implements Var {
   }
 
   @Override
-  public void store(MethodGenerator mv, Value value) {
+  public void store(MethodGenerator mv, SimpleExpr value) {
     instance.load(mv);
     value.load(mv);
     mv.putfield(instance.getType().getInternalName(), fieldName, fieldType.getDescriptor());

@@ -4,55 +4,55 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.var.Value;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
 
 import javax.annotation.Nonnull;
 
 /**
  * Logical binary operator, such as TRUTH_OR, TRUTH_AND
  */
-public class LogicalOrGenerator implements Value {
+public class LogicalAnd implements SimpleExpr {
   
-  private Value x;
-  private Value y;
+  private SimpleExpr x;
+  private SimpleExpr y;
 
-  public LogicalOrGenerator(Value x, Value y) {
+  public LogicalAnd(SimpleExpr x, SimpleExpr y) {
     this.x = x;
     this.y = y;
   }
 
+
   @Nonnull
   @Override
   public Type getType() {
-    return Type.BOOLEAN_TYPE;
+    return x.getType();
   }
 
   @Override
   public void load(@Nonnull MethodGenerator mv) {
-    Label trueLabel = new Label();
+    Label falseLabel = new Label();
     Label exitLabel = new Label();
-    
+
+    // if x is false, then can jump right away to false
     x.load(mv);
-    
-    // if x is true, then can jump right away to true
-    jumpIfTrue(mv, trueLabel);
+    jumpIfFalse(mv, falseLabel);
 
     // Otherwise need to check y
     y.load(mv);
-    jumpIfTrue(mv, trueLabel);
-    
-    // FALSE: emit 0
-    mv.iconst(0);
-    mv.goTo(exitLabel);
+    jumpIfFalse(mv, falseLabel);
     
     // TRUE: emit 1
-    mv.mark(trueLabel);
     mv.iconst(1);
+    mv.goTo(exitLabel);
+    
+    // FALSE: emit 0
+    mv.mark(falseLabel);
+    mv.iconst(0);
     
     mv.mark(exitLabel);
   }
 
-  private void jumpIfTrue(MethodGenerator mv, Label trueLabel) {
-    mv.visitJumpInsn(Opcodes.IFNE, trueLabel);
+  private void jumpIfFalse(MethodGenerator mv, Label trueLabel) {
+    mv.visitJumpInsn(Opcodes.IFEQ, trueLabel);
   }
 }

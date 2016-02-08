@@ -3,7 +3,7 @@ package org.renjin.gcc.codegen.type.primitive.op;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.var.Value;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
 
 import javax.annotation.Nonnull;
 
@@ -11,12 +11,12 @@ import javax.annotation.Nonnull;
  * Determines whether {@code x} and {@code y} are "unordered", that is, 
  * if one or both arguments are NaN.
  */
-public class UnorderedExprGenerator implements Value {
+public class UnorderedExpr implements SimpleExpr {
   
-  private Value x;
-  private Value y;
+  private SimpleExpr x;
+  private SimpleExpr y;
 
-  public UnorderedExprGenerator(Value x, Value y) {
+  public UnorderedExpr(SimpleExpr x, SimpleExpr y) {
     this.x = x;
     this.y = y;
   }
@@ -54,7 +54,7 @@ public class UnorderedExprGenerator implements Value {
     mv.mark(exit);
   }
 
-  private void emitIsNaN(MethodGenerator mv, Value value) {
+  private void emitIsNaN(MethodGenerator mv, SimpleExpr value) {
     value.load(mv);
 
     switch (value.getType().getSort()) {

@@ -3,7 +3,7 @@ package org.renjin.gcc.codegen.type.fun;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.var.Value;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
 
 import javax.annotation.Nonnull;
 import java.lang.invoke.MethodHandle;
@@ -11,7 +11,7 @@ import java.lang.invoke.MethodHandle;
 /**
  * Emits the bytecode necessary to push a method handle onto the stack
  */
-public class FunctionRefGenerator implements Value {
+public class FunctionRefGenerator implements SimpleExpr {
 
   private Handle handle;
 

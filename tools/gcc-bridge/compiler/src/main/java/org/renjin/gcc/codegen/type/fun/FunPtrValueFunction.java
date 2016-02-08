@@ -1,10 +1,10 @@
 package org.renjin.gcc.codegen.type.fun;
 
 import org.objectweb.asm.Type;
-import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.expr.Expr;
+import org.renjin.gcc.codegen.expr.Expressions;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
-import org.renjin.gcc.codegen.var.Value;
-import org.renjin.gcc.codegen.var.Values;
 
 import java.lang.invoke.MethodHandle;
 import java.util.Collections;
@@ -39,12 +39,12 @@ public class FunPtrValueFunction implements ValueFunction {
   }
 
   @Override
-  public ExprGenerator dereference(Value array, Value offset) {
-    return Values.elementAt(array, offset);
+  public Expr dereference(SimpleExpr array, SimpleExpr offset) {
+    return Expressions.elementAt(array, offset);
   }
 
   @Override
-  public List<Value> getDefaultValue() {
+  public List<SimpleExpr> getDefaultValue() {
     return Collections.emptyList();
   }
 }

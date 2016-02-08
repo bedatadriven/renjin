@@ -6,6 +6,8 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.SimpleLValue;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -16,13 +18,13 @@ import java.util.List;
 public class LocalVarAllocator extends VarAllocator {
 
 
-  public static class LocalVar implements Var {
+  public static class LocalVar implements SimpleLValue {
     private String name;
     private int index;
     private Type type;
-    private Optional<Value> initialValue;
+    private Optional<SimpleExpr> initialValue;
 
-    public LocalVar(String name, int index, Type type, Optional<Value> value) {
+    public LocalVar(String name, int index, Type type, Optional<SimpleExpr> value) {
       this.name = name;
       this.index = index;
       this.type = type;
@@ -45,7 +47,7 @@ public class LocalVarAllocator extends VarAllocator {
     }
 
     @Override
-    public void store(MethodGenerator mv, Value value) {
+    public void store(MethodGenerator mv, SimpleExpr value) {
       value.load(mv);
       mv.visitVarInsn(type.getOpcode(Opcodes.ISTORE), index);
     }
@@ -61,15 +63,15 @@ public class LocalVarAllocator extends VarAllocator {
 
   @Override
   public LocalVar reserve(String name, Type type) {
-    return reserve(name, type, Optional.<Value>absent());
+    return reserve(name, type, Optional.<SimpleExpr>absent());
   }
 
   @Override
-  public LocalVar reserve(String name, Type type, Value initialValue) {
+  public LocalVar reserve(String name, Type type, SimpleExpr initialValue) {
     return reserve(name, type, Optional.of(initialValue));
   }
   
-  private LocalVar reserve(String name, Type type, Optional<Value> initialValue) {
+  private LocalVar reserve(String name, Type type, Optional<SimpleExpr> initialValue) {
     int index = slots;
     slots += type.getSize();
     LocalVar var = new LocalVar(name, index, type, initialValue);

@@ -4,10 +4,10 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.expr.Expr;
+import org.renjin.gcc.codegen.expr.Expressions;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
 import org.renjin.gcc.codegen.type.FieldStrategy;
-import org.renjin.gcc.codegen.var.Value;
-import org.renjin.gcc.codegen.var.Values;
 
 import java.util.List;
 
@@ -30,7 +30,7 @@ public class AddressableField extends FieldStrategy {
   }
 
   @Override
-  public void emitInstanceField(ClassVisitor cv) {
+  public void writeFields(ClassVisitor cv) {
     cv.visitField(Opcodes.ACC_PUBLIC, arrayField, arrayType.getDescriptor(), null, null);
     cv.visitField(Opcodes.ACC_PUBLIC, offsetField, "I", null, null);
   }
@@ -40,11 +40,11 @@ public class AddressableField extends FieldStrategy {
     
     // Reference value types like records and fat pointers may need
     // to initialize a value
-    List<Value> initialValues = valueFunction.getDefaultValue();
+    List<SimpleExpr> initialValues = valueFunction.getDefaultValue();
     
     // Allocate a unit array store the value
     // (for value types like complex, this might actually be several elements)
-    Value unitArray = Values.newArray(valueFunction.getValueType(), valueFunction.getElementLength(), initialValues);
+    SimpleExpr unitArray = Expressions.newArray(valueFunction.getValueType(), valueFunction.getElementLength(), initialValues);
 
     // Store this to the array field
     mv.visitVarInsn(Opcodes.ALOAD, 0);
@@ -53,9 +53,9 @@ public class AddressableField extends FieldStrategy {
   }
 
   @Override
-  public ExprGenerator memberExprGenerator(Value instance) {
-    Value array = Values.field(instance, arrayType, arrayField);
-    Value offset = Values.field(instance, Type.INT_TYPE, offsetField);
+  public Expr memberExprGenerator(SimpleExpr instance) {
+    SimpleExpr array = Expressions.field(instance, arrayType, arrayField);
+    SimpleExpr offset = Expressions.field(instance, Type.INT_TYPE, offsetField);
     
     return valueFunction.dereference(array, offset);
   }

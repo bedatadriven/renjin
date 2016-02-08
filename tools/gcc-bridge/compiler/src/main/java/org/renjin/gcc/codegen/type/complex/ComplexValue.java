@@ -2,23 +2,19 @@ package org.renjin.gcc.codegen.type.complex;
 
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.type.primitive.op.NegateGenerator;
-import org.renjin.gcc.codegen.var.LValue;
-import org.renjin.gcc.codegen.var.Value;
-import org.renjin.gcc.codegen.var.Values;
-import org.renjin.gcc.codegen.var.Var;
+import org.renjin.gcc.codegen.expr.*;
+import org.renjin.gcc.codegen.type.primitive.op.NegativeValue;
 
 
 /**
  * Complex numerical value
  */
-public class ComplexValue implements ExprGenerator, LValue<ComplexValue> {
-  private Value realValue;
-  private Value imaginaryValue;
+public class ComplexValue implements Expr, LValue<ComplexValue> {
+  private SimpleExpr realValue;
+  private SimpleExpr imaginaryValue;
   private Type componentType;
 
-  public ComplexValue(Value realValue, Value imaginaryValue) {
+  public ComplexValue(SimpleExpr realValue, SimpleExpr imaginaryValue) {
     this.realValue = realValue;
     this.imaginaryValue = imaginaryValue;
     
@@ -29,27 +25,27 @@ public class ComplexValue implements ExprGenerator, LValue<ComplexValue> {
     this.componentType = realValue.getType();
   }
 
-  public ComplexValue(Value realValue) {
+  public ComplexValue(SimpleExpr realValue) {
     this.realValue = realValue;
-    this.imaginaryValue = Values.zero(realValue.getType());
+    this.imaginaryValue = Expressions.zero(realValue.getType());
   }
 
   public Type getComponentType() {
     return componentType;
   }
 
-  public Value getRealValue() {
+  public SimpleExpr getRealValue() {
     return realValue;
   }
 
-  public Value getImaginaryValue() {
+  public SimpleExpr getImaginaryValue() {
     return imaginaryValue;
   }
   
   @Override
   public void store(MethodGenerator mv, ComplexValue complexValue) {
-    ((Var) realValue).store(mv, complexValue.getRealValue());
-    ((Var) imaginaryValue).store(mv, complexValue.getImaginaryValue());
+    ((SimpleLValue) realValue).store(mv, complexValue.getRealValue());
+    ((SimpleLValue) imaginaryValue).store(mv, complexValue.getImaginaryValue());
   }
 
   /**
@@ -59,7 +55,7 @@ public class ComplexValue implements ExprGenerator, LValue<ComplexValue> {
    * For example, the complex conjugate of 3 + 4i is 3 − 4i.
    */
   public ComplexValue conjugate() {
-    return new ComplexValue(realValue, new NegateGenerator(imaginaryValue));
+    return new ComplexValue(realValue, new NegativeValue(imaginaryValue));
   }
 
 }

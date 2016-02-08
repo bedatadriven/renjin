@@ -5,15 +5,11 @@ import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.RecordClassGenerator;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
-import org.renjin.gcc.codegen.expr.AddressableValue;
-import org.renjin.gcc.codegen.expr.ExprFactory;
-import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.AddressableField;
 import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrStrategy;
-import org.renjin.gcc.codegen.var.Value;
-import org.renjin.gcc.codegen.var.Var;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
@@ -30,7 +26,7 @@ import java.util.Map;
 /**
  * Strategy for variables and values of type {@code GimpleRecordType} that employs JVM classes
  */
-public class RecordClassTypeStrategy extends RecordTypeStrategy<Value> {
+public class RecordClassTypeStrategy extends RecordTypeStrategy<SimpleExpr> {
 
   private Type jvmType;
   private boolean provided;
@@ -84,15 +80,20 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<Value> {
 
   @Override
   public final ParamStrategy getParamStrategy() {
-    return new ValueParamStrategy(jvmType);
+    return new SimpleParamStrategy(jvmType);
   }
 
   @Override
-  public Value varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
-    Var instance = allocator.reserve(decl.getName(), jvmType, new RecordConstructor(this));
+  public ReturnStrategy getReturnStrategy() {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public SimpleExpr variable(GimpleVarDecl decl, VarAllocator allocator) {
+    SimpleLValue instance = allocator.reserve(decl.getName(), jvmType, new RecordConstructor(this));
     if(isUnitPointer()) {
       // If we are using the RecordUnitPtr strategy, then the record value is also it's address
-      return new AddressableValue(instance, instance);
+      return new SimpleAddressableExpr(instance, instance);
     } else {
       return instance;
     }
@@ -100,7 +101,7 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<Value> {
 
   @Override
   public FieldStrategy fieldGenerator(String className, String fieldName) {
-    return new RecordFieldStrategy(className, fieldName, this);
+    return new RecordFieldStrategy(this, fieldName);
   }
 
   @Override
@@ -108,16 +109,16 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<Value> {
     return new AddressableField(getJvmType(), fieldName, new RecordValueFunction(this));
   }
 
-  public ExprGenerator voidCast(ExprGenerator voidPtr) {
+  public Expr voidCast(Expr voidPtr) {
     //return new VoidCastExprGenerator(voidPtr, getRecordType(), jvmType);
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public Value constructorExpr(ExprFactory exprFactory, GimpleConstructor value) {
-    Map<GimpleFieldRef, ExprGenerator> fields = Maps.newHashMap();
+  public SimpleExpr constructorExpr(ExprFactory exprFactory, GimpleConstructor value) {
+    Map<GimpleFieldRef, Expr> fields = Maps.newHashMap();
     for (GimpleConstructor.Element element : value.getElements()) {
-      ExprGenerator fieldValue = exprFactory.findGenerator(element.getValue());
+      Expr fieldValue = exprFactory.findGenerator(element.getValue());
       fields.put((GimpleFieldRef) element.getField(), fieldValue);
     }
     return new RecordConstructor(this, fields);
@@ -136,7 +137,7 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<Value> {
 
 
   @Override
-  public ExprGenerator memberOf(Value instance, GimpleFieldRef fieldRef) {
+  public Expr memberOf(SimpleExpr instance, GimpleFieldRef fieldRef) {
     if(fields == null) {
       throw new IllegalStateException("Fields map is not yet initialized.");
     }
@@ -149,12 +150,12 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<Value> {
   }
 
   @Override
-  public TypeStrategy arrayOf(GimpleArrayType arrayType) {
+  public ArrayTypeStrategy arrayOf(GimpleArrayType arrayType) {
     return new ArrayTypeStrategy(arrayType, new RecordValueFunction(this));
   }
 
   @Override
-  public TypeStrategy pointerTo() {
+  public PointerTypeStrategy pointerTo() {
     if(unitPointer) {
       return new RecordUnitPtrStrategy(this);
     } else {

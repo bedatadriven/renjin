@@ -1,10 +1,10 @@
 package org.renjin.gcc.codegen.type.record;
 
 import org.objectweb.asm.ClassVisitor;
-import org.renjin.gcc.InternalCompilerException;
-import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.expr.Expr;
+import org.renjin.gcc.codegen.expr.Expressions;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
 import org.renjin.gcc.codegen.type.FieldStrategy;
-import org.renjin.gcc.codegen.var.Value;
 
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 
@@ -12,18 +12,16 @@ import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
  * Generates a field with a record type
  */
 public class RecordFieldStrategy extends FieldStrategy {
-  private String className;
   private String fieldName;
   private RecordClassTypeStrategy strategy;
 
-  public RecordFieldStrategy(String className, String fieldName, RecordClassTypeStrategy strategy) {
-    this.className = className;
+  public RecordFieldStrategy(RecordClassTypeStrategy strategy, String fieldName) {
     this.fieldName = fieldName;
     this.strategy = strategy;
   }
 
   @Override
-  public void emitInstanceField(ClassVisitor cv) {
+  public void writeFields(ClassVisitor cv) {
     emitField(ACC_PUBLIC, cv);
   }
 
@@ -32,8 +30,7 @@ public class RecordFieldStrategy extends FieldStrategy {
   }
 
   @Override
-  public ExprGenerator memberExprGenerator(Value instanceGenerator) {
-    throw new InternalCompilerException("todo");
+  public Expr memberExprGenerator(SimpleExpr instance) {
+    return Expressions.field(instance, strategy.getJvmType(), fieldName);
   }
-
 }

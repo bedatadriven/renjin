@@ -2,19 +2,19 @@ package org.renjin.gcc.codegen.type.primitive.op;
 
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.var.Value;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
 import org.renjin.gcc.gimple.GimpleOp;
 
 import javax.annotation.Nonnull;
 
 
-public class MinMaxGenerator implements Value {
+public class MinMaxValue implements SimpleExpr {
 
   private GimpleOp op;
-  private Value x;
-  private Value y;
+  private SimpleExpr x;
+  private SimpleExpr y;
 
-  public MinMaxGenerator(GimpleOp op, Value x, Value y) {
+  public MinMaxValue(GimpleOp op, SimpleExpr x, SimpleExpr y) {
     this.op = op;
     this.x = x;
     this.y = y;

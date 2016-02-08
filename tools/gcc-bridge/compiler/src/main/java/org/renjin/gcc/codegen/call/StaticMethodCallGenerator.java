@@ -11,7 +11,7 @@
 //import org.renjin.gcc.codegen.type.ReturnStrategy;
 //import org.renjin.gcc.codegen.type.TypeOracle;
 //import org.renjin.gcc.codegen.type.primitive.ConstantValue;
-//import org.renjin.gcc.codegen.var.LValue;
+//import org.renjin.gcc.codegen.expr.LValue;
 //import org.renjin.gcc.codegen.var.Values;
 //import org.renjin.gcc.gimple.expr.GimpleExpr;
 //import org.renjin.gcc.gimple.statement.GimpleCall;

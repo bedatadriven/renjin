@@ -13,15 +13,11 @@ import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.call.InvocationStrategy;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
-import org.renjin.gcc.codegen.expr.ExprFactory;
-import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.type.ReturnStrategy;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.TypeStrategy;
-import org.renjin.gcc.codegen.var.LValue;
-import org.renjin.gcc.codegen.var.Value;
-import org.renjin.gcc.codegen.var.Var;
 import org.renjin.gcc.gimple.*;
 import org.renjin.gcc.gimple.statement.*;
 import org.renjin.gcc.gimple.type.GimpleVoidType;
@@ -137,10 +133,10 @@ public class FunctionGenerator implements InvocationStrategy {
   private void emitParamInitialization() {
     // first we need to map the parameters to their indexes in the local variable table
     int numParameters = function.getParameters().size();
-    List<List<Var>> paramIndexes = new ArrayList<>();
+    List<List<SimpleLValue>> paramIndexes = new ArrayList<>();
 
     for (int i = 0; i < numParameters; i++) {
-      List<Var> paramVars = new ArrayList<>();
+      List<SimpleLValue> paramVars = new ArrayList<>();
       GimpleParameter param = function.getParameters().get(i);
       ParamStrategy paramStrategy = params.get(param);
       List<Type> parameterTypes = paramStrategy.getParameterTypes();
@@ -158,8 +154,8 @@ public class FunctionGenerator implements InvocationStrategy {
     for (int i = 0; i < numParameters; i++) {
       GimpleParameter param = function.getParameters().get(i);
       ParamStrategy generator = params.get(param);
-      ExprGenerator exprGenerator = generator.emitInitialization(mv, param, paramIndexes.get(i), mv.getLocalVarAllocator());
-      symbolTable.addVariable(param.getId(), exprGenerator);
+      Expr expr = generator.emitInitialization(mv, param, paramIndexes.get(i), mv.getLocalVarAllocator());
+      symbolTable.addVariable(param.getId(), expr);
     }
   }
 
@@ -168,7 +164,7 @@ public class FunctionGenerator implements InvocationStrategy {
     mv.getLocalVarAllocator().initializeVariables(mv);
     
     for (GimpleVarDecl decl : function.getVariableDeclarations()) {
-      LValue<ExprGenerator> lhs = (LValue<ExprGenerator>) symbolTable.getVariable(decl);
+      LValue<Expr> lhs = (LValue<Expr>) symbolTable.getVariable(decl);
       if(decl.getValue() != null) {
         lhs.store(mv, exprFactory.findGenerator(decl.getValue()));
       }
@@ -184,9 +180,9 @@ public class FunctionGenerator implements InvocationStrategy {
     for (GimpleVarDecl varDecl : function.getVariableDeclarations()) {
       
       try {
-        ExprGenerator generator;
+        Expr generator;
         TypeStrategy factory = typeOracle.forType(varDecl.getType());
-        generator = factory.varGenerator(varDecl, mv.getLocalVarAllocator());
+        generator = factory.variable(varDecl, mv.getLocalVarAllocator());
 
         symbolTable.addVariable(varDecl.getId(), generator);
       } catch (Exception e) {
@@ -229,7 +225,7 @@ public class FunctionGenerator implements InvocationStrategy {
   }
 
   private void emitSwitch(GimpleSwitch ins) {
-    Value valueGenerator = exprFactory.findValueGenerator(ins.getValue());
+    SimpleExpr valueGenerator = exprFactory.findValueGenerator(ins.getValue());
     valueGenerator.load(mv);
     Label defaultLabel = labels.of(ins.getDefaultCase().getBasicBlockIndex());
 
@@ -251,8 +247,8 @@ public class FunctionGenerator implements InvocationStrategy {
 
   private void emitAssignment(GimpleAssignment ins) {
     try {
-      ExprGenerator lhs = exprFactory.findGenerator(ins.getLHS());
-      ExprGenerator rhs = exprFactory.findGenerator(ins.getOperator(), ins.getOperands(), ins.getLHS().getType());
+      Expr lhs = exprFactory.findGenerator(ins.getLHS());
+      Expr rhs = exprFactory.findGenerator(ins.getOperator(), ins.getOperands(), ins.getLHS().getType());
       
       if(!(lhs instanceof LValue)) {
         throw new InternalCompilerException(ins.getLHS() + " is not an LHS expression: " + lhs.getClass().getName());
@@ -286,11 +282,11 @@ public class FunctionGenerator implements InvocationStrategy {
     if(function.getReturnType() instanceof GimpleVoidType) {
       mv.areturn(Type.VOID_TYPE);
     } else {
-      Value returnValue;
+      SimpleExpr returnValue;
       if(ins.getValue() == null) {
         returnValue = returnStrategy.getDefaultReturnValue();
       } else {
-        ExprGenerator returnExpr = exprFactory.findGenerator(ins.getValue(), function.getReturnType());
+        Expr returnExpr = exprFactory.findGenerator(ins.getValue(), function.getReturnType());
         returnValue = returnStrategy.marshall(returnExpr);
       }
       returnValue.load(mv);

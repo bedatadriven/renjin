@@ -2,7 +2,7 @@ package org.renjin.gcc.codegen.fatptr;
 
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.var.Value;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
 
 import javax.annotation.Nonnull;
 
@@ -11,13 +11,13 @@ import static org.objectweb.asm.Type.INT_TYPE;
 /**
  * Implementation of memcpy() for {@code FatPtr}s
  */
-public class FatPtrMemCmp implements Value {
+public class FatPtrMemCmp implements SimpleExpr {
 
   private FatPtrExpr p1;
   private FatPtrExpr p2;
-  private Value n;
+  private SimpleExpr n;
 
-  public FatPtrMemCmp(FatPtrExpr p1, FatPtrExpr p2, Value n) {
+  public FatPtrMemCmp(FatPtrExpr p1, FatPtrExpr p2, SimpleExpr n) {
     this.p1 = p1;
     this.p2 = p2;
     this.n = n;

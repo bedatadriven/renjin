@@ -1,7 +1,7 @@
 package org.renjin.gcc.codegen.type.complex;
 
-import org.renjin.gcc.codegen.var.Value;
-import org.renjin.gcc.codegen.var.Values;
+import org.renjin.gcc.codegen.expr.Expressions;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
 
 /**
  * Operations on complex values
@@ -9,26 +9,26 @@ import org.renjin.gcc.codegen.var.Values;
 public class ComplexValues {
   
   public static ComplexValue add(ComplexValue x, ComplexValue y) {
-    Value real = Values.sum(x.getRealValue(), y.getRealValue());
-    Value im = Values.sum(x.getImaginaryValue(), y.getImaginaryValue());
+    SimpleExpr real = Expressions.sum(x.getRealValue(), y.getRealValue());
+    SimpleExpr im = Expressions.sum(x.getImaginaryValue(), y.getImaginaryValue());
     return new ComplexValue(real, im);
   }
   
   public static ComplexValue subtract(ComplexValue x, ComplexValue y) {
-    Value real = Values.difference(x.getRealValue(), y.getRealValue());
-    Value im = Values.difference(x.getImaginaryValue(), y.getImaginaryValue());
+    SimpleExpr real = Expressions.difference(x.getRealValue(), y.getRealValue());
+    SimpleExpr im = Expressions.difference(x.getImaginaryValue(), y.getImaginaryValue());
     return new ComplexValue(real, im);
   }
   
   public static ComplexValue multiply(ComplexValue x, ComplexValue y) {
     //(a + bi)(c + di) = (ac - bd) + (bc + ad)i
-    Value a = x.getRealValue();
-    Value b = x.getImaginaryValue();
-    Value c = y.getRealValue();
-    Value d = y.getImaginaryValue();
+    SimpleExpr a = x.getRealValue();
+    SimpleExpr b = x.getImaginaryValue();
+    SimpleExpr c = y.getRealValue();
+    SimpleExpr d = y.getImaginaryValue();
     
-    Value real = Values.difference(Values.product(a, c), Values.product(b, d));
-    Value im = Values.sum(Values.product(b, c), Values.product(a, d));
+    SimpleExpr real = Expressions.difference(Expressions.product(a, c), Expressions.product(b, d));
+    SimpleExpr im = Expressions.sum(Expressions.product(b, c), Expressions.product(a, d));
     
     return new ComplexValue(real, im);
   }

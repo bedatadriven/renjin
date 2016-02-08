@@ -1,26 +1,56 @@
 package org.renjin.gcc.codegen.type.voidt;
 
-import org.renjin.gcc.InternalCompilerException;
-import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.PtrExpr;
-import org.renjin.gcc.codegen.type.ReturnStrategy;
-import org.renjin.gcc.codegen.type.TypeStrategy;
-import org.renjin.gcc.codegen.var.Value;
+import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
+import org.renjin.gcc.codegen.expr.ExprFactory;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.type.*;
+import org.renjin.gcc.codegen.var.VarAllocator;
+import org.renjin.gcc.gimple.GimpleVarDecl;
+import org.renjin.gcc.gimple.expr.GimpleConstructor;
+import org.renjin.gcc.gimple.type.GimpleArrayType;
 
 /**
  * Creates generators for void value types. Only used for return types.
  */
-public class VoidTypeStrategy extends TypeStrategy {
+public class VoidTypeStrategy implements TypeStrategy<SimpleExpr> {
 
   @Override
   public ReturnStrategy getReturnStrategy() {
     return new VoidReturnStrategy();
   }
-
-
+  
   @Override
-  public PtrExpr malloc(MethodGenerator mv, Value length) {
-    throw new InternalCompilerException("Cannot allocate VOID type");
+  public ParamStrategy getParamStrategy() {
+    throw new UnsupportedOperationException("parameters cannot have 'void' type");
   }
 
+  @Override
+  public SimpleExpr variable(GimpleVarDecl decl, VarAllocator allocator) {
+    throw new UnsupportedOperationException("variables cannot have 'void' type");
+  }
+
+  @Override
+  public SimpleExpr constructorExpr(ExprFactory exprFactory, GimpleConstructor value) {
+    throw new UnsupportedOperationException("constructors cannot have 'void' type");
+  }
+
+  @Override
+  public FieldStrategy fieldGenerator(String className, String fieldName) {
+    throw new UnsupportedOperationException("fields cannot have 'void' type");
+  }
+
+  @Override
+  public FieldStrategy addressableFieldGenerator(String className, String fieldName) {
+    throw new UnsupportedOperationException("fields cannot have 'void' type");
+  }
+
+  @Override
+  public PointerTypeStrategy pointerTo() {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public ArrayTypeStrategy arrayOf(GimpleArrayType arrayType) {
+    throw new UnsupportedOperationException("TODO");
+  }
 }

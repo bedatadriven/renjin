@@ -5,6 +5,8 @@ import com.google.common.collect.Maps;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.WrapperType;
+import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
+import org.renjin.gcc.codegen.fatptr.Wrappers;
 import org.renjin.gcc.codegen.type.complex.ComplexTypeStrategy;
 import org.renjin.gcc.codegen.type.fun.FunTypeStrategy;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveTypeStrategy;
@@ -50,6 +52,22 @@ public class TypeOracle {
     return recordTypes.values();
   }
 
+  public PointerTypeStrategy forPointerType(GimpleType type) {
+    if(!(type instanceof GimpleIndirectType)) {
+      throw new IllegalArgumentException("not a pointer type: " + type);
+    }
+    
+    return forType(type.getBaseType()).pointerTo();
+  }
+
+  public ArrayTypeStrategy forArrayType(GimpleType type) {
+    if(!(type instanceof GimpleArrayType)) {
+      throw new IllegalArgumentException("not an array type: " + type);
+    }
+    return (ArrayTypeStrategy) forType(type);
+
+  }
+  
   public TypeStrategy forType(GimpleType type) {
     if(type instanceof GimplePrimitiveType) {
       return new PrimitiveTypeStrategy((GimplePrimitiveType) type);
@@ -119,10 +137,10 @@ public class TypeOracle {
       return new VoidReturnStrategy();
 
     } else if(returnType.isPrimitive()) {
-      return new ValueReturnStrategy(Type.getType(returnType));
+      return new SimpleReturnStrategy(Type.getType(returnType));
 
     } else if(WrapperType.is(returnType)) {
-      WrapperType wrapperType = WrapperType.valueOf(returnType);
+      WrapperType wrapperType = Wrappers.valueOf(returnType);
       if(wrapperType.equals(WrapperType.OBJECT_PTR)) {
         // Signature should be in the form ObjectPtr<BaseT>
         // Use generics to get the base type 
@@ -132,7 +150,7 @@ public class TypeOracle {
         if(baseType.equals(ObjectPtr.class)) {
           throw new UnsupportedOperationException(genericReturnType.toString());
         } else if(WrapperType.is(baseType)) {
-          WrapperType innerWrapper = WrapperType.valueOf(baseType);
+          WrapperType innerWrapper = Wrappers.valueOf(baseType);
           GimplePointerType pointerPointerType = innerWrapper.getGimpleType().pointerTo();
           //return new PrimitivePtrPtrReturnStrategy(pointerPointerType);
           throw new UnsupportedOperationException();
@@ -182,14 +200,14 @@ public class TypeOracle {
         index++;
         
       } else if (WrapperType.is(paramClass) && !paramClass.equals(CharPtr.class)) {
-        WrapperType wrapperType = WrapperType.valueOf(paramClass);
+        WrapperType wrapperType = Wrappers.valueOf(paramClass);
         
         // TODO: generators.add(new PrimitivePtrParamStrategy(wrapperType.getGimpleType()));
 //        index++;
         throw new UnsupportedOperationException("TODO");
 
       } else if (paramClass.isPrimitive()) {
-        generators.add(new ValueParamStrategy(Type.getType(paramClass)));
+        generators.add(new SimpleParamStrategy(Type.getType(paramClass)));
         index++;
 
       } else if (paramClass.equals(String.class)) {

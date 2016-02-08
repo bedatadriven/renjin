@@ -4,24 +4,22 @@ import com.google.common.base.Preconditions;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.Addressable;
-import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.type.primitive.ConstantValue;
-import org.renjin.gcc.codegen.var.LValue;
-import org.renjin.gcc.codegen.var.Value;
-import org.renjin.gcc.codegen.var.Values;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+/**
+ * An expression generator that uses a combination of an array plus an offset to represent a pointer. 
+ */
+public final class FatPtrExpr implements Expr, LValue<FatPtrExpr>, Addressable {
 
-public class FatPtrExpr implements ExprGenerator, LValue<FatPtrExpr>, Addressable {
+  private SimpleExpr array;
+  private SimpleExpr offset;
+  private Expr address;
 
-  private Value array;
-  private Value offset;
-  private ExprGenerator address;
-
-  public FatPtrExpr(@Nullable ExprGenerator address, @Nonnull Value array, @Nonnull Value offset) {
+  public FatPtrExpr(@Nullable Expr address, @Nonnull SimpleExpr array, @Nonnull SimpleExpr offset) {
     Preconditions.checkNotNull(array, "array");
     Preconditions.checkNotNull(offset, "offset");
 
@@ -30,21 +28,21 @@ public class FatPtrExpr implements ExprGenerator, LValue<FatPtrExpr>, Addressabl
     this.offset = offset;
   }
 
-  public FatPtrExpr(@Nonnull Value array, @Nonnull Value offset) {
+  public FatPtrExpr(@Nonnull SimpleExpr array, @Nonnull SimpleExpr offset) {
     this(null, array, offset);
   }
   
-  public FatPtrExpr(Value array) {
-    this(array, Values.zero());
+  public FatPtrExpr(SimpleExpr array) {
+    this(array, Expressions.zero());
   }
 
   @Nonnull
-  public Value getArray() {
+  public SimpleExpr getArray() {
     return array;
   }
 
   @Nonnull
-  public Value getOffset() {
+  public SimpleExpr getOffset() {
     return offset;
   }
 
@@ -60,7 +58,7 @@ public class FatPtrExpr implements ExprGenerator, LValue<FatPtrExpr>, Addressabl
     if(!(array instanceof LValue)) {
       throw new InternalCompilerException(array + " is not an LValue");
     }
-    ((LValue<Value>) array).store(mv, rhs.getArray());
+    ((LValue<SimpleExpr>) array).store(mv, rhs.getArray());
 
     // Normally, the offset must also be an LValue, but the exception 
     // is that if both the lhs and rhs are constants, and they are equal
@@ -74,21 +72,21 @@ public class FatPtrExpr implements ExprGenerator, LValue<FatPtrExpr>, Addressabl
     if(!(offset instanceof LValue)) {
       throw new InternalCompilerException(offset + " offset is not an Lvalue");
     }
-    ((LValue<Value>) offset).store(mv, rhs.getOffset());
+    ((LValue<SimpleExpr>) offset).store(mv, rhs.getOffset());
   }
 
 
   public static FatPtrExpr nullPtr(ValueFunction valueFunction) {
     Type arrayType = Wrappers.valueArrayType(valueFunction.getValueType());
-    Value nullArray = Values.nullRef(arrayType);
+    SimpleExpr nullArray = Expressions.nullRef(arrayType);
     
     return new FatPtrExpr(nullArray);
   }
 
-  public Value wrap() {
+  public SimpleExpr wrap() {
     final Type wrapperType = Wrappers.wrapperType(getValueType());
     
-    return new Value() {
+    return new SimpleExpr() {
       @Nonnull
       @Override
       public Type getType() {
@@ -107,7 +105,7 @@ public class FatPtrExpr implements ExprGenerator, LValue<FatPtrExpr>, Addressabl
   }
 
   @Override
-  public ExprGenerator addressOf() {
+  public Expr addressOf() {
     if(address == null) {
       throw new UnsupportedOperationException("Not addressable");
     }

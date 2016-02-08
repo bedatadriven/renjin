@@ -4,10 +4,10 @@ import com.google.common.collect.Lists;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.expr.Expressions;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
 import org.renjin.gcc.codegen.type.primitive.ConstantValue;
 import org.renjin.gcc.codegen.var.LocalVarAllocator;
-import org.renjin.gcc.codegen.var.Value;
-import org.renjin.gcc.codegen.var.Values;
 
 import java.util.List;
 
@@ -20,16 +20,16 @@ public final class FatPtrMalloc {
   
   private FatPtrMalloc() {}
 
-  public static FatPtrExpr alloc(MethodGenerator mv, ValueFunction valueFunction, Value length) {
+  public static FatPtrExpr alloc(MethodGenerator mv, ValueFunction valueFunction, SimpleExpr length) {
     
-    List<Value> initialValues = ValueFunctions.getConstructorsChecked(valueFunction);
-    Value totalLength = Values.product(length, valueFunction.getElementLength());
+    List<SimpleExpr> initialValues = ValueFunctions.getConstructorsChecked(valueFunction);
+    SimpleExpr totalLength = Expressions.product(length, valueFunction.getElementLength());
 
     // If the values don't require any initialization (for example, an array of 
     // double is initialized by the JVM to zeros)
     // Then we can just return a new array expression
     if(initialValues.isEmpty()) {
-      Value array = Values.newArray(valueFunction.getValueType(), totalLength);
+      SimpleExpr array = Expressions.newArray(valueFunction.getValueType(), totalLength);
 
       return new FatPtrExpr(array);
     }
@@ -41,11 +41,11 @@ public final class FatPtrMalloc {
       ConstantValue constantLength = (ConstantValue) length;
       
       if(constantLength.getIntValue() <= MAX_UNROLL_COUNT) {
-        List<Value> arrayValues = Lists.newArrayList();
+        List<SimpleExpr> arrayValues = Lists.newArrayList();
         for(int i=0;i<constantLength.getIntValue();++i) {
           arrayValues.addAll(initialValues);
         }
-        return new FatPtrExpr(Values.newArray(valueFunction.getValueType(), arrayValues));
+        return new FatPtrExpr(Expressions.newArray(valueFunction.getValueType(), arrayValues));
       }
     } 
     
@@ -74,7 +74,7 @@ public final class FatPtrMalloc {
 
     // Initialize the values
     mv.mark(loopHead);
-    for (Value initialValue : initialValues) {
+    for (SimpleExpr initialValue : initialValues) {
       array.load(mv);
       counter.load(mv);
       initialValues.get(0).load(mv);

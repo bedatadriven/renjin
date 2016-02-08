@@ -1,4 +1,4 @@
-package org.renjin.gcc.codegen.var;
+package org.renjin.gcc.codegen.expr;
 
 import com.google.common.base.Preconditions;
 import org.objectweb.asm.Type;
@@ -14,24 +14,24 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Functions to create value instances
+ * Static utility methods pertaining to create and compose {@link Expr}s
  */
-public class Values {
+public class Expressions {
 
-  public static Value newArray(final Type componentType, final int length) {
+  public static SimpleExpr newArray(final Type componentType, final int length) {
     return newArray(componentType, constantInt(length));
   }
 
-  public static Value newArray(final WrapperType componentType, final int length) {
+  public static SimpleExpr newArray(final WrapperType componentType, final int length) {
     return newArray(componentType.getWrapperType(), length);
   }
 
-  public static Value newArray(Class<?> componentClass, int length) {
+  public static SimpleExpr newArray(Class<?> componentClass, int length) {
     return newArray(Type.getType(componentClass), length);
   }
   
-  public static Value newArray(final Type componentType, final Value length) {
-    return new Value() {
+  public static SimpleExpr newArray(final Type componentType, final SimpleExpr length) {
+    return new SimpleExpr() {
       @Nonnull
       @Override
       public Type getType() {
@@ -45,23 +45,21 @@ public class Values {
       }
     };
   }
+  
+  public static SimpleExpr newArray(SimpleExpr value, final SimpleExpr... moreValues) {
 
-
-  public static Value newArray(Value value, final Value... moreValues) {
-
-    List<Value> values = new ArrayList<>();
+    List<SimpleExpr> values = new ArrayList<>();
     values.add(value);
     values.addAll(Arrays.asList(moreValues));
       
     return newArray(value.getType(), values);
   }
 
-
-  public static Value newArray(final Type componentType, final List<Value> values) {
+  public static SimpleExpr newArray(final Type componentType, final List<SimpleExpr> values) {
     return newArray(componentType, values.size(), values);
   }
 
-  public static Value newArray(final Type componentType, final int arrayLength, final List<Value> values) {
+  public static SimpleExpr newArray(final Type componentType, final int arrayLength, final List<SimpleExpr> values) {
     Preconditions.checkNotNull(componentType, "componentType");
     
     if(values.size() > arrayLength) {
@@ -81,7 +79,7 @@ public class Values {
       }
     }
 
-    return new Value() {
+    return new SimpleExpr() {
       @Nonnull
       @Override
       public Type getType() {
@@ -101,14 +99,17 @@ public class Values {
       }
     };
   }
-  
-  
 
-  public static Value elementAt(final Value array, final Value offset) {
+
+  public static SimpleExpr elementAt(SimpleExpr array, final int offset) {
+    return elementAt(array, constantInt(offset));
+  }
+
+  public static SimpleExpr elementAt(final SimpleExpr array, final SimpleExpr offset) {
     checkType("array", array, Type.ARRAY);
     checkType("offset", offset, Type.INT_TYPE);
     
-    return new Var() {
+    return new SimpleLValue() {
 
       @Nonnull
       @Override
@@ -124,7 +125,7 @@ public class Values {
       }
 
       @Override
-      public void store(MethodGenerator mv, Value value) {
+      public void store(MethodGenerator mv, SimpleExpr value) {
         array.load(mv);
         offset.load(mv);
         value.load(mv);
@@ -132,14 +133,9 @@ public class Values {
       }
     };
   }
-  
-  public static Value elementAt(Value array, final int offset) {
-    return elementAt(array, constantInt(offset));
-  }
 
-
-  public static Value nullRef(final Type type) {
-    return new Value() {
+  public static SimpleExpr nullRef(final Type type) {
+    return new SimpleExpr() {
       @Nonnull
       @Override
       public Type getType() {
@@ -153,27 +149,27 @@ public class Values {
     };
   }
 
-  public static Value constantInt(final int value) {
+  public static SimpleExpr constantInt(final int value) {
     return new ConstantValue(Type.INT_TYPE, value);
   }
 
-  public static Value zero() {
+  public static SimpleExpr zero() {
     return constantInt(0);
   }
 
-  public static Value zero(final Type type) {
+  public static SimpleExpr zero(final Type type) {
     return new ConstantValue(type, 0);
   }
 
-  public static Value sum(final Value x, final Value y) {
+  public static SimpleExpr sum(final SimpleExpr x, final SimpleExpr y) {
     return new PrimitiveBinOpGenerator(GimpleOp.PLUS_EXPR, x, y);
   }
 
-  public static Value difference(Value x, Value y) {
+  public static SimpleExpr difference(SimpleExpr x, SimpleExpr y) {
     return new PrimitiveBinOpGenerator(GimpleOp.MINUS_EXPR, x, y);
   }
 
-  public static Value difference(Value x, int y) {
+  public static SimpleExpr difference(SimpleExpr x, int y) {
     if(y == 0) {
       return x;
     } else {
@@ -181,11 +177,11 @@ public class Values {
     }
   }
 
-  public static Value product(Value x, Value y) {
+  public static SimpleExpr product(SimpleExpr x, SimpleExpr y) {
     return new PrimitiveBinOpGenerator(GimpleOp.MULT_EXPR, x, y);
   }
   
-  public static Value product(Value x, int y) {
+  public static SimpleExpr product(SimpleExpr x, int y) {
     Preconditions.checkArgument(x.getType().equals(Type.INT_TYPE));
     
     if(y == 0) {
@@ -197,23 +193,20 @@ public class Values {
     }
   }
 
-  public static Value divide(Value x, Value y) {
+  public static SimpleExpr divide(SimpleExpr x, SimpleExpr y) {
     return new PrimitiveBinOpGenerator(GimpleOp.EXACT_DIV_EXPR, x, y);
   }
 
-  public static Value divide(Value size, int divisor) {
+  public static SimpleExpr divide(SimpleExpr size, int divisor) {
     Preconditions.checkArgument(size.getType().equals(Type.INT_TYPE));
 
     return divide(size, constantInt(divisor));
   }
 
-
-  public static Value field(final Value instance, final Type fieldType, final String fieldName) {
+  public static SimpleExpr field(final SimpleExpr instance, final Type fieldType, final String fieldName) {
     checkType("instance", instance, Type.OBJECT);
     
-    return new Var() {
-
-
+    return new SimpleLValue() {
       @Nonnull
       @Override
       public Type getType() {
@@ -227,7 +220,7 @@ public class Values {
       }
 
       @Override
-      public void store(MethodGenerator mv, Value value) {
+      public void store(MethodGenerator mv, SimpleExpr value) {
         instance.load(mv);
         value.load(mv);
         mv.putfield(instance.getType().getInternalName(), fieldName, fieldType.getDescriptor());
@@ -235,19 +228,19 @@ public class Values {
     };
   }
   
-  private static void checkType(String argName, Value value, int expectedSort) {
+  private static void checkType(String argName, SimpleExpr value, int expectedSort) {
     if(value.getType().getSort() != expectedSort) {
       throw new IllegalArgumentException(String.format("Illegal type for %s: %s", argName, value.getType()));
     }
   }
-  private static void checkType(String argName, Value value, Type expectedType) {
+  private static void checkType(String argName, SimpleExpr value, Type expectedType) {
     if(!value.getType().equals(expectedType)) {
       throw new IllegalArgumentException(String.format("Illegal type %s for %s: Expected %s",
           value.getType(), argName, expectedType));
     }
   }
 
-  public static Value cast(final Value object, final Type type) {
+  public static SimpleExpr cast(final SimpleExpr object, final Type type) {
     
     // Can we reduce this to a NOOP ?
     if(object.getType().equals(type)) {
@@ -256,7 +249,7 @@ public class Values {
     // Verify that this is in the realm of possibility
     checkCast(object.getType(), type);
     
-    return new Var() {
+    return new SimpleLValue() {
 
       @Nonnull
       @Override
@@ -272,7 +265,7 @@ public class Values {
       
       @Override
       @SuppressWarnings("unchecked")
-      public void store(MethodGenerator mv, Value value) {
+      public void store(MethodGenerator mv, SimpleExpr value) {
         if(!(object instanceof LValue)) {
           throw new UnsupportedOperationException();
         }
@@ -296,8 +289,8 @@ public class Values {
     }
   }
 
-  public static Value voidValue() {
-    return new Value() {
+  public static SimpleExpr voidValue() {
+    return new SimpleExpr() {
       @Nonnull
       @Override
       public Type getType() {
@@ -311,8 +304,8 @@ public class Values {
     };
   }
 
-  public static Value thisValue(final Type type) {
-    return new Value() {
+  public static SimpleExpr thisValue(final Type type) {
+    return new SimpleExpr() {
 
       @Nonnull
       @Override
@@ -326,6 +319,4 @@ public class Values {
       }
     };
   }
-
-
 }

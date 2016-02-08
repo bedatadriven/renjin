@@ -1,8 +1,8 @@
 package org.renjin.gcc.codegen.fatptr;
 
 import org.objectweb.asm.Type;
-import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.var.Value;
+import org.renjin.gcc.codegen.expr.Expr;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
 
 import java.util.List;
 
@@ -27,7 +27,7 @@ public interface ValueFunction {
    */
   int getElementSize();
 
-  ExprGenerator dereference(Value array, Value offset);
+  Expr dereference(SimpleExpr array, SimpleExpr offset);
 
-  List<Value> getDefaultValue();
+  List<SimpleExpr> getDefaultValue();
 }

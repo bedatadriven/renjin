@@ -7,12 +7,12 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.util.TraceClassVisitor;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.InternalCompilerException;
+import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.expr.ExprFactory;
-import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.expr.LValue;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.var.GlobalVarAllocator;
-import org.renjin.gcc.codegen.var.LValue;
 import org.renjin.gcc.codegen.var.ProvidedVarAllocator;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
@@ -61,14 +61,14 @@ public class UnitClassGenerator {
   
     for (GimpleVarDecl decl : unit.getGlobalVariables()) {
       TypeStrategy typeStrategy = typeOracle.forType(decl.getType());
-      ExprGenerator varGenerator;
+      Expr varGenerator;
       
       if(isProvided(providedVariables, decl)) {
         Field providedField = providedVariables.get(decl.getName());
-        varGenerator = typeStrategy.varGenerator(decl, new ProvidedVarAllocator(providedField.getDeclaringClass()));
+        varGenerator = typeStrategy.variable(decl, new ProvidedVarAllocator(providedField.getDeclaringClass()));
         
       } else {
-        varGenerator = typeStrategy.varGenerator(decl, globalVarAllocator);
+        varGenerator = typeStrategy.variable(decl, globalVarAllocator);
         varToGenerate.add(decl);
       }
 

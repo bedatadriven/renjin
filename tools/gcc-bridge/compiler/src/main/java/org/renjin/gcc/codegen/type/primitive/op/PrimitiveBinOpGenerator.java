@@ -4,7 +4,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.util.Printer;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.var.Value;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
 import org.renjin.gcc.gimple.GimpleOp;
 
 import javax.annotation.Nonnull;
@@ -12,13 +12,13 @@ import javax.annotation.Nonnull;
 /**
  * Generates bytecode for a binary operation on primitives (IMUL, DMUL, IADD, etc)
  */
-public class PrimitiveBinOpGenerator implements Value {
+public class PrimitiveBinOpGenerator implements SimpleExpr {
 
   private int opCode;
-  private final Value x;
-  private final Value y;
+  private final SimpleExpr x;
+  private final SimpleExpr y;
 
-  public PrimitiveBinOpGenerator(GimpleOp op, Value x, Value y) {
+  public PrimitiveBinOpGenerator(GimpleOp op, SimpleExpr x, SimpleExpr y) {
     this.opCode = opCodeFor(op);
     this.x = x;
     this.y = y;

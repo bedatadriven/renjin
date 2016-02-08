@@ -1,10 +1,9 @@
 package org.renjin.gcc.codegen.fatptr;
 
 import org.objectweb.asm.Type;
-import org.renjin.gcc.codegen.WrapperType;
-import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.var.Value;
-import org.renjin.gcc.codegen.var.Values;
+import org.renjin.gcc.codegen.expr.Expr;
+import org.renjin.gcc.codegen.expr.Expressions;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
 
 import java.util.Collections;
 import java.util.List;
@@ -24,7 +23,7 @@ public class FatPtrValueFunction implements ValueFunction {
   
   @Override
   public Type getValueType() {
-    return WrapperType.wrapperType(baseValueFunction.getValueType());
+    return Wrappers.wrapperType(baseValueFunction.getValueType());
   }
 
   @Override
@@ -44,23 +43,23 @@ public class FatPtrValueFunction implements ValueFunction {
    * @return
    */
   @Override
-  public ExprGenerator dereference(Value array, Value offset) {
+  public Expr dereference(SimpleExpr array, SimpleExpr offset) {
     // DoublePtr[] array
     // int offset
     // double[] unwrappedArray = array[offset].array
     // int unwrappedOffset = array[offset].offset
     
     FatPtrExpr address = new FatPtrExpr(array, offset);
-    Value wrapperInstance = Values.elementAt(array, offset);
+    SimpleExpr wrapperInstance = Expressions.elementAt(array, offset);
     
-    Value unwrappedArray = Wrappers.arrayField(wrapperInstance, baseValueFunction.getValueType());
-    Value unwrappedOffset = Wrappers.offsetField(wrapperInstance);
+    SimpleExpr unwrappedArray = Wrappers.arrayField(wrapperInstance, baseValueFunction.getValueType());
+    SimpleExpr unwrappedOffset = Wrappers.offsetField(wrapperInstance);
 
     return new FatPtrExpr(address, unwrappedArray, unwrappedOffset);
   }
 
   @Override
-  public List<Value> getDefaultValue() {
+  public List<SimpleExpr> getDefaultValue() {
     return Collections.singletonList(FatPtrExpr.nullPtr(baseValueFunction).wrap());
   }
 }

@@ -2,6 +2,9 @@ package org.renjin.gcc.codegen.var;
 
 import com.google.common.base.Optional;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.expr.Expressions;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.SimpleLValue;
 
 /**
  * Common interface to generating code for local and global variables.
@@ -11,30 +14,30 @@ import org.objectweb.asm.Type;
  */
 public abstract class VarAllocator {
   
-  public abstract Var reserve(String name, Type type);
+  public abstract SimpleLValue reserve(String name, Type type);
   
-  public abstract Var reserve(String name, Type type, Value initialValue);
+  public abstract SimpleLValue reserve(String name, Type type, SimpleExpr initialValue);
 
-  public final Var reserve(String name, Class type) {
+  public final SimpleLValue reserve(String name, Class type) {
     return reserve(name, Type.getType(type));
   }
 
-  public final Var reserveArrayRef(String name, Type componentType) {
+  public final SimpleLValue reserveArrayRef(String name, Type componentType) {
     return reserve(name, Type.getType("[" + componentType.getDescriptor()));
   }
   
-  public final Var reserveUnitArray(String name, Type componentType, Optional<Value> initialValue) {
+  public final SimpleLValue reserveUnitArray(String name, Type componentType, Optional<SimpleExpr> initialValue) {
 
-    Value newArray;
+    SimpleExpr newArray;
     if(initialValue.isPresent()) {
-      newArray = Values.newArray(initialValue.get());
+      newArray = Expressions.newArray(initialValue.get());
     } else {
-      newArray = Values.newArray(componentType, 1);
+      newArray = Expressions.newArray(componentType, 1);
     }
     return reserve(name, Type.getType("[" + componentType.getDescriptor()), newArray);
   }
 
-  public final Var reserveInt(String name) {
+  public final SimpleLValue reserveInt(String name) {
     return reserve(name, Type.INT_TYPE);
   }
 }

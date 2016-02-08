@@ -1,6 +1,6 @@
 package org.renjin.gcc.codegen.type.record;
 
-import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.gimple.expr.GimpleFieldRef;
@@ -13,7 +13,7 @@ import java.io.IOException;
 /**
  *
  */
-public abstract class RecordTypeStrategy<ExprT extends ExprGenerator> extends TypeStrategy<ExprT> {
+public abstract class RecordTypeStrategy<ExprT extends Expr> implements TypeStrategy<ExprT> {
   protected final GimpleRecordTypeDef recordTypeDef;
   protected final GimpleRecordType recordType;
 
@@ -39,5 +39,5 @@ public abstract class RecordTypeStrategy<ExprT extends ExprGenerator> extends Ty
    */
   public abstract void writeClassFiles(File outputDirectory) throws IOException;
 
-  public abstract ExprGenerator memberOf(ExprT instance, GimpleFieldRef fieldRef);
+  public abstract Expr memberOf(ExprT instance, GimpleFieldRef fieldRef);
 }

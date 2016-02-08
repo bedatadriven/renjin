@@ -1,12 +1,8 @@
 package org.renjin.gcc.codegen.call;
 
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.ExprFactory;
-import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.type.TypeOracle;
-import org.renjin.gcc.codegen.var.LValue;
-import org.renjin.gcc.codegen.var.Value;
-import org.renjin.gcc.codegen.var.Values;
 import org.renjin.gcc.gimple.statement.GimpleCall;
 import org.renjin.gcc.gimple.type.GimpleType;
 
@@ -32,10 +28,10 @@ public class MallocCallGenerator implements CallGenerator {
     GimpleType pointerType = call.getLhs().getType();
     
     // Find the size to allocate
-    Value size = exprFactory.findValueGenerator(call.getOperands().get(0));
-    Value length = Values.divide(size, pointerType.getBaseType().sizeOf());
+    SimpleExpr size = exprFactory.findValueGenerator(call.getOperands().get(0));
+    SimpleExpr length = Expressions.divide(size, pointerType.getBaseType().sizeOf());
     
-    ExprGenerator mallocGenerator = typeOracle.forType(pointerType).malloc(mv, length);
+    Expr mallocGenerator = typeOracle.forPointerType(pointerType).malloc(mv, length);
     LValue lhs = (LValue) exprFactory.findGenerator(call.getLhs());
     lhs.store(mv, mallocGenerator);
   }

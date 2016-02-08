@@ -160,8 +160,9 @@ public class TypeOracle {
           throw new UnsupportedOperationException("baseType: " + baseType);
         }
       } else {
-        // TODO: return new PrimitivePtrReturnStrategy(wrapperType.getGimpleType());
-        throw new UnsupportedOperationException("TODO");
+        // Primitive Ptr wrapper
+        Type valueType = Wrappers.valueType(Type.getType(returnType));
+        return new FatPtrReturnStrategy(new PrimitiveValueFunction(valueType));
       }
     } else if(classTypes.containsKey(Type.getInternalName(returnType))) {
       GimpleRecordType recordType = classTypes.get(Type.getInternalName(returnType));

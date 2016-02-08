@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.type.fun;
 
+import com.google.common.base.Optional;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.expr.Expressions;
@@ -49,7 +50,7 @@ public class FunPtrValueFunction implements ValueFunction {
   }
 
   @Override
-  public List<SimpleExpr> getDefaultValue() {
-    return Collections.emptyList();
+  public Optional<SimpleExpr> getValueConstructor() {
+    return Optional.absent();
   }
 }

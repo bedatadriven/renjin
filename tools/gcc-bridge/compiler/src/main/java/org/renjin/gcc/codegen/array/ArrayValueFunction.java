@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.array;
 
+import com.google.common.base.Optional;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.expr.SimpleExpr;
@@ -11,7 +12,7 @@ import java.util.List;
 
 
 public class ArrayValueFunction implements ValueFunction {
-  
+
   private final ValueFunction elementValueFunction;
 
   public ArrayValueFunction(ValueFunction elementValueFunction) {
@@ -29,7 +30,7 @@ public class ArrayValueFunction implements ValueFunction {
     // For example:
     // int x[20];
     // int *p[20] = &x;
-    
+
     return elementValueFunction.getElementLength();
   }
 
@@ -50,7 +51,8 @@ public class ArrayValueFunction implements ValueFunction {
   }
 
   @Override
-  public List<SimpleExpr> getDefaultValue() {
-    return elementValueFunction.getDefaultValue();
+  public Optional<SimpleExpr> getValueConstructor() {
+    return elementValueFunction.getValueConstructor();
   }
+
 }

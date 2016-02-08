@@ -22,14 +22,13 @@ public final class FatPtrMalloc {
 
   public static FatPtrExpr alloc(MethodGenerator mv, ValueFunction valueFunction, SimpleExpr length) {
     
-    List<SimpleExpr> initialValues = ValueFunctions.getConstructorsChecked(valueFunction);
     SimpleExpr totalLength = Expressions.product(length, valueFunction.getElementLength());
 
     // If the values don't require any initialization (for example, an array of 
     // double is initialized by the JVM to zeros)
     // Then we can just return a new array expression
-    if(initialValues.isEmpty()) {
-      SimpleExpr array = Expressions.newArray(valueFunction.getValueType(), totalLength);
+    if(!valueFunction.getValueConstructor().isPresent()) {
+    SimpleExpr array = Expressions.newArray(valueFunction.getValueType(), totalLength);
 
       return new FatPtrExpr(array);
     }
@@ -43,7 +42,7 @@ public final class FatPtrMalloc {
       if(constantLength.getIntValue() <= MAX_UNROLL_COUNT) {
         List<SimpleExpr> arrayValues = Lists.newArrayList();
         for(int i=0;i<constantLength.getIntValue();++i) {
-          arrayValues.addAll(initialValues);
+          arrayValues.add(valueFunction.getValueConstructor().get());
         }
         return new FatPtrExpr(Expressions.newArray(valueFunction.getValueType(), arrayValues));
       }
@@ -74,13 +73,11 @@ public final class FatPtrMalloc {
 
     // Initialize the values
     mv.mark(loopHead);
-    for (SimpleExpr initialValue : initialValues) {
-      array.load(mv);
-      counter.load(mv);
-      initialValues.get(0).load(mv);
-      mv.astore(valueFunction.getValueType());
-      mv.iinc(counter.getIndex(), 1);
-    }
+    array.load(mv);
+    counter.load(mv);
+    valueFunction.getValueConstructor().get().load(mv);
+    mv.astore(valueFunction.getValueType());
+    mv.iinc(counter.getIndex(), 1);
 
     // Check the condition
     mv.mark(loopCheck);

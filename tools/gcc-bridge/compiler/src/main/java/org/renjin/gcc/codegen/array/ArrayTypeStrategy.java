@@ -95,13 +95,35 @@ public class ArrayTypeStrategy implements TypeStrategy<FatPtrExpr> {
   @Override
   public FatPtrExpr variable(GimpleVarDecl decl, VarAllocator allocator) {
     Type arrayType = Wrappers.valueArrayType(valueFunction.getValueType());
-    int arrayLength = ((GimpleArrayType) decl.getType()).getElementCount() * valueFunction.getElementLength();
+    int arrayLength = ((GimpleArrayType) decl.getType()).getElementCount();
 
-    SimpleExpr initialValue = Expressions.newArray(valueFunction.getValueType(), arrayLength);
-    SimpleExpr array = allocator.reserve(decl.getName(), arrayType, initialValue);
+    SimpleExpr array;
+    if(decl.getValue() == null) {
+      array = allocator.reserve(decl.getName(), arrayType, allocArray(arrayLength));
+    } else {
+      array = allocator.reserve(decl.getName(), arrayType);
+    }
+    
     SimpleExpr offset = Expressions.zero();
     
     return new FatPtrExpr(new FatPtrExpr(array, offset), array, offset);
+  }
+
+  private SimpleExpr allocArray(int arrayLength) {
+    if(valueFunction.getValueConstructor().isPresent()) {
+      // For reference types like records or fat pointers we have to 
+      // initialize each element of the array
+      List<SimpleExpr> valueConstructors = Lists.newArrayList();
+      for (int i = 0; i < arrayLength; i++) {
+        valueConstructors.add(valueFunction.getValueConstructor().get());
+      }
+      return Expressions.newArray(valueFunction.getValueType(), valueConstructors);
+    
+    } else {
+      // For primitive types, we can just allocate the array
+      return Expressions.newArray(valueFunction.getValueType(), arrayLength);
+    }
+    
   }
 
   public Expr elementAt(Expr array, Expr index) {

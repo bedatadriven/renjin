@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.fatptr;
 
+import com.google.common.base.Optional;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -8,8 +9,6 @@ import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.SimpleExpr;
 import org.renjin.gcc.codegen.type.FieldStrategy;
-
-import java.util.List;
 
 
 public class AddressableField extends FieldStrategy {
@@ -40,7 +39,7 @@ public class AddressableField extends FieldStrategy {
     
     // Reference value types like records and fat pointers may need
     // to initialize a value
-    List<SimpleExpr> initialValues = valueFunction.getDefaultValue();
+    Optional<SimpleExpr> initialValues = valueFunction.getValueConstructor();
     
     // Allocate a unit array store the value
     // (for value types like complex, this might actually be several elements)

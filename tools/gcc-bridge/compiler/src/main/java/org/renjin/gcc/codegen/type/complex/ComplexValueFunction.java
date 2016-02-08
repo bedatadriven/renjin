@@ -1,14 +1,15 @@
 package org.renjin.gcc.codegen.type.complex;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 
-import java.util.Collections;
 import java.util.List;
 
 public class ComplexValueFunction implements ValueFunction {
@@ -44,6 +45,9 @@ public class ComplexValueFunction implements ValueFunction {
 
   @Override
   public Expr dereference(SimpleExpr array, SimpleExpr offset) {
+
+    FatPtrExpr address = new FatPtrExpr(array, offset);
+    
     // Real element is at i
     SimpleExpr realOffset = offset;
     // Complex element is at i+1
@@ -52,7 +56,7 @@ public class ComplexValueFunction implements ValueFunction {
     SimpleExpr real = Expressions.elementAt(array, realOffset);
     SimpleExpr imaginary = Expressions.elementAt(array, imaginaryOffset);
     
-    return new ComplexValue(real, imaginary);
+    return new ComplexValue(address, real, imaginary);
   }
 
   @Override
@@ -62,7 +66,7 @@ public class ComplexValueFunction implements ValueFunction {
   }
 
   @Override
-  public List<SimpleExpr> getDefaultValue() {
-    return Collections.emptyList();
+  public Optional<SimpleExpr> getValueConstructor() {
+    return Optional.absent();
   }
 }

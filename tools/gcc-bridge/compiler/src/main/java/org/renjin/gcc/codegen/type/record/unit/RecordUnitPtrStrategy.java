@@ -31,7 +31,7 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
 
   @Override
   public ParamStrategy getParamStrategy() {
-    return new RecordUnitPtrParamStrategy(strategy);
+    return new SimpleParamStrategy(strategy.getJvmType());
   }
 
   @Override

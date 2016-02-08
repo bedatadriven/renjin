@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.fatptr;
 
+import com.google.common.base.Optional;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.expr.Expressions;
@@ -65,7 +66,7 @@ public class FatPtrValueFunction implements ValueFunction {
   }
 
   @Override
-  public List<SimpleExpr> getDefaultValue() {
-    return Collections.singletonList(FatPtrExpr.nullPtr(baseValueFunction).wrap());
+  public Optional<SimpleExpr> getValueConstructor() {
+    return Optional.of(FatPtrExpr.nullPtr(baseValueFunction).wrap());
   }
 }

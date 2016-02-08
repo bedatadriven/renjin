@@ -1,6 +1,8 @@
 package org.renjin.gcc.codegen.expr;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.WrapperType;
@@ -57,6 +59,15 @@ public class Expressions {
 
   public static SimpleExpr newArray(final Type componentType, final List<SimpleExpr> values) {
     return newArray(componentType, values.size(), values);
+  }
+
+
+  public static SimpleExpr newArray(Type valueType, int elementLength, Optional<SimpleExpr> firstValue) {
+    List<SimpleExpr> initialValues = Lists.newArrayList();
+    if(firstValue.isPresent()) {
+      initialValues.add(firstValue.get());
+    }
+    return newArray(valueType, elementLength, initialValues);
   }
 
   public static SimpleExpr newArray(final Type componentType, final int arrayLength, final List<SimpleExpr> values) {
@@ -391,4 +402,5 @@ public class Expressions {
         throw new IllegalArgumentException("type: " + type);
     }
   }
+
 }

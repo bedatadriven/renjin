@@ -3,18 +3,21 @@ package org.renjin.gcc.codegen.type.complex;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.*;
+import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
 import org.renjin.gcc.codegen.type.primitive.op.NegativeValue;
 
 
 /**
  * Complex numerical value
  */
-public class ComplexValue implements Expr, LValue<ComplexValue> {
+public class ComplexValue implements Expr, LValue<ComplexValue>, Addressable {
+  private FatPtrExpr address;
   private SimpleExpr realValue;
   private SimpleExpr imaginaryValue;
   private Type componentType;
-
-  public ComplexValue(SimpleExpr realValue, SimpleExpr imaginaryValue) {
+  
+  public ComplexValue(FatPtrExpr address, SimpleExpr realValue, SimpleExpr imaginaryValue) {
+    this.address = address;
     this.realValue = realValue;
     this.imaginaryValue = imaginaryValue;
     
@@ -23,6 +26,10 @@ public class ComplexValue implements Expr, LValue<ComplexValue> {
           realValue.getType(), imaginaryValue.getType()));
     }
     this.componentType = realValue.getType();
+  }
+
+  public ComplexValue(SimpleExpr realValue, SimpleExpr imaginaryValue) {
+    this(null, realValue, imaginaryValue);
   }
 
   public ComplexValue(SimpleExpr realValue) {
@@ -55,7 +62,14 @@ public class ComplexValue implements Expr, LValue<ComplexValue> {
    * For example, the complex conjugate of 3 + 4i is 3 − 4i.
    */
   public ComplexValue conjugate() {
-    return new ComplexValue(realValue, new NegativeValue(imaginaryValue));
+    return new ComplexValue(address, realValue, new NegativeValue(imaginaryValue));
   }
 
+  @Override
+  public FatPtrExpr addressOf() {
+    if(address == null) {
+      throw new UnsupportedOperationException("not addressable");
+    }
+    return address;
+  }
 }

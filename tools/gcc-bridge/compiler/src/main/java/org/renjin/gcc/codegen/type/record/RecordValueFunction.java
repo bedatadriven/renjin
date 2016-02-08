@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.type.record;
 
+import com.google.common.base.Optional;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.expr.Expressions;
@@ -40,11 +41,12 @@ public class RecordValueFunction implements ValueFunction {
 
   @Override
   public List<SimpleExpr> toArrayValues(Expr expr) {
-    return Collections.singletonList((SimpleExpr)expr);
+    return Collections.singletonList((SimpleExpr) expr);
   }
 
   @Override
-  public List<SimpleExpr> getDefaultValue() {
-    return Collections.<SimpleExpr>singletonList(new RecordConstructor(strategy));
+  public Optional<SimpleExpr> getValueConstructor() {
+    return Optional.<SimpleExpr>of(new RecordConstructor(strategy));
   }
+
 }

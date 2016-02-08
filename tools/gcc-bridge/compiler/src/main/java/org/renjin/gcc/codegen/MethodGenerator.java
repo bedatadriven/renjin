@@ -22,6 +22,10 @@ public class MethodGenerator extends InstructionAdapter {
   public void invokestatic(Class<?> ownerClass, String methodName, String descriptor) {
     invokestatic(Type.getInternalName(ownerClass), methodName, descriptor, false);
   }
+  
+  public void invokestatic(Type ownerClass, String methodName, String descriptor) {
+    invokestatic(ownerClass.getInternalName(), methodName, descriptor);
+  }
 
   public void invokeconstructor(Type ownerClass, Type... argumentTypes) {
     invokespecial(ownerClass.getInternalName(), "<init>", Type.getMethodDescriptor(Type.VOID_TYPE, argumentTypes), false);

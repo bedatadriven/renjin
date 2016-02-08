@@ -15,6 +15,8 @@ import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 
+import static org.objectweb.asm.Type.INT_TYPE;
+import static org.objectweb.asm.Type.VOID_TYPE;
 import static org.renjin.gcc.codegen.expr.Expressions.newArray;
 
 /**
@@ -196,11 +198,30 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtrExpr> {
     // Object dest, int destPos,
     // int length);
     mv.invokestatic(System.class, "arraycopy", 
-        Type.getMethodDescriptor(Type.VOID_TYPE, 
-              Type.getType(Object.class), Type.INT_TYPE, 
-              Type.getType(Object.class), Type.INT_TYPE,
-              Type.INT_TYPE));
+        Type.getMethodDescriptor(VOID_TYPE, 
+              Type.getType(Object.class), INT_TYPE, 
+              Type.getType(Object.class), INT_TYPE,
+              INT_TYPE));
 
+  }
+
+  @Override
+  public void memorySet(MethodGenerator mv, FatPtrExpr pointer, SimpleExpr byteValue, SimpleExpr length) {
+    
+    // Each of the XXXPtr classes have a static memset() method in the form:
+    // void memset(double[] str, int strOffset, int c, int n)
+
+    Type wrapperType = Wrappers.wrapperType(valueFunction.getValueType());
+    Type arrayType = Wrappers.valueArrayType(valueFunction.getValueType());
+
+    String methodDescriptor = Type.getMethodDescriptor(VOID_TYPE, arrayType, INT_TYPE, INT_TYPE, INT_TYPE);
+
+    pointer.getArray().load(mv);
+    pointer.getOffset().load(mv);
+    byteValue.load(mv);
+    length.load(mv);
+    
+    mv.invokestatic(wrapperType, "memset", methodDescriptor);
   }
 
   @Override

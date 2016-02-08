@@ -123,6 +123,11 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
   }
 
   @Override
+  public void memorySet(MethodGenerator mv, SimpleExpr pointer, SimpleExpr byteValue, SimpleExpr length) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public Expr valueOf(SimpleExpr pointerExpr) {
     return pointerExpr;
   }

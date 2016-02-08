@@ -48,10 +48,6 @@ public class PeepholeOptimizer {
         }
       } while (changing);
     } while (it.next());
-    
-    System.out.println("RESULT:");
-    
-    
   }
 
   private Set<Label> findJumpTargets(MethodNode methodNode) {

@@ -24,4 +24,6 @@ public interface PointerTypeStrategy<ExprT extends Expr> extends TypeStrategy<Ex
   SimpleExpr memoryCompare(ExprT p1, ExprT p2, SimpleExpr n);
 
   void memoryCopy(MethodGenerator mv, ExprT destination, ExprT source, SimpleExpr length);
+
+  void memorySet(MethodGenerator mv, ExprT pointer, SimpleExpr byteValue, SimpleExpr length);
 }

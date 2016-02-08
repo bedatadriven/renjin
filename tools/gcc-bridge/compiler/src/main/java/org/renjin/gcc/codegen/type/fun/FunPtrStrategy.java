@@ -88,6 +88,11 @@ public class FunPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
   }
 
   @Override
+  public void memorySet(MethodGenerator mv, SimpleExpr pointer, SimpleExpr byteValue, SimpleExpr length) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public SimpleExpr malloc(MethodGenerator mv, SimpleExpr length) {
     throw new UnsupportedOperationException("Cannot malloc function pointers");
   }

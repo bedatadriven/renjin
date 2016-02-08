@@ -71,7 +71,7 @@ public class GlobalSymbolTable implements SymbolTable {
     
     addFunction("memcpy", new MemCopyCallGenerator(typeOracle));
     addFunction("memcmp", new MemCmpCallGenerator(typeOracle));
-    addFunction("memset", new MemSetGenerator());
+    addFunction("memset", new MemSetGenerator(typeOracle));
     
     addMethods(Builtins.class);
     addMethods(Stdlib.class);

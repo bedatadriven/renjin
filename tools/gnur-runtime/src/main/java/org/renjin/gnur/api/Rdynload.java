@@ -27,7 +27,7 @@ public final class Rdynload {
   
   private static void addTo(DllInfo library, DllSymbol.Convention convention, ObjectPtr<MethodDef> methods) {
     
-    if(methods != null) {
+    if(methods != null && methods.array != null) {
       for(int i=0; ; i++) {
         MethodDef def = methods.get(i);
         if (def.fun == null) {

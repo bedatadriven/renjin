@@ -1,9 +1,9 @@
 package org.renjin.gcc.codegen.type;
 
-import com.google.common.base.Preconditions;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expr;
+import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.SimpleExpr;
 import org.renjin.gcc.codegen.expr.SimpleLValue;
 import org.renjin.gcc.codegen.var.VarAllocator;
@@ -36,7 +36,18 @@ public class SimpleParamStrategy implements ParamStrategy {
   @Override
   public void loadParameter(MethodGenerator mv, Expr argument) {
     SimpleExpr value = (SimpleExpr) argument;
-    Preconditions.checkArgument(value.getType().equals(type));
-    value.load(mv);
+    
+    if(value.getType().equals(type)) {
+      value.load(mv);
+    
+    } else if(value.getType().equals(Type.getType(Object.class))) {
+      // Cast null pointers to the appropriate type
+      Expressions.cast(value, this.type).load(mv);
+    
+    }  else {
+      throw new IllegalArgumentException(String.format("expected argument type: %s, found: %s",
+          this.type,
+          value.getType()));
+    }
   }
 }

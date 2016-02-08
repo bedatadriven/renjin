@@ -95,4 +95,13 @@ public class GimpleConditional extends GimpleStatement {
   public void visit(GimpleVisitor visitor) {
     visitor.visitConditional(this);
   }
+
+  public GimpleExpr getOperand(int index) {
+    return operands.get(index);
+  }
+
+  @Override
+  public void replaceAll(Predicate<? super GimpleExpr> predicate, GimpleExpr newExpr) {
+    replaceAll(predicate, operands, newExpr);
+  }
 }

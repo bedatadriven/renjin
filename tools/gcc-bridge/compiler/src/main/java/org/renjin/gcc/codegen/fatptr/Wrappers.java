@@ -10,6 +10,11 @@ import org.renjin.gcc.runtime.*;
  * Constructs expression generators related to FatPointer wrappers.
  */
 public class Wrappers {
+
+
+  public static Type valueType(Class<?> wrapperClass) {
+    return valueType(Type.getType(wrapperClass));
+  }
   
   public static Type valueType(Type wrapperType) {
     if(wrapperType.equals(Type.getType(BooleanPtr.class))) {
@@ -33,7 +38,7 @@ public class Wrappers {
     }
     throw new IllegalArgumentException("not a wrapper type: " + wrapperType);
   }
-  
+
   public static Type fieldArrayType(Type wrapperType) {
     if (wrapperType.equals(Type.getType(ObjectPtr.class))) {
       return Type.getType("[Ljava/lang/Object;");
@@ -95,4 +100,6 @@ public class Wrappers {
   public static WrapperType valueOf(Class<?> wrapperClass) {
     return WrapperType.valueOf(Type.getType(wrapperClass));
   }
+
+
 }

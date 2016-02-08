@@ -33,9 +33,9 @@ public class ComplexValueFunction implements ValueFunction {
   public int getElementSize() {
     switch (valueType.getSort()) {
       case Type.DOUBLE:
-        return 128;
+        return 16;
       case Type.FLOAT:
-        return 64;
+        return 8;
       default:
         throw new IllegalStateException();
     }

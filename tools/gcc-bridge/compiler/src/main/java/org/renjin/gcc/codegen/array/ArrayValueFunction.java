@@ -44,6 +44,6 @@ public class ArrayValueFunction implements ValueFunction {
 
   @Override
   public List<SimpleExpr> getDefaultValue() {
-    throw new UnsupportedOperationException("TODO");
+    return elementValueFunction.getDefaultValue();
   }
 }

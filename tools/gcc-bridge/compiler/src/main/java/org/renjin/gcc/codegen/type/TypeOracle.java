@@ -6,10 +6,12 @@ import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
+import org.renjin.gcc.codegen.fatptr.WrappedFatPtrParamStrategy;
 import org.renjin.gcc.codegen.fatptr.Wrappers;
 import org.renjin.gcc.codegen.type.complex.ComplexTypeStrategy;
 import org.renjin.gcc.codegen.type.fun.FunTypeStrategy;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveTypeStrategy;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveValueFunction;
 import org.renjin.gcc.codegen.type.primitive.StringParamStrategy;
 import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
@@ -18,7 +20,6 @@ import org.renjin.gcc.codegen.type.voidt.VoidTypeStrategy;
 import org.renjin.gcc.gimple.GimpleParameter;
 import org.renjin.gcc.gimple.type.*;
 import org.renjin.gcc.runtime.BytePtr;
-import org.renjin.gcc.runtime.CharPtr;
 import org.renjin.gcc.runtime.ObjectPtr;
 
 import java.lang.reflect.Method;
@@ -183,7 +184,7 @@ public class TypeOracle {
    */
   public List<ParamStrategy> forParameterTypesOf(Method method) {
 
-    List<ParamStrategy> generators = new ArrayList<>();
+    List<ParamStrategy> strategies = new ArrayList<>();
 
     int numParams;
     if(method.isVarArgs()) {
@@ -196,27 +197,25 @@ public class TypeOracle {
     while(index < numParams) {
       Class<?> paramClass = method.getParameterTypes()[index];
       if(paramClass.equals(ObjectPtr.class)) {
-        generators.add(forObjectPtrParam(method.getGenericParameterTypes()[index]));
+        strategies.add(forObjectPtrParam(method.getGenericParameterTypes()[index]));
         index++;
         
-      } else if (WrapperType.is(paramClass) && !paramClass.equals(CharPtr.class)) {
-        WrapperType wrapperType = Wrappers.valueOf(paramClass);
-        
-        // TODO: generators.add(new PrimitivePtrParamStrategy(wrapperType.getGimpleType()));
-//        index++;
-        throw new UnsupportedOperationException("TODO");
+      } else if (WrapperType.is(paramClass)) {
+        Type valueType = Wrappers.valueType(paramClass);
+        strategies.add(new WrappedFatPtrParamStrategy(new PrimitiveValueFunction(valueType)));
+        index++;
 
       } else if (paramClass.isPrimitive()) {
-        generators.add(new SimpleParamStrategy(Type.getType(paramClass)));
+        strategies.add(new SimpleParamStrategy(Type.getType(paramClass)));
         index++;
 
       } else if (paramClass.equals(String.class)) {
-        generators.add(new StringParamStrategy());
+        strategies.add(new StringParamStrategy());
         index++;
 
       } else if (classTypes.containsKey(Type.getInternalName(paramClass))) {
         GimpleRecordType mappedType = classTypes.get(Type.getInternalName(paramClass));
-        generators.add(((RecordClassTypeStrategy) forRecordType(mappedType)).pointerToUnit().getParamStrategy());
+        strategies.add(((RecordClassTypeStrategy) forRecordType(mappedType)).pointerToUnit().getParamStrategy());
         index++;
         
       } else {
@@ -226,7 +225,7 @@ public class TypeOracle {
             paramClass.getName()));
       } 
     }
-    return generators;
+    return strategies;
   }
 
 

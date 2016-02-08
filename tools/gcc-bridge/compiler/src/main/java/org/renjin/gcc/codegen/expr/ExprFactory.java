@@ -1,6 +1,5 @@
 package org.renjin.gcc.codegen.expr;
 
-import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.call.CallGenerator;
@@ -337,7 +336,7 @@ public class ExprFactory {
   public SimpleExpr findValueGenerator(GimpleExpr gimpleExpr) {
     // When looking specifically for a value generator, treat a null pointer as zero integer
     if(gimpleExpr instanceof GimplePrimitiveConstant && gimpleExpr.getType() instanceof GimpleIndirectType) {
-      return Expressions.zero(Type.INT_TYPE);
+      return Expressions.constantInt(((GimplePrimitiveConstant) gimpleExpr).getValue().intValue());
     }
     return findGenerator(gimpleExpr, SimpleExpr.class);
   }

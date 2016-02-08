@@ -4,11 +4,13 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
-import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.var.Value;
-import org.renjin.gcc.gimple.type.*;
+import org.renjin.gcc.gimple.type.GimpleBooleanType;
+import org.renjin.gcc.gimple.type.GimpleIntegerType;
+import org.renjin.gcc.gimple.type.GimplePrimitiveType;
+import org.renjin.gcc.gimple.type.GimpleRealType;
 
+import javax.annotation.Nonnull;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -29,13 +31,14 @@ public class CastGenerator implements Value {
   }
 
 
+  @Nonnull
   @Override
   public Type getType() {
     return destinationType.jvmType();
   }
 
   @Override
-  public void load(MethodGenerator mv) {
+  public void load(@Nonnull MethodGenerator mv) {
     valueGenerator.load(mv);
     
     if(!sourceType.equals(destinationType)) {

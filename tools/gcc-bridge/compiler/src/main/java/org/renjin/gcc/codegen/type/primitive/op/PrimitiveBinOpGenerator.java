@@ -7,6 +7,8 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.var.Value;
 import org.renjin.gcc.gimple.GimpleOp;
 
+import javax.annotation.Nonnull;
+
 /**
  * Generates bytecode for a binary operation on primitives (IMUL, DMUL, IADD, etc)
  */
@@ -24,13 +26,14 @@ public class PrimitiveBinOpGenerator implements Value {
     checkTypes();
   }
 
+  @Nonnull
   @Override
   public Type getType() {
     return x.getType();
   }
 
   @Override
-  public void load(MethodGenerator mv) {
+  public void load(@Nonnull MethodGenerator mv) {
     x.load(mv);
     y.load(mv);
     mv.visitInsn(getType().getOpcode(opCode));

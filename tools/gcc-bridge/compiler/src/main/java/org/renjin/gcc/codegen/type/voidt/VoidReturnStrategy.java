@@ -5,6 +5,7 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.ReturnStrategy;
 import org.renjin.gcc.codegen.var.Value;
+import org.renjin.gcc.codegen.var.Values;
 
 /**
  * Strategy for returning from a void-typed function.
@@ -27,4 +28,8 @@ public class VoidReturnStrategy implements ReturnStrategy {
     throw new UnsupportedOperationException();
   }
 
+  @Override
+  public Value getDefaultReturnValue() {
+    return Values.voidValue();
+  }
 }

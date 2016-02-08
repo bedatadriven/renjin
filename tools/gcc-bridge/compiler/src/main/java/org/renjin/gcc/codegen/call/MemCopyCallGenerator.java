@@ -4,41 +4,44 @@ import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.type.TypeOracle;
+import org.renjin.gcc.codegen.var.LValue;
+import org.renjin.gcc.codegen.var.Value;
 import org.renjin.gcc.gimple.statement.GimpleCall;
+import org.renjin.gcc.gimple.type.GimplePointerType;
 
 
+/**
+ * Generates calls to memcpy() depending on the type of its arguments
+ */
 public class MemCopyCallGenerator implements CallGenerator {
   
   public static final String NAME = "__builtin_memcpy";
 
+  private final TypeOracle typeOracle;
+
+  public MemCopyCallGenerator(TypeOracle typeOracle) {
+    this.typeOracle = typeOracle;
+  }
 
   @Override
   public void emitCall(MethodGenerator mv, ExprFactory exprFactory, GimpleCall call) {
     
     if(call.getOperands().size() != 3) {
-      throw new InternalCompilerException("__builtin_memcpy expects 3 args.");
+      throw new InternalCompilerException("memcpy() expects 3 args.");
     }
-//    ExprGenerator destination = exprFactory.findPointerGenerator(call.getOperand(0));
-//    ExprGenerator source =  exprFactory.findPointerGenerator(call.getOperand(1));
-//    ExprGenerator length = exprFactory.findValueGenerator(call.getOperand(2));
     
-    throw new UnsupportedOperationException("TODO");
-//
-//    source.emitPushPtrArrayAndOffset(mv);
-//    destination.emitPushPtrArrayAndOffset(mv);
-//    length.load(mv);
-//
-//    // public static native void arraycopy(
-//    //     Object src,  int  srcPos,
-//    // Object dest, int destPos,
-//    // int length);
-//    mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(System.class), "arraycopy", 
-//        Type.getMethodDescriptor(Type.VOID_TYPE, 
-//              Type.getType(Object.class), Type.INT_TYPE, 
-//              Type.getType(Object.class), Type.INT_TYPE,
-//              Type.INT_TYPE), false);
-//
-//    throw new UnsupportedOperationException();
-  }
+    ExprGenerator destination = exprFactory.findGenerator(call.getOperand(0));
+    ExprGenerator source =  exprFactory.findGenerator(call.getOperand(1));
+    Value length = exprFactory.findValueGenerator(call.getOperand(2));
 
+    GimplePointerType pointerType = (GimplePointerType) call.getOperand(0).getType();
+    typeOracle.forType(pointerType).memoryCopy(mv, destination, source, length);
+ 
+    if(call.getLhs() != null) {
+      // memcpy() returns the destination pointer
+      LValue lhs = (LValue) exprFactory.findGenerator(call.getLhs());
+      lhs.store(mv, destination);
+    }
+  }
 }

@@ -46,4 +46,11 @@ public class ComplexReturnStrategy implements ReturnStrategy {
     return new ComplexValue(realValue, imaginaryValue);
   }
 
+  @Override
+  public Value getDefaultReturnValue() {
+    Value zero = Values.zero(type.getJvmPartType());
+    
+    return Values.newArray(zero, zero);
+  }
+
 }

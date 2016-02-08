@@ -286,11 +286,13 @@ public class FunctionGenerator implements InvocationStrategy {
     if(function.getReturnType() instanceof GimpleVoidType) {
       mv.areturn(Type.VOID_TYPE);
     } else {
+      Value returnValue;
       if(ins.getValue() == null) {
-        throw new InternalCompilerException("Missing return value");
+        returnValue = returnStrategy.getDefaultReturnValue();
+      } else {
+        ExprGenerator returnExpr = exprFactory.findGenerator(ins.getValue(), function.getReturnType());
+        returnValue = returnStrategy.marshall(returnExpr);
       }
-      ExprGenerator returnExpr = exprFactory.findGenerator(ins.getValue(), function.getReturnType());
-      Value returnValue = returnStrategy.marshall(returnExpr);
       returnValue.load(mv);
       mv.areturn(returnValue.getType());
     }

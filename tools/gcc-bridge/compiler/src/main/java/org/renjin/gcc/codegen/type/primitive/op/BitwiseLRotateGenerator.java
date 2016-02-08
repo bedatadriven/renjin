@@ -5,6 +5,8 @@ import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.var.Value;
 
+import javax.annotation.Nonnull;
+
 import static org.objectweb.asm.Type.INT_TYPE;
 
 
@@ -19,13 +21,14 @@ public class BitwiseLRotateGenerator implements Value {
     Preconditions.checkArgument(bits.getType() == Type.INT_TYPE);
   }
 
+  @Nonnull
   @Override
   public Type getType() {
     return bits.getType();
   }
 
   @Override
-  public void load(MethodGenerator mv) {
+  public void load(@Nonnull MethodGenerator mv) {
     
     //(bits >>> k) | (bits << (Integer.SIZE - k));
 

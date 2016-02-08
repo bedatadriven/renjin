@@ -1,8 +1,10 @@
 package org.renjin.gcc.codegen.type.voidt;
 
 import org.renjin.gcc.InternalCompilerException;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.PtrExpr;
-import org.renjin.gcc.codegen.type.*;
+import org.renjin.gcc.codegen.type.ReturnStrategy;
+import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.var.Value;
 
 /**
@@ -17,7 +19,7 @@ public class VoidTypeStrategy extends TypeStrategy {
 
 
   @Override
-  public PtrExpr malloc(Value length) {
+  public PtrExpr malloc(MethodGenerator mv, Value length) {
     throw new InternalCompilerException("Cannot allocate VOID type");
   }
 

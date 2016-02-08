@@ -7,6 +7,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 
+import javax.annotation.Nonnull;
 import java.util.List;
 
 /**
@@ -15,7 +16,7 @@ import java.util.List;
 public class LocalVarAllocator extends VarAllocator {
 
 
-  private static class LocalVar implements Var {
+  public static class LocalVar implements Var {
     private String name;
     private int index;
     private Type type;
@@ -28,14 +29,19 @@ public class LocalVarAllocator extends VarAllocator {
       this.initialValue = value;
     }
 
+    @Nonnull
     @Override
     public Type getType() {
       return type;
     }
     
     @Override
-    public void load(MethodGenerator mv) {
+    public void load(@Nonnull MethodGenerator mv) {
       mv.visitVarInsn(type.getOpcode(Opcodes.ILOAD), index);
+    }
+
+    public int getIndex() {
+      return index;
     }
 
     @Override
@@ -43,22 +49,27 @@ public class LocalVarAllocator extends VarAllocator {
       value.load(mv);
       mv.visitVarInsn(type.getOpcode(Opcodes.ISTORE), index);
     }
+
+    @Override
+    public String toString() {
+      return "LocalVar[" + name + ":" + type + "]";
+    }
   }
 
   private int slots = 0;
   private List<LocalVar> names = Lists.newArrayList();
 
   @Override
-  public Var reserve(String name, Type type) {
+  public LocalVar reserve(String name, Type type) {
     return reserve(name, type, Optional.<Value>absent());
   }
 
   @Override
-  public Var reserve(String name, Type type, Value initialValue) {
+  public LocalVar reserve(String name, Type type, Value initialValue) {
     return reserve(name, type, Optional.of(initialValue));
   }
   
-  private Var reserve(String name, Type type, Optional<Value> initialValue) {
+  private LocalVar reserve(String name, Type type, Optional<Value> initialValue) {
     int index = slots;
     slots += type.getSize();
     LocalVar var = new LocalVar(name, index, type, initialValue);

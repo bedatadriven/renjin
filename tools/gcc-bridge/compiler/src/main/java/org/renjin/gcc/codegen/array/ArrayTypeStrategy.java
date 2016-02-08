@@ -22,11 +22,13 @@ import java.util.List;
  * Type strategy for arrays of values
  */
 public class ArrayTypeStrategy extends TypeStrategy<FatPtrExpr> {
-  
-  private final ValueFunction valueFunction;
-  private boolean parameterWrapped = false;
 
-  public ArrayTypeStrategy(ValueFunction valueFunction) {
+  private int lowerBound;
+  private final ValueFunction valueFunction;
+  private boolean parameterWrapped = true;
+
+  public ArrayTypeStrategy(GimpleArrayType arrayType, ValueFunction valueFunction) {
+    this.lowerBound = arrayType.getLbound();
     this.valueFunction = valueFunction;
   }
 
@@ -59,7 +61,7 @@ public class ArrayTypeStrategy extends TypeStrategy<FatPtrExpr> {
   }
 
   @Override
-  public ExprGenerator varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
+  public FatPtrExpr varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
     Type arrayType = Wrappers.valueArrayType(valueFunction.getValueType());
     int arrayLength = ((GimpleArrayType) decl.getType()).getElementCount() * valueFunction.getElementLength();
 
@@ -73,6 +75,7 @@ public class ArrayTypeStrategy extends TypeStrategy<FatPtrExpr> {
   @Override
   public ExprGenerator elementAt(ExprGenerator array, ExprGenerator index) {
     FatPtrExpr arrayFatPtr = (FatPtrExpr) array;
+    
     Value indexValue = (Value) index;
     
     // New offset  = ptr.offset + (index * value.length)
@@ -81,7 +84,7 @@ public class ArrayTypeStrategy extends TypeStrategy<FatPtrExpr> {
     Value newOffset = Values.sum(
         arrayFatPtr.getOffset(),
         Values.product(
-            indexValue, 
+            Values.difference(indexValue, lowerBound), 
             valueFunction.getElementLength()));
     
     return valueFunction.dereference(arrayFatPtr.getArray(), newOffset);

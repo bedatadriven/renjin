@@ -5,6 +5,8 @@ import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.var.Value;
 
+import javax.annotation.Nonnull;
+
 
 public class LogicalNotGenerator implements Value {
   
@@ -14,13 +16,14 @@ public class LogicalNotGenerator implements Value {
     this.operand = operand;
   }
 
+  @Nonnull
   @Override
   public Type getType() {
     return Type.BOOLEAN_TYPE;
   }
 
   @Override
-  public void load(MethodGenerator mv) {
+  public void load(@Nonnull MethodGenerator mv) {
     Label trueLabel = new Label();
     Label exit = new Label();
 

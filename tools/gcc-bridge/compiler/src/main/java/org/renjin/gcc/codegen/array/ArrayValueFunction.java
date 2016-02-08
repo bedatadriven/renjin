@@ -1,10 +1,13 @@
 package org.renjin.gcc.codegen.array;
 
 import org.objectweb.asm.Type;
+import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.var.Value;
+
+import java.util.List;
 
 
 public class ArrayValueFunction implements ValueFunction {
@@ -38,5 +41,10 @@ public class ArrayValueFunction implements ValueFunction {
   @Override
   public ExprGenerator dereference(Value array, Value offset) {
     return new FatPtrExpr(array, offset);
+  }
+
+  @Override
+  public List<Value> getDefaultValue() {
+    throw new InternalCompilerException();
   }
 }

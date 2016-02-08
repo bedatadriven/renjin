@@ -1,18 +1,15 @@
 package org.renjin.gcc.codegen.type.primitive;
 
+import com.google.common.base.Preconditions;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
-import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.var.Value;
 import org.renjin.gcc.gimple.expr.GimplePrimitiveConstant;
-import org.renjin.gcc.gimple.type.GimpleIndirectType;
-import org.renjin.gcc.gimple.type.GimpleIntegerType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 
-import static org.objectweb.asm.Opcodes.*;
+import javax.annotation.Nonnull;
 
-public class ConstantValue extends AbstractExprGenerator implements Value {
+public class ConstantValue implements Value {
 
   private Number value;
   private Type type;
@@ -31,13 +28,20 @@ public class ConstantValue extends AbstractExprGenerator implements Value {
     return value;
   }
 
+  public int getIntValue() {
+    Preconditions.checkState(type.equals(Type.INT_TYPE));
+    
+    return value.intValue();
+  }
+  
+  @Nonnull
   @Override
   public Type getType() {
     return type;
   }
 
   @Override
-  public void load(MethodGenerator mv) {
+  public void load(@Nonnull MethodGenerator mv) {
     switch (type.getSort()) {
       case Type.BOOLEAN:
       case Type.BYTE:

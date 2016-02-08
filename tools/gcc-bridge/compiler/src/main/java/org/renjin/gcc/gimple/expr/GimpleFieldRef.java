@@ -6,8 +6,16 @@ package org.renjin.gcc.gimple.expr;
 public class GimpleFieldRef extends GimpleExpr {
 
 
-  private String name;
   private int id;
+  private String name;
+
+  public GimpleFieldRef() {
+  }
+
+  public GimpleFieldRef(int id, String name) {
+    this.id = id;
+    this.name = name;
+  }
 
   public String getName() {
     return name;

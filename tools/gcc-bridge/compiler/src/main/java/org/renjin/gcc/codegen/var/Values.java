@@ -8,6 +8,7 @@ import org.renjin.gcc.codegen.type.primitive.ConstantValue;
 import org.renjin.gcc.codegen.type.primitive.op.PrimitiveBinOpGenerator;
 import org.renjin.gcc.gimple.GimpleOp;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -28,16 +29,17 @@ public class Values {
   public static Value newArray(Class<?> componentClass, int length) {
     return newArray(Type.getType(componentClass), length);
   }
-
+  
   public static Value newArray(final Type componentType, final Value length) {
     return new Value() {
+      @Nonnull
       @Override
       public Type getType() {
         return Type.getType("[" + componentType.getDescriptor());
       }
 
       @Override
-      public void load(MethodGenerator mv) {
+      public void load(@Nonnull MethodGenerator mv) {
         length.load(mv);
         mv.newarray(componentType);
       }
@@ -54,27 +56,41 @@ public class Values {
     return newArray(value.getType(), values);
   }
 
+
   public static Value newArray(final Type componentType, final List<Value> values) {
-    final Type arrayType = Type.getType("[" + componentType.getDescriptor());
+    return newArray(componentType, values.size(), values);
+  }
+
+  public static Value newArray(final Type componentType, final int arrayLength, final List<Value> values) {
+    Preconditions.checkNotNull(componentType, "componentType");
     
+    if(values.size() > arrayLength) {
+      throw new IllegalArgumentException(
+          String.format("Number of initial values supplied (%d) is greater than array length (%d)",
+              values.size(),
+              arrayLength));
+    }
+    final Type arrayType = Type.getType("[" + componentType.getDescriptor());
+
     // check the types now
     for (int i = 0; i < values.size(); i++) {
       Type elementType = values.get(i).getType();
       if(!elementType.equals(componentType)) {
-        throw new IllegalArgumentException(String.format("Invalid type at element %d: %s, expected %s", 
+        throw new IllegalArgumentException(String.format("Invalid type at element %d: %s, expected %s",
             i, elementType, componentType));
       }
     }
 
     return new Value() {
+      @Nonnull
       @Override
       public Type getType() {
         return arrayType;
       }
 
       @Override
-      public void load(MethodGenerator mv) {
-        mv.iconst(values.size());
+      public void load(@Nonnull MethodGenerator mv) {
+        mv.iconst(arrayLength);
         mv.newarray(componentType);
         for (int i = 0; i < values.size(); i++) {
           mv.dup();
@@ -86,6 +102,7 @@ public class Values {
     };
   }
   
+  
 
   public static Value elementAt(final Value array, final Value offset) {
     checkType("array", array, Type.ARRAY);
@@ -93,13 +110,14 @@ public class Values {
     
     return new Var() {
 
+      @Nonnull
       @Override
       public Type getType() {
         return array.getType().getElementType();
       }
 
       @Override
-      public void load(MethodGenerator mv) {
+      public void load(@Nonnull MethodGenerator mv) {
         array.load(mv);
         offset.load(mv);
         mv.aload(getType());
@@ -120,15 +138,16 @@ public class Values {
   }
 
 
-  public static Value nullRef() {
+  public static Value nullRef(final Type type) {
     return new Value() {
+      @Nonnull
       @Override
       public Type getType() {
-        return null;
+        return type;
       }
 
       @Override
-      public void load(MethodGenerator mv) {
+      public void load(@Nonnull MethodGenerator mv) {
         mv.aconst(null);
       }
     };
@@ -152,6 +171,14 @@ public class Values {
 
   public static Value difference(Value x, Value y) {
     return new PrimitiveBinOpGenerator(GimpleOp.MINUS_EXPR, x, y);
+  }
+
+  public static Value difference(Value x, int y) {
+    if(y == 0) {
+      return x;
+    } else {
+      return difference(x, constantInt(y));
+    }
   }
 
   public static Value product(Value x, Value y) {
@@ -187,13 +214,14 @@ public class Values {
     return new Var() {
 
 
+      @Nonnull
       @Override
       public Type getType() {
         return fieldType;
       }
 
       @Override
-      public void load(MethodGenerator mv) {
+      public void load(@Nonnull MethodGenerator mv) {
         instance.load(mv);
         mv.getfield(instance.getType().getInternalName(), fieldName, fieldType.getDescriptor());
       }
@@ -230,13 +258,14 @@ public class Values {
     
     return new Var() {
 
+      @Nonnull
       @Override
       public Type getType() {
         return type;
       }
 
       @Override
-      public void load(MethodGenerator mv) {
+      public void load(@Nonnull MethodGenerator mv) {
         object.load(mv);
         mv.checkcast(type);
       }
@@ -266,5 +295,37 @@ public class Values {
       checkCast(fromType.getElementType(), toType.getElementType());
     }
   }
+
+  public static Value voidValue() {
+    return new Value() {
+      @Nonnull
+      @Override
+      public Type getType() {
+        return Type.VOID_TYPE;
+      }
+
+      @Override
+      public void load(@Nonnull MethodGenerator mv) {
+        // LOAD NOTHING
+      }
+    };
+  }
+
+  public static Value thisValue(final Type type) {
+    return new Value() {
+
+      @Nonnull
+      @Override
+      public Type getType() {
+        return type;
+      }
+
+      @Override
+      public void load(@Nonnull MethodGenerator mv) {
+        mv.load(0, type);
+      }
+    };
+  }
+
 
 }

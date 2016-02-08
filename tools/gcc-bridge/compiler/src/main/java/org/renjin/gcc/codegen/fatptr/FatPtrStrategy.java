@@ -1,6 +1,7 @@
 package org.renjin.gcc.codegen.fatptr;
 
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
@@ -16,7 +17,6 @@ import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 
-import static org.renjin.gcc.codegen.fatptr.Wrappers.newWrapper;
 import static org.renjin.gcc.codegen.var.Values.newArray;
 
 /**
@@ -47,7 +47,7 @@ public class FatPtrStrategy extends TypeStrategy<FatPtrExpr> {
   }
 
   @Override
-  public ExprGenerator varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
+  public FatPtrExpr varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
     if(decl.isAddressable()) {
       // If this variable needs to be addressable, then we need to store in a unit length pointer
       // so that we can later get its "address"
@@ -88,7 +88,10 @@ public class FatPtrStrategy extends TypeStrategy<FatPtrExpr> {
 
       Type wrapperType = Wrappers.wrapperType(valueFunction.getValueType());
       Type wrapperArrayType = Wrappers.valueArrayType(wrapperType);
-      Var unitArray = allocator.reserve(decl.getName(), wrapperArrayType, newArray(newWrapper(wrapperType)));
+      
+      FatPtrExpr nullPtr = FatPtrExpr.nullPtr(valueFunction);
+      
+      Var unitArray = allocator.reserve(decl.getName(), wrapperArrayType, newArray(nullPtr.wrap()));
       FatPtrExpr address = new FatPtrExpr(unitArray); 
       Value instance = Values.elementAt(unitArray, 0);
       Value unwrappedArray = Wrappers.arrayField(instance, valueFunction.getValueType());
@@ -109,6 +112,11 @@ public class FatPtrStrategy extends TypeStrategy<FatPtrExpr> {
   }
 
   @Override
+  public FieldStrategy addressableFieldGenerator(String className, String fieldName) {
+    return new AddressableField(Type.getType(className), fieldName, new FatPtrValueFunction(valueFunction));
+  }
+
+  @Override
   public ParamStrategy getParamStrategy() {
     if(isParametersWrapped()) {
       return new WrappedFatPtrParamStrategy(valueFunction);
@@ -123,8 +131,8 @@ public class FatPtrStrategy extends TypeStrategy<FatPtrExpr> {
   }
 
   @Override
-  public FatPtrExpr malloc(Value length) {
-    return FatPtrExpr.alloc(valueFunction, length);
+  public FatPtrExpr malloc(MethodGenerator mv, Value length) {
+    return FatPtrMalloc.alloc(mv, valueFunction, length);
   }
 
   @Override
@@ -147,7 +155,7 @@ public class FatPtrStrategy extends TypeStrategy<FatPtrExpr> {
 
   @Override
   public TypeStrategy arrayOf(GimpleArrayType arrayType) {
-    return new ArrayTypeStrategy(new FatPtrValueFunction(valueFunction));
+    return new ArrayTypeStrategy(arrayType, new FatPtrValueFunction(valueFunction));
   }
 
   @Override
@@ -165,7 +173,32 @@ public class FatPtrStrategy extends TypeStrategy<FatPtrExpr> {
   }
 
   @Override
+  public Value memoryCompare(FatPtrExpr p1, FatPtrExpr p2, Value n) {
+    return new FatPtrMemCmp(p1, p2, n);
+  }
+
+  @Override
+  public void memoryCopy(MethodGenerator mv, FatPtrExpr destination, FatPtrExpr source, Value length) {
+    source.getArray().load(mv);
+    source.getOffset().load(mv);
+    destination.getArray().load(mv);
+    destination.getOffset().load(mv);
+    length.load(mv);
+
+    // public static native void arraycopy(
+    //     Object src,  int  srcPos,
+    // Object dest, int destPos,
+    // int length);
+    mv.invokestatic(System.class, "arraycopy", 
+        Type.getMethodDescriptor(Type.VOID_TYPE, 
+              Type.getType(Object.class), Type.INT_TYPE, 
+              Type.getType(Object.class), Type.INT_TYPE,
+              Type.INT_TYPE));
+
+  }
+
+  @Override
   public FatPtrExpr nullPointer() {
-    return new FatPtrExpr(Values.nullRef(), Values.zero());
+    return FatPtrExpr.nullPtr(valueFunction);
   }
 }

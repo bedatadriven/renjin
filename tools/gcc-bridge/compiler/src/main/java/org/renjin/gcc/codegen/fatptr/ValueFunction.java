@@ -4,6 +4,8 @@ import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.var.Value;
 
+import java.util.List;
+
 /**
  * Functor which can "unwrap" a fat ptr
  */
@@ -26,5 +28,6 @@ public interface ValueFunction {
   int getElementSize();
 
   ExprGenerator dereference(Value array, Value offset);
-  
+
+  List<Value> getDefaultValue();
 }

@@ -8,6 +8,7 @@ import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
 
+import javax.annotation.Nonnull;
 import java.util.List;
 
 /**
@@ -27,13 +28,14 @@ public class GlobalVarAllocator extends VarAllocator {
       this.initialValue = initialValue;
     }
 
+    @Nonnull
     @Override
     public Type getType() {
       return type;
     }
 
     @Override
-    public void load(MethodGenerator mv) {
+    public void load(@Nonnull MethodGenerator mv) {
       mv.visitFieldInsn(Opcodes.GETSTATIC, declaringClass.getInternalName(), name, type.getDescriptor());
     }
 

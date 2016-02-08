@@ -1,9 +1,11 @@
 package org.renjin.gcc.codegen.type.primitive;
 
+import com.google.common.base.Optional;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.AddressableValue;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.fatptr.AddressableField;
 import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
@@ -15,6 +17,9 @@ import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Creates {@code Generators} for {@code GimplePrimitiveType}.
@@ -42,8 +47,7 @@ public class PrimitiveTypeStrategy extends TypeStrategy {
 
   @Override
   public FieldStrategy addressableFieldGenerator(String className, String fieldName) {
-    // TODO: return new AddressablePrimitiveField(className, fieldName, type, type.jvmType());
-    throw new UnsupportedOperationException();
+    return new AddressableField(Type.getType(className), fieldName, new PrimitiveValueFunction());
   }
 
   @Override
@@ -54,7 +58,7 @@ public class PrimitiveTypeStrategy extends TypeStrategy {
   @Override
   public ExprGenerator varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
     if(decl.isAddressable()) {
-      Var unitArray = allocator.reserveUnitArray(decl.getName(), type.jvmType());
+      Var unitArray = allocator.reserveUnitArray(decl.getName(), type.jvmType(), Optional.<Value>absent());
       FatPtrExpr address = new FatPtrExpr(unitArray);
       Value value = Values.elementAt(address.getArray(), 0);
       return new AddressableValue(value, address);
@@ -71,7 +75,7 @@ public class PrimitiveTypeStrategy extends TypeStrategy {
 
   @Override
   public TypeStrategy arrayOf(GimpleArrayType arrayType) {
-    return new ArrayTypeStrategy(new PrimitiveValueFunction());
+    return new ArrayTypeStrategy(arrayType, new PrimitiveValueFunction());
   }
 
   private class PrimitiveValueFunction implements ValueFunction {
@@ -97,6 +101,11 @@ public class PrimitiveTypeStrategy extends TypeStrategy {
       Value value = Values.elementAt(array, offset);
       
       return new AddressableValue(value, address);
+    }
+
+    @Override
+    public List<Value> getDefaultValue() {
+      return Collections.emptyList();
     }
   }
 }

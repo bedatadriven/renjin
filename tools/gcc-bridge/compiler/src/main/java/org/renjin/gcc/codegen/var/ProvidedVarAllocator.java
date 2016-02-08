@@ -5,6 +5,7 @@ import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
 
+import javax.annotation.Nonnull;
 import java.lang.reflect.Field;
 
 /**
@@ -37,13 +38,14 @@ public class ProvidedVarAllocator extends VarAllocator {
     }
     return new Var() {
 
+      @Nonnull
       @Override
       public Type getType() {
         return type;
       }
 
       @Override
-      public void load(MethodGenerator mv) {
+      public void load(@Nonnull MethodGenerator mv) {
         mv.visitFieldInsn(Opcodes.GETSTATIC, Type.getInternalName(declaringClass), name, type.getDescriptor());
       }
 

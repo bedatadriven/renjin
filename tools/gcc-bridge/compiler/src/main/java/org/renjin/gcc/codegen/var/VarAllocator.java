@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.var;
 
+import com.google.common.base.Optional;
 import org.objectweb.asm.Type;
 
 /**
@@ -22,8 +23,15 @@ public abstract class VarAllocator {
     return reserve(name, Type.getType("[" + componentType.getDescriptor()));
   }
   
-  public final Var reserveUnitArray(String name, Type componentType) {
-    return reserve(name, Type.getType("[" + componentType.getDescriptor()), Values.newArray(componentType, 1));
+  public final Var reserveUnitArray(String name, Type componentType, Optional<Value> initialValue) {
+
+    Value newArray;
+    if(initialValue.isPresent()) {
+      newArray = Values.newArray(initialValue.get());
+    } else {
+      newArray = Values.newArray(componentType, 1);
+    }
+    return reserve(name, Type.getType("[" + componentType.getDescriptor()), newArray);
   }
 
   public final Var reserveInt(String name) {

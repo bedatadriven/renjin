@@ -5,6 +5,8 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.var.Value;
 import org.renjin.gcc.gimple.GimpleOp;
 
+import javax.annotation.Nonnull;
+
 
 public class MinMaxGenerator implements Value {
 
@@ -18,13 +20,14 @@ public class MinMaxGenerator implements Value {
     this.y = y;
   }
 
+  @Nonnull
   @Override
   public Type getType() {
     return x.getType();
   }
 
   @Override
-  public void load(MethodGenerator mv) {
+  public void load(@Nonnull MethodGenerator mv) {
     x.load(mv);
     y.load(mv);
 

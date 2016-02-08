@@ -11,6 +11,7 @@ import org.renjin.gcc.codegen.var.Value;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.statement.GimpleCall;
 
+import javax.annotation.Nonnull;
 import java.util.List;
 
 /**
@@ -61,13 +62,14 @@ public class FunctionCallGenerator implements CallGenerator {
       this.arguments = arguments;
     }
 
+    @Nonnull
     @Override
     public Type getType() {
       return strategy.getReturnStrategy().getType();
     }
 
     @Override
-    public void load(MethodGenerator mv) {
+    public void load(@Nonnull MethodGenerator mv) {
       // Push all parameters on the stack
       List<ParamStrategy> paramStrategies = strategy.getParamStrategies();
       for (int i = 0; i < paramStrategies.size(); i++) {

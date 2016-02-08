@@ -7,6 +7,9 @@ import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.var.Value;
 import org.renjin.gcc.codegen.var.Values;
 
+import java.util.Collections;
+import java.util.List;
+
 public class ComplexValueFunction implements ValueFunction {
   
   private final Type valueType;
@@ -49,5 +52,10 @@ public class ComplexValueFunction implements ValueFunction {
     Value imaginary = Values.elementAt(array, imaginaryOffset);
     
     return new ComplexValue(real, imaginary);
+  }
+
+  @Override
+  public List<Value> getDefaultValue() {
+    return Collections.emptyList();
   }
 }

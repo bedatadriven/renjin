@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.type;
 
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.UnimplementedException;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.ExprFactory;
@@ -36,7 +37,7 @@ public abstract class TypeStrategy<ExprT extends ExprGenerator> {
   /**
    * Creates a {@link VarGenerator} for a {@link GimpleVarDecl} of this type
    */
-  public ExprGenerator varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
+  public ExprT varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
     throw new UnimplementedException(getClass(), "varGenerator");
   }
 
@@ -67,9 +68,10 @@ public abstract class TypeStrategy<ExprT extends ExprGenerator> {
 
   /**
    * Creates a new ExprGenerator that allocates a new pointer
+   * @param mv
    * @param length the size of the memory to allocate, <strong>in number of elements, not bytes!</strong>
    */
-  public ExprT malloc(Value length) {
+  public ExprT malloc(MethodGenerator mv, Value length) {
     throw new UnsupportedOperationException("TODO: implement malloc() in " + getClass().getName());
   }
 
@@ -103,5 +105,13 @@ public abstract class TypeStrategy<ExprT extends ExprGenerator> {
 
   public ExprGenerator addressOf(ExprT value) {
     throw new UnimplementedException(getClass(), "addressableFieldGenerator");
+  }
+
+  public Value memoryCompare(ExprT p1, ExprT p2, Value n) {
+    throw new UnimplementedException(getClass(), "memoryCompare");
+  }
+
+  public void memoryCopy(MethodGenerator mv, ExprT destination, ExprT source, Value length) {
+    throw new UnimplementedException(getClass(), "memoryCopy");
   }
 }

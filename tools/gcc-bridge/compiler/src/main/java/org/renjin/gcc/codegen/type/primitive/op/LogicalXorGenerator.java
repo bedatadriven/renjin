@@ -5,6 +5,8 @@ import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.var.Value;
 
+import javax.annotation.Nonnull;
+
 /**
  * TRUTH_XOR_EXPR
  */
@@ -20,13 +22,14 @@ public class LogicalXorGenerator implements Value {
                                 y.getType().equals(Type.BOOLEAN_TYPE));
   }
 
+  @Nonnull
   @Override
   public Type getType() {
     return Type.BOOLEAN_TYPE;
   }
 
   @Override
-  public void load(MethodGenerator mv) {
+  public void load(@Nonnull MethodGenerator mv) {
     x.load(mv);
     y.load(mv);
     mv.xor(Type.INT_TYPE);

@@ -5,6 +5,8 @@ import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.var.Value;
 
+import javax.annotation.Nonnull;
+
 public class BitwiseNotGenerator implements Value {
 
   private final Value argument;
@@ -13,13 +15,14 @@ public class BitwiseNotGenerator implements Value {
     this.argument = argument;
   }
 
+  @Nonnull
   @Override
   public Type getType() {
     return argument.getType();
   }
 
   @Override
-  public void load(MethodGenerator mv) {
+  public void load(@Nonnull MethodGenerator mv) {
     if(!argument.getType().equals(Type.INT_TYPE)) {
       throw new UnsupportedOperationException("Bitwise not only supported for int32 operands.");
     }

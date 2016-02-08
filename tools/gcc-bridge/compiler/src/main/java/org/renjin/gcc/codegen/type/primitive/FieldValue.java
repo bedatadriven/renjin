@@ -5,6 +5,8 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.var.Value;
 import org.renjin.gcc.codegen.var.Var;
 
+import javax.annotation.Nonnull;
+
 
 public class FieldValue implements Var {
   
@@ -18,13 +20,14 @@ public class FieldValue implements Var {
     this.fieldType = fieldType;
   }
 
+  @Nonnull
   @Override
   public Type getType() {
     return fieldType;
   }
 
   @Override
-  public void load(MethodGenerator mv) {
+  public void load(@Nonnull MethodGenerator mv) {
     instance.load(mv);
     mv.getfield(instance.getType().getInternalName(), fieldName, fieldType.getDescriptor());
   }

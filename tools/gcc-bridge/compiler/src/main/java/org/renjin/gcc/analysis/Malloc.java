@@ -8,6 +8,7 @@ import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
  * Predicates for malloc statements
  */
 public class Malloc {
+
   public static boolean isMalloc(GimpleExpr functionExpr) {
     return isFunctionNamed(functionExpr, "malloc")  ||
            isFunctionNamed(functionExpr, "__builtin_malloc");
@@ -23,4 +24,5 @@ public class Malloc {
     }
     return false;
   }
+
 }

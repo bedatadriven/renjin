@@ -17,6 +17,7 @@ import org.renjin.gcc.codegen.type.primitive.PrimitiveCmpGenerator;
 import org.renjin.gcc.codegen.type.primitive.StringConstant;
 import org.renjin.gcc.codegen.type.primitive.op.*;
 import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
+import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
 import org.renjin.gcc.codegen.var.Value;
 import org.renjin.gcc.codegen.var.Values;
 import org.renjin.gcc.gimple.CallingConvention;
@@ -91,7 +92,7 @@ public class ExprFactory {
         GimpleFunctionRef functionRef = (GimpleFunctionRef) addressOf.getValue();
         return new FunctionRefGenerator(symbolTable.findHandle(functionRef, callingConvention));
 
-      } else if(addressOf.getValue() instanceof GimpleConstant) {
+      } else if(addressOf.getValue() instanceof GimplePrimitiveConstant) {
         // Exceptionally, gimple often contains to address of constants when
         // passing them to functions
 
@@ -129,7 +130,10 @@ public class ExprFactory {
       
     } else if(expr instanceof GimpleConstantRef) {
       GimpleConstant constant = ((GimpleConstantRef) expr).getValue();
-      return findGenerator(constant);
+      Value constantValue = findValueGenerator(constant);
+      FatPtrExpr address = new FatPtrExpr(Values.newArray(constantValue));
+      
+      return new AddressableValue(constantValue, address);
 
     } else if(expr instanceof GimpleComplexPartExpr) {
       GimpleExpr complexExpr = ((GimpleComplexPartExpr) expr).getComplexValue();
@@ -140,12 +144,12 @@ public class ExprFactory {
         return complexGenerator.getImaginaryValue();
       }
     } else if (expr instanceof GimpleComponentRef) {
-     throw new UnsupportedOperationException("Todo");
-//      GimpleComponentRef componentRef = (GimpleComponentRef) expr;
-//      GimpleExpr valueExpr = componentRef.getValue();
-//      ExprGenerator valueExprGenerator = findGenerator(valueExpr);
-//      return valueExprGenerator.memberOf(componentRef.memberName());
+      GimpleComponentRef ref = (GimpleComponentRef) expr;
+      ExprGenerator instance = findGenerator(((GimpleComponentRef) expr).getValue());
+      RecordTypeStrategy typeStrategy = (RecordTypeStrategy) typeOracle.forType(ref.getValue().getType());
+      return typeStrategy.memberOf(instance, (GimpleFieldRef) ref.getMember());
     }
+    
     throw new UnsupportedOperationException(expr + " [" + expr.getClass().getSimpleName() + "]");
   }
 

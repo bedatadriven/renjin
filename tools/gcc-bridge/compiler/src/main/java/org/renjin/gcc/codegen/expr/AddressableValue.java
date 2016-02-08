@@ -6,6 +6,8 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.var.LValue;
 import org.renjin.gcc.codegen.var.Value;
 
+import javax.annotation.Nonnull;
+
 
 public class AddressableValue implements Addressable, Value, LValue<Value> {
   
@@ -22,13 +24,14 @@ public class AddressableValue implements Addressable, Value, LValue<Value> {
     return address;
   }
 
+  @Nonnull
   @Override
   public Type getType() {
     return value.getType();
   }
 
   @Override
-  public void load(MethodGenerator mv) {
+  public void load(@Nonnull MethodGenerator mv) {
     value.load(mv);
   }
 

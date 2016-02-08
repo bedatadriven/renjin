@@ -28,10 +28,14 @@ public class MethodGenerator extends InstructionAdapter {
   }
   
   public void invokevirtual(Class<?> declaringClass, String methodName, Type returnType, Type... argumentTypes) {
-    invokevirtual(Type.getType(declaringClass).getInternalName(), 
+    invokevirtual(Type.getType(declaringClass).getInternalName(),
         methodName,
         Type.getMethodDescriptor(returnType, argumentTypes),
         declaringClass.isInterface());
+  }
+  
+  public void putfield(Type declaringClass, String name, Type fieldType) {
+    putfield(declaringClass.getInternalName(), name, fieldType.getDescriptor());
   }
 
   public void pop(Type type) {

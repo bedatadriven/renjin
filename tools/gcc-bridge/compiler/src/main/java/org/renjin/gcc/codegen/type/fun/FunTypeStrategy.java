@@ -1,22 +1,22 @@
 package org.renjin.gcc.codegen.type.fun;
 
-import com.google.common.collect.Lists;
 import org.objectweb.asm.Type;
-import org.renjin.gcc.codegen.expr.ExprFactory;
+import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
+import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.expr.PtrExpr;
+import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
 import org.renjin.gcc.codegen.type.*;
+import org.renjin.gcc.codegen.type.record.unit.RefConditionGenerator;
 import org.renjin.gcc.codegen.var.Value;
 import org.renjin.gcc.codegen.var.Values;
 import org.renjin.gcc.codegen.var.Var;
 import org.renjin.gcc.codegen.var.VarAllocator;
+import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.GimpleVarDecl;
-import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleFunctionType;
 
 import java.lang.invoke.MethodHandle;
-import java.util.List;
 
 /**
  * Creates {@code Generators} for values for function values.
@@ -43,7 +43,7 @@ public class FunTypeStrategy extends TypeStrategy {
   /**
    * Strategy for Function Pointers
    */
-  private class Pointer extends TypeStrategy {
+  private class Pointer extends TypeStrategy<Value> {
     @Override
     public ParamStrategy getParamStrategy() {
       return new ValueParamStrategy(METHOD_HANDLE_TYPE);
@@ -66,48 +66,27 @@ public class FunTypeStrategy extends TypeStrategy {
 
     @Override
     public TypeStrategy pointerTo() {
-      return new PointerPointer();
+      return new FatPtrStrategy(new FunPtrValueFunction(32));
     }
 
     @Override
     public TypeStrategy arrayOf(GimpleArrayType arrayType) {
-      return new PointerArray(arrayType);
+      return new ArrayTypeStrategy(arrayType, new FunPtrValueFunction(32));
     }
 
     @Override
     public Value nullPointer() {
-      return Values.nullRef();
-    }
-  }
-  
-  private class PointerPointer extends TypeStrategy {
-
-    @Override
-    public FieldStrategy fieldGenerator(String className, String fieldName) {
-      return new ValueFieldStrategy(METHOD_HANDLE_TYPE, fieldName); 
-    }
-  }
-  
-  private class PointerArray extends TypeStrategy {
-    private GimpleArrayType arrayType;
-
-    public PointerArray(GimpleArrayType arrayType) {
-      this.arrayType = arrayType;
+      return Values.nullRef(METHOD_HANDLE_TYPE);
     }
 
     @Override
-    public FieldStrategy fieldGenerator(String className, String fieldName) {
-     // TODO: return new FunPtrArrayField(className, fieldName, arrayType);
-      throw new UnsupportedOperationException();
+    public ConditionGenerator comparePointers(GimpleOp op, Value x, Value y) {
+      return new RefConditionGenerator(op, x, y);
     }
 
     @Override
-    public ExprGenerator constructorExpr(ExprFactory exprFactory, GimpleConstructor value) {
-      List<ExprGenerator> elements = Lists.newArrayList();
-      for (GimpleConstructor.Element element : value.getElements()) {
-        elements.add(exprFactory.findGenerator(element.getValue()));
-      }
-      return new FunPtrArrayConstructor(arrayType, elements);
+    public ExprGenerator valueOf(Value pointerExpr) {
+      return pointerExpr;
     }
   }
   

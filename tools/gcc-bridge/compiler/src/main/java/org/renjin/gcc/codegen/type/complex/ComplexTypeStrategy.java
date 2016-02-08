@@ -3,18 +3,15 @@ package org.renjin.gcc.codegen.type.complex;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
-import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.type.ReturnStrategy;
 import org.renjin.gcc.codegen.type.TypeStrategy;
-import org.renjin.gcc.codegen.type.VarGenerator;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleComplexType;
-import org.renjin.gcc.gimple.type.GimplePointerType;
 
 /**
- * Strategy  complex number types.
+ * Strategy for complex number types.
  * 
  * <p>The JVM does not have builtin support for complex number types, so we have to
  * be a bit creative in representing parameters and variables.</p>
@@ -64,7 +61,7 @@ public class ComplexTypeStrategy extends TypeStrategy {
 
   @Override
   public TypeStrategy arrayOf(GimpleArrayType arrayType) {
-    return new ArrayTypeStrategy(new ComplexValueFunction(type.getJvmPartType()))
+    return new ArrayTypeStrategy(arrayType, new ComplexValueFunction(type.getJvmPartType()))
         .setParameterWrapped(false);
   }
 }

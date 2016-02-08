@@ -3,8 +3,9 @@ package org.renjin.gcc.codegen.fatptr;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.var.Value;
-import org.renjin.gcc.runtime.Builtins;
 import org.renjin.gcc.runtime.Realloc;
+
+import javax.annotation.Nonnull;
 
 /**
  * Invokes a type-specific realloc() method to enlarge the new array
@@ -21,13 +22,14 @@ public class FatPtrRealloc implements Value {
     arrayType = pointer.getArray().getType();
   }
 
+  @Nonnull
   @Override
   public Type getType() {
     return arrayType;
   }
 
   @Override
-  public void load(MethodGenerator mv) {
+  public void load(@Nonnull MethodGenerator mv) {
 
     pointer.getArray().load(mv);
     pointer.getOffset().load(mv);

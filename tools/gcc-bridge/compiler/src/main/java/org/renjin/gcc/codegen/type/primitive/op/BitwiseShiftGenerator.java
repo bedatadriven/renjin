@@ -7,6 +7,8 @@ import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.type.GimpleIntegerType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
+import javax.annotation.Nonnull;
+
 /**
  * Generates bytecode for left and right bitwise shifts
  */
@@ -36,13 +38,14 @@ public class BitwiseShiftGenerator implements Value {
     return (tx.equals(Type.INT_TYPE) || tx.equals(Type.LONG_TYPE)) && ty.equals(tx);
   }
 
+  @Nonnull
   @Override
   public Type getType() {
     return x.getType();
   }
 
   @Override
-  public void load(MethodGenerator mv) {
+  public void load(@Nonnull MethodGenerator mv) {
     x.load(mv);
     y.load(mv);
 

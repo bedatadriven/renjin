@@ -6,6 +6,8 @@ import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.var.Value;
 
+import javax.annotation.Nonnull;
+
 /**
  * Logical binary operator, such as TRUTH_OR, TRUTH_AND
  */
@@ -20,13 +22,14 @@ public class LogicalAndGenerator implements Value {
   }
 
 
+  @Nonnull
   @Override
   public Type getType() {
     return x.getType();
   }
 
   @Override
-  public void load(MethodGenerator mv) {
+  public void load(@Nonnull MethodGenerator mv) {
     Label falseLabel = new Label();
     Label exitLabel = new Label();
 

@@ -6,6 +6,9 @@ import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.var.Value;
 import org.renjin.gcc.codegen.var.Values;
 
+import java.util.Collections;
+import java.util.List;
+
 /**
  * Dereferences from double** -> double *
  */
@@ -47,11 +50,17 @@ public class FatPtrValueFunction implements ValueFunction {
     // double[] unwrappedArray = array[offset].array
     // int unwrappedOffset = array[offset].offset
     
+    FatPtrExpr address = new FatPtrExpr(array, offset);
     Value wrapperInstance = Values.elementAt(array, offset);
     
     Value unwrappedArray = Wrappers.arrayField(wrapperInstance, baseValueFunction.getValueType());
     Value unwrappedOffset = Wrappers.offsetField(wrapperInstance);
 
-    return new FatPtrExpr(unwrappedArray, unwrappedOffset);
+    return new FatPtrExpr(address, unwrappedArray, unwrappedOffset);
+  }
+
+  @Override
+  public List<Value> getDefaultValue() {
+    return Collections.singletonList(FatPtrExpr.nullPtr(baseValueFunction).wrap());
   }
 }

@@ -1,6 +1,7 @@
 package org.renjin.gcc.gimple.type;
 
 import com.google.common.base.Strings;
+import org.renjin.gcc.gimple.expr.GimpleFieldRef;
 
 public class GimpleField {
   private String name;
@@ -38,4 +39,7 @@ public class GimpleField {
   }
   
   
+  public GimpleFieldRef refTo() {
+    return new GimpleFieldRef(0, name);
+  }  
 }

@@ -16,6 +16,7 @@ import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.statement.GimpleCall;
 import org.renjin.gcc.gimple.type.GimpleFunctionType;
 
+import javax.annotation.Nonnull;
 import java.util.List;
 
 /**
@@ -71,13 +72,14 @@ public class FunPtrCallGenerator implements CallGenerator {
     
     // Now define the actual value
     Value callValue = new Value() {
+      @Nonnull
       @Override
       public Type getType() {
         return returnStrategy.getType();
       }
 
       @Override
-      public void load(MethodGenerator mv) {
+      public void load(@Nonnull MethodGenerator mv) {
         // Push the method handle onto the stack first
         methodHandle.load(mv);
         

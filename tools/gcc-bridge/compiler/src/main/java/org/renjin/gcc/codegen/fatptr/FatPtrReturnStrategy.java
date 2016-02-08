@@ -5,6 +5,7 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.ReturnStrategy;
 import org.renjin.gcc.codegen.var.Value;
+import org.renjin.gcc.codegen.var.Values;
 import org.renjin.gcc.codegen.var.Var;
 
 /**
@@ -42,5 +43,11 @@ public class FatPtrReturnStrategy implements ReturnStrategy {
     Value offset = Wrappers.offsetField(wrapper);
 
     return new FatPtrExpr(array, offset);
+  }
+
+  @Override
+  public Value getDefaultReturnValue() {
+    Type arrayType = Wrappers.valueArrayType(valueFunction.getValueType());
+    return new FatPtrExpr(Values.nullRef(arrayType)).wrap();
   }
 }

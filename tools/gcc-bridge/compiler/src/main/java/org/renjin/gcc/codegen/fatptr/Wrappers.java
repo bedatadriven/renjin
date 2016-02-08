@@ -1,7 +1,6 @@
 package org.renjin.gcc.codegen.fatptr;
 
 import org.objectweb.asm.Type;
-import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.var.Value;
 import org.renjin.gcc.codegen.var.Values;
 import org.renjin.gcc.runtime.*;
@@ -92,22 +91,4 @@ public class Wrappers {
     throw new UnsupportedOperationException("No wrapper for type: " + valueType);
   }
 
-  public static Value newWrapper(final Type wrapperType) {
-    return new Value() {
-
-      @Override
-      public Type getType() {
-        return wrapperType;
-      }
-
-      @Override
-      public void load(MethodGenerator mv) {
-        mv.anew(wrapperType);
-        mv.dup();
-        mv.aconst(null);
-        mv.iconst(0);
-        mv.invokeconstructor(wrapperType, fieldArrayType(wrapperType), Type.INT_TYPE);
-      }
-    };
-  }
 }

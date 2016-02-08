@@ -11,6 +11,9 @@ import org.renjin.gcc.codegen.var.LValue;
 import org.renjin.gcc.codegen.var.Value;
 import org.renjin.gcc.codegen.var.Values;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 
 public class FatPtrExpr implements ExprGenerator, LValue<FatPtrExpr>, Addressable {
 
@@ -18,13 +21,16 @@ public class FatPtrExpr implements ExprGenerator, LValue<FatPtrExpr>, Addressabl
   private Value offset;
   private ExprGenerator address;
 
-  public FatPtrExpr(ExprGenerator address, Value array, Value offset) {
+  public FatPtrExpr(@Nullable ExprGenerator address, @Nonnull Value array, @Nonnull Value offset) {
+    Preconditions.checkNotNull(array, "array");
+    Preconditions.checkNotNull(offset, "offset");
+
     this.address = address;
     this.array = array;
     this.offset = offset;
   }
 
-  public FatPtrExpr(Value array, Value offset) {
+  public FatPtrExpr(@Nonnull Value array, @Nonnull Value offset) {
     this(null, array, offset);
   }
   
@@ -32,10 +38,12 @@ public class FatPtrExpr implements ExprGenerator, LValue<FatPtrExpr>, Addressabl
     this(array, Values.zero());
   }
 
+  @Nonnull
   public Value getArray() {
     return array;
   }
 
+  @Nonnull
   public Value getOffset() {
     return offset;
   }
@@ -68,27 +76,27 @@ public class FatPtrExpr implements ExprGenerator, LValue<FatPtrExpr>, Addressabl
     }
     ((LValue<Value>) offset).store(mv, rhs.getOffset());
   }
-  
 
-  public static FatPtrExpr alloc(ValueFunction valueFunction, Value length) {
-    Value totalLength = Values.product(length, valueFunction.getElementLength());
-    Value array = Values.newArray(valueFunction.getValueType(), totalLength);
-    Value offset = Values.constantInt(0);
+
+  public static FatPtrExpr nullPtr(ValueFunction valueFunction) {
+    Type arrayType = Wrappers.valueArrayType(valueFunction.getValueType());
+    Value nullArray = Values.nullRef(arrayType);
     
-    return new FatPtrExpr(array, offset);
+    return new FatPtrExpr(nullArray);
   }
 
   public Value wrap() {
     final Type wrapperType = Wrappers.wrapperType(getValueType());
     
     return new Value() {
+      @Nonnull
       @Override
       public Type getType() {
         return wrapperType;
       }
 
       @Override
-      public void load(MethodGenerator mv) {
+      public void load(@Nonnull MethodGenerator mv) {
         mv.anew(wrapperType);
         mv.dup();
         array.load(mv);

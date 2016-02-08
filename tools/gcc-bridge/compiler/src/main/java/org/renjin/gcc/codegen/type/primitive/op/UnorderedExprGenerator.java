@@ -5,6 +5,8 @@ import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.var.Value;
 
+import javax.annotation.Nonnull;
+
 /**
  * Determines whether {@code x} and {@code y} are "unordered", that is, 
  * if one or both arguments are NaN.
@@ -19,13 +21,14 @@ public class UnorderedExprGenerator implements Value {
     this.y = y;
   }
 
+  @Nonnull
   @Override
   public Type getType() {
     return Type.BOOLEAN_TYPE;
   }
 
   @Override
-  public void load(MethodGenerator mv) {
+  public void load(@Nonnull MethodGenerator mv) {
     Label unordered = new Label();
     Label exit = new Label();
     

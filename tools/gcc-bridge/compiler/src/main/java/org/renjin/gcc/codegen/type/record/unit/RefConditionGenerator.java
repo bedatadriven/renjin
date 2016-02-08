@@ -4,17 +4,16 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
-import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.var.Value;
 import org.renjin.gcc.gimple.GimpleOp;
 
 
-public class RecordUnitPtrCmpGenerator implements ConditionGenerator {
+public class RefConditionGenerator implements ConditionGenerator {
   private final GimpleOp op;
   private final Value x;
   private final Value y;
 
-  public RecordUnitPtrCmpGenerator(GimpleOp op, Value x, Value y) {
+  public RefConditionGenerator(GimpleOp op, Value x, Value y) {
     this.op = op;
     this.x = x;
     this.y = y;

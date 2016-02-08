@@ -2,12 +2,9 @@ package org.renjin.gcc.codegen.type;
 
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
 import org.renjin.gcc.codegen.type.complex.ComplexReturnStrategy;
 import org.renjin.gcc.codegen.var.Value;
-
-import java.util.List;
 
 /**
  * Provides a strategy for return values from methods.
@@ -39,4 +36,9 @@ public interface ReturnStrategy {
    */
   ExprGenerator unmarshall(MethodGenerator mv, Value returnValue);
 
+  /**
+   * Sometimes C code doesn't return a value despite having a non-void return type. In this case, 
+   * we just need to push SOMETHING onto the stack.
+   */
+  Value getDefaultReturnValue();
 }

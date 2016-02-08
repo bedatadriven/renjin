@@ -183,6 +183,7 @@ public class TypeOracle {
         
       } else if (WrapperType.is(paramClass) && !paramClass.equals(CharPtr.class)) {
         WrapperType wrapperType = WrapperType.valueOf(paramClass);
+        
         // TODO: generators.add(new PrimitivePtrParamStrategy(wrapperType.getGimpleType()));
 //        index++;
         throw new UnsupportedOperationException("TODO");

@@ -73,7 +73,7 @@ public class Expressions {
     // check the types now
     for (int i = 0; i < values.size(); i++) {
       Type elementType = values.get(i).getType();
-      if(!elementType.equals(componentType)) {
+      if(elementType.getSort() != componentType.getSort()) {
         throw new IllegalArgumentException(String.format("Invalid type at element %d: %s, expected %s",
             i, elementType, componentType));
       }
@@ -318,5 +318,77 @@ public class Expressions {
         mv.load(0, type);
       }
     };
+  }
+
+  public static boolean isPrimitive(SimpleExpr simpleExpr) {
+    return isPrimitive(simpleExpr.getType());
+  }
+
+  public static boolean isPrimitive(Type type) {
+    switch (type.getSort()) {
+      case Type.BOOLEAN:
+      case Type.BYTE:
+      case Type.SHORT:
+      case Type.CHAR:
+      case Type.INT:
+      case Type.LONG:
+      case Type.FLOAT:
+      case Type.DOUBLE:
+        return true;
+      
+      case Type.OBJECT:
+      case Type.ARRAY:
+      case Type.METHOD:
+        return false;
+     
+      default:
+        throw new IllegalArgumentException("type: " + type);
+    }
+  }
+
+  public static SimpleExpr box(final SimpleExpr simpleExpr) {
+    Preconditions.checkArgument(isPrimitive(simpleExpr), "simpleExpr must be a primitive");
+    
+    Type primitiveType = simpleExpr.getType();
+    final Type boxedType = boxedType(primitiveType);
+    final String valueOfDescriptor = Type.getMethodDescriptor(boxedType, primitiveType);
+    
+    return new SimpleExpr() {
+      @Nonnull
+      @Override
+      public Type getType() {
+        return boxedType;
+      }
+
+      @Override
+      public void load(@Nonnull MethodGenerator mv) {
+        simpleExpr.load(mv);
+        mv.invokestatic(boxedType.getInternalName(), "valueOf", valueOfDescriptor, false);    
+      }
+    };
+  }
+  
+  public static Type boxedType(Type type) {
+    switch (type.getSort()) {
+      case Type.BOOLEAN:
+        return Type.getType(Boolean.class);
+      case Type.BYTE:
+        return Type.getType(Byte.class);
+      case Type.SHORT:
+        return Type.getType(Short.class);
+      case Type.CHAR:
+        return Type.getType(Character.class);
+      case Type.INT:
+        return Type.getType(Integer.class);
+      case Type.LONG:
+        return Type.getType(Long.class);
+      case Type.FLOAT:
+        return Type.getType(Float.class);
+      case Type.DOUBLE:
+        return Type.getType(Double.class);
+      
+      default:
+        throw new IllegalArgumentException("type: " + type);
+    }
   }
 }

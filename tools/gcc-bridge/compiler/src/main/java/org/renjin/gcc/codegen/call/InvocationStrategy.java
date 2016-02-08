@@ -1,6 +1,5 @@
 package org.renjin.gcc.codegen.call;
 
-import com.google.common.base.Optional;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.type.ReturnStrategy;
@@ -11,13 +10,13 @@ import java.util.List;
  * Defines a strategy for invoking a JVM method
  */
 public interface InvocationStrategy {
-  
+
   List<ParamStrategy> getParamStrategies();
 
   /**
    * If this function is variadic, get the {@code ParamStrategy} for the variadic argument.
    */
-  Optional<ParamStrategy> getVariadicParamStrategy();
+  boolean isVarArgs();
   
   ReturnStrategy getReturnStrategy();
 

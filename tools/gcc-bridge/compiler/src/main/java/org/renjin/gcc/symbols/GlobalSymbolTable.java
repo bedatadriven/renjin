@@ -50,9 +50,12 @@ public class GlobalSymbolTable implements SymbolTable {
   
   @Override
   public Handle findHandle(GimpleFunctionRef ref, CallingConvention callingConvention) {
-    FunctionCallGenerator functionCallGenerator = (FunctionCallGenerator) findCallGenerator(ref, callingConvention);
-    throw new UnsupportedOperationException();
- //   return functionCallGenerator.getHandle();
+    CallGenerator callGenerator = findCallGenerator(ref, callingConvention);
+    if(callGenerator instanceof FunctionCallGenerator) {
+      return ((FunctionCallGenerator) callGenerator).getStrategy().getMethodHandle();
+    } else {
+      throw new UnsupportedOperationException("callGenerator: " + callGenerator);
+    }
   }
 
 

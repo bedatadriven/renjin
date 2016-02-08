@@ -1,5 +1,7 @@
 package org.renjin.gcc.codegen.call;
 
+import org.objectweb.asm.Handle;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.type.ParamStrategy;
@@ -30,6 +32,12 @@ public class StaticMethodStrategy implements InvocationStrategy {
   public StaticMethodStrategy(TypeOracle typeOracle, Method method) {
     this.typeOracle = typeOracle;
     this.method = method;
+  }
+
+  @Override
+  public Handle getMethodHandle() {
+    return new Handle(Opcodes.H_INVOKESTATIC, Type.getInternalName(method.getDeclaringClass()), 
+        method.getName(), Type.getMethodDescriptor(method));
   }
 
   @Override

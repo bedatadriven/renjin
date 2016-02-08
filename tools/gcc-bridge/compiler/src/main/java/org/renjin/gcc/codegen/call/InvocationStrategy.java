@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.call;
 
+import org.objectweb.asm.Handle;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.type.ReturnStrategy;
@@ -11,6 +12,12 @@ import java.util.List;
  */
 public interface InvocationStrategy {
 
+  /**
+   * 
+   * @return a JVM method handle that can be used to construct a function pointer
+   */
+  Handle getMethodHandle();
+  
   List<ParamStrategy> getParamStrategies();
 
   /**

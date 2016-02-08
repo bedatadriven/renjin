@@ -303,7 +303,7 @@ public class FunctionGenerator implements InvocationStrategy {
   public String getFunctionDescriptor() {
     return TypeOracle.getMethodDescriptor(returnStrategy, getParamStrategies());
   }
-
+  
   @Override
   public List<ParamStrategy> getParamStrategies() {
     List<ParamStrategy> parameterTypes = new ArrayList<ParamStrategy>();
@@ -336,6 +336,7 @@ public class FunctionGenerator implements InvocationStrategy {
     return function.getUnit();
   }
 
+  @Override
   public Handle getMethodHandle() {
     return new Handle(H_INVOKESTATIC, className, function.getMangledName(), getFunctionDescriptor());
   }

@@ -8,7 +8,7 @@ double g(void * p) {
     return f(p);
 }
 
-double pass_through() {
+double test() {
     double x = 42.0;
     return g(&x);
 }

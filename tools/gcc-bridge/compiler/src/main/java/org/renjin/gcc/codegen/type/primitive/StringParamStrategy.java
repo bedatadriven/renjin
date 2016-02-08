@@ -26,7 +26,7 @@ public class StringParamStrategy implements ParamStrategy {
   }
 
   @Override
-  public void emitPushParameter(MethodGenerator mv, Expr valueGenerator) {
+  public void loadParameter(MethodGenerator mv, Expr argument) {
     throw new UnsupportedOperationException();
   }
 

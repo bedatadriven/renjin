@@ -46,7 +46,7 @@ public class VoidTypeStrategy implements TypeStrategy<SimpleExpr> {
 
   @Override
   public PointerTypeStrategy pointerTo() {
-    throw new UnsupportedOperationException("TODO");
+    return new VoidPtrStrategy();
   }
 
   @Override

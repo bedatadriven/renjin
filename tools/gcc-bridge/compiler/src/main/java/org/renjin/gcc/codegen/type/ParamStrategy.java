@@ -51,7 +51,7 @@ public interface ParamStrategy {
   /**
    * Pushes a value onto the stack in the format necessary for function parameter using this strategy.
    */
-  void emitPushParameter(MethodGenerator mv, Expr parameterValueGenerator);
+  void loadParameter(MethodGenerator mv, Expr argument);
 
 
 }

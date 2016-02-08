@@ -760,7 +760,18 @@ public class GimpleCompilerTest extends AbstractGccTest {
 
     assertThat((Integer) long_memcmp.invoke(null, new LongPtr(0xFFFFFFFFFFFFFFFFL), new LongPtr(0xFFFL)), greaterThan(0));
     assertThat((Integer)long_memcmp.invoke(null, new LongPtr(0xCAFEBABE), new LongPtr(0xCAFEBABE)), equalTo(0));
-    
-
   }
+  
+  @Test
+  public void voidPointers() throws Exception {
+    Class clazz = compile("void_ptr.c");
+    
+    Method test = clazz.getMethod("test");
+    
+    assertThat((Double)test.invoke(null), equalTo(42.0));
+    
+  }
+  
+  
+  
 }

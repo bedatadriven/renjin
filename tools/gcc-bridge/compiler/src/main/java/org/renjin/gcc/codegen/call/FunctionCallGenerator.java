@@ -118,7 +118,7 @@ public class FunctionCallGenerator implements CallGenerator {
       List<ParamStrategy> paramStrategies = strategy.getParamStrategies();
       for (int i = 0; i < paramStrategies.size(); i++) {
         ParamStrategy paramStrategy = paramStrategies.get(i);
-        paramStrategy.emitPushParameter(mv, arguments.get(i));
+        paramStrategy.loadParameter(mv, arguments.get(i));
       }
       if(varArgArray.isPresent()) {
         varArgArray.get().load(mv);

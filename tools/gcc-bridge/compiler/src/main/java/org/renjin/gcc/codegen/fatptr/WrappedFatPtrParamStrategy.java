@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expr;
+import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.SimpleExpr;
 import org.renjin.gcc.codegen.expr.SimpleLValue;
 import org.renjin.gcc.codegen.type.ParamStrategy;
@@ -42,8 +43,19 @@ public class WrappedFatPtrParamStrategy implements ParamStrategy {
   }
 
   @Override
-  public void emitPushParameter(MethodGenerator mv, Expr parameterValueGenerator) {
-    FatPtrExpr fatPtrExpr = (FatPtrExpr) parameterValueGenerator;
-    fatPtrExpr.wrap().load(mv);
+  public void loadParameter(MethodGenerator mv, Expr argument) {
+    
+    // Check for a void*
+    if(argument instanceof SimpleExpr) {
+      SimpleExpr wrappedPtr = Expressions.cast((SimpleExpr) argument, Wrappers.wrapperType(valueFunction.getValueType()));
+      wrappedPtr.load(mv);
+    
+    } else if(argument instanceof FatPtrExpr) {
+      FatPtrExpr fatPtrExpr = (FatPtrExpr) argument;
+      fatPtrExpr.wrap().load(mv);  
+   
+    } else {
+      throw new IllegalArgumentException("argument: " + argument);
+    }
   }
 }

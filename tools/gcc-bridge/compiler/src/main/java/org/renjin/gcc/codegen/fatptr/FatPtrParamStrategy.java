@@ -36,8 +36,8 @@ public class FatPtrParamStrategy implements ParamStrategy {
   }
 
   @Override
-  public void emitPushParameter(MethodGenerator mv, Expr parameterValueGenerator) {
-    FatPtrExpr expr = (FatPtrExpr) parameterValueGenerator;
+  public void loadParameter(MethodGenerator mv, Expr argument) {
+    FatPtrExpr expr = (FatPtrExpr) argument;
     expr.getArray().load(mv);
     expr.getOffset().load(mv);
   }

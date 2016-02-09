@@ -1,0 +1,2 @@
+useDynLib(dotcall, .registration = TRUE)
+export(mySample, global.count)

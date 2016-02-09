@@ -3,8 +3,7 @@ package org.renjin.gnur.api;
 
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
-
-import java.util.concurrent.ThreadLocalRandom;
+import org.renjin.primitives.Native;
 
 @SuppressWarnings("unused")
 public final class Random {
@@ -22,7 +21,7 @@ public final class Random {
   }
 
   public static double unif_rand() {
-      return ThreadLocalRandom.current().nextDouble();
+    return Native.CURRENT_CONTEXT.get().getSession().rng.unif_rand();
   }
 
   public static double norm_rand() {

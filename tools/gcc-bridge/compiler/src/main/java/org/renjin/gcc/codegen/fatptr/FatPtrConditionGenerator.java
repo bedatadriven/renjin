@@ -28,10 +28,12 @@ public class FatPtrConditionGenerator implements ConditionGenerator {
       case NE_EXPR:
         jump(mv, falseLabel, trueLabel);
         break;
+      
       default:
-        throw new UnsupportedOperationException("op: " + op);
+        throw new UnsupportedOperationException("TODO: " + op);
     }
   }
+
 
   private void jump(MethodGenerator mv, Label equalLabel, Label notEqualLabel) {
 

@@ -457,6 +457,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
 
   }
   
+  @Ignore
   @Test
   public void cpp() throws Exception {
     Class clazz = compile("rect.cpp");

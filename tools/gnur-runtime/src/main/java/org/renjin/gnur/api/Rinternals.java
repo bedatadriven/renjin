@@ -3,6 +3,7 @@ package org.renjin.gnur.api;
 
 import org.renjin.eval.EvalException;
 import org.renjin.gcc.runtime.*;
+import org.renjin.primitives.Native;
 import org.renjin.primitives.Vectors;
 import org.renjin.sexp.*;
 
@@ -804,8 +805,8 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("R_envHasNoSpecialSymbols");
   }
 
-  public static SEXP Rf_eval(SEXP p0, SEXP p1) {
-    throw new UnimplementedGnuApiMethod("Rf_eval");
+  public static SEXP Rf_eval(SEXP expr, SEXP rho) {
+    return Native.CURRENT_CONTEXT.get().evaluate(expr, (Environment) rho);
   }
 
   public static SEXP Rf_findFun(SEXP p0, SEXP p1) {

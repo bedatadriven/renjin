@@ -27,6 +27,8 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 public class Native {
+  
+  public static final ThreadLocal<Context> CURRENT_CONTEXT = new ThreadLocal<>();
 
   public static final boolean DEBUG = false;
 
@@ -295,46 +297,54 @@ public class Native {
                              @NamedFlag("PACKAGE") String packageName,
                              @NamedFlag("CLASS") String className) throws ClassNotFoundException {
 
-    if(methodExp.inherits("NativeSymbolInfo")) {
+    CURRENT_CONTEXT.set(context);
+    
+    try {
 
-      ExternalPtr<MethodHandle> address = (ExternalPtr<MethodHandle>) ((ListVector)methodExp).get("address");
-      MethodHandle methodHandle = address.getInstance();
-      if(methodHandle.type().parameterCount() != callArguments.length()) {
-        throw new EvalException("Expected %d arguments, found %d",
-                methodHandle.type().parameterCount(),
-                callArguments.length());
-      }
-      MethodHandle transformedHandle = methodHandle.asSpreader(SEXP[].class, methodHandle.type().parameterCount());
-      SEXP[] arguments = toSexpArray(callArguments);
-      try {
-        if (methodHandle.type().returnType().equals(void.class)) {
-          transformedHandle.invokeExact(arguments);
-          return Null.INSTANCE;
-        } else {
-          return (SEXP) transformedHandle.invokeExact(arguments);
+      if (methodExp.inherits("NativeSymbolInfo")) {
+
+        ExternalPtr<MethodHandle> address = (ExternalPtr<MethodHandle>) ((ListVector) methodExp).get("address");
+        MethodHandle methodHandle = address.getInstance();
+        if (methodHandle.type().parameterCount() != callArguments.length()) {
+          throw new EvalException("Expected %d arguments, found %d",
+              methodHandle.type().parameterCount(),
+              callArguments.length());
         }
-      } catch (Error e) {
-        throw e;
-      } catch (Throwable e) {
-        throw new EvalException("Exception calling " + methodExp + " : " + e.getMessage(), e);
-      }
+        MethodHandle transformedHandle = methodHandle.asSpreader(SEXP[].class, methodHandle.type().parameterCount());
+        SEXP[] arguments = toSexpArray(callArguments);
+        try {
+          if (methodHandle.type().returnType().equals(void.class)) {
+            transformedHandle.invokeExact(arguments);
+            return Null.INSTANCE;
+          } else {
+            return (SEXP) transformedHandle.invokeExact(arguments);
+          }
+        } catch (Error e) {
+          throw e;
+        } catch (Throwable e) {
+          throw new EvalException("Exception calling " + methodExp + " : " + e.getMessage(), e);
+        }
 
-    } else if(methodExp instanceof StringVector) {
+      } else if (methodExp instanceof StringVector) {
 
-      String methodName = ((StringVector) methodExp).getElementAsString(0);
+        String methodName = ((StringVector) methodExp).getElementAsString(0);
 
-      Class clazz;
-      if (packageName != null) {
-        clazz = getPackageClass(packageName, context);
-      } else if (className != null) {
-        clazz = Class.forName(className);
+        Class clazz;
+        if (packageName != null) {
+          clazz = getPackageClass(packageName, context);
+        } else if (className != null) {
+          clazz = Class.forName(className);
+        } else {
+          throw new EvalException("Either the PACKAGE or CLASS argument must be provided");
+        }
+
+        return delegateToJavaMethod(context, clazz, methodName, callArguments);
       } else {
-        throw new EvalException("Either the PACKAGE or CLASS argument must be provided");
+        throw new EvalException("Invalid method argument: " + methodExp);
       }
 
-      return delegateToJavaMethod(context, clazz, methodName, callArguments);
-    } else {
-      throw new EvalException("Invalid method argument: " + methodExp);
+    } finally {
+      CURRENT_CONTEXT.remove();
     }
   }
 

@@ -1,12 +1,12 @@
 package org.renjin.gcc.gimple;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
-import org.renjin.gcc.gimple.statement.GimpleStatement;
+import org.renjin.gcc.gimple.statement.GimpleConditional;
+import org.renjin.gcc.gimple.statement.GimpleGoto;
 import org.renjin.gcc.gimple.statement.GimpleReturn;
+import org.renjin.gcc.gimple.statement.GimpleStatement;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -113,5 +113,21 @@ public class GimpleBasicBlock {
    */
   public boolean isEmpty() {
     return statements.isEmpty();
+  }
+
+  public boolean fallsThrough() {
+    if(statements.isEmpty()) {
+      return true;
+    }
+    GimpleStatement lastStatement = statements.get(statements.size() - 1);
+    if(lastStatement instanceof GimpleReturn ||
+       lastStatement instanceof GimpleConditional ||
+       lastStatement instanceof GimpleGoto) {
+      return false;
+    } else {
+      
+      // falling throughhhhhhhh.....
+      return true;
+    }
   }
 }

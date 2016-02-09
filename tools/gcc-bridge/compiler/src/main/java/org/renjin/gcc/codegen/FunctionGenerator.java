@@ -93,6 +93,15 @@ public class FunctionGenerator implements InvocationStrategy {
     for (GimpleBasicBlock basicBlock : function.getBasicBlocks()) {
       emitBasicBlock(basicBlock);
     }
+    
+    // Verify that GCC is not letting us fall through with out a return statement
+    GimpleBasicBlock lastBlock = function.getLastBasicBlock();
+    if(lastBlock.fallsThrough()) {
+      SimpleExpr defaultReturnValue = returnStrategy.getDefaultReturnValue();
+      defaultReturnValue.load(mv);
+      mv.areturn(defaultReturnValue.getType());
+    }
+    
     mv.visitLabel(endLabel);
 
     // Javac does not like our variable table

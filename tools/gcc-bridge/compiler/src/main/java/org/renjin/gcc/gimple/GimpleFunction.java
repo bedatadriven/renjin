@@ -200,4 +200,8 @@ public class GimpleFunction {
     }
     throw new InternalCompilerException("No such variable: " + ref);
   }
+
+  public GimpleBasicBlock getLastBasicBlock() {
+    return basicBlocks.get(basicBlocks.size()-1);
+  }
 }

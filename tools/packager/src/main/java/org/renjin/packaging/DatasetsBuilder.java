@@ -1,5 +1,6 @@
 package org.renjin.packaging;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
@@ -98,21 +99,25 @@ public class DatasetsBuilder {
     }
   }
 
-  private void processDataset(File dataFile) throws IOException {
+  @VisibleForTesting
+  void processDataset(File dataFile) throws IOException {
     if(dataFile.getName().endsWith("datalist")) {
       return;
     } else if(dataFile.getName().endsWith(".rda") || dataFile.getName().endsWith(".RData")) {
       processRDataFile(dataFile);
 
+    } else if(dataFile.getName().endsWith(".txt")) {
+      processTextFile(dataFile, stripExtension(dataFile), "");
+
     } else if(dataFile.getName().endsWith(".txt.gz")) {
       processTextFile(dataFile, stripExtension(dataFile, ".txt.gz"), "");
 
-    } else if(dataFile.getName().endsWith(".txt")) {
-      processTextFile(dataFile, stripExtension(dataFile), "");
-      
     } else if(dataFile.getName().endsWith(".tab")) {
       processTextFile(dataFile, stripExtension(dataFile), "");
-      
+
+    } else if(dataFile.getName().endsWith(".tab.gz")) {
+      processTextFile(dataFile, stripExtension(dataFile, ".tab.gz"), "");
+
     } else if(dataFile.getName().toLowerCase().endsWith(".csv")) {
       processTextFile(dataFile, stripExtension(dataFile), ";");
       

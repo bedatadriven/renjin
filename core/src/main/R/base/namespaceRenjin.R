@@ -162,3 +162,11 @@ loadNamespaceMethods <- function(package, ns, expClasses, expClassPatterns) {
 			 domain = NA)
 	exports <- c(exports, expClasses,  expTables)
 }
+
+.packages <- function(all.available = FALSE, lib.loc = NULL) {
+	if(all.available) {
+		warning(".packages(all.available=TRUE) not supported by Renjin.")
+	}
+	s <- search()
+    return(invisible(substring(s[substr(s, 1L, 8L) == "package:"], 9)))
+}

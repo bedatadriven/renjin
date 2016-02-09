@@ -44,10 +44,16 @@ public class SimpleParamStrategy implements ParamStrategy {
       // Cast null pointers to the appropriate type
       Expressions.cast(value, this.type).load(mv);
     
-    }  else {
-      throw new IllegalArgumentException(String.format("expected argument type: %s, found: %s",
-          this.type,
-          value.getType()));
+    } else {
+      // Try to cast to the right type
+      // TODO: handle this more systematically
+      if (this.type.equals(Type.BOOLEAN_TYPE) && value.getType().equals(Type.INT_TYPE)) {
+        value.load(mv);
+      } else {
+        throw new IllegalArgumentException(String.format("expected argument type: %s, found: %s",
+            this.type,
+            value.getType()));
+      }
     }
   }
 }

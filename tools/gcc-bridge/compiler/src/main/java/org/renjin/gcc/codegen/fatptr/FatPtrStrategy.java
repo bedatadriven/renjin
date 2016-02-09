@@ -183,10 +183,14 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtrExpr> {
   }
 
   @Override
-  public void memoryCopy(MethodGenerator mv, FatPtrExpr destination, FatPtrExpr source, SimpleExpr length) {
+  public void memoryCopy(MethodGenerator mv, FatPtrExpr destination, FatPtrExpr source, SimpleExpr lengthBytes) {
     
     // TODO: Is this correct for pointers to record types?
     
+    // Convert bytes -> array elements
+    SimpleExpr length = Expressions.divide(lengthBytes, valueFunction.getElementSize());
+    
+    // Push parameters onto stack
     source.getArray().load(mv);
     source.getOffset().load(mv);
     destination.getArray().load(mv);

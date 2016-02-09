@@ -389,7 +389,11 @@ public class Native {
       FqPackageName fqname = namespace.getFullyQualifiedName();
       String packageClassName = fqname.getGroupId()+"."+fqname.getPackageName() + "." +
               fqname.getPackageName();
-      return namespace.getPackage().loadClass(packageClassName);
+      try {
+        return namespace.getPackage().loadClass(packageClassName);
+      } catch (ClassNotFoundException e) {
+        throw new EvalException("Could not load class '%s' from package '%s'", packageClassName, packageClassName);
+      }
     }
   }
 }

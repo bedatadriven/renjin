@@ -4,7 +4,6 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.renjin.eval.Context;
-import org.renjin.eval.EvalException;
 import org.renjin.primitives.packaging.FqPackageName;
 import org.renjin.primitives.packaging.Package;
 import org.renjin.sexp.NamedValue;
@@ -34,12 +33,8 @@ public class InitializingPackage extends Package {
   }
 
   @Override
-  public Class loadClass(String className) {
-    try {
-      return getClass().getClassLoader().loadClass(className);
-    } catch (ClassNotFoundException e) {
-      throw new EvalException(String.format("Could not load class %s from package %s", className, getName()), e);
-    }
+  public Class loadClass(String className) throws ClassNotFoundException {
+    return getClass().getClassLoader().loadClass(className);
   }
 
   @Override

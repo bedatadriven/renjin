@@ -178,7 +178,12 @@ public class Namespace {
 
     // Import from JVM classes
     for (NamespaceFile.JvmClassImportEntry entry : file.getJvmImports()) {
-      Class importedClass = pkg.loadClass(entry.getClassName());
+      Class importedClass = null;
+      try {
+        importedClass = pkg.loadClass(entry.getClassName());
+      } catch (ClassNotFoundException e) {
+        throw new EvalException("Could not load class '%s' from package '%s'", entry.getClassName(), pkg.getName());
+      }
 
       if(entry.isClassImported()) {
         importsEnvironment.setVariable(importedClass.getSimpleName(), new ExternalPtr(importedClass));
@@ -193,19 +198,28 @@ public class Namespace {
 
     // Import from transpiled classes
     for (NamespaceFile.DynLibEntry library : file.getDynLibEntries()) {
-      importDynamicLibrary(library);
+      importDynamicLibrary(context, library);
     }
 
   }
 
-  private void importDynamicLibrary(NamespaceFile.DynLibEntry entry) {
+  private void importDynamicLibrary(Context context, NamespaceFile.DynLibEntry entry) {
+    DllInfo info = new DllInfo(entry.getLibraryName());
+    Class clazz;
+
     try {
-      DllInfo info = new DllInfo(entry.getLibraryName());
 
       FqPackageName packageName = pkg.getName();
       String className = packageName.getGroupId() + "." + packageName.getPackageName() + "." + entry.getLibraryName();
-      Class clazz = pkg.loadClass(className);
+      clazz = pkg.loadClass(className);
 
+    } catch (ClassNotFoundException e) {
+      context.warn("Could not load compiled Fortran/C/C++ sources class for package " + pkg.getName() + ".\n" +
+          "This is most likely because Renjin's compiler is not yet able to handle the sources for this\n" + 
+          "particular package. As a result, some functions may not work.\n");
+      return;
+    }
+    try {
       // Call the initialization routine
       Optional<Method> initMethod = findInitRoutine(entry.getLibraryName(), clazz);
       if(initMethod.isPresent()) {

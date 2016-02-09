@@ -1,6 +1,5 @@
 package org.renjin.primitives.packaging;
 
-import com.google.common.io.ByteSource;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
@@ -67,7 +66,7 @@ public abstract class Package {
    * @param name the fully-qualified class name. For example, "java.lang.util.HashSet"
    * @return the {@code Class}
    */
-  public abstract Class loadClass(String name);
+  public abstract Class loadClass(String name) throws ClassNotFoundException;
 
 
   /**

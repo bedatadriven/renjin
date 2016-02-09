@@ -17,12 +17,15 @@ public class Cat extends SexpVisitor<String> {
   @Internal
   @Invisible
   public static void cat(@Current Context context, ListVector list, SEXP connection, String sep,
-      SEXP fill, SEXP labels, boolean append) throws IOException {
+      int fill, SEXP labels, boolean append) throws IOException {
     
     PrintWriter printWriter = Connections.getConnection(context, connection).getPrintWriter();
     Cat visitor = new Cat(printWriter, sep, 0);
     for (SEXP element : list) {
       element.accept(visitor);
+      if(fill > 0) {
+        printWriter.println();
+      }
     }
     
     // The GNU R implementation appears to treat a newline separator as a special case:

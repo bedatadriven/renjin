@@ -1408,16 +1408,16 @@ public final class Rinternals {
     return s.inherits("data.frame");
   }
 
-  public static boolean Rf_isFunction(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_isFunction");
+  public static boolean Rf_isFunction(SEXP sexp) {
+    return sexp instanceof Function;
   }
 
   public static boolean Rf_isInteger(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_isInteger");
+    return p0 instanceof IntVector;
   }
 
   public static boolean Rf_isLanguage(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_isLanguage");
+    return p0 instanceof FunctionCall;
   }
 
   public static boolean Rf_isList(SEXP s) {
@@ -1429,11 +1429,20 @@ public final class Rinternals {
   }
 
   public static boolean Rf_isNewList(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_isNewList");
+    return p0 instanceof ListVector;
   }
 
   public static boolean Rf_isNumber(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_isNumber");
+    if(p0 instanceof IntVector) {
+      return !p0.inherits("factor");
+    } else if(
+        p0 instanceof LogicalVector ||
+        p0 instanceof DoubleVector ||
+        p0 instanceof ComplexVector) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
   public static boolean Rf_isNumeric(SEXP p0) {
@@ -1441,7 +1450,7 @@ public final class Rinternals {
   }
 
   public static boolean Rf_isPairList(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_isPairList");
+    return p0 instanceof PairList;
   }
 
   public static boolean Rf_isPrimitive(SEXP p0) {
@@ -1481,27 +1490,27 @@ public final class Rinternals {
   }
 
   public static SEXP Rf_lang1(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_lang1");
+    return FunctionCall.newCall(p0);
   }
 
   public static SEXP Rf_lang2(SEXP p0, SEXP p1) {
-    throw new UnimplementedGnuApiMethod("Rf_lang2");
+    return FunctionCall.newCall(p0, p1);
   }
 
   public static SEXP Rf_lang3(SEXP p0, SEXP p1, SEXP p2) {
-    throw new UnimplementedGnuApiMethod("Rf_lang3");
+    return FunctionCall.newCall(p0, p1, p2);
   }
 
   public static SEXP Rf_lang4(SEXP p0, SEXP p1, SEXP p2, SEXP p3) {
-    throw new UnimplementedGnuApiMethod("Rf_lang4");
+    return FunctionCall.newCall(p0, p1, p2, p3);
   }
 
   public static SEXP Rf_lang5(SEXP p0, SEXP p1, SEXP p2, SEXP p3, SEXP p4) {
-    throw new UnimplementedGnuApiMethod("Rf_lang5");
+    return FunctionCall.newCall(p0, p1, p2, p3, p4);
   }
 
   public static SEXP Rf_lang6(SEXP p0, SEXP p1, SEXP p2, SEXP p3, SEXP p4, SEXP p5) {
-    throw new UnimplementedGnuApiMethod("Rf_lang6");
+    return FunctionCall.newCall(p0, p1, p2, p3, p4, p5);
   }
 
   public static SEXP Rf_lastElt(SEXP p0) {
@@ -1517,23 +1526,37 @@ public final class Rinternals {
   }
 
   public static SEXP Rf_list1(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_list1");
+    return new PairList.Node(p0, Null.INSTANCE);
   }
 
   public static SEXP Rf_list2(SEXP p0, SEXP p1) {
-    throw new UnimplementedGnuApiMethod("Rf_list2");
+    return
+        new PairList.Node(p0,
+           new PairList.Node(p1, Null.INSTANCE));
   }
 
   public static SEXP Rf_list3(SEXP p0, SEXP p1, SEXP p2) {
-    throw new UnimplementedGnuApiMethod("Rf_list3");
+    return 
+        new PairList.Node(p0,
+          new PairList.Node(p1, 
+            new PairList.Node(p2, Null.INSTANCE)));
   }
 
   public static SEXP Rf_list4(SEXP p0, SEXP p1, SEXP p2, SEXP p3) {
-    throw new UnimplementedGnuApiMethod("Rf_list4");
+    return 
+        new PairList.Node(p0,
+            new PairList.Node(p1, 
+                new PairList.Node(p2, 
+                    new PairList.Node(p3, Null.INSTANCE))));
   }
 
   public static SEXP Rf_list5(SEXP p0, SEXP p1, SEXP p2, SEXP p3, SEXP p4) {
-    throw new UnimplementedGnuApiMethod("Rf_list5");
+    return 
+        new PairList.Node(p0,
+            new PairList.Node(p1,
+                new PairList.Node(p2,
+                    new PairList.Node(p3,
+                        new PairList.Node(p4, Null.INSTANCE)))));
   }
 
   public static SEXP Rf_listAppend(SEXP p0, SEXP p1) {
@@ -1574,21 +1597,27 @@ public final class Rinternals {
   // SEXP Rf_ScalarComplex (Rcomplex)
 
   public static SEXP Rf_ScalarInteger(int p0) {
-    throw new UnimplementedGnuApiMethod("Rf_ScalarInteger");
+    return new IntArrayVector(p0);
   }
 
   public static SEXP Rf_ScalarLogical(int p0) {
-    throw new UnimplementedGnuApiMethod("Rf_ScalarLogical");
+    if(p0 == LogicalVector.NA) {
+      return LogicalVector.NA_VECTOR;
+    } else if(p0 != 0) {
+      return LogicalVector.FALSE;
+    } else {
+      return LogicalVector.TRUE;
+    }
   }
 
   // SEXP Rf_ScalarRaw (Rbyte)
 
   public static SEXP Rf_ScalarReal(double p0) {
-    throw new UnimplementedGnuApiMethod("Rf_ScalarReal");
+    return new DoubleArrayVector(p0);
   }
 
   public static SEXP Rf_ScalarString(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_ScalarString");
+    return new GnuStringVector(((GnuCharSexp) p0).getValue());
   }
 
   public static /*R_xlen_t*/ int Rf_xlength(SEXP p0) {

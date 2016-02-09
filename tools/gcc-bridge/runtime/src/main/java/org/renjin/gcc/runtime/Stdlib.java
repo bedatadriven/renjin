@@ -19,6 +19,10 @@ public class Stdlib {
     }
     return 0;
   }
+  
+  public static int strcmp(BytePtr x, BytePtr y) {
+    return strncmp(x, y, Integer.MAX_VALUE);
+  }
 
   /**
    * Copies the C string pointed by source into the array pointed by destination, including the terminating 

@@ -1114,7 +1114,7 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("R_MakeExternalPtr");
   }
 
-  public static Ptr R_ExternalPtrAddr(SEXP s) {
+  public static Object R_ExternalPtrAddr(SEXP s) {
     throw new UnimplementedGnuApiMethod("R_ExternalPtrAddr");
   }
 

@@ -46,4 +46,20 @@ public class GimpleRecordType extends AbstractGimpleType {
   public int sizeOf() {
     return getSize() / 8;
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    GimpleRecordType that = (GimpleRecordType) o;
+
+    return id.equals(that.id);
+
+  }
+
+  @Override
+  public int hashCode() {
+    return id.hashCode();
+  }
 }

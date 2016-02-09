@@ -17,6 +17,7 @@ import org.renjin.gcc.codegen.type.primitive.PrimitiveValueFunction;
 import org.renjin.gcc.codegen.type.primitive.StringParamStrategy;
 import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
+import org.renjin.gcc.codegen.type.voidt.VoidPtrParamStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidReturnStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidTypeStrategy;
 import org.renjin.gcc.gimple.GimpleParameter;
@@ -168,6 +169,9 @@ public class TypeOracle {
       GimpleRecordType recordType = classTypes.get(Type.getInternalName(returnType));
       return recordTypes.get(recordType.getId()).pointerTo().getReturnStrategy();
 
+    } else if(returnType.equals(Object.class)) {
+      return new SimpleReturnStrategy(Type.getType(Object.class));
+      
     } else {
       throw new UnsupportedOperationException(String.format(
           "Unsupported return type %s in method %s.%s",
@@ -218,6 +222,10 @@ public class TypeOracle {
       } else if (classTypes.containsKey(Type.getInternalName(paramClass))) {
         GimpleRecordType mappedType = classTypes.get(Type.getInternalName(paramClass));
         strategies.add(((RecordClassTypeStrategy) forRecordType(mappedType)).pointerToUnit().getParamStrategy());
+        index++;
+
+      } else if(paramClass.equals(Object.class)) {
+        strategies.add(new VoidPtrParamStrategy());
         index++;
         
       } else {

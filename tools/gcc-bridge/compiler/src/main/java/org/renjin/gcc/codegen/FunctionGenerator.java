@@ -344,4 +344,9 @@ public class FunctionGenerator implements InvocationStrategy {
   public String getClassName() {
     return className;
   }
+
+  @Override
+  public String toString() {
+    return className + "." + getMangledName() + "()";
+  }
 }

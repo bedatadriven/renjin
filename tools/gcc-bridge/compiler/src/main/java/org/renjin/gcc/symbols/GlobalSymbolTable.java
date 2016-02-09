@@ -58,7 +58,6 @@ public class GlobalSymbolTable implements SymbolTable {
     }
   }
 
-
   public void addDefaults() {
 
     addFunction("malloc", new MallocCallGenerator(typeOracle));
@@ -68,7 +67,9 @@ public class GlobalSymbolTable implements SymbolTable {
     addFunction("__builtin_malloc__", new MallocCallGenerator(typeOracle));
     addFunction("__builtin_free__", new MallocCallGenerator(typeOracle));
     addFunction("__builtin_memcpy", new MemCopyCallGenerator(typeOracle));
-    
+    addFunction("__builtin_memcpy__", new MemCopyCallGenerator(typeOracle));
+    addFunction("__builtin_memset__", new MemSetGenerator(typeOracle));
+
     addFunction("memcpy", new MemCopyCallGenerator(typeOracle));
     addFunction("memcmp", new MemCmpCallGenerator(typeOracle));
     addFunction("memset", new MemSetGenerator(typeOracle));

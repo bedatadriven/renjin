@@ -40,7 +40,7 @@ public class FunctionCallGenerator implements CallGenerator {
     int fixedArgCount = strategy.getParamStrategies().size();
     if(call.getOperands().size() < fixedArgCount) {
       throw new InternalCompilerException(String.format("Number of provided arguments (%d) does not match " +
-          "number of expected arguments for " + strategy,
+          "number of expected arguments (%d) for " + strategy,
           call.getOperands().size(),
           fixedArgCount));
     }

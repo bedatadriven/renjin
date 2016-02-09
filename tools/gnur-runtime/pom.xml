@@ -47,6 +47,11 @@
       <artifactId>renjin-appl</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.renjin</groupId>
+      <artifactId>renjin-blas</artifactId>
+      <version>${project.version}</version>
+    </dependency>
   </dependencies>
 
   <build>

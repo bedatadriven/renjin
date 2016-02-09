@@ -1,23 +1,24 @@
 package org.renjin.primitives.packaging;
 
 import org.renjin.eval.Context;
-import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Current;
+import org.renjin.invoke.annotations.Internal;
 import org.renjin.invoke.annotations.Invisible;
-import org.renjin.invoke.annotations.Unevaluated;
-import org.renjin.sexp.*;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.HashFrame;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbols;
 
 import java.io.IOException;
 
 public class Packages {
 
-  @Builtin
+  @Internal
   public static void library(
       @Current Context context,
       @Current NamespaceRegistry namespaceRegistry, 
-      @Unevaluated SEXP packageNameExp) throws IOException {
+      String packageName) throws IOException {
 
-    String packageName = parsePackageName(packageNameExp);
 
     Namespace namespace = namespaceRegistry.getNamespace(context, packageName);
     
@@ -25,7 +26,7 @@ public class Packages {
     // (But not "Imports" !)
     for(String dependencyName : namespace.getPackage().getPackageDependencies()) {
       context.getSession().getStdOut().println("Loading required package: " + dependencyName);
-      library(context, namespaceRegistry, Symbol.get(dependencyName));
+      library(context, namespaceRegistry, dependencyName);
     }
     
     // Create the package environment
@@ -45,30 +46,16 @@ public class Packages {
     context.setInvisibleFlag();
   }
 
-  @Builtin
+  @Internal
   @Invisible
   public static boolean require(@Current Context context,
-                                @Current NamespaceRegistry registry,
-                                @Unevaluated SEXP packageNameExp) {
+                                @Current NamespaceRegistry registry, 
+                                String packageName) {
     try {
-      library(context, registry, packageNameExp);
+      library(context, registry, packageName);
       return true;
     } catch(Exception e) {
       return false;
     }
   }
-
-
-  private static String parsePackageName(SEXP packageNameExp) {
-    String packageName;
-    if(packageNameExp instanceof Symbol) {
-      packageName = ((Symbol) packageNameExp).getPrintName();
-    } else if(packageNameExp instanceof StringVector && packageNameExp.length()==1) {
-      packageName = ((StringVector) packageNameExp).getElementAsString(0);
-    } else {
-      throw new UnsupportedOperationException("Unexpected package name argument: " + packageNameExp);
-    }
-    return packageName;
-  }
-  
 }

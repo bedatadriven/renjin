@@ -995,8 +995,8 @@ public class Primitives {
     // jvm specific
     f("import", Jvmi.class, 0);
     f("jload", Jvmi.class, 0);
-    f("library", Packages.class, 0);
-    f("require", Packages.class, 0);
+    f("library", Packages.class, 11);
+    f("require", Packages.class, 11);
 
   }
 

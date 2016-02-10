@@ -806,7 +806,7 @@ public final class Rinternals {
   }
 
   public static SEXP Rf_eval(SEXP expr, SEXP rho) {
-    return Native.CURRENT_CONTEXT.get().evaluate(expr, (Environment) rho);
+    return Native.getContext().evaluate(expr, (Environment) rho);
   }
 
   public static SEXP Rf_findFun(SEXP p0, SEXP p1) {

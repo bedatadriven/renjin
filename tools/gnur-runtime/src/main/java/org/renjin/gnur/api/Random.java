@@ -21,7 +21,7 @@ public final class Random {
   }
 
   public static double unif_rand() {
-    return Native.CURRENT_CONTEXT.get().getSession().rng.unif_rand();
+    return Native.getContext().getSession().rng.unif_rand();
   }
 
   public static double norm_rand() {

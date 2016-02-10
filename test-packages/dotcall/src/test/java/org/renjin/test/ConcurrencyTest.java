@@ -14,7 +14,7 @@ import java.util.concurrent.*;
 /**
  * Verify that we can safely run multiple sessions independently
  */
-public class RngConcurrencyTest {
+public class ConcurrencyTest {
 
   public static final int NUM_THREADS = 20;
 

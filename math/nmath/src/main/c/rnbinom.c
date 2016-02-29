@@ -49,7 +49,7 @@ double rnbinom(rng_t unif_rand, double size, double prob)
     if(!R_FINITE(prob) || size <= 0 || prob <= 0 || prob > 1)
 	/* prob = 1 is ok, PR#1218 */
 	ML_ERR_return_NAN;
-    if(!R_FINITE(size)) size = DBL_MAX;
+    if(!R_FINITE(size)) size = DBL_MAX / 2.; // '/2' to prevent rgamma() returning Inf
     return (prob == 1) ? 0 : rpois(unif_rand, rgamma(unif_rand, size, (1 - prob) / prob));
 }
 
@@ -57,6 +57,6 @@ double rnbinom_mu(rng_t unif_rand, double size, double mu)
 {
     if(!R_FINITE(mu) || size <= 0 || mu < 0)
 	ML_ERR_return_NAN;
-    if(!R_FINITE(size)) size = DBL_MAX;
+    if(!R_FINITE(size)) size = DBL_MAX / 2.;
     return (mu == 0) ? 0 : rpois(unif_rand, rgamma(unif_rand, size, mu / size));
 }

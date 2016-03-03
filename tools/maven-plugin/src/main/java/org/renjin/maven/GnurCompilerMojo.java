@@ -96,7 +96,7 @@ public class GnurCompilerMojo extends AbstractMojo {
 
     GnurSourcesCompiler compiler = new GnurSourcesCompiler();
     for(File sourceDir : sourceDirectories) {
-      compiler.addSources(sourceDir);
+      compiler.addSourceDir(sourceDir);
     }
 
     workDirectory.mkdirs();

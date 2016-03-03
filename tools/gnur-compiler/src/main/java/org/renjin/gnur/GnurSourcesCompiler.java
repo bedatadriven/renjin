@@ -1,11 +1,13 @@
 package org.renjin.gnur;
 
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
 import org.apache.commons.math.special.Erf;
+import org.renjin.eval.Context;
 import org.renjin.gcc.Gcc;
 import org.renjin.gcc.GccException;
 import org.renjin.gcc.GimpleCompiler;
@@ -62,7 +64,7 @@ public class GnurSourcesCompiler {
     this.workDirectory = workDir;
   }
 
-  public void addSources(File src) {
+  public void addSourceDir(File src) {
     if(src.exists() && src.listFiles() != null) {
       for(File file : src.listFiles()) {
         if(file.getName().endsWith(".c") || file.getName().endsWith(".f")) {
@@ -70,6 +72,11 @@ public class GnurSourcesCompiler {
         }
       }
     }
+  }
+  
+  public void addSource(File sourceFile) {
+    Preconditions.checkArgument(sourceFile.exists() && sourceFile.isFile(), sourceFile + " does not exist.");
+    sources.add(sourceFile);
   }
 
   public void addClassPaths(List<File> paths) {
@@ -175,8 +182,6 @@ public class GnurSourcesCompiler {
       compiler.addReferenceClass(Rdynload.class);
       compiler.addRecordClass("_DllInfo", DllInfo.class);
       compiler.addRecordClass("__MethodDef", MethodDef.class);
-      
-      
       
       compiler.compile(units);
     }

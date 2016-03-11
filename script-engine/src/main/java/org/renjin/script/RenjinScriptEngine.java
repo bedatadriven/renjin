@@ -73,8 +73,13 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
 
   @Override
   public void put(String key, Object value) {
-    topLevelContext.getEnvironment().setVariable(Symbol.get(key), 
-        Converters.get(value.getClass()).convertToR(value));
+    SEXP convertedValue;
+    if(value == null) {
+      convertedValue = Null.INSTANCE;
+    } else {
+      convertedValue = Converters.get(value.getClass()).convertToR(value);
+    }
+    topLevelContext.getEnvironment().setVariable(Symbol.get(key), convertedValue);
   }
 
   @Override

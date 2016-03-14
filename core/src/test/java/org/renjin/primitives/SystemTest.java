@@ -21,14 +21,15 @@
 
 package org.renjin.primitives;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-
-import java.util.List;
-
 import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
+
+import java.util.List;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.junit.Assert.assertThat;
 
 
 public class SystemTest extends EvalTestCase {
@@ -83,14 +84,16 @@ public class SystemTest extends EvalTestCase {
    }
    
    @Test
-   public void SysSleep(){
+   public void SysSleep() {
      assumingBasePackagesLoad();
      
-     double delta = 100;
      long start = java.lang.System.currentTimeMillis();
      eval("Sys.sleep(1)");
      long stop = java.lang.System.currentTimeMillis();
-     assertThat((double)(stop-start), closeTo(1000.0, delta));
+
+     // We aren't guaranteed to be woken up after 1000 milliseconds,
+     // so the most we can probably do is verify that *some* sleeping occurred
+     assertThat((double)(stop-start), greaterThan(900d));
    }
    
    @Test

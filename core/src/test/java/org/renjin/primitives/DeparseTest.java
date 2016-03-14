@@ -31,6 +31,11 @@ public class DeparseTest extends EvalTestCase {
     assertThat(eval("deparse(list(a=1,b='foo'))"), equalTo(c("structure(list(a = 1, b = \"foo\"), .Names = c(\"a\", \"b\"))")));
   } 
  
+  @Test
+  public void deparsePrimitives() {
+    assertThat(eval("deparse(c)"), equalTo(c(".Primitive(\"c\")")));
+    assertThat(eval("deparse(`$`)"), equalTo(c(".Primitive(\"$\")")));
+  }
   
   @Test
   public void emptyVectors() {

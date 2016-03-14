@@ -151,9 +151,20 @@ public class Deparse {
 
     @Override
     public void visit(BuiltinFunction builtin) {
-      deparsed.append(".Builtin(\"" + builtin.getName() + "\")");
+      visitPrimitive(builtin);
     }
 
+
+    @Override
+    public void visitSpecial(SpecialFunction special) {
+      visitPrimitive(special);
+    }
+
+    private void visitPrimitive(PrimitiveFunction builtin) {
+      deparsed.append(".Primitive(\"" + builtin.getName() + "\")");
+    }
+
+    
     @Override
     public void visit(IntVector vector) {
       if(isSequence(vector)) {

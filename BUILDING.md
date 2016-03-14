@@ -35,7 +35,7 @@ that includes the renjin repository, so once the initial build
 is complete you can work normally from your IDE on your own (host) machine.
 
 Note that this requires that your host machine has a *case-sensitive* 
-filesystem. For Mac OSX, see instructions below on creating a case-sensitive volume
+filesystem. For Mac OS X, see instructions below on creating a case-sensitive volume
 for Renjin development.
 
 ### Ubuntu 12+

@@ -258,8 +258,21 @@ public class Context {
 
   private SEXP evaluateCall(FunctionCall call, Environment rho) {
     clearInvisibleFlag();
-    Function functionExpr = evaluateFunction(call.getFunction(), rho);
-    return functionExpr.apply(this, rho, call, call.getArguments());
+
+    SEXP fn = call.getFunction();
+    Function functionExpr = evaluateFunction(fn, rho);
+
+    boolean profiling = Profiler.ENABLED && fn instanceof Symbol && !((Symbol) fn).isReservedWord();
+    if(Profiler.ENABLED && profiling) {
+      Profiler.functionStart((Symbol)fn);
+    }
+    try {
+      return functionExpr.apply(this, rho, call, call.getArguments());
+    } finally {
+      if(Profiler.ENABLED && profiling) {
+        Profiler.functionEnd();
+      }
+    }
   }
 
   private Function evaluateFunction(SEXP functionExp, Environment rho) {

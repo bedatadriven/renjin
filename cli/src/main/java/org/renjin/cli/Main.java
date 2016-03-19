@@ -9,6 +9,7 @@ import org.renjin.aether.AetherPackageLoader;
 import org.renjin.cli.build.Builder;
 import org.renjin.compiler.pipeline.MultiThreadedVectorPipeliner;
 import org.renjin.compiler.pipeline.VectorPipeliner;
+import org.renjin.eval.Profiler;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
 import org.renjin.primitives.packaging.PackageLoader;
@@ -68,7 +69,14 @@ public class Main {
       return;
     }
     
-    new Main(options).run();
+    try {
+      new Main(options).run();
+    } finally {
+      if(Profiler.ENABLED) {
+        System.out.flush();
+        Profiler.dump(System.err);
+      }
+    }
   }
 
   public Main(OptionSet options) {
@@ -81,6 +89,8 @@ public class Main {
 
     try {
       initSession();
+      Profiler.reset();
+      
       if(options.has("args")) {
         List<String> rArgs = new ArrayList<String>();
         rArgs.add("--args"); /* Due to the unique way... */

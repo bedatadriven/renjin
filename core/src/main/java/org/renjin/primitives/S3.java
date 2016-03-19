@@ -584,12 +584,21 @@ public class S3 {
 
       callContext.setState(GenericMethod.class, this);
 
-      if(function instanceof Closure) {
-        return Calls.applyClosure((Closure) function, callContext, callEnvironment,  newCall,
-                args, persistChain());
-      } else {
-        // primitive
-        return function.apply(callContext, callEnvironment, newCall, args);
+      if(Profiler.ENABLED) {
+        Profiler.functionStart(this.method);
+      }
+      try {
+        if (function instanceof Closure) {
+          return Calls.applyClosure((Closure) function, callContext, callEnvironment, newCall,
+              args, persistChain());
+        } else {
+          // primitive
+          return function.apply(callContext, callEnvironment, newCall, args);
+        }
+      } finally {
+        if(Profiler.ENABLED) {
+          Profiler.functionEnd();
+        }
       }
     }
     

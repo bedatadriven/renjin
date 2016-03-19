@@ -7,6 +7,7 @@ import com.google.common.collect.Lists;
 import org.renjin.base.Base;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.eval.Profiler;
 import org.renjin.gcc.runtime.*;
 import org.renjin.invoke.annotations.ArgumentList;
 import org.renjin.invoke.annotations.Builtin;
@@ -242,6 +243,10 @@ public class Native {
         throw new UnsupportedOperationException("fortran type: " + fortranTypes[i]);
       }
     }
+    
+    if(Profiler.ENABLED) {
+      Profiler.functionStart(Symbol.get(methodName));
+    }
 
     try {
       method.invokeWithArguments(fortranArgs);
@@ -249,6 +254,10 @@ public class Native {
       throw e;
     } catch (Throwable e) {
       throw new EvalException("Exception thrown while executing " + methodName, e);
+    } finally {
+      if(Profiler.ENABLED) {
+        Profiler.functionEnd();
+      }
     }
 
     return returnValues.build();

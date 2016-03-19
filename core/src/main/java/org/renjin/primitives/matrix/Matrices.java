@@ -348,6 +348,9 @@ public class Matrices {
      * Avoid allocating huge arrays of data
      */
     int resultLength = (nrow * ncol);
+    if(!byRow && data instanceof AtomicVector && resultLength == data.length()) {
+      return (Vector)data.setAttributes(attributes);
+    }
     if(!byRow && resultLength > 500) {
       if(data instanceof DoubleVector) {
         return new RepDoubleVector(data, resultLength, 1, attributes);

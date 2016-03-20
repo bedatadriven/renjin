@@ -23,6 +23,7 @@ package org.renjin.sexp;
 
 import com.google.common.collect.Iterables;
 import org.renjin.eval.EvalException;
+import org.renjin.eval.Profiler;
 import org.renjin.parser.NumericLiterals;
 
 import java.util.Arrays;
@@ -35,13 +36,13 @@ public class StringArrayVector extends StringVector implements Iterable<String> 
 
   public StringArrayVector(String[] values, AttributeMap attributes) {
     super(attributes);
-    this.values = Arrays.copyOf(values, values.length, String[].class);
-
-    assert checkDims() : "dim do not match length of object";
-
-    if(Vector.DEBUG_ALLOC && values.length >= 5000) {
-      System.out.println("StringArrayVector length=" + values.length);
+    
+    if(Profiler.ENABLED) {
+      Profiler.memoryAllocated(32, values.length);
     }
+    
+    this.values = Arrays.copyOf(values, values.length, String[].class);
+    assert checkDims() : "dim do not match length of object";
   }
 
   public StringArrayVector(String... values) {

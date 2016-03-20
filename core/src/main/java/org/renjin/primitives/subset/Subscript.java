@@ -51,4 +51,20 @@ public abstract class Subscript {
   public boolean definitelySelectsAllElements() {
     return false;
   }
+  
+  
+  public IndexIterator iterator() {
+    return new IndexIterator() {
+      private int i = 0;
+      @Override
+      public boolean hasNext() {
+        return i < getCount();
+      }
+
+      @Override
+      public int next() {
+        return getAt(i++);
+      }
+    };
+  }
 }

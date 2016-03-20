@@ -315,7 +315,9 @@ public class Subsetting {
     FunctionCall.Builder call = FunctionCall.newBuilder();
     call.withAttributes(source.getAttributes());
 
-    for(Integer sourceIndex : selection) {
+    IndexIterator it = selection.iterator();
+    while(it.hasNext()) {
+      int sourceIndex = it.next();
       call.addCopy(source.getNode(sourceIndex));
     }
     return call.build();

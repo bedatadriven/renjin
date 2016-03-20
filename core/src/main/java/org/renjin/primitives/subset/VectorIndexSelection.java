@@ -1,13 +1,8 @@
 package org.renjin.primitives.subset;
 
-import java.util.Iterator;
-
 import org.renjin.sexp.AtomicVector;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbols;
-
-
-import com.google.common.collect.UnmodifiableIterator;
 
 /**
  * When only one subscript, without dim(s) is provided, it is treated
@@ -26,20 +21,8 @@ public class VectorIndexSelection extends Selection {
   }
 
   @Override
-  public Iterator<Integer> iterator() {
-    return new UnmodifiableIterator<Integer>() {
-      private int i = 0;
-      
-      @Override
-      public boolean hasNext() {
-        return i < subscript.getCount();
-      }
-
-      @Override
-      public Integer next() {
-        return subscript.getAt(i++);
-      }
-    };
+  public IndexIterator iterator() {
+    return subscript.iterator();
   }
 
   @Override
@@ -48,13 +31,8 @@ public class VectorIndexSelection extends Selection {
   }
 
   @Override
-  public int getElementCount() {
-    return subscript.getCount();
-  }
-
-  @Override
   public int[] getSubscriptDimensions() {
-    return new int[] { getElementCount() };
+    return new int[] { subscript.getCount() };
   }
 
   @Override
@@ -63,11 +41,10 @@ public class VectorIndexSelection extends Selection {
   }
 
   @Override
-  public Iterable<Integer> getSelectionAlongDimension(int dimensionIndex) {
+  public IndexIterator getSelectionAlongDimension(int dimensionIndex) {
     if(dimensionIndex != 0) {
       throw new IllegalArgumentException("dimensionIndex: " + dimensionIndex);
     }
-    return this;
+    return iterator();
   }
-
 }

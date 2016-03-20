@@ -106,25 +106,29 @@ public class SubscriptOperation {
 
   public SEXP extractSingle() {
 
-    // this seems like an abritrary limitation,
+    IndexIterator it = selection.iterator();
+    
+    if(!it.hasNext()) {
+      throw new EvalException("attempt to select less than one element");
+    }
+
+    int index = it.next();
+
+    // this seems like an arbitrary limitation,
     // that is x[[TRUE]] happily takes the first item but
     // x[[1:2]] will throw an error, may be we can
     // just drop the distinction across the board?
     if(selection instanceof VectorIndexSelection ||
        selection instanceof CoordinateMatrixSelection) {
-      if(selection.getElementCount() > 1) {
+      if(it.hasNext()) {
         throw new EvalException("attempt to select more than one element");
       }
     }
 
-    if(selection.getElementCount() < 1) {
-      throw new EvalException("attempt to select less than one element");
-    }
-
-    int index = selection.iterator().next();
     if(index < 0 || index >= source.length()) {
       throw new EvalException("subscript out of bounds");
     }
+    
     return source.getElementAsSEXP(index);
 
   }
@@ -140,10 +144,12 @@ public class SubscriptOperation {
       if(source.getAttribute(Symbols.NAMES) != Null.INSTANCE) {
         names = new StringArrayVector.Builder();
       }
-      Vector.Builder result = source.newBuilderWithInitialSize(selection.getElementCount());
+      Vector.Builder result = source.getVectorType().newBuilder();
       int count = 0;
 
-      for(Integer index : selection) {
+      IndexIterator it = selection.iterator();
+      while(it.hasNext()) {
+        int index = it.next();
         if(!IntVector.isNA(index) && index < source.length()) {
           result.setFrom(count++, source, index);
           if(names != null) {
@@ -257,7 +263,9 @@ public class SubscriptOperation {
     Vector.Builder result = createReplacementBuilder(elements);
     
     int replacement = 0;
-    for(int index : selection) {
+    IndexIterator it = selection.iterator();
+    while(it.hasNext()) {
+      int index = it.next();
       assert index < source.length() || selection.getSourceDimensions() == 1;
       if(!IntVector.isNA(index)) {
         result.setFrom(index, elements, replacement++);
@@ -297,7 +305,9 @@ public class SubscriptOperation {
   public Vector remove() {
     Set<Integer> indicesToRemove = Sets.newHashSet();
 
-    for(int index : selection) {
+    IndexIterator it = selection.iterator();
+    while(it.hasNext()) {
+      int index = it.next();
       if(!IntVector.isNA(index)) {
         indicesToRemove.add(index);
       }

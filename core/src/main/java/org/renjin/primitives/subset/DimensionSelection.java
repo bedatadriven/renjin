@@ -1,13 +1,10 @@
 package org.renjin.primitives.subset;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Iterators;
-import com.google.common.collect.UnmodifiableIterator;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.Indexes;
 import org.renjin.sexp.*;
 
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -86,29 +83,26 @@ public class DimensionSelection extends Selection {
   }
 
   @Override
-  public int getElementCount() {
-    return elementCount;
-  }
-  
-  @Override
   public int[] getSubscriptDimensions() {
     return dim;
   }
 
   @Override
-  public Iterator<Integer> iterator() {
-    if(isEmpty()) {
-      return Iterators.emptyIterator();
-    } else {
-      return new IndexIterator();
+  public IndexIterator iterator() {
+    for (Subscript subscript : subscripts) {
+      if(!subscript.iterator().hasNext()) {
+        return EmptyIndexIterator.INSTANCE;
+      }
     }
+    
+    return new DimIndexIterator();
   }
 
 
   /**
    * Iterators over the indices selected by the subscripts
    */
-  private class IndexIterator extends UnmodifiableIterator<Integer> {
+  private class DimIndexIterator implements IndexIterator {
 
     /**
      * Indices within the subscript matrix. 
@@ -128,7 +122,7 @@ public class DimensionSelection extends Selection {
     private int subscriptIndex[];
     private boolean hasNext = true;
 
-    private IndexIterator() {
+    private DimIndexIterator() {
       subscriptIndex = new int[dim.length];
     }
 
@@ -138,7 +132,7 @@ public class DimensionSelection extends Selection {
     }
 
     @Override
-    public Integer next() {
+    public int next() {
       // sourceIndices is the matrix coordinates of the 
       // the next value indicated by the subscripts
 
@@ -167,27 +161,8 @@ public class DimensionSelection extends Selection {
 
 
   @Override
-  public Iterable<Integer> getSelectionAlongDimension(int dimensionIndex) {
-    final Subscript subscript = subscripts[dimensionIndex];
-    final int length = subscript.getCount();
-    return new Iterable<Integer>() {
-
-      @Override
-      public Iterator<Integer> iterator() {
-        return new UnmodifiableIterator<Integer>() {
-          int i = 0 ;
-          @Override
-          public boolean hasNext() {
-            return i < length;
-          }
-
-          @Override
-          public Integer next() {
-            return subscript.getAt(i++);
-          }
-        };
-      }
-    };
+  public IndexIterator getSelectionAlongDimension(int dimensionIndex) {
+    return subscripts[dimensionIndex].iterator();
   }
 
   @Override

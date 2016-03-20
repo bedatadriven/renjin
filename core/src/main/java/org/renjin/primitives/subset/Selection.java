@@ -9,7 +9,7 @@ import org.renjin.sexp.*;
  * Encapsulates a set of elements that have been selected by 
  * the arguments to the subset function.
  */
-public abstract class Selection implements Iterable<Integer> {
+public abstract class Selection {
 
   private final SEXP source;
  
@@ -28,19 +28,18 @@ public abstract class Selection implements Iterable<Integer> {
 
   /**
    * 
-   * @return the number of elements within this element set.
+   * @return an iterator over all the selected source indices.
    */
-  public abstract int getElementCount();
-
+  public abstract IndexIterator iterator();
   
-  public abstract Iterable<Integer> getSelectionAlongDimension(int dimensionIndex);
+  public abstract IndexIterator getSelectionAlongDimension(int dimensionIndex);
   
   /**
    * 
    * @return true if this ElementSet selects no elements
    */
   public boolean isEmpty() {
-    return getElementCount() == 0;
+    return !iterator().hasNext();
   }
 
   /**
@@ -98,7 +97,9 @@ public abstract class Selection implements Iterable<Integer> {
 
   protected Vector selectDimensionNames(int dimIndex, Vector sourceNames) {
     StringArrayVector.Builder names = new StringArrayVector.Builder();
-    for(Integer index : getSelectionAlongDimension(dimIndex)) {
+    IndexIterator it = getSelectionAlongDimension(dimIndex);
+    while(it.hasNext()) {
+      int index = it.next();
       if(index >= sourceNames.length()) {
         throw new EvalException("subscript out of bounds: ");
       }

@@ -339,7 +339,7 @@ public class Subsetting {
   
   private static SEXP setSubset(SubsetArguments arguments) {
     // Handle special case of list[] <- NULL or list[] <- c()
-    if(arguments.isListSource() && arguments.getReplacement().length() == 0) {
+    if(arguments.isListSource() && arguments.getReplacement() == Null.INSTANCE) {
       return removeListElements(arguments.getListSource(), arguments.parseSelection());
     } 
     

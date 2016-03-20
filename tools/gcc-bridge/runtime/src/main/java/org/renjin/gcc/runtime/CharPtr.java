@@ -3,8 +3,8 @@ package org.renjin.gcc.runtime;
 import java.util.Arrays;
 
 public class CharPtr implements Ptr {
-	public final char[] array;
-	public final int offset;
+	public char[] array;
+	public int offset;
 
 	public CharPtr(char[] array, int offset) {
 		this.array = array;

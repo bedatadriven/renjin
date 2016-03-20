@@ -19,6 +19,10 @@ public class Stdlib {
     }
     return 0;
   }
+  
+  public static int strcmp(BytePtr x, BytePtr y) {
+    return strncmp(x, y, Integer.MAX_VALUE);
+  }
 
   /**
    * Copies the C string pointed by source into the array pointed by destination, including the terminating 
@@ -31,10 +35,80 @@ public class Stdlib {
     return destination;
   }
 
+  /**
+   * Copies the first num characters of source to destination. 
+   * If the end of the source C string (which is signaled by a null-character) is 
+   * found before num characters have been copied, destination is padded with zeros until a
+   * total of num characters have been written to it.
+   * 
+   * <p>No null-character is implicitly appended at the end of destination if source is longer than num. 
+   * Thus, in this case, destination shall not be considered a null terminated C string (reading it as 
+   * such would overflow).</p>
+   * 
+   * <p>destination and source shall not overlap</p>
+   * 
+   * @return destination pointer
+   */
+  public static BytePtr strncpy(BytePtr destination, BytePtr source, int num) {
+    int di = destination.offset;
+    int si = source.offset;
+    
+    while(num > 0) {
+      byte srcChar = source.array[si++];
+      destination.array[di++] = srcChar;
+      num--;
+      if(srcChar == 0) {
+        break;
+      }
+    }
+    while(num > 0) {
+      destination.array[di++] = 0;
+      num--;
+    }
+   
+    return destination;
+  }
+
+  /**
+   * Converts the string argument str to an integer (type int).
+   * @param str This is the string representation of an integral number.
+   * @return the converted integral number as an int value. If no valid conversion could be performed, it returns zero.
+   */
+  public static int atoi(BytePtr  str) {
+    try {
+      return Integer.parseInt(str.nullTerminatedString());
+    } catch (NumberFormatException e) {
+      return 0;
+    }
+  }
+
   public static int strlen(BytePtr x) {
     return x.nullTerminatedStringLength();
   }
 
+  /**
+   * Appends the string pointed to by src to the end of the string pointed to by dest.
+   *
+   * @return pointer to the resulting string dest.
+   */
+  public static BytePtr strcat(BytePtr dest, BytePtr src) {
+    // Find the end of the dest null-terminated string
+    int start = dest.offset;
+    while(dest.array[start] != 0) {
+      start++;
+    }
+    // Find the length of the src string
+    int srcLen = strlen(src);
+    
+    // Copy into the dest buffer
+    System.arraycopy(src.array, src.offset, dest.array, start, srcLen);
+    
+    // Null terminate the concatenated string
+    dest.array[start+srcLen] = 0;
+    
+    return dest;
+  }
+  
   public static int printf(BytePtr format, Object... arguments) {
     String outputString;
 

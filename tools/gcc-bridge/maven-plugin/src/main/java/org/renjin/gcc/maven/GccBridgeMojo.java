@@ -42,7 +42,7 @@ public class GccBridgeMojo extends AbstractMojo {
   @Parameter(required = true, defaultValue = "${project.groupId}")
   private String packageName;
   
-  @Parameter(required = true, defaultValue = "${project.artifactId}")
+  @Parameter
   private String mainClass;
   
   @Parameter(defaultValue = "${project.build.directory}/gimple")

@@ -1,56 +1,43 @@
 package org.renjin.gcc.codegen.type.voidt;
 
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
-import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
-import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.expr.Expr;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.SimpleLValue;
+import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
 import org.renjin.gcc.codegen.type.ParamStrategy;
-import org.renjin.gcc.codegen.var.Var;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleParameter;
-import org.renjin.gcc.gimple.type.GimplePointerType;
-import org.renjin.gcc.gimple.type.GimpleType;
-import org.renjin.gcc.gimple.type.GimpleVoidType;
-import org.renjin.gcc.runtime.Ptr;
 
 import java.util.Collections;
 import java.util.List;
 
 /**
- * Strategy for {@code void*} parameters, implemented using a {@link Ptr} parameter.
+ * Strategy for passing {@code void*} parameters
  */
 public class VoidPtrParamStrategy implements ParamStrategy {
   @Override
   public List<Type> getParameterTypes() {
-    return Collections.singletonList(Type.getType(Ptr.class));
+    return Collections.singletonList(Type.getType(Object.class));
   }
 
   @Override
-  public ExprGenerator emitInitialization(MethodVisitor methodVisitor, GimpleParameter parameter, List<Var> paramVars, VarAllocator localVars) {
-    return new Expr(paramVars.get(0));
+  public Expr emitInitialization(MethodGenerator methodVisitor, GimpleParameter parameter, List<SimpleLValue> paramVars, VarAllocator localVars) {
+    return paramVars.get(0);
   }
 
   @Override
-  public void emitPushParameter(MethodVisitor mv, ExprGenerator parameterValueGenerator) {
-    parameterValueGenerator.emitPushRecordRef(mv);
-  }
-
-  private class Expr extends AbstractExprGenerator {
-    private Var var;
-
-    public Expr(Var var) {
-      this.var = var;
-    }
-
-    @Override
-    public GimpleType getGimpleType() {
-      return new GimplePointerType(new GimpleVoidType());
-    }
-
-
-    @Override
-    public void emitPushRecordRef(MethodVisitor mv) {
-      var.load(mv);
+  public void loadParameter(MethodGenerator mv, Expr argument) {
+    if(argument instanceof FatPtrExpr) {
+      ((FatPtrExpr) argument).wrap().load(mv);
+    
+    } else if(argument instanceof SimpleExpr) {
+      SimpleExpr simpleArgument = (SimpleExpr) argument;
+      if(simpleArgument.getType().getSort() != Type.OBJECT) {
+        throw new IllegalArgumentException("not an object: " + argument);
+      }
+      simpleArgument.load(mv);
     }
   }
 }

@@ -18,8 +18,8 @@ public class GimpleComponentRef extends GimpleLValue {
     this.member = member;
   }
 
-  public GimpleExpr getMember() {
-    return member;
+  public GimpleFieldRef getMember() {
+    return (GimpleFieldRef) member;
   }
 
   public String memberName() {

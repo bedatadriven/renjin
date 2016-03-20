@@ -63,6 +63,8 @@ public enum Pattern {
         case Opcodes.ICONST_4:
         case Opcodes.ICONST_5:
         case Opcodes.ICONST_M1:
+        case Opcodes.BIPUSH:
+        case Opcodes.SIPUSH:
           return true;
         
         default:
@@ -70,6 +72,23 @@ public enum Pattern {
       }
     }
   },
+  
+  I_ARITHMETIC {
+    @Override
+    public boolean match(AbstractInsnNode node) {
+      switch (node.getOpcode()) {
+        case Opcodes.IADD:
+        case Opcodes.ISUB:
+        case Opcodes.IDIV:
+        case Opcodes.IMUL:
+          return true;
+        
+        default:
+          return false;
+      }
+    }
+  },
+  
   
   IADD {
     @Override

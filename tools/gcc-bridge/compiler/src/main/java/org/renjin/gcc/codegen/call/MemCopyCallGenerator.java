@@ -1,53 +1,47 @@
 package org.renjin.gcc.codegen.call;
 
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
-import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.type.voidt.VoidReturnStrategy;
-import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.expr.Expr;
+import org.renjin.gcc.codegen.expr.ExprFactory;
+import org.renjin.gcc.codegen.expr.LValue;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.type.TypeOracle;
+import org.renjin.gcc.gimple.statement.GimpleCall;
+import org.renjin.gcc.gimple.type.GimplePointerType;
 
-import java.util.List;
 
-
+/**
+ * Generates calls to memcpy() depending on the type of its arguments
+ */
 public class MemCopyCallGenerator implements CallGenerator {
   
   public static final String NAME = "__builtin_memcpy";
-  
-  
+
+  private final TypeOracle typeOracle;
+
+  public MemCopyCallGenerator(TypeOracle typeOracle) {
+    this.typeOracle = typeOracle;
+  }
+
   @Override
-  public void emitCall(MethodVisitor mv, List<ExprGenerator> argumentGenerators) {
-    if(argumentGenerators.size() != 3) {
-      throw new InternalCompilerException("__builtin_memcpy expects 3 args.");
+  public void emitCall(MethodGenerator mv, ExprFactory exprFactory, GimpleCall call) {
+    
+    if(call.getOperands().size() != 3) {
+      throw new InternalCompilerException("memcpy() expects 3 args.");
     }
-    ExprGenerator destination = argumentGenerators.get(0);
-    ExprGenerator source = argumentGenerators.get(1);
-    ExprGenerator length = argumentGenerators.get(2);
+    
+    Expr destination = exprFactory.findGenerator(call.getOperand(0));
+    Expr source =  exprFactory.findGenerator(call.getOperand(1));
+    SimpleExpr length = exprFactory.findValueGenerator(call.getOperand(2));
 
-    source.emitPushPtrArrayAndOffset(mv);
-    destination.emitPushPtrArrayAndOffset(mv);
-    length.emitPrimitiveValue(mv);
-
-    // public static native void arraycopy(
-    //     Object src,  int  srcPos,
-    // Object dest, int destPos,
-    // int length);
-    mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(System.class), "arraycopy", 
-        Type.getMethodDescriptor(Type.VOID_TYPE, 
-              Type.getType(Object.class), Type.INT_TYPE, 
-              Type.getType(Object.class), Type.INT_TYPE,
-              Type.INT_TYPE), false);
-
-  }
-
-  @Override
-  public void emitCallAndPopResult(MethodVisitor mv, List<ExprGenerator> argumentGenerators) {
-    emitCall(mv, argumentGenerators);
-  }
-
-  @Override
-  public ExprGenerator expressionGenerator(GimpleType returnType, List<ExprGenerator> argumentGenerators) {
-    return new VoidReturnStrategy().callExpression(this, argumentGenerators);
+    GimplePointerType pointerType = (GimplePointerType) call.getOperand(0).getType();
+    typeOracle.forPointerType(pointerType).memoryCopy(mv, destination, source, length);
+ 
+    if(call.getLhs() != null) {
+      // memcpy() returns the destination pointer
+      LValue lhs = (LValue) exprFactory.findGenerator(call.getLhs());
+      lhs.store(mv, destination);
+    }
   }
 }

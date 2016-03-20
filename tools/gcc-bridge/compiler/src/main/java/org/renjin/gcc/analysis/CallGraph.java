@@ -11,6 +11,9 @@ import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
 import org.renjin.gcc.gimple.statement.GimpleCall;
 import org.renjin.gcc.gimple.statement.GimpleStatement;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -29,13 +32,17 @@ public class CallGraph {
       this.unit = unit;
       this.function = function;
     }
-
+    
     public GimpleFunction getFunction() {
       return function;
     }
 
     public List<CallSite> getCallSites() {
       return callSites;
+    }
+    
+    public String toString() {
+      return function.getName();
     }
   }
 
@@ -132,6 +139,20 @@ public class CallGraph {
       }
     }
     return null;
+  }
+  
+  public void dumpGraph(String path) throws IOException {
+    PrintWriter g = new PrintWriter(path);
+    g.println("digraph callgraph {");
+
+    for (FunctionNode functionNode : functionNodes) {
+      for (CallSite callSite : functionNode.getCallSites()) {
+        g.println(callSite.getCallingFunction() + " -> " + functionNode + ";");
+      }
+    }
+    
+    g.println("}");
+    g.close();
   }
 
 }

@@ -284,6 +284,14 @@ public class Mathlib {
   }
 
   /**
+   * Minimum value
+   */
+  public static double fmin(double x, double y) {
+    return Math.min(x, y);
+  }
+
+
+  /**
    * Returns the error function value for x.
    */
   public static double erf(double x) {
@@ -310,5 +318,5 @@ public class Mathlib {
   public static double lgamma(double x) {
     throw new UnsupportedOperationException();
   }
-
+  
 }

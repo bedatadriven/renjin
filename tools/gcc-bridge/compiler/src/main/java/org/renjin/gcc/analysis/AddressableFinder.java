@@ -2,13 +2,11 @@ package org.renjin.gcc.analysis;
 
 import com.google.common.collect.Maps;
 import org.renjin.gcc.gimple.*;
-import org.renjin.gcc.gimple.expr.GimpleAddressOf;
-import org.renjin.gcc.gimple.expr.GimpleComponentRef;
-import org.renjin.gcc.gimple.expr.GimpleExpr;
-import org.renjin.gcc.gimple.expr.GimpleSymbolRef;
+import org.renjin.gcc.gimple.expr.*;
 import org.renjin.gcc.gimple.statement.GimpleAssignment;
 import org.renjin.gcc.gimple.statement.GimpleCall;
 import org.renjin.gcc.gimple.statement.GimpleStatement;
+import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleField;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
@@ -33,11 +31,11 @@ public class AddressableFinder implements FunctionBodyTransformer {
     for (GimpleBasicBlock basicBlock : fn.getBasicBlocks()) {
       for (GimpleStatement gimpleIns : basicBlock.getStatements()) {
         if(gimpleIns instanceof GimpleCall) {
-          if(marker.mark(((GimpleCall) gimpleIns).getOperands())) {
+          if(marker.mark(gimpleIns.getOperands())) {
             updated = true;
           }
         } else if(gimpleIns instanceof GimpleAssignment) {
-          if (marker.mark(((GimpleAssignment) gimpleIns).getOperands())) {
+          if (marker.mark(gimpleIns.getOperands())) {
             updated = true;
           }
         }
@@ -88,9 +86,7 @@ public class AddressableFinder implements FunctionBodyTransformer {
               throw new IllegalStateException("Record def not found: " + recordType);
             }
 
-            GimpleField field = recordTypeDef.getField(ref.memberName());
-            if(!field.isAddressed()) {
-              field.setAddressed(true);
+            if(markField(recordTypeDef, ref.getMember())) {
               updated = true;
             }
           }
@@ -116,5 +112,24 @@ public class AddressableFinder implements FunctionBodyTransformer {
       }
       return updated;
     }
+
+    private boolean markField(GimpleRecordTypeDef recordTypeDef, GimpleFieldRef member) {
+      GimpleField field = recordTypeDef.findField(member);
+      if(field.getOffset() == member.getOffset() && 
+         field.getType().equals(member.getType())) {
+       
+        boolean wasMarked = field.isAddressed();
+        field.setAddressed(true);
+        return !wasMarked;
+      
+      } else if(field.getType() instanceof GimpleArrayType) {
+        // Arrays are already addressable
+        return false;
+      }
+      throw new IllegalStateException("Cannot match field " + member + " to record def " + 
+          recordTypeDef);
+    }
   }
+  
+  
 }

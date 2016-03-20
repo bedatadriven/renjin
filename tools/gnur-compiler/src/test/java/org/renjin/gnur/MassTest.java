@@ -3,7 +3,6 @@ package org.renjin.gnur;
 
 import org.junit.Ignore;
 import org.junit.Test;
-import org.renjin.gcc.Gcc;
 
 import java.io.File;
 
@@ -23,7 +22,7 @@ public class MassTest {
     
     File srcRoot = new File("src/test/resources/org/renjin/gnur");
     
-    compiler.addSources(new File(srcRoot, "mass"));
+    compiler.addSourceDir(new File(srcRoot, "mass"));
 
     compiler.compile();
 
@@ -43,7 +42,7 @@ public class MassTest {
 
     File srcRoot = new File("src/test/resources/org/renjin/gnur");
 
-    compiler.addSources(new File(srcRoot, "zoo"));
+    compiler.addSourceDir(new File(srcRoot, "zoo"));
 
     compiler.compile();
 

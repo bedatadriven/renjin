@@ -1,14 +1,9 @@
 package org.renjin.compiler;
 
-import java.io.PrintWriter;
-import java.util.List;
-import java.util.Map.Entry;
-
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.util.TraceClassVisitor;
 import org.renjin.compiler.cfg.BasicBlock;
 import org.renjin.compiler.cfg.ControlFlowGraph;
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
@@ -16,6 +11,9 @@ import org.renjin.compiler.ir.tac.IRFunction;
 import org.renjin.compiler.ir.tac.IRFunctionTable;
 import org.renjin.compiler.ir.tac.statements.Statement;
 import org.renjin.sexp.Closure;
+
+import java.util.List;
+import java.util.Map.Entry;
 
 
 public class ClosureCompiler implements Opcodes {

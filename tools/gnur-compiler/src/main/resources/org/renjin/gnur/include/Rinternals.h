@@ -50,6 +50,9 @@ extern "C" {
 
 typedef unsigned char Rbyte;
 
+// For Renjin we need to pass a Context object 
+struct __Renjin_Context { int dummy; };
+
 /* type for length of (standard, not long) vectors etc */
 typedef int R_len_t;
 #define R_LEN_T_MAX INT_MAX

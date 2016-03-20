@@ -353,11 +353,18 @@ static void dump_record_type_decl(tree type) {
     TRACE("dump_record_type_decl: name = %s\n", name);
   } 
   
+  
+  if(TYPE_SIZE(type)) {
+    json_int_field("size", TREE_INT_CST_LOW(TYPE_SIZE(type)));
+  }
+    
   TRACE("dump_record_type_decl: writing fields\n");
   tree field =  TYPE_FIELDS(type);
   json_array_field("fields");
   while(field) {
     json_start_object();
+    json_int_field("id", DEBUG_TEMP_UID (field));
+    json_int_field("offset", int_bit_position(field));
     if(DECL_NAME(field)) {
       json_string_field("name", IDENTIFIER_POINTER(DECL_NAME(field)));
     }
@@ -500,7 +507,6 @@ static void dump_op(tree op) {
     switch(TREE_CODE(op)) {
     case FUNCTION_DECL:
     case PARM_DECL:
-    case FIELD_DECL:
     case VAR_DECL:
       json_int_field("id", DEBUG_TEMP_UID (op));
       if(DECL_NAME(op)) {
@@ -508,6 +514,15 @@ static void dump_op(tree op) {
       }
       break;
 
+    case FIELD_DECL:
+      json_int_field("id", DEBUG_TEMP_UID (op));
+      if(DECL_NAME(op)) {
+        json_string_field("name", IDENTIFIER_POINTER(DECL_NAME(op)));
+      }
+      json_int_field("offset", int_bit_position(op));
+  //    dump_op(TREE_OPERAND(op, 1));
+      break;
+      
     case CONST_DECL:
       json_field("value");
       dump_op(DECL_INITIAL(op));

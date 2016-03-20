@@ -148,7 +148,7 @@ public class PackageBuild {
   
   private void compileNativeSources() {
     GnurSourcesCompiler compiler = new GnurSourcesCompiler();
-    compiler.addSources(source.getNativeSourceDir());
+    compiler.addSourceDir(source.getNativeSourceDir());
     compiler.setVerbose(false);
     compiler.setPackageName(source.getJavaPackageName());
     compiler.setClassName(source.getName());

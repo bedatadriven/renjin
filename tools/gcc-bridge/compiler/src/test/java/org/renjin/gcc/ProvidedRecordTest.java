@@ -2,6 +2,7 @@ package org.renjin.gcc;
 
 import org.junit.Test;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
+import org.renjin.gcc.runtime.ObjectPtr;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -29,9 +30,9 @@ public class ProvidedRecordTest extends AbstractGccTest {
     compiler.compile(Collections.singletonList(unit));
 
     Class<?> clazz = Class.forName("org.renjin.gcc.provided_records");
-    Method test = clazz.getMethod("test", JvmRect.class);
+    Method test = clazz.getMethod("test", ObjectPtr.class);
   
-    int area = (Integer)test.invoke(null, new JvmRect(20, 3));
+    int area = (Integer)test.invoke(null, new ObjectPtr<>(new JvmRect(20, 3)));
     assertThat(area, equalTo(60));
 
     Method testMultiple = clazz.getMethod("test_multiple");

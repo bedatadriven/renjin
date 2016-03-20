@@ -16,8 +16,8 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-object.size <- function(x)
-    structure(.Internal(object.size(x)), class="object_size")
+object.length <- function(x)
+    structure(.Internal(object.length(x)), class="object_size")
 
 format.object_size <-
     function(x, units = "b", ...)

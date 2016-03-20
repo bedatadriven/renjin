@@ -1,8 +1,11 @@
 // Initial template generated from Random.h from R 3.2.2
 package org.renjin.gnur.api;
 
-import org.renjin.sexp.SEXP;
-import org.renjin.gcc.runtime.*;
+import org.renjin.eval.Context;
+import org.renjin.gcc.runtime.DoublePtr;
+import org.renjin.gcc.runtime.IntPtr;
+import org.renjin.invoke.annotations.Current;
+import org.renjin.primitives.Native;
 
 @SuppressWarnings("unused")
 public final class Random {
@@ -12,15 +15,15 @@ public final class Random {
 
 
   public static void GetRNGstate() {
-     throw new UnimplementedGnuApiMethod("GetRNGstate");
+    // NOOP
   }
 
   public static void PutRNGstate() {
-     throw new UnimplementedGnuApiMethod("PutRNGstate");
+    // NOOP
   }
 
-  public static double unif_rand() {
-     throw new UnimplementedGnuApiMethod("unif_rand");
+  public static double unif_rand(@Current Context context) {
+    return context.getSession().rng.unif_rand();
   }
 
   public static double norm_rand() {

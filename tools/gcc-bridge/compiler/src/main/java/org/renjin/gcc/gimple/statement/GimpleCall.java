@@ -26,6 +26,11 @@ public class GimpleCall extends GimpleStatement {
   public List<GimpleExpr> getOperands() {
     return operands;
   }
+
+
+  public GimpleExpr getOperand(int i) {
+    return operands.get(i);
+  }
   
   public GimpleLValue getLhs() {
     return lhs;
@@ -107,4 +112,5 @@ public class GimpleCall extends GimpleStatement {
     }
     replaceAll(predicate, operands, newExpr);
   }
+
 }

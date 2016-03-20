@@ -1,79 +1,132 @@
 package org.renjin.gcc.codegen.call;
 
-import org.objectweb.asm.Handle;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
-import org.renjin.gcc.codegen.FunctionGenerator;
-import org.renjin.gcc.codegen.expr.ExprGenerator;
+import com.google.common.base.Optional;
+import com.google.common.collect.Lists;
+import org.objectweb.asm.Type;
+import org.renjin.gcc.InternalCompilerException;
+import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.expr.*;
+import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
 import org.renjin.gcc.codegen.type.ParamStrategy;
-import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.gcc.gimple.statement.GimpleCall;
 
+import javax.annotation.Nonnull;
 import java.util.List;
 
+import static org.renjin.gcc.codegen.expr.Expressions.box;
+import static org.renjin.gcc.codegen.expr.Expressions.isPrimitive;
+
 /**
- * Generates a call to a soon-to-be compiled Gimple function
+ * Generates a call to a method.
  */
 public class FunctionCallGenerator implements CallGenerator {
 
-  private final FunctionGenerator functionGenerator;
+  private final InvocationStrategy strategy;
 
-
-  public FunctionCallGenerator(FunctionGenerator functionGenerator) {
-    this.functionGenerator = functionGenerator;
+  public FunctionCallGenerator(InvocationStrategy invocationStrategy) {
+    this.strategy = invocationStrategy;
   }
 
-  public FunctionGenerator getFunctionGenerator() {
-    return functionGenerator;
+  public InvocationStrategy getStrategy() {
+    return strategy;
   }
-
-  public Handle getHandle() {
-    return functionGenerator.getMethodHandle();
-  }
-
+  
   @Override
-  public void emitCall(MethodVisitor mv, List<ExprGenerator> argumentGenerators) {
+  public void emitCall(MethodGenerator mv, ExprFactory exprFactory, GimpleCall call) {
 
-    // Push all parameters on the stack
-    List<ParamStrategy> paramStrategies = functionGenerator.getParamGenerators();
-    for (int i = 0; i < paramStrategies.size(); i++) {
-      ParamStrategy paramStrategy = paramStrategies.get(i);
-      paramStrategy.emitPushParameter(mv, argumentGenerators.get(i));
+
+    // The number of fixed (gimple) parameters expected, excluding var args
+    // the number of Jvm arguments may be greater
+    int fixedArgCount = strategy.getParamStrategies().size();
+    if(call.getOperands().size() < fixedArgCount) {
+      throw new InternalCompilerException(String.format("Number of provided arguments (%d) does not match " +
+          "number of expected arguments (%d) for " + strategy,
+          call.getOperands().size(),
+          fixedArgCount));
     }
     
-    mv.visitMethodInsn(Opcodes.INVOKESTATIC, 
-        functionGenerator.getClassName(), 
-        functionGenerator.getMangledName(), descriptor(), false);
-  }
+    // Make a list of (fixed) call arguments
+    List<Expr> argumentExpressions = Lists.newArrayList();
+    for (int i = 0; i < fixedArgCount; i++) {
+      argumentExpressions.add(exprFactory.findGenerator(call.getOperand(i)));
+    }
 
-  @Override
-  public void emitCallAndPopResult(MethodVisitor mv, List<ExprGenerator> argumentGenerators) {
-    emitCall(mv, argumentGenerators);
-    switch (functionGenerator.getReturnStrategy().getType().getSize()) {
-      case 0:
-        // NOOP
-        break;
-      case 1:
-        mv.visitInsn(Opcodes.POP);
-        break;
-      case 2:
-        mv.visitInsn(Opcodes.POP2);
-        break;
-      default:
-        throw new UnsupportedOperationException();
+    // if this method accepts var args, then we pass the 
+    // remaining arguments as an Object[] array
+    Optional<SimpleExpr> varArgArray = Optional.absent();
+    if(strategy.isVarArgs()) {
+      List<SimpleExpr> varArgValues = Lists.newArrayList();
+      for(int i=fixedArgCount;i<call.getOperands().size(); ++i) {
+        Expr varArgExpr = exprFactory.findGenerator(call.getOperand(i));
+        varArgValues.add(wrapVarArg(varArgExpr));
+      }
+      varArgArray = Optional.of(Expressions.newArray(Type.getType(Object.class), varArgValues));
     }
     
+    CallExpr returnValue = new CallExpr(argumentExpressions, varArgArray);
+    
+    // If we don't need the return value, then invoke and pop any result off the stack
+    if(call.getLhs() == null) {
+      returnValue.load(mv);
+      mv.pop(returnValue.getType());
+    
+    } else {
+
+      Expr callExpr = strategy.getReturnStrategy().unmarshall(mv, returnValue);
+      LValue lhs = (LValue) exprFactory.findGenerator(call.getLhs());
+      
+      lhs.store(mv, callExpr);
+    }
   }
 
-  @Override
-  public ExprGenerator expressionGenerator(GimpleType returnType, List<ExprGenerator> argumentGenerators) {
-    return functionGenerator.getReturnStrategy().callExpression(this, argumentGenerators);
+  private SimpleExpr wrapVarArg(Expr varArgExpr) {
+    // TODO: generalize
+    // This is quite specific to printf()
+    if(varArgExpr instanceof SimpleExpr) {
+      SimpleExpr simpleExpr = (SimpleExpr) varArgExpr;
+      if(isPrimitive(simpleExpr)) {
+        return box(simpleExpr);
+      } else {
+        return simpleExpr;
+      }
+    } else if(varArgExpr instanceof FatPtrExpr) {
+      return ((FatPtrExpr) varArgExpr).wrap();
+    } else {
+      throw new UnsupportedOperationException("varArgExpr: " + varArgExpr);
+    }
   }
 
-  public String getClassName() {
-    return functionGenerator.getClassName();
+  private class CallExpr implements SimpleExpr {
+
+    private List<Expr> arguments;
+    private Optional<SimpleExpr> varArgArray;
+
+    public CallExpr(List<Expr> arguments, Optional<SimpleExpr> varArgArray) {
+      this.arguments = arguments;
+      this.varArgArray = varArgArray;
+    }
+
+    @Nonnull
+    @Override
+    public Type getType() {
+      return strategy.getReturnStrategy().getType();
+    }
+
+    @Override
+    public void load(@Nonnull MethodGenerator mv) {
+      // Push all parameters on the stack
+      List<ParamStrategy> paramStrategies = strategy.getParamStrategies();
+      for (int i = 0; i < paramStrategies.size(); i++) {
+        ParamStrategy paramStrategy = paramStrategies.get(i);
+        paramStrategy.loadParameter(mv, arguments.get(i));
+      }
+      if(varArgArray.isPresent()) {
+        varArgArray.get().load(mv);
+      }
+      
+      // Now invoke the method
+      strategy.invoke(mv);
+    }
   }
 
-  private String descriptor() {
-    return functionGenerator.getFunctionDescriptor();
-  }
 }

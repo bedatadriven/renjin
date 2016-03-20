@@ -3,10 +3,7 @@ package org.renjin.gcc;
 import com.google.common.base.Charsets;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.renjin.gcc.runtime.BytePtr;
-import org.renjin.gcc.runtime.DoublePtr;
-import org.renjin.gcc.runtime.IntPtr;
-import org.renjin.gcc.runtime.ObjectPtr;
+import org.renjin.gcc.runtime.*;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -17,6 +14,7 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
+@SuppressWarnings("unchecked")
 public class GimpleCompilerTest extends AbstractGccTest {
 
   @Test
@@ -380,20 +378,16 @@ public class GimpleCompilerTest extends AbstractGccTest {
 
     assertThat((Integer)method.invoke(null, 3), equalTo(1));
     assertThat((Integer) method.invoke(null, -1), equalTo(0));
-
-
   }
 
   @Test
   public void approx() throws Exception {
     Class clazz = compile("approx.c");
-
   }
 
   @Test
   public void kmeans() throws Exception {
     Class clazz = compile("kmns.f");
-
   }
 
   @Test
@@ -463,6 +457,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
 
   }
   
+  @Ignore
   @Test
   public void cpp() throws Exception {
     Class clazz = compile("rect.cpp");
@@ -668,7 +663,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void memcpy() throws Exception {
     Class clazz = compile("memcpy.c");
     
-    Method test = clazz.getMethod("test_memcpy", null);
+    Method test = clazz.getMethod("test_memcpy");
     Integer result = (Integer) test.invoke(null);
     
     assertThat(result, equalTo(1));
@@ -753,10 +748,27 @@ public class GimpleCompilerTest extends AbstractGccTest {
     assertThat((Long)uint32ToUint64.invoke(null, 0xFFFFFFFF), equalTo(0xFFFFFFFFL));
 
     Method uint16ToUint64 = clazz.getMethod("uint32ToUint64", int.class);
-    assertThat((Long)uint32ToUint64.invoke(null, 0), equalTo((long)0));
-    assertThat((Long)uint32ToUint64.invoke(null, 0xFF), equalTo(0xFFL));
-    assertThat((Long)uint32ToUint64.invoke(null, 0xFFFFFFFF), equalTo(0xFFFFFFFFL));
+    assertThat((Long)uint16ToUint64.invoke(null, 0), equalTo((long)0));
+    assertThat((Long)uint16ToUint64.invoke(null, 0xFF), equalTo(0xFFL));
+    assertThat((Long)uint16ToUint64.invoke(null, 0xFFFFFFFF), equalTo(0xFFFFFFFFL));
+  }
+  
+  @Test
+  public void memcmpTest() throws Exception {
+    Class clazz = compile("memcmp.c");
 
+    Method long_memcmp = clazz.getMethod("long_memcmp", LongPtr.class, LongPtr.class);
 
+    assertThat((Integer) long_memcmp.invoke(null, new LongPtr(0xFFFFFFFFFFFFFFFFL), new LongPtr(0xFFFL)), greaterThan(0));
+    assertThat((Integer)long_memcmp.invoke(null, new LongPtr(0xCAFEBABE), new LongPtr(0xCAFEBABE)), equalTo(0));
+  }
+  
+  @Test
+  public void voidPointers() throws Exception {
+    Class clazz = compile("void_ptr.c");
+    
+    Method test = clazz.getMethod("test");
+    
+    assertThat((Double)test.invoke(null), equalTo(42.0));
   }
 }

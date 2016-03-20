@@ -74,7 +74,7 @@ public class Main {
     } finally {
       if(Profiler.ENABLED) {
         System.out.flush();
-        Profiler.dump(System.err);
+        Profiler.dump(System.out);
       }
     }
   }

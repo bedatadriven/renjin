@@ -331,7 +331,9 @@ public class Native {
       } catch (Throwable e) {
         throw new EvalException("Exception calling " + methodExp + " : " + e.getMessage(), e);
       } finally {
-        Profiler.functionEnd();
+        if(Profiler.ENABLED) {
+          Profiler.functionEnd();
+        }
       }
 
     } else if(methodExp instanceof StringVector) {

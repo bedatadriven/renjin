@@ -20,6 +20,7 @@ public class Profiler {
 
   public static final boolean ENABLED = Boolean.getBoolean("renjin.profile");
 
+
   private static class FunctionProfile {
     private Symbol symbol;
     private long count;
@@ -104,6 +105,17 @@ public class Profiler {
     }
   }
 
+
+  public static void dumpTotalRunningTime() {
+    long totalRunningTime = (System.nanoTime() - startTime);
+
+    double seconds = TimeUnit.NANOSECONDS.toSeconds(totalRunningTime);
+    double minutes = seconds / 60d;
+    
+    System.out.println("Completed in " + minutes);
+
+  }
+  
   /**
    * Dumps the results of the profile to the given PrintStream.
    */

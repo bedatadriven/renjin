@@ -32,10 +32,18 @@ import org.renjin.sexp.LogicalVector;
  * the first element but not the second.
  */
 public class LogicalSubscript extends Subscript {
+  private int dimLength;
+  private LogicalVector subscript;
+  
   private int count;
   private int[] indices;
 
   public LogicalSubscript(int dimLength, LogicalVector subscript) {
+    this.dimLength = dimLength;
+    this.subscript = subscript;
+  }
+
+  private void computeArray() {
     count = 0;
     if(subscript.length() == 0) {
       indices = new int[0];
@@ -56,11 +64,65 @@ public class LogicalSubscript extends Subscript {
 
   @Override
   public int getCount() {
+    if(indices == null) {
+      computeArray();
+    }
     return count;
   }
 
   @Override
   public int getAt(int i) {
+    if(indices == null) {
+      computeArray();
+    }
     return indices[i];
+  }
+
+  @Override
+  public IndexIterator iterator() {
+    
+    if(subscript.length() == 0) {
+      return EmptyIndexIterator.INSTANCE;
+    }
+    
+    return new IndexIterator() {
+      
+      private int i;
+      private int subscriptIndex;
+      
+      private int next = computeNext();
+
+      private int computeNext() {
+        while(true) {
+          if(i == dimLength) {
+            return -1;
+          }
+          if(subscriptIndex == subscript.length()) {
+            subscriptIndex = 0;
+          }
+          int index = i++;
+          int included = subscript.getElementAsRawLogical(subscriptIndex++);
+          
+          if(included == 1) {
+            return index;
+          } 
+          if(IntVector.isNA(included)) {
+            return included;
+          }
+        }
+      }
+      
+      @Override
+      public boolean hasNext() {
+        return next != -1;
+      }
+
+      @Override
+      public int next() {
+        int toReturn = next;
+        next = computeNext();
+        return toReturn;
+      }
+    };
   }
 }

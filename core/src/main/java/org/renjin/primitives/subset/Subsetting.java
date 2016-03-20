@@ -27,6 +27,7 @@ import org.renjin.invoke.annotations.*;
 import org.renjin.methods.MethodDispatch;
 import org.renjin.primitives.Types;
 import org.renjin.sexp.*;
+import org.renjin.util.NamesBuilder;
 
 public class Subsetting {
 
@@ -102,7 +103,7 @@ public class Subsetting {
 
   @Builtin("$<-")
   public static SEXP setElementByName(ListVector list,
-      @Unevaluated Symbol name, SEXP value) {
+                                      @Unevaluated Symbol name, SEXP value) {
     return setSingleElement(list.newCopyNamedBuilder(), name.getPrintName(), value);
   }
 
@@ -120,16 +121,16 @@ public class Subsetting {
     }
     return setSingleElement(copyBuilder, nameToReplace.getPrintName(), value);
   }
-  
+
   @Builtin("$<-")
   public static SEXP setElementByName(PairList.Node pairList,
-      @Unevaluated Symbol name, SEXP value) {
+                                      @Unevaluated Symbol name, SEXP value) {
     return setSingleElement(pairList.newCopyBuilder(), name.getPrintName(), value);
   }
 
   @Builtin("$<-")
   public static SEXP setElementByName(Environment env,
-      @Unevaluated Symbol name, SEXP value) {
+                                      @Unevaluated Symbol name, SEXP value) {
     env.setVariable(name, value);
     return env;
   }
@@ -139,7 +140,7 @@ public class Subsetting {
    */
   @Builtin(".subset")
   public static SEXP subset(SEXP source, @ArgumentList ListVector arguments,
-      @NamedFlag("drop") @DefaultValue(true) boolean drop) {
+                            @NamedFlag("drop") @DefaultValue(true) boolean drop) {
     Vector vector;
     if(source instanceof Vector) {
       vector = (Vector)source;
@@ -183,15 +184,15 @@ public class Subsetting {
     // A single argument with a length greater than one, like c(1,2,3)
     // are used to index the vector recursively
     if(source instanceof ListVector && isRecursiveIndexingArgument(subscripts)) {
-      
+
       return getSingleElementRecursively((ListVector) source, (AtomicVector) subscripts.getElementAsSEXP(0), exact, drop);
-      
+
     } else {
 
       return new SubscriptOperation()
-              .setSource(source, subscripts)
-              .setDrop(true)
-              .extractSingle();
+          .setSource(source, subscripts)
+          .setDrop(true)
+          .extractSingle();
     }
   }
 
@@ -207,13 +208,13 @@ public class Subsetting {
   }
 
   private static SEXP getSingleElementRecursively(ListVector source, AtomicVector indexes, boolean exact, boolean drop) {
-    
+
     assert indexes.length() > 0;
-    
+
     SEXP result = source;
-    
+
     for(int i=0; i < indexes.length(); ++i) {
-      
+
       if(!(result instanceof ListVector)) {
         throw new EvalException("Recursive indexing failed at level %d", i+1);
       }
@@ -289,7 +290,7 @@ public class Subsetting {
   @Generic
   @Builtin("[")
   public static SEXP getSubset(SEXP source, @ArgumentList ListVector subscripts,
-      @NamedFlag("drop") @DefaultValue(true) boolean drop) {
+                               @NamedFlag("drop") @DefaultValue(true) boolean drop) {
 
     if (source == Null.INSTANCE) {
       // handle an exceptional case: if source is NULL,
@@ -325,21 +326,138 @@ public class Subsetting {
 
   private static SEXP getSubset(Vector source, ListVector subscripts, boolean drop) {
     return new SubscriptOperation()
-      .setSource(source, subscripts)
-      .setDrop(drop)
-      .extract();
+        .setSource(source, subscripts)
+        .setDrop(drop)
+        .extract();
   }
-
 
   @Generic
   @Builtin("[<-")
-  public static SEXP setSubset(SEXP source, @ArgumentList ListVector arguments) {
+  public static SEXP setSubset(SEXP source, @ArgumentList ListVector argumentList) {
+    return setSubset(SubsetArguments.parseReplacementArguments(source, argumentList));
+  }
+  
+  private static SEXP setSubset(SubsetArguments arguments) {
+    // Handle special case of list[] <- NULL or list[] <- c()
+    if(arguments.isListSource() && arguments.getReplacement().length() == 0) {
+      return removeListElements(arguments.getListSource(), arguments.parseSelection());
+    } 
+    
+    return setSubset(arguments.getSource(), arguments.parseSelection(), (Vector)arguments.getReplacement());
+  }
 
-    SEXP replacement = arguments.getElementAsSEXP(arguments.length() - 1);
+  /**
+   * Removes selected elements from a list vector.
+   */
+  private static ListVector removeListElements(ListVector source, Selection selection) {
 
-    return new SubscriptOperation()
-        .setSource(source, arguments, 0, 1)
-        .replace(replacement);
+    IndexPredicate predicate = selection.computePredicate();
+
+    ListVector.Builder newList = new ListVector.Builder();
+
+    // Copy elements, minus any selected elements
+    for(int i=0;i<source.length();++i) {
+      if(!predicate.apply(i)) {
+        newList.add(source.getElementAsSEXP(i));
+      }
+    }
+
+    // Build the attributes first
+    for (Symbol attributeName : source.getAttributes().names()) {
+      if(attributeName == Symbols.NAMES) {
+        // Build the names vector, applying our filter
+        AtomicVector names = source.getNames();
+        StringArrayVector.Builder newNames = new StringArrayVector.Builder();
+        for(int i=0;i<names.length();++i) {
+          if(predicate.apply(i)) {
+            newNames.add(names.getElementAsString(i));
+          }
+        }
+        newList.setAttribute(Symbols.NAMES, newNames.build());
+      } else if(attributeName == Symbols.DIM) {
+        // drop dims, we are treating the list as a vector
+        // now, not a matrix
+
+      } else {
+        // preserve other attributes
+        newList.setAttribute(attributeName, source.getAttribute(attributeName));
+      }
+    }
+    return newList.build();
+  }
+
+
+  private static Vector setSubset(Vector source, Selection selection, Vector elements) {
+
+    if(selection.isByName()) {
+      return setSubsetByName(source, selection, elements);
+    }
+    if(!selection.isEmpty() && elements.length() == 0) {
+      throw new EvalException("replacement has zero length");
+    }
+
+    Vector.Builder result = createReplacementBuilder(source, elements);
+
+    int replacement = 0;
+    IndexIterator it = selection.iterator();
+    while(it.hasNext()) {
+      int index = it.next();
+      assert index < source.length() || selection.getSourceDimensions() == 1;
+      if(!IntVector.isNA(index)) {
+        result.setFrom(index, elements, replacement++);
+        if(replacement >= elements.length()) {
+          replacement = 0;
+        }
+      }
+    }
+    return result.build();
+  }
+
+  private static Vector.Builder createReplacementBuilder(Vector source, Vector elements) {
+    Vector.Builder result;
+
+    Vector.Type replacementType;
+    if(elements instanceof AtomicVector) {
+      replacementType = elements.getVectorType();
+    } else {
+      replacementType = ListVector.VECTOR_TYPE;
+    }
+
+    if(source.getVectorType().isWiderThanOrEqualTo(replacementType)) {
+      result = source.newCopyBuilder();
+    } else {
+      result = replacementType.newBuilderWithInitialSize(source.length());
+      result.copyAttributesFrom(source);
+      for(int i=0;i!= source.length();++i) {
+        result.setFrom(i, source, i);
+      }
+    }
+    return result;
+  }
+
+  private static Vector setSubsetByName(Vector source, Selection selection, Vector replacement) {
+    StringVector namesToReplace = selection.getNames();
+    Vector.Builder result = createReplacementBuilder(source, replacement);
+    NamesBuilder names = NamesBuilder.clonedFrom(source);
+
+    int replacementIndex = 0;
+
+    for(String nameToReplace : namesToReplace) {
+      int index = source.getIndexByName(nameToReplace);
+      if(index == -1) {
+        index = result.length();
+        names.set(index, nameToReplace);
+      }
+
+      result.setFrom(index, replacement, replacementIndex++);
+
+      if(replacementIndex >= replacement.length()) {
+        replacementIndex = 0;
+      }
+    }
+
+    result.setAttribute(Symbols.NAMES, names.build());
+    return result.build();
   }
 
   @Generic
@@ -353,8 +471,8 @@ public class Subsetting {
           replacement);
     } else {
       return new SubscriptOperation()
-      .setSource(source, new ListVector(index), 0, 0)
-      .replace(replacement);
+          .setSource(source, new ListVector(index), 0, 0)
+          .replace(replacement);
     }
   }
 
@@ -362,8 +480,8 @@ public class Subsetting {
   @Generic
   @Builtin("[[<-")
   public static Environment setSingleElement(Environment environment, String name, SEXP replacement) {
-     environment.setVariable(name, replacement);
-     return environment;
+    environment.setVariable(name, replacement);
+    return environment;
   }
 
   @Generic
@@ -375,7 +493,7 @@ public class Subsetting {
   @Generic
   @Builtin("[[<-")
   public static SEXP setSingleElement(PairList.Node pairList, String nameToReplace, SEXP replacement) {
-     return setSingleElement(pairList.newCopyBuilder(), nameToReplace, replacement);
+    return setSingleElement(pairList.newCopyBuilder(), nameToReplace, replacement);
   }
 
   @Generic
@@ -391,7 +509,7 @@ public class Subsetting {
   }
 
   private static SEXP setSingleElement(ListBuilder result,
-      int indexToReplace, SEXP replacement) {
+                                       int indexToReplace, SEXP replacement) {
     if(replacement == Null.INSTANCE) {
       // REMOVE element
       if(indexToReplace < result.length()) {

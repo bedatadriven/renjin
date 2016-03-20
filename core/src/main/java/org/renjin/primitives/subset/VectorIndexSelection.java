@@ -2,6 +2,7 @@ package org.renjin.primitives.subset;
 
 import org.renjin.sexp.AtomicVector;
 import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringVector;
 import org.renjin.sexp.Symbols;
 
 /**
@@ -46,5 +47,19 @@ public class VectorIndexSelection extends Selection {
       throw new IllegalArgumentException("dimensionIndex: " + dimensionIndex);
     }
     return iterator();
+  }
+
+  @Override
+  public boolean isByName() {
+    return subscript instanceof NamedSubscript;
+  }
+
+  @Override
+  public StringVector getNames() {
+    if(subscript instanceof NamedSubscript) {
+      return ((NamedSubscript) subscript).getSubscript();
+    } else {
+      throw new UnsupportedOperationException();
+    }
   }
 }

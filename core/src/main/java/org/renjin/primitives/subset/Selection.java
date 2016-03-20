@@ -1,8 +1,11 @@
 package org.renjin.primitives.subset;
 
+import com.google.common.collect.Sets;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.vector.RowNamesVector;
 import org.renjin.sexp.*;
+
+import java.util.Set;
 
 
 /**
@@ -106,5 +109,31 @@ public abstract class Selection {
       names.add( sourceNames.getElementAsString(index) );
     }
     return names.build();
+  }
+
+  public IndexPredicate computePredicate() {
+    final Set<Integer> selected = Sets.newHashSet();
+
+    IndexIterator it = iterator();
+    while(it.hasNext()) {
+      int index = it.next();
+      if(!IntVector.isNA(index)) {
+        selected.add(index);
+      }
+    }
+    return new IndexPredicate() {
+      @Override
+      public boolean apply(int index) {
+        return selected.contains(index);
+      }
+    };
+  }
+  
+  public boolean isByName() {
+    return false;
+  }
+  
+  public StringVector getNames() {
+    throw new UnsupportedOperationException();
   }
 }

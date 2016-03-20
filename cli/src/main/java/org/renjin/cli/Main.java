@@ -72,6 +72,7 @@ public class Main {
     try {
       new Main(options).run();
     } finally {
+      Profiler.dumpTotalRunningTime();
       if(Profiler.ENABLED) {
         System.out.flush();
         Profiler.dump(System.out);

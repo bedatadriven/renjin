@@ -31,8 +31,10 @@ import org.renjin.sexp.StringVector;
 public class NamedSubscript extends Subscript {
   private int count;
   private int[] indices;
+  private StringVector subscript;
 
   public NamedSubscript(int length, AtomicVector names, StringVector subscript) {
+    this.subscript = subscript;
     indices = new int[subscript.length()];
     count = subscript.length();
 
@@ -42,6 +44,10 @@ public class NamedSubscript extends Subscript {
       int index = names.indexOf(subscript, i, 0);
       indices[i] = (index == -1) ? nextNewIndex++ : index;
     }
+  }
+
+  public StringVector getSubscript() {
+    return subscript;
   }
 
   @Override

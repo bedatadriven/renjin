@@ -17,4 +17,5 @@ public class EmptyIndexIterator implements IndexIterator {
   public int next() {
     throw new NoSuchElementException();
   }
+
 }

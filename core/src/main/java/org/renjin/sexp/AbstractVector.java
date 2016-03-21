@@ -70,6 +70,12 @@ abstract class AbstractVector extends AbstractSEXP implements Vector {
     }
 
     @Override
+    public Builder removeAttribute(Symbol name) {
+      attributes.remove(name);
+      return this;
+    }
+
+    @Override
     public Builder setDim(int row, int col) {
       attributes.setDim(row, col);
       return this;

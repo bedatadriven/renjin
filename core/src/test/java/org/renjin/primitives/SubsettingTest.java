@@ -323,8 +323,55 @@ public class SubsettingTest extends EvalTestCase {
     eval(" x <- list(1,2,3) ");
     eval(" x[[1]] <- NULL ");
 
-    assertThat( eval("x"), equalTo(list(2d,3d)));
+    assertThat(eval("x"), equalTo(list(2d, 3d)));
   }
+  
+  @Test
+  public void replaceSingleElementInListMatrix() {
+    eval(" x<- list(1,2,3,4) ");
+    eval(" dim(x) <- c(2,2) ");
+    
+    eval(" x[[2,2]] <- 99 ");
+    
+    assertThat(eval("x"), equalTo(list(1d, 2d, 3d, 99d)));
+    assertThat(eval("dim(x)"), equalTo(c_i(2, 2)));
+  }
+  
+  @Test
+  public void replaceSingleElementInListMatrixByName() {
+    eval(" x<- list(1,2,3,4) ");
+    eval(" dim(x) <- c(2,2) ");
+
+    eval(" x[['foo']] <- 99 ");
+
+    assertThat(eval("x"), equalTo(list(1d, 2d, 3d, 4d, 99d)));
+
+    // Dimensions should be dropped
+    assertThat(eval("dim(x)"), equalTo((SEXP)Null.INSTANCE));
+  }
+
+
+  @Test
+  public void replaceSingleElementInMatrixByName() {
+    eval(" x<- c(1,2,3,4) ");
+    eval(" dim(x) <- c(2,2) ");
+
+    eval(" x[['foo']] <- 99 ");
+
+    assertThat(eval("x"), equalTo(c(1, 2, 3, 4, 99)));
+
+    // Dimensions should be dropped
+    assertThat(eval("dim(x)"), equalTo((SEXP)Null.INSTANCE));
+  }
+  
+  @Test
+  public void replaceSingleElementOnNull() {
+    eval(" x <- NULL ");
+    eval(" x[[1]] <- 1:3 ");
+    
+    assertThat(eval("x"), equalTo(list(c_i(1,2,3))));
+  }
+
 
 
   @Test

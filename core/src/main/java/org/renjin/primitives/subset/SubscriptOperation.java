@@ -22,13 +22,10 @@
 package org.renjin.primitives.subset;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.*;
-import org.renjin.util.NamesBuilder;
 
 import java.util.List;
-import java.util.Set;
 
 public class SubscriptOperation {
 
@@ -244,105 +241,6 @@ public class SubscriptOperation {
       return result.build();
     }
   }
-  
-  public Vector replace(SEXP elements) {
-
-    // [[<- and [<- seem to have a special meaning when
-    // the replacement value is NULL and the vector is a list
-    if(source instanceof ListVector && elements == Null.INSTANCE) {
-      return remove();
-
-    } else if(subscripts.size() == 1 && subscripts.get(0) instanceof StringVector) {
-      return replaceByName(elements);
-    }
-    
-    if(!selection.isEmpty() && elements.length() == 0) {
-      throw new EvalException("replacement has zero length");
-    }
-
-    Vector.Builder result = createReplacementBuilder(elements);
-    
-    int replacement = 0;
-    IndexIterator it = selection.iterator();
-    while(it.hasNext()) {
-      int index = it.next();
-      assert index < source.length() || selection.getSourceDimensions() == 1;
-      if(!IntVector.isNA(index)) {
-        result.setFrom(index, elements, replacement++);
-        if(replacement >= elements.length()) {
-          replacement = 0;
-        }
-      }
-    }
-    return result.build();
-  }
-
-  private Vector replaceByName(SEXP elements) {
-    StringVector namesToReplace = (StringVector) subscripts.get(0);
-    Vector.Builder result = createReplacementBuilder(elements);
-    NamesBuilder names = NamesBuilder.clonedFrom(source);
-
-    int replacementIndex = 0;
-
-    for(String nameToReplace : namesToReplace) {
-      int index = source.getIndexByName(nameToReplace);
-      if(index == -1) {
-        index = result.length();
-        names.set(index, nameToReplace);
-      }
-
-      result.setFrom(index, elements, replacementIndex++);
-
-      if(replacementIndex >= elements.length()) {
-        replacementIndex = 0;
-      }
-    }
-
-    result.setAttribute(Symbols.NAMES, names.build());
-    return result.build();
-  }
-
-  public Vector remove() {
-    Set<Integer> indicesToRemove = Sets.newHashSet();
-
-    IndexIterator it = selection.iterator();
-    while(it.hasNext()) {
-      int index = it.next();
-      if(!IntVector.isNA(index)) {
-        indicesToRemove.add(index);
-      }
-    }
-
-    Vector.Builder result = source.newBuilderWithInitialSize(0);
-    result.copyAttributesFrom(source);
-    for(int i=0;i!=source.length();++i) {
-      if(!indicesToRemove.contains(i)) {
-        result.addFrom(source, i);
-      }
-    }
-    return result.build();
-  }
 
 
-  private Vector.Builder createReplacementBuilder(SEXP elements) {
-    Vector.Builder result;
-
-    Vector.Type replacementType;
-    if(elements instanceof AtomicVector) {
-      replacementType = ((AtomicVector) elements).getVectorType();
-    } else {
-      replacementType = ListVector.VECTOR_TYPE;
-    }
-
-    if(source.getVectorType().isWiderThanOrEqualTo(replacementType)) {
-      result = source.newCopyBuilder();
-    } else {
-      result = replacementType.newBuilderWithInitialSize(source.length());
-      result.copyAttributesFrom(source);
-      for(int i=0;i!= source.length();++i) {
-        result.setFrom(i, source, i);
-      }
-    }
-    return result;
-  }
 }

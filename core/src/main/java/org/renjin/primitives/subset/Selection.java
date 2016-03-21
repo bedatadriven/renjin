@@ -136,4 +136,5 @@ public abstract class Selection {
   public StringVector getNames() {
     throw new UnsupportedOperationException();
   }
+
 }

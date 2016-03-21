@@ -256,6 +256,8 @@ public interface Vector extends SEXP {
     * @return this Builder, for method chaining
     */
     Builder setAttribute(Symbol name, SEXP value);
+    
+    Builder removeAttribute(Symbol name);
 
     Builder setDim(int row, int col);
 

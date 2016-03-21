@@ -506,6 +506,12 @@ public interface PairList extends SEXP {
       return this;
     }
 
+    @Override
+    public SEXPBuilder removeAttribute(Symbol attributeName) {
+      attributesBuilder.remove(attributeName);
+      return this;
+    }
+
     public Builder setAttribute(String name, SEXP value) {
       attributesBuilder.set(name,value);
       return this;

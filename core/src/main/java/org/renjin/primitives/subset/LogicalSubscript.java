@@ -123,6 +123,7 @@ public class LogicalSubscript extends Subscript {
         next = computeNext();
         return toReturn;
       }
+
     };
   }
 }

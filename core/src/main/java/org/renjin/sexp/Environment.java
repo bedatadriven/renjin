@@ -218,6 +218,9 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
   }
   
   public void setVariable(String name, SEXP value) {
+    if(StringVector.isNA(name)) {
+      name = "NA";
+    }
     setVariable(Symbol.get(name), value);
   }
 

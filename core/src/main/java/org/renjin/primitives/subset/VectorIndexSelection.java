@@ -20,6 +20,12 @@ public class VectorIndexSelection extends Selection {
     this.source = source;
     this.subscript = parseSubscript(subscript, 0, source.length());
   }
+  
+  public VectorIndexSelection(SEXP source, Subscript subscript) {
+    super(source);
+    this.source = source;
+    this.subscript = subscript;
+  }
 
   @Override
   public IndexIterator iterator() {

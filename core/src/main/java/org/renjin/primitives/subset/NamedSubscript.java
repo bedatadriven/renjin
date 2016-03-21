@@ -23,6 +23,7 @@ package org.renjin.primitives.subset;
 
 import org.renjin.sexp.AtomicVector;
 import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Vector;
 
 /**
  * Named subscripts select element by name, for example
@@ -44,6 +45,10 @@ public class NamedSubscript extends Subscript {
       int index = names.indexOf(subscript, i, 0);
       indices[i] = (index == -1) ? nextNewIndex++ : index;
     }
+  }
+
+  public NamedSubscript(Vector source, StringVector subscriptExp) {
+    this(source.length(), source.getNames(), subscriptExp);    
   }
 
   public StringVector getSubscript() {

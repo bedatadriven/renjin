@@ -8,5 +8,5 @@ public interface IndexIterator {
   boolean hasNext();
   
   int next();
-  
+
 }

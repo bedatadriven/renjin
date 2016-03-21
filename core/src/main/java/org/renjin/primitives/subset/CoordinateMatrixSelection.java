@@ -86,6 +86,7 @@ public class CoordinateMatrixSelection extends Selection {
       public int next() {
         return Indexes.arrayIndexToVectorIndex(getCoordinate(row++), sourceDim);
       }
+
     }; 
   }
 
@@ -104,6 +105,7 @@ public class CoordinateMatrixSelection extends Selection {
       public int next() {
         return coordinateMatrix.getElementAsInt(i++, dimensionIndex);
       }
+
     };
   }
 }

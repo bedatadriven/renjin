@@ -47,4 +47,6 @@ public interface SEXPBuilder {
    */
   SEXPBuilder setAttribute(Symbol attributeName, SEXP value);
   
+  
+  SEXPBuilder removeAttribute(Symbol attributeName);
 }

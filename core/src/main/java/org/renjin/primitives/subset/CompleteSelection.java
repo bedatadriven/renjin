@@ -33,6 +33,7 @@ public class CompleteSelection extends Selection {
       public int next() {
         return i++;
       }
+
     };
   }
 
@@ -82,6 +83,7 @@ public class CompleteSelection extends Selection {
       public int next() {
         return i++;
       }
+
     };
   }
 }

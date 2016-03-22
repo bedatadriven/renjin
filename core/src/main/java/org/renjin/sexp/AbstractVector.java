@@ -49,6 +49,21 @@ abstract class AbstractVector extends AbstractSEXP implements Vector {
     }
   }
 
+  @Override
+  public Builder newCopyBuilder(Type replacementType) {
+    if(getVectorType().isWiderThanOrEqualTo(replacementType)) {
+      return newCopyBuilder();
+    } else {
+      Builder result;
+      result = replacementType.newBuilderWithInitialSize(length());
+      result.copyAttributesFrom(this);
+      for(int i=0;i!=length();++i) {
+        result.setFrom(i, this, i);
+      }
+      return result;
+    }
+  }
+
   public int getComputationDepth() {
     return 0;
   }

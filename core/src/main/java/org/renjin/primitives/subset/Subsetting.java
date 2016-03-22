@@ -332,27 +332,38 @@ public class Subsetting {
   @Generic
   @Builtin("[<-")
   public static SEXP setSubset(SEXP source, @ArgumentList ListVector argumentList) {
-    
-    if(source instanceof PairList) {
-      source = ((PairList) source).toVector();
+
+    SEXP replacementExp = argumentList.getElementAsSEXP(argumentList.length() - 1);
+    if(!(replacementExp instanceof Vector)) {
+      throw new EvalException("incompatible types (from %s to %s) in subassignment type fix",
+          replacementExp.getTypeName(), source.getTypeName());
     }
     
-    if(!(source instanceof Vector)) {
-      throw new EvalException("object of type '%' is not subsettable", source.getTypeName());
-    }
+    Vector replacement = (Vector) replacementExp;
     
-    SEXP replacement = argumentList.getElementAsSEXP(argumentList.length() - 1);
     List<SEXP> subscripts = Lists.newArrayListWithCapacity(argumentList.length() - 1);
     for (int i = 0; i < argumentList.length() - 1; i++) {
       subscripts.add(argumentList.get(i));
     }
     
-    // Handle special case of list[] <- NULL or list[] <- c()
-    if(source instanceof ListVector && replacement == Null.INSTANCE) {
-      return removeListElements((ListVector)source, parseSelection(source, subscripts));
-    } 
+    Selection2 selection = Selections.parseSelection(subscripts);
+
+    if(source instanceof ListVector) {
+      return selection.replaceListElements((ListVector) source, replacement);
     
-    return setSubset((Vector) source, parseSelection(source, subscripts), (Vector) replacement);
+    } else if(source instanceof PairList.Node) {
+      return selection.replaceListElements(((PairList.Node) source).toVector(), replacement);
+      
+    } else if(source instanceof AtomicVector) {
+
+      return selection.replaceElements((AtomicVector)source, replacement);
+    
+    } else if(source == Null.INSTANCE) {
+      throw new EvalException("invalid (NULL) left side of assignment");
+    
+    } else {
+      throw new EvalException("object of type '%' is not subsettable", source.getTypeName());
+    }
   }
 
 
@@ -372,21 +383,25 @@ public class Subsetting {
       subscripts.add(argumentList.get(0));
     }
 
-    Selection selection = parseSingleSelection(source, subscripts);
+    Selection2 selection = Selections.parseSelection(subscripts);
+    
 
     if(source instanceof PairList.Node) {
-      return setSingleListElement(((PairList.Node) source).newCopyBuilder(), selection, replacement);
+      return selection.replaceSinglePairListElement((PairList.Node) source, replacement);
 
     } else if(source instanceof ListVector) {
-      return setSingleListElement(((ListVector) source).newCopyNamedBuilder(), selection, replacement);
+      return selection.replaceSingleListElement((ListVector) source, replacement);
 
     } else if(source instanceof Null) {
       // Given x[[i]] <- y, where is.null(x), then we create
       // a new list...
-      return setSingleListElement(new ListVector.NamedBuilder(), selection, replacement);
+      return selection.replaceSingleListElement(new ListVector(), replacement);
       
     } else if(source instanceof AtomicVector) {
-      return setSingleAtomicVectorElement((AtomicVector)source, selection, replacement);
+      if(!(replacement instanceof Vector)) {
+        throw new EvalException("incompatible types");
+      }
+      return selection.replaceSingleElement((AtomicVector) source, (Vector) replacement);
 
     } else {
       throw new EvalException("object of type '%s' is not subsettable");

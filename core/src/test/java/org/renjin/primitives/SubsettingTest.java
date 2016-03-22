@@ -338,6 +338,16 @@ public class SubsettingTest extends EvalTestCase {
   }
   
   @Test
+  public void replaceSingleElementInMatrixWithLogicals() {
+    eval(" x<- c(1,2,3,4) ");
+    eval(" dim(x) <- c(2,2) ");
+    
+    eval("x[[TRUE, TRUE]] <- 91");
+    
+    assertThat(eval("x"), equalTo(c(91,2,3,4)));
+  }
+  
+  @Test
   public void replaceSingleElementInListMatrixByName() {
     eval(" x<- list(1,2,3,4) ");
     eval(" dim(x) <- c(2,2) ");
@@ -351,6 +361,27 @@ public class SubsettingTest extends EvalTestCase {
   }
 
 
+  @Test(expected = EvalException.class)
+  public void replaceSingleElementInListMatrixWithNullNotAllowed() {
+    eval(" x<- list(1,2,3,4) ");
+    eval(" dim(x) <- c(2,2) ");
+
+    eval(" x[[1,1]] <- NULL");
+  }
+  
+  
+
+  @Test(expected = EvalException.class)
+  public void replaceSingleElementInPairListMatrixWithNullAllowed() {
+    eval(" x<- pairlist(1,2,3,4) ");
+    eval(" dim(x) <- c(2,2) ");
+
+    eval(" x[[1,1]] <- NULL");
+    
+    assertThat(eval("x[[1,1]]"), equalTo((SEXP) Null.INSTANCE));
+    assertThat(eval("typeof(x)"), equalTo(c("pairlist")));
+  }  
+  
   @Test
   public void replaceSingleElementInMatrixByName() {
     eval(" x<- c(1,2,3,4) ");
@@ -625,7 +656,7 @@ public class SubsettingTest extends EvalTestCase {
   }
 
   @Test
-  public void pairListConverted() {
+  public void pairListNotConverted() {
     eval(" p <- .Internal(as.vector(list(a=1, b=2, 3, 4), 'pairlist'))");
     assertThat( eval("p[1:2]"), equalTo(list(1d,2d)));
     assertThat( eval("names(p[TRUE])"), equalTo(c("a", "b", "", "")));
@@ -782,7 +813,7 @@ public class SubsettingTest extends EvalTestCase {
     assertThat(eval("names(x)"), equalTo(c("a","b")));
   }
 
-  @Test
+  @Test(expected = EvalException.class)
   public void outOfBounds() {
     eval("x <- c(X=1,a=2)");
     eval("x[c('a','X','a','b')] <- list(3,TRUE,FALSE)");

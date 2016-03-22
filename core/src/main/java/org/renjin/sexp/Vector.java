@@ -152,6 +152,16 @@ public interface Vector extends SEXP {
   Builder newCopyBuilder();
 
   /**
+   * Creates a new Builder which is initialized with all of this vector's elements 
+   * AND it's attributes. If the given {@code type} is wider than this vector's type,
+   * then that type is used.
+   * 
+   * @param type
+   * @return
+   */
+  Builder newCopyBuilder(Vector.Type type);
+
+  /**
    *
    * @param index zero-based index
    * @return  true if the element at {@code index} is NA (statistically missing)

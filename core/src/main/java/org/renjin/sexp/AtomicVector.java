@@ -88,8 +88,4 @@ public interface AtomicVector extends Vector {
   Builder newBuilderWithInitialSize(int initialSize);
 
 
-    interface AtomicVectorBuilder {
-
-  }
-
 }

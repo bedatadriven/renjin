@@ -139,6 +139,9 @@ public class AttributeMap {
   }
 
   public int[] getDimArray() {
+    if(dim == null) {
+      return new int[0];
+    }
     return dim.toIntArray();
   }
 

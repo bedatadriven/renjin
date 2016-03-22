@@ -40,8 +40,7 @@ public class PositionalSubscript extends Subscript {
     for(int i=0;i!=indices.length;++i) {
       int index = vector.getElementAsInt(i);
       if(index != 0) {
-        if(IntVector.isNA(index)
-           ) {
+        if(IntVector.isNA(index)) {
           indices[count++] = IntVector.NA;
         } else {
           indices[count++] = index-1;

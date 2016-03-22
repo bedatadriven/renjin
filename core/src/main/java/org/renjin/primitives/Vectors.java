@@ -403,7 +403,26 @@ public class Vectors {
         return x.setAttribute(Symbols.DIM, newDim.build())
             .setAttribute(Symbols.DIMNAMES, newDimnames.build());
       }
-
+    }
+  }
+  
+  public static AtomicVector toType(AtomicVector x, Vector.Type type) {
+    if(x.getVectorType() == type) {
+      return x;
+    } else if(type == DoubleVector.VECTOR_TYPE) {
+      return asDouble(x);
+    } else if(type == IntVector.VECTOR_TYPE) {
+      return asInteger(x);
+    } else if(type == LogicalVector.VECTOR_TYPE) {
+      return asLogical(x);
+    } else if(type == ComplexVector.VECTOR_TYPE) {
+      return asComplex(x);
+    } else if(type == StringVector.VECTOR_TYPE) {
+      return new ConvertingStringVector(x);
+    } else if(type == RawVector.VECTOR_TYPE) {
+      return asRaw(x);
+    } else {
+      throw new IllegalArgumentException("type: " + type);
     }
   }
 

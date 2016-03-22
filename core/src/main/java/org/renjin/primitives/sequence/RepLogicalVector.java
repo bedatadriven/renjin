@@ -1,11 +1,7 @@
 package org.renjin.primitives.sequence;
 
 import org.renjin.eval.EvalException;
-import org.renjin.sexp.AttributeMap;
-import org.renjin.sexp.Logical;
-import org.renjin.sexp.LogicalVector;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
 
 public class RepLogicalVector extends LogicalVector {
 
@@ -42,7 +38,7 @@ public class RepLogicalVector extends LogicalVector {
 
   @Override
   protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
-    return new RepDoubleVector(source, length, each, attributes);
+    return new RepLogicalVector(source, length, each, attributes);
   }
 
   @Override

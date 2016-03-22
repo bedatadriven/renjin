@@ -50,7 +50,7 @@ public class IndexSubscript implements Subscript2 {
   }
 
   @Override
-  public IndexIterator2 indexIterator() {
+  public IndexIterator2 computeIndexes() {
     int sign = computeIndexSign();
     
     if(sign == -1) {

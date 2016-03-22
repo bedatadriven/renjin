@@ -10,7 +10,7 @@ public class MissingSubscript2 implements Subscript2 {
   }
 
   @Override
-  public IndexIterator2 indexIterator() {
+  public IndexIterator2 computeIndexes() {
     throw new UnsupportedOperationException();
   }
 

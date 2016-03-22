@@ -344,7 +344,7 @@ public class SubsettingTest extends EvalTestCase {
     
     eval("x[[TRUE, TRUE]] <- 91");
     
-    assertThat(eval("x"), equalTo(c(91,2,3,4)));
+    assertThat(eval("x"), equalTo(c(91, 2, 3, 4)));
   }
   
   @Test
@@ -392,6 +392,23 @@ public class SubsettingTest extends EvalTestCase {
     assertThat(eval("x"), equalTo(c(1, 2, 3, 4, 99)));
 
     // Dimensions should be dropped
+    assertThat(eval("dim(x)"), equalTo((SEXP)Null.INSTANCE));
+  }
+
+  @Test
+  public void replaceSingleElementInMatrixByIndex() {
+    eval(" x<- c(1,2,3,4) ");
+    eval(" dim(x) <- c(2,2) ");
+
+    // Replacing an element should preserve dims
+    eval(" x[1] <- 91 ");
+    assertThat(eval("x"), equalTo(c(91, 2, 3, 4)));
+    assertThat(eval("dim(x)"), equalTo(c_i(2,2)));
+
+    // Growing the vector through replacement should drop dims
+    eval(" x[5] <- 99 ");
+
+    assertThat(eval("x"), equalTo(c(91, 2, 3, 4, 99)));
     assertThat(eval("dim(x)"), equalTo((SEXP)Null.INSTANCE));
   }
   
@@ -605,6 +622,8 @@ public class SubsettingTest extends EvalTestCase {
     eval("dim(A) <- c(9,9)");
     
     eval("A[5:9,1:2] <- x");
+    
+    eval("print(A)");
 
     assertThat( eval("A[5,1]"), equalTo(c(40)));
     assertThat( eval("A[5,2]"), equalTo(c(8))); 

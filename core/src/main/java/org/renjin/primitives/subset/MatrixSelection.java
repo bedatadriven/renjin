@@ -38,7 +38,7 @@ public class MatrixSelection implements Selection2 {
     // Note: assignment with NULL apparently allowed, at least as of GNU R 3.2.4
     
     PairList.Builder builder = source.newCopyBuilder();
-    int index = computeUniqueIndex(replacement);
+    int index = computeUniqueIndex(source);
 
     builder.set(index, replacement);
 
@@ -48,7 +48,7 @@ public class MatrixSelection implements Selection2 {
   @Override
   public Vector replaceSingleElement(AtomicVector source, Vector replacement) {
    
-    int index = computeUniqueIndex(replacement);
+    int index = computeUniqueIndex(source);
     if(replacement.length() != 1) {
       throw new EvalException("more elements supplied than there are to replace");
     }
@@ -67,26 +67,56 @@ public class MatrixSelection implements Selection2 {
   @Override
   public Vector replaceElements(AtomicVector source, Vector replacements) {
     
-    int[] dimLengths = source.getAttributes().getDimArray();
-    if(dimLengths.length != subscripts.size()) {
-      throw new EvalException("incorrect number of dimensions");
-    }
- //   Subscript2[] subscripts = parseSubscripts(source, source);
-    
+    Subscript2[] subscripts = parseSubscripts(source);
+
+    //   Subscript2[] subscripts = parseSubscripts(source, source);
+
     // Case 0: Single element x[1,3]
-    
+
     // Case 1: Single row selection x[1, ]
     // Case 2: Multiple row selection x[1:2, ], x[-1, ]
-    
+
     // Case 3: Single column selection x[, 1]    -> can be handled as offset + length
     // Case 4: Multiple column selection x[ , 1:2] 
-    
+
     // Case 5: Complex pattern x[1:3, -3]
+
+
+
+    Vector.Builder result = source.newCopyBuilder(replacements.getVectorType());
+    int[] dim = source.getAttributes().getDimArray();
     
-    
-    
-    throw new UnsupportedOperationException();
+    if(dim.length == 2) {
+      return buildMatrixReplacement(result, dim, subscripts, replacements);
+    } else {
+      throw new UnsupportedOperationException();
+    }
   }
+
+  private Vector buildMatrixReplacement(Vector.Builder result, int[] dim, Subscript2[] subscripts, Vector replacements) {
+
+    IndexIterator2 columnIt = subscripts[1].computeIndexes();
+    int columnLength = dim[1];
+
+    int replacementIndex = 0;
+
+    int columnIndex;
+    while((columnIndex=columnIt.next())!=IndexIterator2.EOF) {
+      int colStart = columnIndex * columnLength;
+      
+      IndexIterator2 rowIt = subscripts[0].computeIndexes();
+      int rowIndex;
+      while((rowIndex=rowIt.next())!=IndexIterator2.EOF) {
+        result.setFrom(colStart + rowIndex, replacements, replacementIndex++);
+
+        if(replacementIndex >= replacements.length()) {
+          replacementIndex = 0;
+        }
+      }
+    }
+    return result.build();
+  }
+
 
   private Subscript2[] parseSubscripts(SEXP source) {
     Subscript2[] array = new Subscript2[this.subscripts.size()];
@@ -97,11 +127,16 @@ public class MatrixSelection implements Selection2 {
   }
 
   private Subscript2 parseSubscript(SEXP source, SEXP sexp, int dimensionIndex) {
+    int[] dim = source.getAttributes().getDimArray();
+    if(dimensionIndex >= dim.length) {
+      throw new EvalException("incorrect number of dimensions");
+    }
+    
     if(sexp == Symbol.MISSING_ARG) {
       return new MissingSubscript2();
 
     } else if(sexp instanceof LogicalVector) {
-      return new LogicalSubscript2((LogicalVector) sexp);
+      return new LogicalSubscript2((LogicalVector) sexp, dim[dimensionIndex]);
 
     } else if(sexp instanceof StringVector) {
       if(sexp.getAttributes().getDimNames() == Null.INSTANCE) {
@@ -111,12 +146,6 @@ public class MatrixSelection implements Selection2 {
       return new NameSubscript2((StringVector)sexp);
     
     } else if(sexp instanceof DoubleVector || sexp instanceof IntVector) {
-
-      int[] dim = source.getAttributes().getDimArray();
-      if(dimensionIndex >= dim.length) {
-        throw new EvalException("incorrect number of dimensions");
-      }
-      
       return new IndexSubscript((AtomicVector) sexp, dim[dimensionIndex]);
 
     } else {

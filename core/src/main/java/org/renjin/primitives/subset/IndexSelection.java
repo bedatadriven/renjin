@@ -16,33 +16,39 @@ public class IndexSelection implements Selection2 {
 
   @Override
   public SEXP replaceSinglePairListElement(PairList.Node list, SEXP replacement) {
-    throw new UnsupportedOperationException();
+    return replaceSingeListOrPairListElement(
+        list.newCopyBuilder(), 
+        replacement);
   }
   
   @Override
   public ListVector replaceSingleListElement(ListVector source, SEXP replacement) {
 
-    int selectedIndex = computeUniqueIndex(source);
+    return (ListVector) replaceSingeListOrPairListElement(
+        source.newCopyNamedBuilder(), 
+        replacement);
+  }
+
+  private SEXP replaceSingeListOrPairListElement(ListBuilder result, SEXP replacement) {
+    
+    // Find the index of the element to replace
+    int selectedIndex = new IndexSubscript(subscript, result.length())
+        .computeUniqueIndex();
+    
 
     // In the context of the [[<- operator, assign NULL has the effect
     // of deleting an element
     boolean deleting = replacement == Null.INSTANCE;
-    boolean exists = (selectedIndex < source.length());
-
-    // If we are deleting, and there is no nth element, 
-    // we can just return a copy
-    if(deleting && !exists) {
-      return source;
-    }
-
+    boolean exists = (selectedIndex < result.length());
+    
     // Otherwise make a copy
-    ListVector.NamedBuilder result = source.newCopyNamedBuilder();
     boolean deformed = false;
 
     if(deleting) {
-      result.remove(selectedIndex);
-      deformed = true;
-
+      if(exists) {
+        result.remove(selectedIndex);
+        deformed = true;
+      }
     } else if(exists) {
       result.set(selectedIndex, replacement);
 
@@ -61,9 +67,6 @@ public class IndexSelection implements Selection2 {
     return result.build();
   }
 
-  private int computeUniqueIndex(Vector source) {
-    return new IndexSubscript(subscript, source.length()).computeUniqueIndex();
-  }
 
   @Override
   public Vector replaceSingleElement(AtomicVector source, Vector replacement) {
@@ -71,8 +74,14 @@ public class IndexSelection implements Selection2 {
     if(replacement.length() == 0) {
       throw new EvalException("replacement has length zero");
     }
-    
-    throw new UnsupportedOperationException();
+
+    IndexSubscript subscript = new IndexSubscript(this.subscript, source.length());
+
+    // verify that we are selecting a single element
+    subscript.computeUniqueIndex();
+
+    // Build the replacement
+    return buildReplacement(source, replacement, subscript);
   }
 
   @Override
@@ -86,24 +95,7 @@ public class IndexSelection implements Selection2 {
       return ListSubsetting.removeListElements(source, subscript.computeIndexPredicate());
     }
     
-    // Otherwise update or expand items using the subscripts
-    ListVector.NamedBuilder result = source.newCopyNamedBuilder();
-    IndexIterator2 it = subscript.indexIterator();
-    
-    boolean deformed = false;
-    
-    int index;
-    int replacementIndex = 0;
-    while((index=it.next()) != IndexIterator2.EOF) {
-      
-      result.setFrom(index, replacements, replacementIndex++);
-      
-      if(replacementIndex >= replacements.length()) {
-        replacementIndex = 0;
-      }
-    }
-
-    throw new UnsupportedOperationException();
+    return buildReplacement(source, replacements, subscript);
   }
   
   @Override
@@ -113,7 +105,7 @@ public class IndexSelection implements Selection2 {
   }
 
   
-  private Vector buildReplacement(AtomicVector source, Vector replacements, IndexSubscript subscript) {
+  private Vector buildReplacement(Vector source, Vector replacements, IndexSubscript subscript) {
     
     Vector.Builder builder = source.newCopyBuilder(replacements.getVectorType());
     
@@ -122,7 +114,7 @@ public class IndexSelection implements Selection2 {
     int replacementIndex = 0;
 
     int index;
-    IndexIterator2 it = subscript.indexIterator();
+    IndexIterator2 it = subscript.computeIndexes();
     while((index=it.next()) != IndexIterator2.EOF) {
       if(!IntVector.isNA(index)) {
 

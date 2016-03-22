@@ -4,6 +4,9 @@ import org.renjin.eval.EvalException;
 import org.renjin.sexp.*;
 import org.renjin.util.NamesBuilder;
 
+import java.util.HashMap;
+import java.util.Map;
+
 
 public class NamedSelection implements Selection2 {
   
@@ -14,14 +17,69 @@ public class NamedSelection implements Selection2 {
   }
   
   @Override
-  public Vector replaceListElements(ListVector list, Vector replacement) {
-    throw new UnsupportedOperationException();
+  public Vector replaceListElements(ListVector source, Vector replacement) {
+    return buildReplacement(source, replacement);
   }
 
   @Override
   public Vector replaceElements(AtomicVector source, Vector replacements) {
-    throw new UnsupportedOperationException();
+    return buildReplacement(source, replacements);
   }
+  
+  private Vector buildReplacement(Vector source, Vector replacements) {
+
+    Vector.Builder result = source.newCopyBuilder(replacements.getVectorType());
+    NamesBuilder resultNames = NamesBuilder.clonedFrom(source);
+
+    Map<String, Integer> nameMap = buildNameMap(source);
+
+    int replacementIndex = 0;
+    
+    for (int i = 0; i < selectedNames.length(); i++) {
+      String selectedName = selectedNames.getElementAsString(i);
+      Integer index = nameMap.get(selectedName);
+      
+      if(index != null) {
+        result.setFrom(index, replacements, replacementIndex++);
+
+      } else {
+        int newIndex = result.length();
+        result.setFrom(newIndex, replacements, replacementIndex++);
+        resultNames.add(selectedName);
+        nameMap.put(selectedName, newIndex);
+      }
+      
+      if(replacementIndex >= replacements.length()) {
+        replacementIndex = 0;
+      }
+    }
+    
+    if(replacementIndex != 0) {
+      throw new EvalException("number of items to replace is not a multiple of replacement length");
+    }
+
+    result.setAttribute(Symbols.NAMES, resultNames.build());
+    
+    return result.build();
+  }
+
+  private Map<String, Integer> buildNameMap(Vector source) {
+    
+    Map<String, Integer> map = new HashMap<>();
+    
+    if(source.getAttributes().hasNames()) {
+      StringVector names = source.getAttributes().getNames();
+      for (int i = 0; i < names.length(); i++) {
+        String name = names.getElementAsString(i);
+        if(!map.containsKey(name)) {
+          map.put(name, i);
+        }
+      }
+    }
+    
+    return map;
+  }
+
 
   @Override
   public ListVector replaceSingleListElement(ListVector source, SEXP replacement) {
@@ -107,12 +165,6 @@ public class NamedSelection implements Selection2 {
 
     return result.build();
   }
-//  
-//  private Map<String, Integer> buildNameMap(AtomicVector sourceNames, AtomicVector selectedNames) {
-//    Map<String, Integer> map = new HashMap<>();
-//    
-//  }
-  
   
   private String computeUniqueName() {
     Selections.checkUnitLength(selectedNames);

@@ -845,4 +845,15 @@ public class SubsettingTest extends EvalTestCase {
     eval("class(x) <- 'foo'");
     assertThat(eval("x$bar"), equalTo(c("bar")));
   }
+  
+  @Test
+  public void deferredDoubleMask() {
+    
+    eval("x <- as.double(1:1e6)");
+    eval("x[c(TRUE,FALSE)] <- 99");
+    
+    eval("print(sum(x))");
+    
+    
+  }
 }

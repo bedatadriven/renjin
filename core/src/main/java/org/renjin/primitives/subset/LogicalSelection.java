@@ -1,6 +1,7 @@
 package org.renjin.primitives.subset;
 
 import org.renjin.eval.EvalException;
+import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.sexp.*;
 
 /**
@@ -19,6 +20,18 @@ public class LogicalSelection implements Selection2 {
   
   @Override
   public Vector replaceElements(AtomicVector source, Vector replacements) {
+    
+    if(source instanceof DeferredComputation ||
+       replacements instanceof DeferredComputation ||
+       source.length() > 1000) {
+      
+      // Compute the replacement type 
+      Vector.Type resultType = Vector.Type.widest(source, replacements);
+      if(resultType == DoubleVector.VECTOR_TYPE) {
+        return new MaskedDoubleReplacement(source.getAttributes(), source, mask, (AtomicVector)replacements);
+      }
+    }
+    
     return buildReplacement(source, replacements);
   }
 

@@ -48,6 +48,14 @@ public class SubsettingTest extends EvalTestCase {
     assertThat( eval(" x[NULL] "), equalTo( (SEXP) new DoubleArrayVector() ));
     assertThat( eval(" x[3L] "), equalTo( c(93) ));
   }
+  
+  @Test
+  public void subsetNullPreservesNames() {
+    eval( " x <- c(a=91,b=92,c=93) ");
+    eval( " y <- x[NULL]");
+    
+    assertThat(eval("names(y)"), equalTo((SEXP)StringArrayVector.EMPTY));
+  }
 
   @Test
   public void subsetWithLogicals() {
@@ -549,7 +557,7 @@ public class SubsettingTest extends EvalTestCase {
     eval(" dim(x) <- 8");
 
     assertThat( eval(" dim(x[1:4]) "), equalTo( c_i(4) ));
-    assertThat( eval(" dim(x[1]) "), equalTo( NULL ));
+    assertThat( eval(" dim(x[1])"), equalTo( NULL ));
     assertThat( eval(" dim(x[1,drop=FALSE]) "), equalTo( c_i(1) ));
   }
 
@@ -783,6 +791,7 @@ public class SubsettingTest extends EvalTestCase {
     eval("dimnames(x) <- list(c('A','B','C'), NULL)");
     
     eval("y <- x[,1L]");
+    assertThat(eval("dim(y)"), equalTo((SEXP)Null.INSTANCE));
     assertThat(eval("names(y)"), equalTo(c("A","B","C")));
     
   }

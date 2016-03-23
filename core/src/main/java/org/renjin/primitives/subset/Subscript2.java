@@ -23,4 +23,5 @@ public interface Subscript2 {
 
   
   IndexPredicate computeIndexPredicate();
+
 }

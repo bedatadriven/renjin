@@ -60,5 +60,21 @@ public class ArrayIndexIteratorTest {
     assertThat(it.next(), equalTo(EOF));
   }
   
+  @Test
+  public void array1() {
+
+
+    // 2 x 3 x 4 array
+    int dim[] = new int[] { 8 };
+
+    // x[3:4]
+    Subscript2[] subscripts = { new IndexSubscript(new IntArrayVector(3,4), dim[0]) };
+    
+    ArrayIndexIterator it = new ArrayIndexIterator(dim, subscripts);
+    assertThat(it.next(), equalTo(2));
+    assertThat(it.next(), equalTo(3));
+    assertThat(it.next(), equalTo(EOF));
+    
+  }
   
 }

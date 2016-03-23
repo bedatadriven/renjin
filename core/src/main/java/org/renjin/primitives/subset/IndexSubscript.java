@@ -75,7 +75,7 @@ public class IndexSubscript implements Subscript2 {
       return new PositiveHashPredicate();
     }
   }
-
+  
   private int computeIndexSign() {
     for (int i = 0; i < subscript.length(); i++) {
       int index = subscript.getElementAsInt(i);

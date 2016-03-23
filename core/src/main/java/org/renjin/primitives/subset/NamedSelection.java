@@ -17,6 +17,28 @@ public class NamedSelection implements Selection2 {
   }
   
   @Override
+  public SEXP get(Vector source, boolean drop) {
+
+    Map<String, Integer> nameMap = buildNameMap(source);
+    
+    Vector.Builder result = source.newBuilderWithInitialCapacity(selectedNames.length());
+
+    for (int i = 0; i < selectedNames.length(); i++) {
+      String selectedName = selectedNames.getElementAsString(i);
+      Integer index = nameMap.get(selectedName);
+      if(index == null) {
+        result.addNA();        
+      } else {
+        result.addFrom(source, index);
+      }
+    }
+    
+    result.setAttribute(Symbols.NAMES, selectedNames.setAttributes(AttributeMap.EMPTY));
+
+    return result.build();
+  }
+  
+  @Override
   public Vector replaceListElements(ListVector source, Vector replacement) {
     return buildReplacement(source, replacement);
   }
@@ -162,13 +184,7 @@ public class NamedSelection implements Selection2 {
       result.removeAttribute(Symbols.DIM);
       result.removeAttribute(Symbols.DIMNAMES);
     }
-
     return result.build();
-  }
-
-  @Override
-  public SEXP get(Vector source, boolean drop) {
-    throw new UnsupportedOperationException();
   }
 
   private String computeUniqueName() {

@@ -1,6 +1,7 @@
 package org.renjin.primitives.subset;
 
 import org.renjin.eval.EvalException;
+import org.renjin.sexp.IntVector;
 import org.renjin.sexp.LogicalVector;
 
 public class LogicalSubscript2 implements Subscript2 {
@@ -29,6 +30,9 @@ public class LogicalSubscript2 implements Subscript2 {
 
   @Override
   public IndexIterator2 computeIndexes() {
+    if(subscript.length() == 0) {
+      return EmptyIndexIterator2.INSTANCE;
+    }
     return new Iterator();
   }
 
@@ -59,9 +63,15 @@ public class LogicalSubscript2 implements Subscript2 {
         if(subscriptValue == 1) {
           return sourceIndex;
         }
+        if(IntVector.isNA(subscriptValue)) {
+          return IntVector.NA;
+        }
       }
     }
-  }
-  
 
+    @Override
+    public void restart() {
+      nextIndex = 0;
+    }
+  }
 }

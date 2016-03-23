@@ -5,16 +5,32 @@ import org.renjin.sexp.*;
 
 import java.util.List;
 
-/**
- * Created by alex on 22-3-16.
- */
 public class Selections {
 
-  public static Selection2 parseSelection(List<SEXP> subscripts) {
+  public static Selection2 parseSelection(SEXP source, List<SEXP> subscripts) {
+
     if (subscripts.size() == 0) {
       return new CompleteSelection2();
-      
-    } else if (subscripts.size() == 1) {
+    }
+
+    // If more than one subscript is provided
+    // Such as x[i,j] or x[i,j,k], then treat this as a matrix selection
+    if (subscripts.size() > 1) {
+      return new MatrixSelection(subscripts);
+    }
+
+    // If there is a single subscript, it's interpretation depends on the 
+    // shape of the source:
+    // - If the source has exactly one dimension, we treat it as a matrix selection
+    // - If the source has any other dimensionality, including no explicit dims, treat it as a vector index
+    
+    int dimCount = source.getAttributes().getDim().length();
+
+    if(dimCount == 1) {
+      return new MatrixSelection(subscripts);
+
+    } else {
+
       SEXP subscript = subscripts.get(0);
       if (subscript instanceof LogicalVector) {
         return new LogicalSelection((LogicalVector) subscript);
@@ -26,19 +42,17 @@ public class Selections {
           subscript instanceof IntVector) {
 
         return new IndexSelection((AtomicVector) subscript);
-        
+
       } else {
         throw new EvalException("invalid subscript type '%s'", subscript.getTypeName());
       }
-    } else {
-      return new MatrixSelection(subscripts); 
     }
   }
-  
+
   public static void checkUnitLength(SEXP sexp) {
     if(sexp.length() < 1) {
       throw new EvalException("attempt to select less than one element.");
-    } 
+    }
     if(sexp.length() > 1) {
       throw new EvalException("attempt to select mroe than one element.");
     }

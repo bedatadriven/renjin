@@ -17,6 +17,11 @@ public class LogicalSelection implements Selection2 {
   public LogicalSelection(LogicalVector mask) {
     this.mask = mask;
   }
+
+  @Override
+  public SEXP get(Vector source, boolean drop) {
+    return IndexSelection.buildSelection(source, new LogicalSubscript2(this.mask, source.length()));
+  }
   
   @Override
   public Vector replaceElements(AtomicVector source, Vector replacements) {
@@ -42,7 +47,7 @@ public class LogicalSelection implements Selection2 {
       throw new EvalException("object of type '%s' cannot be coerced to type 'list'", replacement.getTypeName());
     }
 
-    return buildReplacement(source, (Vector)replacement);
+    return buildReplacement(source, (Vector) replacement);
   }
   
   private Vector buildReplacement(Vector source, Vector replacements) {
@@ -77,6 +82,7 @@ public class LogicalSelection implements Selection2 {
   public Vector replaceSingleElement(AtomicVector source, Vector replacement) {
     throw new UnsupportedOperationException("[[ operator never uses logical subscrpts");
   }
+
 
   @Override
   public ListVector replaceSingleListElement(ListVector list, SEXP replacement) {

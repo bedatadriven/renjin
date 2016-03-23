@@ -323,10 +323,11 @@ public class Subsetting {
   }
 
   private static SEXP getSubset(Vector source, ListVector subscripts, boolean drop) {
-    return new SubscriptOperation()
-        .setSource(source, subscripts)
-        .setDrop(drop)
-        .extract();
+    
+    Selection2 selection = Selections.parseSelection(source, Lists.newArrayList(subscripts));
+    
+    return selection.get(source, drop);
+    
   }
 
   @Generic
@@ -346,7 +347,7 @@ public class Subsetting {
       subscripts.add(argumentList.get(i));
     }
     
-    Selection2 selection = Selections.parseSelection(subscripts);
+    Selection2 selection = Selections.parseSelection(source, subscripts);
 
     if(source instanceof ListVector) {
       return selection.replaceListElements((ListVector) source, replacement);
@@ -383,7 +384,7 @@ public class Subsetting {
       subscripts.add(argumentList.get(0));
     }
 
-    Selection2 selection = Selections.parseSelection(subscripts);
+    Selection2 selection = Selections.parseSelection(source, subscripts);
     
 
     if(source instanceof PairList.Node) {

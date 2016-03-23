@@ -11,4 +11,11 @@ public enum  EmptyIndexIterator2 implements IndexIterator2 {
   public int next() {
     return EOF;
   }
+
+  @Override
+  public void restart() {
+    // NOOP
+  }
+
+
 }

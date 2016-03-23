@@ -8,4 +8,6 @@ public interface IndexIterator2 {
   int EOF = -1;
   
   int next();
+  
+  void restart();
 }

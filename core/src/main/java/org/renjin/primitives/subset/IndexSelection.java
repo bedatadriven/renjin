@@ -4,7 +4,7 @@ import org.renjin.eval.EvalException;
 import org.renjin.sexp.*;
 
 /**
- * Simple selection using postive or negative indexes
+ * Simple selection using positive or negative indexes
  */
 public class IndexSelection implements Selection2 {
 
@@ -15,9 +15,50 @@ public class IndexSelection implements Selection2 {
   }
 
   @Override
+  public SEXP get(Vector source, boolean drop) {
+    return buildSelection(source, new IndexSubscript(this.subscript, source.length()));
+  }
+
+  public static Vector buildSelection(Vector source, Subscript2 subscript) {
+    
+    IndexIterator2 it = subscript.computeIndexes();
+
+    Vector.Builder result = source.getVectorType().newBuilder();
+    AtomicVector sourceNames = source.getNames();
+    StringArrayVector.Builder resultNames = null;
+    if(sourceNames instanceof StringVector) {
+      resultNames = new StringArrayVector.Builder();
+    }
+
+    int index;
+    while((index=it.next())!=IndexIterator2.EOF) {
+      
+      if(IntVector.isNA(index) || index >= source.length()) {
+        result.addNA();
+        if(resultNames != null) {
+          resultNames.addNA();
+        }
+
+      } else {
+        result.addFrom(source, index);
+        if(resultNames != null) {
+          resultNames.add(sourceNames.getElementAsString(index));
+        }
+      }
+    }
+
+    if(resultNames != null) {
+      result.setAttribute(Symbols.NAMES, resultNames.build());
+    }
+
+    return result.build();
+  }
+
+
+  @Override
   public SEXP replaceSinglePairListElement(PairList.Node list, SEXP replacement) {
     return replaceSingeListOrPairListElement(
-        list.newCopyBuilder(), 
+        list.newCopyBuilder(),
         replacement);
   }
   
@@ -116,17 +157,19 @@ public class IndexSelection implements Selection2 {
     int index;
     IndexIterator2 it = subscript.computeIndexes();
     while((index=it.next()) != IndexIterator2.EOF) {
-      if(!IntVector.isNA(index)) {
+      
+      if(IntVector.isNA(index)) {
+        throw new EvalException("NAs not allowed in subscripted assignments");
+      }
+      
+      if(index >= source.length()) {
+        deformed = true;
+      }
+      
+      builder.setFrom(index, replacements, replacementIndex++);
 
-        if(index >= source.length()) {
-          deformed = true;
-        }
-        
-        builder.setFrom(index, replacements, replacementIndex++);
-
-        if (replacementIndex >= replacements.length()) {
-          replacementIndex = 0;
-        }
+      if (replacementIndex >= replacements.length()) {
+        replacementIndex = 0;
       }
     }
     

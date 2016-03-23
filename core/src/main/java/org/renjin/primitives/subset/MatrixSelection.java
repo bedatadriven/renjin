@@ -60,6 +60,11 @@ public class MatrixSelection implements Selection2 {
   }
 
   @Override
+  public SEXP get(Vector source, boolean drop) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public Vector replaceListElements(ListVector list, Vector replacement) {
     throw new UnsupportedOperationException();
   }
@@ -133,7 +138,7 @@ public class MatrixSelection implements Selection2 {
     }
     
     if(sexp == Symbol.MISSING_ARG) {
-      return new MissingSubscript2();
+      return new MissingSubscript2(dim[dimensionIndex]);
 
     } else if(sexp instanceof LogicalVector) {
       return new LogicalSubscript2((LogicalVector) sexp, dim[dimensionIndex]);

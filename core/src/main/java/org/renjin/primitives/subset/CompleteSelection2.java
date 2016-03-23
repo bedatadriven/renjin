@@ -12,6 +12,13 @@ public class CompleteSelection2 implements Selection2 {
 
 
   @Override
+  public SEXP get(Vector source, boolean drop) {
+    // As far as I can tell, this never changes the input in any way
+    return source;
+  }
+
+
+  @Override
   public Vector replaceElements(AtomicVector source, Vector replacements) {
 
     checkReplacementLength(source, replacements);

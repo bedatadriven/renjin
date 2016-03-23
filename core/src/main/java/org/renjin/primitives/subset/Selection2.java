@@ -4,9 +4,9 @@ import org.renjin.sexp.*;
 
 
 public interface Selection2 {
-  
 
-  
+  SEXP get(Vector source, boolean drop);
+
   Vector replaceListElements(ListVector list, Vector replacement);
 
   Vector replaceElements(AtomicVector source, Vector replacements);
@@ -16,5 +16,5 @@ public interface Selection2 {
   SEXP replaceSinglePairListElement(PairList.Node list, SEXP replacement);
 
   Vector replaceSingleElement(AtomicVector source, Vector replacement);
-  
+
 }

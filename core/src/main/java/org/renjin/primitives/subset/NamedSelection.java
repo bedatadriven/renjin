@@ -165,7 +165,12 @@ public class NamedSelection implements Selection2 {
 
     return result.build();
   }
-  
+
+  @Override
+  public SEXP get(Vector source, boolean drop) {
+    throw new UnsupportedOperationException();
+  }
+
   private String computeUniqueName() {
     Selections.checkUnitLength(selectedNames);
     

@@ -99,10 +99,10 @@ public class IndexSubscript implements Subscript2 {
     Set<Integer> excludedSet = new HashSet<>();
     for (int i = 0; i < subscript.length(); i++) {
       int subscript = IndexSubscript.this.subscript.getElementAsInt(i);
-      if (i < 0) {
+      if (subscript < 0) {
         int excludedIndex = (-subscript) - 1;
         excludedSet.add(excludedIndex);
-      } else if (i != 0) {
+      } else if (subscript != 0) {
         throw new EvalException("only 0's may be mixed with negative subscripts");
       }
     }
@@ -125,6 +125,11 @@ public class IndexSubscript implements Subscript2 {
         }
         nextIndex++;
       }
+    }
+
+    @Override
+    public void restart() {
+      nextIndex = 0;
     }
   }
   
@@ -149,14 +154,22 @@ public class IndexSubscript implements Subscript2 {
           return EOF;
         }
         int nextSubscript = subscript.getElementAsInt(nextSubscriptIndex++);
-        if(nextSubscript > 0) {
+        if(IntVector.isNA(nextSubscript)) {
+          return nextSubscript;
+          
+        } else if(nextSubscript > 0) {
           // Convert from 1-based to zero-based
           return nextSubscript - 1;
-
+          
         } else if(nextSubscript < 0) {
           throw new EvalException("only 0's may be mixed with negative subscripts");
         }
       }
+    }
+
+    @Override
+    public void restart() {
+      nextSubscriptIndex = 0;
     }
   }
   

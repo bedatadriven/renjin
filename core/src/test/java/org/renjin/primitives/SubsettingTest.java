@@ -139,7 +139,7 @@ public class SubsettingTest extends EvalTestCase {
   @Test(expected = EvalException.class)
   public void mixedNegativeAndPos() {
     eval(" x <- c(91,92) ");
-    eval(" x[-1,4] ");
+    eval(" x[c(-1,4)] ");
   }
 
   @Test

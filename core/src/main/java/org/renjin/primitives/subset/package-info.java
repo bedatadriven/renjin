@@ -7,8 +7,8 @@
  *   <li>The class {@link org.renjin.primitives.subset.Subsetting} provide the entry point for the builtins and
  *   perform very basic argument matching.</li>
  *   <li>These methods call {@link org.renjin.primitives.subset.Selections#parseSelection(org.renjin.sexp.SEXP, java.util.List)}
- *   to parse the provided arguments into a class provided subscripts are parsed into {@link org.renjin.primitives.subset.SelectionStrategy} objects depending 
- </li>
+ *   to parse the provided arguments into a class provided subscripts are parsed into
+ *   {@link org.renjin.primitives.subset.SelectionStrategy} objects depending on the arguments and their context.</li>
  * </ul>
  */
 package org.renjin.primitives.subset;

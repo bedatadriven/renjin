@@ -24,7 +24,11 @@ public class NamedSelection implements Selection2 {
   public NamedSelection(StringVector selectedNames) {
     this.selectedNames = selectedNames;
   }
-  
+
+  public NamedSelection(Symbol name) {
+    selectedNames = new StringArrayVector(name.getPrintName());
+  }
+
   @Override
   public SEXP getVectorSubset(Vector source, boolean drop) {
 

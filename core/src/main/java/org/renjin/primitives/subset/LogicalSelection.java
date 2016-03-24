@@ -6,7 +6,7 @@ import org.renjin.sexp.*;
 /**
  * Selection based on a boolean mask, for example {@code x[TRUE] or x[c(TRUE,FALSE)]}
  */
-public class LogicalSelection implements Selection2 {
+class LogicalSelection implements SelectionStrategy {
 
   /**
    * The boolean mask of elements to replace
@@ -19,12 +19,12 @@ public class LogicalSelection implements Selection2 {
 
   @Override
   public SEXP getVectorSubset(Vector source, boolean drop) {
-    return IndexSelection.buildSelection(source, new LogicalSubscript2(this.mask, source.length()));
+    return VectorIndexSelection.buildSelection(source, new LogicalSubscript(this.mask, source.length()));
   }
 
   @Override
   public SEXP getFunctionCallSubset(FunctionCall call) {
-    return IndexSelection.buildCallSelection(call, new LogicalSubscript2(this.mask, call.length()));
+    return VectorIndexSelection.buildCallSelection(call, new LogicalSubscript(this.mask, call.length()));
   }
 
 

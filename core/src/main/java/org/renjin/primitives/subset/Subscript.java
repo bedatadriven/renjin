@@ -1,7 +1,7 @@
 package org.renjin.primitives.subset;
 
 
-public interface Subscript2 {
+public interface Subscript {
 
 
   /**
@@ -19,7 +19,7 @@ public interface Subscript2 {
    * 
    * @return an iterator over the sequence.
    */
-  IndexIterator2 computeIndexes();
+  IndexIterator computeIndexes();
 
   
   IndexPredicate computeIndexPredicate();

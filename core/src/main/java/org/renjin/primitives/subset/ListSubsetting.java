@@ -4,7 +4,7 @@ import org.renjin.sexp.ListVector;
 import org.renjin.sexp.Symbol;
 import org.renjin.sexp.Symbols;
 
-public class ListSubsetting {
+class ListSubsetting {
   
   public static ListVector removeListElements(ListVector list, IndexPredicate predicate) {
     

@@ -9,7 +9,7 @@ import org.renjin.sexp.Vector;
 /**
  * Iterates over the sequence of indexes selected by a coordinate matrix.
  */
-class CoordinateMatrixIterator implements IndexIterator2 {
+class CoordinateMatrixIterator implements IndexIterator {
 
   /**
    * The matrix of coordinates to select. For example:

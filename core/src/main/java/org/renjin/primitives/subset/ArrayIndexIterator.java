@@ -1,16 +1,19 @@
 package org.renjin.primitives.subset;
 
 /**
- * Created by alex on 23-3-16.
+ * Iterator over a sequence of indices described by array-style subscripts.
+ * 
+ * <p>Given a tuple of subscripts, such as {@code [3,4]} or {@code [, TRUE]} or 
+ * {@code [,,3]}, this iterator will iterate over the selected vector indices.</p>
  */
-public class ArrayIndexIterator implements IndexIterator2 {
+class ArrayIndexIterator implements IndexIterator {
   
   private static final int STATE_BEGIN = 0;
   private static final int STATE_RUNNING = 1;
   private static final int STATE_END = 2;
   
   private final int numDim;
-  private IndexIterator2 iterators[];
+  private IndexIterator iterators[];
   
   private int[] increments;
   
@@ -18,12 +21,12 @@ public class ArrayIndexIterator implements IndexIterator2 {
   
   private int state = STATE_BEGIN;
 
-  public ArrayIndexIterator(int dim[], Subscript2[] subscripts) {
+  public ArrayIndexIterator(int dim[], Subscript[] subscripts) {
     this.numDim = subscripts.length;
     
     // Initialize the iterators over each dimension
     // We reverse them so that we go from COL -> ROW
-    this.iterators = new IndexIterator2[subscripts.length];
+    this.iterators = new IndexIterator[subscripts.length];
     for (int i = 0; i < numDim; i++) {
       this.iterators[i] = subscripts[i].computeIndexes();
     }

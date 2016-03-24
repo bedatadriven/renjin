@@ -1,9 +1,9 @@
 package org.renjin.primitives.subset;
 
 /**
- * Created by alex on 22-3-16.
+ * Iterator over an empty sequence of indices.
  */
-public enum  EmptyIndexIterator2 implements IndexIterator2 {
+enum EmptyIndexIterator implements IndexIterator {
   
   INSTANCE;
   
@@ -16,6 +16,4 @@ public enum  EmptyIndexIterator2 implements IndexIterator2 {
   public void restart() {
     // NOOP
   }
-
-
 }

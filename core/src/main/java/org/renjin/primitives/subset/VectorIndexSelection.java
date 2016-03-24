@@ -9,13 +9,14 @@ import java.util.List;
 import static org.renjin.primitives.subset.SubsetAssertions.checkBounds;
 
 /**
- * Simple selection using positive or negative indexes
+ * Simple selection using positive or negative indexes of elements in a vector. Any {@code dim} attributes
+ * are ignored.
  */
-public class IndexSelection implements Selection2 {
+class VectorIndexSelection implements SelectionStrategy {
 
   private final AtomicVector subscript;
 
-  public IndexSelection(AtomicVector subscript) {
+  public VectorIndexSelection(AtomicVector subscript) {
     this.subscript = subscript;
   }
 
@@ -24,9 +25,9 @@ public class IndexSelection implements Selection2 {
     return buildSelection(source, new IndexSubscript(this.subscript, source.length()));
   }
 
-  public static Vector buildSelection(Vector source, Subscript2 subscript) {
+  public static Vector buildSelection(Vector source, Subscript subscript) {
     
-    IndexIterator2 it = subscript.computeIndexes();
+    IndexIterator it = subscript.computeIndexes();
 
     Vector.Builder result = source.getVectorType().newBuilder();
     AtomicVector sourceNames = source.getNames();
@@ -36,7 +37,7 @@ public class IndexSelection implements Selection2 {
     }
 
     int index;
-    while((index=it.next())!=IndexIterator2.EOF) {
+    while((index=it.next())!= IndexIterator.EOF) {
       
       if(IntVector.isNA(index) || index >= source.length()) {
         result.addNA();
@@ -66,7 +67,7 @@ public class IndexSelection implements Selection2 {
     return buildCallSelection(call, new IndexSubscript(subscript, call.length()));
   }
 
-  public static PairList buildCallSelection(FunctionCall call, Subscript2 subscript2) {
+  public static PairList buildCallSelection(FunctionCall call, Subscript subscript) {
 
     // First build an array from which we can lookup indices in normal time
     List<PairList.Node> nodes = Lists.newArrayList();
@@ -76,9 +77,9 @@ public class IndexSelection implements Selection2 {
     
     // Now construct a new function call by looking up the indexes
     FunctionCall.Builder newCall = FunctionCall.newBuilder();
-    IndexIterator2 it = subscript2.computeIndexes();
+    IndexIterator it = subscript.computeIndexes();
     int index;
-    while((index=it.next())!=IndexIterator2.EOF) {
+    while((index=it.next())!= IndexIterator.EOF) {
       if(IntVector.isNA(index) || index >= nodes.size()) {
         newCall.add(nodes.get(index));
       } else {
@@ -222,8 +223,8 @@ public class IndexSelection implements Selection2 {
     int replacementLength = replacements.length();
 
     int index;
-    IndexIterator2 it = subscript.computeIndexes();
-    while((index=it.next()) != IndexIterator2.EOF) {
+    IndexIterator it = subscript.computeIndexes();
+    while((index=it.next()) != IndexIterator.EOF) {
       
       if(IntVector.isNA(index)) {
         throw new EvalException("NAs not allowed in subscripted assignments");

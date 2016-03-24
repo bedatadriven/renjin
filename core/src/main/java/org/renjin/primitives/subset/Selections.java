@@ -5,20 +5,22 @@ import org.renjin.sexp.*;
 
 import java.util.List;
 
-public class Selections {
+/**
+ * Methods for parsing arguments into {@link SelectionStrategy} instances.
+ */
+class Selections {
 
   /**
-   * Parses a list of {@code [} operator subscript arguments into a {@link Selection2} instance which 
+   * Parses a list of {@code [} operator subscript arguments into a {@link SelectionStrategy} instance which 
    * can then be used to select or replace elements from the source.
    * 
-   * @param source
-   * @param subscripts
-   * @return
+   * @param source the source expression
+   * @param subscripts the list of subscripts provided as arguments
    */
-  public static Selection2 parseSelection(SEXP source, List<SEXP> subscripts) {
+  public static SelectionStrategy parseSelection(SEXP source, List<SEXP> subscripts) {
 
     if (subscripts.size() == 0) {
-      return new CompleteSelection2();
+      return new CompleteSelection();
     }
 
     // If more than one subscript is provided
@@ -32,15 +34,15 @@ public class Selections {
     SEXP subscript = subscripts.get(0);
 
     if(subscript == Symbol.MISSING_ARG) {
-      return new CompleteSelection2();
+      return new CompleteSelection();
     }
     
     // A single subscript can also contain a matrix in the form
     //    x1, y1  
     // [  x2, y2 ]
     //    x3, y3
-    if(CoordinateMatrixSelection2.isCoordinateMatrix(source, subscript)) {
-      return new CoordinateMatrixSelection2((AtomicVector) subscript);
+    if(CoordinateMatrixSelection.isCoordinateMatrix(source, subscript)) {
+      return new CoordinateMatrixSelection((AtomicVector) subscript);
     }
     
 
@@ -61,7 +63,7 @@ public class Selections {
     } else if (subscript instanceof DoubleVector ||
         subscript instanceof IntVector) {
 
-      return new IndexSelection((AtomicVector) subscript);
+      return new VectorIndexSelection((AtomicVector) subscript);
 
     } else if(subscript == Null.INSTANCE) {
       return NullSelection.INSTANCE;
@@ -72,12 +74,15 @@ public class Selections {
   }
 
   /**
-   * Parses a list of {@code [[} operator subscript arguments into a {@link Selection2} instance which 
+   * Parses a list of {@code [[} operator subscript arguments into a {@link SelectionStrategy} instance which 
    * can then be used to select or replace elements from the source.4
    * 
-   * <p>Subscripts of the {@code [[} operator are subtlety different </p>
+   * <p>Subscripts of the {@code [[} and {@code [[<-} operators are interpretered in subtley 
+   * different manners than their single bracket counterparts. For example, logical subscripts are cast
+   * to integer indexes, and coordinate matrix subscripts are not recognized.
+   * </p>
    */
-  public static Selection2 parseSingleSelection(SEXP source, List<SEXP> subscripts) {
+  public static SelectionStrategy parseSingleSelection(SEXP source, List<SEXP> subscripts) {
 
     // GNU R throws the error message "invalid subscript type 'symbol'" in this 
     // case, probably becauset the arugments get resolved to Symbol.MISSING, but I think
@@ -116,7 +121,7 @@ public class Selections {
         subscript instanceof IntVector ||
         subscript instanceof LogicalVector) {
 
-      return new IndexSelection((AtomicVector) subscript);
+      return new VectorIndexSelection((AtomicVector) subscript);
 
     } else if(subscript == Null.INSTANCE) {
       return NullSelection.INSTANCE;

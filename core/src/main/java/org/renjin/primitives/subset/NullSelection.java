@@ -6,7 +6,7 @@ import org.renjin.sexp.*;
 /**
  * Selection using the NULL subscript, for example {@code x[NULL] or x[[NULL]]}
  */
-public enum NullSelection implements Selection2 {
+public enum NullSelection implements SelectionStrategy {
   
   INSTANCE;
   

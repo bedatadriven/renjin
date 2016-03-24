@@ -8,7 +8,7 @@ import org.renjin.sexp.SEXP;
  * Common assertion checks for subset operations. 
  *
  */
-public final class SubsetAssertions {
+final class SubsetAssertions {
 
   private SubsetAssertions() {}
  

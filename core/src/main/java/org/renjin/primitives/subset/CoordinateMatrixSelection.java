@@ -32,7 +32,7 @@ import org.renjin.sexp.*;
  * In the context of the {@code [[} or {@code [[<-} operators, it is treated like any other numeric subscript.</p>
  * 
  */
-public class CoordinateMatrixSelection2 implements Selection2 {
+class CoordinateMatrixSelection implements SelectionStrategy {
 
 
   private final int numCoordinates;
@@ -60,7 +60,7 @@ public class CoordinateMatrixSelection2 implements Selection2 {
   private int[] matrixDims;
   
   
-  public CoordinateMatrixSelection2(AtomicVector matrix) {
+  public CoordinateMatrixSelection(AtomicVector matrix) {
     this.matrix = matrix;
     this.matrixDims = matrix.getAttributes().getDimArray();
 
@@ -75,7 +75,7 @@ public class CoordinateMatrixSelection2 implements Selection2 {
     Vector.Builder result = source.getVectorType().newBuilderWithInitialCapacity(numCoordinates);
     
     int index;
-    while((index=it.next())!=IndexIterator2.EOF) {
+    while((index=it.next())!= IndexIterator.EOF) {
       
       if(IntVector.isNA(index)) {
         result.addNA();
@@ -113,7 +113,7 @@ public class CoordinateMatrixSelection2 implements Selection2 {
     int replacementIndex = 0;
 
     int index;
-    while((index=it.next())!= IndexIterator2.EOF) {
+    while((index=it.next())!= IndexIterator.EOF) {
 
       if(IntVector.isNA(index)) {
         throw new EvalException("NAs are not allowed in subscripted assignments");

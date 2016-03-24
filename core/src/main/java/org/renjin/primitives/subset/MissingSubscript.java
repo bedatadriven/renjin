@@ -3,11 +3,14 @@ package org.renjin.primitives.subset;
 
 import org.renjin.eval.EvalException;
 
-public class MissingSubscript2 implements Subscript2 {
+/**
+ * 
+ */
+class MissingSubscript implements Subscript {
   
   private int sourceLength;
 
-  public MissingSubscript2(int sourceLength) {
+  public MissingSubscript(int sourceLength) {
     this.sourceLength = sourceLength;
   }
 
@@ -17,8 +20,8 @@ public class MissingSubscript2 implements Subscript2 {
   }
 
   @Override
-  public IndexIterator2 computeIndexes() {
-    return new IndexIterator2() {
+  public IndexIterator computeIndexes() {
+    return new IndexIterator() {
       
       private int i = 0;
       

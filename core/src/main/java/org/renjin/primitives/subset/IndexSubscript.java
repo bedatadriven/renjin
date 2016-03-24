@@ -8,7 +8,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 
-public class IndexSubscript implements Subscript2 {
+class IndexSubscript implements Subscript {
   private AtomicVector subscript;
   private int sourceLength;
 
@@ -50,7 +50,7 @@ public class IndexSubscript implements Subscript2 {
   }
 
   @Override
-  public IndexIterator2 computeIndexes() {
+  public IndexIterator computeIndexes() {
     int sign = computeIndexSign();
     
     if(sign == -1) {
@@ -60,7 +60,7 @@ public class IndexSubscript implements Subscript2 {
       return new PositiveIndexIterator();
 
     } else {
-      return EmptyIndexIterator2.INSTANCE;
+      return EmptyIndexIterator.INSTANCE;
     }
   }
 
@@ -109,7 +109,7 @@ public class IndexSubscript implements Subscript2 {
     return excludedSet;
   }
   
-  private class HashedNegativeIndexIterator implements IndexIterator2 {
+  private class HashedNegativeIndexIterator implements IndexIterator {
 
     private int nextIndex = 0;
     private Set<Integer> excludeSet = buildExcludedSet();
@@ -143,7 +143,7 @@ public class IndexSubscript implements Subscript2 {
     }
   }
 
-  private class PositiveIndexIterator implements IndexIterator2 {
+  private class PositiveIndexIterator implements IndexIterator {
     
     private int nextSubscriptIndex = 0;
     

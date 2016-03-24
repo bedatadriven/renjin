@@ -12,7 +12,7 @@ import org.renjin.sexp.*;
 /**
  * Selection of the entire vector, for example {@code x[], or y[] <- 3}
  */
-public class CompleteSelection2 implements Selection2 {
+class CompleteSelection implements SelectionStrategy {
 
 
   @Override

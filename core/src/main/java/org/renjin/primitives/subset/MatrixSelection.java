@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * Selects elements using dimension coordinates like {@code x[1,2] or x[3,]}
  */
-public class MatrixSelection implements Selection2 {
+class MatrixSelection implements SelectionStrategy {
 
   private List<SEXP> subscripts;
   
@@ -20,7 +20,7 @@ public class MatrixSelection implements Selection2 {
   @Override
   public SEXP getVectorSubset(Vector source, boolean drop) {
 
-    Subscript2[] subscripts = parseSubscripts(source);
+    Subscript[] subscripts = parseSubscripts(source);
     
     int[] sourceDim = source.getAttributes().getDimArray();
     
@@ -28,7 +28,7 @@ public class MatrixSelection implements Selection2 {
     ArrayIndexIterator it = new ArrayIndexIterator(sourceDim, subscripts);
     Vector.Builder result = source.getVectorType().newBuilder();
     int index;
-    while((index=it.next())!=IndexIterator2.EOF) {
+    while((index=it.next())!= IndexIterator.EOF) {
       result.addFrom(source, index);
     }
     
@@ -129,7 +129,7 @@ public class MatrixSelection implements Selection2 {
     return vector.build();
   }
 
-  private int[] computeSubscriptDim(Subscript2[] subscripts) {
+  private int[] computeSubscriptDim(Subscript[] subscripts) {
     int[] dim = new int[subscripts.length];
     for (int i = 0; i < subscripts.length; i++) {
       dim[i] = computeCount(subscripts[i]);
@@ -137,17 +137,17 @@ public class MatrixSelection implements Selection2 {
     return dim; 
   }
 
-  private int computeCount(Subscript2 subscript) {
-    IndexIterator2 it = subscript.computeIndexes();
+  private int computeCount(Subscript subscript) {
+    IndexIterator it = subscript.computeIndexes();
     int count = 0;
-    while(it.next() != IndexIterator2.EOF) {
+    while(it.next() != IndexIterator.EOF) {
       count++;
     }
     return count;
   }
 
 
-  private Vector computeDimNames(Vector source, Subscript2[] subscripts, boolean[] dropped) {
+  private Vector computeDimNames(Vector source, Subscript[] subscripts, boolean[] dropped) {
     Vector sourceDimNames = source.getAttributes().getDimNames();
     if(sourceDimNames == Null.INSTANCE) {
       return Null.INSTANCE;
@@ -159,10 +159,10 @@ public class MatrixSelection implements Selection2 {
         if (element instanceof StringVector) {
           StringVector sourceNames = ((StringVector) element);
           StringVector.Builder newNames = StringArrayVector.newBuilder();
-          IndexIterator2 it = subscripts[d].computeIndexes();
+          IndexIterator it = subscripts[d].computeIndexes();
 
           int index;
-          while ((index = it.next()) != IndexIterator2.EOF) {
+          while ((index = it.next()) != IndexIterator.EOF) {
             newNames.add(sourceNames.getElementAsString(index));
           }
 
@@ -226,7 +226,7 @@ public class MatrixSelection implements Selection2 {
   @Override
   public Vector replaceAtomicVectorElements(AtomicVector source, Vector replacements) {
     
-    Subscript2[] subscripts = parseSubscripts(source);
+    Subscript[] subscripts = parseSubscripts(source);
 
     //   Subscript2[] subscripts = parseSubscripts(source, source);
 
@@ -247,7 +247,7 @@ public class MatrixSelection implements Selection2 {
     int replacementIndex = 0;
     
     int index;
-    while((index=it.next())!=IndexIterator2.EOF) {
+    while((index=it.next())!= IndexIterator.EOF) {
       
       result.setFrom(index, replacements, replacementIndex++);
       if(replacementIndex >= replacements.length()) {
@@ -262,20 +262,20 @@ public class MatrixSelection implements Selection2 {
     return result.build();
   }
   
-  private Vector buildMatrixReplacement(Vector.Builder result, int[] dim, Subscript2[] subscripts, Vector replacements) {
+  private Vector buildMatrixReplacement(Vector.Builder result, int[] dim, Subscript[] subscripts, Vector replacements) {
 
-    IndexIterator2 columnIt = subscripts[1].computeIndexes();
+    IndexIterator columnIt = subscripts[1].computeIndexes();
     int columnLength = dim[1];
 
     int replacementIndex = 0;
 
     int columnIndex;
-    while((columnIndex=columnIt.next())!=IndexIterator2.EOF) {
+    while((columnIndex=columnIt.next())!= IndexIterator.EOF) {
       int colStart = columnIndex * columnLength;
       
-      IndexIterator2 rowIt = subscripts[0].computeIndexes();
+      IndexIterator rowIt = subscripts[0].computeIndexes();
       int rowIndex;
-      while((rowIndex=rowIt.next())!=IndexIterator2.EOF) {
+      while((rowIndex=rowIt.next())!= IndexIterator.EOF) {
         result.setFrom(colStart + rowIndex, replacements, replacementIndex++);
 
         if(replacementIndex >= replacements.length()) {
@@ -287,28 +287,28 @@ public class MatrixSelection implements Selection2 {
   }
 
 
-  private Subscript2[] parseSubscripts(SEXP source) {
-    Subscript2[] array = new Subscript2[this.subscripts.size()];
+  private Subscript[] parseSubscripts(SEXP source) {
+    Subscript[] array = new Subscript[this.subscripts.size()];
     for (int i = 0; i < array.length; i++) {
       array[i] = parseSubscript(source, this.subscripts.get(i), i);
     }
     return array;
   }
 
-  private Subscript2 parseSubscript(SEXP source, SEXP sexp, int dimensionIndex) {
+  private Subscript parseSubscript(SEXP source, SEXP sexp, int dimensionIndex) {
     int[] dim = source.getAttributes().getDimArray();
     if(dimensionIndex >= dim.length) {
       throw new EvalException("incorrect number of dimensions");
     }
     
     if(sexp == Symbol.MISSING_ARG) {
-      return new MissingSubscript2(dim[dimensionIndex]);
+      return new MissingSubscript(dim[dimensionIndex]);
 
     } else if(sexp instanceof LogicalVector) {
       if(sexp.length() > dim[dimensionIndex]) {
         throw new EvalException("(subscript) logical subscript too long");
       }
-      return new LogicalSubscript2((LogicalVector) sexp, dim[dimensionIndex]);
+      return new LogicalSubscript((LogicalVector) sexp, dim[dimensionIndex]);
 
     } else if(sexp instanceof StringVector) {
       Vector dimNamesList = source.getAttributes().getDimNames();
@@ -316,7 +316,7 @@ public class MatrixSelection implements Selection2 {
         throw new EvalException("no 'dimnames' attribute for array");
       }
       
-      return new NameSubscript2((StringVector)sexp, 
+      return new NameSubscript((StringVector)sexp, 
           (AtomicVector)dimNamesList.getElementAsSEXP(dimensionIndex), false);
     
     } else if(sexp instanceof DoubleVector || sexp instanceof IntVector) {
@@ -331,7 +331,7 @@ public class MatrixSelection implements Selection2 {
   }
 
   private int computeUniqueIndex(SEXP source) {
-    Subscript2[] subscripts = parseSubscripts(source);
+    Subscript[] subscripts = parseSubscripts(source);
     int[] index = new int[subscripts.length];
     for(int i=0;i!=subscripts.length;++i) {
       index[i] = subscripts[i].computeUniqueIndex();

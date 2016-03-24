@@ -31,13 +31,12 @@ import org.renjin.sexp.*;
 
 import java.util.List;
 
+/**
+ * Implementations of the subset operators {@code [}, {@code [[}, {@code $}, and {@code @}
+ * and their sub-assignment counterparts.
+ */
 public class Subsetting {
 
-  enum Type {
-    SINGLE_BRACKET,
-    DOUBLE_BRACKET
-  }
-  
   private Subsetting() {
 
   }
@@ -189,7 +188,7 @@ public class Subsetting {
 
     } else {
 
-      Selection2 selection = Selections.parseSingleSelection(source, Lists.newArrayList(subscripts));
+      SelectionStrategy selection = Selections.parseSingleSelection(source, Lists.newArrayList(subscripts));
       
       if(source instanceof ListVector) {
         return selection.getSingleListElement((ListVector) source, exact);
@@ -264,7 +263,7 @@ public class Subsetting {
       return Null.INSTANCE;
     }
 
-    Selection2 selection = Selections.parseSelection(source, Lists.newArrayList(subscripts));
+    SelectionStrategy selection = Selections.parseSelection(source, Lists.newArrayList(subscripts));
     
     if(source instanceof Vector) {
       return selection.getVectorSubset((Vector) source, drop);
@@ -304,7 +303,7 @@ public class Subsetting {
       subscripts.add(argumentList.get(i));
     }
     
-    Selection2 selection = Selections.parseSelection(source, subscripts);
+    SelectionStrategy selection = Selections.parseSelection(source, subscripts);
 
     if(source instanceof ListVector) {
       return selection.replaceListElements((ListVector) source, replacement);
@@ -337,7 +336,7 @@ public class Subsetting {
       subscripts.add(argumentList.get(0));
     }
 
-    Selection2 selection = Selections.parseSelection(source, subscripts);
+    SelectionStrategy selection = Selections.parseSelection(source, subscripts);
     
 
     if(source instanceof PairList.Node) {

@@ -4,9 +4,9 @@ import org.renjin.primitives.vector.MemoizedComputation;
 import org.renjin.sexp.*;
 
 /**
- * Created by alex on 22-3-16.
+ * Deferred double vector created by the expression {@code x[i] <- y}. 
  */
-public class MaskedDoubleReplacement extends DoubleVector implements MemoizedComputation {
+class MaskedDoubleReplacement extends DoubleVector implements MemoizedComputation {
 
   private AtomicVector source;
   private LogicalVector mask;

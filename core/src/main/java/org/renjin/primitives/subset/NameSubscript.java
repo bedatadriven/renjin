@@ -9,7 +9,10 @@ import org.renjin.sexp.StringVector;
 import java.util.HashMap;
 import java.util.Map;
 
-public class NameSubscript2 implements Subscript2 {
+/**
+ * Subscripts that select elements or dimensions using names. For example, {@code x["foo"]} or {@code x["foo", 3]}
+ */
+public class NameSubscript implements Subscript {
   
   private StringVector selectedNames;
   private AtomicVector sourceNames;
@@ -17,7 +20,7 @@ public class NameSubscript2 implements Subscript2 {
 
   private Map<String, Integer> nameMap = null;
   
-  public NameSubscript2(StringVector selectedNames, AtomicVector sourceNames, boolean allowMissing) {
+  public NameSubscript(StringVector selectedNames, AtomicVector sourceNames, boolean allowMissing) {
     this.selectedNames = selectedNames;
     this.sourceNames = sourceNames;
     this.allowMissing = allowMissing;
@@ -29,7 +32,7 @@ public class NameSubscript2 implements Subscript2 {
   }
 
   @Override
-  public IndexIterator2 computeIndexes() {
+  public IndexIterator computeIndexes() {
     
     buildMap();
     
@@ -53,7 +56,7 @@ public class NameSubscript2 implements Subscript2 {
     }
   }
   
-  private class Iterator implements IndexIterator2 {
+  private class Iterator implements IndexIterator {
 
     private int selectedNameIndex = 0;
 

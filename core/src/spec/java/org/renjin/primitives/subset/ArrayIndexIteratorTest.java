@@ -5,7 +5,7 @@ import org.renjin.sexp.IntArrayVector;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
-import static org.renjin.primitives.subset.IndexIterator2.EOF;
+import static org.renjin.primitives.subset.IndexIterator.EOF;
 
 public class ArrayIndexIteratorTest {
 
@@ -16,7 +16,7 @@ public class ArrayIndexIteratorTest {
     int dim[] = new int[] { 3, 4 };
     
     // x[,]
-    Subscript2[] subscripts = {new MissingSubscript2(3), new MissingSubscript2(4)};
+    Subscript[] subscripts = {new MissingSubscript(3), new MissingSubscript(4)};
 
     ArrayIndexIterator it = new ArrayIndexIterator(dim, subscripts);
     
@@ -42,10 +42,10 @@ public class ArrayIndexIteratorTest {
     int dim[] = new int[] { 2, 3, 4 };
 
     // x[1,1:2,]
-    Subscript2[] subscripts = {
+    Subscript[] subscripts = {
         new IndexSubscript(new IntArrayVector(1), dim[0]), 
         new IndexSubscript(new IntArrayVector(1, 2), dim[1]),
-        new MissingSubscript2(dim[2]) };
+        new MissingSubscript(dim[2]) };
     
     ArrayIndexIterator it = new ArrayIndexIterator(dim, subscripts);
 
@@ -68,7 +68,7 @@ public class ArrayIndexIteratorTest {
     int dim[] = new int[] { 8 };
 
     // x[3:4]
-    Subscript2[] subscripts = { new IndexSubscript(new IntArrayVector(3,4), dim[0]) };
+    Subscript[] subscripts = { new IndexSubscript(new IntArrayVector(3,4), dim[0]) };
     
     ArrayIndexIterator it = new ArrayIndexIterator(dim, subscripts);
     assertThat(it.next(), equalTo(2));

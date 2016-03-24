@@ -4,12 +4,15 @@ import org.renjin.eval.EvalException;
 import org.renjin.sexp.IntVector;
 import org.renjin.sexp.LogicalVector;
 
-public class LogicalSubscript2 implements Subscript2 {
+/**
+ * Matrix subscript 
+ */
+class LogicalSubscript implements Subscript {
   
   private LogicalVector subscript;
   private int resultLength;
 
-  public LogicalSubscript2(LogicalVector subscript, int sourceLength) {
+  public LogicalSubscript(LogicalVector subscript, int sourceLength) {
     this.subscript = subscript;
     this.resultLength = Math.max(sourceLength, subscript.length());
   }
@@ -29,9 +32,9 @@ public class LogicalSubscript2 implements Subscript2 {
   }
 
   @Override
-  public IndexIterator2 computeIndexes() {
+  public IndexIterator computeIndexes() {
     if(subscript.length() == 0) {
-      return EmptyIndexIterator2.INSTANCE;
+      return EmptyIndexIterator.INSTANCE;
     }
     return new Iterator();
   }
@@ -48,7 +51,7 @@ public class LogicalSubscript2 implements Subscript2 {
   }
   
   
-  private class Iterator implements IndexIterator2 {
+  private class Iterator implements IndexIterator {
 
     int nextIndex = 0;
 

@@ -140,7 +140,7 @@ public class IndexSelection implements Selection2 {
   }
   
   @Override
-  public Vector replaceElements(AtomicVector source, Vector replacements) {
+  public Vector replaceAtomicVectorElements(AtomicVector source, Vector replacements) {
 
     return buildReplacement(source, replacements,  new IndexSubscript(this.subscript, source.length()));
   }

@@ -357,7 +357,7 @@ public class Subsetting {
       
     } else if(source instanceof AtomicVector) {
 
-      return selection.replaceElements((AtomicVector)source, replacement);
+      return selection.replaceAtomicVectorElements((AtomicVector) source, replacement);
     
     } else if(source == Null.INSTANCE) {
       throw new EvalException("invalid (NULL) left side of assignment");

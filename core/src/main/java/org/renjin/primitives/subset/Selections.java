@@ -18,7 +18,6 @@ public class Selections {
     if (subscripts.size() > 1) {
       return new MatrixSelection(subscripts);
     }
-
     
     int dimCount = source.getAttributes().getDim().length();
  
@@ -27,6 +26,15 @@ public class Selections {
     if(subscript == Symbol.MISSING_ARG) {
       return new CompleteSelection2();
     }
+    
+    // A single subscript can also contain a matrix in the form
+    //    x1, y1  
+    // [  x2, y2 ]
+    //    x3, y3
+    if(CoordinateMatrixSelection2.isCoordinateMatrix(source, subscript)) {
+      return new CoordinateMatrixSelection2((AtomicVector) subscript);
+    }
+    
 
     // If there is a single subscript, it's interpretation depends on the 
     // shape of the source:

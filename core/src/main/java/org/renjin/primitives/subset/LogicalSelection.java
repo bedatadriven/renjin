@@ -24,7 +24,7 @@ public class LogicalSelection implements Selection2 {
   }
   
   @Override
-  public Vector replaceElements(AtomicVector source, Vector replacements) {
+  public Vector replaceAtomicVectorElements(AtomicVector source, Vector replacements) {
     
     if(source instanceof DeferredComputation ||
        replacements instanceof DeferredComputation ||

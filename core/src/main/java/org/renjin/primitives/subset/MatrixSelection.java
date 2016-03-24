@@ -205,7 +205,7 @@ public class MatrixSelection implements Selection2 {
   }
 
   @Override
-  public Vector replaceElements(AtomicVector source, Vector replacements) {
+  public Vector replaceAtomicVectorElements(AtomicVector source, Vector replacements) {
     
     Subscript2[] subscripts = parseSubscripts(source);
 

@@ -55,7 +55,7 @@ public class SubsettingTest extends EvalTestCase {
     eval( " y <- x[NULL]");
     
     assertThat(eval("names(y)"), equalTo((SEXP)StringArrayVector.EMPTY));
-  }
+  } 
 
   @Test
   public void subsetWithLogicals() {
@@ -411,7 +411,7 @@ public class SubsettingTest extends EvalTestCase {
     // Replacing an element should preserve dims
     eval(" x[1] <- 91 ");
     assertThat(eval("x"), equalTo(c(91, 2, 3, 4)));
-    assertThat(eval("dim(x)"), equalTo(c_i(2,2)));
+    assertThat(eval("dim(x)"), equalTo(c_i(2, 2)));
 
     // Growing the vector through replacement should drop dims
     eval(" x[5] <- 99 ");
@@ -457,8 +457,8 @@ public class SubsettingTest extends EvalTestCase {
     eval(" p <- list( x = 22, y = 33 ) ");
     eval(" p$z <- 44 ");
 
-    assertThat( eval(" p$x "), equalTo( c(22) ));
-    assertThat( eval(" p$y "), equalTo( c(33) ));
+    assertThat(eval(" p$x "), equalTo(c(22)));
+    assertThat(eval(" p$y "), equalTo(c(33)));
     assertThat( eval(" p$z "), equalTo( c(44) ));
   }
 
@@ -500,8 +500,8 @@ public class SubsettingTest extends EvalTestCase {
     eval(" x<- list() ");
     eval(" x[['foo']] <- list(a=1,b=2,c=3)");
 
-    assertThat( eval(" x[['foo']] "), equalTo(list(1d,2d,3d)));
-    assertThat( eval(" names(x[['foo']]) "), equalTo(c("a","b","c")));
+    assertThat(eval(" x[['foo']] "), equalTo(list(1d, 2d, 3d)));
+    assertThat(eval(" names(x[['foo']]) "), equalTo(c("a", "b", "c")));
 
   }
 
@@ -519,7 +519,7 @@ public class SubsettingTest extends EvalTestCase {
     eval(" x[['b']] <- 2");
     eval(" x[['c']] <- 3");
     
-    assertThat(eval("x"), equalTo(list(1d,2d,3d)));
+    assertThat(eval("x"), equalTo(list(1d, 2d, 3d)));
     assertThat(eval("names(x)"), equalTo(c("a","b","c")));
     
   }
@@ -529,8 +529,8 @@ public class SubsettingTest extends EvalTestCase {
     eval(" x <- 1:8 ");
     eval(" dim(x) <- c(4,2) ");
 
-    assertThat( eval("x[,2]"), equalTo( c_i(5,6,7, 8) ));
-    assertThat( eval("dim(x[,2])"), equalTo( NULL ));
+    assertThat(eval("x[,2]"), equalTo(c_i(5, 6, 7, 8)));
+    assertThat(eval("dim(x[,2])"), equalTo(NULL));
     assertThat( eval("dim(x[,2,drop=TRUE])"), equalTo( NULL ));
     assertThat( eval("dim(x[,2,drop=FALSE])"), equalTo( c_i(4, 1) ));
   }
@@ -546,7 +546,7 @@ public class SubsettingTest extends EvalTestCase {
 
   @Test
   public void byNamedCol() {
-    eval( " x <- .Internal(rbind(1, c(a=1,b=2))) ");
+    eval(" x <- .Internal(rbind(1, c(a=1,b=2))) ");
 
     assertThat( eval(" x[,'b'] "), equalTo( c(2) ));
   }
@@ -557,7 +557,7 @@ public class SubsettingTest extends EvalTestCase {
     eval(" dim(x) <- 8");
 
     assertThat( eval(" dim(x[1:4]) "), equalTo( c_i(4) ));
-    assertThat( eval(" dim(x[1])"), equalTo( NULL ));
+    assertThat(eval(" dim(x[1])"), equalTo(NULL));
     assertThat( eval(" dim(x[1,drop=FALSE]) "), equalTo( c_i(1) ));
   }
 
@@ -589,8 +589,8 @@ public class SubsettingTest extends EvalTestCase {
     eval(" x<-1:12");
     eval(" dim(x) <- c(3,4)");
     
-    assertThat( eval("x[2,3]"), equalTo(c_i(8)));
-    assertThat( eval("x[1,NULL]"), equalTo((SEXP)IntVector.EMPTY)); 
+    assertThat(eval("x[2,3]"), equalTo(c_i(8)));
+    assertThat(eval("x[1,NULL]"), equalTo((SEXP) IntVector.EMPTY)); 
     assertThat( eval("dim(x[1,NULL])"), equalTo(NULL));
   }
     
@@ -599,8 +599,8 @@ public class SubsettingTest extends EvalTestCase {
   public void subscriptsOnNull() {
     eval(" x <- NULL ");
 
-    assertThat( eval(" x[1] "), equalTo( NULL ));
-    assertThat( eval(" x[c(TRUE,FALSE)] "), equalTo( NULL ));
+    assertThat(eval(" x[1] "), equalTo(NULL));
+    assertThat(eval(" x[c(TRUE,FALSE)] "), equalTo(NULL));
     assertThat( eval(" x[c(1,2,3)] "), equalTo( NULL ));
     assertThat( eval(" x[-1] "), equalTo( NULL ));
     assertThat( eval(" x[] "), equalTo( NULL ));
@@ -633,7 +633,7 @@ public class SubsettingTest extends EvalTestCase {
     
     eval("print(A)");
 
-    assertThat( eval("A[5,1]"), equalTo(c(40)));
+    assertThat(eval("A[5,1]"), equalTo(c(40)));
     assertThat( eval("A[5,2]"), equalTo(c(8))); 
   }
 
@@ -650,7 +650,7 @@ public class SubsettingTest extends EvalTestCase {
     eval(" x<-list() ");
     eval(" x[[1]] <- 'foo' ");
 
-    assertThat( eval("x"), equalTo( list("foo" ))) ;
+    assertThat( eval("x"), equalTo( list("foo"))) ;
   }
   
   @Test
@@ -666,7 +666,7 @@ public class SubsettingTest extends EvalTestCase {
      eval(" x<- list() ");
      eval(" x[['foo']] <- 'bar'");
 
-     assertThat( eval("x"), equalTo( list("bar")));
+     assertThat(eval("x"), equalTo(list("bar")));
      assertThat( eval("names(x)"), equalTo( c("foo")));
    }
 
@@ -686,11 +686,11 @@ public class SubsettingTest extends EvalTestCase {
   public void pairListNotConverted() {
     eval(" p <- .Internal(as.vector(list(a=1, b=2, 3, 4), 'pairlist'))");
     assertThat( eval("p[1:2]"), equalTo(list(1d,2d)));
-    assertThat( eval("names(p[TRUE])"), equalTo(c("a", "b", "", "")));
-    assertThat( eval("p[['b']]"), equalTo(c(2)));
+    assertThat(eval("names(p[TRUE])"), equalTo(c("a", "b", "", "")));
+    assertThat(eval("p[['b']]"), equalTo(c(2)));
    
     eval("p[[1]]<-99");
-    assertThat( eval(".Internal(typeof(p))"), equalTo(c("pairlist")));
+    assertThat(eval(".Internal(typeof(p))"), equalTo(c("pairlist")));
     assertThat( eval("p$a"), equalTo(c(99)));
    
   }
@@ -699,7 +699,7 @@ public class SubsettingTest extends EvalTestCase {
   public void pairListSingleByName() {
     eval(" p <- .Internal(as.vector(list(hello=1, b=2, 3, 4), 'pairlist'))");
 
-    assertThat( eval("p[['h']]"), equalTo(NULL));
+    assertThat(eval("p[['h']]"), equalTo(NULL));
     assertThat( eval("p[['hello']]"), equalTo(c(1)));
     assertThat( eval("p[['h', exact=FALSE]]"), equalTo(c(1)));
   }
@@ -762,7 +762,24 @@ public class SubsettingTest extends EvalTestCase {
     
     // logical matrices should NEVER be treated as coordinate
     // matrices, regardless of their dimension
-    assertThat(eval("x[coords == 1]"), equalTo(c_i(1,5,9)));
+    assertThat(eval("x[coords == 1]"), equalTo(c_i(1, 5, 9)));
+  }
+  
+  @Test(expected = EvalException.class)
+  public void coordinateMatricesCannotBeUsedInSingleSelect() {
+    eval("x<-1:12");
+    eval("dim(x) <- c(3,4) ");
+
+    // define a matrix with coordinates in ONE rows
+    // 1 3
+    eval("coords <- c(1,3,3,4)");
+    eval("dim(coords) <- c(2,2)");
+    
+    // You might think this would select a single element, 
+    // but coordinate matrices are not accepted in single select mode
+    // so the following should throw an error
+    eval("print(x[[coords]])");
+    
   }
   
   @Test

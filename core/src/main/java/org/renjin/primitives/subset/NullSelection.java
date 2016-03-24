@@ -31,7 +31,7 @@ public enum NullSelection implements Selection2 {
   }
 
   @Override
-  public Vector replaceElements(AtomicVector source, Vector replacements) {
+  public Vector replaceAtomicVectorElements(AtomicVector source, Vector replacements) {
     // No changes to the source
     return source;
   }

@@ -7,11 +7,11 @@ import org.renjin.sexp.LogicalVector;
 public class LogicalSubscript2 implements Subscript2 {
   
   private LogicalVector subscript;
-  private int sourceLength;
+  private int resultLength;
 
   public LogicalSubscript2(LogicalVector subscript, int sourceLength) {
     this.subscript = subscript;
-    this.sourceLength = sourceLength;
+    this.resultLength = Math.max(sourceLength, subscript.length());
   }
 
   @Override
@@ -55,7 +55,7 @@ public class LogicalSubscript2 implements Subscript2 {
     @Override
     public int next() {
       while(true) {
-        if(nextIndex >= sourceLength) {
+        if(nextIndex >= resultLength) {
           return EOF;
         }
         int sourceIndex = nextIndex++;

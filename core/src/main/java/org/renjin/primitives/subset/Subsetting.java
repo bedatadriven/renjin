@@ -42,7 +42,6 @@ public class Subsetting {
 
   }
 
-
   private static Symbol asSymbol(SEXP nameExp) {
     if(nameExp instanceof Symbol) {
       return (Symbol) nameExp;
@@ -281,19 +280,6 @@ public class Subsetting {
     }
   }
 
-  private static SEXP getCallSubset(FunctionCall source, ListVector subscripts) {
-    Selection selection = new VectorIndexSelection(source, subscripts.get(0));
-    FunctionCall.Builder call = FunctionCall.newBuilder();
-    call.withAttributes(source.getAttributes());
-
-    IndexIterator it = selection.iterator();
-    while(it.hasNext()) {
-      int sourceIndex = it.next();
-      call.addCopy(source.getNode(sourceIndex));
-    }
-    return call.build();
-  }
-  
 
   @Generic
   @Builtin("[<-")
@@ -306,6 +292,12 @@ public class Subsetting {
     }
     
     Vector replacement = (Vector) replacementExp;
+
+    // Special case: if both source and replacement have length 0, then return source without 
+    // even checking subscripts
+    if(source.length() == 0 && replacement.length() == 0) {
+      return source;
+    }
     
     List<SEXP> subscripts = Lists.newArrayListWithCapacity(argumentList.length() - 1);
     for (int i = 0; i < argumentList.length() - 1; i++) {
@@ -321,12 +313,8 @@ public class Subsetting {
       return selection.replaceListElements(((PairList.Node) source).toVector(), replacement);
       
     } else if(source instanceof AtomicVector) {
-
       return selection.replaceAtomicVectorElements((AtomicVector) source, replacement);
-    
-    } else if(source == Null.INSTANCE) {
-      throw new EvalException("invalid (NULL) left side of assignment");
-    
+      
     } else {
       throw new EvalException("object of type '%' is not subsettable", source.getTypeName());
     }

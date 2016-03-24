@@ -167,10 +167,10 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList, 
 
   @Override
   public Vector.Builder newCopyBuilder(Type type) {
-    if(type != VECTOR_TYPE) {
-      throw new UnsupportedOperationException();
+    if(type == VECTOR_TYPE) {
+      return NullBuilder.INSTANCE;
     }
-    return NullBuilder.INSTANCE;
+    return type.newBuilder();
   }
 
   @Override

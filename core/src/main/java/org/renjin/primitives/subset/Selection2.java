@@ -10,17 +10,18 @@ public interface Selection2 {
   SEXP getFunctionCallSubset(FunctionCall call);
 
   SEXP getSingleListElement(ListVector source, boolean exact);
-  
+
   AtomicVector getSingleAtomicVectorElement(AtomicVector source, boolean exact);
   
   Vector replaceListElements(ListVector list, Vector replacement);
 
-  Vector replaceAtomicVectorElements(AtomicVector source, Vector replacements);
+  SEXP replaceAtomicVectorElements(AtomicVector source, Vector replacements);
   
   ListVector replaceSingleListElement(ListVector list, SEXP replacement);
   
   SEXP replaceSinglePairListElement(PairList.Node list, SEXP replacement);
 
   Vector replaceSingleElement(AtomicVector source, Vector replacement);
+  
 
 }

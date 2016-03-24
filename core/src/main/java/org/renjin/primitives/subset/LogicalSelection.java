@@ -31,9 +31,10 @@ public class LogicalSelection implements Selection2 {
   @Override
   public Vector replaceAtomicVectorElements(AtomicVector source, Vector replacements) {
     
-    if(source instanceof DeferredComputation ||
-       replacements instanceof DeferredComputation ||
-       source.length() > 1000) {
+    if( source.length() >= mask.length() &&
+        source instanceof DeferredComputation ||
+        replacements instanceof DeferredComputation ||
+        source.length() > 1000) {
       
       // Compute the replacement type 
       Vector.Type resultType = Vector.Type.widest(source, replacements);
@@ -44,28 +45,32 @@ public class LogicalSelection implements Selection2 {
     
     return buildReplacement(source, replacements);
   }
-
+  
   @Override
   public Vector replaceListElements(ListVector source, Vector replacement) {
     return buildReplacement(source, replacement);
   }
-  
+
   private Vector buildReplacement(Vector source, Vector replacements) {
     
     Vector.Builder builder = source.newCopyBuilder(replacements.getVectorType());
     int maskIndex = 0;
-    int sourceIndex = 0;
+    int resultIndex = 0;
     int replacementIndex = 0;
+    
+    // The length of the result vector is the longer of the 
+    // source vector or the logical subscript
+    int resultLength = Math.max(source.length(), mask.length());
 
     if(mask.length() > 0) {
-      while (sourceIndex < source.length()) {
+      while (resultIndex < resultLength) {
         int maskValue = mask.getElementAsRawLogical(maskIndex++);
         if (maskValue == 1) {
-          builder.setFrom(sourceIndex, replacements, replacementIndex++);
+          builder.setFrom(resultIndex, replacements, replacementIndex++);
         } else if (IntVector.isNA(maskValue)) {
-          builder.setNA(sourceIndex);
+          builder.setNA(resultIndex);
         }
-        sourceIndex++;
+        resultIndex++;
         if (replacementIndex >= replacements.length()) {
           replacementIndex = 0;
         }

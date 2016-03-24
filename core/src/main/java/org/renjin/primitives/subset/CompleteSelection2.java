@@ -2,7 +2,11 @@ package org.renjin.primitives.subset;
 
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.Vectors;
-import org.renjin.primitives.sequence.RepFunction;
+import org.renjin.primitives.sequence.RepDoubleVector;
+import org.renjin.primitives.sequence.RepIntVector;
+import org.renjin.primitives.sequence.RepLogicalVector;
+import org.renjin.primitives.sequence.RepStringVector;
+import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.sexp.*;
 
 /**
@@ -37,35 +41,52 @@ public class CompleteSelection2 implements Selection2 {
   @Override
   public Vector replaceAtomicVectorElements(AtomicVector source, Vector replacements) {
 
-    checkReplacementLength(source, replacements);
-
-    if(replacements instanceof ListVector) {
-      throw new UnsupportedOperationException("TODO");
-    }
-
-    // Increase the length, if necessary, of the replacements vector so that
+    // Change the length, if necessary, of the replacements vector so that
     // it matches the source vector
-    AtomicVector result;
-    if(source.length() == replacements.length()) {
-      result = (AtomicVector) replacements;
-    } else {
-      result = (AtomicVector) RepFunction.rep(replacements, Null.INSTANCE, source.length(), 1);
-    }
-    
+    Vector result = recycle(replacements, source.length());
+
     // If the source vector is wider than the replacement vector, then we need to change its
     // type. For example, 
     // x <- sqrt(1:10)   # double type
     // y <- 1:10         # integer type
     // x[] <- y          # convert y to double
+
+    if (source.getVectorType().isWiderThan(replacements.getVectorType())) {
+      result = Vectors.toType((AtomicVector)result, source.getVectorType());
+    }
+
+    // Finally, copy all attributes from the source to the transformed replacement
+    return (Vector) result.setAttributes(source.getAttributes());
+  
+  }
+
+  private Vector recycle(Vector x, int length) {
     
-    if(source.getVectorType().isWiderThan(replacements.getVectorType())) {
-      result = Vectors.toType(result, source.getVectorType());
+    if(x.length() == length) {
+      return x;
     }
     
-    // Finally, copy all attributes from the source to the transformed replacement
-    result = (AtomicVector) result.setAttributes(source.getAttributes());
+    // Try to avoid making a copy if possible or neccessary
+    if(x instanceof DeferredComputation || length > RepDoubleVector.LENGTH_THRESHOLD) {
+
+      if (x instanceof DoubleVector) {
+        return new RepDoubleVector(x, length, 1);
+      } else if (x instanceof IntVector) {
+        return new RepIntVector(x, length, 1);
+      } else if (x instanceof StringVector) {
+        return new RepStringVector(x, length, 1, AttributeMap.EMPTY);
+      } else if (x instanceof LogicalVector) {
+        return new RepLogicalVector(x, length, 1);
+      }
+    }
+
+    // Otherwise allocate the memory...
+    Vector.Builder builder = x.newBuilderWithInitialCapacity(length);
+    for(int i=0;i<length;++i) {
+      builder.setFrom(i, x, i % x.length());
+    }
     
-    return result;
+    return builder.build();
   }
 
   @Override
@@ -79,22 +100,20 @@ public class CompleteSelection2 implements Selection2 {
       throw new EvalException("replacement has length zero");
     }
     
-    checkReplacementLength(source, replacement);
-    
     ListVector.Builder result = new ListVector.Builder();
     result.copyAttributesFrom(source);
     
-    int sourceIndex = 0;
     int replacementIndex = 0;
-    while(sourceIndex < source.length()) {
-      result.setFrom(replacementIndex, replacement, replacementIndex++);
-      if(replacementIndex > replacement.length()) {
+    for (int i = 0; i < source.length(); i++) {
+      result.setFrom(i, replacement, replacementIndex++);
+      if(replacementIndex >= replacement.length()) {
         replacementIndex = 0;
       }
     }
     
     return result.build();
   }
+
 
   private Vector clearList(ListVector list) {
     // Create an empty list, preserving only non-structural attributes

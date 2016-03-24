@@ -241,15 +241,25 @@ public class MatrixSelection implements Selection2 {
     // Case 5: Complex pattern x[1:3, -3]
 
 
-
+    ArrayIndexIterator it = new ArrayIndexIterator(source.getAttributes().getDimArray(), subscripts);
     Vector.Builder result = source.newCopyBuilder(replacements.getVectorType());
-    int[] dim = source.getAttributes().getDimArray();
     
-    if(dim.length == 2) {
-      return buildMatrixReplacement(result, dim, subscripts, replacements);
-    } else {
-      throw new UnsupportedOperationException();
+    int replacementIndex = 0;
+    
+    int index;
+    while((index=it.next())!=IndexIterator2.EOF) {
+      
+      result.setFrom(index, replacements, replacementIndex++);
+      if(replacementIndex >= replacements.length()) {
+        replacementIndex = 0;
+      }
     }
+    
+    if(replacementIndex != 0) {
+      throw new EvalException("number of items to replace is not a multiple of replacement length");
+    }
+    
+    return result.build();
   }
   
   private Vector buildMatrixReplacement(Vector.Builder result, int[] dim, Subscript2[] subscripts, Vector replacements) {
@@ -295,6 +305,9 @@ public class MatrixSelection implements Selection2 {
       return new MissingSubscript2(dim[dimensionIndex]);
 
     } else if(sexp instanceof LogicalVector) {
+      if(sexp.length() > dim[dimensionIndex]) {
+        throw new EvalException("(subscript) logical subscript too long");
+      }
       return new LogicalSubscript2((LogicalVector) sexp, dim[dimensionIndex]);
 
     } else if(sexp instanceof StringVector) {

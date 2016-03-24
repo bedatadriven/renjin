@@ -149,7 +149,11 @@ public class AttributeMap {
     if(map == null) {
       return Null.INSTANCE;
     } else {
-      return (Vector) map.get(Symbols.DIMNAMES);
+      SEXP value = map.get(Symbols.DIMNAMES);
+      if(value == null) {
+        return Null.INSTANCE;
+      }
+      return (Vector) value;
     }
   }
 

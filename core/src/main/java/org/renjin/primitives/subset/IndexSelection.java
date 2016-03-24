@@ -107,7 +107,7 @@ public class IndexSelection implements Selection2 {
     
     return source.getElementAsSEXP(index);
   }
-  
+
   @Override
   public AtomicVector getSingleAtomicVectorElement(AtomicVector source, boolean exact) {
 
@@ -205,10 +205,9 @@ public class IndexSelection implements Selection2 {
     
     return buildReplacement(source, replacements, subscript);
   }
-  
+
   @Override
   public Vector replaceAtomicVectorElements(AtomicVector source, Vector replacements) {
-
     return buildReplacement(source, replacements,  new IndexSubscript(this.subscript, source.length()));
   }
 
@@ -220,6 +219,7 @@ public class IndexSelection implements Selection2 {
     boolean deformed = false;
     
     int replacementIndex = 0;
+    int replacementLength = replacements.length();
 
     int index;
     IndexIterator2 it = subscript.computeIndexes();
@@ -233,9 +233,13 @@ public class IndexSelection implements Selection2 {
         deformed = true;
       }
       
+      if(replacementLength == 0) {
+        throw new EvalException("replacement has zero length");
+      }
+      
       builder.setFrom(index, replacements, replacementIndex++);
 
-      if (replacementIndex >= replacements.length()) {
+      if (replacementIndex >= replacementLength) {
         replacementIndex = 0;
       }
     }

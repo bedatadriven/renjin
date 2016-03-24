@@ -99,7 +99,7 @@ public class CoordinateMatrixSelection2 implements Selection2 {
   public Vector replaceListElements(ListVector source, Vector replacement) {
     return replaceElements(source, replacement);
   }
-  
+
   @Override
   public Vector replaceAtomicVectorElements(AtomicVector source, Vector replacements) {
     return replaceElements(source, replacements);

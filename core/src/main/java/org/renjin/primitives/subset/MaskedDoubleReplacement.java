@@ -57,15 +57,17 @@ public class MaskedDoubleReplacement extends DoubleVector implements MemoizedCom
 
   @Override
   public Vector forceResult() {
-    DoubleArrayVector.Builder result = new DoubleArrayVector.Builder(source.length(), source.length());
+    int resultLength = Math.max(mask.length(), source.length());
+
+    DoubleArrayVector.Builder result = new DoubleArrayVector.Builder(resultLength, resultLength);
     int maskLength = mask.length();
     int replacementLength = replacement.length();
     int replacementIndex = 0;
-    for (int i = 0; i < source.length(); i++) {
+    for (int i = 0; i < resultLength; i++) {
       int maskValue = mask.getElementAsRawLogical(i % maskLength);
       if(maskValue == 1) {
         result.set(i, replacement.getElementAsDouble((replacementIndex++) % replacementLength)); 
-      } else {
+      } else if(i < source.length()) {
         result.set(i, source.getElementAsDouble(i));
       }
     }

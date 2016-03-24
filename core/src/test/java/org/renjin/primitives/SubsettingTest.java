@@ -718,6 +718,26 @@ public class SubsettingTest extends EvalTestCase {
   }
   
   @Test
+  public void subsettingFunctionCalls() {
+    eval("x <- quote(a+b)");
+    assertThat(eval("x[]"), equalTo(eval("x")));
+    assertThat(eval("x[1]"), equalTo((SEXP) FunctionCall.newCall(Symbol.get("+"))));
+    assertThat(eval("x[1:2]"), equalTo((SEXP) FunctionCall.newCall(Symbol.get("+"), Symbol.get("a"))));
+  }
+  
+  @Test
+  public void subsettingFunctionCallsByName() {
+    eval("x <- quote(c(a=1,b=2))");
+    assertThat(eval("x['a']"), equalTo((SEXP) FunctionCall.newCall(new DoubleArrayVector(1))));
+    assertThat(eval("names(x['a'])"), equalTo(c("a")));
+
+    assertThat(eval("x['foo']"), equalTo((SEXP) FunctionCall.newCall(Null.INSTANCE)));
+    assertThat(eval("x[ NA_character_ ]"), equalTo((SEXP) FunctionCall.newCall(Null.INSTANCE)));
+
+  }
+  
+  
+  @Test
   public void emptyLogicalIndex() {
     eval(" x <- 1:12 ");
     eval(" dim(x) <- 3:4 ");

@@ -17,7 +17,7 @@ public class LogicalSubscript2 implements Subscript2 {
   @Override
   public int computeUniqueIndex() {
     // In the context of the [[ operator, we treat logical subscripts as integers
-    Selections.checkUnitLength(subscript);
+    SubsetAssertions.checkUnitLength(subscript);
 
     int oneBaseIndex = subscript.getElementAsInt(0);
     

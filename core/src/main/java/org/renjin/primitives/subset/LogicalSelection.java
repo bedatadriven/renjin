@@ -1,6 +1,5 @@
 package org.renjin.primitives.subset;
 
-import org.renjin.eval.EvalException;
 import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.sexp.*;
 
@@ -19,10 +18,16 @@ public class LogicalSelection implements Selection2 {
   }
 
   @Override
-  public SEXP get(Vector source, boolean drop) {
+  public SEXP getVectorSubset(Vector source, boolean drop) {
     return IndexSelection.buildSelection(source, new LogicalSubscript2(this.mask, source.length()));
   }
-  
+
+  @Override
+  public SEXP getFunctionCallSubset(FunctionCall call) {
+    return IndexSelection.buildCallSelection(call, new LogicalSubscript2(this.mask, call.length()));
+  }
+
+
   @Override
   public Vector replaceAtomicVectorElements(AtomicVector source, Vector replacements) {
     
@@ -42,12 +47,7 @@ public class LogicalSelection implements Selection2 {
 
   @Override
   public Vector replaceListElements(ListVector source, Vector replacement) {
-    
-    if(!(replacement instanceof Vector)) {
-      throw new EvalException("object of type '%s' cannot be coerced to type 'list'", replacement.getTypeName());
-    }
-
-    return buildReplacement(source, (Vector) replacement);
+    return buildReplacement(source, replacement);
   }
   
   private Vector buildReplacement(Vector source, Vector replacements) {
@@ -77,6 +77,15 @@ public class LogicalSelection implements Selection2 {
     return builder.build();
   }
 
+  @Override
+  public SEXP getSingleListElement(ListVector source, boolean exact) {
+    throw new UnsupportedOperationException("[[ operator never uses logical subscrpts");
+  }
+
+  @Override
+  public AtomicVector getSingleAtomicVectorElement(AtomicVector source, boolean exact) {
+    throw new UnsupportedOperationException("[[ operator never uses logical subscrpts");
+  }
 
   @Override
   public Vector replaceSingleElement(AtomicVector source, Vector replacement) {

@@ -1,7 +1,12 @@
 package org.renjin.primitives.subset;
 
+import com.google.common.collect.Lists;
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.*;
+
+import java.util.List;
+
+import static org.renjin.primitives.subset.SubsetAssertions.checkBounds;
 
 /**
  * Simple selection using positive or negative indexes
@@ -15,7 +20,7 @@ public class IndexSelection implements Selection2 {
   }
 
   @Override
-  public SEXP get(Vector source, boolean drop) {
+  public SEXP getVectorSubset(Vector source, boolean drop) {
     return buildSelection(source, new IndexSubscript(this.subscript, source.length()));
   }
 
@@ -54,6 +59,68 @@ public class IndexSelection implements Selection2 {
     return result.build();
   }
 
+
+  @Override
+  public SEXP getFunctionCallSubset(FunctionCall call) {
+    
+    return buildCallSelection(call, new IndexSubscript(subscript, call.length()));
+  }
+
+  public static PairList buildCallSelection(FunctionCall call, Subscript2 subscript2) {
+
+    // First build an array from which we can lookup indices in normal time
+    List<PairList.Node> nodes = Lists.newArrayList();
+    for (PairList.Node node : call.nodes()) {
+      nodes.add(node);
+    }
+    
+    // Now construct a new function call by looking up the indexes
+    FunctionCall.Builder newCall = FunctionCall.newBuilder();
+    IndexIterator2 it = subscript2.computeIndexes();
+    int index;
+    while((index=it.next())!=IndexIterator2.EOF) {
+      if(IntVector.isNA(index) || index >= nodes.size()) {
+        newCall.add(nodes.get(index));
+      } else {
+        PairList.Node node = nodes.get(index);
+        newCall.add(node.getRawTag(), node.getValue());
+      }
+    }
+    
+    return newCall.build();
+  }
+  
+  @Override
+  public SEXP getSingleListElement(ListVector source, boolean exact) {
+    IndexSubscript subscript = new IndexSubscript(this.subscript, source.length());
+
+    // verify that we are selecting a single element
+    int index = subscript.computeUniqueIndex();
+    
+    // Note that behavior of NA indices is different for lists than
+    // atomic vectors below.
+    if(IntVector.isNA(index)) {
+      return Null.INSTANCE;
+    }
+    
+    checkBounds(source, index);
+    
+    return source.getElementAsSEXP(index);
+  }
+  
+  @Override
+  public AtomicVector getSingleAtomicVectorElement(AtomicVector source, boolean exact) {
+
+    IndexSubscript subscript = new IndexSubscript(this.subscript, source.length());
+
+    // verify that we are selecting a single element
+    int index = subscript.computeUniqueIndex();
+    
+    // assert that the index is within bounds
+    checkBounds(source, index);
+    
+    return source.getElementAsSEXP(index);
+  }
 
   @Override
   public SEXP replaceSinglePairListElement(PairList.Node list, SEXP replacement) {

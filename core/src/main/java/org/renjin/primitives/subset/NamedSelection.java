@@ -1,5 +1,6 @@
 package org.renjin.primitives.subset;
 
+import com.google.common.collect.Maps;
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.*;
 import org.renjin.util.NamesBuilder;
@@ -8,7 +9,15 @@ import java.util.HashMap;
 import java.util.Map;
 
 
+/**
+ * Selects elements from a {@code source} expression by name.
+ *
+ */
 public class NamedSelection implements Selection2 {
+  
+  private static final int NOT_FOUND = -1;
+  
+  private static final int MULTIPLE_PARTIAL_MATCHES = -2;
   
   private StringVector selectedNames;
 
@@ -17,7 +26,7 @@ public class NamedSelection implements Selection2 {
   }
   
   @Override
-  public SEXP get(Vector source, boolean drop) {
+  public SEXP getVectorSubset(Vector source, boolean drop) {
 
     Map<String, Integer> nameMap = buildNameMap(source);
     
@@ -37,7 +46,41 @@ public class NamedSelection implements Selection2 {
 
     return result.build();
   }
-  
+
+  @Override
+  public SEXP getFunctionCallSubset(FunctionCall call) {
+
+    // First check that we have at least one name
+    if(selectedNames.length() == 0) {
+      throw new EvalException("attempt to select less than one element from a lang object");
+    }
+
+    // Build a map from name to linked list node
+    Map<String, SEXP> nameMap = Maps.newHashMap();
+    for (PairList.Node node : call.nodes()) {
+      if(node.hasName()) {
+        nameMap.put(node.getName(), node.getValue());
+      }
+    }
+
+    FunctionCall.Builder newCall = FunctionCall.newBuilder();
+
+
+    // Now iterator look up the names
+    // Starting with the function,
+    for (String selectedName : selectedNames) {
+      SEXP value = nameMap.get(selectedName);
+      if (value == null) {
+        newCall.add(selectedName, Null.INSTANCE);
+      } else {
+        newCall.add(selectedName, value);
+      }
+    }
+
+    return newCall.build();
+  }
+
+
   @Override
   public Vector replaceListElements(ListVector source, Vector replacement) {
     return buildReplacement(source, replacement);
@@ -102,11 +145,78 @@ public class NamedSelection implements Selection2 {
     return map;
   }
 
+  @Override
+  public SEXP getSingleListElement(ListVector source, boolean exact) {
+    int index = findSelectedElement(source, exact);
+    
+    if(index == NOT_FOUND) {
+      return Null.INSTANCE;
+    }
+    
+    return source.getElementAsSEXP(index);
+  }
+
+  @Override
+  public AtomicVector getSingleAtomicVectorElement(AtomicVector source, boolean exact) {
+    int index = findSelectedElement(source, exact);
+
+    // Note that behavior is different here than lists. If there is no
+    // match, throw an exception rather than return NULL
+    if(index == NOT_FOUND) {
+      throw SubsetAssertions.outOfBounds();
+    }
+
+    return source.getElementAsSEXP(index);
+  }
+  
+  private int findSelectedElement(Vector source, boolean exact) {
+
+    String selectedName = computeUniqueSelectedName();
+    
+    if (!source.getAttributes().hasNames()) {
+      return NOT_FOUND;
+    }
+    StringVector names = source.getAttributes().getNames();
+
+    int partialMatch = NOT_FOUND;
+    
+    for(int i=0;i!=names.length();++i) {
+      String name = names.getElementAsString(i);
+      if(StringVector.isNA(name) && StringVector.isNA(selectedName)) {
+        return i;
+      }
+      // Exact matches always win
+      if(name.equals(selectedName)) {
+        return i;
+      }
+      // Check for partial match
+      if(!exact) {
+        if(name.startsWith(selectedName)) {
+          // if this is the first partial match, remember it 
+          // but keep looking for other partial matches.
+          // We only accept partial matches if there is exactly ONE partial match
+          if(partialMatch == NOT_FOUND) {
+            partialMatch = i;
+          } else {
+            // This is the second partial match we've found, so 
+            // we won't accept it. However, we do need to keep looking for partial matches.
+            partialMatch = MULTIPLE_PARTIAL_MATCHES;
+          }
+        }
+      }
+    }
+    
+    if(partialMatch >= 0) {
+      return partialMatch;
+    }
+
+    return NOT_FOUND;
+  }
 
   @Override
   public ListVector replaceSingleListElement(ListVector source, SEXP replacement) {
 
-    String selectedName = computeUniqueName();
+    String selectedName = computeUniqueSelectedName();
     
     // Try to match the name to the list's own names
     int selectedIndex = source.indexOfName(selectedName);
@@ -159,7 +269,7 @@ public class NamedSelection implements Selection2 {
       throw new EvalException("number of items to replace is not a multiple of replacement length");
     }
 
-    String selectedName = computeUniqueName();
+    String selectedName = computeUniqueSelectedName();
 
     // Try to match the name to the list's own names
     int selectedIndex = source.getIndexByName(selectedName);
@@ -187,10 +297,9 @@ public class NamedSelection implements Selection2 {
     return result.build();
   }
 
-  private String computeUniqueName() {
-    Selections.checkUnitLength(selectedNames);
+  private String computeUniqueSelectedName() {
+    SubsetAssertions.checkUnitLength(selectedNames);
     
     return selectedNames.getElementAsString(0);
   }
-  
 }

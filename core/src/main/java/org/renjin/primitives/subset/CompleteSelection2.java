@@ -12,11 +12,27 @@ public class CompleteSelection2 implements Selection2 {
 
 
   @Override
-  public SEXP get(Vector source, boolean drop) {
+  public SEXP getVectorSubset(Vector source, boolean drop) {
     // As far as I can tell, this never changes the input in any way
     return source;
   }
 
+  @Override
+  public SEXP getFunctionCallSubset(FunctionCall call) {
+    return call;
+  }
+
+  @Override
+  public SEXP getSingleListElement(ListVector source, boolean exact) {
+    // Cannot be used with [[ operator
+    throw new EvalException("[[ operator requires a subscript");
+  }
+
+  @Override
+  public AtomicVector getSingleAtomicVectorElement(AtomicVector source, boolean exact) {
+    // Cannot be used with [[ operator
+    throw new EvalException("[[ operator requires a subscript");
+  }
 
   @Override
   public Vector replaceAtomicVectorElements(AtomicVector source, Vector replacements) {

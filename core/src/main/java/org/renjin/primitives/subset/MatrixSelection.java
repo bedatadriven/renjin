@@ -18,7 +18,7 @@ public class MatrixSelection implements Selection2 {
   }
 
   @Override
-  public SEXP get(Vector source, boolean drop) {
+  public SEXP getVectorSubset(Vector source, boolean drop) {
 
     Subscript2[] subscripts = parseSubscripts(source);
     
@@ -60,6 +60,25 @@ public class MatrixSelection implements Selection2 {
     }
     
     return result.build();
+  }
+
+  @Override
+  public SEXP getFunctionCallSubset(FunctionCall call) {
+    // The dim() attribute cannot be set on a lang object, so we shouldn't
+    // need to check here
+    assert call.getArguments().getAttribute(Symbols.DIM) == Null.INSTANCE;
+    
+    throw new EvalException("incorrect number of dimensions");
+  }
+
+  @Override
+  public SEXP getSingleListElement(ListVector source, boolean exact) {
+    return null;
+  }
+
+  @Override
+  public AtomicVector getSingleAtomicVectorElement(AtomicVector source, boolean exact) {
+    return null;
   }
 
   /**

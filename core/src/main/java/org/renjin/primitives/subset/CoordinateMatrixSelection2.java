@@ -36,7 +36,6 @@ public class CoordinateMatrixSelection2 implements Selection2 {
 
 
   private final int numCoordinates;
-  private final int numDims;
 
   public static boolean isCoordinateMatrix(SEXP source, SEXP subscript) {
 
@@ -66,11 +65,10 @@ public class CoordinateMatrixSelection2 implements Selection2 {
     this.matrixDims = matrix.getAttributes().getDimArray();
 
     numCoordinates = matrixDims[0];
-    numDims = matrixDims[1];
   }
 
   @Override
-  public SEXP get(Vector source, boolean drop) {
+  public SEXP getVectorSubset(Vector source, boolean drop) {
 
     CoordinateMatrixIterator it = new CoordinateMatrixIterator(source, matrix);
 
@@ -90,6 +88,11 @@ public class CoordinateMatrixSelection2 implements Selection2 {
       }
     }
     return result.build();
+  }
+
+  @Override
+  public SEXP getFunctionCallSubset(FunctionCall call) {
+    throw new IllegalStateException("lang objects should NOT have dim attributes.");
   }
 
   @Override
@@ -132,7 +135,22 @@ public class CoordinateMatrixSelection2 implements Selection2 {
 
     return result.build();
   }
+  
+  /*
+   * Subscripts are NEVER interpreted as coordinate matrixes in the context
+   * of the [[ operator. The getSingleXX methods should never be called because
+   * Selections.parseSingleSelection() should never return an instance of CoordinateMatrixSelection
+   */
 
+  @Override
+  public SEXP getSingleListElement(ListVector source, boolean exact) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public AtomicVector getSingleAtomicVectorElement(AtomicVector source, boolean exact) {
+    throw new UnsupportedOperationException();
+  }
 
   @Override
   public ListVector replaceSingleListElement(ListVector list, SEXP replacement) {

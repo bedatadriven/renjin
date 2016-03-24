@@ -11,7 +11,7 @@ public enum NullSelection implements Selection2 {
   INSTANCE;
   
   @Override
-  public SEXP get(Vector source, boolean drop) {
+  public SEXP getVectorSubset(Vector source, boolean drop) {
     
     // Return an empty vector of the same type
     Vector.Builder result = source.getVectorType().newBuilderWithInitialCapacity(0);
@@ -25,6 +25,11 @@ public enum NullSelection implements Selection2 {
   }
 
   @Override
+  public SEXP getFunctionCallSubset(FunctionCall call) {
+    return Null.INSTANCE;
+  }
+
+  @Override
   public Vector replaceListElements(ListVector source, Vector replacement) {
     // No changes to the source
     return source;
@@ -34,6 +39,16 @@ public enum NullSelection implements Selection2 {
   public Vector replaceAtomicVectorElements(AtomicVector source, Vector replacements) {
     // No changes to the source
     return source;
+  }
+  
+  @Override
+  public SEXP getSingleListElement(ListVector source, boolean exact) {
+    throw new EvalException("attempt to select less than one element");
+  }
+
+  @Override
+  public AtomicVector getSingleAtomicVectorElement(AtomicVector source, boolean exact) {
+    throw new EvalException("attempt to select less than one element");
   }
 
   @Override

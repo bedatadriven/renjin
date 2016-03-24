@@ -19,7 +19,7 @@ public class IndexSubscript implements Subscript2 {
 
   @Override
   public int computeUniqueIndex() {
-    Selections.checkUnitLength(subscript);
+    SubsetAssertions.checkUnitLength(subscript);
 
     int index = subscript.getElementAsInt(0);
     if(index == 0) {

@@ -5,8 +5,14 @@ import org.renjin.sexp.*;
 
 public interface Selection2 {
 
-  SEXP get(Vector source, boolean drop);
+  SEXP getVectorSubset(Vector source, boolean drop);
+  
+  SEXP getFunctionCallSubset(FunctionCall call);
 
+  SEXP getSingleListElement(ListVector source, boolean exact);
+  
+  AtomicVector getSingleAtomicVectorElement(AtomicVector source, boolean exact);
+  
   Vector replaceListElements(ListVector list, Vector replacement);
 
   Vector replaceAtomicVectorElements(AtomicVector source, Vector replacements);

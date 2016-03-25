@@ -21,8 +21,8 @@
 
 package org.renjin.primitives.special;
 
-import org.renjin.compiler.ir.exception.InvalidSyntaxException;
 import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
 import org.renjin.sexp.*;
 
 
@@ -83,7 +83,7 @@ public class AssignLeftFunction extends SpecialFunction {
     } else if(lhs instanceof StringVector) {
       target = Symbol.get(((StringVector) lhs).getElementAsString(0));
     } else {
-      throw new InvalidSyntaxException("cannot assign to value '" + lhs + " (of type " + lhs.getTypeName() + ")");
+      throw new EvalException("cannot assign to value '" + lhs + " (of type " + lhs.getTypeName() + ")");
     }
 
     // make the final assignment to the target symbol

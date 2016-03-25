@@ -282,7 +282,11 @@ public class Attributes {
       Symbol name = Symbol.get(attribute.getName());
       builder.set(name, validateAttribute(exp, name, attribute.getValue()));
     }
-    return exp.setAttributes(builder.build());
+    if(exp == Null.INSTANCE) {
+      return ListVector.EMPTY.setAttributes(builder.build());
+    } else {
+      return exp.setAttributes(builder.build());
+    }
   }
 
   @Generic

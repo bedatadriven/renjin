@@ -1,6 +1,7 @@
 package org.renjin.primitives.subset;
 
 import com.google.common.collect.Maps;
+import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.*;
 import org.renjin.util.NamesBuilder;
@@ -26,7 +27,7 @@ class NamedSelection implements SelectionStrategy {
   }
 
   @Override
-  public SEXP getVectorSubset(Vector source, boolean drop) {
+  public SEXP getVectorSubset(Context context, Vector source, boolean drop) {
 
     Map<String, Integer> nameMap = buildNameMap(source);
     
@@ -87,7 +88,7 @@ class NamedSelection implements SelectionStrategy {
   }
 
   @Override
-  public Vector replaceAtomicVectorElements(AtomicVector source, Vector replacements) {
+  public Vector replaceAtomicVectorElements(Context context, AtomicVector source, Vector replacements) {
     return buildReplacement(source, replacements);
   }
   

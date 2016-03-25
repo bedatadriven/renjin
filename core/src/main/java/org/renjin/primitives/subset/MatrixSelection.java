@@ -1,5 +1,6 @@
 package org.renjin.primitives.subset;
 
+import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.Indexes;
 import org.renjin.sexp.*;
@@ -18,18 +19,22 @@ class MatrixSelection implements SelectionStrategy {
   }
 
   @Override
-  public SEXP getVectorSubset(Vector source, boolean drop) {
+  public SEXP getVectorSubset(Context context, Vector source, boolean drop) {
 
     Subscript[] subscripts = parseSubscripts(source);
     
     int[] sourceDim = source.getAttributes().getDimArray();
-    
+
+    // We need random access to the array, so make sure that 
+    // any deferred calculations are triggered.
+    Vector materializedSource = context.materialize(source);
+
     // Build the vector with the selected elements
     ArrayIndexIterator it = new ArrayIndexIterator(sourceDim, subscripts);
     Vector.Builder result = source.getVectorType().newBuilder();
     int index;
     while((index=it.next())!= IndexIterator.EOF) {
-      result.addFrom(source, index);
+      result.addFrom(materializedSource, index);
     }
     
     // Calculate dimension of the subscript
@@ -224,33 +229,24 @@ class MatrixSelection implements SelectionStrategy {
   }
 
   @Override
-  public Vector replaceAtomicVectorElements(AtomicVector source, Vector replacements) {
+  public Vector replaceAtomicVectorElements(Context context, AtomicVector source, Vector replacements) {
     
     Subscript[] subscripts = parseSubscripts(source);
-
-    //   Subscript2[] subscripts = parseSubscripts(source, source);
-
-    // Case 0: Single element x[1,3]
-
-    // Case 1: Single row selection x[1, ]
-    // Case 2: Multiple row selection x[1:2, ], x[-1, ]
-
-    // Case 3: Single column selection x[, 1]    -> can be handled as offset + length
-    // Case 4: Multiple column selection x[ , 1:2] 
-
-    // Case 5: Complex pattern x[1:3, -3]
 
 
     ArrayIndexIterator it = new ArrayIndexIterator(source.getAttributes().getDimArray(), subscripts);
     Vector.Builder result = source.newCopyBuilder(replacements.getVectorType());
     
+    Vector materializedReplacement = context.materialize(replacements);
+    
     int replacementIndex = 0;
+    int replacementLength = replacements.length();
     
     int index;
     while((index=it.next())!= IndexIterator.EOF) {
       
-      result.setFrom(index, replacements, replacementIndex++);
-      if(replacementIndex >= replacements.length()) {
+      result.setFrom(index, materializedReplacement, replacementIndex++);
+      if(replacementIndex >= replacementLength) {
         replacementIndex = 0;
       }
     }

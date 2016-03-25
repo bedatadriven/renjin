@@ -1,5 +1,6 @@
 package org.renjin.primitives.subset;
 
+import org.renjin.eval.Context;
 import org.renjin.sexp.*;
 
 /**
@@ -30,7 +31,7 @@ import org.renjin.sexp.*;
 public interface SelectionStrategy {
 
   
-  SEXP getVectorSubset(Vector source, boolean drop);
+  SEXP getVectorSubset(Context context, Vector source, boolean drop);
   
   SEXP getFunctionCallSubset(FunctionCall call);
 
@@ -40,7 +41,7 @@ public interface SelectionStrategy {
   
   Vector replaceListElements(ListVector list, Vector replacement);
 
-  SEXP replaceAtomicVectorElements(AtomicVector source, Vector replacements);
+  SEXP replaceAtomicVectorElements(Context context, AtomicVector source, Vector replacements);
   
   ListVector replaceSingleListElement(ListVector list, SEXP replacement);
   

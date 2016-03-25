@@ -1,5 +1,6 @@
 package org.renjin.primitives.subset;
 
+import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.*;
 
@@ -68,23 +69,29 @@ class CoordinateMatrixSelection implements SelectionStrategy {
   }
 
   @Override
-  public SEXP getVectorSubset(Vector source, boolean drop) {
+  public SEXP getVectorSubset(Context context, Vector source, boolean drop) {
 
     CoordinateMatrixIterator it = new CoordinateMatrixIterator(source, matrix);
 
     Vector.Builder result = source.getVectorType().newBuilderWithInitialCapacity(numCoordinates);
     
     int index;
+    int sourceLength = source.length();
+
+    SEXP materializedSource = context.materialize(source);
+
     while((index=it.next())!= IndexIterator.EOF) {
       
       if(IntVector.isNA(index)) {
         result.addNA();
       
-      } else if(index >= source.length()) {
-        throw new EvalException("subscript out of bounds");
-      
       } else {
-        result.addFrom(source, index);
+        if(index >= sourceLength) {
+          throw new EvalException("subscript out of bounds");
+        
+        } else {
+          result.addFrom(materializedSource, index);
+        }
       }
     }
     return result.build();
@@ -101,7 +108,7 @@ class CoordinateMatrixSelection implements SelectionStrategy {
   }
 
   @Override
-  public Vector replaceAtomicVectorElements(AtomicVector source, Vector replacements) {
+  public Vector replaceAtomicVectorElements(Context context, AtomicVector source, Vector replacements) {
     return replaceElements(source, replacements);
   }
 

@@ -134,7 +134,9 @@ public class Subsetting {
    * Same as "[" but not generic
    */
   @Builtin(".subset")
-  public static SEXP subset(SEXP source, @ArgumentList ListVector arguments,
+  public static SEXP subset(@Current Context context, 
+                            SEXP source, 
+                            @ArgumentList ListVector arguments,
                             @NamedFlag("drop") @DefaultValue(true) boolean drop) {
     Vector vector;
     if(source instanceof Vector) {
@@ -144,7 +146,7 @@ public class Subsetting {
     } else {
       throw new EvalException(source.getClass().getName());
     }
-    return getSubset(vector, arguments, drop);
+    return getSubset(context, vector, arguments, drop);
   }
 
   @Builtin(".subset2")
@@ -253,7 +255,8 @@ public class Subsetting {
 
   @Generic
   @Builtin("[")
-  public static SEXP getSubset(SEXP source, 
+  public static SEXP getSubset(@Current Context context,
+                               SEXP source, 
                                @ArgumentList ListVector subscripts,
                                @NamedFlag("drop") @DefaultValue(true) boolean drop) {
     
@@ -266,13 +269,13 @@ public class Subsetting {
     SelectionStrategy selection = Selections.parseSelection(source, Lists.newArrayList(subscripts));
     
     if(source instanceof Vector) {
-      return selection.getVectorSubset((Vector) source, drop);
+      return selection.getVectorSubset(context, (Vector) source, drop);
     
     } else if(source instanceof FunctionCall) {
         return selection.getFunctionCallSubset((FunctionCall) source);
 
     } else if(source instanceof PairList.Node) {
-        return selection.getVectorSubset(((PairList.Node) source).toVector(), drop);
+        return selection.getVectorSubset(context, ((PairList.Node) source).toVector(), drop);
 
     } else {
       throw new EvalException("object of type '%s' is not subsettable", source.getTypeName());
@@ -282,7 +285,7 @@ public class Subsetting {
 
   @Generic
   @Builtin("[<-")
-  public static SEXP setSubset(SEXP source, @ArgumentList ListVector argumentList) {
+  public static SEXP setSubset(@Current Context context, SEXP source, @ArgumentList ListVector argumentList) {
 
     SEXP replacementExp = argumentList.getElementAsSEXP(argumentList.length() - 1);
     if(!(replacementExp instanceof Vector)) {
@@ -312,7 +315,7 @@ public class Subsetting {
       return selection.replaceListElements(((PairList.Node) source).toVector(), replacement);
       
     } else if(source instanceof AtomicVector) {
-      return selection.replaceAtomicVectorElements((AtomicVector) source, replacement);
+      return selection.replaceAtomicVectorElements(context, (AtomicVector) source, replacement);
       
     } else {
       throw new EvalException("object of type '%' is not subsettable", source.getTypeName());

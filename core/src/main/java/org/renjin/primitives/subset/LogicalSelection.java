@@ -1,5 +1,6 @@
 package org.renjin.primitives.subset;
 
+import org.renjin.eval.Context;
 import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.sexp.*;
 
@@ -18,7 +19,7 @@ class LogicalSelection implements SelectionStrategy {
   }
 
   @Override
-  public SEXP getVectorSubset(Vector source, boolean drop) {
+  public SEXP getVectorSubset(Context context, Vector source, boolean drop) {
     return VectorIndexSelection.buildSelection(source, new LogicalSubscript(this.mask, source.length()));
   }
 
@@ -29,7 +30,7 @@ class LogicalSelection implements SelectionStrategy {
 
 
   @Override
-  public Vector replaceAtomicVectorElements(AtomicVector source, Vector replacements) {
+  public Vector replaceAtomicVectorElements(Context context, AtomicVector source, Vector replacements) {
     
     if( source.length() >= mask.length() &&
         source instanceof DeferredComputation ||

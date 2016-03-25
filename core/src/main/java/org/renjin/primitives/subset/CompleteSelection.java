@@ -1,5 +1,6 @@
 package org.renjin.primitives.subset;
 
+import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.Vectors;
 import org.renjin.primitives.sequence.RepDoubleVector;
@@ -16,7 +17,7 @@ class CompleteSelection implements SelectionStrategy {
 
 
   @Override
-  public SEXP getVectorSubset(Vector source, boolean drop) {
+  public SEXP getVectorSubset(Context context, Vector source, boolean drop) {
     // As far as I can tell, this never changes the input in any way
     return source;
   }
@@ -39,7 +40,7 @@ class CompleteSelection implements SelectionStrategy {
   }
 
   @Override
-  public Vector replaceAtomicVectorElements(AtomicVector source, Vector replacements) {
+  public Vector replaceAtomicVectorElements(Context context, AtomicVector source, Vector replacements) {
 
     // Change the length, if necessary, of the replacements vector so that
     // it matches the source vector

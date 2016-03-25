@@ -175,6 +175,14 @@ public class Context {
       return sexp;
     }
   }
+  
+  public Vector materialize(Vector sexp) {
+    if(sexp instanceof DeferredComputation && !sexp.isConstantAccessTime()) {
+      return session.getVectorEngine().materialize((DeferredComputation)sexp);
+    } else {
+      return sexp;
+    }
+  }
 
   public SEXP simplify(SEXP sexp) {
     if(sexp instanceof DeferredComputation &&

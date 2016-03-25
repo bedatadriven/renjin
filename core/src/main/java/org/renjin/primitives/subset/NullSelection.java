@@ -1,5 +1,6 @@
 package org.renjin.primitives.subset;
 
+import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.*;
 
@@ -11,7 +12,7 @@ public enum NullSelection implements SelectionStrategy {
   INSTANCE;
   
   @Override
-  public SEXP getVectorSubset(Vector source, boolean drop) {
+  public SEXP getVectorSubset(Context context, Vector source, boolean drop) {
     
     // Return an empty vector of the same type
     Vector.Builder result = source.getVectorType().newBuilderWithInitialCapacity(0);
@@ -36,7 +37,7 @@ public enum NullSelection implements SelectionStrategy {
   }
 
   @Override
-  public Vector replaceAtomicVectorElements(AtomicVector source, Vector replacements) {
+  public Vector replaceAtomicVectorElements(Context context, AtomicVector source, Vector replacements) {
     // No changes to the source
     return source;
   }

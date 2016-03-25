@@ -256,7 +256,10 @@ public class Summary {
     boolean haveComplex = false;
 
     if(arguments.length() == 1 && arguments.get(0) instanceof DoubleVector && !removeNA) {
-      return new DeferredSum((Vector) arguments.get(0), AttributeMap.EMPTY);
+      DoubleVector argument = (DoubleVector) arguments.get(0);
+      if(argument instanceof DeferredComputation || argument.length() > 300) {
+        return new DeferredSum((Vector) arguments.get(0), AttributeMap.EMPTY);
+      }
     }
 
     for(SEXP argument : arguments) {

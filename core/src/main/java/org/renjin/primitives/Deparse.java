@@ -214,7 +214,7 @@ public class Deparse {
 
     @Override
     public void visit(Promise promise) {
-      deparse(promise.force(context));
+      deparse(promise.getExpression());
     }
 
     @Override

@@ -23,8 +23,10 @@ package org.renjin.sexp;
 
 import org.junit.Test;
 import org.renjin.EvalTestCase;
+import org.renjin.eval.EvalException;
 
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.assertThat;
 
 public class AttributeTest extends EvalTestCase {
@@ -56,7 +58,7 @@ public class AttributeTest extends EvalTestCase {
     eval("dim(x) <- 3L");
     eval("dimnames(x)[[1]] <- c('a','b','c')");
     
-    assertThat(eval("names(x)"), equalTo(c("a","b","c")));
+    assertThat(eval("names(x)"), equalTo(c("a", "b", "c")));
   }
 
   @Test
@@ -69,4 +71,20 @@ public class AttributeTest extends EvalTestCase {
     assertThat(eval("attr(x, 'f', exact=FALSE)"), equalTo(c("bar")));
     assertThat(eval("attr(x, 'f', exact=TRUE)"), equalTo(NULL));
   }
+  
+  @Test
+  public void attributesWithNullCastToList() {
+    eval("x <- NULL");
+    eval("attributes(x) <- list(class='foo')");
+    
+    SEXP x = eval("x");
+    assertThat(x, instanceOf(ListVector.class));
+    assertThat(x.getAttributes().getClassVector(), equalTo(c("foo")));
+  }
+  
+  @Test(expected = EvalException.class)
+  public void attributesWithNull() {
+    eval("attributes(NULL) <- list(class='x')");
+  }
+  
 }

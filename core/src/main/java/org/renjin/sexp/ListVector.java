@@ -392,7 +392,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
   }
 
   public static class Builder extends AbstractVector.AbstractBuilder<SEXP> {
-    private final List<SEXP> values;
+    protected final List<SEXP> values;
     
     public Builder() {
       this(0,0);
@@ -579,7 +579,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
     }    
   }
 
-  private static class ListType extends Vector.Type {
+  protected static class ListType extends Vector.Type {
     public ListType() {
       super(Order.LIST);
     }

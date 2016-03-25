@@ -1033,7 +1033,18 @@ public class SubsettingTest extends EvalTestCase {
     eval("x[c(TRUE,FALSE)] <- 99");
     
     eval("print(sum(x))");
-    
-    
   }
+  
+  @Test
+  public void expressionVector() {
+    eval("x <- parse(text='a; b; c;')");
+    
+    assertThat(eval("typeof(x)"), equalTo(c("expression")));
+    assertThat(eval("typeof(x[1:2])"), equalTo(c("expression")));
+  
+    eval("x[[1]] <- quote(x)");
+    assertThat(eval("typeof(x)"), equalTo(c("expression")));
+  
+  }
+  
 }

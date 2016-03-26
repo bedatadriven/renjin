@@ -260,8 +260,27 @@ class NamedSelection implements SelectionStrategy {
   }
 
   @Override
-  public SEXP replaceSinglePairListElement(PairList.Node list, SEXP replacement) {
-    throw new UnsupportedOperationException();
+  public SEXP replaceSinglePairListElement(PairList.Node source, SEXP replacement) {
+    
+    String selectedName = computeUniqueSelectedName();
+    boolean found = false;
+
+    PairList.Builder newList = new PairList.Builder();
+    for (PairList.Node node : source.nodes()) {
+      if(!found && node.hasTag() && node.getTag().getPrintName().equals(selectedName)) {
+        if(replacement != Null.INSTANCE) {
+          newList.add(node.getTag(), replacement);
+        }
+        found = true;
+      } else {
+        newList.add(node.getRawTag(), node.getValue());
+      }
+    }
+    if(!found && replacement != Null.INSTANCE) {
+      newList.add(selectedName, replacement);
+    }
+  
+    return newList.build();
   }
 
   @Override

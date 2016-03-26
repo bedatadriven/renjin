@@ -736,7 +736,7 @@ public class SubsettingTest extends EvalTestCase {
     assertThat(eval(" x[1] "), equalTo(NULL));
     assertThat(eval(" x[c(TRUE,FALSE)] "), equalTo(NULL));
     assertThat( eval(" x[c(1,2,3)] "), equalTo( NULL ));
-    assertThat( eval(" x[-1] "), equalTo( NULL ));
+    assertThat(eval(" x[-1] "), equalTo(NULL));
     assertThat( eval(" x[] "), equalTo( NULL ));
   }
 
@@ -944,7 +944,7 @@ public class SubsettingTest extends EvalTestCase {
     eval("assign(\"key\",1,.testEnv)");
     eval("assign(\"value\",\"foo\",.testEnv)");
     assertThat(eval("if(.testEnv[[\"key\"]]==1) TRUE else FALSE"),logicalVectorOf(Logical.TRUE));
-    assertThat(eval("if(.testEnv[[\"value\"]]==\"foo\") TRUE else FALSE"),logicalVectorOf(Logical.TRUE));
+    assertThat(eval("if(.testEnv[[\"value\"]]==\"foo\") TRUE else FALSE"), logicalVectorOf(Logical.TRUE));
   }
   
 
@@ -952,7 +952,7 @@ public class SubsettingTest extends EvalTestCase {
   public void emptyLogical() {
     eval("x <- 1:10");
     eval("emptyLogical <- TRUE[-1]");
-    assertThat(eval("x[emptyLogical]"), equalTo((SEXP)IntVector.EMPTY));
+    assertThat(eval("x[emptyLogical]"), equalTo((SEXP) IntVector.EMPTY));
   }
   
   @Test
@@ -962,7 +962,7 @@ public class SubsettingTest extends EvalTestCase {
     eval("dimnames(x) <- list(c('A','B','C'), NULL)");
     
     eval("y <- x[,1L]");
-    assertThat(eval("dim(y)"), equalTo((SEXP)Null.INSTANCE));
+    assertThat(eval("dim(y)"), equalTo((SEXP) Null.INSTANCE));
     assertThat(eval("names(y)"), equalTo(c("A","B","C")));
     
   }
@@ -991,7 +991,7 @@ public class SubsettingTest extends EvalTestCase {
     eval("dim(x) <- c(6,2)");
     eval("class(x) <- 'foo'");
     
-    assertThat(eval("x[,2]"), equalTo(c(7,8,9,10,11,12)));
+    assertThat(eval("x[,2]"), equalTo(c(7, 8, 9, 10, 11, 12)));
   }
   
   @Test
@@ -1033,6 +1033,30 @@ public class SubsettingTest extends EvalTestCase {
     eval("x[c(TRUE,FALSE)] <- 99");
     
     eval("print(sum(x))");
+  }
+  
+  @Test
+  public void replacePairListElementNameByName() {
+    eval("x <- pairlist(a=1,b=2,c=3)");
+    eval("x[['a']] <- 99");
+    eval("stopifnot(identical(x, pairlist(a=99,b=2,c=3)))");
+  }
+  
+  @Test
+  public void replacePairListWithNullRemovesElement() {
+    eval("x <- pairlist(a=1,b=2,3)");
+    eval("x[['a']] <- NULL");
+    eval("stopifnot(identical(x, pairlist(b=2,3)))");
+    
+    eval("x[['foo']] <- NULL");
+    eval("stopifnot(identical(x, pairlist(b=2,3)))");
+  }
+
+  @Test
+  public void replacePairListWithNewElement() {
+    eval("x <- pairlist(a=1,b=2,3)");
+    eval("x[['foo']] <- list(99,98)");
+    eval("stopifnot(identical(x, pairlist(a=1,b=2,3,foo=list(99,98))))");
   }
   
   @Test

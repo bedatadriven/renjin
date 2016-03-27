@@ -1,7 +1,6 @@
 package org.renjin.primitives.subset;
 
 import org.renjin.eval.Context;
-import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.sexp.*;
 
 /**
@@ -32,17 +31,17 @@ class LogicalSelection implements SelectionStrategy {
   @Override
   public Vector replaceAtomicVectorElements(Context context, AtomicVector source, Vector replacements) {
     
-    if( source.length() >= mask.length() &&
-        source instanceof DeferredComputation ||
-        replacements instanceof DeferredComputation ||
-        source.length() > 1000) {
-      
-      // Compute the replacement type 
-      Vector.Type resultType = Vector.Type.widest(source, replacements);
-      if(resultType == DoubleVector.VECTOR_TYPE) {
-        return new MaskedDoubleReplacement(source.getAttributes(), source, mask, (AtomicVector)replacements);
-      }
-    }
+//    if( source.length() >= mask.length() &&
+//        source instanceof DeferredComputation ||
+//        replacements instanceof DeferredComputation ||
+//        source.length() > 1000) {
+//      
+//      // Compute the replacement type 
+//      Vector.Type resultType = Vector.Type.widest(source, replacements);
+//      if(resultType == DoubleVector.VECTOR_TYPE) {
+//        return new MaskedDoubleReplacement(source.getAttributes(), source, mask, (AtomicVector)replacements);
+//      }
+//    }
     
     return buildReplacement(source, replacements);
   }

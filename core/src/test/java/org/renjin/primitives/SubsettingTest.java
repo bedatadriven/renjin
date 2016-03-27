@@ -735,7 +735,7 @@ public class SubsettingTest extends EvalTestCase {
 
     assertThat(eval(" x[1] "), equalTo(NULL));
     assertThat(eval(" x[c(TRUE,FALSE)] "), equalTo(NULL));
-    assertThat( eval(" x[c(1,2,3)] "), equalTo( NULL ));
+    assertThat(eval(" x[c(1,2,3)] "), equalTo(NULL));
     assertThat(eval(" x[-1] "), equalTo(NULL));
     assertThat( eval(" x[] "), equalTo( NULL ));
   }
@@ -834,7 +834,7 @@ public class SubsettingTest extends EvalTestCase {
     eval(" p <- .Internal(as.vector(list(hello=1, b=2, 3, 4), 'pairlist'))");
 
     assertThat(eval("p[['h']]"), equalTo(NULL));
-    assertThat( eval("p[['hello']]"), equalTo(c(1)));
+    assertThat(eval("p[['hello']]"), equalTo(c(1)));
     assertThat( eval("p[['h', exact=FALSE]]"), equalTo(c(1)));
   }
   
@@ -845,7 +845,7 @@ public class SubsettingTest extends EvalTestCase {
     eval(" x$a<-4");
     eval(" x$z<-NULL");
     
-    assertThat( eval("length(x)"), equalTo(c_i(2)));
+    assertThat(eval("length(x)"), equalTo(c_i(2)));
     assertThat( eval("x$a"), equalTo(c(4)));
     assertThat( eval("x$b"), equalTo(c(2)));
 
@@ -963,7 +963,7 @@ public class SubsettingTest extends EvalTestCase {
     
     eval("y <- x[,1L]");
     assertThat(eval("dim(y)"), equalTo((SEXP) Null.INSTANCE));
-    assertThat(eval("names(y)"), equalTo(c("A","B","C")));
+    assertThat(eval("names(y)"), equalTo(c("A", "B", "C")));
     
   }
 
@@ -1008,7 +1008,7 @@ public class SubsettingTest extends EvalTestCase {
   public void dollarAssignToAtomicIsCoercedToList() {
     eval("x <- c(a=91,b=92)");
     eval("x$a <- 99");
-    assertThat(eval("x"), equalTo(list(99d,92d)));
+    assertThat(eval("x"), equalTo(list(99d, 92d)));
     assertThat(eval("names(x)"), equalTo(c("a","b")));
   }
 
@@ -1071,4 +1071,73 @@ public class SubsettingTest extends EvalTestCase {
   
   }
   
+  @Test
+  public void matrixSelectionFromList() {
+    eval("x <- list(1,2,3,4)");
+    eval("dim(x) <- c(2,2)");
+    
+    assertThat(eval("x[[1,2]]"), equalTo(c(3)));
+  }
+  
+  @Test
+  public void matrixSelectionFromVector() {
+    eval("x <- c(1,2,3,4)");
+    eval("dim(x) <- c(2,2)");
+
+    assertThat(eval("x[[1,2]]"), equalTo(c(3)));
+  }
+  
+  @Test(expected = EvalException.class)
+  public void matrixSingleSelectionWithZeroIsError() {
+    eval("x <- c(1,2,3,4)");
+    eval("dim(x) <- c(2,2)");
+
+    eval("x[[1,0]]");
+  }
+  
+  @Test(expected = EvalException.class)
+  public void matrixSingleSelectionWithNAIsError() {
+    eval("x <- c(1,2,3,4)");
+    eval("dim(x) <- c(2,2)");
+
+    eval("x[[1,NA]]");
+  }
+  
+  @Test
+  public void matrixSelectionWithNA() {
+    eval("x <- 1:12");
+    eval("dim(x) <- c(3,4)");
+    
+    assertThat(eval("x[c(1,NA), 4]"), equalTo(c_i(10, IntVector.NA)));
+  }
+
+  @Test
+  public void matrixSelectionWithFirstNA() {
+    eval("x <- 1:12");
+    eval("dim(x) <- c(3,4)");
+
+    assertThat(eval("x[c(NA), c(3:4)]"), equalTo(c_i(
+        IntVector.NA, IntVector.NA,
+        IntVector.NA, IntVector.NA,
+        IntVector.NA, IntVector.NA)));
+  }
+  
+  @Test
+  public void singleMatrixSelectionByName() {
+    eval("x <- 1:6");
+    eval("dim(x) <- 2:3");
+    eval("rownames(x) <- c('a','b')");
+    
+    assertThat(eval("x[['a', 3]]"), equalTo(c_i(5)));
+  }
+
+  @Test(expected = EvalException.class)
+  public void singleMatrixSelectionByNaNameIsError() {
+    eval("x <- 1:6");
+    eval("dim(x) <- 2:3");
+    eval("rownames(x) <- c('a','b')");
+
+    eval("print(x[[NA_character_, 3]])");
+  }
+
 }

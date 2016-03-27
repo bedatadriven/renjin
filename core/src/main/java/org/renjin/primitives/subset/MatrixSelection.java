@@ -34,7 +34,11 @@ class MatrixSelection implements SelectionStrategy {
     Vector.Builder result = source.getVectorType().newBuilder();
     int index;
     while((index=it.next())!= IndexIterator.EOF) {
-      result.addFrom(materializedSource, index);
+      if(IntVector.isNA(index)) {
+        result.addNA();
+      } else {
+        result.addFrom(materializedSource, index);
+      }
     }
     
     // Calculate dimension of the subscript
@@ -78,12 +82,20 @@ class MatrixSelection implements SelectionStrategy {
 
   @Override
   public SEXP getSingleListElement(ListVector source, boolean exact) {
-    return null;
+    return getSingleElement(source);
   }
 
   @Override
   public AtomicVector getSingleAtomicVectorElement(AtomicVector source, boolean exact) {
-    return null;
+    return (AtomicVector)getSingleElement(source);
+  }
+  
+  private SEXP getSingleElement(Vector source) {
+    int index = computeUniqueIndex(source);
+
+    SubsetAssertions.checkBounds(source, index);
+
+    return source.getElementAsSEXP(index);
   }
 
   /**

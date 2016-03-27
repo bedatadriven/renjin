@@ -32,7 +32,7 @@ final class SubsetAssertions {
    * @throws EvalException if {@code index} is out of bounds.
    */
   public static void checkBounds(SEXP source, int index) {
-    if(IntVector.isNA(index) || index >= source.length()) {
+    if(IntVector.isNA(index) ||  index >= source.length()) {
       throw outOfBounds();
     }
   }

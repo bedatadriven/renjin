@@ -59,6 +59,9 @@ public class ArgumentIterator {
     } else {
       this.currentName = node.getName();
       SEXP evaluated = context.evaluate(value, rho);
+      if(evaluated == null) {
+        SEXP retry = context.evaluate(value, rho);
+      }
 //      if(evaluated == Symbol.MISSING_ARG) {
 //        throw new EvalException("Missing argument with no default: " + value);
 //      }

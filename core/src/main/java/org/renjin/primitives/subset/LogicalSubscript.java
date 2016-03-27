@@ -22,13 +22,15 @@ class LogicalSubscript implements Subscript {
     // In the context of the [[ operator, we treat logical subscripts as integers
     SubsetAssertions.checkUnitLength(subscript);
 
-    int oneBaseIndex = subscript.getElementAsInt(0);
-    
-    if(oneBaseIndex == 0) {
+    int oneBasedIndex = subscript.getElementAsInt(0);
+    if(IntVector.isNA(oneBasedIndex)) {
+      throw new EvalException("subscript out of bounds");
+    }
+    if(oneBasedIndex == 0) {
       throw new EvalException("attempt to select less than one element");
     }
 
-    return oneBaseIndex - 1;
+    return oneBasedIndex - 1;
   }
 
   @Override

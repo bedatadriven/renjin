@@ -1,5 +1,9 @@
 package org.renjin.primitives.subset;
 
+import org.renjin.sexp.IntVector;
+
+import static org.renjin.sexp.IntVector.isNA;
+
 /**
  * Iterator over a sequence of indices described by array-style subscripts.
  * 
@@ -64,8 +68,11 @@ class ArrayIndexIterator implements IndexIterator {
           state = STATE_END;
           return EOF;
         }
-
-        firstIndex += (index * increments[d]);
+        if(isNA(index)) {
+          firstIndex = IntVector.NA;
+        } else if(!isNA(firstIndex)) {
+          firstIndex += (index * increments[d]);
+        }
         offsetStack[d] = firstIndex;
       }
       state = STATE_RUNNING;
@@ -78,7 +85,7 @@ class ArrayIndexIterator implements IndexIterator {
     while(true) {
       int nextIndex = iterators[d].next();
       if(nextIndex != EOF) {
-        offsetStack[d] = offsetStack[d+1] + (nextIndex * increments[d]);
+        updateOffset(d, nextIndex);
         break;
       } 
       iterators[d].restart();
@@ -94,10 +101,19 @@ class ArrayIndexIterator implements IndexIterator {
     while(d > 0) {
       d = d - 1;
       int nextIndex = iterators[d].next();
-      offsetStack[d] = offsetStack[d+1] + (nextIndex * increments[d]);
+      updateOffset(d, nextIndex);
     }
     
     return offsetStack[0];
+  }
+
+  private void updateOffset(int dimensionIndex, int nextIndex) {
+    int offset = offsetStack[dimensionIndex + 1];
+    if(isNA(offset) || isNA(nextIndex)) {
+      offsetStack[dimensionIndex] = IntVector.NA;
+    } else {
+      offsetStack[dimensionIndex] = offset + (nextIndex * increments[dimensionIndex]);
+    }
   }
 
   @Override

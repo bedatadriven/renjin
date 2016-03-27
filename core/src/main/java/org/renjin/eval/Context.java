@@ -159,7 +159,11 @@ public class Context {
   }
   
   public SEXP evaluate(SEXP expression) {
-    return evaluate(expression, environment);
+    SEXP result = evaluate(expression, environment);
+    if(result == null) {
+      throw new IllegalStateException("Evaluated to null");
+    }
+    return result;
   }
   
   /**

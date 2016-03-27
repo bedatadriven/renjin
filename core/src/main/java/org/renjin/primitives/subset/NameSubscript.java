@@ -4,6 +4,7 @@ package org.renjin.primitives.subset;
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.AtomicVector;
 import org.renjin.sexp.IntVector;
+import org.renjin.sexp.Null;
 import org.renjin.sexp.StringVector;
 
 import java.util.HashMap;
@@ -28,7 +29,24 @@ public class NameSubscript implements Subscript {
 
   @Override
   public int computeUniqueIndex() {
-    throw new UnsupportedOperationException();
+    if(sourceNames == Null.INSTANCE) {
+      throw new EvalException("attempt to select less than one element");
+    }
+    SubsetAssertions.checkUnitLength(selectedNames);
+    
+    String selectedName = selectedNames.getElementAsString(0);
+    for (int i = 0; i < selectedNames.length(); i++) {
+      String sourceName = sourceNames.getElementAsString(i);
+      if(selectedName == null) {
+        if(sourceName == null) {
+          return i;
+        }
+      } else if(selectedName.equals(sourceName)) {
+        return i;
+      }
+    }
+    
+    throw new EvalException("subscript out of bounds");
   }
 
   @Override

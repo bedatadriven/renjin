@@ -195,7 +195,7 @@ class VectorIndexSelection implements SelectionStrategy {
   }
 
   @Override
-  public Vector replaceListElements(ListVector source, Vector replacements) {
+  public Vector replaceListElements(Context context, ListVector source, Vector replacements) {
     IndexSubscript subscript = new IndexSubscript(this.subscript, source.length());
 
 

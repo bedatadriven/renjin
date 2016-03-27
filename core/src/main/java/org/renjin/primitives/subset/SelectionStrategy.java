@@ -39,7 +39,7 @@ public interface SelectionStrategy {
 
   AtomicVector getSingleAtomicVectorElement(AtomicVector source, boolean exact);
   
-  Vector replaceListElements(ListVector list, Vector replacement);
+  Vector replaceListElements(Context context, ListVector list, Vector replacement);
 
   SEXP replaceAtomicVectorElements(Context context, AtomicVector source, Vector replacements);
   

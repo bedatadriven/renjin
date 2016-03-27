@@ -309,10 +309,10 @@ public class Subsetting {
     SelectionStrategy selection = Selections.parseSelection(source, subscripts);
 
     if(source instanceof ListVector) {
-      return selection.replaceListElements((ListVector) source, replacement);
+      return selection.replaceListElements(context, (ListVector) source, replacement);
     
     } else if(source instanceof PairList.Node) {
-      return selection.replaceListElements(((PairList.Node) source).toVector(), replacement);
+      return selection.replaceListElements(context, ((PairList.Node) source).toVector(), replacement);
       
     } else if(source instanceof AtomicVector) {
       return selection.replaceAtomicVectorElements(context, (AtomicVector) source, replacement);

@@ -236,61 +236,38 @@ class MatrixSelection implements SelectionStrategy {
 
 
   @Override
-  public Vector replaceListElements(ListVector list, Vector replacement) {
-    throw new UnsupportedOperationException();
+  public Vector replaceListElements(Context context, ListVector list, Vector replacement) {
+    return replaceVectorElements(context, list, replacement);
   }
 
   @Override
   public Vector replaceAtomicVectorElements(Context context, AtomicVector source, Vector replacements) {
-    
-    Subscript[] subscripts = parseSubscripts(source);
+    return replaceVectorElements(context, source, replacements);
+  }
 
+  private Vector replaceVectorElements(Context context, Vector source, Vector replacements) {
+    Subscript[] subscripts = parseSubscripts(source);
 
     ArrayIndexIterator it = new ArrayIndexIterator(source.getAttributes().getDimArray(), subscripts);
     Vector.Builder result = source.newCopyBuilder(replacements.getVectorType());
-    
+
     Vector materializedReplacement = context.materialize(replacements);
-    
+
     int replacementIndex = 0;
     int replacementLength = replacements.length();
-    
+
     int index;
     while((index=it.next())!= IndexIterator.EOF) {
-      
       result.setFrom(index, materializedReplacement, replacementIndex++);
       if(replacementIndex >= replacementLength) {
         replacementIndex = 0;
       }
     }
-    
+
     if(replacementIndex != 0) {
       throw new EvalException("number of items to replace is not a multiple of replacement length");
     }
-    
-    return result.build();
-  }
-  
-  private Vector buildMatrixReplacement(Vector.Builder result, int[] dim, Subscript[] subscripts, Vector replacements) {
 
-    IndexIterator columnIt = subscripts[1].computeIndexes();
-    int columnLength = dim[1];
-
-    int replacementIndex = 0;
-
-    int columnIndex;
-    while((columnIndex=columnIt.next())!= IndexIterator.EOF) {
-      int colStart = columnIndex * columnLength;
-      
-      IndexIterator rowIt = subscripts[0].computeIndexes();
-      int rowIndex;
-      while((rowIndex=rowIt.next())!= IndexIterator.EOF) {
-        result.setFrom(colStart + rowIndex, replacements, replacementIndex++);
-
-        if(replacementIndex >= replacements.length()) {
-          replacementIndex = 0;
-        }
-      }
-    }
     return result.build();
   }
 

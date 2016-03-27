@@ -1139,5 +1139,14 @@ public class SubsettingTest extends EvalTestCase {
 
     eval("print(x[[NA_character_, 3]])");
   }
+  
+  @Test
+  public void replaceMatrixElementsInList() {
+    eval("x <- list(1,2,3,4,5,6)");
+    eval("dim(x) <- c(2,3) ");
+    eval("x[,1] <- 91:92");
+    
+    assertThat(eval("x"), equalTo(list(91, 92, 3d, 4d, 5d, 6d)));
+  }
 
 }

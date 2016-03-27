@@ -31,7 +31,7 @@ public enum NullSelection implements SelectionStrategy {
   }
 
   @Override
-  public Vector replaceListElements(ListVector source, Vector replacement) {
+  public Vector replaceListElements(Context context, ListVector source, Vector replacement) {
     // No changes to the source
     return source;
   }

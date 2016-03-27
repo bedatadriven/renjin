@@ -240,6 +240,11 @@ public interface PairList extends SEXP {
     }
 
     @Override
+    protected SEXP cloneWithNewAttributes(AttributeMap newAttributes) {
+      return new PairList.Node(tag, value, newAttributes, nextNode);
+    }
+
+    @Override
     public ListVector toVector() {
       ListVector.NamedBuilder builder = new ListVector.NamedBuilder();
       for(PairList.Node node : attributes.nodes()) {

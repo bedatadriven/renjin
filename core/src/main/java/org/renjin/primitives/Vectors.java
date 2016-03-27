@@ -279,9 +279,13 @@ public class Vectors {
     } else if ("complex".equals(mode)) {
       result = new ComplexArrayVector.Builder(x.length());
     } else if ("list".equals(mode)) {
-      // Since "list" is not atomic, copy attributes
+      // Since "list" is not atomic, copy all attributes EXCEPT dim, dimnames
       result = new ListVector.Builder();
-      result.copyAttributesFrom(x);
+      for (Symbol attribute : x.getAttributes().names()) {
+        if(attribute != Symbols.DIM && attribute != Symbols.DIMNAMES) {
+          result.setAttribute(attribute, x.getAttribute(attribute));
+        }
+      }
       
     } else if ("pairlist".equals(mode)) {
       // a pairlist is actually not a vector, so bail from here
@@ -429,6 +433,13 @@ public class Vectors {
   @Generic
   @Internal("as.vector")
   public static SEXP asVector(PairList x, String mode) {
+    
+    // Exceptionally, as.vector(x, 'pairlist') 
+    // preserves *all* attributes
+    if("pairlist".equals(mode)) {
+      return x;
+    }
+    
     Vector.Builder result;
     NamesBuilder names = NamesBuilder.withInitialCapacity(x.length());
     if ("character".equals(mode)) {
@@ -453,8 +464,7 @@ public class Vectors {
       }
       result.add(node.getValue());
     }
-    result.setAttribute(Symbols.NAMES.getPrintName(),
-        names.build(result.length()));
+    result.setAttribute(Symbols.NAMES.getPrintName(), names.build(result.length()));
     return result.build();
   }
 

@@ -333,8 +333,8 @@ public strictfp class TypesTest extends EvalTestCase {
     eval(" x <- .Internal(env2list(env,FALSE))");
     eval(" y <- .Internal(env2list(env,TRUE))");
 
-    assertThat( eval("names(x)"), CoreMatchers.equalTo(c("a")));
-    assertThat( eval("names(y)"), CoreMatchers.equalTo(c("a",".a")));
+    assertThat(eval("names(x)"), CoreMatchers.equalTo(c("a")));
+    assertThat( eval("names(y)"), CoreMatchers.equalTo(c("a", ".a")));
   }
   
   @Test
@@ -380,7 +380,7 @@ public strictfp class TypesTest extends EvalTestCase {
 
   @Test
   public void list() {
-    assertThat( eval("list(\"a\")"), equalTo( list("a") ));
+    assertThat( eval("list(\"a\")"), equalTo(list("a")));
   }
 
   @Test
@@ -405,7 +405,7 @@ public strictfp class TypesTest extends EvalTestCase {
     eval(" x<-c(1,2,3) ");
     eval(" attr(x, 'class') <- 'foo' ");
 
-    assertThat( eval(" class(x) "), equalTo( c("foo")));
+    assertThat( eval(" class(x) "), equalTo(c("foo")));
   }
   
   @Test
@@ -432,8 +432,8 @@ public strictfp class TypesTest extends EvalTestCase {
     assertThat( eval("class(9)"), equalTo(c("numeric")));
     assertThat( eval("class(9L)"), equalTo(c("integer")));
     assertThat( eval("class('foo')"), equalTo(c("character")));
-    assertThat( eval("class(TRUE)"), equalTo(c("logical")));
-    assertThat( eval("class(NULL)"), equalTo(c("NULL")));
+    assertThat(eval("class(TRUE)"), equalTo(c("logical")));
+    assertThat(eval("class(NULL)"), equalTo(c("NULL")));
   }
   
   @Test
@@ -519,15 +519,15 @@ public strictfp class TypesTest extends EvalTestCase {
     eval(" x <- 1:5");
     eval(" attributes(x) <- list(names=c('a','b', 'c'), foo='bar') ");
 
-    assertThat( eval(" names(x) "), equalTo(c("a","b","c",StringVector.NA,StringVector.NA)));
+    assertThat(eval(" names(x) "), equalTo(c("a", "b", "c", StringVector.NA, StringVector.NA)));
     assertThat( eval(" attr(x, 'foo') "), equalTo( c("bar")));
 
   }
 
   @Test
   public void asEnvironment() {
-    assertThat( eval("as.environment(1)"), sameInstance((SEXP)topLevelContext.getGlobalEnvironment()));
-    assertThat( eval("as.environment(2)"), sameInstance((SEXP)topLevelContext.getGlobalEnvironment().getParent()));
+    assertThat( eval("as.environment(1)"), sameInstance((SEXP) topLevelContext.getGlobalEnvironment()));
+    assertThat( eval("as.environment(2)"), sameInstance((SEXP) topLevelContext.getGlobalEnvironment().getParent()));
   }
 
   @Test
@@ -535,8 +535,8 @@ public strictfp class TypesTest extends EvalTestCase {
     eval(" as.vector <- function (x, mode = 'any') .Internal(as.vector(x, mode)) ");
 
     assertThat( eval("as.vector(1, 'character')"), equalTo( c("1" )));
-    assertThat( eval("as.vector(c(4,5,0), mode='logical')"), equalTo( c(true, true, false)));
-    assertThat( eval("as.vector(c(TRUE,FALSE,NA), mode='double')"), equalTo( c(1.0,0,DoubleVector.NA)));
+    assertThat( eval("as.vector(c(4,5,0), mode='logical')"), equalTo(c(true, true, false)));
+    assertThat( eval("as.vector(c(TRUE,FALSE,NA), mode='double')"), equalTo(c(1.0, 0, DoubleVector.NA)));
   }
   
   @Test
@@ -560,6 +560,50 @@ public strictfp class TypesTest extends EvalTestCase {
     
     // all other attributes are saved
     assertThat(eval("attr(y, 'foo')"), equalTo(c("bar")));
+  }
+
+  @Test
+  public void asVectorPreservesNamesForPairListsButNothingElse() {
+    eval("x <- c(a=1, b=2, c=3)");
+    eval("attr(x, 'foo') <- 'bar'");
+
+    eval("y <- as.vector(x, 'pairlist') ");
+
+    // Names are preserved
+    assertThat(eval("names(y)"), equalTo(c("a", "b", "c")));
+
+    // all other attributes are saved
+    assertThat(eval("attr(y, 'foo')"), equalTo((SEXP)Null.INSTANCE));
+  }
+
+  @Test
+  public void pairListAsPairListPreservesAllAttributes() {
+    eval("x <- pairlist(1,2,3,4)");
+    eval("dim(x) <- c(2,2) ");
+    eval("attr(x, 'foo') <- 'bar'");
+
+    eval("y <- as.vector(x, 'pairlist')");
+    assertThat(eval("dim(y)"), equalTo(c_i(2, 2)));
+    assertThat(eval("attr(y, 'foo')"), equalTo(c("bar")));
+    
+    
+    eval("y <- as.pairlist(x) ");
+    assertThat(eval("dim(y)"), equalTo(c_i(2, 2)));
+    assertThat(eval("attr(y, 'foo')"), equalTo(c("bar")));
+  }
+
+
+  @Test
+  public void asVectorDoesNotPreserveAttributesForLists() {
+    eval("x <- 1:12");
+    eval("dim(x) <- c(2,6)");
+    eval("rownames(x) <- c('a', 'b')");
+    
+    eval("y <- as.vector(x, 'list') ");
+
+    // Dims and dimnames are NOT preserved
+    assertThat(eval("dim(y)"), equalTo((SEXP)Null.INSTANCE));
+    assertThat(eval("dimnames(y)"), equalTo((SEXP)Null.INSTANCE));
   }
   
   @Test
@@ -774,4 +818,14 @@ public strictfp class TypesTest extends EvalTestCase {
     eval("as.numeric(as.character(1:10))");
   }
 
+  @Test
+  public void asListDropsDimension() {
+    eval("x <- list(1,2,3,4,5,6)");
+    eval("dim(x) <- 2:3 ");
+    
+    eval("y <- .Internal(as.vector(x, 'list'))");
+    
+    assertThat(eval("dim(y)"), equalTo((SEXP)Null.INSTANCE));
+  }
+  
 }

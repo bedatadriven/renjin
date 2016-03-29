@@ -37,6 +37,9 @@ class MatrixSelection implements SelectionStrategy {
       if(IntVector.isNA(index)) {
         result.addNA();
       } else {
+        if(index >= materializedSource.length()) {
+          throw new EvalException("subscript out of bounds");
+        }
         result.addFrom(materializedSource, index);
       }
     }

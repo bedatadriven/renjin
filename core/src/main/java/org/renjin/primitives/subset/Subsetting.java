@@ -336,10 +336,10 @@ public class Subsetting {
 
     List<SEXP> subscripts = Lists.newArrayListWithCapacity(argumentList.length() - 1);
     for (int i = 0; i < argumentList.length() - 1; i++) {
-      subscripts.add(argumentList.get(0));
+      subscripts.add(argumentList.get(i));
     }
 
-    SelectionStrategy selection = Selections.parseSelection(source, subscripts);
+    SelectionStrategy selection = Selections.parseSingleSelection(source, subscripts);
     
 
     if(source instanceof PairList.Node) {

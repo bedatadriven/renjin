@@ -226,6 +226,11 @@ class MatrixSelection implements SelectionStrategy {
   @Override
   public Vector replaceSingleElement(AtomicVector source, Vector replacement) {
    
+    if(replacement instanceof ListVector) {
+      // Another special case...
+      return replaceSingleAtomicVectorElementWithList(source, replacement);
+    }
+    
     int index = computeUniqueIndex(source);
     if(replacement.length() != 1) {
       throw new EvalException("more elements supplied than there are to replace");
@@ -237,6 +242,22 @@ class MatrixSelection implements SelectionStrategy {
     return builder.build();
   }
 
+  private Vector replaceSingleAtomicVectorElementWithList(AtomicVector source, Vector replacement) {
+
+    // Note that we drop ALL attributes even though this is a matrix assignment...
+    
+    int indexToReplace = computeUniqueIndex(source);
+    
+    ListVector.Builder list = new ListVector.Builder();
+    for (int i = 0; i < source.length(); i++) {
+      if(i == indexToReplace) {
+        list.add(replacement);
+      } else {
+        list.addFrom(source, i);
+      }
+    }
+    return list.build();
+  }
 
   @Override
   public Vector replaceListElements(Context context, ListVector list, Vector replacement) {

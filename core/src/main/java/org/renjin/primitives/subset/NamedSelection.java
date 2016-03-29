@@ -83,51 +83,101 @@ class NamedSelection implements SelectionStrategy {
 
 
   @Override
-  public Vector replaceListElements(Context context, ListVector source, Vector replacement) {
-    return buildReplacement(source, replacement);
-  }
-
-  @Override
-  public Vector replaceAtomicVectorElements(Context context, AtomicVector source, Vector replacements) {
-    return buildReplacement(source, replacements);
-  }
-  
-  private Vector buildReplacement(Vector source, Vector replacements) {
-
+  public Vector replaceListElements(Context context, ListVector source, Vector replacements) {
     Vector.Builder result = source.newCopyBuilder(replacements.getVectorType());
     NamesBuilder resultNames = NamesBuilder.clonedFrom(source);
 
     Map<String, Integer> nameMap = buildNameMap(source);
 
     int replacementIndex = 0;
-    
+    int replacementLength = replacements.length();
+
     for (int i = 0; i < selectedNames.length(); i++) {
       String selectedName = selectedNames.getElementAsString(i);
       Integer index = nameMap.get(selectedName);
-      
+
       if(index != null) {
         result.setFrom(index, replacements, replacementIndex++);
 
       } else {
         int newIndex = result.length();
-        result.setFrom(newIndex, replacements, replacementIndex++);
-        resultNames.add(selectedName);
-        nameMap.put(selectedName, newIndex);
+        if(replacements == Null.INSTANCE) {
+          // NULL is special case ONLY for replacement list elements,
+          // not atomic vectors
+          // do nothing
+        } else if(replacements.length() == 0) {
+          throw new EvalException("replacement has zero length");
+          
+        } else {
+          result.setFrom(newIndex, replacements, replacementIndex++);
+          resultNames.add(selectedName);
+          nameMap.put(selectedName, newIndex);
+        }
       }
-      
-      if(replacementIndex >= replacements.length()) {
+
+      if(replacementIndex >= replacementLength) {
         replacementIndex = 0;
       }
     }
-    
+
     if(replacementIndex != 0) {
       throw new EvalException("number of items to replace is not a multiple of replacement length");
     }
 
     result.setAttribute(Symbols.NAMES, resultNames.build());
+
+    // Drop dim attributes
+    result.removeAttribute(Symbols.DIM);
+    result.removeAttribute(Symbols.DIMNAMES);
     
     return result.build();
   }
+
+  @Override
+  public Vector replaceAtomicVectorElements(Context context, AtomicVector source, Vector replacements) {
+    Vector.Builder result = source.newCopyBuilder(replacements.getVectorType());
+    NamesBuilder resultNames = NamesBuilder.clonedFrom(source);
+
+    Map<String, Integer> nameMap = buildNameMap(source);
+
+    int replacementIndex = 0;
+    int replacementLength = replacements.length();
+
+    for (int i = 0; i < selectedNames.length(); i++) {
+      String selectedName = selectedNames.getElementAsString(i);
+      Integer index = nameMap.get(selectedName);
+
+      if(index != null) {
+        result.setFrom(index, replacements, replacementIndex++);
+
+      } else {
+        if(replacementLength == 0) {
+          throw new EvalException("replacement has zero length");
+        }
+        int newIndex = result.length();
+        result.setFrom(newIndex, replacements, replacementIndex++);
+        resultNames.add(selectedName);
+        nameMap.put(selectedName, newIndex);
+      }
+
+      if(replacementIndex >= replacementLength) {
+        replacementIndex = 0;
+      }
+    }
+
+    if(replacementIndex != 0) {
+      throw new EvalException("number of items to replace is not a multiple of replacement length");
+    }
+
+    result.setAttribute(Symbols.NAMES, resultNames.build());
+
+    // Drop dim attributes
+    result.removeAttribute(Symbols.DIM);
+    result.removeAttribute(Symbols.DIMNAMES);
+
+    return result.build();  
+  }
+  
 
   private Map<String, Integer> buildNameMap(Vector source) {
     

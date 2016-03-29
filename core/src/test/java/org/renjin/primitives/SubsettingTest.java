@@ -1148,5 +1148,15 @@ public class SubsettingTest extends EvalTestCase {
     
     assertThat(eval("x"), equalTo(list(91, 92, 3d, 4d, 5d, 6d)));
   }
+  
+  @Test
+  public void replaceSingleMatrixListElement() {
+    eval("b <- c(1/0,-3/0,0/0,4)");
+    eval("dim(b) <- c(2,1,2)");
+    eval("b[[2,1,1]] <- list(111)");
+
+    assertThat(eval("typeof(b)"), equalTo(c("list")));
+    assertThat(eval("typeof(b[[2]])"), equalTo(c("list")));
+  }
 
 }

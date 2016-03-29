@@ -308,6 +308,16 @@ public class Matrices {
     
     int dataLength = data.length();
 
+    // When matrix() is called with nrow or ncol arguments that are themselves
+    // function arguments with default values 
+    if(nrow != 1) {
+      nrowMissing = false;
+    }
+    if(ncol != 1) {
+      ncolMissing = false;
+    }
+    
+    
     if (nrowMissing && ncolMissing) {
       nrow = dataLength;
     } else if(nrowMissing) {

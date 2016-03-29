@@ -416,6 +416,7 @@ public class Summary {
   @Builtin
   public static DoubleVector cumsum(DoubleVector source) {
     DoubleArrayVector.Builder result = new DoubleArrayVector.Builder(source.length());
+    result.setAttribute(Symbols.NAMES, source.getNames());
     double sum = 0;
     for (int i = 0; i < source.length(); i++) {
       sum += source.getElementAsDouble(i);
@@ -440,6 +441,7 @@ public class Summary {
   @Builtin
   public static ComplexVector cumsum(ComplexVector source) {
     ComplexArrayVector.Builder result = new ComplexArrayVector.Builder(source.length());
+    result.setAttribute(Symbols.NAMES, source.getNames());
     Complex sum = new Complex(0, 0);
     for (int i = 0; i < source.length(); i++) {
       if(source.isElementNA(i)) {
@@ -463,6 +465,7 @@ public class Summary {
 
   private static IntVector cumulativeSumIntegers(Vector source) {
     IntArrayVector.Builder result = new IntArrayVector.Builder(source.length());
+    result.setAttribute(Symbols.NAMES, source.getNames());
     int sum = 0;
     for (int i = 0; i < source.length(); i++) {
       int x = source.getElementAsInt(i);

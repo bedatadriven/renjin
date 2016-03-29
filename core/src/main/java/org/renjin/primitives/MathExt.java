@@ -46,14 +46,14 @@ public class MathExt {
 
   @Deferrable
   @Builtin
-  @DataParallel
+  @DataParallel(PreserveAttributeStyle.ALL)
   public static double gamma(double x) {
     return Math.exp(Gamma.logGamma(x));
   }
 
   @Deferrable
   @Builtin
-  @DataParallel
+  @DataParallel(PreserveAttributeStyle.ALL)
   public static double lgamma(double x) {
     return Gamma.logGamma(x);
   }
@@ -61,7 +61,7 @@ public class MathExt {
 
   @Deferrable
   @Builtin
-  @DataParallel
+  @DataParallel(PreserveAttributeStyle.ALL)
   public static double sign(double x) {
     return Math.signum(x);
   }
@@ -92,42 +92,50 @@ public class MathExt {
 
   @Deferrable
   @Builtin
-  @DataParallel
-  public static double abs(double x) {
+  @DataParallel(PreserveAttributeStyle.ALL)
+  public static double abs(@Cast(CastStyle.EXPLICIT) double x) {
+    return Math.abs(x);
+  }
+
+
+  @Deferrable
+  @Builtin
+  @DataParallel(PreserveAttributeStyle.ALL)
+  public static int abs(@Cast(CastStyle.EXPLICIT) int x) {
     return Math.abs(x);
   }
 
   @Deferrable
   @Builtin
-  @DataParallel
+  @DataParallel(PreserveAttributeStyle.ALL)
   public static double abs(Complex x) {
     return x.abs();
   }
 
   @Deferrable
   @Builtin
-  @DataParallel
+  @DataParallel(PreserveAttributeStyle.ALL)
   public static double asinh(double val) {
     return (Math.log(val + Math.sqrt(val * val + 1)));
   }
 
   @Deferrable
   @Builtin
-  @DataParallel
+  @DataParallel(PreserveAttributeStyle.ALL)
   public static double acosh(double val) {
     return (Math.log(val + Math.sqrt(val + 1) * Math.sqrt(val - 1)));
   }
 
   @Deferrable
   @Builtin
-  @DataParallel
+  @DataParallel(PreserveAttributeStyle.ALL)
   public static double atanh(double val) {
     return (0.5 * Math.log((1 + val) / (1 - val)));
   }
 
   @Deferrable
   @Internal
-  @DataParallel
+  @DataParallel(PreserveAttributeStyle.ALL)
   public static double atan2(double y, double x) {
     return (Math.atan2(y, x));
   }
@@ -147,21 +155,21 @@ public class MathExt {
 
   @Deferrable
   @Builtin
-  @DataParallel
+  @DataParallel(PreserveAttributeStyle.ALL)
   public static double expm1(double x) {
     return Math.expm1(x);
   }
 
   @Deferrable
   @Builtin
-  @DataParallel
+  @DataParallel(PreserveAttributeStyle.ALL)
   public static double log1p(double x) {
     return Math.log1p(x);
   }
 
   @Internal
   @Deferrable
-  @DataParallel
+  @DataParallel(PreserveAttributeStyle.ALL)
   public static double beta(double a, double b) {
     return (Math.exp(Beta.logBeta(a, b)));
   }
@@ -204,7 +212,7 @@ public class MathExt {
   // of Math.round
   @Builtin
   @Deferrable
-  @DataParallel
+  @DataParallel(PreserveAttributeStyle.ALL)
   public static double round(double x) {
     return Math.rint(x);
   }

@@ -174,7 +174,7 @@ public class TextTest extends EvalTestCase {
 
     assertThat( eval("strsplit('abc','')"), equalTo( list( c("a","b","c") )));
 
-    assertThat( eval("strsplit('|ab|cf|q||','|',fixed=TRUE)"), equalTo( list(c("", "ab", "cf", "q", "", ""))));
+    assertThat( eval("strsplit('|ab|cf|q||','|',fixed=TRUE)"), equalTo( list(c("", "ab", "cf", "q", ""))));
   }
   
   @Test

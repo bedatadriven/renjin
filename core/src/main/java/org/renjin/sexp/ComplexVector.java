@@ -93,6 +93,12 @@ public abstract class ComplexVector extends AbstractAtomicVector implements Iter
   }
 
   @Override
+  public boolean isElementNaN(int index) {
+    double real = getElementAsComplex(index).getReal();
+    return Double.isNaN(real);
+  }
+
+  @Override
   public Type getVectorType() {
     return VECTOR_TYPE;
   }

@@ -31,10 +31,18 @@ class MaterializedBuilder implements CombinedBuilder {
 
   @Override
   public void addElements(String prefix, Vector value) {
+    
+    StringVector elementNames = CombinedNames.combine(prefix, value);
+    if(useNames) {
+      if (CombinedNames.hasNames(prefix, value)) {
+        haveNames = true;
+      }
+    }
+    
     for(int i=0;i!=value.length();++i) {
       vector.addFrom(value, i);
       if(useNames) {
-        addNameFrom(prefix, value, i);
+        names.add(elementNames.getElementAsString(i));
       }
     }
   }
@@ -46,42 +54,6 @@ class MaterializedBuilder implements CombinedBuilder {
       vector.setAttribute(Symbols.NAMES, names.build());
     }
     return vector.build();
-  }
-
-  private void addNameFrom(String prefix, SEXP vector, int index) {
-    
-    boolean hasPrefix = !"".equals(prefix);
-    boolean hasElementName = false;
-    String elementName = "";
-    
-    if(vector.getAttributes().hasNames()) {
-      elementName = vector.getName(index);
-      hasElementName = !"".equals(elementName);
-    }
-
-    if(hasPrefix && hasElementName) {
-      addName(toName(prefix) + "." + toName(elementName));
-
-    } else if(hasElementName) {
-      addName(elementName);
-    
-    } else if(hasPrefix && vector.length() > 1) {
-      addName(toName(prefix) + (index+1));
-
-    } else if(hasPrefix) {
-      addName(prefix);
-
-    } else {
-      addName("");
-    }
-  }
-  
-  private String toName(String name) {
-    if(StringVector.isNA(name)) {
-      return "NA";
-    } else {
-      return name;
-    }
   }
 
   private void addName(String name) {

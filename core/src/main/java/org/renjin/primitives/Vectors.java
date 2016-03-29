@@ -279,13 +279,9 @@ public class Vectors {
     } else if ("complex".equals(mode)) {
       result = new ComplexArrayVector.Builder(x.length());
     } else if ("list".equals(mode)) {
-      // Since "list" is not atomic, copy all attributes EXCEPT dim, dimnames
+      // Special case: preserve names with mode = 'list'
       result = new ListVector.Builder();
-      for (Symbol attribute : x.getAttributes().names()) {
-        if(attribute != Symbols.DIM && attribute != Symbols.DIMNAMES) {
-          result.setAttribute(attribute, x.getAttribute(attribute));
-        }
-      }
+      result.setAttribute(Symbols.NAMES, x.getNames());
       
     } else if ("pairlist".equals(mode)) {
       // a pairlist is actually not a vector, so bail from here

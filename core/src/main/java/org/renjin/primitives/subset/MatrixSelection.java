@@ -282,9 +282,11 @@ class MatrixSelection implements SelectionStrategy {
 
     int index;
     while((index=it.next())!= IndexIterator.EOF) {
-      result.setFrom(index, materializedReplacement, replacementIndex++);
-      if(replacementIndex >= replacementLength) {
-        replacementIndex = 0;
+      if(!IntVector.isNA(index)) {
+        result.setFrom(index, materializedReplacement, replacementIndex++);
+        if (replacementIndex >= replacementLength) {
+          replacementIndex = 0;
+        }
       }
     }
 

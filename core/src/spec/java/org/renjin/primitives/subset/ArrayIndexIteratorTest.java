@@ -2,6 +2,8 @@ package org.renjin.primitives.subset;
 
 import org.junit.Test;
 import org.renjin.sexp.IntArrayVector;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.LogicalArrayVector;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -74,6 +76,26 @@ public class ArrayIndexIteratorTest {
     assertThat(it.next(), equalTo(2));
     assertThat(it.next(), equalTo(3));
     assertThat(it.next(), equalTo(EOF));
+    
+  }
+  
+  @Test
+  public void naIndexes() {
+    
+    int dim[] = new int[] { 1, 1, 4 };
+    
+    Subscript[] subscripts = {
+        new MissingSubscript(dim[0]),
+        new MissingSubscript(dim[1]), 
+        new LogicalSubscript(new LogicalArrayVector(IntVector.NA), dim[2])
+    };
+    
+    ArrayIndexIterator it = new ArrayIndexIterator(dim, subscripts);
+    assertThat(it.next(), equalTo(IntVector.NA));
+    assertThat(it.next(), equalTo(IntVector.NA));
+    assertThat(it.next(), equalTo(IntVector.NA));
+    assertThat(it.next(), equalTo(IntVector.NA));
+    assertThat(it.next(), equalTo(EOF));    
     
   }
   

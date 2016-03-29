@@ -549,7 +549,7 @@ public strictfp class TypesTest extends EvalTestCase {
   }
 
   @Test
-  public void asVectorPreservesAttributesForLists() {
+  public void asVectorPreservesNamesForLists() {
     eval("x <- c(a=1, b=2, c=3)");
     eval("attr(x, 'foo') <- 'bar'");
     
@@ -559,7 +559,7 @@ public strictfp class TypesTest extends EvalTestCase {
     assertThat(eval("names(y)"), equalTo(c("a", "b", "c")));
     
     // all other attributes are saved
-    assertThat(eval("attr(y, 'foo')"), equalTo(c("bar")));
+    assertThat(eval("attr(y, 'foo')"), equalTo((SEXP)Null.INSTANCE));
   }
 
   @Test

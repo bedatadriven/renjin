@@ -245,7 +245,7 @@ public class Subsetting {
 
     for(int i=0; i < indexes.length(); ++i) {
 
-      if(!(result instanceof ListVector)) {
+      if(!(result instanceof Vector)) {
         throw new EvalException("Recursive indexing failed at level %d", i+1);
       }
       result = getSingleElement(result, new ListVector(indexes.getElementAsSEXP(i)), exact, drop);

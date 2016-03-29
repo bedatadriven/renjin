@@ -34,6 +34,8 @@ public class FixedRE implements RE {
 	private int matchStart;
 
 	public FixedRE(String pattern) {
+		assert pattern != null;
+		assert pattern.length() > 0;
 		this.pattern = pattern;
 	}
 
@@ -69,13 +71,11 @@ public class FixedRE implements RE {
 		int j;
 		while (i < s.length() && (j = nextMatch(s, i)) != -1) {
 			splits.add(s.substring(i, j));
-			if (pattern.isEmpty()) {
-				i = j + 1;
-			} else {
-				i = j + pattern.length();
-			}
+			i = j + pattern.length();
 		}
-		splits.add(s.substring(i));
+		if(i<s.length()) {
+			splits.add(s.substring(i));
+		}
 		return splits.toArray(new String[splits.size()]);
 	}
 

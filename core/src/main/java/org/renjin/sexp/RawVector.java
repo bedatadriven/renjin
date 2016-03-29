@@ -65,10 +65,11 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Byte> {
   }
 
   public static String toString(byte value) {
-    if(value <= 0xF) {
-      return "0" + Integer.toHexString(value);
+    int intValue = UnsignedBytes.toInt(value);
+    if(intValue <= 0xF) {
+      return "0" + Integer.toHexString(intValue);
     } else {
-      return Integer.toHexString(value);
+      return Integer.toHexString(intValue);
     }
   }
 

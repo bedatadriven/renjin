@@ -162,7 +162,7 @@ public class FailingMicroTest extends AbstractMicroTest {
     public void micro1393() {
         assertIdentical("{ is.numeric(TRUE) }", "FALSE");
     }
-    @Test
+    @Test @Ignore("todo: attribute order?")
     public void micro1420() {
         assertIdentical("{ x <- 1:3 ; attr(x, 'myatt') <- 2:4 ; attr(x, 'myatt1') <- 'hello' ; attributes(x) }", "structure(list(myatt = 2:4, myatt1 = \"hello\"), .Names = c(\"myatt\", \"myatt1\"))");
     }

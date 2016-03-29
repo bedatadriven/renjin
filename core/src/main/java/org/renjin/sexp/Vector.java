@@ -162,11 +162,22 @@ public interface Vector extends SEXP {
   Builder newCopyBuilder(Vector.Type type);
 
   /**
+   * Checks whether the element is the NA value for this type. Note that this method
+   * will return {@code false} for double {@code NaN} values.
    *
    * @param index zero-based index
-   * @return  true if the element at {@code index} is NA (statistically missing)
+   * @return  true if the element at {@code index} is NA (statistically missing), false if otherwise. 
    */
   boolean isElementNA(int index);
+
+  /**
+   * 
+   * @param index zero-based index
+   * @return true if the element at {@code index} is Not a Number (NaN), including values 
+   * which are NA (statistically missing)
+   */
+  boolean isElementNaN(int index);
+
 
 
   /**
@@ -195,6 +206,7 @@ public interface Vector extends SEXP {
   Object getElementAsObject(int index);
 
   int getComputationDepth();
+
 
   /**
    * An interface to

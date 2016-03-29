@@ -39,6 +39,13 @@ abstract class AbstractVector extends AbstractSEXP implements Vector {
     return getElementAsRawLogical(index) == 1;
   }
 
+
+  @Override
+  public boolean isElementNaN(int index) {
+    return isElementNA(index);
+  }
+
+
   @Override
   public byte getElementAsByte(int index) {
     int value = getElementAsInt(index);

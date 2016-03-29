@@ -1,6 +1,5 @@
 package org.renjin.primitives.combine;
 
-import com.google.common.base.Strings;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.StringVector;
 import org.renjin.sexp.Symbols;
@@ -50,36 +49,43 @@ class MaterializedBuilder implements CombinedBuilder {
   }
 
   private void addNameFrom(String prefix, SEXP vector, int index) {
-    // The resulting name starts with the argument's
-    // tag, if any
-    StringBuilder name = new StringBuilder(prefix);
-
-    // if this element has itself a name, then append it
-    // to the name, delimiting with a '.' if necessary
-    String elementName = vector.getName(index);
-    if(!Strings.isNullOrEmpty(elementName)) {
-      if(name.length() > 0) {
-        name.append('.');
-      }
-      name.append(elementName);
-    } else {
-
-      // if this element has no name of its own, but we're
-      // inheriting a name from the argument, AND this vector has
-      // multiple values, then we distinguish this element's name
-      // from the others in the vector by appending the
-      // element's (1-based) index
-
-      if(name.length() > 0 && vector.length() > 1) {
-        name.append(index + 1);
-      }
+    
+    boolean hasPrefix = !"".equals(prefix);
+    boolean hasElementName = false;
+    String elementName = "";
+    
+    if(vector.getAttributes().hasNames()) {
+      elementName = vector.getName(index);
+      hasElementName = !"".equals(elementName);
     }
 
-    addName(name.toString());
+    if(hasPrefix && hasElementName) {
+      addName(toName(prefix) + "." + toName(elementName));
+
+    } else if(hasElementName) {
+      addName(elementName);
+    
+    } else if(hasPrefix && vector.length() > 1) {
+      addName(toName(prefix) + (index+1));
+
+    } else if(hasPrefix) {
+      addName(prefix);
+
+    } else {
+      addName("");
+    }
+  }
+  
+  private String toName(String name) {
+    if(StringVector.isNA(name)) {
+      return "NA";
+    } else {
+      return name;
+    }
   }
 
   private void addName(String name) {
-    if(name.length() > 0) {
+    if(StringVector.isNA(name) || name.length() > 0) {
       haveNames = true;
     }
 

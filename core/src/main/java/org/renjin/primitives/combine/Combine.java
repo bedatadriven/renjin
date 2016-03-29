@@ -59,7 +59,7 @@ public class Combine {
 
     // Allocate a new vector with all the elements
     return new Combiner(recursive, builder)
-        .add(arguments.namedValues())
+        .add(arguments)
         .build();
   }
 
@@ -78,7 +78,7 @@ public class Combine {
     CombinedBuilder builder = inspector.newBuilder().useNames(useNames);
 
     return new Combiner(recursive, builder)
-        .add(vector.namedValues())
+        .add(vector)
         .build();
   }
 

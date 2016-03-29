@@ -87,4 +87,19 @@ public class AttributeTest extends EvalTestCase {
     eval("attributes(NULL) <- list(class='x')");
   }
   
+  @Test
+  public void naName() {
+    eval("x <- 1:2");
+    eval("names(x) <- c('A', NA) ");
+    
+    assertThat(eval("names(x)"), equalTo(c("A", null)));
+    
+    eval("y <- c(x)");
+    assertThat(eval("names(y)"), equalTo(c("A", null)));
+
+    eval("z <- c(`NA`=x)");
+    assertThat(eval("names(z)"), equalTo(c("NA.A", "NA.NA")));
+
+  }
+  
 }

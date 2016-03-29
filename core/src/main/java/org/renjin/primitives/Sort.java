@@ -216,7 +216,7 @@ public class Sort {
    * @return
    */
   @Internal
-  public static Vector order(boolean naLast, final boolean decreasing, @ArgumentList final ListVector columns) {
+  public static Vector order(final boolean naLast, final boolean decreasing, @ArgumentList final ListVector columns) {
         
     if (columns.length() == 0) {
       return Null.INSTANCE;
@@ -251,7 +251,16 @@ public class Sort {
       }
 
       private int compare(Integer row1, Integer row2, int col) {
-        return ((AtomicVector)columns.get(col)).compare(row1, row2);
+        AtomicVector column = (AtomicVector) columns.get(col);
+        boolean na1 = column.isElementNA(row1);
+        boolean na2 = column.isElementNA(row2);
+        if(na1 == na2) {
+          return column.compare(row1, row2);
+        } else if(na1 && naLast) {
+          return decreasing ? -1 : +1; 
+        } else {
+          return decreasing ? +1 : -1;
+        }
       }
     });
 

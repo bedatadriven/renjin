@@ -478,20 +478,22 @@ public class Text {
       throw new EvalException("invalid substring arguments");
     }
     for (int i = 0; i < len; i++) {
-      int s = start.getElementAsInt(i % k);
-      int e = stop.getElementAsInt(i % l);
-      String el = x.getElementAsString(i);
-      if (StringVector.isNA(el)) {
+      int startIndex = start.getElementAsInt(i % k);
+      int stopIndex = stop.getElementAsInt(i % l);
+      String element = x.getElementAsString(i);
+
+      if(IntVector.isNA(startIndex) || IntVector.isNA(stopIndex) || StringVector.isNA(element)) { 
         result.add(StringVector.NA);
-      }
-      int slen = el.length();
-      if (s < 1) s = 1;
-      if (s > e || s > slen) {
-        result.add("");
-      } else if (e >= slen) {
-        result.add(el.substring(s - 1));
       } else {
-        result.add(el.substring(s - 1, e));
+        int slen = element.length();
+        if (startIndex < 1) startIndex = 1;
+        if (startIndex > stopIndex || startIndex > slen) {
+          result.add("");
+        } else if (stopIndex >= slen) {
+          result.add(element.substring(startIndex - 1));
+        } else {
+          result.add(element.substring(startIndex - 1, stopIndex));
+        }
       }
     }
     return result.build();

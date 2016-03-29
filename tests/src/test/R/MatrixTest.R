@@ -80,6 +80,6 @@ test.lazyTranspose <- function() {
 	
 	# Dropping dims shouldn't affect the transformation
 	dim(tm) <- NULL
-	assertThat(tm[1:6], identicalTo(c(1, 5001, 2, 5002, 3, 5003)))
+	assertThat(tm[1:6], identicalTo(c(1L, 5001L, 2L, 5002L, 3L, 5003L)))
 }
 

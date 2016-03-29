@@ -109,8 +109,7 @@ public class Types {
   @Generic
   @Builtin("is.numeric")
   public static boolean isNumeric(SEXP exp) {
-    return (exp instanceof IntVector && !exp.inherits("factor"))
-        || exp instanceof LogicalVector || exp instanceof DoubleVector;
+    return (exp instanceof IntVector && !exp.inherits("factor")) || exp instanceof DoubleVector;
   }
 
   @Generic

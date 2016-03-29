@@ -255,8 +255,27 @@ public final class Environments {
   @DataParallel
   public static boolean exists(@Current Context context, @Recycle String x,
       Environment environment, String mode, boolean inherits) {
+    
+    // We need to handle the "any" mode specially to avoid forcing promises
+    // that may not yet be evaluated
+    if("any".equals(mode)) {
+      return existsAnySymbol(Symbol.get(x), environment, inherits);
+    }
+    
     return environment.findVariable(context, Symbol.get(x), Vectors.modePredicate(mode),
         inherits) != Symbol.UNBOUND_VALUE;
+  }
+
+  private static boolean existsAnySymbol(Symbol symbol, Environment environment, boolean inherits) {
+    SEXP value = environment.getVariable(symbol);
+    if(value != Symbol.UNBOUND_VALUE) {
+      return true;
+    }
+    if(inherits && environment.getParent() != Environment.EMPTY) {
+      return existsAnySymbol(symbol, environment.getParent(), inherits);
+    } else {
+      return false;
+    }
   }
 
   @Internal

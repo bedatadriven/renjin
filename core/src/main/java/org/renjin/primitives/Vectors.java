@@ -321,7 +321,7 @@ public class Vectors {
     } else if(mode.equals("function")){
       return CollectionUtils.IS_FUNCTION;
     } else {
-      throw new EvalException(" mode '%s' as a predicate is implemented.", mode);
+      throw new EvalException(" mode '%s' as a predicate is not implemented.", mode);
     }
   }
 

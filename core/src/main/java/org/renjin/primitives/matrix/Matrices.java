@@ -46,7 +46,7 @@ public class Matrices {
       /*
        * Transpose the values
        */
-      if(x.length() > TransposingMatrix.LENGTH_THRESHOLD) {
+      if(x instanceof DoubleVector && x.length() > TransposingMatrix.LENGTH_THRESHOLD) {
         // Just wrap the matrix
         return new TransposingMatrix(x, attributes.build());
 

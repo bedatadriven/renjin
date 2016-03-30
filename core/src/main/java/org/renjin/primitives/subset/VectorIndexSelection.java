@@ -216,6 +216,10 @@ class VectorIndexSelection implements SelectionStrategy {
   public static Vector buildReplacement(Vector source, Vector replacements, Subscript subscript) {
     
     Vector.Builder builder = source.newCopyBuilder(replacements.getVectorType());
+    StringVector.Builder resultNames = null;
+    if(source.getAttributes().hasNames()) {
+      resultNames = source.getAttributes().getNames().newCopyBuilder();
+    }
     
     boolean deformed = false;
     
@@ -226,12 +230,13 @@ class VectorIndexSelection implements SelectionStrategy {
     IndexIterator it = subscript.computeIndexes();
     while((index=it.next()) != IndexIterator.EOF) {
       
-      if(IntVector.isNA(index)) {
-        throw new EvalException("NAs not allowed in subscripted assignments");
-      }
-      
       if(index >= source.length()) {
         deformed = true;
+        if(resultNames != null) {
+          while(resultNames.length() <= index) {
+            resultNames.add("");
+          }
+        }
       }
       
       if(replacementLength == 0) {
@@ -246,6 +251,9 @@ class VectorIndexSelection implements SelectionStrategy {
     }
     
     if(deformed) {
+      if(resultNames != null) {
+        builder.setAttribute(Symbols.NAMES, resultNames.build());
+      }
       builder.removeAttribute(Symbols.DIM);
       builder.removeAttribute(Symbols.DIMNAMES);
     }

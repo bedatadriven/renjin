@@ -436,15 +436,16 @@ public class FailingMicroTest extends AbstractMicroTest {
     public void micro2381() {
         assertIdentical("{ x<-1:5 ; x[x[4]<-2] <- (x[4]<-100) ; x }", "c(1, 100, 3, 2, 5)");
     }
-    @Ignore @Test
+    @Test
     public void micro2392() {
         assertIdentical("{ x <- c(a=1,b=2) ; x[2:3]<-10; x }", "structure(c(1, 10, 10), .Names = c(\"a\", \"b\", \"\"))");
     }
-    @Ignore @Test
+    @Test
     public void micro2393() {
         assertIdentical("{ x <- c(a=1,b=2) ; x[c(2,3)]<-10; x }", "structure(c(1, 10, 10), .Names = c(\"a\", \"b\", \"\"))");
     }
-    @Ignore @Test
+    
+    @Test
     public void micro2394() {
         assertIdentical("{ x <- c(a=1,b=2) ; x[3]<-10; x }", "structure(c(1, 2, 10), .Names = c(\"a\", \"b\", \"\"))");
     }

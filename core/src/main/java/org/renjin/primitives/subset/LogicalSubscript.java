@@ -43,15 +43,8 @@ class LogicalSubscript implements Subscript {
 
   @Override
   public IndexPredicate computeIndexPredicate() {
-    return new IndexPredicate() {
-      @Override
-      public boolean apply(int index) {
-        int mask = subscript.getElementAsInt(index % subscript.length());
-        return mask == 1;
-      }
-    };
+    return new LogicalPredicate(subscript);
   }
-  
   
   private class Iterator implements IndexIterator {
 
@@ -79,4 +72,5 @@ class LogicalSubscript implements Subscript {
       nextIndex = 0;
     }
   }
+
 }

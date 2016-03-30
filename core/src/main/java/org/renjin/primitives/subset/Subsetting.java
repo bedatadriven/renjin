@@ -350,8 +350,12 @@ public class Subsetting {
 
     } else if(source instanceof Null) {
       // Given x[[i]] <- y, where is.null(x), then we create
-      // a new list...
-      return selection.replaceSingleListElement(new ListVector(), replacement);
+      // a new atomic vector or list dependin on size of replacement
+      if (replacement instanceof AtomicVector && replacement.length() == 1) {
+        return selection.replaceSingleElement(LogicalVector.EMPTY, (Vector) replacement);
+      } else {
+        return selection.replaceSingleListElement(new ListVector(), replacement);
+      }
       
     } else if(source instanceof AtomicVector) {
       if(!(replacement instanceof Vector)) {

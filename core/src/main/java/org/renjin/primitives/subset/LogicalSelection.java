@@ -2,6 +2,7 @@ package org.renjin.primitives.subset;
 
 import org.renjin.eval.Context;
 import org.renjin.sexp.*;
+import org.renjin.util.NamesBuilder;
 
 /**
  * Selection based on a boolean mask, for example {@code x[TRUE] or x[c(TRUE,FALSE)]}
@@ -30,50 +31,102 @@ class LogicalSelection implements SelectionStrategy {
 
   @Override
   public Vector replaceAtomicVectorElements(Context context, AtomicVector source, Vector replacements) {
-    
-//    if( source.length() >= mask.length() &&
-//        source instanceof DeferredComputation ||
-//        replacements instanceof DeferredComputation ||
-//        source.length() > 1000) {
-//      
-//      // Compute the replacement type 
-//      Vector.Type resultType = Vector.Type.widest(source, replacements);
-//      if(resultType == DoubleVector.VECTOR_TYPE) {
-//        return new MaskedDoubleReplacement(source.getAttributes(), source, mask, (AtomicVector)replacements);
-//      }
-//    }
-    
-    return buildReplacement(source, replacements);
-  }
-  
-  @Override
-  public Vector replaceListElements(Context context, ListVector source, Vector replacement) {
-    return buildReplacement(source, replacement);
+
+    // For ATOMIC VECTORS, logical subscripts behave quite differently if they are longer
+    // than the source vector.
+
+    // For example, if x = c(1,2)
+    // Then x[TRUE] <- 99 will assign c(99, 99) to x
+    // But x[TRUE,FALSE,TRUE,FALSE] will extend the vector to x(99, 2, 99, NA)
+
+    if(mask.length() <= source.length()) {
+      return buildMaskedReplacement(source, replacements);
+    } else {
+      return buildExtendedReplacement(source, replacements);
+    }
   }
 
-  private Vector buildReplacement(Vector source, Vector replacements) {
+  @Override
+  public Vector replaceListElements(Context context, ListVector source, Vector replacement) {
     
+    // Behavior for lists is to remove selected elements
+    if(replacement == Null.INSTANCE) {
+      if(mask.length() == 0) {
+        return source;
+      } else {
+        return ListSubsetting.removeListElements(source, new LogicalPredicate(mask));
+      }
+    }
+    
+    if(mask.length() <= source.length()) {
+      return buildMaskedReplacement(source, replacement);
+    } else {
+      return buildExtendedReplacement(source, replacement);
+    }
+  }
+
+  private Vector buildExtendedReplacement(Vector source, Vector replacements) {
+    assert source.length() < mask.length();
+
+    int resultLength = mask.length();
+    int sourceLength = source.length();
+
+    Vector.Builder result = Vector.Type.widest(source, replacements).newBuilderWithInitialCapacity(resultLength);
+    NamesBuilder resultNames = NamesBuilder.withInitialCapacity(resultLength);
+
+    int replacementIndex = 0;
+
+    for(int i=0;i<resultLength;++i) {
+      int maskValue = mask.getElementAsRawLogical(i);
+      if (maskValue == 0) {
+        // FALSE: use source value IF still in range
+        if(i < sourceLength) {
+          result.addFrom(source, i);
+          resultNames.add(source.getName(i));
+        } else {
+          result.addNA();
+          resultNames.addNA();
+        }
+      } else if (IntVector.isNA(maskValue)) {
+        // NA: set value to NA
+        result.setNA(i);
+        resultNames.addNA();
+
+      } else {
+        // TRUE: use next replacement element
+        result.setFrom(i, replacements, replacementIndex);
+
+        replacementIndex++;
+        if (replacementIndex >= replacements.length()) {
+          replacementIndex = 0;
+        }
+      }
+    }
+    result.setAttribute(Symbols.NAMES, resultNames.build());
+    return result.build();
+  }
+
+  private Vector buildMaskedReplacement(Vector source, Vector replacements) {
+
     Vector.Builder builder = source.newCopyBuilder(replacements.getVectorType());
     int maskIndex = 0;
     int resultIndex = 0;
     int replacementIndex = 0;
-    
-    // The length of the result vector is the longer of the 
-    // source vector or the logical subscript
-    int resultLength = Math.max(source.length(), mask.length());
 
-    if(mask.length() > 0) {
-      while (resultIndex < resultLength) {
+    int sourceLength = source.length();
+
+    if (mask.length() > 0) {
+      while (resultIndex < sourceLength) {
         int maskValue = mask.getElementAsRawLogical(maskIndex++);
+        
         if (maskValue == 1) {
           builder.setFrom(resultIndex, replacements, replacementIndex++);
-        } else if (IntVector.isNA(maskValue)) {
-          builder.setNA(resultIndex);
-        }
+          if (replacementIndex >= replacements.length()) {
+            replacementIndex = 0;
+          }
+        } 
         resultIndex++;
-        if (replacementIndex >= replacements.length()) {
-          replacementIndex = 0;
-        }
+        
         if (maskIndex >= mask.length()) {
           maskIndex = 0;
         }

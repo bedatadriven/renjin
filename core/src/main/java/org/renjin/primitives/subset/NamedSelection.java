@@ -361,6 +361,7 @@ class NamedSelection implements SelectionStrategy {
     // If we've changed the shape of the list, we need to drop matrix-related
     // attributes which are no longer valid
     if(deformed) {
+      result.setAttribute(Symbols.NAMES, resultNames.build());
       result.removeAttribute(Symbols.DIM);
       result.removeAttribute(Symbols.DIMNAMES);
     }

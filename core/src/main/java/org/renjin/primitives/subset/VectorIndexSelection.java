@@ -197,8 +197,7 @@ class VectorIndexSelection implements SelectionStrategy {
   @Override
   public Vector replaceListElements(Context context, ListVector source, Vector replacements) {
     IndexSubscript subscript = new IndexSubscript(this.subscript, source.length());
-
-
+    
     // When replace items on a list, list[i] <- NULL has the meaning of 
     // removing all selected elements
     if(replacements == Null.INSTANCE) {
@@ -214,7 +213,7 @@ class VectorIndexSelection implements SelectionStrategy {
   }
 
   
-  private Vector buildReplacement(Vector source, Vector replacements, IndexSubscript subscript) {
+  public static Vector buildReplacement(Vector source, Vector replacements, Subscript subscript) {
     
     Vector.Builder builder = source.newCopyBuilder(replacements.getVectorType());
     

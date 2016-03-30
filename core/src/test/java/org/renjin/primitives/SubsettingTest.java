@@ -1158,5 +1158,13 @@ public class SubsettingTest extends EvalTestCase {
     assertThat(eval("typeof(b)"), equalTo(c("list")));
     assertThat(eval("typeof(b[[2]])"), equalTo(c("list")));
   }
+  
+  @Test
+  public void replaceListElementsWithNullUsingLogicalSubscripts() {
+    eval("x <- list(1,2)");
+    eval("x[c(TRUE, FALSE, TRUE, TRUE)] <- NULL");
+    
+    assertThat(eval("x"), equalTo(list(2d)));
+  }
 
 }

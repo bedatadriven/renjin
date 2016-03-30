@@ -640,6 +640,8 @@ public class Formatter {
           sb.append(cs.formatArgument(vector.getElementAsInt(j)));
         } else if(vector instanceof StringVector) {
           sb.append(cs.formatArgument(vector.getElementAsString(j)));
+        } else if(vector instanceof LogicalVector) {
+          sb.append(cs.formatArgument(vector.getElementAsLogical(j)));
         } else {
           throw new EvalException("Cannot use '%s' as an sprintf argument", vector.getTypeName());
         }
@@ -937,13 +939,25 @@ public class Formatter {
         case 'G':
         case 'g':
           return printGFormat(value);
-        case 'd':
-          return printDFormat((long) value);
+      }
+      
+      if(isInteger(value)) {
+        switch (conversionCharacter) {
+          case 'd':
+            return printDFormat((long) value);
+          case 'X':
+            return printXFormat((long) value);
+        }
       }
 
       throw new EvalException("invalid format '%" + conversionCharacter + "'; " +
               "use format %f, %e, %g or %a for numeric objects");
     }
+
+    private boolean isInteger(double x) {
+      return (x == Math.floor(x)) && !Double.isInfinite(x);
+    }
+    
     /**
      * Format a String argument using this conversion
      * specification.
@@ -962,6 +976,14 @@ public class Formatter {
         "format a String with a format using a "+
         conversionCharacter+" conversion character.");
       return s2;
+    }
+    
+    String formatArgument(Logical logical) {
+      if(conversionCharacter=='s') {
+        return formatArgument(logical.toString());
+      } else {
+        return formatArgument(logical.getInternalValue());
+      }
     }
 
     /**

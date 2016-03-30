@@ -178,7 +178,8 @@ public class FailingMicroTest extends AbstractMicroTest {
     public void micro1443() {
         assertIdentical("{ x <- list(a=list(1,FALSE,b=list(2:4))) ; unlist(x) }", "structure(c(1, 0, 2, 3, 4), .Names = c(\"a1\", \"a2\", \"a.b1\", \"a.b2\", \"a.b3\"))");
     }
-    @Ignore @Test
+    @Ignore("todo: recursive list indexing") 
+    @Test
     public void micro1445() {
         assertIdentical("{ a = array(1:4,c(2,2)); b = aperm(a); (a[1,1] == b[1,1]) && (a[1,2] == b[2,1]) && (a[2,1] == b[1,2]) && (a[2,2] == b[2,2]); }", "TRUE");
     }
@@ -198,19 +199,23 @@ public class FailingMicroTest extends AbstractMicroTest {
     public void micro1451() {
         assertIdentical("{ a = array(1:24,c(2,3,4)); b = aperm(a, c(2,3,1), resize = FALSE); a[1,2,3] == b[2,1,2]; }", "TRUE");
     }
-    @Ignore @Test
+    @Test
+    @Ignore("todo: collation order")
     public void micro1490() {
         assertIdentical("{ sort(c('a','z','Z','xxxz','zza','b'), index.return=TRUE)$ix }", "c(1L, 6L, 4L, 2L, 3L, 5L)");
     }
-    @Ignore @Test
+    @Test
+    @Ignore("todo: collation order")
     public void micro1495() {
         assertIdentical("{ sort(c('A','a'), decreasing=TRUE) }", "c(\"A\", \"a\")");
     }
-    @Ignore @Test
+    @Test
+    @Ignore("todo: collation order")
     public void micro1496() {
         assertIdentical("{ sort(c('a','A'), decreasing=FALSE) }", "c(\"a\", \"A\")");
     }
-    @Ignore @Test
+    @Test
+    @Ignore("") 
     public void micro1497() {
         assertIdentical("{ sort(c('a','A','z','Z','   01','01',NA), na.last=NA, decreasing=TRUE, index.return=TRUE)$ix }", "c(4L, 3L, 2L, 1L, 5L, 6L)");
     }
@@ -302,15 +307,17 @@ public class FailingMicroTest extends AbstractMicroTest {
     public void micro1641() {
         assertIdentical("{ sprintf('Hello %*2$d', 3, 2) }", "\"Hello  3\"");
     }
-    @Ignore @Test
+    @Test
     public void micro1643() {
         assertIdentical("{ sprintf('%4X', 26) }", "\"  1A\"");
     }
-    @Ignore @Test
+    
+    @Test
     public void micro1644() {
         assertIdentical("{ sprintf('%04X', 26) }", "\"001A\"");
     }
-    @Ignore @Test
+    
+    @Test
     public void micro1655() {
         assertIdentical("{ sprintf('Hello %d == %s', TRUE, TRUE) }", "\"Hello 1 == TRUE\"");
     }

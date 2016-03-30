@@ -69,6 +69,8 @@ select.list <-
     }
 }
 
-flush.console <- function() invisible(.Call(C_flushconsole))
+# Stubbed out for Renjin 
 
-process.events <- function() invisible(.Call(C_processevents))
+flush.console <- function() invisible(NULL)
+
+process.events <- function() invisible(NULL)

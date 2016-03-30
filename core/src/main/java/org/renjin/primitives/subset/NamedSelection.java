@@ -32,19 +32,26 @@ class NamedSelection implements SelectionStrategy {
     Map<String, Integer> nameMap = buildNameMap(source);
     
     Vector.Builder result = source.newBuilderWithInitialCapacity(selectedNames.length());
-
+    StringVector.Builder resultNames = new StringVector.Builder();
+    
+    boolean anyMatching = false;
+    
     for (int i = 0; i < selectedNames.length(); i++) {
       String selectedName = selectedNames.getElementAsString(i);
       Integer index = nameMap.get(selectedName);
       if(index == null) {
         result.addNA();        
+        resultNames.addNA();
       } else {
         result.addFrom(source, index);
+        resultNames.add(selectedName);
+        anyMatching = true;
       }
     }
     
-    result.setAttribute(Symbols.NAMES, selectedNames.setAttributes(AttributeMap.EMPTY));
-
+    if(anyMatching || source.getAttributes().hasNames()) {
+      result.setAttribute(Symbols.NAMES, resultNames.build());
+    }
     return result.build();
   }
 

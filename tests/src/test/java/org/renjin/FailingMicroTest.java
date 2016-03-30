@@ -377,11 +377,11 @@ public class FailingMicroTest extends AbstractMicroTest {
     public void micro2173() {
         assertIdentical("{ b <- list(1+2i,3+4i) ; dim(b) <- c(2,1) ; b[\"hello\"] <- NULL ; b }", "list(1+2i, 3+4i)");
     }
-    @Ignore @Test
+    @Test
     public void micro2238() {
         assertIdentical("{ f <- function(b,i) { b[i] } ; f(c(1,2,3), character()) }", "numeric(0)");
     }
-    @Ignore @Test
+    @Test
     public void micro2239() {
         assertIdentical("{ f <- function(b,i) { b[i] } ; f(c(1,2,3), c(\"hello\",\"hi\")) }", "c(NA_real_, NA_real_)");
     }

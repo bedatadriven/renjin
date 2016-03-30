@@ -1,6 +1,7 @@
 package org.renjin.primitives.subset;
 
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.*;
@@ -8,6 +9,7 @@ import org.renjin.util.NamesBuilder;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -91,10 +93,16 @@ class NamedSelection implements SelectionStrategy {
 
   @Override
   public Vector replaceListElements(Context context, ListVector source, Vector replacements) {
+
+    if(replacements == Null.INSTANCE) {
+      return removeListElements(source);
+    }
+
+    Map<String, Integer> nameMap = buildNameMap(source);
+
     Vector.Builder result = source.newCopyBuilder(replacements.getVectorType());
     NamesBuilder resultNames = NamesBuilder.clonedFrom(source);
 
-    Map<String, Integer> nameMap = buildNameMap(source);
 
     int replacementIndex = 0;
     int replacementLength = replacements.length();
@@ -108,11 +116,7 @@ class NamedSelection implements SelectionStrategy {
 
       } else {
         int newIndex = result.length();
-        if(replacements == Null.INSTANCE) {
-          // NULL is special case ONLY for replacement list elements,
-          // not atomic vectors
-          // do nothing
-        } else if(replacements.length() == 0) {
+        if(replacements.length() == 0) {
           throw new EvalException("replacement has zero length");
           
         } else {
@@ -137,6 +141,47 @@ class NamedSelection implements SelectionStrategy {
     result.removeAttribute(Symbols.DIM);
     result.removeAttribute(Symbols.DIMNAMES);
     
+    return result.build();
+  }
+
+  private Vector removeListElements(ListVector source) {
+
+    // If the list has no names, then just drop the dim, dimnames attributes
+    // and return
+    if (!source.getAttributes().hasNames()) {
+      AttributeMap.Builder newAttributes = source.getAttributes().copy();
+      newAttributes.remove(Symbols.DIM);
+      newAttributes.remove(Symbols.DIMNAMES);
+      
+      return (Vector)source.setAttributes(newAttributes.build());
+    }
+    
+    // Otherwise build a new list vector without the selected elements
+    Set<String> selectedSet = Sets.newHashSet();
+    for (String selectedName : selectedNames) {
+      selectedSet.add(selectedName);
+    }
+      
+    ListVector.NamedBuilder result = ListVector.newNamedBuilder();
+    StringVector sourceNames = (StringVector) source.getNames();
+    for (int i = 0; i < source.length(); i++) {
+      String sourceName = sourceNames.getElementAsString(i);
+      if(selectedSet.contains(sourceName)) {
+        // only remove the first element
+        selectedSet.remove(sourceName);
+      } else {
+        result.add(sourceName, source.getElementAsSEXP(i));
+      }
+    }
+
+    // Copy all attributes except dim and dimnames
+    for (Symbol attribute : source.getAttributes().names()) {
+      if(attribute != Symbols.DIMNAMES &&
+         attribute != Symbols.DIM &&
+         attribute != Symbols.NAMES) {
+        result.setAttribute(attribute, source.getAttribute(attribute));
+      }
+    }
     return result.build();
   }
 

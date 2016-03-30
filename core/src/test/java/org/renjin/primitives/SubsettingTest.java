@@ -1166,5 +1166,13 @@ public class SubsettingTest extends EvalTestCase {
     
     assertThat(eval("x"), equalTo(list(2d)));
   }
+  
+  @Test
+  public void dropListElementWithNull() {
+    eval("x <- list(a=1,b=2)");
+    eval("x['a'] <- NULL");
+
+    assertThat(eval("x"), equalTo(list(2d)));
+  }
 
 }

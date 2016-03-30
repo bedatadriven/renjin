@@ -688,7 +688,7 @@ public class FailingMicroTest extends AbstractMicroTest {
     public void micro2717() {
         assertIdentical("{ l<-list(a=1,b=2,c=list(d=1,e=2,f=c(x=1,y=2,z=3))) ; l[[c(\"c\",\"f\")]] <- NULL ; l }", "structure(list(a = 1, b = 2, c = structure(list(d = 1, e = 2), .Names = c(\"d\", \"e\"))), .Names = c(\"a\", \"b\", \"c\"))");
     }
-    @Ignore @Test
+    @Test
     public void micro2718() {
         assertIdentical("{ l<-list(a=1,b=2,c=3) ; l[c(\"a\",\"a\",\"a\",\"c\")] <- NULL ; l }", "structure(list(b = 2), .Names = \"b\")");
     }

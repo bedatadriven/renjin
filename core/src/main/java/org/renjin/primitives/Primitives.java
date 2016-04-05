@@ -704,7 +704,7 @@ public class Primitives {
     f("qsort", Sort.class, 11);
     f("radixsort", /*radixsort*/ null, 11);
     f("order", Sort.class, 11);
-    f("rank", /*rank*/ null, 11);
+    f("rank", Sort.class, 11);
     f("missing", Evaluation.class, "missing", 0);
     f("nargs", Evaluation.class, 0);
     f("scan", Scan.class, 11);

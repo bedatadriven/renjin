@@ -40,6 +40,25 @@ public class SortTest extends EvalTestCase {
         assertThat(eval(".Internal(psort(c(TRUE,FALSE,FALSE,TRUE,FALSE), 1:3))"), equalTo(c(false,false,false,true,true)));
     }
 
+    @Test
+    public void rank () {
+        assertThat(eval(".Internal(rank(c(2, 3, 1, 1, 2, 2, 2), \"min\"))"), equalTo(c_i(3, 7, 1, 1, 3, 3, 3)));
+        assertThat(eval(".Internal(rank(c(2, 3, 1, 1, 2, 2, 2), \"max\"))"), equalTo(c_i(6, 7, 2, 2, 6, 6, 6)));
+        assertThat(eval(".Internal(rank(c(2, 3, 1, 1, 2, 2, 2), \"average\"))"), equalTo(c(4.5, 7.0, 1.5, 1.5, 4.5, 4.5, 4.5)));
+        assertThat(eval(".Internal(rank(c(2, 3, 1, 1, 2, 2, 2), \"min\"))"), equalTo(c_i(3, 7, 1, 1, 3, 3, 3)));
+        assertThat(eval(".Internal(rank(c(2, 3, 1, 1, 2, 2, 2), \"max\"))"), equalTo(c_i(6, 7, 2, 2, 6, 6, 6)));
+        assertThat(eval(".Internal(rank(c(2, 3, 1, 1, 2, 2, 2), \"average\"))"), equalTo(c(4.5, 7.0, 1.5, 1.5, 4.5, 4.5, 4.5)));
+        assertThat(eval(".Internal(rank(c('a','b','a','d','e'), \"min\"))"), equalTo(c_i(1, 3, 1, 4, 5)));
+        assertThat(eval(".Internal(rank(c('A','B','A','D','E'), \"min\"))"), equalTo(c_i(1, 3, 1, 4, 5)));
+        assertThat(eval(".Internal(rank(c(2L, 3L, 1L, 1L, 2L, 2L, 2L), \"min\"))"), equalTo(c_i(3, 7, 1, 1, 3, 3, 3)));
+        assertThat(eval(".Internal(rank(c(2L, 3L, 1L, 1L, 2L, 2L, 2L), \"max\"))"), equalTo(c_i(6, 7, 2, 2, 6, 6, 6)));
+        assertThat(eval(".Internal(rank(c(2L, 3L, 1L, 1L, 2L, 2L, 2L), \"average\"))"), equalTo(c(4.5, 7.0, 1.5, 1.5, 4.5, 4.5, 4.5)));
+        assertThat(eval(".Internal(rank(integer(0), \"min\"))"), equalTo(c_i()));
+        assertThat(eval(".Internal(rank(integer(0), \"max\"))"), equalTo(c_i()));
+        assertThat(eval(".Internal(rank(integer(0), \"average\"))"), equalTo(c(new double[0])));
+
+        assertThat(eval(".Internal(rank(c(2, 3, 1, 1, 2, 2, 2, 3), \"max\"))"), equalTo(c_i(6, 8, 2, 2, 6, 6, 6, 8)));
+    }
 
 
     @Test

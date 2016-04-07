@@ -19,6 +19,20 @@ merge <- function(x, y, ...) UseMethod("merge")
 merge.default <- function(x, y, ...)
     merge(as.data.frame(x), as.data.frame(y), ...)
 
+merge.internal.replacement <- function(xinds, yinds, all.x, all.y) {
+    indices <- do.call(rbind, lapply(which(xinds %in% yinds[yinds != 0L]), function(i) {
+        yi <- which(yinds == xinds[i])
+        data.frame(xi = i, yi = yi)
+    }))
+
+    xi <- if (is.null(indices)) integer(0) else indices$xi
+    yi <- if (is.null(indices)) integer(0) else indices$yi
+    x.alone <- if (all.x) which(xinds == 0L) else NULL
+    y.alone <- if (all.y) which(yinds == 0L) else NULL
+
+    list(xi = xi, yi = yi, x.alone = x.alone, y.alone = y.alone)
+}
+
 merge.data.frame <-
     function(x, y, by = intersect(names(x), names(y)), by.x = by, by.y = by,
              all = FALSE, all.x = all, all.y = all,
@@ -98,9 +112,7 @@ merge.data.frame <-
         if(nx > 0L && ny > 0L) {
             #m <- .Internal(merge(xinds, yinds, all.x, all.y))
             # pure R replacement for internal merge function:
-            m <- list(xi = which(xinds > 0L),
-                      yi = seq_along(yinds)[which(yinds > 0L)][order(yinds[which(yinds > 0L)])],
-                      x.alone = NULL, y.alone = NULL)
+            m <- merge.internal.replacement(xinds, yinds, all.x, all.y)
             if (all.x) m$x.alone <- which(xinds == 0L)
             if (all.y) m$y.alone <- which(yinds == 0L)
         }

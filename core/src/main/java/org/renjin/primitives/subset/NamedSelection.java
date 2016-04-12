@@ -187,6 +187,15 @@ class NamedSelection implements SelectionStrategy {
 
   @Override
   public Vector replaceAtomicVectorElements(Context context, AtomicVector source, Vector replacements) {
+    
+    if(selectedNames.length() == 0) {
+      // Just drop matrix attributes
+      AttributeMap.Builder newAttributes = source.getAttributes().copy();
+      newAttributes.remove(Symbols.DIM);
+      newAttributes.remove(Symbols.DIMNAMES);
+      return (Vector) source.setAttributes(newAttributes.build());
+    }
+    
     Vector.Builder result = source.newCopyBuilder(replacements.getVectorType());
     
     StringArrayVector.Builder resultNames;
@@ -206,18 +215,31 @@ class NamedSelection implements SelectionStrategy {
 
     for (int i = 0; i < selectedNames.length(); i++) {
       String selectedName = selectedNames.getElementAsString(i);
-      Integer index = nameMap.get(selectedName);
-
-      if(index != null) {
-        result.setFrom(index, replacements, replacementIndex++);
+      
+      if(StringVector.isNA(selectedName) || selectedName.isEmpty()) {
+        // Empty / NA name NEVER matches an existing element and ALWAYS
+        // adds a new element
+        result.addFrom(replacements, replacementIndex++);
+        resultNames.add(selectedName);
 
       } else {
-        if(replacementLength == 0) {
-          throw new EvalException("replacement has zero length");
+        // Otherwise try to match an existing element with this name
+        Integer index = nameMap.get(selectedName);
+
+        if (index != null) {
+          // Update the existing element
+          result.setFrom(index, replacements, replacementIndex++);
+
+        } else {
+          // Add a new element
+          int newIndex = result.length();
+          result.setFrom(newIndex, replacements, replacementIndex++);
+          resultNames.add(selectedName);
+          
+          // Update our name map, so that if this name is selected again,
+          // we DON'T add a new element, but simple update the first one we added
+          nameMap.put(selectedName, newIndex);
         }
-        int newIndex = result.length();
-        result.setFrom(newIndex, replacements, replacementIndex++);
-        resultNames.add(selectedName);
       }
 
       if(replacementIndex >= replacementLength) {
@@ -228,7 +250,7 @@ class NamedSelection implements SelectionStrategy {
     if(replacementIndex != 0) {
       context.warn("number of items to replace is not a multiple of replacement length");
     }
-
+    
     result.setAttribute(Symbols.NAMES, resultNames.build());
 
     // Drop dim attributes

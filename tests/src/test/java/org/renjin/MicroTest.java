@@ -8248,7 +8248,9 @@ public class MicroTest extends AbstractMicroTest {
   }
   @Test
   public void micro2761() {
-    assertIdentical("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1:3,3:1,4:6) ; f(as.complex(c(13,14)),character(),as.complex(23)) }", "c(13+0i, 14+0i)");
+    assertIdentical("{ f <- function(b, i, v) { b[i] <- v ; b } ; " +
+        "f(1:3,3:1,4:6) ; " +
+        "f(as.complex(c(13,14)),character(),as.complex(23)) }", "c(13+0i, 14+0i)");
   }
   @Test
   public void micro2764() {

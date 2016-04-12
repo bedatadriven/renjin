@@ -99,7 +99,19 @@ public class AttributeTest extends EvalTestCase {
 
     eval("z <- c(`NA`=x)");
     assertThat(eval("names(z)"), equalTo(c("NA.A", "NA.NA")));
-
   }
+
+  @Test
+  public void zeroLengthDimNameIsConvertedToNull() {
+    eval("x <- matrix(1:12, nrow=3)");
+    eval("dimnames(x) <- list(character(0), letters[1:4])");
+    
+    assertThat(eval("dimnames(x)[[1]]"), equalTo((SEXP) Null.INSTANCE));
+  }
+ 
   
+  @Test
+  public void dimNamesInStructure() {
+    eval("x <- structure(1:12, .Dim = c(3,4), .Dimnames = list(letters[1:3], NULL))");
+  }
 }

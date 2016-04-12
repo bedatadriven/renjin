@@ -394,15 +394,21 @@ public class Vectors {
           }
         }
       }
+      
+      AttributeMap.Builder newAttributes = x.getAttributes().copy();
 
       if(newDim.length() == 0 ||
           (newDim.length() == 1 && dim.length() > 1)) {
-        return x.setAttribute(Symbols.DIM, Null.INSTANCE)
-            .setAttribute(Symbols.DIMNAMES, Null.INSTANCE);
+        
+        newAttributes.remove(Symbols.DIM);
+        newAttributes.remove(Symbols.DIMNAMES);
+
       } else {
-        return x.setAttribute(Symbols.DIM, newDim.build())
-            .setAttribute(Symbols.DIMNAMES, newDimnames.build());
+        newAttributes.setDim(newDim.build());
+        newAttributes.setDimNames(newDimnames.build());
       }
+      
+      return x.setAttributes(newAttributes);
     }
   }
   

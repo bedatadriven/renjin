@@ -44,6 +44,17 @@ public class DeparseTest extends EvalTestCase {
   }
   
   @Test
+  public void deparseBrackets() {
+    assertThat(eval("deparse(quote({}))"), equalTo(c("{\n}")));
+    assertThat(eval("deparse(quote({1;2;3;}))"), equalTo(c("{\n1\n2\n3\n}")));
+  }
+  
+  @Test
+  public void deparseMalformedParens() {
+    assertThat(eval("deparse(quote(`(`()))"), equalTo(c("(NULL)")));
+  }
+  
+  @Test
   public void deparseCalls() {
     assertThat(eval("deparse(quote(if(x) y else  z))"), equalTo(c("if (x) y else z")));
     assertThat(eval("deparse(quote(for(i in x) z()))"), equalTo(c("for(i in x) z()")));

@@ -345,7 +345,7 @@ public class Deparse {
     }
 
     private void deparseUnaryOp(FunctionCall call) {
-      deparsed.append(((Symbol)call.getFunction()).getPrintName());
+      deparsed.append(((Symbol) call.getFunction()).getPrintName());
       deparse(call.getArgument(0));
     }
 
@@ -362,13 +362,20 @@ public class Deparse {
 
     private void deparseBracket(FunctionCall call) {
       deparsed.append("{\n");
-      deparse(call.getArgument(0));
-      deparsed.append("\n}");
+      for (SEXP statement : call.getArguments().values()) {
+        deparse(statement);
+        deparsed.append("\n");
+      }
+      deparsed.append("}");
     }
     
     private void deparseParen(FunctionCall call) {
       deparsed.append("(");
-      deparse(call.getArgument(0));
+      if(call.getArguments().length() == 0) {
+        deparsed.append("NULL");
+      } else {
+        deparse(call.getArgument(0));
+      }
       deparsed.append(")");
     }
     

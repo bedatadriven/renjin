@@ -162,6 +162,7 @@ public class FailingMicroTest extends AbstractMicroTest {
     public void micro1393() {
         assertIdentical("{ is.numeric(TRUE) }", "FALSE");
     }
+    
     @Test @Ignore("todo: attribute order?")
     public void micro1420() {
         assertIdentical("{ x <- 1:3 ; attr(x, 'myatt') <- 2:4 ; attr(x, 'myatt1') <- 'hello' ; attributes(x) }", "structure(list(myatt = 2:4, myatt1 = \"hello\"), .Names = c(\"myatt\", \"myatt1\"))");
@@ -185,7 +186,10 @@ public class FailingMicroTest extends AbstractMicroTest {
     }
     @Ignore @Test
     public void micro1446() {
-        assertIdentical("{ a = array(1:24,c(2,3,4)); b = aperm(a); dim(b)[1] == 4 && dim(b)[2] == 3 && dim(b)[3] == 2; }", "TRUE");
+        assertIdentical("{ " +
+            "a = array(1:24,c(2,3,4)); " +
+            "b = aperm(a); " +
+            "dim(b)[1] == 4 && dim(b)[2] == 3 && dim(b)[3] == 2; }", "TRUE");
     }
     @Ignore @Test
     public void micro1447() {

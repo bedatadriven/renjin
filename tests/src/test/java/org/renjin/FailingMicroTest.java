@@ -235,15 +235,17 @@ public class FailingMicroTest extends AbstractMicroTest {
     public void micro1500() {
         assertIdentical("{ sort(c(TRUE,NA,TRUE,NA,FALSE,TRUE,NA), na.last=NA, decreasing=TRUE) }", "c(TRUE, TRUE, TRUE, FALSE)");
     }
-    @Ignore @Test
+    @Test
     public void micro1507() {
         assertIdentical("{ rank(c(10,100,100,1000)) }", "c(1, 2.5, 2.5, 4)");
     }
-    @Ignore @Test
+    
+    @Test
     public void micro1508() {
         assertIdentical("{ rank(c(1000,100,100,100, 10)) }", "c(5, 3, 3, 3, 1)");
     }
-    @Ignore @Test
+    
+    @Test
     public void micro1509() {
         assertIdentical("{ rank(c(a=2,b=1,c=3,40)) }", "structure(c(2, 1, 3, 4), .Names = c(\"a\", \"b\", \"c\", \"\"))");
     }

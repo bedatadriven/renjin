@@ -183,7 +183,7 @@ public class JLineAetherListener implements TransferListener, PackageListener {
     public void packageLoadSucceeded(FqPackageName name, String version) {
         clearProgressBar();
         try {
-            reader.println(String.format("Loaded %s.%s verson %s.", name.getGroupId(), name.getPackageName(), version));
+            reader.println(String.format("Loaded %s.%s version %s.", name.getGroupId(), name.getPackageName(), version));
         } catch (IOException e) {
             e.printStackTrace();
         }

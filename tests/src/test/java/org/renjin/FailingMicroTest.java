@@ -243,27 +243,27 @@ public class FailingMicroTest extends AbstractMicroTest {
     public void micro1509() {
         assertIdentical("{ rank(c(a=2,b=1,c=3,40)) }", "structure(c(2, 1, 3, 4), .Names = c(\"a\", \"b\", \"c\", \"\"))");
     }
-    @Ignore @Test
+    @Test
     public void micro1510() {
         assertIdentical("{ rank(c(a=2,b=1,c=3,d=NA,e=40), na.last=NA) }", "structure(c(2, 1, 3, 4), .Names = c(\"a\", \"b\", \"c\", \"e\"))");
     }
-    @Ignore @Test
+    @Test
     public void micro1511() {
         assertIdentical("{ rank(c(a=2,b=1,c=3,d=NA,e=40), na.last='keep') }", "structure(c(2, 1, 3, NA, 4), .Names = c(\"a\", \"b\", \"c\", \"d\", \"e\"))");
     }
-    @Ignore @Test
+    @Test
     public void micro1512() {
         assertIdentical("{ rank(c(a=2,b=1,c=3,d=NA,e=40), na.last=TRUE) }", "structure(c(2, 1, 3, 5, 4), .Names = c(\"a\", \"b\", \"c\", \"d\", \"e\"))");
     }
-    @Ignore @Test
+    @Test
     public void micro1513() {
         assertIdentical("{ rank(c(a=2,b=1,c=3,d=NA,e=40), na.last=FALSE) }", "structure(c(3, 2, 4, 1, 5), .Names = c(\"a\", \"b\", \"c\", \"d\", \"e\"))");
     }
-    @Ignore @Test
+    @Test
     public void micro1514() {
         assertIdentical("{ rank(c(a=1,b=1,c=3,d=NA,e=3), na.last=FALSE, ties.method='max') }", "structure(c(3L, 3L, 5L, 1L, 5L), .Names = c(\"a\", \"b\", \"c\", \"d\", \"e\"))");
     }
-    @Ignore @Test
+    @Test
     public void micro1515() {
         assertIdentical("{ rank(c(a=1,b=1,c=3,d=NA,e=3), na.last=NA, ties.method='min') }", "structure(c(1L, 1L, 3L, 3L), .Names = c(\"a\", \"b\", \"c\", \"e\"))");
     }

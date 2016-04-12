@@ -2509,27 +2509,30 @@ public class RParser {
   }
 
   <T extends AbstractSEXP> T attachSrcrefs(T val, SEXP srcfile) {
-    SEXP t;
-    Vector.Builder srval;
-    int n;
-
-    PROTECT(val);
-    t = CDR(srcRefs);
-    int tlen = length(t);
-    srval = allocVector(VECSXP, tlen);
-    for (n = 0 ; n < tlen; n++, t = CDR(t)) {
-       SET_VECTOR_ELT(srval, n, CAR(t));
-    }
-    //setAttrib(val, R_SrcrefSymbol, srval);
-    //setAttrib(val, R_SrcfileSymbol, srcfile);
-    val.unsafeSetAttributes(
-        AttributeMap.newBuilder().
-            set(R_SrcrefSymbol, srval.build()).
-            set(R_SrcfileSymbol, srcfile).
-            build()
-    );
-    UNPROTECT(1);
-    srcRefs = NewList();
+// Disbabling for the moment
+// The format really doesn't seem to match GNU R and causes regressions 
+// in some packages.
+//    SEXP t;
+//    Vector.Builder srval;
+//    int n;
+//
+//    PROTECT(val);
+//    t = CDR(srcRefs);
+//    int tlen = length(t);
+//    srval = allocVector(VECSXP, tlen);
+//    for (n = 0 ; n < tlen; n++, t = CDR(t)) {
+//       SET_VECTOR_ELT(srval, n, CAR(t));
+//    }
+//    //setAttrib(val, R_SrcrefSymbol, srval);
+//    //setAttrib(val, R_SrcfileSymbol, srcfile);
+//    val.unsafeSetAttributes(
+//        AttributeMap.newBuilder().
+//            set(R_SrcrefSymbol, srval.build()).
+//            set(R_SrcfileSymbol, srcfile).
+//            build()
+//    );
+//    UNPROTECT(1);
+//    srcRefs = NewList();
     return val;
   }
 

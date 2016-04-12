@@ -28,6 +28,7 @@ import org.renjin.eval.Context;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.parser.NumericLiterals;
+import org.renjin.parser.StringLiterals;
 import org.renjin.primitives.text.ReservedWords;
 import org.renjin.sexp.*;
 
@@ -129,7 +130,7 @@ public class Deparse {
 
     @Override
     public void visit(CHARSEXP charExp) {
-      throw new UnsupportedOperationException();
+      StringLiterals.appendEscaped(deparsed, charExp.getValue());
     }
 
     @Override

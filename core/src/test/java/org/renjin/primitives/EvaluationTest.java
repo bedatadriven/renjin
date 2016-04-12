@@ -823,5 +823,39 @@ public class EvaluationTest extends EvalTestCase {
     assertThat(x.getNames().getElementAsString(1), equalTo("b"));
 
   }
+  
+  @Test
+  public void repromisedNotMissing() {
+    
+    eval("`f<-` <- function(lhs, value) missing(value)");
+    eval("x <- 1");
+    eval("y <- 2");
+    eval("f(x) <- y"); 
+    assertThat(eval("x"), equalTo(c(false)));
+  }
+
+  @Test
+  public void repromisedMissing() {
+
+    eval("`f<-` <- function(lhs, value) missing(value)");
+    eval("g <- function(y=1) { x<-1; f(x) <- y; x; }");
+    assertThat(eval("g()"), equalTo(c(false)));
+  }
+  
+  @Test
+  public void missingEvaluatedPromise() {
+    
+    eval("g <- function(y=1) { y+1; missing(y); }");
+    assertThat(eval("g()"), equalTo(c(true)));  
+  }
+  
+  @Test
+  public void missingGroupDispatch() {
+    eval("`+.foo` <- function(x, y) { missing(y) }");
+    eval("f <- function(a) { a+a } ");
+    eval("x <- 1");
+    eval("class(x) <- 'foo'");
+    assertThat(eval("f(x)"), equalTo(c(false)));
+  }
 }
 

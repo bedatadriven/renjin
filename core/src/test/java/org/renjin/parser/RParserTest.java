@@ -55,6 +55,7 @@ public class RParserTest {
     parseSingle("switch(x, 1= 2= 'foo')");
   }
   
+  @Ignore
   @Test
   public void parseWithSourceRefs() throws IOException {
     ExpressionVector sexps = RParser.parseAllSource(new StringReader("x+1\nx+y\n"));

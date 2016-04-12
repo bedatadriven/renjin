@@ -1,6 +1,8 @@
 // Auto-generated from micro-tests.in
 package org.renjin;
-import org.junit.*;
+
+import org.junit.Ignore;
+import org.junit.Test;
 
 public class MicroTest extends AbstractMicroTest {
   @Test
@@ -4311,7 +4313,10 @@ public class MicroTest extends AbstractMicroTest {
   }
   @Test
   public void micro1573() {
-    assertIdentical("{ f <- function(x = y, y = x) { g(x, y) } ; g <- function(x, y) { missing(x) } ; f() }", "TRUE");
+    assertIdentical("{ " +
+        "g <- function(x, y) { missing(x) } ; " +
+        "f <- function(x = y, y = x) { g(x, y) } ; " +
+        "f() }", "TRUE");
   }
   @Test
   public void micro1574() {

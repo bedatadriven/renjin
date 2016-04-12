@@ -295,11 +295,14 @@ public class FailingMicroTest extends AbstractMicroTest {
     public void micro1555() {
         assertIdentical("{ round(1.123456,digit=2.8) }", "1.123");
     }
-    @Ignore @Test
+   
+   
+    @Test
     public void micro1569() {
         assertIdentical("{ f <- function(a = 2) { g(a) } ; g <- function(b) { missing(b) } ; f() }", "FALSE");
     }
-    @Ignore @Test
+    
+    @Test
     public void micro1570() {
         assertIdentical("{ f <- function(a = z) {  g(a) } ; g <- function(b) { missing(b) } ; f() }", "FALSE");
     }

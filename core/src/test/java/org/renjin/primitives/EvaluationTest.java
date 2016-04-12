@@ -157,7 +157,7 @@ public class EvaluationTest extends EvalTestCase {
     eval("y<-0");
     eval("while(x<5) {  x<-x+1; if(x==3) next; y<-y+1 }");
 
-    assertThat(eval("y"), equalTo( c(3) ));
+    assertThat(eval("y"), equalTo(c(3)));
   }
   
   @Test
@@ -199,7 +199,7 @@ public class EvaluationTest extends EvalTestCase {
   }
 
   @Test
-  public void missingArgPropogates() {
+  public void missingArgPropagates() {
     eval("f <- function(x) missing(x) ");
     eval("g <- function(x) f(x) ");
     eval("h <- function(x) g(x) ");
@@ -289,7 +289,7 @@ public class EvaluationTest extends EvalTestCase {
     eval( " x <- list(a = 1)");
     eval( " x$a <- 3");
 
-    assertThat( eval("x$a"), equalTo( c(3)));
+    assertThat(eval("x$a"), equalTo(c(3)));
   }
 
   @Test
@@ -339,7 +339,7 @@ public class EvaluationTest extends EvalTestCase {
 
     assertThat(eval("class(x)"), equalTo(c("foo")));
     assertThat(eval("class(y)"), equalTo(c("foo")));
-    assertThat( eval("class(z)"), equalTo(c("foo")));
+    assertThat(eval("class(z)"), equalTo(c("foo")));
   }
 
   @Test
@@ -731,7 +731,7 @@ public class EvaluationTest extends EvalTestCase {
   public void evalWithNumericNegEnv() {
     eval(" f <- function() eval(quote(x), envir=-2L) ");
     eval(" g <- function() { x<- 43; f() }");
-    assertThat( eval("g()"), equalTo(c(43)));
+    assertThat(eval("g()"), equalTo(c(43)));
   }
 
   @Test
@@ -856,6 +856,13 @@ public class EvaluationTest extends EvalTestCase {
     eval("x <- 1");
     eval("class(x) <- 'foo'");
     assertThat(eval("f(x)"), equalTo(c(false)));
+  }
+
+  @Test
+  public void missingnessDoesNotPropogate() {
+    eval("g <- function(y = NULL) missing(y)");
+    eval("f <- function(x = NULL) g(y = x)");
+    assertThat(eval("f()"), equalTo(c(false)));
   }
 }
 

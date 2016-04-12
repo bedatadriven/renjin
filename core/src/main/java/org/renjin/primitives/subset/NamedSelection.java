@@ -218,7 +218,7 @@ class NamedSelection implements SelectionStrategy {
     }
 
     if(replacementIndex != 0) {
-      throw new EvalException("number of items to replace is not a multiple of replacement length");
+      context.warn("number of items to replace is not a multiple of replacement length");
     }
 
     result.setAttribute(Symbols.NAMES, resultNames.build());

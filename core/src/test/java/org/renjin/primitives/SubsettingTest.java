@@ -1012,7 +1012,7 @@ public class SubsettingTest extends EvalTestCase {
     assertThat(eval("names(x)"), equalTo(c("a","b")));
   }
 
-  @Test(expected = EvalException.class)
+  @Test
   public void outOfBounds() {
     eval("x <- c(X=1,a=2)");
     eval("x[c('a','X','a','b')] <- list(3,TRUE,FALSE)");

@@ -637,11 +637,11 @@ public class FailingMicroTest extends AbstractMicroTest {
     public void micro2693() {
         assertIdentical("{ v<-list(1,2,3) ; v[c(-1,-2,-6)] <- NULL ; v }", "list(1, 2)");
     }
-    @Ignore @Test
+    @Test
     public void micro2694() {
         assertIdentical("{ v<-list(1,2,3) ; v[c(TRUE,FALSE,TRUE)] <- NULL ; v }", "list(2)");
     }
-    @Ignore @Test
+    @Test
     public void micro2699() {
         assertIdentical("{ v<-list(1,2,3) ; v[c(TRUE,FALSE)] <- NULL ; v }", "list(2)");
     }
@@ -766,7 +766,7 @@ public class FailingMicroTest extends AbstractMicroTest {
         assertIdentical("list(1,2,b=c(x=3))", "structure(list(1, 2, b = structure(3, .Names = \"x\")), .Names = c(\"\", \"\", \"b\"))");
         assertIdentical("{ f <- function(b,i,v) { b[[i]] <- v ; b } ; f(list(1,2,b=c(x=3)),c(\"b\",\"x\"),10) }", "structure(list(1, 2, b = structure(10, .Names = \"x\")), .Names = c(\"\", \"\", \"b\"))");
     }
-    @Ignore @Test
+    @Test
     public void micro2742() {
         assertIdentical("{ f <- function(b,i,v) { b[[i]] <- v ; b } ; f(c(1,2,b=c(x=3)),c(\"b\"),10) }", "structure(c(1, 2, 3, 10), .Names = c(\"\", \"\", \"b.x\", \"b\"))");
     }
@@ -790,19 +790,19 @@ public class FailingMicroTest extends AbstractMicroTest {
     public void micro2747() {
         assertIdentical("{ l <- list(a=1,b=2,cd=list(c=3,d=4)) ; x <- list(l,xy=list(x=l,y=l)) ; x[[c(2,2,3,2)]] <- 10 ; l }", "structure(list(a = 1, b = 2, cd = structure(list(c = 3, d = 4), .Names = c(\"c\", \"d\"))), .Names = c(\"a\", \"b\", \"cd\"))");
     }
-    @Ignore @Test
+    @Ignore("Recursive setting") @Test
     public void micro2748() {
         assertIdentical("{ l <- list(a=1,b=2,cd=list(c=3,d=4)) ; x <- list(l,xy=list(x=l,y=l)) ; x[[c(\"xy\",\"y\",\"cd\",\"d\")]] <- 10 ; l }", "structure(list(a = 1, b = 2, cd = structure(list(c = 3, d = 4), .Names = c(\"c\", \"d\"))), .Names = c(\"a\", \"b\", \"cd\"))");
     }
-    @Ignore @Test
+    @Test
     public void micro2760() {
         assertIdentical("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1:3,3:1,4:6) ; f(as.complex(c(13,14)),as.character(NA),as.complex(23)) }", "structure(c(13+0i, 14+0i, 23+0i), .Names = c(\"\", \"\", NA))");
     }
-    @Ignore @Test
+    @Test
     public void micro2762() {
         assertIdentical("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1:3,3:1,4:6) ; f(as.complex(c(13,14)),c(\"\",\"\",\"\"),as.complex(23)) }", "structure(c(13+0i, 14+0i, 23+0i, 23+0i, 23+0i), .Names = c(\"\", \"\", \"\", \"\", \"\"))");
     }
-    @Ignore @Test
+    @Test
     public void micro2763() {
         assertIdentical("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1:3,3:1,4:6) ; f(as.complex(c(13,14)),c(\"\",\"\",NA),as.complex(23)) }", "structure(c(13+0i, 14+0i, 23+0i, 23+0i, 23+0i), .Names = c(\"\", \"\", \"\", \"\", NA))");
     }

@@ -188,8 +188,17 @@ class NamedSelection implements SelectionStrategy {
   @Override
   public Vector replaceAtomicVectorElements(Context context, AtomicVector source, Vector replacements) {
     Vector.Builder result = source.newCopyBuilder(replacements.getVectorType());
-    NamesBuilder resultNames = NamesBuilder.clonedFrom(source);
-
+    
+    StringArrayVector.Builder resultNames;
+    if(source.getAttributes().hasNames()) {
+      resultNames = new StringArrayVector.Builder(source.getAttributes().getNames());
+    } else {
+      resultNames = new StringArrayVector.Builder(0, source.length());
+      for (int i = 0; i < source.length(); i++) {
+        resultNames.add("");
+      }
+    }
+    
     Map<String, Integer> nameMap = buildNameMap(source);
 
     int replacementIndex = 0;
@@ -209,7 +218,6 @@ class NamedSelection implements SelectionStrategy {
         int newIndex = result.length();
         result.setFrom(newIndex, replacements, replacementIndex++);
         resultNames.add(selectedName);
-        nameMap.put(selectedName, newIndex);
       }
 
       if(replacementIndex >= replacementLength) {

@@ -10,6 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>packager</artifactId>
+    <name>Renjin Packager</name>
 
     <dependencies>
         <dependency>
@@ -19,5 +20,4 @@
         </dependency>
     </dependencies>
     
-
 </project>

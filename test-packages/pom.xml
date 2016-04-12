@@ -27,5 +27,6 @@
     <module>s3test</module>
     <module>collateTest</module>
     <module>evalOrder</module>
+    <module>dataTest</module>
   </modules>
 </project>

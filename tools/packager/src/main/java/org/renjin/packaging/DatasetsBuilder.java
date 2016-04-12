@@ -226,18 +226,22 @@ public class DatasetsBuilder {
    * file so that it can be loaded on demand, rather than en mass
    * when a package is loaded. 
    */
-  private void writePairList(String logicalDatasetName, Session session,
-      PairList pairList) throws FileNotFoundException, IOException {
+  private void writePairList(String logicalDatasetName, Session session, PairList pairList) 
+      throws FileNotFoundException, IOException {
+    
+    File datasetDir = new File(dataObjectDirectory, logicalDatasetName);
+    if(!datasetDir.exists()) {
+      boolean created = datasetDir.mkdirs();
+      if(!created) {
+        throw new IOException("Failed to create directory for dataset " + logicalDatasetName);
+      }
+    }
         
     for(PairList.Node node : pairList.nodes()) {
       
-      if(indexMap.values().contains(node.getName())) {
-        throw new UnsupportedOperationException(String.format("Duplicate R object '%s' name in dataset '%s' ",
-            node.getName(), logicalDatasetName));
-      }
-      indexMap.put(logicalDatasetName, node.getName());
+      indexMap.put(logicalDatasetName, logicalDatasetName + "/"  + node.getName());
       
-      File targetFile = new File(dataObjectDirectory, node.getName());
+      File targetFile = new File(datasetDir, node.getName());
       FileOutputStream out = new FileOutputStream(targetFile);
       RDataWriter writer = new RDataWriter(session.getTopLevelContext(), out);
       writer.save(node.getValue());

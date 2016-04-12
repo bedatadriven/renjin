@@ -94,11 +94,37 @@ public abstract class FileBasedPackage extends Package {
   private class FileBasedDataset extends Dataset {
 
     private String datasetName;
-    private List<String> objectNames;
+    private Map<String, String> objectNameMap = new HashMap<>();
 
     public FileBasedDataset(String name, String[] objectNames) {
       this.datasetName = name;
-      this.objectNames = Arrays.asList(objectNames);
+      
+      // Prior to Renjin 0.8.1942, members of a pairlist were stored unqualified,
+      // for example:
+      // wiod04=countries,industries,final04,output04,inter04
+      // wiod05=countries,industries,final05,output05,inter05
+      //
+      // Which lead to conflicts when two different datasets, like wiod04 and wiod05 
+      // had members of the same name (like "countries")
+
+      // To fix this, the format was changed to qualify the element name 
+      // wiod04=wiod04/countries,wiod04/industries,wiod04/final04,wiod04/output04,wiod04/inter04
+      // wiod05=wiod05/countries,wiod05/industries,wiod05/final05,wiod05/output05,wiod05/inter05
+
+      // To ensure that packages build with older version of Renjin can still be loaded,
+      // we need to support both formats
+      for (String objectName : objectNames) {
+        if(objectName.contains("/")) {
+          // Qualified
+          // dataset/member
+          String parts[] = objectName.split("/");
+          String member = parts[1];
+          objectNameMap.put(member, objectName);
+        } else {
+          // Unqualified
+          objectNameMap.put(objectName, objectName);
+        }
+      }
     }
 
     @Override
@@ -108,20 +134,17 @@ public abstract class FileBasedPackage extends Package {
 
     @Override
     public Collection<String> getObjectNames() {
-      return objectNames;
+      return objectNameMap.keySet();
     }
 
     @Override
     public SEXP loadObject(String name) throws IOException {
-      if(!objectNames.contains(name)) {
+      if(!objectNameMap.containsKey(name)) {
         throw new IllegalArgumentException(name);
       }
-      InputStream in = getResource("data/" + name).openStream();
-      try {
+      try(InputStream in = getResource("data/" + objectNameMap.get(name)).openStream()) {
         RDataReader reader = new RDataReader(in);
         return reader.readFile();
-      } finally {
-        Closeables.closeQuietly(in);
       }
     }
   }

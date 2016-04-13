@@ -128,7 +128,7 @@ class CompleteSelection implements SelectionStrategy {
       }
     }
     
-    return new ListVector(new SEXP[0], builder.validateAndBuildForVectorOfLength(0));
+    return new ListVector(new SEXP[0], builder.build());
   }
 
   private void checkReplacementLength(Vector source, SEXP replacements) {

@@ -25,11 +25,7 @@ public class RenjinScriptEngineTest {
     // create a script engine manager
     ScriptEngineManager factory = new ScriptEngineManager();
   
-//    engine = factory.getEngineByName("Renjin");   
-//    if(engine == null) {
-//      throw new AssertionError("Failed to create Renjin Script Engine");
-//    }
-    engine = new RenjinScriptEngineFactory().getScriptEngine();
+    engine = factory.getEngineByName("Renjin");   
     invocableEngine = (Invocable)engine;
   }
   

@@ -52,10 +52,6 @@ public class IntArrayVector extends IntVector {
     this.values = Arrays.copyOf(values, length);
   }
 
-  public IntArrayVector(int[] values, AttributeMap.Builder attributes) {
-    this(values, values.length, attributes.validateAndBuildForVectorOfLength(values.length));
-  }
-  
   public IntArrayVector(int[] values, AttributeMap attributes) {
     this(values, values.length, attributes);
   }

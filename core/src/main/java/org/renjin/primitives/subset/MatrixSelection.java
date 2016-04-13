@@ -176,7 +176,7 @@ class MatrixSelection implements SelectionStrategy {
     for (int d = 0; d < subscripts.length; d++) {
       if(!dropped[d]) {
         SEXP element = sourceDimNames.getElementAsSEXP(d);
-        if (element instanceof StringVector && element.length() != 0) {
+        if (element instanceof StringVector) {
           StringVector sourceNames = ((StringVector) element);
           StringVector.Builder newNames = StringArrayVector.newBuilder();
           IndexIterator it = subscripts[d].computeIndexes();

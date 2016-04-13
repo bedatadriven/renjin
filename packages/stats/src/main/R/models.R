@@ -461,15 +461,9 @@ model.frame.default <-
   
   # Verify that all variables have the same number of rows
   stopifnot(length(data) > 0)
-  numRows <- sapply(data, function(x) {
-  	if(is.null(dim(x))) {
-  		length(x)
-  	} else {
-  		nrow(x)
-  	}
-  })
- 
-  if(any(numRows[1] != numRows)) {
+	numRows <- sapply(data, length)
+  
+  if(all(numRows[1] != numRows)) {
   	stop("Not all variables have the same number of rows: ", 
   		paste(sprintf("%s (%d rows)", names(data), numRows), collapse = ", "))
   }

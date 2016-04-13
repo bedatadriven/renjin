@@ -695,7 +695,7 @@ public final class Rinternals {
     AttributeMap attributes = AttributeMap.builder().setDim(numRows, numCols).build();
     switch (type){
       case SexpType.INTSXP:
-        return new IntArrayVector(new int[numRows * numCols], attributes);
+        return new IntArrayVector(new int[numRows * numCols],attributes);
       case SexpType.REALSXP:
         return new DoubleArrayVector(new double[numRows * numCols], attributes);
       default:
@@ -996,7 +996,7 @@ public final class Rinternals {
     }
     Symbol attributeSymbol = (Symbol) attributeName;
     AbstractSEXP abstractSEXP = (AbstractSEXP) sexp;
-    abstractSEXP.unsafeSetAttributes(sexp.getAttributes().copy().set(attributeSymbol, newValue));
+    abstractSEXP.unsafeSetAttributes(sexp.getAttributes().copy().set(attributeSymbol, newValue).build());
     return sexp;
   }
 

@@ -495,13 +495,7 @@ public class RDataWriter {
   }
 
   private void writeAttributes(SEXP exp) throws IOException {
-    
     PairList attributes = exp.getAttributes().asPairList();
-
-    if(exp.getAttributes() != AttributeMap.EMPTY && attributes == Null.INSTANCE) {
-      throw new IllegalStateException("exp != AttributeMap.EMPTY but has no attributes");
-    }
-    
     if(attributes != Null.INSTANCE) {
       if(!(attributes instanceof PairList.Node)) {
         throw new AssertionError(attributes.getClass());

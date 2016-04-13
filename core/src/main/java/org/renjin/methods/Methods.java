@@ -85,7 +85,7 @@ public class Methods {
       // For this reason we have to be careful to avoid attribute
       // validation. 
       SEXP slotValue = value == Null.INSTANCE ? Symbols.S4_NULL : value;
-      return object.setAttributes(object.getAttributes().copy().set(name, slotValue));
+      return object.setAttributes(object.getAttributes().copy().set(name, slotValue).build());
     }
   }
 

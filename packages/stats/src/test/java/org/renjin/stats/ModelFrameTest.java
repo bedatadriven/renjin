@@ -34,7 +34,7 @@ public class ModelFrameTest extends EvalTestCase {
     eval("x <- c('Good', 'Bad', 'Ugly', 'Good') ");
     
     eval("print(mm <- model.matrix(~x))");
-    eval("print(attributes(mm))");
+    
     assertThat(eval("mm[,2]"), equalTo(c(1,0,0,1)));
     assertThat(eval("mm[,3]"), equalTo(c(0,0,1,0)));
     assertThat(eval("colnames(mm)"), equalTo(c("(Intercept)", "xGood", "xUgly")));

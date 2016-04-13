@@ -566,6 +566,13 @@ public class AttributeMap {
       return this;
     }
 
+
+    public Builder removeDimnames() {
+      dimNames = null;
+      updateEmptyFlag();
+      return this;
+    }
+
     public SEXP get(String what) {
       return get(Symbol.get(what));
     }
@@ -762,8 +769,10 @@ public class AttributeMap {
       if(names.length() == 0) {
         return Null.INSTANCE;
       }
-      if(names.length() != dim.getElementAsInt(dimIndex)) {
-        throw new EvalException("length of 'dimnames' [%d] not equal to array extent", dimIndex);
+      int dimLength = dim.getElementAsInt(dimIndex);
+      if(names.length() != dimLength) {
+        throw new EvalException("for dimension [%d], length of 'dimnames' [%d] not equal to array extent [%d]", 
+            dimIndex, names.length(), dimLength);
       }
       return toNameVector(names);
     }
@@ -777,6 +786,7 @@ public class AttributeMap {
         throw new EvalException("Cannot coerce '%s' to character", sexp.getTypeName());
       }
     }
+
   }
 
   public static AttributeMap fromListVector(ListVector attributes) {

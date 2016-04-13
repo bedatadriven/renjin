@@ -114,4 +114,25 @@ public class AttributeTest extends EvalTestCase {
   public void dimNamesInStructure() {
     eval("x <- structure(1:12, .Dim = c(3,4), .Dimnames = list(letters[1:3], NULL))");
   }
+  
+  @Test
+  public void changingDimsDropsDimNames() {
+    eval("m <- matrix(1:3, nrow=3)");
+    eval("dimnames(m) <- list(letters[1:3], 'X')");
+    
+    eval("dim(m) <- c(1,3)");
+
+    assertThat(eval("dimnames(m)"), equalTo((SEXP) Null.INSTANCE));
+  }
+
+  @Test
+  public void settingDimsDropDimnamesEvenIfThereIsNoChange() {
+    eval("m <- matrix(1:3, nrow=3)");
+    eval("dimnames(m) <- list(letters[1:3], 'X')");
+
+    eval("dim(m) <- c(3,1)");
+
+    assertThat(eval("dimnames(m)"), equalTo((SEXP)Null.INSTANCE));
+  }
+  
 }

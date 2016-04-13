@@ -99,12 +99,18 @@ public class Attributes {
   @Builtin("dim<-")
   public static SEXP setDimensions(SEXP exp, AtomicVector vector) {
     AttributeMap.Builder newAttributes = exp.getAttributes().copy();
-    newAttributes.remove(Symbols.NAMES);
     if(vector == Null.INSTANCE) {
       newAttributes.removeDim();
     } else {
       newAttributes.setDim(vector);
     }
+
+    // Always remove names attribute
+    newAttributes.remove(Symbols.NAMES);
+
+    // ALWAYS drop dimnames, attribute, even if dimensions haven't changed
+    newAttributes.removeDimnames();
+
     return exp.setAttributes(newAttributes);
   }
 

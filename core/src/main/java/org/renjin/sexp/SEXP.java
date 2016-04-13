@@ -156,6 +156,8 @@ public interface SEXP {
    */
   SEXP setAttributes(AttributeMap attributes);
 
+  SEXP setAttributes(AttributeMap.Builder attributes);
+
 
   /**
    * @param index zero-based index of the element

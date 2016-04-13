@@ -26,7 +26,6 @@ import com.google.common.collect.Iterables;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
-import org.renjin.primitives.vector.RowNamesVector;
 import org.renjin.sexp.*;
 
 /**
@@ -42,35 +41,6 @@ public class Attributes {
 
   private Attributes() {}
 
-  /**
-   * Validates and possibly reformats special attributes such as {@code class}, {@code names},
-   * {@code row.names}.
-   * 
-   * @param expression the expression on which the attribute is to be set
-   * @param name the name of the attribute
-   * @param attributeValue the value of the attribute to validate
-   * @return {@code attributeValue}, possibly coerced/reformatted 
-   * @throws EvalException if the attribute is special, and does not meet exceptions
-   */
-  public static SEXP validateAttribute(SEXP expression, Symbol name, SEXP attributeValue) {
-    if(attributeValue == Null.INSTANCE) {
-      return Null.INSTANCE;
-    } else if(name.equals(Symbols.CLASS)) {
-      return Attributes.validateClassAttributes(attributeValue);
-       
-    } else if(name.equals(Symbols.NAMES)) {
-      return Attributes.validateNamesAttributes(expression, attributeValue);
-  
-    } else if(name.equals(Symbols.ROW_NAMES)) {
-      return Attributes.validateRowNames(attributeValue);
-
-    } else if(name.equals(Symbols.DIM)) {
-      return Attributes.validateDim(expression, attributeValue);
-
-    } else {
-      return attributeValue;
-    }
-  }
 
   public static IntVector validateDim(SEXP sexp, SEXP attributeValue) {
 
@@ -97,68 +67,7 @@ public class Attributes {
     return new IntArrayVector(dim);
   }
 
-  /**
-   * Validates a {@code names} attribute value 
-   * @param expression the expression whose {@code names} attribute is to be updated
-   * @param names the proposed {@code names} attribute value
-   * @return the {@code names} vector, coerced to a {@link StringVector}
-   * @throws EvalException if the given {@code names} vector cannot be coerced to a {@link StringVector} or if it is not
-   * the same length as {@code expression} 
-   */
-  public static StringVector validateNamesAttributes(SEXP expression, SEXP names) {
-    if(names.length() > expression.length()) {
-      throw new EvalException("'names' attribute [%d] must be the same length as the vector [%d]",
-          names.length(), expression.length());
-    } else if(!(names instanceof StringVector) || names.length() < expression.length()) {
-      return StringArrayVector.coerceFrom(names).setLength(expression.length());
 
-    } else if(names.hasAttributes()) {
-      return (StringVector) names.setAttributes(AttributeMap.EMPTY);
-    } else {
-      return (StringVector) names;
-    }
-  }
-
-  /**
-   * Validates a {@code class} attribute value
-   * 
-   * @param classNames the proposed {@code class} attribute
-   * @return the {@code classNames} vector, coerced to {@link StringVector} if not null.
-   */
-  public static SEXP validateClassAttributes(SEXP classNames) {
-    return classNames.length() == 0 ? Null.INSTANCE : StringArrayVector.coerceFrom(classNames);
-  }
-  
-  /**
-   * Validates the {@code row.names} attribute
-   * 
-   * @param rowNames the {@code row.names} vector to validate
-   * @return the given {@code rowNames} vector, possibly in compact form. 
-   * @throws EvalException if {@code rowNames} is not a {@link StringVector} or a {@link IntArrayVector}
-   */
-  public static Vector validateRowNames(SEXP rowNames) {
-    
-    if(rowNames == Null.INSTANCE) {
-      return Null.INSTANCE;
-    
-    
-    // R uses a special "compact format" for row.names that are an integer sequence 1..n
-    // in the format c(NA, -n).
-    
-    } else if(RowNamesVector.isOldCompactForm(rowNames)) {
-      return RowNamesVector.fromOldCompactForm(rowNames);
-   
-    } else if(rowNames instanceof Vector) {
-      return (Vector)rowNames;
-   
-    } 
-    
-    throw new EvalException("row names must be 'character' or 'integer', not '%s'", rowNames.getTypeName());
-  }
-
-  
-  
-  
   /**
    * Expands attributes for 'public' consumption. 
    * 
@@ -194,9 +103,9 @@ public class Attributes {
     if(vector == Null.INSTANCE) {
       newAttributes.removeDim();
     } else {
-      newAttributes.setDim(validateDim(exp, vector));
+      newAttributes.setDim(vector);
     }
-    return exp.setAttributes(newAttributes.build());
+    return exp.setAttributes(newAttributes);
   }
 
   @Generic
@@ -280,12 +189,12 @@ public class Attributes {
     AttributeMap.Builder builder = AttributeMap.builder();
     for(NamedValue attribute : attributes) {
       Symbol name = Symbol.get(attribute.getName());
-      builder.set(name, validateAttribute(exp, name, attribute.getValue()));
+      builder.set(name, attribute.getValue());
     }
     if(exp == Null.INSTANCE) {
-      return ListVector.EMPTY.setAttributes(builder.build());
+      return ListVector.EMPTY.setAttributes(builder);
     } else {
-      return exp.setAttributes(builder.build());
+      return exp.setAttributes(builder);
     }
   }
 
@@ -329,11 +238,14 @@ public class Attributes {
     if(exp.getAttributes().getDim().length() == 1) {
       return exp.setAttributes(exp.getAttributes()
           .copy()
-          .setArrayNames(names)
-          .build());
-    } else {
-      return exp.setAttribute("names", names);
+          .setArrayNames(names));
     }
+
+    AttributeMap.Builder newAttributes = exp.getAttributes().copy();
+    newAttributes.setNames(names);
+    newAttributes.removeDim();
+    
+    return exp.setAttributes(newAttributes);
   }
 
   @Generic
@@ -480,7 +392,7 @@ public class Attributes {
 
   @Builtin
   public static SEXP unclass(SEXP exp) {
-    return exp.setAttributes(exp.getAttributes().copy().remove(Symbols.CLASS).build());
+    return exp.setAttributes(exp.getAttributes().copy().remove(Symbols.CLASS));
   }
 
   @Builtin("attr<-")

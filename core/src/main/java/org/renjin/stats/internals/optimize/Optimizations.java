@@ -30,10 +30,9 @@ import org.apache.commons.math.optimization.direct.NelderMead;
 import org.apache.commons.math.optimization.univariate.BrentOptimizer;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.primitives.Types;
-import org.renjin.invoke.annotations.Current;
-import org.renjin.invoke.annotations.Builtin;
 import org.renjin.sexp.*;
 
 public class Optimizations {

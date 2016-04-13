@@ -147,6 +147,11 @@ public class AttributeMap {
     return map != null || classes != null|| dim != null || dimNames != null;
   }
 
+  private boolean hasDim() {
+    return dim != null;
+  }
+
+
   public Iterable<PairList.Node> nodes() {
     return asPairList().nodes();
   }
@@ -278,11 +283,13 @@ public class AttributeMap {
     } else if(y.length() > x.length()) {
       return y.getAttributes();
     } else {
-      Builder builder = new Builder(y.getAttributes());
-      builder.addAllFrom(x.getAttributes());
+      Builder builder = new Builder(x.getAttributes());
+      builder.combineFrom(y.getAttributes());
+      
       return builder.build();
     }
   }
+
 
   /**
    * Combines the <em>dim</em>, <em>names</em>, and <em>dimnames</em> attributes from
@@ -432,7 +439,7 @@ public class AttributeMap {
     /**
      * Validates a {@code class} attribute value
      *
-     * @param classNames the proposed {@code class} attribute
+     * @param value the proposed {@code class} attribute
      * @return the {@code classNames} vector, coerced to {@link StringVector} if not null.
      */
     private Builder setClass(SEXP value) {
@@ -591,7 +598,68 @@ public class AttributeMap {
       }
       return Null.INSTANCE;
     }
-    
+
+    /**
+     * Combines the attributes from {@code attributes} with this builder, enforcing
+     * a few consistency rules.
+     * 
+     * <ul>
+     *   <li>{@code names} are only copied if {@code dim} is not present</li>
+     *   <li>If this already has a dimension, then combining with a different {@code dim} throws an EvalException</li>
+     * </ul>
+     */
+    public Builder combineFrom(AttributeMap other) {
+      if(other.names != null) {
+        if(this.names == null && this.dim == null) {
+          this.names = other.names;
+        }
+      }
+      if(other.dim != null) {
+        if(this.dim == null) {
+          this.dim = other.dim;
+        } else {
+          if(!conforming(this.dim, other.dim)) {
+            throw new EvalException("non-conformable arrays");
+          }
+        }
+        if(other.dimNames != null) {
+          if(this.dimNames == null) {
+            this.dimNames = other.dimNames;
+          }
+        }
+      }
+      if(other.classes != null) {
+        if(this.classes == null) {
+          this.classes = other.classes;
+        }
+      }
+      if(other.map != null) {
+        if(this.map == null) {
+          this.map = new IdentityHashMap<>(other.map);
+        } else {
+          for (Map.Entry<Symbol, SEXP> entry : other.map.entrySet()) {
+            if(!this.map.containsKey(entry.getKey())) {
+              this.map.put(entry.getKey(), entry.getValue());
+            }
+          }
+        }
+      }
+      updateEmptyFlag();
+      return this;
+    }
+
+    private boolean conforming(IntVector dim1, IntVector dim2) {
+      if(dim1.length() != dim2.length()) {
+        return false;
+      }
+      for (int i = 0; i < dim1.length(); i++) {
+        if(dim1.getElementAsInt(i) != dim2.getElementAsInt(i)) {
+          return false;
+        }
+      }
+      return true;
+    }
+
     /**
 
      * Copies all non-null attributes from {@code attributes} to this {@code Builder}

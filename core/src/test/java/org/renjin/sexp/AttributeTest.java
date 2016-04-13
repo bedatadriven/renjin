@@ -132,7 +132,39 @@ public class AttributeTest extends EvalTestCase {
 
     eval("dim(m) <- c(3,1)");
 
-    assertThat(eval("dimnames(m)"), equalTo((SEXP)Null.INSTANCE));
+    assertThat(eval("dimnames(m)"), equalTo((SEXP) Null.INSTANCE));
   }
   
+  @Test
+  public void namesAreDroppedWhenAddingMatrixToVector() {
+    eval("x <- matrix(1:12, nrow = 4)");
+    eval("y <- c(a=1,b=2)");
+    
+    eval("z <- x + y");
+  }
+
+  @Test
+  public void namesAreDroppedWhenAddingMatrixToEqualLengthVector() {
+    eval("x <- matrix(1:4, nrow = 2)");
+    eval("y <- c(a=1,b=2,c=3,d=4)");
+
+    eval("z <- x + y");
+  }
+  
+  @Test(expected = EvalException.class)
+  public void addingNonConformingMatricesThrowsError() {
+    eval("x <- matrix(1:12, nrow=3)");
+    eval("y <- matrix(1:12, nrow=4)");
+    eval("z <- x + y");
+  }
+
+  @Test
+  public void attributesFromFirstVectorTakePrecedenceWhenAddingVectorsOfEqualLength() {
+    eval("x <- c(a=1,b=2,c=3)");
+    eval("y <- c(x=20,y=40,z=50)");
+    eval("z <- x + y");
+    
+    assertThat(eval("names(z)"), equalTo(c("a", "b", "c")));
+  }
+
 }

@@ -438,7 +438,7 @@ public class ExtendedRE implements Serializable, RE {
    * @param pattern
    * @param ignoreCase
    */
-    public ExtendedRE(String pattern, boolean ignoreCase) {
+    public ExtendedRE(String pattern, boolean ignoreCase) throws RESyntaxException {
 
       this(pattern);
 

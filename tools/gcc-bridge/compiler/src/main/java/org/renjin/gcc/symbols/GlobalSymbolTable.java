@@ -1,12 +1,17 @@
 package org.renjin.gcc.symbols;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+
 import org.objectweb.asm.Handle;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.FunctionGenerator;
 import org.renjin.gcc.codegen.call.*;
 import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.lib.SymbolFunction;
+import org.renjin.gcc.codegen.lib.SymbolLibrary;
+import org.renjin.gcc.codegen.lib.SymbolMethod;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.gimple.CallingConvention;
 import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
@@ -17,6 +22,7 @@ import org.renjin.gcc.runtime.Stdlib;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -33,6 +39,7 @@ public class GlobalSymbolTable implements SymbolTable {
   private TypeOracle typeOracle;
   private Map<String, CallGenerator> functions = Maps.newHashMap();
   private Map<String, ExprGenerator> globalVariables = Maps.newHashMap();
+  private List<String> allocators = Lists.newArrayList();
 
   public GlobalSymbolTable(TypeOracle typeOracle) {
     this.typeOracle = typeOracle;
@@ -72,6 +79,18 @@ public class GlobalSymbolTable implements SymbolTable {
     addMethods(Builtins.class);
     addMethods(Stdlib.class);
     addMethods(Mathlib.class);
+  }
+
+  public void addLibrary(SymbolLibrary lib) {
+    for(SymbolFunction f : lib.getFunctions(typeOracle)) {
+      addFunction(f.getAlias(), f.getCall());
+      if(f.isMemoryAllocation()) {
+        allocators.add(f.getAlias());
+      }
+    }
+    for(SymbolMethod m : lib.getMethods()) {
+      addMethod(m.getAlias(), m.getTargetClass(), m.getMethodName());
+    }
   }
   
 

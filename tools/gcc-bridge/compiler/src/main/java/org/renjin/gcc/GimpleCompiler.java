@@ -5,6 +5,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
+
 import org.objectweb.asm.Type;
 import org.renjin.gcc.analysis.*;
 import org.renjin.gcc.codegen.FunctionGenerator;
@@ -13,6 +14,7 @@ import org.renjin.gcc.codegen.TrampolineClassGenerator;
 import org.renjin.gcc.codegen.UnitClassGenerator;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.call.FunctionCallGenerator;
+import org.renjin.gcc.codegen.lib.SymbolLibrary;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
@@ -112,6 +114,10 @@ public class GimpleCompiler  {
     globalSymbolTable.addMethod("exp", Math.class);
   }
 
+  public void addLibrary(SymbolLibrary lib) {
+	  globalSymbolTable.addLibrary(lib);
+  }
+
   public void addMethod(String functionName, Class declaringClass, String methodName) {
     globalSymbolTable.addMethod(functionName, declaringClass, methodName);
   }
@@ -202,7 +208,7 @@ public class GimpleCompiler  {
         
         
       } catch (Exception e) {
-        throw new InternalCompilerException("Exception compiling record " + recordTypeDef.getName());
+        throw new InternalCompilerException("Exception compiling record " + recordTypeDef.getName(), e);
       }
     }
 

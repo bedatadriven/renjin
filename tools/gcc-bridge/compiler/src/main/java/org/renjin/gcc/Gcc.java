@@ -66,6 +66,7 @@ public class Gcc {
     
     checkEnvironment();
     
+    String fileExtension = Files.getFileExtension(source.getName());
     List<String> arguments = Lists.newArrayList();
     
     // Force compilation to i386 so that our pointers are 32-bits
@@ -102,7 +103,7 @@ public class Gcc {
 
     LOGGER.fine("Executing " + Joiner.on(" ").join(arguments));
 
-    callGcc(arguments);
+    callGcc(arguments, fileExtension);
 
     GimpleParser parser = new GimpleParser();
     GimpleCompilationUnit unit = parser.parse(gimpleFile);
@@ -121,9 +122,12 @@ public class Gcc {
    * @throws IOException
    * @throws GccException if the GCC process does not exit successfully
    */
-  private String callGcc(List<String> arguments) throws IOException {
+  private String callGcc(List<String> arguments, String extension) throws IOException {
     List<String> command = Lists.newArrayList();
-    command.add("gcc-4.6");
+    if("cpp".equals(extension))
+      command.add("g++-4.6");
+    else
+      command.add("gcc-4.6");
     command.addAll(arguments);
 
     Process gcc = new ProcessBuilder().command(command).directory(workingDirectory).redirectErrorStream(true).start();
@@ -203,7 +207,7 @@ public class Gcc {
 
   public void checkVersion() {
     try {
-      String versionOutput = callGcc(Arrays.asList("--version"));
+      String versionOutput = callGcc(Arrays.asList("--version"), null);
       if (!versionOutput.contains("4.6.3")) {
         System.err.println("WARNING: gcc-bridge has been tested against 4.6.3, other versions may not work correctly.");
       }

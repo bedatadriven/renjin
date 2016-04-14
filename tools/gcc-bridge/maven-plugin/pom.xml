@@ -31,6 +31,17 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
+      <groupId>org.codehaus.plexus</groupId>
+      <artifactId>plexus-compiler-api</artifactId>
+      <version>${plexusCompilerVersion}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.codehaus.plexus</groupId>
+          <artifactId>plexus-component-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
       <groupId>org.renjin</groupId>
       <artifactId>gcc-bridge-compiler</artifactId>
       <version>${project.version}</version>

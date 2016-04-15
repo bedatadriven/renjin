@@ -32,6 +32,7 @@ import org.renjin.invoke.annotations.*;
 import org.renjin.primitives.Warning;
 import org.renjin.primitives.text.regex.ExtendedRE;
 import org.renjin.primitives.text.regex.REFactory;
+import org.renjin.primitives.text.regex.RESyntaxException;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
@@ -355,7 +356,11 @@ public class Files {
         if(pattern == null) {
           nameFilter = Predicates.alwaysTrue();
         } else {
-          nameFilter = REFactory.asPredicate(new ExtendedRE(pattern).ignoreCase(ignoreCase));
+          try {
+            nameFilter = REFactory.asPredicate(new ExtendedRE(pattern).ignoreCase(ignoreCase));
+          } catch (RESyntaxException e) {
+            throw new EvalException("Invalid pattern '%s': %s", pattern, e.getMessage());
+          }
         }
 
         for(String path : paths) {

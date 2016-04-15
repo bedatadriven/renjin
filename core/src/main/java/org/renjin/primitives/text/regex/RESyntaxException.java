@@ -17,8 +17,6 @@
 
 package org.renjin.primitives.text.regex;
 
-import org.renjin.eval.EvalException;
-
 /**
  * Exception thrown to indicate a syntax error in a regular expression.
  * This is a non-checked exception because you should only have problems compiling
@@ -30,7 +28,7 @@ import org.renjin.eval.EvalException;
  * @author <a href="mailto:gholam@xtra.co.nz>Michael McCallum</a>
  * @version $Id$
  */
-public class RESyntaxException extends EvalException
+public class RESyntaxException extends Exception
 {
     /**
      * Constructor.
@@ -38,6 +36,6 @@ public class RESyntaxException extends EvalException
      */
     public RESyntaxException(String s)
     {
-        super("Syntax error: " + s);
+        super(s);
     }
 }

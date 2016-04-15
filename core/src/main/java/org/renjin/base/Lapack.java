@@ -83,7 +83,7 @@ public class Lapack {
       }
     }   
     
-    return DoubleArrayVector.unsafe(result, AttributeMap.builder().setDim(sz, sz).build());
+    return DoubleArrayVector.unsafe(result, AttributeMap.builder().setDim(sz, sz));
   }
 
 

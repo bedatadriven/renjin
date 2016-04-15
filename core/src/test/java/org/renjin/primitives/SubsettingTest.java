@@ -1174,5 +1174,15 @@ public class SubsettingTest extends EvalTestCase {
 
     assertThat(eval("x"), equalTo(list(2d)));
   }
+  
+  @Test
+  public void dimNamesPreservedOnArrays() {
+    eval("x <- array(NA, 3)");
+    eval("names(x) <- letters[1:3]");
+    eval("x[1] <- 3");
+    
+    assertThat(eval("dimnames(x)[[1]]"), equalTo(c("a", "b", "c")));
+    
+  }
 
 }

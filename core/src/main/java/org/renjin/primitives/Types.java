@@ -192,7 +192,7 @@ public class Types {
               .addIfNotNull(sourceAttributes, Symbols.DIM)
               .addIfNotNull(sourceAttributes, Symbols.NAMES)
               .addIfNotNull(sourceAttributes, Symbols.DIMNAMES)
-              .build();
+              .validateAndBuildFor(vector);
     }
 
     private IsNaVector(AttributeMap attributes, Vector vector) {

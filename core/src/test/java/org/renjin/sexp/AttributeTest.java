@@ -99,7 +99,72 @@ public class AttributeTest extends EvalTestCase {
 
     eval("z <- c(`NA`=x)");
     assertThat(eval("names(z)"), equalTo(c("NA.A", "NA.NA")));
+  }
 
+  @Test
+  public void zeroLengthDimNameIsConvertedToNull() {
+    eval("x <- matrix(1:12, nrow=3)");
+    eval("dimnames(x) <- list(character(0), letters[1:4])");
+    
+    assertThat(eval("dimnames(x)[[1]]"), equalTo((SEXP) Null.INSTANCE));
+  }
+ 
+  
+  @Test
+  public void dimNamesInStructure() {
+    eval("x <- structure(1:12, .Dim = c(3,4), .Dimnames = list(letters[1:3], NULL))");
   }
   
+  @Test
+  public void changingDimsDropsDimNames() {
+    eval("m <- matrix(1:3, nrow=3)");
+    eval("dimnames(m) <- list(letters[1:3], 'X')");
+    
+    eval("dim(m) <- c(1,3)");
+
+    assertThat(eval("dimnames(m)"), equalTo((SEXP) Null.INSTANCE));
+  }
+
+  @Test
+  public void settingDimsDropDimnamesEvenIfThereIsNoChange() {
+    eval("m <- matrix(1:3, nrow=3)");
+    eval("dimnames(m) <- list(letters[1:3], 'X')");
+
+    eval("dim(m) <- c(3,1)");
+
+    assertThat(eval("dimnames(m)"), equalTo((SEXP) Null.INSTANCE));
+  }
+  
+  @Test
+  public void namesAreDroppedWhenAddingMatrixToVector() {
+    eval("x <- matrix(1:12, nrow = 4)");
+    eval("y <- c(a=1,b=2)");
+    
+    eval("z <- x + y");
+  }
+
+  @Test
+  public void namesAreDroppedWhenAddingMatrixToEqualLengthVector() {
+    eval("x <- matrix(1:4, nrow = 2)");
+    eval("y <- c(a=1,b=2,c=3,d=4)");
+
+    eval("z <- x + y");
+  }
+  
+  @Test(expected = EvalException.class)
+  public void addingNonConformingMatricesThrowsError() {
+    eval("x <- matrix(1:12, nrow=3)");
+    eval("y <- matrix(1:12, nrow=4)");
+    eval("z <- x + y");
+  }
+
+  @Test
+  public void attributesFromFirstVectorTakePrecedenceWhenAddingVectorsOfEqualLength() {
+    eval("x <- c(a=1,b=2,c=3)");
+    eval("y <- c(x=20,y=40,z=50)");
+    eval("z <- x + y");
+    
+    assertThat(eval("names(z)"), equalTo(c("a", "b", "c")));
+  }
+
 }

@@ -113,7 +113,13 @@ abstract class AbstractVector extends AbstractSEXP implements Vector {
       attributes.addAllFrom(exp.getAttributes());
       return this;
     }
-    
+
+    @Override
+    public Builder combineAttributesFrom(SEXP vector) {
+      attributes.combineFrom(vector.getAttributes());
+      return this;
+    }
+
     /**
      * Copies "special" attributes: 
      * @param exp

@@ -53,6 +53,10 @@ public class FailingMicroTest extends AbstractMicroTest {
     public void micro1214() {
         assertIdentical("{ gregexpr('(a)[^a]\\\\1', c('andrea apart', 'amadeus', NA)) }", "list(structure(6L, match.length = 3L), structure(1L, match.length = 3L),     structure(NA_integer_, match.length = NA_integer_))");
     }
+    @Test //@Ignore("todo: attribute order?")
+    public void micro1420() {
+        assertIdentical("{ x <- 1:3 ; attr(x, 'myatt') <- 2:4 ; attr(x, 'myatt1') <- 'hello' ; attributes(x) }", "structure(list(myatt = 2:4, myatt1 = \"hello\"), .Names = c(\"myatt\", \"myatt1\"))");
+    }
     //@Ignore("todo: recursive list indexing")
     @Test
     public void micro1445() {

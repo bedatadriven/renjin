@@ -12,8 +12,6 @@ import org.renjin.gcc.gimple.CallingConvention;
 import org.renjin.gcc.gimple.CallingConventions;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
-import org.renjin.gcc.runtime.std.Allocator;
-import org.renjin.gcc.runtime.std.BasicString;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -27,10 +25,10 @@ public class AbstractGccCppTest extends AbstractGccTest {
 		compiler.setRecordClassPrefix(units.get(0).getName());
 		compiler.setPackageName(PACKAGE_NAME);
 		compiler.setVerbose(true);
-		compiler.addRecordClass("basic_string", BasicString.class);
-		compiler.addRecordClass("allocator", Allocator.class);
-		compiler.addRecordClass("_Rep", Object.class);
-		compiler.addRecordClass("_36", Object.class);
+//		compiler.addRecordClass("basic_string", BasicString.class);
+//		compiler.addRecordClass("allocator", Allocator.class);
+//		compiler.addRecordClass("_Rep", Object.class);
+//		compiler.addRecordClass("_36", Object.class);
 		compiler.addLibrary(new CppSymbolLibrary());
 		compiler.compile(units);
 	}

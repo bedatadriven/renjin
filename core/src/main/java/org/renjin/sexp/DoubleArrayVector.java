@@ -87,6 +87,10 @@ public final class DoubleArrayVector extends DoubleVector {
     vector.values = array;
     return vector;
   }
+  
+  public static DoubleArrayVector unsafe(double[] array, AttributeMap.Builder attributes) {
+    return unsafe(array, attributes.validateAndBuildForVectorOfLength(array.length));
+  }
 
   @Override
   protected SEXP cloneWithNewAttributes(AttributeMap attributes) {

@@ -360,7 +360,15 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList, 
       }
       return this;
     }
-    
+
+    @Override
+    public Vector.Builder combineAttributesFrom(SEXP vector) {
+      if(vector.hasAttributes()) {
+        throw new UnsupportedOperationException(NULL_IS_IMMUTABLE);
+      }
+      return this;
+    }
+
     @Override
     public Vector.Builder copySomeAttributesFrom(SEXP exp, Symbol... toCopy) {
       if(exp.hasAttributes()) {

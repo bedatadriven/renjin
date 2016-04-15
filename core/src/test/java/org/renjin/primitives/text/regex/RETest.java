@@ -30,13 +30,13 @@ import static org.junit.Assert.assertTrue;
 public class RETest {
 
   @Test
-  public void posixClasses() {
+  public void posixClasses() throws RESyntaxException {
     // R regexps use double brackets for posix character classes
     assertTrue( new ExtendedRE("^[[:digit:]]+$").match("1249234") );
   }
 
   @Test
-  public void dashInCharacterClass() {
+  public void dashInCharacterClass() throws RESyntaxException {
 
     // in these cases, R treats the hyphen as a literal
     assertTrue( new ExtendedRE("^[a-]+$").match("a-a--aa---a-aaa") );

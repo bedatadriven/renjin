@@ -305,6 +305,15 @@ public interface Vector extends SEXP {
      */
     Builder copyAttributesFrom(SEXP vector);
 
+    /**
+     * Combines attributes from the provided {@code vector} argument by adding 
+     * the attributes if they are not already set, and checking for consistency.
+     * @param vector
+     * @throws org.renjin.eval.EvalException if {@code vector} has {@code dim} attribute
+     * that does not conform with the {@code dim} attribute already set.
+     */
+    Builder combineAttributesFrom(SEXP vector);
+
     Builder copySomeAttributesFrom(SEXP exp, Symbol... toCopy);
   }
 

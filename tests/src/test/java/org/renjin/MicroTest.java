@@ -4071,6 +4071,10 @@ public class MicroTest extends AbstractMicroTest {
   public void micro1419() {
     assertIdentical("{ x <- 1:3 ; attr(x, 'myatt') <- 2:4 ; attributes(x) }", "structure(list(myatt = 2:4), .Names = \"myatt\")");
   }
+  @Test //@Ignore("todo: attribute order?")
+  public void micro1420() {
+    assertIdentical("{ x <- 1:3 ; attr(x, 'myatt') <- 2:4 ; attr(x, 'myatt1') <- 'hello' ; attributes(x) }", "structure(list(myatt = 2:4, myatt1 = \"hello\"), .Names = c(\"myatt\", \"myatt1\"))");
+  }
   @Test
   public void micro1421() {
     assertIdentical("{ x <- 1:3 ; attr(x, 'myatt') <- 2:4 ; y <- x; attr(x, 'myatt1') <- 'hello' ; attributes(y) }", "structure(list(myatt = 2:4), .Names = \"myatt\")");

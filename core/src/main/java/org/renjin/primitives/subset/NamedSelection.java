@@ -153,7 +153,7 @@ class NamedSelection implements SelectionStrategy {
       newAttributes.remove(Symbols.DIM);
       newAttributes.remove(Symbols.DIMNAMES);
       
-      return (Vector)source.setAttributes(newAttributes.build());
+      return (Vector)source.setAttributes(newAttributes);
     }
     
     // Otherwise build a new list vector without the selected elements
@@ -193,7 +193,7 @@ class NamedSelection implements SelectionStrategy {
       AttributeMap.Builder newAttributes = source.getAttributes().copy();
       newAttributes.remove(Symbols.DIM);
       newAttributes.remove(Symbols.DIMNAMES);
-      return (Vector) source.setAttributes(newAttributes.build());
+      return (Vector) source.setAttributes(newAttributes);
     }
     
     Vector.Builder result = source.newCopyBuilder(replacements.getVectorType());

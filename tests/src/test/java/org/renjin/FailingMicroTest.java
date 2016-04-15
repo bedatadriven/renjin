@@ -6,7 +6,7 @@ import org.junit.Test;
 /**
  * All failing microtests
  */
-
+@Ignore
 public class FailingMicroTest extends AbstractMicroTest {
 
     @Test
@@ -52,10 +52,6 @@ public class FailingMicroTest extends AbstractMicroTest {
     @Test
     public void micro1214() {
         assertIdentical("{ gregexpr('(a)[^a]\\\\1', c('andrea apart', 'amadeus', NA)) }", "list(structure(6L, match.length = 3L), structure(1L, match.length = 3L),     structure(NA_integer_, match.length = NA_integer_))");
-    }
-    @Test //@Ignore("todo: attribute order?")
-    public void micro1420() {
-        assertIdentical("{ x <- 1:3 ; attr(x, 'myatt') <- 2:4 ; attr(x, 'myatt1') <- 'hello' ; attributes(x) }", "structure(list(myatt = 2:4, myatt1 = \"hello\"), .Names = c(\"myatt\", \"myatt1\"))");
     }
     //@Ignore("todo: recursive list indexing")
     @Test
@@ -409,7 +405,7 @@ public class FailingMicroTest extends AbstractMicroTest {
     public void micro2747() {
         assertIdentical("{ l <- list(a=1,b=2,cd=list(c=3,d=4)) ; x <- list(l,xy=list(x=l,y=l)) ; x[[c(2,2,3,2)]] <- 10 ; l }", "structure(list(a = 1, b = 2, cd = structure(list(c = 3, d = 4), .Names = c(\"c\", \"d\"))), .Names = c(\"a\", \"b\", \"cd\"))");
     }
-    //@Ignore("Recursive setting") @Test
+    @Test //@Ignore("Recursive setting")
     public void micro2748() {
         assertIdentical("{ l <- list(a=1,b=2,cd=list(c=3,d=4)) ; x <- list(l,xy=list(x=l,y=l)) ; x[[c(\"xy\",\"y\",\"cd\",\"d\")]] <- 10 ; l }", "structure(list(a = 1, b = 2, cd = structure(list(c = 3, d = 4), .Names = c(\"c\", \"d\"))), .Names = c(\"a\", \"b\", \"cd\"))");
     }

@@ -25,7 +25,6 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.primitives.Attributes;
 
 
 /**
@@ -190,9 +189,7 @@ public abstract class AbstractSEXP implements SEXP {
   
   @Override
   public SEXP setAttribute(Symbol attributeName, SEXP value) {
-    return cloneWithNewAttributes(
-        replaceAttribute(attributeName,
-            Attributes.validateAttribute(this, attributeName, value)));
+    return setAttributes(this.attributes.copy().set(attributeName, value));
   }
 
   @Override
@@ -200,10 +197,11 @@ public abstract class AbstractSEXP implements SEXP {
     return cloneWithNewAttributes(attributes);
   }
 
-  private AttributeMap replaceAttribute(Symbol attributeName, SEXP newValue) {
-    return this.attributes.copy().set(attributeName, newValue).build();
+  @Override
+  public SEXP setAttributes(AttributeMap.Builder attributes) {
+    return cloneWithNewAttributes(attributes.validateAndBuildForVectorOfLength(length()));
   }
-  
+
   protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
     if(attributes != AttributeMap.EMPTY) {
       throw new EvalException("cannot change/set attributes on " + getClass().getName());
@@ -240,5 +238,10 @@ public abstract class AbstractSEXP implements SEXP {
   public void unsafeSetAttributes(AttributeMap attributeMap) {
     this.attributes = attributeMap;
     this.object = attributes.hasClass();
+  }
+  
+  public void unsafeSetAttributes(AttributeMap.Builder attributes) {
+    this.attributes = attributes.validateAndBuildFor(this);
+    
   }
 }

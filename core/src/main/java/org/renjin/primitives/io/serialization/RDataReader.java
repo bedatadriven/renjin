@@ -435,8 +435,8 @@ public class RDataReader {
 
   private AttributeMap readAttributes() throws IOException {
     SEXP pairList = readExp();
-    AttributeMap am = AttributeMap.fromPairList((PairList) pairList);
-    SEXP rns = am.get(Symbols.ROW_NAMES);
+    AttributeMap attributes = AttributeMap.fromPairList((PairList) pairList);
+    SEXP rns = attributes.get(Symbols.ROW_NAMES);
       /* 
        * There is a special case when GNU R serializes a empty 
        * row names vector, it uses an integer vector with two entries, 
@@ -447,13 +447,12 @@ public class RDataReader {
       if (rniv.length() == 2 && rniv.isElementNA(0)) {
         ConvertingStringVector csv = new ConvertingStringVector(
             IntSequence.fromTo(1, rniv.getElementAsInt(1)), AttributeMap.EMPTY);
-        AttributeMap.Builder amb = new AttributeMap.Builder();
-        amb.addAllFrom(am);
+        AttributeMap.Builder amb = attributes.copy();
         amb.set(Symbols.ROW_NAMES, csv);
-        am = amb.build();
+        attributes = amb.build();
       }
     }
-    return am;
+    return attributes;
   }
 
   private SEXP readPackage() throws IOException {

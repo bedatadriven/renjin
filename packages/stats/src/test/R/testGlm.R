@@ -6,6 +6,11 @@ test.binomial <- function() {
   X <- c(1, 1, 0, 0)
   Y <- c(1, 0, 1, 0)
   
+  df <- model.frame(formula = Conversions ~ X + Y)
+  print(df)
+  assertThat(ncol(df), identicalTo(3L))
+  assertThat(nrow(df), identicalTo(4L))
+  
   fit <- glm(formula = Conversions ~ X + Y, family="binomial")
   
   singleCoefficients <- fit$coefficients

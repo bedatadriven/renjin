@@ -268,7 +268,7 @@ public class RecycleLoopBuilder {
     if(overload.getPreserveAttributesStyle() != PreserveAttributeStyle.NONE ) {
       // copy attributes from all arguments that match
       // the final length, giving precedence to earlier arguments
-      for(RecycledArgument arg : Lists.reverse(recycledArguments)) {
+      for(RecycledArgument arg : recycledArguments) {
         parent._if(arg.length.eq(cycleCount))._then().add(copyAttributesFrom(arg));
       }
     }
@@ -277,7 +277,7 @@ public class RecycleLoopBuilder {
   private JStatement copyAttributesFrom(RecycledArgument arg) {
     switch(overload.getPreserveAttributesStyle()) {
     case ALL:
-      return builder.invoke("copyAttributesFrom").arg(arg.vector);
+      return builder.invoke("combineAttributesFrom").arg(arg.vector);
     case SPECIAL:
       // Symbols.DIM, Symbols.DIMNAMES, Symbols.NAMES)
       return builder.invoke("copySomeAttributesFrom").arg(arg.vector)

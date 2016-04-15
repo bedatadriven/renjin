@@ -946,6 +946,10 @@ public class MicroTest extends AbstractMicroTest {
     assertIdentical("{ f <- function(arg) { !arg } ; f(as.raw(10)) ; f(as.raw(c(a=1,b=2))) }", "as.raw(c(0xfe, 0xfd))");
   }
   @Test
+  public void micro239() {
+    assertIdentical("{ -(0/0) }", "NaN");
+  }
+  @Test
   public void micro240() {
     assertIdentical("{ -(1/0) }", "-Inf");
   }
@@ -1712,6 +1716,10 @@ public class MicroTest extends AbstractMicroTest {
     assertIdentical("{ x <- c(1,2,3,4) ; dim(x) <- c(1,2,2) ; f <- function(b,i,j) { b[1,i,j] } ; f(x,TRUE,1) ; f(x,c(TRUE,FALSE),c(NA)) }", "c(NA_real_, NA_real_)");
   }
   @Test
+  public void micro500() {
+    assertIdentical("{  m <- array(1:3, dim=c(3,1,1)) ; f <- function(x,v) { x[[2,1,1]] <- v ; x } ; f(m,10L) ; f(m,10) ; x <- f(m,11L) ; x[1] == 1 && x[2] == 11 && x[3] == 3 }", "TRUE");
+  }
+  @Test
   public void micro501() {
     assertIdentical("{ m <- matrix(1:100, nrow=10) ; z <- 1; s <- 0 ; for(i in 1:3) { m[z <- z + 1,z <- z + 1] <- z * z * 1000 } ; sum(m) }", "39918");
   }
@@ -1732,12 +1740,28 @@ public class MicroTest extends AbstractMicroTest {
     assertIdentical("{ r <- 0 ; for (i in 1:5 ) { x <- c(11:14) ; if (i==2 || i==3) { x <- c(1,2,10+1i,100) } ; dim(x) <- c(2,1,2) ; x[2,1,1:2] <- c(15L*i,-12L+i) ; r <- r + sum(x) } ; r }", "274+2i");
   }
   @Test
+  public void micro561() {
+    assertIdentical("{ x <- c(1L,3L,4L,NA) ; dim(x) <- c(2,1,2); x[[2,1,1]] <- list(10+1i); x[2] }", "list(list(10+1i))");
+  }
+  @Test
   public void micro564() {
     assertIdentical("{ x <- c(\"a\",\"b\",\"c\",\"d\") ; dim(x) <- c(2,1,2); x[2,1,1] <- list(1); dim(x) <- NULL; x }", "list(\"a\", 1, \"c\", \"d\")");
   }
   @Test
+  public void micro572() {
+    assertIdentical("{ x <- list(1,10,-1/0,0/0) ; dim(x) <- c(2,1,2); f <- function(v) { x[[2,1,1]] <- v ; x } ; f(list(TRUE)) ; z <- f(NA) ; unlist(z) }", "c(1, NA, -Inf, NaN)");
+  }
+  @Test
+  public void micro578() {
+    assertIdentical("{ for(i in 1:2) { if (i==1) { b <- as.list(11:14) } else { b <- c(1/0,-3/0,0/0,4) }; dim(b) <- c(2,1,2); b[[2,1,1]] <- list(111) } ; dim(b) <- NULL ; b }", "list(Inf, list(111), NaN, 4)");
+  }
+  @Test
   public void micro580() {
     assertIdentical("{ for(i in 1:2) { x <- 1:4 ; dim(x) <- c(1,1,4); if (i==2) { z <- x } ; x[,,1] <- 12L } ; as.integer(z) }", "1:4");
+  }
+  @Test
+  public void micro581() {
+    assertIdentical("{ x <- 1:4 ; dim(x) <- c(1,1,4); x[,,NA] <- 12L ; as.integer(x) }", "1:4");
   }
   @Test
   public void micro582() {
@@ -2100,6 +2124,10 @@ public class MicroTest extends AbstractMicroTest {
     assertIdentical("{ as.complex(c(0/0, 0/0)) }", "c(NA_complex_, NA_complex_)");
   }
   @Test
+  public void micro839() {
+    assertIdentical("{ l <- 1 ; attr(l, 'my') <- 1; as.list(l) }", "list(1)");
+  }
+  @Test
   public void micro840() {
     assertIdentical("{ l <- c(x=1) ; as.list(l) }", "structure(list(x = 1), .Names = \"x\")");
   }
@@ -2416,6 +2444,14 @@ public class MicroTest extends AbstractMicroTest {
     assertIdentical("{ min('hi',100) }", "\"100\"");
   }
   @Test
+  public void micro921() {
+    assertIdentical("{ min(c(1,2,0/0)) }", "NaN");
+  }
+  @Test
+  public void micro922() {
+    assertIdentical("{ max(c(1,2,0/0)) }", "NaN");
+  }
+  @Test
   public void micro923() {
     assertIdentical("{ rep(1,3) }", "c(1, 1, 1)");
   }
@@ -2512,12 +2548,20 @@ public class MicroTest extends AbstractMicroTest {
     assertIdentical("{ c(x=1,2) }", "structure(c(1, 2), .Names = c(\"x\", \"\"))");
   }
   @Test
+  public void micro951() {
+    assertIdentical("{ x <- 1:2 ; names(x) <- c('A',NA) ; c(x,test=x) }", "structure(c(1L, 2L, 1L, 2L), .Names = c(\"A\", NA, \"test.A\", \"test.NA\"))");
+  }
+  @Test
   public void micro952() {
     assertIdentical("{ c(a=1,b=2:3,list(x=FALSE)) }", "structure(list(a = 1, b1 = 2L, b2 = 3L, x = FALSE), .Names = c(\"a\", \"b1\", \"b2\", \"x\"))");
   }
   @Test
   public void micro953() {
     assertIdentical("{ c(1,z=list(1,b=22,3)) }", "structure(list(1, z1 = 1, z.b = 22, z3 = 3), .Names = c(\"\", \"z1\", \"z.b\", \"z3\"))");
+  }
+  @Test
+  public void micro954() {
+    assertIdentical("{ c(1i,0/0) }", "c(0+1i, complex(real=NaN, i=0))");
   }
   @Test
   public void micro955() {
@@ -2920,6 +2964,10 @@ public class MicroTest extends AbstractMicroTest {
     assertIdentical("{ cumsum(c(1,2,3,0/0,5)) }", "c(1, 3, 6, NA, NA)");
   }
   @Test
+  public void micro1101() {
+    assertIdentical("{ cumsum(c(1,0/0,5+1i)) }", "c(1+0i, complex(real=NaN, i=0), complex(real=NaN, i=1))");
+  }
+  @Test
   public void micro1102() {
     assertIdentical("{ which(c(TRUE, FALSE, NA, TRUE)) }", "c(1L, 4L)");
   }
@@ -3040,6 +3088,14 @@ public class MicroTest extends AbstractMicroTest {
     assertIdentical("{ nchar(c(10,130)) }", "2:3");
   }
   @Test
+  public void micro1132() {
+    assertIdentical("{ strsplit('helloh', 'h', fixed=TRUE) }", "list(c(\"\", \"ello\"))");
+  }
+  @Test
+  public void micro1133() {
+    assertIdentical("{ strsplit( c('helloh', 'hi'), c('h',''), fixed=TRUE) }", "list(c(\"\", \"ello\"), c(\"h\", \"i\"))");
+  }
+  @Test
   public void micro1134() {
     assertIdentical("{ strsplit('helloh', '', fixed=TRUE) }", "list(c(\"h\", \"e\", \"l\", \"l\", \"o\", \"h\"))");
   }
@@ -3050,6 +3106,10 @@ public class MicroTest extends AbstractMicroTest {
   @Test
   public void micro1136() {
     assertIdentical("{ strsplit( c('helloh', 'hi'), c('h','')) }", "list(c(\"\", \"ello\"), c(\"h\", \"i\"))");
+  }
+  @Test
+  public void micro1137() {
+    assertIdentical("{ strsplit('ahoj', split='') [[c(1,2)]] }", "\"h\"");
   }
   @Test
   public void micro1138() {
@@ -3066,6 +3126,10 @@ public class MicroTest extends AbstractMicroTest {
   @Test
   public void micro1141() {
     assertIdentical("{ paste(sep='') }", "character(0)");
+  }
+  @Test
+  public void micro1142() {
+    assertIdentical("{ a <- as.raw(200) ; b <- as.raw(255) ; paste(a, b) }", "\"c8 ff\"");
   }
   @Test
   public void micro1143() {
@@ -3092,6 +3156,10 @@ public class MicroTest extends AbstractMicroTest {
     assertIdentical("{ substr(c('hello', 'bye'), start=c(1,2,3), stop=4) }", "c(\"hell\", \"ye\")");
   }
   @Test
+  public void micro1149() {
+    assertIdentical("{ substr('fastr', start=NA, stop=2) }", "NA_character_");
+  }
+  @Test
   public void micro1150() {
     assertIdentical("{ substring('123456', first=2, last=4) }", "\"234\"");
   }
@@ -3102,6 +3170,10 @@ public class MicroTest extends AbstractMicroTest {
   @Test
   public void micro1152() {
     assertIdentical("{ substring(c('hello', 'bye'), first=c(1,2,3), last=4) }", "c(\"hell\", \"ye\", \"ll\")");
+  }
+  @Test
+  public void micro1153() {
+    assertIdentical("{ substring('fastr', first=NA, last=2) }", "NA_character_");
   }
   @Test
   public void micro1154() {
@@ -3144,6 +3216,10 @@ public class MicroTest extends AbstractMicroTest {
     assertIdentical("{ order(c(1,2,3,NA)) }", "1:4");
   }
   @Test
+  public void micro1165() {
+    assertIdentical("{ order(c(1,2,3,NA), na.last=FALSE) }", "c(4L, 1L, 2L, 3L)");
+  }
+  @Test
   public void micro1166() {
     assertIdentical("{ order(c(1,2,3,NA), na.last=FALSE, decreasing=TRUE) }", "c(4L, 3L, 2L, 1L)");
   }
@@ -3174,6 +3250,10 @@ public class MicroTest extends AbstractMicroTest {
   @Test
   public void micro1181() {
     assertIdentical("{ abs(NA+0.1) }", "NA_real_");
+  }
+  @Test
+  public void micro1182() {
+    assertIdentical("{ abs(0/0) }", "NaN");
   }
   @Test
   public void micro1184() {
@@ -3312,12 +3392,24 @@ public class MicroTest extends AbstractMicroTest {
     assertIdentical("{ x <- c(1,9); names(x) <- c('hello','hi') ; is.na(x) }", "structure(c(FALSE, FALSE), .Names = c(\"hello\", \"hi\"))");
   }
   @Test
+  public void micro1226() {
+    assertIdentical("{ x <- c(1,NA); names(x) <- c('hello','hi') ; cumsum(x) }", "structure(c(1, NA), .Names = c(\"hello\", \"hi\"))");
+  }
+  @Test
+  public void micro1227() {
+    assertIdentical("{ x <- c(1,NA); names(x) <- c(NA,'hi') ; cumsum(x) }", "structure(c(1, NA), .Names = c(NA, \"hi\"))");
+  }
+  @Test
   public void micro1228() {
     assertIdentical("{ x <- c(1,2); names(x) <- c('A', 'B') ; x + 1 }", "structure(c(2, 3), .Names = c(\"A\", \"B\"))");
   }
   @Test
   public void micro1229() {
     assertIdentical("{ x <- 1:2; names(x) <- c('A', 'B') ; y <- c(1,2,3,4) ; names(y) <- c('X', 'Y', 'Z') ; x + y }", "structure(c(2, 4, 4, 6), .Names = c(\"X\", \"Y\", \"Z\", NA))");
+  }
+  @Test
+  public void micro1230() {
+    assertIdentical("{ x <- 1:2; names(x) <- c('A', 'B') ; abs(x) }", "structure(1:2, .Names = c(\"A\", \"B\"))");
   }
   @Test
   public void micro1231() {
@@ -3410,6 +3502,10 @@ public class MicroTest extends AbstractMicroTest {
   @Test
   public void micro1253() {
     assertIdentical("{ f <- function(z) { exists('z') } ; f() }", "TRUE");
+  }
+  @Test
+  public void micro1254() {
+    assertIdentical("{ f <- function(z) { exists('z') } ; f(a) }", "TRUE");
   }
   @Test
   public void micro1255() {
@@ -3860,6 +3956,14 @@ public class MicroTest extends AbstractMicroTest {
     assertIdentical("{ m <- matrix(1:81, nrow=9) ; sum(m * t(m)) }", "145881L");
   }
   @Test
+  public void micro1376() {
+    assertIdentical("{ m <- matrix(-5000:4999, nrow=100) ; sum(m * t(m)) }", "1666502500L");
+  }
+  @Test
+  public void micro1377() {
+    assertIdentical("{ m <- matrix(c(rep(1:10,100200),100L), nrow=1001) ; sum(m * t(m)) }", "38587000L");
+  }
+  @Test
   public void micro1388() {
     assertIdentical("{ is.double(10L) }", "FALSE");
   }
@@ -3878,6 +3982,10 @@ public class MicroTest extends AbstractMicroTest {
   @Test
   public void micro1392() {
     assertIdentical("{ is.numeric(10) }", "TRUE");
+  }
+  @Test
+  public void micro1393() {
+    assertIdentical("{ is.numeric(TRUE) }", "FALSE");
   }
   @Test
   public void micro1394() {
@@ -4022,6 +4130,18 @@ public class MicroTest extends AbstractMicroTest {
   @Test
   public void micro1440() {
     assertIdentical("{ x <- list(NULL, list('d', list(), character())) ; unlist(x) }", "\"d\"");
+  }
+  @Test
+  public void micro1441() {
+    assertIdentical("{ x <- list(a=list('1','2',b='3','4')) ; unlist(x) }", "structure(c(\"1\", \"2\", \"3\", \"4\"), .Names = c(\"a1\", \"a2\", \"a.b\", \"a4\"))");
+  }
+  @Test
+  public void micro1442() {
+    assertIdentical("{ x <- list(a=list('1','2',b=list('3'))) ; unlist(x) }", "structure(c(\"1\", \"2\", \"3\"), .Names = c(\"a1\", \"a2\", \"a.b\"))");
+  }
+  @Test
+  public void micro1443() {
+    assertIdentical("{ x <- list(a=list(1,FALSE,b=list(2:4))) ; unlist(x) }", "structure(c(1, 0, 2, 3, 4), .Names = c(\"a1\", \"a2\", \"a.b1\", \"a.b2\", \"a.b3\"))");
   }
   @Test
   public void micro1444() {
@@ -4184,6 +4304,42 @@ public class MicroTest extends AbstractMicroTest {
     assertIdentical("{ sort(c(a=NA,1L,b=NA,0L,2L,-3L), na.last=NA, decreasing=TRUE) }", "structure(c(2L, 1L, 0L, -3L), .Names = c(\"\", \"\", \"\", \"\"))");
   }
   @Test
+  public void micro1507() {
+    assertIdentical("{ rank(c(10,100,100,1000)) }", "c(1, 2.5, 2.5, 4)");
+  }
+  @Test
+  public void micro1508() {
+    assertIdentical("{ rank(c(1000,100,100,100, 10)) }", "c(5, 3, 3, 3, 1)");
+  }
+  @Test
+  public void micro1509() {
+    assertIdentical("{ rank(c(a=2,b=1,c=3,40)) }", "structure(c(2, 1, 3, 4), .Names = c(\"a\", \"b\", \"c\", \"\"))");
+  }
+  @Test
+  public void micro1510() {
+    assertIdentical("{ rank(c(a=2,b=1,c=3,d=NA,e=40), na.last=NA) }", "structure(c(2, 1, 3, 4), .Names = c(\"a\", \"b\", \"c\", \"e\"))");
+  }
+  @Test
+  public void micro1511() {
+    assertIdentical("{ rank(c(a=2,b=1,c=3,d=NA,e=40), na.last='keep') }", "structure(c(2, 1, 3, NA, 4), .Names = c(\"a\", \"b\", \"c\", \"d\", \"e\"))");
+  }
+  @Test
+  public void micro1512() {
+    assertIdentical("{ rank(c(a=2,b=1,c=3,d=NA,e=40), na.last=TRUE) }", "structure(c(2, 1, 3, 5, 4), .Names = c(\"a\", \"b\", \"c\", \"d\", \"e\"))");
+  }
+  @Test
+  public void micro1513() {
+    assertIdentical("{ rank(c(a=2,b=1,c=3,d=NA,e=40), na.last=FALSE) }", "structure(c(3, 2, 4, 1, 5), .Names = c(\"a\", \"b\", \"c\", \"d\", \"e\"))");
+  }
+  @Test
+  public void micro1514() {
+    assertIdentical("{ rank(c(a=1,b=1,c=3,d=NA,e=3), na.last=FALSE, ties.method='max') }", "structure(c(3L, 3L, 5L, 1L, 5L), .Names = c(\"a\", \"b\", \"c\", \"d\", \"e\"))");
+  }
+  @Test
+  public void micro1515() {
+    assertIdentical("{ rank(c(a=1,b=1,c=3,d=NA,e=3), na.last=NA, ties.method='min') }", "structure(c(1L, 1L, 3L, 3L), .Names = c(\"a\", \"b\", \"c\", \"e\"))");
+  }
+  @Test
   public void micro1516() {
     assertIdentical("{ rank(c(1000, 100, 100, NA, 1, 20), ties.method='first') }", "c(5L, 3L, 4L, 6L, 1L, 2L)");
   }
@@ -4302,6 +4458,14 @@ public class MicroTest extends AbstractMicroTest {
   @Test
   public void micro1568() {
     assertIdentical("{ f <- function(a) { g(a) } ;  g <- function(b) { missing(b) } ; f() }", "TRUE");
+  }
+  @Test
+  public void micro1569() {
+    assertIdentical("{ f <- function(a = 2) { g(a) } ; g <- function(b) { missing(b) } ; f() }", "FALSE");
+  }
+  @Test
+  public void micro1570() {
+    assertIdentical("{ f <- function(a = z) {  g(a) } ; g <- function(b) { missing(b) } ; f() }", "FALSE");
   }
   @Test
   public void micro1571() {
@@ -4435,6 +4599,14 @@ public class MicroTest extends AbstractMicroTest {
     assertIdentical("{ sprintf('Hello %2$*2$d', 3, 2) }", "\"Hello  2\"");
   }
   @Test
+  public void micro1643() {
+    assertIdentical("{ sprintf('%4X', 26) }", "\"  1A\"");
+  }
+  @Test
+  public void micro1644() {
+    assertIdentical("{ sprintf('%04X', 26) }", "\"001A\"");
+  }
+  @Test
   public void micro1645() {
     assertIdentical("{ sprintf('%s',NULL) }", "character(0)");
   }
@@ -4475,6 +4647,10 @@ public class MicroTest extends AbstractMicroTest {
     assertIdentical("{ sprintf('Hello %*i', 2, 3) }", "\"Hello  3\"");
   }
   @Test
+  public void micro1655() {
+    assertIdentical("{ sprintf('Hello %d == %s', TRUE, TRUE) }", "\"Hello 1 == TRUE\"");
+  }
+  @Test
   public void micro1656() {
     assertIdentical("{ sprintf('Hello %d == %s', 1L, 1L) }", "\"Hello 1 == 1\"");
   }
@@ -4485,6 +4661,10 @@ public class MicroTest extends AbstractMicroTest {
   @Test
   public void micro1658() {
     assertIdentical("{ sprintf('Hello %d', 100) }", "\"Hello 100\"");
+  }
+  @Test
+  public void micro1659() {
+    assertIdentical("{ sprintf('Hello %f %f %f %f', 0/0, -1/0, 1/0, 1[2]) }", "\"Hello NaN -Inf Inf NA\"");
   }
   @Test
   public void micro1661() {
@@ -4655,8 +4835,16 @@ public class MicroTest extends AbstractMicroTest {
     assertIdentical("{ identical(c('hello',NA),c('hello')) }", "FALSE");
   }
   @Test
+  public void micro1704() {
+    assertIdentical("{ identical(c(0/0,NA),c(NA,0/0)) }", "FALSE");
+  }
+  @Test
   public void micro1705() {
     assertIdentical("{ identical(c(1/0,-3/0),c(2/0,-1e100/0)) }", "TRUE");
+  }
+  @Test
+  public void micro1706() {
+    assertIdentical("{ identical(c(1/0,-3/0),c(0/0,NA)) }", "FALSE");
   }
   @Test
   public void micro1707() {
@@ -6411,6 +6599,14 @@ public class MicroTest extends AbstractMicroTest {
     assertIdentical("{ x <- 1:3 ; x[TRUE] <- 10 ; x }", "c(10, 10, 10)");
   }
   @Test
+  public void micro2171() {
+    assertIdentical("{ x <- 1:3 ; x[[TRUE]] <- 10 ; x }", "c(10, 2, 3)");
+  }
+  @Test
+  public void micro2173() {
+    assertIdentical("{ b <- list(1+2i,3+4i) ; dim(b) <- c(2,1) ; b[\"hello\"] <- NULL ; b }", "list(1+2i, 3+4i)");
+  }
+  @Test
   public void micro2174() {
     assertIdentical("{ x<-1:5 ; x[3:4] }", "3:4");
   }
@@ -6667,6 +6863,14 @@ public class MicroTest extends AbstractMicroTest {
     assertIdentical("{ f <- function(b,i) { b[i] } ; f(c(a=1,b=2,c=3), character()) }", "structure(numeric(0), .Names = character(0))");
   }
   @Test
+  public void micro2238() {
+    assertIdentical("{ f <- function(b,i) { b[i] } ; f(c(1,2,3), character()) }", "numeric(0)");
+  }
+  @Test
+  public void micro2239() {
+    assertIdentical("{ f <- function(b,i) { b[i] } ; f(c(1,2,3), c(\"hello\",\"hi\")) }", "c(NA_real_, NA_real_)");
+  }
+  @Test
   public void micro2240() {
     assertIdentical("{ f <- function(b,i) { b[i] } ; f(1:3, c(\"h\",\"hi\")) ; f(1:3,TRUE) }", "1:3");
   }
@@ -6681,6 +6885,14 @@ public class MicroTest extends AbstractMicroTest {
   @Test
   public void micro2244() {
     assertIdentical("{ l <- list(1,list(2)) ; f <- function(i) { l[[i]] } ; f(c(2,1)) ; f(1) }", "1");
+  }
+  @Test
+  public void micro2247() {
+    assertIdentical("{ f <- function(i) { l[[i]] } ; l <- list(1, c(2,3)) ; f(c(2,-1)) }", "3");
+  }
+  @Test
+  public void micro2248() {
+    assertIdentical("{ f <- function(i) { l[[i]] } ; l <- list(1, c(2,3)) ; f(c(2,-2)) }", "2");
   }
   @Test
   public void micro2249() {
@@ -6721,6 +6933,10 @@ public class MicroTest extends AbstractMicroTest {
   @Test
   public void micro2259() {
     assertIdentical("{ x<-5:1; x[0-2]<-1000; x }", "c(1000, 4, 1000, 1000, 1000)");
+  }
+  @Test
+  public void micro2260() {
+    assertIdentical("{ x<-c(); x[[TRUE]] <- 2; x }", "2");
   }
   @Test
   public void micro2261() {
@@ -6987,6 +7203,10 @@ public class MicroTest extends AbstractMicroTest {
     assertIdentical("{ x <- list(1,2) ; x[0] <- NULL ; x }", "list(1, 2)");
   }
   @Test
+  public void micro2331() {
+    assertIdentical("{ x <- list(1,2) ; x[NA] <- NULL ; x }", "list(1, 2)");
+  }
+  @Test
   public void micro2332() {
     assertIdentical("{ x <- list(1,2) ; x[as.integer(NA)] <- NULL ; x }", "list(1, 2)");
   }
@@ -7001,6 +7221,10 @@ public class MicroTest extends AbstractMicroTest {
   @Test
   public void micro2336() {
     assertIdentical("{ x <- list(a=3,b=4) ; x[[\"a\"]] <- NULL ; x }", "structure(list(b = 4), .Names = \"b\")");
+  }
+  @Test
+  public void micro2337() {
+    assertIdentical("{ x <- list(a=3,b=4) ; x[\"z\"] <- NULL ; x }", "structure(list(a = 3, b = 4), .Names = c(\"a\", \"b\"))");
   }
   @Test
   public void micro2338() {
@@ -7207,12 +7431,32 @@ public class MicroTest extends AbstractMicroTest {
     assertIdentical("{ x <- c(a=1,b=2,c=3) ; x[c(TRUE,TRUE,FALSE)]<-10; x }", "structure(c(10, 10, 3), .Names = c(\"a\", \"b\", \"c\"))");
   }
   @Test
+  public void micro2392() {
+    assertIdentical("{ x <- c(a=1,b=2) ; x[2:3]<-10; x }", "structure(c(1, 10, 10), .Names = c(\"a\", \"b\", \"\"))");
+  }
+  @Test
+  public void micro2393() {
+    assertIdentical("{ x <- c(a=1,b=2) ; x[c(2,3)]<-10; x }", "structure(c(1, 10, 10), .Names = c(\"a\", \"b\", \"\"))");
+  }
+  @Test
+  public void micro2394() {
+    assertIdentical("{ x <- c(a=1,b=2) ; x[3]<-10; x }", "structure(c(1, 2, 10), .Names = c(\"a\", \"b\", \"\"))");
+  }
+  @Test
+  public void micro2395() {
+    assertIdentical("{ x <- matrix(1:2) ; x[c(FALSE,FALSE,TRUE)]<-10; x }", "c(1, 2, 10)");
+  }
+  @Test
   public void micro2396() {
     assertIdentical("{ x <- 1:2 ; x[c(FALSE,FALSE,TRUE)]<-10; x }", "c(1, 2, 10)");
   }
   @Test
   public void micro2398() {
     assertIdentical("{ x<-c(a=1,b=2,c=3) ; x[[\"b\"]]<-200; x }", "structure(c(1, 200, 3), .Names = c(\"a\", \"b\", \"c\"))");
+  }
+  @Test
+  public void micro2399() {
+    assertIdentical("{ x<-c(a=1,b=2,c=3) ; x[[\"d\"]]<-200; x }", "structure(c(1, 2, 3, 200), .Names = c(\"a\", \"b\", \"c\", \"d\"))");
   }
   @Test
   public void micro2400() {
@@ -7229,6 +7473,14 @@ public class MicroTest extends AbstractMicroTest {
   @Test
   public void micro2403() {
     assertIdentical("{ x<-c(a=1,b=2,c=3) ; x[c(\"d\",\"a\",\"d\",\"a\")]<-c(4,5) ; x }", "structure(c(5, 2, 3, 4), .Names = c(\"a\", \"b\", \"c\", \"d\"))");
+  }
+  @Test
+  public void micro2404() {
+    assertIdentical("{ a = c(1, 2); a[['a']] = 67; a; }", "structure(c(1, 2, 67), .Names = c(\"\", \"\", \"a\"))");
+  }
+  @Test
+  public void micro2405() {
+    assertIdentical("{ a = c(a=1,2,3); a[['x']] = 67; a; }", "structure(c(1, 2, 3, 67), .Names = c(\"a\", \"\", \"\", \"x\"))");
   }
   @Test
   public void micro2406() {
@@ -7567,6 +7819,10 @@ public class MicroTest extends AbstractMicroTest {
     assertIdentical("{ b <- c(1,4,5) ;  x <- c(2,2) ; b[x==2] <- c(10,11) ; b }", "c(10, 11, 10)");
   }
   @Test
+  public void micro2495() {
+    assertIdentical("{ b <- c(1,2,5) ;  x <- as.double(NA) ; attr(x,\"my\") <- 2 ; b[c(1,NA,2)==2] <- x ; b }", "c(1, 2, NA)");
+  }
+  @Test
   public void micro2496() {
     assertIdentical("{ b <- c(1,2,5) ;  x <- c(2,2,-1) ; b[x==2] <- c(10,11,5) ; b }", "c(10, 11, 5)");
   }
@@ -7631,8 +7887,28 @@ public class MicroTest extends AbstractMicroTest {
     assertIdentical("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(c(1,2,3),c(TRUE,FALSE,TRUE),5:6) ; f(3:5, c(FALSE,TRUE,TRUE), 4:6) }", "3:5");
   }
   @Test
+  public void micro2526() {
+    assertIdentical("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(c(1,2,3),c(TRUE,FALSE,TRUE),5:6) ; f(3:5, c(FALSE,NA), 4) }", "c(3, 4, 5)");
+  }
+  @Test
+  public void micro2527() {
+    assertIdentical("{ b <- as.list(3:6) ; dim(b) <- c(4,1) ; b[c(TRUE,FALSE)] <- NULL ; b }", "list(4L, 6L)");
+  }
+  @Test
+  public void micro2528() {
+    assertIdentical("{ b <- as.list(3:6) ; names(b) <- c(\"X\",\"Y\",\"Z\",\"Q\") ; b[c(TRUE,FALSE)] <- NULL ; b }", "structure(list(Y = 4L, Q = 6L), .Names = c(\"Y\", \"Q\"))");
+  }
+  @Test
   public void micro2529() {
     assertIdentical("{ b <- as.list(3:6) ; names(b) <- c(\"X\",\"Y\",\"Z\",\"Q\") ; b[c(FALSE,FALSE)] <- NULL ; b }", "structure(list(X = 3L, Y = 4L, Z = 5L, Q = 6L), .Names = c(\"X\", \"Y\", \"Z\", \"Q\"))");
+  }
+  @Test
+  public void micro2531() {
+    assertIdentical("{ b <- as.list(3:6) ; dim(b) <- c(1,4) ; b[c(FALSE,FALSE,TRUE)] <- NULL ; b }", "list(3L, 4L, 6L)");
+  }
+  @Test
+  public void micro2533() {
+    assertIdentical("{ b <- as.list(3:5) ; dim(b) <- c(1,3) ; b[c(FALSE,TRUE,NA)] <- NULL ; b }", "list(3L, 5L)");
   }
   @Test
   public void micro2534() {
@@ -7661,6 +7937,14 @@ public class MicroTest extends AbstractMicroTest {
   @Test
   public void micro2540() {
     assertIdentical("{ f <- function(b,i,v) { b[i] <- v ; b } ; f(list(1,2), c(TRUE,FALSE), list(1+2i)) ; f(as.list(1:2), c(TRUE,FALSE), 10L) }", "list(10L, 2L)");
+  }
+  @Test
+  public void micro2541() {
+    assertIdentical("{ f <- function(b,i,v) { b[i] <- v ; b } ; f(list(1,2), c(TRUE,NA), list(1+2i)) }", "list(1+2i, 2)");
+  }
+  @Test
+  public void micro2542() {
+    assertIdentical("{ f <- function(b,i,v) { b[i] <- v ; b } ; f(list(1,2), c(TRUE,NA), 10) }", "list(10, 2)");
   }
   @Test
   public void micro2544() {
@@ -7699,6 +7983,10 @@ public class MicroTest extends AbstractMicroTest {
     assertIdentical("{ x <- c(1,0) ; x[logical()] <- 3:4; x }", "c(1, 0)");
   }
   @Test
+  public void micro2555() {
+    assertIdentical("{ x <- c(1,0) ; z <- x ; x[c(NA,TRUE)] <- TRUE; x }", "c(1, 1)");
+  }
+  @Test
   public void micro2556() {
     assertIdentical("{ x <- c(1,0)  ; x[is.na(x)] <- TRUE; x }", "c(1, 0)");
   }
@@ -7723,8 +8011,16 @@ public class MicroTest extends AbstractMicroTest {
     assertIdentical("{ x <- 1:2 ; x[c(TRUE,FALSE,FALSE,NA)] <- 3L ; x }", "c(3L, 2L, NA, NA)");
   }
   @Test
+  public void micro2564() {
+    assertIdentical("{ x <- 1:2 ; x[c(TRUE,NA)] <- 3L ; x }", "c(3L, 2L)");
+  }
+  @Test
   public void micro2565() {
     assertIdentical("{ x <- c(1L,2L) ; x[c(TRUE,FALSE)] <- 3L ; x }", "c(3L, 2L)");
+  }
+  @Test
+  public void micro2566() {
+    assertIdentical("{ x <- c(1L,2L) ; x[c(TRUE,NA)] <- 3L ; x }", "c(3L, 2L)");
   }
   @Test
   public void micro2567() {
@@ -7763,6 +8059,14 @@ public class MicroTest extends AbstractMicroTest {
     assertIdentical("{ b <- c(TRUE,NA,FALSE) ; b[c(TRUE,FALSE,TRUE,TRUE)] <- c(FALSE,NA,NA) ; b }", "c(FALSE, NA, NA, NA)");
   }
   @Test
+  public void micro2577() {
+    assertIdentical("{ b <- c(TRUE,NA,FALSE,TRUE) ; b[c(TRUE,FALSE,TRUE,NA)] <- FALSE ; b }", "c(FALSE, NA, FALSE, TRUE)");
+  }
+  @Test
+  public void micro2578() {
+    assertIdentical("{ b <- c(TRUE,NA,FALSE,TRUE) ; z <- b ; b[c(TRUE,FALSE,TRUE,NA)] <- FALSE ; b }", "c(FALSE, NA, FALSE, TRUE)");
+  }
+  @Test
   public void micro2580() {
     assertIdentical("{ b <- c(TRUE,NA,FALSE,TRUE) ; b[c(TRUE,FALSE,TRUE,FALSE)] <- b ; b }", "c(TRUE, NA, NA, TRUE)");
   }
@@ -7797,6 +8101,10 @@ public class MicroTest extends AbstractMicroTest {
   @Test
   public void micro2588() {
     assertIdentical("{ b <- c(\"a\",\"b\",\"c\") ; b[c(TRUE,FALSE,TRUE,NA)] <- \"X\" ; b }", "c(\"X\", \"b\", \"X\", NA)");
+  }
+  @Test
+  public void micro2589() {
+    assertIdentical("{ b <- c(\"a\",\"b\",\"c\") ; b[c(TRUE,FALSE,NA)] <- \"X\" ; b }", "c(\"X\", \"b\", \"c\")");
   }
   @Test
   public void micro2590() {
@@ -7865,6 +8173,14 @@ public class MicroTest extends AbstractMicroTest {
   @Test
   public void micro2608() {
     assertIdentical("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1:3, 1, TRUE) ; f(c(a=1,b=2,c=3), c(\"b\",\"c\",\"a\"), 14:16) ; f(list(1,2,3), NULL, NULL) }", "list(1, 2, 3)");
+  }
+  @Test
+  public void micro2609() {
+    assertIdentical("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1:3, 1, TRUE) ; f(c(a=1,b=2,c=3), c(\"b\",\"c\",\"a\"), 14:16) ; f(list(1,2,3), c(TRUE,TRUE,FALSE), NULL) }", "list(3)");
+  }
+  @Test
+  public void micro2610() {
+    assertIdentical("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1:3, 1, TRUE) ; f(c(a=1,b=2,c=3), c(\"b\",\"c\",\"a\"), 14:16) ; l <- list(1,2,3) ; dim(l) <- c(1,3) ; z <- f(l, c(TRUE,TRUE,FALSE), NULL) ; z }", "list(3)");
   }
   @Test
   public void micro2612() {
@@ -7995,6 +8311,10 @@ public class MicroTest extends AbstractMicroTest {
     assertIdentical("{ l<-(list(list(1,2),list(3,4))); l[[c(1,TRUE)]] }", "1");
   }
   @Test
+  public void micro2644() {
+    assertIdentical("{ l<-(list(list(1,2),c(3,4))); l[[c(2,1)]] }", "3");
+  }
+  @Test
   public void micro2645() {
     assertIdentical("{ l <- list(a=1,b=2,c=list(d=3,e=list(f=4))) ; l[[c(3,2)]] }", "structure(list(f = 4), .Names = \"f\")");
   }
@@ -8005,6 +8325,10 @@ public class MicroTest extends AbstractMicroTest {
   @Test
   public void micro2647() {
     assertIdentical("{ l <- list(c=list(d=3,e=c(f=4)), b=2, a=3) ; l[[c(\"c\",\"e\")]] }", "structure(4, .Names = \"f\")");
+  }
+  @Test
+  public void micro2648() {
+    assertIdentical("{ l <- list(c=list(d=3,e=c(f=4)), b=2, a=3) ; l[[c(\"c\",\"e\", \"f\")]] }", "4");
   }
   @Test
   public void micro2649() {
@@ -8041,6 +8365,14 @@ public class MicroTest extends AbstractMicroTest {
   @Test
   public void micro2659() {
     assertIdentical("{ l <- list(1,2,3) ; l[[2]] <- list(100) ; l[2] }", "list(list(100))");
+  }
+  @Test
+  public void micro2660() {
+    assertIdentical("{ m<-list(1,2) ; m[TRUE] <- NULL ; m }", "list()");
+  }
+  @Test
+  public void micro2661() {
+    assertIdentical("{ m<-list(1,2) ; m[[TRUE]] <- NULL ; m }", "list(2)");
   }
   @Test
   public void micro2662() {
@@ -8103,6 +8435,10 @@ public class MicroTest extends AbstractMicroTest {
     assertIdentical("{ l <- list() ; l[c(TRUE,TRUE)] <-2 ; l }", "list(2, 2)");
   }
   @Test
+  public void micro2682() {
+    assertIdentical("{ x <- 1:3 ; l <- list(1) ; l[[TRUE]] <- x ; l[[1]] }", "1:3");
+  }
+  @Test
   public void micro2683() {
     assertIdentical("{ x<-list(1,2,3,4,5); x[3:4]<-c(300L,400L); x }", "list(1, 2, 300L, 400L, 5)");
   }
@@ -8139,6 +8475,10 @@ public class MicroTest extends AbstractMicroTest {
     assertIdentical("{ v<-list(1,2,3) ; v[c(2,3,4)] <- NULL ; v }", "list(1)");
   }
   @Test
+  public void micro2694() {
+    assertIdentical("{ v<-list(1,2,3) ; v[c(TRUE,FALSE,TRUE)] <- NULL ; v }", "list(2)");
+  }
+  @Test
   public void micro2695() {
     assertIdentical("{ v<-list(1,2,3) ; v[c()] <- NULL ; v }", "list(1, 2, 3)");
   }
@@ -8155,12 +8495,24 @@ public class MicroTest extends AbstractMicroTest {
     assertIdentical("{ v<-list(1,2,3) ; v[logical()] <- NULL ; v }", "list(1, 2, 3)");
   }
   @Test
+  public void micro2699() {
+    assertIdentical("{ v<-list(1,2,3) ; v[c(TRUE,FALSE)] <- NULL ; v }", "list(2)");
+  }
+  @Test
   public void micro2703() {
     assertIdentical("{ l<-list(a=1,b=2,c=3,d=4); l[c(2,3)] <- NULL ; l}", "structure(list(a = 1, d = 4), .Names = c(\"a\", \"d\"))");
   }
   @Test
   public void micro2704() {
     assertIdentical("{ l<-list(a=1,b=2,c=3,d=4); l[c(2,3,5)] <- NULL ; l}", "structure(list(a = 1, d = 4), .Names = c(\"a\", \"d\"))");
+  }
+  @Test
+  public void micro2706() {
+    assertIdentical("{ l<-list(a=1,b=2,c=3,d=4); l[c(TRUE,TRUE,FALSE,TRUE)] <- NULL ; l}", "structure(list(c = 3), .Names = \"c\")");
+  }
+  @Test
+  public void micro2707() {
+    assertIdentical("{ l<-list(a=1,b=2,c=3,d=4); l[c(TRUE,FALSE)] <- NULL ; l}", "structure(list(b = 2, d = 4), .Names = c(\"b\", \"d\"))");
   }
   @Test
   public void micro2709() {
@@ -8173,6 +8525,10 @@ public class MicroTest extends AbstractMicroTest {
   @Test
   public void micro2713() {
     assertIdentical("{ l <- list(1,list(2,list(3))) ; l[[1]] <- 5 ; l }", "list(5, list(2, list(3)))");
+  }
+  @Test
+  public void micro2718() {
+    assertIdentical("{ l<-list(a=1,b=2,c=3) ; l[c(\"a\",\"a\",\"a\",\"c\")] <- NULL ; l }", "structure(list(b = 2), .Names = \"b\")");
   }
   @Test
   public void micro2725() {
@@ -8201,6 +8557,10 @@ public class MicroTest extends AbstractMicroTest {
   @Test
   public void micro2733() {
     assertIdentical("{ f <- function() { l[1:2] <- x ; x[1] <- 211L  ; l[1] } ; l <- 1:3 ; x <- 10L ; f() }", "10L");
+  }
+  @Test
+  public void micro2742() {
+    assertIdentical("{ f <- function(b,i,v) { b[[i]] <- v ; b } ; f(c(1,2,b=c(x=3)),c(\"b\"),10) }", "structure(c(1, 2, 3, 10), .Names = c(\"\", \"\", \"b.x\", \"b\"))");
   }
   @Test
   public void micro2749() {
@@ -8247,14 +8607,30 @@ public class MicroTest extends AbstractMicroTest {
     assertIdentical("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1:3,3:1,4:6) ; f(c(X=1,a=2),c(\"a\",\"X\",\"a\"),list(3,TRUE,FALSE)) }", "structure(list(X = TRUE, a = FALSE), .Names = c(\"X\", \"a\"))");
   }
   @Test
+  public void micro2760() {
+    assertIdentical("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1:3,3:1,4:6) ; f(as.complex(c(13,14)),as.character(NA),as.complex(23)) }", "structure(c(13+0i, 14+0i, 23+0i), .Names = c(\"\", \"\", NA))");
+  }
+  @Test
   public void micro2761() {
     assertIdentical("{ f <- function(b, i, v) { b[i] <- v ; b } ; " +
         "f(1:3,3:1,4:6) ; " +
         "f(as.complex(c(13,14)),character(),as.complex(23)) }", "c(13+0i, 14+0i)");
   }
   @Test
+  public void micro2762() {
+    assertIdentical("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1:3,3:1,4:6) ; f(as.complex(c(13,14)),c(\"\",\"\",\"\"),as.complex(23)) }", "structure(c(13+0i, 14+0i, 23+0i, 23+0i, 23+0i), .Names = c(\"\", \"\", \"\", \"\", \"\"))");
+  }
+  @Test
+  public void micro2763() {
+    assertIdentical("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1:3,3:1,4:6) ; f(as.complex(c(13,14)),c(\"\",\"\",NA),as.complex(23)) }", "structure(c(13+0i, 14+0i, 23+0i, 23+0i, 23+0i), .Names = c(\"\", \"\", \"\", \"\", NA))");
+  }
+  @Test
   public void micro2764() {
     assertIdentical("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1:3,3:1,4:6) ; f(as.raw(c(13,14)),c(\"a\",\"X\",\"a\"),as.raw(23)) }", "structure(as.raw(c(0x0d, 0x0e, 0x17, 0x17)), .Names = c(\"\", \"\", \"a\", \"X\"))");
+  }
+  @Test
+  public void micro2765() {
+    assertIdentical("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1:3,3:1,4:6) ; f(c(X=1,a=2),c(\"a\",\"X\",\"a\",\"b\"),list(3,TRUE,FALSE)) }", "structure(list(X = TRUE, a = FALSE, b = 3), .Names = c(\"X\", \"a\", \"b\"))");
   }
   @Test
   public void micro2766() {
@@ -8269,8 +8645,24 @@ public class MicroTest extends AbstractMicroTest {
     assertIdentical("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1:3,3:1,4:6) ; f(c(X=1,a=2),c(\"X\",\"b\",NA),1:3) }", "structure(c(1, 2, 2, 3), .Names = c(\"X\", \"a\", \"b\", NA))");
   }
   @Test
+  public void micro2769() {
+    assertIdentical("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1+2i,3:1,4:6) ; f(c(X=1,a=2),c(\"X\",\"b\",NA),c(TRUE,NA)) }", "structure(c(1, 2, NA, 1), .Names = c(\"X\", \"a\", \"b\", NA))");
+  }
+  @Test
   public void micro2770() {
     assertIdentical("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1+2i,3:1,4:6) ; f(c(X=1L,a=2L),c(\"X\",\"b\",NA),c(TRUE,NA,FALSE)) }", "structure(c(1L, 2L, NA, 0L), .Names = c(\"X\", \"a\", \"b\", NA))");
+  }
+  @Test
+  public void micro2771() {
+    assertIdentical("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1+2i,3:1,4:6) ; f(list(X=1L,a=2L),c(\"X\",\"b\",NA),NULL) }", "structure(list(a = 2L), .Names = \"a\")");
+  }
+  @Test
+  public void micro2772() {
+    assertIdentical("{ b <- c(a=1+2i,b=3+4i) ; dim(b) <- c(2,1) ; b[c(\"a\",\"b\")] <- 3+1i ; b }", "structure(c(1+2i, 3+4i, 3+1i, 3+1i), .Names = c(\"\", \"\", \"a\", \"b\"))");
+  }
+  @Test
+  public void micro2776() {
+    assertIdentical("{ b <- list(1+2i,3+4i) ; dim(b) <- c(2,1) ; b[c(\"hello\",\"hi\")] <- NULL ; b }", "list(1+2i, 3+4i)");
   }
   @Test
   public void micro2777() {

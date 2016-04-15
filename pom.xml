@@ -36,7 +36,6 @@
     <module>cli</module>
     <module>appengine</module>
     <module>tests</module>
-    <module>benchmarks</module>
     <module>test-packages</module>
     <module>repl</module>
     <module>packages</module>

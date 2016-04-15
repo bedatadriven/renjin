@@ -22,7 +22,6 @@
 package org.renjin.primitives.text.regex;
 
 import org.junit.Test;
-import org.renjin.primitives.text.regex.ExtendedRE;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -47,6 +46,4 @@ public class RETest {
     // make sure that normal character ranges still work
     assertTrue(new ExtendedRE("^[a-z4]+$").match("qf444ee"));
   }
-
-
 }

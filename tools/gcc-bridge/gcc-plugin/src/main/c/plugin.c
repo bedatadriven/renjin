@@ -364,7 +364,9 @@ static void dump_record_type_decl(tree type) {
   while(field) {
     json_start_object();
     json_int_field("id", DEBUG_TEMP_UID (field));
-    json_int_field("offset", int_bit_position(field));
+    if(DECL_FIELD_OFFSET (field)) {
+      json_int_field("offset", int_bit_position(field));
+    }
     if(DECL_NAME(field)) {
       json_string_field("name", IDENTIFIER_POINTER(DECL_NAME(field)));
     }

@@ -26,8 +26,6 @@ import static com.sun.codemodel.JExpr.lit;
  */
 public class RecycleLoopBuilder {
 
-
-
   private class RecycledArgument {
     private JvmMethod.Argument formal;
     private ScalarType scalarType;
@@ -276,14 +274,14 @@ public class RecycleLoopBuilder {
 
   private JStatement copyAttributesFrom(RecycledArgument arg) {
     switch(overload.getPreserveAttributesStyle()) {
-    case ALL:
-      return builder.invoke("combineAttributesFrom").arg(arg.vector);
-    case SPECIAL:
-      // Symbols.DIM, Symbols.DIMNAMES, Symbols.NAMES)
-      return builder.invoke("copySomeAttributesFrom").arg(arg.vector)
-              .arg(symbol("DIM"))
-              .arg(symbol("DIMNAMES"))
-              .arg(symbol("NAMES"));
+      case ALL:
+        return builder.invoke("combineAttributesFrom").arg(arg.vector);
+      case SPECIAL:
+        // Symbols.DIM, Symbols.DIMNAMES, Symbols.NAMES)
+        return builder.invoke("copySomeAttributesFrom").arg(arg.vector)
+            .arg(symbol("DIM"))
+            .arg(symbol("DIMNAMES"))
+            .arg(symbol("NAMES"));
     }
     throw new IllegalArgumentException("preserve attribute style: " + overload.getPreserveAttributesStyle());
   }

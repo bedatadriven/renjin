@@ -69,7 +69,7 @@ public class ClasspathPackage extends FileBasedPackage {
 
   @Override
   public boolean resourceExists(String name) {
-      URL url = classLoader.getResource(qualifyResourceName(name));
-      return url != null;
+    URL url = classLoader.getResource(qualifyResourceName(name));
+    return url != null;
   }
 }

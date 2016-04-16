@@ -118,12 +118,12 @@ public class Deparse {
       deparsed.append(", ").append(name).append(" = ");
       deparse(value);
     }
-    
+
     private boolean requiresStructure(SEXP exp) {
       // for perhaps arbitrary reasons, attributes of 
       // function calls are not included in the deparse
       if(exp instanceof FunctionCall) {
-         return false;
+        return false;
       }
       return !exp.getAttributes().empty();
     }
@@ -230,7 +230,7 @@ public class Deparse {
 
     @Override
     public void visit(LogicalVector vector) {
-     deparseAtomicVector(vector, ElementDeparser.LOGICAL);
+      deparseAtomicVector(vector, ElementDeparser.LOGICAL);
     }
 
     public void visit(ListVector list) {

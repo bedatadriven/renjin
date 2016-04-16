@@ -85,11 +85,11 @@ public class CommonsMath {
       this.nrows = nrows;
       this.ncols = ncols;
     }
-    
-    
+
+
     @Override
     public RealMatrix createMatrix(int rowDimension, int columnDimension){
-       return new BlockRealMatrix(rowDimension, columnDimension);
+      return new BlockRealMatrix(rowDimension, columnDimension);
     }
 
     @Override

@@ -71,16 +71,16 @@ public class Models {
 
   public static int nrows(SEXP s) {
     if (s instanceof Vector) {
-        SEXP dim = s.getAttribute(Symbols.DIM);
-        if(dim == Null.INSTANCE) {
-          return s.length();
-        } else {
-          return ((IntVector)dim).getElementAsInt(0);
-        }
+      SEXP dim = s.getAttribute(Symbols.DIM);
+      if(dim == Null.INSTANCE) {
+        return s.length();
+      } else {
+        return ((IntVector)dim).getElementAsInt(0);
+      }
     } else if(Attributes.inherits(s, "data.frame")) {
       return nrows(s.getElementAsSEXP(0));
-      
-    } else {  
+
+    } else {
       throw new EvalException("object is not a matrix");
     }
   }

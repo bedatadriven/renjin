@@ -10,17 +10,15 @@ import java.io.InputStream;
 import java.util.jar.JarEntry;
 
 
-public class FastJarFileObject    
-extends AbstractFileObject
-implements FileObject {   
+public class FastJarFileObject extends AbstractFileObject implements FileObject {
 
   private final FastJarFileSystem fs;
   protected JarEntry entry;
   private FileType type;
 
   protected FastJarFileObject(AbstractFileName name,
-      JarEntry entry,
-      FastJarFileSystem fs) throws FileSystemException {
+                              JarEntry entry,
+                              FastJarFileSystem fs) throws FileSystemException {
     super(name, fs);
     this.fs = fs;
     setZipEntry(entry);

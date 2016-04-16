@@ -25,9 +25,11 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
 import org.renjin.sexp.*;
-import org.renjin.sexp.Vector;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 public class Sort {
 
@@ -379,8 +381,8 @@ public class Sort {
       int maxRank = minRank;
       while ( maxRank+1 < sortedInput.length() &&
               sortedInput.compare(minRank, maxRank+1) == 0) {
-          maxRank++;
-        }
+        maxRank++;
+      }
       ranks.add(maxRank + 1);
     }
     return ranks.build();

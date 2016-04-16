@@ -21,14 +21,7 @@
 
 package org.renjin.appengine;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.script.ScriptEngine;
-import javax.servlet.ServletContext;
-
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.vfs2.CacheStrategy;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
@@ -41,7 +34,12 @@ import org.renjin.eval.SessionBuilder;
 import org.renjin.eval.vfs.FastJarFileProvider;
 import org.renjin.script.RenjinScriptEngineFactory;
 
-import com.google.common.annotations.VisibleForTesting;
+import javax.script.ScriptEngine;
+import javax.servlet.ServletContext;
+import java.io.File;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 //import r.scripting.RenjinScriptEngineFactory;
 
@@ -67,12 +65,12 @@ public class AppEngineContextFactory {
       // initialize our master context here; a fresh but shallow copy will
       // be forked on each incoming request
       Session session = new SessionBuilder()
-      .withFileSystemManager(fileSystemManager)
-      .withDefaultPackages()
-      .build();
-      
+          .withFileSystemManager(fileSystemManager)
+          .withDefaultPackages()
+          .build();
+
       session.setWorkingDirectory(fileSystemManager.resolveFile("file:///"));
-      
+
       return session;
     } catch (IOException e) {
       LOG.log(Level.SEVERE, "Failed to initialize master context", e);

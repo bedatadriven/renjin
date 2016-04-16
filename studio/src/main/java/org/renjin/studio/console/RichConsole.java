@@ -36,15 +36,14 @@ package org.renjin.studio.console;
 import java.awt.*;
 
 /**
-  * Additional capabilities of an interactive console for R.
-  *
-  * @author Patrick Niemeyer (pat@pat.net)
-  */
-public interface RichConsole extends Console
-{
-	public void print( Object o, Color color );
-	public void setNameCompletion( NameCompletion nc );
+ * Additional capabilities of an interactive console for R.
+ *
+ * @author Patrick Niemeyer (pat@pat.net)
+ */
+public interface RichConsole extends Console {
+  void print(Object o, Color color);
+  void setNameCompletion(NameCompletion nc);
 
-	/** e.g. the wait cursor */
-	public void setWaitFeedback( boolean on );
+  /** e.g. the wait cursor */
+  void setWaitFeedback(boolean on);
 }

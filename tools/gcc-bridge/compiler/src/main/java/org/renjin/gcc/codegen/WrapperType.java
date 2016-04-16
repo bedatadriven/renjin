@@ -255,9 +255,9 @@ public class WrapperType {
 
     // sanity check type we're trying to create here
     if(!ptrGenerator.getPointerType().equals(this)) {
-        throw new InternalCompilerException(String.format(
-            "Type mismatch: cannot create FatPtr (%s) from pointer of type %s [%s]", 
-            wrapperType, ptrGenerator.getGimpleType(), ptrGenerator.getPointerType()));
+      throw new InternalCompilerException(String.format(
+          "Type mismatch: cannot create FatPtr (%s) from pointer of type %s [%s]", 
+          wrapperType, ptrGenerator.getGimpleType(), ptrGenerator.getPointerType()));
     }
     
     String wrapperClass = wrapperType.getInternalName();

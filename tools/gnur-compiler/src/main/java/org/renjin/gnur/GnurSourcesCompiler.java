@@ -214,7 +214,7 @@ public class GnurSourcesCompiler {
     
     URL url = Resources.getResource("org/renjin/gnur/include/R.h");
     if(url.getProtocol().equals("file")) {
-        return new File(url.getFile()).getParentFile();
+      return new File(url.getFile()).getParentFile();
     } else if(url.getProtocol().equals("jar")) {
       
       // file = file:/C:/Users/Alex/.m2/repository/org/renjin/renjin-gnur-compiler/0.7.0-SNAPSHOT/renjin-gnur-compiler-0.7.0-SNAPSHOT.jar!/org/renjin/gnur/include/R.h

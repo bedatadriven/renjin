@@ -75,9 +75,7 @@ public class TreeBuilder implements FunctionBodyTransformer {
     Set<Integer> usedOnce = new HashSet<>();
 
     for (GimpleVarDecl decl : function.getVariableDeclarations()) {
-     // if(!decl.isNamed()) {
-        localVariables.add(decl.getId());
-     // }
+      localVariables.add(decl.getId());
     }
 
     for (GimpleBasicBlock basicBlock : function.getBasicBlocks()) {

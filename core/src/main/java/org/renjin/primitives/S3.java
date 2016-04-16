@@ -97,7 +97,7 @@ public class S3 {
         dataClass.add(exp.getTypeName());
         dataClass.add("numeric");
       } else {
-         dataClass.add(exp.getImplicitClass());
+        dataClass.add(exp.getImplicitClass());
       }
       return dataClass.build();
     }
@@ -225,11 +225,11 @@ public class S3 {
     }
 
     GenericMethod method = Resolver
-      .start(context, name, object)
-      .withBaseDefinitionEnvironment()
-      .withObjectArgument(object)
-      .withGenericArgument(name)
-      .findNext();
+        .start(context, name, object)
+        .withBaseDefinitionEnvironment()
+        .withObjectArgument(object)
+        .withGenericArgument(name)
+        .findNext();
 
     if(method == null) {
       return null;

@@ -320,7 +320,7 @@ public class VarianceCalculator {
       case 5:
         return new NaOrComplete(x, y);
       default:
-          throw new IllegalArgumentException("missingStrategy = " + index);
+        throw new IllegalArgumentException("missingStrategy = " + index);
     }
   }
 

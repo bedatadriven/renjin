@@ -93,7 +93,7 @@ public interface PairList extends SEXP {
       this.tag = tag;
       this.value = value;
       if (value==null) {
-          throw new IllegalArgumentException("Node value can't be null");
+        throw new IllegalArgumentException("Node value can't be null");
       }
       if(nextNode instanceof Node) {
         this.nextNode = (Node) nextNode;
@@ -105,10 +105,10 @@ public interface PairList extends SEXP {
       this.tag = tag;
       this.value = value;
       if(nextNode instanceof Node) {
-       this.nextNode = nextNode;
+        this.nextNode = nextNode;
       }
       if (value==null) {
-          throw new IllegalArgumentException("Node value can't be null");
+        throw new IllegalArgumentException("Node value can't be null");
       }
     }
 
@@ -359,7 +359,7 @@ public interface PairList extends SEXP {
     public Builder newCopyBuilder() {
       Builder builder = new Builder();
       for(Node node : nodes()) {
-          builder.add(node.getRawTag(), node.getValue());
+        builder.add(node.getRawTag(), node.getValue());
       }
       return builder;
     }

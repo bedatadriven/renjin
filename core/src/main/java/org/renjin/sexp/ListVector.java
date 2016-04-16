@@ -214,7 +214,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
 
   @Override
   public int getElementAsRawLogical(int index) {
-  SEXP value = values[index];
+    SEXP value = values[index];
     if(value.length() == 1 && value instanceof AtomicVector) {
       return ((AtomicVector) value).getElementAsRawLogical(0);
     }

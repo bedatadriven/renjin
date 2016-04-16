@@ -194,7 +194,7 @@ public class Formula {
       return false;
     }
     if (response != other.response) {
-        return false;
+      return false;
     }
     return terms.equals(other.terms);
   }

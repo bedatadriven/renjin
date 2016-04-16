@@ -34,50 +34,20 @@
 package org.renjin.studio.console;
 
 
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Cursor;
-import java.awt.Font;
-import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import javax.swing.*;
+import javax.swing.text.*;
+import java.awt.*;
+import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.InterruptedIOException;
-import java.io.OutputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
-import java.io.PrintStream;
-import java.io.Reader;
+import java.io.*;
 import java.util.Vector;
-
-import javax.swing.Icon;
-import javax.swing.JMenuItem;
-import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
-import javax.swing.JTextPane;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import javax.swing.text.AttributeSet;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.DefaultStyledDocument;
-import javax.swing.text.MutableAttributeSet;
-import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.StyleConstants;
 
 
 /**
  A JFC/Swing based console based on the Beanshell console
  of the same name.
- 
+
  @author Patrick Niemeyer (pat@pat.net)
  @author Mark Donszelmann (Mark.Donszelmann@cern.ch)
  @author Daniel Leuck
@@ -346,10 +316,10 @@ public class ConsoleFrame extends JScrollPane
     while (
         i >= 0 &&
             ( Character.isJavaIdentifierPart(part.charAt(i))
-                || part.charAt(i) == '.' )
-        )
+                || part.charAt(i) == '.' )) {
       i--;
-
+    }
+    
     part = part.substring(i+1);
 
     if ( part.length() < 2 )  // reasonable completion length

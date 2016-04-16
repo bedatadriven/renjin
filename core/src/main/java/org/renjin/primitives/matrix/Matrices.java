@@ -370,10 +370,10 @@ public class Matrices {
   }
 
   private static Vector allocMatrix(Vector data, int nrow, int ncol, boolean byRow, Vector dimnames) {
-	  Vector.Builder result = null;
-	  int dataLength = data.length();
-      int outLength = nrow * ncol;
-    
+    Vector.Builder result = null;
+    int dataLength = data.length();
+    int outLength = nrow * ncol;
+
     if (dataLength == 1 && outLength > 0 && data instanceof LogicalVector) {
       /* If data has only one entry, we can get away with a constant. 
        * This is true for the common case of matrix(nrow=42, ncol=42)  */
@@ -385,8 +385,7 @@ public class Matrices {
         if (!byRow) {
           for (int col = 0; col < ncol; ++col) {
             for (int row = 0; row < nrow; ++row) {
-              int sourceIndex = Indexes.matrixIndexToVectorIndex(row, col, nrow, ncol)
-                      % dataLength;
+              int sourceIndex = Indexes.matrixIndexToVectorIndex(row, col, nrow, ncol) % dataLength;
               result.setFrom(i++, data, sourceIndex);
             }
           }

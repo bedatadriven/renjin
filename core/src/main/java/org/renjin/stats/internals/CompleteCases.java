@@ -1,20 +1,13 @@
 package org.renjin.stats.internals;
 
-import java.util.BitSet;
-import java.util.List;
-
+import com.google.common.collect.Lists;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.ArgumentList;
-import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Internal;
-import org.renjin.sexp.AtomicVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.LogicalBitSetVector;
-import org.renjin.sexp.LogicalVector;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
 
-import com.google.common.collect.Lists;
+import java.util.BitSet;
+import java.util.List;
 
 public class CompleteCases {
 
@@ -52,13 +45,13 @@ public class CompleteCases {
     return new LogicalBitSetVector(bitSet, numCases);
   }
 
-private static BitSet allocBitVector(int numCases) {
-	BitSet bitSet = new BitSet(numCases);
+  private static BitSet allocBitVector(int numCases) {
+    BitSet bitSet = new BitSet(numCases);
     for(int caseIndex=0;caseIndex!=numCases;++caseIndex) {
       bitSet.set(caseIndex);
     }
-	return bitSet;
-}
+    return bitSet;
+  }
 
   private static List<AtomicVector> collectVectors(ListVector args) {
     List<AtomicVector> variables = Lists.newArrayList();
@@ -89,7 +82,7 @@ private static BitSet allocBitVector(int numCases) {
         if(n != numCases(arg)) {
           throw new EvalException("not all arguments have the same length");
         }
-       }
+      }
     }
     return n;
   }

@@ -103,9 +103,9 @@ public class CompileCommand implements Runnable {
         File dir = new File(dirName);
         if(dir.exists() && dir.listFiles() != null) {
           for(File file : dir.listFiles()) {
-            if(file.getName().toLowerCase().endsWith(".f") ||
-               file.getName().endsWith(".f77") ||
-               file.getName().endsWith(".c")) {
+            if (file.getName().toLowerCase().endsWith(".f") ||
+                file.getName().endsWith(".f77") ||
+                file.getName().endsWith(".c")) {
 
               if(verbose) {
                 System.out.println("Compiling " + file.getAbsolutePath() + " to gimple...");

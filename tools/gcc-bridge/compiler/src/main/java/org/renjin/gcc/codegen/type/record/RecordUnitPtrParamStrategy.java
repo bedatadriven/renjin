@@ -19,28 +19,28 @@ import java.util.List;
  */
 public class RecordUnitPtrParamStrategy implements ParamStrategy {
 
-    private RecordClassGenerator generator;
+  private RecordClassGenerator generator;
 
-    public RecordUnitPtrParamStrategy(RecordClassGenerator generator) {
-        this.generator = generator;
-    }
+  public RecordUnitPtrParamStrategy(RecordClassGenerator generator) {
+    this.generator = generator;
+  }
 
-    @Override
-    public List<Type> getParameterTypes() {
-        return Collections.singletonList(Type.getType(generator.getDescriptor()));
-    }
+  @Override
+  public List<Type> getParameterTypes() {
+    return Collections.singletonList(Type.getType(generator.getDescriptor()));
+  }
 
-    @Override
-    public ExprGenerator emitInitialization(MethodVisitor methodVisitor, GimpleParameter parameter, List<Var> paramVars, VarAllocator localVars) {
-        return new RecordPtrVarGenerator(generator, paramVars.get(0));
-    }
+  @Override
+  public ExprGenerator emitInitialization(MethodVisitor methodVisitor, GimpleParameter parameter, List<Var> paramVars, VarAllocator localVars) {
+    return new RecordPtrVarGenerator(generator, paramVars.get(0));
+  }
 
-    @Override
-    public void emitPushParameter(MethodVisitor mv, ExprGenerator parameterValueGenerator) {
-        parameterValueGenerator.emitPushRecordRef(mv);
-        if(parameterValueGenerator.getGimpleType().isPointerTo(GimpleVoidType.class)) {
-            mv.visitTypeInsn(Opcodes.CHECKCAST, generator.getType().getInternalName());
-        }
+  @Override
+  public void emitPushParameter(MethodVisitor mv, ExprGenerator parameterValueGenerator) {
+    parameterValueGenerator.emitPushRecordRef(mv);
+    if(parameterValueGenerator.getGimpleType().isPointerTo(GimpleVoidType.class)) {
+      mv.visitTypeInsn(Opcodes.CHECKCAST, generator.getType().getInternalName());
     }
+  }
 
 }

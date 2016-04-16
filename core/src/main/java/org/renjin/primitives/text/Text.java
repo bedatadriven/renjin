@@ -428,8 +428,8 @@ public class Text {
     if(bounds.length() != 5) {
       throw new EvalException("Expected bounds argument of length 5");
     }
-    if(!bounds.isElementNA(1) || !bounds.isElementNA(2) || !bounds.isElementNA(3) ||
-       !bounds.isElementNA(4)) {
+    if (!bounds.isElementNA(1) || !bounds.isElementNA(2) || !bounds.isElementNA(3) ||
+        !bounds.isElementNA(4)) {
       throw new EvalException("max distance with specific components (all, insertions, deletions, substitutions not implemented");
     }
     double maxDistance = bounds.getElementAsDouble(0);
@@ -823,7 +823,7 @@ public class Text {
       }
       return codePoints.build();
     }
-   }
+  }
   
   /**
    * 

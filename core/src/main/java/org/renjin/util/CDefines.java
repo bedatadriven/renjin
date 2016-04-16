@@ -278,7 +278,7 @@ public class CDefines {
   }
 
   public static PairList.Node CONS(SEXP car, SEXP cdr) {
-     return CONS(car,cdr,AttributeMap.EMPTY);
+    return CONS(car,cdr,AttributeMap.EMPTY);
   }
 
   public static PairList.Node list1(SEXP s) {
@@ -428,10 +428,9 @@ public class CDefines {
       
     }
   }
-  
-  public static boolean isNewList(SEXP s)
-  {
-      return (s == R_NilValue || TYPEOF(s) == VECSXP);
+
+  public static boolean isNewList(SEXP s) {
+    return (s == R_NilValue || TYPEOF(s) == VECSXP);
   }
   
   public static final SexpType CLOSXP = new SexpType();
@@ -490,9 +489,8 @@ public class CDefines {
     return exp == Null.INSTANCE;
   }
 
-  public static final CHARSEXP mkString(String s)
-  {
-     return new CHARSEXP(s);
+  public static final CHARSEXP mkString(String s) {
+    return new CHARSEXP(s);
   }
   
   

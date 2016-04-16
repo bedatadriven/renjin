@@ -8,11 +8,11 @@ import org.renjin.sexp.Vector;
 
 
 public abstract class ScalarType {
-  
+
   public abstract Class getScalarType();
 
   public abstract String getConversionMethod();
-  
+
   public abstract String getAccessorMethod();
 
   public abstract Class getVectorType();
@@ -23,7 +23,7 @@ public abstract class ScalarType {
     JClass vectorClass = codeModel.ref(Vector.class);
     JExpression vectorType =  codeModel.ref(getVectorType()).staticRef("VECTOR_TYPE");
     JExpression condition = sexpVariable._instanceof(vectorClass)
-      .cand(vectorType.invoke("isWiderThanOrEqualTo").arg(JExpr.cast(vectorClass, sexpVariable)));
+        .cand(vectorType.invoke("isWiderThanOrEqualTo").arg(JExpr.cast(vectorClass, sexpVariable)));
 
     if(formal.isAnnotatedWith(DownCastComplex.class)) {
       condition = condition.cor(sexpVariable._instanceof(codeModel.ref(ComplexVector.class)));

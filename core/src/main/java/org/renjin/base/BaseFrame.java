@@ -21,21 +21,17 @@
 
 package org.renjin.base;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.util.IdentityHashMap;
-import java.util.Set;
-
+import com.google.common.collect.Sets;
 import org.renjin.eval.Context;
-import org.renjin.eval.EvalException;
 import org.renjin.packaging.LazyLoadFrame;
 import org.renjin.primitives.Primitives;
 import org.renjin.sexp.*;
 import org.renjin.util.FileSystemUtils;
 
-import com.google.common.collect.Sets;
-import com.google.common.io.Resources;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.IdentityHashMap;
+import java.util.Set;
 
 /**
  *  The {@code Frame} that provides the primitive functions for the
@@ -160,7 +156,7 @@ public class BaseFrame implements Frame {
         .add("sizeof.longlong", 8)
         .add("sizeof.longdouble", 12)
         .add("sizeof.pointer", 4)
-       .build());
+        .build());
 
   }
 

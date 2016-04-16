@@ -114,7 +114,7 @@ public class Repl implements Runnable {
     SEXP warnings = topLevelContext.getBaseEnvironment().getVariable(Warning.LAST_WARNING);
     if(warnings != Symbol.UNBOUND_VALUE) {
       topLevelContext.evaluate( FunctionCall.newCall(Symbol.get("print.warnings"), warnings),
-        topLevelContext.getBaseEnvironment());
+          topLevelContext.getBaseEnvironment());
       
       console.getOut().println();
     }

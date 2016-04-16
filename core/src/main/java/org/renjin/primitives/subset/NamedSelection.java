@@ -176,9 +176,11 @@ class NamedSelection implements SelectionStrategy {
 
     // Copy all attributes except dim and dimnames
     for (Symbol attribute : source.getAttributes().names()) {
-      if(attribute != Symbols.DIMNAMES &&
-         attribute != Symbols.DIM &&
-         attribute != Symbols.NAMES) {
+      if (attribute != Symbols.DIMNAMES &&
+          attribute != Symbols.DIM &&
+          attribute != Symbols.NAMES) {
+        
+        result.setAttribute(attribute, source.getAttribute(attribute));
         result.setAttribute(attribute, source.getAttribute(attribute));
       }
     }

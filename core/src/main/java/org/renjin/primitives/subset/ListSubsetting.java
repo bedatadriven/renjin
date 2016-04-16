@@ -26,9 +26,9 @@ class ListSubsetting {
     
     // Copy all attributes except those related to length
     for (Symbol attribute : list.getAttributes().names()) {
-      if(attribute != Symbols.NAMES && 
-         attribute != Symbols.DIM &&
-         attribute != Symbols.DIMNAMES) {
+      if (attribute != Symbols.NAMES && 
+          attribute != Symbols.DIM &&
+          attribute != Symbols.DIMNAMES) {
         
         result.setAttribute(attribute, list.getAttribute(attribute));
       }

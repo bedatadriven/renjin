@@ -60,7 +60,7 @@ public class HashFrame implements Frame{
           throw new EvalException("argument '%s' is missing with no default", name.toString());
         }
         if(value instanceof Function) {
-            return (Function)value;
+          return (Function)value;
         }
       }
     }

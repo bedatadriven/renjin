@@ -173,8 +173,8 @@ public class Identical {
     for(int i=0;i!=x.length();++i) {
       Complex xi = x.getElementAsComplex(i);
       Complex yi = y.getElementAsComplex(i);
-      if(!equals(xi.getReal(), yi.getReal(), bitwiseComparisonNumbers, bitwiseComparisonNaN) ||
-         !equals(xi.getImaginary(), yi.getImaginary(), bitwiseComparisonNumbers, bitwiseComparisonNaN)) {
+      if (!equals(xi.getReal(), yi.getReal(), bitwiseComparisonNumbers, bitwiseComparisonNaN) ||
+          !equals(xi.getImaginary(), yi.getImaginary(), bitwiseComparisonNumbers, bitwiseComparisonNaN)) {
         return false;
       }
     }

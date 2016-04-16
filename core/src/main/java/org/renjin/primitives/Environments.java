@@ -52,7 +52,7 @@ public final class Environments {
     Context cptr;
 
     if (IntVector.isNA(pos) || pos < -1 || pos == 0) {
-        throw new EvalException("invalid 'pos' argument");
+      throw new EvalException("invalid 'pos' argument");
     } else if (pos == -1) {
       /* make sure the context is a funcall */
       cptr = context;

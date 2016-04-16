@@ -276,8 +276,9 @@ public final class Symbol extends AbstractSEXP {
     if(printName.length() < 3) {
       return false;
     }
-    if(printName.charAt(0) != '.' ||
-       printName.charAt(1) != '.') {
+    if (printName.charAt(0) != '.' ||
+        printName.charAt(1) != '.') {
+
       return false;
     }
     for(int i=2;i!=printName.length();++i) {

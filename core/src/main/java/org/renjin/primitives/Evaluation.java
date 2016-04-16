@@ -157,7 +157,7 @@ public class Evaluation {
       }
       for(int j=0;j!=funValue.length();++j) {
         result.addFrom(x, j);
-       }
+      }
     }
     
     if(useNames) {

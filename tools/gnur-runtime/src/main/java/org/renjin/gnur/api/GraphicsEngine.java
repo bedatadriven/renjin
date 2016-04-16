@@ -1,8 +1,9 @@
 // Initial template generated from GraphicsEngine.h from R 3.2.2
 package org.renjin.gnur.api;
 
+import org.renjin.gcc.runtime.DoublePtr;
+import org.renjin.gcc.runtime.IntPtr;
 import org.renjin.sexp.SEXP;
-import org.renjin.gcc.runtime.*;
 
 @SuppressWarnings("unused")
 public final class GraphicsEngine {
@@ -12,11 +13,11 @@ public final class GraphicsEngine {
 
 
   public static int R_GE_getVersion() {
-     throw new UnimplementedGnuApiMethod("R_GE_getVersion");
+    throw new UnimplementedGnuApiMethod("R_GE_getVersion");
   }
 
   public static void R_GE_checkVersionOrDie(int version) {
-     throw new UnimplementedGnuApiMethod("R_GE_checkVersionOrDie");
+    throw new UnimplementedGnuApiMethod("R_GE_checkVersionOrDie");
   }
 
   // pGEDevDesc Rf_desc2GEDesc (pDevDesc dd)
@@ -44,7 +45,7 @@ public final class GraphicsEngine {
   // void GEregisterSystem (GEcallback callback, int *systemRegisterIndex)
 
   public static void GEunregisterSystem(int registerIndex) {
-     throw new UnimplementedGnuApiMethod("GEunregisterSystem");
+    throw new UnimplementedGnuApiMethod("GEunregisterSystem");
   }
 
   // SEXP GEhandleEvent (GEevent event, pDevDesc dev, SEXP data)
@@ -110,7 +111,7 @@ public final class GraphicsEngine {
   // void GESymbol (double x, double y, int pch, double size, const pGEcontext gc, pGEDevDesc dd)
 
   public static void GEPretty(DoublePtr lo, DoublePtr up, IntPtr ndiv) {
-     throw new UnimplementedGnuApiMethod("GEPretty");
+    throw new UnimplementedGnuApiMethod("GEPretty");
   }
 
   // void GEMetricInfo (int c, const pGEcontext gc, double *ascent, double *descent, double *width, pGEDevDesc dd)
@@ -122,7 +123,7 @@ public final class GraphicsEngine {
   // void GEStrMetric (const char *str, cetype_t enc, const pGEcontext gc, double *ascent, double *descent, double *width, pGEDevDesc dd)
 
   public static int GEstring_to_pch(SEXP pch) {
-     throw new UnimplementedGnuApiMethod("GEstring_to_pch");
+    throw new UnimplementedGnuApiMethod("GEstring_to_pch");
   }
 
   // unsigned int GE_LTYpar (SEXP, int)
@@ -134,11 +135,11 @@ public final class GraphicsEngine {
   // void R_GE_rasterInterpolate (unsigned int *sraster, int sw, int sh, unsigned int *draster, int dw, int dh)
 
   public static void R_GE_rasterRotatedSize(int w, int h, double angle, IntPtr wnew, IntPtr hnew) {
-     throw new UnimplementedGnuApiMethod("R_GE_rasterRotatedSize");
+    throw new UnimplementedGnuApiMethod("R_GE_rasterRotatedSize");
   }
 
   public static void R_GE_rasterRotatedOffset(int w, int h, double angle, int botleft, DoublePtr xoff, DoublePtr yoff) {
-     throw new UnimplementedGnuApiMethod("R_GE_rasterRotatedOffset");
+    throw new UnimplementedGnuApiMethod("R_GE_rasterRotatedOffset");
   }
 
   // void R_GE_rasterResizeForRotation (unsigned int *sraster, int w, int h, unsigned int *newRaster, int wnew, int hnew, const pGEcontext gc)
@@ -154,7 +155,7 @@ public final class GraphicsEngine {
   // void GEMathText (double x, double y, SEXP expr, double xc, double yc, double rot, const pGEcontext gc, pGEDevDesc dd)
 
   public static SEXP GEcontourLines(DoublePtr x, int nx, DoublePtr y, int ny, DoublePtr z, DoublePtr levels, int nl) {
-     throw new UnimplementedGnuApiMethod("GEcontourLines");
+    throw new UnimplementedGnuApiMethod("GEcontourLines");
   }
 
   // double R_GE_VStrWidth (const char *s, cetype_t enc, const pGEcontext gc, pGEDevDesc dd)
@@ -180,7 +181,7 @@ public final class GraphicsEngine {
   // void GEplayDisplayList (pGEDevDesc dd)
 
   public static void GEcopyDisplayList(int fromDevice) {
-     throw new UnimplementedGnuApiMethod("GEcopyDisplayList");
+    throw new UnimplementedGnuApiMethod("GEcopyDisplayList");
   }
 
   // SEXP GEcreateSnapshot (pGEDevDesc dd)
@@ -188,18 +189,18 @@ public final class GraphicsEngine {
   // void GEplaySnapshot (SEXP snapshot, pGEDevDesc dd)
 
   public static void GEonExit() {
-     throw new UnimplementedGnuApiMethod("GEonExit");
+    throw new UnimplementedGnuApiMethod("GEonExit");
   }
 
   public static void GEnullDevice() {
-     throw new UnimplementedGnuApiMethod("GEnullDevice");
+    throw new UnimplementedGnuApiMethod("GEnullDevice");
   }
 
   public static SEXP Rf_CreateAtVector(DoublePtr p0, DoublePtr p1, int p2, boolean p3) {
-     throw new UnimplementedGnuApiMethod("Rf_CreateAtVector");
+    throw new UnimplementedGnuApiMethod("Rf_CreateAtVector");
   }
 
   public static void Rf_GAxisPars(DoublePtr min, DoublePtr max, IntPtr n, boolean log, int axis) {
-     throw new UnimplementedGnuApiMethod("Rf_GAxisPars");
+    throw new UnimplementedGnuApiMethod("Rf_GAxisPars");
   }
 }

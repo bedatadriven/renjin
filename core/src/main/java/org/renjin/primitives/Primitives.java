@@ -59,9 +59,9 @@ public class Primitives {
   public static PrimitiveFunction getBuiltin(String name) {
     return getBuiltin(Symbol.get(name));
   }
-  
+
   public static PrimitiveFunction getBuiltin(Symbol symbol) {
-	synchronized (INSTANCE) {
+    synchronized (INSTANCE) {
       PrimitiveFunction fn = INSTANCE.builtins.get(symbol);
       if(fn == null) {
         Entry entry = INSTANCE.builtinEntries.get(symbol);
@@ -71,11 +71,11 @@ public class Primitives {
         }
       }
       return fn;
-	 }
+    }
   }
-  
+
   public static PrimitiveFunction getInternal(Symbol symbol) {
-	synchronized (INSTANCE) {
+    synchronized (INSTANCE) {
       PrimitiveFunction fn = INSTANCE.internals.get(symbol);
       if(fn == null) {
         Entry entry = INSTANCE.internalEntries.get(symbol);
@@ -85,9 +85,9 @@ public class Primitives {
         }
       }
       return fn;
-	}
+    }
   }
-  
+
   public static List<Entry> getEntries() {
     List<Entry> set = Lists.newArrayList();
     set.addAll(INSTANCE.internalEntries.values());
@@ -98,16 +98,16 @@ public class Primitives {
   public static Set<Symbol> getBuiltinSymbols() {
     return Sets.union(INSTANCE.builtins.keySet(), INSTANCE.builtinEntries.keySet());
   }
-  
+
   private static PrimitiveFunction createFunction(final Entry entry) {
-   try {
+    try {
       return (PrimitiveFunction) Class.forName(WrapperGenerator2.toFullJavaName(entry.name)).newInstance();
     } catch(final Exception e) {
       return new BuiltinFunction(entry.name) {
 
         @Override
         public SEXP apply(Context context, Environment rho,
-            FunctionCall call, PairList args) {
+                          FunctionCall call, PairList args) {
           throw new EvalException("Sorry! " + entry.name + " not yet implemented!", e);
         }
       };

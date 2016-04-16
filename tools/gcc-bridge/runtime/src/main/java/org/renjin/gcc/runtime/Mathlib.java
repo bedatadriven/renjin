@@ -117,13 +117,13 @@ public class Mathlib {
    * The resultant value is x = mantissa * 2 ^ exponent.
    */
   public static double ldexp(double x, int d) {
-      for (; d > 0; d--) {
-        x *= 2.0;
-      }
-      for (; d < 0; d++) {
-        x *= 0.5;
-      }
-      return x;
+    for (; d > 0; d--) {
+      x *= 2.0;
+    }
+    for (; d < 0; d++) {
+      x *= 0.5;
+    }
+    return x;
   }
 
   /**

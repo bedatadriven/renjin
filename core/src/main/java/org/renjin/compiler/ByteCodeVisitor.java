@@ -1,9 +1,6 @@
 package org.renjin.compiler;
 
 import com.google.common.collect.Maps;
-
-import edu.uci.ics.jung.graph.util.Context;
-
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -191,30 +188,30 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
   }
 
   private void applyClosureDynamically(DynamicCall call) {
-    
-    mv.visitTypeInsn(CHECKCAST, "org/renjin/sexp/Closure");       
+
+    mv.visitTypeInsn(CHECKCAST, "org/renjin/sexp/Closure");
     loadContext();
     loadEnvironment();
-    
+
     pushSexp(call.getSExpression());
-    
+
     // build the pairlist of promises
     mv.visitTypeInsn(NEW, "org/renjin/sexp/PairList$Builder");
     mv.visitInsn(DUP);
     mv.visitMethodInsn(INVOKESPECIAL, "org/renjin/sexp/PairList$Builder", "<init>", "()V");
-  
+
     for(int i=0;i!=call.getArguments().size();++i) {
       Expression argument = call.getArguments().get(i);
       if(argument == Elipses.INSTANCE) {
         loadElipses();
-        mv.visitMethodInsn(INVOKEVIRTUAL, "org/renjin/sexp/PairList$Builder", "addAll", 
-        "(Lorg/renjin/sexp/PairList;)Lorg/renjin/sexp/PairList$Builder;");
+        mv.visitMethodInsn(INVOKEVIRTUAL, "org/renjin/sexp/PairList$Builder", "addAll",
+            "(Lorg/renjin/sexp/PairList;)Lorg/renjin/sexp/PairList$Builder;");
       } else {
-        
+
         if(call.getArgumentNames().get(i)!=null) {
           mv.visitLdcInsn(call.getArgumentNames().get(i));
         }
-        
+
         if(argument instanceof IRThunk) {
           if(argument.getSExpression() instanceof Symbol) {
             Symbol symbol = (Symbol) argument.getSExpression();
@@ -223,9 +220,9 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
             mv.visitInsn(DUP);
             loadContext();
             mv.visitLdcInsn(symbol.getPrintName());
-            mv.visitMethodInsn(INVOKESPECIAL, "org/renjin/compiler/runtime/VariablePromise", "<init>", 
+            mv.visitMethodInsn(INVOKESPECIAL, "org/renjin/compiler/runtime/VariablePromise", "<init>",
                 "(Lorg/renjin/eval/Context;Ljava/lang/String;)V");
-            
+
           } else {
             // instantatiate our compiled thunk class
             String thunkClass = generationContext.getThunkMap().getClassName((IRThunk)argument);
@@ -233,27 +230,27 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
             mv.visitInsn(DUP);
             loadContext();
             loadEnvironment();
-            mv.visitMethodInsn(INVOKESPECIAL, thunkClass , "<init>", 
+            mv.visitMethodInsn(INVOKESPECIAL, thunkClass , "<init>",
                 "(Lorg/renjin/eval/Context;Lorg/renjin/sexp/Environment;)V");
-            
+
           }
         } else {
           argument.accept(this);
         }
-        
+
         if(call.getArgumentNames().get(i)!=null) {
-          mv.visitMethodInsn(INVOKEVIRTUAL, "org/renjin/sexp/PairList$Builder", "add", 
-          "(Ljava/lang/String;Lorg/renjin/sexp/SEXP;)Lorg/renjin/sexp/PairList$Builder;");
-        } else { 
-          mv.visitMethodInsn(INVOKEVIRTUAL, "org/renjin/sexp/PairList$Builder", "add", 
+          mv.visitMethodInsn(INVOKEVIRTUAL, "org/renjin/sexp/PairList$Builder", "add",
+              "(Ljava/lang/String;Lorg/renjin/sexp/SEXP;)Lorg/renjin/sexp/PairList$Builder;");
+        } else {
+          mv.visitMethodInsn(INVOKEVIRTUAL, "org/renjin/sexp/PairList$Builder", "add",
               "(Lorg/renjin/sexp/SEXP;)Lorg/renjin/sexp/PairList$Builder;");
         }
       }
     }
-    mv.visitMethodInsn(INVOKEVIRTUAL, "org/renjin/sexp/PairList$Builder", "build", "()Lorg/renjin/sexp/PairList;");    
+    mv.visitMethodInsn(INVOKEVIRTUAL, "org/renjin/sexp/PairList$Builder", "build", "()Lorg/renjin/sexp/PairList;");
     mv.visitMethodInsn(INVOKEVIRTUAL, "org/renjin/sexp/Closure", "matchAndApply",
         "(Lorg/renjin/eval/Context;Lorg/renjin/sexp/Environment;Lorg/renjin/sexp/FunctionCall;Lorg/renjin/sexp/PairList;)Lorg/renjin/sexp/SEXP;");
-   
+
   }
 
 
@@ -474,7 +471,7 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
   }
   
   private void pushInt(int i) {
-     ByteCodeUtil.pushInt(mv, i);
+    ByteCodeUtil.pushInt(mv, i);
   }
 
   @Override

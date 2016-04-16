@@ -96,10 +96,10 @@ public class Methods {
 
   public static String R_methodsPackageMetaName(String prefix, String name, String packageName) {
     StringBuilder metaName = new StringBuilder()
-    .append(".__")
-    .append(prefix)
-    .append("__")
-    .append(name);
+        .append(".__")
+        .append(prefix)
+        .append("__")
+        .append(name);
     if(!Strings.isNullOrEmpty(packageName)) {
       metaName.append(":").append(packageName);
     }
@@ -178,9 +178,9 @@ public class Methods {
   @Builtin(".cache_class")
   public static SEXP cacheClass(@Current Context context, String className, SEXP klass) {
     context
-    .getSession()
-    .getSingleton(MethodDispatch.class)
-    .putExtends(className, klass);  
+        .getSession()
+        .getSingleton(MethodDispatch.class)
+        .putExtends(className, klass);
     return klass;
   }
 
@@ -296,14 +296,14 @@ public class Methods {
     if(op == Null.INSTANCE) {
       SEXP value = LogicalVector.valueOf(table.isPrimitiveMethodsAllowed());
       switch(parseCode(code_string)) {
-      case NO_METHODS:
-        table.setPrimitiveMethodsAllowed(false);
-        break;
-      case HAS_METHODS:
-        table.setPrimitiveMethodsAllowed(true);
-        break;
-      default: /* just report the current state */
-        break;
+        case NO_METHODS:
+          table.setPrimitiveMethodsAllowed(false);
+          break;
+        case HAS_METHODS:
+          table.setPrimitiveMethodsAllowed(true);
+          break;
+        default: /* just report the current state */
+          break;
       }
       return value;
     } else {

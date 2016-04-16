@@ -1,23 +1,22 @@
 package org.renjin.compiler.cfg;
 
 
-import static com.google.common.base.Predicates.equalTo;
-import static com.google.common.base.Predicates.not;
-import static com.google.common.collect.Iterables.filter;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Set;
-
 import com.google.common.base.Function;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
-
 import edu.uci.ics.jung.graph.DirectedSparseGraph;
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.util.EdgeType;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
+
+import static com.google.common.base.Predicates.equalTo;
+import static com.google.common.base.Predicates.not;
+import static com.google.common.collect.Iterables.filter;
 
 public class DominanceTree {
 
@@ -32,43 +31,43 @@ public class DominanceTree {
     buildTree();
     calculateDominanceFrontiers();
   }
-  
+
   private void computeDominators() {
 
     // See http://en.wikipedia.org/wiki/Lengauer-Tarjan%27s_algorithm#Algorithms
-    
+
     // dominator of the start node is the start itself
     Dom.put(cfg.getEntry(), cfg.getEntry());
-    
+
     // for all other nodes, set all nodes as the dominators
     for(BasicBlock n : filter(cfg.getLiveBasicBlocks(), not(equalTo(cfg.getEntry())))) {
       Dom.putAll(n, cfg.getLiveBasicBlocks());
     }
-    
+
     // iteratively eliminate nodes that are not dominators
     boolean changes;
-    do { 
+    do {
       changes = false;
       for(BasicBlock n : filter(cfg.getLiveBasicBlocks(), not(equalTo(cfg.getEntry())))) {
-          // Dom(n) = {n} union with intersection over all p in pred(n) of Dom(p)
-          Set<BasicBlock> newDom = 
-              Sets.union(Collections.singleton(n),
-                  intersection(Iterables.transform(cfg.getGraph().getPredecessors(n), 
-                      new Function<BasicBlock, Set<BasicBlock>>() {
+        // Dom(n) = {n} union with intersection over all p in pred(n) of Dom(p)
+        Set<BasicBlock> newDom =
+            Sets.union(Collections.singleton(n),
+                intersection(Iterables.transform(cfg.getGraph().getPredecessors(n),
+                    new Function<BasicBlock, Set<BasicBlock>>() {
 
-                        @Override
-                        public Set<BasicBlock> apply(BasicBlock input) {
-                          return Dom.get(input);
-                        }
-                  })));
-          
-          Set<BasicBlock> original = Dom.get(n);
-         
-          if(!original.equals(newDom)) {
-            Dom.replaceValues(n, newDom);
-            changes = true;
-          }
-      }   
+                      @Override
+                      public Set<BasicBlock> apply(BasicBlock input) {
+                        return Dom.get(input);
+                      }
+                    })));
+
+        Set<BasicBlock> original = Dom.get(n);
+
+        if(!original.equals(newDom)) {
+          Dom.replaceValues(n, newDom);
+          changes = true;
+        }
+      }
     } while(changes);
   }
   

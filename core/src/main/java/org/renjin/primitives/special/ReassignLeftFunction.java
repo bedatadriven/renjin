@@ -42,7 +42,7 @@ public class ReassignLeftFunction extends AssignLeftFunction {
       }
     }
 
-     // not defined anywhere we can see, define it anew in the global environment
-     context.getGlobalEnvironment().setVariable(lhs, rhs);
+    // not defined anywhere we can see, define it anew in the global environment
+    context.getGlobalEnvironment().setVariable(lhs, rhs);
   }
 }

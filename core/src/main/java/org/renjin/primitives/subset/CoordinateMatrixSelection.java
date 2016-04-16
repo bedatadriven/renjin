@@ -129,7 +129,10 @@ class CoordinateMatrixSelection implements SelectionStrategy {
         throw new EvalException("subscript out of bounds");
 
       } else {
-        result.setFrom(index, source, replacementIndex++);
+        if(replacements.length() == 0) {
+          throw new EvalException("replacement has zero length");
+        }
+        result.setFrom(index, replacements, replacementIndex++);
         if(replacementIndex >= replacements.length()) {
           replacementIndex = 0;
         }

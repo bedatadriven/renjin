@@ -1184,5 +1184,24 @@ public class SubsettingTest extends EvalTestCase {
     assertThat(eval("dimnames(x)[[1]]"), equalTo(c("a", "b", "c")));
     
   }
+  
+  @Test
+  public void replaceWithCoordinateMatrix() {
+    eval("x <- matrix(0, ncol=2, nrow=3)");
+    eval("i <- rbind(c(1,2),c(3,2))");
+    eval("x[i] <- c(4, 9)");
+    
+    assertThat(eval("x"), equalTo(c(0, 0, 0, 4, 0, 9)));
+  }
+
+  @Test(expected = EvalException.class)
+  public void emptyReplacementWithCoordinateMatrix() {
+    eval("x <- matrix(0, ncol=2, nrow=3)");
+    eval("i <- rbind(c(1,2),c(3,2))");
+    eval("x[i] <- numeric(0)");
+
+    assertThat(eval("x"), equalTo(c(0, 0, 0, 4, 0, 9)));
+  }
+
 
 }

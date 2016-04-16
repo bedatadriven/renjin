@@ -815,10 +815,11 @@ public class AttributeMap {
 
       // Build a clean list with converted/validated names vectors
       ListVector.Builder builder = new ListVector.Builder();
+      builder.setAttribute(Symbols.NAMES, dimNames.getNames());
       for (int i = 0; i < dim.length(); i++) {
         builder.add(validateNames(i, dimNames.getElementAsSEXP(i)));
       }
-
+      
       return builder.build();
     }
     

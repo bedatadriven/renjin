@@ -175,7 +175,14 @@ public class AttributeTest extends EvalTestCase {
     
     assertThat(eval("dim(z)"), equalTo(c_i(2, 2)));
     assertThat(eval("names(z)"), equalTo(NULL));
+  }
+  
+  @Test
+  public void dimLabels() {
+    eval("x <- matrix(1:4, nrow=2)");
+    eval("dimnames(x) <- list(a=c('X','Y'), b=c('A','B'))");
     
+    assertThat(eval("names(dimnames(x))"), equalTo(c("a", "b")));
   }
   
 }

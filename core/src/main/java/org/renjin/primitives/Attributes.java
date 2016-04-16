@@ -130,6 +130,7 @@ public class Attributes {
 
     }
     ListVector.Builder dn = new ListVector.Builder();
+    dn.setAttribute(Symbols.NAMES, dimnames.getNames());
     for(SEXP names : dimnames) {
       if(names != Null.INSTANCE && !(names instanceof StringVector)) {
         names = context.evaluate(FunctionCall.newCall(Symbol.get("as.character"), names));

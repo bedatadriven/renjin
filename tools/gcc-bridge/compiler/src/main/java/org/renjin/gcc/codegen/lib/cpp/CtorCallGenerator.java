@@ -9,6 +9,6 @@ public class CtorCallGenerator implements CallGenerator {
 
   @Override
   public void emitCall(MethodGenerator mv, ExprFactory exprFactory, GimpleCall call) {
-    throw new UnsupportedOperationException("TODO");
+    // TODO
   }
 }

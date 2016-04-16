@@ -46,7 +46,7 @@ by Renjin's code generator.
 
 You can install GCC and friends through the APT package manager:
 
-    sudo apt-get install maven gcc-4.6 gcc-4.6-plugin-dev gfortran-4.6
+    sudo apt-get install maven gcc-4.6 gcc-4.6-plugin-dev gfortran-4.6 g++-4.6
 
 If you are using a 64-bit version of Ubuntu, you will need to
 install additional libraries in order to have GCC cross compile

@@ -1,15 +1,14 @@
 package org.renjin.script;
 
+import org.hamcrest.CoreMatchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.renjin.sexp.DoubleArrayVector;
 import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.IntArrayVector;
+import org.renjin.sexp.LogicalVector;
 
-import javax.script.Invocable;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
+import javax.script.*;
 import java.util.HashMap;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -26,7 +25,11 @@ public class RenjinScriptEngineTest {
     // create a script engine manager
     ScriptEngineManager factory = new ScriptEngineManager();
   
-    engine = factory.getEngineByName("Renjin");   
+//    engine = factory.getEngineByName("Renjin");   
+//    if(engine == null) {
+//      throw new AssertionError("Failed to create Renjin Script Engine");
+//    }
+    engine = new RenjinScriptEngineFactory().getScriptEngine();
     invocableEngine = (Invocable)engine;
   }
   
@@ -84,7 +87,7 @@ public class RenjinScriptEngineTest {
     HashMap<String, String> h = new HashMap<String, String>();
     engine.put("h", h);
     engine.eval("import(java.util.HashMap) \n"
-                    + " print(h$size())");
+        + " print(h$size())");
   }
 
   @Test
@@ -110,6 +113,24 @@ public class RenjinScriptEngineTest {
     engine.put("doubles", doubles);
     DoubleArrayVector dav =  (DoubleArrayVector) engine.eval("as.double(doubles)");
     assertThat(dav.length(), equalTo(5));
+  }
+  
+  @Test
+  public void putNullRef() throws ScriptException {
+    
+    engine.put("x", 42);
+    assertThat(engine.eval("x == 42"), CoreMatchers.<Object>equalTo(LogicalVector.TRUE));
+
+    engine.put("x", null);
+    assertThat(engine.eval("is.null(x)"), CoreMatchers.<Object>equalTo(LogicalVector.TRUE));
+  }
+  
+  @Test
+  public void putNullRefOnBindings() throws ScriptException {
+    Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
+    
+    bindings.put("x", null);
+    assertThat(engine.eval("is.null(x)"), CoreMatchers.<Object>equalTo(LogicalVector.TRUE));
   }
   
 }

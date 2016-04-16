@@ -66,12 +66,18 @@ public class ConstantValue implements SimpleExpr {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     ConstantValue that = (ConstantValue) o;
 
-    if (!value.equals(that.value)) return false;
+    if (!value.equals(that.value)) {
+      return false;
+    }
     return type.equals(that.type);
 
   }

@@ -36,7 +36,6 @@
     <module>cli</module>
     <module>appengine</module>
     <module>tests</module>
-    <module>benchmarks</module>
     <module>test-packages</module>
     <module>repl</module>
     <module>packages</module>
@@ -55,6 +54,7 @@
     <asm.version>5.0.4</asm.version>
     <envClassifier>linux-x86</envClassifier>
     <jmh.version>1.11.2</jmh.version>
+    <plexusCompilerVersion>2.7</plexusCompilerVersion>
   </properties>
 
   <scm>
@@ -90,75 +90,49 @@
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-source-plugin</artifactId>
-        <version>2.1.2</version>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>2.17</version>
         <executions>
           <execution>
-            <id>attach-sources</id>
-            <phase>verify</phase>
+            <id>validate</id>
+            <phase>validate</phase>
+            <configuration>
+              <encoding>UTF-8</encoding>
+              <consoleOutput>true</consoleOutput>
+              <failsOnError>true</failsOnError>
+              <includeResources>false</includeResources>
+              <checkstyleRules>
+                <module name="Checker">
+                  <!--<module name="UnusedImports"/>-->
+                  <!--<module name="RedundantImport"/>-->
+                  <module name="TreeWalker">
+                    <module name="NoFinalizer"/>
+                    <!--<module name="LineLength">-->
+                      <!--<property name="max" value="120"/>-->
+                      <!--<property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>-->
+                    <!--</module>-->
+                    <module name="OneTopLevelClass"/>
+                    <module name="NeedBraces"/>
+                    <!--<module name="OneStatementPerLine"/>-->
+                    <!--<module name="MultipleVariableDeclarations"/>-->
+                    <!--<module name="ArrayTypeStyle"/>-->
+                    <module name="Indentation">
+                      <property name="basicOffset" value="2"/>
+                      <property name="braceAdjustment" value="0"/>
+                      <property name="caseIndent" value="2"/>
+                      <property name="throwsIndent" value="4"/>
+                      <property name="lineWrappingIndentation" value="4"/>
+                      <property name="arrayInitIndent" value="2"/>
+                    </module>
+                  </module>
+                </module>
+              </checkstyleRules>
+            </configuration>
             <goals>
-              <goal>jar-no-fork</goal>
+              <goal>check</goal>
             </goals>
           </execution>
         </executions>
-      </plugin>
-      <plugin>
-        <groupId>com.mycila.maven-license-plugin</groupId>
-        <artifactId>maven-license-plugin</artifactId>
-        <version>1.9.0</version>
-        <configuration>
-          <header>src/etc/header.txt</header>
-        </configuration>
-      </plugin>
-      <plugin>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>2.10</version>
-        <configuration>
-          <redirectTestOutputToFile>true</redirectTestOutputToFile>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-site-plugin</artifactId>
-        <version>3.0-beta-2</version>
-        <configuration>
-          <reportPlugins>
-            <plugin>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-javadoc-plugin</artifactId>
-              <version>2.7</version>
-            </plugin>
-            <plugin>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-jxr-plugin</artifactId>
-              <version>2.1</version>
-              <configuration>
-                <aggregate>true</aggregate>
-              </configuration>
-            </plugin>
-            <plugin>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-surefire-report-plugin</artifactId>
-              <version>2.6</version>
-            </plugin>
-            <plugin>
-              <groupId>org.codehaus.mojo</groupId>
-              <artifactId>cobertura-maven-plugin</artifactId>
-              <version>2.4</version>
-              <configuration>
-                <formats>
-                  <format>xml</format>
-                  <format>html</format>
-                </formats>
-              </configuration>
-            </plugin>
-            <plugin>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-checkstyle-plugin</artifactId>
-              <version>2.6</version>
-            </plugin>
-          </reportPlugins>
-        </configuration>
       </plugin>
     </plugins>
 
@@ -170,6 +144,7 @@
           <configuration>
             <source>1.7</source>
             <target>1.7</target>
+            <encoding>UTF-8</encoding>
           </configuration>
         </plugin>
         <plugin>
@@ -179,25 +154,25 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-site-plugin</artifactId>
-            <configuration>
-              <outputEncoding>UTF-8</outputEncoding>
-              <inputEncoding>UTF-8</inputEncoding>
-            </configuration>
-          </plugin>
+          <configuration>
+            <outputEncoding>UTF-8</outputEncoding>
+            <inputEncoding>UTF-8</inputEncoding>
+          </configuration>
+        </plugin>
 
-          <plugin>
-            <groupId>org.eclipse.m2e</groupId>
-            <artifactId>lifecycle-mapping</artifactId>
-            <version>1.0.0</version>
-            <configuration>
-              <lifecycleMappingMetadata>
-                <pluginExecutions>
-                  <pluginExecution>
-                    <pluginExecutionFilter>
-                      <groupId>org.codehaus.mojo</groupId>
-                      <artifactId>exec-maven-plugin</artifactId>
-                      <versionRange>[1.2,)</versionRange>
-                      <goals>
+        <plugin>
+          <groupId>org.eclipse.m2e</groupId>
+          <artifactId>lifecycle-mapping</artifactId>
+          <version>1.0.0</version>
+          <configuration>
+            <lifecycleMappingMetadata>
+              <pluginExecutions>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>exec-maven-plugin</artifactId>
+                    <versionRange>[1.2,)</versionRange>
+                    <goals>
                       <goal>exec</goal>
                     </goals>
                   </pluginExecutionFilter>

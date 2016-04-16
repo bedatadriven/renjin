@@ -39,6 +39,13 @@ abstract class AbstractVector extends AbstractSEXP implements Vector {
     return getElementAsRawLogical(index) == 1;
   }
 
+
+  @Override
+  public boolean isElementNaN(int index) {
+    return isElementNA(index);
+  }
+
+
   @Override
   public byte getElementAsByte(int index) {
     int value = getElementAsInt(index);
@@ -46,6 +53,21 @@ abstract class AbstractVector extends AbstractSEXP implements Vector {
       return 0;
     } else {
       return (byte)value;
+    }
+  }
+
+  @Override
+  public Builder newCopyBuilder(Type replacementType) {
+    if(getVectorType().isWiderThanOrEqualTo(replacementType)) {
+      return newCopyBuilder();
+    } else {
+      Builder result;
+      result = replacementType.newBuilderWithInitialSize(length());
+      result.copyAttributesFrom(this);
+      for(int i=0;i!=length();++i) {
+        result.setFrom(i, this, i);
+      }
+      return result;
     }
   }
 
@@ -70,6 +92,12 @@ abstract class AbstractVector extends AbstractSEXP implements Vector {
     }
 
     @Override
+    public Builder removeAttribute(Symbol name) {
+      attributes.remove(name);
+      return this;
+    }
+
+    @Override
     public Builder setDim(int row, int col) {
       attributes.setDim(row, col);
       return this;
@@ -85,7 +113,13 @@ abstract class AbstractVector extends AbstractSEXP implements Vector {
       attributes.addAllFrom(exp.getAttributes());
       return this;
     }
-    
+
+    @Override
+    public Builder combineAttributesFrom(SEXP vector) {
+      attributes.combineFrom(vector.getAttributes());
+      return this;
+    }
+
     /**
      * Copies "special" attributes: 
      * @param exp

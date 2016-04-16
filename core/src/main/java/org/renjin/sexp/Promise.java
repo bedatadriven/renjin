@@ -45,6 +45,7 @@ public class Promise extends AbstractSEXP implements Recursive {
   private boolean missingArgument;
 
   protected Promise(Environment environment, SEXP expression) {
+    assert environment != null;
     this.expression = expression;
     this.environment = environment;
   }
@@ -65,7 +66,7 @@ public class Promise extends AbstractSEXP implements Recursive {
    * @param result
    */
   public Promise(SEXP expression, SEXP result) {
-    this.environment = null;
+    this.environment = Environment.EMPTY;
     this.expression = expression;
     this.result = result;
   }
@@ -93,7 +94,6 @@ public class Promise extends AbstractSEXP implements Recursive {
   
   public void setResult(SEXP exp) {
     this.result = exp;
-    this.environment = null;
   }
 
   @Override

@@ -155,8 +155,12 @@ public abstract class LogicalVector extends AbstractAtomicVector implements Iter
 
   @Override
   public final boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || !(o instanceof LogicalVector)) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || !(o instanceof LogicalVector)) {
+      return false;
+    }
 
     LogicalVector that = (LogicalVector) o;
     if(this.length() != that.length()) {

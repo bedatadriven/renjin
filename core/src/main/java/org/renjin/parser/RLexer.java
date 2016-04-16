@@ -147,8 +147,9 @@ public class RLexer implements RParser.Lexer {
 
           /* Find the next non-newline token */
 
-          while (token == '\n')
+          while (token == '\n') {
             token = consumeNextToken();
+          }
 
           /* If we encounter "}", ")" or "]" then */
           /* we know that all immediately preceding */
@@ -353,13 +354,17 @@ public class RLexer implements RParser.Lexer {
 
     c = skipSpace();
 
-    if (c == '#') c = skipComment();
+    if (c == '#') {
+      c = skipComment();
+    }
 
     tokenBegin.line = reader.getLineNumber();
     tokenBegin.column = reader.getColumnNumber();
     tokenBegin.charIndex = reader.getCharacterIndex();
 
-    if (c == R_EOF) return END_OF_INPUT;
+    if (c == R_EOF) {
+      return END_OF_INPUT;
+    }
 
     /* Either digits or symbols can start with a "." */
     /* so we need to decide which it is and jump to  */
@@ -387,8 +392,9 @@ public class RLexer implements RParser.Lexer {
 
     /* special functions */
 
-    if (c == '%')
+    if (c == '%') {
       return consumeSpecialValue(c);
+    }
 
     /* functions, constants and variables */
 
@@ -416,8 +422,9 @@ public class RLexer implements RParser.Lexer {
           if (isNextChar('-')) {
             yylval = Symbol.get("<<-");
             return LEFT_ASSIGN;
-          } else
+          } else {
             return ERROR;
+          }
         }
         yylval = Symbol.get("<");
         return LT;
@@ -658,7 +665,9 @@ an ANSI digit or not */
   private int processLineDirective() {
     int c, tok, linenumber;
     c = skipSpace();
-    if (!isDigit(c)) return (c);
+    if (!isDigit(c)) {
+      return (c);
+    }
     tok = consumeNumericValue(c);
     if (parseOptions.isGenerateCode()) {
        // TODO: can we receive incorrect value here ? need to rethink.
@@ -668,10 +677,12 @@ an ANSI digit or not */
        linenumber = 0;
     }
     c = skipSpace();
-    if (c == '"')
+    if (c == '"') {
       tok = consumeStringValue(c, false);
-    if (tok == STR_CONST)
+    }
+    if (tok == STR_CONST) {
       setParseFilename(yylval);
+    }
       do {
         c = xxgetc();
       } while (c != '\n' && c != R_EOF);
@@ -689,7 +700,9 @@ an ANSI digit or not */
         Environment env = (Environment)parseState.srcFile;
     	SEXP oldname = env.findVariable(Symbol.get("filename"));
     	if (isString(oldname) && oldname.length() > 0 &&
-            oldname.asString().equals(newname.asString())) return;
+            oldname.asString().equals(newname.asString())) {
+        return;
+      }
         REPROTECT(parseState.srcFile = new Environment(
                                          AttributeMap.newBuilder().set(R_ClassSymbol,mkString("srcfile")).
                                          build()
@@ -716,8 +729,9 @@ an ANSI digit or not */
     /* We don't care about other than ASCII digits */
     while (isDigit(c = xxgetc()) || c == '.' || c == 'e' || c == 'E'
         || c == 'x' || c == 'X' || c == 'L') {
-      if (c == 'L') /* must be at the end.  Won't allow 1Le3 (at present). */
+      if (c == 'L') /* must be at the end.  Won't allow 1Le3 (at present). */ {
         break;
+      }
 
       if (c == 'x' || c == 'X') {
         if (last != '0') {

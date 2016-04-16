@@ -50,8 +50,8 @@ public class InitDataFlowAnalysis {
       }
       // we always have to allocate arrays and records explicitly, because our 
       // arrays are stored on the heap, not the stack
-      if(decl.getType() instanceof GimpleArrayType ||
-         decl.getType() instanceof GimpleRecordType) {
+      if (decl.getType() instanceof GimpleArrayType ||
+          decl.getType() instanceof GimpleRecordType) {
 
         initialState.add(decl.getId());
       }

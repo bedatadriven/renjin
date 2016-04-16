@@ -16,32 +16,31 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public class Md5 {
-    
-    
-    public static StringVector hashFiles(@Current Context context, StringVector files) {
-        StringVector.Builder builder = StringVector.newBuilder();
-        for (String file : files) {
-            try {
-                builder.add(hashFile(context.resolveFile(file)));
-            } catch (IOException e) {
-                builder.addNA();
-            }
-        }
-        builder.setAttribute(Symbols.NAMES, files);
-        
-        return builder.build();
+
+  public static StringVector hashFiles(@Current Context context, StringVector files) {
+    StringVector.Builder builder = StringVector.newBuilder();
+    for (String file : files) {
+      try {
+        builder.add(hashFile(context.resolveFile(file)));
+      } catch (IOException e) {
+        builder.addNA();
+      }
+    }
+    builder.setAttribute(Symbols.NAMES, files);
+
+    return builder.build();
+  }
+
+  private static String hashFile(FileObject fileObject) throws IOException {
+    InputStream inputStream = fileObject.getContent().getInputStream();
+    Hasher hasher = Hashing.md5().newHasher();
+    try {
+      ByteStreams.copy(inputStream, Funnels.asOutputStream(hasher));
+
+    } finally {
+      Closeables.closeQuietly(inputStream);
     }
 
-    private static String hashFile(FileObject fileObject) throws IOException {
-        InputStream inputStream = fileObject.getContent().getInputStream();
-        Hasher hasher = Hashing.md5().newHasher();
-        try {
-            ByteStreams.copy(inputStream, Funnels.asOutputStream(hasher));
-            
-        } finally {
-            Closeables.closeQuietly(inputStream);
-        }
-        
-        return hasher.hash().toString();
-    }
+    return hasher.hash().toString();
+  }
 }

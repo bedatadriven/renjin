@@ -109,8 +109,7 @@ public class Types {
   @Generic
   @Builtin("is.numeric")
   public static boolean isNumeric(SEXP exp) {
-    return (exp instanceof IntVector && !exp.inherits("factor"))
-        || exp instanceof LogicalVector || exp instanceof DoubleVector;
+    return (exp instanceof IntVector && !exp.inherits("factor")) || exp instanceof DoubleVector;
   }
 
   @Generic
@@ -193,7 +192,7 @@ public class Types {
               .addIfNotNull(sourceAttributes, Symbols.DIM)
               .addIfNotNull(sourceAttributes, Symbols.NAMES)
               .addIfNotNull(sourceAttributes, Symbols.DIMNAMES)
-              .build();
+              .validateAndBuildFor(vector);
     }
 
     private IsNaVector(AttributeMap attributes, Vector vector) {
@@ -208,7 +207,7 @@ public class Types {
 
     @Override
     public int getElementAsRawLogical(int index) {
-      return vector.isElementNA(index) ? 1 : 0;
+      return vector.isElementNaN(index) ? 1 : 0;
     }
 
     @Override
@@ -229,7 +228,7 @@ public class Types {
     for (int i = 0; i != vector.length(); ++i) {
       SEXP element = vector.getElementAsSEXP(i);
       if(element instanceof AtomicVector && element.length()==1) {
-        result.set(i, ((AtomicVector)element).isElementNA(0));
+        result.set(i, ((AtomicVector)element).isElementNaN(0));
       } else {
         result.set(i, false);
       }
@@ -250,7 +249,7 @@ public class Types {
     } else {
       LogicalArrayVector.Builder result = new LogicalArrayVector.Builder(vector.length());
       for (int i = 0; i != vector.length(); ++i) {
-        result.set(i, vector.isElementNA(i));
+        result.set(i, vector.isElementNaN(i));
       }
       result.setAttribute(Symbols.DIM, vector.getAttribute(Symbols.DIM));
       result.setAttribute(Symbols.NAMES, vector.getAttribute(Symbols.NAMES));

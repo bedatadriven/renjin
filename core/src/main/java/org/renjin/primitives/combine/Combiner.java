@@ -1,6 +1,5 @@
 package org.renjin.primitives.combine;
 
-import com.google.common.base.Strings;
 import org.renjin.sexp.*;
 
 
@@ -18,56 +17,50 @@ class Combiner {
     this.builder = builder;
   }
 
-  public Combiner add(Iterable<NamedValue> list) {
+  public Combiner add(ListVector list) {
     return add("", list);
   }
 
-  public Combiner add(String parentPrefix, Iterable<? extends NamedValue> list) {
-    for(NamedValue namedValue : list) {
-      String prefix = combinePrefixes(parentPrefix, Strings.nullToEmpty(namedValue.getName()));
-      SEXP value = namedValue.getValue();
+  public Combiner add(String parentPrefix, ListVector list) {
 
-      if(value instanceof FunctionCall) {
-        // even though we FunctionCalls are pairlists, we treat them specially in this context
-        // and do not recurse into them, treating them as opaque objects
-        builder.add(prefix, value);
+    StringVector names = CombinedNames.combine(parentPrefix, list);
+    for (int i = 0; i < list.length(); i++) {
 
-      } else if(value instanceof AtomicVector ||
-                value instanceof ExpressionVector) {
+      String name = names.getElementAsString(i);
+      SEXP value = list.getElementAsSEXP(i);
 
-        // Expression vectors are also treated atypically here
-        builder.addElements(prefix, (Vector) value);
-
-      } else if(value instanceof ListVector) {
-        if(recursive) {
-          add(prefix, ((ListVector) value).namedValues());
-        } else {
-          builder.addElements(prefix, (ListVector) value);
-        }
-
-      } else if(value instanceof PairList) {
-        if(recursive) {
-          add(prefix, ((PairList) value).nodes());
-        } else {
-          builder.addElements(prefix, ((PairList) value).toVector());
-        }
-      } else {
-        builder.add(prefix, value);
-      }
+      addElement(name, value);
     }
     return this;
   }
 
-  private String combinePrefixes(String a, String b) {
-    assert a != null;
-    assert b != null;
+  private void addElement(String prefix, SEXP value) {
+    if(value instanceof FunctionCall) {
+      // even though we FunctionCalls are pairlists, we treat them specially in this context
+      // and do not recurse into them, treating them as opaque objects
+      builder.add(prefix, value);
 
-    if(!a.isEmpty() && !b.isEmpty()) {
-      return a + "." + b;
-    } else if(!Strings.isNullOrEmpty(a)) {
-      return a;
+    } else if(value instanceof AtomicVector ||
+        value instanceof ExpressionVector) {
+
+      // Expression vectors are also treated atypically here
+      builder.addElements(prefix, (Vector) value);
+
+    } else if(value instanceof ListVector) {
+      if(recursive) {
+        add(prefix, ((ListVector) value));
+      } else {
+        builder.addElements(prefix, (ListVector) value);
+      }
+
+    } else if(value instanceof PairList.Node) {
+      if(recursive) {
+        add(prefix,  ((PairList.Node) value).toVector());
+      } else {
+        builder.addElements(prefix, ((PairList) value).toVector());
+      }
     } else {
-      return b;
+      builder.add(prefix, value);
     }
   }
 

@@ -1,12 +1,13 @@
 package org.renjin.primitives.packaging;
 
-import java.io.IOException;
-
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.sexp.Environment;
 import org.renjin.sexp.Null;
 import org.renjin.sexp.Promise;
 import org.renjin.sexp.SEXP;
+
+import java.io.IOException;
 
 /**
  * A promise that loads a dataset object from the package
@@ -19,7 +20,7 @@ public class DatasetObjectPromise extends Promise {
   private String objectName;
   
   protected DatasetObjectPromise(Dataset dataset, String name) {
-    super(null, Null.INSTANCE);
+    super(Environment.EMPTY, Null.INSTANCE);
     this.dataset = dataset;
     this.objectName = name;
   }

@@ -55,7 +55,7 @@ public class ConstantGeneratingVisitor extends SexpVisitor<Void> implements Opco
 
   private void pushDouble(double x) {
     if(x == 0) {
-     mv.visitInsn(DCONST_0);
+      mv.visitInsn(DCONST_0);
     } else if(x==1) {
       mv.visitInsn(DCONST_1);
     } else {

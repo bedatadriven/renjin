@@ -1,6 +1,7 @@
 package org.renjin.primitives.time;
 
 import org.joda.time.DateTimeZone;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -14,6 +15,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Locale;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -27,6 +29,14 @@ import static org.junit.Assert.assertThat;
 @RunWith(Parameterized.class)
 public class TimeTest extends EvalTestCase {
 
+  @Before
+  public void specifyLocale() {
+    // Many aspects of time formatting and parsing are locale-specific
+    // so we need to fix the locale to get reproducible results
+    // TODO: Add tests to ensure Renjin works correctly on other locales other than English
+    Locale.setDefault(Locale.ENGLISH);
+  }
+  
 
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
@@ -227,6 +237,8 @@ public class TimeTest extends EvalTestCase {
   @Test
   public void printTime() throws IOException {
     topLevelContext.init();
+
+    Locale.setDefault(Locale.forLanguageTag("nl"));
     
     StringWriter stringWriter = new StringWriter();
     topLevelContext.getSession().setStdOut(new PrintWriter(stringWriter));

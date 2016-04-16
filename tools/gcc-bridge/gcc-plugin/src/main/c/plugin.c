@@ -680,6 +680,37 @@ static void dump_nop(gimple stmt) {
   json_end_object();
 }
 
+static void dump_predict(gimple stmt) {
+  json_start_object();
+  json_string_field("type", "predict");
+  json_int_field("line", gimple_lineno(stmt));
+//  json_int_field("hassub", gimple_has_substatements(stmt));
+//  json_string_field("name", predictor_name(gimple_predict_predictor(stmt)));
+  json_end_object();
+}
+
+static void dump_resx(basic_block bb, gimple stmt) {
+  json_start_object();
+  json_string_field("type", "resx");
+  json_int_field("line", gimple_lineno(stmt));
+  json_int_field("region", gimple_resx_region(stmt));
+  json_end_object();
+}
+static void dump_eh_dispatch(gimple stmt) {
+  json_start_object();
+  json_string_field("type", "eh_dispatch");
+  json_int_field("line", gimple_lineno(stmt));
+  json_int_field("region", gimple_eh_dispatch_region(stmt));
+  json_end_object();
+}
+
+static void dump_label(gimple stmt) {
+  json_start_object();
+  json_string_field("type", "label");
+  json_int_field("line", gimple_lineno(stmt));
+  json_end_object();
+}
+
 static void dump_return(gimple stmt) {
   json_start_object();
   json_string_field("type", "return");
@@ -776,15 +807,6 @@ static void dump_switch(gimple stmt) {
 static void dump_statement(basic_block bb, gimple stmt) {
   TRACE("dump_statement: entering\n");
   
-  if(gimple_code(stmt) == VAR_DECL) {
-    // not exactly sure what this does, but GCC seems to dump
-    // this as:
-    // predicted unlikely by continue predictor
-    return;
-  }
-
-  
-
   switch(gimple_code(stmt)) {
   case GIMPLE_ASSIGN:
     dump_assignment(stmt);
@@ -796,24 +818,34 @@ static void dump_statement(basic_block bb, gimple stmt) {
     dump_cond(bb, stmt);
     break;
   case GIMPLE_NOP:
-    dump_nop(stmt);
+//    dump_nop(stmt);
+    break;
+  case GIMPLE_PREDICT: // VAR_DECL
+//    dump_predict(stmt);
+    break;
+  case GIMPLE_RESX:
+//    dump_resx(bb, stmt);
+    break;
+  case GIMPLE_EH_DISPATCH:
+//    dump_eh_dispatch(stmt);
     break;
   case GIMPLE_RETURN:
     dump_return(stmt);
     break;
-  case OFFSET_TYPE:
+  case GIMPLE_SWITCH: // OFFSET_TYPE
     dump_switch(stmt);
     break;
-  case BLOCK:
+  case GIMPLE_LABEL: // BLOCK
     // this represents a label expression, usually generated
     // in conjunction with a switch statement. We do the 
     // label to basic block translation there, so we don't need
     // these nodes
+//    dump_label(stmt);
     break;
   default:
     json_start_object();
     json_string_field("type", 
-	tree_code_name[gimple_code(stmt)]);
+      gimple_code_name[gimple_code(stmt)]);
 	  dump_ops(stmt);
 	  json_end_object();
   }
@@ -912,16 +944,30 @@ static void dump_basic_block(basic_block bb) {
     {
       dump_statement(bb, gsi_stmt (gsi));
     }
-   
-  edge e = find_fallthru_edge (bb->succs);
+  edge e;
+  edge_iterator ei;
+  FOR_EACH_EDGE (e, ei, bb->succs)
+  {
 
-  if (e && e->dest != bb->next_bb)
+    if ((e->flags & EDGE_FALLTHRU) && e->dest != bb->next_bb)
     {
       json_start_object();
       json_string_field("type", "goto");
       json_int_field("target", e->dest->index);
       json_end_object();
     }
+  }
+  json_end_array();
+
+  json_array_field("edges");
+  FOR_EACH_EDGE (e, ei, bb->succs)
+  {
+    json_start_object();
+    json_int_field("flags", e->flags);
+    json_int_field("source", e->src->index);
+    json_int_field("target", e->dest->index);
+    json_end_object();
+  }
     
   json_end_array();
   json_end_object();

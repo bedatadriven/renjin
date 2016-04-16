@@ -216,11 +216,11 @@ public class Connections {
         break;
       }
     }
-    
-    if(numLines > 0 && 
-       lines.length() < numLines && 
-       !ok) {
-      
+
+    if(numLines > 0 &&
+        lines.length() < numLines &&
+        !ok) {
+
       throw new EvalException("too few lines read in readLines");
     }
     

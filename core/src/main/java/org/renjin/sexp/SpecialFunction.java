@@ -24,7 +24,6 @@ package org.renjin.sexp;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.Warning;
-import org.renjin.primitives.vector.DeferredComputation;
 
 
 public abstract class SpecialFunction extends PrimitiveFunction {
@@ -68,11 +67,11 @@ public abstract class SpecialFunction extends PrimitiveFunction {
 
     return logical == Logical.TRUE;
   }
-  
+
   protected void checkArity(FunctionCall call, int expectedArguments, int optional) {
-      int count = call.getArguments().length();
-      EvalException.check(count <= expectedArguments &&
-          count >= (expectedArguments-optional),
-          "invalid number of arguments");
+    int count = call.getArguments().length();
+    EvalException.check(count <= expectedArguments &&
+            count >= (expectedArguments-optional),
+        "invalid number of arguments");
   }
 }

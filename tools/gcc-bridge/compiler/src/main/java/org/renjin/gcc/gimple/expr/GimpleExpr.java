@@ -36,7 +36,7 @@ import java.util.List;
     @Type(value = GimpleNopExpr.class, name = "nop_expr"),
     @Type(value = GimpleSsaName.class, name = "ssa_name"),
     @Type(value = GimpleBitFieldRefExpr.class, name = "bit_field_ref")
-})
+    })
 public abstract class GimpleExpr {
 
   private Integer line;

@@ -19,15 +19,15 @@ public class RenjinScriptContext implements ScriptContext{
   private Writer writer;
   private Writer errorWriter;
   private Map<String,Object> attributes = new TreeMap<>();
-  
+
   RenjinScriptContext(Context context) {
     this.context = context;
   }
-  
+
   public Context getContext() {
     return context;
   }
-  
+
   @Override
   public Object getAttribute(String arg0) {
     return attributes.get(arg0);
@@ -71,17 +71,17 @@ public class RenjinScriptContext implements ScriptContext{
 
   @Override
   public Object removeAttribute(String arg0, int arg1) {
-      return attributes.remove(arg0);
+    return attributes.remove(arg0);
   }
 
   @Override
   public void setAttribute(String name, Object value, int scope) {
-      if (scope == ScriptContext.ENGINE_SCOPE) {
-        attributes.put(name,value);
-      } else {
-        throw new UnsupportedOperationException(
+    if (scope == ScriptContext.ENGINE_SCOPE) {
+      attributes.put(name,value);
+    } else {
+      throw new UnsupportedOperationException(
           String.format("setting attribute in scope (%d) not supported", scope));
-      }
+    }
   }
 
   @Override

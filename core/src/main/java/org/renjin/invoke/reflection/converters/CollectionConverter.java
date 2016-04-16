@@ -1,9 +1,9 @@
 package org.renjin.invoke.reflection.converters;
 
-import java.util.Collection;
-
 import org.renjin.sexp.ListVector;
 import org.renjin.sexp.SEXP;
+
+import java.util.Collection;
 
 
 /**
@@ -14,8 +14,9 @@ public class CollectionConverter implements Converter<Iterable> {
   //TODO Iterable maybe a special object
   public static boolean accept(Class clazz) {
     if (Collection.class.isAssignableFrom(clazz)//||Iterable.class.isAssignableFrom(clazz)
-        )
+        ) {
       return true;
+    }
     return false;
     //return false; || Iterable.class.isAssignableFrom(clazz)
   }

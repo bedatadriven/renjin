@@ -221,7 +221,7 @@ public class Sort {
     if (columns.length() == 0) {
       return Null.INSTANCE;
     }
-    
+
     int numRows = columns.getElementAsSEXP(0).length();
 
     for (int i = 0; i != columns.length(); ++i) {
@@ -251,17 +251,15 @@ public class Sort {
       }
 
       private int compare(Integer row1, Integer row2, int col) {
-        AtomicVector vector = (AtomicVector) columns.get(col);
-        boolean na1 = vector.isElementNA(row1);
-        boolean na2 = vector.isElementNA(row2);
-        if(na1 && na2) {
-          return 0;
-        } else if(na1) {
-          return naLast ? +1 : -1;
-        } else if(na2) {
-          return naLast ? -1 : +1;
+        AtomicVector column = (AtomicVector) columns.get(col);
+        boolean na1 = column.isElementNA(row1);
+        boolean na2 = column.isElementNA(row2);
+        if(na1 == na2) {
+          return column.compare(row1, row2);
+        } else if(na1 && naLast) {
+          return decreasing ? -1 : +1; 
         } else {
-          return vector.compare(row1, row2);
+          return decreasing ? +1 : -1;
         }
       }
     });
@@ -308,7 +306,97 @@ public class Sort {
     }
     return (new IntArrayVector(maxIndex + 1));
   }
-  
+
+  @Internal
+  public static Vector rank(final AtomicVector input, String tiesMethod) {
+
+    boolean decreasing = false;
+
+    AtomicVector sortedInput;
+
+    String typeVector = input.getTypeName();
+    switch (typeVector){
+      case "character":
+        StringVector inputStringVector = ((StringVector) input.setAttributes(AttributeMap.EMPTY));
+        sortedInput = ((AtomicVector) sort(inputStringVector, decreasing));
+        break;
+      case "double":
+        DoubleVector inputDoubleVector = ((DoubleVector) input.setAttributes(AttributeMap.EMPTY));
+        sortedInput = ((AtomicVector) sort(inputDoubleVector, decreasing));
+        break;
+      default:
+        IntVector inputIntVector = ((IntVector) input.setAttributes(AttributeMap.EMPTY));
+        sortedInput = ((AtomicVector) sort(inputIntVector, decreasing));
+        break;
+    }
+
+
+
+
+    switch(tiesMethod.toUpperCase()){
+      case "MIN":
+        return rankMin(input, sortedInput);
+
+      case "MAX":
+        return rankMax(input, sortedInput);
+
+      case "AVERAGE":
+        return rankAverage(input, sortedInput);
+
+      case "FIRST":
+        throw new EvalException("ties.method=first not implemented");
+
+
+      case "RANDOM":
+        throw new EvalException("ties.method=random not implemented");
+
+
+      default:
+        throw new EvalException("Invalid ties.method.");
+
+    }
+
+  }
+
+  private static Vector rankAverage(AtomicVector input, AtomicVector sortedInput) {
+    DoubleArrayVector.Builder ranks = new DoubleArrayVector.Builder();
+    for ( int i=0; i < sortedInput.length(); i++ ) {
+      int minRank = sortedInput.indexOf(input, i, 0);
+      int maxRank = minRank;
+      while ( maxRank+1 < sortedInput.length() &&
+              sortedInput.compare(minRank, maxRank+1) == 0) {
+        maxRank++;
+      }
+
+      double average = (((double) minRank) + ((double) maxRank)) / 2d;
+      ranks.add(average + 1);
+    }
+    return ranks.build();
+  }
+
+  private static Vector rankMax(AtomicVector input, AtomicVector sortedInput) {
+    IntArrayVector.Builder ranks = new IntArrayVector.Builder();
+    for ( int i=0; i < sortedInput.length(); i++ ) {
+      int minRank = sortedInput.indexOf(input, i, 0);
+      int maxRank = minRank;
+      while ( maxRank+1 < sortedInput.length() &&
+              sortedInput.compare(minRank, maxRank+1) == 0) {
+        maxRank++;
+      }
+      ranks.add(maxRank + 1);
+    }
+    return ranks.build();
+  }
+
+  private static Vector rankMin(AtomicVector input, AtomicVector sortedInput) {
+    IntArrayVector.Builder ranks = new IntArrayVector.Builder();
+
+    for (int i=0; i < sortedInput.length(); i++) {
+      ranks.add( sortedInput.indexOf( input, i, 0 ) + 1 );
+    }
+    return ranks.build();
+  }
+
   @Builtin
   @Generic
   public static SEXP xtfrm(@Current Context context, SEXP x) {

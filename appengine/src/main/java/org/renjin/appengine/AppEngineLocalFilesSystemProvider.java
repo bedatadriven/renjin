@@ -21,21 +21,15 @@
 
 package org.renjin.appengine;
 
+import org.apache.commons.vfs2.*;
+import org.apache.commons.vfs2.provider.AbstractFileProvider;
+import org.apache.commons.vfs2.provider.LocalFileProvider;
+import org.apache.commons.vfs2.provider.UriParser;
+
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-
-import org.apache.commons.vfs2.Capability;
-import org.apache.commons.vfs2.FileName;
-import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSystem;
-import org.apache.commons.vfs2.FileSystemException;
-import org.apache.commons.vfs2.FileSystemOptions;
-import org.apache.commons.vfs2.FileType;
-import org.apache.commons.vfs2.provider.AbstractFileProvider;
-import org.apache.commons.vfs2.provider.LocalFileProvider;
-import org.apache.commons.vfs2.provider.UriParser;
 
 /**
  * Provides read-only access to the application context
@@ -51,15 +45,13 @@ public class AppEngineLocalFilesSystemProvider
 
   private File rootFile;
 
-  public final static Collection CAPABILITIES = Collections.unmodifiableCollection(Arrays.asList(new Capability[]
-      {
-          Capability.GET_TYPE,
-          Capability.GET_LAST_MODIFIED,
-          Capability.LIST_CHILDREN,
-          Capability.READ_CONTENT,
-          Capability.URI,
-          Capability.RANDOM_ACCESS_READ
-      }));
+  public final static Collection<Capability> CAPABILITIES = Collections.unmodifiableCollection(Arrays.asList(
+      Capability.GET_TYPE,
+      Capability.GET_LAST_MODIFIED,
+      Capability.LIST_CHILDREN,
+      Capability.READ_CONTENT,
+      Capability.URI,
+      Capability.RANDOM_ACCESS_READ));
 
   public AppEngineLocalFilesSystemProvider(File rootFile) {
     this.rootFile = rootFile;
@@ -108,7 +100,7 @@ public class AppEngineLocalFilesSystemProvider
   }
 
   @Override
-  public Collection getCapabilities() {
+  public Collection<Capability> getCapabilities() {
     return CAPABILITIES;
   }
 

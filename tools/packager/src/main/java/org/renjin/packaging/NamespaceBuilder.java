@@ -21,6 +21,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 public class NamespaceBuilder {
 
   private FqPackageName name;
@@ -144,13 +146,21 @@ public class NamespaceBuilder {
     Collections.sort(list, new Comparator<File>() {
       @Override
       public int compare(File file1, File file2) {
-        byte[] name1 = Files.getNameWithoutExtension(file1.getName()).getBytes();
-        byte[] name2 = Files.getNameWithoutExtension(file2.getName()).getBytes();
+        byte[] name1 = getNameWithoutExtension(file1).getBytes();
+        byte[] name2 = getNameWithoutExtension(file2).getBytes();
         return UnsignedBytes.lexicographicalComparator().compare(name1, name2);
       }
     });
 
     return list;
+  }
+
+  private String getNameWithoutExtension(File file) {
+    // Copied from Guava 17.0 to avoid version conflicts
+    checkNotNull(file);
+    String fileName = file.getName();
+    int dotIndex = fileName.lastIndexOf('.');
+    return (dotIndex == -1) ? fileName : fileName.substring(0, dotIndex);
   }
 
   private void evaluateSources(Context context, List<File> sources, Environment namespaceEnvironment)  {

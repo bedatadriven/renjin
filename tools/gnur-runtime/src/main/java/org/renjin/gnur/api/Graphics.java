@@ -2,7 +2,6 @@
 package org.renjin.gnur.api;
 
 import org.renjin.sexp.SEXP;
-import org.renjin.gcc.runtime.*;
 
 @SuppressWarnings("unused")
 public final class Graphics {
@@ -18,7 +17,7 @@ public final class Graphics {
   // void Rf_copyGPar (GPar *, GPar *)
 
   public static double R_Log10(double p0) {
-     throw new UnimplementedGnuApiMethod("R_Log10");
+    throw new UnimplementedGnuApiMethod("R_Log10");
   }
 
   // void Rf_ProcessInlinePars (SEXP, pGEDevDesc)
@@ -28,19 +27,19 @@ public final class Graphics {
   // SEXP Rf_FixupCol (SEXP, unsigned int)
 
   public static SEXP Rf_FixupLty(SEXP p0, int p1) {
-     throw new UnimplementedGnuApiMethod("Rf_FixupLty");
+    throw new UnimplementedGnuApiMethod("Rf_FixupLty");
   }
 
   public static SEXP Rf_FixupLwd(SEXP p0, double p1) {
-     throw new UnimplementedGnuApiMethod("Rf_FixupLwd");
+    throw new UnimplementedGnuApiMethod("Rf_FixupLwd");
   }
 
   public static SEXP Rf_FixupVFont(SEXP p0) {
-     throw new UnimplementedGnuApiMethod("Rf_FixupVFont");
+    throw new UnimplementedGnuApiMethod("Rf_FixupVFont");
   }
 
   public static SEXP Rf_labelformat(SEXP p0) {
-     throw new UnimplementedGnuApiMethod("Rf_labelformat");
+    throw new UnimplementedGnuApiMethod("Rf_labelformat");
   }
 
   // void gcontextFromGP (pGEcontext gc, pGEDevDesc dd)

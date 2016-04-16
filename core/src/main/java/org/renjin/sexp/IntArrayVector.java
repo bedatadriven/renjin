@@ -21,12 +21,14 @@
 
 package org.renjin.sexp;
 
+import org.renjin.eval.Profiler;
+
 import java.util.Arrays;
 
 public class IntArrayVector extends IntVector {
 
   private int[] values;
-  
+
   private IntArrayVector(AttributeMap attributes) {
     super(attributes);
   }
@@ -34,7 +36,7 @@ public class IntArrayVector extends IntVector {
   public IntArrayVector(int... values) {
     this.values = Arrays.copyOf(values, values.length);
   }
-  
+
   public IntArrayVector(IntVector vector) {
     super(vector.attributes);
     this.values = vector.toIntArray();
@@ -42,13 +44,18 @@ public class IntArrayVector extends IntVector {
 
   public IntArrayVector(int[] values, int length, AttributeMap attributes) {
     super(attributes);
-    this.values = Arrays.copyOf(values, length);
 
-    if(Vector.DEBUG_ALLOC && length > 5000) {
-      System.out.println("IntArrayVector alloc = " + length);
+    if (Profiler.ENABLED) {
+      Profiler.memoryAllocated(Integer.SIZE, length);
     }
+
+    this.values = Arrays.copyOf(values, length);
   }
 
+  public IntArrayVector(int[] values, AttributeMap.Builder attributes) {
+    this(values, values.length, attributes.validateAndBuildForVectorOfLength(values.length));
+  }
+  
   public IntArrayVector(int[] values, AttributeMap attributes) {
     this(values, values.length, attributes);
   }
@@ -67,9 +74,9 @@ public class IntArrayVector extends IntVector {
   protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
     IntArrayVector clone = new IntArrayVector(attributes);
     clone.values = values;
-    return clone;    
+    return clone;
   }
-  
+
   /**
    * @return a pointer to the underlying array. DO NOT MODIFY!!
    */
@@ -116,7 +123,7 @@ public class IntArrayVector extends IntVector {
       size = initialSize;
       Arrays.fill(values, NA);
     }
-    
+
     public Builder(int initialSize) {
       this(initialSize, initialSize);
     }
@@ -144,7 +151,7 @@ public class IntArrayVector extends IntVector {
     public Builder add(int value) {
       return set(size, value);
     }
-    
+
     @Override
     public Builder add(Number value) {
       return add(value.intValue());
@@ -175,8 +182,9 @@ public class IntArrayVector extends IntVector {
       if (minCapacity > oldCapacity) {
         int oldData[] = values;
         int newCapacity = (oldCapacity * 3)/2 + 1;
-        if (newCapacity < minCapacity)
+        if (newCapacity < minCapacity) {
           newCapacity = minCapacity;
+        }
         // minCapacity is usually close to size, so this is a win:
         values = Arrays.copyOf(oldData, newCapacity);
         Arrays.fill(values, oldCapacity, values.length, NA);
@@ -185,10 +193,10 @@ public class IntArrayVector extends IntVector {
 
     @Override
     public IntVector build() {
+      if(Profiler.ENABLED) {
+        Profiler.memoryAllocated(Integer.SIZE, values.length);
+      }
       if(size == values.length) {
-    	if(Vector.DEBUG_ALLOC && values.length >= 5000) {
-          System.out.println("building IntVector = " + values.length);
-        }
         IntArrayVector vector = new IntArrayVector(buildAttributes());
         vector.values = values;
         // subsequent edits will throw error!

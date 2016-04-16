@@ -22,16 +22,14 @@ import java.util.Collections;
 public class FastJarFileProvider extends AbstractLayeredFileProvider {
 
 
-  final static Collection capabilities = Collections.unmodifiableCollection(Arrays.asList(new Capability[]
-      {
-          Capability.GET_LAST_MODIFIED,
-          Capability.GET_TYPE,
-          Capability.LIST_CHILDREN,
-          Capability.READ_CONTENT,
-          Capability.URI,
-          Capability.COMPRESS,
-          Capability.VIRTUAL
-      }));
+  final static Collection<Capability> capabilities = Collections.unmodifiableCollection(Arrays.asList(
+      Capability.GET_LAST_MODIFIED,
+      Capability.GET_TYPE,
+      Capability.LIST_CHILDREN,
+      Capability.READ_CONTENT,
+      Capability.URI,
+      Capability.COMPRESS,
+      Capability.VIRTUAL));
 
 
   /**
@@ -47,13 +45,12 @@ public class FastJarFileProvider extends AbstractLayeredFileProvider {
                                           final FileSystemOptions fileSystemOptions)
       throws FileSystemException
   {
-      final FileName rootName =
-          new LayeredFileName(scheme, file.getName(), FileName.ROOT_PATH, FileType.FOLDER);
-      return new FastJarFileSystem(rootName, file, fileSystemOptions);
+    final FileName rootName =
+        new LayeredFileName(scheme, file.getName(), FileName.ROOT_PATH, FileType.FOLDER);
+    return new FastJarFileSystem(rootName, file, fileSystemOptions);
   }
 
-  public Collection getCapabilities()
-  {
-      return capabilities;
+  public Collection<Capability> getCapabilities() {
+    return capabilities;
   }
 }

@@ -7,6 +7,7 @@ import com.google.common.collect.Lists;
 import org.renjin.base.Base;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.eval.Profiler;
 import org.renjin.gcc.runtime.*;
 import org.renjin.invoke.annotations.ArgumentList;
 import org.renjin.invoke.annotations.Builtin;
@@ -217,6 +218,10 @@ public class Native {
     Object[] fortranArgs = new Object[fortranTypes.length];
     ListVector.NamedBuilder returnValues = ListVector.newNamedBuilder();
 
+    if(Profiler.ENABLED) {
+      Profiler.functionStart(Symbol.get(methodName));
+    }
+    
     // For .Fortran() calls, we make a copy of the arguments, pass them by
     // reference to the fortran subroutine, and then return the modified arguments
     // as a ListVector.
@@ -249,6 +254,10 @@ public class Native {
       throw e;
     } catch (Throwable e) {
       throw new EvalException("Exception thrown while executing " + methodName, e);
+    } finally {
+      if(Profiler.ENABLED) {
+        Profiler.functionEnd();
+      }
     }
 
     return returnValues.build();
@@ -306,6 +315,10 @@ public class Native {
       }
       MethodHandle transformedHandle = methodHandle.asSpreader(SEXP[].class, methodHandle.type().parameterCount());
       SEXP[] arguments = toSexpArray(callArguments);
+      if(Profiler.ENABLED) {
+        StringVector nameExp = (StringVector)((ListVector) methodExp).get("name");
+        Profiler.functionStart(Symbol.get(nameExp.getElementAsString(0)));
+      }
       try {
         if (methodHandle.type().returnType().equals(void.class)) {
           transformedHandle.invokeExact(arguments);
@@ -317,6 +330,10 @@ public class Native {
         throw e;
       } catch (Throwable e) {
         throw new EvalException("Exception calling " + methodExp + " : " + e.getMessage(), e);
+      } finally {
+        if(Profiler.ENABLED) {
+          Profiler.functionEnd();
+        }
       }
 
     } else if(methodExp instanceof StringVector) {
@@ -331,8 +348,16 @@ public class Native {
       } else {
         throw new EvalException("Either the PACKAGE or CLASS argument must be provided");
       }
-
-      return delegateToJavaMethod(context, clazz, methodName, callArguments);
+      if(Profiler.ENABLED) {
+        Profiler.functionStart(Symbol.get(methodName));
+      }
+      try {
+        return delegateToJavaMethod(context, clazz, methodName, callArguments);
+      } finally {
+        if(Profiler.ENABLED) {
+          Profiler.functionEnd();
+        }
+      }
     } else {
       throw new EvalException("Invalid method argument: " + methodExp);
     }
@@ -389,7 +414,11 @@ public class Native {
       FqPackageName fqname = namespace.getFullyQualifiedName();
       String packageClassName = fqname.getGroupId()+"."+fqname.getPackageName() + "." +
               fqname.getPackageName();
-      return namespace.getPackage().loadClass(packageClassName);
+      try {
+        return namespace.getPackage().loadClass(packageClassName);
+      } catch (ClassNotFoundException e) {
+        throw new EvalException("Could not load class '%s' from package '%s'", packageClassName, packageClassName);
+      }
     }
   }
 }

@@ -29,6 +29,7 @@
 	  <module>grid</module>
     <module>parallel</module>
     <module>tools</module>
+    <module>tcltk</module>
   </modules>
   
   <dependencies>

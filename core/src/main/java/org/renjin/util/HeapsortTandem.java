@@ -61,15 +61,19 @@ public final class HeapsortTandem {
       swapNode = root;
 
       // If the left child is great, choose it
-      if (a1[swapNode] < a1[leftChild]) swapNode = leftChild;
+      if (a1[swapNode] < a1[leftChild]) {
+        swapNode = leftChild;
+      }
 
       // If the right child exists and is greater than the left child, choose it
-      if (rightChild <= endNode && a1[swapNode] < a1[rightChild]) swapNode = rightChild;
+      if (rightChild <= endNode && a1[swapNode] < a1[rightChild]) {
+        swapNode = rightChild;
+      }
 
       // We're done if we've chosen to swap the root
-      if (swapNode == root) return;
-
-        // Else do the swap since we're not done
+      if (swapNode == root) {
+        return;
+      }// Else do the swap since we're not done
       else {
         swap(a1, root, swapNode);
         swap(a2, root, swapNode);
@@ -91,7 +95,9 @@ public final class HeapsortTandem {
     double ra;
     int ii;
 
-    if (n <= 1) return;
+    if (n <= 1) {
+      return;
+    }
 
     l = (n >> 1) + 1;
     ir = n-1;
@@ -124,14 +130,17 @@ public final class HeapsortTandem {
       i = l;
       j = (l << 1);
       while (j <= ir) {
-        if (j < ir && a1[j] > a1[j + 1] || i == j) ++j;
+        if (j < ir && a1[j] > a1[j + 1] || i == j) {
+          ++j;
+        }
         if (ra > a1[j]) {
           a1[i] = a1[j];
           a2[i] = a2[j];
           j += (i = j);
         }
-        else
-          j = ir+1;
+        else {
+          j = ir + 1;
+        }
       }
 
       a1[i] = ra;

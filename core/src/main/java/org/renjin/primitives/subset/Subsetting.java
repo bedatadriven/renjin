@@ -21,6 +21,7 @@
 
 package org.renjin.primitives.subset;
 
+import com.google.common.collect.Lists;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
@@ -28,28 +29,23 @@ import org.renjin.methods.MethodDispatch;
 import org.renjin.primitives.Types;
 import org.renjin.sexp.*;
 
+import java.util.List;
+
+/**
+ * Implementations of the subset operators {@code [}, {@code [[}, {@code $}, and {@code @}
+ * and their sub-assignment counterparts.
+ */
 public class Subsetting {
 
   private Subsetting() {
 
   }
 
-
   private static Symbol asSymbol(SEXP nameExp) {
     if(nameExp instanceof Symbol) {
       return (Symbol) nameExp;
     } else if(nameExp instanceof StringVector && nameExp.length() == 1) {
       return Symbol.get(((StringVector) nameExp).getElementAsString(0));
-    } else {
-      throw new EvalException("illegal argument: " + nameExp);
-    }
-  }
-
-  private static String asString(SEXP nameExp) {
-    if(nameExp instanceof Symbol) {
-      return ((Symbol) nameExp).getPrintName();
-    } else if(nameExp instanceof StringVector && nameExp.length() == 1) {
-      return ((StringVector) nameExp).getElementAsString(0);
     } else {
       throw new EvalException("illegal argument: " + nameExp);
     }
@@ -102,8 +98,8 @@ public class Subsetting {
 
   @Builtin("$<-")
   public static SEXP setElementByName(ListVector list,
-      @Unevaluated Symbol name, SEXP value) {
-    return setSingleElement(list.newCopyNamedBuilder(), name.getPrintName(), value);
+                                      @Unevaluated Symbol name, SEXP value) {
+    return setSingleListElementByName(list.newCopyNamedBuilder(), name.getPrintName(), value);
   }
 
   @Builtin("$<-")
@@ -118,18 +114,18 @@ public class Subsetting {
       }
       copyBuilder.add(elementName, vector.getElementAsSEXP(i));
     }
-    return setSingleElement(copyBuilder, nameToReplace.getPrintName(), value);
+    return setSingleListElementByName(copyBuilder, nameToReplace.getPrintName(), value);
   }
-  
+
   @Builtin("$<-")
   public static SEXP setElementByName(PairList.Node pairList,
-      @Unevaluated Symbol name, SEXP value) {
-    return setSingleElement(pairList.newCopyBuilder(), name.getPrintName(), value);
+                                      @Unevaluated Symbol name, SEXP value) {
+    return setSingleListElementByName(pairList.newCopyBuilder(), name.getPrintName(), value);
   }
 
   @Builtin("$<-")
   public static SEXP setElementByName(Environment env,
-      @Unevaluated Symbol name, SEXP value) {
+                                      @Unevaluated Symbol name, SEXP value) {
     env.setVariable(name, value);
     return env;
   }
@@ -138,8 +134,10 @@ public class Subsetting {
    * Same as "[" but not generic
    */
   @Builtin(".subset")
-  public static SEXP subset(SEXP source, @ArgumentList ListVector arguments,
-      @NamedFlag("drop") @DefaultValue(true) boolean drop) {
+  public static SEXP subset(@Current Context context, 
+                            SEXP source, 
+                            @ArgumentList ListVector arguments,
+                            @NamedFlag("drop") @DefaultValue(true) boolean drop) {
     Vector vector;
     if(source instanceof Vector) {
       vector = (Vector)source;
@@ -148,7 +146,7 @@ public class Subsetting {
     } else {
       throw new EvalException(source.getClass().getName());
     }
-    return getSubset(vector, arguments, drop);
+    return getSubset(context, vector, arguments, drop);
   }
 
   @Builtin(".subset2")
@@ -161,39 +159,72 @@ public class Subsetting {
 
   @Generic
   @Builtin("[[")
-  public static SEXP getSingleElement(SEXP source, @ArgumentList ListVector subscripts,
+  public static SEXP getSingleElement(SEXP source, 
+                                      @ArgumentList ListVector subscripts,
                                       @NamedFlag("exact") @DefaultValue(true) boolean exact,
                                       @NamedFlag("drop") @DefaultValue(true) boolean drop) {
 
-    // N.B.: the drop argument is completely ignored
+    // N.B.: the drop argument is accepted but completely ignored
 
+    // If the source is NULL, then no further argument checking is done
+    // so if is.null(x) then x[[1,2,3,"foo"]] evaluates happily to NULL
     if(source == Null.INSTANCE) {
-      return source;
+      return Null.INSTANCE;
     }
 
-    String nameSubscript = isSingleStringSubscript(subscripts);
-    if(nameSubscript != null) {
-      return getSingleElementByName(source, nameSubscript, exact);
+    // Environments are handled very differently from vectors, specialize now.
+    if(source instanceof Environment) {
+      return getSingleEnvironmentElement((Environment) source, subscripts);
     }
-
+    
+    // For the purpose of this operator, convert pairlists to list vectors before continuing
     if(source instanceof PairList) {
       source = ((PairList) source).toVector();
     }
-
+    
     // A single argument with a length greater than one, like c(1,2,3)
     // are used to index the vector recursively
     if(source instanceof ListVector && isRecursiveIndexingArgument(subscripts)) {
-      
+
       return getSingleElementRecursively((ListVector) source, (AtomicVector) subscripts.getElementAsSEXP(0), exact, drop);
-      
+
     } else {
 
-      return new SubscriptOperation()
-              .setSource(source, subscripts)
-              .setDrop(true)
-              .extractSingle();
+      SelectionStrategy selection = Selections.parseSingleSelection(source, Lists.newArrayList(subscripts));
+      
+      if(source instanceof ListVector) {
+        return selection.getSingleListElement((ListVector) source, exact);
+      
+      } else if(source instanceof AtomicVector) {
+        return selection.getSingleAtomicVectorElement((AtomicVector)source, exact);
+      
+      } else {
+        throw new EvalException("object of type '%s' is not subsettable", source.getTypeName());
+      }
     }
   }
+
+  private static SEXP getSingleEnvironmentElement(Environment source, ListVector subscripts) {
+    if(subscripts.length() != 1) {
+      throw new EvalException("subsetting an environment requires a single argument");
+    }
+    SEXP subscript = subscripts.get(0);
+    if(!(subscript instanceof StringVector) || subscript.length() != 1) {
+      throw new EvalException("subset argument for environment must be character of length 1");
+    }
+    
+    String symbolName = ((StringVector) subscript).getElementAsString(0);
+    if(StringVector.isNA(symbolName)) {
+      throw new EvalException("subset argument for environment cannot be NA");
+    }
+
+    SEXP value = source.getVariable(symbolName);
+    if(value == Symbol.UNBOUND_VALUE) {
+      return Null.INSTANCE;
+    }
+    return value;
+  }
+
 
   private static boolean isRecursiveIndexingArgument(ListVector subscripts) {
     if(subscripts.length() != 1) {
@@ -207,14 +238,14 @@ public class Subsetting {
   }
 
   private static SEXP getSingleElementRecursively(ListVector source, AtomicVector indexes, boolean exact, boolean drop) {
-    
+
     assert indexes.length() > 0;
-    
+
     SEXP result = source;
-    
+
     for(int i=0; i < indexes.length(); ++i) {
-      
-      if(!(result instanceof ListVector)) {
+
+      if(!(result instanceof Vector)) {
         throw new EvalException("Recursive indexing failed at level %d", i+1);
       }
       result = getSingleElement(result, new ListVector(indexes.getElementAsSEXP(i)), exact, drop);
@@ -222,205 +253,163 @@ public class Subsetting {
     return result;
   }
 
-  private static String isSingleStringSubscript(ListVector subscripts) {
-    if(subscripts.length() != 1) {
-      return null;
-    }
-    SEXP subscript = subscripts.getElementAsSEXP(0);
-    if(subscript instanceof StringVector && subscript.length() == 1) {
-      return ((StringVector) subscript).getElementAsString(0);
-    } else {
-      return null;
-    }
-  }
-
-  private static SEXP getSingleElementByName(SEXP source, String subscript, boolean exact) {
-    if(source instanceof Environment) {
-      return getSingleEnvironmentVariable((Environment) source, subscript, exact);
-    } else if(source instanceof PairList) {
-      return getSingleVectorElement(((PairList) source).toVector(), subscript, exact);
-    } else if(source instanceof Vector) {
-      return getSingleVectorElement((Vector)source, subscript, exact);
-    }
-    throw new EvalException("object of type '%s' is not subsettable", source.getTypeName());
-  }
-
-  private static SEXP getSingleVectorElement(Vector source, String subscript, boolean exact) {
-    Vector names = source.getNames();
-    if(names == Null.INSTANCE) {
-      return Null.INSTANCE;
-    } else {
-      // do a full pass through to check for exact matches, otherwise
-      // return the first partial match if exact==FALSE
-      SEXP partialMatch = Null.INSTANCE;
-      int matchCount = 0;
-      for(int i=0;i!=names.length();++i) {
-        if(!names.isElementNA(i)) {
-          if (names.getElementAsString(i).equals(subscript)) {
-            return source.getElementAsSEXP(i);
-          } else if (!exact && names.getElementAsString(i).startsWith(subscript)) {
-            matchCount++;
-            partialMatch = source.getElementAsSEXP(i);
-          }
-        }
-      }
-      if(matchCount == 1) {
-        return partialMatch;
-      } else {
-        return Null.INSTANCE;
-      }
-    }
-  }
-
-  private static SEXP getSingleEnvironmentVariable(Environment source, String subscript, boolean exact) {
-    SEXP value;
-    if(exact) {
-      value = source.getVariable(subscript);
-    } else {
-      value = source.getVariableByPrefix(subscript);
-    }
-    if(value == Symbol.UNBOUND_VALUE) {
-      return Null.INSTANCE;
-    } else {
-      return value;
-    }
-  }
-
   @Generic
   @Builtin("[")
-  public static SEXP getSubset(SEXP source, @ArgumentList ListVector subscripts,
-      @NamedFlag("drop") @DefaultValue(true) boolean drop) {
+  public static SEXP getSubset(@Current Context context,
+                               SEXP source, 
+                               @ArgumentList ListVector subscripts,
+                               @NamedFlag("drop") @DefaultValue(true) boolean drop) {
 
     if (source == Null.INSTANCE) {
       // handle an exceptional case: if source is NULL,
       // the result is always null
       return Null.INSTANCE;
+    }
+
+    SelectionStrategy selection = Selections.parseSelection(source, Lists.newArrayList(subscripts));
+
+    if(source instanceof Vector) {
+      return selection.getVectorSubset(context, (Vector) source, drop);
 
     } else if(source instanceof FunctionCall) {
-      return getCallSubset((FunctionCall) source, subscripts);
+      return selection.getFunctionCallSubset((FunctionCall) source);
 
     } else if(source instanceof PairList.Node) {
-      return getSubset(((PairList.Node) source).toVector(), subscripts, drop);
-
-    } else if(source instanceof Vector) {
-      return getSubset((Vector)source, subscripts, drop);
+      return selection.getVectorSubset(context, ((PairList.Node) source).toVector(), drop);
 
     } else {
-      throw new EvalException("invalid source");
+      throw new EvalException("object of type '%s' is not subsettable", source.getTypeName());
     }
-  }
-
-  private static SEXP getCallSubset(FunctionCall source, ListVector subscripts) {
-    Selection selection = new VectorIndexSelection(source, subscripts.get(0));
-    FunctionCall.Builder call = FunctionCall.newBuilder();
-    call.withAttributes(source.getAttributes());
-
-    for(Integer sourceIndex : selection) {
-      call.addCopy(source.getNode(sourceIndex));
-    }
-    return call.build();
-  }
-
-  private static SEXP getSubset(Vector source, ListVector subscripts, boolean drop) {
-    return new SubscriptOperation()
-      .setSource(source, subscripts)
-      .setDrop(drop)
-      .extract();
   }
 
 
   @Generic
   @Builtin("[<-")
-  public static SEXP setSubset(SEXP source, @ArgumentList ListVector arguments) {
+  public static SEXP setSubset(@Current Context context, SEXP source, @ArgumentList ListVector argumentList) {
 
-    SEXP replacement = arguments.getElementAsSEXP(arguments.length() - 1);
+    SEXP replacementExp = argumentList.getElementAsSEXP(argumentList.length() - 1);
+    if(!(replacementExp instanceof Vector)) {
+      throw new EvalException("incompatible types (from %s to %s) in subassignment type fix",
+          replacementExp.getTypeName(), source.getTypeName());
+    }
+    
+    Vector replacement = (Vector) replacementExp;
 
-    return new SubscriptOperation()
-        .setSource(source, arguments, 0, 1)
-        .replace(replacement);
-  }
+    // Special case: if both source and replacement have length 0, then return source without 
+    // even checking subscripts
+    if(source.length() == 0 && replacement.length() == 0) {
+      return source;
+    }
+    
+    List<SEXP> subscripts = Lists.newArrayListWithCapacity(argumentList.length() - 1);
+    for (int i = 0; i < argumentList.length() - 1; i++) {
+      subscripts.add(argumentList.get(i));
+    }
+    
+    SelectionStrategy selection = Selections.parseSelection(source, subscripts);
 
-  @Generic
-  @Builtin("[[<-")
-  public static SEXP setSingleElement(AtomicVector source, Vector index, Vector replacement) {
-    // When applied to atomic vectors, [[<- works exactly like [<-
-    // EXCEPT when the vector is zero-length, and then we create a new list
-    if(source.length() == 0) {
-      return setSingleElement(new ListVector.NamedBuilder(),
-          index.getElementAsInt(0),
-          replacement);
+    if(source instanceof ListVector) {
+      return selection.replaceListElements(context, (ListVector) source, replacement);
+    
+    } else if(source instanceof PairList.Node) {
+      return selection.replaceListElements(context, ((PairList.Node) source).toVector(), replacement);
+      
+    } else if(source instanceof AtomicVector) {
+      return selection.replaceAtomicVectorElements(context, (AtomicVector) source, replacement);
+      
     } else {
-      return new SubscriptOperation()
-      .setSource(source, new ListVector(index), 0, 0)
-      .replace(replacement);
+      throw new EvalException("object of type '%' is not subsettable", source.getTypeName());
     }
   }
 
 
   @Generic
   @Builtin("[[<-")
-  public static Environment setSingleElement(Environment environment, String name, SEXP replacement) {
-     environment.setVariable(name, replacement);
-     return environment;
-  }
+  public static SEXP setSingleElement(SEXP source, @ArgumentList ListVector argumentList) {
 
-  @Generic
-  @Builtin("[[<-")
-  public static SEXP setSingleElement(PairList.Node pairList, int indexToReplace, SEXP replacement) {
-    return setSingleElement(pairList.newCopyBuilder(), indexToReplace, replacement);
-  }
-
-  @Generic
-  @Builtin("[[<-")
-  public static SEXP setSingleElement(PairList.Node pairList, String nameToReplace, SEXP replacement) {
-     return setSingleElement(pairList.newCopyBuilder(), nameToReplace, replacement);
-  }
-
-  @Generic
-  @Builtin("[[<-")
-  public static SEXP setSingleElement(ListVector list, int indexToReplace, SEXP replacement) {
-    return setSingleElement(list.newCopyNamedBuilder(), indexToReplace, replacement);
-  }
-
-  @Generic
-  @Builtin("[[<-")
-  public static SEXP setSingleElement(ListVector list, String nameToReplace, SEXP replacement) {
-    return setSingleElement(list.newCopyNamedBuilder(), nameToReplace, replacement);
-  }
-
-  private static SEXP setSingleElement(ListBuilder result,
-      int indexToReplace, SEXP replacement) {
-    if(replacement == Null.INSTANCE) {
-      // REMOVE element
-      if(indexToReplace < result.length()) {
-        result.remove(indexToReplace - 1);
-      }
-    } else if(indexToReplace <= result.length()) {
-      // REPLACE element
-      result.set(indexToReplace - 1, replacement);
-    } else {
-      // ADD new elements
-      int newLength = indexToReplace;
-      while(result.length() < newLength-1) {
-        result.add(Null.INSTANCE);
-      }
-      result.add(replacement);
+    // Handle environment case as exceptional first
+    if(source instanceof Environment) {
+      return setSingleEnvironmentElement((Environment) source, argumentList);
     }
-    return result.build();
+
+    SEXP replacement = argumentList.getElementAsSEXP(argumentList.length() - 1);
+
+    List<SEXP> subscripts = Lists.newArrayListWithCapacity(argumentList.length() - 1);
+    for (int i = 0; i < argumentList.length() - 1; i++) {
+      subscripts.add(argumentList.get(i));
+    }
+
+    SelectionStrategy selection = Selections.parseSingleSelection(source, subscripts);
+    
+
+    if(source instanceof PairList.Node) {
+      return selection.replaceSinglePairListElement((PairList.Node) source, replacement);
+
+    } else if(source instanceof ListVector) {
+      return selection.replaceSingleListElement((ListVector) source, replacement);
+
+    } else if(source instanceof Null) {
+      // Given x[[i]] <- y, where is.null(x), then we create
+      // a new atomic vector or list dependin on size of replacement
+      if (replacement instanceof AtomicVector && replacement.length() == 1) {
+        return selection.replaceSingleElement(LogicalVector.EMPTY, (Vector) replacement);
+      } else {
+        return selection.replaceSingleListElement(new ListVector(), replacement);
+      }
+      
+    } else if(source instanceof AtomicVector) {
+      if(!(replacement instanceof Vector)) {
+        throw new EvalException("incompatible types");
+      }
+      return selection.replaceSingleElement((AtomicVector) source, (Vector) replacement);
+
+    } else {
+      throw new EvalException("object of type '%s' is not subsettable");
+    }
   }
 
-  private static SEXP setSingleElement(ListBuilder builder, String nameToReplace, SEXP replacement) {
+
+  /**
+   *  Environment[[name]] <- value
+   */
+  private static Environment setSingleEnvironmentElement(Environment source, ListVector arguments) {
+    if(arguments.length() != 2) {
+      throw new EvalException("wrong args for environment subassignment");
+    }
+    SEXP subscriptExp = arguments.getElementAsSEXP(0);
+    SEXP value = arguments.getElementAsSEXP(1);
+    
+    if(!(subscriptExp instanceof StringVector) || subscriptExp.length() != 1) {
+      throw new EvalException("wrong args for environment subassignment");
+    }
+    
+    StringVector subscript = (StringVector) subscriptExp;
+    
+    source.setVariable(subscript.getElementAsString(0), value);
+    
+    return source;
+  }
+
+  private static SEXP setSingleListElementByName(ListBuilder builder, String nameToReplace, SEXP replacement) {
     int index = builder.getIndexByName(nameToReplace);
+    boolean dropDimensions = false;
+    
     if(replacement == Null.INSTANCE) {
       if(index != -1) {
         builder.remove(index);
+        dropDimensions = true;
       }
     } else {
       if(index == -1) {
         builder.add(nameToReplace, replacement);
+        dropDimensions = true;
+
       } else {
         builder.set(index, replacement);
       }
+    }
+    if(dropDimensions) {
+      builder.removeAttribute(Symbols.DIM);
     }
     return builder.build();
   }

@@ -9,12 +9,12 @@ import org.renjin.gcc.runtime.Stdlib;
 public final class Error {
 
   private Error() { }
-  
+
   @Deprecated
   public static void Rf_warning(BytePtr text) {
     Rf_warning(text, new Object[0]);
   }
-  
+
   public static void Rf_warning(BytePtr text, Object... formatArgs) {
     Stdlib.printf(text, formatArgs);
   }
@@ -24,22 +24,22 @@ public final class Error {
   }
 
   public static void UNIMPLEMENTED(BytePtr p0) {
-     throw new UnimplementedGnuApiMethod("UNIMPLEMENTED");
+    throw new UnimplementedGnuApiMethod("UNIMPLEMENTED");
   }
 
   public static void WrongArgCount(BytePtr p0) {
-     throw new UnimplementedGnuApiMethod("WrongArgCount");
+    throw new UnimplementedGnuApiMethod("WrongArgCount");
   }
 
   // void Rf_warning (const char *,...)
 
   public static void R_ShowMessage(BytePtr s) {
-     throw new UnimplementedGnuApiMethod("R_ShowMessage");
+    throw new UnimplementedGnuApiMethod("R_ShowMessage");
   }
-  
+
   public static void rwarn_(BytePtr message, int messageLen) {
     // TODO: hook into warnings
     System.err.println(message.toString(messageLen));
   }
-  
+
 }

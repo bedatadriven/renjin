@@ -184,10 +184,10 @@ public class Match {
 
   private static int exactMatch(String toMatch, StringVector table) {
     for(int i=0;i!=table.length();++i) {
-         String t = pmatchElementAt(table, i);
-         if(toMatch.equals(t)) {
-           return i;
-         }
+      String t = pmatchElementAt(table, i);
+      if(toMatch.equals(t)) {
+        return i;
+      }
     }
     return -1;
   }
@@ -231,12 +231,9 @@ public class Match {
       /* Get the env that the function containing */
       /* matchcall was called from. */
       Context parentContext = Contexts.findStartingContext(context);
-     // while(!parentContext.isTopLevel()) {
-        if(parentContext.getType() == Context.Type.FUNCTION) {
-          closure = parentContext.getClosure();
-        }
-      //  parentContext = parentContext.getParent();
-      //}
+      if(parentContext.getType() == Context.Type.FUNCTION) {
+        closure = parentContext.getClosure();
+      }
       if(closure == null) {
         throw new EvalException("match.call() was called from outside a function");
       }

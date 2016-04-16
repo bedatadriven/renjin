@@ -28,6 +28,7 @@ import org.renjin.eval.Context;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.parser.NumericLiterals;
+import org.renjin.parser.StringLiterals;
 import org.renjin.primitives.text.ReservedWords;
 import org.renjin.sexp.*;
 
@@ -117,19 +118,19 @@ public class Deparse {
       deparsed.append(", ").append(name).append(" = ");
       deparse(value);
     }
-    
+
     private boolean requiresStructure(SEXP exp) {
       // for perhaps arbitrary reasons, attributes of 
       // function calls are not included in the deparse
       if(exp instanceof FunctionCall) {
-         return false;
+        return false;
       }
       return !exp.getAttributes().empty();
     }
 
     @Override
     public void visit(CHARSEXP charExp) {
-      throw new UnsupportedOperationException();
+      StringLiterals.appendEscaped(deparsed, charExp.getValue());
     }
 
     @Override
@@ -151,9 +152,20 @@ public class Deparse {
 
     @Override
     public void visit(BuiltinFunction builtin) {
-      deparsed.append(".Builtin(\"" + builtin.getName() + "\")");
+      visitPrimitive(builtin);
     }
 
+
+    @Override
+    public void visitSpecial(SpecialFunction special) {
+      visitPrimitive(special);
+    }
+
+    private void visitPrimitive(PrimitiveFunction builtin) {
+      deparsed.append(".Primitive(\"" + builtin.getName() + "\")");
+    }
+
+    
     @Override
     public void visit(IntVector vector) {
       if(isSequence(vector)) {
@@ -203,7 +215,7 @@ public class Deparse {
 
     @Override
     public void visit(Promise promise) {
-      deparse(promise.force(context));
+      deparse(promise.getExpression());
     }
 
     @Override
@@ -218,7 +230,7 @@ public class Deparse {
 
     @Override
     public void visit(LogicalVector vector) {
-     deparseAtomicVector(vector, ElementDeparser.LOGICAL);
+      deparseAtomicVector(vector, ElementDeparser.LOGICAL);
     }
 
     public void visit(ListVector list) {
@@ -333,7 +345,7 @@ public class Deparse {
     }
 
     private void deparseUnaryOp(FunctionCall call) {
-      deparsed.append(((Symbol)call.getFunction()).getPrintName());
+      deparsed.append(((Symbol) call.getFunction()).getPrintName());
       deparse(call.getArgument(0));
     }
 
@@ -350,13 +362,20 @@ public class Deparse {
 
     private void deparseBracket(FunctionCall call) {
       deparsed.append("{\n");
-      deparse(call.getArgument(0));
-      deparsed.append("\n}");
+      for (SEXP statement : call.getArguments().values()) {
+        deparse(statement);
+        deparsed.append("\n");
+      }
+      deparsed.append("}");
     }
     
     private void deparseParen(FunctionCall call) {
       deparsed.append("(");
-      deparse(call.getArgument(0));
+      if(call.getArguments().length() == 0) {
+        deparsed.append("NULL");
+      } else {
+        deparse(call.getArgument(0));
+      }
       deparsed.append(")");
     }
     

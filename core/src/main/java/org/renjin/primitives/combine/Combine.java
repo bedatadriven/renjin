@@ -59,7 +59,7 @@ public class Combine {
 
     // Allocate a new vector with all the elements
     return new Combiner(recursive, builder)
-        .add(arguments.namedValues())
+        .add(arguments)
         .build();
   }
 
@@ -78,7 +78,7 @@ public class Combine {
     CombinedBuilder builder = inspector.newBuilder().useNames(useNames);
 
     return new Combiner(recursive, builder)
-        .add(vector.namedValues())
+        .add(vector)
         .build();
   }
 
@@ -430,12 +430,12 @@ public class Combine {
     }
     
     // build a new FunctionCall object and apply
-   PairList.Builder args = new PairList.Builder();
-   args.add("deparse.level", new Promise(Symbol.get("deparse.level"), new IntArrayVector(deparseLevel)));
-   args.addAll(arguments);
-   
-   FunctionCall call = new FunctionCall(Symbol.get(bindFunctionName), args.build());
-   return foundFunction.apply(context, rho, call, call.getArguments());
+    PairList.Builder args = new PairList.Builder();
+    args.add("deparse.level", new Promise(Symbol.get("deparse.level"), new IntArrayVector(deparseLevel)));
+    args.addAll(arguments);
+
+    FunctionCall call = new FunctionCall(Symbol.get(bindFunctionName), args.build());
+    return foundFunction.apply(context, rho, call, call.getArguments());
   }
   
   /**

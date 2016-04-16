@@ -93,7 +93,7 @@ public interface PairList extends SEXP {
       this.tag = tag;
       this.value = value;
       if (value==null) {
-          throw new IllegalArgumentException("Node value can't be null");
+        throw new IllegalArgumentException("Node value can't be null");
       }
       if(nextNode instanceof Node) {
         this.nextNode = (Node) nextNode;
@@ -105,10 +105,10 @@ public interface PairList extends SEXP {
       this.tag = tag;
       this.value = value;
       if(nextNode instanceof Node) {
-       this.nextNode = nextNode;
+        this.nextNode = nextNode;
       }
       if (value==null) {
-          throw new IllegalArgumentException("Node value can't be null");
+        throw new IllegalArgumentException("Node value can't be null");
       }
     }
 
@@ -240,6 +240,11 @@ public interface PairList extends SEXP {
     }
 
     @Override
+    protected SEXP cloneWithNewAttributes(AttributeMap newAttributes) {
+      return new PairList.Node(tag, value, newAttributes, nextNode);
+    }
+
+    @Override
     public ListVector toVector() {
       ListVector.NamedBuilder builder = new ListVector.NamedBuilder();
       for(PairList.Node node : attributes.nodes()) {
@@ -295,14 +300,24 @@ public interface PairList extends SEXP {
 
     @Override
     public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
 
       Node node = (Node) o;
 
-      if (nextNode != null ? !nextNode.equals(node.nextNode) : node.nextNode != null) return false;
-      if (tag != null ? !tag.equals(node.tag) : node.tag != null) return false;
-      if (value != null ? !value.equals(node.value) : node.value != null) return false;
+      if (nextNode != null ? !nextNode.equals(node.nextNode) : node.nextNode != null) {
+        return false;
+      }
+      if (tag != null ? !tag.equals(node.tag) : node.tag != null) {
+        return false;
+      }
+      if (value != null ? !value.equals(node.value) : node.value != null) {
+        return false;
+      }
 
       return true;
     }
@@ -354,7 +369,7 @@ public interface PairList extends SEXP {
     public Builder newCopyBuilder() {
       Builder builder = new Builder();
       for(Node node : nodes()) {
-          builder.add(node.getRawTag(), node.getValue());
+        builder.add(node.getRawTag(), node.getValue());
       }
       return builder;
     }
@@ -503,6 +518,12 @@ public interface PairList extends SEXP {
 
     public Builder setAttribute(Symbol name, SEXP value) {
       attributesBuilder.set(name,value);
+      return this;
+    }
+
+    @Override
+    public SEXPBuilder removeAttribute(Symbol attributeName) {
+      attributesBuilder.remove(attributeName);
       return this;
     }
 

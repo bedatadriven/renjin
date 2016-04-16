@@ -91,5 +91,5 @@ public class BinaryVectorOpAccessor extends Accessor {
             applyMethod.getName(),
             Type.getMethodDescriptor(applyMethod));
 
- }
+  }
 }

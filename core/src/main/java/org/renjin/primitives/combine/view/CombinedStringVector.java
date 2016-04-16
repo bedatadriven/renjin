@@ -63,10 +63,18 @@ public class CombinedStringVector extends StringVector implements DeferredComput
 
   @Override
   public String getElementAsString(int index) {
-    if(index < endIndex[0]) return vectors[0].getElementAsString(index);
-    if(index < endIndex[1]) return vectors[1].getElementAsString(index - endIndex[0]);
-    if(index < endIndex[2]) return vectors[2].getElementAsString(index - endIndex[1]);
-    if(index < endIndex[3]) return vectors[3].getElementAsString(index - endIndex[2]);
+    if(index < endIndex[0]) {
+      return vectors[0].getElementAsString(index);
+    }
+    if(index < endIndex[1]) {
+      return vectors[1].getElementAsString(index - endIndex[0]);
+    }
+    if(index < endIndex[2]) {
+      return vectors[2].getElementAsString(index - endIndex[1]);
+    }
+    if(index < endIndex[3]) {
+      return vectors[3].getElementAsString(index - endIndex[2]);
+    }
     for(int i=4; i < vectors.length;++i) {
       if(index < endIndex[i]) {
         return vectors[i].getElementAsString(index - endIndex[i-1]);

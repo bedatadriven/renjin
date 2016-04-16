@@ -279,9 +279,9 @@ public class Vectors {
     } else if ("complex".equals(mode)) {
       result = new ComplexArrayVector.Builder(x.length());
     } else if ("list".equals(mode)) {
-      // Since "list" is not atomic, copy attributes
+      // Special case: preserve names with mode = 'list'
       result = new ListVector.Builder();
-      result.copyAttributesFrom(x);
+      result.setAttribute(Symbols.NAMES, x.getNames());
       
     } else if ("pairlist".equals(mode)) {
       // a pairlist is actually not a vector, so bail from here
@@ -321,7 +321,7 @@ public class Vectors {
     } else if(mode.equals("function")){
       return CollectionUtils.IS_FUNCTION;
     } else {
-      throw new EvalException(" mode '%s' as a predicate is implemented.", mode);
+      throw new EvalException(" mode '%s' as a predicate is not implemented.", mode);
     }
   }
 
@@ -394,22 +394,54 @@ public class Vectors {
           }
         }
       }
+      
+      AttributeMap.Builder newAttributes = x.getAttributes().copy();
 
       if(newDim.length() == 0 ||
           (newDim.length() == 1 && dim.length() > 1)) {
-        return x.setAttribute(Symbols.DIM, Null.INSTANCE)
-            .setAttribute(Symbols.DIMNAMES, Null.INSTANCE);
-      } else {
-        return x.setAttribute(Symbols.DIM, newDim.build())
-            .setAttribute(Symbols.DIMNAMES, newDimnames.build());
-      }
+        
+        newAttributes.remove(Symbols.DIM);
+        newAttributes.remove(Symbols.DIMNAMES);
 
+      } else {
+        newAttributes.setDim(newDim.build());
+        newAttributes.setDimNames(newDimnames.build());
+      }
+      
+      return x.setAttributes(newAttributes);
+    }
+  }
+  
+  public static AtomicVector toType(AtomicVector x, Vector.Type type) {
+    if(x.getVectorType() == type) {
+      return x;
+    } else if(type == DoubleVector.VECTOR_TYPE) {
+      return asDouble(x);
+    } else if(type == IntVector.VECTOR_TYPE) {
+      return asInteger(x);
+    } else if(type == LogicalVector.VECTOR_TYPE) {
+      return asLogical(x);
+    } else if(type == ComplexVector.VECTOR_TYPE) {
+      return asComplex(x);
+    } else if(type == StringVector.VECTOR_TYPE) {
+      return new ConvertingStringVector(x);
+    } else if(type == RawVector.VECTOR_TYPE) {
+      return asRaw(x);
+    } else {
+      throw new IllegalArgumentException("type: " + type);
     }
   }
 
   @Generic
   @Internal("as.vector")
   public static SEXP asVector(PairList x, String mode) {
+    
+    // Exceptionally, as.vector(x, 'pairlist') 
+    // preserves *all* attributes
+    if("pairlist".equals(mode)) {
+      return x;
+    }
+    
     Vector.Builder result;
     NamesBuilder names = NamesBuilder.withInitialCapacity(x.length());
     if ("character".equals(mode)) {
@@ -434,8 +466,7 @@ public class Vectors {
       }
       result.add(node.getValue());
     }
-    result.setAttribute(Symbols.NAMES.getPrintName(),
-        names.build(result.length()));
+    result.setAttribute(Symbols.NAMES.getPrintName(), names.build(result.length()));
     return result.build();
   }
 

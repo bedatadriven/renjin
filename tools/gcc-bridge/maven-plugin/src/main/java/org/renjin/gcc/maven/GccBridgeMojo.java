@@ -2,6 +2,7 @@ package org.renjin.gcc.maven;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -11,10 +12,17 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.renjin.gcc.Gcc;
 import org.renjin.gcc.GimpleCompiler;
+import org.renjin.gcc.codegen.lib.SymbolLibrary;
+import org.renjin.gcc.codegen.lib.cpp.CppSymbolLibrary;
 import org.renjin.gcc.gimple.CallingConvention;
 import org.renjin.gcc.gimple.CallingConventions;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
+import org.codehaus.plexus.compiler.util.scan.InclusionScanException;
+import org.codehaus.plexus.compiler.util.scan.SimpleSourceInclusionScanner;
+import org.codehaus.plexus.compiler.util.scan.SourceInclusionScanner;
+import org.codehaus.plexus.compiler.util.scan.mapping.SourceMapping;
+import org.codehaus.plexus.compiler.util.scan.mapping.SuffixMapping;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,7 +30,10 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Compiles Fortran and C sources
@@ -51,6 +62,9 @@ public class GccBridgeMojo extends AbstractMojo {
   @Parameter
   private List<String> importClasses;
 
+  @Parameter
+  private List<String> symbolLibraries;
+
   @Parameter(defaultValue = "${project}", readonly = true, required = true)
   private MavenProject project;
 
@@ -70,25 +84,25 @@ public class GccBridgeMojo extends AbstractMojo {
     if(this.sourceFiles == null) {
       List<File> sourceFiles = new ArrayList<File>();
 
+      SourceInclusionScanner scanner = getSourceInclusionScanner( ".f",".f77" );
+      
       if (fortranSourceDirectory.exists()) {
-        File[] files = fortranSourceDirectory.listFiles();
-        if (files != null) {
-          for (File file : files) {
-            if (isFortranSource(file)) {
-              sourceFiles.add(file);
-            }
-          }
+        try {
+          sourceFiles.addAll( scanner.getIncludedSources( fortranSourceDirectory, null ) );
+        } catch ( InclusionScanException e ) {
+          throw new MojoExecutionException(
+              "Error scanning source root: \'" + fortranSourceDirectory + "\' for stale files to recompile.", e );
         }
       }
 
+      scanner = getSourceInclusionScanner( ".c", ".cpp" );
+
       if (cSourceDirectory.exists()) {
-        File[] files = cSourceDirectory.listFiles();
-        if (files != null) {
-          for (File file : files) {
-            if (isCSource(file)) {
-              sourceFiles.add(file);
-            }
-          }
+        try {
+          sourceFiles.addAll( scanner.getIncludedSources( cSourceDirectory, null ) );
+        } catch ( InclusionScanException e ) {
+          throw new MojoExecutionException(
+            "Error scanning source root: \'" + cSourceDirectory + "\' for stale files to recompile.", e );
         }
       }
       units = compileToGimple(sourceFiles);
@@ -142,12 +156,22 @@ public class GccBridgeMojo extends AbstractMojo {
     return units;
   }
 
-  private boolean isFortranSource(File file) {
-    return file.getName().toLowerCase().endsWith(".f") || file.getName().toLowerCase().endsWith(".f77");
+  protected SourceInclusionScanner getSourceInclusionScanner( String... inputFileEndings ) {
+    Set<String> includes = new LinkedHashSet<String>();
+    for(String inputFileEnding : inputFileEndings) {
+      // it's not defined if we get the ending with or without the dot '.'
+      String defaultIncludePattern = "**/*" + ( inputFileEnding.startsWith( "." ) ? "" : "." ) + inputFileEnding;
+      includes.add(defaultIncludePattern);
+    }
+    SourceInclusionScanner scanner = new SimpleSourceInclusionScanner( includes, Collections.<String>emptySet() );
+    for(String inputFileEnding : inputFileEndings) {
+      scanner.addSourceMapping(getSourceMapping(inputFileEnding));
+    }
+    return scanner;
   }
-  
-  private boolean isCSource(File file) {
-    return file.getName().toLowerCase().endsWith(".c");
+
+  protected SourceMapping getSourceMapping(String inputFileEnding) {
+    return new SuffixMapping( inputFileEnding, ".o" );
   }
 
   private void compile(List<GimpleCompilationUnit> units) throws MojoExecutionException {
@@ -170,6 +194,24 @@ public class GccBridgeMojo extends AbstractMojo {
           throw new MojoExecutionException("Could not load imported class " + importClass, e);
         }
         compiler.addReferenceClass(importedClass);
+      }
+    }
+    
+    if(symbolLibraries != null) {
+      for(String lib : symbolLibraries) {
+        if("cpp".equals(lib)) {
+          compiler.addLibrary(new CppSymbolLibrary());
+        } else {
+          Class<?> libClass = null;
+          try {
+            libClass = classLoader.loadClass(lib);
+            compiler.addLibrary((SymbolLibrary) libClass.newInstance());
+          } catch (ClassCastException e) {
+            throw new MojoExecutionException(lib + " is not a symbol library", e);
+          } catch (ReflectiveOperationException e) {
+            throw new MojoExecutionException("Could not load symbol library " + lib, e);
+          }
+        }
       }
     }
     

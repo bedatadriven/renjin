@@ -88,8 +88,8 @@ public class VoidPointerTypeDeducer implements FunctionBodyTransformer {
       for (GimpleStatement statement : basicBlock.getStatements()) {
         if(statement instanceof GimpleConditional) {
           GimpleConditional conditional = (GimpleConditional) statement;
-          if(conditional.getOperator() == GimpleOp.NE_EXPR ||
-             conditional.getOperator() == GimpleOp.EQ_EXPR) {
+          if (conditional.getOperator() == GimpleOp.NE_EXPR ||
+              conditional.getOperator() == GimpleOp.EQ_EXPR) {
             
             if(conditional.getOperand(0).equals(ref) && isNull(conditional.getOperand(1))) {
               conditional.getOperand(1).setType(decl.getType());
@@ -127,17 +127,17 @@ public class VoidPointerTypeDeducer implements FunctionBodyTransformer {
 
     @Override
     public void visitAssignment(GimpleAssignment assignment) {
-      
-      switch (assignment.getOperator()) {
-      case VAR_DECL:
-      case NOP_EXPR:
-        GimpleExpr rhs = assignment.getOperands().get(0);
-        if(isReference(rhs)) {
-          inferPossibleTypes(assignment.getLHS());
 
-        } else if(isReference(assignment.getLHS())) {
-          inferPossibleTypes(rhs);
-        }
+      switch (assignment.getOperator()) {
+        case VAR_DECL:
+        case NOP_EXPR:
+          GimpleExpr rhs = assignment.getOperands().get(0);
+          if(isReference(rhs)) {
+            inferPossibleTypes(assignment.getLHS());
+
+          } else if(isReference(assignment.getLHS())) {
+            inferPossibleTypes(rhs);
+          }
       }
     }
 

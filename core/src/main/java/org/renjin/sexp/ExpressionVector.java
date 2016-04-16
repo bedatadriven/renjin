@@ -32,6 +32,8 @@ import java.util.List;
 public class ExpressionVector extends ListVector {
   public static final String TYPE_NAME = "expression";
 
+  public static final Vector.Type VECTOR_TYPE = new ExpressionType();
+  
 
   public ExpressionVector(SEXP[] functionCalls, AttributeMap attributes) {
     super(functionCalls, attributes);
@@ -60,8 +62,18 @@ public class ExpressionVector extends ListVector {
   }
 
   @Override
+  public ListVector.NamedBuilder newCopyNamedBuilder() {
+    return new NamedBuilder(this);
+  }
+
+  @Override
   public String getTypeName() {
     return TYPE_NAME;
+  }
+
+  @Override
+  public Type getVectorType() {
+    return VECTOR_TYPE;
   }
 
   @Override
@@ -94,6 +106,43 @@ public class ExpressionVector extends ListVector {
     @Override
     public ExpressionVector build() {
       return new ExpressionVector(getValues(), buildAttributes());
+    }
+  }
+  
+  public static class NamedBuilder extends ListVector.NamedBuilder {
+
+    public NamedBuilder(ListVector toClone) {
+      super(toClone);
+    }
+
+    @Override 
+    public ExpressionVector build() {
+      return new ExpressionVector(values, buildAttributes());  
+    }
+    
+    
+  }
+  
+  private static class ExpressionType extends ListType {
+
+    @Override
+    public Builder newBuilder() {
+      return new Builder();
+    }
+
+    @Override
+    public Builder newBuilderWithInitialSize(int initialSize) {
+      return new Builder(initialSize);
+    }
+
+    @Override
+    public Builder newBuilderWithInitialCapacity(int initialCapacity) {
+      return new Builder();
+    }
+
+    @Override
+    public Vector getElementAsVector(Vector vector, int index) {
+      return new ExpressionVector(vector.getElementAsSEXP(index)); 
     }
   }
 }

@@ -1,5 +1,6 @@
 package org.renjin.packaging;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
@@ -98,21 +99,25 @@ public class DatasetsBuilder {
     }
   }
 
-  private void processDataset(File dataFile) throws IOException {
+  @VisibleForTesting
+  void processDataset(File dataFile) throws IOException {
     if(dataFile.getName().endsWith("datalist")) {
       return;
     } else if(dataFile.getName().endsWith(".rda") || dataFile.getName().endsWith(".RData")) {
       processRDataFile(dataFile);
 
+    } else if(dataFile.getName().endsWith(".txt")) {
+      processTextFile(dataFile, stripExtension(dataFile), "");
+
     } else if(dataFile.getName().endsWith(".txt.gz")) {
       processTextFile(dataFile, stripExtension(dataFile, ".txt.gz"), "");
 
-    } else if(dataFile.getName().endsWith(".txt")) {
-      processTextFile(dataFile, stripExtension(dataFile), "");
-      
     } else if(dataFile.getName().endsWith(".tab")) {
       processTextFile(dataFile, stripExtension(dataFile), "");
-      
+
+    } else if(dataFile.getName().endsWith(".tab.gz")) {
+      processTextFile(dataFile, stripExtension(dataFile, ".tab.gz"), "");
+
     } else if(dataFile.getName().toLowerCase().endsWith(".csv")) {
       processTextFile(dataFile, stripExtension(dataFile), ";");
       
@@ -221,18 +226,22 @@ public class DatasetsBuilder {
    * file so that it can be loaded on demand, rather than en mass
    * when a package is loaded. 
    */
-  private void writePairList(String logicalDatasetName, Session session,
-      PairList pairList) throws FileNotFoundException, IOException {
+  private void writePairList(String logicalDatasetName, Session session, PairList pairList) 
+      throws FileNotFoundException, IOException {
+    
+    File datasetDir = new File(dataObjectDirectory, logicalDatasetName);
+    if(!datasetDir.exists()) {
+      boolean created = datasetDir.mkdirs();
+      if(!created) {
+        throw new IOException("Failed to create directory for dataset " + logicalDatasetName);
+      }
+    }
         
     for(PairList.Node node : pairList.nodes()) {
       
-      if(indexMap.values().contains(node.getName())) {
-        throw new UnsupportedOperationException(String.format("Duplicate R object '%s' name in dataset '%s' ",
-            node.getName(), logicalDatasetName));
-      }
-      indexMap.put(logicalDatasetName, node.getName());
+      indexMap.put(logicalDatasetName, logicalDatasetName + "/"  + node.getName());
       
-      File targetFile = new File(dataObjectDirectory, node.getName());
+      File targetFile = new File(datasetDir, node.getName());
       FileOutputStream out = new FileOutputStream(targetFile);
       RDataWriter writer = new RDataWriter(session.getTopLevelContext(), out);
       writer.save(node.getValue());

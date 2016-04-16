@@ -31,11 +31,27 @@ public class DeparseTest extends EvalTestCase {
     assertThat(eval("deparse(list(a=1,b='foo'))"), equalTo(c("structure(list(a = 1, b = \"foo\"), .Names = c(\"a\", \"b\"))")));
   } 
  
+  @Test
+  public void deparsePrimitives() {
+    assertThat(eval("deparse(c)"), equalTo(c(".Primitive(\"c\")")));
+    assertThat(eval("deparse(`$`)"), equalTo(c(".Primitive(\"$\")")));
+  }
   
   @Test
   public void emptyVectors() {
     assertThat(eval("deparse(c(1L)[-1])"), equalTo(c("integer(0)")));
     assertThat(eval("deparse(c(1)[-1])"), equalTo(c("numeric(0)")));
+  }
+  
+  @Test
+  public void deparseBrackets() {
+    assertThat(eval("deparse(quote({}))"), equalTo(c("{\n}")));
+    assertThat(eval("deparse(quote({1;2;3;}))"), equalTo(c("{\n1\n2\n3\n}")));
+  }
+  
+  @Test
+  public void deparseMalformedParens() {
+    assertThat(eval("deparse(quote(`(`()))"), equalTo(c("(NULL)")));
   }
   
   @Test

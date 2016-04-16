@@ -94,7 +94,7 @@ public class ThunkCompiler implements Opcodes {
     mv.visitInsn(ARETURN);
     mv.visitMaxs(1, 1);
     mv.visitEnd();
- }
+  }
  
   private void writeDoEvalBody(MethodVisitor mv) {
     IRBody body = thunk.getBody();

@@ -4,10 +4,11 @@ package org.renjin.invoke.codegen;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.sun.codemodel.*;
-import org.renjin.invoke.model.JvmMethod;
+import org.apache.commons.math.complex.Complex;
 import org.renjin.invoke.annotations.PreserveAttributeStyle;
 import org.renjin.invoke.codegen.scalars.ScalarType;
 import org.renjin.invoke.codegen.scalars.ScalarTypes;
+import org.renjin.invoke.model.JvmMethod;
 import org.renjin.invoke.model.PrimitiveModel;
 import org.renjin.sexp.Null;
 import org.renjin.sexp.Symbols;
@@ -24,8 +25,6 @@ import static com.sun.codemodel.JExpr.lit;
  * static method to one or more vectors
  */
 public class RecycleLoopBuilder {
-
-
 
   private class RecycledArgument {
     private JvmMethod.Argument formal;
@@ -51,7 +50,14 @@ public class RecycleLoopBuilder {
     }
 
     public JExpression isCurrentElementNA() {
-      return vector.invoke("isElementNA").arg(currentElementIndex);
+      // If we're returning a double/complex vector, we can handle NaNs,
+      // otherwise treat them as NA
+      if(overload.getReturnType().equals(double.class) || 
+          overload.getReturnType().equals(Complex.class)) {
+        return vector.invoke("isElementNA").arg(currentElementIndex);
+      } else {
+        return vector.invoke("isElementNaN").arg(currentElementIndex);
+      }
     }
 
     public JExpression getCurrentElement() {
@@ -197,7 +203,7 @@ public class RecycleLoopBuilder {
     if(!overload.isPassNA()) {
       // by default, primitive implementations do not have to deal
       // with missing values, so we need to handle them here
-      JConditional ifNA = loopBody._if(isCurrentElementNA());
+      JConditional ifNA = loopBody._if(isCurrentElementMissing());
       ifNA._then().add(assignNA());
       ifNA._else().add(assignCycleResult());
     } else {
@@ -215,7 +221,7 @@ public class RecycleLoopBuilder {
   }
 
 
-  private JExpression isCurrentElementNA() {
+  private JExpression isCurrentElementMissing() {
 
     if(recycledArguments.isEmpty()) {
       throw new IllegalStateException(overload.getName() + " is marked as @DataParallel, but has no parallel arguments");
@@ -260,7 +266,7 @@ public class RecycleLoopBuilder {
     if(overload.getPreserveAttributesStyle() != PreserveAttributeStyle.NONE ) {
       // copy attributes from all arguments that match
       // the final length, giving precedence to earlier arguments
-      for(RecycledArgument arg : Lists.reverse(recycledArguments)) {
+      for(RecycledArgument arg : recycledArguments) {
         parent._if(arg.length.eq(cycleCount))._then().add(copyAttributesFrom(arg));
       }
     }
@@ -268,14 +274,14 @@ public class RecycleLoopBuilder {
 
   private JStatement copyAttributesFrom(RecycledArgument arg) {
     switch(overload.getPreserveAttributesStyle()) {
-    case ALL:
-      return builder.invoke("copyAttributesFrom").arg(arg.vector);
-    case SPECIAL:
-      // Symbols.DIM, Symbols.DIMNAMES, Symbols.NAMES)
-      return builder.invoke("copySomeAttributesFrom").arg(arg.vector)
-              .arg(symbol("DIM"))
-              .arg(symbol("DIMNAMES"))
-              .arg(symbol("NAMES"));
+      case ALL:
+        return builder.invoke("combineAttributesFrom").arg(arg.vector);
+      case SPECIAL:
+        // Symbols.DIM, Symbols.DIMNAMES, Symbols.NAMES)
+        return builder.invoke("copySomeAttributesFrom").arg(arg.vector)
+            .arg(symbol("DIM"))
+            .arg(symbol("DIMNAMES"))
+            .arg(symbol("NAMES"));
     }
     throw new IllegalArgumentException("preserve attribute style: " + overload.getPreserveAttributesStyle());
   }

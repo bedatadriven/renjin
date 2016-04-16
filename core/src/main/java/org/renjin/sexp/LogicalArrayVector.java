@@ -22,6 +22,8 @@
 package org.renjin.sexp;
 
 
+import org.renjin.eval.Profiler;
+
 import java.util.Arrays;
 
 public class LogicalArrayVector extends LogicalVector {
@@ -41,10 +43,10 @@ public class LogicalArrayVector extends LogicalVector {
 
   public LogicalArrayVector(int[] values, int size, AttributeMap attributes) {
     super(attributes);
-    this.values = Arrays.copyOf(values, size);  
-    if(Vector.DEBUG_ALLOC && size > 5000) {
-      System.out.println("Copying LogicalArrayVector, size = " + size);
+    if(Profiler.ENABLED) {
+      Profiler.memoryAllocated(Integer.SIZE, size);
     }
+    this.values = Arrays.copyOf(values, size);
   }
 
   public LogicalArrayVector(int[] values, AttributeMap attributes) {
@@ -188,8 +190,9 @@ public class LogicalArrayVector extends LogicalVector {
       if (minCapacity > oldCapacity) {
         int oldData[] = values;
         int newCapacity = (oldCapacity * 3)/2 + 1;
-        if (newCapacity < minCapacity)
+        if (newCapacity < minCapacity) {
           newCapacity = minCapacity;
+        }
         // minCapacity is usually close to size, so this is a win:
         values = Arrays.copyOf(oldData, newCapacity);
         Arrays.fill(values, oldCapacity, values.length, NA);
@@ -198,10 +201,10 @@ public class LogicalArrayVector extends LogicalVector {
     
     @Override
     public LogicalVector build() {
+      if(Profiler.ENABLED) {
+        Profiler.memoryAllocated(Integer.SIZE, size);
+      }
       if(values.length == size) {
-        if(Vector.DEBUG_ALLOC && size > 5000) {
-          System.out.println("building LogicalVector = " + size);
-        }
         LogicalArrayVector vector = new LogicalArrayVector(buildAttributes());
         vector.values = values;
         // builder shouldn't touch the values after we hand over to vector

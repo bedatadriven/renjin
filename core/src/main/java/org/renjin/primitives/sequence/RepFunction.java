@@ -72,7 +72,7 @@ public class RepFunction extends SpecialFunction {
   }
 
 
-  private Vector rep(Vector x, Vector times, int lengthOut, int each) {
+  public static Vector rep(Vector x, Vector times, int lengthOut, int each) {
     int resultLength;
 
     if(times.length() == 1) {

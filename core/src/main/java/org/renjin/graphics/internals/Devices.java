@@ -42,15 +42,17 @@ public class Devices {
             PROTECT(defdev = lang1(devName));
             eval(defdev, context, ns);
             UNPROTECT(1);
-          } else
+          } else {
             error(_("no active or default device"));
+          }
         }
       } else if(TYPEOF(defdev) == CLOSXP) {
         PROTECT(defdev = lang1(defdev));
         eval(defdev, context, context.getGlobalEnvironment());
         UNPROTECT(1);
-      } else
+      } else {
         error(_("no active or default device"));
+      }
     }
     return context.getSession().getSingleton(GraphicsDevices.class).getActive();
   }

@@ -79,8 +79,9 @@ public class ComplexArrayVector extends ComplexVector {
   public boolean equals(Object x){
     if(x instanceof ComplexArrayVector){
       ComplexArrayVector that = (ComplexArrayVector)x;
-      if(this.length()!=that.length()) return false;
-      else{
+      if(this.length()!=that.length()) {
+        return false;
+      } else{
         for(int i=0; i<this.length(); i++){
           if(!this.values[i].equals(that.values[i])){
             return false;
@@ -215,8 +216,9 @@ public class ComplexArrayVector extends ComplexVector {
       if (minCapacity > oldCapacity) {
         Complex oldData[] = values;
         int newCapacity = (oldCapacity * 3)/2 + 1;
-        if (newCapacity < minCapacity)
+        if (newCapacity < minCapacity) {
           newCapacity = minCapacity;
+        }
         // minCapacity is usually close to size, so this is a win:
         values = Arrays.copyOf(oldData, newCapacity);
         Arrays.fill(values, oldCapacity, values.length, NA);

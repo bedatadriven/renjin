@@ -10,15 +10,15 @@ import java.net.URLClassLoader;
  * {@code URLClassLoader} subclass which allows URLs to be added at runtime
  */
 public class DynamicURLClassLoader extends URLClassLoader {
-    public DynamicURLClassLoader(ClassLoader parent) {
-        super(new URL[0], parent);
-    }
+  public DynamicURLClassLoader(ClassLoader parent) {
+    super(new URL[0], parent);
+  }
 
-    public void addArtifact(ArtifactResult artifactResult) {
-        try {
-            addURL(artifactResult.getArtifact().getFile().toURI().toURL());
-        } catch (MalformedURLException e) {
-            throw new RuntimeException("Malformed url from " + artifactResult.getArtifact(), e);
-        }
+  public void addArtifact(ArtifactResult artifactResult) {
+    try {
+      addURL(artifactResult.getArtifact().getFile().toURI().toURL());
+    } catch (MalformedURLException e) {
+      throw new RuntimeException("Malformed url from " + artifactResult.getArtifact(), e);
     }
+  }
 }

@@ -22,7 +22,6 @@
 package org.renjin.primitives.text.regex;
 
 import org.junit.Test;
-import org.renjin.primitives.text.regex.ExtendedRE;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -30,13 +29,13 @@ import static org.junit.Assert.assertTrue;
 public class RETest {
 
   @Test
-  public void posixClasses() {
+  public void posixClasses() throws RESyntaxException {
     // R regexps use double brackets for posix character classes
     assertTrue( new ExtendedRE("^[[:digit:]]+$").match("1249234") );
   }
 
   @Test
-  public void dashInCharacterClass() {
+  public void dashInCharacterClass() throws RESyntaxException {
 
     // in these cases, R treats the hyphen as a literal
     assertTrue( new ExtendedRE("^[a-]+$").match("a-a--aa---a-aaa") );
@@ -47,6 +46,4 @@ public class RETest {
     // make sure that normal character ranges still work
     assertTrue(new ExtendedRE("^[a-z4]+$").match("qf444ee"));
   }
-
-
 }

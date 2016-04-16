@@ -5,6 +5,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
+
 import org.objectweb.asm.Type;
 import org.renjin.gcc.analysis.*;
 import org.renjin.gcc.codegen.FunctionGenerator;
@@ -12,6 +13,7 @@ import org.renjin.gcc.codegen.TrampolineClassGenerator;
 import org.renjin.gcc.codegen.UnitClassGenerator;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.call.FunctionCallGenerator;
+import org.renjin.gcc.codegen.lib.SymbolLibrary;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
@@ -30,10 +32,10 @@ import java.util.Map;
 
 /**
  * Compiles a set of {@link GimpleCompilationUnit}s to bytecode
- * 
+ *
  * <p>The {@code GimpleCompiler} compiles the Gimple ASTs emitted by the 
  * GCC Bridge Plugin to a set of JVM class files.
- * 
+ *
  * <p>Each {@code GimpleCompilationUnit} is compiled to a seperate JVM class file with the same
  * name as the compilation unit. If the {@code className} is set, an additional "trampoline" class is 
  * generated that contains a wrapper methods to all 'extern' functions.</p>
@@ -77,7 +79,7 @@ public class GimpleCompiler  {
 
   /**
    * Sets the package name to use for the compiled JVM classes.
-   * 
+   *
    * @param name the package name, separated by dots. For example "com.acme"
    */
   public void setPackageName(String name) {
@@ -86,7 +88,7 @@ public class GimpleCompiler  {
 
   /**
    * Sets the output directory to place compiled class files.
-   * 
+   *
    */
   public void setOutputDirectory(File directory) {
     this.outputDirectory = directory;
@@ -112,6 +114,10 @@ public class GimpleCompiler  {
   public void addMathLibrary() {
     globalSymbolTable.addMethod("log", Math.class);
     globalSymbolTable.addMethod("exp", Math.class);
+  }
+
+  public void addLibrary(SymbolLibrary lib) {
+    globalSymbolTable.addLibrary(lib);
   }
 
   public void addMethod(String functionName, Class declaringClass, String methodName) {
@@ -245,9 +251,9 @@ public class GimpleCompiler  {
   @VisibleForTesting
   static String sanitize(String name) {
     Preconditions.checkArgument(name.length() >= 1);
-    
+
     StringBuilder className = new StringBuilder();
-    
+
     int i = 0;
     if(Character.isJavaIdentifierStart(name.charAt(0))) {
       className.append(name.charAt(0));
@@ -255,7 +261,7 @@ public class GimpleCompiler  {
     } else {
       className.append('_');
     }
-    
+
     for(;i<name.length();++i) {
       char c = name.charAt(i);
       if(Character.isJavaIdentifierPart(c)) {

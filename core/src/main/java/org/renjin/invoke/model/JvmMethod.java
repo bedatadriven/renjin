@@ -114,11 +114,11 @@ public class JvmMethod implements Comparable<JvmMethod> {
     if(clazz != null) {
       for(Method method : clazz.getMethods()) {
 
-        if(isPublic(method.getModifiers()) &&
-           isStatic(method.getModifiers()) &&
-           ( method.getName().equals(alias) ||
-             method.getName().equals(name) ||
-             alias(method).equals(name) ) )
+        if (isPublic(method.getModifiers()) &&
+            isStatic(method.getModifiers()) &&
+            ( method.getName().equals(alias) ||
+                method.getName().equals(name) ||
+                alias(method).equals(name) ) )
         {
           methods.add(new JvmMethod(method));
         }
@@ -224,8 +224,8 @@ public class JvmMethod implements Comparable<JvmMethod> {
   public List<Argument> getPositionalFormals() {
     List<Argument> list = Lists.newArrayList();
     for(Argument formal : getFormals()) {
-      if(formal.isAnnotatedWith(ArgumentList.class) ||
-         formal.isAnnotatedWith(NamedFlag.class)) {
+      if (formal.isAnnotatedWith(ArgumentList.class) ||
+          formal.isAnnotatedWith(NamedFlag.class)) {
         break;
       }
       list.add(formal);
@@ -236,29 +236,29 @@ public class JvmMethod implements Comparable<JvmMethod> {
   public void appendFriendlySignatureTo(StringBuilder sb) {
     appendFriendlySignatureTo(method.getName(), sb);
   }
-    
-  
+
+
   public void appendFriendlySignatureTo(String name, StringBuilder sb) {
-      sb.append(name).append("(");
-      boolean needsComma=false;
-      for(Argument argument : arguments) {
-        if(!argument.isContextual()) {
-          if(needsComma) {
-            sb.append(", ");
-          } else {
-            needsComma=true;
-          }
-          if(argument.isAnnotatedWith(ArgumentList.class)) {
-            sb.append("...");
-          } else {
-            sb.append(FriendlyTypesNames.get().format(argument.getClazz()));
-            if(!argument.isRecycle() && argument.isAtomicElementType()) {
-              sb.append("(1)");
-            }
+    sb.append(name).append("(");
+    boolean needsComma=false;
+    for(Argument argument : arguments) {
+      if(!argument.isContextual()) {
+        if(needsComma) {
+          sb.append(", ");
+        } else {
+          needsComma=true;
+        }
+        if(argument.isAnnotatedWith(ArgumentList.class)) {
+          sb.append("...");
+        } else {
+          sb.append(FriendlyTypesNames.get().format(argument.getClazz()));
+          if(!argument.isRecycle() && argument.isAtomicElementType()) {
+            sb.append("(1)");
           }
         }
       }
-      sb.append(")");
+    }
+    sb.append(")");
   }
 
   public List<Argument> getFormals() {

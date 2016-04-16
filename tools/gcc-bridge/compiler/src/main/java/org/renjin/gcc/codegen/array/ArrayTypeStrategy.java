@@ -63,7 +63,7 @@ public class ArrayTypeStrategy implements TypeStrategy<FatPtrExpr> {
       List<SimpleExpr> arrayValues = valueFunction.toArrayValues(elementExpr);
       assert arrayValues.size() == valueFunction.getElementLength();
       
-     values.addAll(arrayValues);
+      values.addAll(arrayValues);
     }
     
     SimpleExpr array = Expressions.newArray(valueFunction.getValueType(), values);

@@ -25,10 +25,10 @@ public class Lapack {
   /**
    * Invert a symmetric, positive definite square matrix from its Choleski decomposition, using
    * the {@code dpotri} routine.
-   * 
-   * @param a 
+   *
+   * @param a
    * @param sz the number of columns of x containing the Choleski decomposition.
-   * @return 
+   * @return
    */
   @DotCall()
   public static DoubleVector chol2inv(DoubleVector a, int sz) {
@@ -51,39 +51,39 @@ public class Lapack {
       throw new EvalException("'a' must be a numeric matrix");
     }
 
-    if (sz > n) { 
+    if (sz > n) {
       throw new EvalException("'size' cannot exceed ncol(x) = %d", n);
     }
-    if (sz > m) { 
+    if (sz > m) {
       throw new EvalException("'size' cannot exceed nrow(x) = %d", m);
     }
-    
+
     double result[] = new double[sz * sz];
     for (int j = 0; j < sz; j++) {
       for (int i = 0; i <= j; i++) {
         result[i + j * sz] = a.getElementAsDouble(i + j * m);
       }
     }
-    
+
     intW resultCode = new intW(0);
     LAPACK.getInstance().dpotri("Upper", sz, result, sz, resultCode);
-    
+
     if (resultCode.val != 0) {
       if (resultCode.val > 0) {
-        throw new EvalException("element (%d, %d) is zero, so the inverse cannot be computed", 
+        throw new EvalException("element (%d, %d) is zero, so the inverse cannot be computed",
             resultCode.val, resultCode.val);
       } else {
         throw new EvalException("argument %d of Lapack routine %s had invalid value", -resultCode.val, "dpotri");
       }
     }
-    
+
     for (int j = 0; j < sz; j++) {
       for (int i = j+1; i < sz; i++) {
         result[i + j * sz] = result[j + i * sz];
       }
-    }   
-    
-    return DoubleArrayVector.unsafe(result, AttributeMap.builder().setDim(sz, sz).build());
+    }
+
+    return DoubleArrayVector.unsafe(result, AttributeMap.builder().setDim(sz, sz));
   }
 
 
@@ -92,22 +92,22 @@ public class Lapack {
    * orthogonal and diagonal arrays.
    */
   public static ListVector svd(String jobu, String jobv, DoubleVector x, DoubleVector  sexp,
-      DoubleVector uexp, DoubleVector vexp, String method ) {
-    
+                               DoubleVector uexp, DoubleVector vexp, String method ) {
+
     Vector xdims = x.getAttributes().getDim();
     int n = xdims.getElementAsInt(0);
     int p = xdims.getElementAsInt(1);
 
     double xvals[] = x.toDoubleArray();
-    
+
     int ldu = uexp.getAttributes().getDim().getElementAsInt(0);
     int ldvt = vexp.getAttributes().getDim().getElementAsInt(0);
-    
+
     double s[] = sexp.toDoubleArray();
     double u[] = uexp.toDoubleArray();
     double v[] = vexp.toDoubleArray();
     double tmp[] = new double[1];
-    
+
     int iwork[] = new int[8*(n<p ? n : p)];
 
     LAPACK lapack = LAPACK.getInstance();
@@ -115,22 +115,22 @@ public class Lapack {
     /* ask for optimal size of work array */
     int lwork = -1;
     intW info = new intW(0);
-    lapack.dgesdd(jobu, n, p, xvals, n,  s, u, ldu, v, ldvt, tmp, lwork, iwork, info); 
-    
+    lapack.dgesdd(jobu, n, p, xvals, n,  s, u, ldu, v, ldvt, tmp, lwork, iwork, info);
+
     if (info.val != 0) {
       throw new EvalException("error code %d from Lapack routine '%s'", info.val, "dgesdd");
     }
-     
+
     lwork = (int) tmp[0];
     double work[] = new double[lwork];
-    
+
     lapack.dgesdd(jobu, n, p, xvals, n, s, u, ldu, v, ldvt, work, lwork, iwork, info);
-    
+
     return ListVector.newNamedBuilder()
-      .add("d", DoubleArrayVector.unsafe(s, sexp.getAttributes()))
-      .add("u", DoubleArrayVector.unsafe(u, uexp.getAttributes()))
-      .add("vt", DoubleArrayVector.unsafe(v, vexp.getAttributes()))
-      .build();
+        .add("d", DoubleArrayVector.unsafe(s, sexp.getAttributes()))
+        .add("u", DoubleArrayVector.unsafe(u, uexp.getAttributes()))
+        .add("vt", DoubleArrayVector.unsafe(v, vexp.getAttributes()))
+        .build();
   }
 
   /**
@@ -155,7 +155,7 @@ public class Lapack {
     if (!Types.isMatrix(B)) {
       throw new EvalException("'b' must be a numeric matrix");
     }
-    
+
     Vector Adims = A.getAttributes().getDim();
     Vector Bdims = B.getAttributes().getDim();
 
@@ -176,12 +176,12 @@ public class Lapack {
 
     int ipiv[] = new int[n];
     double avals[] = A.toDoubleArray();
-    
+
     LAPACK lapack = LAPACK.getInstance();
     intW info = new intW(0);
-    
+
     double[] result = B.toDoubleArray();
-    
+
     lapack.dgesv(n, p, avals, n, ipiv, result, n, info);
 
     if (info.val < 0) {
@@ -201,7 +201,7 @@ public class Lapack {
     }
     return DoubleArrayVector.unsafe(result, B.getAttributes());
   }
-  
+
 
   /**
    * Ca
@@ -215,28 +215,28 @@ public class Lapack {
 //      SEXP values, ret, nm, x, z = R_NilValue;
 //      double *work, *rx, *rvalues, tmp, *rz = NULL;
 //      int liwork, *iwork, itmp, m;
-      
+
     double vl = 0.0, vu = 0.0, abstol = 0.0;
       /* valgrind seems to think vu should be set, but it is documented
          not to be used if range='a' */
-  
+
     int il=0, iu=0;
-    
+
     String uplo = "L";
     int n = getSquareMatrixSize(x);
-  
+
     double rx[] = x.toDoubleArray();
     double rvalues[] = new double[n];
-  
+
     String range = "A";
     double rz[] = null;
     if (!ov) {
-        rz = new double[n*n];
+      rz = new double[n*n];
     }
-    
+
     String jobv = ov ? "N" : "V";
 
-    
+
     int isuppz[] = new int[2*n];
       /* ask for optimal size of work arrays */
 
@@ -244,40 +244,42 @@ public class Lapack {
     int liwork = -1;
     intW m = new intW(0);
     int itmp[] = new int[1];
-    
+
     double tmp[] = new double[1];
-    
+
     LAPACK lapack = LAPACK.getInstance();
     intW info = new intW(0);
     lapack.dsyevr(jobv, range, uplo, n, rx, n,
-                       vl, vu, il, iu, abstol, m, rvalues,
-                       rz, n, isuppz,
-                       tmp, lwork, itmp, liwork, info);
-      if (info.val != 0)
-        throw new EvalException("error code %d from Lapack routine '%s'", info, "dsyevr");
-      
-      lwork = (int) tmp[0];
-      liwork = itmp[0];
-  
-      double work[] =  new double[lwork];
-      int iwork[] = new int[liwork];
+        vl, vu, il, iu, abstol, m, rvalues,
+        rz, n, isuppz,
+        tmp, lwork, itmp, liwork, info);
+    if (info.val != 0) {
+      throw new EvalException("error code %d from Lapack routine '%s'", info, "dsyevr");
+    }
 
-      lapack.dsyevr(jobv, range, uplo, n, rx, n,
-                       vl, vu, il, iu, abstol, m, rvalues,
-                       rz, n, isuppz,
-                       work, lwork, iwork, liwork, info);
-      if (info.val != 0)
-        throw new EvalException("error code %d from Lapack routine '%s'", info, "dsyevr");
-  
-      ListVector.NamedBuilder ret = ListVector.newNamedBuilder();
-      ret.add("values", new DoubleArrayVector(rvalues));
-      if (!ov) {
-        ret.add("vectors", DoubleArrayVector.newMatrix(rz, n, n));
-      }
-      return ret.build();
+    lwork = (int) tmp[0];
+    liwork = itmp[0];
+
+    double work[] =  new double[lwork];
+    int iwork[] = new int[liwork];
+
+    lapack.dsyevr(jobv, range, uplo, n, rx, n,
+        vl, vu, il, iu, abstol, m, rvalues,
+        rz, n, isuppz,
+        work, lwork, iwork, liwork, info);
+    if (info.val != 0) {
+      throw new EvalException("error code %d from Lapack routine '%s'", info, "dsyevr");
+    }
+
+    ListVector.NamedBuilder ret = ListVector.newNamedBuilder();
+    ret.add("values", new DoubleArrayVector(rvalues));
+    if (!ov) {
+      ret.add("vectors", DoubleArrayVector.newMatrix(rz, n, n));
+    }
+    return ret.build();
   }
-  
-  
+
+
   /**
    * Represents an eigenvalue-eigenvector pair
    * @author jamie
@@ -290,9 +292,9 @@ public class Lapack {
       this.z=z;
       this.vector=vector;
     }
-  /**
-   * TODO ensure ordering of the two complex conjugates (if there are any)
-   */
+    /**
+     * TODO ensure ordering of the two complex conjugates (if there are any)
+     */
     @Override
     public int compareTo(ComplexEntry that) {
       Complex o1=this.z;
@@ -313,7 +315,7 @@ public class Lapack {
       }
       return eigenvalues;
     }
-    
+
     /**
      * For an explanation of the logic of parsing LAPACK results, see
      * http://www.netlib.org/lapack/explore-html/d9/d28/dgeev_8f_source.html
@@ -349,71 +351,73 @@ public class Lapack {
     private static boolean isConjugate(Complex z, Complex w) {
       return z.getReal()==w.getReal() && z.getImaginary()==-1*w.getImaginary();
     }
-    
-  }
-  
-  public static SEXP rg(SEXP x, boolean ov) {
-  
-      int lwork;
-      double work[], tmp[];
-      String jobVL, jobVR;
 
-      int n = getSquareMatrixSize(x);
+  }
+
+  public static SEXP rg(SEXP x, boolean ov) {
+
+    int lwork;
+    double work[], tmp[];
+    String jobVL, jobVR;
+
+    int n = getSquareMatrixSize(x);
 
       /* work on a copy of x */
-      double xvals[] = ((DoubleVector)x).toDoubleArray();
-      
-      boolean vectors = !ov;
-      jobVL = jobVR = "N";
-      // TODO: left = right = (double *) 0;
-      
-      double left[] = null;
-      double right[] = null;
-      
-      if (vectors) {
-          jobVR = "V";
-          jobVL="V";
-          right = new double[n*n];
-          left=new double[n*n];
-      }
-      double wR[] = new double[n];
-      double wI[] = new double[n];
+    double xvals[] = ((DoubleVector)x).toDoubleArray();
+
+    boolean vectors = !ov;
+    jobVL = jobVR = "N";
+    // TODO: left = right = (double *) 0;
+
+    double left[] = null;
+    double right[] = null;
+
+    if (vectors) {
+      jobVR = "V";
+      jobVL="V";
+      right = new double[n*n];
+      left=new double[n*n];
+    }
+    double wR[] = new double[n];
+    double wI[] = new double[n];
       
       /* ask for optimal size of work array */
-      lwork = -1;
+    lwork = -1;
 
-      LAPACK lapack = LAPACK.getInstance();
+    LAPACK lapack = LAPACK.getInstance();
 
-      tmp = new double[1];
-      intW info = new intW(0);
-      lapack.dgeev(jobVL, jobVR, n, xvals, n, wR, wI, left, n, right, n, tmp, lwork, info);
+    tmp = new double[1];
+    intW info = new intW(0);
+    lapack.dgeev(jobVL, jobVR, n, xvals, n, wR, wI, left, n, right, n, tmp, lwork, info);
 
-      if (info.val != 0)
-          throw new EvalException("error code %d from Lapack routine '%s'", info, "dgeev");
-      
-      lwork = (int) tmp[0];
-      work =  new double[lwork];
-      lapack.dgeev(jobVL, jobVR, n, xvals, n, wR, wI, left, n, right, n, work, lwork, info);
+    if (info.val != 0) {
+      throw new EvalException("error code %d from Lapack routine '%s'", info, "dgeev");
+    }
 
-      if (info.val != 0)
-          throw new EvalException("error code %d from Lapack routine '%s'", info, "dgeev");
+    lwork = (int) tmp[0];
+    work =  new double[lwork];
+    lapack.dgeev(jobVL, jobVR, n, xvals, n, wR, wI, left, n, right, n, work, lwork, info);
 
-      ListVector.NamedBuilder ret = new ListVector.NamedBuilder();
-      
-      if (thereAreComplexResults(n, wR, wI)) {
-        
-        //Step 1: Get different eigenvalues
-        List<ComplexEntry> complex = new ArrayList<ComplexEntry>();
-        for(int i=0; i<n; i++ ){
-          complex.add(new ComplexEntry(complex(wR[i],wI[i]),Arrays.copyOfRange(right, n*i, n*(i+1))));
-        }
-        Collections.sort(complex);
-        Complex[] eigenvalues = ComplexEntry.getEigenvalues(n, complex);
-        ComplexArrayVector values = new ComplexArrayVector(eigenvalues);
-        
-        ret.add("values",values);
+    if (info.val != 0) {
+      throw new EvalException("error code %d from Lapack routine '%s'", info, "dgeev");
+    }
 
-        ret.add("vectors", vectors ? ComplexArrayVector.newMatrix(ComplexEntry.getEigenvectors(complex), n, n) : Null.INSTANCE);
+    ListVector.NamedBuilder ret = new ListVector.NamedBuilder();
+
+    if (thereAreComplexResults(n, wR, wI)) {
+
+      //Step 1: Get different eigenvalues
+      List<ComplexEntry> complex = new ArrayList<ComplexEntry>();
+      for(int i=0; i<n; i++ ){
+        complex.add(new ComplexEntry(complex(wR[i],wI[i]),Arrays.copyOfRange(right, n*i, n*(i+1))));
+      }
+      Collections.sort(complex);
+      Complex[] eigenvalues = ComplexEntry.getEigenvalues(n, complex);
+      ComplexArrayVector values = new ComplexArrayVector(eigenvalues);
+
+      ret.add("values",values);
+
+      ret.add("vectors", vectors ? ComplexArrayVector.newMatrix(ComplexEntry.getEigenvectors(complex), n, n) : Null.INSTANCE);
 //    
 //        val = allocVector(CPLXSXP, n);
 //          for (i = 0; i < n; i++) {
@@ -427,14 +431,14 @@ public class Lapack {
 //        if (vectors) {
 ////        SET_VECTOR_ELT(ret, 1, unscramble(wI, n, right));
 //        }
-      } else {
-        ret.add("values", new DoubleArrayVector(wR));
-        ret.add("vectors", vectors ? DoubleArrayVector.newMatrix(right, n, n) : Null.INSTANCE);
-      }
-      return ret.build();
+    } else {
+      ret.add("values", new DoubleArrayVector(wR));
+      ret.add("vectors", vectors ? DoubleArrayVector.newMatrix(right, n, n) : Null.INSTANCE);
+    }
+    return ret.build();
   }
 
-  
+
 
   private static boolean thereAreComplexResults(int n, double[] wR, double[] wI) {
     boolean complexValues = false;
@@ -447,33 +451,33 @@ public class Lapack {
     }
     return complexValues;
   }
-  
+
 
   public static ComplexVector c(double... d){
     ComplexArrayVector.Builder builder = new ComplexArrayVector.Builder();
     for(double di : d){
-        builder.add(new Complex(di,0));
+      builder.add(new Complex(di,0));
     }
-      return builder.build();
+    return builder.build();
   }
-  
+
   public static Complex complex(double x,double y){
     return new Complex(x,y);
   }
-  
+
   public static Complex complex(double x){
     return complex(x,0);
   }
-  
+
   protected static Complex[] row(Complex... z){
     return z;
   }
-  
+
   protected static SEXP matrix(Complex[]... rows) {
     ComplexArrayVector.Builder matrix = new ComplexArrayVector.Builder();
     int nrows = rows.length;
     int ncols = rows[0].length;
-    
+
     for(int j=0;j!=ncols;++j) {
       for(int i=0;i!=nrows;++i) {
         matrix.add(rows[i][j]);
@@ -489,7 +493,7 @@ public class Lapack {
     }
     int n = xdims.getElementAsInt(0);
     return n;
-  }  
-  
-  
+  }
+
+
 }

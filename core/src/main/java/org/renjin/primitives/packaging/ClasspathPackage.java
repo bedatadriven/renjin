@@ -4,7 +4,6 @@ import com.google.common.io.Resources;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
-import org.renjin.eval.EvalException;
 import org.renjin.util.NamedByteSource;
 
 import java.io.IOException;
@@ -45,12 +44,8 @@ public class ClasspathPackage extends FileBasedPackage {
   }
 
   @Override
-  public Class loadClass(String name) {
-    try {
-      return classLoader.loadClass(name);
-    } catch (ClassNotFoundException e) {
-      throw new EvalException(e.getMessage(), e);
-    }
+  public Class loadClass(String name) throws ClassNotFoundException {
+    return classLoader.loadClass(name);
   }
 
   @Override
@@ -74,7 +69,7 @@ public class ClasspathPackage extends FileBasedPackage {
 
   @Override
   public boolean resourceExists(String name) {
-      URL url = classLoader.getResource(qualifyResourceName(name));
-      return url != null;
+    URL url = classLoader.getResource(qualifyResourceName(name));
+    return url != null;
   }
 }

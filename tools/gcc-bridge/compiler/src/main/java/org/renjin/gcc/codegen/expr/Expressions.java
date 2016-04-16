@@ -286,8 +286,8 @@ public class Expressions {
   }
 
   private static void checkCast(Type fromType, Type toType) {
-    if(toType.getSort() != Type.OBJECT && 
-       toType.getSort() != Type.ARRAY) {
+    if (toType.getSort() != Type.OBJECT && 
+        toType.getSort() != Type.ARRAY) {
       throw new IllegalArgumentException("Target type for cast must be an array or object: " + toType);
     }
     int fromSort = fromType.getSort();

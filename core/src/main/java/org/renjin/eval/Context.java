@@ -159,7 +159,11 @@ public class Context {
   }
   
   public SEXP evaluate(SEXP expression) {
-    return evaluate(expression, environment);
+    SEXP result = evaluate(expression, environment);
+    if(result == null) {
+      throw new IllegalStateException("Evaluated to null");
+    }
+    return result;
   }
   
   /**
@@ -170,6 +174,14 @@ public class Context {
    */
   public SEXP materialize(SEXP sexp) {
     if(sexp instanceof DeferredComputation && !((DeferredComputation) sexp).isConstantAccessTime()) {
+      return session.getVectorEngine().materialize((DeferredComputation)sexp);
+    } else {
+      return sexp;
+    }
+  }
+  
+  public Vector materialize(Vector sexp) {
+    if(sexp instanceof DeferredComputation && !sexp.isConstantAccessTime()) {
       return session.getVectorEngine().materialize((DeferredComputation)sexp);
     } else {
       return sexp;
@@ -258,8 +270,21 @@ public class Context {
 
   private SEXP evaluateCall(FunctionCall call, Environment rho) {
     clearInvisibleFlag();
-    Function functionExpr = evaluateFunction(call.getFunction(), rho);
-    return functionExpr.apply(this, rho, call, call.getArguments());
+
+    SEXP fn = call.getFunction();
+    Function functionExpr = evaluateFunction(fn, rho);
+
+    boolean profiling = Profiler.ENABLED && fn instanceof Symbol && !((Symbol) fn).isReservedWord();
+    if(Profiler.ENABLED && profiling) {
+      Profiler.functionStart((Symbol)fn);
+    }
+    try {
+      return functionExpr.apply(this, rho, call, call.getArguments());
+    } finally {
+      if(Profiler.ENABLED && profiling) {
+        Profiler.functionEnd();
+      }
+    }
   }
 
   private Function evaluateFunction(SEXP functionExp, Environment rho) {
@@ -344,8 +369,9 @@ public class Context {
     int nframe = 0;
     Context cptr = this;
     while (!cptr.isTopLevel()) {
-      if (cptr.getType() == Type.FUNCTION )
+      if (cptr.getType() == Type.FUNCTION ) {
         nframe++;
+      }
       cptr = cptr.getParent();
     }
     return nframe;

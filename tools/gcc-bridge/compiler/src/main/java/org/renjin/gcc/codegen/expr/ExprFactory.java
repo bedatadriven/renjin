@@ -307,7 +307,7 @@ public class ExprFactory {
             findValueGenerator(operands.get(1)));
 
       case CONJ_EXPR:
-            return findComplexGenerator(operands.get(0)).conjugate();
+        return findComplexGenerator(operands.get(0)).conjugate();
 
       default:
         throw new UnsupportedOperationException("op: " + op);

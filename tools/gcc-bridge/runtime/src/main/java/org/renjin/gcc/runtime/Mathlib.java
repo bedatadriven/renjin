@@ -52,6 +52,10 @@ public class Mathlib {
     return Math.exp(x);
   }
 
+  public static double expm1(double x) {
+    return Math.expm1(x);
+  }
+  
   /**
    * The returned value is the mantissa and the integer pointed to by exponent is the exponent.
    * The resultant value is x = mantissa * 2 ^ exponent.
@@ -113,13 +117,13 @@ public class Mathlib {
    * The resultant value is x = mantissa * 2 ^ exponent.
    */
   public static double ldexp(double x, int d) {
-      for (; d > 0; d--) {
-        x *= 2.0;
-      }
-      for (; d < 0; d++) {
-        x *= 0.5;
-      }
-      return x;
+    for (; d > 0; d--) {
+      x *= 2.0;
+    }
+    for (; d < 0; d++) {
+      x *= 0.5;
+    }
+    return x;
   }
 
   /**
@@ -151,7 +155,11 @@ public class Mathlib {
   public static double log10(double x) {
     return Math.log10(x);
   }
-
+  
+  public static double log1p(double x) {
+    return Math.log1p(x);
+  }
+  
   /**
    *  The returned value is the fraction component (part after the decimal), and sets integer to the integer component.
    */

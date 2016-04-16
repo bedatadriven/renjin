@@ -46,7 +46,7 @@ public class Matrices {
       /*
        * Transpose the values
        */
-      if(x.length() > TransposingMatrix.LENGTH_THRESHOLD) {
+      if(x instanceof DoubleVector && x.length() > TransposingMatrix.LENGTH_THRESHOLD) {
         // Just wrap the matrix
         return new TransposingMatrix(x, attributes.build());
 
@@ -206,7 +206,9 @@ public class Matrices {
    */
   @Internal
   public static SEXP aperm(Vector source, AtomicVector permutationVector, boolean resize) {
-    if(!resize) throw new UnsupportedOperationException("resize=TRUE not yet implemented");
+    if(!resize) {
+      throw new UnsupportedOperationException("resize=TRUE not yet implemented");
+    }
 
     SEXP dimExp = source.getAttributes().getDim();
     EvalException.check(dimExp instanceof IntVector, "invalid first argument, must be an array");
@@ -308,6 +310,16 @@ public class Matrices {
     
     int dataLength = data.length();
 
+    // When matrix() is called with nrow or ncol arguments that are themselves
+    // function arguments with default values 
+    if(nrow != 1) {
+      nrowMissing = false;
+    }
+    if(ncol != 1) {
+      ncolMissing = false;
+    }
+    
+    
     if (nrowMissing && ncolMissing) {
       nrow = dataLength;
     } else if(nrowMissing) {
@@ -348,6 +360,9 @@ public class Matrices {
      * Avoid allocating huge arrays of data
      */
     int resultLength = (nrow * ncol);
+    if(!byRow && data instanceof AtomicVector && resultLength == data.length()) {
+      return (Vector)data.setAttributes(attributes);
+    }
     if(!byRow && resultLength > 500) {
       if(data instanceof DoubleVector) {
         return new RepDoubleVector(data, resultLength, 1, attributes);
@@ -357,10 +372,10 @@ public class Matrices {
   }
 
   private static Vector allocMatrix(Vector data, int nrow, int ncol, boolean byRow, Vector dimnames) {
-	  Vector.Builder result = null;
-	  int dataLength = data.length();
-      int outLength = nrow * ncol;
-    
+    Vector.Builder result = null;
+    int dataLength = data.length();
+    int outLength = nrow * ncol;
+
     if (dataLength == 1 && outLength > 0 && data instanceof LogicalVector) {
       /* If data has only one entry, we can get away with a constant. 
        * This is true for the common case of matrix(nrow=42, ncol=42)  */
@@ -372,8 +387,7 @@ public class Matrices {
         if (!byRow) {
           for (int col = 0; col < ncol; ++col) {
             for (int row = 0; row < nrow; ++row) {
-              int sourceIndex = Indexes.matrixIndexToVectorIndex(row, col, nrow, ncol)
-                      % dataLength;
+              int sourceIndex = Indexes.matrixIndexToVectorIndex(row, col, nrow, ncol) % dataLength;
               result.setFrom(i++, data, sourceIndex);
             }
           }

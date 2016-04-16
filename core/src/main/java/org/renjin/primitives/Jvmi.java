@@ -71,17 +71,16 @@ public class Jvmi {
    * @return
    */
   @Builtin("jload")
-  public static void jloadClass(@Current Context context, @Current Environment rho, 
-        String fileName){
-    try{
-        File file = new File(fileName);
-        if(!file.exists()){
-          throw new EvalException("The file %s is not found %s",fileName,file.getAbsolutePath());
-        }else{
-          addURL(file.toURI().toURL());
-        }
-    }
-    catch(MalformedURLException e){
+  public static void jloadClass(@Current Context context, @Current Environment rho,
+                                String fileName){
+    try {
+      File file = new File(fileName);
+      if(!file.exists()){
+        throw new EvalException("The file %s is not found %s",fileName,file.getAbsolutePath());
+      } else {
+        addURL(file.toURI().toURL());
+      }
+    } catch(MalformedURLException e) {
       throw new EvalException("No legal protocol could be found in %s ",fileName);
     }
   }

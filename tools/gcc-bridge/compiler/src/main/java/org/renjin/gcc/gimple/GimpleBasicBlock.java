@@ -2,7 +2,10 @@ package org.renjin.gcc.gimple;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
+
 import org.renjin.gcc.gimple.expr.GimpleExpr;
+import org.renjin.gcc.gimple.statement.GimpleEdge;
+import org.renjin.gcc.gimple.statement.GimpleStatement;
 import org.renjin.gcc.gimple.statement.GimpleConditional;
 import org.renjin.gcc.gimple.statement.GimpleGoto;
 import org.renjin.gcc.gimple.statement.GimpleReturn;
@@ -23,6 +26,7 @@ public class GimpleBasicBlock {
   private int index;
   
   private List<GimpleStatement> statements = Lists.newArrayList();
+  private List<GimpleEdge> edges = Lists.newArrayList();
 
   public GimpleBasicBlock() {
   }
@@ -65,6 +69,14 @@ public class GimpleBasicBlock {
     this.statements = statements;
   }
 
+  public List<GimpleEdge> getEdges() {
+    return edges;
+  }
+
+  public void setEdges(List<GimpleEdge> edges) {
+    this.edges = edges;
+  }
+
   /**
    * Replaces all {@link GimpleExpr}s within this basic block that match the given {@code predicate} with
    * the given {@code newExpr}.
@@ -95,15 +107,11 @@ public class GimpleBasicBlock {
     }
   }
 
-  /**
-   * 
-   * @return the set of basic block indexes to which this statement might jump
-   */
-  public Set<Integer> getJumpTargets() {
-    if(statements.isEmpty()) {
-      return Collections.emptySet();
+  public List<GimpleEdge> getJumps() {
+    if(edges.isEmpty()) {
+      return Collections.emptyList();
     } else {
-      return getLast().getJumpTargets();
+      return edges;
     }
   }
 
@@ -120,9 +128,9 @@ public class GimpleBasicBlock {
       return true;
     }
     GimpleStatement lastStatement = statements.get(statements.size() - 1);
-    if(lastStatement instanceof GimpleReturn ||
-       lastStatement instanceof GimpleConditional ||
-       lastStatement instanceof GimpleGoto) {
+    if (lastStatement instanceof GimpleReturn ||
+        lastStatement instanceof GimpleConditional ||
+        lastStatement instanceof GimpleGoto) {
       return false;
     } else {
       

@@ -83,20 +83,20 @@ public interface Vector extends SEXP {
    * for utilities for working with unsigned bytes.
    */
   byte getElementAsByte(int index);
-  
-  /**
-  *
-  * @param vector an {@code AtomicVector}
-  * @param vectorIndex an index of {@code vector}
-  * @param startIndex
-  * @return the index of the first element in this vector that equals
-  * the element at {@code vectorIndex} in {@code vector}, or -1 if no such element
-  * can be found
-  */
- int indexOf(Vector vector, int vectorIndex, int startIndex);
-  
 
- /**
+  /**
+   *
+   * @param vector an {@code AtomicVector}
+   * @param vectorIndex an index of {@code vector}
+   * @param startIndex
+   * @return the index of the first element in this vector that equals
+   * the element at {@code vectorIndex} in {@code vector}, or -1 if no such element
+   * can be found
+   */
+  int indexOf(Vector vector, int vectorIndex, int startIndex);
+
+
+  /**
   * @param vector an {@code AtomicVector }
   * @param vectorIndex an index of {@code vector}
   * @return true if this vector contains an element equal to the
@@ -152,11 +152,32 @@ public interface Vector extends SEXP {
   Builder newCopyBuilder();
 
   /**
+   * Creates a new Builder which is initialized with all of this vector's elements 
+   * AND it's attributes. If the given {@code type} is wider than this vector's type,
+   * then that type is used.
+   * 
+   * @param type
+   * @return
+   */
+  Builder newCopyBuilder(Vector.Type type);
+
+  /**
+   * Checks whether the element is the NA value for this type. Note that this method
+   * will return {@code false} for double {@code NaN} values.
    *
    * @param index zero-based index
-   * @return  true if the element at {@code index} is NA (statistically missing)
+   * @return  true if the element at {@code index} is NA (statistically missing), false if otherwise. 
    */
   boolean isElementNA(int index);
+
+  /**
+   * 
+   * @param index zero-based index
+   * @return true if the element at {@code index} is Not a Number (NaN), including values 
+   * which are NA (statistically missing)
+   */
+  boolean isElementNaN(int index);
+
 
 
   /**
@@ -185,6 +206,7 @@ public interface Vector extends SEXP {
   Object getElementAsObject(int index);
 
   int getComputationDepth();
+
 
   /**
    * An interface to
@@ -256,6 +278,8 @@ public interface Vector extends SEXP {
     * @return this Builder, for method chaining
     */
     Builder setAttribute(Symbol name, SEXP value);
+    
+    Builder removeAttribute(Symbol name);
 
     Builder setDim(int row, int col);
 
@@ -280,6 +304,15 @@ public interface Vector extends SEXP {
      * @param vector the {@code Vector} from which to copy the attributes
      */
     Builder copyAttributesFrom(SEXP vector);
+
+    /**
+     * Combines attributes from the provided {@code vector} argument by adding 
+     * the attributes if they are not already set, and checking for consistency.
+     * @param vector
+     * @throws org.renjin.eval.EvalException if {@code vector} has {@code dim} attribute
+     * that does not conform with the {@code dim} attribute already set.
+     */
+    Builder combineAttributesFrom(SEXP vector);
 
     Builder copySomeAttributesFrom(SEXP exp, Symbol... toCopy);
   }

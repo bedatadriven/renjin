@@ -155,21 +155,28 @@ public class Rectangle {
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj)
+    if (this == obj) {
       return true;
-    if (obj == null)
+    }
+    if (obj == null) {
       return false;
-    if (getClass() != obj.getClass())
+    }
+    if (getClass() != obj.getClass()) {
       return false;
+    }
     Rectangle other = (Rectangle) obj;
-    if (Double.doubleToLongBits(x1) != Double.doubleToLongBits(other.x1))
+    if (Double.doubleToLongBits(x1) != Double.doubleToLongBits(other.x1)) {
       return false;
-    if (Double.doubleToLongBits(x2) != Double.doubleToLongBits(other.x2))
+    }
+    if (Double.doubleToLongBits(x2) != Double.doubleToLongBits(other.x2)) {
       return false;
-    if (Double.doubleToLongBits(y1) != Double.doubleToLongBits(other.y1))
+    }
+    if (Double.doubleToLongBits(y1) != Double.doubleToLongBits(other.y1)) {
       return false;
-    if (Double.doubleToLongBits(y2) != Double.doubleToLongBits(other.y2))
+    }
+    if (Double.doubleToLongBits(y2) != Double.doubleToLongBits(other.y2)) {
       return false;
+    }
     return true;
   }
 

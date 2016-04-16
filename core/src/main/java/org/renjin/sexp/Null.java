@@ -166,6 +166,14 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList, 
   }
 
   @Override
+  public Vector.Builder newCopyBuilder(Type type) {
+    if(type == VECTOR_TYPE) {
+      return NullBuilder.INSTANCE;
+    }
+    return type.newBuilder();
+  }
+
+  @Override
   public Vector.Builder newBuilderWithInitialSize(int initialSize) {
     if(initialSize == 0) {
       return NullBuilder.INSTANCE;
@@ -201,6 +209,11 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList, 
 
   @Override
   public boolean isElementNA(int index) {
+    throw new IllegalArgumentException(INDEX_OUT_OF_BOUNDS);
+  }
+
+  @Override
+  public boolean isElementNaN(int index) {
     throw new IllegalArgumentException(INDEX_OUT_OF_BOUNDS);
   }
 
@@ -347,7 +360,15 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList, 
       }
       return this;
     }
-    
+
+    @Override
+    public Vector.Builder combineAttributesFrom(SEXP vector) {
+      if(vector.hasAttributes()) {
+        throw new UnsupportedOperationException(NULL_IS_IMMUTABLE);
+      }
+      return this;
+    }
+
     @Override
     public Vector.Builder copySomeAttributesFrom(SEXP exp, Symbol... toCopy) {
       if(exp.hasAttributes()) {
@@ -389,6 +410,11 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList, 
     @Override
     public Vector.Builder setAttribute(Symbol name, SEXP value) {
       throw new UnsupportedOperationException(NULL_IS_IMMUTABLE);
+    }
+
+    @Override
+    public Vector.Builder removeAttribute(Symbol name) {
+      return this;
     }
 
     @Override

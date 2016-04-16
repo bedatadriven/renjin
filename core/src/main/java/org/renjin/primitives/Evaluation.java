@@ -39,6 +39,7 @@ import org.renjin.sexp.*;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.ArrayDeque;
 import java.util.List;
 
 public class Evaluation {
@@ -156,7 +157,7 @@ public class Evaluation {
       }
       for(int j=0;j!=funValue.length();++j) {
         result.addFrom(x, j);
-       }
+      }
     }
     
     if(useNames) {
@@ -326,8 +327,10 @@ public class Evaluation {
       throw new EvalException("'missing' can only be used for arguments");
     } else if(value == Symbol.MISSING_ARG) {
       return true;
+    } else if(isDefaultValue(value)) {
+      return true;
     } else {
-      return isPromisedMissingArg(value);
+      return isPromisedMissingArg(value, new ArrayDeque<Promise>());
     } 
   }
 
@@ -340,23 +343,51 @@ public class Evaluation {
       return true;
     }
     SEXP value = ellipses.getElementAsSEXP(varArgReferenceIndex-1);
-    return value == Symbol.MISSING_ARG || isPromisedMissingArg(value);
+    return value == Symbol.MISSING_ARG || isPromisedMissingArg(value, new ArrayDeque<Promise>());
   }
 
+  /**
+   * 
+   * @return true if {@code exp} is the name of an argument that was missing but has a default value
+   */
+  private static boolean isDefaultValue(SEXP exp) {
+    if(exp instanceof Promise) {
+      Promise promise = (Promise) exp;
+      if (promise.isMissingArgument()) {
+        return true;
+      }
+    }
+    return false;
+  }
 
-  private static boolean isPromisedMissingArg(SEXP exp) {
+  /**
+   * @return true if {@code exp} evaluates to a missing argument with no default value.
+   */
+  private static boolean isPromisedMissingArg(SEXP exp, ArrayDeque<Promise> stack) {
     if(exp instanceof Promise) {
       Promise promise = (Promise)exp;
-      if(promise.isMissingArgument()) {
-         return true;
-      }
+
       if(promise.getExpression() instanceof Symbol) {
-        Symbol argumentName = (Symbol) promise.getExpression();
+
+        // Avoid infinite recursion in the case of circular references, for example:
+        // g <- function(x, y) { missing(x) }
+        // f <- function(x = y, y = x) { g(x, y) } 
+        // f()
+        if(stack.contains(promise)) {
+          return true;  
+        }
+
+        stack.push(promise);
+        try {
+          Symbol argumentName = (Symbol) promise.getExpression();
           SEXP argumentValue = promise.getEnvironment().getVariable(argumentName);
-        if(argumentValue == Symbol.MISSING_ARG) {
-          return true;          
-        } else if(isPromisedMissingArg(argumentValue)) {
-          return true;
+          if (argumentValue == Symbol.MISSING_ARG) {
+            return true;
+          } else if (isPromisedMissingArg(argumentValue, stack)) {
+            return true;
+          }
+        } finally {
+          stack.pop();
         }
       }
     } 

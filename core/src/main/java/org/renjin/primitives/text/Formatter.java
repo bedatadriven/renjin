@@ -500,19 +500,45 @@ public class Formatter {
                     ePos++) {
         char c=0;
         c = fmtArg.charAt(ePos);
-        if (c == 'i') break;
-        if (c == 'd') break;
-        if (c == 'f') break;
-        if (c == 'g') break;
-        if (c == 'G') break;
-        if (c == 'o') break;
-        if (c == 'x') break;
-        if (c == 'X') break;
-        if (c == 'e') break;
-        if (c == 'E') break;
-        if (c == 'c') break;
-        if (c == 's') break;
-        if (c == '%') break;
+        if (c == 'i') {
+          break;
+        }
+        if (c == 'd') {
+          break;
+        }
+        if (c == 'f') {
+          break;
+        }
+        if (c == 'g') {
+          break;
+        }
+        if (c == 'G') {
+          break;
+        }
+        if (c == 'o') {
+          break;
+        }
+        if (c == 'x') {
+          break;
+        }
+        if (c == 'X') {
+          break;
+        }
+        if (c == 'e') {
+          break;
+        }
+        if (c == 'E') {
+          break;
+        }
+        if (c == 'c') {
+          break;
+        }
+        if (c == 's') {
+          break;
+        }
+        if (c == '%') {
+          break;
+        }
       }
       ePos=Math.min(ePos+1,fmtArg.length());
       sFmt = new ConversionSpecification(
@@ -542,7 +568,9 @@ public class Formatter {
   private String nonControl(String s,int start) {
     String ret="";
     cPos=s.indexOf("%",start);
-    if (cPos==-1) cPos=s.length();
+    if (cPos==-1) {
+      cPos = s.length();
+    }
     return s.substring(start,cPos);
   }
   
@@ -570,8 +598,9 @@ public class Formatter {
         if(argIndex == i) {
           return c == 's';
         }
-        if (!cs.isPositionalSpecification())
+        if (!cs.isPositionalSpecification()) {
           i++;
+        }
       }
     }
     return false;
@@ -599,9 +628,11 @@ public class Formatter {
       cs = (ConversionSpecification)
         e.nextElement();
       c = cs.getConversionCharacter();
-      if (c=='\0') sb.append(cs.getLiteral());
-      else if (c=='%') sb.append("%");
-      else {
+      if (c=='\0') {
+        sb.append(cs.getLiteral());
+      } else if (c=='%') {
+        sb.append("%");
+      } else {
         if (cs.isPositionalSpecification()) {
           i=cs.getArgumentPosition()-1;
           if (cs.isPositionalFieldWidth()) {
@@ -640,11 +671,14 @@ public class Formatter {
           sb.append(cs.formatArgument(vector.getElementAsInt(j)));
         } else if(vector instanceof StringVector) {
           sb.append(cs.formatArgument(vector.getElementAsString(j)));
+        } else if(vector instanceof LogicalVector) {
+          sb.append(cs.formatArgument(vector.getElementAsLogical(j)));
         } else {
           throw new EvalException("Cannot use '%s' as an sprintf argument", vector.getTypeName());
         }
-        if (!cs.isPositionalSpecification())
+        if (!cs.isPositionalSpecification()) {
           i++;
+        }
       }
     }
     return sb.toString();
@@ -712,12 +746,14 @@ public class Formatter {
      */
     ConversionSpecification(String fmtArg)
         throws EvalException {
-      if (fmtArg==null)
+      if (fmtArg==null) {
         throw new NullPointerException();
-      if (fmtArg.length()==0)
+      }
+      if (fmtArg.length()==0) {
         throw new EvalException(
-        "Control strings must have positive"+
-        " lengths.");
+            "Control strings must have positive" +
+                " lengths.");
+      }
       if (fmtArg.charAt(0)=='%') {
         fmt = fmtArg;
         pos=1;
@@ -728,8 +764,9 @@ public class Formatter {
         setOptionalHL();
         if (setConversionCharacter()) {
           if (pos==fmtArg.length()) {
-            if(leadingZeros&&leftJustify)
-              leadingZeros=false;
+            if(leadingZeros&&leftJustify) {
+              leadingZeros = false;
+            }
             if(precisionSet&&leadingZeros){
               if(conversionCharacter=='d'
               ||conversionCharacter=='i'
@@ -740,19 +777,22 @@ public class Formatter {
               }
             }
           }
-          else
+          else {
             throw new EvalException(
-            "Malformed conversion specification="+
-            fmtArg);
+                "Malformed conversion specification=" +
+                    fmtArg);
+          }
         }
-        else
+        else {
           throw new EvalException(
-          "Malformed conversion specification="+
-          fmtArg);
+              "Malformed conversion specification=" +
+                  fmtArg);
+        }
       }
-      else
+      else {
         throw new EvalException(
-        "Control strings must begin with %.");
+            "Control strings must begin with %.");
+      }
     }
     /**
      * Set the String for this instance.
@@ -803,11 +843,13 @@ public class Formatter {
             }
             i++;
           }
-          else
+          else {
             sb.append('\\');
+          }
         }
-        else
+        else {
           i++;
+        }
       }
       return fmt;
     }
@@ -838,7 +880,9 @@ public class Formatter {
      * @param fw the field width.
      */
     void setFieldWidthWithArg(int fw) {
-      if (fw<0) leftJustify = true;
+      if (fw<0) {
+        leftJustify = true;
+      }
       fieldWidthSet = true;
       fieldWidth = Math.abs(fw);
     }
@@ -876,29 +920,32 @@ public class Formatter {
       switch(conversionCharacter) {
       case 'd':
       case 'i':
-        if (optionalh)
-          s2 = printDFormat((short)s);
-        else if (optionall)
-          s2 = printDFormat((long)s);
-        else
+        if (optionalh) {
+          s2 = printDFormat((short) s);
+        } else if (optionall) {
+          s2 = printDFormat((long) s);
+        } else {
           s2 = printDFormat(s);
+        }
         break;
       case 'x':
       case 'X':
-        if (optionalh)
-          s2 = printXFormat((short)s);
-        else if (optionall)
-          s2 = printXFormat((long)s);
-        else
+        if (optionalh) {
+          s2 = printXFormat((short) s);
+        } else if (optionall) {
+          s2 = printXFormat((long) s);
+        } else {
           s2 = printXFormat(s);
+        }
         break;
       case 'o':
-        if (optionalh)
-          s2 = printOFormat((short)s);
-        else if (optionall)
-          s2 = printOFormat((long)s);
-        else
+        if (optionalh) {
+          s2 = printOFormat((short) s);
+        } else if (optionall) {
+          s2 = printOFormat((long) s);
+        } else {
           s2 = printOFormat(s);
+        }
         break;
       case 'c':
       case 'C':
@@ -937,13 +984,25 @@ public class Formatter {
         case 'G':
         case 'g':
           return printGFormat(value);
-        case 'd':
-          return printDFormat((long) value);
+      }
+      
+      if(isInteger(value)) {
+        switch (conversionCharacter) {
+          case 'd':
+            return printDFormat((long) value);
+          case 'X':
+            return printXFormat((long) value);
+        }
       }
 
       throw new EvalException("invalid format '%" + conversionCharacter + "'; " +
               "use format %f, %e, %g or %a for numeric objects");
     }
+
+    private boolean isInteger(double x) {
+      return (x == Math.floor(x)) && !Double.isInfinite(x);
+    }
+    
     /**
      * Format a String argument using this conversion
      * specification.
@@ -955,13 +1014,22 @@ public class Formatter {
     String formatArgument(String s) {
       String s2 = "";
       if(conversionCharacter=='s'
-      || conversionCharacter=='S')
+      || conversionCharacter=='S') {
         s2 = printSFormat(s);
-      else
-        throw new EvalException("Cannot "+
-        "format a String with a format using a "+
-        conversionCharacter+" conversion character.");
+      } else {
+        throw new EvalException("Cannot " +
+            "format a String with a format using a " +
+            conversionCharacter + " conversion character.");
+      }
       return s2;
+    }
+    
+    String formatArgument(Logical logical) {
+      if(conversionCharacter=='s') {
+        return formatArgument(logical.toString());
+      } else {
+        return formatArgument(logical.getInternalValue());
+      }
     }
 
     /**
@@ -993,9 +1061,9 @@ public class Formatter {
       int n1In,n2In;
       int expon=0;
       boolean minusSign=false;
-      if (x>0.0)
+      if (x>0.0) {
         sx = Double.toString(x);
-      else if (x<0.0) {
+      } else if (x<0.0) {
         sx = Double.toString(-x);
         minusSign=true;
       }
@@ -1008,98 +1076,137 @@ public class Formatter {
       }
       int ePos = sx.indexOf('E');
       int rPos = sx.indexOf('.');
-      if (rPos!=-1) n1In=rPos;
-      else if (ePos!=-1) n1In=ePos;
-      else n1In=sx.length();
       if (rPos!=-1) {
-        if (ePos!=-1) n2In = ePos-rPos-1;
-        else n2In = sx.length()-rPos-1;
+        n1In = rPos;
+      } else if (ePos!=-1) {
+        n1In = ePos;
+      } else {
+        n1In = sx.length();
       }
-      else
+      if (rPos!=-1) {
+        if (ePos!=-1) {
+          n2In = ePos - rPos - 1;
+        } else {
+          n2In = sx.length() - rPos - 1;
+        }
+      }
+      else {
         n2In = 0;
+      }
       if (ePos!=-1) {
         int ie=ePos+1;
         expon=0;
         if (sx.charAt(ie)=='-') {
-          for (++ie; ie<sx.length(); ie++)
-            if (sx.charAt(ie)!='0') break;
-          if (ie<sx.length())
-            expon=-Integer.parseInt(sx.substring(ie));
+          for (++ie; ie<sx.length(); ie++) {
+            if (sx.charAt(ie) != '0') break;
+          }
+          if (ie<sx.length()) {
+            expon = -Integer.parseInt(sx.substring(ie));
+          }
         }
         else {
-          if (sx.charAt(ie)=='+') ++ie;
-          for (; ie<sx.length(); ie++)
-            if (sx.charAt(ie)!='0') break;
-          if (ie<sx.length())
-            expon=Integer.parseInt(sx.substring(ie));
+          if (sx.charAt(ie)=='+') {
+            ++ie;
+          }
+          for (; ie<sx.length(); ie++) {
+            if (sx.charAt(ie) != '0') break;
+          }
+          if (ie<sx.length()) {
+            expon = Integer.parseInt(sx.substring(ie));
+          }
         }
       }
       int p;
-      if (precisionSet) p = precision;
-      else p = defaultDigits;
+      if (precisionSet) {
+        p = precision;
+      } else {
+        p = defaultDigits;
+      }
       char[] ca1 = sx.toCharArray();
       char[] ca2 = new char[n1In+n2In];
       char[] ca3,ca4,ca5;
-      for (j=0; j<n1In; j++)
+      for (j=0; j<n1In; j++) {
         ca2[j] = ca1[j];
+      }
       i = j+1;
-      for (k=0; k<n2In; j++,i++,k++)
+      for (k=0; k<n2In; j++,i++,k++) {
         ca2[j] = ca1[i];
+      }
       if (n1In+expon<=0) {
         ca3 = new char[-expon+n2In];
-        for (j=0,k=0; k<(-n1In-expon); k++,j++)
-          ca3[j]='0';
-        for (i=0; i<(n1In+n2In); i++,j++)
-          ca3[j]=ca2[i];
+        for (j=0,k=0; k<(-n1In-expon); k++,j++) {
+          ca3[j] = '0';
+        }
+        for (i=0; i<(n1In+n2In); i++,j++) {
+          ca3[j] = ca2[i];
+        }
       }
-      else
+      else {
         ca3 = ca2;
+      }
       boolean carry=false;
       if (p<-expon+n2In) {
-        if (expon<0) i = p;
-        else i = p+n1In;
+        if (expon<0) {
+          i = p;
+        } else {
+          i = p + n1In;
+        }
         carry=checkForCarry(ca3,i);
-        if (carry)
-          carry=startSymbolicCarry(ca3,i-1,0);
+        if (carry) {
+          carry = startSymbolicCarry(ca3, i - 1, 0);
+        }
       }
       if (n1In+expon<=0) {
         ca4 = new char[2+p];
-        if (!carry) ca4[0]='0';
-        else ca4[0]='1';
+        if (!carry) {
+          ca4[0] = '0';
+        } else {
+          ca4[0] = '1';
+        }
         if(alternateForm||!precisionSet||precision!=0){
           ca4[1]='.';
-          for(i=0,j=2;i<Math.min(p,ca3.length);i++,j++)
-            ca4[j]=ca3[i];
-          for (; j<ca4.length; j++) ca4[j]='0';
+          for(i=0,j=2;i<Math.min(p,ca3.length);i++,j++) {
+            ca4[j] = ca3[i];
+          }
+          for (; j<ca4.length; j++) {
+            ca4[j] = '0';
+          }
         }
       }
       else {
         if (!carry) {
           if(alternateForm||!precisionSet
-          ||precision!=0)
-            ca4 = new char[n1In+expon+p+1];
-          else
-            ca4 = new char[n1In+expon];
+          ||precision!=0) {
+            ca4 = new char[n1In + expon + p + 1];
+          } else {
+            ca4 = new char[n1In + expon];
+          }
           j=0;
         }
         else {
           if(alternateForm||!precisionSet
-          ||precision!=0)
-            ca4 = new char[n1In+expon+p+2];
-          else
-            ca4 = new char[n1In+expon+1];
+          ||precision!=0) {
+            ca4 = new char[n1In + expon + p + 2];
+          } else {
+            ca4 = new char[n1In + expon + 1];
+          }
           ca4[0]='1';
           j=1;
         }
-        for (i=0; i<Math.min(n1In+expon,ca3.length); i++,j++)
-          ca4[j]=ca3[i];
-        for (; i<n1In+expon; i++,j++)
-          ca4[j]='0';
+        for (i=0; i<Math.min(n1In+expon,ca3.length); i++,j++) {
+          ca4[j] = ca3[i];
+        }
+        for (; i<n1In+expon; i++,j++) {
+          ca4[j] = '0';
+        }
         if(alternateForm||!precisionSet||precision!=0){
           ca4[j]='.'; j++;
-          for (k=0; i<ca3.length && k<p; i++,j++,k++)
-            ca4[j]=ca3[i];
-          for (; j<ca4.length; j++) ca4[j]='0';
+          for (k=0; i<ca3.length && k<p; i++,j++,k++) {
+            ca4[j] = ca3[i];
+          }
+          for (; j<ca4.length; j++) {
+            ca4[j] = '0';
+          }
         }
       }
       int nZeros=0;
@@ -1107,47 +1214,65 @@ public class Formatter {
         int xThousands=0;
         if (thousands) {
           int xlead=0;
-          if (ca4[0]=='+'||ca4[0]=='-'||ca4[0]==' ')
-            xlead=1;
+          if (ca4[0]=='+'||ca4[0]=='-'||ca4[0]==' ') {
+            xlead = 1;
+          }
           int xdp=xlead;
-          for (; xdp<ca4.length; xdp++)
-            if (ca4[xdp]=='.') break;
+          for (; xdp<ca4.length; xdp++) {
+            if (ca4[xdp] == '.') break;
+          }
           xThousands=(xdp-xlead)/3;
         }
-        if (fieldWidthSet)
-          nZeros = fieldWidth-ca4.length;
-        if ((!minusSign&&(leadingSign||leadingSpace))||minusSign)
+        if (fieldWidthSet) {
+          nZeros = fieldWidth - ca4.length;
+        }
+        if ((!minusSign&&(leadingSign||leadingSpace))||minusSign) {
           nZeros--;
+        }
         nZeros-=xThousands;
-        if (nZeros<0) nZeros=0;
+        if (nZeros<0) {
+          nZeros = 0;
+        }
       }
       j=0;
       if ((!minusSign&&(leadingSign||leadingSpace))||minusSign) {
         ca5 = new char[ca4.length+nZeros+1];
         j++;
       }
-      else
-        ca5 = new char[ca4.length+nZeros];
-      if (!minusSign) {
-        if (leadingSign) ca5[0]='+';
-        if (leadingSpace) ca5[0]=' ';
+      else {
+        ca5 = new char[ca4.length + nZeros];
       }
-      else
-        ca5[0]='-';
-      for (i=0; i<nZeros; i++,j++)
-        ca5[j]='0';
-      for (i=0; i<ca4.length; i++,j++) ca5[j]=ca4[i];
+      if (!minusSign) {
+        if (leadingSign) {
+          ca5[0] = '+';
+        }
+        if (leadingSpace) {
+          ca5[0] = ' ';
+        }
+      }
+      else {
+        ca5[0] = '-';
+      }
+      for (i=0; i<nZeros; i++,j++) {
+        ca5[j] = '0';
+      }
+      for (i=0; i<ca4.length; i++,j++) {
+        ca5[j] = ca4[i];
+      }
 
       int lead=0;
-      if (ca5[0]=='+'||ca5[0]=='-'||ca5[0]==' ')
-        lead=1;
+      if (ca5[0]=='+'||ca5[0]=='-'||ca5[0]==' ') {
+        lead = 1;
+      }
       int dp=lead;
-      for (; dp<ca5.length; dp++)
-        if (ca5[dp]=='.') break;
+      for (; dp<ca5.length; dp++) {
+        if (ca5[dp] == '.') break;
+      }
       int nThousands=(dp-lead)/3;
       // Localize the decimal point.
-      if (dp<ca5.length)
-        ca5[dp]=dfs.getDecimalSeparator();
+      if (dp<ca5.length) {
+        ca5[dp] = dfs.getDecimalSeparator();
+      }
       char[] ca6 = ca5;
       if (thousands && nThousands>0) {
         ca6 = new char[ca5.length+nThousands+lead];
@@ -1183,24 +1308,32 @@ public class Formatter {
       char[] ca6,ca7;
       if (Double.isInfinite(x)) {
         if (x==Double.POSITIVE_INFINITY) {
-          if (leadingSign) ca6 = "+Inf".toCharArray();
-          else if (leadingSpace)
+          if (leadingSign) {
+            ca6 = "+Inf".toCharArray();
+          } else if (leadingSpace) {
             ca6 = " Inf".toCharArray();
-          else ca6 = "Inf".toCharArray();
+          } else {
+            ca6 = "Inf".toCharArray();
+          }
         }
-        else
+        else {
           ca6 = "-Inf".toCharArray();
+        }
         noDigits = true;
       }
       else if (Double.isNaN(x)) {
-        if (leadingSign) ca6 = "+NaN".toCharArray();
-        else if (leadingSpace)
+        if (leadingSign) {
+          ca6 = "+NaN".toCharArray();
+        } else if (leadingSpace) {
           ca6 = " NaN".toCharArray();
-        else ca6 = "NaN".toCharArray();
+        } else {
+          ca6 = "NaN".toCharArray();
+        }
         noDigits = true;
       }
-      else
+      else {
         ca6 = fFormatDigits(x);
+      }
       ca7 = applyFloatPadding(ca6,false);
       return new String(ca7);
     }
@@ -1243,9 +1376,9 @@ public class Formatter {
       int expon=0;
       int ePos,rPos,eSize;
       boolean minusSign=false;
-      if (x>0.0)
+      if (x>0.0) {
         sx = Double.toString(x);
-      else if (x<0.0) {
+      } else if (x<0.0) {
         sx = Double.toString(-x);
         minusSign=true;
       }
@@ -1257,81 +1390,113 @@ public class Formatter {
         }
       }
       ePos = sx.indexOf('E');
-      if (ePos==-1) ePos = sx.indexOf('e');
-      rPos = sx.indexOf('.');
-      if (rPos!=-1) n1In=rPos;
-      else if (ePos!=-1) n1In=ePos;
-      else n1In=sx.length();
-      if (rPos!=-1) {
-        if (ePos!=-1) n2In = ePos-rPos-1;
-        else n2In = sx.length()-rPos-1;
+      if (ePos==-1) {
+        ePos = sx.indexOf('e');
       }
-      else
+      rPos = sx.indexOf('.');
+      if (rPos!=-1) {
+        n1In = rPos;
+      } else if (ePos!=-1) {
+        n1In = ePos;
+      } else {
+        n1In = sx.length();
+      }
+      if (rPos!=-1) {
+        if (ePos!=-1) {
+          n2In = ePos - rPos - 1;
+        } else {
+          n2In = sx.length() - rPos - 1;
+        }
+      }
+      else {
         n2In = 0;
+      }
       if (ePos!=-1) {
         int ie=ePos+1;
         expon=0;
         if (sx.charAt(ie)=='-') {
-          for (++ie; ie<sx.length(); ie++)
-            if (sx.charAt(ie)!='0') break;
-          if (ie<sx.length())
-            expon=-Integer.parseInt(sx.substring(ie));
+          for (++ie; ie<sx.length(); ie++) {
+            if (sx.charAt(ie) != '0') break;
+          }
+          if (ie<sx.length()) {
+            expon = -Integer.parseInt(sx.substring(ie));
+          }
         }
         else {
-          if (sx.charAt(ie)=='+') ++ie;
-          for (; ie<sx.length(); ie++)
-            if (sx.charAt(ie)!='0') break;
-          if (ie<sx.length())
-            expon=Integer.parseInt(sx.substring(ie));
+          if (sx.charAt(ie)=='+') {
+            ++ie;
+          }
+          for (; ie<sx.length(); ie++) {
+            if (sx.charAt(ie) != '0') break;
+          }
+          if (ie<sx.length()) {
+            expon = Integer.parseInt(sx.substring(ie));
+          }
         }
       }
-      if (rPos!=-1) expon += rPos-1;
-      if (precisionSet) p = precision;
-      else p = defaultDigits;
-      if (rPos!=-1 && ePos!=-1)
-        ca1=(sx.substring(0,rPos)+
-          sx.substring(rPos+1,ePos)).toCharArray();
-      else if (rPos!=-1)
-        ca1 = (sx.substring(0,rPos)+
-            sx.substring(rPos+1)).toCharArray();
-      else if (ePos!=-1)
-        ca1 = sx.substring(0,ePos).toCharArray();
-      else
+      if (rPos!=-1) {
+        expon += rPos - 1;
+      }
+      if (precisionSet) {
+        p = precision;
+      } else {
+        p = defaultDigits;
+      }
+      if (rPos!=-1 && ePos!=-1) {
+        ca1 = (sx.substring(0, rPos) +
+            sx.substring(rPos + 1, ePos)).toCharArray();
+      } else if (rPos!=-1) {
+        ca1 = (sx.substring(0, rPos) +
+            sx.substring(rPos + 1)).toCharArray();
+      } else if (ePos!=-1) {
+        ca1 = sx.substring(0, ePos).toCharArray();
+      } else {
         ca1 = sx.toCharArray();
+      }
       boolean carry=false;
       int i0=0;
-      if (ca1[0]!='0')
+      if (ca1[0]!='0') {
         i0 = 0;
-      else
-        for (i0=0; i0<ca1.length; i0++)
-          if (ca1[i0]!='0') break;
+      } else {
+        for (i0 = 0; i0 < ca1.length; i0++)
+          if (ca1[i0] != '0') break;
+      }
       if (i0+p<ca1.length-1) {
         carry=checkForCarry(ca1,i0+p+1);
-        if (carry)
-          carry = startSymbolicCarry(ca1,i0+p,i0);
+        if (carry) {
+          carry = startSymbolicCarry(ca1, i0 + p, i0);
+        }
         if (carry) {
           ca2 = new char[i0+p+1];
           ca2[i0]='1';
-          for (j=0; j<i0; j++) ca2[j]='0';
-          for (i=i0,j=i0+1; j<p+1; i++,j++)
+          for (j=0; j<i0; j++) {
+            ca2[j] = '0';
+          }
+          for (i=i0,j=i0+1; j<p+1; i++,j++) {
             ca2[j] = ca1[i];
+          }
           expon++;
           ca1 = ca2;
         }
       }
-      if (Math.abs(expon)<100 && !optionalL) eSize=4;
-      else eSize=5;
-      if (alternateForm||!precisionSet||precision!=0)
-        ca2 = new char[2+p+eSize];
-      else
-        ca2 = new char[1+eSize];
+      if (Math.abs(expon)<100 && !optionalL) {
+        eSize = 4;
+      } else {
+        eSize = 5;
+      }
+      if (alternateForm||!precisionSet||precision!=0) {
+        ca2 = new char[2 + p + eSize];
+      } else {
+        ca2 = new char[1 + eSize];
+      }
       if (ca1[0]!='0') {
         ca2[0] = ca1[0];
         j=1;
       }
       else {
-        for (j=1; j<(ePos==-1?ca1.length:ePos); j++)
-          if (ca1[j]!='0') break;
+        for (j=1; j<(ePos==-1?ca1.length:ePos); j++) {
+          if (ca1[j] != '0') break;
+        }
         if ((ePos!=-1 && j<ePos)||
             (ePos==-1 && j<ca1.length)) {
           ca2[0] = ca1[j];
@@ -1347,15 +1512,21 @@ public class Formatter {
         ca2[1] = '.';
         i=2;
       }
-      else
-        i=1;
-      for (k=0; k<p && j<ca1.length; j++,i++,k++)
+      else {
+        i = 1;
+      }
+      for (k=0; k<p && j<ca1.length; j++,i++,k++) {
         ca2[i] = ca1[j];
-      for (;i<ca2.length-eSize; i++)
+      }
+      for (;i<ca2.length-eSize; i++) {
         ca2[i] = '0';
+      }
       ca2[i++] = eChar;
-      if (expon<0) ca2[i++]='-';
-      else ca2[i++]='+';
+      if (expon<0) {
+        ca2[i++] = '-';
+      } else {
+        ca2[i++] = '+';
+      }
       expon = Math.abs(expon);
       if (expon>=100) {
         switch(expon/100) {
@@ -1401,48 +1572,65 @@ public class Formatter {
         int xThousands=0;
         if (thousands) {
           int xlead=0;
-          if (ca2[0]=='+'||ca2[0]=='-'||ca2[0]==' ')
-            xlead=1;
+          if (ca2[0]=='+'||ca2[0]=='-'||ca2[0]==' ') {
+            xlead = 1;
+          }
           int xdp=xlead;
-          for (; xdp<ca2.length; xdp++)
-            if (ca2[xdp]=='.') break;
+          for (; xdp<ca2.length; xdp++) {
+            if (ca2[xdp] == '.') break;
+          }
           xThousands=(xdp-xlead)/3;
         }
-        if (fieldWidthSet)
-          nZeros = fieldWidth-ca2.length;
-        if ((!minusSign&&(leadingSign||leadingSpace))||minusSign)
+        if (fieldWidthSet) {
+          nZeros = fieldWidth - ca2.length;
+        }
+        if ((!minusSign&&(leadingSign||leadingSpace))||minusSign) {
           nZeros--;
+        }
         nZeros-=xThousands;
-        if (nZeros<0) nZeros=0;
+        if (nZeros<0) {
+          nZeros = 0;
+        }
       }
       j=0;
       if ((!minusSign&&(leadingSign || leadingSpace))||minusSign) {
         ca3 = new char[ca2.length+nZeros+1];
         j++;
       }
-      else
-        ca3 = new char[ca2.length+nZeros];
-      if (!minusSign) {
-        if (leadingSign) ca3[0]='+';
-        if (leadingSpace) ca3[0]=' ';
+      else {
+        ca3 = new char[ca2.length + nZeros];
       }
-      else
-        ca3[0]='-';
-      for (k=0; k<nZeros; j++,k++)
-        ca3[j]='0';
-      for (i=0; i<ca2.length && j<ca3.length; i++,j++)
-        ca3[j]=ca2[i];
+      if (!minusSign) {
+        if (leadingSign) {
+          ca3[0] = '+';
+        }
+        if (leadingSpace) {
+          ca3[0] = ' ';
+        }
+      }
+      else {
+        ca3[0] = '-';
+      }
+      for (k=0; k<nZeros; j++,k++) {
+        ca3[j] = '0';
+      }
+      for (i=0; i<ca2.length && j<ca3.length; i++,j++) {
+        ca3[j] = ca2[i];
+      }
 
       int lead=0;
-      if (ca3[0]=='+'||ca3[0]=='-'||ca3[0]==' ')
-        lead=1;
+      if (ca3[0]=='+'||ca3[0]=='-'||ca3[0]==' ') {
+        lead = 1;
+      }
       int dp=lead;
-      for (; dp<ca3.length; dp++)
-        if (ca3[dp]=='.') break;
+      for (; dp<ca3.length; dp++) {
+        if (ca3[dp] == '.') break;
+      }
       int nThousands=dp/3;
       // Localize the decimal point.
-      if (dp < ca3.length)
+      if (dp < ca3.length) {
         ca3[dp] = dfs.getDecimalSeparator();
+      }
       char[] ca4 = ca3;
       if (thousands && nThousands>0) {
         ca4 = new char[ca3.length+nThousands+lead];
@@ -1458,8 +1646,9 @@ public class Formatter {
             ca4[k]=ca3[i]; k++;
           }
         }
-        for (; i<ca3.length; i++,k++)
-          ca4[k]=ca3[i];
+        for (; i<ca3.length; i++,k++) {
+          ca4[k] = ca3[i];
+        }
       }
       return ca4;
     }
@@ -1477,11 +1666,13 @@ public class Formatter {
       boolean carry=false;
       if (icarry<ca1.length) {
         if (ca1[icarry]=='6'||ca1[icarry]=='7'
-        ||ca1[icarry]=='8'||ca1[icarry]=='9') carry=true;
-        else if (ca1[icarry]=='5') {
+        ||ca1[icarry]=='8'||ca1[icarry]=='9') {
+          carry = true;
+        } else if (ca1[icarry]=='5') {
           int ii=icarry+1;
-          for (;ii<ca1.length; ii++)
-            if (ca1[ii]!='0') break;
+          for (;ii<ca1.length; ii++) {
+            if (ca1[ii] != '0') break;
+          }
           carry=ii<ca1.length;
           if (!carry&&icarry>0) {
             carry=(ca1[icarry-1]=='1'||ca1[icarry-1]=='3'
@@ -1541,24 +1732,32 @@ public class Formatter {
       char[] ca4,ca5;
       if (Double.isInfinite(x)) {
         if (x==Double.POSITIVE_INFINITY) {
-          if (leadingSign) ca4 = "+Inf".toCharArray();
-          else if (leadingSpace)
+          if (leadingSign) {
+            ca4 = "+Inf".toCharArray();
+          } else if (leadingSpace) {
             ca4 = " Inf".toCharArray();
-          else ca4 = "Inf".toCharArray();
+          } else {
+            ca4 = "Inf".toCharArray();
+          }
         }
-        else
+        else {
           ca4 = "-Inf".toCharArray();
+        }
         noDigits = true;
       }
       else if (Double.isNaN(x)) {
-        if (leadingSign) ca4 = "+NaN".toCharArray();
-        else if (leadingSpace)
+        if (leadingSign) {
+          ca4 = "+NaN".toCharArray();
+        } else if (leadingSpace) {
           ca4 = " NaN".toCharArray();
-        else ca4 = "NaN".toCharArray();
+        } else {
+          ca4 = "NaN".toCharArray();
+        }
         noDigits = true;
       }
-      else
-        ca4 = eFormatDigits(x,eChar);
+      else {
+        ca4 = eFormatDigits(x, eChar);
+      }
       ca5 = applyFloatPadding(ca4,false);
       return new String(ca5);
     }
@@ -1578,20 +1777,24 @@ public class Formatter {
           nBlanks = fieldWidth-ca4.length;
           if (nBlanks > 0) {
             ca5 = new char[ca4.length+nBlanks];
-            for (i=0; i<ca4.length; i++)
+            for (i=0; i<ca4.length; i++) {
               ca5[i] = ca4[i];
-            for (j=0; j<nBlanks; j++,i++)
+            }
+            for (j=0; j<nBlanks; j++,i++) {
               ca5[i] = ' ';
+            }
           }
         }
         else if (!leadingZeros || noDigits) {
           nBlanks = fieldWidth-ca4.length;
           if (nBlanks > 0) {
             ca5 = new char[ca4.length+nBlanks];
-            for (i=0; i<nBlanks; i++)
+            for (i=0; i<nBlanks; i++) {
               ca5[i] = ' ';
-            for (j=0; j<ca4.length; i++,j++)
+            }
+            for (j=0; j<ca4.length; i++,j++) {
               ca5[i] = ca4[j];
+            }
           }
         }
         else if (leadingZeros) {
@@ -1600,10 +1803,12 @@ public class Formatter {
             ca5 = new char[ca4.length+nBlanks];
             i=0; j=0;
             if (ca4[0]=='-') { ca5[0]='-'; i++; j++; }
-            for (int k=0; k<nBlanks; i++,k++)
+            for (int k=0; k<nBlanks; i++,k++) {
               ca5[i] = '0';
-            for (; j<ca4.length; i++,j++)
+            }
+            for (; j<ca4.length; i++,j++) {
               ca5[i] = ca4[j];
+            }
           }
         }
       }
@@ -1624,10 +1829,11 @@ public class Formatter {
      * @return the formatted String.
      */
     private String printEFormat(double x) {
-      if (conversionCharacter=='e')
-        return eFormatString(x,'e');
-      else
-        return eFormatString(x,'E');
+      if (conversionCharacter=='e') {
+        return eFormatString(x, 'e');
+      } else {
+        return eFormatString(x, 'E');
+      }
     }
     /**
      * Format method for the g conversion character.
@@ -1663,25 +1869,36 @@ public class Formatter {
       boolean noDigits=false;
       if (Double.isInfinite(x)) {
         if (x==Double.POSITIVE_INFINITY) {
-          if (leadingSign) ca4 = "+Inf".toCharArray();
-          else if (leadingSpace)
+          if (leadingSign) {
+            ca4 = "+Inf".toCharArray();
+          } else if (leadingSpace) {
             ca4 = " Inf".toCharArray();
-          else ca4 = "Inf".toCharArray();
+          } else {
+            ca4 = "Inf".toCharArray();
+          }
         }
-        else
+        else {
           ca4 = "-Inf".toCharArray();
+        }
         noDigits = true;
       }
       else if (Double.isNaN(x)) {
-        if (leadingSign) ca4 = "+NaN".toCharArray();
-        else if (leadingSpace)
+        if (leadingSign) {
+          ca4 = "+NaN".toCharArray();
+        } else if (leadingSpace) {
           ca4 = " NaN".toCharArray();
-        else ca4 = "NaN".toCharArray();
+        } else {
+          ca4 = "NaN".toCharArray();
+        }
         noDigits = true;
       }
       else {
-        if (!precisionSet) precision=defaultDigits;
-        if (precision==0) precision=1;
+        if (!precisionSet) {
+          precision = defaultDigits;
+        }
+        if (precision==0) {
+          precision = 1;
+        }
         int ePos=-1;
         if (conversionCharacter=='g') {
           sx = eFormatString(x,'e').trim();
@@ -1694,48 +1911,65 @@ public class Formatter {
         i=ePos+1;
         int expon=0;
         if (sx.charAt(i)=='-') {
-          for (++i; i<sx.length(); i++)
-            if (sx.charAt(i)!='0') break;
-          if (i<sx.length())
-            expon=-Integer.parseInt(sx.substring(i));
+          for (++i; i<sx.length(); i++) {
+            if (sx.charAt(i) != '0') break;
+          }
+          if (i<sx.length()) {
+            expon = -Integer.parseInt(sx.substring(i));
+          }
         }
         else {
-          if (sx.charAt(i)=='+') ++i;
-          for (; i<sx.length(); i++)
-            if (sx.charAt(i)!='0') break;
-          if (i<sx.length())
-            expon=Integer.parseInt(sx.substring(i));
+          if (sx.charAt(i)=='+') {
+            ++i;
+          }
+          for (; i<sx.length(); i++) {
+            if (sx.charAt(i) != '0') break;
+          }
+          if (i<sx.length()) {
+            expon = Integer.parseInt(sx.substring(i));
+          }
         }
         // Trim trailing zeros.
         // If the radix character is not followed by
         // a digit, trim it, too.
         if (!alternateForm) {
-          if (expon>=-4 && expon<precision)
+          if (expon>=-4 && expon<precision) {
             sy = fFormatString(x).trim();
-          else
-            sy = sx.substring(0,ePos);
+          } else {
+            sy = sx.substring(0, ePos);
+          }
           i=sy.length()-1;
-          for (; i>=0; i--)
-            if (sy.charAt(i)!='0') break;
-          if (i>=0 && sy.charAt(i)=='.') i--;
-          if (i==-1) sz="0";
-          else if (!Character.isDigit(sy.charAt(i)))
-            sz=sy.substring(0,i+1)+"0";
-          else sz=sy.substring(0,i+1);
-          if (expon>=-4 && expon<precision)
-            ret=sz;
-          else
-            ret=sz+sx.substring(ePos);
+          for (; i>=0; i--) {
+            if (sy.charAt(i) != '0') break;
+          }
+          if (i>=0 && sy.charAt(i)=='.') {
+            i--;
+          }
+          if (i==-1) {
+            sz = "0";
+          } else if (!Character.isDigit(sy.charAt(i))) {
+            sz = sy.substring(0, i + 1) + "0";
+          } else {
+            sz = sy.substring(0, i + 1);
+          }
+          if (expon>=-4 && expon<precision) {
+            ret = sz;
+          } else {
+            ret = sz + sx.substring(ePos);
+          }
         }
         else {
-          if (expon>=-4 && expon<precision)
+          if (expon>=-4 && expon<precision) {
             ret = fFormatString(x).trim();
-          else
+          } else {
             ret = sx;
+          }
         }
         // leading space was trimmed off during
         // construction
-        if (leadingSpace) if (x>=0) ret = " "+ret;
+        if (leadingSpace) {
+          if (x >= 0) ret = " " + ret;
+        }
         ca4 = ret.toCharArray();
       }
       // Pad with blanks or zeros.
@@ -1843,63 +2077,93 @@ public class Formatter {
       int nBlanks=0,n=0;
       int i=0,jFirst=0;
       boolean neg = sx.charAt(0)=='-';
-      if (sx.equals("0")&&precisionSet&&precision==0)
-        sx="";
+      if (sx.equals("0")&&precisionSet&&precision==0) {
+        sx = "";
+      }
       if (!neg) {
-        if (precisionSet && sx.length() < precision)
-          nLeadingZeros = precision-sx.length();
+        if (precisionSet && sx.length() < precision) {
+          nLeadingZeros = precision - sx.length();
+        }
       }
       else {
-        if (precisionSet&&(sx.length()-1)<precision)
-          nLeadingZeros = precision-sx.length()+1;
+        if (precisionSet&&(sx.length()-1)<precision) {
+          nLeadingZeros = precision - sx.length() + 1;
+        }
       }
-      if (nLeadingZeros<0) nLeadingZeros=0;
+      if (nLeadingZeros<0) {
+        nLeadingZeros = 0;
+      }
       if (fieldWidthSet) {
         nBlanks = fieldWidth-nLeadingZeros-sx.length();
-        if (!neg&&(leadingSign||leadingSpace))
+        if (!neg&&(leadingSign||leadingSpace)) {
           nBlanks--;
+        }
       }
-      if (nBlanks<0) nBlanks=0;
-      if (leadingSign) n++;
-      else if (leadingSpace) n++;
+      if (nBlanks<0) {
+        nBlanks = 0;
+      }
+      if (leadingSign) {
+        n++;
+      } else if (leadingSpace) {
+        n++;
+      }
       n += nBlanks;
       n += nLeadingZeros;
       n += sx.length();
       char[] ca = new char[n];
       if (leftJustify) {
-        if (neg) ca[i++] = '-';
-        else if (leadingSign) ca[i++] = '+';
-        else if (leadingSpace) ca[i++] = ' ';
+        if (neg) {
+          ca[i++] = '-';
+        } else if (leadingSign) {
+          ca[i++] = '+';
+        } else if (leadingSpace) {
+          ca[i++] = ' ';
+        }
         char[] csx = sx.toCharArray();
         jFirst = neg?1:0;
-        for (int j=0; j<nLeadingZeros; i++,j++)
-          ca[i]='0';
-        for (int j=jFirst; j<csx.length; j++,i++)
+        for (int j=0; j<nLeadingZeros; i++,j++) {
+          ca[i] = '0';
+        }
+        for (int j=jFirst; j<csx.length; j++,i++) {
           ca[i] = csx[j];
-        for (int j=0; j<nBlanks; i++,j++)
+        }
+        for (int j=0; j<nBlanks; i++,j++) {
           ca[i] = ' ';
+        }
       }
       else {
         if (!leadingZeros) {
-          for (i=0; i<nBlanks; i++)
+          for (i=0; i<nBlanks; i++) {
             ca[i] = ' ';
-          if (neg) ca[i++] = '-';
-          else if (leadingSign) ca[i++] = '+';
-          else if (leadingSpace) ca[i++] = ' ';
+          }
+          if (neg) {
+            ca[i++] = '-';
+          } else if (leadingSign) {
+            ca[i++] = '+';
+          } else if (leadingSpace) {
+            ca[i++] = ' ';
+          }
         }
         else {
-          if (neg) ca[i++] = '-';
-          else if (leadingSign) ca[i++] = '+';
-          else if (leadingSpace) ca[i++] = ' ';
-          for (int j=0; j<nBlanks; j++,i++)
+          if (neg) {
+            ca[i++] = '-';
+          } else if (leadingSign) {
+            ca[i++] = '+';
+          } else if (leadingSpace) {
+            ca[i++] = ' ';
+          }
+          for (int j=0; j<nBlanks; j++,i++) {
             ca[i] = '0';
+          }
         }
-        for (int j=0; j<nLeadingZeros; j++,i++)
+        for (int j=0; j<nLeadingZeros; j++,i++) {
           ca[i] = '0';
+        }
         char[] csx = sx.toCharArray();
         jFirst = neg?1:0;
-        for (int j=jFirst; j<csx.length; j++,i++)
+        for (int j=jFirst; j<csx.length; j++,i++) {
           ca[i] = csx[j];
+        }
       }
       return new String(ca);
     }
@@ -1925,17 +2189,18 @@ public class Formatter {
      */
     private String printXFormat(short x) {
       String sx=null;
-      if (x == Short.MIN_VALUE)
+      if (x == Short.MIN_VALUE) {
         sx = "8000";
-      else if (x < 0) {
+      } else if (x < 0) {
         String t;
-        if (x==Short.MIN_VALUE)
+        if (x==Short.MIN_VALUE) {
           t = "0";
-        else {
+        } else {
           t = Integer.toString(
             (~(-x-1))^Short.MIN_VALUE,16);
-          if (t.charAt(0)=='F'||t.charAt(0)=='f')
-            t = t.substring(16,32);
+          if (t.charAt(0)=='F'||t.charAt(0)=='f') {
+            t = t.substring(16, 32);
+          }
         }
         switch (t.length()) {
         case 1:
@@ -1974,8 +2239,9 @@ public class Formatter {
           break;
         }
       }
-      else
-        sx = Integer.toString((int)x,16);
+      else {
+        sx = Integer.toString((int) x, 16);
+      }
       return printXFormat(sx);
     }
     /**
@@ -2000,9 +2266,9 @@ public class Formatter {
      */
     private String printXFormat(long x) {
       String sx=null;
-      if (x == Long.MIN_VALUE)
+      if (x == Long.MIN_VALUE) {
         sx = "8000000000000000";
-      else if (x < 0) {
+      } else if (x < 0) {
         String t = Long.toString(
           (~(-x-1))^Long.MIN_VALUE,16);
         switch (t.length()) {
@@ -2078,8 +2344,9 @@ public class Formatter {
           break;
         }
       }
-      else
-        sx = Long.toString(x,16);
+      else {
+        sx = Long.toString(x, 16);
+      }
       return printXFormat(sx);
     }
     /**
@@ -2104,9 +2371,9 @@ public class Formatter {
      */
     private String printXFormat(int x) {
       String sx=null;
-      if (x == Integer.MIN_VALUE)
+      if (x == Integer.MIN_VALUE) {
         sx = "80000000";
-      else if (x < 0) {
+      } else if (x < 0) {
         String t = Integer.toString(
           (~(-x-1))^Integer.MIN_VALUE,16);
         switch (t.length()) {
@@ -2158,8 +2425,9 @@ public class Formatter {
           break;
         }
       }
-      else
-        sx = Integer.toString(x,16);
+      else {
+        sx = Integer.toString(x, 16);
+      }
       return printXFormat(sx);
     }
     /**
@@ -2173,18 +2441,28 @@ public class Formatter {
     private String printXFormat(String sx) {
       int nLeadingZeros = 0;
       int nBlanks = 0;
-      if (sx.equals("0")&&precisionSet&&precision==0)
-        sx="";
-      if (precisionSet)
-        nLeadingZeros = precision-sx.length();
-      if (nLeadingZeros<0) nLeadingZeros=0;
+      if (sx.equals("0")&&precisionSet&&precision==0) {
+        sx = "";
+      }
+      if (precisionSet) {
+        nLeadingZeros = precision - sx.length();
+      }
+      if (nLeadingZeros<0) {
+        nLeadingZeros = 0;
+      }
       if (fieldWidthSet) {
         nBlanks = fieldWidth-nLeadingZeros-sx.length();
-        if (alternateForm) nBlanks = nBlanks - 2;
+        if (alternateForm) {
+          nBlanks = nBlanks - 2;
+        }
       }
-      if (nBlanks<0) nBlanks=0;
+      if (nBlanks<0) {
+        nBlanks = 0;
+      }
       int n=0;
-      if (alternateForm) n+=2;
+      if (alternateForm) {
+        n += 2;
+      }
       n += nLeadingZeros;
       n += sx.length();
       n += nBlanks;
@@ -2194,33 +2472,41 @@ public class Formatter {
         if (alternateForm) {
           ca[i++]='0'; ca[i++]='x';
         }
-        for (int j=0; j<nLeadingZeros; j++,i++)
-          ca[i]='0';
+        for (int j=0; j<nLeadingZeros; j++,i++) {
+          ca[i] = '0';
+        }
         char[] csx = sx.toCharArray();
-        for (int j=0; j<csx.length; j++,i++)
+        for (int j=0; j<csx.length; j++,i++) {
           ca[i] = csx[j];
-        for (int j=0; j<nBlanks; j++,i++)
+        }
+        for (int j=0; j<nBlanks; j++,i++) {
           ca[i] = ' ';
+        }
       }
       else {
-        if (!leadingZeros)
-          for (int j=0; j<nBlanks; j++,i++)
+        if (!leadingZeros) {
+          for (int j = 0; j < nBlanks; j++, i++)
             ca[i] = ' ';
+        }
         if (alternateForm) {
           ca[i++]='0'; ca[i++]='x';
         }
-        if (leadingZeros)
-          for (int j=0; j<nBlanks; j++,i++)
+        if (leadingZeros) {
+          for (int j = 0; j < nBlanks; j++, i++)
             ca[i] = '0';
-        for (int j=0; j<nLeadingZeros; j++,i++)
-          ca[i]='0';
+        }
+        for (int j=0; j<nLeadingZeros; j++,i++) {
+          ca[i] = '0';
+        }
         char[] csx = sx.toCharArray();
-        for (int j=0; j<csx.length; j++,i++)
+        for (int j=0; j<csx.length; j++,i++) {
           ca[i] = csx[j];
+        }
       }
       String caReturn=new String(ca);
-      if (conversionCharacter=='X')
+      if (conversionCharacter=='X') {
         caReturn = caReturn.toUpperCase();
+      }
       return caReturn;
     }
     /**
@@ -2246,9 +2532,9 @@ public class Formatter {
      */
     private String printOFormat(short x) {
       String sx=null;
-      if (x == Short.MIN_VALUE)
+      if (x == Short.MIN_VALUE) {
         sx = "100000";
-      else if (x < 0) {
+      } else if (x < 0) {
         String t = Integer.toString(
           (~(-x-1))^Short.MIN_VALUE,8);
         switch (t.length()) {
@@ -2269,8 +2555,9 @@ public class Formatter {
           break;
         }
       }
-      else
-        sx = Integer.toString((int)x,8);
+      else {
+        sx = Integer.toString((int) x, 8);
+      }
       return printOFormat(sx);
     }
     /**
@@ -2296,9 +2583,9 @@ public class Formatter {
      */
     private String printOFormat(long x) {
       String sx=null;
-      if (x == Long.MIN_VALUE)
+      if (x == Long.MIN_VALUE) {
         sx = "1000000000000000000000";
-      else if (x < 0) {
+      } else if (x < 0) {
         String t = Long.toString(
           (~(-x-1))^Long.MIN_VALUE,8);
         switch (t.length()) {
@@ -2367,8 +2654,9 @@ public class Formatter {
           break;
         }
       }
-      else
-        sx = Long.toString(x,8);
+      else {
+        sx = Long.toString(x, 8);
+      }
       return printOFormat(sx);
     }
     /**
@@ -2394,9 +2682,9 @@ public class Formatter {
      */
     private String printOFormat(int x) {
       String sx=null;
-      if (x == Integer.MIN_VALUE)
+      if (x == Integer.MIN_VALUE) {
         sx = "20000000000";
-      else if (x < 0) {
+      } else if (x < 0) {
         String t = Integer.toString(
           (~(-x-1))^Integer.MIN_VALUE,8);
         switch (t.length()) {
@@ -2435,8 +2723,9 @@ public class Formatter {
           break;
         }
       }
-      else
-        sx = Integer.toString(x,8);
+      else {
+        sx = Integer.toString(x, 8);
+      }
       return printOFormat(sx);
     }
     /**
@@ -2450,35 +2739,52 @@ public class Formatter {
     private String printOFormat(String sx) {
       int nLeadingZeros = 0;
       int nBlanks = 0;
-      if (sx.equals("0")&&precisionSet&&precision==0)
-        sx="";
-      if (precisionSet)
-        nLeadingZeros = precision-sx.length();
-      if (alternateForm) nLeadingZeros++;
-      if (nLeadingZeros<0) nLeadingZeros=0;
-      if (fieldWidthSet)
-        nBlanks = fieldWidth-nLeadingZeros-sx.length();
-      if (nBlanks<0) nBlanks=0;
+      if (sx.equals("0")&&precisionSet&&precision==0) {
+        sx = "";
+      }
+      if (precisionSet) {
+        nLeadingZeros = precision - sx.length();
+      }
+      if (alternateForm) {
+        nLeadingZeros++;
+      }
+      if (nLeadingZeros<0) {
+        nLeadingZeros = 0;
+      }
+      if (fieldWidthSet) {
+        nBlanks = fieldWidth - nLeadingZeros - sx.length();
+      }
+      if (nBlanks<0) {
+        nBlanks = 0;
+      }
       int n=nLeadingZeros+sx.length()+nBlanks;
       char[] ca = new char[n];
       int i;
       if (leftJustify) {
-        for (i=0; i<nLeadingZeros; i++) ca[i]='0';
+        for (i=0; i<nLeadingZeros; i++) {
+          ca[i] = '0';
+        }
         char[] csx = sx.toCharArray();
-        for (int j=0; j<csx.length; j++,i++)
+        for (int j=0; j<csx.length; j++,i++) {
           ca[i] = csx[j];
-        for (int j=0; j<nBlanks; j++,i++) ca[i] = ' ';
+        }
+        for (int j=0; j<nBlanks; j++,i++) {
+          ca[i] = ' ';
+        }
       }
       else {
-        if (leadingZeros)
-          for (i=0; i<nBlanks; i++) ca[i]='0';
-        else
-          for (i=0; i<nBlanks; i++) ca[i]=' ';
-        for (int j=0; j<nLeadingZeros; j++,i++)
-          ca[i]='0';
+        if (leadingZeros) {
+          for (i = 0; i < nBlanks; i++) ca[i] = '0';
+        } else {
+          for (i = 0; i < nBlanks; i++) ca[i] = ' ';
+        }
+        for (int j=0; j<nLeadingZeros; j++,i++) {
+          ca[i] = '0';
+        }
         char[] csx = sx.toCharArray();
-        for (int j=0; j<csx.length; j++,i++)
+        for (int j=0; j<csx.length; j++,i++) {
           ca[i] = csx[j];
+        }
       }
       return new String(ca);
     }
@@ -2502,15 +2808,21 @@ public class Formatter {
     private String printCFormat(char x) {
       int nPrint = 1;
       int width = fieldWidth;
-      if (!fieldWidthSet) width = nPrint;
+      if (!fieldWidthSet) {
+        width = nPrint;
+      }
       char[] ca = new char[width];
       int i=0;
       if (leftJustify) {
         ca[0] = x;
-        for (i=1; i<=width-nPrint; i++) ca[i]=' ';
+        for (i=1; i<=width-nPrint; i++) {
+          ca[i] = ' ';
+        }
       }
       else {
-        for (i=0; i<width-nPrint; i++) ca[i]=' ';
+        for (i=0; i<width-nPrint; i++) {
+          ca[i] = ' ';
+        }
         ca[i] = x;
       }
       return new String(ca);
@@ -2541,40 +2853,57 @@ public class Formatter {
     private String printSFormat(String x) {
       int nPrint = x.length();
       int width = fieldWidth;
-      if (precisionSet && nPrint>precision)
-        nPrint=precision;
-      if (!fieldWidthSet) width = nPrint;
+      if (precisionSet && nPrint>precision) {
+        nPrint = precision;
+      }
+      if (!fieldWidthSet) {
+        width = nPrint;
+      }
       int n=0;
-      if (width>nPrint) n+=width-nPrint;
-      if (nPrint>=x.length()) n+= x.length();
-      else n+= nPrint;
+      if (width>nPrint) {
+        n += width - nPrint;
+      }
+      if (nPrint>=x.length()) {
+        n += x.length();
+      } else {
+        n += nPrint;
+      }
       char[] ca = new char[n];
       int i=0;
       if (leftJustify) {
         if (nPrint>=x.length()) {
           char[] csx = x.toCharArray();
-          for (i=0; i<x.length(); i++) ca[i]=csx[i];
+          for (i=0; i<x.length(); i++) {
+            ca[i] = csx[i];
+          }
         }
         else {
           char[] csx =
             x.substring(0,nPrint).toCharArray();
-          for (i=0; i<nPrint; i++) ca[i]=csx[i];
+          for (i=0; i<nPrint; i++) {
+            ca[i] = csx[i];
+          }
         }
-        for (int j=0; j<width-nPrint; j++,i++)
-          ca[i]=' ';
+        for (int j=0; j<width-nPrint; j++,i++) {
+          ca[i] = ' ';
+        }
       }
       else {
-        for (i=0; i<width-nPrint; i++) ca[i]=' ';
+        for (i=0; i<width-nPrint; i++) {
+          ca[i] = ' ';
+        }
         if (nPrint>=x.length()) {
           char[] csx = x.toCharArray();
-          for (int j=0; j<x.length(); i++,j++)
-            ca[i]=csx[j];
+          for (int j=0; j<x.length(); i++,j++) {
+            ca[i] = csx[j];
+          }
         }
         else {
           char[] csx =
             x.substring(0,nPrint).toCharArray();
-          for (int j=0; j<nPrint; i++,j++)
-            ca[i]=csx[j];
+          for (int j=0; j<nPrint; i++,j++) {
+            ca[i] = csx[j];
+          }
         }
       }
       return new String(ca);
@@ -2642,8 +2971,11 @@ public class Formatter {
         else {
           while (pos < fmt.length()) {
             char c = fmt.charAt(pos);
-            if (Character.isDigit(c)) pos++;
-            else break;
+            if (Character.isDigit(c)) {
+              pos++;
+            } else {
+              break;
+            }
           }
           if (pos > firstPos+1) {
             String sz = fmt.substring(firstPos+1,pos);
@@ -2671,8 +3003,11 @@ public class Formatter {
       else {
         while (pos < fmt.length()) {
           char c = fmt.charAt(pos);
-          if (Character.isDigit(c)) pos++;
-          else break;
+          if (Character.isDigit(c)) {
+            pos++;
+          } else {
+            break;
+          }
         }
         if (firstPos<pos && firstPos < fmt.length()) {
           String sz = fmt.substring(firstPos,pos);
@@ -2687,8 +3022,9 @@ public class Formatter {
     private void setArgPosition() {
       int xPos;
       for (xPos=pos; xPos<fmt.length(); xPos++) {
-        if (!Character.isDigit(fmt.charAt(xPos)))
+        if (!Character.isDigit(fmt.charAt(xPos))) {
           break;
+        }
       }
       if (xPos>pos && xPos<fmt.length()) {
         if (fmt.charAt(xPos)=='$') {
@@ -2706,8 +3042,9 @@ public class Formatter {
       boolean ret=false;
       int xPos;
       for (xPos=pos; xPos<fmt.length(); xPos++) {
-        if (!Character.isDigit(fmt.charAt(xPos)))
+        if (!Character.isDigit(fmt.charAt(xPos))) {
           break;
+        }
       }
       if (xPos>pos && xPos<fmt.length()) {
         if (fmt.charAt(xPos)=='$') {
@@ -2727,8 +3064,9 @@ public class Formatter {
       boolean ret=false;
       int xPos;
       for (xPos=pos; xPos<fmt.length(); xPos++) {
-        if (!Character.isDigit(fmt.charAt(xPos)))
+        if (!Character.isDigit(fmt.charAt(xPos))) {
           break;
+        }
       }
       if (xPos>pos && xPos<fmt.length()) {
         if (fmt.charAt(xPos)=='$') {
@@ -2770,8 +3108,9 @@ public class Formatter {
       leadingZeros = false;
       for ( ; pos < fmt.length(); pos++) {
         char c = fmt.charAt(pos);
-        if (c == '\'') thousands = true;
-        else if (c == '-') {
+        if (c == '\'') {
+          thousands = true;
+        } else if (c == '-') {
           leftJustify = true;
           leadingZeros = false;
         }
@@ -2780,13 +3119,20 @@ public class Formatter {
           leadingSpace = false;
         }
         else if (c == ' ') {
-          if (!leadingSign) leadingSpace = true;
+          if (!leadingSign) {
+            leadingSpace = true;
+          }
         }
-        else if (c == '#') alternateForm = true;
-        else if (c == '0') {
-          if (!leftJustify) leadingZeros = true;
+        else if (c == '#') {
+          alternateForm = true;
+        } else if (c == '0') {
+          if (!leftJustify) {
+            leadingZeros = true;
+          }
         }
-        else break;
+        else {
+          break;
+        }
       }
     }
     /**

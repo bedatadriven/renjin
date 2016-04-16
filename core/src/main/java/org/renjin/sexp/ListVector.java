@@ -214,7 +214,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
 
   @Override
   public int getElementAsRawLogical(int index) {
-  SEXP value = values[index];
+    SEXP value = values[index];
     if(value.length() == 1 && value instanceof AtomicVector) {
       return ((AtomicVector) value).getElementAsRawLogical(0);
     }
@@ -316,12 +316,18 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     ListVector listExp = (ListVector) o;
 
-    if (!Arrays.equals(values, listExp.values)) return false;
+    if (!Arrays.equals(values, listExp.values)) {
+      return false;
+    }
 
     return true;
   }
@@ -392,7 +398,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
   }
 
   public static class Builder extends AbstractVector.AbstractBuilder<SEXP> {
-    private final List<SEXP> values;
+    protected final List<SEXP> values;
     
     public Builder() {
       this(0,0);
@@ -579,7 +585,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
     }    
   }
 
-  private static class ListType extends Vector.Type {
+  protected static class ListType extends Vector.Type {
     public ListType() {
       super(Order.LIST);
     }

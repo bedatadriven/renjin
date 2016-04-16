@@ -21,11 +21,11 @@
 
 package org.renjin.sexp;
 
-import java.util.Iterator;
-
-import org.apache.commons.math.complex.Complex;
-
 import com.google.common.collect.UnmodifiableIterator;
+import org.apache.commons.math.complex.Complex;
+import org.renjin.eval.Profiler;
+
+import java.util.Iterator;
 
 public abstract class AbstractAtomicVector extends AbstractVector implements AtomicVector{
 
@@ -87,6 +87,9 @@ public abstract class AbstractAtomicVector extends AbstractVector implements Ato
 
   @Override
   public double[] toDoubleArray() {
+    if(Profiler.ENABLED) {
+      Profiler.memoryAllocated(Double.SIZE, length());
+    }
     double [] d = new double[length()];
     for(int i=0;i!=d.length;++i) {
       d[i] = getElementAsDouble(i);
@@ -96,6 +99,9 @@ public abstract class AbstractAtomicVector extends AbstractVector implements Ato
 
   @Override
   public int[] toIntArray() {
+    if(Profiler.ENABLED) {
+      Profiler.memoryAllocated(Integer.SIZE, length());
+    }
     int[] array = new int[length()];
     for(int i=0;i!=array.length;++i) {
       array[i] = getElementAsInt(i);

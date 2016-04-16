@@ -49,14 +49,24 @@ public class Position {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     Position position = (Position) o;
 
-    if (charIndex != position.charIndex) return false;
-    if (column != position.column) return false;
-    if (line != position.line) return false;
+    if (charIndex != position.charIndex) {
+      return false;
+    }
+    if (column != position.column) {
+      return false;
+    }
+    if (line != position.line) {
+      return false;
+    }
 
     return true;
   }

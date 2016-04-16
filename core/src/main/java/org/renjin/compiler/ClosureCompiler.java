@@ -143,7 +143,7 @@ public class ClosureCompiler implements Opcodes {
     mv.visitInsn(ARETURN);
     mv.visitMaxs(1, 0);
     mv.visitEnd();
- }
+  }
  
   private void writeDoEvalBody(MethodVisitor mv) {
  
@@ -171,7 +171,7 @@ public class ClosureCompiler implements Opcodes {
   class MyClassLoader extends ClassLoader {
     public Class defineClass(String name, byte[] b) {
       return defineClass(name, b, 0, b.length);
-   }
+    }
   }
 
   public List<Entry<String, IRFunction>> getNestedClosures() {

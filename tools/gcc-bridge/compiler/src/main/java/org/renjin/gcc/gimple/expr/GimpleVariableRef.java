@@ -33,12 +33,18 @@ public class GimpleVariableRef extends GimpleLValue implements GimpleSymbolRef {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     GimpleVariableRef that = (GimpleVariableRef) o;
 
-    if (id != that.id) return false;
+    if (id != that.id) {
+      return false;
+    }
     return !(name != null ? !name.equals(that.name) : that.name != null);
   }
 

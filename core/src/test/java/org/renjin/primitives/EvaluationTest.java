@@ -157,7 +157,7 @@ public class EvaluationTest extends EvalTestCase {
     eval("y<-0");
     eval("while(x<5) {  x<-x+1; if(x==3) next; y<-y+1 }");
 
-    assertThat(eval("y"), equalTo( c(3) ));
+    assertThat(eval("y"), equalTo(c(3)));
   }
   
   @Test
@@ -199,7 +199,7 @@ public class EvaluationTest extends EvalTestCase {
   }
 
   @Test
-  public void missingArgPropogates() {
+  public void missingArgPropagates() {
     eval("f <- function(x) missing(x) ");
     eval("g <- function(x) f(x) ");
     eval("h <- function(x) g(x) ");
@@ -220,7 +220,8 @@ public class EvaluationTest extends EvalTestCase {
     eval("f<-function(y, x=1) missing(x) ");
     eval("g<-function(z, ...) f(y=z,...) ");
     
-    assertThat( eval("g(4)"), equalTo(c(true)));  
+    assertThat(eval("g(4)"), equalTo(c(true)));
+    assertThat(eval("g(x=4)"), equalTo(c(false)));
   }
 
   @Test
@@ -288,7 +289,7 @@ public class EvaluationTest extends EvalTestCase {
     eval( " x <- list(a = 1)");
     eval( " x$a <- 3");
 
-    assertThat( eval("x$a"), equalTo( c(3)));
+    assertThat(eval("x$a"), equalTo(c(3)));
   }
 
   @Test
@@ -338,7 +339,7 @@ public class EvaluationTest extends EvalTestCase {
 
     assertThat(eval("class(x)"), equalTo(c("foo")));
     assertThat(eval("class(y)"), equalTo(c("foo")));
-    assertThat( eval("class(z)"), equalTo(c("foo")));
+    assertThat(eval("class(z)"), equalTo(c("foo")));
   }
 
   @Test
@@ -730,7 +731,7 @@ public class EvaluationTest extends EvalTestCase {
   public void evalWithNumericNegEnv() {
     eval(" f <- function() eval(quote(x), envir=-2L) ");
     eval(" g <- function() { x<- 43; f() }");
-    assertThat( eval("g()"), equalTo(c(43)));
+    assertThat(eval("g()"), equalTo(c(43)));
   }
 
   @Test
@@ -821,6 +822,47 @@ public class EvaluationTest extends EvalTestCase {
     assertThat(x.getNames().getElementAsString(0), equalTo("..."));
     assertThat(x.getNames().getElementAsString(1), equalTo("b"));
 
+  }
+  
+  @Test
+  public void repromisedNotMissing() {
+    
+    eval("`f<-` <- function(lhs, value) missing(value)");
+    eval("x <- 1");
+    eval("y <- 2");
+    eval("f(x) <- y"); 
+    assertThat(eval("x"), equalTo(c(false)));
+  }
+
+  @Test
+  public void repromisedMissing() {
+
+    eval("`f<-` <- function(lhs, value) missing(value)");
+    eval("g <- function(y=1) { x<-1; f(x) <- y; x; }");
+    assertThat(eval("g()"), equalTo(c(false)));
+  }
+  
+  @Test
+  public void missingEvaluatedPromise() {
+    
+    eval("g <- function(y=1) { y+1; missing(y); }");
+    assertThat(eval("g()"), equalTo(c(true)));  
+  }
+  
+  @Test
+  public void missingGroupDispatch() {
+    eval("`+.foo` <- function(x, y) { missing(y) }");
+    eval("f <- function(a) { a+a } ");
+    eval("x <- 1");
+    eval("class(x) <- 'foo'");
+    assertThat(eval("f(x)"), equalTo(c(false)));
+  }
+
+  @Test
+  public void missingnessDoesNotPropogate() {
+    eval("g <- function(y = NULL) missing(y)");
+    eval("f <- function(x = NULL) g(y = x)");
+    assertThat(eval("f()"), equalTo(c(false)));
   }
 }
 

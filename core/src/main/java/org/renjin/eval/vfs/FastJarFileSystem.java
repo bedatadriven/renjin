@@ -18,8 +18,7 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 
-public class FastJarFileSystem extends AbstractFileSystem
-implements FileSystem {
+public class FastJarFileSystem extends AbstractFileSystem implements FileSystem {
 
   private final static Log log = LogFactory.getLog(ZipFileSystem.class);
 

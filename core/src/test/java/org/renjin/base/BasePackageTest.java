@@ -268,6 +268,7 @@ public class BasePackageTest extends EvalTestCase {
   }
   
 
+  @Ignore
   @Test
   public void parse() throws IOException {
     loadBasePackage();

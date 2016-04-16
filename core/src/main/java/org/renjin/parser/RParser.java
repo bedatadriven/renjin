@@ -256,10 +256,11 @@ public class RParser {
      * method.
      */
     public String toString() {
-      if (begin == null && end == null || (begin != null && begin.equals(end)))
+      if (begin == null && end == null || (begin != null && begin.equals(end))) {
         return "" + toString(begin);
-      else
+      } else {
         return "" + toString(begin) + "-" + toString(end);
+      }
     }
 
     private String toString(Position p) {
@@ -430,10 +431,11 @@ public class RParser {
 
 
   private Location yylloc(YYStack rhs, int n) {
-    if (n > 0)
+    if (n > 0) {
       return new Location(rhs.locationAt(1).begin, rhs.locationAt(n).end);
-    else
+    } else {
       return new Location(rhs.locationAt(0).end);
+    }
   }
 
   /**
@@ -564,8 +566,9 @@ public class RParser {
   }
 
   protected final void yycdebug(String s) {
-    if (yydebug > 0)
+    if (yydebug > 0) {
       yyDebugStream.println(s);
+    }
   }
 
   private final class YYStack {
@@ -690,10 +693,11 @@ public class RParser {
        Otherwise, the following line sets YYVAL to garbage.
        This behavior is undocumented and Bison
        users should not rely upon it.  */
-    if (yylen > 0)
+    if (yylen > 0) {
       yyval = yystack.valueAt(yylen - 1);
-    else
+    } else {
       yyval = yystack.valueAt(0);
+    }
 
     yy_reduce_print(yyn, yystack);
 
@@ -1692,10 +1696,11 @@ public class RParser {
     yyn = yyr1_[yyn];
     int yystate = yypgoto_[yyn - yyntokens_] + yystack.stateAt(0);
     if (0 <= yystate && yystate <= yylast_
-        && yycheck_[yystate] == yystack.stateAt(0))
+        && yycheck_[yystate] == yystack.stateAt(0)) {
       yystate = yytable_[yystate];
-    else
+    } else {
       yystate = yydefgoto_[yyn - yyntokens_];
+    }
 
     yystack.push(yystate, yyval, yyloc);
     return YYNEWSTATE;
@@ -1711,15 +1716,16 @@ public class RParser {
     if (yystr.charAt(0) == '"') {
       StringBuffer yyr = new StringBuffer();
       strip_quotes:
-      for (int i = 1; i < yystr.length(); i++)
+      for (int i = 1; i < yystr.length(); i++) {
         switch (yystr.charAt(i)) {
           case '\'':
           case ',':
             break strip_quotes;
 
           case '\\':
-            if (yystr.charAt(++i) != '\\')
+            if (yystr.charAt(++i) != '\\') {
               break strip_quotes;
+            }
             /* Fall through.  */
           default:
             yyr.append(yystr.charAt(i));
@@ -1728,8 +1734,10 @@ public class RParser {
           case '"':
             return yyr.toString();
         }
-    } else if (yystr.equals("$end"))
+      }
+    } else if (yystr.equals("$end")) {
       return "end of input";
+    }
 
     return yystr;
   }
@@ -1740,11 +1748,12 @@ public class RParser {
 
   private void yy_symbol_print(String s, int yytype,
                                Object yyvaluep, Object yylocationp) {
-    if (yydebug > 0)
+    if (yydebug > 0) {
       yycdebug(s + (yytype < yyntokens_ ? " token " : " nterm ")
           + yytname_[yytype] + " ("
           + yylocationp + ": "
           + (yyvaluep == null ? "(null)" : yyvaluep.toString()) + ")");
+    }
   }
 
   /**
@@ -1790,18 +1799,20 @@ public class RParser {
     yystack.push(yystate, yylval, yylloc);
 
     int label = YYNEWSTATE;
-    for (; ;)
+    for (; ;) {
       switch (label) {
         /* New state.  Unlike in the C/C++ skeletons, the state is already
-	   pushed when we come here.  */
+     pushed when we come here.  */
         case YYNEWSTATE:
           yycdebug("Entering state " + yystate + "\n");
-          if (yydebug > 0)
+          if (yydebug > 0) {
             yystack.print(yyDebugStream);
+          }
 
           /* Accept?  */
-          if (yystate == yyfinal_)
+          if (yystate == yyfinal_) {
             return true;
+          }
 
           /* Take a decision.  First try without lookahead.  */
           yyn = yypact_[yystate];
@@ -1833,14 +1844,12 @@ public class RParser {
           /* If the proper action on seeing token YYTOKEN is to reduce or to
    detect an error, take that action.  */
           yyn += yytoken;
-          if (yyn < 0 || yylast_ < yyn || yycheck_[yyn] != yytoken)
+          if (yyn < 0 || yylast_ < yyn || yycheck_[yyn] != yytoken) {
             label = YYDEFAULT;
-
-            /* <= 0 means reduce or error.  */
-          else if ((yyn = yytable_[yyn]) <= 0) {
-            if (yyn == 0 || yyn == yytable_ninf_)
+          }/* <= 0 means reduce or error.  */ else if ((yyn = yytable_[yyn]) <= 0) {
+            if (yyn == 0 || yyn == yytable_ninf_) {
               label = YYFAIL;
-            else {
+            } else {
               yyn = -yyn;
               label = YYREDUCE;
             }
@@ -1854,8 +1863,9 @@ public class RParser {
 
             /* Count tokens shifted since error; after three, turn off error
                status.  */
-            if (yyerrstatus_ > 0)
+            if (yyerrstatus_ > 0) {
               --yyerrstatus_;
+            }
 
             yystate = yyn;
             yystack.push(yystate, yylval, yylloc);
@@ -1868,10 +1878,11 @@ public class RParser {
         `-----------------------------------------------------------*/
         case YYDEFAULT:
           yyn = yydefact_[yystate];
-          if (yyn == 0)
+          if (yyn == 0) {
             label = YYFAIL;
-          else
+          } else {
             label = YYREDUCE;
+          }
           break;
 
         /*-----------------------------.
@@ -1900,10 +1911,12 @@ public class RParser {
 
             if (yychar <= EOF) {
               /* Return failure if at end of input.  */
-              if (yychar == EOF)
+              if (yychar == EOF) {
                 return false;
-            } else
+              }
+            } else {
               yychar = yyempty_;
+            }
           }
 
           /* Else will try to reuse lookahead token after shifting the error
@@ -1931,26 +1944,29 @@ public class RParser {
         case YYERRLAB1:
           yyerrstatus_ = 3;  /* Each real token shifted decrements this.  */
 
-          for (; ;) {
+          for (; ; ) {
             yyn = yypact_[yystate];
             if (yyn != yypact_ninf_) {
               yyn += yyterror_;
               if (0 <= yyn && yyn <= yylast_ && yycheck_[yyn] == yyterror_) {
                 yyn = yytable_[yyn];
-                if (0 < yyn)
+                if (0 < yyn) {
                   break;
+                }
               }
             }
 
             /* Pop the current state because it cannot handle the error token.  */
-            if (yystack.height == 1)
+            if (yystack.height == 1) {
               return false;
+            }
 
             yyerrloc = yystack.locationAt(0);
             yystack.pop();
             yystate = yystack.stateAt(0);
-            if (yydebug > 0)
+            if (yydebug > 0) {
               yystack.print(yyDebugStream);
+            }
           }
 
 
@@ -1977,6 +1993,7 @@ public class RParser {
         case YYABORT:
           return false;
       }
+    }
   }
 
   // Generate an error message.
@@ -1995,9 +2012,11 @@ public class RParser {
         int yychecklim = yylast_ - yyn + 1;
         int yyxend = yychecklim < yyntokens_ ? yychecklim : yyntokens_;
         int count = 0;
-        for (int x = yyxbegin; x < yyxend; ++x)
-          if (yycheck_[x + yyn] == x && x != yyterror_)
+        for (int x = yyxbegin; x < yyxend; ++x) {
+          if (yycheck_[x + yyn] == x && x != yyterror_) {
             ++count;
+          }
+        }
 
         // FIXME: This method of building the message is not compatible
         // with internationalization.
@@ -2005,11 +2024,12 @@ public class RParser {
         res.append(yytnamerr_(yytname_[tok]));
         if (count < 5) {
           count = 0;
-          for (int x = yyxbegin; x < yyxend; ++x)
+          for (int x = yyxbegin; x < yyxend; ++x) {
             if (yycheck_[x + yyn] == x && x != yyterror_) {
               res.append(count++ == 0 ? ", expecting " : " or ");
               res.append(yytnamerr_(yytname_[x]));
             }
+          }
         }
         return res.toString();
       }
@@ -2396,8 +2416,9 @@ public class RParser {
   // Report on the debug stream that the rule yyrule is going to be reduced.
 
   private void yy_reduce_print(int yyrule, YYStack yystack) {
-    if (yydebug == 0)
+    if (yydebug == 0) {
       return;
+    }
 
     int yylno = yyrline_[yyrule];
     int yynrhs = yyr2_[yyrule];
@@ -2406,11 +2427,12 @@ public class RParser {
         + " (line " + yylno + "), ");
 
     /* The symbols being reduced.  */
-    for (int yyi = 0; yyi < yynrhs; yyi++)
+    for (int yyi = 0; yyi < yynrhs; yyi++) {
       yy_symbol_print("   $" + (yyi + 1) + " =",
           yyrhs_[yyprhs_[yyrule] + yyi],
           ((yystack.valueAt(yynrhs - (yyi + 1)))),
           yystack.locationAt(yynrhs - (yyi + 1)));
+    }
   }
 
   /* YYTRANSLATE(YYLEX) -- Bison symbol number corresponding to YYLEX.  */
@@ -2449,10 +2471,11 @@ public class RParser {
       };
 
   private static final byte yytranslate_(int t) {
-    if (t >= 0 && t <= yyuser_token_number_max_)
+    if (t >= 0 && t <= yyuser_token_number_max_) {
       return yytranslate_table_[t];
-    else
+    } else {
       return yyundef_token_;
+    }
   }
 
   private static final int yylast_ = 709;
@@ -2509,27 +2532,30 @@ public class RParser {
   }
 
   <T extends AbstractSEXP> T attachSrcrefs(T val, SEXP srcfile) {
-    SEXP t;
-    Vector.Builder srval;
-    int n;
-
-    PROTECT(val);
-    t = CDR(srcRefs);
-    int tlen = length(t);
-    srval = allocVector(VECSXP, tlen);
-    for (n = 0 ; n < tlen; n++, t = CDR(t)) {
-       SET_VECTOR_ELT(srval, n, CAR(t));
-    }
-    //setAttrib(val, R_SrcrefSymbol, srval);
-    //setAttrib(val, R_SrcfileSymbol, srcfile);
-    val.unsafeSetAttributes(
-        AttributeMap.newBuilder().
-            set(R_SrcrefSymbol, srval.build()).
-            set(R_SrcfileSymbol, srcfile).
-            build()
-    );
-    UNPROTECT(1);
-    srcRefs = NewList();
+// Disbabling for the moment
+// The format really doesn't seem to match GNU R and causes regressions 
+// in some packages.
+//    SEXP t;
+//    Vector.Builder srval;
+//    int n;
+//
+//    PROTECT(val);
+//    t = CDR(srcRefs);
+//    int tlen = length(t);
+//    srval = allocVector(VECSXP, tlen);
+//    for (n = 0 ; n < tlen; n++, t = CDR(t)) {
+//       SET_VECTOR_ELT(srval, n, CAR(t));
+//    }
+//    //setAttrib(val, R_SrcrefSymbol, srval);
+//    //setAttrib(val, R_SrcfileSymbol, srcfile);
+//    val.unsafeSetAttributes(
+//        AttributeMap.newBuilder().
+//            set(R_SrcrefSymbol, srval.build()).
+//            set(R_SrcfileSymbol, srcfile).
+//            build()
+//    );
+//    UNPROTECT(1);
+//    srcRefs = NewList();
     return val;
   }
 
@@ -2558,19 +2584,21 @@ public class RParser {
   private SEXP xxfirstformal0(SEXP sym) {
     SEXP ans;
     UNPROTECT_PTR(sym);
-    if (options.isGenerateCode())
+    if (options.isGenerateCode()) {
       PROTECT(ans = FirstArg(R_MissingArg, sym));
-    else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     return ans;
   }
 
   private SEXP xxfirstformal1(SEXP sym, SEXP expr) {
     SEXP ans;
-    if (options.isGenerateCode())
+    if (options.isGenerateCode()) {
       PROTECT(ans = FirstArg(expr, sym));
-    else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     UNPROTECT_PTR(expr);
     UNPROTECT_PTR(sym);
     return ans;
@@ -2581,8 +2609,9 @@ public class RParser {
     if (options.isGenerateCode()) {
       CheckFormalArgs(formlist, sym, lloc);
       PROTECT(ans = NextArg(formlist, R_MissingArg, sym));
-    } else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     UNPROTECT_PTR(sym);
     UNPROTECT_PTR(formlist);
     return ans;
@@ -2593,8 +2622,9 @@ public class RParser {
     if (options.isGenerateCode()) {
       CheckFormalArgs(formlist, sym, lloc);
       PROTECT(ans = NextArg(formlist, expr, sym));
-    } else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     UNPROTECT_PTR(expr);
     UNPROTECT_PTR(sym);
     UNPROTECT_PTR(formlist);
@@ -2631,8 +2661,9 @@ public class RParser {
       PROTECT(tmp = NewList(attrs));
       PROTECT(ans = GrowList(tmp, expr));
       UNPROTECT_PTR(tmp);
-    } else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     UNPROTECT_PTR(expr);
     return ans;
   }
@@ -2640,11 +2671,13 @@ public class RParser {
   private SEXP xxexprlist2(SEXP exprlist, SEXP expr, Location lloc) {
     SEXP ans;
     if (options.isGenerateCode()) {
-      if (state.keepSrcRefs)
-          REPROTECT(srcRefs = GrowList(srcRefs, makeSrcref(lloc, state.srcFile)), srindex);
+      if (state.keepSrcRefs) {
+        REPROTECT(srcRefs = GrowList(srcRefs, makeSrcref(lloc, state.srcFile)), srindex);
+      }
       PROTECT(ans = GrowList(exprlist, expr));
-    } else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     UNPROTECT_PTR(expr);
     UNPROTECT_PTR(exprlist);
     return ans;
@@ -2652,39 +2685,43 @@ public class RParser {
 
   private SEXP xxsub0() {
     SEXP ans;
-    if (options.isGenerateCode())
+    if (options.isGenerateCode()) {
       PROTECT(ans = lang2(R_MissingArg, R_NilValue));
-    else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     return ans;
   }
 
   private SEXP xxsub1(SEXP expr, Location lloc) {
     SEXP ans;
-    if (options.isGenerateCode())
+    if (options.isGenerateCode()) {
       PROTECT(ans = TagArg(expr, R_NilValue, lloc));
-    else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     UNPROTECT_PTR(expr);
     return ans;
   }
 
   private SEXP xxsymsub0(SEXP sym, Location lloc) {
     SEXP ans;
-    if (options.isGenerateCode())
+    if (options.isGenerateCode()) {
       PROTECT(ans = TagArg(R_MissingArg, sym, lloc));
-    else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     UNPROTECT_PTR(sym);
     return ans;
   }
 
   private SEXP xxsymsub1(SEXP sym, SEXP expr, Location lloc) {
     SEXP ans;
-    if (options.isGenerateCode())
+    if (options.isGenerateCode()) {
       PROTECT(ans = TagArg(expr, sym, lloc));
-    else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     UNPROTECT_PTR(expr);
     UNPROTECT_PTR(sym);
     return ans;
@@ -2693,20 +2730,22 @@ public class RParser {
   private SEXP xxnullsub0(Location lloc) {
     SEXP ans;
     UNPROTECT_PTR(R_NilValue);
-    if (options.isGenerateCode())
+    if (options.isGenerateCode()) {
       PROTECT(ans = TagArg(R_MissingArg, Symbol.get("NULL"), lloc));
-    else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     return ans;
   }
 
   private SEXP xxnullsub1(SEXP expr, Location lloc) {
     SEXP ans = Symbol.get("NULL");
     UNPROTECT_PTR(R_NilValue);
-    if (options.isGenerateCode())
+    if (options.isGenerateCode()) {
       PROTECT(ans = TagArg(expr, ans, lloc));
-    else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     UNPROTECT_PTR(expr);
     return ans;
   }
@@ -2714,20 +2753,22 @@ public class RParser {
 
   private SEXP xxsublist1(SEXP sub) {
     SEXP ans;
-    if (options.isGenerateCode())
+    if (options.isGenerateCode()) {
       PROTECT(ans = FirstArg(CAR(sub), CADR(sub)));
-    else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     UNPROTECT_PTR(sub);
     return ans;
   }
 
   private SEXP xxsublist2(SEXP sublist, SEXP sub) {
     SEXP ans;
-    if (options.isGenerateCode())
+    if (options.isGenerateCode()) {
       PROTECT(ans = NextArg(sublist, CAR(sub), CADR(sub)));
-    else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     UNPROTECT_PTR(sub);
     UNPROTECT_PTR(sublist);
     return ans;
@@ -2745,10 +2786,11 @@ public class RParser {
 
   private SEXP xxif(SEXP ifsym, SEXP cond, SEXP expr) {
     SEXP ans;
-    if (options.isGenerateCode())
+    if (options.isGenerateCode()) {
       PROTECT(ans = lang3(ifsym, cond, expr));
-    else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     UNPROTECT_PTR(expr);
     UNPROTECT_PTR(cond);
     return ans;
@@ -2756,10 +2798,11 @@ public class RParser {
 
   private SEXP xxifelse(SEXP ifsym, SEXP cond, SEXP ifexpr, SEXP elseexpr) {
     SEXP ans;
-    if (options.isGenerateCode())
+    if (options.isGenerateCode()) {
       PROTECT(ans = lang4(ifsym, cond, ifexpr, elseexpr));
-    else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     UNPROTECT_PTR(elseexpr);
     UNPROTECT_PTR(ifexpr);
     UNPROTECT_PTR(cond);
@@ -2769,10 +2812,11 @@ public class RParser {
   private SEXP xxforcond(SEXP sym, SEXP expr) {
     SEXP ans;
     state.setEatLines(true);
-    if (options.isGenerateCode())
+    if (options.isGenerateCode()) {
       PROTECT(ans = lang2(sym, expr));
-    else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     UNPROTECT_PTR(expr);
     UNPROTECT_PTR(sym);
     return ans;
@@ -2780,10 +2824,11 @@ public class RParser {
 
   private SEXP xxfor(SEXP forsym, SEXP forcond, SEXP body) {
     SEXP ans;
-    if (options.isGenerateCode())
+    if (options.isGenerateCode()) {
       PROTECT(ans = lang4(forsym, CAR(forcond), CAR(CDR(forcond)), body));
-    else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     UNPROTECT_PTR(body);
     UNPROTECT_PTR(forcond);
     return ans;
@@ -2791,10 +2836,11 @@ public class RParser {
 
   private SEXP xxwhile(SEXP whilesym, SEXP cond, SEXP body) {
     SEXP ans;
-    if (options.isGenerateCode())
+    if (options.isGenerateCode()) {
       PROTECT(ans = lang3(whilesym, cond, body));
-    else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     UNPROTECT_PTR(body);
     UNPROTECT_PTR(cond);
     return ans;
@@ -2802,32 +2848,36 @@ public class RParser {
 
   private SEXP xxrepeat(SEXP repeatsym, SEXP body) {
     SEXP ans;
-    if (options.isGenerateCode())
+    if (options.isGenerateCode()) {
       PROTECT(ans = lang2(repeatsym, body));
-    else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     UNPROTECT_PTR(body);
     return ans;
   }
 
   private SEXP xxnxtbrk(SEXP keyword) {
-    if (options.isGenerateCode())
+    if (options.isGenerateCode()) {
       PROTECT(keyword = lang1(keyword));
-    else
+    } else {
       PROTECT(keyword = R_NilValue);
+    }
     return keyword;
   }
 
   private SEXP xxfuncall(SEXP expr, SEXP args) {
     SEXP ans, sav_expr = expr;
     if (options.isGenerateCode()) {
-      if (isString(expr))
+      if (isString(expr)) {
         expr = Symbol.get(CHAR(STRING_ELT(expr, 0)));
+      }
       PROTECT(expr);
-      if (length(CDR(args)) == 1 && CADR(args) == R_MissingArg && TAG(CDR(args)) == R_NilValue)
+      if (length(CDR(args)) == 1 && CADR(args) == R_MissingArg && TAG(CDR(args)) == R_NilValue) {
         ans = lang1(expr);
-      else
+      } else {
         ans = LCONS(expr, CDR(args));
+      }
       UNPROTECT(1);
       PROTECT(ans);
     } else {
@@ -2856,8 +2906,9 @@ public class RParser {
          PROTECT(ans = lang4(fname, CDR(formals), body, source));
       }
       UNPROTECT_PTR(source);
-    } else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     UNPROTECT_PTR(body);
     UNPROTECT_PTR(formals);
     state.getFunctionSource().ascend();
@@ -2866,10 +2917,11 @@ public class RParser {
 
   private SEXP xxunary(SEXP op, SEXP arg) {
     SEXP ans;
-    if (options.isGenerateCode())
+    if (options.isGenerateCode()) {
       PROTECT(ans = lang2(op, arg));
-    else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     UNPROTECT_PTR(arg);
     return ans;
   }
@@ -2878,8 +2930,9 @@ public class RParser {
     SEXP ans;
     if (options.isGenerateCode()) {
       PROTECT(ans = lang3(n1, n2, n3));
-    } else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     UNPROTECT_PTR(n2);
     UNPROTECT_PTR(n3);
     return ans;
@@ -2887,10 +2940,11 @@ public class RParser {
 
   private SEXP xxparen(SEXP n1, SEXP n2) {
     SEXP ans;
-    if (options.isGenerateCode())
+    if (options.isGenerateCode()) {
       PROTECT(ans = lang2(n1, n2));
-    else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     UNPROTECT_PTR(n2);
     return ans;
   }
@@ -2902,10 +2956,11 @@ public class RParser {
 
   private SEXP xxsubscript(SEXP a1, SEXP a2, SEXP a3) {
     SEXP ans;
-    if (options.isGenerateCode())
+    if (options.isGenerateCode()) {
       PROTECT(ans = LCONS(a2, CONS(a1, CDR(a3))));
-    else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     UNPROTECT_PTR(a3);
     UNPROTECT_PTR(a1);
     return ans;
@@ -2934,10 +2989,12 @@ public class RParser {
         //SET_NAMED(srcRefs, 0);
         UNPROTECT_PTR(prevSrcrefs);
       }
-      else
+      else {
         PROTECT(ans = a2);
-    } else
+      }
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     UNPROTECT_PTR(a2);
     return ans;
   }

@@ -71,7 +71,7 @@ public class CombineTest extends EvalTestCase {
     @Test
     public void combineWithExplicitNames() {
         eval("p <- c(x=41,y=42)");
-
+        eval("print(p)");
         assertThat(eval("p['x']"), equalTo(c(41)));
     }
 

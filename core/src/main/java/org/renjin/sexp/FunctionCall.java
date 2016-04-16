@@ -154,6 +154,7 @@ public class FunctionCall extends PairList.Node {
     public Builder add(SEXP tag, SEXP s) {
       if (head == null) {
         head = new FunctionCall(s, Null.INSTANCE, attributesBuilder.build());
+        head.setTag(tag);
         tail = head;
       } else {
         Node next = new Node(tag, s, Null.INSTANCE);

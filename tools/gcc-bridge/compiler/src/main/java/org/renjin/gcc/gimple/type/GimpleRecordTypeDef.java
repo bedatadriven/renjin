@@ -65,8 +65,8 @@ public class GimpleRecordTypeDef {
     for (GimpleField field : fields) {
       int fieldStart = field.getOffset();
       int fieldEnd = fieldStart + field.getType().getSize();
-      if(fieldRef.getOffset() >=  fieldStart && 
-         fieldRef.getOffset() < fieldEnd) {
+      if (fieldRef.getOffset() >=  fieldStart && 
+          fieldRef.getOffset() < fieldEnd) {
         return field;
       }
     }

@@ -93,8 +93,8 @@ public class ClassBindingImpl implements ClassBinding {
     }
 
     for(Field field : clazz.getFields()) {
-      if(Modifier.isPublic(field.getModifiers()) &&
-         Modifier.isStatic(field.getModifiers())) {
+      if (Modifier.isPublic(field.getModifiers()) &&
+          Modifier.isStatic(field.getModifiers())) {
         Symbol name = Symbol.get(field.getName());
         staticMembers.put(name, new StaticBinding(new FieldBinding(field)));
       }
@@ -110,14 +110,14 @@ public class ClassBindingImpl implements ClassBinding {
     }
     
     String name = method.getName();
-    if(name.startsWith("get") && 
-       name.length() > "get".length()) {
+    if (name.startsWith("get") && 
+        name.length() > "get".length()) {
       
       return name.substring(3,4).toLowerCase() + name.substring(4);
     }
     
-    if(name.startsWith("is") &&
-       name.length() > "is".length()) {
+    if (name.startsWith("is") &&
+        name.length() > "is".length()) {
       
       return name.substring(2,3).toLowerCase() + name.substring(3);
     }

@@ -97,7 +97,7 @@ public class S3 {
         dataClass.add(exp.getTypeName());
         dataClass.add("numeric");
       } else {
-         dataClass.add(exp.getImplicitClass());
+        dataClass.add(exp.getImplicitClass());
       }
       return dataClass.build();
     }
@@ -225,11 +225,11 @@ public class S3 {
     }
 
     GenericMethod method = Resolver
-      .start(context, name, object)
-      .withBaseDefinitionEnvironment()
-      .withObjectArgument(object)
-      .withGenericArgument(name)
-      .findNext();
+        .start(context, name, object)
+        .withBaseDefinitionEnvironment()
+        .withObjectArgument(object)
+        .withGenericArgument(name)
+        .findNext();
 
     if(method == null) {
       return null;
@@ -584,12 +584,21 @@ public class S3 {
 
       callContext.setState(GenericMethod.class, this);
 
-      if(function instanceof Closure) {
-        return Calls.applyClosure((Closure) function, callContext, callEnvironment,  newCall,
-                args, persistChain());
-      } else {
-        // primitive
-        return function.apply(callContext, callEnvironment, newCall, args);
+      if(Profiler.ENABLED) {
+        Profiler.functionStart(this.method);
+      }
+      try {
+        if (function instanceof Closure) {
+          return Calls.applyClosure((Closure) function, callContext, callEnvironment, newCall,
+              args, persistChain());
+        } else {
+          // primitive
+          return function.apply(callContext, callEnvironment, newCall, args);
+        }
+      } finally {
+        if(Profiler.ENABLED) {
+          Profiler.functionEnd();
+        }
       }
     }
     

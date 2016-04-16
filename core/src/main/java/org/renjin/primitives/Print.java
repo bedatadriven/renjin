@@ -46,8 +46,8 @@ public class Print {
       SEXP printGap, SEXP right, SEXP max, SEXP useSource, SEXP noOp) throws IOException {
 
     PrintingVisitor visitor = new PrintingVisitor(context)
-    .setCharactersPerLine(80)
-    .setQuote(quote);
+        .setCharactersPerLine(80)
+        .setQuote(quote);
     expression.accept(visitor);
 
     context.getSession().getStdOut().print(visitor.getResult());
@@ -62,7 +62,7 @@ public class Print {
     // an unevaluated promise... but this seems super unlikely...
     // try removing this once we have a larger test suite built up
     PrintingVisitor visitor = new PrintingVisitor(null)
-    .setCharactersPerLine(80);
+        .setCharactersPerLine(80);
     expression.accept(visitor);
 
     return visitor.getResult();
@@ -162,10 +162,16 @@ public class Print {
     }
 
     @Override
+    public void visit(ComplexVector vector) {
+      printVector(vector, Alignment.RIGHT, new ComplexPrinter(), "complex");
+    }
+
+    @Override
     public void visit(RawVector vector) {
       printVector(vector, Alignment.RIGHT, new RawPrinter(), "raw");
     }   
 
+    
     @Override
     public void visit(Null nullExpression) {
       out.append("NULL\n");
@@ -196,10 +202,10 @@ public class Print {
 
     private void printAttributes(SEXP sexp) {
       for(PairList.Node node : sexp.getAttributes().nodes()) {
-        if(!node.getTag().equals(Symbols.NAMES) &&
-           !node.getTag().equals(Symbols.DIM) &&
-           !node.getTag().equals(Symbols.DIMNAMES) &&
-            node.getValue() != Null.INSTANCE) {
+        if (!node.getTag().equals(Symbols.NAMES) &&
+            !node.getTag().equals(Symbols.DIM) &&
+            !node.getTag().equals(Symbols.DIMNAMES) &&
+             node.getValue() != Null.INSTANCE) {
           out.append("attr(," + new StringPrinter().apply(node.getName()) + ")\n");
           node.getValue().accept(this);
         }

@@ -90,7 +90,7 @@ public class CompleteCases {
   private static int numCases(AtomicVector vector) {
     Vector dim = vector.getAttributes().getDim();
     if(dim.length() == 2) {
-      return dim.getElementAsInt(1);
+      return dim.getElementAsInt(0);
     } else {
       
       // even if there is no dim attribute, or

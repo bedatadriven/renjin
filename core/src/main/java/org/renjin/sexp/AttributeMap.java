@@ -629,6 +629,8 @@ public class AttributeMap {
       if(other.dim != null) {
         if(this.dim == null) {
           this.dim = other.dim;
+          this.names = null;
+          
         } else {
           if(!conforming(this.dim, other.dim)) {
             throw new EvalException("non-conformable arrays");

@@ -25,10 +25,6 @@ public class AbstractGccCppTest extends AbstractGccTest {
 		compiler.setRecordClassPrefix(units.get(0).getName());
 		compiler.setPackageName(PACKAGE_NAME);
 		compiler.setVerbose(true);
-//		compiler.addRecordClass("basic_string", BasicString.class);
-//		compiler.addRecordClass("allocator", Allocator.class);
-//		compiler.addRecordClass("_Rep", Object.class);
-//		compiler.addRecordClass("_36", Object.class);
 		compiler.addLibrary(new CppSymbolLibrary());
 		compiler.compile(units);
 	}

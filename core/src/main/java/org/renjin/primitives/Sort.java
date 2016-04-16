@@ -289,14 +289,13 @@ public class Sort {
     }
     int minIndex = 0;
     double globalMin = v.getElementAsDouble(0);
-    //this loop would be started from 1 but it needs more code. I think this is fine.
     for (int i = 0; i < v.length(); i++) {
       if (v.getElementAsDouble(i) < globalMin) {
         globalMin = v.getElementAsDouble(i);
         minIndex = i;
       }
     }
-    return (new IntArrayVector(minIndex + 1));
+    return new IntArrayVector(new int[] { minIndex + 1 }, whichName(v, minIndex));
   }
 
   @Internal("which.max")
@@ -313,7 +312,19 @@ public class Sort {
         maxIndex = i;
       }
     }
-    return (new IntArrayVector(maxIndex + 1));
+    
+    return new IntArrayVector(new int[] { maxIndex + 1 }, whichName(v, maxIndex));
+  }
+
+  private static AttributeMap whichName(Vector v, int maxIndex) {
+    AttributeMap attributes;
+    if(v.getAttributes().hasNames()) {
+      String maxName = v.getName(maxIndex);
+      attributes = AttributeMap.newBuilder().setNames(new StringArrayVector(maxName)).build();
+    } else {
+      attributes = AttributeMap.EMPTY;
+    }
+    return attributes;
   }
 
   @Internal

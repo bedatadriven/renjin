@@ -1,12 +1,12 @@
 package org.renjin.primitives;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import org.junit.Test;
+import org.renjin.EvalTestCase;
 
 import java.io.IOException;
 
-import org.junit.Test;
-import org.renjin.EvalTestCase;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 
 public class SplitTest extends EvalTestCase {
@@ -31,6 +31,15 @@ public class SplitTest extends EvalTestCase {
     assertThat(eval("x$`1`"), equalTo(c_i(10,8,6,4)));
     assertThat(eval("x$`2`"), equalTo(c_i(9,7,5,3)));
     assertThat(eval("x$`3`"), equalTo(c_i(2)));
+  }
+  
+  @Test
+  public void splitWithNames() {
+    assumingBasePackagesLoad();
+    
+    eval("x <- split(c(a=1,b=2), c(1,2))");
+    assertThat(eval("names(x)"), equalTo(c("1", "2")));
+    assertThat(eval("names(x[[1]])"), equalTo(c("a")));
   }
   
 }

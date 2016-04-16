@@ -1,64 +1,69 @@
 package org.renjin.primitives;
 
 import com.google.common.collect.Maps;
-import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.sexp.*;
 
 import java.util.Map;
-import java.util.Set;
 
 public class Split {
   private Split() {}
   
-  /**
-   * Splits the 
-   * @param indices
-   * @param factors
-   * @return
-   */
+
   @Internal
   public static ListVector split(Vector toSplit, IntVector factors) {
     assert toSplit.length() == factors.length();
     
-    SplitMap map = new SplitMap(toSplit);
+    Map<Integer, SplitBuilder> map = Maps.newHashMap();
+    
     for(int i=0;i!=factors.length();++i) {
-      int split = factors.getElementAsInt(i);
-      if(!IntVector.isNA(split)) {
-        map.getSplitBuilder(split)
-            .addFrom(toSplit, i);
+      int splitIndex = factors.getElementAsInt(i);
+      if(!IntVector.isNA(splitIndex)) {
+        SplitBuilder splitBuilder = map.get(splitIndex);
+        if(splitBuilder == null) {
+          splitBuilder = new SplitBuilder(toSplit);
+          map.put(splitIndex, splitBuilder);
+        }
+        splitBuilder.add(toSplit, i);
       }
     }
 
     StringVector levels = (StringVector) factors.getAttributes().get(Symbols.LEVELS);
     
     ListVector.NamedBuilder resultList = new ListVector.NamedBuilder();
-    for(Integer split : map.getKeys()) {
-      resultList.add(levels.getElementAsString(split-1),
-          map.getSplitBuilder(split).build());
+    for(Integer split : map.keySet()) {
+      resultList.add(levels.getElementAsString(split-1), map.get(split).build());
     }
+    
     return resultList.build();
   }
   
-  private static class SplitMap {
-    private Vector sourceVector;
-    private Map<Integer, Vector.Builder> splits = Maps.newHashMap();
-    
-    public SplitMap(Vector sourceVector) {
-      this.sourceVector = sourceVector;
-    }
-    
-    public Vector.Builder getSplitBuilder(int value) {
-      Vector.Builder builder = splits.get(value);
-      if(builder == null) {
-        builder = sourceVector.newBuilderWithInitialSize(0);
-        splits.put(value, builder);
+  
+  private static class SplitBuilder {
+    private Vector.Builder values;
+    private StringVector.Builder names;
+
+    public SplitBuilder(Vector toSplit) {
+      this.values = toSplit.newBuilderWithInitialCapacity(0);
+      if(toSplit.getAttributes().hasNames()) {
+        names = new StringArrayVector.Builder();
       }
-      return builder;
     }
     
-    public Set<Integer> getKeys() {
-      return splits.keySet();
+    public void add(Vector source, int sourceIndex) {
+      values.addFrom(source, sourceIndex);
+      if(names != null) {
+        names.add(source.getName(sourceIndex));
+      }
     }
+    
+    public Vector build() {
+      if(names != null) {
+        values.setAttribute(Symbols.NAMES, names.build());
+      }
+      return values.build();
+    }
+    
   }
+  
 }

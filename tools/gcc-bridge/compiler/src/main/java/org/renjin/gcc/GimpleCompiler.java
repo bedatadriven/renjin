@@ -31,10 +31,10 @@ import java.util.Map;
 
 /**
  * Compiles a set of {@link GimpleCompilationUnit}s to bytecode
- * 
+ *
  * <p>The {@code GimpleCompiler} compiles the Gimple ASTs emitted by the 
  * GCC Bridge Plugin to a set of JVM class files.
- * 
+ *
  * <p>Each {@code GimpleCompilationUnit} is compiled to a seperate JVM class file with the same
  * name as the compilation unit. If the {@code className} is set, an additional "trampoline" class is 
  * generated that contains a wrapper methods to all 'extern' functions.</p>
@@ -77,7 +77,7 @@ public class GimpleCompiler  {
 
   /**
    * Sets the package name to use for the compiled JVM classes.
-   * 
+   *
    * @param name the package name, separated by dots. For example "com.acme"
    */
   public void setPackageName(String name) {
@@ -86,7 +86,7 @@ public class GimpleCompiler  {
 
   /**
    * Sets the output directory to place compiled class files.
-   * 
+   *
    */
   public void setOutputDirectory(File directory) {
     this.outputDirectory = directory;
@@ -115,7 +115,7 @@ public class GimpleCompiler  {
   }
 
   public void addLibrary(SymbolLibrary lib) {
-	  globalSymbolTable.addLibrary(lib);
+    globalSymbolTable.addLibrary(lib);
   }
 
   public void addMethod(String functionName, Class declaringClass, String methodName) {
@@ -175,7 +175,7 @@ public class GimpleCompiler  {
 
     // Enumerate record types before writing, so that records can reference each other
     for (GimpleRecordTypeDef recordTypeDef : recordTypeDefs) {
-      
+
       try {
         RecordClassGenerator recordGenerator;
 
@@ -199,14 +199,14 @@ public class GimpleCompiler  {
           }
           recordGenerator =
               new RecordClassGenerator(typeOracle, getInternalClassName(recordClassName), recordTypeDef);
-          
+
           recordsToWrite.add(recordGenerator);
         }
 
         typeOracle.addRecordType(recordTypeDef, recordGenerator);
         recordsToLink.add(recordGenerator);
-        
-        
+
+
       } catch (Exception e) {
         throw new InternalCompilerException("Exception compiling record " + recordTypeDef.getName(), e);
       }
@@ -260,9 +260,9 @@ public class GimpleCompiler  {
   @VisibleForTesting
   static String sanitize(String name) {
     Preconditions.checkArgument(name.length() >= 1);
-    
+
     StringBuilder className = new StringBuilder();
-    
+
     int i = 0;
     if(Character.isJavaIdentifierStart(name.charAt(0))) {
       className.append(name.charAt(0));
@@ -270,7 +270,7 @@ public class GimpleCompiler  {
     } else {
       className.append('_');
     }
-    
+
     for(;i<name.length();++i) {
       char c = name.charAt(i);
       if(Character.isJavaIdentifierPart(c)) {

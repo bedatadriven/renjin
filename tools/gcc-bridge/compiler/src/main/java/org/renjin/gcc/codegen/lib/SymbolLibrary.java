@@ -6,7 +6,7 @@ import org.renjin.gcc.codegen.type.TypeOracle;
 
 public interface SymbolLibrary {
 
-	List<SymbolFunction> getFunctions(TypeOracle typeOracle);
+  List<SymbolFunction> getFunctions(TypeOracle typeOracle);
 
-	List<SymbolMethod> getMethods();
+  List<SymbolMethod> getMethods();
 }

@@ -156,23 +156,22 @@ public class GccBridgeMojo extends AbstractMojo {
     return units;
   }
 
-  protected SourceInclusionScanner getSourceInclusionScanner( String... inputFileEndings )
-  {
-      Set<String> includes = new LinkedHashSet<String>();
-      for(String inputFileEnding : inputFileEndings) {
-        // it's not defined if we get the ending with or without the dot '.'
-        String defaultIncludePattern = "**/*" + ( inputFileEnding.startsWith( "." ) ? "" : "." ) + inputFileEnding;
-        includes.add(defaultIncludePattern);
-      }
-      SourceInclusionScanner scanner = new SimpleSourceInclusionScanner( includes, Collections.<String>emptySet() );
-      for(String inputFileEnding : inputFileEndings) {
-        scanner.addSourceMapping(getSourceMapping(inputFileEnding));
-      }
-      return scanner;
+  protected SourceInclusionScanner getSourceInclusionScanner( String... inputFileEndings ) {
+    Set<String> includes = new LinkedHashSet<String>();
+    for(String inputFileEnding : inputFileEndings) {
+      // it's not defined if we get the ending with or without the dot '.'
+      String defaultIncludePattern = "**/*" + ( inputFileEnding.startsWith( "." ) ? "" : "." ) + inputFileEnding;
+      includes.add(defaultIncludePattern);
+    }
+    SourceInclusionScanner scanner = new SimpleSourceInclusionScanner( includes, Collections.<String>emptySet() );
+    for(String inputFileEnding : inputFileEndings) {
+      scanner.addSourceMapping(getSourceMapping(inputFileEnding));
+    }
+    return scanner;
   }
 
   protected SourceMapping getSourceMapping(String inputFileEnding) {
-	  return new SuffixMapping( inputFileEnding, ".o" );
+    return new SuffixMapping( inputFileEnding, ".o" );
   }
 
   private void compile(List<GimpleCompilationUnit> units) throws MojoExecutionException {

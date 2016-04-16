@@ -14,17 +14,17 @@ import org.renjin.gcc.codegen.type.TypeOracle;
 
 public class CppSymbolLibrary implements SymbolLibrary {
 
-	@Override
-	public List<SymbolFunction> getFunctions(TypeOracle typeOracle) {
-		List<SymbolFunction> functions = new ArrayList<SymbolFunction>();
-		functions.add(new SymbolFunction("operator new", new MallocCallGenerator(typeOracle), true));
-		functions.add(new SymbolFunction("__comp_ctor ", new CtorCallGenerator()));
-		functions.add(new SymbolFunction("__comp_dtor ", new FreeCallGenerator()));
-		return functions;
-	}
+  @Override
+  public List<SymbolFunction> getFunctions(TypeOracle typeOracle) {
+    List<SymbolFunction> functions = new ArrayList<SymbolFunction>();
+    functions.add(new SymbolFunction("operator new", new MallocCallGenerator(typeOracle), true));
+    functions.add(new SymbolFunction("__comp_ctor ", new CtorCallGenerator()));
+    functions.add(new SymbolFunction("__comp_dtor ", new FreeCallGenerator()));
+    return functions;
+  }
 
-	@Override
-	public List<SymbolMethod> getMethods() {
-		return Collections.emptyList();
-	}
+  @Override
+  public List<SymbolMethod> getMethods() {
+    return Collections.emptyList();
+  }
 }

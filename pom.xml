@@ -55,6 +55,7 @@
     <asm.version>5.0.4</asm.version>
     <envClassifier>linux-x86</envClassifier>
     <jmh.version>1.11.2</jmh.version>
+    <plexusCompilerVersion>2.7</plexusCompilerVersion>
   </properties>
 
   <scm>

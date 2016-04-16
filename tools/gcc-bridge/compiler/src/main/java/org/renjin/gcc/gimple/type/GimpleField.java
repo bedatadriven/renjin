@@ -1,8 +1,11 @@
 package org.renjin.gcc.gimple.type;
 
 import com.google.common.base.Strings;
+import org.renjin.gcc.gimple.expr.GimpleFieldRef;
 
 public class GimpleField {
+  private int id;
+  private int offset;
   private String name;
   private GimpleType type;
   private boolean addressed;
@@ -38,4 +41,23 @@ public class GimpleField {
   }
   
   
+  public GimpleFieldRef refTo() {
+    return new GimpleFieldRef(id, name);
+  }
+
+  public int getId() {
+    return id;
+  }
+
+  public void setId(int id) {
+    this.id = id;
+  }
+
+  public int getOffset() {
+    return offset;
+  }
+
+  public void setOffset(int offset) {
+    this.offset = offset;
+  }
 }

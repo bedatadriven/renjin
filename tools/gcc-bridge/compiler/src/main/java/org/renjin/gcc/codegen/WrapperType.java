@@ -1,18 +1,13 @@
 package org.renjin.gcc.codegen;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
-import org.renjin.gcc.InternalCompilerException;
-import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.gimple.type.*;
+import org.renjin.gcc.gimple.type.GimplePointerType;
+import org.renjin.gcc.gimple.type.GimplePrimitiveType;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.runtime.*;
 
 import java.util.List;
-
-import static org.objectweb.asm.Opcodes.*;
 
 
 public class WrapperType {
@@ -71,123 +66,6 @@ public class WrapperType {
   public GimpleType getGimpleType() {
     return new GimplePointerType(GimplePrimitiveType.fromJvmType(baseType));
   }
-  
-  public static WrapperType forPointerType(GimpleIndirectType type) {
-    return of(type.getBaseType());
-  }
-
-  public static Type wrapperType(Type type) {
-    if(type.equals(Type.BOOLEAN_TYPE)) {
-      return Type.getType(BooleanPtr.class);
-    
-    } else if(type.equals(Type.DOUBLE_TYPE)) {
-      return Type.getType(DoublePtr.class);
-
-    } else if(type.equals(Type.FLOAT_TYPE)) {
-      return Type.getType(FloatPtr.class);
-    
-    } else if(type.equals(Type.INT_TYPE)) {
-      return Type.getType(IntPtr.class);
-    
-    } else if(type.equals(Type.LONG_TYPE)) {
-      return Type.getType(LongPtr.class);
-      
-    } else if(type.equals(Type.CHAR_TYPE)) {
-      return Type.getType(CharPtr.class);
-      
-    } else if(type.equals(Type.BYTE_TYPE)) {
-      return Type.getType(BytePtr.class);
-    
-    } else {
-      return Type.getType(ObjectPtr.class);
-    }
-  }
-
-  public static WrapperType of(Type type) {
-    if(type.equals(Type.BOOLEAN_TYPE)) {
-      return new WrapperType(BooleanPtr.class);
-
-    } else if(type.equals(Type.DOUBLE_TYPE)) {
-      return new WrapperType(DoublePtr.class);
-
-    } else if(type.equals(Type.FLOAT_TYPE)) {
-      return new WrapperType(FloatPtr.class);
-
-    } else if(type.equals(Type.INT_TYPE)) {
-      return new WrapperType(IntPtr.class);
-
-    } else if(type.equals(Type.LONG_TYPE)) {
-      return new WrapperType(LongPtr.class);
-
-    } else if(type.equals(Type.CHAR_TYPE)) {
-      return new WrapperType(CharPtr.class);
-
-    } else if(type.equals(Type.BYTE_TYPE)) {
-      return new WrapperType(BytePtr.class);
-
-    } else {
-      return new WrapperType(ObjectPtr.class);
-    }
-  }
-  
-  public static WrapperType of(GimpleType baseType) {
-    if(baseType instanceof GimplePrimitiveType) {
-      return of(((GimplePrimitiveType) baseType).jvmType());
-    } else if(baseType instanceof GimpleArrayType) {
-      return of(((GimpleArrayType) baseType).getComponentType());
-    } else {
-      return new WrapperType(ObjectPtr.class);
-    }
-  }
-  
-  public static Type wrapperArrayType(Type baseType) {
-    if(baseType.equals(Type.BOOLEAN_TYPE)) {
-      return Type.getType(boolean[].class);
-
-    } else if(baseType.equals(Type.DOUBLE_TYPE)) {
-      return Type.getType(double[].class);
-
-    } else if (baseType.equals(Type.FLOAT_TYPE)) {
-      return Type.getType(float[].class);
-
-    } else if(baseType.equals(Type.INT_TYPE)) {
-      return Type.getType(int[].class);
-
-    } else if(baseType.equals(Type.LONG_TYPE)) {
-      return Type.getType(long[].class);
-
-    } else if(baseType.equals(Type.CHAR_TYPE)) {
-      return Type.getType(char[].class);
-
-    } else if(baseType.equals(Type.BYTE_TYPE)) {
-      throw new UnsupportedOperationException("todo: BytePtr");
-
-    } else {
-      return Type.getType(Object[].class);
-    }
-  }
-  
-  public static Type wrapperType(GimpleType baseType) {
-    if(baseType instanceof GimplePrimitiveType) {
-      return wrapperType(((GimplePrimitiveType) baseType).jvmType());
-    } else {
-      return Type.getType(ObjectPtr.class);
-    }
-  }
-
-  public static Type wrapperArrayType(GimpleType baseType) {
-    if(baseType instanceof GimplePrimitiveType) {
-      return wrapperArrayType(((GimplePrimitiveType) baseType).jvmType());
-    } else {
-      return Type.getType(Object[].class);
-    }
-  }
-
-
-  public String getConstructorDescriptor() {
-    return Type.getMethodDescriptor(Type.VOID_TYPE, arrayType, Type.INT_TYPE);
-  }
-
 
 
   public static boolean is(Type type) {
@@ -210,69 +88,6 @@ public class WrapperType {
       }
     }
     throw new IllegalArgumentException(type.toString());
-  }
-
-  public static WrapperType valueOf(Class<?> wrapperClass) {
-    return valueOf(Type.getType(wrapperClass));
-  }
-
-  /**
-   * Emits the bytecode to consume a reference to a wrapper instance on the stack
-   * and push the array and offset onto the stack. ( wrapper pointer -> array, offset)
-   */
-  public void emitUnpackArrayAndOffset(MethodVisitor mv, Optional<Type> castTo) {
-    
-    // duplicate the wrapper instance so we can call GETFIELD twice.
-    mv.visitInsn(DUP);
-
-    // Consume the first reference to the wrapper type and push the array field on the stack
-    mv.visitFieldInsn(GETFIELD, wrapperType.getInternalName(), "array", arrayType.getDescriptor());
-    
-    if(castTo.isPresent()) {
-      mv.visitTypeInsn(Opcodes.CHECKCAST, castTo.get().getInternalName());
-    }
-
-    // (wrapper, array) -> (array, wrapper)
-    mv.visitInsn(SWAP);
-    
-    // Consume the second reference 
-    mv.visitFieldInsn(GETFIELD, wrapperType.getInternalName(), "offset", "I");
-  }
-
-  public void emitUnpackArrayAndOffset(MethodVisitor mv, WrapperType castTo) {
-    Type wrapperArray = Type.getType("[" + castTo.getWrapperType().getDescriptor());
-    emitUnpackArrayAndOffset(mv, Optional.of(wrapperArray));
-  }
-  
-  public void emitUnpackArrayAndOffset(MethodVisitor mv) {
-    emitUnpackArrayAndOffset(mv, Optional.<Type>absent());
-  }
-
-    /**
-     * Emits the bytecode to consume a reference to the array 
-     */
-  public void emitPushNewWrapper(MethodVisitor mv, ExprGenerator ptrGenerator) {
-
-    // sanity check type we're trying to create here
-    if(!ptrGenerator.getPointerType().equals(this)) {
-      throw new InternalCompilerException(String.format(
-          "Type mismatch: cannot create FatPtr (%s) from pointer of type %s [%s]", 
-          wrapperType, ptrGenerator.getGimpleType(), ptrGenerator.getPointerType()));
-    }
-    
-    String wrapperClass = wrapperType.getInternalName();
-
-    // Create a new instance of the wrapper
-    mv.visitTypeInsn(Opcodes.NEW, wrapperClass);
-
-    // Initialize it with the array and offset
-    mv.visitInsn(Opcodes.DUP);
-    ptrGenerator.emitPushPtrArrayAndOffset(mv);
-    mv.visitMethodInsn(INVOKESPECIAL, wrapperClass, "<init>", getConstructorDescriptor(), false);
-  }
-
-  public void emitInvokeUpdate(MethodVisitor mv) {
-    mv.visitMethodInsn(INVOKEVIRTUAL, wrapperType.getInternalName(), "update", getConstructorDescriptor(), false);
   }
 
   @Override

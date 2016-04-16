@@ -1,6 +1,5 @@
 package org.renjin.gcc.codegen;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -8,10 +7,11 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.util.TraceClassVisitor;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.InternalCompilerException;
+import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.expr.ExprFactory;
+import org.renjin.gcc.codegen.expr.LValue;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.TypeStrategy;
-import org.renjin.gcc.codegen.type.VarGenerator;
 import org.renjin.gcc.codegen.var.GlobalVarAllocator;
 import org.renjin.gcc.codegen.var.ProvidedVarAllocator;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
@@ -61,14 +61,14 @@ public class UnitClassGenerator {
   
     for (GimpleVarDecl decl : unit.getGlobalVariables()) {
       TypeStrategy typeStrategy = typeOracle.forType(decl.getType());
-      VarGenerator varGenerator;
+      Expr varGenerator;
       
       if(isProvided(providedVariables, decl)) {
         Field providedField = providedVariables.get(decl.getName());
-        varGenerator = typeStrategy.varGenerator(decl, new ProvidedVarAllocator(providedField.getDeclaringClass()));
+        varGenerator = typeStrategy.variable(decl, new ProvidedVarAllocator(providedField.getDeclaringClass()));
         
       } else {
-        varGenerator = typeStrategy.varGenerator(decl, globalVarAllocator);
+        varGenerator = typeStrategy.variable(decl, globalVarAllocator);
         varToGenerate.add(decl);
       }
 
@@ -133,13 +133,15 @@ public class UnitClassGenerator {
     
     // and any static initialization that is required
     ExprFactory exprFactory = new ExprFactory(typeOracle, symbolTable, unit.getCallingConvention());
-    MethodVisitor mv = cv.visitMethod(ACC_STATIC, "<clinit>", "()V", null, null);
+    MethodGenerator mv = new MethodGenerator(cv.visitMethod(ACC_STATIC, "<clinit>", "()V", null, null));
     mv.visitCode();
 
     for (GimpleVarDecl decl : varToGenerate) {
       try {
-        VarGenerator varGenerator = symbolTable.getGlobalVariable(decl);
-        varGenerator.emitDefaultInit(mv, exprFactory.findGenerator(Optional.fromNullable(decl.getValue())));
+        LValue varGenerator = (LValue) symbolTable.getGlobalVariable(decl);
+        if(decl.getValue() != null) {
+          varGenerator.store(mv, exprFactory.findGenerator(decl.getValue()));
+        }
 
       } catch (Exception e) {
         throw new InternalCompilerException("Exception writing static variable initializer " + decl.getName() +

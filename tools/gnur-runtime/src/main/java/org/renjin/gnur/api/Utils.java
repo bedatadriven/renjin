@@ -42,19 +42,19 @@ public final class Utils {
   // void Rf_cPsort (Rcomplex *, int, int)
 
   public static void R_qsort(DoublePtr v, /*size_t*/ int i, /*size_t*/ int j) {
-    throw new UnimplementedGnuApiMethod("R_qsort");
+    org.renjin.gnur.qsort.R_qsort(v, i, j);
   }
 
   public static void R_qsort_I(DoublePtr v, IntPtr II, int i, int j) {
-    throw new UnimplementedGnuApiMethod("R_qsort_I");
+    org.renjin.gnur.qsort.R_qsort_I(v, II, i, j);
   }
 
   public static void R_qsort_int(IntPtr iv, /*size_t*/ int i, /*size_t*/ int j) {
-    throw new UnimplementedGnuApiMethod("R_qsort_int");
+    org.renjin.gnur.qsort.R_qsort_int(iv, i, j);
   }
 
   public static void R_qsort_int_I(IntPtr iv, IntPtr II, int i, int j) {
-    throw new UnimplementedGnuApiMethod("R_qsort_int_I");
+    org.renjin.gnur.qsort.R_qsort_int_I(iv, II, i, j);
   }
 
   public static CharPtr R_ExpandFileName(CharPtr p0) {

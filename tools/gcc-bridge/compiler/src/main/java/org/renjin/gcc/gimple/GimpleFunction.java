@@ -183,7 +183,7 @@ public class GimpleFunction {
     }
     return false;
   }
-
+  
   public void replaceAll(Predicate<? super GimpleExpr> predicate, GimpleExpr newExpr) {
     for (GimpleBasicBlock basicBlock : basicBlocks) {
       basicBlock.replaceAll(predicate, newExpr);
@@ -199,5 +199,9 @@ public class GimpleFunction {
       }
     }
     throw new InternalCompilerException("No such variable: " + ref);
+  }
+
+  public GimpleBasicBlock getLastBasicBlock() {
+    return basicBlocks.get(basicBlocks.size()-1);
   }
 }

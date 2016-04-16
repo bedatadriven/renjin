@@ -1,17 +1,21 @@
 package org.renjin.gcc.codegen.type.complex;
 
+import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
+import org.renjin.gcc.codegen.expr.ExprFactory;
+import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
+import org.renjin.gcc.codegen.type.FieldStrategy;
 import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.type.ReturnStrategy;
 import org.renjin.gcc.codegen.type.TypeStrategy;
-import org.renjin.gcc.codegen.type.VarGenerator;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
+import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleComplexType;
-import org.renjin.gcc.gimple.type.GimplePointerType;
 
 /**
- * Strategy  complex number types.
+ * Strategy for complex number types.
  * 
  * <p>The JVM does not have builtin support for complex number types, so we have to
  * be a bit creative in representing parameters and variables.</p>
@@ -27,7 +31,7 @@ import org.renjin.gcc.gimple.type.GimplePointerType;
  * to return a complex value. This is something we could eliminate with aggressive inlining.</p>
  * 
  */
-public class ComplexTypeStrategy extends TypeStrategy {
+public class ComplexTypeStrategy implements TypeStrategy<ComplexValue> {
 
   private GimpleComplexType type;
 
@@ -36,17 +40,37 @@ public class ComplexTypeStrategy extends TypeStrategy {
   }
 
   @Override
-  public VarGenerator varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
+  public ComplexValue variable(GimpleVarDecl decl, VarAllocator allocator) {
     if(decl.isAddressable()) {
-      return new AddressableComplexVarGenerator(type,
-          allocator.reserveArrayRef(decl.getName(), type.getJvmPartType()));
+//      return new AddressableComplexVarGenerator(type,
+//          allocator.reserveArrayRef(decl.getName(), type.getJvmPartType()));
+      throw new UnsupportedOperationException("TODO");
     } else {
-      return new ComplexVarGenerator(type,
+      return new ComplexValue(
           allocator.reserve(decl.getName() + "$real", type.getJvmPartType()),
           allocator.reserve(decl.getName() + "$im", type.getJvmPartType()));
     }
   }
 
+  @Override
+  public ComplexValue constructorExpr(ExprFactory exprFactory, GimpleConstructor value) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public FieldStrategy fieldGenerator(Type className, String fieldName) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public FieldStrategy addressableFieldGenerator(Type className, String fieldName) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public ParamStrategy getParamStrategy() {
+    throw new UnsupportedOperationException("TODO");
+  }
 
   @Override
   public ReturnStrategy getReturnStrategy() {
@@ -54,61 +78,14 @@ public class ComplexTypeStrategy extends TypeStrategy {
   }
 
   @Override
-  public TypeStrategy pointerTo() {
-    return new Pointer();
+  public FatPtrStrategy pointerTo() {
+    return new FatPtrStrategy(new ComplexValueFunction(type.getJvmPartType()))
+        .setParametersWrapped(false);
   }
 
   @Override
-  public TypeStrategy arrayOf(GimpleArrayType arrayType) {
-    return new Array(arrayType);
-  }
-
-  private class Pointer extends TypeStrategy {
-
-    @Override
-    public ParamStrategy getParamStrategy() {
-      return new ComplexPtrParamStrategy(new GimplePointerType(type));
-    }
-
-    @Override
-    public VarGenerator varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
-      return new ComplexPtrVarGenerator(type.pointerTo(), 
-          allocator.reserveArrayRef(decl.getName(), type.getJvmPartType()),
-          allocator.reserveInt(decl.getName() + "$offset"));
-    }
-  }
-  
-  private class Array extends TypeStrategy {
-
-    private final GimpleArrayType arrayType;
-
-    public Array(GimpleArrayType arrayType) {
-      this.arrayType = arrayType;
-    }
-
-    @Override
-    public TypeStrategy pointerTo() {
-      return new ArrayPtr(new GimplePointerType(arrayType));
-    }
-  }
-  
-  private class ArrayPtr extends TypeStrategy {
-    private final GimplePointerType pointerType;
-
-    public ArrayPtr(GimplePointerType pointerType) {
-      this.pointerType = pointerType;
-    }
-
-    @Override
-    public ParamStrategy getParamStrategy() {
-      return new ComplexArrayPtrParamStrategy(pointerType);
-    }
-
-    @Override
-    public VarGenerator varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
-      return new ComplexArrayPtrVarGenerator(pointerType,
-          allocator.reserveArrayRef(decl.getName(), type.getJvmPartType()),
-          allocator.reserveInt(decl.getName() + "$offset"));
-    }
+  public ArrayTypeStrategy arrayOf(GimpleArrayType arrayType) {
+    return new ArrayTypeStrategy(arrayType, new ComplexValueFunction(type.getJvmPartType()))
+        .setParameterWrapped(false);
   }
 }

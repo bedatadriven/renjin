@@ -14,9 +14,9 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-memory.size <- function(max = FALSE) round(.Internal(memory.size(max)), 2L)
+memory.length <- function(max = FALSE) round(.Internal(memory.length(max)), 2L)
 
-memory.limit <- function(size = NA) trunc(.Internal(memory.size(size)))
+memory.limit <- function(size = NA) trunc(.Internal(memory.length(length)))
 
 DLL.version <- function(path) .Internal(DLL.version(path))
 

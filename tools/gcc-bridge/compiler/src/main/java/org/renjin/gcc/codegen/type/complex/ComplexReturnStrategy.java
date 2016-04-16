@@ -1,17 +1,14 @@
 package org.renjin.gcc.codegen.type.complex;
 
 
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
-import org.renjin.gcc.codegen.call.CallGenerator;
-import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
-import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.expr.Expr;
+import org.renjin.gcc.codegen.expr.Expressions;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.SimpleLValue;
 import org.renjin.gcc.codegen.type.ReturnStrategy;
 import org.renjin.gcc.gimple.type.GimpleComplexType;
-import org.renjin.gcc.gimple.type.GimpleType;
-
-import java.util.List;
 
 /**
  * Strategy for returning a complex value as a {@code double[2]} or {@code float[2]}
@@ -30,38 +27,30 @@ public class ComplexReturnStrategy implements ReturnStrategy {
   }
 
   @Override
-  public void emitReturnValue(MethodVisitor mv, ExprGenerator valueGenerator) {
-    valueGenerator.emitPushComplexAsArray(mv);
-    mv.visitInsn(Opcodes.ARETURN);
+  public SimpleExpr marshall(Expr expr) {
+    ComplexValue complexValue = (ComplexValue) expr;
+    return Expressions.newArray(
+        complexValue.getRealValue(),
+        complexValue.getImaginaryValue());
   }
 
   @Override
-  public void emitReturnDefault(MethodVisitor mv) {
-    throw new UnsupportedOperationException();
+  public Expr unmarshall(MethodGenerator mv, SimpleExpr returnValue) {
+    // Allocate a temporary variable for the array so that it's 
+    // components can be accessed
+    SimpleLValue array = mv.getLocalVarAllocator().reserve("retval", returnValue.getType());
+    array.store(mv, returnValue);
+    SimpleExpr realValue = Expressions.elementAt(array, 0);
+    SimpleExpr imaginaryValue = Expressions.elementAt(array, 1);
+    
+    return new ComplexValue(realValue, imaginaryValue);
   }
 
   @Override
-  public ExprGenerator callExpression(CallGenerator callGenerator, List<ExprGenerator> arguments) {
-    return new CallExpr(callGenerator, arguments);
+  public SimpleExpr getDefaultReturnValue() {
+    SimpleExpr zero = Expressions.zero(type.getJvmPartType());
+    
+    return Expressions.newArray(zero, zero);
   }
 
-  private class CallExpr extends AbstractExprGenerator {
-    private CallGenerator callGenerator;
-    private List<ExprGenerator> argumentGenerators;
-
-    public CallExpr(CallGenerator callGenerator, List<ExprGenerator> argumentGenerators) {
-      this.callGenerator = callGenerator;
-      this.argumentGenerators = argumentGenerators;
-    }
-
-    @Override
-    public GimpleType getGimpleType() {
-      return type;
-    }
-
-    @Override
-    public void emitPushComplexAsArray(MethodVisitor mv) {
-      callGenerator.emitCall(mv, argumentGenerators);
-    }
-  }
 }

@@ -30,3 +30,7 @@ double sum_array(double *values, int length) {
   }
   return sum_transform_array(values, length, fn);
 }
+
+double exp_sum(double *values, int length) {
+  return sum_transform_array(values, length, &exp);
+}

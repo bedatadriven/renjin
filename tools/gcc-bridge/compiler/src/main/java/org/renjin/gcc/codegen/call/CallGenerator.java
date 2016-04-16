@@ -1,21 +1,18 @@
 package org.renjin.gcc.codegen.call;
 
-import org.objectweb.asm.MethodVisitor;
-import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.gimple.type.GimpleType;
-
-import java.util.List;
+import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.expr.ExprFactory;
+import org.renjin.gcc.gimple.statement.GimpleCall;
 
 /**
- * Generates function call invocations
+ * Generates the bytecode for {@link GimpleCall} instructions.
+ * 
+ * <p>During code generation, we need to handle some function calls in a context-sensitive way, such
+ * as calls to {@code malloc} or {@code free}, while others</p>
  */
 public interface CallGenerator  {
   
-  void emitCall(MethodVisitor visitor, List<ExprGenerator> argumentGenerators);
-  
-  void emitCallAndPopResult(MethodVisitor visitor, List<ExprGenerator> argumentGenerators);
+  void emitCall(MethodGenerator mv, ExprFactory exprFactory, GimpleCall call);
 
-  ExprGenerator expressionGenerator(GimpleType returnType, List<ExprGenerator> argumentGenerators);
-  
 }
 

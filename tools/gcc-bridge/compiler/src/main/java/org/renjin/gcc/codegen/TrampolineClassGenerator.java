@@ -52,7 +52,7 @@ public class TrampolineClassGenerator {
     mv.visitCode();
     
     int varIndex = 0;
-    for (ParamStrategy generator : functionGenerator.getParamGenerators()) {
+    for (ParamStrategy generator : functionGenerator.getParamStrategies()) {
       for (Type type : generator.getParameterTypes()) {
         mv.visitVarInsn(type.getOpcode(Opcodes.ILOAD), varIndex);
         varIndex += type.getSize();

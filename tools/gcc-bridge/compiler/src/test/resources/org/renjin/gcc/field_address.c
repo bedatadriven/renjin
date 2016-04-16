@@ -19,7 +19,6 @@ typedef struct {
 } sparse_matrix;
 
 
-
 double * malloc_double(int count) {
   return malloc(count * sizeof(double));
 }

@@ -6,8 +6,29 @@ package org.renjin.gcc.gimple.expr;
 public class GimpleFieldRef extends GimpleExpr {
 
 
-  private String name;
   private int id;
+  private int offset;
+  private String name;
+
+  public GimpleFieldRef() {
+  }
+
+  public GimpleFieldRef(int id,  String name) {
+    this.id = id;
+    this.name = name;
+  }
+
+  /**
+   * 
+   * @return the offset of this field in bits, from the start of the record.
+   */
+  public int getOffset() {
+    return offset;
+  }
+
+  public void setOffset(int offset) {
+    this.offset = offset;
+  }
 
   public String getName() {
     return name;

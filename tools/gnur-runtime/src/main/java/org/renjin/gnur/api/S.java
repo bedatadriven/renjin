@@ -19,10 +19,10 @@ public final class S {
   }
 
   public static double unif_rand() {
-    throw new UnimplementedGnuApiMethod("unif_rand");
+    return Random.unif_rand();
   }
 
   public static double norm_rand() {
-    throw new UnimplementedGnuApiMethod("norm_rand");
+    return Random.norm_rand();
   }
 }

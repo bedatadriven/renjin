@@ -247,21 +247,30 @@ public class Sort {
             return 0;
           }
         }
-        return decreasing ? -rel : rel;
+        return rel;
       }
 
       private int compare(Integer row1, Integer row2, int col) {
         AtomicVector column = (AtomicVector) columns.get(col);
         boolean na1 = column.isElementNA(row1);
         boolean na2 = column.isElementNA(row2);
-        if(na1 == na2) {
-          return column.compare(row1, row2);
-        } else if(na1 && naLast) {
-          return decreasing ? -1 : +1; 
+        if(na1 && na2) {
+          // Both values are NA, consider equal
+          return 0;
+        } else if(na1) {
+          // NA <-> 42
+          return naLast ? +1 : -1;
+        } else if(na2) {
+          // 42 <-> NA
+          return naLast ? -1 : +1;
         } else {
-          return decreasing ? +1 : -1;
+          // 42 <-> 41
+          return decreasing ?
+              -column.compare(row1, row2) :
+              +column.compare(row1, row2);
         }
       }
+
     });
 
     IntArrayVector.Builder result = new IntArrayVector.Builder();

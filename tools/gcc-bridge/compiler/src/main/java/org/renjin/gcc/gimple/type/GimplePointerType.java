@@ -38,4 +38,24 @@ public class GimplePointerType extends AbstractGimpleType implements GimpleIndir
   public boolean isPointerTo(Class<? extends GimpleType> clazz) {
     return clazz.isAssignableFrom(baseType.getClass());
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    GimplePointerType that = (GimplePointerType) o;
+
+    return baseType.equals(that.baseType);
+
+  }
+
+  @Override
+  public int hashCode() {
+    return baseType.hashCode();
+  }
 }

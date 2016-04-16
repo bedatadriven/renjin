@@ -2,12 +2,12 @@ package org.renjin.gcc.codegen.condition;
 
 
 import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
+import org.renjin.gcc.codegen.MethodGenerator;
 
 /**
  * Generates bytecode for conditional jumps
  */
 public interface ConditionGenerator {
   
-  void emitJump(MethodVisitor mv, Label trueLabel, Label falseLabel);
+  void emitJump(MethodGenerator mv, Label trueLabel, Label falseLabel);
 }

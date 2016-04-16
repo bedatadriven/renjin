@@ -1,20 +1,19 @@
 package org.renjin.gcc.codegen;
 
-import org.objectweb.asm.*;
+import com.google.common.io.Files;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.Type;
 import org.objectweb.asm.util.TraceClassVisitor;
 import org.renjin.gcc.GimpleCompiler;
-import org.renjin.gcc.InternalCompilerException;
-import org.renjin.gcc.codegen.type.FieldGenerator;
-import org.renjin.gcc.codegen.type.TypeOracle;
-import org.renjin.gcc.gimple.type.GimpleField;
-import org.renjin.gcc.gimple.type.GimpleRecordType;
+import org.renjin.gcc.codegen.type.FieldStrategy;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Collection;
 
 import static org.objectweb.asm.Opcodes.*;
 
@@ -28,38 +27,27 @@ public class RecordClassGenerator {
   private ClassVisitor cv;
   private StringWriter sw;
   private PrintWriter pw;
-  private String className;
+  private Type className;
+  private Collection<FieldStrategy> fields;
 
-  private final GimpleRecordTypeDef recordType;
-
-  private Map<String, FieldGenerator> fields = null;
-  private TypeOracle typeOracle;
-
-  public RecordClassGenerator(TypeOracle typeOracle, String className, GimpleRecordTypeDef recordType) {
-    this.typeOracle = typeOracle;
+  public RecordClassGenerator(Type className, Collection<FieldStrategy> fields) {
+    this.fields = fields;
     this.className = className;
-    this.recordType = recordType;
-    
-    if(recordType.isUnion()) {
-      throw new UnsupportedOperationException("union types not yet implemented.");
-    }
-  }
-  
-  public GimpleRecordTypeDef getTypeDef() {
-    return recordType;
   }
 
-
-  public void linkFields() {
-    fields = new HashMap<>();
-    for (GimpleField gimpleField : recordType.getFields()) {
-      FieldGenerator fieldGenerator = typeOracle.forField(this.className, gimpleField);
-      fields.put(gimpleField.getName(), fieldGenerator);
+  public void writeClassFile(File outputDirectory) throws IOException {
+    File classFile = new File(outputDirectory.getAbsolutePath() + File.separator + className.getInternalName()  + ".class");
+    if(!classFile.getParentFile().exists()) {
+      boolean created = classFile.getParentFile().mkdirs();
+      if(!created) {
+        throw new IOException("Failed to create directory for class file: " + classFile.getParentFile());
+      }
     }
+    Files.write(generateClassFile(), classFile);
   }
 
   public byte[] generateClassFile() throws IOException {
-    
+
     sw = new StringWriter();
     pw = new PrintWriter(sw);
     cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
@@ -68,82 +56,33 @@ public class RecordClassGenerator {
     } else {
       cv = cw;
     }
-    cv.visit(V1_6, ACC_PUBLIC + ACC_SUPER, className, null, "java/lang/Object", new String[0]);
+    cv.visit(V1_6, ACC_PUBLIC + ACC_SUPER, className.getInternalName(), null, "java/lang/Object", new String[0]);
 
     emitDefaultConstructor();
     emitFields();
     cv.visitEnd();
-    
+
     return cw.toByteArray();
   }
 
   private void emitFields() {
-    for (FieldGenerator fieldGenerator : fields.values()) {
-      fieldGenerator.emitInstanceField(cv);
+    for (FieldStrategy fieldStrategy : fields) {
+      fieldStrategy.writeFields(cv);
     }
   }
 
   private void emitDefaultConstructor() {
-    MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
+    MethodGenerator mv = new MethodGenerator(cv.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null));
     mv.visitCode();
     mv.visitVarInsn(ALOAD, 0);
     mv.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
 
-    for (FieldGenerator fieldGenerator : fields.values()) {
-      fieldGenerator.emitInstanceInit(mv);
+    for (FieldStrategy fieldStrategy : fields) {
+      fieldStrategy.emitInstanceInit(mv);
     }
-    
+
     mv.visitInsn(RETURN);
     mv.visitMaxs(1, 1);
     mv.visitEnd();
   }
-
-  public GimpleRecordType getGimpleType() {
-    GimpleRecordType recordType = new GimpleRecordType();
-    recordType.setId(this.recordType.getId());
-    recordType.setName(this.recordType.getName());
-    recordType.setSize(computeSize());
-    return recordType;
-  }
-
-  private int computeSize() {
-    int size = 0;
-    for (GimpleField gimpleField : recordType.getFields()) {
-      // XXX: this doesn't look right, but works
-      if(!gimpleField.getName().equals(recordType.getName())) {
-        size += gimpleField.getType().sizeOf() * 8;
-      }
-    }
-    return size;
-  }
-
-  public String getClassName() {
-    return className;
-  }
-
-  public String getDescriptor() {
-    return "L" + className + ";";
-  }
-  
-  public Type getType() {
-    return Type.getType(getDescriptor());
-  }
-
-  public FieldGenerator getFieldGenerator(String name) {
-    if(fields == null) {
-      throw new IllegalStateException("Fields map is not yet initialized.");
-    }
-    FieldGenerator fieldGenerator = fields.get(name);
-    if(fieldGenerator == null) {
-      throw new InternalCompilerException(String.format("No field named '%s' in record type '%s'", name, className));
-    }
-    return fieldGenerator;
-  }
-
-  public void emitConstructor(MethodVisitor mv) {
-    mv.visitTypeInsn(Opcodes.NEW, className);
-    mv.visitInsn(Opcodes.DUP);
-    mv.visitMethodInsn(Opcodes.INVOKESPECIAL, className, "<init>", "()V", false);
-  }
-
 }

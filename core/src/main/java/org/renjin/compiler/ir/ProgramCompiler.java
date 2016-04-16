@@ -1,19 +1,10 @@
 package org.renjin.compiler.ir;
 
-import java.util.List;
-
-import org.objectweb.asm.AnnotationVisitor;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.FieldVisitor;
-import org.objectweb.asm.Opcodes;
-import org.renjin.compiler.cfg.BasicBlock;
+import org.objectweb.asm.*;
 import org.renjin.compiler.cfg.ControlFlowGraph;
 import org.renjin.compiler.ir.tac.IRBody;
 import org.renjin.compiler.ir.tac.IRProgram;
 import org.renjin.compiler.ir.tree.TreeBuilder;
-import org.renjin.compiler.ir.tree.TreeNode;
 import org.renjin.sexp.SEXP;
 
 

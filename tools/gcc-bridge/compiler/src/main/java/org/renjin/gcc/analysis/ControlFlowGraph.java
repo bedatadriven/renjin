@@ -1,9 +1,11 @@
 package org.renjin.gcc.analysis;
 
-import com.google.common.collect.*;
+import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.PeekingIterator;
 import com.google.common.escape.Escaper;
 import com.google.common.escape.Escapers;
-
 import org.renjin.gcc.gimple.GimpleBasicBlock;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.statement.GimpleEdge;
@@ -96,10 +98,11 @@ public class ControlFlowGraph {
         Node targetNode;
         for (GimpleEdge jump : jumps) {
           sourceNode = nodes.get(jump.getSource());
-          if(jump.getTarget() == 1)
+          if(jump.getTarget() == 1) {
             targetNode = exitNode;
-          else
+          } else {
             targetNode = nodes.get(jump.getTarget());
+          }
           addEdge(sourceNode, targetNode);
         }
       }

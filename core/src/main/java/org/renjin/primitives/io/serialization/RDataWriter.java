@@ -262,8 +262,9 @@ public class RDataWriter {
         }
       }
     } else {
-      for(int i=0;i!=vector.length();++i) 
+      for(int i=0;i!=vector.length();++i) {
         out.writeInt(vector.getElementAsInt(i));
+      }
     }
     
     writeAttributes(vector);
@@ -578,10 +579,11 @@ public class RDataWriter {
         /* actually, since s is signed char and '\?' == 127
            is handled above, s[i] > 126 can't happen, but
            I'm superstitious...  -pd */
-            if (bytes[i] <= 32 || bytes[i] > 126)
+            if (bytes[i] <= 32 || bytes[i] > 126) {
               s = String.format("\\%03o", bytes[i]);
-            else
-              s = new String(new byte[] {bytes[i]});
+            } else {
+              s = new String(new byte[]{bytes[i]});
+            }
         }
         out.writeBytes(s);
       }

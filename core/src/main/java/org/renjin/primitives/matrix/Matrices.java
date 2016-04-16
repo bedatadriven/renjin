@@ -206,7 +206,9 @@ public class Matrices {
    */
   @Internal
   public static SEXP aperm(Vector source, AtomicVector permutationVector, boolean resize) {
-    if(!resize) throw new UnsupportedOperationException("resize=TRUE not yet implemented");
+    if(!resize) {
+      throw new UnsupportedOperationException("resize=TRUE not yet implemented");
+    }
 
     SEXP dimExp = source.getAttributes().getDim();
     EvalException.check(dimExp instanceof IntVector, "invalid first argument, must be an array");

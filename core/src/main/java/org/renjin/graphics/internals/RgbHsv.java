@@ -1,7 +1,6 @@
 package org.renjin.graphics.internals;
 
 import org.renjin.eval.EvalException;
-import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.DataParallel;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.invoke.annotations.Recycle;
@@ -1187,8 +1186,9 @@ public class RgbHsv {
 	}
 
 	private static int ScaleAlpha(double x) {
-		if (!DoubleVector.isFinite(x) || x < 0.0 || x > 1.0)
+		if (!DoubleVector.isFinite(x) || x < 0.0 || x > 1.0) {
 			throw new EvalException("alpha level " + x + ", not in [0,1]");
+		}
 		return (int) (255 * x + 0.5);
 	}
 

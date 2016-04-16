@@ -486,7 +486,9 @@ public class Text {
         result.add(StringVector.NA);
       } else {
         int slen = element.length();
-        if (startIndex < 1) startIndex = 1;
+        if (startIndex < 1) {
+          startIndex = 1;
+        }
         if (startIndex > stopIndex || startIndex > slen) {
           result.add("");
         } else if (stopIndex >= slen) {

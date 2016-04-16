@@ -77,10 +77,11 @@ public class GimpleEdge {
     boolean needsComma = false;
     for(int i = 0; i < 15; ++i) {
       if((flags & (1 << i)) != 0) {
-        if(needsComma)
+        if(needsComma) {
           sb.append(",");
-        else
+        } else {
           needsComma = true;
+        }
         sb.append(names[i]);
       }
     }

@@ -300,14 +300,24 @@ public interface PairList extends SEXP {
 
     @Override
     public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
 
       Node node = (Node) o;
 
-      if (nextNode != null ? !nextNode.equals(node.nextNode) : node.nextNode != null) return false;
-      if (tag != null ? !tag.equals(node.tag) : node.tag != null) return false;
-      if (value != null ? !value.equals(node.value) : node.value != null) return false;
+      if (nextNode != null ? !nextNode.equals(node.nextNode) : node.nextNode != null) {
+        return false;
+      }
+      if (tag != null ? !tag.equals(node.tag) : node.tag != null) {
+        return false;
+      }
+      if (value != null ? !value.equals(node.value) : node.value != null) {
+        return false;
+      }
 
       return true;
     }

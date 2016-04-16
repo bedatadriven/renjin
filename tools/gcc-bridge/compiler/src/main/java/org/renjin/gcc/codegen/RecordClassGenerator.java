@@ -110,8 +110,9 @@ public class RecordClassGenerator {
     int size = 0;
     for (GimpleField gimpleField : recordType.getFields()) {
       // XXX: this doesn't look right, but works
-      if(!gimpleField.getName().equals(recordType.getName()))
+      if(!gimpleField.getName().equals(recordType.getName())) {
         size += gimpleField.getType().sizeOf() * 8;
+      }
     }
     return size;
   }

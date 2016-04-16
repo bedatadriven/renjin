@@ -316,12 +316,18 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     ListVector listExp = (ListVector) o;
 
-    if (!Arrays.equals(values, listExp.values)) return false;
+    if (!Arrays.equals(values, listExp.values)) {
+      return false;
+    }
 
     return true;
   }

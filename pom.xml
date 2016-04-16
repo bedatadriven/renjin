@@ -113,7 +113,7 @@
                       <!--<property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>-->
                     <!--</module>-->
                     <module name="OneTopLevelClass"/>
-                    <!--<module name="NeedBraces"/>-->
+                    <module name="NeedBraces"/>
                     <!--<module name="OneStatementPerLine"/>-->
                     <!--<module name="MultipleVariableDeclarations"/>-->
                     <!--<module name="ArrayTypeStyle"/>-->

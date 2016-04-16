@@ -154,16 +154,18 @@ public class CDefines {
    */
   public static SEXP SETCAR(SEXP x, SEXP y) {
 
-    if (x == NULL || x == R_NilValue)
+    if (x == NULL || x == R_NilValue) {
       error(_("bad value"));
+    }
     CHECK_OLD_TO_NEW(x, y);
     ((PairList.Node) x).setValue(y);
     return y;
   }
 
   public static SEXP SETCDR(SEXP x, SEXP y) {
-    if (x == NULL || x == R_NilValue)
+    if (x == NULL || x == R_NilValue) {
       error(_("bad value"));
+    }
     CHECK_OLD_TO_NEW(x, y);
     ((PairList.Node) x).setNextNode((PairList.Node) y);
     return y;
@@ -172,8 +174,9 @@ public class CDefines {
   public static SEXP SETCADR(SEXP x, SEXP y) {
     SEXP cell;
     if (x == NULL || x == R_NilValue ||
-        CDR(x) == NULL || CDR(x) == R_NilValue)
+        CDR(x) == NULL || CDR(x) == R_NilValue) {
       error(_("bad value"));
+    }
     cell = CDR(x);
     CHECK_OLD_TO_NEW(cell, y);
     ((PairList.Node) cell).setNextNode((PairList.Node) y);
@@ -184,8 +187,9 @@ public class CDefines {
     SEXP cell;
     if (x == NULL || x == R_NilValue ||
         CDR(x) == NULL || CDR(x) == R_NilValue ||
-        CDDR(x) == NULL || CDDR(x) == R_NilValue)
+        CDDR(x) == NULL || CDDR(x) == R_NilValue) {
       error(_("bad value"));
+    }
     cell = CDDR(x);
     CHECK_OLD_TO_NEW(cell, y);
     ((PairList.Node) cell).setValue(y);
@@ -201,8 +205,9 @@ public class CDefines {
     if (x == NULL || x == R_NilValue ||
         CDR(x) == NULL || CDR(x) == R_NilValue ||
         CDDR(x) == NULL || CDDR(x) == R_NilValue ||
-        CDDDR(x) == NULL || CDDDR(x) == R_NilValue)
+        CDDDR(x) == NULL || CDDDR(x) == R_NilValue) {
       error(_("bad value"));
+    }
     cell = CDDDR(x);
     CHECK_OLD_TO_NEW(cell, y);
     ((PairList.Node) cell).setValue(y);
@@ -219,8 +224,9 @@ public class CDefines {
         CDR(x) == NULL || CDR(x) == R_NilValue ||
         CDDR(x) == NULL || CDDR(x) == R_NilValue ||
         CDDDR(x) == NULL || CDDDR(x) == R_NilValue ||
-        CD4R(x) == NULL || CD4R(x) == R_NilValue)
+        CD4R(x) == NULL || CD4R(x) == R_NilValue) {
       error(_("bad value"));
+    }
     cell = CD4R(x);
     CHECK_OLD_TO_NEW(cell, y);
     ((PairList.Node) cell).setValue(y);

@@ -466,10 +466,11 @@ public class RDataReader {
 
   private int readReferenceIndex(int flags) throws IOException {
     int i = Flags.unpackRefIndex(flags);
-    if (i == 0)
+    if (i == 0) {
       return in.readInt() - 1;
-    else
+    } else {
       return i - 1;
+    }
   }
 
   private SEXP readSymbol() throws IOException {

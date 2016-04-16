@@ -200,11 +200,12 @@ class MatrixProduct {
     //            ccrossprod(COMPLEX(CAR(args)), nrx, ncx,
     //                       COMPLEX(y), nry, ncy, COMPLEX(ans));
     //    else {
-    if(sym)
+    if(sym) {
       symcrossprod(getXArray(), nrx, ncx, ans);
-    else
+    } else {
       crossprod(getXArray(), nrx, ncx,
           getYArray(), nry, ncy, ans);
+    }
 
 
     //    PROTECT(xdims = getAttrib(CAR(args), R_DimNamesSymbol));
@@ -278,11 +279,12 @@ class MatrixProduct {
       //              tccrossprod(COMPLEX(CAR(args)), nrx, ncx,
       //                          COMPLEX(y), nry, ncy, COMPLEX(ans));
 
-      if(sym)
+      if(sym) {
         symtcrossprod(getXArray(), nrx, ncx, ans);
-      else
+      } else {
         tcrossprod(getXArray(), nrx, ncx,
             getYArray(), nry, ncy, ans);
+      }
 
 
       return makeMatrix(ans, nrx, nry);
@@ -334,10 +336,15 @@ class MatrixProduct {
     int i, j;
     if (nr > 0 && nc > 0) {
       BLAS.getInstance().dsyrk(uplo, trans, nc, nr, one, x, nr, zero, z, nc);  
-      for (i = 1; i < nc; i++)
-        for (j = 0; j < i; j++) z[i + nc *j] = z[j + nc * i];
+      for (i = 1; i < nc; i++) {
+        for (j = 0; j < i; j++) {
+          z[i + nc * j] = z[j + nc * i];
+        }
+      }
     } else { /* zero-extent operations should return zeroes */
-      for(i = 0; i < nc*nc; i++) z[i] = 0;
+      for(i = 0; i < nc*nc; i++) {
+        z[i] = 0;
+      }
     }
   }
 

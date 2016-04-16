@@ -253,8 +253,9 @@ public class Lapack {
         vl, vu, il, iu, abstol, m, rvalues,
         rz, n, isuppz,
         tmp, lwork, itmp, liwork, info);
-    if (info.val != 0)
+    if (info.val != 0) {
       throw new EvalException("error code %d from Lapack routine '%s'", info, "dsyevr");
+    }
 
     lwork = (int) tmp[0];
     liwork = itmp[0];
@@ -266,8 +267,9 @@ public class Lapack {
         vl, vu, il, iu, abstol, m, rvalues,
         rz, n, isuppz,
         work, lwork, iwork, liwork, info);
-    if (info.val != 0)
+    if (info.val != 0) {
       throw new EvalException("error code %d from Lapack routine '%s'", info, "dsyevr");
+    }
 
     ListVector.NamedBuilder ret = ListVector.newNamedBuilder();
     ret.add("values", new DoubleArrayVector(rvalues));
@@ -388,15 +390,17 @@ public class Lapack {
     intW info = new intW(0);
     lapack.dgeev(jobVL, jobVR, n, xvals, n, wR, wI, left, n, right, n, tmp, lwork, info);
 
-    if (info.val != 0)
+    if (info.val != 0) {
       throw new EvalException("error code %d from Lapack routine '%s'", info, "dgeev");
+    }
 
     lwork = (int) tmp[0];
     work =  new double[lwork];
     lapack.dgeev(jobVL, jobVR, n, xvals, n, wR, wI, left, n, right, n, work, lwork, info);
 
-    if (info.val != 0)
+    if (info.val != 0) {
       throw new EvalException("error code %d from Lapack routine '%s'", info, "dgeev");
+    }
 
     ListVector.NamedBuilder ret = new ListVector.NamedBuilder();
 

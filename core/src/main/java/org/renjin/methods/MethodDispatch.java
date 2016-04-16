@@ -192,8 +192,9 @@ public class MethodDispatch {
     /* the rest of this is identical to R_standardGeneric;
          hence the f=method to remind us  */
     f = method;
-    if(f.isObject())
+    if(f.isObject()) {
       f = R_loadMethod(context, f, fname.getPrintName(), ev);
+    }
 
     if(f instanceof Closure) {
       val = R_execMethod(context, (Closure)f, ev);

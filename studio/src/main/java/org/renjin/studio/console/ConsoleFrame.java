@@ -307,8 +307,9 @@ public class ConsoleFrame extends JScrollPane
   }
 
   private void doCommandCompletion( String part ) {
-    if ( nameCompletion == null )
+    if ( nameCompletion == null ) {
       return;
+    }
 
     int i=part.length()-1;
 
@@ -323,7 +324,9 @@ public class ConsoleFrame extends JScrollPane
     part = part.substring(i+1);
 
     if ( part.length() < 2 )  // reasonable completion length
+    {
       return;
+    }
 
     //System.out.println("completing part: "+part);
 
@@ -346,15 +349,19 @@ public class ConsoleFrame extends JScrollPane
     String line = text.getText();
     String command = line.substring( cmdStart );
     // Find prompt
-    for(i=cmdStart; line.charAt(i) != '\n' && i > 0; i--);
+    for(i=cmdStart; line.charAt(i) != '\n' && i > 0; i--) {
+      ;
+    }
     String prompt = line.substring( i+1, cmdStart );
 
     // Show ambiguous
     StringBuffer sb = new StringBuffer("\n");
-    for( i=0; i<complete.length && i<SHOW_AMBIG_MAX; i++)
-      sb.append( complete[i] +"\n" );
-    if ( i == SHOW_AMBIG_MAX )
+    for( i=0; i<complete.length && i<SHOW_AMBIG_MAX; i++) {
+      sb.append(complete[i] + "\n");
+    }
+    if ( i == SHOW_AMBIG_MAX ) {
       sb.append("...\n");
+    }
 
     print( sb, Color.gray );
     print( prompt ); // print resets command start
@@ -399,8 +406,9 @@ public class ConsoleFrame extends JScrollPane
     String s = getCmd();
 
     if ( s.length()	== 0 )	// special hack	for empty return!
+    {
       s = ";\n";
-    else {
+    } else {
       history.addElement( s );
       s = s +"\n";
     }
@@ -423,10 +431,13 @@ public class ConsoleFrame extends JScrollPane
   }
 
   private	void historyUp() {
-    if ( history.size() == 0 )
+    if ( history.size() == 0 ) {
       return;
+    }
     if ( histLine == 0 )  // save current line
+    {
       startedLine = getCmd();
+    }
     if ( histLine <	history.size() ) {
       histLine++;
       showHistoryLine();
@@ -434,8 +445,9 @@ public class ConsoleFrame extends JScrollPane
   }
 
   private	void historyDown() {
-    if ( histLine == 0 )
+    if ( histLine == 0 ) {
       return;
+    }
 
     histLine--;
     showHistoryLine();
@@ -443,10 +455,11 @@ public class ConsoleFrame extends JScrollPane
 
   private	void showHistoryLine() {
     String showline;
-    if ( histLine == 0 )
+    if ( histLine == 0 ) {
       showline = startedLine;
-    else
-      showline = (String)history.elementAt( history.size() - histLine	);
+    } else {
+      showline = (String) history.elementAt(history.size() - histLine);
+    }
 
     replaceRange( showline,	cmdStart, textLength() );
     text.setCaretPosition(textLength());
@@ -464,16 +477,17 @@ public class ConsoleFrame extends JScrollPane
     line = buf.toString();
 
 
-    if (outPipe == null )
+    if (outPipe == null ) {
       print("Console internal	error: cannot output ...", Color.red);
-    else
+    } else {
       try {
-        outPipe.write( line.getBytes() );
+        outPipe.write(line.getBytes());
         outPipe.flush();
-      } catch	( IOException e	) {
-        outPipe	= null;
+      } catch (IOException e) {
+        outPipe = null;
         throw new RuntimeException("Console pipe broken...", e);
       }
+    }
     //text.repaint();
   }
 
@@ -511,8 +525,9 @@ public class ConsoleFrame extends JScrollPane
   }
 
   public void print(final Icon icon) {
-    if (icon==null)
+    if (icon==null) {
       return;
+    }
 
     invokeAndWait(new Runnable() {
       public void run() {
@@ -586,24 +601,28 @@ public class ConsoleFrame extends JScrollPane
 
   private AttributeSet setStyle( Font font, Color color)
   {
-    if (font!=null)
-      return setStyle( font.getFamily(), font.getSize(), color,
+    if (font!=null) {
+      return setStyle(font.getFamily(), font.getSize(), color,
           font.isBold(), font.isItalic(),
-          StyleConstants.isUnderline(getStyle()) );
-    else
-      return setStyle(null,-1,color);
+          StyleConstants.isUnderline(getStyle()));
+    } else {
+      return setStyle(null, -1, color);
+    }
   }
 
   private AttributeSet setStyle (
       String fontFamilyName, int	size, Color color)
   {
     MutableAttributeSet attr = new SimpleAttributeSet();
-    if (color!=null)
+    if (color!=null) {
       StyleConstants.setForeground(attr, color);
-    if (fontFamilyName!=null)
+    }
+    if (fontFamilyName!=null) {
       StyleConstants.setFontFamily(attr, fontFamilyName);
-    if (size!=-1)
+    }
+    if (size!=-1) {
       StyleConstants.setFontSize(attr, size);
+    }
 
     setStyle(attr);
 
@@ -620,12 +639,15 @@ public class ConsoleFrame extends JScrollPane
   )
   {
     MutableAttributeSet attr = new SimpleAttributeSet();
-    if (color!=null)
+    if (color!=null) {
       StyleConstants.setForeground(attr, color);
-    if (fontFamilyName!=null)
+    }
+    if (fontFamilyName!=null) {
       StyleConstants.setFontFamily(attr, fontFamilyName);
-    if (size!=-1)
+    }
+    if (size!=-1) {
       StyleConstants.setFontSize(attr, size);
+    }
     StyleConstants.setBold(attr, bold);
     StyleConstants.setItalic(attr, italic);
     StyleConstants.setUnderline(attr, underline);
@@ -650,8 +672,9 @@ public class ConsoleFrame extends JScrollPane
   public void setFont( Font font ) {
     super.setFont( font );
 
-    if ( text != null )
-      text.setFont( font );
+    if ( text != null ) {
+      text.setFont(font);
+    }
   }
 
   private	void inPipeWatcher() throws IOException	{
@@ -755,8 +778,9 @@ public class ConsoleFrame extends JScrollPane
       super(pout);
     }
     public synchronized int read() throws IOException {
-      if ( closed )
+      if ( closed ) {
         throw new IOException("stream closed");
+      }
 
       while (super.in < 0) {	// While no data */
         notifyAll();	// Notify any writers to wake up
@@ -768,10 +792,12 @@ public class ConsoleFrame extends JScrollPane
       }
       // This is what the superclass does.
       int ret = buffer[super.out++] & 0xFF;
-      if (super.out >= buffer.length)
+      if (super.out >= buffer.length) {
         super.out = 0;
-      if (super.in == super.out)
+      }
+      if (super.in == super.out) {
         super.in = -1;  /* now empty */
+      }
       return ret;
     }
     public void close() throws IOException {
@@ -785,10 +811,11 @@ public class ConsoleFrame extends JScrollPane
   }
 
   public void setWaitFeedback( boolean on ) {
-    if ( on )
-      setCursor( Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR) );
-    else
-      setCursor( Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR) );
+    if ( on ) {
+      setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+    } else {
+      setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+    }
   }
 
   private int textLength() { return text.getDocument().getLength(); }

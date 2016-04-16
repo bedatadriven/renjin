@@ -1,16 +1,15 @@
 package org.renjin.compiler.ir.ssa;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-
 import org.renjin.compiler.ir.IRUtils;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.ExpressionVisitor;
-import org.renjin.compiler.ir.tac.expressions.SimpleExpression;
 import org.renjin.compiler.ir.tac.expressions.Variable;
 import org.renjin.eval.Context;
 import org.renjin.sexp.SEXP;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 
 public class SsaVariable implements Variable {
@@ -71,12 +70,15 @@ public class SsaVariable implements Variable {
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj)
+    if (this == obj) {
       return true;
-    if (obj == null)
+    }
+    if (obj == null) {
       return false;
-    if (getClass() != obj.getClass())
+    }
+    if (getClass() != obj.getClass()) {
       return false;
+    }
     SsaVariable other = (SsaVariable) obj;
     return inner.equals(other.inner) && version == other.version;
   }

@@ -105,7 +105,9 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Byte> {
 
   @Override
   public boolean equals(Object o) {
-    if (!(o instanceof RawVector)) return (false);
+    if (!(o instanceof RawVector)) {
+      return (false);
+    }
     RawVector rv = (RawVector)o;
     return (rv.hashCode() == this.hashCode());
   }

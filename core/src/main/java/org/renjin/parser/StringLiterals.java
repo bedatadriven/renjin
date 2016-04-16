@@ -50,8 +50,9 @@ public class StringLiterals {
                 buf.append("\\\\");
             } else if(codePoint < 32 || codePoint > 126) {
                 appendUnicodeEscape(buf, codePoint);
-            } else
+            } else {
                 buf.appendCodePoint(codePoint);
+            }
         }
     }
 

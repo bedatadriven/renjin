@@ -315,15 +315,27 @@ public class AttributeMap {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     AttributeMap that = (AttributeMap) o;
 
-    if (classes != null ? !classes.equals(that.classes) : that.classes != null) return false;
-    if (names != null ? !names.equals(that.names) : that.names != null) return false;
-    if (dim != null ? !dim.equals(that.dim) : that.dim != null) return false;
-    if (dimNames != null ? !dimNames.equals(that.dimNames) : that.dimNames != null) return false;
+    if (classes != null ? !classes.equals(that.classes) : that.classes != null) {
+      return false;
+    }
+    if (names != null ? !names.equals(that.names) : that.names != null) {
+      return false;
+    }
+    if (dim != null ? !dim.equals(that.dim) : that.dim != null) {
+      return false;
+    }
+    if (dimNames != null ? !dimNames.equals(that.dimNames) : that.dimNames != null) {
+      return false;
+    }
     return !(map != null ? !map.equals(that.map) : that.map != null);
 
   }

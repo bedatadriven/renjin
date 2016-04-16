@@ -430,9 +430,9 @@ public class Methods {
   static SEXP R_do_slot(Context context, SEXP obj, SEXP slotName) {
     Symbol name = checkSlotName(slotName);
 
-    if(name == MethodDispatch.s_dot_Data)
+    if(name == MethodDispatch.s_dot_Data) {
       return data_part(context, obj);
-    else {
+    } else {
       SEXP value = obj.getAttribute(name);
       if(value == Null.INSTANCE) {
         String input = name.getPrintName();
@@ -483,16 +483,18 @@ public class Methods {
     SEXP value;
     SEXP klass = obj.getAttribute(Symbols.CLASS);
     int n = klass.length();
-    if(n == 1 || (n > 0 && !singleString))
+    if(n == 1 || (n > 0 && !singleString)) {
       return (StringVector) (klass);
+    }
     if(n == 0) {
       SEXP dim = obj.getAttribute(Symbols.DIM);
       int nd = dim.length();
       if(nd > 0) {
-        if(nd == 2) 
+        if(nd == 2) {
           return StringVector.valueOf("matrix");
-        else
+        } else {
           return StringVector.valueOf("array");
+        }
       } else {
         if(obj instanceof Function) {
           return StringVector.valueOf("function");

@@ -250,7 +250,9 @@ public class Attributes {
 
     AttributeMap.Builder newAttributes = exp.getAttributes().copy();
     newAttributes.setNames(names);
-    newAttributes.removeDim();
+    if(names != Null.INSTANCE) {
+      newAttributes.removeDim();
+    }
     
     return exp.setAttributes(newAttributes);
   }

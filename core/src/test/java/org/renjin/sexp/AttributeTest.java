@@ -209,6 +209,13 @@ public class AttributeTest extends EvalTestCase {
     assertThat(eval("dim(z)"), equalTo(c_i(2, 2)));
     assertThat(eval("is.null(names(z))"), equalTo(c(true)));
   }
-  
+ 
+  @Test
+  public void settingNullNamesDoesNotClearDimsAttributes() {
+    eval("x <- matrix(1:12, nrow=3) ");
+    eval("names(x) <- NULL");
+    
+    assertThat(eval("dim(x)"), equalTo(c_i(3,4)));
+  }
   
 }

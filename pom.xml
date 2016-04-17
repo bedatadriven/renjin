@@ -106,16 +106,16 @@
                   <!--<module name="UnusedImports"/>-->
                   <!--<module name="RedundantImport"/>-->
                   <module name="TreeWalker">
+                    <module name="OuterTypeFilename"/>
+                    <module name="OneTopLevelClass"/>
+
                     <module name="NoFinalizer"/>
                     <!--<module name="LineLength">-->
-                      <!--<property name="max" value="120"/>-->
-                      <!--<property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>-->
+                    <!--<property name="max" value="120"/>-->
+                    <!--<property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>-->
                     <!--</module>-->
                     <module name="OneTopLevelClass"/>
                     <module name="NeedBraces"/>
-                    <!--<module name="OneStatementPerLine"/>-->
-                    <!--<module name="MultipleVariableDeclarations"/>-->
-                    <!--<module name="ArrayTypeStyle"/>-->
                     <module name="Indentation">
                       <property name="basicOffset" value="2"/>
                       <property name="braceAdjustment" value="0"/>
@@ -123,6 +123,10 @@
                       <property name="throwsIndent" value="4"/>
                       <property name="lineWrappingIndentation" value="4"/>
                       <property name="arrayInitIndent" value="2"/>
+                    </module>
+                    <module name="PackageName">
+                      <property name="format" value="^[a-z]+(\.[a-z][a-z0-9]*)*$"/>
+                      <message key="name.invalidPattern" value="Package name ''{0}'' must match pattern ''{1}''."/>
                     </module>
                   </module>
                 </module>

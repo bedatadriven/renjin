@@ -215,7 +215,29 @@ public class AttributeTest extends EvalTestCase {
     eval("x <- matrix(1:12, nrow=3) ");
     eval("names(x) <- NULL");
     
-    assertThat(eval("dim(x)"), equalTo(c_i(3,4)));
+    assertThat(eval("dim(x)"), equalTo(c_i(3, 4)));
   }
   
+  @Test
+  public void dimsThenNamesAllowed() {
+    
+    eval("x <- matrix(1:12, nrow=3)");
+    eval("names(x) <- letters[1:12] ");
+    
+    assertThat(eval("dim(x)"), equalTo(c_i(3, 4)));
+    assertThat(eval("names(x)"), equalTo(c("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l")));
+  }
+
+  @Test
+  public void namesThenDimsDropsNames() {
+
+    eval("x <- 1:12");
+    eval("names(x) <- letters[1:12] ");
+    eval("dim(x) <- c(3, 4)");
+
+    assertThat(eval("dim(x)"), equalTo(c_i(3, 4)));
+    assertThat(eval("names(x)"), equalTo(NULL));
+  }
+
+
 }

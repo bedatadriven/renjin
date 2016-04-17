@@ -734,9 +734,6 @@ public class AttributeMap {
       attributes.dimNames = validateDimNames();
 
       if(names != null) {
-        if(dim != null) {
-          throw new IllegalStateException("object cannot have both 'names' and 'dim' attributes");
-        }
         attributes.names = names;
       }
 
@@ -833,10 +830,6 @@ public class AttributeMap {
       
       if(names == null) {
         return null;
-      }
-      
-      if(dim != null) {
-        throw new IllegalStateException("object cannot have both 'dim' and 'names' attribute");
       }
       
       if(this.names.length() < vectorLength) {

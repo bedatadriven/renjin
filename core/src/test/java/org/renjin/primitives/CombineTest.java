@@ -93,7 +93,7 @@ public class CombineTest extends EvalTestCase {
 
     @Test
     public void unlistRaw() {
-      assertThat(eval("unlist(list(as.raw(0x1), as.raw(0x33)))"), equalTo(c_raw(0x1,0x33)));
+      assertThat(eval("unlist(list(as.raw(0x1), as.raw(0x33)))"), equalTo(c_raw(0x1, 0x33)));
 
     }
 
@@ -178,8 +178,8 @@ public class CombineTest extends EvalTestCase {
         eval("x<-1:12");
         eval("dim(x)<-c(3,4)");
         
-        assertThat(eval("dim(.Internal(cbind(1, x, c())))"), equalTo(c_i(3,4)));
-        assertThat(eval("dim(.Internal(rbind(1, x, c())))"), equalTo(c_i(3,4)));
+        assertThat(eval("dim(.Internal(cbind(1, x, c())))"), equalTo(c_i(3, 4)));
+        assertThat(eval("dim(.Internal(rbind(1, x, c())))"), equalTo(c_i(3, 4)));
 
         assertThat(eval("dim(.Internal(cbind(1, c())))"), equalTo(NULL));
         assertThat(eval("dim(.Internal(rbind(1, c())))"), equalTo(NULL));
@@ -205,5 +205,14 @@ public class CombineTest extends EvalTestCase {
     assertThat(eval(".Internal(rbind(1, x, y, z))"), equalTo(c(1,2,3))); // default method
     
     assertThat(eval(".Internal(rbind(1, y, z))"), equalTo(c(4, 6))); // default method
+  }
+  
+  @Test
+  public void unlistListWithNulls() {
+    eval("x <- list(const=NULL,power=NULL)");
+    eval("y <- unlist(x)");
+    
+    assertThat(eval("y"), equalTo(NULL));
+    
   }
 }

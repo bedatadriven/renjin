@@ -74,6 +74,10 @@ public class Combine {
     // list to determine which vector type to use
     Inspector inspector = new Inspector(recursive);
     inspector.acceptAll(vector);
+    
+    if(inspector.getResult() == Null.VECTOR_TYPE) {
+      return Null.INSTANCE;
+    }
 
     CombinedBuilder builder = inspector.newBuilder().useNames(useNames);
 

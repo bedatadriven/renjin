@@ -185,4 +185,30 @@ public class AttributeTest extends EvalTestCase {
     assertThat(eval("names(dimnames(x))"), equalTo(c("a", "b")));
   }
   
+  @Test
+  public void logicalAndCombineNamesOnly() {
+    // Some operators lke '&' or '|' include only the 
+    // dim, dimnames, and names attributes from the operands
+    
+    eval("x <- c(a=TRUE, b=TRUE)");
+    eval("class(x) <- 'foo'");
+    eval("y <- c(x=TRUE, y=FALSE)");
+    eval("z <- x & y");
+    
+    assertThat(eval("names(z)"), equalTo(c("a", "b")));
+    assertThat(eval("is.null(attr(z, 'class'))"), equalTo(c(true)));
+  }
+  
+  @Test
+  public void whenCombiningAttributesDimTakePrecedence() {
+
+    eval("x <- c(a=TRUE, b=FALSE)");
+    eval("y <- matrix(TRUE, nrow=2, ncol=2)");
+    eval("z <- x | y");
+    
+    assertThat(eval("dim(z)"), equalTo(c_i(2, 2)));
+    assertThat(eval("is.null(names(z))"), equalTo(c(true)));
+  }
+  
+  
 }

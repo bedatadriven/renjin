@@ -179,7 +179,7 @@ public class JvmMethod implements Comparable<JvmMethod> {
 
   public PreserveAttributeStyle getPreserveAttributesStyle() {
     DataParallel annotation = method.getAnnotation(DataParallel.class);
-    return annotation == null ? PreserveAttributeStyle.SPECIAL : annotation.value();
+    return annotation == null ? PreserveAttributeStyle.STRUCTURAL : annotation.value();
   }
   
   /**

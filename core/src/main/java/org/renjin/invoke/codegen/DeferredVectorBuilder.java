@@ -191,7 +191,7 @@ public class DeferredVectorBuilder {
       case ALL:
         combineMethod = "combineAttributes";
         break;
-      case SPECIAL:
+      case STRUCTURAL:
         combineMethod = "combineStructuralAttributes";
         break;
       default:
@@ -206,7 +206,7 @@ public class DeferredVectorBuilder {
   private JExpression copyAttributes(JExpression arg) {
     if(overload.getPreserveAttributesStyle() == PreserveAttributeStyle.ALL) {
       return arg.invoke("getAttributes");
-    } else if(overload.getPreserveAttributesStyle() == PreserveAttributeStyle.SPECIAL) {
+    } else if(overload.getPreserveAttributesStyle() == PreserveAttributeStyle.STRUCTURAL) {
       return arg.invoke("getAttributes").invoke("copyStructural");
     } else {
       throw new UnsupportedOperationException();

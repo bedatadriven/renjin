@@ -10,7 +10,6 @@ import org.renjin.invoke.codegen.scalars.ScalarType;
 import org.renjin.invoke.codegen.scalars.ScalarTypes;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.invoke.model.PrimitiveModel;
-import org.renjin.sexp.Null;
 import org.renjin.sexp.Symbols;
 import org.renjin.sexp.Vector;
 
@@ -78,7 +77,6 @@ public class RecycleLoopBuilder {
   private List<RecycledArgument> recycledArguments = Lists.newArrayList();
   private Map<JvmMethod.Argument, JExpression> argumentMap = Maps.newHashMap();
 
-  private JClass vectorType;
   private JVar cycleCount;
   private JVar cycleIndex;
 
@@ -86,7 +84,11 @@ public class RecycleLoopBuilder {
 
   private JVar builder;
 
-  public RecycleLoopBuilder(JCodeModel codeModel, JBlock parent, JExpression contextVar, PrimitiveModel primitive, JvmMethod overload,
+  public RecycleLoopBuilder(JCodeModel codeModel, 
+                            JBlock parent, 
+                            JExpression contextVar, 
+                            PrimitiveModel primitive, 
+                            JvmMethod overload,
                             Map<JvmMethod.Argument, JExpression> argumentMap) {
 
     this.codeModel = codeModel;
@@ -94,7 +96,6 @@ public class RecycleLoopBuilder {
     this.contextVar = contextVar;
     this.primitive = primitive;
     this.overload = overload;
-    this.vectorType = codeModel.ref(Vector.class);
     this.resultType = ScalarTypes.get(overload.getReturnType());
 
     for(JvmMethod.Argument argument : overload.getAllArguments()) {
@@ -118,24 +119,6 @@ public class RecycleLoopBuilder {
   }
 
   private void computeResultLength() {
-
-
-//  // compute longest vector
-//  Vector longest = Null.INSTANCE;
-//  int cycles = 0;
-//  if(arg0_length == 0) {
-//    return org.renjin.sexp.DoubleVector.EMPTY;
-//  }
-//  if(arg0_length > cycles) {
-//    cycles = arg0_length;
-//  }
-//  if(arg1_length == 0) {
-//    return org.renjin.sexp.DoubleVector.EMPTY;
-//  }
-//  if(arg1_length > cycles) {
-//    cycles = arg1_length;
-//  }
-
     cycleCount = parent.decl(codeModel._ref(int.class), "cycles", lit(0));
 
     for(RecycledArgument arg : recycledArguments) {
@@ -166,26 +149,18 @@ public class RecycleLoopBuilder {
     return list;
   }
 
-  private JExpression nullInstance() {
-    return codeModel.ref(Null.class).staticRef("INSTANCE");
-  }
-
   private JExpression emptyResult() {
     return codeModel.ref(resultType.getVectorType()).staticRef("EMPTY");
   }
 
-
   private void initializeBuilder() {
 
-
-//
-//  org.renjin.sexp.DoubleArrayVector.Builder result = new org.renjin.sexp.DoubleArrayVector.Builder(cycles);
-//  int resultIndex = 0;
+    // Generate the code to initialize the builder:
+    // org.renjin.sexp.DoubleArrayVector.Builder result = new org.renjin.sexp.DoubleArrayVector.Builder(cycles);
+    // int resultIndex = 0;
 
     JClass builderClass = codeModel.ref(resultType.getBuilderClass());
     builder = parent.decl(builderClass, "builder", JExpr._new(builderClass).arg(cycleCount));
-
-
   }
 
   private void loop() {
@@ -220,9 +195,7 @@ public class RecycleLoopBuilder {
     }
   }
 
-
   private JExpression isCurrentElementMissing() {
-
     if(recycledArguments.isEmpty()) {
       throw new IllegalStateException(overload.getName() + " is marked as @DataParallel, but has no parallel arguments");
     }
@@ -239,8 +212,9 @@ public class RecycleLoopBuilder {
   }
 
   private JStatement assignCycleResult() {
-
-  //  result.set(i, org.renjin.primitives.Ops.plus(arg0_element, arg1_element));
+    // Generate the code to assign the result of the operation. 
+    // For example:
+    //  result.set(i, org.renjin.primitives.Ops.plus(arg0_element, arg1_element));
 
     return builder.invoke("set").arg(cycleIndex).arg(computeCycleResult());
   }
@@ -276,12 +250,8 @@ public class RecycleLoopBuilder {
     switch(overload.getPreserveAttributesStyle()) {
       case ALL:
         return builder.invoke("combineAttributesFrom").arg(arg.vector);
-      case SPECIAL:
-        // Symbols.DIM, Symbols.DIMNAMES, Symbols.NAMES)
-        return builder.invoke("copySomeAttributesFrom").arg(arg.vector)
-            .arg(symbol("DIM"))
-            .arg(symbol("DIMNAMES"))
-            .arg(symbol("NAMES"));
+      case STRUCTURAL:
+        return builder.invoke("combineStructuralAttributesFrom").arg(arg.vector);
     }
     throw new IllegalArgumentException("preserve attribute style: " + overload.getPreserveAttributesStyle());
   }

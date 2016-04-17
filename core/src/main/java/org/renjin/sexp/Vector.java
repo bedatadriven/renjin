@@ -314,7 +314,16 @@ public interface Vector extends SEXP {
      */
     Builder combineAttributesFrom(SEXP vector);
 
-    Builder copySomeAttributesFrom(SEXP exp, Symbol... toCopy);
+    /**
+     * Combines {@code dim}, {@cocde dimnames} and {@code names} 
+     * attributes from the provided {@code vector} argument by adding 
+     * the attributes if they are not already set, and checking for consistency.
+     * @param vector the vector whose attributes are to be combined
+     * @throws org.renjin.eval.EvalException if {@code vector} has {@code dim} attribute
+     * that does not conform with the {@code dim} attribute already set.
+     */
+    Builder combineStructuralAttributesFrom(SEXP vector);
+
   }
 
   static class Order {

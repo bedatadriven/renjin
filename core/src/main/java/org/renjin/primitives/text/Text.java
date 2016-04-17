@@ -705,11 +705,10 @@ public class Text {
     return buildFormatResult(x, elements);
   }
 
-  private static StringVector buildFormatResult(Vector x,
-      List<String> elements) {
+  private static StringVector buildFormatResult(Vector x, List<String> elements) {
     StringVector.Builder result = new StringVector.Builder();
     result.addAll(elements);
-    result.copySomeAttributesFrom(x, Symbols.DIM, Symbols.DIMNAMES, Symbols.NAMES);
+    result.combineStructuralAttributesFrom(x);
     
     return result.build();
   }

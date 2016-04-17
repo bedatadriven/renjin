@@ -148,7 +148,7 @@ public class ByteCodeVisitor implements StatementVisitor, ExpressionVisitor, Opc
     mv.visitTypeInsn(INSTANCEOF, "org/renjin/sexp/Closure");
     mv.visitJumpInsn(IFNE, closureCall);
     
-    // APPLY SPECIAL
+    // APPLY PECIAL
     applySpecialDynamically(call);
     mv.visitJumpInsn(GOTO, finish);
     

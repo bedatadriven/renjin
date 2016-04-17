@@ -120,19 +120,12 @@ abstract class AbstractVector extends AbstractSEXP implements Vector {
       return this;
     }
 
-    /**
-     * Copies "special" attributes: 
-     * @param exp
-     * @return
-     */
     @Override
-    public Builder copySomeAttributesFrom(SEXP exp, Symbol... toCopy) {
-      for(int i=0;i!=toCopy.length;++i) {
-        attributes.addIfNotNull(exp.getAttributes(), toCopy[i]);
-      }
+    public Builder combineStructuralAttributesFrom(SEXP vector) {
+      attributes.combineStructuralFrom(vector.getAttributes());
       return this;
     }
-    
+
 
     @Override
     public Builder addNA() {

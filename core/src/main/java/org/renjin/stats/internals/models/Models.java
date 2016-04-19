@@ -34,10 +34,17 @@ public class Models {
 
 
   @Internal("terms.formula")
-  public static SEXP termsFormula(@Current Context context, FunctionCall x, SEXP specials, SEXP data, boolean keepOrder,
+  public static SEXP termsFormula(@Current Context context, 
+                                  FunctionCall x, 
+                                  SEXP specials, 
+                                  SEXP data,
+                                  boolean keepOrder,
                                   boolean allowDotAsName) {
     
-    Formula formula = new FormulaInterpreter().interpret(x);
+    Formula formula = new FormulaInterpreter()
+        .withData(data)
+        .allowDotAsName(allowDotAsName)
+        .interpret(x);
     
     
     // define attibutes
@@ -55,10 +62,10 @@ public class Models {
       attributes.set("specials", buildSpecials((AtomicVector)specials));
     }
     
-    // create an new Function Call  
-    FunctionCall copy = x.clone();
-    return copy.setAttributes(attributes.build());
+    // return the new function call with attributes
+    return formula.getExpandedFormula().setAttributes(attributes);
   }
+  
 
   private static PairList buildSpecials(AtomicVector specials) {
     PairList.Builder pairList = new PairList.Builder();

@@ -1,10 +1,13 @@
 package org.renjin.stats.internals.models;
 
+import com.google.common.collect.Lists;
 import org.renjin.eval.EvalException;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
+
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 
 /**
@@ -16,38 +19,126 @@ import org.renjin.sexp.Vector;
  */
 public class FormulaInterpreter {
   
-  private SEXP response;
-  private int intercept = 1;
-  
-  private static final Symbol tilde = Symbol.get("~");
+  private static final Symbol TILDE = Symbol.get("~");
   private static final Symbol UNION = Symbol.get("+");
   private static final Symbol EXPAND_TERMS = Symbol.get("*");
   private static final Symbol DIFFERENCE = Symbol.get("-");
   private static final Symbol GROUP = Symbol.get("(");
+  private static final Symbol DOT = Symbol.get(".");
+
+  private SEXP response;
   
+  private int intercept = 1;
+
+  private ListVector dataFrame = null;
+  private boolean allowDotAsName = false;
+
+
   public Formula interpret(FunctionCall call) {
-    if(call.getFunction() != tilde) {
+    if(call.getFunction() != TILDE) {
       throw new EvalException("expected model formula (~)");
     }
     
-    TermList terms = new TermList();
+    FunctionCall expandedFormula;
+    SEXP predictor;
+    
     if(call.getArguments().length() == 1) {
       response = null;
-      add(terms, call.getArgument(0));
+      predictor = expandPredictor(call.getArgument(0), null);
+      expandedFormula = FunctionCall.newCall(TILDE, predictor);
+      
     } else if(call.getArguments().length() == 2) {
       response = call.getArgument(0);
-      add(terms, call.getArgument(1));
+      predictor = expandPredictor(call.getArgument(1), null);
+      expandedFormula = FunctionCall.newCall(TILDE, response, predictor);
+      
+    } else {
+      throw new EvalException("Expected at most two arguments to `~` operator");
+    }
+
+    TermList terms = new TermList();
+    add(terms, predictor);
+    
+    return new Formula(expandedFormula, intercept, terms.sorted());
+  }
+
+  private SEXP expandPredictor(SEXP argument, SEXP parent) {
+    if(!allowDotAsName && argument == DOT) {
+      return expandRemainingVariables(parent);
+        
+    } else if(argument instanceof FunctionCall) {
+      FunctionCall call = (FunctionCall) argument;
+      FunctionCall.Builder expandedCall = new FunctionCall.Builder();
+      expandedCall.add(call.getFunction());
+      for (PairList.Node node : call.getArguments().nodes()) {
+        expandedCall.add(node.getName(), expandPredictor(node.getValue(), call));
+      }
+      return expandedCall.build();
+      
+    } else {
+      return argument;
+    }
+  }
+
+  private SEXP expandRemainingVariables(SEXP parent) {
+    if(dataFrame == null) {
+      throw new EvalException("'.' in formula and no 'data' argument");
+    }
+
+    Set<String> responseVariables = new HashSet<>();
+    findResponseVariables(responseVariables, response);
+    
+    List<String> remainingVariables = Lists.newArrayList();
+
+    for (int i = 0; i < dataFrame.length(); i++) {
+      String variable = dataFrame.getName(i);
+      if(!responseVariables.contains(variable)) {
+        remainingVariables.add(variable);
+      }
     }
     
-    return new Formula(response, intercept, terms.sorted());
+    if(remainingVariables.isEmpty()) {
+      return DOT;
+    } else { 
+      
+      // In the context of x + .
+      // If there are multiple variables, group with parens: x + (y + z)
+      if(parent != null && remainingVariables.size() > 1) {
+        return FunctionCall.newCall(GROUP, expandRemainingVariables(remainingVariables));
+      } 
+      // If we are not nested, or have a single variable, no grouping neccessary
+      return expandRemainingVariables(remainingVariables);
+    }
   }
   
+  private SEXP expandRemainingVariables(List<String> remainingVariables) {
+
+    Iterator<String> it = remainingVariables.iterator();
+    SEXP expansion = Symbol.get(it.next());
+    
+    while(it.hasNext()) {
+      expansion = FunctionCall.newCall(UNION, expansion, Symbol.get(it.next()));
+    }
+    
+    return expansion;
+  }
+
+  private void findResponseVariables(Set<String> set, SEXP responseSexp) {
+    if(responseSexp instanceof Symbol) {
+      set.add(((Symbol) responseSexp).getPrintName());
+    } else if(responseSexp instanceof FunctionCall) {
+      FunctionCall call = (FunctionCall) responseSexp;
+      for (SEXP argument : call.getArguments().values()) {
+        findResponseVariables(set, argument);
+      }
+    }
+  }
+
   /**
    * Build and return a TermList from the given SEXP. 
    * @param argument the SEXP to interpret
    * @param subtracting true if we are subtracting and the intercept should be interpreted as 
    *        negative
-   * @return
    */
   private TermList buildTermList(SEXP argument, boolean subtracting) {
     TermList list = new TermList();
@@ -134,5 +225,19 @@ public class FormulaInterpreter {
     if(subtracting) {
       intercept = (intercept == 0) ? 1 : 0;
     } 
+  }
+
+
+  public FormulaInterpreter withData(SEXP data) {
+    // GNU R ignores invalid data objects...
+    if(data instanceof ListVector) {
+      dataFrame = (ListVector) data; 
+    }
+    return this;
+  }
+
+  public FormulaInterpreter allowDotAsName(boolean allowDotAsName) {
+    this.allowDotAsName = allowDotAsName;
+    return this;
   }
 }

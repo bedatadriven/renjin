@@ -31,21 +31,23 @@ import java.util.List;
  * <p>This internal class is used by the primitives that manipulate model formulas. 
  */
 public class Formula {
+  private FunctionCall expandedFormula;
   private SEXP response;
   private List<Term> terms = Lists.newArrayList();
   private int intercept = 1;
-  
-  public Formula(SEXP response, int intercept, Iterable<Term> terms) {
+
+  public Formula(FunctionCall expandedFormula, int intercept, Iterable<Term> terms) {
     super();
-    this.response = response;
+    this.expandedFormula = expandedFormula;
+    this.response = expandedFormula.getArguments().length() == 2 ? expandedFormula.getArgument(0) : null;
     this.terms = Lists.newArrayList(terms);
     this.intercept = intercept;
   }
-  
-  public Formula(List<Term> terms) {
-    this.terms = terms;
+
+  public FunctionCall getExpandedFormula() {
+    return expandedFormula;
   }
-  
+
   public SEXP getResponse() {
     return response;
   }

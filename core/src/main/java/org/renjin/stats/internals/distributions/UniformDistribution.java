@@ -39,8 +39,11 @@ public class UniformDistribution implements ContinuousDistribution {
 
   @Override
   public double cumulativeProbability(double x)  {
-    if(x < min || x > max) {
+    if(x < min) {
       return 0;
+    }
+    if(x > max) {
+      return 1.0;
     }
     return (x-min)/ range;
   }

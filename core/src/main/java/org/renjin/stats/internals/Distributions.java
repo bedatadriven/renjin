@@ -22,39 +22,11 @@ package org.renjin.stats.internals;
 
 import org.apache.commons.math.MathException;
 import org.apache.commons.math.MathRuntimeException;
-import org.apache.commons.math.distribution.AbstractContinuousDistribution;
-import org.apache.commons.math.distribution.BetaDistributionImpl;
-import org.apache.commons.math.distribution.BinomialDistributionImpl;
-import org.apache.commons.math.distribution.CauchyDistributionImpl;
-import org.apache.commons.math.distribution.ChiSquaredDistributionImpl;
-import org.apache.commons.math.distribution.ContinuousDistribution;
-import org.apache.commons.math.distribution.Distribution;
-import org.apache.commons.math.distribution.ExponentialDistributionImpl;
-import org.apache.commons.math.distribution.FDistributionImpl;
-import org.apache.commons.math.distribution.GammaDistributionImpl;
-import org.apache.commons.math.distribution.HypergeometricDistributionImpl;
-import org.apache.commons.math.distribution.IntegerDistribution;
-import org.apache.commons.math.distribution.NormalDistributionImpl;
-import org.apache.commons.math.distribution.PascalDistributionImpl;
-import org.apache.commons.math.distribution.PoissonDistributionImpl;
-import org.apache.commons.math.distribution.TDistributionImpl;
-import org.apache.commons.math.distribution.WeibullDistributionImpl;
+import org.apache.commons.math.distribution.*;
 import org.renjin.invoke.annotations.DataParallel;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.invoke.annotations.Recycle;
-import org.renjin.stats.internals.distributions.Beta;
-import org.renjin.stats.internals.distributions.Binom;
-import org.renjin.stats.internals.distributions.ChiSquare;
-import org.renjin.stats.internals.distributions.ChisquareZeroDfDistribution;
-import org.renjin.stats.internals.distributions.F;
-import org.renjin.stats.internals.distributions.Geometric;
-import org.renjin.stats.internals.distributions.LNorm;
-import org.renjin.stats.internals.distributions.LogisticDistribution;
-import org.renjin.stats.internals.distributions.SignRank;
-import org.renjin.stats.internals.distributions.StudentsT;
-import org.renjin.stats.internals.distributions.Tukey;
-import org.renjin.stats.internals.distributions.UniformDistribution;
-import org.renjin.stats.internals.distributions.Wilcox;
+import org.renjin.stats.internals.distributions.*;
 
 
 /**
@@ -119,6 +91,15 @@ public class Distributions {
    * {@code q}
    */
   private static double p(Distribution dist, double q, boolean lowerTail, boolean logP) {
+    
+    if(Double.isInfinite(q)) {
+      if(q > 0) {
+        return lowerTail ? 1.0 : 0.0;
+      } else {
+        return lowerTail ? 0.0 : 1.0;
+      }
+    }
+    
     double p;
     try {
       p = dist.cumulativeProbability(q);

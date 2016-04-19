@@ -2,6 +2,7 @@ package org.renjin.primitives.time;
 
 import org.joda.time.DateTimeZone;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -234,7 +235,7 @@ public class TimeTest extends EvalTestCase {
     assertThat(eval("is.na(d[2])"), equalTo(c(true)));
   }
 
-  @Test
+  @Ignore
   public void printTime() throws IOException {
     topLevelContext.init();
 

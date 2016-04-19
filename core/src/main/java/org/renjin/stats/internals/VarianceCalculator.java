@@ -286,9 +286,15 @@ public class VarianceCalculator {
         result.setValue(i, j, value);
         result.setValue(j, i, value);
       }
-    }  
-    return result.build();
+    }
+    DoubleVector matrix = result.build();
     
+    // Drop matrix dim if there is only one dimension
+    if(x.variables == 1) {
+      return (DoubleVector) matrix.setAttributes(AttributeMap.EMPTY);
+    } else {
+      return matrix;
+    }
   }
   
   /**

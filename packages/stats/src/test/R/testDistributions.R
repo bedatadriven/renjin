@@ -269,6 +269,6 @@ test.infiniteValues <- function() {
 test.outOfBoundsUniform <- function() {
 	
 	assertThat(punif(99, min = 0, max = 1, lower.tail = TRUE), equalTo(1.0))
-	assertThat(punif(-99, min = 0, max = 1, lower.tail = TRUE), equalTo(1.0))
+	assertThat(punif(-99, min = 0, max = 1, lower.tail = TRUE), equalTo(0.0))
     	
 }

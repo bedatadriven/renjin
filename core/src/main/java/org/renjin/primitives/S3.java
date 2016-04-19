@@ -737,7 +737,12 @@ public class S3 {
     
     // Add extra arguments passed to NextMethods
     for (NamedValue extraArg : extraArgs.namedValues()) {
-      updated.add(extraArg.getName(), extraArg.getValue());
+      if(!extraArg.hasName()) {
+        updated.add(extraArg.getValue());
+      } else {
+        // update any existing arguments by this name, or add
+        updated.set(extraArg.getName(), extraArg.getValue());
+      }
     }
 
     return updated.build();

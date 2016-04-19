@@ -517,7 +517,7 @@ public interface PairList extends SEXP {
     }
 
     public Builder setAttribute(Symbol name, SEXP value) {
-      attributesBuilder.set(name,value);
+      attributesBuilder.set(name, value);
       return this;
     }
 
@@ -528,7 +528,7 @@ public interface PairList extends SEXP {
     }
 
     public Builder setAttribute(String name, SEXP value) {
-      attributesBuilder.set(name,value);
+      attributesBuilder.set(name, value);
       return this;
     }
     
@@ -653,6 +653,31 @@ public interface PairList extends SEXP {
       return this;
     }
 
+    /**
+     * Sets the first existing node with the name {@code name} to the
+     * given {@code value}, or adds the 
+     * @param name
+     * @param value
+     * @return
+     */
+    public Builder set(String name, SEXP value) {
+      assert name != null;
+      if(head != null) {
+        Node node = head;
+        while (true) {
+          if (node.hasName() && node.getName().equals(name)) {
+            node.value = value;
+            return this;
+          }
+          if(!node.hasNextNode()) {
+            break;
+          }
+          node = node.getNextNode();
+        }
+      }
+      return add(name, value);
+    }
+    
     public PairList build() {
       if(head == null) {
         return Null.INSTANCE;

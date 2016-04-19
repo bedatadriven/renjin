@@ -42,7 +42,7 @@ public class S3Test extends EvalTestCase {
     eval(  "x <- 10" );
     assertThat( eval( "class(x)" ), equalTo( c( "numeric" )));
     assertThat( eval( "oldClass(x) "), equalTo( NULL ));
-    assertThat( eval( "inherits(x, \"a\") "), equalTo( c(false) ));
+    assertThat(eval("inherits(x, \"a\") "), equalTo(c(false)));
   }
 
 
@@ -93,8 +93,21 @@ public class S3Test extends EvalTestCase {
     
     eval("x <- 42");
     eval("class(x) <- c('foo') ");
-    
+
     assertThat(eval("f(x)"), equalTo(c(false)));
+  }
+
+  @Test
+  public void nextMethodWithExtraDuplicateArguments() {
+
+    eval("f.default <- function(x, drop = TRUE) drop ");
+    eval("f.foo <- function(x, drop) NextMethod('f', drop = FALSE)");
+    eval("f <- function(x, drop) UseMethod('f') ");
+
+    eval("x <- 42");
+    eval("class(x) <- c('foo') ");
+
+    assertThat(eval("f(x, drop = TRUE)"), equalTo(c(false)));
   }
 
 }

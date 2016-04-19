@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.renjin.eval.EvalException;
+import org.renjin.primitives.vector.ConvertingStringVector;
 import org.renjin.primitives.vector.RowNamesVector;
 
 import java.util.IdentityHashMap;
@@ -420,7 +421,11 @@ public class AttributeMap {
         remove(Symbols.NAMES);
       } else {
         if(!(names instanceof StringVector)) {
-          throw new EvalException("'names' vector must be a character");
+          if(names instanceof Vector) {
+            names = new ConvertingStringVector((Vector) names);
+          } else {
+            throw new EvalException("'names' vector must be a character");
+          }
         }
         this.names = (StringVector) names;
         this.empty = false;

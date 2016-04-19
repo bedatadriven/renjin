@@ -21,6 +21,7 @@
 
 package org.renjin.sexp;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.eval.EvalException;
@@ -238,6 +239,48 @@ public class AttributeTest extends EvalTestCase {
     assertThat(eval("dim(x)"), equalTo(c_i(3, 4)));
     assertThat(eval("names(x)"), equalTo(NULL));
   }
+  
+  @Test
+  public void setNamesInvokesAsCharacter() {
+    eval("x <- 1:3");
+    eval("y <- 1:3");
+    eval("class(y) <- 'foo'");
+    eval("as.character.foo <- function(y) letters[y] ");
+    
+    eval("names(x) <- y");
+    assertThat(eval("names(x)"), equalTo(c("a", "b", "c")));
+  }
 
+  @Test
+  public void setAttrNamesDoesNotInvokesAsCharacter() {
+    eval("x <- 1:3");
+    eval("y <- 1:3");
+    eval("class(y) <- 'foo'");
+    eval("as.character.foo <- function(y) letters[y] ");
 
+    eval("attr(x, 'names') <- y");
+    assertThat(eval("names(x)"), equalTo(c("1", "2", "3")));
+  }
+
+  @Test
+  public void setAttrNamesWithList() {
+    eval("x <- 1:3");
+    eval("attr(x, 'names') <- list('a', 'b', 'c')");
+    assertThat(eval("names(x)"), equalTo(c("a", "b", "c")));
+
+    eval("attr(x, 'names') <- list('a', 'b', 1:3)");
+    assertThat(eval("names(x)"), equalTo(c("a", "b", "1:3")));
+
+  }
+
+  @Test
+  @Ignore("todo")
+  public void setAttrNamesWithNestedList() {
+    eval("x <- 1:3");
+
+    // Result in GNU R does not match deparse(list(x=1,y=1))
+    eval("attr(x, 'names') <- list('a', 'b', list(x=1,y=1))");
+    assertThat(eval("names(x)"), equalTo(c("a", "b", "list(x = 1, y = 1")));
+
+  }
 }

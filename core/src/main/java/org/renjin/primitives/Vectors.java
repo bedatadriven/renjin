@@ -38,9 +38,17 @@ public class Vectors {
     for(int i=0;i!=Math.min(length, source.length());++i) {
       copy.setFrom(i, source, i);
     }
-    AttributeMap attribs = source.getAttributes();
-    if(attribs.hasNames()) {
-      copy.setAttribute(Symbols.NAMES, setLength(attribs.getNames(), length));
+    AtomicVector sourceNames = source.getNames();
+    if(sourceNames != Null.INSTANCE) {
+      StringVector.Builder newNames = new StringVector.Builder();
+      for (int i = 0; i < length; i++) {
+        if(i < source.length()) {
+          newNames.add(sourceNames.getElementAsString(i));
+        } else {
+          newNames.add("");
+        }
+      }
+      copy.setAttribute(Symbols.NAMES, newNames.build());
     }
     return copy.build();
   }

@@ -21,7 +21,7 @@ class LogicalSelection implements SelectionStrategy {
 
   @Override
   public SEXP getVectorSubset(Context context, Vector source, boolean drop) {
-    return VectorIndexSelection.buildSelection(source, new LogicalSubscript(this.mask, source.length()));
+    return VectorIndexSelection.buildSelection(source, new LogicalSubscript(this.mask, source.length()), drop);
   }
 
   @Override
@@ -73,8 +73,15 @@ class LogicalSelection implements SelectionStrategy {
     int sourceLength = source.length();
 
     Vector.Builder result = Vector.Type.widest(source, replacements).newBuilderWithInitialCapacity(resultLength);
-    NamesBuilder resultNames = NamesBuilder.withInitialCapacity(resultLength);
 
+    // Determine whether our result will have names or not
+    AtomicVector sourceNames = source.getNames();
+    NamesBuilder resultNames = null;
+    if(sourceNames != Null.INSTANCE) {
+      resultNames = NamesBuilder.withInitialCapacity(resultLength);
+    }
+
+    // Create the new vector
     int replacementIndex = 0;
 
     for(int i=0;i<resultLength;++i) {
@@ -83,27 +90,43 @@ class LogicalSelection implements SelectionStrategy {
         // FALSE: use source value IF still in range
         if(i < sourceLength) {
           result.addFrom(source, i);
-          resultNames.add(source.getName(i));
+          if(resultNames != null) {
+            resultNames.add(sourceNames.getElementAsString(i));
+          }
         } else {
           result.addNA();
-          resultNames.addNA();
+          if(resultNames != null) {
+            resultNames.add("");
+          }
         }
       } else if (IntVector.isNA(maskValue)) {
         // NA: set value to NA
         result.setNA(i);
-        resultNames.addNA();
-
+        if(resultNames != null) {
+          resultNames.add("");
+        }
       } else {
         // TRUE: use next replacement element
         result.setFrom(i, replacements, replacementIndex);
-
+        if(resultNames != null) {
+          if(i < sourceLength) {
+            resultNames.add(sourceNames.getElementAsString(i));
+          } else {
+            resultNames.add("");
+          }
+        }
         replacementIndex++;
         if (replacementIndex >= replacements.length()) {
           replacementIndex = 0;
         }
       }
     }
-    result.setAttribute(Symbols.NAMES, resultNames.build());
+
+    // Even if we have a one dimensional array as input, the dim attributes
+    // are dropped.
+    if(resultNames != null) {
+      result.setAttribute(Symbols.NAMES, resultNames.build());
+    }
     return result.build();
   }
 
@@ -119,7 +142,7 @@ class LogicalSelection implements SelectionStrategy {
     if (mask.length() > 0) {
       while (resultIndex < sourceLength) {
         int maskValue = mask.getElementAsRawLogical(maskIndex++);
-        
+
         if (maskValue == 1) {
           if(replacements.length() == 0) {
             throw new EvalException("replacement has zero length");
@@ -128,9 +151,9 @@ class LogicalSelection implements SelectionStrategy {
           if (replacementIndex >= replacements.length()) {
             replacementIndex = 0;
           }
-        } 
+        }
         resultIndex++;
-        
+
         if (maskIndex >= mask.length()) {
           maskIndex = 0;
         }

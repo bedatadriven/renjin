@@ -23,7 +23,6 @@ package org.renjin.primitives.sequence;
 
 import org.junit.Test;
 import org.renjin.EvalTestCase;
-import org.renjin.primitives.sequence.Sequences;
 import org.renjin.sexp.DoubleArrayVector;
 import org.renjin.sexp.LogicalVector;
 import org.renjin.sexp.SEXP;
@@ -48,12 +47,12 @@ public class SequenceTest extends EvalTestCase {
   @Test
   public void count() {
     Sequences.Range range = new Sequences.Range(11, 13);
-    assertTrue(range.count >= 3d && range.count < 4d );
+    assertTrue(range.count >= 3d && range.count < 4d);
   }
 
   @Test
   public void ascendingInts() {
-    assertThat(colon(199,201), elementsEqualTo(199, 200, 201));
+    assertThat(colon(199, 201), elementsEqualTo(199, 200, 201));
   }
 
   @Test
@@ -96,7 +95,16 @@ public class SequenceTest extends EvalTestCase {
   @Test
   public void repInt() {
     assertThat( eval( ".Internal(rep.int(c('a', 'b', 'c'), 2))"), equalTo(c("a","b","c","a","b","c")));
-    assertThat( eval( ".Internal(rep.int(c('a', 'b', 'c'), 0))"), equalTo( CHARACTER_0 ));
+    assertThat( eval( ".Internal(rep.int(c('a', 'b', 'c'), 0))"), equalTo(CHARACTER_0));
+  }
+  
+  @Test
+  public void repOneDimensionalArray() {
+    eval("a <- 1:3");
+    eval("dim(a) <- 3");
+    eval("names(a) <- c('a','b','c')");
+    
+    assertThat(eval("names(rep(a, length=4))"), equalTo(c("a", "b", "c", "a")));
   }
   
   @Test

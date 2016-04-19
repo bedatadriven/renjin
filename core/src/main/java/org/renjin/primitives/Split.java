@@ -40,28 +40,30 @@ public class Split {
   
   
   private static class SplitBuilder {
-    private Vector.Builder values;
+    private Vector.Builder source;
+    private AtomicVector sourceNames;
     private StringVector.Builder names;
 
     public SplitBuilder(Vector toSplit) {
-      this.values = toSplit.newBuilderWithInitialCapacity(0);
-      if(toSplit.getAttributes().hasNames()) {
+      this.source = toSplit.newBuilderWithInitialCapacity(0);
+      this.sourceNames = toSplit.getNames();
+      if(sourceNames != Null.INSTANCE) {
         names = new StringArrayVector.Builder();
       }
     }
     
     public void add(Vector source, int sourceIndex) {
-      values.addFrom(source, sourceIndex);
+      this.source.addFrom(source, sourceIndex);
       if(names != null) {
-        names.add(source.getName(sourceIndex));
+        names.add(sourceNames.getElementAsString(sourceIndex));
       }
     }
     
     public Vector build() {
       if(names != null) {
-        values.setAttribute(Symbols.NAMES, names.build());
+        source.setAttribute(Symbols.NAMES, names.build());
       }
-      return values.build();
+      return source.build();
     }
     
   }

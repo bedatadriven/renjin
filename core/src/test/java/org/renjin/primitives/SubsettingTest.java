@@ -359,6 +359,14 @@ public class SubsettingTest extends EvalTestCase {
     assertThat(eval("x"), equalTo(list(5d, 6d, 5d, 6d)));
   }
   
+  @Test
+  public void replaceAllElementsPreservesNames() {
+    eval("x <- c(a=1,b=2)");
+    eval("x[] <- 98:99");
+    
+    assertThat(eval("names(x)"), equalTo(c("a", "b")));
+  }
+  
   @Test(expected = EvalException.class)
   public void replaceElementInAtomicVectorWithNullFails() {
     eval(" x <- c(1,2,3) ");
@@ -891,7 +899,7 @@ public class SubsettingTest extends EvalTestCase {
   @Test
   public void indexingCharacter() {
     eval("vars <- quote(list(weighta))");
-    assertThat( eval("vars[[2]]"), Matchers.equalTo(symbol("weighta")));
+    assertThat(eval("vars[[2]]"), Matchers.equalTo(symbol("weighta")));
   }
 
   @Test
@@ -943,7 +951,7 @@ public class SubsettingTest extends EvalTestCase {
     eval(".testEnv<-new.env()");
     eval("assign(\"key\",1,.testEnv)");
     eval("assign(\"value\",\"foo\",.testEnv)");
-    assertThat(eval("if(.testEnv[[\"key\"]]==1) TRUE else FALSE"),logicalVectorOf(Logical.TRUE));
+    assertThat(eval("if(.testEnv[[\"key\"]]==1) TRUE else FALSE"), logicalVectorOf(Logical.TRUE));
     assertThat(eval("if(.testEnv[[\"value\"]]==\"foo\") TRUE else FALSE"), logicalVectorOf(Logical.TRUE));
   }
   
@@ -973,7 +981,7 @@ public class SubsettingTest extends EvalTestCase {
     eval("dim(x) <- c(1,4)");
     eval("dimnames(x) <- list(NULL, c('a','b','c','d'))");
     eval("y <- x[,c('a','b', 'x')]");
-    assertThat(eval("y"), equalTo(c(1,2)));
+    assertThat(eval("y"), equalTo(c(1, 2)));
 
   }
 
@@ -1009,7 +1017,7 @@ public class SubsettingTest extends EvalTestCase {
     eval("x <- c(a=91,b=92)");
     eval("x$a <- 99");
     assertThat(eval("x"), equalTo(list(99d, 92d)));
-    assertThat(eval("names(x)"), equalTo(c("a","b")));
+    assertThat(eval("names(x)"), equalTo(c("a", "b")));
   }
 
   @Test
@@ -1202,6 +1210,165 @@ public class SubsettingTest extends EvalTestCase {
 
     assertThat(eval("x"), equalTo(c(0, 0, 0, 4, 0, 9)));
   }
+  
+
+  @Test(expected = EvalException.class)
+  public void matrixReplacementOnlyInBounds() {
+    eval("m <- matrix(1:12, nrow=3)");
+    eval("m[99, 99] <- 4");
+  }
 
 
+  @Test(expected = EvalException.class)
+  public void matrixExtractionOnlyInBounds() {
+    eval("m <- matrix(1:12, nrow=3)");
+    eval("m[99, 99]");
+  }
+
+  @Test
+  public void extendArray() {
+    eval("a <- 1:12");
+    eval("dim(a) <- 12");
+    
+    eval("a[13] <- 99");
+    
+    assertThat(eval("dim(a)"), equalTo(NULL));
+  }
+  
+  @Test
+  public void arrayDimPreserved() {
+    eval("a <- 1:3");
+    eval("dim(a) <- 3");
+    eval("names(a) <- letters[1:3]");
+    
+    assertThat(eval("dimnames(a)[[1]]"), equalTo(c("a", "b", "c")));
+    assertThat(eval("names(a)"), equalTo(c("a", "b", "c")));
+    
+    assertThat(eval("dim(a[1:2])"), equalTo(c_i(2)));
+    assertThat(eval("dimnames(a[1:2])[[1]]"), equalTo(c("a", "b")));
+
+    // Dim attributes ARE dropped if the result is of length 1
+    assertThat(eval("dim(a[1])"), equalTo(NULL));
+    assertThat(eval("dimnames(a[1])"), equalTo(NULL));
+    assertThat(eval("names(a[1])"), equalTo(c("a")));
+
+    // AND if the length 0 
+    assertThat(eval("dim(a[0])"), equalTo(NULL));
+    assertThat(eval("dimnames(a[0])"), equalTo(NULL));
+    assertThat(eval("names(a[0])"), equalTo((SEXP)StringArrayVector.EMPTY));
+
+    assertThat(eval("dim(a[100:101])"), equalTo(c_i(2)));
+    assertThat(eval("dimnames(a[100:101])[[1]]"), equalTo((SEXP)new StringArrayVector(StringVector.NA, StringVector.NA)));
+  }
+
+  @Test
+  public void arrayDimPreservedOnSelectByName() {
+    eval("a <- 1:3");
+    eval("dim(a) <- 3");
+    eval("names(a) <- letters[1:3]");
+
+    assertThat(eval("dim(a[c('a', 'b')])"), equalTo(c_i(2)));
+    assertThat(eval("dimnames(a[c('a', 'b')])[[1]]"), equalTo(c("a", "b")));
+
+    // Dim attributes ARE dropped if the result is of length 1
+    assertThat(eval("dim(a['a'])"), equalTo(NULL));
+    assertThat(eval("dimnames(a['a'])"), equalTo(NULL));
+    assertThat(eval("names(a['a'])"), equalTo(c("a")));
+
+    // AND if the length 0 
+    assertThat(eval("dim(a['zz'])"), equalTo(NULL));
+    assertThat(eval("dimnames(a['zz'])"), equalTo(NULL));
+    assertThat(eval("names(a['zz'])"), equalTo(c(StringVector.NA)));
+    
+    // unless drop = FALSE
+    assertThat(eval("dim(a['zz', drop = FALSE])"), equalTo(c_i(1)));
+    assertThat(eval("dim(a['a', drop = FALSE])"), equalTo(c_i(1)));
+
+  }
+  
+  @Test
+  public void arrayDimPreservedOnLogicalSelection() {
+    eval("a <- 1:3");
+    eval("dim(a) <- 3");
+    eval("names(a) <- letters[1:3]");
+    
+    assertThat(eval("dim(a[TRUE])"), equalTo(c_i(3)));
+    assertThat(eval("dimnames(a[c(TRUE, FALSE, TRUE)])[[1]]"), equalTo(c("a", "c")));
+
+    assertThat(eval("dim(a[c(TRUE, FALSE, FALSE)])"), equalTo(NULL));
+    assertThat(eval("names(a[c(TRUE, FALSE, FALSE)])"), equalTo(c("a")));
+
+    assertThat(eval("dim(a[c(TRUE, FALSE, FALSE, TRUE)])"), equalTo(c_i(2)));
+    assertThat(eval("dimnames(a[c(TRUE, FALSE, FALSE, TRUE)])[[1]]"), equalTo(c("a", StringVector.NA)));
+  }
+  
+  @Test
+  public void arrayDimDroppedOnLogicalExtendedReplacement() {
+    eval("a <- 1:3");
+    eval("dim(a) <- 3");
+    eval("names(a) <- letters[1:3]");
+
+    eval("a[c(TRUE, FALSE, TRUE, TRUE, FALSE, NA)] <- 99");
+    
+    assertThat(eval("dim(a)"), equalTo(NULL));
+    assertThat(eval("names(a)"), equalTo(c("a", "b", "c", "", "", "")));
+  }
+
+  @Test(expected = EvalException.class)
+  public void extendLogicalSelectNotAllowedInMatrixSelection() {
+    eval("m <- matrix(1:12, nrow=3)");
+    eval("dim(m) <- 3:4");
+    
+    eval("m[c(TRUE,TRUE,TRUE, TRUE), ]");
+  }
+
+  @Test
+  public void arrayDimDroppedOnReplace() {
+    eval("a <- 1:3");
+    eval("dim(a) <- 3");
+    eval("names(a) <- letters[1:3]");
+
+    eval("replace <- function(a, i, x) { a[i] <- x; a; }");
+    
+    // If the array is not extended, then we keep the dim attributes
+    assertThat(eval("dim(replace(a, 1, 99))"), equalTo(c_i(3)));
+    
+    // If the array gets extended, then drop the dim attribute,
+    // but keep the dimnames if any
+    assertThat(eval("names(replace(a, 4, 98))"), equalTo(c("a", "b", "c", "")));
+  }
+  
+  
+  @Test
+  public void listArrayDimDroppedOnSingleAssignNull() {
+    
+    eval("a <- list(1,2,3)");
+    eval("dim(a) <- 3");
+    eval("names(a) <- letters[1:3]");
+    
+    eval("a['z'] <- NULL");
+    
+    assertThat(eval("dim(a)"), equalTo(NULL));
+    assertThat(eval("dimnames(a)"), equalTo(NULL));
+    assertThat(eval("names(a)"), equalTo(c("a", "b", "c")));
+  }
+
+  @Test
+  public void unnamedlistArrayDimDroppedOnSingleAssignNull() {
+
+    eval("a <- list(1,2,3)");
+    eval("dim(a) <- 3");
+
+    eval("a['z'] <- NULL");
+
+    assertThat(eval("dim(a)"), equalTo(NULL));
+    assertThat(eval("dimnames(a)"), equalTo(NULL));
+    assertThat(eval("names(a)"), equalTo(NULL));
+  }
+  
+  @Test
+  public void dollarSignOnUnnamedList() {
+    eval("x <- c(1,2,3)");
+    eval("x$foo <- 99");
+  }
 }

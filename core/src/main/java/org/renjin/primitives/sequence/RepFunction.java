@@ -7,7 +7,6 @@ import org.renjin.invoke.codegen.ArgumentIterator;
 import org.renjin.primitives.S3;
 import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.sexp.*;
-import org.renjin.util.NamesBuilder;
 
 public class RepFunction extends SpecialFunction {
 
@@ -109,41 +108,62 @@ public class RepFunction extends SpecialFunction {
         times.length() == 1 &&
         (x instanceof DeferredComputation || resultLength > RepDoubleVector.LENGTH_THRESHOLD)) {
 
-      return new RepDoubleVector(x, resultLength, each);
+      return new RepDoubleVector(x, resultLength, each, repeatAttributes(x, resultLength, each));
 
     } else if(x instanceof IntVector &&
         times.length() == 1 &&
         (x instanceof DeferredComputation || resultLength > RepIntVector.LENGTH_THRESHOLD)) {
 
-      return new RepIntVector(x, resultLength, each);
+      return new RepIntVector(x, resultLength, each, repeatAttributes(x, resultLength, each));
     }
 
     /**
      * Go ahead and allocate and fill the memory
      */
     Vector.Builder result = x.newBuilderWithInitialCapacity(resultLength);
-    NamesBuilder names = NamesBuilder.withInitialCapacity(resultLength);
+    AtomicVector names = x.getNames();
+    StringArrayVector.Builder resultNames = null;
+    if(names != Null.INSTANCE) {
+      resultNames = new StringArrayVector.Builder(0, resultLength);
+    }
     int result_i = 0;
 
     if(times.length() == 1) {
       for(int i=0;i!=resultLength;++i) {
         int x_i = (i / each) % x.length();
         result.setFrom(result_i++, x, x_i);
-        names.add(x.getName(x_i));
+        if(resultNames != null) {
+          resultNames.add(names.getElementAsString(x_i));
+        }
       }
     } else {
       for(int x_i=0;x_i!=x.length();++x_i) {
         for(int j=0;j<times.getElementAsInt(x_i);++j) {
           result.setFrom(result_i++, x, x_i);
-          names.add(x.getName(x_i));
+          if(resultNames != null) {
+            resultNames.add(names.getElementAsString(x_i));
+          }
         }
       }
     }
-    if(x.getAttributes().hasNames()) {
-      result.setAttribute(Symbols.NAMES, names.buildEvenIfEmpty(resultLength));
+    if(resultNames != null) {
+      result.setAttribute(Symbols.NAMES, resultNames.build());
     }
 
     return result.build();
   }
 
+
+  private static AttributeMap repeatAttributes(Vector source, int length, int each) {
+    AtomicVector names = source.getNames();
+    if(names != Null.INSTANCE) {
+      AttributeMap.Builder repeated = AttributeMap.newBuilder();
+      repeated.setNames(new RepStringVector(names, length, each, AttributeMap.EMPTY));
+      return repeated.build();
+      
+    } else {
+      return AttributeMap.EMPTY;
+    }
+  }
+  
 }

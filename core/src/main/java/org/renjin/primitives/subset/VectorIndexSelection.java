@@ -23,15 +23,17 @@ class VectorIndexSelection implements SelectionStrategy {
 
   @Override
   public SEXP getVectorSubset(Context context, Vector source, boolean drop) {
-    return buildSelection(source, new IndexSubscript(this.subscript, source.length()));
+    return buildSelection(source, new IndexSubscript(this.subscript, source.length()), drop);
   }
 
-  public static Vector buildSelection(Vector source, Subscript subscript) {
+  public static Vector buildSelection(Vector source, Subscript subscript, boolean drop) {
     
     IndexIterator it = subscript.computeIndexes();
 
     Vector.Builder result = source.getVectorType().newBuilder();
-    AtomicVector sourceNames = source.getNames();
+    
+    AtomicVector sourceNames =  source.getNames();
+    
     StringArrayVector.Builder resultNames = null;
     if(sourceNames instanceof StringVector) {
       resultNames = new StringArrayVector.Builder();
@@ -54,13 +56,20 @@ class VectorIndexSelection implements SelectionStrategy {
       }
     }
 
-    if(resultNames != null) {
-      result.setAttribute(Symbols.NAMES, resultNames.build());
+    // Exceptionally, if the source is a one-dimensional array, then 
+    // preserve the dim and dimnames attributes.
+    if(isOneDimensionalArray(source) && (!drop || result.length() > 1)) {
+      result.setAttribute(Symbols.DIM, new IntArrayVector(result.length()));
+      if(resultNames != null) {
+        result.setAttribute(Symbols.DIMNAMES, new ListVector(resultNames.build()));
+      }
+    } else {
+      if(resultNames != null) {
+        result.setAttribute(Symbols.NAMES, resultNames.build());
+      }
     }
-
     return result.build();
   }
-
 
   @Override
   public SEXP getFunctionCallSubset(FunctionCall call) {
@@ -216,9 +225,10 @@ class VectorIndexSelection implements SelectionStrategy {
   public static Vector buildReplacement(Vector source, Vector replacements, Subscript subscript) {
     
     Vector.Builder builder = source.newCopyBuilder(replacements.getVectorType());
+    AtomicVector sourceNames = source.getNames();
     StringVector.Builder resultNames = null;
-    if(source.getAttributes().hasNames()) {
-      resultNames = source.getAttributes().getNames().newCopyBuilder();
+    if(sourceNames instanceof StringVector) {
+      resultNames = ((StringVector) sourceNames).newCopyBuilder();
     }
     
     boolean deformed = false;
@@ -259,6 +269,10 @@ class VectorIndexSelection implements SelectionStrategy {
     }
 
     return builder.build();
+  }
+
+  private static boolean isOneDimensionalArray(Vector source) {
+    return source.getAttributes().getDim().length() == 1;
   }
 
 }

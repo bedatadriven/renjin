@@ -71,13 +71,13 @@ class CompleteSelection implements SelectionStrategy {
     if(x instanceof DeferredComputation || length > RepDoubleVector.LENGTH_THRESHOLD) {
 
       if (x instanceof DoubleVector) {
-        return new RepDoubleVector(x, length, 1);
+        return new RepDoubleVector(x, length, 1, AttributeMap.EMPTY);
       } else if (x instanceof IntVector) {
-        return new RepIntVector(x, length, 1);
+        return new RepIntVector(x, length, 1, AttributeMap.EMPTY);
       } else if (x instanceof StringVector) {
         return new RepStringVector(x, length, 1, AttributeMap.EMPTY);
       } else if (x instanceof LogicalVector) {
-        return new RepLogicalVector(x, length, 1);
+        return new RepLogicalVector(x, length, 1, AttributeMap.EMPTY);
       }
     }
 

@@ -316,10 +316,11 @@ public class Sort {
     return new IntArrayVector(new int[] { maxIndex + 1 }, whichName(v, maxIndex));
   }
 
-  private static AttributeMap whichName(Vector v, int maxIndex) {
+  private static AttributeMap whichName(Vector v, int index) {
     AttributeMap attributes;
-    if(v.getAttributes().hasNames()) {
-      String maxName = v.getName(maxIndex);
+    AtomicVector names = v.getNames();
+    if(names != Null.INSTANCE) {
+      String maxName = names.getElementAsString(index);
       attributes = AttributeMap.newBuilder().setNames(new StringArrayVector(maxName)).build();
     } else {
       attributes = AttributeMap.EMPTY;

@@ -41,5 +41,18 @@ public class SplitTest extends EvalTestCase {
     assertThat(eval("names(x)"), equalTo(c("1", "2")));
     assertThat(eval("names(x[[1]])"), equalTo(c("a")));
   }
+
+  @Test
+  public void split1dArrayWithNames() {
+    assumingBasePackagesLoad();
+
+    eval("a <- 1:2");
+    eval("dim(a) <- 2");
+    eval("names(a) <- c('x','y')");
+    
+    eval("x <- split(a, c(1,2))");
+    assertThat(eval("names(x)"), equalTo(c("1", "2")));
+    assertThat(eval("names(x[[1]])"), equalTo(c("x")));
+  }
   
 }

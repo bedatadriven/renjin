@@ -20,22 +20,7 @@ public class RepLogicalVector extends LogicalVector {
       throw new IllegalArgumentException("length: " + length);
     }
   }
-
-  public RepLogicalVector(Vector source, int length, int each) {
-    this(source, length, each, transformAttributes(source, length, each));
-  }
-
-  private static AttributeMap transformAttributes(Vector source, int length, int each) {
-    if(source.getAttributes().hasNames()) {
-      return source.getAttributes()
-          .copy()
-          .setNames(new RepStringVector(source.getAttributes().getNames(), length, each, AttributeMap.EMPTY))
-          .build();
-    } else {
-      return source.getAttributes();
-    }
-  }
-
+  
   @Override
   protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
     return new RepLogicalVector(source, length, each, attributes);

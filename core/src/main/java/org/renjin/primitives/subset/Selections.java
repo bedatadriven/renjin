@@ -29,7 +29,6 @@ class Selections {
       return new MatrixSelection(subscripts);
     }
     
-    int dimCount = source.getAttributes().getDim().length();
  
     SEXP subscript = subscripts.get(0);
 
@@ -45,15 +44,7 @@ class Selections {
       return new CoordinateMatrixSelection((AtomicVector) subscript);
     }
     
-
-    // If there is a single subscript, it's interpretation depends on the 
-    // shape of the source:
-    // - If the source has exactly one dimension, we treat it as a matrix selection
-    // - If the source has any other dimensionality, including no explicit dims, treat it as a vector index
-    if(dimCount == 1) {
-      return new MatrixSelection(subscripts);
-    } 
-    
+    // Otherwise we treat it as an index into a vector  
     if (subscript instanceof LogicalVector) {
       return new LogicalSelection((LogicalVector) subscript);
 

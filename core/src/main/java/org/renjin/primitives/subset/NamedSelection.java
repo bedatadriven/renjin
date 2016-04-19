@@ -51,9 +51,20 @@ class NamedSelection implements SelectionStrategy {
       }
     }
     
-    if(anyMatching || source.getAttributes().hasNames()) {
-      result.setAttribute(Symbols.NAMES, resultNames.build());
+    boolean oneDimensionalArray = source.getAttributes().getDim().length() == 1;
+    boolean resultHasNames = anyMatching || source.hasNames();
+    
+    if(oneDimensionalArray && (!drop || result.length() > 1)) {
+      result.setAttribute(Symbols.DIM, new IntArrayVector(result.length()));
+      if(resultHasNames) {
+        result.setAttribute(Symbols.DIMNAMES, new ListVector(resultNames.build()));
+      }
+    } else {
+      if(resultHasNames) {
+        result.setAttribute(Symbols.NAMES, resultNames.build());
+      }
     }
+    
     return result.build();
   }
 
@@ -148,7 +159,7 @@ class NamedSelection implements SelectionStrategy {
 
     // If the list has no names, then just drop the dim, dimnames attributes
     // and return
-    if (!source.getAttributes().hasNames()) {
+    if (!source.hasNames()) {
       AttributeMap.Builder newAttributes = source.getAttributes().copy();
       newAttributes.remove(Symbols.DIM);
       newAttributes.remove(Symbols.DIMNAMES);
@@ -199,10 +210,11 @@ class NamedSelection implements SelectionStrategy {
     }
     
     Vector.Builder result = source.newCopyBuilder(replacements.getVectorType());
-    
+
+    AtomicVector sourceNames = source.getNames();
     StringArrayVector.Builder resultNames;
-    if(source.getAttributes().hasNames()) {
-      resultNames = new StringArrayVector.Builder(source.getAttributes().getNames());
+    if(sourceNames != Null.INSTANCE) {
+      resultNames = new StringArrayVector.Builder((StringVector) sourceNames);
     } else {
       resultNames = new StringArrayVector.Builder(0, source.length());
       for (int i = 0; i < source.length(); i++) {
@@ -267,8 +279,8 @@ class NamedSelection implements SelectionStrategy {
     
     Map<String, Integer> map = new HashMap<>();
     
-    if(source.getAttributes().hasNames()) {
-      StringVector names = source.getAttributes().getNames();
+    AtomicVector names = source.getNames();
+    if(names instanceof StringVector) {
       for (int i = 0; i < names.length(); i++) {
         String name = names.getElementAsString(i);
         if(!map.containsKey(name)) {
@@ -307,11 +319,11 @@ class NamedSelection implements SelectionStrategy {
   private int findSelectedElement(Vector source, boolean exact) {
 
     String selectedName = computeUniqueSelectedName();
+    AtomicVector names = source.getNames();
     
-    if (!source.getAttributes().hasNames()) {
+    if (names == Null.INSTANCE) {
       return NOT_FOUND;
     }
-    StringVector names = source.getAttributes().getNames();
 
     int partialMatch = NOT_FOUND;
     

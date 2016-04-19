@@ -671,6 +671,19 @@ public strictfp class TypesTest extends EvalTestCase {
     eval("length(x) <- 2");
     assertThat(eval("x"), equalTo(c(1,2)));
   }
+  
+  @Test
+  public void setLengthOnOneDimensionalNamedArray() {
+    eval("a <- 1:3");
+    eval("dim(a) <- 3");
+    eval("dimnames(a) <- list(letters[1:3])");
+    
+    eval("length(a) <- 4");
+    
+    assertThat(eval("dim(a)"), equalTo(NULL));
+    assertThat(eval("names(a)"), equalTo(c("a", "b", "c", "")));
+
+  }
 
   @Test
   public void setLengthWithNames() {

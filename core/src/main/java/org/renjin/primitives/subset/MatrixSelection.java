@@ -16,6 +16,9 @@ class MatrixSelection implements SelectionStrategy {
   
   public MatrixSelection(List<SEXP> subscripts) {
     this.subscripts = subscripts;
+    
+    assert this.subscripts.size() > 1 : 
+        "matrix selection CAN ONLY applies with two or more arguments";
   }
 
   @Override
@@ -59,7 +62,7 @@ class MatrixSelection implements SelectionStrategy {
     // the dim and dimnames entirely
     // UNLESS, the input source was already one-dimensional
     int dimCount = countDims(droppedDim);
-    if(drop && (dimCount == 0 || (dimCount == 1 && sourceDim.length > 1))) {
+    if(drop && (dimCount == 0 || dimCount == 1)) {
 
       // DO transform the dimnames to a names attribute if present
       if(dimNames.length() > 0) {
@@ -283,6 +286,9 @@ class MatrixSelection implements SelectionStrategy {
     int index;
     while((index=it.next())!= IndexIterator.EOF) {
       if(!IntVector.isNA(index)) {
+        if(index >= source.length()) {
+          throw new EvalException("subscript out of bounds");
+        }
         result.setFrom(index, materializedReplacement, replacementIndex++);
         if (replacementIndex >= replacementLength) {
           replacementIndex = 0;

@@ -133,16 +133,25 @@ public abstract class AbstractSEXP implements SEXP {
 
   @Override
   public AtomicVector getNames() {
-    return attributes.getNamesOrNull();
+    // In the very special case of a one-dimensional array,
+    // the names of the elements are stored in the dimnames attribute
+    // and not the names attribute.
+    if(attributes.getDim().length() == 1) {
+      return attributes.getDimNames(0);
+    } else {
+      return attributes.getNamesOrNull();
+    }
+  }
+
+  @Override
+  public boolean hasNames() {
+    return getNames() instanceof StringVector;
   }
 
   @Override
   public String getName(int index) {
-    if(attributes.hasNames()) {
-      StringVector names = attributes.getNames();
-      if(names.length() > 0) {
-        return names.getElementAsString(index);        
-      }
+    if(hasNames()) {
+      return getNames().getElementAsString(index);
     } 
     return StringVector.NA;
   }

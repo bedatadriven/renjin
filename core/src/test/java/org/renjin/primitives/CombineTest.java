@@ -216,4 +216,5 @@ public class CombineTest extends EvalTestCase {
     assertThat(eval("y"), equalTo(NULL));
 
   }
+
 }

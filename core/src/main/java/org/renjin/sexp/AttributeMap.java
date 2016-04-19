@@ -172,11 +172,11 @@ public class AttributeMap {
     }
   }
 
-  public Vector getDimNames(int i) {
+  public AtomicVector getDimNames(int i) {
     if(dimNames == null) {
       return Null.INSTANCE;
     }
-    return (Vector) dimNames.getElementAsSEXP(0);
+    return (AtomicVector) dimNames.getElementAsSEXP(0);
   }
 
   public static Builder builder() {

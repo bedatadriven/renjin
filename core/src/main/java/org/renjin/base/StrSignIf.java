@@ -80,16 +80,15 @@ public class StrSignIf {
    * @return
    */
   public static StringVector str_signif(Vector x, int width, int digits,
-      String format, String flag)
-  {
-      NumberFormat formatter = buildFormat(digits, format, flag);
-      
-      StringArrayVector.Builder result = new StringArrayVector.Builder();
-      for(int i=0;i!=x.length();++i) {
-        result.add(formatter.format(x.getElementAsDouble(i)));
-      }
-      return result.build();
-  
+                                        String format, String flag) {
+    
+    NumberFormat formatter = buildFormat(digits, format, flag);
+
+    StringArrayVector.Builder result = new StringArrayVector.Builder();
+    for(int i=0;i!=x.length();++i) {
+      result.add(formatter.format(x.getElementAsDouble(i)));
+    }
+    return result.build();
   }
 
   private static NumberFormat buildFormat(int digits, String format, String flag) {

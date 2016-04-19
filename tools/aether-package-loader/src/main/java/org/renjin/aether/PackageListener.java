@@ -5,14 +5,14 @@ import org.renjin.primitives.packaging.FqPackageName;
 
 
 public interface PackageListener {
-    
-    void packageLoading(FqPackageName packageName);
-    
-    void packageResolved(FqPackageName packageName, String version);
 
-    void packageVersionResolutionFailed(FqPackageName packageName);
+  void packageLoading(FqPackageName packageName);
 
-    void packageLoadSucceeded(FqPackageName name, String version);
+  void packageResolved(FqPackageName packageName, String version);
 
-    void packageResolveFailed(DependencyResolutionException name);
+  void packageVersionResolutionFailed(FqPackageName packageName);
+
+  void packageLoadSucceeded(FqPackageName name, String version);
+
+  void packageResolveFailed(DependencyResolutionException name);
 }

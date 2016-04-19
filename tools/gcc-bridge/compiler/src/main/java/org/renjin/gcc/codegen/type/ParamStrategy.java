@@ -1,11 +1,10 @@
 package org.renjin.gcc.codegen.type;
 
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
-import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.type.primitive.PrimitiveParamStrategy;
+import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.expr.Expr;
+import org.renjin.gcc.codegen.expr.SimpleLValue;
 import org.renjin.gcc.codegen.var.LocalVarAllocator;
-import org.renjin.gcc.codegen.var.Var;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleParameter;
 
@@ -17,12 +16,12 @@ import java.util.List;
  * <p>A {@code ParamStrategy} is composed of a two things:</p>
  *
  * <ul>
- *   <li>How the argument is represented as one or more JVM arguments.</li>
+ *   <li>How the argument is represented, as one or more JVM arguments.</li>
  *   <li>How to marshal the gimple value onto the stack in advance of the method call.</li>
  *   <li>How to store or load the value of the parameter within a function body</li>
  * </ul>
  *
- * <p>The simplest strategy is the {@link PrimitiveParamStrategy}, which maps a Gimple argument
+ * <p>The simplest strategy is the {@link SimpleParamStrategy}, which maps a Gimple argument
  * to a JVM argument of the corresponding type.</p>
  *
  * <p>However types like {@code complex} require more sophisticated handling: a single complex-valued argument
@@ -31,9 +30,7 @@ import java.util.List;
  */
 public interface ParamStrategy {
 
-
   /**
-   *
    * @return one or more JVM types used to represent this parameter.
    */
   List<Type> getParameterTypes();
@@ -48,13 +45,13 @@ public interface ParamStrategy {
    *                   if needed.
    * @return an {@code ExprGenerator} which can be used to access this parameter's value.
    */
-  ExprGenerator emitInitialization(MethodVisitor methodVisitor, GimpleParameter parameter, List<Var> paramVars, VarAllocator localVars);
+  Expr emitInitialization(MethodGenerator methodVisitor, GimpleParameter parameter, List<SimpleLValue> paramVars, VarAllocator localVars);
 
 
   /**
-   * Pushes a value onto the stack in the format neccessary for function paramter using this strategy.
+   * Pushes a value onto the stack in the format necessary for function parameter using this strategy.
    */
-  void emitPushParameter(MethodVisitor mv, ExprGenerator parameterValueGenerator);
+  void loadParameter(MethodGenerator mv, Expr argument);
 
 
 }

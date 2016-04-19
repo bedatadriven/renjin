@@ -39,8 +39,9 @@ public class LexerContextStack {
   }
 
   void push(char c) {
-    if (currentIndex >= SIZE)
+    if (currentIndex >= SIZE) {
       throw new OverflowException();
+    }
     ++currentIndex;
     stack[currentIndex] = c;
   }

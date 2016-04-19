@@ -123,10 +123,11 @@ public class CallJavaFromRTest {
     System.out
         .println("You called StaticMethod in R,Type of argument is Boolean[]");
     for (int i = 0; i < values.length; i++) {
-      if (values[i])
+      if (values[i]) {
         values[i] = Boolean.FALSE;
-      else
+      } else {
         values[i] = Boolean.TRUE;
+      }
       System.out.print(values[i] + " ");
     }
     System.out.print("\n");

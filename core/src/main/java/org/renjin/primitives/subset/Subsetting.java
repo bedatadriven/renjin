@@ -259,7 +259,7 @@ public class Subsetting {
                                SEXP source, 
                                @ArgumentList ListVector subscripts,
                                @NamedFlag("drop") @DefaultValue(true) boolean drop) {
-    
+
     if (source == Null.INSTANCE) {
       // handle an exceptional case: if source is NULL,
       // the result is always null
@@ -267,15 +267,15 @@ public class Subsetting {
     }
 
     SelectionStrategy selection = Selections.parseSelection(source, Lists.newArrayList(subscripts));
-    
+
     if(source instanceof Vector) {
       return selection.getVectorSubset(context, (Vector) source, drop);
-    
+
     } else if(source instanceof FunctionCall) {
-        return selection.getFunctionCallSubset((FunctionCall) source);
+      return selection.getFunctionCallSubset((FunctionCall) source);
 
     } else if(source instanceof PairList.Node) {
-        return selection.getVectorSubset(context, ((PairList.Node) source).toVector(), drop);
+      return selection.getVectorSubset(context, ((PairList.Node) source).toVector(), drop);
 
     } else {
       throw new EvalException("object of type '%s' is not subsettable", source.getTypeName());

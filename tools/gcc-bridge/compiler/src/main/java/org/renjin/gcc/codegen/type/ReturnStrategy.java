@@ -1,13 +1,9 @@
 package org.renjin.gcc.codegen.type;
 
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
-import org.renjin.gcc.codegen.call.CallGenerator;
-import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.type.complex.ComplexReturnStrategy;
-import org.renjin.gcc.codegen.type.primitive.PrimitivePtrReturnStrategy;
-
-import java.util.List;
+import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.expr.Expr;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
 
 /**
  * Provides a strategy for return values from methods.
@@ -16,8 +12,8 @@ import java.util.List;
  * we have to be sometimes creative in returning things like fat pointers, which
  * we represent using an array <i>and</i> and integer offset.</p>
  * 
- * @see PrimitivePtrReturnStrategy
- * @see ComplexReturnStrategy
+ * @see org.renjin.gcc.codegen.fatptr.FatPtrReturnStrategy
+ * @see org.renjin.gcc.codegen.type.complex.ComplexReturnStrategy
  */
 public interface ReturnStrategy {
 
@@ -27,24 +23,21 @@ public interface ReturnStrategy {
    */
   Type getType();
 
-  /**
-   * Generate the bytecode to return the given {@code valueGenerator} from the method.
-   */
-  void emitReturnValue(MethodVisitor mv, ExprGenerator valueGenerator);
 
   /**
-   * Generate the bytecode to return a default or empty value for this type.
-   * 
-   * <p>Often required because GCC allows functions to return without explicitly
-   * requiring a return value, while the JVM is not so lax.</p>
+   * Converts if necessary the expression to be returned to a single value.
    */
-  void emitReturnDefault(MethodVisitor mv);
+  SimpleExpr marshall(Expr expr);
 
 
   /**
-   * Provides an {@link ExprGenerator} for accessing the return value of a call to a function
-   * using this {@code ReturnStrategy}.
+   * Converts a function call return value to an expression if necessary.
    */
-  ExprGenerator callExpression(CallGenerator callGenerator, List<ExprGenerator> arguments);
+  Expr unmarshall(MethodGenerator mv, SimpleExpr returnValue);
 
+  /**
+   * Sometimes C code doesn't return a value despite having a non-void return type. In this case, 
+   * we just need to push SOMETHING onto the stack.
+   */
+  SimpleExpr getDefaultReturnValue();
 }

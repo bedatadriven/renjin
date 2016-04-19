@@ -74,6 +74,10 @@ public class Combine {
     // list to determine which vector type to use
     Inspector inspector = new Inspector(recursive);
     inspector.acceptAll(vector);
+    
+    if(inspector.getResult() == Null.VECTOR_TYPE) {
+      return Null.INSTANCE;
+    }
 
     CombinedBuilder builder = inspector.newBuilder().useNames(useNames);
 
@@ -430,12 +434,12 @@ public class Combine {
     }
     
     // build a new FunctionCall object and apply
-   PairList.Builder args = new PairList.Builder();
-   args.add("deparse.level", new Promise(Symbol.get("deparse.level"), new IntArrayVector(deparseLevel)));
-   args.addAll(arguments);
-   
-   FunctionCall call = new FunctionCall(Symbol.get(bindFunctionName), args.build());
-   return foundFunction.apply(context, rho, call, call.getArguments());
+    PairList.Builder args = new PairList.Builder();
+    args.add("deparse.level", new Promise(Symbol.get("deparse.level"), new IntArrayVector(deparseLevel)));
+    args.addAll(arguments);
+
+    FunctionCall call = new FunctionCall(Symbol.get(bindFunctionName), args.build());
+    return foundFunction.apply(context, rho, call, call.getArguments());
   }
   
   /**

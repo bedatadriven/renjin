@@ -184,7 +184,7 @@ public abstract class AbstractSEXP implements SEXP {
 
   @Override
   public final SEXP setAttribute(String attributeName, SEXP value) {
-     return setAttribute(Symbol.get(attributeName), value);
+    return setAttribute(Symbol.get(attributeName), value);
   }
   
   @Override

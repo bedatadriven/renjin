@@ -7,7 +7,7 @@ import org.renjin.sexp.StringVector;
 
 
 public class StringMatrixBuilder extends AbstractMatrixBuilder<StringVector.Builder, StringVector>
- implements MatrixBuilder {
+    implements MatrixBuilder {
 
   public StringMatrixBuilder(int nrows, int ncols) {
     super(StringVector.VECTOR_TYPE, nrows, ncols);

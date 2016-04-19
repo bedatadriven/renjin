@@ -60,7 +60,7 @@ public class StdInConnection implements Connection {
 
   @Override
   public OutputStream getOutputStream() throws IOException {
-   throw new UnsupportedOperationException();
+    throw new UnsupportedOperationException();
   }
 
   @Override

@@ -1,72 +1,44 @@
 package org.renjin.gcc.codegen.call;
 
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
-import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
-import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.expr.*;
+import org.renjin.gcc.codegen.type.TypeOracle;
+import org.renjin.gcc.gimple.statement.GimpleCall;
 import org.renjin.gcc.gimple.type.GimpleType;
-import org.renjin.gcc.runtime.Builtins;
-
-import java.util.List;
 
 /**
- * Handles calls to realloc()
+ * Generates calls to realloc().
+ *
+ * <p>The C library function void *realloc(void *ptr, size_t size) attempts to resize the memory block pointed to
+ * by ptr that was previously allocated with a call to malloc or calloc. .</p>
  */
 public class ReallocCallGenerator implements CallGenerator {
-  @Override
-  public void emitCall(MethodVisitor visitor, List<ExprGenerator> argumentGenerators) {
-    throw new UnsupportedOperationException();
+
+  private TypeOracle typeOracle;
+
+  public ReallocCallGenerator(TypeOracle typeOracle) {
+    this.typeOracle = typeOracle;
   }
 
   @Override
-  public void emitCallAndPopResult(MethodVisitor visitor, List<ExprGenerator> argumentGenerators) {
-    // NOOP
-  }
+  public void emitCall(MethodGenerator mv, ExprFactory exprFactory, GimpleCall call) {
 
-  @Override
-  public ExprGenerator expressionGenerator(GimpleType returnType, List<ExprGenerator> argumentGenerators) {
-    ExprGenerator pointer = argumentGenerators.get(0);
-    ExprGenerator size = argumentGenerators.get(1);
-    
-    return new ReallocExpr(pointer, size);
-  }
+    // If the return result is not used, then it's a no-op
+    if(call.getLhs() == null) {
+      return;
+    }
 
-  public static class ReallocExpr extends AbstractExprGenerator {
-    
-    private ExprGenerator pointer;
-    private ExprGenerator size;
-  
-    public ReallocExpr(ExprGenerator pointer, ExprGenerator size) {
-      this.pointer = pointer;
-      this.size = size;
-    }
-  
-  
-    @Override
-    public GimpleType getGimpleType() {
-      return pointer.getGimpleType();
-    }
-    
-    @Override
-    public void emitPushPtrArrayAndOffset(MethodVisitor mv) {
-      // push [array, offset, newCount]
-      pointer.emitPushPtrArrayAndOffset(mv);
-      offsetToElements(size, pointer.getGimpleType().getBaseType().sizeOf()).emitPrimitiveValue(mv);
-      
-      mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(Builtins.class), "realloc", 
-          reallocDescriptor(), false);
-      
-      // new array on stack
-      // offset is zero
-      mv.visitInsn(Opcodes.ICONST_0);
-      
-    }
-  
-    private String reallocDescriptor() {
-      Type arrayType = pointer.getPointerType().getArrayType();
-      
-      return Type.getMethodDescriptor(arrayType, arrayType, Type.INT_TYPE, Type.INT_TYPE);
-    }
+    // Get the type of the variable we're assigning to
+    GimpleType pointerType = call.getLhs().getType();
+
+    // Get generators for the fat pointer and new length
+    Expr pointer = exprFactory.findGenerator(call.getOperand(0));
+    SimpleExpr size = exprFactory.findValueGenerator(call.getOperand(1));
+    SimpleExpr length = Expressions.divide(size, pointerType.getBaseType().sizeOf());
+
+    Expr reallocatedPointer = typeOracle.forPointerType(pointerType).realloc(pointer, length);
+
+    LValue lhs = (LValue)exprFactory.findGenerator(call.getLhs());
+    lhs.store(mv, reallocatedPointer);
   }
 }

@@ -16,7 +16,7 @@ public class Args {
   }
   
   public static Function args(@Current Context context, Function function) throws IOException {
-   return function;
+    return function;
   }
   
 }

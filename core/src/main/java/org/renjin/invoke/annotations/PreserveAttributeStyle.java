@@ -11,7 +11,7 @@ public enum PreserveAttributeStyle {
    * Only the {@code dim}, {@code dimnames}, and {@code names} attributes should
    * be copied from the longest argument.
    */
-  SPECIAL,
+  STRUCTURAL,
   
   /**
    * All attributes are copied from the longest argument. If there are ties among the 

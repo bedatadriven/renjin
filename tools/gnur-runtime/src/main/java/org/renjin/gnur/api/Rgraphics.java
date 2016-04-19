@@ -1,8 +1,8 @@
 // Initial template generated from Rgraphics.h from R 3.2.2
 package org.renjin.gnur.api;
 
-import org.renjin.sexp.SEXP;
-import org.renjin.gcc.runtime.*;
+import org.renjin.gcc.runtime.DoublePtr;
+import org.renjin.gcc.runtime.IntPtr;
 
 @SuppressWarnings("unused")
 public final class Rgraphics {
@@ -62,7 +62,7 @@ public final class Rgraphics {
   // void Rf_GBox (int, pGEDevDesc)
 
   public static void Rf_GPretty(DoublePtr p0, DoublePtr p1, IntPtr p2) {
-     throw new UnimplementedGnuApiMethod("Rf_GPretty");
+    throw new UnimplementedGnuApiMethod("Rf_GPretty");
   }
 
   // void Rf_GMtext (const char *, cetype_t, int, double, int, double, int, double, pGEDevDesc)

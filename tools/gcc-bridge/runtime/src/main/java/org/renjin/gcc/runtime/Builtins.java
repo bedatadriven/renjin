@@ -1,16 +1,16 @@
 package org.renjin.gcc.runtime;
 
 public class Builtins {
-  
-	public static double __builtin_powi__(double base, int exponent) {
-		if(exponent == 1) {
-			return base;
-		} else if(exponent == 2) {
-			return base * base;
-		} else {
-			return Math.pow(base, (double)exponent);
-		}
-	}
+
+  public static double __builtin_powi__(double base, int exponent) {
+    if(exponent == 1) {
+      return base;
+    } else if(exponent == 2) {
+      return base * base;
+    } else {
+      return Math.pow(base, (double)exponent);
+    }
+  }
 
   public static float  __builtin_logf__(float x) {
     return (float) Math.log(x);
@@ -63,23 +63,23 @@ public class Builtins {
   public static void __builtin_puts(BytePtr string) {
     System.out.println(string.nullTerminatedString());
   }
-  
+
   public static int __fpclassifyd(double x) {
-		// TODO: lookup the exact behavior of this function
-		return Double.isNaN(x) ? 0 : 1;
-	}
-	
-	public static int _gfortran_pow_i4_i4__(int base, int exponent) {
-		if(exponent < 0) {
-			throw new IllegalArgumentException("exponent must be > 0: " + exponent);
-		}
-		int result = 1;
-		for(int i=0;i<exponent;++i) {
-			result *= base;
-		}
-		return result;
-	}
-  
+    // TODO: lookup the exact behavior of this function
+    return Double.isNaN(x) ? 0 : 1;
+  }
+
+  public static int _gfortran_pow_i4_i4__(int base, int exponent) {
+    if(exponent < 0) {
+      throw new IllegalArgumentException("exponent must be > 0: " + exponent);
+    }
+    int result = 1;
+    for(int i=0;i<exponent;++i) {
+      result *= base;
+    }
+    return result;
+  }
+
   public static float __builtin_powif__(float base, int exponent) {
     if(exponent == 0) {
       return 1;
@@ -96,6 +96,9 @@ public class Builtins {
     return Double.isNaN(x) ? 1: 0;
   }
 
+  public static int __finite(double x) {
+    return Double.isInfinite(x) ? 0 : 1;
+  }
 
   public static boolean unordered(double x, double y) {
     return Double.isNaN(x) || Double.isNaN(y);

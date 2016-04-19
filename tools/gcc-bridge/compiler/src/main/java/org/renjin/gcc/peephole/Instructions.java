@@ -2,7 +2,9 @@ package org.renjin.gcc.peephole;
 
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.InsnNode;
 import org.objectweb.asm.tree.IntInsnNode;
+import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.util.Textifier;
 
 
@@ -29,5 +31,20 @@ public class Instructions {
         return ((IntInsnNode) node).operand;
     }
     throw new IllegalArgumentException("node: " + Textifier.OPCODES[node.getOpcode()]);
+  }
+  
+  public static AbstractInsnNode constantNode(int cst) {
+    if (cst >= -1 && cst <= 5) {
+      return new InsnNode(Opcodes.ICONST_0 + cst);
+      
+    } else if (cst >= Byte.MIN_VALUE && cst <= Byte.MAX_VALUE) {
+      return new IntInsnNode(Opcodes.BIPUSH, cst);
+      
+    } else if (cst >= Short.MIN_VALUE && cst <= Short.MAX_VALUE) {
+      return new IntInsnNode(Opcodes.SIPUSH, cst);
+
+    } else {
+      return new LdcInsnNode(cst);
+    }
   }
 }

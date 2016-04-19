@@ -4,7 +4,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import org.objectweb.asm.Handle;
 import org.renjin.gcc.codegen.call.CallGenerator;
-import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.gimple.CallingConvention;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
@@ -18,13 +18,13 @@ import java.util.Map;
 public class LocalVariableTable implements SymbolTable {
 
   private final UnitSymbolTable parent;
-  private Map<Integer, ExprGenerator> variableMap = Maps.newHashMap();
+  private Map<Integer, Expr> variableMap = Maps.newHashMap();
 
   public LocalVariableTable(UnitSymbolTable parent) {
     this.parent = parent;
   }
 
-  public void addVariable(Integer gimpleId, ExprGenerator variable) {
+  public void addVariable(Integer gimpleId, Expr variable) {
     Preconditions.checkNotNull(variable);
     Preconditions.checkState(!variableMap.containsKey(gimpleId), "variable already registered with id " + gimpleId);
 
@@ -32,8 +32,8 @@ public class LocalVariableTable implements SymbolTable {
   }
 
   @Override
-  public ExprGenerator getVariable(GimpleSymbolRef ref) {
-    ExprGenerator variable = variableMap.get(ref.getId());
+  public Expr getVariable(GimpleSymbolRef ref) {
+    Expr variable = variableMap.get(ref.getId());
     if(variable == null) {
       if (parent == null) {
         throw new IllegalStateException("No variable with " + ref.getName() + " [id=" + ref.getId() + "]");
@@ -44,8 +44,8 @@ public class LocalVariableTable implements SymbolTable {
     return variable;
   }
 
-  public ExprGenerator getVariable(GimpleVarDecl decl) {
-    ExprGenerator varGenerator = variableMap.get(decl.getId());
+  public Expr getVariable(GimpleVarDecl decl) {
+    Expr varGenerator = variableMap.get(decl.getId());
     if(varGenerator == null) {
       throw new IllegalStateException("No variable named " + decl.getName() + " [id=" + decl.getId() + "]");
     }

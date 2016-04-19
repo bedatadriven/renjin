@@ -243,8 +243,12 @@ public abstract class DoubleVector extends AbstractAtomicVector implements Itera
 
   @Override
   public final boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || !(o instanceof DoubleVector)) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || !(o instanceof DoubleVector)) {
+      return false;
+    }
 
     DoubleVector vector = (DoubleVector) o;
 

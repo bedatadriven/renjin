@@ -5,8 +5,7 @@ import org.objectweb.asm.Handle;
 import org.renjin.gcc.codegen.FunctionGenerator;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.call.FunctionCallGenerator;
-import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.type.VarGenerator;
+import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.gimple.CallingConvention;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleVarDecl;
@@ -25,7 +24,7 @@ public class UnitSymbolTable implements SymbolTable {
   
   private final GlobalSymbolTable globalSymbolTable;
   private String className;
-  private final Map<Integer, VarGenerator> variableMap = Maps.newHashMap();
+  private final Map<Integer, Expr> variableMap = Maps.newHashMap();
   private final Map<String, FunctionGenerator> functions = Maps.newHashMap();
 
   public UnitSymbolTable(GlobalSymbolTable globalSymbolTable, String className) {
@@ -33,24 +32,24 @@ public class UnitSymbolTable implements SymbolTable {
     this.className = className;
   }
   
-  public ExprGenerator getVariable(GimpleSymbolRef ref) {
-    VarGenerator exprGenerator = variableMap.get(ref.getId());
-    if(exprGenerator != null) {
-      return exprGenerator;
+  public Expr getVariable(GimpleSymbolRef ref) {
+    Expr expr = variableMap.get(ref.getId());
+    if(expr != null) {
+      return expr;
     }
     
     return globalSymbolTable.getVariable(ref);
   }
 
-  public VarGenerator getGlobalVariable(GimpleVarDecl decl) {
-    VarGenerator exprGenerator = variableMap.get(decl.getId());
-    if(exprGenerator == null) {
+  public Expr getGlobalVariable(GimpleVarDecl decl) {
+    Expr expr = variableMap.get(decl.getId());
+    if(expr == null) {
       throw new IllegalArgumentException("decl: " + decl);
     }
-    return exprGenerator;
+    return expr;
   }
 
-  public void addGlobalVariable(GimpleVarDecl decl, VarGenerator globalVar) {
+  public void addGlobalVariable(GimpleVarDecl decl, Expr globalVar) {
     variableMap.put(decl.getId(), globalVar);
     if(decl.isExtern()) {
       globalSymbolTable.addVariable(decl.getName(), globalVar);

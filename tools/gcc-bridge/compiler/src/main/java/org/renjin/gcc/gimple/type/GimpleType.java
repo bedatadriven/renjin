@@ -19,8 +19,14 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
     @Type(value = GimpleComplexType.class, name = "complex_type"),
     @Type(value = GimpleUnionType.class, name = "union_type"),
     @Type(value = GimpleMethodType.class, name = "method_type")
-  })
+    })
 public interface GimpleType {
+
+  /**
+   * 
+   * @return the size of this type's values, in bits
+   */
+  int getSize();
 
   boolean isPointerTo(Class<? extends GimpleType> clazz);
   

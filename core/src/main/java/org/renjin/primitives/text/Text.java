@@ -428,8 +428,8 @@ public class Text {
     if(bounds.length() != 5) {
       throw new EvalException("Expected bounds argument of length 5");
     }
-    if(!bounds.isElementNA(1) || !bounds.isElementNA(2) || !bounds.isElementNA(3) ||
-       !bounds.isElementNA(4)) {
+    if (!bounds.isElementNA(1) || !bounds.isElementNA(2) || !bounds.isElementNA(3) ||
+        !bounds.isElementNA(4)) {
       throw new EvalException("max distance with specific components (all, insertions, deletions, substitutions not implemented");
     }
     double maxDistance = bounds.getElementAsDouble(0);
@@ -486,7 +486,9 @@ public class Text {
         result.add(StringVector.NA);
       } else {
         int slen = element.length();
-        if (startIndex < 1) startIndex = 1;
+        if (startIndex < 1) {
+          startIndex = 1;
+        }
         if (startIndex > stopIndex || startIndex > slen) {
           result.add("");
         } else if (stopIndex >= slen) {
@@ -703,11 +705,10 @@ public class Text {
     return buildFormatResult(x, elements);
   }
 
-  private static StringVector buildFormatResult(Vector x,
-      List<String> elements) {
+  private static StringVector buildFormatResult(Vector x, List<String> elements) {
     StringVector.Builder result = new StringVector.Builder();
     result.addAll(elements);
-    result.copySomeAttributesFrom(x, Symbols.DIM, Symbols.DIMNAMES, Symbols.NAMES);
+    result.combineStructuralAttributesFrom(x);
     
     return result.build();
   }
@@ -823,7 +824,7 @@ public class Text {
       }
       return codePoints.build();
     }
-   }
+  }
   
   /**
    * 

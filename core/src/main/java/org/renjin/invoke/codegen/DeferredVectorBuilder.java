@@ -188,25 +188,25 @@ public class DeferredVectorBuilder {
   private JExpression copyAttributes(JExpression arg0, JExpression arg1)  {
     String combineMethod;
     switch(overload.getPreserveAttributesStyle()) {
-    case ALL:
-      combineMethod = "combineAttributes";
-      break;
-    case SPECIAL:
-      combineMethod = "combineStructuralAttributes";
-      break;
-    default:
-      throw new UnsupportedOperationException();
+      case ALL:
+        combineMethod = "combineAttributes";
+        break;
+      case STRUCTURAL:
+        combineMethod = "combineStructuralAttributes";
+        break;
+      default:
+        throw new UnsupportedOperationException();
     }
 
     return codeModel.ref(AttributeMap.class).staticInvoke(combineMethod)
-            .arg(arg0)
-            .arg(arg1);
+        .arg(arg0)
+        .arg(arg1);
   }
 
   private JExpression copyAttributes(JExpression arg) {
     if(overload.getPreserveAttributesStyle() == PreserveAttributeStyle.ALL) {
       return arg.invoke("getAttributes");
-    } else if(overload.getPreserveAttributesStyle() == PreserveAttributeStyle.SPECIAL) {
+    } else if(overload.getPreserveAttributesStyle() == PreserveAttributeStyle.STRUCTURAL) {
       return arg.invoke("getAttributes").invoke("copyStructural");
     } else {
       throw new UnsupportedOperationException();
@@ -239,8 +239,8 @@ public class DeferredVectorBuilder {
       ctor.body().assign(lengthField, arg(0).lengthField);
     } else if(arity == 2) {
       ctor.body().assign(lengthField, codeModel.ref(Math.class).staticInvoke("max")
-              .arg(arg(0).lengthField)
-              .arg(arg(1).lengthField));
+          .arg(arg(0).lengthField)
+          .arg(arg(1).lengthField));
 
     }
   }
@@ -299,8 +299,8 @@ public class DeferredVectorBuilder {
 
   private JInvocation buildInvocation(List<JExpression> argValues) {
     JInvocation invocation = codeModel
-            .ref(overload.getDeclaringClass())
-            .staticInvoke(overload.getName());
+        .ref(overload.getDeclaringClass())
+        .staticInvoke(overload.getName());
     for(JExpression argValue : argValues) {
       invocation.arg(argValue);
     }

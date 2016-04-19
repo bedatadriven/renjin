@@ -1,13 +1,12 @@
 package org.renjin.compiler.ir.tac.expressions;
 
+import org.renjin.compiler.ir.IRUtils;
+import org.renjin.eval.Context;
+import org.renjin.sexp.SEXP;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-
-import org.renjin.compiler.ir.IRUtils;
-import org.renjin.compiler.ir.tac.IRLabel;
-import org.renjin.eval.Context;
-import org.renjin.sexp.SEXP;
 
 
 /**
@@ -66,12 +65,15 @@ public class Temp implements LValue {
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj)
+    if (this == obj) {
       return true;
-    if (obj == null)
+    }
+    if (obj == null) {
       return false;
-    if (getClass() != obj.getClass())
+    }
+    if (getClass() != obj.getClass()) {
       return false;
+    }
     Temp other = (Temp) obj;
     return index == other.index;
   }

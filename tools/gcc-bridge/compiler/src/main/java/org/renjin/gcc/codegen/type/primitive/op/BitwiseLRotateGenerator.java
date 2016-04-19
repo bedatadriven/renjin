@@ -1,30 +1,34 @@
 package org.renjin.gcc.codegen.type.primitive.op;
 
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
-import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
-import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.type.primitive.AddressOfPrimitiveValue;
-import org.renjin.gcc.gimple.type.GimpleType;
+import com.google.common.base.Preconditions;
+import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
+
+import javax.annotation.Nonnull;
+
+import static org.objectweb.asm.Type.INT_TYPE;
 
 
-public class BitwiseLRotateGenerator extends AbstractExprGenerator {
+public class BitwiseLRotateGenerator implements SimpleExpr {
   
-  private ExprGenerator bits;
-  private ExprGenerator k;
+  private SimpleExpr bits;
+  private SimpleExpr k;
 
-  public BitwiseLRotateGenerator(ExprGenerator bits, ExprGenerator k) {
+  public BitwiseLRotateGenerator(SimpleExpr bits, SimpleExpr k) {
     this.bits = bits;
     this.k = k;
+    Preconditions.checkArgument(bits.getType() == Type.INT_TYPE);
+  }
+
+  @Nonnull
+  @Override
+  public Type getType() {
+    return bits.getType();
   }
 
   @Override
-  public GimpleType getGimpleType() {
-    return bits.getGimpleType();
-  }
-
-  @Override
-  public void emitPrimitiveValue(MethodVisitor mv) {
+  public void load(@Nonnull MethodGenerator mv) {
     
     //(bits >>> k) | (bits << (Integer.SIZE - k));
 
@@ -32,26 +36,22 @@ public class BitwiseLRotateGenerator extends AbstractExprGenerator {
 //    0: iload_0
 //    1: iload_1
 //    2: iushr
-    bits.emitPrimitiveValue(mv);
-    k.emitPrimitiveValue(mv);
-    mv.visitInsn(Opcodes.IUSHR);
-
+    bits.load(mv);
+    k.load(mv);
+    mv.ushr(bits.getType());
+    
 //    3: iload_0
 //    4: bipush        32
 //    6: iload_1
 //    7: isub
 //    8: ishl
 //    9: ior
-    bits.emitPrimitiveValue(mv);
-    mv.visitIntInsn(Opcodes.BIPUSH, 32);
-    k.emitPrimitiveValue(mv);
-    mv.visitInsn(Opcodes.ISUB);
-    mv.visitInsn(Opcodes.ISHL);
-    mv.visitInsn(Opcodes.IOR);
+    bits.load(mv);
+    mv.iconst(32);
+    k.load(mv);
+    mv.sub(INT_TYPE);
+    mv.shl(INT_TYPE);
+    mv.or(INT_TYPE);
   }
-  
-  @Override
-  public ExprGenerator addressOf() {
-    return new AddressOfPrimitiveValue(this);
-  }
+
 }

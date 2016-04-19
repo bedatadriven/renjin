@@ -83,20 +83,20 @@ public interface Vector extends SEXP {
    * for utilities for working with unsigned bytes.
    */
   byte getElementAsByte(int index);
-  
-  /**
-  *
-  * @param vector an {@code AtomicVector}
-  * @param vectorIndex an index of {@code vector}
-  * @param startIndex
-  * @return the index of the first element in this vector that equals
-  * the element at {@code vectorIndex} in {@code vector}, or -1 if no such element
-  * can be found
-  */
- int indexOf(Vector vector, int vectorIndex, int startIndex);
-  
 
- /**
+  /**
+   *
+   * @param vector an {@code AtomicVector}
+   * @param vectorIndex an index of {@code vector}
+   * @param startIndex
+   * @return the index of the first element in this vector that equals
+   * the element at {@code vectorIndex} in {@code vector}, or -1 if no such element
+   * can be found
+   */
+  int indexOf(Vector vector, int vectorIndex, int startIndex);
+
+
+  /**
   * @param vector an {@code AtomicVector }
   * @param vectorIndex an index of {@code vector}
   * @return true if this vector contains an element equal to the
@@ -314,7 +314,16 @@ public interface Vector extends SEXP {
      */
     Builder combineAttributesFrom(SEXP vector);
 
-    Builder copySomeAttributesFrom(SEXP exp, Symbol... toCopy);
+    /**
+     * Combines {@code dim}, {@cocde dimnames} and {@code names} 
+     * attributes from the provided {@code vector} argument by adding 
+     * the attributes if they are not already set, and checking for consistency.
+     * @param vector the vector whose attributes are to be combined
+     * @throws org.renjin.eval.EvalException if {@code vector} has {@code dim} attribute
+     * that does not conform with the {@code dim} attribute already set.
+     */
+    Builder combineStructuralAttributesFrom(SEXP vector);
+
   }
 
   static class Order {

@@ -23,7 +23,7 @@ import java.util.Set;
 
 /**
  * Compiles R sources into a serialized blob
- * 
+ *
  * @goal namespace-compile
  * @phase compile
  * @requiresProject true
@@ -32,13 +32,13 @@ import java.util.Set;
  */
 public class NamespaceMojo extends AbstractMojo {
 
-	/**
-	 * Directory containing R sources
+  /**
+   * Directory containing R sources
    *
-	 * @parameter expression="src/main/R"
-	 * @required
-	 */
-	private File sourceDirectory;
+   * @parameter expression="src/main/R"
+   * @required
+   */
+  private File sourceDirectory;
 
   /**
    * Directory containing data files
@@ -46,37 +46,37 @@ public class NamespaceMojo extends AbstractMojo {
    */
   private File dataDirectory;
 
-	/**
-	 * Name of the R package
-	 * @parameter expression="${project.build.outputDirectory}"
-	 * @required
-	 * @readonly
-	 */
-	private File outputDirectory;	
-	
+  /**
+   * Name of the R package
+   * @parameter expression="${project.build.outputDirectory}"
+   * @required
+   * @readonly
+   */
+  private File outputDirectory;
+
   /**
    * @parameter default-value="${plugin.artifacts}"
    * @readonly
    * @since 1.1-beta-1
    */
- private List<Artifact> pluginDependencies;
- 
+  private List<Artifact> pluginDependencies;
 
- /**
+
+  /**
    * The enclosing project.
-   * 
+   *
    * @parameter default-value="${project}"
    * @required
    * @readonly
    */
- private MavenProject project;
-	
-	
-	/**
-	 * @parameter expression="${project.artifactId}"
-	 * @required
-	 */
-	private String packageName;
+  private MavenProject project;
+
+
+  /**
+   * @parameter expression="${project.artifactId}"
+   * @required
+   */
+  private String packageName;
 
   /**
    * @parameter expression="${project.groupId}"
@@ -85,17 +85,17 @@ public class NamespaceMojo extends AbstractMojo {
   private String groupId;
 
 
-	/**
+  /**
    * @parameter expression="${project.artifactId}"
    * @required
-	 */
-	private String namespaceName;
-	
-	/**
-	 * @parameter expression="${project.basedir}/NAMESPACE"
-	 * @required
-	 */
-	private File namespaceFile;
+   */
+  private String namespaceName;
+
+  /**
+   * @parameter expression="${project.basedir}/NAMESPACE"
+   * @required
+   */
+  private File namespaceFile;
 
   /**
    * @parameter expression="${project.basedir}/DESCRIPTION"
@@ -115,17 +115,17 @@ public class NamespaceMojo extends AbstractMojo {
    */
   private List defaultPackages;
 
-	@Override
-	public void execute() throws MojoExecutionException, MojoFailureException {
+  @Override
+  public void execute() throws MojoExecutionException, MojoFailureException {
     copyResources();
-	  compileNamespaceEnvironment();
+    compileNamespaceEnvironment();
     writeRequires();
-		compileDatasets();
-	}
+    compileDatasets();
+  }
 
 
   private void compileNamespaceEnvironment() throws MojoExecutionException {
-	  
+
     ClassLoader classLoader = getClassLoader();
     ClassLoader contextLoader = Thread.currentThread().getContextClassLoader();
 
@@ -137,7 +137,7 @@ public class NamespaceMojo extends AbstractMojo {
           .getMethod("build", String.class, String.class, File.class, File.class, List.class, File.class, List.class)
           .invoke(builder, groupId, namespaceName, namespaceFile, sourceDirectory, sourceFiles, getEnvironmentFile(),
               defaultPackages);
-     
+
     } catch(Exception e) {
       throw new MojoExecutionException("exception", e);
     } finally {
@@ -160,16 +160,16 @@ public class NamespaceMojo extends AbstractMojo {
     } finally {
       Thread.currentThread().setContextClassLoader(contextLoader);
     }
-    
+
   }
- 
-	private File getEnvironmentFile() {
+
+  private File getEnvironmentFile() {
     return new File(getPackageRoot(), "environment");
   }
 
   private File getPackageRoot() {
-    File packageRoot = new File(outputDirectory.getAbsoluteFile() + File.separator + 
-    		groupId.replace(".", File.separator) + File.separator + packageName);
+    File packageRoot = new File(outputDirectory.getAbsoluteFile() + File.separator +
+        groupId.replace(".", File.separator) + File.separator + packageName);
     packageRoot.mkdirs();
     return packageRoot;
   }
@@ -189,7 +189,7 @@ public class NamespaceMojo extends AbstractMojo {
     } catch (IOException e) {
       throw new RuntimeException("Exception copying NAMESPACE file", e);
     }
-    
+
   }
 
 
@@ -221,16 +221,16 @@ public class NamespaceMojo extends AbstractMojo {
   private ClassLoader getClassLoader() throws MojoExecutionException  {
     try {
       getLog().debug("Renjin Namespace Evaluation Classpath: ");
-      
+
       List<URL> classpathURLs = Lists.newArrayList();
       classpathURLs.add( new File(project.getBuild().getOutputDirectory()).toURI().toURL() );
-      
+
       for(Artifact artifact : getDependencies()) {
         getLog().debug("  "  + artifact.getFile());
-        
+
         classpathURLs.add(artifact.getFile().toURI().toURL());
-      }   
-      
+      }
+
       return new URLClassLoader( classpathURLs.toArray( new URL[ classpathURLs.size() ] ) );
     } catch(MalformedURLException e) {
       throw new MojoExecutionException("Exception resolving classpath", e);
@@ -241,6 +241,6 @@ public class NamespaceMojo extends AbstractMojo {
     Set<Artifact> artifacts = Sets.newHashSet();
     artifacts.addAll(project.getCompileArtifacts());
     artifacts.addAll(pluginDependencies);
-    return artifacts; 
+    return artifacts;
   }
 }

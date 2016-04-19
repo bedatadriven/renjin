@@ -1,6 +1,7 @@
 package org.renjin.primitives.subset;
 
 import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
 import org.renjin.sexp.*;
 import org.renjin.util.NamesBuilder;
 
@@ -120,6 +121,9 @@ class LogicalSelection implements SelectionStrategy {
         int maskValue = mask.getElementAsRawLogical(maskIndex++);
         
         if (maskValue == 1) {
+          if(replacements.length() == 0) {
+            throw new EvalException("replacement has zero length");
+          }
           builder.setFrom(resultIndex, replacements, replacementIndex++);
           if (replacementIndex >= replacements.length()) {
             replacementIndex = 0;

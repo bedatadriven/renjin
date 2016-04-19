@@ -6,8 +6,8 @@ import java.util.Arrays;
 
 public class BytePtr implements Ptr {
   
-  public final byte[] array;
-  public final int offset;
+  public byte[] array;
+  public int offset;
 
   public BytePtr(byte... array) {
     this(array, 0);

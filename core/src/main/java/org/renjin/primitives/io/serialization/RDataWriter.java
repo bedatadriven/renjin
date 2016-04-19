@@ -61,15 +61,15 @@ public class RDataWriter {
 
   private Map<SEXP, Integer> references = Maps.newHashMap();
 
-  public RDataWriter(WriteContext context, PersistenceHook hook, OutputStream out, 
-          SERIALIZATION_TYPE st) {
+  public RDataWriter(WriteContext context, PersistenceHook hook, OutputStream out,
+                     SERIALIZATION_TYPE st) {
     this.context = context;
     this.hook = hook;
     this.conn = new DataOutputStream(out);
     this.ser_type = st;
     switch(this.ser_type) {
-    case ASCII: this.out = new AsciiWriter(this.conn); break;
-    default: this.out = new XdrWriter(this.conn); break;
+      case ASCII: this.out = new AsciiWriter(this.conn); break;
+      default: this.out = new XdrWriter(this.conn); break;
     }
   }
   
@@ -262,8 +262,9 @@ public class RDataWriter {
         }
       }
     } else {
-      for(int i=0;i!=vector.length();++i) 
+      for(int i=0;i!=vector.length();++i) {
         out.writeInt(vector.getElementAsInt(i));
+      }
     }
     
     writeAttributes(vector);
@@ -279,9 +280,9 @@ public class RDataWriter {
           if(DoubleVector.isNaN(d)) {
             conn.writeBytes("NA\n");
           } else if (d < 0) {
-              conn.writeBytes("-Inf\n");
+            conn.writeBytes("-Inf\n");
           } else {
-              conn.writeBytes("Inf\n");
+            conn.writeBytes("Inf\n");
           }
         } else {
           out.writeDouble(vector.getElementAsDouble(i));
@@ -530,12 +531,12 @@ public class RDataWriter {
   private void writeFlags(int type, SEXP exp) throws IOException {
     out.writeInt(Flags.computeFlags(exp, type));
   }
-  
+
   private interface StreamWriter {
-      void writeInt(int v) throws IOException;
-      void writeString(byte[] bytes) throws IOException;
-      void writeLong(long l) throws IOException;
-      void writeDouble(double d) throws IOException;
+    void writeInt(int v) throws IOException;
+    void writeString(byte[] bytes) throws IOException;
+    void writeLong(long l) throws IOException;
+    void writeDouble(double d) throws IOException;
   }
 
   private static class AsciiWriter implements StreamWriter {
@@ -556,32 +557,33 @@ public class RDataWriter {
     public void writeLong(long l) throws IOException {
       out.writeBytes(l + "\n");
     }
-    
+
     public void writeString(byte[] bytes) throws IOException {
       for(int i = 0; i < bytes.length; i++) {
         String s;
         switch(bytes[i]) {
-        case '\n': s = "\\n";  break;
-        case '\t': s = "\\t";  break;
-        case '\013': s = "\\v";  break;
-        case '\b': s = "\\b";  break;
-        case '\r': s = "\\r";  break;
-        case '\f': s = "\\f";  break;
-        case '\007': s = "\\a";  break;
-        case '\\': s = "\\\\"; break;
-        case '\177': s = "\\?";  break;
-        case '\'': s = "\\'";  break;
-        case '\"': s = "\\\""; break;
-        default  :
+          case '\n': s = "\\n";  break;
+          case '\t': s = "\\t";  break;
+          case '\013': s = "\\v";  break;
+          case '\b': s = "\\b";  break;
+          case '\r': s = "\\r";  break;
+          case '\f': s = "\\f";  break;
+          case '\007': s = "\\a";  break;
+          case '\\': s = "\\\\"; break;
+          case '\177': s = "\\?";  break;
+          case '\'': s = "\\'";  break;
+          case '\"': s = "\\\""; break;
+          default  :
         /* cannot print char in octal mode -> cast to unsigned
            char first */
         /* actually, since s is signed char and '\?' == 127
            is handled above, s[i] > 126 can't happen, but
            I'm superstitious...  -pd */
-        if (bytes[i] <= 32 || bytes[i] > 126)
-            s = String.format("\\%03o", bytes[i]);
-        else
-            s = new String(new byte[] {bytes[i]});
+            if (bytes[i] <= 32 || bytes[i] > 126) {
+              s = String.format("\\%03o", bytes[i]);
+            } else {
+              s = new String(new byte[]{bytes[i]});
+            }
         }
         out.writeBytes(s);
       }

@@ -1,60 +1,40 @@
 package org.renjin.gcc.codegen.call;
 
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
-import org.renjin.gcc.codegen.expr.ExprGenerator;
-import org.renjin.gcc.codegen.type.primitive.PrimitiveReturnStrategy;
-import org.renjin.gcc.gimple.type.GimpleIntegerType;
-import org.renjin.gcc.gimple.type.GimplePrimitiveType;
-import org.renjin.gcc.gimple.type.GimpleType;
-import org.renjin.gcc.runtime.DoublePtr;
-import org.renjin.gcc.runtime.LongPtr;
-
-import java.util.List;
+import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.expr.Expr;
+import org.renjin.gcc.codegen.expr.ExprFactory;
+import org.renjin.gcc.codegen.expr.LValue;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.type.TypeOracle;
+import org.renjin.gcc.gimple.statement.GimpleCall;
+import org.renjin.gcc.gimple.type.GimplePointerType;
 
 
+/**
+ * Generates calls to memcmp() depending on the type of the arguments
+ */
 public class MemCmpCallGenerator implements CallGenerator {
-  
+
+  private final TypeOracle typeOracle;
+
+  public MemCmpCallGenerator(TypeOracle typeOracle) {
+    this.typeOracle = typeOracle;
+  }
+
   @Override
-  public void emitCall(MethodVisitor mv, List<ExprGenerator> argumentGenerators) {
-    ExprGenerator p1 = argumentGenerators.get(0);
-    ExprGenerator p2 = argumentGenerators.get(1);
-    ExprGenerator n = argumentGenerators.get(2);
-    
-    GimpleType baseType = p1.getGimpleType().getBaseType();
+  public void emitCall(MethodGenerator mv, ExprFactory exprFactory, GimpleCall call) {
 
-    if(baseType instanceof GimplePrimitiveType) {
-      p1.emitPushPtrArrayAndOffset(mv);
-      p2.emitPushPtrArrayAndOffset(mv);
-      n.emitPrimitiveValue(mv);
+    if(call.getLhs() != null) {
+      Expr p1 = exprFactory.findGenerator(call.getOperand(0));
+      Expr p2 = exprFactory.findGenerator(call.getOperand(1));
+      SimpleExpr n = exprFactory.findValueGenerator(call.getOperand(2));
 
-      Type type = ((GimplePrimitiveType) baseType).jvmType();
-      
-      if(type.equals(Type.DOUBLE_TYPE)) {
-        mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(DoublePtr.class), "memcmp", "([DI[DII)I", false);
+      GimplePointerType type = (GimplePointerType) call.getOperand(0).getType();
+      SimpleExpr result = typeOracle.forPointerType(type).memoryCompare(p1, p2, n);
 
-      } else if(type.equals(Type.LONG_TYPE)) {
-        mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(LongPtr.class), "memcmp", "([JI[JII)I", false);
-        
-      } else {
-        throw new UnsupportedOperationException("Todo: " + type); 
-      }
-    } else {
-      throw new UnsupportedOperationException("Unsupported type: " + baseType);
+      LValue lhs = (LValue) exprFactory.findGenerator(call.getLhs());
+      lhs.store(mv, result);
     }
-  }
 
-  @Override
-  public void emitCallAndPopResult(MethodVisitor visitor, List<ExprGenerator> argumentGenerators) {
-    // this function has no side effects
-    
   }
-
-  @Override
-  public ExprGenerator expressionGenerator(GimpleType returnType, List<ExprGenerator> argumentGenerators) {
-    return new PrimitiveReturnStrategy(new GimpleIntegerType(32))
-        .callExpression(this, argumentGenerators);
-  }
-
 }

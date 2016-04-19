@@ -369,8 +369,9 @@ public class Context {
     int nframe = 0;
     Context cptr = this;
     while (!cptr.isTopLevel()) {
-      if (cptr.getType() == Type.FUNCTION )
+      if (cptr.getType() == Type.FUNCTION ) {
         nframe++;
+      }
       cptr = cptr.getParent();
     }
     return nframe;

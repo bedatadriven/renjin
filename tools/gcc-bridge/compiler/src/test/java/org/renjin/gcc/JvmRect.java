@@ -18,8 +18,8 @@ public class JvmRect {
     this.height = height;
   }
 
-  public static int area(JvmRect rect) {
-    return rect.width * rect.height;
+  public static int area(ObjectPtr<JvmRect> rect) {
+    return rect.get().width * rect.get().height;
   }
   
   public static int areas(ObjectPtr<JvmRect> rects) {
@@ -27,7 +27,7 @@ public class JvmRect {
     int i = 0;
     // end of array is marked by rect with zero width
     while(rects.get(i).width != 0) {
-      area += area(rects.get(i));
+      area += (rects.get(i).width * rects.get(i).height);
       i++;
     }
     return area;

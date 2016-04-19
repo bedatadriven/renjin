@@ -25,9 +25,11 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
 import org.renjin.sexp.*;
-import org.renjin.sexp.Vector;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 public class Sort {
 
@@ -245,21 +247,30 @@ public class Sort {
             return 0;
           }
         }
-        return decreasing ? -rel : rel;
+        return rel;
       }
 
       private int compare(Integer row1, Integer row2, int col) {
         AtomicVector column = (AtomicVector) columns.get(col);
         boolean na1 = column.isElementNA(row1);
         boolean na2 = column.isElementNA(row2);
-        if(na1 == na2) {
-          return column.compare(row1, row2);
-        } else if(na1 && naLast) {
-          return decreasing ? -1 : +1; 
+        if(na1 && na2) {
+          // Both values are NA, consider equal
+          return 0;
+        } else if(na1) {
+          // NA <-> 42
+          return naLast ? +1 : -1;
+        } else if(na2) {
+          // 42 <-> NA
+          return naLast ? -1 : +1;
         } else {
-          return decreasing ? +1 : -1;
+          // 42 <-> 41
+          return decreasing ?
+              -column.compare(row1, row2) :
+              +column.compare(row1, row2);
         }
       }
+
     });
 
     IntArrayVector.Builder result = new IntArrayVector.Builder();
@@ -278,14 +289,13 @@ public class Sort {
     }
     int minIndex = 0;
     double globalMin = v.getElementAsDouble(0);
-    //this loop would be started from 1 but it needs more code. I think this is fine.
     for (int i = 0; i < v.length(); i++) {
       if (v.getElementAsDouble(i) < globalMin) {
         globalMin = v.getElementAsDouble(i);
         minIndex = i;
       }
     }
-    return (new IntArrayVector(minIndex + 1));
+    return new IntArrayVector(new int[] { minIndex + 1 }, whichName(v, minIndex));
   }
 
   @Internal("which.max")
@@ -302,7 +312,19 @@ public class Sort {
         maxIndex = i;
       }
     }
-    return (new IntArrayVector(maxIndex + 1));
+    
+    return new IntArrayVector(new int[] { maxIndex + 1 }, whichName(v, maxIndex));
+  }
+
+  private static AttributeMap whichName(Vector v, int maxIndex) {
+    AttributeMap attributes;
+    if(v.getAttributes().hasNames()) {
+      String maxName = v.getName(maxIndex);
+      attributes = AttributeMap.newBuilder().setNames(new StringArrayVector(maxName)).build();
+    } else {
+      attributes = AttributeMap.EMPTY;
+    }
+    return attributes;
   }
 
   @Internal
@@ -379,8 +401,8 @@ public class Sort {
       int maxRank = minRank;
       while ( maxRank+1 < sortedInput.length() &&
               sortedInput.compare(minRank, maxRank+1) == 0) {
-          maxRank++;
-        }
+        maxRank++;
+      }
       ranks.add(maxRank + 1);
     }
     return ranks.build();

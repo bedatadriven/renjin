@@ -125,12 +125,12 @@ public class Profiler {
 
     List<FunctionProfile> profiles = Lists.newArrayList(FUNCTION_PROFILES.values());
     Collections.sort(profiles, Ordering.natural().onResultOf(new com.google.common.base.Function<FunctionProfile, Long>() {
-      @Override
-      public Long apply(FunctionProfile input) {
-        return input.ownTime;
-      }
-    }).reverse());
-    
+        @Override
+        public Long apply(FunctionProfile input) {
+          return input.ownTime;
+        }
+      }).reverse());
+
     out.println();
     out.println(String.format("%-25s%5s%10s%10s%4s%10s", "Function", "Count", "Time", "Own Time", "%", "kb Alloc"));
     

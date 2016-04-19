@@ -78,26 +78,28 @@ public final class PlatformUtils {
    *             character.
    */
   public static String getPortableLibraryName(String name) {
-    if (name == null)
+    if (name == null) {
       throw new NullPointerException();
+    }
 
     if ((name.length() == 0) || name.contains(File.separator) || name.
-            contains("/"))
+            contains("/")) {
       throw new IllegalArgumentException(
-              "Directory separator should not appear in library name: " + name);
+          "Directory separator should not appear in library name: " + name);
+    }
 
     return name.toLowerCase() + getSuffix() + getExtension();
   }
 
   public static String getExtension() {
     switch(OS) {
-    case APPLE:
-      return ".so"; /* GCC plugins use .so on OSX, too*/
-    case WINDOWS:
-      return ".dll";
-    case LINUX:
-    default:
-      return ".so";
+      case APPLE:
+        return ".so"; /* GCC plugins use .so on OSX, too*/
+      case WINDOWS:
+        return ".dll";
+      case LINUX:
+      default:
+        return ".so";
     }
   }
 
@@ -109,30 +111,39 @@ public final class PlatformUtils {
   private static ARCHType calculateArch() {
     String osArch = System.getProperty("os.arch").toLowerCase();
     assert osArch != null;
-    if (osArch.equals("i386"))
+    if (osArch.equals("i386")) {
       return ARCHType.X86;
-    if (osArch.startsWith("amd64") || osArch.startsWith("x86_64"))
+    }
+    if (osArch.startsWith("amd64") || osArch.startsWith("x86_64")) {
       return ARCHType.X86_64;
-    if (osArch.equals("ppc"))
+    }
+    if (osArch.equals("ppc")) {
       return ARCHType.PPC;
-    if (osArch.startsWith("ppc"))
+    }
+    if (osArch.startsWith("ppc")) {
       return ARCHType.PPC_64;
-    if (osArch.startsWith("sparc"))
+    }
+    if (osArch.startsWith("sparc")) {
       return ARCHType.SPARC;
+    }
     return ARCHType.UNKNOWN;
   }
 
   private static OSType calculateOS() {
     String osName = System.getProperty("os.name").toLowerCase();
     assert osName != null;
-    if (osName.startsWith("mac os x"))
+    if (osName.startsWith("mac os x")) {
       return OSType.APPLE;
-    if (osName.startsWith("windows"))
+    }
+    if (osName.startsWith("windows")) {
       return OSType.WINDOWS;
-    if (osName.startsWith("linux"))
+    }
+    if (osName.startsWith("linux")) {
       return OSType.LINUX;
-    if (osName.startsWith("sun"))
+    }
+    if (osName.startsWith("sun")) {
       return OSType.SUN;
+    }
     return OSType.UNKNOWN;
   }
 

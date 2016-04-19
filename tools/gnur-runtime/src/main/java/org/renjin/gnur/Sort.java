@@ -23,16 +23,24 @@ public class Sort {
     for (L = lo, R = hi; L < R; ) {
       v = x.get(k);
       for(i = L, j = R; i <= j;) {
-        while (rcmp(x.get(i), v, nalast) < 0) i++;
-        while (rcmp(v, x.get(j), nalast) < 0) j--;
+        while (rcmp(x.get(i), v, nalast) < 0) {
+          i++;
+        }
+        while (rcmp(v, x.get(j), nalast) < 0) {
+          j--;
+        }
         if (i <= j) {
           w = x.get(i);
           x.set(i++, x.get(j));
           x.set(j--,  w);
         }
       }
-      if (j < k) L = i;
-      if (k < i) R = j;
+      if (j < k) {
+        L = i;
+      }
+      if (k < i) {
+        R = j;
+      }
     }
   }
 
@@ -46,11 +54,21 @@ public class Sort {
 
   private static int rcmp(double x, double y, boolean nalast) {
     boolean nax = Double.isNaN(x), nay = Double.isNaN(y);
-    if (nax && nay)     return 0;
-    if (nax)            return nalast?1:-1;
-    if (nay)            return nalast?-1:1;
-    if (x < y)          return -1;
-    if (x > y)          return 1;
+    if (nax && nay) {
+      return 0;
+    }
+    if (nax) {
+      return nalast ? 1 : -1;
+    }
+    if (nay) {
+      return nalast ? -1 : 1;
+    }
+    if (x < y) {
+      return -1;
+    }
+    if (x > y) {
+      return 1;
+    }
     return 0;
   }
 }

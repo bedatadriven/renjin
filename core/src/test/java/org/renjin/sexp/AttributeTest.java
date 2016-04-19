@@ -167,4 +167,77 @@ public class AttributeTest extends EvalTestCase {
     assertThat(eval("names(z)"), equalTo(c("a", "b", "c")));
   }
 
+  @Test
+  public void dimBeatsNames() {
+    eval("x <- c(a=1,b=2,c=3,d=4)");
+    eval("y <- matrix(1:4, nrow=2)");
+    eval("z <- x + y");
+    
+    assertThat(eval("dim(z)"), equalTo(c_i(2, 2)));
+    assertThat(eval("names(z)"), equalTo(NULL));
+  }
+  
+  @Test
+  public void dimLabels() {
+    eval("x <- matrix(1:4, nrow=2)");
+    eval("dimnames(x) <- list(a=c('X','Y'), b=c('A','B'))");
+    
+    assertThat(eval("names(dimnames(x))"), equalTo(c("a", "b")));
+  }
+  
+  @Test
+  public void logicalAndCombineNamesOnly() {
+    // Some operators lke '&' or '|' include only the 
+    // dim, dimnames, and names attributes from the operands
+    
+    eval("x <- c(a=TRUE, b=TRUE)");
+    eval("class(x) <- 'foo'");
+    eval("y <- c(x=TRUE, y=FALSE)");
+    eval("z <- x & y");
+    
+    assertThat(eval("names(z)"), equalTo(c("a", "b")));
+    assertThat(eval("is.null(attr(z, 'class'))"), equalTo(c(true)));
+  }
+  
+  @Test
+  public void whenCombiningAttributesDimTakePrecedence() {
+
+    eval("x <- c(a=TRUE, b=FALSE)");
+    eval("y <- matrix(TRUE, nrow=2, ncol=2)");
+    eval("z <- x | y");
+    
+    assertThat(eval("dim(z)"), equalTo(c_i(2, 2)));
+    assertThat(eval("is.null(names(z))"), equalTo(c(true)));
+  }
+ 
+  @Test
+  public void settingNullNamesDoesNotClearDimsAttributes() {
+    eval("x <- matrix(1:12, nrow=3) ");
+    eval("names(x) <- NULL");
+    
+    assertThat(eval("dim(x)"), equalTo(c_i(3, 4)));
+  }
+  
+  @Test
+  public void dimsThenNamesAllowed() {
+    
+    eval("x <- matrix(1:12, nrow=3)");
+    eval("names(x) <- letters[1:12] ");
+    
+    assertThat(eval("dim(x)"), equalTo(c_i(3, 4)));
+    assertThat(eval("names(x)"), equalTo(c("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l")));
+  }
+
+  @Test
+  public void namesThenDimsDropsNames() {
+
+    eval("x <- 1:12");
+    eval("names(x) <- letters[1:12] ");
+    eval("dim(x) <- c(3, 4)");
+
+    assertThat(eval("dim(x)"), equalTo(c_i(3, 4)));
+    assertThat(eval("names(x)"), equalTo(NULL));
+  }
+
+
 }

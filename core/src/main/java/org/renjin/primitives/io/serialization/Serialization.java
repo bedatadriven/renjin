@@ -16,8 +16,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import static org.renjin.util.CDefines.*;
-
 
 public class Serialization {
 
@@ -245,13 +243,12 @@ public class Serialization {
   @DotCall("R_unserialize")
   public static SEXP unserialize(@Current Context context, SEXP connection, SEXP refhook) throws IOException {
     EvalException.check(refhook == Null.INSTANCE, "refHook != NULL has not been implemented yet.");
-    
+
     if(connection instanceof StringVector) {
-        error(_("character vectors are no longer accepted by unserialize()"));
-        return R_NilValue/* -Wall */;
+      throw new EvalException("character vectors are no longer accepted by unserialize()");
     } else if(connection instanceof RawVector) {
-      RDataReader reader = new RDataReader(context, 
-              new ByteArrayInputStream(((RawVector)connection).toByteArray()));
+      RDataReader reader = new RDataReader(context,
+          new ByteArrayInputStream(((RawVector)connection).toByteArray()));
       return reader.readFile();
     } else {
       return unserializeFromConn(context, connection, Null.INSTANCE);

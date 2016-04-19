@@ -1,11 +1,10 @@
 package org.renjin.gcc.codegen.call;
 
-import org.objectweb.asm.MethodVisitor;
-import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.type.TypeOracle;
+import org.renjin.gcc.gimple.statement.GimpleCall;
 import org.renjin.gcc.gimple.type.GimpleType;
-
-import java.util.List;
 
 /**
  * Generates function calls to {@code malloc()}
@@ -19,18 +18,21 @@ public class MallocCallGenerator implements CallGenerator {
   }
 
   @Override
-  public void emitCall(MethodVisitor visitor, List<ExprGenerator> argumentGenerators) {
+  public void emitCall(MethodGenerator mv, ExprFactory exprFactory, GimpleCall call) {
+    // Obviously if we're not assigning this, it's a NO-OP
+    if(call.getLhs() == null) {
+      return;
+    }
+
+    // Generate the malloc for the given type
+    GimpleType pointerType = call.getLhs().getType();
     
-  }
-
-  @Override
-  public void emitCallAndPopResult(MethodVisitor visitor, List<ExprGenerator> argumentGenerators) {
-      // NOOP
-  }
-
-  @Override
-  public ExprGenerator expressionGenerator(GimpleType returnType, List<ExprGenerator> argumentGenerators) {
-    ExprGenerator size = argumentGenerators.get(0);
-    return typeOracle.forType(returnType).mallocExpression(size);
+    // Find the size to allocate
+    SimpleExpr size = exprFactory.findValueGenerator(call.getOperands().get(0));
+    SimpleExpr length = Expressions.divide(size, pointerType.getBaseType().sizeOf());
+    
+    Expr mallocGenerator = typeOracle.forPointerType(pointerType).malloc(mv, length);
+    LValue lhs = (LValue) exprFactory.findGenerator(call.getLhs());
+    lhs.store(mv, mallocGenerator);
   }
 }

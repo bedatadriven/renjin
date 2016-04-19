@@ -21,23 +21,17 @@
 
 package org.renjin.primitives.sequence;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.math.linear.RealVector;
 import org.renjin.eval.Calls;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.invoke.annotations.*;
-import org.renjin.invoke.codegen.ArgumentIterator;
-import org.renjin.primitives.S3;
+import org.renjin.invoke.annotations.ArgumentList;
+import org.renjin.invoke.annotations.Builtin;
+import org.renjin.invoke.annotations.Current;
+import org.renjin.invoke.annotations.Internal;
 import org.renjin.primitives.Warning;
-import org.renjin.primitives.sequence.DoubleSequence;
-import org.renjin.primitives.sequence.IntSequence;
-import org.renjin.primitives.sequence.RepDoubleVector;
-import org.renjin.primitives.sequence.RepIntVector;
-import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.sexp.*;
-import org.renjin.util.NamesBuilder;
-
-import com.google.common.annotations.VisibleForTesting;
 
 
 /**
@@ -149,8 +143,9 @@ public class Sequences {
         } else {
           /* r := " the effective 'to' "  of  from:to */
           double upperBound = n1 + ((n1 <= n2) ? count -1 : -(count -1));
-          if(upperBound <= Integer.MIN_VALUE || upperBound > Integer.MAX_VALUE)
+          if(upperBound <= Integer.MIN_VALUE || upperBound > Integer.MAX_VALUE) {
             useInteger = false;
+          }
         }
       }
     }

@@ -60,7 +60,7 @@ public class IRBodyBuilder {
         return new EnvironmentVariable((Symbol)exp);
       }
     } else if(exp instanceof FunctionCall) {
-        return translateCall(context, (FunctionCall) exp);
+      return translateCall(context, (FunctionCall) exp);
     } else {
       // environments, pairlists, etc
       return new Constant(exp);

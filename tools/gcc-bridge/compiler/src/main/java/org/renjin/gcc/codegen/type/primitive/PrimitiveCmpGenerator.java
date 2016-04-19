@@ -1,10 +1,10 @@
 package org.renjin.gcc.codegen.type.primitive;
 
 import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
-import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
 import org.renjin.gcc.gimple.GimpleOp;
 
 import static org.objectweb.asm.Opcodes.*;
@@ -15,28 +15,28 @@ import static org.objectweb.asm.Opcodes.*;
 public class PrimitiveCmpGenerator implements ConditionGenerator {
   
   private GimpleOp op;
-  private ExprGenerator x;
-  private ExprGenerator y;
+  private SimpleExpr x;
+  private SimpleExpr y;
 
-  public PrimitiveCmpGenerator(GimpleOp op, ExprGenerator x, ExprGenerator y) {
+  public PrimitiveCmpGenerator(GimpleOp op, SimpleExpr x, SimpleExpr y) {
     this.op = op;
     this.x = x;
     this.y = y;
   }
 
   @Override
-  public void emitJump(MethodVisitor mv, Label trueLabel, Label falseLabel) {
+  public void emitJump(MethodGenerator mv, Label trueLabel, Label falseLabel) {
 
-    Type tx = x.getJvmPrimitiveType();
-    Type ty = y.getJvmPrimitiveType();
+    Type tx = x.getType();
+    Type ty = y.getType();
     
     if(!tx.equals(ty)) {
       throw new UnsupportedOperationException("Type mismatch: " + tx + " != " + ty);
     }
     
     // Push two operands on the stack
-    x.emitPrimitiveValue(mv);
-    y.emitPrimitiveValue(mv);
+    x.load(mv);
+    y.load(mv);
 
     if(tx.equals(Type.DOUBLE_TYPE) ||
         ty.equals(Type.FLOAT_TYPE)) {
@@ -70,7 +70,7 @@ public class PrimitiveCmpGenerator implements ConditionGenerator {
   }
 
 
-  private void emitRealJump(MethodVisitor mv, Label trueLabel) {
+  private void emitRealJump(MethodGenerator mv, Label trueLabel) {
 
 
     // Branching on floating point comparisons requires two steps:
@@ -130,6 +130,6 @@ public class PrimitiveCmpGenerator implements ConditionGenerator {
   }
 
   private boolean isDouble() {
-    return x.getJvmPrimitiveType().equals(Type.DOUBLE_TYPE);
+    return x.getType().equals(Type.DOUBLE_TYPE);
   }
 }

@@ -61,5 +61,5 @@ public class UnaryVectorOpAccessor extends Accessor {
             applyMethod.getName(),
             Type.getMethodDescriptor(applyMethod));
 
- }
+  }
 }

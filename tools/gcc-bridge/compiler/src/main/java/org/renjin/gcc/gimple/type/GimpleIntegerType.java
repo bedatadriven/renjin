@@ -52,17 +52,22 @@ public class GimpleIntegerType extends GimplePrimitiveType {
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj)
+    if (this == obj) {
       return true;
-    if (obj == null)
+    }
+    if (obj == null) {
       return false;
-    if (getClass() != obj.getClass())
+    }
+    if (getClass() != obj.getClass()) {
       return false;
+    }
     GimpleIntegerType other = (GimpleIntegerType) obj;
-    if (getPrecision() != other.getPrecision())
+    if (getPrecision() != other.getPrecision()) {
       return false;
-    if (unsigned != other.unsigned)
+    }
+    if (unsigned != other.unsigned) {
       return false;
+    }
     return true;
   }
 

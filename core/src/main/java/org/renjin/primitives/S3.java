@@ -60,7 +60,7 @@ public class S3 {
            .withGenericArgument(generic)
            .withObjectArgument(object)
            .next()
-           .applyNext(context, context.getEnvironment());
+           .applyNext(context, context.getEnvironment(), extraArgs);
   }
 
 
@@ -97,7 +97,7 @@ public class S3 {
         dataClass.add(exp.getTypeName());
         dataClass.add("numeric");
       } else {
-         dataClass.add(exp.getImplicitClass());
+        dataClass.add(exp.getImplicitClass());
       }
       return dataClass.build();
     }
@@ -225,11 +225,11 @@ public class S3 {
     }
 
     GenericMethod method = Resolver
-      .start(context, name, object)
-      .withBaseDefinitionEnvironment()
-      .withObjectArgument(object)
-      .withGenericArgument(name)
-      .findNext();
+        .start(context, name, object)
+        .withBaseDefinitionEnvironment()
+        .withObjectArgument(object)
+        .withGenericArgument(name)
+        .findNext();
 
     if(method == null) {
       return null;
@@ -575,8 +575,8 @@ public class S3 {
       return doApply(callContext, callEnvironment, rePromisedArgs);
     }
 
-    public SEXP applyNext(Context context, Environment environment) {
-      return doApply(context, environment, nextArguments(context));
+    public SEXP applyNext(Context context, Environment environment, ListVector extraArgs) {
+      return doApply(context, environment, nextArguments(context, extraArgs));
     }
 
     public SEXP doApply(Context callContext, Environment callEnvironment, PairList args) {
@@ -607,7 +607,7 @@ public class S3 {
       return this;
     }
 
-    public PairList nextArguments(Context callContext) {
+    public PairList nextArguments(Context callContext, ListVector extraArgs) {
 
       /*
        * Get the arguments to the function that called NextMethod(),
@@ -639,7 +639,7 @@ public class S3 {
       PairList formals = closure.getFormals();
       Environment previousEnv = parentContext.getEnvironment();
 
-      return updateArguments(actuals, formals, previousEnv);
+      return updateArguments(actuals, formals, previousEnv, extraArgs);
     }
 
 
@@ -668,7 +668,8 @@ public class S3 {
     }
   }
 
-  public static PairList updateArguments(PairList actuals, PairList formals, Environment previousEnv) {
+  public static PairList updateArguments(PairList actuals, PairList formals, 
+                                         Environment previousEnv, ListVector extraArgs) {
     // match each actual to a formal name so we can update it's value. but we can't reorder!
 
     List<SEXP> actualNames = Lists.newArrayList();
@@ -732,6 +733,11 @@ public class S3 {
         updatedValue = actualValues.get(i);
       }
       updated.add(actualNames.get(i), updatedValue);
+    }
+    
+    // Add extra arguments passed to NextMethods
+    for (NamedValue extraArg : extraArgs.namedValues()) {
+      updated.add(extraArg.getName(), extraArg.getValue());
     }
 
     return updated.build();

@@ -1,10 +1,14 @@
 package org.renjin.gcc.analysis;
 
-import com.google.common.collect.*;
+import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.PeekingIterator;
 import com.google.common.escape.Escaper;
 import com.google.common.escape.Escapers;
 import org.renjin.gcc.gimple.GimpleBasicBlock;
 import org.renjin.gcc.gimple.GimpleFunction;
+import org.renjin.gcc.gimple.statement.GimpleEdge;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -52,6 +56,11 @@ public class ControlFlowGraph {
     public List<Node> getOutgoing() {
       return outgoing;
     }
+
+    @Override
+    public String toString() {
+      return "<" + id + ">";
+    }
   }
   
   private Node entryNode = new Node("Entry");
@@ -78,21 +87,23 @@ public class ControlFlowGraph {
       GimpleBasicBlock sourceBlock = it.next();
       Node sourceNode = nodes.get(sourceBlock.getIndex());
 
-      if(sourceBlock.isReturning()) {
-        addEdge(sourceNode, exitNode);
+      List<GimpleEdge> jumps = sourceBlock.getJumps();
+      if(jumps.isEmpty()) {
+        // fall through edge
+        if(it.hasNext()) {
+          addEdge(sourceNode, getNode(it.peek()));
+        }
       } else {
-        Set<Integer> targets = sourceBlock.getJumpTargets();
-        if(targets.isEmpty()) {
-          // fall through edge
-          if(it.hasNext()) {
-            addEdge(sourceNode, getNode(it.peek()));
+        // explicit jumps
+        Node targetNode;
+        for (GimpleEdge jump : jumps) {
+          sourceNode = nodes.get(jump.getSource());
+          if(jump.getTarget() == 1) {
+            targetNode = exitNode;
+          } else {
+            targetNode = nodes.get(jump.getTarget());
           }
-        } else {
-          // explicit jumps
-          for (Integer targetBlockIndex : targets) {
-            Node targetNode = nodes.get(targetBlockIndex);
-            addEdge(sourceNode, targetNode);
-          }
+          addEdge(sourceNode, targetNode);
         }
       }
     }

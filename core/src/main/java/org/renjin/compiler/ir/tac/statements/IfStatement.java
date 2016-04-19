@@ -74,10 +74,10 @@ public class IfStatement implements Statement, BasicBlockEndingStatement {
   public Object interpret(Context context, Object[] temp) {
     Logical value = toLogical(condition.retrieveValue(context, temp));
     switch(value) {
-    case TRUE:
-      return trueTarget;
-    case FALSE:
-      return falseTarget;
+      case TRUE:
+        return trueTarget;
+      case FALSE:
+        return falseTarget;
     }
     if(naTarget == null) {
       throw new EvalException("missing value where TRUE/FALSE needed");

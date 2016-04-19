@@ -8,8 +8,8 @@ import org.renjin.compiler.runtime.CompiledRuntime;
 import org.renjin.compiler.runtime.UnimplementedPrimitive;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.primitives.Primitives;
 import org.renjin.invoke.codegen.WrapperGenerator2;
+import org.renjin.primitives.Primitives;
 import org.renjin.sexp.*;
 
 import java.lang.reflect.InvocationTargetException;
@@ -111,7 +111,7 @@ public class PrimitiveCall implements CallExpression {
     }
 
     try {
-        return applyStatic(context, temps);
+      return applyStatic(context, temps);
     } catch (InvocationTargetException e) {
       if(e.getCause() instanceof EvalException) {
         throw (EvalException)e.getCause();

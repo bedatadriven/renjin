@@ -5,15 +5,18 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
+
 import org.objectweb.asm.Type;
 import org.renjin.gcc.analysis.*;
 import org.renjin.gcc.codegen.FunctionGenerator;
-import org.renjin.gcc.codegen.RecordClassGenerator;
 import org.renjin.gcc.codegen.TrampolineClassGenerator;
 import org.renjin.gcc.codegen.UnitClassGenerator;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.call.FunctionCallGenerator;
+import org.renjin.gcc.codegen.lib.SymbolLibrary;
 import org.renjin.gcc.codegen.type.TypeOracle;
+import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
+import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
@@ -29,10 +32,10 @@ import java.util.Map;
 
 /**
  * Compiles a set of {@link GimpleCompilationUnit}s to bytecode
- * 
+ *
  * <p>The {@code GimpleCompiler} compiles the Gimple ASTs emitted by the 
  * GCC Bridge Plugin to a set of JVM class files.
- * 
+ *
  * <p>Each {@code GimpleCompilationUnit} is compiled to a seperate JVM class file with the same
  * name as the compilation unit. If the {@code className} is set, an additional "trampoline" class is 
  * generated that contains a wrapper methods to all 'extern' functions.</p>
@@ -51,6 +54,7 @@ public class GimpleCompiler  {
   private GlobalSymbolTable globalSymbolTable;
 
   private Collection<GimpleRecordTypeDef> recordTypeDefs;
+  private RecordUsageAnalyzer recordUsage;
 
   private List<FunctionBodyTransformer> functionBodyTransformers = Lists.newArrayList();
 
@@ -75,7 +79,7 @@ public class GimpleCompiler  {
 
   /**
    * Sets the package name to use for the compiled JVM classes.
-   * 
+   *
    * @param name the package name, separated by dots. For example "com.acme"
    */
   public void setPackageName(String name) {
@@ -84,7 +88,7 @@ public class GimpleCompiler  {
 
   /**
    * Sets the output directory to place compiled class files.
-   * 
+   *
    */
   public void setOutputDirectory(File directory) {
     this.outputDirectory = directory;
@@ -112,6 +116,10 @@ public class GimpleCompiler  {
     globalSymbolTable.addMethod("exp", Math.class);
   }
 
+  public void addLibrary(SymbolLibrary lib) {
+    globalSymbolTable.addLibrary(lib);
+  }
+
   public void addMethod(String functionName, Class declaringClass, String methodName) {
     globalSymbolTable.addMethod(functionName, declaringClass, methodName);
   }
@@ -132,6 +140,12 @@ public class GimpleCompiler  {
     // First apply any transformations needed by the code generation process
     transform(units);
 
+    // Analyze record type usage to determine strategy for generate code involving records
+    // (must be done after void ptr inference)
+
+    recordUsage = new RecordUsageAnalyzer(recordTypeDefs);
+    recordUsage.analyze(units);
+    
     // Compile the record types so they are available to functions and variables
     compileRecords(units);
 
@@ -163,66 +177,49 @@ public class GimpleCompiler  {
 
   private void compileRecords(List<GimpleCompilationUnit> units) throws IOException {
 
-    List<RecordClassGenerator> recordsToWrite = Lists.newArrayList();
-    List<RecordClassGenerator> recordsToLink = Lists.newArrayList();
-
-
     // Enumerate record types before writing, so that records can reference each other
+    int recordIndex = 0;
     for (GimpleRecordTypeDef recordTypeDef : recordTypeDefs) {
       
-      try {
-        RecordClassGenerator recordGenerator;
+      RecordClassTypeStrategy strategy = recordUsage.getStrategyFor(recordTypeDef);
+    
+      if (isProvided(recordTypeDef)) {
 
-        if (GimpleCompiler.TRACE) {
-          System.out.println(recordTypeDef);
-        }
-        if (isProvided(recordTypeDef)) {
+        // Map this record type to an existing JVM class
+        strategy.setProvided(true);
+        strategy.setJvmType(Type.getType(providedRecordTypes.get(recordTypeDef.getName())));
 
-          // Map this record type to an existing JVM class
-          Class existingClass = providedRecordTypes.get(recordTypeDef.getName());
-          recordGenerator = new RecordClassGenerator(typeOracle, Type.getInternalName(existingClass), recordTypeDef);
-
+      } else {
+        // Create a new JVM class for this record type
+        strategy.setProvided(false);
+      
+        String recordClassName;
+        if (recordTypeDef.getName() != null) {
+          recordClassName = recordTypeDef.getName();
         } else {
-          // Create a new JVM class for this record type
-
-          String recordClassName;
-          if (recordTypeDef.getName() != null) {
-            recordClassName = recordTypeDef.getName();
-          } else {
-            recordClassName = String.format("%s$Record%d", recordClassPrefix, recordsToWrite.size());
-          }
-          recordGenerator =
-              new RecordClassGenerator(typeOracle, getInternalClassName(recordClassName), recordTypeDef);
-          
-          recordsToWrite.add(recordGenerator);
+          recordClassName = String.format("%s$Record%d", recordClassPrefix, recordIndex++);
         }
-
-        typeOracle.addRecordType(recordTypeDef, recordGenerator);
-        recordsToLink.add(recordGenerator);
-        
-        
-      } catch (Exception e) {
-        throw new InternalCompilerException("Exception compiling record " + recordTypeDef.getName());
+        strategy.setJvmType(Type.getType("L" + getInternalClassName(recordClassName) + ";"));
       }
+      
+      typeOracle.addRecordType(recordTypeDef, strategy);
     }
-
 
     // Now that the record types are all registered, we can link the fields to their
     // FieldGenerators
-    for (RecordClassGenerator recordClassGenerator : recordsToLink) {
+    for (RecordTypeStrategy recordTypeStrategy : typeOracle.getRecordTypes()) {
       try {
-        recordClassGenerator.linkFields();
+        recordTypeStrategy.linkFields(typeOracle);
       } catch (Exception e) {
         throw new InternalCompilerException(String.format("Exception linking record %s: %s",
-            recordClassGenerator.getTypeDef().getName(),
+            recordTypeStrategy.getRecordTypeDef().getName(),
             e.getMessage()), e);
-      }
+      }    
     }
 
-
     // Finally write out the record class files for those records which are  not provided
-    for (RecordClassGenerator recordClassGenerator : recordsToWrite) {
-      writeClass(recordClassGenerator.getClassName(), recordClassGenerator.generateClassFile());
+    for (RecordTypeStrategy recordTypeStrategy : typeOracle.getRecordTypes()) {
+      recordTypeStrategy.writeClassFiles(outputDirectory);
     }
   }
 
@@ -254,9 +251,9 @@ public class GimpleCompiler  {
   @VisibleForTesting
   static String sanitize(String name) {
     Preconditions.checkArgument(name.length() >= 1);
-    
+
     StringBuilder className = new StringBuilder();
-    
+
     int i = 0;
     if(Character.isJavaIdentifierStart(name.charAt(0))) {
       className.append(name.charAt(0));
@@ -264,7 +261,7 @@ public class GimpleCompiler  {
     } else {
       className.append('_');
     }
-    
+
     for(;i<name.length();++i) {
       char c = name.charAt(i);
       if(Character.isJavaIdentifierPart(c)) {
@@ -325,9 +322,10 @@ public class GimpleCompiler  {
     for (Map.Entry<String, CallGenerator> entry : globalSymbolTable.getFunctions()) {
       if(entry.getValue() instanceof FunctionCallGenerator) {
         FunctionCallGenerator functionCallGenerator = (FunctionCallGenerator) entry.getValue();
-        FunctionGenerator functionGenerator = functionCallGenerator.getFunctionGenerator();
-
-        classGenerator.emitTrampolineMethod(functionGenerator);
+        if(functionCallGenerator.getStrategy() instanceof FunctionGenerator) {
+          FunctionGenerator functionGenerator = (FunctionGenerator) functionCallGenerator.getStrategy();
+          classGenerator.emitTrampolineMethod(functionGenerator);
+        }
       }
     }
 

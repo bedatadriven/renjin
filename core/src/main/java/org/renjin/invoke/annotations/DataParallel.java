@@ -43,5 +43,5 @@ public @interface DataParallel {
   /**
    * Determines which attributes if any should be copied from the longest argument of the vector
    */
-  PreserveAttributeStyle value() default PreserveAttributeStyle.SPECIAL;
+  PreserveAttributeStyle value() default PreserveAttributeStyle.STRUCTURAL;
 }

@@ -167,8 +167,12 @@ public abstract class StringVector extends AbstractAtomicVector implements Itera
 
   @Override
   public final boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || !(o instanceof StringVector)) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || !(o instanceof StringVector)) {
+      return false;
+    }
 
     StringVector that = (StringVector) o;
     if(that.length() != this.length()) {

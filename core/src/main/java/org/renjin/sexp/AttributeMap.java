@@ -249,22 +249,6 @@ public class AttributeMap {
     }
   }
 
-  /**
-   *
-   * @return a new {@code AttributeMap} containing the {@code dim}, {@code names}, and {@code dimnames}
-   * attributes from <em>a</em> and <em>b</em>. If an attribute is defined in both, the value in <em>a</em>
-   * takes precedence.
-   */
-  public static AttributeMap combineStructural(AttributeMap a, AttributeMap b) {
-    Builder builder = new Builder();
-    builder.addIfNotNull(b, Symbols.DIM);
-    builder.addIfNotNull(b, Symbols.NAME);
-    builder.addIfNotNull(b, Symbols.DIMNAMES);
-    builder.addIfNotNull(a, Symbols.DIM);
-    builder.addIfNotNull(a, Symbols.NAME);
-    builder.addIfNotNull(a, Symbols.DIMNAMES);
-    return builder.build();
-  }
 
   /**
    * Combines the attributes from vectors <em>x</em> and <em>y</em> according
@@ -289,8 +273,7 @@ public class AttributeMap {
       return builder.build();
     }
   }
-
-
+  
   /**
    * Combines the <em>dim</em>, <em>names</em>, and <em>dimnames</em> attributes from
    * vectors <em>x</em> and <em>y</em> according
@@ -309,21 +292,36 @@ public class AttributeMap {
     } else if(y.length() > x.length()) {
       return y.getAttributes().copyStructural();
     } else {
-      return combineStructural(x.getAttributes(), y.getAttributes());
+      Builder builder = new Builder();
+      builder.combineStructuralFrom(x.getAttributes());
+      builder.combineStructuralFrom(y.getAttributes());
+      return builder.build();
     }
   }
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     AttributeMap that = (AttributeMap) o;
 
-    if (classes != null ? !classes.equals(that.classes) : that.classes != null) return false;
-    if (names != null ? !names.equals(that.names) : that.names != null) return false;
-    if (dim != null ? !dim.equals(that.dim) : that.dim != null) return false;
-    if (dimNames != null ? !dimNames.equals(that.dimNames) : that.dimNames != null) return false;
+    if (classes != null ? !classes.equals(that.classes) : that.classes != null) {
+      return false;
+    }
+    if (names != null ? !names.equals(that.names) : that.names != null) {
+      return false;
+    }
+    if (dim != null ? !dim.equals(that.dim) : that.dim != null) {
+      return false;
+    }
+    if (dimNames != null ? !dimNames.equals(that.dimNames) : that.dimNames != null) {
+      return false;
+    }
     return !(map != null ? !map.equals(that.map) : that.map != null);
 
   }
@@ -602,13 +600,31 @@ public class AttributeMap {
     /**
      * Combines the attributes from {@code attributes} with this builder, enforcing
      * a few consistency rules.
-     * 
+     *
      * <ul>
      *   <li>{@code names} are only copied if {@code dim} is not present</li>
      *   <li>If this already has a dimension, then combining with a different {@code dim} throws an EvalException</li>
      * </ul>
      */
     public Builder combineFrom(AttributeMap other) {
+      return combineFrom(other, true);
+    }
+
+    /**
+     * Combines the {@code name}, {@code dim} and {@code dimnames} attributes from
+     * {@code attributes} with this builder, enforcing
+     * a few consistency rules.
+     *
+     * <ul>
+     *   <li>{@code names} are only copied if {@code dim} is not present</li>
+     *   <li>If this already has a dimension, then combining with a different {@code dim} throws an EvalException</li>
+     * </ul>
+     */
+    public Builder combineStructuralFrom(AttributeMap other) {
+      return combineFrom(other, false);
+    }
+
+    private Builder combineFrom(AttributeMap other, boolean all) {
       if(other.names != null) {
         if(this.names == null && this.dim == null) {
           this.names = other.names;
@@ -617,6 +633,8 @@ public class AttributeMap {
       if(other.dim != null) {
         if(this.dim == null) {
           this.dim = other.dim;
+          this.names = null;
+          
         } else {
           if(!conforming(this.dim, other.dim)) {
             throw new EvalException("non-conformable arrays");
@@ -628,18 +646,20 @@ public class AttributeMap {
           }
         }
       }
-      if(other.classes != null) {
-        if(this.classes == null) {
-          this.classes = other.classes;
+      if(all) {
+        if (other.classes != null) {
+          if (this.classes == null) {
+            this.classes = other.classes;
+          }
         }
-      }
-      if(other.map != null) {
-        if(this.map == null) {
-          this.map = new IdentityHashMap<>(other.map);
-        } else {
-          for (Map.Entry<Symbol, SEXP> entry : other.map.entrySet()) {
-            if(!this.map.containsKey(entry.getKey())) {
-              this.map.put(entry.getKey(), entry.getValue());
+        if (other.map != null) {
+          if (this.map == null) {
+            this.map = new IdentityHashMap<>(other.map);
+          } else {
+            for (Map.Entry<Symbol, SEXP> entry : other.map.entrySet()) {
+              if (!this.map.containsKey(entry.getKey())) {
+                this.map.put(entry.getKey(), entry.getValue());
+              }
             }
           }
         }
@@ -714,9 +734,6 @@ public class AttributeMap {
       attributes.dimNames = validateDimNames();
 
       if(names != null) {
-        if(dim != null) {
-          throw new IllegalStateException("object cannot have both 'names' and 'dim' attributes");
-        }
         attributes.names = names;
       }
 
@@ -801,10 +818,11 @@ public class AttributeMap {
 
       // Build a clean list with converted/validated names vectors
       ListVector.Builder builder = new ListVector.Builder();
+      builder.setAttribute(Symbols.NAMES, dimNames.getNames());
       for (int i = 0; i < dim.length(); i++) {
         builder.add(validateNames(i, dimNames.getElementAsSEXP(i)));
       }
-
+      
       return builder.build();
     }
     
@@ -812,10 +830,6 @@ public class AttributeMap {
       
       if(names == null) {
         return null;
-      }
-      
-      if(dim != null) {
-        throw new IllegalStateException("object cannot have both 'dim' and 'names' attribute");
       }
       
       if(this.names.length() < vectorLength) {

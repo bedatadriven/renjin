@@ -120,9 +120,9 @@ class CompleteSelection implements SelectionStrategy {
     // Create an empty list, preserving only non-structural attributes
     AttributeMap.Builder builder = new AttributeMap.Builder();
     for (Symbol attribute : list.getAttributes().names()) {
-      if(attribute != Symbols.NAMES &&
-         attribute != Symbols.DIM && 
-         attribute != Symbols.DIMNAMES) {
+      if (attribute != Symbols.NAMES &&
+          attribute != Symbols.DIM && 
+          attribute != Symbols.DIMNAMES) {
         
         builder.set(attribute, list.getAttribute(attribute));
       }

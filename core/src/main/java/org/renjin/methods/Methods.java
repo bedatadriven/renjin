@@ -96,10 +96,10 @@ public class Methods {
 
   public static String R_methodsPackageMetaName(String prefix, String name, String packageName) {
     StringBuilder metaName = new StringBuilder()
-    .append(".__")
-    .append(prefix)
-    .append("__")
-    .append(name);
+        .append(".__")
+        .append(prefix)
+        .append("__")
+        .append(name);
     if(!Strings.isNullOrEmpty(packageName)) {
       metaName.append(":").append(packageName);
     }
@@ -178,9 +178,9 @@ public class Methods {
   @Builtin(".cache_class")
   public static SEXP cacheClass(@Current Context context, String className, SEXP klass) {
     context
-    .getSession()
-    .getSingleton(MethodDispatch.class)
-    .putExtends(className, klass);  
+        .getSession()
+        .getSingleton(MethodDispatch.class)
+        .putExtends(className, klass);
     return klass;
   }
 
@@ -296,14 +296,14 @@ public class Methods {
     if(op == Null.INSTANCE) {
       SEXP value = LogicalVector.valueOf(table.isPrimitiveMethodsAllowed());
       switch(parseCode(code_string)) {
-      case NO_METHODS:
-        table.setPrimitiveMethodsAllowed(false);
-        break;
-      case HAS_METHODS:
-        table.setPrimitiveMethodsAllowed(true);
-        break;
-      default: /* just report the current state */
-        break;
+        case NO_METHODS:
+          table.setPrimitiveMethodsAllowed(false);
+          break;
+        case HAS_METHODS:
+          table.setPrimitiveMethodsAllowed(true);
+          break;
+        default: /* just report the current state */
+          break;
       }
       return value;
     } else {
@@ -430,9 +430,9 @@ public class Methods {
   static SEXP R_do_slot(Context context, SEXP obj, SEXP slotName) {
     Symbol name = checkSlotName(slotName);
 
-    if(name == MethodDispatch.s_dot_Data)
+    if(name == MethodDispatch.s_dot_Data) {
       return data_part(context, obj);
-    else {
+    } else {
       SEXP value = obj.getAttribute(name);
       if(value == Null.INSTANCE) {
         String input = name.getPrintName();
@@ -483,16 +483,18 @@ public class Methods {
     SEXP value;
     SEXP klass = obj.getAttribute(Symbols.CLASS);
     int n = klass.length();
-    if(n == 1 || (n > 0 && !singleString))
+    if(n == 1 || (n > 0 && !singleString)) {
       return (StringVector) (klass);
+    }
     if(n == 0) {
       SEXP dim = obj.getAttribute(Symbols.DIM);
       int nd = dim.length();
       if(nd > 0) {
-        if(nd == 2) 
+        if(nd == 2) {
           return StringVector.valueOf("matrix");
-        else
+        } else {
           return StringVector.valueOf("array");
+        }
       } else {
         if(obj instanceof Function) {
           return StringVector.valueOf("function");

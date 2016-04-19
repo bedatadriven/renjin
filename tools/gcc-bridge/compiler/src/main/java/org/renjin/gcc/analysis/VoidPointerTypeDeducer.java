@@ -2,13 +2,13 @@ package org.renjin.gcc.analysis;
 
 import com.google.common.collect.Sets;
 import org.renjin.gcc.GimpleCompiler;
-import org.renjin.gcc.gimple.GimpleCompilationUnit;
-import org.renjin.gcc.gimple.GimpleFunction;
-import org.renjin.gcc.gimple.GimpleVarDecl;
-import org.renjin.gcc.gimple.GimpleVisitor;
+import org.renjin.gcc.gimple.*;
+import org.renjin.gcc.gimple.expr.GimpleConstant;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleVariableRef;
 import org.renjin.gcc.gimple.statement.GimpleAssignment;
+import org.renjin.gcc.gimple.statement.GimpleConditional;
+import org.renjin.gcc.gimple.statement.GimpleStatement;
 import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.gimple.type.GimpleVoidType;
@@ -63,14 +63,50 @@ public class VoidPointerTypeDeducer implements FunctionBodyTransformer {
       }
       decl.setType(deducedType);
       updateVarRefTypes(fn, decl);
+      updatePointerComparisons(fn, decl);
       return true;
     } else {
       return false;
     }
   }
 
+
   private void updateVarRefTypes(GimpleFunction fn, GimpleVarDecl decl) {
     fn.replaceAll(decl.isReference(), new GimpleVariableRef(decl.getId(), decl.getType()));
+  }
+
+
+  /**
+   * Updates pointer comparisons in the form {@code p == NULL} or {@code p != NULL}. In either
+   * case we can infer the type of NULL from {@code p}
+   */
+  private void updatePointerComparisons(GimpleFunction fn, GimpleVarDecl decl) {
+    
+    GimpleVariableRef ref = decl.newRef();
+    
+    for (GimpleBasicBlock basicBlock : fn.getBasicBlocks()) {
+      for (GimpleStatement statement : basicBlock.getStatements()) {
+        if(statement instanceof GimpleConditional) {
+          GimpleConditional conditional = (GimpleConditional) statement;
+          if (conditional.getOperator() == GimpleOp.NE_EXPR ||
+              conditional.getOperator() == GimpleOp.EQ_EXPR) {
+            
+            if(conditional.getOperand(0).equals(ref) && isNull(conditional.getOperand(1))) {
+              conditional.getOperand(1).setType(decl.getType());
+
+            } else if(conditional.getOperand(1).equals(ref) && isNull(conditional.getOperand(0))) {
+              conditional.getOperand(0).setType(decl.getType());
+            }
+          }
+        }
+      }
+    }
+  }
+
+  private boolean isNull(GimpleExpr operand) {
+    return operand instanceof GimpleConstant &&
+        ((GimpleConstant) operand).isNull();
+    
   }
 
   /**
@@ -91,17 +127,17 @@ public class VoidPointerTypeDeducer implements FunctionBodyTransformer {
 
     @Override
     public void visitAssignment(GimpleAssignment assignment) {
-      
-      switch (assignment.getOperator()) {
-      case VAR_DECL:
-      case NOP_EXPR:
-        GimpleExpr rhs = assignment.getOperands().get(0);
-        if(isReference(rhs)) {
-          inferPossibleTypes(assignment.getLHS());
 
-        } else if(isReference(assignment.getLHS())) {
-          inferPossibleTypes(rhs);
-        }
+      switch (assignment.getOperator()) {
+        case VAR_DECL:
+        case NOP_EXPR:
+          GimpleExpr rhs = assignment.getOperands().get(0);
+          if(isReference(rhs)) {
+            inferPossibleTypes(assignment.getLHS());
+
+          } else if(isReference(assignment.getLHS())) {
+            inferPossibleTypes(rhs);
+          }
       }
     }
 

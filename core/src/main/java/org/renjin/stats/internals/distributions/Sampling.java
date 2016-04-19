@@ -4,10 +4,9 @@ import org.renjin.eval.EvalException;
 import org.renjin.eval.Session;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
-import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.AtomicVector;
 import org.renjin.sexp.IntArrayVector;
 import org.renjin.sexp.IntVector;
-import org.renjin.sexp.SEXP;
 import org.renjin.util.HeapsortTandem;
 
 
@@ -43,7 +42,7 @@ public class Sampling {
   }
 
 
-  public static IntVector sampleWithoutReplacement(Session context, int sampleSpaceSize, int sampleSize) {
+  public static IntVector uniformSampleWithoutReplacement(Session context, int sampleSpaceSize, int sampleSize) {
     int i, j;
     int[] x = new int[sampleSpaceSize];
     IntArrayVector.Builder y = new IntArrayVector.Builder();
@@ -104,50 +103,71 @@ public class Sampling {
   }
 
   @Internal
-  public static IntVector sample(@Current Session context, int x, int sampleSize, boolean replace, SEXP prob) {
+  public static IntVector sample(@Current Session context, 
+                                 int populationSize, 
+                                 int sampleSize, 
+                                 boolean withReplacement, 
+                                 AtomicVector probabilityWeights) {
 
-    double[] probs;
-    boolean probabilitiesGiven = (prob != org.renjin.sexp.Null.INSTANCE);
-    if (probabilitiesGiven) {
-       probs = ((DoubleVector) prob).toDoubleArray();
-    }
-    else probs = new double[x];
-
-    if(probabilitiesGiven && prob.length() != x) {
-      throw new EvalException("The number of probabilities should be the same as the sample "
-          + " size.");
-    }
-
-    for (int i = 0; i < x; i++) {
-      if (prob == org.renjin.sexp.Null.INSTANCE) {
-        probs[i] = 1.0 / probs.length;
+    boolean probabilitiesGiven = (probabilityWeights != org.renjin.sexp.Null.INSTANCE);
+    
+    if(!probabilitiesGiven) {
+      if (withReplacement) {
+        return uniformSampleWithReplacement(context, populationSize, sampleSize);
       } else {
-        probs[i] = ((DoubleVector) prob).get(i);
+        return uniformSampleWithoutReplacement(context, populationSize, sampleSize);
       }
     }
 
     // GNU R allows "prob" to be a generalized list of weights, but they should be rescaled to proper probabilities
-    weightsToProbabilities(probs, x, sampleSize, replace);
+    double probs[] = weightsToProbabilities(probabilityWeights, populationSize, sampleSize, withReplacement);
 
-    if (replace) {
+    if (withReplacement) {
       return (sampleWithReplacement(context, sampleSize, probs));
     } else {
-      IntVector response = (probabilitiesGiven) ?
-          probSampleWithoutReplacement(context, x, sampleSize, probs) :
-          sampleWithoutReplacement(context, x, sampleSize);
-      return response;
+      return probSampleWithoutReplacement(context, populationSize, sampleSize, probs);
     }
+  }
+
+  /**
+   * Samples {@code sampleSize} items from a population of the size {@code populationSize}.
+   * 
+   * @param context
+   * @param populationSize the number of items in the population from which we are sampling
+   * @param sampleSize the number of items to select from the population.
+   * @return a vector containing the one-based indices of the sampled items.
+   */
+  private static IntVector uniformSampleWithReplacement(Session context,
+                                                        int populationSize,
+                                                        int sampleSize) {
+    double dn = populationSize;
+    int[] sample = new int[sampleSize];
+
+    for (int i = 0; i < sample.length; ++i) {
+      sample[i] = (int)Math.floor(dn * context.rng.unif_rand() + 1);
+    }
+    return new IntArrayVector(sample);
   }
 
   /**
    * Rescales a list of weights to probabilities
    */
-  private static void weightsToProbabilities(double[] weights, int n, int sampleSize, boolean replace) {
+  private static double[] weightsToProbabilities(AtomicVector weightVector, 
+                                             int populationSize, 
+                                             int sampleSize, 
+                                             boolean replace) {
+    
+    if(weightVector.length() != populationSize) {
+      throw new EvalException("incorrect number of probabilities");
+    }
+
+    double weights[] = weightVector.toDoubleArray();
+    
     double sum;
     int i, npos;
     npos = 0;
     sum = 0.;
-    for (i = 0; i < n; i++) {
+    for (i = 0; i < populationSize; i++) {
       if (weights[i] < 0)
         throw new EvalException("non-positive probability");
       if (weights[i] > 0) {
@@ -155,9 +175,13 @@ public class Sampling {
         sum += weights[i];
       }
     }
-    if (npos == 0 || (!replace && sampleSize > npos))
+    if (npos == 0 || (!replace && sampleSize > npos)) {
       throw new EvalException("too few positive probabilities");
-    for (i = 0; i < n; i++)
+    }
+    for (i = 0; i < populationSize; i++) {
       weights[i] /= sum;
+    }
+    
+    return weights;
   }
 }

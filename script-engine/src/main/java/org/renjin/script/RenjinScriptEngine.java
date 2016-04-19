@@ -137,7 +137,7 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
       // terminate with '\n'
       CharSource terminated = CharSource.concat(
           newReaderSupplier(reader),
-         CharSource.wrap("\n"));
+          CharSource.wrap("\n"));
       source = RParser.parseSource(terminated, new CHARSEXP(filename) );
     } catch (IOException e) {
       throw new ScriptException(e);
@@ -182,7 +182,7 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
     String fileName = defaultValue;
     Object oFileName = scriptContext.getAttribute(ScriptEngine.FILENAME);
     if (oFileName!=null) {
-        fileName = oFileName.toString();
+      fileName = oFileName.toString();
     }
     return fileName; 
   }
@@ -280,7 +280,7 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
     SEXP warnings = topLevelContext.getBaseEnvironment().getVariable(Warning.LAST_WARNING);
     if(warnings != Symbol.UNBOUND_VALUE) {
       topLevelContext.evaluate( FunctionCall.newCall(Symbol.get("print.warnings"), warnings),
-        topLevelContext.getBaseEnvironment());
+          topLevelContext.getBaseEnvironment());
     }
 
     topLevelContext.getBaseEnvironment().remove(Warning.LAST_WARNING);

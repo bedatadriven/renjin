@@ -65,15 +65,15 @@ public class WriteTable {
         throw new EvalException("Unsupported column type " + column.getTypeName());
       }
     }
-    
+
     for(int i=0;i!=numRows;++i) {
-        for(int j=0;j!=printers.size();++j) {
-          if(j > 0) {
-            writer.print(sep);
-          }
-          printers.get(j).print(i);
+      for(int j=0;j!=printers.size();++j) {
+        if(j > 0) {
+          writer.print(sep);
         }
-        writer.print(eol);
+        printers.get(j).print(i);
+      }
+      writer.print(eol);
     }
   }
   

@@ -123,7 +123,8 @@ public class GnurSourcesCompiler {
       compiler.addMathLibrary();
 
       compiler.addReferenceClass(Class.forName("org.renjin.appl.Appl"));
-
+      compiler.addReferenceClass(Class.forName("org.renjin.math.Blas"));
+      compiler.addReferenceClass(Lapack.class);
       Class distributionsClass = Class.forName("org.renjin.stats.internals.Distributions");
       compiler.addReferenceClass(distributionsClass);
       compiler.addMethod("Rf_dbeta", distributionsClass, "dbeta");
@@ -214,7 +215,7 @@ public class GnurSourcesCompiler {
     
     URL url = Resources.getResource("org/renjin/gnur/include/R.h");
     if(url.getProtocol().equals("file")) {
-        return new File(url.getFile()).getParentFile();
+      return new File(url.getFile()).getParentFile();
     } else if(url.getProtocol().equals("jar")) {
       
       // file = file:/C:/Users/Alex/.m2/repository/org/renjin/renjin-gnur-compiler/0.7.0-SNAPSHOT/renjin-gnur-compiler-0.7.0-SNAPSHOT.jar!/org/renjin/gnur/include/R.h

@@ -207,12 +207,15 @@ public class NumericLiterals {
         }
         if (expn < 0) {
           for (n = -expn, fac = 1.0; n!=0; n >>= 1, p2 *= p2) {
-            if ((n & 1) != 0) fac *= p2;
+            if ((n & 1) != 0) {
+              fac *= p2;
+            }
           }
           ans /= fac;
         } else {
-          for (n = expn, fac = 1.0; n!=0; n >>= 1, p2 *= p2)
-            if ((n & 1)!=0) fac *= p2;
+          for (n = expn, fac = 1.0; n!=0; n >>= 1, p2 *= p2) {
+            if ((n & 1) != 0) fac *= p2;
+          }
           ans *= fac;
         }
       }
@@ -252,7 +255,9 @@ public class NumericLiterals {
   
       /* avoid unnecessary underflow for large negative exponents */
     if (expn + ndigits < -300) {
-      for (n = 0; n < ndigits; n++) ans /= 10.0;
+      for (n = 0; n < ndigits; n++) {
+        ans /= 10.0;
+      }
       expn += ndigits;
     }
     if (expn < -307) { /* use underflow, not overflow */

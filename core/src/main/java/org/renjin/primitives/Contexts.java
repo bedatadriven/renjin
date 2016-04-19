@@ -115,8 +115,9 @@ public class Contexts {
     while (true ) {
       if (cptr.getType() == Type.FUNCTION) {
         j++;
-        if( cptr.getEnvironment() == s )
-          n=j;
+        if( cptr.getEnvironment() == s ) {
+          n = j;
+        }
       }
       if(cptr.isTopLevel()) {
         break;
@@ -141,10 +142,11 @@ public class Contexts {
     }
     while (!cptr.isTopLevel()) {
       if (cptr.getType() == Type.FUNCTION ) {
-        if (n == 0)
+        if (n == 0) {
           return cptr.getClosure();
-        else
+        } else {
           n--;
+        }
       }
       cptr = cptr.getParent();
     }
@@ -197,10 +199,11 @@ public class Contexts {
     /* negative n counts back from the current frame */
     /* positive n counts up from the globalEnv */
   
-    if (n > 0)
+    if (n > 0) {
       n = cptr.getFrameDepth() - n;
-    else
-      n = - n;
+    } else {
+      n = -n;
+    }
     if(n < 0) {
       throw new EvalException("not that many frames on the stack");
     }
@@ -232,8 +235,9 @@ public class Contexts {
     i = nframe = cptr.getFrameDepth();
     /* This is a pretty awful kludge, but the alternative would be
        a major redesign of everything... -pd */
-    while (n-- > 0)
-        i = R_sysparent(nframe - i + 1, cptr);
+    while (n-- > 0) {
+      i = R_sysparent(nframe - i + 1, cptr);
+    }
     return i;
   
   }

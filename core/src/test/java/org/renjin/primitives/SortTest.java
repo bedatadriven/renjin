@@ -37,7 +37,7 @@ public class SortTest extends EvalTestCase {
 
     @Test
     public void sortLogical (){
-        assertThat(eval(".Internal(psort(c(TRUE,FALSE,FALSE,TRUE,FALSE), 1:3))"), equalTo(c(false,false,false,true,true)));
+        assertThat(eval(".Internal(psort(c(TRUE,FALSE,FALSE,TRUE,FALSE), 1:3))"), equalTo(c(false, false, false, true, true)));
     }
 
     @Test
@@ -99,7 +99,7 @@ public class SortTest extends EvalTestCase {
 
     @Test
     public void qsort() {
-      assertThat( eval(".Internal(qsort(c(3,1,5,0), FALSE))"), equalTo(c(0,1,3,5)));
+      assertThat( eval(".Internal(qsort(c(3,1,5,0), FALSE))"), equalTo(c(0, 1, 3, 5)));
     }
 
     @Test
@@ -108,5 +108,15 @@ public class SortTest extends EvalTestCase {
       assertThat( eval(".Internal(is.unsorted(c(3,2,1), FALSE))"), equalTo(c(true)) );
       assertThat( eval(".Internal(is.unsorted(c(1,1,1), TRUE))"), equalTo(c(true)) );
       assertThat( eval(".Internal(is.unsorted(c(1,1,1), FALSE))"), equalTo(c(false)) );
+    }
+    
+    @Test
+    public void whichMaxRetainsNames() {
+        eval("x <- which.max(c(a=1,b=2,c=3))");
+        assertThat(eval("names(x)"), equalTo(c("c")));
+
+        eval("x <- which.min(c(a=1,b=2,c=3))");
+        assertThat(eval("names(x)"), equalTo(c("a")));
+
     }
 }

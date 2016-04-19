@@ -36,8 +36,7 @@ package org.renjin.studio.console;
 /**
 	The interface for name completion.
 */
-public interface NameCompletion
-{
+public interface NameCompletion {
 	/**
 		Return an array containing a string element of the maximum
 		unambiguous namespace completion or, if there is no common prefix,
@@ -50,6 +49,6 @@ public interface NameCompletion
 
 		Note: Alternatively, make a NameCompletionResult object someday...
 	*/
-	public String [] completeName( String part );
+  public String [] completeName( String part );
 
 }

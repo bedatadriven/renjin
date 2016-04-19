@@ -1,19 +1,15 @@
 package org.renjin.gcc.codegen.type.fun;
 
-import com.google.common.collect.Lists;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.ExprFactory;
-import org.renjin.gcc.codegen.expr.ExprGenerator;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleFunctionType;
-import org.renjin.gcc.gimple.type.GimplePointerType;
-
-import java.lang.invoke.MethodHandle;
-import java.util.List;
 
 /**
  * Creates {@code Generators} for values for function values.
@@ -22,7 +18,7 @@ import java.util.List;
  * is statically typed, we don't need the {@code invokedynamic} bytecode and can simply use
  * {@link java.lang.invoke.MethodHandle#invokeExact(Object...)} to invoke function calls.</p>
  */ 
-public class FunTypeStrategy extends TypeStrategy {
+public class FunTypeStrategy implements TypeStrategy<SimpleExpr> {
 
   private GimpleFunctionType type;
 
@@ -31,71 +27,49 @@ public class FunTypeStrategy extends TypeStrategy {
   }
 
   @Override
-  public TypeStrategy pointerTo() {
-    return new Pointer();
+  public ParamStrategy getParamStrategy() {
+    throw newInvalidOperation();
   }
 
-  private class Pointer extends TypeStrategy {
-    @Override
-    public ParamStrategy getParamStrategy() {
-      return new FunPtrParamStrategy(new GimplePointerType(type));
-    }
+  @Override
+  public ReturnStrategy getReturnStrategy() {
+    throw newInvalidOperation();
+  }
 
-    @Override
-    public VarGenerator varGenerator(GimpleVarDecl decl, VarAllocator allocator) {
-      return new FunPtrVarGenerator(type, allocator.reserve(decl.getName(), Type.getType(MethodHandle.class)));
-    }
+  @Override
+  public SimpleExpr variable(GimpleVarDecl decl, VarAllocator allocator) {
+    throw newInvalidOperation();
+  }
 
-    @Override
-    public FieldGenerator fieldGenerator(String className, String fieldName) {
-      return new FunPtrFieldGenerator(className, fieldName, type);
-    }
+  @Override
+  public SimpleExpr constructorExpr(ExprFactory exprFactory, GimpleConstructor value) {
+    throw newInvalidOperation();
+  }
 
-    @Override
-    public ReturnStrategy getReturnStrategy() {
-      return new FunPtrReturnStrategy();
-    }
+  @Override
+  public FieldStrategy fieldGenerator(Type className, String fieldName) {
+    throw newInvalidOperation();
+  }
 
-    @Override
-    public TypeStrategy pointerTo() {
-      return new PointerPointer();
-    }
-
-    @Override
-    public TypeStrategy arrayOf(GimpleArrayType arrayType) {
-      return new PointerArray(arrayType);
-    }
-    
+  @Override
+  public FieldStrategy addressableFieldGenerator(Type className, String fieldName) {
+    throw newInvalidOperation();
   }
   
-  private class PointerPointer extends TypeStrategy {
-
-    @Override
-    public FieldGenerator fieldGenerator(String className, String fieldName) {
-      return new FunPtrPtrField(className, fieldName, type); 
-    }
+  @Override
+  public PointerTypeStrategy pointerTo() {
+    return new FunPtrStrategy();
   }
-  
-  private class PointerArray extends TypeStrategy {
-    private GimpleArrayType arrayType;
 
-    public PointerArray(GimpleArrayType arrayType) {
-      this.arrayType = arrayType;
-    }
-
-    @Override
-    public FieldGenerator fieldGenerator(String className, String fieldName) {
-      return new FunPtrArrayField(className, fieldName, arrayType);
-    }
-
-    @Override
-    public ExprGenerator constructorExpr(ExprFactory exprFactory, GimpleConstructor value) {
-      List<ExprGenerator> elements = Lists.newArrayList();
-      for (GimpleConstructor.Element element : value.getElements()) {
-        elements.add(exprFactory.findGenerator(element.getValue()));
-      }
-      return new FunPtrArrayConstructor(arrayType, elements);
-    }
+  @Override
+  public ArrayTypeStrategy arrayOf(GimpleArrayType arrayType) {
+    throw newInvalidOperation();
   }
-  
+
+  private UnsupportedOperationException newInvalidOperation() {
+    return new UnsupportedOperationException("Invalid operation for function value type. " +
+        "(Should this be a function *pointer* instead?");
+  }
+
+
 }

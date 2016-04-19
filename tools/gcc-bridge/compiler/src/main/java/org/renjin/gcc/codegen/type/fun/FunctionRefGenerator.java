@@ -1,14 +1,17 @@
 package org.renjin.gcc.codegen.type.fun;
 
 import org.objectweb.asm.Handle;
-import org.objectweb.asm.MethodVisitor;
-import org.renjin.gcc.codegen.expr.AbstractExprGenerator;
-import org.renjin.gcc.gimple.type.GimpleType;
+import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
+
+import javax.annotation.Nonnull;
+import java.lang.invoke.MethodHandle;
 
 /**
  * Emits the bytecode necessary to push a method handle onto the stack
  */
-public class FunctionRefGenerator extends AbstractExprGenerator {
+public class FunctionRefGenerator implements SimpleExpr {
 
   private Handle handle;
 
@@ -16,13 +19,14 @@ public class FunctionRefGenerator extends AbstractExprGenerator {
     this.handle = handle;
   }
 
+  @Nonnull
   @Override
-  public GimpleType getGimpleType() {
-    throw new UnsupportedOperationException();
+  public Type getType() {
+    return Type.getType(MethodHandle.class);
   }
 
   @Override
-  public void emitPushMethodHandle(MethodVisitor mv) {
+  public void load(@Nonnull MethodGenerator mv) {
     mv.visitLdcInsn(handle);
   }
 }

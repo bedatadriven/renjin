@@ -84,4 +84,15 @@ public class SamplingTest extends EvalTestCase {
     eval("set.seed(12345)");
     assertThat(eval("as.double(sample(0:4, size = 1, prob = c(0.2356849, 0.2163148, 0.1985367, 0.1822197, 0.1672438)))"), equalTo(c(3L)));
   }
+  
+  @Test
+  public void uniformSampleWithReplacement() {
+    eval("set.seed(8024)");
+    eval("n <- 10e6");
+    eval("m <- 1e6");
+    eval("x <- sample(m, n, replace=TRUE)");
+    
+    // Expected result from R 3.2.0
+    assertThat(eval("x[1:5]"), equalTo(c_i(855610, 258712, 357515, 584505, 949772)));
+  }
 }

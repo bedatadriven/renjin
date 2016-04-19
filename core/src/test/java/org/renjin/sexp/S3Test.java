@@ -74,7 +74,7 @@ public class S3Test extends EvalTestCase {
     env.setVariable("i", ni);
     env.setVariable("x", x);
 
-    PairList updated = S3.updateArguments(actuals, formals, env);
+    PairList updated = S3.updateArguments(actuals, formals, env, new ListVector());
 
     assertThat(updated.length(), equalTo(2));
     assertThat(updated.getElementAsSEXP(0), equalTo(x));
@@ -82,6 +82,19 @@ public class S3Test extends EvalTestCase {
 
 
     System.out.println(updated);
+  }
+  
+  @Test
+  public void nextMethodWithExtraArguments() {
+
+    eval("f.default <- function(x, drop = TRUE) drop ");
+    eval("f.foo <- function(x) NextMethod('f', drop = FALSE)");
+    eval("f <- function(x) UseMethod('f') ");
+    
+    eval("x <- 42");
+    eval("class(x) <- c('foo') ");
+    
+    assertThat(eval("f(x)"), equalTo(c(false)));
   }
 
 }

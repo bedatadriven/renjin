@@ -281,6 +281,42 @@ public class AttributeTest extends EvalTestCase {
     // Result in GNU R does not match deparse(list(x=1,y=1))
     eval("attr(x, 'names') <- list('a', 'b', list(x=1,y=1))");
     assertThat(eval("names(x)"), equalTo(c("a", "b", "list(x = 1, y = 1")));
-
   }
+  
+  @Test
+  public void setEmptyDimNames() {
+    eval("x <- 1:12");
+    eval("dim(x) <- 3:4");
+    eval("dimnames(x) <- list()");
+    
+    assertThat(eval("dimnames(x)"), equalTo(NULL));
+  }
+
+  @Test
+  public void setEmptyDimNamesViaAttr() {
+    eval("x <- 1:12");
+    eval("dim(x) <- 3:4");
+    eval("attr(x, 'dimnames') <- list()");
+
+    assertThat(eval("dimnames(x)"), equalTo(NULL));
+  }
+  
+  @Test
+  public void setOnlyRowNames() {
+    eval("x <- 1:12");
+    eval("dim(x) <- 3:4");
+    eval("dimnames(x) <- list(letters[1:3])");
+
+    assertThat(eval("dimnames(x)"), equalTo(list(c("a", "b", "c"), Null.INSTANCE)));
+  }
+  
+  @Test
+  public void setOnlyRowNamesViaAttr() {
+    eval("x <- 1:12");
+    eval("dim(x) <- 3:4");
+    eval("attr(x, 'dimnames') <- list(letters[1:3])");
+
+    assertThat(eval("dimnames(x)"), equalTo(list(c("a", "b", "c"), Null.INSTANCE)));
+  }
+  
 }

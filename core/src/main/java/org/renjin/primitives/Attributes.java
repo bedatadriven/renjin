@@ -123,12 +123,12 @@ public class Attributes {
   @Generic
   @Builtin("dimnames<-")
   public static SEXP setDimensionNames(@Current Context context, SEXP exp, ListVector dimnames) {
-    Vector dim = (Vector) exp.getAttribute(Symbols.DIM);
-    if(dim.length() != dimnames.length()) {
-      throw new EvalException("length of 'dimnames' [%d] not equal to array extent [%d]",
-          dimnames.length(), dim.length());
-
+    
+    if(dimnames.length() == 0) {
+      return exp.setAttribute(Symbols.DIMNAMES, Null.INSTANCE);
     }
+
+    // Convert the list to character vectors
     ListVector.Builder dn = new ListVector.Builder();
     dn.setAttribute(Symbols.NAMES, dimnames.getNames());
     for(SEXP names : dimnames) {
@@ -137,6 +137,7 @@ public class Attributes {
       }
       dn.add(names);
     }
+    
     return exp.setAttribute(Symbols.DIMNAMES, dn.build());
   }
 

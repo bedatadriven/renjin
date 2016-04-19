@@ -811,12 +811,16 @@ public class AttributeMap {
       if(dimNames == null) {
         return null;
       }
+      
+      if(dimNames.length() == 0) {
+        return null;
+      }
 
       if(dim == null) {
         throw new EvalException("'dimnames' applied to non-array");
       }
 
-      if(dimNames.length() != dim.length()) {
+      if(dimNames.length() > dim.length()) {
         throw new EvalException("length of 'dimnames' [%d] must match that of 'dims' [%d]",
             dimNames.length(), dim.length());
       }
@@ -825,7 +829,11 @@ public class AttributeMap {
       ListVector.Builder builder = new ListVector.Builder();
       builder.setAttribute(Symbols.NAMES, dimNames.getNames());
       for (int i = 0; i < dim.length(); i++) {
-        builder.add(validateNames(i, dimNames.getElementAsSEXP(i)));
+        if(i < dimNames.length()) {
+          builder.add(validateNames(i, dimNames.getElementAsSEXP(i)));
+        } else {
+          builder.add(Null.INSTANCE);
+        }
       }
       
       return builder.build();

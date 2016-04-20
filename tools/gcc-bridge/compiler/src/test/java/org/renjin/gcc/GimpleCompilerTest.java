@@ -1,6 +1,7 @@
 package org.renjin.gcc;
 
 import com.google.common.base.Charsets;
+
 import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.gcc.runtime.*;
@@ -467,6 +468,19 @@ public class GimpleCompilerTest extends AbstractGccTest {
 
     
     assertThat(result, equalTo(12));
+  }
+
+  @Test
+  public void overloadedMethods() throws Exception {
+    Class clazz = compile("methods.cpp");
+
+    Method add = clazz.getMethod("add", int.class, int.class);
+    Integer intSum = (Integer) add.invoke(null, Integer.valueOf(3), Integer.valueOf(5));
+    assertThat(intSum, is(Integer.valueOf(8)));
+
+    add = clazz.getMethod("add", float.class, float.class);
+    Float floatSum = (Float) add.invoke(null, Float.valueOf(3.1f), Float.valueOf(5.1f));
+    assertThat(floatSum, is(Float.valueOf(8.2f)));
   }
 
   @Test

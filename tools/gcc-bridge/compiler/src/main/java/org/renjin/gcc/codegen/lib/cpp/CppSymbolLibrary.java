@@ -17,9 +17,10 @@ public class CppSymbolLibrary implements SymbolLibrary {
   @Override
   public List<SymbolFunction> getFunctions(TypeOracle typeOracle) {
     List<SymbolFunction> functions = new ArrayList<SymbolFunction>();
-    functions.add(new SymbolFunction("operator new", new MallocCallGenerator(typeOracle), true));
-    functions.add(new SymbolFunction("__comp_ctor ", new CtorCallGenerator()));
-    functions.add(new SymbolFunction("__comp_dtor ", new FreeCallGenerator()));
+    functions.add(new SymbolFunction("operator new", new MallocCallGenerator(typeOracle)));
+    functions.add(new SymbolFunction("operator delete", new FreeCallGenerator()));
+    functions.add(new SymbolFunction("__comp_ctor ", new CtorCallGenerator())); // complete constructor
+    functions.add(new SymbolFunction("__comp_dtor ", new DtorCallGenerator())); // complete destructor
     return functions;
   }
 

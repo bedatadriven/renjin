@@ -8828,4 +8828,20 @@ public class MicroTest extends AbstractMicroTest {
   public void micro2831() {
     assertIdentical("{ f <- function(x, v) { x$a <- v ; x } ; x <- list(a=1,b=2,c=3) ; z <- x ; f(x, 10) ; f(x,NULL) }", "structure(list(b = 2, c = 3), .Names = c(\"b\", \"c\"))");
   }
+  @Test
+  public void myTEST0() {
+    assertIdentical("{ x <- list(a = 1, b = list(x = 2, y = 3)); x[[c('b', 'x')]] <- 42; x[[c('b', 'x')]] }", "42");
+  }
+  @Test
+  public void myTEST1() {
+    assertIdentical("{ x <- list(a = 1, b = list(x = 2, y = 3, z = list(q = 9))); x[[c('b', 'z', 'q')]] <- 42; x[[c('b', 'z', 'q')]] }", "42");
+  }
+  @Test
+  public void myTEST2() {
+    assertIdentical("{ x <- list(a = 1, b = list(x = 2, y = 3)); x[['b']][['x']] <- 42; x[['b']][['x']] }", "42");
+  }
+  @Test
+  public void myTEST3() {
+    assertIdentical("{ x <- list(a = 1, s = 67, b = list(x = 2, y = 3), c = list(k = 8, g = 7) ); x[['b']][['x']] <- 42; x[['b']][['x']] }", "42");
+  }
 }

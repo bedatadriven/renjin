@@ -304,6 +304,7 @@ public class FailingMicroTest extends AbstractMicroTest {
     public void micro2710() {
         assertIdentical("{ l <- list(1,list(2,c(3))) ; l[[c(2,2)]] <- NULL ; l }", "list(1, list(2))");
     }
+
     @Test
     public void micro2711() {
         assertIdentical("{ l <- list(1,list(2,c(3))) ; l[[c(2,2)]] <- 4 ; l }", "list(1, list(2, 4))");

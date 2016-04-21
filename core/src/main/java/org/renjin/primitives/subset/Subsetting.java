@@ -29,6 +29,10 @@ import org.renjin.methods.MethodDispatch;
 import org.renjin.primitives.Types;
 import org.renjin.sexp.*;
 
+import java.lang.reflect.Array;
+import java.util.Collections;
+import java.util.Collections.*;
+
 import java.util.Iterator;
 import java.util.List;
 
@@ -343,56 +347,32 @@ public class Subsetting {
       subscripts.add(argumentList.get(i));
     }
 
-
-
-
     if (source instanceof ListVector && isRecursiveIndexingArgument(subscripts) ) {
 
-      SEXP result = source;
+      SEXP indexes = argumentList.get(0);
+      int depth = indexes.length() - 1;
 
-      if (argumentList.get(0).length() == 3) {
-        int itr = source.getIndexByName(argumentList.get(0).getElementAsSEXP(0).asString());
-        SEXP source2 = ((ListVector) source).get(itr);
-
-        int itr2 = source2.getIndexByName( argumentList.get(0).getElementAsSEXP(1).asString() );
-        SEXP source3 = ((ListVector) source2).get(itr2);
-
-        List<SEXP> sub1 = Lists.newArrayListWithCapacity(1);
-        sub1.add( argumentList.get(0).getElementAsSEXP(2) );
-        SelectionStrategy s1 = Selections.parseSingleSelection( source, sub1);
-        ListVector rep2 = s1.replaceSingleListElement( (ListVector) source3, replacement) ;
-
-
-        List<SEXP> sub2 = Lists.newArrayListWithCapacity(1);
-        sub2.add( argumentList.get(0).getElementAsSEXP(1) );
-        SelectionStrategy s2 = Selections.parseSingleSelection( source, sub2);
-        ListVector rep3 = s2.replaceSingleListElement( (ListVector) source2, rep2);
-
-        List<SEXP> sub3 = Lists.newArrayListWithCapacity(1);
-        sub3.add( argumentList.get(0).getElementAsSEXP(0) );
-        SelectionStrategy s3 = Selections.parseSingleSelection( source, sub3);
-        result = s3.replaceSingleListElement( (ListVector) source, rep3);
+      SelectionStrategy[] sub = new SelectionStrategy[ indexes.length() ];
+      for (int i = 0; i <= depth; i++){
+        sub[i] =  Selections.parseSingleSelection( source, Collections.singletonList(indexes.getElementAsSEXP(i))) ;
       }
 
-      if (argumentList.get(0).length() == 2) {
-        int itr = source.getIndexByName(argumentList.get(0).getElementAsSEXP(0).asString());
-        SEXP source2 = ((ListVector) source).get(itr);
-
-        List<SEXP> sub2 = Lists.newArrayListWithCapacity(1);
-        sub2.add( argumentList.get(0).getElementAsSEXP(1) );
-        SelectionStrategy s2 = Selections.parseSingleSelection( source, sub2);
-        ListVector rep3 = s2.replaceSingleListElement( (ListVector) source2, replacement);
-
-        List<SEXP> sub3 = Lists.newArrayListWithCapacity(1);
-        sub3.add( argumentList.get(0).getElementAsSEXP(0) );
-        SelectionStrategy s3 = Selections.parseSingleSelection( source, sub3);
-        result = s3.replaceSingleListElement( (ListVector) source, rep3);
-
+      ListVector[] sources = new ListVector[ indexes.length() ];
+      for (int i = 0; i <= depth; i++){
+        if (i == 0) {
+          sources[i] =  (ListVector) source;
+        } else {
+          sources[i] = (ListVector) sub[i-1].getSingleListElement( sources[i-1], false) ;
+        }
       }
 
-      return result;
+      for (int i = 0; i <= depth; i++){
+        int j = depth - i;
+        replacement = sub[j].replaceSingleListElement( sources[j], replacement);
+      }
+
+      return replacement;
     }
-
 
     SelectionStrategy selection = Selections.parseSingleSelection(source, subscripts);
 

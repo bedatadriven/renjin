@@ -85,7 +85,7 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<SimpleExpr> {
 
   @Override
   public ReturnStrategy getReturnStrategy() {
-    throw new UnsupportedOperationException("TODO");
+    return new SimpleReturnStrategy(jvmType);
   }
 
   @Override

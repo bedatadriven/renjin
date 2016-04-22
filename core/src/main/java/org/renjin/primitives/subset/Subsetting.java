@@ -333,7 +333,7 @@ public class Subsetting {
 
   @Generic
   @Builtin("[[<-")
-  public static SEXP setSingleElement(SEXP source, @ArgumentList ListVector argumentList) {
+  public static SEXP setSingleElement(@Current Context context, SEXP source, @ArgumentList ListVector argumentList) {
 
     // Handle environment case as exceptional first
     if(source instanceof Environment) {
@@ -348,30 +348,7 @@ public class Subsetting {
     }
 
     if (source instanceof ListVector && isRecursiveIndexingArgument(subscripts) ) {
-
-      SEXP indexes = argumentList.get(0);
-      int depth = indexes.length() - 1;
-
-      SelectionStrategy[] sub = new SelectionStrategy[ indexes.length() ];
-      for (int i = 0; i <= depth; i++){
-        sub[i] =  Selections.parseSingleSelection( source, Collections.singletonList(indexes.getElementAsSEXP(i))) ;
-      }
-
-      ListVector[] sources = new ListVector[ indexes.length() ];
-      for (int i = 0; i <= depth; i++){
-        if (i == 0) {
-          sources[i] =  (ListVector) source;
-        } else {
-          sources[i] = (ListVector) sub[i-1].getSingleListElement( sources[i-1], false) ;
-        }
-      }
-
-      for (int i = 0; i <= depth; i++){
-        int j = depth - i;
-        replacement = sub[j].replaceSingleListElement( sources[j], replacement);
-      }
-
-      return replacement;
+      return replaceSingleListElementRecursively(context, source, argumentList, replacement);
     }
 
     SelectionStrategy selection = Selections.parseSingleSelection(source, subscripts);
@@ -400,6 +377,43 @@ public class Subsetting {
     } else {
       throw new EvalException("object of type '%s' is not subsettable");
     }
+  }
+
+  private static SEXP replaceSingleListElementRecursively(Context context, SEXP source, ListVector argumentList, SEXP replacement) {
+
+    SEXP indexes = argumentList.get(0);
+    int lastIndex = indexes.length() - 1;
+    int leafIndex = lastIndex - 1;
+
+    SelectionStrategy[] subscriptsArray = new SelectionStrategy[ indexes.length() ];
+    for (int i = 0; i <= lastIndex; i++){
+      subscriptsArray[i] =  Selections.parseSingleSelection( source, Collections.singletonList(indexes.getElementAsSEXP(i))) ;
+    }
+
+    SEXP[] sources = new SEXP[ indexes.length() ];
+    sources[0] =  source;
+    for (int i = 1; i <= leafIndex; i++){
+        sources[i] = subscriptsArray[i-1].getSingleListElement( (ListVector) sources[i-1], false);
+    }
+
+    if (sources[leafIndex] instanceof AtomicVector){
+      sources[lastIndex] = subscriptsArray[leafIndex].getSingleAtomicVectorElement( (AtomicVector) sources[leafIndex], false);
+    } else {
+      sources[lastIndex] = subscriptsArray[leafIndex].getSingleListElement( (ListVector) sources[leafIndex], false);
+    }
+
+
+    if (sources[lastIndex] instanceof AtomicVector) {
+      replacement = subscriptsArray[lastIndex].replaceAtomicVectorElements(context, (AtomicVector) sources[lastIndex], (Vector) replacement);
+    } else {
+      replacement = subscriptsArray[lastIndex].replaceSingleListElement((ListVector) sources[lastIndex], replacement);
+    }
+
+    for (int i = leafIndex ; i >= 0; i--) {
+        replacement = subscriptsArray[i].replaceSingleListElement((ListVector) sources[i], replacement);
+    }
+
+    return replacement;
   }
 
 

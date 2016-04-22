@@ -196,7 +196,7 @@ public class FailingMicroTest extends AbstractMicroTest {
     public void micro2333() {
         assertIdentical("{ x <- list(1,2) ; x[-1] <- NULL ; x }", "list(1)");
     }
-        @Test
+    @Test
     public void micro2340() {
         assertIdentical("{ f <- function(b,i,v) { b[i] <- v ; b } ; f(1:2,\"hi\",3L) ; f(1:2,2,10) ; f(1:2,as.integer(NA), 10) }", "c(1, 2)");
     }
@@ -299,6 +299,14 @@ public class FailingMicroTest extends AbstractMicroTest {
     @Test
     public void micro2722() {
         assertIdentical("{ l<-list(a=1,b=2,c=list(d=1,e=2,f=c(x=1,y=2,z=3))) ; l[[c(\"c\",\"f\",\"zz\")]] <- list(100) ; l }", "structure(list(a = 1, b = 2, c = structure(list(d = 1, e = 2,     f = structure(list(x = 1, y = 2, z = 3, zz = list(100)), .Names = c(\"x\",     \"y\", \"z\", \"zz\"))), .Names = c(\"d\", \"e\", \"f\"))), .Names = c(\"a\", \"b\", \"c\"))");
+    }
+    @Test
+    public void microINDEX() {
+        assertIdentical("{ x <- list(a=list(1:3)); x[[c(1,2,3)]] <- 4 }", "EvalException");
+    }
+    @Test
+    public void microINDEX2() {
+        assertIdentical("{ x <- list(1:3); x[[c(1,2,3)]] <- 4 }", "EvalException");
     }
 
 }

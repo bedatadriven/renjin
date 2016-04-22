@@ -33,21 +33,14 @@ import static org.junit.Assert.assertThat;
 
 
 public class SystemTest extends EvalTestCase {
-
-  @Test
-  public void glob() {
-//    java.lang.System.out.println(System.glob(topLevelContext, c("res:r"), false));
-//    java.lang.System.out.println( System.glob( topLevelContext, c("c:\\*") , true) );
-//    java.lang.System.out.println( System.glob( topLevelContext, c("c:\\.*") , true) );
-  }
-
+  
   @Ignore("platform dependent")
   @Test
   public void listFiles() {
     eval(" list.files <- function (path = '.'," +
         "pattern = NULL, all.files = FALSE, full.names = FALSE, " +
         "recursive = FALSE, ignore.case = FALSE) " +
-          ".Internal(list.files(path, pattern, all.files, full.names, recursive, ignore.case))");
+        ".Internal(list.files(path, pattern, all.files, full.names, recursive, ignore.case))");
 
     assertThat( eval("list.files('classpath:/afolder')"), equalTo( c("file1.ext", "second.file")));
     assertThat( eval("list.files('classpath:/afolder', all.files=TRUE)"), equalTo( c(".", "..", ".secret", "file1.ext", "second.file")));
@@ -77,33 +70,33 @@ public class SystemTest extends EvalTestCase {
     assertThat( eval(" .Internal(basename(c('c:\\\\anyfolder\\\\file.txt', '/bin/bash', 'myfile'))) "),
         equalTo( c("file.txt", "bash", "myfile") ));
   }
-  
-   @Test
-   public void date(){
-    //assertThat( eval(" .Internal(date()) "), equalTo( c("Fri Sep 19 12:20:00 2011") ));
-   }
-   
-   @Test
-   public void SysSleep() {
-     assumingBasePackagesLoad();
-     
-     long start = java.lang.System.currentTimeMillis();
-     eval("Sys.sleep(1)");
-     long stop = java.lang.System.currentTimeMillis();
 
-     // We aren't guaranteed to be woken up after 1000 milliseconds,
-     // so the most we can probably do is verify that *some* sleeping occurred
-     assertThat((double)(stop-start), greaterThan(900d));
-   }
-   
-   @Test
-   public void parseCommandLineArgs() {
-     List<String> parsed = System.parseArgs("cp -Lr --preserve=timestamps 'datasets' '/tmp/Rbuild'");
-     assertThat(parsed.get(0), equalTo("cp"));
-     assertThat(parsed.get(1), equalTo("-Lr"));
-     assertThat(parsed.get(2), equalTo("--preserve=timestamps"));
-     assertThat(parsed.get(3), equalTo("datasets"));
-     assertThat(parsed.get(4), equalTo("/tmp/Rbuild"));
-     
-   }
+  @Test
+  @Ignore
+  public void date(){
+    assertThat( eval(" .Internal(date()) "), equalTo( c("Fri Sep 19 12:20:00 2011") ));
+  }
+
+  @Test
+  public void SysSleep() {
+    assumingBasePackagesLoad();
+
+    long start = java.lang.System.currentTimeMillis();
+    eval("Sys.sleep(1)");
+    long stop = java.lang.System.currentTimeMillis();
+
+    // We aren't guaranteed to be woken up after 1000 milliseconds,
+    // so the most we can probably do is verify that *some* sleeping occurred
+    assertThat((double)(stop-start), greaterThan(900d));
+  }
+
+  @Test
+  public void parseCommandLineArgs() {
+    List<String> parsed = System.parseArgs("cp -Lr --preserve=timestamps 'datasets' '/tmp/Rbuild'");
+    assertThat(parsed.get(0), equalTo("cp"));
+    assertThat(parsed.get(1), equalTo("-Lr"));
+    assertThat(parsed.get(2), equalTo("--preserve=timestamps"));
+    assertThat(parsed.get(3), equalTo("datasets"));
+    assertThat(parsed.get(4), equalTo("/tmp/Rbuild"));
+  }
 }

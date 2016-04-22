@@ -1,7 +1,6 @@
 package org.renjin.gcc;
 
 import com.google.common.base.Charsets;
-
 import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.gcc.runtime.*;
@@ -499,7 +498,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
   
   @Test
   public void voidInference() throws Exception {
-      compile("lamix.f");
+    compile("lamix.f");
   }
   
   @Test

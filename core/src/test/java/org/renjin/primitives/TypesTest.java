@@ -127,7 +127,7 @@ public strictfp class TypesTest extends EvalTestCase {
   
   @Test
   public void asLogicalFromList() {
-      assertThat( eval("as.logical(list(1, 99.4, 0, 0L, FALSE, 'TRUE', 'FOO', 'T', 'F', 'FALSE')) "),
+    assertThat( eval("as.logical(list(1, 99.4, 0, 0L, FALSE, 'TRUE', 'FOO', 'T', 'F', 'FALSE')) "),
         equalTo( c(TRUE, TRUE, FALSE, FALSE, FALSE, TRUE, Logical.NA, TRUE, FALSE, FALSE) ));
   }
 

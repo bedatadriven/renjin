@@ -101,6 +101,7 @@
               <consoleOutput>true</consoleOutput>
               <failsOnError>true</failsOnError>
               <includeResources>false</includeResources>
+              <includeTestSourceDirectory>true</includeTestSourceDirectory>
               <checkstyleRules>
                 <module name="Checker">
                   <!--<module name="UnusedImports"/>-->

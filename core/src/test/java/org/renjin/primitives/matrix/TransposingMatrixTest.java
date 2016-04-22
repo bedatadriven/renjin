@@ -13,7 +13,7 @@ import static org.junit.Assert.assertThat;
 
 public class TransposingMatrixTest {
 
-@Test
+  @Test
   public void transposed() {
     DoubleVector x = new DoubleSequence(1,1,12);
     x = (DoubleVector)x.setAttribute(Symbols.DIM, new IntArrayVector(4,3));

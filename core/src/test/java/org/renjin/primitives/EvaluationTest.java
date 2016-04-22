@@ -613,8 +613,8 @@ public class EvaluationTest extends EvalTestCase {
   
   @Test
   public void nextMethodWithMissing() {
-    eval("NextMethod <- function (generic = NULL, object = NULL, ...) " +
-    		".Internal(NextMethod(generic, object, ...))");
+    eval("NextMethod <- function (generic = NULL, object = NULL, ...) " + 
+        ".Internal(NextMethod(generic, object, ...))");
     eval("`[.foo` <- function(x, ..., drop = explode()) NextMethod() ");
     eval("x<-1");
     eval("class(x) <- 'foo'");
@@ -674,8 +674,8 @@ public class EvaluationTest extends EvalTestCase {
   
   @Test
   public void subsetWithinUseMethod() {
-    eval("f.foo <- function(x, filter) { e <- substitute(filter); l <- list(a=42,b=3); " +
-    		".Internal(eval(e, l, NULL)); }");
+    eval("f.foo <- function(x, filter) { e <- substitute(filter); l <- list(a=42,b=3); " + 
+        ".Internal(eval(e, l, NULL)); }");
     eval("f <- function(x, filter) UseMethod('f') ");
     eval("x <- 1");
     eval("class(x) <- 'foo'");
@@ -702,8 +702,8 @@ public class EvaluationTest extends EvalTestCase {
   @Test
   public void correctEnclosingEnvironment() {
     eval("new.env <- function (hash = TRUE, parent = parent.frame(), size = 29L) .Internal(new.env(hash, parent, size))");
-    eval(" eval <- function(expr, envir = parent.frame()," +
-    		" enclos = if(is.list(envir) || is.pairlist(envir)) parent.frame() else baseenv()) .Internal(eval(expr, envir, enclos))");
+    eval("eval <- function(expr, envir = parent.frame()," +
+        " enclos = if(is.list(envir) || is.pairlist(envir)) parent.frame() else baseenv()) .Internal(eval(expr, envir, enclos))");
     eval( "parent.frame <- function(n = 1) .Internal(parent.frame(n)) ");
     eval("eval.parent <- function(expr, n = 1){  p <- parent.frame(n + 1); eval(expr , p) } ");
     eval("local <- function (expr, envir = new.env()) eval.parent(substitute(eval(quote(expr), envir)))");

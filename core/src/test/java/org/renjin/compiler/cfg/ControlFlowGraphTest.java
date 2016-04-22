@@ -1,22 +1,16 @@
 package org.renjin.compiler.cfg;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import com.google.common.base.Charsets;
+import com.google.common.io.Resources;
+import org.junit.Test;
+import org.renjin.compiler.CompilerTestCase;
+import org.renjin.compiler.ir.tac.IRBody;
 
 import java.io.IOException;
 import java.util.List;
 
-import org.junit.Test;
-import org.renjin.compiler.CompilerTestCase;
-import org.renjin.compiler.cfg.BasicBlock;
-import org.renjin.compiler.cfg.ControlFlowGraph;
-import org.renjin.compiler.ir.tac.IRBody;
-import org.renjin.compiler.ir.tac.IRBodyBuilder;
-import org.renjin.parser.RParser;
-import org.renjin.sexp.ExpressionVector;
-
-import com.google.common.base.Charsets;
-import com.google.common.io.Resources;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 
 public class ControlFlowGraphTest extends CompilerTestCase {
@@ -109,10 +103,10 @@ public class ControlFlowGraphTest extends CompilerTestCase {
 
   @Test
   public void dataframe() throws IOException {
-   IRBody body = buildScope(Resources.toString(
-       getClass().getResource("dataframe.test.R"), Charsets.UTF_8));
+    IRBody body = buildScope(Resources.toString(
+        getClass().getResource("dataframe.test.R"), Charsets.UTF_8));
  
-   ControlFlowGraph cfg = new ControlFlowGraph(body);
+    ControlFlowGraph cfg = new ControlFlowGraph(body);
   }
   
 }

@@ -21,12 +21,12 @@
 
 package org.renjin.primitives.match;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertThat;
-
 import org.hamcrest.CoreMatchers;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
+
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 
 public class UniqueTest extends EvalTestCase {
@@ -42,9 +42,9 @@ public class UniqueTest extends EvalTestCase {
   }
 
   @Test
-   public void uniqueInt() {
-     assertThat( eval(" .Internal(unique(1L, FALSE, FALSE)) "), CoreMatchers.equalTo(c_i(1)));
-   }
+  public void uniqueInt() {
+    assertThat( eval(" .Internal(unique(1L, FALSE, FALSE)) "), CoreMatchers.equalTo(c_i(1)));
+  }
   
   @Test
   public void falseIncomparablesIsTreatedAsNull() {

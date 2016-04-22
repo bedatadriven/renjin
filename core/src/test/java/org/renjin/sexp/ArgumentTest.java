@@ -24,10 +24,6 @@ package org.renjin.sexp;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.eval.EvalException;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.SEXP;
-
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -63,7 +59,7 @@ public class ArgumentTest extends EvalTestCase {
     // Notice that if f <- function(fumble, fooey) fbody, then f(f = 1, fo = 2) is illegal,
     // even though the 2nd actual argument only matches fooey. f(f = 1, fooey = 2) is legal
     //  though since the second argument matches exactly and is removed from consideration for
-     // partial matching.
+    // partial matching.
 
     eval( "f <- function(fumble, fooey) { fumble ^ fooey } ");
     assertThat( eval( "f(f = 3, fooey = 4)"), equalTo( c(81)  ) );
@@ -86,7 +82,7 @@ public class ArgumentTest extends EvalTestCase {
     eval( "f <- function(...) { list(...) }");
     assertThat( eval( "f(1,2,3) "), equalTo( list(1d,2d,3d) ));
   }
-  
+
   @Test
   public void taggedVarArgs() {
     eval( "f <- function(...) { list(...) }");
@@ -116,7 +112,7 @@ public class ArgumentTest extends EvalTestCase {
     assertThat( eval(" f(1,2,3) "), equalTo(list(1d,2d,3d)));
   }
 
-@Test
+  @Test
   public void ellipsesPassedToClosureWithTags() {
     eval( "g<- function(...) { list(...) } ");
     eval( "f<- function(...) { g(...) }");
@@ -195,11 +191,8 @@ public class ArgumentTest extends EvalTestCase {
 
   @Test
   public void dotDotDot() {
-      eval(" f <- function(...) { c(...) } ");
-    
-      assertThat( eval( "f(1,2,3)"), equalTo( c(1,2,3 )));
+    eval(" f <- function(...) { c(...) } ");
+
+    assertThat( eval( "f(1,2,3)"), equalTo( c(1,2,3 )));
   }
-
-
-
 }

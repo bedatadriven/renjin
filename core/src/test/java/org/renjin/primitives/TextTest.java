@@ -38,53 +38,53 @@ public class TextTest extends EvalTestCase {
 
   @Test
   public void simplePaste() {
-      assertThat( eval( ".Internal(paste(list(1, 'a', 'b'), '-', NULL)) "), equalTo(  c("1-a-b") )) ;
+    assertThat( eval( ".Internal(paste(list(1, 'a', 'b'), '-', NULL)) "), equalTo(  c("1-a-b") )) ;
   }
 
   @Test
   public void pasteWithEmptyVector() {
-      assertThat( eval( ".Internal(paste(list('a', c()), '-', NULL)) "), equalTo(  c("a-") )) ;
+    assertThat( eval( ".Internal(paste(list('a', c()), '-', NULL)) "), equalTo(  c("a-") )) ;
   }
-  
-  @Test 
+
+  @Test
   public void pasteWithNas() {
     assertThat( eval(".Internal(paste(list('a', NA_character_), ' ', NULL))"), equalTo( c("a NA")));
   }
 
   @Test
   public void pasteVectors() {
-      assertThat( eval( ".Internal(paste(list(c('x', 'y'), 'a', 'b'), '-', NULL)) "),
-          equalTo(  c("x-a-b", "y-a-b") )) ;
+    assertThat( eval( ".Internal(paste(list(c('x', 'y'), 'a', 'b'), '-', NULL)) "),
+        equalTo(  c("x-a-b", "y-a-b") )) ;
   }
 
   @Test
   public void pasteCollapse() {
-      assertThat( eval( ".Internal(paste(list(c('x', 'y'), 'a', 'b'), '-', '+')) "),
-          equalTo(  c("x-a-b+y-a-b") )) ;
+    assertThat( eval( ".Internal(paste(list(c('x', 'y'), 'a', 'b'), '-', '+')) "),
+        equalTo(  c("x-a-b+y-a-b") )) ;
   }
 
   @Test
   public void gettext() {
-     assertThat( eval( ".Internal(gettext('hungarian', 'hello world'))"), equalTo( c("hello world")));
-     assertThat( eval( ".Internal(gettext(NULL, 'hello world'))"), equalTo( c("hello world")));
+    assertThat( eval( ".Internal(gettext('hungarian', 'hello world'))"), equalTo( c("hello world")));
+    assertThat( eval( ".Internal(gettext(NULL, 'hello world'))"), equalTo( c("hello world")));
   }
 
   @Test
   public void ngettext() {
-      assertThat( eval( ".Internal(ngettext(1, 'baby', 'babies', 'hungarian'))"), equalTo( c("baby")));
-      assertThat( eval( ".Internal(ngettext(2, 'baby', 'babies', NULL))"), equalTo( c("babies")));
+    assertThat( eval( ".Internal(ngettext(1, 'baby', 'babies', 'hungarian'))"), equalTo( c("baby")));
+    assertThat( eval( ".Internal(ngettext(2, 'baby', 'babies', NULL))"), equalTo( c("babies")));
   }
 
   @Test
   public void sub() {
     assertThat( eval(".Internal(sub('[[:blank:]]*([[:alnum:]]+)', '\\\\1', " +
-        "c('datasets', 'utils', 'grDevices', 'graphics', 'stats', 'methods'), FALSE, TRUE, FALSE, FALSE))"),
+            "c('datasets', 'utils', 'grDevices', 'graphics', 'stats', 'methods'), FALSE, TRUE, FALSE, FALSE))"),
         equalTo( c("datasets", "utils", "grDevices", "graphics", "stats", "methods")) );
   }
-  
+
   @Test
   public void posixCharacterClass() {
-   
+
   }
 
   @Test
@@ -100,15 +100,15 @@ public class TextTest extends EvalTestCase {
     assertThat( eval("sprintf('% f', pi)"), equalTo( c(" 3.141593")));
     assertThat( eval("sprintf('%e', pi)"), equalTo( c("3.141593e+00")));
     assertThat( eval("sprintf('%E', pi)"), equalTo( c("3.141593E+00")));
-   // assertThat( eval("sprintf('%g', pi)"), equalTo( c("3.14159")));
+    // assertThat( eval("sprintf('%g', pi)"), equalTo( c("3.14159")));
 
-     // Argument Recyling
+    // Argument Recyling
     assertThat( eval("sprintf(c('a%d', 'b%d'), c(1,2,3,4))"), equalTo( c("a1", "b2", "a3", "b4")));
 
     // empty list
     assertThat( eval("sprintf('%s', c())"), equalTo( (SEXP)new StringArrayVector()));
   }
-  
+
   @Test
   public void sprintfWithAsCharacter() {
     eval("as.character.foo <- function(x) 'FOO!' ");
@@ -116,7 +116,7 @@ public class TextTest extends EvalTestCase {
 
     eval("x <- list(1,2,3) ");
     eval("class(x) <- 'foo' ");
-    
+
     assertThat( eval("sprintf('i say %s', x)"), equalTo(c("i say FOO!")));
   }
 
@@ -124,7 +124,7 @@ public class TextTest extends EvalTestCase {
   public void translateChars() {
     assertThat(eval(".Internal(chartr('abc', 'xyz', 'abcdefabc'))"), equalTo(c("xyzdefxyz")));
     assertThat(eval(".Internal(chartr('abc', 'xyz', c('abc', 'cba', 'ccc')))"),
-            equalTo(c("xyz", "zyx", "zzz")));
+        equalTo(c("xyz", "zyx", "zzz")));
 
     assertThat(eval(".Internal(tolower('ABCdeFG 123'))"), equalTo(c("abcdefg 123")));
     assertThat( eval(".Internal(toupper('ABCdeFG 123'))"), equalTo( c("ABCDEFG 123")));
@@ -154,17 +154,17 @@ public class TextTest extends EvalTestCase {
     assertThat( eval("nchar(c('xyz', NA, 'a', '', 'abcde'))"), equalTo( c_i(3, 2, 1, 0, 5) ));
     assertThat( eval("nchar(NULL)"), equalTo( c_i() ));
   }
-  
+
   @Test
   public void ncharWithNas() {
-	  assertThat( eval(".Internal(nchar(c(NA,-5),'chars', FALSE))"), equalTo( c_i(2,2) ));
+    assertThat( eval(".Internal(nchar(c(NA,-5),'chars', FALSE))"), equalTo( c_i(2,2) ));
   }
 
   @Test
   public void split() {
     eval("strsplit <- function (x, split, extended = TRUE, fixed = FALSE, perl = FALSE, useBytes = FALSE) " +
-            ".Internal(strsplit(x, as.character(split),  as.logical(fixed), " +
-                      "as.logical(perl), as.logical(useBytes)))");
+        ".Internal(strsplit(x, as.character(split),  as.logical(fixed), " +
+        "as.logical(perl), as.logical(useBytes)))");
 
     assertThat( eval("strsplit('a,b', ',')"), equalTo( list( c("a","b") )));
     assertThat( eval("strsplit('the   slow lazy  dog etc', '\\\\s+')"),
@@ -176,7 +176,7 @@ public class TextTest extends EvalTestCase {
 
     assertThat( eval("strsplit('|ab|cf|q||','|',fixed=TRUE)"), equalTo( list(c("", "ab", "cf", "q", ""))));
   }
-  
+
   @Test
   public void splitByEmptyFixedPattern() {
     assertThat(eval("strsplit('hello', '', fixed=TRUE)"), equalTo(list(c("h", "e", "l", "l", "o"))));
@@ -186,8 +186,8 @@ public class TextTest extends EvalTestCase {
   @Test
   public void emptyFixedRe() {
     eval("strsplit <- function (x, split, extended = TRUE, fixed = FALSE, perl = FALSE, useBytes = FALSE) " +
-      ".Internal(strsplit(x, as.character(split),  as.logical(fixed), " +
-      "as.logical(perl), as.logical(useBytes)))");
+        ".Internal(strsplit(x, as.character(split),  as.logical(fixed), " +
+        "as.logical(perl), as.logical(useBytes)))");
 
     eval("strsplit( c('helloh',  'hi'), c('h',''), fixed=TRUE)");
   }
@@ -214,17 +214,17 @@ public class TextTest extends EvalTestCase {
   public void makeUnique() {
     assertThat( eval(".Internal(make.unique(c('a', 'b', 'a'), '.'))"), equalTo(c("a", "b", "a.1")));
   }
-  
+
   @Test
   public void strtrim(){
     assertThat( eval(".Internal(strtrim(c('abcdef', 'abcdef', 'abcdef'), c(1,5,10)))"), equalTo(c("a", "abcde", "abcdef")));
     assertThat( eval(".Internal(strtrim(\"abcdef\", 3))"), equalTo(c("abc")));
   }
-  
+
   @Test
   public void format() throws IOException {
     assumingBasePackagesLoad();
-    
+
     assertThat( eval("format(c(1,10,1000))"), equalTo(c("   1", "  10", "1000")));
     assertThat( eval("format(c(1,10,1000),trim=T)"), equalTo(c("1", "10", "1000")));
 
@@ -233,22 +233,22 @@ public class TextTest extends EvalTestCase {
   @Test
   public void formatWithNAs() throws IOException {
     assumingBasePackagesLoad();
-    
-    assertThat(eval("format(c('Hello', NA, 'world', NA))"), equalTo(c( "Hello", "NA   ", "world", "NA   ")));    
+
+    assertThat(eval("format(c('Hello', NA, 'world', NA))"), equalTo(c( "Hello", "NA   ", "world", "NA   ")));
     assertThat(eval("format(c('Hello', NA, 'world', NA), na.encode=FALSE)"), equalTo(c( "Hello", null, "world", null)));
   }
-  
+
   @Test
   public void intToUtf8() {
-    
+
     byte[] encoded = new String("€").getBytes(Charsets.UTF_8);
     assertThat(encoded.length, equalTo(3));
     java.lang.System.out.println(Integer.toHexString(encoded[0]) + " " + Integer.toHexString(encoded[1]) + " " + Integer.toHexString(encoded[2]));
-    
+
     assertThat(eval(".Internal(utf8ToInt('hello'))"), equalTo(c_i(104,101,108, 108, 111)));
     assertThat(eval(".Internal(utf8ToInt(NA_character_))"), equalTo(c_i(IntVector.NA)));
 
-    
+
     // check special handling of 0s
     assertThat(eval(".Internal(intToUtf8(c(104L,0,101L), FALSE))"), equalTo(c("he")));
     assertThat(eval(".Internal(intToUtf8(c(104L,0,101L), TRUE))"), equalTo(c("h", "", "e")));
@@ -256,9 +256,9 @@ public class TextTest extends EvalTestCase {
     // check special handling of NAs
     assertThat(eval(".Internal(intToUtf8(c(104L,NA), FALSE))"), equalTo(c(StringVector.NA)));
     assertThat(eval(".Internal(intToUtf8(c(104L,NA), TRUE))"), equalTo(c("h", StringVector.NA)));
-    
+
   }
-  
+
   @Test
   public void setSubstring(){
     assumingBasePackagesLoad();
@@ -274,7 +274,7 @@ public class TextTest extends EvalTestCase {
     eval("substr(x,1,2) <- \"xx\"");
     assertThat(eval("x"), equalTo(c("xxaa")));
   }
-  
+
   @Test
   public void setSubstringAtEnd(){
     assumingBasePackagesLoad();
@@ -282,7 +282,7 @@ public class TextTest extends EvalTestCase {
     eval("substr(x,3,4) <- \"xx\"");
     assertThat(eval("x"), equalTo(c("aaxx")));
   }
-  
+
   @Test
   public void setSubstringNumbersDontMatchUp(){
     assumingBasePackagesLoad();
@@ -291,16 +291,16 @@ public class TextTest extends EvalTestCase {
     assertThat(eval("x"), equalTo(c("xxaa")));
   }
 
-  @Test 
+  @Test
   public void iconv() {
     eval(".Internal(iconv(c('A','B'),'UTF-8','ASCII', as.character(NA), FALSE, FALSE))");
   }
-  
+
   @Test
   public void strtoi() {
     assertThat(eval(".Internal(strtoi(c('0666','0xFF', '42'), 0L))"), equalTo(c_i(438, 255, 42)));
     assertThat(eval(".Internal(strtoi('0666', 10L))"), equalTo(c_i(666)));
-    assertThat(eval(".Internal(strtoi('0xFF', 16L))"), equalTo(c_i(255)));    
+    assertThat(eval(".Internal(strtoi('0xFF', 16L))"), equalTo(c_i(255)));
   }
 
   @Test
@@ -317,12 +317,11 @@ public class TextTest extends EvalTestCase {
     assertThat(eval("length(v_t)"), equalTo(c_i(1)));
     assertThat(eval("names(v_t)"), equalTo(c(">=")));
   }
-  
+
   @Test
   public void regexprTest() {
     eval("m <- .Internal(regexpr('[ABC]+', c('querty', 'BCA', 'AAAA'), ignore.case=FALSE, perl=FALSE, fixed=FALSE, useBytes=FALSE))");
     assertThat(eval("m"), equalTo(c_i(-1,1,1)));
     assertThat(eval("attr(m, 'match.length')"), equalTo(c_i(-1,3,4)));
-    
   }
 }

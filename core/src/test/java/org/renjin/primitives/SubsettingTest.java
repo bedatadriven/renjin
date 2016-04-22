@@ -804,13 +804,13 @@ public class SubsettingTest extends EvalTestCase {
   }
 
   @Test
-   public void addNewListItemByNameViaReplaceSingleItem() {
-     eval(" x<- list() ");
-     eval(" x[['foo']] <- 'bar'");
+  public void addNewListItemByNameViaReplaceSingleItem() {
+    eval(" x<- list() ");
+    eval(" x[['foo']] <- 'bar'");
 
-     assertThat(eval("x"), equalTo(list("bar")));
-     assertThat( eval("names(x)"), equalTo( c("foo")));
-   }
+    assertThat(eval("x"), equalTo(list("bar")));
+    assertThat( eval("names(x)"), equalTo( c("foo")));
+  }
 
 
   @Test

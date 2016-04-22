@@ -1,15 +1,14 @@
 package org.renjin;
 
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
-
 import junit.framework.Assert;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.renjin.sexp.Logical;
 import org.renjin.sexp.LogicalVector;
+
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
 
 public class ScriptEngineTest {
 
@@ -19,26 +18,26 @@ public class ScriptEngineTest {
   public void setUp() {
     // create a script engine manager
     ScriptEngineManager factory = new ScriptEngineManager();
-  
-    engine = factory.getEngineByName("Renjin");    
+
+    engine = factory.getEngineByName("Renjin");
   }
 
-	@Test
-	public void assureThatEngineCanBeLocatedAndInited() throws ScriptException {
+  @Test
+  public void assureThatEngineCanBeLocatedAndInited() throws ScriptException {
 
-		
-		// evaluate code from String
-		engine.eval("print('Hello, World')");
-	}
 
-	@Test
-	public void bquote() throws ScriptException {
-	  engine.eval("model <-  bquote(~0 + .(quote(births)))");
-	  engine.eval("expected <-  ~0 + births");
-	  
-	  LogicalVector result = (LogicalVector) engine.eval("model == expected");
-	  Assert.assertTrue(result.asLogical() == Logical.TRUE);
-	}
+    // evaluate code from String
+    engine.eval("print('Hello, World')");
+  }
+
+  @Test
+  public void bquote() throws ScriptException {
+    engine.eval("model <-  bquote(~0 + .(quote(births)))");
+    engine.eval("expected <-  ~0 + births");
+
+    LogicalVector result = (LogicalVector) engine.eval("model == expected");
+    Assert.assertTrue(result.asLogical() == Logical.TRUE);
+  }
 
   @Test
   public void userPackage() throws ScriptException {

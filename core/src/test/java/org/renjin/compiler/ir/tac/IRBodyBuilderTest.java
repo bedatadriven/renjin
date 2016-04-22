@@ -180,10 +180,8 @@ public class IRBodyBuilderTest extends EvalTestCase {
   public void closureBody() throws IOException {
     assumingBasePackagesLoad();
     topLevelContext.evaluate(
-      RParser.parseSource(new InputStreamReader(getClass().getResourceAsStream("/meanOnline.R")),
-                          new CHARSEXP("/meanOnline.R")
-                         )
-    );
+        RParser.parseSource(new InputStreamReader(getClass().getResourceAsStream("/meanOnline.R")),
+            new CHARSEXP("/meanOnline.R")));
     
     Closure closure = (Closure) topLevelContext.getGlobalEnvironment().getVariable("mean.online");
     IRBodyBuilder factory = new IRBodyBuilder(functionTable);

@@ -1,6 +1,7 @@
 package org.renjin.gcc.codegen;
 
 import com.google.common.collect.Maps;
+
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
@@ -288,7 +289,7 @@ public class FunctionGenerator implements InvocationStrategy {
 
 
   private void emitCall(GimpleCall ins) {
-    CallGenerator callGenerator = exprFactory.findCallGenerator(ins.getFunction());
+    CallGenerator callGenerator = exprFactory.findCallGenerator(ins.getFunction(), ins.getOperands());
     callGenerator.emitCall(mv, exprFactory, ins);
   }
 

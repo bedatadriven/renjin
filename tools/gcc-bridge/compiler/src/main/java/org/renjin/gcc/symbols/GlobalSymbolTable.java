@@ -3,6 +3,7 @@ package org.renjin.gcc.symbols;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+
 import org.objectweb.asm.Handle;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.FunctionGenerator;
@@ -13,6 +14,7 @@ import org.renjin.gcc.codegen.lib.SymbolLibrary;
 import org.renjin.gcc.codegen.lib.SymbolMethod;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.gimple.CallingConvention;
+import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
 import org.renjin.gcc.gimple.expr.GimpleSymbolRef;
 import org.renjin.gcc.runtime.Builtins;
@@ -37,7 +39,6 @@ public class GlobalSymbolTable implements SymbolTable {
 
   private TypeOracle typeOracle;
   private Map<String, CallGenerator> functions = Maps.newHashMap();
-  private List<String> allocators = Lists.newArrayList();
   private Map<String, Expr> globalVariables = Maps.newHashMap();
 
   public GlobalSymbolTable(TypeOracle typeOracle) {
@@ -45,7 +46,7 @@ public class GlobalSymbolTable implements SymbolTable {
   }
 
   @Override
-  public CallGenerator findCallGenerator(GimpleFunctionRef ref, CallingConvention callingConvention) {
+  public CallGenerator findCallGenerator(GimpleFunctionRef ref, List<GimpleExpr> operands, CallingConvention callingConvention) {
     String mangledName = callingConvention.mangleFunctionName(ref.getName());
     CallGenerator generator = functions.get(mangledName);
     if(generator == null) {
@@ -56,7 +57,7 @@ public class GlobalSymbolTable implements SymbolTable {
   
   @Override
   public Handle findHandle(GimpleFunctionRef ref, CallingConvention callingConvention) {
-    CallGenerator callGenerator = findCallGenerator(ref, callingConvention);
+    CallGenerator callGenerator = findCallGenerator(ref, null, callingConvention);
     if(callGenerator instanceof FunctionCallGenerator) {
       return ((FunctionCallGenerator) callGenerator).getStrategy().getMethodHandle();
     } else {
@@ -90,9 +91,6 @@ public class GlobalSymbolTable implements SymbolTable {
   public void addLibrary(SymbolLibrary lib) {
     for(SymbolFunction f : lib.getFunctions(typeOracle)) {
       addFunction(f.getAlias(), f.getCall());
-      if(f.isMemoryAllocation()) {
-        allocators.add(f.getAlias());
-      }
     }
     for(SymbolMethod m : lib.getMethods()) {
       addMethod(m.getAlias(), m.getTargetClass(), m.getMethodName());

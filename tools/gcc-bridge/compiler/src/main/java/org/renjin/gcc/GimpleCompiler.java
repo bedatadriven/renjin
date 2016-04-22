@@ -5,7 +5,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
-
 import org.objectweb.asm.Type;
 import org.renjin.gcc.analysis.*;
 import org.renjin.gcc.codegen.FunctionGenerator;
@@ -195,7 +194,7 @@ public class GimpleCompiler  {
       
         String recordClassName;
         if (recordTypeDef.getName() != null) {
-          recordClassName = recordTypeDef.getName();
+          recordClassName =  String.format("%s$%s", recordClassPrefix, recordTypeDef.getName());
         } else {
           recordClassName = String.format("%s$Record%d", recordClassPrefix, recordIndex++);
         }

@@ -2,14 +2,17 @@ package org.renjin.gcc.symbols;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
+
 import org.objectweb.asm.Handle;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.gimple.CallingConvention;
 import org.renjin.gcc.gimple.GimpleVarDecl;
+import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
 import org.renjin.gcc.gimple.expr.GimpleSymbolRef;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -56,7 +59,8 @@ public class LocalVariableTable implements SymbolTable {
     return parent.findHandle(functionRef, callingConvention);
   }
 
-  public CallGenerator findCallGenerator(GimpleFunctionRef ref, CallingConvention callingConvention) {
-    return parent.findCallGenerator(ref, callingConvention);
+  @Override
+  public CallGenerator findCallGenerator(GimpleFunctionRef ref, List<GimpleExpr> operands, CallingConvention callingConvention) {
+    return parent.findCallGenerator(ref, operands, callingConvention);
   }
 }

@@ -62,6 +62,16 @@ public class GimpleRecordTypeDef {
   }
 
   public GimpleField findField(GimpleFieldRef fieldRef) {
+    
+    // First try to find an exact match by name
+    for (GimpleField field : fields) {
+      if(field.hasName() && field.getName().equals(fieldRef.getName())) {
+        return field;
+      }
+    }
+    
+    // If there is no match, try matching by offset within the 
+    // record.
     for (GimpleField field : fields) {
       int fieldStart = field.getOffset();
       int fieldEnd = fieldStart + field.getType().getSize();

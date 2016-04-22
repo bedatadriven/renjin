@@ -115,19 +115,15 @@ public class AddressableFinder implements FunctionBodyTransformer {
 
     private boolean markField(GimpleRecordTypeDef recordTypeDef, GimpleFieldRef member) {
       GimpleField field = recordTypeDef.findField(member);
-      if (field.getOffset() == member.getOffset() && 
-          field.getType().equals(member.getType())) {
-       
-        boolean wasMarked = field.isAddressed();
-        field.setAddressed(true);
-        return !wasMarked;
       
-      } else if(field.getType() instanceof GimpleArrayType) {
+      if(field.getType() instanceof GimpleArrayType) {
         // Arrays are already addressable
         return false;
       }
-      throw new IllegalStateException("Cannot match field " + member + " to record def " + 
-          recordTypeDef);
+
+      boolean wasMarked = field.isAddressed();
+      field.setAddressed(true);
+      return !wasMarked;
     }
   }
   

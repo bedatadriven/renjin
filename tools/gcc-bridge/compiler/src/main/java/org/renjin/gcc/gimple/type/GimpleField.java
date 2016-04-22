@@ -60,4 +60,8 @@ public class GimpleField {
   public void setOffset(int offset) {
     this.offset = offset;
   }
+
+  public boolean hasName() {
+    return name != null;
+  }
 }

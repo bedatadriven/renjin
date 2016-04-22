@@ -6,7 +6,6 @@ import org.renjin.gcc.gimple.*;
 import org.renjin.gcc.gimple.expr.*;
 import org.renjin.gcc.gimple.statement.*;
 import org.renjin.gcc.gimple.type.*;
-import org.renjin.gcc.gimple.type.GimpleComplexType;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -259,7 +258,9 @@ public class RecordTypeDefCanonicalizer {
       } else if (expr instanceof GimpleMemRef) {
         updateTypes(((GimpleMemRef) expr).getPointer());
       } else if (expr instanceof GimpleComponentRef) {
-        updateTypes(((GimpleComponentRef) expr).getValue());
+        GimpleComponentRef ref = (GimpleComponentRef) expr;
+        updateTypes(ref.getValue());
+        updateTypes(ref.getMember());
       } else if (expr instanceof GimpleArrayRef) {
         updateTypes(((GimpleArrayRef) expr).getArray());
       } else if (expr instanceof GimpleNopExpr) {

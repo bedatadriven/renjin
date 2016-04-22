@@ -29,6 +29,11 @@ import org.renjin.methods.MethodDispatch;
 import org.renjin.primitives.Types;
 import org.renjin.sexp.*;
 
+import java.lang.reflect.Array;
+import java.util.Collections;
+import java.util.Collections.*;
+
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -67,12 +72,12 @@ public class Subsetting {
       SEXP className = object.getAttribute(Symbols.CLASS_NAME);
       if(className.length() == 0) {
         throw new EvalException("trying to get slot \"%s\" from an object of a basic class (\"%s\") with no slots",
-            slotName.getPrintName(),
-            object.getS3Class().getElementAsString(0));
+                slotName.getPrintName(),
+                object.getS3Class().getElementAsString(0));
       } else {
         throw new EvalException("trying to get slot \"%s\" from an object (class \"%s\") that is not an S4 object ",
-            slotName.getPrintName(),
-            className.getElementAsSEXP(0));
+                slotName.getPrintName(),
+                className.getElementAsSEXP(0));
       }
     }
 
@@ -134,8 +139,8 @@ public class Subsetting {
    * Same as "[" but not generic
    */
   @Builtin(".subset")
-  public static SEXP subset(@Current Context context, 
-                            SEXP source, 
+  public static SEXP subset(@Current Context context,
+                            SEXP source,
                             @ArgumentList ListVector arguments,
                             @NamedFlag("drop") @DefaultValue(true) boolean drop) {
     Vector vector;
@@ -159,7 +164,7 @@ public class Subsetting {
 
   @Generic
   @Builtin("[[")
-  public static SEXP getSingleElement(SEXP source, 
+  public static SEXP getSingleElement(SEXP source,
                                       @ArgumentList ListVector subscripts,
                                       @NamedFlag("exact") @DefaultValue(true) boolean exact,
                                       @NamedFlag("drop") @DefaultValue(true) boolean drop) {
@@ -176,12 +181,12 @@ public class Subsetting {
     if(source instanceof Environment) {
       return getSingleEnvironmentElement((Environment) source, subscripts);
     }
-    
+
     // For the purpose of this operator, convert pairlists to list vectors before continuing
     if(source instanceof PairList) {
       source = ((PairList) source).toVector();
     }
-    
+
     // A single argument with a length greater than one, like c(1,2,3)
     // are used to index the vector recursively
     if(source instanceof ListVector && isRecursiveIndexingArgument(subscripts)) {
@@ -191,13 +196,13 @@ public class Subsetting {
     } else {
 
       SelectionStrategy selection = Selections.parseSingleSelection(source, Lists.newArrayList(subscripts));
-      
+
       if(source instanceof ListVector) {
         return selection.getSingleListElement((ListVector) source, exact);
-      
+
       } else if(source instanceof AtomicVector) {
         return selection.getSingleAtomicVectorElement((AtomicVector)source, exact);
-      
+
       } else {
         throw new EvalException("object of type '%s' is not subsettable", source.getTypeName());
       }
@@ -212,7 +217,7 @@ public class Subsetting {
     if(!(subscript instanceof StringVector) || subscript.length() != 1) {
       throw new EvalException("subset argument for environment must be character of length 1");
     }
-    
+
     String symbolName = ((StringVector) subscript).getElementAsString(0);
     if(StringVector.isNA(symbolName)) {
       throw new EvalException("subset argument for environment cannot be NA");
@@ -226,15 +231,14 @@ public class Subsetting {
   }
 
 
-  private static boolean isRecursiveIndexingArgument(ListVector subscripts) {
-    if(subscripts.length() != 1) {
+  private static boolean isRecursiveIndexingArgument(Iterable<SEXP> subscripts) {
+    Iterator<SEXP> it = subscripts.iterator();
+    if(!it.hasNext()) {
       return false;
     }
-    SEXP subscript = subscripts.getElementAsSEXP(0);
-    if(!(subscript instanceof AtomicVector)) {
-      return false;
-    }
-    return subscript.length() > 1;
+    SEXP subscript = it.next();
+
+    return subscript instanceof AtomicVector && subscript.length() > 1;
   }
 
   private static SEXP getSingleElementRecursively(ListVector source, AtomicVector indexes, boolean exact, boolean drop) {
@@ -256,7 +260,7 @@ public class Subsetting {
   @Generic
   @Builtin("[")
   public static SEXP getSubset(@Current Context context,
-                               SEXP source, 
+                               SEXP source,
                                @ArgumentList ListVector subscripts,
                                @NamedFlag("drop") @DefaultValue(true) boolean drop) {
 
@@ -290,33 +294,33 @@ public class Subsetting {
     SEXP replacementExp = argumentList.getElementAsSEXP(argumentList.length() - 1);
     if(!(replacementExp instanceof Vector)) {
       throw new EvalException("incompatible types (from %s to %s) in subassignment type fix",
-          replacementExp.getTypeName(), source.getTypeName());
+              replacementExp.getTypeName(), source.getTypeName());
     }
-    
+
     Vector replacement = (Vector) replacementExp;
 
-    // Special case: if both source and replacement have length 0, then return source without 
+    // Special case: if both source and replacement have length 0, then return source without
     // even checking subscripts
     if(source.length() == 0 && replacement.length() == 0) {
       return source;
     }
-    
+
     List<SEXP> subscripts = Lists.newArrayListWithCapacity(argumentList.length() - 1);
     for (int i = 0; i < argumentList.length() - 1; i++) {
       subscripts.add(argumentList.get(i));
     }
-    
+
     SelectionStrategy selection = Selections.parseSelection(source, subscripts);
 
     if(source instanceof ListVector) {
       return selection.replaceListElements(context, (ListVector) source, replacement);
-    
+
     } else if(source instanceof PairList.Node) {
       return selection.replaceListElements(context, ((PairList.Node) source).toVector(), replacement);
-      
+
     } else if(source instanceof AtomicVector) {
       return selection.replaceAtomicVectorElements(context, (AtomicVector) source, replacement);
-      
+
     } else {
       throw new EvalException("object of type '%' is not subsettable", source.getTypeName());
     }
@@ -325,7 +329,7 @@ public class Subsetting {
 
   @Generic
   @Builtin("[[<-")
-  public static SEXP setSingleElement(SEXP source, @ArgumentList ListVector argumentList) {
+  public static SEXP setSingleElement(@Current Context context, SEXP source, @ArgumentList ListVector argumentList) {
 
     // Handle environment case as exceptional first
     if(source instanceof Environment) {
@@ -339,8 +343,11 @@ public class Subsetting {
       subscripts.add(argumentList.get(i));
     }
 
+    if (source instanceof ListVector && isRecursiveIndexingArgument(subscripts) ) {
+      return replaceSingleListElementRecursively(context, (ListVector) source, argumentList, replacement);
+    }
+
     SelectionStrategy selection = Selections.parseSingleSelection(source, subscripts);
-    
 
     if(source instanceof PairList.Node) {
       return selection.replaceSinglePairListElement((PairList.Node) source, replacement);
@@ -356,7 +363,7 @@ public class Subsetting {
       } else {
         return selection.replaceSingleListElement(new ListVector(), replacement);
       }
-      
+
     } else if(source instanceof AtomicVector) {
       if(!(replacement instanceof Vector)) {
         throw new EvalException("incompatible types");
@@ -366,6 +373,48 @@ public class Subsetting {
     } else {
       throw new EvalException("object of type '%s' is not subsettable");
     }
+  }
+
+  private static SEXP replaceSingleListElementRecursively(Context context, ListVector source, ListVector argumentList, SEXP replacement) {
+
+    SEXP indexes = argumentList.get(0);
+    int lastIndex = indexes.length() - 1;
+    int leafIndex = lastIndex - 1;
+
+    // create and store the selection strategy (element that needs to be replaced)
+    // for each level of (nested) list. loop through lowest to highest level
+    SelectionStrategy[] subscriptsArray = new SelectionStrategy[ indexes.length() ];
+    for (int i = 0; i <= lastIndex; i++){
+      subscriptsArray[i] =  Selections.parseSingleSelection( source, Collections.singletonList(indexes.getElementAsSEXP(i))) ;
+    }
+
+    // store separate records for each level of the (nested) list as long its a ListVector
+    // throw an error in case you encounter atomic or other types
+    Vector[] sources = new Vector[ indexes.length() ];
+    sources[0] =  source;
+    for (int i = 1; i <= lastIndex; i++){
+      SEXP previousSource = sources[i-1];
+      if (!(previousSource instanceof ListVector)) {
+        throw new EvalException("recursive indexing failed at level " + i);
+      }
+      sources[i] = (Vector) subscriptsArray[i-1].getSingleListElement( (ListVector) previousSource, false);
+    }
+
+    // create new replacement by replacing selected element of highest level ListedVector with
+    // replacement, loop through highest to lowest level. In case the highest level is an
+    // AtomicVector use the appropriate replace method 'replaceAtomicVectorElements' otherwise use
+    // the 'replaceSingleListElement'
+    if (sources[lastIndex] instanceof AtomicVector) {
+      replacement = subscriptsArray[lastIndex].replaceAtomicVectorElements(context, (AtomicVector) sources[lastIndex], (Vector) replacement);
+    } else {
+      replacement = subscriptsArray[lastIndex].replaceSingleListElement((ListVector) sources[lastIndex], replacement);
+    }
+
+    for (int i = leafIndex ; i >= 0; i--) {
+      replacement = subscriptsArray[i].replaceSingleListElement((ListVector) sources[i], replacement);
+    }
+
+    return replacement;
   }
 
 
@@ -378,22 +427,22 @@ public class Subsetting {
     }
     SEXP subscriptExp = arguments.getElementAsSEXP(0);
     SEXP value = arguments.getElementAsSEXP(1);
-    
+
     if(!(subscriptExp instanceof StringVector) || subscriptExp.length() != 1) {
       throw new EvalException("wrong args for environment subassignment");
     }
-    
+
     StringVector subscript = (StringVector) subscriptExp;
-    
+
     source.setVariable(subscript.getElementAsString(0), value);
-    
+
     return source;
   }
 
   private static SEXP setSingleListElementByName(ListBuilder builder, String nameToReplace, SEXP replacement) {
     int index = builder.getIndexByName(nameToReplace);
     boolean dropDimensions = false;
-    
+
     if(replacement == Null.INSTANCE) {
       if(index != -1) {
         builder.remove(index);

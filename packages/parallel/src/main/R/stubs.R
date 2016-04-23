@@ -48,3 +48,8 @@ sendCall <- function (con, fun, args, return = TRUE, tag = NULL)
         .snowTimingData$enterSend(con$rank, start, proc.time()[3L])
     NULL
 }
+
+makeCluster <- function (spec, type, ...) 
+{
+    NULL
+}

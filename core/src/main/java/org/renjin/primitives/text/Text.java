@@ -872,13 +872,11 @@ public class Text {
     }
     
   }
-  
-  @Internal("substr<-")
-  public static StringVector setSubstring(String s, int start, int stop,String replace) {
-    StringArrayVector.Builder result = new StringArrayVector.Builder();
-    result.add(s.substring(0, start-1)+replace+s.substring(Math.min(stop,start-1+replace.length())));
 
-    return result.build();
+  @DataParallel
+  @Internal("substr<-")
+  public static String setSubstring(String s, int start, int stop, String replace) {
+    return s.substring(0, start-1) + replace + s.substring(Math.min(stop,start-1+replace.length()));
   }
   
   /**

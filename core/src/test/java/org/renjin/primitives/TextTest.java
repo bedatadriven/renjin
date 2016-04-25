@@ -142,9 +142,20 @@ public class TextTest extends EvalTestCase {
     assertThat( eval("substr(c('ab', 'ab'), 1, 1)"), equalTo(c("a", "a")) );
     assertThat( eval("substring('abc', 1:3, 1:3)"), equalTo(c("a", "b", "c")));
     assertThat( eval("substring('abcdef', 1:4, 4:5)"), equalTo(c("abcd", "bcde", "cd", "de")));
-
   }
-
+  
+  @Test
+  public void substrWithRecycling() {
+    
+  }
+  
+  @Test
+  public void substrAssignWithRecycling() {
+    eval(" x <- c('logical', 'vector') ");
+    eval(" substr(x, 1, 1) <- c('L', 'V') ");
+    
+    assertThat(eval("x"), equalTo(c("Logical", "Vector")));
+  }
 
   @Test
   public void nchar() {

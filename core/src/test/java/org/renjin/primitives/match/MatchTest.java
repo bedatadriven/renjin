@@ -99,6 +99,14 @@ public class MatchTest extends EvalTestCase {
   }
 
   @Test
+  public void anyDuplicatedInLists() {
+    assertThat( eval(" .Internal(anyDuplicated(list(1,1,3), FALSE, FALSE)) "), equalTo( c_i(2) ));
+    assertThat( eval(" .Internal(anyDuplicated(list(1,2,3,3), FALSE, FALSE)) "), equalTo( c_i(4) ));
+    assertThat( eval(" .Internal(anyDuplicated(list('a','b','c','c'), FALSE, FALSE)) "), equalTo( c_i(4) ));
+  }
+
+
+  @Test
   public void duplicated() {
     assertThat( eval(" .Internal(duplicated(1, FALSE, FALSE)) "), equalTo( c(false)) );
     assertThat( eval(" .Internal(duplicated(c(1,1,3), FALSE, FALSE)) "), equalTo( c(false,true,false) ));

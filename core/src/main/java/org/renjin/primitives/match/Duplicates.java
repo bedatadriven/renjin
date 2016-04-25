@@ -1,17 +1,12 @@
 package org.renjin.primitives.match;
 
-import java.util.HashMap;
-
-import org.renjin.eval.EvalException;
+import com.google.common.collect.Maps;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.primitives.match.DuplicateSearchAlgorithm.Action;
 import org.renjin.sexp.AtomicVector;
-import org.renjin.sexp.Logical;
-import org.renjin.sexp.LogicalVector;
-import org.renjin.sexp.Null;
 import org.renjin.sexp.Vector;
 
-import com.google.common.collect.Maps;
+import java.util.HashMap;
 
 
 
@@ -38,7 +33,7 @@ public class Duplicates {
   }
 
   @Internal
-  public static Vector duplicated(AtomicVector x, AtomicVector incomparables, boolean fromLast) {
+  public static Vector duplicated(Vector x, AtomicVector incomparables, boolean fromLast) {
     
     return search(x, incomparables, fromLast, 
         new DuplicatedAlgorithm());

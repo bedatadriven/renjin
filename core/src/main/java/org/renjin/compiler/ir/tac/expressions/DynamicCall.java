@@ -186,7 +186,7 @@ public class DynamicCall implements CallExpression {
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder("\u0394 " + functionExpr + "(");
+    StringBuilder sb = new StringBuilder("Δ " + functionExpr + "(");
     for(int i=0;i!=argumentNames.size();++i) {
       if(i > 0) {
         sb.append(", ");

@@ -1,18 +1,16 @@
 package org.renjin.compiler.ir.ssa;
 
-import java.util.List;
-import java.util.Set;
-
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.ExpressionVisitor;
 import org.renjin.compiler.ir.tac.expressions.Variable;
 import org.renjin.eval.Context;
 import org.renjin.sexp.SEXP;
 
-
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import java.util.List;
+import java.util.Set;
 
 public class PhiFunction implements Expression {
 
@@ -44,7 +42,7 @@ public class PhiFunction implements Expression {
 
   @Override
   public String toString() {
-    return "\u03A6(" + Joiner.on(", ").join(arguments) + ")";
+    return "Φ(" + Joiner.on(", ").join(arguments) + ")";
   }
 
   @Override

@@ -15,7 +15,7 @@ import java.util.Set;
  * have to be processed by the SSA transformation
  */
 public class Temp implements LValue {
-  private static final String TAO = "\u03C4";
+  private static final String TAO = "τ";
   private final int index;
   
   public Temp(int index) {

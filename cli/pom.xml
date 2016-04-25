@@ -98,6 +98,11 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.renjin</groupId>
+      <artifactId>stats4</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
       <groupId>net.sf.jopt-simple</groupId>
       <artifactId>jopt-simple</artifactId>
       <version>4.4</version>

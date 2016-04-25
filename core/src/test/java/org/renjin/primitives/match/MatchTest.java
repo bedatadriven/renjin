@@ -24,7 +24,8 @@ package org.renjin.primitives.match;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.sexp.IntVector;
-
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringArrayVector;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -103,6 +104,13 @@ public class MatchTest extends EvalTestCase {
     assertThat( eval(" .Internal(duplicated(c(1,1,3), FALSE, FALSE)) "), equalTo( c(false,true,false) ));
     assertThat( eval(" .Internal(duplicated(c(1,2,3,3), FALSE, FALSE)) "), equalTo( c(false,false,false,true)) );
     assertThat( eval(" .Internal(duplicated(c(2,2,3,3), FALSE, TRUE)) "), equalTo( c(true, false,true,false) ));
+  }
+ 
+  @Test
+  public void whichWithEmptyNames() {
+    eval("x <- which(c(a=FALSE, b=FALSE, c=FALSE))");
+    assertThat(eval("length(x)"), equalTo(c_i(0)));
+    assertThat(eval("names(x)"), equalTo((SEXP)StringArrayVector.EMPTY));
   }
   
 }

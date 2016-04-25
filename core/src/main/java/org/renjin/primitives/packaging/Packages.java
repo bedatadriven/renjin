@@ -1,17 +1,17 @@
 package org.renjin.primitives.packaging;
 
+import com.google.common.base.Optional;
 import org.renjin.eval.Context;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.invoke.annotations.Invisible;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.HashFrame;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbols;
+import org.renjin.sexp.*;
 
 import java.io.IOException;
 
 public class Packages {
+
+  public static final FqPackageName METHODS_NAMESPACE = new FqPackageName("org.renjin", "methods");
 
   @Internal
   public static void library(
@@ -43,7 +43,26 @@ public class Packages {
       }
     }
     
+    if(!namespace.getFullyQualifiedName().equals(METHODS_NAMESPACE)) {
+      maybeUpdateS4MetadataCache(context, namespace);
+    }
+    
     context.setInvisibleFlag();
+  }
+
+  private static void maybeUpdateS4MetadataCache(Context context, Namespace namespace) {
+    //methods:::cacheMetaData(ns, TRUE, ns)
+    Optional<Namespace> methods = context.getNamespaceRegistry()
+        .getNamespaceIfPresent(Symbol.get("methods"));
+    if(methods.isPresent()) {
+      SEXP cacheFunction = methods.get().getEntry(Symbol.get("cacheMetaData"));
+      FunctionCall cacheCall = FunctionCall.newCall(cacheFunction, 
+          namespace.getNamespaceEnvironment(),
+          LogicalVector.TRUE,
+          namespace.getNamespaceEnvironment());
+      
+      context.evaluate(cacheCall);
+    }
   }
 
   @Internal

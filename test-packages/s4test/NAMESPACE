@@ -3,6 +3,9 @@ exportClasses("seq")
 exportClasses("mle_ext")
 exportMethods(setType, getSequence, findType)
 
+exportClasses("NSBS")
+
+
 # GNU R does not throw an error if the S4 metadata symbol
 # cannot be found. 
 # There are a few CRAN packages where package authors have added 

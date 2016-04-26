@@ -5,6 +5,9 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.renjin.gnur.GnurSourcesCompiler;
 
 import java.io.File;
@@ -12,78 +15,51 @@ import java.util.List;
 
 /**
  * Compiles gnur C/Fortran sources to a JVM class
- * 
- * @goal gnur-sources-compile
- * @phase compile
- * @requiresProject true
+
  */
+@Mojo(name = "gnur-sources-compile", requiresDependencyCollection = ResolutionScope.COMPILE)
 public class GnurCompilerMojo extends AbstractMojo {
 
-
-  /**
-   * @parameter expression="${project.groupId}"
-   * @required
-   */
+  @Parameter(defaultValue = "${project.groupId}")
   private String groupId;
   
-  /**
-   * @parameter expression="${project.artifactId}"
-   * @required
-   */
+  @Parameter(defaultValue = "${project.artifactId}", required = true)
   private String artifactId;
   
-  /**
-   * @parameter default-value="${plugin.artifacts}"
-   * @readonly
-   * @since 1.1-beta-1
-   */
+  @Parameter(defaultValue = "${plugin.artifacts}", readonly = true)
   private List<Artifact> pluginDependencies;
   
-  /**
-   * @parameter default-value="${project.basedir}"
-   * @readonly
-   */
+  @Parameter(defaultValue = "${project.basedir}", readonly = true)
   private File baseDir;
   
-  /**
-   * Name of the R package
-   * @parameter expression="${project.build.outputDirectory}"
-   * @required
-   * @readonly
-   */
-  private File outputDirectory; 
-  
-  /**
-   * Directory to which the intermediate jimple files are written
-   * @parameter expression="${project.build.directory}/jimple"
-   * @required
-   */
-  private File jimpleDirectory;
+  @Parameter(defaultValue = "${project.build.outputDirectory}", readonly = true)
+  private File outputDirectory;
 
   /**
    * Directory to which the intermediate gimple files are written
-   * @parameter expression="${project.build.directory}/gimple"
-   * @required
    */
+  @Parameter(defaultValue = "${project.build.directory}/gimple", required = true)
   private File gimpleDirectory;
 
   /**
    * Directories in which to look for C/Fortran sources
-   * @parameter
    */
+  @Parameter
   private List<File> sourceDirectories;
 
   /**
-   * @parameter expression="${ignore.gnur.compilation.failure}" default-value="false"
+   * If true, do not fail the build if compilation fails.
    */
+  @Parameter(property = "ignore.gnur.compilation.failure", defaultValue = "false")
   private boolean ignoreFailure;
 
   /**
    * Scratch directory for GCC output/files
-   * @parameter expression="${project.build.directory}/gcc-work
    */
+  @Parameter(defaultValue = "${project.build.directory}/gcc-work")
   private File workDirectory;
   
+  @Parameter
   private List<File> includeDirectories;
 
 

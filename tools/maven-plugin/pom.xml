@@ -59,6 +59,12 @@
       <version>2.0</version>
     </dependency>
     <dependency>
+      <groupId>org.apache.maven.plugin-tools</groupId>
+      <artifactId>maven-plugin-annotations</artifactId>
+      <version>3.4</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>3.8.1</version>
@@ -89,22 +95,31 @@
 
   <build>
     <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-plugin-plugin</artifactId>
-        <version>2.5.1</version>
-        <configuration>
-          <goalPrefix>renjin</goalPrefix>
-        </configuration>
-        <executions>
-          <execution>
-            <id>generated-helpmojo</id>
-            <goals>
-              <goal>helpmojo</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
+    <plugin>
+      <groupId>org.apache.maven.plugins</groupId>
+      <artifactId>maven-plugin-plugin</artifactId>
+      <version>3.4</version>
+
+      <configuration>
+        <goalPrefix>gcc-bridge</goalPrefix>
+      </configuration>
+      <executions>
+        <execution>
+          <id>default-descriptor</id>
+          <goals>
+            <goal>descriptor</goal>
+          </goals>
+          <phase>process-classes</phase>
+        </execution>
+        <execution>
+          <id>help-descriptor</id>
+          <goals>
+            <goal>helpmojo</goal>
+          </goals>
+          <phase>process-classes</phase>
+        </execution>
+      </executions>
+    </plugin>
     <plugin>
       <groupId>org.apache.maven.plugins</groupId>
       <artifactId>maven-checkstyle-plugin</artifactId>

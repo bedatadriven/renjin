@@ -8,6 +8,10 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.renjin.packaging.PackageDescription;
 
@@ -23,27 +27,23 @@ import java.util.Set;
 
 /**
  * Compiles R sources into a serialized blob
- *
- * @goal namespace-compile
- * @phase compile
- * @requiresProject true
- * @requiresDependencyResolution compile
-
  */
+@Mojo(name = "namespace-compile",
+      defaultPhase = LifecyclePhase.COMPILE, 
+      requiresDependencyResolution = ResolutionScope.COMPILE)
 public class NamespaceMojo extends AbstractMojo {
 
   /**
    * Directory containing R sources
    *
-   * @parameter expression="src/main/R"
-   * @required
    */
+  @Parameter(defaultValue = "src/main/R", required = true)
   private File sourceDirectory;
 
   /**
    * Directory containing data files
-   * @parameter expression="src/main/data"
    */
+  @Parameter(defaultValue = "src/main/data")
   private File dataDirectory;
 
   /**
@@ -52,13 +52,10 @@ public class NamespaceMojo extends AbstractMojo {
    * @required
    * @readonly
    */
+  @Parameter(defaultValue = "${project.build.outputDirectory}", readonly = true)
   private File outputDirectory;
 
-  /**
-   * @parameter default-value="${plugin.artifacts}"
-   * @readonly
-   * @since 1.1-beta-1
-   */
+  @Parameter(defaultValue = "${plugin.artifacts}", readonly = true)
   private List<Artifact> pluginDependencies;
 
 
@@ -69,50 +66,29 @@ public class NamespaceMojo extends AbstractMojo {
    * @required
    * @readonly
    */
+  @Parameter(defaultValue = "${project}", readonly = true, required = true)
   private MavenProject project;
 
 
-  /**
-   * @parameter expression="${project.artifactId}"
-   * @required
-   */
+  @Parameter(defaultValue = "${project.artifactId}", required = true)
   private String packageName;
 
-  /**
-   * @parameter expression="${project.groupId}"
-   * @required
-   */
+  @Parameter(defaultValue = "${project.groupId}", required = true, readonly = true)
   private String groupId;
 
-
-  /**
-   * @parameter expression="${project.artifactId}"
-   * @required
-   */
+  @Parameter(defaultValue = "${project.artifactId}", required = true)
   private String namespaceName;
 
-  /**
-   * @parameter expression="${project.basedir}/NAMESPACE"
-   * @required
-   */
+  @Parameter(defaultValue = "${project.basedir}/NAMESPACE")
   private File namespaceFile;
 
-  /**
-   * @parameter expression="${project.basedir}/DESCRIPTION"
-   * @required
-   */
+  @Parameter(defaultValue = "${project.basedir}/DESCRIPTION")
   private File descriptionFile;
-
-
-  /**
-   * @parameter
-   */
+  
+  @Parameter
   private List<String> sourceFiles;
 
-
-  /**
-   * @parameter
-   */
+  @Parameter
   private List defaultPackages;
 
   @Override
@@ -122,7 +98,6 @@ public class NamespaceMojo extends AbstractMojo {
     writeRequires();
     compileDatasets();
   }
-
 
   private void compileNamespaceEnvironment() throws MojoExecutionException {
 

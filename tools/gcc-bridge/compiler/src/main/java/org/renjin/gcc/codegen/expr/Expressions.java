@@ -120,29 +120,7 @@ public class Expressions {
     checkType("array", array, Type.ARRAY);
     checkType("offset", offset, Type.INT_TYPE);
     
-    return new SimpleLValue() {
-
-      @Nonnull
-      @Override
-      public Type getType() {
-        return array.getType().getElementType();
-      }
-
-      @Override
-      public void load(@Nonnull MethodGenerator mv) {
-        array.load(mv);
-        offset.load(mv);
-        mv.aload(getType());
-      }
-
-      @Override
-      public void store(MethodGenerator mv, SimpleExpr value) {
-        array.load(mv);
-        offset.load(mv);
-        value.load(mv);
-        mv.astore(getType());
-      }
-    };
+    return new ArrayElement(array, offset);
   }
 
   public static SimpleExpr nullRef(final Type type) {

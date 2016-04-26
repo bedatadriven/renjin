@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.type.record;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.Maps;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
@@ -7,6 +8,7 @@ import org.renjin.gcc.codegen.RecordClassGenerator;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.AddressableField;
+import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrStrategy;
@@ -90,11 +92,24 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<SimpleExpr> {
 
   @Override
   public SimpleExpr variable(GimpleVarDecl decl, VarAllocator allocator) {
+
     SimpleLValue instance = allocator.reserve(decl.getName(), jvmType, new RecordConstructor(this));
-    if(isUnitPointer()) {
-      // If we are using the RecordUnitPtr strategy, then the record value is also it's address
-      return new SimpleAddressableExpr(instance, instance);
+
+    if(decl.isAddressable()) {
+      if (isUnitPointer()) {
+        // If we are using the RecordUnitPtr strategy, then the record value is also it's address
+        return new SimpleAddressableExpr(instance, instance);
+        
+      } else {
+        
+        SimpleLValue unitArray = allocator.reserveUnitArray(decl.getName(), jvmType, Optional.of((SimpleExpr)instance));
+        FatPtrExpr address = new FatPtrExpr(unitArray);
+        SimpleExpr value = Expressions.elementAt(address.getArray(), 0);
+        return new SimpleAddressableExpr(value, address);      
+      }
+    
     } else {
+      
       return instance;
     }
   }

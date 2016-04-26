@@ -1,7 +1,6 @@
 package org.renjin.gcc.codegen;
 
 import com.google.common.collect.Maps;
-
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
@@ -273,7 +272,7 @@ public class FunctionGenerator implements InvocationStrategy {
       ((LValue) lhs).store(mv, rhs);
       
     } catch (Exception e) {
-      throw new RuntimeException("Exception compiling assignment " + ins, e);
+      throw new RuntimeException("Exception compiling assignment to " + ins, e);
     }
   }
 

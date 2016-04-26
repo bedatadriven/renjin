@@ -14,6 +14,15 @@ public class Realloc {
     return np;
   }
 
+
+  public static char[] realloc(char[] p, int offset, int newCount) {
+    char[] np = new char[newCount];
+    if(p != null) {
+      System.arraycopy(p, offset, np, 0, Math.min(p.length - offset, newCount));
+    }
+    return np;
+  }
+
   public static int[] realloc(int[] p, int offset, int newCount) {
     int[] np = new int[newCount];
     if(p != null) {

@@ -110,12 +110,12 @@ public class FunPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
   }
 
   @Override
-  public SimpleExpr malloc(MethodGenerator mv, SimpleExpr length) {
+  public SimpleExpr malloc(MethodGenerator mv, SimpleExpr sizeInBytes) {
     throw new UnsupportedOperationException("Cannot malloc function pointers");
   }
 
   @Override
-  public SimpleExpr realloc(SimpleExpr pointer, SimpleExpr length) {
+  public SimpleExpr realloc(SimpleExpr pointer, SimpleExpr newSizeInBytes) {
     throw new InternalCompilerException("Cannot realloc function pointers");
   }
 

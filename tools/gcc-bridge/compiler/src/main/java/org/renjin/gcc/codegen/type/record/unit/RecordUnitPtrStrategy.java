@@ -84,9 +84,9 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
   }
 
   @Override
-  public SimpleExpr malloc(MethodGenerator mv, SimpleExpr length) {
+  public SimpleExpr malloc(MethodGenerator mv, SimpleExpr sizeInBytes) {
 
-    if (isUnitConstant(length)) {
+    if (isUnitConstant(sizeInBytes)) {
       throw new InternalCompilerException(getClass().getSimpleName() + " does not support (T)malloc(size) where " +
           "size != sizeof(T). This is probably because of a mistake in the choice of strategy by the compiler.");
     }
@@ -94,7 +94,7 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
   }
 
   @Override
-  public SimpleExpr realloc(SimpleExpr pointer, SimpleExpr length) {
+  public SimpleExpr realloc(SimpleExpr pointer, SimpleExpr newSizeInBytes) {
     throw new UnsupportedOperationException("TODO");
   }
 

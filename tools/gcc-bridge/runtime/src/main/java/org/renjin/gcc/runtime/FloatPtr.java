@@ -29,6 +29,11 @@ public class FloatPtr implements Ptr {
   }
 
   @Override
+  public Ptr realloc(int newSizeInBytes) {
+    return new FloatPtr(Realloc.realloc(array, offset, newSizeInBytes / 4));
+  }
+
+  @Override
   public String toString() {
     return offset + "+" + Arrays.toString(array);
   }

@@ -136,13 +136,16 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtrExpr> {
   }
 
   @Override
-  public FatPtrExpr malloc(MethodGenerator mv, SimpleExpr length) {
+  public FatPtrExpr malloc(MethodGenerator mv, SimpleExpr sizeInBytes) {
+    SimpleExpr length = Expressions.divide(sizeInBytes, valueFunction.getElementSize());
+    
     return FatPtrMalloc.alloc(mv, valueFunction, length);
   }
 
   @Override
-  public FatPtrExpr realloc(FatPtrExpr pointer, SimpleExpr length) {
-    SimpleExpr array = new FatPtrRealloc(pointer, length);
+  public FatPtrExpr realloc(FatPtrExpr pointer, SimpleExpr newSizeInBytes) {
+    SimpleExpr sizeInElements = Expressions.divide(newSizeInBytes, valueFunction.getElementSize());
+    SimpleExpr array = new FatPtrRealloc(pointer, sizeInElements);
     SimpleExpr offset = Expressions.zero();
     
     return new FatPtrExpr(array, offset);

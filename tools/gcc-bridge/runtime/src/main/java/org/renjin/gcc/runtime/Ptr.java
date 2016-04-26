@@ -7,4 +7,6 @@ public interface Ptr {
   
   int getOffset();
   
+  Ptr realloc(int newSizeInBytes);
+  
 }

@@ -9,9 +9,9 @@ import org.renjin.gcc.gimple.GimpleOp;
 
 public interface PointerTypeStrategy<ExprT extends Expr> extends TypeStrategy<ExprT> {
   
-  ExprT malloc(MethodGenerator mv, SimpleExpr length);
+  ExprT malloc(MethodGenerator mv, SimpleExpr sizeInBytes);
 
-  ExprT realloc(ExprT pointer, SimpleExpr length);
+  ExprT realloc(ExprT pointer, SimpleExpr newSizeInBytes);
 
   ExprT pointerPlus(ExprT pointer, SimpleExpr offsetInBytes);
 

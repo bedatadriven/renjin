@@ -27,6 +27,11 @@ public class LongPtr implements Ptr {
     return offset;
   }
 
+  @Override
+  public LongPtr realloc(int newSizeInBytes) {
+    return new LongPtr(Realloc.realloc(array, offset, newSizeInBytes / 8));
+  }
+
   public long unwrap() {
     return array[offset];
   }

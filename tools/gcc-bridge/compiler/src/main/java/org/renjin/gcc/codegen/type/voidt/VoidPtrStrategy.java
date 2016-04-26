@@ -29,13 +29,13 @@ import org.renjin.gcc.runtime.VoidPtr;
  */
 public class VoidPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
   @Override
-  public SimpleExpr malloc(MethodGenerator mv, SimpleExpr length) {
-    throw new InternalCompilerException("(void*)malloc() not supported.");
+  public SimpleExpr malloc(MethodGenerator mv, SimpleExpr sizeInBytes) {
+    throw new InternalCompilerException("(void*)malloc() not yet supported.");
   }
 
   @Override
-  public SimpleExpr realloc(SimpleExpr pointer, SimpleExpr length) {
-    throw new InternalCompilerException("(void*)malloc() not supported.");
+  public SimpleExpr realloc(final SimpleExpr pointer, SimpleExpr newSizeInBytes) {
+    return new VoidPtrRealloc(pointer, newSizeInBytes);
   }
 
   @Override

@@ -27,6 +27,11 @@ public class IntPtr implements Ptr {
     return offset;
   }
 
+  @Override
+  public IntPtr realloc(int newSizeInBytes) {
+    return new IntPtr(Realloc.realloc(array, offset, newSizeInBytes / 4));
+  }
+
   public int unwrap() {
     return array[offset];
   }

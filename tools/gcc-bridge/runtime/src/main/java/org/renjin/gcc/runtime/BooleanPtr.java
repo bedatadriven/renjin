@@ -28,4 +28,9 @@ public class BooleanPtr implements Ptr {
   public int getOffset() {
     return offset;
   }
+
+  @Override
+  public BooleanPtr realloc(int newSizeInBytes) {
+    return new BooleanPtr(Realloc.realloc(array, offset, newSizeInBytes));
+  }
 }

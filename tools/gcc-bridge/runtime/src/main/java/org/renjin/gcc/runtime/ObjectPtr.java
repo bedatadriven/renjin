@@ -29,6 +29,11 @@ public class ObjectPtr<T> implements Ptr {
     return offset;
   }
 
+  @Override
+  public ObjectPtr<T> realloc(int newSizeInBytes) {
+    return new ObjectPtr(Realloc.realloc(array, offset, newSizeInBytes / 4));
+  }
+
   public void update(Object[] array, int offset) {
     this.array = array;
     this.offset = offset;

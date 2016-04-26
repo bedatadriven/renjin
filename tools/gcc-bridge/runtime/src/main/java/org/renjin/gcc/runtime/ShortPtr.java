@@ -27,6 +27,11 @@ public class ShortPtr implements Ptr {
     return offset;
   }
 
+  @Override
+  public Ptr realloc(int newSizeInBytes) {
+    return new ShortPtr(Realloc.realloc(array, offset, newSizeInBytes / 2));
+  }
+
   public short unwrap() {
     return array[offset];
   }

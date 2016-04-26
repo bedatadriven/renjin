@@ -85,4 +85,9 @@ public class BytePtr implements Ptr {
   public int getOffset() {
     return offset;
   }
+
+  @Override
+  public BytePtr realloc(int newSizeInBytes) {
+    return new BytePtr(Realloc.realloc(array, offset, newSizeInBytes));
+  }
 }

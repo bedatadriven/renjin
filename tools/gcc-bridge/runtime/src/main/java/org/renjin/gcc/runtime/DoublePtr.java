@@ -26,7 +26,12 @@ public class DoublePtr implements Ptr {
   public int getOffset() {
     return offset;
   }
-  
+
+  @Override
+  public DoublePtr realloc(int newSizeInBytes) {
+    return new DoublePtr(Realloc.realloc(array, offset, newSizeInBytes / 8));
+  }
+
   @Override
   public String toString() {
     return offset + "+" + Arrays.toString(array);

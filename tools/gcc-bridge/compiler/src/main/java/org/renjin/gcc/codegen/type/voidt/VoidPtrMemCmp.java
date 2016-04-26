@@ -4,6 +4,7 @@ import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.SimpleExpr;
 import org.renjin.gcc.runtime.ObjectPtr;
+import org.renjin.gcc.runtime.VoidPtr;
 
 import javax.annotation.Nonnull;
 
@@ -34,7 +35,7 @@ public class VoidPtrMemCmp implements SimpleExpr {
     x.load(mv);
     y.load(mv);
     n.load(mv);
-    mv.invokestatic(ObjectPtr.class, "memcmp", 
+    mv.invokestatic(VoidPtr.class, "memcmp", 
         Type.getMethodDescriptor(Type.INT_TYPE, 
             Type.getType(Object.class), Type.getType(Object.class), Type.INT_TYPE));
   }

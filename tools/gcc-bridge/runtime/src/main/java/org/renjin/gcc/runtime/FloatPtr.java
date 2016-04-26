@@ -19,6 +19,16 @@ public class FloatPtr implements Ptr {
   }
 
   @Override
+  public float[] getArray() {
+    return array;
+  }
+
+  @Override
+  public int getOffset() {
+    return offset;
+  }
+
+  @Override
   public String toString() {
     return offset + "+" + Arrays.toString(array);
   }

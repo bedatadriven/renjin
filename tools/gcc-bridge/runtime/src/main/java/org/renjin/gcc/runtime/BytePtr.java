@@ -75,4 +75,14 @@ public class BytePtr implements Ptr {
   public static void memset(byte[] str, int strOffset, int c, int n) {
     Arrays.fill(str, strOffset, strOffset + (c / Double.SIZE), (byte)c);
   }
+
+  @Override
+  public byte[] getArray() {
+    return array;
+  }
+
+  @Override
+  public int getOffset() {
+    return offset;
+  }
 }

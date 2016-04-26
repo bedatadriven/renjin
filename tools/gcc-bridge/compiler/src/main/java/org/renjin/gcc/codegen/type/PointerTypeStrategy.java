@@ -26,4 +26,6 @@ public interface PointerTypeStrategy<ExprT extends Expr> extends TypeStrategy<Ex
   void memoryCopy(MethodGenerator mv, ExprT destination, ExprT source, SimpleExpr length);
 
   void memorySet(MethodGenerator mv, ExprT pointer, SimpleExpr byteValue, SimpleExpr length);
+
+  SimpleExpr toVoidPointer(ExprT ptrExpr);
 }

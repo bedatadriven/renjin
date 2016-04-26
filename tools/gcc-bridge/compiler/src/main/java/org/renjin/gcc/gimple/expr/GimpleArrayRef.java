@@ -1,12 +1,23 @@
 package org.renjin.gcc.gimple.expr;
 
 import com.google.common.base.Predicate;
+import org.renjin.gcc.gimple.type.GimpleArrayType;
+import org.renjin.gcc.gimple.type.GimpleIntegerType;
 
 import java.util.List;
 
 public class GimpleArrayRef extends GimpleLValue {
   private GimpleExpr array;
   private GimpleExpr index;
+
+  public GimpleArrayRef() {
+  }
+  
+  public GimpleArrayRef(GimpleExpr array, int index) {
+    this.array = array;
+    this.index = new GimpleIntegerConstant(GimpleIntegerType.unsigned(32), index);
+    this.setType(((GimpleArrayType) array.getType()).getComponentType());
+  }
 
   public GimpleExpr getArray() {
     return array;

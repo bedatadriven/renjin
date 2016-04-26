@@ -23,17 +23,18 @@ public class FatPtrConditionGenerator implements ConditionGenerator {
   public void emitJump(MethodGenerator mv, Label trueLabel, Label falseLabel) {
     switch (op) {
       case EQ_EXPR:
-        jump(mv, trueLabel, falseLabel);
+        jumpOnEqual(mv, trueLabel, falseLabel);
         break;
       case NE_EXPR:
-        jump(mv, falseLabel, trueLabel);
+        jumpOnEqual(mv, falseLabel, trueLabel);
         break;
       default:
-        throw new UnsupportedOperationException("op: " + op);
+        jumpOnComparison(mv, trueLabel, falseLabel);
+        break;
     }
   }
 
-  private void jump(MethodGenerator mv, Label equalLabel, Label notEqualLabel) {
+  private void jumpOnEqual(MethodGenerator mv, Label equalLabel, Label notEqualLabel) {
 
     // First compare the pointer arrays
     // jump immediately to the notEqualLabel
@@ -49,6 +50,56 @@ public class FatPtrConditionGenerator implements ConditionGenerator {
     
     // If we get here, then the pointer is equal
     mv.goTo(equalLabel);
+  }
+
+  private void jumpOnComparison(MethodGenerator mv, Label trueLabel, Label falseLabel) {
+    
+    Label arraysEqual = new Label();
+
+    // First push the address of the two arrays on the stack
+    // and check if they are equal
+    x.getArray().load(mv);
+    y.getArray().load(mv);
+    mv.ifacmpeq(arraysEqual);
+    
+    // If the arrays are not the same, compare the address of the array
+    x.getArray().load(mv);
+    mv.invokeIdentityHashCode();
+    y.getArray().load(mv);
+    mv.invokeIdentityHashCode();
+    switch (op) {
+      case LT_EXPR:
+      case LE_EXPR:
+        mv.ificmplt(trueLabel);
+        break;
+      case GT_EXPR:
+      case GE_EXPR:
+        mv.ificmpgt(falseLabel);
+        break;
+    }
+    mv.goTo(falseLabel);
+    
+    // Arrays are the same, compare the offsets
+    mv.mark(arraysEqual);
+    x.getOffset().load(mv);
+    y.getOffset().load(mv);
+
+    switch (op) {
+      case LT_EXPR:
+        mv.ificmplt(trueLabel);
+        break;
+      case LE_EXPR:
+        mv.ificmple(trueLabel);
+        break;
+      case GT_EXPR:
+        mv.ificmpgt(trueLabel);
+        break;
+      case GE_EXPR:
+        mv.ificmpge(falseLabel);
+        break;
+    }
+    
+    mv.goTo(falseLabel);
   }
 
 }

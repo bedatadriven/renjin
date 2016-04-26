@@ -93,6 +93,11 @@ public class FunPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
   }
 
   @Override
+  public SimpleExpr toVoidPointer(SimpleExpr ptrExpr) {
+    return ptrExpr;
+  }
+
+  @Override
   public SimpleExpr malloc(MethodGenerator mv, SimpleExpr length) {
     throw new UnsupportedOperationException("Cannot malloc function pointers");
   }

@@ -18,6 +18,16 @@ public class DoublePtr implements Ptr {
   }
 
   @Override
+  public double[] getArray() {
+    return array;
+  }
+
+  @Override
+  public int getOffset() {
+    return offset;
+  }
+  
+  @Override
   public String toString() {
     return offset + "+" + Arrays.toString(array);
   }
@@ -104,4 +114,6 @@ public class DoublePtr implements Ptr {
     
     Arrays.fill(str, strOffset, strOffset + (c / Double.SIZE), doubleValue);
   }
+
+
 }

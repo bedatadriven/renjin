@@ -52,6 +52,6 @@ public class VoidTypeStrategy implements TypeStrategy<SimpleExpr> {
 
   @Override
   public ArrayTypeStrategy arrayOf(GimpleArrayType arrayType) {
-    throw new UnsupportedOperationException("TODO");
+    throw new UnsupportedOperationException("arrays cannot have component type of 'void'");
   }
 }

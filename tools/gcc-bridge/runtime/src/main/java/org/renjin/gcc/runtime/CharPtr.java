@@ -16,6 +16,16 @@ public class CharPtr implements Ptr {
     this.offset = 0;
   }
 
+  @Override
+  public char[] getArray() {
+    return array;
+  }
+
+  @Override
+  public int getOffset() {
+    return offset;
+  }
+
   public static CharPtr fromString(String string) {
     int nchars = string.length();
     char array[] = new char[nchars+1];

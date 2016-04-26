@@ -17,6 +17,16 @@ public class IntPtr implements Ptr {
     this.offset = 0;
   }
 
+  @Override
+  public int[] getArray() {
+    return array;
+  }
+
+  @Override
+  public int getOffset() {
+    return offset;
+  }
+
   public int unwrap() {
     return array[offset];
   }

@@ -17,6 +17,16 @@ public class ShortPtr implements Ptr {
     this.offset = 0;
   }
 
+  @Override
+  public short[] getArray() {
+    return array;
+  }
+
+  @Override
+  public int getOffset() {
+    return offset;
+  }
+
   public short unwrap() {
     return array[offset];
   }

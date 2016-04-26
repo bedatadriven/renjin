@@ -790,6 +790,8 @@ public class GimpleCompilerTest extends AbstractGccTest {
 
     assertThat((Integer)clazz.getMethod("test_double").invoke(null), equalTo(1));
     assertThat((Integer)clazz.getMethod("test_integer").invoke(null), equalTo(0));
+    assertThat((Integer)clazz.getMethod("test_offset").invoke(null), equalTo(1));
+    assertThat((Integer)clazz.getMethod("test_comparison").invoke(null), equalTo(0));
 
   }
 }

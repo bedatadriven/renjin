@@ -229,6 +229,11 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtrExpr> {
   }
 
   @Override
+  public SimpleExpr toVoidPointer(FatPtrExpr ptrExpr) {
+    return ptrExpr.wrap();
+  }
+
+  @Override
   public FatPtrExpr nullPointer() {
     return FatPtrExpr.nullPtr(valueFunction);
   }

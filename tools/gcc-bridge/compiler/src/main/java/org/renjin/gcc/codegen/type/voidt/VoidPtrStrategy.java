@@ -15,9 +15,17 @@ import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
-import org.renjin.gcc.runtime.ObjectPtr;
+import org.renjin.gcc.runtime.VoidPtr;
 
 
+/**
+ * Strategy for handling pointers of unknown type.
+ * 
+ * <p>GCC Bridge compiles {@code void *} types as values of type {@code java.lang.Object}.
+ * Void pointers may point a Fat Pointer object such as {@link org.renjin.gcc.runtime.DoublePtr}, 
+ * to a {@link java.lang.invoke.MethodHandle}, or to record type for records that use the 
+ * {@link org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrStrategy}.</p>
+ */
 public class VoidPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
   @Override
   public SimpleExpr malloc(MethodGenerator mv, SimpleExpr length) {
@@ -46,7 +54,7 @@ public class VoidPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
 
   @Override
   public ConditionGenerator comparePointers(GimpleOp op, SimpleExpr x, SimpleExpr y) {
-    throw new UnsupportedOperationException("TODO");
+    return new VoidPtrComparison(op, x, y);
   }
 
   @Override
@@ -61,13 +69,19 @@ public class VoidPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
     source.load(mv);
     length.load(mv);
     
-    mv.invokestatic(ObjectPtr.class, "memcpy", Type.getMethodDescriptor(Type.VOID_TYPE, 
-          Type.getType(Object.class), Type.getType(Object.class), Type.INT_TYPE));
+    mv.invokestatic(VoidPtr.class, "memcpy", 
+        Type.getMethodDescriptor(Type.VOID_TYPE, 
+            Type.getType(Object.class), Type.getType(Object.class), Type.INT_TYPE));
   }
 
   @Override
   public void memorySet(MethodGenerator mv, SimpleExpr pointer, SimpleExpr byteValue, SimpleExpr length) {
     throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public SimpleExpr toVoidPointer(SimpleExpr ptrExpr) {
+    return ptrExpr;
   }
 
   @Override

@@ -51,11 +51,17 @@ public class ExprFactory {
 
       if (rhsType instanceof GimplePrimitiveType) {
         if (!lhsType.equals(rhsType)) {
-          return new CastGenerator((SimpleExpr)rhs, 
-              ((GimplePrimitiveType) rhsType), 
+          return new CastGenerator((SimpleExpr) rhs,
+              ((GimplePrimitiveType) rhsType),
               (GimplePrimitiveType) lhsType);
         }
       }
+    } else if(lhsType.isPointerTo(GimpleVoidType.class)) {
+      if(!(rhsType instanceof GimplePointerType)) {
+        throw new InternalCompilerException("Cannot cast " + rhsType + " to void*");
+      }
+      return typeOracle.forPointerType(rhsType).toVoidPointer(rhs);
+      
     } else if(
         lhsType.isPointerTo(GimpleRecordType.class) &&
             rhsType.isPointerTo(GimpleVoidType.class)) {
@@ -198,8 +204,25 @@ public class ExprFactory {
           x.getType() + " and " + y.getType());
     }
   }
+  
+  private GimpleExpr simplifyArrayPointer(GimpleExpr x) {
+    // Change &x[] to &x[0]
+    if(x instanceof GimpleAddressOf) {
+      GimpleAddressOf addressOf = (GimpleAddressOf) x;
+      if(addressOf.getValue().getType() instanceof GimpleArrayType) {
+        GimpleExpr array = addressOf.getValue();
+        GimpleArrayRef firstElement = new GimpleArrayRef(array, 0);
+        return new GimpleAddressOf(firstElement);
+      }
+    }
+    // Otherwise no change
+    return x;
+  }
 
   private ConditionGenerator comparePointers(GimpleOp op, GimpleExpr x, GimpleExpr y) {
+    
+    x = simplifyArrayPointer(x);
+    y = simplifyArrayPointer(y);
     
     if(!x.getType().equals(y.getType())) {
       throw new InternalCompilerException(String.format("pointer comparison types do not match: %s != %s", 
@@ -226,7 +249,7 @@ public class ExprFactory {
         return findBinOpGenerator(op, operands);
 
       case POINTER_PLUS_EXPR:
-        return pointerPlus(operands.get(0), operands.get(1));
+        return pointerPlus(operands.get(0), operands.get(1), expectedType);
 
       case BIT_NOT_EXPR:
         return new BitwiseNot((SimpleExpr)findGenerator(operands.get(0)));
@@ -314,11 +337,14 @@ public class ExprFactory {
     }
   }
 
-  private Expr pointerPlus(GimpleExpr pointerExpr, GimpleExpr offsetExpr) {
+  private Expr pointerPlus(GimpleExpr pointerExpr, GimpleExpr offsetExpr, GimpleType expectedType) {
     Expr pointer = findGenerator(pointerExpr);
     SimpleExpr offsetInBytes = findValueGenerator(offsetExpr);
+
+    GimpleType pointerType = pointerExpr.getType();
+    Expr result = typeOracle.forPointerType(pointerType).pointerPlus(pointer, offsetInBytes);
     
-    return typeOracle.forPointerType(pointerExpr.getType()).pointerPlus(pointer, offsetInBytes);
+    return maybeCast(result, expectedType, pointerType);
   }
 
   private <T extends Expr> T findGenerator(GimpleExpr gimpleExpr, Class<T> exprClass) {

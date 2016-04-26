@@ -17,6 +17,16 @@ public class LongPtr implements Ptr {
     this.offset = 0;
   }
 
+  @Override
+  public long[] getArray() {
+    return array;
+  }
+
+  @Override
+  public int getOffset() {
+    return offset;
+  }
+
   public long unwrap() {
     return array[offset];
   }

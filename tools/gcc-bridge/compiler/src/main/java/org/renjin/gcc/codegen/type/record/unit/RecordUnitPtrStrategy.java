@@ -129,6 +129,11 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
   }
 
   @Override
+  public SimpleExpr toVoidPointer(SimpleExpr ptrExpr) {
+    return ptrExpr;
+  }
+
+  @Override
   public Expr valueOf(SimpleExpr pointerExpr) {
     return pointerExpr;
   }

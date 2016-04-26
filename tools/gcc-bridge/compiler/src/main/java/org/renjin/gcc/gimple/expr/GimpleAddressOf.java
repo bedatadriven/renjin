@@ -1,12 +1,21 @@
 package org.renjin.gcc.gimple.expr;
 
 import com.google.common.base.Predicate;
+import org.renjin.gcc.gimple.type.GimplePointerType;
 
 import java.util.List;
 
 public class GimpleAddressOf extends GimpleExpr {
 
   public GimpleExpr value;
+
+  public GimpleAddressOf() {
+  }
+  
+  public GimpleAddressOf(GimpleExpr value) {
+    this.value = value;
+    setType(new GimplePointerType(value.getType()));
+  }
 
   public GimpleExpr getValue() {
     return value;

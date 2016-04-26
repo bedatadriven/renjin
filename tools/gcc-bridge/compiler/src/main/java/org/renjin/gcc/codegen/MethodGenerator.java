@@ -38,6 +38,10 @@ public class MethodGenerator extends InstructionAdapter {
         declaringClass.isInterface());
   }
   
+  public void invokeIdentityHashCode() {
+    invokestatic(System.class, "identityHashCode", "(Ljava/lang/Object;)I");
+  }
+  
   public void putfield(Type declaringClass, String name, Type fieldType) {
     putfield(declaringClass.getInternalName(), name, fieldType.getDescriptor());
   }

@@ -19,4 +19,13 @@ public class BooleanPtr implements Ptr {
     return array[offset];
   }
 
+  @Override
+  public boolean[] getArray() {
+    return array;
+  }
+
+  @Override
+  public int getOffset() {
+    return offset;
+  }
 }

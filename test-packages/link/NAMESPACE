@@ -1,0 +1,3 @@
+useDynLib(native, Cmydoublesum = mydoublesum)
+
+export(mydoublesum)

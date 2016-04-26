@@ -1,9 +1,8 @@
 package org.renjin.gcc.symbols;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-
 import org.objectweb.asm.Handle;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.FunctionGenerator;
@@ -17,10 +16,12 @@ import org.renjin.gcc.gimple.CallingConvention;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
 import org.renjin.gcc.gimple.expr.GimpleSymbolRef;
+import org.renjin.gcc.link.LinkSymbol;
 import org.renjin.gcc.runtime.Builtins;
 import org.renjin.gcc.runtime.Mathlib;
 import org.renjin.gcc.runtime.Stdlib;
 
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.List;
@@ -37,6 +38,7 @@ import static java.lang.String.format;
  */
 public class GlobalSymbolTable implements SymbolTable {
 
+  private ClassLoader linkClassLoader = getClass().getClassLoader();
   private TypeOracle typeOracle;
   private Map<String, CallGenerator> functions = Maps.newHashMap();
   private Map<String, Expr> globalVariables = Maps.newHashMap();
@@ -45,16 +47,36 @@ public class GlobalSymbolTable implements SymbolTable {
     this.typeOracle = typeOracle;
   }
 
+  public void setLinkClassLoader(ClassLoader linkClassLoader) {
+    this.linkClassLoader = linkClassLoader;
+  }
+
   @Override
   public CallGenerator findCallGenerator(GimpleFunctionRef ref, List<GimpleExpr> operands, CallingConvention callingConvention) {
     String mangledName = callingConvention.mangleFunctionName(ref.getName());
     CallGenerator generator = functions.get(mangledName);
+    
+    // Try to find the symbol on the classpath
+    if(generator == null) {
+      Optional<LinkSymbol> linkSymbol = null;
+      try {
+        linkSymbol = LinkSymbol.lookup(linkClassLoader, mangledName);
+      } catch (IOException e) {
+        throw new InternalCompilerException("Exception loading link symbol " + mangledName, e);
+      }
+      if(linkSymbol.isPresent()) {
+        Method method = linkSymbol.get().loadMethod(linkClassLoader);
+        generator = new FunctionCallGenerator(new StaticMethodStrategy(typeOracle, method));
+        functions.put(mangledName, generator);
+      }
+    }
+    
     if(generator == null) {
       throw new UnsupportedOperationException("Could not find function '" + mangledName + "'");
     }
     return generator;
   }
-  
+
   @Override
   public Handle findHandle(GimpleFunctionRef ref, CallingConvention callingConvention) {
     CallGenerator callGenerator = findCallGenerator(ref, null, callingConvention);

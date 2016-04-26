@@ -19,6 +19,7 @@ import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
+import org.renjin.gcc.link.LinkSymbol;
 import org.renjin.gcc.symbols.GlobalSymbolTable;
 
 import java.io.File;
@@ -70,8 +71,6 @@ public class GimpleCompiler  {
     functionBodyTransformers.add(AddressableFinder.INSTANCE);
     functionBodyTransformers.add(ResultDeclRewriter.INSTANCE);
     functionBodyTransformers.add(LocalVariableInitializer.INSTANCE);
-//    Disabled for now, leads to too many errors
-//    functionBodyTransformers.add(TreeBuilder.INSTANCE);
     globalSymbolTable = new GlobalSymbolTable(typeOracle);
     globalSymbolTable.addDefaults();
   }
@@ -167,10 +166,27 @@ public class GimpleCompiler  {
       generator.emit();
       writeClass(generator.getClassName(), generator.toByteArray());
     }
+    
+    // Write link metadata to META-INF/org.renjin.gcc.symbols
+    writeLinkMetadata();
 
-    // Also store an index to symbols in this library
+    // If requested, generate a single class that wraps all exported functions
     if(trampolineClassName != null) {
       writeTrampolineClass();
+    }
+  }
+
+  private void writeLinkMetadata() throws IOException {
+
+    for (Map.Entry<String, CallGenerator> entry : globalSymbolTable.getFunctions()) {
+      if (entry.getValue() instanceof FunctionCallGenerator) {
+        FunctionCallGenerator functionCallGenerator = (FunctionCallGenerator) entry.getValue();
+        if (functionCallGenerator.getStrategy() instanceof FunctionGenerator) {
+          FunctionGenerator functionGenerator = (FunctionGenerator) functionCallGenerator.getStrategy();
+          LinkSymbol symbol = LinkSymbol.forFunction(entry.getKey(), functionGenerator.getMethodHandle());
+          symbol.write(outputDirectory);
+        }
+      }
     }
   }
 
@@ -362,5 +378,9 @@ public class GimpleCompiler  {
 
   public void setRecordClassPrefix(String recordClassPrefix) {
     this.recordClassPrefix = recordClassPrefix;
+  }
+
+  public void setLinkClassLoader(ClassLoader linkClassLoader) {
+    this.globalSymbolTable.setLinkClassLoader(linkClassLoader);
   }
 }

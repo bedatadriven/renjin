@@ -29,5 +29,6 @@
     <module>evalOrder</module>
     <module>dataTest</module>
     <module>native</module>
+    <module>link</module>
   </modules>
 </project>

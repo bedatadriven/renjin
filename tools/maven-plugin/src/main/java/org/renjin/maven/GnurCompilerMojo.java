@@ -15,10 +15,15 @@ import org.apache.maven.project.MavenProjectHelper;
 import org.renjin.gnur.GnurSourcesCompiler;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.List;
 import java.util.jar.JarEntry;
+import java.util.jar.JarInputStream;
 import java.util.jar.JarOutputStream;
 
 /**
@@ -70,6 +75,8 @@ public class GnurCompilerMojo extends AbstractMojo {
   @Parameter(defaultValue = "${project.build.finalName}")
   private String finalName;
 
+  @Parameter(defaultValue = "${project.build.directory}/include")
+  private File unpackedIncludeDir;
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
@@ -90,10 +97,14 @@ public class GnurCompilerMojo extends AbstractMojo {
     compiler.setVerbose(false);
     compiler.setPackageName(project.getGroupId() + "." + project.getArtifactId());
     compiler.setClassName(project.getArtifactId());
-    compiler.addClassPaths(pluginDependencies());
     compiler.setWorkDirectory(workDirectory);
     compiler.setOutputDirectory(outputDirectory);
     compiler.setGimpleDirectory(gimpleDirectory);
+    compiler.setLinkClassLoader(getLinkClassLoader());
+    
+    // Unpack any headers from dependencies
+    unpackHeaders();
+    compiler.addIncludeDir(unpackedIncludeDir);
 
     // Add the standard GNU R inst/include to the compiler's
     // include path if it exists
@@ -141,6 +152,18 @@ public class GnurCompilerMojo extends AbstractMojo {
     }
     return paths;
   }
+  
+  private void unpackHeaders() throws MojoExecutionException {
+
+    ensureDirExists(unpackedIncludeDir);
+
+    List<Artifact> compileArtifacts = project.getCompileArtifacts();
+    for (Artifact compileArtifact : compileArtifacts) {
+      if("headers".equals(compileArtifact.getClassifier())) {
+        extractHeaders(compileArtifact);
+      }
+    }
+  }
 
 
   public void archiveHeaders(File includeDirectory) throws MojoExecutionException, MojoFailureException {
@@ -171,6 +194,55 @@ public class GnurCompilerMojo extends AbstractMojo {
           Files.asByteSource(includeFile).copyTo(output);
         }
       }
+    }
+  }
+
+  private void extractHeaders(Artifact compileArtifact) throws MojoExecutionException {
+    if(compileArtifact.getFile() == null) {
+      throw new MojoExecutionException("Depedency " + compileArtifact.getId() + " has not been resolved.");
+    }
+    try(JarInputStream in = new JarInputStream(new FileInputStream(compileArtifact.getFile()))) {
+      JarEntry entry;
+      while((entry=in.getNextJarEntry()) != null) {
+        if(!entry.isDirectory()) {
+          File destFile = new File(unpackedIncludeDir + File.separator + entry.getName());
+
+          getLog().debug("Unpacking " + entry.getName() + " to " + destFile);
+
+          ensureDirExists(destFile.getParentFile());
+          Files.asByteSink(destFile).writeFrom(in);
+        }
+      }
+    } catch (IOException e) {
+      throw new MojoExecutionException("Exception unpacking headers", e);
+    }
+  }
+
+  private void ensureDirExists(File unpackDir) throws MojoExecutionException {
+    if(!unpackDir.exists()) {
+      boolean created = unpackDir.mkdirs();
+      if(!created) {
+        throw new MojoExecutionException("Failed to create include directory " + unpackDir.getAbsolutePath());
+      }
+    }
+  }
+
+  private ClassLoader getLinkClassLoader() throws MojoExecutionException  {
+    try {
+      getLog().debug("GCC-Bridge Link Classpath: ");
+
+      List<URL> classpathURLs = Lists.newArrayList();
+      classpathURLs.add( new File(project.getBuild().getOutputDirectory()).toURI().toURL() );
+
+      for(Artifact artifact : (List<Artifact>)project.getCompileArtifacts()) {
+        getLog().debug("  "  + artifact.getFile());
+
+        classpathURLs.add(artifact.getFile().toURI().toURL());
+      }
+
+      return new URLClassLoader( classpathURLs.toArray( new URL[ classpathURLs.size() ] ), getClass().getClassLoader());
+    } catch(MalformedURLException e) {
+      throw new MojoExecutionException("Exception resolving classpath", e);
     }
   }
 }

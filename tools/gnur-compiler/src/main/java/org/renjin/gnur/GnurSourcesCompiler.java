@@ -32,11 +32,11 @@ public class GnurSourcesCompiler {
   private String className;
   private boolean verbose = true;
   private List<File> sources = Lists.newArrayList();
-  private List<File> classPaths = Lists.newArrayList();
   private File gimpleDirectory = new File("target/gimple");
   private File workDirectory;
   private File outputDirectory = new File("target/classes");
   private List<File> includeDirs = Lists.newArrayList();
+  private ClassLoader linkClassLoader = getClass().getClassLoader();
   
 
   public void setPackageName(String packageName) {
@@ -73,10 +73,9 @@ public class GnurSourcesCompiler {
     }
   }
 
-  public void addClassPaths(List<File> paths) {
-    classPaths.addAll(paths);
+  public void setLinkClassLoader(ClassLoader linkClassLoader) {
+    this.linkClassLoader = linkClassLoader;
   }
-
 
   public void compile() throws Exception {
 
@@ -124,6 +123,7 @@ public class GnurSourcesCompiler {
       compiler.setClassName(className);
       compiler.setVerbose(verbose);
 
+      compiler.setLinkClassLoader(linkClassLoader);
       compiler.addMathLibrary();
 
       compiler.addReferenceClass(Class.forName("org.renjin.appl.Appl"));

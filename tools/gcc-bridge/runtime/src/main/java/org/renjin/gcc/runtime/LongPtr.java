@@ -31,6 +31,11 @@ public class LongPtr implements Ptr {
     return offset + "+" + Arrays.toString(array);
   }
   
+  
+  public static int memcmp(LongPtr x, LongPtr y, int n) {
+    return memcmp(x.array, x.offset, y.array, y.offset, n);
+  }
+  
   public static int memcmp(long[] x, int xi, long[] y, int yi, int n) {
     while(n > 0) {
       long vx = x[xi];

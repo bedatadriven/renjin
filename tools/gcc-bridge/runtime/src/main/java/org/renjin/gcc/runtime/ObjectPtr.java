@@ -55,4 +55,22 @@ public class ObjectPtr<T> implements Ptr {
     
     Arrays.fill(str, strOffset, strOffset + (c / 32), null);
   }
+  
+  public static int memcmp(Object x, Object y, int numBytes) {
+    if(x instanceof DoublePtr && y instanceof DoublePtr) {
+      return DoublePtr.memcmp(((DoublePtr) x), ((DoublePtr) y), numBytes);
+    }
+    if(x instanceof LongPtr && y instanceof LongPtr) {
+      return LongPtr.memcmp(((LongPtr) x), ((LongPtr) y), numBytes);
+    }
+    if(x instanceof IntPtr && y instanceof IntPtr) {
+      return IntPtr.memcmp(((IntPtr) x), ((IntPtr) y), numBytes);
+    }
+    throw new UnsupportedOperationException("Not implemented: memcmp(" + 
+        x.getClass().getName() + ", " + y.getClass().getName() + ", n)");
+  }
+  
+  public static void memcpy(Object x, Object y, int numBytes) {
+    throw new UnsupportedOperationException("TODO: Implement ObjectPtr.memcpy");
+  }
 }

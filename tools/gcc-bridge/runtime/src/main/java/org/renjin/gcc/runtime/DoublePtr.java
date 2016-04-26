@@ -41,6 +41,19 @@ public class DoublePtr implements Ptr {
 
   /**
    * Performs a byte-by-byte comparison of the given double arrays.
+   *
+   * @param x the first pointer
+   * @param y the second pointer
+   * @param n the number of <strong>bytes</strong> to compare
+   * @return 0 if the two arrrays are byte-for-byte equal, or -1 if the first 
+   * array is less than the second array, or > 0 if the second array is greater than the first array
+   */
+  public static int memcmp(DoublePtr x, DoublePtr y, int numBytes) {
+    return memcmp(x.array, x.offset, y.array, y.offset, numBytes);
+  }
+  
+  /**
+   * Performs a byte-by-byte comparison of the given double arrays.
    * 
    * @param x the first array
    * @param xi the start index of the first array

@@ -783,4 +783,13 @@ public class GimpleCompilerTest extends AbstractGccTest {
     
     assertThat((Double)test.invoke(null), equalTo(42.0));
   }
+  
+  @Test
+  public void voidMemcmp() throws Exception {
+    Class clazz = compile("void_memcmp.c");
+
+    assertThat((Integer)clazz.getMethod("test_double").invoke(null), equalTo(1));
+    assertThat((Integer)clazz.getMethod("test_integer").invoke(null), equalTo(0));
+
+  }
 }

@@ -13,7 +13,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Builds a list of distinct GimpleRecordTypes across compilation units
+ * Builds a list of distinct GimpleRecordTypes across compilation units.
+ * 
+ * 
  */
 public class RecordTypeDefCanonicalizer {
 
@@ -32,6 +34,12 @@ public class RecordTypeDefCanonicalizer {
   
   public static Collection<GimpleRecordTypeDef> canonicalize(List<GimpleCompilationUnit> units) {
     RecordTypeDefCanonicalizer transformer = new RecordTypeDefCanonicalizer(units);
+
+    for (Map.Entry<String, GimpleRecordTypeDef> entry : transformer.idToCanonicalMap.entrySet()) {
+      System.out.println("Canonicalized " + entry.getKey() + " => " + entry.getValue().getId() + 
+          " [" + entry.getValue().getName() + "]");
+    }
+    
     transformer.updateAllTypes(units);
     
     return transformer.canonical;
@@ -141,17 +149,6 @@ public class RecordTypeDefCanonicalizer {
     }
   }
 
-  /**
-   * Resolves a type reference to the canonical version of the {@code GimpleRecordTypeDef}
-   */
-  public GimpleRecordTypeDef resolve(GimpleRecordType recordType) {
-    GimpleRecordTypeDef canonicalDef = idToCanonicalMap.get(recordType.getId());
-    if(canonicalDef == null) {
-      throw new IllegalArgumentException("No such record: " + recordType.getId());
-    }
-    return canonicalDef;
-  }
-
   private void updateAllTypes(List<GimpleCompilationUnit> units) {
 
     // Ensure that canonical type defs reference other canonical type defs in their fields
@@ -172,6 +169,9 @@ public class RecordTypeDefCanonicalizer {
 
       for (GimpleVarDecl decl : unit.getGlobalVariables()) {
         updateType(decl.getType());
+        if(decl.getValue() != null) {
+          updateTypes(decl.getValue());
+        }
       }
       
       for (GimpleFunction function : unit.getFunctions()) {

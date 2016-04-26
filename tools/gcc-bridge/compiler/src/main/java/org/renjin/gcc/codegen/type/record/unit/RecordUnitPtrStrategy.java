@@ -62,7 +62,7 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
 
   @Override
   public ReturnStrategy getReturnStrategy() {
-    return new SimpleReturnStrategy(strategy.getJvmType());
+    return new SimpleReturnStrategy(strategy.getRecordType().pointerTo(), strategy.getJvmType());
   }
 
   @Override
@@ -131,6 +131,11 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
   @Override
   public SimpleExpr toVoidPointer(SimpleExpr ptrExpr) {
     return ptrExpr;
+  }
+
+  @Override
+  public SimpleExpr fromVoidPointer(SimpleExpr ptrExpr) {
+    return Expressions.cast(ptrExpr, strategy.getJvmType());
   }
 
   @Override

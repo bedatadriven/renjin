@@ -141,7 +141,7 @@ public class TypeOracle {
       return new VoidReturnStrategy();
 
     } else if(returnType.isPrimitive()) {
-      return new SimpleReturnStrategy(Type.getType(returnType));
+      return new SimpleReturnStrategy(GimplePrimitiveType.fromJvmType(returnType), Type.getType(returnType));
 
     } else if(WrapperType.is(returnType)) {
       WrapperType wrapperType = Wrappers.valueOf(returnType);
@@ -170,7 +170,7 @@ public class TypeOracle {
       return recordTypes.get(recordType.getId()).pointerTo().getReturnStrategy();
 
     } else if(returnType.equals(Object.class)) {
-      return new SimpleReturnStrategy(Type.getType(Object.class));
+      return new SimpleReturnStrategy(new GimpleVoidType().pointerTo(), Type.getType(Object.class));
       
     } else {
       throw new UnsupportedOperationException(String.format(

@@ -85,7 +85,7 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<SimpleExpr> {
 
   @Override
   public ReturnStrategy getReturnStrategy() {
-    return new SimpleReturnStrategy(jvmType);
+    return new SimpleReturnStrategy(getRecordType(), jvmType);
   }
 
   @Override
@@ -108,12 +108,7 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<SimpleExpr> {
   public FieldStrategy addressableFieldGenerator(Type className, String fieldName) {
     return new AddressableField(getJvmType(), fieldName, new RecordValueFunction(this));
   }
-
-  public Expr voidCast(Expr voidPtr) {
-    //return new VoidCastExprGenerator(voidPtr, getRecordType(), jvmType);
-    throw new UnsupportedOperationException();
-  }
-
+  
   @Override
   public SimpleExpr constructorExpr(ExprFactory exprFactory, GimpleConstructor value) {
     Map<GimpleFieldRef, Expr> fields = Maps.newHashMap();

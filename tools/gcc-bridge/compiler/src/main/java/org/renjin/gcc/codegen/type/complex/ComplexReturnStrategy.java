@@ -9,6 +9,7 @@ import org.renjin.gcc.codegen.expr.SimpleExpr;
 import org.renjin.gcc.codegen.expr.SimpleLValue;
 import org.renjin.gcc.codegen.type.ReturnStrategy;
 import org.renjin.gcc.gimple.type.GimpleComplexType;
+import org.renjin.gcc.gimple.type.GimpleType;
 
 /**
  * Strategy for returning a complex value as a {@code double[2]} or {@code float[2]}
@@ -24,6 +25,11 @@ public class ComplexReturnStrategy implements ReturnStrategy {
   @Override
   public Type getType() {
     return type.getJvmPartArrayType();
+  }
+
+  @Override
+  public GimpleType getGimpleType() {
+    return type;
   }
 
   @Override

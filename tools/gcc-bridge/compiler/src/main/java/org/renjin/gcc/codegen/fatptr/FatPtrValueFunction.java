@@ -5,6 +5,7 @@ import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.gimple.type.GimpleType;
 
 import java.util.Collections;
 import java.util.List;
@@ -25,6 +26,11 @@ public class FatPtrValueFunction implements ValueFunction {
   @Override
   public Type getValueType() {
     return Wrappers.wrapperType(baseValueFunction.getValueType());
+  }
+
+  @Override
+  public GimpleType getGimpleValueType() {
+    return baseValueFunction.getGimpleValueType().pointerTo();
   }
 
   @Override

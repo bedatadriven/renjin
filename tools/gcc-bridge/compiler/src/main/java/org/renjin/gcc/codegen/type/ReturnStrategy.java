@@ -4,6 +4,7 @@ import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.gimple.type.GimpleType;
 
 /**
  * Provides a strategy for return values from methods.
@@ -23,6 +24,8 @@ public interface ReturnStrategy {
    */
   Type getType();
 
+  GimpleType getGimpleType();
+
 
   /**
    * Converts if necessary the expression to be returned to a single value.
@@ -40,4 +43,5 @@ public interface ReturnStrategy {
    * we just need to push SOMETHING onto the stack.
    */
   SimpleExpr getDefaultReturnValue();
+
 }

@@ -17,6 +17,7 @@ import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
+import org.renjin.gcc.gimple.type.GimplePointerType;
 
 import java.lang.invoke.MethodHandle;
 
@@ -26,6 +27,12 @@ import java.lang.invoke.MethodHandle;
 public class FunPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
   
   public static final Type METHOD_HANDLE_TYPE = Type.getType(MethodHandle.class);
+  
+  private final GimplePointerType pointerType;
+
+  public FunPtrStrategy(GimplePointerType pointerType) {
+    this.pointerType = pointerType;
+  }
 
   @Override
   public ParamStrategy getParamStrategy() {
@@ -54,17 +61,17 @@ public class FunPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
 
   @Override
   public ReturnStrategy getReturnStrategy() {
-    return new SimpleReturnStrategy(METHOD_HANDLE_TYPE);
+    return new SimpleReturnStrategy(pointerType, METHOD_HANDLE_TYPE);
   }
 
   @Override
   public FatPtrStrategy pointerTo() {
-    return new FatPtrStrategy(new FunPtrValueFunction(32));
+    return new FatPtrStrategy(new FunPtrValueFunction(pointerType, 32));
   }
 
   @Override
   public ArrayTypeStrategy arrayOf(GimpleArrayType arrayType) {
-    return new ArrayTypeStrategy(arrayType, new FunPtrValueFunction(32));
+    return new ArrayTypeStrategy(arrayType, new FunPtrValueFunction(pointerType, 32));
   }
 
   @Override
@@ -95,6 +102,11 @@ public class FunPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
   @Override
   public SimpleExpr toVoidPointer(SimpleExpr ptrExpr) {
     return ptrExpr;
+  }
+
+  @Override
+  public SimpleExpr fromVoidPointer(SimpleExpr ptrExpr) {
+    return Expressions.cast(ptrExpr, METHOD_HANDLE_TYPE);
   }
 
   @Override

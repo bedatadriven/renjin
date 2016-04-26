@@ -779,9 +779,8 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void voidPointers() throws Exception {
     Class clazz = compile("void_ptr.c");
     
-    Method test = clazz.getMethod("test");
-    
-    assertThat((Double)test.invoke(null), equalTo(42.0));
+    assertThat((Double)clazz.getMethod("test").invoke(null), equalTo(42.0));
+    assertThat((Double)clazz.getMethod("test_from_void").invoke(null), equalTo(1.0));
   }
   
   @Test

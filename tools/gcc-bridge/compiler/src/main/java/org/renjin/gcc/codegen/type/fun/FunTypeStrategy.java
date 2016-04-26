@@ -58,7 +58,7 @@ public class FunTypeStrategy implements TypeStrategy<SimpleExpr> {
   
   @Override
   public PointerTypeStrategy pointerTo() {
-    return new FunPtrStrategy();
+    return new FunPtrStrategy(type.pointerTo());
   }
 
   @Override

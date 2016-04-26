@@ -9,6 +9,7 @@ import org.renjin.gcc.codegen.expr.SimpleExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
+import org.renjin.gcc.gimple.type.GimpleType;
 
 import java.util.Collections;
 import java.util.List;
@@ -16,42 +17,29 @@ import java.util.List;
 
 public class PrimitiveValueFunction implements ValueFunction {
 
+  private final GimplePrimitiveType gimpleType;
   private Type type;
   private int byteSize;
 
   public PrimitiveValueFunction(GimplePrimitiveType type) {
+    this.gimpleType = type;
     this.type = type.jvmType();
     this.byteSize = type.sizeOf();
   }
   
   public PrimitiveValueFunction(Type type) {
-    this.type = type;
-    switch (type.getSort()) {
-      case Type.BOOLEAN:
-      case Type.BYTE:
-        this.byteSize = 1;
-        break;
-      case Type.SHORT:
-      case Type.CHAR:
-        this.byteSize = 2;
-        break;
-      case Type.INT:
-      case Type.FLOAT:
-        this.byteSize = 4;
-        break;
-      case Type.LONG:
-      case Type.DOUBLE:
-        this.byteSize = 8;
-        break;
-      default:
-        throw new IllegalArgumentException("type: " + type);
-    }
+    this(GimplePrimitiveType.fromJvmType(type));
   }
   
 
   @Override
   public Type getValueType() {
     return type;
+  }
+
+  @Override
+  public GimpleType getGimpleValueType() {
+    return gimpleType;
   }
 
   @Override

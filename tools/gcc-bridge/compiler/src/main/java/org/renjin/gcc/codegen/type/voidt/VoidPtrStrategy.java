@@ -15,6 +15,7 @@ import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
+import org.renjin.gcc.gimple.type.GimpleVoidType;
 import org.renjin.gcc.runtime.VoidPtr;
 
 
@@ -85,13 +86,18 @@ public class VoidPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
   }
 
   @Override
+  public SimpleExpr fromVoidPointer(SimpleExpr ptrExpr) {
+    return ptrExpr;
+  }
+
+  @Override
   public ParamStrategy getParamStrategy() {
     return new VoidPtrParamStrategy();
   }
 
   @Override
   public ReturnStrategy getReturnStrategy() {
-    return new SimpleReturnStrategy(Type.getType(Object.class));
+    return new SimpleReturnStrategy(new GimpleVoidType().pointerTo(), Type.getType(Object.class));
   }
 
   @Override

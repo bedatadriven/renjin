@@ -234,6 +234,17 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtrExpr> {
   }
 
   @Override
+  public FatPtrExpr fromVoidPointer(SimpleExpr ptrExpr) {
+    Type wrapperType = Wrappers.wrapperType(valueFunction.getValueType());
+    SimpleExpr wrapperInstance = Expressions.cast(ptrExpr, wrapperType);
+
+    SimpleExpr arrayField = Wrappers.arrayField(wrapperInstance);
+    SimpleExpr offsetField = Wrappers.offsetField(wrapperInstance);
+    
+    return new FatPtrExpr(arrayField, offsetField);
+  }
+
+  @Override
   public FatPtrExpr nullPointer() {
     return FatPtrExpr.nullPtr(valueFunction);
   }

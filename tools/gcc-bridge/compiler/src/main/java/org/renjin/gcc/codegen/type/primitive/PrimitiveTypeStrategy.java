@@ -36,7 +36,7 @@ public class PrimitiveTypeStrategy implements TypeStrategy<SimpleExpr> {
 
   @Override
   public ReturnStrategy getReturnStrategy() {
-    return new SimpleReturnStrategy(type.jvmType());
+    return new SimpleReturnStrategy(type, type.jvmType());
   }
 
   @Override

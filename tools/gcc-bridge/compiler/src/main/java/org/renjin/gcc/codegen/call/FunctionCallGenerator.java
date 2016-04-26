@@ -9,6 +9,7 @@ import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
 import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.gimple.statement.GimpleCall;
+import org.renjin.gcc.gimple.type.GimpleType;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -72,10 +73,15 @@ public class FunctionCallGenerator implements CallGenerator {
     
     } else {
 
+      GimpleType lhsType = call.getLhs().getType();
+      GimpleType rhsType = strategy.getReturnStrategy().getGimpleType();
+
       Expr callExpr = strategy.getReturnStrategy().unmarshall(mv, returnValue);
+      Expr castedCallExpr = exprFactory.maybeCast(callExpr, lhsType, rhsType);
+      
       LValue lhs = (LValue) exprFactory.findGenerator(call.getLhs());
       
-      lhs.store(mv, callExpr);
+      lhs.store(mv, castedCallExpr);
     }
   }
 

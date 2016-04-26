@@ -16,7 +16,6 @@ import org.renjin.gcc.codegen.type.primitive.ConstantValue;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveCmpGenerator;
 import org.renjin.gcc.codegen.type.primitive.StringConstant;
 import org.renjin.gcc.codegen.type.primitive.op.*;
-import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
 import org.renjin.gcc.gimple.CallingConvention;
 import org.renjin.gcc.gimple.GimpleOp;
@@ -62,13 +61,13 @@ public class ExprFactory {
       }
       return typeOracle.forPointerType(rhsType).toVoidPointer(rhs);
       
-    } else if(
-        lhsType.isPointerTo(GimpleRecordType.class) &&
-            rhsType.isPointerTo(GimpleVoidType.class)) {
-
-      GimpleRecordType recordType = lhsType.getBaseType();
-      return ((RecordClassTypeStrategy) typeOracle.forType(recordType)).voidCast(rhs);
+    } else if(rhsType.isPointerTo(GimpleVoidType.class)) {
+      if(!(lhsType instanceof GimplePointerType)) {
+        throw new InternalCompilerException("Cannot cast void* to  " + lhsType);
+      }
+      return typeOracle.forPointerType(lhsType).fromVoidPointer((SimpleExpr) rhs);
     }
+    
     return rhs;
   }
 

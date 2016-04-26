@@ -6,6 +6,8 @@ import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.SimpleExpr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
+import org.renjin.gcc.gimple.type.GimplePointerType;
+import org.renjin.gcc.gimple.type.GimpleType;
 
 import java.lang.invoke.MethodHandle;
 import java.util.Collections;
@@ -14,19 +16,27 @@ import java.util.List;
 
 public class FunPtrValueFunction implements ValueFunction {
   
+  private final GimplePointerType pointerType;
   private final int pointerSize;
 
   /**
-   * 
+   *
+   * @param functionType
    * @param pointerSize the size, in bytes, of the function pointer as understood by GCC. 
    */
-  public FunPtrValueFunction(int pointerSize) {
+  public FunPtrValueFunction(GimplePointerType pointerType, int pointerSize) {
+    this.pointerType = pointerType;
     this.pointerSize = pointerSize;
   }
 
   @Override
   public Type getValueType() {
     return Type.getType(MethodHandle.class);
+  }
+
+  @Override
+  public GimpleType getGimpleValueType() {
+    return pointerType;
   }
 
   @Override

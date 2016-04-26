@@ -28,5 +28,6 @@
     <module>collateTest</module>
     <module>evalOrder</module>
     <module>dataTest</module>
+    <module>native</module>
   </modules>
 </project>

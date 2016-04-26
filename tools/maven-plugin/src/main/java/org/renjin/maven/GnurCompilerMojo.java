@@ -1,17 +1,25 @@
 package org.renjin.maven;
 
 import com.google.common.collect.Lists;
+import com.google.common.io.Files;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.apache.maven.project.MavenProject;
+import org.apache.maven.project.MavenProjectHelper;
 import org.renjin.gnur.GnurSourcesCompiler;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.List;
+import java.util.jar.JarEntry;
+import java.util.jar.JarOutputStream;
 
 /**
  * Compiles gnur C/Fortran sources to a JVM class
@@ -19,18 +27,15 @@ import java.util.List;
  */
 @Mojo(name = "gnur-sources-compile", requiresDependencyCollection = ResolutionScope.COMPILE)
 public class GnurCompilerMojo extends AbstractMojo {
+  
+  @Component
+  private MavenProject project;
 
-  @Parameter(defaultValue = "${project.groupId}")
-  private String groupId;
-  
-  @Parameter(defaultValue = "${project.artifactId}", required = true)
-  private String artifactId;
-  
+  @Component
+  private MavenProjectHelper projectHelper;
+
   @Parameter(defaultValue = "${plugin.artifacts}", readonly = true)
   private List<Artifact> pluginDependencies;
-  
-  @Parameter(defaultValue = "${project.basedir}", readonly = true)
-  private File baseDir;
   
   @Parameter(defaultValue = "${project.build.outputDirectory}", readonly = true)
   private File outputDirectory;
@@ -58,20 +63,23 @@ public class GnurCompilerMojo extends AbstractMojo {
    */
   @Parameter(defaultValue = "${project.build.directory}/gcc-work")
   private File workDirectory;
-  
+
   @Parameter
   private List<File> includeDirectories;
+
+  @Parameter(defaultValue = "${project.build.finalName}")
+  private String finalName;
 
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
 
-    if(sourceDirectories == null || sourceDirectories.isEmpty()) {
+    if (sourceDirectories == null || sourceDirectories.isEmpty()) {
       sourceDirectories = Lists.newArrayList(sourceDir("c"), sourceDir("fortran"));
     }
 
     GnurSourcesCompiler compiler = new GnurSourcesCompiler();
-    for(File sourceDir : sourceDirectories) {
+    for (File sourceDir : sourceDirectories) {
       compiler.addSources(sourceDir);
     }
 
@@ -80,42 +88,89 @@ public class GnurCompilerMojo extends AbstractMojo {
     outputDirectory.mkdirs();
 
     compiler.setVerbose(false);
-    compiler.setPackageName(groupId + "." + artifactId);
-    compiler.setClassName(artifactId);
+    compiler.setPackageName(project.getGroupId() + "." + project.getArtifactId());
+    compiler.setClassName(project.getArtifactId());
     compiler.addClassPaths(pluginDependencies());
     compiler.setWorkDirectory(workDirectory);
     compiler.setOutputDirectory(outputDirectory);
     compiler.setGimpleDirectory(gimpleDirectory);
-    
-    if(includeDirectories != null) {
+
+    // Add the standard GNU R inst/include to the compiler's
+    // include path if it exists
+    File instDir = new File(project.getBasedir(), "inst");
+    File instIncludeDir = new File(instDir, "include");
+    if (instIncludeDir.exists()) {
+      getLog().info("Adding " + instIncludeDir.getAbsolutePath() + " to include path...");
+      compiler.addIncludeDir(instIncludeDir);
+    }
+
+    if (includeDirectories != null) {
       for (File includeDirectory : includeDirectories) {
         compiler.addIncludeDir(includeDirectory);
       }
     }
-    
+
     try {
       compiler.compile();
       getLog().info("Compilation of GNU R sources succeeded.");
     } catch (Exception e) {
-      if(ignoreFailure) {
+      if (ignoreFailure) {
         getLog().error("Compilation of GNU R sources failed.");
         e.printStackTrace(System.err);
       } else {
         throw new MojoExecutionException("Compilation of GNU R sources failed", e);
       }
     }
+
+    if (instIncludeDir.exists()) {
+      archiveHeaders(instIncludeDir);
+    }
   }
 
   private File sourceDir(String subDirectory) {
-    return new File(baseDir.getAbsolutePath() + File.separator + "src" + File.separator + "main" + 
-          File.separator + subDirectory);
+    return new File(project.getBasedir().getAbsolutePath() + 
+        File.separator + "src" + 
+        File.separator + "main" +
+        File.separator + subDirectory);
   }
 
   private List<File> pluginDependencies() {
     List<File> paths = Lists.newArrayList();
-    for(Artifact artifact : pluginDependencies) {
+    for (Artifact artifact : pluginDependencies) {
       paths.add(artifact.getFile());
     }
     return paths;
+  }
+
+
+  public void archiveHeaders(File includeDirectory) throws MojoExecutionException, MojoFailureException {
+
+    File outputDir = new File(project.getBuild().getDirectory());
+    File archiveFile = new File(outputDir, finalName + "-headers.jar");
+
+    getLog().debug("Archiving headers in " + includeDirectory.getAbsolutePath());
+
+    try (JarOutputStream output = new JarOutputStream(new FileOutputStream(archiveFile))) {
+      archiveFiles(output, includeDirectory, "");
+    } catch (IOException e) {
+      throw new MojoExecutionException("Failed to create headers archive", e);
+    }
+
+    projectHelper.attachArtifact(project, "jar", "headers", archiveFile);
+  }
+
+  private void archiveFiles(JarOutputStream output, File dir, String prefix) throws IOException {
+    File[] includeFiles = dir.listFiles();
+    if (includeFiles != null) {
+      for (File includeFile : includeFiles) {
+        if (includeFile.isDirectory()) {
+          archiveFiles(output, includeFile, prefix + includeFile.getName() + "/");
+        } else {
+          JarEntry entry = new JarEntry(prefix + includeFile.getName());
+          output.putNextEntry(entry);
+          Files.asByteSource(includeFile).copyTo(output);
+        }
+      }
+    }
   }
 }

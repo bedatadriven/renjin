@@ -1,0 +1,3 @@
+useDynLib(native, .registration = TRUE)
+
+export(mysum)

@@ -36,6 +36,7 @@ public class GnurSourcesCompiler {
   private File gimpleDirectory = new File("target/gimple");
   private File workDirectory;
   private File outputDirectory = new File("target/classes");
+  private List<File> includeDirs = Lists.newArrayList();
   
 
   public void setPackageName(String packageName) {
@@ -93,6 +94,9 @@ public class GnurSourcesCompiler {
       Gcc gcc = new Gcc(getWorkDirectory());
       gcc.extractPlugin();
       gcc.addIncludeDirectory(unpackIncludes());
+      for (File includeDir : includeDirs) {
+        gcc.addIncludeDirectory(includeDir);
+      }
       gcc.setGimpleOutputDir(gimpleDirectory);
 
       for(File sourceFile : sources) {
@@ -262,6 +266,6 @@ public class GnurSourcesCompiler {
   }
 
   public void addIncludeDir(File includeDirectory) {
-    
+    includeDirs.add(includeDirectory);
   }
 }

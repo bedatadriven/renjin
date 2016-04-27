@@ -122,7 +122,7 @@ public class Stdlib {
     
     return outputString.length();
   }
-
+  
   public static int sprintf(BytePtr string, BytePtr format, Object... arguments) {
     return snprintf(string, Integer.MAX_VALUE, format, arguments);
   }
@@ -151,6 +151,10 @@ public class Stdlib {
     }
 
     return outputBytes.length;
+  }
+
+  public static int sscanf(BytePtr format, Object... arguments) { 
+    throw new UnsupportedOperationException("TODO: implement " + Stdlib.class.getName() + ".sscanf");
   }
 
   private static String doFormat(BytePtr format, Object[] arguments) {

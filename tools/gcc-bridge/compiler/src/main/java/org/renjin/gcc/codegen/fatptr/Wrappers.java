@@ -1,10 +1,13 @@
 package org.renjin.gcc.codegen.fatptr;
 
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.SimpleExpr;
 import org.renjin.gcc.runtime.*;
+
+import javax.annotation.Nonnull;
 
 /**
  * Constructs expression generators related to FatPointer wrappers.
@@ -101,6 +104,22 @@ public class Wrappers {
   public static WrapperType valueOf(Class<?> wrapperClass) {
     return WrapperType.valueOf(Type.getType(wrapperClass));
   }
+  
+  public static SimpleExpr cast(final Type valueType, final SimpleExpr pointer) {
+    final Type wrapperType = wrapperType(valueType);
 
+    return new SimpleExpr() {
+      @Nonnull
+      @Override
+      public Type getType() {
+        return wrapperType;
+      }
 
+      @Override
+      public void load(@Nonnull MethodGenerator mv) {
+        pointer.load(mv);
+        mv.invokestatic(wrapperType, "cast", Type.getMethodDescriptor(wrapperType, Type.getType(Object.class)));
+      }
+    };
+  }
 }

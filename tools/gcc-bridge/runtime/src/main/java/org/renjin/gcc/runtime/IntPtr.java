@@ -56,7 +56,7 @@ public class IntPtr implements Ptr {
    *
    * @param str an array of doubles
    * @param strOffset the first element to set
-   * @param c the byte value to set
+   * @param byteValue the byte value to set
    * @param n the number of bytes to set
    */
   public static void memset(int[] str, int strOffset, int byteValue, int n) {
@@ -115,6 +115,13 @@ public class IntPtr implements Ptr {
       y >>= 8;
     }
     return 0;
+  }
+  
+  public static IntPtr cast(Object voidPointer) {
+    if(voidPointer instanceof MallocThunk) {
+      return ((MallocThunk) voidPointer).intPtr();
+    } 
+    return (IntPtr) voidPointer;
   }
 
 }

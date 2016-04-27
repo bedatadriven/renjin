@@ -51,4 +51,19 @@ public class GimpleComplexType extends AbstractGimpleType {
   public boolean hasValidSize() {
     return getSize() == 64 || getSize() == 128;
   }
+
+  @Override
+  public boolean equals(Object other) {
+    if(!(other instanceof GimpleComplexType)) {
+      return false;
+    }
+    GimpleComplexType otherType = (GimpleComplexType) other;
+    
+    return getSize() == otherType.getSize();
+  }
+
+  @Override
+  public int hashCode() {
+    return getSize();
+  }
 }

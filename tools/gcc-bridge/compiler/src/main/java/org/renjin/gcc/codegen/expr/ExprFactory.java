@@ -6,6 +6,8 @@ import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.call.FunPtrCallGenerator;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
+import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
+import org.renjin.gcc.codegen.fatptr.Wrappers;
 import org.renjin.gcc.codegen.type.PointerTypeStrategy;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.complex.ComplexCmpGenerator;
@@ -17,6 +19,7 @@ import org.renjin.gcc.codegen.type.primitive.PrimitiveCmpGenerator;
 import org.renjin.gcc.codegen.type.primitive.StringConstant;
 import org.renjin.gcc.codegen.type.primitive.op.*;
 import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
+import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrStrategy;
 import org.renjin.gcc.gimple.CallingConvention;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.expr.*;
@@ -46,31 +49,88 @@ public class ExprFactory {
   }
 
   public Expr maybeCast(Expr rhs, GimpleType lhsType, GimpleType rhsType) {
+    
+    if(lhsType.equals(rhsType)) {
+      return rhs;
+      
+    } 
+    
     if(lhsType instanceof GimplePrimitiveType) {
-
       if (rhsType instanceof GimplePrimitiveType) {
-        if (!lhsType.equals(rhsType)) {
-          return new CastGenerator((SimpleExpr) rhs,
-              ((GimplePrimitiveType) rhsType),
-              (GimplePrimitiveType) lhsType);
-        }
+        return new CastGenerator((SimpleExpr) rhs,
+            ((GimplePrimitiveType) rhsType),
+            (GimplePrimitiveType) lhsType);
       }
-    } else if(lhsType.isPointerTo(GimpleVoidType.class)) {
-      if(!(rhsType instanceof GimplePointerType)) {
+    } 
+    
+    if(lhsType.isPointerTo(GimpleVoidType.class)) {
+      if (!(rhsType instanceof GimplePointerType)) {
         throw new InternalCompilerException("Cannot cast " + rhsType + " to void*");
       }
       return typeOracle.forPointerType(rhsType).toVoidPointer(rhs);
-      
-    } else if(rhsType.isPointerTo(GimpleVoidType.class)) {
+
+    }
+    
+    if(rhsType.isPointerTo(GimpleVoidType.class)) {
       if(!(lhsType instanceof GimplePointerType)) {
         throw new InternalCompilerException("Cannot cast void* to  " + lhsType);
       }
       return typeOracle.forPointerType(lhsType).fromVoidPointer((SimpleExpr) rhs);
+    
     }
     
-    return rhs;
+    // MethodHandles give us a lot of flexibility in cast between different types of functions
+    if (rhsType.isPointerTo(GimpleFunctionType.class) && 
+        lhsType.isPointerTo(GimpleFunctionType.class)) {
+      return rhs;  
+    }
+    
+    // We can cast from array types to pointer types of their component
+    if (simplifyArrayType(rhsType).equals(simplifyArrayType(lhsType))) {
+      return rhs;
+    }
+    
+    if(lhsType.isPointerTo(GimplePrimitiveType.class) && rhsType.isPointerTo(GimpleRecordType.class)) {
+      // This will generate a class cast exception at runtime, but at least the compilation can continue
+      if(rhs instanceof SimpleExpr) {
+        GimplePrimitiveType baseType = lhsType.getBaseType();
+        SimpleExpr array = Expressions.cast((SimpleExpr) rhs, Wrappers.valueArrayType(baseType.jvmType()));
+        return new FatPtrExpr(array);
+      }
+    }
+
+    if(lhsType.isPointerTo(GimpleRecordType.class) && rhsType.isPointerTo(GimplePrimitiveType.class)) {
+      FatPtrExpr rhsPtr = (FatPtrExpr) rhs;
+      PointerTypeStrategy lhsStrategy = typeOracle.forPointerType(lhsType);
+      if(lhsStrategy instanceof RecordUnitPtrStrategy) {
+        // this will generate a ClassCastException at runtime, but at least we can continue with the compilation
+        return Expressions.cast(rhsPtr.getArray(), ((RecordUnitPtrStrategy) lhsStrategy).getJvmType());
+      
+      } else if(lhsStrategy instanceof FatPtrStrategy) {
+        // will also fail at runtime...
+        return rhs;
+      }
+    }
+    
+    if(lhsType.isPointerTo(GimplePrimitiveType.class) && rhsType.isPointerTo(GimplePrimitiveType.class)) {
+      return rhs;
+    }
+    
+    if(rhs instanceof FatPtrExpr && lhsType instanceof GimpleIntegerType) {
+      return ((FatPtrExpr) rhs).getOffset();
+    }
+
+    throw new InternalCompilerException("Unsupported cast from " + rhsType + " to " + lhsType);
   }
 
+  private GimpleType simplifyArrayType(GimpleType type) {
+    if(type.isPointerTo(GimpleArrayType.class)) {
+      GimpleArrayType arrayType = type.getBaseType();
+      return new GimplePointerType(arrayType.getComponentType());
+    }
+    return type;
+  }
+  
   public Expr findGenerator(GimpleExpr expr) {
     if(expr instanceof GimpleSymbolRef) {
       Expr variable = symbolTable.getVariable((GimpleSymbolRef) expr);

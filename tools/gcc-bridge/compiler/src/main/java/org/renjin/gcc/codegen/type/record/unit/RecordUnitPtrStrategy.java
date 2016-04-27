@@ -150,4 +150,8 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
     ConstantValue constantValue = (ConstantValue) length;
     return constantValue.getType().equals(Type.INT_TYPE) && constantValue.getIntValue() == 1;
   }
+
+  public Type getJvmType() {
+    return strategy.getJvmType();
+  }
 }

@@ -54,4 +54,11 @@ public class FloatPtr implements Ptr {
     this.array = array;
     this.offset = offset;
   }
+  
+  public static FloatPtr cast(Object voidPointer) {
+    if(voidPointer instanceof MallocThunk) {
+      return ((MallocThunk) voidPointer).floatPtr();
+    }
+    return (FloatPtr) voidPointer;
+  }
 }

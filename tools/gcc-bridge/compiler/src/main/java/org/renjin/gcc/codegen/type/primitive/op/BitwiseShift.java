@@ -25,10 +25,10 @@ public class BitwiseShift implements SimpleExpr {
     this.x = x;
     this.y = y;
 
-    if(!checkTypes()) {
-      throw new UnsupportedOperationException("Shift operations require types (int, int) or (long, int), found: " +
-          this.x.getType() + ", " + this.y.getType());
-    }
+//    if(!checkTypes()) {
+//      throw new UnsupportedOperationException("Shift operations require types (int, int) or (long, int), found: " +
+//          this.x.getType() + ", " + this.y.getType());
+//    }
   }
 
   private boolean checkTypes() {

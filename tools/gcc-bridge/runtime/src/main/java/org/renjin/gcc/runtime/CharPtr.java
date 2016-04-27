@@ -53,4 +53,11 @@ public class CharPtr implements Ptr {
     }
     return new String(array, offset, length-offset);
   }
+  
+  public static CharPtr cast(Object voidPointer) {
+    if(voidPointer instanceof MallocThunk) {
+      return ((MallocThunk) voidPointer).charPtr();
+    } 
+    return (CharPtr) voidPointer;
+  }
 }

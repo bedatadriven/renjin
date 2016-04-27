@@ -77,7 +77,7 @@ public class UnitClassGenerator {
 
     for (GimpleFunction function : unit.getFunctions()) {
       try {
-        symbolTable.addFunction(className, function,
+        symbolTable.addFunction(function,
             new FunctionGenerator(className, function, typeOracle, symbolTable));
       } catch (Exception e) {
         throw new InternalCompilerException(String.format("Exception creating %s for %s in %s: %s",

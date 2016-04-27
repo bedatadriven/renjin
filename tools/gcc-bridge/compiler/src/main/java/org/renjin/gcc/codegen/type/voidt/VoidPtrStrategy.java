@@ -1,7 +1,6 @@
 package org.renjin.gcc.codegen.type.voidt;
 
 import org.objectweb.asm.Type;
-import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
@@ -30,7 +29,7 @@ import org.renjin.gcc.runtime.VoidPtr;
 public class VoidPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
   @Override
   public SimpleExpr malloc(MethodGenerator mv, SimpleExpr sizeInBytes) {
-    throw new InternalCompilerException("(void*)malloc() not yet supported.");
+    return new NewMallocThunkExpr(sizeInBytes);
   }
 
   @Override

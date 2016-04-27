@@ -59,7 +59,7 @@ public class DoublePtr implements Ptr {
    *
    * @param x the first pointer
    * @param y the second pointer
-   * @param n the number of <strong>bytes</strong> to compare
+   * @param numBytes the number of <strong>bytes</strong> to compare
    * @return 0 if the two arrrays are byte-for-byte equal, or -1 if the first 
    * array is less than the second array, or > 0 if the second array is greater than the first array
    */
@@ -120,5 +120,10 @@ public class DoublePtr implements Ptr {
     Arrays.fill(str, strOffset, strOffset + (c / Double.SIZE), doubleValue);
   }
 
-
+  public static DoublePtr cast(Object voidPointer) {
+    if(voidPointer instanceof MallocThunk) {
+      return ((MallocThunk) voidPointer).doublePtr();
+    }
+    return (DoublePtr) voidPointer;
+  }
 }

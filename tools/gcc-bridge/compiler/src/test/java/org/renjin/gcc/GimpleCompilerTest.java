@@ -438,6 +438,11 @@ public class GimpleCompilerTest extends AbstractGccTest {
     assertThat(call(clazz, "bitwise_rshift", 16, 2), equalTo(16 >> 2));
     assertThat(call(clazz, "bitwise_xor", 16, 1024), equalTo(16 ^ 1024));
     assertThat(call(clazz, "bitwise_not", 4096), equalTo(~4096));
+    
+    assertThat(call(clazz, "byte_lshift", (byte)1, (byte)1), equalTo(2));
+    assertThat(call(clazz, "byte_lshift", (byte)1, (byte)7), equalTo(0x80));
+    assertThat(call(clazz, "byte_lshift", (byte)1, (byte)8), equalTo(0));
+    assertThat(call(clazz, "byte_lshift", (byte)1, (byte)10), equalTo(0));
   }
   
   @Test
@@ -716,6 +721,11 @@ public class GimpleCompilerTest extends AbstractGccTest {
     assertThat((Double)unsignedIntRoundTrip.invoke(null, 0d), equalTo(0d));
     assertThat((Double) unsignedIntRoundTrip.invoke(null, -1), equalTo(4294967295d));
     assertThat((Double) unsignedIntRoundTrip.invoke(null, 2147483653d), equalTo(2147483653d));
+  
+    // From signed to unsigned
+    Method int32_to_uint8 = clazz.getMethod("int32_to_uint8", int.class);
+    assertThat((Integer)int32_to_uint8.invoke(null, -20), equalTo(236));
+    
   }
   
 
@@ -791,6 +801,16 @@ public class GimpleCompilerTest extends AbstractGccTest {
     assertThat((Integer)clazz.getMethod("test_integer").invoke(null), equalTo(0));
     assertThat((Integer)clazz.getMethod("test_offset").invoke(null), equalTo(1));
     assertThat((Integer)clazz.getMethod("test_comparison").invoke(null), equalTo(0));
+  }
+  
+  @Test
+  public void voidMalloc() throws Exception {
+    Class clazz = compile("void_malloc.c");
+    
+    // Try double
+    DoublePtr doublePtr = (DoublePtr) clazz.getMethod("test_double").invoke(null);
+    assertThat(doublePtr.array[0], equalTo(3.145));
+    assertThat(doublePtr.array[1], equalTo(42.0));
 
   }
 }

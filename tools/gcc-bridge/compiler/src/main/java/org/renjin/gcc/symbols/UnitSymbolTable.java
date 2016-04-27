@@ -63,10 +63,10 @@ public class UnitSymbolTable implements SymbolTable {
     }
   }
 
-  public void addFunction(String className, GimpleFunction function, FunctionGenerator generator) {
+  public void addFunction(GimpleFunction function, FunctionGenerator generator) {
     functions.put(function.getName(), generator);
     if(function.isExtern()) {
-      globalSymbolTable.addFunction(className, generator);
+      globalSymbolTable.addFunction(generator);
     }
   }
   

@@ -119,4 +119,11 @@ public class LongPtr implements Ptr {
     Arrays.fill(str, strOffset, strOffset + (c / Long.SIZE), longValue);
   }
   
+  public static LongPtr cast(Object voidPointer) {
+    if(voidPointer instanceof MallocThunk) {
+      return ((MallocThunk) voidPointer).longPtr();
+    }
+    return (LongPtr) voidPointer;
+  }
+  
 }

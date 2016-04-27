@@ -24,3 +24,8 @@ double unsignedIntRoundTrip(double z) {
     return z2;
 }
 
+int int32_to_uint8(int x) {
+    unsigned char y = x;
+    int z = y;
+    return z;
+}

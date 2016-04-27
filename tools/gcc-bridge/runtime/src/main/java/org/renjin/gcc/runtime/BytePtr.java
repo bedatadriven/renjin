@@ -90,4 +90,11 @@ public class BytePtr implements Ptr {
   public BytePtr realloc(int newSizeInBytes) {
     return new BytePtr(Realloc.realloc(array, offset, newSizeInBytes));
   }
+
+  public static BytePtr cast(Object voidPointer) {
+    if(voidPointer instanceof MallocThunk) {
+      return ((MallocThunk) voidPointer).bytePtr();
+    }
+    return (BytePtr) voidPointer;
+  }
 }

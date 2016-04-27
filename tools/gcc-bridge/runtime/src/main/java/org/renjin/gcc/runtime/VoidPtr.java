@@ -22,7 +22,7 @@ public final class VoidPtr {
   }
 
   public static void memcpy(Object x, Object y, int numBytes) {
-    throw new UnsupportedOperationException("TODO: Implement ObjectPtr.memcpy");
+    throw new UnsupportedOperationException("TODO: Implement VoidPtr.memcpy");
   }
 
   /**

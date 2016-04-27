@@ -132,7 +132,7 @@ public class GlobalSymbolTable implements SymbolTable {
     functions.put(name, callGenerator);
   }
   
-  public void addFunction(String className, FunctionGenerator function) {
+  public void addFunction(FunctionGenerator function) {
     functions.put(function.getMangledName(), new FunctionCallGenerator(function));
   }
   

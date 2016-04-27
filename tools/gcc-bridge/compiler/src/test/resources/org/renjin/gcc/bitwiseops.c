@@ -22,3 +22,8 @@ int bitwise_or(int x, int y) {
 int bitwise_not(int x) {
     return ~x;
 }
+
+int byte_lshift(unsigned char x, unsigned char y) {
+    x <<= y;
+    return x;
+}

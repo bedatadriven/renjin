@@ -5,10 +5,8 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.*;
-import org.renjin.gcc.codegen.type.FieldStrategy;
-import org.renjin.gcc.codegen.type.ParamStrategy;
-import org.renjin.gcc.codegen.type.PointerTypeStrategy;
-import org.renjin.gcc.codegen.type.ReturnStrategy;
+import org.renjin.gcc.codegen.type.*;
+import org.renjin.gcc.codegen.type.voidt.VoidPtrStrategy;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.GimpleVarDecl;
@@ -164,6 +162,19 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtrExpr> {
   @Override
   public ArrayTypeStrategy arrayOf(GimpleArrayType arrayType) {
     return new ArrayTypeStrategy(arrayType, new FatPtrValueFunction(valueFunction));
+  }
+
+  @Override
+  public FatPtrExpr cast(Expr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+    if(typeStrategy instanceof VoidPtrStrategy) {
+      return fromVoidPointer((SimpleExpr) value);
+    
+    } else if(typeStrategy instanceof FatPtrStrategy) {
+      // allow any casts between FatPtrs. though runtime errors may occur
+      // (The JVM simply won't allow us to cast an int* to a double*)
+      return (FatPtrExpr) value;
+    }
+    throw new UnsupportedCastException();
   }
 
   @Override

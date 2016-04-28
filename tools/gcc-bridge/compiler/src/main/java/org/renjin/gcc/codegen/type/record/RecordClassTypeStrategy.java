@@ -87,7 +87,7 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<SimpleExpr> {
 
   @Override
   public ReturnStrategy getReturnStrategy() {
-    return new SimpleReturnStrategy(getRecordType(), jvmType);
+    return new SimpleReturnStrategy(jvmType);
   }
 
   @Override

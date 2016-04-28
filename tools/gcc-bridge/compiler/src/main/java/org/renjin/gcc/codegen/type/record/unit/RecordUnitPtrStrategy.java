@@ -61,8 +61,13 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
   }
 
   @Override
+  public SimpleExpr cast(Expr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+    throw new UnsupportedCastException();
+  }
+
+  @Override
   public ReturnStrategy getReturnStrategy() {
-    return new SimpleReturnStrategy(strategy.getRecordType().pointerTo(), strategy.getJvmType());
+    return new SimpleReturnStrategy(strategy.getJvmType());
   }
 
   @Override

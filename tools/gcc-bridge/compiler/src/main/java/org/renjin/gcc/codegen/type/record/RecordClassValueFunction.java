@@ -6,7 +6,6 @@ import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.SimpleExpr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
-import org.renjin.gcc.gimple.type.GimpleType;
 
 import java.util.Collections;
 import java.util.List;
@@ -26,11 +25,6 @@ public class RecordClassValueFunction implements ValueFunction {
   @Override
   public Type getValueType() {
     return strategy.getJvmType();
-  }
-
-  @Override
-  public GimpleType getGimpleValueType() {
-    return strategy.getRecordType();
   }
 
   @Override

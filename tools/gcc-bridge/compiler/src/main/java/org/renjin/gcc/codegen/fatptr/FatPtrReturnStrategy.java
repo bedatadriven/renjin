@@ -7,7 +7,7 @@ import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.SimpleExpr;
 import org.renjin.gcc.codegen.expr.SimpleLValue;
 import org.renjin.gcc.codegen.type.ReturnStrategy;
-import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.gcc.codegen.type.TypeStrategy;
 
 /**
  * Strategy for returning fat pointers from methods.  
@@ -29,18 +29,13 @@ public class FatPtrReturnStrategy implements ReturnStrategy {
   }
 
   @Override
-  public GimpleType getGimpleType() {
-    return valueFunction.getGimpleValueType().pointerTo();
-  }
-
-  @Override
   public SimpleExpr marshall(Expr expr) {
     FatPtrExpr fatPtr = (FatPtrExpr) expr;
     return fatPtr.wrap();
   }
 
   @Override
-  public Expr unmarshall(MethodGenerator mv, SimpleExpr returnValue) {
+  public Expr unmarshall(MethodGenerator mv, SimpleExpr returnValue, TypeStrategy lhsTypeStrategy) {
     // Store the returned Ptr wrapper to a local variable
     SimpleLValue wrapper = mv.getLocalVarAllocator().reserve("retval", returnValue.getType());
     wrapper.store(mv, returnValue);

@@ -25,6 +25,10 @@ public class GimpleFieldRef extends GimpleExpr {
   public int getOffset() {
     return offset;
   }
+  
+  public int getOffsetBytes() {
+    return offset / 8;
+  }
 
   public void setOffset(int offset) {
     this.offset = offset;

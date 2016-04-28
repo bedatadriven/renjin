@@ -100,7 +100,7 @@ public class RecordArrayTypeStrategy extends RecordTypeStrategy<RecordArrayExpr>
     // simple to retrieve the element from within the array that corresponds to
     // the given field name
     SimpleExpr array = instance.getArray();
-    SimpleExpr fieldOffset = constantInt(fieldRef.getOffset() / fieldType.sizeOf());
+    SimpleExpr fieldOffset = constantInt(fieldRef.getOffsetBytes() / fieldType.sizeOf());
     SimpleExpr offset = sum(instance.getOffset(), fieldOffset);
 
     // Because this value is backed by an array, we can also make it addressable. 
@@ -117,7 +117,7 @@ public class RecordArrayTypeStrategy extends RecordTypeStrategy<RecordArrayExpr>
 
   @Override
   public ReturnStrategy getReturnStrategy() {
-    return new RecordArrayReturnStrategy(recordType, arrayType, arrayLength);
+    return new RecordArrayReturnStrategy(arrayType, arrayLength);
   }
 
   @Override

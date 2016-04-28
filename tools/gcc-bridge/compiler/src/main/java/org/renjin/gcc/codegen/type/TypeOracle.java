@@ -1,6 +1,5 @@
 package org.renjin.gcc.codegen.type;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.objectweb.asm.Type;
@@ -18,7 +17,6 @@ import org.renjin.gcc.codegen.type.primitive.PrimitiveTypeStrategy;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValueFunction;
 import org.renjin.gcc.codegen.type.primitive.StringParamStrategy;
 import org.renjin.gcc.codegen.type.record.RecordArrayReturnStrategy;
-import org.renjin.gcc.codegen.type.record.RecordArrayTypeStrategy;
 import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrParamStrategy;
@@ -145,7 +143,7 @@ public class TypeOracle {
       return new VoidReturnStrategy();
 
     } else if(returnType.isPrimitive()) {
-      return new SimpleReturnStrategy(GimplePrimitiveType.fromJvmType(returnType), Type.getType(returnType));
+      return new SimpleReturnStrategy(Type.getType(returnType));
 
     } else if(WrapperType.is(returnType)) {
       WrapperType wrapperType = Wrappers.valueOf(returnType);
@@ -174,10 +172,10 @@ public class TypeOracle {
       return recordTypes.get(recordType.getId()).pointerTo().getReturnStrategy();
 
     } else if(returnType.equals(Object.class)) {
-      return new SimpleReturnStrategy(new GimpleVoidType().pointerTo(), Type.getType(Object.class));
+      return new SimpleReturnStrategy(Type.getType(Object.class));
 
-    } else if(returnType.isAnnotationPresent(Struct.class)) {
-      return recordTypeFromAnnotation(returnType, returnType.getAnnotation(Struct.class));
+    } else if(method.isAnnotationPresent(Struct.class)) {
+      return new RecordArrayReturnStrategy(Type.getReturnType(method), 0);
           
     } else {
       throw new UnsupportedOperationException(String.format(
@@ -186,22 +184,6 @@ public class TypeOracle {
           method.getDeclaringClass().getName(), method.getName()));
     }
   }
-
-  private ReturnStrategy recordTypeFromAnnotation(Class<?> returnType, Struct struct) {
-    Preconditions.checkArgument(returnType.isArray(), 
-        "@Struct must annotate a method or parameter of type primitive array");
-    
-    GimpleType fieldType = GimplePrimitiveType.fromJvmType(returnType.getComponentType());
-    int fieldCount = struct.fields().length;
-
-    GimpleRecordType recordType = new GimpleRecordType();
-    recordType.setSize(fieldType.sizeOf() * fieldCount);
-    
-    return new RecordArrayTypeStrategy()
-    
-    
-  }
-
 
   /**
    * Creates a list of {@code ParamGenerators} from an existing JVM method.

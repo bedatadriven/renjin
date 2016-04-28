@@ -3,6 +3,8 @@ package org.renjin.gcc.runtime;
 import org.renjin.gcc.annotations.Struct;
 
 import java.lang.invoke.MethodHandle;
+import java.util.Calendar;
+import java.util.Date;
 
 /**
  * C standard library functions
@@ -185,8 +187,42 @@ public class Stdlib {
   }
 
 
-  @Struct(fields = { "quot", "rem" })
+  @Struct
   public static int[] div(int numer, int denom) {
-    throw new UnsupportedOperationException("TODO: Stdlib.div()");
+    int quot = numer / denom;
+    int rem = numer % denom;
+    
+    return new int[] { quot, rem };
   }
+
+  @Struct
+  public static int[] localtime(LongPtr time) {
+//    struct tm {
+//      int tm_sec;         /* seconds,  range 0 to 59          */
+//      int tm_min;         /* minutes, range 0 to 59           */
+//      int tm_hour;        /* hours, range 0 to 23             */
+//      int tm_mday;        /* day of the month, range 1 to 31  */
+//      int tm_mon;         /* month, range 0 to 11             */
+//      int tm_year;        /* The number of years since 1900   */
+//      int tm_wday;        /* day of the week, range 0 to 6    */
+//      int tm_yday;        /* day in the year, range 0 to 365  */
+//      int tm_isdst;       /* daylight saving time             */
+//    };
+
+    Calendar instance = Calendar.getInstance();
+    instance.setTimeInMillis(time.unwrap());
+    
+    return new int[] {
+        instance.get(Calendar.SECOND),
+        instance.get(Calendar.MINUTE),
+        instance.get(Calendar.HOUR),
+        instance.get(Calendar.DAY_OF_MONTH),
+        instance.get(Calendar.MONTH),
+        instance.get(Calendar.YEAR),
+        instance.get(Calendar.DAY_OF_WEEK),
+        instance.get(Calendar.DAY_OF_YEAR),
+        instance.getTimeZone().inDaylightTime(new Date(time.unwrap())) ? 1 : 0
+    };
+  }
+  
 }

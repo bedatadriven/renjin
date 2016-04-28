@@ -9,7 +9,6 @@ import org.renjin.gcc.codegen.expr.SimpleExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
-import org.renjin.gcc.gimple.type.GimpleType;
 
 import java.util.List;
 
@@ -30,11 +29,6 @@ public class RecordArrayValueFunction implements ValueFunction {
   @Override
   public Type getValueType() {
     return fieldType.jvmType();
-  }
-
-  @Override
-  public GimpleType getGimpleValueType() {
-    return fieldType;
   }
 
   /**

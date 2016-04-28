@@ -12,5 +12,5 @@ void test() {
     
     result = div(27, 3);
     ASSERT(result.quot == 9);
-    ASSERT(result.rem == 3);
+    ASSERT(result.rem == 0);
 }

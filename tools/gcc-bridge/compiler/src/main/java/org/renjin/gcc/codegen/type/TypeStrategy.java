@@ -58,4 +58,11 @@ public interface TypeStrategy<ExprT extends Expr> {
    */
   ArrayTypeStrategy arrayOf(GimpleArrayType arrayType);
 
+  /**
+   * 
+   * Casts the given {@code value}, compield with the given {@code typeStrategy}, 
+   * to a value of this strategy.
+   */
+  ExprT cast(Expr value, TypeStrategy typeStrategy) throws UnsupportedCastException;
+  
 }

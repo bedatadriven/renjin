@@ -7,7 +7,7 @@ import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.SimpleExpr;
 import org.renjin.gcc.codegen.type.ReturnStrategy;
-import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.gcc.codegen.type.TypeStrategy;
 
 /**
  * Strategy for returning record values represented by arrays.
@@ -16,14 +16,12 @@ import org.renjin.gcc.gimple.type.GimpleType;
  * 
  */
 public class RecordArrayReturnStrategy implements ReturnStrategy {
-  
-  private final GimpleType gimpleType;
+
   private Type arrayType;
   private int arrayLength;
 
-  public RecordArrayReturnStrategy(GimpleType gimpleType, Type arrayType, int arrayLength) {
+  public RecordArrayReturnStrategy(Type arrayType, int arrayLength) {
     Preconditions.checkArgument(arrayType.getSort() == Type.ARRAY, "Not an array type: " + arrayType);
-    this.gimpleType = gimpleType;
     this.arrayType = arrayType;
     this.arrayLength = arrayLength;
   }
@@ -39,11 +37,6 @@ public class RecordArrayReturnStrategy implements ReturnStrategy {
     String descriptor = arrayType.getDescriptor();
     return Type.getType(descriptor.substring(1));
   }
-  
-  @Override
-  public GimpleType getGimpleType() {
-    return gimpleType;
-  }
 
   /**
    * Returns an expression representing a copy of the given array value.
@@ -56,7 +49,7 @@ public class RecordArrayReturnStrategy implements ReturnStrategy {
   }
 
   @Override
-  public Expr unmarshall(MethodGenerator mv, SimpleExpr returnValue) {
+  public Expr unmarshall(MethodGenerator mv, SimpleExpr returnValue, TypeStrategy lhsTypeStrategy) {
     return new RecordArrayVar(returnValue, arrayLength);
   }
 

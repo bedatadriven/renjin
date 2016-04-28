@@ -9,9 +9,6 @@ import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.SimpleExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
-import org.renjin.gcc.gimple.type.GimpleComplexType;
-import org.renjin.gcc.gimple.type.GimpleRealType;
-import org.renjin.gcc.gimple.type.GimpleType;
 
 import java.util.List;
 
@@ -30,18 +27,17 @@ public class ComplexValueFunction implements ValueFunction {
   }
 
   @Override
-  public GimpleType getGimpleValueType() {
-    return new GimpleComplexType(new GimpleRealType(valueType == Type.DOUBLE_TYPE ? 64 : 32));
-  }
-
-  @Override
   public int getElementLength() {
     return 2;
   }
 
   @Override
   public int getElementSize() {
-    return getGimpleValueType().sizeOf() * 2;
+    if(valueType.equals(Type.DOUBLE_TYPE)) {
+      return 16; 
+    } else {
+      return 8;
+    }
   }
 
   @Override

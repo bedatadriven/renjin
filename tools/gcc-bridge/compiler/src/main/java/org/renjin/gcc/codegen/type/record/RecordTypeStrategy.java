@@ -3,6 +3,7 @@ package org.renjin.gcc.codegen.type.record;
 import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.TypeStrategy;
+import org.renjin.gcc.codegen.type.UnsupportedCastException;
 import org.renjin.gcc.gimple.expr.GimpleFieldRef;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
@@ -40,4 +41,9 @@ public abstract class RecordTypeStrategy<ExprT extends Expr> implements TypeStra
   public abstract void writeClassFiles(File outputDirectory) throws IOException;
 
   public abstract Expr memberOf(ExprT instance, GimpleFieldRef fieldRef);
+
+  @Override
+  public ExprT cast(Expr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+    throw new UnsupportedCastException();
+  }
 }

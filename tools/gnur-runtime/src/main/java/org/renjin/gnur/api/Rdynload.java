@@ -61,8 +61,8 @@ public final class Rdynload {
 //
 
   public static void R_RegisterCCallable (BytePtr packageName, BytePtr name, Object method) {
-    
-    throw new UnimplementedGnuApiMethod("R_RegisterCCallable");
+    // This is intended to allow other packages to call this method. 
+    // We'll ignore this for the moment.
   }
 //
 //   DL_FUNC R_GetCCallable (const char *package, const char *name)

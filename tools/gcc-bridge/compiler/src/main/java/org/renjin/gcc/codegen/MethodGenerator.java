@@ -1,9 +1,11 @@
 package org.renjin.gcc.codegen;
 
+import com.google.common.base.Preconditions;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.InstructionAdapter;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
 import org.renjin.gcc.codegen.var.LocalVarAllocator;
 
 
@@ -60,6 +62,33 @@ public class MethodGenerator extends InstructionAdapter {
       default:
         pop();
     }
+  }
+
+  /**
+   * Writes an invocation of {@link System#arraycopy(Object, int, Object, int, int)}.
+   * 
+   * @param      src      the source array.
+   * @param      srcPos   starting position in the source array.
+   * @param      dest     the destination array.
+   * @param      destPos  starting position in the destination data.
+   * @param      length   the number of array elements to be copied.
+   */
+  public void arrayCopy(SimpleExpr src, SimpleExpr srcPos, SimpleExpr dest, SimpleExpr destPos, SimpleExpr length) {
+
+    Preconditions.checkArgument(srcPos.getType().equals(Type.INT_TYPE), "srcPos must have type int");
+    Preconditions.checkArgument(destPos.getType().equals(Type.INT_TYPE), "destPos must have type int");
+    Preconditions.checkArgument(length.getType().equals(Type.INT_TYPE), "length must have type int");
+    
+    src.load(this);
+    srcPos.load(this);
+    dest.load(this);
+    destPos.load(this);
+    length.load(this);
+
+    invokestatic(System.class, "arraycopy", Type.getMethodDescriptor(Type.VOID_TYPE, 
+        Type.getType(Object.class), Type.INT_TYPE,
+        Type.getType(Object.class), Type.INT_TYPE,
+        Type.INT_TYPE));
     
   }
 }

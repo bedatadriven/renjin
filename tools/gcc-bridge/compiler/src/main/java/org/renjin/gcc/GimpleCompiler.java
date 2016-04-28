@@ -14,6 +14,7 @@ import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.call.FunctionCallGenerator;
 import org.renjin.gcc.codegen.lib.SymbolLibrary;
 import org.renjin.gcc.codegen.type.TypeOracle;
+import org.renjin.gcc.codegen.type.record.RecordArrayTypeStrategy;
 import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
@@ -65,6 +66,7 @@ public class GimpleCompiler  {
 
   private String trampolineClassName;
   private String recordClassPrefix = "record";
+  private int nextRecordIndex = 0;
 
   public GimpleCompiler() {
     functionBodyTransformers.add(VoidPointerTypeDeducer.INSTANCE);
@@ -195,29 +197,7 @@ public class GimpleCompiler  {
     // Enumerate record types before writing, so that records can reference each other
     int recordIndex = 0;
     for (GimpleRecordTypeDef recordTypeDef : recordTypeDefs) {
-      
-      RecordClassTypeStrategy strategy = recordUsage.getStrategyFor(recordTypeDef);
-    
-      if (isProvided(recordTypeDef)) {
-
-        // Map this record type to an existing JVM class
-        strategy.setProvided(true);
-        strategy.setJvmType(Type.getType(providedRecordTypes.get(recordTypeDef.getName())));
-
-      } else {
-        // Create a new JVM class for this record type
-        strategy.setProvided(false);
-      
-        String recordClassName;
-        if (recordTypeDef.getName() != null) {
-          recordClassName =  String.format("%s$%s", recordClassPrefix, recordTypeDef.getName());
-        } else {
-          recordClassName = String.format("%s$Record%d", recordClassPrefix, recordIndex++);
-        }
-        strategy.setJvmType(Type.getType("L" + getInternalClassName(recordClassName) + ";"));
-      }
-      
-      typeOracle.addRecordType(recordTypeDef, strategy);
+      typeOracle.addRecordType(recordTypeDef, strategyFor(recordTypeDef));
     }
 
     // Now that the record types are all registered, we can link the fields to their
@@ -235,6 +215,34 @@ public class GimpleCompiler  {
     // Finally write out the record class files for those records which are  not provided
     for (RecordTypeStrategy recordTypeStrategy : typeOracle.getRecordTypes()) {
       recordTypeStrategy.writeClassFiles(outputDirectory);
+    }
+  }
+
+  private RecordTypeStrategy strategyFor(GimpleRecordTypeDef recordTypeDef) {
+    
+    if(isProvided(recordTypeDef)) {
+      RecordClassTypeStrategy strategy = new RecordClassTypeStrategy(recordTypeDef);
+      strategy.setProvided(true);
+      strategy.setJvmType(Type.getType(providedRecordTypes.get(recordTypeDef.getName())));
+
+      strategy.setUnitPointer(recordUsage.unitPointerAssumptionsHoldFor(recordTypeDef));
+
+      return strategy;
+      
+    } else if(RecordArrayTypeStrategy.accept(recordTypeDef)) {
+      return new RecordArrayTypeStrategy(recordTypeDef);
+   
+    } else {
+      RecordClassTypeStrategy strategy = new RecordClassTypeStrategy(recordTypeDef);
+      strategy.setUnitPointer(recordUsage.unitPointerAssumptionsHoldFor(recordTypeDef));
+      String recordClassName;
+      if (recordTypeDef.getName() != null) {
+        recordClassName =  String.format("%s$%s", recordClassPrefix, recordTypeDef.getName());
+      } else {
+        recordClassName = String.format("%s$Record%d", recordClassPrefix, nextRecordIndex++);
+      }
+      strategy.setJvmType(Type.getType("L" + getInternalClassName(recordClassName) + ";"));
+      return strategy;
     }
   }
 
@@ -297,12 +305,7 @@ public class GimpleCompiler  {
   }
 
   private void transform(List<GimpleCompilationUnit> units) {
-
-//    CallGraph callGraph = new CallGraph(units);
-//    
-//    Depointerizer depointerizer = new Depointerizer(callGraph);
-//    depointerizer.run();
-
+    
     for (GimpleCompilationUnit unit : units) {
       if(TRACE) {
         System.out.println(unit);

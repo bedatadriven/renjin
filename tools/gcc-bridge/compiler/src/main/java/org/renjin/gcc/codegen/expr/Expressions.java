@@ -15,6 +15,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.objectweb.asm.Type.getMethodDescriptor;
+
 /**
  * Static utility methods pertaining to create and compose {@link Expr}s
  */
@@ -152,6 +154,14 @@ public class Expressions {
 
   public static SimpleExpr sum(final SimpleExpr x, final SimpleExpr y) {
     return new PrimitiveBinOpGenerator(GimpleOp.PLUS_EXPR, x, y);
+  }
+  
+  public static SimpleExpr sum(SimpleExpr x, int y) {
+    if(y == 0) {
+      return x;
+    } else {
+      return sum(x, constantInt(y));
+    }
   }
 
   public static SimpleExpr difference(SimpleExpr x, SimpleExpr y) {
@@ -340,7 +350,7 @@ public class Expressions {
     
     Type primitiveType = simpleExpr.getType();
     final Type boxedType = boxedType(primitiveType);
-    final String valueOfDescriptor = Type.getMethodDescriptor(boxedType, primitiveType);
+    final String valueOfDescriptor = getMethodDescriptor(boxedType, primitiveType);
     
     return new SimpleExpr() {
       @Nonnull
@@ -381,4 +391,27 @@ public class Expressions {
     }
   }
 
+  public static SimpleExpr copyOfArrayRange(final SimpleExpr array, final SimpleExpr from, final SimpleExpr to) {
+
+    final Type arrayType = array.getType();
+
+    return new SimpleExpr() {
+      @Nonnull
+      @Override
+      public Type getType() {
+        return arrayType;
+      }
+
+      @Override
+      public void load(@Nonnull MethodGenerator mv) {
+        // static byte[] copyOfRange(byte[] original, int from, int to);
+        
+        array.load(mv);
+        from.load(mv);
+        to.load(mv);
+        mv.invokestatic(Arrays.class, "copyOfRange", 
+            getMethodDescriptor(arrayType, arrayType, Type.INT_TYPE, Type.INT_TYPE));
+      }
+    };
+  }
 }

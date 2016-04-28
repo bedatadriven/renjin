@@ -12,11 +12,14 @@ import java.util.Collections;
 import java.util.List;
 
 
-public class RecordValueFunction implements ValueFunction {
+/**
+ * Translates a pointer array and offset to a Record value represented by a JVM Class.
+ */
+public class RecordClassValueFunction implements ValueFunction {
   
   private RecordClassTypeStrategy strategy;
 
-  public RecordValueFunction(RecordClassTypeStrategy strategy) {
+  public RecordClassValueFunction(RecordClassTypeStrategy strategy) {
     this.strategy = strategy;
   }
 

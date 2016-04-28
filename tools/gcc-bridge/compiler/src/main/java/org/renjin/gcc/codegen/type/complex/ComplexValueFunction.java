@@ -41,14 +41,7 @@ public class ComplexValueFunction implements ValueFunction {
 
   @Override
   public int getElementSize() {
-    switch (valueType.getSort()) {
-      case Type.DOUBLE:
-        return 16;
-      case Type.FLOAT:
-        return 8;
-      default:
-        throw new IllegalStateException();
-    }
+    return getGimpleValueType().sizeOf() * 2;
   }
 
   @Override

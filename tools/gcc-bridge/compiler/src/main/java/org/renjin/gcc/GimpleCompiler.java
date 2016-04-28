@@ -75,6 +75,7 @@ public class GimpleCompiler  {
     functionBodyTransformers.add(LocalVariableInitializer.INSTANCE);
     globalSymbolTable = new GlobalSymbolTable(typeOracle);
     globalSymbolTable.addDefaults();
+    providedRecordTypes.put("tm", org.renjin.gcc.runtime.tm.class);
   }
 
   /**

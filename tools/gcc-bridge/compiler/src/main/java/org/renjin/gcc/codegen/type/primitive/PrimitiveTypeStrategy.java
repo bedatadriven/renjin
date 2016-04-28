@@ -36,7 +36,7 @@ public class PrimitiveTypeStrategy implements TypeStrategy<SimpleExpr> {
 
   @Override
   public ParamStrategy getParamStrategy() {
-    return new SimpleParamStrategy(type.jvmType());
+    return new PrimitiveParamStrategy(type.jvmType());
   }
 
   @Override

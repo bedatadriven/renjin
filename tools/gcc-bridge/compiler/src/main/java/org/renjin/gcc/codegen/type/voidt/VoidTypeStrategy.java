@@ -2,6 +2,7 @@ package org.renjin.gcc.codegen.type.voidt;
 
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
+import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.SimpleExpr;
 import org.renjin.gcc.codegen.type.*;
@@ -53,5 +54,10 @@ public class VoidTypeStrategy implements TypeStrategy<SimpleExpr> {
   @Override
   public ArrayTypeStrategy arrayOf(GimpleArrayType arrayType) {
     throw new UnsupportedOperationException("arrays cannot have component type of 'void'");
+  }
+
+  @Override
+  public SimpleExpr cast(Expr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+    throw new UnsupportedCastException();
   }
 }

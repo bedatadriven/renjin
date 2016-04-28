@@ -9,6 +9,7 @@ import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.*;
+import org.renjin.gcc.codegen.type.primitive.op.CastGenerator;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
@@ -29,14 +30,18 @@ public class PrimitiveTypeStrategy implements TypeStrategy<SimpleExpr> {
     this.type = type;
   }
 
+  public GimplePrimitiveType getType() {
+    return type;
+  }
+
   @Override
   public ParamStrategy getParamStrategy() {
-    return new SimpleParamStrategy(type.jvmType());
+    return new PrimitiveParamStrategy(type.jvmType());
   }
 
   @Override
   public ReturnStrategy getReturnStrategy() {
-    return new SimpleReturnStrategy(type, type.jvmType());
+    return new SimpleReturnStrategy(type.jvmType());
   }
 
   @Override
@@ -75,6 +80,29 @@ public class PrimitiveTypeStrategy implements TypeStrategy<SimpleExpr> {
   @Override
   public ArrayTypeStrategy arrayOf(GimpleArrayType arrayType) {
     return new ArrayTypeStrategy(arrayType, valueFunction());
+  }
+
+  @Override
+  public SimpleExpr cast(Expr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+    
+    if(typeStrategy instanceof PrimitiveTypeStrategy) {
+      // Handle casts between primitive types and signed/unsigned
+      GimplePrimitiveType valueType = ((PrimitiveTypeStrategy) typeStrategy).getType();
+      return new CastGenerator((SimpleExpr) value, valueType, this.type);
+    }
+    
+    if(typeStrategy instanceof FatPtrStrategy) {
+      // Converting pointers to integers and vice-versa is implementation-defined
+      // So we will define an implementation that supports at least one useful case spotted in S4Vectors:
+      // double a[] = {1,2,3,4};
+      // double *start = a;
+      // double *end = p+4;
+      // int length = (start-end)
+      FatPtrExpr fatPtr = (FatPtrExpr) value;
+      return fatPtr.getOffset();
+    }
+    
+    throw new UnsupportedCastException();
   }
 
   private ValueFunction valueFunction() {

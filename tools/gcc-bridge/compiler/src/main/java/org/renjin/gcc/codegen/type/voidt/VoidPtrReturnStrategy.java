@@ -1,37 +1,35 @@
 package org.renjin.gcc.codegen.type.voidt;
 
 import org.objectweb.asm.Type;
-import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.type.PointerTypeStrategy;
 import org.renjin.gcc.codegen.type.ReturnStrategy;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 
 /**
- * Strategy for returning from a void-typed function.
- *
+ * Strategy for returning and receiving void pointers.
  */
-public class VoidReturnStrategy implements ReturnStrategy {
-
+public class VoidPtrReturnStrategy implements ReturnStrategy {
   @Override
   public Type getType() {
-    return Type.VOID_TYPE;
+    return Type.getType(Object.class);
   }
 
   @Override
   public SimpleExpr marshall(Expr expr) {
-    throw new UnsupportedOperationException();
+    return (SimpleExpr) expr;
   }
 
   @Override
   public Expr unmarshall(MethodGenerator mv, SimpleExpr returnValue, TypeStrategy lhsTypeStrategy) {
-    throw new InternalCompilerException("void methods do not return values.");
+    return ((PointerTypeStrategy) lhsTypeStrategy).unmarshallVoidPtrReturnValue(mv, returnValue);
   }
 
   @Override
   public SimpleExpr getDefaultReturnValue() {
-    return Expressions.voidValue();
+    return Expressions.nullRef(Type.getType(Object.class));
   }
 }

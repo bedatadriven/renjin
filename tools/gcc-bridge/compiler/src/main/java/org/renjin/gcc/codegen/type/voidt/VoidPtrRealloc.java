@@ -38,6 +38,6 @@ public class VoidPtrRealloc implements SimpleExpr {
     
     newSizeInBytes.load(mv);
     
-    mv.invokevirtual(Ptr.class, "realloc", Type.getType(Ptr.class), Type.INT_TYPE);
+    mv.invokeinterface(Ptr.class, "realloc", Type.getType(Ptr.class), Type.INT_TYPE);
   }
 }

@@ -5,10 +5,7 @@ import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
-import org.renjin.gcc.codegen.expr.ExprFactory;
-import org.renjin.gcc.codegen.expr.Expressions;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
-import org.renjin.gcc.codegen.expr.SimpleLValue;
+import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.type.record.unit.RefConditionGenerator;
@@ -17,7 +14,6 @@ import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
-import org.renjin.gcc.gimple.type.GimplePointerType;
 
 import java.lang.invoke.MethodHandle;
 
@@ -27,11 +23,8 @@ import java.lang.invoke.MethodHandle;
 public class FunPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
   
   public static final Type METHOD_HANDLE_TYPE = Type.getType(MethodHandle.class);
-  
-  private final GimplePointerType pointerType;
 
-  public FunPtrStrategy(GimplePointerType pointerType) {
-    this.pointerType = pointerType;
+  public FunPtrStrategy() {
   }
 
   @Override
@@ -61,17 +54,27 @@ public class FunPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
 
   @Override
   public ReturnStrategy getReturnStrategy() {
-    return new SimpleReturnStrategy(pointerType, METHOD_HANDLE_TYPE);
+    return new SimpleReturnStrategy(METHOD_HANDLE_TYPE);
   }
 
   @Override
   public FatPtrStrategy pointerTo() {
-    return new FatPtrStrategy(new FunPtrValueFunction(pointerType, 32));
+    return new FatPtrStrategy(new FunPtrValueFunction(32));
   }
 
   @Override
   public ArrayTypeStrategy arrayOf(GimpleArrayType arrayType) {
-    return new ArrayTypeStrategy(arrayType, new FunPtrValueFunction(pointerType, 32));
+    return new ArrayTypeStrategy(arrayType, new FunPtrValueFunction(32));
+  }
+
+  @Override
+  public SimpleExpr cast(Expr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+    if(typeStrategy instanceof FunPtrStrategy) {
+      // We can liberally cast between different types of function pointers thanks
+      // to the flexibility of MethodHandles.
+      return (SimpleExpr) value;
+    }
+    throw new UnsupportedCastException();
   }
 
   @Override
@@ -105,8 +108,8 @@ public class FunPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
   }
 
   @Override
-  public SimpleExpr fromVoidPointer(SimpleExpr ptrExpr) {
-    return Expressions.cast(ptrExpr, METHOD_HANDLE_TYPE);
+  public SimpleExpr unmarshallVoidPtrReturnValue(MethodGenerator mv, SimpleExpr voidPointer) {
+    return Expressions.cast(voidPointer, METHOD_HANDLE_TYPE);
   }
 
   @Override

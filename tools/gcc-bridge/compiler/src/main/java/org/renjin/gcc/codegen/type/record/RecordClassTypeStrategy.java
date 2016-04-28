@@ -87,7 +87,7 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<SimpleExpr> {
 
   @Override
   public ReturnStrategy getReturnStrategy() {
-    return new SimpleReturnStrategy(getRecordType(), jvmType);
+    return new SimpleReturnStrategy(jvmType);
   }
 
   @Override
@@ -121,7 +121,7 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<SimpleExpr> {
 
   @Override
   public FieldStrategy addressableFieldGenerator(Type className, String fieldName) {
-    return new AddressableField(getJvmType(), fieldName, new RecordValueFunction(this));
+    return new AddressableField(getJvmType(), fieldName, new RecordClassValueFunction(this));
   }
   
   @Override
@@ -161,7 +161,7 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<SimpleExpr> {
 
   @Override
   public ArrayTypeStrategy arrayOf(GimpleArrayType arrayType) {
-    return new ArrayTypeStrategy(arrayType, new RecordValueFunction(this));
+    return new ArrayTypeStrategy(arrayType, new RecordClassValueFunction(this));
   }
 
   @Override
@@ -169,7 +169,7 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<SimpleExpr> {
     if(unitPointer) {
       return new RecordUnitPtrStrategy(this);
     } else {
-      return new FatPtrStrategy(new RecordValueFunction(this));
+      return new FatPtrStrategy(new RecordClassValueFunction(this));
     }
   }
 

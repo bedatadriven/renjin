@@ -28,6 +28,6 @@ public interface PointerTypeStrategy<ExprT extends Expr> extends TypeStrategy<Ex
   void memorySet(MethodGenerator mv, ExprT pointer, SimpleExpr byteValue, SimpleExpr length);
 
   SimpleExpr toVoidPointer(ExprT ptrExpr);
-  
-  ExprT fromVoidPointer(SimpleExpr ptrExpr);
+
+  ExprT unmarshallVoidPtrReturnValue(MethodGenerator mv, SimpleExpr voidPointer);
 }

@@ -13,8 +13,8 @@ import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.type.primitive.ConstantValue;
 import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
+import org.renjin.gcc.codegen.type.record.RecordClassValueFunction;
 import org.renjin.gcc.codegen.type.record.RecordConstructor;
-import org.renjin.gcc.codegen.type.record.RecordValueFunction;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.GimpleVarDecl;
@@ -47,22 +47,27 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
 
   @Override
   public FieldStrategy addressableFieldGenerator(Type className, String fieldName) {
-    return new AddressableField(className, fieldName, new RecordValueFunction(strategy));
+    return new AddressableField(className, fieldName, new RecordClassValueFunction(strategy));
   }
 
   @Override
   public FatPtrStrategy pointerTo() {
-    return new FatPtrStrategy(new RecordValueFunction(strategy));
+    return new FatPtrStrategy(new RecordClassValueFunction(strategy));
   }
 
   @Override
   public ArrayTypeStrategy arrayOf(GimpleArrayType arrayType) {
-    return new ArrayTypeStrategy(arrayType, new RecordValueFunction(strategy));
+    return new ArrayTypeStrategy(arrayType, new RecordClassValueFunction(strategy));
+  }
+
+  @Override
+  public SimpleExpr cast(Expr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+    throw new UnsupportedCastException();
   }
 
   @Override
   public ReturnStrategy getReturnStrategy() {
-    return new SimpleReturnStrategy(strategy.getRecordType().pointerTo(), strategy.getJvmType());
+    return new SimpleReturnStrategy(strategy.getJvmType());
   }
 
   @Override
@@ -134,8 +139,8 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
   }
 
   @Override
-  public SimpleExpr fromVoidPointer(SimpleExpr ptrExpr) {
-    return Expressions.cast(ptrExpr, strategy.getJvmType());
+  public SimpleExpr unmarshallVoidPtrReturnValue(MethodGenerator mv, SimpleExpr voidPointer) {
+    return Expressions.cast(voidPointer, getJvmType());
   }
 
   @Override

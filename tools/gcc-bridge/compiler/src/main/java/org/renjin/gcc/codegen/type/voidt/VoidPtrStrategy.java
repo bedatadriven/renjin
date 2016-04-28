@@ -14,7 +14,6 @@ import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
-import org.renjin.gcc.gimple.type.GimpleVoidType;
 import org.renjin.gcc.runtime.VoidPtr;
 
 
@@ -85,8 +84,8 @@ public class VoidPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
   }
 
   @Override
-  public SimpleExpr fromVoidPointer(SimpleExpr ptrExpr) {
-    return ptrExpr;
+  public SimpleExpr unmarshallVoidPtrReturnValue(MethodGenerator mv, SimpleExpr voidPointer) {
+    return voidPointer;
   }
 
   @Override
@@ -96,7 +95,7 @@ public class VoidPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
 
   @Override
   public ReturnStrategy getReturnStrategy() {
-    return new SimpleReturnStrategy(new GimpleVoidType().pointerTo(), Type.getType(Object.class));
+    return new VoidPtrReturnStrategy();
   }
 
   @Override
@@ -130,5 +129,13 @@ public class VoidPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
   @Override
   public ArrayTypeStrategy arrayOf(GimpleArrayType arrayType) {
     throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public SimpleExpr cast(Expr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+    if(typeStrategy instanceof PointerTypeStrategy) {
+      return ((PointerTypeStrategy) typeStrategy).toVoidPointer(value);
+    }
+    throw new UnsupportedCastException();
   }
 }

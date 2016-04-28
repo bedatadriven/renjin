@@ -1,11 +1,20 @@
 package org.renjin.gcc.runtime;
 
+import org.renjin.gcc.annotations.Struct;
+
 import java.lang.invoke.MethodHandle;
+import java.nio.charset.StandardCharsets;
+import java.util.Date;
+import java.util.TimeZone;
 
 /**
  * C standard library functions
  */
 public class Stdlib {
+  
+  public static BytePtr tzname;
+  public static int timezone;
+  public static int daylight;
 
   public static int strncmp(BytePtr x, BytePtr y, int n) {
     for(int i=0;i<n;++i) {
@@ -174,12 +183,57 @@ public class Stdlib {
     }
   }
 
+  @Deprecated
   public static void qsort(Ptr base, int nitems, int size, MethodHandle comparator) {
     throw new UnsupportedOperationException();
   }
-  
+
+  public static void qsort(Object base, int nitems, int size, MethodHandle comparator) {
+    throw new UnsupportedOperationException();
+  }
+
+
+
   public static ObjectPtr<CharPtr> __ctype_b_loc() {
     return CharTypes.TABLE_PTR;
   }
 
+
+  @Struct
+  public static int[] div(int numer, int denom) {
+    int quot = numer / denom;
+    int rem = numer % denom;
+    
+    return new int[] { quot, rem };
+  }
+
+  /**
+   * Returns the time since the Epoch (00:00:00 UTC, January 1, 1970), measured in seconds. 
+   * If seconds is not NULL, the return value is also stored in variable seconds.
+   */
+  public static int time(IntPtr seconds) {
+    int time = (int) (System.currentTimeMillis() / 1000L);
+    if(seconds.array != null) {
+      seconds.array[seconds.offset] = time;
+    }
+    return time;
+  }
+
+  public static tm localtime(IntPtr time) {
+    return new tm(time.unwrap());
+  }
+
+
+  /**
+   * The tzset function initializes the tzname variable from the value of the TZ environment variable. 
+   * It is not usually necessary for your program to call this function, because it is called automatically
+   * when you use the other time conversion functions that depend on the time zone.
+   */
+  public static void tzset() {
+    TimeZone currentTimezone = TimeZone.getDefault();
+    tzname = BytePtr.nullTerminatedString(currentTimezone.getDisplayName(), StandardCharsets.US_ASCII);
+    timezone = currentTimezone.getOffset(System.currentTimeMillis());
+    daylight = currentTimezone.inDaylightTime(new Date()) ? 1 : 0;
+  }
+  
 }

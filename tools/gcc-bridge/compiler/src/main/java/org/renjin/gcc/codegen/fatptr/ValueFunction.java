@@ -4,7 +4,6 @@ import com.google.common.base.Optional;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.expr.SimpleExpr;
-import org.renjin.gcc.gimple.type.GimpleType;
 
 import java.util.List;
 
@@ -15,8 +14,6 @@ public interface ValueFunction {
   
   Type getValueType();
 
-  GimpleType getGimpleValueType();
-  
   /**
    * Returns the number of array elements required for each value.
    * 
@@ -42,5 +39,6 @@ public interface ValueFunction {
    * @return
    */
   List<SimpleExpr> toArrayValues(Expr expr);
+
 }
 

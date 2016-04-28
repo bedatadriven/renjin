@@ -50,4 +50,6 @@ public class GimpleArrayType extends AbstractGimpleType {
   public int getElementCount() {
     return getUbound() - getLbound() + 1;
   }
+
+
 }

@@ -2,6 +2,7 @@ package org.renjin.gcc.codegen.type.fun;
 
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
+import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.SimpleExpr;
 import org.renjin.gcc.codegen.type.*;
@@ -58,12 +59,17 @@ public class FunTypeStrategy implements TypeStrategy<SimpleExpr> {
   
   @Override
   public PointerTypeStrategy pointerTo() {
-    return new FunPtrStrategy(type.pointerTo());
+    return new FunPtrStrategy();
   }
 
   @Override
   public ArrayTypeStrategy arrayOf(GimpleArrayType arrayType) {
     throw newInvalidOperation();
+  }
+
+  @Override
+  public SimpleExpr cast(Expr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+    throw new UnsupportedCastException();
   }
 
   private UnsupportedOperationException newInvalidOperation() {

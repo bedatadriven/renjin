@@ -10,10 +10,12 @@ import org.renjin.gcc.gimple.CallingConvention;
 import org.renjin.gcc.gimple.CallingConventions;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
+import org.renjin.gcc.gimple.statement.GimpleAssignment;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Collections;
 import java.util.List;
 
@@ -78,6 +80,19 @@ public abstract class AbstractGccTest {
     
     return Class.forName(PACKAGE_NAME + "." + className);
   }
+  
+  protected final void compileAndTest(String source) throws Exception {
+    Class<?> clazz = compile(source);
+
+    for (Method method : clazz.getMethods()) {
+      if(Modifier.isPublic(method.getModifiers()) && Modifier.isStatic(method.getModifiers())) {
+        if(method.getName().startsWith("test")) {
+          method.invoke(null);
+        }
+      }
+    }
+  }
+  
 
   protected void compile(List<String> sources) throws Exception {
     List<GimpleCompilationUnit> units = compileToGimple(sources);
@@ -125,6 +140,7 @@ public abstract class AbstractGccTest {
     compiler.setPackageName(PACKAGE_NAME);
     compiler.setVerbose(true);
     compiler.addReferenceClass(RStubs.class);
+    compiler.addReferenceClass(GimpleAssert.class);
     compiler.addMathLibrary();
     compiler.compile(units);
   }

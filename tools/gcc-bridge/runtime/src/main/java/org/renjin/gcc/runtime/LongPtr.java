@@ -35,7 +35,7 @@ public class LongPtr implements Ptr {
   public long unwrap() {
     return array[offset];
   }
-
+  
   public void update(long[] array, int offset) {
     this.array = array;
     this.offset = offset;

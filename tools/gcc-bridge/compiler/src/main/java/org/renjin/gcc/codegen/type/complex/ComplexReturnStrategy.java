@@ -8,8 +8,8 @@ import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.SimpleExpr;
 import org.renjin.gcc.codegen.expr.SimpleLValue;
 import org.renjin.gcc.codegen.type.ReturnStrategy;
+import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.gimple.type.GimpleComplexType;
-import org.renjin.gcc.gimple.type.GimpleType;
 
 /**
  * Strategy for returning a complex value as a {@code double[2]} or {@code float[2]}
@@ -28,11 +28,6 @@ public class ComplexReturnStrategy implements ReturnStrategy {
   }
 
   @Override
-  public GimpleType getGimpleType() {
-    return type;
-  }
-
-  @Override
   public SimpleExpr marshall(Expr expr) {
     ComplexValue complexValue = (ComplexValue) expr;
     return Expressions.newArray(
@@ -41,7 +36,7 @@ public class ComplexReturnStrategy implements ReturnStrategy {
   }
 
   @Override
-  public Expr unmarshall(MethodGenerator mv, SimpleExpr returnValue) {
+  public Expr unmarshall(MethodGenerator mv, SimpleExpr returnValue, TypeStrategy lhsTypeStrategy) {
     // Allocate a temporary variable for the array so that it's 
     // components can be accessed
     SimpleLValue array = mv.getLocalVarAllocator().reserve("retval", returnValue.getType());

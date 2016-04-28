@@ -35,9 +35,15 @@ public class WrappedFatPtrParamStrategy implements ParamStrategy {
     SimpleLValue offset = localVars.reserveInt(parameter.getName() + "$offset");
 
     SimpleExpr wrapper = paramVars.get(0);
-    
-    array.store(mv, Wrappers.arrayField(wrapper, valueFunction.getValueType()));
-    offset.store(mv, Wrappers.offsetField(wrapper));
+    SimpleExpr arrayField = Wrappers.arrayField(wrapper, valueFunction.getValueType());
+    SimpleExpr offsetField = Wrappers.offsetField(wrapper);
+
+    if(valueFunction.getValueType().getSort() == Type.OBJECT) {
+      arrayField = Expressions.cast(arrayField, Wrappers.valueArrayType(valueFunction.getValueType()));
+    }
+
+    array.store(mv, arrayField);
+    offset.store(mv, offsetField);
     
     return new FatPtrExpr(array, offset);
   }

@@ -34,11 +34,6 @@ public class RecordTypeDefCanonicalizer {
   
   public static Collection<GimpleRecordTypeDef> canonicalize(List<GimpleCompilationUnit> units) {
     RecordTypeDefCanonicalizer transformer = new RecordTypeDefCanonicalizer(units);
-
-    for (Map.Entry<String, GimpleRecordTypeDef> entry : transformer.idToCanonicalMap.entrySet()) {
-      System.out.println("Canonicalized " + entry.getKey() + " => " + entry.getValue().getId() + 
-          " [" + entry.getValue().getName() + "]");
-    }
     
     transformer.updateAllTypes(units);
     

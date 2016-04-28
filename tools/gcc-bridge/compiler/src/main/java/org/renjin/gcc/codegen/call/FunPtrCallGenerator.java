@@ -15,6 +15,7 @@ import org.renjin.gcc.codegen.type.voidt.VoidReturnStrategy;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.statement.GimpleCall;
 import org.renjin.gcc.gimple.type.GimpleFunctionType;
+import org.renjin.gcc.gimple.type.GimpleType;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -99,7 +100,8 @@ public class FunPtrCallGenerator implements CallGenerator {
     } else {
       // Otherwise unmarshall the return value into an expression and store to the lhs
       LValue lhs = (LValue) exprFactory.findGenerator(call.getLhs());
-      Expr rhs = returnStrategy.unmarshall(mv, callValue);
+      GimpleType lhsType = call.getLhs().getType();
+      Expr rhs = returnStrategy.unmarshall(mv, callValue, exprFactory.strategyFor(lhsType));
       
       lhs.store(mv, rhs);
     }

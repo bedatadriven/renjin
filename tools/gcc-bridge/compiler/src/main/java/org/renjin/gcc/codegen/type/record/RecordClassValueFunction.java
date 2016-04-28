@@ -6,28 +6,25 @@ import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.SimpleExpr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
-import org.renjin.gcc.gimple.type.GimpleType;
 
 import java.util.Collections;
 import java.util.List;
 
 
-public class RecordValueFunction implements ValueFunction {
+/**
+ * Translates a pointer array and offset to a Record value represented by a JVM Class.
+ */
+public class RecordClassValueFunction implements ValueFunction {
   
   private RecordClassTypeStrategy strategy;
 
-  public RecordValueFunction(RecordClassTypeStrategy strategy) {
+  public RecordClassValueFunction(RecordClassTypeStrategy strategy) {
     this.strategy = strategy;
   }
 
   @Override
   public Type getValueType() {
     return strategy.getJvmType();
-  }
-
-  @Override
-  public GimpleType getGimpleValueType() {
-    return strategy.getRecordType();
   }
 
   @Override

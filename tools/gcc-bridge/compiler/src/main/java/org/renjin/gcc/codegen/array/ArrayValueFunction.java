@@ -7,7 +7,6 @@ import org.renjin.gcc.codegen.expr.SimpleExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
-import org.renjin.gcc.gimple.type.GimpleType;
 
 import java.util.Collections;
 import java.util.List;
@@ -26,11 +25,6 @@ public class ArrayValueFunction implements ValueFunction {
   @Override
   public Type getValueType() {
     return elementValueFunction.getValueType();
-  }
-
-  @Override
-  public GimpleType getGimpleValueType() {
-    return arrayType;
   }
 
   @Override

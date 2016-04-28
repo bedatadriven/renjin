@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
+import org.renjin.gcc.annotations.Struct;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.fatptr.FatPtrReturnStrategy;
@@ -11,10 +12,12 @@ import org.renjin.gcc.codegen.fatptr.FatPtrValueFunction;
 import org.renjin.gcc.codegen.fatptr.WrappedFatPtrParamStrategy;
 import org.renjin.gcc.codegen.fatptr.Wrappers;
 import org.renjin.gcc.codegen.type.complex.ComplexTypeStrategy;
+import org.renjin.gcc.codegen.type.fun.FunPtrStrategy;
 import org.renjin.gcc.codegen.type.fun.FunTypeStrategy;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveTypeStrategy;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValueFunction;
 import org.renjin.gcc.codegen.type.primitive.StringParamStrategy;
+import org.renjin.gcc.codegen.type.record.RecordArrayReturnStrategy;
 import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrParamStrategy;
@@ -25,6 +28,7 @@ import org.renjin.gcc.gimple.type.*;
 import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.ObjectPtr;
 
+import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.util.*;
@@ -141,7 +145,7 @@ public class TypeOracle {
       return new VoidReturnStrategy();
 
     } else if(returnType.isPrimitive()) {
-      return new SimpleReturnStrategy(GimplePrimitiveType.fromJvmType(returnType), Type.getType(returnType));
+      return new SimpleReturnStrategy(Type.getType(returnType));
 
     } else if(WrapperType.is(returnType)) {
       WrapperType wrapperType = Wrappers.valueOf(returnType);
@@ -170,8 +174,11 @@ public class TypeOracle {
       return recordTypes.get(recordType.getId()).pointerTo().getReturnStrategy();
 
     } else if(returnType.equals(Object.class)) {
-      return new SimpleReturnStrategy(new GimpleVoidType().pointerTo(), Type.getType(Object.class));
-      
+      return new SimpleReturnStrategy(Type.getType(Object.class));
+
+    } else if(method.isAnnotationPresent(Struct.class)) {
+      return new RecordArrayReturnStrategy(Type.getReturnType(method), 0);
+          
     } else {
       throw new UnsupportedOperationException(String.format(
           "Unsupported return type %s in method %s.%s",
@@ -179,7 +186,6 @@ public class TypeOracle {
           method.getDeclaringClass().getName(), method.getName()));
     }
   }
-
 
   /**
    * Creates a list of {@code ParamGenerators} from an existing JVM method.
@@ -224,6 +230,10 @@ public class TypeOracle {
         strategies.add(((RecordClassTypeStrategy) forRecordType(mappedType)).pointerToUnit().getParamStrategy());
         index++;
 
+      } else if (paramClass.equals(MethodHandle.class)) {
+        strategies.add(new FunPtrStrategy().getParamStrategy());
+        index++;
+        
       } else if(paramClass.equals(Object.class)) {
         strategies.add(new VoidPtrParamStrategy());
         index++;

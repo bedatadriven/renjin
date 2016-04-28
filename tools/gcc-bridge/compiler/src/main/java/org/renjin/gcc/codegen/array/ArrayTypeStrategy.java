@@ -10,10 +10,7 @@ import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.fatptr.Wrappers;
-import org.renjin.gcc.codegen.type.FieldStrategy;
-import org.renjin.gcc.codegen.type.ParamStrategy;
-import org.renjin.gcc.codegen.type.ReturnStrategy;
-import org.renjin.gcc.codegen.type.TypeStrategy;
+import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
@@ -53,6 +50,17 @@ public class ArrayTypeStrategy implements TypeStrategy<FatPtrExpr> {
   @Override
   public ArrayTypeStrategy arrayOf(GimpleArrayType arrayType) {
     throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public FatPtrExpr cast(Expr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+    if (typeStrategy instanceof FatPtrStrategy ||
+        typeStrategy instanceof ArrayTypeStrategy) {
+      
+      return (FatPtrExpr)value;
+    }
+    
+    throw new UnsupportedCastException();
   }
 
   @Override

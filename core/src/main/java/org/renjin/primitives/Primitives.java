@@ -320,7 +320,7 @@ public class Primitives {
     f("sign", MathExt.class, "sign", 1);
     f("trunc", MathExt.class, 1);
     
-    f("exp", Math.class, 1);
+    f("exp", MathExt.class, 1);
     f("expm1", MathExt.class, 1);
     f("log1p", MathExt.class, 1);
 

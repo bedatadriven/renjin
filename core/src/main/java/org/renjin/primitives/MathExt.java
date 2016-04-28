@@ -156,9 +156,24 @@ public class MathExt {
   @Deferrable
   @Builtin
   @DataParallel(PreserveAttributeStyle.ALL)
+  public static Complex exp(Complex x) {
+    return x.exp();
+  }
+
+  @Deferrable
+  @Builtin
+  @DataParallel(PreserveAttributeStyle.ALL)
+  public static double exp(double x) {
+    return Math.exp(x);
+  }
+
+  @Deferrable
+  @Builtin
+  @DataParallel(PreserveAttributeStyle.ALL)
   public static double expm1(double x) {
     return Math.expm1(x);
   }
+
 
   @Deferrable
   @Builtin

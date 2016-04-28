@@ -21,6 +21,7 @@
 
 package org.renjin.primitives;
 
+import org.apache.commons.math.complex.Complex;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.stats.internals.distributions.PsiGamma;
@@ -183,6 +184,12 @@ public class MathTest extends EvalTestCase {
   @Test
   public void roundWithDigits() {
     assertThat(eval("round(1/3,2)"), equalTo(c(0.33)));
+  }
+  
+  @Test
+  public void complexExp() {
+    assertThat(eval("exp(2+1i)"), closeTo(new Complex(3.992324, 6.217676), 0.00001));
+    assertThat(eval("exp(4+3i)"), closeTo(new Complex(-54.05176, 7.70489), 0.00001));
 
   }
 }

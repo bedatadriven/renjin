@@ -202,6 +202,36 @@ public abstract class EvalTestCase {
       }
     };
   }
+  
+  protected Matcher<SEXP> closeTo(final Complex expectedValue, final double epsilon) {
+    return new TypeSafeMatcher<SEXP>() {
+      @Override
+      protected boolean matchesSafely(SEXP sexp) {
+        if(!(sexp instanceof ComplexVector)) {
+          return false;
+        }
+        if(sexp.length() != 1) {
+          return false;
+        }
+        ComplexVector vector = (ComplexVector) sexp;
+        Complex value = vector.getElementAsComplex(0);
+        double realDelta = Math.abs(value.getReal() - expectedValue.getReal());
+        if(Double.isNaN(realDelta) || realDelta > epsilon) {
+          return false;
+        }
+        double imaginaryDelta = Math.abs(value.getImaginary() - expectedValue.getImaginary());
+        if(Double.isNaN(imaginaryDelta) || imaginaryDelta > epsilon) {
+          return false;
+        }
+        return true;
+      }
+
+      @Override
+      public void describeTo(Description description) {
+        description.appendText("complex value close to ").appendValue(expectedValue);
+      }
+    };
+  }
 
   // otherwise this won't get resovled
   protected Matcher<Double> closeTo(double d, double epsilon) {

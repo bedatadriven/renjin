@@ -43,7 +43,15 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtrExpr> {
     this.parametersWrapped = parametersWrapped;
     return this;
   }
-
+  
+  public Type getWrapperType() {
+    return Wrappers.wrapperType(valueFunction.getValueType());
+  }
+  
+  public Type getArrayType() {
+    return Wrappers.valueArrayType(valueFunction.getValueType());
+  }
+  
   @Override
   public FatPtrExpr variable(GimpleVarDecl decl, VarAllocator allocator) {
     if(decl.isAddressable()) {
@@ -167,13 +175,19 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtrExpr> {
   @Override
   public FatPtrExpr cast(Expr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
     if(typeStrategy instanceof VoidPtrStrategy) {
-      return fromVoidPointer((SimpleExpr) value);
+      SimpleExpr wrapperInstance = Wrappers.cast(valueFunction.getValueType(), (SimpleExpr) value);
+
+      SimpleExpr arrayField = Wrappers.arrayField(wrapperInstance);
+      SimpleExpr offsetField = Wrappers.offsetField(wrapperInstance);
+
+      return new FatPtrExpr(arrayField, offsetField);
     
     } else if(typeStrategy instanceof FatPtrStrategy) {
       // allow any casts between FatPtrs. though runtime errors may occur
       // (The JVM simply won't allow us to cast an int* to a double*)
       return (FatPtrExpr) value;
     }
+    
     throw new UnsupportedCastException();
   }
 
@@ -247,19 +261,34 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtrExpr> {
     return ptrExpr.wrap();
   }
 
-  @Override
-  public FatPtrExpr fromVoidPointer(SimpleExpr ptrExpr) {
-    
-    SimpleExpr wrapperInstance = Wrappers.cast(valueFunction.getValueType(), ptrExpr);
-
-    SimpleExpr arrayField = Wrappers.arrayField(wrapperInstance);
-    SimpleExpr offsetField = Wrappers.offsetField(wrapperInstance);
-    
-    return new FatPtrExpr(arrayField, offsetField);
-  }
 
   @Override
   public FatPtrExpr nullPointer() {
     return FatPtrExpr.nullPtr(valueFunction);
   }
+
+  @Override
+  public FatPtrExpr unmarshallVoidPtrReturnValue(MethodGenerator mv, SimpleExpr voidPointer) {
+
+    // cast the result to the wrapper type, e.g. ObjectPtr or DoublePtr
+    Type wrapperType = Wrappers.wrapperType(valueFunction.getValueType());
+    SimpleExpr wrapperPtr = Wrappers.cast(valueFunction.getValueType(), voidPointer);
+
+    // Reserve a local variable to hold the result
+    SimpleLValue retVal = mv.getLocalVarAllocator().reserve("_retval", wrapperType);
+
+    // store the result of the call to the temp variable
+    retVal.store(mv, wrapperPtr);
+
+    // Now unpack the array and offset into seperate local variables
+    Type arrayType = Wrappers.valueArrayType(valueFunction.getValueType());
+    SimpleLValue arrayVar = mv.getLocalVarAllocator().reserve("_retval$array", arrayType);
+    SimpleLValue offsetVar = mv.getLocalVarAllocator().reserveInt("_retval$offset");
+    
+    arrayVar.store(mv, Wrappers.arrayField(retVal, valueFunction.getValueType()));
+    offsetVar.store(mv, Wrappers.offsetField(retVal));
+    
+    return new FatPtrExpr(arrayVar, offsetVar);
+  }
+
 }

@@ -61,6 +61,7 @@ public final class Rdynload {
 //
 
   public static void R_RegisterCCallable (BytePtr packageName, BytePtr name, Object method) {
+    
     throw new UnimplementedGnuApiMethod("R_RegisterCCallable");
   }
 //

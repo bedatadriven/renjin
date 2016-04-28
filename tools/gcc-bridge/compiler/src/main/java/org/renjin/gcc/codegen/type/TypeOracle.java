@@ -12,6 +12,7 @@ import org.renjin.gcc.codegen.fatptr.FatPtrValueFunction;
 import org.renjin.gcc.codegen.fatptr.WrappedFatPtrParamStrategy;
 import org.renjin.gcc.codegen.fatptr.Wrappers;
 import org.renjin.gcc.codegen.type.complex.ComplexTypeStrategy;
+import org.renjin.gcc.codegen.type.fun.FunPtrStrategy;
 import org.renjin.gcc.codegen.type.fun.FunTypeStrategy;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveTypeStrategy;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValueFunction;
@@ -27,6 +28,7 @@ import org.renjin.gcc.gimple.type.*;
 import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.ObjectPtr;
 
+import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.util.*;
@@ -228,6 +230,10 @@ public class TypeOracle {
         strategies.add(((RecordClassTypeStrategy) forRecordType(mappedType)).pointerToUnit().getParamStrategy());
         index++;
 
+      } else if (paramClass.equals(MethodHandle.class)) {
+        strategies.add(new FunPtrStrategy().getParamStrategy());
+        index++;
+        
       } else if(paramClass.equals(Object.class)) {
         strategies.add(new VoidPtrParamStrategy());
         index++;

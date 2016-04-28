@@ -84,8 +84,8 @@ public class VoidPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
   }
 
   @Override
-  public SimpleExpr fromVoidPointer(SimpleExpr ptrExpr) {
-    return ptrExpr;
+  public SimpleExpr unmarshallVoidPtrReturnValue(MethodGenerator mv, SimpleExpr voidPointer) {
+    return voidPointer;
   }
 
   @Override

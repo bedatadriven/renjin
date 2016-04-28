@@ -183,10 +183,17 @@ public class Stdlib {
     }
   }
 
+  @Deprecated
   public static void qsort(Ptr base, int nitems, int size, MethodHandle comparator) {
     throw new UnsupportedOperationException();
   }
-  
+
+  public static void qsort(Object base, int nitems, int size, MethodHandle comparator) {
+    throw new UnsupportedOperationException();
+  }
+
+
+
   public static ObjectPtr<CharPtr> __ctype_b_loc() {
     return CharTypes.TABLE_PTR;
   }
@@ -204,15 +211,15 @@ public class Stdlib {
    * Returns the time since the Epoch (00:00:00 UTC, January 1, 1970), measured in seconds. 
    * If seconds is not NULL, the return value is also stored in variable seconds.
    */
-  public static long time(LongPtr seconds) {
-    long time = System.currentTimeMillis() / 1000;
+  public static int time(IntPtr seconds) {
+    int time = (int) (System.currentTimeMillis() / 1000L);
     if(seconds.array != null) {
       seconds.array[seconds.offset] = time;
     }
     return time;
   }
 
-  public static tm localtime(LongPtr time) {
+  public static tm localtime(IntPtr time) {
     return new tm(time.unwrap());
   }
 

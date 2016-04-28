@@ -39,6 +39,12 @@ public class MethodGenerator extends InstructionAdapter {
         Type.getMethodDescriptor(returnType, argumentTypes),
         declaringClass.isInterface());
   }
+
+  public void invokeinterface(Class<?> declaringClass, String methodName, Type returnType, Type... argumentTypes) {
+    invokeinterface(Type.getType(declaringClass).getInternalName(),
+        methodName,
+        Type.getMethodDescriptor(returnType, argumentTypes));
+  }
   
   public void invokeIdentityHashCode() {
     invokestatic(System.class, "identityHashCode", "(Ljava/lang/Object;)I");
@@ -91,4 +97,5 @@ public class MethodGenerator extends InstructionAdapter {
         Type.INT_TYPE));
     
   }
+
 }

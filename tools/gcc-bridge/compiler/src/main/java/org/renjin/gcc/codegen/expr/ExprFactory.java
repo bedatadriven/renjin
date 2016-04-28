@@ -107,14 +107,14 @@ public class ExprFactory {
     } else if(expr instanceof GimpleMemRef) {
       GimpleMemRef memRefExpr = (GimpleMemRef) expr;
       PointerTypeStrategy typeStrategy = typeOracle.forPointerType(memRefExpr.getPointer().getType());
-      Expr ptrGenerator = findGenerator(memRefExpr.getPointer());
+      Expr ptrExpr = findGenerator(memRefExpr.getPointer());
 
       if(!memRefExpr.isOffsetZero()) {
         SimpleExpr offsetInBytes = findValueGenerator(memRefExpr.getOffset());
-        ptrGenerator =  typeStrategy.pointerPlus(ptrGenerator, offsetInBytes);
+        ptrExpr =  typeStrategy.pointerPlus(ptrExpr, offsetInBytes);
       }
       
-      return typeStrategy.valueOf(ptrGenerator);
+      return typeStrategy.valueOf(ptrExpr);
       
     } else if(expr instanceof GimpleArrayRef) {
       GimpleArrayRef arrayRef = (GimpleArrayRef) expr;
@@ -255,6 +255,10 @@ public class ExprFactory {
             (SimpleExpr)findGenerator(operands.get(0)),
             (SimpleExpr)findGenerator(operands.get(1)));
 
+      case MEM_REF:
+        // Cast the pointer type first, then dereference
+        return memRef((GimpleMemRef) operands.get(0), expectedType);
+
       case CONVERT_EXPR:
       case FIX_TRUNC_EXPR:
       case FLOAT_EXPR:
@@ -262,7 +266,6 @@ public class ExprFactory {
       case VAR_DECL:
       case PARM_DECL:
       case NOP_EXPR:
-      case MEM_REF:
       case INTEGER_CST:
       case REAL_CST:
       case STRING_CST:
@@ -328,6 +331,24 @@ public class ExprFactory {
       default:
         throw new UnsupportedOperationException("op: " + op);
     }
+  }
+
+  private Expr memRef(GimpleMemRef gimpleExpr, GimpleType expectedType) {
+    GimpleExpr pointer = gimpleExpr.getPointer();
+    GimpleIndirectType pointerType = (GimpleIndirectType) pointer.getType();
+    GimpleIndirectType expectedPointerType = expectedType.pointerTo();
+    
+    Expr ptrExpr = maybeCast(findGenerator(pointer), expectedPointerType, pointerType);
+
+    PointerTypeStrategy pointerStrategy = typeOracle.forPointerType(expectedPointerType);
+
+    if(!gimpleExpr.isOffsetZero()) {
+      SimpleExpr offsetInBytes = findValueGenerator(gimpleExpr.getOffset());
+
+      ptrExpr =  pointerStrategy.pointerPlus(ptrExpr, offsetInBytes);
+    }
+
+    return pointerStrategy.valueOf(ptrExpr);
   }
 
   private Expr pointerPlus(GimpleExpr pointerExpr, GimpleExpr offsetExpr, GimpleType expectedType) {

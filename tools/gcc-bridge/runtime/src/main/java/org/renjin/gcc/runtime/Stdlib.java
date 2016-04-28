@@ -1,5 +1,7 @@
 package org.renjin.gcc.runtime;
 
+import org.renjin.gcc.annotations.Struct;
+
 import java.lang.invoke.MethodHandle;
 
 /**
@@ -182,4 +184,9 @@ public class Stdlib {
     return CharTypes.TABLE_PTR;
   }
 
+
+  @Struct(fields = { "quot", "rem" })
+  public static int[] div(int numer, int denom) {
+    throw new UnsupportedOperationException("TODO: Stdlib.div()");
+  }
 }

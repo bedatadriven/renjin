@@ -1,9 +1,11 @@
 package org.renjin.gcc.codegen.type;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
+import org.renjin.gcc.annotations.Struct;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.fatptr.FatPtrReturnStrategy;
@@ -15,6 +17,8 @@ import org.renjin.gcc.codegen.type.fun.FunTypeStrategy;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveTypeStrategy;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValueFunction;
 import org.renjin.gcc.codegen.type.primitive.StringParamStrategy;
+import org.renjin.gcc.codegen.type.record.RecordArrayReturnStrategy;
+import org.renjin.gcc.codegen.type.record.RecordArrayTypeStrategy;
 import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrParamStrategy;
@@ -171,13 +175,31 @@ public class TypeOracle {
 
     } else if(returnType.equals(Object.class)) {
       return new SimpleReturnStrategy(new GimpleVoidType().pointerTo(), Type.getType(Object.class));
-      
+
+    } else if(returnType.isAnnotationPresent(Struct.class)) {
+      return recordTypeFromAnnotation(returnType, returnType.getAnnotation(Struct.class));
+          
     } else {
       throw new UnsupportedOperationException(String.format(
           "Unsupported return type %s in method %s.%s",
           returnType.getName(),
           method.getDeclaringClass().getName(), method.getName()));
     }
+  }
+
+  private ReturnStrategy recordTypeFromAnnotation(Class<?> returnType, Struct struct) {
+    Preconditions.checkArgument(returnType.isArray(), 
+        "@Struct must annotate a method or parameter of type primitive array");
+    
+    GimpleType fieldType = GimplePrimitiveType.fromJvmType(returnType.getComponentType());
+    int fieldCount = struct.fields().length;
+
+    GimpleRecordType recordType = new GimpleRecordType();
+    recordType.setSize(fieldType.sizeOf() * fieldCount);
+    
+    return new RecordArrayTypeStrategy()
+    
+    
   }
 
 

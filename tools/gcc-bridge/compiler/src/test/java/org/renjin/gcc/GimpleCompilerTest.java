@@ -813,4 +813,9 @@ public class GimpleCompilerTest extends AbstractGccTest {
     assertThat(doublePtr.array[1], equalTo(42.0));
 
   }
+  
+  @Test
+  public void div() throws Exception {
+    compileAndTest("div.c");
+  }
 }

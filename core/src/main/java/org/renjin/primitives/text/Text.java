@@ -35,6 +35,7 @@ import org.renjin.sexp.*;
 
 import java.nio.charset.Charset;
 import java.text.DecimalFormat;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -339,6 +340,10 @@ public class Text {
       boolean fixed,
       boolean useBytes,
       boolean invert) {
+
+    if (StringVector.isNA(pattern)) {
+      return new StringArrayVector(new String[x.length()]);
+    }
 
     RE re = REFactory.compile(pattern,ignoreCase, perl, fixed, useBytes);
     if(value) {

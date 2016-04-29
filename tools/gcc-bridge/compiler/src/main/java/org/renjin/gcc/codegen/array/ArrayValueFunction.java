@@ -29,12 +29,7 @@ public class ArrayValueFunction implements ValueFunction {
 
   @Override
   public int getElementLength() {
-    // TODO: is this correct?
-    // For example:
-    // int x[20];
-    // int *p[20] = &x;
-
-    return elementValueFunction.getElementLength();
+    return elementValueFunction.getElementLength() * arrayType.getElementCount();
   }
 
   @Override

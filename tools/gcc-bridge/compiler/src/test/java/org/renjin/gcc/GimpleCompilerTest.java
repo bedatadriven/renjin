@@ -270,7 +270,6 @@ public class GimpleCompilerTest extends AbstractGccTest {
     assertThat(result.unwrap(), equalTo(49.0));
   }
 
-
   @Test
   public void chars() throws Exception {
     Class clazz = compile("chars.c");
@@ -347,7 +346,11 @@ public class GimpleCompilerTest extends AbstractGccTest {
     result = (Integer) testPointer.invoke(null);
     
     assertThat(result, equalTo(42));
-
+  }
+  
+  @Test
+  public void array2d() throws Exception {
+    compileAndTest("array2d.c");
   }
 
   @Test

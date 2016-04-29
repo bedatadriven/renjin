@@ -8965,5 +8965,9 @@ public class MicroTest extends AbstractMicroTest {
   public void micro2837() {
     assertIdentical("{ x <- list(a = 1, s = 67 ); x[['s']] <- 42; x[['s']] }", "42");
   }
+  @Test
+  public void grepNAtest() {
+    assertIdentical("x <- grep(c(\"a\",\"b\"), pattern=NA); x", "c(NA_character_,NA_character_)");
+  }
 
 }

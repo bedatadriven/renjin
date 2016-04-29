@@ -248,7 +248,14 @@ public final class Rinternals {
   }
 
   public static IntPtr LOGICAL(SEXP x) {
-    throw new UnimplementedGnuApiMethod("LOGICAL");
+    if(x instanceof LogicalArrayVector) {
+      return new IntPtr(((LogicalArrayVector)x).toIntArrayUnsafe());
+    } else if(x instanceof LogicalVector) {
+      // TODO: cache arrays for the case of repeated LOGICAL() calls?
+      return new IntPtr(((LogicalVector) x).toIntArray());
+    } else {
+      throw new EvalException("LOGICAL(): expected logical vector, found %s", x.getTypeName());
+    }
   }
 
   public static IntPtr INTEGER(SEXP x) {

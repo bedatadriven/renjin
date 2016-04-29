@@ -5,5 +5,7 @@
 
 SEXP mysum(SEXP vector);
 
+void dpchimtest_();
+
 
 #endif

@@ -1,3 +1,4 @@
 useDynLib(native, .registration = TRUE)
 
 export(mysum)
+export(mydpchim)

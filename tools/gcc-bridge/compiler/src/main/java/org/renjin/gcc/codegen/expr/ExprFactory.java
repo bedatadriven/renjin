@@ -197,33 +197,20 @@ public class ExprFactory {
           x.getType() + " and " + y.getType());
     }
   }
-  
-  private GimpleExpr simplifyArrayPointer(GimpleExpr x) {
-    // Change &x[] to &x[0]
-    if(x instanceof GimpleAddressOf) {
-      GimpleAddressOf addressOf = (GimpleAddressOf) x;
-      if(addressOf.getValue().getType() instanceof GimpleArrayType) {
-        GimpleExpr array = addressOf.getValue();
-        GimpleArrayRef firstElement = new GimpleArrayRef(array, 0);
-        return new GimpleAddressOf(firstElement);
-      }
-    }
-    // Otherwise no change
-    return x;
-  }
 
   private ConditionGenerator comparePointers(GimpleOp op, GimpleExpr x, GimpleExpr y) {
     
-    x = simplifyArrayPointer(x);
-    y = simplifyArrayPointer(y);
-    
-    if(!x.getType().equals(y.getType())) {
-      throw new InternalCompilerException(String.format("pointer comparison types do not match: %s != %s", 
-          x.getType(), y.getType()));
-    }
     Expr ptrX = findGenerator(x);
     Expr ptrY = findGenerator(y);
     
+    // Shoudldn't matter which we pointer we cast to the other, but if we have a choice,
+    // cast away from a void* to a concrete pointer type
+    if(x.getType().isPointerTo(GimpleVoidType.class)) {
+      ptrY = maybeCast(ptrY, x.getType(), y.getType());
+    } else {
+      ptrX = maybeCast(ptrX, y.getType(), x.getType());
+    }
+
     return typeOracle.forPointerType(x.getType()).comparePointers(op, ptrX, ptrY);
   }
 

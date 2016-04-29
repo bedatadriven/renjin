@@ -122,4 +122,15 @@ public class Wrappers {
       }
     };
   }
+
+  public static Type componentType(Type arrayType) {
+    if(arrayType.getSort() == Type.ARRAY) {
+      throw new IllegalArgumentException("arrayType: " + arrayType);
+    }
+    String arrayDescriptor = arrayType.getDescriptor();
+    assert arrayDescriptor.startsWith("[");
+    
+    String componentDescriptor = arrayDescriptor.substring(1);
+    return Type.getType(componentDescriptor);
+  }
 }

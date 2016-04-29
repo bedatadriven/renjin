@@ -9,7 +9,6 @@ import org.renjin.gcc.codegen.fatptr.Wrappers;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
-import org.renjin.gcc.gimple.expr.GimpleArrayRef;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.expr.GimpleFieldRef;
 import org.renjin.gcc.gimple.type.*;
@@ -146,20 +145,21 @@ public class RecordArrayTypeStrategy extends RecordTypeStrategy<RecordArrayExpr>
 
   @Override
   public RecordArrayExpr variable(GimpleVarDecl decl, VarAllocator allocator) {
+
+    SimpleExpr newArray = newArray(fieldType, arrayLength);
+    SimpleLValue arrayVar = allocator.reserve(decl.getName(), arrayType, newArray);
     
-    SimpleLValue array = allocator.reserve(decl.getName(), arrayType, newArray(fieldType, arrayLength));
-    
-    return new RecordArrayVar(array, arrayLength);
+    return new RecordArrayExpr(arrayVar, arrayLength);
   }
 
   @Override
   public RecordArrayExpr constructorExpr(ExprFactory exprFactory, GimpleConstructor value) {
-    return new RecordArrayVar(newArray(fieldType, arrayLength), arrayLength);
+    return new RecordArrayExpr(newArray(fieldType, arrayLength), arrayLength);
   }
 
   @Override
   public FieldStrategy fieldGenerator(Type className, final String fieldName) {
-    throw new UnsupportedOperationException("TODO");
+    return new RecordArrayField(className, fieldName, arrayType, arrayLength);
   }
 
   @Override

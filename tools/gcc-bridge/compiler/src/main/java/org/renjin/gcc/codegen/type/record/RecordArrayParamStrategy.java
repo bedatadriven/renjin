@@ -12,9 +12,6 @@ import org.renjin.gcc.gimple.GimpleParameter;
 import java.util.Collections;
 import java.util.List;
 
-import static org.renjin.gcc.codegen.expr.Expressions.copyOfArrayRange;
-import static org.renjin.gcc.codegen.expr.Expressions.sum;
-
 
 public class RecordArrayParamStrategy implements ParamStrategy {
   
@@ -32,25 +29,21 @@ public class RecordArrayParamStrategy implements ParamStrategy {
   }
 
   @Override
-  public RecordArrayVar emitInitialization(MethodGenerator methodVisitor, 
+  public RecordArrayExpr emitInitialization(MethodGenerator methodVisitor, 
                                  GimpleParameter parameter, 
                                  List<SimpleLValue> paramVars, 
                                  VarAllocator localVars) {
 
 
-    return new RecordArrayVar(paramVars.get(0), arrayLength);
+    return new RecordArrayExpr(paramVars.get(0), arrayLength);
   }
 
   @Override
   public void loadParameter(MethodGenerator mv, Expr argument) {
 
     // We're passing by VALUE, so we have to make a copy of the array.
-    RecordArrayVar recordVar = (RecordArrayVar) argument;
-    SimpleExpr arrayCopy = copyOfArrayRange(
-        recordVar.getArray(), 
-        recordVar.getOffset(), 
-        sum(recordVar.getOffset(), arrayLength));
-    
+    RecordArrayExpr recordVar = (RecordArrayExpr) argument;
+    SimpleExpr arrayCopy = recordVar.copyArray();
     
     arrayCopy.load(mv);
   }

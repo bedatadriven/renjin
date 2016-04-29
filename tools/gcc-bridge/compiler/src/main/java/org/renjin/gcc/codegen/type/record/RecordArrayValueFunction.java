@@ -18,17 +18,17 @@ import java.util.List;
 public class RecordArrayValueFunction implements ValueFunction {
 
   
-  private GimplePrimitiveType fieldType;
+  private Type fieldType;
   private int arrayLength;
 
-  public RecordArrayValueFunction(GimplePrimitiveType fieldType, int fieldCount) {
+  public RecordArrayValueFunction(Type fieldType, int fieldCount) {
     this.fieldType = fieldType;
     this.arrayLength = fieldCount;
   }
 
   @Override
   public Type getValueType() {
-    return fieldType.jvmType();
+    return fieldType;
   }
 
   /**
@@ -50,7 +50,7 @@ public class RecordArrayValueFunction implements ValueFunction {
 
   @Override
   public int getElementSize() {
-    return fieldType.sizeOf() * arrayLength;
+    return GimplePrimitiveType.fromJvmType(fieldType).sizeOf() * arrayLength;
   }
 
   @Override

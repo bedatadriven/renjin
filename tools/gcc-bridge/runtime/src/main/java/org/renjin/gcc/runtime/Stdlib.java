@@ -236,4 +236,8 @@ public class Stdlib {
     daylight = currentTimezone.inDaylightTime(new Date()) ? 1 : 0;
   }
   
+  public static void fflush(Object file) {
+    // TODO: implement properly
+  }
+  
 }

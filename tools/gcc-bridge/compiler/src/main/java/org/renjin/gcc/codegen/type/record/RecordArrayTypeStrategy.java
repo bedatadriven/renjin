@@ -9,12 +9,10 @@ import org.renjin.gcc.codegen.fatptr.Wrappers;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
+import org.renjin.gcc.gimple.expr.GimpleArrayRef;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.expr.GimpleFieldRef;
-import org.renjin.gcc.gimple.type.GimpleArrayType;
-import org.renjin.gcc.gimple.type.GimpleField;
-import org.renjin.gcc.gimple.type.GimplePrimitiveType;
-import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
+import org.renjin.gcc.gimple.type.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -39,15 +37,15 @@ import static org.renjin.gcc.codegen.expr.Expressions.*;
  */
 public class RecordArrayTypeStrategy extends RecordTypeStrategy<RecordArrayExpr> {
   
-  private GimplePrimitiveType fieldType;
+  private Type fieldType;
   private Type arrayType;
   private int arrayLength;
   private final RecordArrayValueFunction valueFunction;
   
   public RecordArrayTypeStrategy(GimpleRecordTypeDef recordTypeDef) {
     super(recordTypeDef);
-    fieldType = getPrimitiveType(recordTypeDef.getFields().get(0));
-    arrayType = Wrappers.valueArrayType(fieldType.jvmType());
+    fieldType = simplifyToPrimitiveType(recordTypeDef.getFields().get(0));
+    arrayType = Wrappers.valueArrayType(fieldType);
     arrayLength = recordTypeDef.getFields().size();
     valueFunction = new RecordArrayValueFunction(fieldType, arrayLength);
   }
@@ -63,22 +61,33 @@ public class RecordArrayTypeStrategy extends RecordTypeStrategy<RecordArrayExpr>
     if(!it.hasNext()) {
       return false;
     }
-    GimplePrimitiveType type = getPrimitiveType(it.next());
+    Type type = simplifyToPrimitiveType(it.next());
     if(type == null) {
       return false;
     }
     while(it.hasNext()) {
-      if(!type.equals(getPrimitiveType(it.next()))) {
+      if(!type.equals(simplifyToPrimitiveType(it.next()))) {
         return false;
       }
     }
     return true;
   }
-  
-  private static GimplePrimitiveType getPrimitiveType(GimpleField field) {
-    if(field.getType() instanceof GimplePrimitiveType) {
-      return (GimplePrimitiveType) field.getType();
+
+  private static Type simplifyToPrimitiveType(GimpleField field) {
+    return simplifyToPrimitiveType(field.getType());
+  }
+
+  private static Type simplifyToPrimitiveType(GimpleType type) {
+    if(type instanceof GimplePrimitiveType) {
+      return ((GimplePrimitiveType) type).jvmType();
     } 
+    if(type instanceof GimpleArrayType) {
+      GimpleArrayType arrayType = (GimpleArrayType) type;
+      Type componentType = simplifyToPrimitiveType(arrayType.getComponentType());
+      if(componentType != null) {
+        return componentType;
+      }
+    }
     return null;
   }
 
@@ -100,14 +109,29 @@ public class RecordArrayTypeStrategy extends RecordTypeStrategy<RecordArrayExpr>
     // simple to retrieve the element from within the array that corresponds to
     // the given field name
     SimpleExpr array = instance.getArray();
-    SimpleExpr fieldOffset = constantInt(fieldRef.getOffsetBytes() / fieldType.sizeOf());
+    SimpleExpr fieldOffset = constantInt(fieldRef.getOffsetBytes() / elementSizeInBytes());
     SimpleExpr offset = sum(instance.getOffset(), fieldOffset);
 
     // Because this value is backed by an array, we can also make it addressable. 
     FatPtrExpr address = new FatPtrExpr(array, offset);
-    SimpleExpr value = elementAt(array, offset);
     
-    return new SimpleAddressableExpr(value, address);
+    // The members of this record may be either primitives, or arrays of primitives,
+    // and it actually doesn't matter to us.
+    
+    if(fieldRef.getType() instanceof GimplePrimitiveType) {
+      // Return a single primitive value
+      SimpleExpr value = elementAt(array, offset);
+      return new SimpleAddressableExpr(value, address);
+
+    } else {
+      // Return an array that starts at this point 
+      return new FatPtrExpr(address, array, offset);
+    }
+    
+  }
+
+  private int elementSizeInBytes() {
+    return GimplePrimitiveType.fromJvmType(fieldType).sizeOf();
   }
 
   @Override
@@ -123,14 +147,14 @@ public class RecordArrayTypeStrategy extends RecordTypeStrategy<RecordArrayExpr>
   @Override
   public RecordArrayExpr variable(GimpleVarDecl decl, VarAllocator allocator) {
     
-    SimpleLValue array = allocator.reserve(decl.getName(), arrayType, newArray(fieldType.jvmType(), arrayLength));
+    SimpleLValue array = allocator.reserve(decl.getName(), arrayType, newArray(fieldType, arrayLength));
     
     return new RecordArrayVar(array, arrayLength);
   }
 
   @Override
   public RecordArrayExpr constructorExpr(ExprFactory exprFactory, GimpleConstructor value) {
-    return new RecordArrayVar(newArray(fieldType.jvmType(), arrayLength), arrayLength);
+    return new RecordArrayVar(newArray(fieldType, arrayLength), arrayLength);
   }
 
   @Override

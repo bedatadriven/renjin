@@ -56,20 +56,9 @@ function(file, header = FALSE, sep = "", quote = "\"'", dec = ".",
 	on.exit(close(file))
     }
     if(is.character(file)) {
-        file <- if (nzchar(fileEncoding)) {
-            if (strsplit(file,":")[[1]][1] == "http" | strsplit(file,":")[[1]][1] == "https") {
-                url (file, "rt", encoding = fileEncoding)
-            } else {
-                file(file, "rt", encoding = fileEncoding)
-            }
-        } else {
-            if (strsplit(file,":")[[1]][1] == "http" | strsplit(file,":")[[1]][1] == "https") {
-                url(file, "rt")
-            } else {
-                file(file, "rt")
-            }
-        }
-    on.exit(close(file))
+        file <- if(nzchar(fileEncoding))
+            file(file, "rt", encoding = fileEncoding) else file(file, "rt")
+        on.exit(close(file))
     }
     if(!inherits(file, "connection"))
         stop("'file' must be a character string or connection")

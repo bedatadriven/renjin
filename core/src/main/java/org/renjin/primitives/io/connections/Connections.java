@@ -105,9 +105,9 @@ public class Connections {
    */
   @Internal
   public static IntVector file(@Current final Context context,
-      final String path, String open, boolean blocking, String encoding,
-      boolean raw) throws IOException {
-    
+                               final String path, String open, boolean blocking, String encoding,
+                               boolean raw) throws IOException {
+
     if(path.isEmpty()) {
       return newConnection(context, open, new SingleThreadedFifoConnection());
     } else if(STD_OUT.equals(path)) {
@@ -116,6 +116,8 @@ public class Connections {
       return stdin(context);
     } else if(STD_ERR.equals(path)) {
       return stderr(context);
+    } else if (path.startsWith("http://") || path.startsWith("https://")) {
+      return url(context, path, open, blocking, encoding);
     } else {
       return newConnection(context, open, new FileConnection(context.resolveFile(path)));
     }

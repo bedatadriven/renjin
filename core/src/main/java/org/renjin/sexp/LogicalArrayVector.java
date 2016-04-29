@@ -84,6 +84,17 @@ public class LogicalArrayVector extends LogicalVector {
     return vector;
   }
 
+
+  /**
+   * Returns reference to the {@code int[]} array backing this {@code LogicalVector}. 
+   * 
+   * <p>This array <strong>must not</strong> be modified if there is any chance that 
+   * a reference to this Vector is held elsewhere.</p>
+   */
+  public int[] toIntArrayUnsafe() {
+    return values;
+  }
+
   @Override
   public int length() {
     return values.length;
@@ -103,6 +114,7 @@ public class LogicalArrayVector extends LogicalVector {
   protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
     return new LogicalArrayVector(values, attributes);
   }
+
 
   public static class Builder
       extends AbstractAtomicBuilder {

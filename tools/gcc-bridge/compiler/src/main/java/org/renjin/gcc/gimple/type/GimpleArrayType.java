@@ -50,6 +50,10 @@ public class GimpleArrayType extends AbstractGimpleType {
   public int getElementCount() {
     return getUbound() - getLbound() + 1;
   }
+  
+  public boolean isStatic() {
+    return ubound != null;
+  }
 
 
 }

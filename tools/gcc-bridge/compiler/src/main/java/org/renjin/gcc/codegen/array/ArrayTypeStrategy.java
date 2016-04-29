@@ -25,11 +25,21 @@ public class ArrayTypeStrategy implements TypeStrategy<FatPtrExpr> {
   
   private final ValueFunction valueFunction;
   private GimpleArrayType arrayType;
+  private int arrayLength = -1;
   private boolean parameterWrapped = true;
 
   public ArrayTypeStrategy(GimpleArrayType arrayType, ValueFunction valueFunction) {
     this.arrayType = arrayType;
     this.valueFunction = valueFunction;
+    if(arrayType.isStatic()) {
+      this.arrayLength = arrayType.getElementCount();
+    }
+  }
+  
+  public ArrayTypeStrategy(GimpleArrayType arrayType, int arrayLength, ValueFunction valueFunction) {
+    this.arrayType = arrayType;
+    this.arrayLength = arrayLength;
+    this.valueFunction = valueFunction; 
   }
 
   public boolean isParameterWrapped() {
@@ -49,7 +59,9 @@ public class ArrayTypeStrategy implements TypeStrategy<FatPtrExpr> {
 
   @Override
   public ArrayTypeStrategy arrayOf(GimpleArrayType arrayType) {
-    throw new UnsupportedOperationException("TODO");
+    // Multidimensional arrays are layed out in contiguous memory blocks
+    return new ArrayTypeStrategy(arrayType, this.arrayLength * arrayType.getElementCount(),
+          new ArrayValueFunction(this.arrayType, valueFunction));
   }
 
   @Override
@@ -103,7 +115,6 @@ public class ArrayTypeStrategy implements TypeStrategy<FatPtrExpr> {
   @Override
   public FatPtrExpr variable(GimpleVarDecl decl, VarAllocator allocator) {
     Type arrayType = Wrappers.valueArrayType(valueFunction.getValueType());
-    int arrayLength = ((GimpleArrayType) decl.getType()).getElementCount();
 
     SimpleExpr array;
     if(decl.getValue() == null) {

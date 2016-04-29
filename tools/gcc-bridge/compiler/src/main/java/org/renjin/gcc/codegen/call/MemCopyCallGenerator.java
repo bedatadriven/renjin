@@ -30,11 +30,13 @@ public class MemCopyCallGenerator implements CallGenerator {
     if(call.getOperands().size() != 3) {
       throw new InternalCompilerException("memcpy() expects 3 args.");
     }
+
+    GimplePointerType destinationType = (GimplePointerType) call.getOperand(0).getType();
     
     Expr destination = exprFactory.findGenerator(call.getOperand(0));
-    Expr source =  exprFactory.findGenerator(call.getOperand(1));
+    Expr source =  exprFactory.findGenerator(call.getOperand(1), destinationType);
     SimpleExpr length = exprFactory.findValueGenerator(call.getOperand(2));
-
+    
     GimplePointerType pointerType = (GimplePointerType) call.getOperand(0).getType();
     typeOracle.forPointerType(pointerType).memoryCopy(mv, destination, source, length);
  

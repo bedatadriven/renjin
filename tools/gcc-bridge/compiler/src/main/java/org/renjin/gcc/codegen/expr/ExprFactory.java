@@ -259,6 +259,9 @@ public class ExprFactory {
         // Cast the pointer type first, then dereference
         return memRef((GimpleMemRef) operands.get(0), expectedType);
 
+//      case ADDR_EXPR:
+//        return addressOf((GimpleAddressOf)operands.get(0), expectedType);
+
       case CONVERT_EXPR:
       case FIX_TRUNC_EXPR:
       case FLOAT_EXPR:
@@ -332,6 +335,8 @@ public class ExprFactory {
         throw new UnsupportedOperationException("op: " + op);
     }
   }
+
+
 
   private Expr memRef(GimpleMemRef gimpleExpr, GimpleType expectedType) {
     GimpleExpr pointer = gimpleExpr.getPointer();

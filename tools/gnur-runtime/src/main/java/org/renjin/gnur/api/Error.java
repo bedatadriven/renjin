@@ -5,6 +5,8 @@ import org.renjin.eval.EvalException;
 import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.Stdlib;
 
+import static org.renjin.gnur.api.Utils.R_CheckUserInterrupt;
+
 @SuppressWarnings("unused")
 public final class Error {
 
@@ -40,6 +42,14 @@ public final class Error {
   public static void rwarn_(BytePtr message, int messageLen) {
     // TODO: hook into warnings
     System.err.println(message.toString(messageLen));
+  }
+
+  public static void rexit_(BytePtr message, int messageLen) {
+    throw new EvalException(message.toString(messageLen));
+  }
+
+  public static void rchkuser_() {
+    R_CheckUserInterrupt();
   }
 
 }

@@ -66,7 +66,7 @@ public class GnurSourcesCompiler {
   public void addSources(File src) {
     if(src.exists() && src.listFiles() != null) {
       for(File file : src.listFiles()) {
-        if(file.getName().endsWith(".c") || file.getName().endsWith(".f") || file.getName().endsWith(".cpp")) {
+        if(file.getName().endsWith(".c") || file.getName().endsWith(".f")) {
           sources.add(file);
         }
       }

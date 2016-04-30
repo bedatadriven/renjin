@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.fatptr;
 
+import com.google.common.base.Preconditions;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.WrapperType;
@@ -124,9 +125,8 @@ public class Wrappers {
   }
 
   public static Type componentType(Type arrayType) {
-    if(arrayType.getSort() == Type.ARRAY) {
-      throw new IllegalArgumentException("arrayType: " + arrayType);
-    }
+    Preconditions.checkArgument(arrayType.getSort() == Type.ARRAY, "arrayType: " + arrayType);
+
     String arrayDescriptor = arrayType.getDescriptor();
     assert arrayDescriptor.startsWith("[");
     

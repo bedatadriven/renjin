@@ -408,7 +408,11 @@ public class Text {
     if(!fixed) {
       throw new EvalException("fixed = FALSE not impelmented for agrep.");
     }
-  
+
+    if (StringVector.isNA(pattern)) {
+      return new StringArrayVector(new String[x.length()]);
+    }
+
     int maxDistance = maxDistance(bounds, pattern);
     
     FuzzyMatcher matcher = new FuzzyMatcher(pattern, ignoreCase);

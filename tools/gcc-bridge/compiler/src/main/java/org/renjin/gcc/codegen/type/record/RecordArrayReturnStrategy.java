@@ -45,12 +45,12 @@ public class RecordArrayReturnStrategy implements ReturnStrategy {
   @Override
   public SimpleExpr marshall(Expr value) {
     RecordArrayExpr arrayValue = (RecordArrayExpr) value;
-    return arrayValue.arrayForReturning();
+    return arrayValue.copyArray();
   }
 
   @Override
   public Expr unmarshall(MethodGenerator mv, SimpleExpr returnValue, TypeStrategy lhsTypeStrategy) {
-    return new RecordArrayVar(returnValue, arrayLength);
+    return new RecordArrayExpr(returnValue, arrayLength);
   }
 
   @Override

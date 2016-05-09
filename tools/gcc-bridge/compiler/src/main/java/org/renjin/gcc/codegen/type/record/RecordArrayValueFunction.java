@@ -2,11 +2,8 @@ package org.renjin.gcc.codegen.type.record;
 
 import com.google.common.base.Optional;
 import org.objectweb.asm.Type;
-import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expr;
-import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.SimpleExpr;
-import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 
@@ -62,33 +59,7 @@ public class RecordArrayValueFunction implements ValueFunction {
 
   @Override
   public Expr dereference(final SimpleExpr array, final SimpleExpr offset) {
-    return new RecordArrayExpr() {
-      @Override
-      public SimpleExpr getArray() {
-        return array;
-      }
-
-      @Override
-      public SimpleExpr getOffset() {
-        return offset;
-      }
-
-      @Override
-      public SimpleExpr arrayForReturning() {
-        return Expressions.copyOfArrayRange(array, offset, Expressions.sum(offset, arrayLength));
-      }
-
-      @Override
-      public Expr addressOf() {
-        return new FatPtrExpr(array, offset);
-      }
-
-      @Override
-      public void store(MethodGenerator mv, Expr rhs) {
-        RecordArrayExpr value = (RecordArrayExpr) rhs;
-        mv.arrayCopy(value.getArray(), value.getOffset(), array, offset, Expressions.constantInt(arrayLength));
-      }
-    };
+    return new RecordArrayExpr(array, offset, arrayLength);
   }
 
   @Override

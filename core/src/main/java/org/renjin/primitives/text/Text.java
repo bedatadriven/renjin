@@ -389,6 +389,10 @@ public class Text {
       boolean useBytes,
       boolean invert) {
 
+    if (StringVector.isNA(pattern)) {
+      return new StringArrayVector(new String[x.length()]);
+    }
+
     RE re = REFactory.compile(pattern, ignoreCase,  perl, fixed, useBytes);
     LogicalArrayVector.Builder result = new LogicalArrayVector.Builder();
     for(String string : x) {

@@ -308,5 +308,35 @@ public class FailingMicroTest extends AbstractMicroTest {
   public void microINDEX2() {
     assertIdentical("{ x <- list(1:3); x[[c(1,2,3)]] <- 4 }", "EvalException");
   }
+  @Test
+  public void microRESHAPE1() {
+    assertIdentical("{ a <- reshape(Indometh, v.names = \"conc\", idvar = \"Subject\", timevar = \"time\", direction = \"wide\"); names(a)[5] }", "conc.1");
+  }
+  @Test
+  public void microSTRSPLIT0() {
+    assertIdentical("{ a <- strsplit(NA, \"d\"); a[[1]] }", "NULL");
+  }
+  @Test
+  public void microSTRSPLIT1() {
+    assertIdentical("{ a <- strsplit(\"abc\", \"d\"); a[[1]] }", "c(\"abc\")");
+  }
+  @Test
+  public void microSTRSPLIT2() {
+    assertIdentical("{ a <- strsplit(\"abc\", NA)[[1]]; a }", "c(\"abc\")");
+  }
+  @Test
+  public void microGREPL1() {
+    assertIdentical("{ a <- grepl(\"a\",c(\"a\",\"b\")); a }", "c(TRUE,FALSE)");
+  }
+  @Test
+  public void microGREPL2() {
+    assertIdentical("{ a <- grepl(NA,c(\"a\",\"b\")); a }", "c(NA_character_, NA_character_)");
+  }
+  @Test
+  public void microSTRSPLIT3() {
+    assertIdentical("{ a <- strsplit(\"abc\", NA); a[[1]] }", "c(\"abc\")");
+  }
+
+
 
 }

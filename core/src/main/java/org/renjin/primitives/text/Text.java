@@ -345,6 +345,10 @@ public class Text {
       return new StringArrayVector(new String[x.length()]);
     }
 
+    if (x.toString().equals("NA_character_")) {
+      return new IntArrayVector(0);
+    }
+
     RE re = REFactory.compile(pattern,ignoreCase, perl, fixed, useBytes);
     if(value) {
       StringVector.Builder result = new StringVector.Builder();
@@ -358,8 +362,10 @@ public class Text {
 
       IntArrayVector.Builder result = new IntArrayVector.Builder(0);
       for(int i=0;i!=x.length();++i) {
-        if(re.match(x.getElementAsString(i))) {
-          result.add(i+1);
+        if (!x.isElementNA(i)) {
+          if (re.match(x.getElementAsString(i))) {
+            result.add(i + 1);
+          }
         }
       }
       return result.build();

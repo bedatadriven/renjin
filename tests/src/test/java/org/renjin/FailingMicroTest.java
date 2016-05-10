@@ -336,6 +336,18 @@ public class FailingMicroTest extends AbstractMicroTest {
   public void microSTRSPLIT3() {
     assertIdentical("{ a <- strsplit(\"abc\", NA); a[[1]] }", "c(\"abc\")");
   }
+  @Test
+  public void microGREP0() {
+    assertIdentical("{ a <- grep(\"a\", c(\"a\",\"b\",NA,\"a\")); a }", "c(1L, 4L)");
+  }
+  @Test
+  public void microGREP1() {
+    assertIdentical("{ a <- grep(\"a\", NA); a }", "0L");
+  }
+  @Test
+  public void microGREP2() {
+    assertIdentical("{ a <- grep(NA, \"abc\"); a }", "NA_character_");
+  }
 
 
 

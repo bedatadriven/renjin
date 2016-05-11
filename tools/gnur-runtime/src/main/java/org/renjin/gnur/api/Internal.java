@@ -442,6 +442,10 @@ public final class Internal {
     throw new UnimplementedGnuApiMethod("do_enc2");
   }
 
+  public static SEXP enc2utf8(SEXP p0) {
+    throw new UnimplementedGnuApiMethod("enc2utf8");
+  }
+
   public static SEXP do_envir(SEXP p0, SEXP p1, SEXP p2, SEXP p3) {
     throw new UnimplementedGnuApiMethod("do_envir");
   }
@@ -1634,9 +1638,9 @@ public final class Internal {
     throw new UnimplementedGnuApiMethod("do_which");
   }
 
-  public static SEXP do_withVisible(SEXP p0, SEXP p1, SEXP p2, SEXP p3) {
-    throw new UnimplementedGnuApiMethod("do_withVisible");
-  }
+//  public static SEXP do_withVisible(SEXP p0, SEXP p1, SEXP p2, SEXP p3) {
+//    throw new UnimplementedGnuApiMethod("do_withVisible");
+//  }
 
   public static SEXP do_xtfrm(SEXP p0, SEXP p1, SEXP p2, SEXP p3) {
     throw new UnimplementedGnuApiMethod("do_xtfrm");

@@ -207,6 +207,18 @@ public class Evaluation {
     return result.build();
   }
 
+  @Internal
+  public static ListVector withVisible(@Current Context context, SEXP value) {
+
+    Vector.Builder result;
+    LogicalArrayVector visible = new LogicalArrayVector(1);
+    result = new ListVector.Builder();
+    result.setAttribute("value", value);
+    result.setAttribute("visible", (SEXP) visible);
+
+    return (ListVector) result.build();
+  }
+
 
   @Builtin("return")
   public static SEXP doReturn(@Current Environment rho, SEXP value) {

@@ -682,7 +682,7 @@ public class Primitives {
     f("typeof", Types.class, 11);
     f("eval", Evaluation.class, 211);
     f("eval.with.vis",Evaluation.class, 211);
-    f("withVisible", /*withVisible*/ null, 10);
+    f("withVisible", Evaluation.class, 10);
     add(new ExpressionFunction());
     f("sys.parent", Contexts.class, 11);
     f("sys.call", Contexts.class, 11);

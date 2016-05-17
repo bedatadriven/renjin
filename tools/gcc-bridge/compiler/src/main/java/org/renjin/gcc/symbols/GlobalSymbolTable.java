@@ -12,7 +12,6 @@ import org.renjin.gcc.codegen.lib.SymbolFunction;
 import org.renjin.gcc.codegen.lib.SymbolLibrary;
 import org.renjin.gcc.codegen.lib.SymbolMethod;
 import org.renjin.gcc.codegen.type.TypeOracle;
-import org.renjin.gcc.gimple.CallingConvention;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
 import org.renjin.gcc.gimple.expr.GimpleSymbolRef;
@@ -52,34 +51,33 @@ public class GlobalSymbolTable implements SymbolTable {
   }
 
   @Override
-  public CallGenerator findCallGenerator(GimpleFunctionRef ref, List<GimpleExpr> operands, CallingConvention callingConvention) {
-    String mangledName = callingConvention.mangleFunctionName(ref.getName());
-    CallGenerator generator = functions.get(mangledName);
+  public CallGenerator findCallGenerator(GimpleFunctionRef ref, List<GimpleExpr> operands) {
+    CallGenerator generator = functions.get(ref.getName());
     
     // Try to find the symbol on the classpath
     if(generator == null) {
       Optional<LinkSymbol> linkSymbol = null;
       try {
-        linkSymbol = LinkSymbol.lookup(linkClassLoader, mangledName);
+        linkSymbol = LinkSymbol.lookup(linkClassLoader, ref.getName());
       } catch (IOException e) {
-        throw new InternalCompilerException("Exception loading link symbol " + mangledName, e);
+        throw new InternalCompilerException("Exception loading link symbol " + ref.getName(), e);
       }
       if(linkSymbol.isPresent()) {
         Method method = linkSymbol.get().loadMethod(linkClassLoader);
         generator = new FunctionCallGenerator(new StaticMethodStrategy(typeOracle, method));
-        functions.put(mangledName, generator);
+        functions.put(ref.getName(), generator);
       }
     }
     
     if(generator == null) {
-      throw new UnsupportedOperationException("Could not find function '" + mangledName + "'");
+      throw new UnsupportedOperationException("Could not find function '" + ref.getName() + "'");
     }
     return generator;
   }
 
   @Override
-  public Handle findHandle(GimpleFunctionRef ref, CallingConvention callingConvention) {
-    CallGenerator callGenerator = findCallGenerator(ref, null, callingConvention);
+  public Handle findHandle(GimpleFunctionRef ref) {
+    CallGenerator callGenerator = findCallGenerator(ref, null);
     if(callGenerator instanceof FunctionCallGenerator) {
       return ((FunctionCallGenerator) callGenerator).getStrategy().getMethodHandle();
     } else {

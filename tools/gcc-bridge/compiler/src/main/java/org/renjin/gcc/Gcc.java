@@ -7,9 +7,7 @@ import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
-import org.renjin.gcc.gimple.CallingConventions;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
-import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleParser;
 
 import java.io.File;
@@ -107,10 +105,6 @@ public class Gcc {
     GimpleParser parser = new GimpleParser();
     GimpleCompilationUnit unit = parser.parse(gimpleFile);
     unit.setSourceFile(gimpleFile);
-    unit.setCallingConvention(CallingConventions.fromFile(source));
-    for(GimpleFunction fn: unit.getFunctions()) {
-      fn.setCallingConvention(CallingConventions.fromFile(source));
-    }
     return unit;
   }
 

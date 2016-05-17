@@ -173,6 +173,11 @@ void json_int(int value) {
   fprintf(json_f, "%d", value);
 }
 
+void json_string_value(const char * value) {
+  json_pre_value();
+  json_string(value, strlen(value));
+}
+
 void json_ptr(void *p) {
   json_pre_value();
   fprintf(json_f, "\"%p\"", p);
@@ -508,6 +513,10 @@ static void dump_op(tree op) {
 
     switch(TREE_CODE(op)) {
     case FUNCTION_DECL:
+      json_int_field("id", DEBUG_TEMP_UID (op));
+      json_string_field("name", IDENTIFIER_POINTER(DECL_ASSEMBLER_NAME(op)));
+      break;
+      
     case PARM_DECL:
     case VAR_DECL:
       json_int_field("id", DEBUG_TEMP_UID (op));
@@ -995,6 +1004,18 @@ static unsigned int dump_function (void)
   json_start_object();
   json_int_field("id", DEBUG_TEMP_UID (cfun->decl));
   json_string_field("name", IDENTIFIER_POINTER(DECL_NAME(cfun->decl)));
+  json_string_field("mangledName", IDENTIFIER_POINTER(DECL_ASSEMBLER_NAME(cfun->decl)));
+  
+  json_array_field("aliases");
+  
+  struct cgraph_node *cgn = cgraph_node(cfun->decl);
+  struct cgraph_node *n;
+  for (n = cgn->same_body; n; n = n->next)
+  {
+    json_string_value(IDENTIFIER_POINTER(DECL_ASSEMBLER_NAME(n->decl)));
+  }
+  json_end_array();
+    
   json_bool_field("extern", TREE_PUBLIC(cfun->decl));
   
   TRACE("dump_function: dumping arguments...\n");

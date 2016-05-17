@@ -6,11 +6,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import org.junit.Before;
-import org.renjin.gcc.gimple.CallingConvention;
-import org.renjin.gcc.gimple.CallingConventions;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
-import org.renjin.gcc.gimple.GimpleFunction;
-import org.renjin.gcc.gimple.statement.GimpleAssignment;
 
 import java.io.File;
 import java.io.IOException;
@@ -124,10 +120,6 @@ public abstract class AbstractGccTest {
       File source = new File(AbstractGccTest.class.getResource(sourceName).getFile());
       GimpleCompilationUnit unit = gcc.compileToGimple(source);
 
-      CallingConvention callingConvention = CallingConventions.fromFile(source);
-      for (GimpleFunction function : unit.getFunctions()) {
-        function.setCallingConvention(callingConvention);
-      }
       units.add(unit);
     }
     return units;

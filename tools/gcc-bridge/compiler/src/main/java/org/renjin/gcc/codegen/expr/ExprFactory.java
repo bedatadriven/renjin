@@ -19,7 +19,6 @@ import org.renjin.gcc.codegen.type.primitive.PrimitiveCmpGenerator;
 import org.renjin.gcc.codegen.type.primitive.StringConstant;
 import org.renjin.gcc.codegen.type.primitive.op.*;
 import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
-import org.renjin.gcc.gimple.CallingConvention;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.expr.*;
 import org.renjin.gcc.gimple.type.*;
@@ -34,12 +33,10 @@ import java.util.List;
 public class ExprFactory {
   private final TypeOracle typeOracle;
   private final SymbolTable symbolTable;
-  private final CallingConvention callingConvention;
 
-  public ExprFactory(TypeOracle typeOracle, SymbolTable symbolTable, CallingConvention callingConvention) {
+  public ExprFactory(TypeOracle typeOracle, SymbolTable symbolTable) {
     this.typeOracle = typeOracle;
     this.symbolTable = symbolTable;
-    this.callingConvention = callingConvention;
   }
   
 
@@ -86,7 +83,7 @@ public class ExprFactory {
       GimpleAddressOf addressOf = (GimpleAddressOf) expr;
       if (addressOf.getValue() instanceof GimpleFunctionRef) {
         GimpleFunctionRef functionRef = (GimpleFunctionRef) addressOf.getValue();
-        return new FunctionRefGenerator(symbolTable.findHandle(functionRef, callingConvention));
+        return new FunctionRefGenerator(symbolTable.findHandle(functionRef));
 
       } else if(addressOf.getValue() instanceof GimplePrimitiveConstant) {
         // Exceptionally, gimple often contains to address of constants when
@@ -162,7 +159,7 @@ public class ExprFactory {
       GimpleAddressOf addressOf = (GimpleAddressOf) functionExpr;
       if (addressOf.getValue() instanceof GimpleFunctionRef) {
         GimpleFunctionRef ref = (GimpleFunctionRef) addressOf.getValue();
-        return symbolTable.findCallGenerator(ref, operands, callingConvention);
+        return symbolTable.findCallGenerator(ref, operands);
       }
       GimpleAddressOf address = (GimpleAddressOf) functionExpr;
       throw new UnsupportedOperationException("function ref: " + address.getValue() +

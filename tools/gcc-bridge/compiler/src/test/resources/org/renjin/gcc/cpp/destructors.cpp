@@ -7,7 +7,7 @@ public:
 	~Simple() { global_val++; };
 };
 
-int run() {
+extern "C" int run() {
 	global_val = 0;
 	{
 		Simple a;

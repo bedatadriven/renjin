@@ -50,7 +50,7 @@ public class RStubs {
     System.out.println("x(l,l) = " + x.unwrap());
   }
 
-  public static void dump_nrmxl__(DoublePtr t) {
+  public static void dump_nrmxl_(DoublePtr t) {
     System.out.println("nrmxl = " + t.unwrap());
   }
   public static void prenrmxl_(IntPtr n, DoublePtr x, IntPtr incx) {

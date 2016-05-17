@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Handle;
@@ -60,11 +61,18 @@ public class FunctionGenerator implements InvocationStrategy {
     this.params = this.typeOracle.forParameters(function.getParameters());
     this.returnStrategy = this.typeOracle.returnStrategyFor(function.getReturnType());
     this.symbolTable = new LocalVariableTable(symbolTable);
-    this.exprFactory = new ExprFactory(typeOracle, this.symbolTable, function.getCallingConvention());
+    this.exprFactory = new ExprFactory(typeOracle, this.symbolTable);
   }
 
   public String getMangledName() {
     return function.getMangledName();
+  }
+  
+  public List<String> getMangledNames() {
+    List<String> names = Lists.newArrayList();
+    names.add(function.getMangledName());
+    names.addAll(function.getAliases());
+    return names;
   }
 
   public GimpleFunction getFunction() {
@@ -338,7 +346,7 @@ public class FunctionGenerator implements InvocationStrategy {
 
   @Override
   public void invoke(MethodGenerator mv) {
-    mv.invokestatic(getClassName(), getMangledName(), getFunctionDescriptor(), false);
+    mv.invokestatic(getClassName(), function.getMangledName(), getFunctionDescriptor(), false);
   }
 
   public GimpleCompilationUnit getCompilationUnit() {

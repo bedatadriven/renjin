@@ -186,8 +186,10 @@ public class GimpleCompiler  {
         FunctionCallGenerator functionCallGenerator = (FunctionCallGenerator) entry.getValue();
         if (functionCallGenerator.getStrategy() instanceof FunctionGenerator) {
           FunctionGenerator functionGenerator = (FunctionGenerator) functionCallGenerator.getStrategy();
-          LinkSymbol symbol = LinkSymbol.forFunction(entry.getKey(), functionGenerator.getMethodHandle());
-          symbol.write(outputDirectory);
+          for (String mangledName : functionGenerator.getMangledNames()) {
+            LinkSymbol symbol = LinkSymbol.forFunction(mangledName, functionGenerator.getMethodHandle());
+            symbol.write(outputDirectory); 
+          }
         }
       }
     }

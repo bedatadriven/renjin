@@ -481,11 +481,11 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void overloadedMethods() throws Exception {
     Class clazz = compile("methods.cpp");
 
-    Method add = clazz.getMethod("add", int.class, int.class);
+    Method add = clazz.getMethod("_Z3addii", int.class, int.class);
     Integer intSum = (Integer) add.invoke(null, Integer.valueOf(3), Integer.valueOf(5));
     assertThat(intSum, is(Integer.valueOf(8)));
 
-    add = clazz.getMethod("add", float.class, float.class);
+    add = clazz.getMethod("_Z3addff", float.class, float.class);
     Float floatSum = (Float) add.invoke(null, Float.valueOf(3.1f), Float.valueOf(5.1f));
     assertThat(floatSum, is(Float.valueOf(8.2f)));
   }
@@ -596,7 +596,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
     Class clazz = compile("strings.f");
     
     try {
-      Method method = clazz.getMethod("call_xerbla__");
+      Method method = clazz.getMethod("call_xerbla_");
       method.invoke(null);
     } catch (InvocationTargetException wrapper) {
       RuntimeException e = (RuntimeException) wrapper.getCause();

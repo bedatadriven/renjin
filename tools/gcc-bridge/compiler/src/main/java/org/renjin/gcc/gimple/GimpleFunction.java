@@ -21,8 +21,9 @@ import java.util.List;
 public class GimpleFunction {
   private int id;
   private String name;
-  private CallingConvention callingConvention;
+  private String mangledName;
   private GimpleType returnType;
+  private List<String> aliases = Lists.newArrayList();
   private GimpleCompilationUnit unit;
   private List<GimpleBasicBlock> basicBlocks = Lists.newArrayList();
   private List<GimpleParameter> parameters = Lists.newArrayList();
@@ -33,9 +34,6 @@ public class GimpleFunction {
 
   }
 
-  public void setCallingConvention(CallingConvention callingConvention) {
-    this.callingConvention = callingConvention;
-  }
 
   public int getId() {
     return id;
@@ -49,9 +47,19 @@ public class GimpleFunction {
     return name;
   }
 
+  public void setMangledName(String mangledName) {
+    this.mangledName = mangledName;
+  }
 
   public String getMangledName() {
-    return callingConvention.mangleFunctionName(name);
+    if(mangledName == null) {
+      throw new IllegalStateException("Mangled name is null");
+    }
+    return mangledName;
+  }
+
+  public List<String> getAliases() {
+    return aliases;
   }
 
   public void setName(String name) {
@@ -146,6 +154,9 @@ public class GimpleFunction {
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
+    if(!mangledName.equals(name)) {
+      sb.append(mangledName).append(": ");
+    }
     sb.append(name).append(" (");
     Joiner.on(", ").appendTo(sb, parameters);
     sb.append(")\n");
@@ -158,10 +169,6 @@ public class GimpleFunction {
     }
     sb.append("}\n");
     return sb.toString();
-  }
-
-  public CallingConvention getCallingConvention() {
-    return callingConvention;
   }
 
   public GimpleType getReturnType() {

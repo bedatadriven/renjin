@@ -13,7 +13,7 @@ void Rectangle::set_values (int x, int y) {
   height = y;
 }
 
-int calc_area () {
+extern "C" int calc_area () {
   Rectangle rect;
   rect.set_values (3,4);
   return rect.area();

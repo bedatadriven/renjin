@@ -34,7 +34,8 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<SimpleExpr> {
   private boolean provided;
   private boolean unitPointer;
 
-  private Map<String, FieldStrategy> fields = null;
+  private Map<String, FieldStrategy> nameMap = null;
+  private Map<Integer, FieldStrategy> offsetMap = null;
 
   public RecordClassTypeStrategy(GimpleRecordTypeDef recordTypeDef) {
     super(recordTypeDef);
@@ -73,10 +74,12 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<SimpleExpr> {
 
   @Override
   public void linkFields(TypeOracle typeOracle) {
-    fields = new HashMap<>();
+    nameMap = new HashMap<>();
+    offsetMap = new HashMap<>();
     for (GimpleField gimpleField : getRecordTypeDef().getFields()) {
       FieldStrategy fieldStrategy = typeOracle.forField(getJvmType(), gimpleField);
-      fields.put(gimpleField.getName(), fieldStrategy);
+      nameMap.put(gimpleField.getName(), fieldStrategy);
+      offsetMap.put(gimpleField.getOffset(), fieldStrategy);
     }
   }
 
@@ -141,29 +144,31 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<SimpleExpr> {
       return;
     }
 
-    RecordClassGenerator classGenerator = new RecordClassGenerator(jvmType, fields.values());
+    RecordClassGenerator classGenerator = new RecordClassGenerator(jvmType, nameMap.values());
     classGenerator.writeClassFile(outputDirectory);
   }
 
 
   @Override
   public Expr memberOf(SimpleExpr instance, GimpleFieldRef fieldRef) {
-    if(fields == null) {
+    if(nameMap == null) {
       throw new IllegalStateException("Fields map is not yet initialized.");
     }
-    FieldStrategy fieldStrategy = fields.get(fieldRef.getName());
-    
-    if(fieldStrategy == null) {
-      // Field names are not really taken seriously in Gimple
-      // If we can't find a field by name, then try by offset.
-      
+    FieldStrategy fieldStrategy = nameMap.get(fieldRef.getName());
+    if(fieldStrategy != null) {
+      return fieldStrategy.memberExprGenerator(instance);
     }
     
-    if(fieldStrategy == null) {
-      throw new InternalCompilerException(
+    // Field names are not really taken seriously in Gimple
+    // If we can't find a field by name, then try by offset.
+    fieldStrategy = offsetMap.get(fieldRef.getOffset());
+    
+    if(fieldStrategy != null) {
+      return fieldStrategy.memberExprGenerator(instance);
+    }
+    
+    throw new InternalCompilerException(
           String.format("No field named '%s' in record type '%s'", fieldRef.getName(), jvmType));
-    }
-    return fieldStrategy.memberExprGenerator(instance);
   }
 
   @Override

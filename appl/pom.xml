@@ -16,9 +16,9 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.netlib</groupId>
-      <artifactId>netlib-java</artifactId>
-      <version>0.9.3-renjin-patched-2</version>
+      <groupId>org.renjin</groupId>
+      <artifactId>renjin-blas</artifactId>
+      <version>${project.version}</version>
     </dependency>
   </dependencies>
   

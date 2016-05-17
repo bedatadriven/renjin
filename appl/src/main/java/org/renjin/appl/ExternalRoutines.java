@@ -1,11 +1,8 @@
 package org.renjin.appl;
 
-import org.netlib.blas.BLAS;
 import org.renjin.gcc.runtime.CharPtr;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
-
-import javax.swing.plaf.basic.BasicInternalFrameTitlePane;
 
 public class ExternalRoutines {
 

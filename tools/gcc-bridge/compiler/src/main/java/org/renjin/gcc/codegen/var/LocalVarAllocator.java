@@ -96,7 +96,4 @@ public class LocalVarAllocator extends VarAllocator {
   }
 
 
-  private String toJavaSafeName(String name) {
-    return name.replace('.', '$');
-  }
 }

@@ -13,7 +13,8 @@ import org.renjin.gcc.codegen.expr.SimpleLValue;
  * @see GlobalVarAllocator
  */
 public abstract class VarAllocator {
-  
+
+
   public abstract SimpleLValue reserve(String name, Type type);
   
   public abstract SimpleLValue reserve(String name, Type type, SimpleExpr initialValue);
@@ -40,4 +41,10 @@ public abstract class VarAllocator {
   public final SimpleLValue reserveInt(String name) {
     return reserve(name, Type.INT_TYPE);
   }
+
+
+  public static String toJavaSafeName(String name) {
+    return name.replace('.', '$');
+  }
+
 }

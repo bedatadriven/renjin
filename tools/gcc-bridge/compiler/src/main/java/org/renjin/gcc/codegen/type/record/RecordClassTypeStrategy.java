@@ -152,6 +152,13 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<SimpleExpr> {
       throw new IllegalStateException("Fields map is not yet initialized.");
     }
     FieldStrategy fieldStrategy = fields.get(fieldRef.getName());
+    
+    if(fieldStrategy == null) {
+      // Field names are not really taken seriously in Gimple
+      // If we can't find a field by name, then try by offset.
+      
+    }
+    
     if(fieldStrategy == null) {
       throw new InternalCompilerException(
           String.format("No field named '%s' in record type '%s'", fieldRef.getName(), jvmType));

@@ -144,6 +144,10 @@ public class ExprFactory {
       Expr instance = findGenerator(((GimpleComponentRef) expr).getValue());
       RecordTypeStrategy typeStrategy = (RecordTypeStrategy) typeOracle.forType(ref.getValue().getType());
       return typeStrategy.memberOf(instance, (GimpleFieldRef) ref.getMember());
+   
+    } else if(expr instanceof GimpleCompoundLiteral) {
+      return findGenerator(((GimpleCompoundLiteral) expr).getDecl());
+    
     }
     
     throw new UnsupportedOperationException(expr + " [" + expr.getClass().getSimpleName() + "]");

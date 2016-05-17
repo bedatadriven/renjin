@@ -5,7 +5,6 @@ import com.google.common.collect.Lists;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
-import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.SimpleExpr;
 import org.renjin.gcc.codegen.expr.SimpleLValue;
@@ -61,10 +60,11 @@ public class GlobalVarAllocator extends VarAllocator {
   }
 
   public SimpleLValue reserve(String name, Type type, Optional<SimpleExpr> initialValue) {
-    if(name.contains(".")) {
-      throw new InternalCompilerException("illegal global variable name: " + name);
-    }
-    StaticField field = new StaticField(name, type, initialValue);
+//    if(initialValue.isPresent()) {
+//      throw new UnsupportedOperationException("Initial values not supported");
+//    }
+    
+    StaticField field = new StaticField(toJavaSafeName(name), type, initialValue);
     fields.add(field);
     return field;
   }

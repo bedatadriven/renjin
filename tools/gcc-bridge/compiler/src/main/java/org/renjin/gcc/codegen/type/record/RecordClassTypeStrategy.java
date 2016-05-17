@@ -128,18 +128,15 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<SimpleExpr> {
 
     SimpleLValue instance = allocator.reserve(decl.getName(), jvmType, new RecordConstructor(this));
 
-    if(decl.isAddressable()) {
-      if (isUnitPointer()) {
-        // If we are using the RecordUnitPtr strategy, then the record value is also it's address
-        return new SimpleAddressableExpr(instance, instance);
-        
-      } else {
-        
+    if(isUnitPointer()) {
+      // If we are using the RecordUnitPtr strategy, then the record value is also it's address
+      return new SimpleAddressableExpr(instance, instance);
+
+    } else if(decl.isAddressable()) {
         SimpleLValue unitArray = allocator.reserveUnitArray(decl.getName(), jvmType, Optional.of((SimpleExpr)instance));
         FatPtrExpr address = new FatPtrExpr(unitArray);
         SimpleExpr value = Expressions.elementAt(address.getArray(), 0);
         return new SimpleAddressableExpr(value, address);      
-      }
     
     } else {
       

@@ -1,6 +1,5 @@
 package org.renjin.gcc.codegen.expr;
 
-import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.call.CallGenerator;
@@ -61,7 +60,7 @@ public class ExprFactory {
     try {
       return leftStrategy.cast(rhs, rightStrategy);
     } catch (UnsupportedCastException e) {
-      throw new InternalCompilerException(String.format("Unsupported cast from %s [%s] to %s [%s]",
+      throw new InternalCompilerException(String.format("Unsupported cast to %s [%s] from %s [%s]",
           lhsType, leftStrategy.getClass().getSimpleName(),
           rhsType, rightStrategy.getClass().getSimpleName()));
     }
@@ -154,6 +153,10 @@ public class ExprFactory {
       GimpleObjectTypeRef typeRef = (GimpleObjectTypeRef) expr;
       
       return findGenerator(typeRef.getExpr());
+    
+    } else if(expr instanceof GimplePointerPlus) {
+      GimplePointerPlus pointerPlus = (GimplePointerPlus) expr;
+      return pointerPlus(pointerPlus.getPointer(), pointerPlus.getOffset(), pointerPlus.getType());
     }
     
     throw new UnsupportedOperationException(expr + " [" + expr.getClass().getSimpleName() + "]");

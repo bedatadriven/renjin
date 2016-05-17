@@ -496,10 +496,8 @@ static void dump_op(tree op) {
     }
  	  // keep track of global variable references
     if(TREE_CODE(op) == VAR_DECL &&
-        DECL_CONTEXT(op) &&
-       (TREE_CODE(DECL_CONTEXT(op)) == NULL_TREE || TREE_CODE(DECL_CONTEXT(op)) != FUNCTION_DECL)) {
+        !(DECL_CONTEXT(op) &&  TREE_CODE(DECL_CONTEXT(op)) == FUNCTION_DECL)) {
    
-
       dump_global_var_ref(op);
     }
 

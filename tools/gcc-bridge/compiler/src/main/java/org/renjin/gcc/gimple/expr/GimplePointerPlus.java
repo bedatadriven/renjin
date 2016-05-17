@@ -64,4 +64,9 @@ public class GimplePointerPlus extends GimpleExpr {
     result = 31 * result + (offset != null ? offset.hashCode() : 0);
     return result;
   }
+
+  @Override
+  public String toString() {
+    return pointer + "+" + offset;
+  }
 }

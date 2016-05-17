@@ -75,7 +75,7 @@ public class Gcc {
 //    arguments.add("-E");
 //    arguments.add("-P");
     
-    arguments.add("-fno-rtti");
+  //  arguments.add("-fno-rtti");
 
     arguments.add("-c"); // compile only, do not link
     arguments.add("-S"); // stop at assembly generation
@@ -102,8 +102,10 @@ public class Gcc {
 
     LOGGER.fine("Executing " + Joiner.on(" ").join(arguments));
 
-    callGcc(arguments);
+    String output = callGcc(arguments);
 
+    System.err.println(output);
+    
     GimpleParser parser = new GimpleParser();
     GimpleCompilationUnit unit = parser.parse(gimpleFile);
     unit.setSourceFile(gimpleFile);

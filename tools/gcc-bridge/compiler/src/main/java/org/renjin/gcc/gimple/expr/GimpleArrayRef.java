@@ -19,6 +19,11 @@ public class GimpleArrayRef extends GimpleLValue {
     this.setType(((GimpleArrayType) array.getType()).getComponentType());
   }
 
+  public GimpleArrayRef(GimpleExpr array, GimpleExpr index) {
+    this.array = array;
+    this.index = index;
+  }
+
   public GimpleExpr getArray() {
     return array;
   }

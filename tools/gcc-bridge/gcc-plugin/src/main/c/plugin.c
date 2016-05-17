@@ -457,6 +457,7 @@ static void dump_type(tree type) {
     break;
     
   case FUNCTION_TYPE:
+  case METHOD_TYPE:
     dump_function_type(type);
     break;
     
@@ -622,9 +623,25 @@ static void dump_op(tree op) {
     case COMPOUND_LITERAL_EXPR:
       json_field("decl");
       dump_op(COMPOUND_LITERAL_EXPR_DECL(op));
-      
       break;  
+    
+    case POINTER_PLUS_EXPR:
+      json_field("pointer");
+      dump_op(TREE_OPERAND(op, 0));
+      json_field("offset");
+      dump_op(TREE_OPERAND(op, 1));
+      break;
+    
+    case OBJ_TYPE_REF:
+      json_field("expr");
+      dump_op(OBJ_TYPE_REF_EXPR(op));
+      json_field("object");
+      dump_op(OBJ_TYPE_REF_OBJECT(op));
+      json_field("token");
+      dump_op(OBJ_TYPE_REF_TOKEN(op));
+      break;
     }
+    
     json_end_object();
   } else {
     json_null();

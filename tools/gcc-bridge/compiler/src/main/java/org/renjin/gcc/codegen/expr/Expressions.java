@@ -414,4 +414,21 @@ public class Expressions {
       }
     };
   }
+
+  public static SimpleExpr newObject(final Type classType) {
+    return new SimpleExpr() {
+      @Nonnull
+      @Override
+      public Type getType() {
+        return classType;
+      }
+
+      @Override
+      public void load(@Nonnull MethodGenerator mv) {
+        mv.anew(classType);
+        mv.dup();
+        mv.invokeconstructor(classType);
+      }
+    };
+  }
 }

@@ -52,6 +52,12 @@ public class GimpleFieldRef extends GimpleExpr {
 
   @Override
   public String toString() {
+    if(name == null) {
+      return "field@" + offset;
+    }
+    if(name.contains(".")) {
+      return "[" + name + "]";
+    } 
     return name;
   }
 }

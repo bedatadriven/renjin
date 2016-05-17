@@ -76,11 +76,41 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<SimpleExpr> {
   public void linkFields(TypeOracle typeOracle) {
     nameMap = new HashMap<>();
     offsetMap = new HashMap<>();
-    for (GimpleField gimpleField : getRecordTypeDef().getFields()) {
-      FieldStrategy fieldStrategy = typeOracle.forField(getJvmType(), gimpleField);
-      nameMap.put(gimpleField.getName(), fieldStrategy);
-      offsetMap.put(gimpleField.getOffset(), fieldStrategy);
+    
+    for(GimpleField gimpleField : recordTypeDef.getFields()) {
+      if(!offsetMap.containsKey(gimpleField.getOffset()) && !isCircularField(gimpleField)) {
+        FieldStrategy fieldStrategy = fieldStrategy(typeOracle, gimpleField);
+        nameMap.put(gimpleField.getName(), fieldStrategy);
+        offsetMap.put(gimpleField.getOffset(), fieldStrategy);
+      }
     }
+  }
+
+  private boolean isCircularField(GimpleField gimpleField) {
+    // GCC emits this weird member at the end of class 
+    // need to figure out why this is there 
+    return gimpleField.getType().equals(recordType);
+  }
+
+  private FieldStrategy fieldStrategy(TypeOracle typeOracle, GimpleField gimpleField) {
+    // If the record begins with another record, model the initial field as a superclass rather
+    // than a field so that we can cast back and forth between the two types
+    if(gimpleField.getOffset() == 0) {
+      TypeStrategy fieldTypeStrategy = typeOracle.forType(gimpleField.getType());
+      if(fieldTypeStrategy instanceof RecordClassTypeStrategy) {
+        return new SuperClassFieldStrategy((RecordClassTypeStrategy) fieldTypeStrategy);
+      }
+    }
+    return typeOracle.forField(getJvmType(), gimpleField);
+  }
+
+  private Type getSuperClass() {
+    for (FieldStrategy fieldStrategy : nameMap.values()) {
+      if(fieldStrategy instanceof SuperClassFieldStrategy) {
+        return ((SuperClassFieldStrategy) fieldStrategy).getType();
+      }
+    }
+    return Type.getType(Object.class);
   }
 
   @Override
@@ -119,12 +149,17 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<SimpleExpr> {
 
   @Override
   public FieldStrategy fieldGenerator(Type className, String fieldName) {
-    return new RecordFieldStrategy(this, fieldName);
+    return new RecordFieldStrategy(this, className, fieldName);
   }
 
   @Override
   public FieldStrategy addressableFieldGenerator(Type className, String fieldName) {
-    return new AddressableField(getJvmType(), fieldName, new RecordClassValueFunction(this));
+    if(isUnitPointer()) {
+      // If this type is a unit pointer, we don't need to do anything special
+      return new RecordFieldStrategy(this, className, fieldName);
+    } else {
+      return new AddressableField(getJvmType(), fieldName, new RecordClassValueFunction(this));
+    }
   }
   
   @Override
@@ -144,10 +179,9 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<SimpleExpr> {
       return;
     }
 
-    RecordClassGenerator classGenerator = new RecordClassGenerator(jvmType, nameMap.values());
+    RecordClassGenerator classGenerator = new RecordClassGenerator(jvmType, getSuperClass(), nameMap.values());
     classGenerator.writeClassFile(outputDirectory);
   }
-
 
   @Override
   public Expr memberOf(SimpleExpr instance, GimpleFieldRef fieldRef) {

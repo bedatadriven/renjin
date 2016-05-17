@@ -182,4 +182,9 @@ public class Builtins {
   public static Object[] realloc(Object[] p, int offset, int newCount) {
     return Realloc.realloc(p, offset, newCount);
   }
+
+
+  public static void __cxa_pure_virtual() {
+    throw new RuntimeException("Pure virtual function invoked");
+  }
 }

@@ -74,11 +74,13 @@ public class Gcc {
     // for debugging preprocessor output
 //    arguments.add("-E");
 //    arguments.add("-P");
+    
+    arguments.add("-fno-rtti");
 
     arguments.add("-c"); // compile only, do not link
     arguments.add("-S"); // stop at assembly generation
     arguments.addAll(Arrays.asList(compilerFlags));
-    // command.add("-O9"); // highest optimization
+//    arguments.add("-O9"); // highest optimization
 
     arguments.add("-fdump-tree-gimple-verbose-raw-vops");
     arguments.add("-save-temps");

@@ -58,6 +58,12 @@ public class GimpleComponentRef extends GimpleLValue {
 
   @Override
   public String toString() {
+    if(member instanceof GimpleFieldRef) {
+      GimpleFieldRef memberField = (GimpleFieldRef) member;
+      if(memberField.getName() == null) {
+        return value + "@" + memberField.getOffset();
+      }
+    }
     return value + "." + member;
   }
 }

@@ -94,6 +94,11 @@ public class ArrayTypeStrategy implements TypeStrategy<FatPtrExpr> {
 
   @Override
   public FieldStrategy fieldGenerator(Type className, String fieldName) { 
+    if(arrayType.getUbound() == null) {
+      throw new UnsupportedOperationException(
+          String.format("Array field '%s' with type %s does not have a fixed size",
+              fieldName, arrayType));
+    }
     return new ArrayField(className, fieldName, arrayType.getElementCount(), valueFunction);
   }
 

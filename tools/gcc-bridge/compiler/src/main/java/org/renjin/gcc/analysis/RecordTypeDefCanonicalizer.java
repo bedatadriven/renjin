@@ -64,6 +64,7 @@ public class RecordTypeDefCanonicalizer {
         if (canonical == null) {
           // first time seen, this is a canonical record
           keyMap.put(key, recordTypeDef);
+          idToCanonicalMap.put(recordTypeDef.getId(), recordTypeDef);
         } else {
           // duplicate of already seen structure, map it's id to the canonical version
           idToCanonicalMap.put(recordTypeDef.getId(), canonical);
@@ -205,6 +206,8 @@ public class RecordTypeDefCanonicalizer {
       GimpleRecordTypeDef canonicalDef = idToCanonicalMap.get(recordType.getId());
       if(canonicalDef != null) {
         recordType.setId(canonicalDef.getId());
+        // Ensure the name field is populated to help with debugging
+        recordType.setName(canonicalDef.getName());
       }
     
     } else if(type instanceof GimpleIndirectType) {

@@ -491,7 +491,6 @@ public class GimpleCompilerTest extends AbstractGccTest {
   }
 
   @Test
-  @Ignore("wip")
   public void virtualCpp() throws Exception {
 
     Class clazz = compile("shape.cpp");
@@ -501,7 +500,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
     Integer result = (Integer) calc_area.invoke(null);
 
 
-    assertThat(result, equalTo(12));
+    assertThat(result, equalTo(532));
   }
   
   @Test

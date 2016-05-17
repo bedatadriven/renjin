@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.type;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.objectweb.asm.Type;
@@ -127,11 +128,18 @@ public class TypeOracle {
    * @param field the gimple field
    */
   public FieldStrategy forField(Type className, GimpleField field) {
+    
+    String fieldName = field.getName();
+    if(Strings.isNullOrEmpty(fieldName)) {
+      fieldName = "$$field" + field.getOffset();
+    }
+    fieldName = fieldName.replace('.', '$');
+    
     TypeStrategy type = forType(field.getType());
     if(field.isAddressed()) {
-      return type.addressableFieldGenerator(className, field.getName());
+      return type.addressableFieldGenerator(className, fieldName);
     } else {
-      return type.fieldGenerator(className, field.getName());
+      return type.fieldGenerator(className, fieldName);
     }
   }
 

@@ -137,6 +137,11 @@ public class GimpleCompiler  {
     // create the mapping from the compilation unit's version of the record types
     // to the canonical version shared by all compilation units
     recordTypeDefs = RecordTypeDefCanonicalizer.canonicalize(units);
+    if(verbose) {
+      for (GimpleRecordTypeDef recordTypeDef : recordTypeDefs) {
+        System.out.println(recordTypeDef);
+      }
+    }
 
     // First apply any transformations needed by the code generation process
     transform(units);

@@ -3,6 +3,7 @@ package org.renjin.gcc.codegen.type.primitive;
 import com.google.common.base.Preconditions;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.expr.SimpleExpr;
 import org.renjin.gcc.gimple.expr.GimplePrimitiveConstant;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
@@ -87,5 +88,15 @@ public class ConstantValue implements SimpleExpr {
     int result = value.hashCode();
     result = 31 * result + type.hashCode();
     return result;
+  }
+
+  public static boolean isZero(Expr expr) {
+    if(expr instanceof ConstantValue) {
+      ConstantValue constantValue = (ConstantValue) expr;
+      if(constantValue.getIntValue() == 0) {
+        return true;
+      }
+    }
+    return false;
   }
 }

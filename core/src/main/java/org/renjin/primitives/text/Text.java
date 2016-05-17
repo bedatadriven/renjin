@@ -345,10 +345,6 @@ public class Text {
       return new StringArrayVector(new String[x.length()]);
     }
 
-    if (x.toString().equals("NA_character_")) {
-      return new IntArrayVector(0);
-    }
-
     RE re = REFactory.compile(pattern,ignoreCase, perl, fixed, useBytes);
     if(value) {
       StringVector.Builder result = new StringVector.Builder();

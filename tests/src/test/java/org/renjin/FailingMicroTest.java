@@ -6,7 +6,7 @@ import org.junit.Test;
 /**
  * All failing microtests
  */
-@Ignore
+//@Ignore
 public class FailingMicroTest extends AbstractMicroTest {
 
   @Test
@@ -348,7 +348,12 @@ public class FailingMicroTest extends AbstractMicroTest {
   public void microGREP2() {
     assertIdentical("{ a <- grep(NA, \"abc\"); a }", "NA_character_");
   }
-
-
-
+  @Test
+  public void microENC2UTF8_1() {
+    assertIdentical("{ a <- enc2utf8(\"a\"); a }", "a");
+  }
+  @Test
+  public void microENC2UTF8_2() {
+    assertIdentical("{ a <- enc2utf8(c(\"a\",\"b\")); a }", "c(\"a\",\"b\")");
+  }
 }

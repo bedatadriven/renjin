@@ -62,7 +62,7 @@ public class ExprFactory {
     } catch (UnsupportedCastException e) {
       throw new InternalCompilerException(String.format("Unsupported cast to %s [%s] from %s [%s]",
           lhsType, leftStrategy.getClass().getSimpleName(),
-          rhsType, rightStrategy.getClass().getSimpleName()));
+          rhsType, rightStrategy.getClass().getSimpleName()), e);
     }
   }
 

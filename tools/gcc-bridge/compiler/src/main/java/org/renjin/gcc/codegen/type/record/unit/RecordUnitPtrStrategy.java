@@ -37,7 +37,7 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
 
   @Override
   public FieldStrategy fieldGenerator(Type className, String fieldName) {
-    return new SimpleFieldStrategy(strategy.getJvmType(), fieldName);
+    return new SimpleFieldStrategy(fieldName, strategy.getJvmType());
   }
 
   @Override

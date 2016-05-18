@@ -40,7 +40,7 @@ public class FunPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
 
   @Override
   public FieldStrategy fieldGenerator(Type className, String fieldName) {
-    return new SimpleFieldStrategy(METHOD_HANDLE_TYPE, fieldName);
+    return new SimpleFieldStrategy(fieldName, METHOD_HANDLE_TYPE);
   }
 
   @Override

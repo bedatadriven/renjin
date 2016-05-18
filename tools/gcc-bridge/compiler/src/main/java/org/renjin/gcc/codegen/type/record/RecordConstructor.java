@@ -2,6 +2,7 @@ package org.renjin.gcc.codegen.type.record;
 
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.expr.LValue;
@@ -54,8 +55,16 @@ public class RecordConstructor implements SimpleExpr {
     
     for (Map.Entry<GimpleFieldRef, Expr> field : fields.entrySet()) {
       // Push the value onto the stack and save to the field
-      LValue fieldGenerator = (LValue) strategy.memberOf(instance, field.getKey());
-      fieldGenerator.store(mv, field.getValue());
+      LValue fieldExpr = (LValue) strategy.memberOf(instance, field.getKey());
+      try {
+        fieldExpr.store(mv, field.getValue());
+      } catch (Exception e) {
+        throw new InternalCompilerException(
+            String.format("Exception storing value for field %s of type %s in %s", 
+                field.getKey(),
+                field.getKey().getType(),
+                strategy.getClass().getSimpleName()), e);
+      }
     }
   }
 }

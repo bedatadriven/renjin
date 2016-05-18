@@ -137,6 +137,10 @@ public class UnitClassGenerator {
     mv.visitCode();
 
     for (GimpleVarDecl decl : varToGenerate) {
+      if(decl.getName().startsWith("_ZTI")) {
+        // Skip rtti tables for now...
+        continue;
+      }
       try {
         LValue varGenerator = (LValue) symbolTable.getGlobalVariable(decl);
         if(decl.getValue() != null) {
@@ -144,8 +148,12 @@ public class UnitClassGenerator {
         }
 
       } catch (Exception e) {
-        throw new InternalCompilerException("Exception writing static variable initializer " + decl.getName() +
-            " defined in " + unit.getSourceFile().getName(), e);
+        throw new InternalCompilerException(
+            String.format("Exception writing static variable initializer %s %s = %s defined in %s", 
+                decl.getType(),
+                decl.getName(),
+                decl.getValue(),
+                unit.getSourceFile().getName()), e);
       }
     }
     mv.visitInsn(RETURN);

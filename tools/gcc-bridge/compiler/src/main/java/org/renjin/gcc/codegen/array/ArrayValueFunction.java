@@ -20,6 +20,10 @@ public class ArrayValueFunction implements ValueFunction {
   public ArrayValueFunction(GimpleArrayType arrayType, ValueFunction elementValueFunction) {
     this.arrayType = arrayType;
     this.elementValueFunction = elementValueFunction;
+    
+//    if(arrayType.getUbound() == null) {
+//      throw new UnsupportedOperationException("Array type is not fixed: " + arrayType);
+//    }
   }
 
   @Override
@@ -33,8 +37,8 @@ public class ArrayValueFunction implements ValueFunction {
   }
 
   @Override
-  public int getElementSize() {
-    return elementValueFunction.getElementSize();
+  public int getArrayElementBytes() {
+    return elementValueFunction.getArrayElementBytes();
   }
 
   @Override

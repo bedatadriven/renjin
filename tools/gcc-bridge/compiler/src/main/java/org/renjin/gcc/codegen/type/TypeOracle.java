@@ -282,7 +282,12 @@ public class TypeOracle {
   public Map<GimpleParameter, ParamStrategy> forParameters(List<GimpleParameter> parameters) {
     Map<GimpleParameter, ParamStrategy> map = new HashMap<GimpleParameter, ParamStrategy>();
     for (GimpleParameter parameter : parameters) {
-      map.put(parameter, forParameter(parameter.getType()));
+      try {
+        map.put(parameter, forParameter(parameter.getType()));
+      } catch(Exception e) {
+        throw new InternalCompilerException(String.format(
+            "Exception for parameter %s of type %s", parameter.getName(), parameter.getType()), e);
+      }
     }
     return map;
   }

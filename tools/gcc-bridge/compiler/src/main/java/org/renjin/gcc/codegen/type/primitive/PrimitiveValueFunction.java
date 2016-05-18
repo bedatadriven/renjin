@@ -40,7 +40,7 @@ public class PrimitiveValueFunction implements ValueFunction {
   }
 
   @Override
-  public int getElementSize() {
+  public int getArrayElementBytes() {
     return byteSize;
   }
 

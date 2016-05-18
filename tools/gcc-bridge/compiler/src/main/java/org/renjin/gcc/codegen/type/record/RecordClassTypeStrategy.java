@@ -133,11 +133,11 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<SimpleExpr> {
       return new SimpleAddressableExpr(instance, instance);
 
     } else if(decl.isAddressable()) {
-        SimpleLValue unitArray = allocator.reserveUnitArray(decl.getName(), jvmType, Optional.of((SimpleExpr)instance));
-        FatPtrExpr address = new FatPtrExpr(unitArray);
-        SimpleExpr value = Expressions.elementAt(address.getArray(), 0);
-        return new SimpleAddressableExpr(value, address);      
-    
+      SimpleLValue unitArray = allocator.reserveUnitArray(decl.getName(), jvmType, Optional.of((SimpleExpr)instance));
+      FatPtrExpr address = new FatPtrExpr(unitArray);
+      SimpleExpr value = Expressions.elementAt(address.getArray(), 0);
+      return new SimpleAddressableExpr(value, address);
+
     } else {
       
       return instance;

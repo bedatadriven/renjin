@@ -2,7 +2,6 @@ package org.renjin.gcc.maven;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -10,6 +9,11 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.compiler.util.scan.InclusionScanException;
+import org.codehaus.plexus.compiler.util.scan.SimpleSourceInclusionScanner;
+import org.codehaus.plexus.compiler.util.scan.SourceInclusionScanner;
+import org.codehaus.plexus.compiler.util.scan.mapping.SourceMapping;
+import org.codehaus.plexus.compiler.util.scan.mapping.SuffixMapping;
 import org.renjin.gcc.Gcc;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.codegen.lib.SymbolLibrary;
@@ -18,22 +22,13 @@ import org.renjin.gcc.gimple.CallingConvention;
 import org.renjin.gcc.gimple.CallingConventions;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
-import org.codehaus.plexus.compiler.util.scan.InclusionScanException;
-import org.codehaus.plexus.compiler.util.scan.SimpleSourceInclusionScanner;
-import org.codehaus.plexus.compiler.util.scan.SourceInclusionScanner;
-import org.codehaus.plexus.compiler.util.scan.mapping.SourceMapping;
-import org.codehaus.plexus.compiler.util.scan.mapping.SuffixMapping;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Compiles Fortran and C sources
@@ -182,6 +177,7 @@ public class GccBridgeMojo extends AbstractMojo {
     compiler.setVerbose(true);
     compiler.addMathLibrary();
     compiler.setOutputDirectory(outputDirectory);
+    compiler.setLinkClassLoader(getLinkClassLoader());
     
     ClassLoader classLoader = createClassLoader();
     
@@ -238,6 +234,25 @@ public class GccBridgeMojo extends AbstractMojo {
       }
 
       return new URLClassLoader( classpathURLs.toArray( new URL[ classpathURLs.size() ] ) );
+    } catch(MalformedURLException e) {
+      throw new MojoExecutionException("Exception resolving classpath", e);
+    }
+  }
+
+  private ClassLoader getLinkClassLoader() throws MojoExecutionException  {
+    try {
+      getLog().debug("GCC-Bridge Link Classpath: ");
+
+      List<URL> classpathURLs = Lists.newArrayList();
+      classpathURLs.add( new File(project.getBuild().getOutputDirectory()).toURI().toURL() );
+
+      for(Artifact artifact : (List<Artifact>)project.getCompileArtifacts()) {
+        getLog().debug("  "  + artifact.getFile());
+
+        classpathURLs.add(artifact.getFile().toURI().toURL());
+      }
+
+      return new URLClassLoader( classpathURLs.toArray( new URL[ classpathURLs.size() ] ), getClass().getClassLoader());
     } catch(MalformedURLException e) {
       throw new MojoExecutionException("Exception resolving classpath", e);
     }

@@ -610,6 +610,11 @@ static void dump_op(tree op) {
 //      }
       break;
 	    
+    case COMPOUND_LITERAL_EXPR:
+      json_field("decl");
+      dump_op(COMPOUND_LITERAL_EXPR_DECL(op));
+      
+      break;  
     }
     json_end_object();
   } else {

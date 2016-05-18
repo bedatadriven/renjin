@@ -161,7 +161,6 @@ c
       cr = mod(job,100)/10 .ne. 0
       cxb = mod(job,10) .ne. 0
       ju = min0(k,n-1)
-
 c
 c     special action when n=1.
 c
@@ -185,13 +184,10 @@ c        set up to compute qy or qty.
 c
          if (cqy) call dcopy(n,y,1,qy,1)
          if (cqty) call dcopy(n,y,1,qty,1)
-
-
          if (.not.cqy) go to 70
 c
 c           compute qy.
 c
-
             do 60 jj = 1, ju
                j = ju - jj + 1
                if (qraux(j) .eq. 0.0d0) go to 50
@@ -217,8 +213,6 @@ c
    80          continue
    90       continue
   100    continue
-
-
 c
 c        set up to compute b, rsd, or xb.
 c

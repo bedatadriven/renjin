@@ -56,6 +56,14 @@ public class Builtins {
     return Math.sqrt(x);
   }
   
+  public static double __builtin_atan__(double x) { return Math.atan(x); }
+
+  public static double __builtin_atan2__(double x, double y) { return Math.atan2(x, y); }
+
+  public static double __builtin_asin__(double x) { return Math.asin(x); }
+  
+  public static double __builtin_fmod__(double x, double y) { return Mathlib.fmod(x, y); }
+
   public static double __builtin_pow__(double x, double y) {
     return Math.pow(x, y);
   }

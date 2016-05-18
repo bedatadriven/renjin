@@ -118,7 +118,7 @@ public class EmptyRecordPtrTypeStrategy implements PointerTypeStrategy<SimpleExp
 
   @Override
   public ArrayTypeStrategy arrayOf(GimpleArrayType arrayType) {
-    throw new UnsupportedOperationException("TODO");
+    return new ArrayTypeStrategy(arrayType, new EmptyRecordPtrValueFunction());
   }
 
   @Override

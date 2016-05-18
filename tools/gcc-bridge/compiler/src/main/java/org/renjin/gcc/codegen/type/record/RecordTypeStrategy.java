@@ -5,6 +5,7 @@ import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
 import org.renjin.gcc.gimple.expr.GimpleFieldRef;
+import org.renjin.gcc.gimple.type.GimpleField;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
 
@@ -46,4 +47,18 @@ public abstract class RecordTypeStrategy<ExprT extends Expr> implements TypeStra
   public ExprT cast(Expr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
     throw new UnsupportedCastException();
   }
+
+
+  public static boolean isCircularField(GimpleRecordTypeDef typeDef, GimpleField gimpleField) {
+    // GCC emits this weird member at the end of class 
+    // need to figure out why this is there 
+    if(gimpleField.getType() instanceof GimpleRecordType) {
+      GimpleRecordType recordType = (GimpleRecordType) gimpleField.getType();
+      if(recordType.getId().equals(typeDef.getId())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
 }

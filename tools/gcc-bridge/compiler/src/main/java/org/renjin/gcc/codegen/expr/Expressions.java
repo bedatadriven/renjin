@@ -114,11 +114,11 @@ public class Expressions {
   }
 
 
-  public static SimpleExpr elementAt(SimpleExpr array, final int offset) {
+  public static ArrayElement elementAt(SimpleExpr array, final int offset) {
     return elementAt(array, constantInt(offset));
   }
 
-  public static SimpleExpr elementAt(final SimpleExpr array, final SimpleExpr offset) {
+  public static ArrayElement elementAt(final SimpleExpr array, final SimpleExpr offset) {
     checkType("array", array, Type.ARRAY);
     checkType("offset", offset, Type.INT_TYPE);
     
@@ -269,6 +269,22 @@ public class Expressions {
           throw new UnsupportedOperationException();
         }
         ((LValue) object).store(mv, value);
+      }
+    };
+  }
+  
+  public static SimpleExpr castPrimitive(final SimpleExpr expr, final Type type) {
+    return new SimpleExpr() {
+      @Nonnull
+      @Override
+      public Type getType() {
+        return type;
+      }
+
+      @Override
+      public void load(@Nonnull MethodGenerator mv) {
+        expr.load(mv);
+        mv.cast(expr.getType(), type);
       }
     };
   }
@@ -430,5 +446,49 @@ public class Expressions {
         mv.invokeconstructor(classType);
       }
     };
+  }
+  
+  public static SimpleExpr shiftRight(final SimpleExpr x, int bits) {
+    if(bits == 0) {
+      return x;
+    }
+    return shiftRight(x, constantInt(bits));
+  }
+  
+  public static SimpleExpr shiftRight(final SimpleExpr x, final SimpleExpr bits) {
+    return new SimpleExpr() {
+      @Nonnull
+      @Override
+      public Type getType() {
+        return x.getType();
+      }
+
+      @Override
+      public void load(@Nonnull MethodGenerator mv) {
+        x.load(mv);
+        bits.load(mv);
+        mv.shr(x.getType());
+      }
+    };
+  }
+  
+  public static SimpleExpr[] intToByteArray(SimpleExpr intExpr) {
+    //    (byte) (value >> 24),
+    //        (byte) (value >> 16),
+    //        (byte) (value >> 8),
+    //        (byte) value};
+//    return new SimpleExpr[] {
+//        
+//        castPrimitive(shiftRight(intExpr, 24), Type.BYTE_TYPE),
+//        castPrimitive(shiftRight(intExpr, 16), Type.BYTE_TYPE),
+//        castPrimitive(shiftRight(intExpr, 8), Type.BYTE_TYPE),
+//        castPrimitive(shiftRight(intExpr, 0), Type.BYTE_TYPE) };
+
+    return new SimpleExpr[] {
+
+        castPrimitive(shiftRight(intExpr, 0), Type.BYTE_TYPE),
+        castPrimitive(shiftRight(intExpr, 8), Type.BYTE_TYPE),
+        castPrimitive(shiftRight(intExpr, 16), Type.BYTE_TYPE),
+        castPrimitive(shiftRight(intExpr, 24), Type.BYTE_TYPE) };
   }
 }

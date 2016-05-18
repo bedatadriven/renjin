@@ -67,7 +67,7 @@ public class EmptyRecordTypeStrategy extends RecordTypeStrategy<SimpleExpr> {
 
   @Override
   public FieldStrategy fieldGenerator(Type className, String fieldName) {
-    throw new UnsupportedOperationException("TODO");
+    return new EmptyRecordField();
   }
 
   @Override

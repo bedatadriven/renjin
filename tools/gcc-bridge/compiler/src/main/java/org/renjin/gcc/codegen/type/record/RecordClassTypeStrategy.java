@@ -39,6 +39,10 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<SimpleExpr> {
 
   public RecordClassTypeStrategy(GimpleRecordTypeDef recordTypeDef) {
     super(recordTypeDef);
+    
+    if(recordTypeDef.isUnion()) {
+      throw new UnsupportedOperationException("Unions are not supported. Offending type:\n" + recordTypeDef);
+    }
   }
 
   public Type getJvmType() {
@@ -78,18 +82,12 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<SimpleExpr> {
     offsetMap = new HashMap<>();
     
     for(GimpleField gimpleField : recordTypeDef.getFields()) {
-      if(!offsetMap.containsKey(gimpleField.getOffset()) && !isCircularField(gimpleField)) {
+      if(!offsetMap.containsKey(gimpleField.getOffset()) && !isCircularField(recordTypeDef, gimpleField)) {
         FieldStrategy fieldStrategy = fieldStrategy(typeOracle, gimpleField);
         nameMap.put(gimpleField.getName(), fieldStrategy);
         offsetMap.put(gimpleField.getOffset(), fieldStrategy);
       }
     }
-  }
-
-  private boolean isCircularField(GimpleField gimpleField) {
-    // GCC emits this weird member at the end of class 
-    // need to figure out why this is there 
-    return gimpleField.getType().equals(recordType);
   }
 
   private FieldStrategy fieldStrategy(TypeOracle typeOracle, GimpleField gimpleField) {

@@ -229,10 +229,6 @@ public class GimpleCompiler  {
 
   private RecordTypeStrategy strategyFor(GimpleRecordTypeDef recordTypeDef) {
     
-    if(recordTypeDef.isUnion()) {
-      throw new UnsupportedOperationException("Unions are not supported");
-    }
-    
     if(isProvided(recordTypeDef)) {
       RecordClassTypeStrategy strategy = new RecordClassTypeStrategy(recordTypeDef);
       strategy.setProvided(true);

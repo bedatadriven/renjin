@@ -4,6 +4,10 @@ import org.objectweb.asm.Type;
 
 public class GimpleBooleanType extends GimplePrimitiveType {
 
+  public GimpleBooleanType() {
+    setSize(8);
+  }
+
   @Override
   public String toString() {
     return "bool";

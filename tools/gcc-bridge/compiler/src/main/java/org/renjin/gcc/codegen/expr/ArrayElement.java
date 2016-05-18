@@ -9,7 +9,7 @@ import javax.annotation.Nonnull;
 /**
  * Array Simple Element
  */
-class ArrayElement implements SimpleLValue, Addressable {
+public class ArrayElement implements SimpleLValue, Addressable {
   private SimpleExpr array;
   private SimpleExpr offset;
 

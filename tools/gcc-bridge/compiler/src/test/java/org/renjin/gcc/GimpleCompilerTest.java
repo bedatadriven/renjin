@@ -504,6 +504,11 @@ public class GimpleCompilerTest extends AbstractGccTest {
   }
   
   @Test
+  public void unions() throws Exception {
+    compileAndTest("unions.c");
+  }
+  
+  @Test
   public void voidInference() throws Exception {
     compile("lamix.f");
   }

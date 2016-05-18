@@ -42,8 +42,6 @@ public class RecordTypeDefCanonicalizer {
   
   private RecordTypeDefCanonicalizer(List<GimpleCompilationUnit> units) {
     
-    
-    
     // Make a list of distinct record types, starting with the complete list 
     // of declared record types across all units, which will include duplicates
     List<GimpleRecordTypeDef> distinct = Lists.newArrayList();
@@ -147,6 +145,10 @@ public class RecordTypeDefCanonicalizer {
 
   private void updateAllTypes(List<GimpleCompilationUnit> units) {
 
+    for (Map.Entry<String, GimpleRecordTypeDef> entry : idToCanonicalMap.entrySet()) {
+      System.out.println("Mapping " + entry.getKey() + " -> "  + entry.getValue().getId());
+    }
+    
     // Ensure that canonical type defs reference other canonical type defs in their fields
     for (GimpleRecordTypeDef recordTypeDef : idToCanonicalMap.values()) {
       updateFieldTypes(recordTypeDef);

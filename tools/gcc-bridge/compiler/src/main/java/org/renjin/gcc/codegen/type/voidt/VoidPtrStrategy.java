@@ -4,10 +4,9 @@ import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
-import org.renjin.gcc.codegen.expr.Expr;
-import org.renjin.gcc.codegen.expr.ExprFactory;
-import org.renjin.gcc.codegen.expr.Expressions;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.*;
+import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
+import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleOp;
@@ -101,9 +100,16 @@ public class VoidPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
   @Override
   public SimpleExpr variable(GimpleVarDecl decl, VarAllocator allocator) {
     if(decl.isAddressable()) {
-      throw new UnsupportedOperationException("TODO");
+      SimpleLValue unitArray = allocator.reserveArrayRef(decl.getName(), Type.getType(Object.class));
+      FatPtrExpr address = new FatPtrExpr(unitArray);
+      SimpleExpr value = Expressions.elementAt(unitArray, 0);
+      
+      return new SimpleAddressableExpr(value, address);
+    
+    } else {
+      
+      return allocator.reserve(decl.getName(), Type.getType(Object.class));
     }
-    return allocator.reserve(decl.getName(), Type.getType(Object.class));
   }
 
   @Override
@@ -123,12 +129,12 @@ public class VoidPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
 
   @Override
   public PointerTypeStrategy pointerTo() {
-    throw new UnsupportedOperationException("TODO");
+    return new FatPtrStrategy(new VoidPtrValueFunction());
   }
 
   @Override
   public ArrayTypeStrategy arrayOf(GimpleArrayType arrayType) {
-    throw new UnsupportedOperationException("TODO");
+    return new ArrayTypeStrategy(arrayType, new VoidPtrValueFunction());
   }
 
   @Override

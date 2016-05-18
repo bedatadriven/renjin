@@ -207,19 +207,6 @@ public class Evaluation {
     return result.build();
   }
 
-  @Internal
-  public static ListVector withVisible(@Current Context context, SEXP value) {
-
-    Vector.Builder result;
-    LogicalArrayVector visible = new LogicalArrayVector(1);
-    result = new ListVector.Builder();
-    result.setAttribute("value", value);
-    result.setAttribute("visible", (SEXP) visible);
-
-    return (ListVector) result.build();
-  }
-
-
   @Builtin("return")
   public static SEXP doReturn(@Current Environment rho, SEXP value) {
     throw new ReturnException(rho, value);
@@ -317,6 +304,14 @@ public class Evaluation {
     ListVector.NamedBuilder list = new ListVector.NamedBuilder();
     list.add("value", result);
     list.add("visible", context.getSession().isInvisible());
+    return list.build();
+  }
+
+  @Internal("withVisible")
+  public static ListVector withVisible(@Current Context context, SEXP expression) {
+    ListVector.NamedBuilder list = new ListVector.NamedBuilder();
+    list.add("value", expression);
+    list.add("visible", !context.getSession().isInvisible());
     return list.build();
   }
 

@@ -1,16 +1,15 @@
 package org.renjin.gcc.analysis;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.renjin.gcc.gimple.*;
 import org.renjin.gcc.gimple.expr.*;
 import org.renjin.gcc.gimple.statement.*;
 import org.renjin.gcc.gimple.type.*;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Builds a list of distinct GimpleRecordTypes across compilation units.
@@ -28,6 +27,11 @@ public class RecordTypeDefCanonicalizer {
    * Map from GCC id to the canonical instance of the GimpleRecordTypeDef
    */
   private Map<String, GimpleRecordTypeDef> idToCanonicalMap = Maps.newHashMap();
+
+  /**
+   * Map from GCC id to declaration name
+   */
+  private Map<String, String> nameMap = Maps.newHashMap();
   
   private List<GimpleRecordTypeDef> canonical = Lists.newArrayList();
   
@@ -57,15 +61,22 @@ public class RecordTypeDefCanonicalizer {
       // Remove duplicates using our key function
       Map<String, GimpleRecordTypeDef> keyMap = new HashMap<>();
       for (GimpleRecordTypeDef recordTypeDef : distinct) {
+        
+        if(!Strings.isNullOrEmpty(recordTypeDef.getName())) {
+          nameMap.put(recordTypeDef.getId(), recordTypeDef.getName());
+        }
+        
         String key = key(recordTypeDef);
         GimpleRecordTypeDef canonical = keyMap.get(key);
         if (canonical == null) {
           // first time seen, this is a canonical record
           keyMap.put(key, recordTypeDef);
-          idToCanonicalMap.put(recordTypeDef.getId(), recordTypeDef);
         } else {
           // duplicate of already seen structure, map it's id to the canonical version
           idToCanonicalMap.put(recordTypeDef.getId(), canonical);
+          
+          // remap any structures pointing to this one
+          remapFrom(recordTypeDef.getId(), canonical);
           
           changing = true;
         }
@@ -82,6 +93,18 @@ public class RecordTypeDefCanonicalizer {
     } while(changing);
     
     this.canonical = distinct;
+  }
+
+  private void remapFrom(String oldCanonicalId, GimpleRecordTypeDef canonical) {
+    Set<String> toRemap = Sets.newHashSet();
+    for (Map.Entry<String, GimpleRecordTypeDef> entry : idToCanonicalMap.entrySet()) {
+      if(entry.getValue().getId().equals(oldCanonicalId)) {
+        toRemap.add(entry.getKey());
+      }
+    }
+    for (String id : toRemap) {
+      idToCanonicalMap.put(id, canonical);
+    }
   }
 
 
@@ -208,10 +231,14 @@ public class RecordTypeDefCanonicalizer {
       GimpleRecordTypeDef canonicalDef = idToCanonicalMap.get(recordType.getId());
       if(canonicalDef != null) {
         recordType.setId(canonicalDef.getId());
-        // Ensure the name field is populated to help with debugging
-        recordType.setName(canonicalDef.getName());
       }
-    
+
+      // Populate name field to help with debugging
+      String name = nameMap.get(recordType.getId());
+      if(name != null) {
+        recordType.setName(name);
+      }
+      
     } else if(type instanceof GimpleIndirectType) {
       updateType(type.getBaseType());  
     } else if(type instanceof GimpleArrayType) {
@@ -265,6 +292,11 @@ public class RecordTypeDefCanonicalizer {
         updateTypes(((GimpleArrayRef) expr).getArray());
       } else if (expr instanceof GimpleNopExpr) {
         updateTypes(((GimpleNopExpr) expr).getValue());
+      } else if (expr instanceof GimpleConstructor) {
+        GimpleConstructor constructor = (GimpleConstructor) expr;
+        for (GimpleConstructor.Element element : constructor.getElements()) {
+          updateTypes(element.getValue());
+        }
       }
     }
   }

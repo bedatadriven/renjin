@@ -47,17 +47,17 @@ public class EmptyRecordTypeStrategy extends RecordTypeStrategy<SimpleExpr> {
 
   @Override
   public ParamStrategy getParamStrategy() {
-    throw new UnsupportedOperationException("TODO");
+    return new EmptyRecordParamStrategy();
   }
 
   @Override
   public ReturnStrategy getReturnStrategy() {
-    throw new UnsupportedOperationException("TODO");
+    return new EmptyRecordReturnStrategy();
   }
 
   @Override
   public SimpleExpr variable(GimpleVarDecl decl, VarAllocator allocator) {
-    throw new UnsupportedOperationException("TODO");
+    return new EmptyRecordVar();
   }
 
   @Override

@@ -5,8 +5,10 @@ import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -40,6 +42,7 @@ public class VoidPtrValueFunction implements ValueFunction {
 
   @Override
   public List<SimpleExpr> toArrayValues(Expr expr) {
-    throw new UnsupportedOperationException();
+    FatPtrExpr fatPtrExpr = (FatPtrExpr) expr;
+    return Collections.singletonList(fatPtrExpr.wrap());
   }
 }

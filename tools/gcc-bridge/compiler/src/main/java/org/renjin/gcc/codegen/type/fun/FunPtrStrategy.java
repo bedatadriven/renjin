@@ -8,6 +8,7 @@ import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
 import org.renjin.gcc.codegen.type.*;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveTypeStrategy;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrStrategy;
 import org.renjin.gcc.codegen.type.record.unit.RefConditionGenerator;
 import org.renjin.gcc.codegen.var.VarAllocator;
@@ -78,7 +79,11 @@ public class FunPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
     
     // TODO: remove this, just to get rtti running
     if(typeStrategy instanceof RecordUnitPtrStrategy) {
-      return Expressions.nullRef(METHOD_HANDLE_TYPE);
+      return nullPointer();
+    }
+    
+    if(typeStrategy instanceof PrimitiveTypeStrategy) {
+      return nullPointer();
     }
     
     throw new UnsupportedCastException();

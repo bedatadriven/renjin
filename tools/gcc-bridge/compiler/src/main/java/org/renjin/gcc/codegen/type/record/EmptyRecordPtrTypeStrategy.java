@@ -78,17 +78,17 @@ public class EmptyRecordPtrTypeStrategy implements PointerTypeStrategy<SimpleExp
 
   @Override
   public SimpleExpr unmarshallVoidPtrReturnValue(MethodGenerator mv, SimpleExpr voidPointer) {
-    throw new UnsupportedOperationException("TODO");
+    return voidPointer;
   }
 
   @Override
   public ParamStrategy getParamStrategy() {
-    throw new UnsupportedOperationException("TODO");
+    return new SimpleParamStrategy(OBJECT_TYPE);
   }
 
   @Override
   public ReturnStrategy getReturnStrategy() {
-    throw new UnsupportedOperationException("TODO");
+    return new SimpleReturnStrategy(Type.getType(Object.class));
   }
 
   @Override
@@ -128,4 +128,5 @@ public class EmptyRecordPtrTypeStrategy implements PointerTypeStrategy<SimpleExp
     }
     throw new UnsupportedCastException();
   }
+
 }

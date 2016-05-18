@@ -64,5 +64,6 @@ public interface TypeStrategy<ExprT extends Expr> {
    * to a value of this strategy.
    */
   ExprT cast(Expr value, TypeStrategy typeStrategy) throws UnsupportedCastException;
-  
+
+
 }

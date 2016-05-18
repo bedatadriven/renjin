@@ -426,7 +426,8 @@ public class ExprFactory {
   }
 
   public Expr forConstant(GimpleConstant constant) {
-    if (constant.isNull()) {
+    if (constant.getType() instanceof GimpleIndirectType) {
+      // TODO: Treat all pointer constants as null
       return typeOracle.forPointerType(constant.getType()).nullPointer();
       
     } else if (constant instanceof GimplePrimitiveConstant) {

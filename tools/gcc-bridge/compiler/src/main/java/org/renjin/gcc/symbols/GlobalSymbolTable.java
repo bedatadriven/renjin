@@ -69,8 +69,9 @@ public class GlobalSymbolTable implements SymbolTable {
       }
     }
     
+    
     if(generator == null) {
-      throw new UnsupportedOperationException("Could not find function '" + ref.getName() + "'");
+      return new FunctionCallGenerator(new UnimplCallGenerator(ref.getName()));
     }
     return generator;
   }

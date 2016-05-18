@@ -130,6 +130,7 @@ public class Primitives {
     f("gettext", Text.class, 11);
     f("ngettext", Text.class, 11);
     f("bindtextdomain", Text.class, 11);
+    f("enc2utf8", Text.class, 1);
     f(".addCondHands", Conditions.class, 111);
     f(".resetCondHands", /*resetCondHands*/ null, 111);
     f(".signalCondition", Conditions.class, 11);

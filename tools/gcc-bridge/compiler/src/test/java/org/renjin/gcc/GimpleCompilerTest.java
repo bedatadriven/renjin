@@ -638,6 +638,11 @@ public class GimpleCompilerTest extends AbstractGccTest {
   }
   
   @Test
+  public void cppExceptions() throws Exception {
+    compileAndTest("exceptions.cpp");
+  }
+  
+  @Test
   public void linking() throws Exception {
     compile(Arrays.asList("link1.c", "link2.c"));
 

@@ -8,7 +8,7 @@ union u1 {
    uint8_t b[4];
 };
 
-void main() {
+void test() {
 
     union u1 x;
     

@@ -203,6 +203,14 @@ public class Text {
     // translation not yet supported.
   }
 
+  @Internal
+  public static StringVector enc2utf8(StringVector inputVector) {
+    // All character vectors in Renjin are Unicode-encoded
+    // So this is a NO-OP
+    return inputVector;
+  }
+
+
   /**
    * Translate characters
    *

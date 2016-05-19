@@ -3248,6 +3248,14 @@ public class MicroTest extends AbstractMicroTest {
     assertIdentical("{ sqrt(c(a=9,b=81)) }", "structure(c(3, 9), .Names = c(\"a\", \"b\"))");
   }
   @Test
+  public void micro1177() {
+    assertIdentical("{ round( exp(c(1+1i,-2-3i)), digits=5 ) }", "c(1.46869+2.28736i, -0.13398-0.0191i)");
+  }
+  @Test
+  public void micro1178() {
+    assertIdentical("{ round( exp(1+2i), digits=5 ) }", "-1.1312+2.47173i");
+  }
+  @Test
   public void micro1181() {
     assertIdentical("{ abs(NA+0.1) }", "NA_real_");
   }
@@ -7451,6 +7459,10 @@ public class MicroTest extends AbstractMicroTest {
     assertIdentical("{ x <- 1:2 ; x[c(FALSE,FALSE,TRUE)]<-10; x }", "c(1, 2, 10)");
   }
   @Test
+  public void micro2397() {
+    assertIdentical("{ x <- c(a=1,b=2) ; x[c(FALSE,FALSE,TRUE)]<-10; x }", "structure(c(1, 2, 10), .Names = c(\"a\", \"b\", \"\"))");
+  }
+  @Test
   public void micro2398() {
     assertIdentical("{ x<-c(a=1,b=2,c=3) ; x[[\"b\"]]<-200; x }", "structure(c(1, 200, 3), .Names = c(\"a\", \"b\", \"c\"))");
   }
@@ -8968,6 +8980,42 @@ public class MicroTest extends AbstractMicroTest {
   @Test
   public void grepNAtest() {
     assertIdentical("x <- grep(c(\"a\",\"b\"), pattern=NA); x", "c(NA_character_,NA_character_)");
+  }
+  @Test
+  public void microSTRSPLIT0() {
+    assertIdentical("{ a <- strsplit(NA, \"d\"); a[[1]] }", "NULL");
+  }
+  @Test
+  public void microSTRSPLIT1() {
+    assertIdentical("{ a <- strsplit(\"abc\", \"d\"); a[[1]] }", "c(\"abc\")");
+  }
+  @Test
+  public void microGREPL1() {
+    assertIdentical("{ a <- grepl(\"a\",c(\"a\",\"b\")); a }", "c(TRUE,FALSE)");
+  }
+  @Test
+  public void microGREPL2() {
+    assertIdentical("{ a <- grepl(NA,c(\"a\",\"b\")); a }", "c(NA_character_, NA_character_)");
+  }
+  @Test
+  public void microGREP0() {
+    assertIdentical("{ a <- grep(\"a\", c(\"a\",\"b\",NA,\"a\")); a }", "c(1L, 4L)");
+  }
+  @Test
+  public void microGREP1() {
+    assertIdentical("{ a <- grep(\"a\", NA); a }", "integer(0)");
+  }
+  @Test
+  public void microGREP2() {
+    assertIdentical("{ a <- grep(NA, \"abc\"); a }", "NA_character_");
+  }
+  @Test
+  public void microENC2UTF8_1() {
+    assertIdentical("{ a <- enc2utf8(\"abc\"); a }", "c(\"abc\")");
+  }
+  @Test
+  public void microENC2UTF8_2() {
+    assertIdentical("{ a <- enc2utf8(c(\"a\",\"b\")); a }", "c(\"a\",\"b\")");
   }
 
 }

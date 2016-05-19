@@ -205,7 +205,8 @@ public class Text {
 
   @Internal
   public static StringVector enc2utf8(StringVector inputVector) {
-    // conversion to UTF8 not yet supported
+    // All character vectors in Renjin are Unicode-encoded
+    // So this is a NO-OP
     return inputVector;
   }
 

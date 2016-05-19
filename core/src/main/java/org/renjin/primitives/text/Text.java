@@ -204,21 +204,9 @@ public class Text {
   }
 
   @Internal
-  public static StringVector enc2utf8(SEXP inputVector) {
-    if (!(inputVector instanceof StringVector)) {
-      throw new EvalException("Error in enc2utf8(" + inputVector + ") : argumemt is not a character vector");
-    }
-
-    StringVector.Builder outputVector = new StringVector.Builder();
-    if (inputVector.length() > 1) {
-      for (int i = 0; i < inputVector.length(); i++) {
-        outputVector.add(((StringVector) inputVector).getElementAsObject(i));
-      }
-    } else {
-      outputVector.add(inputVector);
-    }
-
-    return outputVector.build();
+  public static StringVector enc2utf8(StringVector inputVector) {
+    // conversion to UTF8 not yet supported
+    return inputVector;
   }
 
 

@@ -6,7 +6,7 @@ import org.junit.Test;
 /**
  * All failing microtests
  */
-//@Ignore
+@Ignore
 public class FailingMicroTest extends AbstractMicroTest {
 
   @Test

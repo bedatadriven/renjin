@@ -9003,7 +9003,7 @@ public class MicroTest extends AbstractMicroTest {
   }
   @Test
   public void microGREP1() {
-    assertIdentical("{ a <- grep(\"a\", NA); a }", "0L");
+    assertIdentical("{ a <- grep(\"a\", NA); a }", "integer(0)");
   }
   @Test
   public void microGREP2() {
@@ -9011,7 +9011,7 @@ public class MicroTest extends AbstractMicroTest {
   }
   @Test
   public void microENC2UTF8_1() {
-    assertIdentical("{ a <- enc2utf8(\"a\"); a }", "a");
+    assertIdentical("{ a <- enc2utf8(\"abc\"); a }", "c(\"abc\")");
   }
   @Test
   public void microENC2UTF8_2() {

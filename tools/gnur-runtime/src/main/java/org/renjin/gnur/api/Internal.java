@@ -1634,9 +1634,9 @@ public final class Internal {
     throw new UnimplementedGnuApiMethod("do_which");
   }
 
-//  public static SEXP do_withVisible(SEXP p0, SEXP p1, SEXP p2, SEXP p3) {
-//    throw new UnimplementedGnuApiMethod("do_withVisible");
-//  }
+  public static SEXP do_withVisible(SEXP p0, SEXP p1, SEXP p2, SEXP p3) {
+    throw new UnimplementedGnuApiMethod("do_withVisible");
+  }
 
   public static SEXP do_xtfrm(SEXP p0, SEXP p1, SEXP p2, SEXP p3) {
     throw new UnimplementedGnuApiMethod("do_xtfrm");

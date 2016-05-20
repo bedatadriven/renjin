@@ -218,6 +218,22 @@ public class SubsettingTest extends EvalTestCase {
 
     assertThat(eval(" x['a'] "), equalTo(c(3)));
     assertThat( eval(" names(x['a']) "), equalTo( c("a")));
+    
+    assertThat(eval(" x[NA_character_] "), equalTo( c(DoubleVector.NA)));
+    assertThat(eval(" names(x[NA_character_]) "), equalTo( c((String)null)));
+
+  }
+  
+  @Test
+  public void namedSubscriptsAgainstNaNames() {
+    eval(" x <- c(1,2)");
+    eval(" names(x) <- c(NA, 'foo')");
+    
+    assertThat(eval("x['foo']"), equalTo(c(2)));
+    assertThat(eval("x[['foo']]"), equalTo(c(2)));
+
+    assertThat(eval(" x[NA_character_] "), equalTo( c(DoubleVector.NA)));
+    assertThat(eval(" names(x[NA_character_]) "), equalTo( c((String)null)));
   }
 
   @Test

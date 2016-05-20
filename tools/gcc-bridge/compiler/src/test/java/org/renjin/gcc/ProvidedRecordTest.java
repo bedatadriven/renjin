@@ -48,6 +48,7 @@ public class ProvidedRecordTest extends AbstractGccTest {
     
     Method allocPointerArray = clazz.getMethod("alloc_pointer_array");
     ObjectPtr<JvmInterface> ptrArray = (ObjectPtr) allocPointerArray.invoke(null);
+    assertThat(ptrArray.array.length, equalTo(10));
   }
   
   

@@ -32,7 +32,7 @@ public class RecordUnitPtrValueFunction implements ValueFunction {
 
   @Override
   public int getElementSize() {
-    return 32;
+    return 4;
   }
 
   @Override

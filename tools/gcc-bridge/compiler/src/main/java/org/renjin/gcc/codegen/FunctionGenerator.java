@@ -19,10 +19,12 @@ import org.renjin.gcc.codegen.type.ReturnStrategy;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.gimple.*;
+import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
 import org.renjin.gcc.gimple.statement.*;
 import org.renjin.gcc.gimple.type.GimpleVoidType;
 import org.renjin.gcc.peephole.PeepholeOptimizer;
 import org.renjin.gcc.symbols.LocalVariableTable;
+import org.renjin.gcc.symbols.UndefinedCollector;
 import org.renjin.gcc.symbols.UnitSymbolTable;
 
 import java.io.PrintWriter;
@@ -108,8 +110,8 @@ public class FunctionGenerator implements InvocationStrategy {
     // https://bugs.openjdk.java.net/browse/JDK-8132697
     // Bug is somewhere in ClassReader.java
     // http://hg.openjdk.java.net/jdk8u/jdk8u/langtools/file/78f0aa619915/src/share/classes/com/sun/tools/javac/jvm/ClassReader.java
-
-    // localVarAllocator.emitDebugging(mv, beginLabel, endLabel);
+      
+    mv.getLocalVarAllocator().emitDebugging(mv, beginLabel, endLabel);
 
     mv.visitMaxs(1, 1);
     mv.visitEnd();
@@ -357,5 +359,17 @@ public class FunctionGenerator implements InvocationStrategy {
   @Override
   public String toString() {
     return className + "." + getMangledName() + "()";
+  }
+
+  public void collectUndefinedSymbols(UndefinedCollector undefined) {
+    for (GimpleBasicBlock basicBlock : function.getBasicBlocks()) {
+      for (GimpleStatement gimpleStatement : basicBlock.getStatements()) {
+        for (GimpleFunctionRef functionRef : gimpleStatement.findUses(GimpleFunctionRef.class)) {
+          if (!symbolTable.isFunctionDefined(functionRef.getName())) {
+            undefined.add(functionRef.getName(), function);
+          }
+        }
+      }
+    }
   }
 }

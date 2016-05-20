@@ -81,6 +81,10 @@ public class UnitSymbolTable implements SymbolTable {
     return globalSymbolTable.findHandle(functionRef, callingConvention);
   }
 
+  public boolean isFunctionDefined(String name) {
+    return functions.containsKey(name) || globalSymbolTable.isFunctionDefined(name);
+  }
+  
   public CallGenerator findCallGenerator(GimpleFunctionRef ref, List<GimpleExpr> operands, CallingConvention callingConvention) {
     Collection<FunctionGenerator> matches = functions.get(ref.getName());
     if(matches.size() == 1) {

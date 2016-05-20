@@ -6,11 +6,16 @@ import java.lang.invoke.MethodHandle;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
 
 /**
  * C standard library functions
  */
 public class Stdlib {
+  
+  public static final int CLOCKS_PER_SEC = 4;
+  
+  private static long PROGRAM_START = System.currentTimeMillis();
   
   public static BytePtr tzname;
   public static int timezone;
@@ -20,10 +25,14 @@ public class Stdlib {
     for(int i=0;i<n;++i) {
       byte bx = x.array[x.offset+i];
       byte by = y.array[y.offset+i];
+      
       if(bx < by) {
         return -1;
       } else if(bx > by) {
         return 1;
+      }
+      if(bx == 0) {
+        break;
       }
     }
     return 0;
@@ -191,9 +200,8 @@ public class Stdlib {
   public static void qsort(Object base, int nitems, int size, MethodHandle comparator) {
     throw new UnsupportedOperationException();
   }
-
-
-
+  
+  
   public static ObjectPtr<CharPtr> __ctype_b_loc() {
     return CharTypes.TABLE_PTR;
   }
@@ -239,5 +247,14 @@ public class Stdlib {
   public static void fflush(Object file) {
     // TODO: implement properly
   }
-  
+
+  /**
+   * This function returns the number of clock ticks elapsed since the start of the program.
+   * On failure, the function returns a value of -1.
+   */
+  public static int clock() {
+    long millisSinceProgramStart = System.currentTimeMillis() - PROGRAM_START;
+    int secondsSinceProgramStart = (int)TimeUnit.MILLISECONDS.toSeconds(millisSinceProgramStart);
+    return secondsSinceProgramStart * CLOCKS_PER_SEC;
+  }
 }

@@ -1,8 +1,11 @@
 // Initial template generated from Rinternals.h from R 3.2.2
 package org.renjin.gnur.api;
 
+import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.gcc.runtime.*;
+import org.renjin.primitives.Native;
+import org.renjin.primitives.Types;
 import org.renjin.primitives.Vectors;
 import org.renjin.sexp.*;
 
@@ -109,7 +112,7 @@ public final class Rinternals {
   }
 
   public static boolean Rf_isString(SEXP s) {
-    throw new UnimplementedGnuApiMethod("Rf_isString");
+    return s instanceof StringVector;
   }
 
   public static boolean Rf_isObject(SEXP s) {
@@ -328,43 +331,43 @@ public final class Rinternals {
   }
 
   public static SEXP CAR(SEXP e) {
-    throw new UnimplementedGnuApiMethod("CAR");
+    return ((PairList.Node) e).getValue();
   }
 
   public static SEXP CDR(SEXP e) {
-    throw new UnimplementedGnuApiMethod("CDR");
+    return ((PairList.Node) e).getNext();
   }
-
+  
   public static SEXP CAAR(SEXP e) {
-    throw new UnimplementedGnuApiMethod("CAAR");
+    return CAR(CAR(e));
   }
 
   public static SEXP CDAR(SEXP e) {
-    throw new UnimplementedGnuApiMethod("CDAR");
+    return CDR(CAR(e));
   }
 
   public static SEXP CADR(SEXP e) {
-    throw new UnimplementedGnuApiMethod("CADR");
+    return CAR(CDR(e));
   }
 
   public static SEXP CDDR(SEXP e) {
-    throw new UnimplementedGnuApiMethod("CDDR");
+    return CDR(CDR(e));
   }
 
   public static SEXP CDDDR(SEXP e) {
-    throw new UnimplementedGnuApiMethod("CDDDR");
+    return CDR(CDR(CDR(e)));
   }
 
   public static SEXP CADDR(SEXP e) {
-    throw new UnimplementedGnuApiMethod("CADDR");
+    return 	CAR(CDR(CDR(e)));
   }
 
   public static SEXP CADDDR(SEXP e) {
-    throw new UnimplementedGnuApiMethod("CADDDR");
+    return CAR(CDR(CDR(CDR(e))));
   }
 
   public static SEXP CAD4R(SEXP e) {
-    throw new UnimplementedGnuApiMethod("CAD4R");
+    return CAR(CDR(CDR(CDR(CDR(e)))));
   }
 
   public static int MISSING(SEXP x) {
@@ -811,8 +814,12 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("R_envHasNoSpecialSymbols");
   }
 
-  public static SEXP Rf_eval(SEXP p0, SEXP p1) {
-    throw new UnimplementedGnuApiMethod("Rf_eval");
+  public static SEXP Rf_eval(SEXP expr, SEXP rho) {
+    Context context = Native.CURRENT_CONTEXT.get();
+    if(context == null) {
+      throw new IllegalStateException("Renjin context not initialized for this thread.");
+    }
+    return context.evaluate(expr, (Environment) rho);
   }
 
   public static SEXP Rf_findFun(SEXP p0, SEXP p1) {
@@ -1432,7 +1439,7 @@ public final class Rinternals {
   }
 
   public static boolean Rf_isMatrix(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_isMatrix");
+    return Types.isMatrix(p0);
   }
 
   public static boolean Rf_isNewList(SEXP p0) {
@@ -1453,15 +1460,15 @@ public final class Rinternals {
   }
 
   public static boolean Rf_isNumeric(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_isNumeric");
+    return Types.isNumeric(p0);
   }
 
   public static boolean Rf_isPairList(SEXP p0) {
-    return p0 instanceof PairList;
+    return Types.isPairList(p0);
   }
 
   public static boolean Rf_isPrimitive(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_isPrimitive");
+    return p0 instanceof PrimitiveFunction;
   }
 
   public static boolean Rf_isTs(SEXP p0) {
@@ -1525,7 +1532,7 @@ public final class Rinternals {
   }
 
   public static SEXP Rf_lcons(SEXP p0, SEXP p1) {
-    throw new UnimplementedGnuApiMethod("Rf_lcons");
+    return new FunctionCall(p0, (PairList) p1);
   }
 
   public static int Rf_length (SEXP sexp) {
@@ -1610,7 +1617,7 @@ public final class Rinternals {
   public static SEXP Rf_ScalarLogical(int p0) {
     if(p0 == LogicalVector.NA) {
       return LogicalVector.NA_VECTOR;
-    } else if(p0 != 0) {
+    } else if(p0 == 0) {
       return LogicalVector.FALSE;
     } else {
       return LogicalVector.TRUE;

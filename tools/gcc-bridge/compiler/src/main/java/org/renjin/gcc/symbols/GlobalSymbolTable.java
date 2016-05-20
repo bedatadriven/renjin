@@ -54,8 +54,17 @@ public class GlobalSymbolTable implements SymbolTable {
   @Override
   public CallGenerator findCallGenerator(GimpleFunctionRef ref, List<GimpleExpr> operands, CallingConvention callingConvention) {
     String mangledName = callingConvention.mangleFunctionName(ref.getName());
-    CallGenerator generator = functions.get(mangledName);
+    Optional<CallGenerator> generator = findCallGenerator(mangledName);
     
+    if(!generator.isPresent()) {
+      throw new UnsupportedOperationException("Could not find function '" + mangledName + "'");
+    }
+    return generator.get();
+  }
+
+  private Optional<CallGenerator> findCallGenerator(String mangledName) {
+    CallGenerator generator = functions.get(mangledName);
+
     // Try to find the symbol on the classpath
     if(generator == null) {
       Optional<LinkSymbol> linkSymbol = null;
@@ -70,13 +79,14 @@ public class GlobalSymbolTable implements SymbolTable {
         functions.put(mangledName, generator);
       }
     }
-    
-    if(generator == null) {
-      throw new UnsupportedOperationException("Could not find function '" + mangledName + "'");
-    }
-    return generator;
+    return Optional.fromNullable(generator);
   }
 
+
+  public boolean isFunctionDefined(String name) {
+    return findCallGenerator(name).isPresent();
+  }
+  
   @Override
   public Handle findHandle(GimpleFunctionRef ref, CallingConvention callingConvention) {
     CallGenerator callGenerator = findCallGenerator(ref, null, callingConvention);
@@ -185,4 +195,5 @@ public class GlobalSymbolTable implements SymbolTable {
   public Set<Map.Entry<String, CallGenerator>> getFunctions() {
     return functions.entrySet();
   }
+
 }

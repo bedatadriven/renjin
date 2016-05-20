@@ -672,7 +672,7 @@ public class Primitives {
     f("is.loaded", /*isloaded*/ null, -1);
     f(".C", Native.class, -1);
     f(".Fortran", Native.class, -1);
-    f(".External", /*External*/ null, -1);
+    f(".External",  Native.class, -1);
     f(".Call", Native.class, -1);
     f(".External.graphics", /*Externalgr*/ null, 1);
     f(".Call.graphics", /*dotcallgr*/ null, 1);

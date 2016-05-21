@@ -2,7 +2,6 @@ package org.renjin.gcc.symbols;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
-
 import org.objectweb.asm.Handle;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.expr.Expr;
@@ -31,6 +30,10 @@ public class LocalVariableTable implements SymbolTable {
     Preconditions.checkState(!variableMap.containsKey(gimpleId), "variable already registered with id " + gimpleId);
 
     variableMap.put(gimpleId, variable);
+  }
+  
+  public boolean isFunctionDefined(String name) {
+    return parent.isFunctionDefined(name);
   }
 
   @Override

@@ -130,6 +130,7 @@ public class Primitives {
     f("gettext", Text.class, 11);
     f("ngettext", Text.class, 11);
     f("bindtextdomain", Text.class, 11);
+    f("enc2utf8", Text.class, 1);
     f(".addCondHands", Conditions.class, 111);
     f(".resetCondHands", /*resetCondHands*/ null, 111);
     f(".signalCondition", Conditions.class, 11);
@@ -671,7 +672,7 @@ public class Primitives {
     f("is.loaded", /*isloaded*/ null, -1);
     f(".C", Native.class, -1);
     f(".Fortran", Native.class, -1);
-    f(".External", /*External*/ null, -1);
+    f(".External",  Native.class, -1);
     f(".Call", Native.class, -1);
     f(".External.graphics", /*Externalgr*/ null, 1);
     f(".Call.graphics", /*dotcallgr*/ null, 1);
@@ -682,7 +683,7 @@ public class Primitives {
     f("typeof", Types.class, 11);
     f("eval", Evaluation.class, 211);
     f("eval.with.vis",Evaluation.class, 211);
-    f("withVisible", /*withVisible*/ null, 10);
+    f("withVisible", Evaluation.class, 10);
     add(new ExpressionFunction());
     f("sys.parent", Contexts.class, 11);
     f("sys.call", Contexts.class, 11);

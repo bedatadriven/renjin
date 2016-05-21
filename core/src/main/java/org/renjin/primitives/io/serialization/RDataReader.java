@@ -46,7 +46,7 @@ import static org.renjin.sexp.SexpType.LANGSXP;
 import static org.renjin.sexp.SexpType.LISTSXP;
 
 
-public class RDataReader {
+public class RDataReader implements AutoCloseable {
 
   private InputStream conn;
   private StreamReader in;
@@ -651,6 +651,11 @@ public class RDataReader {
       values[i] = ((CHARSEXP)readExp()).getValue();
     }
     return new StringArrayVector(values);
+  }
+
+  @Override
+  public void close() throws IOException {
+    conn.close();
   }
 
   private interface StreamReader {

@@ -18,6 +18,7 @@ import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.symbols.GlobalSymbolTable;
+import org.renjin.gcc.symbols.UndefinedCollector;
 import org.renjin.gcc.symbols.UnitSymbolTable;
 
 import java.io.PrintWriter;
@@ -86,6 +87,12 @@ public class UnitClassGenerator {
             unit.getSourceName(),
             e.getMessage()), e);
       }
+    }
+  }
+  
+  public void collectUndefinedSymbols(UndefinedCollector undefined) {
+    for (FunctionGenerator functionGenerator : symbolTable.getFunctions()) {
+      functionGenerator.collectUndefinedSymbols(undefined);
     }
   }
 

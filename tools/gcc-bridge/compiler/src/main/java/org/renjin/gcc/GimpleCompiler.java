@@ -170,6 +170,16 @@ public class GimpleCompiler  {
       unitClassGenerators.add(generator);
     }
 
+    // Before we try to go whole hog, find ALL undefined symbols and abort quickly if we're missing
+    // something
+//    UndefinedCollector collector = new UndefinedCollector();
+//    for (UnitClassGenerator unitClassGenerator : unitClassGenerators) {
+//      unitClassGenerator.collectUndefinedSymbols(collector);
+//    }
+//    if(!collector.isEmpty()) {
+//      throw new InternalCompilerException(collector.toString());
+//    }
+//    
     // Finally, run code generation
     for (UnitClassGenerator generator : unitClassGenerators) {
       generator.emit();

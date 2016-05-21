@@ -1,9 +1,14 @@
 
+#include <stdio.h>
 
 // To be mapped to an existing JVM class
 struct jvm_rect {
   int width;
   int height;
+};
+
+struct jvm_interface {
+  int dummy;
 };
 
 // To be mapped to an existing JVM static method
@@ -38,4 +43,9 @@ static const struct jvm_rect global_rects[] = {
 
 int test_globals() {
   return jvm_areas(global_rects);
+}
+
+struct jvm_interface ** alloc_pointer_array() {
+  struct jvm_interface ** p = malloc(sizeof(struct jvm_interface*) * 10);
+  return p;
 }

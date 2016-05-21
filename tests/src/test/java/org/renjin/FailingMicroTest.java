@@ -22,14 +22,6 @@ public class FailingMicroTest extends AbstractMicroTest {
     assertIdentical("{ round( log(10,), digits = 5 ) }", "2.30259");
   }
   @Test
-  public void micro1177() {
-    assertIdentical("{ round( exp(c(1+1i,-2-3i)), digits=5 ) }", "c(1.46869+2.28736i, -0.13398-0.0191i)");
-  }
-  @Test
-  public void micro1178() {
-    assertIdentical("{ round( exp(1+2i), digits=5 ) }", "-1.1312+2.47173i");
-  }
-  @Test
   public void micro1179() {
     assertIdentical("{ abs((-1-0i)/(0+0i)) }", "Inf");
   }
@@ -209,10 +201,6 @@ public class FailingMicroTest extends AbstractMicroTest {
     assertIdentical("{ x<-1:5 ; x[x[4]<-2] <- (x[4]<-100) ; x }", "c(1, 100, 3, 2, 5)");
   }
   @Test
-  public void micro2397() {
-    assertIdentical("{ x <- c(a=1,b=2) ; x[c(FALSE,FALSE,TRUE)]<-10; x }", "structure(c(1, 2, 10), .Names = c(\"a\", \"b\", \"\"))");
-  }
-  @Test
   public void micro2474() {
     assertIdentical("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1:2,1:2,3:4); l <- list(3,5L) ; dim(l) <- c(2,1) ; f(5:6,1:2,c(3,4)) ; m <- c(3,TRUE) ; dim(m) <- c(1,2) ; f(m, 1:2, l) }", "list(3, 5L)");
   }
@@ -313,40 +301,12 @@ public class FailingMicroTest extends AbstractMicroTest {
     assertIdentical("{ a <- reshape(Indometh, v.names = \"conc\", idvar = \"Subject\", timevar = \"time\", direction = \"wide\"); names(a)[5] }", "conc.1");
   }
   @Test
-  public void microSTRSPLIT0() {
-    assertIdentical("{ a <- strsplit(NA, \"d\"); a[[1]] }", "NULL");
-  }
-  @Test
-  public void microSTRSPLIT1() {
-    assertIdentical("{ a <- strsplit(\"abc\", \"d\"); a[[1]] }", "c(\"abc\")");
-  }
-  @Test
   public void microSTRSPLIT2() {
     assertIdentical("{ a <- strsplit(\"abc\", NA)[[1]]; a }", "c(\"abc\")");
   }
   @Test
-  public void microGREPL1() {
-    assertIdentical("{ a <- grepl(\"a\",c(\"a\",\"b\")); a }", "c(TRUE,FALSE)");
-  }
-  @Test
-  public void microGREPL2() {
-    assertIdentical("{ a <- grepl(NA,c(\"a\",\"b\")); a }", "c(NA_character_, NA_character_)");
-  }
-  @Test
   public void microSTRSPLIT3() {
     assertIdentical("{ a <- strsplit(\"abc\", NA); a[[1]] }", "c(\"abc\")");
-  }
-  @Test
-  public void microGREP0() {
-    assertIdentical("{ a <- grep(\"a\", c(\"a\",\"b\",NA,\"a\")); a }", "c(1L, 4L)");
-  }
-  @Test
-  public void microGREP1() {
-    assertIdentical("{ a <- grep(\"a\", NA); a }", "0L");
-  }
-  @Test
-  public void microGREP2() {
-    assertIdentical("{ a <- grep(NA, \"abc\"); a }", "NA_character_");
   }
 
 

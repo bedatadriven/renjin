@@ -77,6 +77,10 @@ public class Gcc {
     
   //  arguments.add("-fno-rtti");
 
+    arguments.add("-D");
+    arguments.add("_GCC_BRIDGE");
+    arguments.add("-D");
+    arguments.add("_RENJIN");
     arguments.add("-c"); // compile only, do not link
     arguments.add("-S"); // stop at assembly generation
     arguments.addAll(Arrays.asList(compilerFlags));

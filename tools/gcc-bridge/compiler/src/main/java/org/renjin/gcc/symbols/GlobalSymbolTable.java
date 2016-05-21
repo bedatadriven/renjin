@@ -52,30 +52,40 @@ public class GlobalSymbolTable implements SymbolTable {
 
   @Override
   public CallGenerator findCallGenerator(GimpleFunctionRef ref, List<GimpleExpr> operands) {
-    CallGenerator generator = functions.get(ref.getName());
+    String mangledName = ref.getName();
+    Optional<CallGenerator> generator = findCallGenerator(mangledName);
     
+    if(!generator.isPresent()) {
+      throw new UnsupportedOperationException("Could not find function '" + mangledName + "'");
+    }
+    return generator.get();
+  }
+
+  private Optional<CallGenerator> findCallGenerator(String mangledName) {
+    CallGenerator generator = functions.get(mangledName);
+
     // Try to find the symbol on the classpath
     if(generator == null) {
       Optional<LinkSymbol> linkSymbol = null;
       try {
-        linkSymbol = LinkSymbol.lookup(linkClassLoader, ref.getName());
+        linkSymbol = LinkSymbol.lookup(linkClassLoader, mangledName);
       } catch (IOException e) {
-        throw new InternalCompilerException("Exception loading link symbol " + ref.getName(), e);
+        throw new InternalCompilerException("Exception loading link symbol " + mangledName, e);
       }
       if(linkSymbol.isPresent()) {
         Method method = linkSymbol.get().loadMethod(linkClassLoader);
         generator = new FunctionCallGenerator(new StaticMethodStrategy(typeOracle, method));
-        functions.put(ref.getName(), generator);
+        functions.put(mangledName, generator);
       }
     }
-    
-    
-    if(generator == null) {
-      return new FunctionCallGenerator(new UnimplCallGenerator(ref.getName()));
-    }
-    return generator;
+    return Optional.fromNullable(generator);
   }
 
+
+  public boolean isFunctionDefined(String name) {
+    return findCallGenerator(name).isPresent();
+  }
+  
   @Override
   public Handle findHandle(GimpleFunctionRef ref) {
     CallGenerator callGenerator = findCallGenerator(ref, null);

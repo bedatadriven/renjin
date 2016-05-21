@@ -37,26 +37,7 @@
 
 par <- function (..., no.readonly = FALSE)
 {
-    .Pars.readonly <- c("cin","cra","csi","cxy","din")
-    single <- FALSE
-    args <- list(...)
-    if (!length(args))
-	args <- as.list(if (no.readonly) .Pars[-match(.Pars.readonly, .Pars)]
-                        else .Pars)
-    else {
-	if (all(unlist(lapply(args, is.character))))
-	    args <- as.list(unlist(args))
-	if (length(args) == 1) {
-	    if (is.list(args[[1L]]) | is.null(args[[1L]]))
-		args <- args[[1L]]
-	    else
-		if(is.null(names(args)))
-		    single <- TRUE
-	}
-    }
-    value <- .Internal(par(args))
-    if(single) value <- value[[1L]]
-    if(!is.null(names(args))) invisible(value) else value
+    cat("Sorry, we haven't implemented much of the graphics stuff. Looking for volunteers!\n")
 }
 
 clip <- function(x1, x2, y1, y2) .Internal(clip(x1, x2, y1, y2))

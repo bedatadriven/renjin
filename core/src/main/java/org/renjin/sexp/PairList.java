@@ -640,14 +640,17 @@ public interface PairList extends SEXP {
       if(index < 0) {
         throw new IndexOutOfBoundsException("index must be > 0");
       }
+      if(head == null) {
+        add(Null.INSTANCE);
+      }
       Node node = head;
-      int node_i = 0;
-      while(node_i != index) {
-        if(!node.hasNextNode()) {
-          throw new IndexOutOfBoundsException();
+      int nodeIndex = 0;
+      while(nodeIndex != index) {
+        if(node.nextNode == Null.INSTANCE) {
+          add(Null.INSTANCE);
         }
         node = node.getNextNode();
-        node_i++;
+        nodeIndex++;
       }
       node.setValue(value);
       return this;

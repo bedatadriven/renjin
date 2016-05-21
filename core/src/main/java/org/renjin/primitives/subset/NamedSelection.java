@@ -40,7 +40,10 @@ class NamedSelection implements SelectionStrategy {
     
     for (int i = 0; i < selectedNames.length(); i++) {
       String selectedName = selectedNames.getElementAsString(i);
-      Integer index = nameMap.get(selectedName);
+      Integer index = null;
+      if(!StringVector.isNA(selectedName)) {
+        index = nameMap.get(selectedName);
+      }
       if(index == null) {
         result.addNA();        
         resultNames.addNA();
@@ -324,30 +327,33 @@ class NamedSelection implements SelectionStrategy {
     if (names == Null.INSTANCE) {
       return NOT_FOUND;
     }
+    
+    if(StringVector.isNA(selectedName)) {
+      return NOT_FOUND;
+    }
 
     int partialMatch = NOT_FOUND;
     
     for(int i=0;i!=names.length();++i) {
       String name = names.getElementAsString(i);
-      if(StringVector.isNA(name) && StringVector.isNA(selectedName)) {
-        return i;
-      }
-      // Exact matches always win
-      if(name.equals(selectedName)) {
-        return i;
-      }
-      // Check for partial match
-      if(!exact) {
-        if(name.startsWith(selectedName)) {
-          // if this is the first partial match, remember it 
-          // but keep looking for other partial matches.
-          // We only accept partial matches if there is exactly ONE partial match
-          if(partialMatch == NOT_FOUND) {
-            partialMatch = i;
-          } else {
-            // This is the second partial match we've found, so 
-            // we won't accept it. However, we do need to keep looking for partial matches.
-            partialMatch = MULTIPLE_PARTIAL_MATCHES;
+      if(!StringVector.isNA(name)) {
+        // Exact matches always win
+        if (name.equals(selectedName)) {
+          return i;
+        }
+        // Check for partial match
+        if (!exact) {
+          if (name.startsWith(selectedName)) {
+            // if this is the first partial match, remember it 
+            // but keep looking for other partial matches.
+            // We only accept partial matches if there is exactly ONE partial match
+            if (partialMatch == NOT_FOUND) {
+              partialMatch = i;
+            } else {
+              // This is the second partial match we've found, so 
+              // we won't accept it. However, we do need to keep looking for partial matches.
+              partialMatch = MULTIPLE_PARTIAL_MATCHES;
+            }
           }
         }
       }

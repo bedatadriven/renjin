@@ -32,6 +32,7 @@ import java.io.IOException;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.renjin.ExpMatchers.logicalVectorOf;
 import static org.renjin.ExpMatchers.realVectorEqualTo;
 
@@ -717,6 +718,14 @@ public class EvaluationTest extends EvalTestCase {
   @Test
   public void doCallCall() {
     eval("x <- call('function.that.does.not.exist', 'foo')");
+  }
+  
+  @Test
+  public void doCallWithNoArguments() {
+    FunctionCall call = (FunctionCall) eval("call('my.function') ");
+    
+    assertTrue(call.getArguments().length() == 0);
+    assertThat((Symbol) call.getFunction(), equalTo(Symbol.get("my.function")));
   }
   
   @Test

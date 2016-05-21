@@ -90,4 +90,7 @@ public class UnitSymbolTable implements SymbolTable {
     return globalSymbolTable.findCallGenerator(ref, operands);
   }
 
+  public boolean isFunctionDefined(String name) {
+    return functionNameMap.containsKey(name) || globalSymbolTable.isFunctionDefined(name);
+  }
 }

@@ -41,7 +41,7 @@ public class Stdlib {
   public static int strcmp(BytePtr x, BytePtr y) {
     return strncmp(x, y, Integer.MAX_VALUE);
   }
-
+  
   /**
    * Copies the C string pointed by source into the array pointed by destination, including the terminating 
    * null character (and stopping at that point).
@@ -256,5 +256,9 @@ public class Stdlib {
     long millisSinceProgramStart = System.currentTimeMillis() - PROGRAM_START;
     int secondsSinceProgramStart = (int)TimeUnit.MILLISECONDS.toSeconds(millisSinceProgramStart);
     return secondsSinceProgramStart * CLOCKS_PER_SEC;
+  }
+  
+  public static Object fopen() {
+    throw new UnsupportedOperationException("fopen() not implemented");
   }
 }

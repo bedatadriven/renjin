@@ -1,7 +1,9 @@
 
 #include "assert.h"
 
-struct NegativeException {};
+struct NegativeException {
+    int error_code;
+};
 
 int throwing_function(int x) {
   if(x < 0) {

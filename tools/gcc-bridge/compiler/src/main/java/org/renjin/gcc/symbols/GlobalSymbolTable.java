@@ -7,6 +7,10 @@ import org.objectweb.asm.Handle;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.FunctionGenerator;
 import org.renjin.gcc.codegen.call.*;
+import org.renjin.gcc.codegen.cpp.BeginCatchCallGenerator;
+import org.renjin.gcc.codegen.cpp.EhPointerCallGenerator;
+import org.renjin.gcc.codegen.cpp.EndCatchGenerator;
+import org.renjin.gcc.codegen.cpp.ThrowCallGenerator;
 import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.lib.SymbolFunction;
 import org.renjin.gcc.codegen.lib.SymbolLibrary;
@@ -55,10 +59,11 @@ public class GlobalSymbolTable implements SymbolTable {
     String mangledName = ref.getName();
     Optional<CallGenerator> generator = findCallGenerator(mangledName);
     
-    if(!generator.isPresent()) {
-      throw new UnsupportedOperationException("Could not find function '" + mangledName + "'");
+    if(generator.isPresent()) {
+      return generator.get();
     }
-    return generator.get();
+    
+    return new FunctionCallGenerator(new UnimplCallGenerator(mangledName));
   }
 
   private Optional<CallGenerator> findCallGenerator(String mangledName) {
@@ -108,6 +113,12 @@ public class GlobalSymbolTable implements SymbolTable {
     addFunction("__builtin_memcpy__", new MemCopyCallGenerator(typeOracle));
     addFunction("__builtin_memset__", new MemSetGenerator(typeOracle));
 
+    addFunction("__cxa_allocate_exception", new MallocCallGenerator(typeOracle));
+    addFunction(EhPointerCallGenerator.NAME, new EhPointerCallGenerator());
+    addFunction(ThrowCallGenerator.NAME, new ThrowCallGenerator());
+    addFunction(BeginCatchCallGenerator.NAME, new BeginCatchCallGenerator());
+    addFunction(EndCatchGenerator.NAME, new EndCatchGenerator());
+    
     addMethod("__builtin_log10__", Math.class, "log10");
 
     addFunction("memcpy", new MemCopyCallGenerator(typeOracle));

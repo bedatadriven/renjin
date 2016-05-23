@@ -8,7 +8,6 @@ import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 
-import java.util.Collections;
 import java.util.List;
 
 
@@ -48,8 +47,7 @@ public class ArrayValueFunction implements ValueFunction {
 
   @Override
   public List<SimpleExpr> toArrayValues(Expr expr) {
-    FatPtrExpr fatPtrExpr = (FatPtrExpr) expr;
-    return Collections.singletonList(fatPtrExpr.wrap());
+    return elementValueFunction.toArrayValues(expr);
   }
 
   @Override

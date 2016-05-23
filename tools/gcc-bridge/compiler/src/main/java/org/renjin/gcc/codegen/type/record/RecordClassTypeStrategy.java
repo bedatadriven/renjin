@@ -96,7 +96,10 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<SimpleExpr> {
     if(gimpleField.getOffset() == 0) {
       TypeStrategy fieldTypeStrategy = typeOracle.forType(gimpleField.getType());
       if(fieldTypeStrategy instanceof RecordClassTypeStrategy) {
-        return new SuperClassFieldStrategy((RecordClassTypeStrategy) fieldTypeStrategy);
+        RecordClassTypeStrategy fieldRecordTypeStrategy = (RecordClassTypeStrategy) fieldTypeStrategy;
+        if(!fieldRecordTypeStrategy.getJvmType().equals(this.jvmType)) {
+          return new SuperClassFieldStrategy((RecordClassTypeStrategy) fieldTypeStrategy);
+        }
       }
     }
     return typeOracle.forField(getJvmType(), gimpleField);

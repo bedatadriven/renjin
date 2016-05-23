@@ -22,8 +22,9 @@ public class InternalCompilerException extends RuntimeException {
 
 
   public InternalCompilerException(GimpleFunction function, Exception e) {
-    super(String.format("Exception compiling function %s in unit %s", 
+    super(String.format("Exception compiling function %s [%s] in unit %s", 
         function.getName(), 
+        function.getMangledName(),
         function.getUnit().getSourceFile().getName()), e);
   }
 

@@ -247,7 +247,11 @@ public class Expressions {
     }
     // Verify that this is in the realm of possibility
     checkCast(object.getType(), type);
-    
+
+    return uncheckedCast(object, type);
+  }
+
+  public static SimpleExpr uncheckedCast(final SimpleExpr object, final Type type) {
     return new SimpleLValue() {
 
       @Nonnull
@@ -272,7 +276,7 @@ public class Expressions {
       }
     };
   }
-  
+
   public static SimpleExpr castPrimitive(final SimpleExpr expr, final Type type) {
     return new SimpleExpr() {
       @Nonnull

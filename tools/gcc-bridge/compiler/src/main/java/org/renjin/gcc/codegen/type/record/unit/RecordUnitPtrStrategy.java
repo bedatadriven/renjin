@@ -63,6 +63,14 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
 
   @Override
   public SimpleExpr cast(Expr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+    if(typeStrategy instanceof FatPtrStrategy) {
+      FatPtrExpr ptr = (FatPtrExpr) value;
+      // TODO
+      // Currently we punt until runtime by triggering a ClassCastException
+      return Expressions.uncheckedCast(ptr.getArray(), strategy.getJvmType());
+    } else if(typeStrategy instanceof RecordUnitPtrStrategy) {
+      return Expressions.cast((SimpleExpr) value, strategy.getJvmType());
+    }
     throw new UnsupportedCastException();
   }
 

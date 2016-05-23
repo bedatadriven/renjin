@@ -11,7 +11,9 @@ import org.renjin.graphics.internals.Plot;
 import org.renjin.graphics.internals.RgbHsv;
 import org.renjin.invoke.codegen.WrapperGenerator2;
 import org.renjin.methods.Methods;
+import org.renjin.primitives.combine.ColumnBindFunction;
 import org.renjin.primitives.combine.Combine;
+import org.renjin.primitives.combine.RowBindFunction;
 import org.renjin.primitives.files.Files;
 import org.renjin.primitives.io.Cat;
 import org.renjin.primitives.io.DebianControlFiles;
@@ -165,6 +167,8 @@ public class Primitives {
     f("[",Subsetting.class, -1);
     f("[[", Subsetting.class, -1);
     add(new DollarFunction());
+    add(new ColumnBindFunction());
+    add(new RowBindFunction());
     f("@", Subsetting.class, 2);
     f("[<-", Subsetting.class, 3);
     f("[[<-", Subsetting.class, 3);

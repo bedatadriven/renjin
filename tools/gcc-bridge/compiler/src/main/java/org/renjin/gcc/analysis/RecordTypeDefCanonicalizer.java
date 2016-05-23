@@ -261,6 +261,7 @@ public class RecordTypeDefCanonicalizer {
     } else if(gimpleIns instanceof GimpleCall) {
       GimpleCall call = (GimpleCall) gimpleIns;
       updateTypes(call.getLhs());
+      updateTypes(call.getFunction());
       updateTypes(call.getOperands());
     } else if(gimpleIns instanceof GimpleConditional) {
       GimpleConditional conditional = (GimpleConditional) gimpleIns;

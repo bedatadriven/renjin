@@ -84,11 +84,10 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
     if(decl.isAddressable()) {
 
       // Declare this as a Unit array so that we can get a FatPtrExpr if needed
-      SimpleExpr unitArray = allocator.reserveUnitArray(decl.getName(), strategy.getJvmType(), 
-          Optional.<SimpleExpr>of(new RecordConstructor(strategy)));
+      SimpleExpr unitArray = allocator.reserveUnitArray(decl.getName(), strategy.getJvmType(), Optional.<SimpleExpr>absent());
 
       FatPtrExpr address = new FatPtrExpr(unitArray);
-      SimpleExpr instance = Expressions.elementAt(unitArray, 0);
+      ArrayElement instance = Expressions.elementAt(unitArray, 0);
       
       return new SimpleAddressableExpr(instance, address);
       
@@ -114,7 +113,10 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
 
   @Override
   public SimpleExpr pointerPlus(SimpleExpr pointer, SimpleExpr offsetInBytes) {
-    return null;
+    // According to our analysis conducted before-hand, there should be no pointer
+    // to a sequence of records of this type with more than one record, so the result should
+    // be undefined.
+    return Expressions.nullRef(strategy.getJvmType());
   }
 
   @Override

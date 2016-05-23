@@ -98,6 +98,11 @@ public class GimpleCall extends GimpleStatement {
         lhs.replaceAll(predicate, newExpr);
       }
     }
+    if(predicate.apply(function)) {
+      function = newExpr;
+    } else {
+      function.replaceAll(predicate, newExpr);
+    }
     replaceAll(predicate, operands, newExpr);
   }
 
@@ -106,6 +111,7 @@ public class GimpleCall extends GimpleStatement {
     if(lhs != null) {
       lhs.accept(visitor);
     }
+    function.accept(visitor);
     for (GimpleExpr operand : operands) {
       operand.accept(visitor);
     }

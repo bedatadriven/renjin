@@ -1,6 +1,7 @@
 package org.renjin.gcc.gimple.expr;
 
 import com.google.common.base.Predicate;
+import org.renjin.gcc.gimple.GimpleExprVisitor;
 
 import java.util.List;
 
@@ -35,7 +36,12 @@ public class GimpleCompoundLiteral extends GimpleLValue {
   }
 
   @Override
-  public boolean replace(Predicate<? super GimpleExpr> predicate, GimpleExpr replacement) {
-    return decl.replace(predicate, replacement);
+  public void replaceAll(Predicate<? super GimpleExpr> predicate, GimpleExpr newExpr) {
+    decl = (GimpleVariableRef) replaceOrDescend(decl, predicate, newExpr);
+  }
+
+  @Override
+  public void accept(GimpleExprVisitor visitor) {
+    visitor.visitCompoundLiteral(this);
   }
 }

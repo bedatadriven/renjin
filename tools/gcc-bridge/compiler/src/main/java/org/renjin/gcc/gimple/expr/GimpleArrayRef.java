@@ -1,6 +1,7 @@
 package org.renjin.gcc.gimple.expr;
 
 import com.google.common.base.Predicate;
+import org.renjin.gcc.gimple.GimpleExprVisitor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleIntegerType;
 
@@ -47,16 +48,14 @@ public class GimpleArrayRef extends GimpleLValue {
   }
 
   @Override
-  public boolean replace(Predicate<? super GimpleExpr> predicate, GimpleExpr replacement) {
-    if(predicate.apply(array)) {
-      array = replacement;
-      return true;
-    } else if(predicate.apply(index)) {
-      index = replacement;
-      return true;
-    } else {
-      return false;
-    }
+  public void accept(GimpleExprVisitor visitor) {
+    visitor.visitArrayRef(this);
+  }
+
+  @Override
+  public void replaceAll(Predicate<? super GimpleExpr> predicate, GimpleExpr newExpr) {
+    array = replaceOrDescend(array, predicate, newExpr);
+    index = replaceOrDescend(index, predicate, newExpr);
   }
 
   @Override

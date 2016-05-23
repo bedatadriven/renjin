@@ -4,6 +4,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
+import org.renjin.gcc.gimple.GimpleExprVisitor;
 import org.renjin.gcc.gimple.GimpleVisitor;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 
@@ -105,26 +106,19 @@ public class GimpleSwitch extends GimpleStatement {
   protected void findUses(Predicate<? super GimpleExpr> predicate, List<GimpleExpr> results) {
     value.findOrDescend(predicate, results);
   }
-  
-  @Override
-  public boolean replace(Predicate<? super GimpleExpr> predicate, GimpleExpr replacement) {
-    if(predicate.apply(value)) {
-      value = replacement;
-      return true;
-    
-    } else if(value.replace(predicate, replacement)) {
-      return true;
-      
-    } else {
-      return false;
-    }
-  }
 
   @Override
   public void replaceAll(Predicate<? super GimpleExpr> predicate, GimpleExpr newExpr) {
     if(predicate.apply(value)) {
       value = newExpr;
+    } else {
+      value.replaceAll(predicate, newExpr);
     }
+  }
+
+  @Override
+  public void accept(GimpleExprVisitor visitor) {
+    value.accept(visitor);
   }
 
   @Override

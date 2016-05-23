@@ -1,6 +1,7 @@
 package org.renjin.gcc.gimple.expr;
 
 import com.google.common.base.Predicate;
+import org.renjin.gcc.gimple.GimpleExprVisitor;
 
 import java.util.List;
 import java.util.Objects;
@@ -33,14 +34,14 @@ public class GimplePointerPlus extends GimpleExpr {
   }
 
   @Override
-  public boolean replace(Predicate<? super GimpleExpr> predicate, GimpleExpr replacement) {
-    if(pointer.replace(predicate, replacement)) {
-      return true;
-    }
-    if(offset.replace(predicate, replacement)) {
-      return true;
-    }
-    return false;
+  public void replaceAll(Predicate<? super GimpleExpr> predicate, GimpleExpr newExpr) {
+    pointer = replaceOrDescend(pointer, predicate, newExpr);
+    offset = replaceOrDescend(offset, predicate, newExpr);
+  }
+
+  @Override
+  public void accept(GimpleExprVisitor visitor) {
+    visitor.visitPointerPlus(this);
   }
 
   @Override

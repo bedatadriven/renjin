@@ -637,8 +637,8 @@ public class GimpleCompilerTest extends AbstractGccTest {
     testMethod.invoke(null);
   }
   
-  @Ignore("wip")
   @Test
+  @Ignore
   public void cppExceptions() throws Exception {
     compileAndTest("exceptions.cpp");
   }

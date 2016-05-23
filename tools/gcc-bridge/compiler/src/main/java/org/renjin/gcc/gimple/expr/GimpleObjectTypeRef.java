@@ -1,6 +1,7 @@
 package org.renjin.gcc.gimple.expr;
 
 import com.google.common.base.Predicate;
+import org.renjin.gcc.gimple.GimpleExprVisitor;
 
 import java.util.List;
 
@@ -45,11 +46,15 @@ public class GimpleObjectTypeRef extends GimpleExpr {
   }
 
   @Override
-  public boolean replace(Predicate<? super GimpleExpr> predicate, GimpleExpr replacement) {
-    return 
-        expr.replace(predicate, replacement) ||
-        object.replace(predicate, replacement) ||
-        token.replace(predicate, replacement);
+  public void replaceAll(Predicate<? super GimpleExpr> predicate, GimpleExpr newExpr) {
+    expr = replaceOrDescend(expr, predicate, newExpr);
+    object = replaceOrDescend(object, predicate, newExpr);
+    token = replaceOrDescend(token, predicate, newExpr);
+  }
+
+  @Override
+  public void accept(GimpleExprVisitor visitor) {
+    visitor.visitObjectTypeRef(this);
   }
 
   @Override

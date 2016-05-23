@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
+import org.renjin.gcc.gimple.GimpleExprVisitor;
 import org.renjin.gcc.gimple.GimpleVisitor;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleLValue;
@@ -43,24 +44,7 @@ public class GimpleCall extends GimpleStatement {
   public void setLhs(GimpleLValue lhs) {
     this.lhs = lhs;
   }
-  
 
-  @Override
-  public boolean replace(Predicate<? super GimpleExpr> predicate, GimpleExpr replacement) {
-    if(predicate.apply(function)) {
-      function = replacement;
-      return true;
-    }
-    for (int i = 0; i < operands.size(); i++) {
-      if(predicate.apply(operands.get(i))) {
-        operands.set(i, replacement);
-        return true;
-      } else if(operands.get(i).replace(predicate, replacement)) {
-        return true;
-      }
-    }
-    return false;
-  }
 
   @Override
   protected void findUses(Predicate<? super GimpleExpr> predicate, List<GimpleExpr> results) {
@@ -107,10 +91,24 @@ public class GimpleCall extends GimpleStatement {
 
   @Override
   public void replaceAll(Predicate<? super GimpleExpr> predicate, GimpleExpr newExpr) {
-    if(predicate.apply(lhs)) {
-      lhs = (GimpleLValue) newExpr;
+    if(lhs != null) {
+      if (predicate.apply(lhs)) {
+        lhs = (GimpleLValue) newExpr;
+      } else {
+        lhs.replaceAll(predicate, newExpr);
+      }
     }
     replaceAll(predicate, operands, newExpr);
+  }
+
+  @Override
+  public void accept(GimpleExprVisitor visitor) {
+    if(lhs != null) {
+      lhs.accept(visitor);
+    }
+    for (GimpleExpr operand : operands) {
+      operand.accept(visitor);
+    }
   }
 
 }

@@ -1,6 +1,7 @@
 package org.renjin.gcc.gimple.expr;
 
 import com.google.common.base.Predicate;
+import org.renjin.gcc.gimple.GimpleExprVisitor;
 
 import java.util.List;
 
@@ -48,6 +49,16 @@ public class GimpleSsaName extends GimpleLValue {
   @Override
   public void find(Predicate<? super GimpleExpr> predicate, List<GimpleExpr> results) {
     findOrDescend(var, predicate, results);
+  }
+
+  @Override
+  public void replaceAll(Predicate<? super GimpleExpr> predicate, GimpleExpr newExpr) {
+    var = replaceOrDescend(var, predicate, newExpr);
+  }
+
+  @Override
+  public void accept(GimpleExprVisitor visitor) {
+    visitor.visitSsaName(this);
   }
 
   @Override

@@ -3,6 +3,7 @@ package org.renjin.gcc.gimple.statement;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Sets;
+import org.renjin.gcc.gimple.GimpleExprVisitor;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.GimpleVisitor;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
@@ -58,19 +59,6 @@ public class GimpleConditional extends GimpleStatement {
   }
 
   @Override
-  public boolean replace(Predicate<? super GimpleExpr> predicate, GimpleExpr replacement) {
-    for (int i = 0; i < operands.size(); i++) {
-      if (predicate.apply(operands.get(i))) {
-        operands.set(i, replacement);
-        return true;
-      } else if(operands.get(i).replace(predicate, replacement)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @Override
   protected void findUses(Predicate<? super GimpleExpr> predicate, List<GimpleExpr> results) {
     findUses(operands, predicate, results);
   }
@@ -103,5 +91,12 @@ public class GimpleConditional extends GimpleStatement {
   @Override
   public void replaceAll(Predicate<? super GimpleExpr> predicate, GimpleExpr newExpr) {
     replaceAll(predicate, operands, newExpr);
+  }
+
+  @Override
+  public void accept(GimpleExprVisitor visitor) {
+    for (GimpleExpr operand : operands) {
+      operand.accept(visitor);
+    }
   }
 }

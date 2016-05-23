@@ -11,9 +11,7 @@ import org.renjin.gcc.gimple.expr.GimpleVariableRef;
 import org.renjin.gcc.gimple.statement.GimpleStatement;
 import org.renjin.gcc.gimple.type.GimpleType;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * Gimple Function Model
@@ -80,9 +78,10 @@ public class GimpleFunction {
 
   public GimpleVarDecl addVarDecl(GimpleType type) {
     // find unused id
-    int id = 1000;
-    while(isIdInUse(id)) {
-      id++;
+    Set<Integer> usedIds = usedIds();
+    int newId = 1000;
+    while(usedIds.contains(newId)) {
+      newId++;
     }
     
     GimpleVarDecl decl = new GimpleVarDecl();
@@ -93,19 +92,17 @@ public class GimpleFunction {
     return decl;
   }
   
-  private boolean isIdInUse(int varDeclId) {
+  private Set<Integer> usedIds() {
+    Set<Integer> set = new HashSet<>();
     for (GimpleVarDecl variableDeclaration : variableDeclarations) {
-      if(variableDeclaration.getId() == varDeclId) {
-        return true;
-      }
+      set.add(variableDeclaration.getId());
     }
-    for (GimpleParameter gimpleParameter : getParameters()) {
-      if(gimpleParameter.getId() == varDeclId) {
-        return true;
-      }
+    for (GimpleParameter parameter : parameters) {
+      set.add(parameter.getId());
     }
-    return false;
+    return set;
   }
+  
 
   /**
    * 
@@ -137,7 +134,7 @@ public class GimpleFunction {
     this.parameters = parameters;
   }
 
-  public void visitIns(GimpleVisitor visitor) {
+  public void accept(GimpleVisitor visitor) {
     for (GimpleBasicBlock bb : basicBlocks) {
       visitor.blockStart(bb);
       for (GimpleStatement ins : bb.getStatements()) {
@@ -210,5 +207,11 @@ public class GimpleFunction {
 
   public GimpleBasicBlock getLastBasicBlock() {
     return basicBlocks.get(basicBlocks.size()-1);
+  }
+  
+  public void accept(GimpleExprVisitor visitor) {
+    for (GimpleBasicBlock basicBlock : basicBlocks) {
+      basicBlock.accept(visitor);
+    }
   }
 }

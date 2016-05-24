@@ -19,6 +19,7 @@ public class TreeLogger {
   
   private Level level;
   private String message;
+  private String code;
   private List<TreeLogger> children = Lists.newArrayListWithCapacity(0);
   
   public TreeLogger() {
@@ -43,7 +44,16 @@ public class TreeLogger {
     children.add(child);
     return child;
   }
-  
+
+
+  public TreeLogger debug(String message, Object code) {
+    TreeLogger child = new TreeLogger(Level.DEBUG, message);
+    child.code = code.toString();
+    children.add(child);
+    return child;
+  }
+
+
   public TreeLogger enter(String message) {
     return enter(Level.INFO, message);
   }
@@ -63,6 +73,13 @@ public class TreeLogger {
     writer.print("<div class=\"message\">");
     writer.print(HtmlEscapers.htmlEscaper().escape(message));
     writer.println("</div>");
+    
+    if(code != null) {
+      writer.print("<pre class=\"code\">");
+      writer.print(HtmlEscapers.htmlEscaper().escape(code));
+      writer.println("</pre>");
+
+    }
     
     if(!children.isEmpty()) {
       writer.println("<div class=\"children\">");

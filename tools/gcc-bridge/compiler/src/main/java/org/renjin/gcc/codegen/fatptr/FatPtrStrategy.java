@@ -185,7 +185,15 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtrExpr> {
     } else if(typeStrategy instanceof FatPtrStrategy) {
       // allow any casts between FatPtrs. though runtime errors may occur
       // (The JVM simply won't allow us to cast an int* to a double*)
-      return (FatPtrExpr) value;
+      FatPtrExpr ptrExpr = (FatPtrExpr) value;
+      Expr address = null;
+      if(ptrExpr.isAddressable()) {
+        address = ptrExpr.addressOf();
+      }
+      SimpleExpr castedArray = Expressions.cast(ptrExpr.getArray(), arrayType);
+      SimpleExpr offset = ptrExpr.getOffset();
+      
+      return new FatPtrExpr(address, castedArray, offset);
     }
     
     throw new UnsupportedCastException();

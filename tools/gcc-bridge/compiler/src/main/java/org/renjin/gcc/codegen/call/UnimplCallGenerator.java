@@ -9,7 +9,6 @@ import org.renjin.gcc.runtime.UnsatisfiedLinkException;
 
 import javax.annotation.Nonnull;
 import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
 
 import static org.objectweb.asm.Type.getMethodDescriptor;
 
@@ -49,14 +48,8 @@ public class UnimplCallGenerator implements CallGenerator, MethodHandleGenerator
 
       @Override
       public void load(@Nonnull MethodGenerator mv) {
-        //    MethodHandle methodHandle = MethodHandles.throwException(void.class, UnsatisfiedLinkException.class);
-        //    methodHandle = MethodHandles.insertArguments(methodHandle, 0, functionName);
-        //    return methodHandle;
-        mv.aconst(Type.getType(UnsatisfiedLinkException.class));
-        mv.invokestatic(MethodHandles.class, "throwException", getMethodDescriptor(HANDLE_TYPE, Type.getType(Class.class)));
-        mv.iconst(0);
         mv.aconst(functionName);
-        mv.invokestatic(MethodHandles.class, "insertArguments", getMethodDescriptor(HANDLE_TYPE, Type.INT_TYPE, Type.getType(Object.class)));
+        mv.invokestatic(UnsatisfiedLinkException.class, "throwingHandle", getMethodDescriptor(HANDLE_TYPE, Type.getType(String.class)));
       }
     };
   }

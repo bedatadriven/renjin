@@ -8,6 +8,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.util.TraceClassVisitor;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.InternalCompilerException;
+import org.renjin.gcc.TreeLogger;
 import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.LValue;
@@ -106,7 +107,10 @@ public class UnitClassGenerator {
     return className;
   }
 
-  public void emit() {
+  public void emit(TreeLogger parentLogger) {
+    
+    TreeLogger logger = parentLogger.enter("Generating code for " + unit.getSourceName());
+    
     sw = new StringWriter();
     pw = new PrintWriter(sw);
     cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
@@ -121,7 +125,7 @@ public class UnitClassGenerator {
     cv.visitSource(unit.getSourceName(), null);
     emitDefaultConstructor();
     emitGlobalVariables();
-    emitFunctions(unit);
+    emitFunctions(logger, unit);
     cv.visitEnd();
   }
 
@@ -170,8 +174,9 @@ public class UnitClassGenerator {
     mv.visitEnd();
   }
 
-  private void emitFunctions(GimpleCompilationUnit unit) {
+  private void emitFunctions(TreeLogger parentLogger, GimpleCompilationUnit unit) {
 
+    
     // Check for duplicate names...
     Set<String> names = Sets.newHashSet();
     for (FunctionGenerator functionGenerator : symbolTable.getFunctions()) {
@@ -184,7 +189,7 @@ public class UnitClassGenerator {
     // Now actually emit the function bodies
     for (FunctionGenerator functionGenerator : symbolTable.getFunctions()) {
       try {
-        functionGenerator.emit(cv);
+        functionGenerator.emit(parentLogger, cv);
       } catch (Exception e) {
         throw new InternalCompilerException(functionGenerator, e);
       }

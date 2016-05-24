@@ -1,6 +1,7 @@
 package org.renjin.gcc.analysis;
 
 import com.google.common.base.Optional;
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.renjin.gcc.TreeLogger;
@@ -61,7 +62,7 @@ public class SymbolPruner {
     // Start by adding external functions, excluding weak symbols
     for (GimpleCompilationUnit unit : units) {
       for (GimpleFunction function : unit.getFunctions()) {
-        if(function.isExtern() && !function.isWeak()) {
+        if(isEntryPoint(function)) {
           logger.debug("Retaining entry point: " + function.getName() + " [" + function.getMangledName() + "]");
           visitor.retained.add(new Symbol(function, symbolTable.scope(function)));
         }
@@ -99,6 +100,18 @@ public class SymbolPruner {
 
   }
 
+  private static boolean isEntryPoint(GimpleFunction function) {
+    if(!function.isExtern() || function.isWeak() || function.isInline()) {
+      return false;
+    }
+    // This is a bit of hack, but assume that C++ mangled names are NOT entry
+    // points
+    if(function.getName().startsWith("_Z")) {
+      return false;
+    }
+    return true;
+  }
+
   private static class ReferenceFinder extends GimpleExprVisitor {
     private TreeLogger logger;
     private final GimpleSymbolTable symbolTable;
@@ -130,7 +143,7 @@ public class SymbolPruner {
     public void visitVariableRef(GimpleVariableRef variableRef) {
       Optional<GimpleVarDecl> decl = currentScope.lookupVariable(variableRef);
       
-      if(!decl.isPresent()) {
+      if(!decl.isPresent() && !Strings.isNullOrEmpty(variableRef.getName())) {
         logger.info("Reference to undefined global variable " + variableRef.getName());
       }
       

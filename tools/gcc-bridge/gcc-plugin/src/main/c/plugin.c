@@ -1022,6 +1022,7 @@ static unsigned int dump_function (void)
   json_string_field("name", IDENTIFIER_POINTER(DECL_NAME(cfun->decl)));
   json_string_field("mangledName", IDENTIFIER_POINTER(DECL_ASSEMBLER_NAME(cfun->decl)));
   json_bool_field("weak", DECL_WEAK(cfun->decl));
+  json_bool_field("inline", DECL_DECLARED_INLINE_P(cfun->decl));
   
   json_array_field("aliases");
   

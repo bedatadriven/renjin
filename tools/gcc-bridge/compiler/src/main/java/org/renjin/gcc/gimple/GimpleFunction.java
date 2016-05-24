@@ -28,6 +28,7 @@ public class GimpleFunction implements GimpleDecl {
   private List<GimpleVarDecl> variableDeclarations = Lists.newArrayList();
   private boolean extern;
   private boolean weak;
+  private boolean inline;
   
   public GimpleFunction() {
 
@@ -90,6 +91,14 @@ public class GimpleFunction implements GimpleDecl {
 
   public void setWeak(boolean weak) {
     this.weak = weak;
+  }
+
+  public boolean isInline() {
+    return inline;
+  }
+
+  public void setInline(boolean inline) {
+    this.inline = inline;
   }
 
   public GimpleVarDecl addVarDecl(GimpleType type) {

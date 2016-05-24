@@ -202,8 +202,9 @@ public class GimpleCompiler  {
 //    }
 //    
       // Finally, run code generation
+      TreeLogger codegenLogger = rootLogger.enter("Generating bytecode");
       for (UnitClassGenerator generator : unitClassGenerators) {
-        generator.emit();
+        generator.emit(codegenLogger);
         writeClass(generator.getClassName(), generator.toByteArray());
       }
 
@@ -258,10 +259,12 @@ public class GimpleCompiler  {
 
   private void compileRecords(List<GimpleCompilationUnit> units) throws IOException {
 
+    TreeLogger recordLogger = rootLogger.enter("Compiling record types...");
+    
     // Enumerate record types before writing, so that records can reference each other
     int recordIndex = 0;
     for (GimpleRecordTypeDef recordTypeDef : recordTypeDefs) {
-      typeOracle.addRecordType(recordTypeDef, strategyFor(recordTypeDef));
+      typeOracle.addRecordType(recordTypeDef, strategyFor(recordLogger, recordTypeDef));
     }
 
     // Now that the record types are all registered, we can link the fields to their
@@ -282,33 +285,51 @@ public class GimpleCompiler  {
     }
   }
 
-  private RecordTypeStrategy strategyFor(GimpleRecordTypeDef recordTypeDef) {
+  private RecordTypeStrategy strategyFor(TreeLogger parentLogger, GimpleRecordTypeDef recordTypeDef) {
+
+    TreeLogger logger = parentLogger.enter(String.format("Building strategy for %s [%s]", 
+        recordTypeDef.getName(), recordTypeDef.getId()));
+
+    logger.debug("RecordTypeDef:", recordTypeDef);
 
     if(isProvided(recordTypeDef)) {
+      Type providedType = Type.getType(providedRecordTypes.get(recordTypeDef.getName()));
+      logger.debug("Provided: " + providedType.getInternalName());
+      
       RecordClassTypeStrategy strategy = new RecordClassTypeStrategy(recordTypeDef);
       strategy.setProvided(true);
-      strategy.setJvmType(Type.getType(providedRecordTypes.get(recordTypeDef.getName())));
+      strategy.setJvmType(providedType);
 
       strategy.setUnitPointer(recordUsage.unitPointerAssumptionsHoldFor(recordTypeDef));
 
       return strategy;
 
     } else if(EmptyRecordTypeStrategy.accept(recordTypeDef)) {
+      logger.debug("Using EmptyRecordTypeStrategy");
+
       return new EmptyRecordTypeStrategy(recordTypeDef);
 
     } else if(RecordArrayTypeStrategy.accept(recordTypeDef)) {
+      logger.debug("Using RecordArrayTypeStrategy");
+
       return new RecordArrayTypeStrategy(recordTypeDef);
 
     } else {
+      logger.debug("Using RecordClassStrategy");
+
       RecordClassTypeStrategy strategy = new RecordClassTypeStrategy(recordTypeDef);
       strategy.setUnitPointer(recordUsage.unitPointerAssumptionsHoldFor(recordTypeDef));
       String recordClassName;
       if (recordTypeDef.getName() != null) {
-        recordClassName =  String.format("%s$%s", recordClassPrefix, recordTypeDef.getName());
+        recordClassName =  String.format("%s$%s", recordClassPrefix, recordTypeDef.getName() + (nextRecordIndex++));
       } else {
         recordClassName = String.format("%s$Record%d", recordClassPrefix, nextRecordIndex++);
       }
       strategy.setJvmType(Type.getType("L" + getInternalClassName(recordClassName) + ";"));
+
+      logger.debug("unitPointer = " + strategy.isUnitPointer());
+      logger.debug("jvmType = " + strategy.getJvmType().getInternalName());
+      
       return strategy;
     }
   }

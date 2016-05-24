@@ -250,6 +250,20 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("SETLEVELS");
   }
 
+  public static Object DATAPTR(SEXP x) {
+    if(x instanceof IntVector | x instanceof LogicalVector) {
+      return INTEGER(x);
+    } else if(x instanceof DoubleVector) {
+      return REAL(x);
+    } else if(x instanceof ComplexVector) {
+      return COMPLEX(x);
+    } else if(x instanceof RawVector) {
+      return RAW(x);
+    } else {
+      throw new UnsupportedOperationException("DATAPTR on type " + x.getClass().getName());
+    }
+  }
+  
   public static IntPtr LOGICAL(SEXP x) {
     if(x instanceof LogicalArrayVector) {
       return new IntPtr(((LogicalArrayVector)x).toIntArrayUnsafe());
@@ -264,9 +278,13 @@ public final class Rinternals {
   public static IntPtr INTEGER(SEXP x) {
     if(x instanceof IntArrayVector) {
       return new IntPtr(((IntArrayVector) x).toIntArrayUnsafe());
+    } else if(x instanceof LogicalArrayVector) {
+      return new IntPtr(((LogicalArrayVector) x).toIntArrayUnsafe());
     } else if(x instanceof IntVector) {
       // TODO: cache arrays for the case of repeated INTEGER() calls?
       return new IntPtr(((IntVector) x).toIntArray());
+    } else if(x instanceof LogicalVector) {
+      return new IntPtr(((LogicalVector) x).toIntArray());
     } else {
       throw new EvalException("INTEGER(): expected integer vector, found %s", x.getTypeName());
     }

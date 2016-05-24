@@ -2,11 +2,12 @@ package org.renjin.gcc.symbols;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.objectweb.asm.Handle;
 import org.renjin.gcc.codegen.FunctionGenerator;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.call.FunctionCallGenerator;
 import org.renjin.gcc.codegen.expr.Expr;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.type.fun.FunctionRefGenerator;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
@@ -75,9 +76,9 @@ public class UnitSymbolTable implements SymbolTable {
     return functions;
   }
   
-  public Handle findHandle(GimpleFunctionRef functionRef) {
+  public SimpleExpr findHandle(GimpleFunctionRef functionRef) {
     if(functionNameMap.containsKey(functionRef.getName())) {
-      return functionNameMap.get(functionRef.getName()).getMethodHandle();
+      return new FunctionRefGenerator(functionNameMap.get(functionRef.getName()).getMethodHandle());
     }
     return globalSymbolTable.findHandle(functionRef);
   }

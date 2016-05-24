@@ -16,7 +16,7 @@ import java.util.*;
 /**
  * Gimple Function Model
  */
-public class GimpleFunction {
+public class GimpleFunction implements GimpleDecl {
   private int id;
   private String name;
   private String mangledName;
@@ -27,7 +27,8 @@ public class GimpleFunction {
   private List<GimpleParameter> parameters = Lists.newArrayList();
   private List<GimpleVarDecl> variableDeclarations = Lists.newArrayList();
   private boolean extern;
-
+  private boolean weak;
+  
   public GimpleFunction() {
 
   }
@@ -55,6 +56,13 @@ public class GimpleFunction {
     }
     return mangledName;
   }
+  
+  public List<String> getMangledNames() {
+    List<String> names = Lists.newArrayList();
+    names.add(getMangledName());
+    names.addAll(getAliases());
+    return names;
+  }
 
   public List<String> getAliases() {
     return aliases;
@@ -74,6 +82,14 @@ public class GimpleFunction {
 
   public void setUnit(GimpleCompilationUnit unit) {
     this.unit = unit;
+  }
+
+  public boolean isWeak() {
+    return weak;
+  }
+
+  public void setWeak(boolean weak) {
+    this.weak = weak;
   }
 
   public GimpleVarDecl addVarDecl(GimpleType type) {

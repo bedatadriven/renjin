@@ -30,6 +30,9 @@ public class GimpleParser {
     for (GimpleFunction function : unit.getFunctions()) {
       function.setUnit(unit);
     }
+    for (GimpleVarDecl varDecl : unit.getGlobalVariables()) {
+      varDecl.setUnit(unit);
+    }
     return unit;
   }
 

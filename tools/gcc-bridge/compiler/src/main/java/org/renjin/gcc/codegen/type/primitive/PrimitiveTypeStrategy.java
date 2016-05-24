@@ -10,6 +10,7 @@ import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.type.primitive.op.CastGenerator;
+import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrStrategy;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
@@ -100,9 +101,16 @@ public class PrimitiveTypeStrategy implements TypeStrategy<SimpleExpr> {
       // int length = (start-end)
       FatPtrExpr fatPtr = (FatPtrExpr) value;
       return fatPtr.getOffset();
+    
+    } else if(typeStrategy instanceof RecordUnitPtrStrategy) {
+      return Expressions.identityHash((SimpleExpr)value);
     }
     
     throw new UnsupportedCastException();
+  }
+  
+  public SimpleExpr zero() {
+    return new ConstantValue(type.jvmType(), 0);
   }
 
   private ValueFunction valueFunction() {

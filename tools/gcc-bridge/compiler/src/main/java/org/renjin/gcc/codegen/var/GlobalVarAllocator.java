@@ -2,15 +2,18 @@ package org.renjin.gcc.codegen.var;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.SimpleExpr;
 import org.renjin.gcc.codegen.expr.SimpleLValue;
 
 import javax.annotation.Nonnull;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Allocates global variables as static fields within a class.
@@ -49,6 +52,7 @@ public class GlobalVarAllocator extends VarAllocator {
   
   private final Type declaringClass;
   private final List<StaticField> fields = Lists.newArrayList();
+  private final Set<String> fieldNames = Sets.newHashSet();
 
   public GlobalVarAllocator(String declaringClass) {
     this.declaringClass = Type.getType(declaringClass);
@@ -60,11 +64,12 @@ public class GlobalVarAllocator extends VarAllocator {
   }
 
   public SimpleLValue reserve(String name, Type type, Optional<SimpleExpr> initialValue) {
-//    if(initialValue.isPresent()) {
-//      throw new UnsupportedOperationException("Initial values not supported");
-//    }
-    
-    StaticField field = new StaticField(toJavaSafeName(name), type, initialValue);
+    String fieldName = toJavaSafeName(name);
+    if(fieldNames.contains(fieldName)) {
+      throw new InternalCompilerException("Duplicate field name generated '" + name + "' [" + fieldName + "]");
+    }
+    fieldNames.add(fieldName);
+    StaticField field = new StaticField(fieldName, type, initialValue);
     fields.add(field);
     return field;
   }

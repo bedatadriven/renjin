@@ -6,6 +6,8 @@ import org.renjin.gcc.runtime.ObjectPtr;
 import org.renjin.primitives.packaging.DllInfo;
 import org.renjin.primitives.packaging.DllSymbol;
 
+import java.lang.invoke.MethodHandle;
+
 @SuppressWarnings("unused")
 public final class Rdynload {
 
@@ -64,6 +66,8 @@ public final class Rdynload {
     // This is intended to allow other packages to call this method. 
     // We'll ignore this for the moment.
   }
-//
-//   DL_FUNC R_GetCCallable (const char *package, const char *name)
+  //
+  public static MethodHandle R_GetCCallable (BytePtr packageName, BytePtr functionName) {
+    throw new UnimplementedGnuApiMethod("R_GetCCallable");
+  }
 }

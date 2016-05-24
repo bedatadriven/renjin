@@ -125,6 +125,8 @@ public class EmptyRecordPtrTypeStrategy implements PointerTypeStrategy<SimpleExp
   public SimpleExpr cast(Expr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
     if(typeStrategy instanceof RecordUnitPtrStrategy) {
       return (SimpleExpr) value;
+    } else if(typeStrategy instanceof EmptyRecordPtrTypeStrategy) {
+      return (SimpleExpr) value;
     }
     throw new UnsupportedCastException();
   }

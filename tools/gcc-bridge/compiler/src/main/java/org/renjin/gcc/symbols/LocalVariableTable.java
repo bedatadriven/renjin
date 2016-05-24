@@ -2,9 +2,9 @@ package org.renjin.gcc.symbols;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
-import org.objectweb.asm.Handle;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.expr.Expr;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
@@ -57,7 +57,7 @@ public class LocalVariableTable implements SymbolTable {
     return varGenerator;
   }
 
-  public Handle findHandle(GimpleFunctionRef functionRef) {
+  public SimpleExpr findHandle(GimpleFunctionRef functionRef) {
     return parent.findHandle(functionRef);
   }
 

@@ -495,4 +495,20 @@ public class Expressions {
         castPrimitive(shiftRight(intExpr, 16), Type.BYTE_TYPE),
         castPrimitive(shiftRight(intExpr, 24), Type.BYTE_TYPE) };
   }
+
+  public static SimpleExpr identityHash(final SimpleExpr value) {
+    return new SimpleExpr() {
+      @Nonnull
+      @Override
+      public Type getType() {
+        return Type.INT_TYPE;
+      }
+
+      @Override
+      public void load(@Nonnull MethodGenerator mv) {
+        value.load(mv);
+        mv.invokestatic(System.class, "identityHashCode", Type.getMethodDescriptor(Type.INT_TYPE, Type.getType(Object.class)));
+      }
+    };
+  }
 }

@@ -9,6 +9,7 @@ import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
 import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.type.TypeStrategy;
+import org.renjin.gcc.codegen.type.fun.FunctionRefGenerator;
 import org.renjin.gcc.gimple.statement.GimpleCall;
 
 import javax.annotation.Nonnull;
@@ -20,7 +21,7 @@ import static org.renjin.gcc.codegen.expr.Expressions.isPrimitive;
 /**
  * Generates a call to a method.
  */
-public class FunctionCallGenerator implements CallGenerator {
+public class FunctionCallGenerator implements CallGenerator, MethodHandleGenerator {
 
   private final InvocationStrategy strategy;
 
@@ -96,6 +97,11 @@ public class FunctionCallGenerator implements CallGenerator {
     } else {
       throw new UnsupportedOperationException("varArgExpr: " + varArgExpr);
     }
+  }
+
+  @Override
+  public SimpleExpr getMethodHandle() {
+    return new FunctionRefGenerator(strategy.getMethodHandle());
   }
 
   private class CallExpr implements SimpleExpr {

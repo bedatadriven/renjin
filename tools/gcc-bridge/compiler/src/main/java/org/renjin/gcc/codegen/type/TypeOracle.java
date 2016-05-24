@@ -186,7 +186,10 @@ public class TypeOracle {
 
     } else if(method.isAnnotationPresent(Struct.class)) {
       return new RecordArrayReturnStrategy(Type.getReturnType(method), 0);
-          
+
+    } else if(returnType.equals(MethodHandle.class)) {
+      return new FunPtrStrategy().getReturnStrategy();
+      
     } else {
       throw new UnsupportedOperationException(String.format(
           "Unsupported return type %s in method %s.%s",

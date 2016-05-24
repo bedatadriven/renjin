@@ -3,15 +3,12 @@ package org.renjin.gcc.symbols;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
-import org.objectweb.asm.Handle;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.FunctionGenerator;
 import org.renjin.gcc.codegen.call.*;
-import org.renjin.gcc.codegen.cpp.BeginCatchCallGenerator;
-import org.renjin.gcc.codegen.cpp.EhPointerCallGenerator;
-import org.renjin.gcc.codegen.cpp.EndCatchGenerator;
-import org.renjin.gcc.codegen.cpp.ThrowCallGenerator;
+import org.renjin.gcc.codegen.cpp.*;
 import org.renjin.gcc.codegen.expr.Expr;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
 import org.renjin.gcc.codegen.lib.SymbolFunction;
 import org.renjin.gcc.codegen.lib.SymbolLibrary;
 import org.renjin.gcc.codegen.lib.SymbolMethod;
@@ -63,7 +60,8 @@ public class GlobalSymbolTable implements SymbolTable {
       return generator.get();
     }
     
-    return new FunctionCallGenerator(new UnimplCallGenerator(mangledName));
+    return new UnimplCallGenerator(mangledName);
+    //throw new InternalCompilerException("Undefined symbol: " + mangledName);
   }
 
   private Optional<CallGenerator> findCallGenerator(String mangledName) {
@@ -92,10 +90,10 @@ public class GlobalSymbolTable implements SymbolTable {
   }
   
   @Override
-  public Handle findHandle(GimpleFunctionRef ref) {
+  public SimpleExpr findHandle(GimpleFunctionRef ref) {
     CallGenerator callGenerator = findCallGenerator(ref, null);
-    if(callGenerator instanceof FunctionCallGenerator) {
-      return ((FunctionCallGenerator) callGenerator).getStrategy().getMethodHandle();
+    if(callGenerator instanceof MethodHandleGenerator) {
+      return ((MethodHandleGenerator) callGenerator).getMethodHandle();
     } else {
       throw new UnsupportedOperationException("callGenerator: " + callGenerator);
     }
@@ -116,6 +114,8 @@ public class GlobalSymbolTable implements SymbolTable {
     addFunction("__builtin_expect", new BuiltinExpectGenerator());
     
     addFunction("__cxa_allocate_exception", new MallocCallGenerator(typeOracle));
+    addFunction(GuardAcquireGenerator.NAME, new GuardAcquireGenerator());
+    addFunction(GuardReleaseGenerator.NAME, new GuardReleaseGenerator());
     addFunction(EhPointerCallGenerator.NAME, new EhPointerCallGenerator());
     addFunction(ThrowCallGenerator.NAME, new ThrowCallGenerator());
     addFunction(BeginCatchCallGenerator.NAME, new BeginCatchCallGenerator());

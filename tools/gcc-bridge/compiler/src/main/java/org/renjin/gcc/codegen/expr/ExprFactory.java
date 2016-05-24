@@ -13,7 +13,6 @@ import org.renjin.gcc.codegen.type.UnsupportedCastException;
 import org.renjin.gcc.codegen.type.complex.ComplexCmpGenerator;
 import org.renjin.gcc.codegen.type.complex.ComplexValue;
 import org.renjin.gcc.codegen.type.complex.ComplexValues;
-import org.renjin.gcc.codegen.type.fun.FunctionRefGenerator;
 import org.renjin.gcc.codegen.type.primitive.ConstantValue;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveCmpGenerator;
 import org.renjin.gcc.codegen.type.primitive.StringConstant;
@@ -87,7 +86,7 @@ public class ExprFactory {
       GimpleAddressOf addressOf = (GimpleAddressOf) expr;
       if (addressOf.getValue() instanceof GimpleFunctionRef) {
         GimpleFunctionRef functionRef = (GimpleFunctionRef) addressOf.getValue();
-        return new FunctionRefGenerator(symbolTable.findHandle(functionRef));
+        return symbolTable.findHandle(functionRef);
 
       } else if(addressOf.getValue() instanceof GimplePrimitiveConstant) {
         // Exceptionally, gimple often contains to address of constants when
@@ -258,10 +257,7 @@ public class ExprFactory {
       case MEM_REF:
         // Cast the pointer type first, then dereference
         return memRef((GimpleMemRef) operands.get(0), expectedType);
-
-//      case ADDR_EXPR:
-//        return addressOf((GimpleAddressOf)operands.get(0), expectedType);
-
+      
       case CONVERT_EXPR:
       case FIX_TRUNC_EXPR:
       case FLOAT_EXPR:

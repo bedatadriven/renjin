@@ -1,18 +1,18 @@
 package org.renjin.gcc.symbols;
 
 
-import java.util.List;
-
-import org.objectweb.asm.Handle;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.expr.Expr;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
 import org.renjin.gcc.gimple.expr.GimpleSymbolRef;
 
+import java.util.List;
+
 public interface SymbolTable {
 
-  Handle findHandle(GimpleFunctionRef ref);
+  SimpleExpr findHandle(GimpleFunctionRef ref);
 
   CallGenerator findCallGenerator(GimpleFunctionRef ref, List<GimpleExpr> operands);
 

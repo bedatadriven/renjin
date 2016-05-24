@@ -68,6 +68,7 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
       // TODO
       // Currently we punt until runtime by triggering a ClassCastException
       return Expressions.uncheckedCast(ptr.getArray(), strategy.getJvmType());
+      
     } else if(typeStrategy instanceof RecordUnitPtrStrategy) {
       return Expressions.cast((SimpleExpr) value, strategy.getJvmType());
     }

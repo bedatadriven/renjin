@@ -39,6 +39,6 @@ void test_var_indexes() {
 
 void test_global_init() {
 
-    ASSERT(srgb_xyz[2][3] == 0.946986975553383292);
+    ASSERT(srgb_xyz[2][2] == 0.946986975553383292);
     
 }

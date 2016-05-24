@@ -2,6 +2,7 @@ package org.renjin.gcc.gimple;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
 
@@ -50,6 +51,10 @@ public class GimpleCompilationUnit {
 
   public List<GimpleVarDecl> getGlobalVariables() {
     return globalVariables;
+  }
+  
+  public Iterable<GimpleDecl> getDeclarations() {
+    return Iterables.concat(functions, globalVariables);
   }
 
   public File getSourceFile() {

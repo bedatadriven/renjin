@@ -128,6 +128,7 @@ public abstract class AbstractGccTest {
   protected void compileGimple(List<GimpleCompilationUnit> units) throws Exception {
     GimpleCompiler compiler = new GimpleCompiler();
     compiler.setOutputDirectory(new File("target/test-classes"));          
+    compiler.setLoggingDirectory(new File("target/gcc-bridge-logs"));
     compiler.setRecordClassPrefix(units.get(0).getName());
     compiler.setPackageName(PACKAGE_NAME);
     compiler.setVerbose(true);

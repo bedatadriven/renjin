@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import org.renjin.gcc.TreeLogger;
 import org.renjin.gcc.gimple.*;
 import org.renjin.gcc.gimple.expr.*;
 import org.renjin.gcc.gimple.statement.*;
@@ -35,16 +36,18 @@ public class RecordTypeDefCanonicalizer {
   
   private List<GimpleRecordTypeDef> canonical = Lists.newArrayList();
   
+  private TreeLogger logger;
   
-  public static Collection<GimpleRecordTypeDef> canonicalize(List<GimpleCompilationUnit> units) {
-    RecordTypeDefCanonicalizer transformer = new RecordTypeDefCanonicalizer(units);
-    
+  public static Collection<GimpleRecordTypeDef> canonicalize(TreeLogger parentLogger, List<GimpleCompilationUnit> units) {
+    TreeLogger logger = parentLogger.enter("Canonicalizing Record Type Defs");
+    RecordTypeDefCanonicalizer transformer = new RecordTypeDefCanonicalizer(logger, units);
     transformer.updateAllTypes(units);
     
     return transformer.canonical;
   }
   
-  private RecordTypeDefCanonicalizer(List<GimpleCompilationUnit> units) {
+  private RecordTypeDefCanonicalizer(TreeLogger logger, List<GimpleCompilationUnit> units) {
+    this.logger = logger;
     
     // Make a list of distinct record types, starting with the complete list 
     // of declared record types across all units, which will include duplicates
@@ -168,8 +171,9 @@ public class RecordTypeDefCanonicalizer {
 
   private void updateAllTypes(List<GimpleCompilationUnit> units) {
 
+    TreeLogger mappingLogger = logger.enter("Updating types types to canonical IDs");
     for (Map.Entry<String, GimpleRecordTypeDef> entry : idToCanonicalMap.entrySet()) {
-      System.out.println("Mapping " + entry.getKey() + " -> "  + entry.getValue().getId());
+      mappingLogger.debug("Mapping " + entry.getKey() + " -> "  + entry.getValue().getId());
     }
     
     // Ensure that canonical type defs reference other canonical type defs in their fields

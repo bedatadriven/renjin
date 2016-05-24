@@ -1,23 +1,24 @@
 package org.renjin.gcc.codegen.call;
 
-import org.objectweb.asm.Handle;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.type.ParamStrategy;
-import org.renjin.gcc.codegen.type.ReturnStrategy;
-import org.renjin.gcc.codegen.type.voidt.VoidReturnStrategy;
-import org.renjin.gcc.runtime.Builtins;
+import org.renjin.gcc.codegen.expr.ExprFactory;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.gimple.statement.GimpleCall;
+import org.renjin.gcc.runtime.UnsatisfiedLinkException;
 
-import java.util.Collections;
-import java.util.List;
+import javax.annotation.Nonnull;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 
-import static org.objectweb.asm.Opcodes.H_INVOKESTATIC;
+import static org.objectweb.asm.Type.getMethodDescriptor;
 
 /**
  * Throws a runtime exception.
  */
-public class UnimplCallGenerator implements InvocationStrategy {
+public class UnimplCallGenerator implements CallGenerator, MethodHandleGenerator {
 
+  public static final Type HANDLE_TYPE = Type.getType(MethodHandle.class);
   private String functionName;
 
   public UnimplCallGenerator(String functionName) {
@@ -25,27 +26,38 @@ public class UnimplCallGenerator implements InvocationStrategy {
   }
 
   @Override
-  public Handle getMethodHandle() {
-    return new Handle(H_INVOKESTATIC, Type.getInternalName(Builtins.class), "undefined_std", "()V");
+  public void emitCall(MethodGenerator mv, ExprFactory exprFactory, GimpleCall call) {
+    Type exceptionType = Type.getType(UnsatisfiedLinkException.class);
+    mv.anew(exceptionType);
+    mv.dup();
+    mv.aconst(functionName);
+    mv.invokeconstructor(exceptionType, Type.getType(String.class));
+    mv.athrow();
   }
 
   @Override
-  public List<ParamStrategy> getParamStrategies() {
-    return Collections.emptyList();
-  }
+  public SimpleExpr getMethodHandle() {
 
-  @Override
-  public boolean isVarArgs() {
-    return false;
-  }
+    // Create a method handle that throws the UnsatisifiedLinkException.
 
-  @Override
-  public ReturnStrategy getReturnStrategy() {
-    return new VoidReturnStrategy();
-  }
+    return new SimpleExpr() {
+      @Nonnull
+      @Override
+      public Type getType() {
+        return HANDLE_TYPE;
+      }
 
-  @Override
-  public void invoke(MethodGenerator mv) {
-    mv.invokestatic(Builtins.class, "undefined_std", "()V");
+      @Override
+      public void load(@Nonnull MethodGenerator mv) {
+        //    MethodHandle methodHandle = MethodHandles.throwException(void.class, UnsatisfiedLinkException.class);
+        //    methodHandle = MethodHandles.insertArguments(methodHandle, 0, functionName);
+        //    return methodHandle;
+        mv.aconst(Type.getType(UnsatisfiedLinkException.class));
+        mv.invokestatic(MethodHandles.class, "throwException", getMethodDescriptor(HANDLE_TYPE, Type.getType(Class.class)));
+        mv.iconst(0);
+        mv.aconst(functionName);
+        mv.invokestatic(MethodHandles.class, "insertArguments", getMethodDescriptor(HANDLE_TYPE, Type.INT_TYPE, Type.getType(Object.class)));
+      }
+    };
   }
 }

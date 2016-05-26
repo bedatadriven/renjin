@@ -40,12 +40,12 @@ public abstract class AbstractBindFunction extends SpecialFunction {
    * @return
    */
   public static SEXP tryBindDispatch(Context context, Environment rho,
-                                     String bindFunctionName, int deparseLevel, ListVector arguments) {
+                                     String bindFunctionName, int deparseLevel, PairList arguments) {
 
     Symbol foundMethod = null;
     org.renjin.sexp.Function foundFunction = null;
 
-    for(SEXP argument : arguments) {
+    for(SEXP argument : arguments.nodes()) {
       Vector classes = (Vector) argument.getAttribute(Symbols.CLASS);
       for(int i=0;i!=classes.length();++i) {
         Symbol methodName = Symbol.get(bindFunctionName + "." + classes.getElementAsString(i));

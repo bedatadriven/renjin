@@ -77,7 +77,7 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
 
   @Override
   public ReturnStrategy getReturnStrategy() {
-    return new SimpleReturnStrategy(strategy.getJvmType());
+    return new RecordUnitPtrReturnStrategy(strategy.getJvmType());
   }
 
   @Override

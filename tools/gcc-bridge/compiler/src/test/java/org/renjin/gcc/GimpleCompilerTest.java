@@ -466,15 +466,8 @@ public class GimpleCompilerTest extends AbstractGccTest {
   }
   
   @Test
-  public void cpp() throws Exception {
-    Class clazz = compile("rect.cpp");
-
-    Method calc_area = clazz.getMethod("calc_area");
-
-    Integer result = (Integer) calc_area.invoke(null);
-
-    
-    assertThat(result, equalTo(12));
+  public void rectCpp() throws Exception {
+    compileAndTest("rect.cpp");
   }
 
   @Test

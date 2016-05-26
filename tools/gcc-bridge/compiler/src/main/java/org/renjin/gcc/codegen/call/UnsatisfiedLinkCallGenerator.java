@@ -15,12 +15,12 @@ import static org.objectweb.asm.Type.getMethodDescriptor;
 /**
  * Throws a runtime exception.
  */
-public class UnimplCallGenerator implements CallGenerator, MethodHandleGenerator {
+public class UnsatisfiedLinkCallGenerator implements CallGenerator, MethodHandleGenerator {
 
   public static final Type HANDLE_TYPE = Type.getType(MethodHandle.class);
   private String functionName;
 
-  public UnimplCallGenerator(String functionName) {
+  public UnsatisfiedLinkCallGenerator(String functionName) {
     this.functionName = functionName;
   }
 
@@ -49,7 +49,8 @@ public class UnimplCallGenerator implements CallGenerator, MethodHandleGenerator
       @Override
       public void load(@Nonnull MethodGenerator mv) {
         mv.aconst(functionName);
-        mv.invokestatic(UnsatisfiedLinkException.class, "throwingHandle", getMethodDescriptor(HANDLE_TYPE, Type.getType(String.class)));
+        mv.invokestatic(UnsatisfiedLinkException.class, "throwingHandle", 
+            getMethodDescriptor(HANDLE_TYPE, Type.getType(String.class)));
       }
     };
   }

@@ -10,7 +10,6 @@ import org.renjin.gcc.codegen.expr.SimpleExpr;
 import org.renjin.gcc.codegen.type.fun.FunctionRefGenerator;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleVarDecl;
-import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
 import org.renjin.gcc.gimple.expr.GimpleSymbolRef;
 
@@ -26,14 +25,12 @@ import java.util.Map;
 public class UnitSymbolTable implements SymbolTable {
   
   private final GlobalSymbolTable globalSymbolTable;
-  private String className;
   private final Map<Integer, Expr> variableMap = Maps.newHashMap();
   private final List<FunctionGenerator> functions = Lists.newArrayList();
   private final Map<String, FunctionGenerator> functionNameMap = Maps.newHashMap();
 
-  public UnitSymbolTable(GlobalSymbolTable globalSymbolTable, String className) {
+  public UnitSymbolTable(GlobalSymbolTable globalSymbolTable) {
     this.globalSymbolTable = globalSymbolTable;
-    this.className = className;
   }
   
   public Expr getVariable(GimpleSymbolRef ref) {
@@ -83,15 +80,12 @@ public class UnitSymbolTable implements SymbolTable {
     return globalSymbolTable.findHandle(functionRef);
   }
 
-  public CallGenerator findCallGenerator(GimpleFunctionRef ref, List<GimpleExpr> operands) {
+  public CallGenerator findCallGenerator(GimpleFunctionRef ref) {
     if(functionNameMap.containsKey(ref.getName())) {
       return new FunctionCallGenerator(functionNameMap.get(ref.getName()));
     }
     
-    return globalSymbolTable.findCallGenerator(ref, operands);
+    return globalSymbolTable.findCallGenerator(ref);
   }
 
-  public boolean isFunctionDefined(String name) {
-    return functionNameMap.containsKey(name) || globalSymbolTable.isFunctionDefined(name);
-  }
 }

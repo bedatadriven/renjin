@@ -3,8 +3,8 @@ package org.renjin.gcc.symbols;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.renjin.gcc.InternalCompilerException;
-import org.renjin.gcc.codegen.FunctionGenerator;
 import org.renjin.gcc.codegen.call.*;
 import org.renjin.gcc.codegen.cpp.*;
 import org.renjin.gcc.codegen.expr.Expr;
@@ -13,7 +13,6 @@ import org.renjin.gcc.codegen.lib.SymbolFunction;
 import org.renjin.gcc.codegen.lib.SymbolLibrary;
 import org.renjin.gcc.codegen.lib.SymbolMethod;
 import org.renjin.gcc.codegen.type.TypeOracle;
-import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
 import org.renjin.gcc.gimple.expr.GimpleSymbolRef;
 import org.renjin.gcc.link.LinkSymbol;
@@ -24,7 +23,6 @@ import org.renjin.gcc.runtime.Stdlib;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -42,6 +40,8 @@ public class GlobalSymbolTable implements SymbolTable {
   private TypeOracle typeOracle;
   private Map<String, CallGenerator> functions = Maps.newHashMap();
   private Map<String, Expr> globalVariables = Maps.newHashMap();
+  
+  private Set<String> undefinedSymbols = Sets.newHashSet();
 
   public GlobalSymbolTable(TypeOracle typeOracle) {
     this.typeOracle = typeOracle;
@@ -52,19 +52,9 @@ public class GlobalSymbolTable implements SymbolTable {
   }
 
   @Override
-  public CallGenerator findCallGenerator(GimpleFunctionRef ref, List<GimpleExpr> operands) {
+  public CallGenerator findCallGenerator(GimpleFunctionRef ref) {
     String mangledName = ref.getName();
-    Optional<CallGenerator> generator = findCallGenerator(mangledName);
-    
-    if(generator.isPresent()) {
-      return generator.get();
-    }
-    
-    return new UnimplCallGenerator(mangledName);
-    //throw new InternalCompilerException("Undefined symbol: " + mangledName);
-  }
-
-  private Optional<CallGenerator> findCallGenerator(String mangledName) {
+   
     CallGenerator generator = functions.get(mangledName);
 
     // Try to find the symbol on the classpath
@@ -81,17 +71,21 @@ public class GlobalSymbolTable implements SymbolTable {
         functions.put(mangledName, generator);
       }
     }
-    return Optional.fromNullable(generator);
-  }
-
-
-  public boolean isFunctionDefined(String name) {
-    return findCallGenerator(name).isPresent();
+    
+    // Otherwise return a generator that will throw an error at runtime
+    if(generator == null) {
+      generator = new UnsatisfiedLinkCallGenerator(mangledName);
+      functions.put(mangledName, generator);
+      
+      System.err.println("Warning: undefined function " + mangledName + "; may throw exception at runtime");
+    }
+    
+    return generator;
   }
   
   @Override
   public SimpleExpr findHandle(GimpleFunctionRef ref) {
-    CallGenerator callGenerator = findCallGenerator(ref, null);
+    CallGenerator callGenerator = findCallGenerator(ref);
     if(callGenerator instanceof MethodHandleGenerator) {
       return ((MethodHandleGenerator) callGenerator).getMethodHandle();
     } else {
@@ -153,11 +147,7 @@ public class GlobalSymbolTable implements SymbolTable {
   public void addFunction(String name, CallGenerator callGenerator) {
     functions.put(name, callGenerator);
   }
-  
-  public void addFunction(FunctionGenerator function) {
-    functions.put(function.getMangledName(), new FunctionCallGenerator(function));
-  }
-  
+
   public void addFunction(String functionName, Method method) {
     Preconditions.checkArgument(Modifier.isStatic(method.getModifiers()), "Method '%s' must be static", method);
     functions.put(functionName, new FunctionCallGenerator(new StaticMethodStrategy(typeOracle, method)));

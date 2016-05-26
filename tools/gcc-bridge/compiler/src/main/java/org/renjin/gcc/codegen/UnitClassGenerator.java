@@ -20,7 +20,6 @@ import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.symbols.GlobalSymbolTable;
-import org.renjin.gcc.symbols.UndefinedCollector;
 import org.renjin.gcc.symbols.UnitSymbolTable;
 
 import java.io.PrintWriter;
@@ -61,7 +60,7 @@ public class UnitClassGenerator {
     this.className = className;
     this.typeOracle = typeOracle;
     this.globalVarAllocator = new GlobalVarAllocator(className);
-    this.symbolTable = new UnitSymbolTable(functionTable, className);
+    this.symbolTable = new UnitSymbolTable(functionTable);
   
     for (GimpleVarDecl decl : unit.getGlobalVariables()) {
       TypeStrategy typeStrategy = typeOracle.forType(decl.getType());
@@ -90,12 +89,6 @@ public class UnitClassGenerator {
             unit.getSourceName(),
             e.getMessage()), e);
       }
-    }
-  }
-  
-  public void collectUndefinedSymbols(UndefinedCollector undefined) {
-    for (FunctionGenerator functionGenerator : symbolTable.getFunctions()) {
-      functionGenerator.collectUndefinedSymbols(undefined);
     }
   }
 

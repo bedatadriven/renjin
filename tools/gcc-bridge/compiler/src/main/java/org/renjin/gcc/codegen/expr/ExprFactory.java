@@ -165,12 +165,12 @@ public class ExprFactory {
     return typeOracle.forType(expr.getType()).constructorExpr(this, expr);
   }
 
-  public CallGenerator findCallGenerator(GimpleExpr functionExpr, List<GimpleExpr> operands) {
+  public CallGenerator findCallGenerator(GimpleExpr functionExpr) {
     if(functionExpr instanceof GimpleAddressOf) {
       GimpleAddressOf addressOf = (GimpleAddressOf) functionExpr;
       if (addressOf.getValue() instanceof GimpleFunctionRef) {
         GimpleFunctionRef ref = (GimpleFunctionRef) addressOf.getValue();
-        return symbolTable.findCallGenerator(ref, operands);
+        return symbolTable.findCallGenerator(ref);
       }
       GimpleAddressOf address = (GimpleAddressOf) functionExpr;
       throw new UnsupportedOperationException("function ref: " + address.getValue() +

@@ -191,16 +191,6 @@ public class GimpleCompiler  {
         unitClassGenerators.add(generator);
       }
 
-      // Before we try to go whole hog, find ALL undefined symbols and abort quickly if we're missing
-      // something
-//    UndefinedCollector collector = new UndefinedCollector();
-//    for (UnitClassGenerator unitClassGenerator : unitClassGenerators) {
-//      unitClassGenerator.collectUndefinedSymbols(collector);
-//    }
-//    if(!collector.isEmpty()) {
-//      throw new InternalCompilerException(collector.toString());
-//    }
-//    
       // Finally, run code generation
       TreeLogger codegenLogger = rootLogger.enter("Generating bytecode");
       for (UnitClassGenerator generator : unitClassGenerators) {
@@ -262,7 +252,6 @@ public class GimpleCompiler  {
     TreeLogger recordLogger = rootLogger.enter("Compiling record types...");
     
     // Enumerate record types before writing, so that records can reference each other
-    int recordIndex = 0;
     for (GimpleRecordTypeDef recordTypeDef : recordTypeDefs) {
       typeOracle.addRecordType(recordTypeDef, strategyFor(recordLogger, recordTypeDef));
     }

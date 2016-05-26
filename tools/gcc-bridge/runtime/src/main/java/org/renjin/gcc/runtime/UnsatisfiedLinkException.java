@@ -12,8 +12,13 @@ public class UnsatisfiedLinkException extends RuntimeException {
   public UnsatisfiedLinkException(String functionName) {
     super("Function '" + functionName + "' was not found at compile-time");
   }
-  
-  
+
+
+  /**
+   * Returns a method handle that throws an {@code UnsatisfiedLinkException} when invoked. 
+   * 
+   * <p>Used by the compiler to generate code for function pointers that reference undefined symbols.</p>
+   */
   public static MethodHandle throwingHandle(String functionName) throws NoSuchMethodException, IllegalAccessException {
     MethodHandle exceptionConstructor = MethodHandles.publicLookup().findConstructor(
         UnsatisfiedLinkException.class, MethodType.methodType(void.class, String.class));

@@ -21,12 +21,10 @@ import org.renjin.gcc.codegen.type.ReturnStrategy;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.gimple.*;
-import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
 import org.renjin.gcc.gimple.statement.*;
 import org.renjin.gcc.gimple.type.GimpleVoidType;
 import org.renjin.gcc.peephole.PeepholeOptimizer;
 import org.renjin.gcc.symbols.LocalVariableTable;
-import org.renjin.gcc.symbols.UndefinedCollector;
 import org.renjin.gcc.symbols.UnitSymbolTable;
 
 import java.io.PrintWriter;
@@ -305,7 +303,7 @@ public class FunctionGenerator implements InvocationStrategy {
 
 
   private void emitCall(GimpleCall ins) {
-    CallGenerator callGenerator = exprFactory.findCallGenerator(ins.getFunction(), ins.getOperands());
+    CallGenerator callGenerator = exprFactory.findCallGenerator(ins.getFunction());
     callGenerator.emitCall(mv, exprFactory, ins);
   }
 
@@ -376,15 +374,4 @@ public class FunctionGenerator implements InvocationStrategy {
     return className + "." + getMangledName() + "()";
   }
 
-  public void collectUndefinedSymbols(UndefinedCollector undefined) {
-    for (GimpleBasicBlock basicBlock : function.getBasicBlocks()) {
-      for (GimpleStatement gimpleStatement : basicBlock.getStatements()) {
-        for (GimpleFunctionRef functionRef : gimpleStatement.findUses(GimpleFunctionRef.class)) {
-          if (!symbolTable.isFunctionDefined(functionRef.getName())) {
-            undefined.add(functionRef.getName(), function);
-          }
-        }
-      }
-    }
-  }
 }

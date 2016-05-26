@@ -1655,7 +1655,7 @@ public final class Rinternals {
   }
 
   public static /*R_xlen_t*/ int Rf_xlength(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_xlength");
+    return p0.length();
   }
 
   public static SEXP Rf_protect(SEXP p0) {

@@ -179,6 +179,8 @@ public class GimpleFunction implements GimpleDecl {
     if(!mangledName.equals(name)) {
       sb.append(mangledName).append(": ");
     }
+    sb.append(returnType);
+    sb.append(" ");
     sb.append(name).append(" (");
     Joiner.on(", ").appendTo(sb, parameters);
     sb.append(")\n");

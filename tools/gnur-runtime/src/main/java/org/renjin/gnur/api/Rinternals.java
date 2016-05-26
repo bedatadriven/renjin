@@ -1371,11 +1371,13 @@ public final class Rinternals {
   // int R_check_class_etc (SEXP x, const char **valid)
 
   public static void R_PreserveObject(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("R_PreserveObject");
+    // NOOP
+    // We have a garbage collector.
   }
 
   public static void R_ReleaseObject(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("R_ReleaseObject");
+    // NOOP
+    // We have a garbage collector.
   }
 
   public static void R_dot_Last() {

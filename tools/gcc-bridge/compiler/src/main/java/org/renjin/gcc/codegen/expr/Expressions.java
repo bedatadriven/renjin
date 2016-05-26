@@ -242,9 +242,10 @@ public class Expressions {
   public static SimpleExpr cast(final SimpleExpr object, final Type type) {
     
     // Can we reduce this to a NOOP ?
-    if(object.getType().equals(type)) {
+    if(object.getType().equals(type) || type.equals(Type.getType(Object.class))) {
       return object;
     }
+    
     // Verify that this is in the realm of possibility
     checkCast(object.getType(), type);
 

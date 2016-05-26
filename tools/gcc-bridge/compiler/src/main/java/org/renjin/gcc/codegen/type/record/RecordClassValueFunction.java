@@ -33,7 +33,7 @@ public class RecordClassValueFunction implements ValueFunction {
   }
 
   @Override
-  public int getElementSize() {
+  public int getArrayElementBytes() {
     return 4;
   }
 

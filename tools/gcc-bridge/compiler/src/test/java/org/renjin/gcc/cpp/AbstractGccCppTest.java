@@ -6,10 +6,7 @@ import org.renjin.gcc.AbstractGccTest;
 import org.renjin.gcc.Gcc;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.codegen.lib.cpp.CppSymbolLibrary;
-import org.renjin.gcc.gimple.CallingConvention;
-import org.renjin.gcc.gimple.CallingConventions;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
-import org.renjin.gcc.gimple.GimpleFunction;
 
 import java.io.File;
 import java.io.IOException;
@@ -47,11 +44,6 @@ public class AbstractGccCppTest extends AbstractGccTest {
     for (String sourceName : sources) {
       File source = new File(AbstractGccCppTest.class.getResource(sourceName).getFile());
       GimpleCompilationUnit unit = gcc.compileToGimple(source);
-
-      CallingConvention callingConvention = CallingConventions.fromFile(source);
-      for (GimpleFunction function : unit.getFunctions()) {
-        function.setCallingConvention(callingConvention);
-      }
       units.add(unit);
     }
     return units;

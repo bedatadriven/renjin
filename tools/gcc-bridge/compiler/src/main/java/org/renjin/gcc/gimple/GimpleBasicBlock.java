@@ -2,19 +2,12 @@ package org.renjin.gcc.gimple;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
-
 import org.renjin.gcc.gimple.expr.GimpleExpr;
-import org.renjin.gcc.gimple.statement.GimpleEdge;
-import org.renjin.gcc.gimple.statement.GimpleStatement;
-import org.renjin.gcc.gimple.statement.GimpleConditional;
-import org.renjin.gcc.gimple.statement.GimpleGoto;
-import org.renjin.gcc.gimple.statement.GimpleReturn;
-import org.renjin.gcc.gimple.statement.GimpleStatement;
+import org.renjin.gcc.gimple.statement.*;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Sequence of {@code GimpleStatement}s with no branches in except to the entry and no branches out except at the exit.
@@ -136,6 +129,12 @@ public class GimpleBasicBlock {
       
       // falling throughhhhhhhh.....
       return true;
+    }
+  }
+  
+  public void accept(GimpleExprVisitor visitor) {
+    for (GimpleStatement statement : statements) {
+      statement.accept(visitor);
     }
   }
 }

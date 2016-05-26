@@ -53,9 +53,9 @@ public class GimpleRecordTypeDef {
 
   public String toString() {
     StringBuilder out = new StringBuilder();
-    out.append("struct ").append(name).append(" {\n");
+    out.append("struct ").append(name).append("[").append(id).append("]").append(" {\n");
     for (GimpleField field : fields) {
-      out.append(String.format("    %s %s\n", field.getType(), field.getName()));
+      out.append(String.format("    %2d: %s %s\n", field.getOffset(), field.getType(), field.getName()));
     }
     out.append("}");
     return out.toString();

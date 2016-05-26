@@ -1,10 +1,13 @@
 package org.renjin.gcc;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.common.io.Files;
+import com.google.common.io.Resources;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.analysis.*;
 import org.renjin.gcc.codegen.FunctionGenerator;
@@ -14,6 +17,7 @@ import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.call.FunctionCallGenerator;
 import org.renjin.gcc.codegen.lib.SymbolLibrary;
 import org.renjin.gcc.codegen.type.TypeOracle;
+import org.renjin.gcc.codegen.type.record.EmptyRecordTypeStrategy;
 import org.renjin.gcc.codegen.type.record.RecordArrayTypeStrategy;
 import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
@@ -25,11 +29,14 @@ import org.renjin.gcc.symbols.GlobalSymbolTable;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.net.URL;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Compiles a set of {@link GimpleCompilationUnit}s to bytecode
@@ -47,6 +54,7 @@ public class GimpleCompiler  {
   public static boolean TRACE = false;
 
   private File outputDirectory;
+  private File loggingDirectory;
 
   private String packageName;
 
@@ -67,6 +75,8 @@ public class GimpleCompiler  {
   private String trampolineClassName;
   private String recordClassPrefix = "record";
   private int nextRecordIndex = 0;
+  
+  private TreeLogger rootLogger = new TreeLogger();
 
   public GimpleCompiler() {
     functionBodyTransformers.add(VoidPointerTypeDeducer.INSTANCE);
@@ -93,6 +103,14 @@ public class GimpleCompiler  {
    */
   public void setOutputDirectory(File directory) {
     this.outputDirectory = directory;
+  }
+
+  public File getLoggingDirectory() {
+    return loggingDirectory;
+  }
+
+  public void setLoggingDirectory(File loggingDirectory) {
+    this.loggingDirectory = loggingDirectory;
   }
 
   /**
@@ -134,58 +152,82 @@ public class GimpleCompiler  {
    */
   public void compile(List<GimpleCompilationUnit> units) throws Exception {
 
-    // create the mapping from the compilation unit's version of the record types
-    // to the canonical version shared by all compilation units
-    recordTypeDefs = RecordTypeDefCanonicalizer.canonicalize(units);
+    try {
+      // create the mapping from the compilation unit's version of the record types
+      // to the canonical version shared by all compilation units
+      recordTypeDefs = RecordTypeDefCanonicalizer.canonicalize(rootLogger, units);
+      if (verbose) {
+        for (GimpleRecordTypeDef recordTypeDef : recordTypeDefs) {
+          System.out.println(recordTypeDef);
+        }
+      }
 
-    // First apply any transformations needed by the code generation process
-    transform(units);
+      // Prune unused functions 
+      SymbolPruner.prune(rootLogger, units);
 
-    // Analyze record type usage to determine strategy for generate code involving records
-    // (must be done after void ptr inference)
+      // First apply any transformations needed by the code generation process
+      transform(units);
 
-    recordUsage = new RecordUsageAnalyzer(recordTypeDefs);
-    recordUsage.analyze(units);
-    
-    // Compile the record types so they are available to functions and variables
-    compileRecords(units);
+      // Analyze record type usage to determine strategy for generate code involving records
+      // (must be done after void ptr inference)
 
-    // Next, do a round of compilation units to make sure all externally visible functions and 
-    // symbols are added to the global symbol table.
-    // This allows us to effectively do linking at the same time as code generation
-    List<UnitClassGenerator> unitClassGenerators = Lists.newArrayList();
-    for (GimpleCompilationUnit unit : units) {
-      String className = classNameForUnit(unit.getName());
-      UnitClassGenerator generator = new UnitClassGenerator(
-          typeOracle,
-          globalSymbolTable,
-          providedVariables,
-          unit, className);
-      unitClassGenerators.add(generator);
+      recordUsage = new RecordUsageAnalyzer(recordTypeDefs);
+      recordUsage.analyze(units);
+
+      // Compile the record types so they are available to functions and variables
+      compileRecords(units);
+
+      // Next, do a round of compilation units to make sure all externally visible functions and 
+      // symbols are added to the global symbol table.
+      // This allows us to effectively do linking at the same time as code generation
+      List<UnitClassGenerator> unitClassGenerators = Lists.newArrayList();
+      for (GimpleCompilationUnit unit : units) {
+        String className = classNameForUnit(unit.getName());
+        UnitClassGenerator generator = new UnitClassGenerator(
+            typeOracle,
+            globalSymbolTable,
+            providedVariables,
+            unit, className);
+        unitClassGenerators.add(generator);
+      }
+
+      // Finally, run code generation
+      TreeLogger codegenLogger = rootLogger.enter("Generating bytecode");
+      for (UnitClassGenerator generator : unitClassGenerators) {
+        generator.emit(codegenLogger);
+        writeClass(generator.getClassName(), generator.toByteArray());
+      }
+
+      // Write link metadata to META-INF/org.renjin.gcc.symbols
+      writeLinkMetadata();
+
+      // If requested, generate a single class that wraps all exported functions
+      if (trampolineClassName != null) {
+        writeTrampolineClass();
+      }
+
+    } finally {
+      try {
+        writeLogs();
+      } catch (Exception e) {
+        System.out.println("Failed to write logs");
+        e.printStackTrace();
+      }
     }
+  }
 
-    // Before we try to go whole hog, find ALL undefined symbols and abort quickly if we're missing
-    // something
-//    UndefinedCollector collector = new UndefinedCollector();
-//    for (UnitClassGenerator unitClassGenerator : unitClassGenerators) {
-//      unitClassGenerator.collectUndefinedSymbols(collector);
-//    }
-//    if(!collector.isEmpty()) {
-//      throw new InternalCompilerException(collector.toString());
-//    }
-//    
-    // Finally, run code generation
-    for (UnitClassGenerator generator : unitClassGenerators) {
-      generator.emit();
-      writeClass(generator.getClassName(), generator.toByteArray());
-    }
-    
-    // Write link metadata to META-INF/org.renjin.gcc.symbols
-    writeLinkMetadata();
-
-    // If requested, generate a single class that wraps all exported functions
-    if(trampolineClassName != null) {
-      writeTrampolineClass();
+  private void writeLogs() throws IOException {
+    if(loggingDirectory != null) {
+      if(!loggingDirectory.exists()) {
+        loggingDirectory.mkdirs();
+      }
+      File logFile = new File(loggingDirectory, "compile-log.html");
+      try(PrintWriter writer = new PrintWriter(logFile)) {
+        URL headerResource = Resources.getResource(GimpleCompiler.class, "log-head.html");
+        String header = Resources.toString(headerResource, Charsets.UTF_8);
+        writer.println(header);
+        rootLogger.dumpHtml(writer);
+      }
     }
   }
 
@@ -196,8 +238,10 @@ public class GimpleCompiler  {
         FunctionCallGenerator functionCallGenerator = (FunctionCallGenerator) entry.getValue();
         if (functionCallGenerator.getStrategy() instanceof FunctionGenerator) {
           FunctionGenerator functionGenerator = (FunctionGenerator) functionCallGenerator.getStrategy();
-          LinkSymbol symbol = LinkSymbol.forFunction(entry.getKey(), functionGenerator.getMethodHandle());
-          symbol.write(outputDirectory);
+          for (String mangledName : functionGenerator.getMangledNames()) {
+            LinkSymbol symbol = LinkSymbol.forFunction(mangledName, functionGenerator.getMethodHandle());
+            symbol.write(outputDirectory);
+          }
         }
       }
     }
@@ -205,10 +249,11 @@ public class GimpleCompiler  {
 
   private void compileRecords(List<GimpleCompilationUnit> units) throws IOException {
 
+    TreeLogger recordLogger = rootLogger.enter("Compiling record types...");
+    
     // Enumerate record types before writing, so that records can reference each other
-    int recordIndex = 0;
     for (GimpleRecordTypeDef recordTypeDef : recordTypeDefs) {
-      typeOracle.addRecordType(recordTypeDef, strategyFor(recordTypeDef));
+      typeOracle.addRecordType(recordTypeDef, strategyFor(recordLogger, recordTypeDef));
     }
 
     // Now that the record types are all registered, we can link the fields to their
@@ -220,7 +265,7 @@ public class GimpleCompiler  {
         throw new InternalCompilerException(String.format("Exception linking record %s: %s",
             recordTypeStrategy.getRecordTypeDef().getName(),
             e.getMessage()), e);
-      }    
+      }
     }
 
     // Finally write out the record class files for those records which are  not provided
@@ -229,30 +274,51 @@ public class GimpleCompiler  {
     }
   }
 
-  private RecordTypeStrategy strategyFor(GimpleRecordTypeDef recordTypeDef) {
-    
+  private RecordTypeStrategy strategyFor(TreeLogger parentLogger, GimpleRecordTypeDef recordTypeDef) {
+
+    TreeLogger logger = parentLogger.enter(String.format("Building strategy for %s [%s]", 
+        recordTypeDef.getName(), recordTypeDef.getId()));
+
+    logger.debug("RecordTypeDef:", recordTypeDef);
+
     if(isProvided(recordTypeDef)) {
+      Type providedType = Type.getType(providedRecordTypes.get(recordTypeDef.getName()));
+      logger.debug("Provided: " + providedType.getInternalName());
+      
       RecordClassTypeStrategy strategy = new RecordClassTypeStrategy(recordTypeDef);
       strategy.setProvided(true);
-      strategy.setJvmType(Type.getType(providedRecordTypes.get(recordTypeDef.getName())));
+      strategy.setJvmType(providedType);
 
       strategy.setUnitPointer(recordUsage.unitPointerAssumptionsHoldFor(recordTypeDef));
 
       return strategy;
-      
+
+    } else if(EmptyRecordTypeStrategy.accept(recordTypeDef)) {
+      logger.debug("Using EmptyRecordTypeStrategy");
+
+      return new EmptyRecordTypeStrategy(recordTypeDef);
+
     } else if(RecordArrayTypeStrategy.accept(recordTypeDef)) {
+      logger.debug("Using RecordArrayTypeStrategy");
+
       return new RecordArrayTypeStrategy(recordTypeDef);
-   
+
     } else {
+      logger.debug("Using RecordClassStrategy");
+
       RecordClassTypeStrategy strategy = new RecordClassTypeStrategy(recordTypeDef);
       strategy.setUnitPointer(recordUsage.unitPointerAssumptionsHoldFor(recordTypeDef));
       String recordClassName;
       if (recordTypeDef.getName() != null) {
-        recordClassName =  String.format("%s$%s", recordClassPrefix, recordTypeDef.getName());
+        recordClassName =  String.format("%s$%s", recordClassPrefix, recordTypeDef.getName() + (nextRecordIndex++));
       } else {
         recordClassName = String.format("%s$Record%d", recordClassPrefix, nextRecordIndex++);
       }
       strategy.setJvmType(Type.getType("L" + getInternalClassName(recordClassName) + ";"));
+
+      logger.debug("unitPointer = " + strategy.isUnitPointer());
+      logger.debug("jvmType = " + strategy.getJvmType().getInternalName());
+      
       return strategy;
     }
   }
@@ -316,7 +382,7 @@ public class GimpleCompiler  {
   }
 
   private void transform(List<GimpleCompilationUnit> units) {
-    
+
     for (GimpleCompilationUnit unit : units) {
       if(TRACE) {
         System.out.println(unit);
@@ -348,12 +414,17 @@ public class GimpleCompiler  {
     TrampolineClassGenerator classGenerator =
         new TrampolineClassGenerator(getInternalClassName(trampolineClassName));
 
+    Set<String> names = Sets.newHashSet();
+
     for (Map.Entry<String, CallGenerator> entry : globalSymbolTable.getFunctions()) {
-      if(entry.getValue() instanceof FunctionCallGenerator) {
+      if (entry.getValue() instanceof FunctionCallGenerator) {
         FunctionCallGenerator functionCallGenerator = (FunctionCallGenerator) entry.getValue();
-        if(functionCallGenerator.getStrategy() instanceof FunctionGenerator) {
+        if (functionCallGenerator.getStrategy() instanceof FunctionGenerator) {
           FunctionGenerator functionGenerator = (FunctionGenerator) functionCallGenerator.getStrategy();
-          classGenerator.emitTrampolineMethod(functionGenerator);
+          if(!names.contains(functionGenerator.getMangledName())) {
+            classGenerator.emitTrampolineMethod(functionGenerator);
+            names.add(functionGenerator.getMangledName());
+          }
         }
       }
     }

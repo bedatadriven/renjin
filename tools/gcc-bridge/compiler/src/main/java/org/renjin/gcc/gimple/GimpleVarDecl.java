@@ -7,14 +7,18 @@ import org.renjin.gcc.gimple.expr.GimpleSymbolRef;
 import org.renjin.gcc.gimple.expr.GimpleVariableRef;
 import org.renjin.gcc.gimple.type.GimpleType;
 
+import java.util.Collections;
+import java.util.List;
+
 /**
  * Gimple Variable Declaration
  */
-public class GimpleVarDecl {
+public class GimpleVarDecl implements GimpleDecl {
   private int id;
   private GimpleType type;
   private String name;
   private GimpleExpr value;
+  private GimpleCompilationUnit unit;
   
   @JsonProperty("const")
   private boolean constant;
@@ -85,6 +89,14 @@ public class GimpleVarDecl {
     this.addressable = addressable;
   }
 
+  public GimpleCompilationUnit getUnit() {
+    return unit;
+  }
+
+  public void setUnit(GimpleCompilationUnit unit) {
+    this.unit = unit;
+  }
+
   @Override
   public String toString() {
     return type + " " + getName() + " = " + value;
@@ -116,4 +128,18 @@ public class GimpleVarDecl {
   public GimpleVariableRef newRef() {
     return new GimpleVariableRef(id, type);
   }
+
+  @Override
+  public List<String> getMangledNames() {
+    return Collections.singletonList(name);
+  }
+
+  @Override
+  public void accept(GimpleExprVisitor visitor) {
+    if(value != null) {
+      value.accept(visitor);
+    }
+  }
+  
+  
 }

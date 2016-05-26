@@ -46,7 +46,7 @@ public class RecordArrayValueFunction implements ValueFunction {
   }
 
   @Override
-  public int getElementSize() {
+  public int getArrayElementBytes() {
     return GimplePrimitiveType.fromJvmType(fieldType).sizeOf() * arrayLength;
   }
 

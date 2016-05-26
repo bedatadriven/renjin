@@ -18,10 +18,7 @@ import org.renjin.gcc.Gcc;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.codegen.lib.SymbolLibrary;
 import org.renjin.gcc.codegen.lib.cpp.CppSymbolLibrary;
-import org.renjin.gcc.gimple.CallingConvention;
-import org.renjin.gcc.gimple.CallingConventions;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
-import org.renjin.gcc.gimple.GimpleFunction;
 
 import java.io.File;
 import java.io.IOException;
@@ -140,11 +137,6 @@ public class GccBridgeMojo extends AbstractMojo {
         unit = gcc.compileToGimple(sourceFile);
       } catch (IOException e) {
         throw new MojoExecutionException("Exception compiling " + sourceFile.getName() + ".", e);
-      }
-
-      CallingConvention callingConvention = CallingConventions.fromFile(sourceFile);
-      for (GimpleFunction function : unit.getFunctions()) {
-        function.setCallingConvention(callingConvention);
       }
       units.add(unit);
     }

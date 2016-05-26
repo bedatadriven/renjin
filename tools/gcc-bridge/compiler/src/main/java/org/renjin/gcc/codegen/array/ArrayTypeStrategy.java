@@ -78,22 +78,37 @@ public class ArrayTypeStrategy implements TypeStrategy<FatPtrExpr> {
   @Override
   public FatPtrExpr constructorExpr(ExprFactory exprFactory, GimpleConstructor constructor) {
     List<SimpleExpr> values = Lists.newArrayList();
-    for (GimpleConstructor.Element element : constructor.getElements()) {
-      Expr elementExpr = exprFactory.findGenerator(element.getValue());
-      List<SimpleExpr> arrayValues = valueFunction.toArrayValues(elementExpr);
-      assert arrayValues.size() == valueFunction.getElementLength();
-      
-      values.addAll(arrayValues);
-    }
-    
+    addElementConstructors(values, exprFactory, constructor);
+
     SimpleExpr array = Expressions.newArray(valueFunction.getValueType(), values);
     SimpleExpr offset = Expressions.zero();
     
     return new FatPtrExpr(array, offset);
   }
 
+  private void addElementConstructors(List<SimpleExpr> values, ExprFactory exprFactory, GimpleConstructor constructor) {
+    for (GimpleConstructor.Element element : constructor.getElements()) {
+      if(element.getValue() instanceof GimpleConstructor &&
+          element.getValue().getType() instanceof GimpleArrayType) {
+        GimpleConstructor elementConstructor = (GimpleConstructor) element.getValue();
+
+        addElementConstructors(values, exprFactory, elementConstructor);
+
+      } else {
+        Expr elementExpr = exprFactory.findGenerator(element.getValue());
+        List<SimpleExpr> arrayValues = valueFunction.toArrayValues(elementExpr);
+        values.addAll(arrayValues);
+      }
+    }
+  }
+
   @Override
   public FieldStrategy fieldGenerator(Type className, String fieldName) { 
+    if(arrayType.getUbound() == null) {
+      throw new UnsupportedOperationException(
+          String.format("Array field '%s' with type %s does not have a fixed size",
+              fieldName, arrayType));
+    }
     return new ArrayField(className, fieldName, arrayType.getElementCount(), valueFunction);
   }
 

@@ -2,6 +2,7 @@ package org.renjin.gcc.gimple.expr;
 
 
 import com.google.common.base.Predicate;
+import org.renjin.gcc.gimple.GimpleExprVisitor;
 
 import java.util.List;
 
@@ -23,12 +24,12 @@ public abstract class GimpleComplexPartExpr extends GimpleExpr {
   }
 
   @Override
-  public boolean replace(Predicate<? super GimpleExpr> predicate, GimpleExpr replacement) {
-    if(predicate.apply(complexValue)) {
-      complexValue = replacement;
-      return true;
-    } else {
-      return false;
-    }
+  public void replaceAll(Predicate<? super GimpleExpr> predicate, GimpleExpr newExpr) {
+    complexValue = replaceOrDescend(complexValue, predicate, newExpr);
+  }
+
+  @Override
+  public void accept(GimpleExprVisitor visitor) {
+    visitor.visitComplexPart(this);
   }
 }

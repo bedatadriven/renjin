@@ -13,13 +13,11 @@ import org.renjin.gcc.codegen.type.UnsupportedCastException;
 import org.renjin.gcc.codegen.type.complex.ComplexCmpGenerator;
 import org.renjin.gcc.codegen.type.complex.ComplexValue;
 import org.renjin.gcc.codegen.type.complex.ComplexValues;
-import org.renjin.gcc.codegen.type.fun.FunctionRefGenerator;
 import org.renjin.gcc.codegen.type.primitive.ConstantValue;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveCmpGenerator;
 import org.renjin.gcc.codegen.type.primitive.StringConstant;
 import org.renjin.gcc.codegen.type.primitive.op.*;
 import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
-import org.renjin.gcc.gimple.CallingConvention;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.expr.*;
 import org.renjin.gcc.gimple.type.*;
@@ -34,12 +32,10 @@ import java.util.List;
 public class ExprFactory {
   private final TypeOracle typeOracle;
   private final SymbolTable symbolTable;
-  private final CallingConvention callingConvention;
 
-  public ExprFactory(TypeOracle typeOracle, SymbolTable symbolTable, CallingConvention callingConvention) {
+  public ExprFactory(TypeOracle typeOracle, SymbolTable symbolTable) {
     this.typeOracle = typeOracle;
     this.symbolTable = symbolTable;
-    this.callingConvention = callingConvention;
   }
   
 
@@ -51,17 +47,21 @@ public class ExprFactory {
     
     if(lhsType.equals(rhsType)) {
       return rhs;
-    } 
+    }
     
     TypeStrategy leftStrategy = typeOracle.forType(lhsType);
     TypeStrategy rightStrategy = typeOracle.forType(rhsType);
 
+    if(ConstantValue.isZero(rhs) && leftStrategy instanceof PointerTypeStrategy) {
+      return ((PointerTypeStrategy) leftStrategy).nullPointer();
+    }
+    
     try {
       return leftStrategy.cast(rhs, rightStrategy);
     } catch (UnsupportedCastException e) {
-      throw new InternalCompilerException(String.format("Unsupported cast from %s [%s] to %s [%s]",
+      throw new InternalCompilerException(String.format("Unsupported cast to %s [%s] from %s [%s]",
           lhsType, leftStrategy.getClass().getSimpleName(),
-          rhsType, rightStrategy.getClass().getSimpleName()));
+          rhsType, rightStrategy.getClass().getSimpleName()), e);
     }
   }
 
@@ -86,7 +86,7 @@ public class ExprFactory {
       GimpleAddressOf addressOf = (GimpleAddressOf) expr;
       if (addressOf.getValue() instanceof GimpleFunctionRef) {
         GimpleFunctionRef functionRef = (GimpleFunctionRef) addressOf.getValue();
-        return new FunctionRefGenerator(symbolTable.findHandle(functionRef, callingConvention));
+        return symbolTable.findHandle(functionRef);
 
       } else if(addressOf.getValue() instanceof GimplePrimitiveConstant) {
         // Exceptionally, gimple often contains to address of constants when
@@ -148,6 +148,14 @@ public class ExprFactory {
     } else if(expr instanceof GimpleCompoundLiteral) {
       return findGenerator(((GimpleCompoundLiteral) expr).getDecl());
     
+    } else if(expr instanceof GimpleObjectTypeRef) {
+      GimpleObjectTypeRef typeRef = (GimpleObjectTypeRef) expr;
+      
+      return findGenerator(typeRef.getExpr());
+    
+    } else if(expr instanceof GimplePointerPlus) {
+      GimplePointerPlus pointerPlus = (GimplePointerPlus) expr;
+      return pointerPlus(pointerPlus.getPointer(), pointerPlus.getOffset(), pointerPlus.getType());
     }
     
     throw new UnsupportedOperationException(expr + " [" + expr.getClass().getSimpleName() + "]");
@@ -157,12 +165,12 @@ public class ExprFactory {
     return typeOracle.forType(expr.getType()).constructorExpr(this, expr);
   }
 
-  public CallGenerator findCallGenerator(GimpleExpr functionExpr, List<GimpleExpr> operands) {
+  public CallGenerator findCallGenerator(GimpleExpr functionExpr) {
     if(functionExpr instanceof GimpleAddressOf) {
       GimpleAddressOf addressOf = (GimpleAddressOf) functionExpr;
       if (addressOf.getValue() instanceof GimpleFunctionRef) {
         GimpleFunctionRef ref = (GimpleFunctionRef) addressOf.getValue();
-        return symbolTable.findCallGenerator(ref, operands, callingConvention);
+        return symbolTable.findCallGenerator(ref);
       }
       GimpleAddressOf address = (GimpleAddressOf) functionExpr;
       throw new UnsupportedOperationException("function ref: " + address.getValue() +
@@ -249,10 +257,7 @@ public class ExprFactory {
       case MEM_REF:
         // Cast the pointer type first, then dereference
         return memRef((GimpleMemRef) operands.get(0), expectedType);
-
-//      case ADDR_EXPR:
-//        return addressOf((GimpleAddressOf)operands.get(0), expectedType);
-
+      
       case CONVERT_EXPR:
       case FIX_TRUNC_EXPR:
       case FLOAT_EXPR:
@@ -417,7 +422,8 @@ public class ExprFactory {
   }
 
   public Expr forConstant(GimpleConstant constant) {
-    if (constant.isNull()) {
+    if (constant.getType() instanceof GimpleIndirectType) {
+      // TODO: Treat all pointer constants as null
       return typeOracle.forPointerType(constant.getType()).nullPointer();
       
     } else if (constant instanceof GimplePrimitiveConstant) {

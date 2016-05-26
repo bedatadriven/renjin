@@ -9,7 +9,7 @@ class Shape {
 class Rectangle : public Shape {
     int width, height;
   public:
-    Rectangle(double w, double h) : width(h), height(h) {}
+    Rectangle(double w, double h) : width(w), height(h) {}
     virtual int area ()  {return width*height;}
 };
 
@@ -25,7 +25,7 @@ int twice_area(Shape &shape) {
   return shape.area() * 2;
 }
 
-int calc_areas () {
+extern "C" int calc_areas () {
   Rectangle rect(3,4);
   Circle circle(9);
   

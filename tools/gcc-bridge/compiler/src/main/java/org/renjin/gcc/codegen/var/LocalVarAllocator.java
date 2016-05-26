@@ -90,8 +90,9 @@ public class LocalVarAllocator extends VarAllocator {
   public void emitDebugging(MethodGenerator mv, Label start, Label end) {
 
     for (LocalVar entry : names) {
-
-      mv.visitLocalVariable(toJavaSafeName(entry.name), entry.type.getDescriptor(), null, start, end, entry.index);
+      if(entry.name != null) {
+        mv.visitLocalVariable(toJavaSafeName(entry.name), entry.type.getDescriptor(), null, start, end, entry.index);
+      }
     }
   }
 

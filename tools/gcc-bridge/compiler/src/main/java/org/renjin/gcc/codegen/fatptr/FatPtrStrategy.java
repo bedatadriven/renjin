@@ -143,14 +143,14 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtrExpr> {
 
   @Override
   public FatPtrExpr malloc(MethodGenerator mv, SimpleExpr sizeInBytes) {
-    SimpleExpr length = Expressions.divide(sizeInBytes, valueFunction.getElementSize());
+    SimpleExpr length = Expressions.divide(sizeInBytes, valueFunction.getArrayElementBytes());
     
     return FatPtrMalloc.alloc(mv, valueFunction, length);
   }
 
   @Override
   public FatPtrExpr realloc(FatPtrExpr pointer, SimpleExpr newSizeInBytes) {
-    SimpleExpr sizeInElements = Expressions.divide(newSizeInBytes, valueFunction.getElementSize());
+    SimpleExpr sizeInElements = Expressions.divide(newSizeInBytes, valueFunction.getArrayElementBytes());
     SimpleExpr array = new FatPtrRealloc(pointer, sizeInElements);
     SimpleExpr offset = Expressions.zero();
     
@@ -185,7 +185,15 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtrExpr> {
     } else if(typeStrategy instanceof FatPtrStrategy) {
       // allow any casts between FatPtrs. though runtime errors may occur
       // (The JVM simply won't allow us to cast an int* to a double*)
-      return (FatPtrExpr) value;
+      FatPtrExpr ptrExpr = (FatPtrExpr) value;
+      Expr address = null;
+      if(ptrExpr.isAddressable()) {
+        address = ptrExpr.addressOf();
+      }
+      SimpleExpr castedArray = Expressions.cast(ptrExpr.getArray(), arrayType);
+      SimpleExpr offset = ptrExpr.getOffset();
+      
+      return new FatPtrExpr(address, castedArray, offset);
     }
     
     throw new UnsupportedCastException();
@@ -193,8 +201,7 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtrExpr> {
 
   @Override
   public FatPtrExpr pointerPlus(FatPtrExpr pointer, SimpleExpr offsetInBytes) {
-    int bytesPerArrayElement = valueFunction.getElementSize() / valueFunction.getElementLength();
-    SimpleExpr offsetInArrayElements = Expressions.divide(offsetInBytes, bytesPerArrayElement);
+    SimpleExpr offsetInArrayElements = Expressions.divide(offsetInBytes, valueFunction.getArrayElementBytes());
     SimpleExpr newOffset = Expressions.sum(pointer.getOffset(), offsetInArrayElements);
     
     return new FatPtrExpr(pointer.getArray(), newOffset);
@@ -216,7 +223,7 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtrExpr> {
     // TODO: Is this correct for pointers to record types?
     
     // Convert bytes -> array elements
-    SimpleExpr length = Expressions.divide(lengthBytes, valueFunction.getElementSize());
+    SimpleExpr length = Expressions.divide(lengthBytes, valueFunction.getArrayElementBytes());
     
     // Push parameters onto stack
     source.getArray().load(mv);

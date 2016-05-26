@@ -28,11 +28,13 @@ public class RecordClassGenerator {
   private StringWriter sw;
   private PrintWriter pw;
   private Type className;
+  private Type superClassName;
   private Collection<FieldStrategy> fields;
 
-  public RecordClassGenerator(Type className, Collection<FieldStrategy> fields) {
+  public RecordClassGenerator(Type className, Type superClassName, Collection<FieldStrategy> fields) {
     this.fields = fields;
     this.className = className;
+    this.superClassName = superClassName;
   }
 
   public void writeClassFile(File outputDirectory) throws IOException {
@@ -56,7 +58,9 @@ public class RecordClassGenerator {
     } else {
       cv = cw;
     }
-    cv.visit(V1_6, ACC_PUBLIC + ACC_SUPER, className.getInternalName(), null, "java/lang/Object", new String[0]);
+    cv.visit(V1_6, ACC_PUBLIC + ACC_SUPER, 
+        className.getInternalName(), null,
+        superClassName.getInternalName(), new String[0]);
 
     emitDefaultConstructor();
     emitFields();
@@ -75,7 +79,7 @@ public class RecordClassGenerator {
     MethodGenerator mv = new MethodGenerator(cv.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null));
     mv.visitCode();
     mv.visitVarInsn(ALOAD, 0);
-    mv.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
+    mv.visitMethodInsn(INVOKESPECIAL, superClassName.getInternalName(), "<init>", "()V", false);
 
     for (FieldStrategy fieldStrategy : fields) {
       fieldStrategy.emitInstanceInit(mv);

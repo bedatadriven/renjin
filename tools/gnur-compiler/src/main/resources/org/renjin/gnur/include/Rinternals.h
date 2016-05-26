@@ -176,8 +176,7 @@ typedef enum {
 #define MAX_NUM_SEXPTYPE (1<<TYPE_BITS)
 
 // ======================= USE_RINTERNALS section
-#undef USE_RINTERNALS // renjin
-#ifdef USE_RINTERNALS
+#if 0 // REnjin never allows USE_RINTERNALS
 /* This is intended for use only within R itself.
  * It defines internal structures that are otherwise only accessible
  * via SEXP, and macros to replace many (but not all) of accessor functions
@@ -545,6 +544,7 @@ int  (IS_LONG_VEC)(SEXP x);
 int  (LEVELS)(SEXP x);
 int  (SETLEVELS)(SEXP x, int v);
 
+void *(DATAPTR)(SEXP x);
 int  *(LOGICAL)(SEXP x);
 int  *(INTEGER)(SEXP x);
 Rbyte *(RAW)(SEXP x);

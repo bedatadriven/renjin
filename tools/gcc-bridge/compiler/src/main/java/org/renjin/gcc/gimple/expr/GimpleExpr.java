@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.google.common.base.Predicate;
+import org.renjin.gcc.gimple.GimpleExprVisitor;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 import java.util.List;
@@ -36,7 +37,8 @@ import java.util.List;
     @Type(value = GimpleNopExpr.class, name = "nop_expr"),
     @Type(value = GimpleSsaName.class, name = "ssa_name"),
     @Type(value = GimpleBitFieldRefExpr.class, name = "bit_field_ref"),
-    @Type(value = GimpleCompoundLiteral.class, name = "compound_literal_expr")
+    @Type(value = GimpleCompoundLiteral.class, name = "compound_literal_expr"),
+    @Type(value = GimplePointerPlus.class, name = "pointer_plus_expr")
     })
 public abstract class GimpleExpr {
 
@@ -75,6 +77,8 @@ public abstract class GimpleExpr {
       child.find(predicate, results);
     }
   }
+  
+
 
   protected final void findOrDescend(Iterable<GimpleExpr> children, Predicate<? super GimpleExpr> predicate, List<GimpleExpr> results) {
     for (GimpleExpr child : children) {
@@ -82,15 +86,17 @@ public abstract class GimpleExpr {
     }
   }
 
-  /**
-   * Replaces the first nested expression that matches the given predicate 
-   * @param predicate predicate that identifies nodes to replace
-   * @param replacement replacement node
-   * @return true if a replacement was made
-   */
-  public boolean replace(Predicate<? super GimpleExpr> predicate, GimpleExpr replacement) {
-    return false;
-  }
+  public abstract void replaceAll(Predicate<? super GimpleExpr> predicate, GimpleExpr newExpr);
 
+  protected final GimpleExpr replaceOrDescend(GimpleExpr child, Predicate<? super GimpleExpr> predicate, GimpleExpr newExpr) {
+    if(predicate.apply(child)) {
+      return newExpr;
+    } else {
+      child.replaceAll(predicate, newExpr);
+      return child;
+    }
+  }
   
+  public abstract void accept(GimpleExprVisitor visitor);
+
 }

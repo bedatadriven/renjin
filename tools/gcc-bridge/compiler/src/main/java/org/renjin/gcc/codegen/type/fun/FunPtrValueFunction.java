@@ -36,7 +36,7 @@ public class FunPtrValueFunction implements ValueFunction {
   }
 
   @Override
-  public int getElementSize() {
+  public int getArrayElementBytes() {
     return pointerSize;
   }
 

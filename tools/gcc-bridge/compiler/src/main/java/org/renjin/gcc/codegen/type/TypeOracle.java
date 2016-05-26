@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.type;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.objectweb.asm.Type;
@@ -127,11 +128,18 @@ public class TypeOracle {
    * @param field the gimple field
    */
   public FieldStrategy forField(Type className, GimpleField field) {
+    
+    String fieldName = field.getName();
+    if(Strings.isNullOrEmpty(fieldName)) {
+      fieldName = "$$field" + field.getOffset();
+    }
+    fieldName = fieldName.replace('.', '$');
+    
     TypeStrategy type = forType(field.getType());
     if(field.isAddressed()) {
-      return type.addressableFieldGenerator(className, field.getName());
+      return type.addressableFieldGenerator(className, fieldName);
     } else {
-      return type.fieldGenerator(className, field.getName());
+      return type.fieldGenerator(className, fieldName);
     }
   }
 
@@ -178,7 +186,10 @@ public class TypeOracle {
 
     } else if(method.isAnnotationPresent(Struct.class)) {
       return new RecordArrayReturnStrategy(Type.getReturnType(method), 0);
-          
+
+    } else if(returnType.equals(MethodHandle.class)) {
+      return new FunPtrStrategy().getReturnStrategy();
+      
     } else {
       throw new UnsupportedOperationException(String.format(
           "Unsupported return type %s in method %s.%s",
@@ -274,7 +285,12 @@ public class TypeOracle {
   public Map<GimpleParameter, ParamStrategy> forParameters(List<GimpleParameter> parameters) {
     Map<GimpleParameter, ParamStrategy> map = new HashMap<GimpleParameter, ParamStrategy>();
     for (GimpleParameter parameter : parameters) {
-      map.put(parameter, forParameter(parameter.getType()));
+      try {
+        map.put(parameter, forParameter(parameter.getType()));
+      } catch(Exception e) {
+        throw new InternalCompilerException(String.format(
+            "Exception for parameter %s of type %s", parameter.getName(), parameter.getType()), e);
+      }
     }
     return map;
   }

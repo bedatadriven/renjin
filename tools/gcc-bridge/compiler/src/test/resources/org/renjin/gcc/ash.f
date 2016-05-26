@@ -16,7 +16,7 @@ c ##### the License, or (at your option) any later version.
 c #####
 c ##### This program is distributed in the hope that it will be useful,
 c ##### but WITHOUT ANY WARRANTY; without even the implied warranty of
-c ##### MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+c ##### MERCHANTABILITY or FITNESS FOR A PARTICULAR PURSE.
 c ##### See the GNU General Public License for more details.
 c #####
 c ##### You should have received a copy of the GNU General Public

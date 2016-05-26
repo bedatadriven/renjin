@@ -173,6 +173,11 @@ void json_int(int value) {
   fprintf(json_f, "%d", value);
 }
 
+void json_string_value(const char * value) {
+  json_pre_value();
+  json_string(value, strlen(value));
+}
+
 void json_ptr(void *p) {
   json_pre_value();
   fprintf(json_f, "\"%p\"", p);
@@ -362,19 +367,20 @@ static void dump_record_type_decl(tree type) {
   tree field =  TYPE_FIELDS(type);
   json_array_field("fields");
   while(field) {
-    json_start_object();
-    json_int_field("id", DEBUG_TEMP_UID (field));
+    // skip fields without an offset. 
+    // Not sure what they do but they screw us up during the compilation stage
     if(DECL_FIELD_OFFSET (field)) {
+      json_start_object();
+      json_int_field("id", DEBUG_TEMP_UID (field));
       json_int_field("offset", int_bit_position(field));
+      if(DECL_NAME(field)) {
+        json_string_field("name", IDENTIFIER_POINTER(DECL_NAME(field)));
+      }
+      json_field("type");
+      dump_type(TREE_TYPE(field));
+      json_end_object();
     }
-    if(DECL_NAME(field)) {
-      json_string_field("name", IDENTIFIER_POINTER(DECL_NAME(field)));
-    }
-    json_field("type");
-    dump_type(TREE_TYPE(field));
 
-    json_end_object();
-    
     field = TREE_CHAIN(field);
   }
   json_end_array();
@@ -452,6 +458,7 @@ static void dump_type(tree type) {
     break;
     
   case FUNCTION_TYPE:
+  case METHOD_TYPE:
     dump_function_type(type);
     break;
     
@@ -490,10 +497,8 @@ static void dump_op(tree op) {
     }
  	  // keep track of global variable references
     if(TREE_CODE(op) == VAR_DECL &&
-        DECL_CONTEXT(op) &&
-       (TREE_CODE(DECL_CONTEXT(op)) == NULL_TREE || TREE_CODE(DECL_CONTEXT(op)) != FUNCTION_DECL)) {
+        !(DECL_CONTEXT(op) &&  TREE_CODE(DECL_CONTEXT(op)) == FUNCTION_DECL)) {
    
-
       dump_global_var_ref(op);
     }
 
@@ -508,6 +513,10 @@ static void dump_op(tree op) {
 
     switch(TREE_CODE(op)) {
     case FUNCTION_DECL:
+      json_int_field("id", DEBUG_TEMP_UID (op));
+      json_string_field("name", IDENTIFIER_POINTER(DECL_ASSEMBLER_NAME(op)));
+      break;
+      
     case PARM_DECL:
     case VAR_DECL:
       json_int_field("id", DEBUG_TEMP_UID (op));
@@ -613,9 +622,25 @@ static void dump_op(tree op) {
     case COMPOUND_LITERAL_EXPR:
       json_field("decl");
       dump_op(COMPOUND_LITERAL_EXPR_DECL(op));
-      
       break;  
+    
+    case POINTER_PLUS_EXPR:
+      json_field("pointer");
+      dump_op(TREE_OPERAND(op, 0));
+      json_field("offset");
+      dump_op(TREE_OPERAND(op, 1));
+      break;
+    
+    case OBJ_TYPE_REF:
+      json_field("expr");
+      dump_op(OBJ_TYPE_REF_EXPR(op));
+      json_field("object");
+      dump_op(OBJ_TYPE_REF_OBJECT(op));
+      json_field("token");
+      dump_op(OBJ_TYPE_REF_TOKEN(op));
+      break;
     }
+    
     json_end_object();
   } else {
     json_null();
@@ -995,6 +1020,20 @@ static unsigned int dump_function (void)
   json_start_object();
   json_int_field("id", DEBUG_TEMP_UID (cfun->decl));
   json_string_field("name", IDENTIFIER_POINTER(DECL_NAME(cfun->decl)));
+  json_string_field("mangledName", IDENTIFIER_POINTER(DECL_ASSEMBLER_NAME(cfun->decl)));
+  json_bool_field("weak", DECL_WEAK(cfun->decl));
+  json_bool_field("inline", DECL_DECLARED_INLINE_P(cfun->decl));
+  
+  json_array_field("aliases");
+  
+  struct cgraph_node *cgn = cgraph_node(cfun->decl);
+  struct cgraph_node *n;
+  for (n = cgn->same_body; n; n = n->next)
+  {
+    json_string_value(IDENTIFIER_POINTER(DECL_ASSEMBLER_NAME(n->decl)));
+  }
+  json_end_array();
+    
   json_bool_field("extern", TREE_PUBLIC(cfun->decl));
   
   TRACE("dump_function: dumping arguments...\n");

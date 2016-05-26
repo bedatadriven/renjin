@@ -179,6 +179,10 @@ public class Mathlib {
     return Math.sqrt(x);
   }
 
+  public static float sqrtf(float x) {
+    return (float) Math.sqrt(x);
+  }
+  
   /**
    * Returns the cubic root of x
    */
@@ -319,5 +323,11 @@ public class Mathlib {
     throw new UnsupportedOperationException();
   }
 
+  public static double copysign(double x, double y) {
+    return Math.copySign(x, y);
+  }
   
+  public static float copysignf(float x, float y) {
+    return Math.copySign(x, y);
+  }
 }

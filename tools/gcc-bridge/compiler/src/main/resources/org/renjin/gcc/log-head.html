@@ -1,0 +1,56 @@
+<html>
+<head>
+    <title>GCC-Bridge Compile Log</title>
+    <style>
+
+        .node {
+            margin-left: 10px;
+        }
+
+        .node.parent {
+            border: 1px solid gray;
+            padding: 5px;
+            cursor: hand;
+            background-color: lightgray;
+        }
+
+        .debug {
+            display: none;
+        }
+
+        .node.parent.expanded {
+            background-color: cornsilk !important;
+        }
+
+        .expanded .node {
+            background-color: cornsilk !important;
+        }
+
+        .expanded .debug {
+            display: block !important;
+        }
+    </style>
+    <script>
+        document.addEventListener("dblclick", function(e) {
+            var node = e.target;
+            while(node) {
+                if(node.classList.contains('expanded')) {
+                    node.classList.remove('expanded');
+                    node.scrollIntoView();
+                    return;
+                }
+                node = node.parentElement;
+            }
+
+            node = e.target;
+            while(node) {
+                if(node.classList.contains('parent')) {
+                    node.classList.add('expanded');
+                    return;
+                }
+                node = node.parentElement;
+            }
+        });
+    </script>
+</head>
+<body>

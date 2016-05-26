@@ -1,6 +1,7 @@
 package org.renjin.gcc.gimple.statement;
 
 import com.google.common.base.Predicate;
+import org.renjin.gcc.gimple.GimpleExprVisitor;
 import org.renjin.gcc.gimple.GimpleVisitor;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 
@@ -52,22 +53,18 @@ public class GimpleReturn extends GimpleStatement {
   }
 
   @Override
-  public boolean replace(Predicate<? super GimpleExpr> predicate, GimpleExpr replacement) {
-    if(value != null) {
-      if (predicate.apply(value)) {
-        value = replacement;
-        return true;
-      } else if (value.replace(predicate, replacement)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @Override
   public void replaceAll(Predicate<? super GimpleExpr> predicate, GimpleExpr newExpr) {
     if(predicate.apply(value)) {
       value = newExpr;
+    } else {
+      value.replaceAll(predicate, newExpr);
+    }
+  }
+
+  @Override
+  public void accept(GimpleExprVisitor visitor) {
+    if(value != null) {
+      value.accept(visitor);
     }
   }
 }

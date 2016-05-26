@@ -466,32 +466,24 @@ public class GimpleCompilerTest extends AbstractGccTest {
   }
   
   @Test
-  public void cpp() throws Exception {
-    Class clazz = compile("rect.cpp");
-
-    Method calc_area = clazz.getMethod("calc_area");
-
-    Integer result = (Integer) calc_area.invoke(null);
-
-    
-    assertThat(result, equalTo(12));
+  public void rectCpp() throws Exception {
+    compileAndTest("rect.cpp");
   }
 
   @Test
   public void overloadedMethods() throws Exception {
     Class clazz = compile("methods.cpp");
 
-    Method add = clazz.getMethod("add", int.class, int.class);
+    Method add = clazz.getMethod("_Z3addii", int.class, int.class);
     Integer intSum = (Integer) add.invoke(null, Integer.valueOf(3), Integer.valueOf(5));
     assertThat(intSum, is(Integer.valueOf(8)));
 
-    add = clazz.getMethod("add", float.class, float.class);
+    add = clazz.getMethod("_Z3addff", float.class, float.class);
     Float floatSum = (Float) add.invoke(null, Float.valueOf(3.1f), Float.valueOf(5.1f));
     assertThat(floatSum, is(Float.valueOf(8.2f)));
   }
 
   @Test
-  @Ignore("wip")
   public void virtualCpp() throws Exception {
 
     Class clazz = compile("shape.cpp");
@@ -501,7 +493,12 @@ public class GimpleCompilerTest extends AbstractGccTest {
     Integer result = (Integer) calc_area.invoke(null);
 
 
-    assertThat(result, equalTo(12));
+    assertThat(result, equalTo(532));
+  }
+  
+  @Test
+  public void unions() throws Exception {
+    compileAndTest("unions.c");
   }
   
   @Test
@@ -596,7 +593,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
     Class clazz = compile("strings.f");
     
     try {
-      Method method = clazz.getMethod("call_xerbla__");
+      Method method = clazz.getMethod("call_xerbla_");
       method.invoke(null);
     } catch (InvocationTargetException wrapper) {
       RuntimeException e = (RuntimeException) wrapper.getCause();
@@ -631,6 +628,12 @@ public class GimpleCompilerTest extends AbstractGccTest {
     Class clazz = compile("equivalence.f");
     Method testMethod = clazz.getMethod("test_");
     testMethod.invoke(null);
+  }
+  
+  @Test
+  @Ignore
+  public void cppExceptions() throws Exception {
+    compileAndTest("exceptions.cpp");
   }
   
   @Test

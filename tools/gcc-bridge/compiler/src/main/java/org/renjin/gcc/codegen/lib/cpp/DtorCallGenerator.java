@@ -23,7 +23,7 @@ public class DtorCallGenerator implements CallGenerator {
     baseConstructor.setName("__base_dtor ");
     GimpleAddressOf functionExpr = new GimpleAddressOf();
     functionExpr.setValue(baseConstructor);
-    CallGenerator baseCtorCallGenerator = exprFactory.findCallGenerator(functionExpr, call.getOperands());
+    CallGenerator baseCtorCallGenerator = exprFactory.findCallGenerator(functionExpr);
     baseCtorCallGenerator.emitCall(mv, exprFactory, call);
   }
 }

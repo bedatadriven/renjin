@@ -5,7 +5,6 @@ import com.google.common.hash.Funnels;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteStreams;
-import com.google.common.io.Closeables;
 import org.apache.commons.vfs2.FileObject;
 import org.renjin.eval.Context;
 import org.renjin.invoke.annotations.Current;
@@ -32,15 +31,10 @@ public class Md5 {
   }
 
   private static String hashFile(FileObject fileObject) throws IOException {
-    InputStream inputStream = fileObject.getContent().getInputStream();
     Hasher hasher = Hashing.md5().newHasher();
-    try {
+    try(InputStream inputStream = fileObject.getContent().getInputStream()) {
       ByteStreams.copy(inputStream, Funnels.asOutputStream(hasher));
-
-    } finally {
-      Closeables.closeQuietly(inputStream);
     }
-
     return hasher.hash().toString();
   }
 }

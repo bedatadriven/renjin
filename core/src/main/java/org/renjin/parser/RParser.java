@@ -27,7 +27,6 @@ package org.renjin.parser;
 import com.google.common.collect.Lists;
 import com.google.common.io.CharSource;
 import com.google.common.io.CharStreams;
-import com.google.common.io.Closeables;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
@@ -100,11 +99,8 @@ public class RParser {
 
 
   public static ExpressionVector parseSource(CharSource source, SEXP srcFile) throws IOException {
-    Reader reader = source.openStream();
-    try {
+    try(Reader reader = source.openStream()) {
       return parseAllSource(reader, srcFile);
-    } finally {
-      Closeables.closeQuietly(reader);
     }
   }
   

@@ -21,6 +21,7 @@
 
 package org.renjin.primitives.io.serialization;
 
+import com.google.common.base.Charsets;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.sexp.*;
@@ -34,7 +35,7 @@ import java.util.zip.GZIPOutputStream;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 
 
 public class RDataWriterTest extends EvalTestCase {
@@ -172,5 +173,21 @@ public class RDataWriterTest extends EvalTestCase {
     RDataReader reader = new RDataReader(topLevelContext, bais);
     SEXP resexp = reader.readFile();
     return resexp;
+  }
+  
+  @Test
+  public void testAsciiSafe() {
+    // test of the idea used in RDataWriter.writeCharSexp
+    assertTrue(asciiSafe("ABC"));
+    assertTrue(asciiSafe("abcXYZ~"));
+    assertFalse(asciiSafe("L’enquête du « Monde » permet d’identifier le modèle"));
+    assertFalse(asciiSafe("اختيارات"));
+  }
+
+
+  static boolean asciiSafe(String string) {
+
+    byte[] bytes = string.getBytes(Charsets.UTF_8);
+    return string.length() == bytes.length;
   }
 }

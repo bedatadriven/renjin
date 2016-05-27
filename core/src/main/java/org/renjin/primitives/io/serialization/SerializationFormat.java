@@ -51,17 +51,10 @@ class SerializationFormat {
   public static final int ATTRLANGSXP = 240;
   public static final int ATTRLISTSXP = 239;
   
-
-  static final int CE_NATIVE = 0;
-  static final int CE_UTF8   = 1;
-  static final int CE_LATIN1 = 2;
-  static final int CE_SYMBOL = 5;
-  static final int CE_ANY    =99;
   static final int LATIN1_MASK  = (1<<2);
   static final int UTF8_MASK = (1<<3);
-  static final int CACHED_MASK = (1<<5);
-  static final int  HASHASH_MASK =  1;
-
+  static final int  ASCII_MASK =  (1<<6);
+  
   public static final int VERSION2 = 2;
 
 }

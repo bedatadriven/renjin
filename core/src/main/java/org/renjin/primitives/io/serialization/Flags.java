@@ -92,4 +92,12 @@ class Flags {
     }
     return flags;
   }
+  
+  public static int computeCharSexpFlags(int encodingFlag) {
+    return SexpType.CHARSXP | encodeLevels(encodingFlag);
+  }
+
+  private static int encodeLevels(int value) {
+    return value << 12;
+  }
 }

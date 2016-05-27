@@ -5,7 +5,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.io.CharSource;
-import com.google.common.io.Closeables;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.parser.RParser;
@@ -202,17 +201,14 @@ public class NamespaceFile {
 
   public static NamespaceFile parse(Context context, CharSource charSource) throws IOException {
     NamespaceFile file = new NamespaceFile();
-    Reader reader = charSource.openStream();
     ExpressionVector source;
-    try {
+    try(Reader reader = charSource.openStream()) {
       source = RParser.parseAllSource(reader);
-    } finally {
-      Closeables.closeQuietly(reader);
     }
     file.parse(context, source);
     return file;
   }
-  
+
   private NamespaceFile() {
   }
 
@@ -245,14 +241,14 @@ public class NamespaceFile {
   }
 
   private void parse(Context context, SEXP exp) {
-    
+
     if(exp instanceof ExpressionVector) {
       parse(context, (ExpressionVector) exp);
-    
+
     } else if(exp instanceof FunctionCall) {
       FunctionCall call = (FunctionCall)exp;
       parseCall(context, call);
-      
+
     } else {
       throw new EvalException("Unknown NAMESPACE directive: " + exp.toString());
     }
@@ -263,7 +259,7 @@ public class NamespaceFile {
     if(directiveName.equals("import")) {
       parseImport(call);
     } else if(directiveName.equals("importClass") ||
-              directiveName.equals("importClasses")) {
+        directiveName.equals("importClasses")) {
       parseImportClass(call);
     } else if(directiveName.equals("importFrom")) {
       parseImportFrom(call);
@@ -274,21 +270,21 @@ public class NamespaceFile {
     } else if(directiveName.equals("S3method")) {
       parseS3Export(call);
     } else if(directiveName.equals("export") ||
-              directiveName.equals("exports")) {
+        directiveName.equals("exports")) {
       parseExport(call);
     } else if(directiveName.equals("exportPattern") ||
-              directiveName.equals("exportPatterns")) {
+        directiveName.equals("exportPatterns")) {
       parseExportPattern(call);
     } else if(directiveName.equals("useDynLib")) {
       parseDynlib(call);
     } else if(directiveName.equals("exportClasses") ||
-              directiveName.equals("exportClass")) {
+        directiveName.equals("exportClass")) {
       parseExportClasses(call);
     } else if(directiveName.equals("exportClassPattern") ||
-              directiveName.equals("exportClassPatterns")) {
+        directiveName.equals("exportClassPatterns")) {
       parseExportClassPatterns(call);
     } else if(directiveName.equals("exportMethods") ||
-              directiveName.equals("exportMethod")) {
+        directiveName.equals("exportMethod")) {
       parseExportMethods(call);
     } else if(directiveName.equals("if")) {
       parseIf(context, call);
@@ -307,7 +303,7 @@ public class NamespaceFile {
     SEXP condition = call.getArgument(0);
 
     SEXP evaluatedCondition = context.evaluate(condition, context.getBaseEnvironment());
-    
+
     if(isTruthy(evaluatedCondition)) {
       parse(context, call.getArgument(1));
     } else {
@@ -328,7 +324,7 @@ public class NamespaceFile {
     }
 
     return logical == Logical.TRUE;
-    
+
   }
 
   /**
@@ -470,7 +466,7 @@ public class NamespaceFile {
         // S3method(functionName, NULL)
         // just exports the generic function?
         exportedSymbols.add(parseSymbolArgument(call.getArgument(0)));
-        
+
       } else {
         // S3method(functionName, 
         exportedS3Methods.add(new S3MethodEntry(

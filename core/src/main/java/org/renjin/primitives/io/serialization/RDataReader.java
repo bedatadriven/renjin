@@ -23,7 +23,6 @@ package org.renjin.primitives.io.serialization;
 
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteSource;
-import com.google.common.io.Closeables;
 import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.Context;
 import org.renjin.parser.NumericLiterals;
@@ -99,12 +98,9 @@ public class RDataReader implements AutoCloseable {
   }
 
   public static boolean isRDataFile(ByteSource inputSupplier) throws IOException {
-    InputStream in = inputSupplier.openStream();
-    try {
+    try(InputStream in = inputSupplier.openStream()) {
       byte streamType = readStreamType(in);
       return streamType != -1;
-    } finally {
-      Closeables.closeQuietly(in);
     }
   }
 

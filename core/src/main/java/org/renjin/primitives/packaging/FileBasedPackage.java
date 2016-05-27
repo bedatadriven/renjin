@@ -5,7 +5,6 @@ import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.common.io.Closeables;
 import org.renjin.eval.Context;
 import org.renjin.packaging.LazyLoadFrame;
 import org.renjin.primitives.io.serialization.RDataReader;
@@ -48,11 +47,8 @@ public abstract class FileBasedPackage extends Package {
   private Properties readDatasetIndex() throws IOException {
     Properties datasets = new Properties();
     if(resourceExists("datasets")) {
-      InputStream in = getResource("datasets").openStream();
-      try {
+      try(InputStream in = getResource("datasets").openStream()) {
         datasets.load(in);
-      } finally {
-        Closeables.closeQuietly(in);
       }
     }
     return datasets;

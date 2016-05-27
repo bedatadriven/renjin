@@ -22,7 +22,7 @@ public class Serialization {
 
   private static final int DEFAULT_SERIALIZATION_VERSION = 0;
 
-  public enum SERIALIZATION_TYPE { ASCII, XDR, BINARY};
+  public enum SerializationType { ASCII, XDR, BINARY};
 
   @Internal
   public static SEXP unserializeFromConn(@Current Context context,
@@ -75,7 +75,7 @@ public class Serialization {
     
     RDataWriter writer = new RDataWriter(context,
         createHook(context, refhook), Connections.getConnection(context, con).getOutputStream());
-    writer.save(object);
+    writer.serialize(object);
     
   }
   
@@ -227,7 +227,7 @@ public class Serialization {
 
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     RDataWriter writer = new RDataWriter(context, baos, 
-            ascii? SERIALIZATION_TYPE.ASCII: SERIALIZATION_TYPE.XDR);
+            ascii? SerializationType.ASCII: SerializationType.XDR);
     writer.serialize(object);
    
     return new RawVector(baos.toByteArray());

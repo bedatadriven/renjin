@@ -2,6 +2,7 @@ package org.renjin.gcc.codegen.type.record;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.*;
@@ -95,9 +96,20 @@ public class RecordArrayTypeStrategy extends RecordTypeStrategy<RecordArrayExpr>
     // addressable values of different types
     if(addressableValueTypes.size() > 1) {
       return Optional.absent();
-    
+      
     } else if(addressableValueTypes.size() == 1) {
-      return Optional.of(Iterables.getOnlyElement(addressableValueTypes));
+      Type type = Iterables.getOnlyElement(addressableValueTypes);
+      
+      // Check to see if we've implemented the casting yet
+      Set<Type> dissonantTypes = Sets.difference(valueTypes, addressableValueTypes);
+      for (Type dissonantType : dissonantTypes) {
+        if(!castingSupported(type, dissonantType)) {
+          return Optional.absent();
+        }
+      }
+      
+      return Optional.of(type);
+      
     }
     
     // If we have exactly one value type, that's the obvious choice for the 
@@ -105,12 +117,17 @@ public class RecordArrayTypeStrategy extends RecordTypeStrategy<RecordArrayExpr>
     if(valueTypes.size() == 1) {
       return Optional.of(Iterables.getOnlyElement(valueTypes));
     }
-    
-    // TODO:
     return Optional.absent();
   }
-  
-  
+
+  private static boolean castingSupported(Type arrayElementType, Type valueType) {
+    if(arrayElementType.equals(Type.BYTE_TYPE) && valueType.equals(Type.INT_TYPE)) {
+      return true;
+    }
+    return false;
+  }
+
+
   private static GimpleType findUltimateComponentType(GimpleArrayType arrayType) {
     if(arrayType.getComponentType() instanceof GimpleArrayType) {
       return findUltimateComponentType((GimpleArrayType) arrayType.getComponentType());

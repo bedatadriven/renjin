@@ -73,9 +73,6 @@ typedef struct json_context {
   int indent;
 } json_context;
 
-// GCC won't let us malloc and I don't want to mess
-// around with GCC's internal memory management stuff,
-// so we'll just use a fixed-size stack
 
 json_context json_context_stack[128];
 int json_context_head = 0;
@@ -490,6 +487,7 @@ static void dump_op(tree op) {
 
   if(op) {
   
+  
     if(TREE_CODE(op)) {
       TRACE("dump_op: code = %s\n", tree_code_name[TREE_CODE(op)]);
     } else {
@@ -501,13 +499,16 @@ static void dump_op(tree op) {
    
       dump_global_var_ref(op);
     }
+    
+    TRACE("dump_op: completed check for global variable\n");
 
     json_start_object();
     json_string_field("code", tree_code_name[TREE_CODE(op)]);
     
-    json_field("type");
-    dump_type(TREE_TYPE(op));
-
+    if(TREE_CODE(op) != TREE_LIST) {
+        json_field("type");
+        dump_type(TREE_TYPE(op));
+    }
 
     TRACE("dump_op: starting switch\n");
 
@@ -1063,14 +1064,27 @@ static unsigned int dump_function (void)
 
 static void dump_type_decl (void *event_data, void *data)
 {
+  TRACE("dump_type: starting...\n");
+
   tree type = (tree) event_data;
 
   json_start_object();
+  
+
   if(TYPE_NAME(type)) {
+
+    TRACE("dump_type: name = %s\n",  IDENTIFIER_POINTER (TYPE_NAME (type)));
     json_string_field("name", IDENTIFIER_POINTER (TYPE_NAME (type)));
   }
+  
+  TRACE("dump_type: type = %s\n",  tree_code_name[TREE_CODE (type)]);
+
+  
   json_string_field("type", tree_code_name[TREE_CODE (type)]);
   json_end_object();
+
+  TRACE("dump_type: done\n");
+
 }
 
 static void dump_global_var(tree var) {

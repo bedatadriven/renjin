@@ -6,6 +6,7 @@ import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
 import org.renjin.gcc.Gcc;
+import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.InternalCompilerException;
 
 import java.io.File;
@@ -13,6 +14,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.jar.JarEntry;
@@ -23,21 +25,49 @@ import java.util.jar.JarFile;
  */
 public class GnurShlibCompiler {
   
+  private static final List<String> SOURCE_EXTENSIONS = Lists.newArrayList("c", "f", "f77", "cpp", "cxx");
   
   private File sourceRoot;
   private File homeDir;
   private File pluginLibrary;
+  
+  private File outputDirectory;
+  
+  public static void main(String[] args) throws IOException, InterruptedException {
+    
+    GnurShlibCompiler compiler = new GnurShlibCompiler();
+    compiler.setSourceRoot(new File("/home/alex/dev/cran/ifultools/src"));
+    compiler.execute();
+  }
 
-  public GnurShlibCompiler(File sourceRoot) {
+  public GnurShlibCompiler() {
     this.sourceRoot = sourceRoot;
   }
-  
+
+  public File getSourceRoot() {
+    return sourceRoot;
+  }
+
+  public void setSourceRoot(File sourceRoot) {
+    this.sourceRoot = sourceRoot;
+  }
+
+  public File getOutputDirectory() {
+    return outputDirectory;
+  }
+
+  public void setOutputDirectory(File outputDirectory) {
+    this.outputDirectory = outputDirectory;
+  }
+
   public void execute() throws IOException, InterruptedException {
     homeDir = setupHomeDir();
     pluginLibrary = extractPluginLibrary();
-    
+
     executeMake();
+    compileGimple();
   }
+
 
   private File extractPluginLibrary() throws IOException {
     File tempDir = Files.createTempDir();
@@ -48,13 +78,9 @@ public class GnurShlibCompiler {
   }
 
   public void executeMake() throws IOException, InterruptedException {
-
+    
     List<String> commandLine = Lists.newArrayList();
     commandLine.add("make");
-
-   // commandLine.add("-d");
-    
-    //   commandLine.add("-pn");
 
     // Combine R's default Makefile with package-specific Makevars if present
     File makevars = new File(sourceRoot, "Makevars");
@@ -63,17 +89,18 @@ public class GnurShlibCompiler {
       commandLine.add(makevars.getName());
     }
 
-    // Write out a makefile specific for Renjin
+    // Makeconf file
     commandLine.add("-f");
     commandLine.add(homeDir.getAbsolutePath() + "/etc/Makeconf");
-//
-//    commandLine.add("clean");
-//    commandLine.add("all");
-//    
-    commandLine.add("SHLIB=Matrix.so");
-    commandLine.add("R_HOME=" + homeDir.getAbsolutePath());
+    
+    // shlib.mk
+    commandLine.add("-f");
+    commandLine.add(homeDir.getAbsolutePath() + "/shlib.mk");
+    
+    commandLine.add("SHLIB='Matrix.so'");
+    commandLine.add("OBJECTS=" + findObjectFiles());
     commandLine.add("R_INCLUDE_DIR=" + homeDir.getAbsolutePath() + "/include");
-    commandLine.add("GCC_BRIDGE_PLUGIN=" + pluginLibrary.getAbsolutePath());
+    commandLine.add("BRIDGE_PLUGIN=" + pluginLibrary.getAbsolutePath());
 
     System.err.println(Joiner.on(" ").join(commandLine));
 
@@ -88,7 +115,48 @@ public class GnurShlibCompiler {
     
     System.out.println("Make completed successfully!");
   }
-  
+
+
+  private void compileGimple() {
+    List<File> gimpleFiles = Lists.newArrayList();
+    collectGimple(sourceRoot, gimpleFiles);
+    GimpleCompiler compiler = new GimpleCompiler();
+    compiler.setOutputDirectory(outputDirectory);
+//
+//    compiler.setPackageName(packageName);
+//    compiler.setClassName(className);
+//    compiler.setVerbose(verbose);
+//    compiler.setLoggingDirectory(workDirectory);
+
+  }
+
+  private String findObjectFiles() {
+    List<String> objectFiles = new ArrayList<>();
+    File[] files = sourceRoot.listFiles();
+    if(files != null)  {
+      for (File file : files) {
+        String extension = Files.getFileExtension(file.getName());
+        if(SOURCE_EXTENSIONS.contains(extension)) {
+          String baseName = Files.getNameWithoutExtension(file.getName());
+          objectFiles.add(baseName + ".o");
+        }
+      }
+    }
+    return Joiner.on(' ').join(objectFiles);
+  }
+
+  private void collectGimple(File dir, List<File> gimpleFiles) {
+    File[] files = dir.listFiles();
+    if(files != null) {
+      for (File file : files) {
+        if(file.getName().endsWith(".gimple")) {
+          gimpleFiles.add(file);
+        } else if(file.isDirectory()) {
+          collectGimple(file, gimpleFiles);
+        }
+      }
+    }
+  }
 
   private File setupHomeDir() throws IOException {
 
@@ -110,8 +178,7 @@ public class GnurShlibCompiler {
     }
     throw new RuntimeException("Don't know how to unpack resources at "  + url);
   }
-
-
+  
   private File extractToTemp(String jarPath, String includePath) throws IOException {
     File tempDir = Files.createTempDir();
     JarFile jar = new JarFile(jarPath);

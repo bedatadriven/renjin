@@ -4,26 +4,54 @@
 #
 # R was configured using the following call
 # (not including env. vars and site configuration)
-# configure 
+# configure  '--prefix=/usr' '--with-cairo' '--with-jpeglib' '--with-readline' '--with-tcltk' '--with-system-bzlib' '--with-system-pcre' '--with-system-zlib' '--mandir=/usr/share/man' '--infodir=/usr/share/info' '--datadir=/usr/share/R/share' '--includedir=/usr/share/R/include' '--with-blas' '--with-lapack' '--enable-R-profiling' '--enable-R-shlib' '--enable-memory-profiling' '--without-recommended-packages' '--build' 'x86_64-linux-gnu' 'build_alias=x86_64-linux-gnu' 'R_PRINTCMD=/usr/bin/lpr' 'R_PAPERSIZE=letter' 'R_BROWSER=xdg-open' 'LIBnn=lib' 'JAVA_HOME=/usr/lib/jvm/default-java' 'CC=gcc -std=gnu99' 'CFLAGS=-g ${OPT_FLAGS} -fstack-protector --param=ssp-buffer-size=4 -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 -g' 'LDFLAGS=-Wl,-Bsymbolic-functions -Wl,-z,relro' 'CPPFLAGS=' 'F77=gfortran' 'FFLAGS=-g ${OPT_FLAGS} -fstack-protector --param=ssp-buffer-size=4' 'CXX=g++' 'CXXFLAGS=-g ${OPT_FLAGS} -fstack-protector --param=ssp-buffer-size=4 -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 -g' 'FC=gfortran' 'FCFLAGS=-g ${OPT_FLAGS} -fstack-protector --param=ssp-buffer-size=4'
 
 ## This fails if it contains spaces, or if it is quoted
-# include $(R_SHARE_DIR)/make/vars.mk
+##include $(R_SHARE_DIR)/make/vars.mk
+
+#################################################################################################3
+#  Inlined from vars.mk
+## Static (i.e., not determined by configure) Make variables to be
+## shared *and* grepped from m4/R.m4 and tools/*-recommended.
+
+## There is also 'translations', but that is not Priority: base
+## so it can be handled by update.packages() in due course.
+R_PKGS_BASE = base tools utils grDevices graphics stats datasets methods grid splines stats4 tcltk compiler parallel
+## Those which can be installed initially compiled (not base tools)
+R_PKGS_BASE1 = utils grDevices graphics stats datasets methods grid splines stats4 tcltk parallel
+## Those with standard R directories (not datasets, methods)
+R_PKGS_BASE2 = base tools utils grDevices graphics stats grid splines stats4 tcltk compiler parallel
+
+R_PKGS_RECOMMENDED =  MASS lattice Matrix nlme survival boot cluster codetools foreign KernSmooth rpart class nnet spatial mgcv
+# there are dependencies in src/library/Recommended/Makefile*
+# which this order respects
+####################################################################################################################
+
+##########################################################################################################
+# Renjin Specific
+
+RENJIN_FLAGS=-m32 -fplugin=${BRIDGE_PLUGIN}
+
+# Right now our gimple compiler is not good at hanlding optimized Gimple,
+# so turn it off for now.
+OPT_FLAGS=
+####################################################################################################################
 
 AR = ar
 ## Used by packages 'maps' and 'mapdata'
-AWK = gawk
-BLAS_LIBS = -L$(R_HOME)/lib$(R_ARCH) -lRblas
+AWK = /usr/bin/awk
+BLAS_LIBS = -lblas
 C_VISIBILITY = -fvisibility=hidden
 CC = gcc-4.6 -std=gnu99
-CFLAGS = -g -O2 $(LTO)
+CFLAGS = ${RENJIN_FLAGS} -g ${OPT_FLAGS} -fstack-protector --param=ssp-buffer-size=4 -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 -g $(LTO)
 CPICFLAGS = -fpic
-CPPFLAGS = -I/usr/local/include
-CXX = g++
+CPPFLAGS = 
+CXX = g++-4.6
 CXXCPP = $(CXX) -E
-CXXFLAGS = -g -O2 $(LTO)
+CXXFLAGS = ${RENJIN_FLAGS} -g ${OPT_FLAGS} -fstack-protector --param=ssp-buffer-size=4 -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 -g $(LTO)
 CXXPICFLAGS = -fpic
-CXX1X = g++
-CXX1XFLAGS = -g -O2
+CXX1X = g++-4.6
+CXX1XFLAGS = -g ${OPT_FLAGS} -fstack-protector --param=ssp-buffer-size=4 -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 -g
 CXX1XPICFLAGS = -fpic
 CXX1XSTD =  -std=c++11
 DYLIB_EXT = .so
@@ -35,52 +63,53 @@ ECHO_C =
 ECHO_N = -n
 ECHO_T = 
 ## NB, set FC before F77 as on Solaris make, setting FC sets F77
-FC = gfortran
-FCFLAGS = -g -O2 $(LTO)
+FC = gfortran-4.6
+FCFLAGS = -g ${OPT_FLAGS} -fstack-protector --param=ssp-buffer-size=4 $(LTO)
 ## additional libs needed when linking with $(FC), e.g. on Solaris
 FCLIBS = 
-F77 = gfortran
+F77 = gfortran-4.6
 F77_VISIBILITY = -fvisibility=hidden
-FFLAGS = -g -O2 $(LTO)
+FFLAGS =  ${RENJIN_FLAGS} -g ${OPT_FLAGS} -fstack-protector --param=ssp-buffer-size=4 $(LTO)
 FLIBS =  -lgfortran -lm -lquadmath
 FCPICFLAGS = -fpic
 FPICFLAGS = -fpic
 FOUNDATION_CPPFLAGS = 
 FOUNDATION_LIBS = 
-JAR = /usr/bin/jar
-JAVA = /usr/bin/java
-JAVAC = /usr/bin/javac
-JAVAH = /usr/bin/javah
+JAR = /usr/lib/jvm/default-java/bin/jar
+JAVA = /usr/lib/jvm/default-java/jre/bin/java
+JAVAC = /usr/lib/jvm/default-java/bin/javac
+JAVAH = /usr/lib/jvm/default-java/bin/javah
 ## JAVA_HOME might be used in the next three.  
 ## They are for packages 'JavaGD' and 'rJava'
-JAVA_HOME = /usr/lib/jvm/java-8-oracle/jre
-JAVA_CPPFLAGS = -I$(JAVA_HOME)/../include -I$(JAVA_HOME)/../include/linux
-JAVA_LIBS = -L$(JAVA_HOME)/lib/amd64/server -ljvm
-JAVA_LD_LIBRARY_PATH = $(JAVA_HOME)/lib/amd64/server
-LAPACK_LIBS = -L$(R_HOME)/lib$(R_ARCH) -lRlapack
+JAVA_HOME = /usr/lib/jvm/default-java
+JAVA_CPPFLAGS = -I$(JAVA_HOME)/include
+JAVA_LIBS = -L/usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/server -ljvm
+JAVA_LD_LIBRARY_PATH = /usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/server
+LAPACK_LIBS = -llapack
 ## we only need this is if it is external, as otherwise link to R
 LIBINTL= 
 LIBM = -lm
-LIBR0 = 
-LIBR1 = 
-LIBR =  
+LIBR0 = -L$(R_HOME)/lib$(R_ARCH)
+LIBR1 = -lR
+LIBR = -L$(R_HOME)/lib$(R_ARCH) -lR
 LIBS =  -lpcre -llzma -lbz2 -lz -lrt -ldl -lm
 ## needed by R CMD config
-LIBnn = lib64
+LIBnn = lib
 LIBTOOL = $(SHELL) "$(R_HOME)/bin/libtool"
-LDFLAGS = -L/usr/local/lib64
+LDFLAGS = -Wl,-Bsymbolic-functions -Wl,-z,relro
 LTO = 
 ## needed to build applications linking to static libR
 MAIN_LD = $(CC)
 MAIN_LDFLAGS = -Wl,--export-dynamic -fopenmp
 MAIN_LINK = $(MAIN_LD) $(MAIN_LDFLAGS) $(LDFLAGS)
+MKINSTALLDIRS = $(R_HOME)/bin/mkinstalldirs
 OBJC = 
 OBJCFLAGS =  $(LTO)
 OBJC_LIBS = 
 OBJCXX = 
 R_ARCH = 
 RANLIB = ranlib
-SAFE_FFLAGS = -g -O2 -ffloat-store
+SAFE_FFLAGS = -g ${OPT_FLAGS} -fstack-protector --param=ssp-buffer-size=4 -ffloat-store
 SED = /bin/sed
 SHELL = /bin/bash
 SHLIB_CFLAGS = 
@@ -105,9 +134,9 @@ SHLIB_OPENMP_FCFLAGS = -fopenmp
 SHLIB_OPENMP_FFLAGS = -fopenmp
 STRIP_LIBS = strip --strip-unneeded
 STRIP_STATIC_LIBS = strip --strip-debug
-TCLTK_CPPFLAGS = 
-TCLTK_LIBS = 
-YACC = yacc
+TCLTK_CPPFLAGS = -I/usr/include/tcl8.6 -I/usr/include/tcl8.6 
+TCLTK_LIBS = -L/usr/lib/x86_64-linux-gnu -ltcl8.6 -L/usr/lib/x86_64-linux-gnu -ltk8.6 -lX11 -lXss -lXext
+YACC = bison -y
 
 ## for linking to libR.a
 STATIC_LIBR = # -Wl,--whole-archive "$(R_HOME)/lib$(R_ARCH)/libR.a" -Wl,--no-whole-archive $(BLAS_LIBS) $(FLIBS)  $(LIBINTL) -lreadline  $(LIBS)
@@ -117,15 +146,12 @@ R_XTRA_CPPFLAGS =  -I$(R_INCLUDE_DIR) -DNDEBUG
 R_XTRA_CXXFLAGS = 
 R_XTRA_FFLAGS = 
 
-# Flags required to generate gimple output required by renjin
-PLUGIN_FLAGS = -m32 -fplugin=$(GCC_BRIDGE_PLUGIN)
-
-ALL_CFLAGS = $(R_XTRA_CFLAGS) $(PKG_CFLAGS) $(CPICFLAGS) $(SHLIB_CFLAGS) $(CFLAGS) $(PLUGIN_FLAGS)
+ALL_CFLAGS = $(R_XTRA_CFLAGS) $(PKG_CFLAGS) $(CPICFLAGS) $(SHLIB_CFLAGS) $(CFLAGS)
 ALL_CPPFLAGS = $(R_XTRA_CPPFLAGS) $(PKG_CPPFLAGS) $(CPPFLAGS) $(CLINK_CPPFLAGS)
-ALL_CXXFLAGS = $(R_XTRA_CXXFLAGS) $(PKG_CXXFLAGS) $(CXXPICFLAGS) $(SHLIB_CXXFLAGS) $(CXXFLAGS) $(PLUGIN_FLAGS)
-ALL_OBJCFLAGS = $(PKG_OBJCFLAGS) $(CPICFLAGS) $(SHLIB_CFLAGS) $(OBJCFLAGS)  $(PLUGIN_FLAGS)
-ALL_OBJCXXFLAGS = $(PKG_OBJCXXFLAGS) $(CXXPICFLAGS) $(SHLIB_CXXFLAGS) $(OBJCXXFLAGS)  $(PLUGIN_FLAGS)
-ALL_FFLAGS = $(R_XTRA_FFLAGS) $(PKG_FFLAGS) $(FPICFLAGS) $(SHLIB_FFLAGS) $(FFLAGS)  $(PLUGIN_FLAGS)
+ALL_CXXFLAGS = $(R_XTRA_CXXFLAGS) $(PKG_CXXFLAGS) $(CXXPICFLAGS) $(SHLIB_CXXFLAGS) $(CXXFLAGS)
+ALL_OBJCFLAGS = $(PKG_OBJCFLAGS) $(CPICFLAGS) $(SHLIB_CFLAGS) $(OBJCFLAGS)
+ALL_OBJCXXFLAGS = $(PKG_OBJCXXFLAGS) $(CXXPICFLAGS) $(SHLIB_CXXFLAGS) $(OBJCXXFLAGS)
+ALL_FFLAGS = $(R_XTRA_FFLAGS) $(PKG_FFLAGS) $(FPICFLAGS) $(SHLIB_FFLAGS) $(FFLAGS)
 ## LIBR here as a couple of packages use this without SHLIB_LINK
 ALL_LIBS = $(PKG_LIBS) $(SHLIB_LIBADD) $(LIBR)# $(LIBINTL)
 
@@ -133,7 +159,7 @@ ALL_LIBS = $(PKG_LIBS) $(SHLIB_LIBADD) $(LIBR)# $(LIBINTL)
 .SUFFIXES: .c .cc .cpp .d .f .f90 .f95 .m .mm .M .o
 
 .c.o:
-	$(CC) $(ALL_CPPFLAGS) $(ALL_CFLAGS) -c  $< -o $@
+	$(CC) $(ALL_CPPFLAGS) $(ALL_CFLAGS) -c $< -o $@
 .c.d:
 	@echo "making $@ from $<"
 	@$(CC) -MM $(ALL_CPPFLAGS) $< > $@
@@ -161,30 +187,3 @@ ALL_LIBS = $(PKG_LIBS) $(SHLIB_LIBADD) $(LIBR)# $(LIBINTL)
 	$(FC) $(PKG_FCFLAGS) $(FCPICFLAGS) $(FCFLAGS) -c  $< -o $@
 .f90.o:
 	$(FC) $(PKG_FCFLAGS) $(FCPICFLAGS) $(FCFLAGS) -c  $< -o $@
-
-
-## ${R_HOME}/share/make/shlib.mk
-
-all: $(SHLIB)
-
-$(SHLIB): $(OBJECTS)
-        
-.PHONY: all 
-
-## ${R_HOME}/share/make/shlib.mk
-
-all: $(SHLIB)
-
-$(SHLIB): $(OBJECTS)
-	@if test  "z$(OBJECTS)" != "z"; then \
-	  echo $(SHLIB_LINK) -o $@ $(OBJECTS) $(ALL_LIBS); \
-	  $(SHLIB_LINK) -o $@ $(OBJECTS) $(ALL_LIBS); \
-	fi
-
-.PHONY: all shlib-clean
-
-shlib-clean:
-	@rm -rf .libs _libs
-	@rm -f $(OBJECTS)
-
-

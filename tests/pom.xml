@@ -73,4 +73,16 @@
 			</plugin>
 		</plugins>
 	</build>
+  <profiles>
+    <profile>
+      <id>guava-16-test</id>
+      <dependencies>
+        <dependency>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
+          <version>16.0.1</version>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
 </project>

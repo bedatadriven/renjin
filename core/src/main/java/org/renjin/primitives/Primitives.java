@@ -913,6 +913,7 @@ public class Primitives {
     f("stderr", Connections.class, 11);
     f("readLines",Connections.class, 11);
     f("writeLines", Connections.class, 11);
+    f("isatty", Connections.class, 11);
     f("readBin", /*readbin*/ null, 11);
     f("writeBin", /*writebin*/ null, 211);
     f("readChar", Connections.class, 11);

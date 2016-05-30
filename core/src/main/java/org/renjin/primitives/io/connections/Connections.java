@@ -238,6 +238,16 @@ public class Connections {
     }
     writer.flush();
   }
+
+  /**
+   * 
+   * @return  returns true if the connection is one of the class "terminal" connections and it is
+   * apparently connected to a terminal, otherwise false. 
+   */
+  @Internal
+  public static boolean isatty(@Current Context context, IntVector connIndex) {
+    return false;
+  }
   
   //FIXME: port should be an int
   @Internal("socketConnection")

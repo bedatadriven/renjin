@@ -1,16 +1,16 @@
 package org.renjin.maven.test;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Charsets;
-import com.google.common.base.Joiner;
-import com.google.common.base.Strings;
-import com.google.common.io.Files;
 import jline.UnsupportedTerminal;
 import jline.console.ConsoleReader;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
+import org.renjin.repackaged.guava.annotations.VisibleForTesting;
+import org.renjin.repackaged.guava.base.Charsets;
+import org.renjin.repackaged.guava.base.Joiner;
+import org.renjin.repackaged.guava.base.Strings;
+import org.renjin.repackaged.guava.io.Files;
 import org.renjin.repl.JlineRepl;
 import org.renjin.sexp.Closure;
 import org.renjin.sexp.FunctionCall;

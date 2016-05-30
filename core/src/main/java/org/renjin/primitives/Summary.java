@@ -21,7 +21,6 @@
 
 package org.renjin.primitives;
 
-import com.google.common.math.IntMath;
 import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
@@ -29,6 +28,7 @@ import org.renjin.invoke.annotations.*;
 import org.renjin.primitives.summary.DeferredMean;
 import org.renjin.primitives.summary.DeferredSum;
 import org.renjin.primitives.vector.DeferredComputation;
+import org.renjin.repackaged.guava.math.IntMath;
 import org.renjin.sexp.*;
 
 import java.io.IOException;

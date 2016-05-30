@@ -1,7 +1,7 @@
 package org.renjin.primitives.io.connections;
 
-import com.google.common.base.Strings;
 import org.renjin.primitives.io.connections.Connection.Type;
+import org.renjin.repackaged.guava.base.Strings;
 
 /**
  * 

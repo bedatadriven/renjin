@@ -113,6 +113,9 @@
                       <property name="format" value="\\u00(08|09|0(a|A)|0(c|C)|0(d|D)|22|27|5(C|c))|\\(0(10|11|12|14|15|42|47)|134)"/>
                       <property name="message" value="Avoid using corresponding octal or Unicode escape."/>
                     </module>
+                    <module name="IllegalImport">
+                      <property name="illegalPkgs" value="com.google.common"/>
+                    </module>
                     <module name="AvoidEscapedUnicodeCharacters">
                       <property name="allowEscapesForControlCharacters" value="true"/>
                       <property name="allowByTailComment" value="true"/>
@@ -228,8 +231,8 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>com.google.guava</groupId>
-        <artifactId>guava</artifactId>
+        <groupId>org.renjin</groupId>
+        <artifactId>renjin-guava</artifactId>
         <version>17.0</version>
       </dependency>
     </dependencies>

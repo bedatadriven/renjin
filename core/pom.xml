@@ -112,8 +112,8 @@
 
     <!-- Collections framework -->
     <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
+      <groupId>org.renjin</groupId>
+      <artifactId>renjin-guava</artifactId>
     </dependency>
 
     <!-- unit test framework -->

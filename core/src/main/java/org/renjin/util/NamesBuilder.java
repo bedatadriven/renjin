@@ -1,6 +1,6 @@
 package org.renjin.util;
 
-import com.google.common.collect.Lists;
+import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.*;
 
 import java.util.ArrayList;

@@ -1,12 +1,10 @@
 package org.renjin.compiler.ir.tac.functions;
 
-import java.util.Map;
-
+import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
 
-
-import com.google.common.collect.Maps;
+import java.util.Map;
 
 public class FunctionCallTranslators {
 

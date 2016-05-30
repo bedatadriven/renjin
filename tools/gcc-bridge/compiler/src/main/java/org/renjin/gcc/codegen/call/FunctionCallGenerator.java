@@ -1,7 +1,5 @@
 package org.renjin.gcc.codegen.call;
 
-import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
@@ -11,6 +9,8 @@ import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.type.fun.FunctionRefGenerator;
 import org.renjin.gcc.gimple.statement.GimpleCall;
+import org.renjin.repackaged.guava.base.Optional;
+import org.renjin.repackaged.guava.collect.Lists;
 
 import javax.annotation.Nonnull;
 import java.util.List;

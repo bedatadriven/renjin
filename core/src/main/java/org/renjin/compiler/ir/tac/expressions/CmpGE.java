@@ -1,14 +1,12 @@
 package org.renjin.compiler.ir.tac.expressions;
 
+import org.renjin.eval.Context;
+import org.renjin.repackaged.guava.collect.Sets;
+import org.renjin.sexp.SEXP;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
-
-import org.renjin.eval.Context;
-import org.renjin.sexp.SEXP;
-
-
-import com.google.common.collect.Sets;
 
 /**
  * Checks whether op1 is greater than or equal to op2. 

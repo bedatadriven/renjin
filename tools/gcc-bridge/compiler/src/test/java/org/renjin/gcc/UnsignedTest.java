@@ -1,7 +1,7 @@
 package org.renjin.gcc;
 
-import com.google.common.primitives.UnsignedInts;
 import org.junit.Test;
+import org.renjin.repackaged.guava.primitives.UnsignedInts;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.lessThan;

@@ -1,11 +1,11 @@
 package org.renjin.sexp;
 
-import com.google.common.base.Objects;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.UnmodifiableIterator;
 import org.apache.commons.math.complex.Complex;
 import org.renjin.parser.NumericLiterals;
+import org.renjin.repackaged.guava.base.Objects;
+import org.renjin.repackaged.guava.collect.Iterables;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.collect.UnmodifiableIterator;
 
 import java.util.ArrayList;
 import java.util.Iterator;

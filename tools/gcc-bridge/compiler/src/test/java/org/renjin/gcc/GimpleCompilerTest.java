@@ -1,9 +1,9 @@
 package org.renjin.gcc;
 
-import com.google.common.base.Charsets;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.gcc.runtime.*;
+import org.renjin.repackaged.guava.base.Charsets;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

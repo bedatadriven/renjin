@@ -21,8 +21,8 @@
 
 package org.renjin.sexp;
 
-import com.google.common.collect.Maps;
 import org.renjin.eval.EvalException;
+import org.renjin.repackaged.guava.collect.Maps;
 
 import java.util.HashMap;
 

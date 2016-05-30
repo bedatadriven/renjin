@@ -1,6 +1,5 @@
 package org.renjin.aether;
 
-import com.google.common.base.Joiner;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
@@ -10,6 +9,7 @@ import org.renjin.eval.SessionBuilder;
 import org.renjin.parser.RParser;
 import org.renjin.primitives.packaging.FqPackageName;
 import org.renjin.primitives.packaging.PackageLoader;
+import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.sexp.ExpressionVector;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.StringVector;

@@ -1,9 +1,9 @@
 package org.renjin.gcc.gimple.expr;
 
-import com.google.common.base.Predicate;
 import org.renjin.gcc.gimple.GimpleExprVisitor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.repackaged.guava.base.Predicate;
 
 public class GimpleStringConstant extends GimpleConstant {
 

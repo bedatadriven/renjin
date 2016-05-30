@@ -22,7 +22,6 @@
 package org.renjin.primitives;
 
 
-import com.google.common.collect.Iterables;
 import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.Context;
 import org.renjin.invoke.annotations.Current;
@@ -30,6 +29,7 @@ import org.renjin.invoke.annotations.Internal;
 import org.renjin.parser.NumericLiterals;
 import org.renjin.parser.StringLiterals;
 import org.renjin.primitives.text.ReservedWords;
+import org.renjin.repackaged.guava.collect.Iterables;
 import org.renjin.sexp.*;
 
 public class Deparse {

@@ -1,14 +1,14 @@
 package org.renjin.utils;
 
 
-import com.google.common.base.Strings;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.renjin.eval.Context;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.parser.NumericLiterals;
 import org.renjin.primitives.io.connections.Connections;
 import org.renjin.primitives.io.connections.PushbackBufferedReader;
+import org.renjin.repackaged.guava.base.Strings;
+import org.renjin.repackaged.guava.collect.Maps;
+import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.sexp.*;
 
 import java.io.IOException;

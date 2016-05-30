@@ -1,13 +1,13 @@
 package org.renjin.packaging;
 
-import com.google.common.base.Charsets;
-import com.google.common.base.Function;
-import com.google.common.base.Strings;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Iterables;
-import com.google.common.io.ByteSource;
-import com.google.common.io.CharStreams;
-import com.google.common.io.Files;
+import org.renjin.repackaged.guava.base.Charsets;
+import org.renjin.repackaged.guava.base.Function;
+import org.renjin.repackaged.guava.base.Strings;
+import org.renjin.repackaged.guava.collect.ArrayListMultimap;
+import org.renjin.repackaged.guava.collect.Iterables;
+import org.renjin.repackaged.guava.io.ByteSource;
+import org.renjin.repackaged.guava.io.CharStreams;
+import org.renjin.repackaged.guava.io.Files;
 
 import java.io.File;
 import java.io.IOException;

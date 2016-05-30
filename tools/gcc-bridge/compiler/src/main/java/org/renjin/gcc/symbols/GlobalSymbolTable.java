@@ -1,9 +1,5 @@
 package org.renjin.gcc.symbols;
 
-import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.call.*;
 import org.renjin.gcc.codegen.cpp.*;
@@ -19,6 +15,10 @@ import org.renjin.gcc.link.LinkSymbol;
 import org.renjin.gcc.runtime.Builtins;
 import org.renjin.gcc.runtime.Mathlib;
 import org.renjin.gcc.runtime.Stdlib;
+import org.renjin.repackaged.guava.base.Optional;
+import org.renjin.repackaged.guava.base.Preconditions;
+import org.renjin.repackaged.guava.collect.Maps;
+import org.renjin.repackaged.guava.collect.Sets;
 
 import java.io.IOException;
 import java.lang.reflect.Method;

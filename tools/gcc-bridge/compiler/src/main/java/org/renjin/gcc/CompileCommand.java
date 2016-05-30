@@ -1,11 +1,11 @@
 package org.renjin.gcc;
 
 
-import com.google.common.collect.Lists;
 import io.airlift.command.Arguments;
 import io.airlift.command.Command;
 import io.airlift.command.Option;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
+import org.renjin.repackaged.guava.collect.Lists;
 
 import java.io.File;
 import java.io.IOException;

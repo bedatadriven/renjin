@@ -1,7 +1,5 @@
 package org.renjin.compiler;
 
-import com.google.common.base.Charsets;
-import com.google.common.io.Resources;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
@@ -11,6 +9,8 @@ import org.renjin.compiler.ir.tac.IRBody;
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
 import org.renjin.compiler.ir.tac.IRFunctionTable;
 import org.renjin.parser.RParser;
+import org.renjin.repackaged.guava.base.Charsets;
+import org.renjin.repackaged.guava.io.Resources;
 import org.renjin.sexp.ExpressionVector;
 
 import java.io.IOException;

@@ -21,12 +21,12 @@
 
 package org.renjin.sexp;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Sets;
-import com.google.common.collect.UnmodifiableIterator;
 import org.renjin.base.BaseFrame;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.repackaged.guava.base.Predicate;
+import org.renjin.repackaged.guava.collect.Sets;
+import org.renjin.repackaged.guava.collect.UnmodifiableIterator;
 
 import java.util.*;
 

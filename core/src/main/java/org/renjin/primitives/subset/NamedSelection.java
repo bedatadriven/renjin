@@ -1,9 +1,9 @@
 package org.renjin.primitives.subset;
 
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.repackaged.guava.collect.Maps;
+import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.sexp.*;
 import org.renjin.util.NamesBuilder;
 

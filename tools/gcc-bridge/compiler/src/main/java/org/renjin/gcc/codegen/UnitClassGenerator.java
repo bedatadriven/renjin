@@ -1,7 +1,5 @@
 package org.renjin.gcc.codegen;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
@@ -21,6 +19,8 @@ import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.symbols.GlobalSymbolTable;
 import org.renjin.gcc.symbols.UnitSymbolTable;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.collect.Sets;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;

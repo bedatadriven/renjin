@@ -1,7 +1,7 @@
 package org.renjin.eval;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Ordering;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.collect.Ordering;
 import org.renjin.sexp.Symbol;
 
 import java.io.PrintStream;
@@ -124,7 +124,7 @@ public class Profiler {
     long totalRunningTime = (System.nanoTime() - startTime);
 
     List<FunctionProfile> profiles = Lists.newArrayList(FUNCTION_PROFILES.values());
-    Collections.sort(profiles, Ordering.natural().onResultOf(new com.google.common.base.Function<FunctionProfile, Long>() {
+    Collections.sort(profiles, Ordering.natural().onResultOf(new org.renjin.repackaged.guava.base.Function<FunctionProfile, Long>() {
         @Override
         public Long apply(FunctionProfile input) {
           return input.ownTime;

@@ -1,8 +1,8 @@
 package org.renjin.cli.build;
 
-import com.google.common.base.Strings;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
+import org.renjin.repackaged.guava.base.Strings;
 
 import java.util.List;
 

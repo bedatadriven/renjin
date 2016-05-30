@@ -1,9 +1,9 @@
 package org.renjin.stats.internals.models;
 
-import com.google.common.collect.Lists;
 import org.junit.Test;
 import org.renjin.eval.EvalException;
 import org.renjin.parser.RParser;
+import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.*;
 
 import java.util.List;

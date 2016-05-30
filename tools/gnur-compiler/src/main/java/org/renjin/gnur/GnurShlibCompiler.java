@@ -1,12 +1,12 @@
 package org.renjin.gnur;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
-import com.google.common.io.ByteStreams;
-import com.google.common.io.Files;
-import com.google.common.io.Resources;
 import org.renjin.gcc.Gcc;
 import org.renjin.gcc.InternalCompilerException;
+import org.renjin.repackaged.guava.base.Joiner;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.io.ByteStreams;
+import org.renjin.repackaged.guava.io.Files;
+import org.renjin.repackaged.guava.io.Resources;
 
 import java.io.File;
 import java.io.FileOutputStream;

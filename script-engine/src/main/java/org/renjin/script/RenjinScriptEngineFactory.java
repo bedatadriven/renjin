@@ -1,15 +1,13 @@
 package org.renjin.script;
 
-import java.util.List;
-
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineFactory;
-
 import org.renjin.RVersion;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
+import org.renjin.repackaged.guava.collect.Lists;
 
-import com.google.common.collect.Lists;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineFactory;
+import java.util.List;
 
 public class RenjinScriptEngineFactory implements ScriptEngineFactory {
 

@@ -1,7 +1,5 @@
 package org.renjin.gcc.analysis;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Maps;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrStrategy;
 import org.renjin.gcc.gimple.GimpleBasicBlock;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
@@ -12,6 +10,8 @@ import org.renjin.gcc.gimple.expr.GimpleIntegerConstant;
 import org.renjin.gcc.gimple.statement.GimpleCall;
 import org.renjin.gcc.gimple.statement.GimpleStatement;
 import org.renjin.gcc.gimple.type.*;
+import org.renjin.repackaged.guava.annotations.VisibleForTesting;
+import org.renjin.repackaged.guava.collect.Maps;
 
 import java.util.*;
 

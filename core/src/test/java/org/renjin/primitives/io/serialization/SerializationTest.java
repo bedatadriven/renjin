@@ -1,11 +1,11 @@
 package org.renjin.primitives.io.serialization;
 
-import com.google.common.io.Files;
-import com.google.common.io.Resources;
-import com.google.common.primitives.UnsignedBytes;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
+import org.renjin.repackaged.guava.io.Files;
+import org.renjin.repackaged.guava.io.Resources;
+import org.renjin.repackaged.guava.primitives.UnsignedBytes;
 import org.renjin.sexp.StringArrayVector;
 
 import java.io.BufferedReader;

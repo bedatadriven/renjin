@@ -1,6 +1,5 @@
 package org.renjin.script;
 
-import com.google.common.io.CharSource;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Session;
@@ -10,6 +9,7 @@ import org.renjin.parser.RParser;
 import org.renjin.primitives.Warning;
 import org.renjin.primitives.special.BreakException;
 import org.renjin.primitives.special.NextException;
+import org.renjin.repackaged.guava.io.CharSource;
 import org.renjin.sexp.*;
 
 import javax.script.*;

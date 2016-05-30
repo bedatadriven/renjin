@@ -1,11 +1,11 @@
 package org.renjin.gcc.codegen;
 
-import com.google.common.collect.ImmutableList;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.runtime.*;
+import org.renjin.repackaged.guava.collect.ImmutableList;
 
 import java.util.List;
 

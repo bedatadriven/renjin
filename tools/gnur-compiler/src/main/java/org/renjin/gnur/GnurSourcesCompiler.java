@@ -1,10 +1,6 @@
 package org.renjin.gnur;
 
 
-import com.google.common.collect.Lists;
-import com.google.common.io.ByteStreams;
-import com.google.common.io.Files;
-import com.google.common.io.Resources;
 import org.apache.commons.math.special.Erf;
 import org.renjin.gcc.Gcc;
 import org.renjin.gcc.GccException;
@@ -13,6 +9,10 @@ import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gnur.api.*;
 import org.renjin.gnur.api.Error;
 import org.renjin.primitives.packaging.DllInfo;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.io.ByteStreams;
+import org.renjin.repackaged.guava.io.Files;
+import org.renjin.repackaged.guava.io.Resources;
 import org.renjin.sexp.SEXP;
 
 import java.io.File;

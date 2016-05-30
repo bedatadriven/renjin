@@ -1,8 +1,8 @@
 package org.renjin.gcc.gimple.expr;
 
-import com.google.common.base.Predicate;
 import org.renjin.gcc.gimple.GimpleExprVisitor;
 import org.renjin.gcc.gimple.GimpleParameter;
+import org.renjin.repackaged.guava.base.Predicate;
 
 public class GimpleParamRef extends GimpleLValue implements GimpleSymbolRef {
 

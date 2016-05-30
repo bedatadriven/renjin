@@ -1,12 +1,12 @@
 package org.renjin.compiler.cfg;
 
-import com.google.common.base.Charsets;
-import com.google.common.io.Resources;
 import edu.uci.ics.jung.visualization.BasicVisualizationServer;
 import org.renjin.compiler.ir.tac.IRBody;
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
 import org.renjin.compiler.ir.tac.IRFunctionTable;
 import org.renjin.parser.RParser;
+import org.renjin.repackaged.guava.base.Charsets;
+import org.renjin.repackaged.guava.io.Resources;
 import org.renjin.sexp.ExpressionVector;
 
 import javax.swing.*;

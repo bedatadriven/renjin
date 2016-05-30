@@ -1,8 +1,8 @@
 package org.renjin.gcc.gimple.type;
 
 
-import com.google.common.collect.Lists;
 import org.renjin.gcc.gimple.expr.GimpleFieldRef;
+import org.renjin.repackaged.guava.collect.Lists;
 
 import java.util.List;
 

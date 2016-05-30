@@ -1,14 +1,14 @@
 package org.renjin.gcc.analysis;
 
-import com.google.common.collect.Iterators;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.PeekingIterator;
-import com.google.common.escape.Escaper;
-import com.google.common.escape.Escapers;
 import org.renjin.gcc.gimple.GimpleBasicBlock;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.statement.GimpleEdge;
+import org.renjin.repackaged.guava.collect.Iterators;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.collect.Maps;
+import org.renjin.repackaged.guava.collect.PeekingIterator;
+import org.renjin.repackaged.guava.escape.Escaper;
+import org.renjin.repackaged.guava.escape.Escapers;
 
 import java.io.File;
 import java.io.FileWriter;

@@ -1,17 +1,11 @@
 package org.renjin.stats.internals.models;
 
-import java.util.List;
-
 import org.renjin.eval.Context;
-import org.renjin.sexp.AttributeMap;
-import org.renjin.sexp.IntArrayVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbols;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.sexp.*;
 import org.renjin.stats.internals.models.TermsObject.Term;
 
-import com.google.common.collect.Lists;
+import java.util.List;
 
 /**
  * Constructs a model matrix from a {@link TermsObject} and a

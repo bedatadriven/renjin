@@ -1,13 +1,13 @@
 package org.renjin.primitives.packaging;
 
-import com.google.common.collect.Iterables;
-import com.google.common.io.CharSource;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.renjin.eval.Context;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
+import org.renjin.repackaged.guava.collect.Iterables;
+import org.renjin.repackaged.guava.io.CharSource;
 import org.renjin.sexp.Symbol;
 
 import java.io.IOException;

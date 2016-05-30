@@ -1,7 +1,7 @@
 package org.renjin.compiler.pipeline;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
+import org.renjin.repackaged.guava.cache.Cache;
+import org.renjin.repackaged.guava.cache.CacheBuilder;
 
 /**
  * Maintains a cache of recently used JITted classes.

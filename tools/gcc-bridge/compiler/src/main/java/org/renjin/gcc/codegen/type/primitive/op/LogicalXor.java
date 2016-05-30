@@ -1,9 +1,9 @@
 package org.renjin.gcc.codegen.type.primitive.op;
 
-import com.google.common.base.Preconditions;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.repackaged.guava.base.Preconditions;
 
 import javax.annotation.Nonnull;
 

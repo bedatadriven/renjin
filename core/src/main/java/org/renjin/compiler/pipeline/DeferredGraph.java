@@ -1,11 +1,10 @@
 package org.renjin.compiler.pipeline;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.renjin.compiler.pipeline.optimize.Optimizers;
 import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.primitives.vector.MemoizedComputation;
-import org.renjin.sexp.DoubleArrayVector;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.sexp.Vector;
 
 import java.io.File;

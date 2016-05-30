@@ -1,14 +1,13 @@
 package org.renjin.compiler.ir.tac.expressions;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-
 import org.renjin.eval.Context;
+import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Vector;
 
-import com.google.common.collect.Sets;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
 
 
 

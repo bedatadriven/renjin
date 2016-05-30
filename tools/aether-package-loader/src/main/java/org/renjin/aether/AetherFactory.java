@@ -1,6 +1,5 @@
 package org.renjin.aether;
 
-import com.google.common.base.Strings;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.apache.maven.settings.Settings;
 import org.apache.maven.settings.building.DefaultSettingsBuilderFactory;
@@ -20,6 +19,7 @@ import org.eclipse.aether.spi.connector.RepositoryConnectorFactory;
 import org.eclipse.aether.spi.connector.transport.TransporterFactory;
 import org.eclipse.aether.transport.file.FileTransporterFactory;
 import org.eclipse.aether.transport.http.HttpTransporterFactory;
+import org.renjin.repackaged.guava.base.Strings;
 
 import java.io.File;
 import java.util.logging.Logger;

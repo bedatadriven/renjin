@@ -1,9 +1,9 @@
 package org.renjin.primitives;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 import org.renjin.eval.Context;
 import org.renjin.invoke.annotations.Current;
+import org.renjin.repackaged.guava.base.Joiner;
+import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.DoubleArrayVector;
 import org.renjin.sexp.DoubleVector;
 

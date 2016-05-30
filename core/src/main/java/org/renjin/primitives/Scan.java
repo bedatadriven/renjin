@@ -29,14 +29,14 @@ import com.google.common.base.Strings;
 
 package org.renjin.primitives;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
 import org.renjin.eval.Context;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.parser.NumericLiterals;
 import org.renjin.primitives.io.connections.Connections;
 import org.renjin.primitives.io.connections.PushbackBufferedReader;
+import org.renjin.repackaged.guava.base.Strings;
+import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.*;
 
 import java.io.IOException;

@@ -1,6 +1,6 @@
 package org.renjin.maven.test;
 
-import com.google.common.collect.Lists;
+import org.renjin.repackaged.guava.collect.Lists;
 
 import java.io.File;
 import java.io.PrintStream;

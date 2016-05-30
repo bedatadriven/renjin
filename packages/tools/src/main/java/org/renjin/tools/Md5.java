@@ -1,13 +1,13 @@
 package org.renjin.tools;
 
 
-import com.google.common.hash.Funnels;
-import com.google.common.hash.Hasher;
-import com.google.common.hash.Hashing;
-import com.google.common.io.ByteStreams;
 import org.apache.commons.vfs2.FileObject;
 import org.renjin.eval.Context;
 import org.renjin.invoke.annotations.Current;
+import org.renjin.repackaged.guava.hash.Funnels;
+import org.renjin.repackaged.guava.hash.Hasher;
+import org.renjin.repackaged.guava.hash.Hashing;
+import org.renjin.repackaged.guava.io.ByteStreams;
 import org.renjin.sexp.StringVector;
 import org.renjin.sexp.Symbols;
 

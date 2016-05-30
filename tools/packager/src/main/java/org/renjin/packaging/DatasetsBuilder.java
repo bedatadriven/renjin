@@ -1,9 +1,5 @@
 package org.renjin.packaging;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Joiner;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Session;
@@ -12,6 +8,10 @@ import org.renjin.parser.RParser;
 import org.renjin.primitives.io.connections.GzFileConnection;
 import org.renjin.primitives.io.serialization.RDataReader;
 import org.renjin.primitives.io.serialization.RDataWriter;
+import org.renjin.repackaged.guava.annotations.VisibleForTesting;
+import org.renjin.repackaged.guava.base.Joiner;
+import org.renjin.repackaged.guava.collect.HashMultimap;
+import org.renjin.repackaged.guava.collect.Multimap;
 import org.renjin.sexp.*;
 import org.tukaani.xz.XZInputStream;
 

@@ -3,7 +3,7 @@ package org.renjin.gcc.gimple;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.google.common.base.Charsets;
+import org.renjin.repackaged.guava.base.Charsets;
 
 import java.io.*;
 import java.net.URL;

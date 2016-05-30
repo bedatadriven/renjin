@@ -79,7 +79,7 @@ public interface Vector extends SEXP {
   /**
    *
    * @param index zero-based index
-   * @return the element at {@code index} as an unsigned byte. See {@link com.google.common.primitives.UnsignedBytes}
+   * @return the element at {@code index} as an unsigned byte. See {@link org.renjin.repackaged.guava.primitives.UnsignedBytes}
    * for utilities for working with unsigned bytes.
    */
   byte getElementAsByte(int index);

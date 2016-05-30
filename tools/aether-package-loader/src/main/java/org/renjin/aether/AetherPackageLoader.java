@@ -1,7 +1,5 @@
 package org.renjin.aether;
 
-import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
 import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.RepositoryListener;
 import org.eclipse.aether.RepositorySystem;
@@ -16,6 +14,8 @@ import org.eclipse.aether.transfer.TransferListener;
 import org.eclipse.aether.version.Version;
 import org.renjin.primitives.packaging.*;
 import org.renjin.primitives.packaging.Package;
+import org.renjin.repackaged.guava.base.Optional;
+import org.renjin.repackaged.guava.collect.Lists;
 
 import java.util.HashSet;
 import java.util.List;

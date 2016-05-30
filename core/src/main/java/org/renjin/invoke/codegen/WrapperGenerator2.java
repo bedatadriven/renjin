@@ -1,7 +1,5 @@
 package org.renjin.invoke.codegen;
 
-import com.google.common.base.Charsets;
-import com.google.common.io.Files;
 import com.sun.codemodel.CodeWriter;
 import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JPackage;
@@ -10,6 +8,8 @@ import org.renjin.invoke.model.JvmMethod;
 import org.renjin.invoke.model.PrimitiveModel;
 import org.renjin.primitives.Primitives;
 import org.renjin.primitives.Primitives.Entry;
+import org.renjin.repackaged.guava.base.Charsets;
+import org.renjin.repackaged.guava.io.Files;
 
 import javax.tools.*;
 import java.io.*;

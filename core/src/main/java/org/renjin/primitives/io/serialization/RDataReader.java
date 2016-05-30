@@ -21,8 +21,6 @@
 
 package org.renjin.primitives.io.serialization;
 
-import com.google.common.collect.Lists;
-import com.google.common.io.ByteSource;
 import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.Context;
 import org.renjin.parser.NumericLiterals;
@@ -30,6 +28,8 @@ import org.renjin.primitives.Primitives;
 import org.renjin.primitives.sequence.IntSequence;
 import org.renjin.primitives.vector.ConvertingStringVector;
 import org.renjin.primitives.vector.RowNamesVector;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.io.ByteSource;
 import org.renjin.sexp.*;
 
 import java.io.*;

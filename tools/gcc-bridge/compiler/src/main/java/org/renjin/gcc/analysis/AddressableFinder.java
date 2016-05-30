@@ -1,6 +1,5 @@
 package org.renjin.gcc.analysis;
 
-import com.google.common.collect.Maps;
 import org.renjin.gcc.gimple.*;
 import org.renjin.gcc.gimple.expr.*;
 import org.renjin.gcc.gimple.statement.GimpleAssignment;
@@ -10,6 +9,7 @@ import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleField;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
+import org.renjin.repackaged.guava.collect.Maps;
 
 import java.util.List;
 import java.util.Map;

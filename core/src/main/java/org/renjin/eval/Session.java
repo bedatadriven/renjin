@@ -1,8 +1,5 @@
 package org.renjin.eval;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.renjin.compiler.pipeline.SimpleVectorPipeliner;
@@ -10,6 +7,9 @@ import org.renjin.compiler.pipeline.VectorPipeliner;
 import org.renjin.primitives.io.connections.ConnectionTable;
 import org.renjin.primitives.packaging.NamespaceRegistry;
 import org.renjin.primitives.packaging.PackageLoader;
+import org.renjin.repackaged.guava.collect.ImmutableList;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.sexp.*;
 import org.renjin.stats.internals.distributions.RNG;
 import org.renjin.util.FileSystemUtils;

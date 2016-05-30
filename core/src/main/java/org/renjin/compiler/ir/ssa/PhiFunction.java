@@ -1,12 +1,12 @@
 package org.renjin.compiler.ir.ssa;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.ExpressionVisitor;
 import org.renjin.compiler.ir.tac.expressions.Variable;
 import org.renjin.eval.Context;
+import org.renjin.repackaged.guava.base.Joiner;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.sexp.SEXP;
 
 import java.util.List;

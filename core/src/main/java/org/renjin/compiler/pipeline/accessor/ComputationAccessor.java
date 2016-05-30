@@ -1,11 +1,11 @@
 package org.renjin.compiler.pipeline.accessor;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.objectweb.asm.*;
 import org.renjin.compiler.pipeline.ComputeMethod;
 import org.renjin.compiler.pipeline.DeferredNode;
 import org.renjin.primitives.vector.DeferredComputation;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.collect.Maps;
 
 import java.io.IOException;
 import java.util.ArrayList;

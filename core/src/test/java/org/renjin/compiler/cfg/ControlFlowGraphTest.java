@@ -1,10 +1,10 @@
 package org.renjin.compiler.cfg;
 
-import com.google.common.base.Charsets;
-import com.google.common.io.Resources;
 import org.junit.Test;
 import org.renjin.compiler.CompilerTestCase;
 import org.renjin.compiler.ir.tac.IRBody;
+import org.renjin.repackaged.guava.base.Charsets;
+import org.renjin.repackaged.guava.io.Resources;
 
 import java.io.IOException;
 import java.util.List;

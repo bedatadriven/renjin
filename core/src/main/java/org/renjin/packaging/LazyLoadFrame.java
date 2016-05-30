@@ -1,16 +1,15 @@
 package org.renjin.packaging;
 
+import org.renjin.eval.Context;
+import org.renjin.primitives.io.serialization.RDataReader;
+import org.renjin.repackaged.guava.base.Function;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.NamedValue;
+
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-
-import com.google.common.base.Function;
-import org.renjin.eval.Context;
-import org.renjin.primitives.io.serialization.RDataReader;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.NamedValue;
-import org.renjin.sexp.SEXP;
 
 public class LazyLoadFrame {
   

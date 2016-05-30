@@ -1,8 +1,6 @@
 package org.renjin.invoke.codegen;
 
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.sun.codemodel.*;
 import org.apache.commons.math.complex.Complex;
 import org.renjin.invoke.annotations.PreserveAttributeStyle;
@@ -10,6 +8,8 @@ import org.renjin.invoke.codegen.scalars.ScalarType;
 import org.renjin.invoke.codegen.scalars.ScalarTypes;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.invoke.model.PrimitiveModel;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.sexp.Symbols;
 import org.renjin.sexp.Vector;
 

@@ -1,7 +1,5 @@
 package org.renjin.primitives;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.renjin.base.internals.AllNamesVisitor;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
@@ -28,6 +26,8 @@ import org.renjin.primitives.special.*;
 import org.renjin.primitives.subset.Subsetting;
 import org.renjin.primitives.text.Text;
 import org.renjin.primitives.time.Time;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.sexp.*;
 import org.renjin.stats.internals.CompleteCases;
 import org.renjin.stats.internals.Covariance;
@@ -913,6 +913,7 @@ public class Primitives {
     f("stderr", Connections.class, 11);
     f("readLines",Connections.class, 11);
     f("writeLines", Connections.class, 11);
+    f("isatty", Connections.class, 11);
     f("readBin", /*readbin*/ null, 11);
     f("writeBin", /*writebin*/ null, 211);
     f("readChar", Connections.class, 11);

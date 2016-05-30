@@ -1,13 +1,13 @@
 package org.renjin.stats.internals.models;
 
+import org.renjin.repackaged.guava.collect.Iterables;
+import org.renjin.repackaged.guava.collect.Iterators;
+import org.renjin.repackaged.guava.collect.Lists;
+
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
-
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Iterators;
-import com.google.common.collect.Lists;
 
 public class TermList implements Iterable<Term> {
   private List<Term> list = Lists.newArrayList();

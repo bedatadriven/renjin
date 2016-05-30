@@ -1,10 +1,9 @@
 package org.renjin.primitives.time;
 
-import java.util.Iterator;
-
 import org.joda.time.DateTime;
+import org.renjin.repackaged.guava.collect.UnmodifiableIterator;
 
-import com.google.common.collect.UnmodifiableIterator;
+import java.util.Iterator;
 
 public abstract class TimeVector implements Iterable<DateTime> {
 

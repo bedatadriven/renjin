@@ -1,7 +1,7 @@
 package org.renjin.gcc;
 
-import com.google.common.collect.Lists;
-import com.google.common.html.HtmlEscapers;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.html.HtmlEscapers;
 
 import java.io.PrintWriter;
 import java.util.List;

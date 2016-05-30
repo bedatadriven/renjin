@@ -1,10 +1,5 @@
 package org.renjin.packaging;
 
-import com.google.common.base.Charsets;
-import com.google.common.collect.Lists;
-import com.google.common.io.CharSource;
-import com.google.common.io.Files;
-import com.google.common.primitives.UnsignedBytes;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.SessionBuilder;
@@ -12,6 +7,11 @@ import org.renjin.parser.RParser;
 import org.renjin.primitives.packaging.FqPackageName;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.primitives.packaging.NamespaceFile;
+import org.renjin.repackaged.guava.base.Charsets;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.io.CharSource;
+import org.renjin.repackaged.guava.io.Files;
+import org.renjin.repackaged.guava.primitives.UnsignedBytes;
 import org.renjin.sexp.*;
 
 import java.io.File;
@@ -21,7 +21,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static org.renjin.repackaged.guava.base.Preconditions.checkNotNull;
 
 public class NamespaceBuilder {
 

@@ -1,10 +1,10 @@
 package org.renjin.primitives.packaging;
 
-import com.google.common.base.Optional;
 import org.renjin.eval.Context;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.invoke.annotations.Invisible;
+import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.sexp.*;
 
 import java.io.IOException;

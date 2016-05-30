@@ -1,11 +1,10 @@
 package org.renjin.invoke.codegen;
 
-import com.google.common.collect.Lists;
 import org.junit.Test;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.primitives.Ops;
-import org.renjin.primitives.Types;
 import org.renjin.primitives.Vectors;
+import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.PairList;
 import org.renjin.sexp.Vector;
 

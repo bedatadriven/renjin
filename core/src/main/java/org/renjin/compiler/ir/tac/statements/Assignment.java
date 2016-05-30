@@ -1,19 +1,17 @@
 package org.renjin.compiler.ir.tac.statements;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-
 import org.renjin.compiler.ir.IRUtils;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.LValue;
 import org.renjin.compiler.ir.tac.expressions.Variable;
 import org.renjin.eval.Context;
+import org.renjin.repackaged.guava.collect.Sets;
 
-
-import com.google.common.collect.Sets;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 
 public class Assignment implements Statement {

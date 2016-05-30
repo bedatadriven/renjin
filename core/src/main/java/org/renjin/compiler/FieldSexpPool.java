@@ -1,15 +1,13 @@
 package org.renjin.compiler;
 
-import java.util.List;
-
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.SEXP;
 
-
-import com.google.common.collect.Lists;
+import java.util.List;
 
 /**
  * Maintains a pool of SEXP literals stored in class fields.

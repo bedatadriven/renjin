@@ -1,10 +1,10 @@
 package org.renjin.primitives.combine;
 
 
-import com.google.common.collect.Lists;
 import org.renjin.primitives.combine.view.CombinedDoubleVector;
 import org.renjin.primitives.combine.view.CombinedIntVector;
 import org.renjin.primitives.combine.view.CombinedStringVector;
+import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.*;
 
 import java.util.List;

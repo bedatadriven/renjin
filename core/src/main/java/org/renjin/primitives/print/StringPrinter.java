@@ -1,7 +1,7 @@
 package org.renjin.primitives.print;
 
-import com.google.common.base.Function;
 import org.renjin.parser.StringLiterals;
+import org.renjin.repackaged.guava.base.Function;
 import org.renjin.sexp.StringVector;
 
 public class StringPrinter implements Function<String, String> {

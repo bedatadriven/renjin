@@ -1,12 +1,12 @@
 package org.renjin.compiler.ir.tac;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.renjin.compiler.ir.tac.expressions.*;
 import org.renjin.compiler.ir.tac.functions.FunctionCallTranslator;
 import org.renjin.compiler.ir.tac.functions.FunctionCallTranslators;
 import org.renjin.compiler.ir.tac.functions.TranslationContext;
 import org.renjin.compiler.ir.tac.statements.*;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.sexp.*;
 
 import java.util.List;

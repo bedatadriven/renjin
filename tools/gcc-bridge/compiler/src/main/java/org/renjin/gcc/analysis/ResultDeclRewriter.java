@@ -1,6 +1,5 @@
 package org.renjin.gcc.analysis;
 
-import com.google.common.base.Predicates;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleExprVisitor;
 import org.renjin.gcc.gimple.GimpleFunction;
@@ -11,6 +10,7 @@ import org.renjin.gcc.gimple.expr.GimpleResultDecl;
 import org.renjin.gcc.gimple.expr.GimpleVariableRef;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.gimple.type.GimpleReferenceType;
+import org.renjin.repackaged.guava.base.Predicates;
 
 /**
  * Rewrites {@code GimpleResultDecl} nodes into local variables.

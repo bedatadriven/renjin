@@ -4,8 +4,7 @@ import org.renjin.compiler.ir.ssa.PhiFunction;
 import org.renjin.compiler.ir.tac.expressions.Variable;
 import org.renjin.compiler.ir.tac.statements.Assignment;
 import org.renjin.compiler.ir.tac.statements.Statement;
-
-import com.google.common.base.Predicate;
+import org.renjin.repackaged.guava.base.Predicate;
 
 public class CfgPredicates {
   private CfgPredicates() {}

@@ -1,9 +1,9 @@
 package org.renjin.compiler.pipeline;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
 import org.renjin.primitives.vector.DeferredComputation;
+import org.renjin.repackaged.guava.collect.HashMultimap;
+import org.renjin.repackaged.guava.collect.Multimap;
+import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.sexp.Vector;
 
 import java.util.Collection;

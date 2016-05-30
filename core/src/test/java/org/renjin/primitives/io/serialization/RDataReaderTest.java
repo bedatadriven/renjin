@@ -21,9 +21,9 @@
 
 package org.renjin.primitives.io.serialization;
 
-import com.google.common.io.ByteSource;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
+import org.renjin.repackaged.guava.io.ByteSource;
 import org.renjin.sexp.*;
 
 import java.io.IOException;

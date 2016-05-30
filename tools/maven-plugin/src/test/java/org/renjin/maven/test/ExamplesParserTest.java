@@ -1,9 +1,9 @@
 package org.renjin.maven.test;
 
 
-import com.google.common.collect.Lists;
-import com.google.common.io.Files;
 import junit.framework.TestCase;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.io.Files;
 
 import java.io.File;
 import java.io.IOException;

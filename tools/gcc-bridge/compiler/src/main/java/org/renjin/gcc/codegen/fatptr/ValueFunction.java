@@ -1,9 +1,9 @@
 package org.renjin.gcc.codegen.fatptr;
 
-import com.google.common.base.Optional;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.repackaged.guava.base.Optional;
 
 import java.util.List;
 

@@ -21,18 +21,15 @@
 
 package org.renjin.primitives.subset;
 
-import com.google.common.collect.Lists;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
 import org.renjin.methods.MethodDispatch;
 import org.renjin.primitives.Types;
+import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.*;
 
-import java.lang.reflect.Array;
 import java.util.Collections;
-import java.util.Collections.*;
-
 import java.util.Iterator;
 import java.util.List;
 

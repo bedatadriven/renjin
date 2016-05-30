@@ -1,7 +1,5 @@
 package org.renjin.gcc.maven;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -19,6 +17,8 @@ import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.codegen.lib.SymbolLibrary;
 import org.renjin.gcc.codegen.lib.cpp.CppSymbolLibrary;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
+import org.renjin.repackaged.guava.base.Strings;
+import org.renjin.repackaged.guava.collect.Lists;
 
 import java.io.File;
 import java.io.IOException;

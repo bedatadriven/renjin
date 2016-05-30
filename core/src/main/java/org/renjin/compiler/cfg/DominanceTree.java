@@ -1,22 +1,22 @@
 package org.renjin.compiler.cfg;
 
 
-import com.google.common.base.Function;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
 import edu.uci.ics.jung.graph.DirectedSparseGraph;
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.util.EdgeType;
+import org.renjin.repackaged.guava.base.Function;
+import org.renjin.repackaged.guava.collect.HashMultimap;
+import org.renjin.repackaged.guava.collect.Iterables;
+import org.renjin.repackaged.guava.collect.Multimap;
+import org.renjin.repackaged.guava.collect.Sets;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
-import static com.google.common.base.Predicates.equalTo;
-import static com.google.common.base.Predicates.not;
-import static com.google.common.collect.Iterables.filter;
+import static org.renjin.repackaged.guava.base.Predicates.equalTo;
+import static org.renjin.repackaged.guava.base.Predicates.not;
+import static org.renjin.repackaged.guava.collect.Iterables.filter;
 
 public class DominanceTree {
 

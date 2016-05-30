@@ -1,12 +1,11 @@
 package org.renjin.compiler.ir.tac;
 
-import java.util.Iterator;
-import java.util.List;
-
+import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.PairList;
 import org.renjin.sexp.SEXP;
 
-import com.google.common.collect.Lists;
+import java.util.Iterator;
+import java.util.List;
 
 
 public class IRFunctionTable implements Iterable<IRFunction> {

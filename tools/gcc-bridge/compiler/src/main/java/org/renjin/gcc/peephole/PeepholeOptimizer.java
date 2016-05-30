@@ -1,13 +1,13 @@
 package org.renjin.gcc.peephole;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.JumpInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.util.Textifier;
 import org.objectweb.asm.util.TraceMethodVisitor;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.collect.Sets;
 
 import java.util.List;
 import java.util.ListIterator;

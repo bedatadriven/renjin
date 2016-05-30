@@ -1,16 +1,14 @@
 package org.renjin.methods;
 
-import java.util.concurrent.ExecutionException;
-
-import org.renjin.methods.PrimitiveMethodTable.prim_methods_t;
+import org.renjin.repackaged.guava.cache.CacheBuilder;
+import org.renjin.repackaged.guava.cache.CacheLoader;
+import org.renjin.repackaged.guava.cache.LoadingCache;
 import org.renjin.sexp.Closure;
 import org.renjin.sexp.Null;
 import org.renjin.sexp.PrimitiveFunction;
 import org.renjin.sexp.SEXP;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
+import java.util.concurrent.ExecutionException;
 
 public class PrimitiveMethodTable {
 

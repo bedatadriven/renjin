@@ -1,12 +1,12 @@
 package org.renjin.invoke.codegen;
 
-import com.google.common.collect.Lists;
 import com.sun.codemodel.*;
 import org.apache.commons.math.complex.Complex;
 import org.renjin.invoke.annotations.PreserveAttributeStyle;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.invoke.model.PrimitiveModel;
 import org.renjin.primitives.vector.DeferredComputation;
+import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.*;
 
 import java.util.List;

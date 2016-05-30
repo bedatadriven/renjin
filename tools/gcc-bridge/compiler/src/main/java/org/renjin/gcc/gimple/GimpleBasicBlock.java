@@ -1,9 +1,9 @@
 package org.renjin.gcc.gimple;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Lists;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.statement.*;
+import org.renjin.repackaged.guava.base.Predicate;
+import org.renjin.repackaged.guava.collect.Lists;
 
 import java.util.Arrays;
 import java.util.Collections;

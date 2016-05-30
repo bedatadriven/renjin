@@ -21,8 +21,8 @@
 
 package org.renjin.sexp;
 
-import com.google.common.collect.Iterators;
 import org.apache.commons.math.complex.Complex;
+import org.renjin.repackaged.guava.collect.Iterators;
 
 import java.util.ArrayList;
 import java.util.Arrays;

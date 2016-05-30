@@ -1,8 +1,8 @@
 package org.renjin.stats.internals.models;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.Iterators;
-import com.google.common.collect.Lists;
+import org.renjin.repackaged.guava.base.Joiner;
+import org.renjin.repackaged.guava.collect.Iterators;
+import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.SEXP;
 
 import java.util.Collection;

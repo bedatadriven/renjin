@@ -1,6 +1,6 @@
 package org.renjin.maven.test;
 
-import com.google.common.collect.Lists;
+import org.renjin.repackaged.guava.collect.Lists;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 

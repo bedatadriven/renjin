@@ -1,7 +1,5 @@
 package org.renjin.primitives.packaging;
 
-import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.reflection.ClassBindingImpl;
@@ -9,6 +7,8 @@ import org.renjin.methods.S4;
 import org.renjin.primitives.S3;
 import org.renjin.primitives.text.regex.ExtendedRE;
 import org.renjin.primitives.text.regex.RESyntaxException;
+import org.renjin.repackaged.guava.base.Optional;
+import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.*;
 
 import java.lang.invoke.MethodHandle;

@@ -1,10 +1,10 @@
 package org.renjin.maven.test;
 
-import com.google.common.base.Charsets;
-import com.google.common.base.Joiner;
-import com.google.common.io.Resources;
 import junit.framework.TestCase;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.renjin.repackaged.guava.base.Charsets;
+import org.renjin.repackaged.guava.base.Joiner;
+import org.renjin.repackaged.guava.io.Resources;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -184,6 +184,6 @@ public class ForkedTestControllerTest extends TestCase {
     if(!outputFile.exists()) {
       throw new AssertionError("Output text does not exist at " + outputFile.getAbsolutePath());
     }
-    return com.google.common.io.Files.toString(outputFile, Charsets.UTF_8);
+    return org.renjin.repackaged.guava.io.Files.toString(outputFile, Charsets.UTF_8);
   }
 }

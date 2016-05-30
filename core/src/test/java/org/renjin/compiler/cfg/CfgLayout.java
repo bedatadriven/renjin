@@ -1,31 +1,20 @@
 package org.renjin.compiler.cfg;
 
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Paint;
-import java.awt.Rectangle;
-import java.awt.Shape;
-import java.awt.geom.Point2D;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.collections15.Transformer;
-import org.renjin.compiler.cfg.BasicBlock;
-import org.renjin.compiler.cfg.ControlFlowGraph;
-import org.renjin.compiler.cfg.Edge;
-import org.renjin.compiler.ir.tac.statements.GotoStatement;
-import org.renjin.compiler.ir.tac.statements.Statement;
-
-
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-
 import edu.uci.ics.jung.algorithms.layout.Layout;
 import edu.uci.ics.jung.algorithms.layout.StaticLayout;
 import edu.uci.ics.jung.visualization.RenderContext;
 import edu.uci.ics.jung.visualization.renderers.Renderer.VertexLabel;
+import org.apache.commons.collections15.Transformer;
+import org.renjin.compiler.ir.tac.statements.GotoStatement;
+import org.renjin.compiler.ir.tac.statements.Statement;
+import org.renjin.repackaged.guava.base.Joiner;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.collect.Maps;
+
+import java.awt.*;
+import java.awt.geom.Point2D;
+import java.util.List;
+import java.util.Map;
 
 public class CfgLayout  {
 

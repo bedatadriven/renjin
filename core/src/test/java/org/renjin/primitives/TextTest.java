@@ -21,9 +21,9 @@
 
 package org.renjin.primitives;
 
-import com.google.common.base.Charsets;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
+import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.sexp.IntVector;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.StringArrayVector;

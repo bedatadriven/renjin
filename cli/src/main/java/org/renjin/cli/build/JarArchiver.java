@@ -1,8 +1,8 @@
 package org.renjin.cli.build;
 
-import com.google.common.base.Preconditions;
-import com.google.common.io.Files;
 import org.renjin.RenjinVersion;
+import org.renjin.repackaged.guava.base.Preconditions;
+import org.renjin.repackaged.guava.io.Files;
 
 import java.io.File;
 import java.io.FileOutputStream;

@@ -2,17 +2,7 @@ package org.renjin.compiler.ir.tac.functions;
 
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
 import org.renjin.compiler.ir.tac.IRLabel;
-import org.renjin.compiler.ir.tac.expressions.CmpGE;
-import org.renjin.compiler.ir.tac.expressions.Constant;
-import org.renjin.compiler.ir.tac.expressions.ElementAccess;
-import org.renjin.compiler.ir.tac.expressions.EnvironmentVariable;
-import org.renjin.compiler.ir.tac.expressions.Expression;
-import org.renjin.compiler.ir.tac.expressions.Increment;
-import org.renjin.compiler.ir.tac.expressions.Length;
-import org.renjin.compiler.ir.tac.expressions.LocalVariable;
-import org.renjin.compiler.ir.tac.expressions.PrimitiveCall;
-import org.renjin.compiler.ir.tac.expressions.Temp;
-import org.renjin.compiler.ir.tac.expressions.Variable;
+import org.renjin.compiler.ir.tac.expressions.*;
 import org.renjin.compiler.ir.tac.statements.Assignment;
 import org.renjin.compiler.ir.tac.statements.GotoStatement;
 import org.renjin.compiler.ir.tac.statements.IfStatement;
@@ -20,9 +10,6 @@ import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.Null;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
-
-
-import com.google.common.collect.Lists;
 
 public class ForTranslator extends FunctionCallTranslator {
   

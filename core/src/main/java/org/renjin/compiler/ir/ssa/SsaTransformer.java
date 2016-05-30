@@ -1,9 +1,5 @@
 package org.renjin.compiler.ir.ssa;
 
-import java.util.Map;
-import java.util.Queue;
-import java.util.Stack;
-
 import org.renjin.compiler.cfg.BasicBlock;
 import org.renjin.compiler.cfg.CfgPredicates;
 import org.renjin.compiler.cfg.ControlFlowGraph;
@@ -12,11 +8,13 @@ import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.Variable;
 import org.renjin.compiler.ir.tac.statements.Assignment;
 import org.renjin.compiler.ir.tac.statements.Statement;
+import org.renjin.repackaged.guava.collect.Iterables;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.collect.Maps;
 
-
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Stack;
 
 /**
  * Transforms three-address IR code into 

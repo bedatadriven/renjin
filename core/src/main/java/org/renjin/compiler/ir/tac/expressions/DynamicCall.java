@@ -1,10 +1,10 @@
 package org.renjin.compiler.ir.tac.expressions;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.renjin.compiler.runtime.VariablePromise;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.sexp.*;
 
 import java.util.Collections;
@@ -240,7 +240,7 @@ public class DynamicCall implements CallExpression {
   }
 
   public List<String> getArgumentNames() {
-    return Lists.transform(argumentNames, new com.google.common.base.Function<SEXP, String>() {
+    return Lists.transform(argumentNames, new org.renjin.repackaged.guava.base.Function<SEXP, String>() {
 
       @Override
       public String apply(SEXP input) {

@@ -1,15 +1,14 @@
 package org.renjin.compiler.ir.optimize;
 
-import java.util.List;
-
 import org.renjin.compiler.cfg.ControlFlowGraph;
 import org.renjin.compiler.cfg.DominanceTree;
 import org.renjin.compiler.ir.ssa.SsaTransformer;
 import org.renjin.compiler.ir.tac.IRBody;
 import org.renjin.compiler.ir.tac.IRFunction;
 import org.renjin.compiler.ir.tac.IRProgram;
+import org.renjin.repackaged.guava.collect.Lists;
 
-import com.google.common.collect.Lists;
+import java.util.List;
 
 
 /**

@@ -24,9 +24,9 @@
 
 package org.renjin.parser;
 
-import com.google.common.collect.Lists;
-import com.google.common.io.CharSource;
-import com.google.common.io.CharStreams;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.io.CharSource;
+import org.renjin.repackaged.guava.io.CharStreams;
 import org.renjin.sexp.*;
 
 import java.io.IOException;

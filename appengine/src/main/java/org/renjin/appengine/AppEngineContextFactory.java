@@ -21,7 +21,6 @@
 
 package org.renjin.appengine;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.vfs2.CacheStrategy;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
@@ -32,6 +31,7 @@ import org.apache.commons.vfs2.provider.url.UrlFileProvider;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
 import org.renjin.eval.vfs.FastJarFileProvider;
+import org.renjin.repackaged.guava.annotations.VisibleForTesting;
 import org.renjin.script.RenjinScriptEngineFactory;
 
 import javax.script.ScriptEngine;

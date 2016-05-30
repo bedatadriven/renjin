@@ -1,13 +1,11 @@
 package org.renjin.compiler;
 
+import org.renjin.compiler.ir.tac.expressions.IRThunk;
+import org.renjin.repackaged.guava.collect.Maps;
+
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-
-import org.renjin.compiler.ir.tac.expressions.IRThunk;
-
-
-import com.google.common.collect.Maps;
 
 public class ThunkMap {
   

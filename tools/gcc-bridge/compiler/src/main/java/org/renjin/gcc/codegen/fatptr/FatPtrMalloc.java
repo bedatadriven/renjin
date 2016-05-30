@@ -1,6 +1,5 @@
 package org.renjin.gcc.codegen.fatptr;
 
-import com.google.common.collect.Lists;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
@@ -8,6 +7,7 @@ import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.SimpleExpr;
 import org.renjin.gcc.codegen.type.primitive.ConstantValue;
 import org.renjin.gcc.codegen.var.LocalVarAllocator;
+import org.renjin.repackaged.guava.collect.Lists;
 
 import java.util.List;
 

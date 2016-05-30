@@ -1,8 +1,8 @@
 package org.renjin.maven.test;
 
-import com.google.common.io.Files;
-import com.google.common.io.Resources;
 import junit.framework.TestCase;
+import org.renjin.repackaged.guava.io.Files;
+import org.renjin.repackaged.guava.io.Resources;
 
 import java.io.File;
 import java.util.Collections;

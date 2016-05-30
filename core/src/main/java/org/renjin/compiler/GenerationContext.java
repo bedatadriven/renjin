@@ -1,14 +1,12 @@
 package org.renjin.compiler;
 
+import org.renjin.compiler.ir.tac.IRFunction;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.collect.Maps;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import org.renjin.compiler.ir.tac.IRFunction;
-
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 
 public class GenerationContext {
   private String className;

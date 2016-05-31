@@ -224,7 +224,7 @@ public class GnurSourcesCompiler {
 
   private File unpackIncludes() throws IOException {
     
-    URL url = Resources.getResource("org/renjin/gnur/include/R.h");
+    URL url = Resources.getResource("R.h");
     if(url.getProtocol().equals("file")) {
       return new File(url.getFile()).getParentFile();
     } else if(url.getProtocol().equals("jar")) {

@@ -106,9 +106,7 @@ public class Gcc {
 
     LOGGER.fine("Executing " + Joiner.on(" ").join(arguments));
 
-    String output = callGcc(arguments);
-
-    System.err.println(output);
+    callGcc(arguments);
     
     GimpleParser parser = new GimpleParser();
     GimpleCompilationUnit unit = parser.parse(gimpleFile);

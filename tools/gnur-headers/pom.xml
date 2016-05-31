@@ -23,30 +23,27 @@
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
-  <artifactId>renjin-gnur-compiler</artifactId>
-  <name>Renjin GNU R Native Sources Compiler</name>
-  <description>Compiles legacy C/Fortran sources to JVM bytecode</description>
-
-  <dependencies>
-    <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.renjin</groupId>
-      <artifactId>gcc-bridge-compiler</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.renjin</groupId>
-      <artifactId>renjin-gnur-runtime</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.renjin</groupId>
-      <artifactId>renjin-gnur-headers</artifactId>
-      <version>${project.version}</version>
-      <classifier>headers</classifier>
-    </dependency>
-  </dependencies>
+  <artifactId>renjin-gnur-headers</artifactId>
+  <name>Renjin GNU R Headers</name>
+  
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.renjin</groupId>
+        <artifactId>gcc-bridge-maven-plugin</artifactId>
+        <version>${project.version}</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>archive-headers</goal>
+            </goals>
+            <configuration>
+              <includeDirectory>${basedir}/include</includeDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 </project>

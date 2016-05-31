@@ -49,15 +49,25 @@ public class ResultDeclRewriter implements FunctionBodyTransformer {
         ref = new GimpleVariableRef(returnVar.getId(), fn.getReturnType());
       }
 
-
       fn.replaceAll(Predicates.instanceOf(GimpleResultDecl.class), ref);
+      
+      assertResultDeclsAreReplaced(fn);
+      
       return true;
 
     } else {
       return false;
     }
   }
-  
+
+  private void assertResultDeclsAreReplaced(GimpleFunction fn) {
+    ResultDeclMatcher matcher = new ResultDeclMatcher();
+    fn.accept(matcher);
+    if(matcher.present) {
+      throw new AssertionError("ResultDecls remain in:\n" + fn);
+    }
+  }
+
   private class ResultDeclMatcher extends GimpleExprVisitor {
     
     private boolean present = false;

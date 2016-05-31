@@ -91,6 +91,8 @@ public class GimpleAssignment extends GimpleStatement {
   public void replaceAll(Predicate<? super GimpleExpr> predicate, GimpleExpr newExpr) {
     if(predicate.apply(lhs)) {
       lhs = (GimpleLValue) newExpr;
+    } else {
+      lhs.replaceAll(predicate, newExpr);
     }
     replaceAll(predicate, operands, newExpr);
   }

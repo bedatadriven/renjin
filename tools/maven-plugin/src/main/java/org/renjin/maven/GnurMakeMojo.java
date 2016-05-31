@@ -114,7 +114,7 @@ public class GnurMakeMojo extends AbstractMojo {
       } else {
         throw new MojoExecutionException("Compilation of GNU R sources failed", e);
       }
-     } 
+    } 
   }
 
   private void setupEnvironment() throws MojoExecutionException, IOException {

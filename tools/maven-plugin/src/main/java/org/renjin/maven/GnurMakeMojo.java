@@ -99,6 +99,7 @@ public class GnurMakeMojo extends AbstractMojo {
       setupEnvironment();
       make();
       compileGimple();
+      archiveHeaders();
 
     } catch (IOException e) {
       throw new MojoExecutionException("I/O Exception", e);
@@ -106,6 +107,7 @@ public class GnurMakeMojo extends AbstractMojo {
       throw new MojoExecutionException("Interrupted");
     }
   }
+
 
   private void setupEnvironment() throws MojoExecutionException, IOException {
     // Unpack any headers from dependencies
@@ -173,6 +175,16 @@ public class GnurMakeMojo extends AbstractMojo {
       throw new MojoExecutionException("Failed to compile Gimple", e);
     }
   }
+
+  private void archiveHeaders() throws MojoExecutionException {
+    File instDir = new File(project.getBasedir(), "inst");
+    File includeDir = new File(instDir, "include");
+    
+    if(includeDir.exists()) {
+      GccBridgeHelper.archiveHeaders(project, includeDir);
+    }
+  }
+  
   
   private String findObjectFiles() {
     List<String> objectFiles = new ArrayList<>();

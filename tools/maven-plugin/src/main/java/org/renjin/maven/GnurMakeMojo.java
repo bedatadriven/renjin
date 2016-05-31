@@ -21,6 +21,7 @@ import org.renjin.gcc.gimple.GimpleParser;
 import org.renjin.gcc.maven.GccBridgeHelper;
 import org.renjin.gnur.GnurSourcesCompiler;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -29,6 +30,7 @@ import java.util.List;
 /**
  * Builds a package written for GNU R
  */
+@ThreadSafe
 @Mojo(name = "make-gnur-sources", requiresDependencyCollection = ResolutionScope.COMPILE)
 public class GnurMakeMojo extends AbstractMojo {
 
@@ -100,14 +102,20 @@ public class GnurMakeMojo extends AbstractMojo {
       make();
       compileGimple();
       archiveHeaders();
+      getLog().info("Compilation of GNU R sources succeeded.");
 
-    } catch (IOException e) {
-      throw new MojoExecutionException("I/O Exception", e);
     } catch (InterruptedException e) {
       throw new MojoExecutionException("Interrupted");
-    }
-  }
 
+    } catch (Exception e) {
+      if (ignoreFailure) {
+        getLog().error("Compilation of GNU R sources failed.");
+        e.printStackTrace(System.err);
+      } else {
+        throw new MojoExecutionException("Compilation of GNU R sources failed", e);
+      }
+     } 
+  }
 
   private void setupEnvironment() throws MojoExecutionException, IOException {
     // Unpack any headers from dependencies

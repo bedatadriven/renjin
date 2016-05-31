@@ -2,7 +2,6 @@ package org.renjin.gcc.maven;
 
 import com.google.common.collect.Lists;
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.handler.DefaultArtifactHandler;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
@@ -41,7 +40,7 @@ public class GccBridgeHelper {
       throw new MojoExecutionException("Failed to create headers archive", e);
     }
 
-    Artifact artifact = new AttachedArtifact( project.getArtifact(), "jar", "headers",  new DefaultArtifactHandler());
+    Artifact artifact = new AttachedArtifact( project.getArtifact(), "jar", "headers",  new HeaderArtifactHandler());
     artifact.setFile( archiveFile );
     artifact.setResolved( true );
 

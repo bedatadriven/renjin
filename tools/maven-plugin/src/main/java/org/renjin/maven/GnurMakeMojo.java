@@ -35,7 +35,7 @@ public class GnurMakeMojo extends AbstractMojo {
   private static final List<String> SOURCE_EXTENSIONS = Lists.newArrayList("c", "f", "f77", "cpp", "cxx");
 
 
-  @Component
+  @Parameter(defaultValue = "${project}", readonly = true)
   private MavenProject project;
 
   @Component

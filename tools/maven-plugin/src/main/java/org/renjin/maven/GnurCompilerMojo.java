@@ -23,8 +23,8 @@ import java.util.List;
  */
 @Mojo(name = "gnur-sources-compile", requiresDependencyCollection = ResolutionScope.COMPILE)
 public class GnurCompilerMojo extends AbstractMojo {
-  
-  @Component
+
+  @Parameter(defaultValue = "${project}", readonly = true)
   private MavenProject project;
 
   @Component

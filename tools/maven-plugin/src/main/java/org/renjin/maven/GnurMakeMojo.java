@@ -107,7 +107,6 @@ public class GnurMakeMojo extends AbstractMojo {
       setupEnvironment();
       make();
       compileGimple();
-      archiveHeaders();
       getLog().info("Compilation of GNU R sources succeeded.");
 
     } catch (InterruptedException e) {
@@ -120,7 +119,9 @@ public class GnurMakeMojo extends AbstractMojo {
       } else {
         throw new MojoExecutionException("Compilation of GNU R sources failed", e);
       }
-    } 
+    }
+
+    archiveHeaders();
   }
 
   private void setupEnvironment() throws MojoExecutionException, IOException {
@@ -197,11 +198,11 @@ public class GnurMakeMojo extends AbstractMojo {
     File instDir = new File(project.getBasedir(), "inst");
     File includeDir = new File(instDir, "include");
     
-    if(includeDir.exists()) {
-      GccBridgeHelper.archiveHeaders(project, includeDir);
-    }
+    // Always create the headers archive, even if the inst/include
+    // to avoid breaking builds that depend on the headers
+    getLog().info("Archiving headers from " + includeDir.getAbsolutePath());
+    GccBridgeHelper.archiveHeaders(project, includeDir);
   }
-  
   
   private String findObjectFiles() {
     List<String> objectFiles = new ArrayList<>();

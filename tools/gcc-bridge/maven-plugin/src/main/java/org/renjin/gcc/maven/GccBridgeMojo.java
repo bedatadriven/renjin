@@ -20,6 +20,7 @@ import org.renjin.gcc.codegen.lib.SymbolLibrary;
 import org.renjin.gcc.codegen.lib.cpp.CppSymbolLibrary;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -30,6 +31,7 @@ import java.util.*;
 /**
  * Compiles Fortran and C sources
  */
+@ThreadSafe
 @Mojo(name = "compile",  requiresDependencyCollection = ResolutionScope.COMPILE)
 public class GccBridgeMojo extends AbstractMojo {
   

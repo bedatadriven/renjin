@@ -11,9 +11,7 @@ import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Created by alex on 18-5-16.
- */
+
 public class VoidPtrValueFunction implements ValueFunction {
   @Override
   public Type getValueType() {

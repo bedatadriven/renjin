@@ -5,6 +5,7 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.*;
+import org.renjin.gcc.codegen.fatptr.AddressableField;
 import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
 import org.renjin.gcc.codegen.type.*;
@@ -124,7 +125,7 @@ public class VoidPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
 
   @Override
   public FieldStrategy addressableFieldGenerator(Type className, String fieldName) {
-    throw new UnsupportedOperationException("TODO");
+    return new AddressableField(className, fieldName, new VoidPtrValueFunction());
   }
 
   @Override

@@ -153,16 +153,21 @@ public class GnurMakeMojo extends AbstractMojo {
 
     commandLine.add("SHLIB='dummy.so'");
     commandLine.add("OBJECTS=" + findObjectFiles());
-    commandLine.add("R_INCLUDE_DIR=" + rIncludeDir);
     commandLine.add("BRIDGE_PLUGIN=" + pluginFile);
 
     getLog().debug("Executing " + Joiner.on(" ").join(commandLine));
 
-    // Execute...
-    int exitCode = new ProcessBuilder()
+    // Setup process
+    ProcessBuilder builder = new ProcessBuilder()
         .command(commandLine)
         .directory(nativeSourceDir)
-        .inheritIO().start().waitFor();
+        .inheritIO();
+    
+    builder.environment().put("R_INCLUDE_DIR", rIncludeDir.getAbsolutePath());
+    builder.environment().put("CLINK_CPPFLAGS", "-I\"" + unpackedIncludeDir.getAbsolutePath() + "\"");
+    
+    
+    int exitCode = builder.start().waitFor();
     if (exitCode != 0) {
       throw new InternalCompilerException("Failed to execute Makefile");
     }

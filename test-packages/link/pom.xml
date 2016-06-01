@@ -53,14 +53,9 @@
           <execution>
             <id>compile-c-sources</id>
             <goals>
-              <goal>gnur-sources-compile</goal>
+              <goal>make-gnur-sources</goal>
             </goals>
             <phase>compile</phase>
-            <configuration>
-              <sourceDirectories>
-                <sourceDirectory>src</sourceDirectory>
-              </sourceDirectories>
-            </configuration>
           </execution>
           <execution>
             <goals>

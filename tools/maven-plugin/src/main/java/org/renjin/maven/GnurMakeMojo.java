@@ -127,8 +127,11 @@ public class GnurMakeMojo extends AbstractMojo {
 
 
   private void make() throws IOException, InterruptedException {
+    
+    getLog().info("PATH = " + System.getenv("PATH"));
+    
     List<String> commandLine = Lists.newArrayList();
-    commandLine.add("make");
+    commandLine.add("/usr/bin/make");
 
     // Combine R's default Makefile with package-specific Makevars if present
     File makevars = new File(nativeSourceDir, "Makevars");

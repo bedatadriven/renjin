@@ -1,8 +1,10 @@
 package org.renjin.maven;
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
+import com.google.common.io.LineProcessor;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -19,6 +21,7 @@ import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleParser;
 import org.renjin.gcc.maven.GccBridgeHelper;
+import org.renjin.gnur.GnurInstallation;
 import org.renjin.gnur.GnurSourcesCompiler;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -26,6 +29,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * Builds a package written for GNU R
@@ -82,13 +86,10 @@ public class GnurMakeMojo extends AbstractMojo {
   @Parameter(defaultValue = "${project.build.directory}/include", readonly = true)
   private File unpackedIncludeDir;
 
-  @Parameter(defaultValue = "${project.build.directory}/gnur/include", readonly = true)
-  private File rIncludeDir;
+  @Parameter(defaultValue = "${project.build.directory}/gnur", readonly = true)
+  private File homeDir;
   
-  @Parameter(defaultValue = "${project.build.directory}/gnur/Makefile", readonly = true)
-  private File makefile;
-
-  @Parameter(defaultValue = "${project.build.directory}/gnur/bridge.so", readonly = true)
+  @Parameter(defaultValue = "${project.build.directory}/bridge.so", readonly = true)
   private File pluginFile;
 
   @Parameter(defaultValue = "${project.build.directory}/gcc-bridge-logs")
@@ -127,15 +128,14 @@ public class GnurMakeMojo extends AbstractMojo {
   private void setupEnvironment() throws MojoExecutionException, IOException {
     // Unpack any headers from dependencies
     GccBridgeHelper.unpackHeaders(getLog(), unpackedIncludeDir, project.getCompileArtifacts());
-    GnurCompilation.unpackIncludes(rIncludeDir);
-    GnurCompilation.extractResource("Makefile", makefile);
+    GnurInstallation.unpackRHome(homeDir);
     Gcc.extractPluginTo(pluginFile);
   }
 
-
   private void make() throws IOException, InterruptedException {
     
-    getLog().info("PATH = " + System.getenv("PATH"));
+    File makeconfFile = new File(homeDir.getAbsolutePath() + "/etc/Makeconf");
+    File shlibMk = new File(homeDir.getAbsolutePath() + "/share/make/shlib.mk");
     
     List<String> commandLine = Lists.newArrayList();
     commandLine.add("make");
@@ -149,10 +149,16 @@ public class GnurMakeMojo extends AbstractMojo {
 
     // Makeconf file
     commandLine.add("-f");
-    commandLine.add(makefile.getAbsolutePath());
+    commandLine.add(makeconfFile.getAbsolutePath());
+    
+    commandLine.add("-f");
+    commandLine.add(shlibMk.getAbsolutePath());
 
     commandLine.add("SHLIB='dummy.so'");
-    commandLine.add("OBJECTS=" + findObjectFiles());
+    
+    if(!objectsDefinedByMakeVars(makevars)) {
+      commandLine.add("OBJECTS=" + findObjectFiles());
+    }
     commandLine.add("BRIDGE_PLUGIN=" + pluginFile);
 
     getLog().debug("Executing " + Joiner.on(" ").join(commandLine));
@@ -163,7 +169,8 @@ public class GnurMakeMojo extends AbstractMojo {
         .directory(nativeSourceDir)
         .inheritIO();
     
-    builder.environment().put("R_INCLUDE_DIR", rIncludeDir.getAbsolutePath());
+    builder.environment().put("R_HOME", homeDir.getAbsolutePath());
+    builder.environment().put("R_INCLUDE_DIR", homeDir.getAbsolutePath() + "/include");
     builder.environment().put("CLINK_CPPFLAGS", "-I\"" + unpackedIncludeDir.getAbsolutePath() + "\"");
     
     
@@ -172,6 +179,7 @@ public class GnurMakeMojo extends AbstractMojo {
       throw new InternalCompilerException("Failed to execute Makefile");
     }
   }
+
 
 
   private void compileGimple() throws MojoExecutionException {
@@ -207,6 +215,35 @@ public class GnurMakeMojo extends AbstractMojo {
     // to avoid breaking builds that depend on the headers
     getLog().info("Archiving headers from " + includeDir.getAbsolutePath());
     GccBridgeHelper.archiveHeaders(project, includeDir);
+  }
+
+
+  private boolean objectsDefinedByMakeVars(File makevars) throws IOException {
+    if(!makevars.exists()) {
+      return false;
+    }
+
+    final Pattern definitionRegexp = Pattern.compile("^OBJECTS\\s*=");
+    
+    return Files.readLines(makevars, Charsets.UTF_8, new LineProcessor<Boolean>() {
+      
+      private boolean defined = false;
+      
+      @Override
+      public boolean processLine(String line) throws IOException {
+        if(definitionRegexp.matcher(line).find()) {
+          defined = true;
+          return false;
+        }
+        // Keep processing
+        return true;
+      }
+
+      @Override
+      public Boolean getResult() {
+        return defined;
+      }
+    });
   }
   
   private String findObjectFiles() {

@@ -23,10 +23,25 @@
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
-  <artifactId>renjin-gnur-headers</artifactId>
-  <name>Renjin GNU R Headers</name>
+  <artifactId>renjin-gnur-installation</artifactId>
+  <name>Renjin GNU R Installation</name>
+  <description>GNU R Headers, makefiles, and scripts expected by package builds and adapted to 
+  allow compilation of packages for Renjin.</description>
+  
+  <dependencies>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+    </dependency>
+  </dependencies>
   
   <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <targetPath>org/renjin/gnur</targetPath>
+      </resource>
+    </resources>
     <plugins>
       <plugin>
         <groupId>org.renjin</groupId>
@@ -39,7 +54,7 @@
               <goal>archive-headers</goal>
             </goals>
             <configuration>
-              <includeDirectory>${basedir}/include</includeDirectory>
+              <includeDirectory>${basedir}/src/main/resources/include</includeDirectory>
             </configuration>
           </execution>
         </executions>

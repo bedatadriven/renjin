@@ -1140,6 +1140,8 @@ static void finish_unit_callback (void *gcc_data, void *user_data)
 
 
   json_end_object();
+  
+  fclose(json_f);
 }
 
 static struct gimple_opt_pass dump_functions_pass =
@@ -1190,7 +1192,7 @@ plugin_init (struct plugin_name_args *plugin_info,
   if(!json_f) {
     char jsonfile[1024];
     sprintf(jsonfile, "%s.gimple", main_input_filename);
-    printf("Writing gimple to %s...\n", jsonfile);
+    TRACE("Writing gimple to %s...\n", jsonfile);
     json_f = fopen(jsonfile, "w");
   }
 

@@ -29,7 +29,7 @@
     </dependency>
     <dependency>
       <groupId>org.renjin</groupId>
-      <artifactId>renjin-gnur-headers</artifactId>
+      <artifactId>renjin-gnur-installation</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

@@ -14,6 +14,7 @@ import org.apache.maven.project.MavenProjectHelper;
 import org.renjin.gcc.maven.GccBridgeHelper;
 import org.renjin.gnur.GnurSourcesCompiler;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
 import java.util.List;
 
@@ -21,6 +22,7 @@ import java.util.List;
  * Compiles gnur C/Fortran sources to a JVM class
 
  */
+@ThreadSafe
 @Mojo(name = "gnur-sources-compile", requiresDependencyCollection = ResolutionScope.COMPILE)
 public class GnurCompilerMojo extends AbstractMojo {
 
@@ -111,7 +113,7 @@ public class GnurCompilerMojo extends AbstractMojo {
         compiler.addIncludeDir(includeDirectory);
       }
     }
-
+  
     try {
       compiler.compile();
       getLog().info("Compilation of GNU R sources succeeded.");

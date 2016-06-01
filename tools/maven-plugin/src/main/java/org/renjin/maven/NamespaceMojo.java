@@ -15,6 +15,7 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.renjin.packaging.PackageDescription;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -28,6 +29,7 @@ import java.util.Set;
 /**
  * Compiles R sources into a serialized blob
  */
+@ThreadSafe
 @Mojo(name = "namespace-compile",
       defaultPhase = LifecyclePhase.COMPILE, 
       requiresDependencyResolution = ResolutionScope.COMPILE)

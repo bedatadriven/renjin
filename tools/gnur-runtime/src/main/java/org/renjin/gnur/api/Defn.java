@@ -895,8 +895,5 @@ public final class Defn {
   public static CharPtr locale2charset(CharPtr p0) {
     throw new UnimplementedGnuApiMethod("locale2charset");
   }
-
-  public static Ptr alloca(/*size_t*/ int p0) {
-    throw new UnimplementedGnuApiMethod("alloca");
-  }
+  
 }

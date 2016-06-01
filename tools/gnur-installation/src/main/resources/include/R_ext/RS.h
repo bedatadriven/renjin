@@ -56,17 +56,17 @@ extern "C" {
 // RENJIN: Dummy mappings
 extern void *malloc (size_t __size);
 #define	R_chk_calloc(numItems, sizeOfItem) malloc((numItems)*(sizeOfItem))
-extern void *R_chk_realloc(void *, size_t);
+#define R_chk_realloc realloc
 #define R_chk_free(x) ((void)0)
 
 #ifndef STRICT_R_HEADERS
 /* S-PLUS 3.x but not 5.x NULLs the pointer in the following */
 #define Calloc(n, t)   (t *) R_chk_calloc( (size_t) (n), sizeof(t) )
-#define Realloc(p,n,t) (t *) R_chk_realloc( (void *)(p), (size_t)((n) * sizeof(t)) )
+#define Realloc(p,n,t) (t *) realloc( (void *)(p), (size_t)((n) * sizeof(t)) )
 #define Free(p)        (R_chk_free( (void *)(p) ), (p) = NULL)
 #endif
 #define R_Calloc(n, t)   (t *) R_chk_calloc( (size_t) (n), sizeof(t) )
-#define R_Realloc(p,n,t) (t *) R_chk_realloc( (void *)(p), (size_t)((n) * sizeof(t)) )
+#define R_Realloc(p,n,t) (t *) realloc( (void *)(p), (size_t)((n) * sizeof(t)) )
 #define R_Free(p)      (R_chk_free( (void *)(p) ), (p) = NULL)
 
 #define Memcpy(p,q,n)  memcpy( p, q, (size_t)(n) * sizeof(*p) )

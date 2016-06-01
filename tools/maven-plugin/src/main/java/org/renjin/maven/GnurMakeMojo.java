@@ -97,6 +97,12 @@ public class GnurMakeMojo extends AbstractMojo {
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
+    
+    if(!nativeSourceDir.exists()) {
+      getLog().info("No src/ directory, nothing to do.");
+      return;
+    }
+    
     try {
       setupEnvironment();
       make();
@@ -131,7 +137,7 @@ public class GnurMakeMojo extends AbstractMojo {
     getLog().info("PATH = " + System.getenv("PATH"));
     
     List<String> commandLine = Lists.newArrayList();
-    commandLine.add("/usr/bin/make");
+    commandLine.add("make");
 
     // Combine R's default Makefile with package-specific Makevars if present
     File makevars = new File(nativeSourceDir, "Makevars");

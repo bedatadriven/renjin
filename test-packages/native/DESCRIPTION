@@ -1,0 +1,4 @@
+Package: native
+Title: Native Package Test
+Version: 0.1
+NeedsCompilation: yes

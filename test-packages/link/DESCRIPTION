@@ -1,0 +1,4 @@
+Package: native
+Title: Link Package Test
+Version: 0.1
+NeedsCompilation: yes

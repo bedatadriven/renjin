@@ -130,7 +130,7 @@ public class GnurMakeMojo extends AbstractMojo {
     try {
       description = PackageDescription.fromFile(new File(project.getBasedir(), "DESCRIPTION"));
     } catch (IOException e) {
-      throw new MojoExecutionException("Failed to read package DESCRIPTION file");
+      throw new MojoExecutionException("Failed to read package DESCRIPTION file", e);
     }
     return description;
   }

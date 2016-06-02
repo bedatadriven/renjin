@@ -23,6 +23,7 @@ import org.renjin.gcc.gimple.GimpleParser;
 import org.renjin.gcc.maven.GccBridgeHelper;
 import org.renjin.gnur.GnurInstallation;
 import org.renjin.gnur.GnurSourcesCompiler;
+import org.renjin.packaging.PackageDescription;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
@@ -98,31 +99,40 @@ public class GnurMakeMojo extends AbstractMojo {
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
-    
-    if(!nativeSourceDir.exists()) {
-      getLog().info("No src/ directory, nothing to do.");
-      return;
-    }
-    
-    try {
-      setupEnvironment();
-      make();
-      compileGimple();
-      getLog().info("Compilation of GNU R sources succeeded.");
 
-    } catch (InterruptedException e) {
-      throw new MojoExecutionException("Interrupted");
+    PackageDescription description = readDescription();
+    
+    if(description.isCompilationNeeded()) {
+      try {
+        setupEnvironment();
+        make();
+        compileGimple();
+        getLog().info("Compilation of GNU R sources succeeded.");
 
-    } catch (Exception e) {
-      if (ignoreFailure) {
-        getLog().error("Compilation of GNU R sources failed.");
-        e.printStackTrace(System.err);
-      } else {
-        throw new MojoExecutionException("Compilation of GNU R sources failed", e);
+      } catch (InterruptedException e) {
+        throw new MojoExecutionException("Interrupted");
+
+      } catch (Exception e) {
+        if (ignoreFailure) {
+          getLog().error("Compilation of GNU R sources failed.");
+          e.printStackTrace(System.err);
+        } else {
+          throw new MojoExecutionException("Compilation of GNU R sources failed", e);
+        }
       }
     }
 
     archiveHeaders();
+  }
+
+  private PackageDescription readDescription() throws MojoExecutionException {
+    PackageDescription description;
+    try {
+      description = PackageDescription.fromFile(new File(project.getBasedir(), "DESCRIPTION"));
+    } catch (IOException e) {
+      throw new MojoExecutionException("Failed to read package DESCRIPTION file");
+    }
+    return description;
   }
 
   private void setupEnvironment() throws MojoExecutionException, IOException {
@@ -173,14 +183,11 @@ public class GnurMakeMojo extends AbstractMojo {
     builder.environment().put("R_INCLUDE_DIR", homeDir.getAbsolutePath() + "/include");
     builder.environment().put("CLINK_CPPFLAGS", "-I\"" + unpackedIncludeDir.getAbsolutePath() + "\"");
     
-    
     int exitCode = builder.start().waitFor();
     if (exitCode != 0) {
       throw new InternalCompilerException("Failed to execute Makefile");
     }
   }
-
-
 
   private void compileGimple() throws MojoExecutionException {
 
@@ -211,10 +218,10 @@ public class GnurMakeMojo extends AbstractMojo {
     File instDir = new File(project.getBasedir(), "inst");
     File includeDir = new File(instDir, "include");
     
-    // Always create the headers archive, even if the inst/include
-    // to avoid breaking builds that depend on the headers
-    getLog().info("Archiving headers from " + includeDir.getAbsolutePath());
-    GccBridgeHelper.archiveHeaders(project, includeDir);
+    if(includeDir.exists()) {
+      getLog().info("Archiving headers from " + includeDir.getAbsolutePath());
+      GccBridgeHelper.archiveHeaders(project, includeDir);
+    }
   }
 
 

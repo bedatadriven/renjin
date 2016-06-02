@@ -245,5 +245,10 @@ public class PackageDescription {
   public Iterable<String> getProperties() {
     return properties.keySet();
   }
-
+  
+  public boolean isCompilationNeeded() {
+    String needed = Strings.nullToEmpty(getFirstProperty("NeedsCompilation")).trim();
+    
+    return "yes".equalsIgnoreCase(needed);
+  }
 }

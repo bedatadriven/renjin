@@ -1,13 +1,16 @@
 package org.renjin.primitives.combine;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.ArgumentList;
 import org.renjin.invoke.annotations.Current;
+import org.renjin.invoke.codegen.ArgumentIterator;
 import org.renjin.sexp.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Special function to do rbind and use objectnames as rownames
@@ -21,7 +24,7 @@ public class RowBindFunction extends AbstractBindFunction {
   @Override
   public SEXP apply(Context context, Environment rho, FunctionCall call, PairList arguments) {
 
-    int deparseLevel = arguments.getElementAsSEXP(0);
+    int deparseLevel = ((Vector) context.evaluate( call.getArgument(0), rho)).getElementAsInt(0);
 
     SEXP genericResult = tryBindDispatch(context, rho, "rbind", deparseLevel, arguments);
     if (genericResult != null) {
@@ -29,12 +32,21 @@ public class RowBindFunction extends AbstractBindFunction {
     }
 
     List<BindArgument> bindArguments = Lists.newArrayList();
-    for (int i = 0; i != arguments.length(); ++i) {
-      Vector argument = EvalException.checkedCast(arguments.getElementAsSEXP(i));
-      if (argument.length() != 0) {
-        bindArguments.add(new BindArgument(null, argument, true));
+    Map<Symbol, SEXP> propertyValues = Maps.newHashMap();
+
+    ArgumentIterator argumentItr = new ArgumentIterator(context, rho, arguments);
+    while(argumentItr.hasNext()) {
+      PairList.Node currentNode = argumentItr.nextNode();
+      SEXP evaled = context.evaluate( currentNode.getValue(), rho);
+
+      if(currentNode.hasTag()) {
+        propertyValues.put(currentNode.getTag(), evaled);
+      } else {
+        bindArguments.add(new BindArgument(currentNode.getName(), (Vector) evaled, false));
       }
     }
+
+    bindArguments.remove(0);
 
     if (bindArguments.isEmpty()) {
       return Null.INSTANCE;
@@ -70,7 +82,7 @@ public class RowBindFunction extends AbstractBindFunction {
     // now check that all vectors lengths are multiples of the column length
     for (BindArgument argument : bindArguments) {
       if (!argument.matrix) {
-        if ((columns % argument.vector.length()) != 0) {
+        if ( argument.vector.length() > 0 && (columns % argument.vector.length()) != 0) {
           throw new EvalException("number of columns of result is not a multiple of vector length");
         }
       }

@@ -38,4 +38,8 @@ public class JlineSessionController extends SessionController {
     return 0;
   }
 
+  @Override
+  public boolean isTerminal() {
+    return terminal.isAnsiSupported();
+  }
 }

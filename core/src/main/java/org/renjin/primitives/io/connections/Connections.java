@@ -153,6 +153,16 @@ public class Connections {
     return terminal(ConnectionTable.STDERR_HANDLE);
   }
   
+  @Internal
+  public static boolean isatty(@Current Context context, SEXP connHandle) {
+    int connectionIndex = getConnectionIndex(connHandle);
+    
+    return (connectionIndex == ConnectionTable.STDIN_HANDLE || 
+       connectionIndex == ConnectionTable.STDERR_HANDLE ||
+        connectionIndex == ConnectionTable.STDOUT_HANDLE) &&
+        context.getSession().getSessionController().isTerminal();
+  }
+  
   private static IntVector terminal(int index) {
     return new IntArrayVector(new int[] { index },
             AttributeMap.builder()
@@ -282,11 +292,15 @@ public class Connections {
   
   
   public static Connection getConnection(Context context, SEXP conn) {
+    int connIndex = getConnectionIndex(conn);
+    return context.getSession().getConnectionTable().getConnection(connIndex);
+  }
+
+  private static int getConnectionIndex(SEXP conn) {
     if(!conn.inherits("connection") || !(conn instanceof Vector) || conn.length() != 1) {
       throw new EvalException("'con' is not a connection");
     }
-    int connIndex = ((Vector)conn).getElementAsInt(0);
-    return context.getSession().getConnectionTable().getConnection(connIndex);
+    return ((Vector)conn).getElementAsInt(0);
   }
 
   private static IntVector newConnection(final Context context, String open, Connection conn) throws IOException, FileSystemException {

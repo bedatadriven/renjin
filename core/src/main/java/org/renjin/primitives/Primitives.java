@@ -911,6 +911,7 @@ public class Primitives {
     f("stdin", Connections.class, 11);
     f("stdout", Connections.class, 11);
     f("stderr", Connections.class, 11);
+    f("isatty", Connections.class, 11);
     f("readLines",Connections.class, 11);
     f("writeLines", Connections.class, 11);
     f("readBin", /*readbin*/ null, 11);

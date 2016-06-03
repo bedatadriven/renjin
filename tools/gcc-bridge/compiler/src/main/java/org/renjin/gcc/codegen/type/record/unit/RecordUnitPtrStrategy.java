@@ -14,6 +14,7 @@ import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.type.primitive.ConstantValue;
 import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.codegen.type.record.RecordConstructor;
+import org.renjin.gcc.codegen.type.voidt.VoidPtrStrategy;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.GimpleVarDecl;
@@ -70,6 +71,9 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
       return Expressions.uncheckedCast(ptr.getArray(), strategy.getJvmType());
       
     } else if(typeStrategy instanceof RecordUnitPtrStrategy) {
+      return Expressions.cast((SimpleExpr) value, strategy.getJvmType());
+      
+    } else if(typeStrategy instanceof VoidPtrStrategy) {
       return Expressions.cast((SimpleExpr) value, strategy.getJvmType());
     }
     throw new UnsupportedCastException();

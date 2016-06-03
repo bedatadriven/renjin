@@ -732,6 +732,15 @@ public class GimpleCompilerTest extends AbstractGccTest {
     Method int32_to_uint8 = clazz.getMethod("int32_to_uint8", int.class);
     assertThat((Integer)int32_to_uint8.invoke(null, -20), equalTo(236));
     
+    // From uint32 to uint8
+    Method uint32_to_uint8 = clazz.getMethod("uint32_to_uint8", int.class);
+    assertThat((Integer)uint32_to_uint8.invoke(null, 0), equalTo(0));
+    assertThat((Integer)uint32_to_uint8.invoke(null, 0x7F), equalTo(127));
+    assertThat((Integer)uint32_to_uint8.invoke(null, 0x80), equalTo(128));
+    assertThat((Integer)uint32_to_uint8.invoke(null, 0xFF), equalTo(255));
+    assertThat((Integer)uint32_to_uint8.invoke(null, 0x100), equalTo(0));
+    assertThat((Integer)uint32_to_uint8.invoke(null, 0x400), equalTo(0));
+    assertThat((Integer)uint32_to_uint8.invoke(null, 0xFFFFFFFF), equalTo(255));
   }
   
 

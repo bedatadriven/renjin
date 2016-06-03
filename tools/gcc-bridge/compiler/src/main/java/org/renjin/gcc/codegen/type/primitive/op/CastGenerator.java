@@ -387,7 +387,7 @@ public class CastGenerator implements SimpleExpr {
   }
   
   public static void castUnsignedInt32ToUnsignedInt8(MethodGenerator mv) {
-    throw new UnsupportedOperationException();
+    mv.visitInsn(Opcodes.I2B);
   }
   
   public static void castUnsignedInt32ToInt16(MethodGenerator mv) { 

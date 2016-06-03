@@ -29,3 +29,9 @@ int int32_to_uint8(int x) {
     int z = y;
     return z;
 }
+
+int uint32_to_uint8(unsigned int x) {
+    unsigned char y = x;
+    int z = y;
+    return z;
+}

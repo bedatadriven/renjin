@@ -9,6 +9,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
+import static com.google.common.primitives.UnsignedBytes.checkedCast;
 import static java.lang.Double.NaN;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
@@ -446,6 +447,13 @@ public class GimpleCompilerTest extends AbstractGccTest {
     assertThat(call(clazz, "byte_lshift", (byte)1, (byte)7), equalTo(0x80));
     assertThat(call(clazz, "byte_lshift", (byte)1, (byte)8), equalTo(0));
     assertThat(call(clazz, "byte_lshift", (byte)1, (byte)10), equalTo(0));
+    
+    Method bitwiseNotUint8 = clazz.getMethod("bitwise_not_uint8", byte.class);
+    assertThat((Integer)bitwiseNotUint8.invoke(null, checkedCast(0x00)), equalTo(0xFF));
+    assertThat((Integer)bitwiseNotUint8.invoke(null, checkedCast(0x01)), equalTo(0xFE));
+    assertThat((Integer)bitwiseNotUint8.invoke(null, checkedCast(0xF)), equalTo(0xF0));
+    assertThat((Integer)bitwiseNotUint8.invoke(null, checkedCast(0xF1)), equalTo(0x0E));
+    assertThat((Integer)bitwiseNotUint8.invoke(null, checkedCast(0xFF)), equalTo(0x00));
   }
   
   @Test

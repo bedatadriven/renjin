@@ -23,14 +23,25 @@ public class BitwiseNot implements SimpleExpr {
 
   @Override
   public void load(@Nonnull MethodGenerator mv) {
-    if(!argument.getType().equals(Type.INT_TYPE)) {
-      throw new UnsupportedOperationException("Bitwise not only supported for int32 operands.");
-    }
-
     // Unary bitwise complement operator is implemented
     // as an XOR operation with -1 (all bits set)
     argument.load(mv);
-    mv.iconst(-1);
-    mv.xor(Type.INT_TYPE);
+    
+    if(argument.getType().equals(Type.INT_TYPE)) {
+      mv.iconst(-1);
+      mv.xor(Type.INT_TYPE);
+
+    } else if (argument.getType().equals(Type.BYTE_TYPE)) {
+      mv.iconst(0xFF);
+      mv.xor(Type.BYTE_TYPE);
+
+    } else if (argument.getType().equals(Type.CHAR_TYPE)) {
+      // unsigned 16 bit
+      mv.iconst(0xFFFF);
+      mv.xor(Type.CHAR_TYPE);
+      
+    } else {
+      throw new UnsupportedOperationException("Unsupported type for bitwise not operator: "  + argument.getType());
+    }
   }
 }

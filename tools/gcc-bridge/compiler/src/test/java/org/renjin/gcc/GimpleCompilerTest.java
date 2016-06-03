@@ -457,6 +457,11 @@ public class GimpleCompilerTest extends AbstractGccTest {
   }
   
   @Test
+  public void pointerCasting() throws Exception {
+    compileAndTest("ptr_cast.c");
+  }
+  
+  @Test
   public void hclust() throws Exception {
     Class clazz = compile("hclust.f");
 

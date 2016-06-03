@@ -332,15 +332,26 @@ public class ExprFactory {
     }
   }
 
-
-
   private Expr memRef(GimpleMemRef gimpleExpr, GimpleType expectedType) {
+    GimpleExpr pointer = gimpleExpr.getPointer();
+    GimpleIndirectType pointerType = (GimpleIndirectType) pointer.getType();
+    
+    if(pointerType.getBaseType() instanceof GimpleVoidType) {
+      // We can't dereference a null pointer, so cast the pointer first, THEN dereference
+      return castThenDereference(gimpleExpr, expectedType);
+    
+    } else {
+      return dereferenceThenCast(gimpleExpr, expectedType);
+    }
+  }
+
+  private Expr castThenDereference(GimpleMemRef gimpleExpr, GimpleType expectedType) {
     GimpleExpr pointer = gimpleExpr.getPointer();
     GimpleIndirectType pointerType = (GimpleIndirectType) pointer.getType();
     GimpleIndirectType expectedPointerType = expectedType.pointerTo();
     
+    // Cast from the void pointer type to the "expected" pointer type
     Expr ptrExpr = maybeCast(findGenerator(pointer), expectedPointerType, pointerType);
-
     PointerTypeStrategy pointerStrategy = typeOracle.forPointerType(expectedPointerType);
 
     if(!gimpleExpr.isOffsetZero()) {
@@ -350,6 +361,23 @@ public class ExprFactory {
     }
 
     return pointerStrategy.valueOf(ptrExpr);
+  }
+  
+  private Expr dereferenceThenCast(GimpleMemRef gimpleExpr, GimpleType expectedType) {
+    GimpleExpr pointer = gimpleExpr.getPointer();
+    GimpleIndirectType pointerType = (GimpleIndirectType) pointer.getType();
+    PointerTypeStrategy pointerStrategy = typeOracle.forPointerType(pointerType);
+
+    Expr ptrExpr = findGenerator(pointer);
+
+    if(!gimpleExpr.isOffsetZero()) {
+      SimpleExpr offsetInBytes = findValueGenerator(gimpleExpr.getOffset());
+      ptrExpr =  pointerStrategy.pointerPlus(ptrExpr, offsetInBytes);
+    }
+    
+    Expr valueExpr = pointerStrategy.valueOf(ptrExpr);
+
+    return maybeCast(valueExpr, pointerType.getBaseType(), expectedType);
   }
 
   private Expr pointerPlus(GimpleExpr pointerExpr, GimpleExpr offsetExpr, GimpleType expectedType) {

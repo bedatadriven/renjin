@@ -461,6 +461,19 @@ public class GimpleCompilerTest extends AbstractGccTest {
     compileAndTest("ptr_cast.c");
   }
   
+  @Test(expected = ClassCastException.class)
+  public void illegalPointerCast() throws Throwable {
+    Class clazz = compile("illegal_cast.c");
+
+    Method method = clazz.getMethod("do_cast");
+    try {
+      method.invoke(null);
+
+    } catch (InvocationTargetException e) {
+      throw e.getCause();
+    }
+  }
+  
   @Test
   public void hclust() throws Exception {
     Class clazz = compile("hclust.f");

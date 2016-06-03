@@ -190,7 +190,7 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtrExpr> {
       if(ptrExpr.isAddressable()) {
         address = ptrExpr.addressOf();
       }
-      SimpleExpr castedArray = Expressions.cast(ptrExpr.getArray(), arrayType);
+      SimpleExpr castedArray = Expressions.uncheckedCast(ptrExpr.getArray(), arrayType);
       SimpleExpr offset = ptrExpr.getOffset();
       
       return new FatPtrExpr(address, castedArray, offset);

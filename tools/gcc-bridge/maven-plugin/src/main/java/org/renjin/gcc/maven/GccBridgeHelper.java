@@ -28,9 +28,11 @@ public class GccBridgeHelper {
   private MavenProject project;
   
   public static void archiveHeaders(Log log, MavenProject project, File... includeDirectories) throws MojoExecutionException {
-
+    
     File outputDir = new File(project.getBuild().getDirectory());
     File archiveFile = new File(outputDir, project.getBuild().getFinalName() + "-headers.jar");
+
+    ensureDirExists(outputDir);
 
     try (JarOutputStream output = new JarOutputStream(new FileOutputStream(archiveFile))) {
       for (File includeDirectory : includeDirectories) {

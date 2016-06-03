@@ -827,6 +827,11 @@ public class GimpleCompilerTest extends AbstractGccTest {
   }
   
   @Test
+  public void longDouble() throws Exception {
+    compileAndTest("long_double.c");
+  }
+  
+  @Test
   public void voidPointers() throws Exception {
     Class clazz = compile("void_ptr.c");
     

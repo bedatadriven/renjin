@@ -81,7 +81,13 @@ public class CastGenerator implements SimpleExpr {
         return "Int" + precision;
       }
     } else if(type instanceof GimpleRealType) {
-      return "Real" + ((GimpleRealType) type).getPrecision();
+      int precision = ((GimpleRealType) type).getPrecision();
+      if(precision <= 32) {
+        precision = 32;
+      } else {
+        precision = 64;
+      }
+      return "Real" + precision;
       
     } else if(type instanceof GimpleBooleanType) {
       return "Bool";

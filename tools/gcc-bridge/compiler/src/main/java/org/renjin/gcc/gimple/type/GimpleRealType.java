@@ -21,7 +21,7 @@ public class GimpleRealType extends GimplePrimitiveType {
   }
 
   public void setPrecision(int precision) {
-    Preconditions.checkArgument(precision == 32 || precision == 64);
+    Preconditions.checkArgument(precision > 0);
     setSize(precision);
   }
 
@@ -52,22 +52,15 @@ public class GimpleRealType extends GimplePrimitiveType {
 
   @Override
   public int localVariableSlots() {
-    if(getPrecision() == 64) {
-      return 2;
-    } else {
-      return 1;
-    }
+    return jvmType().getSize();
   }
 
   @Override
   public Type jvmType() {
-    switch (getPrecision()) {
-      case 32:
-        return Type.FLOAT_TYPE;
-      case 64:
-        return Type.DOUBLE_TYPE;
-      default:
-        throw new UnsupportedOperationException("Precision: " + getSize());
+    if(getPrecision() <= 32) {
+      return Type.FLOAT_TYPE;
+    } else {
+      return Type.DOUBLE_TYPE;
     }
   }
 

@@ -62,7 +62,14 @@ public class MemCopyCallGenerator implements CallGenerator {
     if(call.getLhs() != null) {
       // memcpy() returns the destination pointer
       LValue lhs = (LValue) exprFactory.findGenerator(call.getLhs());
-      lhs.store(mv, destinationPtr);
+      PointerTypeStrategy lhsStrategy = typeOracle.forPointerType(call.getLhs().getType());
+
+      try {
+        lhs.store(mv, lhsStrategy.cast(destinationPtr, destinationStrategy));
+      } catch (UnsupportedCastException e) {
+        throw new InternalCompilerException(String.format("Cannot assign result of memcpy => %s to %s\n", 
+            destinationStrategy, lhsStrategy));
+      }
     }
   }
 }

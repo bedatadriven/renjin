@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.fatptr;
 
+import com.google.common.base.Optional;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expr;
@@ -36,9 +37,14 @@ public class FatPtrParamStrategy implements ParamStrategy {
   }
 
   @Override
-  public void loadParameter(MethodGenerator mv, Expr argument) {
-    FatPtrExpr expr = (FatPtrExpr) argument;
-    expr.getArray().load(mv);
-    expr.getOffset().load(mv);
+  public void loadParameter(MethodGenerator mv, Optional<Expr> argument) {
+    if(argument.isPresent()) {
+      FatPtrExpr expr = (FatPtrExpr) argument.get();
+      expr.getArray().load(mv);
+      expr.getOffset().load(mv);
+    } else {
+      mv.aconst(null);
+      mv.iconst(0);
+    }
   }
 }

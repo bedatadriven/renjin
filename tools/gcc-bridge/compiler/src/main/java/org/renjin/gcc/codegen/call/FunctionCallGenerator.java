@@ -3,7 +3,6 @@ package org.renjin.gcc.codegen.call;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import org.objectweb.asm.Type;
-import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
@@ -40,17 +39,13 @@ public class FunctionCallGenerator implements CallGenerator, MethodHandleGenerat
     // The number of fixed (gimple) parameters expected, excluding var args
     // the number of Jvm arguments may be greater
     int fixedArgCount = strategy.getParamStrategies().size();
-    if(call.getOperands().size() < fixedArgCount) {
-      throw new InternalCompilerException(String.format("Number of provided arguments (%d) does not match " +
-          "number of expected arguments (%d) for " + strategy,
-          call.getOperands().size(),
-          fixedArgCount));
-    }
     
     // Make a list of (fixed) call arguments
     List<Expr> argumentExpressions = Lists.newArrayList();
     for (int i = 0; i < fixedArgCount; i++) {
-      argumentExpressions.add(exprFactory.findGenerator(call.getOperand(i)));
+      if(i < call.getOperands().size()) {
+        argumentExpressions.add(exprFactory.findGenerator(call.getOperand(i)));
+      }
     }
 
     // if this method accepts var args, then we pass the 
@@ -126,7 +121,11 @@ public class FunctionCallGenerator implements CallGenerator, MethodHandleGenerat
       List<ParamStrategy> paramStrategies = strategy.getParamStrategies();
       for (int i = 0; i < paramStrategies.size(); i++) {
         ParamStrategy paramStrategy = paramStrategies.get(i);
-        paramStrategy.loadParameter(mv, arguments.get(i));
+        if(i < arguments.size()) {
+          paramStrategy.loadParameter(mv, Optional.of(arguments.get(i)));
+        } else {
+          paramStrategy.loadParameter(mv, Optional.<Expr>absent());
+        }
       }
       if(varArgArray.isPresent()) {
         varArgArray.get().load(mv);

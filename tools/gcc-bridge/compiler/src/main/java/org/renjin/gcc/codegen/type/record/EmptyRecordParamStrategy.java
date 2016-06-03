@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.type.record;
 
+import com.google.common.base.Optional;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expr;
@@ -25,7 +26,7 @@ public class EmptyRecordParamStrategy implements ParamStrategy {
   }
 
   @Override
-  public void loadParameter(MethodGenerator mv, Expr argument) {
+  public void loadParameter(MethodGenerator mv, Optional<Expr> argument) {
     // NOOP
   }
 }

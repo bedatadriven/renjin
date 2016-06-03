@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.type.record;
 
+import com.google.common.base.Optional;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expr;
@@ -39,12 +40,17 @@ public class RecordArrayParamStrategy implements ParamStrategy {
   }
 
   @Override
-  public void loadParameter(MethodGenerator mv, Expr argument) {
+  public void loadParameter(MethodGenerator mv, Optional<Expr> argument) {
 
     // We're passing by VALUE, so we have to make a copy of the array.
-    RecordArrayExpr recordVar = (RecordArrayExpr) argument;
-    SimpleExpr arrayCopy = recordVar.copyArray();
-    
-    arrayCopy.load(mv);
+    if(argument.isPresent()) {
+      RecordArrayExpr recordVar = (RecordArrayExpr) argument.get();
+      SimpleExpr arrayCopy = recordVar.copyArray();
+
+      arrayCopy.load(mv);
+    } else {
+      // Argument not supplied, stack will be corrupted
+      mv.aconst(null);
+    }
   }
 }

@@ -175,4 +175,9 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
   public Type getJvmType() {
     return strategy.getJvmType();
   }
+
+  @Override
+  public String toString() {
+    return "RecordUnitPtrStrategy[" + strategy.getRecordTypeDef().getName() + "]";
+  }
 }

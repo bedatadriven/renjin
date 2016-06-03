@@ -55,4 +55,8 @@ public class ArrayValueFunction implements ValueFunction {
     return elementValueFunction.getValueConstructor();
   }
 
+  @Override
+  public String toString() {
+    return "Array[" + elementValueFunction + "]";
+  }
 }

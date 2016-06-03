@@ -220,4 +220,9 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<SimpleExpr> {
   public RecordUnitPtrStrategy pointerToUnit() {
     return new RecordUnitPtrStrategy(this);
   }
+
+  @Override
+  public String toString() {
+    return "RecordClassTypeStrategy[" + recordTypeDef.getName() + "]";
+  }
 }

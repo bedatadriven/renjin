@@ -146,4 +146,8 @@ public class VoidPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
     throw new UnsupportedCastException();
   }
 
+  @Override
+  public String toString() {
+    return "VoidPtrStrategy";
+  }
 }

@@ -117,4 +117,8 @@ public class PrimitiveTypeStrategy implements TypeStrategy<SimpleExpr> {
     return new PrimitiveValueFunction(type);
   }
 
+  @Override
+  public String toString() {
+    return "PrimitiveTypeStrategy[" + type + "]";
+  }
 }

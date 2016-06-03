@@ -242,4 +242,8 @@ public class RecordArrayTypeStrategy extends RecordTypeStrategy<RecordArrayExpr>
     return new ArrayTypeStrategy(arrayType, valueFunction);
   }
 
+  @Override
+  public String toString() {
+    return "RecordArrayTypeStrategy[" + valueFunction.getValueType() + "]";
+  }
 }

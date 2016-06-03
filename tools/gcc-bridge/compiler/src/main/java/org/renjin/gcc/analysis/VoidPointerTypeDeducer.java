@@ -3,11 +3,9 @@ package org.renjin.gcc.analysis;
 import com.google.common.collect.Sets;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.gimple.*;
-import org.renjin.gcc.gimple.expr.GimpleConstant;
-import org.renjin.gcc.gimple.expr.GimpleExpr;
-import org.renjin.gcc.gimple.expr.GimpleMemRef;
-import org.renjin.gcc.gimple.expr.GimpleVariableRef;
+import org.renjin.gcc.gimple.expr.*;
 import org.renjin.gcc.gimple.statement.GimpleAssignment;
+import org.renjin.gcc.gimple.statement.GimpleCall;
 import org.renjin.gcc.gimple.statement.GimpleConditional;
 import org.renjin.gcc.gimple.statement.GimpleStatement;
 import org.renjin.gcc.gimple.type.GimplePointerType;
@@ -130,6 +128,52 @@ public class VoidPointerTypeDeducer implements FunctionBodyTransformer {
           } else if(isReference(assignment.getLHS())) {
             inferPossibleTypes(rhs);
           }
+      }
+    }
+
+    @Override
+    public void visitCall(GimpleCall gimpleCall) {
+      if(gimpleCall.getFunction() instanceof GimpleFunctionRef) {
+        GimpleFunctionRef ref = (GimpleFunctionRef) gimpleCall.getFunction();
+        switch (ref.getName()) {
+          case "memcpy":
+          case "__builtin_memcpy":
+            inferFromMemCopy(gimpleCall);
+            break;
+          
+          case "memcmp":
+          case "__builtin_memcmp":
+            inferFromMemCmp(gimpleCall);
+            break;
+        }
+      }
+    }
+
+    private void inferFromMemCmp(GimpleCall gimpleCall) {
+      GimpleExpr x = gimpleCall.getOperand(0);
+      GimpleExpr y = gimpleCall.getOperand(1);
+      
+      if(isReference(x)) {
+        inferPossibleTypes(y);
+      } else if(isReference(y)) {
+        inferPossibleTypes(x);
+      }
+    }
+
+    private void inferFromMemCopy(GimpleCall gimpleCall) {
+      GimpleExpr destination = gimpleCall.getOperand(0);
+      GimpleExpr source = gimpleCall.getOperand(1);
+      
+      if(isReference(destination)) {
+        inferPossibleTypes(source);
+      } else if(isReference(source)) {
+        inferPossibleTypes(destination);
+      }
+      
+      if(isReference(destination) || isReference(source)) {
+        if(gimpleCall.getLhs() != null) {
+          inferPossibleTypes(gimpleCall.getLhs());
+        }
       }
     }
 

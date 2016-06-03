@@ -143,4 +143,9 @@ public class FunPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
   public SimpleExpr valueOf(SimpleExpr pointerExpr) {
     return pointerExpr;
   }
+
+  @Override
+  public String toString() {
+    return "FunPtrStrategy";
+  }
 }

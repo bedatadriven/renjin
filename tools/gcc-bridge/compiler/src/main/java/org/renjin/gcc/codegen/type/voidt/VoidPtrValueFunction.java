@@ -43,4 +43,9 @@ public class VoidPtrValueFunction implements ValueFunction {
     FatPtrExpr fatPtrExpr = (FatPtrExpr) expr;
     return Collections.singletonList(fatPtrExpr.wrap());
   }
+
+  @Override
+  public String toString() {
+    return "VoidPtr";
+  }
 }

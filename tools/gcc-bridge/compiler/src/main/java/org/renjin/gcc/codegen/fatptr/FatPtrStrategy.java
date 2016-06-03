@@ -298,4 +298,8 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtrExpr> {
     return new FatPtrExpr(arrayVar, offsetVar);
   }
 
+  @Override
+  public String toString() {
+    return "FatPtrStrategy[" + valueFunction + "]";
+  }
 }

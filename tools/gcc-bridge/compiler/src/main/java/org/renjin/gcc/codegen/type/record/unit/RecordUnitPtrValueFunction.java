@@ -52,4 +52,9 @@ public class RecordUnitPtrValueFunction implements ValueFunction {
   public List<SimpleExpr> toArrayValues(Expr expr) {
     return Collections.singletonList((SimpleExpr)expr);
   }
+
+  @Override
+  public String toString() {
+    return "RecordUnitPtr[" + recordType + "]";
+  }
 }

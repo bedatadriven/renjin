@@ -61,4 +61,9 @@ public class PrimitiveValueFunction implements ValueFunction {
   public Optional<SimpleExpr> getValueConstructor() {
     return Optional.absent();
   }
+
+  @Override
+  public String toString() {
+    return "Primitive[" + type + "]";
+  }
 }

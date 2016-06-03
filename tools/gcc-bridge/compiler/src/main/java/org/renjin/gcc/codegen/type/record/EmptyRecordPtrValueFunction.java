@@ -39,4 +39,9 @@ public class EmptyRecordPtrValueFunction implements ValueFunction {
   public List<SimpleExpr> toArrayValues(Expr expr) {
     throw new UnsupportedOperationException();
   }
+
+  @Override
+  public String toString() {
+    return "EmptyRecordPtr";
+  }
 }

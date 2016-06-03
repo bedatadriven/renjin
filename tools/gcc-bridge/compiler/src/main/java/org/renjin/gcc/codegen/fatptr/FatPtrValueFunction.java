@@ -69,4 +69,9 @@ public class FatPtrValueFunction implements ValueFunction {
   public Optional<SimpleExpr> getValueConstructor() {
     return Optional.of(FatPtrExpr.nullPtr(baseValueFunction).wrap());
   }
+
+  @Override
+  public String toString() {
+    return "FatPtr[" + baseValueFunction + "]";
+  }
 }

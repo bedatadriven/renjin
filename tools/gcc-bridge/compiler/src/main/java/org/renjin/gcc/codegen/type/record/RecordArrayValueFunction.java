@@ -66,4 +66,10 @@ public class RecordArrayValueFunction implements ValueFunction {
   public List<SimpleExpr> toArrayValues(Expr expr) {
     throw new UnsupportedOperationException("TODO");
   }
+
+  @Override
+  public String toString() {
+    return "RecordArray[" + fieldType + "]";
+  }
 }
+

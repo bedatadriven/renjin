@@ -7,6 +7,7 @@ import com.google.common.collect.Lists;
 import org.renjin.gcc.gimple.GimpleExprVisitor;
 import org.renjin.gcc.gimple.GimpleVisitor;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
+import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
 import org.renjin.gcc.gimple.expr.GimpleLValue;
 import org.renjin.gcc.gimple.expr.GimpleSymbolRef;
 
@@ -45,6 +46,13 @@ public class GimpleCall extends GimpleStatement {
     this.lhs = lhs;
   }
 
+  public boolean isFunctionNamed(String name) {
+    if(function instanceof GimpleFunctionRef) {
+      GimpleFunctionRef ref = (GimpleFunctionRef) function;
+      return ref.getName().equals(name);
+    }
+    return false;
+  }
 
   @Override
   protected void findUses(Predicate<? super GimpleExpr> predicate, List<GimpleExpr> results) {

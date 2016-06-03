@@ -54,4 +54,9 @@ public class FunPtrValueFunction implements ValueFunction {
   public Optional<SimpleExpr> getValueConstructor() {
     return Optional.absent();
   }
+
+  @Override
+  public String toString() {
+    return "FunPtr";
+  }
 }

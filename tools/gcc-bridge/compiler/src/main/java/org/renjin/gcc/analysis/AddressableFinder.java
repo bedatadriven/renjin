@@ -1,6 +1,7 @@
 package org.renjin.gcc.analysis;
 
 import com.google.common.collect.Maps;
+import org.renjin.gcc.TreeLogger;
 import org.renjin.gcc.gimple.*;
 import org.renjin.gcc.gimple.expr.*;
 import org.renjin.gcc.gimple.statement.GimpleAssignment;
@@ -22,7 +23,7 @@ public class AddressableFinder implements FunctionBodyTransformer {
   public static final AddressableFinder INSTANCE = new AddressableFinder();
   
   @Override
-  public boolean transform(GimpleCompilationUnit unit, GimpleFunction fn) {
+  public boolean transform(TreeLogger logger, GimpleCompilationUnit unit, GimpleFunction fn) {
 
     boolean updated = false;
     

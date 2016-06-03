@@ -388,17 +388,19 @@ public class GimpleCompiler  {
         System.out.println(unit);
       }
       for (GimpleFunction function : unit.getFunctions()) {
-        transformFunctionBody(unit, function);
+        
+        transformFunctionBody(rootLogger.enter("Transforming " + function.getName()), unit, function);
       }
     }
   }
 
-  private void transformFunctionBody(GimpleCompilationUnit unit, GimpleFunction function) {
+  private void transformFunctionBody(TreeLogger parentLogger, GimpleCompilationUnit unit, GimpleFunction function) {
     boolean updated;
     do {
       updated = false;
       for(FunctionBodyTransformer transformer : functionBodyTransformers) {
-        if(transformer.transform(unit, function)) {
+        TreeLogger logger = parentLogger.enter(TreeLogger.Level.DEBUG, "Running " + transformer.getClass().getSimpleName());
+        if(transformer.transform(logger, unit, function)) {
           updated = true;
         }
       }

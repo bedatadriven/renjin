@@ -1,6 +1,7 @@
 package org.renjin.gcc.analysis;
 
 import com.google.common.base.Predicates;
+import org.renjin.gcc.TreeLogger;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleExprVisitor;
 import org.renjin.gcc.gimple.GimpleFunction;
@@ -23,7 +24,7 @@ public class ResultDeclRewriter implements FunctionBodyTransformer {
   public static final ResultDeclRewriter INSTANCE = new ResultDeclRewriter();
 
   @Override
-  public boolean transform(GimpleCompilationUnit unit, GimpleFunction fn) {
+  public boolean transform(TreeLogger logger, GimpleCompilationUnit unit, GimpleFunction fn) {
     
     // Does this function use a return_decl expression?
     ResultDeclMatcher matcher = new ResultDeclMatcher();

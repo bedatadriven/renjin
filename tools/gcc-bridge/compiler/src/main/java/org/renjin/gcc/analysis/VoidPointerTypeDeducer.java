@@ -2,6 +2,7 @@ package org.renjin.gcc.analysis;
 
 import com.google.common.collect.Sets;
 import org.renjin.gcc.GimpleCompiler;
+import org.renjin.gcc.TreeLogger;
 import org.renjin.gcc.gimple.*;
 import org.renjin.gcc.gimple.expr.*;
 import org.renjin.gcc.gimple.statement.GimpleAssignment;
@@ -26,16 +27,13 @@ public class VoidPointerTypeDeducer implements FunctionBodyTransformer {
   }
 
   @Override
-  public boolean transform(GimpleCompilationUnit unit, GimpleFunction fn) {
+  public boolean transform(TreeLogger logger, GimpleCompilationUnit unit, GimpleFunction fn) {
 
     boolean updated = false;
     
     for(GimpleVarDecl decl : fn.getVariableDeclarations()) {
       if(isVoidPtr(decl.getType())) {
-        if(GimpleCompiler.TRACE) {
-          System.out.println("Deducing type of " + decl + "...");
-        }
-        if(tryToDeduceType(fn, decl)) {
+        if(tryToDeduceType(logger, fn, decl)) {
           updated = true;
         }
       }
@@ -51,11 +49,14 @@ public class VoidPointerTypeDeducer implements FunctionBodyTransformer {
   /**
    * Tries to deduce the type of a given void pointer declaration
    */
-  private boolean tryToDeduceType(GimpleFunction fn, GimpleVarDecl decl) {
+  private boolean tryToDeduceType(TreeLogger parentLogger, GimpleFunction fn, GimpleVarDecl decl) {
+
     Set<GimpleType> possibleTypes = Sets.newHashSet();
     fn.accept(new AssignmentFinder(decl, possibleTypes));
     fn.accept(new MemRefVisitor(decl, possibleTypes));
-    
+
+    parentLogger.enter(TreeLogger.Level.DEBUG, "Possible type set of " + decl + " = "  + possibleTypes);
+
     if(possibleTypes.size() == 1) {
       GimpleType deducedType = possibleTypes.iterator().next();
       if(GimpleCompiler.TRACE) {
@@ -128,6 +129,15 @@ public class VoidPointerTypeDeducer implements FunctionBodyTransformer {
           } else if(isReference(assignment.getLHS())) {
             inferPossibleTypes(rhs);
           }
+          break;
+        
+        case POINTER_PLUS_EXPR:
+          GimpleExpr lhs = assignment.getLHS();
+          GimpleExpr pointer = assignment.getOperands().get(0);
+          if(isReference(pointer)) {
+            inferPossibleTypes(lhs);
+          }
+          break;
       }
     }
 

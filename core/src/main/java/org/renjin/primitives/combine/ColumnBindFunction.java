@@ -1,13 +1,17 @@
 package org.renjin.primitives.combine;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import org.codehaus.plexus.util.cli.Commandline;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.ArgumentList;
 import org.renjin.invoke.annotations.Current;
+import org.renjin.invoke.codegen.ArgumentIterator;
 import org.renjin.sexp.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Special function to do cbind and use objectnames as columnnames
@@ -21,7 +25,7 @@ public class ColumnBindFunction extends AbstractBindFunction {
   @Override
   public SEXP apply(Context context, Environment rho, FunctionCall call, PairList arguments) {
 
-    int deparseLevel = call.getArgument(0);
+    int deparseLevel = ((Vector) call.getArgument(0)).getElementAsInt(0);
 
     SEXP genericResult = tryBindDispatch(context, rho, "cbind", deparseLevel, arguments);
     if (genericResult != null) {
@@ -29,13 +33,20 @@ public class ColumnBindFunction extends AbstractBindFunction {
     }
 
     List<BindArgument> bindArguments = Lists.newArrayList();
-    for (NamedValue arg : arguments.nodes()) {
+    Map<Symbol, SEXP> propertyValues = Maps.newHashMap();
 
-      SEXP argValue = context.evaluate(arg.getValue(), rho);
+    ArgumentIterator argumentItr = new ArgumentIterator(context, rho, arguments);
+    while(argumentItr.hasNext()) {
+      PairList.Node currentNode = argumentItr.nextNode();
+      SEXP evaled = context.evaluate( currentNode.getValue(), rho);
 
-      Vector argument = EvalException.checkedCast(arg.getValue());
-      if (argument.length() > 0) {
-        bindArguments.add(new BindArgument(arg.getName(), argument, false));
+      System.out.println(currentNode);
+      System.out.println(evaled);
+
+      if(currentNode.hasTag()) {
+        propertyValues.put(currentNode.getTag(), evaled);
+      } else {
+        bindArguments.add(new BindArgument(currentNode.getName(), (Vector) evaled, false));
       }
     }
 

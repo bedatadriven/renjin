@@ -167,8 +167,6 @@ public class Primitives {
     f("[",Subsetting.class, -1);
     f("[[", Subsetting.class, -1);
     add(new DollarFunction());
-    add(new ColumnBindFunction());
-    add(new RowBindFunction());
     f("@", Subsetting.class, 2);
     f("[<-", Subsetting.class, 3);
     f("[[<-", Subsetting.class, 3);
@@ -261,6 +259,8 @@ public class Primitives {
     f("unlist", Combine.class, 11);
 //    f("cbind", Combine.class, 10);
 //    f("rbind", Combine.class, 10);
+    addInternal("cbind", new ColumnBindFunction());
+    addInternal("rbind", new RowBindFunction());
     f("drop", Vectors.class, 11);
     f("oldClass", Attributes.class, 1);
     f("oldClass<-", Attributes.class, 2);

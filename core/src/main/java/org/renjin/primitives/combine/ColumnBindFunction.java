@@ -25,7 +25,7 @@ public class ColumnBindFunction extends AbstractBindFunction {
   @Override
   public SEXP apply(Context context, Environment rho, FunctionCall call, PairList arguments) {
 
-    int deparseLevel = ((Vector) call.getArgument(0)).getElementAsInt(0);
+    int deparseLevel = ((Vector) context.evaluate( call.getArgument(0), rho)).getElementAsInt(0);
 
     SEXP genericResult = tryBindDispatch(context, rho, "cbind", deparseLevel, arguments);
     if (genericResult != null) {
@@ -40,15 +40,14 @@ public class ColumnBindFunction extends AbstractBindFunction {
       PairList.Node currentNode = argumentItr.nextNode();
       SEXP evaled = context.evaluate( currentNode.getValue(), rho);
 
-      System.out.println(currentNode);
-      System.out.println(evaled);
-
       if(currentNode.hasTag()) {
         propertyValues.put(currentNode.getTag(), evaled);
       } else {
         bindArguments.add(new BindArgument(currentNode.getName(), (Vector) evaled, false));
       }
     }
+
+    bindArguments.remove(0);
 
     if (bindArguments.isEmpty()) {
       return Null.INSTANCE;

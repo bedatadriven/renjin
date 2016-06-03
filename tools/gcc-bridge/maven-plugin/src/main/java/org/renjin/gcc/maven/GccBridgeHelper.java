@@ -27,15 +27,18 @@ public class GccBridgeHelper {
 
   private MavenProject project;
   
-  public static void archiveHeaders(MavenProject project, File includeDirectory) throws MojoExecutionException {
+  public static void archiveHeaders(Log log, MavenProject project, File... includeDirectories) throws MojoExecutionException {
 
     File outputDir = new File(project.getBuild().getDirectory());
     File archiveFile = new File(outputDir, project.getBuild().getFinalName() + "-headers.jar");
 
-    //getLog().debug("Archiving headers in " + includeDirectory.getAbsolutePath());
-
     try (JarOutputStream output = new JarOutputStream(new FileOutputStream(archiveFile))) {
-      archiveFiles(output, includeDirectory, "");
+      for (File includeDirectory : includeDirectories) {
+        if(includeDirectory.exists()) {
+          log.info("Archiving headers from " + includeDirectory.getAbsolutePath());
+          archiveFiles(output, includeDirectory, "");
+        }
+      }
     } catch (IOException e) {
       throw new MojoExecutionException("Failed to create headers archive", e);
     }

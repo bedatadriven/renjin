@@ -26,6 +26,6 @@ public class ArchiveHeadersMojo extends AbstractMojo {
   
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
-    GccBridgeHelper.archiveHeaders(project, includeDirectory);
+    GccBridgeHelper.archiveHeaders(getLog(), project, includeDirectory);
   }
 }

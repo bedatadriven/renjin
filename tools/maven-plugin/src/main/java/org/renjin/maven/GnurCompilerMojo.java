@@ -127,7 +127,7 @@ public class GnurCompilerMojo extends AbstractMojo {
     }
 
     if (instIncludeDir.exists()) {
-      GccBridgeHelper.archiveHeaders(project, instIncludeDir);
+      GccBridgeHelper.archiveHeaders(getLog(), project, instIncludeDir);
     }
   }
 

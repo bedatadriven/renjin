@@ -65,6 +65,9 @@ public class GnurMakeMojo extends AbstractMojo {
    */
   @Parameter(defaultValue = "${project.basedir}/src")
   private File nativeSourceDir;
+
+  @Parameter(defaultValue = "${project.build.directory}/staging")
+  private File stagingDir;
   
   /**
    * If true, do not fail the build if compilation fails.
@@ -104,7 +107,8 @@ public class GnurMakeMojo extends AbstractMojo {
     
     if(description.isCompilationNeeded()) {
       try {
-        setupEnvironment();
+        setupGnurInstallation();
+        setupStagingDir();
         make();
         compileGimple();
         getLog().info("Compilation of GNU R sources succeeded.");
@@ -125,6 +129,7 @@ public class GnurMakeMojo extends AbstractMojo {
     archiveHeaders();
   }
 
+
   private PackageDescription readDescription() throws MojoExecutionException {
     PackageDescription description;
     try {
@@ -134,12 +139,23 @@ public class GnurMakeMojo extends AbstractMojo {
     }
     return description;
   }
+  
 
-  private void setupEnvironment() throws MojoExecutionException, IOException {
+  private void setupGnurInstallation() throws MojoExecutionException, IOException {
     // Unpack any headers from dependencies
     GccBridgeHelper.unpackHeaders(getLog(), unpackedIncludeDir, project.getCompileArtifacts());
     GnurInstallation.unpackRHome(homeDir);
     Gcc.extractPluginTo(pluginFile);
+  }
+
+
+  private void setupStagingDir() throws IOException {
+    if(!stagingDir.exists()) {
+      stagingDir.mkdirs();
+    }
+    
+    Files.copy(new File(project.getBasedir(), "DESCRIPTION"), new File(stagingDir, "DESCRIPTION"));
+    Files.copy(new File(project.getBasedir(), "NAMESPACE"), new File(stagingDir, "NAMESPACE"));
   }
 
   private void make() throws IOException, InterruptedException {
@@ -178,10 +194,30 @@ public class GnurMakeMojo extends AbstractMojo {
         .command(commandLine)
         .directory(nativeSourceDir)
         .inheritIO();
-    
+
+    builder.environment().put("R_VERSION", "3.2.0");
     builder.environment().put("R_HOME", homeDir.getAbsolutePath());
     builder.environment().put("R_INCLUDE_DIR", homeDir.getAbsolutePath() + "/include");
+    builder.environment().put("R_SHARE_DIR", homeDir.getAbsolutePath() + "/share");
+
+    builder.environment().put("R_PACKAGE_NAME", project.getArtifactId());
+    builder.environment().put("R_INSTALL_PACKAGE", project.getArtifactId());
+    builder.environment().put("R_PACKAGE_DIR", stagingDir.getAbsolutePath());
+    
     builder.environment().put("CLINK_CPPFLAGS", "-I\"" + unpackedIncludeDir.getAbsolutePath() + "\"");
+    
+    // Provide sensible defaults for locations of system tools
+    if(!builder.environment().containsKey("MAKE")) {
+      builder.environment().put("MAKE", "make");
+    }
+    
+    if(!builder.environment().containsKey("R_UNZIPCMD")) {
+      builder.environment().put("R_UNZIPCMD", "/usr/bin/unzip");
+    }
+    
+    if(!builder.environment().containsKey("R_GZIPCMD")) {
+      builder.environment().put("R_GZIPCMD", "/usr/bin/gzip");
+    }
     
     int exitCode = builder.start().waitFor();
     if (exitCode != 0) {
@@ -218,9 +254,12 @@ public class GnurMakeMojo extends AbstractMojo {
     File instDir = new File(project.getBasedir(), "inst");
     File includeDir = new File(instDir, "include");
     
-    if(includeDir.exists()) {
-      getLog().info("Archiving headers from " + includeDir.getAbsolutePath());
-      GccBridgeHelper.archiveHeaders(project, includeDir);
+    // Some packages copy or create headers here as part of the 
+    // build process
+    File stagingIncludes = new File(stagingDir, "include");
+    
+    if(includeDir.exists() || stagingIncludes.exists()) {
+      GccBridgeHelper.archiveHeaders(getLog(), project, includeDir, stagingIncludes);
     }
   }
 

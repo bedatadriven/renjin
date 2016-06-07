@@ -568,7 +568,7 @@ public class Primitives {
     f("sub", Text.class, 11);
     f("gsub", Text.class, 11);
     f("regexpr", Text.class, 11);
-    f("gregexpr", /*gregexpr*/ null, 11);
+    f("gregexpr", Text.class, 11);
     f("agrep", Text.class, 11);
     f("tolower", Text.class, 11);
     f("toupper", Text.class, 11);

@@ -335,4 +335,11 @@ public class TextTest extends EvalTestCase {
     assertThat(eval("m"), equalTo(c_i(-1,1,1)));
     assertThat(eval("attr(m, 'match.length')"), equalTo(c_i(-1,3,4)));
   }
+
+  @Test
+  public void gregexprTest() {
+    eval( "m <- .Internal(gregexpr('aa', c('aabbbbbaa', 'bbaabbbaa', 'ccaaccaaccaa'), ignore.case=FALSE, perl=FALSE, fixed=FALSE, useBytes=FALSE))" );
+    assertThat( eval("m[[3]]"), equalTo(c_i(3,7,11)));
+    assertThat( eval("attr(m[[3]], \"match.length\")"), equalTo(c_i(2,2,2)));
+  }
 }

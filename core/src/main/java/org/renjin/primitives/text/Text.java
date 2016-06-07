@@ -500,21 +500,19 @@ public class Text {
       IntArrayVector.Builder position = IntArrayVector.Builder.withInitialCapacity(vector.length());
       IntArrayVector.Builder matchLength = IntArrayVector.Builder.withInitialCapacity(vector.length());
       int offsetSearch = 0;
-      boolean moreMatch = re.match(text.substring(offsetSearch));
 
-      do {
-        if ( moreMatch) {
+      while ( re.match(text.substring(offsetSearch))) {
           int start = re.getGroupStart(0);
           int end = re.getGroupEnd(0);
           position.add(start + 1 + offsetSearch);
           matchLength.add( end - start);
           offsetSearch += end;
-          moreMatch = re.match(text.substring(offsetSearch));
-        } else {
-          position.add(-1);
-          matchLength.add(-1);
-        }
-      } while (moreMatch);
+      }
+
+      if (position.length() == 0) {
+        position.add(-1);
+        matchLength.add(-1);
+      }
 
       position.setAttribute("match.length", matchLength.build());
       position.setAttribute("useBytes", new LogicalArrayVector(useBytes));

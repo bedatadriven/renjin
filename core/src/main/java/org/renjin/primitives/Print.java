@@ -380,7 +380,7 @@ public class Print {
         if(colNames == Null.INSTANCE) {
           return "[," + (col+1) + "]";
         } else {
-          return colNames.getElementAsString(col);
+          return naToString(colNames.getElementAsString(col));
         }
       }
       
@@ -388,7 +388,15 @@ public class Print {
         if(rowNames == Null.INSTANCE) {
           return "[" + (row+1) + ",]";
         } else {
-          return rowNames.getElementAsString(row);
+          return naToString(rowNames.getElementAsString(row));
+        }
+      }
+      
+      private String naToString(String x) {
+        if(x == null) {
+          return "NA";
+        } else {
+          return x;
         }
       }
       

@@ -33,7 +33,7 @@ public class RowBindFunction extends AbstractBindFunction {
     while(argumentItr.hasNext()) {
       PairList.Node currentNode = argumentItr.nextNode();
       SEXP evaluated = context.evaluate(currentNode.getValue(), rho);
-      bindArguments.add(new BindArgument(currentNode.getName(),(Vector) evaluated, true, currentNode.getValue()));
+      bindArguments.add(new BindArgument(currentNode.getName(),(Vector) evaluated, true, currentNode.getValue(), deparseLevel));
     }
 
     SEXP genericResult = tryBindDispatch(context, rho, "rbind", deparseLevel, bindArguments);
@@ -107,22 +107,29 @@ public class RowBindFunction extends AbstractBindFunction {
       }
     }
 
-    AtomicVector colNames = Null.INSTANCE;
+//    AtomicVector colNames = Null.INSTANCE;
+    StringVector.Builder colNames = new StringVector.Builder();
     StringVector.Builder rowNames = new StringVector.Builder();
 
+    boolean hasColNames = false;
     boolean hasRowNames = false;
 
     for (BindArgument argument : bindArguments) {
-      if (argument.colNames.length() == columns) {
-        colNames = argument.colNames;
-        break;
+      if (argument.colNames != Null.INSTANCE) {
+        hasColNames = true;
+        for (int i = 0; i != argument.cols; ++i) {
+          colNames.add(argument.colNames);
+        }
+      } else {
+        for (int i = 0; i != argument.cols; ++i)
+          colNames.add("");
       }
     }
 
     for (BindArgument argument : bindArguments) {
       if (argument.rowNames != Null.INSTANCE) {
         hasRowNames = true;
-        for (int i = 0; i != argument.cols; ++i) {
+        for (int i = 0; i != argument.rows; ++i) {
           rowNames.add(argument.rowNames.getElementAsString(i));
         }
       } else if (argument.hasName() && !argument.matrix) {
@@ -135,7 +142,7 @@ public class RowBindFunction extends AbstractBindFunction {
       }
     }
 
-    builder.setDimNames(hasRowNames ? rowNames.build() : Null.INSTANCE, colNames);
+    builder.setDimNames(hasRowNames ? rowNames.build() : Null.INSTANCE, hasColNames ? colNames.build() : Null.INSTANCE);
 
     return builder.build();
   }

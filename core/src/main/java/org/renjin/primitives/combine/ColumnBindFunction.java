@@ -38,7 +38,7 @@ public class ColumnBindFunction extends AbstractBindFunction {
     while(argumentItr.hasNext()) {
       PairList.Node currentNode = argumentItr.nextNode();
       SEXP evaluated = context.evaluate(currentNode.getValue(), rho);
-      bindArguments.add(new BindArgument(currentNode.getName(),(Vector) evaluated, false, currentNode.getValue()));
+      bindArguments.add(new BindArgument(currentNode.getName(), (Vector) evaluated, false, currentNode.getValue(), deparseLevel));
     }
 
     SEXP genericResult = tryBindDispatch(context, rho, "cbind", deparseLevel, bindArguments);
@@ -111,17 +111,26 @@ public class ColumnBindFunction extends AbstractBindFunction {
       }
     }
 
-    AtomicVector rowNames = Null.INSTANCE;
+//    AtomicVector rowNames = Null.INSTANCE;
+    StringVector.Builder rowNames = new StringVector.Builder();
     StringVector.Builder colNames = new StringVector.Builder();
 
+    boolean hasRowNames = false;
     boolean hasColNames = false;
 
     for (BindArgument argument : bindArguments) {
-      if (argument.rowNames.length() == rows) {
-        rowNames = argument.rowNames;
-        break;
+      if (argument.rowNames != Null.INSTANCE) {
+        hasRowNames = true;
+        for (int i = 0; i != argument.rows; ++i) {
+          rowNames.add(argument.rowNames);
+        }
+      } else {
+        for (int i = 0; i != argument.rows; ++i)
+          rowNames.add("");
       }
     }
+
+
     for (BindArgument argument : bindArguments) {
       if (argument.colNames != Null.INSTANCE) {
         hasColNames = true;
@@ -138,7 +147,7 @@ public class ColumnBindFunction extends AbstractBindFunction {
       }
     }
 
-    builder.setDimNames(rowNames, hasColNames ? colNames.build() : Null.INSTANCE);
+    builder.setDimNames(hasRowNames ? rowNames.build() : Null.INSTANCE, hasColNames ? colNames.build() : Null.INSTANCE);
 
     return builder.build();
   }

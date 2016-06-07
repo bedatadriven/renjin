@@ -10,6 +10,7 @@ class BindArgument {
   final Vector vector;
   final int rows;
   final int cols;
+  final int deparseLevel;
 
   AtomicVector rowNames = Null.INSTANCE;
   AtomicVector colNames = Null.INSTANCE;
@@ -20,9 +21,10 @@ class BindArgument {
   final boolean matrix;
   String argName;
 
-  public BindArgument(String argName, Vector vector, boolean defaultToRows, SEXP unevaluated) {
+  public BindArgument(String argName, Vector vector, boolean defaultToRows, SEXP unevaluated, int deparseLevel) {
     this.argName = argName;
     this.unevaluated = unevaluated;
+    this.deparseLevel = deparseLevel;
     SEXP dim = vector.getAttributes().getDim();
     this.vector = vector;
     if (dim == Null.INSTANCE || dim.length() != 2) {

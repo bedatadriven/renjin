@@ -494,11 +494,9 @@ public class Text {
                                   boolean fixed, boolean useBytes) {
 
     ListVector.Builder regexpResults = new ListVector.Builder(0, vector.length());
-
     RE re = REFactory.compile(pattern, ignoreCase,  perl, fixed, useBytes);
 
     for(String text : vector) {
-//        System.out.println("text: " + text + " ; length: " + text.length());
       IntArrayVector.Builder position = IntArrayVector.Builder.withInitialCapacity(vector.length());
       IntArrayVector.Builder matchLength = IntArrayVector.Builder.withInitialCapacity(vector.length());
       int offsetSearch = 0;
@@ -512,12 +510,6 @@ public class Text {
           matchLength.add( end - start);
           offsetSearch += end;
           moreMatch = re.match(text.substring(offsetSearch));
-//          System.out.println("start: " + start + "; end: " + end + "; offsetSearch: " + offsetSearch);
-//        System.out.println("moreMatch: " + moreMatch);
-//        System.out.println();
-//        System.out.println();
-//        System.out.println();
-
         } else {
           position.add(-1);
           matchLength.add(-1);
@@ -525,7 +517,6 @@ public class Text {
       } while (moreMatch);
 
       position.setAttribute("match.length", matchLength.build());
-//      System.out.println("match.length: " + matchLength.build());
       position.setAttribute("useBytes", new LogicalArrayVector(useBytes));
       regexpResults.add( position.build() );
     }

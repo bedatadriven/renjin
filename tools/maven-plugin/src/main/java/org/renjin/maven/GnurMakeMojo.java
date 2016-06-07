@@ -23,7 +23,6 @@ import org.renjin.gcc.gimple.GimpleParser;
 import org.renjin.gcc.maven.GccBridgeHelper;
 import org.renjin.gnur.GnurInstallation;
 import org.renjin.gnur.GnurSourcesCompiler;
-import org.renjin.packaging.PackageDescription;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
@@ -103,9 +102,7 @@ public class GnurMakeMojo extends AbstractMojo {
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
 
-    PackageDescription description = readDescription();
-    
-    if(description.isCompilationNeeded()) {
+    if(nativeSourceDir.exists()) {
       try {
         setupGnurInstallation();
         setupStagingDir();
@@ -128,18 +125,6 @@ public class GnurMakeMojo extends AbstractMojo {
 
     archiveHeaders();
   }
-
-
-  private PackageDescription readDescription() throws MojoExecutionException {
-    PackageDescription description;
-    try {
-      description = PackageDescription.fromFile(new File(project.getBasedir(), "DESCRIPTION"));
-    } catch (IOException e) {
-      throw new MojoExecutionException("Failed to read package DESCRIPTION file", e);
-    }
-    return description;
-  }
-  
 
   private void setupGnurInstallation() throws MojoExecutionException, IOException {
     // Unpack any headers from dependencies

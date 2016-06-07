@@ -3,7 +3,10 @@ package org.renjin.gnur.api;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.gcc.runtime.*;
+import org.renjin.gcc.runtime.BytePtr;
+import org.renjin.gcc.runtime.DoublePtr;
+import org.renjin.gcc.runtime.IntPtr;
+import org.renjin.gcc.runtime.ObjectPtr;
 import org.renjin.primitives.Native;
 import org.renjin.primitives.Types;
 import org.renjin.primitives.Vectors;
@@ -1142,7 +1145,7 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("R_forceAndCall");
   }
 
-  public static SEXP R_MakeExternalPtr(Ptr p, SEXP tag, SEXP prot) {
+  public static SEXP R_MakeExternalPtr(Object p, SEXP tag, SEXP prot) {
     throw new UnimplementedGnuApiMethod("R_MakeExternalPtr");
   }
 
@@ -1162,7 +1165,7 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("R_ClearExternalPtr");
   }
 
-  public static void R_SetExternalPtrAddr(SEXP s, Ptr p) {
+  public static void R_SetExternalPtrAddr(SEXP s, Object p) {
     throw new UnimplementedGnuApiMethod("R_SetExternalPtrAddr");
   }
 
@@ -1298,19 +1301,19 @@ public final class Rinternals {
 
   // void Rf_warningcall_immediate (SEXP, const char *,...)
 
-  public static void R_XDREncodeDouble(double d, Ptr buf) {
+  public static void R_XDREncodeDouble(double d, Object buf) {
     throw new UnimplementedGnuApiMethod("R_XDREncodeDouble");
   }
 
-  public static double R_XDRDecodeDouble(Ptr buf) {
+  public static double R_XDRDecodeDouble(Object buf) {
     throw new UnimplementedGnuApiMethod("R_XDRDecodeDouble");
   }
 
-  public static void R_XDREncodeInteger(int i, Ptr buf) {
+  public static void R_XDREncodeInteger(int i, Object buf) {
     throw new UnimplementedGnuApiMethod("R_XDREncodeInteger");
   }
 
-  public static int R_XDRDecodeInteger(Ptr buf) {
+  public static int R_XDRDecodeInteger(Object buf) {
     throw new UnimplementedGnuApiMethod("R_XDRDecodeInteger");
   }
 

@@ -4,7 +4,6 @@ package org.renjin.gnur.api;
 import org.renjin.gcc.runtime.CharPtr;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
-import org.renjin.gcc.runtime.Ptr;
 import org.renjin.sexp.SEXP;
 
 @SuppressWarnings("unused")
@@ -472,7 +471,7 @@ public final class Defn {
 
   // SEXP Rf_matchPar (const char *, SEXP *)
 
-  public static void memtrace_report(Ptr p0, Ptr p1) {
+  public static void memtrace_report(Object p0, Object p1) {
     throw new UnimplementedGnuApiMethod("memtrace_report");
   }
 

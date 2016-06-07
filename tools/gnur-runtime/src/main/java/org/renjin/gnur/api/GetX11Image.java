@@ -2,7 +2,6 @@
 package org.renjin.gnur.api;
 
 import org.renjin.gcc.runtime.IntPtr;
-import org.renjin.gcc.runtime.Ptr;
 
 @SuppressWarnings("unused")
 public final class GetX11Image {
@@ -11,7 +10,7 @@ public final class GetX11Image {
 
 
 
-  public static boolean R_GetX11Image(int d, Ptr pximage, IntPtr pwidth, IntPtr pheight) {
+  public static boolean R_GetX11Image(int d, Object pximage, IntPtr pwidth, IntPtr pheight) {
     throw new UnimplementedGnuApiMethod("R_GetX11Image");
   }
 }

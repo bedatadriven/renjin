@@ -82,7 +82,7 @@ public class FunctionGenerator implements InvocationStrategy {
 
   public void emit(TreeLogger parentLogger, ClassVisitor cw) {
 
-    TreeLogger logger = parentLogger.enter("Generating bytecode for " + 
+    TreeLogger logger = parentLogger.branch("Generating bytecode for " + 
         function.getName() + " [" + function.getMangledName() + "]");
     logger.debug("Aliases: " + function.getAliases());
     logger.debug("Gimple:", function);

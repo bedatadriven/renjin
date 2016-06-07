@@ -17,6 +17,7 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
 import org.renjin.gcc.Gcc;
 import org.renjin.gcc.GimpleCompiler;
+import org.renjin.gcc.HtmlTreeLogger;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleParser;
@@ -97,6 +98,9 @@ public class GnurMakeMojo extends AbstractMojo {
 
   @Parameter(defaultValue = "${project.build.directory}/gcc-bridge-logs")
   private File logDir;
+  
+  @Parameter(defaultValue = "false", property = "gcc.bridge.logging")
+  private boolean loggingEnabled;
   
 
   @Override
@@ -216,11 +220,14 @@ public class GnurMakeMojo extends AbstractMojo {
     collectGimple(nativeSourceDir, gimpleFiles);
     
     GimpleCompiler compiler = new GimpleCompiler();
-    compiler.setLoggingDirectory(logDir);
     compiler.setLinkClassLoader(GccBridgeHelper.getLinkClassLoader(project, getLog()));
     compiler.setOutputDirectory(outputDirectory);
     compiler.setPackageName(project.getGroupId() + "." + project.getArtifactId());
     compiler.setClassName(project.getArtifactId());
+    
+    if(loggingEnabled) {
+      compiler.setLogger(new HtmlTreeLogger(logDir));
+    }
 
     try {
       GnurSourcesCompiler.setupCompiler(compiler);

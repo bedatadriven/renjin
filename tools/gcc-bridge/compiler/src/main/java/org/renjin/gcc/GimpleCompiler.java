@@ -1,13 +1,11 @@
 package org.renjin.gcc;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
-import com.google.common.io.Resources;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.analysis.*;
 import org.renjin.gcc.codegen.FunctionGenerator;
@@ -29,10 +27,8 @@ import org.renjin.gcc.symbols.GlobalSymbolTable;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.net.URL;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -54,7 +50,6 @@ public class GimpleCompiler  {
   public static boolean TRACE = false;
 
   private File outputDirectory;
-  private File loggingDirectory;
 
   private String packageName;
 
@@ -76,7 +71,7 @@ public class GimpleCompiler  {
   private String recordClassPrefix = "record";
   private int nextRecordIndex = 0;
   
-  private TreeLogger rootLogger = new TreeLogger();
+  private TreeLogger rootLogger = new NullTreeLogger();
 
   public GimpleCompiler() {
     functionBodyTransformers.add(VoidPointerTypeDeducer.INSTANCE);
@@ -86,6 +81,14 @@ public class GimpleCompiler  {
     globalSymbolTable = new GlobalSymbolTable(typeOracle);
     globalSymbolTable.addDefaults();
     providedRecordTypes.put("tm", org.renjin.gcc.runtime.tm.class);
+  }
+
+  public TreeLogger getLogger() {
+    return rootLogger;
+  }
+
+  public void setLogger(TreeLogger rootLogger) {
+    this.rootLogger = rootLogger;
   }
 
   /**
@@ -105,13 +108,7 @@ public class GimpleCompiler  {
     this.outputDirectory = directory;
   }
 
-  public File getLoggingDirectory() {
-    return loggingDirectory;
-  }
-
-  public void setLoggingDirectory(File loggingDirectory) {
-    this.loggingDirectory = loggingDirectory;
-  }
+  
 
   /**
    * Sets the name of the trampoline class that contains a static wrapper method for all 'extern' functions.
@@ -192,7 +189,7 @@ public class GimpleCompiler  {
       }
 
       // Finally, run code generation
-      TreeLogger codegenLogger = rootLogger.enter("Generating bytecode");
+      TreeLogger codegenLogger = rootLogger.branch("Generating bytecode");
       for (UnitClassGenerator generator : unitClassGenerators) {
         generator.emit(codegenLogger);
         writeClass(generator.getClassName(), generator.toByteArray());
@@ -208,25 +205,10 @@ public class GimpleCompiler  {
 
     } finally {
       try {
-        writeLogs();
+        rootLogger.finish();
       } catch (Exception e) {
         System.out.println("Failed to write logs");
         e.printStackTrace();
-      }
-    }
-  }
-
-  private void writeLogs() throws IOException {
-    if(loggingDirectory != null) {
-      if(!loggingDirectory.exists()) {
-        loggingDirectory.mkdirs();
-      }
-      File logFile = new File(loggingDirectory, "compile-log.html");
-      try(PrintWriter writer = new PrintWriter(logFile)) {
-        URL headerResource = Resources.getResource(GimpleCompiler.class, "log-head.html");
-        String header = Resources.toString(headerResource, Charsets.UTF_8);
-        writer.println(header);
-        rootLogger.dumpHtml(writer);
       }
     }
   }
@@ -249,7 +231,7 @@ public class GimpleCompiler  {
 
   private void compileRecords(List<GimpleCompilationUnit> units) throws IOException {
 
-    TreeLogger recordLogger = rootLogger.enter("Compiling record types...");
+    TreeLogger recordLogger = rootLogger.branch("Compiling record types...");
     
     // Enumerate record types before writing, so that records can reference each other
     for (GimpleRecordTypeDef recordTypeDef : recordTypeDefs) {
@@ -276,7 +258,7 @@ public class GimpleCompiler  {
 
   private RecordTypeStrategy strategyFor(TreeLogger parentLogger, GimpleRecordTypeDef recordTypeDef) {
 
-    TreeLogger logger = parentLogger.enter(String.format("Building strategy for %s [%s]", 
+    TreeLogger logger = parentLogger.branch(String.format("Building strategy for %s [%s]", 
         recordTypeDef.getName(), recordTypeDef.getId()));
 
     logger.debug("RecordTypeDef:", recordTypeDef);
@@ -389,7 +371,7 @@ public class GimpleCompiler  {
       }
       for (GimpleFunction function : unit.getFunctions()) {
         
-        transformFunctionBody(rootLogger.enter("Transforming " + function.getName()), unit, function);
+        transformFunctionBody(rootLogger.branch("Transforming " + function.getName()), unit, function);
       }
     }
   }
@@ -399,7 +381,7 @@ public class GimpleCompiler  {
     do {
       updated = false;
       for(FunctionBodyTransformer transformer : functionBodyTransformers) {
-        TreeLogger logger = parentLogger.enter(TreeLogger.Level.DEBUG, "Running " + transformer.getClass().getSimpleName());
+        TreeLogger logger = parentLogger.branch(TreeLogger.Level.DEBUG, "Running " + transformer.getClass().getSimpleName());
         if(transformer.transform(logger, unit, function)) {
           updated = true;
         }

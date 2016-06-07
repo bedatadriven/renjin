@@ -55,7 +55,7 @@ public class VoidPointerTypeDeducer implements FunctionBodyTransformer {
     fn.accept(new AssignmentFinder(decl, possibleTypes));
     fn.accept(new MemRefVisitor(decl, possibleTypes));
 
-    parentLogger.enter(TreeLogger.Level.DEBUG, "Possible type set of " + decl + " = "  + possibleTypes);
+    parentLogger.branch(TreeLogger.Level.DEBUG, "Possible type set of " + decl + " = "  + possibleTypes);
 
     if(possibleTypes.size() == 1) {
       GimpleType deducedType = possibleTypes.iterator().next();

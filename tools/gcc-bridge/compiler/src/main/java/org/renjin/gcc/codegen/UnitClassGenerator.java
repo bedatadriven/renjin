@@ -102,7 +102,7 @@ public class UnitClassGenerator {
 
   public void emit(TreeLogger parentLogger) {
     
-    TreeLogger logger = parentLogger.enter("Generating code for " + unit.getSourceName());
+    TreeLogger logger = parentLogger.branch("Generating code for " + unit.getSourceName());
     
     sw = new StringWriter();
     pw = new PrintWriter(sw);

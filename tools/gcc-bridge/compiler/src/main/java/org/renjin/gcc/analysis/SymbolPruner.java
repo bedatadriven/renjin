@@ -53,7 +53,7 @@ public class SymbolPruner {
 
   public static void prune(TreeLogger parentLogger, List<GimpleCompilationUnit> units) {
     
-    TreeLogger logger = parentLogger.enter("Pruning Symbols");
+    TreeLogger logger = parentLogger.branch("Pruning Symbols");
     
     final GimpleSymbolTable symbolTable = new GimpleSymbolTable(units);
 
@@ -75,7 +75,7 @@ public class SymbolPruner {
       visitor.changing = false;
       for (Symbol retainedSymbol : Lists.newArrayList(visitor.retained)) {
         visitor.currentScope = retainedSymbol.scope;
-        visitor.logger = logger.enter(TreeLogger.Level.DEBUG, "Adding references from " + retainedSymbol);
+        visitor.logger = logger.branch(TreeLogger.Level.DEBUG, "Adding references from " + retainedSymbol);
         retainedSymbol.decl.accept(visitor);
       }
     } while(visitor.changing);

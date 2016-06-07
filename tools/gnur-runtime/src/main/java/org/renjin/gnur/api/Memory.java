@@ -1,8 +1,6 @@
 // Initial template generated from Memory.h from R 3.2.2
 package org.renjin.gnur.api;
 
-import org.renjin.gcc.runtime.Ptr;
-
 @SuppressWarnings("unused")
 public final class Memory {
 
@@ -10,11 +8,11 @@ public final class Memory {
   }
 
 
-  public static Ptr vmaxget() {
+  public static Object vmaxget() {
     throw new UnimplementedGnuApiMethod("vmaxget");
   }
 
-  public static void vmaxset(Ptr p0) {
+  public static void vmaxset(Object p0) {
     throw new UnimplementedGnuApiMethod("vmaxset");
   }
 

@@ -2,7 +2,7 @@ package org.renjin.gcc.analysis;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
-import org.renjin.gcc.TreeLogger;
+import org.renjin.gcc.NullTreeLogger;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.type.GimpleField;
 import org.renjin.gcc.gimple.type.GimpleRealType;
@@ -43,7 +43,7 @@ public class RecordTypeDefCanonicalizerTest {
     unit2.getRecordTypes().add(point2);
 
     Collection<GimpleRecordTypeDef> canonicalDefs = 
-        RecordTypeDefCanonicalizer.canonicalize(new TreeLogger(), Arrays.asList(unit1, unit2));
+        RecordTypeDefCanonicalizer.canonicalize(new NullTreeLogger(), Arrays.asList(unit1, unit2));
 
     
     assertThat(canonicalDefs, Matchers.hasSize(1));
@@ -92,9 +92,7 @@ public class RecordTypeDefCanonicalizerTest {
     
     
     Collection<GimpleRecordTypeDef> canonicalDefs =
-        RecordTypeDefCanonicalizer.canonicalize(new TreeLogger(), Arrays.asList(unit1, unit2));
-    
-    
+        RecordTypeDefCanonicalizer.canonicalize(new NullTreeLogger(), Arrays.asList(unit1, unit2));
     
   }
   

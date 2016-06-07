@@ -39,7 +39,7 @@ public class RecordTypeDefCanonicalizer {
   private TreeLogger logger;
   
   public static Collection<GimpleRecordTypeDef> canonicalize(TreeLogger parentLogger, List<GimpleCompilationUnit> units) {
-    TreeLogger logger = parentLogger.enter("Canonicalizing Record Type Defs");
+    TreeLogger logger = parentLogger.branch("Canonicalizing Record Type Defs");
     RecordTypeDefCanonicalizer transformer = new RecordTypeDefCanonicalizer(logger, units);
     transformer.updateAllTypes(units);
     
@@ -171,7 +171,7 @@ public class RecordTypeDefCanonicalizer {
 
   private void updateAllTypes(List<GimpleCompilationUnit> units) {
 
-    TreeLogger mappingLogger = logger.enter("Updating types types to canonical IDs");
+    TreeLogger mappingLogger = logger.branch("Updating types types to canonical IDs");
     for (Map.Entry<String, GimpleRecordTypeDef> entry : idToCanonicalMap.entrySet()) {
       mappingLogger.debug("Mapping " + entry.getKey() + " -> "  + entry.getValue().getId());
     }

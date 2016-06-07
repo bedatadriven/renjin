@@ -556,6 +556,10 @@ public class Methods {
     return value != Symbol.UNBOUND_VALUE;
   }
 
+  
+  public static String R_get_primname(PrimitiveFunction function) {
+    return function.getName();
+  }
 
   public static SEXP R_nextMethod(@Current Context context, FunctionCall matched_call, Environment ev) {
     SEXP val, this_sym, op;

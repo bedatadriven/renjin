@@ -502,11 +502,16 @@ public class Text {
       int offsetSearch = 0;
 
       while ( re.match(text.substring(offsetSearch))) {
-          int start = re.getGroupStart(0);
-          int end = re.getGroupEnd(0);
+        int start = re.getGroupStart(0);
+        int end = re.getGroupEnd(0);
+        int increment = end == 0 ? 1 : end;
+        if (offsetSearch < text.length()) {
           position.add(start + 1 + offsetSearch);
           matchLength.add( end - start);
-          offsetSearch += end;
+          offsetSearch += increment;
+        } else {
+          break;
+        }
       }
 
       if (position.length() == 0) {

@@ -339,7 +339,18 @@ public class TextTest extends EvalTestCase {
   @Test
   public void gregexprTest() {
     eval( "m <- .Internal(gregexpr('aa', c('aabbbbbaa', 'bbaabbbaa', 'ccaaccaaccaa'), ignore.case=FALSE, perl=FALSE, fixed=FALSE, useBytes=FALSE))" );
+
+    eval( "n <- .Internal(gregexpr('', c('aabbbbbaa', 'bbaabbbaa', 'ccaaccaaccaa'), ignore.case=FALSE, perl=FALSE, fixed=FALSE, useBytes=FALSE))" );
+
+    eval( "o <- .Internal(gregexpr('z', c('aabbbbbaa', 'bbaabbbaa', 'ccaaccaaccaa'), ignore.case=FALSE, perl=FALSE, fixed=FALSE, useBytes=FALSE))" );
+
     assertThat( eval("m[[3]]"), equalTo(c_i(3,7,11)));
     assertThat( eval("attr(m[[3]], \"match.length\")"), equalTo(c_i(2,2,2)));
+
+    assertThat( eval("n[[3]]"), equalTo(c_i(1,2,3,4,5,6,7,8,9,10,11,12)));
+    assertThat( eval("attr(n[[3]], \"match.length\")"), equalTo(c_i(0,0,0,0,0,0,0,0,0,0,0,0)));
+
+    assertThat( eval("o[[3]]"), equalTo(c_i(-1)));
+    assertThat( eval("attr(o[[3]], \"match.length\")"), equalTo(c_i(-1)));
   }
 }

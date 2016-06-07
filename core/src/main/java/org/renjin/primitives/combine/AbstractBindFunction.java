@@ -3,6 +3,8 @@ package org.renjin.primitives.combine;
 import org.renjin.eval.Context;
 import org.renjin.sexp.*;
 
+import java.util.List;
+
 /**
  * methods used by both cbind and rbind
  */
@@ -40,13 +42,13 @@ public abstract class AbstractBindFunction extends SpecialFunction {
    * @return
    */
   public static SEXP tryBindDispatch(Context context, Environment rho,
-                                     String bindFunctionName, int deparseLevel, PairList arguments) {
+                                     String bindFunctionName, int deparseLevel, List<BindArgument> arguments) {
 
     Symbol foundMethod = null;
     org.renjin.sexp.Function foundFunction = null;
 
-    for(SEXP argument : arguments.nodes()) {
-      Vector classes = (Vector) argument.getAttribute(Symbols.CLASS);
+    for(BindArgument argument : arguments) {
+      Vector classes = argument.getClasses();
       for(int i=0;i!=classes.length();++i) {
         Symbol methodName = Symbol.get(bindFunctionName + "." + classes.getElementAsString(i));
         org.renjin.sexp.Function function = rho.findFunction(context, methodName);
@@ -70,7 +72,11 @@ public abstract class AbstractBindFunction extends SpecialFunction {
     // build a new FunctionCall object and apply
     PairList.Builder args = new PairList.Builder();
     args.add("deparse.level", new Promise(Symbol.get("deparse.level"), new IntArrayVector(deparseLevel)));
-    args.addAll(arguments);
+
+    for (BindArgument argument : arguments) {
+      args.add(argument.getArgName(), argument.vector);
+    }
+
 
     FunctionCall call = new FunctionCall(Symbol.get(bindFunctionName), args.build());
     return foundFunction.apply(context, rho, call, call.getArguments());

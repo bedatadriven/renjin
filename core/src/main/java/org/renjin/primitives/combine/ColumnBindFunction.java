@@ -10,8 +10,12 @@ import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.codegen.ArgumentIterator;
 import org.renjin.sexp.*;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import org.renjin.primitives.Deparse;
+
+import static org.renjin.primitives.Deparse.deparse;
 
 /**
  * Special function to do cbind and use objectnames as columnnames
@@ -25,32 +29,27 @@ public class ColumnBindFunction extends AbstractBindFunction {
   @Override
   public SEXP apply(Context context, Environment rho, FunctionCall call, PairList arguments) {
 
-    int deparseLevel = ((Vector) context.evaluate( call.getArgument(0), rho)).getElementAsInt(0);
+    ArgumentIterator argumentItr = new ArgumentIterator(context, rho, arguments);
 
-    SEXP genericResult = tryBindDispatch(context, rho, "cbind", deparseLevel, arguments);
+    int deparseLevel = ((Vector) argumentItr.evalNext()).getElementAsInt(0);
+
+    List<BindArgument> bindArguments = Lists.newArrayList();
+
+    while(argumentItr.hasNext()) {
+      PairList.Node currentNode = argumentItr.nextNode();
+      SEXP evaluated = context.evaluate(currentNode.getValue(), rho);
+      bindArguments.add(new BindArgument(currentNode.getName(),(Vector) evaluated, false));
+    }
+
+    SEXP genericResult = tryBindDispatch(context, rho, "cbind", deparseLevel, bindArguments);
     if (genericResult != null) {
       return genericResult;
     }
 
-    List<BindArgument> bindArguments = Lists.newArrayList();
-    Map<Symbol, SEXP> propertyValues = Maps.newHashMap();
-
-    ArgumentIterator argumentItr = new ArgumentIterator(context, rho, arguments);
-    while(argumentItr.hasNext()) {
-      PairList.Node currentNode = argumentItr.nextNode();
-      SEXP evaled = context.evaluate( currentNode.getValue(), rho);
-
-      if(currentNode.hasTag()) {
-        propertyValues.put(currentNode.getTag(), evaled);
-      } else {
-        bindArguments.add(new BindArgument(currentNode.getName(), (Vector) evaled, false));
+    for (int i = 0; i < bindArguments.size(); i++) {
+      if (bindArguments.get(i).vector.length() == 0) {
+        bindArguments.remove(i);
       }
-    }
-
-    bindArguments.remove(0);
-
-    if (bindArguments.isEmpty()) {
-      return Null.INSTANCE;
     }
 
     // establish the number of rows
@@ -58,16 +57,23 @@ public class ColumnBindFunction extends AbstractBindFunction {
     int rows = -1;
     int columns = 0;
     for (BindArgument argument : bindArguments) {
-      if (argument.matrix) {
-        columns += argument.cols;
-        if (rows == -1) {
-          rows = argument.rows;
-        } else if (rows != argument.rows) {
-          throw new EvalException("number of rows of matrices must match");
+      if (argument.vector.length() > 0) {
+        if (argument.matrix) {
+          columns += argument.cols;
+          if (rows == -1) {
+            rows = argument.rows;
+          } else if (rows != argument.rows) {
+            throw new EvalException("number of rows of matrices must match");
+          }
+        } else {
+          columns++;
         }
-      } else {
-        columns++;
       }
+
+    }
+
+    if (columns == 0) {
+      return Null.INSTANCE;
     }
 
     // if there are no actual matrices, then use the longest vector length as the number of rows
@@ -82,7 +88,7 @@ public class ColumnBindFunction extends AbstractBindFunction {
     // now check that all vectors lengths are multiples of the column length
     for (BindArgument argument : bindArguments) {
       if (!argument.matrix) {
-        if ((rows % argument.vector.length()) != 0) {
+        if (argument.vector.length() > 0 && (rows % argument.vector.length()) != 0) {
           throw new EvalException("number of rows of result is not a multiple of vector length");
         }
       }
@@ -90,7 +96,9 @@ public class ColumnBindFunction extends AbstractBindFunction {
 
     // get the common type and a new builder
     Inspector inspector = new Inspector(false);
-    inspector.acceptAll(arguments.values());
+    for (BindArgument bindArgument : bindArguments) {
+      bindArgument.vector.accept(inspector);
+    }
     Vector.Builder vectorBuilder = inspector.getResult().newBuilder();
 
     // wrap the builder

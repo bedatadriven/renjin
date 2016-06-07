@@ -24,49 +24,51 @@ public class RowBindFunction extends AbstractBindFunction {
   @Override
   public SEXP apply(Context context, Environment rho, FunctionCall call, PairList arguments) {
 
-    int deparseLevel = ((Vector) context.evaluate( call.getArgument(0), rho)).getElementAsInt(0);
+    ArgumentIterator argumentItr = new ArgumentIterator(context, rho, arguments);
 
-    SEXP genericResult = tryBindDispatch(context, rho, "rbind", deparseLevel, arguments);
+    int deparseLevel = ((Vector) argumentItr.evalNext()).getElementAsInt(0);
+
+    List<BindArgument> bindArguments = Lists.newArrayList();
+
+    while(argumentItr.hasNext()) {
+      PairList.Node currentNode = argumentItr.nextNode();
+      SEXP evaluated = context.evaluate(currentNode.getValue(), rho);
+      bindArguments.add(new BindArgument(currentNode.getName(),(Vector) evaluated, true));
+    }
+
+    SEXP genericResult = tryBindDispatch(context, rho, "rbind", deparseLevel, bindArguments);
     if (genericResult != null) {
       return genericResult;
     }
 
-    List<BindArgument> bindArguments = Lists.newArrayList();
-    Map<Symbol, SEXP> propertyValues = Maps.newHashMap();
-
-    ArgumentIterator argumentItr = new ArgumentIterator(context, rho, arguments);
-    while(argumentItr.hasNext()) {
-      PairList.Node currentNode = argumentItr.nextNode();
-      SEXP evaled = context.evaluate( currentNode.getValue(), rho);
-
-      if(currentNode.hasTag()) {
-        propertyValues.put(currentNode.getTag(), evaled);
-      } else {
-        bindArguments.add(new BindArgument(currentNode.getName(), (Vector) evaled, false));
+    for (int i = 0; i < bindArguments.size(); i++) {
+      if (bindArguments.get(i).vector.length() == 0) {
+        bindArguments.remove(i);
       }
-    }
-
-    bindArguments.remove(0);
-
-    if (bindArguments.isEmpty()) {
-      return Null.INSTANCE;
     }
 
     // establish the number of columns
     // 1. check actual matrices
-    int columns = -1;
     int rows = 0;
+    int columns = -1;
     for (BindArgument argument : bindArguments) {
-      if (argument.matrix) {
-        rows += argument.rows;
-        if (columns == -1) {
-          columns = argument.cols;
-        } else if (columns != argument.cols) {
-          throw new EvalException("number of columns of matrices must match");
+      if (argument.vector.length() > 0) {
+
+        if (argument.matrix) {
+          rows += argument.rows;
+          if (columns == -1) {
+            columns = argument.cols;
+          } else if (columns != argument.cols) {
+            throw new EvalException("number of columns of matrices must match");
+          }
+        } else {
+          rows++;
         }
-      } else {
-        rows++;
       }
+    }
+
+    if (rows == 0) {
+      return Null.INSTANCE;
     }
 
     // if there are no actual matrices, then use the longest vector length as the number of columns
@@ -90,7 +92,9 @@ public class RowBindFunction extends AbstractBindFunction {
 
     // get the common type and a new builder
     Inspector inspector = new Inspector(false);
-    inspector.acceptAll(arguments.values());
+    for (BindArgument bindArgument : bindArguments) {
+      bindArgument.vector.accept(inspector);
+    }
     Vector.Builder vectorBuilder = inspector.getResult().newBuilder();
 
     // wrap the builder

@@ -48,4 +48,12 @@ class BindArgument {
       matrix = true;
     }
   }
+
+  public Vector getClasses () {
+    return (Vector) vector.getAttribute(Symbols.CLASS);
+  }
+
+  public String getArgName() {
+    return this.argName;
+  }
 }

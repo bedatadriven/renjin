@@ -38,7 +38,7 @@ public class ColumnBindFunction extends AbstractBindFunction {
     while(argumentItr.hasNext()) {
       PairList.Node currentNode = argumentItr.nextNode();
       SEXP evaluated = context.evaluate(currentNode.getValue(), rho);
-      bindArguments.add(new BindArgument(currentNode.getName(),(Vector) evaluated, false));
+      bindArguments.add(new BindArgument(currentNode.getName(),(Vector) evaluated, false, currentNode.getValue()));
     }
 
     SEXP genericResult = tryBindDispatch(context, rho, "cbind", deparseLevel, bindArguments);
@@ -88,7 +88,7 @@ public class ColumnBindFunction extends AbstractBindFunction {
     // now check that all vectors lengths are multiples of the column length
     for (BindArgument argument : bindArguments) {
       if (!argument.matrix) {
-        if (argument.vector.length() > 0 && (rows % argument.vector.length()) != 0) {
+        if ((rows % argument.vector.length()) != 0) {
           throw new EvalException("number of rows of result is not a multiple of vector length");
         }
       }
@@ -128,8 +128,8 @@ public class ColumnBindFunction extends AbstractBindFunction {
         for (int i = 0; i != argument.cols; ++i) {
           colNames.add(argument.colNames.getElementAsString(i));
         }
-      } else if (argument.argName != null && !argument.matrix) {
-        colNames.add(argument.argName);
+      } else if (argument.hasName() && !argument.matrix) {
+        colNames.add(argument.getName());
         hasColNames = true;
       } else {
         for (int i = 0; i != argument.cols; ++i) {
@@ -138,8 +138,7 @@ public class ColumnBindFunction extends AbstractBindFunction {
       }
     }
 
-    builder.setDimNames(rowNames,
-            hasColNames ? colNames.build() : Null.INSTANCE);
+    builder.setDimNames(rowNames, hasColNames ? colNames.build() : Null.INSTANCE);
 
     return builder.build();
   }

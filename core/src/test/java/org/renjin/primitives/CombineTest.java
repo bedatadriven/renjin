@@ -209,6 +209,20 @@ public class CombineTest extends EvalTestCase {
   }
 
   @Test
+  public void BindingNamedVectors() {
+    eval("a <- c(1,2); names(a) <- c('C','D')");
+    eval("b <- c(3,4); names(b) <- c('C','D')");
+    eval("m <- cbind(a,b)");
+    eval("n <- rbind(a,b)");
+
+    assertThat( eval("dimnames(m)[[1]]"), equalTo(c("C", "D")));
+    assertThat( eval("dimnames(m)[[2]]"), equalTo(c("a", "b")));        // WORKS
+    assertThat( eval("dimnames(n)[[1]]"), equalTo(c("a", "b")));        // WORKS
+    assertThat( eval("dimnames(n)[[2]]"), equalTo(c("C", "D")));
+
+  }
+
+  @Test
   public void bindDispatch() {
     eval("rbind.foo <- function(..., deparse.level = 1) 42L ");
     eval("rbind.bar <- function(..., deparse.level = 1) c(...)*2 ");

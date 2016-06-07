@@ -107,8 +107,10 @@ public class RowBindFunction extends AbstractBindFunction {
       }
     }
 
-    AtomicVector rowNames = Null.INSTANCE;
     AtomicVector colNames = Null.INSTANCE;
+    StringVector.Builder rowNames = new StringVector.Builder();
+
+    boolean hasRowNames = false;
 
     for (BindArgument argument : bindArguments) {
       if (argument.colNames.length() == columns) {
@@ -117,7 +119,23 @@ public class RowBindFunction extends AbstractBindFunction {
       }
     }
 
-    builder.setDimNames(rowNames, colNames);
+    for (BindArgument argument : bindArguments) {
+      if (argument.rowNames != Null.INSTANCE) {
+        hasRowNames = true;
+        for (int i = 0; i != argument.cols; ++i) {
+          rowNames.add(argument.rowNames.getElementAsString(i));
+        }
+      } else if (argument.hasName() && !argument.matrix) {
+        rowNames.add(argument.getName());
+        hasRowNames = true;
+      } else {
+        for (int i = 0; i != argument.rows; ++i) {
+          rowNames.add("");
+        }
+      }
+    }
+
+    builder.setDimNames(hasRowNames ? rowNames.build() : Null.INSTANCE, colNames);
 
     return builder.build();
   }

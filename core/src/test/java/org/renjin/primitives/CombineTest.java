@@ -216,9 +216,47 @@ public class CombineTest extends EvalTestCase {
     eval("n <- rbind(a,b)");
 
     assertThat( eval("dimnames(m)[[1]]"), equalTo(c("C", "D")));
-    assertThat( eval("dimnames(m)[[2]]"), equalTo(c("a", "b")));        // WORKS
-    assertThat( eval("dimnames(n)[[1]]"), equalTo(c("a", "b")));        // WORKS
+    assertThat( eval("dimnames(m)[[2]]"), equalTo(c("a", "b")));
+    assertThat( eval("dimnames(n)[[1]]"), equalTo(c("a", "b")));
     assertThat( eval("dimnames(n)[[2]]"), equalTo(c("C", "D")));
+
+  }
+
+  @Test
+  public void BindingWithDeparseLevel() {
+    eval("a <- c(C=1,D=2)");
+    eval("b <- c(C=3,D=4)");
+
+    assertThat( eval("dimnames( cbind(a,b,deparse.level=0) )[[1]]"), equalTo(c("C", "D")));
+    assertThat( eval("dimnames( cbind(a,b,deparse.level=0) )[[2]]"), equalTo(NULL));
+    assertThat( eval("dimnames( rbind(a,b,deparse.level=0) )[[1]]"), equalTo(NULL));
+    assertThat( eval("dimnames( rbind(a,b,deparse.level=0) )[[2]]"), equalTo(c("C", "D")));
+
+    assertThat( eval("dimnames( cbind(c(C=1,D=2),c(C=3,D=4),deparse.level=0) )[[1]]"), equalTo(c("C", "D")));
+    assertThat( eval("dimnames( cbind(c(C=1,D=2),c(C=3,D=4),deparse.level=0) )[[2]]"), equalTo(NULL));
+    assertThat( eval("dimnames( rbind(c(C=1,D=2),c(C=3,D=4),deparse.level=0) )[[1]]"), equalTo(NULL));
+    assertThat( eval("dimnames( rbind(c(C=1,D=2),c(C=3,D=4),deparse.level=0) )[[2]]"), equalTo(c("C", "D")));
+
+
+    assertThat( eval("dimnames( cbind(a,b,deparse.level=1) )[[1]]"), equalTo(c("C", "D")));
+    assertThat( eval("dimnames( cbind(a,b,deparse.level=1) )[[2]]"), equalTo(c("a", "b")));
+    assertThat( eval("dimnames( rbind(a,b,deparse.level=1) )[[1]]"), equalTo(c("a", "b")));
+    assertThat( eval("dimnames( rbind(a,b,deparse.level=1) )[[2]]"), equalTo(c("C", "D")));
+
+    assertThat( eval("dimnames( cbind(c(C=1,D=2),c(C=3,D=4),deparse.level=1) )[[1]]"), equalTo(c("C", "D")));
+    assertThat( eval("dimnames( cbind(c(C=1,D=2),c(C=3,D=4),deparse.level=1) )[[2]]"), equalTo(NULL));
+    assertThat( eval("dimnames( rbind(c(C=1,D=2),c(C=3,D=4),deparse.level=1) )[[1]]"), equalTo(NULL));
+    assertThat( eval("dimnames( rbind(c(C=1,D=2),c(C=3,D=4),deparse.level=1) )[[2]]"), equalTo(c("C", "D")));
+
+    assertThat( eval("dimnames( cbind(1:2,3:4,deparse.level=2) )[[1]]"), equalTo(NULL));
+    assertThat( eval("dimnames( cbind(1:2,3:4,deparse.level=2) )[[2]]"), equalTo( c("1:2", "3:4") ));
+    assertThat( eval("dimnames( rbind(1:2,3:4,deparse.level=2) )[[1]]"), equalTo( c("1:2", "3:4") ));
+    assertThat( eval("dimnames( rbind(1:2,3:4,deparse.level=2) )[[2]]"), equalTo(NULL));
+
+    assertThat( eval("dimnames( cbind(c(C=1,D=2),c(C=3,D=4),deparse.level=2) )[[1]]"), equalTo(c("C", "D")));
+    assertThat( eval("dimnames( cbind(c(C=1,D=2),c(C=3,D=4),deparse.level=2) )[[2]]"), equalTo(c("c(C = 1, D...", "c(C = 3, D...")));
+    assertThat( eval("dimnames( rbind(c(C=1,D=2),c(C=3,D=4),deparse.level=2) )[[1]]"), equalTo(c("c(C = 1, D...", "c(C = 3, D...")));
+    assertThat( eval("dimnames( rbind(c(C=1,D=2),c(C=3,D=4),deparse.level=2) )[[2]]"), equalTo(c("C", "D")));
 
   }
 

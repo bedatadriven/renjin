@@ -446,7 +446,8 @@ static void dump_type(tree type) {
       json_field("lbound");
       json_int(TREE_INT_CST_LOW(TYPE_MIN_VALUE(domain)));
 
-      if(TYPE_MAX_VALUE(domain)) {      
+      tree ubound = TYPE_MAX_VALUE(domain);
+      if(ubound && TREE_CODE(ubound) == INTEGER_CST) {   
         json_field("ubound");
         json_int(TREE_INT_CST_LOW(TYPE_MAX_VALUE(domain)));
       }

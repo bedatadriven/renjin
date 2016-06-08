@@ -169,7 +169,6 @@ public class UnitClassGenerator {
 
   private void emitFunctions(TreeLogger parentLogger, GimpleCompilationUnit unit) {
 
-    
     // Check for duplicate names...
     Set<String> names = Sets.newHashSet();
     for (FunctionGenerator functionGenerator : symbolTable.getFunctions()) {

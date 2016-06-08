@@ -35,6 +35,7 @@ public class Expressions {
   }
   
   public static SimpleExpr newArray(final Type componentType, final SimpleExpr length) {
+    checkType("length", length, Type.INT);
     return new SimpleExpr() {
       @Nonnull
       @Override

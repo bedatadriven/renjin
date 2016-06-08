@@ -350,6 +350,11 @@ public class GimpleCompilerTest extends AbstractGccTest {
   }
   
   @Test
+  public void dynamicArrays() throws Exception {
+    compileAndTest("dynamic_arrays.c");
+  }
+  
+  @Test
   public void array2d() throws Exception {
     compileAndTest("array2d.c");
   }

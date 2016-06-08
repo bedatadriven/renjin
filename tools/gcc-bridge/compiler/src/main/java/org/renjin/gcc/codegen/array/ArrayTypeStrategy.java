@@ -22,7 +22,8 @@ import java.util.List;
  * Type strategy for arrays of values
  */
 public class ArrayTypeStrategy implements TypeStrategy<FatPtrExpr> {
-  
+
+  private static final int MAX_UNROLL = 5;
   private final ValueFunction valueFunction;
   private GimpleArrayType arrayType;
   private int arrayLength = -1;
@@ -147,11 +148,17 @@ public class ArrayTypeStrategy implements TypeStrategy<FatPtrExpr> {
     if(valueFunction.getValueConstructor().isPresent()) {
       // For reference types like records or fat pointers we have to 
       // initialize each element of the array
-      List<SimpleExpr> valueConstructors = Lists.newArrayList();
-      for (int i = 0; i < arrayLength; i++) {
-        valueConstructors.add(valueFunction.getValueConstructor().get());
+      if(arrayLength < MAX_UNROLL) {
+
+        List<SimpleExpr> valueConstructors = Lists.newArrayList();
+        for (int i = 0; i < arrayLength; i++) {
+          valueConstructors.add(valueFunction.getValueConstructor().get());
+        }
+        return Expressions.newArray(valueFunction.getValueType(), valueConstructors);
+      
+      } else {
+        return new ArrayInitLoop(valueFunction, arrayLength);
       }
-      return Expressions.newArray(valueFunction.getValueType(), valueConstructors);
     
     } else {
       // For primitive types, we can just allocate the array

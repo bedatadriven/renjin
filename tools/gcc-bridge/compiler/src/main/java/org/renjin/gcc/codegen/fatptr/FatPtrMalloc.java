@@ -26,13 +26,12 @@ public final class FatPtrMalloc {
 
   public static SimpleExpr allocArray(MethodGenerator mv, ValueFunction valueFunction, SimpleExpr length) {
 
-    SimpleExpr totalLength = Expressions.product(length, valueFunction.getElementLength());
 
     // If the values don't require any initialization (for example, an array of 
     // double is initialized by the JVM to zeros)
     // Then we can just return a new array expression
     if(!valueFunction.getValueConstructor().isPresent()) {
-      return Expressions.newArray(valueFunction.getValueType(), totalLength);
+      return Expressions.newArray(valueFunction.getValueType(), length);
     }
 
     // If we *do* need to construct the array elements, but the length is short and known at compile time,
@@ -59,7 +58,7 @@ public final class FatPtrMalloc {
 
 
     // First allocate the array
-    totalLength.load(mv);
+    length.load(mv);
     mv.newarray(valueFunction.getValueType());
     mv.store(array.getIndex(), arrayType);
 
@@ -84,7 +83,7 @@ public final class FatPtrMalloc {
     // Check the condition
     mv.mark(loopCheck);
     mv.load(counter.getIndex(), Type.INT_TYPE);
-    totalLength.load(mv);
+    length.load(mv);
     mv.ificmplt(loopHead);
 
     // Load the array back on the stack

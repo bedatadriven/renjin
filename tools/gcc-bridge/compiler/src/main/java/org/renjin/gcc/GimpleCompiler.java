@@ -74,6 +74,8 @@ public class GimpleCompiler  {
   private TreeLogger rootLogger = new NullTreeLogger();
 
   public GimpleCompiler() {
+    functionBodyTransformers.add(FunctionCallPruner.INSTANCE);
+    functionBodyTransformers.add(LocalVariablePruner.INSTANCE);
     functionBodyTransformers.add(VoidPointerTypeDeducer.INSTANCE);
     functionBodyTransformers.add(AddressableFinder.INSTANCE);
     functionBodyTransformers.add(ResultDeclRewriter.INSTANCE);

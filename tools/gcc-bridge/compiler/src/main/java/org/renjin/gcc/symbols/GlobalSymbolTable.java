@@ -96,6 +96,7 @@ public class GlobalSymbolTable implements SymbolTable {
   public void addDefaults() {
 
     addFunction("malloc", new MallocCallGenerator(typeOracle));
+    addFunction("alloca", new MallocCallGenerator(typeOracle));
     addFunction("free", new FreeCallGenerator());
     addFunction("realloc", new ReallocCallGenerator(typeOracle));
 

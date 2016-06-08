@@ -80,7 +80,8 @@ public class LocalVarAllocator extends VarAllocator {
   }
   
   public void initializeVariables(MethodGenerator mv) {
-    for (LocalVar name : names) {
+    List<LocalVar> toInitialize = Lists.newArrayList(names);
+    for (LocalVar name : toInitialize) {
       if(name.initialValue.isPresent()) {
         name.store(mv, name.initialValue.get());
       }

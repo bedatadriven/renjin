@@ -607,4 +607,8 @@ public class CastGenerator implements SimpleExpr {
     mv.visitInsn(Opcodes.D2F);
   }
 
+  public static void castReal64ToReal64(MethodGenerator mv) {
+    // NOOP
+    // May be invoked when casting from long double -> double
+  }
 }

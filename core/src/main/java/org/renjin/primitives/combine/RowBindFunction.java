@@ -123,8 +123,9 @@ public class RowBindFunction extends AbstractBindFunction {
           }
         }
       } else {
-        for (int i = 0; i != argument.cols; ++i)
+        for (int i = 0; i != argument.cols; ++i) {
           colNames.add("");
+        }
       }
     }
 

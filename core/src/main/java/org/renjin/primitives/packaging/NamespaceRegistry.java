@@ -30,7 +30,8 @@ public class NamespaceRegistry {
    * org.renjin groupId.
    */
   public static final Set<String> CORE_PACKAGES = Sets.newHashSet("datasets", "graphics", "grDevices", "hamcrest",
-      "methods", "splines", "stats", "stats4", "utils", "grid", "parallel", "tools", "tcltk");
+      "methods", "splines", "stats", "stats4", "utils", "grid", "parallel", "tools", "tcltk",
+      "compiler");
 
   private PackageLoader loader;
 

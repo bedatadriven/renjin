@@ -117,8 +117,10 @@ public class RowBindFunction extends AbstractBindFunction {
     for (BindArgument argument : bindArguments) {
       if (argument.colNames != Null.INSTANCE) {
         hasColNames = true;
-        for (int i = 0; i != argument.cols; ++i) {
-          colNames.add(argument.colNames);
+        if (colNames.length() < argument.colNames.length()) {
+          for (int i = 0; i != argument.cols; ++i) {
+            colNames.add(argument.colNames.getElementAsString(i));
+          }
         }
       } else {
         for (int i = 0; i != argument.cols; ++i)

@@ -210,8 +210,8 @@ public class CombineTest extends EvalTestCase {
 
   @Test
   public void BindingNamedVectors() {
-    eval("a <- c(1,2); names(a) <- c('C','D')");
-    eval("b <- c(3,4); names(b) <- c('C','D')");
+    eval("a <- c(C=1,D=2)");
+    eval("b <- c(C=3,D=4)");
     eval("m <- cbind(a,b)");
     eval("n <- rbind(a,b)");
 

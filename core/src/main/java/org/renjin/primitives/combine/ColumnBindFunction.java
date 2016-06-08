@@ -121,8 +121,10 @@ public class ColumnBindFunction extends AbstractBindFunction {
     for (BindArgument argument : bindArguments) {
       if (argument.rowNames != Null.INSTANCE) {
         hasRowNames = true;
-        for (int i = 0; i != argument.rows; ++i) {
-          rowNames.add(argument.rowNames);
+        if (rowNames.length() < argument.rowNames.length()) {
+          for (int i = 0; i != argument.rows; ++i) {
+            rowNames.add(argument.rowNames.getElementAsString(i));
+          }
         }
       } else {
         for (int i = 0; i != argument.rows; ++i)

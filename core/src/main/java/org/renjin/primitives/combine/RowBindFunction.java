@@ -33,7 +33,7 @@ public class RowBindFunction extends AbstractBindFunction {
     while(argumentItr.hasNext()) {
       PairList.Node currentNode = argumentItr.nextNode();
       SEXP evaluated = context.evaluate(currentNode.getValue(), rho);
-      bindArguments.add(new BindArgument(currentNode.getName(),(Vector) evaluated, true, currentNode.getValue(), deparseLevel));
+      bindArguments.add(new BindArgument(currentNode.getName(),(Vector) evaluated, true, currentNode.getValue(), deparseLevel, context));
     }
 
     SEXP genericResult = tryBindDispatch(context, rho, "rbind", deparseLevel, bindArguments);
@@ -142,6 +142,10 @@ public class RowBindFunction extends AbstractBindFunction {
           rowNames.add("");
         }
       }
+    }
+
+    if (deparseLevel == 0) {
+      hasRowNames = false;
     }
 
     builder.setDimNames(hasRowNames ? rowNames.build() : Null.INSTANCE, hasColNames ? colNames.build() : Null.INSTANCE);

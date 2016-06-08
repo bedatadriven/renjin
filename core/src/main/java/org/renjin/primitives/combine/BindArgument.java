@@ -1,5 +1,7 @@
 package org.renjin.primitives.combine;
 
+import org.renjin.eval.Context;
+import org.renjin.primitives.Deparse;
 import org.renjin.sexp.*;
 
 /**
@@ -11,6 +13,7 @@ class BindArgument {
   final int rows;
   final int cols;
   final int deparseLevel;
+  Context context;
 
   AtomicVector rowNames = Null.INSTANCE;
   AtomicVector colNames = Null.INSTANCE;
@@ -21,7 +24,7 @@ class BindArgument {
   final boolean matrix;
   String argName;
 
-  public BindArgument(String argName, Vector vector, boolean defaultToRows, SEXP unevaluated, int deparseLevel) {
+  public BindArgument(String argName, Vector vector, boolean defaultToRows, SEXP unevaluated, int deparseLevel, Context context) {
     this.argName = argName;
     this.unevaluated = unevaluated;
     this.deparseLevel = deparseLevel;
@@ -63,10 +66,23 @@ class BindArgument {
 
   public String getName() {
     String name;
+    String typeName = this.unevaluated.getTypeName();
+    SEXP expression = ((Promise) this.unevaluated).getExpression();
+    String expressionType = expression.getTypeName();
+
     if (this.argName != null && this.argName.length() > 0) {
       name = this.argName;
-    } else if (this.unevaluated.getTypeName().equals("promise")) {
-      name = ((Promise) this.unevaluated).getExpression().asString();
+    } else if (deparseLevel == 1 && typeName.equals("promise") && expressionType.equals("symbol")) {
+      name = expression.asString();
+    } else if (deparseLevel == 2) {
+      if (typeName.equals("promise") && expressionType.equals("symbol")) {
+        name = expression.asString();
+      } else {
+        name = Deparse.deparse(context, expression, 0, false, 0, 0);
+      }
+      if (name.length() > 10) {
+        name = new String(name.substring(0,10)+"...");
+      }
     } else {
       name = this.argName;
     }
@@ -75,10 +91,16 @@ class BindArgument {
 
   public boolean hasName() {
     boolean hasName;
+    String typeName = this.unevaluated.getTypeName();
+    SEXP expression = ((Promise) this.unevaluated).getExpression();
+    String expressionType = expression.getTypeName();
+
     if (this.argName != null && this.argName.length() > 0) {
       hasName = true;
-    } else if (this.unevaluated.getTypeName().equals("promise")) {
-      hasName = (((Promise) this.unevaluated).getExpression().asString().length() > 0);
+    } else if (deparseLevel == 1 && typeName.equals("promise") && expressionType.equals("symbol")) {
+      hasName = (expression.asString().length() > 0);
+    } else if (deparseLevel == 2) {
+      hasName = true;
     } else {
       hasName = false;
     }

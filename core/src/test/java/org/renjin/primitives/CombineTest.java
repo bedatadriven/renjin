@@ -145,7 +145,6 @@ public class CombineTest extends EvalTestCase {
     assertThat(eval("dimnames(.Internal(cbind(1, a=1:2, b=3:4)))[[2]]"), equalTo(c("a", "b")));
   }
 
-
   @Test
   public void cbindWithDimnames() {
     eval("a <- 1:4");
@@ -157,6 +156,16 @@ public class CombineTest extends EvalTestCase {
     eval("x <- .Internal(cbind(1, a, b))");
     assertThat(eval("length(dimnames(x)[[1]])"), equalTo(c_i(4)));
     assertThat(eval("length(dimnames(x)[[2]])"), equalTo(c_i(2)));
+  }
+
+  @Test
+  public void bindAndSubstitute() {
+    eval("cbind.foo <- function(..., deparse.level=1) { substitute(...) }");
+    eval("x <- list(1)");
+    eval("class(x) <- 'foo'");
+    eval("a <- cbind(x)");
+    eval("b <- as.name('x')");
+    assertThat(eval("a"), equalTo(eval("b")));
   }
 
   @Test

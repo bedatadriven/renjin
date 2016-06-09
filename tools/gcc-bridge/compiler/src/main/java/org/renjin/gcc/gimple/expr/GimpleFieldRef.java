@@ -1,5 +1,8 @@
 package org.renjin.gcc.gimple.expr;
 
+import com.google.common.base.Predicate;
+import org.renjin.gcc.gimple.GimpleExprVisitor;
+
 /**
  * Gimple expression which evaluates to the name of a field
  */
@@ -52,6 +55,22 @@ public class GimpleFieldRef extends GimpleExpr {
 
   @Override
   public String toString() {
+    if(name == null) {
+      return "field@" + offset;
+    }
+    if(name.contains(".")) {
+      return "[" + name + "]";
+    } 
     return name;
+  }
+
+  @Override
+  public void replaceAll(Predicate<? super GimpleExpr> predicate, GimpleExpr newExpr) {
+    // NOOP: Leaf node
+  }
+
+  @Override
+  public void accept(GimpleExprVisitor visitor) {
+    visitor.visitFieldRef(this);
   }
 }

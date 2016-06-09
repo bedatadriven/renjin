@@ -11,32 +11,21 @@
   <artifactId>renjin-packages</artifactId>
   <packaging>pom</packaging>
   <name>Renjin Packages Parent</name>
-
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
-
+  
   <modules>
     <module>stats</module>
     <module>stats4</module>
-	  <module>hamcrest</module>
-	  <module>graphics</module>
-	  <module>grDevices</module>
-	  <module>datasets</module>
-	  <module>methods</module>
-	  <module>splines</module>
-	  <module>utils</module>
-	  <module>grid</module>
+    <module>hamcrest</module>
+    <module>graphics</module>
+    <module>grDevices</module>
+    <module>datasets</module>
+    <module>methods</module>
+    <module>splines</module>
+    <module>utils</module>
+    <module>grid</module>
     <module>parallel</module>
     <module>tools</module>
     <module>tcltk</module>
+    <module>compiler</module>
   </modules>
-  
-  <dependencies>
-   
-  </dependencies>
-
-  <build>
-    
-  </build>
 </project>

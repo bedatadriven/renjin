@@ -13,6 +13,6 @@ import org.renjin.gcc.gimple.statement.GimpleCall;
 public interface CallGenerator  {
   
   void emitCall(MethodGenerator mv, ExprFactory exprFactory, GimpleCall call);
-
+  
 }
 

@@ -3,17 +3,16 @@ package org.renjin.gcc.symbols;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
-import org.objectweb.asm.Handle;
+import com.google.common.collect.Sets;
 import org.renjin.gcc.InternalCompilerException;
-import org.renjin.gcc.codegen.FunctionGenerator;
 import org.renjin.gcc.codegen.call.*;
+import org.renjin.gcc.codegen.cpp.*;
 import org.renjin.gcc.codegen.expr.Expr;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
 import org.renjin.gcc.codegen.lib.SymbolFunction;
 import org.renjin.gcc.codegen.lib.SymbolLibrary;
 import org.renjin.gcc.codegen.lib.SymbolMethod;
 import org.renjin.gcc.codegen.type.TypeOracle;
-import org.renjin.gcc.gimple.CallingConvention;
-import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
 import org.renjin.gcc.gimple.expr.GimpleSymbolRef;
 import org.renjin.gcc.link.LinkSymbol;
@@ -24,7 +23,6 @@ import org.renjin.gcc.runtime.Stdlib;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -42,6 +40,8 @@ public class GlobalSymbolTable implements SymbolTable {
   private TypeOracle typeOracle;
   private Map<String, CallGenerator> functions = Maps.newHashMap();
   private Map<String, Expr> globalVariables = Maps.newHashMap();
+  
+  private Set<String> undefinedSymbols = Sets.newHashSet();
 
   public GlobalSymbolTable(TypeOracle typeOracle) {
     this.typeOracle = typeOracle;
@@ -52,10 +52,11 @@ public class GlobalSymbolTable implements SymbolTable {
   }
 
   @Override
-  public CallGenerator findCallGenerator(GimpleFunctionRef ref, List<GimpleExpr> operands, CallingConvention callingConvention) {
-    String mangledName = callingConvention.mangleFunctionName(ref.getName());
+  public CallGenerator findCallGenerator(GimpleFunctionRef ref) {
+    String mangledName = ref.getName();
+   
     CallGenerator generator = functions.get(mangledName);
-    
+
     // Try to find the symbol on the classpath
     if(generator == null) {
       Optional<LinkSymbol> linkSymbol = null;
@@ -71,17 +72,22 @@ public class GlobalSymbolTable implements SymbolTable {
       }
     }
     
+    // Otherwise return a generator that will throw an error at runtime
     if(generator == null) {
-      throw new UnsupportedOperationException("Could not find function '" + mangledName + "'");
+      generator = new UnsatisfiedLinkCallGenerator(mangledName);
+      functions.put(mangledName, generator);
+      
+      System.err.println("Warning: undefined function " + mangledName + "; may throw exception at runtime");
     }
+    
     return generator;
   }
-
+  
   @Override
-  public Handle findHandle(GimpleFunctionRef ref, CallingConvention callingConvention) {
-    CallGenerator callGenerator = findCallGenerator(ref, null, callingConvention);
-    if(callGenerator instanceof FunctionCallGenerator) {
-      return ((FunctionCallGenerator) callGenerator).getStrategy().getMethodHandle();
+  public SimpleExpr findHandle(GimpleFunctionRef ref) {
+    CallGenerator callGenerator = findCallGenerator(ref);
+    if(callGenerator instanceof MethodHandleGenerator) {
+      return ((MethodHandleGenerator) callGenerator).getMethodHandle();
     } else {
       throw new UnsupportedOperationException("callGenerator: " + callGenerator);
     }
@@ -90,6 +96,7 @@ public class GlobalSymbolTable implements SymbolTable {
   public void addDefaults() {
 
     addFunction("malloc", new MallocCallGenerator(typeOracle));
+    addFunction("alloca", new MallocCallGenerator(typeOracle));
     addFunction("free", new FreeCallGenerator());
     addFunction("realloc", new ReallocCallGenerator(typeOracle));
 
@@ -99,6 +106,16 @@ public class GlobalSymbolTable implements SymbolTable {
     addFunction("__builtin_memcpy__", new MemCopyCallGenerator(typeOracle));
     addFunction("__builtin_memset__", new MemSetGenerator(typeOracle));
 
+    addFunction("__builtin_expect", new BuiltinExpectGenerator());
+    
+    addFunction("__cxa_allocate_exception", new MallocCallGenerator(typeOracle));
+    addFunction(GuardAcquireGenerator.NAME, new GuardAcquireGenerator());
+    addFunction(GuardReleaseGenerator.NAME, new GuardReleaseGenerator());
+    addFunction(EhPointerCallGenerator.NAME, new EhPointerCallGenerator());
+    addFunction(ThrowCallGenerator.NAME, new ThrowCallGenerator());
+    addFunction(BeginCatchCallGenerator.NAME, new BeginCatchCallGenerator());
+    addFunction(EndCatchGenerator.NAME, new EndCatchGenerator());
+    
     addMethod("__builtin_log10__", Math.class, "log10");
 
     addFunction("memcpy", new MemCopyCallGenerator(typeOracle));
@@ -131,11 +148,7 @@ public class GlobalSymbolTable implements SymbolTable {
   public void addFunction(String name, CallGenerator callGenerator) {
     functions.put(name, callGenerator);
   }
-  
-  public void addFunction(FunctionGenerator function) {
-    functions.put(function.getMangledName(), new FunctionCallGenerator(function));
-  }
-  
+
   public void addFunction(String functionName, Method method) {
     Preconditions.checkArgument(Modifier.isStatic(method.getModifiers()), "Method '%s' must be static", method);
     functions.put(functionName, new FunctionCallGenerator(new StaticMethodStrategy(typeOracle, method)));

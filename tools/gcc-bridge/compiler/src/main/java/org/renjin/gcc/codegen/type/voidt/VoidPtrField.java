@@ -2,9 +2,11 @@ package org.renjin.gcc.codegen.type.voidt;
 
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.expr.SimpleExpr;
 import org.renjin.gcc.codegen.type.FieldStrategy;
+import org.renjin.gcc.codegen.type.primitive.FieldValue;
 
 /**
  * Strategy for {@code void* } fields, compiled as a field of type
@@ -25,6 +27,6 @@ public class VoidPtrField extends FieldStrategy {
 
   @Override
   public Expr memberExprGenerator(SimpleExpr instance) {
-    throw new UnsupportedOperationException("TODO");
+    return new FieldValue(instance, fieldName, Type.getType(Object.class));
   }
 }

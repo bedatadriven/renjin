@@ -81,7 +81,13 @@ public class CastGenerator implements SimpleExpr {
         return "Int" + precision;
       }
     } else if(type instanceof GimpleRealType) {
-      return "Real" + ((GimpleRealType) type).getPrecision();
+      int precision = ((GimpleRealType) type).getPrecision();
+      if(precision <= 32) {
+        precision = 32;
+      } else {
+        precision = 64;
+      }
+      return "Real" + precision;
       
     } else if(type instanceof GimpleBooleanType) {
       return "Bool";
@@ -387,7 +393,7 @@ public class CastGenerator implements SimpleExpr {
   }
   
   public static void castUnsignedInt32ToUnsignedInt8(MethodGenerator mv) {
-    throw new UnsupportedOperationException();
+    mv.visitInsn(Opcodes.I2B);
   }
   
   public static void castUnsignedInt32ToInt16(MethodGenerator mv) { 
@@ -601,4 +607,8 @@ public class CastGenerator implements SimpleExpr {
     mv.visitInsn(Opcodes.D2F);
   }
 
+  public static void castReal64ToReal64(MethodGenerator mv) {
+    // NOOP
+    // May be invoked when casting from long double -> double
+  }
 }

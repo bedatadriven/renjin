@@ -80,7 +80,8 @@ public class LocalVarAllocator extends VarAllocator {
   }
   
   public void initializeVariables(MethodGenerator mv) {
-    for (LocalVar name : names) {
+    List<LocalVar> toInitialize = Lists.newArrayList(names);
+    for (LocalVar name : toInitialize) {
       if(name.initialValue.isPresent()) {
         name.store(mv, name.initialValue.get());
       }
@@ -90,8 +91,9 @@ public class LocalVarAllocator extends VarAllocator {
   public void emitDebugging(MethodGenerator mv, Label start, Label end) {
 
     for (LocalVar entry : names) {
-
-      mv.visitLocalVariable(toJavaSafeName(entry.name), entry.type.getDescriptor(), null, start, end, entry.index);
+      if(entry.name != null) {
+        mv.visitLocalVariable(toJavaSafeName(entry.name), entry.type.getDescriptor(), null, start, end, entry.index);
+      }
     }
   }
 

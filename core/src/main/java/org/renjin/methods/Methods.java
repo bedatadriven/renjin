@@ -256,8 +256,8 @@ public class Methods {
    *  substitute in an _evaluated_ object, with an explicit list as
    *  second arg (although old-style lists and environments are allowed).
    */
-  public static SEXP do_substitute_direct(SEXP f, SEXP env) {
-    return SubstituteFunction.substitute(f, env);
+  public static SEXP do_substitute_direct(@Current Context context, SEXP f, SEXP env) {
+    return SubstituteFunction.substitute(context, f, env);
   }
   
   public static SEXP R_M_setPrimitiveMethods(@Current Context context, SEXP fname, SEXP op, String code_vec,
@@ -556,6 +556,10 @@ public class Methods {
     return value != Symbol.UNBOUND_VALUE;
   }
 
+  
+  public static String R_get_primname(PrimitiveFunction function) {
+    return function.getName();
+  }
 
   public static SEXP R_nextMethod(@Current Context context, FunctionCall matched_call, Environment ev) {
     SEXP val, this_sym, op;

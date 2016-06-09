@@ -2,6 +2,7 @@ package org.renjin.gcc.gimple.expr;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
+import org.renjin.gcc.gimple.GimpleExprVisitor;
 
 import java.util.List;
 
@@ -36,28 +37,24 @@ public class GimpleComponentRef extends GimpleLValue {
   }
 
   @Override
-  public boolean replace(Predicate<? super GimpleExpr> predicate, GimpleExpr replacement) {
-    if(predicate.apply(value)) {
-      value = replacement;
-      return true;
-    }
-    if(value.replace(predicate, replacement)) {
-      return true;
-    }
+  public void replaceAll(Predicate<? super GimpleExpr> predicate, GimpleExpr newExpr) {
+    value = replaceOrDescend(value, predicate, newExpr);
+    member = replaceOrDescend(member, predicate, newExpr);
+  }
 
-    if(predicate.apply(member)) {
-      member = replacement;
-      return true;
-    }
-    if(member.replace(predicate, replacement)) {
-      return true;
-    }
-    
-    return false;
+  @Override
+  public void accept(GimpleExprVisitor visitor) {
+    visitor.visitComponentRef(this);
   }
 
   @Override
   public String toString() {
+    if(member instanceof GimpleFieldRef) {
+      GimpleFieldRef memberField = (GimpleFieldRef) member;
+      if(memberField.getName() == null) {
+        return value + "@" + memberField.getOffset();
+      }
+    }
     return value + "." + member;
   }
 }

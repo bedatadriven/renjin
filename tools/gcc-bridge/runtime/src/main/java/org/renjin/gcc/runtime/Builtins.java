@@ -3,6 +3,10 @@ package org.renjin.gcc.runtime;
 public class Builtins {
 
   public static double __builtin_powi__(double base, int exponent) {
+    return powi(base, exponent);
+  }
+  
+  public static double powi(double base, int exponent) {
     if(exponent == 1) {
       return base;
     } else if(exponent == 2) {
@@ -89,6 +93,10 @@ public class Builtins {
   }
 
   public static float __builtin_powif__(float base, int exponent) {
+    return powif(base, exponent);
+  }
+
+  public static float powif(float base, int exponent) {
     if(exponent == 0) {
       return 1;
     } else if(exponent == 1) {
@@ -173,5 +181,14 @@ public class Builtins {
   @Deprecated
   public static Object[] realloc(Object[] p, int offset, int newCount) {
     return Realloc.realloc(p, offset, newCount);
+  }
+
+
+  public static void __cxa_pure_virtual() {
+    throw new RuntimeException("Pure virtual function invoked");
+  }
+  
+  public static void undefined_std() {
+    throw new RuntimeException("Invocation of std:: method");
   }
 }

@@ -13,21 +13,25 @@ import org.renjin.gcc.codegen.type.primitive.FieldValue;
  */
 public class SimpleFieldStrategy extends FieldStrategy {
   
-  private Type type;
+  private Type fieldType;
   private String name;
 
-  public SimpleFieldStrategy(Type type, String name) {
-    this.type = type;
+  /**
+   * @param name the name of the field
+   * @param fieldType the type of the field
+   */
+  public SimpleFieldStrategy(String name, Type fieldType) {
+    this.fieldType = fieldType;
     this.name = name;
   }
 
   @Override
   public void writeFields(ClassVisitor cv) {
-    cv.visitField(Opcodes.ACC_PUBLIC, name, type.getDescriptor(), null, null);
+    cv.visitField(Opcodes.ACC_PUBLIC, name, fieldType.getDescriptor(), null, null);
   }
 
   @Override
   public Expr memberExprGenerator(SimpleExpr instance) {
-    return new FieldValue(instance, name, type);
+    return new FieldValue(instance, name, fieldType);
   }
 }

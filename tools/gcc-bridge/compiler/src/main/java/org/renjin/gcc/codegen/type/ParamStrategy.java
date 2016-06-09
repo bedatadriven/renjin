@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.type;
 
+import com.google.common.base.Optional;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expr;
@@ -51,7 +52,7 @@ public interface ParamStrategy {
   /**
    * Pushes a value onto the stack in the format necessary for function parameter using this strategy.
    */
-  void loadParameter(MethodGenerator mv, Expr argument);
+  void loadParameter(MethodGenerator mv, Optional<Expr> argument);
 
 
 }

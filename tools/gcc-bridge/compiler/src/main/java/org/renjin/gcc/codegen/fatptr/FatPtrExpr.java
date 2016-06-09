@@ -103,6 +103,10 @@ public final class FatPtrExpr implements Expr, LValue<FatPtrExpr>, Addressable {
       }
     };
   }
+  
+  public boolean isAddressable() {
+    return address != null;
+  }
 
   @Override
   public Expr addressOf() {

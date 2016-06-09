@@ -7,9 +7,7 @@ import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
-import org.renjin.gcc.gimple.CallingConventions;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
-import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleParser;
 
 import java.io.File;
@@ -76,11 +74,17 @@ public class Gcc {
     // for debugging preprocessor output
 //    arguments.add("-E");
 //    arguments.add("-P");
+    
+  //  arguments.add("-fno-rtti");
 
+    arguments.add("-D");
+    arguments.add("_GCC_BRIDGE");
+    arguments.add("-D");
+    arguments.add("_RENJIN");
     arguments.add("-c"); // compile only, do not link
     arguments.add("-S"); // stop at assembly generation
     arguments.addAll(Arrays.asList(compilerFlags));
-    // command.add("-O9"); // highest optimization
+//    arguments.add("-O9"); // highest optimization
 
     arguments.add("-fdump-tree-gimple-verbose-raw-vops");
     arguments.add("-save-temps");
@@ -103,14 +107,10 @@ public class Gcc {
     LOGGER.fine("Executing " + Joiner.on(" ").join(arguments));
 
     callGcc(arguments);
-
+    
     GimpleParser parser = new GimpleParser();
     GimpleCompilationUnit unit = parser.parse(gimpleFile);
     unit.setSourceFile(gimpleFile);
-    unit.setCallingConvention(CallingConventions.fromFile(source));
-    for(GimpleFunction fn: unit.getFunctions()) {
-      fn.setCallingConvention(CallingConventions.fromFile(source));
-    }
     return unit;
   }
 

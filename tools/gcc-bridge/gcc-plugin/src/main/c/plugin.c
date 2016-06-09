@@ -73,9 +73,6 @@ typedef struct json_context {
   int indent;
 } json_context;
 
-// GCC won't let us malloc and I don't want to mess
-// around with GCC's internal memory management stuff,
-// so we'll just use a fixed-size stack
 
 json_context json_context_stack[128];
 int json_context_head = 0;
@@ -171,6 +168,11 @@ void json_string_field2(const char *name, const char *value, int length) {
 void json_int(int value) {
   json_pre_value();
   fprintf(json_f, "%d", value);
+}
+
+void json_string_value(const char * value) {
+  json_pre_value();
+  json_string(value, strlen(value));
 }
 
 void json_ptr(void *p) {
@@ -362,19 +364,20 @@ static void dump_record_type_decl(tree type) {
   tree field =  TYPE_FIELDS(type);
   json_array_field("fields");
   while(field) {
-    json_start_object();
-    json_int_field("id", DEBUG_TEMP_UID (field));
+    // skip fields without an offset. 
+    // Not sure what they do but they screw us up during the compilation stage
     if(DECL_FIELD_OFFSET (field)) {
+      json_start_object();
+      json_int_field("id", DEBUG_TEMP_UID (field));
       json_int_field("offset", int_bit_position(field));
+      if(DECL_NAME(field)) {
+        json_string_field("name", IDENTIFIER_POINTER(DECL_NAME(field)));
+      }
+      json_field("type");
+      dump_type(TREE_TYPE(field));
+      json_end_object();
     }
-    if(DECL_NAME(field)) {
-      json_string_field("name", IDENTIFIER_POINTER(DECL_NAME(field)));
-    }
-    json_field("type");
-    dump_type(TREE_TYPE(field));
 
-    json_end_object();
-    
     field = TREE_CHAIN(field);
   }
   json_end_array();
@@ -443,7 +446,8 @@ static void dump_type(tree type) {
       json_field("lbound");
       json_int(TREE_INT_CST_LOW(TYPE_MIN_VALUE(domain)));
 
-      if(TYPE_MAX_VALUE(domain)) {      
+      tree ubound = TYPE_MAX_VALUE(domain);
+      if(ubound && TREE_CODE(ubound) == INTEGER_CST) {   
         json_field("ubound");
         json_int(TREE_INT_CST_LOW(TYPE_MAX_VALUE(domain)));
       }
@@ -452,6 +456,7 @@ static void dump_type(tree type) {
     break;
     
   case FUNCTION_TYPE:
+  case METHOD_TYPE:
     dump_function_type(type);
     break;
     
@@ -483,6 +488,7 @@ static void dump_op(tree op) {
 
   if(op) {
   
+  
     if(TREE_CODE(op)) {
       TRACE("dump_op: code = %s\n", tree_code_name[TREE_CODE(op)]);
     } else {
@@ -490,24 +496,29 @@ static void dump_op(tree op) {
     }
  	  // keep track of global variable references
     if(TREE_CODE(op) == VAR_DECL &&
-        DECL_CONTEXT(op) &&
-       (TREE_CODE(DECL_CONTEXT(op)) == NULL_TREE || TREE_CODE(DECL_CONTEXT(op)) != FUNCTION_DECL)) {
+        !(DECL_CONTEXT(op) &&  TREE_CODE(DECL_CONTEXT(op)) == FUNCTION_DECL)) {
    
-
       dump_global_var_ref(op);
     }
+    
+    TRACE("dump_op: completed check for global variable\n");
 
     json_start_object();
     json_string_field("code", tree_code_name[TREE_CODE(op)]);
     
-    json_field("type");
-    dump_type(TREE_TYPE(op));
-
+    if(TREE_CODE(op) != TREE_LIST) {
+        json_field("type");
+        dump_type(TREE_TYPE(op));
+    }
 
     TRACE("dump_op: starting switch\n");
 
     switch(TREE_CODE(op)) {
     case FUNCTION_DECL:
+      json_int_field("id", DEBUG_TEMP_UID (op));
+      json_string_field("name", IDENTIFIER_POINTER(DECL_ASSEMBLER_NAME(op)));
+      break;
+      
     case PARM_DECL:
     case VAR_DECL:
       json_int_field("id", DEBUG_TEMP_UID (op));
@@ -613,9 +624,25 @@ static void dump_op(tree op) {
     case COMPOUND_LITERAL_EXPR:
       json_field("decl");
       dump_op(COMPOUND_LITERAL_EXPR_DECL(op));
-      
       break;  
+    
+    case POINTER_PLUS_EXPR:
+      json_field("pointer");
+      dump_op(TREE_OPERAND(op, 0));
+      json_field("offset");
+      dump_op(TREE_OPERAND(op, 1));
+      break;
+    
+    case OBJ_TYPE_REF:
+      json_field("expr");
+      dump_op(OBJ_TYPE_REF_EXPR(op));
+      json_field("object");
+      dump_op(OBJ_TYPE_REF_OBJECT(op));
+      json_field("token");
+      dump_op(OBJ_TYPE_REF_TOKEN(op));
+      break;
     }
+    
     json_end_object();
   } else {
     json_null();
@@ -995,6 +1022,20 @@ static unsigned int dump_function (void)
   json_start_object();
   json_int_field("id", DEBUG_TEMP_UID (cfun->decl));
   json_string_field("name", IDENTIFIER_POINTER(DECL_NAME(cfun->decl)));
+  json_string_field("mangledName", IDENTIFIER_POINTER(DECL_ASSEMBLER_NAME(cfun->decl)));
+  json_bool_field("weak", DECL_WEAK(cfun->decl));
+  json_bool_field("inline", DECL_DECLARED_INLINE_P(cfun->decl));
+  
+  json_array_field("aliases");
+  
+  struct cgraph_node *cgn = cgraph_node(cfun->decl);
+  struct cgraph_node *n;
+  for (n = cgn->same_body; n; n = n->next)
+  {
+    json_string_value(IDENTIFIER_POINTER(DECL_ASSEMBLER_NAME(n->decl)));
+  }
+  json_end_array();
+    
   json_bool_field("extern", TREE_PUBLIC(cfun->decl));
   
   TRACE("dump_function: dumping arguments...\n");
@@ -1024,14 +1065,27 @@ static unsigned int dump_function (void)
 
 static void dump_type_decl (void *event_data, void *data)
 {
+  TRACE("dump_type: starting...\n");
+
   tree type = (tree) event_data;
 
   json_start_object();
+  
+
   if(TYPE_NAME(type)) {
+
+    TRACE("dump_type: name = %s\n",  IDENTIFIER_POINTER (TYPE_NAME (type)));
     json_string_field("name", IDENTIFIER_POINTER (TYPE_NAME (type)));
   }
+  
+  TRACE("dump_type: type = %s\n",  tree_code_name[TREE_CODE (type)]);
+
+  
   json_string_field("type", tree_code_name[TREE_CODE (type)]);
   json_end_object();
+
+  TRACE("dump_type: done\n");
+
 }
 
 static void dump_global_var(tree var) {
@@ -1087,6 +1141,8 @@ static void finish_unit_callback (void *gcc_data, void *user_data)
 
 
   json_end_object();
+  
+  fclose(json_f);
 }
 
 static struct gimple_opt_pass dump_functions_pass =
@@ -1136,8 +1192,8 @@ plugin_init (struct plugin_name_args *plugin_info,
 
   if(!json_f) {
     char jsonfile[1024];
-    sprintf(jsonfile, "%s.gimple", main_input_filename);
-    printf("Writing gimple to %s...\n", jsonfile);
+    sprintf(jsonfile, "%s.gimple", aux_base_name);
+    TRACE("Writing gimple to %s...\n", jsonfile);
     json_f = fopen(jsonfile, "w");
   }
 

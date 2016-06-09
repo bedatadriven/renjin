@@ -32,7 +32,7 @@ public class ComplexValueFunction implements ValueFunction {
   }
 
   @Override
-  public int getElementSize() {
+  public int getArrayElementBytes() {
     if(valueType.equals(Type.DOUBLE_TYPE)) {
       return 16; 
     } else {
@@ -65,5 +65,10 @@ public class ComplexValueFunction implements ValueFunction {
   @Override
   public Optional<SimpleExpr> getValueConstructor() {
     return Optional.absent();
+  }
+
+  @Override
+  public String toString() {
+    return "Complex[" + valueType + "]";
   }
 }

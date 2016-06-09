@@ -14,7 +14,9 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-text <- function(x, ...) UseMethod("text")
+text <- function(x, ...) {
+    cat("Sorry, we haven't implemented much of the graphics stuff. Looking for volunteers!\n")
+}
 
 text.default <-
 function(x, y = NULL, labels = seq_along(x),

@@ -5,6 +5,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.io.ByteSource;
 import com.google.common.io.CharStreams;
 import com.google.common.io.Files;
@@ -173,10 +174,21 @@ public class PackageDescription {
     }
   }
 
+  
   public List<String> getProperty(String key) {
     return properties.get(key);
   }
 
+
+  public List<String> getCollate() {
+    List<String> files = Lists.newArrayList();
+    List<String> propertyValues = getProperty("Collate");
+    for (String propertyValue : propertyValues) {
+      files.addAll(Arrays.asList(propertyValue.split("\\s+")));
+    }
+    return files;
+  }
+  
   public boolean hasProperty(String key) {
     return properties.containsKey(key);
   }
@@ -233,5 +245,10 @@ public class PackageDescription {
   public Iterable<String> getProperties() {
     return properties.keySet();
   }
-
+  
+  public boolean isCompilationNeeded() {
+    String needed = Strings.nullToEmpty(getFirstProperty("NeedsCompilation")).trim();
+    
+    return "yes".equalsIgnoreCase(needed);
+  }
 }

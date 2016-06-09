@@ -2,7 +2,6 @@
 package org.renjin.gnur.api;
 
 import org.renjin.gcc.runtime.CharPtr;
-import org.renjin.gcc.runtime.Ptr;
 
 @SuppressWarnings("unused")
 public final class GraphicsDevice {
@@ -59,7 +58,7 @@ public final class GraphicsDevice {
     throw new UnimplementedGnuApiMethod("Rf_onintr");
   }
 
-  public static Ptr Rf_AdobeSymbol2utf8(CharPtr out, CharPtr in, /*size_t*/ int nwork) {
+  public static Object Rf_AdobeSymbol2utf8(CharPtr out, CharPtr in, /*size_t*/ int nwork) {
     throw new UnimplementedGnuApiMethod("Rf_AdobeSymbol2utf8");
   }
 

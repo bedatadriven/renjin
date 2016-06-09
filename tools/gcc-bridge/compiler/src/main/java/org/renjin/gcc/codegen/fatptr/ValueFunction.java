@@ -23,10 +23,10 @@ public interface ValueFunction {
   int getElementLength();
 
   /**
-   * Returns the size of the value in bytes, as understood by GCC/Gimple. 
-   * 
+   * Returns the size of each array value in bytes. This value is used to convert
+   * offsets in bytes to offsets in number of elements. 
    */
-  int getElementSize();
+  int getArrayElementBytes();
 
   Optional<SimpleExpr> getValueConstructor();
 

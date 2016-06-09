@@ -9,6 +9,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
+import static com.google.common.primitives.UnsignedBytes.checkedCast;
 import static java.lang.Double.NaN;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
@@ -349,6 +350,11 @@ public class GimpleCompilerTest extends AbstractGccTest {
   }
   
   @Test
+  public void dynamicArrays() throws Exception {
+    compileAndTest("dynamic_arrays.c");
+  }
+  
+  @Test
   public void array2d() throws Exception {
     compileAndTest("array2d.c");
   }
@@ -446,6 +452,31 @@ public class GimpleCompilerTest extends AbstractGccTest {
     assertThat(call(clazz, "byte_lshift", (byte)1, (byte)7), equalTo(0x80));
     assertThat(call(clazz, "byte_lshift", (byte)1, (byte)8), equalTo(0));
     assertThat(call(clazz, "byte_lshift", (byte)1, (byte)10), equalTo(0));
+    
+    Method bitwiseNotUint8 = clazz.getMethod("bitwise_not_uint8", byte.class);
+    assertThat((Integer)bitwiseNotUint8.invoke(null, checkedCast(0x00)), equalTo(0xFF));
+    assertThat((Integer)bitwiseNotUint8.invoke(null, checkedCast(0x01)), equalTo(0xFE));
+    assertThat((Integer)bitwiseNotUint8.invoke(null, checkedCast(0xF)), equalTo(0xF0));
+    assertThat((Integer)bitwiseNotUint8.invoke(null, checkedCast(0xF1)), equalTo(0x0E));
+    assertThat((Integer)bitwiseNotUint8.invoke(null, checkedCast(0xFF)), equalTo(0x00));
+  }
+  
+  @Test
+  public void pointerCasting() throws Exception {
+    compileAndTest("ptr_cast.c");
+  }
+  
+  @Test(expected = ClassCastException.class)
+  public void illegalPointerCast() throws Throwable {
+    Class clazz = compile("illegal_cast.c");
+
+    Method method = clazz.getMethod("do_cast");
+    try {
+      method.invoke(null);
+
+    } catch (InvocationTargetException e) {
+      throw e.getCause();
+    }
   }
   
   @Test
@@ -466,32 +497,24 @@ public class GimpleCompilerTest extends AbstractGccTest {
   }
   
   @Test
-  public void cpp() throws Exception {
-    Class clazz = compile("rect.cpp");
-
-    Method calc_area = clazz.getMethod("calc_area");
-
-    Integer result = (Integer) calc_area.invoke(null);
-
-    
-    assertThat(result, equalTo(12));
+  public void rectCpp() throws Exception {
+    compileAndTest("rect.cpp");
   }
 
   @Test
   public void overloadedMethods() throws Exception {
     Class clazz = compile("methods.cpp");
 
-    Method add = clazz.getMethod("add", int.class, int.class);
+    Method add = clazz.getMethod("_Z3addii", int.class, int.class);
     Integer intSum = (Integer) add.invoke(null, Integer.valueOf(3), Integer.valueOf(5));
     assertThat(intSum, is(Integer.valueOf(8)));
 
-    add = clazz.getMethod("add", float.class, float.class);
+    add = clazz.getMethod("_Z3addff", float.class, float.class);
     Float floatSum = (Float) add.invoke(null, Float.valueOf(3.1f), Float.valueOf(5.1f));
     assertThat(floatSum, is(Float.valueOf(8.2f)));
   }
 
   @Test
-  @Ignore("wip")
   public void virtualCpp() throws Exception {
 
     Class clazz = compile("shape.cpp");
@@ -501,7 +524,12 @@ public class GimpleCompilerTest extends AbstractGccTest {
     Integer result = (Integer) calc_area.invoke(null);
 
 
-    assertThat(result, equalTo(12));
+    assertThat(result, equalTo(532));
+  }
+  
+  @Test
+  public void unions() throws Exception {
+    compileAndTest("unions.c");
   }
   
   @Test
@@ -596,7 +624,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
     Class clazz = compile("strings.f");
     
     try {
-      Method method = clazz.getMethod("call_xerbla__");
+      Method method = clazz.getMethod("call_xerbla_");
       method.invoke(null);
     } catch (InvocationTargetException wrapper) {
       RuntimeException e = (RuntimeException) wrapper.getCause();
@@ -631,6 +659,12 @@ public class GimpleCompilerTest extends AbstractGccTest {
     Class clazz = compile("equivalence.f");
     Method testMethod = clazz.getMethod("test_");
     testMethod.invoke(null);
+  }
+  
+  @Test
+  @Ignore
+  public void cppExceptions() throws Exception {
+    compileAndTest("exceptions.cpp");
   }
   
   @Test
@@ -729,6 +763,15 @@ public class GimpleCompilerTest extends AbstractGccTest {
     Method int32_to_uint8 = clazz.getMethod("int32_to_uint8", int.class);
     assertThat((Integer)int32_to_uint8.invoke(null, -20), equalTo(236));
     
+    // From uint32 to uint8
+    Method uint32_to_uint8 = clazz.getMethod("uint32_to_uint8", int.class);
+    assertThat((Integer)uint32_to_uint8.invoke(null, 0), equalTo(0));
+    assertThat((Integer)uint32_to_uint8.invoke(null, 0x7F), equalTo(127));
+    assertThat((Integer)uint32_to_uint8.invoke(null, 0x80), equalTo(128));
+    assertThat((Integer)uint32_to_uint8.invoke(null, 0xFF), equalTo(255));
+    assertThat((Integer)uint32_to_uint8.invoke(null, 0x100), equalTo(0));
+    assertThat((Integer)uint32_to_uint8.invoke(null, 0x400), equalTo(0));
+    assertThat((Integer)uint32_to_uint8.invoke(null, 0xFFFFFFFF), equalTo(255));
   }
   
 
@@ -786,6 +829,11 @@ public class GimpleCompilerTest extends AbstractGccTest {
 
     assertThat((Integer) long_memcmp.invoke(null, new LongPtr(0xFFFFFFFFFFFFFFFFL), new LongPtr(0xFFFL)), greaterThan(0));
     assertThat((Integer)long_memcmp.invoke(null, new LongPtr(0xCAFEBABE), new LongPtr(0xCAFEBABE)), equalTo(0));
+  }
+  
+  @Test
+  public void longDouble() throws Exception {
+    compileAndTest("long_double.c");
   }
   
   @Test

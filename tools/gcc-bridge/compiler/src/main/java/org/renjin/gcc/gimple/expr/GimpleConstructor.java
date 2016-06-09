@@ -1,6 +1,8 @@
 package org.renjin.gcc.gimple.expr;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Predicate;
+import org.renjin.gcc.gimple.GimpleExprVisitor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,6 +59,19 @@ public class GimpleConstructor extends GimpleExpr {
     return (X)elements.get(i).getValue();
   }
 
+
+  @Override
+  public void replaceAll(Predicate<? super GimpleExpr> predicate, GimpleExpr newExpr) {
+    for (Element element : elements) {
+      element.value = replaceOrDescend(element.value, predicate, newExpr);
+    }
+  }
+
+  @Override
+  public void accept(GimpleExprVisitor visitor) {
+    visitor.visitConstructor(this);
+  }
+  
   @Override
   public String toString() {
     return "{" + Joiner.on(", ").join(elements) + "}";

@@ -24,6 +24,7 @@ public class ProvidedRecordTest extends AbstractGccTest {
     compiler.setVerbose(true);
     compiler.addMathLibrary();
     compiler.addRecordClass("jvm_rect", JvmRect.class);
+    compiler.addRecordClass("jvm_interface", JvmInterface.class);
     compiler.addMethod("jvm_area", JvmRect.class, "area");
     compiler.addMethod("jvm_areas", JvmRect.class, "areas");
 
@@ -44,6 +45,10 @@ public class ProvidedRecordTest extends AbstractGccTest {
     areas = (Integer)testGlobals.invoke(null);
 
     assertThat(areas, equalTo( (2*4) + (3*5) + (6*8) + (10*10)));
+    
+    Method allocPointerArray = clazz.getMethod("alloc_pointer_array");
+    ObjectPtr<JvmInterface> ptrArray = (ObjectPtr) allocPointerArray.invoke(null);
+    assertThat(ptrArray.array.length, equalTo(10));
   }
   
   

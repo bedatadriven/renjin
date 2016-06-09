@@ -23,6 +23,12 @@ int bitwise_not(int x) {
     return ~x;
 }
 
+unsigned int bitwise_not_uint8(unsigned char x) {
+    unsigned char y = ~x;
+    int z = y;
+    return z;
+}
+
 int byte_lshift(unsigned char x, unsigned char y) {
     x <<= y;
     return x;

@@ -1,12 +1,14 @@
 package org.renjin.gcc.codegen;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.util.TraceClassVisitor;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.InternalCompilerException;
+import org.renjin.gcc.TreeLogger;
 import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.LValue;
@@ -25,6 +27,7 @@ import java.io.StringWriter;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.objectweb.asm.Opcodes.*;
 
@@ -57,7 +60,7 @@ public class UnitClassGenerator {
     this.className = className;
     this.typeOracle = typeOracle;
     this.globalVarAllocator = new GlobalVarAllocator(className);
-    this.symbolTable = new UnitSymbolTable(functionTable, className);
+    this.symbolTable = new UnitSymbolTable(functionTable);
   
     for (GimpleVarDecl decl : unit.getGlobalVariables()) {
       TypeStrategy typeStrategy = typeOracle.forType(decl.getType());
@@ -97,7 +100,10 @@ public class UnitClassGenerator {
     return className;
   }
 
-  public void emit() {
+  public void emit(TreeLogger parentLogger) {
+    
+    TreeLogger logger = parentLogger.branch("Generating code for " + unit.getSourceName());
+    
     sw = new StringWriter();
     pw = new PrintWriter(sw);
     cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
@@ -112,7 +118,7 @@ public class UnitClassGenerator {
     cv.visitSource(unit.getSourceName(), null);
     emitDefaultConstructor();
     emitGlobalVariables();
-    emitFunctions(unit);
+    emitFunctions(logger, unit);
     cv.visitEnd();
   }
 
@@ -132,11 +138,15 @@ public class UnitClassGenerator {
     globalVarAllocator.writeFields(cv);
     
     // and any static initialization that is required
-    ExprFactory exprFactory = new ExprFactory(typeOracle, symbolTable, unit.getCallingConvention());
+    ExprFactory exprFactory = new ExprFactory(typeOracle, symbolTable);
     MethodGenerator mv = new MethodGenerator(cv.visitMethod(ACC_STATIC, "<clinit>", "()V", null, null));
     mv.visitCode();
 
     for (GimpleVarDecl decl : varToGenerate) {
+      if(decl.getName().startsWith("_ZTI")) {
+        // Skip rtti tables for now...
+        continue;
+      }
       try {
         LValue varGenerator = (LValue) symbolTable.getGlobalVariable(decl);
         if(decl.getValue() != null) {
@@ -144,8 +154,12 @@ public class UnitClassGenerator {
         }
 
       } catch (Exception e) {
-        throw new InternalCompilerException("Exception writing static variable initializer " + decl.getName() +
-            " defined in " + unit.getSourceFile().getName(), e);
+        throw new InternalCompilerException(
+            String.format("Exception writing static variable initializer %s %s = %s defined in %s", 
+                decl.getType(),
+                decl.getName(),
+                decl.getValue(),
+                unit.getSourceFile().getName()), e);
       }
     }
     mv.visitInsn(RETURN);
@@ -153,12 +167,21 @@ public class UnitClassGenerator {
     mv.visitEnd();
   }
 
-  private void emitFunctions(GimpleCompilationUnit unit) {
+  private void emitFunctions(TreeLogger parentLogger, GimpleCompilationUnit unit) {
 
+    // Check for duplicate names...
+    Set<String> names = Sets.newHashSet();
+    for (FunctionGenerator functionGenerator : symbolTable.getFunctions()) {
+      if(names.contains(functionGenerator.getMangledName())) {
+        throw new InternalCompilerException("Duplicate function names " + functionGenerator.getMangledName());
+      }
+      names.add(functionGenerator.getMangledName());
+    }
+    
     // Now actually emit the function bodies
     for (FunctionGenerator functionGenerator : symbolTable.getFunctions()) {
       try {
-        functionGenerator.emit(cv);
+        functionGenerator.emit(parentLogger, cv);
       } catch (Exception e) {
         throw new InternalCompilerException(functionGenerator, e);
       }

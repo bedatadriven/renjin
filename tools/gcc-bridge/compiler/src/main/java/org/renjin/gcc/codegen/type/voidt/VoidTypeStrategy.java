@@ -60,4 +60,5 @@ public class VoidTypeStrategy implements TypeStrategy<SimpleExpr> {
   public SimpleExpr cast(Expr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
     throw new UnsupportedCastException();
   }
+
 }

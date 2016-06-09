@@ -22,7 +22,8 @@ import java.util.List;
  * Type strategy for arrays of values
  */
 public class ArrayTypeStrategy implements TypeStrategy<FatPtrExpr> {
-  
+
+  private static final int MAX_UNROLL = 5;
   private final ValueFunction valueFunction;
   private GimpleArrayType arrayType;
   private int arrayLength = -1;
@@ -78,22 +79,37 @@ public class ArrayTypeStrategy implements TypeStrategy<FatPtrExpr> {
   @Override
   public FatPtrExpr constructorExpr(ExprFactory exprFactory, GimpleConstructor constructor) {
     List<SimpleExpr> values = Lists.newArrayList();
-    for (GimpleConstructor.Element element : constructor.getElements()) {
-      Expr elementExpr = exprFactory.findGenerator(element.getValue());
-      List<SimpleExpr> arrayValues = valueFunction.toArrayValues(elementExpr);
-      assert arrayValues.size() == valueFunction.getElementLength();
-      
-      values.addAll(arrayValues);
-    }
-    
+    addElementConstructors(values, exprFactory, constructor);
+
     SimpleExpr array = Expressions.newArray(valueFunction.getValueType(), values);
     SimpleExpr offset = Expressions.zero();
     
     return new FatPtrExpr(array, offset);
   }
 
+  private void addElementConstructors(List<SimpleExpr> values, ExprFactory exprFactory, GimpleConstructor constructor) {
+    for (GimpleConstructor.Element element : constructor.getElements()) {
+      if(element.getValue() instanceof GimpleConstructor &&
+          element.getValue().getType() instanceof GimpleArrayType) {
+        GimpleConstructor elementConstructor = (GimpleConstructor) element.getValue();
+
+        addElementConstructors(values, exprFactory, elementConstructor);
+
+      } else {
+        Expr elementExpr = exprFactory.findGenerator(element.getValue());
+        List<SimpleExpr> arrayValues = valueFunction.toArrayValues(elementExpr);
+        values.addAll(arrayValues);
+      }
+    }
+  }
+
   @Override
   public FieldStrategy fieldGenerator(Type className, String fieldName) { 
+    if(arrayType.getUbound() == null) {
+      throw new UnsupportedOperationException(
+          String.format("Array field '%s' with type %s does not have a fixed size",
+              fieldName, arrayType));
+    }
     return new ArrayField(className, fieldName, arrayType.getElementCount(), valueFunction);
   }
 
@@ -132,11 +148,17 @@ public class ArrayTypeStrategy implements TypeStrategy<FatPtrExpr> {
     if(valueFunction.getValueConstructor().isPresent()) {
       // For reference types like records or fat pointers we have to 
       // initialize each element of the array
-      List<SimpleExpr> valueConstructors = Lists.newArrayList();
-      for (int i = 0; i < arrayLength; i++) {
-        valueConstructors.add(valueFunction.getValueConstructor().get());
+      if(arrayLength < MAX_UNROLL) {
+
+        List<SimpleExpr> valueConstructors = Lists.newArrayList();
+        for (int i = 0; i < arrayLength; i++) {
+          valueConstructors.add(valueFunction.getValueConstructor().get());
+        }
+        return Expressions.newArray(valueFunction.getValueType(), valueConstructors);
+      
+      } else {
+        return new ArrayInitLoop(valueFunction, arrayLength);
       }
-      return Expressions.newArray(valueFunction.getValueType(), valueConstructors);
     
     } else {
       // For primitive types, we can just allocate the array

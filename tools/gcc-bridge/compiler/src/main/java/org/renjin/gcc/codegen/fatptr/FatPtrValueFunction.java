@@ -33,7 +33,7 @@ public class FatPtrValueFunction implements ValueFunction {
   }
 
   @Override
-  public int getElementSize() {
+  public int getArrayElementBytes() {
     return 4;
   }
 
@@ -68,5 +68,10 @@ public class FatPtrValueFunction implements ValueFunction {
   @Override
   public Optional<SimpleExpr> getValueConstructor() {
     return Optional.of(FatPtrExpr.nullPtr(baseValueFunction).wrap());
+  }
+
+  @Override
+  public String toString() {
+    return "FatPtr[" + baseValueFunction + "]";
   }
 }

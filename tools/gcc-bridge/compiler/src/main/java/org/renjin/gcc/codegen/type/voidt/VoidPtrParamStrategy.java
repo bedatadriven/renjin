@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.type.voidt;
 
+import com.google.common.base.Optional;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expr;
@@ -28,16 +29,23 @@ public class VoidPtrParamStrategy implements ParamStrategy {
   }
 
   @Override
-  public void loadParameter(MethodGenerator mv, Expr argument) {
-    if(argument instanceof FatPtrExpr) {
-      ((FatPtrExpr) argument).wrap().load(mv);
+  public void loadParameter(MethodGenerator mv, Optional<Expr> argument) {
     
-    } else if(argument instanceof SimpleExpr) {
-      SimpleExpr simpleArgument = (SimpleExpr) argument;
-      if(simpleArgument.getType().getSort() != Type.OBJECT) {
-        throw new IllegalArgumentException("not an object: " + argument);
+    if(argument.isPresent()) {
+      Expr argumentValue = argument.get();
+      if (argumentValue instanceof FatPtrExpr) {
+        ((FatPtrExpr) argumentValue).wrap().load(mv);
+
+      } else if (argumentValue instanceof SimpleExpr) {
+        SimpleExpr simpleArgument = (SimpleExpr) argumentValue;
+        if (simpleArgument.getType().getSort() != Type.OBJECT) {
+          throw new IllegalArgumentException("not an object: " + argument);
+        }
+        simpleArgument.load(mv);
       }
-      simpleArgument.load(mv);
+    } else {
+      // Argument not supplied
+      mv.aconst(null);
     }
   }
 }

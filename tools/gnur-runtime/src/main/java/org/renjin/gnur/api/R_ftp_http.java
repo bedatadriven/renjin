@@ -2,7 +2,6 @@
 package org.renjin.gnur.api;
 
 import org.renjin.gcc.runtime.CharPtr;
-import org.renjin.gcc.runtime.Ptr;
 
 @SuppressWarnings("unused")
 public final class R_ftp_http {
@@ -11,51 +10,51 @@ public final class R_ftp_http {
 
 
 
-  public static Ptr R_HTTPOpen(CharPtr url) {
+  public static Object R_HTTPOpen(CharPtr url) {
     throw new UnimplementedGnuApiMethod("R_HTTPOpen");
   }
 
-  public static int R_HTTPRead(Ptr ctx, CharPtr dest, int len) {
+  public static int R_HTTPRead(Object ctx, CharPtr dest, int len) {
     throw new UnimplementedGnuApiMethod("R_HTTPRead");
   }
 
-  public static void R_HTTPClose(Ptr ctx) {
+  public static void R_HTTPClose(Object ctx) {
     throw new UnimplementedGnuApiMethod("R_HTTPClose");
   }
 
-  public static Ptr R_FTPOpen(CharPtr url) {
+  public static Object R_FTPOpen(CharPtr url) {
     throw new UnimplementedGnuApiMethod("R_FTPOpen");
   }
 
-  public static int R_FTPRead(Ptr ctx, CharPtr dest, int len) {
+  public static int R_FTPRead(Object ctx, CharPtr dest, int len) {
     throw new UnimplementedGnuApiMethod("R_FTPRead");
   }
 
-  public static void R_FTPClose(Ptr ctx) {
+  public static void R_FTPClose(Object ctx) {
     throw new UnimplementedGnuApiMethod("R_FTPClose");
   }
 
   // void* RxmlNanoHTTPOpen (const char *URL, char **contentType, const char *headers, int cacheOK)
 
-  public static int RxmlNanoHTTPRead(Ptr ctx, Ptr dest, int len) {
+  public static int RxmlNanoHTTPRead(Object ctx, Object dest, int len) {
     throw new UnimplementedGnuApiMethod("RxmlNanoHTTPRead");
   }
 
-  public static void RxmlNanoHTTPClose(Ptr ctx) {
+  public static void RxmlNanoHTTPClose(Object ctx) {
     throw new UnimplementedGnuApiMethod("RxmlNanoHTTPClose");
   }
 
-  public static int RxmlNanoHTTPReturnCode(Ptr ctx) {
+  public static int RxmlNanoHTTPReturnCode(Object ctx) {
     throw new UnimplementedGnuApiMethod("RxmlNanoHTTPReturnCode");
   }
 
-  public static CharPtr RxmlNanoHTTPStatusMsg(Ptr ctx) {
+  public static CharPtr RxmlNanoHTTPStatusMsg(Object ctx) {
     throw new UnimplementedGnuApiMethod("RxmlNanoHTTPStatusMsg");
   }
 
   // DLsize_t RxmlNanoHTTPContentLength (void *ctx)
 
-  public static CharPtr RxmlNanoHTTPContentType(Ptr ctx) {
+  public static CharPtr RxmlNanoHTTPContentType(Object ctx) {
     throw new UnimplementedGnuApiMethod("RxmlNanoHTTPContentType");
   }
 
@@ -63,15 +62,15 @@ public final class R_ftp_http {
     throw new UnimplementedGnuApiMethod("RxmlNanoHTTPTimeout");
   }
 
-  public static Ptr RxmlNanoFTPOpen(CharPtr URL) {
+  public static Object RxmlNanoFTPOpen(CharPtr URL) {
     throw new UnimplementedGnuApiMethod("RxmlNanoFTPOpen");
   }
 
-  public static int RxmlNanoFTPRead(Ptr ctx, Ptr dest, int len) {
+  public static int RxmlNanoFTPRead(Object ctx, Object dest, int len) {
     throw new UnimplementedGnuApiMethod("RxmlNanoFTPRead");
   }
 
-  public static int RxmlNanoFTPClose(Ptr ctx) {
+  public static int RxmlNanoFTPClose(Object ctx) {
     throw new UnimplementedGnuApiMethod("RxmlNanoFTPClose");
   }
 

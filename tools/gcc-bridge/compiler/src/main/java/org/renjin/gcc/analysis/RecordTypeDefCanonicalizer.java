@@ -1,16 +1,16 @@
 package org.renjin.gcc.analysis;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import org.renjin.gcc.TreeLogger;
 import org.renjin.gcc.gimple.*;
 import org.renjin.gcc.gimple.expr.*;
 import org.renjin.gcc.gimple.statement.*;
 import org.renjin.gcc.gimple.type.*;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Builds a list of distinct GimpleRecordTypes across compilation units.
@@ -28,21 +28,26 @@ public class RecordTypeDefCanonicalizer {
    * Map from GCC id to the canonical instance of the GimpleRecordTypeDef
    */
   private Map<String, GimpleRecordTypeDef> idToCanonicalMap = Maps.newHashMap();
+
+  /**
+   * Map from GCC id to declaration name
+   */
+  private Map<String, String> nameMap = Maps.newHashMap();
   
   private List<GimpleRecordTypeDef> canonical = Lists.newArrayList();
   
+  private TreeLogger logger;
   
-  public static Collection<GimpleRecordTypeDef> canonicalize(List<GimpleCompilationUnit> units) {
-    RecordTypeDefCanonicalizer transformer = new RecordTypeDefCanonicalizer(units);
-    
+  public static Collection<GimpleRecordTypeDef> canonicalize(TreeLogger parentLogger, List<GimpleCompilationUnit> units) {
+    TreeLogger logger = parentLogger.branch("Canonicalizing Record Type Defs");
+    RecordTypeDefCanonicalizer transformer = new RecordTypeDefCanonicalizer(logger, units);
     transformer.updateAllTypes(units);
     
     return transformer.canonical;
   }
   
-  private RecordTypeDefCanonicalizer(List<GimpleCompilationUnit> units) {
-    
-    
+  private RecordTypeDefCanonicalizer(TreeLogger logger, List<GimpleCompilationUnit> units) {
+    this.logger = logger;
     
     // Make a list of distinct record types, starting with the complete list 
     // of declared record types across all units, which will include duplicates
@@ -59,6 +64,11 @@ public class RecordTypeDefCanonicalizer {
       // Remove duplicates using our key function
       Map<String, GimpleRecordTypeDef> keyMap = new HashMap<>();
       for (GimpleRecordTypeDef recordTypeDef : distinct) {
+        
+        if(!Strings.isNullOrEmpty(recordTypeDef.getName())) {
+          nameMap.put(recordTypeDef.getId(), recordTypeDef.getName());
+        }
+        
         String key = key(recordTypeDef);
         GimpleRecordTypeDef canonical = keyMap.get(key);
         if (canonical == null) {
@@ -67,6 +77,9 @@ public class RecordTypeDefCanonicalizer {
         } else {
           // duplicate of already seen structure, map it's id to the canonical version
           idToCanonicalMap.put(recordTypeDef.getId(), canonical);
+          
+          // remap any structures pointing to this one
+          remapFrom(recordTypeDef.getId(), canonical);
           
           changing = true;
         }
@@ -83,6 +96,18 @@ public class RecordTypeDefCanonicalizer {
     } while(changing);
     
     this.canonical = distinct;
+  }
+
+  private void remapFrom(String oldCanonicalId, GimpleRecordTypeDef canonical) {
+    Set<String> toRemap = Sets.newHashSet();
+    for (Map.Entry<String, GimpleRecordTypeDef> entry : idToCanonicalMap.entrySet()) {
+      if(entry.getValue().getId().equals(oldCanonicalId)) {
+        toRemap.add(entry.getKey());
+      }
+    }
+    for (String id : toRemap) {
+      idToCanonicalMap.put(id, canonical);
+    }
   }
 
 
@@ -146,6 +171,11 @@ public class RecordTypeDefCanonicalizer {
 
   private void updateAllTypes(List<GimpleCompilationUnit> units) {
 
+    TreeLogger mappingLogger = logger.branch("Updating types types to canonical IDs");
+    for (Map.Entry<String, GimpleRecordTypeDef> entry : idToCanonicalMap.entrySet()) {
+      mappingLogger.debug("Mapping " + entry.getKey() + " -> "  + entry.getValue().getId());
+    }
+    
     // Ensure that canonical type defs reference other canonical type defs in their fields
     for (GimpleRecordTypeDef recordTypeDef : idToCanonicalMap.values()) {
       updateFieldTypes(recordTypeDef);
@@ -206,7 +236,13 @@ public class RecordTypeDefCanonicalizer {
       if(canonicalDef != null) {
         recordType.setId(canonicalDef.getId());
       }
-    
+
+      // Populate name field to help with debugging
+      String name = nameMap.get(recordType.getId());
+      if(name != null) {
+        recordType.setName(name);
+      }
+      
     } else if(type instanceof GimpleIndirectType) {
       updateType(type.getBaseType());  
     } else if(type instanceof GimpleArrayType) {
@@ -229,6 +265,7 @@ public class RecordTypeDefCanonicalizer {
     } else if(gimpleIns instanceof GimpleCall) {
       GimpleCall call = (GimpleCall) gimpleIns;
       updateTypes(call.getLhs());
+      updateTypes(call.getFunction());
       updateTypes(call.getOperands());
     } else if(gimpleIns instanceof GimpleConditional) {
       GimpleConditional conditional = (GimpleConditional) gimpleIns;
@@ -260,6 +297,11 @@ public class RecordTypeDefCanonicalizer {
         updateTypes(((GimpleArrayRef) expr).getArray());
       } else if (expr instanceof GimpleNopExpr) {
         updateTypes(((GimpleNopExpr) expr).getValue());
+      } else if (expr instanceof GimpleConstructor) {
+        GimpleConstructor constructor = (GimpleConstructor) expr;
+        for (GimpleConstructor.Element element : constructor.getElements()) {
+          updateTypes(element.getValue());
+        }
       }
     }
   }

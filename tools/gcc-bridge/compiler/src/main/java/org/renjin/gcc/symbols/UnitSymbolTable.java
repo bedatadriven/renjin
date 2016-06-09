@@ -1,24 +1,19 @@
 package org.renjin.gcc.symbols;
 
-import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
-import org.objectweb.asm.Handle;
 import org.renjin.gcc.codegen.FunctionGenerator;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.call.FunctionCallGenerator;
 import org.renjin.gcc.codegen.expr.Expr;
-import org.renjin.gcc.gimple.CallingConvention;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.type.fun.FunctionRefGenerator;
 import org.renjin.gcc.gimple.GimpleFunction;
-import org.renjin.gcc.gimple.GimpleParameter;
 import org.renjin.gcc.gimple.GimpleVarDecl;
-import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
 import org.renjin.gcc.gimple.expr.GimpleSymbolRef;
-import org.renjin.gcc.gimple.type.GimpleType;
 
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -30,13 +25,12 @@ import java.util.Map;
 public class UnitSymbolTable implements SymbolTable {
   
   private final GlobalSymbolTable globalSymbolTable;
-  private String className;
   private final Map<Integer, Expr> variableMap = Maps.newHashMap();
-  private final Multimap<String, FunctionGenerator> functions = HashMultimap.create();
+  private final List<FunctionGenerator> functions = Lists.newArrayList();
+  private final Map<String, FunctionGenerator> functionNameMap = Maps.newHashMap();
 
-  public UnitSymbolTable(GlobalSymbolTable globalSymbolTable, String className) {
+  public UnitSymbolTable(GlobalSymbolTable globalSymbolTable) {
     this.globalSymbolTable = globalSymbolTable;
-    this.className = className;
   }
   
   public Expr getVariable(GimpleSymbolRef ref) {
@@ -63,60 +57,35 @@ public class UnitSymbolTable implements SymbolTable {
     }
   }
 
-  public void addFunction(GimpleFunction function, FunctionGenerator generator) {
-    functions.put(function.getName(), generator);
-    if(function.isExtern()) {
-      globalSymbolTable.addFunction(generator);
+  public void addFunction(GimpleFunction function, FunctionGenerator functionGenerator) {
+
+    functions.add(functionGenerator);
+
+    for (String name : functionGenerator.getMangledNames()) {
+      functionNameMap.put(name, functionGenerator);
+      if(function.isExtern()) {
+        globalSymbolTable.addFunction(name, new FunctionCallGenerator(functionGenerator));
+      }
     }
   }
   
   public Collection<FunctionGenerator> getFunctions() {
-    return functions.values();
+    return functions;
   }
   
-  public Handle findHandle(GimpleFunctionRef functionRef, CallingConvention callingConvention) {
-    if(functions.containsKey(functionRef.getName())) {
-      return functions.get(functionRef.getName()).iterator().next().getMethodHandle();
+  public SimpleExpr findHandle(GimpleFunctionRef functionRef) {
+    if(functionNameMap.containsKey(functionRef.getName())) {
+      return new FunctionRefGenerator(functionNameMap.get(functionRef.getName()).getMethodHandle());
     }
-    return globalSymbolTable.findHandle(functionRef, callingConvention);
+    return globalSymbolTable.findHandle(functionRef);
   }
 
-  public CallGenerator findCallGenerator(GimpleFunctionRef ref, List<GimpleExpr> operands, CallingConvention callingConvention) {
-    Collection<FunctionGenerator> matches = functions.get(ref.getName());
-    if(matches.size() == 1) {
-      // If there is a single function, use this.
-      // In C code there are no overloads, and types are often not an exact match.
-      // It's legal to omit final arguments, for example, or implicitly cast a double* to a void*
-      // and GCC doesn't also insert explicit casts.
-      return new FunctionCallGenerator(matches.iterator().next());
-
-    } else if(matches.size() > 0) {
-      
-      // Need to check arguments for C++ method overloading
-      for (FunctionGenerator match : matches) {
-        if(paramsMatch(operands, match.getFunction().getParameters())) {
-          return new FunctionCallGenerator(match);
-        }
-      }
+  public CallGenerator findCallGenerator(GimpleFunctionRef ref) {
+    if(functionNameMap.containsKey(ref.getName())) {
+      return new FunctionCallGenerator(functionNameMap.get(ref.getName()));
     }
     
-    // Otherwise 
-    return globalSymbolTable.findCallGenerator(ref, operands, callingConvention);
+    return globalSymbolTable.findCallGenerator(ref);
   }
 
-  private boolean paramsMatch(List<GimpleExpr> operands, List<GimpleParameter> parameters) {
-    if(operands.size() != parameters.size()) {
-      return false;
-    }
-    Iterator<GimpleParameter> parameterIt = parameters.iterator();
-    Iterator<GimpleExpr> operandIt = operands.iterator();
-    while(parameterIt.hasNext()) {
-      GimpleType parameterType = parameterIt.next().getType();
-      GimpleType operandType = operandIt.next().getType();
-      if(!parameterType.equals(operandType)) {
-        return false;
-      }
-    }
-    return true;
-  }
 }

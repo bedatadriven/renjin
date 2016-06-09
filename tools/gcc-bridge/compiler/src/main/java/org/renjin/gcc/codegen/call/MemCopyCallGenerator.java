@@ -6,9 +6,12 @@ import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.LValue;
 import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.type.PointerTypeStrategy;
 import org.renjin.gcc.codegen.type.TypeOracle;
+import org.renjin.gcc.codegen.type.UnsupportedCastException;
+import org.renjin.gcc.codegen.type.voidt.VoidPtrStrategy;
+import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.statement.GimpleCall;
-import org.renjin.gcc.gimple.type.GimplePointerType;
 
 
 /**
@@ -31,19 +34,42 @@ public class MemCopyCallGenerator implements CallGenerator {
       throw new InternalCompilerException("memcpy() expects 3 args.");
     }
 
-    GimplePointerType destinationType = (GimplePointerType) call.getOperand(0).getType();
-    
-    Expr destination = exprFactory.findGenerator(call.getOperand(0));
-    Expr source =  exprFactory.findGenerator(call.getOperand(1), destinationType);
+    GimpleExpr destination = call.getOperand(0);
+    GimpleExpr source = call.getOperand(1);
+
+    Expr sourcePtr =  exprFactory.findGenerator(source);
+    Expr destinationPtr = exprFactory.findGenerator(destination);
     SimpleExpr length = exprFactory.findValueGenerator(call.getOperand(2));
-    
-    GimplePointerType pointerType = (GimplePointerType) call.getOperand(0).getType();
-    typeOracle.forPointerType(pointerType).memoryCopy(mv, destination, source, length);
+
+    PointerTypeStrategy sourceStrategy = typeOracle.forPointerType(source.getType());
+    PointerTypeStrategy destinationStrategy = typeOracle.forPointerType(destination.getType());
+
+    try {
+      if (sourceStrategy instanceof VoidPtrStrategy) {
+        sourcePtr = destinationStrategy.cast(sourcePtr, sourceStrategy);
+        sourceStrategy = destinationStrategy;
+      } else {
+        destinationPtr = sourceStrategy.cast(destinationPtr, destinationStrategy);
+        destinationStrategy = sourceStrategy;
+      } 
+    } catch (UnsupportedCastException e) {
+      throw new InternalCompilerException(String.format("memcpy(%s, %s): incompatible pointer types",
+          destinationStrategy, 
+          sourceStrategy));
+    }
+    sourceStrategy.memoryCopy(mv, destinationPtr, sourcePtr, length);
  
     if(call.getLhs() != null) {
       // memcpy() returns the destination pointer
       LValue lhs = (LValue) exprFactory.findGenerator(call.getLhs());
-      lhs.store(mv, destination);
+      PointerTypeStrategy lhsStrategy = typeOracle.forPointerType(call.getLhs().getType());
+
+      try {
+        lhs.store(mv, lhsStrategy.cast(destinationPtr, destinationStrategy));
+      } catch (UnsupportedCastException e) {
+        throw new InternalCompilerException(String.format("Cannot assign result of memcpy => %s to %s\n", 
+            destinationStrategy, lhsStrategy));
+      }
     }
   }
 }

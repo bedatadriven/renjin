@@ -1,5 +1,7 @@
 package org.renjin.gcc.gimple.expr;
 
+import com.google.common.base.Predicate;
+import org.renjin.gcc.gimple.GimpleExprVisitor;
 import org.renjin.gcc.gimple.GimpleParameter;
 
 public class GimpleParamRef extends GimpleLValue implements GimpleSymbolRef {
@@ -42,4 +44,13 @@ public class GimpleParamRef extends GimpleLValue implements GimpleSymbolRef {
     return name;
   }
 
+  @Override
+  public void replaceAll(Predicate<? super GimpleExpr> predicate, GimpleExpr newExpr) {
+    
+  }
+
+  @Override
+  public void accept(GimpleExprVisitor visitor) {
+    visitor.visitParamRef(this);
+  }
 }

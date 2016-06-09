@@ -13,8 +13,8 @@ import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.type.primitive.ConstantValue;
 import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
-import org.renjin.gcc.codegen.type.record.RecordClassValueFunction;
 import org.renjin.gcc.codegen.type.record.RecordConstructor;
+import org.renjin.gcc.codegen.type.voidt.VoidPtrStrategy;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.GimpleVarDecl;
@@ -25,9 +25,11 @@ import org.renjin.gcc.gimple.type.GimpleArrayType;
 public class RecordUnitPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
   
   private RecordClassTypeStrategy strategy;
-
+  private RecordUnitPtrValueFunction valueFunction;
+  
   public RecordUnitPtrStrategy(RecordClassTypeStrategy strategy) {
     this.strategy = strategy;
+    this.valueFunction = new RecordUnitPtrValueFunction(strategy.getJvmType());
   }
 
   @Override
@@ -37,7 +39,7 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
 
   @Override
   public FieldStrategy fieldGenerator(Type className, String fieldName) {
-    return new SimpleFieldStrategy(strategy.getJvmType(), fieldName);
+    return new SimpleFieldStrategy(fieldName, strategy.getJvmType());
   }
 
   @Override
@@ -47,27 +49,39 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
 
   @Override
   public FieldStrategy addressableFieldGenerator(Type className, String fieldName) {
-    return new AddressableField(className, fieldName, new RecordClassValueFunction(strategy));
+    return new AddressableField(className, fieldName, valueFunction);
   }
 
   @Override
   public FatPtrStrategy pointerTo() {
-    return new FatPtrStrategy(new RecordClassValueFunction(strategy));
+    return new FatPtrStrategy(valueFunction);
   }
 
   @Override
   public ArrayTypeStrategy arrayOf(GimpleArrayType arrayType) {
-    return new ArrayTypeStrategy(arrayType, new RecordClassValueFunction(strategy));
+    return new ArrayTypeStrategy(arrayType, valueFunction);
   }
 
   @Override
   public SimpleExpr cast(Expr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+    if(typeStrategy instanceof FatPtrStrategy) {
+      FatPtrExpr ptr = (FatPtrExpr) value;
+      // TODO
+      // Currently we punt until runtime by triggering a ClassCastException
+      return Expressions.uncheckedCast(ptr.getArray(), strategy.getJvmType());
+      
+    } else if(typeStrategy instanceof RecordUnitPtrStrategy) {
+      return Expressions.cast((SimpleExpr) value, strategy.getJvmType());
+      
+    } else if(typeStrategy instanceof VoidPtrStrategy) {
+      return Expressions.cast((SimpleExpr) value, strategy.getJvmType());
+    }
     throw new UnsupportedCastException();
   }
 
   @Override
   public ReturnStrategy getReturnStrategy() {
-    return new SimpleReturnStrategy(strategy.getJvmType());
+    return new RecordUnitPtrReturnStrategy(strategy.getJvmType());
   }
 
   @Override
@@ -75,11 +89,10 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
     if(decl.isAddressable()) {
 
       // Declare this as a Unit array so that we can get a FatPtrExpr if needed
-      SimpleExpr unitArray = allocator.reserveUnitArray(decl.getName(), strategy.getJvmType(), 
-          Optional.<SimpleExpr>of(new RecordConstructor(strategy)));
+      SimpleExpr unitArray = allocator.reserveUnitArray(decl.getName(), strategy.getJvmType(), Optional.<SimpleExpr>absent());
 
       FatPtrExpr address = new FatPtrExpr(unitArray);
-      SimpleExpr instance = Expressions.elementAt(unitArray, 0);
+      ArrayElement instance = Expressions.elementAt(unitArray, 0);
       
       return new SimpleAddressableExpr(instance, address);
       
@@ -105,7 +118,10 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
 
   @Override
   public SimpleExpr pointerPlus(SimpleExpr pointer, SimpleExpr offsetInBytes) {
-    return null;
+    // According to our analysis conducted before-hand, there should be no pointer
+    // to a sequence of records of this type with more than one record, so the result should
+    // be undefined.
+    return Expressions.nullRef(strategy.getJvmType());
   }
 
   @Override
@@ -158,5 +174,10 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
 
   public Type getJvmType() {
     return strategy.getJvmType();
+  }
+
+  @Override
+  public String toString() {
+    return "RecordUnitPtrStrategy[" + strategy.getRecordTypeDef().getName() + "]";
   }
 }

@@ -1,5 +1,7 @@
 package org.renjin.gcc.gimple.expr;
 
+import com.google.common.base.Predicate;
+import org.renjin.gcc.gimple.GimpleExprVisitor;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 public class GimpleVariableRef extends GimpleLValue implements GimpleSymbolRef {
@@ -62,5 +64,15 @@ public class GimpleVariableRef extends GimpleLValue implements GimpleSymbolRef {
     } else {
       return "T" + Math.abs(id);
     }
+  }
+
+  @Override
+  public void replaceAll(Predicate<? super GimpleExpr> predicate, GimpleExpr newExpr) {
+    // NOOP: Leaf node
+  }
+
+  @Override
+  public void accept(GimpleExprVisitor visitor) {
+    visitor.visitVariableRef(this);
   }
 }

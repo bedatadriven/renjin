@@ -1,6 +1,7 @@
 package org.renjin.gcc.gimple.expr;
 
 import com.google.common.base.Predicate;
+import org.renjin.gcc.gimple.GimpleExprVisitor;
 
 import java.util.List;
 
@@ -50,18 +51,16 @@ public class GimpleMemRef extends GimpleLValue {
   }
 
   @Override
-  public boolean replace(Predicate<? super GimpleExpr> predicate, GimpleExpr replacement) {
-    if(predicate.apply(pointer)) {
-      pointer = replacement;
-      return true;
-    } else if(predicate.apply(offset)) {
-      offset = replacement;
-      return true;
-    } else {
-      return false;
-    }
+  public void accept(GimpleExprVisitor visitor) {
+    visitor.visitMemRef(this);
   }
 
+  @Override
+  public void replaceAll(Predicate<? super GimpleExpr> predicate, GimpleExpr newExpr) {
+    pointer = replaceOrDescend(pointer, predicate, newExpr);
+    offset = replaceOrDescend(offset, predicate, newExpr);
+  }
+  
   public boolean isOffsetZero() {
     return offset instanceof GimpleIntegerConstant && 
         ((GimpleIntegerConstant) offset).getNumberValue().intValue() == 0;

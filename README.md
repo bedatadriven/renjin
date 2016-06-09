@@ -1,3 +1,5 @@
+[![Build Status](http://build.renjin.org/buildStatus/icon?job=renjin)](http://build.renjin.org) 
+
 Introduction
 ============
 

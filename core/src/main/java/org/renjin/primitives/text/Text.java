@@ -465,12 +465,12 @@ public class Text {
 
   @Internal
   public static IntVector regexpr(String pattern, StringVector vector, boolean ignoreCase, boolean perl,
-      boolean fixed, boolean useBytes) {
-    
+                                  boolean fixed, boolean useBytes) {
+
     RE re = REFactory.compile(pattern, ignoreCase,  perl, fixed, useBytes);
     IntArrayVector.Builder position = IntArrayVector.Builder.withInitialCapacity(vector.length());
     IntArrayVector.Builder matchLength = IntArrayVector.Builder.withInitialCapacity(vector.length());
-    
+
     for(String text : vector) {
       if(re.match(text)) {
         int start = re.getGroupStart(0);
@@ -482,11 +482,51 @@ public class Text {
         matchLength.add(-1);
       }
     }
-    
+
     position.setAttribute("match.length", matchLength.build());
     position.setAttribute("useBytes", new LogicalArrayVector(useBytes));
     return position.build();
   }
+
+
+  @Internal
+  public static ListVector gregexpr(String pattern, StringVector vector, boolean ignoreCase, boolean perl,
+                                  boolean fixed, boolean useBytes) {
+
+    ListVector.Builder regexpResults = new ListVector.Builder(0, vector.length());
+    RE re = REFactory.compile(pattern, ignoreCase,  perl, fixed, useBytes);
+
+    for(String text : vector) {
+      IntArrayVector.Builder position = IntArrayVector.Builder.withInitialCapacity(vector.length());
+      IntArrayVector.Builder matchLength = IntArrayVector.Builder.withInitialCapacity(vector.length());
+      int offsetSearch = 0;
+
+      while ( re.match(text.substring(offsetSearch))) {
+        int start = re.getGroupStart(0);
+        int end = re.getGroupEnd(0);
+        int increment = end == 0 ? 1 : end;
+        if (offsetSearch < text.length()) {
+          position.add(start + 1 + offsetSearch);
+          matchLength.add( end - start);
+          offsetSearch += increment;
+        } else {
+          break;
+        }
+      }
+
+      if (position.length() == 0) {
+        position.add(-1);
+        matchLength.add(-1);
+      }
+
+      position.setAttribute("match.length", matchLength.build());
+      position.setAttribute("useBytes", new LogicalArrayVector(useBytes));
+      regexpResults.add( position.build() );
+    }
+
+    return regexpResults.build();
+  }
+
 
   @Internal
   public static StringVector substr(StringVector x, Vector start, Vector stop) {

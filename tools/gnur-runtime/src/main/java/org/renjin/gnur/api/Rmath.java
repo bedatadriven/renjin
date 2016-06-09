@@ -57,8 +57,9 @@ public final class Rmath {
     throw new UnimplementedGnuApiMethod("norm_rand");
   }
 
+  @Deprecated
   public static double unif_rand() {
-    throw new UnimplementedGnuApiMethod("unif_rand");
+    return Random.unif_rand();
   }
 
   public static double exp_rand() {

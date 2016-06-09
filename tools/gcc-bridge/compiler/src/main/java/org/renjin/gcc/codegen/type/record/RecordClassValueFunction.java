@@ -33,7 +33,7 @@ public class RecordClassValueFunction implements ValueFunction {
   }
 
   @Override
-  public int getElementSize() {
+  public int getArrayElementBytes() {
     return 4;
   }
 
@@ -52,4 +52,8 @@ public class RecordClassValueFunction implements ValueFunction {
     return Optional.<SimpleExpr>of(new RecordConstructor(strategy));
   }
 
+  @Override
+  public String toString() {
+    return "RecordClass[" + strategy.getRecordTypeDef().getName() + "]";
+  }
 }

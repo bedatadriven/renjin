@@ -21,5 +21,6 @@
     <module>common</module>
     <module>blas</module>
     <module>benchmarks</module>
+    <module>appl</module>
   </modules>
 </project>

@@ -1,5 +1,6 @@
 package org.renjin.gcc.gimple.statement;
 
+import org.renjin.gcc.gimple.GimpleExprVisitor;
 import org.renjin.gcc.gimple.GimpleLabel;
 import org.renjin.gcc.gimple.GimpleVisitor;
 
@@ -30,6 +31,11 @@ public class GimpleGoto extends GimpleStatement {
   public void visit(GimpleVisitor visitor) {
     visitor.visitGoto(this);
 
+  }
+
+  @Override
+  public void accept(GimpleExprVisitor visitor) {
+    
   }
 
   @Override

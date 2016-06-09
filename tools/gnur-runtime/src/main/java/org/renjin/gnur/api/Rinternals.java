@@ -1,8 +1,14 @@
 // Initial template generated from Rinternals.h from R 3.2.2
 package org.renjin.gnur.api;
 
+import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.gcc.runtime.*;
+import org.renjin.gcc.runtime.BytePtr;
+import org.renjin.gcc.runtime.DoublePtr;
+import org.renjin.gcc.runtime.IntPtr;
+import org.renjin.gcc.runtime.ObjectPtr;
+import org.renjin.primitives.Native;
+import org.renjin.primitives.Types;
 import org.renjin.primitives.Vectors;
 import org.renjin.sexp.*;
 
@@ -109,7 +115,7 @@ public final class Rinternals {
   }
 
   public static boolean Rf_isString(SEXP s) {
-    throw new UnimplementedGnuApiMethod("Rf_isString");
+    return s instanceof StringVector;
   }
 
   public static boolean Rf_isObject(SEXP s) {
@@ -247,6 +253,20 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("SETLEVELS");
   }
 
+  public static Object DATAPTR(SEXP x) {
+    if(x instanceof IntVector | x instanceof LogicalVector) {
+      return INTEGER(x);
+    } else if(x instanceof DoubleVector) {
+      return REAL(x);
+    } else if(x instanceof ComplexVector) {
+      return COMPLEX(x);
+    } else if(x instanceof RawVector) {
+      return RAW(x);
+    } else {
+      throw new UnsupportedOperationException("DATAPTR on type " + x.getClass().getName());
+    }
+  }
+  
   public static IntPtr LOGICAL(SEXP x) {
     if(x instanceof LogicalArrayVector) {
       return new IntPtr(((LogicalArrayVector)x).toIntArrayUnsafe());
@@ -261,9 +281,13 @@ public final class Rinternals {
   public static IntPtr INTEGER(SEXP x) {
     if(x instanceof IntArrayVector) {
       return new IntPtr(((IntArrayVector) x).toIntArrayUnsafe());
+    } else if(x instanceof LogicalArrayVector) {
+      return new IntPtr(((LogicalArrayVector) x).toIntArrayUnsafe());
     } else if(x instanceof IntVector) {
       // TODO: cache arrays for the case of repeated INTEGER() calls?
       return new IntPtr(((IntVector) x).toIntArray());
+    } else if(x instanceof LogicalVector) {
+      return new IntPtr(((LogicalVector) x).toIntArray());
     } else {
       throw new EvalException("INTEGER(): expected integer vector, found %s", x.getTypeName());
     }
@@ -328,43 +352,43 @@ public final class Rinternals {
   }
 
   public static SEXP CAR(SEXP e) {
-    throw new UnimplementedGnuApiMethod("CAR");
+    return ((PairList.Node) e).getValue();
   }
 
   public static SEXP CDR(SEXP e) {
-    throw new UnimplementedGnuApiMethod("CDR");
+    return ((PairList.Node) e).getNext();
   }
-
+  
   public static SEXP CAAR(SEXP e) {
-    throw new UnimplementedGnuApiMethod("CAAR");
+    return CAR(CAR(e));
   }
 
   public static SEXP CDAR(SEXP e) {
-    throw new UnimplementedGnuApiMethod("CDAR");
+    return CDR(CAR(e));
   }
 
   public static SEXP CADR(SEXP e) {
-    throw new UnimplementedGnuApiMethod("CADR");
+    return CAR(CDR(e));
   }
 
   public static SEXP CDDR(SEXP e) {
-    throw new UnimplementedGnuApiMethod("CDDR");
+    return CDR(CDR(e));
   }
 
   public static SEXP CDDDR(SEXP e) {
-    throw new UnimplementedGnuApiMethod("CDDDR");
+    return CDR(CDR(CDR(e)));
   }
 
   public static SEXP CADDR(SEXP e) {
-    throw new UnimplementedGnuApiMethod("CADDR");
+    return 	CAR(CDR(CDR(e)));
   }
 
   public static SEXP CADDDR(SEXP e) {
-    throw new UnimplementedGnuApiMethod("CADDDR");
+    return CAR(CDR(CDR(CDR(e))));
   }
 
   public static SEXP CAD4R(SEXP e) {
-    throw new UnimplementedGnuApiMethod("CAD4R");
+    return CAR(CDR(CDR(CDR(CDR(e)))));
   }
 
   public static int MISSING(SEXP x) {
@@ -811,8 +835,12 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("R_envHasNoSpecialSymbols");
   }
 
-  public static SEXP Rf_eval(SEXP p0, SEXP p1) {
-    throw new UnimplementedGnuApiMethod("Rf_eval");
+  public static SEXP Rf_eval(SEXP expr, SEXP rho) {
+    Context context = Native.CURRENT_CONTEXT.get();
+    if(context == null) {
+      throw new IllegalStateException("Renjin context not initialized for this thread.");
+    }
+    return context.evaluate(expr, (Environment) rho);
   }
 
   public static SEXP Rf_findFun(SEXP p0, SEXP p1) {
@@ -1117,7 +1145,7 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("R_forceAndCall");
   }
 
-  public static SEXP R_MakeExternalPtr(Ptr p, SEXP tag, SEXP prot) {
+  public static SEXP R_MakeExternalPtr(Object p, SEXP tag, SEXP prot) {
     throw new UnimplementedGnuApiMethod("R_MakeExternalPtr");
   }
 
@@ -1137,7 +1165,7 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("R_ClearExternalPtr");
   }
 
-  public static void R_SetExternalPtrAddr(SEXP s, Ptr p) {
+  public static void R_SetExternalPtrAddr(SEXP s, Object p) {
     throw new UnimplementedGnuApiMethod("R_SetExternalPtrAddr");
   }
 
@@ -1273,19 +1301,19 @@ public final class Rinternals {
 
   // void Rf_warningcall_immediate (SEXP, const char *,...)
 
-  public static void R_XDREncodeDouble(double d, Ptr buf) {
+  public static void R_XDREncodeDouble(double d, Object buf) {
     throw new UnimplementedGnuApiMethod("R_XDREncodeDouble");
   }
 
-  public static double R_XDRDecodeDouble(Ptr buf) {
+  public static double R_XDRDecodeDouble(Object buf) {
     throw new UnimplementedGnuApiMethod("R_XDRDecodeDouble");
   }
 
-  public static void R_XDREncodeInteger(int i, Ptr buf) {
+  public static void R_XDREncodeInteger(int i, Object buf) {
     throw new UnimplementedGnuApiMethod("R_XDREncodeInteger");
   }
 
-  public static int R_XDRDecodeInteger(Ptr buf) {
+  public static int R_XDRDecodeInteger(Object buf) {
     throw new UnimplementedGnuApiMethod("R_XDRDecodeInteger");
   }
 
@@ -1346,11 +1374,13 @@ public final class Rinternals {
   // int R_check_class_etc (SEXP x, const char **valid)
 
   public static void R_PreserveObject(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("R_PreserveObject");
+    // NOOP
+    // We have a garbage collector.
   }
 
   public static void R_ReleaseObject(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("R_ReleaseObject");
+    // NOOP
+    // We have a garbage collector.
   }
 
   public static void R_dot_Last() {
@@ -1432,7 +1462,7 @@ public final class Rinternals {
   }
 
   public static boolean Rf_isMatrix(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_isMatrix");
+    return Types.isMatrix(p0);
   }
 
   public static boolean Rf_isNewList(SEXP p0) {
@@ -1453,15 +1483,15 @@ public final class Rinternals {
   }
 
   public static boolean Rf_isNumeric(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_isNumeric");
+    return Types.isNumeric(p0);
   }
 
   public static boolean Rf_isPairList(SEXP p0) {
-    return p0 instanceof PairList;
+    return Types.isPairList(p0);
   }
 
   public static boolean Rf_isPrimitive(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_isPrimitive");
+    return p0 instanceof PrimitiveFunction;
   }
 
   public static boolean Rf_isTs(SEXP p0) {
@@ -1525,7 +1555,7 @@ public final class Rinternals {
   }
 
   public static SEXP Rf_lcons(SEXP p0, SEXP p1) {
-    throw new UnimplementedGnuApiMethod("Rf_lcons");
+    return new FunctionCall(p0, (PairList) p1);
   }
 
   public static int Rf_length (SEXP sexp) {
@@ -1610,7 +1640,7 @@ public final class Rinternals {
   public static SEXP Rf_ScalarLogical(int p0) {
     if(p0 == LogicalVector.NA) {
       return LogicalVector.NA_VECTOR;
-    } else if(p0 != 0) {
+    } else if(p0 == 0) {
       return LogicalVector.FALSE;
     } else {
       return LogicalVector.TRUE;
@@ -1628,7 +1658,7 @@ public final class Rinternals {
   }
 
   public static /*R_xlen_t*/ int Rf_xlength(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_xlength");
+    return p0.length();
   }
 
   public static SEXP Rf_protect(SEXP p0) {

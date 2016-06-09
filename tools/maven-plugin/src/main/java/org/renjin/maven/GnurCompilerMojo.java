@@ -1,7 +1,6 @@
 package org.renjin.maven;
 
 import com.google.common.collect.Lists;
-import com.google.common.io.Files;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -12,28 +11,22 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
+import org.renjin.gcc.maven.GccBridgeHelper;
 import org.renjin.gnur.GnurSourcesCompiler;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.List;
-import java.util.jar.JarEntry;
-import java.util.jar.JarInputStream;
-import java.util.jar.JarOutputStream;
 
 /**
  * Compiles gnur C/Fortran sources to a JVM class
 
  */
+@ThreadSafe
 @Mojo(name = "gnur-sources-compile", requiresDependencyCollection = ResolutionScope.COMPILE)
 public class GnurCompilerMojo extends AbstractMojo {
-  
-  @Component
+
+  @Parameter(defaultValue = "${project}", readonly = true)
   private MavenProject project;
 
   @Component
@@ -100,10 +93,10 @@ public class GnurCompilerMojo extends AbstractMojo {
     compiler.setWorkDirectory(workDirectory);
     compiler.setOutputDirectory(outputDirectory);
     compiler.setGimpleDirectory(gimpleDirectory);
-    compiler.setLinkClassLoader(getLinkClassLoader());
+    compiler.setLinkClassLoader(GccBridgeHelper.getLinkClassLoader(project, getLog()));
     
     // Unpack any headers from dependencies
-    unpackHeaders();
+    GccBridgeHelper.unpackHeaders(getLog(), unpackedIncludeDir, project.getCompileArtifacts());
     compiler.addIncludeDir(unpackedIncludeDir);
 
     // Add the standard GNU R inst/include to the compiler's
@@ -120,7 +113,7 @@ public class GnurCompilerMojo extends AbstractMojo {
         compiler.addIncludeDir(includeDirectory);
       }
     }
-
+  
     try {
       compiler.compile();
       getLog().info("Compilation of GNU R sources succeeded.");
@@ -134,7 +127,7 @@ public class GnurCompilerMojo extends AbstractMojo {
     }
 
     if (instIncludeDir.exists()) {
-      archiveHeaders(instIncludeDir);
+      GccBridgeHelper.archiveHeaders(getLog(), project, instIncludeDir);
     }
   }
 
@@ -152,97 +145,5 @@ public class GnurCompilerMojo extends AbstractMojo {
     }
     return paths;
   }
-  
-  private void unpackHeaders() throws MojoExecutionException {
 
-    ensureDirExists(unpackedIncludeDir);
-
-    List<Artifact> compileArtifacts = project.getCompileArtifacts();
-    for (Artifact compileArtifact : compileArtifacts) {
-      if("headers".equals(compileArtifact.getClassifier())) {
-        extractHeaders(compileArtifact);
-      }
-    }
-  }
-
-
-  public void archiveHeaders(File includeDirectory) throws MojoExecutionException, MojoFailureException {
-
-    File outputDir = new File(project.getBuild().getDirectory());
-    File archiveFile = new File(outputDir, finalName + "-headers.jar");
-
-    getLog().debug("Archiving headers in " + includeDirectory.getAbsolutePath());
-
-    try (JarOutputStream output = new JarOutputStream(new FileOutputStream(archiveFile))) {
-      archiveFiles(output, includeDirectory, "");
-    } catch (IOException e) {
-      throw new MojoExecutionException("Failed to create headers archive", e);
-    }
-
-    projectHelper.attachArtifact(project, "jar", "headers", archiveFile);
-  }
-
-  private void archiveFiles(JarOutputStream output, File dir, String prefix) throws IOException {
-    File[] includeFiles = dir.listFiles();
-    if (includeFiles != null) {
-      for (File includeFile : includeFiles) {
-        if (includeFile.isDirectory()) {
-          archiveFiles(output, includeFile, prefix + includeFile.getName() + "/");
-        } else {
-          JarEntry entry = new JarEntry(prefix + includeFile.getName());
-          output.putNextEntry(entry);
-          Files.asByteSource(includeFile).copyTo(output);
-        }
-      }
-    }
-  }
-
-  private void extractHeaders(Artifact compileArtifact) throws MojoExecutionException {
-    if(compileArtifact.getFile() == null) {
-      throw new MojoExecutionException("Depedency " + compileArtifact.getId() + " has not been resolved.");
-    }
-    try(JarInputStream in = new JarInputStream(new FileInputStream(compileArtifact.getFile()))) {
-      JarEntry entry;
-      while((entry=in.getNextJarEntry()) != null) {
-        if(!entry.isDirectory()) {
-          File destFile = new File(unpackedIncludeDir + File.separator + entry.getName());
-
-          getLog().debug("Unpacking " + entry.getName() + " to " + destFile);
-
-          ensureDirExists(destFile.getParentFile());
-          Files.asByteSink(destFile).writeFrom(in);
-        }
-      }
-    } catch (IOException e) {
-      throw new MojoExecutionException("Exception unpacking headers", e);
-    }
-  }
-
-  private void ensureDirExists(File unpackDir) throws MojoExecutionException {
-    if(!unpackDir.exists()) {
-      boolean created = unpackDir.mkdirs();
-      if(!created) {
-        throw new MojoExecutionException("Failed to create include directory " + unpackDir.getAbsolutePath());
-      }
-    }
-  }
-
-  private ClassLoader getLinkClassLoader() throws MojoExecutionException  {
-    try {
-      getLog().debug("GCC-Bridge Link Classpath: ");
-
-      List<URL> classpathURLs = Lists.newArrayList();
-      classpathURLs.add( new File(project.getBuild().getOutputDirectory()).toURI().toURL() );
-
-      for(Artifact artifact : (List<Artifact>)project.getCompileArtifacts()) {
-        getLog().debug("  "  + artifact.getFile());
-
-        classpathURLs.add(artifact.getFile().toURI().toURL());
-      }
-
-      return new URLClassLoader( classpathURLs.toArray( new URL[ classpathURLs.size() ] ), getClass().getClassLoader());
-    } catch(MalformedURLException e) {
-      throw new MojoExecutionException("Exception resolving classpath", e);
-    }
-  }
 }

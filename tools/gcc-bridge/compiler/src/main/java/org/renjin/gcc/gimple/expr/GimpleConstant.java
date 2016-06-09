@@ -16,5 +16,7 @@ public abstract class GimpleConstant extends GimpleExpr {
   public boolean isNull() {
     return false;
   }
+  
+  
 
 }

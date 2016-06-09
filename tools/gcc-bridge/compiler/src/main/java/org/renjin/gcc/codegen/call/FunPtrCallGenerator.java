@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.call;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -86,7 +87,7 @@ public class FunPtrCallGenerator implements CallGenerator {
         
         // ... arguments onto the stack
         for (int i = 0; i < call.getOperands().size(); i++) {
-          paramStrategies.get(i).loadParameter(mv, exprFactory.findGenerator(call.getOperand(i)));
+          paramStrategies.get(i).loadParameter(mv, Optional.of(exprFactory.findGenerator(call.getOperand(i))));
         }
         // Use invoke() rather than invokeExact() to smooth over any type differences
         mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/invoke/MethodHandle", "invoke", signature, false);

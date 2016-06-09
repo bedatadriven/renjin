@@ -11,31 +11,29 @@ import org.renjin.gcc.gimple.expr.GimpleVariableRef;
 import org.renjin.gcc.gimple.statement.GimpleStatement;
 import org.renjin.gcc.gimple.type.GimpleType;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * Gimple Function Model
  */
-public class GimpleFunction {
+public class GimpleFunction implements GimpleDecl {
   private int id;
   private String name;
-  private CallingConvention callingConvention;
+  private String mangledName;
   private GimpleType returnType;
+  private List<String> aliases = Lists.newArrayList();
   private GimpleCompilationUnit unit;
   private List<GimpleBasicBlock> basicBlocks = Lists.newArrayList();
   private List<GimpleParameter> parameters = Lists.newArrayList();
   private List<GimpleVarDecl> variableDeclarations = Lists.newArrayList();
   private boolean extern;
-
+  private boolean weak;
+  private boolean inline;
+  
   public GimpleFunction() {
 
   }
 
-  public void setCallingConvention(CallingConvention callingConvention) {
-    this.callingConvention = callingConvention;
-  }
 
   public int getId() {
     return id;
@@ -49,9 +47,26 @@ public class GimpleFunction {
     return name;
   }
 
+  public void setMangledName(String mangledName) {
+    this.mangledName = mangledName;
+  }
 
   public String getMangledName() {
-    return callingConvention.mangleFunctionName(name);
+    if(mangledName == null) {
+      throw new IllegalStateException("Mangled name is null");
+    }
+    return mangledName;
+  }
+  
+  public List<String> getMangledNames() {
+    List<String> names = Lists.newArrayList();
+    names.add(getMangledName());
+    names.addAll(getAliases());
+    return names;
+  }
+
+  public List<String> getAliases() {
+    return aliases;
   }
 
   public void setName(String name) {
@@ -70,11 +85,28 @@ public class GimpleFunction {
     this.unit = unit;
   }
 
+  public boolean isWeak() {
+    return weak;
+  }
+
+  public void setWeak(boolean weak) {
+    this.weak = weak;
+  }
+
+  public boolean isInline() {
+    return inline;
+  }
+
+  public void setInline(boolean inline) {
+    this.inline = inline;
+  }
+
   public GimpleVarDecl addVarDecl(GimpleType type) {
     // find unused id
-    int id = 1000;
-    while(isIdInUse(id)) {
-      id++;
+    Set<Integer> usedIds = usedIds();
+    int newId = 1000;
+    while(usedIds.contains(newId)) {
+      newId++;
     }
     
     GimpleVarDecl decl = new GimpleVarDecl();
@@ -85,19 +117,17 @@ public class GimpleFunction {
     return decl;
   }
   
-  private boolean isIdInUse(int varDeclId) {
+  private Set<Integer> usedIds() {
+    Set<Integer> set = new HashSet<>();
     for (GimpleVarDecl variableDeclaration : variableDeclarations) {
-      if(variableDeclaration.getId() == varDeclId) {
-        return true;
-      }
+      set.add(variableDeclaration.getId());
     }
-    for (GimpleParameter gimpleParameter : getParameters()) {
-      if(gimpleParameter.getId() == varDeclId) {
-        return true;
-      }
+    for (GimpleParameter parameter : parameters) {
+      set.add(parameter.getId());
     }
-    return false;
+    return set;
   }
+  
 
   /**
    * 
@@ -129,7 +159,7 @@ public class GimpleFunction {
     this.parameters = parameters;
   }
 
-  public void visitIns(GimpleVisitor visitor) {
+  public void accept(GimpleVisitor visitor) {
     for (GimpleBasicBlock bb : basicBlocks) {
       visitor.blockStart(bb);
       for (GimpleStatement ins : bb.getStatements()) {
@@ -146,6 +176,11 @@ public class GimpleFunction {
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
+    if(!mangledName.equals(name)) {
+      sb.append(mangledName).append(": ");
+    }
+    sb.append(returnType);
+    sb.append(" ");
     sb.append(name).append(" (");
     Joiner.on(", ").appendTo(sb, parameters);
     sb.append(")\n");
@@ -158,10 +193,6 @@ public class GimpleFunction {
     }
     sb.append("}\n");
     return sb.toString();
-  }
-
-  public CallingConvention getCallingConvention() {
-    return callingConvention;
   }
 
   public GimpleType getReturnType() {
@@ -203,5 +234,11 @@ public class GimpleFunction {
 
   public GimpleBasicBlock getLastBasicBlock() {
     return basicBlocks.get(basicBlocks.size()-1);
+  }
+  
+  public void accept(GimpleExprVisitor visitor) {
+    for (GimpleBasicBlock basicBlock : basicBlocks) {
+      basicBlock.accept(visitor);
+    }
   }
 }

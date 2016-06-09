@@ -218,6 +218,22 @@ public class SubsettingTest extends EvalTestCase {
 
     assertThat(eval(" x['a'] "), equalTo(c(3)));
     assertThat( eval(" names(x['a']) "), equalTo( c("a")));
+    
+    assertThat(eval(" x[NA_character_] "), equalTo( c(DoubleVector.NA)));
+    assertThat(eval(" names(x[NA_character_]) "), equalTo( c((String)null)));
+
+  }
+  
+  @Test
+  public void namedSubscriptsAgainstNaNames() {
+    eval(" x <- c(1,2)");
+    eval(" names(x) <- c(NA, 'foo')");
+    
+    assertThat(eval("x['foo']"), equalTo(c(2)));
+    assertThat(eval("x[['foo']]"), equalTo(c(2)));
+
+    assertThat(eval(" x[NA_character_] "), equalTo( c(DoubleVector.NA)));
+    assertThat(eval(" names(x[NA_character_]) "), equalTo( c((String)null)));
   }
 
   @Test
@@ -856,7 +872,15 @@ public class SubsettingTest extends EvalTestCase {
     assertThat(eval("length(x)"), equalTo(c_i(2)));
     assertThat( eval("x$a"), equalTo(c(4)));
     assertThat( eval("x$b"), equalTo(c(2)));
-
+  }
+  
+  @Test
+  public void pairListGrownThroughReplacement() {
+    eval(" x <- pairlist(1,2,3)");
+    eval(" x[[5]] <- 4");
+    
+    assertThat(eval("x[[4]]"), equalTo((SEXP)Null.INSTANCE));
+    assertThat(eval("x[[5]]"), equalTo(c(4)));
   }
   
   @Test

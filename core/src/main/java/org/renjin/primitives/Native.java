@@ -32,6 +32,9 @@ public class Native {
   public static final boolean DEBUG = false;
 
 
+  public static final ThreadLocal<Context> CURRENT_CONTEXT = new ThreadLocal<>();
+
+
   @Builtin(".C")
   public static SEXP dotC(@Current Context context,
                           @Current Environment rho,
@@ -81,7 +84,7 @@ public class Native {
         nativeArguments[i] = stringPtrToCharPtrPtr(callArguments.get(i));
       } else {
         throw new EvalException("Don't know how to marshall type " + callArguments.get(i).getClass().getName() +
-                " to for C argument " +  type + " in call to " + method);
+            " to for C argument " +  type + " in call to " + method);
       }
     }
 
@@ -99,8 +102,8 @@ public class Native {
         java.lang.System.out.println(callArguments.getName(i) + " = " + nativeArguments[i].toString());
       }
       builder.add(callArguments.getName(i), sexpFromPointer(
-              nativeArguments[i],
-              callArguments.get(i).getAttributes()));
+          nativeArguments[i],
+          callArguments.get(i).getAttributes()));
     }
     return builder.build();
   }
@@ -221,7 +224,7 @@ public class Native {
     if(Profiler.ENABLED) {
       Profiler.functionStart(Symbol.get(methodName));
     }
-    
+
     // For .Fortran() calls, we make a copy of the arguments, pass them by
     // reference to the fortran subroutine, and then return the modified arguments
     // as a ListVector.
@@ -288,8 +291,8 @@ public class Native {
 
     for(Method method : declaringClass.getMethods()) {
       if(method.getName().equals(mangledName) &&
-              Modifier.isPublic(method.getModifiers()) &&
-              Modifier.isStatic(method.getModifiers())) {
+          Modifier.isPublic(method.getModifiers()) &&
+          Modifier.isStatic(method.getModifiers())) {
         return MethodHandles.publicLookup().unreflect(method);
       }
     }
@@ -310,8 +313,8 @@ public class Native {
       MethodHandle methodHandle = address.getInstance();
       if(methodHandle.type().parameterCount() != callArguments.length()) {
         throw new EvalException("Expected %d arguments, found %d",
-                methodHandle.type().parameterCount(),
-                callArguments.length());
+            methodHandle.type().parameterCount(),
+            callArguments.length());
       }
       MethodHandle transformedHandle = methodHandle.asSpreader(SEXP[].class, methodHandle.type().parameterCount());
       SEXP[] arguments = toSexpArray(callArguments);
@@ -319,7 +322,9 @@ public class Native {
         StringVector nameExp = (StringVector)((ListVector) methodExp).get("name");
         Profiler.functionStart(Symbol.get(nameExp.getElementAsString(0)));
       }
+      Context previousContext = CURRENT_CONTEXT.get();
       try {
+        CURRENT_CONTEXT.set(context);
         if (methodHandle.type().returnType().equals(void.class)) {
           transformedHandle.invokeExact(arguments);
           return Null.INSTANCE;
@@ -331,6 +336,7 @@ public class Native {
       } catch (Throwable e) {
         throw new EvalException("Exception calling " + methodExp + " : " + e.getMessage(), e);
       } finally {
+        CURRENT_CONTEXT.set(previousContext);
         if(Profiler.ENABLED) {
           Profiler.functionEnd();
         }
@@ -360,6 +366,55 @@ public class Native {
       }
     } else {
       throw new EvalException("Invalid method argument: " + methodExp);
+    }
+  }
+
+
+  @Builtin(".External")
+  public static SEXP external(@Current Context context,
+                              @Current Environment rho,
+                              SEXP methodExp,
+                              @ArgumentList ListVector callArguments,
+                              @NamedFlag("PACKAGE") String packageName,
+                              @NamedFlag("CLASS") String className) throws ClassNotFoundException {
+
+    if(!methodExp.inherits("NativeSymbolInfo")) {
+      throw new EvalException("Expected object of class 'NativeSymbolInfo'");
+    }
+
+    ExternalPtr<MethodHandle> address = (ExternalPtr<MethodHandle>) ((ListVector)methodExp).get("address");
+    MethodHandle methodHandle = address.getInstance();
+    if(methodHandle.type().parameterCount() != 1) {
+      throw new EvalException("Expected method with single argument, found %d",
+          methodHandle.type().parameterCount(),
+          callArguments.length());
+    }
+
+    StringVector functionName = (StringVector) ((ListVector) methodExp).get("name");
+    SEXP argumentList = new PairList.Node(functionName, PairList.Node.fromVector(callArguments));
+
+    if(Profiler.ENABLED) {
+      StringVector nameExp = (StringVector)((ListVector) methodExp).get("name");
+      Profiler.functionStart(Symbol.get(nameExp.getElementAsString(0)));
+    }
+    Context previousContext = CURRENT_CONTEXT.get();
+    try {
+      CURRENT_CONTEXT.set(context);
+      if (methodHandle.type().returnType().equals(void.class)) {
+        methodHandle.invokeExact(argumentList);
+        return Null.INSTANCE;
+      } else {
+        return (SEXP) methodHandle.invokeExact(argumentList);
+      }
+    } catch (Error e) {
+      throw e;
+    } catch (Throwable e) {
+      throw new EvalException("Exception calling " + methodExp + " : " + e.getMessage(), e);
+    } finally {
+      CURRENT_CONTEXT.set(previousContext);
+      if(Profiler.ENABLED) {
+        Profiler.functionEnd();
+      }
     }
   }
 
@@ -395,7 +450,7 @@ public class Native {
     List<Method> overloads = Lists.newArrayList();
     for(Method method : packageClass.getMethods()) {
       if(method.getName().equals(methodName) &&
-              (method.getModifiers() & (Modifier.STATIC | Modifier.PUBLIC)) != 0) {
+          (method.getModifiers() & (Modifier.STATIC | Modifier.PUBLIC)) != 0) {
         overloads.add(method);
       }
     }
@@ -413,7 +468,7 @@ public class Native {
       Namespace namespace = context.getNamespaceRegistry().getNamespace(context, packageName);
       FqPackageName fqname = namespace.getFullyQualifiedName();
       String packageClassName = fqname.getGroupId()+"."+fqname.getPackageName() + "." +
-              fqname.getPackageName();
+          fqname.getPackageName();
       try {
         return namespace.getPackage().loadClass(packageClassName);
       } catch (ClassNotFoundException e) {

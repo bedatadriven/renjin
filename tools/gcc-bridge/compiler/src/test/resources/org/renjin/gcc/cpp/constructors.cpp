@@ -30,7 +30,7 @@ public:
 	BothConstructors(int x) : val(x) {};
 };
 
-int run() {
+extern "C" int run() {
 	NoConstructor a;
 	a.val = 1;
 

@@ -31,5 +31,13 @@ public class SessionController {
   public int menu(StringVector choices) throws IOException {
     throw new EvalException("menu() is not available");
   }
-  
+
+  /**
+   * 
+   * @return true if this session's input and output are connected to a proper terminal.
+   * (As opposed to a file or GUI console
+   */
+  public boolean isTerminal() {
+    return false;
+  }
 }

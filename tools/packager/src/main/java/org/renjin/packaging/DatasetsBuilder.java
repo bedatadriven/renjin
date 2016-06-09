@@ -4,7 +4,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import com.google.common.io.Closer;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Session;
@@ -135,18 +134,11 @@ public class DatasetsBuilder {
    * @throws IOException
    */
   private void processRDataFile(File dataFile) throws IOException {
-    Closer closer = Closer.create();
-    InputStream in = closer.register(DatasetsBuilder.decompress(dataFile));
     SEXP exp;
-    try { 
-      RDataReader reader = new RDataReader(in);
+    try(RDataReader reader = new RDataReader(DatasetsBuilder.decompress(dataFile))) {
       exp = reader.readFile();
-    } catch(Throwable e) {
-      throw closer.rethrow(e);
-    } finally {
-      in.close();
     }
-    
+        
     if(!(exp instanceof PairList)) {
       throw new UnsupportedOperationException("Expected to find a pairlist in " + dataFile + ", found a " + exp.getTypeName());
     }

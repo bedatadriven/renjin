@@ -52,7 +52,11 @@ public class PrimitiveParamStrategy implements ParamStrategy {
   }
 
   @Override
-  public void loadParameter(MethodGenerator mv, Expr argument) {
-    ((SimpleExpr) argument).load(mv);
+  public void loadParameter(MethodGenerator mv, Optional<Expr> argument) {
+    if(argument.isPresent()) {
+      ((SimpleExpr) argument.get()).load(mv);
+    } else {
+      new ConstantValue(type, 0).load(mv);
+    }
   }
 }

@@ -40,7 +40,7 @@ public class PrimitiveValueFunction implements ValueFunction {
   }
 
   @Override
-  public int getElementSize() {
+  public int getArrayElementBytes() {
     return byteSize;
   }
 
@@ -60,5 +60,10 @@ public class PrimitiveValueFunction implements ValueFunction {
   @Override
   public Optional<SimpleExpr> getValueConstructor() {
     return Optional.absent();
+  }
+
+  @Override
+  public String toString() {
+    return "Primitive[" + type + "]";
   }
 }

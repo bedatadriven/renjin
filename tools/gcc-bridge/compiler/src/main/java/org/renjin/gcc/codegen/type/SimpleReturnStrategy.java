@@ -29,7 +29,7 @@ public final class SimpleReturnStrategy implements ReturnStrategy {
 
   @Override
   public SimpleExpr unmarshall(MethodGenerator mv, SimpleExpr returnValue, TypeStrategy lhsTypeStrategy) {
-    return returnValue;
+    return Expressions.cast(returnValue, type);
   }
 
   @Override

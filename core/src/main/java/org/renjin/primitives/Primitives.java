@@ -570,7 +570,7 @@ public class Primitives {
     f("sub", Text.class, 11);
     f("gsub", Text.class, 11);
     f("regexpr", Text.class, 11);
-    f("gregexpr", /*gregexpr*/ null, 11);
+    f("gregexpr", Text.class, 11);
     f("agrep", Text.class, 11);
     f("tolower", Text.class, 11);
     f("toupper", Text.class, 11);
@@ -674,7 +674,7 @@ public class Primitives {
     f("is.loaded", /*isloaded*/ null, -1);
     f(".C", Native.class, -1);
     f(".Fortran", Native.class, -1);
-    f(".External", /*External*/ null, -1);
+    f(".External",  Native.class, -1);
     f(".Call", Native.class, -1);
     f(".External.graphics", /*Externalgr*/ null, 1);
     f(".Call.graphics", /*dotcallgr*/ null, 1);
@@ -913,6 +913,7 @@ public class Primitives {
     f("stdin", Connections.class, 11);
     f("stdout", Connections.class, 11);
     f("stderr", Connections.class, 11);
+    f("isatty", Connections.class, 11);
     f("readLines",Connections.class, 11);
     f("writeLines", Connections.class, 11);
     f("readBin", /*readbin*/ null, 11);

@@ -43,6 +43,12 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>org.renjin</groupId>
+			<artifactId>tools</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>org.renjin.test</groupId>
 			<artifactId>thirdparty</artifactId>
 			<version>${project.version}</version>

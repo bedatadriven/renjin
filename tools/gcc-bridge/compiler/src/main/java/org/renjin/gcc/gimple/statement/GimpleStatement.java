@@ -1,16 +1,17 @@
 package org.renjin.gcc.gimple.statement;
 
-import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
-import org.renjin.gcc.gimple.GimpleBasicBlock;
+import org.renjin.gcc.gimple.GimpleExprVisitor;
 import org.renjin.gcc.gimple.GimpleVisitor;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleLValue;
 import org.renjin.gcc.gimple.expr.GimpleSymbolRef;
 import org.renjin.gcc.gimple.expr.GimpleVariableRef;
-import org.renjin.gcc.runtime.IntPtr;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -91,24 +92,17 @@ public abstract class GimpleStatement {
     for (int i = 0; i < operands.size(); i++) {
       if(predicate.apply(operands.get(i))) {
         operands.set(i, newExpr);
-      } 
+      } else {
+        operands.get(i).replaceAll(predicate, newExpr);
+      }
     }
-  }
-
-  /**
-   * Replaces the first {@code GimpleExpr} that matches the provided predicate.
-   * @param predicate the predicate that determines whether a node is replaced
-   * @param replacement the replacement {@code GimpleExpr}
-   * @return true if a match was found and replaced
-   */
-  public boolean replace(Predicate<? super GimpleExpr> predicate, GimpleExpr replacement) {
-    return false;
   }
 
 
   public void replaceAll(Predicate<? super GimpleExpr> predicate, GimpleExpr newExpr) {
   }
 
+  public abstract void accept(GimpleExprVisitor visitor);
 
   /**
    * 

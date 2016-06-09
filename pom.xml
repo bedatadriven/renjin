@@ -43,7 +43,6 @@
     <module>studio</module>
     <module>dist/generic</module>
     <module>dist/deb</module>
-    <module>appl</module>
     <module>math</module>
   </modules>
 
@@ -161,6 +160,11 @@
             <target>1.7</target>
             <encoding>UTF-8</encoding>
           </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-resources-plugin</artifactId>
+          <version>3.0.0</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>

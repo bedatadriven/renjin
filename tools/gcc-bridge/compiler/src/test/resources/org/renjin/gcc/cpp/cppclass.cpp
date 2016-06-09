@@ -21,6 +21,6 @@ int Rectangle::volume() {
 	return width * height * depth;
 }
 
-Rectangle* create() {
+extern "C" Rectangle* create() {
 	return new Rectangle();
 }

@@ -2,11 +2,11 @@ package org.renjin.gcc.analysis;
 
 import com.google.common.collect.Sets;
 import org.renjin.gcc.GimpleCompiler;
+import org.renjin.gcc.TreeLogger;
 import org.renjin.gcc.gimple.*;
-import org.renjin.gcc.gimple.expr.GimpleConstant;
-import org.renjin.gcc.gimple.expr.GimpleExpr;
-import org.renjin.gcc.gimple.expr.GimpleVariableRef;
+import org.renjin.gcc.gimple.expr.*;
 import org.renjin.gcc.gimple.statement.GimpleAssignment;
+import org.renjin.gcc.gimple.statement.GimpleCall;
 import org.renjin.gcc.gimple.statement.GimpleConditional;
 import org.renjin.gcc.gimple.statement.GimpleStatement;
 import org.renjin.gcc.gimple.type.GimplePointerType;
@@ -27,16 +27,13 @@ public class VoidPointerTypeDeducer implements FunctionBodyTransformer {
   }
 
   @Override
-  public boolean transform(GimpleCompilationUnit unit, GimpleFunction fn) {
+  public boolean transform(TreeLogger logger, GimpleCompilationUnit unit, GimpleFunction fn) {
 
     boolean updated = false;
     
     for(GimpleVarDecl decl : fn.getVariableDeclarations()) {
       if(isVoidPtr(decl.getType())) {
-        if(GimpleCompiler.TRACE) {
-          System.out.println("Deducing type of " + decl + "...");
-        }
-        if(tryToDeduceType(unit, fn, decl)) {
+        if(tryToDeduceType(logger, fn, decl)) {
           updated = true;
         }
       }
@@ -52,30 +49,28 @@ public class VoidPointerTypeDeducer implements FunctionBodyTransformer {
   /**
    * Tries to deduce the type of a given void pointer declaration
    */
-  private boolean tryToDeduceType(GimpleCompilationUnit unit, GimpleFunction fn, GimpleVarDecl decl) {
-    AssignmentFinder finder = new AssignmentFinder(unit, fn, decl);
-    fn.visitIns(finder);
-    
-    if(finder.possibleTypes.size() == 1) {
-      GimpleType deducedType = finder.possibleTypes.iterator().next();
+  private boolean tryToDeduceType(TreeLogger parentLogger, GimpleFunction fn, GimpleVarDecl decl) {
+
+    Set<GimpleType> possibleTypes = Sets.newHashSet();
+    fn.accept(new AssignmentFinder(decl, possibleTypes));
+    fn.accept(new MemRefVisitor(decl, possibleTypes));
+
+    parentLogger.branch(TreeLogger.Level.DEBUG, "Possible type set of " + decl + " = "  + possibleTypes);
+
+    if(possibleTypes.size() == 1) {
+      GimpleType deducedType = possibleTypes.iterator().next();
       if(GimpleCompiler.TRACE) {
         System.out.println("...resolved to " + deducedType);
       }
       decl.setType(deducedType);
-      updateVarRefTypes(fn, decl);
+      fn.accept(new VarRefTypeUpdater(decl));
       updatePointerComparisons(fn, decl);
       return true;
     } else {
       return false;
     }
   }
-
-
-  private void updateVarRefTypes(GimpleFunction fn, GimpleVarDecl decl) {
-    fn.replaceAll(decl.isReference(), new GimpleVariableRef(decl.getId(), decl.getType()));
-  }
-
-
+  
   /**
    * Updates pointer comparisons in the form {@code p == NULL} or {@code p != NULL}. In either
    * case we can infer the type of NULL from {@code p}
@@ -113,16 +108,12 @@ public class VoidPointerTypeDeducer implements FunctionBodyTransformer {
    * Looks for any cases in which the void pointer is assigned to a typed pointer
    */
   private class AssignmentFinder extends GimpleVisitor {
-    private final GimpleCompilationUnit unit;
-    private final GimpleFunction fn;
     private final GimpleVarDecl decl;
-    private final Set<GimpleType> possibleTypes = Sets.newHashSet();
+    private final Set<GimpleType> possibleTypes;
 
-    public AssignmentFinder(GimpleCompilationUnit unit,
-                            GimpleFunction fn, GimpleVarDecl decl) {
-      this.unit = unit;
-      this.fn = fn;
+    public AssignmentFinder(GimpleVarDecl decl, Set<GimpleType> possibleTypes) {
       this.decl = decl;
+      this.possibleTypes = possibleTypes;
     }
 
     @Override
@@ -138,6 +129,61 @@ public class VoidPointerTypeDeducer implements FunctionBodyTransformer {
           } else if(isReference(assignment.getLHS())) {
             inferPossibleTypes(rhs);
           }
+          break;
+        
+        case POINTER_PLUS_EXPR:
+          GimpleExpr lhs = assignment.getLHS();
+          GimpleExpr pointer = assignment.getOperands().get(0);
+          if(isReference(pointer)) {
+            inferPossibleTypes(lhs);
+          }
+          break;
+      }
+    }
+
+    @Override
+    public void visitCall(GimpleCall gimpleCall) {
+      if(gimpleCall.getFunction() instanceof GimpleFunctionRef) {
+        GimpleFunctionRef ref = (GimpleFunctionRef) gimpleCall.getFunction();
+        switch (ref.getName()) {
+          case "memcpy":
+          case "__builtin_memcpy":
+            inferFromMemCopy(gimpleCall);
+            break;
+          
+          case "memcmp":
+          case "__builtin_memcmp":
+            inferFromMemCmp(gimpleCall);
+            break;
+        }
+      }
+    }
+
+    private void inferFromMemCmp(GimpleCall gimpleCall) {
+      GimpleExpr x = gimpleCall.getOperand(0);
+      GimpleExpr y = gimpleCall.getOperand(1);
+      
+      if(isReference(x)) {
+        inferPossibleTypes(y);
+      } else if(isReference(y)) {
+        inferPossibleTypes(x);
+      }
+    }
+
+    private void inferFromMemCopy(GimpleCall gimpleCall) {
+      GimpleExpr destination = gimpleCall.getOperand(0);
+      GimpleExpr source = gimpleCall.getOperand(1);
+      
+      if(isReference(destination)) {
+        inferPossibleTypes(source);
+      } else if(isReference(source)) {
+        inferPossibleTypes(destination);
+      }
+      
+      if(isReference(destination) || isReference(source)) {
+        if(gimpleCall.getLhs() != null) {
+          inferPossibleTypes(gimpleCall.getLhs());
+        }
       }
     }
 
@@ -153,6 +199,52 @@ public class VoidPointerTypeDeducer implements FunctionBodyTransformer {
     private boolean isReference(GimpleExpr expr) {
       return expr instanceof GimpleVariableRef &&
           ((GimpleVariableRef) expr).getId() == decl.getId();
+    }
+  }
+
+  /**
+   * Types of void pointers can also be deduced when they are dereferenced
+   * with a type.
+   */
+  private class MemRefVisitor extends GimpleExprVisitor {
+    
+    private GimpleVarDecl decl;
+    private final Set<GimpleType> possibleTypes;
+
+    public MemRefVisitor(GimpleVarDecl decl, Set<GimpleType> possibleTypes) {
+      this.decl = decl;
+      this.possibleTypes = possibleTypes;
+    }
+
+    @Override
+    public void visitMemRef(GimpleMemRef memRef) {
+      if( memRef.getPointer() instanceof GimpleVariableRef ) {
+        GimpleVariableRef ref = (GimpleVariableRef) memRef.getPointer();
+        if(ref.getId() == decl.getId()) {
+          
+          GimpleType valueType = memRef.getType();
+          possibleTypes.add(new GimplePointerType(valueType));
+        }
+      }
+    }
+  }
+
+  /**
+   * Updates the type of all variable references for variables whose type has been narrowed.
+   */
+  private class VarRefTypeUpdater extends GimpleExprVisitor {
+    
+    private GimpleVarDecl decl;
+
+    public VarRefTypeUpdater(GimpleVarDecl decl) {
+      this.decl = decl;
+    }
+
+    @Override
+    public void visitVariableRef(GimpleVariableRef variableRef) {
+      if(variableRef.getId() == decl.getId()) {
+        variableRef.setType(decl.getType());
+      }
     }
   }
 }

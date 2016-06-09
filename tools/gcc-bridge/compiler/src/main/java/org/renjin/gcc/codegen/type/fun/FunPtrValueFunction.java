@@ -36,7 +36,7 @@ public class FunPtrValueFunction implements ValueFunction {
   }
 
   @Override
-  public int getElementSize() {
+  public int getArrayElementBytes() {
     return pointerSize;
   }
 
@@ -53,5 +53,10 @@ public class FunPtrValueFunction implements ValueFunction {
   @Override
   public Optional<SimpleExpr> getValueConstructor() {
     return Optional.absent();
+  }
+
+  @Override
+  public String toString() {
+    return "FunPtr";
   }
 }

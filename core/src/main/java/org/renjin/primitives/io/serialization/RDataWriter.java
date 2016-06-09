@@ -21,10 +21,11 @@
 
 package org.renjin.primitives.io.serialization;
 
+import com.google.common.base.Charsets;
 import com.google.common.collect.Maps;
 import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.Context;
-import org.renjin.primitives.io.serialization.Serialization.SERIALIZATION_TYPE;
+import org.renjin.primitives.io.serialization.Serialization.SerializationType;
 import org.renjin.sexp.*;
 
 import java.io.DataOutputStream;
@@ -57,27 +58,27 @@ public class RDataWriter {
   private PersistenceHook hook;
   private DataOutputStream conn;
   private StreamWriter out;
-  private SERIALIZATION_TYPE ser_type;
+  private SerializationType serializationType;
 
   private Map<SEXP, Integer> references = Maps.newHashMap();
 
   public RDataWriter(WriteContext context, PersistenceHook hook, OutputStream out,
-                     SERIALIZATION_TYPE st) {
+                     SerializationType type) {
     this.context = context;
     this.hook = hook;
     this.conn = new DataOutputStream(out);
-    this.ser_type = st;
-    switch(this.ser_type) {
+    this.serializationType = type;
+    switch(this.serializationType) {
       case ASCII: this.out = new AsciiWriter(this.conn); break;
       default: this.out = new XdrWriter(this.conn); break;
     }
   }
   
   public RDataWriter(Context context, PersistenceHook hook, OutputStream out) throws IOException {
-    this(new SessionWriteContext(context), hook, out, SERIALIZATION_TYPE.XDR);
+    this(new SessionWriteContext(context), hook, out, SerializationType.XDR);
   }
 
-  public RDataWriter(Context context, OutputStream out, SERIALIZATION_TYPE st) throws IOException {
+  public RDataWriter(Context context, OutputStream out, SerializationType st) throws IOException {
     this(new SessionWriteContext(context), null, out, st);
   }
   
@@ -86,10 +87,10 @@ public class RDataWriter {
   }
 
   public RDataWriter(WriteContext writeContext, OutputStream os) {
-    this(writeContext, null, os, SERIALIZATION_TYPE.XDR);
+    this(writeContext, null, os, SerializationType.XDR);
   }
 
-  
+
   /**
    * @deprecated Call save() explicitly
    * @param sexp
@@ -106,7 +107,7 @@ public class RDataWriter {
    * @throws IOException
    */
   public void save(SEXP sexp) throws IOException {
-    if(ser_type == SERIALIZATION_TYPE.ASCII) {
+    if(serializationType == SerializationType.ASCII) {
       conn.writeBytes(ASCII_MAGIC_HEADER);
     } else {
       conn.writeBytes(XDR_MAGIC_HEADER);
@@ -116,7 +117,7 @@ public class RDataWriter {
   }
 
   public void serialize(SEXP exp) throws IOException {
-    if(ser_type == SERIALIZATION_TYPE.ASCII) {
+    if(serializationType == SerializationType.ASCII) {
       conn.writeByte(ASCII_FORMAT);
     } else {
       conn.writeByte(XDR_FORMAT);
@@ -134,7 +135,6 @@ public class RDataWriter {
   }
 
   private void writeExp(SEXP exp) throws IOException {
-    
     if(tryWriteRef(exp)) {
       return;
     }
@@ -253,7 +253,7 @@ public class RDataWriter {
   private void writeIntVector(IntVector vector) throws IOException {
     writeFlags(SexpType.INTSXP, vector);
     out.writeInt(vector.length());
-    if(ser_type == SERIALIZATION_TYPE.ASCII) {
+    if(serializationType == SerializationType.ASCII) {
       for(int i=0;i!=vector.length();++i) {
         if(vector.isElementNA(i)) {
           conn.writeBytes("NA\n");
@@ -273,7 +273,7 @@ public class RDataWriter {
   private void writeDoubleVector(DoubleVector vector) throws IOException {
     writeFlags(SexpType.REALSXP, vector);
     out.writeInt(vector.length());
-    if(ser_type == SERIALIZATION_TYPE.ASCII) {
+    if(serializationType == SerializationType.ASCII) {
       for(int i=0;i!=vector.length();++i) {
         double d = vector.getElementAsDouble(i);
         if(!DoubleVector.isFinite(d)) {
@@ -329,7 +329,7 @@ public class RDataWriter {
   private void writeRawVector(RawVector vector) throws IOException {
     writeFlags(SexpType.RAWSXP, vector);
     out.writeInt(vector.length());
-    if(ser_type == SERIALIZATION_TYPE.ASCII) {
+    if(serializationType == SerializationType.ASCII) {
       byte[] bytes = vector.toByteArray();
       for(int i=0;i!=vector.length();++i) {
         conn.writeBytes(String.format("%02x\n", bytes[i]));
@@ -483,13 +483,24 @@ public class RDataWriter {
     }
   }
 
-
   private void writeCharExp(String string) throws IOException {
-    out.writeInt( SexpType.CHARSXP | UTF8_MASK );
+    
     if(StringVector.isNA(string)) {
+      out.writeInt( Flags.computeCharSexpFlags(ASCII_MASK));
       out.writeInt(-1);
+    
     } else {
-      byte[] bytes = string.getBytes("UTF8");
+
+      byte[] bytes = string.getBytes(Charsets.UTF_8);
+
+      // Normally we would just write this out as UTF-8
+      // but GNU R seems to only write out string in UTF-8 if 
+      // it's really needed. This will lead to bitwise-level
+      // differences between Renjin and GNU R that cause problems
+      // with digests, etc.
+      int encoding = (string.length() == bytes.length) ? ASCII_MASK : UTF8_MASK;
+
+      out.writeInt(Flags.computeCharSexpFlags(encoding));
       out.writeInt(bytes.length);
       out.writeString(bytes);
     }

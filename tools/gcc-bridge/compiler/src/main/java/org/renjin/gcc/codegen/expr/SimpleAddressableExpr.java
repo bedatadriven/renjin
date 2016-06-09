@@ -39,7 +39,7 @@ public final class SimpleAddressableExpr implements Addressable, SimpleExpr, LVa
   @SuppressWarnings("unchecked")
   public void store(MethodGenerator mv, SimpleExpr rhs) {
     if(!(value instanceof LValue)) {
-      throw new InternalCompilerException("not addressable");
+      throw new InternalCompilerException(value + " is not an LValue");
     }
     ((LValue) value).store(mv, rhs);
   }

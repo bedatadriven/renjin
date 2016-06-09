@@ -1,6 +1,9 @@
 package org.renjin.gcc.gimple.expr;
 
 
+import com.google.common.base.Predicate;
+import org.renjin.gcc.gimple.GimpleExprVisitor;
+
 /**
  * GimpleLValue representing the value returned by a function. 
  * 
@@ -12,5 +15,15 @@ public class GimpleResultDecl extends GimpleLValue {
   @Override
   public String toString() {
     return "result_decl";
+  }
+
+  @Override
+  public void replaceAll(Predicate<? super GimpleExpr> predicate, GimpleExpr newExpr) {
+    
+  }
+
+  @Override
+  public void accept(GimpleExprVisitor visitor) {
+    visitor.visitResultDecl(this);
   }
 }

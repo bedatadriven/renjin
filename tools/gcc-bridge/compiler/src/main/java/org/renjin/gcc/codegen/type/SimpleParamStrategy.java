@@ -1,11 +1,13 @@
 package org.renjin.gcc.codegen.type;
 
+import com.google.common.base.Optional;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.SimpleExpr;
 import org.renjin.gcc.codegen.expr.SimpleLValue;
+import org.renjin.gcc.codegen.type.primitive.ConstantValue;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleParameter;
 
@@ -34,19 +36,28 @@ public class SimpleParamStrategy implements ParamStrategy {
   }
 
   @Override
-  public void loadParameter(MethodGenerator mv, Expr argument) {
-    SimpleExpr value = (SimpleExpr) argument;
-    
-    if(value.getType().equals(type)) {
-      value.load(mv);
-    
-    } else if(this.type.getSort() == Type.OBJECT || this.type.getSort() == Type.ARRAY) {
-      // Cast null pointers to the appropriate type
-      Expressions.cast(value, this.type).load(mv);
-    
+  public void loadParameter(MethodGenerator mv, Optional<Expr> argument) {
+    if(argument.isPresent()) {
+      SimpleExpr value = (SimpleExpr) argument.get();
+
+      if (value.getType().equals(type)) {
+        value.load(mv);
+
+      } else if (this.type.getSort() == Type.OBJECT || this.type.getSort() == Type.ARRAY) {
+        // Cast null pointers to the appropriate type
+        Expressions.cast(value, this.type).load(mv);
+
+      } else {
+        value.load(mv);
+        mv.cast(value.getType(), this.type);
+      }
     } else {
-      value.load(mv);
-      mv.cast(value.getType(), this.type);
+      if (this.type.getSort() == Type.OBJECT || this.type.getSort() == Type.ARRAY) {
+        mv.aconst(null);
+      } else {
+        new ConstantValue(type, 0).load(mv);
+      }
     }
   }
+
 }

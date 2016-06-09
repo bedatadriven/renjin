@@ -40,16 +40,20 @@ public class SubstituteFunction extends SpecialFunction {
     SEXP exp = call.getArgument(0);
     if(call.getArguments().length() == 2) {
       SEXP envirSexp = context.evaluate(call.getArgument(1), rho);
-      return substitute(exp, envirSexp);
+      return substitute(context, exp, envirSexp);
     } else {
-      return substitute(exp, new EnvironmentContext(rho));
+      return substitute(context, exp, rho);
     }
   }
   
-  public static SEXP substitute(SEXP exp, SEXP envirSexp) {
+  public static SEXP substitute(Context context, SEXP exp, SEXP envirSexp) {
     SubstituteContext substituteContext;
     if(envirSexp instanceof Environment) {
-      substituteContext = new EnvironmentContext((Environment) envirSexp);
+      if(context.getGlobalEnvironment() == envirSexp) {
+        substituteContext = new GlobalEnvironmentContext();
+      } else {
+        substituteContext = new EnvironmentContext((Environment) envirSexp);
+      }
     } else if(envirSexp instanceof ListVector) {
       substituteContext = new ListContext((ListVector) envirSexp);
     } else if(envirSexp instanceof PairList) {
@@ -196,6 +200,19 @@ public class SubstituteFunction extends SpecialFunction {
       return rho.hasVariable(name);
     }
   
+  }
+  
+  private static class GlobalEnvironmentContext implements SubstituteContext {
+
+    @Override
+    public SEXP getVariable(Symbol name) {
+      return Symbol.UNBOUND_VALUE;
+    }
+
+    @Override
+    public boolean hasVariable(Symbol name) {
+      return false;
+    }
   }
   
   private static class ListContext implements SubstituteContext {

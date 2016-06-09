@@ -374,6 +374,14 @@ public class EvaluationTest extends EvalTestCase {
   }
   
   @Test
+  public void substituteInGlobalEnvironment() {
+    eval(" x <- 42");
+    eval(" y <- substitute(x)");
+    
+    assertThat( eval("y"), equalTo((SEXP)Symbol.get("x")));
+  }
+  
+  @Test
   public void substituteWithList() {
     assertThat( eval(" substitute(x, list(x=42)) "), equalTo(c(42)));
   }

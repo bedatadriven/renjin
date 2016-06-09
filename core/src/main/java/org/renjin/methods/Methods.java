@@ -256,8 +256,8 @@ public class Methods {
    *  substitute in an _evaluated_ object, with an explicit list as
    *  second arg (although old-style lists and environments are allowed).
    */
-  public static SEXP do_substitute_direct(SEXP f, SEXP env) {
-    return SubstituteFunction.substitute(f, env);
+  public static SEXP do_substitute_direct(@Current Context context, SEXP f, SEXP env) {
+    return SubstituteFunction.substitute(context, f, env);
   }
   
   public static SEXP R_M_setPrimitiveMethods(@Current Context context, SEXP fname, SEXP op, String code_vec,

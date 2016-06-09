@@ -257,8 +257,6 @@ public class Primitives {
     f("col", Matrices.class, 11);
     f("c", Combine.class, 1);
     f("unlist", Combine.class, 11);
-//    f("cbind", Combine.class, 10);
-//    f("rbind", Combine.class, 10);
     addInternal("cbind", new ColumnBindFunction());
     addInternal("rbind", new RowBindFunction());
     f("drop", Vectors.class, 11);

@@ -127,8 +127,10 @@ public class ColumnBindFunction extends AbstractBindFunction {
           }
         }
       } else {
-        for (int i = 0; i != argument.rows; ++i) {
-          rowNames.add("");
+        if (rowNames.length() < argument.rowNames.length()) {
+          for (int i = 0; i != argument.rows; ++i) {
+            rowNames.add("");
+          }
         }
       }
     }

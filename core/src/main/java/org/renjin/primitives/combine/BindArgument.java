@@ -8,12 +8,13 @@ import org.renjin.sexp.*;
  * Bind vector/matrix dims and dimnames
  */
 class BindArgument {
-  final SEXP unevaluated;
+  final SEXP uneval;
   final Vector vector;
   final int rows;
   final int cols;
   final int deparseLevel;
   Context context;
+  SEXP expression;
 
   AtomicVector rowNames = Null.INSTANCE;
   AtomicVector colNames = Null.INSTANCE;
@@ -24,12 +25,13 @@ class BindArgument {
   final boolean matrix;
   String argName;
 
-  public BindArgument(String argName, Vector vector, boolean defaultToRows, SEXP unevaluated, int deparseLevel, Context context) {
+  public BindArgument(String argName, Vector vector, boolean defaultToRows, SEXP uneval, int deparseLevel, Context context) {
     this.argName = argName;
-    this.unevaluated = unevaluated;
+    this.uneval = uneval;
     this.deparseLevel = deparseLevel;
     SEXP dim = vector.getAttributes().getDim();
     this.vector = vector;
+    this.expression = uneval instanceof Promise ? ((Promise) uneval).getExpression() : Null.INSTANCE;
     if (dim == Null.INSTANCE || dim.length() != 2) {
       if (defaultToRows) {
         rows = 1;
@@ -66,22 +68,18 @@ class BindArgument {
 
   public String getName() {
     String name;
-    String typeName = this.unevaluated.getTypeName();
-    SEXP expression = ((Promise) this.unevaluated).getExpression();
-    String expressionType = expression.getTypeName();
-
     if (this.argName != null && this.argName.length() > 0) {
       name = this.argName;
-    } else if (deparseLevel == 1 && typeName.equals("promise") && expressionType.equals("symbol")) {
-      name = expression.asString();
+    } else if (deparseLevel == 1 && this.uneval instanceof Promise && this.expression instanceof Symbol) {
+      name = this.expression.asString();
     } else if (deparseLevel == 2) {
-      if (typeName.equals("promise") && expressionType.equals("symbol")) {
-        name = expression.asString();
+      if (this.uneval instanceof Promise && this.expression instanceof Symbol) {
+        name = this.expression.asString();
       } else {
-        name = Deparse.deparse(context, expression, 0, false, 0, 0);
+        name = Deparse.deparse(context, this.expression, 0, false, 0, 0);
       }
       if (name.length() > 10) {
-        name = new String(name.substring(0,10)+"...");
+        name = name.substring(0,10) + "...";
       }
     } else {
       name = this.argName;
@@ -91,14 +89,10 @@ class BindArgument {
 
   public boolean hasName() {
     boolean hasName;
-    String typeName = this.unevaluated.getTypeName();
-    SEXP expression = ((Promise) this.unevaluated).getExpression();
-    String expressionType = expression.getTypeName();
-
     if (this.argName != null && this.argName.length() > 0) {
       hasName = true;
-    } else if (deparseLevel == 1 && typeName.equals("promise") && expressionType.equals("symbol")) {
-      hasName = (expression.asString().length() > 0);
+    } else if (deparseLevel == 1 && this.uneval instanceof Promise && this.expression instanceof Symbol) {
+      hasName = (this.expression.asString().length() > 0);
     } else if (deparseLevel == 2) {
       hasName = true;
     } else {

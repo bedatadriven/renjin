@@ -74,12 +74,13 @@ public abstract class AbstractBindFunction extends SpecialFunction {
     args.add("deparse.level", new Promise(Symbol.get("deparse.level"), new IntArrayVector(deparseLevel)));
 
     for (BindArgument argument : arguments) {
-      args.add(argument.getArgName(), argument.vector);
+      args.add(argument.getArgName(), argument.repromise());
     }
 
+    PairList buildArgs = args.build();
 
-    FunctionCall call = new FunctionCall(Symbol.get(bindFunctionName), args.build());
-    return foundFunction.apply(context, rho, call, call.getArguments());
+    FunctionCall call = new FunctionCall(Symbol.get(bindFunctionName), buildArgs);
+    return foundFunction.apply(context, rho, call, buildArgs);
   }
 
 

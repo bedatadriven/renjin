@@ -101,4 +101,8 @@ class BindArgument {
     return hasName;
   }
 
+  public Promise repromise() {
+    return new Promise(this.uneval, (SEXP) this.vector);
+    }
+
 }

@@ -31,4 +31,17 @@
     <module>native</module>
     <module>link</module>
   </modules>
+
+  <!-- Do not deploy test packages -->
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 </project>

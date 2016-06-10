@@ -11,7 +11,6 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.io.Writer;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -53,30 +52,37 @@ public class ScriptEngineTest {
   
   @Test
   public void redirectStreams() throws ScriptException {
-    StringWriter stringWriter = new StringWriter();
+    StringWriter outputWriter1 = new StringWriter();
+    StringWriter errorWriter1 = new StringWriter();
 
     ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
     ScriptEngine scriptEngine = scriptEngineManager.getEngineByName("Renjin");
 
-    Writer originalWriter = scriptEngine.getContext().getWriter();
-    Writer errorWriter = scriptEngine.getContext().getErrorWriter();
+    scriptEngine.getContext().setWriter(outputWriter1);
+    scriptEngine.getContext().setErrorWriter(errorWriter1);
 
-    try {
+    scriptEngine.eval("cat('Hello World')");
+    scriptEngine.eval("cat('Goodbye cruel world!', file=stderr())");
+    
+    assertThat(outputWriter1.toString().trim(), equalTo("Hello World"));
+    assertThat(errorWriter1.toString().trim(), equalTo("Goodbye cruel world!"));
+    
+    // Change the streams again
+    StringWriter outputWriter2 = new StringWriter();
+    StringWriter errorWriter2 = new StringWriter();
+    scriptEngine.getContext().setWriter(outputWriter2);
+    scriptEngine.getContext().setErrorWriter(errorWriter2);
 
-      scriptEngine.getContext().setWriter(stringWriter);
-      scriptEngine.getContext().setErrorWriter(stringWriter);
+    scriptEngine.eval("cat('Hello Redux')");
+    scriptEngine.eval("cat('Goodbye again', file=stderr())");
+    
+    // Output should not be sent to original stream
 
-      scriptEngine.eval("cat('Hello World')");
-      scriptEngine.eval("cat('Goodbye cruel world!', file=stderr())");
+    assertThat(outputWriter1.toString().trim(), equalTo("Hello World"));
+    assertThat(errorWriter1.toString().trim(), equalTo("Goodbye cruel world!"));
 
-    } finally {
-
-      scriptEngine.getContext().setWriter(originalWriter);
-      scriptEngine.getContext().setErrorWriter(errorWriter);
-    }
-
-    assertThat(stringWriter.toString().trim(), equalTo("Hello World"));
-    assertThat(errorWriter.toString().trim(), equalTo("Goodbye cruel world!"));
+    assertThat(outputWriter2.toString().trim(), equalTo("Hello Redux"));
+    assertThat(errorWriter2.toString().trim(), equalTo("Goodbye again"));
   }
   
   @Test

@@ -382,6 +382,25 @@ public class EvaluationTest extends EvalTestCase {
   }
   
   @Test
+  public void substituteArgumentMatchingByName() {
+    
+    assertThat( eval("substitute(env=.GlobalEnv, expr=x)"), equalTo((SEXP)Symbol.get("x")));
+    
+    eval("f <- function(...) substitute(...) ");
+    eval("e <- list(x = 99) ");
+    eval("x <- 42");
+    
+    assertThat( eval("f(x)"), equalTo((SEXP)Symbol.get("x")));
+    assertThat( eval("f(x, e)"), equalTo((SEXP)Symbol.get("x")));
+    assertThat( eval("f(x, env=e)"), equalTo((SEXP)Symbol.get("x")));
+    assertThat( eval("f(env=e, x)"), equalTo((SEXP)Symbol.get("e")));
+
+    assertThat( eval("substitute(x, e)"), equalTo(c(99)));
+    assertThat( eval("substitute(env=e, x)"), equalTo(c(99)));
+    assertThat( eval("substitute(e, expr=x)"), equalTo(c(99)));
+  }
+  
+  @Test
   public void substituteWithList() {
     assertThat( eval(" substitute(x, list(x=42)) "), equalTo(c(42)));
   }

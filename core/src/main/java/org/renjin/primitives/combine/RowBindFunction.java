@@ -26,14 +26,14 @@ public class RowBindFunction extends AbstractBindFunction {
 
     ArgumentIterator argumentItr = new ArgumentIterator(context, rho, arguments);
     int deparseLevel = ((Vector) argumentItr.evalNext()).getElementAsInt(0);
-    List<BindArgument> bindArguments = CreateBindArgument(context, rho, deparseLevel, true, argumentItr);
+    List<BindArgument> bindArguments = createBindArgument(context, rho, deparseLevel, true, argumentItr);
 
     SEXP genericResult = tryBindDispatch(context, rho, "rbind", deparseLevel, bindArguments);
     if (genericResult != null) {
       return genericResult;
     }
 
-    bindArguments = CleanBindArguments(bindArguments);
+    bindArguments = cleanBindArguments(bindArguments);
 
     // establish the number of columns
     // 1. check actual matrices
@@ -122,7 +122,7 @@ public class RowBindFunction extends AbstractBindFunction {
         for (int i = 0; i != argument.rows; ++i) {
           rowNames.add(argument.rowNames.getElementAsString(i));
         }
-      } else if (argument.hasName() && !argument.matrix) {
+      } else if (!argument.hasNoName() && !argument.matrix) {
         rowNames.add(argument.getName());
         hasRowNames = true;
       } else {

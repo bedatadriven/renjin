@@ -31,20 +31,20 @@ public class ColumnBindFunction extends AbstractBindFunction {
 
     ArgumentIterator argumentItr = new ArgumentIterator(context, rho, arguments);
     int deparseLevel = ((Vector) argumentItr.evalNext()).getElementAsInt(0);
-    List<BindArgument> bindArguments = CreateBindArgument(context, rho, deparseLevel, false, argumentItr);
+    List<BindArgument> bindArguments = createBindArgument(context, rho, deparseLevel, false, argumentItr);
 
     SEXP genericResult = tryBindDispatch(context, rho, "cbind", deparseLevel, bindArguments);
     if (genericResult != null) {
       return genericResult;
     }
 
-    bindArguments = CleanBindArguments(bindArguments);
+    List<BindArgument> cleanBindArguments = cleanBindArguments(bindArguments);
 
     // establish the number of rows
     // 1. check actual matrices
     int rows = -1;
     int columns = 0;
-    for (BindArgument argument : bindArguments) {
+    for (BindArgument argument : cleanBindArguments) {
       if (argument.vector.length() > 0) {
         if (argument.matrix) {
           columns += argument.cols;
@@ -66,7 +66,7 @@ public class ColumnBindFunction extends AbstractBindFunction {
 
     // if there are no actual matrices, then use the longest vector length as the number of rows
     if (rows == -1) {
-      for (BindArgument argument : bindArguments) {
+      for (BindArgument argument : cleanBindArguments) {
         if (argument.vector.length() > rows) {
           rows = argument.vector.length();
         }
@@ -74,7 +74,7 @@ public class ColumnBindFunction extends AbstractBindFunction {
     }
 
     // now check that all vectors lengths are multiples of the column length
-    for (BindArgument argument : bindArguments) {
+    for (BindArgument argument : cleanBindArguments) {
       if (!argument.matrix) {
         if ((rows % argument.vector.length()) != 0) {
           throw new EvalException("number of rows of result is not a multiple of vector length");
@@ -84,14 +84,14 @@ public class ColumnBindFunction extends AbstractBindFunction {
 
     // get the common type and a new builder
     Inspector inspector = new Inspector(false);
-    for (BindArgument bindArgument : bindArguments) {
+    for (BindArgument bindArgument : cleanBindArguments) {
       bindArgument.vector.accept(inspector);
     }
     Vector.Builder vectorBuilder = inspector.getResult().newBuilder();
 
     // wrap the builder
     Matrix2dBuilder builder = new Matrix2dBuilder(vectorBuilder, rows, columns);
-    for (BindArgument argument : bindArguments) {
+    for (BindArgument argument : cleanBindArguments) {
       for (int j = 0; j != argument.cols; ++j) {
         for (int i = 0; i != rows; ++i) {
           builder.addFrom(argument, i, j);
@@ -106,7 +106,7 @@ public class ColumnBindFunction extends AbstractBindFunction {
     boolean hasRowNames = false;
     boolean hasColNames = false;
 
-    for (BindArgument argument : bindArguments) {
+    for (BindArgument argument : cleanBindArguments) {
       if (argument.rowNames != Null.INSTANCE) {
         hasRowNames = true;
         if (rowNames.length() < argument.rowNames.length()) {
@@ -124,13 +124,13 @@ public class ColumnBindFunction extends AbstractBindFunction {
     }
 
 
-    for (BindArgument argument : bindArguments) {
+    for (BindArgument argument : cleanBindArguments) {
       if (argument.colNames != Null.INSTANCE) {
         hasColNames = true;
         for (int i = 0; i != argument.cols; ++i) {
           colNames.add(argument.colNames.getElementAsString(i));
         }
-      } else if (argument.hasName() && !argument.matrix) {
+      } else if (!argument.hasNoName() && !argument.matrix) {
         colNames.add(argument.getName());
         hasColNames = true;
       } else {

@@ -299,4 +299,9 @@ public class CombineTest extends EvalTestCase {
 
   }
 
+  @Test
+  public void handleMultipleNulls() {
+    assertThat(eval("cbind(1, NULL, NULL, NULL, c(), c(), NULL, 1)"), equalTo(c(1,1)));
+  }
+
 }

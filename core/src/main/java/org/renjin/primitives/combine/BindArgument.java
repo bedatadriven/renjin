@@ -24,6 +24,7 @@ class BindArgument {
    */
   final boolean matrix;
   String argName;
+  String computedName;
 
   public BindArgument(String argName, Vector vector, boolean defaultToRows, SEXP uneval, int deparseLevel, Context context) {
     this.argName = argName;
@@ -56,6 +57,20 @@ class BindArgument {
 
       matrix = true;
     }
+
+    if (this.argName != null && this.argName.length() > 0) {
+      computedName = this.argName;
+    } else if (deparseLevel == 1 && this.expression instanceof Symbol) {
+      computedName = this.expression.asString();
+    } else if (deparseLevel == 2) {
+      computedName = Deparse.deparse(context, this.expression, 0, false, 0, 0);
+      if (computedName.length() > 10) {
+        computedName = computedName.substring(0,10) + "...";
+      }
+    } else {
+      computedName = "";
+    }
+
   }
 
   public Vector getClasses () {
@@ -73,11 +88,7 @@ class BindArgument {
     } else if (deparseLevel == 1 && this.expression instanceof Symbol) {
       name = this.expression.asString();
     } else if (deparseLevel == 2) {
-      if (this.expression instanceof Symbol) {
-        name = this.expression.asString();
-      } else {
-        name = Deparse.deparse(context, this.expression, 0, false, 0, 0);
-      }
+      name = Deparse.deparse(context, this.expression, 0, false, 0, 0);
       if (name.length() > 10) {
         name = name.substring(0,10) + "...";
       }
@@ -87,18 +98,8 @@ class BindArgument {
     return name;
   }
 
-  public boolean hasName() {
-    boolean hasName;
-    if (this.argName != null && this.argName.length() > 0) {
-      hasName = true;
-    } else if (deparseLevel == 1 && this.expression instanceof Symbol) {
-      hasName = (this.expression.asString().length() > 0);
-    } else if (deparseLevel == 2) {
-      hasName = true;
-    } else {
-      hasName = false;
-    }
-    return hasName;
+  public boolean hasNoName() {
+    return this.computedName.equals("");
   }
 
   public Promise repromise() {

@@ -17,7 +17,9 @@ public abstract class AbstractBindFunction extends SpecialFunction {
     super(name);
   }
 
-  public List<BindArgument> CreateBindArgument(Context context, Environment rho, int deparseLevel, boolean defaultToRow, ArgumentIterator argumentItr) {
+  public List<BindArgument> createBindArgument(Context context, Environment rho, int deparseLevel,
+                                               boolean defaultToRow, ArgumentIterator argumentItr) {
+
     List<BindArgument> bindArguments = Lists.newArrayList();
     while(argumentItr.hasNext()) {
       PairList.Node currentNode = argumentItr.nextNode();
@@ -27,13 +29,15 @@ public abstract class AbstractBindFunction extends SpecialFunction {
     return bindArguments;
   }
 
-  public List<BindArgument> CleanBindArguments(List<BindArgument> arguments) {
-    for (int i = 0; i < arguments.size(); i++) {
-      if (arguments.get(i).vector.length() == 0) {
-        arguments.remove(i);
+  public List<BindArgument> cleanBindArguments(List<BindArgument> arguments) {
+    List<BindArgument> cleanArguments = Lists.newArrayList();
+    for (int i = 0; i < arguments.size(); i=i+1) {
+      BindArgument arg = arguments.get(i);
+      if (arg.expression != Null.INSTANCE && arg.vector != Null.INSTANCE && arg.vector.length() != 0) {
+        cleanArguments.add(arguments.get(i));
       }
     }
-    return arguments;
+    return cleanArguments;
   }
 
   /**
@@ -102,6 +106,5 @@ public abstract class AbstractBindFunction extends SpecialFunction {
     FunctionCall call = new FunctionCall(Symbol.get(bindFunctionName), buildArgs);
     return foundFunction.apply(context, rho, call, buildArgs);
   }
-
 
 }

@@ -22,6 +22,7 @@
 package org.renjin.primitives.special;
 
 import com.google.common.collect.Lists;
+import org.renjin.eval.ClosureDispatcher;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.*;
@@ -30,42 +31,76 @@ import java.util.List;
 
 public class SubstituteFunction extends SpecialFunction {
 
+  private static final Symbol EXPR_ARGUMENT = Symbol.get("expr");
+  private static final Symbol ENV_ARGUMENT = Symbol.get("env");
+  
+  private final PairList formals;
+  
   public SubstituteFunction() {
     super("substitute");
+
+    this.formals = new PairList.Builder()
+        .add(EXPR_ARGUMENT, Symbol.MISSING_ARG)
+        .add(ENV_ARGUMENT, Symbol.MISSING_ARG)
+        .build();
   }
   
   @Override
   public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
-    checkArity(call, 2, 1);
-    SEXP exp = call.getArgument(0);
-    if(call.getArguments().length() == 2) {
-      SEXP envirSexp = context.evaluate(call.getArgument(1), rho);
-      return substitute(context, exp, envirSexp);
+
+    PairList matchedArguments = ClosureDispatcher.matchArguments(formals, args);
+
+    SEXP exprArgument = matchedArguments.findByTag(EXPR_ARGUMENT);
+    SEXP envArgument = matchedArguments.findByTag(ENV_ARGUMENT);
+    
+    // Substitute handles ... in an idiosyncratic way:
+    // Only the first argument is used, and there is no attempt to 
+    // match subsequent arguments against the 'env' argument.
+    SEXP expr;
+    if(exprArgument == Symbols.ELLIPSES) {
+      PromisePairList.Node list = (PromisePairList.Node) rho.getVariable(Symbols.ELLIPSES);
+      Promise promise = (Promise) list.getValue();
+      expr = promise.getExpression();
     } else {
-      return substitute(context, exp, rho);
+      expr = exprArgument;
     }
-  }
-  
-  public static SEXP substitute(Context context, SEXP exp, SEXP envirSexp) {
-    SubstituteContext substituteContext;
-    if(envirSexp instanceof Environment) {
-      if(context.getGlobalEnvironment() == envirSexp) {
-        substituteContext = new GlobalEnvironmentContext();
-      } else {
-        substituteContext = new EnvironmentContext((Environment) envirSexp);
-      }
-    } else if(envirSexp instanceof ListVector) {
-      substituteContext = new ListContext((ListVector) envirSexp);
-    } else if(envirSexp instanceof PairList) {
-      substituteContext = new PairListContext((PairList)envirSexp);
-    } else {
-      throw new EvalException("Cannot substitute using environment of type %s: expected list, pairlist, or environment", 
-          envirSexp.getTypeName());
-    }
-    return substitute(exp, substituteContext);
+    
+    return substitute(expr, buildContext(context, rho, envArgument));
   }
 
-  public static SEXP substitute(SEXP exp, SubstituteContext context) {
+  private static SubstituteContext buildContext(Context context, Environment rho, SEXP argument) {
+    if(argument == Symbol.MISSING_ARG) {
+      return buildContext(context, rho);
+    }
+    
+    SEXP env = context.evaluate(argument, rho);
+    
+    return buildContext(context, env);
+  }
+  
+  private static SubstituteContext buildContext(Context context, SEXP evaluatedEnv) {
+    if(evaluatedEnv instanceof Environment) {
+      if(context.getGlobalEnvironment() == evaluatedEnv) {
+        return new GlobalEnvironmentContext();
+      } else {
+        return new EnvironmentContext((Environment) evaluatedEnv);
+      }
+    } else if(evaluatedEnv instanceof ListVector) {
+      return new ListContext((ListVector) evaluatedEnv);
+    } else if(evaluatedEnv instanceof PairList) {
+      return new PairListContext((PairList)evaluatedEnv);
+      
+    } else {
+      throw new EvalException("Cannot substitute using environment of type %s: expected list, pairlist, or environment", 
+          evaluatedEnv.getTypeName());
+    }
+  }
+
+  public static SEXP substitute(Context context, SEXP exp, SEXP environment) {
+    return substitute(exp, buildContext(context, environment));
+  }
+
+  private static SEXP substitute(SEXP exp, SubstituteContext context) {
     SubstitutingVisitor visitor = new SubstitutingVisitor(context);
     exp.accept(visitor);
     return visitor.getResult() ;
@@ -238,8 +273,6 @@ public class SubstituteFunction extends SpecialFunction {
     }
         
   }
-
-
   
   private static class PairListContext implements SubstituteContext {
     private PairList list;

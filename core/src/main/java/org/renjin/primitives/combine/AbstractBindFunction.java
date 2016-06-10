@@ -1,6 +1,8 @@
 package org.renjin.primitives.combine;
 
+import com.google.common.collect.Lists;
 import org.renjin.eval.Context;
+import org.renjin.invoke.codegen.ArgumentIterator;
 import org.renjin.sexp.*;
 
 import java.util.List;
@@ -15,6 +17,24 @@ public abstract class AbstractBindFunction extends SpecialFunction {
     super(name);
   }
 
+  public List<BindArgument> CreateBindArgument(Context context, Environment rho, int deparseLevel, boolean defaultToRow, ArgumentIterator argumentItr) {
+    List<BindArgument> bindArguments = Lists.newArrayList();
+    while(argumentItr.hasNext()) {
+      PairList.Node currentNode = argumentItr.nextNode();
+      SEXP evaluated = context.evaluate(currentNode.getValue(), rho);
+      bindArguments.add(new BindArgument(currentNode.getName(), (Vector) evaluated, defaultToRow, currentNode.getValue(), deparseLevel, context));
+    }
+    return bindArguments;
+  }
+
+  public List<BindArgument> CleanBindArguments(List<BindArgument> arguments) {
+    for (int i = 0; i < arguments.size(); i++) {
+      if (arguments.get(i).vector.length() == 0) {
+        arguments.remove(i);
+      }
+    }
+    return arguments;
+  }
 
   /**
    *    The method dispatching is _not_ done via ‘UseMethod()’, but by

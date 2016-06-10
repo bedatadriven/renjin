@@ -30,27 +30,15 @@ public class ColumnBindFunction extends AbstractBindFunction {
   public SEXP apply(Context context, Environment rho, FunctionCall call, PairList arguments) {
 
     ArgumentIterator argumentItr = new ArgumentIterator(context, rho, arguments);
-
     int deparseLevel = ((Vector) argumentItr.evalNext()).getElementAsInt(0);
-
-    List<BindArgument> bindArguments = Lists.newArrayList();
-
-    while(argumentItr.hasNext()) {
-      PairList.Node currentNode = argumentItr.nextNode();
-      SEXP evaluated = context.evaluate(currentNode.getValue(), rho);
-      bindArguments.add(new BindArgument(currentNode.getName(), (Vector) evaluated, false, currentNode.getValue(), deparseLevel, context));
-    }
+    List<BindArgument> bindArguments = CreateBindArgument(context, rho, deparseLevel, false, argumentItr);
 
     SEXP genericResult = tryBindDispatch(context, rho, "cbind", deparseLevel, bindArguments);
     if (genericResult != null) {
       return genericResult;
     }
 
-    for (int i = 0; i < bindArguments.size(); i++) {
-      if (bindArguments.get(i).vector.length() == 0) {
-        bindArguments.remove(i);
-      }
-    }
+    bindArguments = CleanBindArguments(bindArguments);
 
     // establish the number of rows
     // 1. check actual matrices

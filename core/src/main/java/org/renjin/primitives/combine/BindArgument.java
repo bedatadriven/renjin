@@ -31,7 +31,7 @@ class BindArgument {
     this.deparseLevel = deparseLevel;
     SEXP dim = vector.getAttributes().getDim();
     this.vector = vector;
-    this.expression = uneval instanceof Promise ? ((Promise) uneval).getExpression() : Null.INSTANCE;
+    this.expression = uneval instanceof Promise ? ((Promise) uneval).getExpression() : uneval;
     if (dim == Null.INSTANCE || dim.length() != 2) {
       if (defaultToRows) {
         rows = 1;
@@ -70,10 +70,10 @@ class BindArgument {
     String name;
     if (this.argName != null && this.argName.length() > 0) {
       name = this.argName;
-    } else if (deparseLevel == 1 && this.uneval instanceof Promise && this.expression instanceof Symbol) {
+    } else if (deparseLevel == 1 && this.expression instanceof Symbol) {
       name = this.expression.asString();
     } else if (deparseLevel == 2) {
-      if (this.uneval instanceof Promise && this.expression instanceof Symbol) {
+      if (this.expression instanceof Symbol) {
         name = this.expression.asString();
       } else {
         name = Deparse.deparse(context, this.expression, 0, false, 0, 0);
@@ -91,7 +91,7 @@ class BindArgument {
     boolean hasName;
     if (this.argName != null && this.argName.length() > 0) {
       hasName = true;
-    } else if (deparseLevel == 1 && this.uneval instanceof Promise && this.expression instanceof Symbol) {
+    } else if (deparseLevel == 1 && this.expression instanceof Symbol) {
       hasName = (this.expression.asString().length() > 0);
     } else if (deparseLevel == 2) {
       hasName = true;
@@ -102,7 +102,7 @@ class BindArgument {
   }
 
   public Promise repromise() {
-    return new Promise(this.uneval, (SEXP) this.vector);
-    }
+    return new Promise(this.expression, (SEXP) this.vector);
+  }
 
 }

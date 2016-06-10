@@ -4,20 +4,18 @@ import org.renjin.eval.Context;
 
 import javax.script.Bindings;
 import javax.script.ScriptContext;
+import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.Writer;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
 
-public class RenjinScriptContext implements ScriptContext{
+public class RenjinScriptContext implements ScriptContext {
 
   private Context context;
-  private Reader reader;
-  private Writer writer;
-  private Writer errorWriter;
   private Map<String,Object> attributes = new TreeMap<>();
 
   RenjinScriptContext(Context context) {
@@ -56,17 +54,17 @@ public class RenjinScriptContext implements ScriptContext{
 
   @Override
   public Reader getReader() {
-    return reader;
+    return context.getSession().getStdIn();
   }
 
   @Override
   public List<Integer> getScopes() {
-    return Arrays.asList(ScriptContext.ENGINE_SCOPE);
+    return Collections.singletonList(ScriptContext.ENGINE_SCOPE);
   }
 
   @Override
   public Writer getWriter() {
-    return writer;
+    return context.getSession().getStdOut();
   }
 
   @Override
@@ -91,17 +89,17 @@ public class RenjinScriptContext implements ScriptContext{
 
   @Override
   public void setErrorWriter(Writer errorWriter) {
-    this.errorWriter = errorWriter;
+    context.getSession().setStdErr(new PrintWriter(errorWriter));
   }
 
   @Override
   public void setReader(Reader reader) {
-    this.reader = reader;
+    context.getSession().setStdIn(reader);
   }
 
   @Override
   public void setWriter(Writer writer) {
-    this.writer = writer;
+    context.getSession().setStdOut(new PrintWriter(writer));
   }
 
 }

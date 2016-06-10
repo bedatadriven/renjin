@@ -14,8 +14,8 @@ import org.renjin.sexp.*;
 import org.renjin.stats.internals.distributions.RNG;
 import org.renjin.util.FileSystemUtils;
 
-import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.Reader;
 import java.util.List;
 import java.util.Map;
 
@@ -131,6 +131,10 @@ public class Session {
   public void setStdOut(PrintWriter writer) {
     this.connectionTable.getStdout().setOutputStream(writer);
   }
+
+  public void setStdIn(Reader reader) {
+    this.connectionTable.getStdin().setReader(reader);
+  }
   
   public void setStdErr(PrintWriter writer) {
     this.connectionTable.getStderr().setOutputStream(writer);
@@ -198,8 +202,16 @@ public class Session {
     return invisible;
   }
 
-  public PrintWriter getStdOut() throws IOException {
+  public PrintWriter getStdOut() {
     return connectionTable.getStdout().getPrintWriter();
+  }
+  
+  public PrintWriter getStdErr() {
+    return connectionTable.getStderr().getPrintWriter();
+  }
+
+  public Reader getStdIn() {
+    return connectionTable.getStdin().getReader();
   }
 
   public NamespaceRegistry getNamespaceRegistry() {
@@ -272,4 +284,5 @@ public class Session {
       finalizers.finalizeOnExit(topLevelContext);
     }
   }
+
 }

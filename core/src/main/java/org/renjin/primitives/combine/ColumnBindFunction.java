@@ -99,7 +99,6 @@ public class ColumnBindFunction extends AbstractBindFunction {
       }
     }
 
-//    AtomicVector rowNames = Null.INSTANCE;
     StringVector.Builder rowNames = new StringVector.Builder();
     StringVector.Builder colNames = new StringVector.Builder();
 

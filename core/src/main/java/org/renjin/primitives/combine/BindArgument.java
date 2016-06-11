@@ -82,24 +82,11 @@ class BindArgument {
   }
 
   public String getName() {
-    String name;
-    if (this.argName != null && this.argName.length() > 0) {
-      name = this.argName;
-    } else if (deparseLevel == 1 && this.expression instanceof Symbol) {
-      name = this.expression.asString();
-    } else if (deparseLevel == 2) {
-      name = Deparse.deparse(context, this.expression, 0, false, 0, 0);
-      if (name.length() > 10) {
-        name = name.substring(0,10) + "...";
-      }
-    } else {
-      name = this.argName;
-    }
-    return name;
+    return this.computedName;
   }
 
   public boolean hasNoName() {
-    return this.computedName.equals("");
+    return this.computedName.isEmpty();
   }
 
   public Promise repromise() {

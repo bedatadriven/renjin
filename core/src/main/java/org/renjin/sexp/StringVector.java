@@ -81,14 +81,14 @@ public abstract class StringVector extends AbstractAtomicVector implements Itera
   public Logical asLogical() {
     if(length() >= 1) {
       String value = getElementAsString(0);
-      if("true".equals(value) ||
-         "TRUE".equals(value) ||
-         "T".equals(value)) {
+      if ("true".equals(value) ||
+          "TRUE".equals(value) ||
+          "T".equals(value)) {
         return Logical.TRUE;
       }
-      if("false".equals(value) ||
-         "FALSE".equals(value) ||
-         "F".equals(value)) {
+      if ("false".equals(value) ||
+          "FALSE".equals(value) ||
+          "F".equals(value)) {
         return Logical.FALSE;
       }
     }

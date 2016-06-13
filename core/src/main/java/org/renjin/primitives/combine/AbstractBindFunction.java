@@ -33,7 +33,7 @@ public abstract class AbstractBindFunction extends SpecialFunction {
     List<BindArgument> cleanArguments = Lists.newArrayList();
     for (int i = 0; i < arguments.size(); i=i+1) {
       BindArgument arg = arguments.get(i);
-      if (arg.expression != Null.INSTANCE && arg.vector != Null.INSTANCE && arg.vector.length() != 0) {
+      if (arg.getExpression() != Null.INSTANCE && arg.getVector() != Null.INSTANCE && arg.getVector().length() != 0) {
         cleanArguments.add(arguments.get(i));
       }
     }

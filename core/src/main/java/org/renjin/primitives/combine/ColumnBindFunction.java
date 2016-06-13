@@ -45,19 +45,18 @@ public class ColumnBindFunction extends AbstractBindFunction {
     int rows = -1;
     int columns = 0;
     for (BindArgument argument : cleanBindArguments) {
-      if (argument.vector.length() > 0) {
-        if (argument.matrix) {
-          columns += argument.cols;
+      if (argument.getVector().length() > 0) {
+        if (argument.isMatrix()) {
+          columns += argument.getCols();
           if (rows == -1) {
-            rows = argument.rows;
-          } else if (rows != argument.rows) {
+            rows = argument.getRows();
+          } else if (rows != argument.getRows()) {
             throw new EvalException("number of rows of matrices must match");
           }
         } else {
           columns++;
         }
       }
-
     }
 
     if (columns == 0) {
@@ -67,16 +66,16 @@ public class ColumnBindFunction extends AbstractBindFunction {
     // if there are no actual matrices, then use the longest vector length as the number of rows
     if (rows == -1) {
       for (BindArgument argument : cleanBindArguments) {
-        if (argument.vector.length() > rows) {
-          rows = argument.vector.length();
+        if (argument.getVector().length() > rows) {
+          rows = argument.getVector().length();
         }
       }
     }
 
     // now check that all vectors lengths are multiples of the column length
     for (BindArgument argument : cleanBindArguments) {
-      if (!argument.matrix) {
-        if ((rows % argument.vector.length()) != 0) {
+      if (!argument.isMatrix()) {
+        if ((rows % argument.getVector().length()) != 0) {
           throw new EvalException("number of rows of result is not a multiple of vector length");
         }
       }
@@ -85,14 +84,14 @@ public class ColumnBindFunction extends AbstractBindFunction {
     // get the common type and a new builder
     Inspector inspector = new Inspector(false);
     for (BindArgument bindArgument : cleanBindArguments) {
-      bindArgument.vector.accept(inspector);
+      bindArgument.getVector().accept(inspector);
     }
     Vector.Builder vectorBuilder = inspector.getResult().newBuilder();
 
     // wrap the builder
     Matrix2dBuilder builder = new Matrix2dBuilder(vectorBuilder, rows, columns);
     for (BindArgument argument : cleanBindArguments) {
-      for (int j = 0; j != argument.cols; ++j) {
+      for (int j = 0; j != argument.getCols(); ++j) {
         for (int i = 0; i != rows; ++i) {
           builder.addFrom(argument, i, j);
         }
@@ -106,34 +105,33 @@ public class ColumnBindFunction extends AbstractBindFunction {
     boolean hasColNames = false;
 
     for (BindArgument argument : cleanBindArguments) {
-      if (argument.rowNames != Null.INSTANCE) {
+      if (argument.getRowNames() != Null.INSTANCE) {
         hasRowNames = true;
-        if (rowNames.length() < argument.rowNames.length()) {
-          for (int i = 0; i != argument.rows; ++i) {
-            rowNames.add(argument.rowNames.getElementAsString(i));
+        if (rowNames.length() < argument.getRowNames().length()) {
+          for (int i = 0; i != argument.getRows(); ++i) {
+            rowNames.add(argument.getRowNames().getElementAsString(i));
           }
         }
       } else {
-        if (rowNames.length() < argument.rowNames.length()) {
-          for (int i = 0; i != argument.rows; ++i) {
+        if (rowNames.length() < argument.getRowNames().length()) {
+          for (int i = 0; i != argument.getRows(); ++i) {
             rowNames.add("");
           }
         }
       }
     }
 
-
     for (BindArgument argument : cleanBindArguments) {
-      if (argument.colNames != Null.INSTANCE) {
+      if (argument.getColNames() != Null.INSTANCE) {
         hasColNames = true;
-        for (int i = 0; i != argument.cols; ++i) {
-          colNames.add(argument.colNames.getElementAsString(i));
+        for (int i = 0; i != argument.getCols(); ++i) {
+          colNames.add(argument.getColNames().getElementAsString(i));
         }
-      } else if (!argument.hasNoName() && !argument.matrix) {
+      } else if (!argument.hasNoName() && !argument.isMatrix()) {
         colNames.add(argument.getName());
         hasColNames = true;
       } else {
-        for (int i = 0; i != argument.cols; ++i) {
+        for (int i = 0; i != argument.getCols(); ++i) {
           colNames.add("");
         }
       }

@@ -18,9 +18,9 @@ public class Matrix2dBuilder {
   }
 
   public void addFrom(BindArgument argument, int rowIndex, int colIndex) {
-    int recycledColIndex = colIndex % argument.cols;
-    int recycledRowIndex = rowIndex % argument.rows;
-    builder.setFrom(count, argument.vector, recycledColIndex * argument.rows + recycledRowIndex);
+    int recycledColIndex = colIndex % argument.getCols();
+    int recycledRowIndex = rowIndex % argument.getRows();
+    builder.setFrom(count, argument.getVector(), recycledColIndex * argument.getRows() + recycledRowIndex);
     count++;
   }
 

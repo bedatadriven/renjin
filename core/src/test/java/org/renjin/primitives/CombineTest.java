@@ -125,47 +125,79 @@ public class CombineTest extends EvalTestCase {
   }
 
   @Test
-  public void rbindSimple() {
+  public void rbind_cbind_Simple() {
 
     eval(" x<-.Internal(rbind(1, c(Package='survey', Version='3.22-3'))) ");
-
     assertThat(eval("dim(x)"), equalTo(c_i(1, 2)));
     assertThat(eval("dimnames(x)"), equalTo(list(NULL, c("Package", "Version"))));
+    assertThat(eval("x"), equalTo(c("survey", "3.22-3")));
+
+    eval(" x<-.Internal(cbind(1, c(Package='survey', Version='3.22-3'))) ");
+    assertThat(eval("dim(x)"), equalTo(c_i(2, 1)));
+    assertThat(eval("dimnames(x)"), equalTo(list(c("Package", "Version"), NULL)));
     assertThat(eval("x"), equalTo(c("survey", "3.22-3")));
   }
 
   @Test
-  public void cbind() {
+  public void cbind_rbind() {
 
     assertThat(eval(".Internal(cbind(1))"), equalTo(NULL));
     assertThat(eval(".Internal(cbind(1, 5, 6, 7))"), equalTo(c(5, 6, 7)));
     assertThat(eval("dim(.Internal(cbind(1, 5, 6, 7)))"), equalTo(c_i(1, 3)));
     assertThat(eval(".Internal(cbind(1, c(5,6), c(9)))"), equalTo(c(5, 6, 9, 9)));
     assertThat(eval(".Internal(cbind(1, a=c(c=5,d=6), b=c(9)))"), equalTo(c(5, 6, 9, 9)));
+    assertThat(eval("dimnames(.Internal(cbind(1, a=1:2, b=3:4)))[[1]]"), equalTo(NULL));
     assertThat(eval("dimnames(.Internal(cbind(1, a=1:2, b=3:4)))[[2]]"), equalTo(c("a", "b")));
+
+    assertThat(eval(".Internal(rbind(1))"), equalTo(NULL));
+    assertThat(eval(".Internal(rbind(1, 5, 6, 7))"), equalTo(c(5, 6, 7)));
+    assertThat(eval("dim(.Internal(rbind(1, 5, 6, 7)))"), equalTo(c_i(3, 1)));
+    assertThat(eval(".Internal(rbind(1, c(5,6), c(9)))"), equalTo(c(5, 9, 6, 9)));
+    assertThat(eval(".Internal(rbind(1, a=c(c=5,d=6), b=c(9)))"), equalTo(c(5, 9, 6, 9)));
+    assertThat(eval("dimnames(.Internal(rbind(1, a=1:2, b=3:4)))[[1]]"), equalTo(c("a", "b")));
+    assertThat(eval("dimnames(.Internal(rbind(1, a=1:2, b=3:4)))[[2]]"), equalTo(NULL));
+
   }
 
   @Test
-  public void cbindWithDimnames() {
+  public void bindWithDimnames() {
     eval("a <- 1:4");
     eval("dim(a) <- c(4,1) ");
     eval("dimnames(a) <- list(c('r1','r2','r3', 'r4'), c('c1'))");
     eval("b <- (1:4)+10");
     eval("dim(b) <- c(4,1) ");
 
+    eval("c <- 1:4");
+    eval("dim(c) <- c(1,4) ");
+    eval("dimnames(c) <- list(c('c1'), c('r1','r2','r3', 'r4'))");
+    eval("d <- (1:4)+10");
+    eval("dim(d) <- c(1,4) ");
+
     eval("x <- .Internal(cbind(1, a, b))");
+    eval("y <- .Internal(rbind(1, c, d))");
+
     assertThat(eval("length(dimnames(x)[[1]])"), equalTo(c_i(4)));
     assertThat(eval("length(dimnames(x)[[2]])"), equalTo(c_i(2)));
+    assertThat(eval("row.names(x)"), equalTo(c("r1","r2","r3","r4")));
+
+    assertThat(eval("length(dimnames(y)[[1]])"), equalTo(c_i(2)));
+    assertThat(eval("length(dimnames(y)[[2]])"), equalTo(c_i(4)));
+    assertThat(eval("colnames(y)"), equalTo(c("r1","r2","r3","r4")));
   }
 
   @Test
   public void bindAndSubstitute() {
     eval("cbind.foo <- function(..., deparse.level=1) { substitute(...) }");
+    eval("rbind.foo <- function(..., deparse.level=1) { substitute(...) }");
+
     eval("x <- list(1)");
     eval("class(x) <- 'foo'");
     eval("a <- cbind(x)");
     eval("b <- as.name('x')");
+    eval("c <- rbind(x)");
+
     assertThat(eval("a"), equalTo(eval("b")));
+    assertThat(eval("c"), equalTo(eval("b")));
   }
 
   @Test
@@ -273,21 +305,24 @@ public class CombineTest extends EvalTestCase {
   public void bindDispatch() {
     eval("rbind.foo <- function(..., deparse.level = 1) 42L ");
     eval("rbind.bar <- function(..., deparse.level = 1) c(...)*2 ");
+    eval("cbind.foo <- function(..., deparse.level = 1) 42L ");
+    eval("cbind.bar <- function(..., deparse.level = 1) c(...)*2 ");
 
     eval("x <- 1");
     eval("class(x) <- 'foo'");
-
     eval("y <- 2");
-
     eval("z <- 3");
     eval("class(z) <- 'bar'");
 
-    assertThat(eval(".Internal(rbind(1, x, y))"), equalTo(c_i(42)));
-    assertThat(eval(".Internal(rbind(1, y, x))"), equalTo(c_i(42)));
-
+    assertThat(eval(".Internal(rbind(1, x, y))"), equalTo(c_i(42))); //WORKS
+    assertThat(eval(".Internal(rbind(1, y, x))"), equalTo(c_i(42))); //WORKS
     assertThat(eval(".Internal(rbind(1, x, y, z))"), equalTo(c(1,2,3))); // default method
-
     assertThat(eval(".Internal(rbind(1, y, z))"), equalTo(c(4, 6))); // default method
+//
+    assertThat(eval(".Internal(cbind(1, x, y))"), equalTo(c_i(42)));
+    assertThat(eval(".Internal(cbind(1, y, x))"), equalTo(c_i(42)));
+    assertThat(eval(".Internal(cbind(1, x, y, z))"), equalTo(c(1,2,3))); // default method
+    assertThat(eval(".Internal(cbind(1, y, z))"), equalTo(c(4, 6))); // default method
   }
 
   @Test
@@ -301,7 +336,10 @@ public class CombineTest extends EvalTestCase {
 
   @Test
   public void handleMultipleNulls() {
-    assertThat(eval("cbind(1, NULL, NULL, NULL, c(), c(), NULL, 1)"), equalTo(c(1,1)));
+    assertThat(eval("cbind(1, NULL, NULL, NULL, c(), c(), NULL, 1)"), equalTo(c(1, 1)));
+    assertThat(eval("dim(cbind(1, NULL, NULL, NULL, c(), c(), NULL, 1))"), equalTo(c_i(1, 2)));
+    assertThat(eval("rbind(1, NULL, NULL, NULL, c(), c(), NULL, 1)"), equalTo(c(1, 1)));
+    assertThat(eval("dim(rbind(1, NULL, NULL, NULL, c(), c(), NULL, 1))"), equalTo(c_i(2, 1)));
   }
 
 }

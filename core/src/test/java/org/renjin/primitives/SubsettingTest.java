@@ -620,8 +620,10 @@ public class SubsettingTest extends EvalTestCase {
   @Test
   public void byNamedCol() {
     eval(" x <- .Internal(rbind(1, c(a=1,b=2))) ");
+    eval(" y <- .Internal(cbind(1, c=c(a=1,b=2))) ");
 
     assertThat( eval(" x[,'b'] "), equalTo( c(2) ));
+    assertThat( eval(" y[,'c'] "), equalTo( c(1, 2) ));
   }
 
   @Test
@@ -1220,19 +1222,30 @@ public class SubsettingTest extends EvalTestCase {
   @Test
   public void replaceWithCoordinateMatrix() {
     eval("x <- matrix(0, ncol=2, nrow=3)");
+    eval("y <- matrix(0, ncol=2, nrow=3)");
     eval("i <- rbind(c(1,2),c(3,2))");
+    eval("j <- cbind(c(3,2),c(1,2))");
     eval("x[i] <- c(4, 9)");
-    
+    eval("y[j] <- c(4, 9)");
+
     assertThat(eval("x"), equalTo(c(0, 0, 0, 4, 0, 9)));
+    assertThat(eval("y"), equalTo(c(0, 0, 4, 0, 9, 0)));
   }
 
   @Test(expected = EvalException.class)
-  public void emptyReplacementWithCoordinateMatrix() {
+  public void emptyReplacementWithCoordinateMatrixRbind() {
     eval("x <- matrix(0, ncol=2, nrow=3)");
     eval("i <- rbind(c(1,2),c(3,2))");
     eval("x[i] <- numeric(0)");
+    assertThat(eval("x"), equalTo(c(0, 0, 0, 0, 0, 0)));
+  }
 
-    assertThat(eval("x"), equalTo(c(0, 0, 0, 4, 0, 9)));
+  @Test(expected = EvalException.class)
+  public void emptyReplacementWithCoordinateMatrixCbind() {
+    eval("y <- matrix(0, ncol=2, nrow=3)");
+    eval("j <- cbind(c(3,2),c(1,2))");
+    eval("y[j] <- numeric(0)");
+    assertThat(eval("y"), equalTo(c(0, 0, 0, 0, 0, 0)));
   }
   
 

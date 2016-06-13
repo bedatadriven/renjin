@@ -398,6 +398,11 @@ public class EvaluationTest extends EvalTestCase {
     assertThat( eval("substitute(x, e)"), equalTo(c(99)));
     assertThat( eval("substitute(env=e, x)"), equalTo(c(99)));
     assertThat( eval("substitute(e, expr=x)"), equalTo(c(99)));
+
+    assertThat( eval("f()"), equalTo( (SEXP)Null.INSTANCE ));
+    
+    assertThat( eval("substitute()"), equalTo((SEXP)Symbol.MISSING_ARG));
+
   }
   
   @Test

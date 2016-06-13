@@ -58,9 +58,15 @@ public class SubstituteFunction extends SpecialFunction {
     // match subsequent arguments against the 'env' argument.
     SEXP expr;
     if(exprArgument == Symbols.ELLIPSES) {
-      PromisePairList.Node list = (PromisePairList.Node) rho.getVariable(Symbols.ELLIPSES);
-      Promise promise = (Promise) list.getValue();
-      expr = promise.getExpression();
+      
+      SEXP ellipses = rho.getVariable(Symbols.ELLIPSES);
+      if(ellipses == Null.INSTANCE) {
+        expr = Null.INSTANCE;
+      } else {
+        PromisePairList.Node promisePairList = (PromisePairList.Node) ellipses;
+        Promise promisedArg = (Promise) promisePairList.getValue();
+        expr = promisedArg.getExpression();
+      }
     } else {
       expr = exprArgument;
     }

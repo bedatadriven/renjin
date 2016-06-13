@@ -282,38 +282,47 @@ public class Sort {
   }   
 
   @Internal("which.min")
-  public static IntVector whichMin(Vector v) {
-    if (v.length() == 0) {
-      IntArrayVector.Builder b = new IntArrayVector.Builder();
-      return (b.build());
-    }
-    int minIndex = 0;
-    double globalMin = v.getElementAsDouble(0);
-    for (int i = 0; i < v.length(); i++) {
-      if (v.getElementAsDouble(i) < globalMin) {
-        globalMin = v.getElementAsDouble(i);
-        minIndex = i;
+  public static IntVector whichMin(Vector input) {
+    int minIndex = -1;
+    double minValue = 0;
+
+    for (int i = 0; i < input.length(); i++) {
+      double value = input.getElementAsDouble(i);
+      if (!Double.isNaN(value)) {
+        if(minIndex == -1 || value < minValue) {
+          minValue = input.getElementAsDouble(i);
+          minIndex = i;          
+        }
       }
     }
-    return new IntArrayVector(new int[] { minIndex + 1 }, whichName(v, minIndex));
+
+    if(minIndex >= 0) {
+      return new IntArrayVector(new int[] { minIndex + 1 }, whichName(input, minIndex));
+    } else {
+      return IntVector.EMPTY;
+    }
   }
 
   @Internal("which.max")
-  public static IntVector whichMax(Vector v) {
-    if (v.length() == 0) {
-      IntArrayVector.Builder b = new IntArrayVector.Builder();
-      return (b.build());
-    }
-    int maxIndex = 0;
-    double globalMax = v.getElementAsDouble(0);
-    for (int i = 0; i < v.length(); i++) {
-      if (v.getElementAsDouble(i) > globalMax) {
-        globalMax = v.getElementAsDouble(i);
-        maxIndex = i;
+  public static IntVector whichMax(Vector input) {
+    int maxIndex = -1;
+    double maxValue = 0;
+
+    for (int i = 0; i < input.length(); i++) {
+      double value = input.getElementAsDouble(i);
+      if (!Double.isNaN(value)) {
+        if(maxIndex == -1 || value > maxValue) {
+          maxValue = input.getElementAsDouble(i);
+          maxIndex = i;
+        }
       }
     }
-    
-    return new IntArrayVector(new int[] { maxIndex + 1 }, whichName(v, maxIndex));
+
+    if(maxIndex >= 0) {
+      return new IntArrayVector(new int[] { maxIndex + 1 }, whichName(input, maxIndex));
+    } else {
+      return IntVector.EMPTY;
+    }
   }
 
   private static AttributeMap whichName(Vector v, int index) {

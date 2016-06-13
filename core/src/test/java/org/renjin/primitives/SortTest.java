@@ -72,15 +72,20 @@ public class SortTest extends EvalTestCase {
   }
 
   @Test
-  public void testWhichMin(){
-    assertThat (eval(".Internal(which.min(c(6,5,4,6,5,4,1)))"), equalTo(c_i(7)));
-    assertThat (eval(".Internal(which.min(c()))"), equalTo(c_i()));
+  public void testWhichMin() {
+    assertThat (eval("which.min(c(6,5,4,6,5,4,1))"), equalTo(c_i(7)));
+    assertThat (eval("which.min(c())"), equalTo(c_i()));
+    assertThat (eval("which.min(c(6,5,4,6,5,4,1))"), equalTo(c_i(7)));
+    assertThat (eval("which.min(c(NA,6,5,NA,4,6,5,4,1))"), equalTo(c_i(9)));
+    assertThat (eval("which.min(c(NA,NA))"), equalTo(c_i()));
   }
 
   @Test
-  public void testWhichMax(){
-    assertThat (eval(".Internal(which.max(c(6,5,4,6,5,4,1,6)))"), equalTo(c_i(1)));
-    assertThat (eval(".Internal(which.max(c()))"), equalTo(c_i()));
+  public void testWhichMax() {
+    assertThat (eval("which.max(c(6,5,4,6,5,4,1,6))"), equalTo(c_i(1)));
+    assertThat (eval("which.max(c())"), equalTo(c_i()));
+    assertThat (eval("which.max(c(NA,6,5,NA,4,NA,6,NaN,5,4,1,6))"), equalTo(c_i(2)));
+    assertThat (eval("which.max(c(NA,NA))"), equalTo(c_i()));
   }
 
   @Test

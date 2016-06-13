@@ -24,6 +24,7 @@ package org.renjin.primitives.sequence;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.sexp.DoubleArrayVector;
+import org.renjin.sexp.IntVector;
 import org.renjin.sexp.LogicalVector;
 import org.renjin.sexp.SEXP;
 
@@ -125,6 +126,11 @@ public class SequenceTest extends EvalTestCase {
           7, 7, 7, 7, 7, 7, 7, 7, 7,
           8, 8, 8, 8, 8, 8, 8, 8, 8,
           9, 9, 9, 9, 9, 9, 9, 9, 9)));
+  }
+  
+  @Test
+  public void testRepWithEmptyArg() {
+    assertThat(eval("rep(integer(0), length.out=3)"), equalTo(c_i(IntVector.NA, IntVector.NA, IntVector.NA)));
   }
 
   @Test

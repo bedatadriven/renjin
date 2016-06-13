@@ -4,6 +4,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
+import com.google.common.io.Files;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Session;
@@ -17,6 +19,7 @@ import org.tukaani.xz.XZInputStream;
 
 import java.io.*;
 import java.util.Properties;
+import java.util.Set;
 import java.util.zip.GZIPInputStream;
 
 /**
@@ -59,26 +62,40 @@ public class DatasetsBuilder {
   }
 
   public void build() throws FileNotFoundException  {
+    
+    Set<String> datasets = Sets.newHashSet();
+    
     if(dataDirectory.exists()) {
       File[] files = dataDirectory.listFiles();
-      if(files != null) {
-        for(File dataFile : files) {
-          try {
-            processDataset(dataFile);
-          } catch(EvalException e) {
-            System.err.println("ERROR processing data file " + dataFile.getName() + ": " + e.getMessage());
-            e.printRStackTrace(System.err);
-          } catch(Exception e) {
-            System.err.println("Exception processing data file " + dataFile);
-            e.printStackTrace();
-          }
+      if (files != null) {
+        for (File dataFile : files) {
+          datasets.add(baseNameOf(dataFile));
         }
       }
     }
 
-    if(!indexMap.isEmpty())  {
-      writeIndex();
+    for (String dataset : datasets) {
+      try {
+        processDataset(dataset);
+      } catch(EvalException e) {
+        System.err.println("ERROR processing data file " + dataset + ": " + e.getMessage());
+        e.printRStackTrace(System.err);
+      } catch(Exception e) {
+        System.err.println("Exception processing data set " + dataset);
+        e.printStackTrace();
+      }
+      if(!indexMap.isEmpty())  {
+        writeIndex();
+      }
     }
+  }
+
+  private String baseNameOf(File file) {
+    String name = file.getName();
+    if(name.toLowerCase().endsWith(".gz")) {
+      name = stripExtension(name, ".gz");
+    }
+    return Files.getNameWithoutExtension(name);
   }
 
   private void writeIndex() throws FileNotFoundException  {
@@ -97,6 +114,33 @@ public class DatasetsBuilder {
       throw new RuntimeException("Failed to write dataset index to " + indexFile.getAbsolutePath(), e);
     }
   }
+  
+  void processDataset(String basename) throws IOException {
+    File rdaFile = new File(dataDirectory, basename + ".rda");
+    if(rdaFile.exists()) {
+      processRDataFile(rdaFile);
+      return;
+    }
+    
+    File scriptFile = new File(dataDirectory, basename + ".R");
+    if(scriptFile.exists()) {
+      processRDataFile(scriptFile);
+      return;
+    }
+    
+    // If there is no prepared .rda file, or there
+    // is no .R script to prepare the file, then 
+    // build the dataset from the original .tab.gz or .csv etc file
+    for (File file : dataDirectory.listFiles()) {
+      if(file.getName().startsWith(basename)) {
+        processDataset(file);
+        return; 
+      }
+    }
+    
+    throw new IllegalStateException("No matching file for dataset '" + basename + "'");
+  }
+  
 
   @VisibleForTesting
   void processDataset(File dataFile) throws IOException {
@@ -128,6 +172,7 @@ public class DatasetsBuilder {
     }
   }
 
+  
   /**
    * Copy and decompress the saved PairList in rda format.
    * @param dataFile the source data format

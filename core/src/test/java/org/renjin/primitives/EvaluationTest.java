@@ -77,6 +77,16 @@ public class EvaluationTest extends EvalTestCase {
   public void ifWithNA() throws IOException {
     eval("if(NA) 1");
   }
+  
+  @Test
+  public void ifWithString() {
+    assertThat(eval(" if('TRUE') 1 else 0 "), equalTo(c(1)));
+    assertThat(eval(" if('FALSE') 1 else 0 "), equalTo(c(0)));
+    assertThat(eval(" if('true') 1 else 0 "), equalTo(c(1)));
+    assertThat(eval(" if('false') 1 else 0 "), equalTo(c(0)));
+    assertThat(eval(" if('T') 1 else 0 "), equalTo(c(1)));
+    assertThat(eval(" if('F') 1 else 0 "), equalTo(c(0)));
+  }
 
   @Test
   public void braces() throws IOException {

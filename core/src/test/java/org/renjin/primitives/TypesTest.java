@@ -138,6 +138,21 @@ public strictfp class TypesTest extends EvalTestCase {
   }
 
   @Test
+  public void asLogicalFromString() {
+    assertThat( eval("as.logical('TRUE')"), equalTo(c(true)));
+    assertThat( eval("as.logical('FALSE')"), equalTo(c(false)));
+
+    assertThat( eval("as.logical('true')"), equalTo(c(true)));
+    assertThat( eval("as.logical('false')"), equalTo(c(false)));
+
+    assertThat( eval("as.logical('T')"), equalTo(c(true)));
+    assertThat( eval("as.logical('F')"), equalTo(c(false)));
+
+    assertThat( eval("as.logical('TR')"), equalTo(c(Logical.NA)));
+    assertThat( eval("as.logical('FA')"), equalTo(c(Logical.NA)));
+  }
+  
+  @Test
   public void asDoubleFromLogical() {
     assertThat( eval("as.double(TRUE)"), equalTo( c(1d) ));
     assertThat( eval("as.double(FALSE)"), equalTo( c(0d) ));

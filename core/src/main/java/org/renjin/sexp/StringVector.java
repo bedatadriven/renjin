@@ -78,6 +78,24 @@ public abstract class StringVector extends AbstractAtomicVector implements Itera
   }
 
   @Override
+  public Logical asLogical() {
+    if(length() >= 1) {
+      String value = getElementAsString(0);
+      if("true".equals(value) ||
+         "TRUE".equals(value) ||
+         "T".equals(value)) {
+        return Logical.TRUE;
+      }
+      if("false".equals(value) ||
+         "FALSE".equals(value) ||
+         "F".equals(value)) {
+        return Logical.FALSE;
+      }
+    }
+    return Logical.NA;
+  }
+
+  @Override
   public SEXP getElementAsSEXP(int index) {
     return new StringArrayVector(getElementAsString(index));
   }

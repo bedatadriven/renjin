@@ -1,10 +1,12 @@
 package org.renjin.primitives.combine;
 
 import com.google.common.collect.Lists;
+import org.apache.commons.collections15.IteratorUtils;
 import org.renjin.eval.Context;
 import org.renjin.invoke.codegen.ArgumentIterator;
 import org.renjin.sexp.*;
 
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -30,14 +32,15 @@ public abstract class AbstractBindFunction extends SpecialFunction {
   }
 
   public List<BindArgument> cleanBindArguments(List<BindArgument> arguments) {
-    List<BindArgument> cleanArguments = Lists.newArrayList();
-    for (int i = 0; i < arguments.size(); i=i+1) {
-      BindArgument arg = arguments.get(i);
-      if (arg.getExpression() != Null.INSTANCE && arg.getVector() != Null.INSTANCE && arg.getVector().length() != 0) {
-        cleanArguments.add(arguments.get(i));
+    Iterator<BindArgument> argumentsItr = arguments.iterator();
+    List<BindArgument> cleanList = Lists.newArrayList();
+    while(argumentsItr.hasNext()) {
+      BindArgument arg = argumentsItr.next();
+      if (arg.getVector().length() != 0) {
+        cleanList.add(arg);
       }
     }
-    return cleanArguments;
+    return cleanList;
   }
 
   /**

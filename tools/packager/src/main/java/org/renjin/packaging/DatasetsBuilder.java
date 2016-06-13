@@ -115,7 +115,7 @@ public class DatasetsBuilder {
     }
   }
   
-  void processDataset(String basename) throws IOException {
+  private void processDataset(String basename) throws IOException {
     File rdaFile = new File(dataDirectory, basename + ".rda");
     if(rdaFile.exists()) {
       processRDataFile(rdaFile);
@@ -124,7 +124,7 @@ public class DatasetsBuilder {
     
     File scriptFile = new File(dataDirectory, basename + ".R");
     if(scriptFile.exists()) {
-      processRDataFile(scriptFile);
+      processRScript(scriptFile, basename);
       return;
     }
     

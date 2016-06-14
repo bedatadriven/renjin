@@ -62,12 +62,14 @@ public final class Rdynload {
 //   DL_FUNC R_FindSymbol (char const *, char const *, R_RegisteredNativeSymbol *symbol)
 //
 
-  public static void R_RegisterCCallable (BytePtr packageName, BytePtr name, Object method) {
-    // This is intended to allow other packages to call this method. 
-    // We'll ignore this for the moment.
+  public void R_RegisterCCallable (BytePtr packageName, BytePtr name, MethodHandle method) {
+    CCallablesRegister register = CCallablesRegister.getInstance();
+    String key = packageName.toString() + "." + name.toString();
+    CCallablesRegister.setCallable(key, method);
   }
-  //
+
   public static MethodHandle R_GetCCallable (BytePtr packageName, BytePtr functionName) {
-    throw new UnimplementedGnuApiMethod("R_GetCCallable");
+    String key = packageName.toString() + "." + functionName.toString();
+    return CCallablesRegister.getCallable(key);
   }
 }

@@ -17,6 +17,7 @@ public class GimpleVarDecl implements GimpleDecl {
   private int id;
   private GimpleType type;
   private String name;
+  private String mangledName;
   private GimpleExpr value;
   private GimpleCompilationUnit unit;
   
@@ -56,7 +57,15 @@ public class GimpleVarDecl implements GimpleDecl {
       return "T" + Math.abs(id);
     }
   }
-  
+
+  public String getMangledName() {
+    return mangledName;
+  }
+
+  public void setMangledName(String mangledName) {
+    this.mangledName = mangledName;
+  }
+
   public boolean isNamed() {
     return name != null;
   }

@@ -11,12 +11,12 @@ import static org.renjin.gcc.codegen.expr.Expressions.*;
 /**
  * Exposes a byte array as an int value
  */
-public class ByteArrayAsInt implements SimpleLValue {
+public class ByteArrayAsInt implements JLValue {
   
-  private SimpleExpr array;
-  private SimpleExpr offset;
+  private JExpr array;
+  private JExpr offset;
 
-  public ByteArrayAsInt(SimpleExpr array, SimpleExpr offset) {
+  public ByteArrayAsInt(JExpr array, JExpr offset) {
     this.array = array;
     this.offset = offset;
   }
@@ -32,11 +32,11 @@ public class ByteArrayAsInt implements SimpleLValue {
 
     // b1 << 24 | (b2 & 0xFF) << 16 | (b3 & 0xFF) << 8 | (b4 & 0xFF);
     
-    SimpleExpr[] bytes = new SimpleExpr[4];
-    SimpleExpr b1 = elementAt(array, sum(offset, 0));
-    SimpleExpr b2 = elementAt(array, sum(offset, 1));
-    SimpleExpr b3 = elementAt(array, sum(offset, 2));
-    SimpleExpr b4 = elementAt(array, sum(offset, 3));
+    JExpr[] bytes = new JExpr[4];
+    JExpr b1 = elementAt(array, sum(offset, 0));
+    JExpr b2 = elementAt(array, sum(offset, 1));
+    JExpr b3 = elementAt(array, sum(offset, 2));
+    JExpr b4 = elementAt(array, sum(offset, 3));
 
     // (b1 & 0xFF);
     b1.load(mv);
@@ -75,10 +75,10 @@ public class ByteArrayAsInt implements SimpleLValue {
 
 
   @Override
-  public void store(MethodGenerator mv, SimpleExpr rhs) {
+  public void store(MethodGenerator mv, JExpr rhs) {
     Preconditions.checkArgument(rhs.getType().equals(Type.INT_TYPE));
 
-    SimpleExpr[] bytes = new SimpleExpr[] {
+    JExpr[] bytes = new JExpr[] {
         castPrimitive(shiftRight(rhs, 0), Type.BYTE_TYPE),
         castPrimitive(shiftRight(rhs, 8), Type.BYTE_TYPE),
         castPrimitive(shiftRight(rhs, 16), Type.BYTE_TYPE),

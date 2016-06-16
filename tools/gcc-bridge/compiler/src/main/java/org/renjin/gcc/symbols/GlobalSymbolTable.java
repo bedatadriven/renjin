@@ -7,8 +7,8 @@ import com.google.common.collect.Sets;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.call.*;
 import org.renjin.gcc.codegen.cpp.*;
-import org.renjin.gcc.codegen.expr.Expr;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.lib.SymbolFunction;
 import org.renjin.gcc.codegen.lib.SymbolLibrary;
 import org.renjin.gcc.codegen.lib.SymbolMethod;
@@ -39,7 +39,7 @@ public class GlobalSymbolTable implements SymbolTable {
   private ClassLoader linkClassLoader = getClass().getClassLoader();
   private TypeOracle typeOracle;
   private Map<String, CallGenerator> functions = Maps.newHashMap();
-  private Map<String, Expr> globalVariables = Maps.newHashMap();
+  private Map<String, GExpr> globalVariables = Maps.newHashMap();
   
   private Set<String> undefinedSymbols = Sets.newHashSet();
 
@@ -84,7 +84,7 @@ public class GlobalSymbolTable implements SymbolTable {
   }
   
   @Override
-  public SimpleExpr findHandle(GimpleFunctionRef ref) {
+  public JExpr findHandle(GimpleFunctionRef ref) {
     CallGenerator callGenerator = findCallGenerator(ref);
     if(callGenerator instanceof MethodHandleGenerator) {
       return ((MethodHandleGenerator) callGenerator).getMethodHandle();
@@ -178,12 +178,12 @@ public class GlobalSymbolTable implements SymbolTable {
   }
 
   @Override
-  public Expr getVariable(GimpleSymbolRef ref) {
+  public GExpr getVariable(GimpleSymbolRef ref) {
     // Global variables are only resolved by name...
     if(ref.getName() == null) {
       return null;
     } else {
-      Expr expr = globalVariables.get(ref.getName());
+      GExpr expr = globalVariables.get(ref.getName());
       if(expr == null) {
         throw new InternalCompilerException("No such variable: " + ref);
       }
@@ -191,7 +191,7 @@ public class GlobalSymbolTable implements SymbolTable {
     }
   }
   
-  public void addVariable(String name, Expr expr) {
+  public void addVariable(String name, GExpr expr) {
     globalVariables.put(name, expr);
   }
   

@@ -3,16 +3,16 @@ package org.renjin.gcc.codegen.type.primitive.op;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 
 import javax.annotation.Nonnull;
 
 
-public class LogicalNot implements SimpleExpr {
+public class LogicalNot implements JExpr {
   
-  private SimpleExpr operand;
+  private JExpr operand;
 
-  public LogicalNot(SimpleExpr operand) {
+  public LogicalNot(JExpr operand) {
     this.operand = operand;
   }
 

@@ -4,8 +4,8 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
-import org.renjin.gcc.codegen.expr.SimpleLValue;
+import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.expr.JLValue;
 
 import javax.annotation.Nonnull;
 import java.lang.reflect.Field;
@@ -24,7 +24,7 @@ public class ProvidedVarAllocator extends VarAllocator {
   
 
   @Override
-  public SimpleLValue reserve(final String name, final Type type) {
+  public JLValue reserve(final String name, final Type type) {
     // verify that the field already exists in this class
     Field field;
     try {
@@ -38,7 +38,7 @@ public class ProvidedVarAllocator extends VarAllocator {
       throw new InternalCompilerException(String.format(
           "Type mismatch between provided field '%s: expected %s but found %s", name, type, declaredType));
     }
-    return new SimpleLValue() {
+    return new JLValue() {
 
       @Nonnull
       @Override
@@ -52,7 +52,7 @@ public class ProvidedVarAllocator extends VarAllocator {
       }
 
       @Override
-      public void store(MethodGenerator mv, SimpleExpr value) {
+      public void store(MethodGenerator mv, JExpr value) {
         value.load(mv);
         mv.visitFieldInsn(Opcodes.PUTSTATIC, Type.getInternalName(declaringClass), name, type.getDescriptor());
       }
@@ -60,7 +60,7 @@ public class ProvidedVarAllocator extends VarAllocator {
   }
 
   @Override
-  public SimpleLValue reserve(String name, Type type, SimpleExpr initialValue) {
+  public JLValue reserve(String name, Type type, JExpr initialValue) {
     throw new UnsupportedOperationException("TO CHECK");
   }
   

@@ -2,16 +2,16 @@ package org.renjin.gcc.codegen.type.primitive.op;
 
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 
 import javax.annotation.Nonnull;
 
 
-public class AbsValue implements SimpleExpr {
+public class AbsValue implements JExpr {
 
-  private SimpleExpr x;
+  private JExpr x;
 
-  public AbsValue(SimpleExpr x) {
+  public AbsValue(JExpr x) {
     this.x = x;
   }
 

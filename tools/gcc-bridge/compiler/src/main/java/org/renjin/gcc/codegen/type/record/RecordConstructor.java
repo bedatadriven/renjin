@@ -4,27 +4,26 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.Expr;
-import org.renjin.gcc.codegen.expr.LValue;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.gimple.expr.GimpleFieldRef;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.Map;
 
-public class RecordConstructor implements SimpleExpr {
+public class RecordConstructor implements JExpr {
   
   private RecordClassTypeStrategy strategy;
-  private Map<GimpleFieldRef, Expr> fields;
+  private Map<GimpleFieldRef, GExpr> fields;
 
-  public RecordConstructor(RecordClassTypeStrategy strategy, Map<GimpleFieldRef, Expr> fields) {
+  public RecordConstructor(RecordClassTypeStrategy strategy, Map<GimpleFieldRef, GExpr> fields) {
     this.strategy = strategy;
     this.fields = fields;
   }
 
   public RecordConstructor(RecordClassTypeStrategy strategy) {
-    this(strategy, Collections.<GimpleFieldRef, Expr>emptyMap());
+    this(strategy, Collections.<GimpleFieldRef, GExpr>emptyMap());
   }
 
   @Nonnull
@@ -40,7 +39,7 @@ public class RecordConstructor implements SimpleExpr {
     mv.visitInsn(Opcodes.DUP);
     mv.visitMethodInsn(Opcodes.INVOKESPECIAL, strategy.getJvmType().getInternalName(), "<init>", "()V", false);
 
-    SimpleExpr instance = new SimpleExpr() {
+    JExpr instance = new JExpr() {
       @Nonnull
       @Override
       public Type getType() {
@@ -53,9 +52,9 @@ public class RecordConstructor implements SimpleExpr {
       }
     };
     
-    for (Map.Entry<GimpleFieldRef, Expr> field : fields.entrySet()) {
+    for (Map.Entry<GimpleFieldRef, GExpr> field : fields.entrySet()) {
       // Push the value onto the stack and save to the field
-      LValue fieldExpr = (LValue) strategy.memberOf(new RecordClassValueExpr(instance), field.getKey());
+      GExpr fieldExpr = strategy.memberOf(new RecordValue(instance), field.getKey());
       try {
         fieldExpr.store(mv, field.getValue());
       } catch (Exception e) {

@@ -8,7 +8,7 @@ import javax.annotation.Nonnull;
 /**
  * Generator for "simple" expressions that are represented by a single JVM value or reference.
  */
-public interface SimpleExpr extends Expr {
+public interface JExpr {
 
   /**
    * 

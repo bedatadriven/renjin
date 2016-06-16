@@ -3,7 +3,7 @@ package org.renjin.gcc.codegen.type.voidt;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.runtime.Ptr;
 
 import javax.annotation.Nonnull;
@@ -11,12 +11,12 @@ import javax.annotation.Nonnull;
 /**
  * Realloc a void pointer
  */
-public class VoidPtrRealloc implements SimpleExpr {
+public class VoidPtrRealloc implements JExpr {
   
-  private final SimpleExpr pointer;
-  private final SimpleExpr newSizeInBytes;
+  private final JExpr pointer;
+  private final JExpr newSizeInBytes;
 
-  public VoidPtrRealloc(SimpleExpr pointer, SimpleExpr newSizeInBytes) {
+  public VoidPtrRealloc(JExpr pointer, JExpr newSizeInBytes) {
     this.pointer = pointer;
     this.newSizeInBytes = newSizeInBytes;
   }
@@ -33,7 +33,7 @@ public class VoidPtrRealloc implements SimpleExpr {
     // We can really only meaningfully allocate Fat Pointers, so cast the 
     // Object pointer to a Ptr and invoke realloc
     
-    SimpleExpr ptr = Expressions.cast(pointer, Type.getType(Ptr.class));
+    JExpr ptr = Expressions.cast(pointer, Type.getType(Ptr.class));
     ptr.load(mv);
     
     newSizeInBytes.load(mv);

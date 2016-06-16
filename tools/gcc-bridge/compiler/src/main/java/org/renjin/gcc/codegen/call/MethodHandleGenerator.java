@@ -1,8 +1,8 @@
 package org.renjin.gcc.codegen.call;
 
-import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 
 public interface MethodHandleGenerator {
   
-  SimpleExpr getMethodHandle();
+  JExpr getMethodHandle();
 }

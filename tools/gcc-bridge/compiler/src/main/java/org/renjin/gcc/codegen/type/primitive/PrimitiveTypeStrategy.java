@@ -1,16 +1,15 @@
 package org.renjin.gcc.codegen.type.primitive;
 
 import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.AddressableField;
 import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
-import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.type.primitive.op.CastGenerator;
-import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrStrategy;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
@@ -23,12 +22,17 @@ import org.renjin.gcc.gimple.type.GimplePrimitiveType;
  * <p>This is the easiest case, because there is (mostly) a one-to-one correspondence between primitive
  * types in {@code Gimple} and those of the JVM.</p>
  */
-public class PrimitiveTypeStrategy implements TypeStrategy<SimpleExpr> {
+public class PrimitiveTypeStrategy implements SimpleTypeStrategy<PrimitiveValue> {
   
   private GimplePrimitiveType type;
 
   public PrimitiveTypeStrategy(GimplePrimitiveType type) {
     this.type = type;
+  }
+
+  public PrimitiveTypeStrategy(Class<?> type) {
+    Preconditions.checkArgument(type.isPrimitive());
+    this.type = GimplePrimitiveType.fromJvmType(Type.getType(type));
   }
 
   public GimplePrimitiveType getType() {
@@ -42,7 +46,7 @@ public class PrimitiveTypeStrategy implements TypeStrategy<SimpleExpr> {
 
   @Override
   public ReturnStrategy getReturnStrategy() {
-    return new SimpleReturnStrategy(type.jvmType());
+    return new SimpleReturnStrategy(this);
   }
 
   @Override
@@ -52,24 +56,24 @@ public class PrimitiveTypeStrategy implements TypeStrategy<SimpleExpr> {
 
   @Override
   public FieldStrategy fieldGenerator(Type className, String fieldName) {
-    return new SimpleFieldStrategy(fieldName, type.jvmType());
+    return new SimpleFieldStrategy(fieldName, type.jvmType(), PrimitiveValue.class);
   }
 
   @Override
-  public SimpleExpr variable(GimpleVarDecl decl, VarAllocator allocator) {
+  public PrimitiveValue variable(GimpleVarDecl decl, VarAllocator allocator) {
     if(decl.isAddressable()) {
-      SimpleLValue unitArray = allocator.reserveUnitArray(decl.getName(), type.jvmType(), Optional.<SimpleExpr>absent());
+      JLValue unitArray = allocator.reserveUnitArray(decl.getName(), type.jvmType(), Optional.<JExpr>absent());
       FatPtrExpr address = new FatPtrExpr(unitArray);
-      SimpleExpr value = Expressions.elementAt(address.getArray(), 0);
-      return new SimpleAddressableExpr(value, address);
+      JExpr value = Expressions.elementAt(address.getArray(), 0);
+      return new PrimitiveValue(value, address);
       
     } else {
-      return allocator.reserve(decl.getName(), type.jvmType());
+      return new PrimitiveValue(allocator.reserve(decl.getName(), type.jvmType()));
     }
   }
 
   @Override
-  public SimpleExpr constructorExpr(ExprFactory exprFactory, GimpleConstructor value) {
+  public PrimitiveValue constructorExpr(ExprFactory exprFactory, GimpleConstructor value) {
     throw new UnsupportedOperationException("TODO");
   }
 
@@ -84,12 +88,13 @@ public class PrimitiveTypeStrategy implements TypeStrategy<SimpleExpr> {
   }
 
   @Override
-  public SimpleExpr cast(Expr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+  public PrimitiveValue cast(GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
     
     if(typeStrategy instanceof PrimitiveTypeStrategy) {
       // Handle casts between primitive types and signed/unsigned
       GimplePrimitiveType valueType = ((PrimitiveTypeStrategy) typeStrategy).getType();
-      return new CastGenerator((SimpleExpr) value, valueType, this.type);
+      PrimitiveValue primitiveValue = (PrimitiveValue) value;
+      return new PrimitiveValue(new CastGenerator(primitiveValue.unwrap(), valueType, this.type));
     }
     
     if(typeStrategy instanceof FatPtrStrategy) {
@@ -100,25 +105,38 @@ public class PrimitiveTypeStrategy implements TypeStrategy<SimpleExpr> {
       // double *end = p+4;
       // int length = (start-end)
       FatPtrExpr fatPtr = (FatPtrExpr) value;
-      return fatPtr.getOffset();
+      return new PrimitiveValue(fatPtr.getOffset());
     
-    } else if(typeStrategy instanceof RecordUnitPtrStrategy) {
-      return Expressions.identityHash((SimpleExpr)value);
+    } else if(value instanceof RefPtrExpr) {
+      RefPtrExpr ptrExpr = (RefPtrExpr) value;
+      return new PrimitiveValue(Expressions.identityHash(ptrExpr.unwrap()));
     }
     
     throw new UnsupportedCastException();
   }
   
-  public SimpleExpr zero() {
-    return new ConstantValue(type.jvmType(), 0);
+  public PrimitiveValue zero() {
+    return new PrimitiveValue(new ConstantValue(type.jvmType(), 0));
   }
 
-  private ValueFunction valueFunction() {
+  private PrimitiveValueFunction valueFunction() {
     return new PrimitiveValueFunction(type);
   }
 
   @Override
   public String toString() {
     return "PrimitiveTypeStrategy[" + type + "]";
+  }
+
+  @Override
+  public Type getJvmType() {
+    return type.jvmType();
+  }
+
+  @Override
+  public PrimitiveValue wrap(JExpr expr) {
+    Preconditions.checkArgument(expr.getType().equals(getJvmType()));
+    
+    return new PrimitiveValue(expr);
   }
 }

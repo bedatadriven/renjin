@@ -4,7 +4,9 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.*;
+import org.renjin.gcc.codegen.expr.Expressions;
+import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.gcc.codegen.fatptr.Wrappers;
 import org.renjin.gcc.codegen.type.FieldStrategy;
 
@@ -30,15 +32,15 @@ public class RecordArrayField extends FieldStrategy {
 
   @Override
   public void emitInstanceInit(MethodGenerator mv) {
-    LValue arrayField = Expressions.field(Expressions.thisValue(declaringClass), arrayType, name);
-    SimpleExpr newArray = Expressions.newArray(Wrappers.componentType(arrayType), arrayLength);
+    JLValue arrayField = Expressions.field(Expressions.thisValue(declaringClass), arrayType, name);
+    JExpr newArray = Expressions.newArray(Wrappers.componentType(arrayType), arrayLength);
 
     arrayField.store(mv, newArray);
   }
 
   @Override
-  public RecordArrayExpr memberExprGenerator(SimpleExpr instance) {
-    SimpleLValue arrayField = Expressions.field(instance, arrayType, name);
+  public RecordArrayExpr memberExprGenerator(JExpr instance) {
+    JLValue arrayField = Expressions.field(instance, arrayType, name);
 
     return new RecordArrayExpr(arrayField, arrayLength);
   }

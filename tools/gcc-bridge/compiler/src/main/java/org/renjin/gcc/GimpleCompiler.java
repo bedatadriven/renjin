@@ -15,7 +15,6 @@ import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.call.FunctionCallGenerator;
 import org.renjin.gcc.codegen.lib.SymbolLibrary;
 import org.renjin.gcc.codegen.type.TypeOracle;
-import org.renjin.gcc.codegen.type.record.EmptyRecordTypeStrategy;
 import org.renjin.gcc.codegen.type.record.RecordArrayTypeStrategy;
 import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
@@ -277,7 +276,7 @@ public class GimpleCompiler  {
 
       return strategy;
 
-    } else if(EmptyRecordTypeStrategy.accept(recordTypeDef)) {
+    } else if(recordTypeDef.getFields().isEmpty()) {
       logger.debug("Using EmptyRecordTypeStrategy");
 
       RecordClassTypeStrategy strategy = new RecordClassTypeStrategy(recordTypeDef);

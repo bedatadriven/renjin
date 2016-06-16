@@ -8,8 +8,8 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
-import org.renjin.gcc.codegen.expr.SimpleLValue;
+import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.expr.JLValue;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -20,13 +20,13 @@ import java.util.Set;
  */
 public class GlobalVarAllocator extends VarAllocator {
 
-  private class StaticField implements SimpleLValue {
+  private class StaticField implements JLValue {
 
     private String name;
     private Type type;
-    private Optional<SimpleExpr> initialValue;
+    private Optional<JExpr> initialValue;
 
-    public StaticField(String name, Type type, Optional<SimpleExpr> initialValue) {
+    public StaticField(String name, Type type, Optional<JExpr> initialValue) {
       this.name = name;
       this.type = type;
       this.initialValue = initialValue;
@@ -44,7 +44,7 @@ public class GlobalVarAllocator extends VarAllocator {
     }
 
     @Override
-    public void store(MethodGenerator mv, SimpleExpr value) {
+    public void store(MethodGenerator mv, JExpr value) {
       value.load(mv);
       mv.visitFieldInsn(Opcodes.PUTSTATIC, declaringClass.getInternalName(), name, type.getDescriptor());
     }
@@ -59,11 +59,11 @@ public class GlobalVarAllocator extends VarAllocator {
   }
 
   @Override
-  public SimpleLValue reserve(String name, Type type) {
-    return reserve(name, type, Optional.<SimpleExpr>absent());
+  public JLValue reserve(String name, Type type) {
+    return reserve(name, type, Optional.<JExpr>absent());
   }
 
-  public SimpleLValue reserve(String name, Type type, Optional<SimpleExpr> initialValue) {
+  public JLValue reserve(String name, Type type, Optional<JExpr> initialValue) {
     String fieldName = toJavaSafeName(name);
     if(fieldNames.contains(fieldName)) {
       throw new InternalCompilerException("Duplicate field name generated '" + name + "' [" + fieldName + "]");
@@ -75,7 +75,7 @@ public class GlobalVarAllocator extends VarAllocator {
   }
 
   @Override
-  public SimpleLValue reserve(String name, Type type, SimpleExpr initialValue) {
+  public JLValue reserve(String name, Type type, JExpr initialValue) {
     return reserve(name, type, Optional.of(initialValue));
   }
 

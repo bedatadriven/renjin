@@ -2,10 +2,9 @@ package org.renjin.gcc.codegen.type.primitive;
 
 import com.google.common.base.Optional;
 import org.objectweb.asm.Type;
-import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.expr.Expressions;
-import org.renjin.gcc.codegen.expr.SimpleAddressableExpr;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
@@ -45,20 +44,21 @@ public class PrimitiveValueFunction implements ValueFunction {
   }
 
   @Override
-  public Expr dereference(SimpleExpr array, SimpleExpr offset) {
+  public GExpr dereference(JExpr array, JExpr offset) {
     FatPtrExpr address = new FatPtrExpr(array, offset);
-    SimpleExpr value = Expressions.elementAt(array, offset);
+    JExpr value = Expressions.elementAt(array, offset);
 
-    return new SimpleAddressableExpr(value, address);
+    return new PrimitiveValue(value, address);
   }
 
   @Override
-  public List<SimpleExpr> toArrayValues(Expr expr) {
-    return Collections.singletonList((SimpleExpr)expr);
+  public List<JExpr> toArrayValues(GExpr expr) {
+    PrimitiveValue primitiveValue = (PrimitiveValue) expr;
+    return Collections.singletonList(primitiveValue.getExpr());
   }
 
   @Override
-  public Optional<SimpleExpr> getValueConstructor() {
+  public Optional<JExpr> getValueConstructor() {
     return Optional.absent();
   }
 

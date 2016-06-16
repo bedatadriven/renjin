@@ -5,7 +5,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.InstructionAdapter;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.var.LocalVarAllocator;
 
 
@@ -86,7 +86,7 @@ public class MethodGenerator extends InstructionAdapter {
    * @param      destPos  starting position in the destination data.
    * @param      length   the number of array elements to be copied.
    */
-  public void arrayCopy(SimpleExpr src, SimpleExpr srcPos, SimpleExpr dest, SimpleExpr destPos, SimpleExpr length) {
+  public void arrayCopy(JExpr src, JExpr srcPos, JExpr dest, JExpr destPos, JExpr length) {
 
     Preconditions.checkArgument(srcPos.getType().equals(Type.INT_TYPE), "srcPos must have type int");
     Preconditions.checkArgument(destPos.getType().equals(Type.INT_TYPE), "destPos must have type int");

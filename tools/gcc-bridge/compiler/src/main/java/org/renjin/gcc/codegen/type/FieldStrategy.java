@@ -2,8 +2,8 @@ package org.renjin.gcc.codegen.type;
 
 import org.objectweb.asm.ClassVisitor;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.Expr;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 
 /**
  * Generates field definitions, loads and stores for global variables
@@ -15,7 +15,7 @@ public abstract class FieldStrategy {
 
   public abstract void writeFields(ClassVisitor cv);
 
-  public abstract Expr memberExprGenerator(SimpleExpr instance);
+  public abstract GExpr memberExprGenerator(JExpr instance);
 
 
 }

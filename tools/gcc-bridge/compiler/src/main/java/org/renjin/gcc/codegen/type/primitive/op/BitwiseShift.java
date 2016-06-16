@@ -2,7 +2,7 @@ package org.renjin.gcc.codegen.type.primitive.op;
 
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.type.GimpleIntegerType;
 import org.renjin.gcc.gimple.type.GimpleType;
@@ -12,14 +12,14 @@ import javax.annotation.Nonnull;
 /**
  * Generates bytecode for left and right bitwise shifts
  */
-public class BitwiseShift implements SimpleExpr {
+public class BitwiseShift implements JExpr {
 
   private final GimpleOp op;
   private GimpleIntegerType type;
-  private final SimpleExpr x;
-  private final SimpleExpr y;
+  private final JExpr x;
+  private final JExpr y;
 
-  public BitwiseShift(GimpleOp op, GimpleType type, SimpleExpr x, SimpleExpr y) {
+  public BitwiseShift(GimpleOp op, GimpleType type, JExpr x, JExpr y) {
     this.op = op;
     this.type = (GimpleIntegerType) type;
     this.x = x;

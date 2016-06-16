@@ -7,9 +7,10 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.util.TraceClassVisitor;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.InternalCompilerException;
-import org.renjin.gcc.codegen.expr.*;
+import org.renjin.gcc.codegen.expr.Expressions;
+import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.FieldStrategy;
-import org.renjin.gcc.codegen.var.LocalVarAllocator;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
 
 import java.io.File;
@@ -89,14 +90,14 @@ public class RecordClassGenerator {
     mv.visitCode();
     
     // Local variables
-    SimpleExpr thisExpr = Expressions.thisValue(className);
-    SimpleExpr sourceExpr = Expressions.localVariable(className, 1);
+    JExpr thisExpr = Expressions.thisValue(className);
+    JExpr sourceExpr = Expressions.localVariable(className, 1);
     
     // Now copy each field member
     for (FieldStrategy field : fields) {
       try {
-        LValue thisField = (LValue) field.memberExprGenerator(thisExpr);
-        Expr sourceField = field.memberExprGenerator(sourceExpr);
+        GExpr thisField = field.memberExprGenerator(thisExpr);
+        GExpr sourceField = field.memberExprGenerator(sourceExpr);
 
         thisField.store(mv, sourceField);
         

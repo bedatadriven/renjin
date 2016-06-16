@@ -2,8 +2,8 @@ package org.renjin.gcc.codegen.type.record;
 
 import com.google.common.base.Optional;
 import org.objectweb.asm.Type;
-import org.renjin.gcc.codegen.expr.Expr;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 
@@ -51,19 +51,19 @@ public class RecordArrayValueFunction implements ValueFunction {
   }
 
   @Override
-  public Optional<SimpleExpr> getValueConstructor() {
+  public Optional<JExpr> getValueConstructor() {
     // No constructor is required for individual fields;
     // they will default to zero.
     return Optional.absent();
   }
 
   @Override
-  public Expr dereference(final SimpleExpr array, final SimpleExpr offset) {
+  public GExpr dereference(final JExpr array, final JExpr offset) {
     return new RecordArrayExpr(array, offset, arrayLength);
   }
 
   @Override
-  public List<SimpleExpr> toArrayValues(Expr expr) {
+  public List<JExpr> toArrayValues(GExpr expr) {
     throw new UnsupportedOperationException("TODO");
   }
 

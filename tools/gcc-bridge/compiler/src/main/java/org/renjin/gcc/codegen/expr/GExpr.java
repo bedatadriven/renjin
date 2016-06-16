@@ -1,5 +1,7 @@
 package org.renjin.gcc.codegen.expr;
 
+import org.renjin.gcc.codegen.MethodGenerator;
+
 /**
  * Interface for generators which can emit load/store operations for {@code GimpleExpr}s
  * 
@@ -7,6 +9,10 @@ package org.renjin.gcc.codegen.expr;
  * composite expressions, like {@link org.renjin.gcc.codegen.type.complex.ComplexValue} or 
  * {@link org.renjin.gcc.codegen.fatptr.FatPtrExpr} which are represented with multiple JVM values.</p>
  */
-public interface Expr {
+public interface GExpr {
+  
+  void store(MethodGenerator mv, GExpr rhs);
+  
+  GExpr addressOf();
   
 }

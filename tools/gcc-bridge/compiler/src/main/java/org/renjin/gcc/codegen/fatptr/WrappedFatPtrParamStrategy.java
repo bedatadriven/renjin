@@ -4,10 +4,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.Expr;
-import org.renjin.gcc.codegen.expr.Expressions;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
-import org.renjin.gcc.codegen.expr.SimpleLValue;
+import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleParameter;
@@ -31,13 +28,13 @@ public class WrappedFatPtrParamStrategy implements ParamStrategy {
   }
 
   @Override
-  public Expr emitInitialization(MethodGenerator mv, GimpleParameter parameter, List<SimpleLValue> paramVars, VarAllocator localVars) {
-    SimpleLValue array = localVars.reserveArrayRef(parameter.getName() + "$array", valueFunction.getValueType());
-    SimpleLValue offset = localVars.reserveInt(parameter.getName() + "$offset");
+  public GExpr emitInitialization(MethodGenerator mv, GimpleParameter parameter, List<JLValue> paramVars, VarAllocator localVars) {
+    JLValue array = localVars.reserveArrayRef(parameter.getName() + "$array", valueFunction.getValueType());
+    JLValue offset = localVars.reserveInt(parameter.getName() + "$offset");
 
-    SimpleExpr wrapper = paramVars.get(0);
-    SimpleExpr arrayField = Wrappers.arrayField(wrapper, valueFunction.getValueType());
-    SimpleExpr offsetField = Wrappers.offsetField(wrapper);
+    JExpr wrapper = paramVars.get(0);
+    JExpr arrayField = Wrappers.arrayField(wrapper, valueFunction.getValueType());
+    JExpr offsetField = Wrappers.offsetField(wrapper);
 
     if(valueFunction.getValueType().getSort() == Type.OBJECT) {
       arrayField = Expressions.cast(arrayField, Wrappers.valueArrayType(valueFunction.getValueType()));
@@ -50,18 +47,19 @@ public class WrappedFatPtrParamStrategy implements ParamStrategy {
   }
 
   @Override
-  public void loadParameter(MethodGenerator mv, Optional<Expr> argument) {
+  public void loadParameter(MethodGenerator mv, Optional<GExpr> argument) {
     
     if(!argument.isPresent()) {
       mv.aconst(null);
       return;
     }
     
-    Expr argumentValue = argument.get();
+    GExpr argumentValue = argument.get();
     
     // Check for a void*
-    if(argumentValue instanceof SimpleExpr) {
-      SimpleExpr wrappedPtr = Expressions.cast((SimpleExpr) argumentValue, Wrappers.wrapperType(valueFunction.getValueType()));
+    if(argumentValue instanceof RefPtrExpr) {
+      RefPtrExpr refPtr = (RefPtrExpr) argumentValue;
+      JExpr wrappedPtr = Expressions.cast(refPtr.unwrap(), Wrappers.wrapperType(valueFunction.getValueType()));
       wrappedPtr.load(mv);
     
     } else if(argumentValue instanceof FatPtrExpr) {

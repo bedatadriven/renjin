@@ -4,7 +4,7 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.runtime.VoidPtr;
 
@@ -13,10 +13,10 @@ import org.renjin.gcc.runtime.VoidPtr;
  */
 public class VoidPtrComparison implements ConditionGenerator {
   private final GimpleOp op;
-  private final SimpleExpr x;
-  private final SimpleExpr y;
+  private final JExpr x;
+  private final JExpr y;
 
-  public VoidPtrComparison(GimpleOp op, SimpleExpr x, SimpleExpr y) {
+  public VoidPtrComparison(GimpleOp op, JExpr x, JExpr y) {
     this.op = op;
     this.x = x;
     this.y = y;

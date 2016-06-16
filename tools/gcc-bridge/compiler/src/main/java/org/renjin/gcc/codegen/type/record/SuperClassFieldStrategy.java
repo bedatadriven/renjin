@@ -2,10 +2,10 @@ package org.renjin.gcc.codegen.type.record;
 
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Type;
-import org.renjin.gcc.codegen.expr.Expr;
-import org.renjin.gcc.codegen.expr.SimpleAddressableExpr;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.FieldStrategy;
+import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
 
 /**
  * Models a field at the beginning of a record as a JVM superclass
@@ -25,8 +25,8 @@ public class SuperClassFieldStrategy extends FieldStrategy {
   }
 
   @Override
-  public Expr memberExprGenerator(SimpleExpr instance) {
-    return new RecordClassValueExpr(instance, instance);
+  public GExpr memberExprGenerator(JExpr instance) {
+    return new RecordValue(instance, new RecordUnitPtr(instance));
   }
 
   public Type getType() {

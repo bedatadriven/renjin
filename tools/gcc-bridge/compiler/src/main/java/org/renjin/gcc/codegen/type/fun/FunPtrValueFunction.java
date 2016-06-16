@@ -2,9 +2,11 @@ package org.renjin.gcc.codegen.type.fun;
 
 import com.google.common.base.Optional;
 import org.objectweb.asm.Type;
-import org.renjin.gcc.codegen.expr.Expr;
+import org.renjin.gcc.codegen.expr.ArrayElement;
 import org.renjin.gcc.codegen.expr.Expressions;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 
 import java.lang.invoke.MethodHandle;
@@ -41,17 +43,19 @@ public class FunPtrValueFunction implements ValueFunction {
   }
 
   @Override
-  public Expr dereference(SimpleExpr array, SimpleExpr offset) {
-    return Expressions.elementAt(array, offset);
+  public GExpr dereference(JExpr array, JExpr offset) {
+    ArrayElement ptr = Expressions.elementAt(array, offset);
+    FatPtrExpr address = new FatPtrExpr(array, offset);
+    return new FunPtr(ptr, address);
   }
 
   @Override
-  public List<SimpleExpr> toArrayValues(Expr expr) {
-    return Collections.singletonList((SimpleExpr)expr);
+  public List<JExpr> toArrayValues(GExpr expr) {
+    return Collections.singletonList(((FunPtr) expr).unwrap());
   }
 
   @Override
-  public Optional<SimpleExpr> getValueConstructor() {
+  public Optional<JExpr> getValueConstructor() {
     return Optional.absent();
   }
 

@@ -5,7 +5,7 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.primitive.ConstantValue;
 import org.renjin.gcc.codegen.var.LocalVarAllocator;
 
@@ -20,11 +20,11 @@ public final class FatPtrMalloc {
   
   private FatPtrMalloc() {}
 
-  public static FatPtrExpr alloc(MethodGenerator mv, ValueFunction valueFunction, SimpleExpr length) {
+  public static FatPtrExpr alloc(MethodGenerator mv, ValueFunction valueFunction, JExpr length) {
     return new FatPtrExpr(allocArray(mv, valueFunction, length));
   }
 
-  public static SimpleExpr allocArray(MethodGenerator mv, ValueFunction valueFunction, SimpleExpr length) {
+  public static JExpr allocArray(MethodGenerator mv, ValueFunction valueFunction, JExpr length) {
 
 
     // If the values don't require any initialization (for example, an array of 
@@ -41,7 +41,7 @@ public final class FatPtrMalloc {
       ConstantValue constantLength = (ConstantValue) length;
 
       if(constantLength.getIntValue() <= MAX_UNROLL_COUNT) {
-        List<SimpleExpr> arrayValues = Lists.newArrayList();
+        List<JExpr> arrayValues = Lists.newArrayList();
         for(int i=0;i<constantLength.getIntValue();++i) {
           arrayValues.add(valueFunction.getValueConstructor().get());
         }

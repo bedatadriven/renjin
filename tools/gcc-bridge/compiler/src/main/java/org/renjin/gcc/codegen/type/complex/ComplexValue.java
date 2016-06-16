@@ -2,21 +2,25 @@ package org.renjin.gcc.codegen.type.complex;
 
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.*;
+import org.renjin.gcc.codegen.expr.Expressions;
+import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
 import org.renjin.gcc.codegen.type.primitive.op.NegativeValue;
 
 
 /**
  * Complex numerical value
  */
-public class ComplexValue implements Expr, LValue<ComplexValue>, Addressable {
+public class ComplexValue implements GExpr {
   private FatPtrExpr address;
-  private SimpleExpr realValue;
-  private SimpleExpr imaginaryValue;
+  private JExpr realValue;
+  private JExpr imaginaryValue;
   private Type componentType;
   
-  public ComplexValue(FatPtrExpr address, SimpleExpr realValue, SimpleExpr imaginaryValue) {
+  public ComplexValue(FatPtrExpr address, JExpr realValue, JExpr imaginaryValue) {
     this.address = address;
     this.realValue = realValue;
     this.imaginaryValue = imaginaryValue;
@@ -28,11 +32,15 @@ public class ComplexValue implements Expr, LValue<ComplexValue>, Addressable {
     this.componentType = realValue.getType();
   }
 
-  public ComplexValue(SimpleExpr realValue, SimpleExpr imaginaryValue) {
+  public ComplexValue(JExpr realValue, JExpr imaginaryValue) {
     this(null, realValue, imaginaryValue);
   }
+  
+  public ComplexValue(GExpr realValue, GExpr imaginaryValue) {
+    this(null, ((PrimitiveValue) realValue).unwrap(), ((PrimitiveValue) imaginaryValue).unwrap());
+  }
 
-  public ComplexValue(SimpleExpr realValue) {
+  public ComplexValue(JExpr realValue) {
     this.realValue = realValue;
     this.imaginaryValue = Expressions.zero(realValue.getType());
   }
@@ -41,18 +49,29 @@ public class ComplexValue implements Expr, LValue<ComplexValue>, Addressable {
     return componentType;
   }
 
-  public SimpleExpr getRealValue() {
+  public JExpr getRealJExpr() {
     return realValue;
   }
+  
+  public GExpr getRealGExpr() {
+    return new PrimitiveValue(realValue);
+  }
 
-  public SimpleExpr getImaginaryValue() {
+  public JExpr getImaginaryJExpr() {
     return imaginaryValue;
   }
   
+  public GExpr getImaginaryGExpr() {
+    return new PrimitiveValue(imaginaryValue);
+  }
+  
   @Override
-  public void store(MethodGenerator mv, ComplexValue complexValue) {
-    ((SimpleLValue) realValue).store(mv, complexValue.getRealValue());
-    ((SimpleLValue) imaginaryValue).store(mv, complexValue.getImaginaryValue());
+  public void store(MethodGenerator mv, GExpr rhs) {
+    
+    ComplexValue complexRhs = (ComplexValue) rhs;
+    
+    ((JLValue) realValue).store(mv, complexRhs.getRealJExpr());
+    ((JLValue) imaginaryValue).store(mv, complexRhs.getImaginaryJExpr());
   }
 
   /**

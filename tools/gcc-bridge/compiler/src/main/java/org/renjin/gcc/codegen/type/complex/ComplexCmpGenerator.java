@@ -42,8 +42,8 @@ public class ComplexCmpGenerator implements ConditionGenerator {
   private void emitJumpIfEqual(MethodGenerator mv, Label equalLabel, Label notEqualLabel) {
     
     // First check real part 
-    x.getRealValue().load(mv);
-    y.getRealValue().load(mv);
+    x.getRealJExpr().load(mv);
+    y.getRealJExpr().load(mv);
 
     // Compare the two real values.
     // If they are equal, ZERO is pushed onto the stack
@@ -54,8 +54,8 @@ public class ComplexCmpGenerator implements ConditionGenerator {
     mv.ifne(notEqualLabel);
 
     // Now check imaginary part
-    x.getImaginaryValue().load(mv);
-    y.getImaginaryValue().load(mv);
+    x.getImaginaryJExpr().load(mv);
+    y.getImaginaryJExpr().load(mv);
 
     // Compare the two imaginary values.
     // If they are equal, ZERO is pushed onto the stack

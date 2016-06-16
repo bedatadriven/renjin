@@ -2,9 +2,9 @@ package org.renjin.gcc.codegen.type.voidt;
 
 import com.google.common.base.Optional;
 import org.objectweb.asm.Type;
-import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.expr.Expressions;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 
@@ -29,17 +29,17 @@ public class VoidPtrValueFunction implements ValueFunction {
   }
 
   @Override
-  public Optional<SimpleExpr> getValueConstructor() {
+  public Optional<JExpr> getValueConstructor() {
     return Optional.absent();
   }
 
   @Override
-  public Expr dereference(SimpleExpr array, SimpleExpr offset) {
-    return Expressions.elementAt(array, offset);
+  public GExpr dereference(JExpr array, JExpr offset) {
+    return new VoidPtr(Expressions.elementAt(array, offset));
   }
 
   @Override
-  public List<SimpleExpr> toArrayValues(Expr expr) {
+  public List<JExpr> toArrayValues(GExpr expr) {
     FatPtrExpr fatPtrExpr = (FatPtrExpr) expr;
     return Collections.singletonList(fatPtrExpr.wrap());
   }

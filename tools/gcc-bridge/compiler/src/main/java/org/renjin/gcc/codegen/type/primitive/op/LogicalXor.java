@@ -3,19 +3,19 @@ package org.renjin.gcc.codegen.type.primitive.op;
 import com.google.common.base.Preconditions;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 
 import javax.annotation.Nonnull;
 
 /**
  * Generates the logical exclusive or of two operands
  */
-public class LogicalXor implements SimpleExpr {
+public class LogicalXor implements JExpr {
   
-  private final SimpleExpr x;
-  private final SimpleExpr y;
+  private final JExpr x;
+  private final JExpr y;
 
-  public LogicalXor(SimpleExpr x, SimpleExpr y) {
+  public LogicalXor(JExpr x, JExpr y) {
     this.y = y;
     this.x = x;
     Preconditions.checkArgument(x.getType().equals(Type.BOOLEAN_TYPE) &&

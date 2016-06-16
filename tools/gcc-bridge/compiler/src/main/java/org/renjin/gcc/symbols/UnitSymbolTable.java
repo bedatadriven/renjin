@@ -5,8 +5,8 @@ import com.google.common.collect.Maps;
 import org.renjin.gcc.codegen.FunctionGenerator;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.call.FunctionCallGenerator;
-import org.renjin.gcc.codegen.expr.Expr;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.fun.FunctionRefGenerator;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleVarDecl;
@@ -25,7 +25,7 @@ import java.util.Map;
 public class UnitSymbolTable implements SymbolTable {
   
   private final GlobalSymbolTable globalSymbolTable;
-  private final Map<Integer, Expr> variableMap = Maps.newHashMap();
+  private final Map<Integer, GExpr> variableMap = Maps.newHashMap();
   private final List<FunctionGenerator> functions = Lists.newArrayList();
   private final Map<String, FunctionGenerator> functionNameMap = Maps.newHashMap();
 
@@ -33,8 +33,8 @@ public class UnitSymbolTable implements SymbolTable {
     this.globalSymbolTable = globalSymbolTable;
   }
   
-  public Expr getVariable(GimpleSymbolRef ref) {
-    Expr expr = variableMap.get(ref.getId());
+  public GExpr getVariable(GimpleSymbolRef ref) {
+    GExpr expr = variableMap.get(ref.getId());
     if(expr != null) {
       return expr;
     }
@@ -42,15 +42,15 @@ public class UnitSymbolTable implements SymbolTable {
     return globalSymbolTable.getVariable(ref);
   }
 
-  public Expr getGlobalVariable(GimpleVarDecl decl) {
-    Expr expr = variableMap.get(decl.getId());
+  public GExpr getGlobalVariable(GimpleVarDecl decl) {
+    GExpr expr = variableMap.get(decl.getId());
     if(expr == null) {
       throw new IllegalArgumentException("decl: " + decl);
     }
     return expr;
   }
 
-  public void addGlobalVariable(GimpleVarDecl decl, Expr globalVar) {
+  public void addGlobalVariable(GimpleVarDecl decl, GExpr globalVar) {
     variableMap.put(decl.getId(), globalVar);
     if(decl.isExtern()) {
       globalSymbolTable.addVariable(decl.getName(), globalVar);
@@ -73,7 +73,7 @@ public class UnitSymbolTable implements SymbolTable {
     return functions;
   }
   
-  public SimpleExpr findHandle(GimpleFunctionRef functionRef) {
+  public JExpr findHandle(GimpleFunctionRef functionRef) {
     if(functionNameMap.containsKey(functionRef.getName())) {
       return new FunctionRefGenerator(functionNameMap.get(functionRef.getName()).getMethodHandle());
     }

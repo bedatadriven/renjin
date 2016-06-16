@@ -6,11 +6,11 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import javax.annotation.Nonnull;
 
 
-public class CloneInvocation implements SimpleExpr {
+public class CloneInvocation implements JExpr {
   
-  private SimpleExpr instance;
+  private JExpr instance;
 
-  public CloneInvocation(SimpleExpr instance) {
+  public CloneInvocation(JExpr instance) {
     this.instance = instance;
   }
 

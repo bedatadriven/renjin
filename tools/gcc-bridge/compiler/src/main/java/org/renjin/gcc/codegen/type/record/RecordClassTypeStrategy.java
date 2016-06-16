@@ -11,6 +11,7 @@ import org.renjin.gcc.codegen.fatptr.AddressableField;
 import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
 import org.renjin.gcc.codegen.type.*;
+import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrStrategy;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
@@ -28,7 +29,7 @@ import java.util.Map;
 /**
  * Strategy for variables and values of type {@code GimpleRecordType} that employs JVM classes
  */
-public class RecordClassTypeStrategy extends RecordTypeStrategy<RecordClassValueExpr> {
+public class RecordClassTypeStrategy extends RecordTypeStrategy<RecordValue> implements SimpleTypeStrategy<RecordValue> {
 
   private Type jvmType;
   private boolean provided;
@@ -50,6 +51,11 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<RecordClassValue
       throw new IllegalStateException("Type name of record " + getRecordType().getName() + " has not been initialized.");
     }
     return jvmType;
+  }
+
+  @Override
+  public RecordValue wrap(JExpr expr) {
+    return new RecordValue(expr);
   }
 
   public void setJvmType(Type jvmType) {
@@ -121,27 +127,27 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<RecordClassValue
 
   @Override
   public ReturnStrategy getReturnStrategy() {
-    return new SimpleReturnStrategy(jvmType);
+    return new SimpleReturnStrategy(this);
   }
 
   @Override
-  public RecordClassValueExpr variable(GimpleVarDecl decl, VarAllocator allocator) {
+  public RecordValue variable(GimpleVarDecl decl, VarAllocator allocator) {
 
-    SimpleLValue instance = allocator.reserve(decl.getName(), jvmType, new RecordConstructor(this));
+    JLValue instance = allocator.reserve(decl.getName(), jvmType, new RecordConstructor(this));
 
     if(isUnitPointer()) {
       // If we are using the RecordUnitPtr strategy, then the record value is also it's address
-      return new RecordClassValueExpr(instance, instance);
+      return new RecordValue(instance, new RecordUnitPtr(instance));
 
     } else if(decl.isAddressable()) {
-      SimpleLValue unitArray = allocator.reserveUnitArray(decl.getName(), jvmType, Optional.of((SimpleExpr)instance));
+      JLValue unitArray = allocator.reserveUnitArray(decl.getName(), jvmType, Optional.of((JExpr)instance));
       FatPtrExpr address = new FatPtrExpr(unitArray);
-      SimpleExpr value = Expressions.elementAt(address.getArray(), 0);
-      return new RecordClassValueExpr(value, address);
+      JExpr value = Expressions.elementAt(address.getArray(), 0);
+      return new RecordValue(value, address);
 
     } else {
       
-      return new RecordClassValueExpr(instance);
+      return new RecordValue(instance);
     }
   }
 
@@ -161,13 +167,13 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<RecordClassValue
   }
   
   @Override
-  public RecordClassValueExpr constructorExpr(ExprFactory exprFactory, GimpleConstructor value) {
-    Map<GimpleFieldRef, Expr> fields = Maps.newHashMap();
+  public RecordValue constructorExpr(ExprFactory exprFactory, GimpleConstructor value) {
+    Map<GimpleFieldRef, GExpr> fields = Maps.newHashMap();
     for (GimpleConstructor.Element element : value.getElements()) {
-      Expr fieldValue = exprFactory.findGenerator(element.getValue());
+      GExpr fieldValue = exprFactory.findGenerator(element.getValue());
       fields.put((GimpleFieldRef) element.getField(), fieldValue);
     }
-    return new RecordClassValueExpr(new RecordConstructor(this, fields));
+    return new RecordValue(new RecordConstructor(this, fields));
   }
 
 
@@ -182,13 +188,13 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<RecordClassValue
   }
 
   @Override
-  public Expr memberOf(RecordClassValueExpr instance, GimpleFieldRef fieldRef) {
+  public GExpr memberOf(RecordValue instance, GimpleFieldRef fieldRef) {
     if(nameMap == null) {
       throw new IllegalStateException("Fields map is not yet initialized.");
     }
     FieldStrategy fieldStrategy = nameMap.get(fieldRef.getName());
     if(fieldStrategy != null) {
-      return fieldStrategy.memberExprGenerator(instance);
+      return fieldStrategy.memberExprGenerator(instance.getRef());
     }
     
     // Field names are not really taken seriously in Gimple
@@ -196,7 +202,7 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<RecordClassValue
     fieldStrategy = offsetMap.get(fieldRef.getOffset());
     
     if(fieldStrategy != null) {
-      return fieldStrategy.memberExprGenerator(instance);
+      return fieldStrategy.memberExprGenerator(instance.getRef());
     }
     
     throw new InternalCompilerException(

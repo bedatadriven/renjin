@@ -2,9 +2,9 @@ package org.renjin.gcc.codegen.type.record.unit;
 
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.expr.Expressions;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.ReturnStrategy;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
@@ -22,15 +22,15 @@ public class RecordUnitPtrReturnStrategy implements ReturnStrategy {
   }
 
   @Override
-  public SimpleExpr marshall(Expr expr) {
-    return (SimpleExpr)expr;
+  public JExpr marshall(GExpr expr) {
+    return ((RecordUnitPtr) expr).unwrap();
   }
 
   @Override
-  public Expr unmarshall(MethodGenerator mv, SimpleExpr returnValue, TypeStrategy lhsTypeStrategy) {
+  public GExpr unmarshall(MethodGenerator mv, JExpr returnValue, TypeStrategy lhsTypeStrategy) {
     if(lhsTypeStrategy instanceof RecordUnitPtrStrategy) {
       RecordUnitPtrStrategy lhsUnitPtrStrategy = (RecordUnitPtrStrategy) lhsTypeStrategy;
-      return Expressions.cast(returnValue, lhsUnitPtrStrategy.getJvmType());
+      return new RecordUnitPtr(Expressions.cast(returnValue, lhsUnitPtrStrategy.getJvmType()));
 
     } else if(lhsTypeStrategy instanceof RecordClassTypeStrategy) {
       // In some cases, when you have a function like this:
@@ -43,7 +43,7 @@ public class RecordUnitPtrReturnStrategy implements ReturnStrategy {
       // GCC does not generate an intermediate pointer value and a mem_ref like you
       // would expect. I can't seem to reproduce this in a test case, so here is a workaround:
       RecordClassTypeStrategy lhsValueTypeStrategy = (RecordClassTypeStrategy) lhsTypeStrategy;
-      return Expressions.cast(returnValue, lhsValueTypeStrategy.getJvmType());
+      return new RecordUnitPtr(Expressions.cast(returnValue, lhsValueTypeStrategy.getJvmType()));
     
     } else {
       throw new UnsupportedOperationException(
@@ -53,7 +53,7 @@ public class RecordUnitPtrReturnStrategy implements ReturnStrategy {
   }
 
   @Override
-  public SimpleExpr getDefaultReturnValue() {
+  public JExpr getDefaultReturnValue() {
     return Expressions.nullRef(jvmType);
   }
 }

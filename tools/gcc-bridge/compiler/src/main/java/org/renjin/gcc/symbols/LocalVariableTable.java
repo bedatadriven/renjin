@@ -3,8 +3,8 @@ package org.renjin.gcc.symbols;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import org.renjin.gcc.codegen.call.CallGenerator;
-import org.renjin.gcc.codegen.expr.Expr;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
 import org.renjin.gcc.gimple.expr.GimpleSymbolRef;
@@ -14,13 +14,13 @@ import java.util.Map;
 public class LocalVariableTable implements SymbolTable {
 
   private final UnitSymbolTable parent;
-  private Map<Integer, Expr> variableMap = Maps.newHashMap();
+  private Map<Integer, GExpr> variableMap = Maps.newHashMap();
 
   public LocalVariableTable(UnitSymbolTable parent) {
     this.parent = parent;
   }
 
-  public void addVariable(Integer gimpleId, Expr variable) {
+  public void addVariable(Integer gimpleId, GExpr variable) {
     Preconditions.checkNotNull(variable);
     Preconditions.checkState(!variableMap.containsKey(gimpleId), "variable already registered with id " + gimpleId);
 
@@ -28,8 +28,8 @@ public class LocalVariableTable implements SymbolTable {
   }
 
   @Override
-  public Expr getVariable(GimpleSymbolRef ref) {
-    Expr variable = variableMap.get(ref.getId());
+  public GExpr getVariable(GimpleSymbolRef ref) {
+    GExpr variable = variableMap.get(ref.getId());
     if(variable == null) {
       if (parent == null) {
         throw new IllegalStateException("No variable with " + ref.getName() + " [id=" + ref.getId() + "]");
@@ -40,15 +40,15 @@ public class LocalVariableTable implements SymbolTable {
     return variable;
   }
 
-  public Expr getVariable(GimpleVarDecl decl) {
-    Expr varGenerator = variableMap.get(decl.getId());
+  public GExpr getVariable(GimpleVarDecl decl) {
+    GExpr varGenerator = variableMap.get(decl.getId());
     if(varGenerator == null) {
       throw new IllegalStateException("No variable named " + decl.getName() + " [id=" + decl.getId() + "]");
     }
     return varGenerator;
   }
 
-  public SimpleExpr findHandle(GimpleFunctionRef functionRef) {
+  public JExpr findHandle(GimpleFunctionRef functionRef) {
     return parent.findHandle(functionRef);
   }
 

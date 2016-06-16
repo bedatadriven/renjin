@@ -3,11 +3,10 @@ package org.renjin.gcc.codegen.type.record;
 import com.google.common.base.Optional;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.Expr;
-import org.renjin.gcc.codegen.expr.SimpleAddressableExpr;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
-import org.renjin.gcc.codegen.expr.SimpleLValue;
+import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.gcc.codegen.type.ParamStrategy;
+import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleParameter;
 
@@ -24,38 +23,38 @@ public class RecordClassParamStrategy implements ParamStrategy {
     this.jvmType = jvmType;
     this.unitPointer = unitPointer;
   }
-
+  
   @Override
   public List<Type> getParameterTypes() {
     return Collections.singletonList(jvmType);
   }
 
   @Override
-  public Expr emitInitialization(MethodGenerator methodVisitor, GimpleParameter parameter, List<SimpleLValue> paramVars, VarAllocator localVars) {
+  public RecordValue emitInitialization(MethodGenerator methodVisitor, GimpleParameter parameter, List<JLValue> paramVars, VarAllocator localVars) {
     if(unitPointer) {
       // If this type can be represented as a unit pointer, then 
       // the address expression is equivalent to the value expression.
-      SimpleLValue ref = paramVars.get(0);
-      SimpleExpr address = ref;
+      JLValue ref = paramVars.get(0);
+      RecordUnitPtr address = new RecordUnitPtr(ref);
       
-      return new SimpleAddressableExpr(ref, address);
+      return new RecordValue(ref, address);
    
     } else {
       if (parameter.isAddressable()) {
         throw new UnsupportedOperationException("TODO");
       } else {
-        return paramVars.get(0);
+        return new RecordValue(paramVars.get(0));
       }
     }
   }
 
   @Override
-  public void loadParameter(MethodGenerator mv, Optional<Expr> argument) {
+  public void loadParameter(MethodGenerator mv, Optional<GExpr> argument) {
     if(argument.isPresent()) {
-      SimpleExpr ref = (SimpleExpr) argument.get();
-      ref.load(mv);
+      RecordValue recordValue = (RecordValue) argument.get();
+      recordValue.getRef().load(mv);
       // We are passing by value, so we need to put a clone of the record on the stack
-      mv.invokevirtual(ref.getType(), "clone", Type.getMethodDescriptor(ref.getType()), false);
+      mv.invokevirtual(recordValue.getJvmType(), "clone", Type.getMethodDescriptor(recordValue.getJvmType()), false);
       
     } else {
       mv.aconst(null);

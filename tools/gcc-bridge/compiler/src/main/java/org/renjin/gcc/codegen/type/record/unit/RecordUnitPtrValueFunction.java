@@ -2,10 +2,9 @@ package org.renjin.gcc.codegen.type.record.unit;
 
 import com.google.common.base.Optional;
 import org.objectweb.asm.Type;
-import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.expr.Expressions;
-import org.renjin.gcc.codegen.expr.SimpleAddressableExpr;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 
@@ -36,21 +35,21 @@ public class RecordUnitPtrValueFunction implements ValueFunction {
   }
 
   @Override
-  public Optional<SimpleExpr> getValueConstructor() {
+  public Optional<JExpr> getValueConstructor() {
     return Optional.absent();
   }
 
   @Override
-  public Expr dereference(SimpleExpr array, SimpleExpr offset) {
-    SimpleExpr pointerValue = Expressions.elementAt(array, offset);
+  public GExpr dereference(JExpr array, JExpr offset) {
+    JExpr pointerValue = Expressions.elementAt(array, offset);
     FatPtrExpr pointerAddress = new FatPtrExpr(array, offset);
     
-    return new SimpleAddressableExpr(pointerValue, pointerAddress);
+    return new RecordUnitPtr(pointerValue, pointerAddress);
   }
 
   @Override
-  public List<SimpleExpr> toArrayValues(Expr expr) {
-    return Collections.singletonList((SimpleExpr)expr);
+  public List<JExpr> toArrayValues(GExpr expr) {
+    return Collections.singletonList((JExpr)expr);
   }
 
   @Override

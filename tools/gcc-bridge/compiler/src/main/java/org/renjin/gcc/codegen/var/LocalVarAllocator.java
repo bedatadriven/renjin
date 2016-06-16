@@ -6,8 +6,8 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
-import org.renjin.gcc.codegen.expr.SimpleLValue;
+import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.expr.JLValue;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -18,13 +18,13 @@ import java.util.List;
 public class LocalVarAllocator extends VarAllocator {
 
 
-  public static class LocalVar implements SimpleLValue {
+  public static class LocalVar implements JLValue {
     private String name;
     private int index;
     private Type type;
-    private Optional<SimpleExpr> initialValue;
+    private Optional<JExpr> initialValue;
 
-    public LocalVar(String name, int index, Type type, Optional<SimpleExpr> value) {
+    public LocalVar(String name, int index, Type type, Optional<JExpr> value) {
       this.name = name;
       this.index = index;
       this.type = type;
@@ -47,7 +47,7 @@ public class LocalVarAllocator extends VarAllocator {
     }
 
     @Override
-    public void store(MethodGenerator mv, SimpleExpr value) {
+    public void store(MethodGenerator mv, JExpr value) {
       value.load(mv);
       store(mv);
     }
@@ -67,15 +67,15 @@ public class LocalVarAllocator extends VarAllocator {
 
   @Override
   public LocalVar reserve(String name, Type type) {
-    return reserve(name, type, Optional.<SimpleExpr>absent());
+    return reserve(name, type, Optional.<JExpr>absent());
   }
 
   @Override
-  public LocalVar reserve(String name, Type type, SimpleExpr initialValue) {
+  public LocalVar reserve(String name, Type type, JExpr initialValue) {
     return reserve(name, type, Optional.of(initialValue));
   }
   
-  private LocalVar reserve(String name, Type type, Optional<SimpleExpr> initialValue) {
+  private LocalVar reserve(String name, Type type, Optional<JExpr> initialValue) {
     int index = slots;
     slots += type.getSize();
     LocalVar var = new LocalVar(name, index, type, initialValue);

@@ -4,14 +4,14 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 
 import javax.annotation.Nonnull;
 
 /**
  * Generates a boolean value based on a condition
  */
-public class ConditionExpr implements SimpleExpr {
+public class ConditionExpr implements JExpr {
   
   private ConditionGenerator condition;
 

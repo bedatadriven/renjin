@@ -5,10 +5,9 @@ import com.google.common.collect.Lists;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.expr.ExprFactory;
-import org.renjin.gcc.codegen.expr.LValue;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.type.ReturnStrategy;
 import org.renjin.gcc.codegen.type.TypeOracle;
@@ -27,11 +26,11 @@ import java.util.List;
 public class FunPtrCallGenerator implements CallGenerator {
 
   private TypeOracle typeOracle;
-  private SimpleExpr methodHandle;
+  private JExpr methodHandle;
   private final ReturnStrategy returnStrategy;
   private final GimpleFunctionType functionType;
 
-  public FunPtrCallGenerator(TypeOracle typeOracle, GimpleFunctionType type, SimpleExpr methodHandle) {
+  public FunPtrCallGenerator(TypeOracle typeOracle, GimpleFunctionType type, JExpr methodHandle) {
     this.typeOracle = typeOracle;
     this.methodHandle = methodHandle;
     functionType = type;
@@ -73,7 +72,7 @@ public class FunPtrCallGenerator implements CallGenerator {
     
     
     // Now define the actual value
-    SimpleExpr callValue = new SimpleExpr() {
+    JExpr callValue = new JExpr() {
       @Nonnull
       @Override
       public Type getType() {
@@ -100,9 +99,9 @@ public class FunPtrCallGenerator implements CallGenerator {
     
     } else {
       // Otherwise unmarshall the return value into an expression and store to the lhs
-      LValue lhs = (LValue) exprFactory.findGenerator(call.getLhs());
+      GExpr lhs = exprFactory.findGenerator(call.getLhs());
       GimpleType lhsType = call.getLhs().getType();
-      Expr rhs = returnStrategy.unmarshall(mv, callValue, exprFactory.strategyFor(lhsType));
+      GExpr rhs = returnStrategy.unmarshall(mv, callValue, exprFactory.strategyFor(lhsType));
       
       lhs.store(mv, rhs);
     }

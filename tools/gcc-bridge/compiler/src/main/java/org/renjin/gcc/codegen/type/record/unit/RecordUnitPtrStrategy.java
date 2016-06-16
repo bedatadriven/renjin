@@ -13,8 +13,9 @@ import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.type.primitive.ConstantValue;
 import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
-import org.renjin.gcc.codegen.type.record.RecordClassValueExpr;
 import org.renjin.gcc.codegen.type.record.RecordConstructor;
+import org.renjin.gcc.codegen.type.record.RecordValue;
+import org.renjin.gcc.codegen.type.voidt.VoidPtr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrStrategy;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleOp;
@@ -23,7 +24,7 @@ import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 
 
-public class RecordUnitPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
+public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr> {
   
   private RecordClassTypeStrategy strategy;
   private RecordUnitPtrValueFunction valueFunction;
@@ -40,11 +41,11 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
 
   @Override
   public FieldStrategy fieldGenerator(Type className, String fieldName) {
-    return new SimpleFieldStrategy(fieldName, strategy.getJvmType());
+    return new SimpleFieldStrategy(fieldName, strategy.getJvmType(), RecordUnitPtr.class);
   }
 
   @Override
-  public SimpleExpr constructorExpr(ExprFactory exprFactory, GimpleConstructor value) {
+  public RecordUnitPtr constructorExpr(ExprFactory exprFactory, GimpleConstructor value) {
     throw new UnsupportedOperationException("TODO");
   }
 
@@ -64,18 +65,20 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
   }
 
   @Override
-  public SimpleExpr cast(Expr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+  public RecordUnitPtr cast(GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
     if(typeStrategy instanceof FatPtrStrategy) {
       FatPtrExpr ptr = (FatPtrExpr) value;
       // TODO
       // Currently we punt until runtime by triggering a ClassCastException
-      return Expressions.uncheckedCast(ptr.getArray(), strategy.getJvmType());
+      return new RecordUnitPtr(Expressions.uncheckedCast(ptr.getArray(), strategy.getJvmType()));
       
     } else if(typeStrategy instanceof RecordUnitPtrStrategy) {
-      return Expressions.cast((SimpleExpr) value, strategy.getJvmType());
+      RecordUnitPtr ptrExpr = (RecordUnitPtr) value;
+      return new RecordUnitPtr(Expressions.cast(ptrExpr.unwrap(), strategy.getJvmType()));
       
     } else if(typeStrategy instanceof VoidPtrStrategy) {
-      return Expressions.cast((SimpleExpr) value, strategy.getJvmType());
+      VoidPtr voidPtr = (VoidPtr) value;
+      return new RecordUnitPtr(Expressions.cast(voidPtr.unwrap(), strategy.getJvmType()));
     }
     throw new UnsupportedCastException();
   }
@@ -86,91 +89,91 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
   }
 
   @Override
-  public SimpleExpr variable(GimpleVarDecl decl, VarAllocator allocator) {
+  public RecordUnitPtr variable(GimpleVarDecl decl, VarAllocator allocator) {
     if(decl.isAddressable()) {
 
       // Declare this as a Unit array so that we can get a FatPtrExpr if needed
-      SimpleExpr unitArray = allocator.reserveUnitArray(decl.getName(), strategy.getJvmType(), Optional.<SimpleExpr>absent());
+      JExpr unitArray = allocator.reserveUnitArray(decl.getName(), strategy.getJvmType(), Optional.<JExpr>absent());
 
       FatPtrExpr address = new FatPtrExpr(unitArray);
       ArrayElement instance = Expressions.elementAt(unitArray, 0);
       
-      return new SimpleAddressableExpr(instance, address);
+      return new RecordUnitPtr(instance, address);
       
     } else {
-      return allocator.reserve(decl.getName(), strategy.getJvmType());
+      return new RecordUnitPtr(allocator.reserve(decl.getName(), strategy.getJvmType()));
     }
   }
 
   @Override
-  public SimpleExpr malloc(MethodGenerator mv, SimpleExpr sizeInBytes) {
+  public RecordUnitPtr malloc(MethodGenerator mv, JExpr sizeInBytes) {
 
     if (isUnitConstant(sizeInBytes)) {
       throw new InternalCompilerException(getClass().getSimpleName() + " does not support (T)malloc(size) where " +
           "size != sizeof(T). This is probably because of a mistake in the choice of strategy by the compiler.");
     }
-    return new RecordConstructor(strategy);
+    return new RecordUnitPtr(new RecordConstructor(strategy));
   }
 
   @Override
-  public SimpleExpr realloc(SimpleExpr pointer, SimpleExpr newSizeInBytes) {
+  public RecordUnitPtr realloc(RecordUnitPtr pointer, JExpr newSizeInBytes) {
     throw new UnsupportedOperationException("TODO");
   }
 
   @Override
-  public SimpleExpr pointerPlus(SimpleExpr pointer, SimpleExpr offsetInBytes) {
+  public RecordUnitPtr pointerPlus(RecordUnitPtr pointer, JExpr offsetInBytes) {
     // According to our analysis conducted before-hand, there should be no pointer
     // to a sequence of records of this type with more than one record, so the result should
     // be undefined.
-    return Expressions.nullRef(strategy.getJvmType());
+    return nullPointer();
   }
 
   @Override
-  public SimpleExpr nullPointer() {
-    return Expressions.nullRef(strategy.getJvmType());
+  public RecordUnitPtr nullPointer() {
+    return new RecordUnitPtr(Expressions.nullRef(strategy.getJvmType()));
   }
 
   @Override
-  public ConditionGenerator comparePointers(GimpleOp op, SimpleExpr x, SimpleExpr y) {
-    return new RefConditionGenerator(op, x, y);
+  public ConditionGenerator comparePointers(GimpleOp op, RecordUnitPtr x, RecordUnitPtr y) {
+    return new RefConditionGenerator(op, x.unwrap(), y.unwrap());
   }
 
   @Override
-  public SimpleExpr memoryCompare(SimpleExpr p1, SimpleExpr p2, SimpleExpr n) {
+  public JExpr memoryCompare(RecordUnitPtr p1, RecordUnitPtr p2, JExpr n) {
     throw new UnsupportedOperationException("TODO");
   }
 
   @Override
-  public void memoryCopy(MethodGenerator mv, SimpleExpr destination, SimpleExpr source, SimpleExpr length) {
+  public void memoryCopy(MethodGenerator mv, RecordUnitPtr destination, RecordUnitPtr source, JExpr length) {
 
     Type recordType = strategy.getJvmType();
 
-    destination.load(mv);
-    source.load(mv);
+    destination.unwrap().load(mv);
+    source.unwrap().load(mv);
     mv.invokevirtual(recordType, "set", Type.getMethodDescriptor(Type.VOID_TYPE, recordType), false);
   }
 
   @Override
-  public void memorySet(MethodGenerator mv, SimpleExpr pointer, SimpleExpr byteValue, SimpleExpr length) {
+  public void memorySet(MethodGenerator mv, RecordUnitPtr pointer, JExpr byteValue, JExpr length) {
     throw new UnsupportedOperationException("TODO");
   }
 
   @Override
-  public SimpleExpr toVoidPointer(SimpleExpr ptrExpr) {
-    return ptrExpr;
+  public VoidPtr toVoidPointer(RecordUnitPtr ptrExpr) {
+    return new VoidPtr(ptrExpr.unwrap());
   }
 
   @Override
-  public SimpleExpr unmarshallVoidPtrReturnValue(MethodGenerator mv, SimpleExpr voidPointer) {
-    return Expressions.cast(voidPointer, getJvmType());
+  public RecordUnitPtr unmarshallVoidPtrReturnValue(MethodGenerator mv, JExpr voidPointer) {
+    return new RecordUnitPtr(Expressions.cast(voidPointer, getJvmType()));
   }
 
   @Override
-  public RecordClassValueExpr valueOf(SimpleExpr pointerExpr) {
-    return new RecordClassValueExpr(pointerExpr);
+  public RecordValue valueOf(RecordUnitPtr pointerExpr) {
+    return new RecordValue(pointerExpr.unwrap());
   }
 
-  private boolean isUnitConstant(SimpleExpr length) {
+  private boolean isUnitConstant(JExpr length) {
     if(!(length instanceof ConstantValue)) {
       return false;
     }

@@ -15,6 +15,7 @@ import org.renjin.gcc.codegen.fatptr.Wrappers;
 import org.renjin.gcc.codegen.type.complex.ComplexTypeStrategy;
 import org.renjin.gcc.codegen.type.fun.FunPtrStrategy;
 import org.renjin.gcc.codegen.type.fun.FunTypeStrategy;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveParamStrategy;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveTypeStrategy;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValueFunction;
 import org.renjin.gcc.codegen.type.primitive.StringParamStrategy;
@@ -22,6 +23,7 @@ import org.renjin.gcc.codegen.type.record.RecordArrayReturnStrategy;
 import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrParamStrategy;
+import org.renjin.gcc.codegen.type.voidt.VoidPtrStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidReturnStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidTypeStrategy;
 import org.renjin.gcc.gimple.GimpleParameter;
@@ -153,7 +155,7 @@ public class TypeOracle {
       return new VoidReturnStrategy();
 
     } else if(returnType.isPrimitive()) {
-      return new SimpleReturnStrategy(Type.getType(returnType));
+      return new SimpleReturnStrategy(new PrimitiveTypeStrategy(returnType));
 
     } else if(WrapperType.is(returnType)) {
       WrapperType wrapperType = Wrappers.valueOf(returnType);
@@ -182,7 +184,7 @@ public class TypeOracle {
       return recordTypes.get(recordType.getId()).pointerTo().getReturnStrategy();
 
     } else if(returnType.equals(Object.class)) {
-      return new SimpleReturnStrategy(Type.getType(Object.class));
+      return new SimpleReturnStrategy(new VoidPtrStrategy());
 
     } else if(method.isAnnotationPresent(Struct.class)) {
       return new RecordArrayReturnStrategy(Type.getReturnType(method), 0);
@@ -229,7 +231,7 @@ public class TypeOracle {
         index++;
 
       } else if (paramClass.isPrimitive()) {
-        strategies.add(new SimpleParamStrategy(Type.getType(paramClass)));
+        strategies.add(new PrimitiveParamStrategy(Type.getType(paramClass)));
         index++;
 
       } else if (paramClass.equals(String.class)) {

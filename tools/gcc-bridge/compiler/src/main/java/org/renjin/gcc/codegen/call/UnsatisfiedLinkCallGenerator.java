@@ -3,7 +3,7 @@ package org.renjin.gcc.codegen.call;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.ExprFactory;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.gimple.statement.GimpleCall;
 import org.renjin.gcc.runtime.UnsatisfiedLinkException;
 
@@ -35,11 +35,11 @@ public class UnsatisfiedLinkCallGenerator implements CallGenerator, MethodHandle
   }
 
   @Override
-  public SimpleExpr getMethodHandle() {
+  public JExpr getMethodHandle() {
 
     // Create a method handle that throws the UnsatisifiedLinkException.
 
-    return new SimpleExpr() {
+    return new JExpr() {
       @Nonnull
       @Override
       public Type getType() {

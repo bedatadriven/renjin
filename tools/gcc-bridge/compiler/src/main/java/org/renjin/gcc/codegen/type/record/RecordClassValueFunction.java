@@ -3,9 +3,10 @@ package org.renjin.gcc.codegen.type.record;
 import com.google.common.base.Optional;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.expr.ArrayElement;
-import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.expr.Expressions;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 
 import java.util.Collections;
@@ -39,19 +40,21 @@ public class RecordClassValueFunction implements ValueFunction {
   }
 
   @Override
-  public SimpleExpr dereference(SimpleExpr array, SimpleExpr offset) {
+  public RecordValue dereference(JExpr array, JExpr offset) {
     ArrayElement element = Expressions.elementAt(array, offset);
-    return new RecordClassValueExpr(element, element.addressOf());
+    FatPtrExpr address = new FatPtrExpr(array, offset);
+    
+    return new RecordValue(element, address);
   }
 
   @Override
-  public List<SimpleExpr> toArrayValues(Expr expr) {
-    return Collections.singletonList((SimpleExpr) expr);
+  public List<JExpr> toArrayValues(GExpr expr) {
+    return Collections.singletonList(((RecordValue) expr).getRef());
   }
 
   @Override
-  public Optional<SimpleExpr> getValueConstructor() {
-    return Optional.<SimpleExpr>of(new RecordConstructor(strategy));
+  public Optional<JExpr> getValueConstructor() {
+    return Optional.<JExpr>of(new RecordConstructor(strategy));
   }
 
   @Override

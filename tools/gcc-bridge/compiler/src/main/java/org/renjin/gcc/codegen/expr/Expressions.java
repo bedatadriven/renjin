@@ -7,7 +7,6 @@ import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.type.primitive.ConstantValue;
-import org.renjin.gcc.codegen.type.primitive.FieldValue;
 import org.renjin.gcc.codegen.type.primitive.op.PrimitiveBinOpGenerator;
 import org.renjin.gcc.gimple.GimpleOp;
 
@@ -19,25 +18,25 @@ import java.util.List;
 import static org.objectweb.asm.Type.getMethodDescriptor;
 
 /**
- * Static utility methods pertaining to create and compose {@link Expr}s
+ * Static utility methods pertaining to create and compose {@link GExpr}s
  */
 public class Expressions {
 
-  public static SimpleExpr newArray(final Type componentType, final int length) {
+  public static JExpr newArray(final Type componentType, final int length) {
     return newArray(componentType, constantInt(length));
   }
 
-  public static SimpleExpr newArray(final WrapperType componentType, final int length) {
+  public static JExpr newArray(final WrapperType componentType, final int length) {
     return newArray(componentType.getWrapperType(), length);
   }
 
-  public static SimpleExpr newArray(Class<?> componentClass, int length) {
+  public static JExpr newArray(Class<?> componentClass, int length) {
     return newArray(Type.getType(componentClass), length);
   }
   
-  public static SimpleExpr newArray(final Type componentType, final SimpleExpr length) {
+  public static JExpr newArray(final Type componentType, final JExpr length) {
     checkType("length", length, Type.INT);
-    return new SimpleExpr() {
+    return new JExpr() {
       @Nonnull
       @Override
       public Type getType() {
@@ -52,29 +51,29 @@ public class Expressions {
     };
   }
   
-  public static SimpleExpr newArray(SimpleExpr value, final SimpleExpr... moreValues) {
+  public static JExpr newArray(JExpr value, final JExpr... moreValues) {
 
-    List<SimpleExpr> values = new ArrayList<>();
+    List<JExpr> values = new ArrayList<>();
     values.add(value);
     values.addAll(Arrays.asList(moreValues));
       
     return newArray(value.getType(), values);
   }
 
-  public static SimpleExpr newArray(final Type componentType, final List<SimpleExpr> values) {
+  public static JExpr newArray(final Type componentType, final List<JExpr> values) {
     return newArray(componentType, values.size(), values);
   }
 
 
-  public static SimpleExpr newArray(Type valueType, int elementLength, Optional<SimpleExpr> firstValue) {
-    List<SimpleExpr> initialValues = Lists.newArrayList();
+  public static JExpr newArray(Type valueType, int elementLength, Optional<JExpr> firstValue) {
+    List<JExpr> initialValues = Lists.newArrayList();
     if(firstValue.isPresent()) {
       initialValues.add(firstValue.get());
     }
     return newArray(valueType, elementLength, initialValues);
   }
 
-  public static SimpleExpr newArray(final Type componentType, final int arrayLength, final List<SimpleExpr> values) {
+  public static JExpr newArray(final Type componentType, final int arrayLength, final List<JExpr> values) {
     Preconditions.checkNotNull(componentType, "componentType");
     
     if(values.size() > arrayLength) {
@@ -94,7 +93,7 @@ public class Expressions {
       }
     }
 
-    return new SimpleExpr() {
+    return new JExpr() {
       @Nonnull
       @Override
       public Type getType() {
@@ -116,19 +115,19 @@ public class Expressions {
   }
 
 
-  public static ArrayElement elementAt(SimpleExpr array, final int offset) {
+  public static ArrayElement elementAt(JExpr array, final int offset) {
     return elementAt(array, constantInt(offset));
   }
 
-  public static ArrayElement elementAt(final SimpleExpr array, final SimpleExpr offset) {
+  public static ArrayElement elementAt(final JExpr array, final JExpr offset) {
     checkType("array", array, Type.ARRAY);
     checkType("offset", offset, Type.INT_TYPE);
     
     return new ArrayElement(array, offset);
   }
 
-  public static SimpleExpr nullRef(final Type type) {
-    return new SimpleExpr() {
+  public static JExpr nullRef(final Type type) {
+    return new JExpr() {
       @Nonnull
       @Override
       public Type getType() {
@@ -142,23 +141,23 @@ public class Expressions {
     };
   }
 
-  public static SimpleExpr constantInt(final int value) {
+  public static JExpr constantInt(final int value) {
     return new ConstantValue(Type.INT_TYPE, value);
   }
 
-  public static SimpleExpr zero() {
+  public static JExpr zero() {
     return constantInt(0);
   }
 
-  public static SimpleExpr zero(final Type type) {
+  public static JExpr zero(final Type type) {
     return new ConstantValue(type, 0);
   }
 
-  public static SimpleExpr sum(final SimpleExpr x, final SimpleExpr y) {
+  public static JExpr sum(final JExpr x, final JExpr y) {
     return new PrimitiveBinOpGenerator(GimpleOp.PLUS_EXPR, x, y);
   }
   
-  public static SimpleExpr sum(SimpleExpr x, int y) {
+  public static JExpr sum(JExpr x, int y) {
     if(y == 0) {
       return x;
     } else {
@@ -166,11 +165,11 @@ public class Expressions {
     }
   }
 
-  public static SimpleExpr difference(SimpleExpr x, SimpleExpr y) {
+  public static JExpr difference(JExpr x, JExpr y) {
     return new PrimitiveBinOpGenerator(GimpleOp.MINUS_EXPR, x, y);
   }
 
-  public static SimpleExpr difference(SimpleExpr x, int y) {
+  public static JExpr difference(JExpr x, int y) {
     if(y == 0) {
       return x;
     } else {
@@ -178,11 +177,11 @@ public class Expressions {
     }
   }
 
-  public static SimpleExpr product(SimpleExpr x, SimpleExpr y) {
+  public static JExpr product(JExpr x, JExpr y) {
     return new PrimitiveBinOpGenerator(GimpleOp.MULT_EXPR, x, y);
   }
   
-  public static SimpleExpr product(SimpleExpr x, int y) {
+  public static JExpr product(JExpr x, int y) {
     Preconditions.checkArgument(x.getType().equals(Type.INT_TYPE));
     
     if(y == 0) {
@@ -194,20 +193,20 @@ public class Expressions {
     }
   }
 
-  public static SimpleExpr divide(SimpleExpr x, SimpleExpr y) {
+  public static JExpr divide(JExpr x, JExpr y) {
     return new PrimitiveBinOpGenerator(GimpleOp.EXACT_DIV_EXPR, x, y);
   }
 
-  public static SimpleExpr divide(SimpleExpr size, int divisor) {
+  public static JExpr divide(JExpr size, int divisor) {
     Preconditions.checkArgument(size.getType().equals(Type.INT_TYPE));
 
     return divide(size, constantInt(divisor));
   }
 
-  public static SimpleLValue field(final SimpleExpr instance, final Type fieldType, final String fieldName) {
+  public static JLValue field(final JExpr instance, final Type fieldType, final String fieldName) {
     checkType("instance", instance, Type.OBJECT);
     
-    return new SimpleLValue() {
+    return new JLValue() {
       @Nonnull
       @Override
       public Type getType() {
@@ -221,7 +220,7 @@ public class Expressions {
       }
 
       @Override
-      public void store(MethodGenerator mv, SimpleExpr value) {
+      public void store(MethodGenerator mv, JExpr value) {
         instance.load(mv);
         value.load(mv);
         mv.putfield(instance.getType().getInternalName(), fieldName, fieldType.getDescriptor());
@@ -229,19 +228,19 @@ public class Expressions {
     };
   }
   
-  private static void checkType(String argName, SimpleExpr value, int expectedSort) {
+  private static void checkType(String argName, JExpr value, int expectedSort) {
     if(value.getType().getSort() != expectedSort) {
       throw new IllegalArgumentException(String.format("Illegal type for %s: %s", argName, value.getType()));
     }
   }
-  private static void checkType(String argName, SimpleExpr value, Type expectedType) {
+  private static void checkType(String argName, JExpr value, Type expectedType) {
     if(!value.getType().equals(expectedType)) {
       throw new IllegalArgumentException(String.format("Illegal type %s for %s: Expected %s",
           value.getType(), argName, expectedType));
     }
   }
 
-  public static SimpleExpr cast(final SimpleExpr object, final Type type) {
+  public static JExpr cast(final JExpr object, final Type type) {
     
     // Can we reduce this to a NOOP ?
     if(object.getType().equals(type) || type.equals(Type.getType(Object.class))) {
@@ -254,8 +253,8 @@ public class Expressions {
     return uncheckedCast(object, type);
   }
 
-  public static SimpleExpr uncheckedCast(final SimpleExpr object, final Type type) {
-    return new SimpleLValue() {
+  public static JExpr uncheckedCast(final JExpr object, final Type type) {
+    return new JLValue() {
 
       @Nonnull
       @Override
@@ -271,17 +270,17 @@ public class Expressions {
       
       @Override
       @SuppressWarnings("unchecked")
-      public void store(MethodGenerator mv, SimpleExpr value) {
-        if(!(object instanceof LValue)) {
+      public void store(MethodGenerator mv, JExpr value) {
+        if(!(object instanceof JLValue)) {
           throw new UnsupportedOperationException();
         }
-        ((LValue) object).store(mv, value);
+        ((JLValue) object).store(mv, value);
       }
     };
   }
 
-  public static SimpleExpr castPrimitive(final SimpleExpr expr, final Type type) {
-    return new SimpleExpr() {
+  public static JExpr castPrimitive(final JExpr expr, final Type type) {
+    return new JExpr() {
       @Nonnull
       @Override
       public Type getType() {
@@ -316,8 +315,8 @@ public class Expressions {
     }
   }
 
-  public static SimpleExpr voidValue() {
-    return new SimpleExpr() {
+  public static JExpr voidValue() {
+    return new JExpr() {
       @Nonnull
       @Override
       public Type getType() {
@@ -331,8 +330,8 @@ public class Expressions {
     };
   }
 
-  public static SimpleExpr thisValue(final Type type) {
-    return new SimpleExpr() {
+  public static JExpr thisValue(final Type type) {
+    return new JExpr() {
 
       @Nonnull
       @Override
@@ -347,7 +346,7 @@ public class Expressions {
     };
   }
 
-  public static boolean isPrimitive(SimpleExpr simpleExpr) {
+  public static boolean isPrimitive(JExpr simpleExpr) {
     return isPrimitive(simpleExpr.getType());
   }
 
@@ -373,14 +372,14 @@ public class Expressions {
     }
   }
 
-  public static SimpleExpr box(final SimpleExpr simpleExpr) {
+  public static JExpr box(final JExpr simpleExpr) {
     Preconditions.checkArgument(isPrimitive(simpleExpr), "simpleExpr must be a primitive");
     
     Type primitiveType = simpleExpr.getType();
     final Type boxedType = boxedType(primitiveType);
     final String valueOfDescriptor = getMethodDescriptor(boxedType, primitiveType);
     
-    return new SimpleExpr() {
+    return new JExpr() {
       @Nonnull
       @Override
       public Type getType() {
@@ -419,11 +418,11 @@ public class Expressions {
     }
   }
 
-  public static SimpleExpr copyOfArrayRange(final SimpleExpr array, final SimpleExpr from, final SimpleExpr to) {
+  public static JExpr copyOfArrayRange(final JExpr array, final JExpr from, final JExpr to) {
 
     final Type arrayType = array.getType();
 
-    return new SimpleExpr() {
+    return new JExpr() {
       @Nonnull
       @Override
       public Type getType() {
@@ -443,11 +442,11 @@ public class Expressions {
     };
   }
 
-  public static SimpleExpr copyOfArray(final SimpleExpr array) {
+  public static JExpr copyOfArray(final JExpr array) {
 
     final Type arrayType = array.getType();
 
-    return new SimpleExpr() {
+    return new JExpr() {
       @Nonnull
       @Override
       public Type getType() {
@@ -467,8 +466,8 @@ public class Expressions {
     };
   }
 
-  public static SimpleExpr newObject(final Type classType) {
-    return new SimpleExpr() {
+  public static JExpr newObject(final Type classType) {
+    return new JExpr() {
       @Nonnull
       @Override
       public Type getType() {
@@ -484,15 +483,15 @@ public class Expressions {
     };
   }
   
-  public static SimpleExpr shiftRight(final SimpleExpr x, int bits) {
+  public static JExpr shiftRight(final JExpr x, int bits) {
     if(bits == 0) {
       return x;
     }
     return shiftRight(x, constantInt(bits));
   }
   
-  public static SimpleExpr shiftRight(final SimpleExpr x, final SimpleExpr bits) {
-    return new SimpleExpr() {
+  public static JExpr shiftRight(final JExpr x, final JExpr bits) {
+    return new JExpr() {
       @Nonnull
       @Override
       public Type getType() {
@@ -508,7 +507,7 @@ public class Expressions {
     };
   }
   
-  public static SimpleExpr[] intToByteArray(SimpleExpr intExpr) {
+  public static JExpr[] intToByteArray(JExpr intExpr) {
     //    (byte) (value >> 24),
     //        (byte) (value >> 16),
     //        (byte) (value >> 8),
@@ -520,7 +519,7 @@ public class Expressions {
 //        castPrimitive(shiftRight(intExpr, 8), Type.BYTE_TYPE),
 //        castPrimitive(shiftRight(intExpr, 0), Type.BYTE_TYPE) };
 
-    return new SimpleExpr[] {
+    return new JExpr[] {
 
         castPrimitive(shiftRight(intExpr, 0), Type.BYTE_TYPE),
         castPrimitive(shiftRight(intExpr, 8), Type.BYTE_TYPE),
@@ -528,8 +527,8 @@ public class Expressions {
         castPrimitive(shiftRight(intExpr, 24), Type.BYTE_TYPE) };
   }
 
-  public static SimpleExpr identityHash(final SimpleExpr value) {
-    return new SimpleExpr() {
+  public static JExpr identityHash(final JExpr value) {
+    return new JExpr() {
       @Nonnull
       @Override
       public Type getType() {
@@ -544,8 +543,8 @@ public class Expressions {
     };
   }
 
-  public static SimpleLValue localVariable(final Type type, final int index) {
-    return new SimpleLValue() {
+  public static JLValue localVariable(final Type type, final int index) {
+    return new JLValue() {
 
       @Nonnull
       @Override
@@ -559,7 +558,7 @@ public class Expressions {
       }
 
       @Override
-      public void store(MethodGenerator mv, SimpleExpr rhs) {
+      public void store(MethodGenerator mv, JExpr rhs) {
         rhs.load(mv);
         mv.store(index, type);
       }

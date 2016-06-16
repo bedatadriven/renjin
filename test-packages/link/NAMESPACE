@@ -1,3 +1,5 @@
-useDynLib(native, Cmydoublesum = mydoublesum)
+useDynLib(link, .registration = TRUE)
 
-export(mydoublesum)
+
+export(mydsum2)
+export(mysum2)

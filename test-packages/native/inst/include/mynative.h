@@ -2,10 +2,11 @@
 #define H_MYNATIVE_H
 
 #include <Rinternals.h>
+#include <R_ext/Rdynload.h>
 
-SEXP mysum(SEXP vector);
+SEXP Cmysum(SEXP vector);
+SEXP Cmydsum(SEXP vector);
 
 void dpchimtest_();
-
 
 #endif

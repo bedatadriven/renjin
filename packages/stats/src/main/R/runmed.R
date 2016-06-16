@@ -1,11 +1,11 @@
 #  File src/library/stats/R/runmed.R
 #  Part of the R package, http://www.R-project.org
 #
-#  Copyright (C) 1995 Berwin A. Turlach <berwin@alphasun.anu.edu.au>
+#  Copyright (C) 1995 Berwin A. Turlach
 #  Ported to R, added interface to Stuetzle's code and further enhanced
 #  by Martin Maechler,
-#  Copyright (C) 1996--2002 Martin Maechler <maechler@stat.math.ethz.ch>
-#  Copyright (C) 2003       The R Foundation
+#  Copyright (C) 1996-2002 Martin Maechler
+#  Copyright (C) 2003 The R Foundation
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -24,63 +24,40 @@
 runmed <- function(x, k, endrule = c("median","keep","constant"),
                    algorithm = NULL, print.level = 0)
 {
-    n <- length(x)
+    n <- as.integer(length(x))
+    if(is.na(n)) stop("invalid value of length(x)")
     k <- as.integer(k)
-    if(k < 0) stop("'k' must be positive")
-    if(k%%2 == 0)
-        warning("'k' must be odd!  Changing 'k' to ",
-                k <- as.integer(1+ 2*(k %/% 2)))
-    if(n == 0) {
+    if(is.na(k)) stop("invalid value of 'k'")
+    if(k < 0L) stop("'k' must be positive")
+    if(k %% 2L == 0L)
+        warning(gettextf("'k' must be odd!  Changing 'k' to %d",
+                         k <- as.integer(1+ 2*(k %/% 2))), domain = NA)
+    if(n == 0L) {
 	x <- double(); attr(x, "k") <- k
 	return(x)
     }
     if (k > n)
-        warning("'k' is bigger than 'n'!  Changing 'k' to ",
-                k <- as.integer(1+ 2*((n - 1)%/% 2)))
+        warning(gettextf("'k' is bigger than 'n'!  Changing 'k' to %d",
+                         k <- as.integer(1+ 2*((n - 1)%/% 2))), domain = NA)
     algorithm <-
         if(missing(algorithm)) { ## use efficient default
             ## This is too primitive, MM knows better :
-            if(k < 20 || n < 300) "Stuetzle" else "Turlach"
+            if(k < 20L || n < 300L) "Stuetzle" else "Turlach"
         }
-        else {
-            match.arg(algorithm, c("Stuetzle", "Turlach"))
-        }
+        else match.arg(algorithm, c("Stuetzle", "Turlach"))
     endrule <- match.arg(endrule)# including error.check
     iend <- switch(endrule,
                    ## "median" will be treated at the end
-                   "median" =, "keep" = 0,
-                   "constant" = 1)
+                   "median" =, "keep" = 0L,
+                   "constant" = 1L)
     if(print.level)
         cat("runmed(*, endrule=", endrule,", algorithm=",algorithm,
             ", iend=",iend,")\n")
     res <- switch(algorithm,
-                  Turlach = {
-                      .C(C_Trunmed,
-                         n,
-                         k,
-                         as.double(x),
-                         rmed = double(n),	# median[] -> result
-                         tmp1 = integer(k+1),	# outlist[]
-                         tmp2 = integer(2*k +1),# nrlist []
-                         tmp3 = double (2*k +1),# window []
-                         as.integer(iend),
-                         as.integer(print.level),
-                         DUP = FALSE)$ rmed
-                  },
-                  Stuetzle = {
-                      .C(C_Srunmed,
-                         as.double(x),
-                         smo = double(n),
-                         n,
-                         k,
-                         as.integer(iend),
-                         debug = (print.level > 0),
-                         DUP = FALSE)$ smo
-                  })
-    if(endrule == "median")
-        res <- smoothEnds(res, k = k)
+                  Turlach = .Call(C_runmed, as.double(x), 1, k, iend, print.level),
+                  Stuetzle = .Call(C_runmed, as.double(x), 0, k, iend, print.level))
+    if(endrule == "median") res <- smoothEnds(res, k = k)
 
-    ## list(rmed=res$rmed, k=k)
     ## Setting attribute has the advantage that the result immediately plots
     attr(res,"k") <- k
     res
@@ -113,27 +90,27 @@ smoothEnds <- function(y, k = 3)
     }
 
     k <- as.integer(k)
-    if (k < 0 || k%%2 == 0)
+    if (k < 0L || k %% 2L == 0L)
         stop("bandwidth 'k' must be >= 1 and odd!")
-    k <- k %/% 2
-    if (k < 1) return(y)
+    k <- k %/% 2L
+    if (k < 1L) return(y)
     ## else: k >= 1L: do something
     n <- length(y)
     sm <- y
-    if (k >= 2) {
+    if (k >= 2L) {
         sm [2L]  <- med3(y[1L],y [2L], y [3L])
-        sm[n-1] <- med3(y[n],y[n-1],y[n-2])
+        sm[n-1L] <- med3(y[n],y[n-1L],y[n-2L])
 
         ## Here, could use Stuetzle's strategy for MUCH BIGGER EFFICIENCY
         ##	(when k>=3 , k >> 1):
         ## Starting with the uttermost 3 points,
         ## always 'adding'  2 new ones, and determine the new median recursively
         ##
-        if (k >= 3) {
+        if (k >= 3L) {
             for (i in 3:k) {
-                j <- 2*i - 1
+                j <- 2L*i - 1L
                 sm  [i]   <- med.odd( y [1L:j] ,     j) #- left border
-                sm[n-i+1] <- med.odd( y[(n+1-j):n], j) #- right border
+                sm[n-i+1L] <- med.odd( y[(n+1L-j):n], j) #- right border
             }
         }
     }
@@ -141,6 +118,6 @@ smoothEnds <- function(y, k = 3)
     ##--- For the very first and last pt.:  Use Tukey's end-point rule: ---
     ## Ysm[1L]:= Median(Ysm[2L],X1,Z_0), where Z_0 is extrapol. from Ysm[2L],Ysm[3L]
     sm[1L] <- med3(y[1L], sm [2L] , 3*sm [2L]  - 2*sm [3L])
-    sm[n] <- med3(y[n], sm[n-1], 3*sm[n-1] - 2*sm[n-2])
-    return(sm)
+    sm[n] <- med3(y[n], sm[n-1L], 3*sm[n-1L] - 2*sm[n-2L])
+    sm
 }

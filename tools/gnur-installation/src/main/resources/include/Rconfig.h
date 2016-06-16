@@ -19,6 +19,9 @@
 #define SIZEOF_SIZE_T 8
 #define HAVE_ALLOCA_H 1
 
+// We are not supporting localization in Renjin at this time.
+#define NO_NLS
+
 #endif /* not R_CONFIG_H */
 
 #endif /* not R_RCONFIG_H */

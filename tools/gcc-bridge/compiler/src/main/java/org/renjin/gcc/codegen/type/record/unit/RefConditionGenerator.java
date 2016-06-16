@@ -5,9 +5,19 @@ import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveCmpGenerator;
 import org.renjin.gcc.gimple.GimpleOp;
 
+import static org.renjin.gcc.codegen.expr.Expressions.identityHash;
 
+/**
+ * Compares two JVM reference expressions.
+ * 
+ * <p>For EQ_EXPR and NE_EXPR, we use standard {@code IF_ACMPEQ} and {@code IF_ACMPNE} bytecode instructions.</p>
+ * 
+ * <p>For LT_EXPR and GT_EXPR, we compare the result of {@link System#identityHashCode(Object)}</p>
+ * 
+ */
 public class RefConditionGenerator implements ConditionGenerator {
   private final GimpleOp op;
   private final SimpleExpr x;
@@ -33,8 +43,15 @@ public class RefConditionGenerator implements ConditionGenerator {
         mv.visitJumpInsn(Opcodes.IF_ACMPNE, trueLabel);
         mv.visitJumpInsn(Opcodes.GOTO, falseLabel);
         break;
-      default:
-        throw new UnsupportedOperationException("op: " + op);
+
+      case LT_EXPR:
+      case GT_EXPR:
+        PrimitiveCmpGenerator hashCmpGenerator = new PrimitiveCmpGenerator(op, identityHash(x), identityHash(y));
+        hashCmpGenerator.emitJump(mv, trueLabel, falseLabel);
+        break;
+
+      default:  
+        throw new UnsupportedOperationException("Unsupported pointer comparison: " + op);
     }
   }
 }

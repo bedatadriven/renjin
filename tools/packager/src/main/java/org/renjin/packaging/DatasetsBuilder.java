@@ -146,7 +146,8 @@ public class DatasetsBuilder {
   void processDataset(File dataFile) throws IOException {
     if(dataFile.getName().endsWith("datalist")) {
       return;
-    } else if(dataFile.getName().endsWith(".rda") || dataFile.getName().endsWith(".RData")) {
+    } else if(dataFile.getName().toLowerCase().endsWith(".rda") || 
+              dataFile.getName().toLowerCase().endsWith(".rdata")) {
       processRDataFile(dataFile);
 
     } else if(dataFile.getName().endsWith(".txt")) {
@@ -164,7 +165,7 @@ public class DatasetsBuilder {
     } else if(dataFile.getName().toLowerCase().endsWith(".csv")) {
       processTextFile(dataFile, stripExtension(dataFile), ";");
       
-    } else if(dataFile.getName().endsWith(".R")) {
+    } else if(dataFile.getName().toUpperCase().endsWith(".R")) {
       processRScript(dataFile, stripExtension(dataFile));
     
     } else {

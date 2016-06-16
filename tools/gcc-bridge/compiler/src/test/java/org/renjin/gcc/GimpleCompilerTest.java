@@ -869,4 +869,10 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void div() throws Exception {
     compileAndTest("div.c");
   }
+  
+  @Test
+  public void endpointClass() throws Exception {
+    // Plugin was segfaulting 
+    compileAndTest("endpoint.cpp");
+  }
 }

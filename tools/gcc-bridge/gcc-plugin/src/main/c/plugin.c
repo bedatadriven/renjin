@@ -364,20 +364,21 @@ static void dump_record_type_decl(tree type) {
   tree field =  TYPE_FIELDS(type);
   json_array_field("fields");
   while(field) {
-    // skip fields without an offset. 
-    // Not sure what they do but they screw us up during the compilation stage
-    if(DECL_FIELD_OFFSET (field)) {
-      json_start_object();
-      json_int_field("id", DEBUG_TEMP_UID (field));
-      json_int_field("offset", int_bit_position(field));
-      if(DECL_NAME(field)) {
-        json_string_field("name", IDENTIFIER_POINTER(DECL_NAME(field)));
-      }
-      json_field("type");
-      dump_type(TREE_TYPE(field));
-      json_end_object();
+    if(TREE_CODE(field) == FIELD_DECL) {
+        // skip fields without an offset. 
+        // Not sure what they do but they screw us up during the compilation stage
+        if(DECL_FIELD_OFFSET (field)) {
+          json_start_object();
+          json_int_field("id", DEBUG_TEMP_UID (field));
+          json_int_field("offset", int_bit_position(field));
+          if(DECL_NAME(field)) {
+            json_string_field("name", IDENTIFIER_POINTER(DECL_NAME(field)));
+          }
+          json_field("type");
+          dump_type(TREE_TYPE(field));
+          json_end_object();
+        }
     }
-
     field = TREE_CHAIN(field);
   }
   json_end_array();

@@ -1085,6 +1085,8 @@ static void dump_global_var(tree var) {
     json_string_field("mangledName",  IDENTIFIER_POINTER (DECL_ASSEMBLER_NAME (var)));
   }
   json_bool_field("extern", TREE_PUBLIC(var));
+  json_bool_field("weak", DECL_WEAK(cfun->decl));
+
   json_field("type");
   dump_type(TREE_TYPE(var));
   
@@ -1106,7 +1108,7 @@ static void dump_global_vars() {
   
   struct varpool_node *node;
   for (node = varpool_nodes; node; node = node->next) {
-      if(TREE_CODE(node->decl) == VAR_DECL) {
+      if(node->needed && TREE_CODE(node->decl) == VAR_DECL) {
         dump_global_var(node->decl);
       }
   }

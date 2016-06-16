@@ -18,7 +18,7 @@ extern int shared_triple(int x) {
   return x * 3;
 }
 
-static int test_global_var() {
+extern int test_global_var() {
   return magic_number1;
 }
 

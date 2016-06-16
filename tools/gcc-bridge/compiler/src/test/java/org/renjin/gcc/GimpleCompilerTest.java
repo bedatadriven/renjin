@@ -682,6 +682,9 @@ public class GimpleCompilerTest extends AbstractGccTest {
 
     Double result = (Double) link2.getMethod("test_points").invoke(null);
     assertThat(result, equalTo(41d));
+    
+    Integer magicNumber1 = (Integer) link2.getMethod("test_global_var").invoke(null);
+    assertThat(magicNumber1, equalTo(420));
   }
   
   @Test

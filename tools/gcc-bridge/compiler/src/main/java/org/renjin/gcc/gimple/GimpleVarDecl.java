@@ -25,6 +25,8 @@ public class GimpleVarDecl implements GimpleDecl {
   private boolean constant;
   
   private boolean extern;
+  
+  private boolean weak;
 
   /**
    * True if this local variable is addressable
@@ -123,7 +125,15 @@ public class GimpleVarDecl implements GimpleDecl {
   public void setExtern(boolean extern) {
     this.extern = extern;
   }
-  
+
+  public boolean isWeak() {
+    return weak;
+  }
+
+  public void setWeak(boolean weak) {
+    this.weak = weak;
+  }
+
   public Predicate<GimpleExpr> isReference() {
     return new Predicate<GimpleExpr>() {
       @Override

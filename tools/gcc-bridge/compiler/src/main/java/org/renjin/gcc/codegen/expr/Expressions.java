@@ -7,6 +7,7 @@ import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.type.primitive.ConstantValue;
+import org.renjin.gcc.codegen.type.primitive.FieldValue;
 import org.renjin.gcc.codegen.type.primitive.op.PrimitiveBinOpGenerator;
 import org.renjin.gcc.gimple.GimpleOp;
 
@@ -442,6 +443,30 @@ public class Expressions {
     };
   }
 
+  public static SimpleExpr copyOfArray(final SimpleExpr array) {
+
+    final Type arrayType = array.getType();
+
+    return new SimpleExpr() {
+      @Nonnull
+      @Override
+      public Type getType() {
+        return arrayType;
+      }
+
+      @Override
+      public void load(@Nonnull MethodGenerator mv) {
+        // public static char[] copyOf(char[] original, int newLength) {
+
+        array.load(mv);
+        mv.dup();
+        mv.arraylength();
+        mv.invokestatic(Arrays.class, "copyOf",
+            getMethodDescriptor(arrayType, arrayType, Type.INT_TYPE));
+      }
+    };
+  }
+
   public static SimpleExpr newObject(final Type classType) {
     return new SimpleExpr() {
       @Nonnull
@@ -515,6 +540,28 @@ public class Expressions {
       public void load(@Nonnull MethodGenerator mv) {
         value.load(mv);
         mv.invokestatic(System.class, "identityHashCode", Type.getMethodDescriptor(Type.INT_TYPE, Type.getType(Object.class)));
+      }
+    };
+  }
+
+  public static SimpleLValue localVariable(final Type type, final int index) {
+    return new SimpleLValue() {
+
+      @Nonnull
+      @Override
+      public Type getType() {
+        return type;
+      }
+
+      @Override
+      public void load(@Nonnull MethodGenerator mv) {
+        mv.load(index, type);
+      }
+
+      @Override
+      public void store(MethodGenerator mv, SimpleExpr rhs) {
+        rhs.load(mv);
+        mv.store(index, type);
       }
     };
   }

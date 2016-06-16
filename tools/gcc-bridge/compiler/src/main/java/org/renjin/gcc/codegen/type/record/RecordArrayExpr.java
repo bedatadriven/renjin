@@ -28,7 +28,7 @@ public final class RecordArrayExpr implements LValue, Addressable {
   public RecordArrayExpr(SimpleExpr array, int arrayLength) {
     this(array, zero(), arrayLength);
   }
-
+  
   @Override
   public Expr addressOf() {
     return new FatPtrExpr(array, offset);

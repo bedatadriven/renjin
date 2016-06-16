@@ -34,4 +34,5 @@ public class SimpleFieldStrategy extends FieldStrategy {
   public Expr memberExprGenerator(SimpleExpr instance) {
     return new FieldValue(instance, name, fieldType);
   }
+
 }

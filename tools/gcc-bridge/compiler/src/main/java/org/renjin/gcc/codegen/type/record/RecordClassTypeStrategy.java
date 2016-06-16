@@ -28,7 +28,7 @@ import java.util.Map;
 /**
  * Strategy for variables and values of type {@code GimpleRecordType} that employs JVM classes
  */
-public class RecordClassTypeStrategy extends RecordTypeStrategy<SimpleExpr> {
+public class RecordClassTypeStrategy extends RecordTypeStrategy<RecordClassValueExpr> {
 
   private Type jvmType;
   private boolean provided;
@@ -116,7 +116,7 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<SimpleExpr> {
 
   @Override
   public final ParamStrategy getParamStrategy() {
-    return new SimpleParamStrategy(jvmType);
+    return new RecordClassParamStrategy(jvmType, isUnitPointer());
   }
 
   @Override
@@ -125,23 +125,23 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<SimpleExpr> {
   }
 
   @Override
-  public SimpleExpr variable(GimpleVarDecl decl, VarAllocator allocator) {
+  public RecordClassValueExpr variable(GimpleVarDecl decl, VarAllocator allocator) {
 
     SimpleLValue instance = allocator.reserve(decl.getName(), jvmType, new RecordConstructor(this));
 
     if(isUnitPointer()) {
       // If we are using the RecordUnitPtr strategy, then the record value is also it's address
-      return new SimpleAddressableExpr(instance, instance);
+      return new RecordClassValueExpr(instance, instance);
 
     } else if(decl.isAddressable()) {
       SimpleLValue unitArray = allocator.reserveUnitArray(decl.getName(), jvmType, Optional.of((SimpleExpr)instance));
       FatPtrExpr address = new FatPtrExpr(unitArray);
       SimpleExpr value = Expressions.elementAt(address.getArray(), 0);
-      return new SimpleAddressableExpr(value, address);
+      return new RecordClassValueExpr(value, address);
 
     } else {
       
-      return instance;
+      return new RecordClassValueExpr(instance);
     }
   }
 
@@ -161,13 +161,13 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<SimpleExpr> {
   }
   
   @Override
-  public SimpleExpr constructorExpr(ExprFactory exprFactory, GimpleConstructor value) {
+  public RecordClassValueExpr constructorExpr(ExprFactory exprFactory, GimpleConstructor value) {
     Map<GimpleFieldRef, Expr> fields = Maps.newHashMap();
     for (GimpleConstructor.Element element : value.getElements()) {
       Expr fieldValue = exprFactory.findGenerator(element.getValue());
       fields.put((GimpleFieldRef) element.getField(), fieldValue);
     }
-    return new RecordConstructor(this, fields);
+    return new RecordClassValueExpr(new RecordConstructor(this, fields));
   }
 
 
@@ -182,7 +182,7 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<SimpleExpr> {
   }
 
   @Override
-  public Expr memberOf(SimpleExpr instance, GimpleFieldRef fieldRef) {
+  public Expr memberOf(RecordClassValueExpr instance, GimpleFieldRef fieldRef) {
     if(nameMap == null) {
       throw new IllegalStateException("Fields map is not yet initialized.");
     }

@@ -53,4 +53,5 @@ public class ArrayField extends FieldStrategy {
     FatPtrExpr address = new FatPtrExpr(array, offset);
     return new FatPtrExpr(address, array, offset);
   }
+
 }

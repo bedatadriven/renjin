@@ -22,6 +22,9 @@ public class EmptyRecordParamStrategy implements ParamStrategy {
 
   @Override
   public Expr emitInitialization(MethodGenerator methodVisitor, GimpleParameter parameter, List<SimpleLValue> paramVars, VarAllocator localVars) {
+    if(parameter.isAddressable()) {
+      throw new UnsupportedOperationException("TODO: Addressable parameters");
+    }
     return Expressions.nullRef(Type.getType(Object.class));
   }
 

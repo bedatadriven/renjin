@@ -1,34 +1,34 @@
-package org.renjin.gcc.codegen.fatptr;
+package org.renjin.gcc.codegen.type.record.unit;
 
 import com.google.common.base.Optional;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expr;
+import org.renjin.gcc.codegen.expr.Expressions;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
 import org.renjin.gcc.codegen.expr.SimpleLValue;
 import org.renjin.gcc.codegen.type.ParamStrategy;
+import org.renjin.gcc.codegen.type.primitive.ConstantValue;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleParameter;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
- * Strategy for passing fat pointer expressions as two arguments
+ * Created by alex on 16-6-16.
  */
-public class FatPtrParamStrategy implements ParamStrategy {
+public class RecordUnitPtrParamStrategy implements ParamStrategy {
   
-  private ValueFunction valueFunction;
+  private Type jvmType;
 
-  public FatPtrParamStrategy(ValueFunction valueFunction) {
-    this.valueFunction = valueFunction;
+  public RecordUnitPtrParamStrategy(Type jvmType) {
+    this.jvmType = jvmType;
   }
 
   @Override
   public List<Type> getParameterTypes() {
-    Type arrayType = Type.getType("[" + valueFunction.getValueType().getDescriptor());
-    Type offsetType = Type.INT_TYPE;
-    
-    return Arrays.asList(arrayType, offsetType);
+    return Collections.singletonList(jvmType);
   }
 
   @Override
@@ -36,19 +36,24 @@ public class FatPtrParamStrategy implements ParamStrategy {
     if(parameter.isAddressable()) {
       throw new UnsupportedOperationException("TODO: Addressable parameters");
     }
-    
-    return new FatPtrExpr(paramVars.get(0), paramVars.get(1));
+
+    return paramVars.get(0);
   }
 
   @Override
   public void loadParameter(MethodGenerator mv, Optional<Expr> argument) {
     if(argument.isPresent()) {
-      FatPtrExpr expr = (FatPtrExpr) argument.get();
-      expr.getArray().load(mv);
-      expr.getOffset().load(mv);
+      SimpleExpr value = (SimpleExpr) argument.get();
+
+      if (value.getType().equals(jvmType)) {
+        value.load(mv);
+
+      } else {
+        // Cast null pointers to the appropriate type
+        Expressions.cast(value, this.jvmType).load(mv);
+      }  
     } else {
       mv.aconst(null);
-      mv.iconst(0);
     }
   }
 }

@@ -31,7 +31,7 @@ public class FunPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
 
   @Override
   public ParamStrategy getParamStrategy() {
-    return new SimpleParamStrategy(METHOD_HANDLE_TYPE);
+    return new FunPtrParamStrategy();
   }
 
   @Override

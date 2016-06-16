@@ -17,4 +17,5 @@ public abstract class FieldStrategy {
 
   public abstract Expr memberExprGenerator(SimpleExpr instance);
 
+
 }

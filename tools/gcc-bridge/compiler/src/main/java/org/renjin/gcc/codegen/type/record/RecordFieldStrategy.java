@@ -38,17 +38,18 @@ public class RecordFieldStrategy extends FieldStrategy {
   @Override
   public void emitInstanceInit(MethodGenerator mv) {
     SimpleExpr thisRef = Expressions.thisValue(declaringClass);
-    SimpleAddressableExpr field = memberExprGenerator(thisRef);
+    SimpleLValue fieldRef = Expressions.field(thisRef, strategy.getJvmType(), fieldName);
+    
     SimpleExpr newInstance = Expressions.newObject(strategy.getJvmType());
 
-    field.store(mv, newInstance);
+    fieldRef.store(mv, newInstance);
   }
 
   @Override
-  public SimpleAddressableExpr memberExprGenerator(SimpleExpr instance) {
+  public RecordClassValueExpr memberExprGenerator(SimpleExpr instance) {
     SimpleLValue value = Expressions.field(instance, strategy.getJvmType(), fieldName);
     Expr address = value;
     
-    return new SimpleAddressableExpr(value, address);
+    return new RecordClassValueExpr(value, address);
   }
 }

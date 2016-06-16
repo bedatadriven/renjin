@@ -2,6 +2,7 @@ package org.renjin.gcc.codegen.type.record;
 
 import com.google.common.base.Optional;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.expr.ArrayElement;
 import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.SimpleExpr;
@@ -39,7 +40,8 @@ public class RecordClassValueFunction implements ValueFunction {
 
   @Override
   public SimpleExpr dereference(SimpleExpr array, SimpleExpr offset) {
-    return Expressions.elementAt(array, offset);
+    ArrayElement element = Expressions.elementAt(array, offset);
+    return new RecordClassValueExpr(element, element.addressOf());
   }
 
   @Override

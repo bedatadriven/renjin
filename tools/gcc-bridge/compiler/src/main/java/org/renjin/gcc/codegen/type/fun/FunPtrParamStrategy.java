@@ -1,34 +1,27 @@
-package org.renjin.gcc.codegen.fatptr;
+package org.renjin.gcc.codegen.type.fun;
 
 import com.google.common.base.Optional;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.call.MethodHandleGenerator;
 import org.renjin.gcc.codegen.expr.Expr;
+import org.renjin.gcc.codegen.expr.SimpleExpr;
 import org.renjin.gcc.codegen.expr.SimpleLValue;
 import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleParameter;
 
-import java.util.Arrays;
+import java.lang.invoke.MethodHandle;
+import java.util.Collections;
 import java.util.List;
 
-/**
- * Strategy for passing fat pointer expressions as two arguments
- */
-public class FatPtrParamStrategy implements ParamStrategy {
-  
-  private ValueFunction valueFunction;
+import static org.renjin.gcc.codegen.type.fun.FunPtrStrategy.METHOD_HANDLE_TYPE;
 
-  public FatPtrParamStrategy(ValueFunction valueFunction) {
-    this.valueFunction = valueFunction;
-  }
+public class FunPtrParamStrategy implements ParamStrategy {
 
   @Override
   public List<Type> getParameterTypes() {
-    Type arrayType = Type.getType("[" + valueFunction.getValueType().getDescriptor());
-    Type offsetType = Type.INT_TYPE;
-    
-    return Arrays.asList(arrayType, offsetType);
+    return Collections.singletonList(METHOD_HANDLE_TYPE);
   }
 
   @Override
@@ -36,19 +29,21 @@ public class FatPtrParamStrategy implements ParamStrategy {
     if(parameter.isAddressable()) {
       throw new UnsupportedOperationException("TODO: Addressable parameters");
     }
-    
-    return new FatPtrExpr(paramVars.get(0), paramVars.get(1));
+
+    return paramVars.get(0);  
   }
 
   @Override
   public void loadParameter(MethodGenerator mv, Optional<Expr> argument) {
+  
     if(argument.isPresent()) {
-      FatPtrExpr expr = (FatPtrExpr) argument.get();
-      expr.getArray().load(mv);
-      expr.getOffset().load(mv);
+      SimpleExpr ptrValue = (SimpleExpr) argument.get();
+      ptrValue.load(mv);
+      if(!ptrValue.getType().equals(METHOD_HANDLE_TYPE)) {
+        mv.cast(ptrValue.getType(), METHOD_HANDLE_TYPE);
+      }
     } else {
       mv.aconst(null);
-      mv.iconst(0);
     }
   }
 }

@@ -58,4 +58,5 @@ public class AddressableField extends FieldStrategy {
     
     return valueFunction.dereference(array, offset);
   }
+
 }

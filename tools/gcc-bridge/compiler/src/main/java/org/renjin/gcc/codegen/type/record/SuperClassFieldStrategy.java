@@ -26,9 +26,9 @@ public class SuperClassFieldStrategy extends FieldStrategy {
 
   @Override
   public Expr memberExprGenerator(SimpleExpr instance) {
-    return new SimpleAddressableExpr(instance, instance);
+    return new RecordClassValueExpr(instance, instance);
   }
-  
+
   public Type getType() {
     return fieldTypeStrategy.getJvmType();
   }

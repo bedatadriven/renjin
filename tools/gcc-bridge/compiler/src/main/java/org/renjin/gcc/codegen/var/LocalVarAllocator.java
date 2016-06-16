@@ -49,6 +49,10 @@ public class LocalVarAllocator extends VarAllocator {
     @Override
     public void store(MethodGenerator mv, SimpleExpr value) {
       value.load(mv);
+      store(mv);
+    }
+    
+    public void store(MethodGenerator mv) {
       mv.visitVarInsn(type.getOpcode(Opcodes.ISTORE), index);
     }
 

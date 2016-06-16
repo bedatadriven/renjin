@@ -334,6 +334,13 @@ public class ExprFactory {
 
   private Expr memRef(GimpleMemRef gimpleExpr, GimpleType expectedType) {
     GimpleExpr pointer = gimpleExpr.getPointer();
+    
+    // Case of *&x, which can be simplified to x
+    if(pointer instanceof GimpleAddressOf) {
+      GimpleAddressOf addressOf = (GimpleAddressOf) pointer;
+      return findGenerator(addressOf.getValue(), expectedType);
+    }
+    
     GimpleIndirectType pointerType = (GimpleIndirectType) pointer.getType();
     
     if(pointerType.getBaseType() instanceof GimpleVoidType) {

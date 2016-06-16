@@ -29,4 +29,6 @@ public class VoidPtrField extends FieldStrategy {
   public Expr memberExprGenerator(SimpleExpr instance) {
     return new FieldValue(instance, fieldName, Type.getType(Object.class));
   }
+
+
 }

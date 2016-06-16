@@ -25,6 +25,9 @@ public class VoidPtrParamStrategy implements ParamStrategy {
 
   @Override
   public Expr emitInitialization(MethodGenerator methodVisitor, GimpleParameter parameter, List<SimpleLValue> paramVars, VarAllocator localVars) {
+    if(parameter.isAddressable()) {
+      throw new UnsupportedOperationException("TODO: Addressable void pointer parameters");
+    }
     return paramVars.get(0);
   }
 

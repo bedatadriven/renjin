@@ -280,8 +280,13 @@ public class GimpleCompiler  {
     } else if(EmptyRecordTypeStrategy.accept(recordTypeDef)) {
       logger.debug("Using EmptyRecordTypeStrategy");
 
-      return new EmptyRecordTypeStrategy(recordTypeDef);
+      RecordClassTypeStrategy strategy = new RecordClassTypeStrategy(recordTypeDef);
+      strategy.setUnitPointer(recordUsage.unitPointerAssumptionsHoldFor(recordTypeDef));
+      strategy.setJvmType(Type.getType(Object.class));
+      strategy.setProvided(true);
 
+      return strategy;
+      
     } else if(RecordArrayTypeStrategy.accept(recordTypeDef)) {
       logger.debug("Using RecordArrayTypeStrategy");
 

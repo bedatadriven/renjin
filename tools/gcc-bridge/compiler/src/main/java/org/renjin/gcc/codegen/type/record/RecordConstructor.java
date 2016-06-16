@@ -55,7 +55,7 @@ public class RecordConstructor implements SimpleExpr {
     
     for (Map.Entry<GimpleFieldRef, Expr> field : fields.entrySet()) {
       // Push the value onto the stack and save to the field
-      LValue fieldExpr = (LValue) strategy.memberOf(instance, field.getKey());
+      LValue fieldExpr = (LValue) strategy.memberOf(new RecordClassValueExpr(instance), field.getKey());
       try {
         fieldExpr.store(mv, field.getValue());
       } catch (Exception e) {

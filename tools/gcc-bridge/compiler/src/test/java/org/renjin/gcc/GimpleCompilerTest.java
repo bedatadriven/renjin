@@ -875,4 +875,9 @@ public class GimpleCompilerTest extends AbstractGccTest {
     // Plugin was segfaulting 
     compileAndTest("endpoint.cpp");
   }
+  
+  @Test
+  public void recordValues() throws Exception {
+    compileAndTest("record_value.c");
+  }
 }

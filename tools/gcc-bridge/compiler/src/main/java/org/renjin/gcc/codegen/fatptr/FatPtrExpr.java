@@ -52,6 +52,10 @@ public final class FatPtrExpr implements Expr, LValue<FatPtrExpr>, Addressable {
     return Type.getType(arrayDescriptor.substring(1));
   }
 
+  public FatPtrExpr copyOf() {
+    return new FatPtrExpr(Expressions.copyOfArray(array), offset);
+  }
+  
   @Override
   @SuppressWarnings("unchecked")
   public void store(MethodGenerator mv, FatPtrExpr rhs) {

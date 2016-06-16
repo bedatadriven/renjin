@@ -20,4 +20,5 @@ public class EmptyRecordField extends FieldStrategy {
   public Expr memberExprGenerator(SimpleExpr instance) {
     return Expressions.nullRef(Type.getType(Object.class));
   }
+
 }

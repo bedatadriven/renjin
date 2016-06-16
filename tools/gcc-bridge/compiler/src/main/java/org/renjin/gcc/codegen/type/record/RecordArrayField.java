@@ -37,9 +37,10 @@ public class RecordArrayField extends FieldStrategy {
   }
 
   @Override
-  public Expr memberExprGenerator(SimpleExpr instance) {
+  public RecordArrayExpr memberExprGenerator(SimpleExpr instance) {
     SimpleLValue arrayField = Expressions.field(instance, arrayType, name);
 
     return new RecordArrayExpr(arrayField, arrayLength);
   }
+
 }

@@ -13,6 +13,7 @@ import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.type.primitive.ConstantValue;
 import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
+import org.renjin.gcc.codegen.type.record.RecordClassValueExpr;
 import org.renjin.gcc.codegen.type.record.RecordConstructor;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrStrategy;
 import org.renjin.gcc.codegen.var.VarAllocator;
@@ -34,7 +35,7 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
 
   @Override
   public ParamStrategy getParamStrategy() {
-    return new SimpleParamStrategy(strategy.getJvmType());
+    return new RecordUnitPtrParamStrategy(strategy.getJvmType());
   }
 
   @Override
@@ -141,7 +142,12 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
 
   @Override
   public void memoryCopy(MethodGenerator mv, SimpleExpr destination, SimpleExpr source, SimpleExpr length) {
-    throw new UnsupportedOperationException("TODO");
+
+    Type recordType = strategy.getJvmType();
+
+    destination.load(mv);
+    source.load(mv);
+    mv.invokevirtual(recordType, "set", Type.getMethodDescriptor(Type.VOID_TYPE, recordType), false);
   }
 
   @Override
@@ -160,8 +166,8 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<SimpleExpr> {
   }
 
   @Override
-  public Expr valueOf(SimpleExpr pointerExpr) {
-    return pointerExpr;
+  public RecordClassValueExpr valueOf(SimpleExpr pointerExpr) {
+    return new RecordClassValueExpr(pointerExpr);
   }
 
   private boolean isUnitConstant(SimpleExpr length) {

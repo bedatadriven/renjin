@@ -31,8 +31,7 @@ public class ByteArrayAsInt implements JLValue {
   public void load(@Nonnull MethodGenerator mv) {
 
     // b1 << 24 | (b2 & 0xFF) << 16 | (b3 & 0xFF) << 8 | (b4 & 0xFF);
-    
-    JExpr[] bytes = new JExpr[4];
+
     JExpr b1 = elementAt(array, sum(offset, 0));
     JExpr b2 = elementAt(array, sum(offset, 1));
     JExpr b3 = elementAt(array, sum(offset, 2));

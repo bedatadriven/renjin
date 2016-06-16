@@ -1,7 +1,6 @@
 package org.renjin.gcc.gimple;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
@@ -15,7 +14,10 @@ public class GimpleCompilationUnit {
   private final List<GimpleRecordTypeDef> recordTypes = Lists.newArrayList();
   private final List<GimpleVarDecl> globalVariables = Lists.newArrayList();
   private File sourceFile;
-
+  private String mainInputFilename;
+  
+  
+  
   /**
    * 
    * @return the name of the compilation unit, stripped of all extensions
@@ -31,16 +33,20 @@ public class GimpleCompilationUnit {
     }
     return filename.substring(0, firstDot);
   }
-
-  /**
-   * 
-   * @return the original source file name, for example "cmatrix.c"
-   */
-  public String getSourceName() {
-    Preconditions.checkState(sourceFile.getName().endsWith(".gimple"), "Source file must end in .gimple");
-    return sourceFile.getName().substring(0, sourceFile.getName().length() - ".gimple".length());
-  }
   
+  public String getSourceName() {
+    int nameStart = mainInputFilename.lastIndexOf('/');
+    return mainInputFilename.substring(nameStart+1);
+  }
+
+  public String getMainInputFilename() {
+    return mainInputFilename;
+  }
+
+  public void setMainInputFilename(String mainInputFilename) {
+    this.mainInputFilename = mainInputFilename;
+  }
+
   public List<GimpleFunction> getFunctions() {
     return functions;
   }

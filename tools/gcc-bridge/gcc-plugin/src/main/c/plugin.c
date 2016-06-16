@@ -1119,6 +1119,7 @@ static void start_unit_callback (void *gcc_data, void *user_data)
 {
 
   json_start_object();
+  json_string_field("mainInputFilename", main_input_filename);
   json_array_field("functions");
   
 }

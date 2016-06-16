@@ -158,7 +158,7 @@ public class UnitClassGenerator {
                 decl.getType(),
                 decl.getName(),
                 decl.getValue(),
-                unit.getSourceFile().getName()), e);
+                unit.getSourceName()), e);
       }
     }
     mv.visitInsn(RETURN);

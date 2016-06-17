@@ -18,6 +18,5 @@
     <module>compiler</module>
     <module>gcc-plugin</module>
     <module>maven-plugin</module>
-    <module>benchmarks</module>
   </modules>
 </project>

@@ -3,8 +3,7 @@
 
 SEXP Cmydsum2(SEXP vector) {
 
-    DL_FUNC (*fun)(SEXP);
-    fun = R_GetCCallable("native", "Cmydsum");
+    DL_FUNC fun = R_GetCCallable("native", "Cmydsum");
 
     SEXP res = fun(vector);
     double sum = REAL(res)[0];

@@ -234,7 +234,9 @@ public class Namespace {
       // Create NativeSymbol objects in the namespace environment for registered 
       // methods. 
       if(entry.isRegistration()) {
-
+        if (!initMethod.isPresent()) {
+          throw new EvalException("useDynLib(.registration = TRUE) but no init method found!");
+        }
         // Use the symbols registered by the R_init_xxx() function
         for (DllSymbol symbol : info.getSymbols()) {
           namespaceEnvironment.setVariable(symbol.getName(), symbol.createObject());

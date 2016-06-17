@@ -1,0 +1,2 @@
+
+PKG_CPPFLAGS= -I../inst/include -D"MY_CPP_DEFINE"

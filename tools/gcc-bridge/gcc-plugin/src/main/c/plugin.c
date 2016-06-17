@@ -62,8 +62,8 @@ int json_needs_comma = 0;
 #define JSON_OBJECT  2
 
 
-//#define TRACE(...) printf(__VA_ARGS__)
-#define TRACE(...) do { if(0) printf(__VA_ARGS__); } while(0)
+#define TRACE(...) printf(__VA_ARGS__)
+//#define TRACE(...) do { if(0) printf(__VA_ARGS__); } while(0)
 
 typedef struct json_context {
   int needs_comma;
@@ -1085,7 +1085,6 @@ static void dump_global_var(tree var) {
     json_string_field("mangledName",  IDENTIFIER_POINTER (DECL_ASSEMBLER_NAME (var)));
   }
   json_bool_field("extern", TREE_PUBLIC(var));
-  json_bool_field("weak", DECL_WEAK(cfun->decl));
 
   json_field("type");
   dump_type(TREE_TYPE(var));

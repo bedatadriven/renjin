@@ -66,6 +66,10 @@ public final class Rdynload {
 //   DL_FUNC R_FindSymbol (char const *, char const *, R_RegisteredNativeSymbol *symbol)
 //
 
+  @Deprecated
+  public static void R_RegisterCCallable (BytePtr packageName, BytePtr name, Object method) {
+    R_RegisterCCallable(packageName, name, (MethodHandle)method);
+  }
 
   public static void R_RegisterCCallable (BytePtr packageName, BytePtr name, MethodHandle method) {
     // We assume this is thread save given if multiple sessions are Registering or Getting

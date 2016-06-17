@@ -883,4 +883,9 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void recordValues() throws Exception {
     compileAndTest("record_value.c");
   }
+  
+  @Test
+  public void clz() throws Exception {
+    compileAndTest("clz.c");
+  }
 }

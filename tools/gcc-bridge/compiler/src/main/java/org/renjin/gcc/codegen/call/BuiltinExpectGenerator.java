@@ -13,6 +13,9 @@ import org.renjin.gcc.gimple.statement.GimpleCall;
  * We ignore it presently and just check that the two integral arguments are equal
  */
 public class BuiltinExpectGenerator implements CallGenerator {
+  
+  public static final String NAME = "__builtin_expect";
+  
   @Override
   public void emitCall(MethodGenerator mv, ExprFactory exprFactory, GimpleCall call) {
 

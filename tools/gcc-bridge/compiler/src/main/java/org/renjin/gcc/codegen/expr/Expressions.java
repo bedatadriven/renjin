@@ -506,42 +506,7 @@ public class Expressions {
       }
     };
   }
-  
-  public static JExpr[] intToByteArray(JExpr intExpr) {
-    //    (byte) (value >> 24),
-    //        (byte) (value >> 16),
-    //        (byte) (value >> 8),
-    //        (byte) value};
-//    return new SimpleExpr[] {
-//        
-//        castPrimitive(shiftRight(intExpr, 24), Type.BYTE_TYPE),
-//        castPrimitive(shiftRight(intExpr, 16), Type.BYTE_TYPE),
-//        castPrimitive(shiftRight(intExpr, 8), Type.BYTE_TYPE),
-//        castPrimitive(shiftRight(intExpr, 0), Type.BYTE_TYPE) };
 
-    return new JExpr[] {
-
-        castPrimitive(shiftRight(intExpr, 0), Type.BYTE_TYPE),
-        castPrimitive(shiftRight(intExpr, 8), Type.BYTE_TYPE),
-        castPrimitive(shiftRight(intExpr, 16), Type.BYTE_TYPE),
-        castPrimitive(shiftRight(intExpr, 24), Type.BYTE_TYPE) };
-  }
-
-  public static JExpr identityHash(final JExpr value) {
-    return new JExpr() {
-      @Nonnull
-      @Override
-      public Type getType() {
-        return Type.INT_TYPE;
-      }
-
-      @Override
-      public void load(@Nonnull MethodGenerator mv) {
-        value.load(mv);
-        mv.invokestatic(System.class, "identityHashCode", Type.getMethodDescriptor(Type.INT_TYPE, Type.getType(Object.class)));
-      }
-    };
-  }
 
   public static JLValue localVariable(final Type type, final int index) {
     return new JLValue() {
@@ -561,6 +526,47 @@ public class Expressions {
       public void store(MethodGenerator mv, JExpr rhs) {
         rhs.load(mv);
         mv.store(index, type);
+      }
+    };
+  }
+
+  public static JExpr identityHash(final JExpr value) {
+    if (value.getType().getSort() != Type.OBJECT &&
+        value.getType().getSort() != Type.ARRAY) {
+      throw new IllegalArgumentException("value must have a reference type: " + value.getType());
+    }
+    
+    return staticMethodCall(System.class, "identityHashCode", 
+        getMethodDescriptor(Type.INT_TYPE, Type.getType(Object.class)), value);
+  }
+  
+  public static JExpr numberOfLeadingZeros(JExpr value) {
+    checkType("value", value, Type.INT_TYPE);
+    
+    return staticMethodCall(Type.getType(Integer.class), "numberOfLeadingZeros", 
+        getMethodDescriptor(Type.INT_TYPE, Type.INT_TYPE), value);
+  }
+
+  public static JExpr staticMethodCall(final Class declaringType, final String methodName,
+                                       final String descriptor, final JExpr... arguments) {
+    return staticMethodCall(Type.getType(declaringType), methodName, descriptor, arguments);
+  }
+  
+  public static JExpr staticMethodCall(final Type declaringType, final String methodName, 
+                                       final String descriptor, final JExpr... arguments) {
+    return new JExpr() {
+      @Nonnull
+      @Override
+      public Type getType() {
+        return Type.getReturnType(descriptor);
+      }
+
+      @Override
+      public void load(@Nonnull MethodGenerator mv) {
+        for (JExpr argument : arguments) {
+          argument.load(mv);
+        }
+        mv.invokestatic(declaringType, methodName, descriptor);
       }
     };
   }

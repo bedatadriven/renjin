@@ -109,7 +109,8 @@ public class GlobalSymbolTable implements SymbolTable {
     addFunction("__builtin_memcpy__", new MemCopyCallGenerator(typeOracle));
     addFunction("__builtin_memset__", new MemSetGenerator(typeOracle));
 
-    addFunction("__builtin_expect", new BuiltinExpectGenerator());
+    addFunction(BuiltinExpectGenerator.NAME, new BuiltinExpectGenerator());
+    addFunction(BuiltinClzGenerator.NAME, new BuiltinClzGenerator());
     
     addFunction("__cxa_allocate_exception", new MallocCallGenerator(typeOracle));
     addFunction(GuardAcquireGenerator.NAME, new GuardAcquireGenerator());

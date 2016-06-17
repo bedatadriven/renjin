@@ -151,6 +151,9 @@ public class GimpleCompiler  {
   public void compile(List<GimpleCompilationUnit> units) throws Exception {
 
     try {
+      
+      GlobalVarMerger.merge(units);
+      
       // create the mapping from the compilation unit's version of the record types
       // to the canonical version shared by all compilation units
       recordTypeDefs = RecordTypeDefCanonicalizer.canonicalize(rootLogger, units);

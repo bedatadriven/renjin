@@ -1,6 +1,7 @@
 
 #include "link.h"
 
+// Declared elsewhere
 extern int magic_number1;
 
 

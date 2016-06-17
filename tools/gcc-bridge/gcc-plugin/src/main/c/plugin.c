@@ -62,8 +62,8 @@ int json_needs_comma = 0;
 #define JSON_OBJECT  2
 
 
-#define TRACE(...) printf(__VA_ARGS__)
-//#define TRACE(...) do { if(0) printf(__VA_ARGS__); } while(0)
+//#define TRACE(...) printf(__VA_ARGS__)
+#define TRACE(...) do { if(0) printf(__VA_ARGS__); } while(0)
 
 typedef struct json_context {
   int needs_comma;
@@ -1104,13 +1104,12 @@ static void dump_global_var(tree var) {
 static void dump_global_vars() {
 
   json_array_field("globalVariables");
-  
+    
   struct varpool_node *node;
-  for (node = varpool_nodes; node; node = node->next) {
-      if(node->needed && TREE_CODE(node->decl) == VAR_DECL) {
+  for (node = varpool_nodes; node; node = node->next)
+    {
         dump_global_var(node->decl);
-      }
-  }
+    }
 
   json_end_array();
 }
@@ -1130,7 +1129,6 @@ static void finish_unit_callback (void *gcc_data, void *user_data)
   json_end_array();
   
   dump_global_vars();
-
 
   json_array_field("recordTypes");
   for(i=0;i<record_type_count;++i) {
@@ -1155,7 +1153,7 @@ static struct gimple_opt_pass dump_functions_pass =
       NULL,		        /* next */
       0,		          /* static_pass_number */
       0,		          /* tv_id */
-      PROP_cfg,   		/* properties_required */
+      PROP_cfg | PROP_referenced_vars,   		/* properties_required */
       0,		          /* properties_provided */
       0,		          /* properties_destroyed */
       0,		          /* todo_flags_start */

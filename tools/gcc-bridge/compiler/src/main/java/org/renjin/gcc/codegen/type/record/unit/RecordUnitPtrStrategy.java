@@ -144,7 +144,7 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>
   }
 
   @Override
-  public void memoryCopy(MethodGenerator mv, RecordUnitPtr destination, RecordUnitPtr source, JExpr length) {
+  public void memoryCopy(MethodGenerator mv, RecordUnitPtr destination, RecordUnitPtr source, JExpr length, boolean buffer) {
 
     Type recordType = strategy.getJvmType();
 

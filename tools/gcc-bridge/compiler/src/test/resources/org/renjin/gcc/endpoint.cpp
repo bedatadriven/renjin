@@ -7,7 +7,7 @@
 
 
 #include "endpoint.h"
-
+#include "assert.h"
 #include <stdio.h>
 
 //////// Ordering for tied endpoints
@@ -94,6 +94,9 @@ extern "C" int test_endpoints() {
     printf("list constructed = %d\n", list.size());
     list.push_back(1);
     list.push_back(2);
-
+    
     printf("size = %d\n", list.size());
+
+    ASSERT(list.size() == 2);
+
 }

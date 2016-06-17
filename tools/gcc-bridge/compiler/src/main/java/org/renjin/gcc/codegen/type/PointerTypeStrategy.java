@@ -24,11 +24,12 @@ public interface PointerTypeStrategy<ExprT extends GExpr> extends TypeStrategy<E
 
   JExpr memoryCompare(ExprT p1, ExprT p2, JExpr n);
 
-  void memoryCopy(MethodGenerator mv, ExprT destination, ExprT source, JExpr length);
+  void memoryCopy(MethodGenerator mv, ExprT destination, ExprT source, JExpr length, boolean buffer);
 
   void memorySet(MethodGenerator mv, ExprT pointer, JExpr byteValue, JExpr length);
 
   VoidPtr toVoidPointer(ExprT ptrExpr);
 
   ExprT unmarshallVoidPtrReturnValue(MethodGenerator mv, JExpr voidPointer);
+
 }

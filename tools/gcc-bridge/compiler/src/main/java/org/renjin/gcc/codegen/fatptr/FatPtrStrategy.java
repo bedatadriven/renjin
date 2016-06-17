@@ -234,7 +234,7 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtrExpr> {
   }
 
   @Override
-  public void memoryCopy(MethodGenerator mv, FatPtrExpr destination, FatPtrExpr source, JExpr lengthBytes) {
+  public void memoryCopy(MethodGenerator mv, FatPtrExpr destination, FatPtrExpr source, JExpr lengthBytes, boolean buffer) {
     
     // TODO: Is this correct for pointers to record types?
     

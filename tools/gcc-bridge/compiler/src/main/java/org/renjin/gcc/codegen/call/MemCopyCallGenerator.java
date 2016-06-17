@@ -18,12 +18,15 @@ import org.renjin.gcc.gimple.statement.GimpleCall;
  */
 public class MemCopyCallGenerator implements CallGenerator {
   
-  public static final String NAME = "__builtin_memcpy";
+  public static final String BUILTIN_MEMCPY = "__builtin_memcpy";
+  public static final String MEMMOVE = "memmove";
 
   private final TypeOracle typeOracle;
+  private final boolean buffer;
 
-  public MemCopyCallGenerator(TypeOracle typeOracle) {
+  public MemCopyCallGenerator(TypeOracle typeOracle, boolean buffer) {
     this.typeOracle = typeOracle;
+    this.buffer = buffer;
   }
 
   @Override
@@ -56,7 +59,8 @@ public class MemCopyCallGenerator implements CallGenerator {
           destinationStrategy, 
           sourceStrategy));
     }
-    sourceStrategy.memoryCopy(mv, destinationPtr, sourcePtr, length);
+    
+    sourceStrategy.memoryCopy(mv, destinationPtr, sourcePtr, length, buffer);
  
     if(call.getLhs() != null) {
       // memcpy() returns the destination pointer

@@ -874,6 +874,11 @@ public class GimpleCompilerTest extends AbstractGccTest {
   }
   
   @Test
+  public void stdVector() throws Exception {
+    compileAndTest("std_vector.cpp");
+  }
+  
+  @Test
   public void endpointClass() throws Exception {
     // Plugin was segfaulting 
     Class<?> endpoints = compile("endpoint.cpp");

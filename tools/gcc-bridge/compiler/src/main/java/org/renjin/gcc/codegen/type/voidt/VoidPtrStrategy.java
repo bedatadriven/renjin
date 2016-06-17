@@ -61,7 +61,7 @@ public class VoidPtrStrategy implements PointerTypeStrategy<VoidPtr>, SimpleType
   }
 
   @Override
-  public void memoryCopy(MethodGenerator mv, VoidPtr destination, VoidPtr source, JExpr length) {
+  public void memoryCopy(MethodGenerator mv, VoidPtr destination, VoidPtr source, JExpr length, boolean buffer) {
     
     destination.unwrap().load(mv);
     source.unwrap().load(mv);

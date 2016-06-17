@@ -67,13 +67,13 @@ public final class Rdynload {
 //
 
   public static void R_RegisterCCallable (BytePtr packageName, BytePtr name, MethodHandle method) {
-    String key = packageName.toString(packageName.getArray().length-1) + "." + name.toString(name.getArray().length-1);
+    String key = packageName.nullTerminatedString() + "." + name.nullTerminatedString();
     CCallablesRegister register = CCallablesRegister.getInstance();
     callMap.put(key, method);
   }
 
   public static MethodHandle R_GetCCallable (BytePtr packageName, BytePtr name) {
-    String key = packageName.toString(packageName.getArray().length-1) + "." + name.toString(name.getArray().length-1);
+    String key = packageName.nullTerminatedString() + "." + name.nullTerminatedString();
     return callMap.get(key);
   }
 }

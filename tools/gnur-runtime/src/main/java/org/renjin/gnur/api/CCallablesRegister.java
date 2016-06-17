@@ -15,12 +15,4 @@ public class CCallablesRegister {
   public static CCallablesRegister getInstance() {
     return CCallablesRegisterHolder.INSTANCE;
   }
-
-  static void setCallable(String key, MethodHandle value) {
-    callMap.put(key, value);
-  }
-
-  static MethodHandle getCallable(String key) {
-    return callMap.get(key);
-  }
 }

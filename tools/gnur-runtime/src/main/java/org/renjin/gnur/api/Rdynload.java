@@ -7,6 +7,10 @@ import org.renjin.primitives.packaging.DllInfo;
 import org.renjin.primitives.packaging.DllSymbol;
 
 import java.lang.invoke.MethodHandle;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.renjin.gnur.api.CCallablesRegister.callMap;
 
 @SuppressWarnings("unused")
 public final class Rdynload {
@@ -62,14 +66,14 @@ public final class Rdynload {
 //   DL_FUNC R_FindSymbol (char const *, char const *, R_RegisteredNativeSymbol *symbol)
 //
 
-  public void R_RegisterCCallable (BytePtr packageName, BytePtr name, MethodHandle method) {
+  public static void R_RegisterCCallable (BytePtr packageName, BytePtr name, MethodHandle method) {
+    String key = packageName.toString(packageName.getArray().length-1) + "." + name.toString(name.getArray().length-1);
     CCallablesRegister register = CCallablesRegister.getInstance();
-    String key = packageName.toString() + "." + name.toString();
-    CCallablesRegister.setCallable(key, method);
+    callMap.put(key, method);
   }
 
-  public static MethodHandle R_GetCCallable (BytePtr packageName, BytePtr functionName) {
-    String key = packageName.toString() + "." + functionName.toString();
-    return CCallablesRegister.getCallable(key);
+  public static MethodHandle R_GetCCallable (BytePtr packageName, BytePtr name) {
+    String key = packageName.toString(packageName.getArray().length-1) + "." + name.toString(name.getArray().length-1);
+    return callMap.get(key);
   }
 }

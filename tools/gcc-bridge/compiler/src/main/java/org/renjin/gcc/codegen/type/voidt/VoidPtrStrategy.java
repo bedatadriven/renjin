@@ -108,7 +108,7 @@ public class VoidPtrStrategy implements PointerTypeStrategy<VoidPtr>, SimpleType
     
     } else {
       
-      return new VoidPtr(allocator.reserve(decl.getName(), Type.getType(Object.class)));
+      return new VoidPtr(allocator.reserve(decl.getNameIfPresent(), Type.getType(Object.class)));
     }
   }
 

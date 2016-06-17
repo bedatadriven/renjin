@@ -40,3 +40,4 @@ int test_pointer() {
   y = y + 1;
   return *y;
 }
+

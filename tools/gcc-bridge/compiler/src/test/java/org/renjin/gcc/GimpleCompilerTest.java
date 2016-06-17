@@ -876,7 +876,10 @@ public class GimpleCompilerTest extends AbstractGccTest {
   @Test
   public void endpointClass() throws Exception {
     // Plugin was segfaulting 
-    compileAndTest("endpoint.cpp");
+    Class<?> endpoints = compile("endpoint.cpp");
+
+    Method testMethod = endpoints.getMethod("test_endpoints");
+    testMethod.invoke(null);
   }
   
   @Test

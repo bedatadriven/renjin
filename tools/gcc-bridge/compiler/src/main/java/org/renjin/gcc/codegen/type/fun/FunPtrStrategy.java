@@ -41,7 +41,7 @@ public class FunPtrStrategy implements PointerTypeStrategy<FunPtr>, SimpleTypeSt
 
   @Override
   public FunPtr variable(GimpleVarDecl decl, VarAllocator allocator) {
-    return new FunPtr(allocator.reserve(decl.getName(), Type.getType(MethodHandle.class)));
+    return new FunPtr(allocator.reserve(decl.getNameIfPresent(), Type.getType(MethodHandle.class)));
   }
 
   @Override

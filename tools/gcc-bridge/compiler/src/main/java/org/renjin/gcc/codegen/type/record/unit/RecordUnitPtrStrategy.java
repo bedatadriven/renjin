@@ -101,7 +101,7 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>
       return new RecordUnitPtr(instance, address);
       
     } else {
-      return new RecordUnitPtr(allocator.reserve(decl.getName(), strategy.getJvmType()));
+      return new RecordUnitPtr(allocator.reserve(decl.getNameIfPresent(), strategy.getJvmType()));
     }
   }
 

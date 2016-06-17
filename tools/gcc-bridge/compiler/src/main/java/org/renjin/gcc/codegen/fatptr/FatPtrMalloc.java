@@ -53,8 +53,8 @@ public final class FatPtrMalloc {
 
     // Reserve local variables for the array and for our counter
     Type arrayType = Wrappers.valueArrayType(valueFunction.getValueType());
-    LocalVarAllocator.LocalVar array = mv.getLocalVarAllocator().reserve("$tmp$array", arrayType);
-    LocalVarAllocator.LocalVar counter = mv.getLocalVarAllocator().reserve("$tmp$index", Type.INT_TYPE);
+    LocalVarAllocator.LocalVar array = mv.getLocalVarAllocator().reserve(arrayType);
+    LocalVarAllocator.LocalVar counter = mv.getLocalVarAllocator().reserve(Type.INT_TYPE);
 
 
     // First allocate the array

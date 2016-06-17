@@ -37,7 +37,7 @@ public class ArrayInitLoop implements JExpr {
   @Override
   public void load(@Nonnull MethodGenerator mv) {
     
-    JLValue array = mv.getLocalVarAllocator().reserve("$tmp", arrayType);
+    JLValue array = mv.getLocalVarAllocator().reserve(arrayType);
     array.store(mv, Expressions.newArray(valueFunction.getValueType(), arrayLength));
 
     LocalVarAllocator.LocalVar counter = (LocalVarAllocator.LocalVar) mv.getLocalVarAllocator().reserveInt("$counter");

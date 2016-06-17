@@ -62,13 +62,13 @@ public class PrimitiveTypeStrategy implements SimpleTypeStrategy<PrimitiveValue>
   @Override
   public PrimitiveValue variable(GimpleVarDecl decl, VarAllocator allocator) {
     if(decl.isAddressable()) {
-      JLValue unitArray = allocator.reserveUnitArray(decl.getName(), type.jvmType(), Optional.<JExpr>absent());
+      JLValue unitArray = allocator.reserveUnitArray(decl.getNameIfPresent(), type.jvmType(), Optional.<JExpr>absent());
       FatPtrExpr address = new FatPtrExpr(unitArray);
       JExpr value = Expressions.elementAt(address.getArray(), 0);
       return new PrimitiveValue(value, address);
       
     } else {
-      return new PrimitiveValue(allocator.reserve(decl.getName(), type.jvmType()));
+      return new PrimitiveValue(allocator.reserve(decl.getNameIfPresent(), type.jvmType()));
     }
   }
 
@@ -98,14 +98,7 @@ public class PrimitiveTypeStrategy implements SimpleTypeStrategy<PrimitiveValue>
     }
     
     if(typeStrategy instanceof FatPtrStrategy) {
-      // Converting pointers to integers and vice-versa is implementation-defined
-      // So we will define an implementation that supports at least one useful case spotted in S4Vectors:
-      // double a[] = {1,2,3,4};
-      // double *start = a;
-      // double *end = p+4;
-      // int length = (start-end)
-      FatPtrExpr fatPtr = (FatPtrExpr) value;
-      return new PrimitiveValue(fatPtr.getOffset());
+      return ((FatPtrStrategy) typeStrategy).toInt((FatPtrExpr) value);
     
     } else if(value instanceof RefPtrExpr) {
       RefPtrExpr ptrExpr = (RefPtrExpr) value;

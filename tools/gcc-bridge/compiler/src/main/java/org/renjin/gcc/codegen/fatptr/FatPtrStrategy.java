@@ -6,6 +6,7 @@ import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.type.*;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
 import org.renjin.gcc.codegen.type.voidt.VoidPtr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrStrategy;
 import org.renjin.gcc.codegen.var.VarAllocator;
@@ -106,11 +107,24 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtrExpr> {
       return new FatPtrExpr(address, unwrappedArray, unwrappedOffset);
 
     } else {
-      JLValue array = allocator.reserve(decl.getName(), arrayType);
-      JLValue offset = allocator.reserveInt(decl.getName() + "$offset");
+      JLValue array = allocator.reserve(decl.getNameIfPresent(), arrayType);
+      JLValue offset = allocator.reserveOffsetInt(decl.getNameIfPresent());
 
       return new FatPtrExpr(array, offset);
     }
+  }
+  
+  public PrimitiveValue toInt(FatPtrExpr fatPtrExpr) {
+    // Converting pointers to integers and vice-versa is implementation-defined
+    // So we will define an implementation that supports at least one useful case spotted in S4Vectors:
+    // double a[] = {1,2,3,4};
+    // double *start = a;
+    // double *end = p+4;
+    // int length = (start-end)
+    JExpr offset = fatPtrExpr.getOffset();
+    JExpr offsetInBytes = Expressions.product(offset, valueFunction.getArrayElementBytes());
+
+    return new PrimitiveValue(offsetInBytes);
   }
 
   @Override
@@ -284,15 +298,15 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtrExpr> {
     JExpr wrapperPtr = Wrappers.cast(valueFunction.getValueType(), voidPointer);
 
     // Reserve a local variable to hold the result
-    JLValue retVal = mv.getLocalVarAllocator().reserve("_retval", wrapperType);
+    JLValue retVal = mv.getLocalVarAllocator().reserve(wrapperType);
 
     // store the result of the call to the temp variable
     retVal.store(mv, wrapperPtr);
 
     // Now unpack the array and offset into seperate local variables
     Type arrayType = Wrappers.valueArrayType(valueFunction.getValueType());
-    JLValue arrayVar = mv.getLocalVarAllocator().reserve("_retval$array", arrayType);
-    JLValue offsetVar = mv.getLocalVarAllocator().reserveInt("_retval$offset");
+    JLValue arrayVar = mv.getLocalVarAllocator().reserve(arrayType);
+    JLValue offsetVar = mv.getLocalVarAllocator().reserve(Type.INT_TYPE);
     
     arrayVar.store(mv, Wrappers.arrayField(retVal, valueFunction.getValueType()));
     offsetVar.store(mv, Wrappers.offsetField(retVal));

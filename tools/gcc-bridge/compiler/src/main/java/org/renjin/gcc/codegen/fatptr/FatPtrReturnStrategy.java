@@ -37,7 +37,7 @@ public class FatPtrReturnStrategy implements ReturnStrategy {
   @Override
   public GExpr unmarshall(MethodGenerator mv, JExpr returnValue, TypeStrategy lhsTypeStrategy) {
     // Store the returned Ptr wrapper to a local variable
-    JLValue wrapper = mv.getLocalVarAllocator().reserve("retval", returnValue.getType());
+    JLValue wrapper = mv.getLocalVarAllocator().reserve(returnValue.getType());
     wrapper.store(mv, returnValue);
 
     JExpr array = Wrappers.arrayField(wrapper, valueFunction.getValueType());

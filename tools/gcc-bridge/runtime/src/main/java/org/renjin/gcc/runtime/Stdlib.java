@@ -52,7 +52,7 @@ public class Stdlib {
     System.arraycopy(source, source.offset, destination, destination.offset, length+1);
     return destination;
   }
-
+  
   /**
    * Copies the first num characters of source to destination. 
    * If the end of the source C string (which is signaled by a null-character) is 
@@ -139,6 +139,11 @@ public class Stdlib {
     System.out.println(outputString);
     
     return outputString.length();
+  }
+  
+  public static int puts(BytePtr string) {
+    System.out.print(string.nullTerminatedString());
+    return 0;
   }
   
   public static int sprintf(BytePtr string, BytePtr format, Object... arguments) {

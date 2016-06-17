@@ -59,6 +59,10 @@ public class GimpleVarDecl implements GimpleDecl {
       return "T" + Math.abs(id);
     }
   }
+  
+  public String getNameIfPresent() {
+    return name;
+  }
 
   public String getMangledName() {
     return mangledName;

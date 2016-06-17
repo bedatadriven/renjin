@@ -45,16 +45,26 @@ public class Print {
   public static SEXP printDefault(@Current Context context, SEXP expression, SEXP digits, boolean quote, SEXP naPrint,
       SEXP printGap, SEXP right, SEXP max, SEXP useSource, SEXP noOp) throws IOException {
 
-    PrintingVisitor visitor = new PrintingVisitor(context)
-        .setCharactersPerLine(80)
-        .setQuote(quote);
-    expression.accept(visitor);
+    if(Types.isS4(expression)) {
+      printS4(context, expression);
+    
+    } else {
 
-    context.getSession().getStdOut().print(visitor.getResult());
+      PrintingVisitor visitor = new PrintingVisitor(context)
+          .setCharactersPerLine(80)
+          .setQuote(quote);
+      expression.accept(visitor);
+      context.getSession().getStdOut().print(visitor.getResult());
+    }
+
     context.getSession().getStdOut().flush();
     context.setInvisibleFlag();
     return expression;
 
+  }
+
+  private static void printS4(Context context, SEXP expression) {
+    context.evaluate(FunctionCall.newCall(Symbol.get("show"), expression));
   }
 
   public static String doPrint(SEXP expression) {

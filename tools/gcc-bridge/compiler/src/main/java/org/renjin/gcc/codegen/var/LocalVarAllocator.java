@@ -18,6 +18,7 @@ import java.util.List;
 public class LocalVarAllocator extends VarAllocator {
 
 
+
   public static class LocalVar implements JLValue {
     private String name;
     private int index;
@@ -73,6 +74,11 @@ public class LocalVarAllocator extends VarAllocator {
   @Override
   public LocalVar reserve(String name, Type type, JExpr initialValue) {
     return reserve(name, type, Optional.of(initialValue));
+  }
+
+
+  public LocalVar reserve(Type type) {
+    return reserve(null, type);
   }
   
   private LocalVar reserve(String name, Type type, Optional<JExpr> initialValue) {

@@ -135,9 +135,9 @@ public class ArrayTypeStrategy implements TypeStrategy<FatPtrExpr> {
 
     JExpr array;
     if(decl.getValue() == null) {
-      array = allocator.reserve(decl.getName(), arrayType, allocArray(arrayLength));
+      array = allocator.reserve(decl.getNameIfPresent(), arrayType, allocArray(arrayLength));
     } else {
-      array = allocator.reserve(decl.getName(), arrayType);
+      array = allocator.reserve(decl.getNameIfPresent(), arrayType);
     }
     
     JExpr offset = Expressions.zero();

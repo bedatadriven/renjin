@@ -41,7 +41,15 @@ public abstract class VarAllocator {
   public final JLValue reserveInt(String name) {
     return reserve(name, Type.INT_TYPE);
   }
-
+  
+  public final JLValue reserveOffsetInt(String name) {
+    if(name == null) {
+      return reserve(null, Type.INT_TYPE);
+    } else {
+      return reserve(name + "$offset", Type.INT_TYPE);
+    }
+  }
+  
 
   public static String toJavaSafeName(String name) {
     return name.replace('.', '$');

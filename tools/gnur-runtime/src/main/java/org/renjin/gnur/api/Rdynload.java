@@ -10,10 +10,10 @@ import java.lang.invoke.MethodHandle;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.renjin.gnur.api.CCallablesRegister.callMap;
-
 @SuppressWarnings("unused")
 public final class Rdynload {
+
+  private static final Map<String,MethodHandle> CALL_MAP = new HashMap<>();
 
   private Rdynload() { }
 
@@ -66,14 +66,16 @@ public final class Rdynload {
 //   DL_FUNC R_FindSymbol (char const *, char const *, R_RegisteredNativeSymbol *symbol)
 //
 
+
   public static void R_RegisterCCallable (BytePtr packageName, BytePtr name, MethodHandle method) {
+    // We assume this is thread save given if multiple sessions are Registering or Getting
+    // a method the packages/functions stay the same and the order of processing is irrelevant
     String key = packageName.nullTerminatedString() + "." + name.nullTerminatedString();
-    CCallablesRegister register = CCallablesRegister.getInstance();
-    callMap.put(key, method);
+    CALL_MAP.put(key, method);
   }
 
   public static MethodHandle R_GetCCallable (BytePtr packageName, BytePtr name) {
     String key = packageName.nullTerminatedString() + "." + name.nullTerminatedString();
-    return callMap.get(key);
+    return CALL_MAP.get(key);
   }
 }

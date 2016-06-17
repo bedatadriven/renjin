@@ -5,9 +5,9 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.expr.Expressions;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.FieldStrategy;
 
 
@@ -39,11 +39,11 @@ public class AddressableField extends FieldStrategy {
     
     // Reference value types like records and fat pointers may need
     // to initialize a value
-    Optional<SimpleExpr> initialValues = valueFunction.getValueConstructor();
+    Optional<JExpr> initialValues = valueFunction.getValueConstructor();
     
     // Allocate a unit array store the value
     // (for value types like complex, this might actually be several elements)
-    SimpleExpr unitArray = Expressions.newArray(valueFunction.getValueType(), valueFunction.getElementLength(), initialValues);
+    JExpr unitArray = Expressions.newArray(valueFunction.getValueType(), valueFunction.getElementLength(), initialValues);
 
     // Store this to the array field
     mv.visitVarInsn(Opcodes.ALOAD, 0);
@@ -52,10 +52,11 @@ public class AddressableField extends FieldStrategy {
   }
 
   @Override
-  public Expr memberExprGenerator(SimpleExpr instance) {
-    SimpleExpr array = Expressions.field(instance, arrayType, arrayField);
-    SimpleExpr offset = Expressions.field(instance, Type.INT_TYPE, offsetField);
+  public GExpr memberExprGenerator(JExpr instance) {
+    JExpr array = Expressions.field(instance, arrayType, arrayField);
+    JExpr offset = Expressions.field(instance, Type.INT_TYPE, offsetField);
     
     return valueFunction.dereference(array, offset);
   }
+
 }

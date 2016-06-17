@@ -3,19 +3,19 @@ package org.renjin.gcc.codegen.type.primitive.op;
 import com.google.common.base.Preconditions;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 
 import javax.annotation.Nonnull;
 
 import static org.objectweb.asm.Type.INT_TYPE;
 
 
-public class BitwiseLRotateGenerator implements SimpleExpr {
+public class BitwiseLRotateGenerator implements JExpr {
   
-  private SimpleExpr bits;
-  private SimpleExpr k;
+  private JExpr bits;
+  private JExpr k;
 
-  public BitwiseLRotateGenerator(SimpleExpr bits, SimpleExpr k) {
+  public BitwiseLRotateGenerator(JExpr bits, JExpr k) {
     this.bits = bits;
     this.k = k;
     Preconditions.checkArgument(bits.getType() == Type.INT_TYPE);

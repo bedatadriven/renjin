@@ -6,6 +6,10 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.util.TraceClassVisitor;
 import org.renjin.gcc.GimpleCompiler;
+import org.renjin.gcc.InternalCompilerException;
+import org.renjin.gcc.codegen.expr.Expressions;
+import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.FieldStrategy;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
 
@@ -64,6 +68,8 @@ public class RecordClassGenerator {
 
     emitDefaultConstructor();
     emitFields();
+    emitSetMethod();
+    emitCloneMethod();
     cv.visitEnd();
 
     return cw.toByteArray();
@@ -74,6 +80,60 @@ public class RecordClassGenerator {
       fieldStrategy.writeFields(cv);
     }
   }
+
+  /**
+   * Generates a method which sets *This* fields values from another Record instance
+   */
+  private void emitSetMethod() {
+    String descriptor = Type.getMethodDescriptor(Type.VOID_TYPE, className);
+    MethodGenerator mv = new MethodGenerator(cv.visitMethod(ACC_PUBLIC, "set", descriptor, null, null));
+    mv.visitCode();
+    
+    // Local variables
+    JExpr thisExpr = Expressions.thisValue(className);
+    JExpr sourceExpr = Expressions.localVariable(className, 1);
+    
+    // Now copy each field member
+    for (FieldStrategy field : fields) {
+      try {
+        GExpr thisField = field.memberExprGenerator(thisExpr);
+        GExpr sourceField = field.memberExprGenerator(sourceExpr);
+
+        thisField.store(mv, sourceField);
+        
+      } catch (Exception e) {
+        throw new InternalCompilerException("Exception generating copy code for " + className + ", field: " + field, e);
+      }
+    }
+    
+    mv.areturn(Type.VOID_TYPE);
+    mv.visitMaxs(1, 1);
+    mv.visitEnd();
+  }
+  
+  private void emitCloneMethod() {
+    String cloneDescriptor = Type.getMethodDescriptor(className);
+    MethodGenerator mv = new MethodGenerator(cv.visitMethod(ACC_PUBLIC, "clone", cloneDescriptor, null, null));
+    mv.visitCode();
+    
+    // Create copy
+    mv.anew(className);
+    mv.dup();
+    mv.invokeconstructor(className);
+    mv.store(1, className);
+    
+    
+    // Set the fields from one to the other
+    mv.load(1, className);
+    mv.load(0, className);
+    mv.invokevirtual(className, "set", Type.getMethodDescriptor(Type.VOID_TYPE, className), false);
+    
+    mv.load(1, className);
+    mv.areturn(className);
+    mv.visitMaxs(1, 1);
+    mv.visitEnd();
+  }
+
 
   private void emitDefaultConstructor() {
     MethodGenerator mv = new MethodGenerator(cv.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null));

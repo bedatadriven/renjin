@@ -3,15 +3,15 @@ package org.renjin.gcc.codegen.type.primitive.op;
 
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 
 import javax.annotation.Nonnull;
 
-public class BitwiseNot implements SimpleExpr {
+public class BitwiseNot implements JExpr {
 
-  private final SimpleExpr argument;
+  private final JExpr argument;
 
-  public BitwiseNot(SimpleExpr argument) {
+  public BitwiseNot(JExpr argument) {
     this.argument = argument;
   }
 

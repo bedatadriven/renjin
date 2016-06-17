@@ -4,19 +4,19 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 
 import javax.annotation.Nonnull;
 
 /**
  * Logical binary operator, such as TRUTH_OR, TRUTH_AND
  */
-public class LogicalOr implements SimpleExpr {
+public class LogicalOr implements JExpr {
   
-  private SimpleExpr x;
-  private SimpleExpr y;
+  private JExpr x;
+  private JExpr y;
 
-  public LogicalOr(SimpleExpr x, SimpleExpr y) {
+  public LogicalOr(JExpr x, JExpr y) {
     this.x = x;
     this.y = y;
   }

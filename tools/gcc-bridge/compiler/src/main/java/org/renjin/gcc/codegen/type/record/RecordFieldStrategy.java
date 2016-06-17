@@ -4,13 +4,16 @@ import com.google.common.base.Preconditions;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.*;
+import org.renjin.gcc.codegen.expr.Expressions;
+import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.gcc.codegen.type.FieldStrategy;
+import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
 
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 
 /**
- * Generates a field with a record type
+ * Generates a field with a record *value* type
  */
 public class RecordFieldStrategy extends FieldStrategy {
   private String fieldName;
@@ -37,18 +40,19 @@ public class RecordFieldStrategy extends FieldStrategy {
 
   @Override
   public void emitInstanceInit(MethodGenerator mv) {
-    SimpleExpr thisRef = Expressions.thisValue(declaringClass);
-    SimpleAddressableExpr field = memberExprGenerator(thisRef);
-    SimpleExpr newInstance = Expressions.newObject(strategy.getJvmType());
+    JExpr thisRef = Expressions.thisValue(declaringClass);
+    JLValue fieldRef = Expressions.field(thisRef, strategy.getJvmType(), fieldName);
+    
+    JExpr newInstance = Expressions.newObject(strategy.getJvmType());
 
-    field.store(mv, newInstance);
+    fieldRef.store(mv, newInstance);
   }
 
   @Override
-  public SimpleAddressableExpr memberExprGenerator(SimpleExpr instance) {
-    SimpleLValue value = Expressions.field(instance, strategy.getJvmType(), fieldName);
-    Expr address = value;
+  public RecordValue memberExprGenerator(JExpr instance) {
+    JLValue value = Expressions.field(instance, strategy.getJvmType(), fieldName);
+    RecordUnitPtr address = new RecordUnitPtr(value);
     
-    return new SimpleAddressableExpr(value, address);
+    return new RecordValue(value, address);
   }
 }

@@ -3,8 +3,7 @@ package org.renjin.gcc.codegen.type.voidt;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
-import org.renjin.gcc.codegen.expr.Expr;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.FieldStrategy;
 import org.renjin.gcc.codegen.type.primitive.FieldValue;
 
@@ -26,7 +25,10 @@ public class VoidPtrField extends FieldStrategy {
   }
 
   @Override
-  public Expr memberExprGenerator(SimpleExpr instance) {
-    return new FieldValue(instance, fieldName, Type.getType(Object.class));
+  public VoidPtr memberExprGenerator(JExpr instance) {
+    FieldValue ref = new FieldValue(instance, fieldName, Type.getType(Object.class));
+    return new VoidPtr(ref);
   }
+
+
 }

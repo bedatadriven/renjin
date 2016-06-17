@@ -40,3 +40,19 @@ void test_primitive_cast() {
   ASSERT(little == 1);
 
 }
+
+void test_primitive_arith() {
+
+  int a[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+  
+  int *pstart = &a[0];
+  int *pend = &a[5];
+  
+  int start = (int)pstart;
+  int end = (int)pend;
+  
+  int count = (end - start) / sizeof(int);
+  
+  ASSERT(count == 5);
+
+}

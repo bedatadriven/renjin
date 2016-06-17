@@ -2,32 +2,34 @@ package org.renjin.gcc.codegen.type;
 
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
-import org.renjin.gcc.codegen.expr.Expr;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.type.voidt.VoidPtr;
 import org.renjin.gcc.gimple.GimpleOp;
 
 
-public interface PointerTypeStrategy<ExprT extends Expr> extends TypeStrategy<ExprT> {
+public interface PointerTypeStrategy<ExprT extends GExpr> extends TypeStrategy<ExprT> {
   
-  ExprT malloc(MethodGenerator mv, SimpleExpr sizeInBytes);
+  ExprT malloc(MethodGenerator mv, JExpr sizeInBytes);
 
-  ExprT realloc(ExprT pointer, SimpleExpr newSizeInBytes);
+  ExprT realloc(ExprT pointer, JExpr newSizeInBytes);
 
-  ExprT pointerPlus(ExprT pointer, SimpleExpr offsetInBytes);
+  ExprT pointerPlus(ExprT pointer, JExpr offsetInBytes);
 
-  Expr valueOf(ExprT pointerExpr);
+  GExpr valueOf(ExprT pointerExpr);
 
   ExprT nullPointer();
 
   ConditionGenerator comparePointers(GimpleOp op, ExprT x, ExprT y);
 
-  SimpleExpr memoryCompare(ExprT p1, ExprT p2, SimpleExpr n);
+  JExpr memoryCompare(ExprT p1, ExprT p2, JExpr n);
 
-  void memoryCopy(MethodGenerator mv, ExprT destination, ExprT source, SimpleExpr length);
+  void memoryCopy(MethodGenerator mv, ExprT destination, ExprT source, JExpr length, boolean buffer);
 
-  void memorySet(MethodGenerator mv, ExprT pointer, SimpleExpr byteValue, SimpleExpr length);
+  void memorySet(MethodGenerator mv, ExprT pointer, JExpr byteValue, JExpr length);
 
-  SimpleExpr toVoidPointer(ExprT ptrExpr);
+  VoidPtr toVoidPointer(ExprT ptrExpr);
 
-  ExprT unmarshallVoidPtrReturnValue(MethodGenerator mv, SimpleExpr voidPointer);
+  ExprT unmarshallVoidPtrReturnValue(MethodGenerator mv, JExpr voidPointer);
+
 }

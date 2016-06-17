@@ -6,9 +6,10 @@ import org.renjin.gcc.gimple.type.GimpleType;
 
 public class GimpleVariableRef extends GimpleLValue implements GimpleSymbolRef {
 
-  private String name;
   private int id;
-
+  private String name;
+  private String mangledName;
+  
   public GimpleVariableRef() {
   }
 
@@ -31,6 +32,14 @@ public class GimpleVariableRef extends GimpleLValue implements GimpleSymbolRef {
 
   public String getName() {
     return name;
+  }
+
+  public String getMangledName() {
+    return mangledName;
+  }
+
+  public void setMangledName(String mangledName) {
+    this.mangledName = mangledName;
   }
 
   @Override

@@ -3,8 +3,8 @@ package org.renjin.gcc.codegen.fatptr;
 import com.google.common.base.Optional;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.Expr;
-import org.renjin.gcc.codegen.expr.SimpleLValue;
+import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleParameter;
@@ -32,12 +32,16 @@ public class FatPtrParamStrategy implements ParamStrategy {
   }
 
   @Override
-  public Expr emitInitialization(MethodGenerator methodVisitor, GimpleParameter parameter, List<SimpleLValue> paramVars, VarAllocator localVars) {
+  public GExpr emitInitialization(MethodGenerator methodVisitor, GimpleParameter parameter, List<JLValue> paramVars, VarAllocator localVars) {
+    if(parameter.isAddressable()) {
+      throw new UnsupportedOperationException("TODO: Addressable parameters");
+    }
+    
     return new FatPtrExpr(paramVars.get(0), paramVars.get(1));
   }
 
   @Override
-  public void loadParameter(MethodGenerator mv, Optional<Expr> argument) {
+  public void loadParameter(MethodGenerator mv, Optional<GExpr> argument) {
     if(argument.isPresent()) {
       FatPtrExpr expr = (FatPtrExpr) argument.get();
       expr.getArray().load(mv);

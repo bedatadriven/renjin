@@ -1,6 +1,6 @@
 package org.renjin.gcc.codegen.type.record;
 
-import org.renjin.gcc.codegen.expr.Expr;
+import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
@@ -15,7 +15,7 @@ import java.io.IOException;
 /**
  *
  */
-public abstract class RecordTypeStrategy<ExprT extends Expr> implements TypeStrategy<ExprT> {
+public abstract class RecordTypeStrategy<ExprT extends GExpr> implements TypeStrategy<ExprT> {
   protected final GimpleRecordTypeDef recordTypeDef;
   protected final GimpleRecordType recordType;
 
@@ -41,10 +41,10 @@ public abstract class RecordTypeStrategy<ExprT extends Expr> implements TypeStra
    */
   public abstract void writeClassFiles(File outputDirectory) throws IOException;
 
-  public abstract Expr memberOf(ExprT instance, GimpleFieldRef fieldRef);
+  public abstract GExpr memberOf(ExprT instance, GimpleFieldRef fieldRef);
 
   @Override
-  public ExprT cast(Expr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+  public ExprT cast(GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
     throw new UnsupportedCastException();
   }
 

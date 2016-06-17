@@ -1,6 +1,7 @@
 package org.renjin.primitives;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -352,7 +353,11 @@ public class Native {
       } else if (className != null) {
         clazz = Class.forName(className);
       } else {
-        throw new EvalException("Either the PACKAGE or CLASS argument must be provided");
+        Optional<Class> namespaceClass = context.getNamespaceRegistry().resolveNativeMethod(methodName);
+        if(!namespaceClass.isPresent()) {
+          throw new EvalException("Could not resolve native method '%s'", methodName);
+        }
+        clazz = namespaceClass.get();
       }
       if(Profiler.ENABLED) {
         Profiler.functionStart(Symbol.get(methodName));
@@ -368,6 +373,7 @@ public class Native {
       throw new EvalException("Invalid method argument: " + methodExp);
     }
   }
+
 
 
   @Builtin(".External")

@@ -43,6 +43,12 @@ public class NamespaceRegistry {
 
   private Map<Environment, Namespace> envirMap = Maps.newIdentityHashMap();
 
+  /**
+   * Mapping of "native" methods to the namespace in which they are declared. used to resolve
+   * .Call invocations without a PACKAGE parameter.
+   */
+  private Map<String, Class> nativeSymbolMap = Maps.newHashMap();
+  
   private final Namespace baseNamespace;
 
   public NamespaceRegistry(PackageLoader loader, Context context, Environment baseNamespaceEnv) {
@@ -81,6 +87,10 @@ public class NamespaceRegistry {
     } else {
       return Optional.absent();
     }
+  }
+  
+  public Optional<Class> resolveNativeMethod(String methodName) {
+    return Optional.fromNullable(nativeSymbolMap.get(methodName));
   }
   
   public Namespace getNamespace(Context context, String name) {
@@ -226,6 +236,10 @@ public class NamespaceRegistry {
       namespace.initImports(context, this, namespaceFile);
       namespace.initExports(namespaceFile);
       namespace.registerS3Methods(context, namespaceFile);
+
+      // Update our method name lookup
+      nativeSymbolMap.putAll(namespace.getNativeSymbolMap());
+      
     } catch (Exception e) {
       throw new EvalException("Exception setting up imports/exports for namespace " + namespace.getName() +
           ": " + e.getMessage(), e);

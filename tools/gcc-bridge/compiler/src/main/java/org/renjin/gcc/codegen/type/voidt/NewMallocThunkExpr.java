@@ -2,7 +2,7 @@ package org.renjin.gcc.codegen.type.voidt;
 
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.runtime.MallocThunk;
 
 import javax.annotation.Nonnull;
@@ -11,11 +11,11 @@ import javax.annotation.Nonnull;
  * Generates a new {@code MallocThunk} instance that will allocate the requested
  * memory when first cast to a concrete type.
  */
-public class NewMallocThunkExpr implements SimpleExpr {
+public class NewMallocThunkExpr implements JExpr {
   
-  private SimpleExpr sizeInBytes;
+  private JExpr sizeInBytes;
 
-  public NewMallocThunkExpr(SimpleExpr sizeInBytes) {
+  public NewMallocThunkExpr(JExpr sizeInBytes) {
     this.sizeInBytes = sizeInBytes;
   }
 

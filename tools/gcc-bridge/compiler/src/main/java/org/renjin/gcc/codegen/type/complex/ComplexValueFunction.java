@@ -4,9 +4,9 @@ import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import org.objectweb.asm.Type;
-import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.expr.Expressions;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 
@@ -41,29 +41,29 @@ public class ComplexValueFunction implements ValueFunction {
   }
 
   @Override
-  public Expr dereference(SimpleExpr array, SimpleExpr offset) {
+  public GExpr dereference(JExpr array, JExpr offset) {
 
     FatPtrExpr address = new FatPtrExpr(array, offset);
     
     // Real element is at i
-    SimpleExpr realOffset = offset;
+    JExpr realOffset = offset;
     // Complex element is at i+1
-    SimpleExpr imaginaryOffset = Expressions.sum(realOffset, Expressions.constantInt(1));
+    JExpr imaginaryOffset = Expressions.sum(realOffset, Expressions.constantInt(1));
     
-    SimpleExpr real = Expressions.elementAt(array, realOffset);
-    SimpleExpr imaginary = Expressions.elementAt(array, imaginaryOffset);
+    JExpr real = Expressions.elementAt(array, realOffset);
+    JExpr imaginary = Expressions.elementAt(array, imaginaryOffset);
     
     return new ComplexValue(address, real, imaginary);
   }
 
   @Override
-  public List<SimpleExpr> toArrayValues(Expr expr) {
+  public List<JExpr> toArrayValues(GExpr expr) {
     ComplexValue value = (ComplexValue) expr;
-    return Lists.newArrayList(value.getRealValue(), value.getImaginaryValue());
+    return Lists.newArrayList(value.getRealJExpr(), value.getImaginaryJExpr());
   }
 
   @Override
-  public Optional<SimpleExpr> getValueConstructor() {
+  public Optional<JExpr> getValueConstructor() {
     return Optional.absent();
   }
 

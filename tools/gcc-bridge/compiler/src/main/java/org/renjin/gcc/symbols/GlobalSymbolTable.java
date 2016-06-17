@@ -7,8 +7,8 @@ import com.google.common.collect.Sets;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.call.*;
 import org.renjin.gcc.codegen.cpp.*;
-import org.renjin.gcc.codegen.expr.Expr;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.lib.SymbolFunction;
 import org.renjin.gcc.codegen.lib.SymbolLibrary;
 import org.renjin.gcc.codegen.lib.SymbolMethod;
@@ -39,7 +39,7 @@ public class GlobalSymbolTable implements SymbolTable {
   private ClassLoader linkClassLoader = getClass().getClassLoader();
   private TypeOracle typeOracle;
   private Map<String, CallGenerator> functions = Maps.newHashMap();
-  private Map<String, Expr> globalVariables = Maps.newHashMap();
+  private Map<String, GExpr> globalVariables = Maps.newHashMap();
   
   private Set<String> undefinedSymbols = Sets.newHashSet();
 
@@ -84,7 +84,7 @@ public class GlobalSymbolTable implements SymbolTable {
   }
   
   @Override
-  public SimpleExpr findHandle(GimpleFunctionRef ref) {
+  public JExpr findHandle(GimpleFunctionRef ref) {
     CallGenerator callGenerator = findCallGenerator(ref);
     if(callGenerator instanceof MethodHandleGenerator) {
       return ((MethodHandleGenerator) callGenerator).getMethodHandle();
@@ -100,13 +100,17 @@ public class GlobalSymbolTable implements SymbolTable {
     addFunction("free", new FreeCallGenerator());
     addFunction("realloc", new ReallocCallGenerator(typeOracle));
 
+    addFunction(CppStandardLibrary.NEW_OPERATOR, new MallocCallGenerator(typeOracle));
+    addFunction(CppStandardLibrary.DELETE_OPERATOR, new FreeCallGenerator());
+    
     addFunction("__builtin_malloc__", new MallocCallGenerator(typeOracle));
     addFunction("__builtin_free__", new MallocCallGenerator(typeOracle));
-    addFunction("__builtin_memcpy", new MemCopyCallGenerator(typeOracle));
-    addFunction("__builtin_memcpy__", new MemCopyCallGenerator(typeOracle));
+    addFunction("__builtin_memcpy", new MemCopyCallGenerator(typeOracle, false));
+    addFunction("__builtin_memcpy__", new MemCopyCallGenerator(typeOracle, false));
     addFunction("__builtin_memset__", new MemSetGenerator(typeOracle));
 
-    addFunction("__builtin_expect", new BuiltinExpectGenerator());
+    addFunction(BuiltinExpectGenerator.NAME, new BuiltinExpectGenerator());
+    addFunction(BuiltinClzGenerator.NAME, new BuiltinClzGenerator());
     
     addFunction("__cxa_allocate_exception", new MallocCallGenerator(typeOracle));
     addFunction(GuardAcquireGenerator.NAME, new GuardAcquireGenerator());
@@ -118,7 +122,8 @@ public class GlobalSymbolTable implements SymbolTable {
     
     addMethod("__builtin_log10__", Math.class, "log10");
 
-    addFunction("memcpy", new MemCopyCallGenerator(typeOracle));
+    addFunction("memcpy", new MemCopyCallGenerator(typeOracle, false));
+    addFunction(MemCopyCallGenerator.MEMMOVE, new MemCopyCallGenerator(typeOracle, true));
     addFunction("memcmp", new MemCmpCallGenerator(typeOracle));
     addFunction("memset", new MemSetGenerator(typeOracle));
     
@@ -178,12 +183,12 @@ public class GlobalSymbolTable implements SymbolTable {
   }
 
   @Override
-  public Expr getVariable(GimpleSymbolRef ref) {
+  public GExpr getVariable(GimpleSymbolRef ref) {
     // Global variables are only resolved by name...
     if(ref.getName() == null) {
       return null;
     } else {
-      Expr expr = globalVariables.get(ref.getName());
+      GExpr expr = globalVariables.get(ref.getName());
       if(expr == null) {
         throw new InternalCompilerException("No such variable: " + ref);
       }
@@ -191,7 +196,7 @@ public class GlobalSymbolTable implements SymbolTable {
     }
   }
   
-  public void addVariable(String name, Expr expr) {
+  public void addVariable(String name, GExpr expr) {
     globalVariables.put(name, expr);
   }
   

@@ -5,7 +5,7 @@ import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.Expressions;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.runtime.*;
 
 import javax.annotation.Nonnull;
@@ -57,12 +57,12 @@ public class Wrappers {
     return Type.getType("[" + valueType.getDescriptor());
   }
   
-  public static SimpleExpr arrayField(SimpleExpr wrapperInstance) {
+  public static JExpr arrayField(JExpr wrapperInstance) {
     return Expressions.field(wrapperInstance, fieldArrayType(wrapperInstance.getType()), "array");
   }
 
-  public static SimpleExpr arrayField(SimpleExpr instance, Type valueType) {
-    SimpleExpr array = arrayField(instance);
+  public static JExpr arrayField(JExpr instance, Type valueType) {
+    JExpr array = arrayField(instance);
     Type arrayType = arrayType(valueType);
     if(!array.getType().equals(arrayType)) {
       array = Expressions.cast(array, arrayType);
@@ -74,7 +74,7 @@ public class Wrappers {
     return Type.getType("[" + valueType.getDescriptor());
   }
 
-  public static SimpleExpr offsetField(SimpleExpr wrapperInstance) {
+  public static JExpr offsetField(JExpr wrapperInstance) {
     return Expressions.field(wrapperInstance, Type.INT_TYPE, "offset");
   }
 
@@ -106,10 +106,10 @@ public class Wrappers {
     return WrapperType.valueOf(Type.getType(wrapperClass));
   }
   
-  public static SimpleExpr cast(final Type valueType, final SimpleExpr pointer) {
+  public static JExpr cast(final Type valueType, final JExpr pointer) {
     final Type wrapperType = wrapperType(valueType);
 
-    return new SimpleExpr() {
+    return new JExpr() {
       @Nonnull
       @Override
       public Type getType() {

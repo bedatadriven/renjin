@@ -2,8 +2,8 @@ package org.renjin.gcc.codegen.fatptr;
 
 import com.google.common.base.Optional;
 import org.objectweb.asm.Type;
-import org.renjin.gcc.codegen.expr.Expr;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 
 import java.util.List;
 
@@ -28,17 +28,17 @@ public interface ValueFunction {
    */
   int getArrayElementBytes();
 
-  Optional<SimpleExpr> getValueConstructor();
+  Optional<JExpr> getValueConstructor();
 
 
-  Expr dereference(SimpleExpr array, SimpleExpr offset);
+  GExpr dereference(JExpr array, JExpr offset);
 
   /**
    * Transforms the given expression to one or more array element values.
    * @param expr
    * @return
    */
-  List<SimpleExpr> toArrayValues(Expr expr);
-
+  List<JExpr> toArrayValues(GExpr expr);
+  
 }
 

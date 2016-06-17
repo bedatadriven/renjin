@@ -10,6 +10,7 @@ import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
 import org.renjin.gcc.codegen.fatptr.Wrappers;
 import org.renjin.gcc.codegen.type.*;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
@@ -158,14 +159,14 @@ public class RecordArrayTypeStrategy extends RecordTypeStrategy<RecordArrayExpr>
   }
 
   @Override
-  public Expr memberOf(RecordArrayExpr instance, GimpleFieldRef fieldRef) {
+  public GExpr memberOf(RecordArrayExpr instance, GimpleFieldRef fieldRef) {
     
     // All the fields in this record are necessarily primitives, so we need
     // simple to retrieve the element from within the array that corresponds to
     // the given field name
-    SimpleExpr array = instance.getArray();
-    SimpleExpr fieldOffset = constantInt(fieldRef.getOffsetBytes() / elementSizeInBytes());
-    SimpleExpr offset = sum(instance.getOffset(), fieldOffset);
+    JExpr array = instance.getArray();
+    JExpr fieldOffset = constantInt(fieldRef.getOffsetBytes() / elementSizeInBytes());
+    JExpr offset = sum(instance.getOffset(), fieldOffset);
 
     // Because this value is backed by an array, we can also make it addressable. 
     FatPtrExpr address = new FatPtrExpr(array, offset);
@@ -178,10 +179,10 @@ public class RecordArrayTypeStrategy extends RecordTypeStrategy<RecordArrayExpr>
 
       // Return a single primitive value
       if(expectedType.equals(fieldType)) {
-        SimpleExpr value = elementAt(array, offset);
-        return new SimpleAddressableExpr(value, address);
+        JExpr value = elementAt(array, offset);
+        return new PrimitiveValue(value, address);
       } else if (expectedType.equals(Type.INT_TYPE) && fieldType.equals(Type.BYTE_TYPE)) {
-        return new ByteArrayAsInt(array, offset);
+        return new PrimitiveValue(new ByteArrayAsInt(array, offset));
         
       } else {
         throw new UnsupportedOperationException("TODO: " + fieldType + " -> " + expectedType);
@@ -211,8 +212,8 @@ public class RecordArrayTypeStrategy extends RecordTypeStrategy<RecordArrayExpr>
   @Override
   public RecordArrayExpr variable(GimpleVarDecl decl, VarAllocator allocator) {
 
-    SimpleExpr newArray = newArray(fieldType, arrayLength);
-    SimpleLValue arrayVar = allocator.reserve(decl.getName(), arrayType, newArray);
+    JExpr newArray = newArray(fieldType, arrayLength);
+    JLValue arrayVar = allocator.reserve(decl.getName(), arrayType, newArray);
     
     return new RecordArrayExpr(arrayVar, arrayLength);
   }

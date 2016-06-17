@@ -17,6 +17,7 @@ public class GimpleVarDecl implements GimpleDecl {
   private int id;
   private GimpleType type;
   private String name;
+  private String mangledName;
   private GimpleExpr value;
   private GimpleCompilationUnit unit;
   
@@ -24,6 +25,8 @@ public class GimpleVarDecl implements GimpleDecl {
   private boolean constant;
   
   private boolean extern;
+  
+  private boolean weak;
 
   /**
    * True if this local variable is addressable
@@ -57,6 +60,18 @@ public class GimpleVarDecl implements GimpleDecl {
     }
   }
   
+  public String getNameIfPresent() {
+    return name;
+  }
+
+  public String getMangledName() {
+    return mangledName;
+  }
+
+  public void setMangledName(String mangledName) {
+    this.mangledName = mangledName;
+  }
+
   public boolean isNamed() {
     return name != null;
   }
@@ -114,7 +129,15 @@ public class GimpleVarDecl implements GimpleDecl {
   public void setExtern(boolean extern) {
     this.extern = extern;
   }
-  
+
+  public boolean isWeak() {
+    return weak;
+  }
+
+  public void setWeak(boolean weak) {
+    this.weak = weak;
+  }
+
   public Predicate<GimpleExpr> isReference() {
     return new Predicate<GimpleExpr>() {
       @Override

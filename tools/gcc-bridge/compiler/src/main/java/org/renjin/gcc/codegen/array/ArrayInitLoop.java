@@ -4,8 +4,8 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
-import org.renjin.gcc.codegen.expr.SimpleLValue;
+import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.fatptr.Wrappers;
 import org.renjin.gcc.codegen.type.primitive.ConstantValue;
@@ -16,7 +16,7 @@ import javax.annotation.Nonnull;
 /**
  * Allocates a new array and initializes each element with a loop.
  */
-public class ArrayInitLoop implements SimpleExpr {
+public class ArrayInitLoop implements JExpr {
 
   private ValueFunction valueFunction;
   private int arrayLength;
@@ -37,7 +37,7 @@ public class ArrayInitLoop implements SimpleExpr {
   @Override
   public void load(@Nonnull MethodGenerator mv) {
     
-    SimpleLValue array = mv.getLocalVarAllocator().reserve("$tmp", arrayType);
+    JLValue array = mv.getLocalVarAllocator().reserve(arrayType);
     array.store(mv, Expressions.newArray(valueFunction.getValueType(), arrayLength));
 
     LocalVarAllocator.LocalVar counter = (LocalVarAllocator.LocalVar) mv.getLocalVarAllocator().reserveInt("$counter");

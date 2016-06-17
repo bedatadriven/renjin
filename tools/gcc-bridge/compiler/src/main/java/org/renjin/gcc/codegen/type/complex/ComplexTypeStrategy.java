@@ -2,8 +2,8 @@ package org.renjin.gcc.codegen.type.complex;
 
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
-import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.expr.ExprFactory;
+import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.var.VarAllocator;
@@ -88,7 +88,7 @@ public class ComplexTypeStrategy implements TypeStrategy<ComplexValue> {
   }
 
   @Override
-  public ComplexValue cast(Expr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+  public ComplexValue cast(GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
     throw new UnsupportedCastException();
   }
 }

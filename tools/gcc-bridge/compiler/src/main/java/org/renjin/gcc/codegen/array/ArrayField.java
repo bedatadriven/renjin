@@ -4,10 +4,10 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.expr.Expressions;
-import org.renjin.gcc.codegen.expr.LValue;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtrMalloc;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
@@ -40,17 +40,18 @@ public class ArrayField extends FieldStrategy {
 
   @Override
   public void emitInstanceInit(MethodGenerator mv) {
-    SimpleExpr newArray = FatPtrMalloc.allocArray(mv, valueFunction, Expressions.constantInt(arrayLength));
-    LValue arrayField = Expressions.field(Expressions.thisValue(declaringClass), arrayType, name);
+    JExpr newArray = FatPtrMalloc.allocArray(mv, valueFunction, Expressions.constantInt(arrayLength));
+    JLValue arrayField = Expressions.field(Expressions.thisValue(declaringClass), arrayType, name);
     
     arrayField.store(mv, newArray);
   }
 
   @Override
-  public Expr memberExprGenerator(SimpleExpr instance) {
-    SimpleExpr array = Expressions.field(instance, arrayType, name);
-    SimpleExpr offset = Expressions.zero();
+  public GExpr memberExprGenerator(JExpr instance) {
+    JExpr array = Expressions.field(instance, arrayType, name);
+    JExpr offset = Expressions.zero();
     FatPtrExpr address = new FatPtrExpr(array, offset);
     return new FatPtrExpr(address, array, offset);
   }
+
 }

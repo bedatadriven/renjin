@@ -6,6 +6,8 @@ import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.type.*;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
+import org.renjin.gcc.codegen.type.voidt.VoidPtr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrStrategy;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleOp;
@@ -97,19 +99,32 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtrExpr> {
       
       FatPtrExpr nullPtr = FatPtrExpr.nullPtr(valueFunction);
       
-      SimpleLValue unitArray = allocator.reserve(decl.getName(), wrapperArrayType, newArray(nullPtr.wrap()));
+      JLValue unitArray = allocator.reserve(decl.getName(), wrapperArrayType, newArray(nullPtr.wrap()));
       FatPtrExpr address = new FatPtrExpr(unitArray); 
-      SimpleExpr instance = Expressions.elementAt(unitArray, 0);
-      SimpleExpr unwrappedArray = Wrappers.arrayField(instance, valueFunction.getValueType());
-      SimpleExpr unwrappedOffset = Wrappers.offsetField(instance);      
+      JExpr instance = Expressions.elementAt(unitArray, 0);
+      JExpr unwrappedArray = Wrappers.arrayField(instance, valueFunction.getValueType());
+      JExpr unwrappedOffset = Wrappers.offsetField(instance);      
       return new FatPtrExpr(address, unwrappedArray, unwrappedOffset);
 
     } else {
-      SimpleLValue array = allocator.reserve(decl.getName(), arrayType);
-      SimpleLValue offset = allocator.reserveInt(decl.getName() + "$offset");
+      JLValue array = allocator.reserve(decl.getNameIfPresent(), arrayType);
+      JLValue offset = allocator.reserveOffsetInt(decl.getNameIfPresent());
 
       return new FatPtrExpr(array, offset);
     }
+  }
+  
+  public PrimitiveValue toInt(FatPtrExpr fatPtrExpr) {
+    // Converting pointers to integers and vice-versa is implementation-defined
+    // So we will define an implementation that supports at least one useful case spotted in S4Vectors:
+    // double a[] = {1,2,3,4};
+    // double *start = a;
+    // double *end = p+4;
+    // int length = (start-end)
+    JExpr offset = fatPtrExpr.getOffset();
+    JExpr offsetInBytes = Expressions.product(offset, valueFunction.getArrayElementBytes());
+
+    return new PrimitiveValue(offsetInBytes);
   }
 
   @Override
@@ -142,23 +157,23 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtrExpr> {
   }
 
   @Override
-  public FatPtrExpr malloc(MethodGenerator mv, SimpleExpr sizeInBytes) {
-    SimpleExpr length = Expressions.divide(sizeInBytes, valueFunction.getArrayElementBytes());
+  public FatPtrExpr malloc(MethodGenerator mv, JExpr sizeInBytes) {
+    JExpr length = Expressions.divide(sizeInBytes, valueFunction.getArrayElementBytes());
     
     return FatPtrMalloc.alloc(mv, valueFunction, length);
   }
 
   @Override
-  public FatPtrExpr realloc(FatPtrExpr pointer, SimpleExpr newSizeInBytes) {
-    SimpleExpr sizeInElements = Expressions.divide(newSizeInBytes, valueFunction.getArrayElementBytes());
-    SimpleExpr array = new FatPtrRealloc(pointer, sizeInElements);
-    SimpleExpr offset = Expressions.zero();
+  public FatPtrExpr realloc(FatPtrExpr pointer, JExpr newSizeInBytes) {
+    JExpr sizeInElements = Expressions.divide(newSizeInBytes, valueFunction.getArrayElementBytes());
+    JExpr array = new FatPtrRealloc(pointer, sizeInElements);
+    JExpr offset = Expressions.zero();
     
     return new FatPtrExpr(array, offset);
   }
 
   @Override
-  public Expr valueOf(FatPtrExpr pointerExpr) {
+  public GExpr valueOf(FatPtrExpr pointerExpr) {
     return valueFunction.dereference(pointerExpr.getArray(), pointerExpr.getOffset());
   }
 
@@ -173,12 +188,13 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtrExpr> {
   }
 
   @Override
-  public FatPtrExpr cast(Expr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+  public FatPtrExpr cast(GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
     if(typeStrategy instanceof VoidPtrStrategy) {
-      SimpleExpr wrapperInstance = Wrappers.cast(valueFunction.getValueType(), (SimpleExpr) value);
+      VoidPtr ptrExpr = (VoidPtr) value;
+      JExpr wrapperInstance = Wrappers.cast(valueFunction.getValueType(), ptrExpr.unwrap());
 
-      SimpleExpr arrayField = Wrappers.arrayField(wrapperInstance);
-      SimpleExpr offsetField = Wrappers.offsetField(wrapperInstance);
+      JExpr arrayField = Wrappers.arrayField(wrapperInstance);
+      JExpr offsetField = Wrappers.offsetField(wrapperInstance);
 
       return new FatPtrExpr(arrayField, offsetField);
     
@@ -186,12 +202,12 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtrExpr> {
       // allow any casts between FatPtrs. though runtime errors may occur
       // (The JVM simply won't allow us to cast an int* to a double*)
       FatPtrExpr ptrExpr = (FatPtrExpr) value;
-      Expr address = null;
+      GExpr address = null;
       if(ptrExpr.isAddressable()) {
         address = ptrExpr.addressOf();
       }
-      SimpleExpr castedArray = Expressions.uncheckedCast(ptrExpr.getArray(), arrayType);
-      SimpleExpr offset = ptrExpr.getOffset();
+      JExpr castedArray = Expressions.uncheckedCast(ptrExpr.getArray(), arrayType);
+      JExpr offset = ptrExpr.getOffset();
       
       return new FatPtrExpr(address, castedArray, offset);
     }
@@ -200,9 +216,9 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtrExpr> {
   }
 
   @Override
-  public FatPtrExpr pointerPlus(FatPtrExpr pointer, SimpleExpr offsetInBytes) {
-    SimpleExpr offsetInArrayElements = Expressions.divide(offsetInBytes, valueFunction.getArrayElementBytes());
-    SimpleExpr newOffset = Expressions.sum(pointer.getOffset(), offsetInArrayElements);
+  public FatPtrExpr pointerPlus(FatPtrExpr pointer, JExpr offsetInBytes) {
+    JExpr offsetInArrayElements = Expressions.divide(offsetInBytes, valueFunction.getArrayElementBytes());
+    JExpr newOffset = Expressions.sum(pointer.getOffset(), offsetInArrayElements);
     
     return new FatPtrExpr(pointer.getArray(), newOffset);
   }
@@ -213,17 +229,17 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtrExpr> {
   }
 
   @Override
-  public SimpleExpr memoryCompare(FatPtrExpr p1, FatPtrExpr p2, SimpleExpr n) {
+  public JExpr memoryCompare(FatPtrExpr p1, FatPtrExpr p2, JExpr n) {
     return new FatPtrMemCmp(p1, p2, n);
   }
 
   @Override
-  public void memoryCopy(MethodGenerator mv, FatPtrExpr destination, FatPtrExpr source, SimpleExpr lengthBytes) {
+  public void memoryCopy(MethodGenerator mv, FatPtrExpr destination, FatPtrExpr source, JExpr lengthBytes, boolean buffer) {
     
     // TODO: Is this correct for pointers to record types?
     
     // Convert bytes -> array elements
-    SimpleExpr length = Expressions.divide(lengthBytes, valueFunction.getArrayElementBytes());
+    JExpr length = Expressions.divide(lengthBytes, valueFunction.getArrayElementBytes());
     
     // Push parameters onto stack
     source.getArray().load(mv);
@@ -245,7 +261,7 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtrExpr> {
   }
 
   @Override
-  public void memorySet(MethodGenerator mv, FatPtrExpr pointer, SimpleExpr byteValue, SimpleExpr length) {
+  public void memorySet(MethodGenerator mv, FatPtrExpr pointer, JExpr byteValue, JExpr length) {
     
     // Each of the XXXPtr classes have a static memset() method in the form:
     // void memset(double[] str, int strOffset, int c, int n)
@@ -264,8 +280,8 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtrExpr> {
   }
 
   @Override
-  public SimpleExpr toVoidPointer(FatPtrExpr ptrExpr) {
-    return ptrExpr.wrap();
+  public VoidPtr toVoidPointer(FatPtrExpr ptrExpr) {
+    return new VoidPtr(ptrExpr.wrap());
   }
 
 
@@ -275,22 +291,22 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtrExpr> {
   }
 
   @Override
-  public FatPtrExpr unmarshallVoidPtrReturnValue(MethodGenerator mv, SimpleExpr voidPointer) {
+  public FatPtrExpr unmarshallVoidPtrReturnValue(MethodGenerator mv, JExpr voidPointer) {
 
     // cast the result to the wrapper type, e.g. ObjectPtr or DoublePtr
     Type wrapperType = Wrappers.wrapperType(valueFunction.getValueType());
-    SimpleExpr wrapperPtr = Wrappers.cast(valueFunction.getValueType(), voidPointer);
+    JExpr wrapperPtr = Wrappers.cast(valueFunction.getValueType(), voidPointer);
 
     // Reserve a local variable to hold the result
-    SimpleLValue retVal = mv.getLocalVarAllocator().reserve("_retval", wrapperType);
+    JLValue retVal = mv.getLocalVarAllocator().reserve(wrapperType);
 
     // store the result of the call to the temp variable
     retVal.store(mv, wrapperPtr);
 
     // Now unpack the array and offset into seperate local variables
     Type arrayType = Wrappers.valueArrayType(valueFunction.getValueType());
-    SimpleLValue arrayVar = mv.getLocalVarAllocator().reserve("_retval$array", arrayType);
-    SimpleLValue offsetVar = mv.getLocalVarAllocator().reserveInt("_retval$offset");
+    JLValue arrayVar = mv.getLocalVarAllocator().reserve(arrayType);
+    JLValue offsetVar = mv.getLocalVarAllocator().reserve(Type.INT_TYPE);
     
     arrayVar.store(mv, Wrappers.arrayField(retVal, valueFunction.getValueType()));
     offsetVar.store(mv, Wrappers.offsetField(retVal));

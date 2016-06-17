@@ -2,10 +2,9 @@ package org.renjin.gcc.codegen.call;
 
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.expr.ExprFactory;
-import org.renjin.gcc.codegen.expr.LValue;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.PointerTypeStrategy;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
@@ -19,12 +18,15 @@ import org.renjin.gcc.gimple.statement.GimpleCall;
  */
 public class MemCopyCallGenerator implements CallGenerator {
   
-  public static final String NAME = "__builtin_memcpy";
+  public static final String BUILTIN_MEMCPY = "__builtin_memcpy";
+  public static final String MEMMOVE = "memmove";
 
   private final TypeOracle typeOracle;
+  private final boolean buffer;
 
-  public MemCopyCallGenerator(TypeOracle typeOracle) {
+  public MemCopyCallGenerator(TypeOracle typeOracle, boolean buffer) {
     this.typeOracle = typeOracle;
+    this.buffer = buffer;
   }
 
   @Override
@@ -37,9 +39,9 @@ public class MemCopyCallGenerator implements CallGenerator {
     GimpleExpr destination = call.getOperand(0);
     GimpleExpr source = call.getOperand(1);
 
-    Expr sourcePtr =  exprFactory.findGenerator(source);
-    Expr destinationPtr = exprFactory.findGenerator(destination);
-    SimpleExpr length = exprFactory.findValueGenerator(call.getOperand(2));
+    GExpr sourcePtr =  exprFactory.findGenerator(source);
+    GExpr destinationPtr = exprFactory.findGenerator(destination);
+    JExpr length = exprFactory.findPrimitiveGenerator(call.getOperand(2));
 
     PointerTypeStrategy sourceStrategy = typeOracle.forPointerType(source.getType());
     PointerTypeStrategy destinationStrategy = typeOracle.forPointerType(destination.getType());
@@ -57,11 +59,12 @@ public class MemCopyCallGenerator implements CallGenerator {
           destinationStrategy, 
           sourceStrategy));
     }
-    sourceStrategy.memoryCopy(mv, destinationPtr, sourcePtr, length);
+    
+    sourceStrategy.memoryCopy(mv, destinationPtr, sourcePtr, length, buffer);
  
     if(call.getLhs() != null) {
       // memcpy() returns the destination pointer
-      LValue lhs = (LValue) exprFactory.findGenerator(call.getLhs());
+      GExpr lhs = exprFactory.findGenerator(call.getLhs());
       PointerTypeStrategy lhsStrategy = typeOracle.forPointerType(call.getLhs().getType());
 
       try {

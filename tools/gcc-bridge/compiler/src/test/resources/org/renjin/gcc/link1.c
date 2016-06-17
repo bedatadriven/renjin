@@ -1,7 +1,7 @@
 
 #include "link.h"
 
-int magic_number1 = 41;
+int magic_number1 = 420;
 
 extern int shared_triple(int x);
 

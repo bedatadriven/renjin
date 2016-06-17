@@ -126,8 +126,19 @@ public abstract class AbstractGccTest {
   }
 
   protected void compileGimple(List<GimpleCompilationUnit> units) throws Exception {
+
+    File outputDir = new File("target/test-classes");
+
+    // Ensure we have the correct output directory
+    File expectedClassFile = new File(outputDir.getAbsolutePath() + "/" +
+          getClass().getName().replace('.', '/') + ".class");
+    if(!expectedClassFile.exists()) {
+      throw new RuntimeException("Expected working directory to be $renjin/tools/gcc-bridge/compiler, but was: " +
+        new File(".").getAbsolutePath());
+    }
+
     GimpleCompiler compiler = new GimpleCompiler();
-    compiler.setOutputDirectory(new File("target/test-classes"));          
+    compiler.setOutputDirectory(outputDir);          
     compiler.setLogger(new HtmlTreeLogger(new File("target/gcc-bridge-logs")));
     compiler.setRecordClassPrefix(units.get(0).getName());
     compiler.setPackageName(PACKAGE_NAME);

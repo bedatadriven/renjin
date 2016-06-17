@@ -2,9 +2,8 @@ package org.renjin.gcc.codegen.type.fun;
 
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
-import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.expr.ExprFactory;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
@@ -19,7 +18,7 @@ import org.renjin.gcc.gimple.type.GimpleFunctionType;
  * is statically typed, we don't need the {@code invokedynamic} bytecode and can simply use
  * {@link java.lang.invoke.MethodHandle#invokeExact(Object...)} to invoke function calls.</p>
  */ 
-public class FunTypeStrategy implements TypeStrategy<SimpleExpr> {
+public class FunTypeStrategy implements TypeStrategy<FunExpr> {
 
   private GimpleFunctionType type;
 
@@ -38,12 +37,12 @@ public class FunTypeStrategy implements TypeStrategy<SimpleExpr> {
   }
 
   @Override
-  public SimpleExpr variable(GimpleVarDecl decl, VarAllocator allocator) {
+  public FunExpr variable(GimpleVarDecl decl, VarAllocator allocator) {
     throw newInvalidOperation();
   }
 
   @Override
-  public SimpleExpr constructorExpr(ExprFactory exprFactory, GimpleConstructor value) {
+  public FunExpr constructorExpr(ExprFactory exprFactory, GimpleConstructor value) {
     throw newInvalidOperation();
   }
 
@@ -68,7 +67,7 @@ public class FunTypeStrategy implements TypeStrategy<SimpleExpr> {
   }
 
   @Override
-  public SimpleExpr cast(Expr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+  public FunExpr cast(GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
     throw new UnsupportedCastException();
   }
 

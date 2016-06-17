@@ -4,7 +4,7 @@
 class Rectangle {
   public:
     int width, height;
-    double stroke_width;
+    double stroke_width; 
     void set_values (int,int);
     
     Rectangle() {
@@ -66,4 +66,26 @@ extern "C" int test_references() {
  Rectangle other = embiggen(rect);
  
  ASSERT(other.area() == 1200)
+}
+
+int compare_refs(Rectangle *a1, Rectangle *a2, Rectangle *b) {
+  ASSERT(a1 == a1);
+  ASSERT(a1 == a2);
+  ASSERT(a1 != b);
+  ASSERT( (a1 < b) || (a1 > b));    
+}
+
+int compare_casted_ints(int a1, int a2, int b) {
+  ASSERT(a1 == a1);
+  ASSERT(a1 == a2);
+  ASSERT(a1 != b);
+  ASSERT( (a1 < b) || (a1 > b));   
+}
+
+extern "C" int test_refEquality() {
+  Rectangle a;
+  Rectangle b;
+  
+  compare_refs(&a, &a, &b);
+  compare_casted_ints((int)&a, (int)&a, (int)&b);
 }

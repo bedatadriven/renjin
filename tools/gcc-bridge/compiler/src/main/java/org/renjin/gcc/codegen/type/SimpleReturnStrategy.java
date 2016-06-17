@@ -2,19 +2,22 @@ package org.renjin.gcc.codegen.type;
 
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.expr.Expressions;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.GSimpleExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 
 /**
- * Strategy for returning types whose values can be represented as a {@link SimpleExpr}
+ * Strategy for returning types whose values can be represented as a {@link JExpr}
  */
 public final class SimpleReturnStrategy implements ReturnStrategy {
 
+  private final SimpleTypeStrategy strategy;
   private Type type;
 
-  public SimpleReturnStrategy(Type type) {
-    this.type = type;
+  public SimpleReturnStrategy(SimpleTypeStrategy strategy) {
+    this.type = strategy.getJvmType();
+    this.strategy = strategy;
   }
 
   @Override
@@ -23,17 +26,17 @@ public final class SimpleReturnStrategy implements ReturnStrategy {
   }
 
   @Override
-  public SimpleExpr marshall(Expr expr) {
-    return (SimpleExpr)expr;
+  public JExpr marshall(GExpr expr) {
+    return ((GSimpleExpr) expr).unwrap();
   }
 
   @Override
-  public SimpleExpr unmarshall(MethodGenerator mv, SimpleExpr returnValue, TypeStrategy lhsTypeStrategy) {
-    return Expressions.cast(returnValue, type);
+  public GExpr unmarshall(MethodGenerator mv, JExpr returnValue, TypeStrategy lhsTypeStrategy) {
+    return strategy.wrap(Expressions.cast(returnValue, type));
   }
 
   @Override
-  public SimpleExpr getDefaultReturnValue() {
+  public JExpr getDefaultReturnValue() {
     switch (type.getSort()) {
       case Type.OBJECT:
       case Type.ARRAY:

@@ -2,8 +2,8 @@ package org.renjin.gcc.codegen.type;
 
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.Expr;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 
 /**
  * Provides a strategy for return values from methods.
@@ -27,18 +27,18 @@ public interface ReturnStrategy {
   /**
    * Converts if necessary the expression to be returned to a single value.
    */
-  SimpleExpr marshall(Expr expr);
+  JExpr marshall(GExpr expr);
 
 
   /**
    * Converts a function call return value to an expression if necessary.
    */
-  Expr unmarshall(MethodGenerator mv, SimpleExpr returnValue, TypeStrategy lhsTypeStrategy);
+  GExpr unmarshall(MethodGenerator mv, JExpr returnValue, TypeStrategy lhsTypeStrategy);
 
   /**
    * Sometimes C code doesn't return a value despite having a non-void return type. In this case, 
    * we just need to push SOMETHING onto the stack.
    */
-  SimpleExpr getDefaultReturnValue();
+  JExpr getDefaultReturnValue();
 
 }

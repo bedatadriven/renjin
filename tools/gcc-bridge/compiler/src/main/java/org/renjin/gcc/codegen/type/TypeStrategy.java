@@ -2,8 +2,8 @@ package org.renjin.gcc.codegen.type;
 
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
-import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.expr.ExprFactory;
+import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
@@ -13,7 +13,7 @@ import org.renjin.gcc.gimple.type.GimpleArrayType;
  *  Provides strategies for code generation for a specific {@code GimpleType}
  *  
  */
-public interface TypeStrategy<ExprT extends Expr> {
+public interface TypeStrategy<ExprT extends GExpr> {
 
   /**
    * 
@@ -63,7 +63,7 @@ public interface TypeStrategy<ExprT extends Expr> {
    * Casts the given {@code value}, compield with the given {@code typeStrategy}, 
    * to a value of this strategy.
    */
-  ExprT cast(Expr value, TypeStrategy typeStrategy) throws UnsupportedCastException;
+  ExprT cast(GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException;
 
 
 }

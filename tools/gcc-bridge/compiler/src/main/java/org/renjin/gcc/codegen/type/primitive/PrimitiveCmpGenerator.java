@@ -4,7 +4,7 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.gimple.GimpleOp;
 
 import static org.objectweb.asm.Opcodes.*;
@@ -15,10 +15,10 @@ import static org.objectweb.asm.Opcodes.*;
 public class PrimitiveCmpGenerator implements ConditionGenerator {
   
   private GimpleOp op;
-  private SimpleExpr x;
-  private SimpleExpr y;
+  private JExpr x;
+  private JExpr y;
 
-  public PrimitiveCmpGenerator(GimpleOp op, SimpleExpr x, SimpleExpr y) {
+  public PrimitiveCmpGenerator(GimpleOp op, JExpr x, JExpr y) {
     this.op = op;
     this.x = x;
     this.y = y;

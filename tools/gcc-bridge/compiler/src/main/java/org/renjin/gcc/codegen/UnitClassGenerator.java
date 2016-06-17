@@ -9,9 +9,8 @@ import org.objectweb.asm.util.TraceClassVisitor;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.TreeLogger;
-import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.expr.ExprFactory;
-import org.renjin.gcc.codegen.expr.LValue;
+import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.var.GlobalVarAllocator;
@@ -64,7 +63,7 @@ public class UnitClassGenerator {
   
     for (GimpleVarDecl decl : unit.getGlobalVariables()) {
       TypeStrategy typeStrategy = typeOracle.forType(decl.getType());
-      Expr varGenerator;
+      GExpr varGenerator;
       
       if(isProvided(providedVariables, decl)) {
         Field providedField = providedVariables.get(decl.getName());
@@ -141,14 +140,14 @@ public class UnitClassGenerator {
     ExprFactory exprFactory = new ExprFactory(typeOracle, symbolTable);
     MethodGenerator mv = new MethodGenerator(cv.visitMethod(ACC_STATIC, "<clinit>", "()V", null, null));
     mv.visitCode();
-
+  
     for (GimpleVarDecl decl : varToGenerate) {
       if(decl.getName().startsWith("_ZTI")) {
         // Skip rtti tables for now...
         continue;
       }
       try {
-        LValue varGenerator = (LValue) symbolTable.getGlobalVariable(decl);
+        GExpr varGenerator = symbolTable.getGlobalVariable(decl);
         if(decl.getValue() != null) {
           varGenerator.store(mv, exprFactory.findGenerator(decl.getValue()));
         }
@@ -159,7 +158,7 @@ public class UnitClassGenerator {
                 decl.getType(),
                 decl.getName(),
                 decl.getValue(),
-                unit.getSourceFile().getName()), e);
+                unit.getSourceName()), e);
       }
     }
     mv.visitInsn(RETURN);

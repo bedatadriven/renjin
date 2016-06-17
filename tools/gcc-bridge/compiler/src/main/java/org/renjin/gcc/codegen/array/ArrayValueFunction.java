@@ -2,8 +2,8 @@ package org.renjin.gcc.codegen.array;
 
 import com.google.common.base.Optional;
 import org.objectweb.asm.Type;
-import org.renjin.gcc.codegen.expr.Expr;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
@@ -37,17 +37,17 @@ public class ArrayValueFunction implements ValueFunction {
   }
 
   @Override
-  public Expr dereference(SimpleExpr array, SimpleExpr offset) {
+  public GExpr dereference(JExpr array, JExpr offset) {
     return new FatPtrExpr(array, offset);
   }
 
   @Override
-  public List<SimpleExpr> toArrayValues(Expr expr) {
+  public List<JExpr> toArrayValues(GExpr expr) {
     return elementValueFunction.toArrayValues(expr);
   }
 
   @Override
-  public Optional<SimpleExpr> getValueConstructor() {
+  public Optional<JExpr> getValueConstructor() {
     return elementValueFunction.getValueConstructor();
   }
 

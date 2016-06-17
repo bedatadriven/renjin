@@ -15,7 +15,6 @@ import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.call.FunctionCallGenerator;
 import org.renjin.gcc.codegen.lib.SymbolLibrary;
 import org.renjin.gcc.codegen.type.TypeOracle;
-import org.renjin.gcc.codegen.type.record.EmptyRecordTypeStrategy;
 import org.renjin.gcc.codegen.type.record.RecordArrayTypeStrategy;
 import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
@@ -152,6 +151,9 @@ public class GimpleCompiler  {
   public void compile(List<GimpleCompilationUnit> units) throws Exception {
 
     try {
+      
+      GlobalVarMerger.merge(units);
+      
       // create the mapping from the compilation unit's version of the record types
       // to the canonical version shared by all compilation units
       recordTypeDefs = RecordTypeDefCanonicalizer.canonicalize(rootLogger, units);
@@ -277,11 +279,16 @@ public class GimpleCompiler  {
 
       return strategy;
 
-    } else if(EmptyRecordTypeStrategy.accept(recordTypeDef)) {
+    } else if(recordTypeDef.getFields().isEmpty()) {
       logger.debug("Using EmptyRecordTypeStrategy");
 
-      return new EmptyRecordTypeStrategy(recordTypeDef);
+      RecordClassTypeStrategy strategy = new RecordClassTypeStrategy(recordTypeDef);
+      strategy.setUnitPointer(recordUsage.unitPointerAssumptionsHoldFor(recordTypeDef));
+      strategy.setJvmType(Type.getType(Object.class));
+      strategy.setProvided(true);
 
+      return strategy;
+      
     } else if(RecordArrayTypeStrategy.accept(recordTypeDef)) {
       logger.debug("Using RecordArrayTypeStrategy");
 

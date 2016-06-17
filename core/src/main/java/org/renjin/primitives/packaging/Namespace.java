@@ -16,15 +16,11 @@ import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * Package namespace.
  *
- * <p>The pa</p>
  */
 public class Namespace {
 
@@ -35,7 +31,7 @@ public class Namespace {
   private final Environment baseNamespaceEnvironment;
 
   private final List<Symbol> exports = Lists.newArrayList();
-
+  private final Map<String, Class> nativeSymbolMap = new HashMap<>();
 
   public Namespace(Package pkg, Environment namespaceEnvironment) {
     this.pkg = pkg;
@@ -72,6 +68,10 @@ public class Namespace {
     } else {
       return Collections.unmodifiableCollection(exports);
     }
+  }
+
+  public Map<String, Class> getNativeSymbolMap() {
+    return nativeSymbolMap;
   }
 
   public SEXP getEntry(Symbol entry) {
@@ -231,6 +231,8 @@ public class Namespace {
         }
       }
 
+      // Create NativeSymbol objects in the namespace environment for registered 
+      // methods. 
       if(entry.isRegistration()) {
         if (!initMethod.isPresent()) {
           throw new EvalException("useDynLib(.registration = TRUE) but no init method found!");
@@ -240,16 +242,29 @@ public class Namespace {
           namespaceEnvironment.setVariable(symbol.getName(), symbol.createObject());
         }
 
-      } else {
+      } else if(!entry.getSymbols().isEmpty()) {
 
-        // Use the symbol list explicitly declared in the useDynLib directive
+        // Add the explicitly imported symbols as objects to the namespace
         for (NamespaceFile.DynLibSymbol declaredSymbol : entry.getSymbols()) {
           DllSymbol symbol = new DllSymbol(info);
           symbol.setName(declaredSymbol.getSymbolName());
           symbol.setMethodHandle(findGnurMethod(clazz, declaredSymbol.getSymbolName()));
           namespaceEnvironment.setVariable(entry.getPrefix() + declaredSymbol.getAlias(), symbol.createObject());
         }
+      
+      } else {
+
+        // Make a list of all exported methods, we'll need this to resolve .Call() calls without
+        // a PACKAGE argument
+        for (Method method : clazz.getMethods()) {
+          if(Modifier.isStatic(method.getModifiers()) && Modifier.isPublic(method.getModifiers())) {
+            nativeSymbolMap.put(method.getName(), clazz);
+          }
+        }
+        
       }
+
+      
     } catch(Exception e) {
       // Allow the program to continue, there may be some packages whose gnur
       // compilation failed but can still partially function.

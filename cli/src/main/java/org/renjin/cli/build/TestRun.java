@@ -74,7 +74,7 @@ public class TestRun {
   private Session newSession() {
     SessionBuilder builder = new SessionBuilder().withDefaultPackages();
     builder.bind(PackageLoader.class, createPackageLoader());
-//    builder.bind(SessionController.class, createSessionControler)
+//    builder.wrap(SessionController.class, createSessionControler)
     Session session = builder.build();
     session.setWorkingDirectory(resolveTestDir(session));
     return session;

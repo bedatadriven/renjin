@@ -682,6 +682,9 @@ public class GimpleCompilerTest extends AbstractGccTest {
 
     Double result = (Double) link2.getMethod("test_points").invoke(null);
     assertThat(result, equalTo(41d));
+    
+    Integer magicNumber1 = (Integer) link2.getMethod("test_global_var").invoke(null);
+    assertThat(magicNumber1, equalTo(420));
   }
   
   @Test
@@ -871,8 +874,26 @@ public class GimpleCompilerTest extends AbstractGccTest {
   }
   
   @Test
+  public void stdVector() throws Exception {
+    compileAndTest("std_vector.cpp");
+  }
+  
+  @Test
   public void endpointClass() throws Exception {
     // Plugin was segfaulting 
-    compileAndTest("endpoint.cpp");
+    Class<?> endpoints = compile("endpoint.cpp");
+
+    Method testMethod = endpoints.getMethod("test_endpoints");
+    testMethod.invoke(null);
+  }
+  
+  @Test
+  public void recordValues() throws Exception {
+    compileAndTest("record_value.c");
+  }
+  
+  @Test
+  public void clz() throws Exception {
+    compileAndTest("clz.c");
   }
 }

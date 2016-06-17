@@ -3,9 +3,8 @@ package org.renjin.gcc.codegen.fatptr;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
-import org.renjin.gcc.codegen.expr.Expr;
 import org.renjin.gcc.codegen.expr.Expressions;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.FieldStrategy;
 
 
@@ -30,9 +29,10 @@ public class FatPtrFieldStrategy extends FieldStrategy {
   }
 
   @Override
-  public Expr memberExprGenerator(SimpleExpr instance) {
-    SimpleExpr array = Expressions.field(instance, arrayType, arrayField);
-    SimpleExpr offset = Expressions.field(instance, Type.INT_TYPE, offsetField);
+  public FatPtrExpr memberExprGenerator(JExpr instance) {
+    JExpr array = Expressions.field(instance, arrayType, arrayField);
+    JExpr offset = Expressions.field(instance, Type.INT_TYPE, offsetField);
     return new FatPtrExpr(array, offset);
   }
+
 }

@@ -3,8 +3,8 @@ package org.renjin.gcc.codegen.type;
 import com.google.common.base.Optional;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.Expr;
-import org.renjin.gcc.codegen.expr.SimpleLValue;
+import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.gcc.codegen.var.LocalVarAllocator;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleParameter;
@@ -22,7 +22,7 @@ import java.util.List;
  *   <li>How to store or load the value of the parameter within a function body</li>
  * </ul>
  *
- * <p>The simplest strategy is the {@link SimpleParamStrategy}, which maps a Gimple argument
+ * <p>The simplest strategy is the {@link org.renjin.gcc.codegen.type.primitive.PrimitiveParamStrategy}, which maps a Gimple argument
  * to a JVM argument of the corresponding type.</p>
  *
  * <p>However types like {@code complex} require more sophisticated handling: a single complex-valued argument
@@ -46,13 +46,13 @@ public interface ParamStrategy {
    *                   if needed.
    * @return an {@code ExprGenerator} which can be used to access this parameter's value.
    */
-  Expr emitInitialization(MethodGenerator methodVisitor, GimpleParameter parameter, List<SimpleLValue> paramVars, VarAllocator localVars);
+  GExpr emitInitialization(MethodGenerator methodVisitor, GimpleParameter parameter, List<JLValue> paramVars, VarAllocator localVars);
 
 
   /**
    * Pushes a value onto the stack in the format necessary for function parameter using this strategy.
    */
-  void loadParameter(MethodGenerator mv, Optional<Expr> argument);
+  void loadParameter(MethodGenerator mv, Optional<GExpr> argument);
 
 
 }

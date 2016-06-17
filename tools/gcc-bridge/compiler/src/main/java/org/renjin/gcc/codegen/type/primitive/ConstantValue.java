@@ -4,15 +4,15 @@ import com.google.common.base.Preconditions;
 import com.google.common.primitives.UnsignedBytes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.Expr;
-import org.renjin.gcc.codegen.expr.SimpleExpr;
+import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.gimple.expr.GimplePrimitiveConstant;
 import org.renjin.gcc.gimple.type.GimpleIntegerType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 
 import javax.annotation.Nonnull;
 
-public class ConstantValue implements SimpleExpr {
+public class ConstantValue implements JExpr {
 
   private Number value;
   private Type type;
@@ -122,7 +122,7 @@ public class ConstantValue implements SimpleExpr {
     return result;
   }
 
-  public static boolean isZero(Expr expr) {
+  public static boolean isZero(GExpr expr) {
     if(expr instanceof ConstantValue) {
       ConstantValue constantValue = (ConstantValue) expr;
       if(constantValue.getIntValue() == 0) {

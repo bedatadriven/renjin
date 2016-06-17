@@ -40,6 +40,8 @@
 #include "cgraph.h"
 #include "options.h"
 
+#include "langhooks.h"
+
 /* plugin license check */
 
 int plugin_is_GPL_compatible;
@@ -50,10 +52,6 @@ int plugin_is_GPL_compatible;
 
 tree record_types[MAX_RECORD_TYPES];
 int record_type_count = 0;
-
-#define MAX_GLOBAL_VARS 1000
-tree global_vars[MAX_GLOBAL_VARS];
-int global_var_count = 0;
 
 FILE *json_f;
 
@@ -471,16 +469,6 @@ static void dump_type(tree type) {
   TRACE("dump_type: exiting: %s\n", tree_code_name[TREE_CODE(type)]);
 }
 
-static void dump_global_var_ref(tree decl) {
-  int i;
-  for(i=0;i!=global_var_count;++i) {
-    if(global_vars[i] == decl) {
-      return;
-    }
-  }
-  global_vars[global_var_count] = decl;
-  global_var_count++;
-}
 
 static void dump_op(tree op) {
  	REAL_VALUE_TYPE d;
@@ -495,15 +483,7 @@ static void dump_op(tree op) {
     } else {
       TRACE("dump_op: TREE_CODE(op) == NULL\n");
     }
- 	  // keep track of global variable references
-    if(TREE_CODE(op) == VAR_DECL &&
-        !(DECL_CONTEXT(op) &&  TREE_CODE(DECL_CONTEXT(op)) == FUNCTION_DECL)) {
-   
-      dump_global_var_ref(op);
-    }
     
-    TRACE("dump_op: completed check for global variable\n");
-
     json_start_object();
     json_string_field("code", tree_code_name[TREE_CODE(op)]);
     
@@ -525,6 +505,9 @@ static void dump_op(tree op) {
       json_int_field("id", DEBUG_TEMP_UID (op));
       if(DECL_NAME(op)) {
         json_string_field("name", IDENTIFIER_POINTER(DECL_NAME(op)));
+      }
+      if (DECL_ASSEMBLER_NAME_SET_P (op)) {
+        json_string_field("mangledName",  IDENTIFIER_POINTER (DECL_ASSEMBLER_NAME (op)));
       }
       break;
 
@@ -1098,7 +1081,11 @@ static void dump_global_var(tree var) {
   if(DECL_NAME(var)) {
     json_string_field("name", IDENTIFIER_POINTER(DECL_NAME(var)));
   }
+  if (DECL_ASSEMBLER_NAME_SET_P (var)) {
+    json_string_field("mangledName",  IDENTIFIER_POINTER (DECL_ASSEMBLER_NAME (var)));
+  }
   json_bool_field("extern", TREE_PUBLIC(var));
+
   json_field("type");
   dump_type(TREE_TYPE(var));
   
@@ -1114,11 +1101,24 @@ static void dump_global_var(tree var) {
 
 }
 
+static void dump_global_vars() {
+
+  json_array_field("globalVariables");
+    
+  struct varpool_node *node;
+  for (node = varpool_nodes; node; node = node->next)
+    {
+        dump_global_var(node->decl);
+    }
+
+  json_end_array();
+}
 
 static void start_unit_callback (void *gcc_data, void *user_data)
 {
 
   json_start_object();
+  json_string_field("mainInputFilename", main_input_filename);
   json_array_field("functions");
   
 }
@@ -1127,12 +1127,8 @@ static void finish_unit_callback (void *gcc_data, void *user_data)
 {
   int i;
   json_end_array();
-
-  json_array_field("globalVariables");
-  for(i=0;i<global_var_count;++i) {
-    dump_global_var(global_vars[i]);
-  }
-  json_end_array();
+  
+  dump_global_vars();
 
   json_array_field("recordTypes");
   for(i=0;i<record_type_count;++i) {
@@ -1157,7 +1153,7 @@ static struct gimple_opt_pass dump_functions_pass =
       NULL,		        /* next */
       0,		          /* static_pass_number */
       0,		          /* tv_id */
-      PROP_cfg,   		/* properties_required */
+      PROP_cfg | PROP_referenced_vars,   		/* properties_required */
       0,		          /* properties_provided */
       0,		          /* properties_destroyed */
       0,		          /* todo_flags_start */

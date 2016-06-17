@@ -1,4 +1,4 @@
 
-mysum <- function(x) {
-    .Call(Cmysum, as.numeric(x))
+mysum  <- function(x) {
+    .Call(Cmysum , as.numeric(x))
 }

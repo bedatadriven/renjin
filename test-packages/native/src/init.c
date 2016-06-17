@@ -1,11 +1,11 @@
 
 #include "mynative.h"
-#include "R_ext/Rdynload.h"
 
 #ifdef MY_CPP_DEFINE
 
-static const R_CMethodDef Centries[] = {
-    {"Cmysum",     (DL_FUNC) &mysum,  1},
+static const R_CallMethodDef callMethods[] = {
+    {"Cmysum",     (DL_FUNC) &Cmysum,  1},
+    {"Cmydsum",     (DL_FUNC) &Cmydsum,  1},
     { NULL, NULL, 0 }
 };
 
@@ -16,7 +16,9 @@ static const R_FortranMethodDef Fentries[] = {
 
 R_init_native(DllInfo *dll)
 {
-    R_registerRoutines(dll, NULL, Centries, Fentries, NULL);
+    R_registerRoutines(dll, NULL, callMethods, Fentries, NULL);
+    R_RegisterCCallable("native", "Cmysum", (DL_FUNC) &Cmysum);
+    R_RegisterCCallable("native", "Cmydsum", (DL_FUNC) &Cmydsum);
     R_useDynamicSymbols(dll, FALSE);
 
 }

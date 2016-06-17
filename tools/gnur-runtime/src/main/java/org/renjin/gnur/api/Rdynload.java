@@ -7,9 +7,13 @@ import org.renjin.primitives.packaging.DllInfo;
 import org.renjin.primitives.packaging.DllSymbol;
 
 import java.lang.invoke.MethodHandle;
+import java.util.HashMap;
+import java.util.Map;
 
 @SuppressWarnings("unused")
 public final class Rdynload {
+
+  private static final Map<String,MethodHandle> CALL_MAP = new HashMap<>();
 
   private Rdynload() { }
 
@@ -62,12 +66,16 @@ public final class Rdynload {
 //   DL_FUNC R_FindSymbol (char const *, char const *, R_RegisteredNativeSymbol *symbol)
 //
 
-  public static void R_RegisterCCallable (BytePtr packageName, BytePtr name, Object method) {
-    // This is intended to allow other packages to call this method. 
-    // We'll ignore this for the moment.
+
+  public static void R_RegisterCCallable (BytePtr packageName, BytePtr name, MethodHandle method) {
+    // We assume this is thread save given if multiple sessions are Registering or Getting
+    // a method the packages/functions stay the same and the order of processing is irrelevant
+    String key = packageName.nullTerminatedString() + "." + name.nullTerminatedString();
+    CALL_MAP.put(key, method);
   }
-  //
-  public static MethodHandle R_GetCCallable (BytePtr packageName, BytePtr functionName) {
-    throw new UnimplementedGnuApiMethod("R_GetCCallable");
+
+  public static MethodHandle R_GetCCallable (BytePtr packageName, BytePtr name) {
+    String key = packageName.nullTerminatedString() + "." + name.nullTerminatedString();
+    return CALL_MAP.get(key);
   }
 }

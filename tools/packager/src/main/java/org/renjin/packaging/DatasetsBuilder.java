@@ -4,8 +4,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
-import com.google.common.io.Files;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Session;
@@ -19,7 +17,6 @@ import org.tukaani.xz.XZInputStream;
 
 import java.io.*;
 import java.util.Properties;
-import java.util.Set;
 import java.util.zip.GZIPInputStream;
 
 /**
@@ -62,40 +59,28 @@ public class DatasetsBuilder {
   }
 
   public void build() throws FileNotFoundException  {
-    
-    Set<String> datasets = Sets.newHashSet();
-    
     if(dataDirectory.exists()) {
       File[] files = dataDirectory.listFiles();
-      if (files != null) {
-        for (File dataFile : files) {
-          datasets.add(baseNameOf(dataFile));
+      if(files != null) {
+        for(File dataFile : files) {
+          try {
+            processDataset(dataFile);
+          } catch(EvalException e) {
+            System.err.println("ERROR processing data file " + dataFile.getName() + ": " + e.getMessage());
+            e.printRStackTrace(System.err);
+            throw e;
+          } catch(Exception e) {
+            System.err.println("Exception processing data file " + dataFile);
+            e.printStackTrace();
+            throw new RuntimeException(e);
+          }
         }
       }
     }
 
-    for (String dataset : datasets) {
-      try {
-        processDataset(dataset);
-      } catch(EvalException e) {
-        System.err.println("ERROR processing data file " + dataset + ": " + e.getMessage());
-        e.printRStackTrace(System.err);
-      } catch(Exception e) {
-        System.err.println("Exception processing data set " + dataset);
-        e.printStackTrace();
-      }
-      if(!indexMap.isEmpty())  {
-        writeIndex();
-      }
+    if(!indexMap.isEmpty())  {
+      writeIndex();
     }
-  }
-
-  private String baseNameOf(File file) {
-    String name = file.getName();
-    if(name.toLowerCase().endsWith(".gz")) {
-      name = stripExtension(name, ".gz");
-    }
-    return Files.getNameWithoutExtension(name);
   }
 
   private void writeIndex() throws FileNotFoundException  {
@@ -114,38 +99,13 @@ public class DatasetsBuilder {
       throw new RuntimeException("Failed to write dataset index to " + indexFile.getAbsolutePath(), e);
     }
   }
-  
-  private void processDataset(String basename) throws IOException {
-    File rdaFile = new File(dataDirectory, basename + ".rda");
-    if(rdaFile.exists()) {
-      processRDataFile(rdaFile);
-      return;
-    }
-    
-    File scriptFile = new File(dataDirectory, basename + ".R");
-    if(scriptFile.exists()) {
-      processRScript(scriptFile, basename);
-      return;
-    }
-    
-    // If there is no prepared .rda file, or there
-    // is no .R script to prepare the file, then 
-    // build the dataset from the original .tab.gz or .csv etc file
-    for (File file : dataDirectory.listFiles()) {
-      if(file.getName().startsWith(basename)) {
-        processDataset(file);
-        return; 
-      }
-    }
-    
-    throw new IllegalStateException("No matching file for dataset '" + basename + "'");
-  }
-  
+
 
   @VisibleForTesting
   void processDataset(File dataFile) throws IOException {
     if(dataFile.getName().endsWith("datalist")) {
       return;
+      
     } else if(dataFile.getName().toLowerCase().endsWith(".rda") || 
               dataFile.getName().toLowerCase().endsWith(".rdata")) {
       processRDataFile(dataFile);
@@ -218,6 +178,11 @@ public class DatasetsBuilder {
    * resulting data.frame is stored as the single object of the logical dataset.
    */
   private void processTextFile(File dataFile, String logicalDatasetName, String sep) throws IOException {
+    
+    if(dataFileAlreadyExists(logicalDatasetName)) {
+      return;
+    }
+    
     // Read into a data frame using read.table()
     PairList.Builder args = new PairList.Builder();
     args.add(StringVector.valueOf(dataFile.getAbsolutePath()));
@@ -235,7 +200,17 @@ public class DatasetsBuilder {
 
     writePairList(logicalDatasetName, session, pairList.build());
   }
-  
+
+  private boolean dataFileAlreadyExists(String logicalDatasetName) {
+    for (File file : dataDirectory.listFiles()) {
+      if( file.getName().equalsIgnoreCase(logicalDatasetName + ".RData") ||
+          file.getName().equalsIgnoreCase(logicalDatasetName + ".rda")) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   /**
    * R Scripts are evaluated, and any resulting objects in the global
    * namespace are considered part of the dataset.
@@ -243,6 +218,10 @@ public class DatasetsBuilder {
    */
   private void processRScript(File scriptFile, String logicalDatasetName) throws IOException {
 
+    if(dataFileAlreadyExists(logicalDatasetName)) {
+      return;
+    }
+    
     Session session = new SessionBuilder().build();
     FileReader reader = new FileReader(scriptFile);
     ExpressionVector source = RParser.parseAllSource(reader);
@@ -265,7 +244,7 @@ public class DatasetsBuilder {
    * when a package is loaded. 
    */
   private void writePairList(String logicalDatasetName, Session session, PairList pairList) 
-      throws FileNotFoundException, IOException {
+      throws IOException {
     
     File datasetDir = new File(dataObjectDirectory, logicalDatasetName);
     if(!datasetDir.exists()) {

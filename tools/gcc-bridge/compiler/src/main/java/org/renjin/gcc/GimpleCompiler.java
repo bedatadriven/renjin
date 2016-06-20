@@ -76,7 +76,6 @@ public class GimpleCompiler  {
     functionBodyTransformers.add(FunctionCallPruner.INSTANCE);
     functionBodyTransformers.add(LocalVariablePruner.INSTANCE);
     functionBodyTransformers.add(VoidPointerTypeDeducer.INSTANCE);
-    functionBodyTransformers.add(AddressableFinder.INSTANCE);
     functionBodyTransformers.add(ResultDeclRewriter.INSTANCE);
     functionBodyTransformers.add(LocalVariableInitializer.INSTANCE);
     globalSymbolTable = new GlobalSymbolTable(typeOracle);
@@ -165,6 +164,10 @@ public class GimpleCompiler  {
 
       // Prune unused functions 
       SymbolPruner.prune(rootLogger, units);
+      
+      // Identify variables and fields that must be addressable
+      AddressableFinder addressableFinder = new AddressableFinder(units);
+      addressableFinder.mark();
 
       // First apply any transformations needed by the code generation process
       transform(units);

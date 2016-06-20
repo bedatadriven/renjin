@@ -84,4 +84,24 @@ public class GlobalVarAllocator extends VarAllocator {
       cv.visitField(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, field.name, field.type.getDescriptor(), null, null);
     }
   }
+  
+  public boolean needsStaticInitializer() {
+    for (StaticField field : fields) {
+      if(field.initialValue.isPresent()) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
+  public void writeFieldInitialization(MethodGenerator mv) {
+    for (StaticField field : fields) {
+      if(field.initialValue.isPresent()) {
+        JExpr initialValue = field.initialValue.get();
+        initialValue.load(mv);
+        mv.putstatic(declaringClass.getInternalName(), field.name, field.type.getDescriptor());
+      }
+    }
+  }
+  
 }

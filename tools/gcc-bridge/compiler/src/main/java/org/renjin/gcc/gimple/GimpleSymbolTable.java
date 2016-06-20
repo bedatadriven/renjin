@@ -3,6 +3,7 @@ package org.renjin.gcc.gimple;
 import com.google.common.base.Optional;
 import com.google.common.collect.Maps;
 import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
+import org.renjin.gcc.gimple.expr.GimpleParamRef;
 import org.renjin.gcc.gimple.expr.GimpleVariableRef;
 
 import java.util.Collection;
@@ -28,7 +29,9 @@ public class GimpleSymbolTable {
     Optional<GimpleFunction> lookupFunction(GimpleFunctionRef ref);
     
     Optional<GimpleVarDecl> lookupVariable(GimpleVariableRef ref);
-    
+
+    GimpleParameter lookupParameter(GimpleParamRef ref);
+
   }
   
   private Map<GimpleCompilationUnit, UnitTable> unitMap = Maps.newHashMap();
@@ -70,6 +73,17 @@ public class GimpleSymbolTable {
   }
   
   public Scope scope(final GimpleFunction function) {
+    
+    final Map<Integer, GimpleParameter> paramMap = Maps.newHashMap();
+    for (GimpleParameter param : function.getParameters()) {
+      paramMap.put(param.getId(), param);
+    }
+
+    final Map<Integer, GimpleVarDecl> localVarMap = Maps.newHashMap();
+    for (GimpleVarDecl varDecl : function.getVariableDeclarations()) {
+      localVarMap.put(varDecl.getId(), varDecl);
+    }
+
     return new Scope() {
       @Override
       public Optional<GimpleFunction> lookupFunction(GimpleFunctionRef ref) {
@@ -78,7 +92,19 @@ public class GimpleSymbolTable {
 
       @Override
       public Optional<GimpleVarDecl> lookupVariable(GimpleVariableRef ref) {
+        if(localVarMap.containsKey(ref.getId())) {
+          return Optional.of(localVarMap.get(ref.getId()));
+        }
         return GimpleSymbolTable.this.lookupGlobalVariable(function, ref);
+      }
+
+      @Override
+      public GimpleParameter lookupParameter(GimpleParamRef ref) {
+        GimpleParameter param = paramMap.get(ref.getId());
+        if(param == null) {
+          throw new IllegalStateException("Cannot resolve ParamRef " + ref);
+        }
+        return param;
       }
     };
   }
@@ -104,6 +130,11 @@ public class GimpleSymbolTable {
         }
 
         return Optional.absent();      
+      }
+
+      @Override
+      public GimpleParameter lookupParameter(GimpleParamRef ref) {
+        throw new UnsupportedOperationException();
       }
     }; 
   }

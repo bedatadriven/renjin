@@ -140,6 +140,8 @@ public class UnitClassGenerator {
     ExprFactory exprFactory = new ExprFactory(typeOracle, symbolTable);
     MethodGenerator mv = new MethodGenerator(cv.visitMethod(ACC_STATIC, "<clinit>", "()V", null, null));
     mv.visitCode();
+    
+    globalVarAllocator.writeFieldInitialization(mv);
   
     for (GimpleVarDecl decl : varToGenerate) {
       if(decl.getName().startsWith("_ZTI")) {

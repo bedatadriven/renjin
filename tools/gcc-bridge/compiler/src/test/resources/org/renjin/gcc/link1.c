@@ -3,6 +3,9 @@
 
 int magic_number1 = 420;
 
+int addressable_magic_number = 6;
+
+
 extern int shared_triple(int x);
 
 

@@ -1,132 +1,88 @@
 package org.renjin.gcc.analysis;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.Maps;
-import org.renjin.gcc.TreeLogger;
 import org.renjin.gcc.gimple.*;
 import org.renjin.gcc.gimple.expr.*;
-import org.renjin.gcc.gimple.statement.GimpleAssignment;
-import org.renjin.gcc.gimple.statement.GimpleCall;
-import org.renjin.gcc.gimple.statement.GimpleStatement;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleField;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 
 /**
  * Identifies local variables that must be addressable
  */
-public class AddressableFinder implements FunctionBodyTransformer {
-  
-  public static final AddressableFinder INSTANCE = new AddressableFinder();
-  
-  @Override
-  public boolean transform(TreeLogger logger, GimpleCompilationUnit unit, GimpleFunction fn) {
+public class AddressableFinder {
 
-    boolean updated = false;
-    
-    Marker marker = new Marker(unit, fn);
-    
-    for (GimpleBasicBlock basicBlock : fn.getBasicBlocks()) {
-      for (GimpleStatement gimpleIns : basicBlock.getStatements()) {
-        if(gimpleIns instanceof GimpleCall) {
-          if(marker.mark(gimpleIns.getOperands())) {
-            updated = true;
-          }
-        } else if(gimpleIns instanceof GimpleAssignment) {
-          if (marker.mark(gimpleIns.getOperands())) {
-            updated = true;
-          }
-        }
-      }
-    }
+  private GimpleSymbolTable symbolTable;
+  private final Map<String, GimpleRecordTypeDef> recordTypeDefs = Maps.newHashMap();
+  private Collection<GimpleCompilationUnit> units;
 
-    return updated;
-  }
-  
-  private class Marker {
-
-    private final Map<Integer, GimpleVarDecl> variables = Maps.newHashMap();
-    private final Map<Integer, GimpleParameter> parameters = Maps.newHashMap();
-    private final Map<String, GimpleRecordTypeDef> recordTypeDefs = Maps.newHashMap();
-
-    public Marker(GimpleCompilationUnit unit, GimpleFunction fn) {
-
-      for (GimpleParameter param : fn.getParameters()) {
-        parameters.put(param.getId(), param);
-      }
-      
-      for (GimpleVarDecl varDecl : fn.getVariableDeclarations()) {
-        variables.put(varDecl.getId(), varDecl);
-      }
-
-      for (GimpleVarDecl unitGlobalVar : unit.getGlobalVariables()){
-        variables.put(unitGlobalVar.getId(), unitGlobalVar);
-      }
-
-      for (GimpleRecordTypeDef unitRecordType : unit.getRecordTypes()){
+  public AddressableFinder(Collection<GimpleCompilationUnit> units) {
+    this.units = units;
+    symbolTable = new GimpleSymbolTable(units);
+    for (GimpleCompilationUnit unit : units) {
+      for (GimpleRecordTypeDef unitRecordType : unit.getRecordTypes()) {
         recordTypeDefs.put(unitRecordType.getId(), unitRecordType);
       }
     }
-    
-    public boolean mark(List<GimpleExpr> arguments) {
-
-      boolean updated = false;
-      for (GimpleExpr expr : arguments) {
-        if(expr instanceof GimpleAddressOf) {
-          GimpleAddressOf addressOf = (GimpleAddressOf) expr;
-
-          if(addressOf.getValue() instanceof GimpleComponentRef){
-
-            GimpleComponentRef ref = (GimpleComponentRef) addressOf.getValue();
-            GimpleRecordType recordType = (GimpleRecordType) ref.getValue().getType();
-            GimpleRecordTypeDef recordTypeDef = recordTypeDefs.get(recordType.getId());
-            if(recordTypeDef == null) {
-              throw new IllegalStateException("Record def not found: " + recordType);
-            }
-
-            if(markField(recordTypeDef, ref.getMember())) {
-              updated = true;
-            }
-          }
-
-          if(addressOf.getValue() instanceof GimpleSymbolRef) {
-            GimpleSymbolRef ref = (GimpleSymbolRef) addressOf.getValue();
-            if(variables.containsKey(ref.getId())) {
-              GimpleVarDecl decl = variables.get(ref.getId());
-              if (!decl.isAddressable()) {
-                decl.setAddressable(true);
-                updated = true;
-              }
-            }
-            if(parameters.containsKey(ref.getId())) {
-              GimpleParameter param = parameters.get(ref.getId());
-              if(!param.isAddressable()) {
-                param.setAddressable(true);
-                updated = true;
-              }
-            }
-          }
-        }
+  }
+  
+  public void mark() {
+    for (GimpleCompilationUnit unit : units) {
+      for (GimpleFunction fn : unit.getFunctions()) {
+        fn.accept(new MarkingVisitor(symbolTable.scope(fn)));
       }
-      return updated;
-    }
-
-    private boolean markField(GimpleRecordTypeDef recordTypeDef, GimpleFieldRef member) {
-      GimpleField field = recordTypeDef.findField(member);
-      
-      if(field.getType() instanceof GimpleArrayType) {
-        // Arrays are already addressable
-        return false;
-      }
-
-      boolean wasMarked = field.isAddressed();
-      field.setAddressed(true);
-      return !wasMarked;
     }
   }
   
-  
+  private class MarkingVisitor extends GimpleExprVisitor {
+    
+    private GimpleSymbolTable.Scope scope;
+
+    public MarkingVisitor(GimpleSymbolTable.Scope scope) {
+      this.scope = scope;
+    }
+
+    @Override
+    public void visitAddressOf(GimpleAddressOf addressOf) {
+      if(addressOf.getValue() instanceof GimpleComponentRef) {
+        GimpleComponentRef ref = (GimpleComponentRef) addressOf.getValue();
+        GimpleRecordType recordType = (GimpleRecordType) ref.getValue().getType();
+        GimpleRecordTypeDef recordTypeDef = recordTypeDefs.get(recordType.getId());
+        if(recordTypeDef == null) {
+          throw new IllegalStateException("Record def not found: " + recordType);
+        }
+
+        markField(recordTypeDef, ref.getMember());
+      }
+      
+      if(addressOf.getValue() instanceof GimpleVariableRef) {
+        Optional<GimpleVarDecl> decl = scope.lookupVariable((GimpleVariableRef) addressOf.getValue());
+        if (decl.isPresent()) {
+          decl.get().setAddressable(true);
+        } else {
+          throw new IllegalStateException("Could not resolve " + addressOf.getValue());
+        }
+      } 
+      if(addressOf.getValue() instanceof GimpleParamRef) {
+        GimpleParameter param = scope.lookupParameter((GimpleParamRef) addressOf.getValue());
+        param.setAddressable(true);
+      }
+    }
+  }
+
+  private void markField(GimpleRecordTypeDef recordTypeDef, GimpleFieldRef member) {
+    GimpleField field = recordTypeDef.findField(member);
+
+    if(field.getType() instanceof GimpleArrayType) {
+      // Arrays are already addressable
+      return;
+    }
+
+    field.setAddressed(true);
+  }
 }

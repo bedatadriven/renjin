@@ -23,6 +23,7 @@ import static org.objectweb.asm.Type.getMethodDescriptor;
 public class Expressions {
 
   public static JExpr newArray(final Type componentType, final int length) {
+    Preconditions.checkArgument(length >= 0);
     return newArray(componentType, constantInt(length));
   }
 

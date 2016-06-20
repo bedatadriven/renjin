@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.array;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.expr.ExprFactory;
@@ -134,7 +135,7 @@ public class ArrayTypeStrategy implements TypeStrategy<FatPtrExpr> {
     Type arrayType = Wrappers.valueArrayType(valueFunction.getValueType());
 
     JExpr array;
-    if(decl.getValue() == null) {
+    if(decl.getValue() == null && arrayLength >= 0) {
       array = allocator.reserve(decl.getNameIfPresent(), arrayType, allocArray(arrayLength));
     } else {
       array = allocator.reserve(decl.getNameIfPresent(), arrayType);
@@ -146,6 +147,8 @@ public class ArrayTypeStrategy implements TypeStrategy<FatPtrExpr> {
   }
 
   private JExpr allocArray(int arrayLength) {
+    Preconditions.checkArgument(arrayLength >= 0);    
+
     if(valueFunction.getValueConstructor().isPresent()) {
       // For reference types like records or fat pointers we have to 
       // initialize each element of the array

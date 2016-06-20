@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.renjin.compiler.pipeline.SimpleVectorPipeliner;
 import org.renjin.compiler.pipeline.VectorPipeliner;
@@ -14,6 +15,7 @@ import org.renjin.sexp.*;
 import org.renjin.stats.internals.distributions.RNG;
 import org.renjin.util.FileSystemUtils;
 
+import java.io.File;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.util.List;
@@ -180,6 +182,11 @@ public class Session {
 
   public void setWorkingDirectory(FileObject dir) {
     this.workingDirectory = dir;
+  }
+
+
+  public void setWorkingDirectory(File dir) throws FileSystemException {
+    this.workingDirectory = fileSystemManager.resolveFile(dir.getAbsolutePath());
   }
   
   public FileObject getWorkingDirectory() {

@@ -226,6 +226,13 @@ public class DatasetsBuilder {
     FileReader reader = new FileReader(scriptFile);
     ExpressionVector source = RParser.parseAllSource(reader);
     reader.close();
+
+    // The utils package needs to be on the search path
+    // For read.table, etc
+    session.getTopLevelContext().evaluate(FunctionCall.newCall(Symbol.get("library"), Symbol.get("utils")));
+
+    // The working directory needs to be the data dir
+    session.setWorkingDirectory(scriptFile.getParentFile());
     
     session.getTopLevelContext().evaluate(source);
     

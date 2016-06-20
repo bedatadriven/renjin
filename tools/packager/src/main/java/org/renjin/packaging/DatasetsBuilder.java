@@ -124,6 +124,9 @@ public class DatasetsBuilder {
 
     } else if(dataFile.getName().toLowerCase().endsWith(".csv")) {
       processTextFile(dataFile, stripExtension(dataFile), ";");
+
+    } else if(dataFile.getName().toLowerCase().endsWith(".csv.gz")) {
+      processTextFile(dataFile, stripExtension(dataFile, ".csv.gz"), ";");
       
     } else if(dataFile.getName().toUpperCase().endsWith(".R")) {
       processRScript(dataFile, stripExtension(dataFile));

@@ -179,7 +179,8 @@ public class DatasetsBuilder {
    */
   private void processTextFile(File dataFile, String logicalDatasetName, String sep) throws IOException {
     
-    if(dataFileAlreadyExists(logicalDatasetName)) {
+    if(scriptFileExists(logicalDatasetName) ||
+       dataFileAlreadyExists(logicalDatasetName)) {
       return;
     }
     
@@ -205,6 +206,15 @@ public class DatasetsBuilder {
     for (File file : dataDirectory.listFiles()) {
       if( file.getName().equalsIgnoreCase(logicalDatasetName + ".RData") ||
           file.getName().equalsIgnoreCase(logicalDatasetName + ".rda")) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean scriptFileExists(String logicalDatasetName) {
+    for (File file : dataDirectory.listFiles()) {
+      if( file.getName().equalsIgnoreCase(logicalDatasetName + ".R")) {
         return true;
       }
     }

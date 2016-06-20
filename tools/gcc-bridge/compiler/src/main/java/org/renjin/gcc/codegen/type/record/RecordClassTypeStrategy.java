@@ -215,6 +215,15 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<RecordValue> imp
   }
 
   @Override
+  public RecordValue cast(GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+    if(typeStrategy instanceof RecordClassTypeStrategy) {
+      return (RecordValue) value;
+    
+    } 
+    throw new UnsupportedCastException();
+  }
+
+  @Override
   public PointerTypeStrategy pointerTo() {
     if(unitPointer) {
       return new RecordUnitPtrStrategy(this);

@@ -3,7 +3,6 @@ package org.renjin.gcc.codegen.type.record;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.TypeStrategy;
-import org.renjin.gcc.codegen.type.UnsupportedCastException;
 import org.renjin.gcc.gimple.expr.GimpleFieldRef;
 import org.renjin.gcc.gimple.type.GimpleField;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
@@ -42,11 +41,6 @@ public abstract class RecordTypeStrategy<ExprT extends GExpr> implements TypeStr
   public abstract void writeClassFiles(File outputDirectory) throws IOException;
 
   public abstract GExpr memberOf(ExprT instance, GimpleFieldRef fieldRef);
-
-  @Override
-  public ExprT cast(GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
-    throw new UnsupportedCastException();
-  }
 
 
   public static boolean isCircularField(GimpleRecordTypeDef typeDef, GimpleField gimpleField) {

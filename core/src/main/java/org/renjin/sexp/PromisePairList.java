@@ -62,6 +62,16 @@ public interface PromisePairList extends PairList {
         return head;
       }
     }
-
+    
+    public static PromisePairList fromPairList(PairList pairList) {
+      if(pairList == Null.INSTANCE) {
+        return Null.INSTANCE;
+      } else if(pairList instanceof PairList.Node) {
+        PairList.Node head = (PairList.Node) pairList;
+        return new PromisePairList.Node(head.getRawTag(), head.value, head.nextNode);
+      } else {
+        throw new IllegalArgumentException("Type: " + pairList.getClass().getName());
+      }
+    }
   }
 }

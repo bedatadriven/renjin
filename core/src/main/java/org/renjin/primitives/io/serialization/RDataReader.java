@@ -385,7 +385,7 @@ public class RDataReader implements AutoCloseable {
   }
 
   private SEXP readDotExp(int flags) throws IOException {
-    throw new IOException("readDotExp not impl");
+    return PromisePairList.Builder.fromPairList(readPairList(flags));
   }
 
   private PairList readPairList(int flags) throws IOException {

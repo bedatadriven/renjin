@@ -24,7 +24,7 @@ import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 
 
-public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr> {
+public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>, SimpleTypeStrategy<RecordUnitPtr> {
   
   private RecordClassTypeStrategy strategy;
   private RecordUnitPtrValueFunction valueFunction;
@@ -36,7 +36,7 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>
 
   @Override
   public ParamStrategy getParamStrategy() {
-    return new RecordUnitPtrParamStrategy(strategy.getJvmType());
+    return new RefPtrParamStrategy<>(this);
   }
 
   @Override
@@ -183,6 +183,11 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>
 
   public Type getJvmType() {
     return strategy.getJvmType();
+  }
+
+  @Override
+  public RecordUnitPtr wrap(JExpr expr) {
+    return new RecordUnitPtr(expr);
   }
 
   @Override

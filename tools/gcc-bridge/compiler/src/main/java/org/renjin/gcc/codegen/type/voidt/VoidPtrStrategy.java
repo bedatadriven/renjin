@@ -89,7 +89,7 @@ public class VoidPtrStrategy implements PointerTypeStrategy<VoidPtr>, SimpleType
 
   @Override
   public ParamStrategy getParamStrategy() {
-    return new VoidPtrParamStrategy();
+    return new RefPtrParamStrategy<>(this);
   }
 
   @Override

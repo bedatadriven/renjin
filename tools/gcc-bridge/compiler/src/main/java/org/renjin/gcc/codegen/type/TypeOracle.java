@@ -22,7 +22,6 @@ import org.renjin.gcc.codegen.type.primitive.StringParamStrategy;
 import org.renjin.gcc.codegen.type.record.RecordArrayReturnStrategy;
 import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
-import org.renjin.gcc.codegen.type.voidt.VoidPtrParamStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidReturnStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidTypeStrategy;
@@ -248,7 +247,7 @@ public class TypeOracle {
         index++;
         
       } else if(paramClass.equals(Object.class)) {
-        strategies.add(new VoidPtrParamStrategy());
+        strategies.add(new VoidPtrStrategy().getParamStrategy());
         index++;
         
       } else {

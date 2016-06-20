@@ -533,6 +533,11 @@ public class GimpleCompilerTest extends AbstractGccTest {
   }
   
   @Test
+  public void builtinExpect() throws Exception {
+    compileAndTest("expect.c");
+  }
+  
+  @Test
   public void voidInference() throws Exception {
     compile("lamix.f");
   }

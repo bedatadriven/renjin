@@ -3,7 +3,7 @@ package org.renjin.gcc.codegen.call;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.ExprFactory;
-import org.renjin.gcc.codegen.expr.JLValue;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
 import org.renjin.gcc.codegen.type.primitive.op.ConditionExpr;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.statement.GimpleCall;
@@ -22,7 +22,7 @@ public class BuiltinExpectGenerator implements CallGenerator {
     ConditionGenerator conditionGenerator = exprFactory.findConditionGenerator(GimpleOp.NE_EXPR, call.getOperands());
     ConditionExpr conditionExpr = new ConditionExpr(conditionGenerator);
     
-    JLValue lhs = (JLValue) exprFactory.findGenerator(call.getLhs());
-    lhs.store(mv, conditionExpr);
+    PrimitiveValue lhs = (PrimitiveValue) exprFactory.findGenerator(call.getLhs());
+    lhs.store(mv, new PrimitiveValue(conditionExpr));
   }
 }

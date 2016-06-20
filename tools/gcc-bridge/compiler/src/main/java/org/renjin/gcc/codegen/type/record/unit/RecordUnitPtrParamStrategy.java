@@ -6,6 +6,7 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
+import org.renjin.gcc.codegen.expr.RefPtrExpr;
 import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleParameter;
@@ -38,15 +39,19 @@ public class RecordUnitPtrParamStrategy implements ParamStrategy {
   @Override
   public void loadParameter(MethodGenerator mv, Optional<GExpr> argument) {
     if(argument.isPresent()) {
-      RecordUnitPtr value = (RecordUnitPtr) argument.get();
+      
+      GExpr argumentValue = argument.get();
+      if(argumentValue instanceof RefPtrExpr) {
+        RefPtrExpr value = (RefPtrExpr) argument.get();
 
-      if (value.getJvmType().equals(jvmType)) {
-        value.unwrap().load(mv);
+        if (value.unwrap().getType().equals(jvmType)) {
+          value.unwrap().load(mv);
 
-      } else {
-        // Cast null pointers to the appropriate type
-        Expressions.cast(value.unwrap(), this.jvmType).load(mv);
-      }  
+        } else {
+          // Cast null pointers to the appropriate type
+          Expressions.cast(value.unwrap(), this.jvmType).load(mv);
+        }
+      }
     } else {
       mv.aconst(null);
     }

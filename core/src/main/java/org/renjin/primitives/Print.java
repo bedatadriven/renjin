@@ -25,9 +25,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.renjin.eval.Context;
-import org.renjin.invoke.annotations.Current;
-import org.renjin.invoke.annotations.Internal;
-import org.renjin.invoke.annotations.Materialize;
+import org.renjin.invoke.annotations.*;
 import org.renjin.parser.StringLiterals;
 import org.renjin.primitives.print.*;
 import org.renjin.primitives.vector.RowNamesVector;
@@ -78,8 +76,10 @@ public class Print {
     return visitor.getResult();
   }
 
+  @Generic
   @Internal("print.function")
-  public static void printFunction(@Current Context context, SEXP x, boolean useSource) throws IOException {
+  public static void printFunction(@Current Context context, SEXP x, boolean useSource, 
+                                   @ArgumentList ListVector extraArguments) throws IOException {
     context.getSession().getStdOut().println(x.toString());
     context.getSession().getStdOut().flush();
   }

@@ -74,7 +74,7 @@ function(x, ...)
 
 require <-
 function(package, lib.loc = NULL, quietly = FALSE, warn.conflicts = TRUE,
-         character.only = FALSE)
+         character.only = FALSE, save = FALSE)
 {   
     if(!missing(lib.loc)) {
          warning("Renjin ignores the library(lib.loc) argument.");

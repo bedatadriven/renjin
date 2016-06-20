@@ -1,6 +1,7 @@
 
 
 #include <math.h>
+#include "assert.h"
 
 
 double Square(double x) {
@@ -33,4 +34,30 @@ double sum_array(double *values, int length) {
 
 double exp_sum(double *values, int length) {
   return sum_transform_array(values, length, &exp);
+}
+
+
+
+void test_sum_array() {
+    double x[] = {1, 4, 16};
+    double result = sum_array(x, 3);
+    
+    ASSERT(result == 273)
+}
+
+int is_cube_fn(void *fn) {
+    return fn == &cube;
+}
+
+int is_square_fn(void *fn) {
+    void *p = &Square;
+    return p == fn;
+}
+
+void test_comparison_with_void_ptr() {
+    ASSERT(is_cube_fn(&cube));
+    ASSERT(!is_cube_fn(&Square));
+    
+    ASSERT(!is_square_fn(&cube))
+    ASSERT(is_square_fn(&Square))
 }

@@ -122,6 +122,8 @@ public class VoidPointerTypeDeducer implements FunctionBodyTransformer {
       switch (assignment.getOperator()) {
         case VAR_DECL:
         case NOP_EXPR:
+        case ADDR_EXPR:
+
           GimpleExpr rhs = assignment.getOperands().get(0);
           if(isReference(rhs)) {
             inferPossibleTypes(assignment.getLHS());
@@ -132,10 +134,9 @@ public class VoidPointerTypeDeducer implements FunctionBodyTransformer {
           break;
         
         case POINTER_PLUS_EXPR:
-          GimpleExpr lhs = assignment.getLHS();
           GimpleExpr pointer = assignment.getOperands().get(0);
           if(isReference(pointer)) {
-            inferPossibleTypes(lhs);
+            inferPossibleTypes(assignment.getLHS());
           }
           break;
       }

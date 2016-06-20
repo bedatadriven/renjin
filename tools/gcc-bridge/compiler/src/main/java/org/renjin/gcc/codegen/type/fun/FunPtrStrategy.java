@@ -13,6 +13,7 @@ import org.renjin.gcc.codegen.type.primitive.PrimitiveTypeStrategy;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrStrategy;
 import org.renjin.gcc.codegen.type.record.unit.RefConditionGenerator;
 import org.renjin.gcc.codegen.type.voidt.VoidPtr;
+import org.renjin.gcc.codegen.type.voidt.VoidPtrStrategy;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.GimpleVarDecl;
@@ -86,6 +87,11 @@ public class FunPtrStrategy implements PointerTypeStrategy<FunPtr>, SimpleTypeSt
     
     if(typeStrategy instanceof PrimitiveTypeStrategy) {
       return nullPointer();
+    }
+    
+    if(typeStrategy instanceof VoidPtrStrategy) {
+      VoidPtr voidPtr = (VoidPtr) value;
+      return new FunPtr(Expressions.cast(voidPtr.unwrap(), METHOD_HANDLE_TYPE));
     }
     
     throw new UnsupportedCastException();

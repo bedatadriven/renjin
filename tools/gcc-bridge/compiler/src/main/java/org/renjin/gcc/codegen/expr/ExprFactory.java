@@ -213,18 +213,21 @@ public class ExprFactory {
 
   private ConditionGenerator comparePointers(GimpleOp op, GimpleExpr x, GimpleExpr y) {
     
-    GExpr ptrX = findGenerator(x);
-    GExpr ptrY = findGenerator(y);
-    
     // Shoudldn't matter which we pointer we cast to the other, but if we have a choice,
     // cast away from a void* to a concrete pointer type
+    GimpleType commonType;
+
     if(x.getType().isPointerTo(GimpleVoidType.class)) {
-      ptrY = maybeCast(ptrY, x.getType(), y.getType());
+      commonType = y.getType();
     } else {
-      ptrX = maybeCast(ptrX, y.getType(), x.getType());
+      commonType = x.getType();
     }
 
-    return typeOracle.forPointerType(x.getType()).comparePointers(op, ptrX, ptrY);
+    PointerTypeStrategy typeStrategy = typeOracle.forPointerType(commonType);
+    GExpr ptrX = findGenerator(x, commonType);
+    GExpr ptrY = findGenerator(y, commonType);
+
+    return typeStrategy.comparePointers(op, ptrX, ptrY);
   }
 
   public GExpr findGenerator(GimpleOp op, List<GimpleExpr> operands, GimpleType expectedType) {

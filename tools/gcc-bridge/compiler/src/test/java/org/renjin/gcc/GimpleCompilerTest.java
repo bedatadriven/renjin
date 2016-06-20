@@ -133,10 +133,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
 
   @Test
   public void functionPointers() throws Exception {
-    Class clazz = compile("funptr.c");
-    Method method = clazz.getMethod("sum_array", DoublePtr.class, int.class);
-    Double result = (Double) method.invoke(null, new DoublePtr(1, 4, 16), 3);
-    assertThat(result, equalTo(273d));
+    compileAndTest("funptr.c");
   }
   
   @Test

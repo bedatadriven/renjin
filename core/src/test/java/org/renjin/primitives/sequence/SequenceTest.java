@@ -23,10 +23,7 @@ package org.renjin.primitives.sequence;
 
 import org.junit.Test;
 import org.renjin.EvalTestCase;
-import org.renjin.sexp.DoubleArrayVector;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.LogicalVector;
-import org.renjin.sexp.SEXP;
+import org.renjin.sexp.*;
 
 import static junit.framework.Assert.assertTrue;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -133,6 +130,11 @@ public class SequenceTest extends EvalTestCase {
     assertThat(eval("rep(integer(0), length.out=3)"), equalTo(c_i(IntVector.NA, IntVector.NA, IntVector.NA)));
   }
 
+  @Test
+  public void testRepWithNullArg() {
+    assertThat(eval("rep(NULL, length.out=3)"), equalTo((SEXP)Null.INSTANCE));
+  }
+  
   @Test
   public void seqInt() {
     assertThat( eval(" seq.int(to=6, from=3)" ), elementsEqualTo(3, 4, 5, 6));

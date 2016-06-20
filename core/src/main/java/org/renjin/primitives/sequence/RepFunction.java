@@ -74,6 +74,10 @@ public class RepFunction extends SpecialFunction {
   public static Vector rep(Vector x, Vector times, int lengthOut, int each) {
     int resultLength;
 
+    if(x == Null.INSTANCE) {
+      return Null.INSTANCE;
+    }
+    
     if(x.length() == 0) {
       x = x.getVectorType().newBuilderWithInitialCapacity(1).addNA().build();
     }

@@ -178,9 +178,9 @@ public class DatasetsBuilder {
    * resulting data.frame is stored as the single object of the logical dataset.
    */
   private void processTextFile(File dataFile, String logicalDatasetName, String sep) throws IOException {
-    
-    if(scriptFileExists(logicalDatasetName) ||
-       dataFileAlreadyExists(logicalDatasetName)) {
+
+    if (scriptFileExists(logicalDatasetName) ||
+        dataFileAlreadyExists(logicalDatasetName)) {
       return;
     }
     

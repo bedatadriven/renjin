@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "assert.h"
 
 typedef struct {
    double years_open;
@@ -24,21 +25,22 @@ void init_account(account **ppa) {
   *ppa = pa;
 }
 
-double test_account_value() {
+void test_account_value() {
   account ac;
   ac.years_open = 2;
   ac.plan_type = 2;
     
-  return account_value(&ac);
+  ASSERT(account_value(&ac) == 5000);
 }
 
-double test_malloc() {
+void test_malloc() {
   account *pa;
   init_account(&pa);
-  return account_value(pa);
+  
+  ASSERT(account_value(pa) == 15000);
 }
 
-account** test_pointer_pointer(int n) {
+account** do_test_pointer_pointer(int n) {
   account **pa = malloc(n * sizeof(account*));
   int i;
   for(i=0;i<n;++i) {

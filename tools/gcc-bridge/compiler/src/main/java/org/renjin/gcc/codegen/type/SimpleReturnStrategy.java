@@ -1,6 +1,7 @@
 package org.renjin.gcc.codegen.type;
 
 import org.objectweb.asm.Type;
+import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
@@ -32,7 +33,12 @@ public final class SimpleReturnStrategy implements ReturnStrategy {
 
   @Override
   public GExpr unmarshall(MethodGenerator mv, JExpr returnValue, TypeStrategy lhsTypeStrategy) {
-    return strategy.wrap(Expressions.cast(returnValue, type));
+    GExpr result = strategy.wrap(Expressions.cast(returnValue, type));
+    try {
+      return lhsTypeStrategy.cast(result, strategy);
+    } catch (UnsupportedCastException e) {
+      throw new InternalCompilerException("Cannot cast from " + strategy + " to " + lhsTypeStrategy, e);
+    }
   }
 
   @Override

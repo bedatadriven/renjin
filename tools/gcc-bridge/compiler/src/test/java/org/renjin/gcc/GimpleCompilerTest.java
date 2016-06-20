@@ -138,14 +138,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
   
   @Test
   public void structTest() throws Exception {
-    Class clazz = compile("structs.c");
-    Method method = clazz.getMethod("test_account_value");
-    Double result = (Double) method.invoke(null);
-    assertThat(result, equalTo(5000d));
-    
-    Method testMalloc = clazz.getMethod("test_malloc");
-    result = (Double)testMalloc.invoke(null);
-    assertThat(result, equalTo(15000d));
+    compileAndTest("structs.c");
   }
   
   @Test
@@ -176,6 +169,11 @@ public class GimpleCompilerTest extends AbstractGccTest {
 
 
     System.out.println(x);
+  }
+  
+  @Test(expected = InvocationTargetException.class)
+  public void files() throws Exception {
+    compileAndTest("files.c");
   }
   
   @Test

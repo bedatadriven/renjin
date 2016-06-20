@@ -12,6 +12,11 @@ class Rectangle {
         height = 0;
     }
     
+    Rectangle(int w, int h) {
+        width = w;
+        height = h;
+    }
+    
     Rectangle( const Rectangle& other){
         width = other.width;
         height = other.height;
@@ -88,4 +93,17 @@ extern "C" int test_refEquality() {
   
   compare_refs(&a, &a, &b);
   compare_casted_ints((int)&a, (int)&a, (int)&b);
+}
+
+void * to_void(Rectangle &p) {
+    return &p;
+}
+
+extern "C" void test_assign_from_void_return_value() {
+    Rectangle a(5, 5);
+    Rectangle *pb = (Rectangle*)to_void(a);
+    
+    ASSERT(&a == pb);
+    ASSERT(pb->width == 5)
+    ASSERT(pb->height == 5)
 }

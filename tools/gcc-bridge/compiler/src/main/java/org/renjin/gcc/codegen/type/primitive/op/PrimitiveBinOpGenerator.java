@@ -50,6 +50,9 @@ public class PrimitiveBinOpGenerator implements JExpr {
         return Opcodes.ISUB;
       
       case RDIV_EXPR:
+      case FLOOR_DIV_EXPR:
+      case CEIL_DIV_EXPR:
+      case ROUND_DIV_EXPR:
       case TRUNC_DIV_EXPR:
       case EXACT_DIV_EXPR:
         return Opcodes.IDIV;

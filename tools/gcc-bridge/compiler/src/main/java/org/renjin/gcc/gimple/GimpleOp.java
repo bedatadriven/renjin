@@ -33,6 +33,9 @@ public enum GimpleOp {
   EXACT_DIV_EXPR,
   
   TRUNC_DIV_EXPR,
+  FLOOR_DIV_EXPR,
+  CEIL_DIV_EXPR,
+  ROUND_DIV_EXPR,
 
   /**
    * Real Constant

@@ -10,6 +10,7 @@
 #include "assert.h"
 #include <stdio.h>
 #include <algorithm>
+#include <utility>
 
 //////// Ordering for tied endpoints
 
@@ -75,13 +76,11 @@ Endpoints::Endpoints( const double * pos, const int * closed, int n, bool query,
   int i;
   this->reserve( 2 * n );
   for ( i = 0; i < n; i++ ) {
-    printf("Pushing back i = %d\n", i);
    // if ( ISNA( pos[i] ) || ISNA( pos[i+n] ) ) continue;
     this->push_back( Endpoint( i, pos[i], query, true, (bool) closed[ is_full ? i : 0 ] ) );
-    this->push_back( Endpoint( i, pos[i+n], query, false, (bool) closed[ is_full ? i+n : 1 ] ) );
-    printf("size = %d\n", this->size());
+    this->push_back( Endpoint( i, pos[i+n], query, false, (bool) closed[ is_full ? i+n : 1 ] ) ); 
   }
-}
+} 
 
 void Endpoints::R_print() const {
   Endpoints::const_iterator it;
@@ -101,14 +100,34 @@ extern "C" Endpoint*  test_endpoints() {
    printf("ep = \n\n");
    ep.R_print();
    
-   printf("sizeof(Endpoint) = %d\n", sizeof(Endpoint));
-   
+   printf("swapped:\n\n");
+   std::swap(ep[0], ep[1]);
+   ep.R_print();
+
    Endpoint::set_state_array( reduce_order );
    sort( ep.begin(), ep.end() );
    
    printf("sorted:\n\n");
    ep.R_print();
+//   
+//   index = 0, pos = 1.000000 (target, left, closed)
+//   index = 1, pos = 2.000000 (target, left, closed)
+//   index = 0, pos = 3.000000 (target, right, closed)
+//   index = 1, pos = 3.000000 (target, right, closed)
+//   index = 2, pos = 3.000000 (target, left, closed)
+//   index = 3, pos = 4.000000 (target, left, closed)
+//   index = 2, pos = 6.000000 (target, right, closed)
+//   index = 3, pos = 8.000000 (target, right, closed)
    
+   ASSERT(ep[0].pos == 1)
+   ASSERT(ep[1].pos == 2)
+   ASSERT(ep[2].pos == 3)
+   ASSERT(ep[3].pos == 3)
+   ASSERT(ep[4].pos == 3)
+   ASSERT(ep[5].pos == 4)
+   ASSERT(ep[6].pos == 6)
+   ASSERT(ep[7].pos == 8)
+
    return &ep.front();
 }
 

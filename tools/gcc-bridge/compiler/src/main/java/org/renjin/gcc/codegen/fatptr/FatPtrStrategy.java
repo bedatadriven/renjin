@@ -7,6 +7,7 @@ import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.type.*;
+import org.renjin.gcc.codegen.type.primitive.ConstantValue;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrStrategy;
@@ -247,11 +248,33 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtrExpr> {
   public void memoryCopy(MethodGenerator mv, FatPtrExpr destination, FatPtrExpr source, JExpr lengthBytes, boolean buffer) {
     
     // Convert bytes -> value counts
-    JExpr valueCount = Expressions.divide(lengthBytes, valueFunction.getArrayElementBytes());
+    JExpr valueCount = computeElementsToCopy(lengthBytes);
     
     valueFunction.memoryCopy(mv,
         destination.getArray(), destination.getOffset(),
         source.getArray(), source.getOffset(), valueCount);
+  }
+
+  private JExpr computeElementsToCopy(JExpr lengthBytes) {
+    if(lengthBytes instanceof ConstantValue) {
+      // It can be that the actual storage size of a record (struct)
+      // is smaller than it's declared size, for example, a struct
+      // with a 3 booleans will still have a size of 4 bytes for alignment purposes.
+      
+      // When COPYING a SINGLE element however, sometimes GCC it's infinite cleverness, 
+      // will copy ONLY the actual number of bytes stored. 
+      
+      // Dividing this number by the declared size of the struct will result 
+      // in ZERO and nothing will be copied. For this reason, we need a little
+      // hack here for this very particular case.
+      
+      int numBytes = ((ConstantValue) lengthBytes).getIntValue();
+      if(numBytes < valueFunction.getArrayElementBytes()) {
+        return Expressions.constantInt(1);
+      } 
+    }
+    
+    return Expressions.divide(lengthBytes, valueFunction.getArrayElementBytes());
   }
 
   @Override

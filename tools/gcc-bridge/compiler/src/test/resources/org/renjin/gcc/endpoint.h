@@ -39,10 +39,12 @@ public:
       exact equality is intended by the calling code. Given this assumption,
       there is no need for a relative difference approach here.
     */
-    if ( this->pos == other.pos ) 
-      return( this->state() < other.state() );
-    else
-      return( this->pos < other.pos );
+ ///   if ( this->pos == other.pos ) 
+   //   return( this->state() < other.state() );
+  //  else
+    //  return( this->pos < other.pos );
+    printf("comparing %f with %f\n", this->pos, other.pos);
+    return this->pos < other.pos;
   }
 
   static void set_state_array( const int new_array[2][2][2] ) {

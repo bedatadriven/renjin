@@ -164,13 +164,13 @@ public class GimpleCompiler  {
 
       // Prune unused functions 
       SymbolPruner.prune(rootLogger, units);
-      
-      // Identify variables and fields that must be addressable
-      AddressableFinder addressableFinder = new AddressableFinder(units);
-      addressableFinder.mark();
 
       // First apply any transformations needed by the code generation process
       transform(units);
+
+      // Identify variables and fields that must be addressable
+      AddressableFinder addressableFinder = new AddressableFinder(units);
+      addressableFinder.mark();
 
       // Analyze record type usage to determine strategy for generate code involving records
       // (must be done after void ptr inference)

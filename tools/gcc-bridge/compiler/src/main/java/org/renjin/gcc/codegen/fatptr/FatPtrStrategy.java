@@ -7,6 +7,8 @@ import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
+import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
+import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidPtr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrStrategy;
 import org.renjin.gcc.codegen.var.VarAllocator;
@@ -203,13 +205,20 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtrExpr> {
       // (The JVM simply won't allow us to cast an int* to a double*)
       FatPtrExpr ptrExpr = (FatPtrExpr) value;
       GExpr address = null;
-      if(ptrExpr.isAddressable()) {
+      if (ptrExpr.isAddressable()) {
         address = ptrExpr.addressOf();
       }
       JExpr castedArray = Expressions.uncheckedCast(ptrExpr.getArray(), arrayType);
       JExpr offset = ptrExpr.getOffset();
-      
+
       return new FatPtrExpr(address, castedArray, offset);
+
+    } else if(typeStrategy instanceof RecordUnitPtrStrategy) {
+      RecordUnitPtr ptr = (RecordUnitPtr) value;
+      JExpr ref = Expressions.cast(ptr.unwrap(), valueFunction.getValueType());
+      JExpr newArray = Expressions.newArray(ref);
+      
+      return new FatPtrExpr(newArray);
     }
     
     throw new UnsupportedCastException();

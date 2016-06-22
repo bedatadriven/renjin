@@ -51,7 +51,7 @@ public class FatPtrConditionGenerator implements ConditionGenerator {
     // If we get here, then the pointer is equal
     mv.goTo(equalLabel);
   }
-
+  
   private void jumpOnComparison(MethodGenerator mv, Label trueLabel, Label falseLabel) {
     
     Label arraysEqual = new Label();
@@ -74,7 +74,7 @@ public class FatPtrConditionGenerator implements ConditionGenerator {
         break;
       case GT_EXPR:
       case GE_EXPR:
-        mv.ificmpgt(falseLabel);
+        mv.ificmpgt(trueLabel);
         break;
     }
     mv.goTo(falseLabel);
@@ -95,7 +95,7 @@ public class FatPtrConditionGenerator implements ConditionGenerator {
         mv.ificmpgt(trueLabel);
         break;
       case GE_EXPR:
-        mv.ificmpge(falseLabel);
+        mv.ificmpge(trueLabel);
         break;
     }
     

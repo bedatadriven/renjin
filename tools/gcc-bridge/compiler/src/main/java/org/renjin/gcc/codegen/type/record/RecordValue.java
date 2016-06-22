@@ -3,10 +3,14 @@ package org.renjin.gcc.codegen.type.record;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.GSimpleExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
+
+import static org.renjin.gcc.codegen.expr.Expressions.elementAt;
 
 
 public class RecordValue implements GSimpleExpr {
@@ -41,6 +45,9 @@ public class RecordValue implements GSimpleExpr {
       rhsRef = ((RecordValue) rhs).unwrap();
     } else if(rhs instanceof RecordUnitPtr) {
       rhsRef = ((RecordUnitPtr) rhs).unwrap();
+    } else if(rhs instanceof FatPtrExpr) {
+      FatPtrExpr fatPtrExpr = (FatPtrExpr) rhs;
+      rhsRef =  Expressions.cast(elementAt(fatPtrExpr.getArray(), fatPtrExpr.getOffset()), getJvmType());
     } else {
       throw new InternalCompilerException("Cannot assign " + rhs + " to " + this);
     }

@@ -9,6 +9,7 @@
 #include "endpoint.h"
 #include "assert.h"
 #include <stdio.h>
+#include <algorithm>
 
 //////// Ordering for tied endpoints
 
@@ -33,6 +34,11 @@
 int Endpoint::state_array[2][2][2] = {{{0,0},{0,0}},{{0,0},{0,0}}};
 
 
+const int reduce_order[2][2][2] = {
+  {{2,4},{3,1}}, // Target: {{ ), ] }, { (, [ }}      
+  {{0,0},{0,0}}  // Query:  {{ ), ] }, { (, [ }}
+};
+
 
 
 //////// Endpoint methods
@@ -43,7 +49,7 @@ Endpoint::Endpoint(int i, double p, bool q, bool l, bool c) {
 
 void Endpoint::R_print() const {
   printf(
-	  "index = %i, pos = %f (%s, %s, %s)\n",
+	  "index = %d, pos = %f (%s, %s, %s)\n",
 	  index, pos,
 	  query ? "query" : "target",
 	  left ? "left" : "right",
@@ -93,6 +99,7 @@ extern "C" int test_endpoints() {
    printf("ep.size() = %d\n", ep.size());
    printf("ep = \n");
    ep.R_print();
-
-
+   
+   Endpoint::set_state_array( reduce_order );
+   sort( ep.begin(), ep.end() );
 }

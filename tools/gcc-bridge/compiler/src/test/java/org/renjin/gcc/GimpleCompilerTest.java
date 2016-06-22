@@ -496,6 +496,12 @@ public class GimpleCompilerTest extends AbstractGccTest {
     compileAndTest("rect.cpp");
   }
 
+
+  @Test
+  public void rectSort() throws Exception {
+    compileAndTest("rect_sort.cpp");
+  }
+
   @Test
   public void overloadedMethods() throws Exception {
     Class clazz = compile("methods.cpp");

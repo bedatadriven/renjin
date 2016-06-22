@@ -1,6 +1,7 @@
 
 #include "assert.h"
 
+
 class Rectangle {
   public:
     int width, height;
@@ -31,6 +32,9 @@ class Rectangle {
         return r;
     }
     
+    inline bool operator< (const Rectangle& other) const {
+        return this->width < other.width;
+    }
 } rect;
 
 
@@ -83,8 +87,8 @@ int compare_refs(Rectangle *a1, Rectangle *a2, Rectangle *b) {
 int compare_casted_ints(int a1, int a2, int b) {
   ASSERT(a1 == a1);
   ASSERT(a1 == a2);
-  ASSERT(a1 != b);
-  ASSERT( (a1 < b) || (a1 > b));   
+//  ASSERT(a1 != b);
+//  ASSERT( (a1 < b) || (a1 > b));   
 }
 
 extern "C" int test_refEquality() {
@@ -107,3 +111,4 @@ extern "C" void test_assign_from_void_return_value() {
     ASSERT(pb->width == 5)
     ASSERT(pb->height == 5)
 }
+

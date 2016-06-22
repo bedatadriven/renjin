@@ -136,7 +136,7 @@ public class Stdlib {
       return -1;
     }
     
-    System.out.println(outputString);
+    System.out.print(outputString);
     
     return outputString.length();
   }

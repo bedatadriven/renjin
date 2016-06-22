@@ -263,6 +263,12 @@ public class Stdlib {
     return secondsSinceProgramStart * CLOCKS_PER_SEC;
   }
   
+  public static int clock_gettime(int clockId, timespec tp) {
+    tp.tv_nsec = (int) System.nanoTime();
+    tp.tv_sec = (int) TimeUnit.NANOSECONDS.toSeconds(tp.tv_nsec);
+    return 0;
+  }
+  
   public static Object fopen() {
     throw new UnsupportedOperationException("fopen() not implemented");
   }

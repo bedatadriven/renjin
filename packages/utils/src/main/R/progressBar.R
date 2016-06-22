@@ -1,6 +1,8 @@
 #  File src/library/utils/R/progressBar.R
 #  Part of the R package, http://www.R-project.org
 #
+#  Copyright (C) 1995-2012 The R Core Team
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
@@ -32,7 +34,7 @@ txtProgressBar <-
         if(style == 3L) width <- width - 10L
         width <- trunc(width/nw)
     }
-    if (max <= min) stop("must have max > min")
+    if (max <= min) stop("must have 'max' > 'min'")
 
     up1 <- function(value) {
         if(!is.finite(value) || value < min || value > max) return()
@@ -101,14 +103,18 @@ txtProgressBar <-
 getTxtProgressBar <- function(pb)
 {
     if(!inherits(pb, "txtProgressBar"))
-       stop("'pb' is not from class \"txtProgressBar\"")
+       stop(gettextf("'pb' is not from class %s",
+                     dQuote("txtProgressBar")),
+            domain = NA)
     pb$getVal()
 }
 
 setTxtProgressBar <- function(pb, value, title = NULL, label = NULL)
 {
     if(!inherits(pb, "txtProgressBar"))
-       stop("'pb' is not from class \"txtProgressBar\"")
+        stop(gettextf("'pb' is not from class %s",
+                      dQuote("txtProgressBar")),
+             domain = NA)
     oldval <- pb$getVal()
     pb$up(value)
     invisible(oldval)

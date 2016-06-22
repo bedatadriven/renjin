@@ -1,0 +1,5 @@
+useDynLib(link, .registration = TRUE)
+
+
+export(mydsum2)
+export(mysum2)

@@ -1,6 +1,7 @@
 package org.renjin.primitives;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
@@ -32,13 +33,26 @@ public final class Environments {
     return list.build();
   }
 
+  @Internal
+  public static Environment list2env(ListVector list, Environment env) {
+    AtomicVector names = list.getNames();
+    if(names.length() != list.length()) {
+      throw new EvalException("names(x) must be a character vector of the same length as x");
+    }
+    for (NamedValue namedValue : list.namedValues()) {
+      env.setVariable(namedValue.getName(), namedValue.getValue());
+    }
+    
+    return env;
+  }
+  
   @Builtin("as.environment")
   public static Environment asEnvironment(@Current Context context, int pos) {
     Environment env;
     Context cptr;
 
     if (IntVector.isNA(pos) || pos < -1 || pos == 0) {
-        throw new EvalException("invalid 'pos' argument");
+      throw new EvalException("invalid 'pos' argument");
     } else if (pos == -1) {
       /* make sure the context is a funcall */
       cptr = context;
@@ -76,7 +90,7 @@ public final class Environments {
       if(Objects.equal(result.getName(), name)) {
         return result;
       }
-      if(name.equals("package:base") && result == result.getBaseEnvironment()) {
+      if(name.equals("package:base") && result == context.getBaseEnvironment()) {
         return result;
       }
       result = result.getParent();
@@ -223,13 +237,13 @@ public final class Environments {
   }
 
   @Builtin
-  public static Environment baseenv(@Current Environment rho) {
-    return rho.getBaseEnvironment();
+  public static Environment baseenv(@Current Context context) {
+    return context.getBaseEnvironment();
   }
 
   @Builtin
-  public static Environment emptyenv(@Current Environment rho) {
-    return rho.getBaseEnvironment().getParent();
+  public static Environment emptyenv() {
+    return Environment.EMPTY;
   }
 
   @Builtin
@@ -241,20 +255,69 @@ public final class Environments {
   @DataParallel
   public static boolean exists(@Current Context context, @Recycle String x,
       Environment environment, String mode, boolean inherits) {
+    
+    // We need to handle the "any" mode specially to avoid forcing promises
+    // that may not yet be evaluated
+    if("any".equals(mode)) {
+      return existsAnySymbol(Symbol.get(x), environment, inherits);
+    }
+    
     return environment.findVariable(context, Symbol.get(x), Vectors.modePredicate(mode),
         inherits) != Symbol.UNBOUND_VALUE;
+  }
+
+  private static boolean existsAnySymbol(Symbol symbol, Environment environment, boolean inherits) {
+    SEXP value = environment.getVariable(symbol);
+    if(value != Symbol.UNBOUND_VALUE) {
+      return true;
+    }
+    if(inherits && environment.getParent() != Environment.EMPTY) {
+      return existsAnySymbol(symbol, environment.getParent(), inherits);
+    } else {
+      return false;
+    }
   }
 
   @Internal
   public static SEXP get(@Current Context context, String x,
       Environment environment, String mode, boolean inherits) {
-    SEXP value = environment.findVariable(context, Symbol.get(x), Vectors.modePredicate(mode),
-        inherits);
+    SEXP value = environment.findVariable(context, Symbol.get(x), Vectors.modePredicate(mode), inherits);
     if(value == Symbol.UNBOUND_VALUE) {
-      throw new EvalException("Object '%s' not found", x);
+      throw new EvalException("Object '%s' not found", StringVector.isNA(x) ? "NA" : x);
     }
     return value;
   }
+
+  @Internal
+  public static SEXP mget(@Current Context context, StringVector x,
+                         Environment environment, String mode, SEXP defaultValue, boolean inherits) {
+
+    Predicate<SEXP> predicate = Vectors.modePredicate(mode);
+
+    ListVector.NamedBuilder result = new ListVector.NamedBuilder();
+    for (String name : x) {
+      SEXP value = environment.findVariable(context, Symbol.get(name), predicate, inherits);
+      if(value == Symbol.UNBOUND_VALUE) {
+        result.add(name, defaultValue);
+      } else {
+        result.add(name, value);
+      }
+    }
+    return result.build();
+  }
+  
+  @Internal
+  public static SEXP get0(@Current Context context, String x,
+                         Environment environment, String mode, boolean inherits, SEXP ifnotfound) {
+    SEXP value = environment.findVariable(context, Symbol.get(x), Vectors.modePredicate(mode), inherits);
+    if(value == Symbol.UNBOUND_VALUE) {
+      return ifnotfound;
+    } else {
+      return value;
+    }
+  }
+
+
 
   @Internal
   public static StringVector search(@Current Context context) {

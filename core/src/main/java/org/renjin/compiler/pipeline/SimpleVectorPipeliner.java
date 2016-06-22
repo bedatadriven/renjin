@@ -16,8 +16,7 @@ public class SimpleVectorPipeliner implements VectorPipeliner {
       System.err.println("materialize");
       graph.dumpGraph();
     }
-
-
+    
     forceMemoizedValues(graph.getRoot());
 
     return graph.getRoot().getVector();

@@ -49,7 +49,7 @@ public class SwitchFunction extends SpecialFunction {
   private static SEXP doApply(Context context, Environment rho, FunctionCall call, PairList args) {
     EvalException.check(call.length() > 1, "argument \"EXPR\" is missing");
 
-    SEXP expr = args.getElementAsSEXP(0).evaluate(context,rho);
+    SEXP expr = context.evaluate(args.getElementAsSEXP(0),rho);
     EvalException.check(expr.length() == 1, "EXPR must return a length 1 vector");
 
     Iterable<PairList.Node> branches = Iterables.skip(args.nodes(), 1);
@@ -66,7 +66,7 @@ public class SwitchFunction extends SpecialFunction {
         if(node.hasTag()) {
           String branchName = node.getTag().getPrintName();
           if(branchName.equals(name)) {
-            return nextNonMissing(node).evaluate( context, rho);
+            return context.evaluate( nextNonMissing(node), rho);
           } else if(branchName.startsWith(name)) {
             partialMatch = nextNonMissing(node);
             partialMatchCount ++;
@@ -74,18 +74,18 @@ public class SwitchFunction extends SpecialFunction {
         }
       }
       if(partialMatchCount == 1) {
-        return partialMatch.evaluate(context, rho);
+        return context.evaluate( partialMatch, rho);
       } else if(Iterables.size(branches) > 0) {
         PairList.Node last = Iterables.getLast(branches);
         if(!last.hasTag()) {
-          return last.getValue().evaluate(context, rho);
+          return context.evaluate( last.getValue(), rho);
         }
       }
 
     } else if(expr instanceof AtomicVector) {
       int branchIndex = ((AtomicVector) expr).getElementAsInt(0);
       if(branchIndex >= 1 && branchIndex <= Iterables.size(branches)) {
-        return Iterables.get(branches, branchIndex-1).getValue().evaluate(context, rho);
+        return context.evaluate( Iterables.get(branches, branchIndex-1).getValue(), rho);
       }
     }
     // no match

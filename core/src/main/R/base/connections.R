@@ -19,8 +19,7 @@ stdout <- function() .Internal(stdout())
 stderr <- function() .Internal(stderr())
 
 isatty <- function(con) {
-    if (!inherits(con, "terminal")) FALSE
-    else .Internal(isatty(con))
+    .Internal(isatty(con))
 }
 
 readLines <- function(con = stdin(), n = -1L, ok = TRUE, warn = TRUE,
@@ -152,7 +151,7 @@ truncate.connection <- function(con, ...)
     .Internal(truncate(con))
 }
 
-pushBack <- function(data, connection, newLine = TRUE)
+pushBack <- function(data, connection, newLine = TRUE, encoding = c("bytes", "UTF-8"))
     invisible(.Internal(pushBack(data, connection, newLine)))
 
 pushBackLength <- function(connection)

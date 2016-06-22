@@ -21,9 +21,8 @@
 
 package org.renjin.primitives;
 
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import org.renjin.eval.Calls;
+import com.google.common.io.CharSource;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Builtin;
@@ -40,7 +39,7 @@ import org.renjin.sexp.*;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.io.StringReader;
+import java.util.ArrayDeque;
 import java.util.List;
 
 public class Evaluation {
@@ -113,12 +112,12 @@ public class Evaluation {
     for(int i=0;i!=vector.length();++i) {
       // For historical reasons, the calls created by lapply are unevaluated, and code has
       // been written (e.g. bquote) that relies on this.
-      FunctionCall getElementCall = FunctionCall.newCall(Symbol.get("[["), (SEXP)vector, new IntArrayVector(i+1));
+      FunctionCall getElementCall = FunctionCall.newCall(Symbol.get("[["), vector, new IntArrayVector(i+1));
       FunctionCall applyFunctionCall = new FunctionCall((SEXP)function, new PairList.Node(getElementCall,
           new PairList.Node(Symbols.ELLIPSES, Null.INSTANCE)));
       builder.add( context.evaluate(applyFunctionCall, rho) );
     }
-    builder.copySomeAttributesFrom(vector, Symbols.NAMES);
+    builder.setAttribute(Symbols.NAMES, vector.getNames());
     return builder.build();
   }
 
@@ -144,7 +143,7 @@ public class Evaluation {
       FunctionCall call = new FunctionCall(function, args.build());
       
       // evaluate
-      SEXP x = call.evaluate(context, context.getEnvironment());
+      SEXP x = context.evaluate(call);
       
       // check the result
       if(!(x instanceof Vector) || 
@@ -158,7 +157,7 @@ public class Evaluation {
       }
       for(int j=0;j!=funValue.length();++j) {
         result.addFrom(x, j);
-       }
+      }
     }
     
     if(useNames) {
@@ -207,7 +206,6 @@ public class Evaluation {
        
     return result.build();
   }
-
 
   @Builtin("return")
   public static SEXP doReturn(@Current Environment rho, SEXP value) {
@@ -264,7 +262,7 @@ public class Evaluation {
        * (with enclosure enclos), and the temporary environment is used for evaluation. So if expr
        * changes any of the components named in the (pair)list, the changes are lost.
        */
-      Environment parent = enclosing == Null.INSTANCE ? context.getEnvironment().getBaseEnvironment() :
+      Environment parent = enclosing == Null.INSTANCE ? context.getBaseEnvironment() :
           EvalException.<Environment>checkedCast(enclosing);
 
       rho = Environment.createChildEnvironment(parent);
@@ -309,6 +307,14 @@ public class Evaluation {
     return list.build();
   }
 
+  @Internal("withVisible")
+  public static ListVector withVisible(@Current Context context, SEXP expression) {
+    ListVector.NamedBuilder list = new ListVector.NamedBuilder();
+    list.add("value", expression);
+    list.add("visible", !context.getSession().isInvisible());
+    return list.build();
+  }
+
   @Builtin
   public static SEXP quote(@Unevaluated SEXP exp) {
     return exp;
@@ -328,23 +334,11 @@ public class Evaluation {
       throw new EvalException("'missing' can only be used for arguments");
     } else if(value == Symbol.MISSING_ARG) {
       return true;
-    } else if(isPromisedMissingArg(value)) {
+    } else if(isDefaultValue(value)) {
       return true;
+    } else {
+      return isPromisedMissingArg(value, new ArrayDeque<Promise>());
     } 
-    
-    
-    // we need to rematch the arguments to determine whether the value was actually provided
-    // or whether 'value' contains the default value
-    //
-    // this seems quite expensive, perhaps there's a faster way?
-    PairList rematched = Calls.matchArguments(
-        Calls.stripDefaultValues(context.getClosure().getFormals()),
-        context.getCall().getArguments(), true);
-    SEXP providedValue = rematched.findByTag(symbol);
-
-    return providedValue == Symbol.MISSING_ARG;
-    //return false;
-    
   }
 
   private static boolean isVarArgMissing(Environment rho, int varArgReferenceIndex) {
@@ -356,20 +350,51 @@ public class Evaluation {
       return true;
     }
     SEXP value = ellipses.getElementAsSEXP(varArgReferenceIndex-1);
-    return value == Symbol.MISSING_ARG || isPromisedMissingArg(value);
+    return value == Symbol.MISSING_ARG || isPromisedMissingArg(value, new ArrayDeque<Promise>());
   }
 
+  /**
+   * 
+   * @return true if {@code exp} is the name of an argument that was missing but has a default value
+   */
+  private static boolean isDefaultValue(SEXP exp) {
+    if(exp instanceof Promise) {
+      Promise promise = (Promise) exp;
+      if (promise.isMissingArgument()) {
+        return true;
+      }
+    }
+    return false;
+  }
 
-  private static boolean isPromisedMissingArg(SEXP exp) {
+  /**
+   * @return true if {@code exp} evaluates to a missing argument with no default value.
+   */
+  private static boolean isPromisedMissingArg(SEXP exp, ArrayDeque<Promise> stack) {
     if(exp instanceof Promise) {
       Promise promise = (Promise)exp;
-      if(!promise.isEvaluated() && promise.getExpression() instanceof Symbol) {
-        Symbol argumentName = (Symbol) promise.getExpression();
-        SEXP argumentValue = promise.getEnvironment().getVariable(argumentName);
-        if(argumentValue == Symbol.MISSING_ARG) {
-          return true;          
-        } else if(isPromisedMissingArg(argumentValue)) {
-          return true;
+
+      if(promise.getExpression() instanceof Symbol) {
+
+        // Avoid infinite recursion in the case of circular references, for example:
+        // g <- function(x, y) { missing(x) }
+        // f <- function(x = y, y = x) { g(x, y) } 
+        // f()
+        if(stack.contains(promise)) {
+          return true;  
+        }
+
+        stack.push(promise);
+        try {
+          Symbol argumentName = (Symbol) promise.getExpression();
+          SEXP argumentValue = promise.getEnvironment().getVariable(argumentName);
+          if (argumentValue == Symbol.MISSING_ARG) {
+            return true;
+          } else if (isPromisedMissingArg(argumentValue, stack)) {
+            return true;
+          }
+        } finally {
+          stack.pop();
         }
       }
     } 
@@ -381,20 +406,24 @@ public class Evaluation {
   public static ExpressionVector parse(@Current Context context, SEXP file, SEXP maxExpressions, Vector text,
                                        String prompt, SEXP sourceFile, String encoding) throws IOException {
     try {
-      List<SEXP> expressions = Lists.newArrayList();
       if(text != Null.INSTANCE) {
+        List<CharSource> lines = Lists.newArrayList();
+        CharSource newLine = CharSource.wrap("\n");
         for(int i=0;i!=text.length();++i) {
-          String line = text.getElementAsString(i);
-          ExpressionVector result = RParser.parseSource(new StringReader(line + "\n"));
-          Iterables.addAll(expressions, result);
+          lines.add(CharSource.wrap(text.getElementAsString(i)));
+          lines.add(newLine);
         }
+        return RParser.parseAllSource(CharSource.concat(lines).openStream(), sourceFile);
+            
       } else if(file.inherits("connection")) {
         Connection conn = Connections.getConnection(context, file);
         Reader reader = new InputStreamReader(conn.getInputStream());
-        ExpressionVector result = RParser.parseSource(reader);
-        Iterables.addAll(expressions, result);
+        return RParser.parseAllSource(reader, sourceFile);
+      
+      } else {
+        throw new EvalException("unsupported parsing source");
       }
-      return new ExpressionVector(expressions);
+      
     } catch (ParseException e) {
       throw new EvalException(e.getMessage(), e);
     } catch (IOException e) {

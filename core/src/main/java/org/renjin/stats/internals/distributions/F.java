@@ -19,15 +19,15 @@ public class F {
     //v2 = R_FINITE(n2) ? (rchisq(n2) / n2) : 1;
 
     if (Double.isInfinite(n1)) {
-      v1 = ChiSquare.rchisq(context, n1) / n1;
-    } else {
       v1 = 1;
+    } else {
+      v1 = ChiSquare.rchisq(context, n1) / n1;
     }
 
     if (Double.isInfinite(n2)) {
-      v2 = ChiSquare.rchisq(context, n2) / n2;
-    } else {
       v2 = 1;
+    } else {
+      v2 = ChiSquare.rchisq(context, n2) / n2;
     }
 
     return v1 / v2;

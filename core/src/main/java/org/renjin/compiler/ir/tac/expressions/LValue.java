@@ -1,7 +1,5 @@
 package org.renjin.compiler.ir.tac.expressions;
 
-import com.google.common.base.Preconditions;
-import java_cup.emit;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.renjin.compiler.emit.EmitContext;

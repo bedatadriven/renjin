@@ -1,0 +1,4 @@
+
+mydpchim <- function(){
+    .Fortran(Fdpchim)
+}

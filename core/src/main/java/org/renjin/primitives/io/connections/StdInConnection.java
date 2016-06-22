@@ -22,13 +22,7 @@
 package org.renjin.primitives.io.connections;
 
 
-import org.renjin.eval.EvalException;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintWriter;
-
+import java.io.*;
 
 
 /**
@@ -37,15 +31,11 @@ import java.io.PrintWriter;
  */
 public class StdInConnection implements Connection {
 
-  private InputStream stream = System.in;
+  private PushbackBufferedReader stream = new PushbackBufferedReader(new InputStreamReader(System.in));
 
-  public void setInputStream(InputStream in) {
-    this.stream = in;
-  }
-  
   @Override
   public InputStream getInputStream() throws IOException {
-    return stream; // TODO
+    throw new UnsupportedOperationException("Cannot read bytes from stdin");
   }
 
   @Override
@@ -60,12 +50,16 @@ public class StdInConnection implements Connection {
 
   @Override
   public OutputStream getOutputStream() throws IOException {
-   throw new UnsupportedOperationException();
+    throw new UnsupportedOperationException();
   }
 
   @Override
-  public PushbackBufferedReader getReader() throws IOException {
-    throw new EvalException("implement me!");
+  public PushbackBufferedReader getReader() {
+    return stream;
+  }
+  
+  public void setReader(Reader reader) {
+    stream = new PushbackBufferedReader(reader);
   }
 
   @Override

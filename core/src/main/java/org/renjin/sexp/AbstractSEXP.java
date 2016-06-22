@@ -25,7 +25,6 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.primitives.Attributes;
 
 
 /**
@@ -35,7 +34,7 @@ public abstract class AbstractSEXP implements SEXP {
 
   protected AttributeMap attributes;
 
-  private final boolean object;
+  private boolean object;
 
   protected AbstractSEXP() {
     this.attributes = AttributeMap.EMPTY;
@@ -134,16 +133,25 @@ public abstract class AbstractSEXP implements SEXP {
 
   @Override
   public AtomicVector getNames() {
-    return attributes.getNamesOrNull();
+    // In the very special case of a one-dimensional array,
+    // the names of the elements are stored in the dimnames attribute
+    // and not the names attribute.
+    if(attributes.getDim().length() == 1) {
+      return attributes.getDimNames(0);
+    } else {
+      return attributes.getNamesOrNull();
+    }
+  }
+
+  @Override
+  public boolean hasNames() {
+    return getNames() instanceof StringVector;
   }
 
   @Override
   public String getName(int index) {
-    if(attributes.hasNames()) {
-      StringVector names = attributes.getNames();
-      if(names.length() > 0) {
-        return names.getElementAsString(index);        
-      }
+    if(hasNames()) {
+      return getNames().getElementAsString(index);
     } 
     return StringVector.NA;
   }
@@ -185,14 +193,12 @@ public abstract class AbstractSEXP implements SEXP {
 
   @Override
   public final SEXP setAttribute(String attributeName, SEXP value) {
-     return setAttribute(Symbol.get(attributeName), value);
+    return setAttribute(Symbol.get(attributeName), value);
   }
   
   @Override
   public SEXP setAttribute(Symbol attributeName, SEXP value) {
-    return cloneWithNewAttributes(
-        replaceAttribute(attributeName,
-            Attributes.validateAttribute(this, attributeName, value)));
+    return setAttributes(this.attributes.copy().set(attributeName, value));
   }
 
   @Override
@@ -200,13 +206,14 @@ public abstract class AbstractSEXP implements SEXP {
     return cloneWithNewAttributes(attributes);
   }
 
-  private AttributeMap replaceAttribute(Symbol attributeName, SEXP newValue) {
-    return this.attributes.copy().set(attributeName, newValue).build();
+  @Override
+  public SEXP setAttributes(AttributeMap.Builder attributes) {
+    return cloneWithNewAttributes(attributes.validateAndBuildForVectorOfLength(length()));
   }
-  
+
   protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
     if(attributes != AttributeMap.EMPTY) {
-      throw new EvalException("cannot change/set attributes on " + getClass().getSimpleName());
+      throw new EvalException("cannot change/set attributes on " + getClass().getName());
     }
     return this;
   }
@@ -229,8 +236,21 @@ public abstract class AbstractSEXP implements SEXP {
     return this;
   }
 
-  @Override
-  public SEXP evaluate(Context context, Environment rho) {
-    return this;
+  /**
+   * Modifies this SEXP's attributes in place. Some {@code SEXP}s
+   * MAY be shared between multiple threads and so are assumed immutable. Modifications to the
+   * array should ONLY be undertaken very carefully and when assured no references to this {@code SEXP}
+   * are being held elsewhere.
+   *
+   * @param attributeMap the new attribute map
+   */
+  public void unsafeSetAttributes(AttributeMap attributeMap) {
+    this.attributes = attributeMap;
+    this.object = attributes.hasClass();
+  }
+  
+  public void unsafeSetAttributes(AttributeMap.Builder attributes) {
+    this.attributes = attributes.validateAndBuildFor(this);
+    
   }
 }

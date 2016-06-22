@@ -1,0 +1,8 @@
+
+      INTEGER FUNCTION TEST()
+      DIMENSION TABLE (2,2), TRIPLE (2,2,2)
+      EQUIVALENCE(TABLE(2,2), TRIPLE(1,2,2))
+  
+   
+      RETURN
+      END

@@ -54,6 +54,13 @@ public class MatrixTest extends EvalTestCase {
     assertThat(eval("matrix(c(1,2,3,4),2,4,TRUE)"), equalTo(c(1, 1, 2, 2, 3, 3, 4, 4)));
     assertThat(eval("as.double(matrix(1:10,5,2,TRUE))"), equalTo(c(1,3,5,7,9,2,4,6,8,10)));
   }
+  
+  @Test
+  public void matrixWithZeroLengthArg() {
+    eval("x <- matrix(nrow=0,ncol=0)");
+    assertThat(eval("dim(x)"), equalTo(c_i(0, 0)));
+    assertThat(eval("length(x)"), equalTo(c_i(0)));
+  }
 
   @Test
   public void rowTest() {
@@ -165,10 +172,10 @@ public class MatrixTest extends EvalTestCase {
     eval("x <- solve(matrix(c(1,3,7,6),2,2))");
 
     assertThat(eval("x"), closeTo(matrix(
-            row(-0.4,  0.46666667),
-            row( 0.2, -0.06666667)), 0.0000001));
+        row(-0.4, 0.46666667),
+        row(0.2, -0.06666667)), 0.0000001));
 
-    assertThat(eval("dim(x)"), equalTo(c_i(2,2)));
+    assertThat(eval("dim(x)"), equalTo(c_i(2, 2)));
   }
   
   @Test
@@ -188,8 +195,8 @@ public class MatrixTest extends EvalTestCase {
   public void testSolveSingularity() throws IOException {
 
     assertThat(eval("solve(matrix(c(1,2,2,4),2,2))"), closeTo(matrix(
-            row(0, 0),
-            row(0, 0)), 0.0000001));
+        row(0, 0),
+        row(0, 0)), 0.0000001));
   }
 
 
@@ -272,7 +279,7 @@ public class MatrixTest extends EvalTestCase {
   @Test
   public void matrixDimNames() {
     eval(" m <- matrix(nrow=2,ncol=2,dimnames=list(c('a','b'), c('x', 'y'))) ");
-    assertThat( eval(" dimnames(m)[[1]]"), equalTo(c("a", "b")));
+    assertThat(eval(" dimnames(m)[[1]]"), equalTo(c("a", "b")));
     assertThat( eval(" dimnames(m)[[2]]"), equalTo(c("x", "y")));
   }
 
@@ -293,4 +300,17 @@ public class MatrixTest extends EvalTestCase {
     assertThat(eval("tcrossprod(matrix(1:4,2,2))"), equalTo(c(10,14,14,20)));
   }
 
+  @Test
+  public void missingValuesHandledCorrectly() {
+    eval("f <- function(nr=4, nc=3) matrix(0, nrow=nr, ncol=nc)");
+    
+    assertThat(eval("dim(f())"), equalTo(c_i(4, 3)));
+  }
+
+  @Test
+  public void missingValuesHandledCorrectlyWhenArgIsOne() {
+    eval("f <- function(nr=4, nc=1) matrix(0, nrow=nr, ncol=nc)");
+
+    assertThat(eval("dim(f())"), equalTo(c_i(4,1)));
+  }
 }

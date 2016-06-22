@@ -21,25 +21,25 @@
 
 package org.renjin.eval;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.util.List;
-import java.util.Map;
-
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.renjin.base.BaseFrame;
 import org.renjin.compiler.pipeline.VectorPipeliner;
 import org.renjin.parser.RParser;
+import org.renjin.primitives.Warning;
 import org.renjin.primitives.packaging.NamespaceRegistry;
 import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.sexp.*;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Contexts are the internal mechanism used to keep track of where a
@@ -159,14 +159,13 @@ public class Context {
   }
   
   public SEXP evaluate(SEXP expression) {
-    return expression.evaluate(this, getEnvironment());
+    SEXP result = evaluate(expression, environment);
+    if(result == null) {
+      throw new IllegalStateException("Evaluated to null");
+    }
+    return result;
   }
-
-  public SEXP evaluate(SEXP sexp, Environment rho) {
-    return sexp.evaluate(this, rho);
-  }
-
-
+  
   /**
    * If the S-Expression is an {@code DeferredComputation}, then it is executed with the
    * VectorPipeliner.
@@ -180,13 +179,38 @@ public class Context {
       return sexp;
     }
   }
+  
+  public Vector materialize(Vector sexp) {
+    if(sexp instanceof DeferredComputation && !sexp.isConstantAccessTime()) {
+      return session.getVectorEngine().materialize((DeferredComputation)sexp);
+    } else {
+      return sexp;
+    }
+  }
 
   public SEXP simplify(SEXP sexp) {
     if(sexp instanceof DeferredComputation &&
         ((DeferredComputation) sexp).getComputationDepth() > VectorPipeliner.MAX_DEPTH) {
-      return session.getVectorEngine().simplify((DeferredComputation)sexp);
+      return session.getVectorEngine().simplify((DeferredComputation) sexp);
     } else {
       return sexp;
+    }
+  }
+  
+  public SEXP evaluate(SEXP expression, Environment rho) {
+    if(expression instanceof Symbol) {
+      return evaluateSymbol((Symbol) expression, rho);
+    } else if(expression instanceof ExpressionVector) {
+      return evaluateExpressionVector((ExpressionVector) expression, rho);
+    } else if(expression instanceof FunctionCall) {
+      return evaluateCall((FunctionCall) expression, rho);
+    } else if(expression instanceof Promise) {
+      return expression.force(this);
+    } else if(expression != Null.INSTANCE && expression instanceof PromisePairList) {
+      throw new EvalException("'...' used in an incorrect context");
+    } else {
+      clearInvisibleFlag();
+      return expression;
     }
   }
 
@@ -213,6 +237,72 @@ public class Context {
     stateMap.put(clazz, instance);
   }
 
+  private SEXP evaluateSymbol(Symbol symbol, Environment rho) {
+    clearInvisibleFlag();
+
+    if(symbol == Symbol.MISSING_ARG) {
+      return symbol;
+    }
+    SEXP value = rho.findVariable(symbol);
+    if(value == Symbol.UNBOUND_VALUE) {
+      throw new EvalException(String.format("object '%s' not found", symbol.getPrintName()));
+    } 
+    
+    if(value instanceof Promise) {
+      return evaluate(value, rho);
+    } else {
+      return value;
+    }
+  }
+  
+  private SEXP evaluateExpressionVector(ExpressionVector expressionVector, Environment rho) {
+    if(expressionVector.length() == 0) {
+      setInvisibleFlag();
+      return Null.INSTANCE;
+    } else {
+      SEXP result = Null.INSTANCE;
+      for(SEXP sexp : expressionVector) {
+        result = evaluate(sexp, rho);
+      }
+      return result;
+    }
+  }
+
+  private SEXP evaluateCall(FunctionCall call, Environment rho) {
+    clearInvisibleFlag();
+
+    SEXP fn = call.getFunction();
+    Function functionExpr = evaluateFunction(fn, rho);
+
+    boolean profiling = Profiler.ENABLED && fn instanceof Symbol && !((Symbol) fn).isReservedWord();
+    if(Profiler.ENABLED && profiling) {
+      Profiler.functionStart((Symbol)fn);
+    }
+    try {
+      return functionExpr.apply(this, rho, call, call.getArguments());
+    } finally {
+      if(Profiler.ENABLED && profiling) {
+        Profiler.functionEnd();
+      }
+    }
+  }
+
+  private Function evaluateFunction(SEXP functionExp, Environment rho) {
+    if(functionExp instanceof Symbol) {
+      Symbol symbol = (Symbol) functionExp;
+      Function fn = rho.findFunction(this, symbol);
+      if(fn == null) {
+        throw new EvalException("could not find function '%s'", symbol.getPrintName());      
+      }
+      return fn;
+    } else {
+      SEXP evaluated = evaluate(functionExp, rho).force(this);
+      if(!(evaluated instanceof Function)) {
+        throw new EvalException("'function' of lang expression is of unsupported type '%s'", evaluated.getTypeName());
+      }
+      return (Function)evaluated;
+    }
+  }
 
   /**
    *
@@ -279,8 +369,9 @@ public class Context {
     int nframe = 0;
     Context cptr = this;
     while (!cptr.isTopLevel()) {
-      if (cptr.getType() == Type.FUNCTION )
+      if (cptr.getType() == Type.FUNCTION ) {
         nframe++;
+      }
       cptr = cptr.getParent();
     }
     return nframe;
@@ -325,6 +416,11 @@ public class Context {
     onExit.add(exp);
   }
 
+
+  public void warn(String message) {
+    Warning.emitWarning(this, false, message);
+  }
+  
   /**
    * Removes all previously added expressions to evaluate upon exiting this context.
    */
@@ -337,7 +433,7 @@ public class Context {
    */
   public void exit() {
     for(SEXP exp : onExit) {
-      exp.evaluate(this, environment);
+      evaluate(exp, environment);
     }
   }
 
@@ -371,10 +467,10 @@ public class Context {
     BaseFrame baseFrame = (BaseFrame) session.getBaseEnvironment().getFrame();
     baseFrame.load(this);
     
-    FunctionCall.newCall(Symbol.get(".onLoad")).evaluate(this, session.getBaseNamespaceEnv());
+    evaluate(FunctionCall.newCall(Symbol.get(".onLoad")), session.getBaseNamespaceEnv());
     
 //    evalBaseResource("/org/renjin/library/base/R/Rprofile");
-//                                                                                                    x
+//    
 //    // FunctionCall.newCall(new Symbol(".OptRequireMethods")).evaluate(this, environment);
 //    evaluate( FunctionCall.newCall(Symbol.get(".First.sys")), environment);
   }
@@ -406,7 +502,7 @@ public class Context {
   }
 
   public Environment getBaseEnvironment() {
-    return getGlobalEnvironment().getBaseEnvironment();
+    return session.getBaseEnvironment();
   }
 
   public NamespaceRegistry getNamespaceRegistry() {

@@ -1,7 +1,6 @@
 package org.renjin.repl;
 
 import jline.Terminal;
-
 import org.renjin.eval.Context;
 import org.renjin.eval.SessionController;
 import org.renjin.sexp.StringVector;
@@ -9,6 +8,7 @@ import org.renjin.sexp.StringVector;
 public class JlineSessionController extends SessionController {
 
   private Terminal terminal;
+  private boolean interactive = true;
   
   public JlineSessionController(Terminal terminal) {
     super();
@@ -23,7 +23,11 @@ public class JlineSessionController extends SessionController {
 
   @Override
   public boolean isInteractive() {
-    return true;
+    return interactive;
+  }
+
+  public void setInteractive(boolean interactive) {
+    this.interactive = interactive;
   }
 
   @Override
@@ -34,4 +38,8 @@ public class JlineSessionController extends SessionController {
     return 0;
   }
 
+  @Override
+  public boolean isTerminal() {
+    return terminal.isAnsiSupported();
+  }
 }

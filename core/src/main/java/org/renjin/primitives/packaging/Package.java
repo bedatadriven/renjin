@@ -1,19 +1,19 @@
 package org.renjin.primitives.packaging;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
-import com.google.common.io.ByteSource;
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.FileSystemManager;
 import org.renjin.eval.Context;
-import org.renjin.sexp.Environment;
+import org.renjin.eval.EvalException;
 import org.renjin.sexp.NamedValue;
 import org.renjin.sexp.Null;
 import org.renjin.sexp.SEXP;
+import org.renjin.util.NamedByteSource;
 
-import com.google.common.io.InputSupplier;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 public abstract class Package {
 
@@ -39,7 +39,7 @@ public abstract class Package {
   }
 
 
-  public ByteSource getResource(String name) throws IOException {
+  public NamedByteSource getResource(String name) throws IOException {
     throw new IOException();
   }
 
@@ -66,7 +66,7 @@ public abstract class Package {
    * @param name the fully-qualified class name. For example, "java.lang.util.HashSet"
    * @return the {@code Class}
    */
-  public abstract Class loadClass(String name);
+  public abstract Class loadClass(String name) throws ClassNotFoundException;
 
 
   /**
@@ -76,5 +76,13 @@ public abstract class Package {
    */
   public Collection<String> getPackageDependencies() throws IOException {
     return Collections.emptyList();
+  }
+
+  /**
+   * 
+   * @return a VFS {@link FileObject} pointing to the root of the package
+   */
+  public FileObject resolvePackageRoot(FileSystemManager fileSystemManager) throws FileSystemException {
+    throw new EvalException("Cannot access package root");
   }
 }

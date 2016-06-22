@@ -45,8 +45,8 @@ public class AppEngineContextFactoryTest {
     FileSystemManager fsm = AppEngineContextFactory.createFileSystemManager(localFileProvider);
 
     Session session = new SessionBuilder()
-    .withFileSystemManager(fsm)
-    .build();
+        .withFileSystemManager(fsm)
+        .build();
     
     session.setWorkingDirectory(FileSystemUtils.workingDirectory(fsm));
    

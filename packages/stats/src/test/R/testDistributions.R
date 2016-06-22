@@ -252,3 +252,23 @@ test.chisquareZeroDf <- function() {
 	assertThat(qchisq(0.5, df=0, lower.tail=TRUE, log.p=FALSE), equalTo(0))
 	assertThat(is.infinite(qchisq(1, df=0, lower.tail=TRUE, log.p=FALSE)), equalTo(TRUE))	
 }
+
+
+test.infiniteValues <- function() {
+
+    shape <- 2.18877
+    scale <- 1.0 / 4.879;
+    
+    assertThat(pgamma(Inf, shape, scale, lower.tail = TRUE), equalTo(1.0));
+    assertThat(pgamma(-Inf, shape, scale, lower.tail = TRUE), equalTo(0.0));
+
+    assertThat(pgamma(Inf, shape, scale, lower.tail = FALSE), equalTo(0.0));
+    assertThat(pgamma(-Inf, shape, scale, lower.tail = FALSE), equalTo(1.0));
+}
+
+test.outOfBoundsUniform <- function() {
+	
+	assertThat(punif(99, min = 0, max = 1, lower.tail = TRUE), equalTo(1.0))
+	assertThat(punif(-99, min = 0, max = 1, lower.tail = TRUE), equalTo(0.0))
+    	
+}

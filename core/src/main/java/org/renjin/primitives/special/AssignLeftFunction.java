@@ -21,8 +21,8 @@
 
 package org.renjin.primitives.special;
 
-import org.renjin.compiler.ir.exception.InvalidSyntaxException;
 import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
 import org.renjin.sexp.*;
 
 
@@ -57,7 +57,7 @@ public class AssignLeftFunction extends SpecialFunction {
     // x$a[3] <- 4
     // class(x$a[3]) <- "foo"
 
-    SEXP evaluatedValue = value.evaluate(context, rho);
+    SEXP evaluatedValue = context.evaluate( value, rho);
     SEXP rhs = new Promise(value, evaluatedValue);
 
     while(lhs instanceof FunctionCall) {
@@ -72,7 +72,7 @@ public class AssignLeftFunction extends SpecialFunction {
       
       FunctionCall setterCall = new FunctionCall(setter, setterArgs);
       
-      rhs = setterCall.evaluate(context, rho);
+      rhs = context.evaluate(setterCall, rho);
 
       lhs = call.getArgument(0);
     }
@@ -83,7 +83,7 @@ public class AssignLeftFunction extends SpecialFunction {
     } else if(lhs instanceof StringVector) {
       target = Symbol.get(((StringVector) lhs).getElementAsString(0));
     } else {
-      throw new InvalidSyntaxException("cannot assign to value '" + lhs + " (of type " + lhs.getTypeName() + ")");
+      throw new EvalException("cannot assign to value '" + lhs + " (of type " + lhs.getTypeName() + ")");
     }
 
     // make the final assignment to the target symbol

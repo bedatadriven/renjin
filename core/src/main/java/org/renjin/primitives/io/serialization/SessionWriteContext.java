@@ -8,33 +8,42 @@ import org.renjin.sexp.Symbol;
 
 
 public class SessionWriteContext implements WriteContext {
-  private Session session;
+  private Context context;
 
+  /**
+   * @deprecated Use {@link SessionWriteContext#SessionWriteContext(Context)} to ensure that 
+   * any code evaluated during namespace loading is evaluated within the correct context.
+   */
+  @Deprecated
   public SessionWriteContext(Session session) {
-    this.session = session;
+    this(session.getTopLevelContext());
+  }
+  
+  public SessionWriteContext(Context context) {
+    this.context = context;
   }
 
   @Override
   public boolean isBaseEnvironment(Environment exp) {
-    return exp == session.getBaseEnvironment();
+    return exp == context.getBaseEnvironment();
   }
 
   @Override
   public boolean isNamespaceEnvironment(Environment environment) {
-    return session.getNamespaceRegistry().isNamespaceEnv(environment);
+    return context.getNamespaceRegistry().isNamespaceEnv(environment);
   }
 
   @Override
   public boolean isBaseNamespaceEnvironment(Environment ns) {
-    return ns == session
+    return ns == context
         .getNamespaceRegistry()
-        .getNamespace(Symbol.get("base"))
+        .getNamespace(context, Symbol.get("base"))
         .getNamespaceEnvironment();
   }
 
   @Override
   public boolean isGlobalEnvironment(Environment env) {
-    return env == session.getGlobalEnvironment();
+    return env == context.getGlobalEnvironment();
   }
 
   @Override
@@ -49,7 +58,7 @@ public class SessionWriteContext implements WriteContext {
     // if we get to the point of needing to exchange ASTs between Renjin and R then we can always
     // provide an alternate implementation of the WriteContext interface
 
-    FqPackageName packageName = session.getNamespaceRegistry().getNamespace(ns).getFullyQualifiedName();
+    FqPackageName packageName = context.getNamespaceRegistry().getNamespace(ns).getFullyQualifiedName();
     if(packageName.getGroupId().equals(FqPackageName.CORE_GROUP_ID)) {
       return packageName.getPackageName();
 

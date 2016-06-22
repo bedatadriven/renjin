@@ -1,0 +1,8 @@
+## Namespace for package 'parallel'
+
+export(clusterApply, clusterApplyLB, clusterCall, clusterEvalQ,
+       clusterExport, clusterMap, clusterSplit, detectCores,
+       makeCluster,
+       parApply, parCapply, parLapply,
+       parLapplyLB, parRapply, parSapply, parSapplyLB)
+

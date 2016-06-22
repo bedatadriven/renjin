@@ -61,7 +61,6 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
 
   private String name = null;
   private Environment parent;
-  private Environment baseEnvironment;
   protected Frame frame;
 
   private boolean locked;
@@ -93,20 +92,18 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
    *
    * @return the Global environment
    */
-  public static Environment createGlobalEnvironment() {
+  public static Environment createGlobalEnvironment(Environment baseEnvironment) {
     Environment global = new Environment();
     global.name = GLOBAL_ENVIRONMENT_NAME;
-    global.baseEnvironment = createBaseEnvironment();
-    global.parent = global.baseEnvironment;
+    global.parent = baseEnvironment;
     global.frame = new HashFrame();
 
     return global;
   }
 
-  private static Environment createBaseEnvironment() {
+  public static Environment createBaseEnvironment() {
     Environment base = new Environment();
     base.name = "base";
-    base.baseEnvironment = base;
     base.parent = EMPTY;
     base.frame = new BaseFrame();
     return base;
@@ -128,20 +125,23 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     return ns;
   }
   
-  public static Environment createBaseNamespaceEnvironment(Environment globalEnv) {
-    Environment ns = createChildEnvironment(globalEnv, globalEnv.baseEnvironment.getFrame());
+  public static Environment createBaseNamespaceEnvironment(Environment globalEnv, Environment baseEnvironment) {
+    Environment ns = createChildEnvironment(globalEnv, baseEnvironment.getFrame());
     ns.name = "namespace:base";
     return ns;
   }
 
   public static Environment createChildEnvironment(Environment parent, Frame frame) {
     Environment child = new Environment();
-    child.baseEnvironment = parent.baseEnvironment;
     child.parent = parent;
     child.frame = frame;
     return child;
   }
   
+  public Environment() {}
+
+  public Environment(AttributeMap attributes) { super(attributes); }
+
   public void setVariables(PairList pairList) {
     for(PairList.Node node : pairList.nodes()) {
       if(!node.hasTag()) {
@@ -181,10 +181,6 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     modCount ++;
   }
 
-  public Environment getBaseEnvironment() {
-    return baseEnvironment;
-  }
-
   @Override
   public String getTypeName() {
     return TYPE_NAME;
@@ -207,16 +203,33 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     });
     return ordered;
   }
+  
+  @Override
+  public StringVector getNames() {
+    StringVector.Builder names = new StringVector.Builder();
+    for (Symbol name : getSymbolNames()) {
+      names.add(name.getPrintName());
+    }
+    return names.build();
+  }
 
   public boolean bindingIsLocked(Symbol symbol) {
     return lockedBindings != null && lockedBindings.contains(symbol);
   }
   
   public void setVariable(String name, SEXP value) {
+    if(StringVector.isNA(name)) {
+      name = "NA";
+    }
     setVariable(Symbol.get(name), value);
   }
 
   public void setVariable(Symbol symbol, SEXP value) {
+    
+    if(value == Symbol.UNBOUND_VALUE) {
+      throw new EvalException("Unbound: " + symbol);
+    }
+    
     if(bindingIsLocked(symbol)) {
       throw new EvalException("cannot change value of locked binding for '%s'", symbol.getPrintName());
     } else if(locked && frame.getVariable(symbol) != Symbol.UNBOUND_VALUE) {
@@ -283,14 +296,18 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     return varArgs.getElementAsSEXP(varArgReferenceIndex - 1);
   }
 
-  public SEXP findVariableOrThrow(String name) {
-    SEXP value = findVariable(Symbol.get(name));
+  public SEXP findVariableOrThrow(Symbol name) {
+    SEXP value = findVariable(name);
     if(value == Symbol.UNBOUND_VALUE) {
-      throw new EvalException("object '" + name + "' not found");
+      throw new EvalException("object '" + name.getPrintName() + "' not found");
     }
     return value;
   }
-  
+
+  public SEXP findVariableOrThrow(String name) {
+    return findVariableOrThrow(Symbol.get(name));
+  }
+
   public Function findFunction(Context context, Symbol symbol) {
     if(frame.isMissingArgument(symbol)) {
       throw new EvalException("argument '%s' is missing, with no default", symbol.toString());
@@ -413,7 +430,7 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
 
   @Override
   protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
-    this.attributes = attributes;
+    unsafeSetAttributes(attributes);
     return this;
   }
 
@@ -441,11 +458,11 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
   public String toString() {
     return "<environment: " + getName() + ">";
   }
-  
-  public Environment insertAbove(Frame frame) {	
-  	Environment newEnv = Environment.createChildEnvironment(parent, frame);
-  	setParent(newEnv);
-  	return newEnv; 
+
+  public Environment insertAbove(Frame frame) {
+    Environment newEnv = Environment.createChildEnvironment(parent, frame);
+    setParent(newEnv);
+    return newEnv;
   }
 
   private static class EmptyEnv extends Environment {

@@ -1,31 +1,32 @@
 package org.renjin.primitives.packaging;
 
+import com.google.common.base.Optional;
 import org.renjin.eval.Context;
-import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Current;
+import org.renjin.invoke.annotations.Internal;
 import org.renjin.invoke.annotations.Invisible;
-import org.renjin.invoke.annotations.Unevaluated;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
 
 public class Packages {
 
-  @Builtin
+  public static final FqPackageName METHODS_NAMESPACE = new FqPackageName("org.renjin", "methods");
+
+  @Internal
   public static void library(
       @Current Context context,
       @Current NamespaceRegistry namespaceRegistry, 
-      @Unevaluated SEXP packageNameExp) throws IOException {
+      String packageName) throws IOException {
 
-    String packageName = parsePackageName(packageNameExp);
 
-    Namespace namespace = namespaceRegistry.getNamespace(packageName);
+    Namespace namespace = namespaceRegistry.getNamespace(context, packageName);
     
     // Add "Depends" packages to the global search path
     // (But not "Imports" !)
     for(String dependencyName : namespace.getPackage().getPackageDependencies()) {
       context.getSession().getStdOut().println("Loading required package: " + dependencyName);
-      library(context, namespaceRegistry, Symbol.get(dependencyName));
+      library(context, namespaceRegistry, dependencyName);
     }
     
     // Create the package environment
@@ -33,7 +34,7 @@ public class Packages {
     packageEnv.setAttribute(Symbols.NAME, StringVector.valueOf("package:" + packageName));
     
     // Copy in the namespace's exports
-    namespace.copyExportsTo(packageEnv);
+    namespace.copyExportsTo(context, packageEnv);
     
     // Load dataset objects as promises
     for(Dataset dataset : namespace.getPackage().getDatasets()) {
@@ -42,33 +43,38 @@ public class Packages {
       }
     }
     
+    if(!namespace.getFullyQualifiedName().equals(METHODS_NAMESPACE)) {
+      maybeUpdateS4MetadataCache(context, namespace);
+    }
+    
     context.setInvisibleFlag();
   }
 
-  @Builtin
+  private static void maybeUpdateS4MetadataCache(Context context, Namespace namespace) {
+    //methods:::cacheMetaData(ns, TRUE, ns)
+    Optional<Namespace> methods = context.getNamespaceRegistry()
+        .getNamespaceIfPresent(Symbol.get("methods"));
+    if(methods.isPresent()) {
+      SEXP cacheFunction = methods.get().getEntry(Symbol.get("cacheMetaData"));
+      FunctionCall cacheCall = FunctionCall.newCall(cacheFunction, 
+          namespace.getNamespaceEnvironment(),
+          LogicalVector.TRUE,
+          namespace.getNamespaceEnvironment());
+      
+      context.evaluate(cacheCall);
+    }
+  }
+
+  @Internal
   @Invisible
   public static boolean require(@Current Context context,
-                                @Current NamespaceRegistry registry,
-                                @Unevaluated SEXP packageNameExp) {
+                                @Current NamespaceRegistry registry, 
+                                String packageName) {
     try {
-      library(context, registry, packageNameExp);
+      library(context, registry, packageName);
       return true;
     } catch(Exception e) {
       return false;
     }
   }
-
-
-  private static String parsePackageName(SEXP packageNameExp) {
-    String packageName;
-    if(packageNameExp instanceof Symbol) {
-      packageName = ((Symbol) packageNameExp).getPrintName();
-    } else if(packageNameExp instanceof StringVector && packageNameExp.length()==1) {
-      packageName = ((StringVector) packageNameExp).getElementAsString(0);
-    } else {
-      throw new UnsupportedOperationException("Unexpected package name argument: " + packageNameExp);
-    }
-    return packageName;
-  }
-  
 }

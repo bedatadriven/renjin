@@ -1,0 +1,4 @@
+
+useDynLib( "nativeWithoutRegistration" )
+
+export(secret)

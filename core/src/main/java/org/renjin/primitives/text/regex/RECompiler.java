@@ -154,8 +154,7 @@ public class RECompiler
      * @param node Start of node chain to traverse
      * @param pointTo Node to have the tail of the chain point to
      */
-    void setNextOfEnd(int node, int pointTo)
-    {
+    void setNextOfEnd(int node, int pointTo) throws RESyntaxException {
         // Traverse the chain until the next offset is 0
         int next = instruction[node + ExtendedRE.offsetNext];
         // while the 'node' is not the last in the chain
@@ -228,7 +227,7 @@ public class RECompiler
      */
     void syntaxError(String s) throws RESyntaxException
     {
-        throw new RESyntaxException(s);
+        throw new RESyntaxException(s + " at char " + (idx+1));
     }
 
     /**
@@ -1217,9 +1216,24 @@ public class RECompiler
                 paren = 2;
                 idx += 3;
                 ret = node(ExtendedRE.OP_OPEN_CLUSTER, 0);
-            }
-            else
-            {
+            } else {
+                
+                // This implementation doesn't support look ahead/behind assertions.
+                // But at least we can give a decent error message
+                
+                if(idx +2 < len && pattern.charAt(idx + 1) == '?') 
+                {
+                    // Check for assertions, which we do not support
+                    char qualifier = pattern.charAt(idx + 2);
+                    if(qualifier == '=' || qualifier == '!') {
+                        throw new RESyntaxException("Look-ahead assertions are not implemented");
+                    } else if(qualifier == '<' && idx + 3 < len) {
+                        char next = pattern.charAt(idx + 3);
+                        if(next == '=' || next == '!') {
+                            throw new RESyntaxException("Look-behind assertions are not implemented");
+                        }
+                    }
+                }
                 paren = 1;
                 idx++;
                 ret = node(ExtendedRE.OP_OPEN, parens++);

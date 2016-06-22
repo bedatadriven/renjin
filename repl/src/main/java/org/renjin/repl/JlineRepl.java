@@ -1,6 +1,7 @@
 package org.renjin.repl;
 
 import com.google.common.base.Strings;
+import com.google.common.base.Throwables;
 import jline.UnsupportedTerminal;
 import jline.console.ConsoleReader;
 import jline.console.UserInterruptException;
@@ -29,6 +30,10 @@ import java.io.PrintWriter;
  */
 public class JlineRepl {
 
+  private final Session session;
+  private final Context topLevelContext;
+  private final ConsoleReader reader;
+  private final JlineSessionController sessionController;
 
   /**
    * Echo lines to standard out.
@@ -40,19 +45,21 @@ public class JlineRepl {
    */
   private boolean stopOnError;
 
-  public static void main(String[] args) throws Exception {
-    JlineRepl repl = new JlineRepl(SessionBuilder.buildDefault());
-    repl.run();
-  }
 
-  private final Session session;
-  private final Context topLevelContext;
-  private ConsoleReader reader;
-
-  public JlineRepl(Session session) throws Exception {
+  public JlineRepl(Session session, ConsoleReader reader) throws IOException {
     this.session = session;
     this.topLevelContext = session.getTopLevelContext();
+    this.reader = reader;
+    this.sessionController = new JlineSessionController(reader.getTerminal());
+    this.session.setSessionController(sessionController);
+  }
+  
+  public JlineRepl(Session session) throws Exception {
+    this(session, createInteractiveConsoleReader());
+  }
 
+  private static ConsoleReader createInteractiveConsoleReader() throws IOException {
+    ConsoleReader reader;
     if(Strings.nullToEmpty(System.getProperty("os.name")).startsWith("Windows")) {
       // AnsiWindowsTerminal does not work properly in WIndows 7
       // so disabling across the board for now
@@ -60,21 +67,20 @@ public class JlineRepl {
     } else {
       reader = new ConsoleReader();
     }
-
-    // disable events triggered by ! (this is valid R !!)
-    reader.setExpandEvents(false);
+    reader.setExpandEvents(false); // disable events triggered by "!", which is a valid R token
     reader.setHandleUserInterrupt(true);
-    session.setSessionController(new JlineSessionController(reader.getTerminal()));
+    return reader;
   }
 
-  public JlineRepl(Session session, ConsoleReader reader) throws IOException {
-    this.session = session;
-    this.session.setSessionController(new JlineSessionController(reader.getTerminal()));
-    this.topLevelContext = session.getTopLevelContext();
-    this.reader = reader;
+  
+  public void setInteractive(boolean interactive) {
+    sessionController.setInteractive(interactive);
   }
 
-
+  public boolean isInteractive() {
+    return sessionController.isInteractive();
+  }
+  
   public void setEcho(boolean echo) {
     this.echo = echo;
   }
@@ -111,14 +117,13 @@ public class JlineRepl {
   private void printGreeting() throws Exception {
 
     try {
-      RenjinVersion renjin = new RenjinVersion();
-      reader.println("Renjin " + renjin.getVersionName());
+      reader.println("Renjin " + RenjinVersion.getVersionName());
     } catch (IOException e) {
       reader.println("Renjin");
     }
 
-    reader.println("Copyright (C) 2013 The R Foundation for Statistical Computing");
-    reader.println("Copyright (C) 2014 BeDataDriven");
+    reader.println("Copyright (C) 2015 The R Foundation for Statistical Computing");
+    reader.println("Copyright (C) 2015 BeDataDriven");
 
   }
 
@@ -201,23 +206,35 @@ public class JlineRepl {
 
   private void printEvalException(EvalException e) throws IOException {
     reader.getOutput().append("ERROR: ").append(e.getMessage()).append("\n");
-    e.printRStackTrace(reader.getOutput());
+    if (e.getCause() != null) {
+      reader.getOutput().write(Throwables.getStackTraceAsString(e.getCause()));
+    }
+    PrintWriter printWriter = new PrintWriter(reader.getOutput());
+    e.printRStackTrace(printWriter);
+    printWriter.flush();
     reader.getOutput().flush();
   }
 
   private void printWarnings() {
-    SEXP warnings = topLevelContext.getEnvironment().getBaseEnvironment().getVariable(Warning.LAST_WARNING);
+    SEXP warnings = topLevelContext.getBaseEnvironment().getVariable(Warning.LAST_WARNING);
     if(warnings != Symbol.UNBOUND_VALUE) {
       topLevelContext.evaluate( FunctionCall.newCall(Symbol.get("print.warnings"), warnings),
-              topLevelContext.getEnvironment().getBaseEnvironment());
+              topLevelContext.getBaseEnvironment());
     }
   }
 
   private void clearWarnings() {
-    topLevelContext.getEnvironment().getBaseEnvironment().remove(Warning.LAST_WARNING);
+    topLevelContext.getBaseEnvironment().remove(Warning.LAST_WARNING);
   }
 
   public ConsoleReader getReader() {
     return reader;
   }
+
+  public static void main(String[] args) throws Exception {
+    JlineRepl repl = new JlineRepl(SessionBuilder.buildDefault());
+    repl.run();
+  }
+
+
 }

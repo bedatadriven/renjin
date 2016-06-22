@@ -54,13 +54,20 @@ public strictfp class TypesTest extends EvalTestCase {
   @Test
   public void coerceWithoutArgument() {
     assertThat( eval("as.character()"), CoreMatchers.equalTo(c(new String[0])));
-    assertThat( eval("as.double()"), CoreMatchers.equalTo((SEXP)DoubleArrayVector.EMPTY));
-    assertThat( eval("as.logical()"), CoreMatchers.equalTo((SEXP)LogicalArrayVector.EMPTY));
-    assertThat( eval("as.integer()"), CoreMatchers.equalTo((SEXP)IntArrayVector.EMPTY));
-    assertThat( eval("as.complex()"), CoreMatchers.equalTo((SEXP)ComplexArrayVector.EMPTY));
+    assertThat( eval("as.double()"), CoreMatchers.equalTo((SEXP) DoubleArrayVector.EMPTY));
+    assertThat( eval("as.logical()"), CoreMatchers.equalTo((SEXP) LogicalArrayVector.EMPTY));
+    assertThat( eval("as.integer()"), CoreMatchers.equalTo((SEXP) IntArrayVector.EMPTY));
+    assertThat( eval("as.complex()"), CoreMatchers.equalTo((SEXP) ComplexArrayVector.EMPTY));
     // as.raw() requires at one argument!
   }
-  
+
+  @Test
+  public void doubleNaNToComplex() {
+    assertThat(eval("is.na(as.complex(NaN))"), equalTo(c(true)));
+    assertThat(eval("is.na(as.complex(0/0))"), equalTo(c(true)));
+    assertThat(eval("is.na(as.complex(NA))"), equalTo(c(true)));
+  }
+
   @Test
   public void asCharacterWithNA() {
     assertThat( eval("as.character(NA)"), equalTo( c( StringVector.NA )) );
@@ -120,7 +127,7 @@ public strictfp class TypesTest extends EvalTestCase {
   
   @Test
   public void asLogicalFromList() {
-      assertThat( eval("as.logical(list(1, 99.4, 0, 0L, FALSE, 'TRUE', 'FOO', 'T', 'F', 'FALSE')) "),
+    assertThat( eval("as.logical(list(1, 99.4, 0, 0L, FALSE, 'TRUE', 'FOO', 'T', 'F', 'FALSE')) "),
         equalTo( c(TRUE, TRUE, FALSE, FALSE, FALSE, TRUE, Logical.NA, TRUE, FALSE, FALSE) ));
   }
 
@@ -130,6 +137,21 @@ public strictfp class TypesTest extends EvalTestCase {
         equalTo( c(TRUE, TRUE, FALSE, Logical.NA) ));
   }
 
+  @Test
+  public void asLogicalFromString() {
+    assertThat( eval("as.logical('TRUE')"), equalTo(c(true)));
+    assertThat( eval("as.logical('FALSE')"), equalTo(c(false)));
+
+    assertThat( eval("as.logical('true')"), equalTo(c(true)));
+    assertThat( eval("as.logical('false')"), equalTo(c(false)));
+
+    assertThat( eval("as.logical('T')"), equalTo(c(true)));
+    assertThat( eval("as.logical('F')"), equalTo(c(false)));
+
+    assertThat( eval("as.logical('TR')"), equalTo(c(Logical.NA)));
+    assertThat( eval("as.logical('FA')"), equalTo(c(Logical.NA)));
+  }
+  
   @Test
   public void asDoubleFromLogical() {
     assertThat( eval("as.double(TRUE)"), equalTo( c(1d) ));
@@ -236,6 +258,21 @@ public strictfp class TypesTest extends EvalTestCase {
   }
 
   @Test
+  public void isNa() {
+    assertThat( eval("is.na(1)"), equalTo(c(false)));
+    assertThat( eval("is.na(NA)"), equalTo(c(true)));
+    assertThat( eval("is.na(NA_integer_)"), equalTo(c(true)));
+    assertThat( eval("is.na(NA_character_)"), equalTo(c(true)));
+    assertThat( eval("is.na(NA_real_)"), equalTo(c(true)));
+    assertThat( eval("is.na(NA_complex_)"), equalTo(c(true)));
+
+    assertThat( eval("is.na(NaN)"), equalTo(c(true)));
+    
+    assertThat( eval("is.na(1/0)"), equalTo(c(false)));
+    assertThat( eval("is.na(0/0)"), equalTo(c(true)));
+  }
+  
+  @Test
   public void naList() {
     assertThat( eval(" is.na(list(NULL,  1,     FALSE, c(NA,4), NA_integer_, NA_real_)) "),
                        equalTo( c(FALSE, FALSE, FALSE, FALSE,   TRUE,        TRUE)) );
@@ -311,8 +348,8 @@ public strictfp class TypesTest extends EvalTestCase {
     eval(" x <- .Internal(env2list(env,FALSE))");
     eval(" y <- .Internal(env2list(env,TRUE))");
 
-    assertThat( eval("names(x)"), CoreMatchers.equalTo(c("a")));
-    assertThat( eval("names(y)"), CoreMatchers.equalTo(c("a",".a")));
+    assertThat(eval("names(x)"), CoreMatchers.equalTo(c("a")));
+    assertThat( eval("names(y)"), CoreMatchers.equalTo(c("a", ".a")));
   }
   
   @Test
@@ -358,7 +395,7 @@ public strictfp class TypesTest extends EvalTestCase {
 
   @Test
   public void list() {
-    assertThat( eval("list(\"a\")"), equalTo( list("a") ));
+    assertThat( eval("list(\"a\")"), equalTo(list("a")));
   }
 
   @Test
@@ -383,7 +420,7 @@ public strictfp class TypesTest extends EvalTestCase {
     eval(" x<-c(1,2,3) ");
     eval(" attr(x, 'class') <- 'foo' ");
 
-    assertThat( eval(" class(x) "), equalTo( c("foo")));
+    assertThat( eval(" class(x) "), equalTo(c("foo")));
   }
   
   @Test
@@ -410,8 +447,8 @@ public strictfp class TypesTest extends EvalTestCase {
     assertThat( eval("class(9)"), equalTo(c("numeric")));
     assertThat( eval("class(9L)"), equalTo(c("integer")));
     assertThat( eval("class('foo')"), equalTo(c("character")));
-    assertThat( eval("class(TRUE)"), equalTo(c("logical")));
-    assertThat( eval("class(NULL)"), equalTo(c("NULL")));
+    assertThat(eval("class(TRUE)"), equalTo(c("logical")));
+    assertThat(eval("class(NULL)"), equalTo(c("NULL")));
   }
   
   @Test
@@ -497,15 +534,15 @@ public strictfp class TypesTest extends EvalTestCase {
     eval(" x <- 1:5");
     eval(" attributes(x) <- list(names=c('a','b', 'c'), foo='bar') ");
 
-    assertThat( eval(" names(x) "), equalTo(c("a","b","c",StringVector.NA,StringVector.NA)));
+    assertThat(eval(" names(x) "), equalTo(c("a", "b", "c", StringVector.NA, StringVector.NA)));
     assertThat( eval(" attr(x, 'foo') "), equalTo( c("bar")));
 
   }
 
   @Test
   public void asEnvironment() {
-    assertThat( eval("as.environment(1)"), sameInstance((SEXP)topLevelContext.getGlobalEnvironment()));
-    assertThat( eval("as.environment(2)"), sameInstance((SEXP)topLevelContext.getGlobalEnvironment().getParent()));
+    assertThat( eval("as.environment(1)"), sameInstance((SEXP) topLevelContext.getGlobalEnvironment()));
+    assertThat( eval("as.environment(2)"), sameInstance((SEXP) topLevelContext.getGlobalEnvironment().getParent()));
   }
 
   @Test
@@ -513,10 +550,77 @@ public strictfp class TypesTest extends EvalTestCase {
     eval(" as.vector <- function (x, mode = 'any') .Internal(as.vector(x, mode)) ");
 
     assertThat( eval("as.vector(1, 'character')"), equalTo( c("1" )));
-    assertThat( eval("as.vector(c(4,5,0), mode='logical')"), equalTo( c(true, true, false)));
-    assertThat( eval("as.vector(c(TRUE,FALSE,NA), mode='double')"), equalTo( c(1.0,0,DoubleVector.NA)));
+    assertThat( eval("as.vector(c(4,5,0), mode='logical')"), equalTo(c(true, true, false)));
+    assertThat( eval("as.vector(c(TRUE,FALSE,NA), mode='double')"), equalTo(c(1.0, 0, DoubleVector.NA)));
+  }
+  
+  @Test
+  public void asVectorDropsNames() {
+    eval("x <- c(Intercept=1, x=2)");
+    eval("attr(x, 'foo') <- 'bar'");
+    eval("y <- as.vector(x)");
+    
+    assertThat( eval("attributes(y)"), equalTo((SEXP)Null.INSTANCE));
   }
 
+  @Test
+  public void asVectorPreservesNamesForLists() {
+    eval("x <- c(a=1, b=2, c=3)");
+    eval("attr(x, 'foo') <- 'bar'");
+    
+    eval("y <- as.vector(x, 'list') ");
+
+    // Names are preserved
+    assertThat(eval("names(y)"), equalTo(c("a", "b", "c")));
+    
+    // all other attributes are saved
+    assertThat(eval("attr(y, 'foo')"), equalTo((SEXP)Null.INSTANCE));
+  }
+
+  @Test
+  public void asVectorPreservesNamesForPairListsButNothingElse() {
+    eval("x <- c(a=1, b=2, c=3)");
+    eval("attr(x, 'foo') <- 'bar'");
+
+    eval("y <- as.vector(x, 'pairlist') ");
+
+    // Names are preserved
+    assertThat(eval("names(y)"), equalTo(c("a", "b", "c")));
+
+    // all other attributes are saved
+    assertThat(eval("attr(y, 'foo')"), equalTo((SEXP)Null.INSTANCE));
+  }
+
+  @Test
+  public void pairListAsPairListPreservesAllAttributes() {
+    eval("x <- pairlist(1,2,3,4)");
+    eval("dim(x) <- c(2,2) ");
+    eval("attr(x, 'foo') <- 'bar'");
+
+    eval("y <- as.vector(x, 'pairlist')");
+    assertThat(eval("dim(y)"), equalTo(c_i(2, 2)));
+    assertThat(eval("attr(y, 'foo')"), equalTo(c("bar")));
+    
+    
+    eval("y <- as.pairlist(x) ");
+    assertThat(eval("dim(y)"), equalTo(c_i(2, 2)));
+    assertThat(eval("attr(y, 'foo')"), equalTo(c("bar")));
+  }
+
+
+  @Test
+  public void asVectorDoesNotPreserveAttributesForLists() {
+    eval("x <- 1:12");
+    eval("dim(x) <- c(2,6)");
+    eval("rownames(x) <- c('a', 'b')");
+    
+    eval("y <- as.vector(x, 'list') ");
+
+    // Dims and dimnames are NOT preserved
+    assertThat(eval("dim(y)"), equalTo((SEXP)Null.INSTANCE));
+    assertThat(eval("dimnames(y)"), equalTo((SEXP)Null.INSTANCE));
+  }
+  
   @Test
   public void naSymbol() {
     eval(" s <- .Internal(as.vector('NA', 'symbol'))");
@@ -581,6 +685,19 @@ public strictfp class TypesTest extends EvalTestCase {
     
     eval("length(x) <- 2");
     assertThat(eval("x"), equalTo(c(1,2)));
+  }
+  
+  @Test
+  public void setLengthOnOneDimensionalNamedArray() {
+    eval("a <- 1:3");
+    eval("dim(a) <- 3");
+    eval("dimnames(a) <- list(letters[1:3])");
+    
+    eval("length(a) <- 4");
+    
+    assertThat(eval("dim(a)"), equalTo(NULL));
+    assertThat(eval("names(a)"), equalTo(c("a", "b", "c", "")));
+
   }
 
   @Test
@@ -713,7 +830,7 @@ public strictfp class TypesTest extends EvalTestCase {
   @Test
   public void asEnvironmentWithName() {
     assertThat(eval("as.environment('package:base')"), 
-        is((SEXP)topLevelContext.getGlobalEnvironment().getBaseEnvironment()));
+        is((SEXP)topLevelContext.getBaseEnvironment()));
   }
 
   @Test
@@ -729,4 +846,14 @@ public strictfp class TypesTest extends EvalTestCase {
     eval("as.numeric(as.character(1:10))");
   }
 
+  @Test
+  public void asListDropsDimension() {
+    eval("x <- list(1,2,3,4,5,6)");
+    eval("dim(x) <- 2:3 ");
+    
+    eval("y <- .Internal(as.vector(x, 'list'))");
+    
+    assertThat(eval("dim(y)"), equalTo((SEXP)Null.INSTANCE));
+  }
+  
 }

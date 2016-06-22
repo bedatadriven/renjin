@@ -1,0 +1,1 @@
+stopifnot(defined.first == 42)

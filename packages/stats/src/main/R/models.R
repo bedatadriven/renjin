@@ -319,6 +319,43 @@ offset <- function(object) object
 	return("other")
 }
 
+.copyMostAttributesNoTs <- function(newValue, oldValue) {
+		
+		for(oldAttrib in names(attributes(oldValue))) {
+			if(oldAttrib == "class") {
+				# Drop the 'ts' class
+				class(newValue) <- setdiff(class(oldValue), "ts")
+			} else if(!(oldAttrib %in% c("names", "tsp", "dim", "dimnames"))) {
+				# Otherwise copy any other attributes that don't affect the structure
+				attr(newValue, oldAttrib) <- attr(oldValue, oldAttrib)
+			}
+		}
+		newValue
+}
+
+.applyNaAction <- function(originalData, na.action) {
+
+	if(is.null(na.action)) {
+		originalData
+	} else {
+		# Some na.actions need this to distinguish responses from explanatory variables
+#		attr(data, 'terms') <- formula
+
+		# Apply the na action to the original data frame
+		cleanedDf <- do.call(na.action, list(originalData))
+			
+		# Combine the cleaned data with the attributes from the original data
+		# need to transfer _all but tsp and dim_ attributes, possibly lost
+    # by subsetting in na.action.
+		updatedDf <- list()
+		for(i in seq_along(cleanedDf)) {
+			updatedDf[[i]] <- .copyMostAttributesNoTs(cleanedDf[[i]], originalData[[i]])
+		}
+		attributes(updatedDf) <- attributes(cleanedDf)
+		updatedDf
+	}
+}
+
 model.frame <- function(formula, ...) UseMethod("model.frame")
 model.frame.default <-
 		function(formula, data = NULL, subset = NULL, na.action = na.fail,
@@ -335,6 +372,7 @@ model.frame.default <-
 	## the fit might have a saved model object
 	if(!missing(formula) && nargs() == 1 && is.list(formula)
 			&& !is.null(m <- formula$model)) return(m)
+  
 	## if not use the saved call (if there is one).
 	if(!missing(formula) && nargs() == 1 && is.list(formula)
 			&& all(c("terms", "call") %in% names(formula))) {
@@ -352,8 +390,7 @@ model.frame.default <-
 				length(attr(data, "terms")))
 			return(data)
 		formula <- as.formula(data)
-	}
-	else if(missing(data) && inherits(formula, "data.frame")) {
+	} else if(missing(data) && inherits(formula, "data.frame")) {
 		if(length(attr(formula, "terms")))
 			return(formula)
 		data <- formula
@@ -405,11 +442,56 @@ model.frame.default <-
 		attr(formula, "predvars") <- predvars
 	}
 	extras <- substitute(list(...))
-	extranames <- names(extras[-1L])
+	
 	extras <- eval(extras, data, env)
 	subset <- eval(substitute(subset), data, env)
-	data <- .Internal(model.frame(formula, rownames, variables, varnames,
-					extras, extranames, subset, na.action))
+  
+  ## Construct the actual data frame 
+  ## This part used to be in models.c
+  
+ # cat(sprintf("variables = %s, extras = %s\n", deparse(variables), deparse(extras)))
+  
+  # First make a list of all variables that need to go into the data.frame
+  # Include only those extras that are not NULL
+  nullExtras <- sapply(extras, is.null)
+  data <- c(variables, extras[!nullExtras])
+  
+  # Apply names, decorating extra variables with parentheses 
+  names(data) <- c(varnames, sapply(names(extras[!nullExtras]), function(n) sprintf("(%s)", n)))
+  
+  # Verify that all variables have the same number of rows
+  stopifnot(length(data) > 0)
+  numRows <- sapply(data, function(x) {
+  	if(is.null(dim(x))) {
+  		length(x)
+  	} else {
+  		nrow(x)
+  	}
+  })
+ 
+  if(any(numRows[1] != numRows)) {
+  	stop("Not all variables have the same number of rows: ", 
+  		paste(sprintf("%s (%d rows)", names(data), numRows), collapse = ", "))
+  }
+  
+  # Add the required attributes to make this list a data.frame
+	attr(data, 'class') <- "data.frame"
+	attr(data, 'row.names') <- if(is.null(rownames)) {    
+																 as.character(1:numRows[1])
+															} else {
+																rownames;
+															}
+	
+	# Apply the subset argument if provided
+	subset <- eval(substitute(subset), data, env)
+	if(!is.null(subset)) {
+		data <- data[subset, , drop = FALSE]
+	}
+
+	# Finally, we run na.action on the data.frame
+	# Usually, this will be na.omit
+	data <- .applyNaAction(data, na.action)
+
 	## fix up the levels
 	if(length(xlev)) {
 		for(nm in names(xlev))

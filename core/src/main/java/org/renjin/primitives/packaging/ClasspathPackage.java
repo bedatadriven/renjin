@@ -1,8 +1,10 @@
 package org.renjin.primitives.packaging;
 
-import com.google.common.io.ByteSource;
 import com.google.common.io.Resources;
-import org.renjin.eval.EvalException;
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.FileSystemManager;
+import org.renjin.util.NamedByteSource;
 
 import java.io.IOException;
 import java.net.URL;
@@ -20,7 +22,7 @@ public class ClasspathPackage extends FileBasedPackage {
   }
   
   public ClasspathPackage(FqPackageName name) {
-    super(name);
+    this(ClasspathPackage.class.getClassLoader(), name);
   }
   
   public boolean exists() {
@@ -28,27 +30,33 @@ public class ClasspathPackage extends FileBasedPackage {
   }
 
   @Override
-  public ByteSource getResource(String name) throws IOException {
+  public NamedByteSource getResource(String name) throws IOException {
     String qualifiedName = qualifyResourceName(name);
     URL url = classLoader.getResource(qualifiedName);
-    if(url == null) {
+    if (url == null) {
       throw new IOException(String.format("Could not find %s (%s)", name, qualifiedName));
     }
     try {
-      return Resources.asByteSource(url);
+      return new NamedByteSource(name, Resources.asByteSource(url));
     } catch(Exception e) {
       throw new IOException(String.format("Could not load %s (%s)", name, url.toString()), e);
     }
   }
 
   @Override
-  public Class loadClass(String name) {
-    try {
-      return classLoader.loadClass(name);
-    } catch (ClassNotFoundException e) {
-      throw new EvalException(e.getMessage(), e);
-    }
+  public Class loadClass(String name) throws ClassNotFoundException {
+    return classLoader.loadClass(name);
   }
+
+  @Override
+  public FileObject resolvePackageRoot(FileSystemManager fileSystemManager) throws FileSystemException {
+    // Find the URL where the package is located
+    String qualifiedName = qualifyResourceName("environment");
+    URL url = classLoader.getResource(qualifiedName);
+    
+    return fileSystemManager.resolveFile(url.toString()).getParent();
+  }
+
 
   private String qualifyResourceName(String name) {
     return
@@ -61,7 +69,7 @@ public class ClasspathPackage extends FileBasedPackage {
 
   @Override
   public boolean resourceExists(String name) {
-      URL url = classLoader.getResource(qualifyResourceName(name));
-      return url != null;
+    URL url = classLoader.getResource(qualifyResourceName(name));
+    return url != null;
   }
 }

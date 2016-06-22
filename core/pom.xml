@@ -19,7 +19,7 @@
   <parent>
     <groupId>org.renjin</groupId>
     <artifactId>parent</artifactId>
-    <version>0.7.0-RC8-SNAPSHOT</version>
+    <version>0.9.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
@@ -41,15 +41,7 @@
       <artifactId>gcc-runtime</artifactId>
       <version>${project.version}</version>
     </dependency>
-
-
-    <dependency>
-      <groupId>org.renjin</groupId>
-      <artifactId>gcc-bridge</artifactId>
-      <version>${project.version}</version>
-      <scope>provided</scope>
-    </dependency>
-
+    
     <dependency>
       <groupId>org.netlib</groupId>
       <artifactId>netlib-java</artifactId>
@@ -103,19 +95,19 @@
     </dependency>
 
     <dependency>
-      <groupId>asm</groupId>
+      <groupId>org.ow2.asm</groupId>
       <artifactId>asm</artifactId>
-      <version>4.0</version>
+      <version>${asm.version}</version>
     </dependency>
     <dependency>
-      <groupId>asm</groupId>
+      <groupId>org.ow2.asm</groupId>
       <artifactId>asm-util</artifactId>
-      <version>4.0</version>
+      <version>${asm.version}</version>
     </dependency>
     <dependency>
-      <groupId>asm</groupId>
+      <groupId>org.ow2.asm</groupId>
       <artifactId>asm-commons</artifactId>
-      <version>4.0</version>
+      <version>${asm.version}</version>
     </dependency>
     <dependency>
       <groupId>asm</groupId>
@@ -129,18 +121,6 @@
     </dependency>
 
     <!-- unit test framework -->
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.10</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest-all</artifactId>
-      <version>1.1</version>
-      <scope>test</scope>
-    </dependency>
     <dependency>
       <groupId>org.concordion</groupId>
       <artifactId>concordion</artifactId>
@@ -175,6 +155,22 @@
     </resources>
 
     <plugins>
+      <plugin>
+        <groupId>org.codehaus.groovy.maven</groupId>
+        <artifactId>gmaven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>check-file-system</id>
+            <phase>initialize</phase>
+            <goals>
+              <goal>execute</goal>
+            </goals>
+            <configuration>
+              <source>${basedir}/checkFileSystem.groovy</source>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
@@ -260,8 +256,33 @@
           </execution>
         </executions>
       </plugin>
-
-
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>2.17</version>
+        <executions>
+          <execution>
+            <id>validate</id>
+            <phase>validate</phase>
+            <configuration>
+              <!-- Exclude imported sources from checkstyle for the moment -->
+              <excludes>org/renjin/stats/internals/distributions/*.java,
+                org/renjin/primitives/text/regex/*.java,
+                org/renjin/primitives/text/Formatter.java,
+                org/renjin/stats/internals/optimize/*.java,
+                org/renjin/parser/*.java,
+                org/renjin/graphics/*.java,
+                org/renjin/graphics/internals/*.java,
+                org/renjin/graphics/geom/*.java,
+                org/renjin/primitives/text/FuzzyMatcher.java
+              </excludes>
+            </configuration>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
     <pluginManagement>
       <plugins>

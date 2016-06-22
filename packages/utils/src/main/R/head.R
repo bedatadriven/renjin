@@ -1,6 +1,8 @@
 #  File src/library/utils/R/head.R
 #  Part of the R package, http://www.R-project.org
 #
+#  Copyright (C) 1995-2012 The R Core Team
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
@@ -79,7 +81,7 @@ tail.matrix <- function(x, n = 6L, addrownums = TRUE, ...)
     sel <- seq.int(to = nrx, length.out = n)
     ans <- x[sel, , drop = FALSE]
     if (addrownums && is.null(rownames(x)))
-    	rownames(ans) <- paste("[", sel, ",]", sep="")
+    	rownames(ans) <- paste0("[", sel, ",]")
     ans
 }
 tail.table  <- function(x, n = 6L, addrownums = TRUE, ...) {

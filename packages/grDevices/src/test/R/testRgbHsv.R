@@ -32,3 +32,7 @@ test.col2rgb <- function(){
 test.rgb2hsv <- function(){
 	 assertThat(rgb2hsv(1,1,0), closeTo(c( 0.166666667, 1, 0.003921569), 0.01))
 }
+
+test.rgbWithoutNames <- function() {
+    assertThat(rgb(1,0,0,0), identicalTo("#FF000000"))
+}

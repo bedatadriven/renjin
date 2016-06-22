@@ -30,7 +30,6 @@ import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.primitives.Contexts;
 import org.renjin.sexp.*;
-import org.renjin.util.NamesBuilder;
 
 
 /**
@@ -184,10 +183,10 @@ public class Match {
 
   private static int exactMatch(String toMatch, StringVector table) {
     for(int i=0;i!=table.length();++i) {
-         String t = pmatchElementAt(table, i);
-         if(toMatch.equals(t)) {
-           return i;
-         }
+      String t = pmatchElementAt(table, i);
+      if(toMatch.equals(t)) {
+        return i;
+      }
     }
     return -1;
   }
@@ -220,7 +219,8 @@ public class Match {
   }  
   
   @Internal("match.call")
-  public static SEXP matchCall (@Current Context context, @Current Environment rho, SEXP definition, FunctionCall call, boolean expandDots){
+  public static SEXP matchCall (@Current Context context, @Current Environment rho, SEXP definition, FunctionCall call, boolean expandDots,
+                                SEXP environment) {
     
     Closure closure = null;
     if(definition instanceof Closure) {
@@ -230,12 +230,9 @@ public class Match {
       /* Get the env that the function containing */
       /* matchcall was called from. */
       Context parentContext = Contexts.findStartingContext(context);
-     // while(!parentContext.isTopLevel()) {
-        if(parentContext.getType() == Context.Type.FUNCTION) {
-          closure = parentContext.getClosure();
-        }
-      //  parentContext = parentContext.getParent();
-      //}
+      if(parentContext.getType() == Context.Type.FUNCTION) {
+        closure = parentContext.getClosure();
+      }
       if(closure == null) {
         throw new EvalException("match.call() was called from outside a function");
       }
@@ -271,20 +268,27 @@ public class Match {
   @Internal
   public static IntVector which(Vector x) {
     IntArrayVector.Builder indices = new IntArrayVector.Builder();
+   
     Vector xn = x.getNames();
+    StringArrayVector.Builder names = null;
+    if(xn != Null.INSTANCE) {
+      names = new StringArrayVector.Builder();
+    }
 
-    NamesBuilder names = NamesBuilder.withInitialLength(0);
     for(int i=0;i!=x.length();++i) {
       if(x.isElementTrue(i)) {
         indices.add(i+1);
-        if(xn != Null.INSTANCE) {
+        if(names != null) {
           names.add(xn.getElementAsString(i));
         }
       }
     }
-    return indices
-      .setAttribute(Symbols.NAMES, names.build())
-      .build();
+    
+    if(names != null) {
+      indices.setAttribute(Symbols.NAMES, names.build());
+    }
+    
+    return indices.build();
   }
 
   private static class FactorString extends StringVector {

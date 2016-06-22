@@ -1,6 +1,7 @@
 
 package org.renjin.primitives.io.connections;
 
+import org.apache.commons.vfs2.FileNotFoundException;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.renjin.eval.EvalException;
@@ -58,8 +59,12 @@ public class FileConnection extends AbstractConnection {
   protected InputStream doOpenForInput() throws IOException {
     // We want to automatically decompress if the underlying file is gzipped
     int pushBackBufferSize = 2;
-    PushbackInputStream in = new PushbackInputStream(file.getContent().getInputStream(),
-        pushBackBufferSize);
+    PushbackInputStream in;
+    try {
+      in = new PushbackInputStream(file.getContent().getInputStream(), pushBackBufferSize);
+    } catch (FileNotFoundException e) {
+      throw new EvalException(e.getMessage());
+    }
     int b1 = in.read();
     int b2 = in.read();
     in.unread(b2);
@@ -82,7 +87,8 @@ public class FileConnection extends AbstractConnection {
   }
 
   protected OutputStream doOpenForOutput() throws FileSystemException, IOException {
-    return file.getContent().getOutputStream();
+    boolean append = (openSpec != null && openSpec.isAppend());
+    return file.getContent().getOutputStream(append);
   }
   
   @Override

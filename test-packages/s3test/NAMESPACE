@@ -1,0 +1,12 @@
+
+# export constructors
+export(new.circle)
+export(new.square)
+
+# export extensions of methods in other packages
+S3method(as.character, circle)
+S3method(as.character, square)
+
+S3method(area, NULL)
+S3method(area, circle)
+S3method(area, square)

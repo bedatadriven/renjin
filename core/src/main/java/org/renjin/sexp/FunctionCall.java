@@ -21,9 +21,6 @@
 
 package org.renjin.sexp;
 
-import org.renjin.eval.Context;
-import org.renjin.eval.EvalException;
-
 /**
  * Expression representing a call to an R function, consisting of
  * a function reference and a list of arguments.
@@ -67,31 +64,6 @@ public class FunctionCall extends PairList.Node {
   public void accept(SexpVisitor visitor) {
     visitor.visit(this);
   }
-
-  @Override
-  public SEXP evaluate(Context context, Environment rho) {
-    context.clearInvisibleFlag();
-    Function functionExpr = evaluateFunction(context, getFunction(), rho);
-    return functionExpr.apply(context, rho, this, getArguments());
-  }
-
-  private Function evaluateFunction(Context context, SEXP functionExp, Environment rho) {
-    if(functionExp instanceof Symbol) {
-      Symbol symbol = (Symbol) functionExp;
-      Function fn = rho.findFunction(context, symbol);
-      if(fn == null) {
-        throw new EvalException("could not find function '%s'", symbol.getPrintName());
-      }
-      return fn;
-    } else {
-      SEXP evaluated = functionExp.evaluate(context, rho).force(context);
-      if(!(evaluated instanceof Function)) {
-        throw new EvalException("'function' of lang expression is of unsupported type '%s'", evaluated.getTypeName());
-      }
-      return (Function)evaluated;
-    }
-  }
-
 
   @Override
   public String toString() {
@@ -181,7 +153,8 @@ public class FunctionCall extends PairList.Node {
 
     public Builder add(SEXP tag, SEXP s) {
       if (head == null) {
-        head = new FunctionCall(s, Null.INSTANCE, attributes);
+        head = new FunctionCall(s, Null.INSTANCE, attributesBuilder.build());
+        head.setTag(tag);
         tail = head;
       } else {
         Node next = new Node(tag, s, Null.INSTANCE);
@@ -190,6 +163,7 @@ public class FunctionCall extends PairList.Node {
       }
       return this;
     }
+
   }
 
 }

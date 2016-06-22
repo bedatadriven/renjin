@@ -6,6 +6,10 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.renjin.maven.test.ForkedTestController;
 
@@ -17,77 +21,50 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Run R tests
- *
- * @goal test
- * @phase test
- * @requiresProject true
- * @requiresDependencyResolution test
  */
+@Mojo(name = "test", 
+      defaultPhase = LifecyclePhase.TEST, 
+      requiresDependencyResolution = ResolutionScope.TEST)
 public class TestMojo extends AbstractMojo {
 
-  /**
-   * @parameter expression="${project.groupId}.${project.artifactId}"
-   * @required
-   */
+  @Parameter(defaultValue = "${project.groupId}:${project.artifactId}", required = true)
   private String namespaceName;
 
 
-  /**
-   * @parameter default-value="${plugin.artifacts}"
-   * @readonly
-   * @since 1.1-beta-1
-   */
+  @Parameter(defaultValue = "${plugin.artifacts}", readonly = true)
   private List<Artifact> pluginDependencies;
 
 
   /**
    * The enclosing project.
-   *
-   * @parameter default-value="${project}"
-   * @required
-   * @readonly
    */
+  @Parameter(defaultValue = "${project}", readonly = true)
   private MavenProject project;
 
-  /**
-   * @parameter default-value="${project.basedir}/src/test/R"
-   * @required
-   */
+  @Parameter(defaultValue = "${project.basedir}/src/test/R", required = true)
   private File testSourceDirectory;
 
-  /**
-   * @parameter default-value="${project.basedir}/man"
-   */
+  @Parameter(defaultValue = "${project.basedir}/man", required = true)
   private File documentationDirectory;
 
-  /**
-   * @parameter default-value="${project.build.directory}/renjin-test-reports"
-   * @required
-   */
+  @Parameter(defaultValue = "${project.build.directory}/renjin-test-reports", required = true)
   private File reportsDirectory;
 
-  /**
-   * @parameter expression="${skipTests}" default-value="false"
-   */
+  @Parameter(property = "skipTests", defaultValue = "false")
   private boolean skipTests;
-
 
   /**
    * Kill the forked test process after a certain number of seconds. If set to 0, wait forever 
    * for the process, never timing out.
    * 
-   * @parameter
    */
+  @Parameter
   private int timeoutInSeconds;
 
-  /**
-   * @parameter
-   */
+  @Parameter
   private List defaultPackages;
 
-  /**
-   * @parameter expression="${maven.test.failure.ignore}" default-value="false"
-   */
+  @Parameter(property = "maven.test.failure.ignore", defaultValue = "false")
   private boolean testFailureIgnore;
 
 

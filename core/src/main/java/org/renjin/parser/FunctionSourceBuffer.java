@@ -27,6 +27,8 @@ class FunctionSourceBuffer {
 
   private static final int MAX_NEST = 256;
   private static final int MAXFUNSIZE = 131072;
+  
+  private boolean overflow = false;
 
   private StringBuffer source = new StringBuffer();
 
@@ -42,6 +44,7 @@ class FunctionSourceBuffer {
       throw new RLexException("functions nested too deeply in source code at line %d");
     }
     if (level++ == 0) {
+      source.setLength(0);
       source.append("function");
     }
     startIndices.add(source.length() - 8);
@@ -50,9 +53,11 @@ class FunctionSourceBuffer {
   public void maybeAppendSourceCodePoint(int c) {
     if (level > 0) {
       if (source.length() > MAXFUNSIZE) {
+        // TODO: warning instead ?
         throw new RLexException("function is too long to keep source");
       }
     }
+   // source.appendCodePoint(c);
   }
 
   public void ascend() {

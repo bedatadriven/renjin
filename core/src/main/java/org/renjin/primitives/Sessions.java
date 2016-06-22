@@ -5,9 +5,6 @@ import org.renjin.eval.SessionController.SaveMode;
 import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
-import org.renjin.sexp.StringVector;
-
-import java.io.IOException;
 
 /**
  * Implementation of interactive session related primitives like q(), interactive(),
@@ -32,9 +29,6 @@ public class Sessions {
     return context.getSession().getSessionController().isInteractive();
   }
   
-  @Internal
-  public static int menu(@Current Context context, StringVector choices) throws IOException {
-    return context.getSession().getSessionController().menu(choices);
-  }
+
 
 }

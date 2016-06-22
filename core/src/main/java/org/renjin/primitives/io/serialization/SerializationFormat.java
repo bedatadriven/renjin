@@ -31,34 +31,7 @@ class SerializationFormat {
   public static final byte BINARY_FORMAT = 'B';
   public static final byte XDR_FORMAT = 'X';
 
-  public static final int  NILSXP	  =   0;  /* nil = NULL */
-  public static final int  SYMSXP	  =   1;	  /* symbols */
-  public static final int  LISTSXP	 =    2;	  /* lists of dotted pairs */
-  public static final int  CLOSXP	   =  3;	  /* closures */
-  public static final int  ENVSXP	   =  4	;  /* environments */
-  public static final int  PROMSXP	  =   5	;  /* promises: [un]evaluated closure arguments */
-  public static final int  LANGSXP	  =   6;	  /* language constructs (special lists) */
-  public static final int  SPECIALSXP =  7;	  /* special forms */
-  public static final int  BUILTINSXP =  8;	  /* builtin non-special forms */
-  public static final int  CHARSXP	  =   9;	  /* "scalar" string type (internal only)*/
-  public static final int  LGLSXP	   = 10	;  /* logical vectors */
-  public static final int  INTSXP	   = 13;	  /* integer vectors */
-  public static final int  REALSXP	 =   14	;  /* real variables */
-  public static final int  CPLXSXP	 =   15;	  /* complex variables */
-  public static final int  STRSXP	   = 16	;  /* string vectors */
-  public static final int  DOTSXP	   = 17	;  /* dot-dot-dot object */
-  public static final int  ANYSXP	   = 18;	  /* make "any" args work.
-			     Used in specifying types for symbol
-			     registration to mean anything is okay  */
-  public static final int  VECSXP	  =  19;	  /* generic vectors */
-  public static final int  EXPRSXP	=    20;	  /* expressions vectors */
-  public static final int  BCODESXP  =  21;    /* byte code */
-  public static final int  EXTPTRSXP  = 22;    /* external pointer */
   public static final int  WEAKREFSXP = 23;    /* weak reference */
-  public static final int  RAWSXP     = 24;    /* raw bytes */
-  public static final int  S4SXP      = 25;    /* S4, non-vector */
-  public static final int  FUNSXP    =  99;    /* Closure or Builtin or Special */
-  public static final int REFSXP =           255 ;
   public static final int  NILVALUE_SXP  =    254 ;
   public static final int  GLOBALENV_SXP  =   253 ;
   public static final int  UNBOUNDVALUE_SXP =  252;
@@ -72,16 +45,16 @@ class SerializationFormat {
   public static final int  GENERICREFSXP  =   245;
   public static final int  EMPTYENV_SXP	= 242;
   public static final int  BASEENV_SXP	=  241;
-  static final int CE_NATIVE = 0;
-  static final int CE_UTF8   = 1;
-  static final int CE_LATIN1 = 2;
-  static final int CE_SYMBOL = 5;
-  static final int CE_ANY    =99;
+
+  public static final int BCREPDEF = 244;
+  public static final int BCREPREF = 243;
+  public static final int ATTRLANGSXP = 240;
+  public static final int ATTRLISTSXP = 239;
+  
   static final int LATIN1_MASK  = (1<<2);
   static final int UTF8_MASK = (1<<3);
-  static final int CACHED_MASK = (1<<5);
-  static final int  HASHASH_MASK =  1;
-
+  static final int  ASCII_MASK =  (1<<6);
+  
   public static final int VERSION2 = 2;
 
 }

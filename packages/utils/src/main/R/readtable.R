@@ -1,6 +1,8 @@
 #  File src/library/utils/R/readtable.R
 #  Part of the R package, http://www.R-project.org
 #
+#  Copyright (C) 1995-2014 The R Core Team
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
@@ -24,18 +26,21 @@ function(file, sep = "", quote = "\"'", skip = 0,
     }
     if(!inherits(file, "connection"))
         stop("'file' must be a character string or connection")
-    .Internal(count.fields(file, sep, quote, skip, blank.lines.skip,
-                           comment.char))
+    Tables$countfields(file, sep, quote, skip, blank.lines.skip,
+              comment.char)
 }
 
 
 type.convert <-
-function(x, na.strings = "NA", as.is = FALSE, dec = ".")
-    .Internal(type.convert(x, na.strings, as.is, dec))
+function(x, na.strings = "NA", as.is = FALSE, dec = ".",
+	 numerals = c("allow.loss", "warn.loss", "no.loss"))
+    Tables$typeconvert(x, na.strings, as.is, dec,
+               match.arg(numerals))
 
 
 read.table <-
 function(file, header = FALSE, sep = "", quote = "\"'", dec = ".",
+	 numerals = c("allow.loss", "warn.loss", "no.loss"),
          row.names, col.names, as.is = !stringsAsFactors,
          na.strings = "NA", colClasses = NA,
          nrows = -1, skip = 0,
@@ -43,10 +48,11 @@ function(file, header = FALSE, sep = "", quote = "\"'", dec = ".",
          strip.white = FALSE, blank.lines.skip = TRUE,
          comment.char = "#", allowEscapes = FALSE, flush = FALSE,
          stringsAsFactors = default.stringsAsFactors(),
-         fileEncoding = "", encoding = "unknown", text)
+         fileEncoding = "", encoding = "unknown", text, skipNul = FALSE)
 {
     if (missing(file) && !missing(text)) {
-	file <- textConnection(text)
+	file <- textConnection(text, encoding = "UTF-8")
+	encoding <- "UTF-8"
 	on.exit(close(file))
     }
     if(is.character(file)) {
@@ -60,13 +66,16 @@ function(file, header = FALSE, sep = "", quote = "\"'", dec = ".",
         open(file, "rt")
         on.exit(close(file))
     }
+    pbEncoding <- if (encoding %in% c("", "bytes", "UTF-8")) encoding else "bytes"
+    numerals <- match.arg(numerals)
 
     if(skip > 0L) readLines(file, skip)
     ## read a few lines to determine header, no of cols.
     nlines <- n0lines <- if (nrows < 0L) 5 else min(5L, (header + nrows))
 
-    lines <- .Internal(readTableHead(file, nlines, comment.char,
-                                     blank.lines.skip, quote, sep))
+    lines <- Tables$readtablehead(file, nlines, comment.char,
+                       blank.lines.skip, quote, sep, skipNul)
+    if (encoding %in% c("UTF-8", "latin1")) Encoding(lines) <- encoding
     nlines <- length(lines)
     if(!nlines) {
         if(missing(col.names)) stop("no lines available in input")
@@ -75,9 +84,9 @@ function(file, header = FALSE, sep = "", quote = "\"'", dec = ".",
     } else {
         if(all(!nzchar(lines))) stop("empty beginning of file")
         if(nlines < n0lines && file == 0L)  { # stdin() has reached EOF
-            pushBack(c(lines, lines, ""), file)
-            on.exit(.Internal(clearPushBack(stdin())))
-        } else pushBack(c(lines, lines), file)
+            pushBack(c(lines, lines, ""), file, encoding = pbEncoding)
+            on.exit((clearPushBack(stdin())))
+        } else pushBack(c(lines, lines), file, encoding = pbEncoding)
         first <- scan(file, what = "", sep = sep, quote = quote,
                       nlines = 1, quiet = TRUE, skip = 0,
                       strip.white = TRUE,
@@ -94,7 +103,8 @@ function(file, header = FALSE, sep = "", quote = "\"'", dec = ".",
                                       strip.white = strip.white,
                                       blank.lines.skip = blank.lines.skip,
                                       comment.char = comment.char,
-                                      allowEscapes = allowEscapes))
+                                      allowEscapes = allowEscapes,
+				                      encoding = encoding))
         cols <- max(col1, col)
 
         ##	basic column counting and header determination;
@@ -107,14 +117,14 @@ function(file, header = FALSE, sep = "", quote = "\"'", dec = ".",
 
         if (header) {
             ## skip over header
-           .Internal(readTableHead(file, 1L, comment.char,
-                                   blank.lines.skip, quote, sep))
+           Tables$readtablehead(file, 1L, comment.char,
+                     blank.lines.skip, quote, sep, skipNul)
             if(missing(col.names)) col.names <- first
             else if(length(first) != length(col.names))
                 warning("header and 'col.names' are of different lengths")
 
         } else if (missing(col.names))
-            col.names <- paste("V", 1L:cols, sep = "")
+            col.names <- paste0("V", 1L:cols)
         if(length(col.names) + rlabp < cols)
             stop("more columns than column names")
         if(fill && length(col.names) > cols)
@@ -130,9 +140,9 @@ function(file, header = FALSE, sep = "", quote = "\"'", dec = ".",
     nmColClasses <- names(colClasses)
     if(length(colClasses) < cols)
         if(is.null(nmColClasses)) {
-            colClasses <- rep(colClasses, length.out=cols)
+            colClasses <- rep_len(colClasses, cols)
         } else {
-            tmp <- rep(NA_character_, length.out=cols)
+            tmp <- rep_len(NA_character_, cols)
             names(tmp) <- col.names
             i <- match(nmColClasses, col.names, 0L)
             if(any(i <= 0L))
@@ -163,7 +173,7 @@ function(file, header = FALSE, sep = "", quote = "\"'", dec = ".",
                  comment.char = comment.char, allowEscapes = allowEscapes,
                  flush = flush, encoding = encoding)
 
-    nlines <- length(data[[ which(keep)[1L] ]])
+    nlines <- length(data[[ which.max(keep) ]])
 
     ##	now we have the data;
     ##	convert to numeric or factor variables
@@ -177,7 +187,7 @@ function(file, header = FALSE, sep = "", quote = "\"'", dec = ".",
     }
 
     if(is.logical(as.is)) {
-	as.is <- rep(as.is, length.out=cols)
+	as.is <- rep_len(as.is, cols)
     } else if(is.numeric(as.is)) {
 	if(any(as.is < 1 | as.is > cols))
 	    stop("invalid numeric 'as.is' expression")
@@ -200,8 +210,8 @@ function(file, header = FALSE, sep = "", quote = "\"'", dec = ".",
     for (i in (1L:cols)[do]) {
         data[[i]] <-
             if (is.na(colClasses[i]))
-                type.convert(data[[i]], as.is = as.is[i], dec = dec,
-                             na.strings = character(0L))
+                type.convert(data[[i]], as.is = as.is[i], dec=dec,
+			     numerals=numerals, na.strings = character(0L))
         ## as na.strings have already been converted to <NA>
             else if (colClasses[i] == "factor") as.factor(data[[i]])
             else if (colClasses[i] == "Date") as.Date(data[[i]])
@@ -246,7 +256,7 @@ function(file, header = FALSE, sep = "", quote = "\"'", dec = ".",
             stop("invalid 'row.names' length")
         if (anyDuplicated(row.names))
             stop("duplicate 'row.names' are not allowed")
-        if (any(is.na(row.names)))
+        if (anyNA(row.names))
             stop("missing values in 'row.names' are not allowed")
     }
 

@@ -73,13 +73,16 @@ withCallingHandlers <- function(expr, ...) {
     expr
 }
 
-suppressWarnings <- function(expr) {
-    ops <- options(warn = -1) ## FIXME: temporary hack until R_tryEval
-    on.exit(options(ops))     ## calls are removed from methods code
-    withCallingHandlers(expr,
-                        warning=function(w)
-                            invokeRestart("muffleWarning"))
-}
+# Dummy implementation until we fix Renjin's condition/restart functionality
+suppressWarnings <- function(expr) expr
+
+#suppressWarnings <- function(expr) {
+#    ops <- options(warn = -1) ## FIXME: temporary hack until R_tryEval
+#    on.exit(options(ops))     ## calls are removed from methods code
+#    withCallingHandlers(expr,
+#                        warning=function(w)
+#                            invokeRestart("muffleWarning"))
+#}
 
 
 ##

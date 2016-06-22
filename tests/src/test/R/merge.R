@@ -14,3 +14,21 @@ test.merge <- function() {
                                                              a=c(16,9,25,NA,NA),
                                                              b=c(9,36,25,16,49))))
 }
+
+test.merge.issue115 <- function() {
+
+    # tests for issue 115 (with non-unique elements in the join columns):
+    x <- data.frame(a=c(1,1,1,2,2,3,3,3), b=letters[1:8])
+    y <- data.frame(a=1:8, d=letters[1:8])
+    z <- data.frame(a=c(1,1,1,2,2,3,3,3),
+                    b=letters[1:8],
+                    d=structure(c(1,1,1,2,2,3,3,3), .Label=letters[1:8], class="factor"))
+
+    assertThat(merge(x,y), identicalTo(z))
+
+    z <- data.frame(a=as.integer(c(1,1,1,2,2,3,3,3)),
+                        d=structure(c(1,1,1,2,2,3,3,3), .Label=letters[1:8], class="factor"),
+                        b=letters[1:8])
+    assertThat(merge(y,x), identicalTo(z)) # change the order of x and y
+
+}

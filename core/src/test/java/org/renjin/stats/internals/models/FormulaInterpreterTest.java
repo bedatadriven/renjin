@@ -1,24 +1,15 @@
 package org.renjin.stats.internals.models;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-
-import java.util.List;
-
+import com.google.common.collect.Lists;
 import org.junit.Test;
 import org.renjin.eval.EvalException;
 import org.renjin.parser.RParser;
-import org.renjin.sexp.ExpressionVector;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbol;
+import org.renjin.sexp.*;
 
+import java.util.List;
 
-import org.renjin.stats.internals.models.Formula;
-import org.renjin.stats.internals.models.FormulaInterpreter;
-import org.renjin.stats.internals.models.Term;
-
-import com.google.common.collect.Lists;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 public class FormulaInterpreterTest {
 
@@ -59,7 +50,6 @@ public class FormulaInterpreterTest {
     assertThat(build("y ~ 1 - 1"), equalTo(formula("y", 0, terms())));
     assertThat(build("y ~ (-1)"), equalTo(formula("y", 0, terms())));
     assertThat(build("y ~ 1 - 1 + 1"), equalTo(formula("y", 1, terms())));
-
   }
 
   @Test
@@ -71,10 +61,27 @@ public class FormulaInterpreterTest {
   public void invalidIntercept() {
     build("y ~ 6");
   }
+  
+  @Test
+  public void dotExpansion() {
+    ListVector.NamedBuilder df = ListVector.newNamedBuilder();
+    df.add("x", new DoubleArrayVector(1,2,3));
+    df.add("y", new DoubleArrayVector(1, 2, 3));
+    df.add("z", new DoubleArrayVector(1, 2, 3));
+
+    assertThat(build(" x ~ .", df.build()).getExpandedFormula(), equalTo(parse("x ~ y + z")));
+    assertThat(build(" x ~ y + .", df.build()).getExpandedFormula(), equalTo(parse("x ~ y + (y + z)")));
+  }
 
   private Formula build(String source) {
+    return build(source, Null.INSTANCE);
+  }
+  
+  private Formula build(String source, SEXP dataFrame) {
     SEXP expr = parse(source);
-    return new FormulaInterpreter().interpret((FunctionCall) expr);
+    return new FormulaInterpreter()
+        .withData(dataFrame)
+        .interpret((FunctionCall) expr);
   }
 
   private SEXP parse(String source) {
@@ -84,11 +91,11 @@ public class FormulaInterpreterTest {
   }
   
   private Formula formula(String response, List<Term> terms) {
-    return new Formula(Symbol.get(response), 1, terms);
+    return new Formula(FunctionCall.newCall(Symbol.get("~") ,Symbol.get(response), Null.INSTANCE), 1, terms);
   }
   
   private Formula formula(String response, int intercept, List<Term> terms) {
-    return new Formula(Symbol.get(response), intercept, terms);
+    return new Formula(FunctionCall.newCall(Symbol.get("~") ,Symbol.get(response), Null.INSTANCE), intercept, terms);
   }
   
   
@@ -112,5 +119,6 @@ public class FormulaInterpreterTest {
       variables.add(parse(name));
     }
     return new Term(variables);
-  }  
+  }
+  
 }

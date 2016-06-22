@@ -96,8 +96,18 @@ public interface SEXP {
    *
    * @return the {@link StringVector} containing the element's names, or {@code NULL} if
    * this expression has no explicit {@code names} attribute.
+   * 
+   * <p>Note that in the case of a one-dimensional array, this method will return the 
+   * value of {@code dimnames(this)[[1]]}</p>
    */
   AtomicVector getNames();
+
+  /**
+   * 
+   * @return true if this SEXP has a names, including dimnames for a one-dimensional attribute.
+   */
+  boolean hasNames();
+  
 
   /**
    * @param index zero-based index
@@ -156,6 +166,8 @@ public interface SEXP {
    */
   SEXP setAttributes(AttributeMap attributes);
 
+  SEXP setAttributes(AttributeMap.Builder attributes);
+
 
   /**
    * @param index zero-based index of the element
@@ -166,7 +178,5 @@ public interface SEXP {
 
   
   SEXP force(Context context);
-
-  SEXP evaluate(Context context, Environment rho);
 
 }

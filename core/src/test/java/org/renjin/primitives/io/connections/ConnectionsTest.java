@@ -1,14 +1,18 @@
 package org.renjin.primitives.io.connections;
 
+import com.google.common.base.Charsets;
+import com.google.common.io.Files;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.sexp.IntVector;
-import org.renjin.sexp.StringVector;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 
 public class ConnectionsTest extends EvalTestCase {
@@ -95,4 +99,45 @@ public class ConnectionsTest extends EvalTestCase {
    
   }
   
+  @Test
+  public void testAppend() throws IOException {
+
+    eval("tmp <- tempfile()");
+    eval("c <- file(tmp, open='w')");
+    eval("writeLines(con=c, text='Hello world') ");
+    eval("close(c)");
+    eval("c2 <- file(tmp, open='a')");
+    eval("writeLines(con=c2, text='Hello again')");
+    eval("close(c2)");
+  
+    File file = new File(getString("tmp"));
+    assertTrue(file.exists());
+
+    List<String> lines = Files.readLines(file, Charsets.UTF_8);
+    
+    assertThat(lines.size(), equalTo(2));
+    assertThat(lines.get(0), equalTo("Hello world"));
+    assertThat(lines.get(1), equalTo("Hello again"));
+  }
+
+
+  @Test
+  public void testOverwrite() throws IOException {
+
+    eval("tmp <- tempfile()");
+    eval("c <- file(tmp, open='w')");
+    eval("writeLines(con=c, text='Hello world') ");
+    eval("close(c)");
+    eval("c2 <- file(tmp, open='w')");
+    eval("writeLines(con=c2, text='Hello again')");
+    eval("close(c2)");
+
+    File file = new File(getString("tmp"));
+    assertTrue(file.exists());
+
+    List<String> lines = Files.readLines(file, Charsets.UTF_8);
+
+    assertThat(lines.size(), equalTo(1));
+    assertThat(lines.get(0), equalTo("Hello again"));
+  }
 }

@@ -26,6 +26,7 @@ import com.google.common.collect.Lists;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.provider.local.LocalFile;
 import org.renjin.RVersion;
+import org.renjin.RenjinVersion;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
@@ -70,9 +71,10 @@ public class System {
         .add("year", "2009")
         .add("month", "12")
         .add("day", "14")
+        .add("engine", "Renjin")
         .add("language", "R")
         .add("svn rev", "50720")
-        .add("version.string", "R version " + RVersion.MAJOR + "." + RVersion.MINOR + "(2009-12-14)")
+        .add("version.string", "Renjin version " + RenjinVersion.getVersionName())
         .build();
 
   }

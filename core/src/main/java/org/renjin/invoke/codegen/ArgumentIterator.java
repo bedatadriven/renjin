@@ -52,13 +52,20 @@ public class ArgumentIterator {
 
 
     if(Symbols.ELLIPSES.equals(value)) {
-      PromisePairList dotdot = (PromisePairList) value.evaluate(context, rho);
+      PromisePairList dotdot = (PromisePairList) context.evaluate( value, rho);
       ellipses = dotdot;
       return evalNext();
 
     } else {
       this.currentName = node.getName();
-      return value.evaluate(context, rho).force(context);
+      SEXP evaluated = context.evaluate(value, rho);
+      if(evaluated == null) {
+        SEXP retry = context.evaluate(value, rho);
+      }
+//      if(evaluated == Symbol.MISSING_ARG) {
+//        throw new EvalException("Missing argument with no default: " + value);
+//      }
+      return evaluated;
     } 
   }
   
@@ -118,7 +125,7 @@ public class ArgumentIterator {
     if(args != Null.INSTANCE) {
       SEXP arg = ((PairList.Node)args).getValue();
       if(Symbols.ELLIPSES.equals(arg)) {
-        PromisePairList dotdot = (PromisePairList) arg.evaluate(context, rho);
+        PromisePairList dotdot = (PromisePairList) context.evaluate(arg, rho);
         ellipses = dotdot;
         args = ((PairList.Node)args).getNext();
 

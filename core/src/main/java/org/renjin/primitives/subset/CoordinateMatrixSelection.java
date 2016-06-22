@@ -1,122 +1,179 @@
 package org.renjin.primitives.subset;
 
-import com.google.common.collect.UnmodifiableIterator;
+import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.primitives.Indexes;
-import org.renjin.primitives.matrix.Matrix;
 import org.renjin.sexp.*;
 
-import java.util.Iterator;
-
-
 /**
- * In the rarest of cases, the single subscript provided 
- * can be a matrix that contains cell coordinates in rows.
+ * Selects elements from an array or matrix using a matrix of coordinates. 
+ * 
+ * <p>In this case, if you have a matrix {@code x}:</p>
+ * <pre>
+ *       [,1] [,2] [,3] [,4]
+ *  [1,]    1    4    7   10
+ *  [2,]    2    5    8   11
+ *  [3,]    3    6    9   12
+ * </pre>
+ * 
+ * and another matrix {@code i}:
+ * <pre>
+ *       [,1] [,2]
+ *  [1,]    3    2
+ *  [2,]    3    4
+ *  [3,]    1    1
+ * </pre>
+ * 
+ * <p>When {@code x[i]} is evaluated, each row in {@code i} is treated as the coordinates
+ * of an element to select in {@code x}, and we return the elements at (3,2), (3,4), and (1,1) or
+ * [6, 12, 1].</p>
+ * 
+ * <p>The resulting vector has no dimensions or names.</p>
+ * 
+ * <p>Coordinate matrix selection can <em>only</em> be used with the {@code [} and {@code [<-} operator.
+ * In the context of the {@code [[} or {@code [[<-} operators, it is treated like any other numeric subscript.</p>
+ * 
  */
-public class CoordinateMatrixSelection extends Selection {
+class CoordinateMatrixSelection implements SelectionStrategy {
 
-  
-  private Matrix coordinateMatrix;
-  private int sourceDim[];
-  
+
+  private final int numCoordinates;
+
   public static boolean isCoordinateMatrix(SEXP source, SEXP subscript) {
-    
+
     if(!(subscript instanceof IntVector) &&
-       !(subscript instanceof DoubleVector)) {
+        !(subscript instanceof DoubleVector)) {
       return false;
     }
-    
+
     Vector subscriptDim = subscript.getAttributes().getDim();
     if(subscriptDim.length() != 2) {
       return false;
     }
-    
+
     // now check that the columns in the subscript match the number of
     // dimensions in the source.
-    
+
     SEXP sourceDim = source.getAttribute(Symbols.DIM);
     return sourceDim.length() == subscriptDim.getElementAsInt(1);
   }
   
-  public CoordinateMatrixSelection(SEXP source, SEXP subscript) {
-    super(source);
-    this.coordinateMatrix = new Matrix((Vector)subscript);
-    this.sourceDim = dimAsIntArray(source);
+  private AtomicVector matrix;
+  private int[] matrixDims;
+  
+  
+  public CoordinateMatrixSelection(AtomicVector matrix) {
+    this.matrix = matrix;
+    this.matrixDims = matrix.getAttributes().getDimArray();
+
+    numCoordinates = matrixDims[0];
+  }
+
+  @Override
+  public SEXP getVectorSubset(Context context, Vector source, boolean drop) {
+
+    CoordinateMatrixIterator it = new CoordinateMatrixIterator(source, matrix);
+
+    Vector.Builder result = source.getVectorType().newBuilderWithInitialCapacity(numCoordinates);
     
-    if(sourceDim.length != coordinateMatrix.getNumCols()) {
-      throw new EvalException("The number of dimensions in the source (%d) does not " +
-      		"match the number of columns in the provided coordinate matrix (%d)", 
-      		sourceDim.length,
-      		coordinateMatrix.getNumCols());
-    }    
+    int index;
+    int sourceLength = source.length();
+
+    SEXP materializedSource = context.materialize(source);
+
+    while((index=it.next())!= IndexIterator.EOF) {
+      
+      if(IntVector.isNA(index)) {
+        result.addNA();
+      
+      } else {
+        if(index >= sourceLength) {
+          throw new EvalException("subscript out of bounds");
+        
+        } else {
+          result.addFrom(materializedSource, index);
+        }
+      }
+    }
+    return result.build();
   }
 
   @Override
-  public int getSourceDimensions() {
-    return sourceDim.length;
+  public SEXP getFunctionCallSubset(FunctionCall call) {
+    throw new IllegalStateException("lang objects should NOT have dim attributes.");
   }
 
   @Override
-  public int getElementCount() {
-    return coordinateMatrix.getNumRows();
+  public Vector replaceListElements(Context context, ListVector source, Vector replacement) {
+    return replaceElements(source, replacement);
+  }
+
+  @Override
+  public Vector replaceAtomicVectorElements(Context context, AtomicVector source, Vector replacements) {
+    return replaceElements(source, replacements);
+  }
+
+  private Vector replaceElements(Vector source, Vector replacements) {
+    CoordinateMatrixIterator it = new CoordinateMatrixIterator(source, matrix);
+
+    Vector.Builder result = source.newCopyBuilder(replacements.getVectorType());
+
+    int replacementIndex = 0;
+
+    int index;
+    while((index=it.next())!= IndexIterator.EOF) {
+
+      if(IntVector.isNA(index)) {
+        throw new EvalException("NAs are not allowed in subscripted assignments");
+
+      } else if(index >= source.length()) {
+        throw new EvalException("subscript out of bounds");
+
+      } else {
+        if(replacements.length() == 0) {
+          throw new EvalException("replacement has zero length");
+        }
+        result.setFrom(index, replacements, replacementIndex++);
+        if(replacementIndex >= replacements.length()) {
+          replacementIndex = 0;
+        }
+      }
+    }
+
+    if(replacementIndex != 0) {
+      throw new EvalException("number of items to replace is not a multiple of replacement length");
+    }
+
+    return result.build();
   }
   
+  /*
+   * Subscripts are NEVER interpreted as coordinate matrixes in the context
+   * of the [[ operator. The getSingleXX methods should never be called because
+   * Selections.parseSingleSelection() should never return an instance of CoordinateMatrixSelection
+   */
+
   @Override
-  protected AtomicVector getNames(int dimensionIndex) {
+  public SEXP getSingleListElement(ListVector source, boolean exact) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public int[] getSubscriptDimensions() {
-    return new int[] { getElementCount() };
-  }
-  
-  private int[] getCoordinate(int row) {
-    int[] coord = new int[sourceDim.length];
-    for(int i=0;i!=coord.length;++i) {
-      coord[i] = coordinateMatrix.getElementAsInt(row, i) - 1;
-    }
-    return coord;
+  public AtomicVector getSingleAtomicVectorElement(AtomicVector source, boolean exact) {
+    throw new UnsupportedOperationException();
   }
 
   @Override
-  public Iterator<Integer> iterator() {
-    
-    return new UnmodifiableIterator<Integer>() {
-      private int row = 0;
-      
-      @Override
-      public boolean hasNext() {
-        return row < coordinateMatrix.getNumRows();
-      }
-
-      @Override
-      public Integer next() {
-        return Indexes.arrayIndexToVectorIndex(getCoordinate(row++), sourceDim);
-      }
-    }; 
+  public ListVector replaceSingleListElement(ListVector list, SEXP replacement) {
+    throw new UnsupportedOperationException();
   }
 
   @Override
-  public Iterable<Integer> getSelectionAlongDimension(final int dimensionIndex) {
-    return new Iterable<Integer>() {
-      
-      @Override
-      public Iterator<Integer> iterator() {
-        return new UnmodifiableIterator<Integer>() {
-          int i=0;
-          
-          @Override
-          public boolean hasNext() {
-            return i < coordinateMatrix.getNumRows();
-          }
+  public SEXP replaceSinglePairListElement(PairList.Node list, SEXP replacement) {
+    throw new UnsupportedOperationException();
+  }
 
-          @Override
-          public Integer next() {
-            return coordinateMatrix.getElementAsInt(i++, dimensionIndex);
-          }
-        };
-      }
-    };
+  @Override
+  public Vector replaceSingleElement(AtomicVector source, Vector replacement) {
+    throw new UnsupportedOperationException();
   }
 }

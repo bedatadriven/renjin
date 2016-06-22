@@ -35,6 +35,7 @@ import org.renjin.sexp.*;
 
 import java.nio.charset.Charset;
 import java.text.DecimalFormat;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -106,7 +107,7 @@ public class Text {
     for(int i=0;i!=formatArgs.length;++i) {
       SEXP argument = arguments.getElementAsSEXP(i);
       if(formatters[0].isFormattedString(i) && !(argument instanceof StringVector)) {
-        argument = FunctionCall.newCall(Symbol.get("as.character"), argument).evaluate( context,
+        argument = context.evaluate( FunctionCall.newCall(Symbol.get("as.character"), argument), 
             rho); 
       }
       if(!(argument instanceof AtomicVector)) {
@@ -117,12 +118,12 @@ public class Text {
     
     // count cycles
     int cycles = formatters.length;
-    for(int i=0;i!=formatArgs.length;++i) {
-      if(formatArgs[i].length() == 0) {
+    for (AtomicVector formatArg : formatArgs) {
+      if (formatArg.length() == 0) {
         return StringVector.EMPTY;
       }
-      if(formatArgs[i].length() > cycles) {
-        cycles = formatArgs[i].length();
+      if (formatArg.length() > cycles) {
+        cycles = formatArg.length();
       }
     }
     
@@ -202,6 +203,14 @@ public class Text {
     // translation not yet supported.
   }
 
+  @Internal
+  public static StringVector enc2utf8(StringVector inputVector) {
+    // All character vectors in Renjin are Unicode-encoded
+    // So this is a NO-OP
+    return inputVector;
+  }
+
+
   /**
    * Translate characters
    *
@@ -253,17 +262,6 @@ public class Text {
     } else {
       return x.length();
     }
-  }
-
-  /**
-   * Check for non-zero length string
-   * @param x the string to check
-   * @return true if the string of non-zero length, false if the string is empty
-   */
-  @Builtin
-  @DataParallel(passNA = true)
-  public static boolean nzchar(String x) {
-    return StringVector.isNA(x) || x.length() != 0;
   }
 
   /**
@@ -351,6 +349,10 @@ public class Text {
       boolean useBytes,
       boolean invert) {
 
+    if (StringVector.isNA(pattern)) {
+      return new StringArrayVector(new String[x.length()]);
+    }
+
     RE re = REFactory.compile(pattern,ignoreCase, perl, fixed, useBytes);
     if(value) {
       StringVector.Builder result = new StringVector.Builder();
@@ -364,8 +366,10 @@ public class Text {
 
       IntArrayVector.Builder result = new IntArrayVector.Builder(0);
       for(int i=0;i!=x.length();++i) {
-        if(re.match(x.getElementAsString(i))) {
-          result.add(i+1);
+        if (!x.isElementNA(i)) {
+          if (re.match(x.getElementAsString(i))) {
+            result.add(i + 1);
+          }
         }
       }
       return result.build();
@@ -395,6 +399,10 @@ public class Text {
       boolean useBytes,
       boolean invert) {
 
+    if (StringVector.isNA(pattern)) {
+      return new StringArrayVector(new String[x.length()]);
+    }
+
     RE re = REFactory.compile(pattern, ignoreCase,  perl, fixed, useBytes);
     LogicalArrayVector.Builder result = new LogicalArrayVector.Builder();
     for(String string : x) {
@@ -410,7 +418,11 @@ public class Text {
     if(!fixed) {
       throw new EvalException("fixed = FALSE not impelmented for agrep.");
     }
-  
+
+    if (StringVector.isNA(pattern)) {
+      return new StringArrayVector(new String[x.length()]);
+    }
+
     int maxDistance = maxDistance(bounds, pattern);
     
     FuzzyMatcher matcher = new FuzzyMatcher(pattern, ignoreCase);
@@ -439,8 +451,8 @@ public class Text {
     if(bounds.length() != 5) {
       throw new EvalException("Expected bounds argument of length 5");
     }
-    if(!bounds.isElementNA(1) || !bounds.isElementNA(2) || !bounds.isElementNA(3) ||
-       !bounds.isElementNA(4)) {
+    if (!bounds.isElementNA(1) || !bounds.isElementNA(2) || !bounds.isElementNA(3) ||
+        !bounds.isElementNA(4)) {
       throw new EvalException("max distance with specific components (all, insertions, deletions, substitutions not implemented");
     }
     double maxDistance = bounds.getElementAsDouble(0);
@@ -453,12 +465,12 @@ public class Text {
 
   @Internal
   public static IntVector regexpr(String pattern, StringVector vector, boolean ignoreCase, boolean perl,
-      boolean fixed, boolean useBytes) {
-    
+                                  boolean fixed, boolean useBytes) {
+
     RE re = REFactory.compile(pattern, ignoreCase,  perl, fixed, useBytes);
     IntArrayVector.Builder position = IntArrayVector.Builder.withInitialCapacity(vector.length());
     IntArrayVector.Builder matchLength = IntArrayVector.Builder.withInitialCapacity(vector.length());
-    
+
     for(String text : vector) {
       if(re.match(text)) {
         int start = re.getGroupStart(0);
@@ -470,33 +482,83 @@ public class Text {
         matchLength.add(-1);
       }
     }
-    
+
     position.setAttribute("match.length", matchLength.build());
     position.setAttribute("useBytes", new LogicalArrayVector(useBytes));
     return position.build();
   }
 
+
+  @Internal
+  public static ListVector gregexpr(String pattern, StringVector vector, boolean ignoreCase, boolean perl,
+                                  boolean fixed, boolean useBytes) {
+
+    ListVector.Builder regexpResults = new ListVector.Builder(0, vector.length());
+    RE re = REFactory.compile(pattern, ignoreCase,  perl, fixed, useBytes);
+
+    for(String text : vector) {
+      IntArrayVector.Builder position = IntArrayVector.Builder.withInitialCapacity(vector.length());
+      IntArrayVector.Builder matchLength = IntArrayVector.Builder.withInitialCapacity(vector.length());
+      int offsetSearch = 0;
+
+      while ( re.match(text.substring(offsetSearch))) {
+        int start = re.getGroupStart(0);
+        int end = re.getGroupEnd(0);
+        int increment = end == 0 ? 1 : end;
+        if (offsetSearch < text.length()) {
+          position.add(start + 1 + offsetSearch);
+          matchLength.add( end - start);
+          offsetSearch += increment;
+        } else {
+          break;
+        }
+      }
+
+      if (position.length() == 0) {
+        position.add(-1);
+        matchLength.add(-1);
+      }
+
+      position.setAttribute("match.length", matchLength.build());
+      position.setAttribute("useBytes", new LogicalArrayVector(useBytes));
+      regexpResults.add( position.build() );
+    }
+
+    return regexpResults.build();
+  }
+
+
   @Internal
   public static StringVector substr(StringVector x, Vector start, Vector stop) {
-    StringVector.Builder result = new StringVector.Builder();
     int len = x.length();
+    if ( len == 0 ) {
+      return StringVector.EMPTY;
+    }
+    StringVector.Builder result = new StringVector.Builder();
     int k = start.length();
     int l = stop.length();
+    if ( k == 0 || l == 0 ) {
+      throw new EvalException("invalid substring arguments");
+    }
     for (int i = 0; i < len; i++) {
-      int s = start.getElementAsInt(i % k);
-      int e = stop.getElementAsInt(i % l);
-      String el = x.getElementAsString(i);
-      if (StringVector.isNA(el)) {
+      int startIndex = start.getElementAsInt(i % k);
+      int stopIndex = stop.getElementAsInt(i % l);
+      String element = x.getElementAsString(i);
+
+      if(IntVector.isNA(startIndex) || IntVector.isNA(stopIndex) || StringVector.isNA(element)) { 
         result.add(StringVector.NA);
-      }
-      int slen = el.length();
-      if (s < 1) s = 1;
-      if (s > e || s > slen) {
-        result.add("");
-      } else if (e >= slen) {
-        result.add(el.substring(s - 1));
       } else {
-        result.add(el.substring(s - 1, e));
+        int slen = element.length();
+        if (startIndex < 1) {
+          startIndex = 1;
+        }
+        if (startIndex > stopIndex || startIndex > slen) {
+          result.add("");
+        } else if (stopIndex >= slen) {
+          result.add(element.substring(startIndex - 1));
+        } else {
+          result.add(element.substring(startIndex - 1, stopIndex));
+        }
       }
     }
     return result.build();
@@ -706,11 +768,10 @@ public class Text {
     return buildFormatResult(x, elements);
   }
 
-  private static StringVector buildFormatResult(Vector x,
-      List<String> elements) {
+  private static StringVector buildFormatResult(Vector x, List<String> elements) {
     StringVector.Builder result = new StringVector.Builder();
     result.addAll(elements);
-    result.copySomeAttributesFrom(x, Symbols.DIM, Symbols.NAMES);
+    result.combineStructuralAttributesFrom(x);
     
     return result.build();
   }
@@ -826,7 +887,7 @@ public class Text {
       }
       return codePoints.build();
     }
-   }
+  }
   
   /**
    * 
@@ -874,13 +935,11 @@ public class Text {
     }
     
   }
-  
-  @Internal("substr<-")
-  public static StringVector setSubstring(String s, int start, int stop,String replace) {
-    StringArrayVector.Builder result = new StringArrayVector.Builder();
-    result.add(s.substring(0, start-1)+replace+s.substring(Math.min(stop,start-1+replace.length())));
 
-    return result.build();
+  @DataParallel
+  @Internal("substr<-")
+  public static String setSubstring(String s, int start, int stop, String replace) {
+    return s.substring(0, start-1) + replace + s.substring(Math.min(stop,start-1+replace.length()));
   }
   
   /**

@@ -1,18 +1,18 @@
                                                                                                                               package org.renjin.script;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
-
-import javax.script.Bindings;
-
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Sets;
 import org.renjin.invoke.reflection.converters.Converters;
 import org.renjin.sexp.Frame;
+import org.renjin.sexp.Null;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
+
+import javax.script.Bindings;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
 
 
 public class RenjinBindings implements Bindings {
@@ -98,7 +98,12 @@ public class RenjinBindings implements Bindings {
   public Object put(String name, Object value) {
     Symbol symbol = Symbol.get(name);
     SEXP previousValue = frame.getVariable(symbol);
-    SEXP exp = Converters.get(value.getClass()).convertToR(value);
+    SEXP exp;
+    if(value == null) {
+      exp = Null.INSTANCE;
+    } else {
+      exp = Converters.get(value.getClass()).convertToR(value);
+    }
     frame.setVariable(symbol, exp);
     return previousValue;
   }

@@ -1,16 +1,14 @@
 package org.renjin.stats.internals.models;
 
+import com.google.common.base.Joiner;
+import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
+import org.renjin.sexp.SEXP;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-
-import org.renjin.sexp.SEXP;
-
-
-import com.google.common.base.Joiner;
-import com.google.common.collect.Iterators;
-import com.google.common.collect.Lists;
 
 public class Term implements Iterable<SEXP> {
   private List<SEXP> expressions;
@@ -33,6 +31,10 @@ public class Term implements Iterable<SEXP> {
     return Collections.unmodifiableCollection(this.expressions);
   }
 
+  public int getOrder() {
+    return expressions.size();
+  }
+  
   @Override
   public int hashCode() {
     final int prime = 31;
@@ -44,12 +46,15 @@ public class Term implements Iterable<SEXP> {
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj)
+    if (this == obj) {
       return true;
-    if (obj == null)
+    }
+    if (obj == null) {
       return false;
-    if (getClass() != obj.getClass())
+    }
+    if (getClass() != obj.getClass()) {
       return false;
+    }
     Term other = (Term) obj;
     return expressions.equals(other.expressions);
   }
@@ -60,7 +65,7 @@ public class Term implements Iterable<SEXP> {
   }
 
   public String getLabel() {
-    return Joiner.on(" : ").join(expressions);
+    return Joiner.on(":").join(expressions);
   }
   
   @Override

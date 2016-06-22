@@ -3,7 +3,6 @@ package org.renjin.primitives;
 import com.google.common.base.Charsets;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
-import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
@@ -24,14 +23,32 @@ public class Vectors {
 
   @Builtin("length<-")
   public static Vector setLength(Vector source, int length) {
+    
+    if(length < 0) {
+      throw new EvalException("%d : invalid value", length);
+    }
+    
+    // Strange but true... 
+    // if source is null, then length(source) <- x is null for all x >= 0
+    if(source == Null.INSTANCE) {
+      return Null.INSTANCE;
+    }
 
     Vector.Builder copy = source.newBuilderWithInitialSize(length);
     for(int i=0;i!=Math.min(length, source.length());++i) {
       copy.setFrom(i, source, i);
     }
-    AttributeMap attribs = source.getAttributes();
-    if(attribs.hasNames()) {
-      copy.setAttribute(Symbols.NAMES, setLength(attribs.getNames(), length));
+    AtomicVector sourceNames = source.getNames();
+    if(sourceNames != Null.INSTANCE) {
+      StringVector.Builder newNames = new StringVector.Builder();
+      for (int i = 0; i < length; i++) {
+        if(i < source.length()) {
+          newNames.add(sourceNames.getElementAsString(i));
+        } else {
+          newNames.add("");
+        }
+      }
+      copy.setAttribute(Symbols.NAMES, newNames.build());
     }
     return copy.build();
   }
@@ -232,9 +249,8 @@ public class Vectors {
 
   @Generic
   @Builtin("as.complex")
-  @DataParallel
-  public static Complex asComplex(@Recycle double x) {
-    return new Complex(x,0);
+  public static ComplexVector asComplex(Vector vector) {
+    return (ComplexVector) convertToAtomicVector(new ComplexArrayVector.Builder(), vector);
   }
 
   @Generic
@@ -244,18 +260,19 @@ public class Vectors {
   }
 
   @Generic
-  @Builtin("as.complex")
-  @DataParallel
-  public static Complex asComplex(@Recycle Complex x) {
-    return x;
-  }
-
-  @Generic
   @Internal("as.vector")
   public static SEXP asVector(Vector x, String mode) {
 
+    // Annoyingly, this function behaves a bit erraticaly
+    // When "mode" 
+    
     if(mode.equals("any")) {
-      return x.setAttributes(x.getAttributes().copyNames());
+      //  if the result is atomic all attributes are removed.
+      if(x instanceof AtomicVector) {
+        return x.setAttributes(AttributeMap.EMPTY);
+      } else {
+        return x;
+      }
     }
 
     Vector.Builder result;
@@ -270,7 +287,10 @@ public class Vectors {
     } else if ("complex".equals(mode)) {
       result = new ComplexArrayVector.Builder(x.length());
     } else if ("list".equals(mode)) {
+      // Special case: preserve names with mode = 'list'
       result = new ListVector.Builder();
+      result.setAttribute(Symbols.NAMES, x.getNames());
+      
     } else if ("pairlist".equals(mode)) {
       // a pairlist is actually not a vector, so bail from here
       // as a special case
@@ -282,6 +302,7 @@ public class Vectors {
             "invalid type/length (symbol/0) in vector allocation");
       }
       return Symbol.get(x.getElementAsString(0));
+    
     } else if ("raw".equals(mode)) {
       result = new RawVector.Builder();
     } else {
@@ -290,10 +311,6 @@ public class Vectors {
 
     for (int i = 0; i != x.length(); ++i) {
       result.setFrom(i, x, i);
-    }
-    SEXP names = x.getNames();
-    if (names.length() > 0) {
-      result.setAttribute(Symbols.NAMES, names);
     }
     return result.build();
   }
@@ -312,7 +329,7 @@ public class Vectors {
     } else if(mode.equals("function")){
       return CollectionUtils.IS_FUNCTION;
     } else {
-      throw new EvalException(" mode '%s' as a predicate is implemented.", mode);
+      throw new EvalException(" mode '%s' as a predicate is not implemented.", mode);
     }
   }
 
@@ -385,22 +402,54 @@ public class Vectors {
           }
         }
       }
+      
+      AttributeMap.Builder newAttributes = x.getAttributes().copy();
 
       if(newDim.length() == 0 ||
           (newDim.length() == 1 && dim.length() > 1)) {
-        return x.setAttribute(Symbols.DIM, Null.INSTANCE)
-            .setAttribute(Symbols.DIMNAMES, Null.INSTANCE);
-      } else {
-        return x.setAttribute(Symbols.DIM, newDim.build())
-            .setAttribute(Symbols.DIMNAMES, newDimnames.build());
-      }
+        
+        newAttributes.remove(Symbols.DIM);
+        newAttributes.remove(Symbols.DIMNAMES);
 
+      } else {
+        newAttributes.setDim(newDim.build());
+        newAttributes.setDimNames(newDimnames.build());
+      }
+      
+      return x.setAttributes(newAttributes);
+    }
+  }
+  
+  public static AtomicVector toType(AtomicVector x, Vector.Type type) {
+    if(x.getVectorType() == type) {
+      return x;
+    } else if(type == DoubleVector.VECTOR_TYPE) {
+      return asDouble(x);
+    } else if(type == IntVector.VECTOR_TYPE) {
+      return asInteger(x);
+    } else if(type == LogicalVector.VECTOR_TYPE) {
+      return asLogical(x);
+    } else if(type == ComplexVector.VECTOR_TYPE) {
+      return asComplex(x);
+    } else if(type == StringVector.VECTOR_TYPE) {
+      return new ConvertingStringVector(x);
+    } else if(type == RawVector.VECTOR_TYPE) {
+      return asRaw(x);
+    } else {
+      throw new IllegalArgumentException("type: " + type);
     }
   }
 
   @Generic
   @Internal("as.vector")
   public static SEXP asVector(PairList x, String mode) {
+    
+    // Exceptionally, as.vector(x, 'pairlist') 
+    // preserves *all* attributes
+    if("pairlist".equals(mode)) {
+      return x;
+    }
+    
     Vector.Builder result;
     NamesBuilder names = NamesBuilder.withInitialCapacity(x.length());
     if ("character".equals(mode)) {
@@ -425,8 +474,7 @@ public class Vectors {
       }
       result.add(node.getValue());
     }
-    result.setAttribute(Symbols.NAMES.getPrintName(),
-        names.build(result.length()));
+    result.setAttribute(Symbols.NAMES.getPrintName(), names.build(result.length()));
     return result.build();
   }
 

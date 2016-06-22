@@ -22,6 +22,7 @@
 package org.renjin.primitives.text.regex;
 
 import com.google.common.base.Predicate;
+import org.renjin.eval.EvalException;
 
 /**
  * Compiles a regular expression based on the supplied options.
@@ -41,11 +42,24 @@ public class REFactory {
    */
   public static RE compile(String pattern, boolean ignoreCase, boolean perl, boolean fixed,
                            boolean useBytes) {
-    if(fixed) {
-      return new FixedRE(pattern);
-    } else {
-      return new ExtendedRE(pattern, ignoreCase);
-    } 
+    
+    try {
+      if (fixed) {
+        if (pattern.length() == 0) {
+          return new EmptyFixedRE();
+        } else {
+          return new FixedRE(pattern);
+        }
+      } else {
+        return new ExtendedRE(pattern, ignoreCase);
+      }
+    } catch (RESyntaxException e) {
+      throw new EvalException("Invalid pattern '%s': %s (perl=%s, fixed=%s)",
+          pattern,
+          e.getMessage(),
+          perl ? "TRUE" : "FALSE",
+          fixed ? "TRUE" : "FALSE");
+    }
   }
   
   public static Predicate<String> asPredicate(final RE re) {

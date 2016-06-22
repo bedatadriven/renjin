@@ -1,6 +1,8 @@
 #  File src/library/utils/R/format.R
 #  Part of the R package, http://www.R-project.org
 #
+#  Copyright (C) 1995-2015 The R Core Team
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
@@ -39,7 +41,8 @@ function(x, type = "arabic", offset = 0, start = 1,
     upper <- labels[len]
     if(type %in% c("A", "a")) {
         if(upper > 26L)
-            stop("too many list items (at most up to number 26)")
+            stop(gettextf("too many list items (at most up to %d)", 26L),
+                 domain = NA)
         labels <- if(type == "A")
             LETTERS[labels]
         else
@@ -47,7 +50,8 @@ function(x, type = "arabic", offset = 0, start = 1,
     }
     else if(type %in% c("I", "i")) {
         if(upper > 3899L)
-            stop("too many list items (at most up to number 3899)")
+            stop(gettextf("too many list items (at most up to %d)", 3899L),
+                 domain = NA)
         labels <- as.character(as.roman(labels))
         if(type == "i")
             labels <- tolower(labels)
@@ -72,9 +76,9 @@ function(labels, x, offset = 0, width = 0.9 * getOption("width"),
     delta <- nchar(labels[1L], "width") + offset
     x <- strwrap(x, width = width - delta - nchar(sep, "width"),
                  simplify = FALSE)
-    nlines <- cumsum(sapply(x, length))
+    nlines <- cumsum(lengths(x))
     prefix <- rep.int(.make_empty_string(delta), nlines[len])
     prefix[1L + c(0L, nlines[-len])] <-
-        paste(.make_empty_string(offset), labels, sep = "")
+        paste0(.make_empty_string(offset), labels)
     paste(prefix, unlist(x), sep = sep)
 }

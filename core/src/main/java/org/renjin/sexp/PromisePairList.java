@@ -21,24 +21,16 @@
 
 package org.renjin.sexp;
 
-import org.renjin.eval.Context;
-import org.renjin.eval.EvalException;
-
 /**
  * Specialized PairList used in the course of argument matching.
  * (The DOTSEXP type in the original R interpreter)
  */
 public interface PromisePairList extends PairList {
-
+  
   public static class Node extends PairList.Node implements PromisePairList {
 
     private Node(SEXP tag, SEXP value, PairList nextNode) {
       super(tag, value, nextNode);
-    }
-
-    @Override
-    public SEXP evaluate(Context context, Environment rho) {
-      throw new EvalException("'...' used in an incorrect context");
     }
 
     @Override
@@ -69,18 +61,17 @@ public interface PromisePairList extends PairList {
       } else {
         return head;
       }
-    } 
+    }
     
-    public static PromisePairList fromList(ListVector vector) {
-      Builder list = new Builder();
-      for(NamedValue namedValue : vector.namedValues()) {
-        if(namedValue.hasName()) {
-          list.add(Symbol.get(namedValue.getName()), Promise.repromise(namedValue.getValue()));
-        } else {
-          list.add(Null.INSTANCE, Promise.repromise(namedValue.getValue()));
-        }
+    public static PromisePairList fromPairList(PairList pairList) {
+      if(pairList == Null.INSTANCE) {
+        return Null.INSTANCE;
+      } else if(pairList instanceof PairList.Node) {
+        PairList.Node head = (PairList.Node) pairList;
+        return new PromisePairList.Node(head.getRawTag(), head.value, head.nextNode);
+      } else {
+        throw new IllegalArgumentException("Type: " + pairList.getClass().getName());
       }
-      return list.build();
     }
   }
 }

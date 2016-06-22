@@ -23,18 +23,17 @@ package org.renjin.parser;
 
 import org.hamcrest.CoreMatchers;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
-import org.renjin.parser.RParser.StatusResult;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.PipedInputStream;
-import java.io.Reader;
 import java.io.StringReader;
 
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertThat;
 import static org.renjin.ExpMatchers.*;
 
@@ -54,6 +53,13 @@ public class RParserTest {
   @Test(expected = ParseException.class)
   public void error() throws IOException {
     parseSingle("switch(x, 1= 2= 'foo')");
+  }
+  
+  @Ignore
+  @Test
+  public void parseWithSourceRefs() throws IOException {
+    ExpressionVector sexps = RParser.parseAllSource(new StringReader("x+1\nx+y\n"));
+    assertThat(sexps.getAttributes().get(Symbols.SRC_REF), not(CoreMatchers.<SEXP>is(Null.INSTANCE)));
   }
 
   @Test
@@ -171,6 +177,17 @@ public class RParserTest {
 
     assertThat(exprList.length(), equalTo(1));
   }
+  
+  @Test
+  public void crOnlyLineEndings() throws IOException {
+    parseAll("f <- function(x) {\rc(x)\r}\r");
+  }
+
+  @Test
+  public void crlfLineEndings() throws IOException {
+    parseAll("f <- function(x) {\r\nc(x)\r\n}\r\n");
+  }
+
 
   @Test
   public void stringWithEscapes() throws IOException {
@@ -211,6 +228,14 @@ public class RParserTest {
 
     assertThat(result.length(), equalTo(1));
   }
+  
+  @Ignore
+  @Test
+  public void parseAddPs() throws IOException {
+    ExpressionVector result = (ExpressionVector) parseResource("add.ps.R");
+
+  }
+  
 
   private ExpressionVector parseAll(String source) throws IOException {
     return RParser.parseSource(new StringReader(source));

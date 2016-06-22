@@ -26,7 +26,7 @@
 
   <groupId>org.renjin</groupId>
   <artifactId>parent</artifactId>
-  <version>0.7.0-RC8-SNAPSHOT</version>
+  <version>0.9.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Renjin Parent</name>
 
@@ -36,7 +36,6 @@
     <module>cli</module>
     <module>appengine</module>
     <module>tests</module>
-    <module>benchmarks</module>
     <module>test-packages</module>
     <module>repl</module>
     <module>packages</module>
@@ -44,15 +43,17 @@
     <module>studio</module>
     <module>dist/generic</module>
     <module>dist/deb</module>
-    <module>appl</module>
-    <module>dist/webstart</module>
+    <module>math</module>
   </modules>
 
-  <properties>	
+  <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <renjin.version>${project.version}</renjin.version>
     <renjin.display.version>${project.version}</renjin.display.version>
+    <asm.version>5.0.4</asm.version>
     <envClassifier>linux-x86</envClassifier>
+    <jmh.version>1.11.2</jmh.version>
+    <plexusCompilerVersion>2.7</plexusCompilerVersion>
   </properties>
 
   <scm>
@@ -65,12 +66,12 @@
     <repository>
       <id>renjin-release</id>
       <name>Renjin Releases</name>
-      <url>http://nexus.bedatadriven.com/content/repositories/renjin-release/</url>
+      <url>https://nexus.bedatadriven.com/content/repositories/renjin-release/</url>
     </repository>
     <snapshotRepository>
       <id>renjin-latest</id>
       <name>Renjin Latest Builds</name>
-      <url>http://nexus.bedatadriven.com/content/repositories/renjin-latest/</url>
+      <url>https://nexus.bedatadriven.com/content/repositories/renjin-latest/</url>
     </snapshotRepository>
   </distributionManagement>
 
@@ -78,131 +79,74 @@
 
     <!-- We go to mvnsearch.org after latest GAE SDK artifacts -->
     <repository>
-      <id>mvnsearch.org</id>
-      <name>MVN Search</name>
-      <url>
-        http://www.mvnsearch.org/maven2
-      </url>
-      <releases>
-        <enabled>true</enabled>
-        <updatePolicy>never</updatePolicy>
-        <checksumPolicy>warn</checksumPolicy>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-    <repository>
-      <id>maven2-repository.dev.java.net</id>
-      <name>Java.net Repository for Maven</name>
-      <url>http://download.java.net/maven/2/</url>
-      <layout>default</layout>
-    </repository>
-    <repository>
       <id>bedatadriven</id>
       <name>bedatadriven public repo</name>
-      <url>http://nexus.bedatadriven.com/content/groups/public/</url>
+      <url>https://nexus.bedatadriven.com/content/groups/public/</url>
     </repository>
   </repositories>
-
-  <pluginRepositories>
-    <pluginRepository>
-      <id>mvnsearch</id>
-      <url>http://www.mvnsearch.org/maven2</url>
-    </pluginRepository>
-  </pluginRepositories>
 
   <build>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-enforcer-plugin</artifactId>
-        <version>1.4</version>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>2.17</version>
         <executions>
           <execution>
-            <id>enforce-java</id>
-            <goals>
-              <goal>enforce</goal>
-            </goals>
+            <id>validate</id>
+            <phase>validate</phase>
             <configuration>
-              <rules>
-                <requireJavaVersion>
-                  <version>[1.7.0, 1.8)</version>
-                  <message>
-                    Compiling C/Fortran sources uses the Soot framework, which is currently unable 
-                    to process the newer bytecodes included in a Java 1.8 runtime. 
-                    Please build using a Java 1.7 JDK.
-                  </message>
-                </requireJavaVersion>
-              </rules>
+              <encoding>UTF-8</encoding>
+              <consoleOutput>true</consoleOutput>
+              <failsOnError>true</failsOnError>
+              <includeResources>false</includeResources>
+              <includeTestSourceDirectory>true</includeTestSourceDirectory>
+              <checkstyleRules>
+                <module name="Checker">
+                  <!--<module name="UnusedImports"/>-->
+                  <!--<module name="RedundantImport"/>-->
+                  <module name="TreeWalker">
+                    <module name="OuterTypeFilename"/>
+                    <module name="IllegalTokenText">
+                      <property name="tokens" value="STRING_LITERAL, CHAR_LITERAL"/>
+                      <property name="format" value="\\u00(08|09|0(a|A)|0(c|C)|0(d|D)|22|27|5(C|c))|\\(0(10|11|12|14|15|42|47)|134)"/>
+                      <property name="message" value="Avoid using corresponding octal or Unicode escape."/>
+                    </module>
+                    <module name="AvoidEscapedUnicodeCharacters">
+                      <property name="allowEscapesForControlCharacters" value="true"/>
+                      <property name="allowByTailComment" value="true"/>
+                      <property name="allowNonPrintableEscapes" value="true"/>
+                    </module>
+                    <module name="OneTopLevelClass"/>
+
+                    <module name="NoFinalizer"/>
+                    <!--<module name="LineLength">-->
+                    <!--<property name="max" value="120"/>-->
+                    <!--<property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>-->
+                    <!--</module>-->
+                    <module name="OneTopLevelClass"/>
+                    <module name="NeedBraces"/>
+                    <module name="Indentation">
+                      <property name="basicOffset" value="2"/>
+                      <property name="braceAdjustment" value="0"/>
+                      <property name="caseIndent" value="2"/>
+                      <property name="throwsIndent" value="4"/>
+                      <property name="lineWrappingIndentation" value="4"/>
+                      <property name="arrayInitIndent" value="2"/>
+                    </module>
+                    <module name="PackageName">
+                      <property name="format" value="^[a-z]+(\.[a-z][a-z0-9]*)*$"/>
+                      <message key="name.invalidPattern" value="Package name ''{0}'' must match pattern ''{1}''."/>
+                    </module>
+                  </module>
+                </module>
+              </checkstyleRules>
             </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-source-plugin</artifactId>
-        <version>2.1.2</version>
-        <executions>
-          <execution>
-            <id>attach-sources</id>
-            <phase>verify</phase>
             <goals>
-              <goal>jar-no-fork</goal>
+              <goal>check</goal>
             </goals>
           </execution>
         </executions>
-      </plugin>
-      <plugin>
-        <groupId>com.mycila.maven-license-plugin</groupId>
-        <artifactId>maven-license-plugin</artifactId>
-        <version>1.9.0</version>
-        <configuration>
-          <header>src/etc/header.txt</header>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-site-plugin</artifactId>
-        <version>3.0-beta-2</version>
-        <configuration>
-          <reportPlugins>
-            <plugin>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-javadoc-plugin</artifactId>
-              <version>2.7</version>
-            </plugin>
-            <plugin>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-jxr-plugin</artifactId>
-              <version>2.1</version>
-              <configuration>
-                <aggregate>true</aggregate>
-              </configuration>
-            </plugin>
-            <plugin>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-surefire-report-plugin</artifactId>
-              <version>2.6</version>
-            </plugin>
-            <plugin>
-              <groupId>org.codehaus.mojo</groupId>
-              <artifactId>cobertura-maven-plugin</artifactId>
-              <version>2.4</version>
-              <configuration>
-                <formats>
-                  <format>xml</format>
-                  <format>html</format>
-                </formats>
-              </configuration>
-            </plugin>
-            <plugin>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-checkstyle-plugin</artifactId>
-              <version>2.6</version>
-            </plugin>
-          </reportPlugins>
-        </configuration>
       </plugin>
     </plugins>
 
@@ -212,9 +156,15 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
           <configuration>
-            <source>1.6</source>
-            <target>1.6</target>
+            <source>1.7</source>
+            <target>1.7</target>
+            <encoding>UTF-8</encoding>
           </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-resources-plugin</artifactId>
+          <version>3.0.0</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -223,25 +173,25 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-site-plugin</artifactId>
-            <configuration>
-              <outputEncoding>UTF-8</outputEncoding>
-              <inputEncoding>UTF-8</inputEncoding>
-            </configuration>
-          </plugin>
+          <configuration>
+            <outputEncoding>UTF-8</outputEncoding>
+            <inputEncoding>UTF-8</inputEncoding>
+          </configuration>
+        </plugin>
 
-          <plugin>
-            <groupId>org.eclipse.m2e</groupId>
-            <artifactId>lifecycle-mapping</artifactId>
-            <version>1.0.0</version>
-            <configuration>
-              <lifecycleMappingMetadata>
-                <pluginExecutions>
-                  <pluginExecution>
-                    <pluginExecutionFilter>
-                      <groupId>org.codehaus.mojo</groupId>
-                      <artifactId>exec-maven-plugin</artifactId>
-                      <versionRange>[1.2,)</versionRange>
-                      <goals>
+        <plugin>
+          <groupId>org.eclipse.m2e</groupId>
+          <artifactId>lifecycle-mapping</artifactId>
+          <version>1.0.0</version>
+          <configuration>
+            <lifecycleMappingMetadata>
+              <pluginExecutions>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>exec-maven-plugin</artifactId>
+                    <versionRange>[1.2,)</versionRange>
+                    <goals>
                       <goal>exec</goal>
                     </goals>
                   </pluginExecutionFilter>
@@ -262,13 +212,13 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.7</version>
+      <version>4.12</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest-library</artifactId>
-      <version>1.1</version>
+      <artifactId>hamcrest-all</artifactId>
+      <version>1.3</version>
       <scope>test</scope>
     </dependency>
     <dependency>

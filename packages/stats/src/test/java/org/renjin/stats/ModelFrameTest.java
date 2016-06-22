@@ -1,8 +1,9 @@
 package org.renjin.stats;
 
 import org.junit.Test;
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 public class ModelFrameTest extends EvalTestCase {
 
@@ -33,9 +34,9 @@ public class ModelFrameTest extends EvalTestCase {
     eval("x <- c('Good', 'Bad', 'Ugly', 'Good') ");
     
     eval("print(mm <- model.matrix(~x))");
-    
-    assertThat(eval("mm[,2]"), equalTo(c(1,0,0,1)));
-    assertThat(eval("mm[,3]"), equalTo(c(0,0,1,0)));
+    eval("print(attributes(mm))");
+    assertThat(eval("mm[,2]"), equalTo(c(1, 0, 0, 1)));
+    assertThat(eval("mm[,3]"), equalTo(c(0, 0, 1, 0)));
     assertThat(eval("colnames(mm)"), equalTo(c("(Intercept)", "xGood", "xUgly")));
     assertThat(eval("attr(mm, 'contrasts')$x"), equalTo(c("contr.treatment")));
   }
@@ -55,6 +56,14 @@ public class ModelFrameTest extends EvalTestCase {
     eval("y <- rep(c('Good', 'Bad', 'Ugly'), length=10) ");
     
     eval("print(mm <- model.matrix(~x*y))"); 
+  }
+  
+  @Test
+  public void dotInFormula() {
+    eval("df <- data.frame(x=1:3,y=(1:3)*2, z=(1:3)*6)");
+    
+    eval("model.matrix(x ~ ., data = df)");
+    
   }
   
 }

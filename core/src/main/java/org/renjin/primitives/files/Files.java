@@ -32,6 +32,7 @@ import org.renjin.invoke.annotations.*;
 import org.renjin.primitives.Warning;
 import org.renjin.primitives.text.regex.ExtendedRE;
 import org.renjin.primitives.text.regex.REFactory;
+import org.renjin.primitives.text.regex.RESyntaxException;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
@@ -180,31 +181,31 @@ public class Files {
       return path;
     }
   }
-  
+
   /**
-    * Gets the type or storage mode of an object.
+   * Gets the type or storage mode of an object.
 
-    * @return  unix-style file mode integer
-    */
-   private static int mode(FileObject file) throws FileSystemException {
-     int access = 0;
-     if(file.isReadable()) {
-       access += 4;
-     }
+   * @return  unix-style file mode integer
+   */
+  private static int mode(FileObject file) throws FileSystemException {
+    int access = 0;
+    if(file.isReadable()) {
+      access += 4;
+    }
 
-     if(file.isWriteable()) {
-       access += 2;
-     }
-     if(file.getType()==FileType.FOLDER) {
-       access += 1;
-     }
-     // i know this is braindead but i can't be bothered
-     // to do octal math at the moment
-     String digit = Integer.toString(access);
-     String octalString = digit + digit + digit;
+    if(file.isWriteable()) {
+      access += 2;
+    }
+    if(file.getType()==FileType.FOLDER) {
+      access += 1;
+    }
+    // i know this is braindead but i can't be bothered
+    // to do octal math at the moment
+    String digit = Integer.toString(access);
+    String octalString = digit + digit + digit;
 
-     return Integer.parseInt(octalString, 8);
-   }
+    return Integer.parseInt(octalString, 8);
+  }
 
   /**
    * Returns true if the file exists.
@@ -355,7 +356,11 @@ public class Files {
         if(pattern == null) {
           nameFilter = Predicates.alwaysTrue();
         } else {
-          nameFilter = REFactory.asPredicate(new ExtendedRE(pattern).ignoreCase(ignoreCase));
+          try {
+            nameFilter = REFactory.asPredicate(new ExtendedRE(pattern).ignoreCase(ignoreCase));
+          } catch (RESyntaxException e) {
+            throw new EvalException("Invalid pattern '%s': %s", pattern, e.getMessage());
+          }
         }
 
         for(String path : paths) {
@@ -465,17 +470,17 @@ public class Files {
   @Internal
   @DataParallel
   public static String tempfile(String pattern, String tempdir, String fileExt) {
-	  return tempdir + "/" + pattern + createRandomHexString(10) + fileExt;
+    return tempdir + "/" + pattern + createRandomHexString(10) + fileExt;
   }
   
   /* used to make hopefully-random file names in tempfile() */
   private static String createRandomHexString(int length) {
-	  Random randomService = new Random();
-	  String sb = "";
-	  while (sb.length() < length) {
-	      sb += Integer.toHexString(randomService.nextInt());
-	  }
-	  return sb;
+    Random randomService = new Random();
+    String sb = "";
+    while (sb.length() < length) {
+      sb += Integer.toHexString(randomService.nextInt());
+    }
+    return sb;
   } 
 
   /**
@@ -539,11 +544,11 @@ public class Files {
       if(file.getType() == FileType.FILE) {
         file.delete();
       } else if(file.getType() == FileType.FOLDER) {
-          if(file.getChildren().length == 0) {
-            file.delete();
-          } else if(recursive) {
-            file.delete();
-          }
+        if(file.getChildren().length == 0) {
+          file.delete();
+        } else if(recursive) {
+          file.delete();
+        }
       }
     }
   }
@@ -602,8 +607,8 @@ public class Files {
   
       ZipEntry entry;
       while ( (entry=zin.getNextEntry()) != null ) {
-        if( unzipMatches(entry, files))  {
-           unzipExtract(zin, entry, exdir, junkpaths, overwrite);
+        if (unzipMatches(entry, files))  {
+          unzipExtract(zin, entry, exdir, junkpaths, overwrite);
         }
       }
       context.setInvisibleFlag();

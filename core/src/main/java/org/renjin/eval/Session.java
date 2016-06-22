@@ -1,8 +1,10 @@
 package org.renjin.eval;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.renjin.compiler.pipeline.SimpleVectorPipeliner;
 import org.renjin.compiler.pipeline.VectorPipeliner;
@@ -13,8 +15,10 @@ import org.renjin.sexp.*;
 import org.renjin.stats.internals.distributions.RNG;
 import org.renjin.util.FileSystemUtils;
 
-import java.io.IOException;
+import java.io.File;
 import java.io.PrintWriter;
+import java.io.Reader;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -25,6 +29,9 @@ import java.util.Map;
  * live within a single JVM.
  */
 public class Session {
+
+  public static final List<String> DEFAULT_PACKAGES = ImmutableList.of(
+      "stats", "utils", "graphics", "grDevices", "datasets", "methods");
   
   private final Context topLevelContext;
 
@@ -92,9 +99,9 @@ public class Session {
     this.homeDirectory = FileSystemUtils.homeDirectoryInCoreJar();
     this.workingDirectory = FileSystemUtils.workingDirectory(fileSystemManager);
     this.systemEnvironment = Maps.newHashMap(System.getenv()); //load system environment variables
-    this.globalEnvironment = Environment.createGlobalEnvironment();
-    this.baseEnvironment = globalEnvironment.getBaseEnvironment();
-    this.baseNamespaceEnv = Environment.createBaseNamespaceEnvironment(globalEnvironment);
+    this.baseEnvironment = Environment.createBaseEnvironment();
+    this.globalEnvironment = Environment.createGlobalEnvironment(baseEnvironment);
+    this.baseNamespaceEnv = Environment.createBaseNamespaceEnvironment(globalEnvironment, baseEnvironment);
     this.baseNamespaceEnv.setVariable(Symbol.get(".BaseNamespaceEnv"), baseNamespaceEnv);
     this.topLevelContext = new Context(this);
 
@@ -125,6 +132,10 @@ public class Session {
 
   public void setStdOut(PrintWriter writer) {
     this.connectionTable.getStdout().setOutputStream(writer);
+  }
+
+  public void setStdIn(Reader reader) {
+    this.connectionTable.getStdin().setReader(reader);
   }
   
   public void setStdErr(PrintWriter writer) {
@@ -172,6 +183,11 @@ public class Session {
   public void setWorkingDirectory(FileObject dir) {
     this.workingDirectory = dir;
   }
+
+
+  public void setWorkingDirectory(File dir) throws FileSystemException {
+    this.workingDirectory = fileSystemManager.resolveFile(dir.getAbsolutePath());
+  }
   
   public FileObject getWorkingDirectory() {
     return workingDirectory;
@@ -193,8 +209,16 @@ public class Session {
     return invisible;
   }
 
-  public PrintWriter getStdOut() throws IOException {
+  public PrintWriter getStdOut() {
     return connectionTable.getStdout().getPrintWriter();
+  }
+  
+  public PrintWriter getStdErr() {
+    return connectionTable.getStderr().getPrintWriter();
+  }
+
+  public Reader getStdIn() {
+    return connectionTable.getStdin().getReader();
   }
 
   public NamespaceRegistry getNamespaceRegistry() {
@@ -267,4 +291,5 @@ public class Session {
       finalizers.finalizeOnExit(topLevelContext);
     }
   }
+
 }

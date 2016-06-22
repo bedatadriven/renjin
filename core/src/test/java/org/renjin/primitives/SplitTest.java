@@ -1,12 +1,12 @@
 package org.renjin.primitives;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import org.junit.Test;
+import org.renjin.EvalTestCase;
 
 import java.io.IOException;
 
-import org.junit.Test;
-import org.renjin.EvalTestCase;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 
 public class SplitTest extends EvalTestCase {
@@ -23,6 +23,27 @@ public class SplitTest extends EvalTestCase {
   }
   
   @Test
+  public void splitRecycling() {
+    assumingBasePackagesLoad();
+    eval("x <- split(rep(35,10), 1:2)");
+    
+    assertThat(eval("length(x)"), equalTo(c_i(2)));
+    assertThat(eval("x[[1]]"), equalTo(c(35,35,35,35,35)));
+    assertThat(eval("x[[2]]"), equalTo(c(35,35,35,35,35)));
+  }
+  
+  @Test
+  public void splitLongerFactor() {
+    assumingBasePackagesLoad();
+    eval("x <- split(1:2, 1:3)");
+    
+    assertThat(eval("length(x)"), equalTo(c_i(3)));
+    assertThat(eval("x[[1]]"), equalTo(c_i(1)));
+    assertThat(eval("x[[2]]"), equalTo(c_i(2)));
+    assertThat(eval("x[[3]]"), equalTo(c_i()));
+  }
+  
+  @Test
   public void splitWithMissing() throws IOException {
     assumingBasePackagesLoad();
     
@@ -31,6 +52,28 @@ public class SplitTest extends EvalTestCase {
     assertThat(eval("x$`1`"), equalTo(c_i(10,8,6,4)));
     assertThat(eval("x$`2`"), equalTo(c_i(9,7,5,3)));
     assertThat(eval("x$`3`"), equalTo(c_i(2)));
+  }
+  
+  @Test
+  public void splitWithNames() {
+    assumingBasePackagesLoad();
+    
+    eval("x <- split(c(a=1,b=2), c(1,2))");
+    assertThat(eval("names(x)"), equalTo(c("1", "2")));
+    assertThat(eval("names(x[[1]])"), equalTo(c("a")));
+  }
+
+  @Test
+  public void split1dArrayWithNames() {
+    assumingBasePackagesLoad();
+
+    eval("a <- 1:2");
+    eval("dim(a) <- 2");
+    eval("names(a) <- c('x','y')");
+    
+    eval("x <- split(a, c(1,2))");
+    assertThat(eval("names(x)"), equalTo(c("1", "2")));
+    assertThat(eval("names(x[[1]])"), equalTo(c("x")));
   }
   
 }

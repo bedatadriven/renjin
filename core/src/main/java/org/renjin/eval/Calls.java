@@ -21,22 +21,8 @@
 
 package org.renjin.eval;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.Collections2;
-import com.google.common.collect.Iterators;
-import com.google.common.collect.Lists;
-import com.google.common.collect.PeekingIterator;
-import org.renjin.primitives.CollectionUtils;
 import org.renjin.primitives.special.ReturnException;
 import org.renjin.sexp.*;
-
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
-
-import static com.google.common.collect.Collections2.filter;
-import static com.google.common.collect.Collections2.transform;
 
 /**
  * Routines for dispatching and generally organizing function calls.
@@ -54,8 +40,8 @@ public class Calls {
   }
 
 
-  public static SEXP applyClosure(Closure closure, Context context, Environment callingEnvironment, FunctionCall call, PairList promisedArgs, Environment rho,
-                                        Frame suppliedEnvironment) {
+  public static SEXP applyClosure(Closure closure, Context context, Environment callingEnvironment, FunctionCall call, PairList promisedArgs,
+                                  Frame suppliedEnvironment) {
 
     Context functionContext = context.beginFunction(callingEnvironment, call, closure, promisedArgs);
     Environment functionEnvironment = functionContext.getEnvironment();
@@ -146,18 +132,7 @@ public class Calls {
 
 
   public static void matchArgumentsInto(PairList formals, PairList actuals, Context innerContext, Environment innerEnv) {
-
-    PairList matched = matchArguments(formals, actuals, true);
-    for(PairList.Node node : matched.nodes()) {
-      SEXP value = node.getValue();
-      if(value == Symbol.MISSING_ARG) {
-        SEXP defaultValue = formals.findByTag(node.getTag());
-        if(defaultValue != Symbol.MISSING_ARG) {
-          value =  Promise.repromise(innerEnv, defaultValue);
-        }
-      }
-      innerEnv.setVariable(node.getTag(), value);
-    }
+    ClosureDispatcher.matchArgumentsInto(formals, actuals, innerContext, innerEnv);
   }
 
   /**
@@ -185,110 +160,7 @@ public class Calls {
    * @param populateMissing
    */
   public static PairList matchArguments(PairList formals, PairList actuals, boolean populateMissing) {
-
-    PairList.Builder result = new PairList.Builder();
-
-    List<PairList.Node> unmatchedActuals = Lists.newArrayList();
-    for(PairList.Node argNode : actuals.nodes()) {
-      unmatchedActuals.add(argNode);
-    }
-
-    List<PairList.Node> unmatchedFormals = Lists.newArrayList(formals.nodes());
-
-    boolean hasEllipses = false;
-    
-    // do exact matching
-    for(ListIterator<PairList.Node> formalIt = unmatchedFormals.listIterator(); formalIt.hasNext(); ) {
-      PairList.Node formal = formalIt.next();
-      if(formal.hasTag()) {
-        Symbol name = formal.getTag();
-        if(name == Symbols.ELLIPSES) {
-          hasEllipses = true;
-        }
-        Collection<PairList.Node> matches = Collections2.filter(unmatchedActuals, PairList.Predicates.matches(name));
-
-        if(matches.size() == 1) {
-          PairList.Node match = first(matches);
-          result.add(name, match.getValue());
-          formalIt.remove();
-          unmatchedActuals.remove(match);
-
-        } else if(matches.size() > 1) {
-          throw new EvalException(String.format("Multiple named values provided for argument '%s'", name.getPrintName()));
-        }
-      }
-    }
-
-    // do partial matching, as long as there is no ellipses (...) argument
-    if(!hasEllipses) {
-      Collection<PairList.Node> remainingNamedFormals = filter(unmatchedFormals, PairList.Predicates.hasTag());
-      for (Iterator<PairList.Node> actualIt = unmatchedActuals.iterator(); actualIt.hasNext(); ) {
-        PairList.Node actual = actualIt.next();
-        if (actual.hasTag()) {
-          Collection<PairList.Node> matches = Collections2.filter(remainingNamedFormals,
-                  PairList.Predicates.startsWith(actual.getTag()));
-
-          if (matches.size() == 1) {
-            PairList.Node match = first(matches);
-            result.add(match.getTag(), actual.getValue());
-            actualIt.remove();
-            unmatchedFormals.remove(match);
-
-          } else if (matches.size() > 1) {
-            throw new EvalException(String.format("Provided argument '%s' matches multiple named formal arguments: %s",
-                    actual.getTag().getPrintName(), argumentTagList(matches)));
-          }
-        }
-      }
-    }
-
-    // match any unnamed args positionally
-
-    Iterator<PairList.Node> formalIt = unmatchedFormals.iterator();
-    PeekingIterator<PairList.Node> actualIt = Iterators.peekingIterator(unmatchedActuals.iterator());
-    while( formalIt.hasNext()) {
-      PairList.Node formal = formalIt.next();
-      if(Symbols.ELLIPSES.equals(formal.getTag())) {
-        PromisePairList.Builder promises = new PromisePairList.Builder();
-        while(actualIt.hasNext()) {
-          PairList.Node actual = actualIt.next();
-          promises.add( actual.getRawTag(),  actual.getValue() );
-        }
-        result.add(formal.getTag(), promises.build() );
-
-      } else if( hasNextUnTagged(actualIt) ) {
-        result.add(formal.getTag(), nextUnTagged(actualIt).getValue() );
-
-      } else if(populateMissing) {
-        result.add(formal.getTag(), Symbol.MISSING_ARG);
-      }
-    }
-    if(actualIt.hasNext()) {
-      throw new EvalException(String.format("Unmatched positional arguments"));
-    }
-
-    return result.build();
-  }
-
-
-  private static boolean hasNextUnTagged(PeekingIterator<PairList.Node> it) {
-    return it.hasNext() && !it.peek().hasTag();
-  }
-
-  private static PairList.Node nextUnTagged(Iterator<PairList.Node> it) {
-    PairList.Node arg = it.next() ;
-    while( arg.hasTag() ) {
-      arg = it.next();
-    }
-    return arg;
-  }
-
-  private static String argumentTagList(Collection<PairList.Node> matches) {
-    return Joiner.on(", ").join(transform(matches, new CollectionUtils.TagName()));
-  }
-
-  private static <X> X first(Iterable<X> values) {
-    return values.iterator().next();
+    return ClosureDispatcher.matchArguments(formals, actuals, populateMissing);
   }
 
 }

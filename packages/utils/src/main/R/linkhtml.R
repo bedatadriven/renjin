@@ -1,6 +1,8 @@
 #  File src/library/utils/R/linkhtml.R
 #  Part of the R package, http://www.R-project.org
 #
+#  Copyright (C) 1995-2015 The R Core Team
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
@@ -26,10 +28,10 @@ make.packages.html <-
             nm <- libs[i]
             if (nm == .Library) {
                 cat('<li>Contents of the <a href="#lib-', i, '">',
-                    'standard</a> library</li>\n', sep="", file = out)
+                    'standard</a> library</li>\n', sep = "", file = out)
             } else {
                 cat('<li>Contents of <a href="#lib-', i, '">', nm,
-                    '</a></li>\n', sep="", file = out)
+                    '</a></li>\n', sep = "", file = out)
             }
         }
         cat("</ul>\n</div>\n", file = out)
@@ -45,7 +47,7 @@ make.packages.html <-
     if (temp && file.exists(f.tg) && file.exists(op)) {
         ## check if we can avoid remaking it.
         if(identical(lib.loc, readRDS(op))) {
-            dates <- file.info(c(f.tg, lib.loc))$mtime
+            dates <- file.mtime(c(f.tg, lib.loc))
             if(which.max(dates) == 1L) return(TRUE)
         }
     }
@@ -54,7 +56,7 @@ make.packages.html <-
         return(FALSE)
     }
     if (verbose) {
-        message("Making packages.html  ...", appendLF = FALSE)
+        message("Making 'packages.html' ...", appendLF = FALSE, domain = NA)
         flush.console()
     }
     file.append(f.tg,
@@ -73,7 +75,7 @@ make.packages.html <-
         pkgs[[lib]] <- pg[order(toupper(pg), pg)]
     }
     if (WINDOWS) {
-        tot <- sum(sapply(pkgs, length))
+        tot <- sum(lengths(pkgs))
         if(verbose) {
             pb <- winProgressBar("R: creating packages.html", max = tot)
             on.exit(close(pb), add = TRUE)
@@ -94,12 +96,12 @@ make.packages.html <-
                 ## perhaps other site libraries
                 if (is.na(pmatch(rh, lib))) {
                     lib0 <- if(substring(lib, 2L, 2L) != ":")
-                        paste(drive, lib, sep="") else lib
-                    lib0 <- paste("file:///", URLencode(lib0), sep="")
+                        paste0(drive, lib) else lib
+                    lib0 <- paste0("file:///", URLencode(lib0))
                 }
             } else {
                 if (lib != .Library)
-                    lib0 <- paste("file:///", URLencode(lib), sep="")
+                    lib0 <- paste0("file:///", URLencode(lib))
             }
         }
         pg <- pkgs[[lib]]
@@ -108,22 +110,21 @@ make.packages.html <-
         nm <- sort(names(table(first)))
         if(use_alpha) {
             writeLines("<p align=\"center\">", out)
-            writeLines(paste("<a href=\"#pkgs-", nm, "\">", nm, "</a>",
-                             sep = ""), out)
+            writeLines(paste0("<a href=\"#pkgs-", nm, "\">", nm, "</a>"), out)
             writeLines("</p>\n", out)
         }
-        cat('<p><table width="100%" summary="R Package list>\n', file = out)
+        cat('<p><table width="100%" summary="R Package list">\n', file = out)
         for (a in nm) {
             if(use_alpha)
-                cat("<tr id=\"pkgs-", a, "\"/>\n", sep = "", file = out)
+                cat("<tr id=\"pkgs-", a, "\"> <td></td>\n", sep = "", file = out)
             for (i in pg[first == a]) {
                 title <- packageDescription(i, lib.loc = lib, fields = "Title",
                                             encoding = "UTF-8")
                 if (is.na(title)) title <- "-- Title is missing --"
-                cat('<tr align="left" valign="top" id="lib-"', i, '">\n',
+                cat('<tr align="left" valign="top" id="lib-', i, '">\n',
                     '<td width="25%"><a href="', lib0, '/', i,
                     '/html/00Index.html">', i, "</a></td><td>", title,
-                    "</td></tr>\n", file=out, sep="")
+                    "</td></tr>\n", file = out, sep = "")
                 if (WINDOWS) {
                     npkgs <- npkgs + 1L
                     if(verbose) setWinProgressBar(pb, npkgs)

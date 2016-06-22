@@ -21,30 +21,18 @@
 
 package org.renjin.sexp;
 
+import org.renjin.eval.Profiler;
+
 import java.util.Arrays;
 import java.util.Collection;
 
 
 public final class DoubleArrayVector extends DoubleVector {
 
-  public static DoubleArrayVector ZERO = new DoubleArrayVector(0);
-
-  public static DoubleArrayVector ONE = new DoubleArrayVector(1);
-
   private double[] values;
 
   private DoubleArrayVector(AttributeMap attributes) {
     super(attributes);
-  }
-
-  public static DoubleArrayVector valueOf(double x) {
-    if(x == 0) {
-      return ZERO;
-    } else if(x == 1) {
-      return ONE;
-    } else {
-      return new DoubleArrayVector(x);
-    }
   }
 
   public DoubleArrayVector(double... values) {
@@ -57,10 +45,11 @@ public final class DoubleArrayVector extends DoubleVector {
 
   public DoubleArrayVector(double[] values, int length, AttributeMap attributes) {
     this(attributes);
-    this.values = Arrays.copyOf(values, length);
-    if(Vector.DEBUG_ALLOC && length >= 5000) {
-      System.out.println("new double array length = " + length);
+    if(Profiler.ENABLED) {
+      Profiler.memoryAllocated(Double.SIZE, length);
     }
+    
+    this.values = Arrays.copyOf(values, length);
   }
 
   public DoubleArrayVector(Collection<Double> values) {
@@ -69,6 +58,14 @@ public final class DoubleArrayVector extends DoubleVector {
     for(Double value : values) {
       this.values[i++] = value;
     }
+  }
+
+  /**
+   * Creates a new DoubleArrayVector that is a copy of the given {@code vector}
+   */
+  public DoubleArrayVector(DoubleVector vector) {
+    super(vector.getAttributes());
+    this.values = vector.toDoubleArray();
   }
 
   /**
@@ -89,6 +86,10 @@ public final class DoubleArrayVector extends DoubleVector {
     DoubleArrayVector vector = new DoubleArrayVector(attributes);
     vector.values = array;
     return vector;
+  }
+  
+  public static DoubleArrayVector unsafe(double[] array, AttributeMap.Builder attributes) {
+    return unsafe(array, attributes.validateAndBuildForVectorOfLength(array.length));
   }
 
   @Override
@@ -248,8 +249,9 @@ public final class DoubleArrayVector extends DoubleVector {
       if (minCapacity > oldCapacity) {
         double oldData[] = values;
         int newCapacity = (oldCapacity * 3)/2 + 1;
-        if (newCapacity < minCapacity)
+        if (newCapacity < minCapacity) {
           newCapacity = minCapacity;
+        }
         // minCapacity is usually close to size, so this is a win:
         values = Arrays.copyOf(oldData, newCapacity);
         Arrays.fill(values, oldCapacity, values.length, NA);
@@ -259,9 +261,10 @@ public final class DoubleArrayVector extends DoubleVector {
     @Override
     public DoubleVector build() {
       if(values.length == size) {
-        if(Vector.DEBUG_ALLOC && values.length >= 5000) {
-          System.out.println("building DoubleVector = " + values.length);
+        if(Profiler.ENABLED) {
+          Profiler.memoryAllocated(Double.SIZE, values.length);
         }
+        
         // Do not make an extra copy of the array
         DoubleArrayVector vector = new DoubleArrayVector(buildAttributes());
         vector.values = values;

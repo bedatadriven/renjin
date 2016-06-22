@@ -1,8 +1,7 @@
 package org.renjin.primitives.io.connections;
 
-import org.renjin.primitives.io.connections.Connection.Type;
-
 import com.google.common.base.Strings;
+import org.renjin.primitives.io.connections.Connection.Type;
 
 /**
  * 
@@ -37,6 +36,10 @@ public class OpenSpec {
   
   public boolean forWriting() {
     return spec.equals("r+") || spec.contains("w") || spec.contains("a");
+  }
+  
+  public boolean isAppend() {
+    return spec.contains("a");
   }
   
   public boolean isText() {

@@ -4,42 +4,41 @@ import org.renjin.eval.Context;
 
 import javax.script.Bindings;
 import javax.script.ScriptContext;
+import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.Writer;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 
-public class RenjinScriptContext implements ScriptContext{
+public class RenjinScriptContext implements ScriptContext {
 
   private Context context;
-  private Reader reader;
-  private Writer writer;
-  private Writer errorWriter;
-  
+  private Map<String,Object> attributes = new TreeMap<>();
+
   RenjinScriptContext(Context context) {
     this.context = context;
   }
-  
+
   public Context getContext() {
     return context;
   }
-  
+
   @Override
   public Object getAttribute(String arg0) {
-    // TODO Auto-generated method stub
-    return null;
+    return attributes.get(arg0);
   }
 
   @Override
   public Object getAttribute(String arg0, int arg1) {
-    // TODO Auto-generated method stub
-    return null;
+    return attributes.get(arg0);
   }
 
   @Override
   public int getAttributesScope(String arg0) {
-    // TODO Auto-generated method stub
-    return 0;
+    return ScriptContext.ENGINE_SCOPE;
   }
 
   @Override
@@ -55,27 +54,32 @@ public class RenjinScriptContext implements ScriptContext{
 
   @Override
   public Reader getReader() {
-    return reader;
+    return context.getSession().getStdIn();
   }
 
   @Override
   public List<Integer> getScopes() {
-    throw new UnsupportedOperationException("nyi");
+    return Collections.singletonList(ScriptContext.ENGINE_SCOPE);
   }
 
   @Override
   public Writer getWriter() {
-    return writer;
+    return context.getSession().getStdOut();
   }
 
   @Override
   public Object removeAttribute(String arg0, int arg1) {
-    throw new UnsupportedOperationException("nyi");
+    return attributes.remove(arg0);
   }
 
   @Override
-  public void setAttribute(String arg0, Object arg1, int arg2) {
-    throw new UnsupportedOperationException("nyi");
+  public void setAttribute(String name, Object value, int scope) {
+    if (scope == ScriptContext.ENGINE_SCOPE) {
+      attributes.put(name,value);
+    } else {
+      throw new UnsupportedOperationException(
+          String.format("setting attribute in scope (%d) not supported", scope));
+    }
   }
 
   @Override
@@ -85,17 +89,17 @@ public class RenjinScriptContext implements ScriptContext{
 
   @Override
   public void setErrorWriter(Writer errorWriter) {
-    this.errorWriter = errorWriter;
+    context.getSession().setStdErr(new PrintWriter(errorWriter));
   }
 
   @Override
   public void setReader(Reader reader) {
-    this.reader = reader;
+    context.getSession().setStdIn(reader);
   }
 
   @Override
   public void setWriter(Writer writer) {
-    this.writer = writer;
+    context.getSession().setStdOut(new PrintWriter(writer));
   }
 
 }

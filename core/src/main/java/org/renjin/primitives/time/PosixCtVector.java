@@ -1,10 +1,8 @@
 package org.renjin.primitives.time;
 
 import org.joda.time.DateTime;
-import org.renjin.sexp.DoubleArrayVector;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.StringArrayVector;
-import org.renjin.sexp.Symbols;
+import org.joda.time.DateTimeZone;
+import org.renjin.sexp.*;
 
 
 /**
@@ -18,9 +16,17 @@ public class PosixCtVector extends TimeVector {
   
   private final DoubleVector vector;
 
+  /**
+   * The zone associated with this vector. The timezone does not change the value of
+   * the milliseconds in {@code vector}, in is only passed along so that if this object
+   * is ever converted to string or a POSIXlt object, it will be converted with the original timezone.
+   */
+  private final DateTimeZone dateTimeZone;
+
   public PosixCtVector(DoubleVector vector) {
     super();
     this.vector = vector;
+    dateTimeZone = Time.timeZoneFromPosixObject(vector);
   }
   
   @Override
@@ -30,14 +36,18 @@ public class PosixCtVector extends TimeVector {
   
   @Override
   public DateTime getElementAsDateTime(int i) {
-    return new DateTime((long)(vector.getElementAsDouble(i)*MILLISECONDS_PER_SECOND));
+    return new DateTime((long)(vector.getElementAsDouble(i)*MILLISECONDS_PER_SECOND), dateTimeZone);
   }  
   
   public static class Builder {
     private final DoubleArrayVector.Builder vector;
-
     public Builder() {
       vector = new DoubleArrayVector.Builder();
+    }
+
+    public Builder setTimeZone(SEXP timeZoneAttribute) {
+      vector.setAttribute(Symbols.TZONE, timeZoneAttribute);
+      return this;
     }
 
     public Builder(int initialCapacity) {
@@ -45,7 +55,11 @@ public class PosixCtVector extends TimeVector {
     }
 
     public Builder add(DateTime dateTime) {
-      vector.add(dateTime.getMillis() / 1000);
+      if(dateTime == null) {
+        vector.add(DoubleVector.NA);
+      } else {
+        vector.add(dateTime.getMillis() / 1000);
+      }
       return this;
     }
     

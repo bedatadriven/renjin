@@ -14,8 +14,7 @@ import org.renjin.sexp.*;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-
-import static org.renjin.util.CDefines.*;
+import java.io.InputStream;
 
 
 public class Serialization {
@@ -23,7 +22,7 @@ public class Serialization {
 
   private static final int DEFAULT_SERIALIZATION_VERSION = 0;
 
-  public enum SERIALIZATION_TYPE { ASCII, XDR, BINARY};
+  public enum SerializationType { ASCII, XDR, BINARY};
 
   @Internal
   public static SEXP unserializeFromConn(@Current Context context,
@@ -76,7 +75,7 @@ public class Serialization {
     
     RDataWriter writer = new RDataWriter(context,
         createHook(context, refhook), Connections.getConnection(context, con).getOutputStream());
-    writer.save(object);
+    writer.serialize(object);
     
   }
   
@@ -185,8 +184,12 @@ public class Serialization {
   public static SEXP loadFromConn2(@Current Context context, SEXP conn,
       Environment env) throws IOException {
 
-    RDataReader reader = new RDataReader(context,
-        Connections.getConnection(context, conn).getInputStream());
+    InputStream inputStream = Connections.getConnection(context, conn).getInputStream();
+    return load(context, env, inputStream);
+  }
+
+  public static SEXP load(@Current Context context, Environment env, InputStream inputStream) throws IOException {
+    RDataReader reader = new RDataReader(context, inputStream);
     HasNamedValues data = EvalException.checkedCast(reader.readFile());
 
     StringArrayVector.Builder names = new StringArrayVector.Builder();
@@ -224,7 +227,7 @@ public class Serialization {
 
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     RDataWriter writer = new RDataWriter(context, baos, 
-            ascii? SERIALIZATION_TYPE.ASCII: SERIALIZATION_TYPE.XDR);
+            ascii? SerializationType.ASCII: SerializationType.XDR);
     writer.serialize(object);
    
     return new RawVector(baos.toByteArray());
@@ -240,13 +243,12 @@ public class Serialization {
   @DotCall("R_unserialize")
   public static SEXP unserialize(@Current Context context, SEXP connection, SEXP refhook) throws IOException {
     EvalException.check(refhook == Null.INSTANCE, "refHook != NULL has not been implemented yet.");
-    
+
     if(connection instanceof StringVector) {
-        error(_("character vectors are no longer accepted by unserialize()"));
-        return R_NilValue/* -Wall */;
+      throw new EvalException("character vectors are no longer accepted by unserialize()");
     } else if(connection instanceof RawVector) {
-      RDataReader reader = new RDataReader(context, 
-              new ByteArrayInputStream(((RawVector)connection).toByteArray()));
+      RDataReader reader = new RDataReader(context,
+          new ByteArrayInputStream(((RawVector)connection).toByteArray()));
       return reader.readFile();
     } else {
       return unserializeFromConn(context, connection, Null.INSTANCE);

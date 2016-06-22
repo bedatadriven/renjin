@@ -1,19 +1,17 @@
 package org.renjin.compiler.ir.tac;
 
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import org.renjin.compiler.ir.tac.statements.Statement;
+import org.renjin.eval.Context;
+import org.renjin.sexp.SEXP;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-
-import org.renjin.compiler.ir.tac.statements.Statement;
-import org.renjin.eval.Context;
-import org.renjin.sexp.SEXP;
-
-
-import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 public class IRBody {
   
@@ -29,7 +27,7 @@ public class IRBody {
     Arrays.fill(this.labels, -1);
     
     for(Entry<IRLabel,Integer> label : labels.entrySet()) {
-        this.labels[label.getKey().getIndex()] = label.getValue();
+      this.labels[label.getKey().getIndex()] = label.getValue();
     }
   }
 

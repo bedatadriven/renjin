@@ -1,5 +1,7 @@
 package org.renjin.parser;
 
+import org.apache.commons.math.complex.Complex;
+import org.renjin.sexp.ComplexVector;
 import org.renjin.sexp.DoubleVector;
 
 import java.text.NumberFormat;
@@ -41,6 +43,17 @@ public class NumericLiterals {
     }
     return REAL_FORMAT.format(value);
   }
+  
+  public static String toString(Complex complex) {
+    StringBuilder sb = new StringBuilder();
+    sb.append(toString(complex.getReal()));
+    if(complex.getImaginary() >= 0) {
+      sb.append('+');
+    }
+    sb.append(toString(complex.getImaginary()));
+    sb.append('i');
+    return sb.toString();
+  }
 
   public static NumberFormat createRealFormat() {
     NumberFormat format = NumberFormat.getNumberInstance();
@@ -61,6 +74,38 @@ public class NumericLiterals {
    */
   public static double parseDouble(CharSequence text) {
     return parseDouble(text, 0, text.length(), '.', false);
+  }
+
+  public static Complex parseComplex(CharSequence s) {
+    int lastCharIndex = s.length()-1;
+    if(s.charAt(lastCharIndex) == 'i') {
+      // parse as number with imaginary component
+      int imaginaryStart = findImaginaryStart(s);
+      if(imaginaryStart <= 0) {
+        // malformed
+        return ComplexVector.NA;
+      }
+      double real = parseDouble(s, 0, imaginaryStart, '.', false);
+      double imaginary = parseDouble(s, imaginaryStart, lastCharIndex, '.', false);
+      return new Complex(real, imaginary);
+    
+    } else {
+      // parse as number with only real component
+      return new Complex(parseDouble(s), 0);
+    }
+  }
+
+  private static int findImaginaryStart(CharSequence s) {
+    // cannot be the last character
+    int index = s.length()-2;
+    while(index >= 0) {
+      char c = s.charAt(index);
+      if(c == '+' || c == '-') {
+        return index;
+      }
+      index --;
+    }
+    return -1;
   }
 
   public static int parseInt(CharSequence line) {
@@ -162,12 +207,15 @@ public class NumericLiterals {
         }
         if (expn < 0) {
           for (n = -expn, fac = 1.0; n!=0; n >>= 1, p2 *= p2) {
-            if ((n & 1) != 0) fac *= p2;
+            if ((n & 1) != 0) {
+              fac *= p2;
+            }
           }
           ans /= fac;
         } else {
-          for (n = expn, fac = 1.0; n!=0; n >>= 1, p2 *= p2)
-            if ((n & 1)!=0) fac *= p2;
+          for (n = expn, fac = 1.0; n!=0; n >>= 1, p2 *= p2) {
+            if ((n & 1) != 0) fac *= p2;
+          }
           ans *= fac;
         }
       }
@@ -207,7 +255,9 @@ public class NumericLiterals {
   
       /* avoid unnecessary underflow for large negative exponents */
     if (expn + ndigits < -300) {
-      for (n = 0; n < ndigits; n++) ans /= 10.0;
+      for (n = 0; n < ndigits; n++) {
+        ans /= 10.0;
+      }
       expn += ndigits;
     }
     if (expn < -307) { /* use underflow, not overflow */
@@ -248,6 +298,7 @@ public class NumericLiterals {
     }
     return true;
   }
+
 
 
 }

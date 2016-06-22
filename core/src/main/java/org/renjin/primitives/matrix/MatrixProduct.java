@@ -132,12 +132,12 @@ class MatrixProduct {
       nry = ydims.getElementAsInt(0);
       ncy = ydims.getElementAsInt(1);
     }
-    
 
-    if ( ((primop == 0) && (ncx != nry)) ||
-         ((primop == 1) && (nrx != nry)) ||
-         ((primop == 2) && (ncx != ncy)) ) {
-            throw new EvalException("non-conformable arguments");
+
+    if (((primop == 0) && (ncx != nry)) ||
+        ((primop == 1) && (nrx != nry)) ||
+        ((primop == 2) && (ncx != ncy)) ) {
+      throw new EvalException("non-conformable arguments");
     }
   }
 
@@ -157,14 +157,14 @@ class MatrixProduct {
     
     
     Vector xdimnames = (Vector) x.getAttribute(Symbols.DIMNAMES);
-    
+
     if (xdimnames != Null.INSTANCE) {
-        if (ldx == 2 || ncx == 1) {
-          dimnames.set(0, xdimnames.getElementAsSEXP(0));
+      if (ldx == 2 || ncx == 1) {
+        dimnames.set(0, xdimnames.getElementAsSEXP(0));
 //            dnx = getAttrib(xdims, R_NamesSymbol);
 //            if(!isNull(dnx))
 //                SET_STRING_ELT(dimnamesnames, 0, STRING_ELT(dnx, 0));
-        }
+      }
     }
 
     ydimsEtcetera();
@@ -182,8 +182,8 @@ class MatrixProduct {
 
   private Vector buildDimnames() {
     ListVector vector = dimnames.build();
-    if(vector.getElementAsSEXP(0) != Null.INSTANCE ||
-       vector.getElementAsSEXP(1) != Null.INSTANCE) {
+    if (vector.getElementAsSEXP(0) != Null.INSTANCE ||
+        vector.getElementAsSEXP(1) != Null.INSTANCE) {
       return vector;
     } else {
       return Null.INSTANCE;
@@ -200,11 +200,12 @@ class MatrixProduct {
     //            ccrossprod(COMPLEX(CAR(args)), nrx, ncx,
     //                       COMPLEX(y), nry, ncy, COMPLEX(ans));
     //    else {
-    if(sym)
+    if(sym) {
       symcrossprod(getXArray(), nrx, ncx, ans);
-    else
+    } else {
       crossprod(getXArray(), nrx, ncx,
           getYArray(), nry, ncy, ans);
+    }
 
 
     //    PROTECT(xdims = getAttrib(CAR(args), R_DimNamesSymbol));
@@ -237,21 +238,21 @@ class MatrixProduct {
   }
 
   private void ydimsEtcetera() {
-    
+
     Vector ydimnames = (Vector) y.getAttribute(Symbols.DIMNAMES);
-        if (ydimnames != Null.INSTANCE) {                                 
-            if (ldy == 2) { 
-              dimnames.set(1, ydimnames.getElementAsSEXP(1));
+    if (ydimnames != Null.INSTANCE) {
+      if (ldy == 2) {
+        dimnames.set(1, ydimnames.getElementAsSEXP(1));
 //                AtomicVector dny = getAttrib(ydims, R_NamesSymbol);             
 //                if(dny != Null.INSTANCE)                                   
 //                    SET_STRING_ELT(dimnamesnames, 1, STRING_ELT(dny, 1));
-            } else if (nry == 1) {                                 
-              dimnames.set(1, ydimnames.getElementAsSEXP(0)); 
+      } else if (nry == 1) {
+        dimnames.set(1, ydimnames.getElementAsSEXP(0));
 //                dny = getAttrib(ydims, R_NamesSymbol);             
 //                if(!isNull(dny))                                   
 //                    SET_STRING_ELT(dimnamesnames, 1, STRING_ELT(dny, 0));
-            }                                                      
-        }                                                          
+      }
+    }
 //                                                                   
 //        /* We sometimes attach a dimnames attribute                
 //         * whose elements are all NULL ...                         
@@ -278,11 +279,12 @@ class MatrixProduct {
       //              tccrossprod(COMPLEX(CAR(args)), nrx, ncx,
       //                          COMPLEX(y), nry, ncy, COMPLEX(ans));
 
-      if(sym)
+      if(sym) {
         symtcrossprod(getXArray(), nrx, ncx, ans);
-      else
+      } else {
         tcrossprod(getXArray(), nrx, ncx,
             getYArray(), nry, ncy, ans);
+      }
 
 
       return makeMatrix(ans, nrx, nry);
@@ -334,10 +336,15 @@ class MatrixProduct {
     int i, j;
     if (nr > 0 && nc > 0) {
       BLAS.getInstance().dsyrk(uplo, trans, nc, nr, one, x, nr, zero, z, nc);  
-      for (i = 1; i < nc; i++)
-        for (j = 0; j < i; j++) z[i + nc *j] = z[j + nc * i];
+      for (i = 1; i < nc; i++) {
+        for (j = 0; j < i; j++) {
+          z[i + nc * j] = z[j + nc * i];
+        }
+      }
     } else { /* zero-extent operations should return zeroes */
-      for(i = 0; i < nc*nc; i++) z[i] = 0;
+      for(i = 0; i < nc*nc; i++) {
+        z[i] = 0;
+      }
     }
   }
 

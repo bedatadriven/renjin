@@ -1,14 +1,11 @@
 package org.renjin.invoke.reflection;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasItems;
-import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertThat;
-
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.sexp.Symbol;
+
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertThat;
 
 
 public class ClassBindingTest extends EvalTestCase {
@@ -38,8 +35,7 @@ public class ClassBindingTest extends EvalTestCase {
 
     assertThat(binding.getMembers(),
         hasItems(Symbol.get("name"), Symbol.get("fooberize")));
-    assertThat(binding.getMembers(), not(hasItem(Symbol.get("wait"))));
-    assertThat(binding.getMembers(), not(hasItem(Symbol.get("notifyAll"))));
+
 
     assertThat(binding.getMembers(), not(hasItem(Symbol.get("foo"))));
     assertThat(binding.getMembers(), hasItem(Symbol.get("setFoo")));

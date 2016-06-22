@@ -19,11 +19,11 @@
   <parent>
     <groupId>org.renjin</groupId>
     <artifactId>parent</artifactId>
-    <version>0.7.0-RC8-SNAPSHOT</version>
+    <version>0.9.0-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
-  <artifactId>renjin-legacy-compiler</artifactId>
+  <artifactId>renjin-gnur-compiler</artifactId>
   <name>Renjin GNU R Native Sources Compiler</name>
   <description>Compiles legacy C/Fortran sources to JVM bytecode</description>
 
@@ -34,7 +34,7 @@
     </dependency>
     <dependency>
       <groupId>org.renjin</groupId>
-      <artifactId>gcc-bridge</artifactId>
+      <artifactId>gcc-bridge-compiler</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -42,8 +42,10 @@
       <artifactId>renjin-gnur-runtime</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.renjin</groupId>
+      <artifactId>renjin-gnur-installation</artifactId>
+      <version>${project.version}</version>
+    </dependency>
   </dependencies>
-
-  <build>
-  </build>
 </project>

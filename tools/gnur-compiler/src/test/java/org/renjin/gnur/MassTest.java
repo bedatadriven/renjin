@@ -15,7 +15,6 @@ public class MassTest {
 
     GnurSourcesCompiler compiler = new GnurSourcesCompiler();
     compiler.setGimpleDirectory(new File("target/test-gimple"));
-    compiler.setJimpleDirectory(new File("target/test-jimple"));
     compiler.setOutputDirectory(new File("target/test-classes"));
     compiler.setWorkDirectory(new File("target/gnur-work"));
     compiler.setPackageName("org.renjin.gnur.test");
@@ -36,7 +35,6 @@ public class MassTest {
 
     GnurSourcesCompiler compiler = new GnurSourcesCompiler();
     compiler.setGimpleDirectory(new File("target/test-gimple"));
-    compiler.setJimpleDirectory(new File("target/test-jimple"));
     compiler.setOutputDirectory(new File("target/test-classes"));
     compiler.setWorkDirectory(new File("target/gnur-work"));
     compiler.setPackageName("org.renjin.gnur.test");

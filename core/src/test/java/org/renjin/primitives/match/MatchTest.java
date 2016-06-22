@@ -24,7 +24,8 @@ package org.renjin.primitives.match;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.sexp.IntVector;
-
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringArrayVector;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -98,11 +99,26 @@ public class MatchTest extends EvalTestCase {
   }
 
   @Test
+  public void anyDuplicatedInLists() {
+    assertThat( eval(" .Internal(anyDuplicated(list(1,1,3), FALSE, FALSE)) "), equalTo( c_i(2) ));
+    assertThat( eval(" .Internal(anyDuplicated(list(1,2,3,3), FALSE, FALSE)) "), equalTo( c_i(4) ));
+    assertThat( eval(" .Internal(anyDuplicated(list('a','b','c','c'), FALSE, FALSE)) "), equalTo( c_i(4) ));
+  }
+
+
+  @Test
   public void duplicated() {
     assertThat( eval(" .Internal(duplicated(1, FALSE, FALSE)) "), equalTo( c(false)) );
     assertThat( eval(" .Internal(duplicated(c(1,1,3), FALSE, FALSE)) "), equalTo( c(false,true,false) ));
     assertThat( eval(" .Internal(duplicated(c(1,2,3,3), FALSE, FALSE)) "), equalTo( c(false,false,false,true)) );
     assertThat( eval(" .Internal(duplicated(c(2,2,3,3), FALSE, TRUE)) "), equalTo( c(true, false,true,false) ));
+  }
+ 
+  @Test
+  public void whichWithEmptyNames() {
+    eval("x <- which(c(a=FALSE, b=FALSE, c=FALSE))");
+    assertThat(eval("length(x)"), equalTo(c_i(0)));
+    assertThat(eval("names(x)"), equalTo((SEXP)StringArrayVector.EMPTY));
   }
   
 }

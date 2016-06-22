@@ -21,12 +21,18 @@ import java.lang.reflect.Proxy;
 public class RenjinScriptEngine implements ScriptEngine, Invocable {
 
   private final RenjinScriptEngineFactory factory;
+
+  // context from renjin core:
   private final Context topLevelContext;
+
+  // jsr context, which wrap renjincore context.
+  private final ScriptContext scriptContext;
   
   RenjinScriptEngine(RenjinScriptEngineFactory factory, Session session) {
     super();
     this.factory = factory;
     this.topLevelContext = session.getTopLevelContext();
+    this.scriptContext = new RenjinScriptContext(topLevelContext);
   }
 
   public Session getSession() {
@@ -62,13 +68,18 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
 
   @Override
   public ScriptContext getContext() {
-    return new RenjinScriptContext(topLevelContext);
+    return scriptContext;
   }
 
   @Override
   public void put(String key, Object value) {
-    topLevelContext.getEnvironment().setVariable(Symbol.get(key), 
-        Converters.get(value.getClass()).convertToR(value));
+    SEXP convertedValue;
+    if(value == null) {
+      convertedValue = Null.INSTANCE;
+    } else {
+      convertedValue = Converters.get(value.getClass()).convertToR(value);
+    }
+    topLevelContext.getEnvironment().setVariable(Symbol.get(key), convertedValue);
   }
 
   @Override
@@ -94,35 +105,40 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
 
   @Override
   public Object eval(String script) throws ScriptException {
-    return eval(topLevelContext, RParser.parseSource(script + "\n"));
+    String filename = getFilenameFromContext(scriptContext,INLINE_STRING);
+    return eval(topLevelContext, RParser.parseSource(script + "\n", filename));
   }
   
   @Override
   public Object eval(String script, ScriptContext scriptContext)
       throws ScriptException {
-    SEXP source = RParser.parseSource(script + "\n");
+    //TODO: agreement to bind name.
+    String filename = getFilenameFromContext(scriptContext,INLINE_STRING);
+    SEXP source = RParser.parseSource(script + "\n", filename);
     return eval(unwrapContext(scriptContext), source);
   }
 
   @Override
   public Object eval(Reader reader) throws ScriptException {
-    return eval(reader, topLevelContext);
+    String filename = getFilenameFromContext(scriptContext,INLINE_STRING);
+    return eval(reader, topLevelContext, filename);
   }
   
   @Override
   public Object eval(final Reader reader, ScriptContext scriptContext)
       throws ScriptException {
-    return eval(reader, unwrapContext(scriptContext));
+    String filename = getFilenameFromContext(scriptContext,UNKNOWN);
+    return eval(reader, unwrapContext(scriptContext), filename);
   }
 
-  private Object eval(Reader reader, Context context) throws ScriptException {
+  private Object eval(Reader reader, Context context, String filename) throws ScriptException {
     SEXP source;
     try {
       // terminate with '\n'
       CharSource terminated = CharSource.concat(
           newReaderSupplier(reader),
-         CharSource.wrap("\n"));
-      source = RParser.parseSource(terminated);
+          CharSource.wrap("\n"));
+      source = RParser.parseSource(terminated, new CHARSEXP(filename) );
     } catch (IOException e) {
       throw new ScriptException(e);
     }
@@ -143,10 +159,12 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
   public void eval(File file) throws IOException, ScriptException {
     InputStreamReader reader = new InputStreamReader(
         new FileInputStream(file));
+    scriptContext.setAttribute(ScriptEngine.FILENAME,file.getName(),ScriptContext.ENGINE_SCOPE); 
     eval(reader);
     reader.close();
   }
   
+
   private CharSource newReaderSupplier(final Reader reader) {
     return new CharSource() {
       @Override
@@ -159,6 +177,20 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
   private Context unwrapContext(ScriptContext scriptContext) {
     return ((RenjinScriptContext)scriptContext).getContext();
   }
+
+  private String getFilenameFromContext(ScriptContext ctx, String defaultValue) {
+    String fileName = defaultValue;
+    Object oFileName = scriptContext.getAttribute(ScriptEngine.FILENAME);
+    if (oFileName!=null) {
+      fileName = oFileName.toString();
+    }
+    return fileName; 
+  }
+
+
+
+  private static final String INLINE_STRING="inline-string";
+  private static final String UNKNOWN="unknown";
 
   @Override
   public ScriptEngineFactory getFactory() {
@@ -245,13 +277,13 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
   }
 
   public void printWarnings() {
-    SEXP warnings = topLevelContext.getEnvironment().getBaseEnvironment().getVariable(Warning.LAST_WARNING);
+    SEXP warnings = topLevelContext.getBaseEnvironment().getVariable(Warning.LAST_WARNING);
     if(warnings != Symbol.UNBOUND_VALUE) {
       topLevelContext.evaluate( FunctionCall.newCall(Symbol.get("print.warnings"), warnings),
-        topLevelContext.getEnvironment().getBaseEnvironment());
+          topLevelContext.getBaseEnvironment());
     }
 
-    topLevelContext.getEnvironment().getBaseEnvironment().remove(Warning.LAST_WARNING);
+    topLevelContext.getBaseEnvironment().remove(Warning.LAST_WARNING);
   }
   
   public class FunctionCallBuilder {

@@ -26,7 +26,6 @@ import com.google.common.base.Strings;
 import org.apache.commons.vfs2.FileSystemException;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.invoke.annotations.Recycle;
@@ -106,9 +105,9 @@ public class Connections {
    */
   @Internal
   public static IntVector file(@Current final Context context,
-      final String path, String open, boolean blocking, String encoding,
-      boolean raw) throws IOException {
-    
+                               final String path, String open, boolean blocking, String encoding,
+                               boolean raw) throws IOException {
+
     if(path.isEmpty()) {
       return newConnection(context, open, new SingleThreadedFifoConnection());
     } else if(STD_OUT.equals(path)) {
@@ -117,6 +116,8 @@ public class Connections {
       return stdin(context);
     } else if(STD_ERR.equals(path)) {
       return stderr(context);
+    } else if (path.startsWith("http://") || path.startsWith("https://")) {
+      return url(context, path, open, blocking, encoding);
     } else {
       return newConnection(context, open, new FileConnection(context.resolveFile(path)));
     }
@@ -150,6 +151,16 @@ public class Connections {
   @Internal
   public static IntVector stderr(@Current Context context) {
     return terminal(ConnectionTable.STDERR_HANDLE);
+  }
+  
+  @Internal
+  public static boolean isatty(@Current Context context, SEXP connHandle) {
+    int connectionIndex = getConnectionIndex(connHandle);
+    
+    return (connectionIndex == ConnectionTable.STDIN_HANDLE || 
+       connectionIndex == ConnectionTable.STDERR_HANDLE ||
+        connectionIndex == ConnectionTable.STDOUT_HANDLE) &&
+        context.getSession().getSessionController().isTerminal();
   }
   
   private static IntVector terminal(int index) {
@@ -217,11 +228,11 @@ public class Connections {
         break;
       }
     }
-    
-    if(numLines > 0 && 
-       lines.length() < numLines && 
-       !ok) {
-      
+
+    if(numLines > 0 &&
+        lines.length() < numLines &&
+        !ok) {
+
       throw new EvalException("too few lines read in readLines");
     }
     
@@ -235,6 +246,7 @@ public class Connections {
       writer.print(line);
       writer.print(seperator);
     }
+    writer.flush();
   }
   
   //FIXME: port should be an int
@@ -280,11 +292,15 @@ public class Connections {
   
   
   public static Connection getConnection(Context context, SEXP conn) {
+    int connIndex = getConnectionIndex(conn);
+    return context.getSession().getConnectionTable().getConnection(connIndex);
+  }
+
+  private static int getConnectionIndex(SEXP conn) {
     if(!conn.inherits("connection") || !(conn instanceof Vector) || conn.length() != 1) {
       throw new EvalException("'con' is not a connection");
     }
-    int connIndex = ((Vector)conn).getElementAsInt(0);
-    return context.getSession().getConnectionTable().getConnection(connIndex);
+    return ((Vector)conn).getElementAsInt(0);
   }
 
   private static IntVector newConnection(final Context context, String open, Connection conn) throws IOException, FileSystemException {

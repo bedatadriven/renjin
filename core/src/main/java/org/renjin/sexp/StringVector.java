@@ -4,6 +4,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.UnmodifiableIterator;
+import org.apache.commons.math.complex.Complex;
 import org.renjin.parser.NumericLiterals;
 
 import java.util.ArrayList;
@@ -29,11 +30,15 @@ public abstract class StringVector extends AbstractAtomicVector implements Itera
   @Override
   public int getElementAsRawLogical(int index) {
     String value = getElementAsString(index);
+    return logicalFromString(value);
+  }
+
+  public static int logicalFromString(String value) {
     if(isNA(value)) {
       return IntVector.NA;
-    } else if(value.equals("T") || value.equals("TRUE")) {
+    } else if(value.equals("T") || value.equals("TRUE") || value.equals("true")) {
       return 1;
-    } else if(value.equals("F") || value.equals("FALSE")) {
+    } else if(value.equals("F") || value.equals("FALSE") || value.equals("false")) {
       return 0;
     } else {
       return IntVector.NA;
@@ -58,10 +63,36 @@ public abstract class StringVector extends AbstractAtomicVector implements Itera
     }
   }
 
+  @Override
+  public Complex getElementAsComplex(int index) {
+    if(isElementNA(index)) {
+      return ComplexVector.NA;
+    } else {
+      return NumericLiterals.parseComplex(getElementAsString(index));
+    }
+  }
 
   public static boolean isNA(String s) {
     // yes this is an identity comparison because NA_character_ is null
     return s == NA;
+  }
+
+  @Override
+  public Logical asLogical() {
+    if(length() >= 1) {
+      String value = getElementAsString(0);
+      if ("true".equals(value) ||
+          "TRUE".equals(value) ||
+          "T".equals(value)) {
+        return Logical.TRUE;
+      }
+      if ("false".equals(value) ||
+          "FALSE".equals(value) ||
+          "F".equals(value)) {
+        return Logical.FALSE;
+      }
+    }
+    return Logical.NA;
   }
 
   @Override
@@ -154,8 +185,12 @@ public abstract class StringVector extends AbstractAtomicVector implements Itera
 
   @Override
   public final boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || !(o instanceof StringVector)) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || !(o instanceof StringVector)) {
+      return false;
+    }
 
     StringVector that = (StringVector) o;
     if(that.length() != this.length()) {
@@ -178,6 +213,31 @@ public abstract class StringVector extends AbstractAtomicVector implements Itera
       hash += s_i == null ? 0 : s_i.hashCode();
     }
     return hash;
+  }
+
+  @Override
+  public String toString() {
+    if (length() == 1) {
+      return isElementNA(0) ? "NA_character_" : getElementAsString(0);
+    } else {
+      StringBuilder sb = new StringBuilder();
+      sb.append("c(");
+      for (int i = 0; i < Math.min(5, length()); ++i) {
+        if (i > 0) {
+          sb.append(", ");
+        }
+        if (isElementNA(i)) {
+          sb.append("NA_character_");
+        } else {
+          sb.append(getElementAsString(i));
+        }
+      }
+      if (length() > 5) {
+        sb.append("...").append(length()).append(" elements total");
+      }
+      sb.append(")");
+      return sb.toString();
+    }
   }
 
   public String[] toArray() {

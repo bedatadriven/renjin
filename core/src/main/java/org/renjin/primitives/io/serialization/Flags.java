@@ -82,7 +82,7 @@ class Flags {
   }
   
   public static int computePromiseFlags(Promise promise) {
-    int flags = SerializationFormat.PROMSXP;
+    int flags = SexpType.PROMSXP;
 
     if(promise.getAttributes() != AttributeMap.EMPTY) {
       flags |= HAS_ATTR_BIT_MASK;
@@ -91,5 +91,13 @@ class Flags {
       flags |= HAS_TAG_BIT_MASK;
     }
     return flags;
+  }
+  
+  public static int computeCharSexpFlags(int encodingFlag) {
+    return SexpType.CHARSXP | encodeLevels(encodingFlag);
+  }
+
+  private static int encodeLevels(int value) {
+    return value << 12;
   }
 }

@@ -1,7 +1,5 @@
 package org.renjin.primitives.matrix;
 
-import org.renjin.compiler.pipeline.DeferredGraph;
-import org.renjin.compiler.pipeline.VectorPipeliner;
 import org.renjin.primitives.vector.AttributeDecoratingVector;
 import org.renjin.primitives.vector.MemoizedComputation;
 import org.renjin.sexp.*;
@@ -56,21 +54,20 @@ public class DeferredRowMeans extends DoubleVector implements MemoizedComputatio
   private void computeMeans() {
     System.err.println("EEK! rowMeans.calculate() called directly");
 
-
-      double means[] = new double[numRows];
-      int row = 0;
-      for(int i=0;i!=vector.length();++i) {
-        means[row] += vector.getElementAsDouble(i);
-        row++;
-        if(row == numRows) {
-          row = 0;
-        }
+    double means[] = new double[numRows];
+    int row = 0;
+    for(int i=0;i!=vector.length();++i) {
+      means[row] += vector.getElementAsDouble(i);
+      row++;
+      if(row == numRows) {
+        row = 0;
       }
-      for(int i=0;i!=numRows;++i) {
-        means[i] /= ((double)numCols);
-      }
-      this.means = means;
     }
+    for(int i=0;i!=numRows;++i) {
+      means[i] /= ((double)numCols);
+    }
+    this.means = means;
+  }
 
   @Override
   public boolean isCalculated() {

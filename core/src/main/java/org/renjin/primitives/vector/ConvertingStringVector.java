@@ -50,4 +50,5 @@ public class ConvertingStringVector extends StringVector implements DeferredComp
   public boolean isConstantAccessTime() {
     return true;
   }
+  
 }

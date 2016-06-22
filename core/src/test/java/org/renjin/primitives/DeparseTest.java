@@ -31,11 +31,27 @@ public class DeparseTest extends EvalTestCase {
     assertThat(eval("deparse(list(a=1,b='foo'))"), equalTo(c("structure(list(a = 1, b = \"foo\"), .Names = c(\"a\", \"b\"))")));
   } 
  
+  @Test
+  public void deparsePrimitives() {
+    assertThat(eval("deparse(c)"), equalTo(c(".Primitive(\"c\")")));
+    assertThat(eval("deparse(`$`)"), equalTo(c(".Primitive(\"$\")")));
+  }
   
   @Test
   public void emptyVectors() {
     assertThat(eval("deparse(c(1L)[-1])"), equalTo(c("integer(0)")));
     assertThat(eval("deparse(c(1)[-1])"), equalTo(c("numeric(0)")));
+  }
+  
+  @Test
+  public void deparseBrackets() {
+    assertThat(eval("deparse(quote({}))"), equalTo(c("{\n}")));
+    assertThat(eval("deparse(quote({1;2;3;}))"), equalTo(c("{\n1\n2\n3\n}")));
+  }
+  
+  @Test
+  public void deparseMalformedParens() {
+    assertThat(eval("deparse(quote(`(`()))"), equalTo(c("(NULL)")));
   }
   
   @Test
@@ -100,5 +116,14 @@ public class DeparseTest extends EvalTestCase {
     assertThat(eval("deparse(quote(`_a`(x,y)))"), equalTo(c("`_a`(x, y)")));
     assertThat(eval("deparse(quote(`a#$#2`(x,y)))"), equalTo(c("`a#$#2`(x, y)")));
 
+  }
+  
+  @Test
+  public void deparseCustomInfix() {
+    assertThat(eval("deparse(quote(`%foo%`(1,2)))"), equalTo(c("1 %foo% 2")));
+
+    // Only special formatting if exactly two arguments
+    assertThat(eval("deparse(quote(`%foo%`(1)))"), equalTo(c("`%foo%`(1)")));
+    assertThat(eval("deparse(quote(`%foo%`(1, 2, 3)))"), equalTo(c("`%foo%`(1, 2, 3)")));
   }
 }

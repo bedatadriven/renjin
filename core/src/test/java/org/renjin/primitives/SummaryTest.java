@@ -27,7 +27,6 @@ import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.IntVector;
 import org.renjin.sexp.Logical;
 
-
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
@@ -113,10 +112,15 @@ public class SummaryTest extends EvalTestCase {
   
   @Test
   public void testCumsum() {
-    assertThat(eval("cumsum(1:10)"), equalTo(c(1, 3, 6, 10, 15, 21, 28, 36, 45, 55)));
+    assertThat(eval("cumsum(1:10)"), equalTo(c_i(1, 3, 6, 10, 15, 21, 28, 36, 45, 55)));
     assertThat(eval("cumsum(c(1,2,NA,4))"), equalTo(c(1, 3, DoubleVector.NA, DoubleVector.NA)));
     assertThat(eval("is.na(cumsum(c(1, 2, NA, 3)))"), equalTo( c(Logical.FALSE, Logical.FALSE, Logical.TRUE, Logical.TRUE)));
     assertThat(eval("is.na(cumsum(c(1, NaN, 3, 4)))"), equalTo( c(Logical.FALSE, Logical.TRUE, Logical.TRUE, Logical.TRUE)));
+  }
+  
+  @Test
+  public void testCumsumIntegerOverflow() {
+    assertThat(eval("cumsum(c(1L, 2L, 2147483647L))"), equalTo(c_i(1, 3, IntVector.NA)));
   }
 
   @Test

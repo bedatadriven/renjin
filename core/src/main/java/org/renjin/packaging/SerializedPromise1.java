@@ -24,10 +24,9 @@ public class SerializedPromise1 extends Promise {
 
   @Override
   protected SEXP doEval(Context context) {
-    try {
-      RDataReader reader = new RDataReader(context,
-        new GZIPInputStream(
-          new ByteArrayInputStream(bytes)));
+    try(RDataReader reader = new RDataReader(context,
+          new GZIPInputStream(
+              new ByteArrayInputStream(bytes)))) {
       return reader.readFile();
     } catch (IOException e) {
       throw new EvalException(e);

@@ -1,7 +1,10 @@
 package org.renjin.primitives.summary;
 
 import org.renjin.primitives.vector.MemoizedComputation;
-import org.renjin.sexp.*;
+import org.renjin.sexp.AttributeMap;
+import org.renjin.sexp.DoubleArrayVector;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.Vector;
 
 
 public abstract class DeferredSummary extends DoubleVector implements MemoizedComputation {
@@ -26,6 +29,7 @@ public abstract class DeferredSummary extends DoubleVector implements MemoizedCo
     }
     if(!calculated) {
       result = calculate();
+      calculated = true;
     }
     return result;
   }
@@ -51,6 +55,7 @@ public abstract class DeferredSummary extends DoubleVector implements MemoizedCo
   public final Vector forceResult() {
     if(!calculated) {
       result = calculate();
+      calculated = true;
     }
     return new DoubleArrayVector(result);
   }

@@ -1,5 +1,5 @@
 # Refer to all C/Fortran routines by their name prefixed by C_
-useDynLib(stats, .registration = TRUE, .fixes="C_",
+useDynLib(stats, .registration = FALSE, .fixes="C_",
     kmeans_Lloyd,
     kmeans_MacQueen,
     kmns = kmns_,
@@ -12,7 +12,12 @@ useDynLib(stats, .registration = TRUE, .fixes="C_",
     massdist,
     pkolmogorov2x,
     psmirnov2x,
-    pkstwo
+    pkstwo,
+    loglin,
+    R_cutree,
+    cfilter,
+    rfilter,
+    runmed
     )
 
 # exportPattern("^[^\\.]")

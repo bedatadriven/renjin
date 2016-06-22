@@ -1,7 +1,7 @@
 #  File src/library/utils/R/fineLineNum.R
 #  Part of the R package, http://www.R-project.org
 #
-#  Copyright 2009-2011 Duncan Murdoch and the R Core Development Team
+#  Copyright (C) 2009-2014 Duncan Murdoch and the R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -74,7 +74,7 @@ fnLineNum <- function(f, srcfile, line, nameonly=TRUE) {
     perfectMatch <- identical(.normalizePath(fnsrc$filename, fnsrc$wd), targetfilename)
     if (perfectMatch ||
         (nameonly && !is.null(fnsrc$filename) && basename(fnsrc$filename) == basename(targetfilename))) {
-	if (!is.na(srcfile$timestamp) && fnsrc$timestamp != srcfile$timestamp)
+	if (!is.na(srcfile$timestamp) && !is.null(fnsrc$timestamp) && fnsrc$timestamp != srcfile$timestamp)
 	    timediff <- fnsrc$timestamp - srcfile$timestamp
 	else
 	    timediff <- 0
@@ -105,11 +105,11 @@ findLineNum <- function(srcfile, line, nameonly=TRUE, envir=parent.frame(),
     	if (missing(envir)) lastenv <- globalenv()
     	else lastenv <- emptyenv()
     }
-    
+
     if (!is.environment(envir))
     	envir <- environment(envir)
 
-    fns <- character(0)
+    fns <- character()
     envirs <- list()
     e <- envir
     repeat {
@@ -179,12 +179,12 @@ print.findLineNumResult <- function(x, steps=TRUE, ...) {
     	    !identical(line, x[[i]]$line)) {
     	    filename <- x[[i]]$filename
     	    line <- x[[i]]$line
-    	    cat(filename, "#", line, ":\n", sep="")
+    	    cat(filename, "#", line, ":\n", sep = "")
     	}
-        cat(" ", x[[i]]$name, if (steps) paste(" step ", paste(x[[i]]$at, collapse=",")) else "", sep="")
+        cat(" ", x[[i]]$name, if (steps) paste(" step ", paste(x[[i]]$at, collapse=",")) else "", sep = "")
         if (!is.null(x[[i]]$signature))
-            cat(" signature ", paste(x[[i]]$signature, collapse=","), sep="")
-        cat(" in ", format(x[[i]]$env), "\n", sep="")
+            cat(" signature ", paste(x[[i]]$signature, collapse=","), sep = "")
+        cat(" in ", format(x[[i]]$env), "\n", sep = "")
     }
 }
 
@@ -208,7 +208,7 @@ setBreakpoint <- function(srcfile, line, nameonly=TRUE, envir=parent.frame(), la
     	if (breakpoint) {
     	    filename <- basename(locations[[1]]$filename)
     	    linenum <- locations[[1]]$line
-    	    tracer <- bquote({cat(paste(.(filename), "#", .(linenum), "\n", sep="")) 
+	    tracer <- bquote({cat(paste0(.(filename), "#", .(linenum), "\n"))
     	                      browser(skipCalls=4L)})
     	}
     	locations[[1]] <- NULL
@@ -223,7 +223,7 @@ setBreakpoint <- function(srcfile, line, nameonly=TRUE, envir=parent.frame(), la
     	    	i <- i+1
     	}
     	if (clear) {
-    	    if (is.null(signature)) 
+    	    if (is.null(signature))
   		untrace(what, where=where)
     	    else
     	    	untrace(what, signature=signature, where=where)

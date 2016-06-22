@@ -11,7 +11,9 @@ import org.renjin.graphics.internals.Plot;
 import org.renjin.graphics.internals.RgbHsv;
 import org.renjin.invoke.codegen.WrapperGenerator2;
 import org.renjin.methods.Methods;
+import org.renjin.primitives.combine.ColumnBindFunction;
 import org.renjin.primitives.combine.Combine;
+import org.renjin.primitives.combine.RowBindFunction;
 import org.renjin.primitives.files.Files;
 import org.renjin.primitives.io.Cat;
 import org.renjin.primitives.io.DebianControlFiles;
@@ -59,9 +61,9 @@ public class Primitives {
   public static PrimitiveFunction getBuiltin(String name) {
     return getBuiltin(Symbol.get(name));
   }
-  
+
   public static PrimitiveFunction getBuiltin(Symbol symbol) {
-	synchronized (INSTANCE) {
+    synchronized (INSTANCE) {
       PrimitiveFunction fn = INSTANCE.builtins.get(symbol);
       if(fn == null) {
         Entry entry = INSTANCE.builtinEntries.get(symbol);
@@ -71,11 +73,11 @@ public class Primitives {
         }
       }
       return fn;
-	 }
+    }
   }
-  
+
   public static PrimitiveFunction getInternal(Symbol symbol) {
-	synchronized (INSTANCE) {
+    synchronized (INSTANCE) {
       PrimitiveFunction fn = INSTANCE.internals.get(symbol);
       if(fn == null) {
         Entry entry = INSTANCE.internalEntries.get(symbol);
@@ -85,7 +87,14 @@ public class Primitives {
         }
       }
       return fn;
-	}
+    }
+  }
+
+  public static List<Entry> getEntries() {
+    List<Entry> set = Lists.newArrayList();
+    set.addAll(INSTANCE.internalEntries.values());
+    set.addAll(INSTANCE.builtinEntries.values());
+    return set;
   }
 
   public static Entry getBuiltinEntry(Symbol name) {
@@ -96,27 +105,21 @@ public class Primitives {
     return getBuiltinEntry(Symbol.get(name));
   }
 
-  public static List<Entry> getEntries() {
-    List<Entry> set = Lists.newArrayList();
-    set.addAll(INSTANCE.internalEntries.values());
-    set.addAll(INSTANCE.builtinEntries.values());
-    return set;
-  }
   
   public static Set<Symbol> getBuiltinSymbols() {
     return Sets.union(INSTANCE.builtins.keySet(), INSTANCE.builtinEntries.keySet());
   }
-  
+
   private static PrimitiveFunction createFunction(final Entry entry) {
-   try {
+    try {
       return (PrimitiveFunction) Class.forName(WrapperGenerator2.toFullJavaName(entry.name)).newInstance();
-    } catch(Exception e) {
+    } catch(final Exception e) {
       return new BuiltinFunction(entry.name) {
 
         @Override
         public SEXP apply(Context context, Environment rho,
-            FunctionCall call, PairList args) {
-          throw new EvalException("Sorry! " + entry.name + " not yet implemented!");
+                          FunctionCall call, PairList args) {
+          throw new EvalException("Sorry! " + entry.name + " not yet implemented!", e);
         }
       };
     }
@@ -138,6 +141,7 @@ public class Primitives {
     f("gettext", Text.class, 11);
     f("ngettext", Text.class, 11);
     f("bindtextdomain", Text.class, 11);
+    f("enc2utf8", Text.class, 1);
     f(".addCondHands", Conditions.class, 111);
     f(".resetCondHands", /*resetCondHands*/ null, 111);
     f(".signalCondition", Conditions.class, 11);
@@ -164,12 +168,14 @@ public class Primitives {
     add(new ReassignLeftFunction());
     add(new BeginFunction());
     add(new ParenFunction());
-
+      
+    add(new AssignSlotFunction());
+      
     f(".subset", Subsetting.class, 1);
     f(".subset2", Subsetting.class, 1);
     f("[",Subsetting.class, -1);
     f("[[", Subsetting.class, -1);
-    f("$", Subsetting.class, 2);
+    add(new DollarFunction());
     f("@", Subsetting.class, 2);
     f("[<-", Subsetting.class, 3);
     f("[[<-", Subsetting.class, 3);
@@ -260,8 +266,8 @@ public class Primitives {
     f("col", Matrices.class, 11);
     f("c", Combine.class, 1);
     f("unlist", Combine.class, 11);
-    f("cbind", Combine.class, 10);
-    f("rbind", Combine.class, 10);
+    addInternal("cbind", new ColumnBindFunction());
+    addInternal("rbind", new RowBindFunction());
     f("drop", Vectors.class, 11);
     f("oldClass", Attributes.class, 1);
     f("oldClass<-", Attributes.class, 2);
@@ -284,9 +290,11 @@ public class Primitives {
     f("comment<-", Attributes.class, 2);
     f("levels<-", Attributes.class, 2);
     f("get", Environments.class, 11);
-    f("mget", /*mget*/ null, 11);
+    f("get0", Environments.class, 11);
+    f("mget", Environments.class, 11);
     f("exists", Environments.class, 11);
     f("assign", Evaluation.class, 111);
+    f("list2env", Environments.class, 11);
     f("remove", Evaluation.class, 111);
     f("duplicated", Duplicates.class, 11);
     f("unique", Duplicates.class, 11);
@@ -302,7 +310,7 @@ public class Primitives {
     f("match.call", Match.class, 11);
     f("complete.cases", CompleteCases.class, 11);
 
-    f("attach", Environments.class, 111);
+    f("attach", Environments.class, 111);   
     f("detach", Environments.class, 111);
     f("search", Environments.class, 11);
 
@@ -324,7 +332,7 @@ public class Primitives {
     f("sign", MathExt.class, "sign", 1);
     f("trunc", MathExt.class, 1);
     
-    f("exp", Math.class, 1);
+    f("exp", MathExt.class, 1);
     f("expm1", MathExt.class, 1);
     f("log1p", MathExt.class, 1);
 
@@ -347,6 +355,11 @@ public class Primitives {
     f("digamma", org.apache.commons.math.special.Gamma.class, 1);
     f("trigamma",org.apache.commons.math.special.Gamma.class, 1);
 /* see "psigamma" below !*/
+
+
+    f("cospi", null, 1);
+    f("sinpi", null, 1);
+    f("tanpi", null, 1);
 
 /* Mathematical Functions of Two Numeric (+ 1-2 int) Variables */
 
@@ -538,7 +551,7 @@ public class Primitives {
     f("as.integer", Vectors.class, "asInteger", 1);
     f("as.double", Vectors.class, "asDouble", 1);
     f("as.complex", Vectors.class, 1);
-    f("as.logical", Vectors.class, "asLogical", 1);
+    f("as.logical", Vectors.class, 1);
     f("as.raw", Vectors.class, 1);
     f("as.vector", Vectors.class, 11);
     f("paste", Text.class, 11);
@@ -556,7 +569,6 @@ public class Primitives {
 /* String Manipulation */
 
     f("nchar", Text.class, 11);
-    f("nzchar", Text.class, 1);
     f("substr", Text.class, 11);
     f("substr<-", Text.class, 11);
     f("strsplit", Text.class, 11);
@@ -567,7 +579,7 @@ public class Primitives {
     f("sub", Text.class, 11);
     f("gsub", Text.class, 11);
     f("regexpr", Text.class, 11);
-    f("gregexpr", /*gregexpr*/ null, 11);
+    f("gregexpr", Text.class, 11);
     f("agrep", Text.class, 11);
     f("tolower", Text.class, 11);
     f("toupper", Text.class, 11);
@@ -623,7 +635,10 @@ public class Primitives {
     f("is.nan", Types.class, 1);
     f("is.finite", Types.class, 1);
     f("is.infinite", Types.class, 1);
-
+      
+    f("isS4", Types.class, 1);
+    f("setS4Object", Types.class, 11);
+    f(".isMethodsDispatchOn", Methods.class, 1);
 
 /* Miscellaneous */
 
@@ -644,14 +659,12 @@ public class Primitives {
     f("unserializeFromConn", Serialization.class, 111);
     f("deparse", Deparse.class, 11);
     f("deparseRd", /*deparseRd*/ null, 11);
-    f("dput", /*dput*/ null, 111);
     f("dump", /*dump*/ null, 111);
     add(new SubstituteFunction());
     add(new QuoteFunction());// f("quote", Evaluation.class, 0, 0, 1);
     f("quit", Sessions.class, 111);
     f("interactive", Sessions.class, 0);
     f("readline", /*readln*/ null, 11);
-    f("menu", Sessions.class, 11);
     f("print.default", Print.class, 111);
     f("print.function", Print.class, 111);
     f("prmatrix", /*prmatrix*/ null, 111);
@@ -670,7 +683,7 @@ public class Primitives {
     f("is.loaded", /*isloaded*/ null, -1);
     f(".C", Native.class, -1);
     f(".Fortran", Native.class, -1);
-    f(".External", /*External*/ null, -1);
+    f(".External",  Native.class, -1);
     f(".Call", Native.class, -1);
     f(".External.graphics", /*Externalgr*/ null, 1);
     f(".Call.graphics", /*dotcallgr*/ null, 1);
@@ -681,7 +694,7 @@ public class Primitives {
     f("typeof", Types.class, 11);
     f("eval", Evaluation.class, 211);
     f("eval.with.vis",Evaluation.class, 211);
-    f("withVisible", /*withVisible*/ null, 10);
+    f("withVisible", Evaluation.class, 10);
     add(new ExpressionFunction());
     f("sys.parent", Contexts.class, 11);
     f("sys.call", Contexts.class, 11);
@@ -703,19 +716,17 @@ public class Primitives {
     f("qsort", Sort.class, 11);
     f("radixsort", /*radixsort*/ null, 11);
     f("order", Sort.class, 11);
-    f("rank", /*rank*/ null, 11);
+    f("rank", Sort.class, 11);
     f("missing", Evaluation.class, "missing", 0);
     f("nargs", Evaluation.class, 0);
     f("scan", Scan.class, 11);
-    f("count.fields", /*countfields*/ null, 11);
-    f("readTableHead", Scan.class, 11);
     f("t.default", Matrices.class, 11);
     f("aperm", Matrices.class, 11);
     f("builtins", /*builtins*/ null, 11);
     f("edit", /*edit*/ null, 11);
     f("dataentry", /*dataentry*/ null, 11);
     f("dataviewer", /*dataviewer*/ null, 111);
-    f("args", /*args*/ null, 11);
+    f("args", Args.class, 11);
     f("formals", Types.class, 11);
     f("body", Types.class, 11);
     f("bodyCode", /*bodyCode*/ null, 11);
@@ -871,7 +882,7 @@ public class Primitives {
     f("grconvertX", Graphics.class, 11);
     f("grconvertY", Graphics.class, 11);
 
-/* Objects */
+/* Objects */   
     f("inherits", Attributes.class, 11);
     f("UseMethod", S3.class, 200);
     f("NextMethod", S3.class, 210);
@@ -887,7 +898,6 @@ public class Primitives {
     f("optimhess", /*optimhess*/ null, 11);
     f("terms.formula", Models.class, 11);
     f("update.formula", /*updateform*/ null, 11);
-    f("model.frame", Models.class, 11);
     f("model.matrix", Models.class, 11);
 
     f("D", /*D*/ null, 11);
@@ -912,6 +922,7 @@ public class Primitives {
     f("stdin", Connections.class, 11);
     f("stdout", Connections.class, 11);
     f("stderr", Connections.class, 11);
+    f("isatty", Connections.class, 11);
     f("readLines",Connections.class, 11);
     f("writeLines", Connections.class, 11);
     f("readBin", /*readbin*/ null, 11);
@@ -975,15 +986,18 @@ public class Primitives {
     f("getNamespace", Namespaces.class, 0);
     f("getRegisteredNamespace",Namespaces.class, 11);
     f("loadedNamespaces", Namespaces.class, 0);
+    f("getNamespaceName", Namespaces.class, 0);
+    f("getNamespaceExports", Namespaces.class, 0);
+    f("getNamespaceImports", Namespaces.class, 0);
     
-    //hiding: f("getNamespaceRegistry", Namespaces.class, 0, 11, 0);
+    f("getNamespaceRegistry", Namespaces.class, 11);
+      
    // hiding f("importIntoEnv", Namespaces.class, 0, 11, 4);
     f("env.profile", /*envprofile*/ null, 211);
     f(":::", Namespaces.class, 0);
     f("::", Namespaces.class, 0);
     f("getDataset", Namespaces.class, 11);
-    
-    f("write.table", /*writetable*/ null, 111);
+    f("find.package", Namespaces.class, 11);
     f("Encoding", Types.class, 11);
     f("setEncoding", Types.class, 11);
   // REMOVED: f("lazyLoadDBfetch", Serialization.class, 0, 1, 4);
@@ -994,8 +1008,8 @@ public class Primitives {
     // jvm specific
     f("import", Jvmi.class, 0);
     f("jload", Jvmi.class, 0);
-    f("library", Packages.class, 0);
-    f("require", Packages.class, 0);
+    f("library", Packages.class, 11);
+    f("require", Packages.class, 11);
 
   }
 

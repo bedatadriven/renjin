@@ -32,6 +32,7 @@ import java.io.IOException;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.renjin.ExpMatchers.logicalVectorOf;
 import static org.renjin.ExpMatchers.realVectorEqualTo;
 
@@ -75,6 +76,16 @@ public class EvaluationTest extends EvalTestCase {
   @Test(expected = Exception.class)
   public void ifWithNA() throws IOException {
     eval("if(NA) 1");
+  }
+  
+  @Test
+  public void ifWithString() {
+    assertThat(eval(" if('TRUE') 1 else 0 "), equalTo(c(1)));
+    assertThat(eval(" if('FALSE') 1 else 0 "), equalTo(c(0)));
+    assertThat(eval(" if('true') 1 else 0 "), equalTo(c(1)));
+    assertThat(eval(" if('false') 1 else 0 "), equalTo(c(0)));
+    assertThat(eval(" if('T') 1 else 0 "), equalTo(c(1)));
+    assertThat(eval(" if('F') 1 else 0 "), equalTo(c(0)));
   }
 
   @Test
@@ -157,7 +168,7 @@ public class EvaluationTest extends EvalTestCase {
     eval("y<-0");
     eval("while(x<5) {  x<-x+1; if(x==3) next; y<-y+1 }");
 
-    assertThat(eval("y"), equalTo( c(3) ));
+    assertThat(eval("y"), equalTo(c(3)));
   }
   
   @Test
@@ -199,7 +210,7 @@ public class EvaluationTest extends EvalTestCase {
   }
 
   @Test
-  public void missingArgPropogates() {
+  public void missingArgPropagates() {
     eval("f <- function(x) missing(x) ");
     eval("g <- function(x) f(x) ");
     eval("h <- function(x) g(x) ");
@@ -214,6 +225,24 @@ public class EvaluationTest extends EvalTestCase {
 
     assertThat( eval("f()"), equalTo( c(true)));
   }
+  
+  @Test
+  public void missingWithDefaultPropagates() {
+    eval("f<-function(y, x=1) missing(x) ");
+    eval("g<-function(z, ...) f(y=z,...) ");
+    
+    assertThat(eval("g(4)"), equalTo(c(true)));
+    assertThat(eval("g(x=4)"), equalTo(c(false)));
+  }
+
+  @Test
+  public void defaultToMissingIsNotMissing() {
+    eval("f<-function(x) { print(x); missing(x) } ");
+    eval("g<-function(z=1) f(z) ");
+
+    assertThat( eval("g(4)"), equalTo(c(false)));
+  }
+
 
   @Test
   public void missingWithNullDefaultAndGenerics() {
@@ -229,7 +258,7 @@ public class EvaluationTest extends EvalTestCase {
     eval("y <- 4");
     eval("f<-function(x=1) missing(x) ");
 
-    assertThat( eval("f(y)"), equalTo( c(false)));
+    assertThat( eval("f(y)"), equalTo(c(false)));
   }
 
   @Test
@@ -244,7 +273,7 @@ public class EvaluationTest extends EvalTestCase {
     eval(" f<-function() { on.exit( .Internal(eval(quote(launchMissiles<-42), globalenv(), NULL))) }");
     eval(" f() ");
 
-    assertThat( eval(" launchMissiles "), equalTo( c(42) ) );
+    assertThat(eval(" launchMissiles "), equalTo(c(42)));
   }
 
   @Test
@@ -263,7 +292,7 @@ public class EvaluationTest extends EvalTestCase {
         "}");
     eval("myf(3)");
 
-    assertThat( eval("Global.res"), equalTo( c(16) ));
+    assertThat(eval("Global.res"), equalTo(c(16)));
   }
 
   @Test
@@ -271,14 +300,14 @@ public class EvaluationTest extends EvalTestCase {
     eval( " x <- list(a = 1)");
     eval( " x$a <- 3");
 
-    assertThat( eval("x$a"), equalTo( c(3)));
+    assertThat(eval("x$a"), equalTo(c(3)));
   }
 
   @Test
   public void complexReassignment() {
     eval( " x <- list(a = 1)");
     eval( " f<- function() x$a <<- 3 ");
-    eval( " f()");
+    eval(" f()");
 
     assertThat( eval("x$a"), equalTo( c(3)));
   }
@@ -288,14 +317,14 @@ public class EvaluationTest extends EvalTestCase {
     eval( " x<- list(a = 1)");
     eval( " class(x$a) <- 'foo' ");
 
-    assertThat( eval(" x$a "), equalTo( c(1) ));
-    assertThat( eval(" class(x$a) "), equalTo( c("foo")));
+    assertThat(eval(" x$a "), equalTo(c(1)));
+    assertThat(eval(" class(x$a) "), equalTo(c("foo")));
   }
 
   @Test
   public void complexAssignmentWithSubset() {
-    eval( " x <- list( a = c(91,92,93) ) ");
-    eval( " x$a[3] <- 42");
+    eval(" x <- list( a = c(91,92,93) ) ");
+    eval(" x$a[3] <- 42");
   }
   
   @Test
@@ -315,13 +344,13 @@ public class EvaluationTest extends EvalTestCase {
 
     assertThat( eval("x"), equalTo(c(1)));
     assertThat( eval("y"), equalTo(c(1)));
-    assertThat( eval("z"), equalTo(c(1)));
+    assertThat(eval("z"), equalTo(c(1)));
 
     eval(" class(x) <- class(y) <- class(z) <- 'foo'");
 
-    assertThat( eval("class(x)"), equalTo(c("foo")));
-    assertThat( eval("class(y)"), equalTo(c("foo")));
-    assertThat( eval("class(z)"), equalTo(c("foo")));
+    assertThat(eval("class(x)"), equalTo(c("foo")));
+    assertThat(eval("class(y)"), equalTo(c("foo")));
+    assertThat(eval("class(z)"), equalTo(c("foo")));
   }
 
   @Test
@@ -350,8 +379,40 @@ public class EvaluationTest extends EvalTestCase {
     eval(" a <- 10  ");
 
     assertThat( eval(" f1(a) "), equalTo( c(11) ) );
-    assertThat( eval(" s1(a) "), equalTo( c(11) ) );
+    assertThat(eval(" s1(a) "), equalTo(c(11)));
     assertThat( eval(" s2(a) "), equalTo( symbol("a") ));
+  }
+  
+  @Test
+  public void substituteInGlobalEnvironment() {
+    eval(" x <- 42");
+    eval(" y <- substitute(x)");
+    
+    assertThat( eval("y"), equalTo((SEXP)Symbol.get("x")));
+  }
+  
+  @Test
+  public void substituteArgumentMatchingByName() {
+    
+    assertThat( eval("substitute(env=.GlobalEnv, expr=x)"), equalTo((SEXP)Symbol.get("x")));
+    
+    eval("f <- function(...) substitute(...) ");
+    eval("e <- list(x = 99) ");
+    eval("x <- 42");
+    
+    assertThat( eval("f(x)"), equalTo((SEXP)Symbol.get("x")));
+    assertThat( eval("f(x, e)"), equalTo((SEXP)Symbol.get("x")));
+    assertThat( eval("f(x, env=e)"), equalTo((SEXP)Symbol.get("x")));
+    assertThat( eval("f(env=e, x)"), equalTo((SEXP)Symbol.get("e")));
+
+    assertThat( eval("substitute(x, e)"), equalTo(c(99)));
+    assertThat( eval("substitute(env=e, x)"), equalTo(c(99)));
+    assertThat( eval("substitute(e, expr=x)"), equalTo(c(99)));
+
+    assertThat( eval("f()"), equalTo( (SEXP)Null.INSTANCE ));
+    
+    assertThat( eval("substitute()"), equalTo((SEXP)Symbol.MISSING_ARG));
+
   }
   
   @Test
@@ -368,10 +429,19 @@ public class EvaluationTest extends EvalTestCase {
   }
   
   @Test
+  public void substituteWithMissingEllipses() {
+    eval(" f<- function(a=1) substitute(list(...)) ");
+
+    assertThat( eval("f()"), equalTo( (SEXP) new FunctionCall(Symbol.get("list"), 
+            PairList.Node.fromArray(Symbols.ELLIPSES))));
+  }
+
+
+  @Test
   public void listFromArgs() {
     eval(" f<- function(...) list(...) ");
     
-    assertThat( eval("f(1,2,3)"), equalTo(list(1d,2d,3d)));
+    assertThat( eval("f(1,2,3)"), equalTo(list(1d, 2d, 3d)));
   }
 
   @Test
@@ -404,16 +474,16 @@ public class EvaluationTest extends EvalTestCase {
     
     assertThat( eval("switch('z', alligator=4,aardvark=2, 44)"), equalTo( c(44)));
     assertThat( eval("switch('a', alligator=4,aardvark=2, 44)"), equalTo( c(44)));
-    assertThat( eval("switch('a', alligator=4,aardvark=2)"), equalTo( NULL ));
-    assertThat( eval("switch('all', alligator=4,aardvark=2)"), equalTo( c(4) ));
-    assertThat( eval("switch('all')"), equalTo( NULL ));
+    assertThat(eval("switch('a', alligator=4,aardvark=2)"), equalTo(NULL));
+    assertThat(eval("switch('all', alligator=4,aardvark=2)"), equalTo(c(4)));
+    assertThat(eval("switch('all')"), equalTo(NULL));
 
-    assertThat( eval("switch(1, 'first', 'second')"), equalTo( c("first") ));
-    assertThat( eval("switch(2, 'first', 'second')"), equalTo( c("second") ));
+    assertThat(eval("switch(1, 'first', 'second')"), equalTo(c("first")));
+    assertThat(eval("switch(2, 'first', 'second')"), equalTo(c("second")));
     assertThat( eval("switch(99, 'first', 'second')"), equalTo( NULL ));
     assertThat( eval("switch(4)"), equalTo( NULL ));
 
-    assertThat( eval("switch('a', a=,b=,c=3) "), equalTo( c(3)));
+    assertThat(eval("switch('a', a=,b=,c=3) "), equalTo(c(3)));
     assertThat( eval("switch(NA_character_, a=1,b=2)"), equalTo( NULL ));
   }
 
@@ -421,17 +491,17 @@ public class EvaluationTest extends EvalTestCase {
   public void useMethod() {
     eval("fry <- function(what, howlong) UseMethod('fry') ");
     eval("fry.default <- function(what, howlong) list(desc='fried stuff',what=what,howlong=howlong) ");
-    eval("fry.numeric <- function(what, howlong) list(desc='fried numbers',number=what,howlong=howlong)" );
+    eval("fry.numeric <- function(what, howlong) list(desc='fried numbers',number=what,howlong=howlong)");
 
     eval("x<-33");
     eval("class(x) <- 'foo'");
 
     assertThat( eval("fry(1,5)"), equalTo( eval("list(desc='fried numbers', what=1, howlong=5)") ) );
-    assertThat( eval("fry(x,15)"), equalTo( eval("list(desc='fried stuff', what=33, howlong=15)") ) );
+    assertThat(eval("fry(x,15)"), equalTo(eval("list(desc='fried stuff', what=33, howlong=15)")));
 
     eval("cook <- function() { eggs<-6; fry(eggs, 5) }");
 
-    assertThat( eval("cook()"), equalTo( eval("list(desc='fried numbers', what=6, howlong=5) ")));
+    assertThat(eval("cook()"), equalTo(eval("list(desc='fried numbers', what=6, howlong=5) ")));
   }
   
   @Test(expected=EvalException.class)
@@ -466,8 +536,8 @@ public class EvaluationTest extends EvalTestCase {
   public void nargs() {
     eval("test <- function(a, b = 3, ...) {nargs()}");
 
-    assertThat( eval("test()"), equalTo( c_i(0)) );
-    assertThat( eval("test(clicketyclack)"), equalTo( c_i(1)));
+    assertThat(eval("test()"), equalTo(c_i(0)));
+    assertThat(eval("test(clicketyclack)"), equalTo(c_i(1)));
     assertThat( eval("test(c1, a2, rr3)"), equalTo( c_i(3)));
   }
 
@@ -502,7 +572,7 @@ public class EvaluationTest extends EvalTestCase {
     eval(" k <- list(1,2,3) ");
     eval(" k[[2]] <- onlyonce()");
 
-    assertThat( eval("k"), equalTo(list(1d,16d,3d)));
+    assertThat(eval("k"), equalTo(list(1d, 16d, 3d)));
 
   }
 
@@ -537,11 +607,17 @@ public class EvaluationTest extends EvalTestCase {
   }
   
   @Test
-  public void noPartialMatchingWhenEllipsesArePresent() {
+  public void noPartialMatchingOnArgumentsFollowingElipses() {
     eval("f<-function(..., aardvark) names(list(...))");
     assertThat(eval("f(a=1)"), equalTo(c("a")));
   }
   
+  @Test
+  public void partialMatchingOnArgumentsPrecedingElipses() {
+    eval("f<-function(aardvark=0, ... , aard) aardvark");
+    //assertThat(eval("f(aard=1)"), equalTo(c(0))); // match exactly to "aard"
+    assertThat(eval("f(aar=1)"), equalTo(c(1))); // match partially to arguments preceding elipses
+  }
   
   @Test
   public void matchCallDotsNotExpanded() throws IOException {
@@ -580,8 +656,8 @@ public class EvaluationTest extends EvalTestCase {
   
   @Test
   public void nextMethodWithMissing() {
-    eval("NextMethod <- function (generic = NULL, object = NULL, ...) " +
-    		".Internal(NextMethod(generic, object, ...))");
+    eval("NextMethod <- function (generic = NULL, object = NULL, ...) " + 
+        ".Internal(NextMethod(generic, object, ...))");
     eval("`[.foo` <- function(x, ..., drop = explode()) NextMethod() ");
     eval("x<-1");
     eval("class(x) <- 'foo'");
@@ -641,8 +717,8 @@ public class EvaluationTest extends EvalTestCase {
   
   @Test
   public void subsetWithinUseMethod() {
-    eval("f.foo <- function(x, filter) { e <- substitute(filter); l <- list(a=42,b=3); " +
-    		".Internal(eval(e, l, NULL)); }");
+    eval("f.foo <- function(x, filter) { e <- substitute(filter); l <- list(a=42,b=3); " + 
+        ".Internal(eval(e, l, NULL)); }");
     eval("f <- function(x, filter) UseMethod('f') ");
     eval("x <- 1");
     eval("class(x) <- 'foo'");
@@ -669,8 +745,8 @@ public class EvaluationTest extends EvalTestCase {
   @Test
   public void correctEnclosingEnvironment() {
     eval("new.env <- function (hash = TRUE, parent = parent.frame(), size = 29L) .Internal(new.env(hash, parent, size))");
-    eval(" eval <- function(expr, envir = parent.frame()," +
-    		" enclos = if(is.list(envir) || is.pairlist(envir)) parent.frame() else baseenv()) .Internal(eval(expr, envir, enclos))");
+    eval("eval <- function(expr, envir = parent.frame()," +
+        " enclos = if(is.list(envir) || is.pairlist(envir)) parent.frame() else baseenv()) .Internal(eval(expr, envir, enclos))");
     eval( "parent.frame <- function(n = 1) .Internal(parent.frame(n)) ");
     eval("eval.parent <- function(expr, n = 1){  p <- parent.frame(n + 1); eval(expr , p) } ");
     eval("local <- function (expr, envir = new.env()) eval.parent(substitute(eval(quote(expr), envir)))");
@@ -687,18 +763,26 @@ public class EvaluationTest extends EvalTestCase {
   }
   
   @Test
+  public void doCallWithNoArguments() {
+    FunctionCall call = (FunctionCall) eval("call('my.function') ");
+    
+    assertTrue(call.getArguments().length() == 0);
+    assertThat((Symbol) call.getFunction(), equalTo(Symbol.get("my.function")));
+  }
+  
+  @Test
   public void evalWithNumericEnv() {
     eval(" f <- function() eval(quote(x), envir=0L) ");
     eval(" environment(f) <- new.env() ");
     eval(" x <- 42" );
-    assertThat( eval("f()"), equalTo(c(42)));
+    assertThat(eval("f()"), equalTo(c(42)));
   }
   
   @Test
   public void evalWithNumericNegEnv() {
     eval(" f <- function() eval(quote(x), envir=-2L) ");
     eval(" g <- function() { x<- 43; f() }");
-    assertThat( eval("g()"), equalTo(c(43)));
+    assertThat(eval("g()"), equalTo(c(43)));
   }
 
   @Test
@@ -709,9 +793,127 @@ public class EvaluationTest extends EvalTestCase {
     assertThat(eval("f(41,42,43)"), equalTo(c(41)));
     assertThat(eval("g(1)"), equalTo(c(false)));
     assertThat(eval("g()"), equalTo(c(true)));
-
-
+  }
+  
+  @Test
+  public void unboundEnvironmentSubsetting() {
+    eval("e <- new.env()");
+    eval("x <- e[['noSuchSymbol']]");
+    
+    assertThat(eval("x"), instanceOf(Null.class));
   }
 
+  @Test
+  public void warningFromTopLevel() {
+    eval("warning('too much caffeine.')");
+  }
+  
+  @Test
+  public void catchErrors() {
+    eval("x <- tryCatch( stop('foo') , error = function(e) e)");
+    
+    assertThat(eval("class(x)"), equalTo(c("simpleError", "error", "condition")));
+  }
+
+  @Test
+  public void catchErrorsAndHandle() {
+    eval("x <- tryCatch( stop('foo') , error = function(e) 42)");
+
+    assertThat(eval("x"), equalTo(c(42)));
+  }
+  
+  @Test
+  public void signalErrorUnhandled() {
+    eval("x <- tryCatch( { signalCondition(simpleError('STOP')); 46 } )");
+    
+    assertThat(eval("x"), equalTo(c(46)));
+  }
+
+  @Test
+  public void signalErrorHandled() {
+    eval("x <- tryCatch( { signalCondition(simpleError('STOP')); 46 }, error = function(e) 42 )");
+
+    assertThat(eval("x"), equalTo(c(42)));
+  }
+  
+  @Test
+  public void caughtWarnings() {
+    eval("x <- tryCatch({ warning('foo'); 'not caught' }, warning = function(e) e)");
+    
+    assertThat(eval("class(x)"), equalTo(c("simpleWarning", "warning", "condition")));
+    assertThat(eval("x$message"), equalTo(c("foo")));
+    assertThat(eval("x$call[[1]]"), equalTo(symbol("doTryCatch")));
+  }
+  
+  @Test
+  public void namedElipses() {
+    eval("g <- function(...) list(...) ");
+    eval("f <- function(...) g(...)");
+    
+    eval(" x <- f(...=1, 2) ");
+    
+    assertThat(eval("x"), equalTo(list(1d, 2d)));
+    assertThat(eval("names(x)"), equalTo(c("...", "")));
+  }
+
+  @Test
+  public void elipsesAsArg() {
+    eval("g <- function(...) list(...) ");
+    eval("f <- function(...) g(...)");
+    
+    eval("f(a=1,2)");
+  }
+  
+  
+  @Test
+  public void namedEllipsesToBuiltin() {
+    ListVector x = (ListVector) eval("list(... = 1, b = 2, 3) ");
+    
+    assertThat(x.length(), equalTo(3));
+    assertThat(x.getNames().getElementAsString(0), equalTo("..."));
+    assertThat(x.getNames().getElementAsString(1), equalTo("b"));
+
+  }
+  
+  @Test
+  public void repromisedNotMissing() {
+    
+    eval("`f<-` <- function(lhs, value) missing(value)");
+    eval("x <- 1");
+    eval("y <- 2");
+    eval("f(x) <- y"); 
+    assertThat(eval("x"), equalTo(c(false)));
+  }
+
+  @Test
+  public void repromisedMissing() {
+
+    eval("`f<-` <- function(lhs, value) missing(value)");
+    eval("g <- function(y=1) { x<-1; f(x) <- y; x; }");
+    assertThat(eval("g()"), equalTo(c(false)));
+  }
+  
+  @Test
+  public void missingEvaluatedPromise() {
+    
+    eval("g <- function(y=1) { y+1; missing(y); }");
+    assertThat(eval("g()"), equalTo(c(true)));  
+  }
+  
+  @Test
+  public void missingGroupDispatch() {
+    eval("`+.foo` <- function(x, y) { missing(y) }");
+    eval("f <- function(a) { a+a } ");
+    eval("x <- 1");
+    eval("class(x) <- 'foo'");
+    assertThat(eval("f(x)"), equalTo(c(false)));
+  }
+
+  @Test
+  public void missingnessDoesNotPropogate() {
+    eval("g <- function(y = NULL) missing(y)");
+    eval("f <- function(x = NULL) g(y = x)");
+    assertThat(eval("f()"), equalTo(c(false)));
+  }
 }
 

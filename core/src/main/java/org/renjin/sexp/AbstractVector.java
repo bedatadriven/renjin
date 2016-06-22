@@ -21,8 +21,6 @@
 
 package org.renjin.sexp;
 
-import org.renjin.eval.Context;
-
 abstract class AbstractVector extends AbstractSEXP implements Vector {
 
   protected AbstractVector(SEXP tag, AttributeMap attributes) {
@@ -41,6 +39,13 @@ abstract class AbstractVector extends AbstractSEXP implements Vector {
     return getElementAsRawLogical(index) == 1;
   }
 
+
+  @Override
+  public boolean isElementNaN(int index) {
+    return isElementNA(index);
+  }
+
+
   @Override
   public byte getElementAsByte(int index) {
     int value = getElementAsInt(index);
@@ -51,13 +56,23 @@ abstract class AbstractVector extends AbstractSEXP implements Vector {
     }
   }
 
-  public int getComputationDepth() {
-    return 0;
+  @Override
+  public Builder newCopyBuilder(Type replacementType) {
+    if(getVectorType().isWiderThanOrEqualTo(replacementType)) {
+      return newCopyBuilder();
+    } else {
+      Builder result;
+      result = replacementType.newBuilderWithInitialSize(length());
+      result.copyAttributesFrom(this);
+      for(int i=0;i!=length();++i) {
+        result.setFrom(i, this, i);
+      }
+      return result;
+    }
   }
 
-  @Override
-  public SEXP evaluate(Context context, Environment rho) {
-    return this;
+  public int getComputationDepth() {
+    return 0;
   }
 
   abstract static class AbstractBuilder<S extends SEXP> implements Builder<S> {
@@ -77,6 +92,12 @@ abstract class AbstractVector extends AbstractSEXP implements Vector {
     }
 
     @Override
+    public Builder removeAttribute(Symbol name) {
+      attributes.remove(name);
+      return this;
+    }
+
+    @Override
     public Builder setDim(int row, int col) {
       attributes.setDim(row, col);
       return this;
@@ -88,30 +109,23 @@ abstract class AbstractVector extends AbstractSEXP implements Vector {
     }
 
     @Override
-    public void setAttributes(AttributeMap attributes) {
-      this.attributes.addAllFrom(attributes);
-    }
-
-
-    @Override
     public Builder copyAttributesFrom(SEXP exp) {
       attributes.addAllFrom(exp.getAttributes());
       return this;
     }
-    
-    /**
-     * Copies "special" attributes: 
-     * @param exp
-     * @return
-     */
+
     @Override
-    public Builder copySomeAttributesFrom(SEXP exp, Symbol... toCopy) {
-      for(int i=0;i!=toCopy.length;++i) {
-        attributes.addIfNotNull(exp.getAttributes(), toCopy[i]);
-      }
+    public Builder combineAttributesFrom(SEXP vector) {
+      attributes.combineFrom(vector.getAttributes());
       return this;
     }
-    
+
+    @Override
+    public Builder combineStructuralAttributesFrom(SEXP vector) {
+      attributes.combineStructuralFrom(vector.getAttributes());
+      return this;
+    }
+
 
     @Override
     public Builder addNA() {

@@ -17,6 +17,9 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * TODO: move 'edited y hand' parts in helpers and .y file.
+ *  Here is code not only generated, but added by hands. [need to be fixed]
  */
 
 package org.renjin.parser;
@@ -24,7 +27,6 @@ package org.renjin.parser;
 import com.google.common.collect.Lists;
 import com.google.common.io.CharSource;
 import com.google.common.io.CharStreams;
-import com.google.common.io.Closeables;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
@@ -63,15 +65,13 @@ import static org.renjin.util.CDefines.*;
  */
 public class RParser {
 
-  public static ExpressionVector parseSource(Reader reader) throws IOException {
- 
+  public static ExpressionVector parseSource(Reader reader, SEXP srcFile) throws IOException {
     ParseState parseState = new ParseState();
+    parseState.srcFile = srcFile;
     ParseOptions parseOptions = ParseOptions.defaults();
     RLexer lexer = new RLexer(parseOptions, parseState, reader);
     RParser parser = new RParser(parseOptions, parseState, lexer);
-
     return parser.parseAll();
-    
   }
 
   /**
@@ -80,30 +80,53 @@ public class RParser {
    * @return
    * @throws IOException
    */
-  public static ExpressionVector parseAllSource(Reader reader) throws IOException {
+  public static ExpressionVector parseAllSource(Reader reader, SEXP srcFile) throws IOException {
     String source = CharStreams.toString(reader);
     if(!source.endsWith("\n")) {
       source = source + "\n";
     }
-    return parseSource(source);
+    return parseSource(source, srcFile);
   }
   
+  public static ExpressionVector parseAllSource(Reader reader) throws IOException {
+    return parseAllSource(reader, new CHARSEXP("<text>"));
+  }
 
-  public static ExpressionVector parseSource(CharSource source) throws IOException {
-    Reader reader = source.openStream();
-    try {
-      return parseAllSource(reader);
-    } finally {
-      Closeables.closeQuietly(reader);
+
+  public static ExpressionVector parseSource(Reader reader) throws IOException {
+    return parseAllSource(reader);
+  }
+
+
+  public static ExpressionVector parseSource(CharSource source, SEXP srcFile) throws IOException {
+    try(Reader reader = source.openStream()) {
+      return parseAllSource(reader, srcFile);
     }
   }
   
   public static ExpressionVector parseSource(String source) {
     try {
-      return parseSource(new StringReader(source));
+      return parseAllSource(new StringReader(source));
+    } catch (IOException e) {
+      throw new RuntimeException(e); // shouldn't happen when reading from a string
+    }
+  }
+  
+  public static ExpressionVector parseSource(String source, SEXP srcFile) {
+    try {
+      return parseSource(new StringReader(source), srcFile);
     } catch (IOException e) {
       throw new RuntimeException(e); // shouldn't happen when reading from a string.
     }
+  }
+
+  public static ExpressionVector parseSource(String source, String srcFile) {
+     return parseSource(source, new CHARSEXP(srcFile));
+  }
+
+
+  public static ExpressionVector parseInlineSource(String source) {
+     return parseSource(source, new CHARSEXP("<text>"));
   }
 
   private ExpressionVector parseAll() throws IOException {
@@ -113,7 +136,7 @@ public class RParser {
       
       // check to see if we are at the end of the file
       if(yylexer.isEof()) {
-        return new ExpressionVector(exprList);
+        return attachSrcrefs(new ExpressionVector(exprList), state.srcFile);
       }
 
       if (!parse()) {
@@ -135,7 +158,7 @@ public class RParser {
       case ERROR:
         throw new ParseException(getResultStatus().toString());
       case EOF:
-        return new ExpressionVector(exprList);
+        return attachSrcrefs(new ExpressionVector(exprList), state.srcFile);
       }
     }
   }
@@ -150,6 +173,7 @@ public class RParser {
 
   private ParseState state;
   private ParseOptions options;
+  
 
   /**
    * Version number for the Bison executable that generated this parser.
@@ -169,7 +193,19 @@ public class RParser {
   private StatusResult extendedParseResult;
 
   private SEXP result;
+ 
+  /**
+   * list of srcRefs (analog of SrcRefs in original R code (src/main/gram.y)
+   * each element contains SrcRef SEXP. When parsing list of expressions, 
+   * src-refs of list element collected here, than attachSrcRef attach those 
+   * objects.
+   */
+  private SEXP srcRefs = NewList();
 
+  /**
+   * Unused, here is too keep 'REPROTECT(..)' calls the same, as in original R code (in C).
+   */
+  private int srindex = 0; 
 
   /**
    * A class defining a pair of positions.  Positions, defined by the
@@ -216,10 +252,11 @@ public class RParser {
      * method.
      */
     public String toString() {
-      if (begin == null && end == null || (begin != null && begin.equals(end)))
+      if (begin == null && end == null || (begin != null && begin.equals(end))) {
         return "" + toString(begin);
-      else
+      } else {
         return "" + toString(begin) + "-" + toString(end);
+      }
     }
 
     private String toString(Position p) {
@@ -390,10 +427,11 @@ public class RParser {
 
 
   private Location yylloc(YYStack rhs, int n) {
-    if (n > 0)
+    if (n > 0) {
       return new Location(rhs.locationAt(1).begin, rhs.locationAt(n).end);
-    else
+    } else {
       return new Location(rhs.locationAt(0).end);
+    }
   }
 
   /**
@@ -524,8 +562,9 @@ public class RParser {
   }
 
   protected final void yycdebug(String s) {
-    if (yydebug > 0)
+    if (yydebug > 0) {
       yyDebugStream.println(s);
+    }
   }
 
   private final class YYStack {
@@ -592,6 +631,7 @@ public class RParser {
       for (int i = 0; i < height; i++) {
         out.print(' ');
         out.print(stateStack[i]);
+        out.print( "("+locStack[i]+")");
       }
       out.println();
     }
@@ -649,10 +689,11 @@ public class RParser {
        Otherwise, the following line sets YYVAL to garbage.
        This behavior is undocumented and Bison
        users should not rely upon it.  */
-    if (yylen > 0)
+    if (yylen > 0) {
       yyval = yystack.valueAt(yylen - 1);
-    else
+    } else {
       yyval = yystack.valueAt(0);
+    }
 
     yy_reduce_print(yyn, yystack);
 
@@ -1113,7 +1154,7 @@ public class RParser {
 
 /* Line 354 of lalr1.java  */
 /* Line 300 of "gram.y"  */ {
-          yyval = xxdefun(((yystack.valueAt(6 - (1)))), ((yystack.valueAt(6 - (3)))), ((yystack.valueAt(6 - (6)))));
+          yyval = xxdefun(((yystack.valueAt(6 - (1)))), ((yystack.valueAt(6 - (3)))), ((yystack.valueAt(6 - (6)))),yystack.locationAt(0));
         }
         ;
         break;
@@ -1651,10 +1692,11 @@ public class RParser {
     yyn = yyr1_[yyn];
     int yystate = yypgoto_[yyn - yyntokens_] + yystack.stateAt(0);
     if (0 <= yystate && yystate <= yylast_
-        && yycheck_[yystate] == yystack.stateAt(0))
+        && yycheck_[yystate] == yystack.stateAt(0)) {
       yystate = yytable_[yystate];
-    else
+    } else {
       yystate = yydefgoto_[yyn - yyntokens_];
+    }
 
     yystack.push(yystate, yyval, yyloc);
     return YYNEWSTATE;
@@ -1670,15 +1712,16 @@ public class RParser {
     if (yystr.charAt(0) == '"') {
       StringBuffer yyr = new StringBuffer();
       strip_quotes:
-      for (int i = 1; i < yystr.length(); i++)
+      for (int i = 1; i < yystr.length(); i++) {
         switch (yystr.charAt(i)) {
           case '\'':
           case ',':
             break strip_quotes;
 
           case '\\':
-            if (yystr.charAt(++i) != '\\')
+            if (yystr.charAt(++i) != '\\') {
               break strip_quotes;
+            }
             /* Fall through.  */
           default:
             yyr.append(yystr.charAt(i));
@@ -1687,8 +1730,10 @@ public class RParser {
           case '"':
             return yyr.toString();
         }
-    } else if (yystr.equals("$end"))
+      }
+    } else if (yystr.equals("$end")) {
       return "end of input";
+    }
 
     return yystr;
   }
@@ -1699,11 +1744,12 @@ public class RParser {
 
   private void yy_symbol_print(String s, int yytype,
                                Object yyvaluep, Object yylocationp) {
-    if (yydebug > 0)
+    if (yydebug > 0) {
       yycdebug(s + (yytype < yyntokens_ ? " token " : " nterm ")
           + yytname_[yytype] + " ("
           + yylocationp + ": "
           + (yyvaluep == null ? "(null)" : yyvaluep.toString()) + ")");
+    }
   }
 
   /**
@@ -1731,7 +1777,7 @@ public class RParser {
     Location yyerrloc = null;
 
     /// Location of the lookahead.
-    Location yylloc = new Location(null, null);
+    Location yylloc = new Location(new Position());
 
     /// @$.
     Location yyloc;
@@ -1749,18 +1795,20 @@ public class RParser {
     yystack.push(yystate, yylval, yylloc);
 
     int label = YYNEWSTATE;
-    for (; ;)
+    for (; ;) {
       switch (label) {
         /* New state.  Unlike in the C/C++ skeletons, the state is already
-	   pushed when we come here.  */
+     pushed when we come here.  */
         case YYNEWSTATE:
           yycdebug("Entering state " + yystate + "\n");
-          if (yydebug > 0)
+          if (yydebug > 0) {
             yystack.print(yyDebugStream);
+          }
 
           /* Accept?  */
-          if (yystate == yyfinal_)
+          if (yystate == yyfinal_) {
             return true;
+          }
 
           /* Take a decision.  First try without lookahead.  */
           yyn = yypact_[yystate];
@@ -1792,14 +1840,12 @@ public class RParser {
           /* If the proper action on seeing token YYTOKEN is to reduce or to
    detect an error, take that action.  */
           yyn += yytoken;
-          if (yyn < 0 || yylast_ < yyn || yycheck_[yyn] != yytoken)
+          if (yyn < 0 || yylast_ < yyn || yycheck_[yyn] != yytoken) {
             label = YYDEFAULT;
-
-            /* <= 0 means reduce or error.  */
-          else if ((yyn = yytable_[yyn]) <= 0) {
-            if (yyn == 0 || yyn == yytable_ninf_)
+          }/* <= 0 means reduce or error.  */ else if ((yyn = yytable_[yyn]) <= 0) {
+            if (yyn == 0 || yyn == yytable_ninf_) {
               label = YYFAIL;
-            else {
+            } else {
               yyn = -yyn;
               label = YYREDUCE;
             }
@@ -1813,8 +1859,9 @@ public class RParser {
 
             /* Count tokens shifted since error; after three, turn off error
                status.  */
-            if (yyerrstatus_ > 0)
+            if (yyerrstatus_ > 0) {
               --yyerrstatus_;
+            }
 
             yystate = yyn;
             yystack.push(yystate, yylval, yylloc);
@@ -1827,10 +1874,11 @@ public class RParser {
         `-----------------------------------------------------------*/
         case YYDEFAULT:
           yyn = yydefact_[yystate];
-          if (yyn == 0)
+          if (yyn == 0) {
             label = YYFAIL;
-          else
+          } else {
             label = YYREDUCE;
+          }
           break;
 
         /*-----------------------------.
@@ -1859,10 +1907,12 @@ public class RParser {
 
             if (yychar <= EOF) {
               /* Return failure if at end of input.  */
-              if (yychar == EOF)
+              if (yychar == EOF) {
                 return false;
-            } else
+              }
+            } else {
               yychar = yyempty_;
+            }
           }
 
           /* Else will try to reuse lookahead token after shifting the error
@@ -1890,26 +1940,29 @@ public class RParser {
         case YYERRLAB1:
           yyerrstatus_ = 3;  /* Each real token shifted decrements this.  */
 
-          for (; ;) {
+          for (; ; ) {
             yyn = yypact_[yystate];
             if (yyn != yypact_ninf_) {
               yyn += yyterror_;
               if (0 <= yyn && yyn <= yylast_ && yycheck_[yyn] == yyterror_) {
                 yyn = yytable_[yyn];
-                if (0 < yyn)
+                if (0 < yyn) {
                   break;
+                }
               }
             }
 
             /* Pop the current state because it cannot handle the error token.  */
-            if (yystack.height == 1)
+            if (yystack.height == 1) {
               return false;
+            }
 
             yyerrloc = yystack.locationAt(0);
             yystack.pop();
             yystate = yystack.stateAt(0);
-            if (yydebug > 0)
+            if (yydebug > 0) {
               yystack.print(yyDebugStream);
+            }
           }
 
 
@@ -1936,6 +1989,7 @@ public class RParser {
         case YYABORT:
           return false;
       }
+    }
   }
 
   // Generate an error message.
@@ -1954,9 +2008,11 @@ public class RParser {
         int yychecklim = yylast_ - yyn + 1;
         int yyxend = yychecklim < yyntokens_ ? yychecklim : yyntokens_;
         int count = 0;
-        for (int x = yyxbegin; x < yyxend; ++x)
-          if (yycheck_[x + yyn] == x && x != yyterror_)
+        for (int x = yyxbegin; x < yyxend; ++x) {
+          if (yycheck_[x + yyn] == x && x != yyterror_) {
             ++count;
+          }
+        }
 
         // FIXME: This method of building the message is not compatible
         // with internationalization.
@@ -1964,11 +2020,12 @@ public class RParser {
         res.append(yytnamerr_(yytname_[tok]));
         if (count < 5) {
           count = 0;
-          for (int x = yyxbegin; x < yyxend; ++x)
+          for (int x = yyxbegin; x < yyxend; ++x) {
             if (yycheck_[x + yyn] == x && x != yyterror_) {
               res.append(count++ == 0 ? ", expecting " : " or ");
               res.append(yytnamerr_(yytname_[x]));
             }
+          }
         }
         return res.toString();
       }
@@ -2355,8 +2412,9 @@ public class RParser {
   // Report on the debug stream that the rule yyrule is going to be reduced.
 
   private void yy_reduce_print(int yyrule, YYStack yystack) {
-    if (yydebug == 0)
+    if (yydebug == 0) {
       return;
+    }
 
     int yylno = yyrline_[yyrule];
     int yynrhs = yyr2_[yyrule];
@@ -2365,11 +2423,12 @@ public class RParser {
         + " (line " + yylno + "), ");
 
     /* The symbols being reduced.  */
-    for (int yyi = 0; yyi < yynrhs; yyi++)
+    for (int yyi = 0; yyi < yynrhs; yyi++) {
       yy_symbol_print("   $" + (yyi + 1) + " =",
           yyrhs_[yyprhs_[yyrule] + yyi],
           ((yystack.valueAt(yynrhs - (yyi + 1)))),
           yystack.locationAt(yynrhs - (yyi + 1)));
+    }
   }
 
   /* YYTRANSLATE(YYLEX) -- Bison symbol number corresponding to YYLEX.  */
@@ -2408,10 +2467,11 @@ public class RParser {
       };
 
   private static final byte yytranslate_(int t) {
-    if (t >= 0 && t <= yyuser_token_number_max_)
+    if (t >= 0 && t <= yyuser_token_number_max_) {
       return yytranslate_table_[t];
-    else
+    } else {
       return yyundef_token_;
+    }
   }
 
   private static final int yylast_ = 709;
@@ -2453,7 +2513,11 @@ public class RParser {
     values[2] = lloc.end.line;
     values[3] = lloc.end.charIndex;
     values[4] = lloc.begin.column;
-    values[6] = lloc.end.column;
+    values[5] = lloc.end.column;
+
+    if (srcfile==null) {
+        srcfile=Null.INSTANCE;
+    }
 
     PairList attributes = PairList.Node.newBuilder()
         .add(Symbols.SRC_FILE, srcfile)
@@ -2463,29 +2527,45 @@ public class RParser {
     return new IntArrayVector(values, AttributeMap.fromPairList(attributes));
   }
 
-  static SEXP attachSrcrefs(SEXP val, SEXP srcfile) {
-//    SEXP t, srval;
+  <T extends AbstractSEXP> T attachSrcrefs(T val, SEXP srcfile) {
+// Disbabling for the moment
+// The format really doesn't seem to match GNU R and causes regressions 
+// in some packages.
+//    SEXP t;
+//    Vector.Builder srval;
 //    int n;
 //
 //    PROTECT(val);
-//    t = CDR(SrcRefs);
-//    srval = allocVector(VECSXP, length(t));
-//    for (n = 0 ; n < LENGTH(srval) ; n++, t = CDR(t))
-//      SET_VECTOR_ELT(srval, n, CAR(t));
-//    setAttrib(val, R_SrcrefSymbol, srval);
-//    setAttrib(val, R_SrcfileSymbol, srcfile);
+//    t = CDR(srcRefs);
+//    int tlen = length(t);
+//    srval = allocVector(VECSXP, tlen);
+//    for (n = 0 ; n < tlen; n++, t = CDR(t)) {
+//       SET_VECTOR_ELT(srval, n, CAR(t));
+//    }
+//    //setAttrib(val, R_SrcrefSymbol, srval);
+//    //setAttrib(val, R_SrcfileSymbol, srcfile);
+//    val.unsafeSetAttributes(
+//        AttributeMap.newBuilder().
+//            set(R_SrcrefSymbol, srval.build()).
+//            set(R_SrcfileSymbol, srcfile).
+//            build()
+//    );
 //    UNPROTECT(1);
-//    SrcRefs = NULL;
+//    srcRefs = NewList();
     return val;
   }
 
   private int xxvalue(SEXP v, StatusResult result, Location lloc) {
-//    if (k > 2) {
-//      // TODO: srcrefs
-////      if (SrcRefState.keepSrcRefs)
-////        REPROTECT(SrcRefs = GrowList(SrcRefs, makeSrcref(lloc, SrcRefState.SrcFile)), srindex);
-//      UNPROTECT_PTR(v);
-//    }
+    if (result != StatusResult.EMPTY && result != StatusResult.OK) {
+       if (state.keepSrcRefs) {
+         if (lloc == null) {
+            lloc = new Location(yylexer.getStartPos(),yylexer.getEndPos());
+         }
+         SEXP srcRef = makeSrcref(lloc, state.srcFile);
+         REPROTECT(srcRefs = GrowList(srcRefs, srcRef), srindex);
+       }
+       UNPROTECT_PTR(v);
+    }
     this.result = v;
     this.extendedParseResult = result;
     return YYACCEPT;
@@ -2500,19 +2580,21 @@ public class RParser {
   private SEXP xxfirstformal0(SEXP sym) {
     SEXP ans;
     UNPROTECT_PTR(sym);
-    if (options.isGenerateCode())
+    if (options.isGenerateCode()) {
       PROTECT(ans = FirstArg(R_MissingArg, sym));
-    else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     return ans;
   }
 
   private SEXP xxfirstformal1(SEXP sym, SEXP expr) {
     SEXP ans;
-    if (options.isGenerateCode())
+    if (options.isGenerateCode()) {
       PROTECT(ans = FirstArg(expr, sym));
-    else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     UNPROTECT_PTR(expr);
     UNPROTECT_PTR(sym);
     return ans;
@@ -2523,8 +2605,9 @@ public class RParser {
     if (options.isGenerateCode()) {
       CheckFormalArgs(formlist, sym, lloc);
       PROTECT(ans = NextArg(formlist, R_MissingArg, sym));
-    } else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     UNPROTECT_PTR(sym);
     UNPROTECT_PTR(formlist);
     return ans;
@@ -2535,8 +2618,9 @@ public class RParser {
     if (options.isGenerateCode()) {
       CheckFormalArgs(formlist, sym, lloc);
       PROTECT(ans = NextArg(formlist, expr, sym));
-    } else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     UNPROTECT_PTR(expr);
     UNPROTECT_PTR(sym);
     UNPROTECT_PTR(formlist);
@@ -2546,30 +2630,36 @@ public class RParser {
   private SEXP xxexprlist0() {
     SEXP ans;
     if (options.isGenerateCode()) {
-      PROTECT(ans = NewList());
-      // TODO: srcrefs
-//      if (state.keepSrcRefs) {
-//        setAttrib(ans, R_SrcrefSymbol, SrcRefs);
-//        REPROTECT(SrcRefs = NewList(), srindex);
-//      }
-    } else
+      if (state.keepSrcRefs) {
+        //setAttrib(ans, R_SrcrefSymbol, srcRefs);
+        PROTECT(ans = NewList(
+                          AttributeMap.newBuilder().set(R_SrcrefSymbol,srcRefs).build()
+               )      );
+        REPROTECT(srcRefs = NewList(), srindex);
+      } else {
+        PROTECT(ans = NewList());
+      }
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     return ans;
   }
 
   private SEXP xxexprlist1(SEXP expr, Location lloc) {
     SEXP ans, tmp;
     if (options.isGenerateCode()) {
-      PROTECT(tmp = NewList());
-//      if (state.ParseState.keepSrcRefs) {
-//        setAttrib(tmp, R_SrcrefSymbol, SrcRefs);
-//        REPROTECT(SrcRefs = NewList(), srindex);
-//        REPROTECT(SrcRefs = GrowList(SrcRefs, makeSrcref(lloc, SrcRefState.SrcFile)), srindex);
-//      }
+      AttributeMap attrs = AttributeMap.EMPTY;
+      if (state.keepSrcRefs) {
+         attrs = AttributeMap.newBuilder().set(R_SrcrefSymbol, srcRefs).build();
+         REPROTECT(srcRefs = NewList(), srindex);
+         REPROTECT(srcRefs = GrowList(srcRefs, makeSrcref(lloc, state.srcFile)), srindex);
+      } 
+      PROTECT(tmp = NewList(attrs));
       PROTECT(ans = GrowList(tmp, expr));
       UNPROTECT_PTR(tmp);
-    } else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     UNPROTECT_PTR(expr);
     return ans;
   }
@@ -2577,11 +2667,13 @@ public class RParser {
   private SEXP xxexprlist2(SEXP exprlist, SEXP expr, Location lloc) {
     SEXP ans;
     if (options.isGenerateCode()) {
-//      if (SrcRefState.keepSrcRefs)
-//        REPROTECT(SrcRefs = GrowList(SrcRefs, makeSrcref(lloc, SrcRefState.SrcFile)), srindex);
+      if (state.keepSrcRefs) {
+        REPROTECT(srcRefs = GrowList(srcRefs, makeSrcref(lloc, state.srcFile)), srindex);
+      }
       PROTECT(ans = GrowList(exprlist, expr));
-    } else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     UNPROTECT_PTR(expr);
     UNPROTECT_PTR(exprlist);
     return ans;
@@ -2589,39 +2681,43 @@ public class RParser {
 
   private SEXP xxsub0() {
     SEXP ans;
-    if (options.isGenerateCode())
+    if (options.isGenerateCode()) {
       PROTECT(ans = lang2(R_MissingArg, R_NilValue));
-    else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     return ans;
   }
 
   private SEXP xxsub1(SEXP expr, Location lloc) {
     SEXP ans;
-    if (options.isGenerateCode())
+    if (options.isGenerateCode()) {
       PROTECT(ans = TagArg(expr, R_NilValue, lloc));
-    else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     UNPROTECT_PTR(expr);
     return ans;
   }
 
   private SEXP xxsymsub0(SEXP sym, Location lloc) {
     SEXP ans;
-    if (options.isGenerateCode())
+    if (options.isGenerateCode()) {
       PROTECT(ans = TagArg(R_MissingArg, sym, lloc));
-    else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     UNPROTECT_PTR(sym);
     return ans;
   }
 
   private SEXP xxsymsub1(SEXP sym, SEXP expr, Location lloc) {
     SEXP ans;
-    if (options.isGenerateCode())
+    if (options.isGenerateCode()) {
       PROTECT(ans = TagArg(expr, sym, lloc));
-    else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     UNPROTECT_PTR(expr);
     UNPROTECT_PTR(sym);
     return ans;
@@ -2630,20 +2726,22 @@ public class RParser {
   private SEXP xxnullsub0(Location lloc) {
     SEXP ans;
     UNPROTECT_PTR(R_NilValue);
-    if (options.isGenerateCode())
+    if (options.isGenerateCode()) {
       PROTECT(ans = TagArg(R_MissingArg, Symbol.get("NULL"), lloc));
-    else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     return ans;
   }
 
   private SEXP xxnullsub1(SEXP expr, Location lloc) {
     SEXP ans = Symbol.get("NULL");
     UNPROTECT_PTR(R_NilValue);
-    if (options.isGenerateCode())
+    if (options.isGenerateCode()) {
       PROTECT(ans = TagArg(expr, ans, lloc));
-    else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     UNPROTECT_PTR(expr);
     return ans;
   }
@@ -2651,20 +2749,22 @@ public class RParser {
 
   private SEXP xxsublist1(SEXP sub) {
     SEXP ans;
-    if (options.isGenerateCode())
+    if (options.isGenerateCode()) {
       PROTECT(ans = FirstArg(CAR(sub), CADR(sub)));
-    else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     UNPROTECT_PTR(sub);
     return ans;
   }
 
   private SEXP xxsublist2(SEXP sublist, SEXP sub) {
     SEXP ans;
-    if (options.isGenerateCode())
+    if (options.isGenerateCode()) {
       PROTECT(ans = NextArg(sublist, CAR(sub), CADR(sub)));
-    else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     UNPROTECT_PTR(sub);
     UNPROTECT_PTR(sublist);
     return ans;
@@ -2682,10 +2782,11 @@ public class RParser {
 
   private SEXP xxif(SEXP ifsym, SEXP cond, SEXP expr) {
     SEXP ans;
-    if (options.isGenerateCode())
+    if (options.isGenerateCode()) {
       PROTECT(ans = lang3(ifsym, cond, expr));
-    else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     UNPROTECT_PTR(expr);
     UNPROTECT_PTR(cond);
     return ans;
@@ -2693,10 +2794,11 @@ public class RParser {
 
   private SEXP xxifelse(SEXP ifsym, SEXP cond, SEXP ifexpr, SEXP elseexpr) {
     SEXP ans;
-    if (options.isGenerateCode())
+    if (options.isGenerateCode()) {
       PROTECT(ans = lang4(ifsym, cond, ifexpr, elseexpr));
-    else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     UNPROTECT_PTR(elseexpr);
     UNPROTECT_PTR(ifexpr);
     UNPROTECT_PTR(cond);
@@ -2706,10 +2808,11 @@ public class RParser {
   private SEXP xxforcond(SEXP sym, SEXP expr) {
     SEXP ans;
     state.setEatLines(true);
-    if (options.isGenerateCode())
+    if (options.isGenerateCode()) {
       PROTECT(ans = lang2(sym, expr));
-    else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     UNPROTECT_PTR(expr);
     UNPROTECT_PTR(sym);
     return ans;
@@ -2717,10 +2820,11 @@ public class RParser {
 
   private SEXP xxfor(SEXP forsym, SEXP forcond, SEXP body) {
     SEXP ans;
-    if (options.isGenerateCode())
+    if (options.isGenerateCode()) {
       PROTECT(ans = lang4(forsym, CAR(forcond), CAR(CDR(forcond)), body));
-    else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     UNPROTECT_PTR(body);
     UNPROTECT_PTR(forcond);
     return ans;
@@ -2728,10 +2832,11 @@ public class RParser {
 
   private SEXP xxwhile(SEXP whilesym, SEXP cond, SEXP body) {
     SEXP ans;
-    if (options.isGenerateCode())
+    if (options.isGenerateCode()) {
       PROTECT(ans = lang3(whilesym, cond, body));
-    else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     UNPROTECT_PTR(body);
     UNPROTECT_PTR(cond);
     return ans;
@@ -2739,32 +2844,36 @@ public class RParser {
 
   private SEXP xxrepeat(SEXP repeatsym, SEXP body) {
     SEXP ans;
-    if (options.isGenerateCode())
+    if (options.isGenerateCode()) {
       PROTECT(ans = lang2(repeatsym, body));
-    else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     UNPROTECT_PTR(body);
     return ans;
   }
 
   private SEXP xxnxtbrk(SEXP keyword) {
-    if (options.isGenerateCode())
+    if (options.isGenerateCode()) {
       PROTECT(keyword = lang1(keyword));
-    else
+    } else {
       PROTECT(keyword = R_NilValue);
+    }
     return keyword;
   }
 
   private SEXP xxfuncall(SEXP expr, SEXP args) {
     SEXP ans, sav_expr = expr;
     if (options.isGenerateCode()) {
-      if (isString(expr))
+      if (isString(expr)) {
         expr = Symbol.get(CHAR(STRING_ELT(expr, 0)));
+      }
       PROTECT(expr);
-      if (length(CDR(args)) == 1 && CADR(args) == R_MissingArg && TAG(CDR(args)) == R_NilValue)
+      if (length(CDR(args)) == 1 && CADR(args) == R_MissingArg && TAG(CDR(args)) == R_NilValue) {
         ans = lang1(expr);
-      else
+      } else {
         ans = LCONS(expr, CDR(args));
+      }
       UNPROTECT(1);
       PROTECT(ans);
     } else {
@@ -2776,66 +2885,26 @@ public class RParser {
   }
 
 
-  private SEXP xxdefun(SEXP fname, SEXP formals, SEXP body) {
+  private SEXP xxdefun(SEXP fname, SEXP formals, SEXP body, Location loc) {
 
     SEXP ans;
     SEXP source;
 
     if (options.isGenerateCode()) {
-      //if (!state.KeepSource)
-      PROTECT(source = R_NilValue);
-//      else {
-//        unsigned char *p, *p0, *end;
-//        int lines = 0, nc;
-//
-//        /*  If the function ends with an endline comment,  e.g.
-//
-//        function()
-//            print("Hey") # This comment
-//
-//        we need some special handling to keep it from getting
-//        chopped off. Normally, we will have read one token too
-//        far, which is what xxcharcount and xxcharsave keeps
-//        track of.
-//
-//          */
-//        end = SourcePtr - (xxcharcount - xxcharsave);
-//        /* FIXME: this should be whitespace */
-//        for (p = end ; p < SourcePtr && (*p == ' ' || *p == '\t') ; p++)
-//        ;
-//        if (*p == '#') {
-//          while (p < SourcePtr && *p != '\n')
-//          p++;
-//          end = p;
-//        }
-//
-//        for (p = FunctionStart[FunctionLevel]; p < end ; p++)
-//          if (*p == '\n') lines++;
-//        if ( *(end - 1) != '\n' ) lines++;
-//        PROTECT(source = allocVector(STRSXP, lines));
-//        p0 = FunctionStart[FunctionLevel];
-//        lines = 0;
-//        for (p = FunctionStart[FunctionLevel]; p < end ; p++)
-//          if (*p == '\n' || p == end - 1) {
-//          cetype_t enc = CE_NATIVE;
-//          nc = p - p0;
-//          if (*p != '\n') nc++;
-//          if(known_to_be_latin1) enc = CE_LATIN1;
-//          else if(known_to_be_utf8) enc = CE_UTF8;
-//          SET_STRING_ELT(source, lines++,
-//              mkCharLenCE((char *)p0, nc, enc));
-//          p0 = p + 1;
-//        }
-//        /* PrintValue(source); */
-//      }
+      if (!state.keepSrcRefs) {
+         PROTECT(source = R_NilValue);
+      } else {
+         source = makeSrcref(loc,state.srcFile);
+      }
       if(formals == Null.INSTANCE) {
         ans = lang4(fname, Null.INSTANCE, body, source);
       } else {
          PROTECT(ans = lang4(fname, CDR(formals), body, source));
       }
       UNPROTECT_PTR(source);
-    } else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     UNPROTECT_PTR(body);
     UNPROTECT_PTR(formals);
     state.getFunctionSource().ascend();
@@ -2844,10 +2913,11 @@ public class RParser {
 
   private SEXP xxunary(SEXP op, SEXP arg) {
     SEXP ans;
-    if (options.isGenerateCode())
+    if (options.isGenerateCode()) {
       PROTECT(ans = lang2(op, arg));
-    else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     UNPROTECT_PTR(arg);
     return ans;
   }
@@ -2856,8 +2926,9 @@ public class RParser {
     SEXP ans;
     if (options.isGenerateCode()) {
       PROTECT(ans = lang3(n1, n2, n3));
-    } else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     UNPROTECT_PTR(n2);
     UNPROTECT_PTR(n3);
     return ans;
@@ -2865,10 +2936,11 @@ public class RParser {
 
   private SEXP xxparen(SEXP n1, SEXP n2) {
     SEXP ans;
-    if (options.isGenerateCode())
+    if (options.isGenerateCode()) {
       PROTECT(ans = lang2(n1, n2));
-    else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     UNPROTECT_PTR(n2);
     return ans;
   }
@@ -2880,10 +2952,11 @@ public class RParser {
 
   private SEXP xxsubscript(SEXP a1, SEXP a2, SEXP a3) {
     SEXP ans;
-    if (options.isGenerateCode())
+    if (options.isGenerateCode()) {
       PROTECT(ans = LCONS(a2, CONS(a1, CDR(a3))));
-    else
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     UNPROTECT_PTR(a3);
     UNPROTECT_PTR(a1);
     return ans;
@@ -2895,21 +2968,29 @@ public class RParser {
 
     state.setEatLines(false);
     if (options.isGenerateCode()) {
+      SEXP prevA2 = a2;
       a2 = FunctionCall.fromListExp((PairList.Node) a2);
       SETCAR(a2, a1);
-//      if (SrcRefState.keepSrcRefs) {
-//        PROTECT(prevSrcrefs = getAttrib(a2, R_SrcrefSymbol));
-//        REPROTECT(SrcRefs = Insert(SrcRefs, makeSrcref(lloc, SrcRefState.SrcFile)), srindex);
-//        PROTECT(ans = attachSrcrefs(a2, SrcRefState.SrcFile));
-//        REPROTECT(SrcRefs = prevSrcrefs, srindex);
-//        /* SrcRefs got NAMED by being an attribute... */
-//        SET_NAMED(SrcRefs, 0);
-//        UNPROTECT_PTR(prevSrcrefs);
-//      }
-//      else
-      PROTECT(ans = a2);
-    } else
+      if (state.keepSrcRefs) {
+        PROTECT(prevSrcrefs = getAttrib(prevA2, R_SrcrefSymbol));
+        REPROTECT(srcRefs = Insert(srcRefs, makeSrcref(lloc, state.srcFile)), srindex);
+        PROTECT(ans = attachSrcrefs((PairList.Node)a2, state.srcFile));
+        if (isNull(prevSrcrefs)) {
+           prevSrcrefs = NewList();
+        }
+        REPROTECT(srcRefs = prevSrcrefs, srindex);
+        /* SrcRefs got NAMED by being an attribute... */
+        //  this is related to memory managing in R, in java gc is work of jvm, so ignore
+        //  named flags.
+        //SET_NAMED(srcRefs, 0);
+        UNPROTECT_PTR(prevSrcrefs);
+      }
+      else {
+        PROTECT(ans = a2);
+      }
+    } else {
       PROTECT(ans = R_NilValue);
+    }
     UNPROTECT_PTR(a2);
     return ans;
   }
@@ -2941,7 +3022,11 @@ public class RParser {
 /* Create a stretchy-list dotted pair */
 
   static SEXP NewList() {
-    SEXP s = CONS(R_NilValue, R_NilValue);
+    return NewList(AttributeMap.EMPTY);
+  }
+
+  static SEXP NewList(AttributeMap attributes) {
+    SEXP s = CONS(R_NilValue, R_NilValue, attributes);
     SETCAR(s, s);
     return s;
   }

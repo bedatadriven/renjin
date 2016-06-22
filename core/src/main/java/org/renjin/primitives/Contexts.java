@@ -24,13 +24,10 @@ package org.renjin.primitives;
 import org.renjin.eval.Context;
 import org.renjin.eval.Context.Type;
 import org.renjin.eval.EvalException;
-import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
-import org.renjin.sexp.Closure;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.Function;
-import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.*;
+
 
 
 /**
@@ -118,8 +115,9 @@ public class Contexts {
     while (true ) {
       if (cptr.getType() == Type.FUNCTION) {
         j++;
-        if( cptr.getEnvironment() == s )
-          n=j;
+        if( cptr.getEnvironment() == s ) {
+          n = j;
+        }
       }
       if(cptr.isTopLevel()) {
         break;
@@ -144,10 +142,11 @@ public class Contexts {
     }
     while (!cptr.isTopLevel()) {
       if (cptr.getType() == Type.FUNCTION ) {
-        if (n == 0)
+        if (n == 0) {
           return cptr.getClosure();
-        else
+        } else {
           n--;
+        }
       }
       cptr = cptr.getParent();
     }
@@ -200,10 +199,11 @@ public class Contexts {
     /* negative n counts back from the current frame */
     /* positive n counts up from the globalEnv */
   
-    if (n > 0)
+    if (n > 0) {
       n = cptr.getFrameDepth() - n;
-    else
-      n = - n;
+    } else {
+      n = -n;
+    }
     if(n < 0) {
       throw new EvalException("not that many frames on the stack");
     }
@@ -235,8 +235,9 @@ public class Contexts {
     i = nframe = cptr.getFrameDepth();
     /* This is a pretty awful kludge, but the alternative would be
        a major redesign of everything... -pd */
-    while (n-- > 0)
-        i = R_sysparent(nframe - i + 1, cptr);
+    while (n-- > 0) {
+      i = R_sysparent(nframe - i + 1, cptr);
+    }
     return i;
   
   }
@@ -265,6 +266,19 @@ public class Contexts {
   @Internal("sys.call")
   public static FunctionCall sysCall(@Current Context context, int which) {
     return R_syscall(which, findStartingContext(context));
+  }
+  
+  @Internal("sys.calls") 
+  public static PairList sysCalls(@Current Context context) {
+    Context current = findStartingContext(context);
+    PairList head = Null.INSTANCE;
+    while(!current.isTopLevel()) {
+      if(current.getCall() != null) {
+        head = new PairList.Node(current.getCall(), head);
+      }
+      current = current.getParent();
+    }
+    return head;
   }
 
   @Internal("sys.function")

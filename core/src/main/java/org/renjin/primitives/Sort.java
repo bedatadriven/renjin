@@ -159,12 +159,37 @@ public class Sort {
     return (IntVector)sorted
             .setAttribute(Symbols.NAMES, Null.INSTANCE);  
   }
-  
+
   @Internal
   public static IntVector psort(IntVector x, Vector indexes) {
     return qsort(x, LogicalVector.FALSE);
   }
+
+
+  @Internal
+  public static LogicalVector qsort(LogicalVector x, boolean returnIndexes) {
+
+    if(returnIndexes) {
+      throw new EvalException("qsort(indexes=TRUE) not yet implemented");
+    }
+    
+    int[] array = x.toIntArray();
+    
+    Arrays.sort(array);
+
+    LogicalVector sorted = new LogicalArrayVector(array, x.getAttributes());
+    
+
+    // drop the names attributes if present because it will not be sorted
+    return (LogicalVector)sorted
+        .setAttribute(Symbols.NAMES, Null.INSTANCE);
+  }
   
+  @Internal
+  public static LogicalVector psort(LogicalVector x, Vector indexes) {
+    return qsort(x, false);
+  }
+
   private static void reverse(int[] b) {
     int left  = 0;          
     int right = b.length-1; 
@@ -191,12 +216,12 @@ public class Sort {
    * @return
    */
   @Internal
-  public static Vector order(boolean naLast, final boolean decreasing, @ArgumentList final ListVector columns) {
+  public static Vector order(final boolean naLast, final boolean decreasing, @ArgumentList final ListVector columns) {
         
     if (columns.length() == 0) {
       return Null.INSTANCE;
     }
-    
+
     int numRows = columns.getElementAsSEXP(0).length();
 
     for (int i = 0; i != columns.length(); ++i) {
@@ -222,12 +247,30 @@ public class Sort {
             return 0;
           }
         }
-        return decreasing ? -rel : rel;
+        return rel;
       }
 
       private int compare(Integer row1, Integer row2, int col) {
-        return ((AtomicVector)columns.get(col)).compare(row1, row2);
+        AtomicVector column = (AtomicVector) columns.get(col);
+        boolean na1 = column.isElementNA(row1);
+        boolean na2 = column.isElementNA(row2);
+        if(na1 && na2) {
+          // Both values are NA, consider equal
+          return 0;
+        } else if(na1) {
+          // NA <-> 42
+          return naLast ? +1 : -1;
+        } else if(na2) {
+          // 42 <-> NA
+          return naLast ? -1 : +1;
+        } else {
+          // 42 <-> 41
+          return decreasing ?
+              -column.compare(row1, row2) :
+              +column.compare(row1, row2);
+        }
       }
+
     });
 
     IntArrayVector.Builder result = new IntArrayVector.Builder();
@@ -239,43 +282,155 @@ public class Sort {
   }   
 
   @Internal("which.min")
-  public static IntVector whichMin(Vector v) {
-    if (v.length() == 0) {
-      IntArrayVector.Builder b = new IntArrayVector.Builder();
-      return (b.build());
-    }
-    int minIndex = 0;
-    double globalMin = v.getElementAsDouble(0);
-    //this loop would be started from 1 but it needs more code. I think this is fine.
-    for (int i = 0; i < v.length(); i++) {
-      if (v.getElementAsDouble(i) < globalMin) {
-        globalMin = v.getElementAsDouble(i);
-        minIndex = i;
+  public static IntVector whichMin(Vector input) {
+    int minIndex = -1;
+    double minValue = 0;
+
+    for (int i = 0; i < input.length(); i++) {
+      double value = input.getElementAsDouble(i);
+      if (!Double.isNaN(value)) {
+        if(minIndex == -1 || value < minValue) {
+          minValue = input.getElementAsDouble(i);
+          minIndex = i;          
+        }
       }
     }
-    return (new IntArrayVector(minIndex + 1));
+
+    if(minIndex >= 0) {
+      return new IntArrayVector(new int[] { minIndex + 1 }, whichName(input, minIndex));
+    } else {
+      return IntVector.EMPTY;
+    }
   }
 
   @Internal("which.max")
-  public static IntVector whichMax(Vector v) {
-    if (v.length() == 0) {
-      IntArrayVector.Builder b = new IntArrayVector.Builder();
-      return (b.build());
-    }
-    int maxIndex = 0;
-    double globalMax = v.getElementAsDouble(0);
-    for (int i = 0; i < v.length(); i++) {
-      if (v.getElementAsDouble(i) > globalMax) {
-        globalMax = v.getElementAsDouble(i);
-        maxIndex = i;
+  public static IntVector whichMax(Vector input) {
+    int maxIndex = -1;
+    double maxValue = 0;
+
+    for (int i = 0; i < input.length(); i++) {
+      double value = input.getElementAsDouble(i);
+      if (!Double.isNaN(value)) {
+        if(maxIndex == -1 || value > maxValue) {
+          maxValue = input.getElementAsDouble(i);
+          maxIndex = i;
+        }
       }
     }
-    return (new IntArrayVector(maxIndex + 1));
+
+    if(maxIndex >= 0) {
+      return new IntArrayVector(new int[] { maxIndex + 1 }, whichName(input, maxIndex));
+    } else {
+      return IntVector.EMPTY;
+    }
   }
-  
+
+  private static AttributeMap whichName(Vector v, int index) {
+    AttributeMap attributes;
+    AtomicVector names = v.getNames();
+    if(names != Null.INSTANCE) {
+      String maxName = names.getElementAsString(index);
+      attributes = AttributeMap.newBuilder().setNames(new StringArrayVector(maxName)).build();
+    } else {
+      attributes = AttributeMap.EMPTY;
+    }
+    return attributes;
+  }
+
+  @Internal
+  public static Vector rank(final AtomicVector input, String tiesMethod) {
+
+    boolean decreasing = false;
+
+    AtomicVector sortedInput;
+
+    String typeVector = input.getTypeName();
+    switch (typeVector){
+      case "character":
+        StringVector inputStringVector = ((StringVector) input.setAttributes(AttributeMap.EMPTY));
+        sortedInput = ((AtomicVector) sort(inputStringVector, decreasing));
+        break;
+      case "double":
+        DoubleVector inputDoubleVector = ((DoubleVector) input.setAttributes(AttributeMap.EMPTY));
+        sortedInput = ((AtomicVector) sort(inputDoubleVector, decreasing));
+        break;
+      default:
+        IntVector inputIntVector = ((IntVector) input.setAttributes(AttributeMap.EMPTY));
+        sortedInput = ((AtomicVector) sort(inputIntVector, decreasing));
+        break;
+    }
+
+
+
+
+    switch(tiesMethod.toUpperCase()){
+      case "MIN":
+        return rankMin(input, sortedInput);
+
+      case "MAX":
+        return rankMax(input, sortedInput);
+
+      case "AVERAGE":
+        return rankAverage(input, sortedInput);
+
+      case "FIRST":
+        throw new EvalException("ties.method=first not implemented");
+
+
+      case "RANDOM":
+        throw new EvalException("ties.method=random not implemented");
+
+
+      default:
+        throw new EvalException("Invalid ties.method.");
+
+    }
+
+  }
+
+  private static Vector rankAverage(AtomicVector input, AtomicVector sortedInput) {
+    DoubleArrayVector.Builder ranks = new DoubleArrayVector.Builder();
+    for ( int i=0; i < sortedInput.length(); i++ ) {
+      int minRank = sortedInput.indexOf(input, i, 0);
+      int maxRank = minRank;
+      while ( maxRank+1 < sortedInput.length() &&
+              sortedInput.compare(minRank, maxRank+1) == 0) {
+        maxRank++;
+      }
+
+      double average = (((double) minRank) + ((double) maxRank)) / 2d;
+      ranks.add(average + 1);
+    }
+    return ranks.build();
+  }
+
+  private static Vector rankMax(AtomicVector input, AtomicVector sortedInput) {
+    IntArrayVector.Builder ranks = new IntArrayVector.Builder();
+    for ( int i=0; i < sortedInput.length(); i++ ) {
+      int minRank = sortedInput.indexOf(input, i, 0);
+      int maxRank = minRank;
+      while ( maxRank+1 < sortedInput.length() &&
+              sortedInput.compare(minRank, maxRank+1) == 0) {
+        maxRank++;
+      }
+      ranks.add(maxRank + 1);
+    }
+    return ranks.build();
+  }
+
+  private static Vector rankMin(AtomicVector input, AtomicVector sortedInput) {
+    IntArrayVector.Builder ranks = new IntArrayVector.Builder();
+
+    for (int i=0; i < sortedInput.length(); i++) {
+      ranks.add( sortedInput.indexOf( input, i, 0 ) + 1 );
+    }
+    return ranks.build();
+  }
+
   @Builtin
   @Generic
   public static SEXP xtfrm(@Current Context context, SEXP x) {
-    return FunctionCall.newCall(Symbol.get("xtfrm.default"), x).evaluate(context, context.getEnvironment());
+    FunctionCall defaultCall = FunctionCall.newCall(Symbol.get("xtfrm.default"), x);
+    return context.evaluate(defaultCall);
   }
 }

@@ -1,6 +1,8 @@
 #  File src/library/utils/R/RSiteSearch.R
 #  Part of the R package, http://www.R-project.org
 #
+#  Copyright (C) 1995-2015 The R Core Team
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
@@ -22,14 +24,12 @@ RSiteSearch <- function(string,
 			"from", "from:descending", "size", "size:descending"),
 			matchesPerPage = 20)
 {
-    paste0 <- function(...) paste(..., sep = "")
     string <- paste0("http://search.r-project.org/cgi-bin/namazu.cgi?query=",
-		     gsub(" ", "+", string))
+		     URLencode(gsub(" ", "+", string), reserved = TRUE))
     mpp <- paste0("max=", matchesPerPage)
     format <- paste0("result=", match.arg(format))
 
-    restrictVALS <- c("Rhelp10", "Rhelp08", "Rhelp01", "Rhelp02", "functions",
-                      "vignettes", "views","R-devel", "R-sig-mixed-models")
+    restrictVALS <- c("functions", "vignettes", "views")
     restr <- match.arg(restrict, choices = restrictVALS, several.ok = TRUE)
     restr <- paste(paste0("idxname=", restr), collapse = "&")
 
@@ -47,10 +47,10 @@ RSiteSearch <- function(string,
     ## we know this is a http:// URL, so encoding should be safe.
     ## it seems that firefox on Mac OS needs it for {...}
     ## OTOH, Namazu does not decode in, say, sort=date:late.
-    qstring <- paste(URLencode(string), mpp, format, sortby, restr, sep = "&")
+    qstring <- paste(string, mpp, format, sortby, restr, sep = "&")
     browseURL(qstring)
-    cat(gettext("A search query has been submitted to"),
-	"http://search.r-project.org\n")
+    cat(gettextf("A search query has been submitted to %s",
+                 "http://search.r-project.org"), "\n", sep = "")
     cat(gettext("The results page should open in your browser shortly\n"))
     invisible(qstring)
 }

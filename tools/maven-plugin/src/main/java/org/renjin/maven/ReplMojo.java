@@ -1,5 +1,15 @@
 package org.renjin.maven;
 
+import com.google.common.collect.Lists;
+import org.apache.maven.artifact.Artifact;
+import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.apache.maven.project.MavenProject;
+
 import java.io.File;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
@@ -7,37 +17,22 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.List;
 
-import org.apache.maven.artifact.Artifact;
-import org.apache.maven.plugin.AbstractMojo;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.project.MavenProject;
-
-import com.google.common.collect.Lists;
-
 /**
- * @goal repl
- * @requiresDependencyResolution test
- * @requiresProject true
+ * Starts an interactive Read-Eval-Print Loop with the project and its
+ * dependencies on the classpath.
  */
+@Mojo(name = "repl", requiresDependencyResolution = ResolutionScope.TEST)
 public class ReplMojo extends AbstractMojo {
 
 
   /**
     * The enclosing project.
-    * 
-    * @parameter default-value="${project}"
-    * @required
-    * @readonly
     */
+  @Parameter(defaultValue = "${project}", readonly = true)
   private MavenProject project;
   
 
-  /**
-    * @parameter default-value="${plugin.artifacts}"
-    * @readonly
-    * @since 1.1-beta-1
-    */
+  @Parameter(defaultValue = "${plugin.artifacts}", readonly = true)
   private List<Artifact> pluginDependencies;
   
   @Override

@@ -1,6 +1,7 @@
 package org.renjin.primitives;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.renjin.eval.*;
 import org.renjin.invoke.annotations.ArgumentList;
 import org.renjin.invoke.annotations.Builtin;
@@ -11,13 +12,16 @@ import org.renjin.sexp.*;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Primitives used in the implementation of the S3 object system
  */
 public class S3 {
 
-  public static Symbol METHODS_TABLE = Symbol.get(".__S3MethodsTable__.");
+  public static final Symbol METHODS_TABLE = Symbol.get(".__S3MethodsTable__.");
+
+  public static final Set<String> GROUPS = Sets.newHashSet("Ops", "Math", "Summary");
 
   @Builtin
   public static SEXP UseMethod(@Current Context context, String genericMethodName) {
@@ -56,7 +60,7 @@ public class S3 {
            .withGenericArgument(generic)
            .withObjectArgument(object)
            .next()
-           .applyNext(context, context.getEnvironment());
+           .applyNext(context, context.getEnvironment(), extraArgs);
   }
 
 
@@ -93,7 +97,7 @@ public class S3 {
         dataClass.add(exp.getTypeName());
         dataClass.add("numeric");
       } else {
-         dataClass.add(exp.getImplicitClass());
+        dataClass.add(exp.getImplicitClass());
       }
       return dataClass.build();
     }
@@ -221,18 +225,18 @@ public class S3 {
     }
 
     GenericMethod method = Resolver
-      .start(context, name, object)
-      .withBaseDefinitionEnvironment()
-      .withObjectArgument(object)
-      .withGenericArgument(name)
-      .findNext();
+        .start(context, name, object)
+        .withBaseDefinitionEnvironment()
+        .withObjectArgument(object)
+        .withGenericArgument(name)
+        .findNext();
 
     if(method == null) {
       return null;
     }
 
     return method.doApply(context, rho,
-            reassembleAndEvaluateArgs(object, args, context, rho));
+        reassembleAndEvaluateArgs(object, args, context, rho));
   }
 
   public static SEXP tryDispatchFromPrimitive(Context context, Environment rho, FunctionCall call,
@@ -436,7 +440,7 @@ public class S3 {
     }
 
     public Resolver withBaseDefinitionEnvironment() {
-      this.definitionEnvironment = context.getEnvironment().getBaseEnvironment();
+      this.definitionEnvironment = context.getBaseEnvironment();
       return this;
     }
 
@@ -571,8 +575,8 @@ public class S3 {
       return doApply(callContext, callEnvironment, rePromisedArgs);
     }
 
-    public SEXP applyNext(Context context, Environment environment) {
-      return doApply(context, environment, nextArguments(context));
+    public SEXP applyNext(Context context, Environment environment, ListVector extraArgs) {
+      return doApply(context, environment, nextArguments(context, extraArgs));
     }
 
     public SEXP doApply(Context callContext, Environment callEnvironment, PairList args) {
@@ -580,12 +584,21 @@ public class S3 {
 
       callContext.setState(GenericMethod.class, this);
 
-      if(function instanceof Closure) {
-        return Calls.applyClosure((Closure) function, callContext, callEnvironment,  newCall,
-                args, callEnvironment, persistChain());
-      } else {
-        // primitive
-        return function.apply(callContext, callEnvironment, newCall, args);
+      if(Profiler.ENABLED) {
+        Profiler.functionStart(this.method);
+      }
+      try {
+        if (function instanceof Closure) {
+          return Calls.applyClosure((Closure) function, callContext, callEnvironment, newCall,
+              args, persistChain());
+        } else {
+          // primitive
+          return function.apply(callContext, callEnvironment, newCall, args);
+        }
+      } finally {
+        if(Profiler.ENABLED) {
+          Profiler.functionEnd();
+        }
       }
     }
     
@@ -594,7 +607,7 @@ public class S3 {
       return this;
     }
 
-    public PairList nextArguments(Context callContext) {
+    public PairList nextArguments(Context callContext, ListVector extraArgs) {
 
       /*
        * Get the arguments to the function that called NextMethod(),
@@ -626,7 +639,7 @@ public class S3 {
       PairList formals = closure.getFormals();
       Environment previousEnv = parentContext.getEnvironment();
 
-      return updateArguments(actuals, formals, previousEnv);
+      return updateArguments(actuals, formals, previousEnv, extraArgs);
     }
 
 
@@ -655,7 +668,8 @@ public class S3 {
     }
   }
 
-  public static PairList updateArguments(PairList actuals, PairList formals, Environment previousEnv) {
+  public static PairList updateArguments(PairList actuals, PairList formals, 
+                                         Environment previousEnv, ListVector extraArgs) {
     // match each actual to a formal name so we can update it's value. but we can't reorder!
 
     List<SEXP> actualNames = Lists.newArrayList();
@@ -719,6 +733,16 @@ public class S3 {
         updatedValue = actualValues.get(i);
       }
       updated.add(actualNames.get(i), updatedValue);
+    }
+    
+    // Add extra arguments passed to NextMethods
+    for (NamedValue extraArg : extraArgs.namedValues()) {
+      if(!extraArg.hasName()) {
+        updated.add(extraArg.getValue());
+      } else {
+        // update any existing arguments by this name, or add
+        updated.set(extraArg.getName(), extraArg.getValue());
+      }
     }
 
     return updated.build();

@@ -1,3 +1,5 @@
+[![Build Status](http://build.renjin.org/buildStatus/icon?job=renjin)](http://build.renjin.org) 
+
 Introduction
 ============
 
@@ -29,7 +31,7 @@ dependency and repository:
   <repository>
     <id>bedatadriven</id>
     <name>bedatadriven public repo</name>
-    <url>http://nexus.bedatadriven.com/content/groups/public/</url>
+    <url>https://nexus.bedatadriven.com/content/groups/public/</url>
   </repository>
 </repositories>
 ```
@@ -41,12 +43,12 @@ Standalone distributions of Renjin are available for ad-hoc analysis. Downloads
 are available at [Renjin.org](http://www.renjin.org).
 
 Artifacts from the latest successful build are available from the build server
-at http://nexus.bedatadriven.com/content/groups/public/org/renjin/.
+at https://nexus.bedatadriven.com/content/groups/public/org/renjin/.
 
 Compiling from Source
 =====================
 
-At this time, building Renjin completely is only supported on a Linux system
+At this time, building Renjin completely is only supported on Linux and OS X systems
 with gcc-4.6 installed. The resulting Java builds are fully platform-independent.
 
 See [BUILDING](BUILDING.md) for more information.

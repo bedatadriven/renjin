@@ -1,25 +1,21 @@
 package org.renjin.compiler.ir.ssa;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.junit.Assert.assertThat;
-
-import java.io.IOException;
-
+import com.google.common.collect.Iterables;
 import org.junit.Test;
 import org.renjin.compiler.CompilerTestCase;
 import org.renjin.compiler.cfg.BasicBlock;
 import org.renjin.compiler.cfg.CfgPredicates;
 import org.renjin.compiler.cfg.ControlFlowGraph;
 import org.renjin.compiler.cfg.DominanceTree;
-import org.renjin.compiler.ir.ssa.SsaTransformer;
 import org.renjin.compiler.ir.tac.IRBody;
 import org.renjin.compiler.ir.tac.expressions.EnvironmentVariable;
-
-
-import com.google.common.collect.Iterables;
 import org.renjin.compiler.ir.tac.statements.ReturnStatement;
-import polyglot.ast.Return;
+
+import java.io.IOException;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.junit.Assert.assertThat;
 
 public class SsaTransformTest extends CompilerTestCase {
 

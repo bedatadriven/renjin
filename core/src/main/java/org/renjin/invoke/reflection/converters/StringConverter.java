@@ -14,7 +14,9 @@ public class StringConverter extends BoxedScalarConverter<String> {
   private StringConverter() { }
  
   public static boolean accept(Class clazz) {
-    if(clazz.isArray()) return false;
+    if(clazz.isArray()) {
+      return false;
+    }
     return clazz == String.class;
   }
   

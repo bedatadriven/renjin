@@ -10,10 +10,4 @@ test.paste <- function() {
     assertThat(s3, equalTo("A, B"))
 }
 
-test.paste0 <- function() {
-    s1 <- paste0("foo", "bar")
-    s2 <- paste0(c("A", "B"), collapse = ", ")
 
-    assertThat(s1, equalTo("foobar"))
-    assertThat(s2, equalTo("A, B"))
-}

@@ -1,0 +1,5 @@
+Package: link
+Title: Link Package Test
+Depends: org.renjin.test.native
+Version: 0.1
+NeedsCompilation: yes

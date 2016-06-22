@@ -1,6 +1,8 @@
 #  File src/library/utils/R/edit.R
 #  Part of the R package, http://www.R-project.org
 #
+#  Copyright (C) 1995-2015 The R Core Team
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
@@ -14,18 +16,47 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
+check_for_XQuartz <- function()
+{
+    if (file.exists("/usr/bin/otool")) {
+        DSO <- file.path(R.home("modules"), "R_de.so")
+        out <- system2("/usr/bin/otool", c("-L", shQuote(DSO)), stdout = TRUE)
+        ind <- grep("libX11[.][0-9]+[.]dylib", out)
+        if(length(ind)) {
+            this <- sub(" .*", "", sub("^\t", "", out[ind]))
+            if(!file.exists(this))
+                stop("X11 library is missing: install XQuartz from xquartz.macosforge.org", domain = NA)
+        }
+    }
+}
+
 dataentry <- function (data, modes)
 {
+    check <- Sys.getenv("_R_CHECK_SCREEN_DEVICE_", "")
+    msg <- "dataentry() should not be used in examples etc"
+    if (identical(check, "stop"))
+        stop(msg, domain = NA)
+    else if (identical(check, "warn"))
+        warning(msg, immediate. = TRUE, noBreaks. = TRUE, domain = NA)
+
     if(!is.list(data) || !length(data) || !all(sapply(data, is.vector)))
         stop("invalid 'data' argument")
     if(!is.list(modes) ||
        (length(modes) && !all(sapply(modes, is.character))))
         stop("invalid 'modes' argument")
-    .Internal(dataentry(data, modes))
+    if (grepl("darwin", R.version$os)) check_for_XQuartz()
+    .External2(C_dataentry, data, modes)
 }
 
 View <- function (x, title)
 {
+    check <- Sys.getenv("_R_CHECK_SCREEN_DEVICE_", "")
+    msg <- "View() should not be used in examples etc"
+    if (identical(check, "stop"))
+        stop(msg, domain = NA)
+    else if (identical(check, "warn"))
+        warning(msg, immediate. = TRUE, noBreaks. = TRUE, domain = NA)
+
     ## could multi-line deparse with maliciously-designed inputs
     if(missing(title)) title <- paste("Data:", deparse(substitute(x))[1])
     as.num.or.char <- function(x)
@@ -39,9 +70,10 @@ View <- function (x, title)
     rn <- row.names(x0)
     if(any(rn != seq_along(rn))) x <- c(list(row.names = rn), x)
     if(!is.list(x) || !length(x) || !all(sapply(x, is.atomic)) ||
-       !max(sapply(x, length)))
+       !max(lengths(x)))
         stop("invalid 'x' argument")
-    .Internal(dataviewer(x, title))
+    if (grepl("darwin", R.version$os)) check_for_XQuartz()
+    invisible(.External2(C_dataviewer, x, title))
 }
 
 edit <- function(name,...)UseMethod("edit")
@@ -50,18 +82,9 @@ edit.default <-
     function (name = NULL, file = "", title = NULL,
               editor = getOption("editor"), ...)
 {
-    if(FALSE){}
-# This should no longer be necessary, and caused problems in the no-GUI
-# situation.
-#is.matrix(name) &&
-#       (mode(name) == "numeric" || mode(name) == "character"))
-#        edit.matrix(name=name, ...)
-    else {
-	if (is.null(title)) title <- deparse(substitute(name))
-        if (is.function(editor))
-            invisible(editor(name, file, title))
-	else .Internal(edit(name, file, title, editor))
-    }
+    if (is.null(title)) title <- deparse(substitute(name))
+    if (is.function(editor)) invisible(editor(name = name, file = file, title = title))
+    else .External2(C_edit, name, file, title, editor)
 }
 
 edit.data.frame <-
@@ -76,6 +99,8 @@ edit.data.frame <-
     if (length(name) && !all(sapply(name, is.vector.unclass)
                                  | sapply(name, is.factor)))
         stop("can only handle vector and factor elements")
+
+    if (grepl("darwin", R.version$os)) check_for_XQuartz()
 
     factor.mode <- match.arg(factor.mode)
 
@@ -117,12 +142,12 @@ edit.data.frame <-
     }
     rn <- attr(name, "row.names")
 
-    out <- .Internal(dataentry(datalist, modes))
+    out <- .External2(C_dataentry, datalist, modes)
     if(length(out) == 0L) {
         ## e.g. started with 0-col data frame or NULL, and created no cols
         return (name)
     }
-    lengths <- sapply(out, length)
+    lengths <- lengths(out)
     maxlength <- max(lengths)
     if (edit.row.names) rn <- out[[1L]]
     for (i in which(lengths != maxlength))
@@ -130,7 +155,7 @@ edit.data.frame <-
     if (edit.row.names) {
         out <- out[-1L]
         if((ln <- length(rn)) < maxlength)
-            rn <- c(rn, paste("row", (ln+1):maxlength, sep=""))
+            rn <- c(rn, paste0("row", (ln+1):maxlength))
     } else if(length(rn) != maxlength) rn <- seq_len(maxlength)
     for (i in factors) {
         if(factor.mode != mode(out[[i]])) next # user might have switched mode
@@ -182,17 +207,21 @@ edit.matrix <-
        ! mode(name) %in% c("numeric", "character", "logical") ||
        any(dim(name) < 1))
         stop("invalid input matrix")
+
+    if (grepl("darwin", R.version$os)) check_for_XQuartz()
+
     ## logical matrices will be edited as character
     logicals <- is.logical(name)
     if (logicals) mode(name) <- "character"
     if(is.object(name) || isS4(name))
-        warning("class(es) of 'name' will be discarded",
+        warning("class of 'name' will be discarded",
                 call. = FALSE, immediate. = TRUE)
 
     dn <- dimnames(name)
-    datalist <- split(name, col(name))
+    ## <FIXME split.matrix>
+    datalist <- split(c(name), col(name))
     if(!is.null(dn[[2L]])) names(datalist) <- dn[[2L]]
-    else names(datalist) <- paste("col", 1L:ncol(name), sep = "")
+    else names(datalist) <- paste0("col", 1L:ncol(name))
     modes <- as.list(rep.int(mode(name), ncol(name)))
     ## guard aginst user error (PR#10500)
     if(edit.row.names && is.null(dn[[1L]]))
@@ -202,9 +231,9 @@ edit.matrix <-
         modes <- c(list(row.names = "character"), modes)
     }
 
-    out <- .Internal(dataentry(datalist, modes))
+    out <- .External2(C_dataentry, datalist, modes)
 
-    lengths <- sapply(out, length)
+    lengths <- lengths(out)
     maxlength <- max(lengths)
     if (edit.row.names) rn <- out[[1L]]
     for (i in which(lengths != maxlength))
@@ -212,7 +241,7 @@ edit.matrix <-
     if (edit.row.names) {
         out <- out[-1L]
         if((ln <- length(rn)) < maxlength)
-            rn <- c(rn, paste("row", (ln+1L):maxlength, sep=""))
+            rn <- c(rn, paste0("row", (ln+1L):maxlength))
     }
     out <- do.call("cbind", out)
     if (edit.row.names)
@@ -241,21 +270,21 @@ file.edit <-
         }
     }
     if (is.function(editor)) invisible(editor(file = file, title = title))
-    else .Internal(file.edit(file, title, editor))
+    else invisible(.External2(C_fileedit, file, title, editor))
 }
 
-vi <- function(name=NULL, file="")
-    edit.default(name, file, editor="vi")
+vi <- function(name = NULL, file = "")
+    edit.default(name, file, editor = "vi")
 
-emacs <- function(name=NULL, file="")
-    edit.default(name, file, editor="emacs")
+emacs <- function(name = NULL, file = "")
+    edit.default(name, file, editor = "emacs")
 
-xemacs <- function(name=NULL, file="")
-    edit.default(name, file, editor="xemacs")
+xemacs <- function(name = NULL, file = "")
+    edit.default(name, file, editor = "xemacs")
 
-xedit <- function(name=NULL, file="")
-    edit.default(name, file, editor="xedit")
+xedit <- function(name = NULL, file = "")
+    edit.default(name, file, editor = "xedit")
 
-pico <- function(name=NULL, file="")
-    edit.default(name, file, editor="pico")
+pico <- function(name = NULL, file = "")
+    edit.default(name, file, editor = "pico")
 

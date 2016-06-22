@@ -86,7 +86,7 @@ test.rweibull <- function() {
 
 test.rf <- function() {
 	set.seed(12345, 'Mersenne-Twister','I')
-	assertThat(rf(1,5,7), closeTo(1.0, DELTA))
+	assertThat(rf(1,5,7), closeTo(0.9367613, DELTA))
 }
 
 

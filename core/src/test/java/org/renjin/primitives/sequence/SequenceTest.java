@@ -23,10 +23,7 @@ package org.renjin.primitives.sequence;
 
 import org.junit.Test;
 import org.renjin.EvalTestCase;
-import org.renjin.primitives.sequence.Sequences;
-import org.renjin.sexp.DoubleArrayVector;
-import org.renjin.sexp.LogicalVector;
-import org.renjin.sexp.SEXP;
+import org.renjin.sexp.*;
 
 import static junit.framework.Assert.assertTrue;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -48,12 +45,12 @@ public class SequenceTest extends EvalTestCase {
   @Test
   public void count() {
     Sequences.Range range = new Sequences.Range(11, 13);
-    assertTrue(range.count >= 3d && range.count < 4d );
+    assertTrue(range.count >= 3d && range.count < 4d);
   }
 
   @Test
   public void ascendingInts() {
-    assertThat(colon(199,201), elementsEqualTo(199, 200, 201));
+    assertThat(colon(199, 201), elementsEqualTo(199, 200, 201));
   }
 
   @Test
@@ -96,7 +93,16 @@ public class SequenceTest extends EvalTestCase {
   @Test
   public void repInt() {
     assertThat( eval( ".Internal(rep.int(c('a', 'b', 'c'), 2))"), equalTo(c("a","b","c","a","b","c")));
-    assertThat( eval( ".Internal(rep.int(c('a', 'b', 'c'), 0))"), equalTo( CHARACTER_0 ));
+    assertThat( eval( ".Internal(rep.int(c('a', 'b', 'c'), 0))"), equalTo(CHARACTER_0));
+  }
+  
+  @Test
+  public void repOneDimensionalArray() {
+    eval("a <- 1:3");
+    eval("dim(a) <- 3");
+    eval("names(a) <- c('a','b','c')");
+    
+    assertThat(eval("names(rep(a, length=4))"), equalTo(c("a", "b", "c", "a")));
   }
   
   @Test
@@ -118,7 +124,17 @@ public class SequenceTest extends EvalTestCase {
           8, 8, 8, 8, 8, 8, 8, 8, 8,
           9, 9, 9, 9, 9, 9, 9, 9, 9)));
   }
+  
+  @Test
+  public void testRepWithEmptyArg() {
+    assertThat(eval("rep(integer(0), length.out=3)"), equalTo(c_i(IntVector.NA, IntVector.NA, IntVector.NA)));
+  }
 
+  @Test
+  public void testRepWithNullArg() {
+    assertThat(eval("rep(NULL, length.out=3)"), equalTo((SEXP)Null.INSTANCE));
+  }
+  
   @Test
   public void seqInt() {
     assertThat( eval(" seq.int(to=6, from=3)" ), elementsEqualTo(3, 4, 5, 6));

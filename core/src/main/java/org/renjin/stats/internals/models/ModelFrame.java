@@ -1,16 +1,14 @@
 package org.renjin.stats.internals.models;
 
-import java.util.List;
-
+import com.google.common.collect.Lists;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.Types;
-import org.renjin.sexp.IntVector;
 import org.renjin.sexp.ListVector;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbols;
 import org.renjin.sexp.Vector;
 
-import com.google.common.collect.Lists;
+import java.util.List;
 
 /**
  * Encapsulates a model frame object. 
@@ -61,36 +59,23 @@ public class ModelFrame {
   public Vector getRowNames() {
     return (Vector)frame.getAttribute(Symbols.ROW_NAMES);
   }
-  
-  public static int ncols(SEXP s)
-  {
-      SEXP t;
-      if (s instanceof Vector) {
-        Vector dim = (Vector) s.getAttribute(Symbols.DIM);
-        if(dim.length() >= 2) {
-          return dim.getElementAsInt(1);
-        } else {
-          return 1;
-        }
-      } else if (s.inherits("data.frame")) {
-          return s.length();
+
+  public static int ncols(SEXP s) {
+    SEXP t;
+    if (s instanceof Vector) {
+      Vector dim = (Vector) s.getAttribute(Symbols.DIM);
+      if(dim.length() >= 2) {
+        return dim.getElementAsInt(1);
       } else {
-        throw new EvalException("object is not a matrix");
+        return 1;
       }
+    } else if (s.inherits("data.frame")) {
+      return s.length();
+    } else {
+      throw new EvalException("object is not a matrix");
+    }
   }
 
-  public static boolean isOrderedFactor(SEXP vector) {
-    return vector instanceof IntVector &&
-        vector.inherits("factor") && 
-        vector.inherits("ordered");
-  }
-  
-  public static boolean isUnorderedFactor(SEXP vector) {
-    return vector instanceof IntVector &&
-        vector.inherits("factor") &&
-        !vector.inherits("ordered");
-  }
-  
   public static int nlevels(SEXP exp) {
     return exp.getAttribute(Symbols.LEVELS).length();
   }

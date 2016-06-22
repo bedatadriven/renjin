@@ -21,9 +21,9 @@
 
 package org.renjin.primitives;
 
+import org.renjin.eval.ConditionException;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.sexp.*;
@@ -166,9 +166,7 @@ public class Conditions {
       for(String conditionClass : conditionClasses) {
         SEXP handler = context.getConditionHandler(conditionClass);
         if(handler != null) {
-          FunctionCall.newCall(handler, condition)
-              .evaluate(context, context.getEnvironment());
-          return;
+          throw new ConditionException(condition, context, handler);
         }
       }
 

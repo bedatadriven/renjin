@@ -42,8 +42,8 @@ public class SessionBuilder {
    * Loads the default packages for R 2.14.2 (stats, utils, graphics, grDevices, datasets, methods)
    */
   public SessionBuilder withDefaultPackages() {
-	  packagesToLoad = Lists.newArrayList("stats", "utils", "graphics", "grDevices", "datasets", "methods" );
-	  return this;
+    packagesToLoad = Session.DEFAULT_PACKAGES;
+    return this;
   }
   
   /**
@@ -68,8 +68,8 @@ public class SessionBuilder {
         session.getTopLevelContext().init();
       }
       for(String packageToLoad : packagesToLoad) {
-          session.getTopLevelContext().evaluate(FunctionCall.newCall(Symbol.get("library"), 
-        		  Symbol.get(packageToLoad)));
+        session.getTopLevelContext().evaluate(FunctionCall.newCall(Symbol.get("library"),
+            Symbol.get(packageToLoad)));
       }
       return session;
     } catch(Exception e) {

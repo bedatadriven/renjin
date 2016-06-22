@@ -180,7 +180,11 @@ public class ForkedTestController {
         if(line == null) {
           // Process exited!!
           reporter.testCaseFailed();
-          System.err.println("Forked JVM exited with code " + process.exitValue());
+          try {
+            System.err.println("Forked JVM exited with code " + process.waitFor());
+          } catch (InterruptedException e) {
+            System.err.println("Interrupted while waiting for process to exit.");
+          }
           destroyFork();
           break;
 

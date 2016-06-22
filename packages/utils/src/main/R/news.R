@@ -1,6 +1,8 @@
 #  File src/library/utils/R/news.R
 #  Part of the R package, http://www.R-project.org
 #
+#  Copyright (C) 1995-2014 The R Core Team
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
@@ -49,7 +51,7 @@ function(query, package = "R", lib.loc = NULL,
     ## Manipulate fields for querying (but return the original ones).
     db1 <- db
     ## Canonicalize version entries which *start* with a valid numeric
-    ## version.
+    ## version, i.e., drop things like " patched".
     version <- db$Version
     pos <- regexpr(sprintf("^%s",
                            .standard_regexps()$valid_numeric_version),
@@ -73,65 +75,78 @@ function(query, package = "R", lib.loc = NULL,
         db[r, ]
 }
 
-print.news_db <-
+format.news_db <-
 function(x, ...)
 {
     if(inherits(x, "news_db_from_Rd") ||
        (!(is.null(bad <- attr(x, "bad")))
         && (length(bad) == NROW(x))
         && all(!bad))) {
-        ## Output news in the preferred input format:
+
+        ## Format news in the preferred input format:
         ##   Changes in $VERSION [($DATE)]:
         ##   [$CATEGORY$]
         ##   indented/formatted bullet list of $TEXT entries.
         ## <FIXME>
         ## Add support for DATE.
         ## </FIXME>
-        print_items <- function(x)
-            cat(paste("    o   ", gsub("\n", "\n\t", x), sep = ""),
-                sep = "\n\n")
+
         vchunks <- split(x, x$Version)
         ## Re-order according to decreasing version.
-        ## R NEWS has invalid "versions" such as ""2.4.1 patched" which
-        ## we map to 2.4.1.1.
-        vchunks <-
-            vchunks[order(as.numeric_version(sub(" *patched", ".1",
-                                                 names(vchunks))),
-                                 decreasing = TRUE)]
+        ## R NEWS has invalid "versions" such as "R-devel" and
+        ## "2.4.1 patched".  We can remap the latter (to e.g. 2.4.1.1)
+        ## and need to ensure the former come first.
+        vstrings <- names(vchunks)
+        ind <- vstrings != "R-devel"
+        pos <- c(which(!ind),
+                 which(ind)[order(as.numeric_version(sub(" *patched", ".1",
+                                                         vstrings[ind])),
+                                  decreasing = TRUE)])
+        vchunks <- vchunks[pos]
 	if(length(vchunks)) {
             dates <- sapply(vchunks, function(v) v$Date[1L])
+            vstrings <- names(vchunks)
+            ind <- vstrings != "R-devel"
+            vstrings[ind] <- sprintf("version %s", vstrings[ind])
             vheaders <-
-                sprintf("%sChanges in version %s%s:\n\n",
-                        c("", rep.int("\n", length(vchunks) - 1L)),
-                        names(vchunks),
+                sprintf("Changes in %s%s:",
+                        vstrings,
                         ifelse(is.na(dates), "",
                                sprintf(" (%s)", dates)))
-        }
-        for(i in seq_along(vchunks)) {
-            cat(vheaders[i])
-            vchunk <- vchunks[[i]]
+        } else vheaders <- character()
+
+        format_items <- function(x)
+            paste0("    o   ", gsub("\n", "\n\t", x$Text))
+        format_vchunk <- function(vchunk) {
             if(all(!is.na(category <- vchunk$Category)
                    & nzchar(category))) {
                 ## need to preserve order of headings.
-                cchunks <- split(vchunk,
-                                 factor(category, levels=unique(category)))
-                cheaders <-
-                    sprintf("%s%s\n\n",
-                            c("", rep.int("\n", length(cchunks) - 1L)),
-                            names(cchunks))
-                for(j in seq_along(cchunks)) {
-                    cat(cheaders[j])
-                    print_items(cchunks[[j]]$Text)
-                }
+                cchunks <-
+                    split(vchunk,
+                          factor(category, levels = unique(category)))
+                Map(c, names(cchunks), lapply(cchunks, format_items),
+                    USE.NAMES = FALSE)
             } else {
-                print_items(vchunk$Text)
+                format_items(vchunk)
             }
         }
+
+        Map(c, vheaders, lapply(vchunks, format_vchunk),
+            USE.NAMES = FALSE)
     } else {
         ## Simple and ugly.
-        ## Should this drop all-NA variables?
-        print(as.data.frame(x), right = FALSE, row.names = FALSE)
+        ## Drop all-NA variables.
+        apply(as.matrix(x),
+              1L,
+              function(e)
+              paste(formatDL(e[!is.na(e)], style = "list"),
+                    collapse = "\n"))
     }
+}
 
+print.news_db <-
+function(x, ...)
+{
+    writeLines(paste(unlist(format(x, ...)), collapse = "\n\n"))
     invisible(x)
 }

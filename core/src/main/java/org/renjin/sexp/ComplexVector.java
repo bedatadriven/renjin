@@ -2,6 +2,7 @@ package org.renjin.sexp;
 
 import com.google.common.collect.UnmodifiableIterator;
 import org.apache.commons.math.complex.Complex;
+import org.renjin.parser.NumericLiterals;
 
 import java.util.Iterator;
 
@@ -56,8 +57,7 @@ public abstract class ComplexVector extends AbstractAtomicVector implements Iter
 
   @Override
   public String getElementAsString(int index) {
-    Complex z = getElementAsComplex(index);
-    return z.getReal()+"+"+z.getImaginary()+"i";
+    return NumericLiterals.toString(getElementAsComplex(index));
   }
 
   @Override
@@ -89,7 +89,13 @@ public abstract class ComplexVector extends AbstractAtomicVector implements Iter
 
   @Override
   public boolean isElementNA(int index) {
-    return isNA(getElementAsComplex(index));
+    return Double.isNaN(getElementAsComplex(index).getReal());
+  }
+
+  @Override
+  public boolean isElementNaN(int index) {
+    double real = getElementAsComplex(index).getReal();
+    return Double.isNaN(real);
   }
 
   @Override

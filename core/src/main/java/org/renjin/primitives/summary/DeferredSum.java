@@ -14,7 +14,6 @@ public class DeferredSum extends DeferredSummary {
   @Override
   protected double calculate() {
     double sum = 0;
-    System.err.println("EEK serially calculation - sum");
     for(int i=0;i!=vector.length();++i) {
       sum += vector.getElementAsDouble(i);
     }

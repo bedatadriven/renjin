@@ -23,6 +23,7 @@ package org.renjin.sexp;
 
 import com.google.common.collect.Iterables;
 import org.renjin.eval.EvalException;
+import org.renjin.eval.Profiler;
 import org.renjin.parser.NumericLiterals;
 
 import java.util.Arrays;
@@ -35,13 +36,13 @@ public class StringArrayVector extends StringVector implements Iterable<String> 
 
   public StringArrayVector(String[] values, AttributeMap attributes) {
     super(attributes);
-    this.values = Arrays.copyOf(values, values.length, String[].class);
-
-    assert checkDims() : "dim do not match length of object";
-
-    if(Vector.DEBUG_ALLOC && values.length >= 5000) {
-      System.out.println("StringArrayVector length=" + values.length);
+    
+    if(Profiler.ENABLED) {
+      Profiler.memoryAllocated(32, values.length);
     }
+    
+    this.values = Arrays.copyOf(values, values.length, String[].class);
+    assert checkDims() : "dim do not match length of object";
   }
 
   public StringArrayVector(String... values) {
@@ -103,30 +104,6 @@ public class StringArrayVector extends StringVector implements Iterable<String> 
     }
   }
 
-  @Override
-  public String toString() {
-    if (values.length == 1) {
-      return isElementNA(0) ? "NA_character_" : getElementAsString(0);
-    } else {
-      StringBuilder sb = new StringBuilder();
-      sb.append("c(");
-      for (int i = 0; i < Math.min(5, length()); ++i) {
-        if (i > 0) {
-          sb.append(", ");
-        }
-        if (isElementNA(i)) {
-          sb.append("NA_character_");
-        } else {
-          sb.append(getElementAsString(i));
-        }
-      }
-      if (length() > 5) {
-        sb.append("...").append(length()).append(" elements total");
-      }
-      sb.append(")");
-      return sb.toString();
-    }
-  }
 
   @Override
   protected StringArrayVector cloneWithNewAttributes(AttributeMap attributes) {

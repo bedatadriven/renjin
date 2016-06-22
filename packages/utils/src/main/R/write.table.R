@@ -1,6 +1,8 @@
 #  File src/library/utils/R/write.table.R
 #  Part of the R package, http://www.R-project.org
 #
+#  Copyright (C) 1995-2012 The R Core Team
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
@@ -39,7 +41,7 @@ function (x, file = "", append = FALSE, quote = TRUE, sep = " ",
         if(is.null(d)) d <- list(NULL, NULL)
         if(is.null(d[[1L]]) && makeRownames) d[[1L]] <- seq_len(nrow(x))
         if(is.null(d[[2L]]) && makeColnames && p > 0L)
-            d[[2L]] <- paste("V", 1L:p, sep="")
+            d[[2L]] <- paste0("V", 1L:p)
         if(qset)
             quote <- if(is.character(x)) seq_len(p) else numeric()
     } else { ## data.frame
@@ -88,7 +90,7 @@ function (x, file = "", append = FALSE, quote = TRUE, sep = " ",
 
     if(is.logical(col.names)) {
         if(!rn && is.na(col.names))
-            stop("col.names = NA makes no sense when row.names = FALSE")
+            stop("'col.names = NA' makes no sense when 'row.names = FALSE'")
         col.names <- if(is.na(col.names) && rn) c("", d[[2L]])
         else if(col.names) d[[2L]] else NULL
     } else {
@@ -134,9 +136,8 @@ function (x, file = "", append = FALSE, quote = TRUE, sep = " ",
             if(is.object(z) && !is.factor(z)) as.character(z) else z
         })
     }
-
-    .Internal(write.table(x, file, nrow(x), p, rnames, sep, eol, na, dec,
-                          as.integer(quote), qmethod != "double"))
+    WriteTable$write(as.data.frame(x), file, nrow(x), p, rnames, sep, eol,
+                         na, dec, as.integer(quote), qmethod != "double")
 }
 
 write.csv <- function(...)

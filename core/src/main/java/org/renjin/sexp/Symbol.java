@@ -21,9 +21,7 @@
 
 package org.renjin.sexp;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
-import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 
 import java.util.HashMap;
@@ -206,7 +204,12 @@ public final class Symbol extends AbstractSEXP {
   public boolean isReservedWord() {
     return hashBit == 1;
   }
-  
+
+  @Override
+  public String asString() {
+    return printName;
+  }
+
   /**
    * Maps this symbol to a single bit in 32-bit hash bitset.
    */
@@ -273,8 +276,9 @@ public final class Symbol extends AbstractSEXP {
     if(printName.length() < 3) {
       return false;
     }
-    if(printName.charAt(0) != '.' ||
-       printName.charAt(1) != '.') {
+    if (printName.charAt(0) != '.' ||
+        printName.charAt(1) != '.') {
+
       return false;
     }
     for(int i=2;i!=printName.length();++i) {
@@ -292,19 +296,5 @@ public final class Symbol extends AbstractSEXP {
    */
   public int getVarArgReferenceIndex() {
     return Integer.parseInt(printName.substring(2));
-  }
-
-  @Override
-  public SEXP evaluate(Context context, Environment rho) {
-    context.clearInvisibleFlag();
-
-    if(this == Symbol.MISSING_ARG) {
-      return this;
-    }
-    SEXP value = rho.findVariable(this);
-    if(value == Symbol.UNBOUND_VALUE) {
-      throw new EvalException(String.format("object '%s' not found", getPrintName()));
-    }
-    return value.force(context);
   }
 }

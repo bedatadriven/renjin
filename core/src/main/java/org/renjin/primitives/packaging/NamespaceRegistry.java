@@ -1,18 +1,18 @@
 package org.renjin.primitives.packaging;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
-import com.google.common.io.ByteSource;
+import com.google.common.collect.*;
+import com.google.common.io.CharSource;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.SessionScoped;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -29,101 +29,129 @@ public class NamespaceRegistry {
    * These packages are part of the R distribution and carry the
    * org.renjin groupId.
    */
-  private static final Set<String> CORE_PACKAGES = Sets.newHashSet("datasets", "graphics", "grDevices", "hamcrest",
-          "methods", "splines", "stats", "stats4", "utils", "grid");
+  public static final Set<String> CORE_PACKAGES = Sets.newHashSet("datasets", "graphics", "grDevices", "hamcrest",
+      "methods", "splines", "stats", "stats4", "utils", "grid", "parallel", "tools", "tcltk",
+      "compiler");
 
   private PackageLoader loader;
 
   /**
    * Maps local names to namespaces
    */
-	private Multimap<Symbol, Namespace> localNameMap = HashMultimap.create();
+  private Multimap<Symbol, Namespace> localNameMap = HashMultimap.create();
   private Map<FqPackageName, Namespace> namespaceMap = Maps.newHashMap();
 
   private Map<Environment, Namespace> envirMap = Maps.newIdentityHashMap();
-	
-  private Context context;
+
+  /**
+   * Mapping of "native" methods to the namespace in which they are declared. used to resolve
+   * .Call invocations without a PACKAGE parameter.
+   */
+  private Map<String, Class> nativeSymbolMap = Maps.newHashMap();
+  
   private final Namespace baseNamespace;
 
   public NamespaceRegistry(PackageLoader loader, Context context, Environment baseNamespaceEnv) {
-	  this.loader = loader;
-	  this.context = context;
+    this.loader = loader;
 
     baseNamespace = new BaseNamespace(baseNamespaceEnv);
     localNameMap.put(BASE, baseNamespace);
-	  envirMap.put(baseNamespaceEnv, baseNamespace);
-	}
-
-	public Namespace getBaseNamespace() {
-	  return baseNamespace;
-	}
-	
-	public Environment getBaseNamespaceEnv() {
-	  return getBaseNamespace().getNamespaceEnvironment();
-	}
-	
-	public Namespace getNamespace(Environment envir) {
-	  Namespace ns = envirMap.get(envir);
-	  if(ns == null) {
-	    throw new IllegalArgumentException();
-	  }
-	  return ns;
-	}
-	
-	public Iterable<Symbol> getLoadedNamespaces() {
-	  return localNameMap.keySet();
-	}
-
-  public Namespace getNamespace(String name) {
-    return getNamespace(Symbol.get(name));
+    envirMap.put(baseNamespaceEnv, baseNamespace);
   }
-	
-  public Namespace getNamespace(Symbol symbol) {
+
+  public Namespace getBaseNamespace() {
+    return baseNamespace;
+  }
+
+  public Environment getBaseNamespaceEnv() {
+    return getBaseNamespace().getNamespaceEnvironment();
+  }
+
+  public Namespace getNamespace(Environment envir) {
+    Namespace ns = envirMap.get(envir);
+    if(ns == null) {
+      throw new IllegalArgumentException();
+    }
+    return ns;
+  }
+
+
+  public Iterable<Symbol> getLoadedNamespaces() {
+    return localNameMap.keySet();
+  }
+  
+  public Optional<Namespace> getNamespaceIfPresent(Symbol name) {
+    Collection<Namespace> matching = localNameMap.get(name);
+    if(matching.size() == 1) {
+      return Optional.of(matching.iterator().next());
+    } else {
+      return Optional.absent();
+    }
+  }
+  
+  public Optional<Class> resolveNativeMethod(String methodName) {
+    return Optional.fromNullable(nativeSymbolMap.get(methodName));
+  }
+  
+  public Namespace getNamespace(Context context, String name) {
+    return getNamespace(context, Symbol.get(name));
+  }
+
+  public Namespace getNamespace(Context context, Symbol symbol) {
     if(symbol.getPrintName().equals("base")) {
       return baseNamespace;
+    }
 
-    } else if(couldBeFullyQualified(symbol)) {
-
-      // assume we've been provided with a nice, fully-qualified
-      // org.myGroup.myPackageName
-
-      FqPackageName packageName = FqPackageName.fromSymbol(symbol);
-      Optional<Namespace> namespace = tryGetNamespace(packageName);
-      if(namespace.isPresent()) {
-        return namespace.get();
-      }
-
-      // this could be a cran package with a dot
-      namespace = tryGetNamespace(FqPackageName.cranPackage(symbol));
-      if(namespace.isPresent()) {
-        return namespace.get();
-      }
-
-      throw new EvalException("Could not find package '" + symbol + "'; tried both " +
-              packageName + " and " + FqPackageName.cranPackage(symbol));
-
-
-    } else {
-
-      // we've only got a local package name: use defaults for
-      // core package and then fall back to cran namespace
-
-      if(CORE_PACKAGES.contains(symbol.getPrintName())) {
-        return getNamespace(FqPackageName.corePackage(symbol));
-
-      } else {
-        return getNamespace(FqPackageName.cranPackage(symbol));
+    // try to match name to currently loaded namespaces
+    for (FqPackageName fqPackageName : namespaceMap.keySet()) {
+      if(symbol.getPrintName().equals(fqPackageName.toString('.')) ||
+          symbol.getPrintName().equals(fqPackageName.getPackageName())) {
+        return namespaceMap.get(fqPackageName);
       }
     }
-	}
 
-  public static Set<String>  getCorePackages()
-  {
+    // There are a small number of "core" packages that are part of the 
+    // the GNU R source, and now the Renjin source. (e.g., stats, methods, datasets, etc)
+    // These have the groupId "org.renjin"
+    
+    if(CORE_PACKAGES.contains(symbol.getPrintName())) {
+      return getNamespace(context, FqPackageName.corePackage(symbol));
+    }
+
+    // Otherwise, try to guess the groupId
+    List<FqPackageName> candidates = Lists.newArrayList();
+
+    if(couldBeFullyQualified(symbol)) {
+      candidates.add(FqPackageName.fromSymbol(symbol));
+    }
+
+    // Try bioconductor first as some packages have moved from cran to bioconductor
+    candidates.add(new FqPackageName("org.renjin.bioconductor", symbol.getPrintName()));
+    candidates.add(new FqPackageName("org.renjin.cran", symbol.getPrintName()));
+
+    Optional<Namespace> namespace = Optional.absent();
+
+    for (FqPackageName candidate : candidates) {
+      namespace = tryGetNamespace(context, candidate);
+      if(namespace.isPresent()) {
+        break;
+      }
+    }
+
+    if(!namespace.isPresent()) {
+      throw new EvalException("Could not load package " + symbol + "; tried " +
+          Joiner.on(", ").join(candidates));
+    }
+
+    return namespace.get();
+  }
+
+  public static Set<String>  getCorePackages() {
     return CORE_PACKAGES;
   }
 
-  public Namespace getNamespace(FqPackageName fqPackageName) {
-    Optional<Namespace> namespace = tryGetNamespace(fqPackageName);
+  public Namespace getNamespace(Context context, FqPackageName fqPackageName) {
+    Optional<Namespace> namespace = tryGetNamespace(context, fqPackageName);
     if(!namespace.isPresent()) {
       throw new EvalException("Could not load package " + fqPackageName);
     }
@@ -133,18 +161,20 @@ public class NamespaceRegistry {
   /**
    * Tries to obtain a reference to a namespace using it's fully qualified name,
    * either from among those loaded or those available through the package loader.
+   *
+   * @param context
    * @param fqName the fully-qualified package name
    * @return the corresponding {@code Namespace}, or {@code null}
    */
-  private Optional<Namespace> tryGetNamespace(FqPackageName fqName) {
+  private Optional<Namespace> tryGetNamespace(Context context, FqPackageName fqName) {
     if(namespaceMap.containsKey(fqName)) {
       return Optional.of(namespaceMap.get(fqName));
     } else {
-      return tryLoad(fqName);
+      return tryLoad(context, fqName);
     }
   }
 
-  private Optional<Namespace> tryLoad(FqPackageName fqName) {
+  private Optional<Namespace> tryLoad(Context context, FqPackageName fqName) {
 
     Optional<Package> loadResult = loader.load(fqName);
     if(!loadResult.isPresent()) {
@@ -157,10 +187,10 @@ public class NamespaceRegistry {
         Namespace namespace = createNamespace(pkg);
 
         // set up the namespace
-        populateNamespace(pkg, namespace);
+        populateNamespace(context, pkg, namespace);
 
         // setup namespace from NAMESPACE file
-        setupImportsExports(pkg, namespace);
+        setupImportsExports(context, pkg, namespace);
 
         // invoke the .onLoad hook
         if(namespace.getNamespaceEnvironment().hasVariable(Symbol.get(".onLoad"))) {
@@ -171,8 +201,8 @@ public class NamespaceRegistry {
 
         return Optional.of(namespace);
 
-      } catch(IOException e) {
-        throw new EvalException("IOException while loading package " + fqName, e);
+      } catch(Exception e) {
+        throw new EvalException("IOException while loading package " + fqName + ": " + e.getMessage(), e);
       }
     }
   }
@@ -187,7 +217,7 @@ public class NamespaceRegistry {
    * in this namespace.
    *
    */
-  private void populateNamespace(Package pkg, Namespace namespace) throws IOException {
+  private void populateNamespace(Context context, Package pkg, Namespace namespace) throws IOException {
     for(NamedValue value : pkg.loadSymbols(context)) {
       namespace.getNamespaceEnvironment().setVariable(Symbol.get(value.getName()), value.getValue());
     }
@@ -197,18 +227,30 @@ public class NamespaceRegistry {
    * Sets up imports and exports defined in the NAMESPACE file.
    *
    */
-  private void setupImportsExports(Package pkg, Namespace namespace) throws IOException {
+  private void setupImportsExports(Context context, Package pkg, Namespace namespace) throws IOException {
 
-    ByteSource namespaceFile = pkg.getResource("NAMESPACE");
-    NamespaceDirectiveParser.parse(namespaceFile.asCharSource(Charsets.UTF_8),
-        new NamespaceInitHandler(context, this, namespace));
+    try {
+      CharSource namespaceSource = pkg.getResource("NAMESPACE").asCharSource(Charsets.UTF_8);
+      NamespaceFile namespaceFile = NamespaceFile.parse(context, namespaceSource);
+
+      namespace.initImports(context, this, namespaceFile);
+      namespace.initExports(namespaceFile);
+      namespace.registerS3Methods(context, namespaceFile);
+
+      // Update our method name lookup
+      nativeSymbolMap.putAll(namespace.getNativeSymbolMap());
+      
+    } catch (Exception e) {
+      throw new EvalException("Exception setting up imports/exports for namespace " + namespace.getName() +
+          ": " + e.getMessage(), e);
+    }
   }
 
 
   public boolean isRegistered(Symbol name) {
     return localNameMap.containsKey(name);
   }
-  
+
   public Namespace getBase() {
     return baseNamespace;
   }
@@ -222,9 +264,9 @@ public class NamespaceRegistry {
     // BASE-NS -> IMPORTS -> ENVIRONMENT
 
     Environment imports = Environment.createNamedEnvironment(getBaseNamespaceEnv(),
-            "imports:" + pkg.getName().toString('.'));
+        "imports:" + pkg.getName().toString('.'));
 
-    Environment namespaceEnv = Environment.createNamedEnvironment(imports, pkg.getName().getPackageName());
+    Environment namespaceEnv = Environment.createNamespaceEnvironment(imports, pkg.getName().getPackageName());
     Namespace namespace = new Namespace(pkg, namespaceEnv);
     localNameMap.put(pkg.getName().getPackageSymbol(), namespace);
     namespaceMap.put(pkg.getName(), namespace);

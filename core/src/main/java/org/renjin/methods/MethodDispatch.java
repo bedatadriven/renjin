@@ -1,40 +1,27 @@
 package org.renjin.methods;
 
-import java.util.HashMap;
-
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Maps;
 import org.renjin.eval.Calls;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.primitives.Evaluation;
 import org.renjin.invoke.annotations.SessionScoped;
-import org.renjin.sexp.Closure;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.Function;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.HashFrame;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.PrimitiveFunction;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringArrayVector;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Symbols;
+import org.renjin.primitives.Evaluation;
+import org.renjin.sexp.*;
 
-import com.google.common.collect.Maps;
+import java.util.HashMap;
 
 @SessionScoped
 public class MethodDispatch {
-  
+
 
   public static final Symbol DOT_METHOD = Symbol.get(".Method");
   public static final Symbol DOT_METHODS = Symbol.get(".Methods");
   public static final Symbol DOT_DEFINED = Symbol.get(".defined");
   public static final Symbol DOT_TARGET = Symbol.get(".target");
 
-  
-  public static final Symbol dot_Generic =  Symbol.get(".Generic");
+
+  public static final Symbol DOT_GENERIC =  Symbol.get(".Generic");
   public static final Symbol GENERIC = Symbol.get("generic");
 
 
@@ -67,7 +54,7 @@ public class MethodDispatch {
   public static final Symbol s_dot_S3Class = Symbol.get(".S3Class");
   public static final Symbol s_getDataPart = Symbol.get("getDataPart");
   public static final Symbol s_setDataPart = Symbol.get("setDataPart");
-  
+
   public static final Symbol s_xData = Symbol.get(".xData");
   public static final Symbol s_dotData = Symbol.get(".Data");
 
@@ -87,19 +74,19 @@ public class MethodDispatch {
      just looking at referential equality. */
   public static final Symbol pseudo_NULL = Symbol.get("\001NULL\001");
 
-  
-  
+
+
   private boolean enabled = false;
   private HashMap<String, SEXP> extendsTable = Maps.newHashMap();
   private Environment methodsNamespace;
   private boolean tableDispatchEnabled = true;
-  
-  
-  
+
+
+
   public void init(Environment environment) {
     methodsNamespace = environment;
   }
-  
+
   public boolean isEnabled() {
     return enabled;
   }
@@ -107,7 +94,7 @@ public class MethodDispatch {
   public void setEnabled(boolean enabled) {
     this.enabled = enabled;
   }
-  
+
   public SEXP getExtends(String className) {
     SEXP value = extendsTable.get(className);
     if(value == null) {
@@ -116,24 +103,25 @@ public class MethodDispatch {
       return value;
     }
   }
-  
+
   public void putExtends(String className, SEXP klass) {
     extendsTable.put(className, klass);
   }
 
   public Environment getMethodsNamespace() {
+    Preconditions.checkState(methodsNamespace != null, "methods namespace is not loaded.");
     return methodsNamespace;
   }
 
   public SEXP standardGeneric(Context context, Symbol fname, Environment ev,
-      SEXP fdef) {
+                              SEXP fdef) {
     if(tableDispatchEnabled) {
       return R_dispatchGeneric(context, fname, ev, fdef);
     } else {
       throw new UnsupportedOperationException();
     }
   }
-  
+
   public SEXP R_dispatchGeneric(Context context, Symbol fname, Environment ev, SEXP fdef)   {
     SEXP method;
     SEXP f;
@@ -151,21 +139,21 @@ public class MethodDispatch {
         throw new EvalException("Failed to get the generic for the primitive \"%s\"", fname.asString());
       }
       f_env = ((Closure) fdef).getEnclosingEnvironment();
-      prim_case = true;        
+      prim_case = true;
     } else {
       throw new EvalException("Expected a generic function or a primitive for dispatch, " +
           "got an object of class \"%s\"", fdef.getImplicitClass());
     }
     SEXP mtable = f_env.getVariable(R_allmtable);
     if(mtable == Symbol.UNBOUND_VALUE) {
-      do_mtable(fdef, ev); /* Should initialize the generic */        
+      do_mtable(fdef, ev); /* Should initialize the generic */
       mtable = f_env.getVariable(R_allmtable);
     }
     SEXP sigargs = f_env.getVariable(R_sigargs);
     SEXP siglength = f_env.getVariable(R_siglength);
 
     if(sigargs == Symbol.UNBOUND_VALUE || siglength == Symbol.UNBOUND_VALUE ||
-        mtable == Symbol.UNBOUND_VALUE) {        
+        mtable == Symbol.UNBOUND_VALUE) {
       throw new EvalException("Generic \"%s\" seems not to have been initialized for table dispatch---need to have .SigArgs and .AllMtable assigned in its environment",
           fname.asString());
     }
@@ -173,7 +161,7 @@ public class MethodDispatch {
     ListVector.Builder classListBuilder = ListVector.newBuilder();
     StringVector thisClass;
     StringBuilder buf = new StringBuilder();
-    
+
     for(int i = 0; i < nargs; i++) {
       Symbol arg_sym = sigargs.getElementAsSEXP(i);
       if(is_missing_arg(context, arg_sym, ev)) {
@@ -185,7 +173,7 @@ public class MethodDispatch {
           arg = context.evaluate(arg_sym, ev);
         } catch(EvalException e) {
           throw new EvalException(String.format("error in evaluating the argument '%s' in selecting a " +
-              "method for function '%s'",
+                  "method for function '%s'",
               arg_sym.getPrintName(), fname.asString()), e);
         }
         thisClass = Methods.R_data_class(arg, true);
@@ -204,8 +192,9 @@ public class MethodDispatch {
     /* the rest of this is identical to R_standardGeneric;
          hence the f=method to remind us  */
     f = method;
-    if(f.isObject())
+    if(f.isObject()) {
       f = R_loadMethod(context, f, fname.getPrintName(), ev);
+    }
 
     if(f instanceof Closure) {
       val = R_execMethod(context, (Closure)f, ev);
@@ -220,7 +209,7 @@ public class MethodDispatch {
       throw new EvalException("invalid object (non-function) used as method");
 
     }
-    return val;  
+    return val;
   }
 
 
@@ -228,7 +217,7 @@ public class MethodDispatch {
   /* C version of the standardGeneric R function. */
   public SEXP R_standardGeneric(Context context, Symbol fsym, Environment ev, SEXP fdef) {
     String fname = fsym.getPrintName();
-    Environment f_env = context.getGlobalEnvironment().getBaseEnvironment();
+    Environment f_env = context.getBaseEnvironment();
     SEXP mlist = Null.INSTANCE;
     SEXP f;
     SEXP val = Null.INSTANCE;
@@ -248,7 +237,7 @@ public class MethodDispatch {
       //mlist = R_primitive_methods((PrimitiveFunction)fdef);
       throw new UnsupportedOperationException();
     } else {
-      throw new EvalException("invalid generic function object for method selection for function '%s': expected a function or a primitive, got an object of class \"%s\"", 
+      throw new EvalException("invalid generic function object for method selection for function '%s': expected a function or a primitive, got an object of class \"%s\"",
           fsym.getPrintName(), fdef.getAttributes().getClassVector());
     }
     if(mlist instanceof Null || mlist instanceof Closure || mlist instanceof PrimitiveFunction) {
@@ -266,14 +255,14 @@ public class MethodDispatch {
       mlist = value;
       /* now look again.  This time the necessary method should
        have been inserted in the MethodsList object */
-      f = do_dispatch(context, fname, (Environment)ev, mlist, false, true);
+      f = do_dispatch(context, fname, (Environment) ev, mlist, false, true);
     }
     //    /* loadMethod methods */
     if(f.isObject()) {
       f = R_loadMethod(context, f, fsym.getPrintName(), ev);
     }
     if(f instanceof Closure) {
-      return R_execMethod(context, (Closure)f, ev);  
+      return R_execMethod(context, (Closure)f, ev);
     } else if(f instanceof PrimitiveFunction) {
       /* primitives  can't be methods; they arise only as the
       default method when a primitive is made generic.  In this
@@ -303,7 +292,7 @@ public class MethodDispatch {
           " internal dispatch for function '%s'", fname), e);
     }
   }
-  
+
   private static SEXP R_loadMethod(Context context, SEXP def, String fname, Environment ev) {
 
     /* since this is called every time a method is dispatched with a
@@ -398,7 +387,7 @@ public class MethodDispatch {
         klass = "missing";
       } else {
         /*  get its class */
-        SEXP arg, class_obj; 
+        SEXP arg, class_obj;
         try {
           arg = context.evaluate(arg_sym, (Environment)ev);
         } catch(EvalException e) {
@@ -417,7 +406,7 @@ public class MethodDispatch {
       } catch(Exception e) {
         throw new EvalException(String.format("error in evaluating the argument '%s' in selecting a method for function '%s'",
             arg_sym.getPrintName(), fname));
-      }  
+      }
       klass = arg.asString();
     }
     method = R_find_method(mlist, klass, fname);
@@ -455,7 +444,7 @@ public class MethodDispatch {
 
 
   private static SEXP do_inherited_table(StringVector classes, SEXP fdef,
-      SEXP mtable, Environment ev) {
+                                         SEXP mtable, Environment ev) {
     throw new UnsupportedOperationException();
   }
 
@@ -475,7 +464,7 @@ public class MethodDispatch {
     /* create a new environment frame enclosed by the lexical
        environment of the method */
     Environment newrho = Environment.createChildEnvironment(op.getEnclosingEnvironment());
-
+    
     /* copy the bindings for the formal environment from the top frame
        of the internal environment of the generic call to the new
        frame.  need to make sure missingness information is preserved
@@ -496,7 +485,7 @@ public class MethodDispatch {
       if(!next.hasTag()) {
         throw new EvalException("closure formal has no tag! op = " + op);
       }
-      
+
       Symbol symbol = next.getTag();
       SEXP val = rho.findVariable(symbol);
       if(val == Symbol.UNBOUND_VALUE) {
@@ -529,14 +518,14 @@ public class MethodDispatch {
 
     /* copy the bindings of the spacial dispatch variables in the top
        frame of the generic call to the new frame */
-    newrho.setVariable(DOT_DEFINED, rho.getVariable(DOT_DEFINED));
-    newrho.setVariable(DOT_METHOD, rho.getVariable(DOT_METHOD));
-    newrho.setVariable(DOT_TARGET, rho.getVariable(DOT_TARGET));
+    newrho.setVariable(DOT_DEFINED, rho.findVariableOrThrow(DOT_DEFINED));
+    newrho.setVariable(DOT_METHOD, rho.findVariableOrThrow(DOT_METHOD));
+    newrho.setVariable(DOT_TARGET, rho.findVariableOrThrow(DOT_TARGET));
 
     /* copy the bindings for .Generic and .Methods.  We know (I think)
        that they are in the second frame, so we could use that. */
-    newrho.setVariable(Symbols.GENERIC, newrho.getVariable(".Generic"));
-    newrho.setVariable(DOT_METHODS, newrho.getVariable(DOT_METHODS));
+    newrho.setVariable(DOT_GENERIC, rho.findVariableOrThrow(DOT_GENERIC));
+    newrho.setVariable(DOT_METHODS, rho.findVariableOrThrow(DOT_METHODS));
 
     /* Find the calling context.  Should be R_GlobalContext unless
        profiling has inserted a CTXT_BUILTIN frame. */
@@ -560,14 +549,14 @@ public class MethodDispatch {
 
 
   private static SEXP R_execClosure(Context context, FunctionCall call, Closure op, PairList arglist,
-      Environment callerenv, Environment newrho) {
-    return Calls.applyClosure(op, context, callerenv, call, arglist, newrho, new HashFrame());
+                                    Environment callerenv, Environment newrho) {
+    return Calls.applyClosure(op, context, callerenv, call, arglist,  newrho.getFrame());
   }
-  
-  
+
+
   private  SEXP do_inherited_table(Context context, SEXP class_objs, SEXP fdef, SEXP mtable, Environment ev) {
     SEXP fun = methodsNamespace.findFunction(context, Symbol.get(".InheritForDispatch"));
-    
+
     return context.evaluate(FunctionCall.newCall(fun, class_objs, fdef, mtable), ev);
   }
 //
@@ -586,7 +575,6 @@ public class MethodDispatch {
 //      UNPROTECT(1);
 //      return ee;
 //  }
-
 
 
 }

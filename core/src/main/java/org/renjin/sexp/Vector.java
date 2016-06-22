@@ -83,20 +83,20 @@ public interface Vector extends SEXP {
    * for utilities for working with unsigned bytes.
    */
   byte getElementAsByte(int index);
-  
-  /**
-  *
-  * @param vector an {@code AtomicVector}
-  * @param vectorIndex an index of {@code vector}
-  * @param startIndex
-  * @return the index of the first element in this vector that equals
-  * the element at {@code vectorIndex} in {@code vector}, or -1 if no such element
-  * can be found
-  */
- int indexOf(Vector vector, int vectorIndex, int startIndex);
-  
 
- /**
+  /**
+   *
+   * @param vector an {@code AtomicVector}
+   * @param vectorIndex an index of {@code vector}
+   * @param startIndex
+   * @return the index of the first element in this vector that equals
+   * the element at {@code vectorIndex} in {@code vector}, or -1 if no such element
+   * can be found
+   */
+  int indexOf(Vector vector, int vectorIndex, int startIndex);
+
+
+  /**
   * @param vector an {@code AtomicVector }
   * @param vectorIndex an index of {@code vector}
   * @return true if this vector contains an element equal to the
@@ -152,11 +152,32 @@ public interface Vector extends SEXP {
   Builder newCopyBuilder();
 
   /**
+   * Creates a new Builder which is initialized with all of this vector's elements 
+   * AND it's attributes. If the given {@code type} is wider than this vector's type,
+   * then that type is used.
+   * 
+   * @param type
+   * @return
+   */
+  Builder newCopyBuilder(Vector.Type type);
+
+  /**
+   * Checks whether the element is the NA value for this type. Note that this method
+   * will return {@code false} for double {@code NaN} values.
    *
    * @param index zero-based index
-   * @return  true if the element at {@code index} is NA (statistically missing)
+   * @return  true if the element at {@code index} is NA (statistically missing), false if otherwise. 
    */
   boolean isElementNA(int index);
+
+  /**
+   * 
+   * @param index zero-based index
+   * @return true if the element at {@code index} is Not a Number (NaN), including values 
+   * which are NA (statistically missing)
+   */
+  boolean isElementNaN(int index);
+
 
 
   /**
@@ -186,11 +207,12 @@ public interface Vector extends SEXP {
 
   int getComputationDepth();
 
+
   /**
    * An interface to
    * @param <S>
    */
-  public static interface Builder<S extends SEXP> {
+  public static interface Builder<S extends SEXP>  extends SEXPBuilder {
 
     /**
      * Sets the element at index {@code index} to {@code NA}.
@@ -256,6 +278,8 @@ public interface Vector extends SEXP {
     * @return this Builder, for method chaining
     */
     Builder setAttribute(Symbol name, SEXP value);
+    
+    Builder removeAttribute(Symbol name);
 
     Builder setDim(int row, int col);
 
@@ -265,8 +289,6 @@ public interface Vector extends SEXP {
      * @return the current length of the vector under construction.
      */
     int length();
-
-    void setAttributes(AttributeMap attributes);
 
     /**
      * @return a new Vector.
@@ -283,7 +305,25 @@ public interface Vector extends SEXP {
      */
     Builder copyAttributesFrom(SEXP vector);
 
-    Builder copySomeAttributesFrom(SEXP exp, Symbol... toCopy);
+    /**
+     * Combines attributes from the provided {@code vector} argument by adding 
+     * the attributes if they are not already set, and checking for consistency.
+     * @param vector
+     * @throws org.renjin.eval.EvalException if {@code vector} has {@code dim} attribute
+     * that does not conform with the {@code dim} attribute already set.
+     */
+    Builder combineAttributesFrom(SEXP vector);
+
+    /**
+     * Combines {@code dim}, {@cocde dimnames} and {@code names} 
+     * attributes from the provided {@code vector} argument by adding 
+     * the attributes if they are not already set, and checking for consistency.
+     * @param vector the vector whose attributes are to be combined
+     * @throws org.renjin.eval.EvalException if {@code vector} has {@code dim} attribute
+     * that does not conform with the {@code dim} attribute already set.
+     */
+    Builder combineStructuralAttributesFrom(SEXP vector);
+
   }
 
   static class Order {

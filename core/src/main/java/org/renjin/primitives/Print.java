@@ -25,9 +25,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.renjin.eval.Context;
-import org.renjin.invoke.annotations.Current;
-import org.renjin.invoke.annotations.Internal;
-import org.renjin.invoke.annotations.Materialize;
+import org.renjin.invoke.annotations.*;
 import org.renjin.parser.StringLiterals;
 import org.renjin.primitives.print.*;
 import org.renjin.primitives.vector.RowNamesVector;
@@ -45,16 +43,26 @@ public class Print {
   public static SEXP printDefault(@Current Context context, SEXP expression, SEXP digits, boolean quote, SEXP naPrint,
       SEXP printGap, SEXP right, SEXP max, SEXP useSource, SEXP noOp) throws IOException {
 
-    PrintingVisitor visitor = new PrintingVisitor(context)
-    .setCharactersPerLine(80)
-    .setQuote(quote);
-    expression.accept(visitor);
+    if(Types.isS4(expression)) {
+      printS4(context, expression);
+    
+    } else {
 
-    context.getSession().getStdOut().print(visitor.getResult());
+      PrintingVisitor visitor = new PrintingVisitor(context)
+          .setCharactersPerLine(80)
+          .setQuote(quote);
+      expression.accept(visitor);
+      context.getSession().getStdOut().print(visitor.getResult());
+    }
+
     context.getSession().getStdOut().flush();
     context.setInvisibleFlag();
     return expression;
 
+  }
+
+  private static void printS4(Context context, SEXP expression) {
+    context.evaluate(FunctionCall.newCall(Symbol.get("show"), expression));
   }
 
   public static String doPrint(SEXP expression) {
@@ -62,14 +70,16 @@ public class Print {
     // an unevaluated promise... but this seems super unlikely...
     // try removing this once we have a larger test suite built up
     PrintingVisitor visitor = new PrintingVisitor(null)
-    .setCharactersPerLine(80);
+        .setCharactersPerLine(80);
     expression.accept(visitor);
 
     return visitor.getResult();
   }
 
+  @Generic
   @Internal("print.function")
-  public static void printFunction(@Current Context context, SEXP x, boolean useSource) throws IOException {
+  public static void printFunction(@Current Context context, SEXP x, boolean useSource, 
+                                   @ArgumentList ListVector extraArguments) throws IOException {
     context.getSession().getStdOut().println(x.toString());
     context.getSession().getStdOut().flush();
   }
@@ -162,10 +172,16 @@ public class Print {
     }
 
     @Override
+    public void visit(ComplexVector vector) {
+      printVector(vector, Alignment.RIGHT, new ComplexPrinter(), "complex");
+    }
+
+    @Override
     public void visit(RawVector vector) {
       printVector(vector, Alignment.RIGHT, new RawPrinter(), "raw");
     }   
 
+    
     @Override
     public void visit(Null nullExpression) {
       out.append("NULL\n");
@@ -196,10 +212,10 @@ public class Print {
 
     private void printAttributes(SEXP sexp) {
       for(PairList.Node node : sexp.getAttributes().nodes()) {
-        if(!node.getTag().equals(Symbols.NAMES) &&
-           !node.getTag().equals(Symbols.DIM) &&
-           !node.getTag().equals(Symbols.DIMNAMES) &&
-            node.getValue() != Null.INSTANCE) {
+        if (!node.getTag().equals(Symbols.NAMES) &&
+            !node.getTag().equals(Symbols.DIM) &&
+            !node.getTag().equals(Symbols.DIMNAMES) &&
+             node.getValue() != Null.INSTANCE) {
           out.append("attr(," + new StringPrinter().apply(node.getName()) + ")\n");
           node.getValue().accept(this);
         }
@@ -374,7 +390,7 @@ public class Print {
         if(colNames == Null.INSTANCE) {
           return "[," + (col+1) + "]";
         } else {
-          return colNames.getElementAsString(col);
+          return naToString(colNames.getElementAsString(col));
         }
       }
       
@@ -382,7 +398,15 @@ public class Print {
         if(rowNames == Null.INSTANCE) {
           return "[" + (row+1) + ",]";
         } else {
-          return rowNames.getElementAsString(row);
+          return naToString(rowNames.getElementAsString(row));
+        }
+      }
+      
+      private String naToString(String x) {
+        if(x == null) {
+          return "NA";
+        } else {
+          return x;
         }
       }
       

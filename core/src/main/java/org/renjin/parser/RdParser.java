@@ -122,10 +122,11 @@ public class RdParser
      * <code>Position</code> should override the <code>equals</code>
      * method.  */
     public String toString () {
-      if (begin.equals (end))
-        return begin.toString ();
-      else
-        return begin.toString () + "-" + end.toString ();
+      if (begin.equals (end)) {
+        return begin.toString();
+      } else {
+        return begin.toString() + "-" + end.toString();
+      }
     }
   }
 
@@ -199,10 +200,11 @@ public class RdParser
 
   private Location yylloc (YYStack rhs, int n)
   {
-    if (n > 0)
-      return new Location (rhs.locationAt (1).begin, rhs.locationAt (n).end);
-    else
-      return new Location (rhs.locationAt (0).end);
+    if (n > 0) {
+      return new Location(rhs.locationAt(1).begin, rhs.locationAt(n).end);
+    } else {
+      return new Location(rhs.locationAt(0).end);
+    }
   }
 
   /**
@@ -303,8 +305,9 @@ public class RdParser
   }
 
   protected final void yycdebug (String s) {
-    if (yydebug > 0)
-      yyDebugStream.println (s);
+    if (yydebug > 0) {
+      yyDebugStream.println(s);
+    }
   }
 
   private final class YYStack {
@@ -426,10 +429,11 @@ public class RdParser
        Otherwise, the following line sets YYVAL to garbage.
        This behavior is undocumented and Bison
        users should not rely upon it.  */
-    if (yylen > 0)
-      yyval = yystack.valueAt (yylen - 1);
-    else
-      yyval = yystack.valueAt (0);
+    if (yylen > 0) {
+      yyval = yystack.valueAt(yylen - 1);
+    } else {
+      yyval = yystack.valueAt(0);
+    }
 
     yy_reduce_print (yyn, yystack);
 
@@ -1106,10 +1110,11 @@ public class RdParser
     yyn = yyr1_[yyn];
     int yystate = yypgoto_[yyn - yyntokens_] + yystack.stateAt (0);
     if (0 <= yystate && yystate <= yylast_
-        && yycheck_[yystate] == yystack.stateAt (0))
+        && yycheck_[yystate] == yystack.stateAt (0)) {
       yystate = yytable_[yystate];
-    else
+    } else {
       yystate = yydefgoto_[yyn - yyntokens_];
+    }
 
     yystack.push (yystate, yyval, yyloc);
     return YYNEWSTATE;
@@ -1124,27 +1129,28 @@ public class RdParser
     if (yystr.charAt (0) == '"')
     {
       StringBuffer yyr = new StringBuffer ();
-      strip_quotes: for (int i = 1; i < yystr.length (); i++)
-        switch (yystr.charAt (i))
-        {
-        case '\'':
-        case ',':
-          break strip_quotes;
-
-        case '\\':
-          if (yystr.charAt(++i) != '\\')
+      strip_quotes: for (int i = 1; i < yystr.length (); i++) {
+        switch (yystr.charAt(i)) {
+          case '\'':
+          case ',':
             break strip_quotes;
-          /* Fall through.  */
-        default:
-          yyr.append (yystr.charAt (i));
-          break;
 
-        case '"':
-          return yyr.toString ();
+          case '\\':
+            if (yystr.charAt(++i) != '\\')
+              break strip_quotes;
+          /* Fall through.  */
+          default:
+            yyr.append(yystr.charAt(i));
+            break;
+
+          case '"':
+            return yyr.toString();
         }
+      }
     }
-    else if (yystr.equals ("$end"))
+    else if (yystr.equals ("$end")) {
       return "end of input";
+    }
 
     return yystr;
   }
@@ -1156,11 +1162,12 @@ public class RdParser
   private void yy_symbol_print (String s, int yytype,
       Object yyvaluep				 , Object yylocationp)
   {
-    if (yydebug > 0)
-      yycdebug (s + (yytype < yyntokens_ ? " token " : " nterm ")
+    if (yydebug > 0) {
+      yycdebug(s + (yytype < yyntokens_ ? " token " : " nterm ")
           + yytname__[yytype] + " ("
           + yylocationp + ": "
-          + (yyvaluep == null ? "(null)" : yyvaluep.toString ()) + ")");
+          + (yyvaluep == null ? "(null)" : yyvaluep.toString()) + ")");
+    }
   }
 
   /**
@@ -1207,211 +1214,194 @@ public class RdParser
     yystack.push (yystate, yylval, yylloc);
 
     int label = YYNEWSTATE;
-    for (;;)
-      switch (label)
-      {
+    for (;;) {
+      switch (label) {
       /* New state.  Unlike in the C/C++ skeletons, the state is already
-	   pushed when we come here.  */
-      case YYNEWSTATE:
-        yycdebug ("Entering state " + yystate + "\n");
-        if (yydebug > 0)
-          yystack.print (yyDebugStream);
+     pushed when we come here.  */
+        case YYNEWSTATE:
+          yycdebug("Entering state " + yystate + "\n");
+          if (yydebug > 0)
+            yystack.print(yyDebugStream);
 
         /* Accept?  */
-        if (yystate == yyfinal_)
-          return true;
+          if (yystate == yyfinal_)
+            return true;
 
         /* Take a decision.  First try without lookahead.  */
-        yyn = yypact_[yystate];
-        if (yyn == yypact_ninf_)
-        {
-          label = YYDEFAULT;
-          break;
-        }
+          yyn = yypact_[yystate];
+          if (yyn == yypact_ninf_) {
+            label = YYDEFAULT;
+            break;
+          }
 
         /* Read a lookahead token.  */
-        if (yychar == yyempty_)
-        {
-          yycdebug ("Reading a token: ");
-          yychar = yylex ();
+          if (yychar == yyempty_) {
+            yycdebug("Reading a token: ");
+            yychar = yylex();
 
-          yylloc = new Location(yylexer.getStartPos (),
-              yylexer.getEndPos ());
-          yylval = yylexer.getLVal ();
-        }
+            yylloc = new Location(yylexer.getStartPos(),
+                yylexer.getEndPos());
+            yylval = yylexer.getLVal();
+          }
 
         /* Convert token to internal form.  */
-        if (yychar <= EOF)
-        {
-          yychar = yytoken = EOF;
-          yycdebug ("Now at end of input.\n");
-        }
-        else
-        {
-          yytoken = yytranslate_ (yychar);
-          yy_symbol_print ("Next token is", yytoken,
-              yylval, yylloc);
-        }
+          if (yychar <= EOF) {
+            yychar = yytoken = EOF;
+            yycdebug("Now at end of input.\n");
+          } else {
+            yytoken = yytranslate_(yychar);
+            yy_symbol_print("Next token is", yytoken,
+                yylval, yylloc);
+          }
 
         /* If the proper action on seeing token YYTOKEN is to reduce or to
            detect an error, take that action.  */
-        yyn += yytoken;
-        if (yyn < 0 || yylast_ < yyn || yycheck_[yyn] != yytoken)
-          label = YYDEFAULT;
+          yyn += yytoken;
+          if (yyn < 0 || yylast_ < yyn || yycheck_[yyn] != yytoken)
+            label = YYDEFAULT;
 
         /* <= 0 means reduce or error.  */
-        else if ((yyn = yytable_[yyn]) <= 0)
-        {
-          if (yyn == 0 || yyn == yytable_ninf_)
-            label = YYFAIL;
-          else
-          {
-            yyn = -yyn;
-            label = YYREDUCE;
-          }
-        }
-
-        else
-        {
+          else if ((yyn = yytable_[yyn]) <= 0) {
+            if (yyn == 0 || yyn == yytable_ninf_)
+              label = YYFAIL;
+            else {
+              yyn = -yyn;
+              label = YYREDUCE;
+            }
+          } else {
           /* Shift the lookahead token.  */
-          yy_symbol_print ("Shifting", yytoken,
-              yylval, yylloc);
+            yy_symbol_print("Shifting", yytoken,
+                yylval, yylloc);
 
           /* Discard the token being shifted.  */
-          yychar = yyempty_;
+            yychar = yyempty_;
 
           /* Count tokens shifted since error; after three, turn off error
                status.  */
-          if (yyerrstatus_ > 0)
-            --yyerrstatus_;
+            if (yyerrstatus_ > 0)
+              --yyerrstatus_;
 
-          yystate = yyn;
-          yystack.push (yystate, yylval, yylloc);
-          label = YYNEWSTATE;
-        }
-        break;
+            yystate = yyn;
+            yystack.push(yystate, yylval, yylloc);
+            label = YYNEWSTATE;
+          }
+          break;
 
         /*-----------------------------------------------------------.
       | yydefault -- do the default action for the current state.  |
       `-----------------------------------------------------------*/
-      case YYDEFAULT:
-        yyn = yydefact_[yystate];
-        if (yyn == 0)
-          label = YYFAIL;
-        else
-          label = YYREDUCE;
-        break;
+        case YYDEFAULT:
+          yyn = yydefact_[yystate];
+          if (yyn == 0)
+            label = YYFAIL;
+          else
+            label = YYREDUCE;
+          break;
 
         /*-----------------------------.
       | yyreduce -- Do a reduction.  |
       `-----------------------------*/
-      case YYREDUCE:
-        yylen = yyr2_[yyn];
-        label = yyaction (yyn, yystack, yylen);
-        yystate = yystack.stateAt (0);
-        break;
+        case YYREDUCE:
+          yylen = yyr2_[yyn];
+          label = yyaction(yyn, yystack, yylen);
+          yystate = yystack.stateAt(0);
+          break;
 
         /*------------------------------------.
       | yyerrlab -- here on detecting error |
       `------------------------------------*/
-      case YYFAIL:
+        case YYFAIL:
         /* If not already recovering from an error, report this error.  */
-        if (yyerrstatus_ == 0)
-        {
-          ++yynerrs_;
-          yyerror (yylloc, yysyntax_error (yystate, yytoken));
-        }
+          if (yyerrstatus_ == 0) {
+            ++yynerrs_;
+            yyerror(yylloc, yysyntax_error(yystate, yytoken));
+          }
 
-        yyerrloc = yylloc;
-        if (yyerrstatus_ == 3)
-        {
+          yyerrloc = yylloc;
+          if (yyerrstatus_ == 3) {
           /* If just tried and failed to reuse lookahead token after an
 	     error, discard it.  */
 
-          if (yychar <= EOF)
-          {
+            if (yychar <= EOF) {
             /* Return failure if at end of input.  */
-            if (yychar == EOF)
-              return false;
+              if (yychar == EOF)
+                return false;
+            } else
+              yychar = yyempty_;
           }
-          else
-            yychar = yyempty_;
-        }
 
         /* Else will try to reuse lookahead token after shifting the error
            token.  */
-        label = YYERRLAB1;
-        break;
+          label = YYERRLAB1;
+          break;
 
         /*---------------------------------------------------.
       | errorlab -- error raised explicitly by YYERROR.  |
       `---------------------------------------------------*/
-      case YYERROR:
+        case YYERROR:
 
-        yyerrloc = yystack.locationAt (yylen - 1);
+          yyerrloc = yystack.locationAt(yylen - 1);
         /* Do not reclaim the symbols of the rule which action triggered
            this YYERROR.  */
-        yystack.pop (yylen);
-        yylen = 0;
-        yystate = yystack.stateAt (0);
-        label = YYERRLAB1;
-        break;
+          yystack.pop(yylen);
+          yylen = 0;
+          yystate = yystack.stateAt(0);
+          label = YYERRLAB1;
+          break;
 
         /*-------------------------------------------------------------.
       | yyerrlab1 -- common code for both syntax error and YYERROR.  |
       `-------------------------------------------------------------*/
-      case YYERRLAB1:
-        yyerrstatus_ = 3;	/* Each real token shifted decrements this.  */
+        case YYERRLAB1:
+          yyerrstatus_ = 3;	/* Each real token shifted decrements this.  */
 
-        for (;;)
-        {
-          yyn = yypact_[yystate];
-          if (yyn != yypact_ninf_)
-          {
-            yyn += yyterror_;
-            if (0 <= yyn && yyn <= yylast_ && yycheck_[yyn] == yyterror_)
-            {
-              yyn = yytable_[yyn];
-              if (0 < yyn)
-                break;
+          for (; ; ) {
+            yyn = yypact_[yystate];
+            if (yyn != yypact_ninf_) {
+              yyn += yyterror_;
+              if (0 <= yyn && yyn <= yylast_ && yycheck_[yyn] == yyterror_) {
+                yyn = yytable_[yyn];
+                if (0 < yyn)
+                  break;
+              }
             }
-          }
 
           /* Pop the current state because it cannot handle the error token.  */
-          if (yystack.height == 1)
-            return false;
+            if (yystack.height == 1)
+              return false;
 
-          yyerrloc = yystack.locationAt (0);
-          yystack.pop ();
-          yystate = yystack.stateAt (0);
-          if (yydebug > 0)
-            yystack.print (yyDebugStream);
-        }
+            yyerrloc = yystack.locationAt(0);
+            yystack.pop();
+            yystate = yystack.stateAt(0);
+            if (yydebug > 0)
+              yystack.print(yyDebugStream);
+          }
 
 
         /* Muck with the stack to setup for yylloc.  */
-        yystack.push (0, null, yylloc);
-        yystack.push (0, null, yyerrloc);
-        yyloc = yylloc (yystack, 2);
-        yystack.pop (2);
+          yystack.push(0, null, yylloc);
+          yystack.push(0, null, yyerrloc);
+          yyloc = yylloc(yystack, 2);
+          yystack.pop(2);
 
         /* Shift the error token.  */
-        yy_symbol_print ("Shifting", yystos_[yyn],
-            yylval, yyloc);
+          yy_symbol_print("Shifting", yystos_[yyn],
+              yylval, yyloc);
 
-        yystate = yyn;
-        yystack.push (yyn, yylval, yyloc);
-        label = YYNEWSTATE;
-        break;
+          yystate = yyn;
+          yystack.push(yyn, yylval, yyloc);
+          label = YYNEWSTATE;
+          break;
 
         /* Accept.  */
-      case YYACCEPT:
-        return true;
+        case YYACCEPT:
+          return true;
 
         /* Abort.  */
-      case YYABORT:
-        return false;
+        case YYABORT:
+          return false;
       }
+    }
   }
 
   // Generate an error message.
@@ -1432,9 +1422,10 @@ public class RdParser
         int yychecklim = yylast_ - yyn + 1;
         int yyxend = yychecklim < yyntokens_ ? yychecklim : yyntokens_;
         int count = 0;
-        for (int x = yyxbegin; x < yyxend; ++x)
+        for (int x = yyxbegin; x < yyxend; ++x) {
           if (yycheck_[x + yyn] == x && x != yyterror_)
             ++count;
+        }
 
         // FIXME: This method of building the message is not compatible
         // with internationalization.
@@ -1443,12 +1434,12 @@ public class RdParser
         if (count < 5)
         {
           count = 0;
-          for (int x = yyxbegin; x < yyxend; ++x)
-            if (yycheck_[x + yyn] == x && x != yyterror_)
-            {
-              res.append (count++ == 0 ? ", expecting " : " or ");
-              res.append (yytname_rr_ (yytname__[x]));
+          for (int x = yyxbegin; x < yyxend; ++x) {
+            if (yycheck_[x + yyn] == x && x != yyterror_) {
+              res.append(count++ == 0 ? ", expecting " : " or ");
+              res.append(yytname_rr_(yytname__[x]));
             }
+          }
         }
         return res.toString ();
       }
@@ -1764,8 +1755,9 @@ public class RdParser
   // Report on the debug stream that the rule yyrule is going to be reduced.
   private void yy_reduce_print (int yyrule, YYStack yystack)
   {
-    if (yydebug == 0)
+    if (yydebug == 0) {
       return;
+    }
 
     int yylno = yyrline_[yyrule];
     int yynrhs = yyr2_[yyrule];
@@ -1774,11 +1766,12 @@ public class RdParser
         + " (line " + yylno + "), ");
 
     /* The symbols being reduced.  */
-    for (int yyi = 0; yyi < yynrhs; yyi++)
-      yy_symbol_print ("   $" + (yyi + 1) + " =",
+    for (int yyi = 0; yyi < yynrhs; yyi++) {
+      yy_symbol_print("   $" + (yyi + 1) + " =",
           yyrhs_[yyprhs_[yyrule] + yyi],
-          ((yystack.valueAt (yynrhs-(yyi + 1)))), 
-          yystack.locationAt (yynrhs-(yyi + 1)));
+          ((yystack.valueAt(yynrhs - (yyi + 1)))),
+          yystack.locationAt(yynrhs - (yyi + 1)));
+    }
   }
 
   /* YYTRANSLATE(YYLEX) -- Bison symbol number corresponding to YYLEX.  */
@@ -1817,10 +1810,11 @@ public class RdParser
 
   private static final byte yytranslate_ (int t)
   {
-    if (t >= 0 && t <= yyuser_token_number_max_)
+    if (t >= 0 && t <= yyuser_token_number_max_) {
       return yytranslate_table_[t];
-    else
+    } else {
       return yyundef_token_;
+    }
   }
 
   private static final int yylast_ = 490;
@@ -2092,7 +2086,9 @@ public class RdParser
       flag |= flag1;
     }
     if (!isNull(body2)) {
-      if (argcount < 2) error("internal error: inconsistent argument count");
+      if (argcount < 2) {
+        error("internal error: inconsistent argument count");
+      }
       int flag2 = getDynamicFlag(body2);
       ans.set(1, setDynamicFlag(PairToVectorList(CDR(body2)), flag2));
       flag |= flag2;
@@ -2219,7 +2215,9 @@ public class RdParser
     prevbytes[prevpos] = xxbyteno;
     prevlines[prevpos] = xxlineno;    
 
-    if (c == EOF) return R_EOF;
+    if (c == EOF) {
+      return R_EOF;
+    }
 
     R_ParseContextLast = (R_ParseContextLast + 1) % PARSE_CONTEXT_SIZE;
     R_ParseContext[R_ParseContextLast] = c;
@@ -2258,7 +2256,9 @@ public class RdParser
     /* Mac OS X requires us to keep this non-negative */
     R_ParseContextLast = (R_ParseContextLast + PARSE_CONTEXT_SIZE - 1) 
         % PARSE_CONTEXT_SIZE;
-    if(npush >= PUSHBACK_BUFSIZE - 2) return EOF;
+    if(npush >= PUSHBACK_BUFSIZE - 2) {
+      return EOF;
+    }
     pushback[npush++] = c;
     return c;
   }
@@ -2348,8 +2348,11 @@ public class RdParser
     xxinRString = 0;
     xxNewlineInString = false;
     xxinEqn = false;
-    if (fragment) xxinitvalue = STARTFRAGMENT;
-    else	  xxinitvalue = STARTFILE;
+    if (fragment) {
+      xxinitvalue = STARTFRAGMENT;
+    } else {
+      xxinitvalue = STARTFILE;
+    }
 
     Value = R_NilValue;
 
@@ -2375,7 +2378,9 @@ public class RdParser
 
     try {
       c = con_parse.read();
-      if (c == EOF && last != '\n') c = '\n';
+      if (c == EOF && last != '\n') {
+        c = '\n';
+      }
       return (last = c);
     } catch (IOException e) {
       throw new RuntimeException(e);
@@ -2641,7 +2646,9 @@ public class RdParser
       c = xxgetc();
     };
     
-    if (c != '\n') xxungetc(c); /* newline causes a break, but we keep it */
+    if (c != '\n') {
+      xxungetc(c); /* newline causes a break, but we keep it */
+    }
     yylval = new StringArrayVector(correctCrLf(text.toString()));
     return TEXT;
   }
@@ -2690,9 +2697,13 @@ public class RdParser
         if (lookahead == '\\' || lookahead == '%') {
           c = lookahead;
           escaped = true;
-        } else xxungetc(lookahead);
+        } else {
+          xxungetc(lookahead);
+        }
       }
-      if ((!escaped && c == '%') || c == R_EOF) break;
+      if ((!escaped && c == '%') || c == R_EOF) {
+        break;
+      }
       if (xxinRString!=0) {
         /* This stuff is messy, because there are two levels of escaping:
     	       The Rd escaping and the R code string escaping. */
@@ -2716,10 +2727,13 @@ public class RdParser
             /* assume \link or \var; this breaks vertical tab, but does anyone ever use that? */
             xxungetc(lookahead);
             break;
-          } else xxungetc(lookahead);
+          } else {
+            xxungetc(lookahead);
+          }
         }
-        if (!escaped && c == xxinRString)
+        if (!escaped && c == xxinRString) {
           xxinRString = 0;
+        }
       } else {
         if (c == '#') {
           do {
@@ -2731,12 +2745,19 @@ public class RdParser
               if (lookahead == '\\' || lookahead == '%' || lookahead == LBRACE || lookahead == RBRACE) {
                 c = lookahead;
                 escaped = true;
-              } else xxungetc(lookahead);
+              } else {
+                xxungetc(lookahead);
+              }
             }
-            if (c == LBRACE && !escaped) xxbraceDepth++;
-            else if (c == RBRACE && !escaped) xxbraceDepth--;
+            if (c == LBRACE && !escaped) {
+              xxbraceDepth++;
+            } else if (c == RBRACE && !escaped) {
+              xxbraceDepth--;
+            }
           } while (c != '\n' && c != R_EOF && xxbraceDepth > 0);
-          if (c == RBRACE && !escaped) xxbraceDepth++; /* avoid double counting */
+          if (c == RBRACE && !escaped) {
+            xxbraceDepth++; /* avoid double counting */
+          }
         }
         if (c == '\'' || c == '"' || c == '`') {
           xxinRString = c;
@@ -2757,9 +2778,14 @@ public class RdParser
         } else if (c == LBRACE) {
           xxbraceDepth++;
         } else if (c == RBRACE) {
-          if (xxbraceDepth == 1) break;
-          else xxbraceDepth--;
-        } else if (c == R_EOF) break;
+          if (xxbraceDepth == 1) {
+            break;
+          } else {
+            xxbraceDepth--;
+          }
+        } else if (c == R_EOF) {
+          break;
+        }
       }
       text.appendCodePoint(c);
       if (c == '\n') {
@@ -2802,8 +2828,9 @@ public class RdParser
             c = text.codePointAt(text.length()-1); /* pop the last letter into c */
           }
         } else {
-          if (retval == NOITEM) 
+          if (retval == NOITEM) {
             retval = xxitemType;
+          }
           break;
         }
       }
@@ -2931,9 +2958,12 @@ public class RdParser
 
       if (xxDebugTokens) {
         Rprintf("%d:%d: %s", yylloc.begin.line, yylloc.begin.column, yytname__[yytranslate_(tok)]);
-        if (xxinRString != 0) Rprintf("(in %c%c)", xxinRString, xxinRString);
-        if (tok > 255 && tok != END_OF_INPUT) 
+        if (xxinRString != 0) {
+          Rprintf("(in %c%c)", xxinRString, xxinRString);
+        }
+        if (tok > 255 && tok != END_OF_INPUT) {
           Rprintf(": %s", CHAR(STRING_ELT(yylval, 0)));
+        }
         Rprintf("\n");
       }
       setlastloc();
@@ -2965,15 +2995,18 @@ public class RdParser
       c = xxgetc();
 
       switch (c) {
-      case '%': if (!xxinEqn) return mkComment(c);
+      case '%': if (!xxinEqn) {
+        return mkComment(c);
+      }
       break;
       case '\\':
         if (!xxinEqn) {
           lookahead = xxungetc(xxgetc());
           if (Character.isLetter(lookahead) && xxmode != VERBATIM 
               /* In R strings, only link or var is allowed as markup */
-              && (lookahead == 'l' || lookahead == 'v' || xxinRString==0)) 
+              && (lookahead == 'l' || lookahead == 'v' || xxinRString==0)) {
             return mkMarkup(c);
+          }
         }
         break;
       case R_EOF:
@@ -2984,23 +3017,31 @@ public class RdParser
         }
         return END_OF_INPUT; 
       case '#':
-        if (!xxinEqn && yylloc.begin.column == 1) return mkIfdef(c);
+        if (!xxinEqn && yylloc.begin.column == 1) {
+          return mkIfdef(c);
+        }
         break;
       case LBRACE:
         if (xxinRString==0) {
           xxbraceDepth++;
-          if (outsideLiteral) return c;
+          if (outsideLiteral) {
+            return c;
+          }
         }
         break;
       case RBRACE:
         if (xxinRString==0) {
           xxbraceDepth--;
-          if (outsideLiteral || xxbraceDepth == 0) return c;
+          if (outsideLiteral || xxbraceDepth == 0) {
+            return c;
+          }
         }
         break;
       case '[':
       case ']':
-        if (xxmode == INOPTION ) return c; 
+        if (xxmode == INOPTION ) {
+          return c;
+        } 
         break;
       }       
 

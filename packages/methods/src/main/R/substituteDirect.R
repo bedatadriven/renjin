@@ -1,6 +1,8 @@
 #  File src/library/methods/R/substituteDirect.R
 #  Part of the R package, http://www.R-project.org
 #
+#  Copyright (C) 1995-2014 The R Core Team
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
@@ -23,8 +25,7 @@ substituteDirect <-
   ## not evaluate its first argument.
   function(object, frame = parent.frame(), cleanFunction = TRUE)
 {
-    value <- .Call("do_substitute_direct", object, frame,
-                   PACKAGE = "methods")
+    value <- .Call("do_substitute_direct", object, frame, PACKAGE="methods")
      if(cleanFunction && is.function(value)) {
        ## unset any local environment
        environment(value) <- .GlobalEnv

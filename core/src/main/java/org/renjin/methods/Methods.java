@@ -21,18 +21,16 @@
 
 package org.renjin.methods;
 
+import com.google.common.base.Strings;
 import org.renjin.eval.Context;
 import org.renjin.eval.Context.Type;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Builtin;
+import org.renjin.invoke.annotations.Current;
 import org.renjin.methods.PrimitiveMethodTable.prim_methods_t;
 import org.renjin.primitives.Contexts;
-import org.renjin.invoke.annotations.Current;
 import org.renjin.primitives.special.SubstituteFunction;
 import org.renjin.sexp.*;
-import org.renjin.sexp.ExternalPtr;
-
-import com.google.common.base.Strings;
 
 public class Methods {
 
@@ -43,6 +41,15 @@ public class Methods {
     return environ;
   }
 
+  @Builtin(".isMethodsDispatchOn")
+  public static boolean isMethodsDispatchOn(@Current MethodDispatch methodDispatch) {
+    return methodDispatch.isEnabled();
+  }
+
+  @Builtin(".isMethodsDispatchOn")
+  public static void setMethodsDispatchOn(@Current MethodDispatch methodDispatch, boolean enabled) {
+    methodDispatch.setEnabled(enabled);
+  }
 
   public static boolean R_set_method_dispatch(@Current Context context, LogicalVector onOff) {
     MethodDispatch methodContext = context.getSession().getSingleton(MethodDispatch.class);
@@ -78,7 +85,7 @@ public class Methods {
       // For this reason we have to be careful to avoid attribute
       // validation. 
       SEXP slotValue = value == Null.INSTANCE ? Symbols.S4_NULL : value;
-      return object.setAttributes(object.getAttributes().copy().set(name, slotValue).build());
+      return object.setAttributes(object.getAttributes().copy().set(name, slotValue));
     }
   }
 
@@ -89,10 +96,10 @@ public class Methods {
 
   public static String R_methodsPackageMetaName(String prefix, String name, String packageName) {
     StringBuilder metaName = new StringBuilder()
-    .append(".__")
-    .append(prefix)
-    .append("__")
-    .append(name);
+        .append(".__")
+        .append(prefix)
+        .append("__")
+        .append(name);
     if(!Strings.isNullOrEmpty(packageName)) {
       metaName.append(":").append(packageName);
     }
@@ -171,9 +178,9 @@ public class Methods {
   @Builtin(".cache_class")
   public static SEXP cacheClass(@Current Context context, String className, SEXP klass) {
     context
-    .getSession()
-    .getSingleton(MethodDispatch.class)
-    .putExtends(className, klass);  
+        .getSession()
+        .getSingleton(MethodDispatch.class)
+        .putExtends(className, klass);
     return klass;
   }
 
@@ -226,7 +233,7 @@ public class Methods {
     }
     /* look in base if either generic is missing */
     if(generic == Symbol.UNBOUND_VALUE) {
-      vl = env.getBaseEnvironment().getVariable(symbol);
+      vl = context.getBaseEnvironment().getVariable(symbol);
       if(IS_GENERIC(vl)) {
         generic = vl;
         if(vl.getAttributes().getPackage() != null) {
@@ -249,11 +256,10 @@ public class Methods {
    *  substitute in an _evaluated_ object, with an explicit list as
    *  second arg (although old-style lists and environments are allowed).
    */
-  public static SEXP do_substitute_direct(SEXP f, SEXP env) {
-    return SubstituteFunction.substitute(f, env);
+  public static SEXP do_substitute_direct(@Current Context context, SEXP f, SEXP env) {
+    return SubstituteFunction.substitute(context, f, env);
   }
-
-
+  
   public static SEXP R_M_setPrimitiveMethods(@Current Context context, SEXP fname, SEXP op, String code_vec,
       SEXP fundef, SEXP mlist) {
 
@@ -290,14 +296,14 @@ public class Methods {
     if(op == Null.INSTANCE) {
       SEXP value = LogicalVector.valueOf(table.isPrimitiveMethodsAllowed());
       switch(parseCode(code_string)) {
-      case NO_METHODS:
-        table.setPrimitiveMethodsAllowed(false);
-        break;
-      case HAS_METHODS:
-        table.setPrimitiveMethodsAllowed(true);
-        break;
-      default: /* just report the current state */
-        break;
+        case NO_METHODS:
+          table.setPrimitiveMethodsAllowed(false);
+          break;
+        case HAS_METHODS:
+          table.setPrimitiveMethodsAllowed(true);
+          break;
+        default: /* just report the current state */
+          break;
       }
       return value;
     } else {
@@ -424,9 +430,9 @@ public class Methods {
   static SEXP R_do_slot(Context context, SEXP obj, SEXP slotName) {
     Symbol name = checkSlotName(slotName);
 
-    if(name == MethodDispatch.s_dot_Data)
+    if(name == MethodDispatch.s_dot_Data) {
       return data_part(context, obj);
-    else {
+    } else {
       SEXP value = obj.getAttribute(name);
       if(value == Null.INSTANCE) {
         String input = name.getPrintName();
@@ -460,7 +466,7 @@ public class Methods {
 
 
   public static SEXP data_part(Context context, SEXP obj) {
-    SEXP val = context.evaluate(FunctionCall.newCall(MethodDispatch.s_getDataPart, obj), 
+    SEXP val = context.evaluate(FunctionCall.newCall(MethodDispatch.s_getDataPart, obj),
         context.getSession().getSingleton(MethodDispatch.class).getMethodsNamespace());
 
     return val.setAttribute(Symbols.S4_BIT, Null.INSTANCE);
@@ -477,16 +483,18 @@ public class Methods {
     SEXP value;
     SEXP klass = obj.getAttribute(Symbols.CLASS);
     int n = klass.length();
-    if(n == 1 || (n > 0 && !singleString))
+    if(n == 1 || (n > 0 && !singleString)) {
       return (StringVector) (klass);
+    }
     if(n == 0) {
       SEXP dim = obj.getAttribute(Symbols.DIM);
       int nd = dim.length();
       if(nd > 0) {
-        if(nd == 2) 
+        if(nd == 2) {
           return StringVector.valueOf("matrix");
-        else
+        } else {
           return StringVector.valueOf("array");
+        }
       } else {
         if(obj instanceof Function) {
           return StringVector.valueOf("function");
@@ -544,7 +552,71 @@ public class Methods {
 
 
   private static boolean isGenericFunction(SEXP fun) {
-    SEXP value = ((Closure) fun).getEnclosingEnvironment().getVariable(MethodDispatch.dot_Generic);
+    SEXP value = ((Closure) fun).getEnclosingEnvironment().getVariable(MethodDispatch.DOT_GENERIC);
     return value != Symbol.UNBOUND_VALUE;
+  }
+
+  
+  public static String R_get_primname(PrimitiveFunction function) {
+    return function.getName();
+  }
+
+  public static SEXP R_nextMethod(@Current Context context, FunctionCall matched_call, Environment ev) {
+    SEXP val, this_sym, op;
+    int i, nargs = matched_call.length()-1;
+    boolean prim_case;
+    
+    /* for primitive .nextMethod's, suppress further dispatch to avoid
+     * going into an infinite loop of method calls
+    */
+    op =  ev.findVariable(MethodDispatch.R_dot_nextMethod);
+
+    if(op == Symbol.UNBOUND_VALUE) {
+      throw new EvalException(
+          "internal error in 'callNextMethod': '.nextMethod' was not assigned in the frame of the method call");
+    }
+
+    PairList.Node e = (PairList.Node) matched_call.newCopyBuilder().build();
+
+    prim_case = (op instanceof PrimitiveFunction);
+    if(prim_case) {
+      /* retain call to primitive function, suppress method
+         dispatch for it */
+      // todo: do_set_prim_method(op, "suppress", R_NilValue, R_NilValue);
+      throw new UnsupportedOperationException();
+    } else {
+      e.setValue(MethodDispatch.R_dot_nextMethod); /* call .nextMethod instead */
+    }
+    PairList args = e.getNext();
+    /* e is a copy of a match.call, with expand.dots=FALSE.  Turn each
+    <TAG>=value into <TAG> = <TAG>, except  ...= is skipped (if it
+    appears) in which case ... was appended. */
+    for(i=0; i<nargs; i++) {
+      PairList.Node argsNode = (PairList.Node) args;
+      this_sym = args.getRawTag();
+      if(argsNode.getValue() != Symbol.MISSING_ARG) { /* "missing" only possible in primitive */
+        argsNode.setValue(this_sym);
+      }
+      args = argsNode.getNext();
+    }
+
+    if(prim_case) {
+      throw new UnsupportedOperationException("todo: do_set_prim_method");
+//
+//      try {
+//        val = context.evaluate(e, ev);
+//      } catch (EvalException ex) {
+//        throw new EvalException("error in evaluating a 'primitive' next method: %s", ex.getMessage());
+//      } finally {
+//        /* reset the methods:  R_NilValue for the mlist argument
+//           leaves the previous function, methods list unchanged */
+//        //do_set_prim_method(op, "set", R_NilValue, R_NilValue);
+//      
+//      }
+
+    } else {
+      val = context.evaluate(e, ev);
+    }
+    return val;
   }
 }

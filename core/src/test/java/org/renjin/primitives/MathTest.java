@@ -21,12 +21,13 @@
 
 package org.renjin.primitives;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-
+import org.apache.commons.math.complex.Complex;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.stats.internals.distributions.PsiGamma;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 
 public class MathTest extends EvalTestCase {
@@ -46,7 +47,7 @@ public class MathTest extends EvalTestCase {
   public void simpleOp() {
     assertThat( eval(" 1050 - 50"), equalTo( c(1000) ) );
   }
-  
+
   @Test
   public void unaryCall() {
     assertThat( eval("atan(1)"), equalTo( c(Math.atan(1)) ) );
@@ -57,57 +58,57 @@ public class MathTest extends EvalTestCase {
     assertThat( MathExt.gamma(3), closeTo(2, 0.0001));
   }
 
-  
+
   @Test
   public void log() {
-      assertThat( eval("log(2,16)"), equalTo( c(0.25) ) );
-      assertThat( eval("log(16, 2)"), equalTo( c(4) ) );
-      assertThat( eval("log(2,-1)"), equalTo( c(Double.NaN) ) );
-      assertThat( eval("log(2,0.5)"), equalTo( c(-1) ) );
+    assertThat( eval("log(2,16)"), equalTo( c(0.25) ) );
+    assertThat( eval("log(16, 2)"), equalTo( c(4) ) );
+    assertThat( eval("log(2,-1)"), equalTo( c(Double.NaN) ) );
+    assertThat( eval("log(2,0.5)"), equalTo( c(-1) ) );
 
-      assertThat( eval("log(2)").asReal(),  closeTo(0.6931472, 0.0000001) );//R rounds to 7th decimal place
+    assertThat( eval("log(2)").asReal(),  closeTo(0.6931472, 0.0000001) );//R rounds to 7th decimal place
   }
 
   @Test
   public void log10() {
-      assertThat( eval("log10(4)").asReal(),  closeTo(0.60206, 0.00000001) );
-      assertThat( eval("log10(100)"), equalTo( c(2) ) );
-      assertThat( eval("log10(-4)"), equalTo( c(Double.NaN) ) );
+    assertThat( eval("log10(4)").asReal(),  closeTo(0.60206, 0.00000001) );
+    assertThat( eval("log10(100)"), equalTo( c(2) ) );
+    assertThat( eval("log10(-4)"), equalTo( c(Double.NaN) ) );
   }
 
   @Test
   public void log2() {
-      assertThat( eval("log2(9)").asReal(),  closeTo(3.169925, 0.00000001) );
-      assertThat( eval("log2(8)"), equalTo( c(3) ) );
-      assertThat( eval("log2(-4)"), equalTo( c(Double.NaN) ) );
+    assertThat( eval("log2(9)").asReal(),  closeTo(3.169925, 0.00000001) );
+    assertThat( eval("log2(8)"), equalTo( c(3) ) );
+    assertThat( eval("log2(-4)"), equalTo( c(Double.NaN) ) );
   }
- 
+
   @Test
   public void transpose() {
     assumingBasePackagesLoad();
-    
+
     assertThat(eval("t(matrix(c(1,2,3,4,5,6),3,2))"), equalTo(c(1, 4, 2, 5, 3, 6)));
   }
-  
+
   @Test
   public void hyperbolicInverse(){
     assertThat(eval("asinh(3.14)").asReal(), closeTo(1.861813, 0.000001));
     assertThat(eval("acosh(3.14)").asReal(), closeTo(1.810991, 0.000001));
     assertThat(eval("atanh(0.25)").asReal(), closeTo(0.2554128, 0.000001));
   }
-  
+
   @Test
   public void atan2(){
     assertThat(eval(".Internal(atan2(-0.5, -0.5))").asReal(), closeTo(-2.356194, 0.000001));
     assertThat(eval(".Internal(atan2(0.5, 0))").asReal(), closeTo(1.570796, 0.000001));
   }
-  
-  @Test 
+
+  @Test
   public void signif(){
     try{
       topLevelContext.init();
     }catch(Exception e){
-      
+
     }
     assertThat(eval("signif(123.006, 1)").asReal(), closeTo(100.0,0.0000001));
     assertThat(eval("signif(123.006, 2)").asReal(), closeTo(120.0,0.0000001));
@@ -117,7 +118,7 @@ public class MathTest extends EvalTestCase {
     assertThat(eval("signif(123.006, 6)").asReal(), closeTo(123.006,0.0000001));
     assertThat(eval("signif(123.456, 4)").asReal(), closeTo(123.5,0.0000001));
   }
-  
+
   @Test
   public void expm1() {
     assertThat(eval("expm1(1.0001)").asReal(), closeTo(1.718554, 0.000001));
@@ -141,48 +142,54 @@ public class MathTest extends EvalTestCase {
     assertThat(eval(".Internal(lbeta(5,5))").asReal(), closeTo(-6.44572, 0.00001));
     assertThat(eval(".Internal(lbeta(1:5, 1:5))[2]").asReal(), closeTo(-1.791759, 0.00001));
   }
-  
+
   @Test
   public void choose(){
     assertThat(eval(".Internal(choose(5,2))").asReal(), closeTo(10, 0.00001));
     assertThat(eval(".Internal(choose(10.2,5))").asReal(), closeTo(286.2495, 0.0001));
   }
-  
+
   @Test
   public void lchoose(){
     assertThat(eval(".Internal(lchoose(5,2))").asReal(), closeTo(2.302585, 0.00001));
     assertThat(eval(".Internal(lchoose(10.2,5))").asReal(), closeTo(5.656864, 0.00001));
   }
-  
+
   @Test
   public void sign() {
     assertThat(eval("sign(c(-33,55,0))"), equalTo(c(-1,1,0)));
   }
-   
+
   @Test
   public void psigamma(){
     assertThat(PsiGamma.psigamma(4, 1), closeTo(0.283823, 0.00001));
     assertThat(PsiGamma.psigamma(11, 3), closeTo(0.001719901, 0.00001));
   }
-  
+
   @Test
   public void roundRecycles() {
     assertThat(eval("round(c(0.6,1.2,0.3))"), equalTo(c(1,1,0)));
   }
-  
+
   @Test
   public void truncateLessThanHalf() {
     assertThat(eval("trunc(1.1)").asReal(), equalTo(1.0));
   }
-  
+
   @Test
   public void truncateGreaterThanHalf() {
     assertThat(eval("trunc(1.6)").asReal(), equalTo(1.0));
   }
-  
+
   @Test
   public void roundWithDigits() {
     assertThat(eval("round(1/3,2)"), equalTo(c(0.33)));
-    
+  }
+  
+  @Test
+  public void complexExp() {
+    assertThat(eval("exp(2+1i)"), closeTo(new Complex(3.992324, 6.217676), 0.00001));
+    assertThat(eval("exp(4+3i)"), closeTo(new Complex(-54.05176, 7.70489), 0.00001));
+
   }
 }

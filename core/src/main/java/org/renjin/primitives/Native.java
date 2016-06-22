@@ -1,14 +1,15 @@
 package org.renjin.primitives;
 
+import com.google.common.base.Charsets;
+import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.renjin.base.Base;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.gcc.runtime.BooleanPtr;
-import org.renjin.gcc.runtime.DoublePtr;
-import org.renjin.gcc.runtime.IntPtr;
+import org.renjin.eval.Profiler;
+import org.renjin.gcc.runtime.*;
 import org.renjin.invoke.annotations.ArgumentList;
 import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Current;
@@ -16,9 +17,12 @@ import org.renjin.invoke.annotations.NamedFlag;
 import org.renjin.invoke.reflection.FunctionBinding;
 import org.renjin.methods.Methods;
 import org.renjin.primitives.packaging.FqPackageName;
+import org.renjin.primitives.packaging.Namespace;
 import org.renjin.sexp.*;
 
 import java.awt.*;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
@@ -29,6 +33,9 @@ public class Native {
   public static final boolean DEBUG = false;
 
 
+  public static final ThreadLocal<Context> CURRENT_CONTEXT = new ThreadLocal<>();
+
+
   @Builtin(".C")
   public static SEXP dotC(@Current Context context,
                           @Current Environment rho,
@@ -37,9 +44,9 @@ public class Native {
                           @NamedFlag("PACKAGE") String packageName,
                           @NamedFlag("NAOK") boolean naOk,
                           @NamedFlag("DUP") boolean dup,
-                          @NamedFlag("ENCODING") boolean encoding) {
+                          @NamedFlag("ENCODING") boolean encoding) throws IllegalAccessException {
 
-    Method method;
+    MethodHandle method;
 
     if(methodExp instanceof StringVector) {
       String methodName = ((StringVector) methodExp).getElementAsString(0);
@@ -51,35 +58,43 @@ public class Native {
 
       List<Method> methods = findMethod(getPackageClass(packageName, context), methodName);
       if (methods.isEmpty()) {
-         throw new EvalException("Can't find method %s in package %s", methodName, packageName);
-      } 
+        throw new EvalException("Can't find method %s in package %s", methodName, packageName);
+      }
 
-      method = Iterables.getOnlyElement(methods);
+      method = MethodHandles.publicLookup().unreflect(Iterables.getOnlyElement(methods));
 
     } else if(methodExp instanceof ExternalPtr && ((ExternalPtr) methodExp).getInstance() instanceof Method) {
-      method = (Method) ((ExternalPtr) methodExp).getInstance();
+      method = MethodHandles.publicLookup().unreflect((Method) ((ExternalPtr) methodExp).getInstance());
+
+    } else if(methodExp instanceof ListVector) {
+      ExternalPtr<MethodHandle> address = (ExternalPtr<MethodHandle>) ((ListVector)methodExp).get("address");
+      method = address.getInstance();
 
     } else {
       throw new EvalException("Invalid method argument of type %s", methodExp.getTypeName());
     }
 
-    Object[] nativeArguments = new Object[method.getParameterTypes().length];
+    Object[] nativeArguments = new Object[method.type().parameterCount()];
     for(int i=0;i!=nativeArguments.length;++i) {
-      Type type = method.getParameterTypes()[i];
+      Type type = method.type().parameterType(i);
       if(type.equals(IntPtr.class)) {
         nativeArguments[i] = intPtrFromVector(callArguments.get(i));
       } else if(type.equals(DoublePtr.class)) {
         nativeArguments[i] = doublePtrFromVector(callArguments.get(i));
+      } else if(type.equals(ObjectPtr.class)) {
+        nativeArguments[i] = stringPtrToCharPtrPtr(callArguments.get(i));
       } else {
-         throw new EvalException("Don't know how to marshall type " + callArguments.get(i).getClass().getName() +
-                 " to for C argument " +  type + " in call to " + method.getName());
+        throw new EvalException("Don't know how to marshall type " + callArguments.get(i).getClass().getName() +
+            " to for C argument " +  type + " in call to " + method);
       }
     }
 
     try {
-      method.invoke(null, nativeArguments);
-    } catch (Exception e) {
-      throw new EvalException(e);
+      method.invokeWithArguments(nativeArguments);
+    } catch (EvalException | Error e) {
+      throw e;
+    } catch (Throwable e) {
+      throw new EvalException(e.getMessage(), e);
     }
 
     ListVector.NamedBuilder builder = new ListVector.NamedBuilder();
@@ -87,30 +102,51 @@ public class Native {
       if(DEBUG) {
         java.lang.System.out.println(callArguments.getName(i) + " = " + nativeArguments[i].toString());
       }
-      builder.add(callArguments.getName(i), sexpFromPointer(nativeArguments[i]));
+      builder.add(callArguments.getName(i), sexpFromPointer(
+          nativeArguments[i],
+          callArguments.get(i).getAttributes()));
     }
     return builder.build();
+  }
+
+  /**
+   * Converts a StringVector to an array of null-terminated strings.
+   */
+  private static ObjectPtr stringPtrToCharPtrPtr(SEXP sexp) {
+    if(!((sexp instanceof StringVector))) {
+      throw new EvalException(".C function expected 'character', but argument was '%s'", sexp.getTypeName());
+    }
+    StringVector vector = (StringVector) sexp;
+    BytePtr[] strings = new BytePtr[sexp.length()];
+    for(int i=0;i<sexp.length();++i) {
+      String element = vector.getElementAsString(i);
+      if(element != null) {
+        strings[i] = BytePtr.nullTerminatedString(element, Charsets.UTF_8);
+      }
+    }
+    return new ObjectPtr(strings, 0);
   }
 
   private static void dumpCall(String methodName, String packageName, ListVector callArguments) {
     java.lang.System.out.print(".C('" + methodName + "', ");
     for(NamedValue arg : callArguments.namedValues()) {
       if(!Strings.isNullOrEmpty(arg.getName())) {
-       java.lang.System.out.print(arg.getName() + " = ");
+        java.lang.System.out.print(arg.getName() + " = ");
       }
       java.lang.System.out.println(Deparse.deparse(null, arg.getValue(), 80, false, 0, 0) + ", ");
     }
     java.lang.System.out.println("PACKAGE = '" + packageName + "')");
   }
 
-  public static SEXP sexpFromPointer(Object ptr) {
-    // Currently, our GCC bridge doesn't support storing values
-    // to fields, so we can be confident that no other references
-    // to these pointers exist
+  public static SEXP sexpFromPointer(Object ptr, AttributeMap attributes) {
+    // We are trusting the C code not to modify the arrays after the call
+    // returns. 
     if(ptr instanceof DoublePtr) {
-      return DoubleArrayVector.unsafe(((DoublePtr) ptr).array);
+      return DoubleArrayVector.unsafe(((DoublePtr) ptr).array, attributes);
     } else if(ptr instanceof IntPtr) {
-      return new IntArrayVector(((IntPtr) ptr).array);
+      return new IntArrayVector(((IntPtr) ptr).array, attributes);
+    } else if(ptr instanceof ObjectPtr) {
+      return new NativeStringVector((ObjectPtr)ptr, attributes);
     } else {
       throw new UnsupportedOperationException(ptr.toString());
     }
@@ -138,54 +174,57 @@ public class Native {
   /**
    * Invokes a method compiled to JVM byte code from Fortran, applying the correct calling
    * conventions, etc. This method differs from the
-   *
-   * @param context
-   * @param rho
-   * @param methodName
-   * @param callArguments
-   * @param packageName
-   * @param naOk
-   * @param dup
-   * @param encoding
-   * @return
    */
   @Builtin(".Fortran")
   public static SEXP dotFortran(@Current Context context,
-                          @Current Environment rho,
-                          SEXP methodExp,
-                          @ArgumentList ListVector callArguments,
-                          @NamedFlag("PACKAGE") String packageName,
-                          @NamedFlag("CLASS") String className,
-                          @NamedFlag("NAOK") boolean naOk,
-                          @NamedFlag("DUP") boolean dup,
-                          @NamedFlag("ENCODING") boolean encoding) {
+                                @Current Environment rho,
+                                SEXP methodExp,
+                                @ArgumentList ListVector callArguments,
+                                @NamedFlag("PACKAGE") String packageName,
+                                @NamedFlag("CLASS") String className,
+                                @NamedFlag("NAOK") boolean naOk,
+                                @NamedFlag("DUP") boolean dup,
+                                @NamedFlag("ENCODING") boolean encoding) throws IllegalAccessException {
 
     // quick spike: fortran functions in the "base" package are all
     // defined in libappl, so point us to that class.
     // TODO: map package names to implementation classes
 
 
-    Method method;
-    if(methodExp instanceof StringVector) {
+    MethodHandle method;
+    String methodName;
+
+    if(methodExp instanceof ListVector) {
+      ListVector methodObject = (ListVector) methodExp;
+      ExternalPtr<MethodHandle> address = (ExternalPtr<MethodHandle>) methodObject.get("address");
+      method = address.getInstance();
+      methodName = ((StringVector) methodObject.get("name")).getElementAsString(0);
+    } else if(methodExp instanceof StringVector) {
       if("base".equals(packageName)) {
         className = "org.renjin.appl.Appl";
       }
-      String methodName = ((StringVector) methodExp).getElementAsString(0);
+      methodName = ((StringVector) methodExp).getElementAsString(0);
       method = findFortranMethod(className, methodName);
 
     } else if(methodExp instanceof ExternalPtr && ((ExternalPtr) methodExp).getInstance() instanceof Method) {
-      method = (Method) ((ExternalPtr) methodExp).getInstance();
+      Method methodRef = (Method) ((ExternalPtr) methodExp).getInstance();
+      methodName = methodRef.getName();
+      method =  MethodHandles.publicLookup().unreflect(methodRef);
     } else {
       throw new EvalException("Invalid argument type for method = %s", methodExp.getTypeName());
     }
 
-    Class<?>[] fortranTypes = method.getParameterTypes();
+    Class<?>[] fortranTypes = method.type().parameterArray();
     if(fortranTypes.length != callArguments.length()) {
       throw new EvalException("Invalid number of args");
     }
 
     Object[] fortranArgs = new Object[fortranTypes.length];
     ListVector.NamedBuilder returnValues = ListVector.newNamedBuilder();
+
+    if(Profiler.ENABLED) {
+      Profiler.functionStart(Symbol.get(methodName));
+    }
 
     // For .Fortran() calls, we make a copy of the arguments, pass them by
     // reference to the fortran subroutine, and then return the modified arguments
@@ -207,16 +246,22 @@ public class Native {
         boolean[] array = toBooleanArray(vector);
         fortranArgs[i] = new BooleanPtr(array);
         returnValues.add(callArguments.getName(i), BooleanArrayVector.unsafe(array));
-      
+
       } else {
         throw new UnsupportedOperationException("fortran type: " + fortranTypes[i]);
       }
     }
 
     try {
-      method.invoke(null, fortranArgs);
-    } catch (Exception e) {
-      throw new EvalException("Exception thrown while executing " + method.getName(), e);
+      method.invokeWithArguments(fortranArgs);
+    } catch (Error e) {
+      throw e;
+    } catch (Throwable e) {
+      throw new EvalException("Exception thrown while executing " + methodName, e);
+    } finally {
+      if(Profiler.ENABLED) {
+        Profiler.functionEnd();
+      }
     }
 
     return returnValues.build();
@@ -235,7 +280,7 @@ public class Native {
   }
 
 
-  private static Method findFortranMethod(String className, String methodName) {
+  private static MethodHandle findFortranMethod(String className, String methodName) throws IllegalAccessException {
     Class<?> declaringClass = null;
     try {
       declaringClass = Class.forName(className);
@@ -249,7 +294,7 @@ public class Native {
       if(method.getName().equals(mangledName) &&
           Modifier.isPublic(method.getModifiers()) &&
           Modifier.isStatic(method.getModifiers())) {
-        return method;
+        return MethodHandles.publicLookup().unreflect(method);
       }
     }
     throw new EvalException("Could not find method %s in class %s", methodName, className);
@@ -258,27 +303,138 @@ public class Native {
   @Builtin(".Call")
   public static SEXP dotCall(@Current Context context,
                              @Current Environment rho,
-                             String methodName,
+                             SEXP methodExp,
                              @ArgumentList ListVector callArguments,
                              @NamedFlag("PACKAGE") String packageName,
                              @NamedFlag("CLASS") String className) throws ClassNotFoundException {
 
-    Class clazz;
-    if(packageName != null) {
-      clazz = getPackageClass(packageName, context);
-    } else if(className != null) {
-      clazz = Class.forName(className);
+    if(methodExp.inherits("NativeSymbolInfo")) {
+
+      ExternalPtr<MethodHandle> address = (ExternalPtr<MethodHandle>) ((ListVector)methodExp).get("address");
+      MethodHandle methodHandle = address.getInstance();
+      if(methodHandle.type().parameterCount() != callArguments.length()) {
+        throw new EvalException("Expected %d arguments, found %d",
+            methodHandle.type().parameterCount(),
+            callArguments.length());
+      }
+      MethodHandle transformedHandle = methodHandle.asSpreader(SEXP[].class, methodHandle.type().parameterCount());
+      SEXP[] arguments = toSexpArray(callArguments);
+      if(Profiler.ENABLED) {
+        StringVector nameExp = (StringVector)((ListVector) methodExp).get("name");
+        Profiler.functionStart(Symbol.get(nameExp.getElementAsString(0)));
+      }
+      Context previousContext = CURRENT_CONTEXT.get();
+      try {
+        CURRENT_CONTEXT.set(context);
+        if (methodHandle.type().returnType().equals(void.class)) {
+          transformedHandle.invokeExact(arguments);
+          return Null.INSTANCE;
+        } else {
+          return (SEXP) transformedHandle.invokeExact(arguments);
+        }
+      } catch (Error e) {
+        throw e;
+      } catch (Throwable e) {
+        throw new EvalException("Exception calling " + methodExp + " : " + e.getMessage(), e);
+      } finally {
+        CURRENT_CONTEXT.set(previousContext);
+        if(Profiler.ENABLED) {
+          Profiler.functionEnd();
+        }
+      }
+
+    } else if(methodExp instanceof StringVector) {
+
+      String methodName = ((StringVector) methodExp).getElementAsString(0);
+
+      Class clazz;
+      if (packageName != null) {
+        clazz = getPackageClass(packageName, context);
+      } else if (className != null) {
+        clazz = Class.forName(className);
+      } else {
+        Optional<Class> namespaceClass = context.getNamespaceRegistry().resolveNativeMethod(methodName);
+        if(!namespaceClass.isPresent()) {
+          throw new EvalException("Could not resolve native method '%s'", methodName);
+        }
+        clazz = namespaceClass.get();
+      }
+      if(Profiler.ENABLED) {
+        Profiler.functionStart(Symbol.get(methodName));
+      }
+      try {
+        return delegateToJavaMethod(context, clazz, methodName, callArguments);
+      } finally {
+        if(Profiler.ENABLED) {
+          Profiler.functionEnd();
+        }
+      }
     } else {
-      throw new EvalException("Either the PACKAGE or CLASS argument must be provided");
+      throw new EvalException("Invalid method argument: " + methodExp);
     }
-    
-    return delegateToJavaMethod(context, clazz, methodName, callArguments);
+  }
+
+
+
+  @Builtin(".External")
+  public static SEXP external(@Current Context context,
+                              @Current Environment rho,
+                              SEXP methodExp,
+                              @ArgumentList ListVector callArguments,
+                              @NamedFlag("PACKAGE") String packageName,
+                              @NamedFlag("CLASS") String className) throws ClassNotFoundException {
+
+    if(!methodExp.inherits("NativeSymbolInfo")) {
+      throw new EvalException("Expected object of class 'NativeSymbolInfo'");
+    }
+
+    ExternalPtr<MethodHandle> address = (ExternalPtr<MethodHandle>) ((ListVector)methodExp).get("address");
+    MethodHandle methodHandle = address.getInstance();
+    if(methodHandle.type().parameterCount() != 1) {
+      throw new EvalException("Expected method with single argument, found %d",
+          methodHandle.type().parameterCount(),
+          callArguments.length());
+    }
+
+    StringVector functionName = (StringVector) ((ListVector) methodExp).get("name");
+    SEXP argumentList = new PairList.Node(functionName, PairList.Node.fromVector(callArguments));
+
+    if(Profiler.ENABLED) {
+      StringVector nameExp = (StringVector)((ListVector) methodExp).get("name");
+      Profiler.functionStart(Symbol.get(nameExp.getElementAsString(0)));
+    }
+    Context previousContext = CURRENT_CONTEXT.get();
+    try {
+      CURRENT_CONTEXT.set(context);
+      if (methodHandle.type().returnType().equals(void.class)) {
+        methodHandle.invokeExact(argumentList);
+        return Null.INSTANCE;
+      } else {
+        return (SEXP) methodHandle.invokeExact(argumentList);
+      }
+    } catch (Error e) {
+      throw e;
+    } catch (Throwable e) {
+      throw new EvalException("Exception calling " + methodExp + " : " + e.getMessage(), e);
+    } finally {
+      CURRENT_CONTEXT.set(previousContext);
+      if(Profiler.ENABLED) {
+        Profiler.functionEnd();
+      }
+    }
+  }
+
+  private static SEXP[] toSexpArray(ListVector callArguments) {
+    SEXP args[] = new SEXP[callArguments.length()];
+    for (int i = 0; i < callArguments.length(); i++) {
+      args[i] = callArguments.get(i);
+    }
+    return args;
   }
 
   /**
    * Dispatches what were originally calls to "native" libraries (C/Fortran/etc)
    * to a Java class. The Calling convention (.C/.Fortran/.Call) are ignored.
-   * @param className 
    *
    */
   public static SEXP delegateToJavaMethod(Context context,
@@ -315,14 +471,14 @@ public class Native {
     } else if(packageName.equals("grDevices")) {
       return Graphics.class;
     } else {
-      FqPackageName fqname = context.getNamespaceRegistry().getNamespace(packageName).getFullyQualifiedName();
+      Namespace namespace = context.getNamespaceRegistry().getNamespace(context, packageName);
+      FqPackageName fqname = namespace.getFullyQualifiedName();
       String packageClassName = fqname.getGroupId()+"."+fqname.getPackageName() + "." +
-                                fqname.getPackageName();
+          fqname.getPackageName();
       try {
-        return Class.forName(packageClassName);
+        return namespace.getPackage().loadClass(packageClassName);
       } catch (ClassNotFoundException e) {
-        throw new EvalException("Could not find class for 'native' methods for package '%s' (className='%s')",
-            packageName, packageClassName);
+        throw new EvalException("Could not load class '%s' from package '%s'", packageClassName, packageClassName);
       }
     }
   }

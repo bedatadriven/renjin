@@ -37,17 +37,17 @@ public class IfFunction extends SpecialFunction {
 
   @Override
   public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
-    SEXP condition =  call.getArguments().getElementAsSEXP(0).evaluate(context, rho);
+    SEXP condition = context.evaluate( call.getArguments().getElementAsSEXP(0), rho);
 
     // force any deferred operations
     condition = context.materialize(condition);
 
     if (asLogicalNoNA(context, call, condition)) {
-      return call.getArguments().getElementAsSEXP(1).evaluate(context, rho); /* true value */
+      return context.evaluate( call.getArguments().getElementAsSEXP(1), rho); /* true value */
 
     } else {
       if (call.getArguments().length() == 3) {
-        return call.getArguments().getElementAsSEXP(2).evaluate(context, rho); /* else value */
+        return context.evaluate( call.getArguments().getElementAsSEXP(2), rho); /* else value */
       } else {
         context.setInvisibleFlag();
         return Null.INSTANCE;   /* no else, evaluates to NULL */

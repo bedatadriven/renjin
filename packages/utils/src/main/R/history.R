@@ -1,6 +1,8 @@
 #  File src/library/utils/R/history.R
 #  Part of the R package, http://www.R-project.org
 #
+#  Copyright (C) 1995-2012 The R Core Team
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
@@ -15,10 +17,10 @@
 #  http://www.r-project.org/Licenses/
 
 loadhistory <- function(file = ".Rhistory")
-    invisible(.Internal(loadhistory(file)))
+    invisible(.External2(C_loadhistory, file))
 
 savehistory <- function(file = ".Rhistory")
-    invisible(.Internal(savehistory(file)))
+    invisible(.External2(C_savehistory, file))
 
 history <- function(max.show = 25, reverse = FALSE, pattern, ...)
 {
@@ -41,10 +43,8 @@ history <- function(max.show = 25, reverse = FALSE, pattern, ...)
 timestamp <- function(stamp = date(), prefix = "##------ ",
                       suffix = " ------##", quiet = FALSE)
 {
-    stamp <- paste(prefix, stamp, suffix, sep = "")
-   # GNU R helpfully adds a timestamp comment to your command line history as 
-   # a somewhat surprising side effect of this method. 
-   # .Internal(addhistory(stamp))
+    stamp <- paste0(prefix, stamp, suffix)
+    .External2(C_addhistory, stamp)
     if (!quiet) cat(stamp, sep = "\n")
     invisible(stamp)
 }

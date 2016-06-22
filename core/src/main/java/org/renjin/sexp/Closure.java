@@ -24,7 +24,6 @@ package org.renjin.sexp;
 import com.google.common.base.Objects;
 import org.renjin.eval.ClosureDispatcher;
 import org.renjin.eval.Context;
-import org.renjin.eval.EvalException;
 import org.renjin.primitives.special.ReturnException;
 
 
@@ -183,12 +182,15 @@ public class Closure extends AbstractSEXP implements Function {
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj)
+    if (this == obj) {
       return true;
-    if (obj == null)
+    }
+    if (obj == null) {
       return false;
-    if (!(obj instanceof Closure))
+    }
+    if (!(obj instanceof Closure)) {
       return false;
+    }
     Closure other = (Closure) obj;
     if(!Objects.equal(body, other.body)) {
       return false;

@@ -77,13 +77,21 @@ public final class FqPackageName {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     FqPackageName that = (FqPackageName) o;
 
-    if (!groupId.equals(that.groupId)) return false;
-    if (!packageName.equals(that.packageName)) return false;
+    if (!groupId.equals(that.groupId)) {
+      return false;
+    }
+    if (!packageName.equals(that.packageName)) {
+      return false;
+    }
 
     return true;
   }

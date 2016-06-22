@@ -9,7 +9,7 @@ import org.renjin.invoke.reflection.ClassDefinitionBinding;
 public class ClassBindings {
 
   public static <T> ClassBinding getClassDefinitionBinding(Class instance) {
-    return new ClassDefinitionBinding(ClassBindingImpl.get(instance));
+    return new ClassDefinitionBinding(instance, ClassBindingImpl.get(instance));
   }
 
   public static ClassBinding getClassBinding(Class aClass) {

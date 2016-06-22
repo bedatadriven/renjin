@@ -2,6 +2,7 @@ package org.renjin.gcc.codegen.type.voidt;
 
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.array.ArrayTypeStrategies;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.*;
@@ -134,7 +135,7 @@ public class VoidPtrStrategy implements PointerTypeStrategy<VoidPtr>, SimpleType
 
   @Override
   public ArrayTypeStrategy arrayOf(GimpleArrayType arrayType) {
-    return new ArrayTypeStrategy(arrayType, new VoidPtrValueFunction());
+    return ArrayTypeStrategies.of(arrayType, new VoidPtrValueFunction());
   }
 
   @Override

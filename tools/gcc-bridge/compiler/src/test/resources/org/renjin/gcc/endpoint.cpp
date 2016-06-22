@@ -89,17 +89,34 @@ void Endpoints::R_print() const {
     it->R_print();
 }
 
-extern "C" int test_endpoints() {
+extern "C" Endpoint*  test_endpoints() {
     
    double e[] = { 1, 2, 3, 4, 3, 3, 6, 8 };
-   int c[] = {1, 1};
    int n = 4;
 
+   int c[] = {1, 1};
+   
    Endpoints ep ( e, c, n, false, false );
    printf("ep.size() = %d\n", ep.size());
-   printf("ep = \n");
+   printf("ep = \n\n");
    ep.R_print();
+   
+   printf("sizeof(Endpoint) = %d\n", sizeof(Endpoint));
    
    Endpoint::set_state_array( reduce_order );
    sort( ep.begin(), ep.end() );
+   
+   printf("sorted:\n\n");
+   ep.R_print();
+   
+   return &ep.front();
+}
+
+extern "C" Endpoint* alloc_endpoints() {
+   double e[] = { 1, 2};
+   int c[] = {1, 1};
+   int n = 1;
+  
+   Endpoints ep ( e, c, n, false, false );
+   return &ep.front();
 }

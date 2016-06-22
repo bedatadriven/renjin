@@ -5,6 +5,7 @@ import com.google.common.collect.Maps;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.RecordClassGenerator;
+import org.renjin.gcc.codegen.array.ArrayTypeStrategies;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.AddressableField;
@@ -211,7 +212,7 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<RecordValue> imp
 
   @Override
   public ArrayTypeStrategy arrayOf(GimpleArrayType arrayType) {
-    return new ArrayTypeStrategy(arrayType, new RecordClassValueFunction(this));
+    return ArrayTypeStrategies.of(arrayType, new RecordClassValueFunction(this));
   }
 
   @Override

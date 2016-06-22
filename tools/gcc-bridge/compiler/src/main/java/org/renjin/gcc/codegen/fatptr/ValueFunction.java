@@ -2,6 +2,7 @@ package org.renjin.gcc.codegen.fatptr;
 
 import com.google.common.base.Optional;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 
@@ -39,6 +40,17 @@ public interface ValueFunction {
    * @return
    */
   List<JExpr> toArrayValues(GExpr expr);
+
+  /**
+   * Copies the <strong>values</strong> from one array of these values to another.
+   * 
+   * @param valueCount The number of <strong>values</strong> to copy. Keep in mind that one
+   *                   value may require several array elements. For example, a complex value occupies
+   *                   two array elements.
+   */
+  void memoryCopy(MethodGenerator mv, 
+                  JExpr destinationArray, JExpr destinationOffset, 
+                  JExpr sourceArray, JExpr sourceOffset, JExpr valueCount);
   
 }
 

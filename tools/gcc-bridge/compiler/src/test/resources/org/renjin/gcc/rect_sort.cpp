@@ -27,3 +27,23 @@ extern "C" void test_sort_records() {
     ASSERT(v[1].width == 9)
     ASSERT(v[2].width == 10)
 }
+
+extern "C" void test_mem_copy() {
+    
+    Rectangle a[3];
+    Rectangle b[3];
+    
+    a[1].width = 10;
+    a[1].height = 25;
+    
+    __builtin_memcpy(b, a, sizeof(Rectangle) * 3);
+//    
+//    ASSERT(a[1].width == 10)
+//    ASSERT(b[1].width == 10)
+//
+//    // Changes to a should not affect b
+//
+//    a[1].width = 92;
+//    ASSERT(b[1].width == 10)
+
+}

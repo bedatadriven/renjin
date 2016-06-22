@@ -17,6 +17,11 @@ public class JvmRect {
     this.width = width;
     this.height = height;
   }
+  
+  public void set(JvmRect o) {
+    this.width = o.width;
+    this.height = o.height;
+  }
 
   public static int area(ObjectPtr<JvmRect> rect) {
     return rect.get().width * rect.get().height;

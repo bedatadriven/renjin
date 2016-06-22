@@ -2,6 +2,8 @@ package org.renjin.gcc.codegen.type.complex;
 
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
+import org.renjin.gcc.codegen.array.DynamicArrayStrategy;
+import org.renjin.gcc.codegen.array.FixedArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
@@ -83,8 +85,13 @@ public class ComplexTypeStrategy implements TypeStrategy<ComplexValue> {
 
   @Override
   public ArrayTypeStrategy arrayOf(GimpleArrayType arrayType) {
-    return new ArrayTypeStrategy(arrayType, new ComplexValueFunction(type.getJvmPartType()))
-        .setParameterWrapped(false);
+    if(arrayType.isStatic()) {
+      return new FixedArrayTypeStrategy(arrayType, new ComplexValueFunction(type.getJvmPartType()))
+          .setParameterWrapped(false);
+    } else {
+      return new DynamicArrayStrategy(arrayType, new ComplexValueFunction(type.getJvmPartType()))
+          .setParametersWrapped(false);
+    }
   }
 
   @Override

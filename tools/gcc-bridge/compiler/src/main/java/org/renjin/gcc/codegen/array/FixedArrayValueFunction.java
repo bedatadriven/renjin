@@ -2,21 +2,21 @@ package org.renjin.gcc.codegen.array;
 
 import com.google.common.base.Optional;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 
 import java.util.List;
 
 
-public class ArrayValueFunction implements ValueFunction {
+public class FixedArrayValueFunction implements ValueFunction {
 
   private final GimpleArrayType arrayType;
   private final ValueFunction elementValueFunction;
 
-  public ArrayValueFunction(GimpleArrayType arrayType, ValueFunction elementValueFunction) {
+  public FixedArrayValueFunction(GimpleArrayType arrayType, ValueFunction elementValueFunction) {
     this.arrayType = arrayType;
     this.elementValueFunction = elementValueFunction;
   }
@@ -38,12 +38,21 @@ public class ArrayValueFunction implements ValueFunction {
 
   @Override
   public GExpr dereference(JExpr array, JExpr offset) {
-    return new FatPtrExpr(array, offset);
+    return new ArrayExpr(elementValueFunction, arrayType.getElementCount(), array, offset);
   }
 
   @Override
   public List<JExpr> toArrayValues(GExpr expr) {
     return elementValueFunction.toArrayValues(expr);
+  }
+
+  @Override
+  public void memoryCopy(MethodGenerator mv, 
+                         JExpr destinationArray, JExpr destinationOffset, 
+                         JExpr sourceArray, JExpr sourceOffset, 
+                         JExpr valueCount) {
+
+    mv.arrayCopy(sourceArray, sourceOffset, destinationArray, destinationOffset, valueCount);
   }
 
   @Override

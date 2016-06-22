@@ -125,4 +125,8 @@ public final class FatPtrExpr implements GExpr {
     }
     return address;
   }
+
+  public JExpr at(int i) {
+    return Expressions.elementAt(array, Expressions.sum(offset, i));
+  }
 }

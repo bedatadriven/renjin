@@ -1,6 +1,8 @@
 package org.renjin.gcc.codegen.expr;
 
+import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
+import org.renjin.gcc.codegen.array.ArrayExpr;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.call.FunPtrCallGenerator;
@@ -14,10 +16,7 @@ import org.renjin.gcc.codegen.type.complex.ComplexCmpGenerator;
 import org.renjin.gcc.codegen.type.complex.ComplexValue;
 import org.renjin.gcc.codegen.type.complex.ComplexValues;
 import org.renjin.gcc.codegen.type.fun.FunPtr;
-import org.renjin.gcc.codegen.type.primitive.ConstantValue;
-import org.renjin.gcc.codegen.type.primitive.PrimitiveCmpGenerator;
-import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
-import org.renjin.gcc.codegen.type.primitive.StringConstant;
+import org.renjin.gcc.codegen.type.primitive.*;
 import org.renjin.gcc.codegen.type.primitive.op.*;
 import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
 import org.renjin.gcc.gimple.GimpleOp;
@@ -481,8 +480,7 @@ public class ExprFactory {
       
     } else if (constant instanceof GimpleStringConstant) {
       StringConstant array = new StringConstant(((GimpleStringConstant) constant).getValue());
-      FatPtrExpr address = new FatPtrExpr(array);
-      FatPtrExpr arrayExpr = new FatPtrExpr(address, array, Expressions.zero());
+      ArrayExpr arrayExpr = new ArrayExpr(new PrimitiveValueFunction(Type.BYTE_TYPE), array.getLength(), array);
       return arrayExpr;
       
     } else {

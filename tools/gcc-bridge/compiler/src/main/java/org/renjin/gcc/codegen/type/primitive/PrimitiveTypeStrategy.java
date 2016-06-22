@@ -3,6 +3,7 @@ package org.renjin.gcc.codegen.type.primitive;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.array.ArrayTypeStrategies;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.AddressableField;
@@ -84,7 +85,7 @@ public class PrimitiveTypeStrategy implements SimpleTypeStrategy<PrimitiveValue>
 
   @Override
   public ArrayTypeStrategy arrayOf(GimpleArrayType arrayType) {
-    return new ArrayTypeStrategy(arrayType, valueFunction());
+    return ArrayTypeStrategies.of(arrayType, valueFunction());
   }
 
   @Override

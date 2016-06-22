@@ -353,6 +353,11 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void array2d() throws Exception {
     compileAndTest("array2d.c");
   }
+  
+  @Test
+  public void covDna() throws Exception {
+    compileAndTest("cov_dna.c");
+  }
 
   @Test
   public void negate() throws Exception {
@@ -892,8 +897,15 @@ public class GimpleCompilerTest extends AbstractGccTest {
     // Plugin was segfaulting 
     Class<?> endpoints = compile("endpoint.cpp");
 
+    Method allocMethod = endpoints.getMethod("alloc_endpoints");
+    ObjectPtr ptr = (ObjectPtr) allocMethod.invoke(null);
+    
+    assertThat(ptr.array.length, equalTo(2));
+    
+    
     Method testMethod = endpoints.getMethod("test_endpoints");
-    testMethod.invoke(null);
+    ObjectPtr ep = (ObjectPtr) testMethod.invoke(null);
+    assertThat(ep.array.length, equalTo(8));
   }
   
   @Test

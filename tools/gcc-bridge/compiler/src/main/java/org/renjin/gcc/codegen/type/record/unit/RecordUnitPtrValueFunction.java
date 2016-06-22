@@ -2,6 +2,7 @@ package org.renjin.gcc.codegen.type.record.unit;
 
 import com.google.common.base.Optional;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
@@ -50,6 +51,11 @@ public class RecordUnitPtrValueFunction implements ValueFunction {
   @Override
   public List<JExpr> toArrayValues(GExpr expr) {
     return Collections.singletonList((JExpr)expr);
+  }
+
+  @Override
+  public void memoryCopy(MethodGenerator mv, JExpr destinationArray, JExpr destinationOffset, JExpr sourceArray, JExpr sourceOffset, JExpr valueCount) {
+    mv.arrayCopy(sourceArray, sourceOffset, destinationArray, destinationOffset, valueCount);
   }
 
   @Override

@@ -62,19 +62,20 @@ public class UnitClassGenerator {
     this.symbolTable = new UnitSymbolTable(functionTable);
   
     for (GimpleVarDecl decl : unit.getGlobalVariables()) {
-      TypeStrategy typeStrategy = typeOracle.forType(decl.getType());
-      GExpr varGenerator;
-      
-      if(isProvided(providedVariables, decl)) {
-        Field providedField = providedVariables.get(decl.getName());
-        varGenerator = typeStrategy.variable(decl, new ProvidedVarAllocator(providedField.getDeclaringClass()));
-        
-      } else {
-        varGenerator = typeStrategy.variable(decl, globalVarAllocator);
-        varToGenerate.add(decl);
-      }
+      if(!isIgnored(decl)) {
+        TypeStrategy typeStrategy = typeOracle.forType(decl.getType());
+        GExpr varGenerator;
 
-      symbolTable.addGlobalVariable(decl, varGenerator);
+        if (isProvided(providedVariables, decl)) {
+          Field providedField = providedVariables.get(decl.getName());
+          varGenerator = typeStrategy.variable(decl, new ProvidedVarAllocator(providedField.getDeclaringClass()));
+
+        } else {
+          varGenerator = typeStrategy.variable(decl, globalVarAllocator);
+          varToGenerate.add(decl);
+        }
+        symbolTable.addGlobalVariable(decl, varGenerator);
+      }
     }
 
     for (GimpleFunction function : unit.getFunctions()) {
@@ -89,6 +90,11 @@ public class UnitClassGenerator {
             e.getMessage()), e);
       }
     }
+  }
+
+  private boolean isIgnored(GimpleVarDecl decl) {
+    return decl.getMangledName().equals("_ZTVN10__cxxabiv117__class_type_infoE") || 
+        decl.getMangledName().equals("_ZTVN10__cxxabiv120__si_class_type_infoE");
   }
 
   private boolean isProvided(Map<String, Field> providedVariables, GimpleVarDecl decl) {

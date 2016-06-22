@@ -2,6 +2,7 @@ package org.renjin.gcc.codegen.type.primitive;
 
 import com.google.common.base.Optional;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
@@ -55,6 +56,14 @@ public class PrimitiveValueFunction implements ValueFunction {
   public List<JExpr> toArrayValues(GExpr expr) {
     PrimitiveValue primitiveValue = (PrimitiveValue) expr;
     return Collections.singletonList(primitiveValue.getExpr());
+  }
+
+  @Override
+  public void memoryCopy(MethodGenerator mv, 
+                         JExpr destinationArray, JExpr destinationOffset, 
+                         JExpr sourceArray, JExpr sourceOffset, JExpr valueCount) {
+
+    mv.arrayCopy(sourceArray, sourceOffset, destinationArray, destinationOffset, valueCount);
   }
 
   @Override

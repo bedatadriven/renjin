@@ -2,6 +2,7 @@ package org.renjin.gcc.codegen.fatptr;
 
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.array.ArrayTypeStrategies;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.*;
@@ -186,7 +187,7 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtrExpr> {
 
   @Override
   public ArrayTypeStrategy arrayOf(GimpleArrayType arrayType) {
-    return new ArrayTypeStrategy(arrayType, new FatPtrValueFunction(valueFunction));
+    return ArrayTypeStrategies.of(arrayType, new FatPtrValueFunction(valueFunction));
   }
 
   @Override
@@ -245,28 +246,12 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtrExpr> {
   @Override
   public void memoryCopy(MethodGenerator mv, FatPtrExpr destination, FatPtrExpr source, JExpr lengthBytes, boolean buffer) {
     
-    // TODO: Is this correct for pointers to record types?
+    // Convert bytes -> value counts
+    JExpr valueCount = Expressions.divide(lengthBytes, valueFunction.getArrayElementBytes());
     
-    // Convert bytes -> array elements
-    JExpr length = Expressions.divide(lengthBytes, valueFunction.getArrayElementBytes());
-    
-    // Push parameters onto stack
-    source.getArray().load(mv);
-    source.getOffset().load(mv);
-    destination.getArray().load(mv);
-    destination.getOffset().load(mv);
-    length.load(mv);
-
-    // public static native void arraycopy(
-    //     Object src,  int  srcPos,
-    // Object dest, int destPos,
-    // int length);
-    mv.invokestatic(System.class, "arraycopy", 
-        Type.getMethodDescriptor(VOID_TYPE, 
-              Type.getType(Object.class), INT_TYPE, 
-              Type.getType(Object.class), INT_TYPE,
-              INT_TYPE));
-
+    valueFunction.memoryCopy(mv,
+        destination.getArray(), destination.getOffset(),
+        source.getArray(), source.getOffset(), valueCount);
   }
 
   @Override

@@ -201,6 +201,10 @@ public class Expressions {
   public static JExpr divide(JExpr size, int divisor) {
     Preconditions.checkArgument(size.getType().equals(Type.INT_TYPE));
 
+    if(size instanceof ConstantValue) {
+      return new ConstantValue(Type.INT_TYPE, ((ConstantValue) size).getIntValue() / divisor);
+    }
+
     return divide(size, constantInt(divisor));
   }
 

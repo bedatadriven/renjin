@@ -4,13 +4,17 @@ import com.google.common.base.Optional;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import org.objectweb.asm.Type;
+import org.renjin.gcc.codegen.array.ArrayExpr;
+import org.renjin.gcc.codegen.array.ArrayTypeStrategies;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
+import org.renjin.gcc.codegen.array.DynamicArrayExpr;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
 import org.renjin.gcc.codegen.fatptr.Wrappers;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveValueFunction;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
@@ -188,6 +192,15 @@ public class RecordArrayTypeStrategy extends RecordTypeStrategy<RecordArrayExpr>
         throw new UnsupportedOperationException("TODO: " + fieldType + " -> " + expectedType);
       }
 
+    } else if(fieldRef.getType() instanceof GimpleArrayType) {
+      GimpleArrayType arrayType = (GimpleArrayType) fieldRef.getType();
+      Type expectedType = ((GimplePrimitiveType) arrayType.getComponentType()).jvmType();
+
+      if(arrayType.isStatic()) {
+        return new ArrayExpr(new PrimitiveValueFunction(expectedType), arrayType.getElementCount(), array, offset);
+      } else {
+        return new DynamicArrayExpr(array, offset);
+      }
     } else {
       // Return an array that starts at this point 
       return new FatPtrExpr(address, array, offset);
@@ -240,7 +253,7 @@ public class RecordArrayTypeStrategy extends RecordTypeStrategy<RecordArrayExpr>
 
   @Override
   public ArrayTypeStrategy arrayOf(GimpleArrayType arrayType) {
-    return new ArrayTypeStrategy(arrayType, valueFunction);
+    return ArrayTypeStrategies.of(arrayType, valueFunction);
   }
 
   @Override

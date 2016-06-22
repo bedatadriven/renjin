@@ -8,7 +8,6 @@ import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
-import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtrMalloc;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.fatptr.Wrappers;
@@ -17,7 +16,7 @@ import org.renjin.gcc.codegen.type.FieldStrategy;
 /**
  * Strategy for array fields
  */
-public class ArrayField extends FieldStrategy {
+public class FixedArrayField extends FieldStrategy {
 
   private Type declaringClass;
   private String name;
@@ -25,7 +24,7 @@ public class ArrayField extends FieldStrategy {
   private final ValueFunction valueFunction;
   private final Type arrayType;
 
-  public ArrayField(Type declaringClass, String name, int arrayLength, ValueFunction valueFunction) {
+  public FixedArrayField(Type declaringClass, String name, int arrayLength, ValueFunction valueFunction) {
     this.declaringClass = declaringClass;
     this.name = name;
     this.arrayLength = arrayLength;
@@ -50,8 +49,6 @@ public class ArrayField extends FieldStrategy {
   public GExpr memberExprGenerator(JExpr instance) {
     JExpr array = Expressions.field(instance, arrayType, name);
     JExpr offset = Expressions.zero();
-    FatPtrExpr address = new FatPtrExpr(array, offset);
-    return new FatPtrExpr(address, array, offset);
+    return new ArrayExpr(valueFunction, arrayLength, array, offset);
   }
-
 }

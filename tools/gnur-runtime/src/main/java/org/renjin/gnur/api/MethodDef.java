@@ -17,4 +17,12 @@ public class MethodDef {
     return new BytePtr(name, name$offset).nullTerminatedString();
   }
   
+  public void set(MethodDef o) {
+    this.name = o.name;
+    this.name$offset = o.name$offset;
+    this.types = o.types;
+    this.types$offset = o.types$offset;
+    this.numArgs = o.numArgs;
+    this.fun = o.fun;
+  }
 }

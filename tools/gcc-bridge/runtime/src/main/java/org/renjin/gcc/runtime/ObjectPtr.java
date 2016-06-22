@@ -70,6 +70,11 @@ public class ObjectPtr<T> implements Ptr {
     
     Arrays.fill(str, strOffset, strOffset + (c / 32), null);
   }
-  
-  
+
+  public static ObjectPtr cast(Object voidPointer) {
+    if(voidPointer instanceof MallocThunk) {
+      throw new UnsupportedOperationException("TODO");
+    }
+    return (ObjectPtr) voidPointer;
+  }
 }

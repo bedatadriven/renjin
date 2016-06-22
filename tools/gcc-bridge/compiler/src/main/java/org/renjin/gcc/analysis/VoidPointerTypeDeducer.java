@@ -121,6 +121,7 @@ public class VoidPointerTypeDeducer implements FunctionBodyTransformer {
 
       switch (assignment.getOperator()) {
         case VAR_DECL:
+        case PARM_DECL:
         case NOP_EXPR:
         case ADDR_EXPR:
 

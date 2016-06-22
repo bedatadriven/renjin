@@ -64,6 +64,8 @@ Endpoints::Endpoints( const double * pos, const int * closed, int n, bool query,
     bool, for logicals. Intervals with R numeric NA in either slot are
     dropped. 
   */
+      printf("size = %d\n", this->size());
+
   int i;
   this->reserve( 2 * n );
   for ( i = 0; i < n; i++ ) {
@@ -71,32 +73,26 @@ Endpoints::Endpoints( const double * pos, const int * closed, int n, bool query,
    // if ( ISNA( pos[i] ) || ISNA( pos[i+n] ) ) continue;
     this->push_back( Endpoint( i, pos[i], query, true, (bool) closed[ is_full ? i : 0 ] ) );
     this->push_back( Endpoint( i, pos[i+n], query, false, (bool) closed[ is_full ? i+n : 1 ] ) );
+    printf("size = %d\n", this->size());
   }
 }
 
 void Endpoints::R_print() const {
   Endpoints::const_iterator it;
-  for ( it = this->begin(); it < this->end(); it++ ) 
+  for ( it = this->begin(); it < this->end(); it++ )
     it->R_print();
 }
 
 extern "C" int test_endpoints() {
     
-//   double e[] = { 1, 2, 3, 4, 3, 3, 6, 8 };
-//   int c[] = {1, 1};
-//   int n = 4;
-//
-//   Endpoints ep ( e, c, n, false, false );
-//   printf("endpoints = \n");
-//   ep.R_print();
+   double e[] = { 1, 2, 3, 4, 3, 3, 6, 8 };
+   int c[] = {1, 1};
+   int n = 4;
 
-    std::vector<int> list;
-    printf("list constructed = %d\n", list.size());
-    list.push_back(1);
-    list.push_back(2);
-    
-    printf("size = %d\n", list.size());
+   Endpoints ep ( e, c, n, false, false );
+   printf("ep.size() = %d\n", ep.size());
+   printf("ep = \n");
+   ep.R_print();
 
-    ASSERT(list.size() == 2);
 
 }

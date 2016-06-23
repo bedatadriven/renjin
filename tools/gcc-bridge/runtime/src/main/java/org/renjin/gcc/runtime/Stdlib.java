@@ -272,4 +272,16 @@ public class Stdlib {
   public static Object fopen() {
     throw new UnsupportedOperationException("fopen() not implemented");
   }
+
+
+  /**
+   * The C library function void free(void *ptr) deallocates the memory previously allocated by a
+   * call to calloc, malloc, or realloc. This is a NO-OP in GCC-Bridge compiled code.
+   * 
+   * <p>This method is only used to provide a function pointer to the free function.</p>
+   */
+  public static void free(Object ptr) {
+    // NO-OP    
+  }
+  
 }

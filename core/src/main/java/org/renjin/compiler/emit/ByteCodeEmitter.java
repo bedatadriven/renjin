@@ -2,18 +2,15 @@ package org.renjin.compiler.emit;
 
 
 import org.objectweb.asm.*;
-import org.objectweb.asm.util.CheckClassAdapter;
 import org.objectweb.asm.util.TraceClassVisitor;
 import org.renjin.compiler.CompiledBody;
 import org.renjin.compiler.cfg.BasicBlock;
 import org.renjin.compiler.cfg.ControlFlowGraph;
 import org.renjin.compiler.ir.ssa.RegisterAllocation;
 import org.renjin.compiler.ir.tac.IRLabel;
-import org.renjin.compiler.ir.tac.expressions.LValue;
 import org.renjin.compiler.ir.tac.statements.Statement;
 
 import java.io.PrintWriter;
-import java.util.Map;
 
 public class ByteCodeEmitter implements Opcodes {
 
@@ -46,7 +43,6 @@ public class ByteCodeEmitter implements Opcodes {
 
     cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
     cv = new TraceClassVisitor(cw, new PrintWriter(System.out, true));
-    cv = new CheckClassAdapter(cv, true);
     cv.visit(V1_6, ACC_PUBLIC + ACC_SUPER, className, null,
             "java/lang/Object", new String[] { "org/renjin/compiler/CompiledBody" });
   }

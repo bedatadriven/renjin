@@ -3,10 +3,12 @@ package org.renjin.compiler.ir.tac.expressions;
 import com.google.common.base.Preconditions;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 import org.renjin.compiler.emit.EmitContext;
 import org.renjin.compiler.ir.ssa.VariableMap;
 import org.renjin.sexp.AtomicVector;
 import org.renjin.sexp.IntVector;
+import org.renjin.sexp.Vector;
 
 
 /**
@@ -46,12 +48,12 @@ public class ElementAccess extends SpecializedCallExpression {
   public int emitPush(EmitContext emitContext, MethodVisitor mv) {
 
     int stackIncrease =
-      getVector().emitPush(emitContext, mv) +
-      getIndex().emitPush(emitContext, mv);
+        getVector().emitPush(emitContext, mv) +
+        getIndex().emitPush(emitContext, mv);
 
     if(type.equals(double.class)) {
       mv.visitMethodInsn(Opcodes.INVOKEINTERFACE,
-        "org/renjin/sexp/Vector", "getElementAsDouble", "(I)D");
+          Type.getInternalName(Vector.class), "getElementAsDouble", "(I)D", true);
     } else {
       throw new UnsupportedOperationException(type.toString());
     }

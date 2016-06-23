@@ -17,7 +17,9 @@ import org.renjin.sexp.SEXP;
  * have to be processed by the SSA transformation
  */
 public class Temp extends LValue {
-  private static final String TAO = "\u03C4";
+  
+  private static final String TAO = "τ";
+  
   private final int index;
   
   public Temp(int index) {
@@ -43,12 +45,15 @@ public class Temp extends LValue {
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj)
+    if (this == obj) {
       return true;
-    if (obj == null)
+    }
+    if (obj == null) {
       return false;
-    if (getClass() != obj.getClass())
+    }
+    if (getClass() != obj.getClass()) {
       return false;
+    }
     Temp other = (Temp) obj;
     return index == other.index;
   }

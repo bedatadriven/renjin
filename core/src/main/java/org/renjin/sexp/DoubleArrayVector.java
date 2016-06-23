@@ -29,10 +29,24 @@ import java.util.Collection;
 
 public final class DoubleArrayVector extends DoubleVector {
 
+  public static DoubleArrayVector ZERO = new DoubleArrayVector(0);
+
+  public static DoubleArrayVector ONE = new DoubleArrayVector(1);
+
   private double[] values;
 
   private DoubleArrayVector(AttributeMap attributes) {
     super(attributes);
+  }
+
+  public static DoubleArrayVector valueOf(double x) {
+    if(x == 0) {
+      return ZERO;
+    } else if(x == 1) {
+      return ONE;
+    } else {
+      return new DoubleArrayVector(x);
+    }
   }
 
   public DoubleArrayVector(double... values) {

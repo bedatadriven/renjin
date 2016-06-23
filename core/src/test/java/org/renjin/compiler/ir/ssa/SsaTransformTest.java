@@ -24,6 +24,8 @@ public class SsaTransformTest extends CompilerTestCase {
     IRBody block = parseCytron();
     ControlFlowGraph cfg = new ControlFlowGraph(block);
 
+    cfg.dumpEdges();
+    
     System.out.println(cfg);
 
     Iterable<BasicBlock> assignmentsToK = Iterables.filter(cfg.getBasicBlocks(),
@@ -31,6 +33,14 @@ public class SsaTransformTest extends CompilerTestCase {
 
     assertThat(Iterables.size(assignmentsToK), equalTo(3));
 
+    System.out.println("PREDECESSORS:");
+    for (BasicBlock basicBlock : cfg.getLiveBasicBlocks()) {
+      System.out.println(basicBlock.getDebugId() + " => " + cfg.getPredecessors(basicBlock));
+    }
+    System.out.println("SUCESSORS:");
+    for (BasicBlock basicBlock : cfg.getLiveBasicBlocks()) {
+      System.out.println(basicBlock.getDebugId() + " => " + cfg.getSuccessors(basicBlock));
+    }
 
     DominanceTree dtree = new DominanceTree(cfg);
     System.out.println(dtree);
@@ -66,7 +76,7 @@ public class SsaTransformTest extends CompilerTestCase {
     DominanceTree dtree = new DominanceTree(cfg);
     
     System.out.println("CFG:");
-    System.out.println(cfg.getGraph());
+    System.out.println(cfg);
     
     System.out.println("Dominance Tree:");  
     System.out.println(dtree);
@@ -74,7 +84,6 @@ public class SsaTransformTest extends CompilerTestCase {
     SsaTransformer transformer = new SsaTransformer(cfg, dtree);
     transformer.transform();
      
-    System.out.println(cfg);
   }
 
   @Test

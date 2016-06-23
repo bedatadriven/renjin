@@ -39,7 +39,7 @@ public class PhiFunction implements Expression {
 
   @Override
   public String toString() {
-    return "\u03A6(" + Joiner.on(", ").join(arguments) + ")";
+    return "Φ(" + Joiner.on(", ").join(arguments) + ")";
   }
 
   @Override

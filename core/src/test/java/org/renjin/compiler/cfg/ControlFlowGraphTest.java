@@ -40,7 +40,6 @@ public class ControlFlowGraphTest extends CompilerTestCase {
 
     
     ControlFlowGraph cfg = new ControlFlowGraph(block);
-    System.out.println(cfg.getGraph());
     System.out.println(cfg);
 
     List<BasicBlock> basicBlocks = cfg.getBasicBlocks();
@@ -96,19 +95,20 @@ public class ControlFlowGraphTest extends CompilerTestCase {
     
     // see Figure 5 in 
     // http://www.cs.utexas.edu/~pingali/CS380C/2010/papers/ssaCytron.pdf
-    
-    assertThat(cfg.getGraph().getSuccessors(bb.get(1)), itemsEqualTo(bb.get(2)));
-    assertThat(cfg.getGraph().getSuccessors(bb.get(2)), itemsEqualTo(bb.get(3), bb.get(7)));
-    assertThat(cfg.getGraph().getSuccessors(bb.get(3)), itemsEqualTo(bb.get(4), bb.get(5)));
-    assertThat(cfg.getGraph().getSuccessors(bb.get(4)), itemsEqualTo(bb.get(6)));
-    assertThat(cfg.getGraph().getSuccessors(bb.get(5)), itemsEqualTo(bb.get(6)));
-    assertThat(cfg.getGraph().getSuccessors(bb.get(6)), itemsEqualTo(bb.get(8)));
-    assertThat(cfg.getGraph().getSuccessors(bb.get(7)), itemsEqualTo(bb.get(8)));
-    assertThat(cfg.getGraph().getSuccessors(bb.get(8)), itemsEqualTo(bb.get(9)));
-    assertThat(cfg.getGraph().getSuccessors(bb.get(9)), itemsEqualTo(bb.get(10), bb.get(11)));
-    assertThat(cfg.getGraph().getSuccessors(bb.get(10)), itemsEqualTo(bb.get(11)));
-    assertThat(cfg.getGraph().getSuccessors(bb.get(11)), itemsEqualTo(bb.get(9),bb.get(12)));
-    assertThat(cfg.getGraph().getSuccessors(bb.get(12)), itemsEqualTo(bb.get(13),bb.get(2)));
+
+    assertThat(cfg.getSuccessors(bb.get(0)), itemsEqualTo(bb.get(1), cfg.getExit()));
+    assertThat(cfg.getSuccessors(bb.get(1)), itemsEqualTo(bb.get(2)));
+    assertThat(cfg.getSuccessors(bb.get(2)), itemsEqualTo(bb.get(3), bb.get(7)));
+    assertThat(cfg.getSuccessors(bb.get(3)), itemsEqualTo(bb.get(4), bb.get(5)));
+    assertThat(cfg.getSuccessors(bb.get(4)), itemsEqualTo(bb.get(6)));
+    assertThat(cfg.getSuccessors(bb.get(5)), itemsEqualTo(bb.get(6)));
+    assertThat(cfg.getSuccessors(bb.get(6)), itemsEqualTo(bb.get(8)));
+    assertThat(cfg.getSuccessors(bb.get(7)), itemsEqualTo(bb.get(8)));
+    assertThat(cfg.getSuccessors(bb.get(8)), itemsEqualTo(bb.get(9)));
+    assertThat(cfg.getSuccessors(bb.get(9)), itemsEqualTo(bb.get(10), bb.get(11)));
+    assertThat(cfg.getSuccessors(bb.get(10)), itemsEqualTo(bb.get(11)));
+    assertThat(cfg.getSuccessors(bb.get(11)), itemsEqualTo(bb.get(9),bb.get(12)));
+    assertThat(cfg.getSuccessors(bb.get(12)), itemsEqualTo(bb.get(13),bb.get(2)));
   }
 
   

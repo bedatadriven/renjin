@@ -84,7 +84,7 @@ public class IRBodyBuilder {
         return getEnvironmentVariable((Symbol) exp);
       }
     } else if(exp instanceof FunctionCall) {
-        return translateCallExpression(context, (FunctionCall) exp);
+      return translateCallExpression(context, (FunctionCall) exp);
     } else {
       // environments, pairlists, etc
       return SexpConstant.valueOf(exp);

@@ -21,6 +21,12 @@ public class BasicBlock {
   private Set<IRLabel> labels;
   private List<Statement> statements = Lists.newArrayList();
   
+  Set<BasicBlock> flowSuccessors = Sets.newHashSet();
+  Set<BasicBlock> flowPredecessors = Sets.newHashSet();
+
+  Set<BasicBlock> dominanceSuccessors = Sets.newHashSet();
+  Set<BasicBlock> dominancePredecessors = Sets.newHashSet();
+  
   public BasicBlock(IRBody parent) {
     super();
     this.parent = parent;
@@ -75,7 +81,33 @@ public class BasicBlock {
   public Statement getTerminal() {
     return statements.get(statements.size() - 1);
   }
+
+  public void addFlowSuccessor(BasicBlock basicBlock) {
+    flowSuccessors.add(basicBlock);
+    basicBlock.flowPredecessors.add(this);
+  }
+
+  public void addDominanceSuccessor(BasicBlock basicBlock) {
+    dominanceSuccessors.add(basicBlock);
+    basicBlock.dominancePredecessors.add(this);
+  }
+
+  public Set<BasicBlock> getFlowSuccessors() {
+    return Collections.unmodifiableSet(flowSuccessors);
+  }
+
+  public Set<BasicBlock> getFlowPredecessors() {
+    return Collections.unmodifiableSet(flowPredecessors);
+  }
+
+  public Set<BasicBlock> getDominanceSuccessors() {
+    return dominanceSuccessors;
+  }
   
+  public Set<BasicBlock> getDominancePredecessors() {
+    return dominancePredecessors;
+  }
+
   public boolean returns() {
     return getTerminal() instanceof ReturnStatement;
   }
@@ -99,7 +131,6 @@ public class BasicBlock {
     return sb.toString();
   }
 
-  
   public Iterable<Assignment> assignments() {
     return (Iterable)Iterables.filter(statements, Predicates.instanceOf(Assignment.class));
   }

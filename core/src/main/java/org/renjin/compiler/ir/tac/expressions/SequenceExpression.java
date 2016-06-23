@@ -27,11 +27,11 @@ public class SequenceExpression extends SpecializedCallExpression {
   @Override
   public int emitPush(EmitContext emitContext, MethodVisitor mv) {
     int stackSizeIncrease =
-      assertDouble(childAt(0)).emitPush(emitContext, mv) +
-      assertDouble(childAt(1)).emitPush(emitContext, mv);
+        assertDouble(childAt(0)).emitPush(emitContext, mv) + 
+        assertDouble(childAt(1)).emitPush(emitContext, mv);
 
     mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(DoubleSequence.class), "fromTo",
-        Type.getMethodDescriptor(Type.getType(AtomicVector.class), Type.DOUBLE_TYPE, Type.DOUBLE_TYPE));
+        Type.getMethodDescriptor(Type.getType(AtomicVector.class), Type.DOUBLE_TYPE, Type.DOUBLE_TYPE), false);
 
     return stackSizeIncrease;
   }

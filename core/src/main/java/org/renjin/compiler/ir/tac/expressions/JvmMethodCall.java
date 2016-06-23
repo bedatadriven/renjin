@@ -82,9 +82,9 @@ public class JvmMethodCall implements CallExpression {
     }
     // now invoke the method
     mv.visitMethodInsn(Opcodes.INVOKESTATIC,
-      Type.getInternalName(method.getDeclaringClass()),
-      method.getName(),
-      Type.getMethodDescriptor(method.getMethod()));
+        Type.getInternalName(method.getDeclaringClass()),
+        method.getName(),
+        Type.getMethodDescriptor(method.getMethod()), false);
 
     return Math.max(
         stackIncreaseRequiredForArguments,

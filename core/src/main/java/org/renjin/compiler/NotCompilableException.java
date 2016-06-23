@@ -1,8 +1,6 @@
 package org.renjin.compiler;
 
 
-import org.renjin.compiler.ir.tac.expressions.Expression;
-import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.SEXP;
 
 public class NotCompilableException extends RuntimeException {

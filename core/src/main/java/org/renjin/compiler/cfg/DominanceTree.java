@@ -1,19 +1,13 @@
 package org.renjin.compiler.cfg;
 
 
-import com.google.common.base.Function;
+import com.google.common.base.Joiner;
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
-import edu.uci.ics.jung.graph.DirectedSparseGraph;
-import edu.uci.ics.jung.graph.Graph;
-import edu.uci.ics.jung.graph.util.EdgeType;
 import org.renjin.util.DebugGraph;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Set;
+import java.util.*;
 
 import static com.google.common.base.Predicates.equalTo;
 import static com.google.common.base.Predicates.not;
@@ -23,7 +17,6 @@ public class DominanceTree {
 
   private final ControlFlowGraph cfg;
   private final HashMultimap<BasicBlock, BasicBlock> Dom = HashMultimap.create();
-  private final Graph<BasicBlock, DominanceEdge> tree = new DirectedSparseGraph<BasicBlock, DominanceEdge>();
   private final Multimap<BasicBlock, BasicBlock> dominanceFrontier = HashMultimap.create();
   
   public DominanceTree(ControlFlowGraph cfg) {
@@ -43,6 +36,8 @@ public class DominanceTree {
     // for all other nodes, set all nodes as the dominators
     for(BasicBlock n : filter(cfg.getLiveBasicBlocks(), not(equalTo(cfg.getEntry())))) {
       Dom.putAll(n, cfg.getLiveBasicBlocks());
+      System.out.printf("Dom(%s) = %s%n", n.getDebugId(), toString(Dom.get(n)));
+
     }
 
     // iteratively eliminate nodes that are not dominators
@@ -51,32 +46,56 @@ public class DominanceTree {
       changes = false;
       for(BasicBlock n : filter(cfg.getLiveBasicBlocks(), not(equalTo(cfg.getEntry())))) {
         // Dom(n) = {n} union with intersection over all p in pred(n) of Dom(p)
-        Set<BasicBlock> newDom =
-            Sets.union(Collections.singleton(n),
-                intersection(Iterables.transform(cfg.getGraph().getPredecessors(n),
-                    new Function<BasicBlock, Set<BasicBlock>>() {
-
-                      @Override
-                      public Set<BasicBlock> apply(BasicBlock input) {
-                        return Dom.get(input);
-                      }
-                    })));
-
+        Set<BasicBlock> newDom = computeNewDominance(n);
         Set<BasicBlock> original = Dom.get(n);
 
         if(!original.equals(newDom)) {
+         // System.out.printf("Dom(%s) = %s%n", n.getDebugId(), toString(newDom));
           Dom.replaceValues(n, newDom);
           changes = true;
         }
       }
     } while(changes);
   }
-  
+
+  /**
+   * Find the intersection of all the dominance frontiers of all the predecessors of this
+   * node, and union that with the node itself.
+   */
+  private Set<BasicBlock> computeNewDominance(BasicBlock n) {
+    Set<BasicBlock> predecessors = n.getFlowPredecessors();
+
+    Set<BasicBlock> set = new HashSet<>();
+    boolean first = true;
+    for (BasicBlock predecessor : predecessors) {
+      Set<BasicBlock> frontier = Dom.get(predecessor);
+      if(first) {
+        set.addAll(frontier);
+      } else {
+        set.retainAll(frontier);
+      }
+      first = false;
+    }
+    
+    set.add(n);
+      
+    return set;
+  }
+
+  private String toString(Set<BasicBlock> newDom) {
+    List<String> strings = new ArrayList<>();
+    for (BasicBlock basicBlock : newDom) {
+      strings.add(basicBlock.getDebugId());
+    }
+    Collections.sort(strings);
+    return "{" + Joiner.on(", ").join(strings) + "}";
+  }
+
   private void buildTree() {
     for(BasicBlock n : cfg.getBasicBlocks()) {
       BasicBlock d = calculateImmediateDominator(n);
       if(d != null) {
-        tree.addEdge(new DominanceEdge(), d, n, EdgeType.DIRECTED);
+        d.addDominanceSuccessor(n);
       }
     }
   }
@@ -91,7 +110,7 @@ public class DominanceTree {
   }
   
   public BasicBlock getImmediateDominator(BasicBlock n) {
-    Collection<BasicBlock> parent = tree.getPredecessors(n);
+    Collection<BasicBlock> parent = n.getDominancePredecessors();
     if(parent.size() != 1) {
       throw new IllegalArgumentException(n.toString());
     }
@@ -126,27 +145,11 @@ public class DominanceTree {
       return Dom.containsEntry(n, d);
     }
   }
-  
-  private Set<BasicBlock> dominators(BasicBlock n) {
-    return Dom.get(n);
-  }
-  
+
   private Iterable<BasicBlock> strictDominators(BasicBlock n) {
-    return Iterables.filter(Dom.get(n), not(equalTo(n)));
+    return Sets.difference(Dom.get(n), Collections.singleton(n));
   }
-  
-  private Set<BasicBlock> intersection(Iterable<Set<BasicBlock>> sets) {
-    Set<BasicBlock> intersection = null;
-    for(Set<BasicBlock> set : sets) {
-      if(intersection == null) {
-        intersection = set;
-      } else {
-        intersection = Sets.intersection(intersection, set);
-      }
-    }
-    return intersection == null ? Collections.<BasicBlock>emptySet() : intersection;
-  }
-  
+
   private void calculateDominanceFrontiers() {
     calculateDominanceFrontier(cfg.getEntry());
   }
@@ -174,18 +177,18 @@ public class DominanceTree {
    * Y
    */
   private void calculateDominanceFrontier(BasicBlock X) {
-    for(BasicBlock child : tree.getSuccessors(X)) {
+    for(BasicBlock child : X.getDominanceSuccessors()) {
       calculateDominanceFrontier(child);
     }
     
     // calculate DF_local(X)
-    for(BasicBlock Y : cfg.getGraph().getSuccessors(X)) {
+    for(BasicBlock Y : cfg.getSuccessors(X)) {
       if(getImmediateDominator(Y) != X) {
         dominanceFrontier.put(X, Y);
       }
     }
     // calculate 
-    for(BasicBlock Z : tree.getSuccessors(X)) {
+    for(BasicBlock Z : X.getDominanceSuccessors()) {
       for(BasicBlock Y : dominanceFrontier.get(Z)) {
         if(getImmediateDominator(Y) != X) {
           dominanceFrontier.put(X, Y);
@@ -199,18 +202,16 @@ public class DominanceTree {
   }
 
   public Collection<BasicBlock> getChildren(BasicBlock x) {
-    return tree.getSuccessors(x);
+    return x.getDominanceSuccessors();
   }
   
-  @Override
-  public String toString() {
-    return tree.toString();
-  }
 
   public void dumpGraph() {
     DebugGraph dump = new DebugGraph("dominance");
-    for(DominanceEdge edge : tree.getEdges()) {
-      dump.printEdge(tree.getSource(edge).getDebugId(), tree.getDest(edge).getDebugId());
+    for (BasicBlock basicBlock : cfg.getBasicBlocks()) {
+      for (BasicBlock dominated : basicBlock.getDominanceSuccessors()) {
+        dump.printEdge(basicBlock.getDebugId(), dominated.getDebugId());
+      }
     }
     dump.close();
   }

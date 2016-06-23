@@ -3,6 +3,7 @@ package org.renjin.gcc.codegen.expr;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.WrapperType;
@@ -144,6 +145,10 @@ public class Expressions {
 
   public static JExpr constantInt(final int value) {
     return new ConstantValue(Type.INT_TYPE, value);
+  }
+
+  private static JExpr constantLong(long value) {
+    return new ConstantValue(Type.LONG_TYPE, value);
   }
 
   public static JExpr zero() {
@@ -574,5 +579,60 @@ public class Expressions {
         mv.invokestatic(declaringType, methodName, descriptor);
       }
     };
+  }
+  
+  public static JExpr xor(JExpr x, JExpr y) {
+    return new BinaryOp(Opcodes.IXOR, x, y);
+  }
+  
+  public static JExpr flip(JExpr value) {
+    switch (value.getType().getSort()) {
+      case Type.BYTE:
+        return xor(value, constantInt(Byte.MIN_VALUE));
+      case Type.SHORT:
+        return xor(value, constantInt(Short.MIN_VALUE));
+      case Type.INT:
+        return xor(value, constantInt(Integer.MIN_VALUE));
+      case Type.LONG:
+        return xor(value, constantLong(Long.MIN_VALUE));
+      default:
+        throw new UnsupportedOperationException("type: " + value.getType());
+    }
+  }
+
+  private static class BinaryOp implements JExpr {
+
+    private int opcode;
+    private Type resultType;
+    private JExpr x;
+    private JExpr y;
+
+
+    public BinaryOp(int opcode, JExpr x, JExpr y) {
+      this.opcode = opcode;
+      this.resultType = x.getType();
+      this.x = x;
+      this.y = y;
+    }
+    
+    public BinaryOp(int opcode, Type resultType, JExpr x, JExpr y) {
+      this.opcode = opcode;
+      this.resultType = resultType;
+      this.x = x;
+      this.y = y;
+    }
+
+    @Nonnull
+    @Override
+    public Type getType() {
+      return resultType;
+    }
+
+    @Override
+    public void load(@Nonnull MethodGenerator mv) {
+      x.load(mv);
+      y.load(mv);
+      mv.visitInsn(x.getType().getOpcode(opcode));
+    }
   }
 }

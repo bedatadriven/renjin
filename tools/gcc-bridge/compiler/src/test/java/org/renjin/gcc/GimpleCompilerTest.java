@@ -791,6 +791,11 @@ public class GimpleCompilerTest extends AbstractGccTest {
     assertThat((Integer)uint32_to_uint8.invoke(null, 0xFFFFFFFF), equalTo(255));
   }
   
+  @Test
+  public void unsignedComparison() throws Exception {
+    compileAndTest("unsigned_comparison.c");
+  }
+  
 
   @Test
   public void unsignedToSigned() throws Exception {

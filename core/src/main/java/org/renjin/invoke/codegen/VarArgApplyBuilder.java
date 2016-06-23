@@ -40,19 +40,26 @@ public class VarArgApplyBuilder extends ApplyMethodBuilder {
   }
 
   private void convertArgs(JBlock parent) {
+    
+    
     // convert the positional arguments
     int posIndex = 0;
     for(VarArgParser.PositionalArg posArgument : parser.getPositionalArguments()) {
       parent.assign(posArgument.getVariable(), convert(posArgument.getFormal(), nextArgAsSexp(posArgument.getFormal().isEvaluated())));
-      genericDispatchStrategy.afterArgIsEvaluated(this, call, args, parent, posArgument.getVariable(), posIndex++);
+      if(posIndex == 0) {
+        genericDispatchStrategy.afterFirstArgIsEvaluated(this, call, args, parent, posArgument.getVariable());
+      }
+      posIndex++;
     }
+    
+    JVar firstArgVar = parent.decl(codeModel.BOOLEAN, "firstArg", JExpr.TRUE);
 
     // now we consume remaining args
     JWhileLoop loop = parent._while(hasMoreArguments());
-    matchVarArg(loop.body());
+    matchVarArg(firstArgVar, loop.body());
   }
 
-  private void matchVarArg(JBlock block) {
+  private void matchVarArg(JVar firstArgVar, JBlock block) {
     JVar node = block.decl(classRef(PairList.Node.class), "node", argumentIterator.invoke("nextNode"));
     JVar value = block.decl(classRef(SEXP.class), "value", node.invoke("getValue"));
     JVar evaluated = block.decl(classRef(SEXP.class), "evaluated");
@@ -61,6 +68,14 @@ public class VarArgApplyBuilder extends ApplyMethodBuilder {
     ifMissing._then().assign(evaluated, value);
     ifMissing._else().assign(evaluated, context.invoke("evaluate").arg(value).arg(environment));
 
+    // If the function has no positional arguments, then we need to check
+    // the first argument for dispatch
+    if(parser.getPositionalArguments().isEmpty()) {
+      JBlock firstArgBlock = block._if(firstArgVar)._then();
+      genericDispatchStrategy.afterFirstArgIsEvaluated(this, call, args, firstArgBlock, evaluated);
+      block.assign(firstArgVar, JExpr.FALSE);
+    }
+    
     JConditional unnamed = block._if(node.invoke("hasName").not());
 
     // if the argument is unnamed, just add to the var arg list

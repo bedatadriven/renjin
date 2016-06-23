@@ -23,13 +23,8 @@ package org.renjin.primitives.combine;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import org.renjin.eval.Context;
-import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
 import org.renjin.sexp.*;
-
-import java.util.List;
 
 /**
  * Implementation of the combine-related functions, including c(), list(), unlist(),
@@ -41,11 +36,8 @@ public class Combine {
   /**
    * combines its arguments to form a vector. All arguments are coerced to a common type which is the
    * type of the returned value, and all attributes except names are removed.
-   *
-   * @param arguments
-   * @param recursive
-   * @return
    */
+  @Generic
   @Builtin
   public static SEXP c(@ArgumentList ListVector arguments,
                        @NamedFlag("recursive") boolean recursive) {

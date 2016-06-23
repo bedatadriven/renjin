@@ -82,6 +82,16 @@ public class CombineTest extends EvalTestCase {
 
     assertThat(eval("names(y)"), equalTo(c("a", "b", "", "zz.a", "zz.b", "zz3", "")));
   }
+  
+  @Test
+  public void genericCombine() {
+    eval("c.foo <- function(...) 42 ");
+    eval("x <- 1");
+    eval("class(x) <- 'foo'");
+    eval("y <- c(x)");
+    
+    assertThat(eval("y"), equalTo(c(42)));
+  }
 
   @Test
   public void unlistAtomic() {

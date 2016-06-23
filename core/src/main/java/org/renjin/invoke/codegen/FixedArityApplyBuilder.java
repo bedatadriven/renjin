@@ -40,7 +40,9 @@ public class FixedArityApplyBuilder extends ApplyMethodBuilder {
       JVar argument = parent.decl(classRef(SEXP.class), "s" + i, nextArgAsSexp(primitive.isEvaluated(i)));
       arguments.add(argument);
 
-      genericDispatchStrategy.afterArgIsEvaluated(this, call, args, parent, argument, i);
+      if(i == 0) {
+        genericDispatchStrategy.afterFirstArgIsEvaluated(this, call, args, parent, argument);
+      }
     }
 
     arityMatches(parent._if(lastArgument())._then(), arguments);

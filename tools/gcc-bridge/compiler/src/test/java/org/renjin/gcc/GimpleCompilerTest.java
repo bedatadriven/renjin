@@ -878,13 +878,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
   
   @Test
   public void voidMalloc() throws Exception {
-    Class clazz = compile("void_malloc.c");
-    
-    // Try double
-    DoublePtr doublePtr = (DoublePtr) clazz.getMethod("test_double").invoke(null);
-    assertThat(doublePtr.array[0], equalTo(3.145));
-    assertThat(doublePtr.array[1], equalTo(42.0));
-
+    compileAndTest("void_malloc.c");
   }
   
   @Test

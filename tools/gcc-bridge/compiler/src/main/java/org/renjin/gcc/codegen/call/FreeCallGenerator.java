@@ -8,7 +8,7 @@ import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.fun.FunctionRefGenerator;
 import org.renjin.gcc.gimple.statement.GimpleCall;
-import org.renjin.gcc.runtime.Stdlib;
+import org.renjin.gcc.runtime.MallocThunk;
 
 /**
  * Generates a call to free(ptr). 
@@ -23,7 +23,7 @@ public class FreeCallGenerator implements CallGenerator, MethodHandleGenerator {
   @Override
   public JExpr getMethodHandle() {
     return new FunctionRefGenerator(new Handle(Opcodes.H_INVOKESTATIC, 
-        Type.getInternalName(Stdlib.class), "free", 
+        Type.getInternalName(MallocThunk.class), "free", 
         Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(Object.class))));
   }
 }

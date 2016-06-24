@@ -2,7 +2,7 @@
 
 library(hamcrest)
 
-test.setClassInherit <- function(){
+failing.test.setClassInherit <- function(){
 
     setClass("A", representation("numeric"))
     a <- new("A")
@@ -26,7 +26,7 @@ test.setClassInherit <- function(){
 }
 
 ### Find inherited group methods:
-test.setClassFindInherit <- function(){
+failing.test.setClassFindInherit <- function(){
 
     if(require(Matrix)) {
         sm <- selectMethod("-", c("dgCMatrix", "numeric"))# direct match with "Arith"

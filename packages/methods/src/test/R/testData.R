@@ -21,8 +21,20 @@ test.data.assign.attribs.preserved <- function() {
 	
 	assertThat(names(object), identicalTo("x"))
 	assertThat(attr(object, 'foo'), identicalTo("bar"))
-	
-	
+
 }
 
+test.data.matrix <- function() {
+
+	setClass(
+		"Interval",
+		representation( type = "character" ),
+		prototype(matrix( 0, 0, 2 )),
+		contains = "matrix")
+
+	i <- new("Interval")
+	i@.Data <- matrix(1:4, nrow=2)
+
+	assertThat(i@.Data, identicalTo(matrix(1:4, nrow=2)))
+}
 

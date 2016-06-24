@@ -47,7 +47,7 @@ public class Increment extends SpecializedCallExpression {
   }
 
   @Override
-  public TypeBounds computeTypeBounds(Map<LValue, TypeBounds> variableMap) {
-    return TypeBounds.scalarInt();
+  public TypeBounds computeTypeBounds(Map<LValue, TypeBounds> typeMap) {
+    return TypeBounds.INT_PRIMITIVE;
   }
 }

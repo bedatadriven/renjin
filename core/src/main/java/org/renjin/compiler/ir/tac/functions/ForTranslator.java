@@ -6,7 +6,10 @@ import org.renjin.compiler.ir.tac.expressions.*;
 import org.renjin.compiler.ir.tac.statements.Assignment;
 import org.renjin.compiler.ir.tac.statements.GotoStatement;
 import org.renjin.compiler.ir.tac.statements.IfStatement;
-import org.renjin.sexp.*;
+import org.renjin.sexp.Function;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Symbol;
 
 public class ForTranslator extends FunctionCallTranslator {
 
@@ -14,7 +17,7 @@ public class ForTranslator extends FunctionCallTranslator {
   public Expression translateToExpression(IRBodyBuilder builder, TranslationContext context, Function resolvedFunction, FunctionCall call) {
     addForLoop(builder, context, call);
     
-    return SexpConstant.NULL;
+    return Constant.NULL;
   }
 
 
@@ -42,7 +45,7 @@ public class ForTranslator extends FunctionCallTranslator {
     IRLabel exitLabel = factory.newLabel();
        
     // initialize the counter
-    factory.addStatement(new Assignment(counter, new IntScalarConstant(0)));
+    factory.addStatement(new Assignment(counter, new Constant(0)));
     factory.addStatement(new Assignment(length, new Length(vector)));
 
     // check the counter and potentially loop

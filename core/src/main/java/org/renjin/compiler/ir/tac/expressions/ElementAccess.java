@@ -11,7 +11,7 @@ import java.util.Map;
 
 
 /**
- * Extracts a single element from a vector.
+ * Extracts a single element from a vector. 
  */
 public class ElementAccess extends SpecializedCallExpression {
 
@@ -61,7 +61,8 @@ public class ElementAccess extends SpecializedCallExpression {
   }
 
   @Override
-  public TypeBounds computeTypeBounds(Map<LValue, TypeBounds> variableMap) {
-    return TypeBounds.openSet();
+  public TypeBounds computeTypeBounds(Map<LValue, TypeBounds> typeMap) {
+    TypeBounds vectorType = getVector().computeTypeBounds(typeMap);
+    return TypeBounds.primitive(vectorType.getTypes());
   }
 }

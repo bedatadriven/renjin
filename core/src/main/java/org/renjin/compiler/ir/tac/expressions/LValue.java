@@ -1,6 +1,5 @@
 package org.renjin.compiler.ir.tac.expressions;
 
-import com.google.common.base.Preconditions;
 import org.objectweb.asm.MethodVisitor;
 import org.renjin.compiler.emit.EmitContext;
 import org.renjin.compiler.ir.TypeBounds;
@@ -55,7 +54,11 @@ public abstract class LValue implements SimpleExpression {
 
   @Override
   public TypeBounds computeTypeBounds(Map<LValue, TypeBounds> variableMap) {
-    return Preconditions.checkNotNull(variableMap.get(this), "variable: " + this);
+    TypeBounds type = variableMap.get(this);
+    if(type == null) {
+      return TypeBounds.UNBOUNDED;
+    }
+    return type;
   }
 }
 

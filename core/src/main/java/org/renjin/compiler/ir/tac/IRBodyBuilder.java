@@ -84,7 +84,7 @@ public class IRBodyBuilder {
         throw new NotCompilableException(environmentVariable.getName(), "Unevaluated promise encountered");
       }
       if(value != Symbol.UNBOUND_VALUE) {
-        initializations.add(new Assignment(environmentVariable, SexpConstant.valueOf(value)));
+        initializations.add(new Assignment(environmentVariable, new Constant(value)));
       }
     }
     
@@ -105,7 +105,7 @@ public class IRBodyBuilder {
       return translateExpressionList(context, (ExpressionVector)exp);
     } else if(exp instanceof Symbol) {
       if(exp == Symbol.MISSING_ARG) {
-        return SexpConstant.valueOf(exp);
+        return new Constant(exp);
       } else {
         return getEnvironmentVariable((Symbol) exp);
       }
@@ -113,7 +113,7 @@ public class IRBodyBuilder {
       return translateCallExpression(context, (FunctionCall) exp);
     } else {
       // environments, pairlists, etc
-      return SexpConstant.valueOf(exp);
+      return new Constant(exp);
     }
   }
 
@@ -242,7 +242,7 @@ public class IRBodyBuilder {
   
   private Expression translateExpressionList(TranslationContext context, ExpressionVector vector) {
     if(vector.length() == 0) {
-      return SexpConstant.valueOf(Null.INSTANCE);
+      return new Constant(Null.INSTANCE);
     } else {
       for(int i=0;i+1<vector.length();++i) {
         translateStatements(context, vector.getElementAsSEXP(i));

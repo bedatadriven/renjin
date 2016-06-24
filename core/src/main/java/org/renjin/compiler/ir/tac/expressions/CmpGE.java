@@ -37,7 +37,7 @@ public class CmpGE extends SpecializedCallExpression {
   }
 
   @Override
-  public TypeBounds computeTypeBounds(Map<LValue, TypeBounds> variableMap) {
-    return TypeBounds.scalarLogical();
+  public TypeBounds computeTypeBounds(Map<LValue, TypeBounds> typeMap) {
+    return TypeBounds.LOGICAL_PRIMITIVE;
   }
 }

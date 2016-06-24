@@ -85,8 +85,6 @@ public class ForFunction extends SpecialFunction {
     ControlFlowGraph cfg = new ControlFlowGraph(body);
     
     DominanceTree dTree = new DominanceTree(cfg);
-    dTree.dumpGraph();
-
     SsaTransformer ssaTransformer = new SsaTransformer(cfg, dTree);
     ssaTransformer.transform();
 

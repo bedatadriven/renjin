@@ -4,12 +4,10 @@ import org.renjin.compiler.ir.tac.IRBodyBuilder;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.expressions.Constant;
 import org.renjin.compiler.ir.tac.expressions.Expression;
-import org.renjin.compiler.ir.tac.expressions.SexpConstant;
 import org.renjin.compiler.ir.tac.statements.GotoStatement;
 import org.renjin.compiler.ir.tac.statements.IfStatement;
 import org.renjin.sexp.Function;
 import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.Null;
 import org.renjin.sexp.SEXP;
 
 public class WhileTranslator extends FunctionCallTranslator {
@@ -19,7 +17,7 @@ public class WhileTranslator extends FunctionCallTranslator {
   public Expression translateToExpression(IRBodyBuilder builder, TranslationContext context, Function resolvedFunction, FunctionCall call) {
     addLoop(builder, context, call);
     
-    return SexpConstant.NULL;
+    return Constant.NULL;
   }
 
 

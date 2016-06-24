@@ -44,8 +44,8 @@ public class Length extends SpecializedCallExpression implements SimpleExpressio
   }
 
   @Override
-  public TypeBounds computeTypeBounds(Map<LValue, TypeBounds> variableMap) {
-    return TypeBounds.scalarInt();
+  public TypeBounds computeTypeBounds(Map<LValue, TypeBounds> typeMap) {
+    return TypeBounds.LOGICAL_PRIMITIVE;
   }
 
 }

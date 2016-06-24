@@ -16,6 +16,7 @@ import org.renjin.compiler.ir.tac.statements.Statement;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 
 public class VariableMap {
 
@@ -85,12 +86,6 @@ public class VariableMap {
 
   public void resolveTypes() {
 
-    // Initialize all variables to open type bounds
-    for (LValue variable : getVariables()) {
-      typeMap.put(variable, TypeBounds.openSet());
-      System.out.println("variable " +  variable + " = " + TypeBounds.openSet());
-    }
-
     // Iteratively update the bounds of variables to the union of their definitions's types
     boolean changing;
     do {
@@ -100,18 +95,17 @@ public class VariableMap {
         TypeBounds newBounds;
 
         try {
-          newBounds = definitionMap.get(variable).computeTypeBounds(typeMap);
-          System.out.println("variable " +  variable + " = " + newBounds);
+          Expression definition = definitionMap.get(variable);
+          newBounds = definition.computeTypeBounds(typeMap);
+          System.out.printf("variable %s = %s = %s%n", variable, definition, newBounds);
         } catch (Exception e) {
           throw new IllegalStateException("Exception updating bounds for " + variable, e);
         }
 
-        if(!oldBounds.equals(newBounds)) {
+        if(!Objects.equals(oldBounds, newBounds)) {
           typeMap.put(variable, newBounds);
           changing = true;
         }
-
-
       }
     } while (changing);
   }

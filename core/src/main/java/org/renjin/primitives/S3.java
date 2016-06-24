@@ -7,6 +7,7 @@ import org.renjin.invoke.annotations.ArgumentList;
 import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
+import org.renjin.invoke.codegen.ArgumentIterator;
 import org.renjin.sexp.*;
 
 import java.util.Collections;
@@ -235,8 +236,9 @@ public class S3 {
       return null;
     }
 
-    return method.doApply(context, rho,
-        reassembleAndEvaluateArgs(object, args, context, rho));
+    PairList newArgs = reassembleAndEvaluateArgs(object, args, context, rho);
+    
+    return method.doApply(context, rho, newArgs);
   }
 
   public static SEXP tryDispatchFromPrimitive(Context context, Environment rho, FunctionCall call,
@@ -269,17 +271,20 @@ public class S3 {
     return dispatcher.apply(chain, newArgs);
   }
 
+  /**
+   * Evaluate the remaining arguments to the primitive call. Despite the fact that we are passing these
+   * arguments to a user-defined closure, we _still_ evaluate arguments eagerly.
+   */
   static PairList reassembleAndEvaluateArgs(SEXP object, PairList args, Context context, Environment rho) {
     PairList.Builder newArgs = new PairList.Builder();
     PairList.Node firstArg = (PairList.Node)args;
     newArgs.add(firstArg.getRawTag(), object);
 
-    args = firstArg.getNext();
-
-    for(PairList.Node node : args.nodes()) {
-      newArgs.add(node.getRawTag(), context.evaluate( node.getValue(), rho));
+    ArgumentIterator argIt = new ArgumentIterator(context, rho, firstArg.getNext());
+    while(argIt.hasNext()) {
+      PairList.Node node = argIt.nextNode();
+      newArgs.add(node.getRawTag(), context.evaluate(node.getValue(), rho));
     }
-
     return newArgs.build();
   }
 

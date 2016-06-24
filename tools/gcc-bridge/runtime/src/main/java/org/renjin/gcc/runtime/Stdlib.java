@@ -263,13 +263,33 @@ public class Stdlib {
     return secondsSinceProgramStart * CLOCKS_PER_SEC;
   }
   
+  private static final int CLOCK_REALTIME = 0;
+  private static final int CLOCK_MONOTONIC = 1;
+  private static final int CLOCK_REALTIME_COARSE = 5;
+  
   public static int clock_gettime(int clockId, timespec tp) {
-    tp.tv_nsec = (int) System.nanoTime();
-    tp.tv_sec = (int) TimeUnit.NANOSECONDS.toSeconds(tp.tv_nsec);
-    return 0;
+    
+    switch (clockId) {
+      case CLOCK_REALTIME:
+      case CLOCK_REALTIME_COARSE:
+        // Return the current time since 1970-01-01
+        tp.set(System.currentTimeMillis(), TimeUnit.MILLISECONDS);
+        return 0;
+      
+      case CLOCK_MONOTONIC:
+        // Return a high precision time from some arbitrary offset
+        tp.set(System.nanoTime(), TimeUnit.NANOSECONDS);        
+        return 0;
+
+      default:
+        // ClockId not supported
+        return -1;
+    }
   }
   
   public static Object fopen() {
     throw new UnsupportedOperationException("fopen() not implemented");
   }
+
+  
 }

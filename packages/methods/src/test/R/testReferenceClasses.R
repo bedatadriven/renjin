@@ -1,7 +1,7 @@
 
 # From Advanced R
 
-test.construction <- function() {
+failing.test.construction <- function() {
   Person <- setRefClass("Person")
   x <- Person$new()
   

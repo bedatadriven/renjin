@@ -198,7 +198,11 @@ public class ExprFactory {
       return new ComplexCmpGenerator(op, findComplexGenerator(x), findComplexGenerator(y));
 
     } else if(x.getType() instanceof GimplePrimitiveType) {
-      return new PrimitiveCmpGenerator(op, findPrimitiveGenerator(x), findPrimitiveGenerator(y));
+      if(x.getType() instanceof GimpleIntegerType && ((GimpleIntegerType) x.getType()).isUnsigned()) {
+        return PrimitiveCmpGenerator.unsigned(op, findPrimitiveGenerator(x), findPrimitiveGenerator(y));
+      } else {
+        return new PrimitiveCmpGenerator(op, findPrimitiveGenerator(x), findPrimitiveGenerator(y));
+      }
 
     } else if(x.getType() instanceof GimpleIndirectType) {
       

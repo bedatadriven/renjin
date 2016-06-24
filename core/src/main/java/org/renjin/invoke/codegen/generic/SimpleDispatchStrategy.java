@@ -24,8 +24,8 @@ package org.renjin.invoke.codegen.generic;
 import com.sun.codemodel.JBlock;
 import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JExpression;
-import org.renjin.primitives.S3;
 import org.renjin.invoke.codegen.ApplyMethodContext;
+import org.renjin.primitives.S3;
 import org.renjin.sexp.SEXP;
 
 import static com.sun.codemodel.JExpr._null;
@@ -43,22 +43,20 @@ public class SimpleDispatchStrategy extends GenericDispatchStrategy {
 
 
   @Override
-  public void afterArgIsEvaluated(ApplyMethodContext context, JExpression functionCall, JExpression arguments,
-                                  JBlock parent, JExpression argument, int index) {
-    if(index == 0) {
+  public void afterFirstArgIsEvaluated(ApplyMethodContext context, JExpression functionCall, JExpression arguments,
+                                       JBlock parent, JExpression argument) {
 
-      JBlock ifObject = parent._if(fastIsObject(argument))._then();
-      JExpression genericResult = ifObject.decl(codeModel.ref(SEXP.class), "genericResult",
-              codeModel.ref(S3.class).staticInvoke("tryDispatchFromPrimitive")
-              .arg(context.getContext())
-              .arg(context.getEnvironment())
-              .arg(functionCall)
-              .arg(lit(name))
-              .arg(argument)
-              .arg(arguments));
-      ifObject._if(genericResult.ne(_null()))._then()._return(genericResult);
+    JBlock ifObject = parent._if(fastIsObject(argument))._then();
+    JExpression genericResult = ifObject.decl(codeModel.ref(SEXP.class), "genericResult",
+            codeModel.ref(S3.class).staticInvoke("tryDispatchFromPrimitive")
+            .arg(context.getContext())
+            .arg(context.getEnvironment())
+            .arg(functionCall)
+            .arg(lit(name))
+            .arg(argument)
+            .arg(arguments));
+    ifObject._if(genericResult.ne(_null()))._then()._return(genericResult);
 
-    }
   }
 
 }

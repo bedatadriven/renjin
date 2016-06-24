@@ -82,7 +82,29 @@ public class CombineTest extends EvalTestCase {
 
     assertThat(eval("names(y)"), equalTo(c("a", "b", "", "zz.a", "zz.b", "zz3", "")));
   }
+  
+  @Test
+  public void genericCombine() {
+    eval("c.foo <- function(...) 42 ");
+    eval("x <- 1");
+    eval("class(x) <- 'foo'");
 
+    assertThat(eval("c(x)"), equalTo(c(42)));
+
+  
+  }
+  
+  @Test
+  public void genericCombineInterval() {
+
+    eval("c.Interval <- function(...) { args <- list(...); 'FOO' } ");
+    eval("reduce <- function(m, check_valid = TRUE) { m; 'REDUCED' } ");
+    eval("interval_union <- function(z, ..., check_valid = TRUE) reduce( c(z, ...), check_valid)  ");
+    
+    eval("zz <- structure(91, class='Interval')");
+    eval("interval_union(zz, zz)");
+  }
+  
   @Test
   public void unlistAtomic() {
     assertThat(eval(".Internal(unlist( list(1,4,5), TRUE, TRUE )) "), equalTo(c(1, 4, 5)));

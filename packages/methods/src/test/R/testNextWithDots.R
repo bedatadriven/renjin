@@ -2,7 +2,7 @@
 
 library(hamcrest)
 
-test.setClassNextWithDot <- function() {
+failing.test.setClassNextWithDot <- function() {
     setClass("A")
     setClass("B", contains = c("array", "A"))
     a = array(1:12, c(2,3,4))

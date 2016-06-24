@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.type.primitive;
 
+import com.google.common.base.Preconditions;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
@@ -8,6 +9,7 @@ import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.gimple.GimpleOp;
 
 import static org.objectweb.asm.Opcodes.*;
+import static org.renjin.gcc.codegen.expr.Expressions.flip;
 
 /**
  * Generates codes for binary comparisons
@@ -18,6 +20,26 @@ public class PrimitiveCmpGenerator implements ConditionGenerator {
   private JExpr x;
   private JExpr y;
 
+  
+  public static PrimitiveCmpGenerator unsigned(GimpleOp op, JExpr x, JExpr y) {
+    Preconditions.checkArgument(x.getType().equals(y.getType()));
+    
+    // For straight-up equality checks, nothing special is needed for unsigned numbers
+    if(op == GimpleOp.EQ_EXPR || op == GimpleOp.NE_EXPR) {
+      return new PrimitiveCmpGenerator(op, x, y);
+    }
+    
+    // The JVM has exactly ONE unsigned integer type: char
+    // So nothing special needed here.
+    if (x.getType().equals(Type.CHAR_TYPE)) {
+      return new PrimitiveCmpGenerator(op, x, y);
+    }
+
+    // Otherwise, map unsigned space to signed one [2^63,2^63-1] before the comparison
+    return new PrimitiveCmpGenerator(op, flip(x), flip(y));
+  }
+  
+  
   public PrimitiveCmpGenerator(GimpleOp op, JExpr x, JExpr y) {
     this.op = op;
     this.x = x;

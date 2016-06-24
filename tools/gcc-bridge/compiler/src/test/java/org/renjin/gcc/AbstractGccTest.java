@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -80,12 +81,21 @@ public abstract class AbstractGccTest {
   protected final void compileAndTest(String source) throws Exception {
     Class<?> clazz = compile(source);
 
+    boolean testsRun = false;
+    List<String> methods = new ArrayList<>();
+    
     for (Method method : clazz.getMethods()) {
       if(Modifier.isPublic(method.getModifiers()) && Modifier.isStatic(method.getModifiers())) {
+        methods.add(method.getName());
         if(method.getName().startsWith("test")) {
           method.invoke(null);
+          testsRun = true;
         }
       }
+    }
+    
+    if(!testsRun) {
+      throw new IllegalStateException("No test_ methods declared: " + methods);
     }
   }
   

@@ -340,10 +340,11 @@ checkAtAssignment <- function(cl, name, valueClass)
     ## the class environment of obj (change validObject too if a better way is found)
     ok <- possibleExtends(valueClass, slotClass,
                           ClassDef2 = getClassDef(slotClass, where = .classEnv(ClassDef)))
-    if(identical(ok, FALSE))
+    if(identical(ok, FALSE)) {
        stop(gettextf("assignment of an object of class %s is not valid for @%s in an object of class %s; is(value, \"%s\") is not TRUE",
 		     dQuote(valueClass), sQuote(name), dQuote(cl), slotClass),
             domain = NA)
+    }
     TRUE
 }
 

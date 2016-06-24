@@ -97,3 +97,7 @@ void cov_dna(double *nrisk, double *nev, int *dd, double *cov) {
 	}
     }
 }	
+
+void test_todo() {
+// Need a test case here
+}

@@ -18,8 +18,8 @@ public class GenericDispatchStrategy {
     this.codeModel = codeModel;
   }
 
-  public void afterArgIsEvaluated(ApplyMethodContext context, JExpression functionCall, JExpression arguments,
-                                  JBlock parent, JExpression argument, int index) {
+  public void afterFirstArgIsEvaluated(ApplyMethodContext context, JExpression functionCall, JExpression arguments,
+                                       JBlock parent, JExpression argument) {
 
   }
 

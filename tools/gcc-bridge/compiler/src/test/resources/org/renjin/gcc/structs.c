@@ -52,3 +52,12 @@ account** do_test_pointer_pointer(int n) {
 }
 
 
+void do_call(account *pa, void (*fn)(void *)) {
+    fn(pa);
+}
+
+void test_free_funptr() {
+  account *pa;
+  init_account(&pa);
+  do_call(pa, &free);
+}

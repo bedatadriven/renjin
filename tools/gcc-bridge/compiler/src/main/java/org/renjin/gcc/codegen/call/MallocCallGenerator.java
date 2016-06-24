@@ -1,17 +1,22 @@
 package org.renjin.gcc.codegen.call;
 
+import org.objectweb.asm.Handle;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.TypeOracle;
+import org.renjin.gcc.codegen.type.fun.FunctionRefGenerator;
 import org.renjin.gcc.gimple.statement.GimpleCall;
 import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.gcc.runtime.MallocThunk;
 
 /**
  * Generates function calls to {@code malloc()}
  */
-public class MallocCallGenerator implements CallGenerator {
+public class MallocCallGenerator implements CallGenerator, MethodHandleGenerator {
   
   private TypeOracle typeOracle;
 
@@ -35,5 +40,12 @@ public class MallocCallGenerator implements CallGenerator {
     GExpr mallocGenerator = typeOracle.forPointerType(pointerType).malloc(mv, size);
     GExpr lhs = exprFactory.findGenerator(call.getLhs());
     lhs.store(mv, mallocGenerator);
+  }
+
+  @Override
+  public JExpr getMethodHandle() {
+    return new FunctionRefGenerator(new Handle(Opcodes.H_INVOKESTATIC,
+        Type.getInternalName(MallocThunk.class), "malloc",
+        Type.getMethodDescriptor(Type.getType(Object.class), Type.INT_TYPE)));
   }
 }

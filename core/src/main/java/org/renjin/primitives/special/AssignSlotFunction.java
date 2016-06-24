@@ -3,6 +3,7 @@ package org.renjin.primitives.special;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.methods.Methods;
+import org.renjin.primitives.Attributes;
 import org.renjin.primitives.S3;
 import org.renjin.sexp.*;
 
@@ -48,7 +49,7 @@ public class AssignSlotFunction extends SpecialFunction {
     SEXP rhs = context.evaluate(args.getElementAsSEXP(2));
 
     // verify that the slot assignment is permitted
-    SEXP valueClass = rhs.getS3Class();
+    SEXP valueClass = Attributes.getClass(rhs);
     SEXP objectClass = object.getS3Class();
 
     FunctionCall checkCall = FunctionCall.newCall(Symbol.get("checkAtAssignment"),

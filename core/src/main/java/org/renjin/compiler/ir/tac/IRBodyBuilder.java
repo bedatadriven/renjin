@@ -14,6 +14,7 @@ import org.renjin.invoke.reflection.MethodFunction;
 import org.renjin.packaging.SerializedPromise;
 import org.renjin.sexp.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -66,10 +67,35 @@ public class IRBodyBuilder {
     addStatement(new ReturnStatement(returnValue));
    
     removeRedundantJumps();
+    insertVariableInitializations();
     
-    return new IRBody(statements, labels, nextTemp);
+    return new IRBody(statements, labels);
   }
-  
+
+  private void insertVariableInitializations() {
+    // For every variable that comes from the environment, 
+    // declare it as a constant in the beginning of the block
+    
+    List<Assignment> initializations = new ArrayList<>();
+    
+    for (EnvironmentVariable environmentVariable : variables.values()) {
+      SEXP value = rho.findVariable(environmentVariable.getName());
+      if(value instanceof Promise && !((Promise) value).isEvaluated()) {
+        throw new NotCompilableException(environmentVariable.getName(), "Unevaluated promise encountered");
+      }
+      if(value != Symbol.UNBOUND_VALUE) {
+        initializations.add(new Assignment(environmentVariable, SexpConstant.valueOf(value)));
+      }
+    }
+    
+    // Update the labels to reflect the additional statements at the beginning
+    statements.addAll(0, initializations);
+    for (IRLabel label : labels.keySet()) {
+      labels.put(label, labels.get(label) + initializations.size());
+    }
+    
+  }
+
   public void dump(SEXP exp) {
     System.out.println( build(exp ).toString());
   }

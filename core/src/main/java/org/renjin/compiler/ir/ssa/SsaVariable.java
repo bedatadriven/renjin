@@ -1,13 +1,11 @@
 package org.renjin.compiler.ir.ssa;
 
-import java.util.Collections;
-import java.util.List;
-
-import org.objectweb.asm.MethodVisitor;
-import org.renjin.compiler.emit.EmitContext;
 import org.renjin.compiler.ir.IRUtils;
-import org.renjin.compiler.ir.tac.expressions.*;
-import org.renjin.eval.Context;
+import org.renjin.compiler.ir.TypeBounds;
+import org.renjin.compiler.ir.tac.expressions.LValue;
+import org.renjin.compiler.ir.tac.expressions.Variable;
+
+import java.util.Map;
 
 
 public class SsaVariable extends Variable {
@@ -60,6 +58,15 @@ public class SsaVariable extends Variable {
     result = prime * result + inner.hashCode();
     result = prime * result + version;
     return result;
+  }
+
+  @Override
+  public TypeBounds computeTypeBounds(Map<LValue, TypeBounds> variableMap) {
+    if(version == 0) {
+      return TypeBounds.openSet();
+    } else {
+      return super.computeTypeBounds(variableMap);
+    }
   }
 
   @Override

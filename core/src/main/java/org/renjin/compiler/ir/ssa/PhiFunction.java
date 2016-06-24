@@ -1,18 +1,17 @@
 package org.renjin.compiler.ir.ssa;
 
-import java.util.List;
-import java.util.Set;
-
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Sets;
-import org.objectweb.asm.MethodVisitor;
-import org.renjin.compiler.emit.EmitContext;
-import org.renjin.compiler.ir.tac.expressions.Expression;
-import org.renjin.compiler.ir.tac.expressions.Variable;
-
-
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import org.objectweb.asm.MethodVisitor;
+import org.renjin.compiler.emit.EmitContext;
+import org.renjin.compiler.ir.TypeBounds;
+import org.renjin.compiler.ir.tac.expressions.Expression;
+import org.renjin.compiler.ir.tac.expressions.LValue;
+import org.renjin.compiler.ir.tac.expressions.Variable;
+
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 public class PhiFunction implements Expression {
 
@@ -53,24 +52,14 @@ public class PhiFunction implements Expression {
   }
 
   @Override
-  public Class resolveType(VariableMap variableMap) {
-    Set<Class> types = Sets.newHashSet();
-    for(Variable argument : arguments) {
-      if(variableMap.isDefined(argument)) {
-        types.add(argument.resolveType(variableMap));
-      }
+  public TypeBounds computeTypeBounds(Map<LValue, TypeBounds> variableMap) {
+    Iterator<Variable> it = arguments.iterator();
+    TypeBounds bounds = it.next().computeTypeBounds(variableMap);
+    
+    while(it.hasNext()) {
+      bounds = bounds.union(it.next().computeTypeBounds(variableMap));
     }
-    if(types.size() != 1) {
-      throw new UnsupportedOperationException(this + " resolved to zero or multiple types: " + types);
-    }
-    return (type = types.iterator().next());
-  }
-
-  @Override
-  public Class getType() {
-    Preconditions.checkNotNull(type);
-
-    return type;
+    return bounds;
   }
 
   public void setVersionNumber(int argumentIndex, int versionNumber) {

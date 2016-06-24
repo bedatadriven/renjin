@@ -1,6 +1,8 @@
 package org.renjin.compiler.ir.tac.expressions;
 
-import org.renjin.compiler.ir.ssa.VariableMap;
+import org.renjin.compiler.ir.TypeBounds;
+
+import java.util.Map;
 
 
 /**
@@ -31,22 +33,17 @@ public abstract class Constant implements SimpleExpression {
   }
 
   @Override
-  public Class getType() {
+  public TypeBounds computeTypeBounds(Map<LValue, TypeBounds> variableMap) {
     return computeType();
   }
 
-  @Override
-  public Class resolveType(VariableMap variableMap) {
-    return computeType();
-  }
-
-  private Class computeType() {
+  private TypeBounds computeType() {
     Class valueClass = getValue().getClass();
     if(valueClass.equals(Double.class)) {
-      return double.class;
+      return TypeBounds.scalarDouble();
     } else if(valueClass.equals(Integer.class)) {
-      return int.class;
+      return TypeBounds.scalarInt();
     }
-    return valueClass;
+    return TypeBounds.openSet();
   }
 }

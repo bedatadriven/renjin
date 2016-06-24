@@ -85,6 +85,18 @@ public class SsaTransformTest extends CompilerTestCase {
     transformer.transform();
      
   }
+  
+  @Test
+  public void forLoop2() {
+    IRBody block = buildScope("s <- 9; for(i in 1:1000) { s <- s + sqrt(i) }");
+
+    ControlFlowGraph cfg = new ControlFlowGraph(block);
+    DominanceTree dtree = new DominanceTree(cfg);
+    SsaTransformer transformer = new SsaTransformer(cfg, dtree);
+    transformer.transform();
+    
+    System.out.println(cfg);
+  }
 
   @Test
   public void returnValue() {

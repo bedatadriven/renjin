@@ -1,18 +1,14 @@
 package org.renjin.compiler.ir.tac.expressions;
 
 import com.google.common.base.Joiner;
-import com.sun.codemodel.JMethod;
 import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
 import org.renjin.compiler.emit.EmitContext;
-import org.renjin.compiler.ir.ssa.VariableMap;
-import org.renjin.eval.Context;
+import org.renjin.compiler.ir.TypeBounds;
 import org.renjin.invoke.model.JvmMethod;
 
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Expression which targets a set of JVM methods
@@ -58,37 +54,38 @@ public class JvmMethodCall implements CallExpression {
   @Override
   public int emitPush(EmitContext emitContext, MethodVisitor mv) {
 
-    int stackIncreaseRequiredForArguments = 0;
-
-    int paramIndex = 0;
-    Class<?>[] parameterTypes = method.getMethod().getParameterTypes();
-
-    Iterator<Expression> argIt = arguments.iterator();
-
-    // push all the arguments onto the stack
-    for(JvmMethod.Argument arg : method.getAllArguments()) {
-      if(arg.isContextual()) {
-        throw new UnsupportedOperationException("Contextual args not yet supported");
-      } else {
-        Expression argumentExpr = argIt.next();
-        if(!argumentExpr.getType().equals(parameterTypes[paramIndex])) {
-          throw new IllegalStateException("Argument mismatch at " + paramIndex + ": expected " + parameterTypes[paramIndex] +
-            ", but got " + argumentExpr.getType());
-        }
-        stackIncreaseRequiredForArguments +=
-            argumentExpr.emitPush(emitContext, mv);
-        paramIndex++;
-      }
-    }
-    // now invoke the method
-    mv.visitMethodInsn(Opcodes.INVOKESTATIC,
-        Type.getInternalName(method.getDeclaringClass()),
-        method.getName(),
-        Type.getMethodDescriptor(method.getMethod()), false);
-
-    return Math.max(
-        stackIncreaseRequiredForArguments,
-        stackIncreaseRequiredForReturnValue());
+//    int stackIncreaseRequiredForArguments = 0;
+//
+//    int paramIndex = 0;
+//    Class<?>[] parameterTypes = method.getMethod().getParameterTypes();
+//
+//    Iterator<Expression> argIt = arguments.iterator();
+//
+//    // push all the arguments onto the stack
+//    for(JvmMethod.Argument arg : method.getAllArguments()) {
+//      if(arg.isContextual()) {
+//        throw new UnsupportedOperationException("Contextual args not yet supported");
+//      } else {
+//        Expression argumentExpr = argIt.next();
+//        if(!argumentExpr.getType().equals(parameterTypes[paramIndex])) {
+//          throw new IllegalStateException("Argument mismatch at " + paramIndex + ": expected " + parameterTypes[paramIndex] +
+//            ", but got " + argumentExpr.getType());
+//        }
+//        stackIncreaseRequiredForArguments +=
+//            argumentExpr.emitPush(emitContext, mv);
+//        paramIndex++;
+//      }
+//    }
+//    // now invoke the method
+//    mv.visitMethodInsn(Opcodes.INVOKESTATIC,
+//        Type.getInternalName(method.getDeclaringClass()),
+//        method.getName(),
+//        Type.getMethodDescriptor(method.getMethod()), false);
+//
+//    return Math.max(
+//        stackIncreaseRequiredForArguments,
+//        stackIncreaseRequiredForReturnValue());
+    throw new UnsupportedOperationException();
   }
 
   private int stackIncreaseRequiredForReturnValue() {
@@ -101,39 +98,35 @@ public class JvmMethodCall implements CallExpression {
   }
 
   @Override
-  public Class getType() {
-    return type;
-  }
+  public TypeBounds computeTypeBounds(Map<LValue, TypeBounds> variableMap) {
 
-  @Override
-  public Class resolveType(VariableMap variableMap) {
-
-    if(type != null) {
-      return type;
-    }
-
-    // get the types of our arguments
-    Class[] argTypes = new Class[arguments.size()];
-    for(int i=0;i!=argTypes.length;++i) {
-      argTypes[i] = arguments.get(i).resolveType(variableMap);
-    }
-
-    // choose the overload based on matching types
-    this.method = null;
-    for(JvmMethod overload : overloads) {
-      if(matches(overload, argTypes)) {
-        if(method == null) {
-          method = overload;
-        } else {
-          throw new UnsupportedOperationException("Multiple matching overloads.\n" +
-              "Argument types = " + Arrays.toString(argTypes) + "\n" +
-              "Overloads: " + Joiner.on("\n").join(overloads));
-        }
-      }
-    }
-
-    type = method.getReturnType();
-    return type;
+//    if(type != null) {
+//      return type;
+//    }
+//
+//    // get the types of our arguments
+//    Class[] argTypes = new Class[arguments.size()];
+//    for(int i=0;i!=argTypes.length;++i) {
+//      argTypes[i] = arguments.get(i).computeTypeBounds(variableMap);
+//    }
+//
+//    // choose the overload based on matching types
+//    this.method = null;
+//    for(JvmMethod overload : overloads) {
+//      if(matches(overload, argTypes)) {
+//        if(method == null) {
+//          method = overload;
+//        } else {
+//          throw new UnsupportedOperationException("Multiple matching overloads.\n" +
+//              "Argument types = " + Arrays.toString(argTypes) + "\n" +
+//              "Overloads: " + Joiner.on("\n").join(overloads));
+//        }
+//      }
+//    }
+//
+//    type = method.getReturnType();
+//    return type;
+    return TypeBounds.openSet();
   }
 
   private boolean matches(JvmMethod overload, Class[] argTypes) {

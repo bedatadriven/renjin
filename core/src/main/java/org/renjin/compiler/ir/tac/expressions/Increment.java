@@ -3,7 +3,9 @@ package org.renjin.compiler.ir.tac.expressions;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.renjin.compiler.emit.EmitContext;
-import org.renjin.compiler.ir.ssa.VariableMap;
+import org.renjin.compiler.ir.TypeBounds;
+
+import java.util.Map;
 
 
 /**
@@ -45,12 +47,7 @@ public class Increment extends SpecializedCallExpression {
   }
 
   @Override
-  public Class getType() {
-    return int.class;
-  }
-
-  @Override
-  public Class resolveType(VariableMap variableMap) {
-    return int.class;
+  public TypeBounds computeTypeBounds(Map<LValue, TypeBounds> variableMap) {
+    return TypeBounds.scalarInt();
   }
 }

@@ -21,6 +21,14 @@
 
 package org.renjin.primitives.special;
 
+import org.renjin.compiler.CompiledBody;
+import org.renjin.compiler.cfg.ControlFlowGraph;
+import org.renjin.compiler.cfg.DominanceTree;
+import org.renjin.compiler.emit.ByteCodeEmitter;
+import org.renjin.compiler.ir.ssa.SsaTransformer;
+import org.renjin.compiler.ir.ssa.VariableMap;
+import org.renjin.compiler.ir.tac.IRBody;
+import org.renjin.compiler.ir.tac.IRBodyBuilder;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.*;
@@ -34,16 +42,6 @@ public class ForFunction extends SpecialFunction {
   
   @Override
   public SEXP apply(Context context, Environment rho, FunctionCall call, PairList _args_unused) {
-
-//    IRFunctionTable functionTable = new IRFunctionTable();
-//    IRScopeBuilder builder = new IRScopeBuilder(functionTable);
-//    
-//    if(rho != context.getEnvironment()) {
-//      throw new AssertionError("context environment is different from rho");
-//    }
-//    
-//    IRScope scope = builder.build(call);
-//    scope.evaluate(context);
     
     PairList args = call.getArguments();
     Symbol symbol = args.getElementAsSEXP(0);
@@ -53,18 +51,58 @@ public class ForFunction extends SpecialFunction {
     }
     Vector elements = (Vector) elementsExp;
     SEXP statement = args.getElementAsSEXP(2);
-    for(int i=0; i!=elements.length(); ++i) {
+    
+    if(elements.length() > 200) {
       try {
-        rho.setVariable(symbol, elements.getElementAsSEXP(i));
-        context.evaluate( statement, rho);
-      } catch (BreakException e) {
-        break;
-      } catch (NextException e) {
-        // next iteration
+        compileAndRun(context, rho, call);
+      } catch (Exception e) {
+        throw new EvalException(e);
+      }
+    } else {
+
+      // Interpret the loop
+      for (int i = 0; i != elements.length(); ++i) {
+        try {
+          rho.setVariable(symbol, elements.getElementAsSEXP(i));
+          context.evaluate(statement, rho);
+        } catch (BreakException e) {
+          break;
+        } catch (NextException e) {
+          // next iteration
+        }
       }
     }
 
     context.setInvisibleFlag();
     return Null.INSTANCE;
+  }
+
+  private void compileAndRun(Context context, Environment rho, FunctionCall call) throws IllegalAccessException, InstantiationException {
+    IRBodyBuilder builder = new IRBodyBuilder(context, rho);
+    IRBody body = builder.build(call);
+    System.out.println(body);
+
+    ControlFlowGraph cfg = new ControlFlowGraph(body);
+    
+    DominanceTree dTree = new DominanceTree(cfg);
+    dTree.dumpGraph();
+
+    SsaTransformer ssaTransformer = new SsaTransformer(cfg, dTree);
+    ssaTransformer.transform();
+
+    System.out.println(cfg);
+
+    VariableMap variableMap = new VariableMap(cfg);
+    variableMap.resolveTypes();
+    
+    ssaTransformer.removePhiFunctions(variableMap);
+
+    System.out.println(cfg);
+
+    ByteCodeEmitter emitter = new ByteCodeEmitter(cfg);
+    CompiledBody compiledBody = emitter.compile().newInstance();
+
+    compiledBody.evaluate(context, rho);
+
   }
 }

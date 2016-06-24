@@ -1,15 +1,13 @@
 package org.renjin.compiler.ir.tac.statements;
 
-import java.util.Collections;
-
 import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
 import org.renjin.compiler.emit.EmitContext;
 import org.renjin.compiler.ir.IRUtils;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.LValue;
-import org.renjin.sexp.Vector;
+
+import java.util.Collections;
 
 
 public class Assignment implements Statement {
@@ -82,16 +80,17 @@ public class Assignment implements Statement {
   }
 
   private int storeOpcode() {
-    Class type = rhs.getType();
-    if(type.equals(double.class)) {
-      return Opcodes.DSTORE;
-    } else if(type.equals(int.class)) {
-      return Opcodes.ISTORE;
-    } else if(Vector.class.isAssignableFrom(type)) {
-      return Opcodes.ASTORE;
-    } else {
-      throw new UnsupportedOperationException("don't know how to STORE " + type);
-    }
+//    Class type = rhs.getType();
+//    if(type.equals(double.class)) {
+//      return Opcodes.DSTORE;
+//    } else if(type.equals(int.class)) {
+//      return Opcodes.ISTORE;
+//    } else if(Vector.class.isAssignableFrom(type)) {
+//      return Opcodes.ASTORE;
+//    } else {
+//      throw new UnsupportedOperationException("don't know how to STORE " + type);
+//    }
+    throw new UnsupportedOperationException();
   }
 
   public void setLHS(LValue lhs) {

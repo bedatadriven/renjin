@@ -1,6 +1,5 @@
 package org.renjin.compiler.emit;
 
-import com.google.common.collect.Maps;
 import org.junit.Before;
 import org.junit.Test;
 import org.renjin.compiler.CompiledBody;
@@ -12,16 +11,11 @@ import org.renjin.compiler.ir.ssa.VariableMap;
 import org.renjin.compiler.ir.tac.IRBody;
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
 import org.renjin.compiler.ir.tac.expressions.EnvironmentVariable;
-import org.renjin.compiler.ir.tac.expressions.Expression;
-import org.renjin.compiler.ir.tac.expressions.LValue;
-import org.renjin.compiler.ir.tac.expressions.TypeResolver;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
 import org.renjin.parser.RParser;
 import org.renjin.sexp.ExpressionVector;
 import org.renjin.sexp.Symbol;
-
-import java.util.Map;
 
 import static org.junit.Assert.assertTrue;
 
@@ -64,8 +58,7 @@ public class ByteCodeEmitterTest {
     assertTrue(variableMap.isDefined(s2));
     assertTrue(variableMap.isUsed(s2));
 
-    TypeResolver typeResolver = new TypeResolver();
-    typeResolver.resolveType(cfg, variableMap);
+    variableMap.resolveTypes();
 
     ssaTransformer.removePhiFunctions(variableMap);
 

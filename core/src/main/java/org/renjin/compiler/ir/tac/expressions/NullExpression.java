@@ -2,8 +2,9 @@ package org.renjin.compiler.ir.tac.expressions;
 
 import org.objectweb.asm.MethodVisitor;
 import org.renjin.compiler.emit.EmitContext;
-import org.renjin.compiler.ir.ssa.VariableMap;
-import org.renjin.sexp.Null;
+import org.renjin.compiler.ir.TypeBounds;
+
+import java.util.Map;
 
 
 /**
@@ -27,13 +28,9 @@ public class NullExpression implements Expression {
     throw new UnsupportedOperationException();
   }
 
-  public Class getType() {
-    return Null.class;
-  }
-
   @Override
-  public Class resolveType(VariableMap variableMap) {
-    return Null.class;
+  public TypeBounds computeTypeBounds(Map<LValue, TypeBounds> variableMap) {
+    return TypeBounds.nullSexp();
   }
 
   @Override

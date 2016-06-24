@@ -2,7 +2,9 @@ package org.renjin.compiler.ir.tac.expressions;
 
 import org.objectweb.asm.MethodVisitor;
 import org.renjin.compiler.emit.EmitContext;
-import org.renjin.compiler.ir.ssa.VariableMap;
+import org.renjin.compiler.ir.TypeBounds;
+
+import java.util.Map;
 
 /**
  * Checks whether op1 is greater than or equal to op2. 
@@ -35,12 +37,7 @@ public class CmpGE extends SpecializedCallExpression {
   }
 
   @Override
-  public Class getType() {
-    return boolean.class;
-  }
-
-  @Override
-  public Class resolveType(VariableMap variableMap) {
-    return boolean.class;
+  public TypeBounds computeTypeBounds(Map<LValue, TypeBounds> variableMap) {
+    return TypeBounds.scalarLogical();
   }
 }

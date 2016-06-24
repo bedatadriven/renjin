@@ -54,11 +54,7 @@ public class RegisterAllocation {
   }
 
   private int numSlots(LValue var) {
-    if(var.getType().equals(double.class) || var.getType().equals(long.class)) {
-      return 2;
-    } else {
-      return 1;
-    }
+    throw new UnsupportedOperationException("TODO");
   }
 
   public int getSize() {

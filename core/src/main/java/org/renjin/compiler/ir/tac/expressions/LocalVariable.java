@@ -3,8 +3,7 @@ package org.renjin.compiler.ir.tac.expressions;
 
 /**
  * Variable that is to be stored as a JVM local variable when 
- * compiled. During interpretation, it is allocated a slot
- * in the temps array.
+ * compiled.
  * 
  */
 public class LocalVariable extends Variable {
@@ -19,11 +18,6 @@ public class LocalVariable extends Variable {
   @Override
   public boolean isDefinitelyPure() {
     return false;
-  }
-
-  @Override
-  public Class getType() {
-    throw new UnsupportedOperationException();
   }
 
   @Override

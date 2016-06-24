@@ -3,7 +3,9 @@ package org.renjin.compiler.ir.tac.expressions;
 
 import org.objectweb.asm.MethodVisitor;
 import org.renjin.compiler.emit.EmitContext;
-import org.renjin.compiler.ir.ssa.VariableMap;
+import org.renjin.compiler.ir.TypeBounds;
+
+import java.util.Map;
 
 import static org.objectweb.asm.Opcodes.*;
 
@@ -52,8 +54,8 @@ public class IntScalarConstant extends Constant {
   }
 
   @Override
-  public Class resolveType(VariableMap variableMap) {
-    return int.class;
+  public TypeBounds computeTypeBounds(Map<LValue, TypeBounds> variableMap) {
+    return TypeBounds.scalarInt();
   }
 
   @Override

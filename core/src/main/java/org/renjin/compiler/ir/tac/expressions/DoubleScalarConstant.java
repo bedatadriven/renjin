@@ -31,11 +31,6 @@ public class DoubleScalarConstant extends Constant {
   }
 
   @Override
-  public Class getType() {
-    return double.class;
-  }
-
-  @Override
   public String toString() {
     return value + "d";
   }

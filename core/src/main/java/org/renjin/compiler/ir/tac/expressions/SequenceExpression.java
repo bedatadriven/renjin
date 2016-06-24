@@ -37,15 +37,11 @@ public class SequenceExpression extends SpecializedCallExpression {
   }
 
   private Expression assertDouble(Expression expression) {
-    if(!expression.getType().equals(double.class)) {
-      throw new AssertionError(expression + " has a type of " + expression.getType() + " expected double");
-    }
-    return expression;
-  }
-
-  @Override
-  public Class getType() {
-    return AtomicVector.class;
+//    if(!expression.getType().equals(double.class)) {
+//      throw new AssertionError(expression + " has a type of " + expression.getType() + " expected double");
+//    }
+//    return expression;
+    throw new UnsupportedOperationException();
   }
 
   @Override

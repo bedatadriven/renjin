@@ -4,8 +4,6 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.renjin.compiler.ir.tac.statements.Statement;
-import org.renjin.eval.Context;
-import org.renjin.sexp.SEXP;
 
 import java.util.Arrays;
 import java.util.List;
@@ -15,14 +13,12 @@ import java.util.Set;
 
 public class IRBody {
   
-  private Object temp[];
   private Statement statements[];
   private int labels[];
   
-  public IRBody(List<Statement> statements, Map<IRLabel, Integer> labels, int tempCount) {
+  public IRBody(List<Statement> statements, Map<IRLabel, Integer> labels) {
     this.statements = statements.toArray(new Statement[statements.size()]);
     this.labels = new int[labels.size()];
-    this.temp = new Object[tempCount];
   
     Arrays.fill(this.labels, -1);
     

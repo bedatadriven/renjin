@@ -1,14 +1,10 @@
 package org.renjin.compiler.ir.tac.statements;
 
-import java.util.Set;
-
 import org.objectweb.asm.MethodVisitor;
 import org.renjin.compiler.emit.EmitContext;
 import org.renjin.compiler.ir.tac.IRLabel;
+import org.renjin.compiler.ir.tac.TreeNode;
 import org.renjin.compiler.ir.tac.expressions.Expression;
-import org.renjin.compiler.ir.tac.expressions.Variable;
-import org.renjin.compiler.ir.tree.TreeNode;
-import org.renjin.eval.Context;
 
 
 public interface Statement extends TreeNode {

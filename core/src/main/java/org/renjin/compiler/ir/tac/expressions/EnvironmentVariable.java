@@ -52,7 +52,4 @@ public class EnvironmentVariable extends Variable {
     return false;
   }
 
-  public Class getType() {
-    throw new UnsupportedOperationException();
-  }
 }

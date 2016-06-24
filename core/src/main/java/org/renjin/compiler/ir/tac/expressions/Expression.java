@@ -1,13 +1,11 @@
 package org.renjin.compiler.ir.tac.expressions;
 
-import java.util.Set;
-
 import org.objectweb.asm.MethodVisitor;
 import org.renjin.compiler.emit.EmitContext;
-import org.renjin.compiler.ir.ssa.VariableMap;
-import org.renjin.compiler.ir.tree.TreeNode;
-import org.renjin.eval.Context;
-import org.renjin.sexp.SEXP;
+import org.renjin.compiler.ir.TypeBounds;
+import org.renjin.compiler.ir.tac.TreeNode;
+
+import java.util.Map;
 
 
 public interface Expression extends TreeNode {
@@ -29,13 +27,11 @@ public interface Expression extends TreeNode {
   int emitPush(EmitContext emitContext, MethodVisitor mv);
 
 
-  Class getType();
-
   /**
    * Resolves and stores the type of this Expression, based on it's
    * child nodes
    * @param variableMap
    */
-  Class resolveType(VariableMap variableMap);
+  TypeBounds computeTypeBounds(Map<LValue, TypeBounds> variableMap);
 
 }

@@ -1,14 +1,13 @@
 package org.renjin.compiler.ir.tac.expressions;
 
-import com.google.common.base.Preconditions;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.compiler.emit.EmitContext;
-import org.renjin.compiler.ir.ssa.VariableMap;
-import org.renjin.sexp.AtomicVector;
-import org.renjin.sexp.IntVector;
+import org.renjin.compiler.ir.TypeBounds;
 import org.renjin.sexp.Vector;
+
+import java.util.Map;
 
 
 /**
@@ -62,21 +61,7 @@ public class ElementAccess extends SpecializedCallExpression {
   }
 
   @Override
-  public Class getType() {
-    Preconditions.checkNotNull(type, "type not resolved");
-    return type;
-  }
-
-  @Override
-  public Class resolveType(VariableMap variableMap) {
-    Class vectorClass = getVector().resolveType(variableMap);
-    if(IntVector.class.isAssignableFrom(vectorClass)) {
-      this.type = int.class;
-    } else if(AtomicVector.class.isAssignableFrom(vectorClass)) {
-      this.type = double.class;
-    } else {
-      throw new UnsupportedOperationException(getVector() + ":" + vectorClass.getName());
-    }
-    return this.type;
+  public TypeBounds computeTypeBounds(Map<LValue, TypeBounds> variableMap) {
+    return TypeBounds.openSet();
   }
 }

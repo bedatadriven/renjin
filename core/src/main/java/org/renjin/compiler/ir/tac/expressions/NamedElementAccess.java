@@ -28,11 +28,6 @@ public class NamedElementAccess extends SpecializedCallExpression {
   }
 
   @Override
-  public Class getType() {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
   public boolean isFunctionDefinitelyPure() {
     return true;
   }

@@ -6,12 +6,13 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import org.renjin.compiler.cfg.BasicBlock;
 import org.renjin.compiler.cfg.ControlFlowGraph;
+import org.renjin.compiler.ir.TypeBounds;
+import org.renjin.compiler.ir.tac.TreeNode;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.LValue;
 import org.renjin.compiler.ir.tac.expressions.Variable;
 import org.renjin.compiler.ir.tac.statements.Assignment;
 import org.renjin.compiler.ir.tac.statements.Statement;
-import org.renjin.compiler.ir.tree.TreeNode;
 
 import java.util.Collection;
 import java.util.Map;
@@ -22,22 +23,22 @@ public class VariableMap {
   private Multimap<LValue, BasicBlock> useByBlockMap = HashMultimap.create();
   private Map<LValue, BasicBlock> definedByBlockMap = Maps.newHashMap();
 
+  private Map<LValue, TypeBounds> typeMap = Maps.newHashMap();
+
   public VariableMap(ControlFlowGraph cfg) {
     for(BasicBlock bb : cfg.getBasicBlocks()) {
-      if(bb != cfg.getExit()) {
-        for(Statement statement : bb.getStatements()) {
-          if(statement instanceof Assignment) {
-            addToMap(bb, (Assignment)statement);
-          }
-          Expression rhs = statement.getRHS();
-          if(rhs instanceof LValue) {
-            useByBlockMap.put((LValue)rhs, bb);
-          } else {
-            for(int i=0;i!= rhs.getChildCount();++i) {
-              TreeNode uses = rhs.childAt(i);
-              if(uses instanceof LValue) {
-                useByBlockMap.put((LValue)uses, bb);
-              }
+      for(Statement statement : bb.getStatements()) {
+        if(statement instanceof Assignment) {
+          addToMap(bb, (Assignment)statement);
+        }
+        Expression rhs = statement.getRHS();
+        if(rhs instanceof LValue) {
+          useByBlockMap.put((LValue)rhs, bb);
+        } else {
+          for(int i=0;i!= rhs.getChildCount();++i) {
+            TreeNode uses = rhs.childAt(i);
+            if(uses instanceof LValue) {
+              useByBlockMap.put((LValue)uses, bb);
             }
           }
         }
@@ -79,5 +80,39 @@ public class VariableMap {
 
   public boolean isDefined(LValue value) {
     return definitionMap.containsKey(value);
+  }
+
+
+  public void resolveTypes() {
+
+    // Initialize all variables to open type bounds
+    for (LValue variable : getVariables()) {
+      typeMap.put(variable, TypeBounds.openSet());
+      System.out.println("variable " +  variable + " = " + TypeBounds.openSet());
+    }
+
+    // Iteratively update the bounds of variables to the union of their definitions's types
+    boolean changing;
+    do {
+      changing = false;
+      for (LValue variable : getVariables()) {
+        TypeBounds oldBounds = typeMap.get(variable);
+        TypeBounds newBounds;
+
+        try {
+          newBounds = definitionMap.get(variable).computeTypeBounds(typeMap);
+          System.out.println("variable " +  variable + " = " + newBounds);
+        } catch (Exception e) {
+          throw new IllegalStateException("Exception updating bounds for " + variable, e);
+        }
+
+        if(!oldBounds.equals(newBounds)) {
+          typeMap.put(variable, newBounds);
+          changing = true;
+        }
+
+
+      }
+    } while (changing);
   }
 }

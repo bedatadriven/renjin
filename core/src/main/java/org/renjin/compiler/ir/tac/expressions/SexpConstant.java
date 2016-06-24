@@ -4,7 +4,10 @@ package org.renjin.compiler.ir.tac.expressions;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.renjin.compiler.emit.EmitContext;
-import org.renjin.sexp.*;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.LogicalVector;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.SEXP;
 
 public class SexpConstant extends Constant {
 
@@ -42,10 +45,6 @@ public class SexpConstant extends Constant {
     return 1;
   }
 
-  @Override
-  public Class getType() {
-    return value.getClass();
-  }
 
   @Override
   public String toString() {

@@ -28,9 +28,4 @@ public class LogicalScalarConstant extends Constant {
     throw new UnsupportedOperationException();
   }
 
-  @Override
-  public Class getType() {
-    return boolean.class;
-  }
-
 }

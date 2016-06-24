@@ -1,6 +1,7 @@
 package org.renjin.stats;
 
 import org.junit.Test;
+import org.renjin.eval.EvalException;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;

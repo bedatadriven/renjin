@@ -283,7 +283,7 @@ public class S3 {
     ArgumentIterator argIt = new ArgumentIterator(context, rho, firstArg.getNext());
     while(argIt.hasNext()) {
       PairList.Node node = argIt.nextNode();
-      newArgs.add(node.getRawTag(), context.evaluate(node.getValue()));
+      newArgs.add(node.getRawTag(), context.evaluate(node.getValue(), rho));
     }
     return newArgs.build();
   }

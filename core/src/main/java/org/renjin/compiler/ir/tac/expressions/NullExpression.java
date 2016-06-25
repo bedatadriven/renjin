@@ -30,7 +30,7 @@ public class NullExpression implements Expression {
 
   @Override
   public TypeBounds computeTypeBounds(Map<LValue, TypeBounds> variableMap) {
-    return TypeBounds.nullSexp();
+    throw new UnsupportedOperationException();
   }
 
   @Override

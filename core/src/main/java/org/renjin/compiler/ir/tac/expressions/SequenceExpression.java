@@ -32,7 +32,7 @@ public class SequenceExpression extends SpecializedCallExpression {
     TypeBounds fromType = childAt(0).computeTypeBounds(typeMap);
     TypeBounds toType = childAt(1).computeTypeBounds(typeMap);
 
-    return TypeBounds.vector(fromType.getTypes() | toType.getTypes());
+    return TypeBounds.vector(fromType.getTypeMask() | toType.getTypeMask());
   }
 
   @Override

@@ -14,7 +14,7 @@ import java.util.Map;
  * <p>This is a bit annoying to add this to the set of expressions,
  * but we need it to translate for expressions, because the length
  * primitive is generic, but the for loop always uses the actual length of the
- * vector. (is this another sign we need to push 'fors' down into the IR level?)
+ * vector.
  */
 public class Length extends SpecializedCallExpression implements SimpleExpression {
 

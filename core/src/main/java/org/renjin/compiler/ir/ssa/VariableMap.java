@@ -87,8 +87,10 @@ public class VariableMap {
   public void resolveTypes() {
 
     // Iteratively update the bounds of variables to the union of their definitions's types
+    int passNumber = 1;
     boolean changing;
     do {
+      System.out.println("PASS #" + passNumber++);
       changing = false;
       for (LValue variable : getVariables()) {
         TypeBounds oldBounds = typeMap.get(variable);

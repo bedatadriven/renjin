@@ -63,6 +63,6 @@ public class ElementAccess extends SpecializedCallExpression {
   @Override
   public TypeBounds computeTypeBounds(Map<LValue, TypeBounds> typeMap) {
     TypeBounds vectorType = getVector().computeTypeBounds(typeMap);
-    return TypeBounds.primitive(vectorType.getTypes());
+    return TypeBounds.primitive(vectorType.getTypeMask());
   }
 }

@@ -1,10 +1,12 @@
 package org.renjin.compiler.ir;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.renjin.sexp.*;
 
+import java.util.Iterator;
 import java.util.Set;
 
 /**
@@ -74,13 +76,7 @@ public class TypeBounds {
     return bounds;
   }
   
-  public static TypeBounds nullSexp() {
-    TypeBounds bounds = new TypeBounds();
-    bounds.types = NULL;
-    bounds.lengths = ImmutableSet.of(0);
-    bounds.classAttributes = ImmutableSet.of((SEXP)Null.INSTANCE);
-    return bounds;
-  }
+
   
   public static TypeBounds of(SEXP constant) {
     TypeBounds bounds = new TypeBounds();
@@ -115,12 +111,23 @@ public class TypeBounds {
     return bounds;
   }
 
-  public int getTypes() {
+  /**
+   * @return a bit mask indicating which R types are included in this bounds.
+   */
+  public int getTypeMask() {
     return types;
   }
-  
-  
-  
+
+  /**
+   * @return a set of possible lengths, or {@code null} if the length of the vector is unbounded.
+   */
+  public Set<Integer> getLengthSet() {
+    return lengths;
+  }
+
+  /**
+   * @return a new {@code TypeBounds} that is the union of this bounds and the {@code other}
+   */
   public TypeBounds union(TypeBounds other) {
     TypeBounds u = new TypeBounds();
     u.types = this.types | other.types;
@@ -130,12 +137,85 @@ public class TypeBounds {
     return u;
   }
 
+  /**
+   * @return a new {@code TypeBounds} that is the union of the given {@code bounds}. 
+   * @throws IllegalArgumentException if {@code bounds} is emtpy.
+   */
+  public static TypeBounds union(Iterable<TypeBounds> bounds) {
+    Iterator<TypeBounds> it = bounds.iterator();
+    Preconditions.checkArgument(it.hasNext());
+    
+    TypeBounds union = it.next();
+    
+    while(it.hasNext()) {
+      union = union.union(it.next());
+    }
+    return union;
+  }
+
   private static <T> Set<T> union(Set<T> a, Set<T> b) {
     if(a == null || b == null) {
       return null;
     }
     return Sets.union(a, b);
   }
+
+
+  /**
+   * @return a new {@code TypeBounds} that includes vectors of the given type, with
+   * unbound length and <strong>no class attribute.</strong>
+   */
+  public static TypeBounds vector(int types) {
+    TypeBounds bounds = new TypeBounds();
+    bounds.types = types;
+    bounds.lengths = null;
+    bounds.classAttributes = NULL_CLASS_SET;
+    return bounds;
+  }
+
+  public static TypeBounds vector(Class type) {
+    return vector(typeMaskOf(type));
+  }
+  
+  private static int typeMaskOf(Class type) {
+    if (type.equals(int.class)) {
+      return INT;
+
+    } else if(type.equals(double.class)) {
+      return DOUBLE;
+
+    } else if (type.equals(boolean.class)) {
+      return LOGICAL;
+
+    } else if (type.equals(String.class)) {
+      return STRING;
+
+    } else {
+      throw new UnsupportedOperationException("type: " + type);
+    } 
+  }
+
+
+  public static TypeBounds vector(Class type, Set<Integer> lengths) {
+    TypeBounds bounds = new TypeBounds();
+    bounds.types = typeMaskOf(type);
+    bounds.lengths = lengths;
+    return bounds;
+  }
+
+
+  public boolean couldBeVector() {
+    return (types & ANY_VECTOR) != 0;
+  }
+
+  public boolean couldBeAtomicVector() {
+    return (types & ANY_ATOMIC_VECTOR) != 0;
+  }
+
+  public boolean couldBe(int typeBit) {
+    return (types & typeBit) != 0;
+  }
+
 
   @Override
   public String toString() {
@@ -182,7 +262,7 @@ public class TypeBounds {
   private void appendType(StringBuilder sb, String name, int bit) {
     if( (types & bit) != 0) {
       if(sb.length() > 1) {
-        sb.append(" | ");
+        sb.append("|");
       }
       sb.append(name);
     }
@@ -210,11 +290,4 @@ public class TypeBounds {
     return result;
   }
 
-  public static TypeBounds vector(int types) {
-    TypeBounds bounds = new TypeBounds();
-    bounds.types = types;
-    bounds.lengths = null;
-    bounds.classAttributes = NULL_CLASS_SET;
-    return bounds;
-  }
 }

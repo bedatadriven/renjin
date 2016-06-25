@@ -67,7 +67,7 @@ public class IRBodyBuilder {
     addStatement(new ReturnStatement(returnValue));
    
     removeRedundantJumps();
-    insertVariableInitializations();
+  //  insertVariableInitializations();
     
     return new IRBody(statements, labels);
   }

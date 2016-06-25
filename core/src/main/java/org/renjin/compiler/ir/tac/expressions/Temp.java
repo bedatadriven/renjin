@@ -1,14 +1,6 @@
 package org.renjin.compiler.ir.tac.expressions;
 
-import java.util.Collections;
-import java.util.List;
-
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
-import org.renjin.compiler.emit.EmitContext;
-import org.renjin.compiler.ir.IRUtils;
-import org.renjin.eval.Context;
-import org.renjin.sexp.SEXP;
+import org.renjin.compiler.ir.IRFormatting;
 
 
 /**
@@ -29,7 +21,7 @@ public class Temp extends LValue {
   @Override 
   public String toString() {
     StringBuilder sb = new StringBuilder(TAO);
-    IRUtils.appendSubscript(sb, index+1);
+    IRFormatting.appendSubscript(sb, index+1);
     return sb.toString();
   }
 

@@ -1,6 +1,6 @@
 package org.renjin.compiler.ir;
 
-public class IRUtils {
+public class IRFormatting {
 
   public static void appendSubscript(StringBuilder sb, int subscript) {
     String digits = Integer.toString(subscript);

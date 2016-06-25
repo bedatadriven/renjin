@@ -33,7 +33,8 @@ import java.util.*;
  * 13(2), April 1991, pages 181-210.</a>
  * 
  * @see <a href="https://www.cs.utexas.edu/users/lin/cs380c/wegman.pdf">Constant Propagation with Conditional Branches</a>
- * @see <a href="http://lampwww.epfl.ch/resources/lamp/teaching/advancedCompiler/2005/slides/05-UsingSSA_CP-1on1.pdf">Constant Propagation on SSA form</a>
+ * @see <a href="http://lampwww.epfl.ch/resources/lamp/teaching/advancedCompiler/2005/slides/05-UsingSSA_CP-1on1.pdf">
+ *   Slides on Constant Propagation on SSA form</a>
  */
 public class TypeSolver {
   
@@ -49,7 +50,7 @@ public class TypeSolver {
   /**
    * Map from definitions to outgoing SSA edges.
    */
-  private final Multimap<Assignment, SsaEdge> ssaEdges = HashMultimap.create();
+  private final Multimap<LValue, SsaEdge> ssaEdges = HashMultimap.create();
 
 
   private final ArrayDeque<FlowEdge> flowWorkList = new ArrayDeque<>();
@@ -62,6 +63,7 @@ public class TypeSolver {
   public TypeSolver(ControlFlowGraph cfg) {
     this.cfg = cfg;
     buildSsaEdges();
+    execute();
   }
 
   private void buildSsaEdges() {
@@ -92,15 +94,27 @@ public class TypeSolver {
     }
   }
 
+  public boolean isDefined(LValue variable) {
+    return definitionMap.containsKey(variable);
+  }
+  
+  public boolean isUsed(Assignment assignment) {
+    return ssaEdges.containsKey(assignment.getLHS());
+  }
+
+  public boolean isUsed(LValue variable) {
+    return ssaEdges.containsKey(variable);
+  }
+  
   private void addSsaEdge(LValue variable, BasicBlock basicBlock, Statement usage) {
     Assignment definition = definitionMap.get(variable);
     if(definition != null) {
       SsaEdge edge = new SsaEdge(definition, basicBlock, usage);
-      ssaEdges.put(definition, edge);
+      ssaEdges.put(definition.getLHS(), edge);
     }
   }
 
-  public void execute() {
+  private void execute() {
 
 
     // (1) Initialize the flowWorkList to contain the edges exiting the start node of the program. 
@@ -240,7 +254,7 @@ public class TypeSolver {
 
       if(statement instanceof Assignment) {
         Assignment assignment = (Assignment) statement;
-        Collection<SsaEdge> outgoingEdges = ssaEdges.get(assignment);
+        Collection<SsaEdge> outgoingEdges = ssaEdges.get(assignment.getLHS());
 
         lattice.put(assignment.getLHS(), newBounds);
         ssaWorkList.addAll(outgoingEdges);
@@ -257,4 +271,5 @@ public class TypeSolver {
       }
     }
   }
+
 }

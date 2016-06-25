@@ -2,7 +2,7 @@ package org.renjin.compiler.ir.tac.statements;
 
 import org.objectweb.asm.MethodVisitor;
 import org.renjin.compiler.emit.EmitContext;
-import org.renjin.compiler.ir.IRUtils;
+import org.renjin.compiler.ir.IRFormatting;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.LValue;
@@ -41,7 +41,7 @@ public class Assignment implements Statement {
 
   @Override
   public String toString() {
-    return getLHS() + " " + IRUtils.LEFT_ARROW + " "  + rhs;
+    return getLHS() + " " + IRFormatting.LEFT_ARROW + " "  + rhs;
   }
 
   @Override

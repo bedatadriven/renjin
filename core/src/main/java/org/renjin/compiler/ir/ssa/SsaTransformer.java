@@ -4,10 +4,8 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import org.renjin.compiler.cfg.BasicBlock;
-import org.renjin.compiler.cfg.CfgPredicates;
-import org.renjin.compiler.cfg.ControlFlowGraph;
-import org.renjin.compiler.cfg.DominanceTree;
+import org.renjin.compiler.TypeSolver;
+import org.renjin.compiler.cfg.*;
 import org.renjin.compiler.ir.tac.TreeNode;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.LValue;
@@ -37,7 +35,7 @@ public class SsaTransformer {
     this.dtree = dtree;
     this.allVariables = allVariables();
   }
-  
+
   public void transform() {
     insertPhiFunctions();
     renameVariables();
@@ -81,7 +79,7 @@ public class SsaTransformer {
               if(work.get(Y) < iterCount) {
                 work.put(Y, iterCount);
                 W.add(Y);
-              }            
+              }
             }
           }
         }
@@ -97,7 +95,7 @@ public class SsaTransformer {
 
       // in a deviation from Cytron, et. al,
       // V_0 represents the uninitialized value
-      
+
       C.put(V, 1);
 
       Stack<Integer> stack = new Stack<Integer>();
@@ -122,11 +120,11 @@ public class SsaTransformer {
   }
 
   private void search(BasicBlock X) {
-    
+
     for(Statement stmt : X.getStatements()) {
       renameVariables(stmt);
 
-      
+
       if(stmt instanceof Assignment) {
         Assignment assignment = (Assignment)stmt;
         if(assignment.getLHS() instanceof Variable) {
@@ -138,7 +136,7 @@ public class SsaTransformer {
         }
       }
     }
-    
+
     for(BasicBlock Y : cfg.getSuccessors(X)) {
       int j = whichPred(Y,X);
       for (Assignment A : Lists.newArrayList(Y.phiAssignments())) {
@@ -212,36 +210,33 @@ public class SsaTransformer {
     throw new IllegalArgumentException("X is not a predecessor of Y");
   }
 
-  public void removePhiFunctions(VariableMap variableMap) {
+  public void removePhiFunctions(TypeSolver types) {
     for(BasicBlock bb : cfg.getBasicBlocks()) {
-      ListIterator<Statement> it = bb.getStatements().listIterator();
-      while(it.hasNext()) {
-        Statement statement = it.next();
-        if(statement instanceof Assignment && statement.getRHS() instanceof PhiFunction) {
-          insertAssignments(((Assignment) statement).getLHS(),
-              (PhiFunction) statement.getRHS(), variableMap);
-          it.remove();
-        }
-      }
-    }
-
-  }
-
-  private void insertAssignments(LValue lhs, PhiFunction phi, VariableMap variableMap) {
-
-    // double check that this value is actually used
-    // some never are
-    if(variableMap.isUsed(lhs)) {
-      for(Variable rhs : phi.getArguments()) {
-        SsaVariable var = (SsaVariable)rhs;
-        if(var.getVersion() == 0) {
-          cfg.getEntry().addStatement(new Assignment(lhs, rhs));
-        } else {
-          BasicBlock bb = variableMap.getDefiningBlock(rhs);
-          bb.addStatementBeforeJump(new Assignment(lhs, rhs));
+      if (bb != cfg.getExit()) {
+        ListIterator<Statement> it = bb.getStatements().listIterator();
+        while (it.hasNext()) {
+          Statement statement = it.next();
+          if (statement instanceof Assignment && statement.getRHS() instanceof PhiFunction) {
+            Assignment assignment = (Assignment) statement;
+            insertAssignments(assignment.getLHS(), (PhiFunction) statement.getRHS());
+            it.remove();
+          }
         }
       }
     }
   }
 
+  private void insertAssignments(LValue lhs, PhiFunction phi) {
+    for (int i = 0; i < phi.getArguments().size(); i++) {
+      SsaVariable variable = (SsaVariable)phi.getArgument(i);
+
+      if(variable.getVersion() == 0) {
+        cfg.getEntry().addStatement(new Assignment(lhs, variable));
+      } else {
+        FlowEdge incoming = phi.getIncomingEdges().get(i);
+        BasicBlock definingBlock = incoming.getPredecessor();
+        definingBlock.addStatementBeforeJump(new Assignment(lhs, variable));
+      }
+    }
+  }
 }

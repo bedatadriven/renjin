@@ -1,21 +1,15 @@
 package org.renjin.compiler.ir.tac;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-
-import java.io.IOException;
-import java.io.InputStreamReader;
-
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.internal.AssumptionViolatedException;
 import org.renjin.EvalTestCase;
 import org.renjin.compiler.NotCompilableException;
+import org.renjin.compiler.TypeSolver;
 import org.renjin.compiler.cfg.ControlFlowGraph;
 import org.renjin.compiler.cfg.DominanceTree;
 import org.renjin.compiler.ir.ssa.SsaTransformer;
-import org.renjin.compiler.ir.ssa.VariableMap;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
@@ -23,6 +17,12 @@ import org.renjin.invoke.ClassBindings;
 import org.renjin.invoke.reflection.MemberBinding;
 import org.renjin.parser.RParser;
 import org.renjin.sexp.*;
+
+import java.io.IOException;
+import java.io.InputStreamReader;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 
 public class IRBodyBuilderTest extends EvalTestCase {
@@ -96,7 +96,9 @@ public class IRBodyBuilderTest extends EvalTestCase {
 
     System.out.println(cfg);
 
-    transformer.removePhiFunctions(new VariableMap(cfg));
+    TypeSolver types = new TypeSolver(cfg);
+    
+    transformer.removePhiFunctions(types);
 
     System.out.println("PHI REMOVED:");
     System.out.println(cfg);
@@ -123,9 +125,6 @@ public class IRBodyBuilderTest extends EvalTestCase {
     
     assertThat(evalIR("burt[jj,ii]"), equalTo(c(134,2,33,46)));
     assertThat(evalIR("burt[ii,jj]"), equalTo(c(134,33,2,46)));
-    
-
-   
   }
   
   @Test

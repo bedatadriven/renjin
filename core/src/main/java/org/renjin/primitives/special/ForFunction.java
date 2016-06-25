@@ -86,21 +86,13 @@ public class ForFunction extends SpecialFunction {
     SsaTransformer ssaTransformer = new SsaTransformer(cfg, dTree);
     ssaTransformer.transform();
 
-    System.out.println(cfg);
+    //System.out.println(cfg);
 
     TypeSolver solver = new TypeSolver(cfg);
-    solver.execute();
     
-    solver.dumpBounds();
-    
-    throw new UnsupportedOperationException("TODO");
-    
-//    VariableMap variableMap = new VariableMap(cfg);
-//    variableMap.resolveTypes();
-//    
-//    ssaTransformer.removePhiFunctions(variableMap);
-//
-//    System.out.println(cfg);
+    ssaTransformer.removePhiFunctions(solver);
+
+    System.out.println(cfg);
 //
 //    ByteCodeEmitter emitter = new ByteCodeEmitter(cfg);
 //    CompiledBody compiledBody = emitter.compile().newInstance();

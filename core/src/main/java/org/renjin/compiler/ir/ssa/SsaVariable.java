@@ -1,6 +1,6 @@
 package org.renjin.compiler.ir.ssa;
 
-import org.renjin.compiler.ir.IRUtils;
+import org.renjin.compiler.ir.IRFormatting;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.Variable;
@@ -56,7 +56,7 @@ public class SsaVariable extends Variable {
     StringBuilder sb = new StringBuilder();
     sb.append(inner.toString());
     
-    IRUtils.appendSubscript(sb, version);
+    IRFormatting.appendSubscript(sb, version);
     
     return sb.toString();
   }

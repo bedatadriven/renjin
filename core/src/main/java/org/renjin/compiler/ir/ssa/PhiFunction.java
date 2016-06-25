@@ -3,33 +3,31 @@ package org.renjin.compiler.ir.ssa;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import org.objectweb.asm.MethodVisitor;
+import org.renjin.compiler.cfg.FlowEdge;
 import org.renjin.compiler.emit.EmitContext;
-import org.renjin.compiler.ir.TypeBounds;
+import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.expressions.Expression;
-import org.renjin.compiler.ir.tac.expressions.LValue;
 import org.renjin.compiler.ir.tac.expressions.Variable;
 
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class PhiFunction implements Expression {
 
   private List<Variable> arguments;
-  private Class type;
+  private List<FlowEdge> incomingEdges;
 
-  public PhiFunction(Variable variable, int count) {
-    if(count < 2) {
-      throw new IllegalArgumentException("variable=" + variable + ", count=" + count + " (count must be >= 2)");
+  public PhiFunction(Variable variable, Set<FlowEdge> incomingEdges) {
+    if(incomingEdges.size() < 2) {
+      throw new IllegalArgumentException("variable=" + variable + ", count=" + incomingEdges.size() + " (count must be >= 2)");
     }
+    this.incomingEdges = Lists.newArrayList(incomingEdges);
     this.arguments = Lists.newArrayList();
-    for(int i=0;i!=count;++i) {
+    for(int i=0;i!=incomingEdges.size();++i) {
       arguments.add(variable);
     }
-  }
-
-  public PhiFunction(List<Variable> arguments) {
-    this.arguments = arguments;
   }
 
   public List<Variable> getArguments() {
@@ -52,14 +50,18 @@ public class PhiFunction implements Expression {
   }
 
   @Override
-  public TypeBounds computeTypeBounds(Map<LValue, TypeBounds> variableMap) {
+  public ValueBounds computeTypeBounds(Map<Expression, ValueBounds> variableMap) {
     Iterator<Variable> it = arguments.iterator();
-    TypeBounds bounds = it.next().computeTypeBounds(variableMap);
+    ValueBounds bounds = it.next().computeTypeBounds(variableMap);
     
     while(it.hasNext()) {
       bounds = bounds.union(it.next().computeTypeBounds(variableMap));
     }
     return bounds;
+  }
+
+  public List<FlowEdge> getIncomingEdges() {
+    return incomingEdges;
   }
 
   public void setVersionNumber(int argumentIndex, int versionNumber) {

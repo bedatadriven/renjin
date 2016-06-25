@@ -1,6 +1,6 @@
 package org.renjin.compiler.ir.tac.expressions;
 
-import org.renjin.compiler.ir.TypeBounds;
+import org.renjin.compiler.ir.ValueBounds;
 
 import java.util.Map;
 
@@ -42,8 +42,8 @@ public abstract class SpecializedCallExpression implements Expression {
   }
 
   @Override
-  public TypeBounds computeTypeBounds(Map<LValue, TypeBounds> typeMap) {
-    return TypeBounds.openSet();
+  public ValueBounds computeTypeBounds(Map<Expression, ValueBounds> typeMap) {
+    return ValueBounds.UNBOUNDED;
   }
 
 }

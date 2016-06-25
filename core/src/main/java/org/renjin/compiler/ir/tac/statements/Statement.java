@@ -24,5 +24,5 @@ public interface Statement extends TreeNode {
    * @return the required increase to the stack
    */
   int emit(EmitContext emitContext, MethodVisitor mv);
-
+  
 }

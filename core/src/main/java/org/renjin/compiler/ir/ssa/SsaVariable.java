@@ -1,8 +1,8 @@
 package org.renjin.compiler.ir.ssa;
 
 import org.renjin.compiler.ir.IRUtils;
-import org.renjin.compiler.ir.TypeBounds;
-import org.renjin.compiler.ir.tac.expressions.LValue;
+import org.renjin.compiler.ir.ValueBounds;
+import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.Variable;
 
 import java.util.Map;
@@ -40,6 +40,16 @@ public class SsaVariable extends Variable {
       return true;
     }
   }
+
+
+  @Override
+  public ValueBounds computeTypeBounds(Map<Expression, ValueBounds> variableMap) {
+    if(version == 0) {
+      return ValueBounds.UNBOUNDED;
+    } else {
+      return super.computeTypeBounds(variableMap);
+    }
+  }
   
   @Override
   public String toString() {
@@ -51,6 +61,7 @@ public class SsaVariable extends Variable {
     return sb.toString();
   }
 
+
   @Override
   public int hashCode() {
     final int prime = 31;
@@ -58,15 +69,6 @@ public class SsaVariable extends Variable {
     result = prime * result + inner.hashCode();
     result = prime * result + version;
     return result;
-  }
-
-  @Override
-  public TypeBounds computeTypeBounds(Map<LValue, TypeBounds> variableMap) {
-    if(version == 0) {
-      return TypeBounds.openSet();
-    } else {
-      return super.computeTypeBounds(variableMap);
-    }
   }
 
   @Override

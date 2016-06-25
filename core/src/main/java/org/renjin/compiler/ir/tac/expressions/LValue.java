@@ -2,7 +2,7 @@ package org.renjin.compiler.ir.tac.expressions;
 
 import org.objectweb.asm.MethodVisitor;
 import org.renjin.compiler.emit.EmitContext;
-import org.renjin.compiler.ir.TypeBounds;
+import org.renjin.compiler.ir.ValueBounds;
 
 import java.util.Map;
 
@@ -53,10 +53,10 @@ public abstract class LValue implements SimpleExpression {
   }
 
   @Override
-  public TypeBounds computeTypeBounds(Map<LValue, TypeBounds> variableMap) {
-    TypeBounds type = variableMap.get(this);
+  public ValueBounds computeTypeBounds(Map<Expression, ValueBounds> variableMap) {
+    ValueBounds type = variableMap.get(this);
     if(type == null) {
-      return TypeBounds.UNBOUNDED;
+      return ValueBounds.UNBOUNDED;
     }
     return type;
   }

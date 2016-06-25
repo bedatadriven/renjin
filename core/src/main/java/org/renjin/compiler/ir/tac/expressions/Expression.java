@@ -2,7 +2,7 @@ package org.renjin.compiler.ir.tac.expressions;
 
 import org.objectweb.asm.MethodVisitor;
 import org.renjin.compiler.emit.EmitContext;
-import org.renjin.compiler.ir.TypeBounds;
+import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.TreeNode;
 
 import java.util.Map;
@@ -32,6 +32,6 @@ public interface Expression extends TreeNode {
    * child nodes
    * @param variableMap
    */
-  TypeBounds computeTypeBounds(Map<LValue, TypeBounds> variableMap);
+  ValueBounds computeTypeBounds(Map<Expression, ValueBounds> variableMap);
 
 }

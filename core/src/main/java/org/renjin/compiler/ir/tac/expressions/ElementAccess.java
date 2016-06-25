@@ -4,7 +4,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.compiler.emit.EmitContext;
-import org.renjin.compiler.ir.TypeBounds;
+import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.sexp.Vector;
 
 import java.util.Map;
@@ -61,8 +61,8 @@ public class ElementAccess extends SpecializedCallExpression {
   }
 
   @Override
-  public TypeBounds computeTypeBounds(Map<LValue, TypeBounds> typeMap) {
-    TypeBounds vectorType = getVector().computeTypeBounds(typeMap);
-    return TypeBounds.primitive(vectorType.getTypeMask());
+  public ValueBounds computeTypeBounds(Map<Expression, ValueBounds> typeMap) {
+    ValueBounds vectorType = getVector().computeTypeBounds(typeMap);
+    return ValueBounds.primitive(vectorType.getTypeSet());
   }
 }

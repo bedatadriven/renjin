@@ -53,7 +53,7 @@ public class ControlFlowGraph {
     basicBlocks.add(exit);
 
     // Cytron adds an edge from entry to exit??
-    entry.addFlowSuccessor(exit);
+    addEdge(entry, exit);
   }
   
   public List<BasicBlock> getLiveBasicBlocks() {
@@ -76,11 +76,11 @@ public class ControlFlowGraph {
     for(int i=1;i<basicBlocks.size()-1;++i) {
       BasicBlock bb = basicBlocks.get(i);
       if(bb.fallsThrough()) {
-        bb.addFlowSuccessor(basicBlocks.get(i+1));
+        addEdge(bb, basicBlocks.get(i + 1));
         
       } else if(bb.returns()) {
-        bb.addFlowSuccessor(exit);
-        
+        addEdge(bb, exit);
+
       } else {
         for(IRLabel targetLabel : bb.targets()) {
           BasicBlock targetBB = basicBlockMap.get(targetLabel);
@@ -88,13 +88,17 @@ public class ControlFlowGraph {
             throw new NullPointerException("whoops! no basic block with label '" + targetLabel +
                 "' in IRBody " + parent);
           }
-          bb.addFlowSuccessor(targetBB);
+          addEdge(bb, targetBB);
         }
       }
     }
-    entry.addFlowSuccessor(basicBlocks.get(1));
+    addEdge(entry, basicBlocks.get(1));
   }
-  
+
+  private void addEdge(BasicBlock bb, BasicBlock basicBlock) {
+    bb.addFlowSuccessor(basicBlock);
+  }
+
   private void removeDeadBlocks() {
     
     Set<BasicBlock> live = new HashSet<>();
@@ -153,11 +157,11 @@ public class ControlFlowGraph {
     return exit;
   }
 
-  public Collection<BasicBlock> getSuccessors(BasicBlock x) {
+  public List<BasicBlock> getSuccessors(BasicBlock x) {
     return x.getFlowSuccessors();
   }
 
-  public Collection<BasicBlock> getPredecessors(BasicBlock x) {
+  public List<BasicBlock> getPredecessors(BasicBlock x) {
     return x.getFlowPredecessors();
   }
 

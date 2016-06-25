@@ -10,7 +10,8 @@ import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.expressions.Variable;
 import org.renjin.compiler.ir.tac.statements.*;
 
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -21,11 +22,14 @@ public class BasicBlock {
   private Set<IRLabel> labels;
   private List<Statement> statements = Lists.newArrayList();
   
-  Set<BasicBlock> flowSuccessors = Sets.newHashSet();
-  Set<BasicBlock> flowPredecessors = Sets.newHashSet();
+  List<BasicBlock> flowSuccessors = new ArrayList<>();
+  List<BasicBlock> flowPredecessors = new ArrayList<>();
 
   Set<BasicBlock> dominanceSuccessors = Sets.newHashSet();
   Set<BasicBlock> dominancePredecessors = Sets.newHashSet();
+  
+  final Set<FlowEdge> outgoing = new HashSet<>();
+  final Set<FlowEdge> incoming = new HashSet<>();
   
   public BasicBlock(IRBody parent) {
     super();
@@ -36,8 +40,8 @@ public class BasicBlock {
     statements.add(statement);
   }
   
-  public void insertPhiFunction(Variable variable, int count) {
-    statements.add(0, new Assignment(variable, new PhiFunction(variable, count)));
+  public void insertPhiFunction(Variable variable, Set<FlowEdge> incomingEdges) {
+    statements.add(0, new Assignment(variable, new PhiFunction(variable, incomingEdges)));
   }
 
   public Statement replaceStatement(Statement stmt, Statement newStmt) {
@@ -82,9 +86,12 @@ public class BasicBlock {
     return statements.get(statements.size() - 1);
   }
 
-  public void addFlowSuccessor(BasicBlock basicBlock) {
-    flowSuccessors.add(basicBlock);
-    basicBlock.flowPredecessors.add(this);
+  public void addFlowSuccessor(BasicBlock successor) {
+    FlowEdge edge = new FlowEdge(this, successor);
+    outgoing.add(edge);
+    flowSuccessors.add(successor);
+    successor.incoming.add(edge);
+    successor.flowPredecessors.add(this);
   }
 
   public void addDominanceSuccessor(BasicBlock basicBlock) {
@@ -92,12 +99,20 @@ public class BasicBlock {
     basicBlock.dominancePredecessors.add(this);
   }
 
-  public Set<BasicBlock> getFlowSuccessors() {
-    return Collections.unmodifiableSet(flowSuccessors);
+  public Set<FlowEdge> getIncoming() {
+    return incoming;
   }
 
-  public Set<BasicBlock> getFlowPredecessors() {
-    return Collections.unmodifiableSet(flowPredecessors);
+  public Set<FlowEdge> getOutgoing() {
+    return outgoing;
+  }
+
+  public List<BasicBlock> getFlowSuccessors() {
+    return flowSuccessors;
+  }
+
+  public List<BasicBlock> getFlowPredecessors() {
+    return flowPredecessors;
   }
 
   public Set<BasicBlock> getDominanceSuccessors() {
@@ -154,5 +169,15 @@ public class BasicBlock {
       pos = pos - 1;
     }
     getStatements().add(pos, assignment);
+  }
+
+  public int countIncomingExecutableEdges() {
+    int count = 0;
+    for (FlowEdge flowEdge : incoming) {
+      if(flowEdge.isExecutable()) {
+        count++;
+      }
+    }
+    return count;
   }
 }

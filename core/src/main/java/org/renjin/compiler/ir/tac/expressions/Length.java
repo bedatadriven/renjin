@@ -3,7 +3,7 @@ package org.renjin.compiler.ir.tac.expressions;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.renjin.compiler.emit.EmitContext;
-import org.renjin.compiler.ir.TypeBounds;
+import org.renjin.compiler.ir.ValueBounds;
 
 import java.util.Map;
 
@@ -44,8 +44,8 @@ public class Length extends SpecializedCallExpression implements SimpleExpressio
   }
 
   @Override
-  public TypeBounds computeTypeBounds(Map<LValue, TypeBounds> typeMap) {
-    return TypeBounds.LOGICAL_PRIMITIVE;
+  public ValueBounds computeTypeBounds(Map<Expression, ValueBounds> typeMap) {
+    return ValueBounds.LOGICAL_PRIMITIVE;
   }
 
 }

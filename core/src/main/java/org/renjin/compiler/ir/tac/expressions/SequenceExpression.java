@@ -4,7 +4,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.renjin.compiler.emit.EmitContext;
-import org.renjin.compiler.ir.TypeBounds;
+import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.primitives.sequence.DoubleSequence;
 import org.renjin.sexp.AtomicVector;
 
@@ -28,11 +28,11 @@ public class SequenceExpression extends SpecializedCallExpression {
   }
 
   @Override
-  public TypeBounds computeTypeBounds(Map<LValue, TypeBounds> typeMap) {
-    TypeBounds fromType = childAt(0).computeTypeBounds(typeMap);
-    TypeBounds toType = childAt(1).computeTypeBounds(typeMap);
+  public ValueBounds computeTypeBounds(Map<Expression, ValueBounds> typeMap) {
+    ValueBounds fromType = childAt(0).computeTypeBounds(typeMap);
+    ValueBounds toType = childAt(1).computeTypeBounds(typeMap);
 
-    return TypeBounds.vector(fromType.getTypeMask() | toType.getTypeMask());
+    return ValueBounds.vector(fromType.getTypeSet() | toType.getTypeSet());
   }
 
   @Override

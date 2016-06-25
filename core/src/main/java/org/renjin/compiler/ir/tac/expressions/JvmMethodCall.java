@@ -3,7 +3,7 @@ package org.renjin.compiler.ir.tac.expressions;
 import com.google.common.base.Joiner;
 import org.objectweb.asm.MethodVisitor;
 import org.renjin.compiler.emit.EmitContext;
-import org.renjin.compiler.ir.TypeBounds;
+import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.invoke.model.JvmMethod;
 
 import java.util.Arrays;
@@ -98,35 +98,8 @@ public class JvmMethodCall implements CallExpression {
   }
 
   @Override
-  public TypeBounds computeTypeBounds(Map<LValue, TypeBounds> variableMap) {
-
-//    if(type != null) {
-//      return type;
-//    }
-//
-//    // get the types of our arguments
-//    Class[] argTypes = new Class[arguments.size()];
-//    for(int i=0;i!=argTypes.length;++i) {
-//      argTypes[i] = arguments.get(i).computeTypeBounds(variableMap);
-//    }
-//
-//    // choose the overload based on matching types
-//    this.method = null;
-//    for(JvmMethod overload : overloads) {
-//      if(matches(overload, argTypes)) {
-//        if(method == null) {
-//          method = overload;
-//        } else {
-//          throw new UnsupportedOperationException("Multiple matching overloads.\n" +
-//              "Argument types = " + Arrays.toString(argTypes) + "\n" +
-//              "Overloads: " + Joiner.on("\n").join(overloads));
-//        }
-//      }
-//    }
-//
-//    type = method.getReturnType();
-//    return type;
-    return TypeBounds.openSet();
+  public ValueBounds computeTypeBounds(Map<Expression, ValueBounds> variableMap) {
+    return ValueBounds.UNBOUNDED;
   }
 
   private boolean matches(JvmMethod overload, Class[] argTypes) {

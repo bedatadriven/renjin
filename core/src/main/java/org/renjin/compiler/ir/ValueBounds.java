@@ -1,0 +1,150 @@
+package org.renjin.compiler.ir;
+
+import com.google.common.base.Preconditions;
+import org.renjin.sexp.SEXP;
+
+import java.util.Iterator;
+
+/**
+ * Describes the bounds of known types for an expression.
+ */
+public class ValueBounds {
+  
+  public static final int UNKNOWN_LENGTH = -1;
+  public static final int SCALAR_LENGTH = 1;
+  
+  public static final ValueBounds UNBOUNDED = new ValueBounds();
+  
+  public static final ValueBounds INT_PRIMITIVE = primitive(TypeSet.INT);
+  
+  public static final ValueBounds DOUBLE_PRIMITIVE = primitive(TypeSet.DOUBLE);
+
+  public static final ValueBounds LOGICAL_PRIMITIVE = primitive(TypeSet.LOGICAL);
+
+
+  private int length = UNKNOWN_LENGTH;
+  private int typeSet = TypeSet.ANY_TYPE;
+  
+  private ValueBounds() {};
+
+  public static ValueBounds primitive(int type) {
+    ValueBounds valueBounds = new ValueBounds();
+    valueBounds.typeSet = type;
+    valueBounds.length = SCALAR_LENGTH;
+    return valueBounds;
+  }
+
+  public static ValueBounds of(SEXP value) {
+    ValueBounds valueBounds = new ValueBounds();
+    valueBounds.typeSet = TypeSet.of(value);
+    valueBounds.length = value.length();
+    return valueBounds;
+  }
+
+  /**
+   * @return a bit mask indicating which R types are included in this bounds.
+   */
+  public int getTypeSet() {
+    return typeSet;
+  }
+
+  public int getLength() {
+    return length;
+  }
+
+  /**
+   * @return a new {@code TypeBounds} that is the union of this bounds and the {@code other}
+   */
+  public ValueBounds union(ValueBounds other) {
+    ValueBounds u = new ValueBounds();
+    u.typeSet = this.typeSet | other.typeSet;
+    u.length = unionLengths(this.length, other.length);
+    return u;
+  }
+
+  private static int unionLengths(int x, int y) {
+    if(x == y) {
+      return x;
+    }
+    return UNKNOWN_LENGTH;
+  }
+
+  /**
+   * @return a new {@code TypeBounds} that is the union of the given {@code bounds}. 
+   * @throws IllegalArgumentException if {@code bounds} is emtpy.
+   */
+  public static ValueBounds union(Iterable<ValueBounds> bounds) {
+    Iterator<ValueBounds> it = bounds.iterator();
+    Preconditions.checkArgument(it.hasNext());
+    
+    ValueBounds union = it.next();
+    
+    while(it.hasNext()) {
+      union = union.union(it.next());
+    }
+    return union;
+  }
+
+  /**
+   * @return a new {@code TypeBounds} that includes vectors of the given type, with
+   * unbound length and <strong>no class attribute.</strong>
+   */
+  public static ValueBounds vector(int types) {
+    ValueBounds bounds = new ValueBounds();
+    bounds.typeSet = types;
+    bounds.length = UNKNOWN_LENGTH;
+    return bounds;
+  }
+
+  public static ValueBounds vector(Class type) {
+    return vector(TypeSet.of(type));
+  }
+
+  public static ValueBounds vector(Class type, int length) {
+    ValueBounds bounds = new ValueBounds();
+    bounds.typeSet = TypeSet.of(type);
+    bounds.length = length;
+    return bounds;
+  }
+
+  @Override
+  public String toString() {
+    
+    if(typeSet == TypeSet.ANY_TYPE && length == UNKNOWN_LENGTH) {
+      return "[*]";
+    }
+    
+    StringBuilder s = new StringBuilder();
+    s.append("[");
+    s.append(TypeSet.toString(typeSet));
+    s.append(", len=");
+    if(length == UNKNOWN_LENGTH) {
+      s.append("*");
+    } else {
+      s.append(length);
+    } 
+    s.append("]");
+    
+    return s.toString();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    ValueBounds that = (ValueBounds) o;
+
+    if (length != that.length) return false;
+    return typeSet == that.typeSet;
+
+  }
+
+  @Override
+  public int hashCode() {
+    int result = length;
+    result = 31 * result + typeSet;
+    return result;
+  }
+
+}

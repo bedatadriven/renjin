@@ -2,7 +2,7 @@ package org.renjin.compiler.ir.tac.expressions;
 
 import org.objectweb.asm.MethodVisitor;
 import org.renjin.compiler.emit.EmitContext;
-import org.renjin.compiler.ir.TypeBounds;
+import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.sexp.*;
 
 import java.util.Map;
@@ -19,11 +19,11 @@ public final class Constant implements SimpleExpression {
   public static final Constant NA = new Constant(Logical.NA);
 
   private SEXP value;
-  private TypeBounds typeBounds;
+  private ValueBounds valueBounds;
 
   public Constant(SEXP value) {
     this.value = value;
-    this.typeBounds = TypeBounds.of(value);
+    this.valueBounds = ValueBounds.of(value);
   }
   
   public Constant(int value) {
@@ -64,8 +64,8 @@ public final class Constant implements SimpleExpression {
   }
 
   @Override
-  public TypeBounds computeTypeBounds(Map<LValue, TypeBounds> variableMap) {
-    return typeBounds;
+  public ValueBounds computeTypeBounds(Map<Expression, ValueBounds> variableMap) {
+    return valueBounds;
   }
 
   @Override

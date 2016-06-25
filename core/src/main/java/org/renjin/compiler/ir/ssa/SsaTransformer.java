@@ -75,7 +75,7 @@ public class SsaTransformer {
         for(BasicBlock Y : dtree.getFrontier(X)) {
           if(X != cfg.getExit()) {
             if(hasAlready.get(Y) < iterCount) {
-              Y.insertPhiFunction(V, cfg.getPredecessors(Y).size());
+              Y.insertPhiFunction(V, Y.getIncoming());
               // place (V <- phi(V,..., V)) at Y
               hasAlready.put(Y, iterCount);
               if(work.get(Y) < iterCount) {

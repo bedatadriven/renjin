@@ -2,7 +2,7 @@ package org.renjin.compiler.ir.tac.expressions;
 
 import org.objectweb.asm.MethodVisitor;
 import org.renjin.compiler.emit.EmitContext;
-import org.renjin.compiler.ir.TypeBounds;
+import org.renjin.compiler.ir.ValueBounds;
 
 import java.util.Map;
 
@@ -29,7 +29,7 @@ public class NullExpression implements Expression {
   }
 
   @Override
-  public TypeBounds computeTypeBounds(Map<LValue, TypeBounds> variableMap) {
+  public ValueBounds computeTypeBounds(Map<Expression, ValueBounds> variableMap) {
     throw new UnsupportedOperationException();
   }
 

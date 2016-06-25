@@ -21,12 +21,10 @@
 
 package org.renjin.primitives.special;
 
-import org.renjin.compiler.CompiledBody;
+import org.renjin.compiler.TypeSolver;
 import org.renjin.compiler.cfg.ControlFlowGraph;
 import org.renjin.compiler.cfg.DominanceTree;
-import org.renjin.compiler.emit.ByteCodeEmitter;
 import org.renjin.compiler.ir.ssa.SsaTransformer;
-import org.renjin.compiler.ir.ssa.VariableMap;
 import org.renjin.compiler.ir.tac.IRBody;
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
 import org.renjin.eval.Context;
@@ -90,17 +88,24 @@ public class ForFunction extends SpecialFunction {
 
     System.out.println(cfg);
 
-    VariableMap variableMap = new VariableMap(cfg);
-    variableMap.resolveTypes();
+    TypeSolver solver = new TypeSolver(cfg);
+    solver.execute();
     
-    ssaTransformer.removePhiFunctions(variableMap);
-
-    System.out.println(cfg);
-
-    ByteCodeEmitter emitter = new ByteCodeEmitter(cfg);
-    CompiledBody compiledBody = emitter.compile().newInstance();
-
-    compiledBody.evaluate(context, rho);
+    solver.dumpBounds();
+    
+    throw new UnsupportedOperationException("TODO");
+    
+//    VariableMap variableMap = new VariableMap(cfg);
+//    variableMap.resolveTypes();
+//    
+//    ssaTransformer.removePhiFunctions(variableMap);
+//
+//    System.out.println(cfg);
+//
+//    ByteCodeEmitter emitter = new ByteCodeEmitter(cfg);
+//    CompiledBody compiledBody = emitter.compile().newInstance();
+//
+//    compiledBody.evaluate(context, rho);
 
   }
 }

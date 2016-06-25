@@ -63,7 +63,7 @@ public class DominanceTree {
    * node, and union that with the node itself.
    */
   private Set<BasicBlock> computeNewDominance(BasicBlock n) {
-    Set<BasicBlock> predecessors = n.getFlowPredecessors();
+    List<BasicBlock> predecessors = n.getFlowPredecessors();
 
     Set<BasicBlock> set = new HashSet<>();
     boolean first = true;

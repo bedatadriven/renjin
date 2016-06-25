@@ -6,7 +6,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import org.renjin.compiler.cfg.BasicBlock;
 import org.renjin.compiler.cfg.ControlFlowGraph;
-import org.renjin.compiler.ir.TypeBounds;
+import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.TreeNode;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.LValue;
@@ -16,7 +16,6 @@ import org.renjin.compiler.ir.tac.statements.Statement;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.Objects;
 
 public class VariableMap {
 
@@ -24,7 +23,7 @@ public class VariableMap {
   private Multimap<LValue, BasicBlock> useByBlockMap = HashMultimap.create();
   private Map<LValue, BasicBlock> definedByBlockMap = Maps.newHashMap();
 
-  private Map<LValue, TypeBounds> typeMap = Maps.newHashMap();
+  private Map<LValue, ValueBounds> typeMap = Maps.newHashMap();
 
   public VariableMap(ControlFlowGraph cfg) {
     for(BasicBlock bb : cfg.getBasicBlocks()) {
@@ -86,29 +85,5 @@ public class VariableMap {
 
   public void resolveTypes() {
 
-    // Iteratively update the bounds of variables to the union of their definitions's types
-    int passNumber = 1;
-    boolean changing;
-    do {
-      System.out.println("PASS #" + passNumber++);
-      changing = false;
-      for (LValue variable : getVariables()) {
-        TypeBounds oldBounds = typeMap.get(variable);
-        TypeBounds newBounds;
-
-        try {
-          Expression definition = definitionMap.get(variable);
-          newBounds = definition.computeTypeBounds(typeMap);
-          System.out.printf("variable %s = %s = %s%n", variable, definition, newBounds);
-        } catch (Exception e) {
-          throw new IllegalStateException("Exception updating bounds for " + variable, e);
-        }
-
-        if(!Objects.equals(oldBounds, newBounds)) {
-          typeMap.put(variable, newBounds);
-          changing = true;
-        }
-      }
-    } while (changing);
   }
 }

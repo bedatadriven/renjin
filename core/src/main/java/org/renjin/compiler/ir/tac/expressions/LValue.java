@@ -11,7 +11,7 @@ import java.util.Map;
  */
 public abstract class LValue implements SimpleExpression {
 
-  private Class type;
+  private ValueBounds valueBounds = ValueBounds.UNBOUNDED;
 
   @Override
   public final int getChildCount() {
@@ -53,12 +53,19 @@ public abstract class LValue implements SimpleExpression {
   }
 
   @Override
-  public ValueBounds computeTypeBounds(Map<Expression, ValueBounds> variableMap) {
-    ValueBounds type = variableMap.get(this);
+  public final ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
+    ValueBounds type = typeMap.get(this);
     if(type == null) {
-      return ValueBounds.UNBOUNDED;
+      valueBounds = ValueBounds.UNBOUNDED;
+    } else {
+      valueBounds = type;
     }
-    return type;
+    return valueBounds;
+  }
+
+  @Override
+  public final ValueBounds getValueBounds() {
+    return valueBounds;
   }
 }
 

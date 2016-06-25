@@ -3,6 +3,7 @@ package org.renjin.compiler.ir.tac.expressions;
 
 import org.objectweb.asm.MethodVisitor;
 import org.renjin.compiler.emit.EmitContext;
+import org.renjin.compiler.ir.ValueBounds;
 
 /**
  * Element access in the form x$name
@@ -10,7 +11,7 @@ import org.renjin.compiler.emit.EmitContext;
 public class NamedElementAccess extends SpecializedCallExpression {
 
   private String memberName;
-
+  private ValueBounds valueBounds = ValueBounds.UNBOUNDED;
 
   public NamedElementAccess(Expression expression, String memberName) {
     super(expression);
@@ -25,6 +26,11 @@ public class NamedElementAccess extends SpecializedCallExpression {
   @Override
   public int emitPush(EmitContext emitContext, MethodVisitor mv) {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public ValueBounds getValueBounds() {
+    return valueBounds;
   }
 
   @Override

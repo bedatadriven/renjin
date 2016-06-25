@@ -24,6 +24,17 @@ public class BuiltinCall implements CallExpression {
   private final List<Expression> arguments;
   private final List<JvmMethod> methods;
 
+  /**
+   * The value bounds computed from our arguments
+   */
+  private ValueBounds valueBounds = ValueBounds.UNBOUNDED;
+
+  /**
+   * The selected overload, based on our arguments, or null
+   * if it cannot be determined at compile time.
+   */
+  private JvmMethod selectedOverload = null;
+
   public BuiltinCall(Primitives.Entry primitive, String[] argumentNames, List<Expression> arguments) {
     this.primitive = primitive;
     this.argumentNames = argumentNames;
@@ -64,17 +75,24 @@ public class BuiltinCall implements CallExpression {
 
   
   @Override
-  public ValueBounds computeTypeBounds(Map<Expression, ValueBounds> variableMap) {
+  public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
     List<ValueBounds> argumentTypes = new ArrayList<>();
     for (Expression argument : arguments) {
-      argumentTypes.add(argument.computeTypeBounds(variableMap));
+      argumentTypes.add(argument.updateTypeBounds(typeMap));
     }
-    JvmMethod overload = selectOverload(argumentTypes);
-    if(overload == null) {
-      return ValueBounds.UNBOUNDED;
+    selectedOverload = selectOverload(argumentTypes);
+    if(selectedOverload == null) {
+      valueBounds = ValueBounds.UNBOUNDED;
+    } else {
+      valueBounds = computeTypeBounds(selectedOverload, argumentTypes);
     }
+    
+    return valueBounds;
+  }
 
-    return computeTypeBounds(overload, argumentTypes);
+  @Override
+  public ValueBounds getValueBounds() {
+    return valueBounds;
   }
 
   private JvmMethod selectOverload(List<ValueBounds> argumentTypes) {

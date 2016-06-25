@@ -1,11 +1,7 @@
 package org.renjin.compiler.ir.ssa;
 
 import org.renjin.compiler.ir.IRFormatting;
-import org.renjin.compiler.ir.ValueBounds;
-import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.Variable;
-
-import java.util.Map;
 
 
 public class SsaVariable extends Variable {
@@ -40,16 +36,7 @@ public class SsaVariable extends Variable {
       return true;
     }
   }
-
-
-  @Override
-  public ValueBounds computeTypeBounds(Map<Expression, ValueBounds> variableMap) {
-    if(version == 0) {
-      return ValueBounds.UNBOUNDED;
-    } else {
-      return super.computeTypeBounds(variableMap);
-    }
-  }
+  
   
   @Override
   public String toString() {

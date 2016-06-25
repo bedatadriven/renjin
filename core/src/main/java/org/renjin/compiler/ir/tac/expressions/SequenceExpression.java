@@ -12,6 +12,7 @@ import java.util.Map;
 
 public class SequenceExpression extends SpecializedCallExpression {
  
+  private ValueBounds valueBounds;
 
   public SequenceExpression(Expression from, Expression to) {
     super(from, to);
@@ -28,11 +29,18 @@ public class SequenceExpression extends SpecializedCallExpression {
   }
 
   @Override
-  public ValueBounds computeTypeBounds(Map<Expression, ValueBounds> typeMap) {
-    ValueBounds fromType = childAt(0).computeTypeBounds(typeMap);
-    ValueBounds toType = childAt(1).computeTypeBounds(typeMap);
+  public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
+    ValueBounds fromType = childAt(0).updateTypeBounds(typeMap);
+    ValueBounds toType = childAt(1).updateTypeBounds(typeMap);
 
-    return ValueBounds.vector(fromType.getTypeSet() | toType.getTypeSet());
+    valueBounds = ValueBounds.vector(fromType.getTypeSet() | toType.getTypeSet());
+    
+    return valueBounds;
+  }
+
+  @Override
+  public ValueBounds getValueBounds() {
+    return valueBounds;
   }
 
   @Override

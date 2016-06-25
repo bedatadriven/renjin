@@ -37,7 +37,12 @@ public class CmpGE extends SpecializedCallExpression {
   }
 
   @Override
-  public ValueBounds computeTypeBounds(Map<Expression, ValueBounds> typeMap) {
+  public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
+    return getValueBounds();
+  }
+
+  @Override
+  public ValueBounds getValueBounds() {
     return ValueBounds.LOGICAL_PRIMITIVE;
   }
 }

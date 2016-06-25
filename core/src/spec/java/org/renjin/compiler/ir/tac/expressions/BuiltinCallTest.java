@@ -25,7 +25,7 @@ public class BuiltinCallTest {
     typeMap.put(x, ValueBounds.DOUBLE_PRIMITIVE);
     typeMap.put(y, ValueBounds.DOUBLE_PRIMITIVE);
 
-    ValueBounds bounds = call.computeTypeBounds(typeMap);
+    ValueBounds bounds = call.updateTypeBounds(typeMap);
 
     System.out.println(bounds);
     

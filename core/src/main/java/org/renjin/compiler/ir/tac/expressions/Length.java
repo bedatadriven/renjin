@@ -34,7 +34,7 @@ public class Length extends SpecializedCallExpression implements SimpleExpressio
   @Override
   public int emitPush(EmitContext emitContext, MethodVisitor mv) {
     int stackSizeIncrease = getVector().emitPush(emitContext, mv);
-    mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "org/renjin/sexp/SEXP", "length", "()I");
+    mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "org/renjin/sexp/SEXP", "length", "()I", true);
     return stackSizeIncrease;
   }
 
@@ -44,7 +44,12 @@ public class Length extends SpecializedCallExpression implements SimpleExpressio
   }
 
   @Override
-  public ValueBounds computeTypeBounds(Map<Expression, ValueBounds> typeMap) {
+  public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
+    return ValueBounds.LOGICAL_PRIMITIVE;
+  }
+
+  @Override
+  public ValueBounds getValueBounds() {
     return ValueBounds.LOGICAL_PRIMITIVE;
   }
 

@@ -1,11 +1,8 @@
 package org.renjin.compiler.ir.tac.expressions;
 
 import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
 import org.renjin.compiler.emit.EmitContext;
 import org.renjin.compiler.ir.ValueBounds;
-import org.renjin.sexp.Vector;
 
 import java.util.Map;
 
@@ -15,7 +12,7 @@ import java.util.Map;
  */
 public class ElementAccess extends SpecializedCallExpression {
 
-  private Class type;
+  private ValueBounds valueBounds = ValueBounds.UNBOUNDED;
   
   public ElementAccess(Expression vector, Expression index) {
     super(vector, index);
@@ -46,23 +43,30 @@ public class ElementAccess extends SpecializedCallExpression {
   @Override
   public int emitPush(EmitContext emitContext, MethodVisitor mv) {
 
-    int stackIncrease =
-        getVector().emitPush(emitContext, mv) +
-        getIndex().emitPush(emitContext, mv);
-
-    if(type.equals(double.class)) {
-      mv.visitMethodInsn(Opcodes.INVOKEINTERFACE,
-          Type.getInternalName(Vector.class), "getElementAsDouble", "(I)D", true);
-    } else {
-      throw new UnsupportedOperationException(type.toString());
-    }
-
-    return stackIncrease;
+//    int stackIncrease =
+//        getVector().emitPush(emitContext, mv) +
+//        getIndex().emitPush(emitContext, mv);
+//
+//    if(type.equals(double.class)) {
+//      mv.visitMethodInsn(Opcodes.INVOKEINTERFACE,
+//          Type.getInternalName(Vector.class), "getElementAsDouble", "(I)D", true);
+//    } else {
+//      throw new UnsupportedOperationException(type.toString());
+//    }
+//
+//    return stackIncrease;
+    throw new UnsupportedOperationException();
   }
 
   @Override
-  public ValueBounds computeTypeBounds(Map<Expression, ValueBounds> typeMap) {
-    ValueBounds vectorType = getVector().computeTypeBounds(typeMap);
-    return ValueBounds.primitive(vectorType.getTypeSet());
+  public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
+    int typeSet = getVector().updateTypeBounds(typeMap).getTypeSet();
+    
+    return ValueBounds.primitive(typeSet);
+  }
+
+  @Override
+  public ValueBounds getValueBounds() {
+    return valueBounds;
   }
 }

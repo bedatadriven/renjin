@@ -29,8 +29,13 @@ public class NullExpression implements Expression {
   }
 
   @Override
-  public ValueBounds computeTypeBounds(Map<Expression, ValueBounds> variableMap) {
+  public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public ValueBounds getValueBounds() {
+    return ValueBounds.UNBOUNDED;
   }
 
   @Override

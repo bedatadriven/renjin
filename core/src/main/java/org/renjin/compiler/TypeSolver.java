@@ -56,6 +56,11 @@ public class TypeSolver {
   private final ArrayDeque<FlowEdge> flowWorkList = new ArrayDeque<>();
   private final ArrayDeque<SsaEdge> ssaWorkList = new ArrayDeque<>();
 
+  /**
+   * Set of SSA variables that are actually used.
+   */
+  private final Set<LValue> variableUsages = new HashSet<>();
+
   private static final ValueBounds TOP = null;
   
   private final Map<Expression, ValueBounds> lattice = Maps.newHashMap();
@@ -99,11 +104,11 @@ public class TypeSolver {
   }
   
   public boolean isUsed(Assignment assignment) {
-    return ssaEdges.containsKey(assignment.getLHS());
+    return isUsed(assignment.getLHS());
   }
 
   public boolean isUsed(LValue variable) {
-    return ssaEdges.containsKey(variable);
+    return variableUsages.contains(variable);
   }
   
   private void addSsaEdge(LValue variable, BasicBlock basicBlock, Statement usage) {
@@ -111,11 +116,22 @@ public class TypeSolver {
     if(definition != null) {
       SsaEdge edge = new SsaEdge(definition, basicBlock, usage);
       ssaEdges.put(definition.getLHS(), edge);
+    
+      if(basicBlock != cfg.getExit()) {
+        variableUsages.add(definition.getLHS());
+      }
     }
+  }
+  
+  public Map<LValue, ValueBounds> getVariables() {
+    Map<LValue, ValueBounds> map = new HashMap<>();
+    for (LValue variable : variableUsages) {
+      map.put(variable, lattice.get(variable));
+    }
+    return map;
   }
 
   private void execute() {
-
 
     // (1) Initialize the flowWorkList to contain the edges exiting the start node of the program. 
     //     The SSA Work list is initially empty
@@ -241,7 +257,7 @@ public class TypeSolver {
 
     Expression expression = statement.getRHS();
     ValueBounds oldBounds = lattice.get(expression);
-    ValueBounds newBounds = expression.computeTypeBounds(lattice);
+    ValueBounds newBounds = expression.updateTypeBounds(lattice);
     
     if(!Objects.equals(oldBounds, newBounds)) {
 

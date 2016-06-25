@@ -98,7 +98,12 @@ public class JvmMethodCall implements CallExpression {
   }
 
   @Override
-  public ValueBounds computeTypeBounds(Map<Expression, ValueBounds> variableMap) {
+  public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
+    return ValueBounds.UNBOUNDED;
+  }
+
+  @Override
+  public ValueBounds getValueBounds() {
     return ValueBounds.UNBOUNDED;
   }
 

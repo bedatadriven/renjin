@@ -21,9 +21,11 @@
 
 package org.renjin.primitives.special;
 
+import org.renjin.compiler.CompiledBody;
 import org.renjin.compiler.TypeSolver;
 import org.renjin.compiler.cfg.ControlFlowGraph;
 import org.renjin.compiler.cfg.DominanceTree;
+import org.renjin.compiler.emit.ByteCodeEmitter;
 import org.renjin.compiler.ir.ssa.SsaTransformer;
 import org.renjin.compiler.ir.tac.IRBody;
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
@@ -86,16 +88,17 @@ public class ForFunction extends SpecialFunction {
     SsaTransformer ssaTransformer = new SsaTransformer(cfg, dTree);
     ssaTransformer.transform();
 
-    //System.out.println(cfg);
-
-    TypeSolver solver = new TypeSolver(cfg);
-    
-    ssaTransformer.removePhiFunctions(solver);
-
     System.out.println(cfg);
-//
-//    ByteCodeEmitter emitter = new ByteCodeEmitter(cfg);
-//    CompiledBody compiledBody = emitter.compile().newInstance();
+
+    TypeSolver types = new TypeSolver(cfg);
+    types.dumpBounds();
+    
+    ssaTransformer.removePhiFunctions(types);
+
+   // System.out.println(cfg);
+
+    ByteCodeEmitter emitter = new ByteCodeEmitter(cfg, types);
+    CompiledBody compiledBody = emitter.compile().newInstance();
 //
 //    compiledBody.evaluate(context, rho);
 

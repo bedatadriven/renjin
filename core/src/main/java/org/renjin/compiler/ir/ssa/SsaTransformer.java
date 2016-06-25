@@ -201,8 +201,8 @@ public class SsaTransformer {
    */
   private int whichPred(BasicBlock X, BasicBlock Y) {
     int j = 0;
-    for(BasicBlock P : cfg.getPredecessors(X)) {
-      if(P.equals(Y)) {
+    for(FlowEdge P : X.getIncoming()) {
+      if(P.getPredecessor().equals(Y)) {
         return j;
       }
       j++;
@@ -218,8 +218,10 @@ public class SsaTransformer {
           Statement statement = it.next();
           if (statement instanceof Assignment && statement.getRHS() instanceof PhiFunction) {
             Assignment assignment = (Assignment) statement;
-            insertAssignments(assignment.getLHS(), (PhiFunction) statement.getRHS());
-            it.remove();
+            if(types.isUsed(assignment)) {
+              insertAssignments(assignment.getLHS(), (PhiFunction) statement.getRHS());
+              it.remove();
+            }
           }
         }
       }

@@ -50,14 +50,19 @@ public class PhiFunction implements Expression {
   }
 
   @Override
-  public ValueBounds computeTypeBounds(Map<Expression, ValueBounds> variableMap) {
+  public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
     Iterator<Variable> it = arguments.iterator();
-    ValueBounds bounds = it.next().computeTypeBounds(variableMap);
+    ValueBounds bounds = it.next().updateTypeBounds(typeMap);
     
     while(it.hasNext()) {
-      bounds = bounds.union(it.next().computeTypeBounds(variableMap));
+      bounds = bounds.union(it.next().updateTypeBounds(typeMap));
     }
     return bounds;
+  }
+
+  @Override
+  public ValueBounds getValueBounds() {
+    throw new UnsupportedOperationException();
   }
 
   public List<FlowEdge> getIncomingEdges() {

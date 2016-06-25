@@ -4,11 +4,10 @@ package org.renjin.compiler.emit;
 import org.objectweb.asm.*;
 import org.objectweb.asm.util.TraceClassVisitor;
 import org.renjin.compiler.CompiledBody;
-import org.renjin.compiler.cfg.BasicBlock;
+import org.renjin.compiler.TypeSolver;
 import org.renjin.compiler.cfg.ControlFlowGraph;
-import org.renjin.compiler.ir.ssa.RegisterAllocation;
-import org.renjin.compiler.ir.tac.IRLabel;
-import org.renjin.compiler.ir.tac.statements.Statement;
+import org.renjin.eval.Context;
+import org.renjin.sexp.Environment;
 
 import java.io.PrintWriter;
 
@@ -19,14 +18,14 @@ public class ByteCodeEmitter implements Opcodes {
   private ControlFlowGraph cfg;
   private String className;
 
-  private static final int DO_NOT_COMPUTE_FRAMES = 0;
+  private TypeSolver types;
 
 
-  public ByteCodeEmitter(ControlFlowGraph cfg) {
+  public ByteCodeEmitter(ControlFlowGraph cfg, TypeSolver types) {
     super();
-    this.className = "Body" + System.identityHashCode(cfg);
     this.cfg = cfg;
-
+    this.types = types;
+    this.className = "Body" + System.identityHashCode(cfg);
   }
 
   public Class<CompiledBody> compile() {
@@ -60,7 +59,9 @@ public class ByteCodeEmitter implements Opcodes {
 
 
   private void writeImplementation() {
-    MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "evaluate", "(Lorg/renjin/eval/Context;Lorg/renjin/sexp/Environment;)Lorg/renjin/sexp/SEXP;", null, null);
+    MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "evaluate", 
+        Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(Context.class), Type.getType(Environment.class)), 
+        null, null);
     mv.visitCode();
     writeBody(mv);
     mv.visitEnd();
@@ -68,32 +69,34 @@ public class ByteCodeEmitter implements Opcodes {
 
   private void writeBody(MethodVisitor mv) {
 
-    int nextSlot = 3; // this + context + environment
-    RegisterAllocation registerAllocation = new RegisterAllocation(cfg, nextSlot);
+    int argumentSize = 3; // this + context + environment
+    VariableSlots variableSlots = new VariableSlots(argumentSize, types);
 
-    int numLocals = 3 + registerAllocation.getSize();
+    System.out.println(variableSlots);
+  
+    throw new UnsupportedOperationException();
 
-    System.out.println(registerAllocation);
-
-    EmitContext emitContext = new EmitContext(cfg, registerAllocation);
-
-    int maxStackSize = 0;
-    for(BasicBlock bb : cfg.getBasicBlocks()) {
-      if(bb != cfg.getEntry() && bb != cfg.getExit()) {
-        for(IRLabel label : bb.getLabels()) {
-          mv.visitLabel(emitContext.getAsmLabel(label));
-        }
-
-        for(Statement stmt : bb.getStatements()) {
-          int stackHeight = stmt.emit(emitContext, mv);
-          if(stackHeight > maxStackSize) {
-            maxStackSize = stackHeight;
-          }
-        }
-      }
-    }
-
-    mv.visitMaxs(maxStackSize, numLocals);
+//
+    
+//    EmitContext emitContext = new EmitContext(cfg, registerAllocation);
+//
+//    int maxStackSize = 0;
+//    for(BasicBlock basicBlock : cfg.getBasicBlocks()) {
+//      if(basicBlock != cfg.getEntry() && basicBlock != cfg.getExit()) {
+//        for(IRLabel label : basicBlock.getLabels()) {
+//          mv.visitLabel(emitContext.getAsmLabel(label));
+//        }
+//
+//        for(Statement stmt : basicBlock.getStatements()) {
+//          int stackHeight = stmt.emit(emitContext, mv);
+//          if(stackHeight > maxStackSize) {
+//            maxStackSize = stackHeight;
+//          }
+//        }
+//      }
+//    }
+//
+//    mv.visitMaxs(maxStackSize, numLocals);
   }
 
   private void writeClassEnd() {

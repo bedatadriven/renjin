@@ -64,7 +64,12 @@ public final class Constant implements SimpleExpression {
   }
 
   @Override
-  public ValueBounds computeTypeBounds(Map<Expression, ValueBounds> variableMap) {
+  public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
+    return valueBounds;
+  }
+
+  @Override
+  public ValueBounds getValueBounds() {
     return valueBounds;
   }
 

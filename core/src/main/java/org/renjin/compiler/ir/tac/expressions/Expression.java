@@ -30,8 +30,10 @@ public interface Expression extends TreeNode {
   /**
    * Resolves and stores the type of this Expression, based on it's
    * child nodes
-   * @param variableMap
+   * @param typeMap
    */
-  ValueBounds computeTypeBounds(Map<Expression, ValueBounds> variableMap);
+  ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap);
 
+  ValueBounds getValueBounds();
+  
 }

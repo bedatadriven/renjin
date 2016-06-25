@@ -42,7 +42,7 @@ public abstract class SpecializedCallExpression implements Expression {
   }
 
   @Override
-  public ValueBounds computeTypeBounds(Map<Expression, ValueBounds> typeMap) {
+  public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
     return ValueBounds.UNBOUNDED;
   }
 

@@ -1,8 +1,8 @@
 package org.renjin.compiler.ir.tac.expressions;
 
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.InstructionAdapter;
 import org.renjin.compiler.emit.EmitContext;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.primitives.sequence.DoubleSequence;
@@ -44,15 +44,20 @@ public class SequenceExpression extends SpecializedCallExpression {
   }
 
   @Override
-  public int emitPush(EmitContext emitContext, MethodVisitor mv) {
+  public int load(EmitContext emitContext, InstructionAdapter mv) {
     int stackSizeIncrease =
-        assertDouble(childAt(0)).emitPush(emitContext, mv) + 
-        assertDouble(childAt(1)).emitPush(emitContext, mv);
+        assertDouble(childAt(0)).load(emitContext, mv) + 
+        assertDouble(childAt(1)).load(emitContext, mv);
 
     mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(DoubleSequence.class), "fromTo",
         Type.getMethodDescriptor(Type.getType(AtomicVector.class), Type.DOUBLE_TYPE, Type.DOUBLE_TYPE), false);
 
     return stackSizeIncrease;
+  }
+
+  @Override
+  public Type getType() {
+    return valueBounds.storageType();
   }
 
   private Expression assertDouble(Expression expression) {

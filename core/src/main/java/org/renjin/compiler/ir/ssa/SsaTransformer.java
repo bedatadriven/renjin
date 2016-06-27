@@ -220,8 +220,8 @@ public class SsaTransformer {
             Assignment assignment = (Assignment) statement;
             if(types.isUsed(assignment)) {
               insertAssignments(assignment.getLHS(), (PhiFunction) statement.getRHS());
-              it.remove();
             }
+            it.remove();
           }
         }
       }

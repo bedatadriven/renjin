@@ -1,6 +1,7 @@
 package org.renjin.compiler.ir.tac.expressions;
 
-import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.InstructionAdapter;
 import org.renjin.compiler.emit.EmitContext;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.sexp.*;
@@ -20,10 +21,12 @@ public final class Constant implements SimpleExpression {
 
   private SEXP value;
   private ValueBounds valueBounds;
+  private Type type;
 
   public Constant(SEXP value) {
     this.value = value;
     this.valueBounds = ValueBounds.of(value);
+    this.type = valueBounds.storageType();
   }
   
   public Constant(int value) {
@@ -54,8 +57,25 @@ public final class Constant implements SimpleExpression {
   }
 
   @Override
-  public int emitPush(EmitContext emitContext, MethodVisitor mv) {
-    throw new UnsupportedOperationException("TODO");
+  public int load(EmitContext emitContext, InstructionAdapter mv) {
+    if (type.equals(Type.INT_TYPE)) {
+      mv.iconst(((AtomicVector) value).getElementAsInt(0));
+
+    } else if (type.equals(Type.DOUBLE_TYPE)) {
+      mv.dconst(((AtomicVector) value).getElementAsDouble(0));
+
+    } else if (type.equals(Type.getType(String.class))) {
+      mv.aconst(((AtomicVector) value).getElementAsString(0));
+
+    } else {
+      throw new UnsupportedOperationException("type: " + type);
+    }
+    return 1;
+  }
+
+  @Override
+  public Type getType() {
+    return type;
   }
 
   @Override

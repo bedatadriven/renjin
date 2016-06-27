@@ -283,7 +283,7 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     }
     return parent.findVariable(symbol);
   }
-
+  
   private SEXP findVarArg(int varArgReferenceIndex) {
     SEXP ellipses = findVariable(Symbols.ELLIPSES);
     if(ellipses == Symbol.UNBOUND_VALUE) {

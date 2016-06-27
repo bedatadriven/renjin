@@ -1,6 +1,7 @@
 package org.renjin.compiler.ir.tac.statements;
 
-import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.InstructionAdapter;
 import org.renjin.compiler.emit.EmitContext;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.expressions.Expression;
@@ -70,22 +71,8 @@ public class ReturnStatement implements Statement, BasicBlockEndingStatement {
   }
 
   @Override
-  public int emit(EmitContext emitContext, MethodVisitor mv) {
-//    Class type = getRHS().getType();
-//    int stackSizeIncrease = 0;
-//    if(type.equals(double.class)) {
-//      stackSizeIncrease = getRHS().emitPush(emitContext, mv);
-//      mv.visitMethodInsn(Opcodes.INVOKESTATIC,
-//          Type.getInternalName(DoubleArrayVector.class), "valueOf",
-//          Type.getMethodDescriptor(Type.getType(DoubleArrayVector.class), Type.DOUBLE_TYPE));
-//   //   mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(SEXP.class));
-//
-//    } else {
-//      throw new UnsupportedOperationException();
-//    }
-//
-//    mv.visitInsn(Opcodes.ARETURN);
-//    return stackSizeIncrease;
-    throw new UnsupportedOperationException();
+  public int emit(EmitContext emitContext, InstructionAdapter mv) {
+    mv.areturn(Type.VOID_TYPE);
+    return 0;
   }
 }

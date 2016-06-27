@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.renjin.compiler.NotCompilableException;
+import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.expressions.*;
 import org.renjin.compiler.ir.tac.functions.FunctionCallTranslator;
 import org.renjin.compiler.ir.tac.functions.FunctionCallTranslators;
@@ -84,7 +85,7 @@ public class IRBodyBuilder {
         throw new NotCompilableException(environmentVariable.getName(), "Unevaluated promise encountered");
       }
       if(value != Symbol.UNBOUND_VALUE) {
-        initializations.add(new Assignment(environmentVariable, new Constant(value)));
+        initializations.add(new Assignment(environmentVariable, new ReadEnvironment(environmentVariable.getName(), ValueBounds.of(value))));
       }
     }
     

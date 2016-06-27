@@ -1,6 +1,7 @@
 package org.renjin.compiler.ir.tac.expressions;
 
-import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.InstructionAdapter;
 import org.renjin.compiler.emit.EmitContext;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.TreeNode;
@@ -24,8 +25,9 @@ public interface Expression extends TreeNode {
    * @param mv
    * @return the number of items pushed onto the stack
    */
-  int emitPush(EmitContext emitContext, MethodVisitor mv);
+  int load(EmitContext emitContext, InstructionAdapter mv);
 
+  Type getType();
 
   /**
    * Resolves and stores the type of this Expression, based on it's

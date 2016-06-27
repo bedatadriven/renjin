@@ -1,13 +1,13 @@
 package org.renjin.compiler.ir.tac.statements;
 
-import java.util.Arrays;
-
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.commons.InstructionAdapter;
 import org.renjin.compiler.emit.EmitContext;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.NullExpression;
+
+import java.util.Arrays;
 
 
 public class GotoStatement implements Statement, BasicBlockEndingStatement {
@@ -68,7 +68,7 @@ public class GotoStatement implements Statement, BasicBlockEndingStatement {
   }
 
   @Override
-  public int emit(EmitContext emitContext, MethodVisitor mv) {
+  public int emit(EmitContext emitContext, InstructionAdapter mv) {
     mv.visitJumpInsn(Opcodes.GOTO, emitContext.getAsmLabel(target));
     return 0;
   }

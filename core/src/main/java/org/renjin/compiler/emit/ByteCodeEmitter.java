@@ -2,10 +2,15 @@ package org.renjin.compiler.emit;
 
 
 import org.objectweb.asm.*;
+import org.objectweb.asm.commons.InstructionAdapter;
 import org.objectweb.asm.util.TraceClassVisitor;
 import org.renjin.compiler.CompiledBody;
 import org.renjin.compiler.TypeSolver;
+import org.renjin.compiler.cfg.BasicBlock;
 import org.renjin.compiler.cfg.ControlFlowGraph;
+import org.renjin.compiler.ir.exception.InternalCompilerException;
+import org.renjin.compiler.ir.tac.IRLabel;
+import org.renjin.compiler.ir.tac.statements.Statement;
 import org.renjin.eval.Context;
 import org.renjin.sexp.Environment;
 
@@ -40,7 +45,7 @@ public class ByteCodeEmitter implements Opcodes {
 
   private void startClass() {
 
-    cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+    cw = new ClassWriter(0);
     cv = new TraceClassVisitor(cw, new PrintWriter(System.out, true));
     cv.visit(V1_6, ACC_PUBLIC + ACC_SUPER, className, null,
             Type.getInternalName(Object.class), new String[] { Type.getInternalName(CompiledBody.class) });
@@ -71,32 +76,33 @@ public class ByteCodeEmitter implements Opcodes {
 
     int argumentSize = 3; // this + context + environment
     VariableSlots variableSlots = new VariableSlots(argumentSize, types);
-
     System.out.println(variableSlots);
-  
-    throw new UnsupportedOperationException();
-
-//
     
-//    EmitContext emitContext = new EmitContext(cfg, registerAllocation);
-//
-//    int maxStackSize = 0;
-//    for(BasicBlock basicBlock : cfg.getBasicBlocks()) {
-//      if(basicBlock != cfg.getEntry() && basicBlock != cfg.getExit()) {
-//        for(IRLabel label : basicBlock.getLabels()) {
-//          mv.visitLabel(emitContext.getAsmLabel(label));
-//        }
-//
-//        for(Statement stmt : basicBlock.getStatements()) {
-//          int stackHeight = stmt.emit(emitContext, mv);
-//          if(stackHeight > maxStackSize) {
-//            maxStackSize = stackHeight;
-//          }
-//        }
-//      }
-//    }
-//
-//    mv.visitMaxs(maxStackSize, numLocals);
+    EmitContext emitContext = new EmitContext(cfg, variableSlots);
+
+    InstructionAdapter instructionAdapter = new InstructionAdapter(mv);
+
+    int maxStackSize = 0;
+    for(BasicBlock basicBlock : cfg.getBasicBlocks()) {
+      if(basicBlock != cfg.getEntry() && basicBlock != cfg.getExit()) {
+        for(IRLabel label : basicBlock.getLabels()) {
+          mv.visitLabel(emitContext.getAsmLabel(label));
+        }
+
+        for(Statement stmt : basicBlock.getStatements()) {
+          try {
+            int stackHeight = stmt.emit(emitContext, instructionAdapter);
+            if (stackHeight > maxStackSize) {
+              maxStackSize = stackHeight;
+            }
+          } catch (Exception e) {
+            throw new InternalCompilerException("Exception compiling statement " + stmt, e);
+          }
+        }
+      }
+    }
+
+    mv.visitMaxs(maxStackSize, variableSlots.getNumLocals() + 2);
   }
 
   private void writeClassEnd() {

@@ -1,19 +1,17 @@
 package org.renjin.compiler.ir.tac.statements;
 
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.commons.InstructionAdapter;
 import org.renjin.compiler.emit.EmitContext;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.expressions.CmpGE;
 import org.renjin.compiler.ir.tac.expressions.Expression;
-import org.renjin.compiler.ir.tac.expressions.LValue;
-import org.renjin.compiler.ir.tac.expressions.SimpleExpression;
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.*;
 
 import java.util.Arrays;
 
-import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Opcodes.GOTO;
+import static org.objectweb.asm.Opcodes.IF_ICMPLT;
 
 
 public class IfStatement implements Statement, BasicBlockEndingStatement {
@@ -131,7 +129,7 @@ public class IfStatement implements Statement, BasicBlockEndingStatement {
   }
 
   @Override
-  public int emit(EmitContext emitContext, MethodVisitor mv) {
+  public int emit(EmitContext emitContext, InstructionAdapter mv) {
 
     int stackSizeIncrease = 0;
 
@@ -139,8 +137,8 @@ public class IfStatement implements Statement, BasicBlockEndingStatement {
 
       CmpGE cmp = (CmpGE) getCondition();
       stackSizeIncrease =
-          cmp.childAt(0).emitPush(emitContext, mv) +
-          cmp.childAt(1).emitPush(emitContext, mv);
+          cmp.childAt(0).load(emitContext, mv) +
+          cmp.childAt(1).load(emitContext, mv);
 
       mv.visitJumpInsn(IF_ICMPLT, emitContext.getAsmLabel(falseTarget));
 

@@ -1,7 +1,8 @@
 package org.renjin.compiler.ir.tac.expressions;
 
 import com.google.common.base.Joiner;
-import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.InstructionAdapter;
 import org.renjin.compiler.emit.EmitContext;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.invoke.model.JvmMethod;
@@ -52,7 +53,7 @@ public class JvmMethodCall implements CallExpression {
   }
 
   @Override
-  public int emitPush(EmitContext emitContext, MethodVisitor mv) {
+  public int load(EmitContext emitContext, InstructionAdapter mv) {
 
 //    int stackIncreaseRequiredForArguments = 0;
 //
@@ -85,6 +86,11 @@ public class JvmMethodCall implements CallExpression {
 //    return Math.max(
 //        stackIncreaseRequiredForArguments,
 //        stackIncreaseRequiredForReturnValue());
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public Type getType() {
     throw new UnsupportedOperationException();
   }
 

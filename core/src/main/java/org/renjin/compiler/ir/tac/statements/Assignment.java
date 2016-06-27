@@ -1,7 +1,9 @@
 package org.renjin.compiler.ir.tac.statements;
 
-import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.commons.InstructionAdapter;
 import org.renjin.compiler.emit.EmitContext;
+import org.renjin.compiler.emit.VariableStorage;
 import org.renjin.compiler.ir.IRFormatting;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.expressions.Expression;
@@ -73,25 +75,16 @@ public class Assignment implements Statement {
   }
 
   @Override
-  public int emit(EmitContext emitContext, MethodVisitor mv) {
-    int stackIncrease = rhs.emitPush(emitContext, mv);
-    mv.visitVarInsn(storeOpcode(), emitContext.getRegister(lhs));
+  public int emit(EmitContext emitContext, InstructionAdapter mv) {
+
+    VariableStorage storage = emitContext.getVariableStorage(lhs);
+    
+    int stackIncrease = rhs.load(emitContext, mv);
+    emitContext.convert(mv, rhs.getType(), storage.getType());
+    mv.visitVarInsn(storage.getType().getOpcode(Opcodes.ISTORE), storage.getSlotIndex());
     return stackIncrease;
   }
 
-  private int storeOpcode() {
-//    Class type = rhs.getType();
-//    if(type.equals(double.class)) {
-//      return Opcodes.DSTORE;
-//    } else if(type.equals(int.class)) {
-//      return Opcodes.ISTORE;
-//    } else if(Vector.class.isAssignableFrom(type)) {
-//      return Opcodes.ASTORE;
-//    } else {
-//      throw new UnsupportedOperationException("don't know how to STORE " + type);
-//    }
-    throw new UnsupportedOperationException();
-  }
 
   public void setLHS(LValue lhs) {
     this.lhs = lhs;

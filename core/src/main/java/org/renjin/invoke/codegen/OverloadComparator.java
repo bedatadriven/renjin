@@ -8,7 +8,7 @@ import org.renjin.sexp.*;
 import java.util.Comparator;
 
 
-class OverloadComparator implements Comparator<JvmMethod> {
+public class OverloadComparator implements Comparator<JvmMethod> {
   private static final int ATOMIC_VECTOR_GROUP = 100;
   private static final int VECTOR_GROUP = 150;
   private static final int SEXP_GROUP = 200;

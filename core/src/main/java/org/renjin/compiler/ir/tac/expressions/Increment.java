@@ -1,7 +1,8 @@
 package org.renjin.compiler.ir.tac.expressions;
 
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.InstructionAdapter;
 import org.renjin.compiler.emit.EmitContext;
 import org.renjin.compiler.ir.ValueBounds;
 
@@ -39,11 +40,16 @@ public class Increment extends SpecializedCallExpression {
   }
 
   @Override
-  public int emitPush(EmitContext emitContext, MethodVisitor mv) {
-    getCounter().emitPush(emitContext, mv);
+  public int load(EmitContext emitContext, InstructionAdapter mv) {
+    getCounter().load(emitContext, mv);
     mv.visitInsn(Opcodes.ICONST_1);
     mv.visitInsn(Opcodes.IADD);
     return 2;
+  }
+
+  @Override
+  public Type getType() {
+    return Type.INT_TYPE;
   }
 
   @Override

@@ -95,7 +95,7 @@ public class ForFunction extends SpecialFunction {
     
     ssaTransformer.removePhiFunctions(types);
 
-   // System.out.println(cfg);
+//    System.out.println(cfg);
 
     ByteCodeEmitter emitter = new ByteCodeEmitter(cfg, types);
     CompiledBody compiledBody = emitter.compile().newInstance();

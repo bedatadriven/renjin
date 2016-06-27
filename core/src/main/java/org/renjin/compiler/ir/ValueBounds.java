@@ -1,7 +1,8 @@
 package org.renjin.compiler.ir;
 
 import com.google.common.base.Preconditions;
-import org.renjin.sexp.SEXP;
+import org.objectweb.asm.Type;
+import org.renjin.sexp.*;
 
 import java.util.Iterator;
 
@@ -20,7 +21,6 @@ public class ValueBounds {
   public static final ValueBounds DOUBLE_PRIMITIVE = primitive(TypeSet.DOUBLE);
 
   public static final ValueBounds LOGICAL_PRIMITIVE = primitive(TypeSet.LOGICAL);
-
 
   private int length = UNKNOWN_LENGTH;
   private int typeSet = TypeSet.ANY_TYPE;
@@ -107,6 +107,38 @@ public class ValueBounds {
     return bounds;
   }
 
+
+  public Type storageType() {
+    if(typeSet == TypeSet.DOUBLE) {
+      if(length == 1) {
+        return Type.DOUBLE_TYPE;
+      } else {
+        return Type.getType(DoubleVector.class);
+      }
+    } else if(typeSet == TypeSet.INT ||
+        typeSet == TypeSet.LOGICAL) {
+      if(length == 1) {
+        return Type.INT_TYPE;
+      } else {
+        return Type.getType(IntVector.class);
+      }
+    } else if(typeSet == TypeSet.RAW) {
+      if(length == 1) {
+        return Type.BYTE_TYPE;
+      } else {
+        return Type.getType(RawVector.class);
+      }
+    } else if(typeSet == TypeSet.STRING) {
+      if (length == 1) {
+        return Type.getType(String.class);
+      } else {
+        return Type.getType(StringVector.class);
+      }
+    } else {
+      return Type.getType(SEXP.class);
+    }
+  }
+
   @Override
   public String toString() {
     
@@ -130,14 +162,16 @@ public class ValueBounds {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     ValueBounds that = (ValueBounds) o;
 
-    if (length != that.length) return false;
-    return typeSet == that.typeSet;
-
+    return length == that.length && typeSet == that.typeSet;
   }
 
   @Override

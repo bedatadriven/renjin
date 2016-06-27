@@ -20,7 +20,7 @@ public class TypeSet {
   public static final int FUNCTION = (1 << 10);
   public static final int ENVIRONMENT = (1 << 11);
   public static final int PAIRLIST = (1 << 12);
-  public static final int ANY_ATOMIC_VECTOR = NULL | RAW | INT | LOGICAL | DOUBLE | COMPLEX;
+  public static final int ANY_ATOMIC_VECTOR = NULL | RAW | INT | LOGICAL | DOUBLE | COMPLEX | STRING;
   public static final int ANY_VECTOR = LIST | ANY_ATOMIC_VECTOR;
   public static final int ANY_TYPE = ANY_VECTOR | PAIRLIST | ENVIRONMENT | SYMBOL | FUNCTION;
 
@@ -76,11 +76,36 @@ public class TypeSet {
     }
   }
 
+  public static int accepts(Class type) {
+    if (type.equals(int.class)) {
+      return INT | LOGICAL;
+
+    } else if(type.equals(double.class)) {
+      return INT | LOGICAL | DOUBLE;
+
+    } else if (type.equals(boolean.class)) {
+      return LOGICAL;
+
+    } else if (type.equals(String.class)) {
+      return STRING;
+
+    } else if (type.equals(Complex.class)) {
+      return COMPLEX;
+
+    } else {
+      throw new UnsupportedOperationException("type: " + type);
+    }
+  }
+
   public static boolean matches(Class clazz, int typeSet) {
-    int mask = of(clazz);
+    // compute the set of bits that we will accept
+    int mask = accepts(clazz);
+    
+    // compute the set of bits we will NOT accept
     int inverseMask = mask ^ ANY_TYPE;
     
-    return (typeSet & inverseMask) != 0;
+    // Make sure that no types are possible that are NOT acceptable for this argument
+    return (typeSet & inverseMask) == 0;
   }
 
   public static String toString(int mask) {

@@ -2,17 +2,17 @@ package org.renjin.compiler.ir.tac.expressions;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.InstructionAdapter;
 import org.renjin.compiler.emit.EmitContext;
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
+import org.renjin.invoke.codegen.OverloadComparator;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.primitives.Primitives;
+import org.renjin.sexp.SEXP;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Call to a builtin function
@@ -34,12 +34,16 @@ public class BuiltinCall implements CallExpression {
    * if it cannot be determined at compile time.
    */
   private JvmMethod selectedOverload = null;
+  private List<ValueBounds> argumentTypes;
 
   public BuiltinCall(Primitives.Entry primitive, String[] argumentNames, List<Expression> arguments) {
     this.primitive = primitive;
     this.argumentNames = argumentNames;
     this.arguments = arguments;
     this.methods = JvmMethod.findOverloads(primitive.functionClass, primitive.name, primitive.methodName);
+
+    Collections.sort( methods, new OverloadComparator());
+
 
   }
 
@@ -69,14 +73,41 @@ public class BuiltinCall implements CallExpression {
   }
 
   @Override
-  public int emitPush(EmitContext emitContext, MethodVisitor mv) {
-    throw new UnsupportedOperationException();
+  public int load(EmitContext emitContext, InstructionAdapter mv) {
+    if(selectedOverload == null) {
+      throw new UnsupportedOperationException();
+    }
+
+    if(selectedOverload.isDataParallel()) {
+      int resultLength = computeLengths(selectedOverload, argumentTypes);
+      if(resultLength == 1) {
+        return generateScalarCall(emitContext, mv);
+      }
+    }
+    throw new UnsupportedOperationException(); 
   }
 
-  
+  private int generateScalarCall(EmitContext emitContext, InstructionAdapter mv) {
+    int stackHeight = 0;
+    for (JvmMethod.Argument argument : selectedOverload.getAllArguments()) {
+      if(argument.isContextual()) {
+        throw new UnsupportedOperationException("TODO");
+      } else {
+        Expression argumentExpr = arguments.get(argument.getIndex());
+        stackHeight += argumentExpr.load(emitContext, mv);
+        emitContext.convert(mv, argumentExpr.getType(), Type.getType(argument.getClazz()));
+      }
+    }
+    mv.invokestatic(Type.getInternalName(selectedOverload.getDeclaringClass()), selectedOverload.getName(), 
+        Type.getMethodDescriptor(selectedOverload.getMethod()), false);
+    
+    return stackHeight;
+  }
+
+
   @Override
   public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
-    List<ValueBounds> argumentTypes = new ArrayList<>();
+    argumentTypes = new ArrayList<ValueBounds>();
     for (Expression argument : arguments) {
       argumentTypes.add(argument.updateTypeBounds(typeMap));
     }
@@ -89,6 +120,17 @@ public class BuiltinCall implements CallExpression {
     
     return valueBounds;
   }
+
+
+  @Override
+  public Type getType() {
+    if(selectedOverload == null) {
+      return Type.getType(SEXP.class);
+    } else {
+      return Type.getType(selectedOverload.getReturnType());
+    }
+  }
+
 
   @Override
   public ValueBounds getValueBounds() {
@@ -112,7 +154,7 @@ public class BuiltinCall implements CallExpression {
       JvmMethod.Argument formal = method.getPositionalFormals().get(i);
       ValueBounds actualType = argumentTypes.get(i);
       
-      if(TypeSet.matches(formal.getClazz(), actualType.getTypeSet())) {
+      if(!TypeSet.matches(formal.getClazz(), actualType.getTypeSet())) {
         return false;
       }
     }

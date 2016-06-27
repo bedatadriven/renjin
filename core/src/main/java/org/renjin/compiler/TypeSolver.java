@@ -175,7 +175,7 @@ public class TypeSolver {
           if(node.countIncomingExecutableEdges() == 1) {
             for (Statement statement : node.getStatements()) {
               if(statement.getRHS() != NullExpression.INSTANCE &&
-                 !(statement.getRHS() instanceof PhiFunction)) {
+                  !(statement.getRHS() instanceof PhiFunction)) {
                 visitExpression(node, statement);
               }
             }

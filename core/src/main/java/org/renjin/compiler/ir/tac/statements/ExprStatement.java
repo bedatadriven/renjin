@@ -1,12 +1,12 @@
 package org.renjin.compiler.ir.tac.statements;
 
-import java.util.Collections;
-
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.commons.InstructionAdapter;
 import org.renjin.compiler.emit.EmitContext;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.expressions.Expression;
+
+import java.util.Collections;
 
 
 /**
@@ -70,9 +70,9 @@ public class ExprStatement implements Statement {
   }
 
   @Override
-  public int emit(EmitContext emitContext, MethodVisitor mv) {
+  public int emit(EmitContext emitContext, InstructionAdapter mv) {
     if(!operand.isDefinitelyPure()) {
-      int stackSizeIncrease = operand.emitPush(emitContext, mv);
+      int stackSizeIncrease = operand.load(emitContext, mv);
       mv.visitInsn(Opcodes.POP);
       return stackSizeIncrease;
     } else {

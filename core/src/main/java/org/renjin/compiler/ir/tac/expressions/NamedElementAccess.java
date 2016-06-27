@@ -1,7 +1,8 @@
 package org.renjin.compiler.ir.tac.expressions;
 
 
-import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.InstructionAdapter;
 import org.renjin.compiler.emit.EmitContext;
 import org.renjin.compiler.ir.ValueBounds;
 
@@ -24,8 +25,13 @@ public class NamedElementAccess extends SpecializedCallExpression {
   }
 
   @Override
-  public int emitPush(EmitContext emitContext, MethodVisitor mv) {
+  public int load(EmitContext emitContext, InstructionAdapter mv) {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public Type getType() {
+    return valueBounds.storageType();
   }
 
   @Override

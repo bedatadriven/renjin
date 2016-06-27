@@ -2,7 +2,8 @@ package org.renjin.compiler.ir.ssa;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.InstructionAdapter;
 import org.renjin.compiler.cfg.FlowEdge;
 import org.renjin.compiler.emit.EmitContext;
 import org.renjin.compiler.ir.ValueBounds;
@@ -45,7 +46,12 @@ public class PhiFunction implements Expression {
   }
 
   @Override
-  public int emitPush(EmitContext emitContext, MethodVisitor mv) {
+  public int load(EmitContext emitContext, InstructionAdapter mv) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public Type getType() {
     throw new UnsupportedOperationException();
   }
 

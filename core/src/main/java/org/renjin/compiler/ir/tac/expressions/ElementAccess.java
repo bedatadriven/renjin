@@ -1,8 +1,11 @@
 package org.renjin.compiler.ir.tac.expressions;
 
-import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.InstructionAdapter;
 import org.renjin.compiler.emit.EmitContext;
 import org.renjin.compiler.ir.ValueBounds;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Vector;
 
 import java.util.Map;
 
@@ -41,28 +44,48 @@ public class ElementAccess extends SpecializedCallExpression {
   }
 
   @Override
-  public int emitPush(EmitContext emitContext, MethodVisitor mv) {
+  public int load(EmitContext emitContext, InstructionAdapter mv) {
 
-//    int stackIncrease =
-//        getVector().emitPush(emitContext, mv) +
-//        getIndex().emitPush(emitContext, mv);
-//
-//    if(type.equals(double.class)) {
-//      mv.visitMethodInsn(Opcodes.INVOKEINTERFACE,
-//          Type.getInternalName(Vector.class), "getElementAsDouble", "(I)D", true);
-//    } else {
-//      throw new UnsupportedOperationException(type.toString());
-//    }
-//
-//    return stackIncrease;
-    throw new UnsupportedOperationException();
+    int stackHeight;
+    
+    Expression vector = getVector();
+    Type resultType = valueBounds.storageType();
+    
+    if(vector.getType().getSort() == Type.OBJECT) {
+      stackHeight = vector.load(emitContext, mv);
+      
+      if(vector.getType().equals(SEXP.class)) {
+        mv.checkcast(Type.getType(Vector.class));
+      }
+      
+      getIndex().load(emitContext, mv);
+      
+      if(resultType.equals(Type.INT_TYPE)) {
+        mv.invokeinterface(Type.getInternalName(Vector.class), "getElementAsInt",
+            Type.getMethodDescriptor(Type.INT_TYPE, Type.INT_TYPE));
+      } else {
+        throw new UnsupportedOperationException("resultType: " + resultType);
+      }
+      
+      return stackHeight+1;
+      
+    } else {
+      throw new UnsupportedOperationException("vectorType: " + vector.getType());
+    }
+  }
+
+  @Override
+  public Type getType() {
+    return valueBounds.storageType();
   }
 
   @Override
   public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
     int typeSet = getVector().updateTypeBounds(typeMap).getTypeSet();
     
-    return ValueBounds.primitive(typeSet);
+    valueBounds = ValueBounds.primitive(typeSet);
+    
+    return valueBounds;
   }
 
   @Override

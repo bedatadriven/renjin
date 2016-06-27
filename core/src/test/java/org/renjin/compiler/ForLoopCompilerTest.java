@@ -13,7 +13,7 @@ public class ForLoopCompilerTest {
   public void test() {
 
     Session session = new SessionBuilder().build();
-    ExpressionVector bodySexp = RParser.parseSource("s <- 0; for(i in 1:1000) { s <- s + sqrt(i) }; print(s);");
+    ExpressionVector bodySexp = RParser.parseSource("s <- 0; z <- 1:1000; for(i in z) { s <- s + sqrt(i) }; print(s);");
     
     session.getTopLevelContext().evaluate(bodySexp);
 

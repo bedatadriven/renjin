@@ -1,6 +1,6 @@
 package org.renjin.compiler.ir.tac.statements;
 
-import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.commons.InstructionAdapter;
 import org.renjin.compiler.emit.EmitContext;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.TreeNode;
@@ -23,6 +23,6 @@ public interface Statement extends TreeNode {
    * @param mv
    * @return the required increase to the stack
    */
-  int emit(EmitContext emitContext, MethodVisitor mv);
+  int emit(EmitContext emitContext, InstructionAdapter mv);
   
 }

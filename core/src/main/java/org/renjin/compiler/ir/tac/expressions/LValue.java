@@ -1,8 +1,11 @@
 package org.renjin.compiler.ir.tac.expressions;
 
-import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.InstructionAdapter;
 import org.renjin.compiler.emit.EmitContext;
+import org.renjin.compiler.emit.VariableStorage;
 import org.renjin.compiler.ir.ValueBounds;
+import org.renjin.sexp.SEXP;
 
 import java.util.Map;
 
@@ -12,6 +15,7 @@ import java.util.Map;
 public abstract class LValue implements SimpleExpression {
 
   private ValueBounds valueBounds = ValueBounds.UNBOUNDED;
+  private Type type = Type.getType(SEXP.class);
 
   @Override
   public final int getChildCount() {
@@ -29,27 +33,10 @@ public abstract class LValue implements SimpleExpression {
   }
 
   @Override
-  public final int emitPush(EmitContext emitContext, MethodVisitor mv) {
-//    Class type = getType();
-//
-//    int register = emitContext.getRegister(this);
-//
-//    if(type.equals(double.class)) {
-//      mv.visitVarInsn(Opcodes.DLOAD, register);
-//      return 2;
-//
-//    } else if(type.equals(int.class)) {
-//      mv.visitVarInsn(Opcodes.ILOAD, register);
-//      return 1;
-//
-//    } else if(Vector.class.isAssignableFrom(type)) {
-//      mv.visitVarInsn(Opcodes.ALOAD, register);
-//      return 1;
-//
-//    } else {
-//      throw new UnsupportedOperationException(this + ":" + type);
-//    }
-    throw new UnsupportedOperationException("TODO");
+  public final int load(EmitContext emitContext, InstructionAdapter mv) {
+    VariableStorage storage = emitContext.getVariableStorage(this);
+    mv.load(storage.getSlotIndex(), storage.getType());
+    return storage.getType().getSize();
   }
 
   @Override
@@ -66,6 +53,11 @@ public abstract class LValue implements SimpleExpression {
   @Override
   public final ValueBounds getValueBounds() {
     return valueBounds;
+  }
+
+  @Override
+  public Type getType() {
+    return valueBounds.storageType();
   }
 }
 

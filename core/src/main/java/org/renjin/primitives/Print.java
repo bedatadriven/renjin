@@ -41,9 +41,9 @@ public class Print {
   @Internal("print.default")
   @Materialize
   public static SEXP printDefault(@Current Context context, SEXP expression, SEXP digits, boolean quote, SEXP naPrint,
-      SEXP printGap, SEXP right, SEXP max, SEXP useSource, SEXP noOp) throws IOException {
+      SEXP printGap, SEXP right, SEXP max, SEXP useSource, SEXP noOp, boolean useS4) throws IOException {
 
-    if(Types.isS4(expression)) {
+    if(useS4 && Types.isS4(expression)) {
       printS4(context, expression);
     
     } else {

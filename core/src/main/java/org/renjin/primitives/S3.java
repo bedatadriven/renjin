@@ -658,7 +658,10 @@ public class S3 {
       return frame;
     }
 
-
+    @Override
+    public String toString() {
+      return method + "." + className;
+    }
 
     /**
      *

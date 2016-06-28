@@ -16,7 +16,7 @@ import org.renjin.gcc.codegen.type.FieldStrategy;
 /**
  * Strategy for array fields
  */
-public class FixedArrayField extends FieldStrategy {
+public class ArrayField extends FieldStrategy {
 
   private Type declaringClass;
   private String name;
@@ -24,7 +24,7 @@ public class FixedArrayField extends FieldStrategy {
   private final ValueFunction valueFunction;
   private final Type arrayType;
 
-  public FixedArrayField(Type declaringClass, String name, int arrayLength, ValueFunction valueFunction) {
+  public ArrayField(Type declaringClass, String name, int arrayLength, ValueFunction valueFunction) {
     this.declaringClass = declaringClass;
     this.name = name;
     this.arrayLength = arrayLength;

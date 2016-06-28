@@ -8,10 +8,6 @@ public class ArrayTypeStrategies {
   
   
   public static ArrayTypeStrategy of(GimpleArrayType arrayType, ValueFunction function) {
-    if(arrayType.isStatic()) {
-      return new FixedArrayTypeStrategy(arrayType, function);
-    } else {
-      return new DynamicArrayStrategy(arrayType, function);
-    }
+    return new ArrayTypeStrategy(arrayType, function);
   }
 }

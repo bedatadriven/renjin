@@ -104,8 +104,10 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<RecordValue> imp
       TypeStrategy fieldTypeStrategy = typeOracle.forType(gimpleField.getType());
       if(fieldTypeStrategy instanceof RecordClassTypeStrategy) {
         RecordClassTypeStrategy fieldRecordTypeStrategy = (RecordClassTypeStrategy) fieldTypeStrategy;
-        if(!fieldRecordTypeStrategy.getJvmType().equals(this.jvmType)) {
-          return new SuperClassFieldStrategy((RecordClassTypeStrategy) fieldTypeStrategy);
+        if(fieldRecordTypeStrategy.isUnitPointer()) {
+          if (!fieldRecordTypeStrategy.getJvmType().equals(this.jvmType)) {
+            return new SuperClassFieldStrategy((RecordClassTypeStrategy) fieldTypeStrategy);
+          }
         }
       }
     }

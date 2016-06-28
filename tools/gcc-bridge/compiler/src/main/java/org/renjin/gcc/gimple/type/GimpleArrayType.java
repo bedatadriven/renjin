@@ -41,19 +41,19 @@ public class GimpleArrayType extends AbstractGimpleType {
   public String toString() {
     return componentType + "[]";
   }
-
-  @Override
-  public int sizeOf() {
-    return componentType.sizeOf() * getElementCount();
-  }
+  
 
   public int getElementCount() {
-    return getUbound() - getLbound() + 1;
+    return getSize() / componentType.getSize();
   }
   
   public boolean isStatic() {
-    return ubound != null;
+    return true;
   }
 
 
+  @Override
+  public int sizeOf() {
+    return getSize() / 8;
+  }
 }

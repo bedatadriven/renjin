@@ -11,12 +11,12 @@ import org.renjin.gcc.gimple.type.GimpleArrayType;
 import java.util.List;
 
 
-public class FixedArrayValueFunction implements ValueFunction {
+public class ArrayValueFunction implements ValueFunction {
 
   private final GimpleArrayType arrayType;
   private final ValueFunction elementValueFunction;
 
-  public FixedArrayValueFunction(GimpleArrayType arrayType, ValueFunction elementValueFunction) {
+  public ArrayValueFunction(GimpleArrayType arrayType, ValueFunction elementValueFunction) {
     this.arrayType = arrayType;
     this.elementValueFunction = elementValueFunction;
   }

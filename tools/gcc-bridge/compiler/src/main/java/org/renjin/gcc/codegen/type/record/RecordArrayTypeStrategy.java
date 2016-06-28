@@ -7,7 +7,6 @@ import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.array.ArrayExpr;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategies;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
-import org.renjin.gcc.codegen.array.DynamicArrayExpr;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
@@ -196,11 +195,8 @@ public class RecordArrayTypeStrategy extends RecordTypeStrategy<RecordArrayExpr>
       GimpleArrayType arrayType = (GimpleArrayType) fieldRef.getType();
       Type expectedType = ((GimplePrimitiveType) arrayType.getComponentType()).jvmType();
 
-      if(arrayType.isStatic()) {
-        return new ArrayExpr(new PrimitiveValueFunction(expectedType), arrayType.getElementCount(), array, offset);
-      } else {
-        return new DynamicArrayExpr(array, offset);
-      }
+      return new ArrayExpr(new PrimitiveValueFunction(expectedType), arrayType.getElementCount(), array, offset);
+      
     } else {
       // Return an array that starts at this point 
       return new FatPtrExpr(address, array, offset);

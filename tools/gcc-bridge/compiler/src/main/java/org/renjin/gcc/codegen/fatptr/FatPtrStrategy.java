@@ -1,6 +1,7 @@
 package org.renjin.gcc.codegen.fatptr;
 
 import org.objectweb.asm.Type;
+import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategies;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
@@ -217,6 +218,10 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtrExpr> {
 
     } else if(typeStrategy instanceof RecordUnitPtrStrategy) {
       RecordUnitPtr ptr = (RecordUnitPtr) value;
+      if(valueFunction.getValueType().getSort() != Type.OBJECT) {
+        throw new InternalCompilerException("Cannot cast value using RecordUnitPtrStrategy to array of " + 
+            valueFunction.getValueType());
+      }
       JExpr ref = Expressions.cast(ptr.unwrap(), valueFunction.getValueType());
       JExpr newArray = Expressions.newArray(ref);
       

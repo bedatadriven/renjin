@@ -4,6 +4,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import com.google.common.io.Files;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Session;
@@ -207,8 +208,11 @@ public class DatasetsBuilder {
 
   private boolean dataFileAlreadyExists(String logicalDatasetName) {
     for (File file : dataDirectory.listFiles()) {
-      if( file.getName().equalsIgnoreCase(logicalDatasetName + ".RData") ||
-          file.getName().equalsIgnoreCase(logicalDatasetName + ".rda")) {
+      String name = Files.getNameWithoutExtension(file.getName());
+      String ext = Files.getFileExtension(file.getName());
+      
+      if(logicalDatasetName.equals(name) && 
+          (ext.equalsIgnoreCase("RData") || ext.equalsIgnoreCase("rda"))) {
         return true;
       }
     }
@@ -217,7 +221,10 @@ public class DatasetsBuilder {
 
   private boolean scriptFileExists(String logicalDatasetName) {
     for (File file : dataDirectory.listFiles()) {
-      if( file.getName().equalsIgnoreCase(logicalDatasetName + ".R")) {
+      String name = Files.getNameWithoutExtension(file.getName());
+      String ext = Files.getFileExtension(file.getName());
+
+      if (logicalDatasetName.equals(name) && ext.equalsIgnoreCase("R")) {
         return true;
       }
     }

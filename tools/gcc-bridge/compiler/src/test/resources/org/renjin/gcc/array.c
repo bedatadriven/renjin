@@ -41,3 +41,11 @@ int test_pointer() {
   return *y;
 }
 
+void test_unequal_initializer() {
+
+  char outhaplo[50]="outhaplo";
+  
+  printf("outhaplo = %s\n", outhaplo);
+  
+}
+

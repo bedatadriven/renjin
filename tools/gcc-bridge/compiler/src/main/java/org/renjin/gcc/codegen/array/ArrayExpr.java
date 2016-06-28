@@ -1,6 +1,5 @@
 package org.renjin.gcc.codegen.array;
 
-import com.google.common.base.Preconditions;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
@@ -41,13 +40,12 @@ public class ArrayExpr implements GExpr {
   @Override
   public void store(MethodGenerator mv, GExpr rhs) {
     ArrayExpr rhsExpr = (ArrayExpr) rhs;
-    Preconditions.checkArgument(rhsExpr.length == length, 
-        "Assignment of unequal arrays:  %d != %d", length, rhsExpr.length);
+    int copyLength = Math.min(rhsExpr.length, length);
     
     valueFunction.memoryCopy(mv, 
         array, offset, 
         rhsExpr.getArray(), rhsExpr.getOffset(), 
-        Expressions.constantInt(length));
+        Expressions.constantInt(copyLength));
   }
 
   @Override

@@ -650,7 +650,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
   
   @Test
   public void stringsCpp() throws Exception {
-    compileAndTest("strings.cpp");
+    compileAndTest("std_strings.cpp");
   }
   
   

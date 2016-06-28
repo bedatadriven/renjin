@@ -130,9 +130,9 @@ public class DatasetsBuilder {
       
     } else if(dataFile.getName().toUpperCase().endsWith(".R")) {
       processRScript(dataFile, stripExtension(dataFile));
-    
+
     } else {
-      throw new RuntimeException("Don't know how to process datafile " + dataFile.getName());
+      System.err.println("WARNING: Don't know how to process datafile " + dataFile.getName());
     }
   }
 

@@ -71,7 +71,11 @@ public class UnitClassGenerator {
           varGenerator = typeStrategy.variable(decl, new ProvidedVarAllocator(providedField.getDeclaringClass()));
 
         } else {
-          varGenerator = typeStrategy.variable(decl, globalVarAllocator);
+          try {
+            varGenerator = typeStrategy.variable(decl, globalVarAllocator);
+          } catch (Exception e) {
+            throw new InternalCompilerException("Global variable " + decl.getName() + " in " + unit.getSourceName(), e);
+          }
           varToGenerate.add(decl);
         }
         symbolTable.addGlobalVariable(decl, varGenerator);
@@ -93,6 +97,9 @@ public class UnitClassGenerator {
   }
 
   private boolean isIgnored(GimpleVarDecl decl) {
+    if(decl.getMangledName() == null) {
+      return false;
+    }
     return decl.getMangledName().equals("_ZTVN10__cxxabiv117__class_type_infoE") || 
         decl.getMangledName().equals("_ZTVN10__cxxabiv120__si_class_type_infoE");
   }

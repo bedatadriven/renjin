@@ -5,9 +5,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.renjin.gcc.TreeLogger;
-import org.renjin.gcc.gimple.*;
-import org.renjin.gcc.gimple.expr.*;
-import org.renjin.gcc.gimple.statement.*;
+import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.type.*;
 
 import java.util.*;
@@ -44,6 +42,22 @@ public class RecordTypeDefCanonicalizer {
     transformer.updateAllTypes(units);
     
     return transformer.canonical;
+  }
+  
+  public static Collection<GimpleRecordTypeDef> prune(List<GimpleCompilationUnit> units, 
+                                                      Collection<GimpleRecordTypeDef> canonicalTypeDefs) {
+    
+    RecordTypeUseFinder finder = new RecordTypeUseFinder(canonicalTypeDefs);
+    finder.visit(units);
+
+    // Include only those that are actually used
+    Set<GimpleRecordTypeDef> usedDefs = new HashSet<>();
+    for (GimpleRecordTypeDef typeDef : canonicalTypeDefs) {
+      if(finder.isUsed(typeDef)) {
+        usedDefs.add(typeDef);
+      }
+    }
+    return usedDefs;
   }
   
   private RecordTypeDefCanonicalizer(TreeLogger logger, List<GimpleCompilationUnit> units) {
@@ -91,11 +105,27 @@ public class RecordTypeDefCanonicalizer {
       // among the distinct record types, update _their_ fields to the canonical 
       // field record types, and see if this yields further duplicates.
       for (GimpleRecordTypeDef recordTypeDef : distinct) {
-        updateFieldTypes(recordTypeDef);
+        CANONIZING_VISITOR.visit(recordTypeDef);
       }
     } while(changing);
     
     this.canonical = distinct;
+  }
+  
+  private void updateAllTypes(List<GimpleCompilationUnit> units) {
+
+
+    for (GimpleCompilationUnit unit : units) {
+      for (int i = 0; i < unit.getRecordTypes().size(); i++) {
+        GimpleRecordTypeDef recordTypeDef = unit.getRecordTypes().get(i);
+        GimpleRecordTypeDef canonicalDef = idToCanonicalMap.get(recordTypeDef.getId());
+        if (canonicalDef != null) {
+          unit.getRecordTypes().set(i, canonicalDef);
+        }
+      }
+    }
+
+    CANONIZING_VISITOR.visit(units);
   }
 
   private void remapFrom(String oldCanonicalId, GimpleRecordTypeDef canonical) {
@@ -168,70 +198,11 @@ public class RecordTypeDefCanonicalizer {
       key.append("void");
     }
   }
-
-  private void updateAllTypes(List<GimpleCompilationUnit> units) {
-
-    TreeLogger mappingLogger = logger.branch("Updating types types to canonical IDs");
-    for (Map.Entry<String, GimpleRecordTypeDef> entry : idToCanonicalMap.entrySet()) {
-      mappingLogger.debug("Mapping " + entry.getKey() + " -> "  + entry.getValue().getId());
-    }
-    
-    // Ensure that canonical type defs reference other canonical type defs in their fields
-    for (GimpleRecordTypeDef recordTypeDef : idToCanonicalMap.values()) {
-      updateFieldTypes(recordTypeDef);
-    }
-    
-    // Replace ids in each compilation unit with references to the canonical type
-    for (GimpleCompilationUnit unit : units) {
-
-      for (int i = 0; i < unit.getRecordTypes().size(); i++) {
-        GimpleRecordTypeDef recordTypeDef = unit.getRecordTypes().get(i);
-        GimpleRecordTypeDef canonicalDef = idToCanonicalMap.get(recordTypeDef.getId());
-        if (canonicalDef != null) {
-          unit.getRecordTypes().set(i, canonicalDef);
-        }
-      }
-
-      for (GimpleVarDecl decl : unit.getGlobalVariables()) {
-        updateType(decl.getType());
-        if(decl.getValue() != null) {
-          updateTypes(decl.getValue());
-        }
-      }
-      
-      for (GimpleFunction function : unit.getFunctions()) {
-        updateType(function.getReturnType());
-        for (GimpleParameter gimpleParameter : function.getParameters()) {
-          updateType(gimpleParameter.getType());
-        }
-        for (GimpleVarDecl decl : function.getVariableDeclarations()) {
-          updateType(decl.getType());
-        }
-        for (GimpleBasicBlock basicBlock : function.getBasicBlocks()) {
-          for (GimpleStatement statement : basicBlock.getStatements()) {
-            updateTypes(statement);
-          }
-        }
-      }
-    }
-  }
-
-  private void updateFieldTypes(GimpleRecordTypeDef recordTypeDef) {
-    for (GimpleField gimpleField : recordTypeDef.getFields()) {
-      updateType(gimpleField.getType());
-    }
-  }
-
-
-  private void updateTypes(Iterable<GimpleType> types) {
-    for (GimpleType type : types) {
-      updateType(type);
-    }
-  }
   
-  private void updateType(GimpleType type) {
-    if(type instanceof GimpleRecordType) {
-      GimpleRecordType recordType = (GimpleRecordType) type;
+  private RecordTypeUseVisitor CANONIZING_VISITOR = new RecordTypeUseVisitor() {
+
+    @Override
+    protected void visitRecordType(GimpleRecordType recordType) {
       GimpleRecordTypeDef canonicalDef = idToCanonicalMap.get(recordType.getId());
       if(canonicalDef != null) {
         recordType.setId(canonicalDef.getId());
@@ -242,67 +213,7 @@ public class RecordTypeDefCanonicalizer {
       if(name != null) {
         recordType.setName(name);
       }
-      
-    } else if(type instanceof GimpleIndirectType) {
-      updateType(type.getBaseType());  
-    } else if(type instanceof GimpleArrayType) {
-      updateType(((GimpleArrayType) type).getComponentType());
-    } else if(type instanceof GimpleFunctionType) {
-      GimpleFunctionType functionType = (GimpleFunctionType) type;
-      updateType(functionType.getReturnType());
-      updateTypes(functionType.getArgumentTypes());
     }
-  }
-
-
-  private void updateTypes(GimpleStatement gimpleIns) {
-    if(gimpleIns instanceof GimpleReturn) {
-      updateTypes(((GimpleReturn) gimpleIns).getValue());
-    } else if(gimpleIns instanceof GimpleAssignment) {
-      GimpleAssignment assignment = (GimpleAssignment) gimpleIns;
-      updateTypes(assignment.getLHS());
-      updateTypes(assignment.getOperands());
-    } else if(gimpleIns instanceof GimpleCall) {
-      GimpleCall call = (GimpleCall) gimpleIns;
-      updateTypes(call.getLhs());
-      updateTypes(call.getFunction());
-      updateTypes(call.getOperands());
-    } else if(gimpleIns instanceof GimpleConditional) {
-      GimpleConditional conditional = (GimpleConditional) gimpleIns;
-      updateTypes(conditional.getOperands());
-    } else if(gimpleIns instanceof GimpleSwitch) {
-      GimpleSwitch gimpleSwitch = (GimpleSwitch) gimpleIns;
-      updateTypes(gimpleSwitch.getValue());
-    }
-  }
-
-  private void updateTypes(List<GimpleExpr> operands) {
-    for (GimpleExpr operand : operands) {
-      updateTypes(operand);
-    }
-  }
-
-  private void updateTypes(GimpleExpr expr) {
-    if(expr != null) {
-      updateType(expr.getType());
-      if (expr instanceof GimpleAddressOf) {
-        updateTypes(((GimpleAddressOf) expr).getValue());
-      } else if (expr instanceof GimpleMemRef) {
-        updateTypes(((GimpleMemRef) expr).getPointer());
-      } else if (expr instanceof GimpleComponentRef) {
-        GimpleComponentRef ref = (GimpleComponentRef) expr;
-        updateTypes(ref.getValue());
-        updateTypes(ref.getMember());
-      } else if (expr instanceof GimpleArrayRef) {
-        updateTypes(((GimpleArrayRef) expr).getArray());
-      } else if (expr instanceof GimpleNopExpr) {
-        updateTypes(((GimpleNopExpr) expr).getValue());
-      } else if (expr instanceof GimpleConstructor) {
-        GimpleConstructor constructor = (GimpleConstructor) expr;
-        for (GimpleConstructor.Element element : constructor.getElements()) {
-          updateTypes(element.getValue());
-        }
-      }
-    }
-  }
+  };
+  
 }

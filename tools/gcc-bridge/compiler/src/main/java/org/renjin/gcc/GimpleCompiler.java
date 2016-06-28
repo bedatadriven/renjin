@@ -153,18 +153,19 @@ public class GimpleCompiler  {
     try {
       
       GlobalVarMerger.merge(units);
-      
+
+      // Prune unused functions 
+      SymbolPruner.prune(rootLogger, units);
+
       // create the mapping from the compilation unit's version of the record types
       // to the canonical version shared by all compilation units
       recordTypeDefs = RecordTypeDefCanonicalizer.canonicalize(rootLogger, units);
+      recordTypeDefs = RecordTypeDefCanonicalizer.prune(units, recordTypeDefs);
       if (verbose) {
         for (GimpleRecordTypeDef recordTypeDef : recordTypeDefs) {
           System.out.println(recordTypeDef);
         }
       }
-
-      // Prune unused functions 
-      SymbolPruner.prune(rootLogger, units);
 
       // First apply any transformations needed by the code generation process
       transform(units);
@@ -180,7 +181,7 @@ public class GimpleCompiler  {
       recordUsage.analyze(units);
 
       // Compile the record types so they are available to functions and variables
-      compileRecords(units);
+      compileRecords();
 
       // Next, do a round of compilation units to make sure all externally visible functions and 
       // symbols are added to the global symbol table.
@@ -237,7 +238,7 @@ public class GimpleCompiler  {
     }
   }
 
-  private void compileRecords(List<GimpleCompilationUnit> units) throws IOException {
+  private void compileRecords() throws IOException {
 
     TreeLogger recordLogger = rootLogger.branch("Compiling record types...");
     

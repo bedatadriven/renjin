@@ -649,6 +649,12 @@ public class GimpleCompilerTest extends AbstractGccTest {
   }
   
   @Test
+  public void stringsCpp() throws Exception {
+    compileAndTest("strings.cpp");
+  }
+  
+  
+  @Test
   public void lsame() throws Exception {
     Class clazz = compile("lsame.f");
     Method lsame = clazz.getMethod("lsame_", BytePtr.class, BytePtr.class, int.class, int.class);

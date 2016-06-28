@@ -1,10 +1,7 @@
 package org.renjin.gcc.codegen.array;
 
 import org.objectweb.asm.Type;
-import org.renjin.gcc.codegen.expr.ExprFactory;
-import org.renjin.gcc.codegen.expr.Expressions;
-import org.renjin.gcc.codegen.expr.GExpr;
-import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.*;
@@ -45,6 +42,10 @@ public class DynamicArrayStrategy implements ArrayTypeStrategy<DynamicArrayExpr>
 
   @Override
   public DynamicArrayExpr variable(GimpleVarDecl decl, VarAllocator allocator) {
+    if(arrayType.getSize() == 0) {
+      JLValue value = allocator.reserveArrayRef(decl.getName(), valueFunction.getValueType());
+      return new DynamicArrayExpr(value, Expressions.constantInt(0));
+    }
     throw new UnsupportedOperationException("TODO: " + decl);
   }
 

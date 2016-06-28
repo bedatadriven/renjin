@@ -3,7 +3,7 @@ package org.renjin.compiler.ir.tac.expressions;
 import com.google.common.base.Joiner;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.InstructionAdapter;
-import org.renjin.compiler.emit.EmitContext;
+import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.invoke.model.JvmMethod;
 

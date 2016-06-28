@@ -5,7 +5,7 @@ import com.google.common.collect.Lists;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.InstructionAdapter;
 import org.renjin.compiler.cfg.FlowEdge;
-import org.renjin.compiler.emit.EmitContext;
+import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.Variable;

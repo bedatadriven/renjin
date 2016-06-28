@@ -1,4 +1,4 @@
-package org.renjin.compiler.emit;
+package org.renjin.compiler.codegen;
 
 /**
  * Generates the body for the 

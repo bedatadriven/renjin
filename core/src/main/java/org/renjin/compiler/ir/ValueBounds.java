@@ -40,7 +40,7 @@ public class ValueBounds {
     valueBounds.length = value.length();
     return valueBounds;
   }
-
+  
   /**
    * @return a bit mask indicating which R types are included in this bounds.
    */

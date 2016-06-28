@@ -2,8 +2,8 @@ package org.renjin.compiler.ir.tac.statements;
 
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.commons.InstructionAdapter;
-import org.renjin.compiler.emit.EmitContext;
-import org.renjin.compiler.emit.VariableStorage;
+import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.VariableStorage;
 import org.renjin.compiler.ir.IRFormatting;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.expressions.Expression;

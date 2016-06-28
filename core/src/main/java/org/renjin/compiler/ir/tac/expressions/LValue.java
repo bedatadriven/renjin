@@ -2,8 +2,8 @@ package org.renjin.compiler.ir.tac.expressions;
 
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.InstructionAdapter;
-import org.renjin.compiler.emit.EmitContext;
-import org.renjin.compiler.emit.VariableStorage;
+import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.VariableStorage;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.sexp.SEXP;
 

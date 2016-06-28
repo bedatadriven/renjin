@@ -1,4 +1,4 @@
-package org.renjin.compiler.emit;
+package org.renjin.compiler.codegen;
 
 import org.junit.Before;
 import org.junit.Test;

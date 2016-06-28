@@ -26,8 +26,10 @@ public class Tables {
     StringVector.Builder head = new StringVector.Builder();
     String line;
     while( nLines > 0 && (line=reader.readLine())!=null) {
-      head.add(line);
-      nLines -- ;
+      if(commentChar.isEmpty() || !line.startsWith(commentChar)) {
+        head.add(line);
+        nLines--;
+      }
     }
     return head.build();
   }

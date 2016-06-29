@@ -47,6 +47,7 @@ public abstract class LValue implements SimpleExpression {
     } else {
       valueBounds = type;
     }
+    this.type = valueBounds.storageType();
     return valueBounds;
   }
 

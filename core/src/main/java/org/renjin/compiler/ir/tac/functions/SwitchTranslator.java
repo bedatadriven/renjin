@@ -2,12 +2,9 @@ package org.renjin.compiler.ir.tac.functions;
 
 import org.renjin.compiler.NotCompilableException;
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
-import org.renjin.compiler.ir.tac.expressions.EnvironmentVariable;
 import org.renjin.compiler.ir.tac.expressions.Expression;
-import org.renjin.compiler.ir.tac.expressions.JvmMethodCall;
 import org.renjin.sexp.Function;
 import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.Symbols;
 
 
 public class SwitchTranslator extends FunctionCallTranslator {

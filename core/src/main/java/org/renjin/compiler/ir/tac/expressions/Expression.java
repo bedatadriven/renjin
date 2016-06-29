@@ -3,11 +3,9 @@ package org.renjin.compiler.ir.tac.expressions;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.InstructionAdapter;
 import org.renjin.compiler.codegen.EmitContext;
-import org.renjin.compiler.codegen.expr.ExprGenerator;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.TreeNode;
 
-import java.util.List;
 import java.util.Map;
 
 
@@ -29,9 +27,7 @@ public interface Expression extends TreeNode {
    */
   int load(EmitContext emitContext, InstructionAdapter mv);
 
-  ExprGenerator generator(List<ExprGenerator> operands);
-  
-  
+
   Type getType();
 
   /**

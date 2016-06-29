@@ -69,9 +69,16 @@ public class IRBodyBuilder {
    
     removeRedundantJumps();
     insertVariableInitializations();
+    updateVariableReturn();
     
     return new IRBody(statements, labels);
   }
+
+  private void updateVariableReturn() {
+    
+    
+  }
+
 
   private void insertVariableInitializations() {
     // For every variable that comes from the environment, 
@@ -322,6 +329,6 @@ public class IRBodyBuilder {
   }
   
   private static class TopLevelContext implements TranslationContext {
-    
+
   }
 }

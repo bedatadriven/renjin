@@ -180,4 +180,10 @@ public class BasicBlock {
     }
     return count;
   }
+
+  @Override
+  public int hashCode() {
+    // Use a stable hash code to get consistent results
+    return debugId.hashCode();
+  }
 }

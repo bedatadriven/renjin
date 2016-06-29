@@ -4,11 +4,13 @@ import org.renjin.compiler.ir.tac.IRLabel;
 
 public class LoopContext implements TranslationContext {
 
+  private TranslationContext parentContext;
   private final IRLabel startLabel;
   private final IRLabel exitLabel;
   
-  public LoopContext(IRLabel startLabel, IRLabel exitLabel) {
+  public LoopContext(TranslationContext parentContext, IRLabel startLabel, IRLabel exitLabel) {
     super();
+    this.parentContext = parentContext;
     this.startLabel = startLabel;
     this.exitLabel = exitLabel;
   }
@@ -20,5 +22,5 @@ public class LoopContext implements TranslationContext {
   public IRLabel getExitLabel() {
     return exitLabel;
   }
-  
+
 }

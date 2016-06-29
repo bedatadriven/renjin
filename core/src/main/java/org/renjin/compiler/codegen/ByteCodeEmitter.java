@@ -45,7 +45,7 @@ public class ByteCodeEmitter implements Opcodes {
 
   private void startClass() {
 
-    cw = new ClassWriter(0);
+    cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
     cv = new TraceClassVisitor(cw, new PrintWriter(System.out, true));
     cv.visit(V1_6, ACC_PUBLIC + ACC_SUPER, className, null,
             Type.getInternalName(Object.class), new String[] { Type.getInternalName(CompiledBody.class) });

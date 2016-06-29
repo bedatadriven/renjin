@@ -5,7 +5,6 @@ import org.renjin.compiler.NotCompilableException;
 import org.renjin.invoke.reflection.MethodFunction;
 import org.renjin.sexp.Function;
 import org.renjin.sexp.PrimitiveFunction;
-import org.renjin.sexp.SpecialFunction;
 
 import java.util.Map;
 
@@ -50,7 +49,7 @@ public class FunctionCallTranslators {
     }
 
     if(function instanceof MethodFunction) {
-      return StaticMethodTranslator.INSTANCE;
+      throw new UnsupportedOperationException();
     }
     throw new NotCompilableException(function, "Can't handle functions of class " + function.getClass().getName());
   }

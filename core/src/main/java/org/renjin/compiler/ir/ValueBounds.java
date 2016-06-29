@@ -107,6 +107,14 @@ public class ValueBounds {
     return bounds;
   }
 
+  public static ValueBounds vector(int typeSet, int length) {
+    ValueBounds bounds = new ValueBounds();
+    bounds.typeSet = typeSet;
+    bounds.length = length;
+    return bounds;
+  }
+
+
 
   public Type storageType() {
     if(typeSet == TypeSet.DOUBLE) {

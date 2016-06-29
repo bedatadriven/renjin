@@ -5,9 +5,7 @@ import org.renjin.compiler.NotCompilableException;
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
 import org.renjin.compiler.ir.tac.expressions.BuiltinCall;
 import org.renjin.compiler.ir.tac.expressions.Expression;
-import org.renjin.compiler.ir.tac.expressions.JvmMethodCall;
 import org.renjin.compiler.ir.tac.statements.ExprStatement;
-import org.renjin.invoke.model.JvmMethod;
 import org.renjin.primitives.Primitives;
 import org.renjin.sexp.Function;
 import org.renjin.sexp.FunctionCall;
@@ -41,7 +39,6 @@ public class BuiltinTranslator extends FunctionCallTranslator {
     if(entry == null) {
       throw new NotCompilableException(getterCall);
     }
-    List<JvmMethod> methods = JvmMethod.findOverloads(entry.functionClass, entry.name, entry.methodName);
 
     int numGetterArgs = getterCall.getArguments().length();
     String[] argumentNames = new String[numGetterArgs+1];
@@ -58,8 +55,8 @@ public class BuiltinTranslator extends FunctionCallTranslator {
     List<Expression> arguments = builder.translateArgumentList(context, getterCall.getArguments());
     arguments.add(rhs);
 
-    return new JvmMethodCall(entry.name,
-        methods, argumentNames,
+    return new BuiltinCall(entry,
+        argumentNames,
         builder.translateArgumentList(context, getterCall.getArguments()));
   }
 

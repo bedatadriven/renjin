@@ -72,6 +72,7 @@ public class BuiltinCall implements CallExpression {
     return false;
   }
 
+
   @Override
   public int load(EmitContext emitContext, InstructionAdapter mv) {
     if(selectedOverload == null) {
@@ -107,7 +108,7 @@ public class BuiltinCall implements CallExpression {
 
   @Override
   public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
-    argumentTypes = new ArrayList<ValueBounds>();
+    argumentTypes = new ArrayList<>();
     for (Expression argument : arguments) {
       argumentTypes.add(argument.updateTypeBounds(typeMap));
     }
@@ -196,7 +197,7 @@ public class BuiltinCall implements CallExpression {
     }
     return maxLength;
   }
-  
+
 
   @Override
   public String toString() {

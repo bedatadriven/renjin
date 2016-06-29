@@ -1,6 +1,7 @@
 package org.renjin.compiler.ir.tac.statements;
 
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.InstructionAdapter;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.VariableStorage;
@@ -78,9 +79,15 @@ public class Assignment implements Statement {
   public int emit(EmitContext emitContext, InstructionAdapter mv) {
 
     VariableStorage storage = emitContext.getVariableStorage(lhs);
+    Type rhsType;
+    if(rhs instanceof LValue) {
+      rhsType = emitContext.getVariableStorage((LValue) rhs).getType();
+    } else {
+      rhsType = rhs.getType();
+    }
     
     int stackIncrease = rhs.load(emitContext, mv);
-    emitContext.convert(mv, rhs.getType(), storage.getType());
+    emitContext.convert(mv, rhsType, storage.getType());
     mv.visitVarInsn(storage.getType().getOpcode(Opcodes.ISTORE), storage.getSlotIndex());
     return stackIncrease;
   }

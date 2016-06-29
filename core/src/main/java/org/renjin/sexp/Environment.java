@@ -76,7 +76,6 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
    * The root of the environment hierarchy.
    */
   public static final EmptyEnv EMPTY = new EmptyEnv();
-  public static int frameLookups = 0;
 
 
   /**
@@ -396,7 +395,6 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
   }
 
   public SEXP getVariable(Symbol symbol) {
-    frameLookups++;
     return frame.getVariable(symbol);
   }
 

@@ -7,7 +7,6 @@ import org.junit.Test;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
 import org.renjin.parser.RParser;
-import org.renjin.sexp.Environment;
 import org.renjin.sexp.ExpressionVector;
 
 import java.io.IOException;
@@ -23,7 +22,6 @@ public class ForLoopCompilerTest {
     Session session = new SessionBuilder().build();
     session.getTopLevelContext().evaluate(bodySexp);
   
-    System.out.println(Environment.frameLookups);
   }
 
 

@@ -5,6 +5,7 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.InstructionAdapter;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.ir.ValueBounds;
+import org.renjin.eval.Context;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
@@ -37,7 +38,9 @@ public class ReadEnvironment implements Expression {
         Type.getMethodDescriptor(Type.getType(Symbol.class), Type.getType(String.class)), false);
     mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(Environment.class), "findVariable", 
         Type.getMethodDescriptor(Type.getType(SEXP.class), Type.getType(Symbol.class)), false);
-    
+    mv.visitVarInsn(Opcodes.ALOAD, emitContext.getContextVarIndex());
+    mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, Type.getInternalName(SEXP.class), "force", 
+        Type.getMethodDescriptor(Type.getType(SEXP.class), Type.getType(Context.class)), true);
     return 2;
   }
 

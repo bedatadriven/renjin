@@ -28,6 +28,8 @@ public class BuiltinCall implements CallExpression {
    * The value bounds computed from our arguments
    */
   private ValueBounds valueBounds = ValueBounds.UNBOUNDED;
+  
+  private Object constantValue = null;
 
   /**
    * The selected overload, based on our arguments, or null
@@ -75,6 +77,11 @@ public class BuiltinCall implements CallExpression {
 
   @Override
   public int load(EmitContext emitContext, InstructionAdapter mv) {
+    
+    if(constantValue != null) {
+      return generateConstant(mv, constantValue);
+    }
+    
     if(selectedOverload == null) {
       throw new UnsupportedOperationException();
     }
@@ -83,9 +90,45 @@ public class BuiltinCall implements CallExpression {
       int resultLength = computeLengths(selectedOverload, argumentTypes);
       if(resultLength == 1) {
         return generateScalarCall(emitContext, mv);
+      } else {
+        throw new UnsupportedOperationException("non-scalar " + primitive.name + " not implemented");
+      }
+    } else {
+      return generateCall(emitContext, mv);
+    }
+  }
+
+  private int generateConstant(InstructionAdapter mv, Object constantValue) {
+    if(constantValue instanceof Integer) {
+      mv.iconst((Integer) constantValue);
+      return 1;
+    } else if(constantValue instanceof Double) {
+      mv.dconst((Double) constantValue);
+      return 1;
+    } else {
+      throw new UnsupportedOperationException();
+    }
+  }
+
+  private int generateCall(EmitContext emitContext, InstructionAdapter mv) {
+
+    Iterator<Expression> it = arguments.iterator();
+    
+    for (JvmMethod.Argument argument : selectedOverload.getAllArguments()) {
+      if(argument.isContextual()) {
+        throw new UnsupportedOperationException();
+      } else if(argument.isVarArg()) {
+        throw new UnsupportedOperationException();
+      } else if(argument.isNamedFlag()) {
+        throw new UnsupportedOperationException();
+      } else {
+        Expression positionalArg = it.next();
+        positionalArg.load(emitContext, mv);
+        emitContext.convert(mv, positionalArg.getType(), Type.getType(argument.getClazz()));
       }
     }
-    throw new UnsupportedOperationException(); 
+    invokeOverload(mv);
+    return 5;
   }
 
   private int generateScalarCall(EmitContext emitContext, InstructionAdapter mv) {
@@ -99,15 +142,29 @@ public class BuiltinCall implements CallExpression {
         emitContext.convert(mv, argumentExpr.getType(), Type.getType(argument.getClazz()));
       }
     }
-    mv.invokestatic(Type.getInternalName(selectedOverload.getDeclaringClass()), selectedOverload.getName(), 
-        Type.getMethodDescriptor(selectedOverload.getMethod()), false);
+    
+    if(primitive.name.equals("+")) {
+      mv.add(Type.getType(selectedOverload.getPositionalFormals().get(0).getClazz()));
+    } else if(primitive.name.equals("/")) {
+      mv.div(Type.getType(selectedOverload.getPositionalFormals().get(0).getClazz()));
+    } else if(primitive.name.equals("*")) {
+      mv.mul(Type.getType(selectedOverload.getPositionalFormals().get(0).getClazz()));
+    } else {
+      invokeOverload(mv);
+    }
     
     return stackHeight;
+  }
+
+  private void invokeOverload(InstructionAdapter mv) {
+    mv.invokestatic(Type.getInternalName(selectedOverload.getDeclaringClass()), selectedOverload.getName(),
+        Type.getMethodDescriptor(selectedOverload.getMethod()), false);
   }
 
 
   @Override
   public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
+    constantValue = null;
     argumentTypes = new ArrayList<>();
     for (Expression argument : arguments) {
       argumentTypes.add(argument.updateTypeBounds(typeMap));
@@ -125,6 +182,15 @@ public class BuiltinCall implements CallExpression {
 
   @Override
   public Type getType() {
+    if(constantValue != null) {
+      if(constantValue instanceof Integer) {
+        return Type.INT_TYPE;
+      } else if(constantValue instanceof Double) {
+        return Type.DOUBLE_TYPE;
+      } else {
+        throw new UnsupportedOperationException("TODO: " + constantValue);
+      }
+    }
     if(selectedOverload == null) {
       return Type.getType(SEXP.class);
     } else {
@@ -172,8 +238,47 @@ public class BuiltinCall implements CallExpression {
     if(overload.isDataParallel()) {
       return ValueBounds.vector(overload.getReturnType(), computeLengths(overload, argumentTypes));
     } else {
-      return ValueBounds.UNBOUNDED;
+      if(overload.getReturnType().isPrimitive() && allAreConstant(argumentTypes)) {
+        // Actually compute the value now rather than at runtime
+        return evaluate(argumentTypes);
+      } else {
+        return ValueBounds.of(overload.getReturnType());
+      }
     }
+  }
+
+  private ValueBounds evaluate(List<ValueBounds> argumentTypes) {
+    List<JvmMethod.Argument> formals = selectedOverload.getAllArguments();
+    Object[] args = new Object[formals.size()];
+    for (int i = 0; i < formals.size(); i++) {
+      selectedOverload.getAllArguments();
+    }
+    Iterator<ValueBounds> it = argumentTypes.iterator();
+    int argI = 0;
+    for (JvmMethod.Argument formal : formals) {
+      if(formal.isContextual() || formal.isVarArg() || formal.isNamedFlag()) {
+        throw new UnsupportedOperationException("formal: " + formal);
+      }
+      ValueBounds argument = it.next();
+      args[argI++] = argument.getConstantValue();
+    }
+
+    try {
+      constantValue = selectedOverload.getMethod().invoke(null, args);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+    
+    return valueBounds.of(constantValue);
+  }
+
+  private boolean allAreConstant(List<ValueBounds> argumentTypes) {
+    for (ValueBounds argumentType : argumentTypes) {
+      if(!argumentType.isConstant()) {
+        return false;
+      }
+    }
+    return true;
   }
 
   private int computeLengths(JvmMethod overload, List<ValueBounds> argumentTypes) {

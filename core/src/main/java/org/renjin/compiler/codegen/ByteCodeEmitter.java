@@ -5,6 +5,7 @@ import org.objectweb.asm.*;
 import org.objectweb.asm.commons.InstructionAdapter;
 import org.objectweb.asm.util.TraceClassVisitor;
 import org.renjin.compiler.CompiledBody;
+import org.renjin.compiler.CompiledLoopBody;
 import org.renjin.compiler.TypeSolver;
 import org.renjin.compiler.cfg.BasicBlock;
 import org.renjin.compiler.cfg.ControlFlowGraph;
@@ -13,8 +14,12 @@ import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.statements.Statement;
 import org.renjin.eval.Context;
 import org.renjin.sexp.Environment;
+import org.renjin.sexp.SEXP;
 
 import java.io.PrintWriter;
+
+import static org.objectweb.asm.Type.getMethodDescriptor;
+import static org.objectweb.asm.Type.getType;
 
 public class ByteCodeEmitter implements Opcodes {
 
@@ -34,7 +39,7 @@ public class ByteCodeEmitter implements Opcodes {
   }
 
   public Class<CompiledBody> compile() {
-    startClass();
+    startClass(CompiledBody.class);
     writeImplementation();
     writeConstructor();
     writeClassEnd();
@@ -42,13 +47,21 @@ public class ByteCodeEmitter implements Opcodes {
     return new MyClassLoader().defineClass(className.replace('/', '.'), cw.toByteArray());
   }
 
+  public Class<CompiledLoopBody> compileLoopBody() {
+    startClass(CompiledLoopBody.class);
+    writeLoopImplementation();
+    writeConstructor();
+    writeClassEnd();
 
-  private void startClass() {
+    return new MyClassLoader().defineClass(className.replace('/', '.'), cw.toByteArray());
+  }
+  
+  private void startClass(Class<?> interfaceClass) {
 
     cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
     cv = new TraceClassVisitor(cw, new PrintWriter(System.out, true));
     cv.visit(V1_6, ACC_PUBLIC + ACC_SUPER, className, null,
-            Type.getInternalName(Object.class), new String[] { Type.getInternalName(CompiledBody.class) });
+            Type.getInternalName(Object.class), new String[] { Type.getInternalName(interfaceClass) });
   }
 
 
@@ -64,22 +77,41 @@ public class ByteCodeEmitter implements Opcodes {
 
 
   private void writeImplementation() {
-    MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "evaluate", 
-        Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(Context.class), Type.getType(Environment.class)), 
-        null, null);
-    mv.visitCode();
-    writeBody(mv);
-    mv.visitEnd();
-  }
-
-  private void writeBody(MethodVisitor mv) {
-
     int argumentSize = 3; // this + context + environment
     VariableSlots variableSlots = new VariableSlots(argumentSize, types);
     System.out.println(variableSlots);
-    
     EmitContext emitContext = new EmitContext(cfg, variableSlots);
+    
+    MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "evaluate", 
+        getMethodDescriptor(Type.VOID_TYPE, getType(Context.class), getType(Environment.class)), 
+        null, null);
+    mv.visitCode();
+    writeBody(emitContext, mv);
+    mv.visitEnd();
+  }
 
+  private void writeLoopImplementation() {
+    int argumentSize = 5; // this + context + environment + sequence + iteration
+    VariableSlots variableSlots = new VariableSlots(argumentSize, types);
+    System.out.println(variableSlots);
+    EmitContext emitContext = new EmitContext(cfg, variableSlots);
+    emitContext.setLoopVectorIndex(3);
+    emitContext.setLoopIterationIndex(4);
+
+
+    MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "run",
+        getMethodDescriptor(Type.VOID_TYPE, getType(Context.class), getType(Environment.class),
+        getType(SEXP.class), Type.INT_TYPE),
+        null, null);
+    
+    mv.visitCode();
+    
+    writeBody(emitContext, mv);
+    mv.visitEnd();
+
+  }
+
+  private void writeBody(EmitContext emitContext, MethodVisitor mv) {
     InstructionAdapter instructionAdapter = new InstructionAdapter(mv);
 
     int maxStackSize = 0;
@@ -102,7 +134,7 @@ public class ByteCodeEmitter implements Opcodes {
       }
     }
 
-    mv.visitMaxs(maxStackSize, variableSlots.getNumLocals() + 2);
+    mv.visitMaxs(maxStackSize, emitContext.getLocalVariableCount());
   }
 
   private void writeClassEnd() {

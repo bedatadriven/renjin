@@ -1,25 +1,30 @@
 package org.renjin.compiler;
 
 
+import com.google.common.base.Charsets;
+import com.google.common.io.Resources;
 import org.junit.Test;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
 import org.renjin.parser.RParser;
-import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.Environment;
 import org.renjin.sexp.ExpressionVector;
+
+import java.io.IOException;
 
 public class ForLoopCompilerTest {
 
   @Test
-  public void test() {
+  public void test() throws IOException {
+
+    ExpressionVector bodySexp = RParser.parseSource(
+        Resources.toString(Resources.getResource(ForLoopCompilerTest.class, "simpleLoop.R"), Charsets.UTF_8));
 
     Session session = new SessionBuilder().build();
-    ExpressionVector bodySexp = RParser.parseSource("s <- 0; z <- 1:1000; for(i in z) { s <- s + sqrt(i) }; print(s);");
-
-    DoubleVector s = (DoubleVector) session.getTopLevelContext().evaluate(bodySexp);
-
-    
-    
+    session.getTopLevelContext().evaluate(bodySexp);
+  
+    System.out.println(Environment.frameLookups);
   }
+
 
 }

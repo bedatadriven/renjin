@@ -21,7 +21,7 @@
 
 package org.renjin.primitives.special;
 
-import org.renjin.compiler.CompiledBody;
+import org.renjin.compiler.CompiledLoopBody;
 import org.renjin.compiler.TypeSolver;
 import org.renjin.compiler.cfg.ControlFlowGraph;
 import org.renjin.compiler.cfg.DominanceTree;
@@ -35,6 +35,9 @@ import org.renjin.sexp.*;
 
 
 public class ForFunction extends SpecialFunction {
+
+  private static final int COMPILE_THRESHOLD = 200;
+  private static final int WARMUP_ITERATIONS = 5;
 
   public ForFunction() {
     super("for");
@@ -52,24 +55,25 @@ public class ForFunction extends SpecialFunction {
     Vector elements = (Vector) elementsExp;
     SEXP statement = args.getElementAsSEXP(2);
     
-    if(elements.length() > 200) {
+    // Interpret the loop
+    boolean compilationFailed = false;
+    for (int i = 0; i != elements.length(); ++i) {
       try {
-        compileAndRun(context, rho, call);
-      } catch (Exception e) {
-        throw new EvalException(e);
-      }
-    } else {
-
-      // Interpret the loop
-      for (int i = 0; i != elements.length(); ++i) {
-        try {
-          rho.setVariable(symbol, elements.getElementAsSEXP(i));
-          context.evaluate(statement, rho);
-        } catch (BreakException e) {
-          break;
-        } catch (NextException e) {
-          // next iteration
+        
+        if(i > WARMUP_ITERATIONS && elements.length() > COMPILE_THRESHOLD && !compilationFailed) {
+          if(tryCompileAndRun(context, rho, call, elements, i)) {
+            break;
+          } else {
+            compilationFailed = true;
+          }
         }
+        
+        rho.setVariable(symbol, elements.getElementAsSEXP(i));
+        context.evaluate(statement, rho);
+      } catch (BreakException e) {
+        break;
+      } catch (NextException e) {
+        // next iteration
       }
     }
 
@@ -77,9 +81,10 @@ public class ForFunction extends SpecialFunction {
     return Null.INSTANCE;
   }
 
-  private void compileAndRun(Context context, Environment rho, FunctionCall call) throws IllegalAccessException, InstantiationException {
+  private boolean tryCompileAndRun(Context context, Environment rho, FunctionCall call, Vector elements, int i) {
+    
     IRBodyBuilder builder = new IRBodyBuilder(context, rho);
-    IRBody body = builder.build(call);
+    IRBody body = builder.buildLoopBody(call, elements);
     System.out.println(body);
 
     ControlFlowGraph cfg = new ControlFlowGraph(body);
@@ -88,7 +93,7 @@ public class ForFunction extends SpecialFunction {
     SsaTransformer ssaTransformer = new SsaTransformer(cfg, dTree);
     ssaTransformer.transform();
 
-//    System.out.println(cfg);
+    System.out.println(cfg);
 
     TypeSolver types = new TypeSolver(cfg);
     types.dumpBounds();
@@ -98,8 +103,16 @@ public class ForFunction extends SpecialFunction {
     System.out.println(cfg);
 
     ByteCodeEmitter emitter = new ByteCodeEmitter(cfg, types);
-    CompiledBody compiledBody = emitter.compile().newInstance();
-    compiledBody.evaluate(context, rho);
+    CompiledLoopBody compiledBody = null;
+    try {
+      compiledBody = emitter.compileLoopBody().newInstance();
+      compiledBody.run(context, rho, elements, i);
 
+    } catch (Exception e) {
+      e.printStackTrace();
+      return false;
+    }
+    
+    return true;
   }
 }

@@ -1,7 +1,10 @@
 package org.renjin.primitives.sequence;
 
 
-import org.renjin.sexp.*;
+import org.renjin.sexp.AtomicVector;
+import org.renjin.sexp.AttributeMap;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.SEXP;
 
 public class IntSequence extends IntVector {
 
@@ -20,6 +23,18 @@ public class IntSequence extends IntVector {
     this.from = from;
     this.by = by;
     this.length = length;
+  }
+
+  public int getFrom() {
+    return from;
+  }
+
+  public int getBy() {
+    return by;
+  }
+
+  public int getLength() {
+    return length;
   }
 
   @Override

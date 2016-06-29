@@ -92,6 +92,9 @@ public class TypeSet {
     } else if (type.equals(Complex.class)) {
       return COMPLEX;
 
+    } else if (type.equals(SEXP.class)) {
+      return ANY_TYPE;
+
     } else {
       throw new UnsupportedOperationException("type: " + type);
     }

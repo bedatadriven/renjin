@@ -238,7 +238,12 @@ public class TypeSolver {
     }
     
     if(!boundSet.isEmpty()) {
-      lattice.put(assignment.getLHS(), ValueBounds.union(boundSet));
+
+      ValueBounds newBounds = ValueBounds.union(boundSet);
+      ValueBounds oldBounds = lattice.put(assignment.getLHS(), newBounds);
+//      if(!Objects.equals(oldBounds, newBounds)) {
+//        System.out.println(phiFunction + " => " + ValueBounds.union(boundSet) + " => " + assignment.getLHS());
+//      }
     }
   }
   
@@ -251,6 +256,8 @@ public class TypeSolver {
   }
   
   private void visitExpression(BasicBlock block, Statement statement) {
+    
+    
     // Evaluate the expression obtaining the values of the operands from the LatticeCells
     // where they are defined and using the expression rules in Section 2.2
 
@@ -261,6 +268,7 @@ public class TypeSolver {
     
     if(!Objects.equals(oldBounds, newBounds)) {
 
+     // System.out.println(expression + " = " + newBounds);
       lattice.put(expression, newBounds);
       
       // If this changes the value of the LatticeCell of the output expression, do the following:
@@ -273,6 +281,8 @@ public class TypeSolver {
         Collection<SsaEdge> outgoingEdges = ssaEdges.get(assignment.getLHS());
 
         lattice.put(assignment.getLHS(), newBounds);
+       // System.out.println(expression + " => " + newBounds + " => " + assignment.getLHS());
+
         ssaWorkList.addAll(outgoingEdges);
       }
 

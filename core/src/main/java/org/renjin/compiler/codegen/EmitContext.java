@@ -26,12 +26,18 @@ public class EmitContext {
   private Map<IRLabel, Label> labels = Maps.newHashMap();
   private Multimap<LValue, Expression> definitionMap = HashMultimap.create();
   private VariableSlots variableSlots;
+  
+  private int loopVectorIndex;
+  private int loopIterationIndex;
 
   public EmitContext(ControlFlowGraph cfg, VariableSlots variableSlots) {
     this.variableSlots = variableSlots;
     buildDefinitionMap(cfg);
   }
-  
+
+  public int getContextVarIndex() {
+    return 1;
+  }
   public int getEnvironmentVarIndex() {
     return 2;
   }
@@ -54,6 +60,22 @@ public class EmitContext {
       labels.put(irLabel, asmLabel);
     }
     return asmLabel;
+  }
+
+  public int getLoopVectorIndex() {
+    return loopVectorIndex;
+  }
+
+  public void setLoopVectorIndex(int loopVectorIndex) {
+    this.loopVectorIndex = loopVectorIndex;
+  }
+
+  public int getLoopIterationIndex() {
+    return loopIterationIndex;
+  }
+
+  public void setLoopIterationIndex(int loopIterationIndex) {
+    this.loopIterationIndex = loopIterationIndex;
   }
 
   public int getRegister(LValue lValue) {
@@ -84,8 +106,8 @@ public class EmitContext {
       } else if (toType.equals(Type.INT_TYPE)) {
         mv.checkcast(Type.getType(Vector.class));
         mv.iconst(0);
-        mv.invokestatic(Type.getInternalName(Vector.class), "getElementAsInt",
-            Type.getMethodDescriptor(Type.INT_TYPE, Type.INT_TYPE), false);
+        mv.invokeinterface(Type.getInternalName(Vector.class), "getElementAsInt",
+            Type.getMethodDescriptor(Type.INT_TYPE, Type.INT_TYPE));
         return 1;
 
       }
@@ -121,4 +143,9 @@ public class EmitContext {
   public VariableStorage getVariableStorage(LValue lhs) {
     return variableSlots.getStorage(lhs);
   }
+
+  public int getLocalVariableCount() {
+    return variableSlots.getNumLocals();
+  }
+
 }

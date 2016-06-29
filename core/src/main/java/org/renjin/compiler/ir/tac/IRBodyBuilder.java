@@ -6,6 +6,7 @@ import com.google.common.collect.Sets;
 import org.renjin.compiler.NotCompilableException;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.expressions.*;
+import org.renjin.compiler.ir.tac.functions.ForTranslator;
 import org.renjin.compiler.ir.tac.functions.FunctionCallTranslator;
 import org.renjin.compiler.ir.tac.functions.FunctionCallTranslators;
 import org.renjin.compiler.ir.tac.functions.TranslationContext;
@@ -73,6 +74,26 @@ public class IRBodyBuilder {
     
     return new IRBody(statements, labels);
   }
+  
+  public IRBody buildLoopBody(FunctionCall call, SEXP sequence) {
+    statements = Lists.newArrayList();
+    labels = Maps.newHashMap();
+
+    LocalVariable vector = newLocalVariable();
+    LocalVariable counter = newLocalVariable();
+
+    statements.add(new Assignment(vector, new ReadLoopVector(sequence)));
+    
+    ForTranslator.buildLoop(this, call, vector, counter);
+
+    addStatement(new ReturnStatement(new Constant(Null.INSTANCE)));
+    
+    removeRedundantJumps();
+    insertVariableInitializations();
+    updateVariableReturn();
+    
+    return new IRBody(statements, labels);
+  }
 
   private void updateVariableReturn() {
 
@@ -92,8 +113,15 @@ public class IRBodyBuilder {
     
     for (EnvironmentVariable environmentVariable : variables.values()) {
       SEXP value = rho.findVariable(environmentVariable.getName());
-      if(value instanceof Promise && !((Promise) value).isEvaluated()) {
-        throw new NotCompilableException(environmentVariable.getName(), "Unevaluated promise encountered");
+      if(value instanceof Promise) {
+        Promise promisedValue = (Promise) value;
+        if(promisedValue.isEvaluated()) {
+          value = promisedValue.force(context);
+        } else {
+          // Promises can have side effects, and evaluation order is important 
+          // so we can't just force all the promises in the beginning of the loop
+          throw new NotCompilableException(environmentVariable.getName(), "Unevaluated promise encountered");
+        }
       }
       if(value != Symbol.UNBOUND_VALUE) {
         initializations.add(new Assignment(environmentVariable, new ReadEnvironment(environmentVariable.getName(), ValueBounds.of(value))));

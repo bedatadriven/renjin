@@ -14,7 +14,7 @@ import org.renjin.sexp.PrimitiveFunction;
 
 import java.util.List;
 
-public class BuiltinTranslator extends FunctionCallTranslator {
+class BuiltinTranslator extends FunctionCallTranslator {
 
   public static final BuiltinTranslator INSTANCE = new BuiltinTranslator();
 

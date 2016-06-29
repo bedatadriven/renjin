@@ -4,6 +4,7 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.InstructionAdapter;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.ir.ValueBounds;
+import org.renjin.primitives.sequence.IntSequence;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Vector;
 
@@ -50,11 +51,28 @@ public class ElementAccess extends SpecializedCallExpression {
     
     Expression vector = getVector();
     Type resultType = valueBounds.storageType();
+
+    ValueBounds vectorBounds = vector.getValueBounds();
+    if(vectorBounds.isConstant()) {
+      if(vectorBounds.getConstantValue() instanceof IntSequence) {
+        IntSequence sequence = (IntSequence) vectorBounds.getConstantValue();
+        getIndex().load(emitContext, mv);
+        if (sequence.getBy() != 1) {
+          mv.iconst(sequence.getBy());
+          mv.mul(Type.INT_TYPE);
+        }
+        if (sequence.getFrom() != 0) {
+          mv.iconst(sequence.getFrom());
+          mv.add(Type.INT_TYPE);
+        }
+        return 2;
+      }
+    }
     
     if(vector.getType().getSort() == Type.OBJECT) {
       stackHeight = vector.load(emitContext, mv);
       
-      if(vector.getType().equals(SEXP.class)) {
+      if(vector.getType().equals(Type.getType(SEXP.class))) {
         mv.checkcast(Type.getType(Vector.class));
       }
       
@@ -82,7 +100,7 @@ public class ElementAccess extends SpecializedCallExpression {
   @Override
   public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
     int typeSet = getVector().updateTypeBounds(typeMap).getTypeSet();
-    
+      
     valueBounds = ValueBounds.primitive(typeSet);
     
     return valueBounds;

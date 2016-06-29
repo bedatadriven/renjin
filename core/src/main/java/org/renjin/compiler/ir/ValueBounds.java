@@ -25,6 +25,8 @@ public class ValueBounds {
   private int length = UNKNOWN_LENGTH;
   private int typeSet = TypeSet.ANY_TYPE;
   
+  private SEXP constantValue = null;
+  
   private ValueBounds() {};
 
   public static ValueBounds primitive(int type) {
@@ -36,9 +38,38 @@ public class ValueBounds {
 
   public static ValueBounds of(SEXP value) {
     ValueBounds valueBounds = new ValueBounds();
+    valueBounds.constantValue = value;
     valueBounds.typeSet = TypeSet.of(value);
     valueBounds.length = value.length();
     return valueBounds;
+  }
+
+
+  public ValueBounds of(Object value) {
+    if(value instanceof SEXP) {
+      return of((SEXP)value);
+    } else if(value instanceof Integer) {
+      return of(IntVector.valueOf((Integer) value));
+    } else if(value instanceof Double) {
+      return of(DoubleVector.valueOf((Double) value));
+    }
+    throw new UnsupportedOperationException("value: " + value);
+  }
+
+
+  public static ValueBounds of(Class returnType) {
+    ValueBounds valueBounds = new ValueBounds();
+    valueBounds.typeSet = TypeSet.of(returnType);
+    if(returnType.isPrimitive()) {
+      valueBounds.length = 1;
+    } else {
+      valueBounds.length = UNKNOWN_LENGTH;
+    }
+    return valueBounds;
+  }
+  
+  public boolean isConstant() {
+    return constantValue != null;
   }
   
   /**
@@ -150,6 +181,10 @@ public class ValueBounds {
   @Override
   public String toString() {
     
+    if(isConstant()) {
+      return "[" + constantValue + "]";
+    }
+    
     if(typeSet == TypeSet.ANY_TYPE && length == UNKNOWN_LENGTH) {
       return "[*]";
     }
@@ -187,6 +222,10 @@ public class ValueBounds {
     int result = length;
     result = 31 * result + typeSet;
     return result;
+  }
+
+  public SEXP getConstantValue() {
+    return constantValue;
   }
 
 }

@@ -14,6 +14,8 @@ import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.LValue;
 import org.renjin.compiler.ir.tac.statements.Assignment;
 import org.renjin.compiler.ir.tac.statements.Statement;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.IntVector;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Vector;
 
@@ -75,8 +77,8 @@ public class EmitContext {
         return 0;
 
       } else if (toType.equals(Type.DOUBLE_TYPE)) {
-        mv.invokevirtual(Type.getInternalName(SEXP.class), "asReal",
-            Type.getMethodDescriptor(Type.DOUBLE_TYPE), false);
+        mv.invokeinterface(Type.getInternalName(SEXP.class), "asReal",
+            Type.getMethodDescriptor(Type.DOUBLE_TYPE));
         return 0;
 
       } else if (toType.equals(Type.INT_TYPE)) {
@@ -87,9 +89,33 @@ public class EmitContext {
         return 1;
 
       }
+    } else if(toType.equals(Type.getType(SEXP.class))) {
+      // TO SEXP --->
+      
+      if(fromType.getSort() == Type.OBJECT) {
+        // No cast necessary
+        return 0;
+      }
+      
+      switch (fromType.getSort()) {
+        case Type.INT:
+          return box(mv, IntVector.class, Type.INT_TYPE);
+        
+        case Type.DOUBLE:
+          return box(mv, DoubleVector.class, Type.DOUBLE_TYPE);
+        
+      }
+      
+      
     }
     
     throw new UnsupportedOperationException("Unsupported conversion: " + fromType + " -> " + toType);
+  }
+  
+  private int box(InstructionAdapter mv, Class vectorClass, Type primitiveType) {
+    mv.invokestatic(Type.getInternalName(vectorClass), "valueOf",
+        Type.getMethodDescriptor(Type.getType(vectorClass), primitiveType), false);
+    return 0;
   }
 
   public VariableStorage getVariableStorage(LValue lhs) {

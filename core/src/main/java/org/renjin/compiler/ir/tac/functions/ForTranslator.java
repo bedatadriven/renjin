@@ -56,7 +56,7 @@ public class ForTranslator extends FunctionCallTranslator {
     factory.addLabel(bodyLabel);
     factory.addStatement(new Assignment(elementVariable, new ElementAccess(vector, counter)));
 
-    LoopContext loopContext = new LoopContext(parentContext, nextLabel, exitLabel);
+    LoopContext loopContext = new LoopContext(nextLabel, exitLabel);
     factory.translateStatements(loopContext, body);
     
     // increment the counter

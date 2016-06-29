@@ -75,8 +75,12 @@ public class IRBodyBuilder {
   }
 
   private void updateVariableReturn() {
-    
-    
+
+    for (Statement statement : statements) {
+      if(statement instanceof ReturnStatement) {
+        ((ReturnStatement) statement).addEnvironmentVariables(variables.values());
+      }
+    }
   }
 
 

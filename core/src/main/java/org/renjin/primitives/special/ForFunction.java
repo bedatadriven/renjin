@@ -99,8 +99,7 @@ public class ForFunction extends SpecialFunction {
 
     ByteCodeEmitter emitter = new ByteCodeEmitter(cfg, types);
     CompiledBody compiledBody = emitter.compile().newInstance();
-//
-//    compiledBody.evaluate(context, rho);
+    compiledBody.evaluate(context, rho);
 
   }
 }

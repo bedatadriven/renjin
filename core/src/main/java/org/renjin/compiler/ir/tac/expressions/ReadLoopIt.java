@@ -49,4 +49,9 @@ public class ReadLoopIt implements Expression {
   public Expression childAt(int index) {
     throw new IllegalArgumentException("no children");
   }
+
+  @Override
+  public String toString() {
+    return "currentLoopIteration()";
+  }
 }

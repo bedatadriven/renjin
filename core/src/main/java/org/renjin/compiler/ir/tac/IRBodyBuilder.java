@@ -83,6 +83,7 @@ public class IRBodyBuilder {
     LocalVariable counter = newLocalVariable("i");
 
     statements.add(new Assignment(vector, new ReadLoopVector(sequence)));
+    statements.add(new Assignment(counter, new ReadLoopIt()));
     
     ForTranslator.buildLoop(this, call, vector, counter);
 

@@ -27,12 +27,15 @@ public class ValueBounds {
   
   private SEXP constantValue = null;
   
+  private AtomicVector classAttribute = null;
+  
   private ValueBounds() {};
 
   public static ValueBounds primitive(int type) {
     ValueBounds valueBounds = new ValueBounds();
     valueBounds.typeSet = type;
     valueBounds.length = SCALAR_LENGTH;
+    valueBounds.classAttribute = Null.INSTANCE;
     return valueBounds;
   }
 
@@ -41,6 +44,7 @@ public class ValueBounds {
     valueBounds.constantValue = value;
     valueBounds.typeSet = TypeSet.of(value);
     valueBounds.length = value.length();
+    valueBounds.classAttribute = value.getAttributes().getClassVector();
     return valueBounds;
   }
 
@@ -71,6 +75,15 @@ public class ValueBounds {
   public boolean isConstant() {
     return constantValue != null;
   }
+
+
+  public boolean isLengthConstant() {
+    return length != UNKNOWN_LENGTH;
+  }
+  
+  public boolean isClassAttributeConstant() {
+    return classAttribute != null;
+  }
   
   /**
    * @return a bit mask indicating which R types are included in this bounds.
@@ -90,14 +103,32 @@ public class ValueBounds {
     ValueBounds u = new ValueBounds();
     u.typeSet = this.typeSet | other.typeSet;
     u.length = unionLengths(this.length, other.length);
+    u.classAttribute = unionClass(this.classAttribute, other.classAttribute);
     return u;
   }
+
 
   private static int unionLengths(int x, int y) {
     if(x == y) {
       return x;
     }
     return UNKNOWN_LENGTH;
+  }
+
+  private AtomicVector unionClass(AtomicVector x, AtomicVector y) {
+    // If either class(x) is unknown, or class(y) is unknown, then
+    // their union is also unknown
+    if(x == null || y == null) {
+      return null;
+    }
+    
+    // If they have the same class, then their unknown is null
+    if(x.equals(y)) {
+      return x;
+    }
+    
+    // Otherwise we don't know what the class will be.
+    return null;
   }
 
   /**
@@ -234,9 +265,5 @@ public class ValueBounds {
       }
     }
     return true;
-  }
-
-  public boolean isLengthConstant() {
-    return length != UNKNOWN_LENGTH;
   }
 }

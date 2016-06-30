@@ -61,7 +61,7 @@ public class ForFunction extends SpecialFunction {
     for (int i = 0; i != elements.length(); ++i) {
       try {
         
-        if(i > WARMUP_ITERATIONS && elements.length() > COMPILE_THRESHOLD && !compilationFailed) {
+        if(i >= WARMUP_ITERATIONS && elements.length() > COMPILE_THRESHOLD && !compilationFailed) {
           if(tryCompileAndRun(context, rho, call, elements, i)) {
             break;
           } else {

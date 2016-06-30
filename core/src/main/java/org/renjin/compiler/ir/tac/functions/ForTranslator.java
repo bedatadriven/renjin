@@ -31,7 +31,9 @@ public class ForTranslator extends FunctionCallTranslator {
     Expression vector =
         factory.translateSimpleExpression(context, call.getArgument(1));
 
-    LocalVariable counter = factory.newLocalVariable("elements");
+    // initialize the counter
+    LocalVariable counter = factory.newLocalVariable("i");
+    factory.addStatement(new Assignment(counter, new Constant(0)));
 
     buildLoop(factory, call, vector, counter);
   }
@@ -50,8 +52,6 @@ public class ForTranslator extends FunctionCallTranslator {
     IRLabel nextLabel = factory.newLabel();
     IRLabel exitLabel = factory.newLabel();
 
-    // initialize the counter
-    factory.addStatement(new Assignment(counter, new Constant(0)));
     factory.addStatement(new Assignment(length, new Length(vector)));
 
     // check the counter and potentially loop

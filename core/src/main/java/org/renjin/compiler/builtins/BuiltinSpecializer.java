@@ -5,6 +5,7 @@ import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.invoke.codegen.OverloadComparator;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.primitives.Primitives;
+import org.renjin.sexp.Null;
 
 import java.util.Collections;
 import java.util.List;
@@ -32,6 +33,13 @@ public class BuiltinSpecializer implements Specializer {
     JvmMethod method = selectOverload(argumentTypes);
     if(method == null) {
       return UnspecializedCall.INSTANCE;
+    }
+    
+    if(method.isGeneric()) {
+      ValueBounds object = argumentTypes.get(0);
+      if(!object.isClassAttributeConstant() || object.getConstantClassAttribute() != Null.INSTANCE) {
+        return UnspecializedCall.INSTANCE;
+      }
     }
     
     if(method.isDataParallel()) {

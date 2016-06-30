@@ -6,9 +6,12 @@ import org.objectweb.asm.commons.InstructionAdapter;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.expressions.Expression;
+import org.renjin.invoke.annotations.PreserveAttributeStyle;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.primitives.Primitives;
+import org.renjin.sexp.AttributeMap;
 
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -27,42 +30,91 @@ public class DataParallelCall implements Specialization {
     this.name = primitive.name;
     this.method = method;
     this.argumentTypes = argumentTypes;
-    this.valueBounds = ValueBounds.vector(method.getReturnType(), computeLengths(argumentTypes));
+    this.valueBounds = computeBounds(argumentTypes);
     this.type = valueBounds.storageType();
   }
 
-  private int computeLengths(List<ValueBounds> argumentTypes) {
-    List<ValueBounds> recycledArguments = Lists.newArrayList();
-    for (int i = 0; i < method.getPositionalFormals().size(); i++) {
-      JvmMethod.Argument formal = method.getPositionalFormals().get(i);
-      if(formal.isRecycle()) {
-        recycledArguments.add(argumentTypes.get(i));
+  
+  private ValueBounds computeBounds(List<ValueBounds> argumentBounds) {
+    
+    List<ValueBounds> recycledArguments = recycledArgumentBounds(argumentBounds);
+    
+    ValueBounds bounds = ValueBounds.vector(method.getReturnType(), computeResultLength(argumentTypes));
+    
+    if(method.getPreserveAttributesStyle() == PreserveAttributeStyle.NONE) {
+      bounds = bounds.withAttributes(AttributeMap.EMPTY);      
+    
+    } else if(bounds.isLengthConstant()) {
+      bounds = bounds.withAttributes(computeResultAttributes(recycledArguments, bounds.getLength()));
+    }
+    
+    return bounds;
+  }
+
+
+  /**
+   * Makes a list of {@link ValueBounds} for @Recycled arguments.
+   */
+  private List<ValueBounds> recycledArgumentBounds(List<ValueBounds> argumentBounds) {
+    List<ValueBounds> list = Lists.newArrayList();
+    Iterator<ValueBounds> argumentIt = argumentBounds.iterator();
+    for (JvmMethod.Argument formal : method.getFormals()) {
+      if (formal.isRecycle()) {
+        list.add(argumentIt.next());
       }
+    }
+    return list;
+  }
+  
+  private int computeResultLength(List<ValueBounds> argumentBounds) {
+    Iterator<ValueBounds> it = argumentBounds.iterator();
+    int resultLength = 0;
+    
+    while(it.hasNext()) {
+      int argumentLength = it.next().getLength();
+      if(argumentLength == ValueBounds.UNKNOWN_LENGTH) {
+        return ValueBounds.UNKNOWN_LENGTH;
+      }
+      if(argumentLength == 0) {
+        return 0;
+      }
+      resultLength = Math.max(resultLength, argumentLength);
     }
 
-    int maxLength = 1;
-    for (ValueBounds recycledArgument : recycledArguments) {
-      if(recycledArgument.getLength() == ValueBounds.UNKNOWN_LENGTH) {
-        return ValueBounds.UNKNOWN_LENGTH;
-      } else if(recycledArgument.getLength() == 0) {
-        return 0;
-      } else if (recycledArgument.getLength() > maxLength) {
-        maxLength = recycledArgument.getLength();
+    return resultLength;
+  }
+  
+  private AttributeMap computeResultAttributes(List<ValueBounds> argumentBounds, int resultLength) {
+
+    AttributeMap.Builder attributes = AttributeMap.newBuilder();
+
+    for (ValueBounds argumentBound : argumentBounds) {
+      if(!argumentBound.isAttributeConstant()) {
+        return null;
+      }
+      if(argumentBound.getLength() == resultLength) {
+        switch (method.getPreserveAttributesStyle()) {
+          case ALL:
+            attributes.combineFrom(argumentBound.getConstantAttributes());            
+            break;
+          case STRUCTURAL:
+            attributes.combineStructuralFrom(argumentBound.getConstantAttributes());
+            break;
+        }
       }
     }
-    return maxLength;
+    return attributes.build();
   }
+  
 
   public Specialization specializeFurther() {
     if(valueBounds.getLength() == 1) {
-      DoubleBinaryOp op = DoubleBinaryOp.trySpecialize(name, method);
+      DoubleBinaryOp op = DoubleBinaryOp.trySpecialize(name, method, valueBounds);
       if(op != null) {
         return op;
       }
-
-      return new StaticMethodCall(method);
+      return new DataParallelScalarCall(method, argumentTypes, valueBounds).trySpecializeFurther();
     }
-    
     return this;
   }
 

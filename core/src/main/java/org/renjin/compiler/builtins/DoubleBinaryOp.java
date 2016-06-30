@@ -17,9 +17,11 @@ import java.util.List;
 public class DoubleBinaryOp implements Specialization {
   
   private int opcode;
+  private ValueBounds valueBounds;
   
-  public DoubleBinaryOp(int opcode) {
+  public DoubleBinaryOp(int opcode, ValueBounds valueBounds) {
     this.opcode = opcode;
+    this.valueBounds = valueBounds;
   }
 
   @Override
@@ -29,7 +31,7 @@ public class DoubleBinaryOp implements Specialization {
 
   @Override
   public ValueBounds getValueBounds() {
-    return ValueBounds.DOUBLE_PRIMITIVE;
+    return valueBounds;
   }
 
   @Override
@@ -47,7 +49,7 @@ public class DoubleBinaryOp implements Specialization {
     mv.visitInsn(opcode);
   }
 
-  public static DoubleBinaryOp trySpecialize(String name, JvmMethod overload) {
+  public static DoubleBinaryOp trySpecialize(String name, JvmMethod overload, ValueBounds valueBounds) {
     List<JvmMethod.Argument> formals = overload.getPositionalFormals();
     if(formals.size() == 2 &&
         formals.get(0).getClazz().equals(double.class) &&
@@ -55,13 +57,13 @@ public class DoubleBinaryOp implements Specialization {
 
       switch (name) {
         case "+":
-          return new DoubleBinaryOp(Opcodes.DADD);
+          return new DoubleBinaryOp(Opcodes.DADD, valueBounds);
         case "-":
-          return new DoubleBinaryOp(Opcodes.DSUB);
+          return new DoubleBinaryOp(Opcodes.DSUB, valueBounds);
         case "*":
-          return new DoubleBinaryOp(Opcodes.DMUL);
+          return new DoubleBinaryOp(Opcodes.DMUL, valueBounds);
         case "/":
-          return new DoubleBinaryOp(Opcodes.DDIV);
+          return new DoubleBinaryOp(Opcodes.DDIV, valueBounds);
       }
     }
     return null;

@@ -12,6 +12,7 @@ import org.renjin.sexp.ExpressionVector;
 
 import java.io.IOException;
 
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 public class ForLoopCompilerTest extends EvalTestCase {
@@ -30,6 +31,30 @@ public class ForLoopCompilerTest extends EvalTestCase {
   public void simpleLoop() throws IOException {
     assertThat(eval("{ s <- 0; for(i in 1:100000) { s <- s + sqrt(i) }; s }"), closeTo(c(21082008.973918), 1d));
   }
+
+  @Test
+  public void loopWithS3Call() {
+    
+    // The + operator is overloaded with a `+.foo` method for class 'foo'
+    // We should either bailout or specialize to the provided function
+    
+    eval("  `+.foo` <- function(x, y) structure(42, class='foo') ");
+    eval(" s <- structure(1, class='foo') ");
+    eval(" for(i in 1:500) s <- s + sqrt(i) ");
+      
+    assertThat(eval("s"), equalTo(c(42)));
+  }
+
+  @Test
+  public void attributePropagation() {
+    
+    eval(" s <- structure(1, foo='bar') ");
+    eval(" for(i in 1:500) s <- s + sqrt(i) ");
+
+    assertThat(eval(" s "), closeTo(c(7465.534), 0.01));
+    assertThat(eval(" attr(s, 'foo') "), equalTo(c("bar")));
+  }
+
 
 
   @Test

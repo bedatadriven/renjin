@@ -93,8 +93,8 @@ public class ForFunction extends SpecialFunction {
     DominanceTree dTree = new DominanceTree(cfg);
     SsaTransformer ssaTransformer = new SsaTransformer(cfg, dTree);
     ssaTransformer.transform();
-
-    //System.out.println(cfg);
+    
+    System.out.println(cfg);
 
     UseDefMap useDefMap = new UseDefMap(cfg);
     TypeSolver types = new TypeSolver(cfg, useDefMap);
@@ -102,7 +102,7 @@ public class ForFunction extends SpecialFunction {
     
     ssaTransformer.removePhiFunctions(types);
 
-    System.out.println(cfg);
+   // System.out.println(cfg);
 
     ByteCodeEmitter emitter = new ByteCodeEmitter(cfg, types);
     CompiledLoopBody compiledBody = null;

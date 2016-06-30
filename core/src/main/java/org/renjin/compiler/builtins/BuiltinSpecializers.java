@@ -32,8 +32,8 @@ public class BuiltinSpecializers {
   
   public BuiltinSpecializers() {
     
-    specializers.put("length", new LengthSpecializer());
-    specializers.put("[<-", new ReplaceSpecializer());
+    specializers.put("length", new GenericBuiltinGuard(new LengthSpecializer()));
+    specializers.put("[<-", new GenericBuiltinGuard(new ReplaceSpecializer()));
     
     cache = CacheBuilder.newBuilder().build(new CacheLoader<String, BuiltinSpecializer>() {
       @Override

@@ -228,4 +228,14 @@ public class ValueBounds {
     return constantValue;
   }
 
+
+  public static boolean allConstant(Iterable<ValueBounds> argumentTypes) {
+    for (ValueBounds argumentType : argumentTypes) {
+      if(!argumentType.isConstant()) {
+        return false;
+      }
+    }
+    return true;
+  }
+
 }

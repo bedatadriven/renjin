@@ -14,7 +14,7 @@ import java.io.IOException;
 public class ForLoopCompilerTest {
 
   @Test
-  public void test() throws IOException {
+  public void testScalar() throws IOException {
 
     ExpressionVector bodySexp = RParser.parseSource(
         Resources.toString(Resources.getResource(ForLoopCompilerTest.class, "simpleLoop.R"), Charsets.UTF_8));
@@ -22,6 +22,14 @@ public class ForLoopCompilerTest {
     Session session = new SessionBuilder().build();
     session.getTopLevelContext().evaluate(bodySexp);
   
+  }
+  
+  @Test
+  public void testVectorBuild() {
+
+    ExpressionVector bodySexp = RParser.parseSource("x <- numeric(10000); for(i in seq_along(x)) x[i] <- sqrt(i)");
+    Session session = new SessionBuilder().build();
+    session.getTopLevelContext().evaluate(bodySexp); 
   }
 
 

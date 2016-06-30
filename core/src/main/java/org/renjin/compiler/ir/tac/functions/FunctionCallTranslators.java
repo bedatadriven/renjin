@@ -34,7 +34,6 @@ public class FunctionCallTranslators {
     specials.put("switch", new SwitchTranslator());
     specials.put("quote", new QuoteTranslator());
     specials.put("return", new ReturnTranslator());
-
     specials.put(":", new SequenceTranslator());
   }
   

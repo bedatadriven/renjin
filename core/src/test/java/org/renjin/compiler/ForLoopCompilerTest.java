@@ -3,6 +3,7 @@ package org.renjin.compiler;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.eval.Session;
@@ -18,6 +19,7 @@ import static org.junit.Assert.assertThat;
 public class ForLoopCompilerTest extends EvalTestCase {
 
   @Test
+  @Ignore("only for demo purposes")
   public void simpleLoopDemo() throws IOException {
 
     ExpressionVector bodySexp = RParser.parseSource(
@@ -29,7 +31,7 @@ public class ForLoopCompilerTest extends EvalTestCase {
 
   @Test
   public void simpleLoop() throws IOException {
-    assertThat(eval("{ s <- 0; for(i in 1:100000) { s <- s + sqrt(i) }; s }"), closeTo(c(21082008.973918), 1d));
+    assertThat(eval("{ s <- 0; for(i in 1:10000) { s <- s + sqrt(i) }; s }"), closeTo(c(666716.5), 1d));
   }
 
   @Test
@@ -55,11 +57,8 @@ public class ForLoopCompilerTest extends EvalTestCase {
     assertThat(eval(" attr(s, 'foo') "), equalTo(c("bar")));
   }
 
-
-
   @Test
   public void testVectorBuild() throws IOException {
-
     eval("x <- numeric(10000); for(i in seq_along(x)) { y <- x; x[i] <- sqrt(i) }"); 
   }
 

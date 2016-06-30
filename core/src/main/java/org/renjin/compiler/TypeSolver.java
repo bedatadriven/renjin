@@ -1,15 +1,9 @@
 package org.renjin.compiler;
 
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
-import org.renjin.compiler.cfg.BasicBlock;
-import org.renjin.compiler.cfg.ControlFlowGraph;
-import org.renjin.compiler.cfg.FlowEdge;
-import org.renjin.compiler.cfg.SsaEdge;
+import org.renjin.compiler.cfg.*;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.ssa.PhiFunction;
-import org.renjin.compiler.ir.tac.TreeNode;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.LValue;
 import org.renjin.compiler.ir.tac.expressions.NullExpression;
@@ -42,65 +36,23 @@ public class TypeSolver {
   // https://www.cs.utexas.edu/users/lin/cs380c/wegman.pdf
 
   private final ControlFlowGraph cfg;
-  /**
-   * Map from variables to their definitions
-   */
-  private Map<LValue, Assignment> definitionMap = Maps.newHashMap();
-  
-  /**
-   * Map from definitions to outgoing SSA edges.
-   */
-  private final Multimap<LValue, SsaEdge> ssaEdges = HashMultimap.create();
-
+  private UseDefMap useDefMap;
 
   private final ArrayDeque<FlowEdge> flowWorkList = new ArrayDeque<>();
   private final ArrayDeque<SsaEdge> ssaWorkList = new ArrayDeque<>();
-
-  /**
-   * Set of SSA variables that are actually used.
-   */
-  private final Set<LValue> variableUsages = new HashSet<>();
 
   private static final ValueBounds TOP = null;
   
   private final Map<Expression, ValueBounds> lattice = Maps.newHashMap();
   
-  public TypeSolver(ControlFlowGraph cfg) {
+  public TypeSolver(ControlFlowGraph cfg, UseDefMap useDefMap) {
     this.cfg = cfg;
-    buildSsaEdges();
+    this.useDefMap = useDefMap;
     execute();
   }
 
-  private void buildSsaEdges() {
-
-    for (BasicBlock basicBlock : cfg.getBasicBlocks()) {
-      for (Statement statement : basicBlock.getStatements()) {
-        if(statement instanceof Assignment) {
-          Assignment assignment = (Assignment) statement;
-          definitionMap.put(assignment.getLHS(), assignment);
-        }
-      }
-    }
-
-    for (BasicBlock basicBlock : cfg.getBasicBlocks()) {
-      for (Statement statement : basicBlock.getStatements()) {
-        Expression rhs = statement.getRHS();
-        if(rhs instanceof LValue) {
-          addSsaEdge((LValue) rhs, basicBlock, statement);
-        } else {
-          for(int i=0;i!= rhs.getChildCount();++i) {
-            TreeNode uses = rhs.childAt(i);
-            if(uses instanceof LValue) {
-              addSsaEdge((LValue) uses, basicBlock, statement);
-            }
-          }
-        }
-      }
-    }
-  }
-
   public boolean isDefined(LValue variable) {
-    return definitionMap.containsKey(variable);
+    return useDefMap.isDefined(variable);
   }
   
   public boolean isUsed(Assignment assignment) {
@@ -108,24 +60,13 @@ public class TypeSolver {
   }
 
   public boolean isUsed(LValue variable) {
-    return variableUsages.contains(variable);
+    return useDefMap.isUsed(variable);
   }
-  
-  private void addSsaEdge(LValue variable, BasicBlock basicBlock, Statement usage) {
-    Assignment definition = definitionMap.get(variable);
-    if(definition != null) {
-      SsaEdge edge = new SsaEdge(definition, basicBlock, usage);
-      ssaEdges.put(definition.getLHS(), edge);
-    
-      if(basicBlock != cfg.getExit()) {
-        variableUsages.add(definition.getLHS());
-      }
-    }
-  }
+
   
   public Map<LValue, ValueBounds> getVariables() {
     Map<LValue, ValueBounds> map = new HashMap<>();
-    for (LValue variable : variableUsages) {
+    for (LValue variable : useDefMap.getUsedVariables()) {
       map.put(variable, lattice.get(variable));
     }
     return map;
@@ -278,7 +219,7 @@ public class TypeSolver {
 
       if(statement instanceof Assignment) {
         Assignment assignment = (Assignment) statement;
-        Collection<SsaEdge> outgoingEdges = ssaEdges.get(assignment.getLHS());
+        Collection<SsaEdge> outgoingEdges = useDefMap.getSsaEdges(assignment.getLHS());
 
         lattice.put(assignment.getLHS(), newBounds);
        // System.out.println(expression + " => " + newBounds + " => " + assignment.getLHS());

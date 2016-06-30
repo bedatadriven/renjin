@@ -25,6 +25,7 @@ import org.renjin.compiler.CompiledLoopBody;
 import org.renjin.compiler.TypeSolver;
 import org.renjin.compiler.cfg.ControlFlowGraph;
 import org.renjin.compiler.cfg.DominanceTree;
+import org.renjin.compiler.cfg.UseDefMap;
 import org.renjin.compiler.codegen.ByteCodeEmitter;
 import org.renjin.compiler.ir.ssa.SsaTransformer;
 import org.renjin.compiler.ir.tac.IRBody;
@@ -93,9 +94,10 @@ public class ForFunction extends SpecialFunction {
     SsaTransformer ssaTransformer = new SsaTransformer(cfg, dTree);
     ssaTransformer.transform();
 
-    System.out.println(cfg);
+    //System.out.println(cfg);
 
-    TypeSolver types = new TypeSolver(cfg);
+    UseDefMap useDefMap = new UseDefMap(cfg);
+    TypeSolver types = new TypeSolver(cfg, useDefMap);
     types.dumpBounds();
     
     ssaTransformer.removePhiFunctions(types);

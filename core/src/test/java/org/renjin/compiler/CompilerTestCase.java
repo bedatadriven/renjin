@@ -27,7 +27,7 @@ public class CompilerTestCase {
   }
 
 
-  protected IRBody buildScope(String rcode) {
+  protected IRBody buildBody(String rcode) {
     Session session = new SessionBuilder().build();
     
     ExpressionVector ast = RParser.parseSource(rcode + "\n");
@@ -36,7 +36,7 @@ public class CompilerTestCase {
   
 
   protected final IRBody parseCytron() throws IOException {
-    return buildScope(Resources.toString(Resources.getResource(ControlFlowGraph.class, "cytron.R"), Charsets.UTF_8));
+    return buildBody(Resources.toString(Resources.getResource(ControlFlowGraph.class, "cytron.R"), Charsets.UTF_8));
   }
   
   protected final Matcher<Collection<BasicBlock>> itemsEqualTo(final BasicBlock... blocks) {

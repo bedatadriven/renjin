@@ -9,6 +9,7 @@ import org.renjin.compiler.NotCompilableException;
 import org.renjin.compiler.TypeSolver;
 import org.renjin.compiler.cfg.ControlFlowGraph;
 import org.renjin.compiler.cfg.DominanceTree;
+import org.renjin.compiler.cfg.UseDefMap;
 import org.renjin.compiler.ir.ssa.SsaTransformer;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Session;
@@ -95,8 +96,8 @@ public class IRBodyBuilderTest extends EvalTestCase {
     transformer.transform();
 
     System.out.println(cfg);
-
-    TypeSolver types = new TypeSolver(cfg);
+    UseDefMap useDefMap = new UseDefMap(cfg);
+    TypeSolver types = new TypeSolver(cfg, useDefMap);
     
     transformer.removePhiFunctions(types);
 

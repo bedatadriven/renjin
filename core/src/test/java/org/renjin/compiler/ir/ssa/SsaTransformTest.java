@@ -67,7 +67,7 @@ public class SsaTransformTest extends CompilerTestCase {
 
   @Test
   public void forLoop() throws IOException {
-    IRBody block = buildScope("for(i in 1:10) { n<-x[i]; print(n); }");
+    IRBody block = buildBody("for(i in 1:10) { n<-x[i]; print(n); }");
     
     System.out.println(block);
     
@@ -88,7 +88,7 @@ public class SsaTransformTest extends CompilerTestCase {
   
   @Test
   public void forLoop2() {
-    IRBody block = buildScope("s <- 9; for(i in 1:1000) { s <- s + sqrt(i) }");
+    IRBody block = buildBody("s <- 9; for(i in 1:1000) { s <- s + sqrt(i) }");
 
     ControlFlowGraph cfg = new ControlFlowGraph(block);
     DominanceTree dtree = new DominanceTree(cfg);
@@ -101,7 +101,7 @@ public class SsaTransformTest extends CompilerTestCase {
   @Test
   public void returnValue() {
 
-    IRBody block = buildScope("x <- 1; for(i in 1:2) { x<-x+1 }; x;");
+    IRBody block = buildBody("x <- 1; for(i in 1:2) { x<-x+1 }; x;");
     ControlFlowGraph cfg = new ControlFlowGraph(block);
     DominanceTree dtree = new DominanceTree(cfg);
     SsaTransformer transformer = new SsaTransformer(cfg, dtree);

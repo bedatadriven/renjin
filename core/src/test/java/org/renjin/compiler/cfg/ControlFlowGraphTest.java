@@ -1,29 +1,21 @@
 package org.renjin.compiler.cfg;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import org.junit.Test;
+import org.renjin.compiler.CompilerTestCase;
+import org.renjin.compiler.ir.tac.IRBody;
 
 import java.io.IOException;
 import java.util.List;
 
-import org.junit.Test;
-import org.renjin.compiler.CompilerTestCase;
-import org.renjin.compiler.cfg.BasicBlock;
-import org.renjin.compiler.cfg.ControlFlowGraph;
-import org.renjin.compiler.ir.tac.IRBody;
-import org.renjin.compiler.ir.tac.IRBodyBuilder;
-import org.renjin.parser.RParser;
-import org.renjin.sexp.ExpressionVector;
-
-import com.google.common.base.Charsets;
-import com.google.common.io.Resources;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 
 public class ControlFlowGraphTest extends CompilerTestCase {
 
   @Test
   public void singleBlock() {
-    IRBody block = buildScope("y<-x+1;z<-3; 4");
+    IRBody block = buildBody("y<-x+1;z<-3; 4");
     ControlFlowGraph cfg = new ControlFlowGraph(block);
     
     System.out.println(cfg);
@@ -35,7 +27,7 @@ public class ControlFlowGraphTest extends CompilerTestCase {
   
   @Test
   public void forLoop() {
-    IRBody block = buildScope("y <- 0; for(i in 1:10) y <- y + i; sqrt(y + 3 * x)");
+    IRBody block = buildBody("y <- 0; for(i in 1:10) y <- y + i; sqrt(y + 3 * x)");
     System.out.println(block);
 
     
@@ -48,7 +40,7 @@ public class ControlFlowGraphTest extends CompilerTestCase {
   
   @Test
   public void forBlock() {
-    IRBody block = buildScope("if(length(x)==1) FALSE else { y<-0; for(i in seq_along(x)) y <- y+1 }");
+    IRBody block = buildBody("if(length(x)==1) FALSE else { y<-0; for(i in seq_along(x)) y <- y+1 }");
     System.out.println(block);
 //    
 //

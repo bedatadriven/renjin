@@ -16,5 +16,6 @@ public interface Specialization {
   ValueBounds getValueBounds();
 
   void load(EmitContext emitContext, InstructionAdapter mv, List<Expression> arguments);
+  
 
 }

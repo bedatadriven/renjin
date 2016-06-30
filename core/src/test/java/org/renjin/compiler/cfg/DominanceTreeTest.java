@@ -1,17 +1,14 @@
 package org.renjin.compiler.cfg;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import org.junit.Test;
+import org.renjin.compiler.CompilerTestCase;
+import org.renjin.compiler.ir.tac.IRBody;
 
 import java.io.IOException;
 import java.util.List;
 
-import org.junit.Test;
-import org.renjin.compiler.CompilerTestCase;
-import org.renjin.compiler.cfg.BasicBlock;
-import org.renjin.compiler.cfg.ControlFlowGraph;
-import org.renjin.compiler.cfg.DominanceTree;
-import org.renjin.compiler.ir.tac.IRBody;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 
 public class DominanceTreeTest extends CompilerTestCase {
@@ -19,7 +16,7 @@ public class DominanceTreeTest extends CompilerTestCase {
 
   @Test
   public void immediateDominators() {
-    IRBody block = buildScope("y<-1; if(q) y<-y+1 else y<-4; y");
+    IRBody block = buildBody("y<-1; if(q) y<-y+1 else y<-4; y");
     ControlFlowGraph cfg = new ControlFlowGraph(block);
     
     System.out.println(cfg);

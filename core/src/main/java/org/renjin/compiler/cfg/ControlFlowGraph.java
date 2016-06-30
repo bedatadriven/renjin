@@ -182,4 +182,13 @@ public class ControlFlowGraph {
       }
     }
   }
+
+  public BasicBlock get(String debugId) {
+    for (BasicBlock basicBlock : basicBlocks) {
+      if(basicBlock.getDebugId().equals(debugId)) {
+        return basicBlock;
+      }
+    }
+    throw new IllegalArgumentException("No such block: " + debugId);
+  }
 }

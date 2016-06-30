@@ -36,8 +36,6 @@ public class DominanceTree {
     // for all other nodes, set all nodes as the dominators
     for(BasicBlock n : filter(cfg.getLiveBasicBlocks(), not(equalTo(cfg.getEntry())))) {
       Dom.putAll(n, cfg.getLiveBasicBlocks());
-      System.out.printf("Dom(%s) = %s%n", n.getDebugId(), toString(Dom.get(n)));
-
     }
 
     // iteratively eliminate nodes that are not dominators
@@ -129,7 +127,7 @@ public class DominanceTree {
   /**
    * A node d strictly dominates a node n if d dominates n and d does not equal n.
    */
-  private boolean strictlyDominates(BasicBlock d, BasicBlock n) {
+  public boolean strictlyDominates(BasicBlock d, BasicBlock n) {
     return !d.equals(n) && dominates(d, n);
   }
   

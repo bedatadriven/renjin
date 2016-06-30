@@ -5,6 +5,7 @@ import org.junit.Test;
 import org.renjin.compiler.TypeSolver;
 import org.renjin.compiler.cfg.ControlFlowGraph;
 import org.renjin.compiler.cfg.DominanceTree;
+import org.renjin.compiler.cfg.UseDefMap;
 import org.renjin.compiler.ir.ssa.SsaTransformer;
 import org.renjin.compiler.ir.ssa.SsaVariable;
 import org.renjin.compiler.ir.tac.IRBody;
@@ -51,7 +52,8 @@ public class ByteCodeEmitterTest {
 
     System.out.println(cfg);
 
-    TypeSolver types = new TypeSolver(cfg);
+    UseDefMap useDefMap = new UseDefMap(cfg);
+    TypeSolver types = new TypeSolver(cfg, useDefMap);
 
     SsaVariable s2 = s.getVersion(2);
     assertTrue(types.isDefined(s2));

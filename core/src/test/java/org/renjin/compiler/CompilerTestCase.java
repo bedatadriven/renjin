@@ -1,10 +1,8 @@
 package org.renjin.compiler;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
-
+import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
+import com.google.common.io.Resources;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
@@ -17,12 +15,9 @@ import org.renjin.eval.SessionBuilder;
 import org.renjin.parser.RParser;
 import org.renjin.sexp.ExpressionVector;
 
-
-import com.google.common.base.Charsets;
-import com.google.common.io.Resources;
-import org.renjin.sexp.ExternalPtr;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbol;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
 
 public class CompilerTestCase {
 
@@ -34,15 +29,7 @@ public class CompilerTestCase {
 
   protected IRBody buildScope(String rcode) {
     Session session = new SessionBuilder().build();
-
-    // we need a simple "print" function for testing
-    try {
-      ExternalPtr testCase = new ExternalPtr(CompilerTestCase.class);
-      session.getGlobalEnvironment().setVariable("print", testCase.getMember(Symbol.get("print")));
-    } catch(Exception e) {
-      throw new RuntimeException(e);
-    }
-
+    
     ExpressionVector ast = RParser.parseSource(rcode + "\n");
     return new IRBodyBuilder(session.getTopLevelContext(), session.getGlobalEnvironment()).build(ast);
   }

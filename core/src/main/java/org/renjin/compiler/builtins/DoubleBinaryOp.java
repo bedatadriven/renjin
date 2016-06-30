@@ -11,6 +11,9 @@ import org.renjin.invoke.model.JvmMethod;
 
 import java.util.List;
 
+/**
+ * A double-precision scalar operation that can be implemented using a JVM bytecode.
+ */
 public class DoubleBinaryOp implements Specialization {
   
   private int opcode;

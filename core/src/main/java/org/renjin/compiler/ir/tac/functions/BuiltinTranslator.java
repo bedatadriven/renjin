@@ -55,9 +55,7 @@ class BuiltinTranslator extends FunctionCallTranslator {
     List<Expression> arguments = builder.translateArgumentList(context, getterCall.getArguments());
     arguments.add(rhs);
 
-    return new BuiltinCall(entry,
-        argumentNames,
-        builder.translateArgumentList(context, getterCall.getArguments()));
+    return new BuiltinCall(entry, argumentNames, arguments);
   }
 
   @Override

@@ -2,7 +2,7 @@ package org.renjin.compiler.ir.tac.functions;
 
 import com.google.common.collect.Maps;
 import org.renjin.compiler.NotCompilableException;
-import org.renjin.invoke.reflection.MethodFunction;
+import org.renjin.sexp.Closure;
 import org.renjin.sexp.Function;
 import org.renjin.sexp.PrimitiveFunction;
 
@@ -46,10 +46,11 @@ public class FunctionCallTranslators {
         return BuiltinTranslator.INSTANCE;
       }
     }
-
-    if(function instanceof MethodFunction) {
-      throw new UnsupportedOperationException();
+  
+    if(function instanceof Closure) {
+      return new ClosureCallTranslator((Closure) function);
     }
+    
     throw new NotCompilableException(function, "Can't handle functions of class " + function.getClass().getName());
   }
 }

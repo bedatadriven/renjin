@@ -31,7 +31,7 @@ public class ForTranslator extends FunctionCallTranslator {
     Expression vector =
         factory.translateSimpleExpression(context, call.getArgument(1));
 
-    LocalVariable counter = factory.newLocalVariable();
+    LocalVariable counter = factory.newLocalVariable("elements");
 
     buildLoop(factory, call, vector, counter);
   }

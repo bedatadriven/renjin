@@ -57,7 +57,6 @@ public class ConstantCall implements Specialization {
     }
   }
 
-
   public static ConstantCall evaluate(JvmMethod method, List<ValueBounds> arguments) {
     List<JvmMethod.Argument> formals = method.getAllArguments();
     Object[] args = new Object[formals.size()];

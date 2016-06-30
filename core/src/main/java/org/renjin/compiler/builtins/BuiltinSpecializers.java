@@ -3,20 +3,38 @@ package org.renjin.compiler.builtins;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.Maps;
 import org.renjin.compiler.ir.exception.InternalCompilerException;
 import org.renjin.primitives.Primitives;
 
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 
 public class BuiltinSpecializers {
 
   public static final BuiltinSpecializers INSTANCE = new BuiltinSpecializers();
-  
-  
-  private final LoadingCache<String, BuiltinSpecializer> cache;
 
+
+  /**
+   * For a few builtins, we have extra-special specializers.
+   */
+  private final Map<String, Specializer> specializers = Maps.newHashMap();
+
+  
+  /**
+   * For most builtins, specialization is done automatically using @Annotations present
+   * in the code base. To avoid rebuilding the metadata each time one is needed, 
+   * cache instances of BuiltinSpecializer here.
+   */
+  private final LoadingCache<String, BuiltinSpecializer> cache;
+  
+  
   public BuiltinSpecializers() {
+    
+    specializers.put("length", new LengthSpecializer());
+    specializers.put("[<-", new ReplaceSpecializer());
+    
     cache = CacheBuilder.newBuilder().build(new CacheLoader<String, BuiltinSpecializer>() {
       @Override
       public BuiltinSpecializer load(String key) throws Exception {
@@ -26,6 +44,11 @@ public class BuiltinSpecializers {
   }
   
   public Specializer get(Primitives.Entry primitive) {
+    
+    if(specializers.containsKey(primitive.name)) {
+      return specializers.get(primitive.name);
+    }
+    
     try {
       return cache.get(primitive.name);
     } catch (ExecutionException e) {

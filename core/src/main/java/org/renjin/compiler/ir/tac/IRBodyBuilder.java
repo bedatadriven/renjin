@@ -12,7 +12,6 @@ import org.renjin.compiler.ir.tac.functions.FunctionCallTranslators;
 import org.renjin.compiler.ir.tac.functions.TranslationContext;
 import org.renjin.compiler.ir.tac.statements.*;
 import org.renjin.eval.Context;
-import org.renjin.invoke.reflection.MethodFunction;
 import org.renjin.packaging.SerializedPromise;
 import org.renjin.sexp.*;
 
@@ -33,7 +32,6 @@ import java.util.Set;
 public class IRBodyBuilder {
   
   private int nextTemp = 0;
-  private int nextLocalVariableIndex = 0;
   private int nextLabel = 0;
   
   private FunctionCallTranslators builders = new FunctionCallTranslators();
@@ -52,6 +50,8 @@ public class IRBodyBuilder {
    * they have been assigned to.
    */
   private Set<Symbol> resolvedFunctions = Sets.newHashSet();
+  
+  private Map<String, Integer> localVariableNames = Maps.newHashMap();
 
   public IRBodyBuilder(Context context, Environment rho) {
     this.context = context;
@@ -79,8 +79,8 @@ public class IRBodyBuilder {
     statements = Lists.newArrayList();
     labels = Maps.newHashMap();
 
-    LocalVariable vector = newLocalVariable();
-    LocalVariable counter = newLocalVariable();
+    LocalVariable vector = newLocalVariable("elements");
+    LocalVariable counter = newLocalVariable("i");
 
     statements.add(new Assignment(vector, new ReadLoopVector(sequence)));
     
@@ -199,16 +199,7 @@ public class IRBodyBuilder {
     if( functionName instanceof PrimitiveFunction) {
       return (PrimitiveFunction) functionName;
     } else if (functionName instanceof Symbol) {
-      Function resolvedFunction = resolveFunctionSymbol((Symbol) functionName);
-
-      if(resolvedFunction instanceof PrimitiveFunction) {
-        return resolvedFunction;
-      } else if(resolvedFunction instanceof MethodFunction) {
-        return resolvedFunction;
-      } else {
-        throw new NotCompilableException(functionName, "Cannot compile reference to function '" + functionName + "', " +
-            "resolves to function of class " + resolvedFunction.getClass().getName());
-      }
+      return resolveFunctionSymbol((Symbol) functionName);
     }
     throw new NotCompilableException(functionName);
   }
@@ -295,8 +286,18 @@ public class IRBodyBuilder {
     return new Temp(nextTemp++);
   }
   
-  public LocalVariable newLocalVariable() {
-    return new LocalVariable("Λ" + (nextLocalVariableIndex++));
+  public LocalVariable newLocalVariable(String debugName) {
+    int index;
+    String name;
+    if(localVariableNames.containsKey(debugName)) {
+      index = localVariableNames.get(debugName) + 1;
+      name = debugName + index;
+    } else {
+      index = 1;
+      name = debugName;
+    }
+    localVariableNames.put(debugName, index);
+    return new LocalVariable("_" + name);
   }
   
   public IRLabel newLabel() {

@@ -27,7 +27,7 @@ public class ForLoopCompilerTest {
   @Test
   public void testVectorBuild() {
 
-    ExpressionVector bodySexp = RParser.parseSource("x <- numeric(10000); for(i in seq_along(x)) x[i] <- sqrt(i)");
+    ExpressionVector bodySexp = RParser.parseSource("x <- numeric(10000); for(i in seq_along(x)) { y <- x; x[i] <- sqrt(i) }");
     Session session = new SessionBuilder().build();
     session.getTopLevelContext().evaluate(bodySexp); 
   }

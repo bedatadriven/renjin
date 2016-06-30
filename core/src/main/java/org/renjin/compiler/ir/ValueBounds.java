@@ -144,9 +144,7 @@ public class ValueBounds {
     bounds.length = length;
     return bounds;
   }
-
-
-
+  
   public Type storageType() {
     if(typeSet == TypeSet.DOUBLE) {
       if(length == 1) {
@@ -238,4 +236,7 @@ public class ValueBounds {
     return true;
   }
 
+  public boolean isLengthConstant() {
+    return length != UNKNOWN_LENGTH;
+  }
 }

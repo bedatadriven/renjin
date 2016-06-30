@@ -10,6 +10,9 @@ import org.renjin.sexp.PairList;
 import org.renjin.sexp.SEXP;
 
 
+/**
+ * Translator for the {@code function} function.
+ */
 public class ClosureTranslator extends FunctionCallTranslator {
 
   @Override
@@ -28,7 +31,9 @@ public class ClosureTranslator extends FunctionCallTranslator {
                            Function resolvedFunction, FunctionCall call) {
 
     // a closure whose value is not used has no side effects
-    
+    // E.g.
+    // function(x) x*2
+    // has no effect.
   }
 
 }

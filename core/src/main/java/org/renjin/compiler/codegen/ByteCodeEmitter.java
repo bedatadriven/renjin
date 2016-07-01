@@ -58,7 +58,8 @@ public class ByteCodeEmitter implements Opcodes {
   
   private void startClass(Class<?> interfaceClass) {
 
-    cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+//    cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+    cw = new ClassWriter(0);
     cv = new TraceClassVisitor(cw, new PrintWriter(System.out, true));
     cv.visit(V1_6, ACC_PUBLIC + ACC_SUPER, className, null,
             Type.getInternalName(Object.class), new String[] { Type.getInternalName(interfaceClass) });
@@ -80,7 +81,7 @@ public class ByteCodeEmitter implements Opcodes {
     int argumentSize = 3; // this + context + environment
     VariableSlots variableSlots = new VariableSlots(argumentSize, types);
     System.out.println(variableSlots);
-    EmitContext emitContext = new EmitContext(cfg, variableSlots);
+    EmitContext emitContext = new EmitContext(cfg, argumentSize, variableSlots);
     
     MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "evaluate", 
         getMethodDescriptor(Type.VOID_TYPE, getType(Context.class), getType(Environment.class)), 
@@ -94,7 +95,7 @@ public class ByteCodeEmitter implements Opcodes {
     int argumentSize = 5; // this + context + environment + sequence + iteration
     VariableSlots variableSlots = new VariableSlots(argumentSize, types);
     System.out.println(variableSlots);
-    EmitContext emitContext = new EmitContext(cfg, variableSlots);
+    EmitContext emitContext = new EmitContext(cfg, argumentSize, variableSlots);
     emitContext.setLoopVectorIndex(3);
     emitContext.setLoopIterationIndex(4);
 
@@ -114,7 +115,6 @@ public class ByteCodeEmitter implements Opcodes {
   private void writeBody(EmitContext emitContext, MethodVisitor mv) {
     InstructionAdapter instructionAdapter = new InstructionAdapter(mv);
 
-    int maxStackSize = 0;
     for(BasicBlock basicBlock : cfg.getBasicBlocks()) {
       if(basicBlock != cfg.getEntry() && basicBlock != cfg.getExit()) {
         for(IRLabel label : basicBlock.getLabels()) {
@@ -123,10 +123,7 @@ public class ByteCodeEmitter implements Opcodes {
 
         for(Statement stmt : basicBlock.getStatements()) {
           try {
-            int stackHeight = stmt.emit(emitContext, instructionAdapter);
-            if (stackHeight > maxStackSize) {
-              maxStackSize = stackHeight;
-            }
+            stmt.emit(emitContext, instructionAdapter);
           } catch (Exception e) {
             throw new InternalCompilerException("Exception compiling statement " + stmt, e);
           }
@@ -134,7 +131,7 @@ public class ByteCodeEmitter implements Opcodes {
       }
     }
 
-    mv.visitMaxs(maxStackSize, emitContext.getLocalVariableCount());
+    mv.visitMaxs(100, emitContext.getLocalVariableCount());
   }
 
   private void writeClassEnd() {

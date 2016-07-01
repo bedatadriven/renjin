@@ -206,6 +206,8 @@ public class IRBodyBuilderTest extends EvalTestCase {
     assertThat(evalIR("1 || NA"), equalTo(c(true)));
     assertThat(evalIR("1 || stop(); NULL "), equalTo(NULL));
   }
+  
+  
  
   
   @Test

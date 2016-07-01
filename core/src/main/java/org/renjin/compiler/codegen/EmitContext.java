@@ -7,6 +7,7 @@ import com.google.common.collect.Multimap;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.InstructionAdapter;
+import org.renjin.compiler.TypeSolver;
 import org.renjin.compiler.cfg.BasicBlock;
 import org.renjin.compiler.cfg.ControlFlowGraph;
 import org.renjin.compiler.ir.tac.IRLabel;
@@ -14,10 +15,7 @@ import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.LValue;
 import org.renjin.compiler.ir.tac.statements.Assignment;
 import org.renjin.compiler.ir.tac.statements.Statement;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
 
 import java.util.Map;
 
@@ -25,12 +23,18 @@ public class EmitContext {
 
   private Map<IRLabel, Label> labels = Maps.newHashMap();
   private Multimap<LValue, Expression> definitionMap = HashMultimap.create();
+  private int paramSize;
   private VariableSlots variableSlots;
   
   private int loopVectorIndex;
   private int loopIterationIndex;
+  
+  private int maxInlineVariables = 0;
+  
+  private Map<Symbol, InlineParamExpr> inlinedParameters = Maps.newHashMap();
 
-  public EmitContext(ControlFlowGraph cfg, VariableSlots variableSlots) {
+  public EmitContext(ControlFlowGraph cfg, int paramSize, VariableSlots variableSlots) {
+    this.paramSize = paramSize;
     this.variableSlots = variableSlots;
     buildDefinitionMap(cfg);
   }
@@ -61,6 +65,32 @@ public class EmitContext {
     }
     return asmLabel;
   }
+  
+  public EmitContext inlineContext(ControlFlowGraph cfg, TypeSolver types) {
+    
+    VariableSlots childSlots = new VariableSlots(variableSlots.getNumLocals(), types);
+    if(childSlots.getNumLocals() > maxInlineVariables) {
+      maxInlineVariables = childSlots.getNumLocals();
+    }
+    
+    EmitContext childContext = new EmitContext(cfg, paramSize + this.variableSlots.getNumLocals(), childSlots);
+    
+    return childContext;
+  }
+  
+  public void setInlineParameter(Symbol parameterName, InlineParamExpr value) {
+    inlinedParameters.put(parameterName, value);
+  }
+
+
+  public InlineParamExpr getInlineParameter(Symbol param) {
+    InlineParamExpr paramExpr = inlinedParameters.get(param);
+    if(paramExpr == null) {
+      throw new IllegalStateException("No expression set for parameter " + param);
+    }
+    return paramExpr;
+  }
+  
 
   public int getLoopVectorIndex() {
     return loopVectorIndex;
@@ -145,7 +175,7 @@ public class EmitContext {
   }
 
   public int getLocalVariableCount() {
-    return variableSlots.getNumLocals();
+    return paramSize + variableSlots.getNumLocals() + maxInlineVariables;
   }
 
 }

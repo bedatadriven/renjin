@@ -49,7 +49,7 @@ public class DoubleBinaryOp implements Specialization {
     mv.visitInsn(opcode);
   }
 
-  public static DoubleBinaryOp trySpecialize(String name, JvmMethod overload, ValueBounds valueBounds) {
+  public static DoubleBinaryOp trySpecialize(String name, JvmMethod overload, ValueBounds resultBounds) {
     List<JvmMethod.Argument> formals = overload.getPositionalFormals();
     if(formals.size() == 2 &&
         formals.get(0).getClazz().equals(double.class) &&
@@ -57,13 +57,13 @@ public class DoubleBinaryOp implements Specialization {
 
       switch (name) {
         case "+":
-          return new DoubleBinaryOp(Opcodes.DADD, valueBounds);
+          return new DoubleBinaryOp(Opcodes.DADD, resultBounds);
         case "-":
-          return new DoubleBinaryOp(Opcodes.DSUB, valueBounds);
+          return new DoubleBinaryOp(Opcodes.DSUB, resultBounds);
         case "*":
-          return new DoubleBinaryOp(Opcodes.DMUL, valueBounds);
+          return new DoubleBinaryOp(Opcodes.DMUL, resultBounds);
         case "/":
-          return new DoubleBinaryOp(Opcodes.DDIV, valueBounds);
+          return new DoubleBinaryOp(Opcodes.DDIV, resultBounds);
       }
     }
     return null;

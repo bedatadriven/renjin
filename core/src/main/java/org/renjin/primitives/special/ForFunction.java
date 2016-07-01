@@ -98,6 +98,7 @@ public class ForFunction extends SpecialFunction {
 
     UseDefMap useDefMap = new UseDefMap(cfg);
     TypeSolver types = new TypeSolver(cfg, useDefMap);
+    types.execute();
     types.dumpBounds();
     
     ssaTransformer.removePhiFunctions(types);

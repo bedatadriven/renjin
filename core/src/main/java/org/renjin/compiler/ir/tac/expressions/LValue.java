@@ -38,6 +38,11 @@ public abstract class LValue implements SimpleExpression {
     mv.load(storage.getSlotIndex(), storage.getType());
     return storage.getType().getSize();
   }
+  
+  public void update(ValueBounds valueBounds) {
+    this.valueBounds = valueBounds;
+    this.type = valueBounds.storageType();
+  }
 
   @Override
   public final ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
@@ -58,7 +63,7 @@ public abstract class LValue implements SimpleExpression {
 
   @Override
   public Type getType() {
-    return valueBounds.storageType();
+    return type;
   }
 }
 

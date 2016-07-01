@@ -3,18 +3,18 @@ package org.renjin.compiler.ir.tac;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.renjin.compiler.ir.tac.expressions.ReadParam;
 import org.renjin.compiler.ir.tac.statements.Statement;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 
 public class IRBody {
   
   private Statement statements[];
   private int labels[];
+  
+  private List<ReadParam> params = Collections.emptyList();
   
   public IRBody(List<Statement> statements, Map<IRLabel, Integer> labels) {
     this.statements = statements.toArray(new Statement[statements.size()]);
@@ -25,6 +25,15 @@ public class IRBody {
     for(Entry<IRLabel,Integer> label : labels.entrySet()) {
       this.labels[label.getKey().getIndex()] = label.getValue();
     }
+  }
+
+
+  public List<ReadParam> getParams() {
+    return params;
+  }
+  
+  public void setParams(List<ReadParam> params) {
+    this.params = params;
   }
 
   public List<Statement> getStatements() {
@@ -76,4 +85,5 @@ public class IRBody {
       .append(statements[i])
       .append("\n");
   }
+
 }

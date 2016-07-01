@@ -46,6 +46,13 @@ public class ForLoopCompilerTest extends EvalTestCase {
       
     assertThat(eval("s"), equalTo(c(42)));
   }
+  
+  @Test
+  public void loopWithClosureCall() {
+    eval(" add <- function(x, y) x + y ");
+    eval(" s <- 0 ");
+    eval(" for(i in 1:500) s <- add(s, sqrt(i)) ");
+  }
 
   @Test
   public void attributePropagation() {

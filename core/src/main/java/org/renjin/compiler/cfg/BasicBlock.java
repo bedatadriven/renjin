@@ -171,16 +171,6 @@ public class BasicBlock {
     getStatements().add(pos, assignment);
   }
 
-  public int countIncomingExecutableEdges() {
-    int count = 0;
-    for (FlowEdge flowEdge : incoming) {
-      if(flowEdge.isExecutable()) {
-        count++;
-      }
-    }
-    return count;
-  }
-
   @Override
   public int hashCode() {
     // Use a stable hash code to get consistent results

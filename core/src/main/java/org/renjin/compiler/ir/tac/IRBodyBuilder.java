@@ -95,6 +95,30 @@ public class IRBodyBuilder {
     
     return new IRBody(statements, labels);
   }
+  
+  public IRBody buildFunctionBody(Closure closure) {
+    
+    statements = Lists.newArrayList();
+    labels = Maps.newHashMap();
+
+    List<ReadParam> params = Lists.newArrayList();
+    for (PairList.Node formal : closure.getFormals().nodes()) {
+      ReadParam paramExpr = new ReadParam(formal.getTag(), formal.getValue());
+      statements.add(new Assignment(new EnvironmentVariable(formal.getTag()), paramExpr));
+      params.add(paramExpr);
+    }
+
+    TranslationContext context = new TopLevelContext();
+    Expression returnValue = translateExpression(context, closure.getBody());
+    addStatement(new ReturnStatement(returnValue));
+
+    removeRedundantJumps();
+    insertVariableInitializations();
+
+    IRBody body = new IRBody(statements, labels);
+    body.setParams(params);
+    return body;
+  }
 
   private void updateVariableReturn() {
 

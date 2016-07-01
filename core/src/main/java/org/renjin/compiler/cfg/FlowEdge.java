@@ -7,8 +7,6 @@ public class FlowEdge {
   private final BasicBlock predecessor;
   private final BasicBlock successor;
   
-  private boolean executable = false;
-
   public FlowEdge(BasicBlock predecessor, BasicBlock successor) {
     this.predecessor = predecessor;
     this.successor = successor;
@@ -36,13 +34,6 @@ public class FlowEdge {
     return successor;
   }
 
-  public boolean isExecutable() {
-    return executable;
-  }
-
-  public void setExecutable(boolean executable) {
-    this.executable = executable;
-  }
 
   @Override
   public int hashCode() {

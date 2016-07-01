@@ -148,12 +148,12 @@ public class ReturnStatement implements Statement, BasicBlockEndingStatement {
         pushConstant(mv, node.getValue());
         mv.invokevirtual(builderType.getInternalName(), "setDim",
             Type.getMethodDescriptor(builderType, Type.getType(SEXP.class)), false);
-      
+
       } else if(node.getTag() == Symbols.DIMNAMES) {
         pushConstant(mv, node.getValue());
         mv.invokevirtual(builderType.getInternalName(), "setDimNames",
             Type.getMethodDescriptor(builderType, Type.getType(SEXP.class)), false);
-      
+
       } else {
         mv.aconst(node.getTag().getPrintName());
         pushConstant(mv, node.getValue());
@@ -173,7 +173,7 @@ public class ReturnStatement implements Statement, BasicBlockEndingStatement {
       if(value.length() == 1) {
         mv.visitLdcInsn(((StringVector) value).getElementAsString(0));
         mv.invokestatic(Type.getInternalName(StringVector.class), "valueOf", 
-          Type.getMethodDescriptor(Type.getType(StringVector.class), Type.getType(String.class)), false);
+            Type.getMethodDescriptor(Type.getType(StringVector.class), Type.getType(String.class)), false);
         return;
       }
     }

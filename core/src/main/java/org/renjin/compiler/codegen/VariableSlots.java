@@ -13,17 +13,18 @@ import java.util.Map;
 public class VariableSlots {
   
   private final Map<LValue, VariableStorage> storage = new HashMap<>();
-  private int nextSlot;
+  private final int firstSlot;
+  private int nextSlot = 0;
   
   public VariableSlots(int parameterSize, TypeSolver types) {
 
-    nextSlot = parameterSize;
+    firstSlot = parameterSize;
     
     for (Map.Entry<LValue, ValueBounds> entry : types.getVariables().entrySet()) {
       LValue variable = entry.getKey();
       ValueBounds bounds = entry.getValue();
     
-      storage.put(variable, new VariableStorage(nextSlot, bounds.storageType()));
+      storage.put(variable, new VariableStorage(firstSlot + nextSlot, bounds.storageType()));
       
       nextSlot += variable.getType().getSize();
     }
@@ -49,4 +50,5 @@ public class VariableSlots {
   public VariableStorage getStorage(LValue lhs) {
     return storage.get(lhs);
   }
+  
 }

@@ -9,6 +9,8 @@ import org.renjin.sexp.Function;
 import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.Symbol;
 
+import java.util.List;
+
 /**
  * Translates calls to closures.
  */
@@ -24,7 +26,10 @@ public class ClosureCallTranslator extends FunctionCallTranslator {
   @Override
   public Expression translateToExpression(IRBodyBuilder builder, 
                                           TranslationContext context, Function resolvedFunction, FunctionCall call) {
-    return new ClosureCall(functionName(call), function, builder.translateArgumentList(context, call.getArguments()));
+    List<Expression> arguments = builder.translateArgumentList(context, call.getArguments());
+    String[] argumentNames = ArgumentNames.toArray(call.getArguments());
+
+    return new ClosureCall(null, functionName(call), function, argumentNames, arguments);
   }
 
   private String functionName(FunctionCall call) {

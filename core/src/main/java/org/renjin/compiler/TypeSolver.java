@@ -1,6 +1,7 @@
 package org.renjin.compiler;
 
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.renjin.compiler.cfg.*;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.ssa.PhiFunction;
@@ -45,6 +46,8 @@ public class TypeSolver {
   
   private final Map<Expression, ValueBounds> lattice = Maps.newHashMap();
   
+  private final Set<FlowEdge> executable = Sets.newHashSet();
+  
   public TypeSolver(ControlFlowGraph cfg, UseDefMap useDefMap) {
     this.cfg = cfg;
     this.useDefMap = useDefMap;
@@ -72,8 +75,12 @@ public class TypeSolver {
     return map;
   }
 
-  private void execute() {
+  public void execute() {
 
+    executable.clear();
+    flowWorkList.clear();
+    ssaWorkList.clear();
+    
     // (1) Initialize the flowWorkList to contain the edges exiting the start node of the program. 
     //     The SSA Work list is initially empty
     for (FlowEdge flowEdge : cfg.getEntry().getOutgoing()) {
@@ -95,12 +102,11 @@ public class TypeSolver {
         //     do nothing; otherwise:
 
         FlowEdge edge = flowWorkList.pop();
-        if(!edge.isExecutable()) {
+        if(!executable.contains(edge)) {
           BasicBlock node = edge.getSuccessor();
           
           // (a) mark the executable node as true
-
-          edge.setExecutable(true);
+          executable.add(edge);
 
           // (b) Perform Visit-phi for all of the phi functions at the destination node
 
@@ -113,7 +119,7 @@ public class TypeSolver {
           //     node has been evaluated), then perform VisitExpression for all expressions
           //     in this node.
 
-          if(node.countIncomingExecutableEdges() == 1) {
+          if(countIncomingExecutableEdges(node) == 1) {
             for (Statement statement : node.getStatements()) {
               if(statement.getRHS() != NullExpression.INSTANCE &&
                   !(statement.getRHS() instanceof PhiFunction)) {
@@ -147,7 +153,7 @@ public class TypeSolver {
         if(edge.isPhiFunction()) {
           visitPhi((Assignment) edge.getDestinationStatement());
         
-        } else if(edge.getDestinationNode().countIncomingExecutableEdges() > 0) {
+        } else if(countIncomingExecutableEdges( edge.getDestinationNode() ) > 0) {
           visitExpression(edge.getDestinationNode(), edge.getDestinationStatement());
         }
       }
@@ -169,7 +175,7 @@ public class TypeSolver {
     List<ValueBounds> boundSet = new ArrayList<>();
     for (int i = 0; i < phiFunction.getIncomingEdges().size(); i++) {
       FlowEdge incomingEdge = phiFunction.getIncomingEdges().get(i);
-      if(incomingEdge.isExecutable()) {
+      if(executable.contains(incomingEdge)) {
         Variable ssaVariable = phiFunction.getArgument(i);
         ValueBounds value = lattice.get(ssaVariable);
         if(value != TOP) {
@@ -182,6 +188,7 @@ public class TypeSolver {
 
       ValueBounds newBounds = ValueBounds.union(boundSet);
       ValueBounds oldBounds = lattice.put(assignment.getLHS(), newBounds);
+      assignment.getLHS().update(newBounds);
 //      if(!Objects.equals(oldBounds, newBounds)) {
 //        System.out.println(phiFunction + " => " + ValueBounds.union(boundSet) + " => " + assignment.getLHS());
 //      }
@@ -222,6 +229,7 @@ public class TypeSolver {
         Collection<SsaEdge> outgoingEdges = useDefMap.getSsaEdges(assignment.getLHS());
 
         lattice.put(assignment.getLHS(), newBounds);
+        assignment.getLHS().update(newBounds);
        // System.out.println(expression + " => " + newBounds + " => " + assignment.getLHS());
 
         ssaWorkList.addAll(outgoingEdges);
@@ -237,6 +245,17 @@ public class TypeSolver {
         flowWorkList.addAll(block.getOutgoing());
       }
     }
+  }
+
+
+  public int countIncomingExecutableEdges(BasicBlock block) {
+    int count = 0;
+    for (FlowEdge flowEdge : block.getIncoming()) {
+      if(executable.contains(flowEdge)) {
+        count++;
+      }
+    }
+    return count;
   }
 
 }

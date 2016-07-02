@@ -33,12 +33,13 @@ import org.renjin.compiler.ir.tac.IRBody;
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.primitives.Deparse;
 import org.renjin.sexp.*;
 
 
 public class ForFunction extends SpecialFunction {
 
+  public static boolean COMPILE_LOOPS = Boolean.getBoolean("renjin.compile.loops");
+  
   private static final int COMPILE_THRESHOLD = 200;
   private static final int WARMUP_ITERATIONS = 5;
 
@@ -63,7 +64,9 @@ public class ForFunction extends SpecialFunction {
     for (int i = 0; i != elements.length(); ++i) {
       try {
 
-        if(i >= WARMUP_ITERATIONS && elements.length() > COMPILE_THRESHOLD && !compilationFailed) {
+        if(COMPILE_LOOPS && i >= WARMUP_ITERATIONS && elements.length() > COMPILE_THRESHOLD && 
+            !compilationFailed) {
+          
           if(tryCompileAndRun(context, rho, call, elements, i)) {
             break;
           } else {
@@ -98,27 +101,23 @@ public class ForFunction extends SpecialFunction {
       SsaTransformer ssaTransformer = new SsaTransformer(cfg, dTree);
       ssaTransformer.transform();
 
-      System.out.println(cfg);
-
       UseDefMap useDefMap = new UseDefMap(cfg);
       TypeSolver types = new TypeSolver(cfg, useDefMap);
       types.execute();
       types.dumpBounds();
 
       ssaTransformer.removePhiFunctions(types);
-
-      // System.out.println(cfg);
-
+      
       ByteCodeEmitter emitter = new ByteCodeEmitter(cfg, types);
       CompiledLoopBody compiledBody = null;
       compiledBody = emitter.compileLoopBody().newInstance();
       compiledBody.run(context, rho, elements, i);
 
     } catch (NotCompilableException e) {
-      context.warn(String.format("Could not compile loop with %d iterations because of %s: %s",
+      context.warn(String.format("Could not compile loop with %d iterations because of %s:",
           elements.length(),
-          Deparse.deparseExp(context, e.getSexp()),
           e.getMessage()));
+      e.printStackTrace();
       return false;
       
     } catch (Exception e) {

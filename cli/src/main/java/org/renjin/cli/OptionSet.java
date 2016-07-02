@@ -5,40 +5,59 @@ import com.google.common.io.Resources;
 
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * Command line options
  */
 public class OptionSet {
-
+  
+  
+  public static final String COMPILE_LOOPS = "--compile-loops";
+  public static final String PROFILE = "--profile";
+  
   private String expression;
   private String file;
   
   private boolean helpRequested;
 
   private String[] args;
-
+  
+  private Set<String> flags = new HashSet<>();
+  
   public OptionSet(String[] args) {
     this.args = args;
     Iterator<String> argIt = Arrays.asList(args).iterator();
-    while(argIt.hasNext()) {
-      String option = argIt.next();
-      
-      if(option.equals("-e")) {
-        this.expression = requireOption("-e", argIt);
-      
-      } else if(option.equals("-f")) {
-        this.file = requireOption("-f", argIt);
 
-      } else if(option.equals("-h") || option.equals("--help")) {
-        this.helpRequested = true;
-        
-      } else if(option.equals("--args")) {
+    while (argIt.hasNext()) {
+      String option = argIt.next();
+
+      if(option.equals("--args")) {
         // Rest of the args are destined for the script itself
         break;
+      }
+      
+      switch (option) {
+        case "-e":
+          this.expression = requireOption("-e", argIt);
+          break;
+
+        case "-f":
+          this.file = requireOption("-f", argIt);
+          break;
+
+        case "-h":
+        case "--help":
+          this.helpRequested = true;
+          break;
+
+        case PROFILE:
+        case COMPILE_LOOPS:
+          flags.add(option);
+          break;
+        
+        default:
+          throw new OptionException("Unknown option '" + option + "'");
       }
     }
   }
@@ -80,5 +99,9 @@ public class OptionSet {
 
   public String getFile() {
     return file;
+  }
+
+  public boolean isFlagSet(String flag) {
+    return flags.contains(flag);
   }
 }

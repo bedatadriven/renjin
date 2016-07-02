@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class Profiler {
 
-  public static final boolean ENABLED = Boolean.getBoolean("renjin.profile");
+  public static boolean ENABLED = Boolean.getBoolean("renjin.profile");
 
 
   private static class FunctionProfile {

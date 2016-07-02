@@ -61,9 +61,9 @@ public class ByteCodeEmitter implements Opcodes {
   
   private void startClass(Class<?> interfaceClass) {
 
-//    cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
     cw = new ClassWriter(0);
     cv = new TraceClassVisitor(cw, new PrintWriter(System.out, true));
+    cv = cw;
     cv.visit(V1_6, ACC_PUBLIC + ACC_SUPER, className, null,
             Type.getInternalName(Object.class), new String[] { Type.getInternalName(interfaceClass) });
   }
@@ -112,7 +112,6 @@ public class ByteCodeEmitter implements Opcodes {
     
     writeBody(emitContext, mv);
     mv.visitEnd();
-
   }
 
   private void writeBody(EmitContext emitContext, MethodVisitor mv) {
@@ -134,7 +133,7 @@ public class ByteCodeEmitter implements Opcodes {
       }
     }
 
-    mv.visitMaxs(100, emitContext.getLocalVariableCount());
+    mv.visitMaxs(0, emitContext.getLocalVariableCount());
   }
 
   private void writeClassEnd() {

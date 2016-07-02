@@ -35,6 +35,7 @@ public class FunctionCallTranslators {
     specials.put("quote", new QuoteTranslator());
     specials.put("return", new ReturnTranslator());
     specials.put(":", new SequenceTranslator());
+    specials.put("UseMethod", new UseMethodTranslator());
   }
   
   public FunctionCallTranslator get(Function function) {

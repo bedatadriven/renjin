@@ -1,23 +1,20 @@
 package org.renjin.cli.build;
 
 import com.google.common.base.Strings;
-import joptsimple.OptionParser;
-import joptsimple.OptionSet;
 
+import java.util.Arrays;
 import java.util.List;
 
 
 public class Builder {
   public static void execute(String action, String[] args) {
 
-    OptionParser parser = new OptionParser();
-    OptionSet options = parser.parse(args);
 
     BuildReporter reporter = new BuildReporter();
 
-    List<String> packagePaths = options.nonOptionArguments();
+    List<String> packagePaths = Arrays.asList(args);
     for (String packagePath : packagePaths) {
-      PackageSource source = new PackageSource(packagePath, options);
+      PackageSource source = new PackageSource(packagePath);
       PackageBuild build = new PackageBuild(reporter, source, buildSuffix());
       
       if(action.equals("build") || action.equals("install")) {

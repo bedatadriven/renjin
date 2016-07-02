@@ -1,0 +1,11 @@
+
+Usage: renjin [options] [< infile] [> outfile]
+
+Start Renjin, a system for statistical computation, with the
+specified options.
+
+Options:
+  -h, --help            Print short help message and exit
+  --args                Skip the rest of the command line
+  -f FILE, --file=FILE  Take input from 'FILE'
+  -e EXPR               Execute 'EXPR' and exit

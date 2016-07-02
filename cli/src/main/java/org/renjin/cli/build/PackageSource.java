@@ -2,7 +2,6 @@ package org.renjin.cli.build;
 
 
 import com.google.common.base.Strings;
-import joptsimple.OptionSet;
 import org.renjin.packaging.PackageDescription;
 
 import java.io.File;
@@ -19,7 +18,7 @@ public class PackageSource {
   private final String groupId;
   private final File sourceDir;
 
-  public PackageSource(String packagePath, OptionSet options) {
+  public PackageSource(String packagePath) {
     this.reporter = new BuildReporter();
     this.packageDir = new File(packagePath);
     check(packageDir.exists(), "Package path '%s' does not exist.", packageDir.getAbsolutePath());

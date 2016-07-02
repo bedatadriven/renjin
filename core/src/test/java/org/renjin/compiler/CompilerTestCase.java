@@ -10,6 +10,7 @@ import org.renjin.compiler.cfg.BasicBlock;
 import org.renjin.compiler.cfg.ControlFlowGraph;
 import org.renjin.compiler.ir.tac.IRBody;
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
+import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
 import org.renjin.parser.RParser;
@@ -31,7 +32,8 @@ public class CompilerTestCase {
     Session session = new SessionBuilder().build();
     
     ExpressionVector ast = RParser.parseSource(rcode + "\n");
-    return new IRBodyBuilder(session.getTopLevelContext(), session.getGlobalEnvironment()).build(ast);
+    RuntimeState runtimeState = new RuntimeState(session.getTopLevelContext(), session.getGlobalEnvironment());
+    return new IRBodyBuilder(runtimeState).build(ast);
   }
   
 

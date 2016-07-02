@@ -2,16 +2,19 @@ package org.renjin.compiler;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.sun.media.sound.SF2Sample;
 import org.renjin.compiler.cfg.*;
+import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.ssa.PhiFunction;
-import org.renjin.compiler.ir.tac.expressions.Expression;
-import org.renjin.compiler.ir.tac.expressions.LValue;
-import org.renjin.compiler.ir.tac.expressions.NullExpression;
-import org.renjin.compiler.ir.tac.expressions.Variable;
+import org.renjin.compiler.ir.ssa.SsaVariable;
+import org.renjin.compiler.ir.tac.RuntimeState;
+import org.renjin.compiler.ir.tac.expressions.*;
 import org.renjin.compiler.ir.tac.statements.Assignment;
 import org.renjin.compiler.ir.tac.statements.IfStatement;
 import org.renjin.compiler.ir.tac.statements.Statement;
+import org.renjin.sexp.Function;
+import org.renjin.sexp.Symbol;
 
 import java.util.*;
 
@@ -44,14 +47,15 @@ public class TypeSolver {
 
   private static final ValueBounds TOP = null;
   
-  private final Map<Expression, ValueBounds> lattice = Maps.newHashMap();
+  private final Map<Expression, ValueBounds> variableBounds = Maps.newHashMap();
+  
+  private final Map<IfStatement, ValueBounds> conditionalBounds = Maps.newHashMap();
   
   private final Set<FlowEdge> executable = Sets.newHashSet();
   
   public TypeSolver(ControlFlowGraph cfg, UseDefMap useDefMap) {
     this.cfg = cfg;
     this.useDefMap = useDefMap;
-    execute();
   }
 
   public boolean isDefined(LValue variable) {
@@ -70,7 +74,7 @@ public class TypeSolver {
   public Map<LValue, ValueBounds> getVariables() {
     Map<LValue, ValueBounds> map = new HashMap<>();
     for (LValue variable : useDefMap.getUsedVariables()) {
-      map.put(variable, lattice.get(variable));
+      map.put(variable, variableBounds.get(variable));
     }
     return map;
   }
@@ -78,6 +82,7 @@ public class TypeSolver {
   public void execute() {
 
     executable.clear();
+    conditionalBounds.clear();
     flowWorkList.clear();
     ssaWorkList.clear();
     
@@ -177,7 +182,7 @@ public class TypeSolver {
       FlowEdge incomingEdge = phiFunction.getIncomingEdges().get(i);
       if(executable.contains(incomingEdge)) {
         Variable ssaVariable = phiFunction.getArgument(i);
-        ValueBounds value = lattice.get(ssaVariable);
+        ValueBounds value = variableBounds.get(ssaVariable);
         if(value != TOP) {
           boundSet.add(value);
         }
@@ -187,7 +192,7 @@ public class TypeSolver {
     if(!boundSet.isEmpty()) {
 
       ValueBounds newBounds = ValueBounds.union(boundSet);
-      ValueBounds oldBounds = lattice.put(assignment.getLHS(), newBounds);
+      ValueBounds oldBounds = variableBounds.put(assignment.getLHS(), newBounds);
       assignment.getLHS().update(newBounds);
 //      if(!Objects.equals(oldBounds, newBounds)) {
 //        System.out.println(phiFunction + " => " + ValueBounds.union(boundSet) + " => " + assignment.getLHS());
@@ -196,9 +201,9 @@ public class TypeSolver {
   }
   
   public void dumpBounds() {
-    for (Expression expression : lattice.keySet()) {
+    for (Expression expression : variableBounds.keySet()) {
       if(expression instanceof LValue) {
-        System.out.println(expression + " => " + lattice.get(expression));
+        System.out.println(expression + " => " + variableBounds.get(expression));
       }
     }
   }
@@ -211,42 +216,45 @@ public class TypeSolver {
 
 
     Expression expression = statement.getRHS();
-    ValueBounds oldBounds = lattice.get(expression);
-    ValueBounds newBounds = expression.updateTypeBounds(lattice);
-    
-    if(!Objects.equals(oldBounds, newBounds)) {
+    ValueBounds newBounds = expression.updateTypeBounds(variableBounds);
 
-     // System.out.println(expression + " = " + newBounds);
-      lattice.put(expression, newBounds);
+    // If this changes the value of the LatticeCell of the output expression, do the following:
+
+    // (1) If the expression is part of an assignment node, add to the SSA worklist all
+    //     SSA edges starting at the definition for that node.
+
+    if(statement instanceof Assignment) {
+      Assignment assignment = (Assignment) statement;
+      ValueBounds oldBounds = variableBounds.get(assignment.getLHS());
       
-      // If this changes the value of the LatticeCell of the output expression, do the following:
-
-      // (1) If the expression is part of an assignment node, add to the SSA worklist all
-      //     SSA edges starting at the definition for that node.
-
-      if(statement instanceof Assignment) {
-        Assignment assignment = (Assignment) statement;
-        Collection<SsaEdge> outgoingEdges = useDefMap.getSsaEdges(assignment.getLHS());
-
-        lattice.put(assignment.getLHS(), newBounds);
+      if(!Objects.equals(oldBounds, newBounds)) {
         assignment.getLHS().update(newBounds);
-       // System.out.println(expression + " => " + newBounds + " => " + assignment.getLHS());
+        variableBounds.put(assignment.getLHS(), newBounds);
+        
+        Collection<SsaEdge> outgoingEdges = useDefMap.getSsaEdges(assignment.getLHS());
 
         ssaWorkList.addAll(outgoingEdges);
       }
+    }
 
-      // (2) If the expression controls a conditional branch, some outgoing flow graph
-      //     edges must be added to the Flow Work List. If the LatticeCell has  value BOT,
-      //     all exit edges must be added to the FlowWorkList. If the value is CONSTANT, 
-      //     only the flow graph edge executed as the result of the branch is added
-      //     to the FlowWorkList.
-      
-      if(statement instanceof IfStatement) {
+    // (2) If the expression controls a conditional branch, some outgoing flow graph
+    //     edges must be added to the Flow Work List. If the LatticeCell has  value BOT,
+    //     all exit edges must be added to the FlowWorkList. If the value is CONSTANT, 
+    //     only the flow graph edge executed as the result of the branch is added
+    //     to the FlowWorkList.
+    
+    if(statement instanceof IfStatement) {
+      IfStatement conditional = (IfStatement) statement;
+      ValueBounds oldBounds = conditionalBounds.get(conditional);
+
+      if(!Objects.equals(oldBounds, newBounds)) {
+
+        conditionalBounds.put(conditional, newBounds);
+
         flowWorkList.addAll(block.getOutgoing());
       }
     }
   }
-
 
   public int countIncomingExecutableEdges(BasicBlock block) {
     int count = 0;
@@ -258,4 +266,68 @@ public class TypeSolver {
     return count;
   }
 
+  /**
+   * We have built the ControlFlowGraph using assumptions about to which functions
+   * the symbols were bound. We now have to verify that none of the assignments in this CFG
+   * violate these assumptions.
+   */
+  public void verifyFunctionAssumptions(RuntimeState runtimeState) {
+
+    Map<Symbol, Function> resolvedFunctions = runtimeState.getResolvedFunctions();
+
+    for (Map.Entry<Expression, ValueBounds> entry : variableBounds.entrySet()) {
+      if(entry.getKey() instanceof SsaVariable) {
+        SsaVariable lhs = (SsaVariable) entry.getKey();
+        if(lhs.getInner() instanceof EnvironmentVariable) {
+          EnvironmentVariable variable = (EnvironmentVariable) lhs.getInner();
+          if(resolvedFunctions.containsKey(variable.getName())) {
+
+            // We've found an assignment in the form
+            //    sum <- something()
+
+            // Where "sum" is any symbol that was used in a function call in the original
+            // R expression that we are compiling.
+
+            Function resolvedFunction = resolvedFunctions.get(variable.getName());
+            checkPotentialFunctionAssignment(variable, entry.getValue(), resolvedFunction);
+          }
+        }
+      }
+    }
+  }
+
+  private void checkPotentialFunctionAssignment(EnvironmentVariable variable, 
+                                                ValueBounds bounds, Function resolvedFunction) {
+    // If we are assigning to a variable that was involved in function
+    // resolution, for example :
+    //   sum <- mean
+    //   x <- sum(1:10)
+    //
+    // Then we need to either be certain that it is not being assigned 
+    // a function (because bindings to non-functions are ignored during 
+    // function lookup), or that it's assigned a constant value equal to 
+    // what we resolved.
+
+    
+    // If we are certain that this variable is NOT being assigned a function,
+    // then we have nothing to worry about. When looking up a function, bindings
+    // to NON-FUNCTIONS are just ignored in R.
+    
+    if( (bounds.getTypeSet() & TypeSet.FUNCTION) == 0) {
+      return;
+    }
+    
+    // Otherwise, check to see if the value being assigned matches the value to which
+    // the function was resolved at compile time. In this case, the assignment does not 
+    // change anything.
+    if(bounds.isConstant()) {
+      if(bounds.getConstantValue() == resolvedFunction) {
+        return;
+      }
+    }
+    
+    // Otherwise, this will change the execution of the R expression in way that we did not consider
+    // during the compilation, so we need to bail.
+    throw new NotCompilableException(variable.getName(), "change to function definition");
+  }
 }

@@ -46,7 +46,7 @@ public class IRBodyBuilderTest extends EvalTestCase {
   }
 
   private IRBodyBuilder newBodyBuilder() {
-    return new IRBodyBuilder(session.getTopLevelContext(), session.getGlobalEnvironment());
+    return new IRBodyBuilder(new RuntimeState(session.getTopLevelContext(), session.getGlobalEnvironment()));
   }
 
   @Test(expected = NotCompilableException.class)

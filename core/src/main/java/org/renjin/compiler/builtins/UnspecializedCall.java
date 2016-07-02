@@ -29,6 +29,6 @@ public class UnspecializedCall implements Specialization {
 
   @Override
   public void load(EmitContext emitContext, InstructionAdapter mv, List<IRArgument> arguments) {
-    throw new UnsupportedOperationException();
+    throw new FailedToSpecializeException();
   }
 }

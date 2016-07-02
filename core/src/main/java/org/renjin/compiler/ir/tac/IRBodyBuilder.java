@@ -2,15 +2,12 @@ package org.renjin.compiler.ir.tac;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.renjin.compiler.NotCompilableException;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.exception.InvalidSyntaxException;
 import org.renjin.compiler.ir.tac.expressions.*;
 import org.renjin.compiler.ir.tac.functions.*;
 import org.renjin.compiler.ir.tac.statements.*;
-import org.renjin.eval.Context;
-import org.renjin.packaging.SerializedPromise;
 import org.renjin.sexp.*;
 
 import java.util.ArrayList;
@@ -39,26 +36,16 @@ public class IRBodyBuilder {
   private Map<IRLabel, Integer> labels;
   private Map<Symbol, EnvironmentVariable> variables = Maps.newHashMap();
 
-  private Context context;
-  private Environment rho;
-
-  /**
-   * List of symbols that we have resolved to builtins / or inlined
-   * closures. We need to check at the end that there is no possiblity
-   * they have been assigned to.
-   */
-  private Set<Symbol> resolvedFunctions = Sets.newHashSet();
+  private RuntimeState runtimeContext;
   
   private Map<String, Integer> localVariableNames = Maps.newHashMap();
 
-  public IRBodyBuilder(Context context, Environment rho) {
-    assert context != null;
-    this.context = context;
-    this.rho = rho;
+  public IRBodyBuilder(RuntimeState runtimeState) {
+    this.runtimeContext = runtimeState;
   }
   
-  public Context getEvaluationContext() {
-    return context;
+  public RuntimeState getRuntimeState() {
+    return runtimeContext;
   }
   
   public IRBody build(SEXP exp) {
@@ -88,7 +75,7 @@ public class IRBodyBuilder {
     statements.add(new Assignment(vector, new ReadLoopVector(sequence)));
     statements.add(new Assignment(counter, new ReadLoopIt()));
 
-    LoopBodyContext bodyContext = new LoopBodyContext(rho);
+    LoopBodyContext bodyContext = new LoopBodyContext(runtimeContext);
     
     ForTranslator.buildLoop(bodyContext, this, call, vector, counter);
 
@@ -167,19 +154,11 @@ public class IRBodyBuilder {
     List<Assignment> initializations = new ArrayList<>();
     
     for (EnvironmentVariable environmentVariable : variables.values()) {
-      SEXP value = rho.findVariable(environmentVariable.getName());
-      if(value instanceof Promise) {
-        Promise promisedValue = (Promise) value;
-        if(promisedValue.isEvaluated()) {
-          value = promisedValue.force(context);
-        } else {
-          // Promises can have side effects, and evaluation order is important 
-          // so we can't just force all the promises in the beginning of the loop
-          throw new NotCompilableException(environmentVariable.getName(), "Unevaluated promise encountered");
-        }
-      }
+      SEXP value = runtimeContext.findVariable(environmentVariable.getName());
+
       if(value != Symbol.UNBOUND_VALUE) {
-        initializations.add(new Assignment(environmentVariable, new ReadEnvironment(environmentVariable.getName(), ValueBounds.of(value))));
+        initializations.add(new Assignment(environmentVariable, 
+            new ReadEnvironment(environmentVariable.getName(), ValueBounds.of(value))));
       }
     }
     
@@ -254,50 +233,9 @@ public class IRBodyBuilder {
     if( functionName instanceof PrimitiveFunction) {
       return (PrimitiveFunction) functionName;
     } else if (functionName instanceof Symbol) {
-      return resolveFunctionSymbol((Symbol) functionName);
+      return runtimeContext.findFunction((Symbol) functionName);
     }
     throw new NotCompilableException(functionName);
-  }
-
-  private Function resolveFunctionSymbol(Symbol functionName) {
-    Environment environment = rho;
-    while(environment != Environment.EMPTY) {
-      Function f = isFunction(functionName, environment.getVariable(functionName));
-      if(f != null) {
-        return f;
-      }
-      environment = environment.getParent();
-    }
-    throw new NotCompilableException(functionName, "Could not find function " + functionName);
-  }
-
-  /**
-   * Tries to safely determine whether the expression is a function, without
-   * forcing any promises that might have side effects.
-   * @param exp
-   * @return null if the expr is definitely not a function, or {@code expr} if the
-   * value can be resolved to a Function without side effects
-   * @throws org.renjin.compiler.NotCompilableException if it is not possible to determine
-   * whether the value is a function without risking side effects.
-   */
-  private Function isFunction(Symbol functionName, SEXP exp) {
-    if(exp instanceof Function) {
-      return (Function)exp;
-
-    } else if(exp instanceof SerializedPromise) {
-      return isFunction(functionName, exp.force(this.context));
-
-    } else if(exp instanceof Promise) {
-      Promise promise = (Promise)exp;
-      if(promise.isEvaluated()) {
-        return isFunction(functionName, promise.getValue());
-      } else {
-        throw new NotCompilableException(functionName, "Symbol " + functionName + " cannot be resolved to a function " +
-            " an enclosing environment has a binding of the same name to an unevaluated promise");
-      }
-    } else {
-      return null;
-    }
   }
 
   public List<IRArgument> translateArgumentList(TranslationContext context, PairList argumentSexps) {

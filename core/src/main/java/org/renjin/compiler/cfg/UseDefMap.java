@@ -33,6 +33,11 @@ public class UseDefMap {
   private Multimap<LValue, BasicBlock> useBlockMap = HashMultimap.create();
 
   /**
+   * Map from variables to the basic blocks which use those variables
+   */
+  private Multimap<LValue, Statement> useStatementMap = HashMultimap.create();
+
+  /**
    * Set of SSA variables that are actually used.
    */
   private final Set<LValue> variableUsages = new HashSet<>();

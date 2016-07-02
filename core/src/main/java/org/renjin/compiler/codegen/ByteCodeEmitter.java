@@ -6,6 +6,7 @@ import org.objectweb.asm.commons.InstructionAdapter;
 import org.objectweb.asm.util.TraceClassVisitor;
 import org.renjin.compiler.CompiledBody;
 import org.renjin.compiler.CompiledLoopBody;
+import org.renjin.compiler.NotCompilableException;
 import org.renjin.compiler.TypeSolver;
 import org.renjin.compiler.cfg.BasicBlock;
 import org.renjin.compiler.cfg.ControlFlowGraph;
@@ -61,7 +62,7 @@ public class ByteCodeEmitter implements Opcodes {
   
   private void startClass(Class<?> interfaceClass) {
 
-    cw = new ClassWriter(0);
+    cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
     cv = new TraceClassVisitor(cw, new PrintWriter(System.out, true));
     cv = cw;
     cv.visit(V1_6, ACC_PUBLIC + ACC_SUPER, className, null,
@@ -126,6 +127,8 @@ public class ByteCodeEmitter implements Opcodes {
         for(Statement stmt : basicBlock.getStatements()) {
           try {
             stmt.emit(emitContext, instructionAdapter);
+          } catch (NotCompilableException e) {
+            throw e;
           } catch (Exception e) {
             throw new InternalCompilerException("Exception compiling statement " + stmt, e);
           }

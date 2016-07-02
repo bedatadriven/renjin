@@ -3,14 +3,13 @@ package org.renjin.compiler.ir.tac.expressions;
 import com.google.common.base.Joiner;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.InstructionAdapter;
-import org.renjin.compiler.builtins.BuiltinSpecializers;
-import org.renjin.compiler.builtins.Specialization;
-import org.renjin.compiler.builtins.Specializer;
-import org.renjin.compiler.builtins.UnspecializedCall;
+import org.renjin.compiler.NotCompilableException;
+import org.renjin.compiler.builtins.*;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.primitives.Primitives;
+import org.renjin.sexp.FunctionCall;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +20,7 @@ import java.util.Map;
  */
 public class BuiltinCall implements CallExpression {
 
+  private FunctionCall call;
   private final Primitives.Entry primitive;
   private final List<IRArgument> arguments;
 
@@ -28,7 +28,8 @@ public class BuiltinCall implements CallExpression {
   
   private Specialization specialization = UnspecializedCall.INSTANCE;
 
-  public BuiltinCall(Primitives.Entry primitive, List<IRArgument> arguments) {
+  public BuiltinCall(FunctionCall call, Primitives.Entry primitive, List<IRArgument> arguments) {
+    this.call = call;
     this.primitive = primitive;
     this.arguments = arguments;
     this.specializer = BuiltinSpecializers.INSTANCE.get(primitive);
@@ -57,7 +58,12 @@ public class BuiltinCall implements CallExpression {
 
   @Override
   public int load(EmitContext emitContext, InstructionAdapter mv) {
-    specialization.load(emitContext, mv, arguments);
+    try {
+      specialization.load(emitContext, mv, arguments);
+
+    } catch (FailedToSpecializeException e) {
+      throw new NotCompilableException(call, e.getMessage());
+    }
     return 1;
   }
 

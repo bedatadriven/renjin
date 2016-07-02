@@ -1,17 +1,20 @@
 package org.renjin.compiler.ir.tac.statements;
 
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.InstructionAdapter;
 import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.VariableStorage;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.expressions.CmpGE;
 import org.renjin.compiler.ir.tac.expressions.Expression;
+import org.renjin.compiler.ir.tac.expressions.LValue;
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.*;
 
 import java.util.Arrays;
 
-import static org.objectweb.asm.Opcodes.GOTO;
-import static org.objectweb.asm.Opcodes.IF_ICMPLT;
+import static org.objectweb.asm.Opcodes.*;
 
 
 public class IfStatement implements Statement, BasicBlockEndingStatement {
@@ -141,11 +144,19 @@ public class IfStatement implements Statement, BasicBlockEndingStatement {
           cmp.childAt(1).load(emitContext, mv);
 
       mv.visitJumpInsn(IF_ICMPLT, emitContext.getAsmLabel(falseTarget));
+      mv.visitJumpInsn(GOTO, emitContext.getAsmLabel(trueTarget));
 
-    } else {
-      throw new UnsupportedOperationException(condition.toString());
+    } else if (condition instanceof LValue) {
+      VariableStorage storage = emitContext.getVariableStorage((LValue) condition);
+      if (storage.getType().equals(Type.BOOLEAN_TYPE) ||
+          storage.getType().equals(Type.INT_TYPE)) {
+        mv.visitVarInsn(Opcodes.ILOAD, storage.getSlotIndex());
+        mv.visitJumpInsn(IFEQ, emitContext.getAsmLabel(trueTarget));
+        mv.visitJumpInsn(GOTO, emitContext.getAsmLabel(falseTarget));
+      } else {
+        throw new UnsupportedOperationException("TODO: " + storage.getType());
+      }
     }
-    mv.visitJumpInsn(GOTO, emitContext.getAsmLabel(trueTarget));
 
     return stackSizeIncrease;
   }

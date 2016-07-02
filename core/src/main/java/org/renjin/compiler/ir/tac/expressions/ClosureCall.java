@@ -10,6 +10,7 @@ import org.renjin.compiler.codegen.InlineParamExpr;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.compiler.ir.tac.IRMatchedArguments;
+import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.eval.Context;
 import org.renjin.sexp.Closure;
 import org.renjin.sexp.FunctionCall;
@@ -21,7 +22,7 @@ import java.util.Map;
 
 public class ClosureCall implements Expression {
 
-  private Context context;
+  private RuntimeState runtimeState;
   private final FunctionCall call;
   private final List<IRArgument> arguments;
   private Closure closure;
@@ -30,9 +31,9 @@ public class ClosureCall implements Expression {
   
   private ValueBounds returnBounds;
   private Type type;
-  
-  public ClosureCall(Context context, FunctionCall call, Closure closure, List<IRArgument> arguments) {
-    this.context = context;
+
+  public ClosureCall(RuntimeState runtimeState, FunctionCall call, Closure closure, List<IRArgument> arguments) {
+    this.runtimeState = runtimeState;
     this.call = call;
     this.closure = closure;
     this.arguments = arguments;
@@ -56,7 +57,7 @@ public class ClosureCall implements Expression {
 
     if(inlinedFunction == null) {
       try {
-        this.inlinedFunction = new InlinedFunction(context, closure, this.matching.getSuppliedFormals());
+        this.inlinedFunction = new InlinedFunction(runtimeState, closure, this.matching.getSuppliedFormals());
       } catch (NotCompilableException e) {
         throw new NotCompilableException(call, e);
       }

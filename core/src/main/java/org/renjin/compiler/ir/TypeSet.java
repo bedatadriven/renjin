@@ -48,7 +48,7 @@ public class TypeSet {
       return ENVIRONMENT;
     } else if(constant instanceof PairList) {
       return PAIRLIST;
-    } else if(constant instanceof Closure) {
+    } else if(constant instanceof Function) {
       return FUNCTION;
     } else {
       throw new UnsupportedOperationException("TODO: " + constant.getClass().getName());

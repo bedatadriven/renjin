@@ -10,6 +10,7 @@ import org.renjin.compiler.ir.ssa.SsaTransformer;
 import org.renjin.compiler.ir.ssa.SsaVariable;
 import org.renjin.compiler.ir.tac.IRBody;
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
+import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.compiler.ir.tac.expressions.EnvironmentVariable;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
@@ -34,7 +35,8 @@ public class ByteCodeEmitterTest {
     ExpressionVector bodySexp = RParser.parseSource("s <- 0; for(i in 1:1000) { s <- sqrt(i) }; s;");
     //ExpressionVector bodySexp = RParser.parseSource("1+2;");
 
-    IRBodyBuilder bodyBuilder = new IRBodyBuilder(session.getTopLevelContext(), session.getGlobalEnvironment());
+    RuntimeState runtimeState = new RuntimeState(session.getTopLevelContext(), session.getGlobalEnvironment());
+    IRBodyBuilder bodyBuilder = new IRBodyBuilder(runtimeState);
     IRBody bodyIr = bodyBuilder.build(bodySexp);
 
     EnvironmentVariable s = bodyBuilder.getEnvironmentVariable(Symbol.get("s"));

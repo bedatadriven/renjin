@@ -3,12 +3,15 @@ package org.renjin.compiler;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
 import org.renjin.parser.RParser;
+import org.renjin.primitives.special.ForFunction;
 import org.renjin.sexp.ExpressionVector;
 
 import java.io.IOException;
@@ -17,6 +20,16 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 public class ForLoopCompilerTest extends EvalTestCase {
+  
+  @Before
+  public void enableLoopCompiler() {
+    ForFunction.COMPILE_LOOPS = true;
+  }
+  
+  @After
+  public void disableLoopCompiler() {
+    ForFunction.COMPILE_LOOPS = false;
+  }
 
   @Test
   @Ignore("only for demo purposes")
@@ -71,5 +84,11 @@ public class ForLoopCompilerTest extends EvalTestCase {
     eval("x <- numeric(10000); for(i in seq_along(x)) { y <- x; x[i] <- sqrt(i) }"); 
   }
 
+  @Test
+  public void verifyFunctionRedefinitionIsRespected() throws IOException {
+    assertThat(eval("{ s <- 0; for(i in 1:10000) { if(i>100) { sqrt <- sin; }; s <- s + sqrt(i) }; s }"), 
+        closeTo(c(673.224), 1d));
+
+  }
 
 }

@@ -3,6 +3,7 @@ package org.renjin.compiler.cfg;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.compiler.ir.ValueBounds;
+import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.sexp.Closure;
 import org.renjin.sexp.Symbol;
 
@@ -39,7 +40,8 @@ public class InlinedFunctionTest extends EvalTestCase {
   
   private InlinedFunction compileFunction(String functionDecl) {
     Closure closure = (Closure) eval(functionDecl);
-    return new InlinedFunction(topLevelContext, closure, Collections.<Symbol>emptySet());
+    return new InlinedFunction(new RuntimeState(topLevelContext, topLevelContext.getGlobalEnvironment()),
+        closure, Collections.<Symbol>emptySet());
   }
 
 

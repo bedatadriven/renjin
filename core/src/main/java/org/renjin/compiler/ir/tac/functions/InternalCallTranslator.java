@@ -38,7 +38,7 @@ public class InternalCallTranslator extends FunctionCallTranslator {
     
     List<IRArgument> internalArguments = builder.translateArgumentList(context, primitiveCall.getArguments());
 
-    return new BuiltinCall(entry, internalArguments);
+    return new BuiltinCall(call, entry, internalArguments);
   }
 
   @Override

@@ -30,7 +30,7 @@ public class ClosureCallTranslator extends FunctionCallTranslator {
     
     List<IRArgument> arguments = builder.translateArgumentList(context, call.getArguments());
     
-    return new ClosureCall(builder.getEvaluationContext(), call, function, arguments);
+    return new ClosureCall(builder.getRuntimeState(), call, function, arguments);
   }
 
   @Override

@@ -31,6 +31,7 @@ import org.renjin.compiler.codegen.ByteCodeEmitter;
 import org.renjin.compiler.ir.ssa.SsaTransformer;
 import org.renjin.compiler.ir.tac.IRBody;
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
+import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.*;
@@ -89,9 +90,12 @@ public class ForFunction extends SpecialFunction {
 
   private boolean tryCompileAndRun(Context context, Environment rho, FunctionCall call, Vector elements, int i) {
 
+    CompiledLoopBody compiledBody = null;
+
     try {
 
-      IRBodyBuilder builder = new IRBodyBuilder(context, rho);
+      RuntimeState runtimeState = new RuntimeState(context, rho);
+      IRBodyBuilder builder = new IRBodyBuilder(runtimeState);
       IRBody body = builder.buildLoopBody(call, elements);
       System.out.println(body);
 
@@ -101,17 +105,19 @@ public class ForFunction extends SpecialFunction {
       SsaTransformer ssaTransformer = new SsaTransformer(cfg, dTree);
       ssaTransformer.transform();
 
+      System.out.println(cfg);
+      
       UseDefMap useDefMap = new UseDefMap(cfg);
       TypeSolver types = new TypeSolver(cfg, useDefMap);
       types.execute();
       types.dumpBounds();
+      
+      types.verifyFunctionAssumptions(runtimeState);
 
       ssaTransformer.removePhiFunctions(types);
       
       ByteCodeEmitter emitter = new ByteCodeEmitter(cfg, types);
-      CompiledLoopBody compiledBody = null;
       compiledBody = emitter.compileLoopBody().newInstance();
-      compiledBody.run(context, rho, elements, i);
 
     } catch (NotCompilableException e) {
       context.warn(String.format("Could not compile loop with %d iterations because of %s:",
@@ -121,9 +127,10 @@ public class ForFunction extends SpecialFunction {
       return false;
       
     } catch (Exception e) {
-      e.printStackTrace();
-      return false;
+      throw new EvalException("Exception compiling loop: " + e.getMessage(), e);
     }
+
+    compiledBody.run(context, rho, elements, i);
 
     return true;
   }

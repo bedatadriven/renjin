@@ -5,6 +5,8 @@ import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.primitives.Primitives;
+import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.Symbol;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -17,10 +19,14 @@ public class BuiltinCallTest {
   
   @Test
   public void testDoublePlusDouble() {
+
+    FunctionCall functionCall = FunctionCall.newCall(
+        Symbol.get("+"), Symbol.get("x"), Symbol.get("y"));
+
     Expression x = new EnvironmentVariable("x");
     Expression y = new EnvironmentVariable("y");
 
-    BuiltinCall call = new BuiltinCall(Primitives.getBuiltinEntry("+"), 
+    BuiltinCall call = new BuiltinCall(functionCall, Primitives.getBuiltinEntry("+"), 
         Arrays.asList( new IRArgument(x), new IRArgument(y)));
 
     Map<Expression, ValueBounds> typeMap = new HashMap<>();
@@ -37,10 +43,16 @@ public class BuiltinCallTest {
 
   @Test
   public void testDoublePlusInt() {
+
+
+    FunctionCall functionCall = FunctionCall.newCall(
+        Symbol.get("+"), Symbol.get("x"), Symbol.get("y"));
+
+    
     Expression x = new EnvironmentVariable("x");
     Expression y = new EnvironmentVariable("y");
 
-    BuiltinCall call = new BuiltinCall(Primitives.getBuiltinEntry("+"), 
+    BuiltinCall call = new BuiltinCall(functionCall, Primitives.getBuiltinEntry("+"), 
         Arrays.asList( new IRArgument(x), new IRArgument(y) ));
 
     Map<Expression, ValueBounds> typeMap = new HashMap<>();

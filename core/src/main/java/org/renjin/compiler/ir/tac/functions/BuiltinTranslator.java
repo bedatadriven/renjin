@@ -26,7 +26,7 @@ class BuiltinTranslator extends FunctionCallTranslator {
     }
     List<IRArgument> arguments = builder.translateArgumentList(context, call.getArguments());
     
-    return new BuiltinCall(entry, arguments);
+    return new BuiltinCall(call, entry, arguments);
   }
 
   @Override
@@ -42,7 +42,7 @@ class BuiltinTranslator extends FunctionCallTranslator {
     List<IRArgument> arguments = builder.translateArgumentList(context, getterCall.getArguments());
     arguments.add(new IRArgument("value", rhs));
 
-    return new BuiltinCall(entry, arguments);
+    return new BuiltinCall(getterCall, entry, arguments);
   }
 
   @Override

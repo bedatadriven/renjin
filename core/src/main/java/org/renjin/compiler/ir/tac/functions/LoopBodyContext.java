@@ -1,23 +1,20 @@
 package org.renjin.compiler.ir.tac.functions;
 
 import org.renjin.compiler.ir.exception.InvalidSyntaxException;
+import org.renjin.compiler.ir.tac.RuntimeState;
+import org.renjin.invoke.reflection.converters.RuntimeConverter;
 import org.renjin.sexp.*;
 
 public class LoopBodyContext implements TranslationContext {
 
-  private Environment rho;
-  private final SEXP ellipses;
+  private RuntimeState runtimeState;
 
-  public LoopBodyContext(Environment rho) {
-    this.rho = rho;
-    this.ellipses = rho.getVariable(Symbols.ELLIPSES);
+  public LoopBodyContext(RuntimeState runtimeState) {
+    this.runtimeState = runtimeState;
   }
 
   @Override
   public PairList getEllipsesArguments() {
-    if(ellipses == Symbol.UNBOUND_VALUE) {
-      throw new InvalidSyntaxException("'...' used in incorrect context");
-    }
-    return (PairList) ellipses;
+    return runtimeState.getEllipsesVariable();
   }
 }

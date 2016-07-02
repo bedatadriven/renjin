@@ -10,19 +10,15 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
-import org.renjin.parser.ParseOptions;
-import org.renjin.parser.ParseState;
-import org.renjin.parser.RLexer;
-import org.renjin.parser.RParser;
+import org.renjin.parser.*;
 import org.renjin.parser.RParser.StatusResult;
 import org.renjin.primitives.Warning;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.Promise;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbol;
+import org.renjin.sexp.*;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A Read-Eval-Print Loop that uses Jline for 
@@ -137,7 +133,7 @@ public class JlineRepl {
     lineReader.setEcho(echo);
     lineReader.setEchoOut(reader.getOutput());
 
-    SEXP exp;
+    List<SEXP> exprList = new ArrayList<>();
     try {
       RLexer lexer = new RLexer(options, parseState, lineReader);
       if (lexer.isEof()) {
@@ -145,21 +141,46 @@ public class JlineRepl {
       }
 
       RParser parser = new RParser(options, parseState, lexer);
-      while (!parser.parse()) {
-        if (lexer.errorEncountered()) {
-          String errorMessage = "Syntax error at " + lexer.getErrorLocation() + ": " + lexer.getErrorMessage();
-          reader.getOutput().append(errorMessage + "\n");
-          if (stopOnError) {
-            throw new RuntimeException(errorMessage);
+      
+      parseLoop: while (true) {
+
+        // check to see if we are at the end of the file
+        if(lexer.isEof()) {
+          return false;
+        }
+
+        if (!parser.parse()) {
+          if (lexer.errorEncountered()) {
+            String errorMessage = "Syntax error at " + lexer.getErrorLocation() + ": " + lexer.getErrorMessage();
+            reader.getOutput().append(errorMessage + "\n");
+            if (stopOnError) {
+              throw new RuntimeException(errorMessage);
+            }
+            break parseLoop;
           }
+        }
+
+        StatusResult status = parser.getResultStatus();
+        switch (status) {
+          case EMPTY:
+            break;
+          
+          case INCOMPLETE:
+          case OK:
+            exprList.add(parser.getResult());
+            break;
+          
+          case ERROR:
+            throw new ParseException(parser.getResultStatus().toString());
+          case EOF:
+            break parseLoop;
+        }
+        if(lineReader.isEndOfLine()) {
+          break;
         }
       }
 
-
-      exp = parser.getResult();
-      if(parser.getResultStatus() == StatusResult.EOF) {
-        return true;
-      } else if(exp == null) {
+      if(exprList.isEmpty()) {
         return true;
       }
     } catch (UserInterruptException e) {
@@ -172,7 +193,7 @@ public class JlineRepl {
     clearWarnings();
 
     try {
-      SEXP result = topLevelContext.evaluate(exp, topLevelContext.getGlobalEnvironment());
+      SEXP result = topLevelContext.evaluate(new ExpressionVector(exprList), topLevelContext.getGlobalEnvironment());
 
       if(!session.isInvisible()) {
         topLevelContext.evaluate(FunctionCall.newCall(Symbol.get("print"), Promise.repromise(result)));

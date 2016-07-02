@@ -35,10 +35,10 @@ public class ForTranslator extends FunctionCallTranslator {
     LocalVariable counter = factory.newLocalVariable("i");
     factory.addStatement(new Assignment(counter, new Constant(0)));
 
-    buildLoop(factory, call, vector, counter);
+    buildLoop(context, factory, call, vector, counter);
   }
 
-  public static void buildLoop(IRBodyBuilder factory, FunctionCall call, Expression vector, LValue counter) {
+  public static void buildLoop(TranslationContext parentContext, IRBodyBuilder factory, FunctionCall call, Expression vector, LValue counter) {
     Symbol symbol = call.getArgument(0);
     Temp length = factory.newTemp();
 
@@ -62,7 +62,7 @@ public class ForTranslator extends FunctionCallTranslator {
     factory.addLabel(bodyLabel);
     factory.addStatement(new Assignment(elementVariable, new ElementAccess(vector, counter)));
 
-    LoopContext loopContext = new LoopContext(nextLabel, exitLabel);
+    LoopContext loopContext = new LoopContext(parentContext, nextLabel, exitLabel);
     factory.translateStatements(loopContext, body);
 
     // increment the counter

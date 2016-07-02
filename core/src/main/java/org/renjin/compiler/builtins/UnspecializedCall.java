@@ -5,7 +5,7 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.InstructionAdapter;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.ir.ValueBounds;
-import org.renjin.compiler.ir.tac.expressions.Expression;
+import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.sexp.SEXP;
 
 import java.util.List;
@@ -28,7 +28,7 @@ public class UnspecializedCall implements Specialization {
   }
 
   @Override
-  public void load(EmitContext emitContext, InstructionAdapter mv, List<Expression> arguments) {
+  public void load(EmitContext emitContext, InstructionAdapter mv, List<IRArgument> arguments) {
     throw new UnsupportedOperationException();
   }
 }

@@ -9,10 +9,10 @@ import org.renjin.compiler.builtins.Specializer;
 import org.renjin.compiler.builtins.UnspecializedCall;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.ir.ValueBounds;
+import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.primitives.Primitives;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -22,23 +22,16 @@ import java.util.Map;
 public class BuiltinCall implements CallExpression {
 
   private final Primitives.Entry primitive;
-  private final String[] argumentNames;
-  private final List<Expression> arguments;
+  private final List<IRArgument> arguments;
 
   private final Specializer specializer;
   
   private Specialization specialization = UnspecializedCall.INSTANCE;
 
-  public BuiltinCall(Primitives.Entry primitive, String[] argumentNames, List<Expression> arguments) {
+  public BuiltinCall(Primitives.Entry primitive, List<IRArgument> arguments) {
     this.primitive = primitive;
-    this.argumentNames = argumentNames;
     this.arguments = arguments;
     this.specializer = BuiltinSpecializers.INSTANCE.get(primitive);
-  }
-
-  @Override
-  public List<String> getArgumentNames() {
-    return Arrays.asList(argumentNames);
   }
 
   @Override
@@ -48,12 +41,12 @@ public class BuiltinCall implements CallExpression {
   
   @Override
   public Expression childAt(int index) {
-    return arguments.get(index);
+    return arguments.get(index).getExpression();
   }
 
   @Override
   public void setChild(int childIndex, Expression child) {
-    arguments.set(childIndex, child);
+    arguments.get(childIndex).setExpression(child);
   }
   
   @Override
@@ -71,8 +64,8 @@ public class BuiltinCall implements CallExpression {
   @Override
   public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
     List<ValueBounds> argumentTypes = new ArrayList<>();
-    for (Expression argument : arguments) {
-      argumentTypes.add(argument.updateTypeBounds(typeMap));
+    for (IRArgument argument : arguments) {
+      argumentTypes.add(argument.getExpression().updateTypeBounds(typeMap));
     }
     specialization = specializer.trySpecialize(argumentTypes);
     

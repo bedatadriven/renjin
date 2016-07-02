@@ -17,12 +17,15 @@ import org.renjin.sexp.Environment;
 import org.renjin.sexp.SEXP;
 
 import java.io.PrintWriter;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static org.objectweb.asm.Type.getMethodDescriptor;
 import static org.objectweb.asm.Type.getType;
 
 public class ByteCodeEmitter implements Opcodes {
 
+  private static final AtomicLong CLASS_COUNTER = new AtomicLong(1);
+  
   private ClassWriter cw;
   private ClassVisitor cv;
   private ControlFlowGraph cfg;
@@ -35,7 +38,7 @@ public class ByteCodeEmitter implements Opcodes {
     super();
     this.cfg = cfg;
     this.types = types;
-    this.className = "Body" + System.identityHashCode(cfg);
+    this.className = "Body" + CLASS_COUNTER.getAndIncrement();
   }
 
   public Class<CompiledBody> compile() {

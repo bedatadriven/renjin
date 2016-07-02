@@ -4,6 +4,7 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.InstructionAdapter;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.ir.ValueBounds;
+import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.invoke.model.JvmMethod;
 
@@ -40,16 +41,16 @@ public class DataParallelScalarCall implements Specialization {
   }
 
   @Override
-  public void load(EmitContext emitContext, InstructionAdapter mv, List<Expression> arguments) {
+  public void load(EmitContext emitContext, InstructionAdapter mv, List<IRArgument> arguments) {
     
-    Iterator<Expression> argumentIt = arguments.iterator();
+    Iterator<IRArgument> argumentIt = arguments.iterator();
 
     for (JvmMethod.Argument formal : method.getAllArguments()) {
       if(formal.isContextual()) {
         throw new UnsupportedOperationException("TODO");
         
       } else if(formal.isRecycle()) {
-        Expression argument = argumentIt.next();
+        Expression argument = argumentIt.next().getExpression();
         argument.load(emitContext, mv);
         emitContext.convert(mv, argument.getType(), Type.getType(formal.getClazz()));
       }

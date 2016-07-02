@@ -6,6 +6,7 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.InstructionAdapter;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.ir.ValueBounds;
+import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.invoke.model.JvmMethod;
 
@@ -35,10 +36,10 @@ public class DoubleBinaryOp implements Specialization {
   }
 
   @Override
-  public void load(EmitContext emitContext, InstructionAdapter mv, List<Expression> arguments) {
+  public void load(EmitContext emitContext, InstructionAdapter mv, List<IRArgument> arguments) {
     assert  arguments.size() == 2;
-    Expression x = arguments.get(0);
-    Expression y = arguments.get(1);
+    Expression x = arguments.get(0).getExpression();
+    Expression y = arguments.get(1).getExpression();
 
     x.load(emitContext, mv);
     emitContext.convert(mv, x.getType(), Type.DOUBLE_TYPE);

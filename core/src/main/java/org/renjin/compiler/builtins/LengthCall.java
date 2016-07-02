@@ -4,6 +4,7 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.InstructionAdapter;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.ir.ValueBounds;
+import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.sexp.SEXP;
 
@@ -22,8 +23,8 @@ public class LengthCall implements Specialization {
   }
 
   @Override
-  public void load(EmitContext emitContext, InstructionAdapter mv, List<Expression> arguments) {
-    Expression argument = arguments.get(0);
+  public void load(EmitContext emitContext, InstructionAdapter mv, List<IRArgument> arguments) {
+    Expression argument = arguments.get(0).getExpression();
     argument.load(emitContext, mv);
     emitContext.convert(mv, argument.getType(), Type.getType(SEXP.class));
     

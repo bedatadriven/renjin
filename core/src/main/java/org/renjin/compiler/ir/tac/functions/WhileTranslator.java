@@ -45,7 +45,7 @@ public class WhileTranslator extends FunctionCallTranslator {
     // start the body here
     factory.addLabel(bodyLabel);
 
-    LoopContext loopContext = new LoopContext(checkLabel, exitLabel);
+    LoopContext loopContext = new LoopContext(context, checkLabel, exitLabel);
     factory.translateStatements(loopContext, body);
     
     // increment the counter

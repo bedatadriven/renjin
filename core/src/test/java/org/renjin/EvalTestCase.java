@@ -36,6 +36,7 @@ import org.renjin.parser.ParseOptions;
 import org.renjin.parser.ParseState;
 import org.renjin.parser.RLexer;
 import org.renjin.parser.RParser;
+import org.renjin.primitives.Warning;
 import org.renjin.primitives.io.connections.ResourceConnection;
 import org.renjin.sexp.*;
 
@@ -67,9 +68,24 @@ public abstract class EvalTestCase {
   }
 
   protected SEXP eval(String source) {
-    return evaluate(source);
+    SEXP result = evaluate(source);
+    printWarnings();
+    return result;
   }
 
+  
+  
+  private void printWarnings() {
+    SEXP warnings = topLevelContext.getBaseEnvironment().getVariable(Warning.LAST_WARNING);
+    if(warnings != Symbol.UNBOUND_VALUE) {
+      topLevelContext.evaluate( FunctionCall.newCall(Symbol.get("print.warnings"), warnings),
+          topLevelContext.getBaseEnvironment());
+
+      System.out.println();
+    }
+  }
+    
+  
   /**
    * Fully initializes the context, loading the R-language
    * base packages and recommended packages.

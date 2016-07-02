@@ -5,7 +5,6 @@ import org.objectweb.asm.commons.InstructionAdapter;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.InlineParamExpr;
 import org.renjin.compiler.ir.ValueBounds;
-import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
 
 import java.util.Map;
@@ -14,23 +13,17 @@ import java.util.Map;
 public class ReadParam implements Expression {
 
   private final Symbol param;
-  private final SEXP defaultValue;
   private ValueBounds valueBounds;
   private Type type;
 
-  public ReadParam(Symbol param, SEXP defaultValue) {
+  public ReadParam(Symbol param) {
     this.param = param;
-    this.defaultValue = defaultValue;
-    this.valueBounds = ValueBounds.of(defaultValue);
+    this.valueBounds = ValueBounds.UNBOUNDED;
     this.type = valueBounds.storageType();
   }
 
   public Symbol getParam() {
     return param;
-  }
-
-  public SEXP getDefaultValue() {
-    return defaultValue;
   }
 
   @Override
@@ -82,10 +75,6 @@ public class ReadParam implements Expression {
 
   @Override
   public String toString() {
-    if(defaultValue == Symbol.MISSING_ARG) {
-      return "param(" + param + ")";
-    } else {
-      return "param(" + param + " = " + defaultValue + ")";
-    }
+    return "param(" + param + ")";
   }
 }

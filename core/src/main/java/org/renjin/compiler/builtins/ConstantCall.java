@@ -4,7 +4,7 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.InstructionAdapter;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.ir.ValueBounds;
-import org.renjin.compiler.ir.tac.expressions.Expression;
+import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.IntVector;
@@ -47,7 +47,7 @@ public class ConstantCall implements Specialization {
   }
 
   @Override
-  public void load(EmitContext emitContext, InstructionAdapter mv, List<Expression> arguments) {
+  public void load(EmitContext emitContext, InstructionAdapter mv, List<IRArgument> arguments) {
     if(constantValue instanceof Integer) {
       mv.iconst((Integer) constantValue);
     } else if(constantValue instanceof Double) {

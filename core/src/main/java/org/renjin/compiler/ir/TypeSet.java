@@ -95,6 +95,21 @@ public class TypeSet {
     } else if (type.equals(Complex.class)) {
       return COMPLEX;
 
+    } else if (type.equals(StringVector.class)) {
+      return STRING;
+
+    } else if(type.equals(IntVector.class)) {
+      return INT;
+
+    } else if(type.equals(DoubleVector.class)) {
+      return DOUBLE;
+
+    } else if(type.equals(ComplexVector.class)) {
+      return COMPLEX;
+
+    } else if(type.equals(RawVector.class)) {
+      return RAW;
+
     } else if (type.equals(SEXP.class)) {
       return ANY_TYPE;
 

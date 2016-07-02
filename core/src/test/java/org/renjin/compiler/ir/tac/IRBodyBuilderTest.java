@@ -14,8 +14,6 @@ import org.renjin.compiler.ir.ssa.SsaTransformer;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
-import org.renjin.invoke.ClassBindings;
-import org.renjin.invoke.reflection.MemberBinding;
 import org.renjin.parser.RParser;
 import org.renjin.sexp.*;
 
@@ -37,11 +35,6 @@ public class IRBodyBuilderTest extends EvalTestCase {
   @Before
   public void setUpSession() {
     session = new SessionBuilder().build();
-
-    // add some simplified functions for testing
-    MemberBinding stop = ClassBindings.getClassDefinitionBinding(IRBodyBuilderTest.class)
-        .getMemberBinding(Symbol.get("stop"));
-    session.getGlobalEnvironment().setVariable("stop", stop.getValue(null));
   }
 
   @Test

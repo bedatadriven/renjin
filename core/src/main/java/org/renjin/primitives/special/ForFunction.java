@@ -22,6 +22,7 @@
 package org.renjin.primitives.special;
 
 import org.renjin.compiler.CompiledLoopBody;
+import org.renjin.compiler.NotCompilableException;
 import org.renjin.compiler.TypeSolver;
 import org.renjin.compiler.cfg.ControlFlowGraph;
 import org.renjin.compiler.cfg.DominanceTree;
@@ -32,6 +33,7 @@ import org.renjin.compiler.ir.tac.IRBody;
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.primitives.Deparse;
 import org.renjin.sexp.*;
 
 
@@ -43,10 +45,10 @@ public class ForFunction extends SpecialFunction {
   public ForFunction() {
     super("for");
   }
-  
+
   @Override
   public SEXP apply(Context context, Environment rho, FunctionCall call, PairList _args_unused) {
-    
+
     PairList args = call.getArguments();
     Symbol symbol = args.getElementAsSEXP(0);
     SEXP elementsExp = context.evaluate(args.getElementAsSEXP(1), rho);
@@ -55,12 +57,12 @@ public class ForFunction extends SpecialFunction {
     }
     Vector elements = (Vector) elementsExp;
     SEXP statement = args.getElementAsSEXP(2);
-    
+
     // Interpret the loop
     boolean compilationFailed = false;
     for (int i = 0; i != elements.length(); ++i) {
       try {
-        
+
         if(i >= WARMUP_ITERATIONS && elements.length() > COMPILE_THRESHOLD && !compilationFailed) {
           if(tryCompileAndRun(context, rho, call, elements, i)) {
             break;
@@ -68,7 +70,7 @@ public class ForFunction extends SpecialFunction {
             compilationFailed = true;
           }
         }
-        
+
         rho.setVariable(symbol, elements.getElementAsSEXP(i));
         context.evaluate(statement, rho);
       } catch (BreakException e) {
@@ -83,39 +85,47 @@ public class ForFunction extends SpecialFunction {
   }
 
   private boolean tryCompileAndRun(Context context, Environment rho, FunctionCall call, Vector elements, int i) {
-    
-    IRBodyBuilder builder = new IRBodyBuilder(context, rho);
-    IRBody body = builder.buildLoopBody(call, elements);
-    System.out.println(body);
 
-    ControlFlowGraph cfg = new ControlFlowGraph(body);
-    
-    DominanceTree dTree = new DominanceTree(cfg);
-    SsaTransformer ssaTransformer = new SsaTransformer(cfg, dTree);
-    ssaTransformer.transform();
-    
-    System.out.println(cfg);
-
-    UseDefMap useDefMap = new UseDefMap(cfg);
-    TypeSolver types = new TypeSolver(cfg, useDefMap);
-    types.execute();
-    types.dumpBounds();
-    
-    ssaTransformer.removePhiFunctions(types);
-
-   // System.out.println(cfg);
-
-    ByteCodeEmitter emitter = new ByteCodeEmitter(cfg, types);
-    CompiledLoopBody compiledBody = null;
     try {
+
+      IRBodyBuilder builder = new IRBodyBuilder(context, rho);
+      IRBody body = builder.buildLoopBody(call, elements);
+      System.out.println(body);
+
+      ControlFlowGraph cfg = new ControlFlowGraph(body);
+
+      DominanceTree dTree = new DominanceTree(cfg);
+      SsaTransformer ssaTransformer = new SsaTransformer(cfg, dTree);
+      ssaTransformer.transform();
+
+      System.out.println(cfg);
+
+      UseDefMap useDefMap = new UseDefMap(cfg);
+      TypeSolver types = new TypeSolver(cfg, useDefMap);
+      types.execute();
+      types.dumpBounds();
+
+      ssaTransformer.removePhiFunctions(types);
+
+      // System.out.println(cfg);
+
+      ByteCodeEmitter emitter = new ByteCodeEmitter(cfg, types);
+      CompiledLoopBody compiledBody = null;
       compiledBody = emitter.compileLoopBody().newInstance();
       compiledBody.run(context, rho, elements, i);
 
+    } catch (NotCompilableException e) {
+      context.warn(String.format("Could not compile loop with %d iterations because of %s: %s",
+          elements.length(),
+          Deparse.deparseExp(context, e.getSexp()),
+          e.getMessage()));
+      return false;
+      
     } catch (Exception e) {
       e.printStackTrace();
       return false;
     }
-    
+
     return true;
   }
 }

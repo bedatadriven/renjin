@@ -16,8 +16,10 @@ import org.renjin.compiler.ir.tac.statements.ReturnStatement;
 import org.renjin.compiler.ir.tac.statements.Statement;
 import org.renjin.eval.Context;
 import org.renjin.sexp.Closure;
+import org.renjin.sexp.Symbol;
 
 import java.util.List;
+import java.util.Set;
 
 
 public class InlinedFunction {
@@ -31,10 +33,15 @@ public class InlinedFunction {
 
   private List<ReturnStatement> returnStatements = Lists.newArrayList();
 
-  public InlinedFunction(Context context, Closure closure) {
+  /**
+   * @param context the evaluation context
+   * @param closure the closure to inline
+   * @param arguments the names of the formals that will be supplied to this inline call
+   */
+  public InlinedFunction(Context context, Closure closure, Set<Symbol> arguments) {
 
     IRBodyBuilder builder = new IRBodyBuilder(context, closure.getEnclosingEnvironment());
-    IRBody body = builder.buildFunctionBody(closure);
+    IRBody body = builder.buildFunctionBody(closure, arguments);
 
     cfg = new ControlFlowGraph(body);
     dTree = new DominanceTree(cfg);

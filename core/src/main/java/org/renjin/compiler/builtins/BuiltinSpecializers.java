@@ -1,5 +1,6 @@
 package org.renjin.compiler.builtins;
 
+import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -19,7 +20,7 @@ public class BuiltinSpecializers {
   /**
    * For a few builtins, we have extra-special specializers.
    */
-  private final Map<String, Specializer> specializers = Maps.newHashMap();
+  private final Map<Primitives.Entry, Specializer> specializers = Maps.newHashMap();
 
   
   /**
@@ -27,30 +28,30 @@ public class BuiltinSpecializers {
    * in the code base. To avoid rebuilding the metadata each time one is needed, 
    * cache instances of BuiltinSpecializer here.
    */
-  private final LoadingCache<String, BuiltinSpecializer> cache;
+  private final LoadingCache<Primitives.Entry, BuiltinSpecializer> cache;
   
   
   public BuiltinSpecializers() {
     
-    specializers.put("length", new GenericBuiltinGuard(new LengthSpecializer()));
-    specializers.put("[<-", new GenericBuiltinGuard(new ReplaceSpecializer()));
-    
-    cache = CacheBuilder.newBuilder().build(new CacheLoader<String, BuiltinSpecializer>() {
+    specializers.put(Primitives.getBuiltinEntry("length"), new GenericBuiltinGuard(new LengthSpecializer()));
+    specializers.put(Primitives.getBuiltinEntry("[<-"), new GenericBuiltinGuard(new ReplaceSpecializer()));
+    cache = CacheBuilder.newBuilder().build(new CacheLoader<Primitives.Entry, BuiltinSpecializer>() {
       @Override
-      public BuiltinSpecializer load(String key) throws Exception {
-        return new BuiltinSpecializer(Primitives.getBuiltinEntry(key));
+      public BuiltinSpecializer load(Primitives.Entry entry) throws Exception {
+        return new BuiltinSpecializer(entry);
       }
     });
   }
   
   public Specializer get(Primitives.Entry primitive) {
+    Preconditions.checkNotNull(primitive);
     
-    if(specializers.containsKey(primitive.name)) {
-      return specializers.get(primitive.name);
+    if(specializers.containsKey(primitive)) {
+      return specializers.get(primitive);
     }
     
     try {
-      return cache.get(primitive.name);
+      return cache.get(primitive);
     } catch (ExecutionException e) {
       throw new InternalCompilerException(e);
     }

@@ -3,6 +3,7 @@ package org.renjin.compiler.ir.tac.expressions;
 import org.junit.Test;
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
+import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.primitives.Primitives;
 
 import java.util.Arrays;
@@ -19,7 +20,8 @@ public class BuiltinCallTest {
     Expression x = new EnvironmentVariable("x");
     Expression y = new EnvironmentVariable("y");
 
-    BuiltinCall call = new BuiltinCall(Primitives.getBuiltinEntry("+"), new String[2], Arrays.asList(x, y));
+    BuiltinCall call = new BuiltinCall(Primitives.getBuiltinEntry("+"), 
+        Arrays.asList( new IRArgument(x), new IRArgument(y)));
 
     Map<Expression, ValueBounds> typeMap = new HashMap<>();
     typeMap.put(x, ValueBounds.DOUBLE_PRIMITIVE);
@@ -38,7 +40,8 @@ public class BuiltinCallTest {
     Expression x = new EnvironmentVariable("x");
     Expression y = new EnvironmentVariable("y");
 
-    BuiltinCall call = new BuiltinCall(Primitives.getBuiltinEntry("+"), new String[2], Arrays.asList(x, y));
+    BuiltinCall call = new BuiltinCall(Primitives.getBuiltinEntry("+"), 
+        Arrays.asList( new IRArgument(x), new IRArgument(y) ));
 
     Map<Expression, ValueBounds> typeMap = new HashMap<>();
     typeMap.put(x, ValueBounds.DOUBLE_PRIMITIVE);

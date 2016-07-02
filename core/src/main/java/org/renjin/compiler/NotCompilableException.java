@@ -1,6 +1,7 @@
 package org.renjin.compiler;
 
 
+import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.SEXP;
 
 public class NotCompilableException extends RuntimeException {
@@ -12,7 +13,15 @@ public class NotCompilableException extends RuntimeException {
   }
 
   public NotCompilableException(SEXP sexp, String message) {
-    super(message);
+    super(sexp + ": " + message);
     this.sexp = sexp;
+  }
+
+  public NotCompilableException(FunctionCall call, NotCompilableException cause) {
+    super(" in " + call.getFunction(), cause);
+  }
+
+  public SEXP getSexp() {
+    return sexp;
   }
 }

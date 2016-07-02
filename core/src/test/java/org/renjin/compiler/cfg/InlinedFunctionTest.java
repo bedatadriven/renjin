@@ -4,6 +4,9 @@ import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.sexp.Closure;
+import org.renjin.sexp.Symbol;
+
+import java.util.Collections;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -36,7 +39,7 @@ public class InlinedFunctionTest extends EvalTestCase {
   
   private InlinedFunction compileFunction(String functionDecl) {
     Closure closure = (Closure) eval(functionDecl);
-    return new InlinedFunction(topLevelContext, closure);
+    return new InlinedFunction(topLevelContext, closure, Collections.<Symbol>emptySet());
   }
 
 

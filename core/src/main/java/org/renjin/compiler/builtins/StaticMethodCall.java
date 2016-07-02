@@ -4,6 +4,7 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.InstructionAdapter;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.ir.ValueBounds;
+import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.invoke.model.JvmMethod;
 
@@ -17,14 +18,17 @@ public class StaticMethodCall implements Specialization {
 
   private final JvmMethod method;
   private final ValueBounds valueBounds;
+  private final boolean pure;
 
   public StaticMethodCall(JvmMethod method) {
     this.method = method;
+    this.pure = method.isPure();
     this.valueBounds = ValueBounds.of(method.getReturnType());
+    
   }
 
   public Specialization furtherSpecialize(List<ValueBounds> argumentBounds) {
-    if (ValueBounds.allConstant(argumentBounds)) {
+    if (pure && ValueBounds.allConstant(argumentBounds)) {
       return ConstantCall.evaluate(method, argumentBounds);
     }
     return this;
@@ -41,13 +45,13 @@ public class StaticMethodCall implements Specialization {
   }
 
   @Override
-  public void load(EmitContext emitContext, InstructionAdapter mv, List<Expression> arguments) {
+  public void load(EmitContext emitContext, InstructionAdapter mv, List<IRArgument> arguments) {
 
     for (JvmMethod.Argument argument : method.getAllArguments()) {
       if(argument.isContextual()) {
         throw new UnsupportedOperationException("TODO");
       } else {
-        Expression argumentExpr = arguments.get(argument.getIndex());
+        Expression argumentExpr = arguments.get(argument.getIndex()).getExpression();
         argumentExpr.load(emitContext, mv);
         emitContext.convert(mv, argumentExpr.getType(), Type.getType(argument.getClazz()));
       }

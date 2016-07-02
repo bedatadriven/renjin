@@ -24,7 +24,7 @@ public class RepeatTranslator extends FunctionCallTranslator {
     IRLabel beginLabel = builder.addLabel();
     IRLabel exitLabel = builder.newLabel();
     
-    LoopContext loopContext = new LoopContext(beginLabel, exitLabel);
+    LoopContext loopContext = new LoopContext(context, beginLabel, exitLabel);
     builder.translateStatements(loopContext, call.getArgument(0));
     
     builder.addStatement(new GotoStatement(beginLabel));

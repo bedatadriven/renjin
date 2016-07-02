@@ -5,11 +5,9 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.renjin.compiler.NotCompilableException;
 import org.renjin.compiler.ir.ValueBounds;
+import org.renjin.compiler.ir.exception.InvalidSyntaxException;
 import org.renjin.compiler.ir.tac.expressions.*;
-import org.renjin.compiler.ir.tac.functions.ForTranslator;
-import org.renjin.compiler.ir.tac.functions.FunctionCallTranslator;
-import org.renjin.compiler.ir.tac.functions.FunctionCallTranslators;
-import org.renjin.compiler.ir.tac.functions.TranslationContext;
+import org.renjin.compiler.ir.tac.functions.*;
 import org.renjin.compiler.ir.tac.statements.*;
 import org.renjin.eval.Context;
 import org.renjin.packaging.SerializedPromise;
@@ -54,8 +52,13 @@ public class IRBodyBuilder {
   private Map<String, Integer> localVariableNames = Maps.newHashMap();
 
   public IRBodyBuilder(Context context, Environment rho) {
+    assert context != null;
     this.context = context;
     this.rho = rho;
+  }
+  
+  public Context getEvaluationContext() {
+    return context;
   }
   
   public IRBody build(SEXP exp) {
@@ -84,8 +87,10 @@ public class IRBodyBuilder {
 
     statements.add(new Assignment(vector, new ReadLoopVector(sequence)));
     statements.add(new Assignment(counter, new ReadLoopIt()));
+
+    LoopBodyContext bodyContext = new LoopBodyContext(rho);
     
-    ForTranslator.buildLoop(this, call, vector, counter);
+    ForTranslator.buildLoop(bodyContext, this, call, vector, counter);
 
     addStatement(new ReturnStatement(new Constant(Null.INSTANCE)));
     
@@ -96,19 +101,37 @@ public class IRBodyBuilder {
     return new IRBody(statements, labels);
   }
   
-  public IRBody buildFunctionBody(Closure closure) {
+  public IRBody buildFunctionBody(Closure closure, Set<Symbol> suppliedArguments) {
     
     statements = Lists.newArrayList();
     labels = Maps.newHashMap();
-
+    
+    // First define the parameters which will be supplied
     List<ReadParam> params = Lists.newArrayList();
     for (PairList.Node formal : closure.getFormals().nodes()) {
-      ReadParam paramExpr = new ReadParam(formal.getTag(), formal.getValue());
-      statements.add(new Assignment(new EnvironmentVariable(formal.getTag()), paramExpr));
-      params.add(paramExpr);
+      if (suppliedArguments.contains(formal.getTag())) {
+        ReadParam paramExpr = new ReadParam(formal.getTag());
+        statements.add(new Assignment(new EnvironmentVariable(formal.getTag()), paramExpr));
+        params.add(paramExpr);
+      }
     }
-
-    TranslationContext context = new TopLevelContext();
+    
+    // Now define  default values for formals that are not supplied
+    // These are not necessarily constants and are evaluated lazily, so some care is 
+    // required. 
+    for (PairList.Node formal : closure.getFormals().nodes()) {
+      if (!suppliedArguments.contains(formal.getTag())) {
+        SEXP defaultValue = formal.getValue();
+        if (defaultValue != Symbol.MISSING_ARG) {
+          if (!isConstant(defaultValue)) {
+            throw new NotCompilableException(defaultValue, "Non-constant default value for argument " + formal.getName());
+          }
+          statements.add(new Assignment(new EnvironmentVariable(formal.getTag()), new Constant(formal.getValue())));
+        }
+      }
+    }
+    
+    TranslationContext context = new InlinedContext();
     Expression returnValue = translateExpression(context, closure.getBody());
     addStatement(new ReturnStatement(returnValue));
 
@@ -118,6 +141,13 @@ public class IRBodyBuilder {
     IRBody body = new IRBody(statements, labels);
     body.setParams(params);
     return body;
+  }
+
+  private boolean isConstant(SEXP defaultValue) {
+    return ! ( defaultValue instanceof Symbol || 
+               defaultValue instanceof ExpressionVector ||
+               defaultValue instanceof FunctionCall);
+    
   }
 
   private void updateVariableReturn() {
@@ -270,13 +300,17 @@ public class IRBodyBuilder {
     }
   }
 
-  public List<Expression> translateArgumentList(TranslationContext context, PairList argumentSexps) {
-    List<Expression> arguments = Lists.newArrayList();
-    for(SEXP arg : argumentSexps.values()) {
-      if(arg == Symbols.ELLIPSES) {
-        throw new NotCompilableException(arg);
+  public List<IRArgument> translateArgumentList(TranslationContext context, PairList argumentSexps) {
+    List<IRArgument> arguments = Lists.newArrayList();
+    for(PairList.Node argNode : argumentSexps.nodes()) {
+      if(argNode.getValue() == Symbols.ELLIPSES) {
+        for (PairList.Node extraArgument :  context.getEllipsesArguments().nodes()) {
+          SimpleExpression expression = simplify(translateExpression(context, extraArgument));
+          arguments.add( new IRArgument(extraArgument.getRawTag(), expression) );
+        }
       } else {
-        arguments.add( simplify( translateExpression(context, arg) ));
+        SimpleExpression argExpression = simplify(translateExpression(context, argNode.getValue()));
+        arguments.add( new IRArgument(argNode.getRawTag(), argExpression) );
       }
     }
     return arguments;
@@ -388,5 +422,9 @@ public class IRBodyBuilder {
   
   private static class TopLevelContext implements TranslationContext {
 
+    @Override
+    public PairList getEllipsesArguments() {
+      throw new InvalidSyntaxException("'...' used outside of a function");
+    }
   }
 }

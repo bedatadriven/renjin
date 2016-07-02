@@ -100,6 +100,10 @@ public class Primitives {
   public static Entry getBuiltinEntry(Symbol name) {
     return INSTANCE.builtinEntries.get(name);
   }
+  
+  public static Entry getInternalEntry(Symbol name) {
+    return INSTANCE.internalEntries.get(name);
+  }
 
   public static Entry getBuiltinEntry(String name) {
     return getBuiltinEntry(Symbol.get(name));

@@ -2,6 +2,7 @@ package org.renjin.compiler.ir.tac.functions;
 
 
 import org.renjin.compiler.NotCompilableException;
+import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
 import org.renjin.compiler.ir.tac.expressions.BuiltinCall;
 import org.renjin.compiler.ir.tac.expressions.Expression;
@@ -9,7 +10,6 @@ import org.renjin.compiler.ir.tac.statements.ExprStatement;
 import org.renjin.primitives.Primitives;
 import org.renjin.sexp.Function;
 import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.PairList;
 import org.renjin.sexp.PrimitiveFunction;
 
 import java.util.List;
@@ -24,10 +24,9 @@ class BuiltinTranslator extends FunctionCallTranslator {
     if(entry == null) {
       throw new NotCompilableException(call);
     }
-    String[] argumentNames = ArgumentNames.toArray(call.getArguments());
-    List<Expression> arguments = builder.translateArgumentList(context, call.getArguments());
+    List<IRArgument> arguments = builder.translateArgumentList(context, call.getArguments());
     
-    return new BuiltinCall(entry, argumentNames, arguments);
+    return new BuiltinCall(entry, arguments);
   }
 
   @Override
@@ -39,23 +38,11 @@ class BuiltinTranslator extends FunctionCallTranslator {
     if(entry == null) {
       throw new NotCompilableException(getterCall);
     }
+    
+    List<IRArgument> arguments = builder.translateArgumentList(context, getterCall.getArguments());
+    arguments.add(new IRArgument("value", rhs));
 
-    int numGetterArgs = getterCall.getArguments().length();
-    String[] argumentNames = new String[numGetterArgs+1];
-    int argIndex = 0;
-    for(PairList.Node argument : getterCall.getArguments().nodes()) {
-      if(argument.hasTag()) {
-        argumentNames[argIndex] = argument.getTag().getPrintName();
-      }
-      argIndex++;
-    }
-    // name of the RHS argument
-    argumentNames[argIndex] = "value";
-
-    List<Expression> arguments = builder.translateArgumentList(context, getterCall.getArguments());
-    arguments.add(rhs);
-
-    return new BuiltinCall(entry, argumentNames, arguments);
+    return new BuiltinCall(entry, arguments);
   }
 
   @Override

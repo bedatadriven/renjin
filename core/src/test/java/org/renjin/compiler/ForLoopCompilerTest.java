@@ -52,6 +52,8 @@ public class ForLoopCompilerTest extends EvalTestCase {
     eval(" add <- function(x, y) x + y ");
     eval(" s <- 0 ");
     eval(" for(i in 1:500) s <- add(s, sqrt(i)) ");
+  
+    assertThat(eval("s"), closeTo(c(7464.534), 0.01));
   }
 
   @Test

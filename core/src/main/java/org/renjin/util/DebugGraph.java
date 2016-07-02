@@ -2,8 +2,6 @@ package org.renjin.util;
 
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.PrintWriter;
 
 public class DebugGraph {
@@ -42,9 +40,13 @@ public class DebugGraph {
 
       File tempPng = File.createTempFile("graph", ".png");
 
-      Process process = Runtime.getRuntime().exec(new String[] { "dot", "-T", "png", "-o", tempPng.getAbsolutePath(), tempFile.getAbsolutePath() });
+      try {
+        Runtime.getRuntime().exec(new String[]{"dot", "-T", "png", "-o", tempPng.getAbsolutePath(), tempFile.getAbsolutePath()});
 
-      System.out.println("Graph drawn to " + tempPng);
+        System.out.println("Graph drawn to " + tempPng);
+      } catch (Exception e) {
+        System.out.println("Failed to render graph: " + e.getMessage());
+      }
       //tempFile.delete();
     } catch(Exception e) {
       throw new RuntimeException(e);

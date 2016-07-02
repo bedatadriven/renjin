@@ -89,11 +89,7 @@
       <artifactId>asm-commons</artifactId>
       <version>${asm.version}</version>
     </dependency>
-    <dependency>
-      <groupId>asm</groupId>
-      <artifactId>asm-analysis</artifactId>
-      <version>4.0</version>
-    </dependency>
+    
     <!-- Collections framework -->
     <dependency>
       <groupId>com.google.guava</groupId>

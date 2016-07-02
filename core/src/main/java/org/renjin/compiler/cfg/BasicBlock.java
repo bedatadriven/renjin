@@ -3,7 +3,6 @@ package org.renjin.compiler.cfg;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.renjin.compiler.ir.ssa.PhiFunction;
 import org.renjin.compiler.ir.tac.IRBody;
 import org.renjin.compiler.ir.tac.IRLabel;
@@ -25,8 +24,8 @@ public class BasicBlock {
   List<BasicBlock> flowSuccessors = new ArrayList<>();
   List<BasicBlock> flowPredecessors = new ArrayList<>();
 
-  Set<BasicBlock> dominanceSuccessors = Sets.newHashSet();
-  Set<BasicBlock> dominancePredecessors = Sets.newHashSet();
+  List<BasicBlock> dominanceSuccessors = new ArrayList<>();
+  List<BasicBlock> dominancePredecessors = new ArrayList<>();
   
   final Set<FlowEdge> outgoing = new HashSet<>();
   final Set<FlowEdge> incoming = new HashSet<>();
@@ -115,11 +114,11 @@ public class BasicBlock {
     return flowPredecessors;
   }
 
-  public Set<BasicBlock> getDominanceSuccessors() {
+  public List<BasicBlock> getDominanceSuccessors() {
     return dominanceSuccessors;
   }
   
-  public Set<BasicBlock> getDominancePredecessors() {
+  public List<BasicBlock> getDominancePredecessors() {
     return dominancePredecessors;
   }
 

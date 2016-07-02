@@ -96,7 +96,7 @@ public class SsaTransformer {
       // in a deviation from Cytron, et. al,
       // V_0 represents the uninitialized value
 
-      C.put(V, 0);
+      C.put(V, 1);
 
       Stack<Integer> stack = new Stack<Integer>();
       stack.push(0);

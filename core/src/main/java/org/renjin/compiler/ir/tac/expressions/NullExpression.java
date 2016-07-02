@@ -1,11 +1,11 @@
 package org.renjin.compiler.ir.tac.expressions;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.InstructionAdapter;
+import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.ir.ValueBounds;
 
-import org.renjin.eval.Context;
-import org.renjin.sexp.SEXP;
+import java.util.Map;
 
 
 /**
@@ -20,23 +20,28 @@ public class NullExpression implements Expression {
   private NullExpression() { }
 
   @Override
-  public Object retrieveValue(Context context, Object[] temps) {
+  public boolean isDefinitelyPure() {
+    return true;
+  }
+
+  @Override
+  public int load(EmitContext emitContext, InstructionAdapter mv) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public Set<Variable> variables() {
-    return Collections.emptySet();
+  public Type getType() {
+    throw new UnsupportedOperationException();
   }
 
   @Override
-  public Expression replaceVariable(Variable name, Variable newName) {
-    return this;
+  public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
+    throw new UnsupportedOperationException();
   }
 
   @Override
-  public List<Expression> getChildren() {
-    return Collections.emptyList();
+  public ValueBounds getValueBounds() {
+    return ValueBounds.UNBOUNDED;
   }
 
   @Override
@@ -45,12 +50,12 @@ public class NullExpression implements Expression {
   }
 
   @Override
-  public void accept(ExpressionVisitor visitor) {
-    // NOOP
+  public int getChildCount() {
+    return 0;
   }
 
   @Override
-  public SEXP getSExpression() {
-    throw new UnsupportedOperationException();
+  public Expression childAt(int index) {
+    throw new IllegalArgumentException();
   }
 }

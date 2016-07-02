@@ -1,6 +1,7 @@
 package org.renjin.compiler;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Joiner;
 import com.google.common.io.Resources;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -9,7 +10,8 @@ import org.renjin.compiler.cfg.BasicBlock;
 import org.renjin.compiler.cfg.ControlFlowGraph;
 import org.renjin.compiler.ir.tac.IRBody;
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
-import org.renjin.compiler.ir.tac.IRFunctionTable;
+import org.renjin.eval.Session;
+import org.renjin.eval.SessionBuilder;
 import org.renjin.parser.RParser;
 import org.renjin.sexp.ExpressionVector;
 
@@ -19,16 +21,22 @@ import java.util.Collection;
 
 public class CompilerTestCase {
 
-  protected IRFunctionTable functionTable = new IRFunctionTable();
 
-  protected IRBody buildScope(String rcode) {
+  public static void print(int i, int j, int k, int l) {
+    System.out.println(Joiner.on(", ").join(Arrays.asList(i, j, k, l)));
+  }
+
+
+  protected IRBody buildBody(String rcode) {
+    Session session = new SessionBuilder().build();
+    
     ExpressionVector ast = RParser.parseSource(rcode + "\n");
-    return new IRBodyBuilder(functionTable).build(ast);
-  }  
+    return new IRBodyBuilder(session.getTopLevelContext(), session.getGlobalEnvironment()).build(ast);
+  }
   
 
   protected final IRBody parseCytron() throws IOException {
-    return buildScope(Resources.toString(Resources.getResource(ControlFlowGraph.class, "cytron.R"), Charsets.UTF_8));
+    return buildBody(Resources.toString(Resources.getResource(ControlFlowGraph.class, "cytron.R"), Charsets.UTF_8));
   }
   
   protected final Matcher<Collection<BasicBlock>> itemsEqualTo(final BasicBlock... blocks) {

@@ -40,7 +40,7 @@ import org.renjin.sexp.*;
 public class Sequences {
 
   @Builtin(":")
-  public static Vector colon(@Current Context context, SEXP n1, SEXP n2) {
+  public static AtomicVector colon(@Current Context context, SEXP n1, SEXP n2) {
     if( n1.inherits("factor") && n2.inherits("factor")) {
       return crossColon(n1, n2);
 
@@ -49,11 +49,11 @@ public class Sequences {
     }
   }
 
-  private static Vector crossColon(SEXP n1, SEXP n2) {
+  private static AtomicVector crossColon(SEXP n1, SEXP n2) {
     throw new UnsupportedOperationException("crossColon not yet implemented");
   }
 
-  public static Vector colonSequence(Context context, SEXP s1, SEXP s2 ) {
+  public static AtomicVector colonSequence(Context context, SEXP s1, SEXP s2 ) {
     assertScalar(context, s1);
     assertScalar(context, s2);
 
@@ -150,7 +150,7 @@ public class Sequences {
       }
     }
 
-    public Vector vector() {
+    public AtomicVector vector() {
       if(useInteger) {
         return IntSequence.fromTo(n1, n2);
       } else {

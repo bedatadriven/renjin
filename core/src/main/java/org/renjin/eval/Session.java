@@ -201,6 +201,13 @@ public class Session {
     commandLineArguments = new StringArrayVector(Lists.asList(executableName, arguments));
   }
   
+  public void setCommandLineArguments(String executableName, List<String> arguments) {
+    List<String> commandLine = Lists.newArrayList();
+    commandLine.add(executableName);
+    commandLine.addAll(arguments);
+    commandLineArguments = new StringArrayVector(commandLine);
+  }
+  
   public StringVector getCommandLineArguments() {
     return commandLineArguments;
   }

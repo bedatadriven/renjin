@@ -203,7 +203,7 @@ public class AttributeMap {
     return classes != null;
   }
 
-  public SEXP getClassVector() {
+  public AtomicVector getClassVector() {
     return classes == null ? Null.INSTANCE : classes;
   }
 

@@ -1,10 +1,10 @@
 package org.renjin.primitives.sequence;
 
 
+import org.renjin.sexp.AtomicVector;
 import org.renjin.sexp.AttributeMap;
 import org.renjin.sexp.IntVector;
 import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Vector;
 
 public class IntSequence extends IntVector {
 
@@ -23,6 +23,18 @@ public class IntSequence extends IntVector {
     this.from = from;
     this.by = by;
     this.length = length;
+  }
+
+  public int getFrom() {
+    return from;
+  }
+
+  public int getBy() {
+    return by;
+  }
+
+  public int getLength() {
+    return length;
   }
 
   @Override
@@ -50,7 +62,7 @@ public class IntSequence extends IntVector {
     return new IntSequence(attributes, from, by, length);
   }
 
-  public static Vector fromTo(int n1, int n2) {
+  public static AtomicVector fromTo(int n1, int n2) {
     if(n1 <= n2) {
       return new IntSequence(n1, 1, n2-n1+1);
     } else {
@@ -58,7 +70,7 @@ public class IntSequence extends IntVector {
     }
   }
 
-  public static Vector fromTo(double n1, double n2) {
+  public static AtomicVector fromTo(double n1, double n2) {
     return fromTo((int)n1, (int)n2);
   }
 }

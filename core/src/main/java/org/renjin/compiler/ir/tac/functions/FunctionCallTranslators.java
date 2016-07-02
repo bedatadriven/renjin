@@ -1,42 +1,57 @@
 package org.renjin.compiler.ir.tac.functions;
 
-import java.util.Map;
-
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbol;
-
-
 import com.google.common.collect.Maps;
+import org.renjin.compiler.NotCompilableException;
+import org.renjin.sexp.Closure;
+import org.renjin.sexp.Function;
+import org.renjin.sexp.PrimitiveFunction;
+
+import java.util.Map;
 
 public class FunctionCallTranslators {
 
-  private Map<Symbol, FunctionCallTranslator> builders = Maps.newIdentityHashMap();
-  
+  private Map<String, FunctionCallTranslator> specials = Maps.newHashMap();
+  private Map<String, FunctionCallTranslator> builtins = Maps.newHashMap();
+
   public FunctionCallTranslators() {
-    builders.put(Symbol.get("if"), new IfTranslator());
-    builders.put(Symbol.get("{"), new BracketTranslator());
-    builders.put(Symbol.get("("), new ParenTranslator());
-    builders.put(Symbol.get("<-"), new AssignLeftTranslator());
-    builders.put(Symbol.get("<<-"), new ReassignLeftTranslator());
-    builders.put(Symbol.get("="), new AssignTranslator());
-    builders.put(Symbol.get("for"), new ForTranslator());
-    builders.put(Symbol.get("repeat"), new RepeatTranslator());
-    builders.put(Symbol.get("while"), new WhileTranslator());
-    builders.put(Symbol.get("next"), new NextTranslator());
-    builders.put(Symbol.get("break"), new BreakTranslator());
-    builders.put(Symbol.get("function"), new ClosureTranslator());
-    builders.put(Symbol.get("$"), new DollarTranslator());
-    builders.put(Symbol.get("$<-"), new DollarAssignTranslator());
-    builders.put(Symbol.get(".Internal"), new InternalCallTranslator());
-    builders.put(Symbol.get("&&"), new AndTranslator());
-    builders.put(Symbol.get("||"), new OrTranslator());
-    builders.put(Symbol.get("switch"), new SwitchTranslator());
+    specials.put("if", new IfTranslator());
+    specials.put("{", new BracketTranslator());
+    specials.put("(", new ParenTranslator());
+    specials.put("<-", new AssignLeftTranslator());
+    specials.put("<<-", new ReassignLeftTranslator());
+    specials.put("=", new AssignTranslator());
+    specials.put("for", new ForTranslator());
+    specials.put("repeat", new RepeatTranslator());
+    specials.put("while", new WhileTranslator());
+    specials.put("next", new NextTranslator());
+    specials.put("break", new BreakTranslator());
+    specials.put("function", new ClosureTranslator());
+    specials.put("$", new DollarTranslator());
+    specials.put("$<-", new DollarAssignTranslator());
+    specials.put(".Internal", new InternalCallTranslator());
+    specials.put("&&", new AndTranslator());
+    specials.put("||", new OrTranslator());
+    specials.put("switch", new SwitchTranslator());
+    specials.put("quote", new QuoteTranslator());
+    specials.put("return", new ReturnTranslator());
+    specials.put(":", new SequenceTranslator());
+    specials.put("UseMethod", new UseMethodTranslator());
   }
   
-  public FunctionCallTranslator get(SEXP function) {
-    if(function instanceof Symbol && builders.containsKey(function)) {
-      return builders.get(function);
-    } 
-    return null;
+  public FunctionCallTranslator get(Function function) {
+    if(function instanceof PrimitiveFunction) {
+      PrimitiveFunction primitiveFunction = (PrimitiveFunction)function;
+      if(specials.containsKey(primitiveFunction.getName())) {
+        return specials.get(primitiveFunction.getName());
+      } else {
+        return BuiltinTranslator.INSTANCE;
+      }
+    }
+  
+    if(function instanceof Closure) {
+      return new ClosureCallTranslator((Closure) function);
+    }
+    
+    throw new NotCompilableException(function, "Can't handle functions of class " + function.getClass().getName());
   }
 }

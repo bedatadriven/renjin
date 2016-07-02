@@ -1,72 +1,100 @@
 package org.renjin.compiler.ir.tac.expressions;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.InstructionAdapter;
+import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.ir.ValueBounds;
+import org.renjin.sexp.*;
 
-import org.renjin.eval.Context;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbol;
-
+import java.util.Map;
 
 
 /**
  * A value known at compile time.
- *
  */
-public class Constant implements SimpleExpression {
+public final class Constant implements SimpleExpression {
 
-  private Object value;
-  
-  public Constant(Object value) {
+  public static final Constant NULL = new Constant(Null.INSTANCE);
+  public static final Constant TRUE = new Constant(Logical.TRUE);
+  public static final Constant FALSE = new Constant(Logical.FALSE);
+  public static final Constant NA = new Constant(Logical.NA);
+
+  private SEXP value;
+  private ValueBounds valueBounds;
+  private Type type;
+
+  public Constant(SEXP value) {
     this.value = value;
+    this.valueBounds = ValueBounds.of(value);
+    this.type = valueBounds.storageType();
   }
   
-  public Object getValue() {
-    return value;
-  }
-  
-  @Override
-  public String toString() {
-    if(value instanceof Symbol) {
-      return "|" + value + "|";
-    } else {
-      return value.toString();
-    }
+  public Constant(int value) {
+    this(IntVector.valueOf(value));
   }
 
-  @Override
-  public Object retrieveValue(Context context, Object[] temps) {
+  public Constant(Logical value) {
+    this(LogicalVector.valueOf(value));
+  }
+
+  public SEXP getValue() {
     return value;
   }
 
   @Override
-  public Set<Variable> variables() {
-    return Collections.emptySet();
+  public final int getChildCount() {
+    return 0;
   }
 
   @Override
-  public List<Expression> getChildren() {
-    return Collections.emptyList();
-  }
-
-  @Override
-  public Constant replaceVariable(Variable name, Variable newName) {
-    return this;
-  }
-
-  @Override
-  public void setChild(int i, Expression expr) {
+  public final Expression childAt(int index) {
     throw new IllegalArgumentException();
   }
 
   @Override
-  public void accept(ExpressionVisitor visitor) {
-    visitor.visitConstant(this);
+  public final boolean isDefinitelyPure() {
+    return true;
   }
 
   @Override
-  public SEXP getSExpression() {
-    return (SEXP)value;
+  public int load(EmitContext emitContext, InstructionAdapter mv) {
+    if (type.equals(Type.INT_TYPE)) {
+      mv.iconst(((AtomicVector) value).getElementAsInt(0));
+
+    } else if (type.equals(Type.DOUBLE_TYPE)) {
+      mv.dconst(((AtomicVector) value).getElementAsDouble(0));
+
+    } else if (type.equals(Type.getType(String.class))) {
+      mv.aconst(((AtomicVector) value).getElementAsString(0));
+
+    } else {
+      throw new UnsupportedOperationException("type: " + type);
+    }
+    return 1;
+  }
+
+  @Override
+  public Type getType() {
+    return type;
+  }
+
+  @Override
+  public final void setChild(int i, Expression expr) {
+    throw new IllegalArgumentException();
+  }
+
+  @Override
+  public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
+    return valueBounds;
+  }
+
+  @Override
+  public ValueBounds getValueBounds() {
+    return valueBounds;
+  }
+
+  @Override
+  public String toString() {
+    return value.toString();
   }
 }

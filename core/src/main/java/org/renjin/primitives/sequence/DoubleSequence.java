@@ -44,7 +44,7 @@ public class DoubleSequence extends DoubleVector {
     return new DoubleSequence(attributes, from, by, length);
   }
 
-  public static Vector fromTo(double n1, double n2) {
+  public static AtomicVector fromTo(double n1, double n2) {
     if(n1 == n2) {
       return new DoubleArrayVector(n1);
     } else if(n1 <= n2) {

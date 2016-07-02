@@ -2,7 +2,6 @@ package org.renjin.compiler.pipeline.accessor;
 
 import org.renjin.compiler.pipeline.DeferredNode;
 import org.renjin.primitives.matrix.TransposingMatrix;
-import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.sexp.DoubleArrayVector;
 import org.renjin.sexp.IntArrayVector;
 
@@ -27,11 +26,10 @@ public class Accessors {
     } else if(RepeatingAccessor.accept(node)) {
       return new RepeatingAccessor(node, inputGraph);
       
-    } else if(node.getVector() instanceof DeferredComputation &&
-        ((DeferredComputation)node.getVector()).getComputationName().equals("dist")) {
-      return new DistanceMatrixAccessor(node, inputGraph);
-//    } else if(node.isComputation()) {
-//      return new ComputationAccessor(node, dataSlot);
+//    } else if(node.getVector() instanceof DistanceMatrix) {
+//      return new DistanceMatrixAccessor(node, inputGraph);
+////    } else if(node.isComputation()) {
+////      return new ComputationAccessor(node, dataSlot);
     } else {
       return new VirtualAccessor(node.getVector(), inputGraph.getOperandIndex(node));
     }

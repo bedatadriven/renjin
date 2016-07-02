@@ -1,17 +1,14 @@
 package org.renjin.compiler.cfg;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import org.junit.Test;
+import org.renjin.compiler.CompilerTestCase;
+import org.renjin.compiler.ir.tac.IRBody;
 
 import java.io.IOException;
 import java.util.List;
 
-import org.junit.Test;
-import org.renjin.compiler.CompilerTestCase;
-import org.renjin.compiler.cfg.BasicBlock;
-import org.renjin.compiler.cfg.ControlFlowGraph;
-import org.renjin.compiler.cfg.DominanceTree;
-import org.renjin.compiler.ir.tac.IRBody;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 
 public class DominanceTreeTest extends CompilerTestCase {
@@ -19,15 +16,15 @@ public class DominanceTreeTest extends CompilerTestCase {
 
   @Test
   public void immediateDominators() {
-    IRBody block = buildScope("y<-1; if(q) y<-y+1 else y<-4; y");
+    IRBody block = buildBody("y<-1; if(q) y<-y+1 else y<-4; y");
     ControlFlowGraph cfg = new ControlFlowGraph(block);
     
     System.out.println(cfg);
     
-    BasicBlock bb0 = cfg.getBasicBlocks().get(0); // y <- 1; if q goto BB1 else BB2
-    BasicBlock bb1 = cfg.getBasicBlocks().get(1); // y <- y + 1
-    BasicBlock bb2 = cfg.getBasicBlocks().get(2); // y <- 4
-    BasicBlock bb3 = cfg.getBasicBlocks().get(3); // return y;
+    BasicBlock bb0 = cfg.getBasicBlocks().get(1); // y <- 1; if q goto BB1 else BB2
+    BasicBlock bb1 = cfg.getBasicBlocks().get(2); // y <- y + 1
+    BasicBlock bb2 = cfg.getBasicBlocks().get(3); // y <- 4
+    BasicBlock bb3 = cfg.getBasicBlocks().get(4); // return y;
     
     DominanceTree domTree = new DominanceTree(cfg);
     assertThat(domTree.getImmediateDominator(bb1), equalTo(bb0));
@@ -40,22 +37,26 @@ public class DominanceTreeTest extends CompilerTestCase {
   public void dominanceFrontier() throws IOException {
     IRBody block = parseCytron();
     ControlFlowGraph cfg = new ControlFlowGraph(block);
+    cfg.dumpGraph();
+
+
     List<BasicBlock> bb = cfg.getLiveBasicBlocks();
     DominanceTree dtree = new DominanceTree(cfg);
+    dtree.dumpGraph();
 
     // See Figure 9 in
     // http://www.cs.utexas.edu/~pingali/CS380C/2010/papers/ssaCytron.pdf
     
-    assertThat(dtree.getFrontier(bb.get(1)), itemsEqualTo(bb.get(1), cfg.getExit()));
-    assertThat(dtree.getFrontier(bb.get(2)), itemsEqualTo(bb.get(7)));
-    assertThat(dtree.getFrontier(bb.get(3)), itemsEqualTo(bb.get(5)));
-    assertThat(dtree.getFrontier(bb.get(4)), itemsEqualTo(bb.get(5)));
-    assertThat(dtree.getFrontier(bb.get(5)), itemsEqualTo(bb.get(7)));
-    assertThat(dtree.getFrontier(bb.get(6)), itemsEqualTo(bb.get(7)));
-    assertThat(dtree.getFrontier(bb.get(7)), itemsEqualTo(bb.get(1), cfg.getExit()));
-    assertThat(dtree.getFrontier(bb.get(8)), itemsEqualTo(bb.get(1), bb.get(8), cfg.getExit()));
-    assertThat(dtree.getFrontier(bb.get(9)), itemsEqualTo(bb.get(10)));
-    assertThat(dtree.getFrontier(bb.get(10)), itemsEqualTo(bb.get(1), bb.get(8), cfg.getExit()));
-    assertThat(dtree.getFrontier(bb.get(11)), itemsEqualTo(bb.get(1), cfg.getExit()));
+    assertThat(dtree.getFrontier(bb.get(2)), itemsEqualTo(bb.get(2), cfg.getExit()));
+    assertThat(dtree.getFrontier(bb.get(3)), itemsEqualTo(bb.get(8)));
+    assertThat(dtree.getFrontier(bb.get(4)), itemsEqualTo(bb.get(6)));
+    assertThat(dtree.getFrontier(bb.get(5)), itemsEqualTo(bb.get(6)));
+    assertThat(dtree.getFrontier(bb.get(6)), itemsEqualTo(bb.get(8)));
+    assertThat(dtree.getFrontier(bb.get(7)), itemsEqualTo(bb.get(8)));
+    assertThat(dtree.getFrontier(bb.get(8)), itemsEqualTo(bb.get(2), cfg.getExit()));
+    assertThat(dtree.getFrontier(bb.get(9)), itemsEqualTo(bb.get(2), bb.get(9), cfg.getExit()));
+    assertThat(dtree.getFrontier(bb.get(10)), itemsEqualTo(bb.get(11)));
+    assertThat(dtree.getFrontier(bb.get(11)), itemsEqualTo(bb.get(2), bb.get(9), cfg.getExit()));
+    assertThat(dtree.getFrontier(bb.get(12)), itemsEqualTo(bb.get(2), cfg.getExit()));
   } 
 }

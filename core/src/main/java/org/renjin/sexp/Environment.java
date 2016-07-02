@@ -76,7 +76,7 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
    * The root of the environment hierarchy.
    */
   public static final EmptyEnv EMPTY = new EmptyEnv();
- 
+
 
   /**
    * Creates a new tree of environments, initialized with
@@ -283,7 +283,7 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     }
     return parent.findVariable(symbol);
   }
-
+  
   private SEXP findVarArg(int varArgReferenceIndex) {
     SEXP ellipses = findVariable(Symbols.ELLIPSES);
     if(ellipses == Symbol.UNBOUND_VALUE) {

@@ -1,17 +1,17 @@
 package org.renjin.compiler.ir.tac.statements;
 
+import org.objectweb.asm.commons.InstructionAdapter;
+import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.ir.tac.IRLabel;
+import org.renjin.compiler.ir.tac.expressions.CmpGE;
 import org.renjin.compiler.ir.tac.expressions.Expression;
-import org.renjin.compiler.ir.tac.expressions.SimpleExpression;
-import org.renjin.compiler.ir.tac.expressions.Variable;
-import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.*;
 
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+
+import static org.objectweb.asm.Opcodes.GOTO;
+import static org.objectweb.asm.Opcodes.IF_ICMPLT;
 
 
 public class IfStatement implements Statement, BasicBlockEndingStatement {
@@ -71,31 +71,8 @@ public class IfStatement implements Statement, BasicBlockEndingStatement {
   }
 
   @Override
-  public Object interpret(Context context, Object[] temp) {
-    Logical value = toLogical(condition.retrieveValue(context, temp));
-    switch(value) {
-      case TRUE:
-        return trueTarget;
-      case FALSE:
-        return falseTarget;
-    }
-    if(naTarget == null) {
-      throw new EvalException("missing value where TRUE/FALSE needed");
-    }
-    return naTarget;
-  }
-  
-  @Override
-  public Set<Variable> variables() {
-    return condition.variables();
-  }
-  
-  @Override
-  public Statement withRHS(Expression newRHS) {
-    if(!(newRHS instanceof SimpleExpression)) {
-      throw new IllegalArgumentException("if statement requires simple rhs");
-    }
-    return new IfStatement((SimpleExpression) newRHS, trueTarget, falseTarget, naTarget);
+  public void setRHS(Expression newRHS) {
+    this.condition = newRHS;
   }
  
   private Logical toLogical(Object obj) {
@@ -124,11 +101,6 @@ public class IfStatement implements Statement, BasicBlockEndingStatement {
   }
 
   @Override
-  public List<Expression> getChildren() {
-    return Collections.singletonList((Expression)condition);
-  }
-
-  @Override
   public void setChild(int childIndex, Expression child) {
     if(childIndex == 0) {
       condition = child;
@@ -138,7 +110,43 @@ public class IfStatement implements Statement, BasicBlockEndingStatement {
   }
 
   @Override
+  public int getChildCount() {
+    return 1;
+  }
+
+  @Override
+  public Expression childAt(int index) {
+    if(index == 0) {
+      return condition;
+    } else {
+      throw new IllegalArgumentException();
+    }
+  }
+
+  @Override
   public void accept(StatementVisitor visitor) {
     visitor.visitIf(this);
+  }
+
+  @Override
+  public int emit(EmitContext emitContext, InstructionAdapter mv) {
+
+    int stackSizeIncrease = 0;
+
+    if(condition instanceof CmpGE) {
+
+      CmpGE cmp = (CmpGE) getCondition();
+      stackSizeIncrease =
+          cmp.childAt(0).load(emitContext, mv) +
+          cmp.childAt(1).load(emitContext, mv);
+
+      mv.visitJumpInsn(IF_ICMPLT, emitContext.getAsmLabel(falseTarget));
+
+    } else {
+      throw new UnsupportedOperationException(condition.toString());
+    }
+    mv.visitJumpInsn(GOTO, emitContext.getAsmLabel(trueTarget));
+
+    return stackSizeIncrease;
   }
 }

@@ -21,6 +21,16 @@
 
 package org.renjin.primitives.special;
 
+import org.renjin.compiler.CompiledLoopBody;
+import org.renjin.compiler.NotCompilableException;
+import org.renjin.compiler.TypeSolver;
+import org.renjin.compiler.cfg.ControlFlowGraph;
+import org.renjin.compiler.cfg.DominanceTree;
+import org.renjin.compiler.cfg.UseDefMap;
+import org.renjin.compiler.codegen.ByteCodeEmitter;
+import org.renjin.compiler.ir.ssa.SsaTransformer;
+import org.renjin.compiler.ir.tac.IRBody;
+import org.renjin.compiler.ir.tac.IRBodyBuilder;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.*;
@@ -28,23 +38,18 @@ import org.renjin.sexp.*;
 
 public class ForFunction extends SpecialFunction {
 
+  public static boolean COMPILE_LOOPS = Boolean.getBoolean("renjin.compile.loops");
+  
+  private static final int COMPILE_THRESHOLD = 200;
+  private static final int WARMUP_ITERATIONS = 5;
+
   public ForFunction() {
     super("for");
   }
-  
+
   @Override
   public SEXP apply(Context context, Environment rho, FunctionCall call, PairList _args_unused) {
 
-//    IRFunctionTable functionTable = new IRFunctionTable();
-//    IRScopeBuilder builder = new IRScopeBuilder(functionTable);
-//    
-//    if(rho != context.getEnvironment()) {
-//      throw new AssertionError("context environment is different from rho");
-//    }
-//    
-//    IRScope scope = builder.build(call);
-//    scope.evaluate(context);
-    
     PairList args = call.getArguments();
     Symbol symbol = args.getElementAsSEXP(0);
     SEXP elementsExp = context.evaluate(args.getElementAsSEXP(1), rho);
@@ -53,10 +58,24 @@ public class ForFunction extends SpecialFunction {
     }
     Vector elements = (Vector) elementsExp;
     SEXP statement = args.getElementAsSEXP(2);
-    for(int i=0; i!=elements.length(); ++i) {
+
+    // Interpret the loop
+    boolean compilationFailed = false;
+    for (int i = 0; i != elements.length(); ++i) {
       try {
+
+        if(COMPILE_LOOPS && i >= WARMUP_ITERATIONS && elements.length() > COMPILE_THRESHOLD && 
+            !compilationFailed) {
+          
+          if(tryCompileAndRun(context, rho, call, elements, i)) {
+            break;
+          } else {
+            compilationFailed = true;
+          }
+        }
+
         rho.setVariable(symbol, elements.getElementAsSEXP(i));
-        context.evaluate( statement, rho);
+        context.evaluate(statement, rho);
       } catch (BreakException e) {
         break;
       } catch (NextException e) {
@@ -66,5 +85,46 @@ public class ForFunction extends SpecialFunction {
 
     context.setInvisibleFlag();
     return Null.INSTANCE;
+  }
+
+  private boolean tryCompileAndRun(Context context, Environment rho, FunctionCall call, Vector elements, int i) {
+
+    try {
+
+      IRBodyBuilder builder = new IRBodyBuilder(context, rho);
+      IRBody body = builder.buildLoopBody(call, elements);
+      System.out.println(body);
+
+      ControlFlowGraph cfg = new ControlFlowGraph(body);
+
+      DominanceTree dTree = new DominanceTree(cfg);
+      SsaTransformer ssaTransformer = new SsaTransformer(cfg, dTree);
+      ssaTransformer.transform();
+
+      UseDefMap useDefMap = new UseDefMap(cfg);
+      TypeSolver types = new TypeSolver(cfg, useDefMap);
+      types.execute();
+      types.dumpBounds();
+
+      ssaTransformer.removePhiFunctions(types);
+      
+      ByteCodeEmitter emitter = new ByteCodeEmitter(cfg, types);
+      CompiledLoopBody compiledBody = null;
+      compiledBody = emitter.compileLoopBody().newInstance();
+      compiledBody.run(context, rho, elements, i);
+
+    } catch (NotCompilableException e) {
+      context.warn(String.format("Could not compile loop with %d iterations because of %s:",
+          elements.length(),
+          e.getMessage()));
+      e.printStackTrace();
+      return false;
+      
+    } catch (Exception e) {
+      e.printStackTrace();
+      return false;
+    }
+
+    return true;
   }
 }

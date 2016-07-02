@@ -10,23 +10,16 @@ import org.renjin.compiler.ir.tac.statements.Assignment;
 import org.renjin.compiler.ir.tac.statements.ExprStatement;
 import org.renjin.compiler.ir.tac.statements.GotoStatement;
 import org.renjin.compiler.ir.tac.statements.IfStatement;
+import org.renjin.sexp.Function;
 import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.LogicalArrayVector;
-import org.renjin.sexp.LogicalVector;
-import org.renjin.sexp.Symbol;
 
 
 public class OrTranslator extends FunctionCallTranslator {
 
-  @Override
-  public Symbol getName() {
-    return Symbol.get("||");
-  }
-  
 
   @Override
   public Expression translateToExpression(IRBodyBuilder builder,
-      TranslationContext context, FunctionCall call) {
+                                          TranslationContext context, Function resolvedFunction, FunctionCall call) {
 
     Temp result = builder.newTemp();
     IRLabel firstFalse = builder.newLabel(); /* first is false, need to check second */
@@ -45,13 +38,13 @@ public class OrTranslator extends FunctionCallTranslator {
     // first is true.
     // set the result to true and do the next test
     builder.addLabel(firstFalse);
-    builder.addStatement(new Assignment(result, new Constant(new LogicalArrayVector(false))));
+    builder.addStatement(new Assignment(result, Constant.FALSE));
     builder.addStatement(new GotoStatement(test2Label));
     
     // first is NA
     // set the result to NA and do the next test
     builder.addLabel(firstNA);
-    builder.addStatement(new Assignment(result, new Constant(new LogicalArrayVector(LogicalVector.NA))));
+    builder.addStatement(new Assignment(result, Constant.NA));
     builder.addStatement(new GotoStatement(test2Label));
     
     // check second condition
@@ -63,11 +56,11 @@ public class OrTranslator extends FunctionCallTranslator {
         naLabel));
 
     builder.addLabel(trueLabel);
-    builder.addStatement(new Assignment(result, new Constant(new LogicalArrayVector(true))));
+    builder.addStatement(new Assignment(result, Constant.TRUE));
     builder.addStatement(new GotoStatement(finishLabel));
     
     builder.addLabel(naLabel);
-    builder.addStatement(new Assignment(result, new Constant(new LogicalArrayVector(LogicalVector.NA))));
+    builder.addStatement(new Assignment(result, Constant.NA));
     
     builder.addLabel(finishLabel);
    
@@ -76,7 +69,7 @@ public class OrTranslator extends FunctionCallTranslator {
 
   @Override
   public void addStatement(IRBodyBuilder builder, TranslationContext context,
-      FunctionCall call) {
+                           Function resolvedFunction, FunctionCall call) {
     
     IRLabel test2Label = builder.newLabel();
     IRLabel finishLabel = builder.newLabel();

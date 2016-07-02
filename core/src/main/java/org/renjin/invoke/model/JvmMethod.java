@@ -311,6 +311,15 @@ public class JvmMethod implements Comparable<JvmMethod> {
     return isAnnotatedWith(Invisible.class);
   }
 
+  public boolean isPure() {
+    for (Argument argument : getAllArguments()) {
+      if(argument.isContextual()) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   public class Argument {
     private int index;
     private Class clazz;

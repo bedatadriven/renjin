@@ -27,6 +27,7 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
 import org.apache.commons.vfs2.provider.local.DefaultLocalFileProvider;
+import org.apache.commons.vfs2.provider.res.ResourceFileProvider;
 import org.apache.commons.vfs2.provider.url.UrlFileProvider;
 import org.renjin.eval.vfs.FastJarFileProvider;
 
@@ -149,6 +150,7 @@ public class FileSystemUtils {
     fsm.setDefaultProvider(new UrlFileProvider());
     fsm.addProvider("file", new DefaultLocalFileProvider());
     fsm.addProvider("jar", new FastJarFileProvider());
+    fsm.addProvider("res", new ResourceFileProvider());
     fsm.init();
     return fsm;
   }

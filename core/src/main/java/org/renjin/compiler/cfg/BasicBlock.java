@@ -3,14 +3,14 @@ package org.renjin.compiler.cfg;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.renjin.compiler.ir.ssa.PhiFunction;
 import org.renjin.compiler.ir.tac.IRBody;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.expressions.Variable;
 import org.renjin.compiler.ir.tac.statements.*;
 
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -21,6 +21,15 @@ public class BasicBlock {
   private Set<IRLabel> labels;
   private List<Statement> statements = Lists.newArrayList();
   
+  List<BasicBlock> flowSuccessors = new ArrayList<>();
+  List<BasicBlock> flowPredecessors = new ArrayList<>();
+
+  List<BasicBlock> dominanceSuccessors = new ArrayList<>();
+  List<BasicBlock> dominancePredecessors = new ArrayList<>();
+  
+  final Set<FlowEdge> outgoing = new HashSet<>();
+  final Set<FlowEdge> incoming = new HashSet<>();
+  
   public BasicBlock(IRBody parent) {
     super();
     this.parent = parent;
@@ -30,8 +39,8 @@ public class BasicBlock {
     statements.add(statement);
   }
   
-  public void insertPhiFunction(Variable variable, int count) {
-    statements.add(0, new Assignment(variable, new PhiFunction(variable, count)));
+  public void insertPhiFunction(Variable variable, Set<FlowEdge> incomingEdges) {
+    statements.add(0, new Assignment(variable, new PhiFunction(variable, incomingEdges)));
   }
 
   public Statement replaceStatement(Statement stmt, Statement newStmt) {
@@ -75,7 +84,44 @@ public class BasicBlock {
   public Statement getTerminal() {
     return statements.get(statements.size() - 1);
   }
+
+  public void addFlowSuccessor(BasicBlock successor) {
+    FlowEdge edge = new FlowEdge(this, successor);
+    outgoing.add(edge);
+    flowSuccessors.add(successor);
+    successor.incoming.add(edge);
+    successor.flowPredecessors.add(this);
+  }
+
+  public void addDominanceSuccessor(BasicBlock basicBlock) {
+    dominanceSuccessors.add(basicBlock);
+    basicBlock.dominancePredecessors.add(this);
+  }
+
+  public Set<FlowEdge> getIncoming() {
+    return incoming;
+  }
+
+  public Set<FlowEdge> getOutgoing() {
+    return outgoing;
+  }
+
+  public List<BasicBlock> getFlowSuccessors() {
+    return flowSuccessors;
+  }
+
+  public List<BasicBlock> getFlowPredecessors() {
+    return flowPredecessors;
+  }
+
+  public List<BasicBlock> getDominanceSuccessors() {
+    return dominanceSuccessors;
+  }
   
+  public List<BasicBlock> getDominancePredecessors() {
+    return dominancePredecessors;
+  }
+
   public boolean returns() {
     return getTerminal() instanceof ReturnStatement;
   }
@@ -93,20 +139,12 @@ public class BasicBlock {
 
   public String statementsToString() {
     StringBuilder sb = new StringBuilder();
-    for(Statement statment : statements) {
-      sb.append(statment).append("\n");
+    for(Statement statement : statements) {
+      sb.append(statement).append("\n");
     }
     return sb.toString();
   }
-  
-  public Set<Variable> variables() {
-    Set<Variable> variables = Sets.newHashSet();
-    for(Statement statement : statements) {
-      variables.addAll(statement.variables());
-    }
-    return Collections.unmodifiableSet(variables);
-  }
-  
+
   public Iterable<Assignment> assignments() {
     return (Iterable)Iterables.filter(statements, Predicates.instanceOf(Assignment.class));
   }
@@ -120,4 +158,21 @@ public class BasicBlock {
     return debugId;
   }
 
+  public String getDebugId() {
+    return debugId;
+  }
+
+  public void addStatementBeforeJump(Assignment assignment) {
+    int pos = getStatements().size();
+    if(!fallsThrough()) {
+      pos = pos - 1;
+    }
+    getStatements().add(pos, assignment);
+  }
+
+  @Override
+  public int hashCode() {
+    // Use a stable hash code to get consistent results
+    return debugId.hashCode();
+  }
 }

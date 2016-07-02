@@ -1,7 +1,6 @@
 package org.renjin.primitives.combine;
 
 import com.google.common.collect.Lists;
-import org.apache.commons.collections15.IteratorUtils;
 import org.renjin.eval.Context;
 import org.renjin.invoke.codegen.ArgumentIterator;
 import org.renjin.sexp.*;
@@ -63,10 +62,6 @@ public abstract class AbstractBindFunction extends SpecialFunction {
    it is identical, we proceed, otherwise we immediately drop
    through to the default code.</li>
    </ol>
-
-   * @param functionName
-   * @param arguments
-   * @return
    */
   public static SEXP tryBindDispatch(Context context, Environment rho,
                                      String bindFunctionName, int deparseLevel, List<BindArgument> arguments) {

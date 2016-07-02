@@ -1,33 +1,29 @@
 package org.renjin.compiler.ir.tac.expressions;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-
-import org.renjin.eval.Context;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.InstructionAdapter;
+import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.ir.ValueBounds;
+import org.renjin.primitives.sequence.IntSequence;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Vector;
 
-import com.google.common.collect.Sets;
-
+import java.util.Map;
 
 
 /**
- * Extracts a single element from a vector.
+ * Extracts a single element from a vector. 
  */
-public class ElementAccess implements Expression {
+public class ElementAccess extends SpecializedCallExpression {
 
-  private Expression vector;
-  private Expression index;
+  private ValueBounds valueBounds = ValueBounds.UNBOUNDED;
   
   public ElementAccess(Expression vector, Expression index) {
-    super();
-    this.vector = vector;
-    this.index = index;
+    super(vector, index);
   }
 
   public Expression getVector() {
-    return vector;
+    return arguments[0];
   }
 
   /**
@@ -35,56 +31,83 @@ public class ElementAccess implements Expression {
    * element to extract
    */
   public Expression getIndex() {
-    return index;
+    return arguments[1];
   }
 
   @Override
   public String toString() {
-    return vector + "[" + index + "]";
+    return getVector() + "[" + getIndex() + "]";
   }
 
   @Override
-  public Object retrieveValue(Context context, Object[] temps) {
-    Vector vectorValue = (Vector) vector.retrieveValue(context, temps);
-    Integer indexValue = (Integer)index.retrieveValue(context, temps);
-    return vectorValue.getElementAsSEXP(indexValue);
+  public boolean isFunctionDefinitelyPure() {
+    return true;
   }
 
   @Override
-  public Set<Variable> variables() {
-    return Sets.union(vector.variables(), index.variables());
-  }
+  public int load(EmitContext emitContext, InstructionAdapter mv) {
 
-  @Override
-  public ElementAccess replaceVariable(Variable name, Variable newName) {
-    return new ElementAccess(
-        vector.replaceVariable(name, newName), 
-        index.replaceVariable(name, newName));
-  }
+    int stackHeight;
+    
+    Expression vector = getVector();
+    Type resultType = valueBounds.storageType();
 
-  @Override
-  public List<Expression> getChildren() {
-    return Arrays.asList(vector, index);
-  }
-
-  @Override
-  public void setChild(int i, Expression expr) {
-    if(i==0) {
-      vector = expr;
-    } else if(i==1) {
-      index = expr;
+    ValueBounds vectorBounds = vector.getValueBounds();
+    if(vectorBounds.isConstant()) {
+      if(vectorBounds.getConstantValue() instanceof IntSequence) {
+        IntSequence sequence = (IntSequence) vectorBounds.getConstantValue();
+        getIndex().load(emitContext, mv);
+        if (sequence.getBy() != 1) {
+          mv.iconst(sequence.getBy());
+          mv.mul(Type.INT_TYPE);
+        }
+        if (sequence.getFrom() != 0) {
+          mv.iconst(sequence.getFrom());
+          mv.add(Type.INT_TYPE);
+        }
+        return 2;
+      }
+    }
+    
+    if(vector.getType().getSort() == Type.OBJECT) {
+      stackHeight = vector.load(emitContext, mv);
+      
+      if(vector.getType().equals(Type.getType(SEXP.class))) {
+        mv.checkcast(Type.getType(Vector.class));
+      }
+      
+      getIndex().load(emitContext, mv);
+      
+      if(resultType.equals(Type.INT_TYPE)) {
+        mv.invokeinterface(Type.getInternalName(Vector.class), "getElementAsInt",
+            Type.getMethodDescriptor(Type.INT_TYPE, Type.INT_TYPE));
+      } else {
+        throw new UnsupportedOperationException("resultType: " + resultType);
+      }
+      
+      return stackHeight+1;
+      
     } else {
-      throw new IllegalArgumentException();
+      throw new UnsupportedOperationException("vectorType: " + vector.getType());
     }
   }
 
   @Override
-  public void accept(ExpressionVisitor visitor) {
-    visitor.visitElementAccess(this);
+  public Type getType() {
+    return valueBounds.storageType();
   }
 
   @Override
-  public SEXP getSExpression() {
-    throw new UnsupportedOperationException();
-  } 
+  public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
+    int typeSet = getVector().updateTypeBounds(typeMap).getTypeSet();
+      
+    valueBounds = ValueBounds.primitive(typeSet);
+    
+    return valueBounds;
+  }
+
+  @Override
+  public ValueBounds getValueBounds() {
+    return valueBounds;
+  }
 }

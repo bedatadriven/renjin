@@ -21,6 +21,19 @@ public abstract class LogicalVector extends AbstractAtomicVector implements Iter
     return value ? TRUE : FALSE;
   }
   
+  public static SEXP valueOf(Logical value) {
+    switch (value) {
+      case TRUE:
+        return TRUE;
+      case FALSE:
+        return FALSE;
+      case NA:
+        return NA_VECTOR;
+      default:
+        throw new IllegalArgumentException("value: " + value);
+    }
+  }
+  
   public LogicalVector(AttributeMap attributes) {
     super(attributes);
   }

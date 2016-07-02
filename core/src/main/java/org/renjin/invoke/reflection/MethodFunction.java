@@ -1,6 +1,7 @@
 package org.renjin.invoke.reflection;
 
 import org.renjin.eval.Context;
+import org.renjin.invoke.model.JvmMethod;
 import org.renjin.sexp.*;
 
 /**
@@ -9,6 +10,7 @@ import org.renjin.sexp.*;
  */
 public class MethodFunction extends AbstractSEXP implements Function {
 
+  private final String name;
   private final Object instance;
   private final FunctionBinding functionBinding;
   
@@ -16,6 +18,11 @@ public class MethodFunction extends AbstractSEXP implements Function {
     super();
     this.instance = instance;
     this.functionBinding = functionBinding;
+    this.name = functionBinding.getName();
+  }
+
+  public String getName() {
+    return name;
   }
 
   @Override
@@ -62,4 +69,5 @@ public class MethodFunction extends AbstractSEXP implements Function {
   public String toString() {
     return functionBinding.getDeclaringClass().getName() + ":" + functionBinding.toString();
   }
+
 }

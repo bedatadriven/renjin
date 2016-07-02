@@ -1,7 +1,5 @@
 package org.renjin.compiler.cfg;
 
-import com.google.common.base.Charsets;
-import com.google.common.io.Resources;
 import org.junit.Test;
 import org.renjin.compiler.CompilerTestCase;
 import org.renjin.compiler.ir.tac.IRBody;
@@ -17,24 +15,23 @@ public class ControlFlowGraphTest extends CompilerTestCase {
 
   @Test
   public void singleBlock() {
-    IRBody block = buildScope("y<-x+1;z<-3; 4");
+    IRBody block = buildBody("y<-x+1;z<-3; 4");
     ControlFlowGraph cfg = new ControlFlowGraph(block);
     
     System.out.println(cfg);
     
     List<BasicBlock> basicBlocks = cfg.getBasicBlocks();
-    assertThat(basicBlocks.size(), equalTo(3));  // 1 + exit + entry = 3
-    assertThat(basicBlocks.get(0).getStatements().size(), equalTo(block.getStatements().size()));
+    assertThat(basicBlocks.size(), equalTo(3));  // entry + 1 + exit = 3
+    assertThat(basicBlocks.get(1).getStatements().size(), equalTo(block.getStatements().size()));
   }
   
   @Test
   public void forLoop() {
-    IRBody block = buildScope("y <- 0; for(i in 1:10) y <- y + i; sqrt(y + 3 * x)");
+    IRBody block = buildBody("y <- 0; for(i in 1:10) y <- y + i; sqrt(y + 3 * x)");
     System.out.println(block);
 
     
     ControlFlowGraph cfg = new ControlFlowGraph(block);
-    System.out.println(cfg.getGraph());
     System.out.println(cfg);
 
     List<BasicBlock> basicBlocks = cfg.getBasicBlocks();
@@ -43,7 +40,7 @@ public class ControlFlowGraphTest extends CompilerTestCase {
   
   @Test
   public void forBlock() {
-    IRBody block = buildScope("if(length(x)==1) FALSE else { y<-0; for(i in seq_along(x)) y <- y+1 }");
+    IRBody block = buildBody("if(length(x)==1) FALSE else { y<-0; for(i in seq_along(x)) y <- y+1 }");
     System.out.println(block);
 //    
 //
@@ -75,38 +72,36 @@ public class ControlFlowGraphTest extends CompilerTestCase {
     ControlFlowGraph cfg = new ControlFlowGraph(block);
     
     System.out.println(cfg);
-    
-  }
-  
-  @Test
-  public void cytron() throws IOException {
-    IRBody block = parseCytron();
-    ControlFlowGraph cfg = new ControlFlowGraph(block);
-    List<BasicBlock> bb = cfg.getLiveBasicBlocks();
-    
-    // see Figure 5 in 
-    // http://www.cs.utexas.edu/~pingali/CS380C/2010/papers/ssaCytron.pdf
-    
-    assertThat(cfg.getGraph().getSuccessors(bb.get(0)), itemsEqualTo(bb.get(1)));
-    assertThat(cfg.getGraph().getSuccessors(bb.get(1)), itemsEqualTo(bb.get(2), bb.get(6)));
-    assertThat(cfg.getGraph().getSuccessors(bb.get(2)), itemsEqualTo(bb.get(3), bb.get(4)));
-    assertThat(cfg.getGraph().getSuccessors(bb.get(3)), itemsEqualTo(bb.get(5)));
-    assertThat(cfg.getGraph().getSuccessors(bb.get(4)), itemsEqualTo(bb.get(5)));
-    assertThat(cfg.getGraph().getSuccessors(bb.get(5)), itemsEqualTo(bb.get(7)));
-    assertThat(cfg.getGraph().getSuccessors(bb.get(6)), itemsEqualTo(bb.get(7)));
-    assertThat(cfg.getGraph().getSuccessors(bb.get(7)), itemsEqualTo(bb.get(8)));
-    assertThat(cfg.getGraph().getSuccessors(bb.get(8)), itemsEqualTo(bb.get(9), bb.get(10)));
-    assertThat(cfg.getGraph().getSuccessors(bb.get(9)), itemsEqualTo(bb.get(10)));
-    assertThat(cfg.getGraph().getSuccessors(bb.get(10)), itemsEqualTo(bb.get(8),bb.get(11)));
-    assertThat(cfg.getGraph().getSuccessors(bb.get(11)), itemsEqualTo(bb.get(12),bb.get(1)));
   }
 
   @Test
-  public void dataframe() throws IOException {
-    IRBody body = buildScope(Resources.toString(
-        getClass().getResource("dataframe.test.R"), Charsets.UTF_8));
- 
-    ControlFlowGraph cfg = new ControlFlowGraph(body);
+  public void cytron() throws IOException {
+    IRBody block = parseCytron();
+    System.out.println(block);
+
+    ControlFlowGraph cfg = new ControlFlowGraph(block);
+    List<BasicBlock> bb = cfg.getLiveBasicBlocks();
+
+    System.out.println(cfg);
+    cfg.dumpGraph();
+    
+    // see Figure 5 in 
+    // http://www.cs.utexas.edu/~pingali/CS380C/2010/papers/ssaCytron.pdf
+
+    assertThat(cfg.getSuccessors(bb.get(0)), itemsEqualTo(bb.get(1), cfg.getExit()));
+    assertThat(cfg.getSuccessors(bb.get(1)), itemsEqualTo(bb.get(2)));
+    assertThat(cfg.getSuccessors(bb.get(2)), itemsEqualTo(bb.get(3), bb.get(7)));
+    assertThat(cfg.getSuccessors(bb.get(3)), itemsEqualTo(bb.get(4), bb.get(5)));
+    assertThat(cfg.getSuccessors(bb.get(4)), itemsEqualTo(bb.get(6)));
+    assertThat(cfg.getSuccessors(bb.get(5)), itemsEqualTo(bb.get(6)));
+    assertThat(cfg.getSuccessors(bb.get(6)), itemsEqualTo(bb.get(8)));
+    assertThat(cfg.getSuccessors(bb.get(7)), itemsEqualTo(bb.get(8)));
+    assertThat(cfg.getSuccessors(bb.get(8)), itemsEqualTo(bb.get(9)));
+    assertThat(cfg.getSuccessors(bb.get(9)), itemsEqualTo(bb.get(10), bb.get(11)));
+    assertThat(cfg.getSuccessors(bb.get(10)), itemsEqualTo(bb.get(11)));
+    assertThat(cfg.getSuccessors(bb.get(11)), itemsEqualTo(bb.get(9),bb.get(12)));
+    assertThat(cfg.getSuccessors(bb.get(12)), itemsEqualTo(bb.get(13),bb.get(2)));
   }
+
   
 }

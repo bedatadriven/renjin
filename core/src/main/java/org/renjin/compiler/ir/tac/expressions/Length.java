@@ -1,11 +1,12 @@
 package org.renjin.compiler.ir.tac.expressions;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.InstructionAdapter;
+import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.ir.ValueBounds;
 
-import org.renjin.eval.Context;
-import org.renjin.sexp.SEXP;
+import java.util.Map;
 
 
 /**
@@ -14,59 +15,48 @@ import org.renjin.sexp.SEXP;
  * <p>This is a bit annoying to add this to the set of expressions,
  * but we need it to translate for expressions, because the length
  * primitive is generic, but the for loop always uses the actual length of the
- * vector. (is this another sign we need to push 'fors' down into the IR level?)
+ * vector.
  */
-public class Length implements SimpleExpression {
+public class Length extends SpecializedCallExpression implements SimpleExpression {
 
-  private Expression vector;
-  
   public Length(Expression vector) {
-    super();
-    this.vector = vector;
+    super(vector);
   }
 
   public Expression getVector() {
-    return vector;
-  }
-  
-  @Override
-  public Object retrieveValue(Context context, Object[] temps) {
-    SEXP exp = (SEXP) vector.retrieveValue(context, temps);
-    return exp.length();
+    return arguments[0];
   }
 
   @Override
-  public Set<Variable> variables() {
-    return vector.variables();
+  public boolean isFunctionDefinitelyPure() {
+    return true;
   }
 
   @Override
-  public void accept(ExpressionVisitor visitor) {
-    visitor.visitLength(this);
+  public int load(EmitContext emitContext, InstructionAdapter mv) {
+    int stackSizeIncrease = getVector().load(emitContext, mv);
+    mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "org/renjin/sexp/SEXP", "length", "()I", true);
+    return stackSizeIncrease;
   }
 
   @Override
-  public List<Expression> getChildren() {
-    return Collections.singletonList(vector);
-  }
-
-  @Override
-  public void setChild(int childIndex, Expression child) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public SimpleExpression replaceVariable(Variable name, Variable newName) {
-    throw new UnsupportedOperationException();
+  public Type getType() {
+    return Type.INT_TYPE;
   }
 
   @Override
   public String toString() {
-    return "length(" + vector + ")";
+    return "length(" + getVector() + ")";
   }
 
   @Override
-  public SEXP getSExpression() {
-    throw new UnsupportedOperationException();
+  public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
+    return ValueBounds.INT_PRIMITIVE;
   }
+
+  @Override
+  public ValueBounds getValueBounds() {
+    return ValueBounds.INT_PRIMITIVE;
+  }
+
 }

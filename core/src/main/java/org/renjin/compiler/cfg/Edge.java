@@ -1,20 +1,22 @@
 package org.renjin.compiler.cfg;
 
+/**
+ * Edge between two basic blocks in the Control Flow Graph
+ */
 public class Edge {
-  private boolean backEdge;
+  private BasicBlock predecessor;
+  private BasicBlock successor;
 
-  public Edge(boolean backEdge) {
-    super();
-    this.backEdge = backEdge;
+  public Edge(BasicBlock predecessor, BasicBlock successor) {
+    this.predecessor = predecessor;
+    this.successor = successor;
   }
 
-  public boolean isBackEdge() {
-    return backEdge;
+  public BasicBlock getPredecessor() {
+    return predecessor;
   }
-  
-  @Override
-  public String toString() {
-    return backEdge ? "backEdge" : "edge";
+
+  public BasicBlock getSuccessor() {
+    return successor;
   }
-  
 }

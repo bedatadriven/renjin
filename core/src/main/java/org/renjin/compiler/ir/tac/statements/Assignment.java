@@ -1,19 +1,16 @@
 package org.renjin.compiler.ir.tac.statements;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-
-import org.renjin.compiler.ir.IRUtils;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.InstructionAdapter;
+import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.VariableStorage;
+import org.renjin.compiler.ir.IRFormatting;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.LValue;
-import org.renjin.compiler.ir.tac.expressions.Variable;
-import org.renjin.eval.Context;
 
-
-import com.google.common.collect.Sets;
+import java.util.Collections;
 
 
 public class Assignment implements Statement {
@@ -35,39 +32,33 @@ public class Assignment implements Statement {
   }
 
   @Override
-  public Object interpret(Context context, Object[] temp) {
-    lhs.setValue(context, temp, rhs.retrieveValue(context, temp));
-    return null;
-  }
-  
-  @Override
   public Iterable<IRLabel> possibleTargets() {
     return Collections.emptySet();
   }
   
-  @Override
-  public Set<Variable> variables() {
-    return Sets.union(lhs.variables(), rhs.variables());
-  }
-  
-  @Override
-  public Assignment withRHS(Expression newRHS) {
-    return new Assignment(lhs, newRHS);
-  }
-  
 
-  public Statement withLHS(Variable lhs) {
-    return new Assignment(lhs, rhs);
+  @Override
+  public void setRHS(Expression newRHS) {
+    this.rhs = newRHS;
   }
 
-  @Override 
+  @Override
   public String toString() {
-    return getLHS() + " " + IRUtils.LEFT_ARROW + " "  + rhs;
+    return getLHS() + " " + IRFormatting.LEFT_ARROW + " "  + rhs;
   }
 
   @Override
-  public List<Expression> getChildren() {
-    return Arrays.asList(rhs);
+  public int getChildCount() {
+    return 1;
+  }
+
+  @Override
+  public Expression childAt(int index) {
+    if(index == 0) {
+      return rhs;
+    } else {
+      throw new IllegalArgumentException();
+    }
   }
 
   @Override
@@ -82,5 +73,27 @@ public class Assignment implements Statement {
   @Override
   public void accept(StatementVisitor visitor) {
     visitor.visitAssignment(this);
+  }
+
+  @Override
+  public int emit(EmitContext emitContext, InstructionAdapter mv) {
+
+    VariableStorage storage = emitContext.getVariableStorage(lhs);
+    Type rhsType;
+    if(rhs instanceof LValue) {
+      rhsType = emitContext.getVariableStorage((LValue) rhs).getType();
+    } else {
+      rhsType = rhs.getType();
+    }
+    
+    int stackIncrease = rhs.load(emitContext, mv);
+    emitContext.convert(mv, rhsType, storage.getType());
+    mv.visitVarInsn(storage.getType().getOpcode(Opcodes.ISTORE), storage.getSlotIndex());
+    return stackIncrease;
+  }
+
+
+  public void setLHS(LValue lhs) {
+    this.lhs = lhs;
   }
 }

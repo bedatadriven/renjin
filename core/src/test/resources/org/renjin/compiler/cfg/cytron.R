@@ -14,7 +14,7 @@ repeat {
 	} else {
 		K <- K + 2
 	}
-	print(I,J,K,L)
+  print(I,J,K,L)
 	repeat {
 		if(R) {
 			L <- L + 4

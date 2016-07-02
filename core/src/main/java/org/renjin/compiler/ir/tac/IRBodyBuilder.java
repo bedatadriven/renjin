@@ -2,20 +2,34 @@ package org.renjin.compiler.ir.tac;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import org.renjin.compiler.NotCompilableException;
+import org.renjin.compiler.ir.ValueBounds;
+import org.renjin.compiler.ir.exception.InvalidSyntaxException;
 import org.renjin.compiler.ir.tac.expressions.*;
-import org.renjin.compiler.ir.tac.functions.FunctionCallTranslator;
-import org.renjin.compiler.ir.tac.functions.FunctionCallTranslators;
-import org.renjin.compiler.ir.tac.functions.TranslationContext;
+import org.renjin.compiler.ir.tac.functions.*;
 import org.renjin.compiler.ir.tac.statements.*;
+import org.renjin.eval.Context;
+import org.renjin.packaging.SerializedPromise;
 import org.renjin.sexp.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+/**
+ * Attempts to create an intermediate representation of the R code, partially
+ * evaluating as it goes.
+ *
+ * The idea is that we are ONLY interested in the result if the R code can be
+ * reduced to a reasonably static form that we can reason about. If there are
+ * calls to eval(), assign() or other black holes, we abort and defer to the
+ * AST interpreter.
+ */
 public class IRBodyBuilder {
   
   private int nextTemp = 0;
-  private int nextLocalVariableIndex = 0;
   private int nextLabel = 0;
   
   private FunctionCallTranslators builders = new FunctionCallTranslators();
@@ -23,12 +37,28 @@ public class IRBodyBuilder {
   private List<Statement> statements;
   private IRLabel currentLabel;
   private Map<IRLabel, Integer> labels;
+  private Map<Symbol, EnvironmentVariable> variables = Maps.newHashMap();
+
+  private Context context;
+  private Environment rho;
+
+  /**
+   * List of symbols that we have resolved to builtins / or inlined
+   * closures. We need to check at the end that there is no possiblity
+   * they have been assigned to.
+   */
+  private Set<Symbol> resolvedFunctions = Sets.newHashSet();
   
-  private IRFunctionTable functionTable;
-  private List<IRThunk> thunks = Lists.newArrayList();
+  private Map<String, Integer> localVariableNames = Maps.newHashMap();
+
+  public IRBodyBuilder(Context context, Environment rho) {
+    assert context != null;
+    this.context = context;
+    this.rho = rho;
+  }
   
-  public IRBodyBuilder(IRFunctionTable functionTable) {
-    this.functionTable = functionTable;
+  public Context getEvaluationContext() {
+    return context;
   }
   
   public IRBody build(SEXP exp) {
@@ -42,10 +72,125 @@ public class IRBodyBuilder {
     addStatement(new ReturnStatement(returnValue));
    
     removeRedundantJumps();
+    insertVariableInitializations();
+    updateVariableReturn();
     
-    return new IRBody(statements, labels, nextTemp);
+    return new IRBody(statements, labels);
   }
   
+  public IRBody buildLoopBody(FunctionCall call, SEXP sequence) {
+    statements = Lists.newArrayList();
+    labels = Maps.newHashMap();
+
+    LocalVariable vector = newLocalVariable("elements");
+    LocalVariable counter = newLocalVariable("i");
+
+    statements.add(new Assignment(vector, new ReadLoopVector(sequence)));
+    statements.add(new Assignment(counter, new ReadLoopIt()));
+
+    LoopBodyContext bodyContext = new LoopBodyContext(rho);
+    
+    ForTranslator.buildLoop(bodyContext, this, call, vector, counter);
+
+    addStatement(new ReturnStatement(new Constant(Null.INSTANCE)));
+    
+    removeRedundantJumps();
+    insertVariableInitializations();
+    updateVariableReturn();
+    
+    return new IRBody(statements, labels);
+  }
+  
+  public IRBody buildFunctionBody(Closure closure, Set<Symbol> suppliedArguments) {
+    
+    statements = Lists.newArrayList();
+    labels = Maps.newHashMap();
+    
+    // First define the parameters which will be supplied
+    List<ReadParam> params = Lists.newArrayList();
+    for (PairList.Node formal : closure.getFormals().nodes()) {
+      if (suppliedArguments.contains(formal.getTag())) {
+        ReadParam paramExpr = new ReadParam(formal.getTag());
+        statements.add(new Assignment(new EnvironmentVariable(formal.getTag()), paramExpr));
+        params.add(paramExpr);
+      }
+    }
+    
+    // Now define  default values for formals that are not supplied
+    // These are not necessarily constants and are evaluated lazily, so some care is 
+    // required. 
+    for (PairList.Node formal : closure.getFormals().nodes()) {
+      if (!suppliedArguments.contains(formal.getTag())) {
+        SEXP defaultValue = formal.getValue();
+        if (defaultValue != Symbol.MISSING_ARG) {
+          if (!isConstant(defaultValue)) {
+            throw new NotCompilableException(defaultValue, "Non-constant default value for argument " + formal.getName());
+          }
+          statements.add(new Assignment(new EnvironmentVariable(formal.getTag()), new Constant(formal.getValue())));
+        }
+      }
+    }
+    
+    TranslationContext context = new InlinedContext();
+    Expression returnValue = translateExpression(context, closure.getBody());
+    addStatement(new ReturnStatement(returnValue));
+
+    removeRedundantJumps();
+    insertVariableInitializations();
+
+    IRBody body = new IRBody(statements, labels);
+    body.setParams(params);
+    return body;
+  }
+
+  private boolean isConstant(SEXP defaultValue) {
+    return ! ( defaultValue instanceof Symbol || 
+               defaultValue instanceof ExpressionVector ||
+               defaultValue instanceof FunctionCall);
+    
+  }
+
+  private void updateVariableReturn() {
+
+    for (Statement statement : statements) {
+      if(statement instanceof ReturnStatement) {
+        ((ReturnStatement) statement).addEnvironmentVariables(variables.values());
+      }
+    }
+  }
+
+
+  private void insertVariableInitializations() {
+    // For every variable that comes from the environment, 
+    // declare it as a constant in the beginning of the block
+    
+    List<Assignment> initializations = new ArrayList<>();
+    
+    for (EnvironmentVariable environmentVariable : variables.values()) {
+      SEXP value = rho.findVariable(environmentVariable.getName());
+      if(value instanceof Promise) {
+        Promise promisedValue = (Promise) value;
+        if(promisedValue.isEvaluated()) {
+          value = promisedValue.force(context);
+        } else {
+          // Promises can have side effects, and evaluation order is important 
+          // so we can't just force all the promises in the beginning of the loop
+          throw new NotCompilableException(environmentVariable.getName(), "Unevaluated promise encountered");
+        }
+      }
+      if(value != Symbol.UNBOUND_VALUE) {
+        initializations.add(new Assignment(environmentVariable, new ReadEnvironment(environmentVariable.getName(), ValueBounds.of(value))));
+      }
+    }
+    
+    // Update the labels to reflect the additional statements at the beginning
+    statements.addAll(0, initializations);
+    for (IRLabel label : labels.keySet()) {
+      labels.put(label, labels.get(label) + initializations.size());
+    }
+    
+  }
+
   public void dump(SEXP exp) {
     System.out.println( build(exp ).toString());
   }
@@ -57,162 +202,118 @@ public class IRBodyBuilder {
       if(exp == Symbol.MISSING_ARG) {
         return new Constant(exp);
       } else {
-        return new EnvironmentVariable((Symbol)exp);
+        return getEnvironmentVariable((Symbol) exp);
       }
     } else if(exp instanceof FunctionCall) {
-      return translateCall(context, (FunctionCall) exp);
+      return translateCallExpression(context, (FunctionCall) exp);
     } else {
       // environments, pairlists, etc
       return new Constant(exp);
     }
   }
 
-  private boolean isReservedFunction(SEXP exp) {
-    if(exp instanceof FunctionCall) {
-      SEXP fn = ((FunctionCall) exp).getFunction();
-      return fn instanceof Symbol && ((Symbol) fn).isReservedWord();
-    } else {
-      return false;
+  public EnvironmentVariable getEnvironmentVariable(Symbol name) {
+    EnvironmentVariable var = variables.get(name);
+    if(var == null) {
+      var = new EnvironmentVariable(name);
+      variables.put(name, var);
     }
+    return var;
   }
-  
-  public static boolean isConstant(SEXP exp) {
-    return ! (exp instanceof ExpressionVector ||
-              exp instanceof Symbol ||
-              exp instanceof FunctionCall);
-  }
-  
+
   public void translateStatements(TranslationContext context, SEXP sexp) {
-    if( isReservedFunction(sexp) ) {
-      FunctionCallTranslator translator = builders.get( ((FunctionCall)sexp).getFunction() );
-      if(translator != null) {
-        translator.addStatement(this, context, (FunctionCall)sexp);
-        return;
+    if(sexp instanceof FunctionCall) {
+      FunctionCall call = (FunctionCall)sexp;
+      Function function = resolveFunction(call.getFunction());
+      builders.get( function ).addStatement(this, context, function, call);
+    } else {
+      Expression expr = translateExpression(context, sexp);
+      if(!(expr instanceof Constant)) {
+        addStatement(new ExprStatement(expr));
       }
     }
-    Expression expr = translateExpression(context, sexp);
-    if(!(expr instanceof Constant)) {
-      addStatement(new ExprStatement(expr));  
-    }
-  }
-  
-  public Expression translateCall(TranslationContext context, FunctionCall call) {
-    SEXP function = call.getFunction();
-    if(function instanceof Symbol && ((Symbol) function).isReservedWord()) {
-      return translatePrimitiveCall(context, call);
-    } else {
-      return new DynamicCall(call, 
-          translateSimpleExpression(context, function), 
-          makeNameList(call), 
-          makeUnevaledArgList(context, call.getArguments()));
-    }
-  }
-  
-  public List<Expression> makeUnevaledArgList(TranslationContext context, PairList argumentSexps) {
-    List<Expression> list = Lists.newArrayList();
-    for(SEXP argument : argumentSexps.values()) {
-      if(argument == Symbol.MISSING_ARG) {
-        list.add(new Constant(argument));
-      } else if(argument == Symbols.ELLIPSES) {
-        list.add(Elipses.INSTANCE);
-      } else {
-        list.add(unevaledArg(argument));
-      }
-    }
-    return list;
-  }
-  
-  public Expression unevaledArg(SEXP exp) {
-    if(isConstant(exp)) {
-      return new Constant(exp);
-    } else {
-      return translateThunk(exp);
-    }
-  }
-  
-  
-  private IRThunk translateThunk(SEXP exp) {
-    IRBodyBuilder thunkBodyBuilder = new IRBodyBuilder(functionTable);
-    IRBody body = thunkBodyBuilder.build(exp);
-    IRThunk thunk = new IRThunk(exp, body);
-    thunks.add(thunk);
-    return thunk;
   }
 
   public Expression translateSetterCall(TranslationContext context, FunctionCall getterCall, Expression rhs) {
     Symbol getter = (Symbol) getterCall.getFunction();
-    Symbol setter = Symbol.get(getter.getPrintName() + "<-");
-    
-    // normally this call is created at runtime, with the  value 
-    // of the rhs in the argument list. Since we don't have
-    // the value of the rhs yet
-    FunctionCall setterCall = new FunctionCall(
-        setter,
-        PairList.Node.newBuilder()
-          .addAll(getterCall.getArguments())
-          .add("value", new StringArrayVector("TODO: evaluated RHS here"))
-          .build());
-    
+    Function setter = resolveFunction(Symbol.get(getter.getPrintName() + "<-"));
+
     FunctionCallTranslator translator = builders.get(setter);
-    if(translator != null) {
-      return translator.translateToSetterExpression(this, context, setterCall, rhs);
-    } 
-
-    
-    if(setter.isReservedWord()) {
-      List<Expression> arguments = makeEvaledArgList(context, getterCall.getArguments());
-      arguments.add(simplify( rhs ));
-      
-      return new PrimitiveCall(setterCall, setter, arguments);
-      
-    } else {
-      
-      // note that rhs has been evaled at this point
-      List<Expression> arguments = makeUnevaledArgList(context, getterCall.getArguments());
-      arguments.add(rhs);
-
-      List<SEXP> argumentNames = makeNameList(getterCall);
-      argumentNames.add(Symbol.get("value"));
-      
-      return new DynamicCall(setterCall,
-          new EnvironmentVariable(setter), 
-          argumentNames, 
-          arguments);
-    }
+    return translator.translateToSetterExpression(this, context, setter, getterCall, rhs);
   }
 
-  public Expression translatePrimitiveCall(TranslationContext context,
-      FunctionCall call) {
-    SEXP function = call.getFunction();
+  public Expression translateCallExpression(TranslationContext context, FunctionCall call) {
+    SEXP functionName = call.getFunction();
+    Function function = resolveFunction(functionName);
+
     FunctionCallTranslator translator = builders.get(function);
-    if(translator != null) {
-      return translator.translateToExpression(this, context, call);
-    } else {
-      if(!(function instanceof Symbol)) {
-        throw new IllegalArgumentException("Expected symbol, got '" + function + "'");
+    return translator.translateToExpression(this, context, function, call);
+  }
+
+  private Function resolveFunction(SEXP functionName) {
+    if( functionName instanceof PrimitiveFunction) {
+      return (PrimitiveFunction) functionName;
+    } else if (functionName instanceof Symbol) {
+      return resolveFunctionSymbol((Symbol) functionName);
+    }
+    throw new NotCompilableException(functionName);
+  }
+
+  private Function resolveFunctionSymbol(Symbol functionName) {
+    Environment environment = rho;
+    while(environment != Environment.EMPTY) {
+      Function f = isFunction(functionName, environment.getVariable(functionName));
+      if(f != null) {
+        return f;
       }
-      return new PrimitiveCall(call, (Symbol)function, makeEvaledArgList(context, call.getArguments()));
+      environment = environment.getParent();
+    }
+    throw new NotCompilableException(functionName, "Could not find function " + functionName);
+  }
+
+  /**
+   * Tries to safely determine whether the expression is a function, without
+   * forcing any promises that might have side effects.
+   * @param exp
+   * @return null if the expr is definitely not a function, or {@code expr} if the
+   * value can be resolved to a Function without side effects
+   * @throws org.renjin.compiler.NotCompilableException if it is not possible to determine
+   * whether the value is a function without risking side effects.
+   */
+  private Function isFunction(Symbol functionName, SEXP exp) {
+    if(exp instanceof Function) {
+      return (Function)exp;
+
+    } else if(exp instanceof SerializedPromise) {
+      return isFunction(functionName, exp.force(this.context));
+
+    } else if(exp instanceof Promise) {
+      Promise promise = (Promise)exp;
+      if(promise.isEvaluated()) {
+        return isFunction(functionName, promise.getValue());
+      } else {
+        throw new NotCompilableException(functionName, "Symbol " + functionName + " cannot be resolved to a function " +
+            " an enclosing environment has a binding of the same name to an unevaluated promise");
+      }
+    } else {
+      return null;
     }
   }
 
-  private List<Expression> makeEvaledArgList(TranslationContext context, PairList argumentSexps) {
-    List<Expression> arguments = Lists.newArrayList();
-    for(SEXP arg : argumentSexps.values()) {
-      if(arg == Symbols.ELLIPSES) {
-        arguments.add( Elipses.INSTANCE );
+  public List<IRArgument> translateArgumentList(TranslationContext context, PairList argumentSexps) {
+    List<IRArgument> arguments = Lists.newArrayList();
+    for(PairList.Node argNode : argumentSexps.nodes()) {
+      if(argNode.getValue() == Symbols.ELLIPSES) {
+        for (PairList.Node extraArgument :  context.getEllipsesArguments().nodes()) {
+          SimpleExpression expression = simplify(translateExpression(context, extraArgument));
+          arguments.add( new IRArgument(extraArgument.getRawTag(), expression) );
+        }
       } else {
-        arguments.add( simplify( translateExpression(context, arg) ));
+        SimpleExpression argExpression = simplify(translateExpression(context, argNode.getValue()));
+        arguments.add( new IRArgument(argNode.getRawTag(), argExpression) );
       }
     }
     return arguments;
-  }
-  
-  private List<SEXP> makeNameList(FunctionCall call) {
-    List<SEXP> names = Lists.newArrayList();
-    for(PairList.Node node : call.getArguments().nodes()) {
-      names.add(node.getRawTag());
-    }
-    return names;
   }
 
   public SimpleExpression simplify(Expression rvalue) {
@@ -244,16 +345,22 @@ public class IRBodyBuilder {
     return new Temp(nextTemp++);
   }
   
-  public LocalVariable newLocalVariable() {
-    return new LocalVariable("Λ" + (nextLocalVariableIndex++), nextTemp++);
+  public LocalVariable newLocalVariable(String debugName) {
+    int index;
+    String name;
+    if(localVariableNames.containsKey(debugName)) {
+      index = localVariableNames.get(debugName) + 1;
+      name = debugName + index;
+    } else {
+      index = 1;
+      name = debugName;
+    }
+    localVariableNames.put(debugName, index);
+    return new LocalVariable("_" + name);
   }
   
   public IRLabel newLabel() {
     return new IRLabel(nextLabel++);
-  }
-  
-  public IRFunction newFunction(PairList formals, SEXP body) {
-    return functionTable.newFunction(formals, body);
   }
 
   public void addStatement(Statement statement) {
@@ -314,6 +421,10 @@ public class IRBodyBuilder {
   }
   
   private static class TopLevelContext implements TranslationContext {
-    
+
+    @Override
+    public PairList getEllipsesArguments() {
+      throw new InvalidSyntaxException("'...' used outside of a function");
+    }
   }
 }

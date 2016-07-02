@@ -165,7 +165,8 @@ public class SequenceTest extends EvalTestCase {
     eval(" f <- function () {  b <- 0; a <- rep(1.1,1000); for (i in 1:100000) " +
         "{ a <- sqrt(a+7); b <- b + sum(a); sum <- mean; }; b;  } ");
 
-    eval("print(system.time(print(f())))");
+    eval("print(system.time(print(x <- f())))");
+    assertThat(eval("x"), closeTo(c(322101), 0.1));
 
   }
 

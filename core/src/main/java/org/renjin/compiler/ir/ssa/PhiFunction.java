@@ -2,42 +2,37 @@ package org.renjin.compiler.ir.ssa;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.InstructionAdapter;
+import org.renjin.compiler.cfg.FlowEdge;
+import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.expressions.Expression;
-import org.renjin.compiler.ir.tac.expressions.ExpressionVisitor;
 import org.renjin.compiler.ir.tac.expressions.Variable;
-import org.renjin.eval.Context;
-import org.renjin.sexp.SEXP;
 
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class PhiFunction implements Expression {
 
   private List<Variable> arguments;
-  
-  public PhiFunction(Variable variable, int count) {
-    if(count < 2) {
-      throw new IllegalArgumentException("variable=" + variable + ", count=" + count + " (count must be >= 2)");
+  private List<FlowEdge> incomingEdges;
+
+  public PhiFunction(Variable variable, Set<FlowEdge> incomingEdges) {
+    if(incomingEdges.size() < 2) {
+      throw new IllegalArgumentException("variable=" + variable + ", count=" + incomingEdges.size() + " (count must be >= 2)");
     }
+    this.incomingEdges = Lists.newArrayList(incomingEdges);
     this.arguments = Lists.newArrayList();
-    for(int i=0;i!=count;++i) {
+    for(int i=0;i!=incomingEdges.size();++i) {
       arguments.add(variable);
     }
   }
 
-  public PhiFunction(List<Variable> arguments) {
-    this.arguments = arguments;
-  }
-
-  @Override
-  public Object retrieveValue(Context context, Object[] temps) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public Set<Variable> variables() {
-    return Sets.newHashSet(arguments);
+  public List<Variable> getArguments() {
+    return arguments;
   }
 
   @Override
@@ -46,27 +41,46 @@ public class PhiFunction implements Expression {
   }
 
   @Override
-  public Expression replaceVariable(Variable name, Variable newName) {
-    List<Variable> newArguments = Lists.newArrayList();
-    for(Variable arg : arguments) {
-      newArguments.add(arg.equals(name) ? newName : arg);
-    }
-    return new PhiFunction(newArguments);
+  public boolean isDefinitelyPure() {
+    return false; // not sure... have to think about this
   }
-  
-  public PhiFunction replaceVariable(int j, int i) {
-    List<Variable> newArguments = Lists.newArrayList(arguments);
-    newArguments.set(j, new SsaVariable(newArguments.get(j), i));
-    return new PhiFunction(newArguments);
+
+  @Override
+  public int load(EmitContext emitContext, InstructionAdapter mv) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public Type getType() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
+    Iterator<Variable> it = arguments.iterator();
+    ValueBounds bounds = it.next().updateTypeBounds(typeMap);
+    
+    while(it.hasNext()) {
+      bounds = bounds.union(it.next().updateTypeBounds(typeMap));
+    }
+    return bounds;
+  }
+
+  @Override
+  public ValueBounds getValueBounds() {
+    throw new UnsupportedOperationException();
+  }
+
+  public List<FlowEdge> getIncomingEdges() {
+    return incomingEdges;
+  }
+
+  public void setVersionNumber(int argumentIndex, int versionNumber) {
+    arguments.set(argumentIndex, arguments.get(argumentIndex).getVersion(versionNumber));
   }
 
   public Variable getArgument(int j) {
     return arguments.get(j);
-  }
-
-  @Override
-  public List<Expression> getChildren() {
-    return (List)arguments;
   }
 
   @Override
@@ -75,14 +89,12 @@ public class PhiFunction implements Expression {
   }
 
   @Override
-  public void accept(ExpressionVisitor visitor) {
-    visitor.visitPhiFunction(this);
+  public int getChildCount() {
+    return arguments.size();
   }
 
   @Override
-  public SEXP getSExpression() {
-    return arguments.get(0).getSExpression();
+  public Expression childAt(int index) {
+    return arguments.get(index);
   }
-  
-  
-} 
+}

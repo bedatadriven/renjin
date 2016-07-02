@@ -58,6 +58,13 @@ public class MathTest extends EvalTestCase {
     assertThat( MathExt.gamma(3), closeTo(2, 0.0001));
   }
 
+  @Test
+  public void testClass() {
+    eval("  s <- 0 ");
+    eval(" class(s) <- 'foo' ");
+    
+        
+  }
 
   @Test
   public void log() {

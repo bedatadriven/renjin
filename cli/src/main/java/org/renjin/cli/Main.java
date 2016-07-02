@@ -2,9 +2,6 @@ package org.renjin.cli;
 
 import jline.UnsupportedTerminal;
 import jline.console.ConsoleReader;
-import joptsimple.OptionException;
-import joptsimple.OptionParser;
-import joptsimple.OptionSet;
 import org.renjin.aether.AetherPackageLoader;
 import org.renjin.cli.build.Builder;
 import org.renjin.compiler.pipeline.MultiThreadedVectorPipeliner;
@@ -13,6 +10,7 @@ import org.renjin.eval.Profiler;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
 import org.renjin.primitives.packaging.PackageLoader;
+import org.renjin.primitives.special.ForFunction;
 import org.renjin.repl.JlineRepl;
 import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.Symbol;
@@ -21,9 +19,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
@@ -39,38 +35,38 @@ public class Main {
 
 
   public static void main(String[] args) throws Exception {
-    
+
     if(args.length >= 1 && (args[0].equals("build") || args[0].equals("install")) ) {
       Builder.execute(args[0], Arrays.copyOfRange(args, 1, args.length));
       return;
     }
     
-    OptionParser parser = new OptionParser();
-    parser.accepts("e", "Evaluate 'EXPR' and exit")
-        .withRequiredArg()
-        .describedAs("EXPR");
-
-    parser.accepts("f", "Take input from 'FILE'")
-        .withRequiredArg()
-        .describedAs("FILE");
     
-    parser.accepts("args", "Arguments to be passed on to R")
-      .withRequiredArg()
-      .withValuesSeparatedBy(' ')
-      .describedAs("ARGUMENTS");
-    
-    OptionSet options;
+    OptionSet optionSet;
     try {
-      options = parser.parse(args);
+      optionSet = new OptionSet(args);
     } catch(OptionException e) {
       System.err.println(e.getMessage());
-      parser.printHelpOn(System.out);
+      OptionSet.printHelp(System.out);
       System.exit(-1);
       return;
     }
     
+    if(optionSet.isHelpRequested()) {
+      OptionSet.printHelp(System.out);
+      System.exit(0);
+    }
+    
+    // Set process-wide flags
+    if(optionSet.isFlagSet(OptionSet.COMPILE_LOOPS)) {
+      ForFunction.COMPILE_LOOPS = true;
+    }
+    if(optionSet.isFlagSet(OptionSet.PROFILE)) {
+      Profiler.ENABLED = true;
+    }
+    
     try {
-      new Main(options).run();
+      new Main(optionSet).run();
     } finally {
       if(Profiler.ENABLED) {
         System.out.flush();
@@ -92,20 +88,13 @@ public class Main {
       initSession();
       Profiler.reset();
       
-      if(options.has("args")) {
-        List<String> rArgs = new ArrayList<String>();
-        rArgs.add("--args"); /* Due to the unique way... */
-        rArgs.add((String) options.valueOf("args"));
-        rArgs.addAll(options.nonOptionArguments());
-        this.session.setCommandLineArguments("renjin", 
-            rArgs.toArray(new String[0]));
-      }
+      this.session.setCommandLineArguments("renjin", options.getArguments());
 
-      if(options.has("e")) {
-        evaluateExpression((String) options.valueOf("e"));
+      if(options.hasExpression()) {
+        evaluateExpression(options.getExpression());
         
-      } else if(options.has("f")) {
-        evaluateFile((String) options.valueOf("f"));
+      } else if(options.hasFile()) {
+        evaluateFile(options.getFile());
       } else {
         startInteractive();
       }

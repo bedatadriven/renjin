@@ -22,7 +22,8 @@ public class DeferredNodeComputer implements Runnable {
     // function, eventually we want to generate bytecode on the fly based
     // on their implementations elsewhere.
     if(node.getComputation().getComputationName().equals("mean") ||
-        node.getComputation().getComputationName().equals("rowMeans")) {
+        node.getComputation().getComputationName().equals("rowMeans") ||
+        node.getComputation().getComputationName().equals("sum")) {
       try {
         Vector[] operands = node.flattenVectors();
         JittedComputation computer = DeferredJitCache.INSTANCE.compile(node);

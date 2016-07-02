@@ -1,12 +1,11 @@
 package org.renjin.repl;
 
+import jline.console.ConsoleReader;
+
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.Writer;
-
-import jline.console.ConsoleReader;
 
 public class JlineReader extends Reader {
   private ConsoleReader reader;
@@ -59,6 +58,10 @@ public class JlineReader extends Reader {
 
   public boolean isEof() {
     return eof;
+  }
+  
+  public boolean isEndOfLine() {
+    return pos == currentLine.length();
   }
   
   @Override

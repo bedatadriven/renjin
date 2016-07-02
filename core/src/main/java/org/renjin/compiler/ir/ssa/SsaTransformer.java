@@ -1,22 +1,19 @@
 package org.renjin.compiler.ir.ssa;
 
-import java.util.Map;
-import java.util.Queue;
-import java.util.Stack;
-
-import org.renjin.compiler.cfg.BasicBlock;
-import org.renjin.compiler.cfg.CfgPredicates;
-import org.renjin.compiler.cfg.ControlFlowGraph;
-import org.renjin.compiler.cfg.DominanceTree;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import org.renjin.compiler.TypeSolver;
+import org.renjin.compiler.cfg.*;
+import org.renjin.compiler.ir.tac.TreeNode;
 import org.renjin.compiler.ir.tac.expressions.Expression;
+import org.renjin.compiler.ir.tac.expressions.LValue;
 import org.renjin.compiler.ir.tac.expressions.Variable;
 import org.renjin.compiler.ir.tac.statements.Assignment;
 import org.renjin.compiler.ir.tac.statements.Statement;
 
-
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import java.util.*;
 
 /**
  * Transforms three-address IR code into 
@@ -30,14 +27,15 @@ public class SsaTransformer {
 
   private Map<Variable, Integer> C = Maps.newHashMap();
   private Map<Variable, Stack<Integer>> S = Maps.newHashMap();
-
+  private Set<Variable> allVariables;
 
   public SsaTransformer(ControlFlowGraph cfg, DominanceTree dtree) {
     super();
     this.cfg = cfg;
     this.dtree = dtree;
+    this.allVariables = allVariables();
   }
-  
+
   public void transform() {
     insertPhiFunctions();
     renameVariables();
@@ -62,8 +60,8 @@ public class SsaTransformer {
     }
 
     Queue<BasicBlock> W = Lists.newLinkedList();
-
-    for(Variable V : cfg.variables()) {
+    
+    for(Variable V : allVariables) {
       iterCount = iterCount + 1;
 
       for(BasicBlock X : Iterables.filter(cfg.getLiveBasicBlocks(), CfgPredicates.containsAssignmentTo(V))) {
@@ -75,13 +73,13 @@ public class SsaTransformer {
         for(BasicBlock Y : dtree.getFrontier(X)) {
           if(X != cfg.getExit()) {
             if(hasAlready.get(Y) < iterCount) {
-              Y.insertPhiFunction(V, cfg.getPredecessors(Y).size());
+              Y.insertPhiFunction(V, Y.getIncoming());
               // place (V <- phi(V,..., V)) at Y
               hasAlready.put(Y, iterCount);
               if(work.get(Y) < iterCount) {
                 work.put(Y, iterCount);
                 W.add(Y);
-              }            
+              }
             }
           }
         }
@@ -93,11 +91,11 @@ public class SsaTransformer {
     // Figure 12 in
     // http://www.cs.utexas.edu/~pingali/CS380C/2010/papers/ssaCytron.pdf
 
-    for(Variable V : cfg.variables()) {
+    for(Variable V : allVariables) {
 
       // in a deviation from Cytron, et. al,
       // V_0 represents the uninitialized value
-      
+
       C.put(V, 1);
 
       Stack<Integer> stack = new Stack<Integer>();
@@ -108,39 +106,45 @@ public class SsaTransformer {
     search(cfg.getEntry());
   }
 
-  private void search(BasicBlock X) {
-    
-    for(Statement stmt : X.getStatements()) {
-      Expression rhs = stmt.getRHS();
-      if(!(rhs instanceof PhiFunction)) {
-        for(Variable V : rhs.variables()) {
-          int i = Top(V);
-          rhs = rhs.replaceVariable(V, new SsaVariable(V, i));
+  private Set<Variable> allVariables() {
+    Set<Variable> set = Sets.newHashSet();
+    for(BasicBlock bb : cfg.getBasicBlocks()) {
+      for(Statement statement : bb.getStatements()) {
+        collectVariables(set, statement.getRHS());
+        if(statement instanceof  Assignment) {
+          collectVariables(set, ((Assignment) statement).getLHS());
         }
-        stmt = X.replaceStatement(stmt, stmt.withRHS(rhs));
       }
-      
+    }
+    return set;
+  }
+
+  private void search(BasicBlock X) {
+
+    for(Statement stmt : X.getStatements()) {
+      renameVariables(stmt);
+
+
       if(stmt instanceof Assignment) {
         Assignment assignment = (Assignment)stmt;
         if(assignment.getLHS() instanceof Variable) {
           Variable V = (Variable)assignment.getLHS();
           int i = C.get(V);
-          X.replaceStatement(assignment, assignment.withLHS(new SsaVariable(V, i)));
+          assignment.setLHS(V.getVersion(i));
           S.get(V).push(i);
           C.put(V, i + 1);
         }
       }
     }
-    
+
     for(BasicBlock Y : cfg.getSuccessors(X)) {
       int j = whichPred(Y,X);
       for (Assignment A : Lists.newArrayList(Y.phiAssignments())) {
         PhiFunction rhs = (PhiFunction) A.getRHS();
         Variable V = rhs.getArgument(j);
         int i = Top(V);
-        rhs = rhs.replaceVariable(j, i);
-        Y.replaceStatement(A, new Assignment(A.getLHS(), rhs));
         // replace the j-th operand V in RHS(F) by V_i where i = Top(S(V))
+        rhs.setVersionNumber(j, i);
       }
     }
     for(BasicBlock Y : dtree.getChildren(X)) {
@@ -150,6 +154,33 @@ public class SsaTransformer {
       if(A.getLHS() instanceof SsaVariable) {
         SsaVariable lhs = (SsaVariable) A.getLHS();
         S.get(lhs.getInner()).pop();
+      }
+    }
+  }
+
+  private void renameVariables(TreeNode node) {
+    if(node instanceof PhiFunction) {
+      return;
+    }
+
+    for(int childIndex = 0; childIndex!=node.getChildCount();++childIndex) {
+      Expression child = node.childAt(childIndex);
+      if(child instanceof Variable) {
+        Variable V = (Variable)child;
+        int i = Top(V);
+        node.setChild(childIndex, V.getVersion(i));
+      } else if(child.getChildCount() > 0) {
+        renameVariables(child);
+      }
+    }
+  }
+
+  private void collectVariables(Set<Variable> set, Expression rhs) {
+    if(rhs instanceof Variable) {
+      set.add((Variable)rhs);
+    } else {
+      for(int i=0;i!=rhs.getChildCount();++i) {
+        collectVariables(set, rhs.childAt(i));
       }
     }
   }
@@ -170,12 +201,44 @@ public class SsaTransformer {
    */
   private int whichPred(BasicBlock X, BasicBlock Y) {
     int j = 0;
-    for(BasicBlock P : cfg.getPredecessors(X)) {
-      if(P.equals(Y)) {
+    for(FlowEdge P : X.getIncoming()) {
+      if(P.getPredecessor().equals(Y)) {
         return j;
       }
       j++;
     }
     throw new IllegalArgumentException("X is not a predecessor of Y");
+  }
+
+  public void removePhiFunctions(TypeSolver types) {
+    for(BasicBlock bb : cfg.getBasicBlocks()) {
+      if (bb != cfg.getExit()) {
+        ListIterator<Statement> it = bb.getStatements().listIterator();
+        while (it.hasNext()) {
+          Statement statement = it.next();
+          if (statement instanceof Assignment && statement.getRHS() instanceof PhiFunction) {
+            Assignment assignment = (Assignment) statement;
+            if(types.isUsed(assignment)) {
+              insertAssignments(assignment.getLHS(), (PhiFunction) statement.getRHS());
+            }
+            it.remove();
+          }
+        }
+      }
+    }
+  }
+
+  private void insertAssignments(LValue lhs, PhiFunction phi) {
+    for (int i = 0; i < phi.getArguments().size(); i++) {
+      SsaVariable variable = (SsaVariable)phi.getArgument(i);
+
+      if(variable.getVersion() == 0) {
+        cfg.getEntry().addStatement(new Assignment(lhs, variable));
+      } else {
+        FlowEdge incoming = phi.getIncomingEdges().get(i);
+        BasicBlock definingBlock = incoming.getPredecessor();
+        definingBlock.addStatementBeforeJump(new Assignment(lhs, variable));
+      }
+    }
   }
 }

@@ -1,30 +1,18 @@
 package org.renjin.compiler.cfg;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.renjin.compiler.ir.tac.IRBody;
-import org.renjin.compiler.ir.tac.IRLabel;
-import org.renjin.compiler.ir.tac.expressions.Variable;
-import org.renjin.compiler.ir.tac.statements.BasicBlockEndingStatement;
-import org.renjin.compiler.ir.tac.statements.Statement;
-
-
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import org.renjin.compiler.ir.tac.IRBody;
+import org.renjin.compiler.ir.tac.IRLabel;
+import org.renjin.compiler.ir.tac.statements.BasicBlockEndingStatement;
+import org.renjin.compiler.ir.tac.statements.Statement;
+import org.renjin.util.DebugGraph;
 
-import edu.uci.ics.jung.graph.DirectedGraph;
-import edu.uci.ics.jung.graph.DirectedSparseGraph;
-import edu.uci.ics.jung.graph.Graph;
+import java.util.*;
 
 public class ControlFlowGraph {
 
   private final IRBody parent;
-  private final DirectedGraph<BasicBlock, Edge> graph;
   private final List<BasicBlock> basicBlocks;
   private BasicBlock entry;
   private BasicBlock exit;
@@ -32,7 +20,6 @@ public class ControlFlowGraph {
   
   public ControlFlowGraph(IRBody body) {
     this.parent = body;
-    this.graph = new DirectedSparseGraph<BasicBlock, Edge>();
     this.basicBlocks = Lists.newArrayList();
     
     addBasicBlocks();
@@ -41,6 +28,11 @@ public class ControlFlowGraph {
   }
 
   private void addBasicBlocks() {
+
+    entry = new BasicBlock(parent);
+    entry.setDebugId("entry");
+    basicBlocks.add(entry);
+
     BasicBlock current = null;
     for(int i=0;i<parent.getStatements().size();++i) {
       Statement stmt = parent.getStatements().get(i);
@@ -55,30 +47,23 @@ public class ControlFlowGraph {
         current = null;
       }
     }
+
+    exit = new BasicBlock(parent);
+    exit.setDebugId("exit");
+    basicBlocks.add(exit);
+
+    // Cytron adds an edge from entry to exit??
+    addEdge(entry, exit);
   }
   
   public List<BasicBlock> getLiveBasicBlocks() {
     return Collections.unmodifiableList(basicBlocks);
-  }
-  
-  /**
-   *
-   * @return all variables used or assigned within this 
-   * control flow graph
-   */
-  public Set<Variable> variables() {
-    Set<Variable> variables = Sets.newHashSet();
-    for(BasicBlock bb : basicBlocks) {
-      variables.addAll(bb.variables());
-    }
-    return Collections.unmodifiableSet(variables);
   }
 
   private BasicBlock addNewBasicBlock(IRBody body, int i) {
     BasicBlock bb = BasicBlock.createWithStartAt(body, i);
     bb.setDebugId(basicBlocks.size());
     basicBlocks.add(bb);
-    graph.addVertex(bb);
     for(IRLabel label : bb.getLabels()) {
       basicBlockMap.put(label, bb);
     }
@@ -86,18 +71,16 @@ public class ControlFlowGraph {
   } 
   
   private void linkBasicBlocks() {
-    entry = new BasicBlock(parent);
-    entry.setDebugId("entry");
-    
-    exit = new BasicBlock(parent);
-    exit.setDebugId("exit");
-    
-    for(int i=0;i!=basicBlocks.size();++i) {
+
+    // loop over blocks, excluding entry / exit
+    for(int i=1;i<basicBlocks.size()-1;++i) {
       BasicBlock bb = basicBlocks.get(i);
       if(bb.fallsThrough()) {
-        graph.addEdge(new Edge(false), bb, basicBlocks.get(i+1));
+        addEdge(bb, basicBlocks.get(i + 1));
+        
       } else if(bb.returns()) {
-        graph.addEdge(new Edge(false), bb, exit);
+        addEdge(bb, exit);
+
       } else {
         for(IRLabel targetLabel : bb.targets()) {
           BasicBlock targetBB = basicBlockMap.get(targetLabel);
@@ -105,33 +88,41 @@ public class ControlFlowGraph {
             throw new NullPointerException("whoops! no basic block with label '" + targetLabel +
                 "' in IRBody " + parent);
           }
-          int targetBBIndex = basicBlocks.indexOf(targetBB);
-          graph.addEdge(new Edge(targetBBIndex <= i), bb, targetBB);
+          addEdge(bb, targetBB);
         }
       }
     }
-    graph.addEdge(new Edge(false), entry, exit);
-    graph.addEdge(new Edge(false), entry, basicBlocks.get(0));
-
-    basicBlocks.add(entry);
-    basicBlocks.add(exit);
+    addEdge(entry, basicBlocks.get(1));
   }
-  
+
+  private void addEdge(BasicBlock bb, BasicBlock basicBlock) {
+    bb.addFlowSuccessor(basicBlock);
+  }
+
   private void removeDeadBlocks() {
-    boolean changed;
+    
+    Set<BasicBlock> live = new HashSet<>();
+    live.add(entry);
+    live.add(basicBlocks.get(1));
+    
+    boolean changing;
     do {
-      changed=false;
-      
-      for(BasicBlock vertex : Lists.newArrayList(graph.getVertices())) {
-        if(vertex != entry && graph.inDegree(vertex) == 0) {
-          if(graph.removeVertex(vertex)) {
-          }
-          changed=true;
+      changing=false;
+
+      for (BasicBlock basicBlock : Lists.newArrayList(live)) {
+        if(live.addAll(basicBlock.getFlowSuccessors())) {
+          changing = true;
         }
       }
-    } while(changed);
+    } while(changing);
     
-    basicBlocks.retainAll(graph.getVertices());
+    // Clean up nodes and edges
+    basicBlocks.retainAll(live);
+    for (BasicBlock basicBlock : basicBlocks) {
+      basicBlock.flowPredecessors.retainAll(live);
+      basicBlock.flowSuccessors.retainAll(live);
+    }
+    
     int i=1;
     for(BasicBlock bb : basicBlocks) {
       if(bb!=entry && bb!=exit) {
@@ -158,10 +149,6 @@ public class ControlFlowGraph {
     return sb.toString();
   }
 
-  public Graph<BasicBlock, Edge> getGraph() {
-    return graph;
-  }
-
   public BasicBlock getEntry() {
     return entry;
   }
@@ -170,11 +157,38 @@ public class ControlFlowGraph {
     return exit;
   }
 
-  public Collection<BasicBlock> getSuccessors(BasicBlock x) {
-    return graph.getSuccessors(x);
+  public List<BasicBlock> getSuccessors(BasicBlock x) {
+    return x.getFlowSuccessors();
   }
 
-  public Collection<BasicBlock> getPredecessors(BasicBlock x) {
-    return graph.getPredecessors(x);
+  public List<BasicBlock> getPredecessors(BasicBlock x) {
+    return x.getFlowPredecessors();
+  }
+
+  public void dumpGraph() {
+    DebugGraph dump = new DebugGraph("compute");
+    for (BasicBlock basicBlock : basicBlocks) {
+      for (BasicBlock successor : basicBlock.getFlowSuccessors()) {
+        dump.printEdge(basicBlock.getDebugId(), successor.getDebugId());
+      }
+    }
+    dump.close();
+  }
+
+  public void dumpEdges() {
+    for (BasicBlock basicBlock : basicBlocks) {
+      for (BasicBlock block : basicBlock.getFlowSuccessors()) {
+        System.out.println("edge[" + basicBlock.getDebugId() + ", " + block.getDebugId() + "]");
+      }
+    }
+  }
+
+  public BasicBlock get(String debugId) {
+    for (BasicBlock basicBlock : basicBlocks) {
+      if(basicBlock.getDebugId().equals(debugId)) {
+        return basicBlock;
+      }
+    }
+    throw new IllegalArgumentException("No such block: " + debugId);
   }
 }

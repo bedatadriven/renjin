@@ -1,11 +1,12 @@
 package org.renjin.compiler.ir.tac.expressions;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.InstructionAdapter;
+import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.ir.ValueBounds;
 
-import org.renjin.eval.Context;
-import org.renjin.sexp.SEXP;
+import java.util.Map;
 
 
 /**
@@ -13,60 +14,51 @@ import org.renjin.sexp.SEXP;
  * 'for' loop, will see if really need this
  * 
  */
-public class Increment implements Expression {
-
-  private LValue counter;
+public class Increment extends SpecializedCallExpression {
 
   public Increment(LValue counter) {
-    this.counter = counter;
-  }
-  
-  public LValue getCounter() {
-    return counter;
-  }
-   
-  @Override
-  public Set<Variable> variables() {
-    return counter.variables();
+    super(counter);
   }
 
   @Override
   public String toString() {
-    return "increment counter " + counter;
+    return "increment counter " + arguments[0];
+  }
+
+  public Expression getCounter() {
+    return arguments[0];
   }
 
   @Override
-  public Object retrieveValue(Context context, Object[] temps) {
-    Integer counterValue = (Integer) counter.retrieveValue(context, temps);
-    return counterValue + 1;
-  }
-
-  @Override  
-  public Expression replaceVariable(Variable variable, Variable newVariable) {
-    return new Increment( counter.replaceVariable(variable, newVariable));
+  public boolean isFunctionDefinitelyPure() {
+    return true;
   }
 
   @Override
-  public List<Expression> getChildren() {
-    return Arrays.asList((Expression)counter);
+  public boolean isDefinitelyPure() {
+    return true;
   }
 
   @Override
-  public void setChild(int i, Expression expr) {
-    if(i==0) {
-      counter = (LValue) expr;
-    } else {
-      throw new IllegalArgumentException();
-    }
+  public int load(EmitContext emitContext, InstructionAdapter mv) {
+    getCounter().load(emitContext, mv);
+    mv.visitInsn(Opcodes.ICONST_1);
+    mv.visitInsn(Opcodes.IADD);
+    return 2;
   }
 
   @Override
-  public void accept(ExpressionVisitor visitor) {
-    visitor.visitIncrement(this);
+  public Type getType() {
+    return Type.INT_TYPE;
   }
 
   @Override
-  public SEXP getSExpression() {
-    throw new UnsupportedOperationException();
+  public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
+    return getValueBounds();
+  }
+
+  @Override
+  public ValueBounds getValueBounds() {
+    return ValueBounds.INT_PRIMITIVE;
   }
 }

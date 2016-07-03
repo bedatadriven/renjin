@@ -1,10 +1,10 @@
 package org.renjin.compiler.ir.tac.expressions;
 
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
-import org.objectweb.asm.commons.InstructionAdapter;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.ir.ValueBounds;
+import org.renjin.repackaged.asm.Opcodes;
+import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.asm.commons.InstructionAdapter;
 
 import java.util.Map;
 

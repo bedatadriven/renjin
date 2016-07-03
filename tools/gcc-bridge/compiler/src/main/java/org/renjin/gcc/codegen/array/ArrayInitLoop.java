@@ -1,7 +1,5 @@
 package org.renjin.gcc.codegen.array;
 
-import org.objectweb.asm.Label;
-import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.JExpr;
@@ -10,6 +8,8 @@ import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.fatptr.Wrappers;
 import org.renjin.gcc.codegen.type.primitive.ConstantValue;
 import org.renjin.gcc.codegen.var.LocalVarAllocator;
+import org.renjin.repackaged.asm.Label;
+import org.renjin.repackaged.asm.Type;
 
 import javax.annotation.Nonnull;
 

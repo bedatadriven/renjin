@@ -1,9 +1,9 @@
 package org.renjin.gcc.codegen.fatptr;
 
-import org.objectweb.asm.Label;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.gimple.GimpleOp;
+import org.renjin.repackaged.asm.Label;
 
 /**
  * Generates a conditional jump based on pointer equality

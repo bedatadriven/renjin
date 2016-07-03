@@ -2,17 +2,17 @@ package org.renjin.compiler.pipeline.accessor;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.objectweb.asm.*;
 import org.renjin.compiler.pipeline.ComputeMethod;
 import org.renjin.compiler.pipeline.DeferredNode;
 import org.renjin.primitives.vector.DeferredComputation;
+import org.renjin.repackaged.asm.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static org.objectweb.asm.Opcodes.*;
+import static org.renjin.repackaged.asm.Opcodes.*;
 
 public class ComputationAccessor extends Accessor {
 

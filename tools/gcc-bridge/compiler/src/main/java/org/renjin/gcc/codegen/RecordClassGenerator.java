@@ -1,10 +1,6 @@
 package org.renjin.gcc.codegen;
 
 import com.google.common.io.Files;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.Type;
-import org.objectweb.asm.util.TraceClassVisitor;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.expr.Expressions;
@@ -12,6 +8,10 @@ import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.FieldStrategy;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
+import org.renjin.repackaged.asm.ClassVisitor;
+import org.renjin.repackaged.asm.ClassWriter;
+import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.asm.util.TraceClassVisitor;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,7 +19,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Collection;
 
-import static org.objectweb.asm.Opcodes.*;
+import static org.renjin.repackaged.asm.Opcodes.*;
 
 
 /**

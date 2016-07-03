@@ -1,9 +1,9 @@
 package org.renjin.gcc.codegen.type;
 
-import org.objectweb.asm.ClassVisitor;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.repackaged.asm.ClassVisitor;
 
 /**
  * Generates field definitions, loads and stores for global variables

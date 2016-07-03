@@ -1,6 +1,6 @@
 package org.renjin.compiler.pipeline;
 
-import org.objectweb.asm.MethodVisitor;
+import org.renjin.repackaged.asm.MethodVisitor;
 
 public class ComputeMethod {
   private int localCount = 2; // includes instance pointer and argument

@@ -1,11 +1,11 @@
 package org.renjin.gcc.codegen.type.record;
 
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.FieldStrategy;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
+import org.renjin.repackaged.asm.ClassVisitor;
+import org.renjin.repackaged.asm.Type;
 
 /**
  * Models a field at the beginning of a record as a JVM superclass

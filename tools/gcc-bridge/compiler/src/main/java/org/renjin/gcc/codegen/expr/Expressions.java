@@ -3,20 +3,20 @@ package org.renjin.gcc.codegen.expr;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.type.primitive.ConstantValue;
 import org.renjin.gcc.codegen.type.primitive.op.PrimitiveBinOpGenerator;
 import org.renjin.gcc.gimple.GimpleOp;
+import org.renjin.repackaged.asm.Opcodes;
+import org.renjin.repackaged.asm.Type;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.objectweb.asm.Type.getMethodDescriptor;
+import static org.renjin.repackaged.asm.Type.getMethodDescriptor;
 
 /**
  * Static utility methods pertaining to create and compose {@link GExpr}s

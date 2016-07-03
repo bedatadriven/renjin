@@ -1,15 +1,15 @@
 package org.renjin.gcc.codegen;
 
 
-import org.objectweb.asm.*;
-import org.objectweb.asm.util.TraceClassVisitor;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.codegen.type.ParamStrategy;
+import org.renjin.repackaged.asm.*;
+import org.renjin.repackaged.asm.util.TraceClassVisitor;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import static org.objectweb.asm.Opcodes.*;
+import static org.renjin.repackaged.asm.Opcodes.*;
 
 /**
  * Generates a single "trampoline" class that provides a method for all the functions

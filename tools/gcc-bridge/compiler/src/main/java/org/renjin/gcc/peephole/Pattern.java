@@ -1,7 +1,7 @@
 package org.renjin.gcc.peephole;
 
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.tree.AbstractInsnNode;
+import org.renjin.repackaged.asm.Opcodes;
+import org.renjin.repackaged.asm.tree.AbstractInsnNode;
 
 
 public enum Pattern {

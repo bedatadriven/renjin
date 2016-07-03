@@ -1,11 +1,11 @@
 package org.renjin.gcc.codegen.type.voidt;
 
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.FieldStrategy;
 import org.renjin.gcc.codegen.type.primitive.FieldValue;
+import org.renjin.repackaged.asm.ClassVisitor;
+import org.renjin.repackaged.asm.Opcodes;
+import org.renjin.repackaged.asm.Type;
 
 /**
  * Strategy for {@code void* } fields, compiled as a field of type

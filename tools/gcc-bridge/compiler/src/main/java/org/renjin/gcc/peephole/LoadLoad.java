@@ -1,9 +1,9 @@
 package org.renjin.gcc.peephole;
 
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.tree.AbstractInsnNode;
-import org.objectweb.asm.tree.InsnNode;
-import org.objectweb.asm.tree.VarInsnNode;
+import org.renjin.repackaged.asm.Opcodes;
+import org.renjin.repackaged.asm.tree.AbstractInsnNode;
+import org.renjin.repackaged.asm.tree.InsnNode;
+import org.renjin.repackaged.asm.tree.VarInsnNode;
 
 /**
  * Replaces two consecutive LOAD instructions with a LOAD, DUP pair

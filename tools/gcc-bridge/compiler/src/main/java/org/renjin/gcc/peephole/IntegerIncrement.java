@@ -1,7 +1,7 @@
 package org.renjin.gcc.peephole;
 
-import org.objectweb.asm.tree.IincInsnNode;
-import org.objectweb.asm.tree.VarInsnNode;
+import org.renjin.repackaged.asm.tree.IincInsnNode;
+import org.renjin.repackaged.asm.tree.VarInsnNode;
 
 import static org.renjin.gcc.peephole.Pattern.*;
 

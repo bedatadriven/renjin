@@ -2,13 +2,6 @@ package org.renjin.gcc.codegen;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.Handle;
-import org.objectweb.asm.Label;
-import org.objectweb.asm.Type;
-import org.objectweb.asm.tree.MethodNode;
-import org.objectweb.asm.util.Textifier;
-import org.objectweb.asm.util.TraceMethodVisitor;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.TreeLogger;
@@ -29,6 +22,13 @@ import org.renjin.gcc.gimple.type.GimpleVoidType;
 import org.renjin.gcc.peephole.PeepholeOptimizer;
 import org.renjin.gcc.symbols.LocalVariableTable;
 import org.renjin.gcc.symbols.UnitSymbolTable;
+import org.renjin.repackaged.asm.ClassVisitor;
+import org.renjin.repackaged.asm.Handle;
+import org.renjin.repackaged.asm.Label;
+import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.asm.tree.MethodNode;
+import org.renjin.repackaged.asm.util.Textifier;
+import org.renjin.repackaged.asm.util.TraceMethodVisitor;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -36,7 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static org.objectweb.asm.Opcodes.*;
+import static org.renjin.repackaged.asm.Opcodes.*;
 
 /**
  * Generates the bytecode for a {@link GimpleFunction}

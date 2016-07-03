@@ -1,6 +1,5 @@
 package org.renjin.gcc.codegen.type.record;
 
-import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
@@ -9,6 +8,7 @@ import org.renjin.gcc.codegen.expr.GSimpleExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
+import org.renjin.repackaged.asm.Type;
 
 import static org.renjin.gcc.codegen.expr.Expressions.elementAt;
 

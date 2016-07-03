@@ -1,8 +1,6 @@
 package org.renjin.compiler.ir.tac.expressions;
 
 import com.google.common.base.Joiner;
-import org.objectweb.asm.Type;
-import org.objectweb.asm.commons.InstructionAdapter;
 import org.renjin.compiler.NotCompilableException;
 import org.renjin.compiler.cfg.InlinedFunction;
 import org.renjin.compiler.codegen.EmitContext;
@@ -11,7 +9,8 @@ import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.compiler.ir.tac.IRMatchedArguments;
 import org.renjin.compiler.ir.tac.RuntimeState;
-import org.renjin.eval.Context;
+import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.Closure;
 import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.Symbol;

@@ -1,10 +1,10 @@
 package org.renjin.gcc.codegen.type.complex;
 
-import org.objectweb.asm.Label;
-import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.gimple.GimpleOp;
+import org.renjin.repackaged.asm.Label;
+import org.renjin.repackaged.asm.Type;
 
 
 /**

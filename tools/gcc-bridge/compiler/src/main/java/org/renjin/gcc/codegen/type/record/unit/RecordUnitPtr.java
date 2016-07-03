@@ -1,9 +1,9 @@
 package org.renjin.gcc.codegen.type.record.unit;
 
-import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
+import org.renjin.repackaged.asm.Type;
 
 public class RecordUnitPtr implements RefPtrExpr {
   

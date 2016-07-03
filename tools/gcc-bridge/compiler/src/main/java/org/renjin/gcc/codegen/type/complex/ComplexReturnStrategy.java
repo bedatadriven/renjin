@@ -1,7 +1,6 @@
 package org.renjin.gcc.codegen.type.complex;
 
 
-import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
@@ -10,6 +9,7 @@ import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.gcc.codegen.type.ReturnStrategy;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.gimple.type.GimpleComplexType;
+import org.renjin.repackaged.asm.Type;
 
 /**
  * Strategy for returning a complex value as a {@code double[2]} or {@code float[2]}

@@ -1,6 +1,6 @@
 package org.renjin.compiler.codegen;
 
-import org.objectweb.asm.Type;
+import org.renjin.repackaged.asm.Type;
 
 public class VariableStorage {
   private int slotIndex;

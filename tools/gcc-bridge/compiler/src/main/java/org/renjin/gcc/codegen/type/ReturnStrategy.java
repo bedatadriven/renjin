@@ -1,9 +1,9 @@
 package org.renjin.gcc.codegen.type;
 
-import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.repackaged.asm.Type;
 
 /**
  * Provides a strategy for return values from methods.

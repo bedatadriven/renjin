@@ -1,9 +1,9 @@
 package org.renjin.gcc.codegen.type.fun;
 
-import org.objectweb.asm.Handle;
-import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.repackaged.asm.Handle;
+import org.renjin.repackaged.asm.Type;
 
 import javax.annotation.Nonnull;
 import java.lang.invoke.MethodHandle;

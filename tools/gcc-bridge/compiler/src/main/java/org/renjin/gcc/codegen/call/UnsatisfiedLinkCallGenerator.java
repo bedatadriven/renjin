@@ -1,16 +1,16 @@
 package org.renjin.gcc.codegen.call;
 
-import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.gimple.statement.GimpleCall;
 import org.renjin.gcc.runtime.UnsatisfiedLinkException;
+import org.renjin.repackaged.asm.Type;
 
 import javax.annotation.Nonnull;
 import java.lang.invoke.MethodHandle;
 
-import static org.objectweb.asm.Type.getMethodDescriptor;
+import static org.renjin.repackaged.asm.Type.getMethodDescriptor;
 
 /**
  * Throws a runtime exception.

@@ -1,10 +1,10 @@
 package org.renjin.gcc.codegen.var;
 
 import com.google.common.base.Optional;
-import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
+import org.renjin.repackaged.asm.Type;
 
 /**
  * Common interface to generating code for local and global variables.

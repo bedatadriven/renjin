@@ -1,12 +1,12 @@
 package org.renjin.gcc.codegen.type.record.unit;
 
-import org.objectweb.asm.Label;
-import org.objectweb.asm.Opcodes;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveCmpGenerator;
 import org.renjin.gcc.gimple.GimpleOp;
+import org.renjin.repackaged.asm.Label;
+import org.renjin.repackaged.asm.Opcodes;
 
 import static org.renjin.gcc.codegen.expr.Expressions.identityHash;
 

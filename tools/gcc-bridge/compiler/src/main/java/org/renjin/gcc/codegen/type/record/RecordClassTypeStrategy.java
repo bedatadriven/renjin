@@ -2,7 +2,6 @@ package org.renjin.gcc.codegen.type.record;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Maps;
-import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.RecordClassGenerator;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategies;
@@ -21,6 +20,7 @@ import org.renjin.gcc.gimple.expr.GimpleFieldRef;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleField;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
+import org.renjin.repackaged.asm.Type;
 
 import java.io.File;
 import java.io.IOException;

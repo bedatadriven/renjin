@@ -1,10 +1,10 @@
 package org.renjin.gcc.peephole;
 
-import org.objectweb.asm.Label;
-import org.objectweb.asm.tree.AbstractInsnNode;
-import org.objectweb.asm.tree.InsnList;
-import org.objectweb.asm.tree.LabelNode;
-import org.objectweb.asm.tree.LineNumberNode;
+import org.renjin.repackaged.asm.Label;
+import org.renjin.repackaged.asm.tree.AbstractInsnNode;
+import org.renjin.repackaged.asm.tree.InsnList;
+import org.renjin.repackaged.asm.tree.LabelNode;
+import org.renjin.repackaged.asm.tree.LineNumberNode;
 
 import java.util.Set;
 

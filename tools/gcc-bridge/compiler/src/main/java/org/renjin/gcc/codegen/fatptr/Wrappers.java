@@ -1,12 +1,12 @@
 package org.renjin.gcc.codegen.fatptr;
 
 import com.google.common.base.Preconditions;
-import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.runtime.*;
+import org.renjin.repackaged.asm.Type;
 
 import javax.annotation.Nonnull;
 

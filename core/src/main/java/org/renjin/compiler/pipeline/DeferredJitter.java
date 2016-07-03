@@ -1,10 +1,10 @@
 package org.renjin.compiler.pipeline;
 
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.MethodVisitor;
+import org.renjin.repackaged.asm.ClassVisitor;
+import org.renjin.repackaged.asm.ClassWriter;
+import org.renjin.repackaged.asm.MethodVisitor;
 
-import static org.objectweb.asm.Opcodes.*;
+import static org.renjin.repackaged.asm.Opcodes.*;
 
 /**
  * Compiles a graph of deferred calculations into a single method.

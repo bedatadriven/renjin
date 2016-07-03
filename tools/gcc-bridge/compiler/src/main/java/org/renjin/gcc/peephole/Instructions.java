@@ -1,11 +1,11 @@
 package org.renjin.gcc.peephole;
 
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.tree.AbstractInsnNode;
-import org.objectweb.asm.tree.InsnNode;
-import org.objectweb.asm.tree.IntInsnNode;
-import org.objectweb.asm.tree.LdcInsnNode;
-import org.objectweb.asm.util.Textifier;
+import org.renjin.repackaged.asm.Opcodes;
+import org.renjin.repackaged.asm.tree.AbstractInsnNode;
+import org.renjin.repackaged.asm.tree.InsnNode;
+import org.renjin.repackaged.asm.tree.IntInsnNode;
+import org.renjin.repackaged.asm.tree.LdcInsnNode;
+import org.renjin.repackaged.asm.util.Textifier;
 
 
 public class Instructions {

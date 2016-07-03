@@ -1,14 +1,14 @@
 package org.renjin.compiler.ir.tac.expressions;
 
 import com.google.common.base.Joiner;
-import org.objectweb.asm.Type;
-import org.objectweb.asm.commons.InstructionAdapter;
 import org.renjin.compiler.NotCompilableException;
 import org.renjin.compiler.builtins.*;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.primitives.Primitives;
+import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.FunctionCall;
 
 import java.util.ArrayList;

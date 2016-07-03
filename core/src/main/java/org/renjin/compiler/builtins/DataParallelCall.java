@@ -1,14 +1,14 @@
 package org.renjin.compiler.builtins;
 
 import com.google.common.collect.Lists;
-import org.objectweb.asm.Type;
-import org.objectweb.asm.commons.InstructionAdapter;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.invoke.annotations.PreserveAttributeStyle;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.primitives.Primitives;
+import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.AttributeMap;
 
 import java.util.Iterator;

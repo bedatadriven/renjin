@@ -1,8 +1,8 @@
 package org.renjin.compiler.ir;
 
 import com.google.common.base.Preconditions;
-import org.objectweb.asm.Type;
 import org.renjin.primitives.sequence.IntSequence;
+import org.renjin.repackaged.asm.Type;
 import org.renjin.sexp.*;
 
 import java.util.Iterator;

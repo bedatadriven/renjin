@@ -1,16 +1,16 @@
 package org.renjin.gcc.codegen.type.record;
 
 import com.google.common.base.Preconditions;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.gcc.codegen.type.FieldStrategy;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
+import org.renjin.repackaged.asm.ClassVisitor;
+import org.renjin.repackaged.asm.Type;
 
-import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
+import static org.renjin.repackaged.asm.Opcodes.ACC_PUBLIC;
 
 /**
  * Generates a field with a record *value* type

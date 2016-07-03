@@ -1,7 +1,7 @@
 package org.renjin.gcc.codegen.expr;
 
-import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.repackaged.asm.Type;
 
 import javax.annotation.Nonnull;
 

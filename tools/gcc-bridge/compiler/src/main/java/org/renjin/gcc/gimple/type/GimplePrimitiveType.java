@@ -1,6 +1,6 @@
 package org.renjin.gcc.gimple.type;
 
-import org.objectweb.asm.Type;
+import org.renjin.repackaged.asm.Type;
 
 public abstract class GimplePrimitiveType extends AbstractGimpleType {
 

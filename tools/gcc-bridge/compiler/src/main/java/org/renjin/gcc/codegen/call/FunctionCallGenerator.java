@@ -2,7 +2,6 @@ package org.renjin.gcc.codegen.call;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
-import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
@@ -11,6 +10,7 @@ import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.type.fun.FunctionRefGenerator;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
 import org.renjin.gcc.gimple.statement.GimpleCall;
+import org.renjin.repackaged.asm.Type;
 
 import javax.annotation.Nonnull;
 import java.util.List;

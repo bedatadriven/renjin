@@ -1,12 +1,12 @@
 package org.renjin.gcc.codegen.type;
 
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.primitive.FieldValue;
+import org.renjin.repackaged.asm.ClassVisitor;
+import org.renjin.repackaged.asm.Opcodes;
+import org.renjin.repackaged.asm.Type;
 
 import java.lang.reflect.Constructor;
 

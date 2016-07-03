@@ -1,11 +1,11 @@
 package org.renjin.gcc.codegen.type.primitive.op;
 
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
-import org.objectweb.asm.util.Printer;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.gimple.GimpleOp;
+import org.renjin.repackaged.asm.Opcodes;
+import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.asm.util.Printer;
 
 import javax.annotation.Nonnull;
 

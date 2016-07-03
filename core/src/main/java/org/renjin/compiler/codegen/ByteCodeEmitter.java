@@ -1,9 +1,6 @@
 package org.renjin.compiler.codegen;
 
 
-import org.objectweb.asm.*;
-import org.objectweb.asm.commons.InstructionAdapter;
-import org.objectweb.asm.util.TraceClassVisitor;
 import org.renjin.compiler.CompiledBody;
 import org.renjin.compiler.CompiledLoopBody;
 import org.renjin.compiler.NotCompilableException;
@@ -14,14 +11,17 @@ import org.renjin.compiler.ir.exception.InternalCompilerException;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.statements.Statement;
 import org.renjin.eval.Context;
+import org.renjin.repackaged.asm.*;
+import org.renjin.repackaged.asm.commons.InstructionAdapter;
+import org.renjin.repackaged.asm.util.TraceClassVisitor;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.SEXP;
 
 import java.io.PrintWriter;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static org.objectweb.asm.Type.getMethodDescriptor;
-import static org.objectweb.asm.Type.getType;
+import static org.renjin.repackaged.asm.Type.getMethodDescriptor;
+import static org.renjin.repackaged.asm.Type.getType;
 
 public class ByteCodeEmitter implements Opcodes {
 

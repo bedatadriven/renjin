@@ -1,6 +1,6 @@
 package org.renjin.gcc.peephole;
 
-import org.objectweb.asm.Opcodes;
+import org.renjin.repackaged.asm.Opcodes;
 
 import static org.renjin.gcc.peephole.Instructions.constantNode;
 import static org.renjin.gcc.peephole.Instructions.getInteger;

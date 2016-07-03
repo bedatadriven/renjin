@@ -2,12 +2,12 @@ package org.renjin.gcc.codegen.var;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
-import org.objectweb.asm.Label;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
+import org.renjin.repackaged.asm.Label;
+import org.renjin.repackaged.asm.Opcodes;
+import org.renjin.repackaged.asm.Type;
 
 import javax.annotation.Nonnull;
 import java.util.List;

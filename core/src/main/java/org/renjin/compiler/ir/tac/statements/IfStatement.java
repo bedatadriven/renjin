@@ -1,8 +1,5 @@
 package org.renjin.compiler.ir.tac.statements;
 
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
-import org.objectweb.asm.commons.InstructionAdapter;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.VariableStorage;
 import org.renjin.compiler.ir.tac.IRLabel;
@@ -10,11 +7,14 @@ import org.renjin.compiler.ir.tac.expressions.CmpGE;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.LValue;
 import org.renjin.eval.EvalException;
+import org.renjin.repackaged.asm.Opcodes;
+import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.*;
 
 import java.util.Arrays;
 
-import static org.objectweb.asm.Opcodes.*;
+import static org.renjin.repackaged.asm.Opcodes.*;
 
 
 public class IfStatement implements Statement, BasicBlockEndingStatement {

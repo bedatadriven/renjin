@@ -1,8 +1,6 @@
 package org.renjin.compiler.cfg;
 
 import com.google.common.collect.Lists;
-import org.objectweb.asm.Label;
-import org.objectweb.asm.commons.InstructionAdapter;
 import org.renjin.compiler.NotCompilableException;
 import org.renjin.compiler.TypeSolver;
 import org.renjin.compiler.codegen.EmitContext;
@@ -16,7 +14,8 @@ import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.compiler.ir.tac.expressions.ReadParam;
 import org.renjin.compiler.ir.tac.statements.ReturnStatement;
 import org.renjin.compiler.ir.tac.statements.Statement;
-import org.renjin.eval.Context;
+import org.renjin.repackaged.asm.Label;
+import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.Closure;
 import org.renjin.sexp.Symbol;
 

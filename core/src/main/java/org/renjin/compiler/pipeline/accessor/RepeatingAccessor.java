@@ -1,11 +1,11 @@
 package org.renjin.compiler.pipeline.accessor;
 
-import org.objectweb.asm.MethodVisitor;
 import org.renjin.compiler.pipeline.ComputeMethod;
 import org.renjin.compiler.pipeline.DeferredNode;
 import org.renjin.primitives.sequence.RepDoubleVector;
+import org.renjin.repackaged.asm.MethodVisitor;
 
-import static org.objectweb.asm.Opcodes.*;
+import static org.renjin.repackaged.asm.Opcodes.*;
 
 public class RepeatingAccessor extends Accessor {
   private Accessor sourceAccessor;

@@ -1,15 +1,15 @@
 package org.renjin.compiler.pipeline.accessor;
 
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Type;
 import org.renjin.compiler.pipeline.ComputeMethod;
 import org.renjin.compiler.pipeline.DeferredNode;
+import org.renjin.repackaged.asm.MethodVisitor;
+import org.renjin.repackaged.asm.Type;
 import org.renjin.sexp.Vector;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
-import static org.objectweb.asm.Opcodes.*;
+import static org.renjin.repackaged.asm.Opcodes.*;
 
 public class BinaryVectorOpAccessor extends Accessor {
 

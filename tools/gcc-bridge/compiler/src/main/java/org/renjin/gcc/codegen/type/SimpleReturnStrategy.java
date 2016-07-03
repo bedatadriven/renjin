@@ -1,12 +1,12 @@
 package org.renjin.gcc.codegen.type;
 
-import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.GSimpleExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.repackaged.asm.Type;
 
 /**
  * Strategy for returning types whose values can be represented as a {@link JExpr}

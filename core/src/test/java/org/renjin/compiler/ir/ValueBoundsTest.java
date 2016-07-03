@@ -1,7 +1,7 @@
 package org.renjin.compiler.ir;
 
 import org.junit.Test;
-import org.objectweb.asm.Type;
+import org.renjin.repackaged.asm.Type;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;

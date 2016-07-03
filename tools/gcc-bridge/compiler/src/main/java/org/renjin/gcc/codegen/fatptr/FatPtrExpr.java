@@ -1,7 +1,6 @@
 package org.renjin.gcc.codegen.fatptr;
 
 import com.google.common.base.Preconditions;
-import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
@@ -9,6 +8,7 @@ import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.gcc.codegen.type.primitive.ConstantValue;
+import org.renjin.repackaged.asm.Type;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

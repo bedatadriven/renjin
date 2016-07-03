@@ -2,7 +2,6 @@ package org.renjin.gcc.codegen.array;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-import org.objectweb.asm.Type;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
@@ -16,6 +15,7 @@ import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
+import org.renjin.repackaged.asm.Type;
 
 import java.util.List;
 

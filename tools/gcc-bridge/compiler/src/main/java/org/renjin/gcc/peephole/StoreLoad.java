@@ -1,10 +1,10 @@
 package org.renjin.gcc.peephole;
 
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.tree.AbstractInsnNode;
-import org.objectweb.asm.tree.IincInsnNode;
-import org.objectweb.asm.tree.InsnList;
-import org.objectweb.asm.tree.VarInsnNode;
+import org.renjin.repackaged.asm.Opcodes;
+import org.renjin.repackaged.asm.tree.AbstractInsnNode;
+import org.renjin.repackaged.asm.tree.IincInsnNode;
+import org.renjin.repackaged.asm.tree.InsnList;
+import org.renjin.repackaged.asm.tree.VarInsnNode;
 
 import java.util.ListIterator;
 

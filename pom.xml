@@ -52,7 +52,6 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <renjin.version>${project.version}</renjin.version>
     <renjin.display.version>${project.version}</renjin.display.version>
-    <asm.version>5.0.4</asm.version>
     <envClassifier>linux-x86</envClassifier>
     <jmh.version>1.11.2</jmh.version>
     <plexusCompilerVersion>2.7</plexusCompilerVersion>
@@ -235,6 +234,11 @@
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
         <version>17.0</version>
+      </dependency>
+      <dependency>
+        <groupId>org.renjin</groupId>
+        <artifactId>renjin-asm</artifactId>
+        <version>5.0.4</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

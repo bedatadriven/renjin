@@ -1,7 +1,7 @@
 package org.renjin.gcc.codegen;
 
-import org.objectweb.asm.Label;
 import org.renjin.gcc.gimple.GimpleBasicBlock;
+import org.renjin.repackaged.asm.Label;
 
 import java.util.HashMap;
 import java.util.Map;

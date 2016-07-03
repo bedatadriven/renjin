@@ -1,6 +1,5 @@
 package org.renjin.gcc.codegen.expr;
 
-import org.objectweb.asm.Type;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.array.ArrayExpr;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
@@ -23,6 +22,7 @@ import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.expr.*;
 import org.renjin.gcc.gimple.type.*;
 import org.renjin.gcc.symbols.SymbolTable;
+import org.renjin.repackaged.asm.Type;
 
 import java.util.List;
 

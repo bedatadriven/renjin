@@ -2,13 +2,13 @@ package org.renjin.compiler.ir.ssa;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import org.objectweb.asm.Type;
-import org.objectweb.asm.commons.InstructionAdapter;
 import org.renjin.compiler.cfg.FlowEdge;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.Variable;
+import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.asm.commons.InstructionAdapter;
 
 import java.util.Iterator;
 import java.util.List;

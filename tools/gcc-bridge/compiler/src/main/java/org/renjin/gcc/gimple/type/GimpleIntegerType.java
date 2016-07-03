@@ -1,6 +1,6 @@
 package org.renjin.gcc.gimple.type;
 
-import org.objectweb.asm.Type;
+import org.renjin.repackaged.asm.Type;
 
 public class GimpleIntegerType extends GimplePrimitiveType {
   private boolean unsigned;

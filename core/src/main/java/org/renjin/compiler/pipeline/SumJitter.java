@@ -1,14 +1,13 @@
 package org.renjin.compiler.pipeline;
 
 
-import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
 import org.renjin.compiler.pipeline.accessor.Accessor;
 import org.renjin.compiler.pipeline.accessor.Accessors;
 import org.renjin.compiler.pipeline.accessor.InputGraph;
+import org.renjin.repackaged.asm.Label;
+import org.renjin.repackaged.asm.MethodVisitor;
 
-import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Opcodes.ARETURN;
+import static org.renjin.repackaged.asm.Opcodes.*;
 
 public class SumJitter implements FunctionJitter {
   @Override

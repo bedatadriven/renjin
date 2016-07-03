@@ -1,14 +1,14 @@
 package org.renjin.compiler.pipeline.accessor;
 
+import org.renjin.compiler.pipeline.ComputeMethod;
+import org.renjin.compiler.pipeline.VectorPipeliner;
+import org.renjin.repackaged.asm.MethodVisitor;
+import org.renjin.sexp.Vector;
+
 import java.lang.reflect.Modifier;
 import java.util.logging.Logger;
 
-import org.objectweb.asm.MethodVisitor;
-import org.renjin.compiler.pipeline.ComputeMethod;
-import org.renjin.compiler.pipeline.VectorPipeliner;
-import org.renjin.sexp.Vector;
-
-import static org.objectweb.asm.Opcodes.*;
+import static org.renjin.repackaged.asm.Opcodes.*;
 
 public class VirtualAccessor extends Accessor {
 

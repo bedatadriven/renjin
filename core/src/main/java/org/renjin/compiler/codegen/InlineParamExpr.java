@@ -1,7 +1,7 @@
 package org.renjin.compiler.codegen;
 
-import org.objectweb.asm.commons.InstructionAdapter;
 import org.renjin.compiler.ir.tac.expressions.Expression;
+import org.renjin.repackaged.asm.commons.InstructionAdapter;
 
 
 public class InlineParamExpr {

@@ -1,10 +1,10 @@
 package org.renjin.compiler.ir.tac.statements;
 
-import org.objectweb.asm.commons.InstructionAdapter;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.TreeNode;
 import org.renjin.compiler.ir.tac.expressions.Expression;
+import org.renjin.repackaged.asm.commons.InstructionAdapter;
 
 
 public interface Statement extends TreeNode {

@@ -1,4 +1,6 @@
 
 useDynLib( "nativeWithoutRegistration" )
 
-export(secret)
+export(dotCall)
+export(dotC)
+export(fortranCall)

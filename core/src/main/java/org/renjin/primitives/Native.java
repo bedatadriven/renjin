@@ -52,11 +52,11 @@ public class Native {
       String methodName = ((StringVector) methodExp).getElementAsString(0);
 
 
-      if(packageName.equals("base")) {
+      if("base".equals(packageName)) {
         return delegateToJavaMethod(context, Base.class, methodName, callArguments);
       }
 
-      List<Method> methods = findMethod(getPackageClass(packageName, context), methodName);
+      List<Method> methods = findMethod(getPackageClass(context, packageName, methodName), methodName);
       if (methods.isEmpty()) {
         throw new EvalException("Can't find method %s in package %s", methodName, packageName);
       }
@@ -199,12 +199,13 @@ public class Native {
       ExternalPtr<MethodHandle> address = (ExternalPtr<MethodHandle>) methodObject.get("address");
       method = address.getInstance();
       methodName = ((StringVector) methodObject.get("name")).getElementAsString(0);
+      
     } else if(methodExp instanceof StringVector) {
       if("base".equals(packageName)) {
         className = "org.renjin.appl.Appl";
-      }
+      } 
       methodName = ((StringVector) methodExp).getElementAsString(0);
-      method = findFortranMethod(className, methodName);
+      method = findFortranMethod(context, className, methodName);
 
     } else if(methodExp instanceof ExternalPtr && ((ExternalPtr) methodExp).getInstance() instanceof Method) {
       Method methodRef = (Method) ((ExternalPtr) methodExp).getInstance();
@@ -280,15 +281,25 @@ public class Native {
   }
 
 
-  private static MethodHandle findFortranMethod(String className, String methodName) throws IllegalAccessException {
-    Class<?> declaringClass = null;
-    try {
-      declaringClass = Class.forName(className);
-    } catch (ClassNotFoundException e) {
-      throw new EvalException(String.format("Could not find class named %s", className), e);
-    }
+  private static MethodHandle findFortranMethod(Context context, String className, String methodName) throws IllegalAccessException {
 
     String mangledName = methodName.toLowerCase() + "_";
+
+    Class<?> declaringClass = null;
+    if(className == null) {
+      Optional<Class> namespaceClass = context.getNamespaceRegistry().resolveNativeMethod(mangledName);
+      if(!namespaceClass.isPresent()) {
+        throw new EvalException("Could not resolve native method '%s'", methodName);
+      }
+      declaringClass = namespaceClass.get();
+      
+    } else {
+      try {
+        declaringClass = Class.forName(className);
+      } catch (ClassNotFoundException e) {
+        throw new EvalException(String.format("Could not find class named %s", className), e);
+      }
+    }
 
     for(Method method : declaringClass.getMethods()) {
       if(method.getName().equals(mangledName) &&
@@ -349,7 +360,7 @@ public class Native {
 
       Class clazz;
       if (packageName != null) {
-        clazz = getPackageClass(packageName, context);
+        clazz = getPackageClass(context, packageName, methodName);
       } else if (className != null) {
         clazz = Class.forName(className);
       } else {
@@ -463,13 +474,23 @@ public class Native {
     return overloads;
   }
 
-  private static Class getPackageClass(String packageName, Context context) {
-    if(packageName == null || packageName.equals("base")) {
+  private static Class getPackageClass(Context context, String packageName, String methodName) {
+    if("base".equals(packageName)) {
       return Base.class;
-    } else if(packageName.equals("methods")) {
+   
+    } else if("methods".equals(packageName)) {
       return Methods.class;
-    } else if(packageName.equals("grDevices")) {
+      
+    } else if("grDevices".equals(packageName)) {
       return Graphics.class;
+
+    } else if(packageName == null) {
+      Optional<Class> namespaceClass = context.getNamespaceRegistry().resolveNativeMethod(methodName);
+      if(!namespaceClass.isPresent()) {
+        throw new EvalException("Could not resolve native method '%s'", methodName);
+      }
+      return namespaceClass.get();
+      
     } else {
       Namespace namespace = context.getNamespaceRegistry().getNamespace(context, packageName);
       FqPackageName fqname = namespace.getFullyQualifiedName();

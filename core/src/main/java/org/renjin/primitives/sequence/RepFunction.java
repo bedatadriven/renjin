@@ -114,12 +114,14 @@ public class RepFunction extends SpecialFunction {
      */
     if(x instanceof DoubleVector &&
         times.length() == 1 &&
+        lengthOut != 0 &&
         (x instanceof DeferredComputation || resultLength > RepDoubleVector.LENGTH_THRESHOLD)) {
 
       return new RepDoubleVector(x, resultLength, each, repeatAttributes(x, resultLength, each));
 
     } else if(x instanceof IntVector &&
         times.length() == 1 &&
+        lengthOut != 0 &&
         (x instanceof DeferredComputation || resultLength > RepIntVector.LENGTH_THRESHOLD)) {
 
       return new RepIntVector(x, resultLength, each, repeatAttributes(x, resultLength, each));

@@ -97,6 +97,15 @@ public class SequenceTest extends EvalTestCase {
   }
   
   @Test
+  public void zeroLengthRep() {
+    // Deferred calculation in x...
+    eval(" x <- (1:1e8)*3");
+    
+    // Repeat it, but with length 0...
+    eval(" x <- rep(x, length=0)");
+  }
+  
+  @Test
   public void repOneDimensionalArray() {
     eval("a <- 1:3");
     eval("dim(a) <- 3");

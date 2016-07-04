@@ -156,7 +156,7 @@ public class PosixLtVector extends TimeVector {
     time = chronology.minuteOfHour().add(time, minuteOfHour);
     time = chronology.secondOfMinute().add(time, secondOfMinute);
     
-    return new DateTime(time);
+    return new DateTime(time, chronology);
 
   }
 

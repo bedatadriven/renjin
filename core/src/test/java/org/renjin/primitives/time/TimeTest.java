@@ -81,6 +81,14 @@ public class TimeTest extends EvalTestCase {
   }
   
   @Test
+  public void asDateWithFormat() {
+    eval(" thisDate<- '2016-06-1'  ");
+    eval(" thisDate2 <- as.Date(thisDate,'%Y-%m-%d')");
+    
+    assertThat(eval("thisDate2"), equalTo(c(16953)));
+  }
+  
+  @Test
   public void strptimeDst() {
     // 2015
     // NL: DST (CET) ended on 25 Oct

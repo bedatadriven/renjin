@@ -34,7 +34,7 @@ public class PosixLt2DateTest extends EvalTestCase {
     assertThat(eval("lt$yday"), equalTo(c_i(152)));
     assertThat(eval("lt$isdst"), equalTo(c_i(0)));
     assertThat(eval("class(lt)"), equalTo(c("POSIXlt", "POSIXt")));
-    assertThat(eval("attr(lt,'tzone')"), equalTo(c("UTC")));
+    assertThat(eval("attr(lt,'tzone')"), equalTo(c("GMT")));
     
     // Now convert from lt to Date class
     eval("d <- as.Date(lt)");

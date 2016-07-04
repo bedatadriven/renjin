@@ -177,6 +177,7 @@ public class PosixLtVector extends TimeVector {
     private IntArrayVector.Builder dst = new IntArrayVector.Builder();
     private IntArrayVector.Builder gmtOffset = new IntArrayVector.Builder();
     private DateTimeZone zone;
+    private StringVector zoneName;
 
     public Builder add(DateTime time) {
       second.add(time.getSecondOfMinute());
@@ -215,14 +216,19 @@ public class PosixLtVector extends TimeVector {
       return this;
     }
 
-    public Builder withTimeZone(DateTimeZone tz) {
-      zone = tz;
-      return this;
+    public void withTimeZone(DateTimeZone zone, String zoneName) {
+      this.zone = zone;
+      this.zoneName = StringVector.valueOf(zoneName);
     }
-
 
     public Builder withTimeZone(SEXP timeZoneAttribute) {
       zone = Time.timeZoneFromTzoneAttribute(timeZoneAttribute);
+      
+      if(timeZoneAttribute instanceof StringVector) {
+        zoneName = (StringVector) timeZoneAttribute;
+      } else {
+        zoneName = StringVector.valueOf(zone.getID());
+      }
       return this;
     }
 
@@ -261,11 +267,12 @@ public class PosixLtVector extends TimeVector {
       list.add(DST_FIELD, dst);
       list.add(GMT_OFFSET_FIELD, gmtOffset);
       if(zone != null) {
-        list.setAttribute(Symbols.TZONE, StringArrayVector.valueOf(zone.getID()));
+        list.setAttribute(Symbols.TZONE, zoneName);
       }
       list.setAttribute(Symbols.CLASS, new StringArrayVector("POSIXlt", "POSIXt"));
       return list.build();
     }
+
 
   }
 }

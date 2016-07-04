@@ -68,7 +68,7 @@ public class Time {
     
     PosixLtVector.Builder result = new PosixLtVector.Builder();
     if(!Strings.isNullOrEmpty(tz)) {
-      result.withTimeZone(timeZone);
+      result.withTimeZone(timeZone, tz);
     }
     
     int resultLength = Math.max(x.length(), formats.length());

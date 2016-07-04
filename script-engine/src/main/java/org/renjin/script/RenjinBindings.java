@@ -117,7 +117,8 @@ public class RenjinBindings implements Bindings {
 
   @Override
   public Object remove(Object key) {
-    
-    throw new UnsupportedOperationException("nyi");
+    Object originalValue = get(key);
+    frame.remove(toSymbol(key));
+    return originalValue;
   }
 }

@@ -837,6 +837,14 @@ public class EvaluationTest extends EvalTestCase {
   }
   
   @Test
+  public void catchEvalExceptions() {
+    eval(" p <- quote(foo(x)) ");
+    eval(" x <- tryCatch({ p[NA] <- list }, error = function(e) 42) ");
+    
+    assertThat(eval("x"), equalTo(c(42)));
+  }
+  
+  @Test
   public void caughtWarnings() {
     eval("x <- tryCatch({ warning('foo'); 'not caught' }, warning = function(e) e)");
     

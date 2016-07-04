@@ -80,5 +80,10 @@ public class TypeConverterTest extends EvalTestCase {
     // assertThat(eval("if(instance$cakeConverted==cake) TRUE else FALSE"),logicalVectorOf(Logical.TRUE));
   }
 
-  
+  @Test
+  public void catchExceptions() {
+    eval("import(org.renjin.invoke.reflection.CallJavaFromRTest)");
+    eval("x <- tryCatch(CallJavaFromRTest$throwException(), error=function(e) e$message) ");
+    eval("print(x)");
+  }
 }

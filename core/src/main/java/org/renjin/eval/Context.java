@@ -31,6 +31,7 @@ import org.renjin.compiler.pipeline.VectorPipeliner;
 import org.renjin.parser.RParser;
 import org.renjin.primitives.Warning;
 import org.renjin.primitives.packaging.NamespaceRegistry;
+import org.renjin.primitives.special.ControlFlowException;
 import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.sexp.*;
 
@@ -280,6 +281,16 @@ public class Context {
     }
     try {
       return functionExpr.apply(this, rho, call, call.getArguments());
+    } catch (EvalException | ControlFlowException | ConditionException | Error e) {
+      throw e;
+
+    } catch (Exception e) {
+      String message = e.getMessage();
+      if(message == null) {
+        message = e.getClass().getName();
+      }
+      throw new EvalException(message, e);
+      
     } finally {
       if(Profiler.ENABLED && profiling) {
         Profiler.functionEnd();

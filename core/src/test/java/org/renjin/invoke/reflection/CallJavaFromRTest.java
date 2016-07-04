@@ -157,4 +157,8 @@ public class CallJavaFromRTest {
   public void setCakeConverted(MyCakeTest cakeConverted) {
     this.cakeConverted = cakeConverted;
   }
+  
+  public static void throwException() {
+    throw new RuntimeException("FOO!");
+  }
 }

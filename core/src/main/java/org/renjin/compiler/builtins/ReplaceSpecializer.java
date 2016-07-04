@@ -2,6 +2,7 @@ package org.renjin.compiler.builtins;
 
 import org.renjin.compiler.builtins.subset.UpdateElementCall;
 import org.renjin.compiler.ir.ValueBounds;
+import org.renjin.compiler.ir.tac.RuntimeState;
 
 import java.util.List;
 
@@ -10,7 +11,7 @@ import java.util.List;
  */
 public class ReplaceSpecializer implements Specializer {
   @Override
-  public Specialization trySpecialize(List<ValueBounds> argumentTypes) {
+  public Specialization trySpecialize(RuntimeState runtimeState, List<ValueBounds> argumentTypes) {
     if(argumentTypes.size() == 3) {
       
       

@@ -79,6 +79,9 @@ public class Assignment implements Statement {
   public int emit(EmitContext emitContext, InstructionAdapter mv) {
 
     VariableStorage storage = emitContext.getVariableStorage(lhs);
+    if(storage == null) {
+      throw new IllegalStateException("Variable " + lhs + " not allocated.");
+    }
     Type rhsType;
     if(rhs instanceof LValue) {
       rhsType = emitContext.getVariableStorage((LValue) rhs).getType();

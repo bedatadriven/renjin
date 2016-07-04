@@ -5,4 +5,11 @@ package org.renjin.compiler.builtins;
  * a predictable result.
  */
 public class FailedToSpecializeException extends RuntimeException {
+
+  public FailedToSpecializeException() {
+  }
+
+  public FailedToSpecializeException(String message) {
+    super(message);
+  }
 }

@@ -1,6 +1,5 @@
 package org.renjin.compiler.builtins;
 
-
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
@@ -10,13 +9,13 @@ import org.renjin.sexp.SEXP;
 
 import java.util.List;
 
-public class UnspecializedCall implements Specialization {
 
-  public static final UnspecializedCall INSTANCE = new UnspecializedCall();
+public class GenericPrimitive implements Specialization {
   
-  private UnspecializedCall() {
-  }
-
+  public static final GenericPrimitive INSTANCE = new GenericPrimitive();
+  
+  private GenericPrimitive() { }
+  
   @Override
   public Type getType() {
     return Type.getType(SEXP.class);
@@ -29,6 +28,6 @@ public class UnspecializedCall implements Specialization {
 
   @Override
   public void load(EmitContext emitContext, InstructionAdapter mv, List<IRArgument> arguments) {
-    throw new FailedToSpecializeException("failed to specialize");
+    throw new FailedToSpecializeException("generic dispatch from primitives not yet implemented.");
   }
 }

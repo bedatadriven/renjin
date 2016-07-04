@@ -28,12 +28,14 @@ import org.renjin.compiler.cfg.ControlFlowGraph;
 import org.renjin.compiler.cfg.DominanceTree;
 import org.renjin.compiler.cfg.UseDefMap;
 import org.renjin.compiler.codegen.ByteCodeEmitter;
+import org.renjin.compiler.ir.exception.InvalidSyntaxException;
 import org.renjin.compiler.ir.ssa.SsaTransformer;
 import org.renjin.compiler.ir.tac.IRBody;
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
 import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.primitives.Deparse;
 import org.renjin.sexp.*;
 
 
@@ -97,7 +99,6 @@ public class ForFunction extends SpecialFunction {
       RuntimeState runtimeState = new RuntimeState(context, rho);
       IRBodyBuilder builder = new IRBodyBuilder(runtimeState);
       IRBody body = builder.buildLoopBody(call, elements);
-      System.out.println(body);
 
       ControlFlowGraph cfg = new ControlFlowGraph(body);
 
@@ -105,12 +106,9 @@ public class ForFunction extends SpecialFunction {
       SsaTransformer ssaTransformer = new SsaTransformer(cfg, dTree);
       ssaTransformer.transform();
 
-      System.out.println(cfg);
-      
       UseDefMap useDefMap = new UseDefMap(cfg);
       TypeSolver types = new TypeSolver(cfg, useDefMap);
       types.execute();
-      types.dumpBounds();
       
       types.verifyFunctionAssumptions(runtimeState);
 
@@ -120,11 +118,11 @@ public class ForFunction extends SpecialFunction {
       compiledBody = emitter.compileLoopBody().newInstance();
 
     } catch (NotCompilableException e) {
-      context.warn(String.format("Could not compile loop with %d iterations because of %s:",
-          elements.length(),
-          e.getMessage()));
-      e.printStackTrace();
+      context.warn("Could not compile loop with %d iterations because: " + format(context, e));
       return false;
+
+    } catch (InvalidSyntaxException e) {
+      throw new EvalException(e.getMessage());
       
     } catch (Exception e) {
       throw new EvalException("Exception compiling loop: " + e.getMessage(), e);
@@ -133,5 +131,22 @@ public class ForFunction extends SpecialFunction {
     compiledBody.run(context, rho, elements, i);
 
     return true;
+  }
+
+  private String format(Context context, NotCompilableException e) {
+    StringBuilder s = new StringBuilder();
+    while(e != null) {
+      if(s.length() > 0) {
+        s.append(" > ");
+      }
+      if(e.getSexp() != null) {
+        s.append(Deparse.deparseExp(context, e.getSexp()));
+      }
+      if(e.getMessage() != null) {
+        s.append(": ").append(e.getMessage());
+      }
+      e = e.getCause();
+    }
+    return s.toString();
   }
 }

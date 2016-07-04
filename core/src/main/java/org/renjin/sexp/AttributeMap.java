@@ -445,7 +445,7 @@ public class AttributeMap {
      * @param value the proposed {@code class} attribute
      * @return the {@code classNames} vector, coerced to {@link StringVector} if not null.
      */
-    private Builder setClass(SEXP value) {
+    public Builder setClass(SEXP value) {
       if(value.length() == 0) {
         return remove(Symbols.CLASS);
       }

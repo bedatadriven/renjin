@@ -6,6 +6,7 @@ import org.renjin.compiler.builtins.*;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
+import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.primitives.Primitives;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
@@ -20,6 +21,7 @@ import java.util.Map;
  */
 public class BuiltinCall implements CallExpression {
 
+  private final RuntimeState runtimeState;
   private FunctionCall call;
   private final Primitives.Entry primitive;
   private final List<IRArgument> arguments;
@@ -28,7 +30,8 @@ public class BuiltinCall implements CallExpression {
   
   private Specialization specialization = UnspecializedCall.INSTANCE;
 
-  public BuiltinCall(FunctionCall call, Primitives.Entry primitive, List<IRArgument> arguments) {
+  public BuiltinCall(RuntimeState runtimeState, FunctionCall call, Primitives.Entry primitive, List<IRArgument> arguments) {
+    this.runtimeState = runtimeState;
     this.call = call;
     this.primitive = primitive;
     this.arguments = arguments;
@@ -62,7 +65,7 @@ public class BuiltinCall implements CallExpression {
       specialization.load(emitContext, mv, arguments);
 
     } catch (FailedToSpecializeException e) {
-      throw new NotCompilableException(call, e.getMessage());
+      throw new NotCompilableException(call, "Failed to specialize .Primitive(" + primitive.name + ")");
     }
     return 1;
   }
@@ -73,7 +76,7 @@ public class BuiltinCall implements CallExpression {
     for (IRArgument argument : arguments) {
       argumentTypes.add(argument.getExpression().updateTypeBounds(typeMap));
     }
-    specialization = specializer.trySpecialize(argumentTypes);
+    specialization = specializer.trySpecialize(runtimeState, argumentTypes);
     
     return specialization.getValueBounds();
   }

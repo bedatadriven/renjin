@@ -2,9 +2,11 @@ package org.renjin.compiler.builtins;
 
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
+import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.invoke.codegen.OverloadComparator;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.primitives.Primitives;
+import org.renjin.sexp.AtomicVector;
 import org.renjin.sexp.Null;
 
 import java.util.Collections;
@@ -29,7 +31,7 @@ public class BuiltinSpecializer implements Specializer {
   }
   
   @Override
-  public Specialization trySpecialize(List<ValueBounds> argumentTypes) {
+  public Specialization trySpecialize(RuntimeState runtimeState, List<ValueBounds> argumentTypes) {
     JvmMethod method = selectOverload(argumentTypes);
     if(method == null) {
       return UnspecializedCall.INSTANCE;
@@ -37,8 +39,9 @@ public class BuiltinSpecializer implements Specializer {
     
     if(method.isGeneric()) {
       ValueBounds object = argumentTypes.get(0);
-      if(!object.isClassAttributeConstant() || object.getConstantClassAttribute() != Null.INSTANCE) {
-        return UnspecializedCall.INSTANCE;
+      Specialization genericMethod = maybeSpecializeToGenericCall(object);
+      if(genericMethod != null) {
+        return genericMethod;
       }
     }
     
@@ -47,6 +50,17 @@ public class BuiltinSpecializer implements Specializer {
     } else {
       return new StaticMethodCall(method).furtherSpecialize(argumentTypes);
     }
+  }
+
+  private Specialization maybeSpecializeToGenericCall(ValueBounds object) {
+    if(!object.isClassAttributeConstant()) {
+      return GenericPrimitive.INSTANCE;
+    }
+    AtomicVector classVector = object.getConstantClassAttribute();
+    if(classVector == Null.INSTANCE) {
+      return null;
+    }
+    return GenericPrimitive.INSTANCE;
   }
 
   private JvmMethod selectOverload(List<ValueBounds> argumentTypes) {

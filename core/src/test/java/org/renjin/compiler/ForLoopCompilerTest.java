@@ -66,7 +66,17 @@ public class ForLoopCompilerTest extends EvalTestCase {
     eval(" s <- 0 ");
     eval(" for(i in 1:500) s <- add(s, sqrt(i)) ");
   
-    assertThat(eval("s"), closeTo(c(7464.534), 0.01));
+    assertThat(eval("s"), closeTo(c(7464.534), 2.0));
+  }
+
+  @Test
+  public void loopWithClosureCubeCall() {
+    eval(" myfn <- function(i, z) (i/length(z))^2 ");
+    eval(" s <- 0 ");
+    eval(" z <- 1:500 ");
+    eval(" for(i in z) s <- s + myfn(i, z) ");
+
+    assertThat(eval("s"), closeTo(c(167.167), 0.1));
   }
 
   @Test

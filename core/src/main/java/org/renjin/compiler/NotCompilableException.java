@@ -8,12 +8,12 @@ public class NotCompilableException extends RuntimeException {
   private SEXP sexp;
 
   public NotCompilableException(SEXP sexp) {
-    super("unsupported expression: " + sexp);
+    super("unsupported expression");
     this.sexp = sexp;
   }
 
   public NotCompilableException(SEXP sexp, String message) {
-    super(sexp + ": " + message);
+    super(message);
     this.sexp = sexp;
   }
 
@@ -23,5 +23,9 @@ public class NotCompilableException extends RuntimeException {
 
   public SEXP getSexp() {
     return sexp;
+  }
+  
+  public NotCompilableException getCause() {
+    return (NotCompilableException) super.getCause();
   }
 }

@@ -82,10 +82,7 @@ public class InlinedFunction {
   
   public ValueBounds computeBounds() {
     
-    System.out.println(cfg);
-    
     types.execute();
-    types.dumpBounds();
     
     if(returnStatements.size() == 1) {
       return returnStatements.get(0).getRHS().getValueBounds();

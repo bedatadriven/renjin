@@ -13,11 +13,9 @@ import org.renjin.compiler.ir.tac.statements.Statement;
 import org.renjin.eval.Context;
 import org.renjin.repackaged.asm.*;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
-import org.renjin.repackaged.asm.util.TraceClassVisitor;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.SEXP;
 
-import java.io.PrintWriter;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.renjin.repackaged.asm.Type.getMethodDescriptor;
@@ -63,7 +61,6 @@ public class ByteCodeEmitter implements Opcodes {
   private void startClass(Class<?> interfaceClass) {
 
     cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-    cv = new TraceClassVisitor(cw, new PrintWriter(System.out, true));
     cv = cw;
     cv.visit(V1_6, ACC_PUBLIC + ACC_SUPER, className, null,
             Type.getInternalName(Object.class), new String[] { Type.getInternalName(interfaceClass) });
@@ -84,7 +81,6 @@ public class ByteCodeEmitter implements Opcodes {
   private void writeImplementation() {
     int argumentSize = 3; // this + context + environment
     VariableSlots variableSlots = new VariableSlots(argumentSize, types);
-    System.out.println(variableSlots);
     EmitContext emitContext = new EmitContext(cfg, argumentSize, variableSlots);
     
     MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "evaluate", 
@@ -98,12 +94,10 @@ public class ByteCodeEmitter implements Opcodes {
   private void writeLoopImplementation() {
     int argumentSize = 5; // this + context + environment + sequence + iteration
     VariableSlots variableSlots = new VariableSlots(argumentSize, types);
-    System.out.println(variableSlots);
     EmitContext emitContext = new EmitContext(cfg, argumentSize, variableSlots);
     emitContext.setLoopVectorIndex(3);
     emitContext.setLoopIterationIndex(4);
-
-
+    
     MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "run",
         getMethodDescriptor(Type.VOID_TYPE, getType(Context.class), getType(Environment.class),
         getType(SEXP.class), Type.INT_TYPE),

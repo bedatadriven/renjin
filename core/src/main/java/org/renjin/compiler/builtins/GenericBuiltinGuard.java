@@ -1,6 +1,7 @@
 package org.renjin.compiler.builtins;
 
 import org.renjin.compiler.ir.ValueBounds;
+import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.sexp.Null;
 
 import java.util.List;
@@ -18,13 +19,13 @@ public class GenericBuiltinGuard implements Specializer {
   }
 
   @Override
-  public Specialization trySpecialize(List<ValueBounds> argumentTypes) {
+  public Specialization trySpecialize(RuntimeState runtimeState, List<ValueBounds> argumentTypes) {
     ValueBounds object = argumentTypes.get(0);
     if(object.isClassAttributeConstant()) {
       if(object.getConstantClassAttribute() == Null.INSTANCE) {
         // The argument has no class attribute, so we can safely
         // specialize the (builtin) default function.
-        return specializer.trySpecialize(argumentTypes);
+        return specializer.trySpecialize(runtimeState, argumentTypes);
       }
     }
     // Can't make any assumptions. 

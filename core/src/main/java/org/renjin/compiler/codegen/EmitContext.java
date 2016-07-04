@@ -68,7 +68,7 @@ public class EmitContext {
   
   public EmitContext inlineContext(ControlFlowGraph cfg, TypeSolver types) {
     
-    VariableSlots childSlots = new VariableSlots(variableSlots.getNumLocals(), types);
+    VariableSlots childSlots = new VariableSlots(paramSize + variableSlots.getNumLocals(), types);
     if(childSlots.getNumLocals() > maxInlineVariables) {
       maxInlineVariables = childSlots.getNumLocals();
     }

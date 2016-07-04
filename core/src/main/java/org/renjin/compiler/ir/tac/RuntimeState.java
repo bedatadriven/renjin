@@ -3,7 +3,6 @@ package org.renjin.compiler.ir.tac;
 import com.google.common.collect.Maps;
 import org.renjin.compiler.NotCompilableException;
 import org.renjin.compiler.ir.exception.InvalidSyntaxException;
-import org.renjin.compiler.ir.tac.expressions.Constant;
 import org.renjin.eval.Context;
 import org.renjin.packaging.SerializedPromise;
 import org.renjin.sexp.*;
@@ -62,6 +61,14 @@ public class RuntimeState {
 
   public Function findFunction(Symbol functionName) {
 
+    Function f = findFunctionIfExists(functionName);
+    if (f != null) {
+      return f;
+    }
+    throw new NotCompilableException(functionName, "Could not find function " + functionName);
+  }
+
+  public Function findFunctionIfExists(Symbol functionName) {
     if(resolvedFunctions.containsKey(functionName)) {
       return resolvedFunctions.get(functionName);
     }
@@ -75,7 +82,7 @@ public class RuntimeState {
       }
       environment = environment.getParent();
     }
-    throw new NotCompilableException(functionName, "Could not find function " + functionName);
+    return null;
   }
 
   /**

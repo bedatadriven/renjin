@@ -2,7 +2,6 @@ package org.renjin.compiler;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.sun.media.sound.SF2Sample;
 import org.renjin.compiler.cfg.*;
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
@@ -194,9 +193,6 @@ public class TypeSolver {
       ValueBounds newBounds = ValueBounds.union(boundSet);
       ValueBounds oldBounds = variableBounds.put(assignment.getLHS(), newBounds);
       assignment.getLHS().update(newBounds);
-//      if(!Objects.equals(oldBounds, newBounds)) {
-//        System.out.println(phiFunction + " => " + ValueBounds.union(boundSet) + " => " + assignment.getLHS());
-//      }
     }
   }
   

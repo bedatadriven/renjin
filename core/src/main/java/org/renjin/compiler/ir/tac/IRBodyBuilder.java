@@ -10,10 +10,7 @@ import org.renjin.compiler.ir.tac.functions.*;
 import org.renjin.compiler.ir.tac.statements.*;
 import org.renjin.sexp.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Attempts to create an intermediate representation of the R code, partially
@@ -39,6 +36,7 @@ public class IRBodyBuilder {
   private RuntimeState runtimeContext;
   
   private Map<String, Integer> localVariableNames = Maps.newHashMap();
+  private Set<Symbol> paramSet = new HashSet<>();
 
   public IRBodyBuilder(RuntimeState runtimeState) {
     this.runtimeContext = runtimeState;
@@ -92,6 +90,11 @@ public class IRBodyBuilder {
     
     statements = Lists.newArrayList();
     labels = Maps.newHashMap();
+
+
+    for (PairList.Node node : closure.getFormals().nodes()) {
+      paramSet.add(node.getTag());
+    }
     
     // First define the parameters which will be supplied
     List<ReadParam> params = Lists.newArrayList();
@@ -109,9 +112,12 @@ public class IRBodyBuilder {
     for (PairList.Node formal : closure.getFormals().nodes()) {
       if (!suppliedArguments.contains(formal.getTag())) {
         SEXP defaultValue = formal.getValue();
-        if (defaultValue != Symbol.MISSING_ARG) {
+        if (defaultValue == Symbol.MISSING_ARG) {
+          throw new InvalidSyntaxException("argument '" + formal.getTag() + "' is missing, with no default");
+        } else {
           if (!isConstant(defaultValue)) {
-            throw new NotCompilableException(defaultValue, "Non-constant default value for argument " + formal.getName());
+            throw new NotCompilableException(defaultValue, "argument '" + formal.getName() + "' has not been provided" +
+                " and has a default value with (potential) side effects.");
           }
           statements.add(new Assignment(new EnvironmentVariable(formal.getTag()), new Constant(formal.getValue())));
         }
@@ -154,11 +160,13 @@ public class IRBodyBuilder {
     List<Assignment> initializations = new ArrayList<>();
     
     for (EnvironmentVariable environmentVariable : variables.values()) {
-      SEXP value = runtimeContext.findVariable(environmentVariable.getName());
+      if(!paramSet.contains(environmentVariable.getName())) {
+        SEXP value = runtimeContext.findVariable(environmentVariable.getName());
 
-      if(value != Symbol.UNBOUND_VALUE) {
-        initializations.add(new Assignment(environmentVariable, 
-            new ReadEnvironment(environmentVariable.getName(), ValueBounds.of(value))));
+        if (value != Symbol.UNBOUND_VALUE) {
+          initializations.add(new Assignment(environmentVariable,
+              new ReadEnvironment(environmentVariable.getName(), ValueBounds.of(value))));
+        }
       }
     }
     

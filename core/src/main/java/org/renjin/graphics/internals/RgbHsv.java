@@ -1032,7 +1032,7 @@ public class RgbHsv {
 
   @Internal
   public static StringVector rgb256(DoubleVector red, DoubleVector green,
-                                    DoubleVector blue, DoubleVector alpha, StringVector names) {
+                                    DoubleVector blue, DoubleVector alpha, AtomicVector names) {
     int maxindex = Math
         .max(Math.max(Math.max(red.length(), green.length()),
             blue.length()), alpha.length());

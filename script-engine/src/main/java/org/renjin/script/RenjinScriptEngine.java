@@ -145,14 +145,15 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
     return eval(context, source);
   }
   
-  private Object eval(Context context, SEXP source) {
+  private Object eval(Context context, SEXP source) throws ScriptException {
     try {
       return context.evaluate( source, context.getEnvironment());
     } catch(BreakException e) {
-      throw new EvalException("no loop for break");
+      throw new ScriptException("no loop for break");
     } catch(NextException e) {
-      throw new EvalException("no loop for next");
-
+      throw new ScriptException("no loop for next");
+    } catch (EvalException e) {
+      throw new ScriptException(e);
     }
   }
 

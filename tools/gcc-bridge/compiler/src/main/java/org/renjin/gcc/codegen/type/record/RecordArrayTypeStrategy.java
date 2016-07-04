@@ -1,8 +1,5 @@
 package org.renjin.gcc.codegen.type.record;
 
-import com.google.common.base.Optional;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
 import org.renjin.gcc.codegen.array.ArrayExpr;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategies;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
@@ -17,13 +14,13 @@ import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.expr.GimpleFieldRef;
-import org.renjin.gcc.gimple.type.*;
+import org.renjin.gcc.gimple.type.GimpleArrayType;
+import org.renjin.gcc.gimple.type.GimplePrimitiveType;
+import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
 import org.renjin.repackaged.asm.Type;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
 
 import static org.renjin.gcc.codegen.expr.Expressions.*;
 
@@ -49,97 +46,13 @@ public class RecordArrayTypeStrategy extends RecordTypeStrategy<RecordArrayExpr>
   private int arrayLength;
   private final RecordArrayValueFunction valueFunction;
   
-  public RecordArrayTypeStrategy(GimpleRecordTypeDef recordTypeDef) {
+  public RecordArrayTypeStrategy(GimpleRecordTypeDef recordTypeDef, Type fieldType) {
     super(recordTypeDef);
-    fieldType = computeElementType(recordTypeDef).get();
+    this.fieldType = fieldType;
     arrayType = Wrappers.valueArrayType(fieldType);
     arrayLength = computeArrayLength(recordTypeDef, fieldType);
     valueFunction = new RecordArrayValueFunction(fieldType, arrayLength);
   }
-
-
-  /**
-   * Returns true if the given {@code recordTypeDef} can be compiled using this strategy.
-   */
-  public static boolean accept(GimpleRecordTypeDef recordTypeDef) {
-    return computeElementType(recordTypeDef).isPresent();
-  }
-  
-  private static Optional<Type> computeElementType(GimpleRecordTypeDef typeDef) {
-    Set<Type> addressableValueTypes = new HashSet<>();
-    Set<Type> valueTypes = new HashSet<>();
-    
-    // Enumerate the different primitives that are part of this 
-    // record layout, either as arrays or as individual values.
-    
-    for (GimpleField field : typeDef.getFields()) {
-      if(isCircularField(typeDef, field)) {
-        // ignore
-        
-      } else if(field.getType() instanceof GimpleArrayType) {
-        GimpleType componentType = findUltimateComponentType((GimpleArrayType) field.getType());
-        if(componentType instanceof GimplePrimitiveType) {
-          addressableValueTypes.add(((GimplePrimitiveType) componentType).jvmType());
-        } else {
-          return Optional.absent();
-        }
-      
-      } else if(field.getType() instanceof GimplePrimitiveType) {
-        Type valueType = ((GimplePrimitiveType) field.getType()).jvmType();
-        if(field.isAddressed()) {
-          addressableValueTypes.add(valueType);
-        } else {
-          valueTypes.add(valueType);
-        }
-      } else {
-        return Optional.absent();
-      }
-    }
-    
-    // We can never cast a double[] to a float[], so bail if we have arrays or 
-    // addressable values of different types
-    if(addressableValueTypes.size() > 1) {
-      return Optional.absent();
-      
-    } else if(addressableValueTypes.size() == 1) {
-      Type type = Iterables.getOnlyElement(addressableValueTypes);
-      
-      // Check to see if we've implemented the casting yet
-      Set<Type> dissonantTypes = Sets.difference(valueTypes, addressableValueTypes);
-      for (Type dissonantType : dissonantTypes) {
-        if(!castingSupported(type, dissonantType)) {
-          return Optional.absent();
-        }
-      }
-      
-      return Optional.of(type);
-      
-    }
-    
-    // If we have exactly one value type, that's the obvious choice for the 
-    // element size
-    if(valueTypes.size() == 1) {
-      return Optional.of(Iterables.getOnlyElement(valueTypes));
-    }
-    return Optional.absent();
-  }
-
-  private static boolean castingSupported(Type arrayElementType, Type valueType) {
-    if(arrayElementType.equals(Type.BYTE_TYPE) && valueType.equals(Type.INT_TYPE)) {
-      return true;
-    }
-    return false;
-  }
-
-
-  private static GimpleType findUltimateComponentType(GimpleArrayType arrayType) {
-    if(arrayType.getComponentType() instanceof GimpleArrayType) {
-      return findUltimateComponentType((GimpleArrayType) arrayType.getComponentType());
-    } else {
-      return arrayType.getComponentType();
-    }
-  }
-
 
   private static int computeArrayLength(GimpleRecordTypeDef recordTypeDef, Type fieldType) {
     int recordSize = recordTypeDef.getSize();

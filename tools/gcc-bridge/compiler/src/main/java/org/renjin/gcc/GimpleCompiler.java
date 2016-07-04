@@ -14,15 +14,13 @@ import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.call.FunctionCallGenerator;
 import org.renjin.gcc.codegen.lib.SymbolLibrary;
 import org.renjin.gcc.codegen.type.TypeOracle;
-import org.renjin.gcc.codegen.type.record.RecordArrayTypeStrategy;
-import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
+import org.renjin.gcc.codegen.type.record.RecordTypeStrategyBuilder;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
 import org.renjin.gcc.link.LinkSymbol;
 import org.renjin.gcc.symbols.GlobalSymbolTable;
-import org.renjin.repackaged.asm.Type;
 
 import java.io.File;
 import java.io.IOException;
@@ -57,7 +55,6 @@ public class GimpleCompiler  {
   private GlobalSymbolTable globalSymbolTable;
 
   private Collection<GimpleRecordTypeDef> recordTypeDefs;
-  private RecordUsageAnalyzer recordUsage;
 
   private List<FunctionBodyTransformer> functionBodyTransformers = Lists.newArrayList();
 
@@ -174,14 +171,8 @@ public class GimpleCompiler  {
       AddressableFinder addressableFinder = new AddressableFinder(units);
       addressableFinder.mark();
 
-      // Analyze record type usage to determine strategy for generate code involving records
-      // (must be done after void ptr inference)
-
-      recordUsage = new RecordUsageAnalyzer(recordTypeDefs);
-      recordUsage.analyze(units);
-
       // Compile the record types so they are available to functions and variables
-      compileRecords();
+      compileRecords(units);
 
       // Next, do a round of compilation units to make sure all externally visible functions and 
       // symbols are added to the global symbol table.
@@ -222,6 +213,26 @@ public class GimpleCompiler  {
     }
   }
 
+  private void compileRecords(List<GimpleCompilationUnit> units) throws IOException {
+    RecordTypeStrategyBuilder builder = new RecordTypeStrategyBuilder(
+        typeOracle,
+        recordTypeDefs, 
+        providedRecordTypes, 
+        units);
+    
+    builder.setRecordClassPrefix(getInternalClassName(recordClassPrefix));
+    builder.build();
+    builder.writeClasses(outputDirectory);
+
+    if(verbose) {
+      for (RecordTypeStrategy recordTypeStrategy : typeOracle.getRecordTypes()) {
+        System.out.println("STRATEGY: " + recordTypeStrategy.getRecordTypeDef().getName() + " => " + 
+           recordTypeStrategy);
+      }
+    }
+    
+  }
+
   private void writeLinkMetadata() throws IOException {
 
     for (Map.Entry<String, CallGenerator> entry : globalSymbolTable.getFunctions()) {
@@ -238,94 +249,6 @@ public class GimpleCompiler  {
     }
   }
 
-  private void compileRecords() throws IOException {
-
-    TreeLogger recordLogger = rootLogger.branch("Compiling record types...");
-    
-    // Enumerate record types before writing, so that records can reference each other
-    for (GimpleRecordTypeDef recordTypeDef : recordTypeDefs) {
-      typeOracle.addRecordType(recordTypeDef, strategyFor(recordLogger, recordTypeDef));
-    }
-
-    // Now that the record types are all registered, we can link the fields to their
-    // FieldGenerators
-    for (RecordTypeStrategy recordTypeStrategy : typeOracle.getRecordTypes()) {
-      try {
-        recordTypeStrategy.linkFields(typeOracle);
-      } catch (Exception e) {
-        throw new InternalCompilerException(String.format("Exception linking record %s: %s",
-            recordTypeStrategy.getRecordTypeDef().getName(),
-            e.getMessage()), e);
-      }
-    }
-
-    // Finally write out the record class files for those records which are  not provided
-    for (RecordTypeStrategy recordTypeStrategy : typeOracle.getRecordTypes()) {
-      recordTypeStrategy.writeClassFiles(outputDirectory);
-    }
-  }
-
-  private RecordTypeStrategy strategyFor(TreeLogger parentLogger, GimpleRecordTypeDef recordTypeDef) {
-
-    TreeLogger logger = parentLogger.branch(String.format("Building strategy for %s [%s]", 
-        recordTypeDef.getName(), recordTypeDef.getId()));
-
-    logger.debug("RecordTypeDef:", recordTypeDef);
-
-    if(isProvided(recordTypeDef)) {
-      Type providedType = Type.getType(providedRecordTypes.get(recordTypeDef.getName()));
-      logger.debug("Provided: " + providedType.getInternalName());
-      
-      RecordClassTypeStrategy strategy = new RecordClassTypeStrategy(recordTypeDef);
-      strategy.setProvided(true);
-      strategy.setJvmType(providedType);
-
-      strategy.setUnitPointer(recordUsage.unitPointerAssumptionsHoldFor(recordTypeDef));
-
-      return strategy;
-
-    } else if(recordTypeDef.getFields().isEmpty()) {
-      logger.debug("Using EmptyRecordTypeStrategy");
-
-      RecordClassTypeStrategy strategy = new RecordClassTypeStrategy(recordTypeDef);
-      strategy.setUnitPointer(recordUsage.unitPointerAssumptionsHoldFor(recordTypeDef));
-      strategy.setJvmType(Type.getType(Object.class));
-      strategy.setProvided(true);
-
-      return strategy;
-      
-    } else if(RecordArrayTypeStrategy.accept(recordTypeDef)) {
-      logger.debug("Using RecordArrayTypeStrategy");
-
-      return new RecordArrayTypeStrategy(recordTypeDef);
-
-    } else {
-      logger.debug("Using RecordClassStrategy");
-
-      RecordClassTypeStrategy strategy = new RecordClassTypeStrategy(recordTypeDef);
-      strategy.setUnitPointer(recordUsage.unitPointerAssumptionsHoldFor(recordTypeDef));
-      String recordClassName;
-      if (recordTypeDef.getName() != null) {
-        recordClassName =  String.format("%s$%s", recordClassPrefix, recordTypeDef.getName() + (nextRecordIndex++));
-      } else {
-        recordClassName = String.format("%s$Record%d", recordClassPrefix, nextRecordIndex++);
-      }
-      strategy.setJvmType(Type.getType("L" + getInternalClassName(recordClassName) + ";"));
-
-      logger.debug("unitPointer = " + strategy.isUnitPointer());
-      logger.debug("jvmType = " + strategy.getJvmType().getInternalName());
-      
-      return strategy;
-    }
-  }
-
-  private boolean isProvided(GimpleRecordTypeDef recordTypeDef) {
-    if(recordTypeDef.getName() == null) {
-      return false;
-    } else {
-      return providedRecordTypes.containsKey(recordTypeDef.getName());
-    }
-  }
 
   private String classNameForUnit(String className) {
     // if we are using a trampoline class, then decorate the 

@@ -56,7 +56,55 @@ public class SubsettingTest extends EvalTestCase {
     
     assertThat(eval("names(y)"), equalTo((SEXP)StringArrayVector.EMPTY));
   } 
+  
+  @Test
+  public void subsetCallWithNA() {
+    
+    eval(" p <- quote(foo(x)) ");
+    eval(" x <- p[NA] ");
 
+    // GNU R 3.2.0 inexplicably returns 
+    // NULL(NULL) for p[NA]
+    // and
+    // NULL(NULL) for p[c(NA,NA)]
+    // and
+    // NULL() for p[10]
+    
+    // I think we can avoid replicating this quirk and just 
+    // treat NAs and out of bounds indexes equivalently.
+    
+    assertThat(eval("typeof(x)"), equalTo(c("language")));
+    assertThat(eval("length(x)"), equalTo(c_i(1)));
+    assertThat(eval("is.null(x[[1]])"), equalTo(c(true)));
+  }
+
+
+  @Test
+  public void subsetCallWithMultipleNAs() {
+
+    eval(" p <- quote(foo(x)) ");
+    eval(" x <- p[c(NA,NA,NA)] ");
+
+    assertThat(eval("typeof(x)"), equalTo(c("language")));
+    assertThat(eval("length(x)"), equalTo(c_i(3)));
+    assertThat(eval("is.null(x[[1]])"), equalTo(c(true)));
+    assertThat(eval("is.null(x[[2]])"), equalTo(c(true)));
+    assertThat(eval("is.null(x[[3]])"), equalTo(c(true)));
+  }
+
+
+  @Test
+  public void subsetCallWithOutOfBounds() {
+
+    eval(" p <- quote(foo(x)) ");
+    eval(" x <- p[c(1, 10)] ");
+
+    assertThat(eval("typeof(x)"), equalTo(c("language")));
+    assertThat(eval("length(x)"), equalTo(c_i(2)));
+    assertThat(eval("x[[1]]"), equalTo(symbol("foo")));
+    assertThat(eval("is.null(x[[2]])"), equalTo(c(true)));
+  }
+  
   @Test
   public void subsetWithLogicals() {
     eval( " x <- c(91,92,93) ") ;

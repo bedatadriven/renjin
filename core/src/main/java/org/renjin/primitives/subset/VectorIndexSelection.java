@@ -91,7 +91,7 @@ class VectorIndexSelection implements SelectionStrategy {
     int index;
     while((index=it.next())!= IndexIterator.EOF) {
       if(IntVector.isNA(index) || index >= nodes.size()) {
-        newCall.add(nodes.get(index));
+        newCall.add(Null.INSTANCE);
       } else {
         PairList.Node node = nodes.get(index);
         newCall.add(node.getRawTag(), node.getValue());

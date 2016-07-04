@@ -23,11 +23,6 @@ class CompleteSelection implements SelectionStrategy {
   }
 
   @Override
-  public SEXP getFunctionCallSubset(FunctionCall call) {
-    return call;
-  }
-
-  @Override
   public SEXP getSingleListElement(ListVector source, boolean exact) {
     // Cannot be used with [[ operator
     throw new EvalException("[[ operator requires a subscript");
@@ -91,7 +86,7 @@ class CompleteSelection implements SelectionStrategy {
   }
 
   @Override
-  public Vector replaceListElements(Context context, ListVector source, Vector replacement) {
+  public ListVector replaceListElements(Context context, ListVector source, Vector replacement) {
 
     if (replacement == Null.INSTANCE) {
       return clearList(source);
@@ -116,7 +111,7 @@ class CompleteSelection implements SelectionStrategy {
   }
 
 
-  private Vector clearList(ListVector list) {
+  private ListVector clearList(ListVector list) {
     // Create an empty list, preserving only non-structural attributes
     AttributeMap.Builder builder = new AttributeMap.Builder();
     for (Symbol attribute : list.getAttributes().names()) {

@@ -71,12 +71,6 @@ class VectorIndexSelection implements SelectionStrategy {
     return result.build();
   }
 
-  @Override
-  public SEXP getFunctionCallSubset(FunctionCall call) {
-    
-    return buildCallSelection(call, new IndexSubscript(subscript, call.length()));
-  }
-
   public static PairList buildCallSelection(FunctionCall call, Subscript subscript) {
 
     // First build an array from which we can lookup indices in normal time
@@ -204,7 +198,7 @@ class VectorIndexSelection implements SelectionStrategy {
   }
 
   @Override
-  public Vector replaceListElements(Context context, ListVector source, Vector replacements) {
+  public ListVector replaceListElements(Context context, ListVector source, Vector replacements) {
     IndexSubscript subscript = new IndexSubscript(this.subscript, source.length());
     
     // When replace items on a list, list[i] <- NULL has the meaning of 
@@ -213,7 +207,7 @@ class VectorIndexSelection implements SelectionStrategy {
       return ListSubsetting.removeListElements(source, subscript.computeIndexPredicate());
     }
     
-    return buildReplacement(source, replacements, subscript);
+    return (ListVector) buildReplacement(source, replacements, subscript);
   }
 
   @Override

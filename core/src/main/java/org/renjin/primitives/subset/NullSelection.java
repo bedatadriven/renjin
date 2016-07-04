@@ -26,12 +26,7 @@ public enum NullSelection implements SelectionStrategy {
   }
 
   @Override
-  public SEXP getFunctionCallSubset(FunctionCall call) {
-    return Null.INSTANCE;
-  }
-
-  @Override
-  public Vector replaceListElements(Context context, ListVector source, Vector replacement) {
+  public ListVector replaceListElements(Context context, ListVector source, Vector replacement) {
     // No changes to the source
     return source;
   }

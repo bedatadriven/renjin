@@ -24,11 +24,6 @@ class LogicalSelection implements SelectionStrategy {
     return VectorIndexSelection.buildSelection(source, new LogicalSubscript(this.mask, source.length()), drop);
   }
 
-  @Override
-  public SEXP getFunctionCallSubset(FunctionCall call) {
-    return VectorIndexSelection.buildCallSelection(call, new LogicalSubscript(this.mask, call.length()));
-  }
-
 
   @Override
   public Vector replaceAtomicVectorElements(Context context, AtomicVector source, Vector replacements) {
@@ -48,7 +43,7 @@ class LogicalSelection implements SelectionStrategy {
   }
 
   @Override
-  public Vector replaceListElements(Context context, ListVector source, Vector replacement) {
+  public ListVector replaceListElements(Context context, ListVector source, Vector replacement) {
     
     // Behavior for lists is to remove selected elements
     if(replacement == Null.INSTANCE) {
@@ -60,9 +55,9 @@ class LogicalSelection implements SelectionStrategy {
     }
     
     if(mask.length() <= source.length()) {
-      return buildMaskedReplacement(source, replacement);
+      return (ListVector)buildMaskedReplacement(source, replacement);
     } else {
-      return buildExtendedReplacement(source, replacement);
+      return (ListVector)buildExtendedReplacement(source, replacement);
     }
   }
 

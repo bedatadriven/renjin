@@ -92,6 +92,14 @@ public class FunctionCall extends PairList.Node {
       return new FunctionCall(function, PairList.Node.fromArray(arguments));
     }
   }
+  
+  public static FunctionCall newCallFromVector(ListVector vector) {
+    assert  vector.length() != 0;
+    FunctionCall.Builder call = new FunctionCall.Builder();
+    call.addAll(vector);
+    return (FunctionCall) call.build();
+  }
+  
 
   @Override
   protected SEXP cloneWithNewAttributes(AttributeMap attributes) {

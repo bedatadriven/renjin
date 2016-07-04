@@ -1,6 +1,5 @@
 package org.renjin.primitives.subset;
 
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
@@ -71,42 +70,9 @@ class NamedSelection implements SelectionStrategy {
     return result.build();
   }
 
-  @Override
-  public SEXP getFunctionCallSubset(FunctionCall call) {
-
-    // First check that we have at least one name
-    if(selectedNames.length() == 0) {
-      throw new EvalException("attempt to select less than one element from a lang object");
-    }
-
-    // Build a map from name to linked list node
-    Map<String, SEXP> nameMap = Maps.newHashMap();
-    for (PairList.Node node : call.nodes()) {
-      if(node.hasName()) {
-        nameMap.put(node.getName(), node.getValue());
-      }
-    }
-
-    FunctionCall.Builder newCall = FunctionCall.newBuilder();
-
-
-    // Now iterator look up the names
-    // Starting with the function,
-    for (String selectedName : selectedNames) {
-      SEXP value = nameMap.get(selectedName);
-      if (value == null) {
-        newCall.add(selectedName, Null.INSTANCE);
-      } else {
-        newCall.add(selectedName, value);
-      }
-    }
-
-    return newCall.build();
-  }
-
 
   @Override
-  public Vector replaceListElements(Context context, ListVector source, Vector replacements) {
+  public ListVector replaceListElements(Context context, ListVector source, Vector replacements) {
 
     if(replacements == Null.INSTANCE) {
       return removeListElements(source);
@@ -155,10 +121,10 @@ class NamedSelection implements SelectionStrategy {
     result.removeAttribute(Symbols.DIM);
     result.removeAttribute(Symbols.DIMNAMES);
     
-    return result.build();
+    return (ListVector) result.build();
   }
 
-  private Vector removeListElements(ListVector source) {
+  private ListVector removeListElements(ListVector source) {
 
     // If the list has no names, then just drop the dim, dimnames attributes
     // and return
@@ -167,7 +133,7 @@ class NamedSelection implements SelectionStrategy {
       newAttributes.remove(Symbols.DIM);
       newAttributes.remove(Symbols.DIMNAMES);
       
-      return (Vector)source.setAttributes(newAttributes);
+      return (ListVector) source.setAttributes(newAttributes);
     }
     
     // Otherwise build a new list vector without the selected elements

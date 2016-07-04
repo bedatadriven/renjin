@@ -32,14 +32,12 @@ public interface SelectionStrategy {
 
   
   SEXP getVectorSubset(Context context, Vector source, boolean drop);
-  
-  SEXP getFunctionCallSubset(FunctionCall call);
 
   SEXP getSingleListElement(ListVector source, boolean exact);
 
   AtomicVector getSingleAtomicVectorElement(AtomicVector source, boolean exact);
   
-  Vector replaceListElements(Context context, ListVector list, Vector replacement);
+  ListVector replaceListElements(Context context, ListVector list, Vector replacement);
 
   SEXP replaceAtomicVectorElements(Context context, AtomicVector source, Vector replacements);
   
@@ -48,5 +46,6 @@ public interface SelectionStrategy {
   SEXP replaceSinglePairListElement(PairList.Node list, SEXP replacement);
 
   Vector replaceSingleElement(AtomicVector source, Vector replacement);
+  
   
 }

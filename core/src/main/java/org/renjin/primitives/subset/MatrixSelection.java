@@ -78,15 +78,6 @@ class MatrixSelection implements SelectionStrategy {
   }
 
   @Override
-  public SEXP getFunctionCallSubset(FunctionCall call) {
-    // The dim() attribute cannot be set on a lang object, so we shouldn't
-    // need to check here
-    assert call.getArguments().getAttribute(Symbols.DIM) == Null.INSTANCE;
-    
-    throw new EvalException("incorrect number of dimensions");
-  }
-
-  @Override
   public SEXP getSingleListElement(ListVector source, boolean exact) {
     return getSingleElement(source);
   }
@@ -263,8 +254,8 @@ class MatrixSelection implements SelectionStrategy {
   }
 
   @Override
-  public Vector replaceListElements(Context context, ListVector list, Vector replacement) {
-    return replaceVectorElements(context, list, replacement);
+  public ListVector replaceListElements(Context context, ListVector list, Vector replacement) {
+    return (ListVector) replaceVectorElements(context, list, replacement);
   }
 
   @Override

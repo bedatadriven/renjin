@@ -98,13 +98,8 @@ class CoordinateMatrixSelection implements SelectionStrategy {
   }
 
   @Override
-  public SEXP getFunctionCallSubset(FunctionCall call) {
-    throw new IllegalStateException("lang objects should NOT have dim attributes.");
-  }
-
-  @Override
-  public Vector replaceListElements(Context context, ListVector source, Vector replacement) {
-    return replaceElements(source, replacement);
+  public ListVector replaceListElements(Context context, ListVector source, Vector replacement) {
+    return (ListVector)replaceElements(source, replacement);
   }
 
   @Override

@@ -62,20 +62,11 @@ public class SubsettingTest extends EvalTestCase {
     
     eval(" p <- quote(foo(x)) ");
     eval(" x <- p[NA] ");
-
-    // GNU R 3.2.0 inexplicably returns 
-    // NULL(NULL) for p[NA]
-    // and
-    // NULL(NULL) for p[c(NA,NA)]
-    // and
-    // NULL() for p[10]
-    
-    // I think we can avoid replicating this quirk and just 
-    // treat NAs and out of bounds indexes equivalently.
     
     assertThat(eval("typeof(x)"), equalTo(c("language")));
-    assertThat(eval("length(x)"), equalTo(c_i(1)));
+    assertThat(eval("length(x)"), equalTo(c_i(2)));
     assertThat(eval("is.null(x[[1]])"), equalTo(c(true)));
+    assertThat(eval("is.null(x[[2]])"), equalTo(c(true)));
   }
 
 
@@ -104,7 +95,35 @@ public class SubsettingTest extends EvalTestCase {
     assertThat(eval("x[[1]]"), equalTo(symbol("foo")));
     assertThat(eval("is.null(x[[2]])"), equalTo(c(true)));
   }
+
+
+  @Test
+  public void subsetReplaceFunctionCall() {
+    eval(" p <- quote(foo(x)) ");
+    eval(" p[NA] <- list(quote(z)) ");
+
+    assertThat(eval("identical(p, quote(foo(x)))"), equalTo(c(true)));
+  }
+
+  @Test
+  public void subsetReplaceSingleElement() {
+    eval(" p <- quote(foo(x)) ");
+    eval(" p[[1]] <- quote(bar) ");
+
+    assertThat(eval("identical(p, quote(bar(x)))"), equalTo(c(true)));
+  }
+
   
+  @Test
+  public void subsetReplaceFunctionCallWithNA() {
+    eval(" p <- quote(foo(x)) ");
+    eval(" p[NA] <- list(quote(z))");
+
+    eval("print(p)");
+
+    assertThat(eval("identical(p, quote(foo(x)))"), equalTo(c(true)));
+  }
+
   @Test
   public void subsetWithLogicals() {
     eval( " x <- c(91,92,93) ") ;

@@ -29,10 +29,7 @@ import org.renjin.methods.MethodDispatch;
 import org.renjin.primitives.Types;
 import org.renjin.sexp.*;
 
-import java.lang.reflect.Array;
 import java.util.Collections;
-import java.util.Collections.*;
-
 import java.util.Iterator;
 import java.util.List;
 
@@ -276,8 +273,9 @@ public class Subsetting {
       return selection.getVectorSubset(context, (Vector) source, drop);
 
     } else if(source instanceof FunctionCall) {
-      return selection.getFunctionCallSubset((FunctionCall) source);
-
+      return FunctionCall.newCallFromVector(
+          (ListVector) selection.getVectorSubset(context, ((FunctionCall) source).toVector(), drop));
+      
     } else if(source instanceof PairList.Node) {
       return selection.getVectorSubset(context, ((PairList.Node) source).toVector(), drop);
 
@@ -314,6 +312,10 @@ public class Subsetting {
 
     if(source instanceof ListVector) {
       return selection.replaceListElements(context, (ListVector) source, replacement);
+
+    } else if(source instanceof FunctionCall) {
+      return FunctionCall.newCallFromVector(
+          selection.replaceListElements(context, ((PairList.Node) source).toVector(), replacement));
 
     } else if(source instanceof PairList.Node) {
       return selection.replaceListElements(context, ((PairList.Node) source).toVector(), replacement);

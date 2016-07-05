@@ -544,6 +544,12 @@ public class GimpleCompilerTest extends AbstractGccTest {
   }
   
   @Test
+  public void unionClass() throws Exception {
+    compileAndTest("class_unions.c");
+  }
+  
+  
+  @Test
   public void builtinExpect() throws Exception {
     compileAndTest("expect.c");
   }

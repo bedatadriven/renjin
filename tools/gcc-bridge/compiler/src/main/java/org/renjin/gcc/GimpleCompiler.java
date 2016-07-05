@@ -227,7 +227,7 @@ public class GimpleCompiler  {
     if(verbose) {
       for (RecordTypeStrategy recordTypeStrategy : typeOracle.getRecordTypes()) {
         System.out.println("STRATEGY: " + recordTypeStrategy.getRecordTypeDef().getName() + " => " + 
-           recordTypeStrategy);
+            recordTypeStrategy);
       }
     }
     

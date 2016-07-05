@@ -19,9 +19,6 @@ import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
 import org.renjin.repackaged.asm.Type;
 
-import java.io.File;
-import java.io.IOException;
-
 import static org.renjin.gcc.codegen.expr.Expressions.*;
 
 /**
@@ -61,17 +58,6 @@ public class RecordArrayTypeStrategy extends RecordTypeStrategy<RecordArrayExpr>
       throw new IllegalStateException("sizeof(" + fieldType + ") = 0");
     }
     return recordSize / elementSize;
-  }
-
-  @Override
-  public void linkFields(TypeOracle typeOracle) {
-    // NOOP
-  }
-
-  @Override
-  public void writeClassFiles(File outputDirectory) throws IOException {
-    // NOOP
-    // We don't use classes
   }
 
   @Override

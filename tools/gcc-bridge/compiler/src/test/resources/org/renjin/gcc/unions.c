@@ -3,6 +3,8 @@
 #include <inttypes.h>
 #include <stdio.h>
 
+// This should be represented as an array of bytes.
+// because we can convert a uint8_t[4] to uint_32 and back.
 union u1 {
    uint32_t a;
    uint8_t b[4];

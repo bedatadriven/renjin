@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.type.record;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
 
@@ -33,7 +34,7 @@ public class UnionSet {
   }
 
   public boolean isSingleton() {
-    return records.size() == 1;
+    return records.size() == 1 && unions.isEmpty();
   }
 
   public GimpleRecordTypeDef singleton() {
@@ -46,5 +47,23 @@ public class UnionSet {
 
   public Iterable<GimpleRecordTypeDef> getAllTypes() {
     return Iterables.concat(unions, records);
+  }
+
+  public String name() {
+    String name = null;
+    for (GimpleRecordTypeDef typeDef : getAllTypes()) {
+      if(typeDef.getName() != null) {
+        if(name == null) {
+          name = typeDef.getName();
+        } else {
+          name = Strings.commonPrefix(name, typeDef.getName());
+        }
+      }
+    }
+    if(Strings.isNullOrEmpty(name)) {
+      return "record";
+    } else {
+      return name;
+    }
   }
 }

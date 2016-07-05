@@ -9,6 +9,7 @@ import org.renjin.gcc.codegen.fatptr.FatPtrMalloc;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.fatptr.Wrappers;
 import org.renjin.gcc.codegen.type.FieldStrategy;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.ClassVisitor;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
@@ -46,7 +47,7 @@ public class ArrayField extends FieldStrategy {
   }
 
   @Override
-  public GExpr memberExprGenerator(JExpr instance) {
+  public GExpr memberExpr(JExpr instance, GimpleType expectedType) {
     JExpr array = Expressions.field(instance, arrayType, name);
     JExpr offset = Expressions.zero();
     return new ArrayExpr(valueFunction, arrayLength, array, offset);

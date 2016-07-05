@@ -4,6 +4,7 @@ import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.primitive.FieldValue;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.ClassVisitor;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
@@ -38,7 +39,7 @@ public class SimpleFieldStrategy extends FieldStrategy {
   }
 
   @Override
-  public GExpr memberExprGenerator(JExpr instance) {
+  public GExpr memberExpr(JExpr instance, GimpleType expectedType) {
     FieldValue fieldValue = new FieldValue(instance, name, fieldType);
     Constructor<? extends GExpr> constructor = null;
     try {

@@ -317,11 +317,11 @@ public class Expressions {
     }
     int fromSort = fromType.getSort();
     int toSort = toType.getSort();
-    if(fromSort != toSort) {
-      throw new IllegalArgumentException("Invalid cast from " + fromType + " to " + toType);
-    }
+ 
     if(fromSort == Type.ARRAY) {
-      checkCast(fromType.getElementType(), toType.getElementType());
+      if(toSort == Type.ARRAY) {
+        checkCast(fromType.getElementType(), toType.getElementType());
+      }
     }
   }
 

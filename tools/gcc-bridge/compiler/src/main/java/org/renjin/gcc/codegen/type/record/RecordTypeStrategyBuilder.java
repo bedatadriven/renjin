@@ -1,7 +1,6 @@
 package org.renjin.gcc.codegen.type.record;
 
 import com.google.common.base.Optional;
-import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.analysis.RecordUsageAnalyzer;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
@@ -10,6 +9,7 @@ import org.renjin.repackaged.asm.Type;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +28,8 @@ public class RecordTypeStrategyBuilder {
   private String recordClassPrefix;
   
   private int nextRecordIndex;
+  
+  private List<RecordLayout> layouts = new ArrayList<>();
 
   public RecordTypeStrategyBuilder(
       TypeOracle typeOracle,
@@ -68,64 +70,108 @@ public class RecordTypeStrategyBuilder {
     for (UnionSet set : sets) {
       if(set.isSingleton()) {
         // Simple case, we can do as we like
-        typeOracle.addRecordType(set.singleton(), strategyForSingleton(set));
-      
-      } else if(set.getTypeSet().isEmpty()) {
-        // Union of several empty types can all be represented as 
-        // java.lang.Object
-        for (GimpleRecordTypeDef typeDef : set.getAllTypes()) {
-          typeOracle.addRecordType(typeDef, emptyRecordStrategy(typeDef));
-        }
+        buildSingleton(set);
 
       } else {
-        // Try to see if we can represent all values in the type 
-        Optional<Type> commonType = set.getTypeSet().tryComputeCommonType();
-        if(commonType.isPresent()) {
-          for (GimpleRecordTypeDef typeDef : set.getAllTypes()) {
-            typeOracle.addRecordType(typeDef, new RecordArrayTypeStrategy(typeDef, commonType.get()));
-          }
-        } else {
-          throw new UnsupportedOperationException("TODO");
-
-        }
+        buildUnion(set);
       }
     }
-
+    
     // Now that the record types are all registered, we can link the fields to their
     // FieldGenerators
-    for (RecordTypeStrategy recordTypeStrategy : typeOracle.getRecordTypes()) {
-      try {
-        recordTypeStrategy.linkFields(typeOracle);
-      } catch (Exception e) {
-        throw new InternalCompilerException(String.format("Exception linking record %s: %s",
-            recordTypeStrategy.getRecordTypeDef().getName(),
-            e.getMessage()), e);
+    for (RecordLayout layout : layouts) {
+      layout.linkFields(typeOracle);
+    }
+  }
+
+  /**
+   * Builds a strategy for a record with no fields. 
+   *
+   * <p>These types must have some representation because they do occupy memory and should
+   * have a consistent address, but to give us the maximum flexiblity to cast between 
+   * nominally different types of empty records, we will represent values of these types
+   * as instances of java.lang.Object</p>
+   */
+  private void buildEmpty(UnionSet set) {
+
+    boolean unitPointer = isUnitPointer(set);
+    for (GimpleRecordTypeDef typeDef : set.getAllTypes()) {
+      RecordClassTypeStrategy strategy = new RecordClassTypeStrategy(typeDef, new EmptyRecordLayout());
+      strategy.setUnitPointer(unitPointer);
+      typeOracle.addRecordType(typeDef, strategy);
+    }
+  }
+
+  /**
+   * Builds a strategy for a "normal" record type that is not unioned with
+   * any other record types.
+   */
+  private void buildSingleton(UnionSet set) {
+    
+    if(isProvided(set.singleton())) {
+      typeOracle.addRecordType(set.singleton(), providedTypeStrategy(set.singleton()));
+
+    } else if(set.getTypeSet().isEmpty()) {
+      buildEmpty(set);
+      
+    } else if(set.getTypeSet().isBestRepresentableAsArray()) {
+      typeOracle.addRecordType(set.singleton(), 
+          new RecordArrayTypeStrategy(set.singleton(), set.getTypeSet().uniquePrimitiveType()));
+
+    } else {
+      // Otherwise, we need to build a JVM class for this record
+      buildClassStrategy(set);
+    }
+  }
+  
+  private void buildUnion(UnionSet set) {
+    
+    if(set.getTypeSet().isEmpty()) {
+      buildEmpty(set);
+    
+    } else {
+
+      // Try to see if we can represent all values in the type 
+      Optional<Type> commonType = set.getTypeSet().tryComputeCommonType();
+      if (commonType.isPresent()) {
+        for (GimpleRecordTypeDef typeDef : set.getAllTypes()) {
+          typeOracle.addRecordType(typeDef, new RecordArrayTypeStrategy(typeDef, commonType.get()));
+        }
+      } else {
+        // Fields are heterogeneous, 
+        // we need to construct a class for this union
+        buildClassStrategy(set);
       }
     }
   }
 
-  private RecordTypeStrategy strategyForSingleton(UnionSet set) {
-    if(isProvided(set.singleton())) {
-      return providedTypeStrategy(set.singleton());
+  private void buildClassStrategy(UnionSet set) {
+    RecordClassLayout layout = new RecordClassLayout(set, nextRecordName(set.name()));
+    boolean unitPointer = isUnitPointer(set);
+
+    for (GimpleRecordTypeDef typeDef : set.getAllTypes()) {
+      RecordClassTypeStrategy strategy = new RecordClassTypeStrategy(typeDef, layout);
+      strategy.setUnitPointer(unitPointer);
+      typeOracle.addRecordType(typeDef, strategy);
     }
     
-    if(set.getTypeSet().isEmpty()) {
-      return emptyRecordStrategy(set.singleton());
-    } 
-    
-    if(set.getTypeSet().isBestRepresentableAsArray()) {
-      return new RecordArrayTypeStrategy(set.singleton(), set.getTypeSet().uniqueValueType());
+    layouts.add(layout);
+  }
+
+  private boolean isUnitPointer(UnionSet set) {
+    for (GimpleRecordTypeDef typeDef : set.getAllTypes()) {
+      if(!usage.unitPointerAssumptionsHoldFor(typeDef)) {
+        return false;
+      }
     }
-    
-    // Otherwise, we need to build a JVM class for this record
-    return classStrategy(set.singleton());
+    return true;
   }
 
 
   public void writeClasses(File outputDirectory) throws IOException {
     // Finally write out the record class files for those records which are  not provided
-    for (RecordTypeStrategy recordTypeStrategy : typeOracle.getRecordTypes()) {
-      recordTypeStrategy.writeClassFiles(outputDirectory);
+    for (RecordLayout layout : layouts) {
+      layout.writeClassFiles(outputDirectory);
     }
   }
 
@@ -135,44 +181,21 @@ public class RecordTypeStrategyBuilder {
    */
   private RecordClassTypeStrategy providedTypeStrategy(GimpleRecordTypeDef recordTypeDef) {
     Type providedType = Type.getType(providedRecordTypes.get(recordTypeDef.getName()));
+    ProvidedLayout providedLayout = new ProvidedLayout(recordTypeDef, providedType);
 
-    RecordClassTypeStrategy strategy = new RecordClassTypeStrategy(recordTypeDef);
-    strategy.setProvided(true);
-    strategy.setJvmType(providedType);
-
+    layouts.add(providedLayout);
+    
+    RecordClassTypeStrategy strategy = new RecordClassTypeStrategy(recordTypeDef, providedLayout);
     strategy.setUnitPointer(usage.unitPointerAssumptionsHoldFor(recordTypeDef));
     return strategy;
   }
 
-  /**
-   * Builds a strategy for a record with no fields. 
-   * 
-   * <p>These types must have some representation because they do occupy memory and should
-   * have a consistent address, but to give us the maximum flexiblity to cast between 
-   * nominally different types of empty records, we will represent values of these types
-   * as instances of java.lang.Object</p>
-   */
-  private RecordTypeStrategy emptyRecordStrategy(GimpleRecordTypeDef recordTypeDef) {
-    RecordClassTypeStrategy strategy = new RecordClassTypeStrategy(recordTypeDef);
-    strategy.setUnitPointer(usage.unitPointerAssumptionsHoldFor(recordTypeDef));
-    strategy.setJvmType(Type.getType(Object.class));
-    strategy.setProvided(true);
 
-    return strategy;
-  }
+  private Type nextRecordName(String name) {
+    
+    String recordClassName = String.format("%s$%s", recordClassPrefix, name + (nextRecordIndex++));
 
-
-  private RecordClassTypeStrategy classStrategy(GimpleRecordTypeDef recordTypeDef) {
-    RecordClassTypeStrategy strategy = new RecordClassTypeStrategy(recordTypeDef);
-    strategy.setUnitPointer(usage.unitPointerAssumptionsHoldFor(recordTypeDef));
-    String recordClassName;
-    if (recordTypeDef.getName() != null) {
-      recordClassName =  String.format("%s$%s", recordClassPrefix, recordTypeDef.getName() + (nextRecordIndex++));
-    } else {
-      recordClassName = String.format("%s$Record%d", recordClassPrefix, nextRecordIndex++);
-    }
-    strategy.setJvmType(Type.getType("L" + recordClassName + ";"));
-    return strategy;
+    return Type.getType("L" + recordClassName + ";");
   }
   
 }

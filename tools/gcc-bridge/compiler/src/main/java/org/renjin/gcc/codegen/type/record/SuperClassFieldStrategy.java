@@ -4,6 +4,7 @@ import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.FieldStrategy;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.ClassVisitor;
 import org.renjin.repackaged.asm.Type;
 
@@ -25,7 +26,7 @@ public class SuperClassFieldStrategy extends FieldStrategy {
   }
 
   @Override
-  public GExpr memberExprGenerator(JExpr instance) {
+  public GExpr memberExpr(JExpr instance, GimpleType expectedType) {
     return new RecordValue(instance, new RecordUnitPtr(instance));
   }
 

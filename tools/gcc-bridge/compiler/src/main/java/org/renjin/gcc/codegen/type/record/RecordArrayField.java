@@ -6,6 +6,7 @@ import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.gcc.codegen.fatptr.Wrappers;
 import org.renjin.gcc.codegen.type.FieldStrategy;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.ClassVisitor;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
@@ -39,7 +40,7 @@ public class RecordArrayField extends FieldStrategy {
   }
 
   @Override
-  public RecordArrayExpr memberExprGenerator(JExpr instance) {
+  public RecordArrayExpr memberExpr(JExpr instance, GimpleType expectedType) {
     JLValue arrayField = Expressions.field(instance, arrayType, name);
 
     return new RecordArrayExpr(arrayField, arrayLength);

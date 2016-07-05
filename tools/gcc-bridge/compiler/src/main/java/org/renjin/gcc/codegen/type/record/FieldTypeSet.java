@@ -23,28 +23,38 @@ public class FieldTypeSet {
   private Set<GimpleIndirectType> pointerTypes = Sets.newHashSet();
   private Set<GimpleRecordType> recordTypes = Sets.newHashSet();
 
+  private Set<GimpleType> gimpleTypes = new HashSet<>();
+  
   public FieldTypeSet(List<GimpleRecordTypeDef> unions, List<GimpleRecordTypeDef> records) {
 
     // Add the non-record fields from the unions themselves
     for (GimpleRecordTypeDef union : unions) {
-      for (GimpleField gimpleField : union.getFields()) {
-        if(!(gimpleField.getType() instanceof GimpleRecordType)) {
-          addField(gimpleField);
+      for (GimpleField field : union.getFields()) {
+        if(!(field.getType() instanceof GimpleRecordType)) {
+          addField(field);
         }
       }
     }
 
     // Add the field of the member record types
     for (GimpleRecordTypeDef record : records) {
-      for (GimpleField gimpleField : record.getFields()) {
-        if(!isCircularField(record, gimpleField)) {
-          addField(gimpleField);
+      for (GimpleField field : record.getFields()) {
+        if(!isCircularField(record, field)) {
+          addField(field);
         }
       }
     }
   }
+  
+  public FieldTypeSet(Iterable<GimpleField> fields) {
+    for (GimpleField field : fields) {
+      addField(field);
+    }
+  }
 
   private void addField(GimpleField field) {
+    gimpleTypes.add(field.getType());
+    
     if (field.getType() instanceof GimpleArrayType) {
       GimpleType componentType = findUltimateComponentType((GimpleArrayType) field.getType());
       addType(componentType, true);
@@ -94,15 +104,20 @@ public class FieldTypeSet {
     if(!pointerTypes.isEmpty() || !recordTypes.isEmpty()) {
       return false;
     }
-    return getValueTypes().size() == 1;
+    return getPrimitiveTypes().size() == 1;
   }
 
-  private Set<Type> getValueTypes() {
+  public Set<GimpleType> getGimpleTypes() {
+    return gimpleTypes;
+  }
+  
+  public Set<Type> getPrimitiveTypes() {
     return Sets.union(valueTypes, addressableValueTypes);
   }
 
-  public Type uniqueValueType() {
-    return Iterables.getOnlyElement(getValueTypes());
+  
+  public Type uniquePrimitiveType() {
+    return Iterables.getOnlyElement(getPrimitiveTypes());
   }
 
   /**
@@ -162,4 +177,12 @@ public class FieldTypeSet {
   }
 
 
+  public boolean allPointersToPrimitives() {
+    for (GimpleType gimpleType : gimpleTypes) {
+      if(!gimpleType.isPointerTo(GimplePrimitiveType.class)) {
+        return false;
+      }
+    }
+    return true;
+  }
 }

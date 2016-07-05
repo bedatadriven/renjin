@@ -214,13 +214,13 @@ public class Profiler {
       public Long apply(FunctionProfile input) {
         return input.time;
       }
-    }).reverse());
+      }).reverse());
     Iterables.filter(profiles, new Predicate<FunctionProfile>() {
       @Override
       public boolean apply(FunctionProfile input) {
         return (((double) input.time) / totalRunningTime) > 0.01;
       }
-    });
+      });
 
     out.println();
     out.println("TOP-LEVEL FUNCTION CALLS");
@@ -240,7 +240,7 @@ public class Profiler {
       public Long apply(FunctionProfile input) {
         return input.ownTime;
       }
-    }).reverse());
+      }).reverse());
 
 
     out.println();

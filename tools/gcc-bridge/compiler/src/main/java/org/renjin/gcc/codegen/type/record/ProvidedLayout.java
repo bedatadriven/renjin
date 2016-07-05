@@ -52,6 +52,6 @@ public class ProvidedLayout implements RecordLayout {
     if(fieldStrategy == null) {
       throw new IllegalStateException("Cannot find field " + fieldRef);
     }
-    return fieldStrategy.memberExpr(instance.unwrap(), fieldRef.getType());
+    return fieldStrategy.memberExpr(instance.unwrap(), 0, fieldRef.getType());
   }
 }

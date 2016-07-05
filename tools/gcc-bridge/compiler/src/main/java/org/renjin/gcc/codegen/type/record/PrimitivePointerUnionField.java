@@ -33,7 +33,7 @@ public class PrimitivePointerUnionField extends FieldStrategy {
   }
 
   @Override
-  public GExpr memberExpr(JExpr instance, GimpleType expectedType) {
+  public GExpr memberExpr(JExpr instance, int fieldOffset, GimpleType expectedType) {
     JLValue arrayExpr = Expressions.field(instance, Type.getType(Object.class), name);
     JLValue offsetExpr = Expressions.field(instance, Type.INT_TYPE, name + "$offset");
     

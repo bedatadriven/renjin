@@ -140,6 +140,11 @@ public class VoidPtrStrategy implements PointerTypeStrategy<VoidPtr>, SimpleType
 
   @Override
   public VoidPtr cast(GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+    
+    if(value instanceof VoidPtr) {
+      return (VoidPtr) value;
+    }
+    
     if(typeStrategy instanceof PointerTypeStrategy) {
       return ((PointerTypeStrategy) typeStrategy).toVoidPointer(value);
     }

@@ -70,6 +70,7 @@ public class Wrappers {
     return array;
   }
 
+
   private static Type arrayType(Type valueType) {
     return Type.getType("[" + valueType.getDescriptor());
   }
@@ -78,6 +79,7 @@ public class Wrappers {
     return Expressions.field(wrapperInstance, Type.INT_TYPE, "offset");
   }
 
+  
   public static Type wrapperType(Type valueType) {
     switch (valueType.getSort()) {
       case Type.BOOLEAN:

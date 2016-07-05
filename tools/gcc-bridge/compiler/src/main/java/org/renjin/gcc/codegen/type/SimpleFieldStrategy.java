@@ -39,7 +39,7 @@ public class SimpleFieldStrategy extends FieldStrategy {
   }
 
   @Override
-  public GExpr memberExpr(JExpr instance, GimpleType expectedType) {
+  public GExpr memberExpr(JExpr instance, int fieldOffset, GimpleType expectedType) {
     FieldValue fieldValue = new FieldValue(instance, name, fieldType);
     Constructor<? extends GExpr> constructor = null;
     try {

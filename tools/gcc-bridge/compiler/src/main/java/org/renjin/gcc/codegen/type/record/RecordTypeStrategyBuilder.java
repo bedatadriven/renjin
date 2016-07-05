@@ -1,6 +1,7 @@
 package org.renjin.gcc.codegen.type.record;
 
 import com.google.common.base.Optional;
+import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.analysis.RecordUsageAnalyzer;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
@@ -68,12 +69,16 @@ public class RecordTypeStrategyBuilder {
     List<UnionSet> sets = unionSetBuilder.build();
 
     for (UnionSet set : sets) {
-      if(set.isSingleton()) {
-        // Simple case, we can do as we like
-        buildSingleton(set);
+      try {
+        if (set.isSingleton()) {
+          // Simple case, we can do as we like
+          buildSingleton(set);
 
-      } else {
-        buildUnion(set);
+        } else {
+          buildUnion(set);
+        }
+      } catch (Exception e) {
+        dumpSet(set, e);
       }
     }
     
@@ -82,6 +87,18 @@ public class RecordTypeStrategyBuilder {
     for (RecordLayout layout : layouts) {
       layout.linkFields(typeOracle);
     }
+  }
+
+  private void dumpSet(UnionSet set, Exception e) {
+    StringBuilder s = new StringBuilder();
+    for (GimpleRecordTypeDef typeDef : set.getAllTypes()) {
+      s.append(typeDef).append("\n");
+    }
+    
+    throw new InternalCompilerException("Exception building union set '" + set.name() + 
+        ": " + e.getMessage() + 
+        s.toString(), e);
+    
   }
 
   /**
@@ -169,6 +186,10 @@ public class RecordTypeStrategyBuilder {
 
 
   public void writeClasses(File outputDirectory) throws IOException {
+    
+    // Make sure we write superclasses first
+    
+    
     // Finally write out the record class files for those records which are  not provided
     for (RecordLayout layout : layouts) {
       layout.writeClassFiles(outputDirectory);

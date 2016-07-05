@@ -20,12 +20,13 @@ public class RecordClassLayoutTree {
     /**
      * Offset from the beginning of the record, in bits
      */
-    private int offset;
+    private int start;
+    
 
     /**
-     * Size of this node, in bits.
+     * The end of this field, in number of bits from beginning of record
      */
-    private int size;
+    private int end;
     
     private Set<GimpleField> fields = new HashSet<>();
     
@@ -34,9 +35,13 @@ public class RecordClassLayoutTree {
     private boolean addressable = false;
 
     public Node(GimpleField field) {
-      this.offset = field.getOffset();
-      this.size = field.getType().getSize();
+      this.start = field.getOffset();
+      this.end = this.start + field.getType().getSize();
       addField(field);
+    }
+    
+    public int getSize() {
+      return end - start;
     }
     
     private void addField(GimpleField field) {
@@ -56,7 +61,7 @@ public class RecordClassLayoutTree {
     }
 
     public int getOffset() {
-      return offset;
+      return start;
     }
     
     public String name() {
@@ -73,6 +78,24 @@ public class RecordClassLayoutTree {
       return Strings.nullToEmpty(name);
     }
     
+    public boolean overlap(Node other) {
+      if(this.end <= other.start) {
+        return false;
+      }
+      if(this.start >= other.end) {
+        return false;
+      }
+      return true;
+    }
+
+    public void addFrom(Node adjacent) {
+      this.start = Math.min(this.start, adjacent.start);
+      this.end = Math.max(this.end, adjacent.end);
+    }
+
+    public Set<GimpleField> getFields() {
+      return fields;
+    }
   }
 
   private LinkedList<Node> tree = new LinkedList<>();
@@ -100,21 +123,38 @@ public class RecordClassLayoutTree {
     ListIterator<Node> it = tree.listIterator();
     while(it.hasNext()) {
       Node node = it.next();
-      if(node.offset > field.getOffset()) {
+      if(node.start > field.getOffset()) {
         tree.add(it.previousIndex(), new Node(field));
+        mergeNodes();
         return;
 
-      } else if(node.offset == field.getOffset()) {
-        if(node.size != field.getType().getSize()) {
-          throw new UnsupportedOperationException("TODO: overlapping fields");
-        } else {
-          node.fields.add(field);
+      } else if(node.start == field.getOffset()) {
+        node.addField(field);
+        if(node.getSize() != field.getType().getSize()) {
+          mergeNodes();
           return;
         }
       }
     }
     // Add to end
     tree.add(new Node(field));
+    mergeNodes();
+  }
+
+  private void mergeNodes() {
+    ListIterator<Node> it = tree.listIterator();
+    Node node = it.next();
+    
+    while(it.hasNext()) {
+      Node adjacent = it.next();
+      if(node.overlap(adjacent)) {
+        node.addFrom(adjacent);
+        it.remove();
+      } else {
+        node = adjacent;
+      }
+    }
+    
   }
 
   public LinkedList<Node> getTree() {

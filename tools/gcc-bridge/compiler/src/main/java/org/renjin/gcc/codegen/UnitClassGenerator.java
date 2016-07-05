@@ -19,6 +19,7 @@ import org.renjin.gcc.symbols.UnitSymbolTable;
 import org.renjin.repackaged.asm.ClassVisitor;
 import org.renjin.repackaged.asm.ClassWriter;
 import org.renjin.repackaged.asm.MethodVisitor;
+import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.util.TraceClassVisitor;
 
 import java.io.PrintWriter;
@@ -118,7 +119,16 @@ public class UnitClassGenerator {
     
     sw = new StringWriter();
     pw = new PrintWriter(sw);
-    cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
+    cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS) {
+      @Override
+      protected String getCommonSuperClass(String type1, String type2) {
+        try {
+          return super.getCommonSuperClass(type1, type2);
+        } catch (Exception e) {
+          return Type.getInternalName(Object.class);
+        }
+      }
+    };
     //cw = new ClassWriter(0);
 
     if(GimpleCompiler.TRACE) {

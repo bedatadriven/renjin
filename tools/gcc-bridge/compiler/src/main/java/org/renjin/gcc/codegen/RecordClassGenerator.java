@@ -96,8 +96,8 @@ public class RecordClassGenerator {
     // Now copy each field member
     for (FieldStrategy field : fields) {
       try {
-        GExpr thisField = field.memberExpr(thisExpr, null);
-        GExpr sourceField = field.memberExpr(sourceExpr, null);
+        GExpr thisField = field.memberExpr(thisExpr, 0, null);
+        GExpr sourceField = field.memberExpr(sourceExpr, 0, null);
 
         thisField.store(mv, sourceField);
         

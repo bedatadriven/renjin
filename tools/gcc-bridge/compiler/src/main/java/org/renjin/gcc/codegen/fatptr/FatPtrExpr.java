@@ -8,6 +8,8 @@ import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.gcc.codegen.type.primitive.ConstantValue;
+import org.renjin.gcc.codegen.type.voidt.VoidPtr;
+import org.renjin.gcc.codegen.var.LocalVarAllocator;
 import org.renjin.repackaged.asm.Type;
 
 import javax.annotation.Nonnull;
@@ -62,24 +64,43 @@ public final class FatPtrExpr implements GExpr {
   @Override
   @SuppressWarnings("unchecked")
   public void store(MethodGenerator mv, GExpr rhsExpr) {
+
+    FatPtrExpr rhs;
+
+    if(rhsExpr instanceof VoidPtr) {
+      VoidPtr ptr = (VoidPtr) rhsExpr;
+      Type wrapperType = Wrappers.wrapperType(getValueType());
+      JExpr castedWrapper = Expressions.cast(ptr.unwrap(), wrapperType);
+      JLValue tempVar = mv.getLocalVarAllocator().reserve(wrapperType);
+      tempVar.store(mv, castedWrapper);
+
+      JExpr arrayField = Wrappers.arrayField(castedWrapper, getValueType());
+      JExpr offsetField = Wrappers.offsetField(castedWrapper);
+      
+      rhs = new FatPtrExpr(arrayField, offsetField);
+      
+    } else if(rhsExpr instanceof FatPtrExpr) {
+      rhs = (FatPtrExpr) rhsExpr;
     
-    FatPtrExpr rhs = (FatPtrExpr) rhsExpr;
-    
-    if(!(array instanceof JLValue)) {
+    } else {
+      throw new UnsupportedOperationException("rhs: " + rhsExpr);
+    }
+
+    if (!(array instanceof JLValue)) {
       throw new InternalCompilerException(array + " is not an LValue");
     }
     ((JLValue) array).store(mv, rhs.getArray());
 
     // Normally, the offset must also be an LValue, but the exception 
     // is that if both the lhs and rhs are constants, and they are equal
-    if(offset instanceof ConstantValue &&
+    if (offset instanceof ConstantValue &&
         offset.equals(rhs.getOffset())) {
       // No assignment neccessary
       return;
     }
-    
+
     // Otherwise the offset must also be assignable
-    if(!(offset instanceof JLValue)) {
+    if (!(offset instanceof JLValue)) {
       throw new InternalCompilerException(offset + " offset is not an Lvalue");
     }
     ((JLValue) offset).store(mv, rhs.getOffset());

@@ -40,7 +40,7 @@ public class RecordArrayField extends FieldStrategy {
   }
 
   @Override
-  public RecordArrayExpr memberExpr(JExpr instance, GimpleType expectedType) {
+  public RecordArrayExpr memberExpr(JExpr instance, int fieldOffset, GimpleType expectedType) {
     JLValue arrayField = Expressions.field(instance, arrayType, name);
 
     return new RecordArrayExpr(arrayField, arrayLength);

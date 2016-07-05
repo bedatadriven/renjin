@@ -26,7 +26,7 @@ public class VoidPtrField extends FieldStrategy {
   }
 
   @Override
-  public VoidPtr memberExpr(JExpr instance, GimpleType expectedType) {
+  public VoidPtr memberExpr(JExpr instance, int fieldOffset, GimpleType expectedType) {
     FieldValue ref = new FieldValue(instance, fieldName, Type.getType(Object.class));
     return new VoidPtr(ref);
   }

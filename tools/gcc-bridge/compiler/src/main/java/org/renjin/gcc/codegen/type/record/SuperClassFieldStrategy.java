@@ -26,7 +26,7 @@ public class SuperClassFieldStrategy extends FieldStrategy {
   }
 
   @Override
-  public GExpr memberExpr(JExpr instance, GimpleType expectedType) {
+  public GExpr memberExpr(JExpr instance, int fieldOffset, GimpleType expectedType) {
     return new RecordValue(instance, new RecordUnitPtr(instance));
   }
 

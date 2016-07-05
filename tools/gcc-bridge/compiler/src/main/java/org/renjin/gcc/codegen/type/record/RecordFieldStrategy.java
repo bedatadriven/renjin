@@ -50,7 +50,7 @@ public class RecordFieldStrategy extends FieldStrategy {
   }
 
   @Override
-  public RecordValue memberExpr(JExpr instance, GimpleType expectedType) {
+  public RecordValue memberExpr(JExpr instance, int fieldOffset, GimpleType expectedType) {
     JLValue value = Expressions.field(instance, strategy.getJvmType(), fieldName);
     RecordUnitPtr address = new RecordUnitPtr(value);
     

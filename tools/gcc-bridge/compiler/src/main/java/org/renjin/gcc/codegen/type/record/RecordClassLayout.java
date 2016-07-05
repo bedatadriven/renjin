@@ -1,10 +1,14 @@
 package org.renjin.gcc.codegen.type.record;
 
+import com.google.common.base.Optional;
 import org.renjin.gcc.codegen.RecordClassGenerator;
 import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.fatptr.AddressableField;
 import org.renjin.gcc.codegen.type.FieldStrategy;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.TypeStrategy;
+import org.renjin.gcc.codegen.type.voidt.VoidPtrField;
+import org.renjin.gcc.codegen.type.voidt.VoidPtrValueFunction;
 import org.renjin.gcc.gimple.expr.GimpleFieldRef;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
@@ -57,14 +61,28 @@ public class RecordClassLayout implements RecordLayout {
       }
 
     } else if(typeSet.allPointersToPrimitives()) {
-      if(node.isAddressable()) {
+      if (node.isAddressable()) {
         throw new UnsupportedOperationException("TODO");
       } else {
         return new PrimitivePointerUnionField(type, uniqueFieldName(node));
       }
-
+   
+    } else if(typeSet.allPointers()) {
+      if(node.isAddressable()) {
+        return new AddressableField(type, uniqueFieldName(node), new VoidPtrValueFunction());
+      } else {
+        return new VoidPtrField(uniqueFieldName(node));
+      }
+  
+    } else if(typeSet.allPrimitives()) {
+      Optional<Type> commonType = typeSet.tryComputeCommonType();
+      if(!commonType.isPresent()) {
+        throw new UnsupportedOperationException("No common type possible for fields: " + node.getFields());
+      }
+      return new PrimitiveUnionField(type, commonType.get(), uniqueFieldName(node));
+      
     } else {
-      throw new UnsupportedOperationException("TODO");
+      throw new UnsupportedOperationException("TODO: " + unionSet.debugString());
     }
   }
 
@@ -107,7 +125,7 @@ public class RecordClassLayout implements RecordLayout {
     if(fieldStrategy == null) {
       throw new IllegalStateException(type + " has no field at offset " + fieldRef.getOffset());
     }
-    return fieldStrategy.memberExpr(instance.unwrap(), fieldRef.getType());
+    return fieldStrategy.memberExpr(instance.unwrap(), 0, fieldRef.getType());
   }
 
   private boolean isUnionMember(GimpleFieldRef fieldRef) {
@@ -137,4 +155,5 @@ public class RecordClassLayout implements RecordLayout {
     }
     return Type.getType(Object.class);
   }
+  
 }

@@ -83,8 +83,12 @@ public class RecordArrayTypeStrategy extends RecordTypeStrategy<RecordArrayExpr>
       if(expectedType.equals(fieldType)) {
         JExpr value = elementAt(array, offset);
         return new PrimitiveValue(value, address);
-      } else if (expectedType.equals(Type.INT_TYPE) && fieldType.equals(Type.BYTE_TYPE)) {
+      } else if (fieldType.equals(Type.BYTE_TYPE) && expectedType.equals(Type.INT_TYPE)) {
         return new PrimitiveValue(new ByteArrayAsInt(array, offset));
+        
+      } else if (fieldType.equals(Type.LONG_TYPE) && expectedType.equals(Type.DOUBLE_TYPE)) {
+        JLValue value = elementAt(array, offset);
+        return new PrimitiveValue(new LongAsDouble(value));
         
       } else {
         throw new UnsupportedOperationException("TODO: " + fieldType + " -> " + expectedType);

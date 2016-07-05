@@ -16,7 +16,7 @@ public abstract class FieldStrategy {
 
   public abstract void writeFields(ClassVisitor cv);
 
-  public abstract GExpr memberExpr(JExpr instance, GimpleType expectedType);
+  public abstract GExpr memberExpr(JExpr instance, int fieldOffset, GimpleType expectedType);
 
 
 }

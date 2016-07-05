@@ -66,4 +66,12 @@ public class UnionSet {
       return name;
     }
   }
+
+  public String debugString() {
+    StringBuilder sb = new StringBuilder();
+    for (GimpleRecordTypeDef typeDef : getAllTypes()) {
+      sb.append(typeDef).append("\n");
+    }
+    return sb.toString();
+  }
 }

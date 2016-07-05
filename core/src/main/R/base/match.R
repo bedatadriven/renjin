@@ -16,8 +16,30 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-match <- function(x, table, nomatch = NA_integer_, incomparables = NULL)
-    .Internal(match(x, table, nomatch, incomparables))
+
+
+.compile.loops <- FALSE
+
+match <- function(x, table, nomatch = NA_integer_, incomparables = NULL) {
+ 
+    if(!.compile.loops) {
+        return(.Internal(match(x, table, nomatch, incomparables)))
+    } 
+
+    # Special case, exit early if x is empty
+    if(length(x) == 0) {
+        return(integer(0))
+    }   
+
+    # For historical reasons, FALSE is treated the same as NULL
+    if(identical(incomparables, FALSE)) {
+        incomparables <- NULL
+    }   
+
+    
+
+}
+
 
 match.call <-
     function(definition=sys.function(sys.parent()),

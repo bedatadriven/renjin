@@ -47,9 +47,10 @@ public class Native {
                           @NamedFlag("ENCODING") boolean encoding) throws IllegalAccessException {
 
     MethodHandle method;
-
+    String methodName;
+    
     if(methodExp instanceof StringVector) {
-      String methodName = ((StringVector) methodExp).getElementAsString(0);
+      methodName = ((StringVector) methodExp).getElementAsString(0);
 
 
       if("base".equals(packageName)) {
@@ -61,14 +62,20 @@ public class Native {
         throw new EvalException("Can't find method %s in package %s", methodName, packageName);
       }
 
-      method = MethodHandles.publicLookup().unreflect(Iterables.getOnlyElement(methods));
+      Method methodObject = Iterables.getOnlyElement(methods);
+      method = MethodHandles.publicLookup().unreflect(methodObject);
+      methodName = methodObject.getName();
 
     } else if(methodExp instanceof ExternalPtr && ((ExternalPtr) methodExp).getInstance() instanceof Method) {
-      method = MethodHandles.publicLookup().unreflect((Method) ((ExternalPtr) methodExp).getInstance());
+      Method methodObject = (Method) ((ExternalPtr) methodExp).getInstance();
+      method = MethodHandles.publicLookup().unreflect(methodObject);
+      methodName = methodObject.getName();
 
     } else if(methodExp instanceof ListVector) {
-      ExternalPtr<MethodHandle> address = (ExternalPtr<MethodHandle>) ((ListVector)methodExp).get("address");
+      ListVector methodObject = (ListVector) methodExp;
+      ExternalPtr<MethodHandle> address = (ExternalPtr<MethodHandle>)  methodObject.get("address");
       method = address.getInstance();
+      methodName = methodObject.get("name").asString();
 
     } else {
       throw new EvalException("Invalid method argument of type %s", methodExp.getTypeName());
@@ -88,6 +95,10 @@ public class Native {
             " to for C argument " +  type + " in call to " + method);
       }
     }
+    
+    if(Profiler.ENABLED) {
+      Profiler.functionStart(Symbol.get(methodName), 'C');
+    }
 
     try {
       method.invokeWithArguments(nativeArguments);
@@ -95,6 +106,10 @@ public class Native {
       throw e;
     } catch (Throwable e) {
       throw new EvalException(e.getMessage(), e);
+    } finally {
+      if(Profiler.ENABLED) {
+        Profiler.functionEnd();
+      }
     }
 
     ListVector.NamedBuilder builder = new ListVector.NamedBuilder();
@@ -224,7 +239,7 @@ public class Native {
     ListVector.NamedBuilder returnValues = ListVector.newNamedBuilder();
 
     if(Profiler.ENABLED) {
-      Profiler.functionStart(Symbol.get(methodName));
+      Profiler.functionStart(Symbol.get(methodName), 'F');
     }
 
     // For .Fortran() calls, we make a copy of the arguments, pass them by
@@ -332,7 +347,7 @@ public class Native {
       SEXP[] arguments = toSexpArray(callArguments);
       if(Profiler.ENABLED) {
         StringVector nameExp = (StringVector)((ListVector) methodExp).get("name");
-        Profiler.functionStart(Symbol.get(nameExp.getElementAsString(0)));
+        Profiler.functionStart(Symbol.get(nameExp.getElementAsString(0)), 'C');
       }
       Context previousContext = CURRENT_CONTEXT.get();
       try {
@@ -371,7 +386,7 @@ public class Native {
         clazz = namespaceClass.get();
       }
       if(Profiler.ENABLED) {
-        Profiler.functionStart(Symbol.get(methodName));
+        Profiler.functionStart(Symbol.get(methodName), 'C');
       }
       try {
         return delegateToJavaMethod(context, clazz, methodName, callArguments);
@@ -412,7 +427,7 @@ public class Native {
 
     if(Profiler.ENABLED) {
       StringVector nameExp = (StringVector)((ListVector) methodExp).get("name");
-      Profiler.functionStart(Symbol.get(nameExp.getElementAsString(0)));
+      Profiler.functionStart(Symbol.get(nameExp.getElementAsString(0)), 'C');
     }
     Context previousContext = CURRENT_CONTEXT.get();
     try {

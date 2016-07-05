@@ -35,6 +35,7 @@ import org.renjin.compiler.ir.tac.IRBodyBuilder;
 import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.eval.Profiler;
 import org.renjin.primitives.Deparse;
 import org.renjin.sexp.*;
 
@@ -53,6 +54,7 @@ public class ForFunction extends SpecialFunction {
   @Override
   public SEXP apply(Context context, Environment rho, FunctionCall call, PairList _args_unused) {
 
+    
     PairList args = call.getArguments();
     Symbol symbol = args.getElementAsSEXP(0);
     SEXP elementsExp = context.evaluate(args.getElementAsSEXP(1), rho);
@@ -62,27 +64,40 @@ public class ForFunction extends SpecialFunction {
     Vector elements = (Vector) elementsExp;
     SEXP statement = args.getElementAsSEXP(2);
 
-    // Interpret the loop
-    boolean compilationFailed = false;
-    for (int i = 0; i != elements.length(); ++i) {
-      try {
+    boolean profiling = Profiler.ENABLED && elements.length() > COMPILE_THRESHOLD;
+    if(profiling) {
+      Profiler.loopStart(call, elements);
+    }
 
-        if(COMPILE_LOOPS && i >= WARMUP_ITERATIONS && elements.length() > COMPILE_THRESHOLD && 
-            !compilationFailed) {
-          
-          if(tryCompileAndRun(context, rho, call, elements, i)) {
-            break;
-          } else {
-            compilationFailed = true;
+    int i = 0;
+    
+    try {
+      // Interpret the loop
+      boolean compilationFailed = false;
+      for (i = 0; i != elements.length(); ++i) {
+        try {
+
+          if (COMPILE_LOOPS && i >= WARMUP_ITERATIONS && elements.length() > COMPILE_THRESHOLD &&
+              !compilationFailed) {
+
+            if (tryCompileAndRun(context, rho, call, elements, i)) {
+              break;
+            } else {
+              compilationFailed = true;
+            }
           }
-        }
 
-        rho.setVariable(symbol, elements.getElementAsSEXP(i));
-        context.evaluate(statement, rho);
-      } catch (BreakException e) {
-        break;
-      } catch (NextException e) {
-        // next iteration
+          rho.setVariable(symbol, elements.getElementAsSEXP(i));
+          context.evaluate(statement, rho);
+        } catch (BreakException e) {
+          break;
+        } catch (NextException e) {
+          // next iteration
+        }
+      }
+    } finally {
+      if(profiling) {
+        Profiler.loopEnd(i);
       }
     }
 

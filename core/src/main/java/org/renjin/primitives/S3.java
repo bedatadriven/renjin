@@ -590,7 +590,7 @@ public class S3 {
       callContext.setState(GenericMethod.class, this);
 
       if(Profiler.ENABLED) {
-        Profiler.functionStart(this.method);
+        Profiler.functionStart(this.method, function);
       }
       try {
         if (function instanceof Closure) {

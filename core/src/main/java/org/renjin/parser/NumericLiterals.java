@@ -10,7 +10,6 @@ import java.text.NumberFormat;
  * Parses and formats numbers to/from strings 
  */
 public class NumericLiterals {
-  public static final NumberFormat INTEGER_FORMAT = createIntegerFormat();
   public static final NumberFormat REAL_FORMAT = createRealFormat();
 
   /**
@@ -32,7 +31,7 @@ public class NumericLiterals {
   }
 
   public static String format(int value) {
-    return INTEGER_FORMAT.format(value);
+    return Integer.toString(value);
   }
 
   public static String toString(double value) {
@@ -59,12 +58,6 @@ public class NumericLiterals {
     NumberFormat format = NumberFormat.getNumberInstance();
     format.setMinimumFractionDigits(0);
     format.setMaximumFractionDigits(14);
-    format.setGroupingUsed(false);
-    return format;
-  }
-
-  private static NumberFormat createIntegerFormat() {
-    NumberFormat format = NumberFormat.getIntegerInstance();
     format.setGroupingUsed(false);
     return format;
   }

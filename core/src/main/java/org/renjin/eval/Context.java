@@ -277,7 +277,7 @@ public class Context {
 
     boolean profiling = Profiler.ENABLED && fn instanceof Symbol && !((Symbol) fn).isReservedWord();
     if(Profiler.ENABLED && profiling) {
-      Profiler.functionStart((Symbol)fn);
+      Profiler.functionStart((Symbol)fn, functionExpr);
     }
     try {
       return functionExpr.apply(this, rho, call, call.getArguments());

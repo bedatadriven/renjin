@@ -132,7 +132,7 @@ public class RLexer implements RParser.Lexer {
       /* body of "if" statements. */
 
       if (token == '\n') {
-
+        
         if (parseState.getEatLines() || contextStack.peek() == '[' ||
             contextStack.peek() == '(') {
           continue;

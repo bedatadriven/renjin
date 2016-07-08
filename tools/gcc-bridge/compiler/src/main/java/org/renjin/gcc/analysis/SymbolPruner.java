@@ -101,15 +101,17 @@ public class SymbolPruner {
   }
 
   private static boolean isEntryPoint(GimpleFunction function) {
-    if(!function.isExtern() || function.isWeak() || function.isInline()) {
-      return false;
-    }
-    // This is a bit of hack, but assume that C++ mangled names are NOT entry
-    // points
-    if(function.getName().startsWith("_Z")) {
-      return false;
-    }
-    return true;
+    return function.getName().equals("RS_wavelets_shrink");
+//    
+//    if(!function.isExtern() || function.isWeak() || function.isInline()) {
+//      return false;
+//    }
+//    // This is a bit of hack, but assume that C++ mangled names are NOT entry
+//    // points
+//    if(function.getName().startsWith("_Z")) {
+//      return false;
+//    }
+//    return true;
   }
 
   private static class ReferenceFinder extends GimpleExprVisitor {

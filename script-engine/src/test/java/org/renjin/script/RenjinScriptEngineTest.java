@@ -3,10 +3,7 @@ package org.renjin.script;
 import org.hamcrest.CoreMatchers;
 import org.junit.Before;
 import org.junit.Test;
-import org.renjin.sexp.DoubleArrayVector;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.IntArrayVector;
-import org.renjin.sexp.LogicalVector;
+import org.renjin.sexp.*;
 
 import javax.script.*;
 import java.util.HashMap;
@@ -131,6 +128,13 @@ public class RenjinScriptEngineTest {
     
     bindings.put("x", null);
     assertThat(engine.eval("is.null(x)"), CoreMatchers.<Object>equalTo(LogicalVector.TRUE));
+  }
+  
+  @Test
+  public void readResource() throws ScriptException {
+    StringVector vector = (StringVector) engine.eval("readLines('res:org/renjin/test.txt')");
+    assertThat(vector.length(), equalTo(1));
+    assertThat(vector.getElementAsString(0), equalTo("hello world"));
   }
   
 }

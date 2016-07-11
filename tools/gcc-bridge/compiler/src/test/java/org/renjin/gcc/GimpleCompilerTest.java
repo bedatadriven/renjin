@@ -37,6 +37,16 @@ public class GimpleCompilerTest extends AbstractGccTest {
 
     assertThat(value, closeTo(12.56, 0.01));
   }
+  
+  @Test
+  public void fortranIntrinsics() throws Exception {
+    Class clazz = compile("array_intrinsic.f");
+    
+    Method method = clazz.getMethod("dosum_", IntPtr.class);
+    Float result = (Float)method.invoke(null, new IntPtr(1));
+    
+    assertThat(result, equalTo(15.0f));
+  }
 
   @Test
   public void pointers() throws Exception {

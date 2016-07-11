@@ -59,6 +59,11 @@
       <artifactId>graphics</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.renjin</groupId>
+      <artifactId>compiler</artifactId>
+      <version>${project.version}</version>
+    </dependency>
 
     <!-- unit test framework -->
     <dependency>

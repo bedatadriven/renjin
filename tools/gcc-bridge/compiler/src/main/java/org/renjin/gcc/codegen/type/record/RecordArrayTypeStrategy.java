@@ -61,7 +61,7 @@ public class RecordArrayTypeStrategy extends RecordTypeStrategy<RecordArrayExpr>
   }
 
   @Override
-  public GExpr memberOf(RecordArrayExpr instance, GimpleFieldRef fieldRef) {
+  public GExpr memberOf(RecordArrayExpr instance, GimpleFieldRef fieldRef, TypeStrategy fieldTypeStrategy) {
     
     // All the fields in this record are necessarily primitives, so we need
     // simple to retrieve the element from within the array that corresponds to

@@ -27,7 +27,7 @@ public abstract class RecordTypeStrategy<ExprT extends GExpr> implements TypeStr
     return recordTypeDef;
   }
 
-  public abstract GExpr memberOf(ExprT instance, GimpleFieldRef fieldRef);
+  public abstract GExpr memberOf(ExprT instance, GimpleFieldRef fieldRef, TypeStrategy fieldTypeStrategy);
 
   public static boolean isCircularField(GimpleRecordTypeDef typeDef, GimpleField gimpleField) {
     // GCC emits this weird member at the end of class 

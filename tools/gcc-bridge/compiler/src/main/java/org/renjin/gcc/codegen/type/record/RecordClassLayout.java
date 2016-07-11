@@ -1,6 +1,7 @@
 package org.renjin.gcc.codegen.type.record;
 
 import com.google.common.base.Optional;
+import org.omg.CORBA.UnknownUserException;
 import org.renjin.gcc.codegen.RecordClassGenerator;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.fatptr.AddressableField;
@@ -69,9 +70,10 @@ public class RecordClassLayout implements RecordLayout {
    
     } else if(typeSet.allPointers()) {
       if(node.isAddressable()) {
-        return new AddressableField(type, uniqueFieldName(node), new VoidPtrValueFunction());
+        //return new AddressableField(type, uniqueFieldName(node), new VoidPtrValueFunction());
+        throw new UnsupportedOperationException("TODO");
       } else {
-        return new VoidPtrField(uniqueFieldName(node));
+        return new PointerUnionField(type, uniqueFieldName(node));
       }
   
     } else if(typeSet.allPrimitives()) {

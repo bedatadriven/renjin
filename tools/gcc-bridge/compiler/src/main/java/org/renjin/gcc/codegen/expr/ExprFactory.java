@@ -17,6 +17,7 @@ import org.renjin.gcc.codegen.type.complex.ComplexValues;
 import org.renjin.gcc.codegen.type.fun.FunPtr;
 import org.renjin.gcc.codegen.type.primitive.*;
 import org.renjin.gcc.codegen.type.primitive.op.*;
+import org.renjin.gcc.codegen.type.record.FieldTypeSet;
 import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.expr.*;
@@ -144,7 +145,8 @@ public class ExprFactory {
       GimpleComponentRef ref = (GimpleComponentRef) expr;
       GExpr instance = findGenerator(((GimpleComponentRef) expr).getValue());
       RecordTypeStrategy typeStrategy = (RecordTypeStrategy) typeOracle.forType(ref.getValue().getType());
-      return typeStrategy.memberOf(instance, ref.getMember());
+      TypeStrategy fieldTypeStrategy = typeOracle.forType(ref.getType());
+      return typeStrategy.memberOf(instance, ref.getMember(), fieldTypeStrategy);
    
     } else if(expr instanceof GimpleCompoundLiteral) {
       return findGenerator(((GimpleCompoundLiteral) expr).getDecl());

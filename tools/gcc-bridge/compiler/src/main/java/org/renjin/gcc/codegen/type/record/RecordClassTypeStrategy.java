@@ -26,11 +26,13 @@ import java.util.Map;
  */
 public class RecordClassTypeStrategy extends RecordTypeStrategy<RecordValue> implements SimpleTypeStrategy<RecordValue> {
 
+  private TypeOracle typeOracle;
   private boolean unitPointer;
   private RecordLayout layout;
 
-  public RecordClassTypeStrategy(GimpleRecordTypeDef recordTypeDef, RecordLayout layout) {
+  public RecordClassTypeStrategy(TypeOracle typeOracle, GimpleRecordTypeDef recordTypeDef, RecordLayout layout) {
     super(recordTypeDef);
+    this.typeOracle = typeOracle;
     this.layout = layout;
   }
 
@@ -105,12 +107,12 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<RecordValue> imp
       GExpr fieldValue = exprFactory.findGenerator(element.getValue());
       fields.put((GimpleFieldRef) element.getField(), fieldValue);
     }
-    return new RecordValue(new RecordConstructor(this, fields));
+    return new RecordValue(new RecordConstructor(typeOracle, this, fields));
   }
   
 
   @Override
-  public GExpr memberOf(RecordValue instance, GimpleFieldRef fieldRef) {
+  public GExpr memberOf(RecordValue instance, GimpleFieldRef fieldRef, TypeStrategy fieldTypeStrategy) {
     return layout.memberOf(instance, fieldRef);
   }
 

@@ -113,7 +113,7 @@ public class RecordTypeStrategyBuilder {
 
     boolean unitPointer = isUnitPointer(set);
     for (GimpleRecordTypeDef typeDef : set.getAllTypes()) {
-      RecordClassTypeStrategy strategy = new RecordClassTypeStrategy(typeDef, new EmptyRecordLayout());
+      RecordClassTypeStrategy strategy = new RecordClassTypeStrategy(typeOracle, typeDef, new EmptyRecordLayout());
       strategy.setUnitPointer(unitPointer);
       typeOracle.addRecordType(typeDef, strategy);
     }
@@ -167,7 +167,7 @@ public class RecordTypeStrategyBuilder {
     boolean unitPointer = isUnitPointer(set);
 
     for (GimpleRecordTypeDef typeDef : set.getAllTypes()) {
-      RecordClassTypeStrategy strategy = new RecordClassTypeStrategy(typeDef, layout);
+      RecordClassTypeStrategy strategy = new RecordClassTypeStrategy(typeOracle, typeDef, layout);
       strategy.setUnitPointer(unitPointer);
       typeOracle.addRecordType(typeDef, strategy);
     }
@@ -206,7 +206,7 @@ public class RecordTypeStrategyBuilder {
 
     layouts.add(providedLayout);
     
-    RecordClassTypeStrategy strategy = new RecordClassTypeStrategy(recordTypeDef, providedLayout);
+    RecordClassTypeStrategy strategy = new RecordClassTypeStrategy(typeOracle, recordTypeDef, providedLayout);
     strategy.setUnitPointer(usage.unitPointerAssumptionsHoldFor(recordTypeDef));
     return strategy;
   }

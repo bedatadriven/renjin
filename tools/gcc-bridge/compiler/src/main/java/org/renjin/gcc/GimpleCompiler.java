@@ -2,6 +2,7 @@ package org.renjin.gcc;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -68,6 +69,8 @@ public class GimpleCompiler  {
   private int nextRecordIndex = 0;
   
   private TreeLogger rootLogger = new NullTreeLogger();
+  
+  private Predicate<GimpleFunction> entryPointPredicate = new DefaultEntryPointPredicate();
 
   public GimpleCompiler() {
     functionBodyTransformers.add(FunctionCallPruner.INSTANCE);
@@ -106,7 +109,9 @@ public class GimpleCompiler  {
     this.outputDirectory = directory;
   }
 
-  
+  public void setEntryPointPredicate(Predicate<GimpleFunction> entryPointPredicate) {
+    this.entryPointPredicate = entryPointPredicate;
+  }
 
   /**
    * Sets the name of the trampoline class that contains a static wrapper method for all 'extern' functions.
@@ -142,6 +147,8 @@ public class GimpleCompiler  {
     providedRecordTypes.put(typeName, recordClass);
   }
 
+  
+  
   /**
    * Compiles the given {@link GimpleCompilationUnit}s to JVM class files.
    */
@@ -152,7 +159,7 @@ public class GimpleCompiler  {
       GlobalVarMerger.merge(units);
 
       // Prune unused functions 
-      SymbolPruner.prune(rootLogger, units);
+      SymbolPruner.prune(rootLogger, units, entryPointPredicate);
 
       // create the mapping from the compilation unit's version of the record types
       // to the canonical version shared by all compilation units

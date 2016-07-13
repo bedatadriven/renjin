@@ -29,7 +29,11 @@ import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.primitives.Contexts;
+import org.renjin.primitives.sequence.IntSequence;
+import org.renjin.primitives.vector.ConvertingStringVector;
 import org.renjin.sexp.*;
+
+import java.util.HashMap;
 
 
 /**
@@ -52,7 +56,7 @@ public class Match {
    * @return
    */
   @Internal
-  public static int[] match(Vector search, Vector table, int noMatch, AtomicVector incomparables) {
+  public static IntVector match(Vector search, Vector table, int noMatch, AtomicVector incomparables) {
     //For historical reasons, FALSE is equivalent to NULL.
     if(incomparables.equals( LogicalVector.FALSE ) ) {
       incomparables = Null.INSTANCE;
@@ -69,7 +73,15 @@ public class Match {
         table = new FactorString(table);
       }
     }
-
+    
+    // Check for special cases that we can handle quickly...
+    
+    // Are we matching against an unadulterated row.names vector?
+    IntSequence sequence = isStringSequence(table);
+    if(sequence != null && sequence.getBy() == 1 && incomparables.length() == 0) {
+      return matchAgainstStringSequence(search, sequence, noMatch);
+    }
+    
     int[] matches = new int[search.length()];
     for(int i=0;i!=search.length();++i) {
       if( incomparables.contains(search, i)) {
@@ -84,9 +96,93 @@ public class Match {
         matches[i] = pos >= 0 ? pos+1 : noMatch;
       }
     }
-    return matches;
+    return IntArrayVector.unsafe(matches);
   }
-  
+
+  /**
+   * Match a vector against a string sequence, for example as.character(1:1000)
+   */
+  private static IntVector matchAgainstStringSequence(Vector search, IntSequence sequence, int noMatch) {
+    assert sequence.getBy() == 1;
+    
+    int from = sequence.getFrom();
+    int length = sequence.length();
+    
+    int matches[] = new int[search.length()];
+    
+    // Keep track of whether search and sequence are identical
+    // If they are, we can return a new sequence rather than an array
+    boolean identity = (search.length() == sequence.length());
+    
+    for(int i=0;i!=search.length();++i) {
+      String toMatch = search.getElementAsString(i);
+      if(toMatch == null) {
+        matches[i] = noMatch;
+        identity = false;
+      } else {
+        try {
+          int index = Integer.parseInt(toMatch) - from + 1;
+          if(index > length) {
+            matches[i] = noMatch;
+            identity = false;
+          } else {
+            matches[i] = index;
+            if(index != i + 1) {
+              identity = false;
+            }
+          }
+        } catch (NumberFormatException ignored) {
+          matches[i] = noMatch;
+          identity = false;
+        }
+      }
+    }
+    if(identity) {
+      return new IntSequence(1, 1, search.length());
+    }
+    
+    return IntArrayVector.unsafe(matches);
+  }
+
+  private static IntSequence isStringSequence(Vector table) {
+    if(table instanceof ConvertingStringVector) {
+      ConvertingStringVector wrapper = (ConvertingStringVector) table;
+      if (wrapper.getOperand() instanceof IntSequence) {
+        return (IntSequence) wrapper.getOperand();
+      }
+    }
+    return null;
+  }
+
+  private static IntVector matchUsingStringHash(Vector search, Vector table, int noMatch, AtomicVector incomparables) {
+
+    // Build HashMap... 
+    // If items are repeated in the table, only the first is used.
+    HashMap<String, Integer> lookup = new HashMap<>();
+    for (int i = 0; i < table.length(); i++) {
+      String tableElement = table.getElementAsString(i);
+      if(!lookup.containsKey(tableElement)) {
+        lookup.put(tableElement, i);
+      }
+    }
+
+    for (int i = 0; i < incomparables.length(); i++) {
+      lookup.put(incomparables.getElementAsString(i), noMatch);
+    }
+    
+    int match[] = new int[search.length()];
+    for (int i = 0; i < search.length(); i++) {
+      String toMatch = search.getElementAsString(i);
+      Integer index = lookup.get(toMatch);
+      if(index == null) {
+        match[i] = noMatch;
+      } else {
+        match[i] = index;
+      }
+    }
+    
+    return new IntArrayVector(match);
+  }
 
   private static int indexOfNA(Vector table) {
     for(int i=0;i!=table.length();++i) {

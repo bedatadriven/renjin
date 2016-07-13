@@ -21,6 +21,10 @@ public class ConvertingStringVector extends StringVector implements DeferredComp
     this(operand, AttributeMap.EMPTY);
   }
 
+  public Vector getOperand() {
+    return operand;
+  }
+
   @Override
   public String getElementAsString(int index) {
     return operand.getElementAsString(index);

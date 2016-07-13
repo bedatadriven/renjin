@@ -10,7 +10,7 @@ import org.renjin.sexp.Vector;
  * Base class for converters between JVM scalars and R {@code vector}s
  * @param <T>
  */
-public abstract class PrimitiveScalarConverter<T> implements Converter<T> {
+public abstract class PrimitiveScalarConverter<T> implements Converter<T>, AtomicVectorConverter {
 
   @Override
   public final Object convertToJava(SEXP value) {

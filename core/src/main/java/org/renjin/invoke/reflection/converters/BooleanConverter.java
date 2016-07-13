@@ -23,6 +23,11 @@ public class BooleanConverter extends PrimitiveScalarConverter<Boolean> {
   }
 
   @Override
+  public Vector.Type getVectorType() {
+    return LogicalVector.VECTOR_TYPE;
+  }
+
+  @Override
   protected Object getFirstElement(Vector vector) {
     return vector.getElementAsLogical(0) != Logical.FALSE;
   }

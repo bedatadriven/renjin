@@ -29,6 +29,11 @@ public class DoubleConverter extends PrimitiveScalarConverter<Number> {
   }
 
   @Override
+  public Vector.Type getVectorType() {
+    return DoubleVector.VECTOR_TYPE;
+  }
+
+  @Override
   protected Object getFirstElement(Vector value) {
     return value.getElementAsDouble(0);
   }

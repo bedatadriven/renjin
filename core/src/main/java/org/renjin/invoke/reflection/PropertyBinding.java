@@ -7,6 +7,7 @@ import org.renjin.invoke.reflection.converters.Converters;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
@@ -35,12 +36,30 @@ public class PropertyBinding implements MemberBinding {
     }
   }
 
+  public Symbol getName() {
+    return name;
+  }
+
+  public Converter getConverter() {
+    return getterConverter;
+  }
+  
   public SEXP getValue(Object instance) {
     try {
       return getterConverter.convertToR(getter.invoke(instance));
     } catch (Exception e) {
       throw new EvalException("Exception thrown while invoking getter '%s' on instance of class '%s'",
               getter.getName(), getter.getDeclaringClass().getName());
+    }
+  }
+  
+  public Object getRawValue(Object instance) {
+    try {
+      return getter.invoke(instance);
+    } catch (IllegalAccessException e) {
+      throw new IllegalStateException("IllegalAccessException thrown while accessing public member " + name, e);
+    } catch (InvocationTargetException e) {
+      throw new RuntimeException(e.getCause());
     }
   }
 

@@ -31,6 +31,11 @@ public class IntegerConverter extends PrimitiveScalarConverter<Number> {
   }
 
   @Override
+  public Vector.Type getVectorType() {
+    return IntVector.VECTOR_TYPE;
+  }
+
+  @Override
   protected Object getFirstElement(Vector value) {
     return value.getElementAsInt(0);
   }

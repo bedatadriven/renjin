@@ -14,13 +14,9 @@ public abstract class Accessor {
    * push the corresponding double on to the stack.
    * @param method
    */
-  public void pushDouble(ComputeMethod method) {
-
-
-  }
+  public abstract void pushDouble(ComputeMethod method);
 
   public abstract void pushLength(ComputeMethod method);
-
 
   protected final void pushOperandIndex(MethodVisitor mv, int operandIndex) {
     if(operandIndex == 0) {

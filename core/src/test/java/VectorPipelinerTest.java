@@ -1,13 +1,5 @@
 import org.junit.Test;
 import org.renjin.EvalTestCase;
-import org.renjin.eval.Session;
-import org.renjin.eval.SessionBuilder;
-import org.renjin.parser.RParser;
-import org.renjin.sexp.ExpressionVector;
-
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 
 
 public class VectorPipelinerTest extends EvalTestCase {
@@ -22,6 +14,12 @@ public class VectorPipelinerTest extends EvalTestCase {
     eval("print(z)");
   }
 
+  @Test
+  public void logicalOperator() {
+    // Binary operator with integer result, used as a double
+    eval("x <- sum( (1:10000 < 500) + 1)");
+    eval("print(x)");
+  }
 
 
 }

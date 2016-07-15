@@ -22,4 +22,23 @@ public class VectorPipelinerTest extends EvalTestCase {
   }
 
 
+  @Test
+  public void logicalOperator2() {
+    // a: >([400d], 0.2)
+    // b: <([400d], 0.2)
+    // c: +(b, a)
+    // d: *(1.0, [400d])
+    eval("x <- double(400)");
+    eval("a <- x > 0.2");
+    eval("b <- x < 0.2");
+    eval("c <- a + b");
+    eval("d <- 1.0 * x");
+    eval("e <- c * d");
+
+    eval("x <- sum(e)");
+    eval("print(x)");
+  }
+
+
+
 }

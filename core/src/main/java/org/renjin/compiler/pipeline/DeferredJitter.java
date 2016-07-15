@@ -3,6 +3,12 @@ package org.renjin.compiler.pipeline;
 import org.renjin.repackaged.asm.ClassVisitor;
 import org.renjin.repackaged.asm.ClassWriter;
 import org.renjin.repackaged.asm.MethodVisitor;
+import org.renjin.repackaged.asm.tree.MethodNode;
+import org.renjin.repackaged.asm.util.Textifier;
+import org.renjin.repackaged.asm.util.TraceMethodVisitor;
+
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
 import static org.renjin.repackaged.asm.Opcodes.*;
 
@@ -51,10 +57,6 @@ public class DeferredJitter {
     long startTime = System.nanoTime();
     ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
     cv = cw;
-//    if(DeferredGraph.DEBUG) {
-//      cv = new TraceClassVisitor(cw, new PrintWriter(System.out));
-//    }
-    //cv = new CheckClassAdapter(cv);
     cv.visit(V1_6, ACC_PUBLIC + ACC_SUPER, className, null, "java/lang/Object",
             new String[]{"org/renjin/compiler/pipeline/JittedComputation"});
 
@@ -86,7 +88,7 @@ public class DeferredJitter {
     MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
     mv.visitCode();
     mv.visitVarInsn(ALOAD, 0);
-    mv.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V");
+    mv.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
     mv.visitInsn(RETURN);
     mv.visitMaxs(1, 1);
     mv.visitEnd();
@@ -103,6 +105,42 @@ public class DeferredJitter {
 
     mv.visitMaxs(1, methodContext.getMaxLocals());
     mv.visitEnd();
+  }
+
+
+  private void writeComputeDebug(DeferredNode node) {
+
+    MethodNode mv = new MethodNode(ACC_PUBLIC, "compute", "([Lorg/renjin/sexp/Vector;)[D", null, null);
+    mv.visitCode();
+
+    ComputeMethod methodContext = new ComputeMethod(mv);
+
+    FunctionJitter function = getFunction(node);
+    function.compute(methodContext, node);
+
+    mv.visitMaxs(1, methodContext.getMaxLocals());
+    mv.visitEnd();
+    
+    try {
+      mv.accept(cv);
+    } catch (Exception e) {
+      throw new RuntimeException("Toxic bytecode generated: " + toString(mv), e);
+    }
+  }
+
+
+  private String toString(MethodNode methodNode) {
+    try {
+      Textifier p = new Textifier();
+      methodNode.accept(new TraceMethodVisitor(p));
+      StringWriter sw = new StringWriter();
+      try (PrintWriter pw = new PrintWriter(sw)) {
+        p.print(pw);
+      }
+      return sw.toString();
+    } catch (Exception e) {
+      return "<Exception generating bytecode: " + e.getClass().getName() + ": " + e.getMessage() + ">";
+    }
   }
 
   private FunctionJitter getFunction(DeferredNode node) {

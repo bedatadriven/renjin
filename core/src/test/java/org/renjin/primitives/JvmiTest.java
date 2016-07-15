@@ -3,8 +3,11 @@ package org.renjin.primitives;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.sexp.ExternalPtr;
+import org.renjin.util.DataFrameBuilder;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -33,6 +36,19 @@ public class JvmiTest extends EvalTestCase {
     //assertThat(eval("x$children"), equalTo(list("Bob", "Sue", "Rick")));
   }
 
+  
+  @Test
+  public void toDataFrame() {
+    
+    List<MyBean> beans = Arrays.asList(new MyBean("Huey"), new MyBean("Louey"), new MyBean("Dewey"));
+    topLevelContext.getGlobalEnvironment().setVariable("df", DataFrameBuilder.build(MyBean.class, beans));
+    
+    eval("print(df)");
+    
+    assertThat(eval("df$name"), equalTo(c("Huey", "Louey", "Dewey")));
+  }
+  
+  
   @Test
   public void classObject() {
     eval("import(java.lang.Class)");

@@ -39,8 +39,8 @@ public class BinaryVectorOpAccessor extends Accessor {
               Modifier.isStatic(method.getModifiers()) &&
               method.getParameterTypes().length == 2) {
         
-        if(method.getReturnType().equals(double.class) ||
-           method.getReturnType().equals(int.class)) {
+        if (method.getReturnType().equals(double.class) ||
+            method.getReturnType().equals(int.class)) {
           return method;
         }
       }

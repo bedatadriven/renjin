@@ -1,6 +1,6 @@
 package org.renjin.math;
 
-import org.netlib.blas.Dgemm;
+import com.github.fommil.netlib.F2jBLAS;
 import org.openjdk.jmh.annotations.*;
 import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.DoublePtr;
@@ -17,6 +17,8 @@ import java.util.concurrent.TimeUnit;
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
 public class DgemmBenchmark {
 
+  private F2jBLAS blas = new F2jBLAS();
+  
   @Param({"16", "32", "64" /* "128", "1000", "10000" */})
   public int m;
   
@@ -48,7 +50,7 @@ public class DgemmBenchmark {
   }
 
   public void dgemm(String arg1, String arg2, int arg3, int arg4, int arg5, double arg6, double[] arg7, int arg9, double[] arg10, int arg12, double arg13, double[] arg14, int arg16) {
-    Dgemm.dgemm(arg1, arg2, arg3, arg4, arg5, arg6, arg7, 0, arg9, arg10, 0, arg12, arg13, arg14, 0, arg16);
+    blas.dgemm(arg1, arg2, arg3, arg4, arg5, arg6, arg7, 0, arg9, arg10, 0, arg12, arg13, arg14, 0, arg16);
   }
 
   @Benchmark

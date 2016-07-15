@@ -1,6 +1,6 @@
 package org.renjin.primitives.matrix;
 
-import org.netlib.blas.BLAS;
+import com.github.fommil.netlib.BLAS;
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.*;
 

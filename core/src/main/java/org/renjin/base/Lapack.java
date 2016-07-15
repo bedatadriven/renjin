@@ -1,8 +1,8 @@
 package org.renjin.base;
 
 
+import com.github.fommil.netlib.LAPACK;
 import org.apache.commons.math.complex.Complex;
-import org.netlib.lapack.LAPACK;
 import org.netlib.util.doubleW;
 import org.netlib.util.intW;
 import org.renjin.eval.EvalException;

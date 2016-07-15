@@ -3,6 +3,7 @@ package org.renjin.compiler.pipeline.accessor;
 import org.renjin.compiler.pipeline.ComputeMethod;
 import org.renjin.compiler.pipeline.DeferredNode;
 import org.renjin.repackaged.asm.MethodVisitor;
+import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.sexp.Vector;
 
@@ -37,7 +38,11 @@ public class BinaryVectorOpAccessor extends Accessor {
               Modifier.isPublic(method.getModifiers()) &&
               Modifier.isStatic(method.getModifiers()) &&
               method.getParameterTypes().length == 2) {
-        return method;
+        
+        if(method.getReturnType().equals(double.class) ||
+           method.getReturnType().equals(int.class)) {
+          return method;
+        }
       }
     }
     return null;
@@ -57,7 +62,7 @@ public class BinaryVectorOpAccessor extends Accessor {
     operandAccessor2.pushLength(method);
     mv.visitInsn(DUP);
     mv.visitVarInsn(ISTORE, lengthLocal2);
-    method.getVisitor().visitMethodInsn(INVOKESTATIC, "java/lang/Math", "max", "(II)I");
+    method.getVisitor().visitMethodInsn(INVOKESTATIC, "java/lang/Math", "max", "(II)I", false);
     mv.visitVarInsn(ISTORE, lengthLocal);
   }
 
@@ -66,8 +71,8 @@ public class BinaryVectorOpAccessor extends Accessor {
     method.getVisitor().visitVarInsn(ILOAD, lengthLocal);
   }
 
-  @Override
-  public void pushDouble(ComputeMethod method) {
+
+  private void push(ComputeMethod method) {
     MethodVisitor mv = method.getVisitor();
     mv.visitInsn(DUP);
     mv.visitVarInsn(ILOAD, lengthLocal1);
@@ -89,7 +94,32 @@ public class BinaryVectorOpAccessor extends Accessor {
     mv.visitMethodInsn(INVOKESTATIC,
             Type.getInternalName(applyMethod.getDeclaringClass()),
             applyMethod.getName(),
-            Type.getMethodDescriptor(applyMethod));
+            Type.getMethodDescriptor(applyMethod), false);
+  }
 
+  @Override
+  public void pushDouble(ComputeMethod method) {
+    push(method);
+    
+    if(applyMethod.getReturnType().equals(int.class)) {
+      method.getVisitor().visitInsn(Opcodes.I2D);
+    } else if(applyMethod.getReturnType().equals(double.class)) {
+      // NOOP
+    } else {
+      throw new UnsupportedOperationException("returnType: " + applyMethod.getReturnType());
+    }
+  }
+
+  @Override
+  public void pushInt(ComputeMethod method) {
+    push(method);
+
+    if(applyMethod.getReturnType().equals(int.class)) {
+      // NOOP
+    } else if(applyMethod.getReturnType().equals(double.class)) {
+      method.getVisitor().visitInsn(Opcodes.D2I);
+    } else {
+      throw new UnsupportedOperationException("returnType: " + applyMethod.getReturnType());
+    }  
   }
 }

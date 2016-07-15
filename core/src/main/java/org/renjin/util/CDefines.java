@@ -25,7 +25,6 @@ import com.google.common.base.Preconditions;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.*;
-import org.renjin.sexp.Vector.Builder;
 
 /**
  * Macros and static methods defined in the original C implementation
@@ -465,32 +464,12 @@ public class CDefines {
   public static final SEXP getAttrib(SEXP s, Symbol attribName) {
     return s.getAttribute(attribName);
   }
-  
-  public static void SET_STRING_ELT(Builder builder, int i, SEXP tag) {
-    if(tag == R_NilValue) {
-      builder.setNA(i);
-    } else {
-      ((StringArrayVector.Builder)builder).set(i, ((CHARSEXP)tag).toString());
-    }
-  }
 
-  public static void SET_VECTOR_ELT(Builder newnames, int i, SEXP tag) {
-    ((ListVector.Builder)newnames).set(i,  tag);
-  }
-  
   public static void setAttrib(SEXPBuilder builder, Symbol name, SEXP value) {
     builder.setAttribute(name, value);
   }
 
-  public static void setAttrib(SEXPBuilder builder, Symbol name, Builder valueBuilder) {
-    builder.setAttribute(name, valueBuilder.build());
-  }
 
-
-  public static SEXP ScalarInteger(int flag) {
-    return new IntArrayVector(flag);
-  }
-  
   public static boolean isNull(SEXP exp) {
     return exp == Null.INSTANCE;
   }
@@ -498,25 +477,7 @@ public class CDefines {
   public static final CHARSEXP mkString(String s) {
     return new CHARSEXP(s);
   }
-  
-  
-  public enum ArithOpType {
-    PLUSOP,
-    MINUSOP,
-    TIMESOP,
-    DIVOP,
-    POWOP,
-    MODOP,
-    IDIVOP
-  }
 
-  public enum RelOpType {
-    EQOP,
-    NEOP,
-    LTOP,
-    LEOP,
-    GEOP,
-    GTOP
-  }
+
 }
 

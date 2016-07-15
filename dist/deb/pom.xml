@@ -27,14 +27,22 @@
   <dependencies>
     <dependency>
       <groupId>org.renjin</groupId>
-      <artifactId>renjin-core</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.renjin</groupId>
       <artifactId>renjin-cli</artifactId>
       <version>${project.version}</version>
     </dependency>
+
+    <!-- Include JNI glue for i686 and x86_64 native libraries -->
+    <dependency>
+      <groupId>com.github.fommil.netlib</groupId>
+      <artifactId>netlib-native_system-linux-i686</artifactId>
+      <version>1.1</version>
+    </dependency>
+    <dependency>
+      <groupId>com.github.fommil.netlib</groupId>
+      <artifactId>netlib-native_system-linux-x86_64</artifactId>
+      <version>1.1</version>
+    </dependency>
+    
   </dependencies>
 
   <repositories>

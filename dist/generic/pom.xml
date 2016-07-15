@@ -24,6 +24,10 @@
     <artifactId>renjin-generic-package</artifactId>
     <name>Renjin Standalone Platform-independent distribution</name>
     <packaging>pom</packaging>
+    
+    <properties>
+        <netlib.version>1.1</netlib.version>
+    </properties>
 
     <dependencies>
         <dependency>
@@ -35,6 +39,81 @@
             <groupId>org.renjin</groupId>
             <artifactId>renjin-cli</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        
+        <!-- Include native libraries for all major platforms -->
+        <!-- Including the all pom dependency doesn't work here -->
+        <dependency>
+            <groupId>com.github.fommil.netlib</groupId>
+            <artifactId>netlib-native_ref-osx-x86_64</artifactId>
+            <version>${netlib.version}</version>
+            <classifier>natives</classifier>
+        </dependency>
+        <dependency>
+            <groupId>com.github.fommil.netlib</groupId>
+            <artifactId>netlib-native_ref-linux-x86_64</artifactId>
+            <version>${netlib.version}</version>
+            <classifier>natives</classifier>
+        </dependency>
+        <dependency>
+            <groupId>com.github.fommil.netlib</groupId>
+            <artifactId>netlib-native_ref-linux-i686</artifactId>
+            <version>${netlib.version}</version>
+            <classifier>natives</classifier>
+        </dependency>
+        <dependency>
+            <groupId>com.github.fommil.netlib</groupId>
+            <artifactId>netlib-native_ref-win-x86_64</artifactId>
+            <version>${netlib.version}</version>
+            <classifier>natives</classifier>
+        </dependency>
+        <dependency>
+            <groupId>com.github.fommil.netlib</groupId>
+            <artifactId>netlib-native_ref-win-i686</artifactId>
+            <version>${netlib.version}</version>
+            <classifier>natives</classifier>
+        </dependency>
+        <dependency>
+            <groupId>com.github.fommil.netlib</groupId>
+            <artifactId>netlib-native_ref-linux-armhf</artifactId>
+            <version>${netlib.version}</version>
+            <classifier>natives</classifier>
+        </dependency>
+        <dependency>
+            <groupId>com.github.fommil.netlib</groupId>
+            <artifactId>netlib-native_system-osx-x86_64</artifactId>
+            <version>${netlib.version}</version>
+            <classifier>natives</classifier>
+        </dependency>
+        <dependency>
+            <groupId>com.github.fommil.netlib</groupId>
+            <artifactId>netlib-native_system-linux-x86_64</artifactId>
+            <version>${netlib.version}</version>
+            <classifier>natives</classifier>
+        </dependency>
+        <dependency>
+            <groupId>com.github.fommil.netlib</groupId>
+            <artifactId>netlib-native_system-linux-i686</artifactId>
+            <version>${netlib.version}</version>
+            <classifier>natives</classifier>
+        </dependency>
+        <dependency>
+            <groupId>com.github.fommil.netlib</groupId>
+            <artifactId>netlib-native_system-linux-armhf</artifactId>
+            <version>${netlib.version}</version>
+            <classifier>natives</classifier>
+        </dependency>
+        <dependency>
+            <groupId>com.github.fommil.netlib</groupId>
+            <artifactId>netlib-native_system-win-x86_64</artifactId>
+            <version>${netlib.version}</version>
+            <classifier>natives</classifier>
+        </dependency>
+        <dependency>
+            <groupId>com.github.fommil.netlib</groupId>
+            <artifactId>netlib-native_system-win-i686</artifactId>
+            <version>${netlib.version}</version>
+            <classifier>natives</classifier>
         </dependency>
     </dependencies>
 

@@ -1,5 +1,9 @@
 package org.renjin.repl;
 
+import com.github.fommil.netlib.BLAS;
+import com.github.fommil.netlib.F2jBLAS;
+import com.github.fommil.netlib.NativeRefBLAS;
+import com.github.fommil.netlib.NativeSystemBLAS;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import jline.UnsupportedTerminal;
@@ -117,10 +121,22 @@ public class JlineRepl {
     } catch (IOException e) {
       reader.println("Renjin");
     }
+    
+    reader.println("Copyright (C) 2016 The R Foundation for Statistical Computing");
+    reader.println("Copyright (C) 2016 BeDataDriven");
+    
+    printBlasLibrary();
+    
+  }
 
-    reader.println("Copyright (C) 2015 The R Foundation for Statistical Computing");
-    reader.println("Copyright (C) 2015 BeDataDriven");
-
+  private void printBlasLibrary() throws IOException {
+    if(BLAS.getInstance() instanceof F2jBLAS) {
+      reader.println("Falling back to pure JVM BLAS libraries.");
+    } else if(BLAS.getInstance() instanceof NativeRefBLAS) {
+      reader.println("Using native reference BLAS libraries.");
+    } else if(BLAS.getInstance() instanceof NativeSystemBLAS) {
+      reader.println("Using system BLAS libraries.");
+    }
   }
 
   private boolean readExpression() throws Exception {

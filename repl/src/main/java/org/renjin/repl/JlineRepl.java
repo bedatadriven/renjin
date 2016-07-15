@@ -1,9 +1,6 @@
 package org.renjin.repl;
 
 import com.github.fommil.netlib.BLAS;
-import com.github.fommil.netlib.F2jBLAS;
-import com.github.fommil.netlib.NativeRefBLAS;
-import com.github.fommil.netlib.NativeSystemBLAS;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import jline.UnsupportedTerminal;
@@ -53,7 +50,7 @@ public class JlineRepl {
     this.sessionController = new JlineSessionController(reader.getTerminal());
     this.session.setSessionController(sessionController);
   }
-  
+
   public JlineRepl(Session session) throws Exception {
     this(session, createInteractiveConsoleReader());
   }
@@ -72,7 +69,7 @@ public class JlineRepl {
     return reader;
   }
 
-  
+
   public void setInteractive(boolean interactive) {
     sessionController.setInteractive(interactive);
   }
@@ -80,7 +77,7 @@ public class JlineRepl {
   public boolean isInteractive() {
     return sessionController.isInteractive();
   }
-  
+
   public void setEcho(boolean echo) {
     this.echo = echo;
   }
@@ -121,21 +118,26 @@ public class JlineRepl {
     } catch (IOException e) {
       reader.println("Renjin");
     }
-    
+
     reader.println("Copyright (C) 2016 The R Foundation for Statistical Computing");
     reader.println("Copyright (C) 2016 BeDataDriven");
-    
+
     printBlasLibrary();
-    
+
   }
 
   private void printBlasLibrary() throws IOException {
-    if(BLAS.getInstance() instanceof F2jBLAS) {
-      reader.println("Falling back to pure JVM BLAS libraries.");
-    } else if(BLAS.getInstance() instanceof NativeRefBLAS) {
-      reader.println("Using native reference BLAS libraries.");
-    } else if(BLAS.getInstance() instanceof NativeSystemBLAS) {
-      reader.println("Using system BLAS libraries.");
+    String impl = BLAS.getInstance().getClass().getSimpleName();
+    switch (impl) {
+      case "NativeRefBLAS":
+        reader.println("Using native reference BLAS libraries.");
+        break;
+      case "NativeSystemBLAS":
+        reader.println("Using system BLAS libraries.");
+        break;
+      default:
+        reader.println("Falling back to pure JVM BLAS libraries.");
+        break;
     }
   }
 
@@ -157,7 +159,7 @@ public class JlineRepl {
       }
 
       RParser parser = new RParser(options, parseState, lexer);
-      
+
       parseLoop: while (true) {
 
         // check to see if we are at the end of the file
@@ -180,12 +182,12 @@ public class JlineRepl {
         switch (status) {
           case EMPTY:
             break;
-          
+
           case INCOMPLETE:
           case OK:
             exprList.add(parser.getResult());
             break;
-          
+
           case ERROR:
             throw new ParseException(parser.getResultStatus().toString());
           case EOF:
@@ -256,7 +258,7 @@ public class JlineRepl {
     SEXP warnings = topLevelContext.getBaseEnvironment().getVariable(Warning.LAST_WARNING);
     if(warnings != Symbol.UNBOUND_VALUE) {
       topLevelContext.evaluate( FunctionCall.newCall(Symbol.get("print.warnings"), warnings),
-              topLevelContext.getBaseEnvironment());
+          topLevelContext.getBaseEnvironment());
     }
   }
 

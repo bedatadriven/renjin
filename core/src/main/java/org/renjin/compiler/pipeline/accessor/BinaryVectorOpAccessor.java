@@ -19,11 +19,13 @@ public class BinaryVectorOpAccessor extends Accessor {
   private int lengthLocal2;
   private int lengthLocal;
   private Method applyMethod;
+  private Class<?> operandType;
 
   public BinaryVectorOpAccessor(DeferredNode node, InputGraph inputGraph) {
     this.operandAccessors[0] = Accessors.create(node.getOperands().get(0), inputGraph);
     this.operandAccessors[1] = Accessors.create(node.getOperands().get(1), inputGraph);
     applyMethod = findStaticApply(node.getVector());
+    operandType = applyMethod.getParameterTypes()[0];
     assert applyMethod != null;
   }
 
@@ -40,7 +42,7 @@ public class BinaryVectorOpAccessor extends Accessor {
         
         if (supportedType(method.getReturnType()) &&
             supportedType(method.getParameterTypes()[0]) &&
-            supportedType(method.getParameterTypes()[1])) {
+            method.getParameterTypes()[0].equals(method.getParameterTypes()[1]) ) {
           return method;
         }
       }
@@ -77,14 +79,20 @@ public class BinaryVectorOpAccessor extends Accessor {
   }
 
 
-  private void push(ComputeMethod method) {
+  private void pushDoubleArguments(ComputeMethod method) {
+    
+    // At this point:
+    // The index must be the top of the stack
+    
     MethodVisitor mv = method.getVisitor();
-    mv.visitInsn(DUP);
+    mv.visitInsn(DUP); // keep the index on the stack for the next operand
+    
     mv.visitVarInsn(ILOAD, lengthLocal1);
     // stack => { index, index, length1 }
     mv.visitInsn(IREM);
     // stack => { index, index1 }
-    pushOperand(method, 0);
+    operandAccessors[0].pushDouble(method);
+    
     // stack => { index, [value1, value1] }
     mv.visitInsn(DUP2_X1); // next two instructions equivalent to swap
     mv.visitInsn(POP2);
@@ -93,29 +101,56 @@ public class BinaryVectorOpAccessor extends Accessor {
     // stack => { value1, index, length2 }
     mv.visitInsn(IREM);
     // stack => { value1, index2 }
-    pushOperand(method, 1);
+    operandAccessors[1].pushDouble(method);
     // stack => { value1, value2}
 
-    mv.visitMethodInsn(INVOKESTATIC,
-            Type.getInternalName(applyMethod.getDeclaringClass()),
-            applyMethod.getName(),
-            Type.getMethodDescriptor(applyMethod), false);
   }
 
-  private void pushOperand(ComputeMethod method, int operandIndex) {
-    Class<?> parameterType = applyMethod.getParameterTypes()[operandIndex];
-    if(parameterType.equals(double.class)) {
-      operandAccessors[operandIndex].pushDouble(method);
-    } else if(parameterType.equals(int.class)) {
-      operandAccessors[operandIndex].pushInt(method);
-    } else {
-      throw new UnsupportedOperationException("parameterType: " + parameterType);
-    }
+  private void pushIntArguments(ComputeMethod method) {
+
+    // At this point:
+    // The index must be the top of the stack
+
+    MethodVisitor mv = method.getVisitor();
+    mv.visitInsn(DUP); // keep the index on the stack for the next operand
+
+    mv.visitVarInsn(ILOAD, lengthLocal1);
+    // stack => { index, index, length1 }
+    mv.visitInsn(IREM);
+    // stack => { index, index1 }
+    operandAccessors[0].pushInt(method);
+
+    // stack => { index, value1 }
+    mv.visitInsn(SWAP);
+
+    // stack => { value1, index}
+    mv.visitVarInsn(ILOAD, lengthLocal2);
+    // stack => { value1, index, length2 }
+    mv.visitInsn(IREM);
+    // stack => { value1, index2 }
+    operandAccessors[1].pushInt(method);
+    // stack => { value1, value2}
   }
+  
+  private void pushComputation(ComputeMethod method) {
+    if(operandType.equals(double.class)) {
+      pushDoubleArguments(method);
+    } else if(operandType.equals(int.class)) {
+      pushIntArguments(method);
+    } else {
+      throw new IllegalStateException("operandType: " + operandType);
+    }
+
+    method.getVisitor().visitMethodInsn(INVOKESTATIC,
+        Type.getInternalName(applyMethod.getDeclaringClass()),
+        applyMethod.getName(),
+        Type.getMethodDescriptor(applyMethod), false);
+  }
+
 
   @Override
   public void pushDouble(ComputeMethod method) {
-    push(method);
+    pushComputation(method);
     
     if(applyMethod.getReturnType().equals(int.class)) {
       method.getVisitor().visitInsn(Opcodes.I2D);
@@ -128,7 +163,7 @@ public class BinaryVectorOpAccessor extends Accessor {
 
   @Override
   public void pushInt(ComputeMethod method) {
-    push(method);
+    pushComputation(method);
 
     if(applyMethod.getReturnType().equals(int.class)) {
       // NOOP

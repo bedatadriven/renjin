@@ -34,9 +34,18 @@ public class VectorPipelinerTest extends EvalTestCase {
     eval("c <- a + b");
     eval("d <- 1.0 * x");
     eval("e <- c * d");
-
+    
     eval("x <- sum(e)");
     eval("print(x)");
+  }
+
+  @Test
+  public void logicalOperator3() {
+
+    eval("x <- (1:1000) + 1L");
+    eval("y <- x < (2L + x)");
+    
+    eval("print(sum(y + 3))");
   }
 
 

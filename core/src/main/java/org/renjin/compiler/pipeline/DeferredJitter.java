@@ -137,7 +137,7 @@ public class DeferredJitter {
       try (PrintWriter pw = new PrintWriter(sw)) {
         p.print(pw);
       }
-      return sw.toString();
+      return sw.toString(); 
     } catch (Exception e) {
       return "<Exception generating bytecode: " + e.getClass().getName() + ": " + e.getMessage() + ">";
     }

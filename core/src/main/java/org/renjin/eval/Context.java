@@ -33,6 +33,7 @@ import org.renjin.primitives.Warning;
 import org.renjin.primitives.packaging.NamespaceRegistry;
 import org.renjin.primitives.special.ControlFlowException;
 import org.renjin.primitives.vector.DeferredComputation;
+import org.renjin.primitives.vector.MemoizedComputation;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
@@ -174,6 +175,11 @@ public class Context {
    * @return
    */
   public SEXP materialize(SEXP sexp) {
+
+    if(sexp instanceof MemoizedComputation && ((MemoizedComputation) sexp).isCalculated()) {
+      return sexp;
+    }
+    
     if(sexp instanceof DeferredComputation && !((DeferredComputation) sexp).isConstantAccessTime()) {
       return session.getVectorEngine().materialize((DeferredComputation)sexp);
     } else {
@@ -190,6 +196,10 @@ public class Context {
   }
 
   public SEXP simplify(SEXP sexp) {
+    if(sexp instanceof MemoizedComputation && ((MemoizedComputation) sexp).isCalculated()) {
+      return sexp;
+    }
+
     if(sexp instanceof DeferredComputation &&
         ((DeferredComputation) sexp).getComputationDepth() > VectorPipeliner.MAX_DEPTH) {
       return session.getVectorEngine().simplify((DeferredComputation) sexp);

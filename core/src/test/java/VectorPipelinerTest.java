@@ -47,6 +47,15 @@ public class VectorPipelinerTest extends EvalTestCase {
     
     eval("print(sum(y + 3))");
   }
+  
+  @Test
+  public void twiceMaterialized() {
+    eval("a <- mean((1:1e6)*3)");
+
+    eval("print(a)");
+    eval("print(a)");
+
+  }
 
 
 

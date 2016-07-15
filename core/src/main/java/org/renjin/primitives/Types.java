@@ -25,6 +25,8 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Options;
 import org.renjin.invoke.annotations.*;
+import org.renjin.primitives.vector.DeferredComputation;
+import org.renjin.primitives.vector.IsNaVector;
 import org.renjin.sexp.*;
 
 /**
@@ -178,49 +180,6 @@ public class Types {
     throw new EvalException("type \"single\" unimplemented in R");
   }
 
-  private static class IsNaVector extends LogicalVector {
-    private final Vector vector;
-
-    private IsNaVector(Vector vector) {
-      super(buildAttributes(vector));
-      this.vector = vector;
-    }
-
-    private static AttributeMap buildAttributes(Vector vector) {
-      AttributeMap sourceAttributes = vector.getAttributes();
-      return AttributeMap.builder()
-              .addIfNotNull(sourceAttributes, Symbols.DIM)
-              .addIfNotNull(sourceAttributes, Symbols.NAMES)
-              .addIfNotNull(sourceAttributes, Symbols.DIMNAMES)
-              .validateAndBuildFor(vector);
-    }
-
-    private IsNaVector(AttributeMap attributes, Vector vector) {
-      super(attributes);
-      this.vector = vector;
-    }
-
-    @Override
-    public int length() {
-      return vector.length();
-    }
-
-    @Override
-    public int getElementAsRawLogical(int index) {
-      return vector.isElementNaN(index) ? 1 : 0;
-    }
-
-    @Override
-    public boolean isConstantAccessTime() {
-      return vector.isConstantAccessTime();
-    }
-
-    @Override
-    protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
-      return new IsNaVector(attributes, vector);
-    }
-  }
-
   @Generic
   @Builtin("is.na")
   public static LogicalVector isNA(final ListVector vector) {
@@ -243,7 +202,7 @@ public class Types {
   @Generic
   @Builtin("is.na")
   public static LogicalVector isNA(final AtomicVector vector) {
-    if(vector.length() > 100) {
+    if(vector.length() > 100 || vector instanceof DeferredComputation) {
       return new IsNaVector(vector);
 
     } else {

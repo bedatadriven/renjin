@@ -34,13 +34,15 @@
     <!-- Include JNI glue for i686 and x86_64 native libraries -->
     <dependency>
       <groupId>com.github.fommil.netlib</groupId>
-      <artifactId>netlib-native_system-linux-i686</artifactId>
+      <artifactId>netlib-native_system-linux-x86_64</artifactId>
       <version>1.1</version>
+      <classifier>natives</classifier>
     </dependency>
     <dependency>
       <groupId>com.github.fommil.netlib</groupId>
-      <artifactId>netlib-native_system-linux-x86_64</artifactId>
+      <artifactId>netlib-native_system-linux-i686</artifactId>
       <version>1.1</version>
+      <classifier>natives</classifier>
     </dependency>
     
   </dependencies>

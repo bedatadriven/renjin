@@ -93,11 +93,10 @@ public class FunctionCall extends PairList.Node {
     }
   }
   
-  public static FunctionCall newCallFromVector(ListVector vector) {
-    assert  vector.length() != 0;
+  public static PairList newCallFromVector(ListVector vector) {
     FunctionCall.Builder call = new FunctionCall.Builder();
     call.addAll(vector);
-    return (FunctionCall) call.build();
+    return call.build();
   }
   
 

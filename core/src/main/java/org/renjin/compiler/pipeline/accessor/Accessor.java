@@ -8,6 +8,11 @@ import static org.renjin.repackaged.asm.Opcodes.D2I;
 
 public abstract class Accessor {
 
+  static boolean supportedType(Class<?> type) {
+    return type.equals(double.class) ||
+           type.equals(int.class);
+  }
+
   public abstract void init(ComputeMethod method);
 
   /**

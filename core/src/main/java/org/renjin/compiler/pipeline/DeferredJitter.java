@@ -61,7 +61,7 @@ public class DeferredJitter {
             new String[]{"org/renjin/compiler/pipeline/JittedComputation"});
 
     writeConstructor();
-    writeCompute(node);
+    writeComputeDebug(node);
 
     cv.visitEnd();
 
@@ -120,6 +120,8 @@ public class DeferredJitter {
 
     mv.visitMaxs(1, methodContext.getMaxLocals());
     mv.visitEnd();
+    
+    System.out.println(toString(mv));
     
     try {
       mv.accept(cv);

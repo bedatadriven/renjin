@@ -1,5 +1,7 @@
 import org.junit.Test;
 import org.renjin.EvalTestCase;
+import org.renjin.sexp.DoubleArrayVector;
+import org.renjin.sexp.LogicalArrayVector;
 
 
 public class VectorPipelinerTest extends EvalTestCase {
@@ -60,8 +62,22 @@ public class VectorPipelinerTest extends EvalTestCase {
 
     eval("print(z)");
     eval("print(z)");
-    
+  }
+  
+  @Test
+  public void logicalArgument() {
+    topLevelContext.getGlobalEnvironment().setVariable("x", new LogicalArrayVector(new int[1000]));
+    topLevelContext.getGlobalEnvironment().setVariable("y", new DoubleArrayVector(new double[1000]));
 
+    eval("a <- !x");
+    eval("b <- y * a");
+    eval("c <- y * x");
+    eval("d <- b + c");
+    eval("e <- y * d");
+    eval("f <- e * y");
+    eval("g <- sum(f)");
+    
+    eval("print(g)");
   }
 
 

@@ -25,8 +25,9 @@ public class BinaryVectorOpAccessor extends Accessor {
     this.operandAccessors[0] = Accessors.create(node.getOperands().get(0), inputGraph);
     this.operandAccessors[1] = Accessors.create(node.getOperands().get(1), inputGraph);
     applyMethod = findStaticApply(node.getVector());
-    operandType = applyMethod.getParameterTypes()[0];
     assert applyMethod != null;
+
+    operandType = applyMethod.getParameterTypes()[0];
   }
 
   public static boolean accept(DeferredNode node) {
@@ -48,11 +49,6 @@ public class BinaryVectorOpAccessor extends Accessor {
       }
     }
     return null;
-  }
-
-  private static boolean supportedType(Class<?> type) {
-    return type.equals(double.class) ||
-           type.equals(int.class);
   }
 
   @Override

@@ -28,7 +28,6 @@ import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
 import org.renjin.primitives.summary.DeferredMean;
 import org.renjin.primitives.summary.DeferredSum;
-import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
@@ -257,7 +256,7 @@ public class Summary {
 
     if(arguments.length() == 1 && arguments.get(0) instanceof DoubleVector && !removeNA) {
       DoubleVector argument = (DoubleVector) arguments.get(0);
-      if(argument instanceof DeferredComputation || argument.length() > 300) {
+      if(argument.isDeferred() || argument.length() > 300) {
         return new DeferredSum((Vector) arguments.get(0), AttributeMap.EMPTY);
       }
     }
@@ -393,7 +392,7 @@ public class Summary {
   @Internal
   public static DoubleVector mean(Vector x) {
 
-    if(x instanceof DeferredComputation || x.length() > 100000) {
+    if(x.isDeferred() || x.length() > 100000) {
       return new DeferredMean(x, AttributeMap.EMPTY);
     }
 

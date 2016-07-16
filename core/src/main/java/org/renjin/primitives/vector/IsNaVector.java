@@ -27,6 +27,7 @@ public class IsNaVector extends LogicalVector implements DeferredComputation {
     this.vector = vector;
   }
 
+
   @Override
   public int length() {
     return vector.length();
@@ -40,6 +41,11 @@ public class IsNaVector extends LogicalVector implements DeferredComputation {
   @Override
   public boolean isConstantAccessTime() {
     return vector.isConstantAccessTime();
+  }
+
+  @Override
+  public boolean isDeferred() {
+    return true;
   }
 
   @Override

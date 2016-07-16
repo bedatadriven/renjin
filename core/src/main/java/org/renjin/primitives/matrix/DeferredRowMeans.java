@@ -75,6 +75,11 @@ public class DeferredRowMeans extends DoubleVector implements MemoizedComputatio
   }
 
   @Override
+  public boolean isDeferred() {
+    return !isCalculated();
+  }
+
+  @Override
   public Vector forceResult() {
     if(this.means == null) {
       computeMeans();

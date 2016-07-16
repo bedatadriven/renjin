@@ -187,6 +187,11 @@ public interface Vector extends SEXP {
   boolean isConstantAccessTime();
 
   /**
+   * @return true if this vector's contents have been deferred, and not yet calculated.
+   */
+  boolean isDeferred();
+
+  /**
    * Returns the element at index {@code index} of the vector as a native
    * JVM object, depending on the underlying R type:
    *

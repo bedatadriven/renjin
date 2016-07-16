@@ -52,6 +52,11 @@ public class CombinedDoubleVector extends DoubleVector implements DeferredComput
   }
 
   @Override
+  public boolean isDeferred() {
+    return true;
+  }
+
+  @Override
   public double getElementAsDouble(int index) {
     if(index < endIndex[0]) {
       return vectors[0].getElementAsDouble(index);

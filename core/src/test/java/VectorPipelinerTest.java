@@ -54,6 +54,13 @@ public class VectorPipelinerTest extends EvalTestCase {
 
     eval("print(a)");
     eval("print(a)");
+    
+    eval("y <- a + (1:1e6) ^ 4");
+    eval("z <- mean(y)");
+
+    eval("print(z)");
+    eval("print(z)");
+    
 
   }
 

@@ -10,7 +10,6 @@ import org.renjin.primitives.Warning;
 import org.renjin.primitives.sequence.RepDoubleVector;
 import org.renjin.primitives.sequence.RepLogicalVector;
 import org.renjin.primitives.vector.ComputingIntVector;
-import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.sexp.*;
 
 
@@ -109,7 +108,7 @@ public class Matrices {
                                       int numRows,
                                       int rowLength,
                                       boolean naRm) {
-    if(!naRm && x instanceof DeferredComputation) {
+    if(!naRm && x.isDeferred()) {
       return new DeferredRowMeans(x, numRows, AttributeMap.EMPTY);
     }
 

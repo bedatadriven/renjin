@@ -188,6 +188,11 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList, 
   }
 
   @Override
+  public boolean isDeferred() {
+    return false;
+  }
+
+  @Override
   public Vector.Builder newBuilderWithInitialCapacity(int initialCapacity) {
     return NullBuilder.INSTANCE;
   }

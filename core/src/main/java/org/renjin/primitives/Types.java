@@ -25,7 +25,6 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Options;
 import org.renjin.invoke.annotations.*;
-import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.primitives.vector.IsNaVector;
 import org.renjin.sexp.*;
 
@@ -202,7 +201,7 @@ public class Types {
   @Generic
   @Builtin("is.na")
   public static LogicalVector isNA(final AtomicVector vector) {
-    if(vector.length() > 100 || vector instanceof DeferredComputation) {
+    if(vector.length() > 100 || vector.isDeferred()) {
       return new IsNaVector(vector);
 
     } else {

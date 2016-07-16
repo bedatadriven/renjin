@@ -10,7 +10,6 @@ import org.renjin.invoke.reflection.converters.*;
 import org.renjin.primitives.sequence.RepDoubleVector;
 import org.renjin.primitives.vector.ConvertingDoubleVector;
 import org.renjin.primitives.vector.ConvertingStringVector;
-import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.sexp.*;
 import org.renjin.util.NamesBuilder;
 
@@ -201,7 +200,7 @@ public class Vectors {
   public static DoubleVector asDouble(Vector source) {
     if(source instanceof DoubleVector) {
       return (DoubleVector) source.setAttributes(AttributeMap.EMPTY);
-    } else if(source instanceof DeferredComputation || source.length() > 100) {
+    } else if(source.isDeferred() || source.length() > 100) {
       return new ConvertingDoubleVector(source);
     } else {
       return (DoubleVector) convertToAtomicVector(new DoubleArrayVector.Builder(), source);

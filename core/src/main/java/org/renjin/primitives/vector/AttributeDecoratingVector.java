@@ -47,4 +47,9 @@ public class AttributeDecoratingVector extends DoubleVector implements DeferredC
   public String getComputationName() {
     return "attr";
   }
+
+  @Override
+  public boolean isDeferred() {
+    return true;
+  }
 }

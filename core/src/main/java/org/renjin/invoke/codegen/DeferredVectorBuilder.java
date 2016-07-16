@@ -74,6 +74,7 @@ public class DeferredVectorBuilder {
     implementGetComputationName();
     implementStaticApply();
     implementIsConstantAccess();
+    implementIsDeferred();
     implementGetComputationDepth();
 
     if(overload.isPassNA() && overload.getReturnType().equals(boolean.class)) {
@@ -96,6 +97,11 @@ public class DeferredVectorBuilder {
     method.body()._return(condition);
   }
 
+
+  private void implementIsDeferred() {
+    JMethod method = vectorClass.method(JMod.PUBLIC, boolean.class, "isDeferred");
+    method.body()._return(JExpr.TRUE);
+  }
 
   private void implementGetComputationDepth() {
     JMethod method = vectorClass.method(JMod.PUBLIC, int.class, "getComputationDepth");
@@ -157,7 +163,7 @@ public class DeferredVectorBuilder {
 
     JExpression condition = cycleCount.gt(lit(LENGTH_THRESHOLD));
     for(JExpression arg : arguments) {
-      condition = condition.cor(arg._instanceof(codeModel.ref(DeferredComputation.class)));
+      condition = condition.cor(arg.invoke("isDeferred"));
     }
     JBlock ifBig = parent._if(condition)._then();
     JExpression attributes = copyAttributes(arguments);

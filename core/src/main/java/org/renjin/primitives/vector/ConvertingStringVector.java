@@ -56,6 +56,11 @@ public class ConvertingStringVector extends StringVector implements DeferredComp
   }
 
   @Override
+  public boolean isDeferred() {
+    return true;
+  }
+
+  @Override
   public boolean isConstantAccessTime() {
     return true;
   }

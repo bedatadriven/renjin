@@ -51,6 +51,11 @@ public class RepDoubleVector extends DoubleVector implements DeferredComputation
   public boolean isConstantAccessTime() {
     return true;
   }
+  
+  @Override
+  public boolean isDeferred() {
+    return true;
+  }
 
   @Override
   public int length() {

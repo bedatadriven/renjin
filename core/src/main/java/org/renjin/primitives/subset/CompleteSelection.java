@@ -7,7 +7,6 @@ import org.renjin.primitives.sequence.RepDoubleVector;
 import org.renjin.primitives.sequence.RepIntVector;
 import org.renjin.primitives.sequence.RepLogicalVector;
 import org.renjin.primitives.sequence.RepStringVector;
-import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.sexp.*;
 
 /**
@@ -63,7 +62,7 @@ class CompleteSelection implements SelectionStrategy {
     }
     
     // Try to avoid making a copy if possible or neccessary
-    if(x instanceof DeferredComputation || length > RepDoubleVector.LENGTH_THRESHOLD) {
+    if(x.isDeferred()|| length > RepDoubleVector.LENGTH_THRESHOLD) {
 
       if (x instanceof DoubleVector) {
         return new RepDoubleVector(x, length, 1, AttributeMap.EMPTY);

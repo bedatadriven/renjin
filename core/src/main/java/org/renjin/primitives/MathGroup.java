@@ -22,7 +22,6 @@ package org.renjin.primitives;
 
 import com.google.common.math.IntMath;
 import org.apache.commons.math.complex.Complex;
-import org.apache.commons.math.special.Beta;
 import org.apache.commons.math.special.Gamma;
 import org.apache.commons.math.util.MathUtils;
 import org.renjin.eval.Context;
@@ -482,52 +481,122 @@ public class MathGroup {
     return (result.build());
   }
 
+  
   @Builtin
   public static DoubleVector cumprod(Vector source) {
     DoubleArrayVector.Builder result = new DoubleArrayVector.Builder();
-    double sum = source.getElementAsDouble(0);
-    result.add(sum);
-    for (int i = 1; i < source.length(); i++) {
-      sum *= source.getElementAsDouble(i);
-      if (Double.isNaN(sum)) {
-        result.addNA();
-      } else {
-        result.add(sum);
+    result.setAttribute(Symbols.NAMES, source.getNames());
+
+    if(source.length() > 0) {
+      double sum = source.getElementAsDouble(0);
+      result.add(sum);
+      for (int i = 1; i < source.length(); i++) {
+        sum *= source.getElementAsDouble(i);
+        if (Double.isNaN(sum)) {
+          result.addNA();
+        } else {
+          result.add(sum);
+        }
       }
     }
-    return (result.build());
+    return result.build();
   }
 
   @Builtin
-  public static DoubleVector cummax(Vector source) {
-    DoubleArrayVector.Builder result = new DoubleArrayVector.Builder();
-    double max = source.getElementAsDouble(0);
-    result.add(max);
-    for (int i = 1; i < source.length(); i++) {
-      if (source.getElementAsDouble(i) > max || source.isElementNA(i)) {
-        max = source.getElementAsDouble(i);
-      } else if (DoubleVector.isNaN(source.getElementAsDouble(i))) {
-        max = DoubleVector.NA;
-      }
-      result.add(max);
-    }
-    return (result.build());
+  public static DoubleVector cummax(DoubleVector source) {
+    return cumulativeDoubleExtrema(source, false);
   }
 
   @Builtin
-  public static DoubleVector cummin(Vector source) {
-    DoubleArrayVector.Builder result = new DoubleArrayVector.Builder();
-    double min = source.getElementAsDouble(0);
-    result.add(min);
-    for (int i = 1; i < source.length(); i++) {
-      if (source.getElementAsDouble(i) < min || source.isElementNA(i)) {
-        min = source.getElementAsDouble(i);
-      } else if (DoubleVector.isNaN(source.getElementAsDouble(i))) {
-        min = DoubleVector.NA;
-      }
-      result.add(min);
-    }
-    return (result.build());
+  public static IntVector cummax(LogicalVector source) {
+    return cumulativeIntegerExtrema(source, false);
+  }
+  
+  @Builtin
+  public static DoubleVector cummax(StringVector source) {
+    return cumulativeDoubleExtrema(source, false);
   }
 
+  @Builtin
+  public static IntVector cummax(IntVector source) {
+    return cumulativeIntegerExtrema(source, false);
+  }
+
+  @Builtin
+  public static DoubleVector cummin(DoubleVector source) {
+    return cumulativeDoubleExtrema(source, true);
+  }
+
+  @Builtin
+  public static IntVector cummin(LogicalVector source) {
+    return cumulativeIntegerExtrema(source, true);
+  }
+
+  @Builtin
+  public static DoubleVector cummin(StringVector source) {
+    return cumulativeDoubleExtrema(source, true);
+  }
+
+  @Builtin
+  public static IntVector cummin(IntVector source) {
+    return cumulativeIntegerExtrema(source, true);
+  }
+
+  private static DoubleVector cumulativeDoubleExtrema(Vector source, boolean min) {
+    DoubleArrayVector.Builder result = new DoubleArrayVector.Builder(0, source.length());
+    result.setAttribute(Symbols.NAMES, source.getNames());
+
+    if(source.length() > 0) {
+      double extrema = source.getElementAsDouble(0);
+      result.add(extrema);
+      for (int i = 1; i < source.length(); i++) {
+        double value = source.getElementAsDouble(i);
+        if(Double.isNaN(value)) {
+          extrema = value;
+        } else if(!Double.isNaN(extrema)) {
+          if(min) {
+            if(value < extrema) {
+              extrema = value;
+            } 
+          } else {
+            if(value > extrema) {
+              extrema = value;
+            }
+          }
+        }
+        result.add(extrema);
+      }
+    }
+    return result.build();
+  }
+
+
+  private static IntVector cumulativeIntegerExtrema(Vector source, boolean min) {
+    IntArrayVector.Builder result = new IntArrayVector.Builder(0, source.length());
+    result.setAttribute(Symbols.NAMES, source.getNames());
+
+    if(source.length() > 0) {
+      int extrema = source.getElementAsInt(0);
+      result.add(extrema);
+      for (int i = 1; i < source.length(); i++) {
+        int value = source.getElementAsInt(i);
+        if(IntVector.isNA(value)) {
+          extrema = value;
+        } else if(!IntVector.isNA(extrema)) {
+          if(min) {
+            if(value < extrema) {
+              extrema = value;
+            }
+          } else {
+            if(value > extrema) {
+              extrema = value;
+            }
+          }
+        }
+        result.add(extrema);
+      }
+    }
+    return result.build();
+  }
+  
 }

@@ -2,7 +2,6 @@ package org.renjin.primitives.special;
 
 import com.google.common.collect.Lists;
 import org.renjin.eval.Context;
-import org.renjin.eval.EvalException;
 import org.renjin.sexp.*;
 import org.renjin.util.NamesBuilder;
 
@@ -23,7 +22,11 @@ public class ExpressionFunction extends SpecialFunction {
     NamesBuilder names = NamesBuilder.withInitialLength(0);
     List<SEXP> expressions = Lists.newArrayList();
     for(PairList.Node node : args.nodes()) {
-      names.add(node.getName());
+      if(node.hasName()) {
+        names.add(node.getName());
+      } else {
+        names.addNA();
+      }
       expressions.add(node.getValue());
     }
     AttributeMap.Builder attributes = AttributeMap.builder();

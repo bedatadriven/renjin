@@ -289,6 +289,14 @@ public class Vectors {
       // Special case: preserve names with mode = 'list'
       result = new ListVector.Builder();
       result.setAttribute(Symbols.NAMES, x.getNames());
+
+    } else if("expression".equals(mode)) {
+      result = new ExpressionVector.Builder();
+      
+      // Special case
+      if(x == Null.INSTANCE) {
+        return new ExpressionVector(Null.INSTANCE);
+      }
       
     } else if ("pairlist".equals(mode)) {
       // a pairlist is actually not a vector, so bail from here
@@ -299,6 +307,9 @@ public class Vectors {
       if (x.length() == 0) {
         throw new EvalException(
             "invalid type/length (symbol/0) in vector allocation");
+      }
+      if (x instanceof ListVector) {
+        throw new EvalException("vector of type 'list' cannot be coerced to symbol");
       }
       return Symbol.get(x.getElementAsString(0));
     
@@ -459,6 +470,8 @@ public class Vectors {
       result = new DoubleArrayVector.Builder(x.length());
     } else if ("list".equals(mode)) {
       result = new ListVector.Builder();
+    } else if ("expression".equals(mode)) {
+      result = new ExpressionVector.Builder();
     } else if ("raw".equals(mode)) {
       result = new RawVector.Builder();
     } else {

@@ -4,6 +4,11 @@
 
 deparse0 <- function(x) paste(deparse(x), collapse = "")
 
+literal <- function(x) {
+  stopifnot(is.character(x))
+  class(x) <- "literal"
+  x
+}
 
 test.open <- function(name) {
   filename <- sprintf("src/test/R/test.%s.R", fn)
@@ -21,9 +26,12 @@ writeln <- function(test, format, ...) {
 
 writeTest <- function(test, fn, ..., tol = NULL) {
   call <- as.call(list(as.name(fn), ...))
-  expected <- eval(call, envir = .GlobalEnv)
+  
+  expected <- tryCatch(eval(call, envir = .GlobalEnv), error = function(e) e)
 
-  if(is.null(tol)) {
+  if(inherits(expected, "error")) {
+    matcher <- "throwsError()"
+  } else if(is.null(tol) || !is.double(expected)) {
     matcher <- sprintf("identicalTo(%s)", deparse0(expected))
   } else {
     matcher <- sprintf("identicalTo(%s, tol = %f)", deparse0(expected), tol)

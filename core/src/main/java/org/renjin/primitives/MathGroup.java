@@ -25,6 +25,7 @@ import org.apache.commons.math.complex.Complex;
 import org.apache.commons.math.special.Gamma;
 import org.apache.commons.math.util.MathUtils;
 import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
 import org.renjin.sexp.*;
 
@@ -540,6 +541,30 @@ public class MathGroup {
   @Builtin
   public static IntVector cummin(IntVector source) {
     return cumulativeIntegerExtrema(source, true);
+  }
+
+  @Builtin
+  public static ComplexVector cummin(ComplexVector source) {
+    return cumulativeComplex("cummin", source);
+  }
+
+  @Builtin
+  public static ComplexVector cummax(ComplexVector source) {
+    return cumulativeComplex("cummax", source);
+  }
+  
+  private static ComplexVector cumulativeComplex(String functionName, ComplexVector source) {
+    // This is probably not intended behavior, but cumxxx(complex(0)) in GNU R
+    // returns complex(0), so we'll mimic it here
+    if(source.length() == 0) {
+      if(source.getNames() == Null.INSTANCE) {
+        return ComplexVector.EMPTY;
+      } else {
+        return ComplexVector.NAMED_EMPTY;
+      }
+    } else {
+      throw new EvalException(String.format("'%s' not defined for complex numbers", functionName));
+    }
   }
 
   private static DoubleVector cumulativeDoubleExtrema(Vector source, boolean min) {

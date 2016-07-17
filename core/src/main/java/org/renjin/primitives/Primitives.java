@@ -323,56 +323,56 @@ public class Primitives {
 /* these are group generic and so need to eval args */
 /* Note that the number of arguments for the primitives in the Math group
    only applies to the default method. */
-    f("round", MathExt.class, 0);
-    f("signif", MathExt.class, 0);
-    f("atan",Math.class, 1);
-    f("log", MathExt.class, 0);
-    f("log10", Math.class, 1);
-    f("log2", MathExt.class, 1);
-    f("abs", MathExt.class, 1);
-    f("floor", Math.class, 1);
-    f("ceiling", Math.class, "ceil", 1);
-    f("sqrt", Math.class, 1);
-    f("sign", MathExt.class, "sign", 1);
-    f("trunc", MathExt.class, 1);
+    f("round", MathGroup.class, 0);
+    f("signif", MathGroup.class, 0);
+    f("atan",MathGroup.class, 1);
+    f("log", MathGroup.class, 0);
+    f("log10", MathGroup.class, 1);
+    f("log2", MathGroup.class, 1);
+    f("abs", MathGroup.class, 1);
+    f("floor", MathGroup.class, 1);
+    f("ceiling", MathGroup.class, 1);
+    f("sqrt", MathGroup.class, 1);
+    f("sign", MathGroup.class, 1);
+    f("trunc", MathGroup.class, 1);
     
-    f("exp", MathExt.class, 1);
-    f("expm1", MathExt.class, 1);
-    f("log1p", MathExt.class, 1);
+    f("exp", MathGroup.class, 1);
+    f("expm1", MathGroup.class, 1);
+    f("log1p", MathGroup.class, 1);
 
-    f("cos", Math.class, 1);
-    f("sin", Math.class, 1);
-    f("tan", Math.class, 1);
-    f("acos", Math.class, 1);
-    f("asin", Math.class, 1);
+    f("cos", MathGroup.class, 1);
+    f("sin", MathGroup.class, 1);
+    f("tan", MathGroup.class, 1);
+    f("acos", MathGroup.class, 1);
+    f("asin", MathGroup.class, 1);
 
-    f("cosh", Math.class, 1);
-    f("sinh", Math.class, 1);
-    f("tanh", Math.class, 1);
-    f("acosh", MathExt.class, 1);
-    f("asinh", MathExt.class, 1);
-    f("atanh", MathExt.class, 1);
+    f("cosh", MathGroup.class, 1);
+    f("sinh", MathGroup.class, 1);
+    f("tanh", MathGroup.class, 1);
+    f("acosh", MathGroup.class, 1);
+    f("asinh", MathGroup.class, 1);
+    f("atanh", MathGroup.class, 1);
 
-    f("lgamma", MathExt.class, 1);
-    f("gamma", MathExt.class, 1);
+    f("lgamma", MathGroup.class, 1);
+    f("gamma", MathGroup.class, 1);
 
-    f("digamma", org.apache.commons.math.special.Gamma.class, 1);
-    f("trigamma",org.apache.commons.math.special.Gamma.class, 1);
+    f("digamma", MathGroup.class, 1);
+    f("trigamma", MathGroup.class, 1);
 /* see "psigamma" below !*/
 
 
-    f("cospi", null, 1);
-    f("sinpi", null, 1);
-    f("tanpi", null, 1);
+    f("cospi", MathGroup.class, 1);
+    f("sinpi", MathGroup.class, 1);
+    f("tanpi", MathGroup.class, 1);
 
 /* Mathematical Functions of Two Numeric (+ 1-2 int) Variables */
 
-    f("atan2", MathExt.class, 11);
+    f("atan2", MathGroup.class, 11);
 
-    f("lbeta", MathExt.class, 11);
-    f("beta", MathExt.class, 11);
-    f("lchoose", MathExt.class, 11);
-    f("choose", MathExt.class, 11);
+    f("lbeta", Special.class, 11);
+    f("beta", Special.class, 11);
+    f("lchoose", Special.class, 11);
+    f("choose", Special.class, 11);
 
     f("dchisq", Distributions.class, 11);
     f("pchisq", Distributions.class, 11);
@@ -544,10 +544,10 @@ public class Primitives {
 
 /* Note that the number of arguments in this group only applies
    to the default method */
-    f("cumsum", Summary.class, 1);
-    f("cumprod", Summary.class, 1);
-    f("cummax", Summary.class, 1);
-    f("cummin", Summary.class, 1);
+    f("cumsum", MathGroup.class, 1);
+    f("cumprod", MathGroup.class, 1);
+    f("cummax", MathGroup.class, 1);
+    f("cummin", MathGroup.class, 1);
 
 /* Type coercion */
 

@@ -27,11 +27,10 @@ public class OpsGroupGenericDispatchStrategy extends GenericDispatchStrategy {
                                  JBlock parent) {
 
     JInvocation dispatchInvocation = codeModel.ref(S3.class)
-            .staticInvoke("tryDispatchGroupFromPrimitive")
+            .staticInvoke("tryDispatchOpsFromPrimitive")
             .arg(context.getContext())
             .arg(context.getEnvironment())
             .arg(functionCall)
-            .arg(JExpr.lit("Ops"))
             .arg(JExpr.lit(name));
 
     for(JExpression arg : arguments) {

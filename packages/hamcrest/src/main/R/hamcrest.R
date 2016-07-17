@@ -49,9 +49,21 @@ closeTo <- function(expected, delta) {
 	}
 }
 
-identicalTo <- function(expected) {
+identicalTo <- function(expected, tol) {
 	function(actual) {
-		identical(expected, actual)
+	    # When comparing floating point values, round the results 
+	    # to a fixed number of singificant digits before comparing, if 
+	    # the signif argument is provided
+	    if(!missing(tol) && is.double(expected) && is.double(actual)) {
+	        rel.diff <- abs(expected - actual) / abs(expected)
+	        
+	        prettyMuchEqual <- all( (rel.diff < tol) | !is.finite(rel.diff) )
+	        
+	        prettyMuchEqual && identical(attributes(expected), attributes(actual))
+	    
+	    } else { 
+            identical(expected, actual)
+	    }
 	}
 }
 

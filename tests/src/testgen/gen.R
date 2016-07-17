@@ -5,8 +5,12 @@
 deparse0 <- function(x) paste(deparse(x), collapse = "")
 
 deparseExpected <- function(x) {
-   if(typeof(x) == "language" || typeof(x) == "expression") {
+   if(typeof(x) == "language") {
     sprintf("quote(%s)", deparse(x))
+   } else if(typeof(x) == "expression") {
+    sprintf("as.expression(%s)", deparse0(as.list(x)))
+   } else if(typeof(x) == "symbol") {
+    sprintf("as.name(%s)", deparse(x)) 
    } else {
     deparse0(x)
    }

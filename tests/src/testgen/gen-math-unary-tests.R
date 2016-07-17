@@ -16,7 +16,7 @@ inputs <- signif(c(0.01, 0.1, 1, 1.5, 2, 2.5, 4,10, 100, pi/4, pi/2, pi, 2*pi), 
 for(fn in unary) {
 
   # Setup generic implementations
-  test <- test.open(fn)
+  test <- test.open("gen-math-unary-tests.R", fn)
   writeln(test, "library(hamcrest)")
   
   

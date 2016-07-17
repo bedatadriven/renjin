@@ -122,7 +122,7 @@ inputs <- list(
 for(fn in fns) {
 
   # Setup generic implementations
-  test <- test.open(fn)
+  test <- test.open("gen-unary-tests.R", fn)
   writeln(test, "library(hamcrest)")
   
   # define some nonsense generic functions

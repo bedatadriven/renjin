@@ -28,7 +28,7 @@ inputs <- list(
 for(fn in fns) {
   
   # Setup generic implementations
-  test <- test.open(fn)
+  test <- test.open("gen-matrices-sum.R", fn)
   writeln(test, "library(hamcrest)")
   
   # default na.rm

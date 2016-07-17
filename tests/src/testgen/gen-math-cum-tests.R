@@ -29,7 +29,7 @@ inputs <- list(
 for(fn in unary) {
 
   # Setup generic implementations
-  test <- test.open(fn)
+  test <- test.open("gen-math-cum.tests.R", fn)
   writeln(test, "library(hamcrest)")
   
   # define some nonsense generic functions

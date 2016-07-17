@@ -30,7 +30,7 @@ inputs <- list(
 for(fn in unary) {
   
   # Setup generic implementations
-  test <- test.open(fn)
+  test <- test.open("generate-bind-tests.R", fn)
   writeln(test, "library(hamcrest)")
   
   # define some nonsense generic functions

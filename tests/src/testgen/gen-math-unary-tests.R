@@ -70,6 +70,9 @@ for(fn in unary) {
   writeTest(test, fn, structure(0, rando.attr=4L), tol = tol)
   writeTest(test, fn, structure(0, class='zinga'), tol = tol)
   
+  # TODO: argument name matching
+  # TODO: complex numbers
+  
   close(test)
 }
 

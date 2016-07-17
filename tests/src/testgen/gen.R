@@ -4,6 +4,14 @@
 
 deparse0 <- function(x) paste(deparse(x), collapse = "")
 
+deparseExpected <- function(x) {
+   if(typeof(x) == "language" || typeof(x) == "expression") {
+    sprintf("quote(%s)", deparse(x))
+   } else {
+    deparse0(x)
+   }
+}
+
 literal <- function(x) {
   stopifnot(is.character(x))
   class(x) <- "literal"
@@ -34,9 +42,9 @@ writeTest <- function(test, fn, ..., tol = NULL) {
   if(inherits(expected, "error")) {
     matcher <- "throwsError()"
   } else if(is.null(tol) || !is.double(expected)) {
-    matcher <- sprintf("identicalTo(%s)", deparse0(expected))
+    matcher <- sprintf("identicalTo(%s)", deparseExpected(expected))
   } else {
-    matcher <- sprintf("identicalTo(%s, tol = %f)", deparse0(expected), tol)
+    matcher <- sprintf("identicalTo(%s, tol = %f)", deparseExpected(expected), tol)
   }
   writeln(test, "test.%s.%d <- function() assertThat(%s, %s)",
                             fn, test$index, deparse0(call), matcher)

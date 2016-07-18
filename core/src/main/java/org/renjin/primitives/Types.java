@@ -355,7 +355,7 @@ public class Types {
     return new FunctionCall(list.getElementAsSEXP(0), arguments.build());
   }
   
-  @Builtin
+  @Builtin("as.call")
   public static FunctionCall asCall(FunctionCall call) {
     return call;
   }

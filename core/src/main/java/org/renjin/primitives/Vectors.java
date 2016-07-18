@@ -140,6 +140,7 @@ public class Vectors {
   @Generic
   @Builtin("as.logical")
   public static LogicalVector asLogical(Vector vector) {
+    assertSourceIsNotComplicatedList(vector, "logical");
     return (LogicalVector) convertToAtomicVector(new LogicalArrayVector.Builder(), vector);
   }
 
@@ -169,6 +170,8 @@ public class Vectors {
   @Generic
   @Builtin("as.integer")
   public static IntVector asInteger(Vector source) {
+    assertSourceIsNotComplicatedList(source, "integer");
+
     return (IntVector) convertToAtomicVector(new IntArrayVector.Builder(), source);
   }
 
@@ -256,6 +259,8 @@ public class Vectors {
   @Generic
   @Builtin("as.complex")
   public static ComplexVector asComplex(Vector vector) {
+    assertSourceIsNotComplicatedList(vector, "");
+
     return (ComplexVector) convertToAtomicVector(new ComplexArrayVector.Builder(), vector);
   }
 

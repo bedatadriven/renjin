@@ -504,6 +504,9 @@ public class Vectors {
     } else if ("expression".equals(mode)) {
       return new ExpressionVector(x);
 
+    } else if ("symbol".equals(mode)) {
+      return x;
+      
     } else {
       throw new EvalException("'%s' cannot be coerced to vector of type '%s'", x.getTypeName(), mode);
     }

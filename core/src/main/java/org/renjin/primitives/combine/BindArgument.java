@@ -125,4 +125,15 @@ class BindArgument {
     return this.uneval;
   }
 
+  public boolean isZeroLength() {
+    return vector.length() == 0;
+  }
+
+  public boolean isZeroLengthVector() {
+    return !matrix && vector.length() == 0;
+  }
+  
+  public boolean isNull() {
+    return vector == Null.INSTANCE;
+  }
 }

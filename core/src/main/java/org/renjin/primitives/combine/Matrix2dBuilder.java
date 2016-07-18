@@ -25,9 +25,8 @@ public class Matrix2dBuilder {
   }
 
   public void setDimNames(AtomicVector rowNames, AtomicVector colNames) {
-    if(rowNames.length() != 0 || colNames.length() != 0) {
-      builder.setAttribute(Symbols.DIMNAMES, new ListVector(rowNames, colNames));
-    }
+    // Suprisingly enough, on GNU R, cbind/rbind produces dimnames = list(NULL, NULL)
+    builder.setAttribute(Symbols.DIMNAMES, new ListVector(rowNames, colNames));
   }
 
   public Vector build() {

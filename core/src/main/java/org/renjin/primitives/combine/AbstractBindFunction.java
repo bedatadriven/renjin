@@ -35,7 +35,7 @@ public abstract class AbstractBindFunction extends SpecialFunction {
     List<BindArgument> cleanList = Lists.newArrayList();
     while(argumentsItr.hasNext()) {
       BindArgument arg = argumentsItr.next();
-      if (arg.getVector().length() != 0) {
+      if (arg.getVector() != Null.INSTANCE) {
         cleanList.add(arg);
       }
     }

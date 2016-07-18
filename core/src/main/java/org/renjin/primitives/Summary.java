@@ -260,7 +260,7 @@ public class Summary {
     for (SEXP argument : arguments) {
       if(argument instanceof ComplexVector) {
         if(product == null) {
-          product = new Complex(1, 0);
+          product = ComplexVector.complex(1, 0);
         }
         ComplexVector vector = (ComplexVector) argument;
         for (int i = 0; i != vector.length(); ++i) {
@@ -338,7 +338,7 @@ public class Summary {
       }
     }
     if(haveComplex) {
-      return new ComplexArrayVector(new Complex(realSum, imaginarySum));
+      return new ComplexArrayVector(ComplexVector.complex(realSum, imaginarySum));
 
     } else if(haveDouble) {
       return new DoubleArrayVector(realSum);

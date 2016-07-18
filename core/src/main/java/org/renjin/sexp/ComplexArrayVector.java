@@ -28,8 +28,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 
-import static org.renjin.util.RInternalDSL.complex;
-
 public class ComplexArrayVector extends ComplexVector {
 
   private final Complex[] values;
@@ -42,7 +40,7 @@ public class ComplexArrayVector extends ComplexVector {
     super(attributes);
     this.values=new Complex[values.length];
     for(int i=0; i<values.length; i++){
-      this.values[i]=complex(values[i]);
+      this.values[i] = ComplexVector.complex(values[i]);
     }
   }
   

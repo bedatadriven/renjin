@@ -456,13 +456,13 @@ public class Lapack {
   public static ComplexVector c(double... d){
     ComplexArrayVector.Builder builder = new ComplexArrayVector.Builder();
     for(double di : d){
-      builder.add(new Complex(di,0));
+      builder.add(ComplexVector.complex(di));
     }
     return builder.build();
   }
 
   public static Complex complex(double x,double y){
-    return new Complex(x,y);
+    return ComplexVector.complex(x,y);
   }
 
   public static Complex complex(double x){

@@ -49,6 +49,12 @@ writeln <- function(test, format, ...) {
   writeLines(test$fd, text = sprintf(format, ...))
 }
 
+writeFixture <- function(test, format, ...) {
+  expr <- sprintf(format, ...)
+  writeln(test, expr)
+  eval(parse(text = expr), envir = .GlobalEnv)
+}
+
 writeTest <- function(test, fn, ..., tol = NULL) {
   call <- callWithQuotedArgs(fn, ...)
 

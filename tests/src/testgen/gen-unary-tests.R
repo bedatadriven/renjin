@@ -4,7 +4,7 @@
 ## Generates test cases for
 ## miscellaneous unary functions
 
-#source("src/testgen/gen.R")
+source("src/testgen/gen.R")
 
 fns <- c('as.array',
          'as.call',
@@ -131,13 +131,11 @@ for(fn in fns) {
   writeln(test, "library(hamcrest)")
   
   # define some nonsense generic functions
-  writeln(test, "%s.foo <- function(x) 41", fn)
-  writeln(test, "Math.bar <- function(x) 44")
+  writeFixture(test, "%s.foo <- function(...) 41", fn)
+  writeFixture(test, "Math.bar <- function(...) 44")
+  writeFixture(test, "Summary.bar <- function(...) 45")
+  writeFixture(test, "Ops.bar <- function(...) 46")
   
-  # define the generic functions in the current environment 
-  # as well so we produce the right values for comparison
-  assign(sprintf("%s.foo",fn), function(x) 41)
-  assign(sprintf("Math.bar",fn), function(x) 44)
   
   tol <- 0.0001
   

@@ -261,6 +261,7 @@ public class Vectors {
     return ComplexArrayVector.EMPTY;
   }
 
+  @Generic
   @Internal("as.vector")
   public static SEXP asVector(Vector x, String mode) {
 
@@ -483,12 +484,13 @@ public class Vectors {
     }
   }
 
+  @Generic
   @Internal("as.vector")
   public static SEXP asVector(PairList x, String mode) {
     
     // Exceptionally, as.vector(x, 'pairlist') 
     // preserves *all* attributes
-    if("pairlist".equals(mode)) {
+    if("pairlist".equals(mode) || "any".equals(mode)) {
       return x;
     }
     

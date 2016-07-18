@@ -23,27 +23,13 @@ public abstract class ComplexVector extends AbstractAtomicVector implements Iter
   }
   
   public static Complex complex(double real, double imaginary) {
-    if(DoubleVector.isNA(real)) {
-      return NA;
-    } else if(DoubleVector.isNaN(real)) {
-      return NaN;
-    } else {
-      return new Complex(real, imaginary);
-    }
+    return new Complex(real, imaginary);
   }
   
-  public static boolean isCorrect(Complex complex) {
-    if(Double.isNaN(complex.getReal())) {
-      return Double.isNaN(complex.getImaginary());
-    } 
-    return true;
-  }
 
   public static ComplexVector valueOf(Complex value) {
-    assert isCorrect(value);
     return new ComplexArrayVector(value);
   }
-
 
   public static ComplexVector valueOf(double real) {
     return new ComplexArrayVector(complex(real));

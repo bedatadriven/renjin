@@ -146,7 +146,7 @@ public abstract class DoubleVector extends AbstractAtomicVector implements Itera
   public Complex getElementAsComplex(int index) {
     double real = getElementAsDouble(index);
     // Note when converting to complex, NaN => NA
-    if (Double.isNaN(real)) {
+    if (DoubleVector.isNA(real)) {
       return ComplexVector.NA;
     }
     return ComplexVector.complex(real, 0);

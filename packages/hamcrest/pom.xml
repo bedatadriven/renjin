@@ -40,6 +40,13 @@
 						</goals>
 						<phase>compile</phase>
 					</execution>
+					<execution>
+						<id>test</id>
+						<goals>
+							<goal>test</goal>
+						</goals>
+						<phase>test</phase>
+					</execution>
 				</executions>
 			</plugin>
 		</plugins>

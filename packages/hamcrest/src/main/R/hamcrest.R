@@ -49,6 +49,8 @@ closeTo <- function(expected, delta) {
 	}
 }
 
+
+
 identicalTo <- function(expected, tol) {
 	function(actual) {
 	    # When comparing floating point values, round the results 
@@ -56,10 +58,14 @@ identicalTo <- function(expected, tol) {
 	    # the signif argument is provided
 	    if(!missing(tol) && is.double(expected) && is.double(actual)) {
 	        rel.diff <- abs(expected - actual) / abs(expected)
+	        finite <- is.finite(rel.diff)
 	        
-	        prettyMuchEqual <- all( (rel.diff < tol) | !is.finite(rel.diff) )
+	        finiteValuesCloseEnough <- all(rel.diff[finite] < tol)
+	        nonFiniteValuesIdentical <- identical(expected[!finite], actual[!finite])
 	        
-	        prettyMuchEqual && identical(attributes(expected), attributes(actual))
+	        finiteValuesCloseEnough &&
+	           nonFiniteValuesIdentical && 
+	            identical(attributes(expected), attributes(actual))
 	    
 	    } else { 
             identical(expected, actual)
@@ -76,7 +82,7 @@ deparsesTo <- function(expected) {
 equalTo <- function(expected) {
 	function(actual) {
 		length(actual) == length(expected) &&
-				actual == expected
+				all(actual == expected)
 	}
 }
 

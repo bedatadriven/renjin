@@ -175,7 +175,7 @@ public class Summary {
     }
 
     public Vector getRange() {
-      if(!naEncountered && maxValue == null) {
+      if(!naEncountered && !nanEncountered && maxValue == null) {
         if(resultType == StringVector.VECTOR_TYPE) {
           return new StringArrayVector(StringVector.NA, StringVector.NA);
         } else {
@@ -186,6 +186,10 @@ public class Summary {
         if(naEncountered) {
           result.addNA();
           result.addNA();
+        } else if(nanEncountered) {
+          assert result instanceof DoubleArrayVector.Builder;
+          result.add(Double.NaN);
+          result.add(Double.NaN);
         } else {
           result.addFrom(minValue, 0);
           result.addFrom(maxValue, 0);

@@ -323,11 +323,11 @@ public class Summary {
           }
         }
       } else if(argument instanceof ComplexVector) {
-        ComplexVector vector = (ComplexVector)argument;
+        ComplexVector vector = (ComplexVector) argument;
         haveComplex = true;
-        for(int i=0;i!=vector.length();++i) {
-          if(vector.isElementNA(i)) {
-            if(!removeNA) {
+        for (int i = 0; i != vector.length(); ++i) {
+          if (vector.isElementNA(i)) {
+            if (!removeNA) {
               return new ComplexArrayVector(ComplexVector.NA);
             }
           } else {
@@ -337,6 +337,9 @@ public class Summary {
           }
         }
 
+      } else if(argument == Null.INSTANCE) {
+        // NOOP
+        
       } else {
         throw new EvalException("invalid 'type' (" + argument.getTypeName() + ") of argument");
       }

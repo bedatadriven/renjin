@@ -217,19 +217,34 @@ public class Summary {
   @Builtin
   @GroupGeneric
   public static AtomicVector prod(@ArgumentList ListVector arguments, @NamedFlag("na.rm") boolean removeNA) {
-    double product = 1;
-    boolean hasComplex = false;
-    for (SEXP argument : arguments) {
-      if (argument instanceof StringVector) {
-        throw new EvalException("invalid 'type' (character) of argument");
-      } else if (argument instanceof ComplexVector) {
-        hasComplex = true;
+
+    double realProduct = realProduct(arguments, removeNA);
+    Complex complexProduct = complexProduct(arguments, removeNA);
+    
+    if(complexProduct == null) {
+      return DoubleVector.valueOf(realProduct);
+    } else {
+      if(complexProduct.equals(ComplexVector.NA)) {
+        return ComplexVector.valueOf(complexProduct);
       } else {
-        AtomicVector vector = EvalException.checkedCast(argument);
+        return ComplexVector.valueOf(complexProduct.multiply(realProduct));
+      }
+    }
+  }
+
+  private static double realProduct(ListVector arguments, boolean removeNA) {
+    double product = 1;
+    for (SEXP argument : arguments) {
+      if (!(argument instanceof AtomicVector)) {
+        throw new EvalException("invalid 'type' (%s) of argument", argument.getTypeName());
+      } if (argument instanceof StringVector) {
+        throw new EvalException("invalid 'type' (character) of argument");
+      } else if(!(argument instanceof ComplexVector)) {
+        AtomicVector vector = (AtomicVector) argument;
         for (int i = 0; i != vector.length(); ++i) {
           if (vector.isElementNA(i)) {
             if (!removeNA) {
-              return DoubleVector.valueOf(DoubleVector.NA);
+              return DoubleVector.NA;
             }
           } else {
             product = product * vector.getElementAsDouble(i);
@@ -237,24 +252,21 @@ public class Summary {
         }
       }
     }
-
-    if (hasComplex) {
-      return complexProduct(product, arguments, removeNA);
-
-    } else {
-      return DoubleVector.valueOf(product);
-    }
+    return product;
   }
 
-  private static AtomicVector complexProduct(double realProduct, ListVector arguments, boolean removeNA) {
-    Complex product = new Complex(realProduct, 0);
+  private static Complex complexProduct(ListVector arguments, boolean removeNA) {
+    Complex product = null;
     for (SEXP argument : arguments) {
       if(argument instanceof ComplexVector) {
+        if(product == null) {
+          product = new Complex(1, 0);
+        }
         ComplexVector vector = (ComplexVector) argument;
         for (int i = 0; i != vector.length(); ++i) {
           if (vector.isElementNA(i)) {
             if (!removeNA) {
-              return DoubleVector.valueOf(DoubleVector.NA);
+              return ComplexVector.NA;
             }
           } else {
             product = product.multiply(vector.getElementAsComplex(i));
@@ -262,7 +274,7 @@ public class Summary {
         }
       }
     }
-    return new ComplexArrayVector(product);
+    return product;
   }
 
   @Builtin

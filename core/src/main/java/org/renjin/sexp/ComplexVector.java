@@ -16,6 +16,11 @@ public abstract class ComplexVector extends AbstractAtomicVector implements Iter
   public static final Complex NA = new Complex(DoubleVector.NA, 0);
   public static final Type VECTOR_TYPE = new ComplexType();
 
+
+  public static AtomicVector valueOf(Complex value) {
+    return new ComplexArrayVector(value);
+  }
+  
   public ComplexVector() {
     super();
   }
@@ -139,6 +144,7 @@ public abstract class ComplexVector extends AbstractAtomicVector implements Iter
       }
     };
   }
+
 
   private static class ComplexType extends Type {
     public ComplexType() {

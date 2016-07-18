@@ -5,7 +5,7 @@ import org.renjin.sexp.*;
 /**
  * Builds a two-dimensional matrix using an underlying {@link Vector.Builder}
  */
-public class Matrix2dBuilder {
+class Matrix2dBuilder {
   private final Vector.Builder builder;
   private final int rows;
   private final int cols;
@@ -30,7 +30,6 @@ public class Matrix2dBuilder {
   }
 
   public Vector build() {
-    return builder.setAttribute(Symbols.DIM, new IntArrayVector(rows,cols))
-            .build();
+    return builder.setAttribute(Symbols.DIM, new IntArrayVector(rows,cols)).build();
   }
 }

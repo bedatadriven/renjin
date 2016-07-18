@@ -565,7 +565,11 @@ public class Deparse {
         if(Double.isNaN(value)) {
           return "NaN";
         } else if(Double.isInfinite(value)) {
-          return "Inf";
+          if(value < 0) {
+            return "-Inf";
+          } else {
+            return "Inf";
+          }
         } else {
           return NumericLiterals.toString(value);
         }

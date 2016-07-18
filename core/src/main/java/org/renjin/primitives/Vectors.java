@@ -280,7 +280,6 @@ public class Vectors {
     Vector.Builder result;
     if ("character".equals(mode)) {
       result = new StringVector.Builder();
-      assertSourceIsNotComplicatedList(x, mode);
       
     } else if ("logical".equals(mode)) {
       result = new LogicalArrayVector.Builder(x.length());
@@ -352,7 +351,7 @@ public class Vectors {
       ListVector list = (ListVector) x;
       for (int i = 0; i < list.length(); i++) {
         SEXP element = list.getElementAsSEXP(i);
-        if(element.length() != 1 || !(element instanceof AtomicVector)) {
+        if(element.length() > 1 || !(element instanceof AtomicVector)) {
           throw new EvalException("(list) object cannot be coerced to type '%s'", mode);
         }
       }
@@ -523,6 +522,13 @@ public class Vectors {
       result = new ListVector.Builder();
     } else if ("expression".equals(mode)) {
       result = new ExpressionVector.Builder();
+      
+      // Special case...
+      if(x instanceof FunctionCall) {
+        result.add(x);
+        return result.build();
+      }
+      
     } else if ("raw".equals(mode)) {
       result = new RawVector.Builder();
     } else {

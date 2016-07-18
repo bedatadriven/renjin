@@ -55,7 +55,7 @@ public class ComplexGroup {
       if(imaginaryVector.length() > 0) {
         imaginary = imaginaryVector.getElementAsDouble(i % imaginaryVector.length());
       }
-      result.add(new Complex(real, imaginary));
+      result.add(ComplexVector.complex(real, imaginary));
     }
     return result.build();
   }
@@ -75,6 +75,6 @@ public class ComplexGroup {
   @Builtin
   @DataParallel
   public static Complex Conj(Complex z){
-    return new Complex(z.getReal(),-1*z.getImaginary());
+    return ComplexVector.complex(z.getReal(),-1*z.getImaginary());
   }
 }

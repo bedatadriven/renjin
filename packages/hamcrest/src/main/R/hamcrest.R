@@ -67,6 +67,12 @@ identicalTo <- function(expected, tol) {
 	}
 }
 
+deparsesTo <- function(expected) {
+    function(actual) {
+        identical(paste(deparse(actual), collapse=""), expected)
+    }
+}
+
 equalTo <- function(expected) {
 	function(actual) {
 		length(actual) == length(expected) &&

@@ -69,6 +69,11 @@ public class CombineTest extends EvalTestCase {
   }
 
   @Test
+  public void emptyMatrix() {
+    eval("print(cbind( matrix(integer(0), nrow=10), integer(0) )) ");
+  }
+
+  @Test
   public void combineWithExplicitNames() {
     eval("p <- c(x=41,y=42)");
     eval("print(p)");

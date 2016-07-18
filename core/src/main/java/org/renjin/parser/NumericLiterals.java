@@ -80,11 +80,11 @@ public class NumericLiterals {
       }
       double real = parseDouble(s, 0, imaginaryStart, '.', false);
       double imaginary = parseDouble(s, imaginaryStart, lastCharIndex, '.', false);
-      return new Complex(real, imaginary);
+      return ComplexVector.complex(real, imaginary);
     
     } else {
       // parse as number with only real component
-      return new Complex(parseDouble(s), 0);
+      return ComplexVector.complex(parseDouble(s), 0);
     }
   }
 

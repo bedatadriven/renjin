@@ -105,7 +105,7 @@ public abstract class LogicalVector extends AbstractAtomicVector implements Iter
     if(IntVector.isNA(getElementAsRawLogical(index))) {
       return ComplexVector.NA;
     }
-    return new Complex(getElementAsDouble(index), 0);
+    return ComplexVector.complex(getElementAsDouble(index));
   }
 
   @Override

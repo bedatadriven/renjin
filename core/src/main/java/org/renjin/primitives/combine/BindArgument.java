@@ -26,7 +26,7 @@ class BindArgument {
   private String argName;
   private String computedName;
 
-  public BindArgument(String argName, Vector vector, boolean defaultToRows, SEXP uneval, int deparseLevel, Context context) {
+  public BindArgument(String argName, Vector vector, MatrixDim bindDim, SEXP uneval, int deparseLevel, Context context) {
     this.argName = argName;
     this.uneval = uneval;
     this.deparseLevel = deparseLevel;
@@ -34,7 +34,7 @@ class BindArgument {
     this.vector = vector;
     this.expression = uneval instanceof Promise ? ((Promise) uneval).getExpression() : uneval;
     if (dim == Null.INSTANCE || dim.length() != 2) {
-      if (defaultToRows) {
+      if (bindDim == MatrixDim.ROW) {
         this.rows = 1;
         this.cols = vector.length();
         this.colNames = vector.getNames();
@@ -125,4 +125,31 @@ class BindArgument {
     return this.uneval;
   }
 
+  public boolean isZeroLength() {
+    return vector.length() == 0;
+  }
+
+  public boolean isZeroLengthVector() {
+    return !matrix && vector.length() == 0;
+  }
+  
+  public boolean isNull() {
+    return vector == Null.INSTANCE;
+  }
+
+  public int getDimLength(MatrixDim dim) {
+    if(dim == MatrixDim.ROW) {
+      return rows;
+    } else {
+      return cols;
+    }
+  }
+
+  public AtomicVector getNames(MatrixDim dim) {
+    if(dim == MatrixDim.ROW) {
+      return rowNames;
+    } else {
+      return colNames;
+    }
+  }
 }

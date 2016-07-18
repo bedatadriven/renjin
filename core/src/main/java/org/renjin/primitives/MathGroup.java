@@ -395,7 +395,7 @@ public class MathGroup {
   @Deferrable
   @DataParallel(PreserveAttributeStyle.ALL)
   public static Complex round(Complex x, int digits) {
-    return new Complex(round(x.getReal(), digits), round(x.getImaginary(), digits));
+    return ComplexVector.complex(round(x.getReal(), digits), round(x.getImaginary(), digits));
   }
 
 
@@ -440,7 +440,7 @@ public class MathGroup {
   public static ComplexVector cumsum(ComplexVector source) {
     ComplexArrayVector.Builder result = new ComplexArrayVector.Builder(source.length());
     result.setAttribute(Symbols.NAMES, source.getNames());
-    Complex sum = new Complex(0, 0);
+    Complex sum = ComplexVector.complex(0);
     for (int i = 0; i < source.length(); i++) {
       if(source.isElementNA(i)) {
         break;

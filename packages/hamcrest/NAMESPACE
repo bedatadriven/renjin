@@ -5,6 +5,7 @@ export(
 	assertThat,
 	closeTo,
 	identicalTo,
+	deparsesTo,
 	equalTo,
 	instanceOf,
 	throwsError,

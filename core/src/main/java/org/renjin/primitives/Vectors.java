@@ -259,6 +259,10 @@ public class Vectors {
   @Generic
   @Builtin("as.complex")
   public static ComplexVector asComplex(Vector vector) {
+    
+    if(vector instanceof DoubleVector) {
+      return doubleToComplex((DoubleVector) vector);
+    }
     checkForListThatCannotBeCoercedToAtomicVector(vector, "");
 
     return (ComplexVector) convertToAtomicVector(new ComplexArrayVector.Builder(), vector);
@@ -362,7 +366,7 @@ public class Vectors {
   /**
    * Special handling for double -> complex
    */
-  private static SEXP doubleToComplex(DoubleVector x) {
+  private static ComplexVector doubleToComplex(DoubleVector x) {
     ComplexArrayVector.Builder result = new ComplexArrayVector.Builder(x.length());
     // in this context, NaNs are treated exceptionally as NAs
     for (int i = 0; i < x.length(); i++) {

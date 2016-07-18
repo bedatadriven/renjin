@@ -7,6 +7,7 @@
 source("src/testgen/gen.R")
 
 fns <- c('as.array',
+         'as.expression',
          'as.call',
          'as.character',
          'as.complex',

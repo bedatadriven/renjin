@@ -16,6 +16,17 @@ deparseExpected <- function(x) {
    }
 }
 
+callWithQuotedArgs <- function(fn, ...) {
+  call <- as.call(c(as.name(fn), list(...)))
+  for(i in seq.int(from = 2, to = length(call))) {
+    arg <- call[[i]]
+    if(typeof(arg) == "symbol" || typeof(arg) == "language") {
+      call[[i]] <- call("quote", arg)
+    } 
+  }
+  call
+}
+
 literal <- function(x) {
   stopifnot(is.character(x))
   class(x) <- "literal"
@@ -39,8 +50,8 @@ writeln <- function(test, format, ...) {
 }
 
 writeTest <- function(test, fn, ..., tol = NULL) {
-  call <- as.call(list(as.name(fn), ...))
-  
+  call <- callWithQuotedArgs(fn, ...)
+
   expected <- tryCatch(eval(call, envir = .GlobalEnv), error = function(e) e)
 
   if(inherits(expected, "error")) {

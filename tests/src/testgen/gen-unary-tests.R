@@ -4,7 +4,7 @@
 ## Generates test cases for
 ## miscellaneous unary functions
 
-source("src/testgen/gen.R")
+#source("src/testgen/gen.R")
 
 fns <- c('as.array',
          'as.call',
@@ -95,7 +95,7 @@ inputs <- list(
 
   # character
   character(0),
-  c("4.1", "blahh", "99.9", "-413", NA),
+  c('4.1', 'blahh', '99.9', '-413', NA),
 
   # lists
   list(1, 2, 3),
@@ -110,17 +110,17 @@ inputs <- list(
   structure(1:3, rando.attrib=941L),
 
   #arrays
-  array(1:3, dim = 3L, dimnames = list(c("a", "b", "c"))),
+  array(1:3, dim = 3L, dimnames = list(c('a', 'b', 'c'))),
   
   # S3 dispatch?
-  structure(list("foo"), class="foo"),
-  structure(list("bar"), class="foo"),
+  structure(list('foo'), class='foo'),
+  structure(list('bar'), class='foo'),
   
   # Symbols
-  as.name("xyz"),
+  as.name('xyz'),
   
   # Function Calls
-  call("sin", 3.14)
+  call('sin', 3.14)
 )
 
 

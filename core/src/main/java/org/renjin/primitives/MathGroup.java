@@ -461,6 +461,11 @@ public class MathGroup {
     return cumsum(Vectors.asDouble(source));
   }
 
+  @Builtin
+  public static DoubleVector cumsum(Null x) {
+    return DoubleVector.EMPTY;
+  }
+
   private static IntVector cumulativeSumIntegers(Vector source) {
     IntArrayVector.Builder result = new IntArrayVector.Builder(source.length());
     result.setAttribute(Symbols.NAMES, source.getNames());
@@ -551,6 +556,16 @@ public class MathGroup {
   @Builtin
   public static ComplexVector cummax(ComplexVector source) {
     return cumulativeComplex("cummax", source);
+  }
+  
+  @Builtin
+  public static DoubleVector cummin(Null x) {
+    return DoubleVector.EMPTY;
+  }
+  
+  @Builtin
+  public static DoubleVector cummax(Null x) {
+    return DoubleVector.EMPTY;
   }
   
   private static ComplexVector cumulativeComplex(String functionName, ComplexVector source) {

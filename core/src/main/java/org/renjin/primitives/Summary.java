@@ -237,7 +237,7 @@ public class Summary {
     for (SEXP argument : arguments) {
       if (!(argument instanceof AtomicVector)) {
         throw new EvalException("invalid 'type' (%s) of argument", argument.getTypeName());
-      } if (argument instanceof StringVector) {
+      } else if (argument instanceof StringVector) {
         throw new EvalException("invalid 'type' (character) of argument");
       } else if(!(argument instanceof ComplexVector)) {
         AtomicVector vector = (AtomicVector) argument;

@@ -225,6 +225,15 @@ public class Types {
     return !DoubleVector.isNA(value) && DoubleVector.isNaN(value);
   }
 
+
+  @Generic
+  @Builtin("is.nan")
+  @DataParallel(passNA = true)
+  @Deferrable
+  public static boolean isNaN(String value) {
+    return false;
+  }
+
   @Generic
   @Builtin("is.finite")
   @DataParallel(passNA = true)

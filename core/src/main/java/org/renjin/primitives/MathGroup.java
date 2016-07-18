@@ -413,27 +413,17 @@ public class MathGroup {
 
   @Builtin
   public static DoubleVector cumsum(DoubleVector source) {
-    DoubleArrayVector.Builder result = new DoubleArrayVector.Builder(source.length());
-    result.setAttribute(Symbols.NAMES, source.getNames());
-    double sum = 0;
-    for (int i = 0; i < source.length(); i++) {
-      sum += source.getElementAsDouble(i);
-      if (Double.isNaN(sum)) {
-        break;
-      }
-      result.set(i, sum);
-    }
-    return result.build();
+    return cumulativeRealSum(source);
   }
-
+  
   @Builtin
   public static DoubleVector cumsum(RawVector source) {
-    return cumsum(Vectors.asDouble(source));
+    return cumulativeRealSum(source);
   }
 
   @Builtin
   public static IntVector cumsum(@Current Context context, IntVector source) {
-    return cumulativeSumIntegers(source);
+    return cumulativeIntegerSum(source);
   }
 
   @Builtin
@@ -453,12 +443,12 @@ public class MathGroup {
 
   @Builtin
   public static IntVector cumsum(@Current Context context, LogicalVector source) {
-    return cumulativeSumIntegers(source);
+    return cumulativeIntegerSum(source);
   }
 
   @Builtin
   public static DoubleVector cumsum(StringVector source) {
-    return cumsum(Vectors.asDouble(source));
+    return cumulativeRealSum(source);
   }
 
   @Builtin
@@ -466,7 +456,22 @@ public class MathGroup {
     return DoubleVector.EMPTY;
   }
 
-  private static IntVector cumulativeSumIntegers(Vector source) {
+  private static DoubleVector cumulativeRealSum(Vector source) {
+    DoubleArrayVector.Builder result = new DoubleArrayVector.Builder(source.length());
+    result.setAttribute(Symbols.NAMES, source.getNames());
+    double sum = 0;
+    for (int i = 0; i < source.length(); i++) {
+      sum += source.getElementAsDouble(i);
+      if (Double.isNaN(sum)) {
+        break;
+      }
+      result.set(i, sum);
+    }
+    return result.build();
+  }
+
+
+  private static IntVector cumulativeIntegerSum(Vector source) {
     IntArrayVector.Builder result = new IntArrayVector.Builder(source.length());
     result.setAttribute(Symbols.NAMES, source.getNames());
     int sum = 0;
@@ -487,21 +492,66 @@ public class MathGroup {
     return (result.build());
   }
 
+
+  @Builtin
+  public static DoubleVector cumprod(Null source) {
+    return cumulativeRealProduct(source);
+  }
+
+  @Builtin
+  public static DoubleVector cumprod(StringVector source) {
+    return cumulativeRealProduct(source);
+  }
+
+  @Builtin
+  public static DoubleVector cumprod(IntVector source) {
+    return cumulativeRealProduct(source);
+  }
+
+  @Builtin
+  public static DoubleVector cumprod(LogicalVector source) {
+    return cumulativeRealProduct(source);
+  }
   
   @Builtin
-  public static DoubleVector cumprod(Vector source) {
+  public static DoubleVector cumprod(DoubleVector source) {
+    return cumulativeRealProduct(source);
+  }
+
+  private static DoubleVector cumulativeRealProduct(Vector source) {
     DoubleArrayVector.Builder result = new DoubleArrayVector.Builder();
     result.setAttribute(Symbols.NAMES, source.getNames());
 
     if(source.length() > 0) {
-      double sum = source.getElementAsDouble(0);
-      result.add(sum);
+      double prod = source.getElementAsDouble(0);
+      result.add(prod);
       for (int i = 1; i < source.length(); i++) {
-        sum *= source.getElementAsDouble(i);
-        if (Double.isNaN(sum)) {
+        prod *= source.getElementAsDouble(i);
+        if (Double.isNaN(prod)) {
           result.addNA();
         } else {
-          result.add(sum);
+          result.add(prod);
+        }
+      }
+    }
+    return result.build();
+  }
+
+
+  @Builtin
+  public static ComplexVector cumprod(ComplexVector source) {
+    ComplexArrayVector.Builder result = new ComplexArrayVector.Builder();
+    result.setAttribute(Symbols.NAMES, source.getNames());
+
+    if(source.length() > 0) {
+      Complex prod = source.getElementAsComplex(0);
+      result.add(prod);
+      for (int i = 1; i < source.length(); i++) {
+        if(ComplexVector.isNA(prod)) {
+          result.add(ComplexVector.NA);
+        } else {
+          prod = prod.multiply(source.getElementAsComplex(i));
+          result.add(prod);
         }
       }
     }
@@ -550,12 +600,12 @@ public class MathGroup {
 
   @Builtin
   public static ComplexVector cummin(ComplexVector source) {
-    return cumulativeComplex("cummin", source);
+    return cumulativeExtrema("cummin", source);
   }
 
   @Builtin
   public static ComplexVector cummax(ComplexVector source) {
-    return cumulativeComplex("cummax", source);
+    return cumulativeExtrema("cummax", source);
   }
   
   @Builtin
@@ -568,7 +618,7 @@ public class MathGroup {
     return DoubleVector.EMPTY;
   }
   
-  private static ComplexVector cumulativeComplex(String functionName, ComplexVector source) {
+  private static ComplexVector cumulativeExtrema(String functionName, ComplexVector source) {
     // This is probably not intended behavior, but cumxxx(complex(0)) in GNU R
     // returns complex(0), so we'll mimic it here
     if(source.length() == 0) {

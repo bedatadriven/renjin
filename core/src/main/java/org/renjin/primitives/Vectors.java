@@ -360,7 +360,7 @@ public class Vectors {
       ListVector list = (ListVector) x;
       for (int i = 0; i < list.length(); i++) {
         SEXP element = list.getElementAsSEXP(i);
-        if(element.length() != 1 || !(element instanceof AtomicVector)) {
+        if(element == Null.INSTANCE && element.length() > 1 || !(element instanceof Vector)) {
           throw new EvalException("(list) object cannot be coerced to type '%s'", mode);
         }
       }

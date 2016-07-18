@@ -19,6 +19,9 @@ public abstract class ComplexVector extends AbstractAtomicVector implements Iter
   public static final Type VECTOR_TYPE = new ComplexType();
 
   public static Complex complex(double real) {
+    if(DoubleVector.isNA(real)) {
+      return ComplexVector.NA;
+    }
     return complex(real, 0);
   }
   

@@ -71,11 +71,11 @@ public abstract class StringVector extends AbstractAtomicVector implements Itera
 
   @Override
   public Complex getElementAsComplex(int index) {
-    if(isElementNA(index)) {
+    String stringValue = getElementAsString(index);
+    if(StringVector.isNA(stringValue)) {
       return ComplexVector.NA;
-    } else {
-      return NumericLiterals.parseComplex(getElementAsString(index));
     }
+    return NumericLiterals.parseComplex(stringValue);
   }
 
   public static boolean isNA(String s) {

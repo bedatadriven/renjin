@@ -38,7 +38,7 @@ import java.util.List;
 /**
  * Generic vector of {@code SEXP}s
  */
-public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNamedValues {
+public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNamedValues, Recursive {
 
   public static final String TYPE_NAME = "list";
   public static final ListVector EMPTY = new ListVector();

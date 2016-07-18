@@ -331,8 +331,8 @@ public class Types {
   }
 
   @Builtin("is.raw")
-  public static SEXP isRaw(Vector v) {
-    return (new LogicalArrayVector(v.getVectorType() == RawVector.VECTOR_TYPE));
+  public static boolean isRaw(SEXP sexp) {
+    return sexp instanceof RawVector;
   }
 
 

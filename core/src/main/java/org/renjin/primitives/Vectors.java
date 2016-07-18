@@ -140,7 +140,7 @@ public class Vectors {
   @Generic
   @Builtin("as.logical")
   public static LogicalVector asLogical(Vector vector) {
-    assertSourceIsNotComplicatedList(vector, "logical");
+    checkForListThatCannotBeCoercedToAtomicVector(vector, "logical");
     return (LogicalVector) convertToAtomicVector(new LogicalArrayVector.Builder(), vector);
   }
 
@@ -170,7 +170,7 @@ public class Vectors {
   @Generic
   @Builtin("as.integer")
   public static IntVector asInteger(Vector source) {
-    assertSourceIsNotComplicatedList(source, "integer");
+    checkForListThatCannotBeCoercedToAtomicVector(source, "integer");
 
     return (IntVector) convertToAtomicVector(new IntArrayVector.Builder(), source);
   }
@@ -201,7 +201,7 @@ public class Vectors {
   @Generic
   @Builtin("as.double")
   public static DoubleVector asDouble(Vector source) {
-    assertSourceIsNotComplicatedList(source, "double");
+    checkForListThatCannotBeCoercedToAtomicVector(source, "double");
     
     if(source instanceof DoubleVector) {
       return (DoubleVector) source.setAttributes(AttributeMap.EMPTY);
@@ -233,7 +233,7 @@ public class Vectors {
      * raw = new Raw(iv.getElementAsInt(i)); b.add(raw); } return (b.build());
      */
     
-    assertSourceIsNotComplicatedList(source, "raw");
+    checkForListThatCannotBeCoercedToAtomicVector(source, "raw");
     
     return (RawVector) Vectors.convertToAtomicVector(new RawVector.Builder(), source);
   }
@@ -259,7 +259,7 @@ public class Vectors {
   @Generic
   @Builtin("as.complex")
   public static ComplexVector asComplex(Vector vector) {
-    assertSourceIsNotComplicatedList(vector, "");
+    checkForListThatCannotBeCoercedToAtomicVector(vector, "");
 
     return (ComplexVector) convertToAtomicVector(new ComplexArrayVector.Builder(), vector);
   }
@@ -292,23 +292,23 @@ public class Vectors {
       
     } else if ("logical".equals(mode)) {
       result = new LogicalArrayVector.Builder(x.length());
-      assertSourceIsNotComplicatedList(x, mode);
+      checkForListThatCannotBeCoercedToAtomicVector(x, mode);
 
     } else if ("integer".equals(mode)) {
       result = new IntArrayVector.Builder(x.length());
-      assertSourceIsNotComplicatedList(x, mode);
+      checkForListThatCannotBeCoercedToAtomicVector(x, mode);
 
     } else if ("raw".equals(mode)) {
       result = new RawVector.Builder();
-      assertSourceIsNotComplicatedList(x, mode);
+      checkForListThatCannotBeCoercedToAtomicVector(x, mode);
 
     } else if ("numeric".equals(mode) || "double".equals(mode)) {
       result = new DoubleArrayVector.Builder(x.length());
-      assertSourceIsNotComplicatedList(x, mode);
+      checkForListThatCannotBeCoercedToAtomicVector(x, mode);
 
     } else if ("complex".equals(mode)) {
       result = new ComplexArrayVector.Builder(x.length());
-      assertSourceIsNotComplicatedList(x, mode);
+      checkForListThatCannotBeCoercedToAtomicVector(x, mode);
 
     } else if ("list".equals(mode)) {
       // Special case: preserve names with mode = 'list'
@@ -355,12 +355,12 @@ public class Vectors {
    * @param x
    * @param mode
    */
-  private static void assertSourceIsNotComplicatedList(Vector x, String mode) {
+  private static void checkForListThatCannotBeCoercedToAtomicVector(Vector x, String mode) {
     if(x instanceof ListVector) {
       ListVector list = (ListVector) x;
       for (int i = 0; i < list.length(); i++) {
         SEXP element = list.getElementAsSEXP(i);
-        if(element == Null.INSTANCE && element.length() > 1 || !(element instanceof Vector)) {
+        if(element == Null.INSTANCE || element.length() > 1 || !(element instanceof Vector)) {
           throw new EvalException("(list) object cannot be coerced to type '%s'", mode);
         }
       }

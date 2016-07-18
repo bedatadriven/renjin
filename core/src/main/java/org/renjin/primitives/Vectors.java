@@ -185,11 +185,11 @@ public class Vectors {
     Object instance = ptr.getInstance();
     Class clazz = instance.getClass();
     if (DoubleConverter.accept(clazz)) {
-      return (DoubleVector) DoubleConverter.INSTANCE
-          .convertToR(instance);
+      return (DoubleVector) DoubleConverter.INSTANCE.convertToR(instance);
+      
     } else if (DoubleArrayConverter.accept(clazz)) {
-      return (DoubleVector)new DoubleArrayConverter(clazz)
-          .convertToR(instance);
+      return (DoubleVector)new DoubleArrayConverter(clazz).convertToR(instance);
+   
     } else {
       return new DoubleArrayVector(DoubleVector.NA);
     }
@@ -198,10 +198,14 @@ public class Vectors {
   @Generic
   @Builtin("as.double")
   public static DoubleVector asDouble(Vector source) {
+    assertSourceIsNotComplicatedList(source, "double");
+    
     if(source instanceof DoubleVector) {
       return (DoubleVector) source.setAttributes(AttributeMap.EMPTY);
+   
     } else if(source.isDeferred() || source.length() > 100) {
       return new ConvertingDoubleVector(source);
+   
     } else {
       return (DoubleVector) convertToAtomicVector(new DoubleArrayVector.Builder(), source);
     }
@@ -351,7 +355,7 @@ public class Vectors {
       ListVector list = (ListVector) x;
       for (int i = 0; i < list.length(); i++) {
         SEXP element = list.getElementAsSEXP(i);
-        if(element.length() > 1 || !(element instanceof AtomicVector)) {
+        if(element.length() != 1 || !(element instanceof AtomicVector)) {
           throw new EvalException("(list) object cannot be coerced to type '%s'", mode);
         }
       }

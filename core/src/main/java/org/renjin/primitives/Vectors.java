@@ -321,6 +321,10 @@ public class Vectors {
       // Special case
       if(x == Null.INSTANCE) {
         return new ExpressionVector(Null.INSTANCE);
+      
+      } else if(x instanceof ListVector) {
+        // Exception, for list -> expression, copy attributes
+        return new ExpressionVector(((ListVector) x).toArrayUnsafe(), x.getAttributes());
       }
       
     } else if ("pairlist".equals(mode)) {

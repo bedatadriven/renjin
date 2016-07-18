@@ -15,3 +15,7 @@ test.identicalTol.NaN <- function() {
     assertTrue(matcher(NaN))
        
 }
+
+test.equals <- function() {
+    assertThat( c(15, -2.5, -2.5, -2.5, -2.5), equalTo(c(15, -2.5, -2.5, -2.5, -2.5)))
+}

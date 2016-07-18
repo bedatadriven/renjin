@@ -225,6 +225,9 @@ public class Vectors {
      * EvalException("out-of-range values treated as 0 in coercion to raw"); }
      * raw = new Raw(iv.getElementAsInt(i)); b.add(raw); } return (b.build());
      */
+    
+    assertSourceIsNotComplicatedList(source, "raw");
+    
     return (RawVector) Vectors.convertToAtomicVector(new RawVector.Builder(), source);
   }
 
@@ -258,7 +261,6 @@ public class Vectors {
     return ComplexArrayVector.EMPTY;
   }
 
-  @Generic
   @Internal("as.vector")
   public static SEXP asVector(Vector x, String mode) {
 
@@ -277,14 +279,28 @@ public class Vectors {
     Vector.Builder result;
     if ("character".equals(mode)) {
       result = new StringVector.Builder();
+      assertSourceIsNotComplicatedList(x, mode);
+      
     } else if ("logical".equals(mode)) {
       result = new LogicalArrayVector.Builder(x.length());
+      assertSourceIsNotComplicatedList(x, mode);
+
     } else if ("integer".equals(mode)) {
       result = new IntArrayVector.Builder(x.length());
+      assertSourceIsNotComplicatedList(x, mode);
+
+    } else if ("raw".equals(mode)) {
+      result = new RawVector.Builder();
+      assertSourceIsNotComplicatedList(x, mode);
+
     } else if ("numeric".equals(mode) || "double".equals(mode)) {
       result = new DoubleArrayVector.Builder(x.length());
+      assertSourceIsNotComplicatedList(x, mode);
+
     } else if ("complex".equals(mode)) {
       result = new ComplexArrayVector.Builder(x.length());
+      assertSourceIsNotComplicatedList(x, mode);
+
     } else if ("list".equals(mode)) {
       // Special case: preserve names with mode = 'list'
       result = new ListVector.Builder();
@@ -302,6 +318,7 @@ public class Vectors {
       // a pairlist is actually not a vector, so bail from here
       // as a special case
       return asPairList(x);
+      
     } else if ("symbol".equals(mode)) {
       // weird but seen in the base package
       if (x.length() == 0) {
@@ -312,9 +329,7 @@ public class Vectors {
         throw new EvalException("vector of type 'list' cannot be coerced to symbol");
       }
       return Symbol.get(x.getElementAsString(0));
-    
-    } else if ("raw".equals(mode)) {
-      result = new RawVector.Builder();
+
     } else {
       throw new EvalException("invalid 'mode' argument: " + mode);
     }
@@ -323,6 +338,24 @@ public class Vectors {
       result.setFrom(i, x, i);
     }
     return result.build();
+  }
+
+  /**
+   * Checks that {@code x} is not a list, or if it is a list, is soley consists of 
+   * atomic vectors of length 1
+   * @param x
+   * @param mode
+   */
+  private static void assertSourceIsNotComplicatedList(Vector x, String mode) {
+    if(x instanceof ListVector) {
+      ListVector list = (ListVector) x;
+      for (int i = 0; i < list.length(); i++) {
+        SEXP element = list.getElementAsSEXP(i);
+        if(element.length() != 1 || !(element instanceof AtomicVector)) {
+          throw new EvalException("(list) object cannot be coerced to type '%s'", mode);
+        }
+      }
+    }
   }
 
   private static PairList asPairList(Vector x) {
@@ -450,7 +483,6 @@ public class Vectors {
     }
   }
 
-  @Generic
   @Internal("as.vector")
   public static SEXP asVector(PairList x, String mode) {
     

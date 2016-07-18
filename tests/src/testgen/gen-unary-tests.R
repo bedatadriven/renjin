@@ -132,6 +132,7 @@ for(fn in fns) {
   
   # define some nonsense generic functions
   writeFixture(test, "%s.foo <- function(...) 41", fn)
+  writeFixture(test, "as.vector.foo <- function(...) 99", fn)
   writeFixture(test, "Math.bar <- function(...) 44")
   writeFixture(test, "Summary.bar <- function(...) 45")
   writeFixture(test, "Ops.bar <- function(...) 46")
@@ -158,6 +159,9 @@ for(fn in fns) {
       }
     }
   }
+  
+  # Remove symbols we added to the global environment
+  rm(list = c(sprintf("%s.foo", fn), "as.vector.foo", "Math.bar", "Summary.bar", "Ops.bar"))
   
   close(test)
 }

@@ -25,11 +25,13 @@ deparseExpected <- function(x) {
 
 callWithQuotedArgs <- function(fn, ...) {
   call <- as.call(c(as.name(fn), list(...)))
-  for(i in seq.int(from = 2, to = length(call))) {
-    arg <- call[[i]]
-    if(typeof(arg) == "symbol" || typeof(arg) == "language") {
-      call[[i]] <- call("quote", arg)
-    } 
+  if(length(call) > 1) {
+    for(i in seq.int(from = 2, to = length(call))) {
+      arg <- call[[i]]
+      if(typeof(arg) == "symbol" || typeof(arg) == "language") {
+        call[[i]] <- call("quote", arg)
+      } 
+    }
   }
   call
 }
@@ -70,14 +72,19 @@ writeTest <- function(test, fn, ..., tol = NULL) {
   if(inherits(expected, "error")) {
     matcher <- "throwsError()"
     
-  } else if(typeof(expected) %in% c("symbol", "language", "expression")) {
+  } else if(typeof(expected) == "symbol") {
+    matcher <- sprintf("identicalTo(as.name(%s))", deparse(as.character(expected)))
+    
+  } else if(typeof(expected) %in% c("language", "expression")) {
     matcher <- sprintf("deparsesTo(%s)", deparse0(deparse0(expected)))
   
   } else if(is.null(tol) || !is.double(expected)) {
     matcher <- sprintf("identicalTo(%s)", deparseExpected(expected))
+    
   } else {
     matcher <- sprintf("identicalTo(%s, tol = %f)", deparseExpected(expected), tol)
   }
+  
   writeln(test, "test.%s.%d <- function() assertThat(%s, %s)",
                             fn, test$index, deparse0(call), matcher)
   test$index <- test$index + 1

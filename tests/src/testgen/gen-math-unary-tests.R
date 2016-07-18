@@ -27,13 +27,8 @@ for(fn in unary) {
   }
   
   # define some nonsense generic functions
-  writeln(test, "%s.foo <- function(x) 41", fn)
-  writeln(test, "Math.bar <- function(x) 44")
-  
-  # define the generic functions in the current environment 
-  # as well so we produce the right values for comparison
-  assign(sprintf("%s.foo",fn), function(x) 41)
-  assign(sprintf("Math.bar",fn), function(x) 44)
+  writeFixture(test, "%s.foo <- function(x) 41", fn)
+  writeFixture(test, "Math.bar <- function(x) 44")
   
   # Check that numerical values are correct
   for(input in c(-inputs, inputs)) {

@@ -70,15 +70,15 @@ for(fn in unary) {
   writeln(test, "library(hamcrest)")
   
   # define some nonsense generic functions
-  writeln(test, "%s.foo <- function(x) 41", fn)
-  writeln(test, "Math.bar <- function(x) 44")
-  writeln(test, "Summary.bar <- function(x) 45")
+  writeln(test, "%s.foo <- function(...) 41", fn)
+  writeln(test, "Math.bar <- function(...) 44")
+  writeln(test, "Summary.bar <- function(...) 45")
   
   # define the generic functions in the current environment 
   # as well so we produce the right values for comparison
-  assign(sprintf("%s.foo",fn), function(x) 41)
-  assign(sprintf("Math.bar",fn), function(x) 44)
-  assign(sprintf("Summary.bar",fn), function(x) 44)
+  assign(sprintf("%s.foo",fn), function(...) 41)
+  assign(sprintf("Math.bar",fn), function(...) 44)
+  assign(sprintf("Summary.bar",fn), function(...) 45)
   
   tol <- 0.0001
   

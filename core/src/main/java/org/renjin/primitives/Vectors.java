@@ -307,9 +307,15 @@ public class Vectors {
       checkForListThatCannotBeCoercedToAtomicVector(x, mode);
 
     } else if ("complex".equals(mode)) {
+      
+      // Special case: double -> complex treats NaNs as NA
+      if(x instanceof DoubleVector) {
+        return doubleToComplex((DoubleVector) x);
+      }
+      
       result = new ComplexArrayVector.Builder(x.length());
       checkForListThatCannotBeCoercedToAtomicVector(x, mode);
-
+      
     } else if ("list".equals(mode)) {
       // Special case: preserve names with mode = 'list'
       result = new ListVector.Builder();
@@ -349,6 +355,23 @@ public class Vectors {
 
     for (int i = 0; i != x.length(); ++i) {
       result.setFrom(i, x, i);
+    }
+    return result.build();
+  }
+
+  /**
+   * Special handling for double -> complex
+   */
+  private static SEXP doubleToComplex(DoubleVector x) {
+    ComplexArrayVector.Builder result = new ComplexArrayVector.Builder(x.length());
+    // in this context, NaNs are treated exceptionally as NAs
+    for (int i = 0; i < x.length(); i++) {
+      double doubleValue = x.getElementAsDouble(i);
+      if(Double.isNaN(doubleValue)) {
+        result.setNA(i);
+      } else {
+        result.set(i, ComplexVector.complex(doubleValue));
+      }
     }
     return result.build();
   }

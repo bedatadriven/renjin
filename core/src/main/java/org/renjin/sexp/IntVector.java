@@ -77,7 +77,12 @@ public abstract class IntVector extends AbstractAtomicVector implements Iterable
 
   @Override
   public Complex getElementAsComplex(int index) {
-    return ComplexVector.complex(getElementAsDouble(index), 0);
+    int intValue = getElementAsInt(index);
+    if(isNA(intValue)) {
+      return ComplexVector.NA;
+    } else {
+      return ComplexVector.complex(intValue);
+    }
   }
 
   @Override

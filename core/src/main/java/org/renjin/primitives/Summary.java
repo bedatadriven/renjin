@@ -44,14 +44,10 @@ public class Summary {
   public static SEXP min(@ArgumentList ListVector arguments,
                          @NamedFlag("na.rm") boolean removeNA) {
 
-    try {
-      return new RangeCalculator()
-              .setRemoveNA(removeNA)
-              .addList(arguments)
-              .getMinimum();
-    } catch (RangeContainsNA e) {
-      return new DoubleArrayVector(DoubleVector.NA);
-    }
+    return new RangeCalculator()
+            .setRemoveNA(removeNA)
+            .addList(arguments)
+            .getMinimum();
   }
 
   @Builtin
@@ -59,14 +55,10 @@ public class Summary {
   public static SEXP max(@ArgumentList ListVector arguments,
                          @NamedFlag("na.rm") boolean removeNA) {
 
-    try {
-      return new RangeCalculator()
-              .setRemoveNA(removeNA)
-              .addList(arguments)
-              .getMaximum();
-    } catch (RangeContainsNA e) {
-      return new DoubleArrayVector(DoubleVector.NA);
-    }
+    return new RangeCalculator()
+            .setRemoveNA(removeNA)
+            .addList(arguments)
+            .getMaximum();
   }
 
 
@@ -91,15 +83,11 @@ public class Summary {
     // another oddity: the min() and max() functions do not accept lists or 
     // other recursive structures. The range() implementation does.
 
-    try {
-      return new RangeCalculator()
-              .setRemoveNA(removeNA)
-              .setRecursive(true)
-              .addList(arguments)
-              .getRange();
-    } catch (RangeContainsNA e) {
-      return new DoubleArrayVector(DoubleVector.NA, DoubleVector.NA);
-    }
+    return new RangeCalculator()
+            .setRemoveNA(removeNA)
+            .setRecursive(true)
+            .addList(arguments)
+            .getRange();
   }
 
   private static class RangeContainsNA extends Exception {  }
@@ -130,7 +118,7 @@ public class Summary {
       return this;
     }
 
-    public RangeCalculator addList(ListVector list) throws RangeContainsNA {
+    public RangeCalculator addList(ListVector list)  {
       for(SEXP argument : list) {
         if(argument instanceof AtomicVector) {
           addVector(argument);
@@ -143,7 +131,7 @@ public class Summary {
       return this;
     }
 
-    private void addVector(SEXP argument) throws RangeContainsNA {
+    private void addVector(SEXP argument) {
       AtomicVector vector = EvalException.checkedCast(argument);
 
       if(vector instanceof ComplexVector) {
@@ -172,7 +160,6 @@ public class Summary {
           if(minValue == null || resultType.compareElements(minValue, 0, vector, i) > 0) {
             minValue = resultType.getElementAsVector(vector, i);
           }
-
         }
       }
     }
@@ -189,7 +176,11 @@ public class Summary {
 
     public Vector getRange() {
       if(maxValue == null) {
-        return new DoubleArrayVector(Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY);
+        if(resultType == StringVector.VECTOR_TYPE) {
+          return new StringArrayVector(StringVector.NA, StringVector.NA);
+        } else {
+          return new DoubleArrayVector(Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY);
+        }
       } else if(nanEncountered) {
         return new DoubleArrayVector(Double.NaN, Double.NaN);
       } else {
@@ -227,24 +218,53 @@ public class Summary {
    */
   @Builtin
   @GroupGeneric
-  public static double prod(@ArgumentList ListVector arguments, @NamedFlag("na.rm") boolean removeNA) {
+  public static AtomicVector prod(@ArgumentList ListVector arguments, @NamedFlag("na.rm") boolean removeNA) {
     double product = 1;
-    for(SEXP argument : arguments) {
-      if(argument instanceof StringVector) {
+    boolean hasComplex = false;
+    for (SEXP argument : arguments) {
+      if (argument instanceof StringVector) {
         throw new EvalException("invalid 'type' (character) of argument");
-      }
-      AtomicVector vector = EvalException.checkedCast(argument);
-      for(int i=0;i!=vector.length();++i) {
-        if(vector.isElementNA(i)) {
-          if(!removeNA) {
-            return DoubleVector.NA;
+      } else if (argument instanceof ComplexVector) {
+        hasComplex = true;
+      } else {
+        AtomicVector vector = EvalException.checkedCast(argument);
+        for (int i = 0; i != vector.length(); ++i) {
+          if (vector.isElementNA(i)) {
+            if (!removeNA) {
+              return DoubleVector.valueOf(DoubleVector.NA);
+            }
+          } else {
+            product = product * vector.getElementAsDouble(i);
           }
-        } else {
-          product = product * vector.getElementAsDouble(i);
         }
       }
     }
-    return product;
+
+    if (hasComplex) {
+      return complexProduct(product, arguments, removeNA);
+
+    } else {
+      return DoubleVector.valueOf(product);
+    }
+  }
+
+  private static AtomicVector complexProduct(double realProduct, ListVector arguments, boolean removeNA) {
+    Complex product = new Complex(realProduct, 0);
+    for (SEXP argument : arguments) {
+      if(argument instanceof ComplexVector) {
+        ComplexVector vector = (ComplexVector) argument;
+        for (int i = 0; i != vector.length(); ++i) {
+          if (vector.isElementNA(i)) {
+            if (!removeNA) {
+              return DoubleVector.valueOf(DoubleVector.NA);
+            }
+          } else {
+            product = product.multiply(vector.getElementAsComplex(i));
+          }
+        }
+      }
+    }
+    return new ComplexArrayVector(product);
   }
 
   @Builtin

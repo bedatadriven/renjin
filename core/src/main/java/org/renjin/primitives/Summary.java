@@ -21,7 +21,6 @@
 
 package org.renjin.primitives;
 
-import com.google.common.math.IntMath;
 import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
@@ -343,11 +342,12 @@ public class Summary {
     for(SEXP argument : arguments) {
       Vector vector = (Vector) argument;
       for(int i=0;i!=vector.length();++i) {
-        if(vector.isElementNA(i)) {
+        int value = vector.getElementAsRawLogical(i);
+        if(value == IntVector.NA) {
           if(!removeNA) {
             return Logical.NA;
           }
-        } else if(vector.getElementAsDouble(i) != 0) {
+        } else if(value != 0) {
           return Logical.TRUE;
         }
       }
@@ -375,12 +375,15 @@ public class Summary {
     for(SEXP argument : arguments) {
       Vector vector = (Vector) argument;
       for(int i=0;i!=vector.length();++i) {
-        if(vector.isElementNA(i)) {
+        int value = vector.getElementAsRawLogical(i);
+        if(value == IntVector.NA) {
           if(!removeNA) {
             return Logical.NA;
           }
-        } else if(vector.getElementAsDouble(i) == 0) {
-          return Logical.FALSE;
+        } else {
+          if(value == 0) {
+            return Logical.FALSE;
+          }
         }
       }
     }

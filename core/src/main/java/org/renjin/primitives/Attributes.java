@@ -98,6 +98,12 @@ public class Attributes {
   @Generic
   @Builtin("dim<-")
   public static SEXP setDimensions(SEXP exp, AtomicVector vector) {
+    
+    if((!(exp instanceof Vector) && 
+        !(exp instanceof PairList)) || exp instanceof FunctionCall) {
+      throw new EvalException("cannot set dim() on object of type '%s'", exp.getTypeName());
+    }
+    
     AttributeMap.Builder newAttributes = exp.getAttributes().copy();
     if(vector == Null.INSTANCE) {
       newAttributes.removeDim();

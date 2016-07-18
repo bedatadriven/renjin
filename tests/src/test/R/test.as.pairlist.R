@@ -38,6 +38,6 @@ test.as.pairlist.31 <- function() assertThat(as.pairlist(structure(1:3, .Dim = 3
 test.as.pairlist.32 <- function() assertThat(as.pairlist(structure(list("foo"), class = "foo")), identicalTo(41, tol = 0.000100))
 test.as.pairlist.33 <- function() assertThat(as.pairlist(structure(list("bar"), class = "foo")), identicalTo(41, tol = 0.000100))
 test.as.pairlist.34 <- function() assertThat(as.pairlist(quote(xyz)), throwsError())
-test.as.pairlist.35 <- function() assertThat(as.pairlist(quote(sin(3.14))), identicalTo(quote(sin(3.14))))
+test.as.pairlist.35 <- function() assertThat(as.pairlist(quote(sin(3.14))), deparsesTo("sin(3.14)"))
 test.as.pairlist.36 <- function() assertThat(as.pairlist(structure("foo", class = "foo")), identicalTo(41))
 test.as.pairlist.37 <- function() assertThat(as.pairlist(structure(list(1L, "bar"), class = "bar")), identicalTo(structure(pairlist(1L, "bar"), class = "bar")))

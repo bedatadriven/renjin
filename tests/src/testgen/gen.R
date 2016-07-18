@@ -69,6 +69,10 @@ writeTest <- function(test, fn, ..., tol = NULL) {
 
   if(inherits(expected, "error")) {
     matcher <- "throwsError()"
+    
+  } else if(typeof(expected) %in% c("symbol", "language", "expression")) {
+    matcher <- sprintf("deparsesTo(%s)", deparse0(deparse0(expected)))
+  
   } else if(is.null(tol) || !is.double(expected)) {
     matcher <- sprintf("identicalTo(%s)", deparseExpected(expected))
   } else {

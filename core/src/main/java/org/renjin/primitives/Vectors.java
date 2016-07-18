@@ -523,6 +523,13 @@ public class Vectors {
       result = new ListVector.Builder();
     } else if ("expression".equals(mode)) {
       result = new ExpressionVector.Builder();
+      
+      // Special case...
+      if(x instanceof FunctionCall) {
+        result.add(x);
+        return result.build();
+      }
+      
     } else if ("raw".equals(mode)) {
       result = new RawVector.Builder();
     } else {

@@ -175,14 +175,12 @@ public class Summary {
     }
 
     public Vector getRange() {
-      if(maxValue == null) {
+      if(!naEncountered && maxValue == null) {
         if(resultType == StringVector.VECTOR_TYPE) {
           return new StringArrayVector(StringVector.NA, StringVector.NA);
         } else {
           return new DoubleArrayVector(Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY);
         }
-      } else if(nanEncountered) {
-        return new DoubleArrayVector(Double.NaN, Double.NaN);
       } else {
         Vector.Builder result = resultType.newBuilder();
         if(naEncountered) {

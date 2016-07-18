@@ -182,18 +182,34 @@ public class Types {
   @Generic
   @Builtin("is.na")
   public static LogicalVector isNA(final ListVector vector) {
-    LogicalArrayVector.Builder result = new LogicalArrayVector.Builder(vector.length());
-    for (int i = 0; i != vector.length(); ++i) {
-      SEXP element = vector.getElementAsSEXP(i);
+    return isListNA(vector);
+  }
+
+  @Generic
+  @Builtin("is.na")
+  public static LogicalVector isNA(final PairList.Node pairlist) {
+    return isListNA(pairlist);  
+  }
+
+  @Generic
+  @Builtin("is.na")
+  public static LogicalVector isNA(Symbol symbol) {
+    return LogicalVector.FALSE;
+  }
+  
+  private static LogicalVector isListNA(SEXP list) {
+    LogicalArrayVector.Builder result = new LogicalArrayVector.Builder(list.length());
+    for (int i = 0; i != list.length(); ++i) {
+      SEXP element = list.getElementAsSEXP(i);
       if(element instanceof AtomicVector && element.length()==1) {
         result.set(i, ((AtomicVector)element).isElementNaN(0));
       } else {
         result.set(i, false);
       }
     }
-    result.setAttribute(Symbols.DIM, vector.getAttribute(Symbols.DIM));
-    result.setAttribute(Symbols.NAMES, vector.getAttribute(Symbols.NAMES));
-    result.setAttribute(Symbols.DIMNAMES, vector.getAttribute(Symbols.DIMNAMES));
+    result.setAttribute(Symbols.DIM, list.getAttribute(Symbols.DIM));
+    result.setAttribute(Symbols.NAMES, list.getAttribute(Symbols.NAMES));
+    result.setAttribute(Symbols.DIMNAMES, list.getAttribute(Symbols.DIMNAMES));
 
     return result.build();
   }

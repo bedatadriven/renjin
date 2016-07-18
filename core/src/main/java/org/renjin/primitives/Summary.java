@@ -230,6 +230,9 @@ public class Summary {
   public static double prod(@ArgumentList ListVector arguments, @NamedFlag("na.rm") boolean removeNA) {
     double product = 1;
     for(SEXP argument : arguments) {
+      if(argument instanceof StringVector) {
+        throw new EvalException("invalid 'type' (character) of argument");
+      }
       AtomicVector vector = EvalException.checkedCast(argument);
       for(int i=0;i!=vector.length();++i) {
         if(vector.isElementNA(i)) {

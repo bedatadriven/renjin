@@ -138,13 +138,15 @@ public class Types {
     } else if ("integer".equals(mode)) {
       return exp instanceof IntVector;
     } else if ("numeric".equals(mode)) {
+      return exp instanceof IntVector || exp instanceof DoubleVector;
+    } else if ("double".equals(mode)) {
       return exp instanceof DoubleVector;
     } else if ("complex".equals(mode)) {
       return exp instanceof ComplexVector;
     } else if ("character".equals(mode)) {
       return exp instanceof StringVector;
     } else if ("any".equals(mode)) {
-      return exp instanceof AtomicVector || exp instanceof ListVector;
+      return exp != Null.INSTANCE && (exp instanceof AtomicVector || exp instanceof ListVector);
     } else if ("list".equals(mode)) {
       return exp instanceof ListVector;
     } else {

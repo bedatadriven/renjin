@@ -24,6 +24,7 @@ inputs <- list(
   # Integer vectors
   integer(0),
   structure(integer(0), .Names = character(0)),
+  c(NA_integer_, NA_integer_, NA_integer_),
   c(1L, 2L, 3L),
   c(1L, NA, 4L, NA, 999L),
   c(1L, 2L, 1073741824L, 1073741824L), # overflow
@@ -31,15 +32,22 @@ inputs <- list(
   
   # Double vectors
   double(0),
+  structure(double(0), .Names = character(0)),
+  c(NA_real_, NA_real_),
   signif(1:5 * pi),
   signif(1:5 * -pi),
   c(1.5, 2.5), 
   c(1.5, NA),
   c(1.5, NaN),
+  c(Inf, -1.5),
+  c(-Inf, -1.5),
+  c(Inf, 1.5),
+  c(Inf, -1.5),
   c(a = 1.5, b = 2.5), 
   
   # Character vectors
   character(0),
+  c(NA_character_, NA_character_),
   structure(character(0), .Names = character(0)),
   c("a", "b"),
   c("4.1", "blahh", "99.9", "-413", NA),
@@ -50,6 +58,7 @@ inputs <- list(
   
   # Complex Numbers
   complex(0),
+  c(NA_complex_, NA_complex_, NA_complex_),
   structure(complex(0), .Named = character(0)),
   c(1+3i, 4+6i, 1-3i),
   

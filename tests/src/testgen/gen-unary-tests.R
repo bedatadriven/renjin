@@ -148,6 +148,16 @@ for(fn in fns) {
   writeTest(test, fn, structure("foo", class='foo'))
   writeTest(test, fn, structure(list(1L, "bar"), class='bar'))
   
+  if(fn %in% c("is.vector", "as.vector")) {
+    modes <- c("any",
+               "logical", "integer", "numeric", "double", "complex", "raw", "character",
+               "list", "expression", "rubish")
+    for(input in inputs) {
+      for(mode in modes) {
+        writeTest(test, fn, input, mode = mode, tol = tol)
+      }
+    }
+  }
   
   close(test)
 }

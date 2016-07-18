@@ -13,12 +13,21 @@ public abstract class ComplexVector extends AbstractAtomicVector implements Iter
   public static final ComplexVector NAMED_EMPTY = new ComplexArrayVector(new Complex[0], 
       AttributeMap.builder().setNames(StringVector.EMPTY).build());
 
-  public static final Complex NA = new Complex(DoubleVector.NA, 0);
+  public static final Complex NA = new Complex(DoubleVector.NA, DoubleVector.NA);
+  public static final Complex NaN = new Complex(Double.NaN, DoubleVector.NaN);
+
   public static final Type VECTOR_TYPE = new ComplexType();
 
 
-  public static AtomicVector valueOf(Complex value) {
-    return new ComplexArrayVector(value);
+  public static ComplexVector valueOf(Complex value) {
+    double real = value.getReal();
+    if(DoubleVector.isNA(real)) {
+      return new ComplexArrayVector(NA);
+    } else if(DoubleVector.isNA(real)) {
+      return new ComplexArrayVector(NaN);
+    } else {
+      return new ComplexArrayVector(value);
+    }
   }
   
   public ComplexVector() {
@@ -172,8 +181,7 @@ public abstract class ComplexVector extends AbstractAtomicVector implements Iter
     }
 
     @Override
-    public boolean elementsEqual(Vector vector1, int index1, Vector vector2,
-        int index2) {
+    public boolean elementsEqual(Vector vector1, int index1, Vector vector2, int index2) {
       return vector1.getElementAsComplex(index1).equals(vector2.getElementAsComplex(index2));
     }
 

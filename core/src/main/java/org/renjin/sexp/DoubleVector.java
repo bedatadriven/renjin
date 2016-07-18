@@ -121,6 +121,12 @@ public abstract class DoubleVector extends AbstractAtomicVector implements Itera
       return StringVector.NA;
     } else if (isNaN(value)) {
       return "NaN";
+    } else if (Double.isInfinite(value)) {
+      if(value < 0) {
+        return "-Inf";
+      } else {
+        return "Inf";
+      }
     } else {
       return NumericLiterals.toString(value);
     }
@@ -129,7 +135,11 @@ public abstract class DoubleVector extends AbstractAtomicVector implements Itera
   @Override
   public int getElementAsInt(int index) {
     double value = getElementAsDouble(index);
-    return Double.isNaN(value) ? IntVector.NA : (int) value;
+    if(Double.isNaN(value) || Double.isInfinite(value)) {
+      return IntVector.NA;
+    } else {
+      return (int) value;
+    }
   }
 
   @Override

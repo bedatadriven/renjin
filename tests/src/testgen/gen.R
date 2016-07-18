@@ -12,6 +12,13 @@ deparseExpected <- function(x) {
    } else if(typeof(x) == "symbol") {
     sprintf("as.name(%s)", deparse(x)) 
    } else {
+    if(typeof(x) == "list") {
+      for(i in seq_along(x)) {
+        if(typeof(x[[i]]) == "symbol") {
+          x[[i]] <- call("quote", x[[i]])
+        }
+      }  
+    }
     deparse0(x)
    }
 }

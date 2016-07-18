@@ -483,10 +483,27 @@ public class Vectors {
       throw new IllegalArgumentException("type: " + type);
     }
   }
+  
+  @Generic
+  @Internal("as.vector")
+  public static SEXP asVector(Symbol x, String mode) {
+    if ("character".equals(mode)) {
+      return StringVector.valueOf(x.getPrintName());
+      
+    } else if ("list".equals(mode)) {
+      return new ListVector(x);
+      
+    } else if ("expression".equals(mode)) {
+      return new ExpressionVector(x);
+
+    } else {
+      throw new EvalException("'%s' cannot be coerced to vector of type '%s'", x.getTypeName(), mode);
+    }
+  }
 
   @Generic
   @Internal("as.vector")
-  public static SEXP asVector(PairList x, String mode) {
+  public static SEXP asVector(@Current Context context, PairList x, String mode) {
     
     // Exceptionally, as.vector(x, 'pairlist') 
     // preserves *all* attributes
@@ -518,7 +535,17 @@ public class Vectors {
       } else {
         names.addNA();
       }
-      result.add(node.getValue());
+      if(node.getValue() instanceof AtomicVector) {
+        result.add(node.getValue());
+      } else {
+        if(result instanceof ListVector.Builder) {
+          result.add(node.getValue());
+        } else if(result instanceof StringArrayVector.Builder) {
+          ((StringVector.Builder) result).add(Deparse.deparseExp(context, node.getValue()));
+        } else {
+          throw new EvalException("'%s' cannot be coerced to type '%s'", x.getTypeName(), mode);
+        }
+      }
     }
     result.setAttribute(Symbols.NAMES.getPrintName(), names.build(result.length()));
     return result.build();

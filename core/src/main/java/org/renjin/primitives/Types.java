@@ -63,7 +63,6 @@ public class Types {
     return exp instanceof ComplexVector;
   }
 
-  @Generic
   @Builtin("is.character")
   public static boolean isCharacter(SEXP exp) {
     return exp instanceof StringVector;

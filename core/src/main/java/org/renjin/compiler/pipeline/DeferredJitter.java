@@ -61,7 +61,7 @@ public class DeferredJitter {
             new String[]{"org/renjin/compiler/pipeline/JittedComputation"});
 
     writeConstructor();
-    writeComputeDebug(node);
+    writeCompute(node);
 
     cv.visitEnd();
 

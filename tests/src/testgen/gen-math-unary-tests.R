@@ -27,8 +27,8 @@ for(fn in unary) {
   }
   
   # define some nonsense generic functions
-  writeFixture(test, "%s.foo <- function(x) 41", fn)
-  writeFixture(test, "Math.bar <- function(x) 44")
+  writeFixture(test, "%s.foo <- function(...) 41", fn)
+  writeFixture(test, "Math.bar <- function(...) 44")
   
   # Check that numerical values are correct
   for(input in c(-inputs, inputs)) {
@@ -64,6 +64,12 @@ for(fn in unary) {
   writeTest(test, fn, matrix(1:12, nrow=3), tol = tol)
   writeTest(test, fn, structure(0, rando.attr=4L), tol = tol)
   writeTest(test, fn, structure(0, class='zinga'), tol = tol)
+  
+  # Generic dispatch with round, digits 
+  if(fn %in% c("round", "signif")) {
+    writeTest(test, fn, structure(1, class = 'foo'), 2)
+    writeTest(test, fn, structure(1, class = 'bar'), 2)
+  }
   
   # TODO: argument name matching
   # TODO: complex numbers

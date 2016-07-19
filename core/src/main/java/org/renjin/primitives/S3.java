@@ -305,9 +305,11 @@ public class S3 {
   }
 
   public static SEXP tryDispatchGroupFromPrimitive(Context context, Environment rho, FunctionCall call,
-                                                 String group, String name, SEXP s0, SEXP s1) {
+                                                 String group, String name, SEXP s0, PairList args) {
 
-    PairList newArgs = new PairList.Node(s0, Null.INSTANCE);
+    // Add our first, already evaluated argument
+    PairList.Node firstNode = (PairList.Node) args;
+    PairList newArgs = new PairList.Node(s0, firstNode.getNext());
 
     return dispatchGroup(group, call, name, newArgs, context, rho);
   }

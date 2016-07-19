@@ -3,6 +3,7 @@ package org.renjin.sexp;
 import com.google.common.collect.UnmodifiableIterator;
 import org.apache.commons.math.complex.Complex;
 import org.renjin.parser.NumericLiterals;
+import org.renjin.primitives.vector.ConvertingDoubleVector;
 
 import java.util.Iterator;
 
@@ -121,6 +122,12 @@ public abstract class DoubleVector extends AbstractAtomicVector implements Itera
       return StringVector.NA;
     } else if (isNaN(value)) {
       return "NaN";
+    } else if (Double.isInfinite(value)) {
+      if(value < 0) {
+        return "-Inf";
+      } else {
+        return "Inf";
+      }
     } else {
       return NumericLiterals.toString(value);
     }
@@ -129,17 +136,21 @@ public abstract class DoubleVector extends AbstractAtomicVector implements Itera
   @Override
   public int getElementAsInt(int index) {
     double value = getElementAsDouble(index);
-    return Double.isNaN(value) ? IntVector.NA : (int) value;
+    if(Double.isNaN(value) || Double.isInfinite(value)) {
+      return IntVector.NA;
+    } else {
+      return (int) value;
+    }
   }
 
   @Override
   public Complex getElementAsComplex(int index) {
     double real = getElementAsDouble(index);
-    if(DoubleVector.isNA(real)) {
+    // Note when converting to complex, NaN => NA
+    if (DoubleVector.isNA(real)) {
       return ComplexVector.NA;
-    } else {
-      return new Complex(real, 0);
     }
+    return ComplexVector.complex(real, 0);
   }
 
   @Override
@@ -154,11 +165,26 @@ public abstract class DoubleVector extends AbstractAtomicVector implements Itera
     return getElementAsDouble(index);
   }
 
+  /**
+   * @return {@code true} if the two values "match" in the sense used by the match function: NA matches only
+   * NA, NaN matches NaN but not NA, any other values must be (exactly) equal.
+   */
+  public static boolean match(double x, double y) {
+    if(isNA(x)) {
+      return isNA(y);
+    } else if(isNaN(x)) {
+      return isNaN(y) && !isNA(y);
+    } else {
+      return x == y;
+    }
+  }
+
   @Override
   public int indexOf(AtomicVector vector, int vectorIndex, int startIndex) {
     double value = vector.getElementAsDouble(vectorIndex);
+    // Match other NaN values, but not NA values...
     for (int i = startIndex; i < length(); ++i) {
-      if (value == getElementAsDouble(i)) {
+      if (match(value, getElementAsDouble(i))) {
         return i;
       }
     }
@@ -340,6 +366,15 @@ public abstract class DoubleVector extends AbstractAtomicVector implements Itera
     public boolean elementsEqual(Vector vector1, int index1, Vector vector2,
         int index2) {
       return vector1.getElementAsDouble(index1) == vector2.getElementAsDouble(index2);
+    }
+
+    @Override
+    public Vector to(Vector x) {
+      if(x instanceof DoubleVector) {
+        return x;
+      } else {
+        return new ConvertingDoubleVector(x, x.getAttributes());
+      }
     }
 
     @Override

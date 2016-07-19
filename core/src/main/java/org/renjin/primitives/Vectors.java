@@ -140,6 +140,7 @@ public class Vectors {
   @Generic
   @Builtin("as.logical")
   public static LogicalVector asLogical(Vector vector) {
+    checkForListThatCannotBeCoercedToAtomicVector(vector, "logical");
     return (LogicalVector) convertToAtomicVector(new LogicalArrayVector.Builder(), vector);
   }
 
@@ -169,6 +170,8 @@ public class Vectors {
   @Generic
   @Builtin("as.integer")
   public static IntVector asInteger(Vector source) {
+    checkForListThatCannotBeCoercedToAtomicVector(source, "integer");
+
     return (IntVector) convertToAtomicVector(new IntArrayVector.Builder(), source);
   }
 
@@ -185,11 +188,11 @@ public class Vectors {
     Object instance = ptr.getInstance();
     Class clazz = instance.getClass();
     if (DoubleConverter.accept(clazz)) {
-      return (DoubleVector) DoubleConverter.INSTANCE
-          .convertToR(instance);
+      return (DoubleVector) DoubleConverter.INSTANCE.convertToR(instance);
+      
     } else if (DoubleArrayConverter.accept(clazz)) {
-      return (DoubleVector)new DoubleArrayConverter(clazz)
-          .convertToR(instance);
+      return (DoubleVector)new DoubleArrayConverter(clazz).convertToR(instance);
+   
     } else {
       return new DoubleArrayVector(DoubleVector.NA);
     }
@@ -198,10 +201,14 @@ public class Vectors {
   @Generic
   @Builtin("as.double")
   public static DoubleVector asDouble(Vector source) {
+    checkForListThatCannotBeCoercedToAtomicVector(source, "double");
+    
     if(source instanceof DoubleVector) {
       return (DoubleVector) source.setAttributes(AttributeMap.EMPTY);
+   
     } else if(source.isDeferred() || source.length() > 100) {
       return new ConvertingDoubleVector(source);
+   
     } else {
       return (DoubleVector) convertToAtomicVector(new DoubleArrayVector.Builder(), source);
     }
@@ -225,6 +232,9 @@ public class Vectors {
      * EvalException("out-of-range values treated as 0 in coercion to raw"); }
      * raw = new Raw(iv.getElementAsInt(i)); b.add(raw); } return (b.build());
      */
+    
+    checkForListThatCannotBeCoercedToAtomicVector(source, "raw");
+    
     return (RawVector) Vectors.convertToAtomicVector(new RawVector.Builder(), source);
   }
 
@@ -249,6 +259,12 @@ public class Vectors {
   @Generic
   @Builtin("as.complex")
   public static ComplexVector asComplex(Vector vector) {
+    
+    if(vector instanceof DoubleVector) {
+      return doubleToComplex((DoubleVector) vector);
+    }
+    checkForListThatCannotBeCoercedToAtomicVector(vector, "");
+
     return (ComplexVector) convertToAtomicVector(new ComplexArrayVector.Builder(), vector);
   }
 
@@ -277,33 +293,66 @@ public class Vectors {
     Vector.Builder result;
     if ("character".equals(mode)) {
       result = new StringVector.Builder();
+      
     } else if ("logical".equals(mode)) {
       result = new LogicalArrayVector.Builder(x.length());
+      checkForListThatCannotBeCoercedToAtomicVector(x, mode);
+
     } else if ("integer".equals(mode)) {
       result = new IntArrayVector.Builder(x.length());
+      checkForListThatCannotBeCoercedToAtomicVector(x, mode);
+
+    } else if ("raw".equals(mode)) {
+      result = new RawVector.Builder();
+      checkForListThatCannotBeCoercedToAtomicVector(x, mode);
+
     } else if ("numeric".equals(mode) || "double".equals(mode)) {
       result = new DoubleArrayVector.Builder(x.length());
+      checkForListThatCannotBeCoercedToAtomicVector(x, mode);
+
     } else if ("complex".equals(mode)) {
+      
+      // Special case: double -> complex treats NaNs as NA
+      if(x instanceof DoubleVector) {
+        return doubleToComplex((DoubleVector) x);
+      }
+      
       result = new ComplexArrayVector.Builder(x.length());
+      checkForListThatCannotBeCoercedToAtomicVector(x, mode);
+      
     } else if ("list".equals(mode)) {
       // Special case: preserve names with mode = 'list'
       result = new ListVector.Builder();
       result.setAttribute(Symbols.NAMES, x.getNames());
+
+    } else if("expression".equals(mode)) {
+      result = new ExpressionVector.Builder();
+      
+      // Special case
+      if(x == Null.INSTANCE) {
+        return new ExpressionVector(Null.INSTANCE);
+      
+      } else if(x instanceof ListVector) {
+        // Exception, for list -> expression, copy attributes
+        return new ExpressionVector(((ListVector) x).toArrayUnsafe(), x.getAttributes());
+      }
       
     } else if ("pairlist".equals(mode)) {
       // a pairlist is actually not a vector, so bail from here
       // as a special case
       return asPairList(x);
+      
     } else if ("symbol".equals(mode)) {
       // weird but seen in the base package
       if (x.length() == 0) {
         throw new EvalException(
             "invalid type/length (symbol/0) in vector allocation");
       }
+      if (x instanceof ListVector) {
+        throw new EvalException("vector of type 'list' cannot be coerced to symbol");
+      }
       return Symbol.get(x.getElementAsString(0));
-    
-    } else if ("raw".equals(mode)) {
-      result = new RawVector.Builder();
+
     } else {
       throw new EvalException("invalid 'mode' argument: " + mode);
     }
@@ -312,6 +361,41 @@ public class Vectors {
       result.setFrom(i, x, i);
     }
     return result.build();
+  }
+
+  /**
+   * Special handling for double -> complex
+   */
+  private static ComplexVector doubleToComplex(DoubleVector x) {
+    ComplexArrayVector.Builder result = new ComplexArrayVector.Builder(x.length());
+    // in this context, NaNs are treated exceptionally as NAs
+    for (int i = 0; i < x.length(); i++) {
+      double doubleValue = x.getElementAsDouble(i);
+      if(Double.isNaN(doubleValue)) {
+        result.setNA(i);
+      } else {
+        result.set(i, ComplexVector.complex(doubleValue));
+      }
+    }
+    return result.build();
+  }
+
+  /**
+   * Checks that {@code x} is not a list, or if it is a list, is soley consists of 
+   * atomic vectors of length 1
+   * @param x
+   * @param mode
+   */
+  private static void checkForListThatCannotBeCoercedToAtomicVector(Vector x, String mode) {
+    if(x instanceof ListVector) {
+      ListVector list = (ListVector) x;
+      for (int i = 0; i < list.length(); i++) {
+        SEXP element = list.getElementAsSEXP(i);
+        if(element == Null.INSTANCE || element.length() > 1 || !(element instanceof Vector)) {
+          throw new EvalException("(list) object cannot be coerced to type '%s'", mode);
+        }
+      }
+    }
   }
 
   private static PairList asPairList(Vector x) {
@@ -438,14 +522,34 @@ public class Vectors {
       throw new IllegalArgumentException("type: " + type);
     }
   }
+  
+  @Generic
+  @Internal("as.vector")
+  public static SEXP asVector(Symbol x, String mode) {
+    if ("character".equals(mode)) {
+      return StringVector.valueOf(x.getPrintName());
+      
+    } else if ("list".equals(mode)) {
+      return new ListVector(x);
+      
+    } else if ("expression".equals(mode)) {
+      return new ExpressionVector(x);
+
+    } else if ("symbol".equals(mode)) {
+      return x;
+      
+    } else {
+      throw new EvalException("'%s' cannot be coerced to vector of type '%s'", x.getTypeName(), mode);
+    }
+  }
 
   @Generic
   @Internal("as.vector")
-  public static SEXP asVector(PairList x, String mode) {
+  public static SEXP asVector(@Current Context context, PairList x, String mode) {
     
     // Exceptionally, as.vector(x, 'pairlist') 
     // preserves *all* attributes
-    if("pairlist".equals(mode)) {
+    if("pairlist".equals(mode) || "any".equals(mode)) {
       return x;
     }
     
@@ -459,6 +563,15 @@ public class Vectors {
       result = new DoubleArrayVector.Builder(x.length());
     } else if ("list".equals(mode)) {
       result = new ListVector.Builder();
+    } else if ("expression".equals(mode)) {
+      result = new ExpressionVector.Builder();
+      
+      // Special case...
+      if(x instanceof FunctionCall) {
+        result.add(x);
+        return result.build();
+      }
+      
     } else if ("raw".equals(mode)) {
       result = new RawVector.Builder();
     } else {
@@ -471,7 +584,17 @@ public class Vectors {
       } else {
         names.addNA();
       }
-      result.add(node.getValue());
+      if(node.getValue() instanceof AtomicVector) {
+        result.add(node.getValue());
+      } else {
+        if(result instanceof ListVector.Builder) {
+          result.add(node.getValue());
+        } else if(result instanceof StringArrayVector.Builder) {
+          ((StringVector.Builder) result).add(Deparse.deparseExp(context, node.getValue()));
+        } else {
+          throw new EvalException("'%s' cannot be coerced to type '%s'", x.getTypeName(), mode);
+        }
+      }
     }
     result.setAttribute(Symbols.NAMES.getPrintName(), names.build(result.length()));
     return result.build();

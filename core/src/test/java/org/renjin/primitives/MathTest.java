@@ -55,7 +55,7 @@ public class MathTest extends EvalTestCase {
 
   @Test
   public void gamma() {
-    assertThat( MathExt.gamma(3), closeTo(2, 0.0001));
+    assertThat( MathGroup.gamma(3), closeTo(2, 0.0001));
   }
 
   @Test

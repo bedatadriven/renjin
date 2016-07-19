@@ -13,6 +13,7 @@ import org.renjin.invoke.model.PrimitiveModel;
 import org.renjin.sexp.Symbols;
 import org.renjin.sexp.Vector;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -119,11 +120,15 @@ public class RecycleLoopBuilder {
   }
 
   private void computeResultLength() {
-    cycleCount = parent.decl(codeModel._ref(int.class), "cycles", lit(0));
+    cycleCount = parent.decl(codeModel._ref(int.class), "cycles");
 
-    for(RecycledArgument arg : recycledArguments) {
-      parent._if(arg.length.eq(lit(0)))._then()._return(emptyResult());
-      parent._if(arg.length.gt(cycleCount))._then().assign(cycleCount, arg.length);
+    if(recycledArguments.size() == 1) {
+      parent.assign(cycleCount, recycledArguments.get(0).length);
+    
+    } else {
+      JConditional zeroLength = parent._if(anyZeroLength());
+      zeroLength._then().assign(cycleCount, lit(0));
+      findLongestArgument(zeroLength._else());
     }
 
     if(overload.isDeferrable()) {
@@ -131,6 +136,22 @@ public class RecycleLoopBuilder {
       deferred.buildClass();
       deferred.maybeReturn(parent, cycleCount, deferredArgumentList());
     }
+  }
+
+  private void findLongestArgument(JBlock parent) {
+    parent.assign(cycleCount, lit(0));
+    for(RecycledArgument arg : recycledArguments) {
+      parent._if(arg.length.gt(cycleCount))._then().assign(cycleCount, arg.length);
+    }
+  }
+
+  private JExpression anyZeroLength() {
+    Iterator<RecycledArgument> iterator = recycledArguments.iterator();
+    JExpression expr = iterator.next().length.eq(lit(0));
+    while(iterator.hasNext()) {
+      expr = expr.cor(iterator.next().length.eq(lit(0)));
+    }
+    return expr;
   }
 
   private List<JExpression> deferredArgumentList() {

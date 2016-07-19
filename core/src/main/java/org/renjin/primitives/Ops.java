@@ -24,10 +24,7 @@ package org.renjin.primitives;
 import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.Logical;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
 
 import static java.lang.Double.isInfinite;
 import static java.lang.Double.isNaN;
@@ -92,7 +89,7 @@ public class Ops  {
   @Builtin("-")
   @DataParallel(PreserveAttributeStyle.ALL)
   public static Complex negative(Complex x) {
-    return new Complex(-x.getReal(), -x.getImaginary());
+    return ComplexVector.complex(-x.getReal(), -x.getImaginary());
   }
   
   @Builtin("-")
@@ -182,7 +179,7 @@ public class Ops  {
         y = 0.0 * (b * rc - a * rd);
       }
     }
-    return new Complex(x, y);
+    return ComplexVector.complex(x, y);
   }
 
   
@@ -260,7 +257,7 @@ public class Ops  {
         imag = Double.POSITIVE_INFINITY * (ra * rd + rb * rc);
       }
     }
-    return new Complex(real, imag);
+    return ComplexVector.complex(real, imag);
   }
 
   private static double convertNaN(double d) {
@@ -454,7 +451,7 @@ public class Ops  {
     if(y.getImaginary() == 0) {
       double yr = y.getReal();
       if(yr == 0) {
-        return new Complex(1, 0);
+        return ComplexVector.complex(1, 0);
       } else if (yr == 1) {
         return x;
       } else {
@@ -478,7 +475,7 @@ public class Ops  {
     if(k < 0) {
       return reciprocal(power(x, -k));
     } else {
-      Complex result = new Complex(1, 0);
+      Complex result = ComplexVector.complex(1, 0);
       while(k > 0) {
         result = multiply(result, x);
         k--;
@@ -520,7 +517,7 @@ public class Ops  {
         y = 0.0 * (-rd);
       }
     }
-    return new Complex(x, y);
+    return ComplexVector.complex(x, y);
   }
 
 

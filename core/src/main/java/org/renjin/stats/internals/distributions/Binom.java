@@ -1,7 +1,7 @@
 package org.renjin.stats.internals.distributions;
 
 import org.renjin.eval.Session;
-import org.renjin.primitives.MathExt;
+import org.renjin.primitives.MathGroup;
 import org.renjin.sexp.DoubleVector;
 import org.renjin.stats.internals.Distributions;
 
@@ -313,7 +313,7 @@ public class Binom {
       if (nn == (int) nn) {
         return (sferr_halves[(int) nn]);
       }
-      return (Math.log(MathExt.gamma(n + 1.)) - (n + 0.5) * Math.log(n) + n - Math.log(Math.sqrt(2.0 * Math.PI)));
+      return (Math.log(MathGroup.gamma(n + 1.)) - (n + 0.5) * Math.log(n) + n - Math.log(Math.sqrt(2.0 * Math.PI)));
     }
 
     nn = n * n;

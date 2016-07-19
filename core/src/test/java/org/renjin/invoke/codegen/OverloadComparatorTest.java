@@ -2,9 +2,9 @@ package org.renjin.invoke.codegen;
 
 import com.google.common.collect.Lists;
 import org.junit.Test;
+import org.renjin.eval.Context;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.primitives.Ops;
-import org.renjin.primitives.Types;
 import org.renjin.primitives.Vectors;
 import org.renjin.sexp.PairList;
 import org.renjin.sexp.Vector;
@@ -36,7 +36,7 @@ public class OverloadComparatorTest {
   @Test
   public void pairListVsVector() throws Exception {
     JvmMethod vectorMethod = new JvmMethod(Vectors.class.getMethod("asVector", Vector.class, String.class));
-    JvmMethod pairListMethod = new JvmMethod(Vectors.class.getMethod("asVector", PairList.class, String.class));
+    JvmMethod pairListMethod = new JvmMethod(Vectors.class.getMethod("asVector", Context.class, PairList.class, String.class));
 
     OverloadComparator comparator = new OverloadComparator();
 

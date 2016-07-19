@@ -6,6 +6,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.UnmodifiableIterator;
 import org.apache.commons.math.complex.Complex;
 import org.renjin.parser.NumericLiterals;
+import org.renjin.primitives.vector.ConvertingStringVector;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -50,7 +51,13 @@ public abstract class StringVector extends AbstractAtomicVector implements Itera
     if(isElementNA(index)) {
       return IntVector.NA;
     } else {
-      return (int) NumericLiterals.parseDouble(getElementAsString(index));
+      String value = getElementAsString(index);
+      double doubleValue = NumericLiterals.parseDouble(value, 0, value.length(), '.', true);
+      if(DoubleVector.isFinite(doubleValue)) {
+        return (int)doubleValue;
+      } else {
+        return IntVector.NA;
+      }
     }
   }
 
@@ -65,11 +72,11 @@ public abstract class StringVector extends AbstractAtomicVector implements Itera
 
   @Override
   public Complex getElementAsComplex(int index) {
-    if(isElementNA(index)) {
+    String stringValue = getElementAsString(index);
+    if(StringVector.isNA(stringValue)) {
       return ComplexVector.NA;
-    } else {
-      return NumericLiterals.parseComplex(getElementAsString(index));
     }
+    return NumericLiterals.parseComplex(stringValue);
   }
 
   public static boolean isNA(String s) {
@@ -309,6 +316,15 @@ public abstract class StringVector extends AbstractAtomicVector implements Itera
         return false;
       }
       return s1.equals(s2);
+    }
+
+    @Override
+    public Vector to(Vector x) {
+      if(x instanceof StringVector) {
+        return x;
+      } else {
+        return new ConvertingStringVector(x, x.getAttributes());
+      }
     }
   }
 

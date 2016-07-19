@@ -288,21 +288,31 @@ public class S3 {
     return newArgs.build();
   }
 
+  public static SEXP tryDispatchOpsFromPrimitive(Context context, Environment rho, FunctionCall call, 
+                                                 String name, SEXP s0) {
+
+    PairList newArgs = new PairList.Node(s0, Null.INSTANCE);
+
+    return dispatchGroup("Ops", call, name, newArgs, context, rho);
+  }
+
+  public static SEXP tryDispatchOpsFromPrimitive(Context context, Environment rho, FunctionCall call, 
+                                                 String name, SEXP s0, SEXP s1) {
+
+    PairList newArgs = new PairList.Node(s0, new PairList.Node(s1, Null.INSTANCE));
+
+    return dispatchGroup("Ops", call, name, newArgs, context, rho);
+  }
+
   public static SEXP tryDispatchGroupFromPrimitive(Context context, Environment rho, FunctionCall call,
-      String group, String name, SEXP s0) {
+                                                 String group, String name, SEXP s0, SEXP s1) {
 
     PairList newArgs = new PairList.Node(s0, Null.INSTANCE);
 
     return dispatchGroup(group, call, name, newArgs, context, rho);
   }
 
-  public static SEXP tryDispatchGroupFromPrimitive(Context context, Environment rho, FunctionCall call,
-      String group, String name, SEXP s0, SEXP s1) {
 
-    PairList newArgs = new PairList.Node(s0, new PairList.Node(s1, Null.INSTANCE));
-
-    return dispatchGroup(group, call, name, newArgs, context, rho);
-  }
 
   public static SEXP tryDispatchSummaryFromPrimitive(Context context, Environment rho, FunctionCall call,
       String name, ListVector evaluatedArguments, boolean naRm) {

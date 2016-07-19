@@ -38,7 +38,7 @@ import java.util.List;
 /**
  * Generic vector of {@code SEXP}s
  */
-public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNamedValues {
+public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNamedValues, Recursive {
 
   public static final String TYPE_NAME = "list";
   public static final ListVector EMPTY = new ListVector();
@@ -615,6 +615,20 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
         int index2) {
       // TODO: should compareElements be a method on some AtomicVectorType class??
       throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Vector to(Vector x) {
+      if(x instanceof ListVector) {
+        return x;
+      } else {
+        ListVector.Builder builder = new ListVector.Builder(0, x.length());
+        builder.copyAttributesFrom(x);
+        for (int i = 0; i < x.length(); i++) {
+          builder.add(x.getElementAsSEXP(i));
+        }
+        return builder.build();
+      }
     }
 
     @Override

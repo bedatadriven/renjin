@@ -5,7 +5,7 @@ import org.renjin.sexp.*;
 /**
  * Builds a two-dimensional matrix using an underlying {@link Vector.Builder}
  */
-public class Matrix2dBuilder {
+class Matrix2dBuilder {
   private final Vector.Builder builder;
   private final int rows;
   private final int cols;
@@ -25,13 +25,11 @@ public class Matrix2dBuilder {
   }
 
   public void setDimNames(AtomicVector rowNames, AtomicVector colNames) {
-    if(rowNames.length() != 0 || colNames.length() != 0) {
-      builder.setAttribute(Symbols.DIMNAMES, new ListVector(rowNames, colNames));
-    }
+    // Suprisingly enough, on GNU R, cbind/rbind produces dimnames = list(NULL, NULL)
+    builder.setAttribute(Symbols.DIMNAMES, new ListVector(rowNames, colNames));
   }
 
   public Vector build() {
-    return builder.setAttribute(Symbols.DIM, new IntArrayVector(rows,cols))
-            .build();
+    return builder.setAttribute(Symbols.DIM, new IntArrayVector(rows,cols)).build();
   }
 }

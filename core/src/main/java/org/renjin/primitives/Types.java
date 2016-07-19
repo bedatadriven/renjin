@@ -63,7 +63,6 @@ public class Types {
     return exp instanceof ComplexVector;
   }
 
-  @Generic
   @Builtin("is.character")
   public static boolean isCharacter(SEXP exp) {
     return exp instanceof StringVector;
@@ -138,13 +137,15 @@ public class Types {
     } else if ("integer".equals(mode)) {
       return exp instanceof IntVector;
     } else if ("numeric".equals(mode)) {
+      return exp instanceof IntVector || exp instanceof DoubleVector;
+    } else if ("double".equals(mode)) {
       return exp instanceof DoubleVector;
     } else if ("complex".equals(mode)) {
       return exp instanceof ComplexVector;
     } else if ("character".equals(mode)) {
       return exp instanceof StringVector;
     } else if ("any".equals(mode)) {
-      return exp instanceof AtomicVector || exp instanceof ListVector;
+      return exp != Null.INSTANCE && (exp instanceof AtomicVector || exp instanceof ListVector);
     } else if ("list".equals(mode)) {
       return exp instanceof ListVector;
     } else {
@@ -182,18 +183,34 @@ public class Types {
   @Generic
   @Builtin("is.na")
   public static LogicalVector isNA(final ListVector vector) {
-    LogicalArrayVector.Builder result = new LogicalArrayVector.Builder(vector.length());
-    for (int i = 0; i != vector.length(); ++i) {
-      SEXP element = vector.getElementAsSEXP(i);
+    return isListNA(vector);
+  }
+
+  @Generic
+  @Builtin("is.na")
+  public static LogicalVector isNA(final PairList.Node pairlist) {
+    return isListNA(pairlist);  
+  }
+
+  @Generic
+  @Builtin("is.na")
+  public static LogicalVector isNA(Symbol symbol) {
+    return LogicalVector.FALSE;
+  }
+  
+  private static LogicalVector isListNA(SEXP list) {
+    LogicalArrayVector.Builder result = new LogicalArrayVector.Builder(list.length());
+    for (int i = 0; i != list.length(); ++i) {
+      SEXP element = list.getElementAsSEXP(i);
       if(element instanceof AtomicVector && element.length()==1) {
         result.set(i, ((AtomicVector)element).isElementNaN(0));
       } else {
         result.set(i, false);
       }
     }
-    result.setAttribute(Symbols.DIM, vector.getAttribute(Symbols.DIM));
-    result.setAttribute(Symbols.NAMES, vector.getAttribute(Symbols.NAMES));
-    result.setAttribute(Symbols.DIMNAMES, vector.getAttribute(Symbols.DIMNAMES));
+    result.setAttribute(Symbols.DIM, list.getAttribute(Symbols.DIM));
+    result.setAttribute(Symbols.NAMES, list.getAttribute(Symbols.NAMES));
+    result.setAttribute(Symbols.DIMNAMES, list.getAttribute(Symbols.DIMNAMES));
 
     return result.build();
   }
@@ -223,6 +240,15 @@ public class Types {
   @Deferrable
   public static boolean isNaN(double value) {
     return !DoubleVector.isNA(value) && DoubleVector.isNaN(value);
+  }
+
+
+  @Generic
+  @Builtin("is.nan")
+  @DataParallel(passNA = true)
+  @Deferrable
+  public static boolean isNaN(String value) {
+    return false;
   }
 
   @Generic
@@ -305,8 +331,8 @@ public class Types {
   }
 
   @Builtin("is.raw")
-  public static SEXP isRaw(Vector v) {
-    return (new LogicalArrayVector(v.getVectorType() == RawVector.VECTOR_TYPE));
+  public static boolean isRaw(SEXP sexp) {
+    return sexp instanceof RawVector;
   }
 
 
@@ -327,6 +353,11 @@ public class Types {
       arguments.add(list.getName(i), list.getElementAsSEXP(i));
     }
     return new FunctionCall(list.getElementAsSEXP(0), arguments.build());
+  }
+  
+  @Builtin("as.call")
+  public static FunctionCall asCall(FunctionCall call) {
+    return call;
   }
 
   @Builtin

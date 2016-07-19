@@ -6,10 +6,7 @@ package org.renjin.stats.internals.distributions;
 
 import org.renjin.eval.Session;
 import org.renjin.invoke.annotations.Current;
-import org.renjin.invoke.annotations.DataParallel;
-import org.renjin.invoke.annotations.Builtin;
-import org.renjin.invoke.annotations.Internal;
-import org.renjin.primitives.MathExt;
+import org.renjin.primitives.MathGroup;
 
 
 /**
@@ -178,7 +175,7 @@ public class Gamma {
         /* Step 11:	 hat acceptance (h) */
         /* (if q not positive go to step 8) */
         if (q > 0.0) {
-          w = MathExt.expm1(q);
+          w = MathGroup.expm1(q);
           /*  ^^^^^ original code had approximation with rel.err < 2e-7 */
           /* if t is rejected sample again at step 8 */
           if (c * Math.abs(u) <= w * Math.exp(e - 0.5 * t * t)) {

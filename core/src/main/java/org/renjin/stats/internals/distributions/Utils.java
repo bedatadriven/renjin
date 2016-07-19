@@ -1,7 +1,8 @@
 
 package org.renjin.stats.internals.distributions;
 
-import org.renjin.primitives.MathExt;
+import org.renjin.primitives.MathGroup;
+import org.renjin.primitives.Special;
 
 /**
  *
@@ -1396,7 +1397,7 @@ public static double brcmp1(int mu, double a, double b, double x, double y){
  *          EVALUATION OF  EXP(MU) * (X^A * Y^B / BETA(A,B))
  * ----------------------------------------------------------------------- */
 
-    return Math.exp(mu) * (Math.pow(x, a) * Math.pow(y, b) / MathExt.beta(a, b));
+    return Math.exp(mu) * (Math.pow(x, a) * Math.pow(y, b) / Special.beta(a, b));
       
 } /* brcmp1 */
 

@@ -618,6 +618,20 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
     }
 
     @Override
+    public Vector to(Vector x) {
+      if(x instanceof ListVector) {
+        return x;
+      } else {
+        ListVector.Builder builder = new ListVector.Builder(0, x.length());
+        builder.copyAttributesFrom(x);
+        for (int i = 0; i < x.length(); i++) {
+          builder.add(x.getElementAsSEXP(i));
+        }
+        return builder.build();
+      }
+    }
+
+    @Override
     public Vector getElementAsVector(Vector vector, int index) {
       return new ListVector(vector.getElementAsSEXP(index));
     }

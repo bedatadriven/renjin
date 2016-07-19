@@ -115,8 +115,12 @@ public class ComplexArrayVector extends ComplexVector {
   @Override
   public String toString(){
     ArrayList<String> list = new ArrayList<String>();
-    for(Complex z : values){
-      list.add(z.getReal()+"+"+z.getImaginary()+"i");
+    for(Complex z : values) {
+      if(isNA(z)) {
+        list.add("NA");
+      } else {
+        list.add(z.getReal() + "+" + z.getImaginary() + "i");
+      }
     }
     return list.toString();
   }

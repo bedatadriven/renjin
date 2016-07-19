@@ -27,12 +27,10 @@ public class ConvertingStringVector extends StringVector implements DeferredComp
 
   @Override
   public String getElementAsString(int index) {
+    if(operand.isElementNA(index)) {
+      return NA;
+    }
     return operand.getElementAsString(index);
-  }
-
-  @Override
-  public int getElementAsInt(int index) {
-    return operand.getElementAsInt(index); 
   }
 
   @Override

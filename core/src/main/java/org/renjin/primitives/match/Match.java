@@ -74,6 +74,7 @@ public class Match {
       }
     }
     
+    
     // Check for special cases that we can handle quickly...
     
     // Are we matching against an unadulterated row.names vector?
@@ -81,7 +82,11 @@ public class Match {
     if(sequence != null && sequence.getBy() == 1 && incomparables.length() == 0) {
       return matchAgainstStringSequence(search, sequence, noMatch);
     }
-    
+
+    Vector.Type commonType = Vector.Type.widest(search.getVectorType(), table.getVectorType());
+    search = commonType.to(search);
+    table = commonType.to(table);
+
     int[] matches = new int[search.length()];
     for(int i=0;i!=search.length();++i) {
       if( incomparables.contains(search, i)) {

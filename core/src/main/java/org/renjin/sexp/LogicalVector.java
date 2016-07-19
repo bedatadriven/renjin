@@ -2,6 +2,7 @@ package org.renjin.sexp;
 
 import com.google.common.collect.UnmodifiableIterator;
 import org.apache.commons.math.complex.Complex;
+import org.renjin.primitives.vector.ConvertingLogicalVector;
 
 import java.util.Iterator;
 
@@ -14,7 +15,6 @@ public abstract class LogicalVector extends AbstractAtomicVector implements Iter
   public static LogicalVector TRUE = new LogicalArrayVector(1);
   public static LogicalVector FALSE = new LogicalArrayVector(0);
   public static LogicalVector NA_VECTOR = new LogicalArrayVector(NA);
-
 
 
   public static SEXP valueOf(boolean value) {
@@ -67,8 +67,8 @@ public abstract class LogicalVector extends AbstractAtomicVector implements Iter
 
   @Override
   public int indexOf(AtomicVector vector, int vectorIndex, int startIndex) {
-    int value = vector.getElementAsRawLogical(startIndex);
-    for(int i=0;i<length();++i) {
+    int value = vector.getElementAsRawLogical(vectorIndex);
+    for(int i=startIndex;i<length();++i) {
       if(value ==  getElementAsRawLogical(i)) {
         return i;
       }
@@ -282,12 +282,20 @@ public abstract class LogicalVector extends AbstractAtomicVector implements Iter
     }
 
     @Override
-    public boolean elementsEqual(Vector vector1, int index1, Vector vector2,
-        int index2) {
+    public boolean elementsEqual(Vector vector1, int index1, Vector vector2, int index2) {
       if(vector1.isElementNA(index1) || vector2.isElementNA(index2)) {
         return false;
       }
       return vector1.getElementAsRawLogical(index1) == vector2.getElementAsRawLogical(index2);
+    }
+
+    @Override
+    public Vector to(Vector x) {
+      if(x instanceof LogicalVector) {
+        return x;
+      } else {
+        return new ConvertingLogicalVector(x, x.getAttributes());
+      }
     }
   }
 

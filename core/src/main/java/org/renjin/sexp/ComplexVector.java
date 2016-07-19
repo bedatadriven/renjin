@@ -3,6 +3,7 @@ package org.renjin.sexp;
 import com.google.common.collect.UnmodifiableIterator;
 import org.apache.commons.math.complex.Complex;
 import org.renjin.parser.NumericLiterals;
+import org.renjin.primitives.vector.ConvertingComplexVector;
 
 import java.util.Iterator;
 
@@ -61,6 +62,12 @@ public abstract class ComplexVector extends AbstractAtomicVector implements Iter
   }
 
   @Override
+  public abstract int length();
+
+  @Override
+  public abstract Complex getElementAsComplex(int index);
+
+  @Override
   public SEXP getElementAsSEXP(int index) {
     return new ComplexArrayVector(getElementAsComplex(index));
   }
@@ -115,7 +122,7 @@ public abstract class ComplexVector extends AbstractAtomicVector implements Iter
 
   @Override
   public boolean isElementNA(int index) {
-    return Double.isNaN(getElementAsComplex(index).getReal());
+    return isNA(getElementAsComplex(index));
   }
 
   @Override
@@ -137,12 +144,20 @@ public abstract class ComplexVector extends AbstractAtomicVector implements Iter
   @Override
   public int indexOf(AtomicVector vector, int vectorIndex, int startIndex) {
     Complex value = vector.getElementAsComplex(vectorIndex);
-    for(int i=startIndex;i<length();++i) {
-      if(getElementAsComplex(i).equals(value)) {
+
+    for (int i = startIndex; i < length(); ++i) {
+      Complex match = getElementAsComplex(i);
+      if (DoubleVector.match(value.getReal(), match.getReal()) &&
+          DoubleVector.match(value.getImaginary(), match.getImaginary())) {
         return i;
       }
     }
     return -1;
+  }
+   
+
+  private boolean isNaN(Complex value) {
+    return Double.isNaN(value.getReal());
   }
 
   @Override
@@ -192,6 +207,15 @@ public abstract class ComplexVector extends AbstractAtomicVector implements Iter
     @Override
     public boolean elementsEqual(Vector vector1, int index1, Vector vector2, int index2) {
       return vector1.getElementAsComplex(index1).equals(vector2.getElementAsComplex(index2));
+    }
+
+    @Override
+    public Vector to(final Vector x) {
+      if(x instanceof ComplexVector) {
+        return x;
+      } else {
+        return new ConvertingComplexVector(x, x.getAttributes());
+      }
     }
 
     @Override

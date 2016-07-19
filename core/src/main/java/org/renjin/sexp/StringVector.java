@@ -6,6 +6,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.UnmodifiableIterator;
 import org.apache.commons.math.complex.Complex;
 import org.renjin.parser.NumericLiterals;
+import org.renjin.primitives.vector.ConvertingStringVector;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -315,6 +316,15 @@ public abstract class StringVector extends AbstractAtomicVector implements Itera
         return false;
       }
       return s1.equals(s2);
+    }
+
+    @Override
+    public Vector to(Vector x) {
+      if(x instanceof StringVector) {
+        return x;
+      } else {
+        return new ConvertingStringVector(x, x.getAttributes());
+      }
     }
   }
 

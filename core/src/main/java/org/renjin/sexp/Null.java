@@ -483,6 +483,14 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList, 
         int index2) {
       throw new UnsupportedOperationException();
     }
+
+    @Override
+    public Vector to(Vector x) {
+      if (x == Null.INSTANCE) {
+        return x;
+      }
+      throw new UnsupportedOperationException("cannot coerce vector of type " + x.getTypeName() + " to NULL");
+    }
   }
 
 }

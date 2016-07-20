@@ -14,6 +14,14 @@ test.simplest <- function() {
 	assertThat(environment(t), identicalTo(environment()))
 }
 
+test.empty <- function() {
+    df <- data.frame(a = 1:10, b =2.5*(1:10))
+    mf <- model.frame(~1, data = df)
+
+    assertThat(ncol(mf), equalTo(0))
+    assertThat(nrow(mf), equalTo(10))
+}
+
 test.predict <- function() {
   x <- 1:10
   df <- data.frame(x=x, y=2*x)

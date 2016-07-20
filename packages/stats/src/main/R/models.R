@@ -460,27 +460,28 @@ model.frame.default <-
   names(data) <- c(varnames, sapply(names(extras[!nullExtras]), function(n) sprintf("(%s)", n)))
   
   # Verify that all variables have the same number of rows
-  stopifnot(length(data) > 0)
-  numRows <- sapply(data, function(x) {
-  	if(is.null(dim(x))) {
-  		length(x)
-  	} else {
-  		nrow(x)
-  	}
-  })
- 
-  if(any(numRows[1] != numRows)) {
-  	stop("Not all variables have the same number of rows: ", 
-  		paste(sprintf("%s (%d rows)", names(data), numRows), collapse = ", "))
+  if(length(data) > 0) {
+      numRows <- sapply(data, function(x) {
+        if(is.null(dim(x))) {
+            length(x)
+        } else {
+            nrow(x)
+        }
+      })
+     
+      if(any(numRows[1] != numRows)) {
+        stop("Not all variables have the same number of rows: ", 
+            paste(sprintf("%s (%d rows)", names(data), numRows), collapse = ", "))
+      }
   }
   
   # Add the required attributes to make this list a data.frame
 	attr(data, 'class') <- "data.frame"
 	attr(data, 'row.names') <- if(is.null(rownames)) {    
-																 as.character(1:numRows[1])
-															} else {
-																rownames;
-															}
+         as.character(1:numRows[1])
+    } else {
+        rownames;
+    }
 	
 	# Apply the subset argument if provided
 	subset <- eval(substitute(subset), data, env)

@@ -46,7 +46,7 @@ import java.util.Set;
  */
 public class GimpleCompiler  {
 
-  public static boolean TRACE = false;
+  public static boolean TRACE = true;
 
   private File outputDirectory;
 

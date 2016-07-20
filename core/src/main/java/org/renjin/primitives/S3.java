@@ -606,7 +606,11 @@ public class S3 {
       }
       try {
         if (function instanceof Closure) {
-          return Calls.applyClosure((Closure) function, callContext, callEnvironment, newCall,
+          // Note that the callingEnvironment or "sys.parent" of the selected function will be the calling 
+          // environment of the wrapper function that calls UseMethod, NOT the environment in which UseMethod
+          // is evaluated.
+          Environment callingEnvironment = callContext.getCallingEnvironment();
+          return Calls.applyClosure((Closure) function, callContext, callingEnvironment, newCall,
               args, persistChain());
         } else {
           // primitive

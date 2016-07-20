@@ -265,7 +265,7 @@ public class RNG {
   }
 
   @Internal
-  public static DoubleVector rhyper(@Current Context context, int nn, double m, double n, double k){
+  public static DoubleVector rhyper(@Current Context context, int nn, double m, double n, double k) {
     DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
     for (int i = 0; i < nn; i++) {
       vb.add(HyperGeometric.Random_hyper_geometric.rhyper(context.getSession(), m, n, k));

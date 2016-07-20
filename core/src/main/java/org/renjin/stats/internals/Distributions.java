@@ -473,7 +473,7 @@ public class Distributions {
   }
 
   @DataParallel @Internal
-  public static double phyper(@Recycle double q, @Recycle double x, @Recycle double whiteBalls, @Recycle double blackBalls, @Recycle double sampleSize, boolean lowerTail, boolean logP) {
+  public static double phyper(@Recycle double q, @Recycle double whiteBalls, @Recycle double blackBalls, @Recycle double sampleSize, boolean lowerTail, boolean logP) {
     return p(new HypergeometricDistributionImpl((int) (whiteBalls + blackBalls), (int) whiteBalls, (int) sampleSize), q, lowerTail, logP);
   }
 

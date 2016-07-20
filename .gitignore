@@ -13,3 +13,6 @@ target
 *.iml
 .idea
 atlassian-ide-plugin.xml
+*.o
+*.gimple
+.Rproj.user

@@ -58,6 +58,7 @@
             </goals>
             <phase>compile</phase>
             <configuration>
+              <packageName>org.renjin.nmath</packageName>
               <cFlags>
                 <flag>-std=gnu99</flag>
                 <flag>-DHAVE_CONFIG_H</flag>

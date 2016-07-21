@@ -72,18 +72,23 @@ def queryRevisions(File svnRoot) {
 }
 
 def readCurrentRevision() {
-    File revFile = new File("upstream.revision")
-    if (revFile.exists()) {
-        return Integer.parseInt(revFile.text)
-    } else {
-        return 0;
+    
+    def output = new ProcessBuilder()
+            .command("git", "log", ".")
+            .start()
+            .text
+
+    def lines = output.readLines()
+    def pattern = /\s*svn-rev (\d+)\s*/
+    
+    for(def i = 0; i < lines.size(); ++i) {
+        def matcher = (lines[i] =~ pattern);
+        if(matcher.matches()) {
+            return Integer.parseInt(matcher.group(1))
+        }
     }
 }
 
-def updateCurrentRevision(rev) {
-    File revFile = new File("upstream.revision")
-    revFile.write "${rev.number}"
-}
 
 def executeGit(String... args) {
     
@@ -127,19 +132,33 @@ def revisionPatch(File svnRoot, int rev) {
     return patchFile;
 }
 
-def applyPatch(File patchFile, File dir) {
-    def exitCode = new ProcessBuilder()
-            .command("patch", "-p0")
-            .directory(dir)
+def relativeToRepoRoot(File dir) {
+    def absPath = dir.absolutePath;
+    def repoStart = absPath.indexOf('/renjin/') + '/renjin/'.length();
+    absPath.substring(repoStart)
+}
+
+def applyPatch(Map config, File patchFile, File dir) {
+    
+    List<String> args = ['git', 'am', '-p0']
+    args.add("--directory=${relativeToRepoRoot(dir)}".toString())
+    args.add('--ignore-whitespace')
+    args.add('--ignore-space-change')
+    
+    if(config["exclude"]) {
+        args.add("--exclude=${config['exclude']}".toString())
+    }
+    
+    println args
+    
+    def exitCode = new ProcessBuilder(args)
             .redirectInput(patchFile)
             .redirectErrorStream(true)
             .redirectOutput(ProcessBuilder.Redirect.INHERIT)
             .start()
             .waitFor();
 
-    if (exitCode != 0) {
-        throw new RuntimeException()
-    }
+    return exitCode == 0
 
 }
 
@@ -171,44 +190,46 @@ def gitAuthor(svnAuthor) {
     }
 }
 
-def applyRevision(File svnRoot, String prefix, rev) {
+def applyRevision(Map config, File svnRoot, rev) {
 
     println "Applying revision r${rev.number}..."
 
-    File localRoot = new File(prefix)
+    File localRoot = new File(config["localPrefix"])
     if(!localRoot.exists()) {
         localRoot.mkdirs()
     }
-    
-    println "...Creating patch..."
-    
-    File patchFile = revisionPatch(svnRoot, rev.number)
 
-    println "...Applying patch..."
-    applyPatch(patchFile, localRoot)
-    
-    updateCurrentRevision(rev)
-    
+    File mailFile = new File("${rev.number}.msg")
+    if(!mailFile.exists()) {
 
-    // Stage the commit message to a file
-    File messageFile = new File("${rev.number}.txt")
-    messageFile.withWriter { 
-        it.append(rev.message)
-        it.append("svn-rev ${rev.number}\n")
+        println "...Creating patch..."
+        File patchFile = revisionPatch(svnRoot, rev.number)
+
+        def author = gitAuthor(rev.author)
+        def messageLines = rev.message.trim().readLines()
+        def subject = messageLines[0]
+        def body = messageLines.subList(1, messageLines.size()).join("\n")
+
+        mailFile.withWriter {
+            it.append("From: ${author}\n")
+            it.append("Date: ${rev.date}\n")
+            it.append("Subject: ${subject}\n\n")
+            it.append(body)
+            it.append("\n\nsvn-rev ${rev.number}\n")
+            it.append(patchFile.text)
+        }
+        patchFile.delete()
     }
 
-    println "...Committing..."
-    
-    // Lookup GIT authorship
-    def author = gitAuthor(rev.author)
+    println "...Applying patch..."
+    def success = applyPatch(config, mailFile, localRoot)
 
-    // Add changed files to the index
-    executeGit("add", "upstream.revision")
-    executeGit("add", prefix)
-    executeGit("commit", "-a", "--author=\"${author}\"", "--date=\"${rev.date}\"", "-F", messageFile.name)
-    
-    patchFile.delete()
-    messageFile.delete()
+
+    if(!success) {
+        System.exit(-1)
+    }
+
+    mailFile.delete()
 }
 
 /**
@@ -216,8 +237,9 @@ def applyRevision(File svnRoot, String prefix, rev) {
  * @param upstreamPath
  * @param localPrefix
  */
-return { String upstreamPrefix, String localPrefix ->
-    def svnRoot = initRepo(upstreamPrefix)
+return { config ->
+    
+    def svnRoot = initRepo(config["upstreamPrefix"])
     def revisions = queryRevisions(svnRoot)
     def currentRevision = readCurrentRevision()
     
@@ -228,7 +250,7 @@ return { String upstreamPrefix, String localPrefix ->
     for(def rev in revisions) {
         
         if (rev.number > currentRevision) {
-            applyRevision(svnRoot, localPrefix, rev)
+            applyRevision(config, svnRoot, rev)
         }
     }
 }

@@ -44,7 +44,7 @@ assertFalse <- function(value) {
 # --------------------------------------
 compareReal <- function(actual, expected, tol) {
   rel.diff <- abs(expected - actual) / abs(expected)
-  finite <- is.finite(rel.diff) | expected == 0
+  finite <- is.finite(rel.diff) & expected != 0
   finiteValuesCloseEnough <- all(rel.diff[finite] < tol)
   nonFiniteValuesIdentical <- identical(expected[!finite], actual[!finite])
   return( (finiteValuesCloseEnough && 

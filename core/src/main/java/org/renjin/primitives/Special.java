@@ -36,4 +36,35 @@ public class Special {
   public static double lchoose(double n, int k) {
     return org.renjin.nmath.choose.lchoose(n, k);
   }
+
+
+  @Internal
+  @DataParallel
+  public static double psigamma(double x, double deriv) {
+    return org.renjin.nmath.polygamma.psigamma(x, deriv);
+  }
+  
+  @Internal
+  @DataParallel
+  public static double besselI(double x, double alpha, double expo) {
+    return org.renjin.nmath.bessel_i.bessel_i(x, alpha, expo);
+  }
+
+  @Internal
+  @DataParallel
+  public static double besselJ(double x, double alpha) {
+    return org.renjin.nmath.bessel_j.bessel_j(x, alpha);
+  }
+
+  @Internal
+  @DataParallel
+  public static double besselK(double x, double alpha, double expo) {
+    return org.renjin.nmath.bessel_k(x, alpha, expo);
+  }
+
+  @Internal
+  @DataParallel
+  public static double besselY(double x, double alpha) {
+    return org.renjin.nmath.bessel_y.bessel_y(x, alpha);
+  }
 }

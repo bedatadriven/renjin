@@ -35,7 +35,6 @@ import org.renjin.stats.internals.CompleteCases;
 import org.renjin.stats.internals.Covariance;
 import org.renjin.stats.internals.Distributions;
 import org.renjin.stats.internals.FFT;
-import org.renjin.stats.internals.distributions.PsiGamma;
 import org.renjin.stats.internals.distributions.RNG;
 import org.renjin.stats.internals.distributions.Sampling;
 import org.renjin.stats.internals.models.Models;
@@ -397,10 +396,10 @@ public class Primitives {
     f("psignrank", Distributions.class, 11);
     f("qsignrank", Distributions.class, 11);
 
-    f("besselJ", /*math2*/ null, 11);
-    f("besselY", /*math2*/ null, 11);
+    f("besselJ", Special.class, 11);
+    f("besselY", Special.class, 11);
 
-    f("psigamma", PsiGamma.class, 11);
+    f("psigamma", Special.class, 11);
 
 
 /* Mathematical Functions of a Complex Argument */
@@ -471,8 +470,8 @@ public class Primitives {
     f("pwilcox", Distributions.class, 11);
     f("qwilcox", Distributions.class, 11);
 
-    f("besselI", /*math3*/ null, 11);
-    f("besselK", /*math3*/ null, 11);
+    f("besselI", Special.class, 11);
+    f("besselK", Special.class, 11);
 
     f("dnbinom_mu", Distributions.class, 11);
     f("pnbinom_mu", Distributions.class, 11);

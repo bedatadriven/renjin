@@ -62,6 +62,7 @@
               <cFlags>
                 <flag>-std=gnu99</flag>
                 <flag>-DHAVE_CONFIG_H</flag>
+                <flag>-DMATHLIB_STANDALONE</flag>
               </cFlags>
             </configuration>
           </execution>

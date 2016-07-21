@@ -10,6 +10,27 @@ The C sources have been updated to be thread safe. In particular, all the random
 have been updated to accept a `unif_rand` function pointer as their first argument to avoid relying on the 
 global state of a random number generator.
 
+This library is compiled with [GCC-Bridge](../../tools/gcc-bridge) and used internally by Renjin. 
+GNU R packages with C code link against the [GNU R Runtime](../../gnur-runtime) compatability layer,
+which maintains the original signatures.
 
+This library can be used independently of Renjin:
 
+```
+    <dependencies>
+      <dependency>
+        <groupId>org.renjin</groupId>
+        <artifactId>renjin-nmath</artifactId>
+        <version>RELEASE</version>
+      </dependency>
+    </dependencies>
+    <repositories>
+      <repository>
+        <id>bedatadriven</id>
+        <name>bedatadriven public repo</name>
+        <url>https://nexus.bedatadriven.com/content/groups/public/</url>
+      </repository>
+    </repositories>
+```
 
+See the C source files for documentation. 

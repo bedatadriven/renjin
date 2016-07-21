@@ -1,7 +1,9 @@
-
 # --------------------------------------
 # ASSERTION FUNCTION
 # --------------------------------------
+deparse0 <- function(expr) {
+  paste(deparse(expr), collapse = "")
+}
 
 assertThat <- function(actual, matcher) {
 	
@@ -9,7 +11,7 @@ assertThat <- function(actual, matcher) {
 
 	if(!matcher(actual)) {
 		stop(sprintf("\nassertThat(%s, %s) failed\nGot: %s", 
-				deparse(call$actual), deparse(call$matcher), deparse(actual)))
+				deparse0(call$actual), deparse0(call$matcher), deparse0(actual)))
 	}
 }
 
@@ -20,7 +22,7 @@ assertTrue <- function(value) {
 
 	if(!identical(value, TRUE)) {
 		stop(sprintf("\nassertTrue(%s) failed\nGot: %s", 
-				deparse(call$value), deparse(value)))
+				deparse0(call$value), deparse0(value)))
 	}	
 }
 
@@ -31,7 +33,7 @@ assertFalse <- function(value) {
 
 	if(!identical(value, FALSE)) {
 		stop(sprintf("\nassertFalse(%s) failed\nGot: %s", 
-				deparse(call$value), deparse(value)))
+				deparse0(call$value), deparse0(value)))
 	}	
 }
 
@@ -40,23 +42,13 @@ assertFalse <- function(value) {
 # --------------------------------------
 # MATCHER FUNCTIONS
 # --------------------------------------
-
-closeTo <- function(expected, delta) {
-    stopifnot(is.numeric(expected) & is.numeric(delta) & length(delta) == 1L)
-	function(actual) {
-		length(expected) == length(actual) &&
-				all(abs(expected-actual)<delta)	
-	}
-}
-
-
 compareReal <- function(actual, expected, tol) {
   rel.diff <- abs(expected - actual) / abs(expected)
-  finite <- is.finite(rel.diff)
+  finite <- is.finite(rel.diff) | expected == 0
   finiteValuesCloseEnough <- all(rel.diff[finite] < tol)
   nonFiniteValuesIdentical <- identical(expected[!finite], actual[!finite])
-  return( (finiteValuesCloseEnough &&
-      nonFiniteValuesIdentical &&
+  return( (finiteValuesCloseEnough && 
+      nonFiniteValuesIdentical && 
       identical(attributes(expected), attributes(actual))) )
 }
 
@@ -87,13 +79,20 @@ identical.rec <- function(actual, expected, tol = NULL) {
 }
 
 
+closeTo <- function(expected, delta) {
+    stopifnot(is.numeric(expected) & is.numeric(delta) & length(delta) == 1L)
+	function(actual) {
+		length(expected) == length(actual) &&
+				all(abs(expected-actual)<delta)	
+	}
+}
+
 identicalTo <- function(expected, tol = NULL) {
-	tolMissing <- missing(tol)
+	tolMissing <- missing(tol) 
 	function(actual) {
 	    identical.rec(actual, expected, tol)
 	}
 }
-
 
 deparsesTo <- function(expected) {
     function(actual) {

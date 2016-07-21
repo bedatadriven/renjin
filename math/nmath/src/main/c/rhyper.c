@@ -79,7 +79,7 @@ static double afc(int i)
     return value;
 }
 
-double rhyper(double nn1in, double nn2in, double kkin)
+double rhyper(rng_t unif_rand, double nn1in, double nn2in, double kkin)
 {
     const static double deltal = 0.0078;
     const static double deltau = 0.0034;

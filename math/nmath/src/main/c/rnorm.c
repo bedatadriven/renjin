@@ -30,12 +30,12 @@
 
 #include "nmath.h"
 
-double rnorm(double mu, double sigma)
+double rnorm(rng_t unif_rand, double mu, double sigma)
 {
     if (ISNAN(mu) || !R_FINITE(sigma) || sigma < 0.)
 	ML_ERR_return_NAN;
     if (sigma == 0. || !R_FINITE(mu))
 	return mu; /* includes mu = +/- Inf with finite sigma */
     else
-	return mu + sigma * norm_rand();
+	return mu + sigma * norm_rand(unif_rand);
 }

@@ -23,7 +23,7 @@
  *	The distribution function of the Cauchy distribution.
  */
 
-#include <config.h>
+#include "config.h"
 
 #ifdef HAVE_ATANPI
 double atanpi(double);

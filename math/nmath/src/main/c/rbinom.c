@@ -42,7 +42,7 @@
 
 #define repeat for(;;)
 
-double rbinom(double nin, double pp)
+double rbinom(rng_t unif_rand, double nin, double pp)
 {
     /* FIXME: These should become THREAD_specific globals : */
 

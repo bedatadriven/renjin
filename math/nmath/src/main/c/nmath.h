@@ -21,9 +21,7 @@
 #ifndef MATHLIB_PRIVATE_H
 #define MATHLIB_PRIVATE_H
 
-#ifdef HAVE_CONFIG_H
-#  include <config.h>
-#endif
+#include "config.h"
 
 /* Required by C99 but might be slow */
 #ifdef HAVE_LONG_DOUBLE
@@ -35,17 +33,35 @@
 #include <math.h>
 #include <float.h> /* DBL_MIN etc */
 
-#include <Rconfig.h>
-#include <Rmath.h>
+#include "Rmath.h"
 
 /* Used internally only */
 double  Rf_d1mach(int);
 double	Rf_gamma_cody(double);
 
-#include <R_ext/RS.h>
 
-/* possibly needed for debugging */
-#include <R_ext/Print.h>
+/* Copied from R_ext/Random.h */
+typedef enum {
+    WICHMANN_HILL,
+    MARSAGLIA_MULTICARRY,
+    SUPER_DUPER,
+    MERSENNE_TWISTER,
+    KNUTH_TAOCP,
+    USER_UNIF,
+    KNUTH_TAOCP2,
+    LECUYER_CMRG
+} RNGtype;
+
+/* Different kinds of "N(0,1)" generators :*/
+typedef enum {
+    BUGGY_KINDERMAN_RAMAGE,
+    AHRENS_DIETER,
+    BOX_MULLER,
+    USER_NORM,
+    INVERSION,
+    KINDERMAN_RAMAGE
+} N01type;
+
 
 /* moved from dpq.h */
 #ifdef HAVE_NEARYINT

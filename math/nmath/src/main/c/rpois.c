@@ -51,7 +51,7 @@
 
 #define repeat for(;;)
 
-double rpois(double mu)
+double rpois(rng_t unif_rand, double mu)
 {
     /* Factorial Table (0:9)! */
     const static double fact[10] =
@@ -145,7 +145,7 @@ double rpois(double mu)
 /* Only if mu >= 10 : ----------------------- */
 
     /* Step N. normal sample */
-    g = mu + s * norm_rand();/* norm_rand() ~ N(0,1), standard normal */
+    g = mu + s * norm_rand(unif_rand);/* norm_rand() ~ N(0,1), standard normal */
 
     if (g >= 0.) {
 	pois = floor(g);
@@ -191,7 +191,7 @@ double rpois(double mu)
     repeat {
 	/* Step E. Exponential Sample */
 
-	E = exp_rand();	/* ~ Exp(1) (standard exponential) */
+	E = exp_rand(unif_rand);	/* ~ Exp(1) (standard exponential) */
 
 	/*  sample t from the laplace 'hat'
 	    (if t <= -0.6744 then pk < fk for all mu >= 10.) */

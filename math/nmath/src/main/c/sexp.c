@@ -36,7 +36,7 @@
 
 #include "nmath.h"
 
-double exp_rand(void)
+double exp_rand(rng_t unif_rand)
 {
     /* q[k-1] = sum(log(2)^k / k!)  k=1,..,n, */
     /* The highest n (here 16) is determined by q[n-1] = 1.0 */

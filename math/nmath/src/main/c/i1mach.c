@@ -50,8 +50,3 @@ attribute_hidden int Rf_i1mach(int i)
     default: return 0;
     }
 }
-
-int F77_NAME(i1mach)(int *i)
-{
-    return Rf_i1mach(*i);
-}

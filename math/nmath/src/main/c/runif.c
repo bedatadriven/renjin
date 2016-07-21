@@ -23,7 +23,7 @@
  */
 #include "nmath.h"
 
-double runif(double a, double b)
+double runif(rng_t unif_rand, double a, double b)
 {
     if (!R_FINITE(a) || !R_FINITE(b) || b < a)	ML_ERR_return_NAN;
 

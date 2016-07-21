@@ -288,7 +288,7 @@ double qwilcox(double x, double m, double n, int lower_tail, int log_p)
     return(q);
 }
 
-double rwilcox(double m, double n)
+double rwilcox(rng_t unif_rand, double m, double n)
 {
     int i, j, k, *x;
     double r;

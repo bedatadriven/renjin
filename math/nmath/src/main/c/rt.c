@@ -28,16 +28,16 @@
 
 #include "nmath.h"
 
-double rt(double df)
+double rt(rng_t unif_rand, double df)
 {
     if (ISNAN(df) || df <= 0.0)	ML_ERR_return_NAN;
 
     if(!R_FINITE(df))
-	return norm_rand();
+	return norm_rand(unif_rand);
     else {
 /* Some compilers (including MW6) evaluated this from right to left
 	return norm_rand() / sqrt(rchisq(df) / df); */
-	double num = norm_rand();
-	return num / sqrt(rchisq(df) / df);
+	double num = norm_rand(unif_rand);
+	return num / sqrt(rchisq(unif_rand, df) / df);
     }
 }

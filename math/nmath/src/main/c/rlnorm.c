@@ -29,10 +29,10 @@
 
 #include "nmath.h"
 
-double rlnorm(double meanlog, double sdlog)
+double rlnorm(rng_t unif_rand, double meanlog, double sdlog)
 {
     if(ISNAN(meanlog) || !R_FINITE(sdlog) || sdlog < 0.)
 	ML_ERR_return_NAN;
 
-    return exp(rnorm(meanlog, sdlog));
+    return exp(rnorm(unif_rand, meanlog, sdlog));
 }

@@ -30,7 +30,6 @@
 
 #include "nmath.h"
 #include "dpq.h"
-#include <R_ext/Arith.h>
 
 #ifdef DEBUG_qbeta
 # include <R_ext/Print.h>

@@ -44,7 +44,7 @@
 #define ML_ERR_ret_NAN(_k_) {ML_ERROR(ME_DOMAIN, "rmultinom"); rN[_k_]=NA_INTEGER; return;}
 #endif
 
-void rmultinom(int n, double* prob, int K, int* rN)
+void rmultinom(rng_t unif_rand, int n, double* prob, int K, int* rN)
 /* `Return' vector  rN[1:K] {K := length(prob)}
  *  where rN[j] ~ Bin(n, prob[j]) ,  sum_j rN[j] == n,  sum_j prob[j] == 1,
  */
@@ -86,7 +86,7 @@ void rmultinom(int n, double* prob, int K, int* rN)
 	if(prob[k]) {
 	    pp = (double)(prob[k] / p_tot);
 	    /* printf("[%d] %.17f\n", k+1, pp); */
-	    rN[k] = ((pp < 1.) ? (int) rbinom((double) n,  pp) :
+	    rN[k] = ((pp < 1.) ? (int) rbinom(unif_rand, (double) n,  pp) :
 		     /*>= 1; > 1 happens because of rounding */
 		     n);
 	    n -= rN[k];

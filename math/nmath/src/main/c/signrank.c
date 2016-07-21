@@ -227,7 +227,7 @@ double qsignrank(double x, double n, int lower_tail, int log_p)
     return(q);
 }
 
-double rsignrank(double n)
+double rsignrank(rng_t unif_rand, double n)
 {
     int i, k;
     double r;

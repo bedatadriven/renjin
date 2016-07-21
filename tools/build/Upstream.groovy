@@ -1,5 +1,4 @@
 
-def TRUNK = "https://svn.r-project.org/R/trunk/"
 
 /**
  * Initializes a SVN repository in a subdirectory called ".upstream" of the current 
@@ -8,6 +7,9 @@ def TRUNK = "https://svn.r-project.org/R/trunk/"
  * @param upstreamPath the prefix of the repo to checkout. For example, "src/nmath"
  */
 def initRepo(String upstreamPath) {
+    
+    def TRUNK = "https://svn.r-project.org/R/trunk/"
+    
     File svnRoot = new File(".upstream")
     if (!svnRoot.exists()) {
         println("Checking out SVN")
@@ -127,8 +129,9 @@ def revisionPatch(File svnRoot, int rev) {
 
 def applyPatch(File patchFile, File dir) {
     def exitCode = new ProcessBuilder()
-            .command("git", "apply", patchFile.absolutePath, "--index")
+            .command("patch", "-p0")
             .directory(dir)
+            .redirectInput(patchFile)
             .redirectErrorStream(true)
             .redirectOutput(ProcessBuilder.Redirect.INHERIT)
             .start()
@@ -201,7 +204,8 @@ def applyRevision(File svnRoot, String prefix, rev) {
 
     // Add changed files to the index
     executeGit("add", "upstream.revision")
-    executeGit("commit", "--author=\"${author}\"", "--date=\"${rev.date}\"", "-F", messageFile.name)
+    executeGit("add", prefix)
+    executeGit("commit", "-a", "--author=\"${author}\"", "--date=\"${rev.date}\"", "-F", messageFile.name)
     
     patchFile.delete()
     messageFile.delete()

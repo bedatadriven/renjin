@@ -26,6 +26,7 @@ test.norm <- function() {
 
 test.beta <- function() {
 	assertThat(dbeta(0.4, 5, 1, FALSE), closeTo(0.128, ERROR))
+    assertThat(dbeta(0, 0.5, 0.5), identicalTo(Inf))
 }
 
 

@@ -40,6 +40,11 @@
    freeing is completed by an on.exit action in the R wrappers.
 */
 
+/*
+   These routines have been updated to be thread-safe for use with Renjin.
+   
+ */
+
 #include "nmath.h"
 #include "dpq.h"
 
@@ -47,70 +52,29 @@
 #include <R_ext/Utils.h>
 #endif
 
-static double ***w; /* to store  cwilcox(i,j,k) -> w[i][j][k] */
-static int allocated_m, allocated_n;
 
-static void
-w_free(int m, int n)
-{
-    int i, j;
-
-    for (i = m; i >= 0; i--) {
-	for (j = n; j >= 0; j--) {
-	    if (w[i][j] != 0)
-		free((void *) w[i][j]);
-	}
-	free((void *) w[i]);
-    }
-    free((void *) w);
-    w = 0; allocated_m = allocated_n = 0;
-}
-
-static void
-w_init_maybe(int m, int n)
+static double ***
+w_init(int m, int n)
 {
     int i;
+    double ***w;
 
     if (m > n) {
-	i = n; n = m; m = i;
+	    i = n; n = m; m = i;
     }
-    if (w && (m > allocated_m || n > allocated_n))
-	w_free(allocated_m, allocated_n); /* zeroes w */
 
-    if (!w) { /* initialize w[][] */
-	m = imax2(m, WILCOX_MAX);
-	n = imax2(n, WILCOX_MAX);
 	w = (double ***) calloc((size_t) m + 1, sizeof(double **));
-#ifdef MATHLIB_STANDALONE
-	if (!w) MATHLIB_ERROR(_("wilcox allocation error %d"), 1);
-#endif
 	for (i = 0; i <= m; i++) {
 	    w[i] = (double **) calloc((size_t) n + 1, sizeof(double *));
-#ifdef MATHLIB_STANDALONE
-	    /* the apparent leak here in the in-R case should be
-	       swept up by the on.exit action */
-	    if (!w[i]) {
-		/* first free all earlier allocations */
-		w_free(i-1, n);
-		MATHLIB_ERROR(_("wilcox allocation error %d"), 2);
-	    }
-#endif
 	}
-	allocated_m = m; allocated_n = n;
-    }
+	return w;
 }
 
-static void
-w_free_maybe(int m, int n)
-{
-    if (m > WILCOX_MAX || n > WILCOX_MAX)
-	w_free(m, n);
-}
 
 
 /* This counts the number of choices with statistic = k */
 static double
-cwilcox(int k, int m, int n)
+cwilcox(double ***w, int k, int m, int n)
 {
     int c, u, i, j, l;
 
@@ -140,12 +104,14 @@ cwilcox(int k, int m, int n)
        these can only be in the first k.  So the count is the same as
        if there were just k y's. 
     */
-    if (j > 0 && k < j) return cwilcox(k, i, k);    
+    if (j > 0 && k < j) return cwilcox(w, k, i, k);    
     
     if (w[i][j] == 0) {
 	w[i][j] = (double *) calloc((size_t) c + 1, sizeof(double));
 #ifdef MATHLIB_STANDALONE
+#ifndef _RENJIN
 	if (!w[i][j]) MATHLIB_ERROR(_("wilcox allocation error %d"), 3);
+#endif
 #endif
 	for (l = 0; l <= c; l++)
 	    w[i][j][l] = -1;
@@ -154,7 +120,7 @@ cwilcox(int k, int m, int n)
 	if (j == 0) /* and hence i == 0 */
 	    w[i][j][k] = (k == 0);
 	else
-	    w[i][j][k] = cwilcox(k - j, i - 1, j) + cwilcox(k, i, j - 1);
+	    w[i][j][k] = cwilcox(w, k - j, i - 1, j) + cwilcox(w, k, i, j - 1);
 
     }
     return(w[i][j][k]);
@@ -181,10 +147,11 @@ double dwilcox(double x, double m, double n, int give_log)
 	return(R_D__0);
 
     int mm = (int) m, nn = (int) n, xx = (int) x;
-    w_init_maybe(mm, nn);
+    double ***w = w_init(mm, nn);
+    
     d = give_log ?
-	log(cwilcox(xx, mm, nn)) - lchoose(m + n, n) :
-	    cwilcox(xx, mm, nn)  /  choose(m + n, n);
+	log(cwilcox(w, xx, mm, nn)) - lchoose(m + n, n) :
+	    cwilcox(w, xx, mm, nn)  /  choose(m + n, n);
 
     return(d);
 }
@@ -214,18 +181,18 @@ double pwilcox(double q, double m, double n, int lower_tail, int log_p)
 	return(R_DT_1);
 
     int mm = (int) m, nn = (int) n;
-    w_init_maybe(mm, nn);
+    double ***w = w_init(mm, nn);
     c = choose(m + n, n);
     p = 0;
     /* Use summation of probs over the shorter range */
     if (q <= (m * n / 2)) {
 	for (i = 0; i <= q; i++)
-	    p += cwilcox(i, mm, nn) / c;
+	    p += cwilcox(w, i, mm, nn) / c;
     }
     else {
 	q = m * n - q;
 	for (i = 0; i < q; i++)
-	    p += cwilcox(i, mm, nn) / c;
+	    p += cwilcox(w, i, mm, nn) / c;
 	lower_tail = !lower_tail; /* p = 1 - p; */
     }
 
@@ -260,14 +227,15 @@ double qwilcox(double x, double m, double n, int lower_tail, int log_p)
 	x = R_DT_qIv(x); /* lower_tail,non-log "p" */
 
     int mm = (int) m, nn = (int) n;
-    w_init_maybe(mm, nn);
+    double ***w = w_init(mm, nn);
+    
     c = choose(m + n, n);
     p = 0;
     int q = 0;
     if (x <= 0.5) {
 	x = x - 10 * DBL_EPSILON;
 	for (;;) {
-	    p += cwilcox(q, mm, nn) / c;
+	    p += cwilcox(w, q, mm, nn) / c;
 	    if (p >= x)
 		break;
 	    q++;
@@ -276,7 +244,7 @@ double qwilcox(double x, double m, double n, int lower_tail, int log_p)
     else {
 	x = 1 - x + 10 * DBL_EPSILON;
 	for (;;) {
-	    p += cwilcox(q, mm, nn) / c;
+	    p += cwilcox(w, q, mm, nn) / c;
 	    if (p > x) {
 		q = (int) (m * n - q);
 		break;
@@ -309,21 +277,14 @@ double rwilcox(rng_t unif_rand, double m, double n)
     r = 0.0;
     k = (int) (m + n);
     x = (int *) calloc((size_t) k, sizeof(int));
-#ifdef MATHLIB_STANDALONE
-    if (!x) MATHLIB_ERROR(_("wilcox allocation error %d"), 4);
-#endif
     for (i = 0; i < k; i++)
-	x[i] = i;
+    	x[i] = i;
     for (i = 0; i < n; i++) {
-	j = (int) floor(k * unif_rand());
-	r += x[j];
-	x[j] = x[--k];
+	    j = (int) floor(k * unif_rand());
+    	r += x[j];
+    	x[j] = x[--k];
     }
     free(x);
     return(r - n * (n - 1) / 2);
 }
 
-void wilcox_free(void)
-{
-    w_free_maybe(allocated_m, allocated_n);
-}

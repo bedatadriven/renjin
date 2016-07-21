@@ -50,28 +50,50 @@ closeTo <- function(expected, delta) {
 }
 
 
+compareReal <- function(actual, expected, tol) {
+  rel.diff <- abs(expected - actual) / abs(expected)
+  finite <- is.finite(rel.diff)
+  finiteValuesCloseEnough <- all(rel.diff[finite] < tol)
+  nonFiniteValuesIdentical <- identical(expected[!finite], actual[!finite])
+  return( (finiteValuesCloseEnough &&
+      nonFiniteValuesIdentical &&
+      identical(attributes(expected), attributes(actual))) )
+}
 
-identicalTo <- function(expected, tol) {
+
+identical.rec <- function(actual, expected, tol = NULL) {
+    if (length(actual) != length(expected))
+      return(FALSE)
+    if (typeof(actual) != typeof(expected))
+      return(FALSE)
+    if (!identical(attributes(expected), attributes(actual))) {
+      return(FALSE)
+    }
+    if (is.list(actual)) {
+      for (i in seq_along(actual)) {
+        isSame <- identical.rec(actual[[i]], expected[[i]], tol)
+        if (!isSame){
+          return(FALSE)
+        }
+      }
+      return(TRUE)
+    } else if (!is.null(tol) && is.double(actual)) {
+      compareReal(actual, expected, tol)
+    } else if (!is.null(tol) && is.complex(actual)) {
+      compareReal(Re(actual), Re(expected), tol)
+    } else {
+      return(identical(actual, expected))
+    }
+}
+
+
+identicalTo <- function(expected, tol = NULL) {
+	tolMissing <- missing(tol)
 	function(actual) {
-	    # When comparing floating point values, round the results 
-	    # to a fixed number of singificant digits before comparing, if 
-	    # the signif argument is provided
-	    if(!missing(tol) && is.double(expected) && is.double(actual)) {
-	        rel.diff <- abs(expected - actual) / abs(expected)
-	        finite <- is.finite(rel.diff)
-	        
-	        finiteValuesCloseEnough <- all(rel.diff[finite] < tol)
-	        nonFiniteValuesIdentical <- identical(expected[!finite], actual[!finite])
-	        
-	        finiteValuesCloseEnough &&
-	           nonFiniteValuesIdentical && 
-	            identical(attributes(expected), attributes(actual))
-	    
-	    } else { 
-            identical(expected, actual)
-	    }
+	    identical.rec(actual, expected, tol)
 	}
 }
+
 
 deparsesTo <- function(expected) {
     function(actual) {

@@ -62,7 +62,7 @@ double rnchisq(rng_t unif_rand, double df, double lambda)
 	ML_ERR_return_NAN;
 
     if(lambda == 0.) {
-	  return (df == 0.) ? 0. : rgamma(df / 2., 2.);
+	  return (df == 0.) ? 0. : rgamma(unif_rand, df / 2., 2.);
     }
     else {
 	double r = rpois( unif_rand, lambda / 2.);

@@ -67,7 +67,9 @@ double bessel_y(double x, double alpha)
     alpha -= (double)(nb-1);
 #ifdef MATHLIB_STANDALONE
     by = (double *) calloc(nb, sizeof(double));
+#ifndef _RENJIN
     if (!by) MATHLIB_ERROR("%s", _("bessel_y allocation error"));
+#endif
 #else
     vmax = vmaxget();
     by = (double *) R_alloc((size_t) nb, sizeof(double));

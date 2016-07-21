@@ -1220,7 +1220,7 @@
 /* all R platforms have the next two */
 #define SUPPORT_UTF8 1
 #define SUPPORT_MBCS 1
-#define ENABLE_NLS 1
+/*#define ENABLE_NLS 1 */
 /* #undef HAVE_AQUA */
 #define SUPPORT_OPENMP 1
 #define SIZEOF_SIZE_T 8

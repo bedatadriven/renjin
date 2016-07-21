@@ -59,7 +59,7 @@ public class Special {
   @Internal
   @DataParallel
   public static double besselK(double x, double alpha, double expo) {
-    return org.renjin.nmath.bessel_k(x, alpha, expo);
+    return org.renjin.nmath.bessel_k.bessel_k(x, alpha, expo);
   }
 
   @Internal

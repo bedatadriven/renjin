@@ -42,6 +42,9 @@ double	Rf_gamma_cody(double);
 // GCC Bridge's math library does not implement lgamma
 #define lgamma lgammafn
 
+// Error handler defined in renjin-math-common
+extern void arith_error(const char * format, double x);
+
 
 /* Copied from R_ext/Random.h */
 typedef enum {
@@ -115,7 +118,7 @@ void R_CheckUserInterrupt(void);
 
 #include <stdio.h>
 #include <stdlib.h> /* for exit */
-#define MATHLIB_ERROR(fmt,x)	{ printf(fmt,x); exit(1); }
+#define MATHLIB_ERROR(fmt,x)	arith_error(fmt, x);
 #define MATHLIB_WARNING(fmt,x)		printf(fmt,x)
 #define MATHLIB_WARNING2(fmt,x,x2)	printf(fmt,x,x2)
 #define MATHLIB_WARNING3(fmt,x,x2,x3)	printf(fmt,x,x2,x3)

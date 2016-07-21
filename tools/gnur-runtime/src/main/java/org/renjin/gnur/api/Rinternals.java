@@ -815,6 +815,8 @@ public final class Rinternals {
       return new DoubleArrayVector((DoubleVector)sexp);
     } else if(sexp instanceof IntVector) {
       return new IntArrayVector((IntVector)sexp);
+    } else if (sexp instanceof ComplexVector) {
+      return new ComplexArrayVector((ComplexVector) sexp);
     }
     throw new UnimplementedGnuApiMethod("Rf_duplicate: " + sexp.getTypeName());
   }

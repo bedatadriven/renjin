@@ -30,33 +30,43 @@ import java.util.Iterator;
 
 public class ComplexArrayVector extends ComplexVector {
 
-  private final Complex[] values;
+  private final double[] values;
 
   public ComplexArrayVector(Complex... values) {
-    this.values = Arrays.copyOf(values, values.length);
+    this(values, values.length, AttributeMap.EMPTY);
   }
 
-  public ComplexArrayVector(double[] values, AttributeMap attributes) {
+  public ComplexArrayVector(double[] realValues, AttributeMap attributes) {
     super(attributes);
-    this.values=new Complex[values.length];
-    for(int i=0; i<values.length; i++){
-      this.values[i] = ComplexVector.complex(values[i]);
+    this.values = new double[realValues.length * 2];
+    for(int i = 0; i < realValues.length-1; i++){
+      this.values[i*2] = realValues[i];
     }
+  }
+
+
+  /**
+   * Creates a new ComplexArrayVector that is a copy of the given {@code vector}
+   */
+  public ComplexArrayVector(ComplexVector vector) {
+    this(vector.toComplexArray(), vector.getAttributes());
   }
   
   public ComplexArrayVector(Complex[] values, AttributeMap attributes) {
-    super(attributes);
-    this.values = Arrays.copyOf(values, values.length);
+    this(values, values.length, attributes);
   }
   
   public ComplexArrayVector(Complex[] values, int length, AttributeMap attributes) {
     super(attributes);
-    this.values = Arrays.copyOf(values, length);
+    this.values = new double[length * 2];
+    for (int i = 0; i < length; i++) {
+      this.values[i*2] = values[i].getReal();
+      this.values[i*2+1] = values[i].getImaginary();
+    }
   }
 
   public ComplexArrayVector(Complex[] values, int length) {
-    super();
-    this.values = Arrays.copyOf(values, length);
+    this(values, length, AttributeMap.EMPTY);
   }
 
   public static ComplexVector newMatrix(Complex[] values, int nRows, int nCols) {
@@ -70,23 +80,16 @@ public class ComplexArrayVector extends ComplexVector {
 
   @Override
   public Complex getElementAsComplex(int index) {
-    return values[index];
+    double real = values[index];
+    double imag = values[index+1];
+    return new Complex(real, imag);
   }
 
   @Override
   public boolean equals(Object x){
     if(x instanceof ComplexArrayVector){
       ComplexArrayVector that = (ComplexArrayVector)x;
-      if(this.length()!=that.length()) {
-        return false;
-      } else{
-        for(int i=0; i<this.length(); i++){
-          if(!this.values[i].equals(that.values[i])){
-            return false;
-          }
-        }
-        return true;
-      }
+      return Arrays.equals(this.values, that.values);
     } else {
       return false;
     }
@@ -102,8 +105,7 @@ public class ComplexArrayVector extends ComplexVector {
     return isNA(values[index]);
   }
 
-  @Override
-  public Iterator<Complex> iterator() {
+  public Iterator[]<double> iterator() {
     return Iterators.forArray(values);
   }
 
@@ -114,12 +116,12 @@ public class ComplexArrayVector extends ComplexVector {
 
   @Override
   public String toString(){
-    ArrayList<String> list = new ArrayList<String>();
-    for(Complex z : values) {
-      if(isNA(z)) {
+    ArrayList<String> list = new ArrayList<>();
+    for (int i = 0; i < this.length()/2; i++) {
+      if(isNA(this.values[i*2])) {
         list.add("NA");
       } else {
-        list.add(z.getReal() + "+" + z.getImaginary() + "i");
+        list.add(this.values[i*2] + "+" + this.values[i*2+1] + "i");
       }
     }
     return list.toString();

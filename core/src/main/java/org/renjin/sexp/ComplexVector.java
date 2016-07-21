@@ -29,7 +29,14 @@ public abstract class ComplexVector extends AbstractAtomicVector implements Iter
   public static Complex complex(double real, double imaginary) {
     return new Complex(real, imaginary);
   }
-  
+
+  public Complex[] toComplexArray(){
+    Complex[] complexNumbers = new Complex[this.length()];
+    for (int i = 0; i < this.length(); i++) {
+      complexNumbers[i] = this.getElementAsComplex(i);
+    }
+    return complexNumbers;
+  }
 
   public static ComplexVector valueOf(Complex value) {
     return new ComplexArrayVector(value);
@@ -47,8 +54,8 @@ public abstract class ComplexVector extends AbstractAtomicVector implements Iter
     super(attributes);
   }
 
-  public static boolean isNA(Complex value) {
-    return DoubleVector.isNA(value.getReal());
+  public static boolean isNA(double value) {
+    return DoubleVector.isNA(value);
   }
 
   @Override

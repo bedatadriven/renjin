@@ -35,8 +35,6 @@ import org.renjin.stats.internals.CompleteCases;
 import org.renjin.stats.internals.Covariance;
 import org.renjin.stats.internals.Distributions;
 import org.renjin.stats.internals.FFT;
-import org.renjin.stats.internals.distributions.Beta;
-import org.renjin.stats.internals.distributions.PsiGamma;
 import org.renjin.stats.internals.distributions.RNG;
 import org.renjin.stats.internals.distributions.Sampling;
 import org.renjin.stats.internals.models.Models;
@@ -398,10 +396,10 @@ public class Primitives {
     f("psignrank", Distributions.class, 11);
     f("qsignrank", Distributions.class, 11);
 
-    f("besselJ", /*math2*/ null, 11);
-    f("besselY", /*math2*/ null, 11);
+    f("besselJ", Special.class, 11);
+    f("besselY", Special.class, 11);
 
-    f("psigamma", PsiGamma.class, 11);
+    f("psigamma", Special.class, 11);
 
 
 /* Mathematical Functions of a Complex Argument */
@@ -472,8 +470,8 @@ public class Primitives {
     f("pwilcox", Distributions.class, 11);
     f("qwilcox", Distributions.class, 11);
 
-    f("besselI", /*math3*/ null, 11);
-    f("besselK", /*math3*/ null, 11);
+    f("besselI", Special.class, 11);
+    f("besselK", Special.class, 11);
 
     f("dnbinom_mu", Distributions.class, 11);
     f("pnbinom_mu", Distributions.class, 11);
@@ -484,18 +482,16 @@ public class Primitives {
 
     f("dhyper", Distributions.class, 11);
     f("phyper", Distributions.class, 11);
-    f("qhyper", null, 11);
+    f("qhyper", Distributions.class, 11);
 
-    f("dnbeta", Beta.class, 11);
-    f("pnbeta", Beta.class, 11);
-    f("qnbeta", Beta.class, 11);
+    f("dnbeta", Distributions.class, 11);
+    f("pnbeta", Distributions.class, 11);
+    f("qnbeta", Distributions.class, 11);
 
     f("dnf", Distributions.class , 11);
     f("pnf", Distributions.class, 11);
     f("qnf", Distributions.class, 11);
 
-    /* Where is this primitive? (dtukey) I could'nt find it in C source */
-    f("dtukey", /*math4*/ null, 11);
     f("ptukey", Distributions.class, 11);
     f("qtukey", Distributions.class, 11);
 

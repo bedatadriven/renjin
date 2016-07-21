@@ -37,12 +37,6 @@
       <artifactId>renjin-blas</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <dependency>
-      <groupId>org.renjin</groupId>
-      <artifactId>renjin-gnur-installation</artifactId>
-      <version>${project.version}</version>
-      <classifier>headers</classifier>
-    </dependency>
   </dependencies>
 
   <build>
@@ -58,9 +52,12 @@
             </goals>
             <phase>compile</phase>
             <configuration>
+              <packageName>org.renjin.nmath</packageName>
               <cFlags>
                 <flag>-std=gnu99</flag>
-                <flag>-DHAVE_CONFIG_H</flag>
+                <flag>-DMATHLIB_STANDALONE</flag>
+                <flag>-I</flag>
+                <flag>.</flag>
               </cFlags>
             </configuration>
           </execution>

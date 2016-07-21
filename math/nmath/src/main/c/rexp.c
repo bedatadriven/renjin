@@ -30,12 +30,12 @@
 
 #include "nmath.h"
 
-double rexp(double scale)
+double rexp(rng_t unif_rand, double scale)
 {
     if (!R_FINITE(scale) || scale <= 0.0) {
 	if(scale == 0.) return 0.;
 	/* else */
 	ML_ERR_return_NAN;
     }
-    return scale * exp_rand(); // --> in ./sexp.c
+    return scale * exp_rand(unif_rand); // --> in ./sexp.c
 }

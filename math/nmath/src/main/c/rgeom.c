@@ -42,9 +42,9 @@
 
 #include "nmath.h"
 
-double rgeom(double p)
+double rgeom(rng_t unif_rand, double p)
 {
     if (!R_FINITE(p) || p <= 0 || p > 1) ML_ERR_return_NAN;
 
-    return rpois(exp_rand() * ((1 - p) / p));
+    return rpois(unif_rand, exp_rand(unif_rand) * ((1 - p) / p));
 }

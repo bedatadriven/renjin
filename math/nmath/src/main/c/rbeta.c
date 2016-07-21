@@ -30,7 +30,7 @@
 
 #define expmax	(DBL_MAX_EXP * M_LN2)/* = log(DBL_MAX) */
 
-double rbeta(double aa, double bb)
+double rbeta(rng_t unif_rand, double aa, double bb)
 {
     if (aa < 0. || bb < 0.)
 	ML_ERR_return_NAN;

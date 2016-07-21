@@ -48,9 +48,6 @@
         <configuration>
           <packageName>org.renjin.math</packageName>
           <mainClass>Blas</mainClass>
-          <importClasses>
-            <importClass>org.renjin.math.Xerbla</importClass>
-          </importClasses>
         </configuration>
         <executions>
           <execution>

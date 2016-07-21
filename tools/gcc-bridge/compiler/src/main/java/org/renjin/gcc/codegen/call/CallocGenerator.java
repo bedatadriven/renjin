@@ -33,7 +33,7 @@ public class CallocGenerator implements CallGenerator {
 
     // Find the size to allocate
     JExpr elements = exprFactory.findPrimitiveGenerator(call.getOperands().get(0));
-    JExpr elementSize = exprFactory.findPrimitiveGenerator(call.getOperands().get(0));
+    JExpr elementSize = exprFactory.findPrimitiveGenerator(call.getOperands().get(1));
     JExpr totalBytes = Expressions.product(elements, elementSize);
 
     GExpr mallocGenerator = typeOracle.forPointerType(pointerType).malloc(mv, totalBytes);

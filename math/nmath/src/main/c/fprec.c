@@ -35,7 +35,7 @@
  *    conform to the IEEE 754 standard.
  */
 
-#include <config.h>
+#include "config.h"
 #include "nmath.h"
 
 

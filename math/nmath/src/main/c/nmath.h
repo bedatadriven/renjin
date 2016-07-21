@@ -21,9 +21,7 @@
 #ifndef MATHLIB_PRIVATE_H
 #define MATHLIB_PRIVATE_H
 
-#ifdef HAVE_CONFIG_H
-#  include <config.h>
-#endif
+#include "config.h"
 
 /* Required by C99 but might be slow */
 #ifdef HAVE_LONG_DOUBLE
@@ -35,17 +33,41 @@
 #include <math.h>
 #include <float.h> /* DBL_MIN etc */
 
-#include <Rconfig.h>
-#include <Rmath.h>
+#include "Rmath.h"
 
 /* Used internally only */
 double  Rf_d1mach(int);
 double	Rf_gamma_cody(double);
 
-#include <R_ext/RS.h>
+// GCC Bridge's math library does not implement lgamma
+#define lgamma lgammafn
 
-/* possibly needed for debugging */
-#include <R_ext/Print.h>
+// Error handler defined in renjin-math-common
+extern void arith_error(const char * format, double x);
+
+
+/* Copied from R_ext/Random.h */
+typedef enum {
+    WICHMANN_HILL,
+    MARSAGLIA_MULTICARRY,
+    SUPER_DUPER,
+    MERSENNE_TWISTER,
+    KNUTH_TAOCP,
+    USER_UNIF,
+    KNUTH_TAOCP2,
+    LECUYER_CMRG
+} RNGtype;
+
+/* Different kinds of "N(0,1)" generators :*/
+typedef enum {
+    BUGGY_KINDERMAN_RAMAGE,
+    AHRENS_DIETER,
+    BOX_MULLER,
+    USER_NORM,
+    INVERSION,
+    KINDERMAN_RAMAGE
+} N01type;
+
 
 /* moved from dpq.h */
 #ifdef HAVE_NEARYINT
@@ -96,7 +118,7 @@ void R_CheckUserInterrupt(void);
 
 #include <stdio.h>
 #include <stdlib.h> /* for exit */
-#define MATHLIB_ERROR(fmt,x)	{ printf(fmt,x); exit(1); }
+#define MATHLIB_ERROR(fmt,x)	arith_error(fmt, x);
 #define MATHLIB_WARNING(fmt,x)		printf(fmt,x)
 #define MATHLIB_WARNING2(fmt,x,x2)	printf(fmt,x,x2)
 #define MATHLIB_WARNING3(fmt,x,x2,x3)	printf(fmt,x,x2,x3)

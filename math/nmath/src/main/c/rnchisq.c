@@ -56,19 +56,19 @@
 
 #include "nmath.h"
 
-double rnchisq(double df, double lambda)
+double rnchisq(rng_t unif_rand, double df, double lambda)
 {
     if (!R_FINITE(df) || !R_FINITE(lambda) || df < 0. || lambda < 0.)
 	ML_ERR_return_NAN;
 
     if(lambda == 0.) {
 	if (df == 0.) ML_ERR_return_NAN;
-	return rgamma(df / 2., 2.);
+	return rgamma(unif_rand, df / 2., 2.);
     }
     else {
-	double r = rpois( lambda / 2.);
-	if (r > 0.)  r = rchisq(2. * r);
-	if (df > 0.) r += rgamma(df / 2., 2.);
+	double r = rpois( unif_rand, lambda / 2.);
+	if (r > 0.)  r = rchisq(unif_rand, 2. * r);
+	if (df > 0.) r += rgamma(unif_rand, df / 2., 2.);
 	return r;
     }
 }

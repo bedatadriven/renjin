@@ -33,9 +33,9 @@
 
 #include "nmath.h"
 
-double rchisq(double df)
+double rchisq(rng_t unif_rand, double df)
 {
     if (!R_FINITE(df) || df < 0.0) ML_ERR_return_NAN;
 
-    return rgamma(df / 2.0, 2.0);
+    return rgamma(unif_rand, df / 2.0, 2.0);
 }

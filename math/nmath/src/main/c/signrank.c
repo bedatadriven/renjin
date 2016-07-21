@@ -74,7 +74,9 @@ w_init_maybe(int n)
     if(!w) {
 	w = (double *) calloc((size_t) c + 1, sizeof(double));
 #ifdef MATHLIB_STANDALONE
+#ifndef _RENJIN
 	if (!w) MATHLIB_ERROR("%s", _("signrank allocation error"));
+#endif
 #endif
 	allocated_n = n;
     }
@@ -227,7 +229,7 @@ double qsignrank(double x, double n, int lower_tail, int log_p)
     return(q);
 }
 
-double rsignrank(double n)
+double rsignrank(rng_t unif_rand, double n)
 {
     int i, k;
     double r;

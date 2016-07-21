@@ -51,7 +51,7 @@
 
 #define repeat for(;;)
 
-double rgamma(double a, double scale)
+double rgamma(rng_t unif_rand, double a, double scale)
 {
 /* Constants : */
     const static double sqrt32 = 5.656854;
@@ -98,11 +98,11 @@ double rgamma(double a, double scale)
 	    p = e * unif_rand();
 	    if (p >= 1.0) {
 		x = -log((e - p) / a);
-		if (exp_rand() >= (1.0 - a) * log(x))
+		if (exp_rand(unif_rand) >= (1.0 - a) * log(x))
 		    break;
 	    } else {
 		x = exp(log(p) / a);
-		if (exp_rand() >= x)
+		if (exp_rand(unif_rand) >= x)
 		    break;
 	    }
 	}
@@ -122,7 +122,7 @@ double rgamma(double a, double scale)
                x = (s,1/2) -normal deviate. */
 
     /* immediate acceptance (i) */
-    t = norm_rand();
+    t = norm_rand(unif_rand);
     x = s + 0.5 * t;
     ret_val = x * x;
     if (t >= 0.0)
@@ -180,7 +180,7 @@ double rgamma(double a, double scale)
 	/* Step 8: e = standard exponential deviate
 	 *	u =  0,1 -uniform deviate
 	 *	t = (b,si)-double exponential (laplace) sample */
-	e = exp_rand();
+	e = exp_rand(unif_rand);
 	u = unif_rand();
 	u = u + u - 1.0;
 	if (u < 0.0)

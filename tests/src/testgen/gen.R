@@ -23,6 +23,18 @@ deparseExpected <- function(x) {
    }
 }
 
+is.small.integral <- function(x) {
+  if(is.double(x)) {
+    finite <- x[is.finite(x)]
+    frac <- finite %% 1
+  
+    return(all(abs(finite) < 2^29) && all(frac == 0))
+  
+  } else {
+    return(FALSE)
+  }
+}
+
 callWithQuotedArgs <- function(fn, ...) {
   call <- as.call(c(as.name(fn), list(...)))
   if(length(call) > 1) {
@@ -78,7 +90,7 @@ writeTest <- function(test, fn, ..., tol = NULL) {
   } else if(typeof(expected) %in% c("language", "expression")) {
     matcher <- sprintf("deparsesTo(%s)", deparse0(deparse0(expected)))
   
-  } else if(is.null(tol) || !is.double(expected)) {
+  } else if(is.null(tol) || !is.double(expected) || is.small.integral(expected)) {
     matcher <- sprintf("identicalTo(%s)", deparseExpected(expected))
     
   } else {

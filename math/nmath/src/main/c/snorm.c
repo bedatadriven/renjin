@@ -29,7 +29,6 @@
  * Is called from  rnorm(..), but also rt(), rf(), rgamma(), ...
  */
 
-#include <R_ext/Random.h>
 #include "nmath.h"
 
 #define repeat for(;;)
@@ -59,7 +58,7 @@ extern DL_FUNC  User_norm_fun; /* declared and set in ../main/RNG.c */
  *    The definitions of the constants a[k], d[k], t[k] and
  *    h[k] are according to the abovementioned article
  */
-double norm_rand(void)
+double norm_rand(rng_t unif_rand)
 {
 
     const static double a[32] =

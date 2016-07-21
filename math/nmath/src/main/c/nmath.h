@@ -39,6 +39,9 @@
 double  Rf_d1mach(int);
 double	Rf_gamma_cody(double);
 
+// GCC Bridge's math library does not implement lgamma
+#define lgamma lgammafn
+
 
 /* Copied from R_ext/Random.h */
 typedef enum {

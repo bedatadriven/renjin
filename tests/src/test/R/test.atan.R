@@ -43,5 +43,5 @@ test.atan.38 <- function() assertThat(atan(structure(list("b"), class = "bar")),
 test.atan.39 <- function() assertThat(atan(structure(c(1, 2, 3), .Names = c("a", "b", "c"))), identicalTo(structure(c(0.785398163397448, 1.10714871779409, 1.24904577239825), .Names = c("a", "b", "c")), tol = 0.000100))
 test.atan.40 <- function() assertThat(atan(structure(c(1, 2), .Names = c("x", ""))), identicalTo(structure(c(0.785398163397448, 1.10714871779409), .Names = c("x", "")), tol = 0.000100))
 test.atan.41 <- function() assertThat(atan(structure(1:12, .Dim = 3:4)), identicalTo(structure(c(0.785398163397448, 1.10714871779409, 1.24904577239825, 1.32581766366803, 1.37340076694502, 1.40564764938027, 1.42889927219073, 1.44644133224814, 1.460139105621, 1.47112767430373, 1.48013643959415, 1.48765509490646), .Dim = 3:4), tol = 0.000100))
-test.atan.42 <- function() assertThat(atan(structure(0, rando.attr = 4L)), identicalTo(structure(0, rando.attr = 4L), tol = 0.000100))
-test.atan.43 <- function() assertThat(atan(structure(0, class = "zinga")), identicalTo(structure(0, class = "zinga"), tol = 0.000100))
+test.atan.42 <- function() assertThat(atan(structure(0, rando.attr = 4L)), identicalTo(structure(0, rando.attr = 4L)))
+test.atan.43 <- function() assertThat(atan(structure(0, class = "zinga")), identicalTo(structure(0, class = "zinga")))

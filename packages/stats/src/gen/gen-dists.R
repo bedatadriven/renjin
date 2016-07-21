@@ -9,7 +9,7 @@ dists <- list(
   nbeta = c("shape1", "shape2", "ncp"),
   binom = c("size",  "prob"),
   nbinom = c("size", "prob"),
-  #nbinom_mu = c("size", "mu"),
+  nbinom_mu = c("size", "mu"),
   cauchy = c("location", "scale"),
   chisq = c("df"),
   nchisq = c("df", "ncp"),
@@ -35,6 +35,8 @@ dists <- list(
 className <- function(prefix, dist) {
   if(dist %in% c("signrank", "wilcox")) {
     dist
+  } else if(grepl(dist, pattern = "_mu$")) {
+    paste0(prefix, substr(dist, 1, nchar(dist)-3))
   } else {
     paste0(prefix, dist)
   }
@@ -69,11 +71,32 @@ writeFn <- function(con, dist, prefix, arg, params, flags) {
   fn <- sprintf("%s%s", prefix, dist)
   cat(file = con, sprintf("  @DataParallel @Internal\n"))
   cat(file = con, sprintf("  public static double %s%s(%s) {\n", prefix, dist, declList(arg, params, flags)))
-  cat(file = con, sprintf("    return org.renjin.nmath.%s.Rf_%s(%s);\n", 
+  cat(file = con, sprintf("    return org.renjin.nmath.%s.%s(%s);\n", 
                           className(prefix, dist), 
                           fname(prefix, dist), 
                           argList(arg, params, flags)))
   cat(file = con, sprintf("  }\n"))
+}
+
+writeRandomFn <- function(con, dist, params) {
+  fn <- sprintf("%s%s", prefix, dist)
+  
+  paramDecls <- paste("AtomicVector", params, collapse = ", ")
+  
+  cat(file = con, sprintf("  @Internal\n"))
+  cat(file = con, sprintf("  public static double[] r%s(int length, %s) {\n", prefix, dist, paramDecls))
+  cat(file = con, sprintf("    double[] result = new double[length];\n"))
+  cat(file = con, sprintf("    for(int i = 0; i < length; ++i) {"))
+  cat(file = con, sprintf("      result[i] = org.renjin.nmath."))
+  
+  
+          
+  cat(file = con, sprintf("    return org.renjin.nmath.%s.%s(%s);\n", 
+                          className(prefix, dist), 
+                          fname(prefix, dist), 
+                          argList(arg, params, flags)))
+  cat(file = con, sprintf("  }\n"))
+  
 }
 
 writeDistFns <- function() {

@@ -55,6 +55,18 @@ public class Distributions {
     return org.renjin.nmath.dnbinom.dnbinom(x, size, prob, toInt(log));
   }
   @DataParallel @Internal
+  public static double pnbinom_mu(double q, @Recycle double size, @Recycle double mu, boolean lowerTail, boolean logP) {
+    return org.renjin.nmath.pnbinom.pnbinom_mu(q, size, mu, toInt(lowerTail), toInt(logP));
+  }
+  @DataParallel @Internal
+  public static double qnbinom_mu(double p, @Recycle double size, @Recycle double mu, boolean lowerTail, boolean logP) {
+    return org.renjin.nmath.qnbinom.qnbinom_mu(p, size, mu, toInt(lowerTail), toInt(logP));
+  }
+  @DataParallel @Internal
+  public static double dnbinom_mu(double x, @Recycle double size, @Recycle double mu, boolean log) {
+    return org.renjin.nmath.dnbinom.dnbinom_mu(x, size, mu, toInt(log));
+  }
+  @DataParallel @Internal
   public static double pcauchy(double q, @Recycle double location, @Recycle double scale, boolean lowerTail, boolean logP) {
     return org.renjin.nmath.pcauchy.pcauchy(q, location, scale, toInt(lowerTail), toInt(logP));
   }

@@ -11,7 +11,7 @@ have been updated to accept a `unif_rand` function pointer as their first argume
 global state of a random number generator.
 
 This library is compiled with [GCC-Bridge](../../tools/gcc-bridge) and used internally by Renjin. 
-GNU R packages with C code link against the [GNU R Runtime](../../gnur-runtime) compatability layer,
+GNU R packages with C code link against the [GNU R Runtime](../../tools/gnur-runtime) compatability layer,
 which maintains the original signatures.
 
 This library can be used independently of Renjin:

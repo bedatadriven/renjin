@@ -17,7 +17,10 @@ useDynLib(stats, .registration = FALSE, .fixes="C_",
     R_cutree,
     cfilter,
     rfilter,
-    runmed
+    runmed,
+    fft,
+    mvfft,
+    nextn
     )
 
 # exportPattern("^[^\\.]")

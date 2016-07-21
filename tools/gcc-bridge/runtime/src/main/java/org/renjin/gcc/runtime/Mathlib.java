@@ -278,7 +278,7 @@ public class Mathlib {
    * Compute remainder of division (function )
    */
   public static double fmod(double x, double y) {
-    return Math.IEEEremainder(x, y);
+    return x % y;
   }
 
   /**

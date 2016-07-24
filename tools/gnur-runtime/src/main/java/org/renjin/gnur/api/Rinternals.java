@@ -315,7 +315,13 @@ public final class Rinternals {
   }
 
   public static DoublePtr COMPLEX (SEXP x) {
-    throw new UnimplementedGnuApiMethod("COMPLEX");
+    if(x instanceof ComplexArrayVector) {
+      return new DoublePtr(((ComplexArrayVector) x).toComplexArrayVectorUnsafe());
+//    } else if(x instanceof ComplexVector) {
+//      return new DoublePtr(((ComplexVector) x).toComplexArrayUnsafe());
+    } else {
+      throw new EvalException("COMPLEX(): expected complex vector, found %s", x.getTypeName());
+    }
   }
 
   public static SEXP STRING_ELT(SEXP x, /*R_xlen_t*/ int i) {

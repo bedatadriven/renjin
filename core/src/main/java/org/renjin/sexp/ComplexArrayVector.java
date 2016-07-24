@@ -51,6 +51,10 @@ public class ComplexArrayVector extends ComplexVector {
   public ComplexArrayVector(ComplexVector vector) {
     this(vector.toComplexArray(), vector.getAttributes());
   }
+
+  public double[] toComplexArrayVectorUnsafe() {
+    return values;
+  }
   
   public ComplexArrayVector(Complex[] values, AttributeMap attributes) {
     this(values, values.length, attributes);

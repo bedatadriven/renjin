@@ -15,7 +15,7 @@ public abstract class ComplexVector extends AbstractAtomicVector implements Iter
       AttributeMap.builder().setNames(StringVector.EMPTY).build());
 
   public static final Complex NA = new Complex(DoubleVector.NA, DoubleVector.NA);
-  public static final Complex NaN = new Complex(Double.NaN, DoubleVector.NaN);
+  public static final Complex NaN = new Complex(DoubleVector.NaN, DoubleVector.NaN);
 
   public static final Type VECTOR_TYPE = new ComplexType();
 
@@ -30,7 +30,7 @@ public abstract class ComplexVector extends AbstractAtomicVector implements Iter
     return new Complex(real, imaginary);
   }
 
-  public Complex[] toComplexArray(){
+  public Complex[] toComplexArray() {
     Complex[] complexNumbers = new Complex[this.length()];
     for (int i = 0; i < this.length(); i++) {
       complexNumbers[i] = this.getElementAsComplex(i);
@@ -54,8 +54,8 @@ public abstract class ComplexVector extends AbstractAtomicVector implements Iter
     super(attributes);
   }
 
-  public static boolean isNA(double value) {
-    return DoubleVector.isNA(value);
+  public static boolean isNA(Complex value) {
+    return DoubleVector.isNA(value.getReal());
   }
 
   @Override

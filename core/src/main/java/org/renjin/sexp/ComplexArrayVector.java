@@ -75,13 +75,13 @@ public class ComplexArrayVector extends ComplexVector {
 
   @Override
   public int length() {
-    return values.length;
+    return values.length/2;
   }
 
   @Override
   public Complex getElementAsComplex(int index) {
-    double real = values[index];
-    double imag = values[index+1];
+    double real = values[index*2];
+    double imag = values[index*2+1];
     return new Complex(real, imag);
   }
 
@@ -102,11 +102,15 @@ public class ComplexArrayVector extends ComplexVector {
 
   @Override
   public boolean isElementNA(int index) {
-    return isNA(values[index]);
+    return isNA(new Complex(values[index*2], values[index*2+1]));
   }
 
-  public Iterator[]<double> iterator() {
-    return Iterators.forArray(values);
+  public Iterator<Complex> iterator() {
+    Complex[] complexArray = new Complex[values.length/2];
+    for(int i = 0; i < complexArray.length; i++) {
+      complexArray[i] = new Complex(values[i*2], values[i*2+1]);
+    }
+    return Iterators.forArray(complexArray);
   }
 
   @Override
@@ -117,8 +121,8 @@ public class ComplexArrayVector extends ComplexVector {
   @Override
   public String toString(){
     ArrayList<String> list = new ArrayList<>();
-    for (int i = 0; i < this.length()/2; i++) {
-      if(isNA(this.values[i*2])) {
+    for (int i = 0; i < this.length(); i++) {
+      if(isNA(new Complex(this.values[i*2], this.values[i*2+1]))) {
         list.add("NA");
       } else {
         list.add(this.values[i*2] + "+" + this.values[i*2+1] + "i");
@@ -129,7 +133,7 @@ public class ComplexArrayVector extends ComplexVector {
   
   public static class Builder extends AbstractAtomicBuilder{
     private static final int MIN_INITIAL_CAPACITY = 50;
-    private Complex values[];
+    private double values[];
     private int size;
 
     public Builder(int initialSize, int initialCapacity) {
@@ -139,9 +143,12 @@ public class ComplexArrayVector extends ComplexVector {
       if(initialSize > initialCapacity) {
         initialCapacity = initialSize;
       }
-      values = new Complex[initialCapacity];
+      values = new double[initialCapacity*2];
       size = initialSize;
-      Arrays.fill(values, NA);
+      Arrays.fill(values, DoubleVector.NA);
+      for (int i = 0; i < values.length/2; ++i) {
+        values[i*2+1] = 0;
+      }
     }
     
 
@@ -154,11 +161,12 @@ public class ComplexArrayVector extends ComplexVector {
     }
 
     public Builder(ComplexVector toCopy) {
-      values = new Complex[toCopy.length()];
-      for(int i=0;i!=values.length;++i) {
-        values[i] = toCopy.getElementAsComplex(i);
+      values = new double[toCopy.length() * 2];
+      for(int i=0; i!=values.length; ++i) {
+        values[i*2] = toCopy.getElementAsComplex(i).getReal();
+        values[i*2+1]  = toCopy.getElementAsComplex(i).getImaginary();
       }
-      size = values.length;
+      size = values.length/2;
       copyAttributesFrom(toCopy);
     }
 
@@ -172,7 +180,7 @@ public class ComplexArrayVector extends ComplexVector {
     
     private Builder(ComplexArrayVector exp) {
       this.values = Arrays.copyOf(exp.values, exp.values.length);
-      this.size = this.values.length;
+      this.size = this.values.length/2;
 
       copyAttributesFrom(exp);
     }
@@ -182,7 +190,8 @@ public class ComplexArrayVector extends ComplexVector {
       if(index+1 > size) {
         size = index+1;
       }
-      values[index] = value;
+      values[index*2] = value.getReal();
+      values[index*2+1] = value.getImaginary();
       return this;
     }
 
@@ -216,22 +225,30 @@ public class ComplexArrayVector extends ComplexVector {
     }
 
     public void ensureCapacity(int minCapacity) {
-      int oldCapacity = values.length;
+      int oldCapacity = values.length/2;
       if (minCapacity > oldCapacity) {
-        Complex oldData[] = values;
+        double oldData[] = values;
         int newCapacity = (oldCapacity * 3)/2 + 1;
         if (newCapacity < minCapacity) {
           newCapacity = minCapacity;
         }
         // minCapacity is usually close to size, so this is a win:
+        int oldSize = values.length/2;
         values = Arrays.copyOf(oldData, newCapacity);
-        Arrays.fill(values, oldCapacity, values.length, NA);
+        Arrays.fill(values, oldCapacity, values.length, DoubleVector.NA);
+        for (int i = oldSize; i < values.length/2; ++i) {
+          values[i*2+1] = 0;
+        }
       }
     }
 
     @Override
     public ComplexVector build() {
-      return new ComplexArrayVector(values, size, buildAttributes());
+      Complex[] complexArray = new Complex[values.length/2];
+      for(int i = 0; i < complexArray.length; i++) {
+        complexArray[i] = new Complex(values[i*2], values[i*2+1]);
+      }
+      return new ComplexArrayVector(complexArray, size, buildAttributes());
     }
   }
 }

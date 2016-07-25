@@ -52,13 +52,28 @@ compareReal <- function(actual, expected, tol) {
       identical(attributes(expected), attributes(actual))) )
 }
 
+identical.attributes <- function(actual, expected, tol = NULL) {
+    # Should have the same set of names,
+    # though not necessarily in the same order
+    if(length(setdiff(names(expected), names(actual))) > 0) {
+        return(FALSE)
+    }
+    
+    # Otherwise verify that the values are identical
+    for(a in names(expected)) {
+        if(!identical.rec(actual[[a]], expected[[a]], tol)) {
+            return(FALSE)
+        }
+    }
+    return(TRUE)
+}
 
 identical.rec <- function(actual, expected, tol = NULL) {
     if (length(actual) != length(expected))
       return(FALSE)
     if (typeof(actual) != typeof(expected))
       return(FALSE)
-    if (!identical(attributes(expected), attributes(actual))) {
+    if (!identical.attributes(attributes(actual), attributes(expected), tol)) {
       return(FALSE)
     }
     if (is.list(actual)) {

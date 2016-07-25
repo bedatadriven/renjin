@@ -67,6 +67,13 @@ public abstract class ComplexVector extends AbstractAtomicVector implements Iter
   @Override
   public abstract Complex getElementAsComplex(int index);
 
+  /**
+   * @return the imaginary part of the complex number at {@code index}
+   */
+  public double getElementAsComplexIm(int index) {
+    return getElementAsComplex(index).getImaginary();
+  }
+  
   @Override
   public SEXP getElementAsSEXP(int index) {
     return new ComplexArrayVector(getElementAsComplex(index));

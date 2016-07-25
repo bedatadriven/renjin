@@ -12,7 +12,7 @@ public abstract class DoubleVector extends AbstractAtomicVector implements Itera
 
   public static final String TYPE_NAME = "double";
 
-  public static final Type VECTOR_TYPE = new DoubleType();
+  public static final DoubleType VECTOR_TYPE = new DoubleType();
 
   /**
    * This is the internal representation R uses to
@@ -337,7 +337,7 @@ public abstract class DoubleVector extends AbstractAtomicVector implements Itera
     return new DoubleArrayVector(value);
   }
 
-  private static class DoubleType extends Type {
+  public static class DoubleType extends Type {
     public DoubleType() {
       super(Order.DOUBLE);
     }
@@ -369,9 +369,9 @@ public abstract class DoubleVector extends AbstractAtomicVector implements Itera
     }
 
     @Override
-    public Vector to(Vector x) {
+    public DoubleVector to(Vector x) {
       if(x instanceof DoubleVector) {
-        return x;
+        return (DoubleVector) x;
       } else {
         return new ConvertingDoubleVector(x, x.getAttributes());
       }

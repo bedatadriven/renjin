@@ -26,6 +26,7 @@ test.norm <- function() {
 
 test.beta <- function() {
 	assertThat(dbeta(0.4, 5, 1, FALSE), closeTo(0.128, ERROR))
+    assertThat(dbeta(0, 0.5, 0.5), identicalTo(Inf))
 }
 
 
@@ -141,8 +142,8 @@ test.qsignrank <- function(){
 
 
 test.psignrank <- function(){
-	assertThat(psignrank(0.7, 10, FALSE, FALSE), closeTo(0.99902, ERROR))
-	assertThat(psignrank(0.7, 10, TRUE, FALSE), closeTo(0.0009765, ERROR))
+	assertThat(psignrank(0.7, 10, FALSE, FALSE), closeTo(0.9980469, ERROR))
+	assertThat(psignrank(0.7, 10, TRUE, FALSE), closeTo(0.001953125, ERROR))
 }
 
 

@@ -117,7 +117,11 @@ public class Sort {
   
   @Internal("is.unsorted")
   public static LogicalVector isUnsorted(ListVector x, boolean strictly) {
-    return LogicalVector.NA_VECTOR;
+    if(x.length() <= 1) {
+      return LogicalVector.FALSE;
+    } else {
+      return LogicalVector.NA_VECTOR;
+    }
   }
  
   @Internal

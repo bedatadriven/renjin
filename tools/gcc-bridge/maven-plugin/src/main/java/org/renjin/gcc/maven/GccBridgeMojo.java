@@ -71,7 +71,16 @@ public class GccBridgeMojo extends AbstractMojo {
   @Parameter
   private List<File> includeDirectories;
 
+  @Parameter(defaultValue = "${project.build.directory}/include", readonly = true)
+  private File unpackedIncludeDir;
+  
+  @Parameter
+  private List<String> cFlags;
+
+
   public void execute() throws MojoExecutionException {
+
+    GccBridgeHelper.unpackHeaders(getLog(), unpackedIncludeDir, project.getCompileArtifacts());
 
     List<GimpleCompilationUnit> units;
 
@@ -108,6 +117,7 @@ public class GccBridgeMojo extends AbstractMojo {
   }
 
   private List<GimpleCompilationUnit> compileToGimple(List<File> sourceFiles) throws MojoExecutionException {
+    
     File workingDir = new File("target/gcc-work");
     workingDir.mkdirs();
 
@@ -123,11 +133,19 @@ public class GccBridgeMojo extends AbstractMojo {
     }
     gcc.setDebug(true);
     gcc.setGimpleOutputDir(gimpleOutputDirectory);
+
+    if(cFlags != null) {
+      gcc.addCFlags(cFlags);
+    }
+    
     
     if(includeDirectories != null) {
       for (File includeDirectory : includeDirectories) {
         gcc.addIncludeDirectory(includeDirectory);
       }
+    }
+    if(unpackedIncludeDir.exists()) {
+      gcc.addIncludeDirectory(unpackedIncludeDir);
     }
 
     List<GimpleCompilationUnit> units = Lists.newArrayList();

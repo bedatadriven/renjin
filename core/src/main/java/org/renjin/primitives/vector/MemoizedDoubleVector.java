@@ -47,6 +47,11 @@ public abstract class MemoizedDoubleVector extends DoubleVector implements Memoi
   }
 
   @Override
+  public final boolean isDeferred() {
+    return !isCalculated();
+  }
+
+  @Override
   public Vector[] getOperands() {
     return operands;
   }

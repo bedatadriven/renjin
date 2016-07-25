@@ -31,6 +31,12 @@
   <dependencies>
 
     <dependency>
+      <groupId>org.renjin</groupId>
+      <artifactId>renjin-nmath</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    
+    <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-math</artifactId>
       <version>2.2</version>
@@ -41,13 +47,13 @@
       <artifactId>gcc-runtime</artifactId>
       <version>${project.version}</version>
     </dependency>
-    
-    <dependency>
-      <groupId>org.netlib</groupId>
-      <artifactId>netlib-java</artifactId>
-      <version>0.9.3-renjin-patched-2</version>
-    </dependency>
 
+    <dependency>
+      <groupId>com.github.fommil.netlib</groupId>
+      <artifactId>core</artifactId>
+      <version>1.1.2</version>
+    </dependency>
+    
     <!-- Abstraction on file system -->
     <dependency>
         <groupId>org.apache.commons</groupId>

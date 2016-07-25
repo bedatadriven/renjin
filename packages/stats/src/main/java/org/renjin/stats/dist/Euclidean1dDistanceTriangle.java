@@ -71,6 +71,11 @@ public class Euclidean1dDistanceTriangle extends DoubleVector implements Deferre
   public boolean isConstantAccessTime() {
     return vector.isConstantAccessTime();
   }
+  
+  @Override
+  public boolean isDeferred() {
+    return true;
+  }
 
   @Override
   public int length() {

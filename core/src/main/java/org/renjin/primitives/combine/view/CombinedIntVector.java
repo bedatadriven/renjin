@@ -81,6 +81,11 @@ public class CombinedIntVector extends IntVector implements DeferredComputation 
   }
 
   @Override
+  public boolean isDeferred() {
+    return true;
+  }
+
+  @Override
   public int length() {
     return totalLength;
   }

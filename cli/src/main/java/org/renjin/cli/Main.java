@@ -41,7 +41,6 @@ public class Main {
       return;
     }
     
-    
     OptionSet optionSet;
     try {
       optionSet = new OptionSet(args);

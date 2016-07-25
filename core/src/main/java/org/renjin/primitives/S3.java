@@ -288,21 +288,33 @@ public class S3 {
     return newArgs.build();
   }
 
-  public static SEXP tryDispatchGroupFromPrimitive(Context context, Environment rho, FunctionCall call,
-      String group, String name, SEXP s0) {
+  public static SEXP tryDispatchOpsFromPrimitive(Context context, Environment rho, FunctionCall call, 
+                                                 String name, SEXP s0) {
 
     PairList newArgs = new PairList.Node(s0, Null.INSTANCE);
 
-    return dispatchGroup(group, call, name, newArgs, context, rho);
+    return dispatchGroup("Ops", call, name, newArgs, context, rho);
   }
 
-  public static SEXP tryDispatchGroupFromPrimitive(Context context, Environment rho, FunctionCall call,
-      String group, String name, SEXP s0, SEXP s1) {
+  public static SEXP tryDispatchOpsFromPrimitive(Context context, Environment rho, FunctionCall call, 
+                                                 String name, SEXP s0, SEXP s1) {
 
     PairList newArgs = new PairList.Node(s0, new PairList.Node(s1, Null.INSTANCE));
 
+    return dispatchGroup("Ops", call, name, newArgs, context, rho);
+  }
+
+  public static SEXP tryDispatchGroupFromPrimitive(Context context, Environment rho, FunctionCall call,
+                                                 String group, String name, SEXP s0, PairList args) {
+
+    // Add our first, already evaluated argument
+    PairList.Node firstNode = (PairList.Node) args;
+    PairList newArgs = new PairList.Node(s0, firstNode.getNext());
+
     return dispatchGroup(group, call, name, newArgs, context, rho);
   }
+
+
 
   public static SEXP tryDispatchSummaryFromPrimitive(Context context, Environment rho, FunctionCall call,
       String name, ListVector evaluatedArguments, boolean naRm) {
@@ -594,7 +606,14 @@ public class S3 {
       }
       try {
         if (function instanceof Closure) {
-          return Calls.applyClosure((Closure) function, callContext, callEnvironment, newCall,
+          // Note that the callingEnvironment or "sys.parent" of the selected function will be the calling 
+          // environment of the wrapper function that calls UseMethod, NOT the environment in which UseMethod
+          // is evaluated.
+          Environment callingEnvironment = callContext.getCallingEnvironment();
+          if(callingEnvironment == null) {
+            callingEnvironment = callContext.getGlobalEnvironment();
+          }
+          return Calls.applyClosure((Closure) function, callContext, callingEnvironment, newCall,
               args, persistChain());
         } else {
           // primitive

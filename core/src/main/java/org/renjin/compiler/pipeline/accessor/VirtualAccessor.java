@@ -59,7 +59,7 @@ public class VirtualAccessor extends Accessor {
   public void pushLength(ComputeMethod method) {
     MethodVisitor mv = method.getVisitor();
     mv.visitVarInsn(ALOAD, ptrLocalIndex);
-    mv.visitMethodInsn(INVOKEVIRTUAL, vectorClass, "length", "()I");
+    mv.visitMethodInsn(INVOKEVIRTUAL, vectorClass, "length", "()I", false);
   }
 
   @Override
@@ -67,7 +67,7 @@ public class VirtualAccessor extends Accessor {
     MethodVisitor mv = method.getVisitor();
     mv.visitVarInsn(ALOAD, ptrLocalIndex);
     mv.visitInsn(SWAP);
-    mv.visitMethodInsn(INVOKEVIRTUAL, vectorClass, "getElementAsDouble", "(I)D");
+    mv.visitMethodInsn(INVOKEVIRTUAL, vectorClass, "getElementAsDouble", "(I)D", false);
   }
 
   @Override
@@ -75,6 +75,6 @@ public class VirtualAccessor extends Accessor {
     MethodVisitor mv = method.getVisitor();
     mv.visitVarInsn(ALOAD, ptrLocalIndex);
     mv.visitInsn(SWAP);
-    mv.visitMethodInsn(INVOKEVIRTUAL, vectorClass, "getElementAsInt", "(I)I");
+    mv.visitMethodInsn(INVOKEVIRTUAL, vectorClass, "getElementAsInt", "(I)I", false);
   }
 }

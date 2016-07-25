@@ -4,11 +4,8 @@ package org.renjin.invoke.codegen;
 import com.sun.codemodel.*;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.invoke.codegen.generic.*;
 import org.renjin.invoke.model.JvmMethod;
-import org.renjin.invoke.codegen.generic.GenericDispatchStrategy;
-import org.renjin.invoke.codegen.generic.OpsGroupGenericDispatchStrategy;
-import org.renjin.invoke.codegen.generic.SimpleDispatchStrategy;
-import org.renjin.invoke.codegen.generic.SummaryGroupGenericStrategy;
 import org.renjin.invoke.model.PrimitiveModel;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.FunctionCall;
@@ -111,9 +108,7 @@ public abstract class ApplyMethodBuilder implements ApplyMethodContext {
       } else if (overload.getGenericGroup().equals("Summary")) {
         return new SummaryGroupGenericStrategy(codeModel, primitive.getName());
       } else {
-        throw new GeneratorDefinitionException(
-            "Group generic dispatch for group '" + overload.getGenericName()
-                + "' is not implemented");
+        return new GroupDispatchStrategy(codeModel, overload.getGenericGroup(), primitive.getName());
       }
     } else if (overload.isGeneric()) {
       return new SimpleDispatchStrategy(codeModel, primitive.getName());

@@ -3,6 +3,7 @@ package org.renjin.compiler.pipeline.accessor;
 import org.renjin.compiler.pipeline.ComputeMethod;
 import org.renjin.compiler.pipeline.DeferredNode;
 import org.renjin.repackaged.asm.MethodVisitor;
+import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.sexp.Vector;
 
@@ -13,18 +14,20 @@ import static org.renjin.repackaged.asm.Opcodes.*;
 
 public class BinaryVectorOpAccessor extends Accessor {
 
-  private Accessor operandAccessor1;
-  private Accessor operandAccessor2;
+  private Accessor[] operandAccessors = new Accessor[2];
   private int lengthLocal1;
   private int lengthLocal2;
   private int lengthLocal;
   private Method applyMethod;
+  private Class<?> operandType;
 
   public BinaryVectorOpAccessor(DeferredNode node, InputGraph inputGraph) {
-    this.operandAccessor1 = Accessors.create(node.getOperands().get(0), inputGraph);
-    this.operandAccessor2 = Accessors.create(node.getOperands().get(1), inputGraph);
+    this.operandAccessors[0] = Accessors.create(node.getOperands().get(0), inputGraph);
+    this.operandAccessors[1] = Accessors.create(node.getOperands().get(1), inputGraph);
     applyMethod = findStaticApply(node.getVector());
     assert applyMethod != null;
+
+    operandType = applyMethod.getParameterTypes()[0];
   }
 
   public static boolean accept(DeferredNode node) {
@@ -37,7 +40,12 @@ public class BinaryVectorOpAccessor extends Accessor {
               Modifier.isPublic(method.getModifiers()) &&
               Modifier.isStatic(method.getModifiers()) &&
               method.getParameterTypes().length == 2) {
-        return method;
+        
+        if (supportedType(method.getReturnType()) &&
+            supportedType(method.getParameterTypes()[0]) &&
+            method.getParameterTypes()[0].equals(method.getParameterTypes()[1]) ) {
+          return method;
+        }
       }
     }
     return null;
@@ -46,18 +54,18 @@ public class BinaryVectorOpAccessor extends Accessor {
   @Override
   public void init(ComputeMethod method) {
     MethodVisitor mv = method.getVisitor();
-    operandAccessor1.init(method);
-    operandAccessor2.init(method);
+    operandAccessors[0].init(method);
+    operandAccessors[1].init(method);
     lengthLocal1 = method.reserveLocal(1);
     lengthLocal2 = method.reserveLocal(1);
     lengthLocal = method.reserveLocal(1);
-    operandAccessor1.pushLength(method);
+    operandAccessors[0].pushLength(method);
     mv.visitInsn(DUP);
     mv.visitVarInsn(ISTORE, lengthLocal1);
-    operandAccessor2.pushLength(method);
+    operandAccessors[1].pushLength(method);
     mv.visitInsn(DUP);
     mv.visitVarInsn(ISTORE, lengthLocal2);
-    method.getVisitor().visitMethodInsn(INVOKESTATIC, "java/lang/Math", "max", "(II)I");
+    method.getVisitor().visitMethodInsn(INVOKESTATIC, "java/lang/Math", "max", "(II)I", false);
     mv.visitVarInsn(ISTORE, lengthLocal);
   }
 
@@ -66,15 +74,21 @@ public class BinaryVectorOpAccessor extends Accessor {
     method.getVisitor().visitVarInsn(ILOAD, lengthLocal);
   }
 
-  @Override
-  public void pushDouble(ComputeMethod method) {
+
+  private void pushDoubleArguments(ComputeMethod method) {
+    
+    // At this point:
+    // The index must be the top of the stack
+    
     MethodVisitor mv = method.getVisitor();
-    mv.visitInsn(DUP);
+    mv.visitInsn(DUP); // keep the index on the stack for the next operand
+    
     mv.visitVarInsn(ILOAD, lengthLocal1);
     // stack => { index, index, length1 }
     mv.visitInsn(IREM);
     // stack => { index, index1 }
-    operandAccessor1.pushDouble(method);
+    operandAccessors[0].pushDouble(method);
+    
     // stack => { index, [value1, value1] }
     mv.visitInsn(DUP2_X1); // next two instructions equivalent to swap
     mv.visitInsn(POP2);
@@ -83,13 +97,76 @@ public class BinaryVectorOpAccessor extends Accessor {
     // stack => { value1, index, length2 }
     mv.visitInsn(IREM);
     // stack => { value1, index2 }
-    operandAccessor2.pushDouble(method);
+    operandAccessors[1].pushDouble(method);
     // stack => { value1, value2}
 
-    mv.visitMethodInsn(INVOKESTATIC,
-            Type.getInternalName(applyMethod.getDeclaringClass()),
-            applyMethod.getName(),
-            Type.getMethodDescriptor(applyMethod));
+  }
 
+  private void pushIntArguments(ComputeMethod method) {
+
+    // At this point:
+    // The index must be the top of the stack
+
+    MethodVisitor mv = method.getVisitor();
+    mv.visitInsn(DUP); // keep the index on the stack for the next operand
+
+    mv.visitVarInsn(ILOAD, lengthLocal1);
+    // stack => { index, index, length1 }
+    mv.visitInsn(IREM);
+    // stack => { index, index1 }
+    operandAccessors[0].pushInt(method);
+
+    // stack => { index, value1 }
+    mv.visitInsn(SWAP);
+
+    // stack => { value1, index}
+    mv.visitVarInsn(ILOAD, lengthLocal2);
+    // stack => { value1, index, length2 }
+    mv.visitInsn(IREM);
+    // stack => { value1, index2 }
+    operandAccessors[1].pushInt(method);
+    // stack => { value1, value2}
+  }
+  
+  private void pushComputation(ComputeMethod method) {
+    if(operandType.equals(double.class)) {
+      pushDoubleArguments(method);
+    } else if(operandType.equals(int.class)) {
+      pushIntArguments(method);
+    } else {
+      throw new IllegalStateException("operandType: " + operandType);
+    }
+
+    method.getVisitor().visitMethodInsn(INVOKESTATIC,
+        Type.getInternalName(applyMethod.getDeclaringClass()),
+        applyMethod.getName(),
+        Type.getMethodDescriptor(applyMethod), false);
+  }
+
+
+  @Override
+  public void pushDouble(ComputeMethod method) {
+    pushComputation(method);
+    
+    if(applyMethod.getReturnType().equals(int.class)) {
+      method.getVisitor().visitInsn(Opcodes.I2D);
+    } else if(applyMethod.getReturnType().equals(double.class)) {
+      // NOOP
+    } else {
+      throw new UnsupportedOperationException("returnType: " + applyMethod.getReturnType());
+    }
+  }
+
+  @Override
+  public void pushInt(ComputeMethod method) {
+    pushComputation(method);
+
+    if(applyMethod.getReturnType().equals(int.class)) {
+      // NOOP
+    } else if(applyMethod.getReturnType().equals(double.class)) {
+      method.getVisitor().visitInsn(Opcodes.D2I);
+    } else {
+      throw new UnsupportedOperationException("returnType: " + applyMethod.getReturnType());
+    }  
   }
 }

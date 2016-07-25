@@ -187,6 +187,11 @@ public interface Vector extends SEXP {
   boolean isConstantAccessTime();
 
   /**
+   * @return true if this vector's contents have been deferred, and not yet calculated.
+   */
+  boolean isDeferred();
+
+  /**
    * Returns the element at index {@code index} of the vector as a native
    * JVM object, depending on the underlying R type:
    *
@@ -448,5 +453,11 @@ public interface Vector extends SEXP {
     public static Type widest(Vector vector, SEXP element) {
       return widest(vector.getVectorType(), forElement(element));
     }
+
+    /**
+     * Returns a copy or a view of the vector {@code x}, converted to this Vector.Type. 
+     * All attributes are preserved.
+     */
+    public abstract Vector to(Vector x);
   }
 }

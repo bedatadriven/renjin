@@ -69,6 +69,12 @@ public class SubsettingTest extends EvalTestCase {
     assertThat(eval("is.null(x[[2]])"), equalTo(c(true)));
   }
 
+  @Test
+  public void subsetCallToNull() {
+    eval(" x <- quote(dat()) ");
+    assertThat(eval("x[-1]"), equalTo(NULL));
+  }
+  
 
   @Test
   public void subsetCallWithMultipleNAs() {

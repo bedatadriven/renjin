@@ -21,8 +21,15 @@ public class ConvertingStringVector extends StringVector implements DeferredComp
     this(operand, AttributeMap.EMPTY);
   }
 
+  public Vector getOperand() {
+    return operand;
+  }
+
   @Override
   public String getElementAsString(int index) {
+    if(operand.isElementNA(index)) {
+      return NA;
+    }
     return operand.getElementAsString(index);
   }
 
@@ -49,6 +56,11 @@ public class ConvertingStringVector extends StringVector implements DeferredComp
   @Override
   public String getComputationName() {
     return "as.character";
+  }
+
+  @Override
+  public boolean isDeferred() {
+    return true;
   }
 
   @Override

@@ -70,6 +70,7 @@ public class RecordClassLayout implements RecordLayout {
    
     } else if(typeSet.allPointers()) {
       if(node.isAddressable()) {
+        
         //return new AddressableField(type, uniqueFieldName(node), new VoidPtrValueFunction());
         throw new UnsupportedOperationException("TODO");
       } else {

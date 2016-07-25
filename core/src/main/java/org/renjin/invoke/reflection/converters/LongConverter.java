@@ -32,6 +32,11 @@ public class LongConverter extends PrimitiveScalarConverter<Number> {
   }
 
   @Override
+  public Vector.Type getVectorType() {
+    return DoubleVector.VECTOR_TYPE;
+  }
+
+  @Override
   protected Object getFirstElement(Vector value) {
     if(value instanceof LongArrayVector) {
       return ((LongArrayVector) value).getElementAsLong(0);

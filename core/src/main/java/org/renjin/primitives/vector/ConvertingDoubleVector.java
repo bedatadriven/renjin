@@ -47,6 +47,11 @@ public class ConvertingDoubleVector extends DoubleVector implements DeferredComp
     return operand.isConstantAccessTime();
   }
 
+  @Override
+  public boolean isDeferred() {
+    return true;
+  }
+
   public static double compute(double x) {
     return x;
   }

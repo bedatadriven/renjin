@@ -1,11 +1,8 @@
 package org.renjin.primitives.subset;
 
-import com.google.common.collect.Lists;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.*;
-
-import java.util.List;
 
 import static org.renjin.primitives.subset.SubsetAssertions.checkBounds;
 
@@ -71,30 +68,6 @@ class VectorIndexSelection implements SelectionStrategy {
     return result.build();
   }
 
-  public static PairList buildCallSelection(FunctionCall call, Subscript subscript) {
-
-    // First build an array from which we can lookup indices in normal time
-    List<PairList.Node> nodes = Lists.newArrayList();
-    for (PairList.Node node : call.nodes()) {
-      nodes.add(node);
-    }
-    
-    // Now construct a new function call by looking up the indexes
-    FunctionCall.Builder newCall = FunctionCall.newBuilder();
-    IndexIterator it = subscript.computeIndexes();
-    int index;
-    while((index=it.next())!= IndexIterator.EOF) {
-      if(IntVector.isNA(index) || index >= nodes.size()) {
-        newCall.add(Null.INSTANCE);
-      } else {
-        PairList.Node node = nodes.get(index);
-        newCall.add(node.getRawTag(), node.getValue());
-      }
-    }
-    
-    return newCall.build();
-  }
-  
   @Override
   public SEXP getSingleListElement(ListVector source, boolean exact) {
     IndexSubscript subscript = new IndexSubscript(this.subscript, source.length());

@@ -2,6 +2,7 @@ package org.renjin.gcc.codegen.type.voidt;
 
 import com.google.common.base.Optional;
 import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.expr.ArrayElement;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
@@ -36,7 +37,7 @@ public class VoidPtrValueFunction implements ValueFunction {
 
   @Override
   public GExpr dereference(JExpr array, JExpr offset) {
-    return new VoidPtr(Expressions.elementAt(array, offset));
+    return new VoidPtr(Expressions.elementAt(array, offset), new FatPtrExpr(array, offset));
   }
 
   @Override

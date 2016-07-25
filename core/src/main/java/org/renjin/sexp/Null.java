@@ -188,6 +188,11 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList, 
   }
 
   @Override
+  public boolean isDeferred() {
+    return false;
+  }
+
+  @Override
   public Vector.Builder newBuilderWithInitialCapacity(int initialCapacity) {
     return NullBuilder.INSTANCE;
   }
@@ -477,6 +482,14 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList, 
     public boolean elementsEqual(Vector vector1, int index1, Vector vector2,
         int index2) {
       throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Vector to(Vector x) {
+      if (x == Null.INSTANCE) {
+        return x;
+      }
+      throw new UnsupportedOperationException("cannot coerce vector of type " + x.getTypeName() + " to NULL");
     }
   }
 

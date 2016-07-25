@@ -78,13 +78,17 @@ public class NumericLiterals {
         // malformed
         return ComplexVector.NA;
       }
-      double real = parseDouble(s, 0, imaginaryStart, '.', false);
-      double imaginary = parseDouble(s, imaginaryStart, lastCharIndex, '.', false);
-      return new Complex(real, imaginary);
+      double real = parseDouble(s, 0, imaginaryStart, '.', true);
+      if(DoubleVector.isNA(real)) {
+        return ComplexVector.NA;
+      }
+      double imaginary = parseDouble(s, imaginaryStart, lastCharIndex, '.', true);
+      return ComplexVector.complex(real, imaginary);
     
     } else {
       // parse as number with only real component
-      return new Complex(parseDouble(s), 0);
+      double real = parseDouble(s, 0, s.length(), '.', true);
+      return ComplexVector.complex(real);
     }
   }
 

@@ -2,6 +2,7 @@ package org.renjin.sexp;
 
 import com.google.common.collect.UnmodifiableIterator;
 import org.apache.commons.math.complex.Complex;
+import org.renjin.primitives.vector.ConvertingIntVector;
 
 import java.util.Iterator;
 
@@ -77,7 +78,12 @@ public abstract class IntVector extends AbstractAtomicVector implements Iterable
 
   @Override
   public Complex getElementAsComplex(int index) {
-    return new Complex(getElementAsDouble(index), 0);
+    int intValue = getElementAsInt(index);
+    if(isNA(intValue)) {
+      return ComplexVector.NA;
+    } else {
+      return ComplexVector.complex(intValue);
+    }
   }
 
   @Override
@@ -277,8 +283,15 @@ public abstract class IntVector extends AbstractAtomicVector implements Iterable
       }
       return vector1.getElementAsInt(index1) == vector2.getElementAsInt(index2);
     }
-    
-    
+
+    @Override
+    public Vector to(Vector x) {
+      if(x instanceof IntVector) {
+        return x;
+      } else {
+        return new ConvertingIntVector(x, x.getAttributes());
+      }
+    }
   }
 
   private class ValueIterator extends UnmodifiableIterator<Integer> {

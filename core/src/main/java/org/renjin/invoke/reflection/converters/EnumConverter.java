@@ -22,6 +22,11 @@ public class EnumConverter extends PrimitiveScalarConverter<Enum> {
   }
 
   @Override
+  public Vector.Type getVectorType() {
+    return StringVector.VECTOR_TYPE;
+  }
+
+  @Override
   protected Object getFirstElement(Vector value) {
     return Enum.valueOf(enumType, value.getElementAsString(0));
   }

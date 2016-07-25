@@ -33,6 +33,8 @@ public class Gcc {
   private boolean debug;
   private File gimpleOutputDir;
   
+  private List<String> cFlags = Lists.newArrayList();
+  
   public Gcc() {
     workingDirectory = Files.createTempDir();
     gimpleOutputDir = workingDirectory;
@@ -56,6 +58,10 @@ public class Gcc {
     this.gimpleOutputDir.mkdirs();
   }
 
+  public void addCFlags(List<String> flags) {
+    cFlags.addAll(flags);
+  }
+  
   public File getGimpleOutputDir() {
     return gimpleOutputDir;
   }
@@ -100,6 +106,10 @@ public class Gcc {
     for (File includeDir : includeDirectories) {
       arguments.add("-I");
       arguments.add(includeDir.getAbsolutePath());
+    }
+    
+    if(source.getName().toLowerCase().endsWith(".c")) {
+      arguments.addAll(cFlags);
     }
 
     arguments.add(source.getAbsolutePath());

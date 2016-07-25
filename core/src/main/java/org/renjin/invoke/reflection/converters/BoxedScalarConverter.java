@@ -7,7 +7,7 @@ import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Vector;
 
 
-public abstract class BoxedScalarConverter<T> implements Converter<T>  {
+public abstract class BoxedScalarConverter<T> implements Converter<T>, AtomicVectorConverter  {
   
   @Override
   public final Object convertToJava(SEXP value) {

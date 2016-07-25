@@ -1,7 +1,8 @@
 package org.renjin.stats.internals.distributions;
 
 import org.renjin.eval.Session;
-import org.renjin.primitives.MathExt;
+import org.renjin.primitives.MathGroup;
+import org.renjin.primitives.Special;
 
 
 public class Wilcox {
@@ -153,8 +154,8 @@ public class Wilcox {
 
     w_init_maybe((int) m, (int) n);
     d = give_log
-            ? Math.log(cwilcox((int) x, (int) m, (int) n)) - MathExt.lchoose(m + n, (int) n)
-            : cwilcox((int) x, (int) m, (int) n) / MathExt.choose(m + n, (int) n);
+            ? Math.log(cwilcox((int) x, (int) m, (int) n)) - Special.lchoose(m + n, (int) n)
+            : cwilcox((int) x, (int) m, (int) n) / Special.choose(m + n, (int) n);
 
     return (d);
   }
@@ -190,7 +191,7 @@ public class Wilcox {
     }
 
     w_init_maybe((int) m, (int) n);
-    c = MathExt.choose(m + n, (int) n);
+    c = Special.choose(m + n, (int) n);
     p = 0;
     /* Use summation of probs over the shorter range */
     if (q <= (m * n / 2)) {
@@ -246,7 +247,7 @@ public class Wilcox {
     }
     
     w_init_maybe((int)m, (int)n);
-    c = MathExt.choose(m + n, (int)n);
+    c = Special.choose(m + n, (int)n);
     p = 0;
     q = 0;
     if (x <= 0.5) {

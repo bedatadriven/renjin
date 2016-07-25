@@ -45,6 +45,10 @@ abstract class AbstractVector extends AbstractSEXP implements Vector {
     return isElementNA(index);
   }
 
+  @Override
+  public boolean isDeferred() {
+    return false;
+  }
 
   @Override
   public byte getElementAsByte(int index) {

@@ -39,4 +39,9 @@ public class StringConverter extends BoxedScalarConverter<String> {
   public int getSpecificity() {
     return Specificity.STRING;
   }
+
+  @Override
+  public Vector.Type getVectorType() {
+    return StringVector.VECTOR_TYPE;
+  }
 }

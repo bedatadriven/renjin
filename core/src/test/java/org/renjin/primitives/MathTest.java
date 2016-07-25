@@ -24,7 +24,6 @@ package org.renjin.primitives;
 import org.apache.commons.math.complex.Complex;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
-import org.renjin.stats.internals.distributions.PsiGamma;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -55,7 +54,7 @@ public class MathTest extends EvalTestCase {
 
   @Test
   public void gamma() {
-    assertThat( MathExt.gamma(3), closeTo(2, 0.0001));
+    assertThat( MathGroup.gamma(3), closeTo(2, 0.0001));
   }
 
   @Test
@@ -167,11 +166,6 @@ public class MathTest extends EvalTestCase {
     assertThat(eval("sign(c(-33,55,0))"), equalTo(c(-1,1,0)));
   }
 
-  @Test
-  public void psigamma(){
-    assertThat(PsiGamma.psigamma(4, 1), closeTo(0.283823, 0.00001));
-    assertThat(PsiGamma.psigamma(11, 3), closeTo(0.001719901, 0.00001));
-  }
 
   @Test
   public void roundRecycles() {

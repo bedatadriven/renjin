@@ -52,6 +52,11 @@ public abstract class DeferredSummary extends DoubleVector implements MemoizedCo
   }
 
   @Override
+  public boolean isDeferred() {
+    return !isCalculated();
+  }
+
+  @Override
   public final Vector forceResult() {
     if(!calculated) {
       result = calculate();

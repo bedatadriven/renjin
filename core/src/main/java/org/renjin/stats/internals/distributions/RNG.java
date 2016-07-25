@@ -8,6 +8,10 @@ import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.sexp.*;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+
 
 public class RNG {
 
@@ -265,7 +269,7 @@ public class RNG {
   }
 
   @Internal
-  public static DoubleVector rhyper(@Current Context context, int nn, double m, double n, double k){
+  public static DoubleVector rhyper(@Current Context context, int nn, double m, double n, double k) {
     DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
     for (int i = 0; i < nn; i++) {
       vb.add(HyperGeometric.Random_hyper_geometric.rhyper(context.getSession(), m, n, k));

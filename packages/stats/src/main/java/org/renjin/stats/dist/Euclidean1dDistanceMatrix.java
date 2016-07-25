@@ -50,6 +50,11 @@ public class Euclidean1dDistanceMatrix extends DoubleVector implements DeferredC
     return false;
   }
 
+  @Override
+  public boolean isDeferred() {
+    return true;
+  }
+
   public static double test(int index, int size) {
     return Math.sqrt(index % size);
   }

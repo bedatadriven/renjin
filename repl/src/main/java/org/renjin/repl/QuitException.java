@@ -1,6 +1,8 @@
 package org.renjin.repl;
 
-public class QuitException extends RuntimeException {
+import org.renjin.primitives.special.ControlFlowException;
+
+public class QuitException extends ControlFlowException {
 
   private int exitCode;
 

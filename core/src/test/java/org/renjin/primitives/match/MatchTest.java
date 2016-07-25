@@ -65,7 +65,14 @@ public class MatchTest extends EvalTestCase {
         equalTo(c_i(IntVector.NA, IntVector.NA, 1)));
     
   }
-
+  
+  @Test
+  public void matchAgainstRowNamesSequence() {
+    assertThat( eval(" match(1.5, as.character(1:1000))"), equalTo(c_i(IntVector.NA)));
+    assertThat( eval(" match(c('3', '4', '99'), as.character(1:1000))"), equalTo(c_i(3, 4, 99)));
+    assertThat( eval(" match(c('3', '4', '99'), as.character(3:1000))"), equalTo(c_i(1, 2, 97)));
+  }
+  
   @Test
   public void pmatch() {
     eval(" pmatch <- function (x, table, nomatch = NA_integer_, duplicates.ok = FALSE) \n" +

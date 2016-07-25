@@ -73,6 +73,11 @@ public class SquareOptimizer implements Optimizer {
     public static double compute(double x) {
       return x * x;
     }
+
+    @Override
+    public boolean isDeferred() {
+      return true;
+    }
   }
 
 }

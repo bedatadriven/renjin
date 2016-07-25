@@ -5,7 +5,6 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.codegen.ArgumentIterator;
 import org.renjin.primitives.S3;
-import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.sexp.*;
 
 public class RepFunction extends SpecialFunction {
@@ -115,14 +114,14 @@ public class RepFunction extends SpecialFunction {
     if(x instanceof DoubleVector &&
         times.length() == 1 &&
         lengthOut != 0 &&
-        (x instanceof DeferredComputation || resultLength > RepDoubleVector.LENGTH_THRESHOLD)) {
+        (x.isDeferred() || resultLength > RepDoubleVector.LENGTH_THRESHOLD)) {
 
       return new RepDoubleVector(x, resultLength, each, repeatAttributes(x, resultLength, each));
 
     } else if(x instanceof IntVector &&
         times.length() == 1 &&
         lengthOut != 0 &&
-        (x instanceof DeferredComputation || resultLength > RepIntVector.LENGTH_THRESHOLD)) {
+        (x.isDeferred() || resultLength > RepIntVector.LENGTH_THRESHOLD)) {
 
       return new RepIntVector(x, resultLength, each, repeatAttributes(x, resultLength, each));
     }

@@ -146,11 +146,6 @@ public class Deparse {
     }
 
     @Override
-    public void visit(ExpressionVector vector) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
     public void visit(BuiltinFunction builtin) {
       visitPrimitive(builtin);
     }
@@ -200,7 +195,7 @@ public class Deparse {
 
     @Override
     public void visit(PairList.Node pairList) {
-      deparseList(pairList.namedValues());
+      deparseList("list", pairList.namedValues());
     }
 
     @Override
@@ -234,11 +229,17 @@ public class Deparse {
     }
 
     public void visit(ListVector list) {
-      deparseList(list.namedValues());
+      deparseList("list", list.namedValues());
     }
 
-    private void deparseList(Iterable<NamedValue> list) {
-      deparsed.append("list(");
+    @Override
+    public void visit(ExpressionVector vector) {
+      deparseList("expression", vector.namedValues());
+    }
+
+
+    private void deparseList(final String listType, Iterable<NamedValue> list) {
+      deparsed.append(listType + "(");
       boolean needsComma = false;
       for(NamedValue namedValue : list) {
         if(needsComma) {
@@ -564,7 +565,11 @@ public class Deparse {
         if(Double.isNaN(value)) {
           return "NaN";
         } else if(Double.isInfinite(value)) {
-          return "Inf";
+          if(value < 0) {
+            return "-Inf";
+          } else {
+            return "Inf";
+          }
         } else {
           return NumericLiterals.toString(value);
         }

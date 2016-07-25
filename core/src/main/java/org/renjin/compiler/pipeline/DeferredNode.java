@@ -65,13 +65,13 @@ public class DeferredNode {
       if(vector.length() == 1) {
         return Double.toString(vector.getElementAsDouble(0));
       } else {
-        return "[" + vector.length() + "]";
+        return "[" + vector.length() + "d]";
       }
     } else if(vector instanceof IntArrayVector) {
       if(vector.length() == 1) {
         return Integer.toString(vector.getElementAsInt(0));
       } else {
-        return "[" + vector.length() + "]";
+        return "[" + vector.length() + "i]";
       }
     } else if(vector instanceof DeferredComputation) {
       return getComputation().getComputationName();

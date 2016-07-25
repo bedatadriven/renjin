@@ -87,6 +87,11 @@ public class CombinedStringVector extends StringVector implements DeferredComput
   public boolean isConstantAccessTime() {
     return true;
   }
+  
+  @Override
+  public boolean isDeferred() {
+    return true;
+  }
 
   @Override
   public int length() {

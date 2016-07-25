@@ -272,6 +272,15 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Byte> {
       // raws cannot be NA
       return vector1.getElementAsByte(index1) == vector2.getElementAsByte(index2);
     }
+
+    @Override
+    public Vector to(Vector x) {
+      byte[] bytes = new byte[x.length()];
+      for (int i = 0; i < x.length(); i++) {
+        bytes[i] = x.getElementAsByte(i);
+      }
+      return new RawVector(bytes, x.getAttributes());
+    }
   }  
 
   @Override

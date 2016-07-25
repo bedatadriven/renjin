@@ -2,10 +2,16 @@ package org.renjin.compiler.pipeline.accessor;
 
 import org.renjin.compiler.pipeline.ComputeMethod;
 import org.renjin.repackaged.asm.MethodVisitor;
+import org.renjin.repackaged.asm.Opcodes;
 
-import static org.renjin.repackaged.asm.Opcodes.*;
+import static org.renjin.repackaged.asm.Opcodes.D2I;
 
 public abstract class Accessor {
+
+  static boolean supportedType(Class<?> type) {
+    return type.equals(double.class) ||
+           type.equals(int.class);
+  }
 
   public abstract void init(ComputeMethod method);
 
@@ -14,31 +20,19 @@ public abstract class Accessor {
    * push the corresponding double on to the stack.
    * @param method
    */
-  public void pushDouble(ComputeMethod method) {
-
-
-  }
+  public abstract void pushDouble(ComputeMethod method);
 
   public abstract void pushLength(ComputeMethod method);
 
-
   protected final void pushOperandIndex(MethodVisitor mv, int operandIndex) {
-    if(operandIndex == 0) {
-      mv.visitInsn(ICONST_0);
-    } else if(operandIndex == 1) {
-      mv.visitInsn(ICONST_1);
-    } else if(operandIndex == 2) {
-      mv.visitInsn(ICONST_2);
-    } else if(operandIndex == 3) {
-      mv.visitInsn(ICONST_3);
-    } else if(operandIndex == 4) {
-      mv.visitInsn(ICONST_4);
-    } else if(operandIndex == 5) {
-      mv.visitInsn(ICONST_5);
-    } else if(operandIndex < Byte.MAX_VALUE) {
-      mv.visitIntInsn(BIPUSH, operandIndex);
+    if (operandIndex >= -1 && operandIndex <= 5) {
+      mv.visitInsn(Opcodes.ICONST_0 + operandIndex);
+    } else if (operandIndex >= Byte.MIN_VALUE && operandIndex <= Byte.MAX_VALUE) {
+      mv.visitIntInsn(Opcodes.BIPUSH, operandIndex);
+    } else if (operandIndex >= Short.MIN_VALUE && operandIndex <= Short.MAX_VALUE) {
+      mv.visitIntInsn(Opcodes.SIPUSH, operandIndex);
     } else {
-      throw new UnsupportedOperationException("operandIndex: " + operandIndex);
+      mv.visitLdcInsn(operandIndex);
     }
   }
 

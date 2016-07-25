@@ -48,6 +48,11 @@ public class Print {
     
     } else {
 
+      // Side affect alert!
+      // Trigger any deferred computation
+      expression = context.materialize(expression);
+
+
       PrintingVisitor visitor = new PrintingVisitor(context)
           .setCharactersPerLine(80)
           .setQuote(quote);

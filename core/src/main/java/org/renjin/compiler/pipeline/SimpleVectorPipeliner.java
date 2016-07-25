@@ -34,7 +34,7 @@ public class SimpleVectorPipeliner implements VectorPipeliner {
     Vector vector = materialize(root);
     if(vector instanceof MemoizedDoubleVector) {
       return vector;
-    } else if(vector instanceof DeferredComputation && vector instanceof DoubleVector) {
+    } else if(vector.isDeferred() && vector instanceof DoubleVector) {
       return DoubleArrayVector.unsafe(((DoubleVector) vector).toDoubleArray(), vector.getAttributes());
     } else {
       return vector;

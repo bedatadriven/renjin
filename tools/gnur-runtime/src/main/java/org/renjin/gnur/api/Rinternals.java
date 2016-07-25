@@ -615,6 +615,8 @@ public final class Rinternals {
         return Vectors.asInteger((Vector)p0).setAttributes(p0.getAttributes());
       case SexpType.REALSXP:
         return Vectors.asDouble((Vector)p0).setAttributes(p0.getAttributes());
+      case SexpType.CPLXSXP:
+        return Vectors.asComplex((Vector)p0).setAttributes(p0.getAttributes());
     }
     throw new UnimplementedGnuApiMethod("Rf_coerceVector");
   }

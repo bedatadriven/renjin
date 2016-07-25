@@ -52,6 +52,9 @@ public class TestMojo extends AbstractMojo {
 
   @Parameter(property = "skipTests", defaultValue = "false")
   private boolean skipTests;
+  
+  @Parameter(defaultValue = "51200")
+  private int outputLimit;
 
   /**
    * Kill the forked test process after a certain number of seconds. If set to 0, wait forever 
@@ -85,6 +88,7 @@ public class TestMojo extends AbstractMojo {
     controller.setDefaultPackages(defaultPackages);
     controller.setClassPath(buildClassPath());
     controller.setNamespaceUnderTest(namespaceName);
+    controller.setOutputLimit(outputLimit);
     controller.setTestReportDirectory(reportsDirectory);
     
     controller.executeTests(testSourceDirectory);

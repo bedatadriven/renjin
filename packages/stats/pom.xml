@@ -80,10 +80,13 @@
             </goals>
             <phase>test</phase>
             <configuration>
-               <defaultPackages>
-                 <package>grDevices</package>
-                 <package>stats</package>
-               </defaultPackages>
+              <defaultPackages>
+                <package>grDevices</package>
+                <package>stats</package>
+              </defaultPackages>
+
+              <!-- Allow up to 500k of output per test -->
+              <outputLimit>512000</outputLimit>
             </configuration>
           </execution>
         </executions>

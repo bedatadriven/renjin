@@ -33,6 +33,13 @@ public class ForkedTestController {
     this.environmentVariables.put(TestExecutor.NAMESPACE_UNDER_TEST, namespace);
   }
 
+  /**
+   * @param outputLimit the limit to place on test output, in bytes
+   */
+  public void setOutputLimit(int outputLimit) {
+    this.environmentVariables.put(TestExecutor.OUTPUT_LIMIT, Integer.toString(outputLimit));
+  }
+  
   public void setClassPath(String classPath) {
     this.environmentVariables.put("CLASSPATH", classPath);
   }

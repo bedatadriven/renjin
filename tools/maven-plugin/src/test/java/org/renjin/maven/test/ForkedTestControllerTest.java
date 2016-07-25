@@ -65,16 +65,19 @@ public class ForkedTestControllerTest extends TestCase {
   public void testInfiniteOutput() throws MojoExecutionException, IOException {
     File testFile = testFile("infiniteOutput.R");
 
+    int outputLimit = 50 * 1024;
+    
     forkedTestController.setTimeout(3, TimeUnit.SECONDS);
     forkedTestController.executeTest(testFile);
+    forkedTestController.setOutputLimit(outputLimit);
 
     String output = parseOutput(testFile);
     
     assertTrue(output.contains("----MAX OUTPUT REACHED----"));
     
-    if(output.length() > CappedOutputStream.MAX_BYTES + 100) {
+    if(output.length() > outputLimit + 100) {
       throw new AssertionError(String.format("Output should be limited to %d bytes, output size is %d", 
-          CappedOutputStream.MAX_BYTES, output.length()));
+          outputLimit, output.length()));
     }
     
   }

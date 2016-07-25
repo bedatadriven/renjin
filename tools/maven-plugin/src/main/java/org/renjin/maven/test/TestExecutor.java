@@ -28,10 +28,13 @@ import java.util.List;
  */
 public class TestExecutor {
 
+  private static final int MAX_DEFAULT_BYTES = 50 * 1024;
 
   public static final String NAMESPACE_UNDER_TEST = "NAMESPACE_UNDER_TEST";
   public static final String TEST_REPORT_DIR = "TEST_REPORT_DIR";
   public static final String DEFAULT_PACKAGES = "DEFAULT_PACKAGES";
+  public static final String OUTPUT_LIMIT = "OUTPUT_LIMIT";
+
 
   public static final String MESSAGE_PREFIX = "!!@@@@####";
   public static final String PASS_MESSAGE = "PASS";
@@ -43,6 +46,7 @@ public class TestExecutor {
   private String namespaceUnderTest;
   private File testReportDirectory;
   private List<String> defaultPackages;
+  private int maxOutputBytes;
 
 
   public static void main(String[] args) throws IOException {
@@ -61,6 +65,12 @@ public class TestExecutor {
       for (String defaultPackage : defaultPackages) {
         debug("Default package: " + defaultPackage);
       }
+    }
+    
+    if(!Strings.isNullOrEmpty(System.getenv(DEFAULT_PACKAGES))) {
+      maxOutputBytes = Integer.parseInt(System.getenv(OUTPUT_LIMIT));
+    } else {
+      maxOutputBytes = MAX_DEFAULT_BYTES;
     }
   }
 
@@ -116,7 +126,7 @@ public class TestExecutor {
   private PrintStream openTestOutput(File testFile) {
     try {
       return new PrintStream(
-          new CappedOutputStream(new FileOutputStream(
+          new CappedOutputStream(maxOutputBytes, new FileOutputStream(
               new File(testReportDirectory, TestReporter.suiteName(testFile) + "-output.txt"))));
     } catch(Exception e) {
       throw new RuntimeException(e);

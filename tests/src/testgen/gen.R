@@ -55,7 +55,7 @@ literal <- function(x) {
 }
 
 test.open <- function(generatorScript, name) {
-  filename <- sprintf("src/test/R/test.%s.R", fn)
+  filename <- sprintf("src/test/R/test.%s.R", name)
   cat(sprintf("Opening test case %s...\n", filename))
   test <- new.env()
   test$fd <- file(filename, open="w")

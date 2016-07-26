@@ -260,7 +260,7 @@ public class Primitives {
 /* printname  c-entry   offset  eval  arity pp-kind      precedence rightassoc
  * ---------  -------   ------  ----  ----- -------      ---------- ----------*/
     f("vector", Vectors.class, 11);
-    f("complex", ComplexGroup.class, 11);
+    f("complex", Vectors.class, 11);
     f("matrix", Matrices.class, 11);
     f("length", Vectors.class, 1);
     f("length<-", Vectors.class, 2);

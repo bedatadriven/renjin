@@ -55,9 +55,9 @@ extern "C" {
 
 // RENJIN: Dummy mappings
 extern void *malloc (size_t __size);
-#define	R_chk_calloc(numItems, sizeOfItem) malloc((numItems)*(sizeOfItem))
+#define	R_chk_calloc calloc
 #define R_chk_realloc realloc
-#define R_chk_free(x) ((void)0)
+#define R_chk_free free
 
 #ifndef STRICT_R_HEADERS
 /* S-PLUS 3.x but not 5.x NULLs the pointer in the following */

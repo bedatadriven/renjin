@@ -99,6 +99,7 @@ public class GlobalSymbolTable implements SymbolTable {
     addFunction("alloca", new MallocCallGenerator(typeOracle));
     addFunction("free", new FreeCallGenerator());
     addFunction("realloc", new ReallocCallGenerator(typeOracle));
+    addFunction("calloc", new CallocGenerator(typeOracle));
 
     addFunction(CppStandardLibrary.NEW_OPERATOR, new MallocCallGenerator(typeOracle));
     addFunction(CppStandardLibrary.DELETE_OPERATOR, new FreeCallGenerator());

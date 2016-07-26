@@ -1,80 +1,78 @@
 package org.renjin.primitives;
 
 import org.apache.commons.math.complex.Complex;
+import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.DataParallel;
-import org.renjin.invoke.annotations.Internal;
+import org.renjin.invoke.annotations.GroupGeneric;
+import org.renjin.invoke.annotations.PreserveAttributeStyle;
+import org.renjin.primitives.sequence.RepDoubleVector;
+import org.renjin.primitives.vector.ConvertingDoubleVector;
+import org.renjin.primitives.vector.ImaginaryVector;
 import org.renjin.sexp.*;
 
 
+@GroupGeneric("Complex")
 public class ComplexGroup {
 
   @Builtin
-  public static DoubleVector Mod(DoubleVector x) {
-    return x;
-  }
-
-  @Builtin
-  public static IntVector Mod(IntVector x) {
-    return x;
-  }
-
-  @Builtin
-  public static Null Mod(Null x) {
-    return x;
-  }
-
-  @Builtin
-  @DataParallel
-  public static double Mod(Complex z){
+  @DataParallel(PreserveAttributeStyle.ALL)
+  public static double Mod(Complex z) {
     return z.abs();
   }
 
   @Builtin
-  @DataParallel
-  public static double Arg(Complex z){
+  @DataParallel(PreserveAttributeStyle.ALL)
+  public static double Mod(double x) {
+    return Math.abs(x);
+  }
+
+  @Builtin
+  @DataParallel(PreserveAttributeStyle.ALL)
+  public static double Arg(Complex z) {
     return z.getArgument();
   }
-
-  @Internal
-  public static ComplexVector complex(int lengthOut, AtomicVector realVector, AtomicVector imaginaryVector) {
-    if(realVector.length() > lengthOut) {
-      lengthOut = realVector.length();
-    }
-    if(imaginaryVector.length() > lengthOut) {
-      lengthOut = imaginaryVector.length();
-    }
-    
-    ComplexArrayVector.Builder result = new ComplexArrayVector.Builder(0, lengthOut);
-    for(int i=0; i!=lengthOut;++i) {
-      double real = 0;
-      double imaginary = 0;
-      if(realVector.length() > 0) {
-        real = realVector.getElementAsDouble(i % realVector.length());
-      }
-      if(imaginaryVector.length() > 0) {
-        imaginary = imaginaryVector.getElementAsDouble(i % imaginaryVector.length());
-      }
-      result.add(ComplexVector.complex(real, imaginary));
-    }
-    return result.build();
-  }
+  
 
   @Builtin
-  @DataParallel
-  public static double Re(Complex z){
-    return z.getReal();
-  }
+  public static DoubleVector Re(AtomicVector x) {
+    if(x instanceof ComplexVector) {
+      return new ConvertingDoubleVector(x, x.getAttributes());
+      
+    } else if(x instanceof DoubleVector || x instanceof IntVector || x instanceof LogicalVector) {
+      return DoubleVector.VECTOR_TYPE.to(x);
 
-  @Builtin
-  @DataParallel
-  public static double Im(Complex z){
-    return z.getImaginary();
+    } else {
+      throw new EvalException("non-numeric argument to function");
+    }
   }
   
   @Builtin
-  @DataParallel
-  public static Complex Conj(Complex z){
+  public static DoubleVector Im(AtomicVector x) {
+    if(x instanceof ComplexVector) {
+      return new ImaginaryVector((ComplexVector) x, x.getAttributes());
+
+    } else if(x instanceof DoubleVector || x instanceof IntVector || x instanceof LogicalVector) {
+      if(x.length() < 10) {
+        return new DoubleArrayVector(new double[x.length()], x.getAttributes());
+      } else {
+        return new RepDoubleVector(DoubleVector.valueOf(0), x.length(), 1, x.getAttributes());
+      }
+      
+    } else {
+      throw new EvalException("non-numeric argument to function");
+    }
+  }
+
+  @Builtin
+  @DataParallel(PreserveAttributeStyle.ALL)
+  public static double Conj(double x) {
+    return x;
+  }
+  
+  @Builtin
+  @DataParallel(PreserveAttributeStyle.ALL)
+  public static Complex Conj(Complex z) {
     return ComplexVector.complex(z.getReal(),-1*z.getImaginary());
   }
 }

@@ -62,7 +62,9 @@ fns <- c('as.array',
          'is.unsorted',
          'is.vector',
          'is.na',
-         'length')
+         'length',
+         't',
+         'unlist')
 
 
 inputs <- list(
@@ -98,12 +100,17 @@ inputs <- list(
   character(0),
   c('4.1', 'blahh', '99.9', '-413', NA),
 
+  # complex
+  complex(0),
+  
+  
   # lists
   list(1, 2, 3),
   list(1, 2, NULL),
   list(1L, 2L, 3L),
   list(1L, 2L, NULL),
   list(1, 2, list(3, 4)),
+  list(3, "a", list("b", z = list(TRUE, "c"))),
   
   # matrices
   matrix(1:12, nrow = 3), 
@@ -112,6 +119,7 @@ inputs <- list(
 
   #arrays
   array(1:3, dim = 3L, dimnames = list(c('a', 'b', 'c'))),
+  array(1:3, dim = 3L, dimnames = list(z = c('a', 'b', 'c'))),
   
   # S3 dispatch?
   structure(list('foo'), class='foo'),
@@ -149,6 +157,18 @@ for(fn in fns) {
   # Check S3 dispatch
   writeTest(test, fn, structure("foo", class='foo'))
   writeTest(test, fn, structure(list(1L, "bar"), class='bar'))
+  
+  
+  if(fn %in% c("unlist")) {
+    # Try recursive = FALSE
+    for(input in inputs) {
+      writeTest(test, fn, input, recursive = FALSE)
+    }
+    # Try use.names = FALSE
+    for(input in inputs) {
+      writeTest(test, fn, input, use.names = FALSE)
+    }
+  }
   
   if(fn %in% c("is.vector", "as.vector")) {
     modes <- c("any",

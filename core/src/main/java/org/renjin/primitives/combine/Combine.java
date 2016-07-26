@@ -24,7 +24,10 @@ package org.renjin.primitives.combine;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import org.renjin.invoke.annotations.*;
-import org.renjin.sexp.*;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.NamedValue;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.SEXP;
 
 /**
  * Implementation of the combine-related functions, including c(), list(), unlist(),
@@ -54,14 +57,17 @@ public class Combine {
         .add(arguments)
         .build();
   }
-
+  
+  @Generic
   @Internal
-  public static AtomicVector unlist(AtomicVector vector, boolean recursive, boolean useNames) {
-    return vector;
-  }
-
-  @Internal
-  public static Vector unlist(ListVector vector, boolean recursive, boolean useNames) {
+  public static SEXP unlist(SEXP sexp, boolean recursive, boolean useNames) {
+    
+    if(!(sexp instanceof ListVector)) {
+      return sexp;
+    }
+      
+    ListVector vector = (ListVector) sexp;
+    
     // Iterate over all the vectors in the argument
     // list to determine which vector type to use
     Inspector inspector = new Inspector(recursive);

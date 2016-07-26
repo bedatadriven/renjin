@@ -1,4 +1,3 @@
-
 # Common functions for generating
 # test cases
 
@@ -23,8 +22,21 @@ deparseExpected <- function(x) {
    }
 }
 
-callWithQuotedArgs <- function(fn, ...) {
-  call <- as.call(c(as.name(fn), list(...)))
+is.small.integral <- function(x) {
+  if(is.double(x)) {
+    finite <- x[is.finite(x)]
+    frac <- finite %% 1
+  
+    return(all(abs(finite) < 2^29) && all(frac == 0))
+  
+  } else {
+    return(FALSE)
+  }
+}
+
+callWithQuotedArgs <- function(fn, args) {
+  stopifnot(is.list(args))
+  call <- as.call(c(as.name(fn), args))
   if(length(call) > 1) {
     for(i in seq.int(from = 2, to = length(call))) {
       arg <- call[[i]]
@@ -43,7 +55,7 @@ literal <- function(x) {
 }
 
 test.open <- function(generatorScript, name) {
-  filename <- sprintf("src/test/R/test.%s.R", fn)
+  filename <- sprintf("src/test/R/test.%s.R", name)
   cat(sprintf("Opening test case %s...\n", filename))
   test <- new.env()
   test$fd <- file(filename, open="w")
@@ -64,8 +76,8 @@ writeFixture <- function(test, format, ...) {
   eval(parse(text = expr), envir = .GlobalEnv)
 }
 
-writeTest <- function(test, fn, ..., tol = NULL) {
-  call <- callWithQuotedArgs(fn, ...)
+writeTest <- function(test, fn, ..., ARGS, tol = NULL) {
+  call <- callWithQuotedArgs(fn, if(missing(ARGS)) list(...) else ARGS)
 
   expected <- tryCatch(eval(call, envir = .GlobalEnv), error = function(e) e)
 
@@ -78,7 +90,7 @@ writeTest <- function(test, fn, ..., tol = NULL) {
   } else if(typeof(expected) %in% c("language", "expression")) {
     matcher <- sprintf("deparsesTo(%s)", deparse0(deparse0(expected)))
   
-  } else if(is.null(tol) || !is.double(expected)) {
+  } else if(is.null(tol) || !is.double(expected) || is.small.integral(expected)) {
     matcher <- sprintf("identicalTo(%s)", deparseExpected(expected))
     
   } else {

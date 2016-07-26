@@ -22,7 +22,6 @@ package org.renjin.primitives;
 
 import com.google.common.math.IntMath;
 import org.apache.commons.math.complex.Complex;
-import org.apache.commons.math.special.Gamma;
 import org.apache.commons.math.util.MathUtils;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
@@ -51,14 +50,14 @@ public class MathGroup {
   @Builtin
   @DataParallel(PreserveAttributeStyle.ALL)
   public static double gamma(double x) {
-    return Math.exp(Gamma.logGamma(x));
+    return org.renjin.nmath.gamma.gammafn(x);
   }
 
   @Deferrable
   @Builtin
   @DataParallel(PreserveAttributeStyle.ALL)
   public static double lgamma(double x) {
-    return Gamma.logGamma(x);
+    return org.renjin.nmath.lgamma.lgammafn(x);
   }
 
   
@@ -66,7 +65,7 @@ public class MathGroup {
   @Builtin
   @DataParallel(PreserveAttributeStyle.ALL)
   public static double digamma(double x) {
-    return Gamma.digamma(x);
+    return org.renjin.nmath.polygamma.digamma(x);
   }
 
 
@@ -74,14 +73,7 @@ public class MathGroup {
   @Builtin
   @DataParallel(PreserveAttributeStyle.ALL)
   public static double trigamma(double x) {
-    // Handle edge cases consistently with GNU R
-    if(Double.isNaN(x)) {
-      return x;
-    }
-    if(x == Double.NEGATIVE_INFINITY) {
-      return Double.POSITIVE_INFINITY;
-    }
-    return Gamma.trigamma(x);
+    return org.renjin.nmath.polygamma.trigamma(x);
   }
 
   @Deferrable
@@ -95,9 +87,6 @@ public class MathGroup {
   @Builtin
   @DataParallel(PreserveAttributeStyle.ALL)
   public static double log(double x, double base) {
-
-    //Method cannot be called directly as R and Apache Commons Math argument order
-    // are reversed
     return MathUtils.log(base, x);
   }
 
@@ -169,13 +158,7 @@ public class MathGroup {
   @Builtin
   @DataParallel(PreserveAttributeStyle.ALL)
   public static double sinpi(double x) {
-    if(Double.isInfinite(x) || Double.isNaN(x)) {
-      return Double.NaN;
-    }
-    if(Math.floor(x) == x) {
-      return 0d;
-    }
-    return Math.sin(x*Math.PI);
+    return org.renjin.nmath.cospi.sinpi(x);
   }
 
   @Deferrable
@@ -214,7 +197,7 @@ public class MathGroup {
   @Builtin
   @DataParallel(PreserveAttributeStyle.ALL)
   public static double cospi(double x) {
-    return Math.cos(x * Math.PI);
+    return org.renjin.nmath.cospi.cospi(x);
   }
 
   @Deferrable
@@ -256,7 +239,7 @@ public class MathGroup {
   @Builtin
   @DataParallel(PreserveAttributeStyle.ALL)
   public static double tanpi(double x) {
-    return Math.tan(x * Math.PI);
+    return org.renjin.nmath.cospi.tanpi(x);
   }
 
   @Deferrable

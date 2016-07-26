@@ -485,10 +485,10 @@
 #define HAVE_LOG2 1
 
 /* Define if you wish to use the 'long double' type. */
-#define HAVE_LONG_DOUBLE 1
+/* #define HAVE_LONG_DOUBLE 1 */
 
 /* Define to 1 if the system has the type `long long int'. (For intl) */
-#define HAVE_LONG_LONG_INT 1
+/* #define HAVE_LONG_LONG_INT 1 */
 
 /* Define if your system has lzma >= 5.0.3. */
 #define HAVE_LZMA 1
@@ -530,10 +530,10 @@
 /* #undef HAVE_NDIR_H */
 
 /* Define to 1 if you have the `nearbyint' function. */
-#define HAVE_NEARBYINT 1
+/* #define HAVE_NEARBYINT 1 */
 
 /* Define to 1 if you have the `nearbyintl' function. */
-#define HAVE_NEARBYINTL 1
+/* #define HAVE_NEARBYINTL 1 */
 
 /* Define to 1 if you have the <netdb.h> header file. */
 #define HAVE_NETDB_H 1

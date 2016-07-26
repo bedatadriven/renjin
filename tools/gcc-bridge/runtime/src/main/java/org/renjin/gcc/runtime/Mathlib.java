@@ -37,9 +37,12 @@ public class Mathlib {
 
   public static double sin(double x) {
     return Math.sin(x);
-
   }
-
+  
+  public static double tan(double x) {
+    return Math.tan(x);
+  }
+  
   public static double sinh(double x) {
     return Math.sinh(x);
   }
@@ -261,9 +264,7 @@ public class Mathlib {
     return (long)Math.round(x);
   }
   
-//  public static long llround(double x) {
-//    
-//  }
+  
 
   /**
    * Rounds x to an integral value, using the rounding direction specified by fegetround, and returns 
@@ -277,7 +278,7 @@ public class Mathlib {
    * Compute remainder of division (function )
    */
   public static double fmod(double x, double y) {
-    return Math.IEEEremainder(x, y);
+    return x % y;
   }
 
   /**

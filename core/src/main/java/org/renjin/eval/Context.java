@@ -137,6 +137,7 @@ public class Context {
   }
 
   public Context beginFunction(Environment rho, FunctionCall call, Closure closure, PairList arguments) {
+    assert rho != null : "callingEnvironment cannot be null.";
     Context context = new Context();
     context.type = Type.FUNCTION;
     context.parent = this;

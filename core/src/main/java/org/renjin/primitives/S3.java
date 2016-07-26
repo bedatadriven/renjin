@@ -610,6 +610,9 @@ public class S3 {
           // environment of the wrapper function that calls UseMethod, NOT the environment in which UseMethod
           // is evaluated.
           Environment callingEnvironment = callContext.getCallingEnvironment();
+          if(callingEnvironment == null) {
+            callingEnvironment = callContext.getGlobalEnvironment();
+          }
           return Calls.applyClosure((Closure) function, callContext, callingEnvironment, newCall,
               args, persistChain());
         } else {

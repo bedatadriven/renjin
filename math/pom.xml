@@ -20,7 +20,7 @@
   <modules>
     <module>common</module>
     <module>blas</module>
-    <module>benchmarks</module>
     <module>appl</module>
+    <module>nmath</module>
   </modules>
 </project>

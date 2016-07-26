@@ -202,8 +202,8 @@ rhyper <- function(nn, m, n, k) .Internal(rhyper(nn, m, n, k))
 dnbinom <- function(x, size, prob, mu, log = FALSE)
 {
     if (!missing(mu)) {
-	if (!missing(prob)) stop("'prob' and 'mu' both specified")
-	.Internal(dnbinom_mu(x, size, mu, log))
+	  if (!missing(prob)) stop("'prob' and 'mu' both specified")
+	   .Internal(dnbinom_mu(x, size, mu, log))
     }
     else
 	.Internal(dnbinom (x, size, prob, log))

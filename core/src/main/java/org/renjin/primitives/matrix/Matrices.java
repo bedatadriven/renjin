@@ -23,9 +23,13 @@ public class Matrices {
   @Internal("t.default")
   public static Vector transpose(Vector x) {
     Vector dimensions = x.getAttributes().getDim();
+ 
     if(dimensions.length() == 0) {
-      return (Vector)x.setAttributes(AttributeMap.dim(1, x.length()));
+      return transposeVector(x);
 
+    } else if(dimensions.length() == 1) {
+      return transposeArray(x);
+      
     } else if(dimensions.length() == 2) {
       int nrows = dimensions.getElementAsInt(0);
       int ncols = dimensions.getElementAsInt(1);
@@ -35,12 +39,7 @@ public class Matrices {
        */
       AttributeMap.Builder attributes = new AttributeMap.Builder();
       attributes.setDim(ncols, nrows);
-
-      if (!(x.getAttribute(Symbols.DIMNAMES) instanceof org.renjin.sexp.Null)) {
-        ListVector dimNames = (ListVector) x.getAttribute(Symbols.DIMNAMES);
-        ListVector newDimNames = new ListVector(dimNames.get(1), dimNames.get(0));
-        attributes.set(Symbols.DIMNAMES, newDimNames);
-      }
+      attributes.set(Symbols.DIMNAMES, transposeDimNames(x));
 
       /*
        * Transpose the values
@@ -63,6 +62,85 @@ public class Matrices {
       }
     } else {
       throw new EvalException("argument is not a matrix");
+    }
+  }
+
+  /**
+   * Treat a vector {@code x} as a matrix of {@code length(x)} rows, and transpose
+   * it to a matrix of {@code length(x)} columns.
+   */
+  private static Vector transposeVector(Vector x) {
+    AttributeMap.Builder matrixDims = AttributeMap.builder();
+    matrixDims.setDim(1, x.length());
+    
+    // Treat any names present as 
+    if(x.getNames() != Null.INSTANCE) {
+      matrixDims.setDimNames(new ListVector(Null.INSTANCE, x.getNames()));
+    }
+
+    // Copy any remaining attributes
+    for (Symbol attribute : x.getAttributes().names()) {
+      if(attribute != Symbols.NAMES &&
+         attribute != Symbols.DIM &&
+         attribute != Symbols.DIMNAMES) {
+        matrixDims.set(attribute, x.getAttribute(attribute));
+      }
+    }
+    return (Vector)x.setAttributes(matrixDims);
+  }
+
+  /**
+   * Treat a 1-dimensional array {@code x} as a matrix of {@code length(x)} rows, and transpose
+   * it to a matrix of {@code length(x)} columns.
+   */
+  private static Vector transposeArray(Vector x) {
+    AttributeMap.Builder matrixDims = AttributeMap.builder();
+    matrixDims.setDim(1, x.length());
+
+    Vector dimNameList = x.getAttributes().getDimNames();
+    if(dimNameList != Null.INSTANCE) {
+      AttributeMap.Builder dimNameAttributes = AttributeMap.builder();
+      Vector rowNames = Null.INSTANCE;
+      Vector colNames = dimNameList.getElementAsSEXP(0);
+      
+      if(dimNameList.getNames() != Null.INSTANCE) {
+        String name = dimNameList.getNames().getElementAsString(0);
+        dimNameAttributes.setNames(new StringArrayVector("", name));
+      }
+      matrixDims.setDimNames(new ListVector(new SEXP[] { rowNames, colNames}, dimNameAttributes.build()));
+    }
+    
+    // Copy any remaining attributes
+    for (Symbol attribute : x.getAttributes().names()) {
+      if(attribute != Symbols.NAMES &&
+          attribute != Symbols.DIM &&
+          attribute != Symbols.DIMNAMES) {
+        matrixDims.set(attribute, x.getAttribute(attribute));
+      }
+    }
+    return (Vector)x.setAttributes(matrixDims);
+  }
+
+
+  /**
+   * Transpose dimension names if present.
+   */
+  private static SEXP transposeDimNames(Vector x) {
+    Vector dimNames = x.getAttributes().getDimNames();
+    if(dimNames == Null.INSTANCE) {
+      return Null.INSTANCE;
+      
+    } else {
+      ListVector dimNameList = (ListVector) dimNames;
+      SEXP rowNames = dimNameList.getElementAsSEXP(0);
+      SEXP colNames = dimNameList.getElementAsSEXP(1);
+
+      // Transpose the names of the dimnames
+      AttributeMap.Builder transposedAttributes = AttributeMap.builder();
+      if(dimNameList.getNames() != Null.INSTANCE) {
+        transposedAttributes.setNames(new StringArrayVector(dimNameList.getName(1), dimNameList.getName(0)));
+      }
+      return new ListVector(new SEXP[] { colNames, rowNames }, transposedAttributes.build());
     }
   }
 

@@ -62,7 +62,8 @@ fns <- c('as.array',
          'is.unsorted',
          'is.vector',
          'is.na',
-         'length')
+         'length',
+         't')
 
 
 inputs <- list(
@@ -112,6 +113,7 @@ inputs <- list(
 
   #arrays
   array(1:3, dim = 3L, dimnames = list(c('a', 'b', 'c'))),
+  array(1:3, dim = 3L, dimnames = list(z = c('a', 'b', 'c'))),
   
   # S3 dispatch?
   structure(list('foo'), class='foo'),

@@ -1,4 +1,3 @@
-
 # Common functions for generating
 # test cases
 
@@ -35,8 +34,9 @@ is.small.integral <- function(x) {
   }
 }
 
-callWithQuotedArgs <- function(fn, ...) {
-  call <- as.call(c(as.name(fn), list(...)))
+callWithQuotedArgs <- function(fn, args) {
+  stopifnot(is.list(args))
+  call <- as.call(c(as.name(fn), args))
   if(length(call) > 1) {
     for(i in seq.int(from = 2, to = length(call))) {
       arg <- call[[i]]
@@ -76,8 +76,8 @@ writeFixture <- function(test, format, ...) {
   eval(parse(text = expr), envir = .GlobalEnv)
 }
 
-writeTest <- function(test, fn, ..., tol = NULL) {
-  call <- callWithQuotedArgs(fn, ...)
+writeTest <- function(test, fn, ..., ARGS, tol = NULL) {
+  call <- callWithQuotedArgs(fn, if(missing(ARGS)) list(...) else ARGS)
 
   expected <- tryCatch(eval(call, envir = .GlobalEnv), error = function(e) e)
 

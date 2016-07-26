@@ -161,10 +161,18 @@ public class DeferredVectorBuilder {
 
   public void maybeReturn(JBlock parent, JExpression cycleCount, List<JExpression> arguments) {
 
+    // Defer if the result will be large, OR any of the arguments are 
+    // already deferred
     JExpression condition = cycleCount.gt(lit(LENGTH_THRESHOLD));
     for(JExpression arg : arguments) {
       condition = condition.cor(arg.invoke("isDeferred"));
     }
+    
+    // But DON'T defer if the result will be of length zero,
+    // because this can be computed for free in any case
+    condition = condition.cand(cycleCount.ne(lit(0)));
+    
+    
     JBlock ifBig = parent._if(condition)._then();
     JExpression attributes = copyAttributes(arguments);
 

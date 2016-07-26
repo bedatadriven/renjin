@@ -1,7 +1,9 @@
-
 # --------------------------------------
 # ASSERTION FUNCTION
 # --------------------------------------
+deparse0 <- function(expr) {
+  paste(deparse(expr), collapse = "")
+}
 
 assertThat <- function(actual, matcher) {
 	
@@ -9,7 +11,7 @@ assertThat <- function(actual, matcher) {
 
 	if(!matcher(actual)) {
 		stop(sprintf("\nassertThat(%s, %s) failed\nGot: %s", 
-				deparse(call$actual), deparse(call$matcher), deparse(actual)))
+				deparse0(call$actual), deparse0(call$matcher), deparse0(actual)))
 	}
 }
 
@@ -20,7 +22,7 @@ assertTrue <- function(value) {
 
 	if(!identical(value, TRUE)) {
 		stop(sprintf("\nassertTrue(%s) failed\nGot: %s", 
-				deparse(call$value), deparse(value)))
+				deparse0(call$value), deparse0(value)))
 	}	
 }
 
@@ -31,7 +33,7 @@ assertFalse <- function(value) {
 
 	if(!identical(value, FALSE)) {
 		stop(sprintf("\nassertFalse(%s) failed\nGot: %s", 
-				deparse(call$value), deparse(value)))
+				deparse0(call$value), deparse0(value)))
 	}	
 }
 
@@ -40,6 +42,57 @@ assertFalse <- function(value) {
 # --------------------------------------
 # MATCHER FUNCTIONS
 # --------------------------------------
+compareReal <- function(actual, expected, tol) {
+  rel.diff <- abs(expected - actual) / abs(expected)
+  finite <- is.finite(rel.diff) & expected != 0
+  finiteValuesCloseEnough <- all(rel.diff[finite] < tol)
+  nonFiniteValuesIdentical <- identical(expected[!finite], actual[!finite])
+  return( (finiteValuesCloseEnough && 
+      nonFiniteValuesIdentical && 
+      identical(attributes(expected), attributes(actual))) )
+}
+
+identical.attributes <- function(actual, expected, tol = NULL) {
+    # Should have the same set of names,
+    # though not necessarily in the same order
+    if(length(setdiff(names(expected), names(actual))) > 0) {
+        return(FALSE)
+    }
+    
+    # Otherwise verify that the values are identical
+    for(a in names(expected)) {
+        if(!identical.rec(actual[[a]], expected[[a]], tol)) {
+            return(FALSE)
+        }
+    }
+    return(TRUE)
+}
+
+identical.rec <- function(actual, expected, tol = NULL) {
+    if (length(actual) != length(expected))
+      return(FALSE)
+    if (typeof(actual) != typeof(expected))
+      return(FALSE)
+    if (!identical.attributes(attributes(actual), attributes(expected), tol)) {
+      return(FALSE)
+    }
+    if (is.list(actual)) {
+      for (i in seq_along(actual)) {
+        isSame <- identical.rec(actual[[i]], expected[[i]], tol)
+        if (!isSame){
+          return(FALSE)
+        }
+      }
+      return(TRUE)
+    } else if (!is.null(tol) && is.double(actual)) {
+      compareReal(actual, expected, tol)
+    } else if (!is.null(tol) && is.complex(actual)) {
+      compareReal(Re(actual), Re(expected), tol)
+    } else {
+      return(identical(actual, expected))
+    }
+}
+
 
 closeTo <- function(expected, delta) {
     stopifnot(is.numeric(expected) & is.numeric(delta) & length(delta) == 1L)
@@ -49,27 +102,10 @@ closeTo <- function(expected, delta) {
 	}
 }
 
-
-
-identicalTo <- function(expected, tol) {
+identicalTo <- function(expected, tol = NULL) {
+	tolMissing <- missing(tol) 
 	function(actual) {
-	    # When comparing floating point values, round the results 
-	    # to a fixed number of singificant digits before comparing, if 
-	    # the signif argument is provided
-	    if(!missing(tol) && is.double(expected) && is.double(actual)) {
-	        rel.diff <- abs(expected - actual) / abs(expected)
-	        finite <- is.finite(rel.diff)
-	        
-	        finiteValuesCloseEnough <- all(rel.diff[finite] < tol)
-	        nonFiniteValuesIdentical <- identical(expected[!finite], actual[!finite])
-	        
-	        finiteValuesCloseEnough &&
-	           nonFiniteValuesIdentical && 
-	            identical(attributes(expected), attributes(actual))
-	    
-	    } else { 
-            identical(expected, actual)
-	    }
+	    identical.rec(actual, expected, tol)
 	}
 }
 

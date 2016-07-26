@@ -315,7 +315,13 @@ public final class Rinternals {
   }
 
   public static DoublePtr COMPLEX (SEXP x) {
-    throw new UnimplementedGnuApiMethod("COMPLEX");
+    if(x instanceof ComplexArrayVector) {
+      return new DoublePtr(((ComplexArrayVector) x).toComplexArrayVectorUnsafe());
+//    } else if(x instanceof ComplexVector) {
+//      return new DoublePtr(((ComplexVector) x).toComplexArrayUnsafe());
+    } else {
+      throw new EvalException("COMPLEX(): expected complex vector, found %s", x.getTypeName());
+    }
   }
 
   public static SEXP STRING_ELT(SEXP x, /*R_xlen_t*/ int i) {
@@ -609,6 +615,8 @@ public final class Rinternals {
         return Vectors.asInteger((Vector)p0).setAttributes(p0.getAttributes());
       case SexpType.REALSXP:
         return Vectors.asDouble((Vector)p0).setAttributes(p0.getAttributes());
+      case SexpType.CPLXSXP:
+        return Vectors.asComplex((Vector)p0).setAttributes(p0.getAttributes());
     }
     throw new UnimplementedGnuApiMethod("Rf_coerceVector");
   }
@@ -815,6 +823,8 @@ public final class Rinternals {
       return new DoubleArrayVector((DoubleVector)sexp);
     } else if(sexp instanceof IntVector) {
       return new IntArrayVector((IntVector)sexp);
+    } else if (sexp instanceof ComplexVector) {
+      return new ComplexArrayVector((ComplexVector) sexp);
     }
     throw new UnimplementedGnuApiMethod("Rf_duplicate: " + sexp.getTypeName());
   }

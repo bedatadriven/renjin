@@ -5,11 +5,13 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.sun.codemodel.*;
 import org.apache.commons.math.complex.Complex;
+import org.renjin.invoke.annotations.AllowNull;
 import org.renjin.invoke.annotations.PreserveAttributeStyle;
 import org.renjin.invoke.codegen.scalars.ScalarType;
 import org.renjin.invoke.codegen.scalars.ScalarTypes;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.invoke.model.PrimitiveModel;
+import org.renjin.sexp.Null;
 import org.renjin.sexp.Symbols;
 import org.renjin.sexp.Vector;
 
@@ -17,6 +19,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import static com.sun.codemodel.JExpr._new;
 import static com.sun.codemodel.JExpr.cast;
 import static com.sun.codemodel.JExpr.lit;
 
@@ -123,6 +126,16 @@ public class RecycleLoopBuilder {
     cycleCount = parent.decl(codeModel._ref(int.class), "cycles");
 
     if(recycledArguments.size() == 1) {
+      
+      // NULL is not legal for unary functions, though is accepted
+      // for binary functions, unless the parameter is annotated
+      // with @AllowNull
+      if(recycledArguments.get(0).formal.getAnnotation(AllowNull.class) == null) {
+        parent._if(recycledArguments.get(0).sexp.eq(codeModel.ref(Null.class).staticRef("INSTANCE")))
+            ._then()
+            ._throw(_new(codeModel.ref(ArgumentException.class)).arg(lit("invalid NULL argument to unary function")));
+      }
+      
       parent.assign(cycleCount, recycledArguments.get(0).length);
     
     } else {

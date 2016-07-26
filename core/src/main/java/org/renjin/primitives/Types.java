@@ -238,7 +238,7 @@ public class Types {
   @Builtin("is.nan")
   @DataParallel(passNA = true)
   @Deferrable
-  public static boolean isNaN(double value) {
+  public static boolean isNaN(@AllowNull double value) {
     return !DoubleVector.isNA(value) && DoubleVector.isNaN(value);
   }
 
@@ -255,7 +255,7 @@ public class Types {
   @Builtin("is.finite")
   @DataParallel(passNA = true)
   @Deferrable
-  public static boolean isFinite(@Recycle double value) {
+  public static boolean isFinite(@AllowNull @Recycle double value) {
     return !Double.isNaN(value) && !Double.isInfinite(value);
   }
 
@@ -271,7 +271,7 @@ public class Types {
   @Builtin("is.infinite")
   @DataParallel(passNA = true)
   @Deferrable
-  public static boolean isInfinite(@Recycle double value) {
+  public static boolean isInfinite(@AllowNull @Recycle double value) {
     return Double.isInfinite(value);
   }
 

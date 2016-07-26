@@ -35,6 +35,9 @@ for(fn in unary) {
     writeTest(test, fn, input, tol = tol)
   }
   
+  # Check NULL values
+  writeTest(test, fn, NULL)
+  
   # Check vectorization
   writeTest(test, fn, inputs[1:4], tol = tol)
   

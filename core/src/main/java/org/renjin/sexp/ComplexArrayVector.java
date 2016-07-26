@@ -120,11 +120,7 @@ public class ComplexArrayVector extends ComplexVector {
   }
 
   public Iterator<Complex> iterator() {
-    Complex[] complexArray = new Complex[values.length/2];
-    for(int i = 0; i < complexArray.length; ++i) {
-      complexArray[i] = new Complex(values[i*2], values[i*2+1]);
-    }
-    return Iterators.forArray(complexArray);
+    return Arrays.asList(toComplexArray()).iterator();
   }
 
   @Override

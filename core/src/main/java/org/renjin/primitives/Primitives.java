@@ -34,7 +34,6 @@ import org.renjin.sexp.*;
 import org.renjin.stats.internals.CompleteCases;
 import org.renjin.stats.internals.Covariance;
 import org.renjin.stats.internals.Distributions;
-import org.renjin.stats.internals.FFT;
 import org.renjin.stats.internals.distributions.Beta;
 import org.renjin.stats.internals.distributions.PsiGamma;
 import org.renjin.stats.internals.distributions.RNG;
@@ -821,9 +820,6 @@ public class Primitives {
     f("unlink", Files.class, 111);
 
 /* Complex Valued Functions */
-    f("fft", FFT.class, 11);
-    f("mvfft", /*mvfft*/ null, 11);
-    f("nextn", /*nextn*/ null, 11);
     f("polyroot", /*polyroot*/ null, 11);
 
 /* Device Drivers */

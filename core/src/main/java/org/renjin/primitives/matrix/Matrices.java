@@ -80,9 +80,9 @@ public class Matrices {
 
     // Copy any remaining attributes
     for (Symbol attribute : x.getAttributes().names()) {
-      if(attribute != Symbols.NAMES &&
-         attribute != Symbols.DIM &&
-         attribute != Symbols.DIMNAMES) {
+      if (attribute != Symbols.NAMES &&
+          attribute != Symbols.DIM &&
+          attribute != Symbols.DIMNAMES) {
         matrixDims.set(attribute, x.getAttribute(attribute));
       }
     }

@@ -1,6 +1,7 @@
 library(hamcrest)
 
- expected <- c(2.22044604925031e-16+0i, 1.5-3i, 1.5+3i) 
+ expected <- c(0x1p-52 + 0x0p+0i, 0x1.8p+0 + -0x1.800000000000ap+1i, 0x1.8p+0 + 0x1.800000000000ap+1i
+) 
  
 
 assertThat(stats:::fft(z=c(1, 1.23205080756888, -2.23205080756888))

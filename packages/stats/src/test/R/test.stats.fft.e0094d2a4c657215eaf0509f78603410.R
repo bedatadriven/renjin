@@ -1,6 +1,7 @@
 library(hamcrest)
 
- expected <- c(7+0i, 5.33012701892219+0i, -3.33012701892219+0i) 
+ expected <- c(0x1.cp+2 + 0x0p+0i, 0x1.5520cd1372feap+2 + 0x0p+0i, -0x1.aa419a26e5fd4p+1 + 0x0p+0i
+) 
  
 
 assertThat(stats:::fft(inverse=TRUE,z=c(3+0i, 2-2.5i, 2+2.5i))

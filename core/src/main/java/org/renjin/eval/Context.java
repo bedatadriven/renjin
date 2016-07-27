@@ -51,7 +51,7 @@ import java.util.Map;
  * (such as via traceback) and otherwise (the sys.xxx functions).
  */
 public class Context {
-
+  
 
   public enum Type {
     /** toplevel context */
@@ -232,6 +232,10 @@ public class Context {
     } else {
       return null;
     }
+  }
+
+  public void clearState(Class<?> stateType) {
+    stateMap.remove(stateType);
   }
 
   public <T> T getSingleton(Class<T> clazz) {

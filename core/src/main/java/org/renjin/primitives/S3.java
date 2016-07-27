@@ -620,6 +620,9 @@ public class S3 {
           return function.apply(callContext, callEnvironment, newCall, args);
         }
       } finally {
+        
+        callContext.clearState(GenericMethod.class);
+        
         if(Profiler.ENABLED) {
           Profiler.functionEnd();
         }

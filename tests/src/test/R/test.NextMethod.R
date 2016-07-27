@@ -1,6 +1,6 @@
 
 library(hamcrest)
-
+library(stats)
 
 test.many <- function() {
 

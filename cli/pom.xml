@@ -34,6 +34,11 @@
     </dependency>
     <dependency>
       <groupId>org.renjin</groupId>
+      <artifactId>hamcrest</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.renjin</groupId>
       <artifactId>renjin-gnur-compiler</artifactId>
       <version>${project.version}</version>
     </dependency>

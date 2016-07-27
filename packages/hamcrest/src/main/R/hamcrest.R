@@ -47,9 +47,8 @@ compareReal <- function(actual, expected, tol) {
   finite <- is.finite(rel.diff) & expected != 0
   finiteValuesCloseEnough <- all(rel.diff[finite] < tol)
   nonFiniteValuesIdentical <- identical(expected[!finite], actual[!finite])
-  return( (finiteValuesCloseEnough && 
-      nonFiniteValuesIdentical && 
-      identical(attributes(expected), attributes(actual))) )
+  
+  return( finiteValuesCloseEnough && nonFiniteValuesIdentical )
 }
 
 identical.attributes <- function(actual, expected, tol = NULL) {
@@ -85,9 +84,10 @@ identical.rec <- function(actual, expected, tol = NULL) {
       }
       return(TRUE)
     } else if (!is.null(tol) && is.double(actual)) {
-      compareReal(actual, expected, tol)
+      compareReal(unclass(actual), unclass(expected), tol)
     } else if (!is.null(tol) && is.complex(actual)) {
-      compareReal(Re(actual), Re(expected), tol)
+      compareReal(unclass(Re(actual)), unclass(Re(expected)), tol) &&
+        compareReal(unclass(Im(actual)), unclass(Im(expected)), tol)
     } else {
       return(identical(actual, expected))
     }

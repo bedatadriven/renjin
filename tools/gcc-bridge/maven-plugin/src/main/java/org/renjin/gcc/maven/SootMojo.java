@@ -28,6 +28,11 @@ public class SootMojo extends AbstractMojo {
   @Parameter
   private List<String> optimize;
 
+  @Parameter
+  private boolean verbose = false;
+  
+  @Parameter
+  private boolean debug = false;
   
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
@@ -44,9 +49,21 @@ public class SootMojo extends AbstractMojo {
     args.add("-cp");
     args.add(compileClassPath());
     
+    if(verbose) {
+      args.add("-v");
+    }
+    
+    if(debug) {
+      args.add("-debug");
+    }
+    
     // Add classes to optimize
     args.add("-O");
     args.addAll(optimize);
+    
+    // Write out to build directory and overwrite existing classfiles
+    args.add("-d");
+    args.add(project.getBuild().getOutputDirectory());
     
     soot.Main.main(args.toArray(new String[args.size()]));
   }

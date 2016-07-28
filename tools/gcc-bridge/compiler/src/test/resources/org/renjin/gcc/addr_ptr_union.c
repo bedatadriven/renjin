@@ -25,3 +25,18 @@ void test() {
     double *pd = s.p;
     ASSERT(pd[0] == 42)
 }
+
+// Now with union, which is effectively the same thing
+
+union su {
+    int *pi;
+    double *pd;
+};
+
+void test_union() {
+    union su u;
+    init_p(&u.pd);
+    
+    double *pd = u.pd;
+    ASSERT(pd[0] == 42)
+}

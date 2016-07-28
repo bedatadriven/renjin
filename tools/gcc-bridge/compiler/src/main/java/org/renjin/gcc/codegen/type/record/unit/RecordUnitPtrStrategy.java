@@ -8,6 +8,7 @@ import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.AddressableField;
+import org.renjin.gcc.codegen.fatptr.FatPtr;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
 import org.renjin.gcc.codegen.type.*;
@@ -67,8 +68,8 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>
 
   @Override
   public RecordUnitPtr cast(GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
-    if(typeStrategy instanceof FatPtrStrategy) {
-      FatPtrPair ptr = (FatPtrPair) value;
+    if(value instanceof FatPtr) {
+      FatPtrPair ptr = ((FatPtr) value).toPair();
       // TODO
       // Currently we punt until runtime by triggering a ClassCastException
       return new RecordUnitPtr(Expressions.uncheckedCast(ptr.getArray(), strategy.getJvmType()));

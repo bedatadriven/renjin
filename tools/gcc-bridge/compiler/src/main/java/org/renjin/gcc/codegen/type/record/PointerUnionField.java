@@ -18,6 +18,8 @@ import org.renjin.repackaged.asm.Type;
  * We store the value as a single Object instance.
  */
 public class PointerUnionField extends FieldStrategy {
+
+  private static final Type OBJECT_TYPE = Type.getType(Object.class);
   
   private Type declaringClass;
   private String fieldName;
@@ -29,7 +31,7 @@ public class PointerUnionField extends FieldStrategy {
 
   @Override
   public void writeFields(ClassVisitor cv) {
-    cv.visitField(Opcodes.ACC_PUBLIC, fieldName, Type.getDescriptor(Object.class), null, null);
+    cv.visitField(Opcodes.ACC_PUBLIC, fieldName, OBJECT_TYPE.getDescriptor(), null, null);
   }
 
   @Override

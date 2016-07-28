@@ -20,7 +20,10 @@ useDynLib(stats, .registration = FALSE, .fixes="C_",
     runmed,
     fft,
     mvfft,
-    nextn
+    nextn,
+    SplineCoef,
+    SplineEval,
+    monoFC_m
     )
 
 # exportPattern("^[^\\.]")

@@ -54,7 +54,14 @@ public class Wrappers {
   }
   
   public static Type valueArrayType(Type valueType) {
-    return Type.getType("[" + valueType.getDescriptor());
+    if(valueType.getSort() == Type.ARRAY) {
+      throw new IllegalArgumentException("valueType: " + valueType);
+    }
+    if(valueType.getSort() == Type.OBJECT) {
+      return Type.getType("[Ljava/lang/Object;");
+    } else {
+      return Type.getType("[" + valueType.getDescriptor());
+    }
   }
   
   public static JExpr arrayField(JExpr wrapperInstance) {
@@ -72,7 +79,11 @@ public class Wrappers {
 
 
   private static Type arrayType(Type valueType) {
-    return Type.getType("[" + valueType.getDescriptor());
+    if(valueType.getSort() == Type.OBJECT) {
+      return Type.getType("[Ljava/lang/Object;");
+    } else {
+      return Type.getType("[" + valueType.getDescriptor());
+    }
   }
 
   public static JExpr offsetField(JExpr wrapperInstance) {

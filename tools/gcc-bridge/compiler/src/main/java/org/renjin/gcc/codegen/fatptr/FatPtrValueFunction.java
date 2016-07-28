@@ -46,14 +46,21 @@ public class FatPtrValueFunction implements ValueFunction {
    */
   @Override
   public GExpr dereference(JExpr array, JExpr offset) {
-    // DoublePtr[] array
+    // Object[] array
     // int offset
-    // double[] unwrappedArray = array[offset].array
-    // int unwrappedOffset = array[offset].offset
+    // DoublePtr wrapper = (DoublePtr)array[offset];
+    // double[] unwrappedArray = wrapper.array
+    // int unwrappedOffset = wrapper.offset
     
+    // First we get the element from the array of Objects[]
     FatPtrExpr address = new FatPtrExpr(array, offset);
-    JExpr wrapperInstance = Expressions.elementAt(array, offset);
+    JExpr element = Expressions.elementAt(array, offset);
     
+    // Now cast the Object instance to an instance of e.g. DoublePtr
+    Type wrapperType = Wrappers.wrapperType(baseValueFunction.getValueType());
+    JExpr wrapperInstance = Expressions.cast(element, wrapperType);
+        
+    // Now we have references to the array and offset fields of the wrapper
     JExpr unwrappedArray = Wrappers.arrayField(wrapperInstance, baseValueFunction.getValueType());
     JExpr unwrappedOffset = Wrappers.offsetField(wrapperInstance);
 

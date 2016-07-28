@@ -39,7 +39,11 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtrExpr> {
 
   public FatPtrStrategy(ValueFunction valueFunction) {
     this.valueFunction = valueFunction;
-    this.arrayType = Type.getType("[" + valueFunction.getValueType().getDescriptor());
+    if(valueFunction.getValueType().getSort() == Type.OBJECT) {
+      arrayType = Type.getType("[Ljava/lang/Object;");
+    } else {
+      arrayType = Type.getType("[" + valueFunction.getValueType().getDescriptor());
+    }
   }
 
   public boolean isParametersWrapped() {

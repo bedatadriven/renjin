@@ -29,16 +29,16 @@ public class WrappedFatPtrParamStrategy implements ParamStrategy {
 
   @Override
   public GExpr emitInitialization(MethodGenerator mv, GimpleParameter parameter, List<JLValue> paramVars, VarAllocator localVars) {
-    JLValue array = localVars.reserveArrayRef(parameter.getName() + "$array", valueFunction.getValueType());
+    JLValue array = localVars.reserve(parameter.getName() + "$array", Wrappers.valueArrayType(valueFunction.getValueType()));
     JLValue offset = localVars.reserveInt(parameter.getName() + "$offset");
 
     JExpr wrapper = paramVars.get(0);
     JExpr arrayField = Wrappers.arrayField(wrapper, valueFunction.getValueType());
     JExpr offsetField = Wrappers.offsetField(wrapper);
 
-    if(valueFunction.getValueType().getSort() == Type.OBJECT) {
-      arrayField = Expressions.cast(arrayField, Wrappers.valueArrayType(valueFunction.getValueType()));
-    }
+//    if(valueFunction.getValueType().getSort() == Type.OBJECT) {
+//      arrayField = Expressions.cast(arrayField, Wrappers.valueArrayType(valueFunction.getValueType()));
+//    }
 
     array.store(mv, arrayField);
     offset.store(mv, offsetField);

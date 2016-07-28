@@ -1,8 +1,8 @@
 package org.renjin.gcc.codegen.type.record;
 
-import org.renjin.gcc.codegen.expr.Expressions;
-import org.renjin.gcc.codegen.expr.GExpr;
-import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.expr.*;
+import org.renjin.gcc.codegen.fatptr.FatPtr;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.Wrappers;
 import org.renjin.gcc.codegen.type.FieldStrategy;
@@ -13,7 +13,10 @@ import org.renjin.repackaged.asm.ClassVisitor;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 
-
+/**
+ * A field that is the union of more than one pointer types.
+ * We store the value as a single Object instance.
+ */
 public class PointerUnionField extends FieldStrategy {
   
   private Type declaringClass;
@@ -31,21 +34,73 @@ public class PointerUnionField extends FieldStrategy {
 
   @Override
   public GExpr memberExpr(JExpr instance, int fieldOffset, GimpleType expectedType) {
-    JExpr voidPtr = Expressions.field(instance, Type.getType(Object.class), fieldName);
+    JLValue fieldExpr = Expressions.field(instance, Type.getType(Object.class), fieldName);
 
     if(expectedType == null) {
-      return new VoidPtr(voidPtr);
+      return new VoidPtr(fieldExpr);
     }
 
     if(expectedType.isPointerTo(GimplePrimitiveType.class)) {
       GimplePrimitiveType baseType = expectedType.getBaseType();
-      JExpr wrapperInstance = Expressions.cast(voidPtr, Wrappers.wrapperType(baseType.jvmType()));
-      JExpr unwrappedArray = Wrappers.arrayField(wrapperInstance, baseType.jvmType());
-      JExpr unwrappedOffset = Wrappers.offsetField(wrapperInstance);
-
-      return new FatPtrPair(unwrappedArray, unwrappedOffset);
+      return new PrimitiveFatPtrExpr(fieldExpr, baseType);
+      
     } else {
       throw new UnsupportedOperationException("TODO: " + expectedType);
     }
   }
+  
+  private class PrimitiveFatPtrExpr implements FatPtr {
+
+    private JLValue fieldExpr;
+    private GimplePrimitiveType baseType;
+
+    public PrimitiveFatPtrExpr(JLValue fieldExpr, GimplePrimitiveType baseType) {
+      this.fieldExpr = fieldExpr;
+      this.baseType = baseType;
+    }
+
+    @Override
+    public Type getValueType() {
+      return baseType.jvmType();
+    }
+
+    @Override
+    public boolean isAddressable() {
+      return false;
+    }
+
+    @Override
+    public JExpr wrap() {
+      return fieldExpr;
+    }
+
+    @Override
+    public FatPtrPair toPair(MethodGenerator mv) {
+      return toPair();
+    }
+
+    @Override
+    public FatPtrPair toPair() {
+      Type wrapperType = Wrappers.wrapperType(baseType.jvmType());
+      JExpr wrapper = Expressions.cast(fieldExpr, wrapperType);
+      
+      return Wrappers.toPair(wrapper);
+      
+    }
+
+    @Override
+    public void store(MethodGenerator mv, GExpr rhs) {
+      if(rhs instanceof FatPtr) {
+        fieldExpr.store(mv, ((FatPtr) rhs).wrap());
+      } else {
+        throw new UnsupportedOperationException("TODO: " + rhs.getClass().getName());
+      }
+    }
+
+    @Override
+    public GExpr addressOf() {
+      throw new NotAddressableException();
+    }
+  }
+  
 }

@@ -68,18 +68,13 @@ public class DereferencedFatPtr implements RefPtrExpr, FatPtr {
     LocalVarAllocator.LocalVar wrapper = mv.getLocalVarAllocator().reserve(wrapperType);
     wrapper.store(mv, castedElement());
 
-    return toPair(wrapper);
+    return Wrappers.toPair(wrapper);
   }
   
   @Override
   public FatPtrPair toPair() {
-    return toPair(castedElement());
+    return Wrappers.toPair(castedElement());
   }
 
-  private FatPtrPair toPair(JExpr wrapper) {
-    JExpr array = Wrappers.arrayField(wrapper, valueFunction.getValueType());
-    JExpr offset = Wrappers.offsetField(wrapper);
-
-    return new FatPtrPair(array, offset);
-  }
+  
 }

@@ -146,4 +146,12 @@ public class Wrappers {
     String componentDescriptor = arrayDescriptor.substring(1);
     return Type.getType(componentDescriptor);
   }
+
+  public static FatPtrPair toPair(JExpr wrapper) {
+
+    JExpr array = Wrappers.arrayField(wrapper,  valueType(wrapper.getType()));
+    JExpr offset = Wrappers.offsetField(wrapper);
+
+    return new FatPtrPair(array, offset);
+  }
 }

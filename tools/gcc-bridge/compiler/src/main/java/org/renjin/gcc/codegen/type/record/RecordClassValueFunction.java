@@ -47,11 +47,15 @@ public class RecordClassValueFunction implements ValueFunction {
 
   @Override
   public RecordValue dereference(JExpr array, JExpr offset) {
-    ArrayElement element = Expressions.elementAt(array, offset);
-    JExpr castedElement = Expressions.cast(element, strategy.getJvmType());
+    JExpr castedElement = elementAt(array, offset);
     FatPtrPair address = new FatPtrPair(array, offset);
     
     return new RecordValue(castedElement, address);
+  }
+
+  private JExpr elementAt(JExpr array, JExpr offset) {
+    ArrayElement element = Expressions.elementAt(array, offset);
+    return Expressions.cast(element, strategy.getJvmType());
   }
 
   @Override
@@ -109,8 +113,8 @@ public class RecordClassValueFunction implements ValueFunction {
                            JExpr sourceArray, JExpr sourceOffset, 
                            JExpr index) {
     
-    ArrayElement destRef = Expressions.elementAt(destinationArray, Expressions.sum(destinationOffset, index));
-    ArrayElement sourceRef = Expressions.elementAt(sourceArray, Expressions.sum(sourceOffset, index));
+    JExpr destRef = elementAt(destinationArray, Expressions.sum(destinationOffset, index));
+    JExpr sourceRef = elementAt(sourceArray, Expressions.sum(sourceOffset, index));
 
     destRef.load(mv);
     sourceRef.load(mv);

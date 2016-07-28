@@ -19,8 +19,8 @@ class Rectangle {
     }
     
     Rectangle( const Rectangle& other){
-        width = 91;
-        height = 92;
+        width = other.width;
+        height = other.height;
     }
 
     

@@ -10,23 +10,21 @@ public class DereferencedFatPtr implements RefPtrExpr, FatPtr {
   private final ValueFunction valueFunction;
   private JExpr array;
   private JExpr offset;
+  private Type wrapperType;
 
   public DereferencedFatPtr(JExpr array, JExpr offset, ValueFunction valueFunction) {
     this.array = array;
     this.offset = offset;
     this.valueFunction = valueFunction;
-  }
-
-  public JExpr getOffset() {
-    return offset;
-  }
-
-  public JExpr getArray() {
-    return array;
+    this.wrapperType = Wrappers.wrapperType(valueFunction.getValueType());
   }
 
   private ArrayElement element() {
     return Expressions.elementAt(array, offset);
+  }
+  
+  private JExpr castedElement() {
+    return Expressions.cast(element(), wrapperType);
   }
 
   @Override
@@ -67,16 +65,15 @@ public class DereferencedFatPtr implements RefPtrExpr, FatPtr {
 
   @Override
   public FatPtrPair toPair(MethodGenerator mv) {
-    Type wrapperType = Wrappers.wrapperType(valueFunction.getValueType());
     LocalVarAllocator.LocalVar wrapper = mv.getLocalVarAllocator().reserve(wrapperType);
-    wrapper.store(mv, element());
+    wrapper.store(mv, castedElement());
 
     return toPair(wrapper);
   }
   
   @Override
   public FatPtrPair toPair() {
-    return toPair(element());
+    return toPair(castedElement());
   }
 
   private FatPtrPair toPair(JExpr wrapper) {

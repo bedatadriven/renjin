@@ -77,14 +77,9 @@ public final class FatPtrPair implements FatPtr {
       
       store(mv, arrayField, offsetField);
 
-    } else if(rhsExpr instanceof DereferencedFatPtr) {
-      
-      DereferencedFatPtr deref = (DereferencedFatPtr) rhsExpr;
-      store(mv, deref.getArray(), deref.getOffset());
-      
-    } else if(rhsExpr instanceof FatPtrPair) {
-      FatPtrPair fatPtr = (FatPtrPair) rhsExpr;
-      store(mv, fatPtr.getArray(), fatPtr.getOffset());
+    } else if(rhsExpr instanceof FatPtr) {
+      FatPtrPair pair = ((FatPtr) rhsExpr).toPair(mv);
+      store(mv, pair.getArray(), pair.getOffset());
 
     } else {
       throw new UnsupportedOperationException("rhs: " + rhsExpr);

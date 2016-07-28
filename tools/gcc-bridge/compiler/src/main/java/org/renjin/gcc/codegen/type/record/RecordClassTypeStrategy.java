@@ -6,7 +6,7 @@ import org.renjin.gcc.codegen.array.ArrayTypeStrategies;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.AddressableField;
-import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
+import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
@@ -75,7 +75,7 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<RecordValue> imp
 
     } else if(decl.isAddressable()) {
       JLValue unitArray = allocator.reserveUnitArray(decl.getName(), layout.getType(), Optional.of((JExpr)instance));
-      FatPtrExpr address = new FatPtrExpr(unitArray);
+      FatPtrPair address = new FatPtrPair(unitArray);
       JExpr value = Expressions.elementAt(address.getArray(), 0);
       return new RecordValue(value, address);
 

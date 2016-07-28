@@ -12,11 +12,11 @@ import javax.annotation.Nonnull;
  */
 public class FatPtrRealloc implements JExpr {
 
-  private FatPtrExpr pointer;
+  private FatPtrPair pointer;
   private JExpr newLength;
   private Type arrayType;
 
-  public FatPtrRealloc(FatPtrExpr pointer, JExpr newLength) {
+  public FatPtrRealloc(FatPtrPair pointer, JExpr newLength) {
     this.pointer = pointer;
     this.newLength = newLength;
     arrayType = pointer.getArray().getType();

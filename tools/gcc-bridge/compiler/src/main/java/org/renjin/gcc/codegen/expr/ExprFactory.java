@@ -6,7 +6,7 @@ import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.call.FunPtrCallGenerator;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
-import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
+import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.type.PointerTypeStrategy;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.TypeStrategy;
@@ -17,7 +17,6 @@ import org.renjin.gcc.codegen.type.complex.ComplexValues;
 import org.renjin.gcc.codegen.type.fun.FunPtr;
 import org.renjin.gcc.codegen.type.primitive.*;
 import org.renjin.gcc.codegen.type.primitive.op.*;
-import org.renjin.gcc.codegen.type.record.FieldTypeSet;
 import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.expr.*;
@@ -95,7 +94,7 @@ public class ExprFactory {
         // passing them to functions
 
         JExpr value = findPrimitiveGenerator(addressOf.getValue());
-        return new FatPtrExpr(Expressions.newArray(value));
+        return new FatPtrPair(Expressions.newArray(value));
 
       } else  {
         GExpr value = findGenerator(addressOf.getValue());
@@ -129,7 +128,7 @@ public class ExprFactory {
     } else if(expr instanceof GimpleConstantRef) {
       GimpleConstant constant = ((GimpleConstantRef) expr).getValue();
       JExpr constantValue = findPrimitiveGenerator(constant);
-      FatPtrExpr address = new FatPtrExpr(Expressions.newArray(constantValue));
+      FatPtrPair address = new FatPtrPair(Expressions.newArray(constantValue));
       
       return new PrimitiveValue(constantValue, address);
 

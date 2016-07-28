@@ -30,7 +30,7 @@ public class FatPtrReturnStrategy implements ReturnStrategy {
 
   @Override
   public JExpr marshall(GExpr expr) {
-    FatPtrExpr fatPtr = (FatPtrExpr) expr;
+    FatPtrPair fatPtr = (FatPtrPair) expr;
     return fatPtr.wrap();
   }
 
@@ -43,12 +43,12 @@ public class FatPtrReturnStrategy implements ReturnStrategy {
     JExpr array = Wrappers.arrayField(wrapper, valueFunction.getValueType());
     JExpr offset = Wrappers.offsetField(wrapper);
 
-    return new FatPtrExpr(array, offset);
+    return new FatPtrPair(array, offset);
   }
 
   @Override
   public JExpr getDefaultReturnValue() {
     Type arrayType = Wrappers.valueArrayType(valueFunction.getValueType());
-    return new FatPtrExpr(Expressions.nullRef(arrayType)).wrap();
+    return new FatPtrPair(Expressions.nullRef(arrayType)).wrap();
   }
 }

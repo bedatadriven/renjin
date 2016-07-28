@@ -30,10 +30,10 @@ public class FatPtrFieldStrategy extends FieldStrategy {
   }
 
   @Override
-  public FatPtrExpr memberExpr(JExpr instance, int fieldOffset, GimpleType expectedType) {
+  public FatPtrPair memberExpr(JExpr instance, int fieldOffset, GimpleType expectedType) {
     JExpr array = Expressions.field(instance, arrayType, arrayField);
     JExpr offset = Expressions.field(instance, Type.INT_TYPE, offsetField);
-    return new FatPtrExpr(array, offset);
+    return new FatPtrPair(array, offset);
   }
 
 }

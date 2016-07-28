@@ -37,13 +37,13 @@ public class FatPtrParamStrategy implements ParamStrategy {
       throw new UnsupportedOperationException("TODO: Addressable parameters");
     }
     
-    return new FatPtrExpr(paramVars.get(0), paramVars.get(1));
+    return new FatPtrPair(paramVars.get(0), paramVars.get(1));
   }
 
   @Override
   public void loadParameter(MethodGenerator mv, Optional<GExpr> argument) {
     if(argument.isPresent()) {
-      FatPtrExpr expr = (FatPtrExpr) argument.get();
+      FatPtrPair expr = (FatPtrPair) argument.get();
       expr.getArray().load(mv);
       expr.getOffset().load(mv);
     } else {

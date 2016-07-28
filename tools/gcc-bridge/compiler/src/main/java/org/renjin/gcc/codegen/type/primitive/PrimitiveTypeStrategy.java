@@ -6,7 +6,7 @@ import org.renjin.gcc.codegen.array.ArrayTypeStrategies;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.AddressableField;
-import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
+import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.type.primitive.op.CastGenerator;
@@ -64,7 +64,7 @@ public class PrimitiveTypeStrategy implements SimpleTypeStrategy<PrimitiveValue>
   public PrimitiveValue variable(GimpleVarDecl decl, VarAllocator allocator) {
     if(decl.isAddressable()) {
       JLValue unitArray = allocator.reserveUnitArray(decl.getNameIfPresent(), type.jvmType(), Optional.<JExpr>absent());
-      FatPtrExpr address = new FatPtrExpr(unitArray);
+      FatPtrPair address = new FatPtrPair(unitArray);
       JExpr value = Expressions.elementAt(address.getArray(), 0);
       return new PrimitiveValue(value, address);
       
@@ -99,7 +99,7 @@ public class PrimitiveTypeStrategy implements SimpleTypeStrategy<PrimitiveValue>
     }
     
     if(typeStrategy instanceof FatPtrStrategy) {
-      return ((FatPtrStrategy) typeStrategy).toInt((FatPtrExpr) value);
+      return ((FatPtrStrategy) typeStrategy).toInt((FatPtrPair) value);
     
     } else if(value instanceof RefPtrExpr) {
       RefPtrExpr ptrExpr = (RefPtrExpr) value;

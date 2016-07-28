@@ -43,7 +43,7 @@ public class WrappedFatPtrParamStrategy implements ParamStrategy {
     array.store(mv, arrayField);
     offset.store(mv, offsetField);
     
-    return new FatPtrExpr(array, offset);
+    return new FatPtrPair(array, offset);
   }
 
   @Override
@@ -62,8 +62,8 @@ public class WrappedFatPtrParamStrategy implements ParamStrategy {
       JExpr wrappedPtr = Expressions.cast(refPtr.unwrap(), Wrappers.wrapperType(valueFunction.getValueType()));
       wrappedPtr.load(mv);
     
-    } else if(argumentValue instanceof FatPtrExpr) {
-      FatPtrExpr fatPtrExpr = (FatPtrExpr) argumentValue;
+    } else if(argumentValue instanceof FatPtrPair) {
+      FatPtrPair fatPtrExpr = (FatPtrPair) argumentValue;
       fatPtrExpr.wrap().load(mv);  
    
     } else {

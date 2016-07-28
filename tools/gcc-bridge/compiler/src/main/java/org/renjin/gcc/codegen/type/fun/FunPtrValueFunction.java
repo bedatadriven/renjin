@@ -6,7 +6,7 @@ import org.renjin.gcc.codegen.expr.ArrayElement;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
+import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.repackaged.asm.Type;
 
@@ -46,7 +46,7 @@ public class FunPtrValueFunction implements ValueFunction {
   @Override
   public GExpr dereference(JExpr array, JExpr offset) {
     ArrayElement ptr = Expressions.elementAt(array, offset);
-    FatPtrExpr address = new FatPtrExpr(array, offset);
+    FatPtrPair address = new FatPtrPair(array, offset);
     return new FunPtr(ptr, address);
   }
 

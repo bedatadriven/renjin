@@ -6,7 +6,7 @@ import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.AddressableField;
-import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
+import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.var.VarAllocator;
@@ -102,7 +102,7 @@ public class VoidPtrStrategy implements PointerTypeStrategy<VoidPtr>, SimpleType
   public VoidPtr variable(GimpleVarDecl decl, VarAllocator allocator) {
     if(decl.isAddressable()) {
       JLValue unitArray = allocator.reserveArrayRef(decl.getName(), Type.getType(Object.class));
-      FatPtrExpr address = new FatPtrExpr(unitArray);
+      FatPtrPair address = new FatPtrPair(unitArray);
       JExpr value = Expressions.elementAt(unitArray, 0);
       
       return new VoidPtr(value, address);

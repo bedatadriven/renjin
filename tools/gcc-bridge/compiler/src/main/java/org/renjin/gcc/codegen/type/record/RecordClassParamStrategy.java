@@ -5,7 +5,7 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
-import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
+import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
 import org.renjin.gcc.codegen.var.VarAllocator;
@@ -46,7 +46,7 @@ public class RecordClassParamStrategy implements ParamStrategy {
         JLValue array = localVars.reserveUnitArray(parameter.getName(), jvmType,
             Optional.of(Expressions.newObject(jvmType)));
 
-        FatPtrExpr address = new FatPtrExpr(array);
+        FatPtrPair address = new FatPtrPair(array);
         RecordValue value = new RecordValue(Expressions.elementAt(array, 0), address);
         
         return value;

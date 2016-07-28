@@ -9,22 +9,21 @@ import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.gcc.codegen.type.primitive.ConstantValue;
 import org.renjin.gcc.codegen.type.voidt.VoidPtr;
-import org.renjin.gcc.codegen.var.LocalVarAllocator;
 import org.renjin.repackaged.asm.Type;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
- * An expression generator that uses a combination of an array plus an offset to represent a pointer. 
+ * A FatPtr expression compiled as a pair of array and an offset.
  */
-public final class FatPtrExpr implements GExpr {
+public final class FatPtrPair implements FatPtr {
 
   private JExpr array;
   private JExpr offset;
   private GExpr address;
 
-  public FatPtrExpr(@Nullable GExpr address, @Nonnull JExpr array, @Nonnull JExpr offset) {
+  public FatPtrPair(@Nullable GExpr address, @Nonnull JExpr array, @Nonnull JExpr offset) {
     Preconditions.checkNotNull(array, "array");
     Preconditions.checkNotNull(offset, "offset");
 
@@ -33,11 +32,11 @@ public final class FatPtrExpr implements GExpr {
     this.offset = offset;
   }
 
-  public FatPtrExpr(@Nonnull JExpr array, @Nonnull JExpr offset) {
+  public FatPtrPair(@Nonnull JExpr array, @Nonnull JExpr offset) {
     this(null, array, offset);
   }
   
-  public FatPtrExpr(JExpr array) {
+  public FatPtrPair(JExpr array) {
     this(array, Expressions.zero());
   }
 
@@ -51,21 +50,20 @@ public final class FatPtrExpr implements GExpr {
     return offset;
   }
 
+  @Override
   public Type getValueType() {
     String arrayDescriptor = array.getType().getDescriptor();
     Preconditions.checkState(arrayDescriptor.startsWith("["));
     return Type.getType(arrayDescriptor.substring(1));
   }
 
-  public FatPtrExpr copyOf() {
-    return new FatPtrExpr(Expressions.copyOfArray(array), offset);
+  public FatPtrPair copyOf() {
+    return new FatPtrPair(Expressions.copyOfArray(array), offset);
   }
   
   @Override
   @SuppressWarnings("unchecked")
   public void store(MethodGenerator mv, GExpr rhsExpr) {
-
-    FatPtrExpr rhs;
 
     if(rhsExpr instanceof VoidPtr) {
       VoidPtr ptr = (VoidPtr) rhsExpr;
@@ -77,24 +75,32 @@ public final class FatPtrExpr implements GExpr {
       JExpr arrayField = Wrappers.arrayField(castedWrapper, getValueType());
       JExpr offsetField = Wrappers.offsetField(castedWrapper);
       
-      rhs = new FatPtrExpr(arrayField, offsetField);
+      store(mv, arrayField, offsetField);
+
+    } else if(rhsExpr instanceof DereferencedFatPtr) {
       
-    } else if(rhsExpr instanceof FatPtrExpr) {
-      rhs = (FatPtrExpr) rhsExpr;
-    
+      DereferencedFatPtr deref = (DereferencedFatPtr) rhsExpr;
+      store(mv, deref.getArray(), deref.getOffset());
+      
+    } else if(rhsExpr instanceof FatPtrPair) {
+      FatPtrPair fatPtr = (FatPtrPair) rhsExpr;
+      store(mv, fatPtr.getArray(), fatPtr.getOffset());
+
     } else {
       throw new UnsupportedOperationException("rhs: " + rhsExpr);
     }
+  }
 
+  private void store(MethodGenerator mv, JExpr arrayRhs, JExpr offsetRhs) {
     if (!(array instanceof JLValue)) {
       throw new InternalCompilerException(array + " is not an LValue");
     }
-    ((JLValue) array).store(mv, rhs.getArray());
+    ((JLValue) array).store(mv, arrayRhs);
 
     // Normally, the offset must also be an LValue, but the exception 
     // is that if both the lhs and rhs are constants, and they are equal
     if (offset instanceof ConstantValue &&
-        offset.equals(rhs.getOffset())) {
+        offset.equals(offsetRhs)) {
       // No assignment neccessary
       return;
     }
@@ -103,15 +109,15 @@ public final class FatPtrExpr implements GExpr {
     if (!(offset instanceof JLValue)) {
       throw new InternalCompilerException(offset + " offset is not an Lvalue");
     }
-    ((JLValue) offset).store(mv, rhs.getOffset());
+    ((JLValue) offset).store(mv, offsetRhs);
   }
 
 
-  public static FatPtrExpr nullPtr(ValueFunction valueFunction) {
+  public static FatPtrPair nullPtr(ValueFunction valueFunction) {
     Type arrayType = Wrappers.valueArrayType(valueFunction.getValueType());
     JExpr nullArray = Expressions.nullRef(arrayType);
     
-    return new FatPtrExpr(nullArray);
+    return new FatPtrPair(nullArray);
   }
 
   public JExpr wrap() {
@@ -134,7 +140,18 @@ public final class FatPtrExpr implements GExpr {
       }
     };
   }
-  
+
+  @Override
+  public FatPtrPair toPair(MethodGenerator mv) {
+    return this;
+  }
+
+  @Override
+  public FatPtrPair toPair() {
+    return this;
+  }
+
+  @Override
   public boolean isAddressable() {
     return address != null;
   }

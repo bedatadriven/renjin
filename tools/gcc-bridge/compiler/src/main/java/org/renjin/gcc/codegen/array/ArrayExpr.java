@@ -4,7 +4,7 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
+import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 
 
@@ -50,6 +50,6 @@ public class ArrayExpr implements GExpr {
 
   @Override
   public GExpr addressOf() {
-    return new FatPtrExpr(array, offset);
+    return new FatPtrPair(array, offset);
   }
 }

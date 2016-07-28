@@ -5,7 +5,7 @@ import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
-import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
+import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
 import org.renjin.gcc.codegen.type.primitive.op.NegativeValue;
 import org.renjin.repackaged.asm.Type;
@@ -15,12 +15,12 @@ import org.renjin.repackaged.asm.Type;
  * Complex numerical value
  */
 public class ComplexValue implements GExpr {
-  private FatPtrExpr address;
+  private FatPtrPair address;
   private JExpr realValue;
   private JExpr imaginaryValue;
   private Type componentType;
   
-  public ComplexValue(FatPtrExpr address, JExpr realValue, JExpr imaginaryValue) {
+  public ComplexValue(FatPtrPair address, JExpr realValue, JExpr imaginaryValue) {
     this.address = address;
     this.realValue = realValue;
     this.imaginaryValue = imaginaryValue;
@@ -85,7 +85,7 @@ public class ComplexValue implements GExpr {
   }
 
   @Override
-  public FatPtrExpr addressOf() {
+  public FatPtrPair addressOf() {
     if(address == null) {
       throw new UnsupportedOperationException("not addressable");
     }

@@ -6,7 +6,7 @@ import org.renjin.gcc.codegen.expr.ArrayElement;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
+import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.primitive.ConstantValue;
 import org.renjin.gcc.codegen.var.LocalVarAllocator;
@@ -48,9 +48,10 @@ public class RecordClassValueFunction implements ValueFunction {
   @Override
   public RecordValue dereference(JExpr array, JExpr offset) {
     ArrayElement element = Expressions.elementAt(array, offset);
-    FatPtrExpr address = new FatPtrExpr(array, offset);
+    JExpr castedElement = Expressions.cast(element, strategy.getJvmType());
+    FatPtrPair address = new FatPtrPair(array, offset);
     
-    return new RecordValue(element, address);
+    return new RecordValue(castedElement, address);
   }
 
   @Override

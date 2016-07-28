@@ -3,7 +3,7 @@ package org.renjin.gcc.codegen.type.record;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
+import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.Wrappers;
 import org.renjin.gcc.codegen.type.FieldStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidPtr;
@@ -43,7 +43,7 @@ public class PointerUnionField extends FieldStrategy {
       JExpr unwrappedArray = Wrappers.arrayField(wrapperInstance, baseType.jvmType());
       JExpr unwrappedOffset = Wrappers.offsetField(wrapperInstance);
 
-      return new FatPtrExpr(unwrappedArray, unwrappedOffset);
+      return new FatPtrPair(unwrappedArray, unwrappedOffset);
     } else {
       throw new UnsupportedOperationException("TODO: " + expectedType);
     }

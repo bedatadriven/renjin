@@ -4,7 +4,7 @@ import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
-import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
+import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.Wrappers;
 import org.renjin.gcc.codegen.type.FieldStrategy;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
@@ -38,14 +38,14 @@ public class PrimitivePointerUnionField extends FieldStrategy {
     JLValue offsetExpr = Expressions.field(instance, Type.INT_TYPE, name + "$offset");
     
     if(expectedType == null) {
-      return new FatPtrExpr(arrayExpr, offsetExpr);
+      return new FatPtrPair(arrayExpr, offsetExpr);
 
     } else if(expectedType.isPointerTo(GimplePrimitiveType.class)) {
       GimplePrimitiveType baseType = expectedType.getBaseType();
       Type expectedArrayType = Wrappers.valueArrayType(baseType.jvmType());
       JExpr castedArrayExpr = Expressions.cast(arrayExpr, expectedArrayType);
       
-      return new FatPtrExpr(castedArrayExpr, offsetExpr);
+      return new FatPtrPair(castedArrayExpr, offsetExpr);
     
     } else {
       throw new UnsupportedOperationException("Type: " + expectedType);

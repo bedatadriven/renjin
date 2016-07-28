@@ -10,13 +10,13 @@ public class ObjectPtr<T> implements Ptr {
    * Constructs a new ObjectPtr to a single value.
    */
   public ObjectPtr(T... array) {
-    assert array.getClass().equals(Object[].class);
+    //assert array.getClass().equals(Object[].class);
     this.array = array;
     offset = 0;
   }
   
   public ObjectPtr(Object[] array, int offset) {
-    assert array.getClass().equals(Object[].class);
+    //assert array.getClass().equals(Object[].class) : "array class: " + array.getClass().getName();
     this.array = array;
     this.offset = offset;
   }

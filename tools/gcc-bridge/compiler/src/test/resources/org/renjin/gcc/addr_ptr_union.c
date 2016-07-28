@@ -13,7 +13,7 @@ void init_p(double **pp) {
     pd[0] = 42;
     
     // Object p = pp[0]
-    // DoublePtr dp = (
+    // 
     *pp = pd;
 }
 

@@ -2,6 +2,8 @@ package org.renjin.gcc.codegen.fatptr;
 
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.fatptr.FatPtrPair;
+import org.renjin.gcc.codegen.fatptr.Wrappers;
 import org.renjin.repackaged.asm.Type;
 
 import javax.annotation.Nonnull;
@@ -9,15 +11,15 @@ import javax.annotation.Nonnull;
 import static org.renjin.repackaged.asm.Type.INT_TYPE;
 
 /**
- * Implementation of memcpy() for {@code FatPtr}s
+ * Implementation of memcpy() for {@code FatPtrPair}s
  */
 public class FatPtrMemCmp implements JExpr {
 
-  private FatPtrExpr p1;
-  private FatPtrExpr p2;
+  private FatPtrPair p1;
+  private FatPtrPair p2;
   private JExpr n;
 
-  public FatPtrMemCmp(FatPtrExpr p1, FatPtrExpr p2, JExpr n) {
+  public FatPtrMemCmp(FatPtrPair p1, FatPtrPair p2, JExpr n) {
     this.p1 = p1;
     this.p2 = p2;
     this.n = n;

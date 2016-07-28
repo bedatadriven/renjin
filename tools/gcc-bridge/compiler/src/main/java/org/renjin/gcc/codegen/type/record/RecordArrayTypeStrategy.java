@@ -4,7 +4,7 @@ import org.renjin.gcc.codegen.array.ArrayExpr;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategies;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.*;
-import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
+import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
 import org.renjin.gcc.codegen.fatptr.Wrappers;
 import org.renjin.gcc.codegen.type.*;
@@ -71,7 +71,7 @@ public class RecordArrayTypeStrategy extends RecordTypeStrategy<RecordArrayExpr>
     JExpr offset = sum(instance.getOffset(), fieldOffset);
 
     // Because this value is backed by an array, we can also make it addressable. 
-    FatPtrExpr address = new FatPtrExpr(array, offset);
+    FatPtrPair address = new FatPtrPair(array, offset);
     
     // The members of this record may be either primitives, or arrays of primitives,
     // and it actually doesn't matter to us.
@@ -102,7 +102,7 @@ public class RecordArrayTypeStrategy extends RecordTypeStrategy<RecordArrayExpr>
       
     } else {
       // Return an array that starts at this point 
-      return new FatPtrExpr(address, array, offset);
+      return new FatPtrPair(address, array, offset);
     }
     
   }
@@ -160,7 +160,7 @@ public class RecordArrayTypeStrategy extends RecordTypeStrategy<RecordArrayExpr>
     if(typeStrategy instanceof RecordArrayTypeStrategy) {
       return (RecordArrayExpr) value;
     }  else if(typeStrategy instanceof FatPtrStrategy) {
-      FatPtrExpr fatPtrExpr = (FatPtrExpr) value;
+      FatPtrPair fatPtrExpr = (FatPtrPair) value;
       return new RecordArrayExpr(fatPtrExpr.getArray(), fatPtrExpr.getOffset(), arrayLength);
     }
     throw new UnsupportedCastException();

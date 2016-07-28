@@ -3,7 +3,7 @@ package org.renjin.gcc.codegen.type.record;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
+import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 
 import static org.renjin.gcc.codegen.expr.Expressions.*;
 
@@ -29,7 +29,7 @@ public final class RecordArrayExpr implements GExpr {
   
   @Override
   public GExpr addressOf() {
-    return new FatPtrExpr(array, offset);
+    return new FatPtrPair(array, offset);
   }
 
   @Override

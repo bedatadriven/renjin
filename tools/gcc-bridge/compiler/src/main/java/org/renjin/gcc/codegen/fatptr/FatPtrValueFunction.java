@@ -53,23 +53,25 @@ public class FatPtrValueFunction implements ValueFunction {
     // int unwrappedOffset = wrapper.offset
     
     // First we get the element from the array of Objects[]
-    FatPtrExpr address = new FatPtrExpr(array, offset);
+    FatPtrPair address = new FatPtrPair(array, offset);
     JExpr element = Expressions.elementAt(array, offset);
     
-    // Now cast the Object instance to an instance of e.g. DoublePtr
-    Type wrapperType = Wrappers.wrapperType(baseValueFunction.getValueType());
-    JExpr wrapperInstance = Expressions.cast(element, wrapperType);
-        
-    // Now we have references to the array and offset fields of the wrapper
-    JExpr unwrappedArray = Wrappers.arrayField(wrapperInstance, baseValueFunction.getValueType());
-    JExpr unwrappedOffset = Wrappers.offsetField(wrapperInstance);
-
-    return new FatPtrExpr(address, unwrappedArray, unwrappedOffset);
+    return new DereferencedFatPtr(array, offset, baseValueFunction);
+//    
+//    // Now cast the Object instance to an instance of e.g. DoublePtr
+//    Type wrapperType = Wrappers.wrapperType(baseValueFunction.getValueType());
+//    JExpr wrapperInstance = Expressions.cast(element, wrapperType);
+//        
+//    // Now we have references to the array and offset fields of the wrapper
+//    JExpr unwrappedArray = Wrappers.arrayField(wrapperInstance, baseValueFunction.getValueType());
+//    JExpr unwrappedOffset = Wrappers.offsetField(wrapperInstance);
+//
+//    return new FatPtrExpr(address, unwrappedArray, unwrappedOffset);
   }
 
   @Override
   public List<JExpr> toArrayValues(GExpr expr) {
-    FatPtrExpr fatPtrExpr = (FatPtrExpr) expr;
+    FatPtrPair fatPtrExpr = (FatPtrPair) expr;
     return Collections.singletonList(fatPtrExpr.wrap());
   }
 
@@ -83,7 +85,7 @@ public class FatPtrValueFunction implements ValueFunction {
 
   @Override
   public Optional<JExpr> getValueConstructor() {
-    return Optional.of(FatPtrExpr.nullPtr(baseValueFunction).wrap());
+    return Optional.of(FatPtrPair.nullPtr(baseValueFunction).wrap());
   }
 
   @Override

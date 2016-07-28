@@ -2,19 +2,19 @@ package org.renjin.gcc.codegen.type.record.unit;
 
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.*;
-import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
+import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.repackaged.asm.Type;
 
 public class RecordUnitPtr implements RefPtrExpr {
   
   private JExpr ref;
-  private FatPtrExpr address;
+  private FatPtrPair address;
 
   public RecordUnitPtr(JExpr ref) {
     this.ref = ref;
   }
 
-  public RecordUnitPtr(JExpr ref, FatPtrExpr address) {
+  public RecordUnitPtr(JExpr ref, FatPtrPair address) {
     this.ref = ref;
     this.address = address;
   }

@@ -5,7 +5,7 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
+import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.repackaged.asm.Type;
 
@@ -43,7 +43,7 @@ public class RecordUnitPtrValueFunction implements ValueFunction {
   @Override
   public GExpr dereference(JExpr array, JExpr offset) {
     JExpr pointerValue = Expressions.elementAt(array, offset);
-    FatPtrExpr pointerAddress = new FatPtrExpr(array, offset);
+    FatPtrPair pointerAddress = new FatPtrPair(array, offset);
     
     return new RecordUnitPtr(pointerValue, pointerAddress);
   }

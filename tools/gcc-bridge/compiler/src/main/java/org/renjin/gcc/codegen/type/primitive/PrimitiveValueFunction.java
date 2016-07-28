@@ -5,7 +5,7 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
+import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.repackaged.asm.Type;
@@ -46,7 +46,7 @@ public class PrimitiveValueFunction implements ValueFunction {
 
   @Override
   public GExpr dereference(JExpr array, JExpr offset) {
-    FatPtrExpr address = new FatPtrExpr(array, offset);
+    FatPtrPair address = new FatPtrPair(array, offset);
     JExpr value = Expressions.elementAt(array, offset);
 
     return new PrimitiveValue(value, address);

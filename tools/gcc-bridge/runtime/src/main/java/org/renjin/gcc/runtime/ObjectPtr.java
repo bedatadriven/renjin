@@ -36,6 +36,11 @@ public class ObjectPtr<T> implements Ptr {
     return new ObjectPtr(Realloc.realloc(array, offset, newSizeInBytes / 4));
   }
 
+  @Override
+  public Ptr pointerPlus(int bytes) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
   public void update(Object[] array, int offset) {
     this.array = array;
     this.offset = offset;

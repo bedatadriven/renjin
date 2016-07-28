@@ -34,6 +34,11 @@ public class FloatPtr implements Ptr {
   }
 
   @Override
+  public Ptr pointerPlus(int bytes) {
+    return new FloatPtr(array, offset + (bytes / 4));
+  }
+
+  @Override
   public String toString() {
     return offset + "+" + Arrays.toString(array);
   }

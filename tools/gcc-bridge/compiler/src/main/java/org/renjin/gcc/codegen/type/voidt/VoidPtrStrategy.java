@@ -16,6 +16,8 @@ import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.repackaged.asm.Type;
 
+import javax.annotation.Nonnull;
+
 
 /**
  * Strategy for handling pointers of unknown type.
@@ -37,8 +39,26 @@ public class VoidPtrStrategy implements PointerTypeStrategy<VoidPtr>, SimpleType
   }
 
   @Override
-  public VoidPtr pointerPlus(VoidPtr pointer, JExpr offsetInBytes) {
-    throw new UnsupportedOperationException("TODO");
+  public VoidPtr pointerPlus(final VoidPtr pointer, final JExpr offsetInBytes) {
+    // We have to rely on run-time support for this because we don't know
+    // what kind of pointer is stored here
+    return new VoidPtr(new JExpr() {
+
+      @Nonnull
+      @Override
+      public Type getType() {
+        return Type.getType(Object.class);
+      }
+
+      @Override
+      public void load(@Nonnull MethodGenerator mv) {
+        pointer.unwrap().load(mv);
+        offsetInBytes.load(mv);
+        mv.invokestatic(org.renjin.gcc.runtime.VoidPtr.class, "pointerPlus",
+            Type.getMethodDescriptor(Type.getType(Object.class), 
+                Type.getType(Object.class), Type.INT_TYPE));
+      }
+    });
   }
 
   @Override

@@ -21,6 +21,13 @@ public final class VoidPtr {
         x.getClass().getName() + ", " + y.getClass().getName() + ", n)");
   }
 
+  public static Object pointerPlus(Object p, int bytes) {
+    if(p instanceof Ptr) {
+      return ((Ptr) p).pointerPlus(bytes);
+    }
+    throw new UnsupportedOperationException("TODO");
+  }
+  
   public static void memcpy(Object x, Object y, int numBytes) {
     throw new UnsupportedOperationException("TODO: Implement VoidPtr.memcpy");
   }

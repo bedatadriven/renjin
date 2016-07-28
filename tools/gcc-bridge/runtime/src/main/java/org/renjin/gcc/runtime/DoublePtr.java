@@ -33,6 +33,11 @@ public class DoublePtr implements Ptr {
   }
 
   @Override
+  public Ptr pointerPlus(int bytes) {
+    return new DoublePtr(array, offset + (bytes / 8));
+  }
+
+  @Override
   public String toString() {
     return offset + "+" + Arrays.toString(array);
   }

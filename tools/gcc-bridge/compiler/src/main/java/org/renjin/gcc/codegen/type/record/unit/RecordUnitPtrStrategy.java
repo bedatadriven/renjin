@@ -17,7 +17,6 @@ import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.codegen.type.record.RecordConstructor;
 import org.renjin.gcc.codegen.type.record.RecordValue;
 import org.renjin.gcc.codegen.type.voidt.VoidPtr;
-import org.renjin.gcc.codegen.type.voidt.VoidPtrStrategy;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.GimpleVarDecl;
@@ -72,16 +71,16 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>
       FatPtrPair ptr = ((FatPtr) value).toPair();
       // TODO
       // Currently we punt until runtime by triggering a ClassCastException
-      return new RecordUnitPtr(Expressions.uncheckedCast(ptr.getArray(), strategy.getJvmType()));
+      return new RecordUnitPtr(Expressions.nullRef(strategy.getJvmType()));
       
     } else if(typeStrategy instanceof RecordUnitPtrStrategy) {
       RecordUnitPtr ptrExpr = (RecordUnitPtr) value;
       return new RecordUnitPtr(Expressions.cast(ptrExpr.unwrap(), strategy.getJvmType()));
       
-    } else if(typeStrategy instanceof VoidPtrStrategy) {
+    } else if(value instanceof VoidPtr) {
       VoidPtr voidPtr = (VoidPtr) value;
       return new RecordUnitPtr(Expressions.cast(voidPtr.unwrap(), strategy.getJvmType()));
-    }
+    } 
     throw new UnsupportedCastException();
   }
 

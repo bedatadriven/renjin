@@ -1,14 +1,12 @@
 package org.renjin.gcc.codegen.type.record;
 
 import com.google.common.base.Optional;
-import org.omg.CORBA.UnknownUserException;
 import org.renjin.gcc.codegen.RecordClassGenerator;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.fatptr.AddressableField;
 import org.renjin.gcc.codegen.type.FieldStrategy;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.TypeStrategy;
-import org.renjin.gcc.codegen.type.voidt.VoidPtrField;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrValueFunction;
 import org.renjin.gcc.gimple.expr.GimpleFieldRef;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
@@ -63,16 +61,14 @@ public class RecordClassLayout implements RecordLayout {
 
     } else if(typeSet.allPointersToPrimitives()) {
       if (node.isAddressable()) {
-        throw new UnsupportedOperationException("TODO");
+        return new AddressableField(type, uniqueFieldName(node), new VoidPtrValueFunction());
       } else {
         return new PrimitivePointerUnionField(type, uniqueFieldName(node));
       }
    
     } else if(typeSet.allPointers()) {
       if(node.isAddressable()) {
-        
-        //return new AddressableField(type, uniqueFieldName(node), new VoidPtrValueFunction());
-        throw new UnsupportedOperationException("TODO");
+        return new AddressableField(type, uniqueFieldName(node), new VoidPtrValueFunction());
       } else {
         return new PointerUnionField(type, uniqueFieldName(node));
       }
@@ -91,6 +87,9 @@ public class RecordClassLayout implements RecordLayout {
 
   private String uniqueFieldName(RecordClassLayoutTree.Node node) {
     String fieldName = node.name();
+    if(fieldName.isEmpty()) {
+      return "$offset" + node.getOffset();
+    }
     if(fieldNames.contains(fieldName)) {
       return fieldName + "$" + node.getOffset();
     } else {

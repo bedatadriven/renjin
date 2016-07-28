@@ -365,6 +365,18 @@ spline_coef(int method, int n, double *x, double *y,
 #include <Rinternals.h>
 #include "statsR.h"
 
+SEXP getListElement(SEXP list, const char *str)
+{
+    SEXP elmt = R_NilValue, names = getAttrib(list, R_NamesSymbol);
+
+    for (int i = 0; i < length(list); i++)
+	if(strcmp(CHAR(STRING_ELT(names, i)), str) == 0) {
+	    elmt = VECTOR_ELT(list, i);
+	    break;
+	}
+    return elmt;
+}
+
 SEXP SplineCoef(SEXP method, SEXP x, SEXP y)
 {
     x = PROTECT(coerceVector(x, REALSXP));

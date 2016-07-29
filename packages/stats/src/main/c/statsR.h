@@ -18,7 +18,7 @@
  */
 
 /* auxiliary */
-SEXP getListElement(SEXP list, char *str);
+SEXP getListElement(SEXP list, const char *str);
 
 /* Declarations for .Call entry points */
 

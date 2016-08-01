@@ -70,15 +70,14 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<RecordValue> imp
     JLValue instance = allocator.reserve(decl.getName(), layout.getType(), new RecordConstructor(this));
 
     if(isUnitPointer()) {
-      // If we are using the RecordUnitPtr strategy, then the record value is also its address
+      // If we are using the RecordUnitPtr strategy, then the record value is also it's address
       return new RecordValue(instance, new RecordUnitPtr(instance));
 
     } else if(decl.isAddressable()) {
-      JLValue unitArray = allocator.reserveUnitArray(decl.getName(), Type.getType(Object.class), Optional.of((JExpr)instance));
+      JLValue unitArray = allocator.reserveUnitArray(decl.getName(), layout.getType(), Optional.of((JExpr)instance));
       FatPtrPair address = new FatPtrPair(unitArray);
       JExpr value = Expressions.elementAt(address.getArray(), 0);
-      JExpr castedValue = Expressions.cast(value, layout.getType());
-      return new RecordValue(castedValue, address);
+      return new RecordValue(value, address);
 
     } else {
       
@@ -114,7 +113,7 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<RecordValue> imp
 
   @Override
   public GExpr memberOf(RecordValue instance, GimpleFieldRef fieldRef, TypeStrategy fieldTypeStrategy) {
-    return layout.memberOf(instance, fieldRef, fieldTypeStrategy);
+    return layout.memberOf(instance, fieldRef);
   }
 
   @Override

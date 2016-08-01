@@ -4,10 +4,10 @@ import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.type.primitive.ConstantValue;
 import org.renjin.gcc.codegen.type.primitive.op.PrimitiveBinOpGenerator;
 import org.renjin.gcc.gimple.GimpleOp;
-import org.renjin.gcc.runtime.IntPtr;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 
@@ -28,8 +28,15 @@ public class Expressions {
     return newArray(componentType, constantInt(length));
   }
 
+  public static JExpr newArray(final WrapperType componentType, final int length) {
+    return newArray(componentType.getWrapperType(), length);
+  }
+
+  public static JExpr newArray(Class<?> componentClass, int length) {
+    return newArray(Type.getType(componentClass), length);
+  }
+  
   public static JExpr newArray(final Type componentType, final JExpr length) {
-    assert !componentType.equals(Type.getType(IntPtr.class));
     checkType("length", length, Type.INT);
     return new JExpr() {
       @Nonnull
@@ -60,12 +67,12 @@ public class Expressions {
   }
 
 
-  public static JExpr newArray(Type valueType, int arrayLength, Optional<JExpr> firstValue) {
+  public static JExpr newArray(Type valueType, int elementLength, Optional<JExpr> firstValue) {
     List<JExpr> initialValues = Lists.newArrayList();
     if(firstValue.isPresent()) {
       initialValues.add(firstValue.get());
     }
-    return newArray(valueType, arrayLength, initialValues);
+    return newArray(valueType, elementLength, initialValues);
   }
 
   public static JExpr newArray(final Type componentType, final int arrayLength, final List<JExpr> values) {

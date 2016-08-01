@@ -27,6 +27,7 @@ import org.renjin.gcc.maven.GccBridgeHelper;
 import org.renjin.gnur.GnurInstallation;
 import org.renjin.gnur.GnurSourcesCompiler;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
 import java.io.IOException;
@@ -105,7 +106,7 @@ public class GnurMakeMojo extends AbstractMojo {
   private boolean loggingEnabled;
   
   @Parameter
-  private List<String> entryPoints;
+  private String entryPoint;
   
 
   @Override
@@ -230,11 +231,11 @@ public class GnurMakeMojo extends AbstractMojo {
     compiler.setPackageName(project.getGroupId() + "." + project.getArtifactId());
     compiler.setClassName(project.getArtifactId());
     
-    if(entryPoints != null && !entryPoints.isEmpty()) {
+    if(entryPoint != null) {
       compiler.setEntryPointPredicate(new Predicate<GimpleFunction>() {
         @Override
         public boolean apply(GimpleFunction input) {
-          return entryPoints.contains(input.getMangledName());
+          return input.getMangledName().equals(entryPoint);
         }
       });
     }

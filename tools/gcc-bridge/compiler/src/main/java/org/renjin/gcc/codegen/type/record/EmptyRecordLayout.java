@@ -2,7 +2,6 @@ package org.renjin.gcc.codegen.type.record;
 
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.type.TypeOracle;
-import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.gimple.expr.GimpleFieldRef;
 import org.renjin.repackaged.asm.Type;
 
@@ -29,7 +28,7 @@ public class EmptyRecordLayout implements RecordLayout {
   }
 
   @Override
-  public GExpr memberOf(RecordValue instance, GimpleFieldRef fieldRef, TypeStrategy fieldTypeStrategy) {
+  public GExpr memberOf(RecordValue instance, GimpleFieldRef fieldRef) {
     throw new UnsupportedOperationException("Empty record has no fields.");
   }
 }

@@ -140,7 +140,7 @@ public class VoidPtrStrategy implements PointerTypeStrategy<VoidPtr>, SimpleType
 
   @Override
   public FieldStrategy fieldGenerator(Type className, String fieldName) {
-    return new VoidPtrField(className, fieldName);
+    return new VoidPtrField(fieldName);
   }
 
   @Override

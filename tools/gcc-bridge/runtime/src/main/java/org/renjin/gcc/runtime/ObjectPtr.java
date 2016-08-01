@@ -10,17 +10,13 @@ public class ObjectPtr<T> implements Ptr {
    * Constructs a new ObjectPtr to a single value.
    */
   public ObjectPtr(T... array) {
-    if(array != null && !array.getClass().equals(Object[].class)) {
-      throw new IllegalArgumentException("array must be an instance of Object[]: " + array.getClass());
-    }
+    //assert array.getClass().equals(Object[].class);
     this.array = array;
     offset = 0;
   }
   
   public ObjectPtr(Object[] array, int offset) {
-    if(array != null && !array.getClass().equals(Object[].class)) {
-      throw new IllegalArgumentException("array must be an instance of Object[], f0und: " + array.getClass());
-    }
+    //assert array.getClass().equals(Object[].class) : "array class: " + array.getClass().getName();
     this.array = array;
     this.offset = offset;
   }

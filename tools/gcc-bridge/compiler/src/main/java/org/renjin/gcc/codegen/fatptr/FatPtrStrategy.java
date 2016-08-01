@@ -19,6 +19,7 @@ import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.repackaged.asm.Type;
 
+import static org.renjin.gcc.codegen.expr.Expressions.newArray;
 import static org.renjin.repackaged.asm.Type.INT_TYPE;
 import static org.renjin.repackaged.asm.Type.VOID_TYPE;
 
@@ -42,10 +43,6 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
     } else {
       arrayType = Type.getType("[" + valueFunction.getValueType().getDescriptor());
     }
-  }
-
-  public ValueFunction getValueFunction() {
-    return valueFunction;
   }
 
   public boolean isParametersWrapped() {
@@ -104,8 +101,9 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
       Type wrapperType = Wrappers.wrapperType(valueFunction.getValueType());
       Type wrapperArrayType = Wrappers.valueArrayType(wrapperType);
       
-      JLValue unitArray = allocator.reserve(decl.getName(), wrapperArrayType, 
-          Wrappers.newArray(pointerTo().getValueFunction(), 1));
+      FatPtr nullPtr = FatPtrPair.nullPtr(valueFunction);
+      
+      JLValue unitArray = allocator.reserve(decl.getName(), wrapperArrayType, newArray(nullPtr.wrap()));
       
       return new DereferencedFatPtr(unitArray, Expressions.constantInt(0), valueFunction);
 

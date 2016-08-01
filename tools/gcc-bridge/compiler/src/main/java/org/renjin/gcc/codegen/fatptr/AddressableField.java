@@ -6,7 +6,7 @@ import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.FieldStrategy;
-import org.renjin.gcc.codegen.type.TypeStrategy;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.ClassVisitor;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
@@ -24,7 +24,7 @@ public class AddressableField extends FieldStrategy {
   public AddressableField(Type recordType, String fieldName, ValueFunction valueFunction) {
     this.recordType = recordType;
     this.arrayField = fieldName;
-    this.arrayType = Wrappers.valueArrayType(valueFunction);
+    this.arrayType = Type.getType("[" + valueFunction.getValueType().getDescriptor());
     this.offsetField = fieldName + "$offset";
     this.valueFunction = valueFunction;
   }
@@ -44,7 +44,7 @@ public class AddressableField extends FieldStrategy {
     
     // Allocate a unit array store the value
     // (for value types like complex, this might actually be several elements)
-    JExpr unitArray = Wrappers.newArray(valueFunction, valueFunction.getElementLength(), initialValues);
+    JExpr unitArray = Expressions.newArray(valueFunction.getValueType(), valueFunction.getElementLength(), initialValues);
 
     // Store this to the array field
     mv.visitVarInsn(Opcodes.ALOAD, 0);
@@ -53,7 +53,7 @@ public class AddressableField extends FieldStrategy {
   }
 
   @Override
-  public GExpr memberExpr(JExpr instance, int fieldOffset, TypeStrategy expectedType) {
+  public GExpr memberExpr(JExpr instance, int fieldOffset, GimpleType expectedType) {
     JExpr array = Expressions.field(instance, arrayType, arrayField);
     JExpr offset = Expressions.field(instance, Type.INT_TYPE, offsetField);
     

@@ -1,12 +1,10 @@
 package org.renjin.gcc.codegen.fatptr;
 
-import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.type.primitive.PrimitiveValueFunction;
 import org.renjin.gcc.runtime.*;
 import org.renjin.repackaged.asm.Type;
 
@@ -22,25 +20,25 @@ public class Wrappers {
     return valueType(Type.getType(wrapperClass));
 
   }
-
+  
   public static Type valueType(Type wrapperType) {
-    if (wrapperType.equals(Type.getType(BooleanPtr.class))) {
+    if(wrapperType.equals(Type.getType(BooleanPtr.class))) {
       return Type.BOOLEAN_TYPE;
-    } else if (wrapperType.equals(Type.getType(BytePtr.class))) {
+    } else if(wrapperType.equals(Type.getType(BytePtr.class))) {
       return Type.BYTE_TYPE;
-    } else if (wrapperType.equals(Type.getType(ShortPtr.class))) {
+    } else if(wrapperType.equals(Type.getType(ShortPtr.class))) {
       return Type.SHORT_TYPE;
-    } else if (wrapperType.equals(Type.getType(CharPtr.class))) {
+    } else if(wrapperType.equals(Type.getType(CharPtr.class))) {
       return Type.CHAR_TYPE;
-    } else if (wrapperType.equals(Type.getType(IntPtr.class))) {
+    } else if(wrapperType.equals(Type.getType(IntPtr.class))) {
       return Type.INT_TYPE;
-    } else if (wrapperType.equals(Type.getType(LongPtr.class))) {
+    } else if(wrapperType.equals(Type.getType(LongPtr.class))) {
       return Type.LONG_TYPE;
-    } else if (wrapperType.equals(Type.getType(FloatPtr.class))) {
+    } else if(wrapperType.equals(Type.getType(FloatPtr.class))) {
       return Type.FLOAT_TYPE;
-    } else if (wrapperType.equals(Type.getType(DoublePtr.class))) {
+    } else if(wrapperType.equals(Type.getType(DoublePtr.class))) {
       return Type.DOUBLE_TYPE;
-    } else if (wrapperType.equals(Type.getType(ObjectPtr.class))) {
+    } else if(wrapperType.equals(Type.getType(ObjectPtr.class))) {
       return Type.getType(Object.class);
     }
     throw new IllegalArgumentException("not a wrapper type: " + wrapperType);
@@ -54,23 +52,18 @@ public class Wrappers {
     Type arrayType = Type.getType("[" + valueType.getDescriptor());
     return arrayType;
   }
-
+  
   public static Type valueArrayType(Type valueType) {
-    if (valueType.getSort() == Type.ARRAY) {
+    if(valueType.getSort() == Type.ARRAY) {
       throw new IllegalArgumentException("valueType: " + valueType);
     }
-    if (valueType.getSort() == Type.OBJECT) {
+    if(valueType.getSort() == Type.OBJECT) {
       return Type.getType("[Ljava/lang/Object;");
     } else {
       return Type.getType("[" + valueType.getDescriptor());
     }
   }
-
-
-  public static Type valueArrayType(ValueFunction valueFunction) {
-    return valueArrayType(valueFunction.getValueType());
-  }
-
+  
   public static JExpr arrayField(JExpr wrapperInstance) {
     return Expressions.field(wrapperInstance, fieldArrayType(wrapperInstance.getType()), "array");
   }
@@ -78,7 +71,7 @@ public class Wrappers {
   public static JExpr arrayField(JExpr instance, Type valueType) {
     JExpr array = arrayField(instance);
     Type arrayType = arrayType(valueType);
-    if (!array.getType().equals(arrayType)) {
+    if(!array.getType().equals(arrayType)) {
       array = Expressions.cast(array, arrayType);
     }
     return array;
@@ -86,7 +79,7 @@ public class Wrappers {
 
 
   private static Type arrayType(Type valueType) {
-    if (valueType.getSort() == Type.OBJECT) {
+    if(valueType.getSort() == Type.OBJECT) {
       return Type.getType("[Ljava/lang/Object;");
     } else {
       return Type.getType("[" + valueType.getDescriptor());
@@ -97,7 +90,7 @@ public class Wrappers {
     return Expressions.field(wrapperInstance, Type.INT_TYPE, "offset");
   }
 
-
+  
   public static Type wrapperType(Type valueType) {
     switch (valueType.getSort()) {
       case Type.BOOLEAN:
@@ -125,7 +118,7 @@ public class Wrappers {
   public static WrapperType valueOf(Class<?> wrapperClass) {
     return WrapperType.valueOf(Type.getType(wrapperClass));
   }
-
+  
   public static JExpr cast(final Type valueType, final JExpr pointer) {
     final Type wrapperType = wrapperType(valueType);
 
@@ -143,41 +136,22 @@ public class Wrappers {
       }
     };
   }
-  
-  
 
   public static Type componentType(Type arrayType) {
     Preconditions.checkArgument(arrayType.getSort() == Type.ARRAY, "arrayType: " + arrayType);
 
     String arrayDescriptor = arrayType.getDescriptor();
     assert arrayDescriptor.startsWith("[");
-
+    
     String componentDescriptor = arrayDescriptor.substring(1);
     return Type.getType(componentDescriptor);
   }
 
   public static FatPtrPair toPair(JExpr wrapper) {
 
-    JExpr array = Wrappers.arrayField(wrapper, valueType(wrapper.getType()));
+    JExpr array = Wrappers.arrayField(wrapper,  valueType(wrapper.getType()));
     JExpr offset = Wrappers.offsetField(wrapper);
 
     return new FatPtrPair(array, offset);
   }
-
-  public static Type componentType(ValueFunction valueFunction) {
-    if (valueFunction instanceof PrimitiveValueFunction) {
-      return valueFunction.getValueType();
-    } else {
-      return Type.getType(Object.class);
-    }
-  }
-
-  public static JExpr newArray(ValueFunction valueFunction, int arrayLength) {
-    return Expressions.newArray(componentType(valueFunction), arrayLength);
-  }
-
-  public static JExpr newArray(ValueFunction valueFunction, int arrayLength, Optional<JExpr> initialValues) {
-    return Expressions.newArray(componentType(valueFunction), arrayLength, initialValues);
-  }
-
 }

@@ -94,13 +94,12 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>
     if(decl.isAddressable()) {
 
       // Declare this as a Unit array so that we can get a FatPtrExpr if needed
-      JExpr unitArray = allocator.reserveUnitArray(decl.getName(), Type.getType(Object.class), Optional.<JExpr>absent());
+      JExpr unitArray = allocator.reserveUnitArray(decl.getName(), strategy.getJvmType(), Optional.<JExpr>absent());
 
       FatPtrPair address = new FatPtrPair(unitArray);
       ArrayElement instance = Expressions.elementAt(unitArray, 0);
-      JExpr castedInstance = Expressions.cast(instance, strategy.getJvmType());
       
-      return new RecordUnitPtr(castedInstance, address);
+      return new RecordUnitPtr(instance, address);
       
     } else {
       return new RecordUnitPtr(allocator.reserve(decl.getNameIfPresent(), strategy.getJvmType()));

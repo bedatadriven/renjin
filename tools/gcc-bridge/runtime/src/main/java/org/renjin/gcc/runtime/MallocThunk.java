@@ -81,6 +81,45 @@ public class MallocThunk {
     return (DoublePtr) pointer;
   }
 
+  public void assign(Object[] array, int offset) {
+    if(pointer == null) {
+      pointer = allocElement(array);
+    }
+    array[offset] = pointer;
+  }
+
+  private Object allocElement(Object[] array) {
+    if(array instanceof BooleanPtr[]) {
+      return booleanPtr();
+    } else if(array instanceof BytePtr[]) {
+      return bytePtr();
+    } else if(array instanceof CharPtr[]) {
+      return charPtr();
+    } else if(array instanceof DoublePtr[]) {
+      return doublePtr();
+    } else if(array instanceof FloatPtr[]) {
+      return floatPtr();
+    } else if(array instanceof IntPtr[]) {
+      return intPtr();
+    } else if(array instanceof LongPtr[]) {
+      return longPtr();
+    } else if(array instanceof ShortPtr[]) {
+      return shortPtr();
+    } else if(array instanceof ObjectPtr[]) {
+      throw new UnsupportedOperationException("TODO");
+    } else {
+      // For arrays of records, we can only allocate one element
+      // in any case, so no need to consult size.
+      Class<?> componentType = array.getClass().getComponentType();
+      try {
+        return componentType.newInstance();
+      } catch (Exception e) {
+        throw new RuntimeException("Exception while triggering malloc thunk for " + componentType.getName(), e);
+      }
+    }
+  }
+
+
   /**
    * The C library function malloc. 
    *
@@ -105,6 +144,8 @@ public class MallocThunk {
   public static void free(Object ptr) {
     // NO-OP    
   }
+  
+
 
 
 

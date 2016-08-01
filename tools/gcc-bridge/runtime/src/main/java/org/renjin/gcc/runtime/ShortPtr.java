@@ -45,5 +45,11 @@ public class ShortPtr implements Ptr {
   public String toString() {
     return offset + "+" + Arrays.toString(array);
   }
-  
+
+  public static ShortPtr cast(Object voidPointer) {
+    if(voidPointer instanceof MallocThunk) {
+      return ((MallocThunk) voidPointer).shortPtr();
+    }
+    return (ShortPtr) voidPointer;  
+  }
 }

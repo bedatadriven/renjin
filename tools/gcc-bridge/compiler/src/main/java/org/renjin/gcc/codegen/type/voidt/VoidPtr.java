@@ -20,10 +20,6 @@ public class VoidPtr implements RefPtrExpr {
     this.address = null;
   }
 
-  public JExpr getObjectRef() {
-    return objectRef;
-  }
-
   @Override
   public void store(MethodGenerator mv, GExpr rhs) {
     JLValue lhs = (JLValue) this.objectRef;
@@ -35,7 +31,7 @@ public class VoidPtr implements RefPtrExpr {
       lhs.store(mv, ((RefPtrExpr) rhs).unwrap());
     }
   }
-
+  
   @Override
   public GExpr addressOf() {
     if(address == null) {

@@ -5,6 +5,7 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.renjin.gcc.NullTreeLogger;
 import org.renjin.gcc.TreeLogger;
 import org.renjin.gcc.gimple.*;
 import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
@@ -55,7 +56,8 @@ public class SymbolPruner {
   public static void prune(TreeLogger parentLogger, List<GimpleCompilationUnit> units, 
                            Predicate<GimpleFunction> entryPointPredicate) {
     
-    TreeLogger logger = parentLogger.branch("Pruning Symbols");
+    //TreeLogger logger = parentLogger.branch("Pruning Symbols");
+    TreeLogger logger = new NullTreeLogger();
     
     final GimpleSymbolTable symbolTable = new GimpleSymbolTable(units);
 

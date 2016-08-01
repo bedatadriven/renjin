@@ -53,7 +53,7 @@ public class RecordValue implements GSimpleExpr {
     }
 
     ref.load(mv);
-    rhsRef.load(mv);
+    Expressions.cast(rhsRef, ref.getType()).load(mv);
     
     mv.invokevirtual(ref.getType(), "set", Type.getMethodDescriptor(Type.VOID_TYPE, ref.getType()), false);
   }

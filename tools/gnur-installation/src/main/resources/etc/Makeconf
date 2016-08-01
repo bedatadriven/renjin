@@ -30,7 +30,7 @@ R_PKGS_RECOMMENDED =  MASS lattice Matrix nlme survival boot cluster codetools f
 ##########################################################################################################
 # Renjin Specific
 
-RENJIN_FLAGS=-m32 -fplugin=${BRIDGE_PLUGIN}
+RENJIN_FLAGS=-m32 -fplugin=${BRIDGE_PLUGIN} -DRENJIN
 
 # Right now our gimple compiler is not good at hanlding optimized Gimple,
 # so turn it off for now.

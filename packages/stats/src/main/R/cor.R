@@ -1,5 +1,7 @@
 #  File src/library/stats/R/cor.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2012 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,12 +14,12 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 #### cor() , cov() and var() : Based on the same C code
 
 cor <- function(x, y = NULL, use = "everything",
-         method = c("pearson", "kendall", "spearman"))
+                method = c("pearson", "kendall", "spearman"))
 {
     na.method <-
 	pmatch(use, c("all.obs", "complete.obs", "pairwise.complete.obs",
@@ -46,11 +48,11 @@ cor <- function(x, y = NULL, use = "everything",
         } else rank(u, na.last="keep")
     }
     if(method == "pearson")
-        .Internal(cor(x, y, na.method, FALSE))
-    else if (na.method %in% c(2L, 5L)) {
+        .Call(C_cor, x, y, na.method, FALSE)
+    else if (na.method %in% c(2L, 5L)) { ## "complete.obs" / "na.or.complete"
         if (is.null(y)) {
-            .Internal(cor(Rank(na.omit(x)), NULL, na.method,
-                          method == "kendall"))
+            .Call(C_cor, Rank(na.omit(x)), NULL, na.method,
+                  method == "kendall")
         } else {
             nas <- attr(na.omit(cbind(x,y)), "na.action")
             dropNA <- function(x, nas) {
@@ -58,15 +60,16 @@ cor <- function(x, y = NULL, use = "everything",
                     if (is.matrix(x)) x[-nas, , drop = FALSE] else x[-nas]
                 } else x
             }
-            .Internal(cor(Rank(dropNA(x, nas)), Rank(dropNA(y, nas)),
-                          na.method, method == "kendall"))
+            .Call(C_cor, Rank(dropNA(x, nas)), Rank(dropNA(y, nas)),
+                  na.method, method == "kendall")
         }
     } else if (na.method != 3L) {
+        ## i.e., 1 or 4, i.e. "all.obs" or "everything":
 	x <- Rank(x)
 	if(!is.null(y)) y <- Rank(y)
-        .Internal(cor(x, y, na.method, method == "kendall"))
+        .Call(C_cor, x, y, na.method, method == "kendall")
     }
-    else { # rank correlations and pairwise complete; the hard case
+    else { # rank correlations and "pairwise.complete.obs"; the hard case
          ## Based on contribution from Shigenobu Aoki.
          ## matrix
          if (is.null(y)) {
@@ -83,7 +86,7 @@ cor <- function(x, y = NULL, use = "everything",
                      x2 <- rank(x2[ok])
                      y2 <- rank(y2[ok])
                      ## we've removed all NAs
-                     r[i, j] <- if(any(ok)) .Internal(cor(x2, y2, 1L, method == "kendall")) else NA
+                     r[i, j] <- if(any(ok)) .Call(C_cor, x2, y2, 1L, method == "kendall") else NA
                  }
              }
              r <- r + t(r) - diag(diag(r))
@@ -108,7 +111,7 @@ cor <- function(x, y = NULL, use = "everything",
                      ok <- complete.cases(x2, y2)
                      x2 <- rank(x2[ok])
                      y2 <- rank(y2[ok])
-                     r[i, j] <- if(any(ok)) .Internal(cor(x2, y2, 1L, method == "kendall")) else NA
+                     r[i, j] <- if(any(ok)) .Call(C_cor, x2, y2, 1L, method == "kendall") else NA
                  }
              }
 	     rownames(r) <- colnames(x)
@@ -144,11 +147,12 @@ cov <- function(x, y = NULL, use = "everything",
     }
 
     if(method == "pearson")
-	.Internal(cov(x, y, na.method, method == "kendall"))
-    else if (na.method %in% c(2L, 5L)) {
+	.Call(C_cov, x, y, na.method, method == "kendall")
+    else if (na.method %in% c(2L, 5L)) { ## "complete.obs"  or  "na.or.complete"
+
         if (is.null(y)) {
-            .Internal(cov(Rank(na.omit(x)), NULL, na.method,
-                          method == "kendall"))
+            .Call(C_cov, Rank(na.omit(x)), NULL, na.method,
+                  method == "kendall")
         } else {
             nas <- attr(na.omit(cbind(x,y)), "na.action")
             dropNA <- function(x, nas) {
@@ -156,15 +160,15 @@ cov <- function(x, y = NULL, use = "everything",
                     if (is.matrix(x)) x[-nas, , drop = FALSE] else x[-nas]
                 } else x
             }
-            .Internal(cov(Rank(dropNA(x, nas)), Rank(dropNA(y, nas)),
-                          na.method, method == "kendall"))
+            .Call(C_cov, Rank(dropNA(x, nas)), Rank(dropNA(y, nas)),
+                  na.method, method == "kendall")
         }
-    } else if (na.method != 3L) {
+    } else if (na.method != 3L) { ## 1 or 4: "all.obs"  or  "everything"
 	x <- Rank(x)
 	if(!is.null(y)) y <- Rank(y)
-	.Internal(cov(x, y, na.method, method == "kendall"))
+	.Call(C_cov, x, y, na.method, method == "kendall")
     }
-    else
+    else ##  "pairwise.complete.obs"
 	stop("cannot handle 'pairwise.complete.obs'")
 }
 
@@ -177,7 +181,7 @@ var <- function(x, y = NULL, na.rm = FALSE, use) {
     if(is.na(na.method)) stop("invalid 'use' argument")
     if (is.data.frame(x)) x <- as.matrix(x) else stopifnot(is.atomic(x))
     if (is.data.frame(y)) y <- as.matrix(y) else stopifnot(is.atomic(y))
-    .Internal(cov(x, y, na.method, FALSE))
+    .Call(C_cov, x, y, na.method, FALSE)
 }
 
 cov2cor <- function(V)

@@ -23,7 +23,9 @@ useDynLib(stats, .registration = FALSE, .fixes="C_",
     nextn,
     SplineCoef,
     SplineEval,
-    monoFC_m
+    monoFC_m,
+    cov,
+    cor
     )
 
 # exportPattern("^[^\\.]")

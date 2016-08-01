@@ -534,8 +534,6 @@ public class Primitives {
     f("max", Summary.class, 1);
     f("prod", Summary.class, 1);
     f("range", Summary.class, 1);
-    f("cov", Covariance.class, 11);
-    f("cor", Covariance.class, 11);
 
 /* Note that the number of arguments in this group only applies
    to the default method */

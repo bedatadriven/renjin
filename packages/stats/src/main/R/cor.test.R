@@ -1,5 +1,7 @@
 #  File src/library/stats/R/cor.test.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2016 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 cor.test <- function(x, ...) UseMethod("cor.test")
 
@@ -34,21 +36,19 @@ function(x, y, alternative = c("two.sided", "less", "greater"),
     y <- y[OK]
     n <- length(x)
 
-    PVAL <- NULL
     NVAL <- 0
     conf.int <- FALSE
 
     if(method == "pearson") {
-	if(n < 3)
+	if(n < 3L)
 	    stop("not enough finite observations")
 	method <- "Pearson's product-moment correlation"
 	names(NVAL) <- "correlation"
 	r <- cor(x, y)
-        df <- n - 2
+        df <- n - 2L
 	ESTIMATE <- c(cor = r)
 	PARAMETER <- c(df = df)
 	STATISTIC <- c(t = sqrt(df) * r / sqrt(1 - r^2))
-	p <- pt(STATISTIC, df)
         if(n > 3) { ## confidence int.
             if(!missing(conf.level) &&
                (length(conf.level) != 1 || !is.finite(conf.level) ||
@@ -66,6 +66,11 @@ function(x, y, alternative = c("two.sided", "less", "greater"),
             cint <- tanh(cint)
             attr(cint, "conf.level") <- conf.level
         }
+	PVAL <- switch(alternative,
+		       "less" = pt(STATISTIC, df),
+		       "greater" = pt(STATISTIC, df, lower.tail=FALSE),
+		       "two.sided" = 2 * min(pt(STATISTIC, df),
+					     pt(STATISTIC, df, lower.tail=FALSE)))
     }
     else {
 	if(n < 2)
@@ -88,13 +93,8 @@ function(x, y, alternative = c("two.sided", "less", "greater"),
                     exact <- (n < 50)
                 if(exact && !TIES) {
                     q <- round((r + 1) * n * (n - 1) / 4)
-                    pkendall <- function(q, n) {
-                        .C(C_pkendall,
-                           length(q),
-                           p = as.double(q),
-                           as.integer(n),
-                           PACKAGE = "stats")$p
-                    }
+                    STATISTIC <- c(T = q)
+                    pkendall <- function(q, n) .Call(C_pKendall, q, n)
                     PVAL <-
                         switch(alternative,
                                "two.sided" = {
@@ -106,7 +106,6 @@ function(x, y, alternative = c("two.sided", "less", "greater"),
                                },
                                "greater" = 1 - pkendall(q - 1, n),
                                "less" = pkendall(q, n))
-                    STATISTIC <- c(T = q)
                 } else {
                     xties <- table(x[duplicated(x)]) + 1
                     yties <- table(y[duplicated(y)]) + 1
@@ -125,11 +124,15 @@ function(x, y, alternative = c("two.sided", "less", "greater"),
                         v1 / (2 * n * (n - 1)) +
                             v2 / (9 * n * (n - 1) * (n - 2))
 
-                    if (continuity) S <- sign(S) * (abs(S) - 1)
-                    STATISTIC <- c(z = S / sqrt(var_S))
-                    p <- pnorm(STATISTIC)
                     if(exact && TIES)
                         warning("Cannot compute exact p-value with ties")
+                    if (continuity) S <- sign(S) * (abs(S) - 1)
+                    STATISTIC <- c(z = S / sqrt(var_S))
+		    PVAL <- switch(alternative,
+				   "less" = pnorm(STATISTIC),
+				   "greater" = pnorm(STATISTIC, lower.tail=FALSE),
+				   "two.sided" = 2 * min(pnorm(STATISTIC),
+							 pnorm(STATISTIC, lower.tail=FALSE)))
                 }
             }
 	} else {
@@ -151,27 +154,21 @@ function(x, y, alternative = c("two.sided", "less", "greater"),
                 ## In the case of no ties, S = (1-rho) * (n^3-n)/6.
                 pspearman <- function(q, n, lower.tail = TRUE) {
                     if(n <= 1290 && exact) # n*(n^2 - 1) does not overflow
-                        .C(C_prho,
-                           as.integer(n),
-                           as.double(round(q) + 2*lower.tail),
-                           p = double(1L),
-                           integer(1L),
-                           as.logical(lower.tail),
-                           PACKAGE = "stats")$p
+                        .Call(C_pRho, round(q) + 2*lower.tail, n, lower.tail)
 		    else { # for large n: asymptotic t_{n-2}
                         den <- (n*(n^2-1))/6 # careful for overflow
                         ## Kendall et all (1939) p. 260
                         if (continuity) den <- den + 1
-			r <- 1 - q / den
+			r <- 1 - q/den
 			pt(r / sqrt((1 - r^2)/(n-2)), df = n-2,
-			   lower.tail= !lower.tail)
+			   lower.tail = !lower.tail)
 		    }
                 }
                 q <- (n^3 - n) * (1 - r) / 6
                 STATISTIC <- c(S = q)
                 if(TIES && exact){
                     exact <- FALSE
-                    warning("Cannot compute exact p-values with ties")
+                    warning("Cannot compute exact p-value with ties")
                 }
                 PVAL <-
                     switch(alternative,
@@ -187,12 +184,6 @@ function(x, y, alternative = c("two.sided", "less", "greater"),
             }
         }
     }
-
-    if(is.null(PVAL)) # for "pearson" only, currently
-	PVAL <- switch(alternative,
-		       "less" = p,
-		       "greater" = 1 - p,
-		       "two.sided" = 2 * min(p, 1 - p))
 
     RVAL <- list(statistic = STATISTIC,
                  parameter = PARAMETER,
@@ -218,7 +209,8 @@ function(formula, data, subset, na.action, ...)
     m <- match.call(expand.dots = FALSE)
     if(is.matrix(eval(m$data, parent.frame())))
         m$data <- as.data.frame(data)
-    m[[1L]] <- as.name("model.frame")
+    ## need stats:: for non-standard evaluation
+    m[[1L]] <- quote(stats::model.frame)
     m$... <- NULL
     mf <- eval(m, environment(formula))
     if(length(mf) != 2L)

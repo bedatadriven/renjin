@@ -825,6 +825,8 @@ public final class Rinternals {
       return new IntArrayVector((IntVector)sexp);
     } else if (sexp instanceof ComplexVector) {
       return new ComplexArrayVector((ComplexVector) sexp);
+    } else if(sexp instanceof StringVector) {
+      return new StringArrayVector((StringVector) sexp);
     }
     throw new UnimplementedGnuApiMethod("Rf_duplicate: " + sexp.getTypeName());
   }
@@ -1448,7 +1450,7 @@ public final class Rinternals {
   }
 
   public static boolean Rf_isFactor(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_isFactor");
+    return Types.isFactor(p0);
   }
 
   public static boolean Rf_isFrame(SEXP s) {

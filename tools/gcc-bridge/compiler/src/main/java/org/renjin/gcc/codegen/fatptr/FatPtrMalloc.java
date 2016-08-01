@@ -5,6 +5,7 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.primitive.ConstantValue;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveValueFunction;
 import org.renjin.gcc.codegen.var.LocalVarAllocator;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
@@ -31,7 +32,11 @@ public final class FatPtrMalloc {
     // double is initialized by the JVM to zeros)
     // Then we can just return a new array expression
     if(!valueFunction.getValueConstructor().isPresent()) {
-      return Expressions.newArray(valueFunction.getValueType(), length);
+      if(valueFunction instanceof PrimitiveValueFunction) {
+        return Expressions.newArray(valueFunction.getValueType(), length);
+      } else {
+        return Expressions.newArray(Type.getType(Object.class), length);
+      }
     }
 
     // If we *do* need to construct the array elements, but the length is short and known at compile time,
@@ -59,7 +64,7 @@ public final class FatPtrMalloc {
 
     // First allocate the array
     length.load(mv);
-    mv.newarray(valueFunction.getValueType());
+    mv.newarray(Wrappers.componentType(valueFunction));
     mv.store(array.getIndex(), arrayType);
 
     // initialize the loop counter

@@ -3,6 +3,7 @@ package org.renjin.gcc.codegen.type.record;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.type.FieldStrategy;
 import org.renjin.gcc.codegen.type.TypeOracle;
+import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.gimple.expr.GimpleFieldRef;
 import org.renjin.gcc.gimple.type.GimpleField;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
@@ -47,11 +48,11 @@ public class ProvidedLayout implements RecordLayout {
   }
 
   @Override
-  public GExpr memberOf(RecordValue instance, GimpleFieldRef fieldRef) {
+  public GExpr memberOf(RecordValue instance, GimpleFieldRef fieldRef, TypeStrategy fieldTypeStrategy) {
     FieldStrategy fieldStrategy = fieldMap.get(fieldRef.getOffset());
     if(fieldStrategy == null) {
       throw new IllegalStateException("Cannot find field " + fieldRef);
     }
-    return fieldStrategy.memberExpr(instance.unwrap(), 0, fieldRef.getType());
+    return fieldStrategy.memberExpr(instance.unwrap(), 0, fieldTypeStrategy);
   }
 }

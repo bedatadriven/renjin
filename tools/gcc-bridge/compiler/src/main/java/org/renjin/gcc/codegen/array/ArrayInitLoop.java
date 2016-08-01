@@ -1,7 +1,6 @@
 package org.renjin.gcc.codegen.array;
 
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
@@ -38,7 +37,7 @@ public class ArrayInitLoop implements JExpr {
   public void load(@Nonnull MethodGenerator mv) {
     
     JLValue array = mv.getLocalVarAllocator().reserve(arrayType);
-    array.store(mv, Expressions.newArray(valueFunction.getValueType(), arrayLength));
+    array.store(mv, Wrappers.newArray(valueFunction, arrayLength));
 
     LocalVarAllocator.LocalVar counter = (LocalVarAllocator.LocalVar) mv.getLocalVarAllocator().reserveInt("$counter");
     Label loopHead = new Label();

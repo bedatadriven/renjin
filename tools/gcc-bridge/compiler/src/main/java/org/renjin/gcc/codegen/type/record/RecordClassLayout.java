@@ -7,6 +7,7 @@ import org.renjin.gcc.codegen.fatptr.AddressableField;
 import org.renjin.gcc.codegen.type.FieldStrategy;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.TypeStrategy;
+import org.renjin.gcc.codegen.type.voidt.VoidPtrField;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrValueFunction;
 import org.renjin.gcc.gimple.expr.GimpleFieldRef;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
@@ -70,7 +71,7 @@ public class RecordClassLayout implements RecordLayout {
       if(node.isAddressable()) {
         return new AddressableField(type, uniqueFieldName(node), new VoidPtrValueFunction());
       } else {
-        return new PointerUnionField(type, uniqueFieldName(node));
+        return new VoidPtrField(type, uniqueFieldName(node));
       }
   
     } else if(typeSet.allPrimitives()) {
@@ -116,7 +117,7 @@ public class RecordClassLayout implements RecordLayout {
 
 
   @Override
-  public GExpr memberOf(RecordValue instance, GimpleFieldRef fieldRef) {
+  public GExpr memberOf(RecordValue instance, GimpleFieldRef fieldRef, TypeStrategy fieldTypeStrategy) {
     
     // If this field is a unioned record type, then return a pointer to ourselves
     if(isUnionMember(fieldRef)) {
@@ -127,7 +128,7 @@ public class RecordClassLayout implements RecordLayout {
     if(fieldStrategy == null) {
       throw new IllegalStateException(type + " has no field at offset " + fieldRef.getOffset());
     }
-    return fieldStrategy.memberExpr(instance.unwrap(), 0, fieldRef.getType());
+    return fieldStrategy.memberExpr(instance.unwrap(), 0, fieldTypeStrategy);
   }
 
   private boolean isUnionMember(GimpleFieldRef fieldRef) {

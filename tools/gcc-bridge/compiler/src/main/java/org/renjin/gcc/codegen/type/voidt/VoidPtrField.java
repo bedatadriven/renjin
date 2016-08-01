@@ -2,8 +2,8 @@ package org.renjin.gcc.codegen.type.voidt;
 
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.FieldStrategy;
+import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.type.primitive.FieldValue;
-import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.ClassVisitor;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
@@ -13,10 +13,12 @@ import org.renjin.repackaged.asm.Type;
  * {@code java.lang.Object}
  */
 public class VoidPtrField extends FieldStrategy {
-  
-  private String fieldName;
 
-  public VoidPtrField(String fieldName) {
+  private String fieldName;
+  private Type declaringClass;
+
+  public VoidPtrField(Type declaringClass, String fieldName) {
+    this.declaringClass = declaringClass;
     this.fieldName = fieldName;
   }
 
@@ -26,7 +28,7 @@ public class VoidPtrField extends FieldStrategy {
   }
 
   @Override
-  public VoidPtr memberExpr(JExpr instance, int fieldOffset, GimpleType expectedType) {
+  public VoidPtr memberExpr(JExpr instance, int fieldOffset, TypeStrategy expectedType) {
     FieldValue ref = new FieldValue(instance, fieldName, Type.getType(Object.class));
     return new VoidPtr(ref);
   }

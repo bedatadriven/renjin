@@ -85,7 +85,7 @@ public class ArrayTypeStrategy implements TypeStrategy<ArrayExpr> {
 
   @Override
   public ArrayExpr variable(GimpleVarDecl decl, VarAllocator allocator) {
-    Type arrayType = Wrappers.valueArrayType(elementValueFunction.getValueType());
+    Type arrayType = Wrappers.valueArrayType(elementValueFunction);
 
     JExpr array = allocator.reserve(decl.getNameIfPresent(), arrayType, allocArray(arrayLength));
     JExpr offset = Expressions.zero();
@@ -122,7 +122,7 @@ public class ArrayTypeStrategy implements TypeStrategy<ArrayExpr> {
         for (int i = 0; i < arrayLength; i++) {
           valueConstructors.add(elementValueFunction.getValueConstructor().get());
         }
-        return Expressions.newArray(elementValueFunction.getValueType(), valueConstructors);
+        return Expressions.newArray(Wrappers.componentType(elementValueFunction), valueConstructors);
 
       } else {
         return new ArrayInitLoop(elementValueFunction, arrayLength);
@@ -130,7 +130,7 @@ public class ArrayTypeStrategy implements TypeStrategy<ArrayExpr> {
 
     } else {
       // For primitive types, we can just allocate the array
-      return Expressions.newArray(elementValueFunction.getValueType(), arrayLength);
+      return Wrappers.newArray(elementValueFunction, arrayLength);
     }
   }
   

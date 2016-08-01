@@ -13,6 +13,10 @@ public class DereferencedFatPtr implements RefPtrExpr, FatPtr {
   private Type wrapperType;
 
   public DereferencedFatPtr(JExpr array, JExpr offset, ValueFunction valueFunction) {
+    if(!array.getType().equals(Type.getType("[Ljava/lang/Object;"))) {
+      throw new IllegalArgumentException("array: " + array.getType());
+    }
+
     this.array = array;
     this.offset = offset;
     this.valueFunction = valueFunction;

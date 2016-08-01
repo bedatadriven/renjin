@@ -159,7 +159,7 @@ public class GimpleCompiler  {
       GlobalVarMerger.merge(units);
 
       // Prune unused functions 
-      SymbolPruner.prune(rootLogger, units, entryPointPredicate);
+      SymbolPruner.prune(new NullTreeLogger(), units, entryPointPredicate);
 
       // create the mapping from the compilation unit's version of the record types
       // to the canonical version shared by all compilation units
@@ -228,7 +228,7 @@ public class GimpleCompiler  {
         units);
     
     builder.setRecordClassPrefix(getInternalClassName(recordClassPrefix));
-    builder.build();
+    builder.build(rootLogger);
     builder.writeClasses(outputDirectory);
 
     if(verbose) {

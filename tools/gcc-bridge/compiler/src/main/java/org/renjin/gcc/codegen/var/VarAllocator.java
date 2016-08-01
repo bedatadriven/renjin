@@ -6,6 +6,8 @@ import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.repackaged.asm.Type;
 
+import java.util.Collections;
+
 /**
  * Common interface to generating code for local and global variables.
  *
@@ -31,7 +33,7 @@ public abstract class VarAllocator {
 
     JExpr newArray;
     if(initialValue.isPresent()) {
-      newArray = Expressions.newArray(initialValue.get());
+      newArray = Expressions.newArray(componentType, Collections.singletonList(initialValue.get()));
     } else {
       newArray = Expressions.newArray(componentType, 1);
     }

@@ -6,8 +6,8 @@ import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.gcc.codegen.type.FieldStrategy;
+import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
-import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.ClassVisitor;
 import org.renjin.repackaged.asm.Type;
 
@@ -50,7 +50,7 @@ public class RecordFieldStrategy extends FieldStrategy {
   }
 
   @Override
-  public RecordValue memberExpr(JExpr instance, int fieldOffset, GimpleType expectedType) {
+  public RecordValue memberExpr(JExpr instance, int fieldOffset, TypeStrategy expectedType) {
     JLValue value = Expressions.field(instance, strategy.getJvmType(), fieldName);
     RecordUnitPtr address = new RecordUnitPtr(value);
     

@@ -228,7 +228,7 @@ public class GimpleCompiler  {
         units);
     
     builder.setRecordClassPrefix(getInternalClassName(recordClassPrefix));
-    builder.build();
+    builder.build(rootLogger);
     builder.writeClasses(outputDirectory);
 
     if(verbose) {

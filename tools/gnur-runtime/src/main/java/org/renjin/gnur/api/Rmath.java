@@ -609,7 +609,11 @@ public final class Rmath {
   }
 
   public static double Rf_sign(double p0) {
-    throw new UnimplementedGnuApiMethod("Rf_sign");
+    if (DoubleVector.isNaN(p0)) {
+      return p0;
+    } else {
+      return ((p0 > 0) ? 1 : ((p0 == 0)? 0 : -1));
+    }
   }
 
   public static double Rf_fprec(double p0, double p1) {

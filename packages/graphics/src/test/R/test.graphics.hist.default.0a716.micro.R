@@ -1,5 +1,4 @@
 library(hamcrest)
-library(stats)
 
  expected <- structure(
      list(
@@ -18,5 +17,5 @@ library(stats)
 assertThat(graphics:::hist.default(breaks=c(100, 300, 500, 700),plot=FALSE,x=structure(c(
 112, 118, 132, 129, 121, 135, 148, 148, 136, 119, 104, 118,
 463, 407, 362, 405, 417, 391, 419, 461, 472, 535, 622, 606
-), .Tsp = c(1949, 1950.91666666667, 12), class = "ts"))
-,  identicalTo( expected) )
+), .Tsp = c(1949, 1950.91666666667, 12), class = "ts"))[-5]
+,  identicalTo( expected[-5] ) )

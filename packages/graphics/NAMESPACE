@@ -1,5 +1,9 @@
 import(grDevices)
 
+# Refer to all C/Fortran routines by their name prefixed by C_
+#useDynLib(graphics, .registration = FALSE, .fixes="C_", BinCount, StemLeaf )
+useDynLib(graphics, .registration = TRUE, C_StemLeaf, C_BinCount)
+
 export(abline, arrows, assocplot, axTicks, Axis, axis, axis.Date,
        axis.POSIXct, barplot, barplot, box, boxplot, bxp, cdplot,
        clip, close.screen, co.intervals, contour, coplot, curve,
@@ -19,9 +23,6 @@ export(barplot.default, boxplot.default, boxplot.matrix,
        contour.default, image.default,
        pairs.default, plot.default, points.default, text.default)
 
-#defunct
-export(piechart)
-
 S3method(Axis, default)
 S3method(Axis, Date)
 S3method(Axis, POSIXt)
@@ -29,6 +30,7 @@ S3method(Axis, table)
 S3method(barplot, default)
 S3method(boxplot, default)
 S3method(boxplot, formula)
+S3method(boxplot, matrix)
 S3method(cdplot, default)
 S3method(cdplot, formula)
 S3method(contour, default)

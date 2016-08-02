@@ -30,12 +30,12 @@
   		<artifactId>grDevices</artifactId>
   		<version>${project.version}</version>
   	</dependency>
-  	<dependency>
-  		<groupId>org.renjin</groupId>
-  		<artifactId>hamcrest</artifactId>
-  		<version>${project.version}</version>
-  		<scope>test</scope>
-  	</dependency>
+	  <dependency>
+		  <groupId>org.renjin</groupId>
+		  <artifactId>hamcrest</artifactId>
+		  <version>${project.version}</version>
+		  <scope>test</scope>
+	  </dependency>
   </dependencies>
   <build>
   	<plugins>
@@ -43,22 +43,38 @@
   			<groupId>org.renjin</groupId>
   			<artifactId>renjin-maven-plugin</artifactId>
   			<version>${project.version}</version>
-  			<executions>
-  				<execution>
-  					<id>build</id>	
-  					<goals>
-  						<goal>namespace-compile</goal>
-  					</goals>
-  					<phase>compile</phase>
-  				</execution>
-  				<execution>
-  					<id>test</id>	
-  					<goals>
-  						<goal>test</goal>
-  					</goals>
-  					<phase>test</phase>
-  				</execution>
-  			</executions>
+			<executions>
+				<execution>
+					<id>compile-c-sources</id>
+					<goals>
+						<goal>gnur-sources-compile</goal>
+					</goals>
+					<phase>compile</phase>
+				</execution>
+				<execution>
+					<id>build</id>
+					<goals>
+						<goal>namespace-compile</goal>
+					</goals>
+					<phase>process-classes</phase>
+				</execution>
+				<execution>
+					<id>test</id>
+					<goals>
+						<goal>test</goal>
+					</goals>
+					<phase>test</phase>
+					<configuration>
+						<defaultPackages>
+							<package>grDevices</package>
+							<package>graphics</package>
+						</defaultPackages>
+
+						<!-- Allow up to 500k of output per test -->
+						<outputLimit>512000</outputLimit>
+					</configuration>
+				</execution>
+			</executions>
   		</plugin>
   	</plugins>
   </build>

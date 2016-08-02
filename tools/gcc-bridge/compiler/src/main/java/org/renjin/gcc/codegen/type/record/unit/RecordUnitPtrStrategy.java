@@ -22,7 +22,10 @@ import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
+import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
+
+import javax.annotation.Nonnull;
 
 
 public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>, SimpleTypeStrategy<RecordUnitPtr> {
@@ -122,11 +125,32 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>
   }
 
   @Override
-  public RecordUnitPtr pointerPlus(RecordUnitPtr pointer, JExpr offsetInBytes) {
+  public RecordUnitPtr pointerPlus(final RecordUnitPtr pointer, final JExpr offsetInBytes) {
     // According to our analysis conducted before-hand, there should be no pointer
     // to a sequence of records of this type with more than one record, so the result should
     // be undefined.
-    return nullPointer();
+    JExpr expr = new JExpr() {
+      @Nonnull
+      @Override
+      public Type getType() {
+        return pointer.unwrap().getType();
+      }
+
+      @Override
+      public void load(@Nonnull MethodGenerator mv) {
+        Label zero = new Label();
+        offsetInBytes.load(mv);
+        mv.ifeq(zero);
+        mv.anew(Type.getType(ArrayIndexOutOfBoundsException.class));
+        mv.dup();
+        mv.invokeconstructor(Type.getType(ArrayIndexOutOfBoundsException.class));
+        mv.athrow();
+        mv.mark(zero);
+        pointer.unwrap().load(mv);
+      }
+    };
+    
+    return new RecordUnitPtr(expr);
   }
 
   @Override

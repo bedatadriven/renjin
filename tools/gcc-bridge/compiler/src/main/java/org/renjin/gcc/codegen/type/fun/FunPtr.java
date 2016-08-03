@@ -7,6 +7,7 @@ import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.gcc.codegen.expr.RefPtrExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
+import org.renjin.repackaged.asm.Label;
 
 
 public class FunPtr implements RefPtrExpr {
@@ -40,5 +41,11 @@ public class FunPtr implements RefPtrExpr {
       throw new InternalCompilerException("Not addressable");
     }
     return address;
+  }
+
+  @Override
+  public void jumpIfNull(MethodGenerator mv, Label label) {
+    methodHandleExpr.load(mv);
+    mv.ifnull(label);
   }
 }

@@ -54,15 +54,18 @@ public final class VoidPtr {
 
   public static void assign(Object[] array, int offset, Object value) throws NoSuchMethodException {
 
-    if(value instanceof MallocThunk) {
+    // if this is a specialized array, then we need to trigger allocation now
+    if(value instanceof MallocThunk && !array.getClass().equals(Object[].class)) {
       ((MallocThunk) value).assign(array, offset);
+
     } else {
       try {
         array[offset] = value;
       } catch (ArrayStoreException e) {
-        throw new IllegalStateException("Exception storing value of class " + 
-            value.getClass().getName() + " to array of class " + 
+        throw new IllegalStateException("Exception storing value of class " +
+            value.getClass().getName() + " to array of class " +
             array.getClass().getName());
+
       }
     }
   }

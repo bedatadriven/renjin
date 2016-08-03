@@ -939,6 +939,11 @@ public class GimpleCompilerTest extends AbstractGccTest {
   }
   
   @Test
+  public void voidEq() throws Exception {
+    compileAndTest("void_eq.c");
+  }
+  
+  @Test
   public void addressablePointerUnion() throws Exception {
     compileAndTest("addr_ptr_union.c");
   }

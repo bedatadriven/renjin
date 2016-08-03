@@ -3,6 +3,7 @@ package org.renjin.gcc.codegen.fatptr;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.var.LocalVarAllocator;
+import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
 
 public class DereferencedFatPtr implements RefPtrExpr, FatPtr {
@@ -76,5 +77,10 @@ public class DereferencedFatPtr implements RefPtrExpr, FatPtr {
     return Wrappers.toPair(castedElement());
   }
 
-  
+
+  @Override
+  public void jumpIfNull(MethodGenerator mv, Label label) {
+    element().load(mv);
+    mv.ifnull(label);
+  }
 }

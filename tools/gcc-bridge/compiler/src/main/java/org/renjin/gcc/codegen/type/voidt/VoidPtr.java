@@ -3,6 +3,7 @@ package org.renjin.gcc.codegen.type.voidt;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
+import org.renjin.repackaged.asm.Label;
 
 
 public class VoidPtr implements RefPtrExpr {
@@ -43,5 +44,11 @@ public class VoidPtr implements RefPtrExpr {
   @Override
   public JExpr unwrap() {
     return objectRef;
+  }
+
+  @Override
+  public void jumpIfNull(MethodGenerator mv, Label label) {
+    objectRef.load(mv);
+    mv.ifnull(label);
   }
 }

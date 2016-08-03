@@ -3,12 +3,11 @@ package org.renjin.gcc.codegen.fatptr;
 import com.google.common.base.Preconditions;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.Expressions;
-import org.renjin.gcc.codegen.expr.GExpr;
-import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.expr.JLValue;
+import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.type.primitive.ConstantValue;
 import org.renjin.gcc.codegen.type.voidt.VoidPtr;
+import org.renjin.gcc.codegen.var.LocalVarAllocator;
+import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
 
 import javax.annotation.Nonnull;
@@ -17,7 +16,7 @@ import javax.annotation.Nullable;
 /**
  * A FatPtr expression compiled as a pair of array and an offset.
  */
-public final class FatPtrPair implements FatPtr {
+public final class FatPtrPair implements FatPtr, PtrExpr {
 
   private JExpr array;
   private JExpr offset;
@@ -68,12 +67,17 @@ public final class FatPtrPair implements FatPtr {
     if(rhsExpr instanceof VoidPtr) {
       VoidPtr ptr = (VoidPtr) rhsExpr;
       Type wrapperType = Wrappers.wrapperType(getValueType());
-      JExpr castedWrapper = Expressions.cast(ptr.unwrap(), wrapperType);
-      JLValue tempVar = mv.getLocalVarAllocator().reserve(wrapperType);
-      tempVar.store(mv, castedWrapper);
-
-      JExpr arrayField = Wrappers.arrayField(castedWrapper, getValueType());
-      JExpr offsetField = Wrappers.offsetField(castedWrapper);
+      
+      // Casting a void* to a FatPtr Wrapper like DoublePtr requires
+      // runtime support because we may need to trigger a MallocThunk.
+      ptr.unwrap().load(mv);
+      mv.invokestatic(wrapperType, "cast", Type.getMethodDescriptor(wrapperType, Type.getType(Object.class)));
+      
+      LocalVarAllocator.LocalVar tempVar = mv.getLocalVarAllocator().reserve(wrapperType);
+      tempVar.store(mv);
+      
+      JExpr arrayField = Wrappers.arrayField(tempVar, getValueType());
+      JExpr offsetField = Wrappers.offsetField(tempVar);
       
       store(mv, arrayField, offsetField);
 
@@ -161,5 +165,11 @@ public final class FatPtrPair implements FatPtr {
 
   public JExpr at(int i) {
     return Expressions.elementAt(array, Expressions.sum(offset, i));
+  }
+
+  @Override
+  public void jumpIfNull(MethodGenerator mv, Label label) {
+    array.load(mv);
+    mv.ifnull(label);
   }
 }

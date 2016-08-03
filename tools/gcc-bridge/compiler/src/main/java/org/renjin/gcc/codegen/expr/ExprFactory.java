@@ -6,6 +6,8 @@ import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.call.FunPtrCallGenerator;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
+import org.renjin.gcc.codegen.condition.ConstConditionGenerator;
+import org.renjin.gcc.codegen.condition.NullCheckGenerator;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.type.PointerTypeStrategy;
 import org.renjin.gcc.codegen.type.TypeOracle;
@@ -217,7 +219,27 @@ public class ExprFactory {
 
   private ConditionGenerator comparePointers(GimpleOp op, GimpleExpr x, GimpleExpr y) {
     
-    // Shoudldn't matter which we pointer we cast to the other, but if we have a choice,
+    // First see if this is a null check
+    if(isNull(x) && isNull(y)) {
+      switch (op) {
+        case EQ_EXPR:
+        case GE_EXPR:
+        case LE_EXPR:
+          return new ConstConditionGenerator(true);
+        case NE_EXPR:
+        case LT_EXPR:
+        case GT_EXPR:
+          return new ConstConditionGenerator(false);
+        default:
+          throw new UnsupportedOperationException("op: " + op);
+      }
+    } else if(isNull(x)) {
+      return new NullCheckGenerator(op, (PtrExpr) findGenerator(y));
+    } else if(isNull(y)) {
+      return new NullCheckGenerator(op, (PtrExpr) findGenerator(x));
+    }
+    
+    // Shouldn't matter which we pointer we cast to the other, but if we have a choice,
     // cast away from a void* to a concrete pointer type
     GimpleType commonType;
 
@@ -232,6 +254,10 @@ public class ExprFactory {
     GExpr ptrY = findGenerator(y, commonType);
 
     return typeStrategy.comparePointers(op, ptrX, ptrY);
+  }
+
+  private boolean isNull(GimpleExpr expr) {
+    return expr instanceof GimpleConstant && ((GimpleConstant) expr).isNull();
   }
 
   public GExpr findGenerator(GimpleOp op, List<GimpleExpr> operands, GimpleType expectedType) {

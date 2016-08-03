@@ -39,7 +39,7 @@ void alloc_matrix(void **pv) {
     *pv = malloc(sizeof(double)*10);
 }
 
-void test_null_comparison() {
+int test_null_comparison() {
     
     union univ_mat b;
     
@@ -48,7 +48,9 @@ void test_null_comparison() {
     alloc_matrix(&(p->data));
     
     if(!p->data) {
-        ASSERT(0);
+       return 1;
+    } else {
+        return 0;
     }
 }
 

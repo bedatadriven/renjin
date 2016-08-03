@@ -7,6 +7,7 @@ import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.type.primitive.ConstantValue;
 import org.renjin.gcc.codegen.type.voidt.VoidPtr;
 import org.renjin.gcc.codegen.var.LocalVarAllocator;
+import org.renjin.gcc.runtime.ObjectPtr;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
 
@@ -18,11 +19,13 @@ import javax.annotation.Nullable;
  */
 public final class FatPtrPair implements FatPtr, PtrExpr {
 
+  private ValueFunction valueFunction;
   private JExpr array;
   private JExpr offset;
   private GExpr address;
 
-  public FatPtrPair(@Nullable GExpr address, @Nonnull JExpr array, @Nonnull JExpr offset) {
+  public FatPtrPair(ValueFunction valueFunction, @Nullable GExpr address, @Nonnull JExpr array, @Nonnull JExpr offset) {
+    this.valueFunction = valueFunction;
     Preconditions.checkNotNull(array, "array");
     Preconditions.checkNotNull(offset, "offset");
 
@@ -31,12 +34,12 @@ public final class FatPtrPair implements FatPtr, PtrExpr {
     this.offset = offset;
   }
 
-  public FatPtrPair(@Nonnull JExpr array, @Nonnull JExpr offset) {
-    this(null, array, offset);
+  public FatPtrPair(ValueFunction valueFunction, @Nonnull JExpr array, @Nonnull JExpr offset) {
+    this(valueFunction, null, array, offset);
   }
   
-  public FatPtrPair(JExpr array) {
-    this(array, Expressions.zero());
+  public FatPtrPair(ValueFunction valueFunction, JExpr array) {
+    this(valueFunction, array, Expressions.zero());
   }
 
   @Nonnull
@@ -56,10 +59,6 @@ public final class FatPtrPair implements FatPtr, PtrExpr {
     return Type.getType(arrayDescriptor.substring(1));
   }
 
-  public FatPtrPair copyOf() {
-    return new FatPtrPair(Expressions.copyOfArray(array), offset);
-  }
-  
   @Override
   @SuppressWarnings("unchecked")
   public void store(MethodGenerator mv, GExpr rhsExpr) {
@@ -112,13 +111,6 @@ public final class FatPtrPair implements FatPtr, PtrExpr {
   }
 
 
-  public static FatPtrPair nullPtr(ValueFunction valueFunction) {
-    Type arrayType = Wrappers.valueArrayType(valueFunction.getValueType());
-    JExpr nullArray = Expressions.nullRef(arrayType);
-    
-    return new FatPtrPair(nullArray);
-  }
-
   public JExpr wrap() {
     final Type wrapperType = Wrappers.wrapperType(getValueType());
     
@@ -133,9 +125,26 @@ public final class FatPtrPair implements FatPtr, PtrExpr {
       public void load(@Nonnull MethodGenerator mv) {
         mv.anew(wrapperType);
         mv.dup();
-        array.load(mv);
-        offset.load(mv);
-        mv.invokeconstructor(wrapperType, Wrappers.fieldArrayType(wrapperType), offset.getType());
+        
+        if(wrapperType.equals(Type.getType(ObjectPtr.class))) {
+          if(valueFunction.getValueType().getSort() == Type.OBJECT) {
+            mv.aconst(valueFunction.getValueType());
+          } else {
+            mv.aconst(null);
+          }
+          array.load(mv);
+          offset.load(mv);
+          mv.invokeconstructor(wrapperType, 
+              Type.getType(Class.class), 
+              Wrappers.fieldArrayType(wrapperType), 
+              offset.getType());
+
+        } else {
+
+          array.load(mv);
+          offset.load(mv);
+          mv.invokeconstructor(wrapperType, Wrappers.fieldArrayType(wrapperType), offset.getType());
+        }
       }
     };
   }

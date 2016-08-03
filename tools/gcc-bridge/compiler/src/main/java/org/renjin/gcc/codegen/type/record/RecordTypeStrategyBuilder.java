@@ -177,7 +177,7 @@ public class RecordTypeStrategyBuilder {
     RecordClassLayout layout = new RecordClassLayout(set, nextRecordName(set.name()));
     logger.debug("Using RecordClassTypeStrategy: " + layout.getType());
 
-    boolean unitPointer = isUnitPointer(set);
+    boolean unitPointer = false;
     logger.debug("unitPointer = " + unitPointer);
 
     for (GimpleRecordTypeDef typeDef : set.getAllTypes()) {

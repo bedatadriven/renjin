@@ -50,6 +50,11 @@ public class LocalVarAllocator extends VarAllocator {
     @Override
     public void store(MethodGenerator mv, JExpr value) {
       value.load(mv);
+      if(!value.getType().equals(type)) {
+        if(type.getSort() == Type.ARRAY || type.getSort() == Type.OBJECT) {
+          mv.checkcast(type);
+        }
+      }
       store(mv);
     }
     

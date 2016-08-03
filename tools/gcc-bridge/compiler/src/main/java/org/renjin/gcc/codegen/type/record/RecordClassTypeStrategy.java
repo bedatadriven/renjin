@@ -56,7 +56,7 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<RecordValue> imp
 
   @Override
   public final ParamStrategy getParamStrategy() {
-    return new RecordClassParamStrategy(layout.getType(), isUnitPointer());
+    return new RecordClassParamStrategy(this);
   }
 
   @Override
@@ -75,7 +75,7 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<RecordValue> imp
 
     } else if(decl.isAddressable()) {
       JLValue unitArray = allocator.reserveUnitArray(decl.getName(), layout.getType(), Optional.of((JExpr)instance));
-      FatPtrPair address = new FatPtrPair(unitArray);
+      FatPtrPair address = new FatPtrPair(new RecordClassValueFunction(this), unitArray);
       JExpr value = Expressions.elementAt(address.getArray(), 0);
       return new RecordValue(value, address);
 

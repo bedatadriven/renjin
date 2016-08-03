@@ -17,10 +17,12 @@ import org.renjin.repackaged.asm.Type;
  */
 public class RecordArrayReturnStrategy implements ReturnStrategy {
 
+  private RecordArrayValueFunction valueFunction;
   private Type arrayType;
   private int arrayLength;
 
-  public RecordArrayReturnStrategy(Type arrayType, int arrayLength) {
+  public RecordArrayReturnStrategy(RecordArrayValueFunction valueFunction, Type arrayType, int arrayLength) {
+    this.valueFunction = valueFunction;
     Preconditions.checkArgument(arrayType.getSort() == Type.ARRAY, "Not an array type: " + arrayType);
     this.arrayType = arrayType;
     this.arrayLength = arrayLength;
@@ -50,7 +52,7 @@ public class RecordArrayReturnStrategy implements ReturnStrategy {
 
   @Override
   public GExpr unmarshall(MethodGenerator mv, JExpr returnValue, TypeStrategy lhsTypeStrategy) {
-    return new RecordArrayExpr(returnValue, arrayLength);
+    return new RecordArrayExpr(valueFunction, returnValue, arrayLength);
   }
 
   @Override

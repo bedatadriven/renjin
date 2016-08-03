@@ -7,6 +7,7 @@ import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.Wrappers;
 import org.renjin.gcc.codegen.type.FieldStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidPtr;
+import org.renjin.gcc.codegen.type.voidt.VoidPtrValueFunction;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.ClassVisitor;
@@ -86,7 +87,7 @@ public class PointerUnionField extends FieldStrategy {
       Type wrapperType = Wrappers.wrapperType(baseType.jvmType());
       JExpr wrapper = Expressions.cast(fieldExpr, wrapperType);
       
-      return Wrappers.toPair(wrapper);
+      return Wrappers.toPair(new VoidPtrValueFunction(), wrapper);
       
     }
 

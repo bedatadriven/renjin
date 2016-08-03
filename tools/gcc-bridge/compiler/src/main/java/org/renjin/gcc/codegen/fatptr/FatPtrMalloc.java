@@ -21,7 +21,7 @@ public final class FatPtrMalloc {
   private FatPtrMalloc() {}
 
   public static FatPtrPair alloc(MethodGenerator mv, ValueFunction valueFunction, JExpr length) {
-    return new FatPtrPair(allocArray(mv, valueFunction, length));
+    return new FatPtrPair(valueFunction, allocArray(mv, valueFunction, length));
   }
 
   public static JExpr allocArray(MethodGenerator mv, ValueFunction valueFunction, JExpr length) {

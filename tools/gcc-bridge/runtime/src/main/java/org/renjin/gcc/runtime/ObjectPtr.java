@@ -5,6 +5,7 @@ import java.util.Arrays;
 public class ObjectPtr<T> implements Ptr {
   public Object[] array;
   public int offset;
+  public Class baseType;
 
   /**
    * Constructs a new ObjectPtr to a single value.
@@ -21,6 +22,12 @@ public class ObjectPtr<T> implements Ptr {
     this.offset = offset;
   }
 
+  public ObjectPtr(Class baseType, Object[] array, int offset) {
+    this.array = array;
+    this.offset = offset;
+    this.baseType = baseType;
+  }
+  
   @Override
   public Object[] getArray() {
     return array;

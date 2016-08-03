@@ -38,11 +38,7 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
 
   public FatPtrStrategy(ValueFunction valueFunction) {
     this.valueFunction = valueFunction;
-    if(valueFunction.getValueType().getSort() == Type.OBJECT) {
-      arrayType = Type.getType("[Ljava/lang/Object;");
-    } else {
-      arrayType = Type.getType("[" + valueFunction.getValueType().getDescriptor());
-    }
+    this.arrayType = Type.getType("[" + valueFunction.getValueType().getDescriptor());
   }
 
   public boolean isParametersWrapped() {
@@ -61,9 +57,9 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
   @Override
   public FatPtr variable(GimpleVarDecl decl, VarAllocator allocator) {
     if(decl.isAddressable()) {
-      // If this variable needs to be addressable, then we need to store in a unit length pointer
+      // If this variable needs to be addressable, then we need to store it in a unit length pointer
       // so that we can later get its "address"
-      // For example, if creating a double pointer variable that needs to be later:
+      // For example, if creating a double pointer variable that needs to be later addressed:
       
       // C:
       //
@@ -75,13 +71,13 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
       // }      
       // 
       // void test() {
-      //   double *p;
+      //   double *p;   <--- Needs to be addressable
       //   init(&p)
       //   double x = *p + *(p+1)
       // }
 
       
-      // The solution is to store the pointer as unit-length array of wrappers. Then we can pass this 
+      // The solution is to store the pointer as a unit-length array of wrappers. Then we can pass this 
       // to other methods and allow them to set the array and offset
       
       // void init(ObjectPtr pp) {
@@ -101,9 +97,9 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
       Type wrapperType = Wrappers.wrapperType(valueFunction.getValueType());
       Type wrapperArrayType = Wrappers.valueArrayType(wrapperType);
       
-      FatPtr nullPtr = FatPtrPair.nullPtr(valueFunction);
+      JExpr newArray = newArray(wrapperType, 1);
       
-      JLValue unitArray = allocator.reserve(decl.getName(), wrapperArrayType, newArray(nullPtr.wrap()));
+      JLValue unitArray = allocator.reserve(decl.getName(), wrapperArrayType, newArray);
       
       return new DereferencedFatPtr(unitArray, Expressions.constantInt(0), valueFunction);
 
@@ -111,7 +107,7 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
       JLValue array = allocator.reserve(decl.getNameIfPresent(), arrayType);
       JLValue offset = allocator.reserveOffsetInt(decl.getNameIfPresent());
 
-      return new FatPtrPair(array, offset);
+      return new FatPtrPair(valueFunction, array, offset);
     }
   }
   
@@ -170,7 +166,7 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
     JExpr array = new FatPtrRealloc(pointer.toPair(), sizeInElements);
     JExpr offset = Expressions.zero();
     
-    return new FatPtrPair(array, offset);
+    return new FatPtrPair(valueFunction, array, offset);
   }
 
   @Override
@@ -198,7 +194,7 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
       JExpr arrayField = Wrappers.arrayField(wrapperInstance);
       JExpr offsetField = Wrappers.offsetField(wrapperInstance);
 
-      return new FatPtrPair(arrayField, offsetField);
+      return new FatPtrPair(valueFunction, arrayField, offsetField);
       
     
     } else if(value instanceof FatPtr) {
@@ -212,7 +208,7 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
       JExpr castedArray = Expressions.uncheckedCast(ptrExpr.getArray(), arrayType);
       JExpr offset = ptrExpr.getOffset();
 
-      return new FatPtrPair(address, castedArray, offset);
+      return new FatPtrPair(valueFunction, address, castedArray, offset);
 
     } else if(typeStrategy instanceof RecordUnitPtrStrategy) {
       RecordUnitPtr ptr = (RecordUnitPtr) value;
@@ -223,7 +219,7 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
       JExpr ref = Expressions.cast(ptr.unwrap(), valueFunction.getValueType());
       JExpr newArray = Expressions.newArray(ref);
       
-      return new FatPtrPair(newArray);
+      return new FatPtrPair(valueFunction, newArray);
     }
     
     throw new UnsupportedCastException();
@@ -234,7 +230,7 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
     FatPtrPair pointerPair = pointer.toPair();
     JExpr offsetInArrayElements = Expressions.divide(offsetInBytes, valueFunction.getArrayElementBytes());
     JExpr newOffset = Expressions.sum(pointerPair.getOffset(), offsetInArrayElements);
-    return new FatPtrPair(pointerPair.getArray(), newOffset);
+    return new FatPtrPair(valueFunction, pointerPair.getArray(), newOffset);
   }
 
   @Override
@@ -311,7 +307,7 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
 
   @Override
   public FatPtr nullPointer() {
-    return FatPtrPair.nullPtr(valueFunction);
+    return new NullFatPtr(valueFunction);
   }
 
   @Override
@@ -335,7 +331,7 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
     arrayVar.store(mv, Wrappers.arrayField(retVal, valueFunction.getValueType()));
     offsetVar.store(mv, Wrappers.offsetField(retVal));
     
-    return new FatPtrPair(arrayVar, offsetVar);
+    return new FatPtrPair(valueFunction, arrayVar, offsetVar);
   }
 
   @Override

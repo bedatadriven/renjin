@@ -37,7 +37,7 @@ public class FatPtrParamStrategy implements ParamStrategy {
       throw new UnsupportedOperationException("TODO: Addressable parameters");
     }
     
-    return new FatPtrPair(paramVars.get(0), paramVars.get(1));
+    return new FatPtrPair(valueFunction, paramVars.get(0), paramVars.get(1));
   }
 
   @Override

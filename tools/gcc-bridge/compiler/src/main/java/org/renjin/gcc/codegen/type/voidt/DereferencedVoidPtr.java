@@ -13,7 +13,7 @@ public class DereferencedVoidPtr extends VoidPtr {
   private JExpr offset;
 
   public DereferencedVoidPtr(JExpr array, JExpr offset) {
-    super(Expressions.elementAt(array, offset), new FatPtrPair(array, offset));
+    super(Expressions.elementAt(array, offset), new FatPtrPair(new VoidPtrValueFunction(), array, offset));
     this.array = array;
     this.offset = offset;
   }

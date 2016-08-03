@@ -71,7 +71,7 @@ public class RecordArrayTypeStrategy extends RecordTypeStrategy<RecordArrayExpr>
     JExpr offset = sum(instance.getOffset(), fieldOffset);
 
     // Because this value is backed by an array, we can also make it addressable. 
-    FatPtrPair address = new FatPtrPair(array, offset);
+    FatPtrPair address = new FatPtrPair(valueFunction, array, offset);
     
     // The members of this record may be either primitives, or arrays of primitives,
     // and it actually doesn't matter to us.
@@ -102,7 +102,7 @@ public class RecordArrayTypeStrategy extends RecordTypeStrategy<RecordArrayExpr>
       
     } else {
       // Return an array that starts at this point 
-      return new FatPtrPair(address, array, offset);
+      return new FatPtrPair(valueFunction, address, array, offset);
     }
     
   }
@@ -113,12 +113,12 @@ public class RecordArrayTypeStrategy extends RecordTypeStrategy<RecordArrayExpr>
 
   @Override
   public ParamStrategy getParamStrategy() {
-    return new RecordArrayParamStrategy(arrayType, arrayLength);
+    return new RecordArrayParamStrategy(valueFunction, arrayType, arrayLength);
   }
 
   @Override
   public ReturnStrategy getReturnStrategy() {
-    return new RecordArrayReturnStrategy(arrayType, arrayLength);
+    return new RecordArrayReturnStrategy(valueFunction, arrayType, arrayLength);
   }
 
   @Override
@@ -127,17 +127,17 @@ public class RecordArrayTypeStrategy extends RecordTypeStrategy<RecordArrayExpr>
     JExpr newArray = newArray(fieldType, arrayLength);
     JLValue arrayVar = allocator.reserve(decl.getName(), arrayType, newArray);
     
-    return new RecordArrayExpr(arrayVar, arrayLength);
+    return new RecordArrayExpr(valueFunction, arrayVar, arrayLength);
   }
 
   @Override
   public RecordArrayExpr constructorExpr(ExprFactory exprFactory, GimpleConstructor value) {
-    return new RecordArrayExpr(newArray(fieldType, arrayLength), arrayLength);
+    return new RecordArrayExpr(valueFunction, newArray(fieldType, arrayLength), arrayLength);
   }
 
   @Override
   public FieldStrategy fieldGenerator(Type className, final String fieldName) {
-    return new RecordArrayField(className, fieldName, arrayType, arrayLength);
+    return new RecordArrayField(className, fieldName, valueFunction, arrayType, arrayLength);
   }
 
   @Override
@@ -161,7 +161,7 @@ public class RecordArrayTypeStrategy extends RecordTypeStrategy<RecordArrayExpr>
       return (RecordArrayExpr) value;
     }  else if(typeStrategy instanceof FatPtrStrategy) {
       FatPtrPair fatPtrExpr = (FatPtrPair) value;
-      return new RecordArrayExpr(fatPtrExpr.getArray(), fatPtrExpr.getOffset(), arrayLength);
+      return new RecordArrayExpr(valueFunction, fatPtrExpr.getArray(), fatPtrExpr.getOffset(), arrayLength);
     }
     throw new UnsupportedCastException();
   }

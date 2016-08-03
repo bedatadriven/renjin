@@ -64,7 +64,7 @@ public class PrimitiveTypeStrategy implements SimpleTypeStrategy<PrimitiveValue>
   public PrimitiveValue variable(GimpleVarDecl decl, VarAllocator allocator) {
     if(decl.isAddressable()) {
       JLValue unitArray = allocator.reserveUnitArray(decl.getNameIfPresent(), type.jvmType(), Optional.<JExpr>absent());
-      FatPtrPair address = new FatPtrPair(unitArray);
+      FatPtrPair address = new FatPtrPair(valueFunction(), unitArray);
       JExpr value = Expressions.elementAt(address.getArray(), 0);
       return new PrimitiveValue(value, address);
       

@@ -44,7 +44,7 @@ public class RecordUnitPtrValueFunction implements ValueFunction {
   public GExpr dereference(JExpr array, JExpr offset) {
     JExpr pointerValue = Expressions.elementAt(array, offset);
     JExpr castedPointerValue = Expressions.cast(pointerValue, recordType);
-    FatPtrPair pointerAddress = new FatPtrPair(array, offset);
+    FatPtrPair pointerAddress = new FatPtrPair(this, array, offset);
     
     return new RecordUnitPtr(castedPointerValue, pointerAddress);
   }

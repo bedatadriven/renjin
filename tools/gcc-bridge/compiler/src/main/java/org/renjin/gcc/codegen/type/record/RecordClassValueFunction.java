@@ -48,7 +48,7 @@ public class RecordClassValueFunction implements ValueFunction {
   @Override
   public RecordValue dereference(JExpr array, JExpr offset) {
     JExpr castedElement = elementAt(array, offset);
-    FatPtrPair address = new FatPtrPair(array, offset);
+    FatPtrPair address = new FatPtrPair(this, array, offset);
     
     return new RecordValue(castedElement, address);
   }

@@ -46,7 +46,7 @@ public class DereferencedFatPtr implements RefPtrExpr, FatPtr {
 
   @Override
   public GExpr addressOf() {
-    return new FatPtrPair(array, offset);
+    return new FatPtrPair(valueFunction, array, offset);
   }
 
   @Override
@@ -69,12 +69,12 @@ public class DereferencedFatPtr implements RefPtrExpr, FatPtr {
     LocalVarAllocator.LocalVar wrapper = mv.getLocalVarAllocator().reserve(wrapperType);
     wrapper.store(mv, castedElement());
 
-    return Wrappers.toPair(wrapper);
+    return Wrappers.toPair(valueFunction, wrapper);
   }
   
   @Override
   public FatPtrPair toPair() {
-    return Wrappers.toPair(castedElement());
+    return Wrappers.toPair(valueFunction, castedElement());
   }
 
 

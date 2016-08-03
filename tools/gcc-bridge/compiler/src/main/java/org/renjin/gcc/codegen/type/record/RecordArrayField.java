@@ -16,12 +16,14 @@ public class RecordArrayField extends FieldStrategy {
   
   private Type declaringClass;
   private String name;
+  private RecordArrayValueFunction valueFunction;
   private Type arrayType;
   private int arrayLength;
 
-  public RecordArrayField(Type declaringClass, String name, Type arrayType, int arrayLength) {
+  public RecordArrayField(Type declaringClass, String name, RecordArrayValueFunction valueFunction, Type arrayType, int arrayLength) {
     this.declaringClass = declaringClass;
     this.name = name;
+    this.valueFunction = valueFunction;
     this.arrayType = arrayType;
     this.arrayLength = arrayLength;
   }
@@ -43,7 +45,7 @@ public class RecordArrayField extends FieldStrategy {
   public RecordArrayExpr memberExpr(JExpr instance, int fieldOffset, GimpleType expectedType) {
     JLValue arrayField = Expressions.field(instance, arrayType, name);
 
-    return new RecordArrayExpr(arrayField, arrayLength);
+    return new RecordArrayExpr(valueFunction, arrayField, arrayLength);
   }
 
 }

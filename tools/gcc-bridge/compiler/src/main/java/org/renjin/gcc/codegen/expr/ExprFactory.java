@@ -96,7 +96,7 @@ public class ExprFactory {
         // passing them to functions
 
         JExpr value = findPrimitiveGenerator(addressOf.getValue());
-        return new FatPtrPair(Expressions.newArray(value));
+        return new FatPtrPair(new PrimitiveValueFunction(value.getType()), Expressions.newArray(value));
 
       } else  {
         GExpr value = findGenerator(addressOf.getValue());
@@ -130,7 +130,9 @@ public class ExprFactory {
     } else if(expr instanceof GimpleConstantRef) {
       GimpleConstant constant = ((GimpleConstantRef) expr).getValue();
       JExpr constantValue = findPrimitiveGenerator(constant);
-      FatPtrPair address = new FatPtrPair(Expressions.newArray(constantValue));
+      FatPtrPair address = new FatPtrPair(
+          new PrimitiveValueFunction(constantValue.getType()), 
+          Expressions.newArray(constantValue));
       
       return new PrimitiveValue(constantValue, address);
 

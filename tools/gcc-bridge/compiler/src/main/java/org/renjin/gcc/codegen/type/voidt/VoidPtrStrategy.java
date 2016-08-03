@@ -122,7 +122,7 @@ public class VoidPtrStrategy implements PointerTypeStrategy<VoidPtr>, SimpleType
   public VoidPtr variable(GimpleVarDecl decl, VarAllocator allocator) {
     if(decl.isAddressable()) {
       JLValue unitArray = allocator.reserveArrayRef(decl.getName(), Type.getType(Object.class));
-      FatPtrPair address = new FatPtrPair(unitArray);
+      FatPtrPair address = new FatPtrPair(new VoidPtrValueFunction(), unitArray);
       JExpr value = Expressions.elementAt(unitArray, 0);
       
       return new VoidPtr(value, address);

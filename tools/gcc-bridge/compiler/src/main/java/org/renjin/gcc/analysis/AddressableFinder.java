@@ -49,28 +49,33 @@ public class AddressableFinder {
 
     @Override
     public void visitAddressOf(GimpleAddressOf addressOf) {
-      if(addressOf.getValue() instanceof GimpleComponentRef) {
-        GimpleComponentRef ref = (GimpleComponentRef) addressOf.getValue();
+      markExpr(addressOf.getValue());
+    }
+
+    private void markExpr(GimpleExpr expr) {
+      if(expr instanceof GimpleVariableRef) {
+        Optional<GimpleVarDecl> decl = scope.lookupVariable((GimpleVariableRef) expr);
+        if (decl.isPresent()) {
+          decl.get().setAddressable(true);
+        } else {
+          throw new IllegalStateException("Could not resolve " + expr);
+        }
+      } else if(expr instanceof GimpleParamRef) {
+        GimpleParameter param = scope.lookupParameter((GimpleParamRef) expr);
+        param.setAddressable(true);
+      
+      } else if(expr instanceof GimpleComponentRef) {
+        GimpleComponentRef ref = (GimpleComponentRef) expr;
         GimpleRecordType recordType = (GimpleRecordType) ref.getValue().getType();
         GimpleRecordTypeDef recordTypeDef = recordTypeDefs.get(recordType.getId());
         if(recordTypeDef == null) {
           throw new IllegalStateException("Record def not found: " + recordType);
         }
-
-        markField(recordTypeDef, ref.getMember());
-      }
-      
-      if(addressOf.getValue() instanceof GimpleVariableRef) {
-        Optional<GimpleVarDecl> decl = scope.lookupVariable((GimpleVariableRef) addressOf.getValue());
-        if (decl.isPresent()) {
-          decl.get().setAddressable(true);
+        if(recordTypeDef.isUnion()) {
+          markExpr(ref.getValue());
         } else {
-          throw new IllegalStateException("Could not resolve " + addressOf.getValue());
+          markField(recordTypeDef, ref.getMember());
         }
-      } 
-      if(addressOf.getValue() instanceof GimpleParamRef) {
-        GimpleParameter param = scope.lookupParameter((GimpleParamRef) addressOf.getValue());
-        param.setAddressable(true);
       }
     }
   }

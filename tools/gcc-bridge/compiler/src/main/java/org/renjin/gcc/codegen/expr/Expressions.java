@@ -600,6 +600,21 @@ public class Expressions {
     }
   }
 
+  public static JExpr constantClass(final Type valueType) {
+    return new JExpr() {
+      @Nonnull
+      @Override
+      public Type getType() {
+        return Type.getType(Class.class);
+      }
+
+      @Override
+      public void load(@Nonnull MethodGenerator mv) {
+        mv.aconst(valueType);
+      }
+    };
+  }
+
   private static class BinaryOp implements JExpr {
 
     private int opcode;

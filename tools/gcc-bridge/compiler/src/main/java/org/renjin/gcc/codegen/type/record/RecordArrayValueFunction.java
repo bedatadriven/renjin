@@ -60,7 +60,7 @@ public class RecordArrayValueFunction implements ValueFunction {
 
   @Override
   public GExpr dereference(final JExpr array, final JExpr offset) {
-    return new RecordArrayExpr(array, offset, arrayLength);
+    return new RecordArrayExpr(this, array, offset, arrayLength);
   }
 
   @Override

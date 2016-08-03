@@ -2,7 +2,9 @@ package org.renjin.gcc.codegen.type.record;
 
 import com.google.common.base.Optional;
 import org.renjin.gcc.codegen.RecordClassGenerator;
+import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.fatptr.AddressableField;
 import org.renjin.gcc.codegen.type.FieldStrategy;
 import org.renjin.gcc.codegen.type.TypeOracle;
@@ -123,11 +125,13 @@ public class RecordClassLayout implements RecordLayout {
       return instance;
     }
     
+    JExpr instanceRef = Expressions.cast(instance.unwrap(), type);
+    
     FieldStrategy fieldStrategy = fields.get(fieldRef.getOffset());
     if(fieldStrategy == null) {
       throw new IllegalStateException(type + " has no field at offset " + fieldRef.getOffset());
     }
-    return fieldStrategy.memberExpr(instance.unwrap(), 0, fieldRef.getType());
+    return fieldStrategy.memberExpr(instanceRef, 0, fieldRef.getType());
   }
 
   private boolean isUnionMember(GimpleFieldRef fieldRef) {

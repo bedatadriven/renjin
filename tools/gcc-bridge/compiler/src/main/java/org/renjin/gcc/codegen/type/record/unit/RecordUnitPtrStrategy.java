@@ -99,7 +99,7 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>
       // Declare this as a Unit array so that we can get a FatPtrExpr if needed
       JExpr unitArray = allocator.reserveUnitArray(decl.getName(), strategy.getJvmType(), Optional.<JExpr>absent());
 
-      FatPtrPair address = new FatPtrPair(unitArray);
+      FatPtrPair address = new FatPtrPair(valueFunction, unitArray);
       ArrayElement instance = Expressions.elementAt(unitArray, 0);
       
       return new RecordUnitPtr(instance, address);

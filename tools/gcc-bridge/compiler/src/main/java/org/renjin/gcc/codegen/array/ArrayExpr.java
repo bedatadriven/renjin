@@ -50,6 +50,6 @@ public class ArrayExpr implements GExpr {
 
   @Override
   public GExpr addressOf() {
-    return new FatPtrPair(array, offset);
+    return new FatPtrPair(valueFunction, array, offset);
   }
 }

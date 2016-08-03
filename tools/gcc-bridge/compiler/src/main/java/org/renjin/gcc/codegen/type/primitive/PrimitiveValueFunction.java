@@ -46,7 +46,7 @@ public class PrimitiveValueFunction implements ValueFunction {
 
   @Override
   public GExpr dereference(JExpr array, JExpr offset) {
-    FatPtrPair address = new FatPtrPair(array, offset);
+    FatPtrPair address = new FatPtrPair(this, array, offset);
     JExpr value = Expressions.elementAt(array, offset);
 
     return new PrimitiveValue(value, address);

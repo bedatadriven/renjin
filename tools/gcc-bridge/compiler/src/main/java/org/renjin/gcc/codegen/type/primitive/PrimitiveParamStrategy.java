@@ -43,7 +43,7 @@ public class PrimitiveParamStrategy implements ParamStrategy {
       // if this parameter is addressed, then we need to allocate a unit array that can hold the value
       // and be addressed as needed.
       JLValue unitArray = localVars.reserveUnitArray(parameter.getName(), type, Optional.of(paramValue));
-      FatPtrPair address = new FatPtrPair(unitArray);
+      FatPtrPair address = new FatPtrPair(new PrimitiveValueFunction(type), unitArray);
       JExpr value = Expressions.elementAt(address.getArray(), 0);
       return new PrimitiveValue(value, address);
     } else {

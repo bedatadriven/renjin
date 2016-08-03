@@ -18,22 +18,20 @@ import java.util.List;
 
 public class RecordClassParamStrategy implements ParamStrategy {
   
-  private Type jvmType;
-  private boolean unitPointer;
+  private RecordClassTypeStrategy strategy;
 
-  public RecordClassParamStrategy(Type jvmType, boolean unitPointer) {
-    this.jvmType = jvmType;
-    this.unitPointer = unitPointer;
+  public RecordClassParamStrategy(RecordClassTypeStrategy strategy) {
+    this.strategy = strategy;
   }
   
   @Override
   public List<Type> getParameterTypes() {
-    return Collections.singletonList(jvmType);
+    return Collections.singletonList(strategy.getJvmType());
   }
 
   @Override
   public RecordValue emitInitialization(MethodGenerator methodVisitor, GimpleParameter parameter, List<JLValue> paramVars, VarAllocator localVars) {
-    if(unitPointer) {
+    if(strategy.isUnitPointer()) {
       // If this type can be represented as a unit pointer, then 
       // the address expression is equivalent to the value expression.
       JLValue ref = paramVars.get(0);
@@ -43,10 +41,10 @@ public class RecordClassParamStrategy implements ParamStrategy {
    
     } else {
       if (parameter.isAddressable()) {
-        JLValue array = localVars.reserveUnitArray(parameter.getName(), jvmType,
-            Optional.of(Expressions.newObject(jvmType)));
+        JLValue array = localVars.reserveUnitArray(parameter.getName(), strategy.getJvmType(),
+            Optional.of(Expressions.newObject(strategy.getJvmType())));
 
-        FatPtrPair address = new FatPtrPair(array);
+        FatPtrPair address = new FatPtrPair(new RecordClassValueFunction(strategy), array);
         RecordValue value = new RecordValue(Expressions.elementAt(array, 0), address);
         
         return value;

@@ -43,12 +43,12 @@ public class FatPtrReturnStrategy implements ReturnStrategy {
     JExpr array = Wrappers.arrayField(wrapper, valueFunction.getValueType());
     JExpr offset = Wrappers.offsetField(wrapper);
 
-    return new FatPtrPair(array, offset);
+    return new FatPtrPair(valueFunction, array, offset);
   }
 
   @Override
   public JExpr getDefaultReturnValue() {
     Type arrayType = Wrappers.valueArrayType(valueFunction.getValueType());
-    return new FatPtrPair(Expressions.nullRef(arrayType)).wrap();
+    return new FatPtrPair(valueFunction, Expressions.nullRef(arrayType)).wrap();
   }
 }

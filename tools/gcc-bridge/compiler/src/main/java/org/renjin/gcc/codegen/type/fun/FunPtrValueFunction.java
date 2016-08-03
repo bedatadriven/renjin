@@ -45,7 +45,7 @@ public class FunPtrValueFunction implements ValueFunction {
   @Override
   public GExpr dereference(JExpr array, JExpr offset) {
     JExpr ptr = Expressions.cast(Expressions.elementAt(array, offset), Type.getType(MethodHandle.class));
-    FatPtrPair address = new FatPtrPair(array, offset);
+    FatPtrPair address = new FatPtrPair(this, array, offset);
     return new FunPtr(ptr, address);
   }
 

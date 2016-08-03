@@ -93,6 +93,18 @@ identical.rec <- function(actual, expected, tol = NULL) {
     }
 }
 
+equal.rec <- function(actual, expected) {
+    if (is.list(actual)) {
+      for (i in seq_along(actual)) {
+        isSame <- equal.rec(actual[[i]], expected[[i]])
+        if (!isSame){
+          return(FALSE)
+        }
+      }
+    } else {
+        return(length(actual) == length(expected) && all(actual == expected))
+    }
+}
 
 closeTo <- function(expected, delta) {
     stopifnot(is.numeric(expected) & is.numeric(delta) & length(delta) == 1L)
@@ -118,7 +130,7 @@ deparsesTo <- function(expected) {
 equalTo <- function(expected) {
 	function(actual) {
 		if (is.list(actual))
- 	        identical.rec(actual, expected)
+ 	        equal.rec(actual, expected)
  		else
  		    length(actual) == length(expected) && all(actual == expected)
   	}

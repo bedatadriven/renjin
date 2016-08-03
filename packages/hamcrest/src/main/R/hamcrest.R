@@ -117,9 +117,11 @@ deparsesTo <- function(expected) {
 
 equalTo <- function(expected) {
 	function(actual) {
-		length(actual) == length(expected) &&
-				all(actual == expected)
-	}
+		if (is.list(actual))
+ 	        identical.rec(actual, expected)
+ 		else
+ 		    length(actual) == length(expected) && all(actual == expected)
+  	}
 }
 
 instanceOf <- function(expected) {

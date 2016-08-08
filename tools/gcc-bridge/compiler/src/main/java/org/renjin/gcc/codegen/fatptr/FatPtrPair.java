@@ -66,20 +66,42 @@ public final class FatPtrPair implements FatPtr, PtrExpr {
     if(rhsExpr instanceof VoidPtr) {
       VoidPtr ptr = (VoidPtr) rhsExpr;
       Type wrapperType = Wrappers.wrapperType(getValueType());
-      
+
       // Casting a void* to a FatPtr Wrapper like DoublePtr requires
       // runtime support because we may need to trigger a MallocThunk.
       ptr.unwrap().load(mv);
       mv.invokestatic(wrapperType, "cast", Type.getMethodDescriptor(wrapperType, Type.getType(Object.class)));
-      
+
       LocalVarAllocator.LocalVar tempVar = mv.getLocalVarAllocator().reserve(wrapperType);
       tempVar.store(mv);
-      
+
       JExpr arrayField = Wrappers.arrayField(tempVar, getValueType());
       JExpr offsetField = Wrappers.offsetField(tempVar);
-      
+
       store(mv, arrayField, offsetField);
 
+    } else if(rhsExpr instanceof WrappedFatPtrExpr) {
+      // Need to do a null check here first
+      Label nullLabel = new Label();
+      Label exitLabel = new Label();
+      
+      // Check to see if the pointer to the wrapper is null
+      ((WrappedFatPtrExpr) rhsExpr).wrap().load(mv);
+      mv.ifnull(nullLabel);
+      
+      // If non-null, break out into array and offset fields
+      FatPtrPair pair = ((WrappedFatPtrExpr) rhsExpr).toPair(mv);
+      store(mv, pair.getArray(), pair.getOffset());
+      mv.goTo(exitLabel);
+      
+      // If null, store null and zero offset
+      mv.mark(nullLabel);
+      store(mv, Expressions.nullRef(array.getType()), Expressions.constantInt(0));
+      
+      // Done.
+      mv.mark(exitLabel);
+      
+      
     } else if(rhsExpr instanceof FatPtr) {
       FatPtrPair pair = ((FatPtr) rhsExpr).toPair(mv);
       store(mv, pair.getArray(), pair.getOffset());
@@ -87,6 +109,11 @@ public final class FatPtrPair implements FatPtr, PtrExpr {
     } else {
       throw new UnsupportedOperationException("rhs: " + rhsExpr);
     }
+  }
+
+  @Override
+  public GExpr valueOf() {
+    return valueFunction.dereference(array, offset);
   }
 
   private void store(MethodGenerator mv, JExpr arrayRhs, JExpr offsetRhs) {

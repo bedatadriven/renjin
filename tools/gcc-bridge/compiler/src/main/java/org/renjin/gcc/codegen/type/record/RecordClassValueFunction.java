@@ -8,6 +8,7 @@ import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
+import org.renjin.gcc.codegen.fatptr.WrappedFatPtrExpr;
 import org.renjin.gcc.codegen.type.primitive.ConstantValue;
 import org.renjin.gcc.codegen.var.LocalVarAllocator;
 import org.renjin.repackaged.asm.Label;
@@ -51,6 +52,11 @@ public class RecordClassValueFunction implements ValueFunction {
     FatPtrPair address = new FatPtrPair(this, array, offset);
     
     return new RecordValue(castedElement, address);
+  }
+
+  @Override
+  public GExpr dereference(WrappedFatPtrExpr wrapperInstance) {
+    return new RecordValue(wrapperInstance.valueExpr(), wrapperInstance);
   }
 
   private JExpr elementAt(JExpr array, JExpr offset) {

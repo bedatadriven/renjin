@@ -10,4 +10,5 @@ public interface PtrExpr extends GExpr {
   
   void jumpIfNull(MethodGenerator mv, Label label);
   
+  GExpr valueOf();
 }

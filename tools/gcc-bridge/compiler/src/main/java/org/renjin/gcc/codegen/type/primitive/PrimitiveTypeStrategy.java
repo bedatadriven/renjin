@@ -6,6 +6,7 @@ import org.renjin.gcc.codegen.array.ArrayTypeStrategies;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.AddressableField;
+import org.renjin.gcc.codegen.fatptr.FatPtr;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
 import org.renjin.gcc.codegen.type.*;
@@ -99,7 +100,7 @@ public class PrimitiveTypeStrategy implements SimpleTypeStrategy<PrimitiveValue>
     }
     
     if(typeStrategy instanceof FatPtrStrategy) {
-      return ((FatPtrStrategy) typeStrategy).toInt((FatPtrPair) value);
+      return ((FatPtrStrategy) typeStrategy).toInt((FatPtr) value);
     
     } else if(value instanceof RefPtrExpr) {
       RefPtrExpr ptrExpr = (RefPtrExpr) value;

@@ -16,8 +16,6 @@ public interface PointerTypeStrategy<ExprT extends GExpr> extends TypeStrategy<E
 
   ExprT pointerPlus(ExprT pointer, JExpr offsetInBytes);
 
-  GExpr valueOf(ExprT pointerExpr);
-
   ExprT nullPointer();
 
   ConditionGenerator comparePointers(GimpleOp op, ExprT x, ExprT y);

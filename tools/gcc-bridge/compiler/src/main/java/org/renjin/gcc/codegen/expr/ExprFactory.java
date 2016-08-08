@@ -117,8 +117,8 @@ public class ExprFactory {
         ptrExpr =  typeStrategy.pointerPlus(ptrExpr, offsetInBytes);
       }
       
-      return typeStrategy.valueOf(ptrExpr);
-      
+      return ((PtrExpr) ptrExpr).valueOf();
+
     } else if(expr instanceof GimpleArrayRef) {
       GimpleArrayRef arrayRef = (GimpleArrayRef) expr;
       ArrayTypeStrategy arrayStrategy = typeOracle.forArrayType(arrayRef.getArray().getType());
@@ -407,7 +407,7 @@ public class ExprFactory {
       ptrExpr =  pointerStrategy.pointerPlus(ptrExpr, offsetInBytes);
     }
 
-    return pointerStrategy.valueOf(ptrExpr);
+    return ((PtrExpr) ptrExpr).valueOf();
   }
   
   private GExpr dereferenceThenCast(GimpleMemRef gimpleExpr, GimpleType expectedType) {
@@ -422,7 +422,7 @@ public class ExprFactory {
       ptrExpr =  pointerStrategy.pointerPlus(ptrExpr, offsetInBytes);
     }
     
-    GExpr valueExpr = pointerStrategy.valueOf(ptrExpr);
+    GExpr valueExpr = ((PtrExpr) ptrExpr).valueOf();
 
     return maybeCast(valueExpr, pointerType.getBaseType(), expectedType);
   }

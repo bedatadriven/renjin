@@ -149,11 +149,6 @@ public class FunPtrStrategy implements PointerTypeStrategy<FunPtr>, SimpleTypeSt
   }
 
   @Override
-  public GExpr valueOf(FunPtr pointerExpr) {
-    return pointerExpr;
-  }
-
-  @Override
   public String toString() {
     return "FunPtrStrategy";
   }

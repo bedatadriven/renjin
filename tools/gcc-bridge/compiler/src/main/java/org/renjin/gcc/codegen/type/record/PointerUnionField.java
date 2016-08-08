@@ -11,6 +11,7 @@ import org.renjin.gcc.codegen.type.voidt.VoidPtrValueFunction;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.ClassVisitor;
+import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 
@@ -103,6 +104,16 @@ public class PointerUnionField extends FieldStrategy {
     @Override
     public GExpr addressOf() {
       throw new NotAddressableException();
+    }
+
+    @Override
+    public void jumpIfNull(MethodGenerator mv, Label label) {
+      throw new UnsupportedOperationException("TODO");
+    }
+
+    @Override
+    public GExpr valueOf() {
+      throw new UnsupportedOperationException("TODO");
     }
   }
   

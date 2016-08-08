@@ -57,8 +57,39 @@ public class ObjectPtr<T> implements Ptr {
     return get(0);
   }
   
-  public void set(T value) {
-    this.array[offset] = value;
+  public void set(Object value) {
+    if(value instanceof MallocThunk) {
+      MallocThunk thunk = (MallocThunk) value;
+      if(array instanceof BooleanPtr[]) {
+        array[offset] = thunk.booleanPtr();
+        
+      } else if(array instanceof BytePtr[]) {
+        array[offset] = thunk.bytePtr();
+      
+      } else if(array instanceof CharPtr[]) {
+        array[offset] = thunk.charPtr();
+        
+      } else if(array instanceof DoublePtr[]) {
+        array[offset] = thunk.doublePtr();
+        
+      } else if(array instanceof FloatPtr[]) {
+        array[offset] = thunk.floatPtr();
+        
+      } else if(array instanceof IntPtr[]) {
+        array[offset] = thunk.intPtr();
+        
+      } else if(array instanceof LongPtr[]) {
+        array[offset] = thunk.longPtr();
+
+      } else if(array instanceof ShortPtr[]) {
+        array[offset] = thunk.shortPtr();
+
+      } else if(array instanceof ObjectPtr[]) {
+        this.array[offset] = thunk.ptr(baseType);
+      } 
+    } else {
+      this.array[offset] = value;
+    }
   }
   
   @SuppressWarnings("unchecked")

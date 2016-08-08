@@ -29,21 +29,26 @@ public class WrappedFatPtrParamStrategy implements ParamStrategy {
 
   @Override
   public GExpr emitInitialization(MethodGenerator mv, GimpleParameter parameter, List<JLValue> paramVars, VarAllocator localVars) {
-    JLValue array = localVars.reserve(parameter.getName() + "$array", Wrappers.valueArrayType(valueFunction.getValueType()));
-    JLValue offset = localVars.reserveInt(parameter.getName() + "$offset");
-
-    JExpr wrapper = paramVars.get(0);
-    JExpr arrayField = Wrappers.arrayField(wrapper, valueFunction.getValueType());
-    JExpr offsetField = Wrappers.offsetField(wrapper);
-
-//    if(valueFunction.getValueType().getSort() == Type.OBJECT) {
-//      arrayField = Expressions.cast(arrayField, Wrappers.valueArrayType(valueFunction.getValueType()));
-//    }
-
-    array.store(mv, arrayField);
-    offset.store(mv, offsetField);
     
-    return new FatPtrPair(valueFunction, array, offset);
+    if(valueFunction.getValueType().getSort() == Type.OBJECT) {
+      return new WrappedFatPtrExpr(valueFunction, paramVars.get(0));
+
+    } else {
+      
+      // For pointers to primitive, unpack for efficiency
+      
+      JLValue array = localVars.reserve(parameter.getName() + "$array", Wrappers.valueArrayType(valueFunction.getValueType()));
+      JLValue offset = localVars.reserveInt(parameter.getName() + "$offset");
+
+      JExpr wrapper = paramVars.get(0);
+      JExpr arrayField = Wrappers.arrayField(wrapper, valueFunction.getValueType());
+      JExpr offsetField = Wrappers.offsetField(wrapper);
+
+      array.store(mv, arrayField);
+      offset.store(mv, offsetField);
+
+      return new FatPtrPair(valueFunction, array, offset);
+    }
   }
 
   @Override
@@ -62,10 +67,10 @@ public class WrappedFatPtrParamStrategy implements ParamStrategy {
       JExpr wrappedPtr = Expressions.cast(refPtr.unwrap(), Wrappers.wrapperType(valueFunction.getValueType()));
       wrappedPtr.load(mv);
     
-    } else if(argumentValue instanceof FatPtrPair) {
-      FatPtrPair fatPtrExpr = (FatPtrPair) argumentValue;
-      fatPtrExpr.wrap().load(mv);  
-   
+    } else if(argumentValue instanceof FatPtr) {
+      FatPtr fatPtrExpr = (FatPtr) argumentValue;
+      fatPtrExpr.wrap().load(mv);
+
     } else {
       throw new IllegalArgumentException("argument: " + argumentValue);
     }

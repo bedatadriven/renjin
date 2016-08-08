@@ -71,7 +71,8 @@ public class AddressableFinder {
         if(recordTypeDef == null) {
           throw new IllegalStateException("Record def not found: " + recordType);
         }
-        if(recordTypeDef.isUnion()) {
+        // TODO(alex): this test is probably too simplistic.
+        if(recordTypeDef.isUnion() && ref.getMember().getType() instanceof GimpleRecordType) {
           markExpr(ref.getValue());
         } else {
           markField(recordTypeDef, ref.getMember());

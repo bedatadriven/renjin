@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
 
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -65,6 +66,17 @@ public class UnionSet {
     } else {
       return name;
     }
+  }
+  
+  public int sizeOf() {
+    Iterator<GimpleRecordTypeDef> it = getAllTypes().iterator();
+    int size = it.next().getSize();
+    while(it.hasNext()) {
+      if(it.next().getSize() != size) {
+        throw new IllegalStateException("inconsistent record sizes");
+      }
+    }
+    return size / 8;
   }
 
   public String debugString() {

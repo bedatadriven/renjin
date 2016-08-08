@@ -15,7 +15,6 @@ import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.type.primitive.ConstantValue;
 import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.codegen.type.record.RecordConstructor;
-import org.renjin.gcc.codegen.type.record.RecordValue;
 import org.renjin.gcc.codegen.type.voidt.VoidPtr;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleOp;
@@ -191,11 +190,6 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>
   @Override
   public RecordUnitPtr unmarshallVoidPtrReturnValue(MethodGenerator mv, JExpr voidPointer) {
     return new RecordUnitPtr(Expressions.cast(voidPointer, getJvmType()));
-  }
-
-  @Override
-  public RecordValue valueOf(RecordUnitPtr pointerExpr) {
-    return new RecordValue(pointerExpr.unwrap());
   }
 
   private boolean isUnitConstant(JExpr length) {

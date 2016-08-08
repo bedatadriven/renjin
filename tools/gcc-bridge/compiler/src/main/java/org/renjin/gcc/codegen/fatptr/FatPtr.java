@@ -1,15 +1,12 @@
 package org.renjin.gcc.codegen.fatptr;
 
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.expr.RefPtrExpr;
+import org.renjin.gcc.codegen.expr.PtrExpr;
 import org.renjin.repackaged.asm.Type;
 
-import javax.annotation.Nonnull;
 
-
-public interface FatPtr extends GExpr {
+public interface FatPtr extends PtrExpr {
 
   Type getValueType();
 

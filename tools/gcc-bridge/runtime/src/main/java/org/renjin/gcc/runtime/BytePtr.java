@@ -18,6 +18,14 @@ public class BytePtr implements Ptr {
     this.offset = offset;
   }
   
+  public byte get() {
+    return array[offset];
+  }
+  
+  public void set(byte value) {
+    array[offset] = value;
+  }
+  
   public static byte[] toArray(String constant) {
     // The string literals are technically not in UTF-8 encoding:
     // the literals that GCC emits are really just a string of bytes, 

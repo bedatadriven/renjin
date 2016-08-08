@@ -5,6 +5,7 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
+import org.renjin.gcc.codegen.fatptr.WrappedFatPtrExpr;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.repackaged.asm.Type;
 
@@ -61,6 +62,11 @@ public class RecordArrayValueFunction implements ValueFunction {
   @Override
   public GExpr dereference(final JExpr array, final JExpr offset) {
     return new RecordArrayExpr(this, array, offset, arrayLength);
+  }
+
+  @Override
+  public GExpr dereference(WrappedFatPtrExpr wrapperInstance) {
+    return dereference(wrapperInstance.getArray(), wrapperInstance.getOffset());
   }
 
   @Override

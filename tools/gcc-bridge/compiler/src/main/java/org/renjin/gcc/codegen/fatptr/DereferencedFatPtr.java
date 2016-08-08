@@ -83,4 +83,9 @@ public class DereferencedFatPtr implements RefPtrExpr, FatPtr {
     element().load(mv);
     mv.ifnull(label);
   }
+
+  @Override
+  public GExpr valueOf() {
+    throw new UnsupportedOperationException("TODO");
+  }
 }

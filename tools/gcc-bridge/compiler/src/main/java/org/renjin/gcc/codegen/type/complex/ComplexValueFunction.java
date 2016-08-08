@@ -7,8 +7,10 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.fatptr.FatPtr;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
+import org.renjin.gcc.codegen.fatptr.WrappedFatPtrExpr;
 import org.renjin.repackaged.asm.Type;
 
 import java.util.List;
@@ -45,17 +47,26 @@ public class ComplexValueFunction implements ValueFunction {
   public GExpr dereference(JExpr array, JExpr offset) {
 
     FatPtrPair address = new FatPtrPair(this, array, offset);
-    
+    return dereference(array, offset, address);
+  }
+
+  @Override
+  public GExpr dereference(WrappedFatPtrExpr wrapperInstance) {
+    return dereference(wrapperInstance.getArray(), wrapperInstance.getOffset(), wrapperInstance);
+  }
+
+  private GExpr dereference(JExpr array, JExpr offset, FatPtr address) {
     // Real element is at i
     JExpr realOffset = offset;
     // Complex element is at i+1
     JExpr imaginaryOffset = Expressions.sum(realOffset, Expressions.constantInt(1));
-    
+
     JExpr real = Expressions.elementAt(array, realOffset);
     JExpr imaginary = Expressions.elementAt(array, imaginaryOffset);
-    
+
     return new ComplexValue(address, real, imaginary);
   }
+
 
   @Override
   public List<JExpr> toArrayValues(GExpr expr) {

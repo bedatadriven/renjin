@@ -2,20 +2,21 @@ package org.renjin.gcc.codegen.type.record.unit;
 
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.*;
-import org.renjin.gcc.codegen.fatptr.FatPtrPair;
+import org.renjin.gcc.codegen.fatptr.FatPtr;
+import org.renjin.gcc.codegen.type.record.RecordValue;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
 
 public class RecordUnitPtr implements RefPtrExpr {
   
   private JExpr ref;
-  private FatPtrPair address;
+  private FatPtr address;
 
   public RecordUnitPtr(JExpr ref) {
     this.ref = ref;
   }
 
-  public RecordUnitPtr(JExpr ref, FatPtrPair address) {
+  public RecordUnitPtr(JExpr ref, FatPtr address) {
     this.ref = ref;
     this.address = address;
   }
@@ -45,5 +46,10 @@ public class RecordUnitPtr implements RefPtrExpr {
   public void jumpIfNull(MethodGenerator mv, Label label) {
     ref.load(mv);
     mv.ifnull(label);
+  }
+
+  @Override
+  public GExpr valueOf() {
+    return new RecordValue(ref);
   }
 }

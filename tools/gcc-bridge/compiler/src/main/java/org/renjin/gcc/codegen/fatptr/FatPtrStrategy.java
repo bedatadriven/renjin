@@ -111,14 +111,15 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
     }
   }
   
-  public PrimitiveValue toInt(FatPtrPair fatPtrExpr) {
+  public PrimitiveValue toInt(FatPtr fatPtrExpr) {
     // Converting pointers to integers and vice-versa is implementation-defined
     // So we will define an implementation that supports at least one useful case spotted in S4Vectors:
     // double a[] = {1,2,3,4};
     // double *start = a;
     // double *end = p+4;
     // int length = (start-end)
-    JExpr offset = fatPtrExpr.getOffset();
+    FatPtrPair pair = fatPtrExpr.toPair();
+    JExpr offset = pair.getOffset();
     JExpr offsetInBytes = Expressions.product(offset, valueFunction.getArrayElementBytes());
 
     return new PrimitiveValue(offsetInBytes);
@@ -168,12 +169,7 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
     
     return new FatPtrPair(valueFunction, array, offset);
   }
-
-  @Override
-  public GExpr valueOf(FatPtr pointerExpr) {
-    FatPtrPair pair = pointerExpr.toPair();
-    return valueFunction.dereference(pair.getArray(), pair.getOffset());
-  }
+  
 
   @Override
   public FatPtrStrategy pointerTo() {

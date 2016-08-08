@@ -7,6 +7,7 @@ import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
+import org.renjin.gcc.codegen.fatptr.WrappedFatPtrExpr;
 import org.renjin.repackaged.asm.Type;
 
 import java.util.Collections;
@@ -47,6 +48,12 @@ public class RecordUnitPtrValueFunction implements ValueFunction {
     FatPtrPair pointerAddress = new FatPtrPair(this, array, offset);
     
     return new RecordUnitPtr(castedPointerValue, pointerAddress);
+  }
+
+  @Override
+  public GExpr dereference(WrappedFatPtrExpr wrapperInstance) {
+    
+    return new RecordUnitPtr(wrapperInstance.valueExpr(), wrapperInstance);
   }
 
   @Override

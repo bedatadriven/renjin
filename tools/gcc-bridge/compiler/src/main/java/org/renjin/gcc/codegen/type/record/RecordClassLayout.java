@@ -149,7 +149,8 @@ public class RecordClassLayout implements RecordLayout {
 
   @Override
   public void writeClassFiles(File outputDir) throws IOException {
-    RecordClassGenerator generator = new RecordClassGenerator(type, getSuperClass(), fields.values());
+    RecordClassGenerator generator = new RecordClassGenerator(type, getSuperClass(), fields.values(), 
+        unionSet.sizeOf());
     generator.writeClassFile(outputDir);
   }
 

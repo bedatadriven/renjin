@@ -41,6 +41,10 @@ public class IntPtr implements Ptr {
     return array[offset];
   }
   
+  public int get() {
+    return array[offset];
+  }
+  
   public void set(int value) {
     array[offset] = value;
   }

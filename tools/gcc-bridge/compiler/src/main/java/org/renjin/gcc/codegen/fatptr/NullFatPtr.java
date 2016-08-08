@@ -5,6 +5,7 @@ import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.NotAddressableException;
+import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
 
 /**
@@ -53,5 +54,15 @@ public class NullFatPtr implements FatPtr {
   @Override
   public GExpr addressOf() {
     throw new NotAddressableException();
+  }
+
+  @Override
+  public void jumpIfNull(MethodGenerator mv, Label label) {
+    mv.goTo(label);
+  }
+
+  @Override
+  public GExpr valueOf() {
+    throw new UnsupportedOperationException("TODO");
   }
 }

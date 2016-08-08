@@ -38,7 +38,7 @@ public class RecordClassGenerator {
   private int size;
   private Collection<FieldStrategy> fields;
 
-  public RecordClassGenerator(Type className, Type superClassName, Collection<FieldStrategy> fields) {
+  public RecordClassGenerator(Type className, Type superClassName, Collection<FieldStrategy> fields, int size) {
     this.size = size;
     this.fields = fields;
     this.className = className;

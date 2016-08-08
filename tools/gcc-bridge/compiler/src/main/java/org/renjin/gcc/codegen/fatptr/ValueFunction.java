@@ -33,6 +33,8 @@ public interface ValueFunction {
 
 
   GExpr dereference(JExpr array, JExpr offset);
+  
+  GExpr dereference(WrappedFatPtrExpr wrapperInstance);
 
   /**
    * Transforms the given expression to one or more array element values.

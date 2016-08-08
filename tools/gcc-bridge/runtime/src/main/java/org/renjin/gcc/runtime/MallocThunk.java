@@ -1,5 +1,10 @@
 package org.renjin.gcc.runtime;
 
+import org.renjin.gcc.annotations.GccSize;
+
+import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
+
 /**
  * Represents a block of requested memory that is allocated at the moment when it is casted to 
  * a concrete type.
@@ -81,6 +86,44 @@ public class MallocThunk {
     return (DoublePtr) pointer;
   }
 
+  public ObjectPtr ptr(Class<?> componentType) {
+    if(pointer == null) {
+      // Alloc...
+      GccSize size = componentType.getAnnotation(GccSize.class);
+      if(size == null) {
+        throw new IllegalStateException(String.format(
+            "Cannot malloc array for class %s: @GccSize annotation is absent.", componentType.getName()));
+      }
+      int sizeInBytes = size.value();
+      if(sizeInBytes <= 0) {
+        throw new IllegalStateException(String.format(
+            "Cannot malloc array for class %s: @GccSize = %d", componentType.getName(), sizeInBytes));
+      }
+
+      Constructor<?> constructor;
+      try {
+        constructor = componentType.getConstructor();
+      } catch (NoSuchMethodException e) {
+        throw new IllegalStateException(String.format(
+            "Cannot malloc array for class %s: no default constructor.", componentType.getName()), e);
+      }
+
+      int numElements = bytes / sizeInBytes;
+      Object[] array = (Object[])Array.newInstance(componentType, numElements);
+      for(int i=0;i<array.length;++i) {
+        try {
+          array[i] = constructor.newInstance();
+        } catch (Exception e) {
+          throw new IllegalStateException(String.format(
+              "Exception malloc'ing array for class %s: %s", componentType.getName(), e.getMessage()), e);
+        }
+      }
+      pointer = new ObjectPtr<>(array);
+    }
+    
+    return (ObjectPtr)pointer;
+  }
+  
   public void assign(Object[] array, int offset) {
     if(pointer == null) {
       pointer = allocElement(array);

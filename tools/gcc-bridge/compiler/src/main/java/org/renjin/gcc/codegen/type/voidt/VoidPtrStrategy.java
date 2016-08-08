@@ -62,11 +62,6 @@ public class VoidPtrStrategy implements PointerTypeStrategy<VoidPtr>, SimpleType
   }
 
   @Override
-  public GExpr valueOf(VoidPtr pointerExpr) {
-    throw new UnsupportedOperationException("void pointers cannot be dereferenced.");
-  }
-
-  @Override
   public VoidPtr nullPointer() {
     return new VoidPtr(Expressions.nullRef(Type.getType(Object.class)));
   }

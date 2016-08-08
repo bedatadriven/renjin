@@ -49,6 +49,11 @@ public class FatPtrValueFunction implements ValueFunction {
   }
 
   @Override
+  public GExpr dereference(WrappedFatPtrExpr wrapperInstance) {
+    return new DereferencedWrappedFatPtr(baseValueFunction, wrapperInstance);
+  }
+
+  @Override
   public List<JExpr> toArrayValues(GExpr expr) {
     FatPtrPair fatPtrExpr = (FatPtrPair) expr;
     return Collections.singletonList(fatPtrExpr.wrap());

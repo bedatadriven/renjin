@@ -46,12 +46,12 @@ int test_null_comparison() {
     struct _double_mat *p = &(b.d);
     
     alloc_matrix(&(p->data));
-    
-    if(!p->data) {
-       return 1;
-    } else {
-        return 0;
-    }
+//    
+//    if(!p->data) {
+//       return 1;
+//    } else {
+//        return 0;
+//    }
 }
 
 

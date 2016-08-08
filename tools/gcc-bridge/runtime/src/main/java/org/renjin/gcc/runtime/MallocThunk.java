@@ -85,28 +85,24 @@ public class MallocThunk {
     }
     return (DoublePtr) pointer;
   }
-
-  public ObjectPtr ptr(Class<?> componentType) {
+  
+  public Object recordUnitPtr(Class recordType) {
     if(pointer == null) {
-      // Alloc...
-      GccSize size = componentType.getAnnotation(GccSize.class);
-      if(size == null) {
-        throw new IllegalStateException(String.format(
-            "Cannot malloc array for class %s: @GccSize annotation is absent.", componentType.getName()));
-      }
-      int sizeInBytes = size.value();
-      if(sizeInBytes <= 0) {
-        throw new IllegalStateException(String.format(
-            "Cannot malloc array for class %s: @GccSize = %d", componentType.getName(), sizeInBytes));
-      }
-
-      Constructor<?> constructor;
+      Constructor constructor = constructorFor(recordType);
       try {
-        constructor = componentType.getConstructor();
-      } catch (NoSuchMethodException e) {
-        throw new IllegalStateException(String.format(
-            "Cannot malloc array for class %s: no default constructor.", componentType.getName()), e);
+        pointer = constructor.newInstance();
+      } catch (Exception e) {
+        throw new RuntimeException("Failed to malloc element of type " + recordType.getClass().getName(), e);
       }
+    }
+    return pointer;
+  }
+  
+  public ObjectPtr objectPtr(Class<?> componentType) {
+    if(pointer == null) {
+      int sizeInBytes = sizeOf(componentType);
+
+      Constructor<?> constructor = constructorFor(componentType);
 
       int numElements = bytes / sizeInBytes;
       Object[] array = (Object[])Array.newInstance(componentType, numElements);
@@ -123,7 +119,33 @@ public class MallocThunk {
     
     return (ObjectPtr)pointer;
   }
-  
+
+  private Constructor<?> constructorFor(Class<?> componentType) {
+    Constructor<?> constructor;
+    try {
+      constructor = componentType.getConstructor();
+    } catch (NoSuchMethodException e) {
+      throw new IllegalStateException(String.format(
+          "Cannot malloc array for class %s: no default constructor.", componentType.getName()), e);
+    }
+    return constructor;
+  }
+
+  private int sizeOf(Class<?> componentType) {
+    // Alloc...
+    GccSize size = componentType.getAnnotation(GccSize.class);
+    if(size == null) {
+      throw new IllegalStateException(String.format(
+          "Cannot malloc array for class %s: @GccSize annotation is absent.", componentType.getName()));
+    }
+    int sizeInBytes = size.value();
+    if(sizeInBytes <= 0) {
+      throw new IllegalStateException(String.format(
+          "Cannot malloc array for class %s: @GccSize = %d", componentType.getName(), sizeInBytes));
+    }
+    return sizeInBytes;
+  }
+
   public void assign(Object[] array, int offset) {
     if(pointer == null) {
       pointer = allocElement(array);

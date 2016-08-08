@@ -85,8 +85,11 @@ public class ObjectPtr<T> implements Ptr {
         array[offset] = thunk.shortPtr();
 
       } else if(array instanceof ObjectPtr[]) {
-        this.array[offset] = thunk.ptr(baseType);
-      } 
+        this.array[offset] = thunk.objectPtr(baseType);
+        
+      } else {
+        this.array[offset] = thunk.recordUnitPtr(this.array.getClass().getComponentType());
+      }
     } else {
       this.array[offset] = value;
     }

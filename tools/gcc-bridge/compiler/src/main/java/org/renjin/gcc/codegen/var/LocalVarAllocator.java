@@ -57,7 +57,16 @@ public class LocalVarAllocator extends VarAllocator {
       }
       store(mv);
     }
-    
+
+    private void checkAssignmentTypes(Type targetType, Type sourceType) {
+      if (targetType.equals(Type.getType(Object.class))) {
+        return;
+      }
+      if (!sourceType.equals(targetType)) {
+        throw new IllegalStateException("Trying to assign " + sourceType + " to " + type);
+      }
+    }
+
     public void store(MethodGenerator mv) {
       mv.visitVarInsn(type.getOpcode(Opcodes.ISTORE), index);
     }

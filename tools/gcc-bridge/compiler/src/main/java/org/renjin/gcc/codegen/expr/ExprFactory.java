@@ -109,15 +109,7 @@ public class ExprFactory {
 
     } else if(expr instanceof GimpleMemRef) {
       GimpleMemRef memRefExpr = (GimpleMemRef) expr;
-      PointerTypeStrategy typeStrategy = typeOracle.forPointerType(memRefExpr.getPointer().getType());
-      GExpr ptrExpr = findGenerator(memRefExpr.getPointer());
-
-      if(!memRefExpr.isOffsetZero()) {
-        JExpr offsetInBytes = findPrimitiveGenerator(memRefExpr.getOffset());
-        ptrExpr =  typeStrategy.pointerPlus(ptrExpr, offsetInBytes);
-      }
-      
-      return ((PtrExpr) ptrExpr).valueOf();
+      return memRef(memRefExpr, memRefExpr.getType());
 
     } else if(expr instanceof GimpleArrayRef) {
       GimpleArrayRef arrayRef = (GimpleArrayRef) expr;

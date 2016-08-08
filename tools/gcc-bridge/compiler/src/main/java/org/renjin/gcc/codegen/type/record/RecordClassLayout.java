@@ -102,10 +102,8 @@ public class RecordClassLayout implements RecordLayout {
   private boolean isPotentialSuperClass(TypeStrategy strategy) {
     if(strategy instanceof RecordClassTypeStrategy) {
       RecordClassTypeStrategy recordStrategy = (RecordClassTypeStrategy) strategy;
-      if(recordStrategy.isUnitPointer()) {
-        if (!recordStrategy.getJvmType().equals(this.type)) {
-          return true;
-        }
+      if (!recordStrategy.getJvmType().equals(this.type)) {
+        return true;
       }
     }
     return false;

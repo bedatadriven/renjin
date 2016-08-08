@@ -18,21 +18,21 @@ public class WrappedFatPtrExpr implements FatPtr {
 
   private ValueFunction valueFunction;
   private JLValue ref;
-  
+
   public WrappedFatPtrExpr(ValueFunction valueFunction, JLValue paramExpr) {
     this.valueFunction = valueFunction;
     this.ref = paramExpr;
   }
 
-  
+
   public JExpr getArray() {
     return Wrappers.arrayField(ref);
-  } 
-  
+  }
+
   public JExpr getOffset() {
     return Wrappers.offsetField(ref);
   }
-  
+
   @Override
   public Type getValueType() {
     return valueFunction.getValueType();
@@ -62,7 +62,7 @@ public class WrappedFatPtrExpr implements FatPtr {
   public void store(MethodGenerator mv, GExpr rhs) {
     if(rhs instanceof FatPtr) {
       ref.store(mv, ((FatPtr) rhs).wrap());
-    
+
     } else {
       throw new UnsupportedOperationException("TODO: rhs = " + rhs.getClass().getName());
     }
@@ -98,7 +98,7 @@ public class WrappedFatPtrExpr implements FatPtr {
         if(ref.getType().equals(Type.getType(ObjectPtr.class))) {
           mv.invokevirtual(ref.getType(), "get", Type.getMethodDescriptor(Type.getType(Object.class)), false);
           mv.checkcast(valueFunction.getValueType());
-          
+
         } else {
           mv.invokevirtual(ref.getType(), "get", Type.getMethodDescriptor(valueFunction.getValueType()), false);
         }
@@ -108,7 +108,11 @@ public class WrappedFatPtrExpr implements FatPtr {
       public void store(MethodGenerator mv, JExpr expr) {
         ref.load(mv);
         expr.load(mv);
-        mv.invokevirtual(ref.getType(), "set", Type.getMethodDescriptor(Type.VOID_TYPE, valueFunction.getValueType()), false);
+        if(ref.getType().equals(Type.getType(ObjectPtr.class))) {
+          mv.invokevirtual(ref.getType(), "set", Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(Object.class)), false);
+        } else {
+          mv.invokevirtual(ref.getType(), "set", Type.getMethodDescriptor(Type.VOID_TYPE, valueFunction.getValueType()), false);
+        }
       }
     };
   }

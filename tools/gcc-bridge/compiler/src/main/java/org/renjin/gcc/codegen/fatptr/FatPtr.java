@@ -16,5 +16,5 @@ public interface FatPtr extends PtrExpr {
   
   FatPtrPair toPair(MethodGenerator mv);
   
-  FatPtrPair toPair();
+  FatPtrPair toPair();    
 }

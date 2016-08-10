@@ -107,7 +107,7 @@ public final class FatPtrPair implements FatPtr, PtrExpr {
       store(mv, pair.getArray(), pair.getOffset());
 
     } else {
-        throw new UnsupportedOperationException("rhs: " + rhsExpr);
+      throw new UnsupportedOperationException("rhs: " + rhsExpr);
     }
   }
 

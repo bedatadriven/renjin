@@ -54,7 +54,7 @@ public class ArrayTypeStrategy implements TypeStrategy<ArrayExpr> {
 
   @Override
   public FatPtrStrategy pointerTo() {
-    return new FatPtrStrategy(arrayValueFunction)
+    return new FatPtrStrategy(arrayValueFunction, 1)
         .setParametersWrapped(parameterWrapped);
   }
 

@@ -16,11 +16,11 @@ public class FatPtrFieldStrategy extends FieldStrategy {
   private String offsetField;
   private Type arrayType;
 
-  public FatPtrFieldStrategy(ValueFunction valueFunction, String name) {
+  public FatPtrFieldStrategy(ValueFunction valueFunction, String name, Type arrayType) {
     this.valueFunction = valueFunction;
     this.arrayField = name;
-    this.arrayType = Wrappers.valueArrayType(valueFunction.getValueType());
     this.offsetField = name + "$offset";
+    this.arrayType = arrayType;
   }
 
   @Override

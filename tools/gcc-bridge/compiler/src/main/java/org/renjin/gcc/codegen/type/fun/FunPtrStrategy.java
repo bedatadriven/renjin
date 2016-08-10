@@ -65,7 +65,7 @@ public class FunPtrStrategy implements PointerTypeStrategy<FunPtr>, SimpleTypeSt
 
   @Override
   public FatPtrStrategy pointerTo() {
-    return new FatPtrStrategy(new FunPtrValueFunction(32));
+    return new FatPtrStrategy(new FunPtrValueFunction(32), 2);
   }
 
   @Override

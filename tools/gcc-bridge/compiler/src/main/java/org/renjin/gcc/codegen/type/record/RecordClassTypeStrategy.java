@@ -135,7 +135,7 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<RecordValue> imp
     if(unitPointer) {
       return new RecordUnitPtrStrategy(this);
     } else {
-      return new FatPtrStrategy(new RecordClassValueFunction(this));
+      return new FatPtrStrategy(new RecordClassValueFunction(this), 1);
     }
   }
 

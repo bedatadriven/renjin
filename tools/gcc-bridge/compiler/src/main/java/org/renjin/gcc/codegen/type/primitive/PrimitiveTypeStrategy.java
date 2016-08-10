@@ -81,7 +81,7 @@ public class PrimitiveTypeStrategy implements SimpleTypeStrategy<PrimitiveValue>
 
   @Override
   public FatPtrStrategy pointerTo() {
-    return new FatPtrStrategy(valueFunction());
+    return new FatPtrStrategy(valueFunction(), 1);
   }
 
   @Override

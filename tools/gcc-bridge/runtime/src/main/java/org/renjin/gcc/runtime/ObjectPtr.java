@@ -60,28 +60,28 @@ public class ObjectPtr<T> implements Ptr {
   public void set(Object value) {
     if(value instanceof MallocThunk) {
       MallocThunk thunk = (MallocThunk) value;
-      if(array instanceof BooleanPtr[]) {
+      if(array instanceof BooleanPtr[] || BooleanPtr.class.equals(baseType)) {
         array[offset] = thunk.booleanPtr();
         
-      } else if(array instanceof BytePtr[]) {
+      } else if(array instanceof BytePtr[] || BytePtr.class.equals(baseType)) {
         array[offset] = thunk.bytePtr();
       
-      } else if(array instanceof CharPtr[]) {
+      } else if(array instanceof CharPtr[] || CharPtr.class.equals(baseType)) {
         array[offset] = thunk.charPtr();
         
-      } else if(array instanceof DoublePtr[]) {
+      } else if(array instanceof DoublePtr[] || DoublePtr.class.equals(baseType)) {
         array[offset] = thunk.doublePtr();
         
-      } else if(array instanceof FloatPtr[]) {
+      } else if(array instanceof FloatPtr[] || FloatPtr.class.equals(baseType)) {
         array[offset] = thunk.floatPtr();
         
-      } else if(array instanceof IntPtr[]) {
+      } else if(array instanceof IntPtr[] || IntPtr.class.equals(baseType)) {
         array[offset] = thunk.intPtr();
         
-      } else if(array instanceof LongPtr[]) {
+      } else if(array instanceof LongPtr[] || LongPtr.class.equals(baseType)) {
         array[offset] = thunk.longPtr();
 
-      } else if(array instanceof ShortPtr[]) {
+      } else if(array instanceof ShortPtr[] || ShortPtr.class.equals(baseType)) {
         array[offset] = thunk.shortPtr();
 
       } else if(array instanceof ObjectPtr[]) {

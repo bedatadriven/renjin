@@ -59,7 +59,7 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>
 
   @Override
   public FatPtrStrategy pointerTo() {
-    return new FatPtrStrategy(valueFunction);
+    return new FatPtrStrategy(valueFunction, 2);
   }
 
   @Override

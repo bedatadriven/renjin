@@ -68,4 +68,5 @@ void test_malloc_struct_addr() {
   do_void_malloc(&ps);
   
   ASSERT(ps[0].z == 0);
+  ASSERT(ps[1].z == 0);
 }

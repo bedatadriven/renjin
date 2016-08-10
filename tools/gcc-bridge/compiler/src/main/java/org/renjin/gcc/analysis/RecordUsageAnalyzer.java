@@ -9,6 +9,7 @@ import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleIntegerConstant;
+import org.renjin.gcc.gimple.statement.GimpleAssignment;
 import org.renjin.gcc.gimple.statement.GimpleCall;
 import org.renjin.gcc.gimple.statement.GimpleStatement;
 import org.renjin.gcc.gimple.type.*;
@@ -59,11 +60,13 @@ public class RecordUsageAnalyzer  {
 
     // (1) Variables or Fields which are arrays of this record type
     // (2) Malloc(s) of this record type where it cannot be statically verified that s = sizeof(record_t)
+    // (3) Casting of second-level indirection (record**) to (void**) 
 
     checkForArrayDeclarations(units);
     checkForRecordMallocs(units);
+    checkForCastingToVoidPP(units);
   }
-
+  
   /**
    * Check for any declarations of arrays of records, which imply a contiguous block
    * of more than one records.
@@ -113,6 +116,50 @@ public class RecordUsageAnalyzer  {
       }
     }
   }
+
+  private void checkForCastingToVoidPP(List<GimpleCompilationUnit> units) {
+
+    GimplePointerType voidpp = new GimpleVoidType().pointerTo().pointerTo();
+
+    for (GimpleCompilationUnit unit : units) {
+      for (GimpleFunction function : unit.getFunctions()) {
+        for (GimpleBasicBlock basicBlock : function.getBasicBlocks()) {
+          for (GimpleStatement statement : basicBlock.getStatements()) {
+            if(statement instanceof GimpleCall) {
+              for (GimpleExpr operand : statement.getOperands()) {
+                checkForPointerPointerType(operand.getType());
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  private void checkRhsForPointerPointerType(GimpleAssignment assignment) {
+    switch (assignment.getOperator()) {
+      case ADDR_EXPR:
+      case VAR_DECL:
+      case PARM_DECL:
+      case COMPONENT_REF:
+        checkForPointerPointerType(assignment.getOperands().get(0).getType());
+        break;
+    }
+    
+  }
+
+  private void checkForPointerPointerType(GimpleType type) {
+    if(type instanceof GimpleIndirectType) {
+      GimpleType baseType = type.getBaseType();
+      if(baseType instanceof GimpleIndirectType) {
+        if(baseType.getBaseType() instanceof GimpleRecordType) {
+          GimpleRecordType baseBaseType = baseType.getBaseType();
+          unitPointerAssumptionsHold.remove(baseBaseType.getId());
+        }
+      }
+    }
+  }
+
 
   private void checkForRecordMalloc(GimpleCall mallocCall) {
 

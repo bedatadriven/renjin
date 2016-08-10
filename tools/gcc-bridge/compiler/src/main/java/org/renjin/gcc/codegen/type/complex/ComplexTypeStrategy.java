@@ -77,7 +77,7 @@ public class ComplexTypeStrategy implements TypeStrategy<ComplexValue> {
 
   @Override
   public FatPtrStrategy pointerTo() {
-    return new FatPtrStrategy(new ComplexValueFunction(type.getJvmPartType()))
+    return new FatPtrStrategy(new ComplexValueFunction(type.getJvmPartType()), 1)
         .setParametersWrapped(false);
   }
 

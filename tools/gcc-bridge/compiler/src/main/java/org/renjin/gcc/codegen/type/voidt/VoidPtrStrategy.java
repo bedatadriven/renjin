@@ -145,7 +145,7 @@ public class VoidPtrStrategy implements PointerTypeStrategy<VoidPtr>, SimpleType
 
   @Override
   public PointerTypeStrategy pointerTo() {
-    return new FatPtrStrategy(new VoidPtrValueFunction());
+    return new FatPtrStrategy(new VoidPtrValueFunction(), 2);
   }
 
   @Override

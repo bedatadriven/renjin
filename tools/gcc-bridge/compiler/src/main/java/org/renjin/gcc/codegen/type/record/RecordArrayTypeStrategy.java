@@ -147,7 +147,7 @@ public class RecordArrayTypeStrategy extends RecordTypeStrategy<RecordArrayExpr>
 
   @Override
   public PointerTypeStrategy pointerTo() {
-    return new FatPtrStrategy(valueFunction);
+    return new FatPtrStrategy(valueFunction, 1);
   }
 
   @Override

@@ -30,17 +30,24 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
 
   private ValueFunction valueFunction;
   private boolean parametersWrapped = true;
+  private int indirectionLevel;
 
   /**
    * The JVM type of the array used to back the pointer
    */
   private Type arrayType; 
 
-  public FatPtrStrategy(ValueFunction valueFunction) {
+  public FatPtrStrategy(ValueFunction valueFunction, int indirectionLevel) {
+    assert indirectionLevel >= 1;
     this.valueFunction = valueFunction;
-    this.arrayType = Type.getType("[" + valueFunction.getValueType().getDescriptor());
+    this.indirectionLevel = indirectionLevel;
+    if(indirectionLevel == 2) {
+      this.arrayType = Type.getType("[Ljava/lang/Object;");
+    } else {
+      this.arrayType = Type.getType("[" + valueFunction.getValueType().getDescriptor());
+    }
   }
-
+  
   public boolean isParametersWrapped() {
     return parametersWrapped;
   }
@@ -50,10 +57,6 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
     return this;
   }
 
-  public Type getArrayType() {
-    return Wrappers.valueArrayType(valueFunction.getValueType());
-  }
-  
   @Override
   public FatPtr variable(GimpleVarDecl decl, VarAllocator allocator) {
     if(decl.isAddressable()) {
@@ -132,7 +135,7 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
 
   @Override
   public FieldStrategy fieldGenerator(Type className, String fieldName) {
-    return new FatPtrFieldStrategy(valueFunction, fieldName);
+    return new FatPtrFieldStrategy(valueFunction, fieldName, arrayType);
   }
 
   @Override
@@ -173,7 +176,7 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
 
   @Override
   public FatPtrStrategy pointerTo() {
-    return new FatPtrStrategy(new FatPtrValueFunction(valueFunction));
+    return new FatPtrStrategy(new FatPtrValueFunction(valueFunction), indirectionLevel + 1);
   }
 
   @Override

@@ -52,7 +52,6 @@ public class RecordUnitPtrValueFunction implements ValueFunction {
 
   @Override
   public GExpr dereference(WrappedFatPtrExpr wrapperInstance) {
-    
     return new RecordUnitPtr(wrapperInstance.valueExpr(), wrapperInstance);
   }
 

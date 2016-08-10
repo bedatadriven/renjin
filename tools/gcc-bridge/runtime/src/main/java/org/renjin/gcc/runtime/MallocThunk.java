@@ -88,6 +88,11 @@ public class MallocThunk {
   
   public Object recordUnitPtr(Class recordType) {
     if(pointer == null) {
+      if(this.bytes != sizeOf(recordType)) {
+        throw new IllegalStateException(String.format(
+            "Misclassified record pointer: %s (bug in gcc-bridge compilation)",
+              recordType.getName()));
+      }
       Constructor constructor = constructorFor(recordType);
       try {
         pointer = constructor.newInstance();

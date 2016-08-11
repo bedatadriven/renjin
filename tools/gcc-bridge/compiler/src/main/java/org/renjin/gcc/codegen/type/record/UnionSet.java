@@ -51,23 +51,55 @@ public class UnionSet {
   }
 
   public String name() {
-    String name = null;
-    for (GimpleRecordTypeDef typeDef : getAllTypes()) {
-      if(typeDef.getName() != null) {
-        if(name == null) {
-          name = typeDef.getName();
-        } else {
-          name = Strings.commonPrefix(name, typeDef.getName());
-        }
+    String commonPrefix = common(true);
+    String commonSuffix = common(false);
+    
+    String name;
+    if(commonPrefix.length() >= commonSuffix.length()) {
+      name = commonPrefix;
+    } else {
+      name = commonSuffix;
+    }
+    
+    if(name.length() <= 1) {
+      String unionName = unionName();
+      if(unionName.length() > 1) {
+        name = unionName;
       }
     }
+    
     if(Strings.isNullOrEmpty(name)) {
       return "record";
     } else {
       return name;
     }
   }
+
+  private String unionName() {
+    for (GimpleRecordTypeDef typeDef : getAllTypes()) {
+      if(typeDef.isUnion()) {
+        return typeDef.getName();
+      }
+    }
+    return "";
+  }
   
+  private String common(boolean prefix) {
+    String name = null;
+    for (GimpleRecordTypeDef typeDef : getAllTypes()) {
+      if(typeDef.getName() != null) {
+        if(name == null) {
+          name = typeDef.getName();
+        } else if(prefix) {
+          name = Strings.commonPrefix(name, typeDef.getName());
+        } else {
+          name = Strings.commonSuffix(name, typeDef.getName());
+        }
+      }
+    }
+    return Strings.nullToEmpty(name);
+  }
+
   public int sizeOf() {
     Iterator<GimpleRecordTypeDef> it = getAllTypes().iterator();
     int size = it.next().getSize();

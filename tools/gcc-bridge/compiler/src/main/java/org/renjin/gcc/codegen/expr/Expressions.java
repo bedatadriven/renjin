@@ -262,7 +262,7 @@ public class Expressions {
 
     return uncheckedCast(object, type);
   }
-
+  
   public static JExpr uncheckedCast(final JExpr object, final Type type) {
     return new JLValue() {
 

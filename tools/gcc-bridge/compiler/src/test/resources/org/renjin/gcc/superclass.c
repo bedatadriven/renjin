@@ -38,3 +38,20 @@ void test_set() {
     ASSERT(b2.a.y == 2);
     ASSERT(b2.z == 3);
 }
+
+void test_super_set() {
+
+    struct b_t b;
+    b.a.x = 1;
+    b.a.y = 2;
+    b.z = 3;
+    
+    struct a_t a;
+    a.x = 41;
+    a.y = 42;
+    
+    b.a = a;
+    
+    ASSERT(b.a.x == 41);
+    ASSERT(b.a.y == 42);
+}

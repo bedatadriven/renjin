@@ -11,10 +11,7 @@ import org.renjin.repackaged.asm.Type;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Puts our thinking cap on and figures out the best way to 
@@ -29,8 +26,8 @@ public class RecordTypeStrategyBuilder {
   private final RecordUsageAnalyzer usage;
   private String recordClassPrefix;
   
-  private int nextRecordIndex;
-  
+  private final Set<String> recordNames = new HashSet<>();
+
   private List<RecordLayout> layouts = new ArrayList<>();
 
   public RecordTypeStrategyBuilder(
@@ -234,9 +231,25 @@ public class RecordTypeStrategyBuilder {
 
   private Type nextRecordName(String name) {
     
-    String recordClassName = String.format("%s$%s", recordClassPrefix, name + (nextRecordIndex++));
+    String recordClassName = String.format("%s$%s", recordClassPrefix, uniqueName(name));
 
     return Type.getType("L" + recordClassName + ";");
   }
-  
+
+  private String uniqueName(String name) {
+    if(!recordNames.contains(name)) {
+      recordNames.add(name);
+      return name;
+    }
+    int index = 0;
+    String disambiguatedName;
+    do {
+      index++;
+      disambiguatedName = name + index;
+    } while(recordNames.contains(disambiguatedName));
+    
+    recordNames.add(disambiguatedName);
+    return disambiguatedName;
+  }
+
 }

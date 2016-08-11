@@ -947,4 +947,9 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void addressablePointerUnion() throws Exception {
     compileAndTest("addr_ptr_union.c");
   }
+  
+  @Test
+  public void superClass() throws Exception {
+    compileAndTest("superclass.c");
+  }
 }

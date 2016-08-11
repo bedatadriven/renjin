@@ -2,14 +2,11 @@ package org.renjin.gcc.codegen.type.record;
 
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.*;
-import org.renjin.gcc.codegen.fatptr.FatPtr;
-import org.renjin.gcc.codegen.fatptr.FatPtrPair;
-import org.renjin.gcc.codegen.fatptr.Wrappers;
+import org.renjin.gcc.codegen.fatptr.*;
 import org.renjin.gcc.codegen.type.FieldStrategy;
+import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidPtr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrValueFunction;
-import org.renjin.gcc.gimple.type.GimplePrimitiveType;
-import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.ClassVisitor;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Opcodes;
@@ -37,35 +34,32 @@ public class PointerUnionField extends FieldStrategy {
   }
 
   @Override
-  public GExpr memberExpr(JExpr instance, int fieldOffset, GimpleType expectedType) {
+  public GExpr memberExpr(JExpr instance, int fieldOffset, TypeStrategy expectedType) {
     JLValue fieldExpr = Expressions.field(instance, Type.getType(Object.class), fieldName);
 
     if(expectedType == null) {
       return new VoidPtr(fieldExpr);
     }
 
-    if(expectedType.isPointerTo(GimplePrimitiveType.class)) {
-      GimplePrimitiveType baseType = expectedType.getBaseType();
-      return new PrimitiveFatPtrExpr(fieldExpr, baseType);
-      
-    } else {
-      throw new UnsupportedOperationException("TODO: " + expectedType);
-    }
+    if(expectedType instanceof FatPtrStrategy) {
+      return new FatPtrMemberExpr(fieldExpr, ((FatPtrStrategy) expectedType).getValueFunction());
+    } 
+    throw new UnsupportedOperationException(String.format("TODO: strategy = %s", expectedType));
   }
   
-  private class PrimitiveFatPtrExpr implements FatPtr {
+  private class FatPtrMemberExpr implements FatPtr {
 
     private JLValue fieldExpr;
-    private GimplePrimitiveType baseType;
+    private ValueFunction valueFunction;
 
-    public PrimitiveFatPtrExpr(JLValue fieldExpr, GimplePrimitiveType baseType) {
+    public FatPtrMemberExpr(JLValue fieldExpr, ValueFunction valueFunction) {
       this.fieldExpr = fieldExpr;
-      this.baseType = baseType;
+      this.valueFunction = valueFunction;
     }
 
     @Override
     public Type getValueType() {
-      return baseType.jvmType();
+      return valueFunction.getValueType();
     }
 
     @Override
@@ -85,11 +79,10 @@ public class PointerUnionField extends FieldStrategy {
 
     @Override
     public FatPtrPair toPair() {
-      Type wrapperType = Wrappers.wrapperType(baseType.jvmType());
+      Type wrapperType = Wrappers.wrapperType(valueFunction.getValueType());
       JExpr wrapper = Expressions.cast(fieldExpr, wrapperType);
       
       return Wrappers.toPair(new VoidPtrValueFunction(), wrapper);
-      
     }
 
     @Override

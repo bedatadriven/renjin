@@ -70,3 +70,30 @@ void test_malloc_struct_addr() {
   ASSERT(ps[0].z == 0);
   ASSERT(ps[1].z == 0);
 }
+
+void do_dbl_alloc(void **ppv) {
+  
+  double *pd = malloc(sizeof(double)*3);
+  pd[0] = 41;
+  pd[1] = 42;
+  pd[2] = 43;
+  
+  *ppv = pd;
+}
+
+void do_check_dbl(void* pv) {
+  double *pd = (double*)pv;
+  ASSERT(pd[0] == 41);
+  ASSERT(pd[1] == 42);
+  ASSERT(pd[2] == 43);  
+}
+
+void test_addressable_void_variable() {
+  
+  void *pv;
+  do_dbl_alloc(&pv);
+  
+  ASSERT(pv != NULL);
+  
+  do_check_dbl(pv);
+}

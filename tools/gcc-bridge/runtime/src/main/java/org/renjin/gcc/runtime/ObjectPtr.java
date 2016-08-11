@@ -7,11 +7,14 @@ public class ObjectPtr<T> implements Ptr {
   public int offset;
   public Class baseType;
 
+  public ObjectPtr() {
+  }
+  
   /**
    * Constructs a new ObjectPtr to a single value.
    */
   public ObjectPtr(T... array) {
-    //assert array.getClass().equals(Object[].class);
+    //assert array.getClass().equals(Object[].class);s
     this.array = array;
     offset = 0;
   }

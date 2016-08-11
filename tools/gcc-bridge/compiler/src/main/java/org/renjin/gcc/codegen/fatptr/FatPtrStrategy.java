@@ -20,8 +20,7 @@ import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.repackaged.asm.Type;
 
 import static org.renjin.gcc.codegen.expr.Expressions.newArray;
-import static org.renjin.repackaged.asm.Type.INT_TYPE;
-import static org.renjin.repackaged.asm.Type.VOID_TYPE;
+import static org.renjin.repackaged.asm.Type.*;
 
 /**
  * Strategy for pointer types that uses a combination of an array value and an offset value
@@ -50,6 +49,10 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
   
   public boolean isParametersWrapped() {
     return parametersWrapped;
+  }
+
+  public ValueFunction getValueFunction() {
+    return valueFunction;
   }
 
   public FatPtrStrategy setParametersWrapped(boolean parametersWrapped) {
@@ -146,6 +149,9 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
   @Override
   public ParamStrategy getParamStrategy() {
     if(isParametersWrapped()) {
+      if(valueFunction.getValueType().getSort() == OBJECT) {
+        
+      }
       return new WrappedFatPtrParamStrategy(valueFunction);
     } else {
       return new FatPtrParamStrategy(valueFunction);

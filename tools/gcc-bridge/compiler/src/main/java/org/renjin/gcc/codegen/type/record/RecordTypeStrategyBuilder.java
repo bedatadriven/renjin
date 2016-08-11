@@ -221,7 +221,13 @@ public class RecordTypeStrategyBuilder {
     layouts.add(providedLayout);
     
     RecordClassTypeStrategy strategy = new RecordClassTypeStrategy(typeOracle, recordTypeDef, providedLayout);
-    strategy.setUnitPointer(usage.unitPointerAssumptionsHoldFor(recordTypeDef));
+    
+    if(providedType.getInternalName().equals("org/renjin/sexp/SEXP")) {
+      // TODO(alex): remove hard-coded rule
+      strategy.setUnitPointer(true);
+    } else {
+      strategy.setUnitPointer(usage.unitPointerAssumptionsHoldFor(recordTypeDef));
+    }
     return strategy;
   }
 

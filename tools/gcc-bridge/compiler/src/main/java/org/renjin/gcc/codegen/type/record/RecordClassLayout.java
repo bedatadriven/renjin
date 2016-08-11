@@ -116,7 +116,7 @@ public class RecordClassLayout implements RecordLayout {
 
 
   @Override
-  public GExpr memberOf(RecordValue instance, GimpleFieldRef fieldRef) {
+  public GExpr memberOf(RecordValue instance, GimpleFieldRef fieldRef, TypeStrategy fieldTypeStrategy) {
     
     // If this field is a unioned record type, then return a pointer to ourselves
     if(isUnionMember(fieldRef)) {
@@ -129,7 +129,7 @@ public class RecordClassLayout implements RecordLayout {
     if(fieldStrategy == null) {
       throw new IllegalStateException(type + " has no field at offset " + fieldRef.getOffset());
     }
-    return fieldStrategy.memberExpr(instanceRef, 0, fieldRef.getType());
+    return fieldStrategy.memberExpr(instanceRef, 0, fieldTypeStrategy);
   }
 
   private boolean isUnionMember(GimpleFieldRef fieldRef) {

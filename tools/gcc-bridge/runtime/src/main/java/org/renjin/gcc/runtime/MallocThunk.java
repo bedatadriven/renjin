@@ -137,7 +137,12 @@ public class MallocThunk {
   }
 
   private int sizeOf(Class<?> componentType) {
-    // Alloc...
+    
+    if(componentType.equals(ObjectPtr.class)) {
+      // Pointer size. (Hardcoded to 4-bytes)
+      return 4;
+    }
+    
     GccSize size = componentType.getAnnotation(GccSize.class);
     if(size == null) {
       throw new IllegalStateException(String.format(

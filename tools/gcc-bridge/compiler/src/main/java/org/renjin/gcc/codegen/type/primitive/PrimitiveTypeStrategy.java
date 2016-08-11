@@ -2,6 +2,7 @@ package org.renjin.gcc.codegen.type.primitive;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
+import org.renjin.gcc.codegen.array.ArrayExpr;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategies;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.*;
@@ -91,6 +92,13 @@ public class PrimitiveTypeStrategy implements SimpleTypeStrategy<PrimitiveValue>
 
   @Override
   public PrimitiveValue cast(GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+    
+    if(value instanceof ArrayExpr) {
+      GExpr first = ((ArrayExpr) value).first();
+      if(first instanceof PrimitiveValue) {
+        return (PrimitiveValue) first;
+      }
+    }
     
     if(typeStrategy instanceof PrimitiveTypeStrategy) {
       // Handle casts between primitive types and signed/unsigned

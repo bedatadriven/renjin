@@ -29,12 +29,20 @@ public class ArrayExpr implements GExpr {
     this.length = length;
   }
 
+  public ValueFunction getValueFunction() {
+    return valueFunction;
+  }
+
   public JExpr getArray() {
     return array;
   }
 
   public JExpr getOffset() {
     return offset;
+  }
+  
+  public GExpr first() {
+    return valueFunction.dereference(array, offset);
   }
 
   @Override

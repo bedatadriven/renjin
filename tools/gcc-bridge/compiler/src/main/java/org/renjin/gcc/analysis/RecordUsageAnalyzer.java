@@ -9,7 +9,6 @@ import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleIntegerConstant;
-import org.renjin.gcc.gimple.statement.GimpleAssignment;
 import org.renjin.gcc.gimple.statement.GimpleCall;
 import org.renjin.gcc.gimple.statement.GimpleStatement;
 import org.renjin.gcc.gimple.type.*;
@@ -52,7 +51,7 @@ public class RecordUsageAnalyzer  {
   private void checkUnitRecordPtrAssumptions(List<GimpleCompilationUnit> units) {
 
     // Start by assuming that all pointers to all record types point to exactly one record
-    // (and not a contiguous block of memory containing several arrays)
+    // (and not a contiguous block of memory containing several records)
     unitPointerAssumptionsHold.addAll(map.keySet());
 
     // we are looking for any usage that violates the unit record pointer assumption.
@@ -117,9 +116,13 @@ public class RecordUsageAnalyzer  {
     }
   }
 
+  /**
+   * Check for assignment from (record**) to (void**). 
+   * 
+   * <p>Once a value has been casted to {@code void**}, it can be ultimately be assigned 
+   * to the result of a {@code malloc} call in some other function.</p>
+   */
   private void checkForCastingToVoidPP(List<GimpleCompilationUnit> units) {
-
-    GimplePointerType voidpp = new GimpleVoidType().pointerTo().pointerTo();
 
     for (GimpleCompilationUnit unit : units) {
       for (GimpleFunction function : unit.getFunctions()) {
@@ -134,18 +137,6 @@ public class RecordUsageAnalyzer  {
         }
       }
     }
-  }
-
-  private void checkRhsForPointerPointerType(GimpleAssignment assignment) {
-    switch (assignment.getOperator()) {
-      case ADDR_EXPR:
-      case VAR_DECL:
-      case PARM_DECL:
-      case COMPONENT_REF:
-        checkForPointerPointerType(assignment.getOperands().get(0).getType());
-        break;
-    }
-    
   }
 
   private void checkForPointerPointerType(GimpleType type) {

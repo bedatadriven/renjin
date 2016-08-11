@@ -17,10 +17,12 @@ import java.util.List;
 
 public class PrimitiveValueFunction implements ValueFunction {
 
+  private GimplePrimitiveType gimpleType;
   private Type type;
   private int byteSize;
 
   public PrimitiveValueFunction(GimplePrimitiveType type) {
+    this.gimpleType = type;
     this.type = type.jvmType();
     this.byteSize = type.sizeOf();
   }
@@ -28,7 +30,10 @@ public class PrimitiveValueFunction implements ValueFunction {
   public PrimitiveValueFunction(Type type) {
     this(GimplePrimitiveType.fromJvmType(type));
   }
-  
+
+  public GimplePrimitiveType getGimpleType() {
+    return gimpleType;
+  }
 
   @Override
   public Type getValueType() {

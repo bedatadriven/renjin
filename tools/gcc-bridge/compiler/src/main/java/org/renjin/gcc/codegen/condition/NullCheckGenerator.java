@@ -20,14 +20,12 @@ public class NullCheckGenerator implements ConditionGenerator {
   public final void emitJump(MethodGenerator mv, Label trueLabel, Label falseLabel) {
     switch (op) {
       case EQ_EXPR:
-      case LE_EXPR:
-      case GE_EXPR:
+        // "If ptrExpr is  NULL, then the condition is TRUE"
         ptrExpr.jumpIfNull(mv, trueLabel);
         mv.goTo(falseLabel);
         break;
       case NE_EXPR:
-      case LT_EXPR:
-      case GT_EXPR:
+        // "If ptrExpr is NOT NULL, then the condition is TRUE"
         ptrExpr.jumpIfNull(mv, falseLabel);
         mv.goTo(trueLabel);
         break;

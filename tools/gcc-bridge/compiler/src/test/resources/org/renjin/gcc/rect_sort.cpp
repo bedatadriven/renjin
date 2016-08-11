@@ -47,3 +47,13 @@ extern "C" void test_mem_copy() {
     ASSERT(b[1].width == 10)
 
 }
+
+extern "C" void test_null_check() {
+    
+    Rectangle *p = (Rectangle*)malloc(sizeof(Rectangle)*3);
+    if(p != NULL) {
+       return;
+    }
+    ASSERT(0);
+    
+}

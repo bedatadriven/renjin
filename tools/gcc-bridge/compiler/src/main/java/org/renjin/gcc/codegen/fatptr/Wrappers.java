@@ -5,6 +5,7 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.var.LocalVarAllocator;
 import org.renjin.gcc.runtime.*;
 import org.renjin.repackaged.asm.Type;
 
@@ -136,10 +137,16 @@ public class Wrappers {
     return Type.getType(componentDescriptor);
   }
 
-  public static FatPtrPair toPair(ValueFunction valueFunction, JExpr wrapper) {
+  public static FatPtrPair toPair(MethodGenerator mv, ValueFunction valueFunction, JExpr wrapper) {
+  
+    // It's crucial to store teh reference to the wrapper to a local variable, lest we 
+    // overwrite it between accessing the array component and the offset component
 
-    JExpr array = Wrappers.arrayField(wrapper,  valueType(wrapper.getType()));
-    JExpr offset = Wrappers.offsetField(wrapper);
+    LocalVarAllocator.LocalVar tempVar = mv.getLocalVarAllocator().reserve(wrapper.getType());
+    tempVar.store(mv, wrapper);
+    
+    JExpr array = Wrappers.arrayField(tempVar, valueType(wrapper.getType()));
+    JExpr offset = Wrappers.offsetField(tempVar);
 
     return new FatPtrPair(valueFunction, array, offset);
   }

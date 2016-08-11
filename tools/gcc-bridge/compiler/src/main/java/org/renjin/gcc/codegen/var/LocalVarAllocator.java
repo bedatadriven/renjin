@@ -90,7 +90,6 @@ public class LocalVarAllocator extends VarAllocator {
     return reserve(name, type, Optional.of(initialValue));
   }
 
-
   public LocalVar reserve(Type type) {
     return reserve(null, type);
   }
@@ -120,6 +119,15 @@ public class LocalVarAllocator extends VarAllocator {
       }
     }
   }
-
-
+  
+  public LocalVar tempIfNeeded(MethodGenerator mv, JExpr expr) {
+    LocalVarAllocator.LocalVar instanceVar;
+    if(expr instanceof LocalVarAllocator.LocalVar) {
+      return (LocalVarAllocator.LocalVar) expr;
+    } else {
+      instanceVar = mv.getLocalVarAllocator().reserve(expr.getType());
+      instanceVar.store(mv, expr);
+      return instanceVar;
+    }
+  }
 }

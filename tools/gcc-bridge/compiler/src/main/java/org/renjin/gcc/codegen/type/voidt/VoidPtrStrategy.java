@@ -34,12 +34,12 @@ public class VoidPtrStrategy implements PointerTypeStrategy<VoidPtr>, SimpleType
   }
 
   @Override
-  public VoidPtr realloc(final VoidPtr pointer, JExpr newSizeInBytes) {
+  public VoidPtr realloc(MethodGenerator mv, final VoidPtr pointer, JExpr newSizeInBytes) {
     return new VoidPtr(new VoidPtrRealloc(pointer.unwrap(), newSizeInBytes));
   }
 
   @Override
-  public VoidPtr pointerPlus(final VoidPtr pointer, final JExpr offsetInBytes) {
+  public VoidPtr pointerPlus(MethodGenerator mv, final VoidPtr pointer, final JExpr offsetInBytes) {
     // We have to rely on run-time support for this because we don't know
     // what kind of pointer is stored here
     return new VoidPtr(new JExpr() {
@@ -67,12 +67,12 @@ public class VoidPtrStrategy implements PointerTypeStrategy<VoidPtr>, SimpleType
   }
 
   @Override
-  public ConditionGenerator comparePointers(GimpleOp op, VoidPtr x, VoidPtr y) {
+  public ConditionGenerator comparePointers(MethodGenerator mv, GimpleOp op, VoidPtr x, VoidPtr y) {
     return new VoidPtrComparison(op, x.unwrap(), y.unwrap());
   }
 
   @Override
-  public JExpr memoryCompare(VoidPtr p1, VoidPtr p2, JExpr n) {
+  public JExpr memoryCompare(MethodGenerator mv, VoidPtr p1, VoidPtr p2, JExpr n) {
     return new VoidPtrMemCmp(p1.unwrap(), p2.unwrap(), n);
   }
 
@@ -130,7 +130,7 @@ public class VoidPtrStrategy implements PointerTypeStrategy<VoidPtr>, SimpleType
   }
 
   @Override
-  public VoidPtr constructorExpr(ExprFactory exprFactory, GimpleConstructor value) {
+  public VoidPtr constructorExpr(ExprFactory exprFactory, MethodGenerator mv, GimpleConstructor value) {
     throw new UnsupportedOperationException("TODO");
   }
 
@@ -155,7 +155,7 @@ public class VoidPtrStrategy implements PointerTypeStrategy<VoidPtr>, SimpleType
   }
 
   @Override
-  public VoidPtr cast(GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+  public VoidPtr cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
     
     if(value instanceof VoidPtr) {
       return (VoidPtr) value;

@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.type.record;
 
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.TypeStrategy;
@@ -18,6 +19,6 @@ public interface RecordLayout {
   
   void writeClassFiles(File outputDir) throws IOException;
   
-  GExpr memberOf(RecordValue instance, GimpleFieldRef fieldRef, TypeStrategy fieldTypeStrategy);
+  GExpr memberOf(MethodGenerator mv, RecordValue instance, GimpleFieldRef fieldRef, TypeStrategy fieldTypeStrategy);
   
 }

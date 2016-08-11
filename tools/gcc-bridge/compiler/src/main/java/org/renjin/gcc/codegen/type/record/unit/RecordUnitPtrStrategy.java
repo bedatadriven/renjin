@@ -48,7 +48,7 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>
   }
 
   @Override
-  public RecordUnitPtr constructorExpr(ExprFactory exprFactory, GimpleConstructor value) {
+  public RecordUnitPtr constructorExpr(ExprFactory exprFactory, MethodGenerator mv, GimpleConstructor value) {
     throw new UnsupportedOperationException("TODO");
   }
 
@@ -68,9 +68,10 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>
   }
 
   @Override
-  public RecordUnitPtr cast(GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+  public RecordUnitPtr cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
     if(value instanceof FatPtr) {
-      FatPtrPair ptr = ((FatPtr) value).toPair();
+      FatPtrPair ptr = ((FatPtr) value).toPair(mv);
+      
       // TODO
       // Currently we punt until runtime by triggering a ClassCastException
       return new RecordUnitPtr(Expressions.nullRef(strategy.getJvmType()));
@@ -119,12 +120,12 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>
   }
 
   @Override
-  public RecordUnitPtr realloc(RecordUnitPtr pointer, JExpr newSizeInBytes) {
+  public RecordUnitPtr realloc(MethodGenerator mv, RecordUnitPtr pointer, JExpr newSizeInBytes) {
     throw new UnsupportedOperationException("TODO");
   }
 
   @Override
-  public RecordUnitPtr pointerPlus(final RecordUnitPtr pointer, final JExpr offsetInBytes) {
+  public RecordUnitPtr pointerPlus(MethodGenerator mv, final RecordUnitPtr pointer, final JExpr offsetInBytes) {
     // According to our analysis conducted before-hand, there should be no pointer
     // to a sequence of records of this type with more than one record, so the result should
     // be undefined.
@@ -158,12 +159,12 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>
   }
 
   @Override
-  public ConditionGenerator comparePointers(GimpleOp op, RecordUnitPtr x, RecordUnitPtr y) {
+  public ConditionGenerator comparePointers(MethodGenerator mv, GimpleOp op, RecordUnitPtr x, RecordUnitPtr y) {
     return new RefConditionGenerator(op, x.unwrap(), y.unwrap());
   }
 
   @Override
-  public JExpr memoryCompare(RecordUnitPtr p1, RecordUnitPtr p2, JExpr n) {
+  public JExpr memoryCompare(MethodGenerator mv, RecordUnitPtr p1, RecordUnitPtr p2, JExpr n) {
     throw new UnsupportedOperationException("TODO");
   }
 

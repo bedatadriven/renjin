@@ -160,9 +160,10 @@ public class UnitClassGenerator {
     globalVarAllocator.writeFields(cv);
     
     // and any static initialization that is required
-    ExprFactory exprFactory = new ExprFactory(typeOracle, symbolTable);
     MethodGenerator mv = new MethodGenerator(cv.visitMethod(ACC_STATIC, "<clinit>", "()V", null, null));
     mv.visitCode();
+
+    ExprFactory exprFactory = new ExprFactory(typeOracle, symbolTable, mv);
     
     globalVarAllocator.writeFieldInitialization(mv);
   

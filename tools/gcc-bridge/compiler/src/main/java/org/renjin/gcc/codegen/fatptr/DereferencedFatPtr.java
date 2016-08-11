@@ -2,7 +2,6 @@ package org.renjin.gcc.codegen.fatptr;
 
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.*;
-import org.renjin.gcc.codegen.var.LocalVarAllocator;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
 
@@ -66,17 +65,8 @@ public class DereferencedFatPtr implements RefPtrExpr, FatPtr {
 
   @Override
   public FatPtrPair toPair(MethodGenerator mv) {
-    LocalVarAllocator.LocalVar wrapper = mv.getLocalVarAllocator().reserve(wrapperType);
-    wrapper.store(mv, castedElement());
-
-    return Wrappers.toPair(valueFunction, wrapper);
+    return Wrappers.toPair(mv, valueFunction, castedElement());
   }
-  
-  @Override
-  public FatPtrPair toPair() {
-    return Wrappers.toPair(valueFunction, castedElement());
-  }
-
 
   @Override
   public void jumpIfNull(MethodGenerator mv, Label label) {

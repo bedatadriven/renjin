@@ -15,6 +15,5 @@ public interface FatPtr extends PtrExpr {
   JExpr wrap();
   
   FatPtrPair toPair(MethodGenerator mv);
-  
-  FatPtrPair toPair();    
+
 }

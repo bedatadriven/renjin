@@ -50,12 +50,7 @@ public class WrappedFatPtrExpr implements FatPtr {
 
   @Override
   public FatPtrPair toPair(MethodGenerator mv) {
-    return toPair();
-  }
-
-  @Override
-  public FatPtrPair toPair() {
-    return new FatPtrPair(valueFunction, getArray(), getOffset());
+    return Wrappers.toPair(mv, valueFunction, ref);
   }
 
   @Override

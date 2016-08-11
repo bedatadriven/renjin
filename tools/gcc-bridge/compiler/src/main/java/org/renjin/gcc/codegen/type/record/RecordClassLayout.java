@@ -1,6 +1,7 @@
 package org.renjin.gcc.codegen.type.record;
 
 import com.google.common.base.Optional;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.RecordClassGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
@@ -116,7 +117,7 @@ public class RecordClassLayout implements RecordLayout {
 
 
   @Override
-  public GExpr memberOf(RecordValue instance, GimpleFieldRef fieldRef, TypeStrategy fieldTypeStrategy) {
+  public GExpr memberOf(MethodGenerator mv, RecordValue instance, GimpleFieldRef fieldRef, TypeStrategy fieldTypeStrategy) {
     
     // If this field is a unioned record type, then return a pointer to ourselves
     if(isUnionMember(fieldRef)) {
@@ -124,12 +125,13 @@ public class RecordClassLayout implements RecordLayout {
     }
     
     JExpr instanceRef = Expressions.cast(instance.unwrap(), type);
+    JExpr instanceVar = mv.getLocalVarAllocator().tempIfNeeded(mv, instanceRef);
     
     FieldStrategy fieldStrategy = fields.get(fieldRef.getOffset());
     if(fieldStrategy == null) {
       throw new IllegalStateException(type + " has no field at offset " + fieldRef.getOffset());
     }
-    return fieldStrategy.memberExpr(instanceRef, 0, fieldTypeStrategy);
+    return fieldStrategy.memberExpr(instanceVar, 0, fieldTypeStrategy);
   }
 
   private boolean isUnionMember(GimpleFieldRef fieldRef) {

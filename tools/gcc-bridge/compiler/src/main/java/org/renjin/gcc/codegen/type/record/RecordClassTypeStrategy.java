@@ -2,6 +2,7 @@ package org.renjin.gcc.codegen.type.record;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Maps;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategies;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.*;
@@ -101,7 +102,7 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<RecordValue> imp
   }
   
   @Override
-  public RecordValue constructorExpr(ExprFactory exprFactory, GimpleConstructor value) {
+  public RecordValue constructorExpr(ExprFactory exprFactory, MethodGenerator mv, GimpleConstructor value) {
     Map<GimpleFieldRef, GExpr> fields = Maps.newHashMap();
     for (GimpleConstructor.Element element : value.getElements()) {
       GExpr fieldValue = exprFactory.findGenerator(element.getValue());
@@ -112,8 +113,8 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<RecordValue> imp
   
 
   @Override
-  public GExpr memberOf(RecordValue instance, GimpleFieldRef fieldRef, TypeStrategy fieldTypeStrategy) {
-    return layout.memberOf(instance, fieldRef, fieldTypeStrategy);
+  public GExpr memberOf(MethodGenerator mv, RecordValue instance, GimpleFieldRef fieldRef, TypeStrategy fieldTypeStrategy) {
+    return layout.memberOf(mv, instance, fieldRef, fieldTypeStrategy);
   }
 
   @Override
@@ -122,7 +123,7 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<RecordValue> imp
   }
 
   @Override
-  public RecordValue cast(GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+  public RecordValue cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
     if(typeStrategy instanceof RecordClassTypeStrategy) {
       return (RecordValue) value;
     

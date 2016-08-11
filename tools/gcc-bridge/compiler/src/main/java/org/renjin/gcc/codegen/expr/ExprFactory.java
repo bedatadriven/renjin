@@ -1,6 +1,7 @@
 package org.renjin.gcc.codegen.expr;
 
 import org.renjin.gcc.InternalCompilerException;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.ArrayExpr;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.call.CallGenerator;
@@ -35,10 +36,12 @@ import java.util.List;
 public class ExprFactory {
   private final TypeOracle typeOracle;
   private final SymbolTable symbolTable;
+  private MethodGenerator mv;
 
-  public ExprFactory(TypeOracle typeOracle, SymbolTable symbolTable) {
+  public ExprFactory(TypeOracle typeOracle, SymbolTable symbolTable, MethodGenerator mv) {
     this.typeOracle = typeOracle;
     this.symbolTable = symbolTable;
+    this.mv = mv;
   }
   
 
@@ -60,7 +63,7 @@ public class ExprFactory {
     }
     
     try {
-      return leftStrategy.cast(rhs, rightStrategy);
+      return leftStrategy.cast(mv, rhs, rightStrategy);
     } catch (UnsupportedCastException e) {
       throw new InternalCompilerException(String.format("Unsupported cast to %s [%s] from %s [%s]",
           lhsType, leftStrategy.getClass().getSimpleName(),
@@ -141,7 +144,7 @@ public class ExprFactory {
       GExpr instance = findGenerator(((GimpleComponentRef) expr).getValue());
       RecordTypeStrategy typeStrategy = (RecordTypeStrategy) typeOracle.forType(ref.getValue().getType());
       TypeStrategy fieldTypeStrategy = typeOracle.forType(ref.getType());
-      return typeStrategy.memberOf(instance, ref.getMember(), fieldTypeStrategy);
+      return typeStrategy.memberOf(mv, instance, ref.getMember(), fieldTypeStrategy);
    
     } else if(expr instanceof GimpleCompoundLiteral) {
       return findGenerator(((GimpleCompoundLiteral) expr).getDecl());
@@ -160,7 +163,7 @@ public class ExprFactory {
   }
 
   private GExpr forConstructor(GimpleConstructor expr) {
-    return typeOracle.forType(expr.getType()).constructorExpr(this, expr);
+    return typeOracle.forType(expr.getType()).constructorExpr(this, mv, expr);
   }
 
   public CallGenerator findCallGenerator(GimpleExpr functionExpr) {
@@ -247,7 +250,7 @@ public class ExprFactory {
     GExpr ptrX = findGenerator(x, commonType);
     GExpr ptrY = findGenerator(y, commonType);
 
-    return typeStrategy.comparePointers(op, ptrX, ptrY);
+    return typeStrategy.comparePointers(mv, op, ptrX, ptrY);
   }
 
   private boolean isNull(GimpleExpr expr) {
@@ -396,7 +399,7 @@ public class ExprFactory {
     if(!gimpleExpr.isOffsetZero()) {
       JExpr offsetInBytes = findPrimitiveGenerator(gimpleExpr.getOffset());
 
-      ptrExpr =  pointerStrategy.pointerPlus(ptrExpr, offsetInBytes);
+      ptrExpr =  pointerStrategy.pointerPlus(mv, ptrExpr, offsetInBytes);
     }
 
     return ((PtrExpr) ptrExpr).valueOf();
@@ -411,7 +414,7 @@ public class ExprFactory {
 
     if(!gimpleExpr.isOffsetZero()) {
       JExpr offsetInBytes = findPrimitiveGenerator(gimpleExpr.getOffset());
-      ptrExpr =  pointerStrategy.pointerPlus(ptrExpr, offsetInBytes);
+      ptrExpr =  pointerStrategy.pointerPlus(mv, ptrExpr, offsetInBytes);
     }
     
     GExpr valueExpr = ((PtrExpr) ptrExpr).valueOf();
@@ -424,7 +427,7 @@ public class ExprFactory {
     JExpr offsetInBytes = findPrimitiveGenerator(offsetExpr);
 
     GimpleType pointerType = pointerExpr.getType();
-    GExpr result = typeOracle.forPointerType(pointerType).pointerPlus(pointer, offsetInBytes);
+    GExpr result = typeOracle.forPointerType(pointerType).pointerPlus(mv, pointer, offsetInBytes);
     
     return maybeCast(result, expectedType, pointerType);
   }

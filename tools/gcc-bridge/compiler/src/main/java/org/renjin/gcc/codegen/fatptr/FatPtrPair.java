@@ -182,11 +182,6 @@ public final class FatPtrPair implements FatPtr, PtrExpr {
   }
 
   @Override
-  public FatPtrPair toPair() {
-    return this;
-  }
-
-  @Override
   public boolean isAddressable() {
     return address != null;
   }

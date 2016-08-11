@@ -952,4 +952,11 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void superClass() throws Exception {
     compileAndTest("superclass.c");
   }
+  
+  @Test
+  public void linkedList() throws Exception {
+    compileAndTest("linked_list.c");
+  }
+  
+  
 }

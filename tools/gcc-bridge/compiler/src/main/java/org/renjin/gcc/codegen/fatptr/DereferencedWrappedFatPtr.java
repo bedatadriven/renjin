@@ -4,7 +4,6 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtr;
-import org.renjin.gcc.codegen.var.LocalVarAllocator;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
 
@@ -64,19 +63,7 @@ public class DereferencedWrappedFatPtr implements FatPtr {
 
   @Override
   public FatPtrPair toPair(MethodGenerator mv) {
-    LocalVarAllocator.LocalVar instanceVar = mv.getLocalVarAllocator().reserve(Wrappers.wrapperType(valueFunction.getValueType()));
-    instanceVar.store(mv, address.valueExpr());
-    
-    return toPair(instanceVar);
-  }
-
-  @Override
-  public FatPtrPair toPair() {
-    return toPair(address.valueExpr());
-  }
-  
-  private FatPtrPair toPair(JExpr wrapperInstance) {
-    return new FatPtrPair(valueFunction, Wrappers.arrayField(wrapperInstance), Wrappers.offsetField(wrapperInstance));
+    return Wrappers.toPair(mv, valueFunction, address.valueExpr());
   }
 
   @Override

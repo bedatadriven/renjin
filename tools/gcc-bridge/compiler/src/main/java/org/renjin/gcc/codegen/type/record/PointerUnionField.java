@@ -6,7 +6,6 @@ import org.renjin.gcc.codegen.fatptr.*;
 import org.renjin.gcc.codegen.type.FieldStrategy;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidPtr;
-import org.renjin.gcc.codegen.type.voidt.VoidPtrValueFunction;
 import org.renjin.repackaged.asm.ClassVisitor;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Opcodes;
@@ -74,15 +73,10 @@ public class PointerUnionField extends FieldStrategy {
 
     @Override
     public FatPtrPair toPair(MethodGenerator mv) {
-      return toPair();
-    }
-
-    @Override
-    public FatPtrPair toPair() {
       Type wrapperType = Wrappers.wrapperType(valueFunction.getValueType());
       JExpr wrapper = Expressions.cast(fieldExpr, wrapperType);
-      
-      return Wrappers.toPair(new VoidPtrValueFunction(), wrapper);
+
+      return Wrappers.toPair(mv, valueFunction, wrapper);
     }
 
     @Override

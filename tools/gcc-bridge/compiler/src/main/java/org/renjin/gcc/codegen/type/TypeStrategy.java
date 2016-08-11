@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.type;
 
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.GExpr;
@@ -34,7 +35,7 @@ public interface TypeStrategy<ExprT extends GExpr> {
   /**
    * Creates an expression generator for constructors of this type.
    */
-  ExprT constructorExpr(ExprFactory exprFactory, GimpleConstructor value);
+  ExprT constructorExpr(ExprFactory exprFactory, MethodGenerator mv, GimpleConstructor value);
 
   /**
    * Creates a new FieldGenerator for fields of this type.
@@ -63,7 +64,7 @@ public interface TypeStrategy<ExprT extends GExpr> {
    * Casts the given {@code value}, compield with the given {@code typeStrategy}, 
    * to a value of this strategy.
    */
-  ExprT cast(GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException;
+  ExprT cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException;
 
 
 }

@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.type.record;
 
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.ArrayExpr;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategies;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
@@ -61,7 +62,7 @@ public class RecordArrayTypeStrategy extends RecordTypeStrategy<RecordArrayExpr>
   }
 
   @Override
-  public GExpr memberOf(RecordArrayExpr instance, GimpleFieldRef fieldRef, TypeStrategy fieldTypeStrategy) {
+  public GExpr memberOf(MethodGenerator mv, RecordArrayExpr instance, GimpleFieldRef fieldRef, TypeStrategy fieldTypeStrategy) {
     
     // All the fields in this record are necessarily primitives, so we need
     // simple to retrieve the element from within the array that corresponds to
@@ -131,7 +132,7 @@ public class RecordArrayTypeStrategy extends RecordTypeStrategy<RecordArrayExpr>
   }
 
   @Override
-  public RecordArrayExpr constructorExpr(ExprFactory exprFactory, GimpleConstructor value) {
+  public RecordArrayExpr constructorExpr(ExprFactory exprFactory, MethodGenerator mv, GimpleConstructor value) {
     return new RecordArrayExpr(valueFunction, newArray(fieldType, arrayLength), arrayLength);
   }
 
@@ -156,7 +157,7 @@ public class RecordArrayTypeStrategy extends RecordTypeStrategy<RecordArrayExpr>
   }
 
   @Override
-  public RecordArrayExpr cast(GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+  public RecordArrayExpr cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
     if(typeStrategy instanceof RecordArrayTypeStrategy) {
       return (RecordArrayExpr) value;
     }  else if(typeStrategy instanceof FatPtrStrategy) {

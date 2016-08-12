@@ -62,9 +62,13 @@ public class UnionSet {
     }
     
     if(name.length() <= 1) {
-      String unionName = unionName();
-      if(unionName.length() > 1) {
-        name = unionName;
+      // If we don't have a nice common prefix/suffix
+      // then use the name of the union instead.
+      if(unions.size() == 1) {
+        String unionName = Strings.nullToEmpty(unions.get(0).getName());
+        if(unionName.length() > name.length()) {
+          name = unionName;
+        }
       }
     }
     
@@ -75,15 +79,6 @@ public class UnionSet {
     }
   }
 
-  private String unionName() {
-    for (GimpleRecordTypeDef typeDef : getAllTypes()) {
-      if(typeDef.isUnion()) {
-        return typeDef.getName();
-      }
-    }
-    return "";
-  }
-  
   private String common(boolean prefix) {
     String name = null;
     for (GimpleRecordTypeDef typeDef : getAllTypes()) {

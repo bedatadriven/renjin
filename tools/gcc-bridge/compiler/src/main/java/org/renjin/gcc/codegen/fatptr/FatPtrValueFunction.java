@@ -69,7 +69,7 @@ public class FatPtrValueFunction implements ValueFunction {
 
   @Override
   public Optional<JExpr> getValueConstructor() {
-    return Optional.absent();
+    return Optional.of(FatPtrPair.nullPtr(baseValueFunction).wrap());
   }
 
   @Override

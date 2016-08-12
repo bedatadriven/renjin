@@ -203,4 +203,10 @@ public final class FatPtrPair implements FatPtr, PtrExpr {
     array.load(mv);
     mv.ifnull(label);
   }
+
+  public static FatPtr nullPtr(ValueFunction valueFunction) {
+    Type arrayType = Wrappers.valueArrayType(valueFunction.getValueType());
+    JExpr nullArray = Expressions.nullRef(arrayType);
+    return new FatPtrPair(valueFunction, nullArray);
+  }
 }

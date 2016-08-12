@@ -958,5 +958,9 @@ public class GimpleCompilerTest extends AbstractGccTest {
     compileAndTest("linked_list.c");
   }
   
+  @Test
+  public void triplePtr() throws Exception {
+    compileAndTest("triple_ptr.c");
+  }
   
 }

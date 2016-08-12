@@ -257,6 +257,11 @@ public class Expressions {
       return object;
     }
     
+    // Any Class[] to Object[] is also unnecessary
+    if(object.getType().getSort() == Type.ARRAY && type.equals(Type.getType("[Ljava/lang/Object;"))) {
+      return object;
+    }
+    
     // Verify that this is in the realm of possibility
     checkCast(object.getType(), type);
 

@@ -312,9 +312,7 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
 
   @Override
   public FatPtr nullPointer() {
-    Type arrayType = Wrappers.valueArrayType(valueFunction.getValueType());
-    JExpr nullArray = Expressions.nullRef(arrayType);
-    return new FatPtrPair(valueFunction, nullArray);
+    return FatPtrPair.nullPtr(valueFunction);
   }
 
   @Override

@@ -963,4 +963,8 @@ public class GimpleCompilerTest extends AbstractGccTest {
     compileAndTest("triple_ptr.c");
   }
   
+  @Test
+  public void print() throws Exception {
+    compileAndTest("print.c");
+  }
 }

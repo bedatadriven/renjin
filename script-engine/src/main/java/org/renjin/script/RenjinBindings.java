@@ -81,7 +81,13 @@ public class RenjinBindings implements Bindings {
 
   @Override
   public Object get(Object key) {
-    return frame.getVariable(toSymbol(key));
+    Symbol symbol = toSymbol(key);
+    SEXP value = frame.getVariable(symbol);
+    if(value == Symbol.UNBOUND_VALUE) {
+      return null;
+    } else {
+      return value;
+    }
   }
   
   private Symbol toSymbol(Object key) {

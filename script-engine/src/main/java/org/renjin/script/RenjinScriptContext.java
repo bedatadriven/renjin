@@ -15,11 +15,13 @@ import java.util.TreeMap;
 
 public class RenjinScriptContext implements ScriptContext {
 
-  private Context context;
-  private Map<String,Object> attributes = new TreeMap<>();
-
+  private final Context context;
+  private final Map<String,Object> attributes = new TreeMap<>();
+  private final RenjinBindings engineBindings;
+  
   RenjinScriptContext(Context context) {
     this.context = context;
+    this.engineBindings = new RenjinBindings(context.getEnvironment().getFrame());
   }
 
   public Context getContext() {
@@ -42,9 +44,16 @@ public class RenjinScriptContext implements ScriptContext {
   }
 
   @Override
-  public Bindings getBindings(int arg0) {
-    // TODO Auto-generated method stub
-    return null;
+  public Bindings getBindings(int scope) {
+    switch(scope) {
+      case ScriptContext.ENGINE_SCOPE:
+        return engineBindings;
+
+      default:
+      case ScriptContext.GLOBAL_SCOPE:
+        throw new UnsupportedOperationException();
+
+    }
   }
 
   @Override

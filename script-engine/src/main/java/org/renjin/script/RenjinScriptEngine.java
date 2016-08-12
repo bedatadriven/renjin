@@ -26,7 +26,7 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
   private final Context topLevelContext;
 
   // jsr context, which wrap renjincore context.
-  private final ScriptContext scriptContext;
+  private final RenjinScriptContext scriptContext;
   
   RenjinScriptEngine(RenjinScriptEngineFactory factory, Session session) {
     super();
@@ -55,15 +55,7 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
 
   @Override
   public Bindings getBindings(int scope) {
-    switch(scope) {
-      case ScriptContext.ENGINE_SCOPE:
-        return new RenjinBindings(topLevelContext.getEnvironment().getFrame());
-
-      default:
-      case ScriptContext.GLOBAL_SCOPE:
-        throw new UnsupportedOperationException();
-
-    }
+    return scriptContext.getBindings(scope);
   }
 
   @Override

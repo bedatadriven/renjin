@@ -6,20 +6,21 @@ import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.gcc.codegen.expr.RefPtrExpr;
-import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
+import org.renjin.gcc.codegen.fatptr.FatPtr;
+import org.renjin.repackaged.asm.Label;
 
 
 public class FunPtr implements RefPtrExpr {
 
   private JExpr methodHandleExpr;
-  private FatPtrExpr address;
+  private FatPtr address;
 
   public FunPtr(JExpr methodHandleExpr) {
     this.methodHandleExpr = methodHandleExpr;
     this.address = null;
   }
 
-  public FunPtr(JExpr methodHandleExpr, FatPtrExpr address) {
+  public FunPtr(JExpr methodHandleExpr, FatPtr address) {
     this.methodHandleExpr = methodHandleExpr;
     this.address = address;
   }
@@ -40,5 +41,16 @@ public class FunPtr implements RefPtrExpr {
       throw new InternalCompilerException("Not addressable");
     }
     return address;
+  }
+
+  @Override
+  public void jumpIfNull(MethodGenerator mv, Label label) {
+    methodHandleExpr.load(mv);
+    mv.ifnull(label);
+  }
+
+  @Override
+  public GExpr valueOf() {
+    return this;
   }
 }

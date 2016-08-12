@@ -3,6 +3,7 @@ package org.renjin.gcc.codegen.fatptr;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.FieldStrategy;
+import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.repackaged.asm.ClassVisitor;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
@@ -15,11 +16,11 @@ public class FatPtrFieldStrategy extends FieldStrategy {
   private String offsetField;
   private Type arrayType;
 
-  public FatPtrFieldStrategy(ValueFunction valueFunction, String name) {
+  public FatPtrFieldStrategy(ValueFunction valueFunction, String name, Type arrayType) {
     this.valueFunction = valueFunction;
     this.arrayField = name;
-    this.arrayType = Wrappers.valueArrayType(valueFunction.getValueType());
     this.offsetField = name + "$offset";
+    this.arrayType = arrayType;
   }
 
   @Override
@@ -29,10 +30,10 @@ public class FatPtrFieldStrategy extends FieldStrategy {
   }
 
   @Override
-  public FatPtrExpr memberExprGenerator(JExpr instance) {
+  public FatPtrPair memberExpr(JExpr instance, int fieldOffset, TypeStrategy expectedType) {
     JExpr array = Expressions.field(instance, arrayType, arrayField);
     JExpr offset = Expressions.field(instance, Type.INT_TYPE, offsetField);
-    return new FatPtrExpr(array, offset);
+    return new FatPtrPair(valueFunction, array, offset);
   }
 
 }

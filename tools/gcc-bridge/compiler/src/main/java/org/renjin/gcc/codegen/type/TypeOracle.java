@@ -19,6 +19,7 @@ import org.renjin.gcc.codegen.type.primitive.PrimitiveTypeStrategy;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValueFunction;
 import org.renjin.gcc.codegen.type.primitive.StringParamStrategy;
 import org.renjin.gcc.codegen.type.record.RecordArrayReturnStrategy;
+import org.renjin.gcc.codegen.type.record.RecordArrayValueFunction;
 import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrStrategy;
@@ -186,7 +187,9 @@ public class TypeOracle {
       return new SimpleReturnStrategy(new VoidPtrStrategy());
 
     } else if(method.isAnnotationPresent(Struct.class)) {
-      return new RecordArrayReturnStrategy(Type.getReturnType(method), 0);
+      Type arrayType = Type.getReturnType(method);
+      Type componentType = Type.getType(arrayType.getDescriptor().substring(1));
+      return new RecordArrayReturnStrategy(new RecordArrayValueFunction(componentType, 0), arrayType, 0);
 
     } else if(returnType.equals(MethodHandle.class)) {
       return new FunPtrStrategy().getReturnStrategy();

@@ -44,6 +44,7 @@ public class Native {
                           @NamedFlag("PACKAGE") String packageName,
                           @NamedFlag("NAOK") boolean naOk,
                           @NamedFlag("DUP") boolean dup,
+                          @NamedFlag("COPY") boolean copy,
                           @NamedFlag("ENCODING") boolean encoding) throws IllegalAccessException {
 
     MethodHandle method;
@@ -332,6 +333,8 @@ public class Native {
                              SEXP methodExp,
                              @ArgumentList ListVector callArguments,
                              @NamedFlag("PACKAGE") String packageName,
+                             @NamedFlag("COPY") boolean copy,
+                             @NamedFlag("CLASSES") StringVector classes,
                              @NamedFlag("CLASS") String className) throws ClassNotFoundException {
 
     if(methodExp.inherits("NativeSymbolInfo")) {

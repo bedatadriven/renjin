@@ -34,6 +34,11 @@ public class BooleanPtr implements Ptr {
     return new BooleanPtr(Realloc.realloc(array, offset, newSizeInBytes));
   }
 
+  @Override
+  public Ptr pointerPlus(int bytes) {
+    return new BooleanPtr(array, offset + bytes);
+  }
+
   public static BooleanPtr cast(Object voidPointer) {
     if(voidPointer instanceof MallocThunk) {
       return ((MallocThunk) voidPointer).booleanPtr();

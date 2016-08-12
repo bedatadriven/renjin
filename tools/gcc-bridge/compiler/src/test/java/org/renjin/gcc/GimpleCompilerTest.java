@@ -544,6 +544,12 @@ public class GimpleCompilerTest extends AbstractGccTest {
   }
   
   @Test
+  public void unionClass() throws Exception {
+    compileAndTest("class_unions.c");
+  }
+  
+  
+  @Test
   public void builtinExpect() throws Exception {
     compileAndTest("expect.c");
   }
@@ -931,4 +937,30 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void clz() throws Exception {
     compileAndTest("clz.c");
   }
+  
+  @Test
+  public void voidEq() throws Exception {
+    compileAndTest("void_eq.c");
+  }
+  
+  @Test
+  public void addressablePointerUnion() throws Exception {
+    compileAndTest("addr_ptr_union.c");
+  }
+  
+  @Test
+  public void superClass() throws Exception {
+    compileAndTest("superclass.c");
+  }
+  
+  @Test
+  public void linkedList() throws Exception {
+    compileAndTest("linked_list.c");
+  }
+  
+  @Test
+  public void triplePtr() throws Exception {
+    compileAndTest("triple_ptr.c");
+  }
+  
 }

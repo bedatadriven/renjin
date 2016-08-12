@@ -1,9 +1,11 @@
 package org.renjin.gcc.analysis;
 
 import com.google.common.base.Optional;
+import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.renjin.gcc.NullTreeLogger;
 import org.renjin.gcc.TreeLogger;
 import org.renjin.gcc.gimple.*;
 import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
@@ -51,9 +53,11 @@ public class SymbolPruner {
     }
   }
 
-  public static void prune(TreeLogger parentLogger, List<GimpleCompilationUnit> units) {
+  public static void prune(TreeLogger parentLogger, List<GimpleCompilationUnit> units, 
+                           Predicate<GimpleFunction> entryPointPredicate) {
     
-    TreeLogger logger = parentLogger.branch("Pruning Symbols");
+    //TreeLogger logger = parentLogger.branch("Pruning Symbols");
+    TreeLogger logger = new NullTreeLogger();
     
     final GimpleSymbolTable symbolTable = new GimpleSymbolTable(units);
 
@@ -62,7 +66,7 @@ public class SymbolPruner {
     // Start by adding external functions, excluding weak symbols
     for (GimpleCompilationUnit unit : units) {
       for (GimpleFunction function : unit.getFunctions()) {
-        if(isEntryPoint(function)) {
+        if(entryPointPredicate.apply(function)) {
           logger.debug("Retaining entry point: " + function.getName() + " [" + function.getMangledName() + "]");
           visitor.retained.add(new Symbol(function, symbolTable.scope(function)));
         }
@@ -98,18 +102,6 @@ public class SymbolPruner {
       unit.getGlobalVariables().retainAll(retained);
     }
 
-  }
-
-  private static boolean isEntryPoint(GimpleFunction function) {
-    if(!function.isExtern() || function.isWeak() || function.isInline()) {
-      return false;
-    }
-    // This is a bit of hack, but assume that C++ mangled names are NOT entry
-    // points
-    if(function.getName().startsWith("_Z")) {
-      return false;
-    }
-    return true;
   }
 
   private static class ReferenceFinder extends GimpleExprVisitor {

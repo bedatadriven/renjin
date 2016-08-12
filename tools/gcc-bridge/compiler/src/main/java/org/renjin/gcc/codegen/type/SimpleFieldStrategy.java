@@ -38,7 +38,7 @@ public class SimpleFieldStrategy extends FieldStrategy {
   }
 
   @Override
-  public GExpr memberExprGenerator(JExpr instance) {
+  public GExpr memberExpr(JExpr instance, int fieldOffset, TypeStrategy expectedType) {
     FieldValue fieldValue = new FieldValue(instance, name, fieldType);
     Constructor<? extends GExpr> constructor = null;
     try {

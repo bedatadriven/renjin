@@ -51,7 +51,7 @@ public class RecordUsageAnalyzer  {
   private void checkUnitRecordPtrAssumptions(List<GimpleCompilationUnit> units) {
 
     // Start by assuming that all pointers to all record types point to exactly one record
-    // (and not a contiguous block of memory containing several arrays)
+    // (and not a contiguous block of memory containing several records)
     unitPointerAssumptionsHold.addAll(map.keySet());
 
     // we are looking for any usage that violates the unit record pointer assumption.
@@ -59,11 +59,13 @@ public class RecordUsageAnalyzer  {
 
     // (1) Variables or Fields which are arrays of this record type
     // (2) Malloc(s) of this record type where it cannot be statically verified that s = sizeof(record_t)
+    // (3) Casting of second-level indirection (record**) to (void**) 
 
     checkForArrayDeclarations(units);
     checkForRecordMallocs(units);
+    checkForCastingToVoidPP(units);
   }
-
+  
   /**
    * Check for any declarations of arrays of records, which imply a contiguous block
    * of more than one records.
@@ -113,6 +115,42 @@ public class RecordUsageAnalyzer  {
       }
     }
   }
+
+  /**
+   * Check for assignment from (record**) to (void**). 
+   * 
+   * <p>Once a value has been casted to {@code void**}, it can be ultimately be assigned 
+   * to the result of a {@code malloc} call in some other function.</p>
+   */
+  private void checkForCastingToVoidPP(List<GimpleCompilationUnit> units) {
+
+    for (GimpleCompilationUnit unit : units) {
+      for (GimpleFunction function : unit.getFunctions()) {
+        for (GimpleBasicBlock basicBlock : function.getBasicBlocks()) {
+          for (GimpleStatement statement : basicBlock.getStatements()) {
+            if(statement instanceof GimpleCall) {
+              for (GimpleExpr operand : statement.getOperands()) {
+                checkForPointerPointerType(operand.getType());
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  private void checkForPointerPointerType(GimpleType type) {
+    if(type instanceof GimpleIndirectType) {
+      GimpleType baseType = type.getBaseType();
+      if(baseType instanceof GimpleIndirectType) {
+        if(baseType.getBaseType() instanceof GimpleRecordType) {
+          GimpleRecordType baseBaseType = baseType.getBaseType();
+          unitPointerAssumptionsHold.remove(baseBaseType.getId());
+        }
+      }
+    }
+  }
+
 
   private void checkForRecordMalloc(GimpleCall mallocCall) {
 

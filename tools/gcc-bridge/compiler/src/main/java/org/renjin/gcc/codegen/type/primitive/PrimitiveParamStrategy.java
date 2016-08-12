@@ -6,7 +6,7 @@ import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
-import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
+import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleParameter;
@@ -43,7 +43,7 @@ public class PrimitiveParamStrategy implements ParamStrategy {
       // if this parameter is addressed, then we need to allocate a unit array that can hold the value
       // and be addressed as needed.
       JLValue unitArray = localVars.reserveUnitArray(parameter.getName(), type, Optional.of(paramValue));
-      FatPtrExpr address = new FatPtrExpr(unitArray);
+      FatPtrPair address = new FatPtrPair(new PrimitiveValueFunction(type), unitArray);
       JExpr value = Expressions.elementAt(address.getArray(), 0);
       return new PrimitiveValue(value, address);
     } else {

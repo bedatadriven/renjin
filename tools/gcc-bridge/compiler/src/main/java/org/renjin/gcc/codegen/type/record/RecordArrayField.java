@@ -6,6 +6,7 @@ import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.gcc.codegen.fatptr.Wrappers;
 import org.renjin.gcc.codegen.type.FieldStrategy;
+import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.repackaged.asm.ClassVisitor;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
@@ -15,12 +16,14 @@ public class RecordArrayField extends FieldStrategy {
   
   private Type declaringClass;
   private String name;
+  private RecordArrayValueFunction valueFunction;
   private Type arrayType;
   private int arrayLength;
 
-  public RecordArrayField(Type declaringClass, String name, Type arrayType, int arrayLength) {
+  public RecordArrayField(Type declaringClass, String name, RecordArrayValueFunction valueFunction, Type arrayType, int arrayLength) {
     this.declaringClass = declaringClass;
     this.name = name;
+    this.valueFunction = valueFunction;
     this.arrayType = arrayType;
     this.arrayLength = arrayLength;
   }
@@ -39,10 +42,10 @@ public class RecordArrayField extends FieldStrategy {
   }
 
   @Override
-  public RecordArrayExpr memberExprGenerator(JExpr instance) {
+  public RecordArrayExpr memberExpr(JExpr instance, int fieldOffset, TypeStrategy expectedType) {
     JLValue arrayField = Expressions.field(instance, arrayType, name);
 
-    return new RecordArrayExpr(arrayField, arrayLength);
+    return new RecordArrayExpr(valueFunction, arrayField, arrayLength);
   }
 
 }

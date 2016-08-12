@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.type.voidt;
 
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.GExpr;
@@ -31,7 +32,7 @@ public class VoidTypeStrategy implements TypeStrategy<GExpr> {
   }
 
   @Override
-  public GExpr constructorExpr(ExprFactory exprFactory, GimpleConstructor value) {
+  public GExpr constructorExpr(ExprFactory exprFactory, MethodGenerator mv, GimpleConstructor value) {
     throw new UnsupportedOperationException("constructors cannot have 'void' type");
   }
 
@@ -56,7 +57,7 @@ public class VoidTypeStrategy implements TypeStrategy<GExpr> {
   }
 
   @Override
-  public GExpr cast(GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+  public GExpr cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
     throw new UnsupportedCastException();
   }
 

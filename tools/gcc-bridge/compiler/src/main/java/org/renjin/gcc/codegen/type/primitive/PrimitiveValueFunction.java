@@ -5,8 +5,9 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
+import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
+import org.renjin.gcc.codegen.fatptr.WrappedFatPtrExpr;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.repackaged.asm.Type;
 
@@ -16,10 +17,12 @@ import java.util.List;
 
 public class PrimitiveValueFunction implements ValueFunction {
 
+  private GimplePrimitiveType gimpleType;
   private Type type;
   private int byteSize;
 
   public PrimitiveValueFunction(GimplePrimitiveType type) {
+    this.gimpleType = type;
     this.type = type.jvmType();
     this.byteSize = type.sizeOf();
   }
@@ -27,7 +30,10 @@ public class PrimitiveValueFunction implements ValueFunction {
   public PrimitiveValueFunction(Type type) {
     this(GimplePrimitiveType.fromJvmType(type));
   }
-  
+
+  public GimplePrimitiveType getGimpleType() {
+    return gimpleType;
+  }
 
   @Override
   public Type getValueType() {
@@ -46,10 +52,15 @@ public class PrimitiveValueFunction implements ValueFunction {
 
   @Override
   public GExpr dereference(JExpr array, JExpr offset) {
-    FatPtrExpr address = new FatPtrExpr(array, offset);
+    FatPtrPair address = new FatPtrPair(this, array, offset);
     JExpr value = Expressions.elementAt(array, offset);
 
     return new PrimitiveValue(value, address);
+  }
+
+  @Override
+  public GExpr dereference(WrappedFatPtrExpr wrapperInstance) {
+    return new PrimitiveValue(wrapperInstance.valueExpr(), wrapperInstance);
   }
 
   @Override

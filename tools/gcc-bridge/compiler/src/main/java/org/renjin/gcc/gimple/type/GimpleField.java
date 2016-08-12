@@ -64,4 +64,9 @@ public class GimpleField {
   public boolean hasName() {
     return name != null;
   }
+
+  @Override
+  public String toString() {
+    return "GimpleField[" + (addressed ? "&" : "") + name + ":" + type + "]";
+  }
 }

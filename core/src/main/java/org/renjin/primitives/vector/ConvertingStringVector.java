@@ -34,6 +34,11 @@ public class ConvertingStringVector extends StringVector implements DeferredComp
   }
 
   @Override
+  public int getElementAsInt(int index) {
+    return operand.getElementAsInt(index); 
+  }
+
+  @Override
   public int length() {
     return operand.length();
   }

@@ -10,10 +10,10 @@ import org.renjin.repackaged.asm.Label;
  */
 public class FatPtrConditionGenerator implements ConditionGenerator {
   private GimpleOp op;
-  private FatPtrExpr x;
-  private FatPtrExpr y;
+  private FatPtrPair x;
+  private FatPtrPair y;
 
-  public FatPtrConditionGenerator(GimpleOp op, FatPtrExpr x, FatPtrExpr y) {
+  public FatPtrConditionGenerator(GimpleOp op, FatPtrPair x, FatPtrPair y) {
     this.op = op;
     this.x = x;
     this.y = y;

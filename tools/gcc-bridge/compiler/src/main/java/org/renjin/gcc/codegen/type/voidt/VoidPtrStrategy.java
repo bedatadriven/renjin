@@ -6,7 +6,7 @@ import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.AddressableField;
-import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
+import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.var.VarAllocator;
@@ -15,6 +15,8 @@ import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.repackaged.asm.Type;
+
+import javax.annotation.Nonnull;
 
 
 /**
@@ -32,18 +34,31 @@ public class VoidPtrStrategy implements PointerTypeStrategy<VoidPtr>, SimpleType
   }
 
   @Override
-  public VoidPtr realloc(final VoidPtr pointer, JExpr newSizeInBytes) {
+  public VoidPtr realloc(MethodGenerator mv, final VoidPtr pointer, JExpr newSizeInBytes) {
     return new VoidPtr(new VoidPtrRealloc(pointer.unwrap(), newSizeInBytes));
   }
 
   @Override
-  public VoidPtr pointerPlus(VoidPtr pointer, JExpr offsetInBytes) {
-    throw new UnsupportedOperationException("TODO");
-  }
+  public VoidPtr pointerPlus(MethodGenerator mv, final VoidPtr pointer, final JExpr offsetInBytes) {
+    // We have to rely on run-time support for this because we don't know
+    // what kind of pointer is stored here
+    return new VoidPtr(new JExpr() {
 
-  @Override
-  public GExpr valueOf(VoidPtr pointerExpr) {
-    throw new UnsupportedOperationException("void pointers cannot be dereferenced.");
+      @Nonnull
+      @Override
+      public Type getType() {
+        return Type.getType(Object.class);
+      }
+
+      @Override
+      public void load(@Nonnull MethodGenerator mv) {
+        pointer.unwrap().load(mv);
+        offsetInBytes.load(mv);
+        mv.invokestatic(org.renjin.gcc.runtime.VoidPtr.class, "pointerPlus",
+            Type.getMethodDescriptor(Type.getType(Object.class), 
+                Type.getType(Object.class), Type.INT_TYPE));
+      }
+    });
   }
 
   @Override
@@ -52,12 +67,12 @@ public class VoidPtrStrategy implements PointerTypeStrategy<VoidPtr>, SimpleType
   }
 
   @Override
-  public ConditionGenerator comparePointers(GimpleOp op, VoidPtr x, VoidPtr y) {
+  public ConditionGenerator comparePointers(MethodGenerator mv, GimpleOp op, VoidPtr x, VoidPtr y) {
     return new VoidPtrComparison(op, x.unwrap(), y.unwrap());
   }
 
   @Override
-  public JExpr memoryCompare(VoidPtr p1, VoidPtr p2, JExpr n) {
+  public JExpr memoryCompare(MethodGenerator mv, VoidPtr p1, VoidPtr p2, JExpr n) {
     return new VoidPtrMemCmp(p1.unwrap(), p2.unwrap(), n);
   }
 
@@ -101,8 +116,9 @@ public class VoidPtrStrategy implements PointerTypeStrategy<VoidPtr>, SimpleType
   @Override
   public VoidPtr variable(GimpleVarDecl decl, VarAllocator allocator) {
     if(decl.isAddressable()) {
-      JLValue unitArray = allocator.reserveArrayRef(decl.getName(), Type.getType(Object.class));
-      FatPtrExpr address = new FatPtrExpr(unitArray);
+      Type objectArrayType = Type.getType("[Ljava/lang/Object;");
+      JLValue unitArray = allocator.reserve(decl.getName(), objectArrayType, Expressions.newArray(Object.class, 1));
+      FatPtrPair address = new FatPtrPair(new VoidPtrValueFunction(), unitArray);
       JExpr value = Expressions.elementAt(unitArray, 0);
       
       return new VoidPtr(value, address);
@@ -114,7 +130,7 @@ public class VoidPtrStrategy implements PointerTypeStrategy<VoidPtr>, SimpleType
   }
 
   @Override
-  public VoidPtr constructorExpr(ExprFactory exprFactory, GimpleConstructor value) {
+  public VoidPtr constructorExpr(ExprFactory exprFactory, MethodGenerator mv, GimpleConstructor value) {
     throw new UnsupportedOperationException("TODO");
   }
 
@@ -130,7 +146,7 @@ public class VoidPtrStrategy implements PointerTypeStrategy<VoidPtr>, SimpleType
 
   @Override
   public PointerTypeStrategy pointerTo() {
-    return new FatPtrStrategy(new VoidPtrValueFunction());
+    return new FatPtrStrategy(new VoidPtrValueFunction(), 2);
   }
 
   @Override
@@ -139,7 +155,12 @@ public class VoidPtrStrategy implements PointerTypeStrategy<VoidPtr>, SimpleType
   }
 
   @Override
-  public VoidPtr cast(GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+  public VoidPtr cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+    
+    if(value instanceof VoidPtr) {
+      return (VoidPtr) value;
+    }
+    
     if(typeStrategy instanceof PointerTypeStrategy) {
       return ((PointerTypeStrategy) typeStrategy).toVoidPointer(value);
     }

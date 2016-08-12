@@ -49,7 +49,7 @@ public class FunPtrStrategy implements PointerTypeStrategy<FunPtr>, SimpleTypeSt
   }
 
   @Override
-  public FunPtr constructorExpr(ExprFactory exprFactory, GimpleConstructor value) {
+  public FunPtr constructorExpr(ExprFactory exprFactory, MethodGenerator mv, GimpleConstructor value) {
     throw new UnsupportedOperationException();
   }
 
@@ -65,7 +65,7 @@ public class FunPtrStrategy implements PointerTypeStrategy<FunPtr>, SimpleTypeSt
 
   @Override
   public FatPtrStrategy pointerTo() {
-    return new FatPtrStrategy(new FunPtrValueFunction(32));
+    return new FatPtrStrategy(new FunPtrValueFunction(32), 2);
   }
 
   @Override
@@ -74,7 +74,7 @@ public class FunPtrStrategy implements PointerTypeStrategy<FunPtr>, SimpleTypeSt
   }
 
   @Override
-  public FunPtr cast(GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+  public FunPtr cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
     if(typeStrategy instanceof FunPtrStrategy) {
       // We can liberally cast between different types of function pointers thanks
       // to the flexibility of MethodHandles.
@@ -104,12 +104,12 @@ public class FunPtrStrategy implements PointerTypeStrategy<FunPtr>, SimpleTypeSt
   }
 
   @Override
-  public ConditionGenerator comparePointers(GimpleOp op, FunPtr x, FunPtr y) {
+  public ConditionGenerator comparePointers(MethodGenerator mv, GimpleOp op, FunPtr x, FunPtr y) {
     return new RefConditionGenerator(op, x.unwrap(), y.unwrap());
   }
 
   @Override
-  public JExpr memoryCompare(FunPtr p1, FunPtr p2, JExpr n) {
+  public JExpr memoryCompare(MethodGenerator mv, FunPtr p1, FunPtr p2, JExpr n) {
     throw new UnsupportedOperationException("TODO");
   }
 
@@ -139,18 +139,13 @@ public class FunPtrStrategy implements PointerTypeStrategy<FunPtr>, SimpleTypeSt
   }
 
   @Override
-  public FunPtr realloc(FunPtr pointer, JExpr newSizeInBytes) {
+  public FunPtr realloc(MethodGenerator mv, FunPtr pointer, JExpr newSizeInBytes) {
     throw new InternalCompilerException("Cannot realloc function pointers");
   }
 
   @Override
-  public FunPtr pointerPlus(FunPtr pointer, JExpr offsetInBytes) {
+  public FunPtr pointerPlus(MethodGenerator mv, FunPtr pointer, JExpr offsetInBytes) {
     throw new UnsupportedOperationException("TODO");
-  }
-
-  @Override
-  public GExpr valueOf(FunPtr pointerExpr) {
-    return pointerExpr;
   }
 
   @Override

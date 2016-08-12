@@ -4,7 +4,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.*;
-import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
+import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.type.fun.FunctionRefGenerator;
@@ -86,8 +86,8 @@ public class FunctionCallGenerator implements CallGenerator, MethodHandleGenerat
     } else if(varArgExpr instanceof GSimpleExpr) {
       return ((GSimpleExpr) varArgExpr).unwrap();
 
-    } else if(varArgExpr instanceof FatPtrExpr) {
-      return ((FatPtrExpr) varArgExpr).wrap();
+    } else if(varArgExpr instanceof FatPtrPair) {
+      return ((FatPtrPair) varArgExpr).wrap();
     } else {
       throw new UnsupportedOperationException("varArgExpr: " + varArgExpr);
     }

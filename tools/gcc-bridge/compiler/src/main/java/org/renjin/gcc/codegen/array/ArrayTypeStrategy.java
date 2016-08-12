@@ -2,6 +2,7 @@ package org.renjin.gcc.codegen.array;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
@@ -54,7 +55,7 @@ public class ArrayTypeStrategy implements TypeStrategy<ArrayExpr> {
 
   @Override
   public FatPtrStrategy pointerTo() {
-    return new FatPtrStrategy(arrayValueFunction)
+    return new FatPtrStrategy(arrayValueFunction, 1)
         .setParametersWrapped(parameterWrapped);
   }
 
@@ -70,7 +71,7 @@ public class ArrayTypeStrategy implements TypeStrategy<ArrayExpr> {
   }
 
   @Override
-  public ArrayExpr cast(GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+  public ArrayExpr cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
     if(value instanceof ArrayExpr) {
       return (ArrayExpr) value;
     }
@@ -146,7 +147,7 @@ public class ArrayTypeStrategy implements TypeStrategy<ArrayExpr> {
 
 
   @Override
-  public ArrayExpr constructorExpr(ExprFactory exprFactory, GimpleConstructor constructor) {
+  public ArrayExpr constructorExpr(ExprFactory exprFactory, MethodGenerator mv, GimpleConstructor constructor) {
     List<JExpr> values = Lists.newArrayList();
     addElementConstructors(values, exprFactory, constructor);
 

@@ -5,20 +5,32 @@ import java.util.Arrays;
 public class ObjectPtr<T> implements Ptr {
   public Object[] array;
   public int offset;
+  public Class baseType;
 
+  public ObjectPtr() {
+  }
+  
   /**
    * Constructs a new ObjectPtr to a single value.
    */
   public ObjectPtr(T... array) {
+    //assert array.getClass().equals(Object[].class);s
     this.array = array;
     offset = 0;
   }
   
   public ObjectPtr(Object[] array, int offset) {
+    //assert array.getClass().equals(Object[].class) : "array class: " + array.getClass().getName();
     this.array = array;
     this.offset = offset;
   }
 
+  public ObjectPtr(Class baseType, Object[] array, int offset) {
+    this.array = array;
+    this.offset = offset;
+    this.baseType = baseType;
+  }
+  
   @Override
   public Object[] getArray() {
     return array;
@@ -34,6 +46,11 @@ public class ObjectPtr<T> implements Ptr {
     return new ObjectPtr(Realloc.realloc(array, offset, newSizeInBytes / 4));
   }
 
+  @Override
+  public Ptr pointerPlus(int bytes) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
   public void update(Object[] array, int offset) {
     this.array = array;
     this.offset = offset;
@@ -43,8 +60,42 @@ public class ObjectPtr<T> implements Ptr {
     return get(0);
   }
   
-  public void set(T value) {
-    this.array[offset] = value;
+  public void set(Object value) {
+    if(value instanceof MallocThunk) {
+      MallocThunk thunk = (MallocThunk) value;
+      if(array instanceof BooleanPtr[] || BooleanPtr.class.equals(baseType)) {
+        array[offset] = thunk.booleanPtr();
+        
+      } else if(array instanceof BytePtr[] || BytePtr.class.equals(baseType)) {
+        array[offset] = thunk.bytePtr();
+      
+      } else if(array instanceof CharPtr[] || CharPtr.class.equals(baseType)) {
+        array[offset] = thunk.charPtr();
+        
+      } else if(array instanceof DoublePtr[] || DoublePtr.class.equals(baseType)) {
+        array[offset] = thunk.doublePtr();
+        
+      } else if(array instanceof FloatPtr[] || FloatPtr.class.equals(baseType)) {
+        array[offset] = thunk.floatPtr();
+        
+      } else if(array instanceof IntPtr[] || IntPtr.class.equals(baseType)) {
+        array[offset] = thunk.intPtr();
+        
+      } else if(array instanceof LongPtr[] || LongPtr.class.equals(baseType)) {
+        array[offset] = thunk.longPtr();
+
+      } else if(array instanceof ShortPtr[] || ShortPtr.class.equals(baseType)) {
+        array[offset] = thunk.shortPtr();
+
+      } else if(array instanceof ObjectPtr[]) {
+        this.array[offset] = thunk.objectPtr(baseType);
+        
+      } else {
+        this.array[offset] = thunk.recordUnitPtr(this.array.getClass().getComponentType());
+      }
+    } else {
+      this.array[offset] = value;
+    }
   }
   
   @SuppressWarnings("unchecked")

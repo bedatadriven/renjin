@@ -3,11 +3,14 @@ package org.renjin.gcc.codegen;
 import com.google.common.io.Files;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.InternalCompilerException;
+import org.renjin.gcc.annotations.GccSize;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.FieldStrategy;
+import org.renjin.gcc.codegen.type.record.SuperClassFieldStrategy;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
+import org.renjin.repackaged.asm.AnnotationVisitor;
 import org.renjin.repackaged.asm.ClassVisitor;
 import org.renjin.repackaged.asm.ClassWriter;
 import org.renjin.repackaged.asm.Type;
@@ -33,9 +36,11 @@ public class RecordClassGenerator {
   private PrintWriter pw;
   private Type className;
   private Type superClassName;
+  private int size;
   private Collection<FieldStrategy> fields;
 
-  public RecordClassGenerator(Type className, Type superClassName, Collection<FieldStrategy> fields) {
+  public RecordClassGenerator(Type className, Type superClassName, Collection<FieldStrategy> fields, int size) {
+    this.size = size;
     this.fields = fields;
     this.className = className;
     this.superClassName = superClassName;
@@ -65,6 +70,10 @@ public class RecordClassGenerator {
     cv.visit(V1_6, ACC_PUBLIC + ACC_SUPER, 
         className.getInternalName(), null,
         superClassName.getInternalName(), new String[0]);
+
+    AnnotationVisitor annotationVisitor = cv.visitAnnotation(Type.getDescriptor(GccSize.class), true);
+    annotationVisitor.visit("value", size);
+    annotationVisitor.visitEnd();
 
     emitDefaultConstructor();
     emitFields();
@@ -96,11 +105,19 @@ public class RecordClassGenerator {
     // Now copy each field member
     for (FieldStrategy field : fields) {
       try {
-        GExpr thisField = field.memberExprGenerator(thisExpr);
-        GExpr sourceField = field.memberExprGenerator(sourceExpr);
+        if(field instanceof SuperClassFieldStrategy) {
+          
+          // call super.set()
+          thisExpr.load(mv);
+          sourceExpr.load(mv);
+          mv.invokevirtual(superClassName, "set", Type.getMethodDescriptor(Type.VOID_TYPE, superClassName), false);
+          
+        } else {
+          GExpr thisField = field.memberExpr(thisExpr, 0, null);
+          GExpr sourceField = field.memberExpr(sourceExpr, 0, null);
 
-        thisField.store(mv, sourceField);
-        
+          thisField.store(mv, sourceField);
+        }
       } catch (Exception e) {
         throw new InternalCompilerException("Exception generating copy code for " + className + ", field: " + field, e);
       }

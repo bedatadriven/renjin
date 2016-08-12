@@ -2,7 +2,6 @@ package org.renjin.gcc.codegen.fatptr;
 
 import com.google.common.base.Optional;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.repackaged.asm.Type;
@@ -46,23 +45,17 @@ public class FatPtrValueFunction implements ValueFunction {
    */
   @Override
   public GExpr dereference(JExpr array, JExpr offset) {
-    // DoublePtr[] array
-    // int offset
-    // double[] unwrappedArray = array[offset].array
-    // int unwrappedOffset = array[offset].offset
-    
-    FatPtrExpr address = new FatPtrExpr(array, offset);
-    JExpr wrapperInstance = Expressions.elementAt(array, offset);
-    
-    JExpr unwrappedArray = Wrappers.arrayField(wrapperInstance, baseValueFunction.getValueType());
-    JExpr unwrappedOffset = Wrappers.offsetField(wrapperInstance);
+    return new DereferencedFatPtr(array, offset, baseValueFunction);
+  }
 
-    return new FatPtrExpr(address, unwrappedArray, unwrappedOffset);
+  @Override
+  public GExpr dereference(WrappedFatPtrExpr wrapperInstance) {
+    return new DereferencedWrappedFatPtr(baseValueFunction, wrapperInstance);
   }
 
   @Override
   public List<JExpr> toArrayValues(GExpr expr) {
-    FatPtrExpr fatPtrExpr = (FatPtrExpr) expr;
+    FatPtrPair fatPtrExpr = (FatPtrPair) expr;
     return Collections.singletonList(fatPtrExpr.wrap());
   }
 
@@ -76,7 +69,7 @@ public class FatPtrValueFunction implements ValueFunction {
 
   @Override
   public Optional<JExpr> getValueConstructor() {
-    return Optional.of(FatPtrExpr.nullPtr(baseValueFunction).wrap());
+    return Optional.of(FatPtrPair.nullPtr(baseValueFunction).wrap());
   }
 
   @Override

@@ -5,6 +5,7 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.var.LocalVarAllocator;
 import org.renjin.gcc.runtime.*;
 import org.renjin.repackaged.asm.Type;
 
@@ -70,6 +71,7 @@ public class Wrappers {
     return array;
   }
 
+
   private static Type arrayType(Type valueType) {
     return Type.getType("[" + valueType.getDescriptor());
   }
@@ -78,6 +80,7 @@ public class Wrappers {
     return Expressions.field(wrapperInstance, Type.INT_TYPE, "offset");
   }
 
+  
   public static Type wrapperType(Type valueType) {
     switch (valueType.getSort()) {
       case Type.BOOLEAN:
@@ -132,5 +135,19 @@ public class Wrappers {
     
     String componentDescriptor = arrayDescriptor.substring(1);
     return Type.getType(componentDescriptor);
+  }
+
+  public static FatPtrPair toPair(MethodGenerator mv, ValueFunction valueFunction, JExpr wrapper) {
+  
+    // It's crucial to store teh reference to the wrapper to a local variable, lest we 
+    // overwrite it between accessing the array component and the offset component
+
+    LocalVarAllocator.LocalVar tempVar = mv.getLocalVarAllocator().reserve(wrapper.getType());
+    tempVar.store(mv, wrapper);
+    
+    JExpr array = Wrappers.arrayField(tempVar, valueType(wrapper.getType()));
+    JExpr offset = Wrappers.offsetField(tempVar);
+
+    return new FatPtrPair(valueFunction, array, offset);
   }
 }

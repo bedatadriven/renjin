@@ -90,21 +90,32 @@ SEXP rfilter(SEXP x, SEXP filter, SEXP out)
 {
    if (TYPEOF(x) != REALSXP || TYPEOF(filter) != REALSXP
        || TYPEOF(out) != REALSXP) error("invalid input");
+       
     R_xlen_t nx = XLENGTH(x), nf = XLENGTH(filter);
-    double sum, tmp, *r = REAL(out), *rx = REAL(x), *rf = REAL(filter);
+    double sum, tmp, *rx = REAL(x), *rf = REAL(filter);
+
+    // SHOULD NOT assume that we can modify the contents of 
+    // an incoming SEXP !! 
+    SEXP out_copy = duplicate(out);
+    double *r = REAL(out_copy);
 
     for(R_xlen_t i = 0; i < nx; i++) {
-	sum = rx[i];
-	for (R_xlen_t j = 0; j < nf; j++) {
-	    tmp = r[nf + i - j - 1];
-	    if(my_isok(tmp)) sum += tmp * rf[j];
-	    else { r[nf + i] = NA_REAL; goto bad3; }
-	}
-	r[nf + i] = sum;
-    bad3:
-	continue;
+        sum = rx[i];
+        for (R_xlen_t j = 0; j < nf; j++) {
+            tmp = r[nf + i - j - 1];
+            
+            if(my_isok(tmp)) {
+                sum += tmp * rf[j];
+            } else { 
+                r[nf + i] = NA_REAL; 
+                goto bad3; 
+            }
+        }
+	    r[nf + i] = sum;
+        bad3:
+	        continue;
     }
-    return out;
+    return out_copy;
 }
 
 /* now allows missing values */

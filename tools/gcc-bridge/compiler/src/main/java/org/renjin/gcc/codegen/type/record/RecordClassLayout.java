@@ -90,6 +90,14 @@ public class RecordClassLayout implements RecordLayout {
 
   private String uniqueFieldName(RecordClassLayoutTree.Node node) {
     String fieldName = node.name();
+    
+    // Remove illegal characters
+    // http://stackoverflow.com/questions/30491035/can-java-class-files-use-reserved-keywords-as-names
+    fieldName = fieldName
+                .replace('.', '$')
+                .replace(';', '$')
+                .replace('[', '$');
+    
     if(fieldName.isEmpty()) {
       return "$offset" + node.getOffset();
     }

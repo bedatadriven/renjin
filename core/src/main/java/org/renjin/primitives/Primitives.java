@@ -32,7 +32,6 @@ import org.renjin.primitives.text.Text;
 import org.renjin.primitives.time.Time;
 import org.renjin.sexp.*;
 import org.renjin.stats.internals.CompleteCases;
-import org.renjin.stats.internals.Covariance;
 import org.renjin.stats.internals.Distributions;
 import org.renjin.stats.internals.distributions.RNG;
 import org.renjin.stats.internals.distributions.Sampling;
@@ -775,7 +774,7 @@ public class Primitives {
     f("file.edit", /*fileedit*/ null, 111);
     f("file.create", Files.class, 11);
     f("file.remove", /*fileremove*/ null, 11);
-    f("file.rename", /*filerename*/ null, 11);
+    f("file.rename", Files.class, 11);
     f("file.append", Files.class, 11);
     f("codeFiles.append", /*fileappend*/ null, 11);
     f("file.symlink", /*filesymlink*/ null, 11);

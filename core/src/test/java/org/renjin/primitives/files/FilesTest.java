@@ -1,5 +1,7 @@
 package org.renjin.primitives.files;
 
+import com.google.common.base.Charsets;
+import com.google.common.io.Files;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.junit.Before;
@@ -8,11 +10,14 @@ import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.sexp.StringVector;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 
 public class FilesTest extends EvalTestCase {
@@ -58,6 +63,37 @@ public class FilesTest extends EvalTestCase {
 
     assertThat(eval("list.files(rootDir, pattern='c', recursive=TRUE, include.dirs=TRUE)"),
         equalTo(c("c", "c/ca.txt", "c/cb.txt", "c/d/cda.txt")));
+  }
+
+  @Test
+  public void renameFiles() throws IOException {
+
+    // Create a temp directory with a source file
+    File tempDir = com.google.common.io.Files.createTempDir();
+    File sourceFile = new File(tempDir, "a.txt");
+    File destFile = new File(tempDir, "b.txt");
+    Files.write("ABC", sourceFile, Charsets.UTF_8);
+
+    topLevelContext.getGlobalEnvironment().setVariable("rootDir", StringVector.valueOf(tempDir.getAbsolutePath()));
+    
+    eval("setwd(rootDir)");
+    eval("x <- file.rename('a.txt', 'b.txt')");
+    
+    assertThat(eval("x"), equalTo(c(true)));
+    
+    assertTrue("source file does not exist", !sourceFile.exists());
+    assertTrue("dest file exists", destFile.exists());
+  }
+
+  @Test
+  public void renameFilesFailure() throws IOException {
+
+    // Failure returns false, does not throw error
+    
+    eval("x <- file.rename('doesnotexist.txt', 'b.txt')");
+
+    assertThat(eval("x"), equalTo(c(false)));
+
   }
 
 }

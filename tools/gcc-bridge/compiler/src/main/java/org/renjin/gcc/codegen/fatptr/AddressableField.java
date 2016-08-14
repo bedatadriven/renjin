@@ -53,11 +53,27 @@ public class AddressableField extends FieldStrategy {
   }
 
   @Override
-  public GExpr memberExpr(JExpr instance, int fieldOffset, TypeStrategy expectedType) {
-    JExpr array = Expressions.field(instance, arrayType, arrayField);
-    JExpr offset = Expressions.field(instance, Type.INT_TYPE, offsetField);
-    
-    return valueFunction.dereference(array, offset);
+  public GExpr memberExpr(JExpr instance, int offset, int size, TypeStrategy expectedType) {
+
+    if(offset != 0) {
+      throw new UnsupportedOperationException("TODO: offset = " + offset);
+    }
+
+    return dereference(instance);
+  }
+
+  private GExpr dereference(JExpr instance) {
+    JExpr arrayExpr = Expressions.field(instance, arrayType, arrayField);
+    JExpr offsetExpr = Expressions.field(instance, Type.INT_TYPE, offsetField);
+
+    return valueFunction.dereference(arrayExpr, offsetExpr);
+  }
+
+  @Override
+  public void copy(MethodGenerator mv, JExpr source, JExpr dest) {
+    GExpr sourceExpr = dereference(source);
+    GExpr destExpr = dereference(dest);
+    destExpr.store(mv, sourceExpr);
   }
 
 }

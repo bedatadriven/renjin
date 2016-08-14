@@ -20,7 +20,8 @@ public class RecordArrayField extends FieldStrategy {
   private Type arrayType;
   private int arrayLength;
 
-  public RecordArrayField(Type declaringClass, String name, RecordArrayValueFunction valueFunction, Type arrayType, int arrayLength) {
+  public RecordArrayField(Type declaringClass, String name, RecordArrayValueFunction valueFunction, 
+                          Type arrayType, int arrayLength) {
     this.declaringClass = declaringClass;
     this.name = name;
     this.valueFunction = valueFunction;
@@ -34,6 +35,17 @@ public class RecordArrayField extends FieldStrategy {
   }
 
   @Override
+  public void copy(MethodGenerator mv, JExpr source, JExpr dest) {
+    JExpr sourceArray = Expressions.field(source, arrayType, name);
+    JExpr destArray = Expressions.field(dest, arrayType, name);
+
+    mv.arrayCopy(
+        sourceArray, Expressions.constantInt(0),
+        destArray, Expressions.constantInt(0),
+        Expressions.constantInt(arrayLength));
+  }
+
+  @Override
   public void emitInstanceInit(MethodGenerator mv) {
     JLValue arrayField = Expressions.field(Expressions.thisValue(declaringClass), arrayType, name);
     JExpr newArray = Expressions.newArray(Wrappers.componentType(arrayType), arrayLength);
@@ -42,7 +54,12 @@ public class RecordArrayField extends FieldStrategy {
   }
 
   @Override
-  public RecordArrayExpr memberExpr(JExpr instance, int fieldOffset, TypeStrategy expectedType) {
+  public RecordArrayExpr memberExpr(JExpr instance, int offset, int size, TypeStrategy expectedType) {
+
+    if(offset != 0) {
+      throw new UnsupportedOperationException("TODO: offset = " + offset);
+    }
+    
     JLValue arrayField = Expressions.field(instance, arrayType, name);
 
     return new RecordArrayExpr(valueFunction, arrayField, arrayLength);

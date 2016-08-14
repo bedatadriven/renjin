@@ -60,7 +60,7 @@ public class PrimitiveTypeStrategy implements SimpleTypeStrategy<PrimitiveValue>
 
   @Override
   public FieldStrategy fieldGenerator(Type className, String fieldName) {
-    return new SimpleFieldStrategy(fieldName, type.jvmType(), PrimitiveValue.class);
+    return new PrimitiveFieldStrategy(className, fieldName, type);
   }
 
   @Override

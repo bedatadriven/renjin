@@ -28,6 +28,9 @@ import javax.annotation.Nonnull;
  * {@link org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrStrategy}.</p>
  */
 public class VoidPtrStrategy implements PointerTypeStrategy<VoidPtr>, SimpleTypeStrategy<VoidPtr> {
+  
+  public static final Type OBJECT_TYPE = Type.getType(Object.class);
+  
   @Override
   public VoidPtr malloc(MethodGenerator mv, JExpr sizeInBytes) {
     return new org.renjin.gcc.codegen.type.voidt.VoidPtr(new NewMallocThunkExpr(sizeInBytes));
@@ -136,7 +139,7 @@ public class VoidPtrStrategy implements PointerTypeStrategy<VoidPtr>, SimpleType
 
   @Override
   public FieldStrategy fieldGenerator(Type className, String fieldName) {
-    return new VoidPtrField(fieldName);
+    return new VoidPtrField(className, fieldName);
   }
 
   @Override

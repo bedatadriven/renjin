@@ -11,17 +11,13 @@ import org.renjin.gcc.codegen.type.FieldStrategy;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrValueFunction;
-import org.renjin.gcc.gimple.expr.GimpleFieldRef;
-import org.renjin.gcc.gimple.type.GimpleRecordType;
-import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
 import org.renjin.repackaged.asm.Type;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 public class RecordClassLayout implements RecordLayout {
 
@@ -29,7 +25,7 @@ public class RecordClassLayout implements RecordLayout {
   private UnionSet unionSet;
   private Type type;
 
-  private Map<Integer, FieldStrategy> fields = new HashMap<>();
+  private TreeMap<Integer, FieldStrategy> fields = new TreeMap<>();
 
   private Set<String> fieldNames = new HashSet<>();
   
@@ -81,7 +77,7 @@ public class RecordClassLayout implements RecordLayout {
       if(!commonType.isPresent()) {
         throw new UnsupportedOperationException("No common type possible for fields: " + node.getFields());
       }
-      return new PrimitiveUnionField(type, commonType.get(), uniqueFieldName(node));
+      return new PrimitiveUnionField(type, uniqueFieldName(node), commonType.get());
       
     } else {
       throw new UnsupportedOperationException("TODO: " + unionSet.debugString());
@@ -125,34 +121,26 @@ public class RecordClassLayout implements RecordLayout {
 
 
   @Override
-  public GExpr memberOf(MethodGenerator mv, RecordValue instance, GimpleFieldRef fieldRef, TypeStrategy fieldTypeStrategy) {
+  public GExpr memberOf(MethodGenerator mv, RecordValue instance, int offset, int size, TypeStrategy fieldTypeStrategy) {
     
     // If this field is a unioned record type, then return a pointer to ourselves
-    if(isUnionMember(fieldRef)) {
+    if(offset == 0 && fieldTypeStrategy instanceof RecordClassTypeStrategy && 
+        ((RecordClassTypeStrategy) fieldTypeStrategy).getJvmType().equals(type)) {
       return instance;
     }
-    
+
     JExpr instanceRef = Expressions.cast(instance.unwrap(), type);
     JExpr instanceVar = mv.getLocalVarAllocator().tempIfNeeded(mv, instanceRef);
-    
-    FieldStrategy fieldStrategy = fields.get(fieldRef.getOffset());
-    if(fieldStrategy == null) {
-      throw new IllegalStateException(type + " has no field at offset " + fieldRef.getOffset());
-    }
-    return fieldStrategy.memberExpr(instanceVar, 0, fieldTypeStrategy);
-  }
 
-  private boolean isUnionMember(GimpleFieldRef fieldRef) {
-    if(fieldRef.getType() instanceof GimpleRecordType) {
-      GimpleRecordType fieldType = (GimpleRecordType) fieldRef.getType();
-      for (GimpleRecordTypeDef typeDef : unionSet.getRecords()) {
-        if (typeDef.getId().equals(fieldType.getId())) {
-          return true;
-        }
-      }
+    // Find the logical field that contains this bit range
+    Integer fieldStart = fields.floorKey(offset);
+    FieldStrategy fieldStrategy = fields.get(fieldStart);
+
+    if(fieldStrategy == null) {
+      throw new IllegalStateException(type + " has no field at offset " + offset);
     }
-    return false;
-      
+    
+    return fieldStrategy.memberExpr(instanceVar, offset - fieldStart, size, fieldTypeStrategy);
   }
 
   @Override

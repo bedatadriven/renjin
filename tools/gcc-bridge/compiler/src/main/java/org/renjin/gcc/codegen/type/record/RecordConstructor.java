@@ -51,16 +51,21 @@ public class RecordConstructor implements JExpr {
 
       for (Map.Entry<GimpleFieldRef, GExpr> field : fields.entrySet()) {
         // Push the value onto the stack and save to the field
-        TypeStrategy fieldTypeStrategy = typeOracle.forType(field.getKey().getType());
-        GExpr fieldExpr = strategy.memberOf(mv, new RecordValue(instanceVar), field.getKey(), fieldTypeStrategy);
+        GimpleFieldRef fieldRef = field.getKey();
+        TypeStrategy fieldTypeStrategy = typeOracle.forType(fieldRef.getType());
+        GExpr fieldExpr = strategy.memberOf(mv, 
+            new RecordValue(instanceVar),
+            fieldRef.getOffset(),
+            fieldRef.getSize(),
+            fieldTypeStrategy);
 
         try {
           fieldExpr.store(mv, field.getValue());
         } catch (Exception e) {
           throw new InternalCompilerException(
               String.format("Exception storing value for field %s of type %s in %s",
-                  field.getKey(),
-                  field.getKey().getType(),
+                  fieldRef,
+                  fieldRef.getType(),
                   strategy.getClass().getSimpleName()), e);
         }
       }

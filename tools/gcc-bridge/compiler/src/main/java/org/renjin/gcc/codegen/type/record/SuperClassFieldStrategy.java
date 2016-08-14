@@ -22,15 +22,18 @@ public class SuperClassFieldStrategy extends FieldStrategy {
     this.fieldTypeStrategy = fieldTypeStrategy;
   }
 
-
   @Override
   public void writeFields(ClassVisitor cv) {
     // NOOP 
   }
 
   @Override
-  public GExpr memberExpr(final JExpr instance, final int fieldOffset, TypeStrategy expectedType) {
-    
+  public GExpr memberExpr(final JExpr instance, final int offset, int size, TypeStrategy expectedType) {
+
+    if(offset != 0) {
+      throw new IllegalStateException("offset = " + offset);
+    }
+
     if(expectedType != null) {
       RecordClassTypeStrategy expectedRecordType = (RecordClassTypeStrategy) expectedType;
       if(!expectedRecordType.equals(fieldTypeStrategy)) {
@@ -52,6 +55,15 @@ public class SuperClassFieldStrategy extends FieldStrategy {
     };
     
     return new RecordValue(superInstance, new RecordUnitPtr(superInstance));
+  }
+
+  @Override
+  public void copy(MethodGenerator mv, JExpr source, JExpr dest) {
+    // call super.set()
+    dest.load(mv);
+    source.load(mv);
+    mv.invokevirtual(fieldTypeStrategy.getJvmType(), "set", 
+        Type.getMethodDescriptor(Type.VOID_TYPE, fieldTypeStrategy.getJvmType()), false);
   }
 
   public Type getType() {

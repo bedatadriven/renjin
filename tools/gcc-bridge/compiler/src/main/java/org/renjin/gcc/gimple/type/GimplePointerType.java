@@ -2,7 +2,7 @@ package org.renjin.gcc.gimple.type;
 
 public class GimplePointerType extends AbstractGimpleType implements GimpleIndirectType {
   
-  public static final int SIZE_OF = 4;
+  public static final int SIZE = 32;
   
   private GimpleType baseType;
 

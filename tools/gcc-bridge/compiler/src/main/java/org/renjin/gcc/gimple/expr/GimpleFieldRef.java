@@ -7,10 +7,9 @@ import org.renjin.gcc.gimple.GimpleExprVisitor;
  * Gimple expression which evaluates to the name of a field
  */
 public class GimpleFieldRef extends GimpleExpr {
-
-
   private int id;
   private int offset;
+  private int size;
   private String name;
 
   public GimpleFieldRef() {
@@ -35,6 +34,14 @@ public class GimpleFieldRef extends GimpleExpr {
 
   public void setOffset(int offset) {
     this.offset = offset;
+  }
+
+  public int getSize() {
+    return size;
+  }
+
+  public void setSize(int size) {
+    this.size = size;
   }
 
   public String getName() {

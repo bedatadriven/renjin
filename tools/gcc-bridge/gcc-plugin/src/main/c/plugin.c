@@ -369,6 +369,7 @@ static void dump_record_type_decl(tree type) {
           json_start_object();
           json_int_field("id", DEBUG_TEMP_UID (field));
           json_int_field("offset", int_bit_position(field));
+          json_int_field("size", tree_low_cst (DECL_SIZE (field), 1));
           if(DECL_NAME(field)) {
             json_string_field("name", IDENTIFIER_POINTER(DECL_NAME(field)));
           }
@@ -517,7 +518,7 @@ static void dump_op(tree op) {
         json_string_field("name", IDENTIFIER_POINTER(DECL_NAME(op)));
       }
       json_int_field("offset", int_bit_position(op));
-  //    dump_op(TREE_OPERAND(op, 1));
+      json_int_field("size", tree_low_cst (DECL_SIZE (op), 1));
       break;
       
     case CONST_DECL:
@@ -545,8 +546,7 @@ static void dump_op(tree op) {
       break;
 	    
 	  case STRING_CST:
-	    json_string_field2("value", 
-	      TREE_STRING_POINTER(op),
+	    json_string_field2("value", TREE_STRING_POINTER(op),
         TREE_STRING_LENGTH (op));
       json_field("type");
       dump_type(TREE_TYPE(op));
@@ -598,11 +598,13 @@ static void dump_op(tree op) {
       json_field("member");
       TRACE("dump_op: writing COMPONENT_REF member\n");
       dump_op(TREE_OPERAND(op, 1));
-//      
-//      if(TREE_CODE(TREE_OPERAND(op, 1)) == FIELD_DECL) {
-//        json_string_field("member",
-//          IDENTIFIER_POINTER(DECL_NAME(TREE_OPERAND(op, 1))));
-//      }
+      break;
+
+    case BIT_FIELD_REF:
+      json_field("value");
+      dump_op(TREE_OPERAND (op, 0));
+      json_int_field("size", TREE_INT_CST_LOW(TREE_OPERAND(op, 1)));
+      json_int_field("offset", TREE_INT_CST_LOW(TREE_OPERAND(op, 2)));
       break;
 	    
     case COMPOUND_LITERAL_EXPR:

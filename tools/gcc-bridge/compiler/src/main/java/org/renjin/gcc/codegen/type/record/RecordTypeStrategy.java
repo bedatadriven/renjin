@@ -3,7 +3,6 @@ package org.renjin.gcc.codegen.type.record;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.type.TypeStrategy;
-import org.renjin.gcc.gimple.expr.GimpleFieldRef;
 import org.renjin.gcc.gimple.type.GimpleField;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
@@ -28,7 +27,7 @@ public abstract class RecordTypeStrategy<ExprT extends GExpr> implements TypeStr
     return recordTypeDef;
   }
 
-  public abstract GExpr memberOf(MethodGenerator mv, ExprT instance, GimpleFieldRef fieldRef, TypeStrategy fieldTypeStrategy);
+  public abstract GExpr memberOf(MethodGenerator mv, ExprT instance, int offset, int size, TypeStrategy fieldTypeStrategy);
 
   public static boolean isCircularField(GimpleRecordTypeDef typeDef, GimpleField gimpleField) {
     // GCC emits this weird member at the end of class 

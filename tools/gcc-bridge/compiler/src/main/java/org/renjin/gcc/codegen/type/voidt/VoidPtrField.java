@@ -1,35 +1,31 @@
 package org.renjin.gcc.codegen.type.voidt;
 
 import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.type.FieldStrategy;
+import org.renjin.gcc.codegen.type.SingleFieldStrategy;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.type.primitive.FieldValue;
-import org.renjin.repackaged.asm.ClassVisitor;
-import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 
 /**
  * Strategy for {@code void* } fields, compiled as a field of type
  * {@code java.lang.Object}
  */
-public class VoidPtrField extends FieldStrategy {
-  
-  private String fieldName;
+public class VoidPtrField extends SingleFieldStrategy {
 
-  public VoidPtrField(String fieldName) {
-    this.fieldName = fieldName;
+
+  public VoidPtrField(Type ownerClass, String fieldName) {
+    super(ownerClass, fieldName, VoidPtrStrategy.OBJECT_TYPE);
   }
 
   @Override
-  public void writeFields(ClassVisitor cv) {
-    cv.visitField(Opcodes.ACC_PUBLIC, fieldName, "Ljava/lang/Object;", null, null);
-  }
+  public VoidPtr memberExpr(JExpr instance, int offset, int size, TypeStrategy expectedType) {
 
-  @Override
-  public VoidPtr memberExpr(JExpr instance, int fieldOffset, TypeStrategy expectedType) {
-    FieldValue ref = new FieldValue(instance, fieldName, Type.getType(Object.class));
+    if(offset != 0) {
+      throw new IllegalStateException("offset = " + offset);
+    }
+    
+    FieldValue ref = new FieldValue(instance, fieldName, VoidPtrStrategy.OBJECT_TYPE);
     return new VoidPtr(ref);
   }
-
 
 }

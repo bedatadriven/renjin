@@ -3,37 +3,31 @@ package org.renjin.gcc.codegen.type.record;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.*;
-import org.renjin.gcc.codegen.type.FieldStrategy;
+import org.renjin.gcc.codegen.type.SingleFieldStrategy;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidPtr;
-import org.renjin.repackaged.asm.ClassVisitor;
 import org.renjin.repackaged.asm.Label;
-import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 
 /**
  * A field that is the union of more than one pointer types.
  * We store the value as a single Object instance.
  */
-public class PointerUnionField extends FieldStrategy {
+public class PointerUnionField extends SingleFieldStrategy {
 
   private static final Type OBJECT_TYPE = Type.getType(Object.class);
   
-  private Type declaringClass;
-  private String fieldName;
-
   public PointerUnionField(Type declaringClass, String fieldName) {
-    this.declaringClass = declaringClass;
-    this.fieldName = fieldName;
+    super(declaringClass, fieldName, OBJECT_TYPE);
   }
 
   @Override
-  public void writeFields(ClassVisitor cv) {
-    cv.visitField(Opcodes.ACC_PUBLIC, fieldName, OBJECT_TYPE.getDescriptor(), null, null);
-  }
+  public GExpr memberExpr(JExpr instance, int offset, int size, TypeStrategy expectedType) {
 
-  @Override
-  public GExpr memberExpr(JExpr instance, int fieldOffset, TypeStrategy expectedType) {
+    if(offset != 0) {
+      throw new UnsupportedOperationException("TODO: offset = " + offset);
+    }
+    
     JLValue fieldExpr = Expressions.field(instance, Type.getType(Object.class), fieldName);
 
     if(expectedType == null) {

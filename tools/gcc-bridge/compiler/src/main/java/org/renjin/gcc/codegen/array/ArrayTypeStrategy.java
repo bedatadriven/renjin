@@ -36,7 +36,7 @@ public class ArrayTypeStrategy implements TypeStrategy<ArrayExpr> {
   public ArrayTypeStrategy(GimpleArrayType arrayType, ValueFunction elementValueFunction) {
     this(arrayType, arrayType.getElementCount(), elementValueFunction);
   }
-
+  
   public ArrayTypeStrategy(GimpleArrayType arrayType, int totalArrayLength, ValueFunction elementValueFunction) {
     this.arrayType = arrayType;
     this.elementValueFunction = elementValueFunction;
@@ -44,6 +44,14 @@ public class ArrayTypeStrategy implements TypeStrategy<ArrayExpr> {
     this.arrayValueFunction = new ArrayValueFunction(arrayType, elementValueFunction);
   }
 
+  public int getArrayLength() {
+    return arrayLength;
+  }
+
+  public Type getElementType() {
+    return elementValueFunction.getValueType();
+  }
+  
   public boolean isParameterWrapped() {
     return parameterWrapped;
   }

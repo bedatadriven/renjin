@@ -34,8 +34,8 @@ public class RecordClassLayoutTree {
     
     private boolean addressable = false;
 
-    public Node(GimpleField field) {
-      this.start = field.getOffset();
+    public Node(GimpleField field, int start) {
+      this.start = start;
       this.end = this.start + field.getType().getSize();
       addField(field);
     }
@@ -120,15 +120,21 @@ public class RecordClassLayoutTree {
   }
 
   private void addField(GimpleField field) {
+
+    // Bit fields may not begin on a byte boundary,
+    // but for our purposes we need to put them in a box
+    int fieldStart = (field.getOffset() / 8) * 8;
+
     ListIterator<Node> it = tree.listIterator();
     while(it.hasNext()) {
       Node node = it.next();
-      if(node.start > field.getOffset()) {
-        tree.add(it.previousIndex(), new Node(field));
+      
+      if(node.start > fieldStart) {
+        tree.add(it.previousIndex(), new Node(field, fieldStart));
         mergeNodes();
         return;
 
-      } else if(node.start == field.getOffset()) {
+      } else if(node.start == fieldStart) {
         node.addField(field);
         if(node.getSize() != field.getType().getSize()) {
           mergeNodes();
@@ -137,7 +143,7 @@ public class RecordClassLayoutTree {
       }
     }
     // Add to end
-    tree.add(new Node(field));
+    tree.add(new Node(field, fieldStart));
     mergeNodes();
   }
 

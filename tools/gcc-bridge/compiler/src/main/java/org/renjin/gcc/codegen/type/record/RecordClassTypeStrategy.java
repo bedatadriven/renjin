@@ -113,8 +113,8 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<RecordValue> imp
   
 
   @Override
-  public GExpr memberOf(MethodGenerator mv, RecordValue instance, GimpleFieldRef fieldRef, TypeStrategy fieldTypeStrategy) {
-    return layout.memberOf(mv, instance, fieldRef, fieldTypeStrategy);
+  public GExpr memberOf(MethodGenerator mv, RecordValue instance, int offset, int size, TypeStrategy fieldTypeStrategy) {
+    return layout.memberOf(mv, instance, offset, size, fieldTypeStrategy);
   }
 
   @Override

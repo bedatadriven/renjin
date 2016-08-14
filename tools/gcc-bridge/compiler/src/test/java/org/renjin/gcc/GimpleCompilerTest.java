@@ -967,4 +967,9 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void print() throws Exception {
     compileAndTest("print.c");
   }
+  
+  @Test
+  public void bitfields() throws Exception {
+    compileAndTest("bitfields.c");
+  }
 }

@@ -9,12 +9,12 @@ import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
 import org.renjin.gcc.codegen.fatptr.Wrappers;
 import org.renjin.gcc.codegen.type.*;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveTypeStrategy;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValueFunction;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
-import org.renjin.gcc.gimple.expr.GimpleFieldRef;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
@@ -62,13 +62,13 @@ public class RecordArrayTypeStrategy extends RecordTypeStrategy<RecordArrayExpr>
   }
 
   @Override
-  public GExpr memberOf(MethodGenerator mv, RecordArrayExpr instance, GimpleFieldRef fieldRef, TypeStrategy fieldTypeStrategy) {
+  public GExpr memberOf(MethodGenerator mv, RecordArrayExpr instance, int fieldOffsetBits, int size, TypeStrategy fieldTypeStrategy) {
     
     // All the fields in this record are necessarily primitives, so we need
     // simple to retrieve the element from within the array that corresponds to
     // the given field name
     JExpr array = instance.getArray();
-    JExpr fieldOffset = constantInt(fieldRef.getOffsetBytes() / elementSizeInBytes());
+    JExpr fieldOffset = constantInt(fieldOffsetBits / 8 / elementSizeInBytes());
     JExpr offset = sum(instance.getOffset(), fieldOffset);
 
     // Because this value is backed by an array, we can also make it addressable. 
@@ -77,8 +77,8 @@ public class RecordArrayTypeStrategy extends RecordTypeStrategy<RecordArrayExpr>
     // The members of this record may be either primitives, or arrays of primitives,
     // and it actually doesn't matter to us.
     
-    if(fieldRef.getType() instanceof GimplePrimitiveType) {
-      Type expectedType = ((GimplePrimitiveType) fieldRef.getType()).jvmType();
+    if(fieldTypeStrategy instanceof PrimitiveTypeStrategy) {
+      Type expectedType = ((PrimitiveTypeStrategy) fieldTypeStrategy).getJvmType();
 
       // Return a single primitive value
       if(expectedType.equals(fieldType)) {
@@ -95,11 +95,11 @@ public class RecordArrayTypeStrategy extends RecordTypeStrategy<RecordArrayExpr>
         throw new UnsupportedOperationException("TODO: " + fieldType + " -> " + expectedType);
       }
 
-    } else if(fieldRef.getType() instanceof GimpleArrayType) {
-      GimpleArrayType arrayType = (GimpleArrayType) fieldRef.getType();
-      Type expectedType = ((GimplePrimitiveType) arrayType.getComponentType()).jvmType();
+    } else if(fieldTypeStrategy instanceof ArrayTypeStrategy) {
+      ArrayTypeStrategy arrayType = (ArrayTypeStrategy) fieldTypeStrategy;
+      Type expectedType = arrayType.getElementType();
 
-      return new ArrayExpr(new PrimitiveValueFunction(expectedType), arrayType.getElementCount(), array, offset);
+      return new ArrayExpr(new PrimitiveValueFunction(expectedType), arrayType.getArrayLength(), array, offset);
       
     } else {
       // Return an array that starts at this point 

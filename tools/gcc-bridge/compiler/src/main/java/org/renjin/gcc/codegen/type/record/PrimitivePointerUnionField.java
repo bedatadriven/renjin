@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.type.record;
 
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
@@ -36,7 +37,12 @@ public class PrimitivePointerUnionField extends FieldStrategy {
   }
 
   @Override
-  public GExpr memberExpr(JExpr instance, int fieldOffset, TypeStrategy expectedType) {
+  public GExpr memberExpr(JExpr instance, int offset, int size, TypeStrategy expectedType) {
+
+    if(offset != 0) {
+      throw new IllegalStateException("offset = " + offset);
+    }
+
     JLValue arrayExpr = Expressions.field(instance, Type.getType(Object.class), name);
     JLValue offsetExpr = Expressions.field(instance, Type.INT_TYPE, name + "$offset");
 
@@ -54,5 +60,17 @@ public class PrimitivePointerUnionField extends FieldStrategy {
       }
     } 
     throw new UnsupportedOperationException("Type: " + expectedType);
+  }
+
+  @Override
+  public void copy(MethodGenerator mv, JExpr source, JExpr dest) {
+
+    JLValue sourceArray = Expressions.field(source, Type.getType(Object.class), name);
+    JLValue sourceOffset = Expressions.field(source, Type.INT_TYPE, name + "$offset");
+    JLValue destArray = Expressions.field(dest, Type.getType(Object.class), name);
+    JLValue destOffset = Expressions.field(dest, Type.INT_TYPE, name + "$offset");
+    
+    destArray.store(mv, sourceArray);
+    destOffset.store(mv, sourceOffset);
   }
 }

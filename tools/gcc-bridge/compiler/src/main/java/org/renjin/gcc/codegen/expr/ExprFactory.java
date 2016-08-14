@@ -144,8 +144,20 @@ public class ExprFactory {
       GExpr instance = findGenerator(((GimpleComponentRef) expr).getValue());
       RecordTypeStrategy typeStrategy = (RecordTypeStrategy) typeOracle.forType(ref.getValue().getType());
       TypeStrategy fieldTypeStrategy = typeOracle.forType(ref.getType());
-      return typeStrategy.memberOf(mv, instance, ref.getMember(), fieldTypeStrategy);
-   
+      return typeStrategy.memberOf(mv, instance,
+          ref.getMember().getOffset(), 
+          ref.getMember().getSize(), 
+          fieldTypeStrategy);
+
+    } else if (expr instanceof GimpleBitFieldRefExpr) {
+      GimpleBitFieldRefExpr ref = (GimpleBitFieldRefExpr) expr;
+      GExpr instance = findGenerator(ref.getValue());
+      RecordTypeStrategy recordTypeStrategy = (RecordTypeStrategy) typeOracle.forType(ref.getValue().getType());
+      TypeStrategy memberTypeStrategy = typeOracle.forType(expr.getType());
+
+      return recordTypeStrategy.memberOf(mv, instance, ref.getOffset(), ref.getSize(), memberTypeStrategy);
+      
+      
     } else if(expr instanceof GimpleCompoundLiteral) {
       return findGenerator(((GimpleCompoundLiteral) expr).getDecl());
     
@@ -303,6 +315,7 @@ public class ExprFactory {
       case ADDR_EXPR:
       case ARRAY_REF:
       case COMPONENT_REF:
+      case BIT_FIELD_REF:
       case REALPART_EXPR:
       case IMAGPART_EXPR:
         return maybeCast(findGenerator(operands.get(0)), expectedType, operands.get(0).getType());

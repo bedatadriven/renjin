@@ -15,7 +15,17 @@ public abstract class FieldStrategy {
 
   public abstract void writeFields(ClassVisitor cv);
 
-  public abstract GExpr memberExpr(JExpr instance, int fieldOffset, TypeStrategy expectedType);
 
+  /**
+   * Returns a {@code {@link GExpr} for this field of the given {@code instance}.
+   * 
+   * @param instance the instance of the class from which to access the member
+   * @param offset the offset, in bits, from the <em>start</em> of this field.
+   * @param size The size of the value, in bits, to access.
+   * @param expectedType The strategy for the expected type of the field.
+   */
+  public abstract GExpr memberExpr(JExpr instance, int offset, int size, TypeStrategy expectedType);
+  
+  public abstract void copy(MethodGenerator mv, JExpr source, JExpr dest);
 
 }

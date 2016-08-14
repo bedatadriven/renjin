@@ -5,10 +5,8 @@ import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.annotations.GccSize;
 import org.renjin.gcc.codegen.expr.Expressions;
-import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.FieldStrategy;
-import org.renjin.gcc.codegen.type.record.SuperClassFieldStrategy;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
 import org.renjin.repackaged.asm.AnnotationVisitor;
 import org.renjin.repackaged.asm.ClassVisitor;
@@ -105,19 +103,7 @@ public class RecordClassGenerator {
     // Now copy each field member
     for (FieldStrategy field : fields) {
       try {
-        if(field instanceof SuperClassFieldStrategy) {
-          
-          // call super.set()
-          thisExpr.load(mv);
-          sourceExpr.load(mv);
-          mv.invokevirtual(superClassName, "set", Type.getMethodDescriptor(Type.VOID_TYPE, superClassName), false);
-          
-        } else {
-          GExpr thisField = field.memberExpr(thisExpr, 0, null);
-          GExpr sourceField = field.memberExpr(sourceExpr, 0, null);
-
-          thisField.store(mv, sourceField);
-        }
+        field.copy(mv, sourceExpr, thisExpr);
       } catch (Exception e) {
         throw new InternalCompilerException("Exception generating copy code for " + className + ", field: " + field, e);
       }

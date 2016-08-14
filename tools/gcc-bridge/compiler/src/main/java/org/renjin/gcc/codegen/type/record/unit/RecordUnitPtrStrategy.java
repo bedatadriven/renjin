@@ -44,7 +44,7 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>
 
   @Override
   public FieldStrategy fieldGenerator(Type className, String fieldName) {
-    return new SimpleFieldStrategy(fieldName, strategy.getJvmType(), RecordUnitPtr.class);
+    return new RecordUnitPtrField(className, fieldName, strategy.getJvmType());
   }
 
   @Override

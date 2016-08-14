@@ -45,7 +45,7 @@ public class FunPtrStrategy implements PointerTypeStrategy<FunPtr>, SimpleTypeSt
 
   @Override
   public FieldStrategy fieldGenerator(Type className, String fieldName) {
-    return new SimpleFieldStrategy(fieldName, METHOD_HANDLE_TYPE, FunPtr.class);
+    return new FunPtrField(className, fieldName);
   }
 
   @Override

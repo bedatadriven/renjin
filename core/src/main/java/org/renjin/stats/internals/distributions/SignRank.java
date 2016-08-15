@@ -56,18 +56,6 @@ public class SignRank {
     return ((x) > -Math.log(2.0) ? Math.log(-Math.expm1(x)) : Math.log1p(-Math.exp(x)));
   }
 
-  public static boolean R_D_nonint(double x, boolean lower_tail, boolean log_p) {
-    return (Math.abs((x) - Math.floor((x) + 0.5)) > 1e-7);
-  }
-
-  public static double R_D_forceint(double x) {
-    return Math.floor((x) + 0.5);
-  }
-
-  public static double R_D_fexp(double f, double x, boolean lower_tail, boolean log_p) {
-    return (log_p ? -0.5 * Math.log(f) + (x) : Math.exp(x) / Math.sqrt(f));
-  }
-  
 
   /*
    * Random Number Generator for SignRank

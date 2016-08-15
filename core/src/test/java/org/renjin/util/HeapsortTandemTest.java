@@ -28,24 +28,6 @@ public class HeapsortTandemTest {
     }
   }
 
-  @Test
-  public void testHeapsortAscending() {
-    int i = 0;
-    final double[] values = new double[N];
-    final int[] valuesOrder = new int[N];
-
-    for (; i < N; i++) {
-      values[i] = mt.nextDouble();
-      valuesOrder[i] = i;
-    }
-
-    HeapsortTandem.heapsortAscending(values, valuesOrder, N);
-
-    // Ensure the values are in descending order
-    for (i = 0; i < N - 1; i++) {
-      Assert.assertTrue(values[i] <= values[i + 1]);
-    }
-  }
 
   @Test
   public void testPresortedArrayDescending() {

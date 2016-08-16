@@ -6,7 +6,7 @@ import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.GSimpleExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
+import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
 import org.renjin.repackaged.asm.Type;
 
@@ -45,15 +45,15 @@ public class RecordValue implements GSimpleExpr {
       rhsRef = ((RecordValue) rhs).unwrap();
     } else if(rhs instanceof RecordUnitPtr) {
       rhsRef = ((RecordUnitPtr) rhs).unwrap();
-    } else if(rhs instanceof FatPtrExpr) {
-      FatPtrExpr fatPtrExpr = (FatPtrExpr) rhs;
+    } else if(rhs instanceof FatPtrPair) {
+      FatPtrPair fatPtrExpr = (FatPtrPair) rhs;
       rhsRef =  Expressions.cast(elementAt(fatPtrExpr.getArray(), fatPtrExpr.getOffset()), getJvmType());
     } else {
       throw new InternalCompilerException("Cannot assign " + rhs + " to " + this);
     }
 
     ref.load(mv);
-    rhsRef.load(mv);
+    Expressions.cast(rhsRef, ref.getType()).load(mv);
     
     mv.invokevirtual(ref.getType(), "set", Type.getMethodDescriptor(Type.VOID_TYPE, ref.getType()), false);
   }

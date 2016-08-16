@@ -32,6 +32,11 @@ public class ShortPtr implements Ptr {
     return new ShortPtr(Realloc.realloc(array, offset, newSizeInBytes / 2));
   }
 
+  @Override
+  public Ptr pointerPlus(int bytes) {
+    return new ShortPtr(array, offset + (bytes / 2));
+  }
+
   public short unwrap() {
     return array[offset];
   }
@@ -40,5 +45,11 @@ public class ShortPtr implements Ptr {
   public String toString() {
     return offset + "+" + Arrays.toString(array);
   }
-  
+
+  public static ShortPtr cast(Object voidPointer) {
+    if(voidPointer instanceof MallocThunk) {
+      return ((MallocThunk) voidPointer).shortPtr();
+    }
+    return (ShortPtr) voidPointer;  
+  }
 }

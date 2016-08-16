@@ -1,8 +1,10 @@
 package org.renjin.gcc.codegen.fatptr;
 
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.FieldStrategy;
+import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.repackaged.asm.ClassVisitor;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
@@ -15,11 +17,11 @@ public class FatPtrFieldStrategy extends FieldStrategy {
   private String offsetField;
   private Type arrayType;
 
-  public FatPtrFieldStrategy(ValueFunction valueFunction, String name) {
+  public FatPtrFieldStrategy(ValueFunction valueFunction, String name, Type arrayType) {
     this.valueFunction = valueFunction;
     this.arrayField = name;
-    this.arrayType = Wrappers.valueArrayType(valueFunction.getValueType());
     this.offsetField = name + "$offset";
+    this.arrayType = arrayType;
   }
 
   @Override
@@ -29,10 +31,24 @@ public class FatPtrFieldStrategy extends FieldStrategy {
   }
 
   @Override
-  public FatPtrExpr memberExprGenerator(JExpr instance) {
-    JExpr array = Expressions.field(instance, arrayType, arrayField);
-    JExpr offset = Expressions.field(instance, Type.INT_TYPE, offsetField);
-    return new FatPtrExpr(array, offset);
+  public FatPtrPair memberExpr(JExpr instance, int offset, int size, TypeStrategy expectedType) {
+
+    if(offset != 0) {
+      throw new IllegalStateException("offset = " + offset);
+    }
+    return memberExpr(instance);
   }
 
+  private FatPtrPair memberExpr(JExpr instance) {
+    JExpr arrayExpr = Expressions.field(instance, arrayType, arrayField);
+    JExpr offsetExpr = Expressions.field(instance, Type.INT_TYPE, offsetField);
+    return new FatPtrPair(valueFunction, arrayExpr, offsetExpr);
+  }
+
+  @Override
+  public void copy(MethodGenerator mv, JExpr source, JExpr dest) {
+    FatPtrPair sourceExpr = memberExpr(source);
+    FatPtrPair destExpr = memberExpr(dest);
+    destExpr.store(mv, sourceExpr);
+  }
 }

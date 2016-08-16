@@ -12,17 +12,15 @@ public interface PointerTypeStrategy<ExprT extends GExpr> extends TypeStrategy<E
   
   ExprT malloc(MethodGenerator mv, JExpr sizeInBytes);
 
-  ExprT realloc(ExprT pointer, JExpr newSizeInBytes);
+  ExprT realloc(MethodGenerator mv, ExprT pointer, JExpr newSizeInBytes);
 
-  ExprT pointerPlus(ExprT pointer, JExpr offsetInBytes);
-
-  GExpr valueOf(ExprT pointerExpr);
+  ExprT pointerPlus(MethodGenerator mv, ExprT pointer, JExpr offsetInBytes);
 
   ExprT nullPointer();
 
-  ConditionGenerator comparePointers(GimpleOp op, ExprT x, ExprT y);
+  ConditionGenerator comparePointers(MethodGenerator mv, GimpleOp op, ExprT x, ExprT y);
 
-  JExpr memoryCompare(ExprT p1, ExprT p2, JExpr n);
+  JExpr memoryCompare(MethodGenerator mv, ExprT p1, ExprT p2, JExpr n);
 
   void memoryCopy(MethodGenerator mv, ExprT destination, ExprT source, JExpr length, boolean buffer);
 

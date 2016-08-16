@@ -579,6 +579,53 @@ public class Files {
     return result.build();
   }
 
+
+  @Internal("file.rename")
+  public static LogicalVector fileRename(@Current Context context, StringVector fromFiles, StringVector toFiles) 
+      throws FileSystemException {
+    
+    if(toFiles.length() != fromFiles.length()) {
+      throw new EvalException("'from' and 'to' are of different lengths");
+    }
+
+    LogicalArrayVector.Builder result = new LogicalArrayVector.Builder();
+    
+    for (int i = 0; i < fromFiles.length(); i++) {
+      boolean succeeded = renameFile(context, fromFiles.getElementAsString(i), toFiles.getElementAsString(i));
+      result.add(succeeded);
+    }
+    return result.build();
+  }
+
+  private static boolean renameFile(@Current Context context, String fromUri, String toUri) {
+
+    FileObject from;
+    FileObject to;
+
+    try {
+      from = context.resolveFile(fromUri);
+      if(!from.exists()) {
+        throw new FileSystemException("No such file or directory");
+      }
+      
+      to = context.resolveFile(toUri);
+   
+      if(!from.canRenameTo(to)) {
+        throw new FileSystemException("rename not supported");
+      }
+
+      // The implementation is mean to perform a rename if canRename(to) is true.
+      from.moveTo(to);
+
+      return true;
+      
+    } catch(FileSystemException e) {
+      context.warn(String.format("cannot rename file '%s' to '%s', reason: '%s'", fromUri, toUri, e.getMessage()));
+      return false;
+    }
+  }
+
+
   /**
    * Extract files from or list a zip archive.
    *

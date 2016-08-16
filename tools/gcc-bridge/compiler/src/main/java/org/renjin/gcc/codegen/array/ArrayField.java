@@ -8,47 +8,52 @@ import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.gcc.codegen.fatptr.FatPtrMalloc;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.fatptr.Wrappers;
-import org.renjin.gcc.codegen.type.FieldStrategy;
-import org.renjin.repackaged.asm.ClassVisitor;
-import org.renjin.repackaged.asm.Opcodes;
+import org.renjin.gcc.codegen.type.SingleFieldStrategy;
+import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.repackaged.asm.Type;
 
 /**
  * Strategy for array fields
  */
-public class ArrayField extends FieldStrategy {
+public class ArrayField extends SingleFieldStrategy {
 
-  private Type declaringClass;
-  private String name;
   private int arrayLength;
   private final ValueFunction valueFunction;
-  private final Type arrayType;
-
+  
   public ArrayField(Type declaringClass, String name, int arrayLength, ValueFunction valueFunction) {
-    this.declaringClass = declaringClass;
-    this.name = name;
+    super(declaringClass, name, Wrappers.valueArrayType(valueFunction.getValueType()));
     this.arrayLength = arrayLength;
     this.valueFunction = valueFunction;
-    this.arrayType = Wrappers.valueArrayType(valueFunction.getValueType());
-  }
-
-  @Override
-  public void writeFields(ClassVisitor cv) {
-    cv.visitField(Opcodes.ACC_PUBLIC, name, arrayType.getDescriptor(), null, null).visitEnd();
   }
 
   @Override
   public void emitInstanceInit(MethodGenerator mv) {
     JExpr newArray = FatPtrMalloc.allocArray(mv, valueFunction, Expressions.constantInt(arrayLength));
-    JLValue arrayField = Expressions.field(Expressions.thisValue(declaringClass), arrayType, name);
+    JLValue arrayField = Expressions.field(Expressions.thisValue(this.ownerClass), fieldType, fieldName);
     
     arrayField.store(mv, newArray);
   }
 
   @Override
-  public GExpr memberExprGenerator(JExpr instance) {
-    JExpr array = Expressions.field(instance, arrayType, name);
-    JExpr offset = Expressions.zero();
-    return new ArrayExpr(valueFunction, arrayLength, array, offset);
+  public GExpr memberExpr(JExpr instance, int offset, int size, TypeStrategy expectedType) {
+    
+    if(offset != 0) {
+      throw new UnsupportedOperationException("TODO: offset = " + offset);
+    }
+    
+    JExpr arrayExpr = Expressions.field(instance, fieldType, fieldName);
+    JExpr offsetExpr = Expressions.zero();
+    return new ArrayExpr(valueFunction, arrayLength, arrayExpr, offsetExpr);
+  }
+
+  @Override
+  public void copy(MethodGenerator mv, JExpr source, JExpr dest) {
+    JExpr sourceArray = Expressions.field(source, fieldType, fieldName);
+    JExpr destArray = Expressions.field(dest, fieldType, fieldName);
+    
+    mv.arrayCopy(
+        sourceArray, Expressions.constantInt(0), 
+        destArray, Expressions.constantInt(0), 
+        Expressions.constantInt(arrayLength));
   }
 }

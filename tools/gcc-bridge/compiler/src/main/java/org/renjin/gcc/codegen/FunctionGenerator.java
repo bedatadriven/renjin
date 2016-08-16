@@ -65,7 +65,6 @@ public class FunctionGenerator implements InvocationStrategy {
     this.params = this.typeOracle.forParameters(function.getParameters());
     this.returnStrategy = this.typeOracle.returnStrategyFor(function.getReturnType());
     this.symbolTable = new LocalVariableTable(symbolTable);
-    this.exprFactory = new ExprFactory(typeOracle, this.symbolTable);
   }
 
   public String getMangledName() {
@@ -99,6 +98,8 @@ public class FunctionGenerator implements InvocationStrategy {
         getFunctionDescriptor(), null, null);
 
     mv = new MethodGenerator(methodNode);
+    this.exprFactory = new ExprFactory(typeOracle, this.symbolTable, mv);
+
     mv.visitCode();
     mv.visitLabel(beginLabel);
     

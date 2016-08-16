@@ -50,9 +50,23 @@ public class LocalVarAllocator extends VarAllocator {
     @Override
     public void store(MethodGenerator mv, JExpr value) {
       value.load(mv);
+      if(!value.getType().equals(type)) {
+        if(type.getSort() == Type.ARRAY || type.getSort() == Type.OBJECT) {
+          mv.checkcast(type);
+        }
+      }
       store(mv);
     }
-    
+
+    private void checkAssignmentTypes(Type targetType, Type sourceType) {
+      if (targetType.equals(Type.getType(Object.class))) {
+        return;
+      }
+      if (!sourceType.equals(targetType)) {
+        throw new IllegalStateException("Trying to assign " + sourceType + " to " + type);
+      }
+    }
+
     public void store(MethodGenerator mv) {
       mv.visitVarInsn(type.getOpcode(Opcodes.ISTORE), index);
     }
@@ -75,7 +89,6 @@ public class LocalVarAllocator extends VarAllocator {
   public LocalVar reserve(String name, Type type, JExpr initialValue) {
     return reserve(name, type, Optional.of(initialValue));
   }
-
 
   public LocalVar reserve(Type type) {
     return reserve(null, type);
@@ -106,6 +119,15 @@ public class LocalVarAllocator extends VarAllocator {
       }
     }
   }
-
-
+  
+  public LocalVar tempIfNeeded(MethodGenerator mv, JExpr expr) {
+    LocalVarAllocator.LocalVar instanceVar;
+    if(expr instanceof LocalVarAllocator.LocalVar) {
+      return (LocalVarAllocator.LocalVar) expr;
+    } else {
+      instanceVar = mv.getLocalVarAllocator().reserve(expr.getType());
+      instanceVar.store(mv, expr);
+      return instanceVar;
+    }
+  }
 }

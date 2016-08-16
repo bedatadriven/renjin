@@ -48,10 +48,10 @@ public class MemCopyCallGenerator implements CallGenerator {
 
     try {
       if (sourceStrategy instanceof VoidPtrStrategy) {
-        sourcePtr = destinationStrategy.cast(sourcePtr, sourceStrategy);
+        sourcePtr = destinationStrategy.cast(mv, sourcePtr, sourceStrategy);
         sourceStrategy = destinationStrategy;
       } else {
-        destinationPtr = sourceStrategy.cast(destinationPtr, destinationStrategy);
+        destinationPtr = sourceStrategy.cast(mv, destinationPtr, destinationStrategy);
         destinationStrategy = sourceStrategy;
       } 
     } catch (UnsupportedCastException e) {
@@ -68,7 +68,7 @@ public class MemCopyCallGenerator implements CallGenerator {
       PointerTypeStrategy lhsStrategy = typeOracle.forPointerType(call.getLhs().getType());
 
       try {
-        lhs.store(mv, lhsStrategy.cast(destinationPtr, destinationStrategy));
+        lhs.store(mv, lhsStrategy.cast(mv, destinationPtr, destinationStrategy));
       } catch (UnsupportedCastException e) {
         throw new InternalCompilerException(String.format("Cannot assign result of memcpy => %s to %s\n", 
             destinationStrategy, lhsStrategy));

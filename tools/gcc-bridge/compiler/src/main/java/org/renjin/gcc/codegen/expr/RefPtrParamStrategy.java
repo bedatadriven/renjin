@@ -2,7 +2,7 @@ package org.renjin.gcc.codegen.expr;
 
 import com.google.common.base.Optional;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
+import org.renjin.gcc.codegen.fatptr.FatPtr;
 import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.type.SimpleTypeStrategy;
 import org.renjin.gcc.codegen.var.VarAllocator;
@@ -50,8 +50,8 @@ public class RefPtrParamStrategy<T extends RefPtrExpr> implements ParamStrategy 
           // Cast null pointers to the appropriate type
           Expressions.cast(ptrExpr.unwrap(), typeStrategy.getJvmType()).load(mv);
         }
-      } else if(argumentValue instanceof FatPtrExpr) {
-        FatPtrExpr fatPtrExpr = (FatPtrExpr) argumentValue;
+      } else if(argumentValue instanceof FatPtr) {
+        FatPtr fatPtrExpr = (FatPtr) argumentValue;
         fatPtrExpr.wrap().load(mv);
         
       } else {

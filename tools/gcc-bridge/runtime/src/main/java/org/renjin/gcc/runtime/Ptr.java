@@ -9,4 +9,6 @@ public interface Ptr {
   
   Ptr realloc(int newSizeInBytes);
   
+  Ptr pointerPlus(int bytes);
+  
 }

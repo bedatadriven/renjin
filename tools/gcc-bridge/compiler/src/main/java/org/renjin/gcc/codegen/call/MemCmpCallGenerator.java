@@ -30,7 +30,7 @@ public class MemCmpCallGenerator implements CallGenerator {
       JExpr n = exprFactory.findPrimitiveGenerator(call.getOperand(2));
 
       GimplePointerType type = (GimplePointerType) call.getOperand(0).getType();
-      JExpr result = typeOracle.forPointerType(type).memoryCompare(p1, p2, n);
+      JExpr result = typeOracle.forPointerType(type).memoryCompare(mv, p1, p2, n);
 
       GExpr lhs = exprFactory.findGenerator(call.getLhs());
       lhs.store(mv, new PrimitiveValue(result));

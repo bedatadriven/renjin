@@ -6,6 +6,7 @@ import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.FieldStrategy;
+import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.repackaged.asm.ClassVisitor;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
@@ -52,11 +53,27 @@ public class AddressableField extends FieldStrategy {
   }
 
   @Override
-  public GExpr memberExprGenerator(JExpr instance) {
-    JExpr array = Expressions.field(instance, arrayType, arrayField);
-    JExpr offset = Expressions.field(instance, Type.INT_TYPE, offsetField);
-    
-    return valueFunction.dereference(array, offset);
+  public GExpr memberExpr(JExpr instance, int offset, int size, TypeStrategy expectedType) {
+
+    if(offset != 0) {
+      throw new UnsupportedOperationException("TODO: offset = " + offset);
+    }
+
+    return dereference(instance);
+  }
+
+  private GExpr dereference(JExpr instance) {
+    JExpr arrayExpr = Expressions.field(instance, arrayType, arrayField);
+    JExpr offsetExpr = Expressions.field(instance, Type.INT_TYPE, offsetField);
+
+    return valueFunction.dereference(arrayExpr, offsetExpr);
+  }
+
+  @Override
+  public void copy(MethodGenerator mv, JExpr source, JExpr dest) {
+    GExpr sourceExpr = dereference(source);
+    GExpr destExpr = dereference(dest);
+    destExpr.store(mv, sourceExpr);
   }
 
 }

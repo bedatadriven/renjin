@@ -77,7 +77,7 @@ public final class ExternalPtr<T> extends AbstractSEXP {
 
   @Override
   public void accept(SexpVisitor visitor) {
-
+    visitor.visit(this);
   }
 
   @Override

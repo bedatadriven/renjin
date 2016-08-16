@@ -6,8 +6,9 @@ import org.renjin.gcc.codegen.expr.ArrayElement;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
+import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
+import org.renjin.gcc.codegen.fatptr.WrappedFatPtrExpr;
 import org.renjin.gcc.codegen.type.primitive.ConstantValue;
 import org.renjin.gcc.codegen.var.LocalVarAllocator;
 import org.renjin.repackaged.asm.Label;
@@ -47,10 +48,20 @@ public class RecordClassValueFunction implements ValueFunction {
 
   @Override
   public RecordValue dereference(JExpr array, JExpr offset) {
-    ArrayElement element = Expressions.elementAt(array, offset);
-    FatPtrExpr address = new FatPtrExpr(array, offset);
+    JExpr castedElement = elementAt(array, offset);
+    FatPtrPair address = new FatPtrPair(this, array, offset);
     
-    return new RecordValue(element, address);
+    return new RecordValue(castedElement, address);
+  }
+
+  @Override
+  public GExpr dereference(WrappedFatPtrExpr wrapperInstance) {
+    return new RecordValue(wrapperInstance.valueExpr(), wrapperInstance);
+  }
+
+  private JExpr elementAt(JExpr array, JExpr offset) {
+    ArrayElement element = Expressions.elementAt(array, offset);
+    return Expressions.cast(element, strategy.getJvmType());
   }
 
   @Override
@@ -108,8 +119,8 @@ public class RecordClassValueFunction implements ValueFunction {
                            JExpr sourceArray, JExpr sourceOffset, 
                            JExpr index) {
     
-    ArrayElement destRef = Expressions.elementAt(destinationArray, Expressions.sum(destinationOffset, index));
-    ArrayElement sourceRef = Expressions.elementAt(sourceArray, Expressions.sum(sourceOffset, index));
+    JExpr destRef = elementAt(destinationArray, Expressions.sum(destinationOffset, index));
+    JExpr sourceRef = elementAt(sourceArray, Expressions.sum(sourceOffset, index));
 
     destRef.load(mv);
     sourceRef.load(mv);

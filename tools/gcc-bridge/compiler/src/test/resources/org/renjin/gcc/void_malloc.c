@@ -44,3 +44,56 @@ void test_malloc_funptr() {
   ASSERT(p[2] == 93)
   ASSERT(p[3] == 94)
 }
+
+void do_void_malloc(void **pp) {
+    *pp = malloc(sizeof(double)*10);
+}
+
+void test_malloc_addr() {
+  double *pd;
+  do_void_malloc(&pd);
+  
+  ASSERT(pd[0] == 0);
+  ASSERT(pd[9] == 0);
+}
+
+struct st {
+  double* x;
+  int *y;
+  int z;
+};
+
+void test_malloc_struct_addr() {
+  struct st *ps;
+  do_void_malloc(&ps);
+  
+  ASSERT(ps[0].z == 0);
+  ASSERT(ps[1].z == 0);
+}
+
+void do_dbl_alloc(void **ppv) {
+  
+  double *pd = malloc(sizeof(double)*3);
+  pd[0] = 41;
+  pd[1] = 42;
+  pd[2] = 43;
+  
+  *ppv = pd;
+}
+
+void do_check_dbl(void* pv) {
+  double *pd = (double*)pv;
+  ASSERT(pd[0] == 41);
+  ASSERT(pd[1] == 42);
+  ASSERT(pd[2] == 43);  
+}
+
+void test_addressable_void_variable() {
+  
+  void *pv;
+  do_dbl_alloc(&pv);
+  
+  ASSERT(pv != NULL);
+  
+  do_check_dbl(pv);
+}

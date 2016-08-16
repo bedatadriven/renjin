@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.type.fun;
 
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.GExpr;
@@ -42,7 +43,7 @@ public class FunTypeStrategy implements TypeStrategy<FunExpr> {
   }
 
   @Override
-  public FunExpr constructorExpr(ExprFactory exprFactory, GimpleConstructor value) {
+  public FunExpr constructorExpr(ExprFactory exprFactory, MethodGenerator mv, GimpleConstructor value) {
     throw newInvalidOperation();
   }
 
@@ -67,7 +68,7 @@ public class FunTypeStrategy implements TypeStrategy<FunExpr> {
   }
 
   @Override
-  public FunExpr cast(GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+  public FunExpr cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
     throw new UnsupportedCastException();
   }
 

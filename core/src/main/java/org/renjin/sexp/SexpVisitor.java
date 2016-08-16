@@ -120,6 +120,9 @@ public class SexpVisitor<R> {
     unhandled(s4Object);
   }
 
+  public <T> void visit(ExternalPtr sexp) {
+    unhandled(sexp);
+  }
   
   public final void acceptAll(Iterable<SEXP> elements) {
     for(SEXP element : elements) {

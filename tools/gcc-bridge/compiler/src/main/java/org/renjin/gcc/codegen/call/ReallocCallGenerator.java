@@ -37,7 +37,7 @@ public class ReallocCallGenerator implements CallGenerator {
     GExpr pointer = exprFactory.findGenerator(call.getOperand(0));
     JExpr size = exprFactory.findPrimitiveGenerator(call.getOperand(1));
 
-    GExpr reallocatedPointer = typeOracle.forPointerType(pointerType).realloc(pointer, size);
+    GExpr reallocatedPointer = typeOracle.forPointerType(pointerType).realloc(mv, pointer, size);
 
     GExpr lhs = exprFactory.findGenerator(call.getLhs());
     lhs.store(mv, reallocatedPointer);

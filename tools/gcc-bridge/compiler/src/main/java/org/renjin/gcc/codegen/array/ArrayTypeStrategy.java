@@ -2,6 +2,7 @@ package org.renjin.gcc.codegen.array;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
@@ -35,7 +36,7 @@ public class ArrayTypeStrategy implements TypeStrategy<ArrayExpr> {
   public ArrayTypeStrategy(GimpleArrayType arrayType, ValueFunction elementValueFunction) {
     this(arrayType, arrayType.getElementCount(), elementValueFunction);
   }
-
+  
   public ArrayTypeStrategy(GimpleArrayType arrayType, int totalArrayLength, ValueFunction elementValueFunction) {
     this.arrayType = arrayType;
     this.elementValueFunction = elementValueFunction;
@@ -43,6 +44,14 @@ public class ArrayTypeStrategy implements TypeStrategy<ArrayExpr> {
     this.arrayValueFunction = new ArrayValueFunction(arrayType, elementValueFunction);
   }
 
+  public int getArrayLength() {
+    return arrayLength;
+  }
+
+  public Type getElementType() {
+    return elementValueFunction.getValueType();
+  }
+  
   public boolean isParameterWrapped() {
     return parameterWrapped;
   }
@@ -54,7 +63,7 @@ public class ArrayTypeStrategy implements TypeStrategy<ArrayExpr> {
 
   @Override
   public FatPtrStrategy pointerTo() {
-    return new FatPtrStrategy(arrayValueFunction)
+    return new FatPtrStrategy(arrayValueFunction, 1)
         .setParametersWrapped(parameterWrapped);
   }
 
@@ -70,7 +79,7 @@ public class ArrayTypeStrategy implements TypeStrategy<ArrayExpr> {
   }
 
   @Override
-  public ArrayExpr cast(GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+  public ArrayExpr cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
     if(value instanceof ArrayExpr) {
       return (ArrayExpr) value;
     }
@@ -146,7 +155,7 @@ public class ArrayTypeStrategy implements TypeStrategy<ArrayExpr> {
 
 
   @Override
-  public ArrayExpr constructorExpr(ExprFactory exprFactory, GimpleConstructor constructor) {
+  public ArrayExpr constructorExpr(ExprFactory exprFactory, MethodGenerator mv, GimpleConstructor constructor) {
     List<JExpr> values = Lists.newArrayList();
     addElementConstructors(values, exprFactory, constructor);
 

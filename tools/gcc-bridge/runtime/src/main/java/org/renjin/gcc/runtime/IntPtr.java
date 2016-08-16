@@ -32,7 +32,16 @@ public class IntPtr implements Ptr {
     return new IntPtr(Realloc.realloc(array, offset, newSizeInBytes / 4));
   }
 
+  @Override
+  public Ptr pointerPlus(int bytes) {
+    return new IntPtr(array, offset + (bytes / 4));
+  }
+
   public int unwrap() {
+    return array[offset];
+  }
+  
+  public int get() {
     return array[offset];
   }
   

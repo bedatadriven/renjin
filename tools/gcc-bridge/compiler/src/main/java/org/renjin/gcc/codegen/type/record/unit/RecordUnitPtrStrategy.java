@@ -8,21 +8,23 @@ import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.AddressableField;
-import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
+import org.renjin.gcc.codegen.fatptr.FatPtr;
+import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.type.primitive.ConstantValue;
 import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.codegen.type.record.RecordConstructor;
-import org.renjin.gcc.codegen.type.record.RecordValue;
 import org.renjin.gcc.codegen.type.voidt.VoidPtr;
-import org.renjin.gcc.codegen.type.voidt.VoidPtrStrategy;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
+import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
+
+import javax.annotation.Nonnull;
 
 
 public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>, SimpleTypeStrategy<RecordUnitPtr> {
@@ -42,11 +44,11 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>
 
   @Override
   public FieldStrategy fieldGenerator(Type className, String fieldName) {
-    return new SimpleFieldStrategy(fieldName, strategy.getJvmType(), RecordUnitPtr.class);
+    return new RecordUnitPtrField(className, fieldName, strategy.getJvmType());
   }
 
   @Override
-  public RecordUnitPtr constructorExpr(ExprFactory exprFactory, GimpleConstructor value) {
+  public RecordUnitPtr constructorExpr(ExprFactory exprFactory, MethodGenerator mv, GimpleConstructor value) {
     throw new UnsupportedOperationException("TODO");
   }
 
@@ -57,7 +59,7 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>
 
   @Override
   public FatPtrStrategy pointerTo() {
-    return new FatPtrStrategy(valueFunction);
+    return new FatPtrStrategy(valueFunction, 2);
   }
 
   @Override
@@ -66,21 +68,22 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>
   }
 
   @Override
-  public RecordUnitPtr cast(GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
-    if(typeStrategy instanceof FatPtrStrategy) {
-      FatPtrExpr ptr = (FatPtrExpr) value;
+  public RecordUnitPtr cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+    if(value instanceof FatPtr) {
+      FatPtrPair ptr = ((FatPtr) value).toPair(mv);
+      
       // TODO
       // Currently we punt until runtime by triggering a ClassCastException
-      return new RecordUnitPtr(Expressions.uncheckedCast(ptr.getArray(), strategy.getJvmType()));
+      return new RecordUnitPtr(Expressions.nullRef(strategy.getJvmType()));
       
     } else if(typeStrategy instanceof RecordUnitPtrStrategy) {
       RecordUnitPtr ptrExpr = (RecordUnitPtr) value;
       return new RecordUnitPtr(Expressions.cast(ptrExpr.unwrap(), strategy.getJvmType()));
       
-    } else if(typeStrategy instanceof VoidPtrStrategy) {
+    } else if(value instanceof VoidPtr) {
       VoidPtr voidPtr = (VoidPtr) value;
       return new RecordUnitPtr(Expressions.cast(voidPtr.unwrap(), strategy.getJvmType()));
-    }
+    } 
     throw new UnsupportedCastException();
   }
 
@@ -96,7 +99,7 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>
       // Declare this as a Unit array so that we can get a FatPtrExpr if needed
       JExpr unitArray = allocator.reserveUnitArray(decl.getName(), strategy.getJvmType(), Optional.<JExpr>absent());
 
-      FatPtrExpr address = new FatPtrExpr(unitArray);
+      FatPtrPair address = new FatPtrPair(valueFunction, unitArray);
       ArrayElement instance = Expressions.elementAt(unitArray, 0);
       
       return new RecordUnitPtr(instance, address);
@@ -117,16 +120,37 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>
   }
 
   @Override
-  public RecordUnitPtr realloc(RecordUnitPtr pointer, JExpr newSizeInBytes) {
+  public RecordUnitPtr realloc(MethodGenerator mv, RecordUnitPtr pointer, JExpr newSizeInBytes) {
     throw new UnsupportedOperationException("TODO");
   }
 
   @Override
-  public RecordUnitPtr pointerPlus(RecordUnitPtr pointer, JExpr offsetInBytes) {
+  public RecordUnitPtr pointerPlus(MethodGenerator mv, final RecordUnitPtr pointer, final JExpr offsetInBytes) {
     // According to our analysis conducted before-hand, there should be no pointer
     // to a sequence of records of this type with more than one record, so the result should
     // be undefined.
-    return nullPointer();
+    JExpr expr = new JExpr() {
+      @Nonnull
+      @Override
+      public Type getType() {
+        return pointer.unwrap().getType();
+      }
+
+      @Override
+      public void load(@Nonnull MethodGenerator mv) {
+        Label zero = new Label();
+        offsetInBytes.load(mv);
+        mv.ifeq(zero);
+        mv.anew(Type.getType(ArrayIndexOutOfBoundsException.class));
+        mv.dup();
+        mv.invokeconstructor(Type.getType(ArrayIndexOutOfBoundsException.class));
+        mv.athrow();
+        mv.mark(zero);
+        pointer.unwrap().load(mv);
+      }
+    };
+    
+    return new RecordUnitPtr(expr);
   }
 
   @Override
@@ -135,12 +159,12 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>
   }
 
   @Override
-  public ConditionGenerator comparePointers(GimpleOp op, RecordUnitPtr x, RecordUnitPtr y) {
+  public ConditionGenerator comparePointers(MethodGenerator mv, GimpleOp op, RecordUnitPtr x, RecordUnitPtr y) {
     return new RefConditionGenerator(op, x.unwrap(), y.unwrap());
   }
 
   @Override
-  public JExpr memoryCompare(RecordUnitPtr p1, RecordUnitPtr p2, JExpr n) {
+  public JExpr memoryCompare(MethodGenerator mv, RecordUnitPtr p1, RecordUnitPtr p2, JExpr n) {
     throw new UnsupportedOperationException("TODO");
   }
 
@@ -167,11 +191,6 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>
   @Override
   public RecordUnitPtr unmarshallVoidPtrReturnValue(MethodGenerator mv, JExpr voidPointer) {
     return new RecordUnitPtr(Expressions.cast(voidPointer, getJvmType()));
-  }
-
-  @Override
-  public RecordValue valueOf(RecordUnitPtr pointerExpr) {
-    return new RecordValue(pointerExpr.unwrap());
   }
 
   private boolean isUnitConstant(JExpr length) {

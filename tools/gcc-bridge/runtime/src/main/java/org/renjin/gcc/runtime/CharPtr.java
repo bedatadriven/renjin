@@ -31,6 +31,11 @@ public class CharPtr implements Ptr {
     return new CharPtr(Realloc.realloc(array, offset, newSizeInBytes / 2));
   }
 
+  @Override
+  public Ptr pointerPlus(int bytes) {
+    return new CharPtr(array, offset + (bytes / 2));
+  }
+
   public static CharPtr fromString(String string) {
     int nchars = string.length();
     char array[] = new char[nchars+1];

@@ -4,9 +4,9 @@ package org.renjin.gcc.runtime;
  * Runtime methods for operations on void pointers.
  */
 public final class VoidPtr {
-  
+
   private VoidPtr() {}
-  
+
   public static int memcmp(Object x, Object y, int numBytes) {
     if(x instanceof DoublePtr && y instanceof DoublePtr) {
       return DoublePtr.memcmp(((DoublePtr) x), ((DoublePtr) y), numBytes);
@@ -21,27 +21,52 @@ public final class VoidPtr {
         x.getClass().getName() + ", " + y.getClass().getName() + ", n)");
   }
 
+  public static Object pointerPlus(Object p, int bytes) {
+    if(p instanceof Ptr) {
+      return ((Ptr) p).pointerPlus(bytes);
+    }
+    throw new UnsupportedOperationException("TODO");
+  }
+
   public static void memcpy(Object x, Object y, int numBytes) {
     throw new UnsupportedOperationException("TODO: Implement VoidPtr.memcpy");
   }
 
   /**
    * Compares the address of two pointers.
-   * 
+   *
    * @return 0 if the two pointers are equal
    */
   public static int compare(Object x, Object y) {
-    
+
     if(x instanceof Ptr && y instanceof Ptr) {
       // Two different fat pointers may actually point to the same value
       Ptr px = (Ptr) x;
       Ptr py = (Ptr) y;
-      
+
       if(px.getArray() == py.getArray()) {
         return Integer.compare(px.getOffset(), py.getOffset());
       }
     }
-    
+
     return Integer.compare(System.identityHashCode(x), System.identityHashCode(y));
+  }
+
+  public static void assign(Object[] array, int offset, Object value) throws NoSuchMethodException {
+
+    // if this is a specialized array, then we need to trigger allocation now
+    if(value instanceof MallocThunk && !array.getClass().equals(Object[].class)) {
+      ((MallocThunk) value).assign(array, offset);
+
+    } else {
+      try {
+        array[offset] = value;
+      } catch (ArrayStoreException e) {
+        throw new IllegalStateException("Exception storing value of class " +
+            value.getClass().getName() + " to array of class " +
+            array.getClass().getName());
+
+      }
+    }
   }
 }

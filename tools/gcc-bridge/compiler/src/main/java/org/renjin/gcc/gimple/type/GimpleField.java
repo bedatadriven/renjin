@@ -6,6 +6,7 @@ import org.renjin.gcc.gimple.expr.GimpleFieldRef;
 public class GimpleField {
   private int id;
   private int offset;
+  private int size;
   private String name;
   private GimpleType type;
   private boolean addressed;
@@ -61,7 +62,21 @@ public class GimpleField {
     this.offset = offset;
   }
 
+
+  public int getSize() {
+    return size;
+  }
+
+  public void setSize(int size) {
+    this.size = size;
+  }
+
   public boolean hasName() {
     return name != null;
+  }
+
+  @Override
+  public String toString() {
+    return "GimpleField[" + (addressed ? "&" : "") + name + ":" + type + "]";
   }
 }

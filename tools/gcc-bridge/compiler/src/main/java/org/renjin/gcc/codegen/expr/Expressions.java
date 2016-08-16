@@ -257,12 +257,17 @@ public class Expressions {
       return object;
     }
     
+    // Any Class[] to Object[] is also unnecessary
+    if(object.getType().getSort() == Type.ARRAY && type.equals(Type.getType("[Ljava/lang/Object;"))) {
+      return object;
+    }
+    
     // Verify that this is in the realm of possibility
     checkCast(object.getType(), type);
 
     return uncheckedCast(object, type);
   }
-
+  
   public static JExpr uncheckedCast(final JExpr object, final Type type) {
     return new JLValue() {
 
@@ -317,11 +322,11 @@ public class Expressions {
     }
     int fromSort = fromType.getSort();
     int toSort = toType.getSort();
-    if(fromSort != toSort) {
-      throw new IllegalArgumentException("Invalid cast from " + fromType + " to " + toType);
-    }
+ 
     if(fromSort == Type.ARRAY) {
-      checkCast(fromType.getElementType(), toType.getElementType());
+      if(toSort == Type.ARRAY) {
+        checkCast(fromType.getElementType(), toType.getElementType());
+      }
     }
   }
 
@@ -598,6 +603,21 @@ public class Expressions {
       default:
         throw new UnsupportedOperationException("type: " + value.getType());
     }
+  }
+
+  public static JExpr constantClass(final Type valueType) {
+    return new JExpr() {
+      @Nonnull
+      @Override
+      public Type getType() {
+        return Type.getType(Class.class);
+      }
+
+      @Override
+      public void load(@Nonnull MethodGenerator mv) {
+        mv.aconst(valueType);
+      }
+    };
   }
 
   private static class BinaryOp implements JExpr {

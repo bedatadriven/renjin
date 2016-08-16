@@ -1,46 +1,28 @@
 package org.renjin.gcc.codegen.type.record;
 
-import com.google.common.base.Preconditions;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
-import org.renjin.gcc.codegen.type.FieldStrategy;
+import org.renjin.gcc.codegen.type.SingleFieldStrategy;
+import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
-import org.renjin.repackaged.asm.ClassVisitor;
 import org.renjin.repackaged.asm.Type;
-
-import static org.renjin.repackaged.asm.Opcodes.ACC_PUBLIC;
 
 /**
  * Generates a field with a record *value* type
  */
-public class RecordFieldStrategy extends FieldStrategy {
-  private String fieldName;
+public class RecordFieldStrategy extends SingleFieldStrategy {
   private RecordClassTypeStrategy strategy;
-  private Type declaringClass;
 
   public RecordFieldStrategy(RecordClassTypeStrategy strategy, Type declaringClass, String fieldName) {
-    this.declaringClass = declaringClass;
-    Preconditions.checkNotNull(fieldName);
-    Preconditions.checkArgument(!fieldName.isEmpty(), "fieldName cannot be empty");
-    
-    this.fieldName = fieldName;
+    super(declaringClass, fieldName, strategy.getJvmType());
     this.strategy = strategy;
   }
 
   @Override
-  public void writeFields(ClassVisitor cv) {
-    emitField(ACC_PUBLIC, cv);
-  }
-
-  private void emitField(int access, ClassVisitor cv) {
-    cv.visitField(access, fieldName, strategy.getJvmType().getDescriptor(), null, null).visitEnd();
-  }
-
-  @Override
   public void emitInstanceInit(MethodGenerator mv) {
-    JExpr thisRef = Expressions.thisValue(declaringClass);
+    JExpr thisRef = Expressions.thisValue(this.ownerClass);
     JLValue fieldRef = Expressions.field(thisRef, strategy.getJvmType(), fieldName);
     
     JExpr newInstance = Expressions.newObject(strategy.getJvmType());
@@ -49,7 +31,12 @@ public class RecordFieldStrategy extends FieldStrategy {
   }
 
   @Override
-  public RecordValue memberExprGenerator(JExpr instance) {
+  public RecordValue memberExpr(JExpr instance, int offset, int size, TypeStrategy expectedType) {
+
+    if(offset != 0) {
+      throw new IllegalStateException("offset = " + offset);
+    }
+
     JLValue value = Expressions.field(instance, strategy.getJvmType(), fieldName);
     RecordUnitPtr address = new RecordUnitPtr(value);
     

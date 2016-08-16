@@ -242,7 +242,7 @@ public final class Rinternals {
   }
 
   public static int IS_LONG_VEC(SEXP x) {
-    throw new UnimplementedGnuApiMethod("IS_LONG_VEC");
+    return 0;
   }
 
   public static int LEVELS(SEXP x) {

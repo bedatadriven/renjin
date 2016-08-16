@@ -5,7 +5,7 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
-import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
+import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
 import org.renjin.gcc.codegen.var.VarAllocator;
@@ -18,22 +18,20 @@ import java.util.List;
 
 public class RecordClassParamStrategy implements ParamStrategy {
   
-  private Type jvmType;
-  private boolean unitPointer;
+  private RecordClassTypeStrategy strategy;
 
-  public RecordClassParamStrategy(Type jvmType, boolean unitPointer) {
-    this.jvmType = jvmType;
-    this.unitPointer = unitPointer;
+  public RecordClassParamStrategy(RecordClassTypeStrategy strategy) {
+    this.strategy = strategy;
   }
   
   @Override
   public List<Type> getParameterTypes() {
-    return Collections.singletonList(jvmType);
+    return Collections.singletonList(strategy.getJvmType());
   }
 
   @Override
   public RecordValue emitInitialization(MethodGenerator methodVisitor, GimpleParameter parameter, List<JLValue> paramVars, VarAllocator localVars) {
-    if(unitPointer) {
+    if(strategy.isUnitPointer()) {
       // If this type can be represented as a unit pointer, then 
       // the address expression is equivalent to the value expression.
       JLValue ref = paramVars.get(0);
@@ -43,10 +41,10 @@ public class RecordClassParamStrategy implements ParamStrategy {
    
     } else {
       if (parameter.isAddressable()) {
-        JLValue array = localVars.reserveUnitArray(parameter.getName(), jvmType,
-            Optional.of(Expressions.newObject(jvmType)));
+        JLValue array = localVars.reserveUnitArray(parameter.getName(), strategy.getJvmType(),
+            Optional.of(Expressions.newObject(strategy.getJvmType())));
 
-        FatPtrExpr address = new FatPtrExpr(array);
+        FatPtrPair address = new FatPtrPair(new RecordClassValueFunction(strategy), array);
         RecordValue value = new RecordValue(Expressions.elementAt(array, 0), address);
         
         return value;

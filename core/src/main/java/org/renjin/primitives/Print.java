@@ -197,6 +197,18 @@ public class Print {
       out.append(".Builtin(").append(StringLiterals.format(special.getName(), "NA"));
     }
 
+    @Override
+    public <T> void visit(ExternalPtr sexp) {
+      Object instance = sexp.getInstance();
+      if(instance == null) {
+        out.append("<pointer: null>");
+      } else {
+        out.append(String.format("<pointer: %s@%x", 
+            instance.getClass().getName(),
+            java.lang.System.identityHashCode(instance)));
+      }
+    }
+
     private <T> void printVector(Iterable<T> vector, Alignment align, Function<T, String> printer, String typeName) {
       SEXP sexp = (SEXP)vector;
       
@@ -214,7 +226,7 @@ public class Print {
         printAttributes(sexp);
       }
     }
-
+    
     private void printAttributes(SEXP sexp) {
       for(PairList.Node node : sexp.getAttributes().nodes()) {
         if (!node.getTag().equals(Symbols.NAMES) &&

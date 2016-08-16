@@ -1,12 +1,15 @@
 package org.renjin.gcc.codegen.expr;
 
 import org.renjin.gcc.InternalCompilerException;
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.ArrayExpr;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.call.FunPtrCallGenerator;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
-import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
+import org.renjin.gcc.codegen.condition.ConstConditionGenerator;
+import org.renjin.gcc.codegen.condition.NullCheckGenerator;
+import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.type.PointerTypeStrategy;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.TypeStrategy;
@@ -33,10 +36,12 @@ import java.util.List;
 public class ExprFactory {
   private final TypeOracle typeOracle;
   private final SymbolTable symbolTable;
+  private MethodGenerator mv;
 
-  public ExprFactory(TypeOracle typeOracle, SymbolTable symbolTable) {
+  public ExprFactory(TypeOracle typeOracle, SymbolTable symbolTable, MethodGenerator mv) {
     this.typeOracle = typeOracle;
     this.symbolTable = symbolTable;
+    this.mv = mv;
   }
   
 
@@ -58,7 +63,7 @@ public class ExprFactory {
     }
     
     try {
-      return leftStrategy.cast(rhs, rightStrategy);
+      return leftStrategy.cast(mv, rhs, rightStrategy);
     } catch (UnsupportedCastException e) {
       throw new InternalCompilerException(String.format("Unsupported cast to %s [%s] from %s [%s]",
           lhsType, leftStrategy.getClass().getSimpleName(),
@@ -94,7 +99,7 @@ public class ExprFactory {
         // passing them to functions
 
         JExpr value = findPrimitiveGenerator(addressOf.getValue());
-        return new FatPtrExpr(Expressions.newArray(value));
+        return new FatPtrPair(new PrimitiveValueFunction(value.getType()), Expressions.newArray(value));
 
       } else  {
         GExpr value = findGenerator(addressOf.getValue());
@@ -107,16 +112,8 @@ public class ExprFactory {
 
     } else if(expr instanceof GimpleMemRef) {
       GimpleMemRef memRefExpr = (GimpleMemRef) expr;
-      PointerTypeStrategy typeStrategy = typeOracle.forPointerType(memRefExpr.getPointer().getType());
-      GExpr ptrExpr = findGenerator(memRefExpr.getPointer());
+      return memRef(memRefExpr, memRefExpr.getType());
 
-      if(!memRefExpr.isOffsetZero()) {
-        JExpr offsetInBytes = findPrimitiveGenerator(memRefExpr.getOffset());
-        ptrExpr =  typeStrategy.pointerPlus(ptrExpr, offsetInBytes);
-      }
-      
-      return typeStrategy.valueOf(ptrExpr);
-      
     } else if(expr instanceof GimpleArrayRef) {
       GimpleArrayRef arrayRef = (GimpleArrayRef) expr;
       ArrayTypeStrategy arrayStrategy = typeOracle.forArrayType(arrayRef.getArray().getType());
@@ -128,7 +125,9 @@ public class ExprFactory {
     } else if(expr instanceof GimpleConstantRef) {
       GimpleConstant constant = ((GimpleConstantRef) expr).getValue();
       JExpr constantValue = findPrimitiveGenerator(constant);
-      FatPtrExpr address = new FatPtrExpr(Expressions.newArray(constantValue));
+      FatPtrPair address = new FatPtrPair(
+          new PrimitiveValueFunction(constantValue.getType()), 
+          Expressions.newArray(constantValue));
       
       return new PrimitiveValue(constantValue, address);
 
@@ -144,8 +143,21 @@ public class ExprFactory {
       GimpleComponentRef ref = (GimpleComponentRef) expr;
       GExpr instance = findGenerator(((GimpleComponentRef) expr).getValue());
       RecordTypeStrategy typeStrategy = (RecordTypeStrategy) typeOracle.forType(ref.getValue().getType());
-      return typeStrategy.memberOf(instance, ref.getMember());
-   
+      TypeStrategy fieldTypeStrategy = typeOracle.forType(ref.getType());
+      return typeStrategy.memberOf(mv, instance,
+          ref.getMember().getOffset(), 
+          ref.getMember().getSize(), 
+          fieldTypeStrategy);
+
+    } else if (expr instanceof GimpleBitFieldRefExpr) {
+      GimpleBitFieldRefExpr ref = (GimpleBitFieldRefExpr) expr;
+      GExpr instance = findGenerator(ref.getValue());
+      RecordTypeStrategy recordTypeStrategy = (RecordTypeStrategy) typeOracle.forType(ref.getValue().getType());
+      TypeStrategy memberTypeStrategy = typeOracle.forType(expr.getType());
+
+      return recordTypeStrategy.memberOf(mv, instance, ref.getOffset(), ref.getSize(), memberTypeStrategy);
+      
+      
     } else if(expr instanceof GimpleCompoundLiteral) {
       return findGenerator(((GimpleCompoundLiteral) expr).getDecl());
     
@@ -163,7 +175,7 @@ public class ExprFactory {
   }
 
   private GExpr forConstructor(GimpleConstructor expr) {
-    return typeOracle.forType(expr.getType()).constructorExpr(this, expr);
+    return typeOracle.forType(expr.getType()).constructorExpr(this, mv, expr);
   }
 
   public CallGenerator findCallGenerator(GimpleExpr functionExpr) {
@@ -216,7 +228,27 @@ public class ExprFactory {
 
   private ConditionGenerator comparePointers(GimpleOp op, GimpleExpr x, GimpleExpr y) {
     
-    // Shoudldn't matter which we pointer we cast to the other, but if we have a choice,
+    // First see if this is a null check
+    if(isNull(x) && isNull(y)) {
+      switch (op) {
+        case EQ_EXPR:
+        case GE_EXPR:
+        case LE_EXPR:
+          return new ConstConditionGenerator(true);
+        case NE_EXPR:
+        case LT_EXPR:
+        case GT_EXPR:
+          return new ConstConditionGenerator(false);
+        default:
+          throw new UnsupportedOperationException("op: " + op);
+      }
+    } else if(isNull(x)) {
+      return new NullCheckGenerator(op, (PtrExpr) findGenerator(y));
+    } else if(isNull(y)) {
+      return new NullCheckGenerator(op, (PtrExpr) findGenerator(x));
+    }
+    
+    // Shouldn't matter which we pointer we cast to the other, but if we have a choice,
     // cast away from a void* to a concrete pointer type
     GimpleType commonType;
 
@@ -230,7 +262,11 @@ public class ExprFactory {
     GExpr ptrX = findGenerator(x, commonType);
     GExpr ptrY = findGenerator(y, commonType);
 
-    return typeStrategy.comparePointers(op, ptrX, ptrY);
+    return typeStrategy.comparePointers(mv, op, ptrX, ptrY);
+  }
+
+  private boolean isNull(GimpleExpr expr) {
+    return expr instanceof GimpleConstant && ((GimpleConstant) expr).isNull();
   }
 
   public GExpr findGenerator(GimpleOp op, List<GimpleExpr> operands, GimpleType expectedType) {
@@ -279,6 +315,7 @@ public class ExprFactory {
       case ADDR_EXPR:
       case ARRAY_REF:
       case COMPONENT_REF:
+      case BIT_FIELD_REF:
       case REALPART_EXPR:
       case IMAGPART_EXPR:
         return maybeCast(findGenerator(operands.get(0)), expectedType, operands.get(0).getType());
@@ -375,10 +412,10 @@ public class ExprFactory {
     if(!gimpleExpr.isOffsetZero()) {
       JExpr offsetInBytes = findPrimitiveGenerator(gimpleExpr.getOffset());
 
-      ptrExpr =  pointerStrategy.pointerPlus(ptrExpr, offsetInBytes);
+      ptrExpr =  pointerStrategy.pointerPlus(mv, ptrExpr, offsetInBytes);
     }
 
-    return pointerStrategy.valueOf(ptrExpr);
+    return ((PtrExpr) ptrExpr).valueOf();
   }
   
   private GExpr dereferenceThenCast(GimpleMemRef gimpleExpr, GimpleType expectedType) {
@@ -390,10 +427,10 @@ public class ExprFactory {
 
     if(!gimpleExpr.isOffsetZero()) {
       JExpr offsetInBytes = findPrimitiveGenerator(gimpleExpr.getOffset());
-      ptrExpr =  pointerStrategy.pointerPlus(ptrExpr, offsetInBytes);
+      ptrExpr =  pointerStrategy.pointerPlus(mv, ptrExpr, offsetInBytes);
     }
     
-    GExpr valueExpr = pointerStrategy.valueOf(ptrExpr);
+    GExpr valueExpr = ((PtrExpr) ptrExpr).valueOf();
 
     return maybeCast(valueExpr, pointerType.getBaseType(), expectedType);
   }
@@ -403,7 +440,7 @@ public class ExprFactory {
     JExpr offsetInBytes = findPrimitiveGenerator(offsetExpr);
 
     GimpleType pointerType = pointerExpr.getType();
-    GExpr result = typeOracle.forPointerType(pointerType).pointerPlus(pointer, offsetInBytes);
+    GExpr result = typeOracle.forPointerType(pointerType).pointerPlus(mv, pointer, offsetInBytes);
     
     return maybeCast(result, expectedType, pointerType);
   }

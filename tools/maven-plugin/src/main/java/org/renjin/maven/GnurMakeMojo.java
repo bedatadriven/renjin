@@ -2,6 +2,7 @@ package org.renjin.maven;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
+import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import com.google.common.io.LineProcessor;
@@ -20,6 +21,7 @@ import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.HtmlTreeLogger;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
+import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleParser;
 import org.renjin.gcc.maven.GccBridgeHelper;
 import org.renjin.gnur.GnurInstallation;
@@ -101,6 +103,9 @@ public class GnurMakeMojo extends AbstractMojo {
   
   @Parameter(defaultValue = "false", property = "gcc.bridge.logging")
   private boolean loggingEnabled;
+  
+  @Parameter
+  private List<String> entryPoints;
   
 
   @Override
@@ -224,6 +229,15 @@ public class GnurMakeMojo extends AbstractMojo {
     compiler.setOutputDirectory(outputDirectory);
     compiler.setPackageName(project.getGroupId() + "." + project.getArtifactId());
     compiler.setClassName(project.getArtifactId());
+    
+    if(entryPoints != null && !entryPoints.isEmpty()) {
+      compiler.setEntryPointPredicate(new Predicate<GimpleFunction>() {
+        @Override
+        public boolean apply(GimpleFunction input) {
+          return entryPoints.contains(input.getMangledName());
+        }
+      });
+    }
     
     if(loggingEnabled) {
       compiler.setLogger(new HtmlTreeLogger(logDir));

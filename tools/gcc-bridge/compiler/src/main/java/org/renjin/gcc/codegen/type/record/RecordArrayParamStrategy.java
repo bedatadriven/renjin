@@ -16,10 +16,12 @@ import java.util.List;
 
 public class RecordArrayParamStrategy implements ParamStrategy {
   
+  private RecordArrayValueFunction valueFunction;
   private final Type arrayType;
   private final int arrayLength;
 
-  public RecordArrayParamStrategy(Type arrayType, int arrayLength) {
+  public RecordArrayParamStrategy(RecordArrayValueFunction valueFunction, Type arrayType, int arrayLength) {
+    this.valueFunction = valueFunction;
     this.arrayType = arrayType;
     this.arrayLength = arrayLength;
   }
@@ -36,7 +38,7 @@ public class RecordArrayParamStrategy implements ParamStrategy {
                                  VarAllocator localVars) {
 
 
-    return new RecordArrayExpr(paramVars.get(0), arrayLength);
+    return new RecordArrayExpr(valueFunction, paramVars.get(0), arrayLength);
   }
 
   @Override

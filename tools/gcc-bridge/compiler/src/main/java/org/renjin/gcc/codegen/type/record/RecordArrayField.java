@@ -6,6 +6,7 @@ import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.gcc.codegen.fatptr.Wrappers;
 import org.renjin.gcc.codegen.type.FieldStrategy;
+import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.repackaged.asm.ClassVisitor;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
@@ -15,12 +16,15 @@ public class RecordArrayField extends FieldStrategy {
   
   private Type declaringClass;
   private String name;
+  private RecordArrayValueFunction valueFunction;
   private Type arrayType;
   private int arrayLength;
 
-  public RecordArrayField(Type declaringClass, String name, Type arrayType, int arrayLength) {
+  public RecordArrayField(Type declaringClass, String name, RecordArrayValueFunction valueFunction, 
+                          Type arrayType, int arrayLength) {
     this.declaringClass = declaringClass;
     this.name = name;
+    this.valueFunction = valueFunction;
     this.arrayType = arrayType;
     this.arrayLength = arrayLength;
   }
@@ -28,6 +32,17 @@ public class RecordArrayField extends FieldStrategy {
   @Override
   public void writeFields(ClassVisitor cv) {
     cv.visitField(Opcodes.ACC_PUBLIC, name, arrayType.getDescriptor(), null, null).visitEnd();
+  }
+
+  @Override
+  public void copy(MethodGenerator mv, JExpr source, JExpr dest) {
+    JExpr sourceArray = Expressions.field(source, arrayType, name);
+    JExpr destArray = Expressions.field(dest, arrayType, name);
+
+    mv.arrayCopy(
+        sourceArray, Expressions.constantInt(0),
+        destArray, Expressions.constantInt(0),
+        Expressions.constantInt(arrayLength));
   }
 
   @Override
@@ -39,10 +54,15 @@ public class RecordArrayField extends FieldStrategy {
   }
 
   @Override
-  public RecordArrayExpr memberExprGenerator(JExpr instance) {
+  public RecordArrayExpr memberExpr(JExpr instance, int offset, int size, TypeStrategy expectedType) {
+
+    if(offset != 0) {
+      throw new UnsupportedOperationException("TODO: offset = " + offset);
+    }
+    
     JLValue arrayField = Expressions.field(instance, arrayType, name);
 
-    return new RecordArrayExpr(arrayField, arrayLength);
+    return new RecordArrayExpr(valueFunction, arrayField, arrayLength);
   }
 
 }

@@ -2,12 +2,12 @@ package org.renjin.gcc.codegen.type.fun;
 
 import com.google.common.base.Optional;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.ArrayElement;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.fatptr.FatPtrExpr;
+import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
+import org.renjin.gcc.codegen.fatptr.WrappedFatPtrExpr;
 import org.renjin.repackaged.asm.Type;
 
 import java.lang.invoke.MethodHandle;
@@ -45,9 +45,14 @@ public class FunPtrValueFunction implements ValueFunction {
 
   @Override
   public GExpr dereference(JExpr array, JExpr offset) {
-    ArrayElement ptr = Expressions.elementAt(array, offset);
-    FatPtrExpr address = new FatPtrExpr(array, offset);
+    JExpr ptr = Expressions.cast(Expressions.elementAt(array, offset), Type.getType(MethodHandle.class));
+    FatPtrPair address = new FatPtrPair(this, array, offset);
     return new FunPtr(ptr, address);
+  }
+
+  @Override
+  public GExpr dereference(WrappedFatPtrExpr wrapperInstance) {
+    return new FunPtr(wrapperInstance.valueExpr(), wrapperInstance);
   }
 
   @Override

@@ -146,13 +146,15 @@ public class ForkedTestController {
   }
 
   private void destroyFork() {
-    try {
-      process.destroy();
-    } catch (Exception e) {
-      e.printStackTrace();
+    if(process != null) {
+      try {
+        process.destroy();
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+      process = null;
+      processChannel = null;
     }
-    process = null;
-    processChannel = null;
   }
 
   public boolean allTestsSucceeded() {
@@ -187,7 +189,9 @@ public class ForkedTestController {
           // Process exited!!
           reporter.testCaseFailed();
           try {
-            System.err.println("Forked JVM exited with code " + process.waitFor());
+            if(process != null) {
+              System.err.println("Forked JVM exited with code " + process.waitFor());
+            }
           } catch (InterruptedException e) {
             System.err.println("Interrupted while waiting for process to exit.");
           }

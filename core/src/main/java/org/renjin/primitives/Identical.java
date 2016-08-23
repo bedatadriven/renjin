@@ -1,10 +1,10 @@
 package org.renjin.primitives;
 
-import com.google.common.base.Objects;
-import com.google.common.collect.Sets;
 import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Internal;
+import org.renjin.repackaged.guava.base.Objects;
+import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.sexp.*;
 
 import java.util.Iterator;

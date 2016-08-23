@@ -1,6 +1,5 @@
 package org.renjin.gcc.codegen;
 
-import com.google.common.io.Files;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.annotations.GccSize;
@@ -13,6 +12,7 @@ import org.renjin.repackaged.asm.ClassVisitor;
 import org.renjin.repackaged.asm.ClassWriter;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.util.TraceClassVisitor;
+import org.renjin.repackaged.guava.io.Files;
 
 import java.io.File;
 import java.io.IOException;

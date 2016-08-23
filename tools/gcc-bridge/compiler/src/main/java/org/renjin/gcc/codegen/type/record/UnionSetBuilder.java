@@ -1,10 +1,10 @@
 package org.renjin.gcc.codegen.type.record;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
 import org.renjin.gcc.gimple.type.GimpleField;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
+import org.renjin.repackaged.guava.collect.HashMultimap;
+import org.renjin.repackaged.guava.collect.Multimap;
 
 import java.util.*;
 

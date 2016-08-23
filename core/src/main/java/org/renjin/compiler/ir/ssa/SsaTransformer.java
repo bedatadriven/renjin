@@ -1,9 +1,5 @@
 package org.renjin.compiler.ir.ssa;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.renjin.compiler.TypeSolver;
 import org.renjin.compiler.cfg.*;
 import org.renjin.compiler.ir.tac.TreeNode;
@@ -12,6 +8,10 @@ import org.renjin.compiler.ir.tac.expressions.LValue;
 import org.renjin.compiler.ir.tac.expressions.Variable;
 import org.renjin.compiler.ir.tac.statements.Assignment;
 import org.renjin.compiler.ir.tac.statements.Statement;
+import org.renjin.repackaged.guava.collect.Iterables;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.collect.Maps;
+import org.renjin.repackaged.guava.collect.Sets;
 
 import java.util.*;
 

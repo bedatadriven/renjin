@@ -1,6 +1,5 @@
 package org.renjin.compiler.cfg;
 
-import com.google.common.collect.Lists;
 import org.renjin.compiler.NotCompilableException;
 import org.renjin.compiler.TypeSolver;
 import org.renjin.compiler.codegen.EmitContext;
@@ -16,6 +15,7 @@ import org.renjin.compiler.ir.tac.statements.ReturnStatement;
 import org.renjin.compiler.ir.tac.statements.Statement;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
+import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.Closure;
 import org.renjin.sexp.Symbol;
 

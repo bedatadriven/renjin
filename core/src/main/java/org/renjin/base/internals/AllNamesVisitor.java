@@ -1,17 +1,10 @@
 package org.renjin.base.internals;
 
-import java.util.Set;
-
 import org.renjin.invoke.annotations.Internal;
-import org.renjin.sexp.ExpressionVector;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.SexpVisitor;
-import org.renjin.sexp.StringArrayVector;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
+import org.renjin.repackaged.guava.collect.Sets;
+import org.renjin.sexp.*;
 
-import com.google.common.collect.Sets;
+import java.util.Set;
 
 public class AllNamesVisitor extends SexpVisitor<StringVector> {
 

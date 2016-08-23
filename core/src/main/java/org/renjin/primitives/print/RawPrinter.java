@@ -1,6 +1,6 @@
 package org.renjin.primitives.print;
 
-import com.google.common.base.Function;
+import org.renjin.repackaged.guava.base.Function;
 import org.renjin.sexp.RawVector;
 
 public class RawPrinter implements Function<Byte, String> {

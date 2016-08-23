@@ -1,10 +1,10 @@
 package org.renjin.gcc.gimple;
 
-import com.google.common.base.Optional;
-import com.google.common.collect.Maps;
 import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
 import org.renjin.gcc.gimple.expr.GimpleParamRef;
 import org.renjin.gcc.gimple.expr.GimpleVariableRef;
+import org.renjin.repackaged.guava.base.Optional;
+import org.renjin.repackaged.guava.collect.Maps;
 
 import java.util.Collection;
 import java.util.Map;

@@ -1,9 +1,9 @@
 package org.renjin.script;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Collections2;
-import com.google.common.collect.Sets;
 import org.renjin.invoke.reflection.converters.Converters;
+import org.renjin.repackaged.guava.base.Function;
+import org.renjin.repackaged.guava.collect.Collections2;
+import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.sexp.Frame;
 import org.renjin.sexp.Null;
 import org.renjin.sexp.SEXP;

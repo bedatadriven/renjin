@@ -21,7 +21,6 @@
 
 package org.renjin.util;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
@@ -30,6 +29,7 @@ import org.apache.commons.vfs2.provider.local.DefaultLocalFileProvider;
 import org.apache.commons.vfs2.provider.res.ResourceFileProvider;
 import org.apache.commons.vfs2.provider.url.UrlFileProvider;
 import org.renjin.eval.vfs.FastJarFileProvider;
+import org.renjin.repackaged.guava.annotations.VisibleForTesting;
 
 import java.io.File;
 

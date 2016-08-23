@@ -1,8 +1,8 @@
 package org.renjin.compiler.ir.tac.expressions;
 
 
-import com.google.common.collect.Maps;
 import org.renjin.compiler.ir.ssa.SsaVariable;
+import org.renjin.repackaged.guava.collect.Maps;
 
 import java.util.Map;
 

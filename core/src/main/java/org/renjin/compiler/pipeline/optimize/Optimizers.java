@@ -1,8 +1,8 @@
 package org.renjin.compiler.pipeline.optimize;
 
-import com.google.common.collect.Lists;
 import org.renjin.compiler.pipeline.DeferredGraph;
 import org.renjin.compiler.pipeline.DeferredNode;
+import org.renjin.repackaged.guava.collect.Lists;
 
 import java.util.List;
 

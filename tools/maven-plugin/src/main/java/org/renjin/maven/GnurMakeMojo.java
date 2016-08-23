@@ -1,11 +1,5 @@
 package org.renjin.maven;
 
-import com.google.common.base.Charsets;
-import com.google.common.base.Joiner;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Lists;
-import com.google.common.io.Files;
-import com.google.common.io.LineProcessor;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -26,6 +20,12 @@ import org.renjin.gcc.gimple.GimpleParser;
 import org.renjin.gcc.maven.GccBridgeHelper;
 import org.renjin.gnur.GnurInstallation;
 import org.renjin.gnur.GnurSourcesCompiler;
+import org.renjin.repackaged.guava.base.Charsets;
+import org.renjin.repackaged.guava.base.Joiner;
+import org.renjin.repackaged.guava.base.Predicate;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.io.Files;
+import org.renjin.repackaged.guava.io.LineProcessor;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;

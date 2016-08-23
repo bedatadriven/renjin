@@ -1,11 +1,11 @@
 package org.renjin.packaging;
 
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
-import com.google.common.collect.Iterables;
-import com.google.common.io.Files;
 import org.renjin.eval.Context;
 import org.renjin.primitives.io.serialization.RDataWriter;
+import org.renjin.repackaged.guava.base.Predicate;
+import org.renjin.repackaged.guava.base.Predicates;
+import org.renjin.repackaged.guava.collect.Iterables;
+import org.renjin.repackaged.guava.io.Files;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.NamedValue;
 

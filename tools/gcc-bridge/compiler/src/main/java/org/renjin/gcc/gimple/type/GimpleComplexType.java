@@ -1,7 +1,7 @@
 package org.renjin.gcc.gimple.type;
 
-import com.google.common.base.Preconditions;
 import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.guava.base.Preconditions;
 
 /**
  * Type representing complex numbers

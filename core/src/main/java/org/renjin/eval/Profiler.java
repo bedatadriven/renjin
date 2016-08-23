@@ -1,9 +1,9 @@
 package org.renjin.eval;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Ordering;
+import org.renjin.repackaged.guava.base.Predicate;
+import org.renjin.repackaged.guava.collect.Iterables;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.collect.Ordering;
 import org.renjin.sexp.*;
 import org.renjin.sexp.Vector;
 
@@ -209,7 +209,7 @@ public class Profiler {
   private static void printTopFunctions(PrintStream out, final double totalRunningTime) {
 
     List<FunctionProfile> profiles = Lists.newArrayList(TOP_LEVEL_PROFILES.values());
-    Collections.sort(profiles, Ordering.natural().onResultOf(new com.google.common.base.Function<FunctionProfile, Long>() {
+    Collections.sort(profiles, Ordering.natural().onResultOf(new org.renjin.repackaged.guava.base.Function<FunctionProfile, Long>() {
       @Override
       public Long apply(FunctionProfile input) {
         return input.time;
@@ -235,7 +235,7 @@ public class Profiler {
   private static void printFunctionTimings(PrintStream out, double totalRunningTime) {
 
     List<FunctionProfile> profiles = Lists.newArrayList(FUNCTION_PROFILES.values());
-    Collections.sort(profiles, Ordering.natural().onResultOf(new com.google.common.base.Function<FunctionProfile, Long>() {
+    Collections.sort(profiles, Ordering.natural().onResultOf(new org.renjin.repackaged.guava.base.Function<FunctionProfile, Long>() {
       @Override
       public Long apply(FunctionProfile input) {
         return input.ownTime;
@@ -271,7 +271,7 @@ public class Profiler {
     out.println("==================");
     
     List<LoopTiming> loops = Lists.newArrayList(LOOP_TIMINGS);
-    Collections.sort(loops, Ordering.<Long>natural().onResultOf(new com.google.common.base.Function<LoopTiming, Long>() {
+    Collections.sort(loops, Ordering.<Long>natural().onResultOf(new org.renjin.repackaged.guava.base.Function<LoopTiming, Long>() {
       @Override
       public Long apply(LoopTiming input) {
         return input.time;

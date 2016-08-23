@@ -1,6 +1,6 @@
 package org.renjin.graphics;
 
-import com.google.common.collect.Lists;
+import org.renjin.repackaged.guava.collect.Lists;
 
 import java.util.List;
 

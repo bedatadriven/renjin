@@ -1,6 +1,5 @@
 package org.renjin.compiler.ir.tac.expressions;
 
-import com.google.common.base.Joiner;
 import org.renjin.compiler.NotCompilableException;
 import org.renjin.compiler.cfg.InlinedFunction;
 import org.renjin.compiler.codegen.EmitContext;
@@ -11,6 +10,7 @@ import org.renjin.compiler.ir.tac.IRMatchedArguments;
 import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
+import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.sexp.Closure;
 import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.Symbol;

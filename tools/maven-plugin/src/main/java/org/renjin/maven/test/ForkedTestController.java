@@ -1,8 +1,8 @@
 package org.renjin.maven.test;
 
-import com.google.common.base.Charsets;
-import com.google.common.base.Joiner;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.renjin.repackaged.guava.base.Charsets;
+import org.renjin.repackaged.guava.base.Joiner;
 
 import java.io.*;
 import java.util.HashMap;

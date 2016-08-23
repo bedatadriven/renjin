@@ -1,7 +1,7 @@
 package org.renjin.gcc.gimple.expr;
 
-import com.google.common.base.Predicate;
 import org.renjin.gcc.gimple.GimpleExprVisitor;
+import org.renjin.repackaged.guava.base.Predicate;
 
 /**
  * Superclass of GimpleConstants storing a primitive value

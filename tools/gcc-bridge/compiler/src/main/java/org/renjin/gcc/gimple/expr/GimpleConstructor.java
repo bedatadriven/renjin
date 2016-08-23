@@ -1,8 +1,8 @@
 package org.renjin.gcc.gimple.expr;
 
-import com.google.common.base.Joiner;
-import com.google.common.base.Predicate;
 import org.renjin.gcc.gimple.GimpleExprVisitor;
+import org.renjin.repackaged.guava.base.Joiner;
+import org.renjin.repackaged.guava.base.Predicate;
 
 import java.util.ArrayList;
 import java.util.List;

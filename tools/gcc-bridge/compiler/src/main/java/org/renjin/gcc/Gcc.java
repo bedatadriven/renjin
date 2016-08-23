@@ -1,14 +1,14 @@
 package org.renjin.gcc;
 
-import com.google.common.base.Joiner;
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
-import com.google.common.io.ByteStreams;
-import com.google.common.io.Files;
-import com.google.common.io.Resources;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleParser;
+import org.renjin.repackaged.guava.base.Joiner;
+import org.renjin.repackaged.guava.base.Preconditions;
+import org.renjin.repackaged.guava.base.Strings;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.io.ByteStreams;
+import org.renjin.repackaged.guava.io.Files;
+import org.renjin.repackaged.guava.io.Resources;
 
 import java.io.File;
 import java.io.IOException;

@@ -1,8 +1,8 @@
 package org.renjin.primitives.print;
 
 
-import com.google.common.base.Function;
 import org.apache.commons.math.complex.Complex;
+import org.renjin.repackaged.guava.base.Function;
 import org.renjin.sexp.DoubleVector;
 
 import java.text.DecimalFormat;

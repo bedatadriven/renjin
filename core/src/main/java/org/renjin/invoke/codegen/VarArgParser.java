@@ -1,12 +1,12 @@
 package org.renjin.invoke.codegen;
 
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.sun.codemodel.*;
 import org.renjin.eval.Context;
 import org.renjin.eval.Session;
 import org.renjin.invoke.model.JvmMethod;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.ListVector;
 

@@ -21,10 +21,6 @@
 
 package org.renjin.primitives.files;
 
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
-import com.google.common.collect.Lists;
-import com.google.common.io.ByteStreams;
 import org.apache.commons.vfs2.*;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
@@ -33,6 +29,10 @@ import org.renjin.primitives.Warning;
 import org.renjin.primitives.text.regex.ExtendedRE;
 import org.renjin.primitives.text.regex.REFactory;
 import org.renjin.primitives.text.regex.RESyntaxException;
+import org.renjin.repackaged.guava.base.Predicate;
+import org.renjin.repackaged.guava.base.Predicates;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.io.ByteStreams;
 import org.renjin.sexp.*;
 
 import java.io.IOException;

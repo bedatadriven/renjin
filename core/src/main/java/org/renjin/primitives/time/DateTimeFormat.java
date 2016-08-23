@@ -1,10 +1,10 @@
 package org.renjin.primitives.time;
 
-import com.google.common.collect.Lists;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.DateTimeFormatterBuilder;
 import org.renjin.eval.EvalException;
+import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.StringVector;
 
 import java.util.List;

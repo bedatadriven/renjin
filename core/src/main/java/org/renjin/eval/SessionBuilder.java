@@ -1,10 +1,10 @@
 package org.renjin.eval;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.renjin.primitives.packaging.ClasspathPackageLoader;
 import org.renjin.primitives.packaging.PackageLoader;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.Symbol;
 import org.renjin.util.FileSystemUtils;

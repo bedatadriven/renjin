@@ -1,9 +1,9 @@
 package org.renjin.primitives.packaging;
 
-import com.google.common.io.Resources;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
+import org.renjin.repackaged.guava.io.Resources;
 import org.renjin.util.NamedByteSource;
 
 import java.io.IOException;

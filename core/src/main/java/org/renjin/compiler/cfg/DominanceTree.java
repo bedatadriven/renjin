@@ -1,17 +1,17 @@
 package org.renjin.compiler.cfg;
 
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
+import org.renjin.repackaged.guava.base.Joiner;
+import org.renjin.repackaged.guava.collect.HashMultimap;
+import org.renjin.repackaged.guava.collect.Multimap;
+import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.util.DebugGraph;
 
 import java.util.*;
 
-import static com.google.common.base.Predicates.equalTo;
-import static com.google.common.base.Predicates.not;
-import static com.google.common.collect.Iterables.filter;
+import static org.renjin.repackaged.guava.base.Predicates.equalTo;
+import static org.renjin.repackaged.guava.base.Predicates.not;
+import static org.renjin.repackaged.guava.collect.Iterables.filter;
 
 public class DominanceTree {
 

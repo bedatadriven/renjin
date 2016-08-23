@@ -21,14 +21,14 @@
 
 package org.renjin.invoke.model;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import org.apache.commons.math.complex.Complex;
 import org.apache.commons.math.special.Gamma;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
+import org.renjin.repackaged.guava.base.Predicate;
+import org.renjin.repackaged.guava.collect.ImmutableList;
+import org.renjin.repackaged.guava.collect.Iterables;
+import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.Logical;
 import org.renjin.sexp.Symbol;
 

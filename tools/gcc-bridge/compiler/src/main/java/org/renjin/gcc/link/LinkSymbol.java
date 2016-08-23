@@ -1,10 +1,10 @@
 package org.renjin.gcc.link;
 
-import com.google.common.base.Charsets;
-import com.google.common.base.Optional;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.repackaged.asm.Handle;
 import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.guava.base.Charsets;
+import org.renjin.repackaged.guava.base.Optional;
 
 import java.io.*;
 import java.lang.reflect.Method;

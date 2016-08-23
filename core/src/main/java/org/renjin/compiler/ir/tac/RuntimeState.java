@@ -1,10 +1,10 @@
 package org.renjin.compiler.ir.tac;
 
-import com.google.common.collect.Maps;
 import org.renjin.compiler.NotCompilableException;
 import org.renjin.compiler.ir.exception.InvalidSyntaxException;
 import org.renjin.eval.Context;
 import org.renjin.packaging.SerializedPromise;
+import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.sexp.*;
 
 import java.util.Map;

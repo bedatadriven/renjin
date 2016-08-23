@@ -1,7 +1,7 @@
 package org.renjin.compiler.ir.tac.functions;
 
-import com.google.common.collect.Maps;
 import org.renjin.compiler.NotCompilableException;
+import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.sexp.Closure;
 import org.renjin.sexp.Function;
 import org.renjin.sexp.PrimitiveFunction;

@@ -1,6 +1,5 @@
 package org.renjin.gcc.codegen.type.record;
 
-import com.google.common.base.Optional;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.ArrayElement;
 import org.renjin.gcc.codegen.expr.Expressions;
@@ -13,6 +12,7 @@ import org.renjin.gcc.codegen.type.primitive.ConstantValue;
 import org.renjin.gcc.codegen.var.LocalVarAllocator;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.guava.base.Optional;
 
 import java.util.Collections;
 import java.util.List;

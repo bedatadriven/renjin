@@ -1,6 +1,5 @@
 package org.renjin.gcc.analysis;
 
-import com.google.common.collect.Sets;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.TreeLogger;
 import org.renjin.gcc.gimple.*;
@@ -12,6 +11,7 @@ import org.renjin.gcc.gimple.statement.GimpleStatement;
 import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.gimple.type.GimpleVoidType;
+import org.renjin.repackaged.guava.collect.Sets;
 
 import java.util.Set;
 

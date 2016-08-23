@@ -21,13 +21,11 @@
 
 package org.renjin.primitives;
 
-import org.renjin.sexp.AtomicVector;
+import org.renjin.repackaged.guava.base.Function;
+import org.renjin.repackaged.guava.base.Predicate;
 import org.renjin.sexp.PairList;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
-
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
 
 public class CollectionUtils {
 

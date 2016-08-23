@@ -1,9 +1,6 @@
 package org.renjin.compiler.codegen;
 
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
 import org.renjin.compiler.TypeSolver;
 import org.renjin.compiler.cfg.BasicBlock;
 import org.renjin.compiler.cfg.ControlFlowGraph;
@@ -15,6 +12,9 @@ import org.renjin.compiler.ir.tac.statements.Statement;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
+import org.renjin.repackaged.guava.collect.HashMultimap;
+import org.renjin.repackaged.guava.collect.Maps;
+import org.renjin.repackaged.guava.collect.Multimap;
 import org.renjin.sexp.*;
 
 import java.util.Map;

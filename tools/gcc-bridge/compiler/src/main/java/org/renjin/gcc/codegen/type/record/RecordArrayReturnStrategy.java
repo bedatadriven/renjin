@@ -1,6 +1,5 @@
 package org.renjin.gcc.codegen.type.record;
 
-import com.google.common.base.Preconditions;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
@@ -8,6 +7,7 @@ import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.ReturnStrategy;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.guava.base.Preconditions;
 
 /**
  * Strategy for returning record values represented by arrays.

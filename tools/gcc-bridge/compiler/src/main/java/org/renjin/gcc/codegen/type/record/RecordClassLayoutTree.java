@@ -1,11 +1,11 @@
 package org.renjin.gcc.codegen.type.record;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.Sets;
 import org.renjin.gcc.gimple.type.GimpleField;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
 import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.repackaged.guava.base.Strings;
+import org.renjin.repackaged.guava.collect.Sets;
 
 import java.util.HashSet;
 import java.util.LinkedList;

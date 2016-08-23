@@ -1,7 +1,5 @@
 package org.renjin.gcc.codegen.array;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.Expressions;
@@ -17,6 +15,8 @@ import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.guava.base.Preconditions;
+import org.renjin.repackaged.guava.collect.Lists;
 
 import java.util.List;
 

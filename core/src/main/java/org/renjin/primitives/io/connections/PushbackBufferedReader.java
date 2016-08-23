@@ -1,6 +1,6 @@
 package org.renjin.primitives.io.connections;
 
-import com.google.common.base.Strings;
+import org.renjin.repackaged.guava.base.Strings;
 
 import java.io.BufferedReader;
 import java.io.IOException;

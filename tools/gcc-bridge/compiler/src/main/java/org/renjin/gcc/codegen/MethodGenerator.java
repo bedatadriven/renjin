@@ -1,12 +1,12 @@
 package org.renjin.gcc.codegen;
 
-import com.google.common.base.Preconditions;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.var.LocalVarAllocator;
 import org.renjin.repackaged.asm.MethodVisitor;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
+import org.renjin.repackaged.guava.base.Preconditions;
 
 
 public class MethodGenerator extends InstructionAdapter {

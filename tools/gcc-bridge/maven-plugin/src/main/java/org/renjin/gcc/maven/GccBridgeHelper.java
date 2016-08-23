@@ -1,11 +1,11 @@
 package org.renjin.gcc.maven;
 
-import com.google.common.collect.Lists;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.artifact.AttachedArtifact;
+import org.renjin.repackaged.guava.collect.Lists;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -89,7 +89,7 @@ public class GccBridgeHelper {
           log.debug("Unpacking " + entry.getName() + " to " + destFile);
 
           ensureDirExists(destFile.getParentFile());
-          com.google.common.io.Files.asByteSink(destFile).writeFrom(in);
+          org.renjin.repackaged.guava.io.Files.asByteSink(destFile).writeFrom(in);
         }
       }
     } catch (IOException e) {

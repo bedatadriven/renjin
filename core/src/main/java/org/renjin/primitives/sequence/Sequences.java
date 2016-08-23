@@ -21,7 +21,6 @@
 
 package org.renjin.primitives.sequence;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.math.linear.RealVector;
 import org.renjin.eval.Calls;
 import org.renjin.eval.Context;
@@ -31,6 +30,7 @@ import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.primitives.Warning;
+import org.renjin.repackaged.guava.annotations.VisibleForTesting;
 import org.renjin.sexp.*;
 
 

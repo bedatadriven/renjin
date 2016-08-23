@@ -1,10 +1,10 @@
 package org.renjin.packaging;
 
 
-import com.google.common.base.Function;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.io.serialization.RDataReader;
+import org.renjin.repackaged.guava.base.Function;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.Null;
 import org.renjin.sexp.Promise;

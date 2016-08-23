@@ -21,8 +21,6 @@
 
 package org.renjin.primitives;
 
-import com.google.common.collect.Lists;
-import com.google.common.io.CharSource;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Builtin;
@@ -34,6 +32,8 @@ import org.renjin.parser.RParser;
 import org.renjin.primitives.io.connections.Connection;
 import org.renjin.primitives.io.connections.Connections;
 import org.renjin.primitives.special.ReturnException;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.io.CharSource;
 import org.renjin.sexp.*;
 
 import java.io.IOException;

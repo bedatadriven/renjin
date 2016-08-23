@@ -21,7 +21,7 @@
 
 package org.renjin.primitives;
 
-import com.google.common.collect.Sets;
+import org.renjin.repackaged.guava.collect.Sets;
 
 import java.util.Set;
 

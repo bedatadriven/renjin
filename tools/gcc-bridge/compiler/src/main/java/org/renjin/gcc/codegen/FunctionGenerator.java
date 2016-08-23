@@ -1,7 +1,5 @@
 package org.renjin.gcc.codegen;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.TreeLogger;
@@ -29,6 +27,8 @@ import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.tree.MethodNode;
 import org.renjin.repackaged.asm.util.Textifier;
 import org.renjin.repackaged.asm.util.TraceMethodVisitor;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.collect.Maps;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;

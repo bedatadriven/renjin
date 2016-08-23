@@ -1,12 +1,12 @@
 package org.renjin.gcc.codegen.type;
 
-import com.google.common.base.Preconditions;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.primitive.FieldValue;
 import org.renjin.repackaged.asm.ClassVisitor;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.guava.base.Preconditions;
 
 public abstract class SingleFieldStrategy extends FieldStrategy {
   

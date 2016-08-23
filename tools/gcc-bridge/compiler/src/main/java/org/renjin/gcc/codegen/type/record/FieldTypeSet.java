@@ -1,10 +1,10 @@
 package org.renjin.gcc.codegen.type.record;
 
-import com.google.common.base.Optional;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
 import org.renjin.gcc.gimple.type.*;
 import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.guava.base.Optional;
+import org.renjin.repackaged.guava.collect.Iterables;
+import org.renjin.repackaged.guava.collect.Sets;
 
 import java.util.HashSet;
 import java.util.List;

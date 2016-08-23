@@ -1,8 +1,8 @@
 package org.renjin.primitives.match;
 
-import com.google.common.collect.Maps;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.primitives.match.DuplicateSearchAlgorithm.Action;
+import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.sexp.AtomicVector;
 import org.renjin.sexp.Vector;
 

@@ -21,10 +21,10 @@
 
 package org.renjin.sexp;
 
-import com.google.common.base.Objects;
 import org.renjin.eval.ClosureDispatcher;
 import org.renjin.eval.Context;
 import org.renjin.primitives.special.ReturnException;
+import org.renjin.repackaged.guava.base.Objects;
 
 
 /**

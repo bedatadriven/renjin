@@ -1,19 +1,19 @@
 package org.renjin.gcc;
 
-import com.google.common.base.Charsets;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.gcc.runtime.*;
+import org.renjin.repackaged.guava.base.Charsets;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
-import static com.google.common.primitives.UnsignedBytes.checkedCast;
 import static java.lang.Double.NaN;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.renjin.repackaged.guava.primitives.UnsignedBytes.checkedCast;
 
 @SuppressWarnings("unchecked")
 public class GimpleCompilerTest extends AbstractGccTest {

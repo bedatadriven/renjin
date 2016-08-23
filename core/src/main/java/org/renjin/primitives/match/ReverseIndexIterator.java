@@ -1,8 +1,7 @@
 package org.renjin.primitives.match;
 
+import org.renjin.repackaged.guava.collect.UnmodifiableIterator;
 import org.renjin.sexp.Vector;
-
-import com.google.common.collect.UnmodifiableIterator;
 
 /**
  * Iterates over the indexes of a vector, from the end of the 

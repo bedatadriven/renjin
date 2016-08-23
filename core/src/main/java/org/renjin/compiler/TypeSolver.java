@@ -1,7 +1,5 @@
 package org.renjin.compiler;
 
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.renjin.compiler.cfg.*;
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
@@ -12,6 +10,8 @@ import org.renjin.compiler.ir.tac.expressions.*;
 import org.renjin.compiler.ir.tac.statements.Assignment;
 import org.renjin.compiler.ir.tac.statements.IfStatement;
 import org.renjin.compiler.ir.tac.statements.Statement;
+import org.renjin.repackaged.guava.collect.Maps;
+import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.sexp.Function;
 import org.renjin.sexp.Symbol;
 

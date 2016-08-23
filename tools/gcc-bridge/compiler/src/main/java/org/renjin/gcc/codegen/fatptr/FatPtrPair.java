@@ -1,6 +1,5 @@
 package org.renjin.gcc.codegen.fatptr;
 
-import com.google.common.base.Preconditions;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.*;
@@ -10,6 +9,7 @@ import org.renjin.gcc.codegen.var.LocalVarAllocator;
 import org.renjin.gcc.runtime.ObjectPtr;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.guava.base.Preconditions;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

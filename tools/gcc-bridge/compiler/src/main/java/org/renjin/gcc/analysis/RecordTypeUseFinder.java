@@ -1,8 +1,8 @@
 package org.renjin.gcc.analysis;
 
-import com.google.common.collect.Sets;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
+import org.renjin.repackaged.guava.collect.Sets;
 
 import java.util.HashMap;
 import java.util.Map;

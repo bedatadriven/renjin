@@ -1,6 +1,5 @@
 package org.renjin.gcc.codegen.type.record;
 
-import com.google.common.base.Optional;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.RecordClassGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
@@ -13,6 +12,7 @@ import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrValueFunction;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.guava.base.Optional;
 
 import java.io.File;
 import java.io.IOException;

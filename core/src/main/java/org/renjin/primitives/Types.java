@@ -20,12 +20,12 @@
  */
 package org.renjin.primitives;
 
-import com.google.common.base.Strings;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Options;
 import org.renjin.invoke.annotations.*;
 import org.renjin.primitives.vector.IsNaVector;
+import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.sexp.*;
 
 /**

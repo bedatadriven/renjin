@@ -1,12 +1,12 @@
 package org.renjin.maven;
 
-import com.google.common.io.ByteStreams;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.renjin.repackaged.guava.io.ByteStreams;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;

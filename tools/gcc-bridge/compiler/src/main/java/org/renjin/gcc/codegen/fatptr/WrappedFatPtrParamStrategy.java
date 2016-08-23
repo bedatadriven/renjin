@@ -1,13 +1,13 @@
 package org.renjin.gcc.codegen.fatptr;
 
-import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleParameter;
 import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.guava.base.Optional;
+import org.renjin.repackaged.guava.collect.Lists;
 
 import java.util.List;
 

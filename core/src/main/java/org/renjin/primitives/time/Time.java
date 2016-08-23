@@ -21,13 +21,13 @@
 
 package org.renjin.primitives.time;
 
-import com.google.common.base.Strings;
 import org.joda.time.*;
 import org.joda.time.chrono.ISOChronology;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.DateTimeParser;
 import org.joda.time.format.DateTimeParserBucket;
 import org.renjin.invoke.annotations.Internal;
+import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.sexp.*;
 
 import java.util.List;

@@ -1,8 +1,6 @@
 package org.renjin.compiler;
 
 
-import com.google.common.base.Charsets;
-import com.google.common.io.Resources;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -12,6 +10,8 @@ import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
 import org.renjin.parser.RParser;
 import org.renjin.primitives.special.ForFunction;
+import org.renjin.repackaged.guava.base.Charsets;
+import org.renjin.repackaged.guava.io.Resources;
 import org.renjin.sexp.ExpressionVector;
 
 import java.io.IOException;

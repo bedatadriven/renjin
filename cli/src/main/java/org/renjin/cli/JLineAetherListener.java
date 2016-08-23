@@ -1,6 +1,5 @@
 package org.renjin.cli;
 
-import com.google.common.collect.Lists;
 import jline.console.ConsoleReader;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.resolution.ArtifactResult;
@@ -11,6 +10,7 @@ import org.eclipse.aether.transfer.TransferListener;
 import org.eclipse.aether.transfer.TransferResource;
 import org.renjin.aether.PackageListener;
 import org.renjin.primitives.packaging.FqPackageName;
+import org.renjin.repackaged.guava.collect.Lists;
 
 import java.io.IOException;
 import java.util.List;

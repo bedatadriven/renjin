@@ -1,12 +1,12 @@
 package org.renjin.gcc.gimple.statement;
 
-import com.google.common.base.Joiner;
-import com.google.common.base.Preconditions;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Lists;
 import org.renjin.gcc.gimple.GimpleExprVisitor;
 import org.renjin.gcc.gimple.GimpleVisitor;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
+import org.renjin.repackaged.guava.base.Joiner;
+import org.renjin.repackaged.guava.base.Preconditions;
+import org.renjin.repackaged.guava.base.Predicate;
+import org.renjin.repackaged.guava.collect.Lists;
 
 import java.util.Collections;
 import java.util.HashSet;

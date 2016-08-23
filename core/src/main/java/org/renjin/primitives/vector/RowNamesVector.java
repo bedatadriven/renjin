@@ -1,6 +1,6 @@
 package org.renjin.primitives.vector;
 
-import com.google.common.base.Preconditions;
+import org.renjin.repackaged.guava.base.Preconditions;
 import org.renjin.sexp.AttributeMap;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.StringVector;

@@ -1,7 +1,5 @@
 package org.renjin.cli.build;
 
-import com.google.common.base.Charsets;
-import com.google.common.io.Files;
 import org.codehaus.plexus.util.FileUtils;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
@@ -15,6 +13,8 @@ import org.renjin.eval.Session;
 import org.renjin.gnur.GnurSourcesCompiler;
 import org.renjin.packaging.DatasetsBuilder;
 import org.renjin.packaging.NamespaceBuilder;
+import org.renjin.repackaged.guava.base.Charsets;
+import org.renjin.repackaged.guava.io.Files;
 
 import java.io.*;
 import java.util.Properties;

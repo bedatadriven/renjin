@@ -21,10 +21,10 @@
 
 package org.renjin.base;
 
-import com.google.common.collect.Sets;
 import org.renjin.eval.Context;
 import org.renjin.packaging.LazyLoadFrame;
 import org.renjin.primitives.Primitives;
+import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.sexp.*;
 import org.renjin.util.FileSystemUtils;
 
@@ -175,7 +175,7 @@ public class BaseFrame implements Frame {
   }
   
   public void load(Context context) throws IOException {
-    Iterable<NamedValue> frame = LazyLoadFrame.load(context, new com.google.common.base.Function<String, InputStream>() {
+    Iterable<NamedValue> frame = LazyLoadFrame.load(context, new org.renjin.repackaged.guava.base.Function<String, InputStream>() {
 
       @Override
       public InputStream apply(String name) {

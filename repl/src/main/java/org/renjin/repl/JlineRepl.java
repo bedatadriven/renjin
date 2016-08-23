@@ -1,8 +1,6 @@
 package org.renjin.repl;
 
 import com.github.fommil.netlib.BLAS;
-import com.google.common.base.Strings;
-import com.google.common.base.Throwables;
 import jline.UnsupportedTerminal;
 import jline.console.ConsoleReader;
 import jline.console.UserInterruptException;
@@ -14,6 +12,8 @@ import org.renjin.eval.SessionBuilder;
 import org.renjin.parser.*;
 import org.renjin.parser.RParser.StatusResult;
 import org.renjin.primitives.Warning;
+import org.renjin.repackaged.guava.base.Strings;
+import org.renjin.repackaged.guava.base.Throwables;
 import org.renjin.sexp.*;
 
 import java.io.IOException;

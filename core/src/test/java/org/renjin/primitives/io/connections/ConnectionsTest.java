@@ -1,9 +1,9 @@
 package org.renjin.primitives.io.connections;
 
-import com.google.common.base.Charsets;
-import com.google.common.io.Files;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
+import org.renjin.repackaged.guava.base.Charsets;
+import org.renjin.repackaged.guava.io.Files;
 import org.renjin.sexp.IntVector;
 
 import java.io.File;

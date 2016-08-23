@@ -1,11 +1,11 @@
 package org.renjin.compiler.pipeline;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.renjin.primitives.sequence.RepDoubleVector;
 import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.primitives.vector.MemoizedComputation;
+import org.renjin.repackaged.guava.base.Joiner;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.sexp.DoubleArrayVector;
 import org.renjin.sexp.IntArrayVector;
 import org.renjin.sexp.Vector;

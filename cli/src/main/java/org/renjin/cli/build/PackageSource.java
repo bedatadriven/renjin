@@ -1,8 +1,8 @@
 package org.renjin.cli.build;
 
 
-import com.google.common.base.Strings;
 import org.renjin.packaging.PackageDescription;
+import org.renjin.repackaged.guava.base.Strings;
 
 import java.io.File;
 import java.io.IOException;

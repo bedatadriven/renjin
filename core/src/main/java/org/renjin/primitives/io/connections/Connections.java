@@ -186,9 +186,13 @@ public class Connections {
   }
 
   @Internal
-  public static void close(@Current Context context, SEXP conn, String type /* Unused */)
-      throws IOException {
-    getConnection(context, conn).close();
+  public static void close(@Current Context context, SEXP conn, String type /* Unused */) throws IOException {
+    close(context, conn);
+  }
+
+  public static void close(@Current Context context, SEXP conn) throws IOException {
+    int connIndex = getConnectionIndex(conn);
+    context.getSession().getConnectionTable().close(connIndex);
   }
 
   @Internal

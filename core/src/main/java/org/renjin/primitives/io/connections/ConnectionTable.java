@@ -6,6 +6,8 @@ import org.renjin.sexp.IntVector;
 import org.renjin.sexp.StringArrayVector;
 import org.renjin.sexp.Symbols;
 
+import java.io.IOException;
+
 /**
  * Maintains a list of per-Apartment connections.
  * 
@@ -41,6 +43,12 @@ public class ConnectionTable {
     sexp.setAttribute(Symbols.CLASS, new StringArrayVector("connection", conn.getClassName()));
     return sexp.build();
   }
+
+
+  public void close(int index) throws IOException {
+    table[index].close();
+    table[index] = null;
+  }
   
   private int installConnection(Connection conn) {
     for(int i=0;i!=table.length;++i) {
@@ -74,5 +82,5 @@ public class ConnectionTable {
   public StdOutConnection getStderr() {
     return stderr;
   }
- 
+
 }

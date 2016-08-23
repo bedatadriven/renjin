@@ -501,7 +501,7 @@ public class ExprFactory {
       case MULT_EXPR:
         return ComplexValues.multiply(cx, cy);
       default:
-        throw new UnsupportedOperationException("op: " + op);
+        throw new UnsupportedOperationException("complex operation: " + op);
     }
   }
 

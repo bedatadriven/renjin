@@ -7,10 +7,7 @@ import org.renjin.gcc.codegen.array.ArrayExpr;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategies;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.*;
-import org.renjin.gcc.codegen.fatptr.AddressableField;
-import org.renjin.gcc.codegen.fatptr.FatPtr;
-import org.renjin.gcc.codegen.fatptr.FatPtrPair;
-import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
+import org.renjin.gcc.codegen.fatptr.*;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.type.primitive.op.CastGenerator;
 import org.renjin.gcc.codegen.var.VarAllocator;
@@ -51,6 +48,10 @@ public class PrimitiveTypeStrategy implements SimpleTypeStrategy<PrimitiveValue>
   @Override
   public ReturnStrategy getReturnStrategy() {
     return new SimpleReturnStrategy(this);
+  }
+
+  public ValueFunction getValueFunction() {
+    return valueFunction();
   }
 
   @Override

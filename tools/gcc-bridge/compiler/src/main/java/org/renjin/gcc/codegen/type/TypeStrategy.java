@@ -4,6 +4,7 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
@@ -26,6 +27,8 @@ public interface TypeStrategy<ExprT extends GExpr> {
    * @return the {@link ReturnStrategy} for this type.
    */
   ReturnStrategy getReturnStrategy();
+  
+  ValueFunction getValueFunction();
 
   /**
    * Creates an expression generator for {@link GimpleVarDecl}s of this type

@@ -157,6 +157,7 @@ public class GimpleCompiler  {
     try {
       
       GlobalVarMerger.merge(units);
+      ImplicitFieldDeclFinder.find(units);
 
       // Prune unused functions 
       SymbolPruner.prune(rootLogger, units, entryPointPredicate);

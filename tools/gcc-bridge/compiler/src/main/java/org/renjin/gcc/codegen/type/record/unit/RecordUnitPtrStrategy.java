@@ -7,10 +7,7 @@ import org.renjin.gcc.codegen.array.ArrayTypeStrategies;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.*;
-import org.renjin.gcc.codegen.fatptr.AddressableField;
-import org.renjin.gcc.codegen.fatptr.FatPtr;
-import org.renjin.gcc.codegen.fatptr.FatPtrPair;
-import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
+import org.renjin.gcc.codegen.fatptr.*;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.type.primitive.ConstantValue;
 import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
@@ -90,6 +87,11 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>
   @Override
   public ReturnStrategy getReturnStrategy() {
     return new RecordUnitPtrReturnStrategy(strategy.getJvmType());
+  }
+
+  @Override
+  public ValueFunction getValueFunction() {
+    return valueFunction;
   }
 
   @Override

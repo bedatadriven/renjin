@@ -11,6 +11,7 @@ import org.renjin.gcc.codegen.type.FieldStrategy;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrValueFunction;
+import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.repackaged.asm.Type;
 
 import java.io.File;
@@ -80,6 +81,12 @@ public class RecordClassLayout implements RecordLayout {
       return new PrimitiveUnionField(type, uniqueFieldName(node), commonType.get());
       
     } else {
+      Optional<Type> commonType = typeSet.tryComputeCommonType();
+      if(commonType.isPresent()) {
+        int arrayLength = node.getSize() / GimplePrimitiveType.fromJvmType(commonType.get()).getSize();
+        return new RecordArrayField(type, uniqueFieldName(node), commonType.get(), arrayLength);
+      }
+
       throw new UnsupportedOperationException("TODO: " + unionSet.debugString());
     }
   }

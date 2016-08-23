@@ -4,6 +4,7 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
@@ -35,6 +36,11 @@ public class FunTypeStrategy implements TypeStrategy<FunExpr> {
   @Override
   public ReturnStrategy getReturnStrategy() {
     throw newInvalidOperation();
+  }
+
+  @Override
+  public ValueFunction getValueFunction() {
+    throw new UnsupportedOperationException();
   }
 
   @Override

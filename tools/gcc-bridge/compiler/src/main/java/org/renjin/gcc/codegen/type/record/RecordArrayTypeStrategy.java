@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.type.record;
 
+import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.ArrayExpr;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategies;
@@ -7,6 +8,7 @@ import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
+import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.fatptr.Wrappers;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveTypeStrategy;
@@ -100,6 +102,17 @@ public class RecordArrayTypeStrategy extends RecordTypeStrategy<RecordArrayExpr>
       Type expectedType = arrayType.getElementType();
 
       return new ArrayExpr(new PrimitiveValueFunction(expectedType), arrayType.getArrayLength(), array, offset);
+
+
+    } else if(fieldTypeStrategy instanceof RecordArrayTypeStrategy) {
+      RecordArrayTypeStrategy recordArrayTypeStrategy = (RecordArrayTypeStrategy) fieldTypeStrategy;
+      if(!recordArrayTypeStrategy.fieldType.equals(this.fieldType)) {
+        throw new InternalCompilerException("Cannot access member of type " + fieldTypeStrategy +   
+            " from record array of type " + this);
+      }
+      
+      return new RecordArrayExpr(recordArrayTypeStrategy.valueFunction, array, fieldOffset, 
+          recordArrayTypeStrategy.arrayLength);
       
     } else {
       // Return an array that starts at this point 
@@ -123,6 +136,11 @@ public class RecordArrayTypeStrategy extends RecordTypeStrategy<RecordArrayExpr>
   }
 
   @Override
+  public ValueFunction getValueFunction() {
+    return valueFunction;
+  }
+
+  @Override
   public RecordArrayExpr variable(GimpleVarDecl decl, VarAllocator allocator) {
 
     JExpr newArray = newArray(fieldType, arrayLength);
@@ -138,7 +156,7 @@ public class RecordArrayTypeStrategy extends RecordTypeStrategy<RecordArrayExpr>
 
   @Override
   public FieldStrategy fieldGenerator(Type className, final String fieldName) {
-    return new RecordArrayField(className, fieldName, valueFunction, arrayType, arrayLength);
+    return new RecordArrayField(className, fieldName, arrayType.getElementType(), arrayLength);
   }
 
   @Override

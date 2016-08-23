@@ -4,6 +4,7 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
@@ -20,7 +21,12 @@ public class VoidTypeStrategy implements TypeStrategy<GExpr> {
   public ReturnStrategy getReturnStrategy() {
     return new VoidReturnStrategy();
   }
-  
+
+  @Override
+  public ValueFunction getValueFunction() {
+    throw new UnsupportedOperationException();
+  }
+
   @Override
   public ParamStrategy getParamStrategy() {
     throw new UnsupportedOperationException("parameters cannot have 'void' type");

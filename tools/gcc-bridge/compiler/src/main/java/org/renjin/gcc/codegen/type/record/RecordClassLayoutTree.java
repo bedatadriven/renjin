@@ -50,6 +50,9 @@ public class RecordClassLayoutTree {
       if(field.isAddressed()) {
         addressable = true;
       }
+      if(field.getOffset() + field.getSize() > end) {
+        end = field.getOffset() + field.getSize();
+      }
     }
 
     public boolean isAddressable() {
@@ -89,6 +92,8 @@ public class RecordClassLayoutTree {
     }
 
     public void addFrom(Node adjacent) {
+      this.fields.addAll(adjacent.fields);
+      this.types.addAll(adjacent.types);
       this.start = Math.min(this.start, adjacent.start);
       this.end = Math.max(this.end, adjacent.end);
     }
@@ -135,8 +140,9 @@ public class RecordClassLayoutTree {
         return;
 
       } else if(node.start == fieldStart) {
+        int oldSize = node.getSize();
         node.addField(field);
-        if(node.getSize() != field.getType().getSize()) {
+        if(node.getSize() != oldSize) {
           mergeNodes();
           return;
         }

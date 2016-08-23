@@ -61,6 +61,10 @@ public class ArrayTypeStrategy implements TypeStrategy<ArrayExpr> {
     return this;
   }
 
+  public ValueFunction getValueFunction() {
+    return arrayValueFunction;
+  }
+  
   @Override
   public FatPtrStrategy pointerTo() {
     return new FatPtrStrategy(arrayValueFunction, 1)

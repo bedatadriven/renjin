@@ -9,6 +9,7 @@ import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.AddressableField;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
+import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrStrategy;
@@ -63,6 +64,11 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<RecordValue> imp
   @Override
   public ReturnStrategy getReturnStrategy() {
     return new SimpleReturnStrategy(this);
+  }
+
+  @Override
+  public ValueFunction getValueFunction() {
+    return new RecordClassValueFunction(this);
   }
 
   @Override

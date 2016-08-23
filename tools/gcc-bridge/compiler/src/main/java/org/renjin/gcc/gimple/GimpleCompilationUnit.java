@@ -76,4 +76,12 @@ public class GimpleCompilationUnit {
     return Joiner.on("\n").join(functions);
   }
 
+  public void accept(GimpleExprVisitor visitor) {
+    for (GimpleVarDecl globalVariable : globalVariables) {
+      globalVariable.accept(visitor);
+    }
+    for (GimpleFunction function : functions) {
+      function.accept(visitor);
+    }
+  }
 }

@@ -8,6 +8,7 @@ import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.AddressableField;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
+import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleOp;
@@ -114,6 +115,11 @@ public class VoidPtrStrategy implements PointerTypeStrategy<VoidPtr>, SimpleType
   @Override
   public ReturnStrategy getReturnStrategy() {
     return new VoidPtrReturnStrategy();
+  }
+
+  @Override
+  public ValueFunction getValueFunction() {
+    return new VoidPtrValueFunction();
   }
 
   @Override

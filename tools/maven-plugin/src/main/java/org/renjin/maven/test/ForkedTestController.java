@@ -74,7 +74,6 @@ public class ForkedTestController {
         }
       }
     }
-
   }
 
   public void executeTest(File testFile) throws MojoExecutionException {
@@ -124,7 +123,7 @@ public class ForkedTestController {
       ProcessBuilder processBuilder = new ProcessBuilder();
       processBuilder.command("java", TestExecutor.class.getName());
       processBuilder.environment().putAll(environmentVariables);
-      processBuilder.redirectError(ProcessBuilder.Redirect.INHERIT);
+      processBuilder.redirectErrorStream(true);
       process = processBuilder.start();
       processChannel = new DataOutputStream(process.getOutputStream());
     } catch (Exception e) {

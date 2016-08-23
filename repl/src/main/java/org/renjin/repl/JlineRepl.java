@@ -13,11 +13,10 @@ import org.renjin.parser.*;
 import org.renjin.parser.RParser.StatusResult;
 import org.renjin.primitives.Warning;
 import org.renjin.repackaged.guava.base.Strings;
-import org.renjin.repackaged.guava.base.Throwables;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,6 +36,8 @@ public class JlineRepl {
    */
   private boolean echo;
 
+  private PrintStream errorStream;
+  
   /**
    * Whether to abort evaluation if an error is encountered
    */
@@ -49,6 +50,7 @@ public class JlineRepl {
     this.reader = reader;
     this.sessionController = new JlineSessionController(reader.getTerminal());
     this.session.setSessionController(sessionController);
+    this.errorStream = new PrintStream(System.err);
   }
 
   public JlineRepl(Session session) throws Exception {
@@ -69,6 +71,13 @@ public class JlineRepl {
     return reader;
   }
 
+  public PrintStream getErrorStream() {
+    return errorStream;
+  }
+
+  public void setErrorStream(PrintStream errorStream) {
+    this.errorStream = errorStream;
+  }
 
   public void setInteractive(boolean interactive) {
     sessionController.setInteractive(interactive);
@@ -169,8 +178,11 @@ public class JlineRepl {
 
         if (!parser.parse()) {
           if (lexer.errorEncountered()) {
+            reader.getOutput().flush();
             String errorMessage = "Syntax error at " + lexer.getErrorLocation() + ": " + lexer.getErrorMessage();
-            reader.getOutput().append(errorMessage + "\n");
+            errorStream.println(errorMessage);
+            errorStream.flush();
+            reader.killLine();
             if (stopOnError) {
               throw new RuntimeException(errorMessage);
             }
@@ -236,22 +248,22 @@ public class JlineRepl {
 
 
   private void printException(Exception e) throws IOException {
-    reader.getOutput().append("ERROR: " + e.getMessage());
-    PrintWriter printWriter = new PrintWriter(reader.getOutput());
-    e.printStackTrace(printWriter);
-    printWriter.flush();
     reader.getOutput().flush();
+    errorStream.println("ERROR: " + e.getMessage());
+    e.printStackTrace(errorStream);
+    errorStream.flush();
+  //  reader.killLine();
   }
 
   private void printEvalException(EvalException e) throws IOException {
-    reader.getOutput().append("ERROR: ").append(e.getMessage()).append("\n");
-    if (e.getCause() != null) {
-      reader.getOutput().write(Throwables.getStackTraceAsString(e.getCause()));
-    }
-    PrintWriter printWriter = new PrintWriter(reader.getOutput());
-    e.printRStackTrace(printWriter);
-    printWriter.flush();
     reader.getOutput().flush();
+    errorStream.println("ERROR: " + e.getMessage());
+    if (e.getCause() != null) {
+      e.getCause().printStackTrace(errorStream);
+    }
+    e.printRStackTrace(errorStream);
+    errorStream.flush();
+  //  reader.killLine();
   }
 
   private void printWarnings() {
@@ -274,6 +286,4 @@ public class JlineRepl {
     JlineRepl repl = new JlineRepl(SessionBuilder.buildDefault());
     repl.run();
   }
-
-
 }

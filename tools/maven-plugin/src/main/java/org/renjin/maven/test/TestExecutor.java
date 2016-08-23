@@ -176,8 +176,10 @@ public class TestExecutor {
 
       UnsupportedTerminal term = new UnsupportedTerminal();
       InputStream in = new ByteArrayInputStream(sourceText.getBytes(Charsets.UTF_8));
-      ConsoleReader consoleReader = new ConsoleReader(in, new PrintStream(testOutput), term);
+      PrintStream outputStream = new PrintStream(testOutput);
+      ConsoleReader consoleReader = new ConsoleReader(in, outputStream, term);
       JlineRepl repl = new JlineRepl(session, consoleReader);
+      repl.setErrorStream(outputStream);
       repl.setInteractive(false);
       repl.setEcho(true);
       repl.setStopOnError(true);

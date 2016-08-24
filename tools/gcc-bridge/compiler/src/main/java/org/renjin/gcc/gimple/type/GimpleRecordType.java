@@ -59,7 +59,6 @@ public class GimpleRecordType extends AbstractGimpleType {
     GimpleRecordType that = (GimpleRecordType) o;
 
     return id.equals(that.id);
-
   }
 
   @Override

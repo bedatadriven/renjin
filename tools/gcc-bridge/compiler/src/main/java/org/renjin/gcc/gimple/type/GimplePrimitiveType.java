@@ -47,7 +47,4 @@ public abstract class GimplePrimitiveType extends AbstractGimpleType {
     }
   }
 
-  public static GimpleType fromJvmType(Class<?> primitiveClass) {
-    return fromJvmType(Type.getType(primitiveClass));
-  }
 }

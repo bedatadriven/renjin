@@ -276,7 +276,6 @@ public class FunctionGenerator implements InvocationStrategy {
       }
     }
     mv.visitLookupSwitchInsn(defaultLabel, caseValues, caseLabels);
-    
   }
 
   private void emitAssignment(GimpleAssignment ins) {

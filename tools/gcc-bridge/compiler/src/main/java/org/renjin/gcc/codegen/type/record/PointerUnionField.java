@@ -35,7 +35,7 @@ public class PointerUnionField extends SingleFieldStrategy {
     }
 
     if(expectedType instanceof FatPtrStrategy) {
-      return new FatPtrMemberExpr(fieldExpr, ((FatPtrStrategy) expectedType).getValueFunction());
+      return new FatPtrMemberExpr(fieldExpr, expectedType.getValueFunction());
     } 
     throw new UnsupportedOperationException(String.format("TODO: strategy = %s", expectedType));
   }

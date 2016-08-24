@@ -993,4 +993,9 @@ public class GimpleCompilerTest extends AbstractGccTest {
     sub1.invoke(null);
   }
 
+  @Test
+  public void funptrFields() throws Exception {
+    compileAndTest("funptr_fields.c");
+  }
+  
 }

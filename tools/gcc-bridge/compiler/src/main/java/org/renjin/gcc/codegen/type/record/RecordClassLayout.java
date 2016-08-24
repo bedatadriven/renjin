@@ -9,6 +9,7 @@ import org.renjin.gcc.codegen.fatptr.AddressableField;
 import org.renjin.gcc.codegen.type.FieldStrategy;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.TypeStrategy;
+import org.renjin.gcc.codegen.type.fun.FunPtrField;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrValueFunction;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.repackaged.asm.Type;
@@ -65,7 +66,10 @@ public class RecordClassLayout implements RecordLayout {
       } else {
         return new PrimitivePointerUnionField(type, uniqueFieldName(node));
       }
-   
+
+    } else if(typeSet.allFunctionPointers()) {
+      return new FunPtrField(type, uniqueFieldName(node));
+      
     } else if(typeSet.allPointers()) {
       if(node.isAddressable()) {
         return new AddressableField(type, uniqueFieldName(node), new VoidPtrValueFunction());

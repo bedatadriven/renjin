@@ -63,7 +63,6 @@
       <version>${project.version}</version>
       <classifier>${envClassifier}</classifier>
     </dependency>
-
     <dependency>
       <groupId>com.google.code.findbugs</groupId>
       <artifactId>jsr305</artifactId>

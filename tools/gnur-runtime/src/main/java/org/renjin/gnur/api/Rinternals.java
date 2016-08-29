@@ -803,8 +803,11 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_CreateTag");
   }
 
-  public static void Rf_defineVar(SEXP p0, SEXP p1, SEXP p2) {
-    throw new UnimplementedGnuApiMethod("Rf_defineVar");
+  public static void Rf_defineVar(SEXP nameSexp, SEXP value, SEXP rhoSexp) {
+    Symbol name = (Symbol) nameSexp;
+    Environment rho = (Environment) rhoSexp;
+    
+    rho.setVariable(name, value);
   }
 
   public static SEXP Rf_dimgets(SEXP p0, SEXP p1) {

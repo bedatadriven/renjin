@@ -3,7 +3,6 @@ package org.renjin.gcc.codegen;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.annotations.GccSize;
-import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.FieldStrategy;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
@@ -97,8 +96,8 @@ public class RecordClassGenerator {
     mv.visitCode();
     
     // Local variables
-    JExpr thisExpr = Expressions.thisValue(className);
-    JExpr sourceExpr = Expressions.localVariable(className, 1);
+    JExpr thisExpr = mv.getLocalVarAllocator().reserve(className);
+    JExpr sourceExpr = mv.getLocalVarAllocator().reserve(className);
     
     // Now copy each field member
     for (FieldStrategy field : fields) {
@@ -118,7 +117,10 @@ public class RecordClassGenerator {
     String cloneDescriptor = Type.getMethodDescriptor(className);
     MethodGenerator mv = new MethodGenerator(cv.visitMethod(ACC_PUBLIC, "clone", cloneDescriptor, null, null));
     mv.visitCode();
-    
+
+    // Reserve the first local variable for the 'this' pointer
+    mv.getLocalVarAllocator().reserve(className);
+
     // Create copy
     mv.anew(className);
     mv.dup();
@@ -140,6 +142,10 @@ public class RecordClassGenerator {
 
   private void emitDefaultConstructor() {
     MethodGenerator mv = new MethodGenerator(cv.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null));
+    
+    // Reserve the first local variable for the 'this' pointer
+    mv.getLocalVarAllocator().reserve(className);
+    
     mv.visitCode();
     mv.visitVarInsn(ALOAD, 0);
     mv.visitMethodInsn(INVOKESPECIAL, superClassName.getInternalName(), "<init>", "()V", false);

@@ -14,6 +14,8 @@ import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveTypeStrategy;
 import org.renjin.repackaged.asm.Type;
 
+import static org.renjin.gcc.codegen.expr.Expressions.constantInt;
+
 /**
  * Strategy for array fields
  */
@@ -30,7 +32,7 @@ public class ArrayField extends SingleFieldStrategy {
 
   @Override
   public void emitInstanceInit(MethodGenerator mv) {
-    JExpr newArray = FatPtrMalloc.allocArray(mv, valueFunction, Expressions.constantInt(arrayLength));
+    JExpr newArray = FatPtrMalloc.allocArray(mv, valueFunction, constantInt(arrayLength));
     JLValue arrayField = Expressions.field(Expressions.thisValue(this.ownerClass), fieldType, fieldName);
     
     arrayField.store(mv, newArray);
@@ -39,7 +41,7 @@ public class ArrayField extends SingleFieldStrategy {
   @Override
   public GExpr memberExpr(JExpr instance, int offset, int size, TypeStrategy expectedType) {
     JExpr arrayExpr = Expressions.field(instance, fieldType, fieldName);
-    JExpr offsetExpr = Expressions.constantInt(offset / 8 / valueFunction.getArrayElementBytes());
+    JExpr offsetExpr = constantInt(offset / 8 / valueFunction.getArrayElementBytes());
     
     if(expectedType instanceof PrimitiveTypeStrategy) {
       PrimitiveTypeStrategy primitiveTypeStrategy = (PrimitiveTypeStrategy) expectedType;
@@ -64,9 +66,9 @@ public class ArrayField extends SingleFieldStrategy {
     JExpr sourceArray = Expressions.field(source, fieldType, fieldName);
     JExpr destArray = Expressions.field(dest, fieldType, fieldName);
     
-    mv.arrayCopy(
-        sourceArray, Expressions.constantInt(0), 
-        destArray, Expressions.constantInt(0), 
-        Expressions.constantInt(arrayLength));
+    valueFunction.memoryCopy(mv, 
+        destArray, constantInt(0),  
+        sourceArray, constantInt(0), 
+        constantInt(arrayLength));
   }
 }

@@ -998,4 +998,9 @@ public class GimpleCompilerTest extends AbstractGccTest {
     compileAndTest("funptr_fields.c");
   }
   
+  @Test
+  public void recordArrayFields() throws Exception {
+    compileAndTest("record_array_fields.c");    
+  }
+  
 }

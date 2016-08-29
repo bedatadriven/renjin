@@ -12,6 +12,7 @@ import org.renjin.sexp.SEXP;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.regex.Matcher;
 
 public class SerializedPromise extends Promise {
 
@@ -43,13 +44,20 @@ public class SerializedPromise extends Promise {
    * @return the resource name
    */
   public static String resourceName(String symbolName) {
+
+
     // maven-jar-plugin ultimately relies on org.codehaus.plexus.util.AbstractScanner
-    // which has a default exclude pattern of "._*"
+    // which has a default exclude catpattern of "._*"
     // https://github.com/sonatype/plexus-utils/blob/aa6739dc2871e01d6d0ca4564a3a66bcf044c84a/src/main/java/org/codehaus/plexus/util/AbstractScanner.java#L53
     if(symbolName.startsWith("._")) {
-      return "$$" + symbolName + ".RData";
-    } else {
-      return symbolName + ".RData";
+      symbolName = "$$" + symbolName;
     }
+    
+    // A few characters are quite problematic as file names / jar entries
+    symbolName = symbolName.replaceAll("/", Matcher.quoteReplacement("$$div$$"));
+    
+    
+    return symbolName + ".RData";
+    
   }
 }

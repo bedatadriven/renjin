@@ -10,3 +10,5 @@ S3method(as.character, square)
 S3method(area, NULL)
 S3method(area, circle)
 S3method(area, square)
+
+S3method(`%/%`, circle)

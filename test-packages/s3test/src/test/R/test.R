@@ -10,3 +10,7 @@ assertThat(area(c1), closeTo(pi, 0.001))
 sq <- new.square(2)
 assertThat(as.character(sq), equalTo("2x2 square"))
 assertThat(area(sq), equalTo(4))
+
+
+c2 <- new.circle(4)
+assertThat(c1 %/% c2, equalTo(1+4))

@@ -54,6 +54,6 @@ public class ReallocCallGenerator implements CallGenerator, MethodHandleGenerato
   public JExpr getMethodHandle() {
     return new FunctionRefGenerator(new Handle(Opcodes.H_INVOKESTATIC,
         Type.getInternalName(Realloc.class), "realloc",
-        Type.getMethodDescriptor(Type.getType(Object.class), Type.INT_TYPE)));
+        Type.getMethodDescriptor(Type.getType(Object.class), Type.getType(Object.class), Type.INT_TYPE)));
   }
 }

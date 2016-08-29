@@ -94,7 +94,15 @@ public class VoidPtrStrategy implements PointerTypeStrategy<VoidPtr>, SimpleType
 
   @Override
   public void memorySet(MethodGenerator mv, VoidPtr pointer, JExpr byteValue, JExpr length) {
-    throw new UnsupportedOperationException("TODO");
+    pointer.unwrap().load(mv);
+    byteValue.load(mv);
+    length.load(mv);
+    
+    mv.invokestatic(org.renjin.gcc.runtime.VoidPtr.class, "memset",
+        Type.getMethodDescriptor(Type.VOID_TYPE,
+            Type.getType(Object.class), 
+            Type.INT_TYPE, 
+            Type.INT_TYPE));
   }
 
   @Override

@@ -4,8 +4,16 @@ package org.renjin.gcc.runtime;
 import java.util.Arrays;
 
 public class IntPtr implements Ptr {
-  public int[] array;
-  public int offset;
+  
+  public static final IntPtr NULL = new IntPtr();
+  
+  public final int[] array;
+  public final int offset;
+
+  private IntPtr() {
+    this.array = null;
+    this.offset = 0;
+  }
 
   public IntPtr(int[] array, int offset) {
     this.array = array;
@@ -47,11 +55,6 @@ public class IntPtr implements Ptr {
   
   public void set(int value) {
     array[offset] = value;
-  }
-  
-  public void update(int[] array, int offset) {
-    this.array = array;
-    this.offset = offset;
   }
 
   @Override

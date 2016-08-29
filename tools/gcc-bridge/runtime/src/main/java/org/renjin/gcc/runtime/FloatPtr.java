@@ -5,8 +5,15 @@ import java.util.Arrays;
 
 public class FloatPtr implements Ptr {
 
-  public float[] array;
-  public int offset;
+  public static final FloatPtr NULL = new FloatPtr();
+  
+  public final float[] array;
+  public final int offset;
+
+  private FloatPtr() {
+    this.array = null;
+    this.offset = 0;
+  }
 
   public FloatPtr(float[] array, int offset) {
     this.array = array;
@@ -53,11 +60,6 @@ public class FloatPtr implements Ptr {
 
   public void set(int index, float value) {
     array[offset+index] = value;
-  }
-
-  public void update(float[] array,  int offset) {
-    this.array = array;
-    this.offset = offset;
   }
   
   public static FloatPtr cast(Object voidPointer) {

@@ -31,6 +31,25 @@ public final class VoidPtr {
   public static void memcpy(Object x, Object y, int numBytes) {
     throw new UnsupportedOperationException("TODO: Implement VoidPtr.memcpy");
   }
+  
+  public static void memset(Object p, int value, int length) {
+    
+    if(p instanceof DoublePtr) {
+      DoublePtr pd = (DoublePtr) p;
+      DoublePtr.memset(pd.array, pd.offset, value, length);
+    } else if(p instanceof BytePtr) {
+      BytePtr pb = (BytePtr) p;
+      BytePtr.memset(pb.array, pb.offset, value, length);
+    } else if(p instanceof CharPtr) {
+      CharPtr pc = (CharPtr) p;
+      CharPtr.memset(pc.array, pc.offset, value, length);
+    } else if(p instanceof ObjectPtr) {
+      ObjectPtr po = (ObjectPtr) p;
+      ObjectPtr.memset(po.array, po.offset, value, length);
+    } else {
+      throw new UnsupportedOperationException("TODO: p instanceof " + p.getClass().getName());
+    }
+  }
 
   /**
    * Compares the address of two pointers.

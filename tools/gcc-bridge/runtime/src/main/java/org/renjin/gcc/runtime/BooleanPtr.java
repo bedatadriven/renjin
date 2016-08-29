@@ -2,9 +2,17 @@ package org.renjin.gcc.runtime;
 
 
 public class BooleanPtr implements Ptr {
+
+  public static final BooleanPtr NULL = new BooleanPtr();
+
   public final boolean[] array;
   public final int offset;
 
+  private BooleanPtr() {
+    array = null;
+    offset = 0;
+  }
+  
   public BooleanPtr(boolean[] array, int offset) {
     this.array = array;
     this.offset = offset;

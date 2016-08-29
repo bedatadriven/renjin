@@ -3,8 +3,16 @@ package org.renjin.gcc.runtime;
 import java.util.Arrays;
 
 public class CharPtr implements Ptr {
-  public char[] array;
-  public int offset;
+  
+  public static final CharPtr NULL = new CharPtr();
+  
+  public final char[] array;
+  public final int offset;
+  
+  private CharPtr() {
+    this.array = null;
+    this.offset = 0;
+  }
 
   public CharPtr(char[] array, int offset) {
     this.array = array;
@@ -64,5 +72,9 @@ public class CharPtr implements Ptr {
       return ((MallocThunk) voidPointer).charPtr();
     } 
     return (CharPtr) voidPointer;
+  }
+
+  public static void memset(char[] array, int offset, int value, int length) {
+    throw new UnsupportedOperationException("TODO");
   }
 }

@@ -4,8 +4,18 @@ package org.renjin.gcc.runtime;
 import java.util.Arrays;
 
 public class DoublePtr implements Ptr {
-  public double[] array;
-  public int offset;
+  
+  public static final DoublePtr NULL = new DoublePtr();
+  
+  public static final int BYTES = Double.SIZE / 8;
+  
+  public final double[] array;
+  public final int offset;
+
+  private DoublePtr() {
+    this.array = null;
+    this.offset = 0;
+  }
 
   public DoublePtr(double[] array, int offset) {
     this.array = array;
@@ -61,11 +71,6 @@ public class DoublePtr implements Ptr {
   public void set(int index, double value) {
     array[offset+index] = value;
   }
-  
-  public void update(double[] array,  int offset) {
-    this.array = array;
-    this.offset = offset;
-  }
 
   /**
    * Performs a byte-by-byte comparison of the given double arrays.
@@ -116,7 +121,7 @@ public class DoublePtr implements Ptr {
    */
   public static void memset(double[] str, int strOffset, int c, int n) {
 
-    assert n % Double.SIZE == 0;
+    assert n % BYTES == 0;
 
     long longValue =  
         (c & 0xFFL) << 56
@@ -130,7 +135,7 @@ public class DoublePtr implements Ptr {
     
     double doubleValue = Double.longBitsToDouble(longValue);
     
-    Arrays.fill(str, strOffset, strOffset + (c / Double.SIZE), doubleValue);
+    Arrays.fill(str, strOffset, strOffset + (n / BYTES), doubleValue);
   }
 
   public static DoublePtr cast(Object voidPointer) {

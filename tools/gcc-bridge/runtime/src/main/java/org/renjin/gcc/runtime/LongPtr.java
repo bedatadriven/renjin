@@ -4,8 +4,16 @@ package org.renjin.gcc.runtime;
 import java.util.Arrays;
 
 public class LongPtr implements Ptr {
-  public long[] array;
-  public int offset;
+  
+  public static final LongPtr NULL = new LongPtr();
+  
+  public final long[] array;
+  public final int offset;
+
+  private LongPtr() {
+    this.array = null;
+    this.offset = 0;
+  }
 
   public LongPtr(long[] array, int offset) {
     this.array = array;
@@ -39,11 +47,6 @@ public class LongPtr implements Ptr {
 
   public long unwrap() {
     return array[offset];
-  }
-  
-  public void update(long[] array, int offset) {
-    this.array = array;
-    this.offset = offset;
   }
   
   @Override

@@ -1003,4 +1003,9 @@ public class GimpleCompilerTest extends AbstractGccTest {
     compileAndTest("record_array_fields.c");    
   }
   
+  @Test
+  public void voidPtrSet() throws Exception {
+    compileAndTest("void_ptr_set.c");
+  }
+  
 }

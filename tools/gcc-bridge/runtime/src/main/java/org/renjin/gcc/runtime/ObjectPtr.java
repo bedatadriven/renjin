@@ -3,24 +3,27 @@ package org.renjin.gcc.runtime;
 import java.util.Arrays;
 
 public class ObjectPtr<T> implements Ptr {
-  public Object[] array;
-  public int offset;
+  
+  public static final ObjectPtr NULL = new ObjectPtr();
+  
+  public final Object[] array;
+  public final int offset;
   public Class baseType;
 
-  public ObjectPtr() {
+  private ObjectPtr() {
+    this.array = null;
+    this.offset = 0;
   }
-  
+
   /**
    * Constructs a new ObjectPtr to a single value.
    */
   public ObjectPtr(T... array) {
-    //assert array.getClass().equals(Object[].class);s
     this.array = array;
     offset = 0;
   }
   
   public ObjectPtr(Object[] array, int offset) {
-    //assert array.getClass().equals(Object[].class) : "array class: " + array.getClass().getName();
     this.array = array;
     this.offset = offset;
   }
@@ -49,11 +52,6 @@ public class ObjectPtr<T> implements Ptr {
   @Override
   public Ptr pointerPlus(int bytes) {
     throw new UnsupportedOperationException("TODO");
-  }
-
-  public void update(Object[] array, int offset) {
-    this.array = array;
-    this.offset = offset;
   }
   
   public T get() {
@@ -118,8 +116,16 @@ public class ObjectPtr<T> implements Ptr {
     if(c != 0) {
       throw new IllegalArgumentException("Unsafe operation: memset(T**) can only be used when c = 0");
     }
-    
-    Arrays.fill(str, strOffset, strOffset + (c / 32), null);
+
+    Class<?> wrapperType = str.getClass().getComponentType();
+    Object nullInstance;
+    try {
+      nullInstance = wrapperType.getField("NULL").get(null);
+    } catch (IllegalAccessException | NoSuchFieldException e) {
+      throw new IllegalStateException("Cannot access NULL instance for " + wrapperType.getName());
+    }
+
+    Arrays.fill(str, strOffset, strOffset + (n / 4), nullInstance);
   }
 
   public static ObjectPtr cast(Object voidPointer) {

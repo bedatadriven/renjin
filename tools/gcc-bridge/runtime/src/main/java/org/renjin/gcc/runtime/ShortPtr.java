@@ -4,8 +4,16 @@ import java.util.Arrays;
 
 
 public class ShortPtr implements Ptr {
-  public short[] array;
-  public int offset;
+  
+  public static final ShortPtr NULL = new ShortPtr();
+  
+  public final short[] array;
+  public final int offset;
+  
+  private ShortPtr() {
+    this.array = null;
+    this.offset = 0;
+  }
 
   public ShortPtr(short[] array, int offset) {
     this.array = array;

@@ -4,6 +4,7 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.reflection.ClassBindingImpl;
 import org.renjin.methods.S4;
+import org.renjin.primitives.Native;
 import org.renjin.primitives.S3;
 import org.renjin.primitives.text.regex.ExtendedRE;
 import org.renjin.primitives.text.regex.RESyntaxException;
@@ -224,10 +225,14 @@ public class Namespace {
       // Call the initialization routine
       Optional<Method> initMethod = findInitRoutine(entry.getLibraryName(), clazz);
       if(initMethod.isPresent()) {
+        Context previousContext = Native.CURRENT_CONTEXT.get();
+        Native.CURRENT_CONTEXT.set(context);
         try {
           initMethod.get().invoke(null, info);
         } catch (InvocationTargetException e) {
           throw new EvalException("Exception initializing compiled GNU R library " + entry.getLibraryName(), e.getCause());
+        } finally {
+          Native.CURRENT_CONTEXT.set(previousContext);
         }
       }
 

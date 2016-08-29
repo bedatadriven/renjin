@@ -16,6 +16,11 @@ static const R_FortranMethodDef Fentries[] = {
 
 R_init_native(DllInfo *dll)
 {
+//    
+//    // Verify that we can invoke API methods that require context
+    SEXP stats = mkString("stats");
+    SEXP statsNamespace = R_FindNamespace(stats);
+
     R_registerRoutines(dll, NULL, callMethods, Fentries, NULL);
     R_RegisterCCallable("native", "Cmysum", (DL_FUNC) &Cmysum);
     R_RegisterCCallable("native", "Cmydsum", (DL_FUNC) &Cmydsum);

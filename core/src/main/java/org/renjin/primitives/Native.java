@@ -35,6 +35,13 @@ public class Native {
 
   public static final ThreadLocal<Context> CURRENT_CONTEXT = new ThreadLocal<>();
 
+  public static Context currentContext() {
+    Context context = Native.CURRENT_CONTEXT.get();
+    if(context == null) {
+      throw new IllegalStateException("Renjin context not initialized for this thread.");
+    }
+    return context;
+  }
 
   @Builtin(".C")
   public static SEXP dotC(@Current Context context,

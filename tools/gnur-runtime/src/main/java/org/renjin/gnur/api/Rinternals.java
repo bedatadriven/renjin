@@ -8,6 +8,7 @@ import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
 import org.renjin.gcc.runtime.ObjectPtr;
 import org.renjin.primitives.Native;
+import org.renjin.primitives.R$primitive$getNamespace;
 import org.renjin.primitives.Types;
 import org.renjin.primitives.Vectors;
 import org.renjin.sexp.*;
@@ -848,11 +849,7 @@ public final class Rinternals {
   }
 
   public static SEXP Rf_eval(SEXP expr, SEXP rho) {
-    Context context = Native.CURRENT_CONTEXT.get();
-    if(context == null) {
-      throw new IllegalStateException("Renjin context not initialized for this thread.");
-    }
-    return context.evaluate(expr, (Environment) rho);
+    return Native.currentContext().evaluate(expr, (Environment) rho);
   }
 
   public static SEXP Rf_findFun(SEXP p0, SEXP p1) {
@@ -1271,8 +1268,9 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("R_NamespaceEnvSpec");
   }
 
-  public static SEXP R_FindNamespace(SEXP info) {
-    throw new UnimplementedGnuApiMethod("R_FindNamespace");
+  public static SEXP R_FindNamespace(SEXP namespaceExp) throws Exception {
+    Context context = Native.currentContext();
+    return R$primitive$getNamespace.doApply(context, context.getEnvironment(), namespaceExp);
   }
 
   public static void R_LockEnvironment(SEXP env, boolean bindings) {

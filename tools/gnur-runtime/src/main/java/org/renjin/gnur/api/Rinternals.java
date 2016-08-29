@@ -909,8 +909,8 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_gsetVar");
   }
 
-  public static SEXP Rf_install(BytePtr p0) {
-    throw new UnimplementedGnuApiMethod("Rf_install");
+  public static SEXP Rf_install(BytePtr name) {
+    return Symbol.get(name.nullTerminatedString());
   }
 
   public static SEXP Rf_installChar(SEXP p0) {
@@ -1630,10 +1630,9 @@ public final class Rinternals {
     }
   }
 
-  public static SEXP Rf_mkString(BytePtr p0) {
-    throw new UnimplementedGnuApiMethod("Rf_mkString");
+  public static SEXP Rf_mkString(BytePtr string) {
+    return new StringArrayVector(string.nullTerminatedString());
   }
-
 
   public static int Rf_nlevels(SEXP p0) {
     throw new UnimplementedGnuApiMethod("Rf_nlevels");

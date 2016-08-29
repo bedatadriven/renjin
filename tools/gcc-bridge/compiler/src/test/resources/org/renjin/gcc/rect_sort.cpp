@@ -57,3 +57,14 @@ extern "C" void test_null_check() {
     ASSERT(0);
     
 }
+
+Rectangle** take_param_addr(Rectangle *p) {
+    return &p;
+}
+
+extern "C" void test_param_addr() {
+    Rectangle a[3];
+    Rectangle ** pp = take_param_addr(&a[0]);
+    
+    ASSERT(*pp == &a[0])
+}

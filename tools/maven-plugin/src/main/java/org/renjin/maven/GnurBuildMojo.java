@@ -1,5 +1,6 @@
 package org.renjin.maven;
 
+import edu.emory.mathcs.backport.java.util.Collections;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -11,7 +12,6 @@ import org.renjin.packaging.NativeSourceBuilder;
 import org.renjin.packaging.PackageSource;
 
 import javax.annotation.concurrent.ThreadSafe;
-import java.io.IOException;
 
 /**
  * Builds a complete package laid out according to GNU R conventions.
@@ -43,12 +43,9 @@ public class GnurBuildMojo extends AbstractMojo {
       throw new MojoExecutionException(e.getMessage(), e);
     }
 
-    MavenBuildContext buildContext = new MavenBuildContext(project);
+    MavenBuildContext buildContext = new MavenBuildContext(project, Collections.emptySet());
     compileNativeSources(packageSource, buildContext);
-
     
-
-    throw new UnsupportedOperationException();
   }
 
   private void compileNativeSources(PackageSource packageSource, MavenBuildContext buildContext) 

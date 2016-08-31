@@ -12,8 +12,6 @@ import org.apache.maven.project.MavenProject;
 import org.renjin.packaging.PackageDescription;
 import org.renjin.packaging.PackageSource;
 import org.renjin.repackaged.guava.base.Strings;
-import org.renjin.repackaged.guava.collect.Lists;
-import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.repackaged.guava.io.Files;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -21,11 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.Constructor;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Compiles R sources into a serialized blob
@@ -58,10 +52,6 @@ public class NamespaceMojo extends AbstractMojo {
 
   /**
    * The enclosing project.
-   *
-   * @parameter default-value="${project}"
-   * @required
-   * @readonly
    */
   @Parameter(defaultValue = "${project}", readonly = true, required = true)
   private MavenProject project;
@@ -90,13 +80,16 @@ public class NamespaceMojo extends AbstractMojo {
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
+
+    MavenBuildContext buildContext = new MavenBuildContext(project, pluginDependencies);
+
     copyResources();
-    compileNamespaceEnvironment();
+    compileNamespaceEnvironment(buildContext);
     writeRequires();
-    compileDatasets();
+    compileDatasets(buildContext);
   }
 
-  private void compileNamespaceEnvironment() throws MojoExecutionException {
+  private void compileNamespaceEnvironment(MavenBuildContext buildContext) throws MojoExecutionException {
 
     PackageSource source;
     try {
@@ -111,7 +104,8 @@ public class NamespaceMojo extends AbstractMojo {
       throw new MojoExecutionException(e.getMessage(), e);
     }
 
-    ClassLoader classLoader = getClassLoader();
+    
+    ClassLoader classLoader = buildContext.getClassLoader();
     ClassLoader contextLoader = Thread.currentThread().getContextClassLoader();
 
     try {
@@ -130,12 +124,14 @@ public class NamespaceMojo extends AbstractMojo {
     }
   }
 
-  private void compileDatasets() throws MojoExecutionException {
+  private void compileDatasets(MavenBuildContext buildContext) throws MojoExecutionException {
 
-    ClassLoader classLoader = getClassLoader();
+    
+    ClassLoader classLoader = buildContext.getClassLoader();
     ClassLoader contextLoader = Thread.currentThread().getContextClassLoader();
     try {
       Thread.currentThread().setContextClassLoader(classLoader);
+
       Constructor ctor = classLoader.loadClass("org.renjin.packaging.DatasetsBuilder")
           .getConstructor(File.class, File.class);
       Object builder = ctor.newInstance(dataDirectory, getPackageRoot());
@@ -201,31 +197,5 @@ public class NamespaceMojo extends AbstractMojo {
         throw new RuntimeException("Exception writing requires file", e);
       }
     }
-  }
-
-  private ClassLoader getClassLoader() throws MojoExecutionException  {
-    try {
-      getLog().debug("Renjin Namespace Evaluation Classpath: ");
-
-      List<URL> classpathURLs = Lists.newArrayList();
-      classpathURLs.add( new File(project.getBuild().getOutputDirectory()).toURI().toURL() );
-
-      for(Artifact artifact : getDependencies()) {
-        getLog().debug("  "  + artifact.getFile());
-
-        classpathURLs.add(artifact.getFile().toURI().toURL());
-      }
-
-      return new URLClassLoader( classpathURLs.toArray( new URL[ classpathURLs.size() ] ) );
-    } catch(MalformedURLException e) {
-      throw new MojoExecutionException("Exception resolving classpath", e);
-    }
-  }
-
-  private Set<Artifact> getDependencies() {
-    Set<Artifact> artifacts = Sets.newHashSet();
-    artifacts.addAll(project.getCompileArtifacts());
-    artifacts.addAll(pluginDependencies);
-    return artifacts;
   }
 }

@@ -1,5 +1,6 @@
 package org.renjin.maven;
 
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.renjin.gcc.Gcc;
@@ -7,9 +8,17 @@ import org.renjin.gcc.maven.GccBridgeHelper;
 import org.renjin.gnur.GnurInstallation;
 import org.renjin.packaging.BuildContext;
 import org.renjin.packaging.BuildLogger;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.collect.Sets;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 
 public class MavenBuildContext implements BuildContext {
@@ -23,14 +32,19 @@ public class MavenBuildContext implements BuildContext {
   private File pluginFile;
   private File homeDir;
   private File unpackedIncludeDir;
+  private URL[] classpath;
   
-  public MavenBuildContext(MavenProject project) {
+  private Collection<Artifact> pluginDependencies;
+
+  public MavenBuildContext(MavenProject project, Collection<Artifact> pluginDependencies) throws MojoExecutionException {
     this.project = project;
     this.buildDir = new File(project.getBuild().getDirectory());
     this.outputDir = new File(project.getBuild().getOutputDirectory());
+    this.pluginDependencies = pluginDependencies;
     this.homeDir = new File(buildDir, "gnur");
     this.pluginFile = new File(buildDir, "bridge.so");
     this.unpackedIncludeDir = new File(buildDir, "include");
+    this.classpath = buildClassPath();
   }
 
 
@@ -81,6 +95,39 @@ public class MavenBuildContext implements BuildContext {
 
   @Override
   public ClassLoader getClassLoader() {
-    throw new UnsupportedOperationException();
+    return new URLClassLoader(classpath);
+  }
+
+  private URL[] buildClassPath() throws MojoExecutionException  {
+    try {
+      logger.debug("Renjin Evaluation Classpath: ");
+
+      Set<Artifact> artifacts = Sets.newHashSet();
+      artifacts.addAll(project.getCompileArtifacts());
+      artifacts.addAll(pluginDependencies);
+
+      List<URL> classpathURLs = Lists.newArrayList();
+      
+      // Add the output directory to the classpath so that the compiled 
+      // package can be loaded if needed by data scripts.
+      // N.B.: directory URLs *must* end in a '/', otherwise they're considered
+      // jar entries.
+      File outputDir = new File(project.getBuild().getOutputDirectory());
+      classpathURLs.add(new URL("file", null, outputDir.getAbsolutePath() + "/"));
+
+      for(Artifact artifact : artifacts) {
+        classpathURLs.add(artifact.getFile().toURI().toURL());
+      }
+
+      URL[] array = classpathURLs.toArray(new URL[classpathURLs.size()]);
+      for (URL url : array) {
+        logger.debug("  "  + url.toString());
+      }
+      
+      return array;
+      
+    } catch(MalformedURLException e) {
+      throw new MojoExecutionException("Exception resolving classpath", e);
+    }
   }
 }

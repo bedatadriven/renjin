@@ -662,9 +662,6 @@ public final class Rinternals {
       }
     } else if(x instanceof CHARSEXP) {
       throw new UnsupportedOperationException();
-//      res = IntegerFromString(x, &warn);
-//      CoercionWarning(warn);
-//      return res;
     }
     return IntVector.NA;
   }
@@ -680,9 +677,6 @@ public final class Rinternals {
       }
     } else if(x instanceof CHARSEXP) {
       throw new UnsupportedOperationException();
-//      res = IntegerFromString(x, &warn);
-//      CoercionWarning(warn);
-//      return res;
     }
     return DoubleVector.NA;
   }

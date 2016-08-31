@@ -10,6 +10,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.renjin.packaging.PackageDescription;
+import org.renjin.packaging.PackageSource;
 import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Sets;
@@ -48,12 +49,6 @@ public class NamespaceMojo extends AbstractMojo {
   @Parameter(defaultValue = "src/main/data")
   private File dataDirectory;
 
-  /**
-   * Name of the R package
-   * @parameter expression="${project.build.outputDirectory}"
-   * @required
-   * @readonly
-   */
   @Parameter(defaultValue = "${project.build.outputDirectory}", readonly = true)
   private File outputDirectory;
 
@@ -103,6 +98,19 @@ public class NamespaceMojo extends AbstractMojo {
 
   private void compileNamespaceEnvironment() throws MojoExecutionException {
 
+    PackageSource source;
+    try {
+      source = new PackageSource.Builder(project.getBasedir())
+          .setGroupId(groupId)
+          .setNamespaceFile(namespaceFile)
+          .setDescriptionFile(descriptionFile)
+          .setSourceDir(sourceDirectory)
+          .setSourceFiles(sourceFiles)
+          .build();
+    } catch (IOException e) {
+      throw new MojoExecutionException(e.getMessage(), e);
+    }
+
     ClassLoader classLoader = getClassLoader();
     ClassLoader contextLoader = Thread.currentThread().getContextClassLoader();
 
@@ -111,8 +119,8 @@ public class NamespaceMojo extends AbstractMojo {
 
       Object builder = classLoader.loadClass("org.renjin.packaging.NamespaceBuilder").newInstance();
       builder.getClass()
-          .getMethod("build", String.class, String.class, File.class, File.class, List.class, File.class, List.class)
-          .invoke(builder, groupId, namespaceName, namespaceFile, sourceDirectory, sourceFiles, getEnvironmentFile(),
+          .getMethod("build", String.class, String.class, File.class, List.class, File.class, List.class)
+          .invoke(builder, groupId, namespaceName, namespaceFile, source.getSourceFiles(), getEnvironmentFile(),
               defaultPackages);
 
     } catch(Exception e) {

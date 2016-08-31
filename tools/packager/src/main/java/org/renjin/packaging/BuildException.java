@@ -1,4 +1,4 @@
-package org.renjin.cli.build;
+package org.renjin.packaging;
 
 
 public class BuildException extends RuntimeException {

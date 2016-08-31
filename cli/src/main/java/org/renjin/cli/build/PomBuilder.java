@@ -5,6 +5,7 @@ import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
 import org.renjin.RenjinVersion;
 import org.renjin.eval.Session;
 import org.renjin.packaging.PackageDescription;
+import org.renjin.packaging.PackageSource;
 import org.renjin.primitives.packaging.NamespaceRegistry;
 import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.repackaged.guava.collect.Iterables;

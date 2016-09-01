@@ -10,6 +10,9 @@ public interface BuildContext {
   
   BuildLogger getLogger();
 
+  void setupNativeCompilation();
+
+
   /**
    * @return the path to the GCC Bridge plugin
    */
@@ -48,5 +51,6 @@ public interface BuildContext {
    * @return the class loader to use for evaluating R sources
    */
   ClassLoader getClassLoader();
+
   
 }

@@ -25,4 +25,9 @@ public class MavenBuildLogger implements BuildLogger {
   public void debug(String message) {
     log.debug(message);
   }
+
+  @Override
+  public void error(String message) {
+    log.error(message);
+  }
 }

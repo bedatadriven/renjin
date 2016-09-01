@@ -59,6 +59,10 @@ public class PackageSource {
   public File getNativeSourceDir() {
     return new File(packageDir, "src");
   }
+  
+  public File getInstalledFilesDir() {
+    return new File(packageDir, "inst");
+  }
 
   public List<File> getSourceFiles() {
     return sourceFiles;

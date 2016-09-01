@@ -7,6 +7,7 @@ import org.renjin.gcc.Gcc;
 import org.renjin.gcc.maven.GccBridgeHelper;
 import org.renjin.gnur.GnurInstallation;
 import org.renjin.packaging.BuildContext;
+import org.renjin.packaging.BuildException;
 import org.renjin.packaging.BuildLogger;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Sets;
@@ -48,18 +49,22 @@ public class MavenBuildContext implements BuildContext {
   }
 
 
-  public void setupNativeCompilation() throws MojoExecutionException {
+  public void setupNativeCompilation()  {
     // Unpack any headers from dependencies
-    GccBridgeHelper.unpackHeaders(logger.getLog(), unpackedIncludeDir, project.getCompileArtifacts());
+    try {
+      GccBridgeHelper.unpackHeaders(logger.getLog(), unpackedIncludeDir, project.getCompileArtifacts());
+    } catch (MojoExecutionException e) {
+      throw new RuntimeException(e);
+    }
     try {
       GnurInstallation.unpackRHome(homeDir);
     } catch (IOException e) {
-      throw new MojoExecutionException("Failed to unpack GNU R installation", e);
+      throw new BuildException("Failed to unpack GNU R installation", e);
     }
     try {
       Gcc.extractPluginTo(pluginFile);
     } catch (IOException e) {
-      throw new MojoExecutionException("Failed to unpack GCC Bridge Plugin", e);
+      throw new BuildException("Failed to unpack GCC Bridge Plugin", e);
     }
   }
   

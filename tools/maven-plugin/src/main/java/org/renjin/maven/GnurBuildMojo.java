@@ -8,7 +8,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
-import org.renjin.packaging.NativeSourceBuilder;
+import org.renjin.packaging.PackageBuilder;
 import org.renjin.packaging.PackageSource;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -34,37 +34,17 @@ public class GnurBuildMojo extends AbstractMojo {
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
 
-    PackageSource packageSource;
     try {
-      packageSource = new PackageSource.Builder(project.getBasedir())
+      PackageSource packageSource = new PackageSource.Builder(project.getBasedir())
           .setGroupId(project.getGroupId())
           .build();
+      MavenBuildContext buildContext = new MavenBuildContext(project, Collections.emptySet());
+      
+      PackageBuilder builder = new PackageBuilder(packageSource, buildContext);
+      builder.build();
+
     } catch (Exception e) {
       throw new MojoExecutionException(e.getMessage(), e);
-    }
-
-    MavenBuildContext buildContext = new MavenBuildContext(project, Collections.emptySet());
-    compileNativeSources(packageSource, buildContext);
-    
-  }
-
-  private void compileNativeSources(PackageSource packageSource, MavenBuildContext buildContext) 
-      throws MojoExecutionException {
-    
-    if(packageSource.getNativeSourceDir().exists()) {
-      buildContext.setupNativeCompilation();
-
-      try {
-        NativeSourceBuilder nativeSourceBuilder = new NativeSourceBuilder(packageSource, buildContext);
-        nativeSourceBuilder.build();
-      } catch (Exception e) {
-        if (ignoreFailure) {
-          getLog().error("Compilation of GNU R sources failed.");
-          e.printStackTrace(System.err);
-        } else {
-          throw new MojoExecutionException("Compilation of GNU R sources failed", e);
-        }
-      }
     }
   }
 }

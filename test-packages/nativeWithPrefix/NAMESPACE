@@ -1,0 +1,3 @@
+useDynLib(nativeWithPrefix, .registration = TRUE, .fixes = "C_")
+
+export(mysum)

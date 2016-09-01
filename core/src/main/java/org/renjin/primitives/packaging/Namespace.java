@@ -244,7 +244,7 @@ public class Namespace {
         }
         // Use the symbols registered by the R_init_xxx() function
         for (DllSymbol symbol : info.getSymbols()) {
-          namespaceEnvironment.setVariable(symbol.getName(), symbol.createObject());
+          namespaceEnvironment.setVariable(entry.getPrefix() + symbol.getName(), symbol.createObject());
         }
 
       } else if(!entry.getSymbols().isEmpty()) {

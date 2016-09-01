@@ -11,6 +11,8 @@ import org.renjin.repackaged.asm.Type;
 
 import javax.annotation.Nonnull;
 
+import static org.renjin.repackaged.asm.Type.*;
+
 /**
  * Models a field at the beginning of a record as a JVM superclass
  */
@@ -63,7 +65,17 @@ public class SuperClassFieldStrategy extends FieldStrategy {
     dest.load(mv);
     source.load(mv);
     mv.invokevirtual(fieldTypeStrategy.getJvmType(), "set", 
-        Type.getMethodDescriptor(Type.VOID_TYPE, fieldTypeStrategy.getJvmType()), false);
+        getMethodDescriptor(VOID_TYPE, fieldTypeStrategy.getJvmType()), false);
+  }
+
+  @Override
+  public void memset(MethodGenerator mv, JExpr instance, JExpr byteValue, JExpr count) {
+    // super.memset(byteValue, count)
+    Type superType = fieldTypeStrategy.getJvmType();
+    instance.load(mv);
+    byteValue.load(mv);
+    count.load(mv);
+    mv.invokevirtual(superType, "memset", getMethodDescriptor(VOID_TYPE, INT_TYPE, INT_TYPE), false);
   }
 
   public Type getType() {

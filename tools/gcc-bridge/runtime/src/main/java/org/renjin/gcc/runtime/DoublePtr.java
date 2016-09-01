@@ -123,19 +123,16 @@ public class DoublePtr implements Ptr {
 
     assert n % BYTES == 0;
 
-    long longValue =  
-        (c & 0xFFL) << 56
-        | (c & 0xFFL) << 48
-        | (c & 0xFFL) << 40
-        | (c & 0xFFL) << 32
-        | (c & 0xFFL) << 24
-        | (c & 0xFFL) << 16
-        | (c & 0xFFL) << 8
-        | (c & 0xFFL);
-    
-    double doubleValue = Double.longBitsToDouble(longValue);
-    
+    double doubleValue = memset(c);
+
     Arrays.fill(str, strOffset, strOffset + (n / BYTES), doubleValue);
+  }
+
+  /**
+   * Sets all bytes of a {@code double} value to {@code c}
+   */
+  public static double memset(int c) {
+    return Double.longBitsToDouble(LongPtr.memset(c));
   }
 
   public static DoublePtr cast(Object voidPointer) {

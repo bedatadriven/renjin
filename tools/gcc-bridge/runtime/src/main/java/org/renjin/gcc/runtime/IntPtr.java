@@ -74,15 +74,20 @@ public class IntPtr implements Ptr {
   public static void memset(int[] str, int strOffset, int byteValue, int n) {
     
     assert n % Integer.SIZE == 0;
-    
-    int value = byteValue << 24 | 
-        (byteValue & 0xFF) << 16 | 
-        (byteValue & 0xFF) << 8 | 
-        (byteValue & 0xFF);
-    
-    Arrays.fill(str, strOffset, strOffset + (n / Integer.SIZE), value);
+
+    Arrays.fill(str, strOffset, strOffset + (n / Integer.SIZE), memset(byteValue));
   }
-  
+
+  /**
+   * Sets all bytes of an {@code int} to the {@code byteValue}
+   */
+  public static int memset(int byteValue) {
+    return byteValue << 24 | 
+          (byteValue & 0xFF) << 16 | 
+          (byteValue & 0xFF) << 8 | 
+          (byteValue & 0xFF);
+  }
+
   public static int memcmp(IntPtr x, IntPtr y, int n) {
     return memcmp(x.array, x.offset, y.array, y.offset, n);
   }

@@ -39,7 +39,12 @@ public class PointerUnionField extends SingleFieldStrategy {
     } 
     throw new UnsupportedOperationException(String.format("TODO: strategy = %s", expectedType));
   }
-  
+
+  @Override
+  public void memset(MethodGenerator mv, JExpr instance, JExpr byteValue, JExpr count) {
+    memsetReference(mv, instance, byteValue, count);
+  }
+
   private class FatPtrMemberExpr implements FatPtr {
 
     private JLValue fieldExpr;

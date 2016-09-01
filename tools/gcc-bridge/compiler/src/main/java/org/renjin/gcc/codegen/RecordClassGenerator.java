@@ -3,13 +3,13 @@ package org.renjin.gcc.codegen;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.annotations.GccSize;
+import org.renjin.gcc.codegen.expr.ArrayElement;
+import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.FieldStrategy;
+import org.renjin.gcc.codegen.var.LocalVarAllocator;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
-import org.renjin.repackaged.asm.AnnotationVisitor;
-import org.renjin.repackaged.asm.ClassVisitor;
-import org.renjin.repackaged.asm.ClassWriter;
-import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.asm.*;
 import org.renjin.repackaged.asm.util.TraceClassVisitor;
 import org.renjin.repackaged.guava.io.Files;
 
@@ -20,6 +20,8 @@ import java.io.StringWriter;
 import java.util.Collection;
 
 import static org.renjin.repackaged.asm.Opcodes.*;
+import static org.renjin.repackaged.asm.Type.INT_TYPE;
+import static org.renjin.repackaged.asm.Type.VOID_TYPE;
 
 
 /**
@@ -76,6 +78,8 @@ public class RecordClassGenerator {
     emitFields();
     emitSetMethod();
     emitCloneMethod();
+    emitMemSetMethod();
+    emitMemSetArrayMethod();
     cv.visitEnd();
 
     return cw.toByteArray();
@@ -91,7 +95,7 @@ public class RecordClassGenerator {
    * Generates a method which sets *This* fields values from another Record instance
    */
   private void emitSetMethod() {
-    String descriptor = Type.getMethodDescriptor(Type.VOID_TYPE, className);
+    String descriptor = Type.getMethodDescriptor(VOID_TYPE, className);
     MethodGenerator mv = new MethodGenerator(cv.visitMethod(ACC_PUBLIC, "set", descriptor, null, null));
     mv.visitCode();
     
@@ -108,6 +112,74 @@ public class RecordClassGenerator {
       }
     }
     
+    mv.areturn(VOID_TYPE);
+    mv.visitMaxs(1, 1);
+    mv.visitEnd();
+  }
+  
+  private void emitMemSetMethod() {
+    // Signature: void memset(int c, int bytes)
+    String descriptor = Type.getMethodDescriptor(VOID_TYPE, INT_TYPE, INT_TYPE);
+    MethodGenerator mv = new MethodGenerator(cv.visitMethod(ACC_PUBLIC, "memset", descriptor, null, null));
+    mv.visitCode();
+
+    JExpr thisExpr = mv.getLocalVarAllocator().reserve(className);
+    JExpr valueExpr = mv.getLocalVarAllocator().reserve(INT_TYPE);
+    LocalVarAllocator.LocalVar byteCountExpr = mv.getLocalVarAllocator().reserve(INT_TYPE);
+
+    // Set fields
+    for (FieldStrategy field : fields) {
+      // memset() the field
+      try {
+        field.memset(mv, thisExpr, valueExpr, byteCountExpr);
+      } catch (Exception e) {
+        throw new InternalCompilerException("Exception generating field memset code for " + field + " in " + 
+            className, e);
+      }
+    }
+    
+    mv.areturn(Type.VOID_TYPE);
+    mv.visitMaxs(1, 1);
+    mv.visitEnd();
+  }
+  
+  private void emitMemSetArrayMethod() {
+    // Signature: void memset(record[] array, int offset, int c, int bytes)
+    Type arrayType = Type.getType("[" + className.getDescriptor());
+    String descriptor = Type.getMethodDescriptor(VOID_TYPE, arrayType, INT_TYPE, 
+        INT_TYPE, INT_TYPE);
+
+    MethodGenerator mv = new MethodGenerator(cv.visitMethod(ACC_PUBLIC | ACC_STATIC, 
+        "memset", descriptor, null, null));
+    
+    mv.visitCode();
+    
+    // Parameters
+    JExpr arrayExpr = mv.getLocalVarAllocator().reserve(arrayType);
+    LocalVarAllocator.LocalVar offsetExpr = mv.getLocalVarAllocator().reserve(INT_TYPE);
+    JExpr valueExpr = mv.getLocalVarAllocator().reserve(INT_TYPE);
+    LocalVarAllocator.LocalVar byteCountExpr = mv.getLocalVarAllocator().reserve(INT_TYPE);
+    
+    // Loop while we have bytes left
+    Label loopBody = new Label();
+    mv.mark(loopBody);
+    
+    // Invoke the this.memset(value, count);
+    ArrayElement instanceExpr = Expressions.elementAt(arrayExpr, offsetExpr);
+
+    instanceExpr.load(mv);
+    valueExpr.load(mv);
+    byteCountExpr.load(mv);
+    mv.invokevirtual(className, "memset", Type.getMethodDescriptor(VOID_TYPE, INT_TYPE, INT_TYPE), false);
+    
+    // increment the array offset and decrement bytes to set
+    mv.iinc(offsetExpr.getIndex(), 1);
+    mv.iinc(byteCountExpr.getIndex(), -size);
+    
+    // Check to see if we've need to set more
+    byteCountExpr.load(mv);
+    mv.ifgt(loopBody);
+
     mv.areturn(Type.VOID_TYPE);
     mv.visitMaxs(1, 1);
     mv.visitEnd();
@@ -131,7 +203,7 @@ public class RecordClassGenerator {
     // Set the fields from one to the other
     mv.load(1, className);
     mv.load(0, className);
-    mv.invokevirtual(className, "set", Type.getMethodDescriptor(Type.VOID_TYPE, className), false);
+    mv.invokevirtual(className, "set", Type.getMethodDescriptor(VOID_TYPE, className), false);
     
     mv.load(1, className);
     mv.areturn(className);

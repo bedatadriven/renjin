@@ -11,13 +11,15 @@ import org.renjin.repackaged.asm.Type;
 
 
 public class FatPtrFieldStrategy extends FieldStrategy {
-  
+
+  private Type ownerClass;
   private ValueFunction valueFunction;
   private String arrayField;
   private String offsetField;
   private Type arrayType;
 
-  public FatPtrFieldStrategy(ValueFunction valueFunction, String name, Type arrayType) {
+  public FatPtrFieldStrategy(Type ownerClass, ValueFunction valueFunction, String name, Type arrayType) {
+    this.ownerClass = ownerClass;
     this.valueFunction = valueFunction;
     this.arrayField = name;
     this.offsetField = name + "$offset";
@@ -51,4 +53,18 @@ public class FatPtrFieldStrategy extends FieldStrategy {
     FatPtrPair destExpr = memberExpr(dest);
     destExpr.store(mv, sourceExpr);
   }
+
+  @Override
+  public void memset(MethodGenerator mv, JExpr instance, JExpr byteValue, JExpr count) {
+    // Any value will lead to a garbage pointer, so we assume
+    // that assigning NULL will have the same effect
+    instance.load(mv);
+    mv.aconst(null);
+    mv.putfield(ownerClass, arrayField, arrayType);
+    
+    instance.load(mv);
+    byteValue.load(mv);
+    mv.putfield(ownerClass, offsetField, Type.INT_TYPE);
+  }
+
 }

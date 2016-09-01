@@ -64,6 +64,11 @@ public class ArrayValueFunction implements ValueFunction {
   }
 
   @Override
+  public void memorySet(MethodGenerator mv, JExpr array, JExpr offset, JExpr byteValue, JExpr length) {
+    elementValueFunction.memorySet(mv, array, offset, byteValue, length);
+  }
+
+  @Override
   public Optional<JExpr> getValueConstructor() {
     return elementValueFunction.getValueConstructor();
   }

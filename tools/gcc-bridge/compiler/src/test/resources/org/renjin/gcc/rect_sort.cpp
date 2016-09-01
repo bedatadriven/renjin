@@ -2,6 +2,9 @@
 
 #include "rect.cpp"
 
+#include <stdio.h>
+#include <string.h>
+
 #include <vector>
 #include <algorithm>
 
@@ -67,4 +70,19 @@ extern "C" void test_param_addr() {
     Rectangle ** pp = take_param_addr(&a[0]);
     
     ASSERT(*pp == &a[0])
+}
+
+extern "C" void test_memset() {
+    Rectangle a[3];
+    a[0].width = 41;
+    a[1].width = 42;
+    a[2].width = 43;
+    
+    ASSERT(a[2].width == 43);
+    
+    memset(a, 0, sizeof(Rectangle)*3);
+    
+    ASSERT(a[0].width == 0);
+    ASSERT(a[1].width == 0);
+    ASSERT(a[2].width == 0);
 }

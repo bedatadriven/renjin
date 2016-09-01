@@ -61,6 +61,10 @@ public class MethodGenerator extends InstructionAdapter {
     putfield(declaringClass.getInternalName(), name, fieldType.getDescriptor());
   }
 
+  public void getfield(Type ownerClass, String fieldName, Type fieldType) {
+    getfield(ownerClass.getInternalName(), fieldName, fieldType.getDescriptor());
+  }
+
   public void pop(Type type) {
     switch (type.getSort()) {
       case Type.VOID:

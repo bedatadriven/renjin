@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.type.voidt;
 
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.SingleFieldStrategy;
 import org.renjin.gcc.codegen.type.TypeStrategy;
@@ -26,6 +27,13 @@ public class VoidPtrField extends SingleFieldStrategy {
     
     FieldValue ref = new FieldValue(instance, fieldName, VoidPtrStrategy.OBJECT_TYPE);
     return new VoidPtr(ref);
+  }
+
+  @Override
+  public void memset(MethodGenerator mv, JExpr instance, JExpr byteValue, JExpr count) {
+    instance.load(mv);
+    mv.aconst(null);
+    mv.putfield(ownerClass, fieldName, VoidPtrStrategy.OBJECT_TYPE);
   }
 
 }

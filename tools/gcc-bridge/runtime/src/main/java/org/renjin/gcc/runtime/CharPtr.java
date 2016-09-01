@@ -77,4 +77,8 @@ public class CharPtr implements Ptr {
   public static void memset(char[] array, int offset, int value, int length) {
     throw new UnsupportedOperationException("TODO");
   }
+  
+  public static char memset(int byteValue) {
+    throw new UnsupportedOperationException("TODO");
+  }
 }

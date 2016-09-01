@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.type.record.unit;
 
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
@@ -21,4 +22,10 @@ public class RecordUnitPtrField extends SingleFieldStrategy {
     }
     return new RecordUnitPtr(Expressions.field(instance, fieldType, fieldName));
   }
+
+  @Override
+  public void memset(MethodGenerator mv, JExpr instance, JExpr byteValue, JExpr count) {  
+    memsetReference(mv, instance, byteValue, count);
+  }
+
 }

@@ -80,6 +80,11 @@ public class RecordArrayValueFunction implements ValueFunction {
   }
 
   @Override
+  public void memorySet(MethodGenerator mv, JExpr array, JExpr offset, JExpr byteValue, JExpr length) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public String toString() {
     return "RecordArray[" + fieldType + "]";
   }

@@ -9,13 +9,15 @@ import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
 import org.renjin.repackaged.asm.Type;
 
+import static org.renjin.repackaged.asm.Type.getMethodDescriptor;
+
 /**
  * Generates a field with a record *value* type
  */
-public class RecordFieldStrategy extends SingleFieldStrategy {
+public class RecordClassFieldStrategy extends SingleFieldStrategy {
   private RecordClassTypeStrategy strategy;
 
-  public RecordFieldStrategy(RecordClassTypeStrategy strategy, Type declaringClass, String fieldName) {
+  public RecordClassFieldStrategy(RecordClassTypeStrategy strategy, Type declaringClass, String fieldName) {
     super(declaringClass, fieldName, strategy.getJvmType());
     this.strategy = strategy;
   }
@@ -42,4 +44,17 @@ public class RecordFieldStrategy extends SingleFieldStrategy {
     
     return new RecordValue(value, address);
   }
+
+  @Override
+  public void memset(MethodGenerator mv, JExpr instance, JExpr byteValue, JExpr count) {
+    // Load the field value onto the stack
+    instance.load(mv);
+    mv.getfield(ownerClass, fieldName, fieldType);
+    
+    // Invoke the field's class's memset() method
+    byteValue.load(mv);
+    count.load(mv);
+    mv.invokevirtual(fieldType, "memset", getMethodDescriptor(Type.VOID_TYPE, Type.INT_TYPE, Type.INT_TYPE), false);
+  }
+
 }

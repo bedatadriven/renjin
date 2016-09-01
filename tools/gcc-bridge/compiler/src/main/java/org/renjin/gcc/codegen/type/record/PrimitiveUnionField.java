@@ -26,4 +26,10 @@ public class PrimitiveUnionField extends SingleFieldStrategy {
   public void copy(MethodGenerator mv, JExpr source, JExpr dest) {
     throw new UnsupportedOperationException();
   }
+
+  @Override
+  public void memset(MethodGenerator mv, JExpr instance, JExpr byteValue, JExpr count) {
+    throw new UnsupportedOperationException();
+  }
+
 }

@@ -1,9 +1,11 @@
 package org.renjin.gcc.codegen.type.primitive;
 
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
+import org.renjin.gcc.codegen.fatptr.Wrappers;
 import org.renjin.gcc.codegen.type.SingleFieldStrategy;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
@@ -42,5 +44,13 @@ public class PrimitiveFieldStrategy extends SingleFieldStrategy {
     } else {
       throw new UnsupportedOperationException("expectedType: " + expectedType);
     }
+  }
+
+  @Override
+  public void memset(MethodGenerator mv, JExpr instance, JExpr byteValue, JExpr count) {
+    instance.load(mv);
+    byteValue.load(mv);
+    mv.invokestatic(Wrappers.wrapperType(fieldType), "memset", Type.getMethodDescriptor(fieldType, Type.INT_TYPE));
+    mv.putfield(ownerClass, fieldName, fieldType);
   }
 }

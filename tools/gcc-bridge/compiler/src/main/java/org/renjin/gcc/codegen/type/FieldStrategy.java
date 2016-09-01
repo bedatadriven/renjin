@@ -27,5 +27,7 @@ public abstract class FieldStrategy {
   public abstract GExpr memberExpr(JExpr instance, int offset, int size, TypeStrategy expectedType);
   
   public abstract void copy(MethodGenerator mv, JExpr source, JExpr dest);
+  
+  public abstract void memset(MethodGenerator mv, JExpr instance, JExpr byteValue, JExpr count);
 
 }

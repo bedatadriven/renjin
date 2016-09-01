@@ -114,19 +114,23 @@ public class LongPtr implements Ptr {
 
     assert n % Long.SIZE == 0;
 
-    long longValue =
-        (c & 0xFFL) << 56
-            | (c & 0xFFL) << 48
-            | (c & 0xFFL) << 40
-            | (c & 0xFFL) << 32
-            | (c & 0xFFL) << 24
-            | (c & 0xFFL) << 16
-            | (c & 0xFFL) << 8
-            | (c & 0xFFL);
-    
-    Arrays.fill(str, strOffset, strOffset + (c / Long.SIZE), longValue);
+    Arrays.fill(str, strOffset, strOffset + (c / Long.SIZE), memset(c));
   }
-  
+
+  /**
+   * Sets all bytes of a long value to the byte {@code c}
+   */
+  public static long memset(int c) {
+    return (c & 0xFFL) << 56
+        | (c & 0xFFL) << 48
+        | (c & 0xFFL) << 40
+        | (c & 0xFFL) << 32
+        | (c & 0xFFL) << 24
+        | (c & 0xFFL) << 16
+        | (c & 0xFFL) << 8
+        | (c & 0xFFL);
+  }
+
   public static LongPtr cast(Object voidPointer) {
     if(voidPointer instanceof MallocThunk) {
       return ((MallocThunk) voidPointer).longPtr();

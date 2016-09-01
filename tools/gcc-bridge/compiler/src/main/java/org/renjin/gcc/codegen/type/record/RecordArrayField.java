@@ -5,6 +5,7 @@ import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
+import org.renjin.gcc.codegen.fatptr.Memset;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.fatptr.Wrappers;
 import org.renjin.gcc.codegen.type.FieldStrategy;
@@ -45,6 +46,13 @@ public class RecordArrayField extends FieldStrategy {
         sourceArray, Expressions.constantInt(0),
         destArray, Expressions.constantInt(0),
         Expressions.constantInt(arrayLength));
+  }
+
+  @Override
+  public void memset(MethodGenerator mv, JExpr instance, JExpr byteValue, JExpr count) {
+    JExpr arrayExpr = Expressions.field(instance, arrayType, name);
+    
+    Memset.primitiveMemset(mv, valueFunction.getValueType(), arrayExpr, Expressions.zero(), byteValue, count);
   }
 
   @Override

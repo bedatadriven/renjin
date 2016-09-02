@@ -94,14 +94,14 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<RecordValue> imp
 
   @Override
   public FieldStrategy fieldGenerator(Type className, String fieldName) {
-    return new RecordFieldStrategy(this, className, fieldName);
+    return new RecordClassFieldStrategy(this, className, fieldName);
   }
 
   @Override
   public FieldStrategy addressableFieldGenerator(Type className, String fieldName) {
     if(isUnitPointer()) {
       // If this type is a unit pointer, we don't need to do anything special
-      return new RecordFieldStrategy(this, className, fieldName);
+      return new RecordClassFieldStrategy(this, className, fieldName);
     } else {
       return new AddressableField(getJvmType(), fieldName, new RecordClassValueFunction(this));
     }

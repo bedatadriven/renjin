@@ -27,6 +27,12 @@ public abstract class SingleFieldStrategy extends FieldStrategy {
     cv.visitField(Opcodes.ACC_PUBLIC, fieldName, fieldType.getDescriptor(), null, null);
   }
   
+  protected final void memsetReference(MethodGenerator mv, JExpr instance, JExpr byteValue, JExpr count) {
+    instance.load(mv);
+    mv.aconst(null);
+    mv.putfield(ownerClass, fieldName, fieldType);
+  }
+  
   @Override
   public void copy(MethodGenerator mv, JExpr source, JExpr dest) {
     FieldValue sourceExpr = new FieldValue(source, fieldName, fieldType);

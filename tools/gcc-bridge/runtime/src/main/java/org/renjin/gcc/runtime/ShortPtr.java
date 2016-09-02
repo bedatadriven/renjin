@@ -54,6 +54,15 @@ public class ShortPtr implements Ptr {
     return offset + "+" + Arrays.toString(array);
   }
 
+
+  public static void memset(short[] array, int offset, int value, int length) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  public static short memset(int byteValue) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
   public static ShortPtr cast(Object voidPointer) {
     if(voidPointer instanceof MallocThunk) {
       return ((MallocThunk) voidPointer).shortPtr();

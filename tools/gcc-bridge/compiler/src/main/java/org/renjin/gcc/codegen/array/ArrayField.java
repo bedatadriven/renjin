@@ -71,4 +71,10 @@ public class ArrayField extends SingleFieldStrategy {
         sourceArray, constantInt(0), 
         constantInt(arrayLength));
   }
+
+  @Override
+  public void memset(MethodGenerator mv, JExpr instance, JExpr byteValue, JExpr byteCount) {
+    JLValue arrayFieldExpr = Expressions.field(instance, fieldType, fieldName);
+    valueFunction.memorySet(mv, arrayFieldExpr, Expressions.zero(), byteValue, byteCount);
+  }
 }

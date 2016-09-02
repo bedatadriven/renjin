@@ -5,6 +5,8 @@ import java.util.Arrays;
 
 public class FloatPtr implements Ptr {
 
+  public static final int BYTES = 4;
+  
   public static final FloatPtr NULL = new FloatPtr();
   
   public final float[] array;
@@ -60,6 +62,31 @@ public class FloatPtr implements Ptr {
 
   public void set(int index, float value) {
     array[offset+index] = value;
+  }
+
+  /**
+   * Copies the character c (an unsigned char) to 
+   * the first n characters of the string pointed to, by the argument str.
+   *
+   * @param str an array of floats
+   * @param strOffset the first element to set
+   * @param c the byte value to set
+   * @param n the number of bytes to set
+   */
+  public static void memset(double[] str, int strOffset, int c, int n) {
+
+    assert n % BYTES == 0;
+
+    float floatValue = memset(c);
+
+    Arrays.fill(str, strOffset, strOffset + (n / BYTES), floatValue);
+  }
+
+  /**
+   * Sets all bytes of a {@code float} value to {@code c}
+   */
+  public static float memset(int c) {
+    return Float.intBitsToFloat(IntPtr.memset(c));
   }
   
   public static FloatPtr cast(Object voidPointer) {

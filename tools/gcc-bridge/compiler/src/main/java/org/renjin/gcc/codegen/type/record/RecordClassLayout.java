@@ -17,17 +17,42 @@ import org.renjin.repackaged.guava.base.Optional;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 
 public class RecordClassLayout implements RecordLayout {
 
+  public static class Field {
+    private RecordClassLayoutTree.Node node;
+    private FieldStrategy strategy;
+
+    public Field(RecordClassLayoutTree.Node node, FieldStrategy strategy) {
+      this.node = node;
+      this.strategy = strategy;
+    }
+
+    public FieldStrategy getStrategy() {
+      return strategy;
+    }
+
+    public int getOffsetInBytes() {
+      return node.getOffset() / 8;
+    }
+
+    public int getSizeInBytes() {
+      return node.getSize() / 8;
+    }
+  }
+  
   private RecordClassLayoutTree tree;
   private UnionSet unionSet;
   private Type type;
 
-  private TreeMap<Integer, FieldStrategy> fields = new TreeMap<>();
+  private List<Field> fields;
+  
+  /**
+   * Maps an offset to a FieldStrategy.
+   */
+  private TreeMap<Integer, FieldStrategy> fieldMap = new TreeMap<>();
 
   private Set<String> fieldNames = new HashSet<>();
   
@@ -40,8 +65,11 @@ public class RecordClassLayout implements RecordLayout {
 
   @Override
   public void linkFields(TypeOracle typeOracle) {
+    fields = new ArrayList<>();
     for (RecordClassLayoutTree.Node node : tree.getTree()) {
-      fields.put(node.getOffset(), buildStrategy(typeOracle, node));
+      Field field = new Field(node, buildStrategy(typeOracle, node));
+      fields.add(field);
+      fieldMap.put(node.getOffset(), field.getStrategy());
     }
   }
 
@@ -144,8 +172,8 @@ public class RecordClassLayout implements RecordLayout {
     JExpr instanceVar = mv.getLocalVarAllocator().tempIfNeeded(mv, instanceRef);
 
     // Find the logical field that contains this bit range
-    Integer fieldStart = fields.floorKey(offset);
-    FieldStrategy fieldStrategy = fields.get(fieldStart);
+    Integer fieldStart = fieldMap.floorKey(offset);
+    FieldStrategy fieldStrategy = fieldMap.get(fieldStart);
 
     if(fieldStrategy == null) {
       throw new IllegalStateException(type + " has no field at offset " + offset);
@@ -156,13 +184,13 @@ public class RecordClassLayout implements RecordLayout {
 
   @Override
   public void writeClassFiles(File outputDir) throws IOException {
-    RecordClassGenerator generator = new RecordClassGenerator(type, getSuperClass(), fields.values(), 
+    RecordClassGenerator generator = new RecordClassGenerator(type, getSuperClass(), fields, 
         unionSet.sizeOf());
     generator.writeClassFile(outputDir);
   }
 
   private Type getSuperClass() {
-    for (FieldStrategy fieldStrategy : fields.values()) {
+    for (FieldStrategy fieldStrategy : fieldMap.values()) {
       if(fieldStrategy instanceof SuperClassFieldStrategy) {
         return ((SuperClassFieldStrategy) fieldStrategy).getType();
       }

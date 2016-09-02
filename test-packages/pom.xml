@@ -29,6 +29,7 @@
     <module>evalOrder</module>
     <module>dataTest</module>
     <module>native</module>
+    <module>nativeWithPrefix</module>
     <module>nativeWithoutRegistration</module>
     <module>link</module>
   </modules>

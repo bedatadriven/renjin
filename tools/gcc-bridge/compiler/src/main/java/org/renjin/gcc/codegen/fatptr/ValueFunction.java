@@ -54,5 +54,8 @@ public interface ValueFunction {
                   JExpr destinationArray, JExpr destinationOffset, 
                   JExpr sourceArray, JExpr sourceOffset, JExpr valueCount);
   
+  
+  void memorySet(MethodGenerator mv, JExpr array, JExpr offset, JExpr byteValue, JExpr length);
+  
 }
 

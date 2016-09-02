@@ -114,6 +114,19 @@ public class RecordClassValueFunction implements ValueFunction {
 
   }
 
+  @Override
+  public void memorySet(MethodGenerator mv, JExpr array, JExpr offset, JExpr byteValue, JExpr length) {
+    
+    // Call the record's class static memset(record[], offset, byteValue, length) method
+    
+    array.load(mv);
+    offset.load(mv);
+    byteValue.load(mv);
+    length.load(mv);
+    mv.invokestatic(strategy.getJvmType(), "memset", Type.getMethodDescriptor(Type.VOID_TYPE,
+        array.getType(), Type.INT_TYPE, Type.INT_TYPE, Type.INT_TYPE));
+  }
+
   private void copyElement(MethodGenerator mv, 
                            JExpr destinationArray, JExpr destinationOffset, 
                            JExpr sourceArray, JExpr sourceOffset, 

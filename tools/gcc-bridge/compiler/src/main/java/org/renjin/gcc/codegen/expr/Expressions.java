@@ -567,6 +567,8 @@ public class Expressions {
     return staticMethodCall(Type.getType(declaringType), methodName, descriptor, arguments);
   }
   
+  
+  
   public static JExpr staticMethodCall(final Type declaringType, final String methodName, 
                                        final String descriptor, final JExpr... arguments) {
     return new JExpr() {
@@ -585,6 +587,34 @@ public class Expressions {
       }
     };
   }
+  
+  public static JLValue staticField(final Type declaringType, final String fieldName, final Type fieldType) {
+    
+    if(declaringType.getSort() != Type.OBJECT) {
+      throw new IllegalArgumentException(declaringType + " is not a class");
+    }
+    
+    return new JLValue() {
+
+      @Nonnull
+      @Override
+      public Type getType() {
+        return fieldType;
+      }
+
+      @Override
+      public void load(@Nonnull MethodGenerator mv) {
+        mv.getstatic(declaringType.getInternalName(), fieldName, fieldType.getDescriptor());
+      }
+
+      @Override
+      public void store(MethodGenerator mv, JExpr expr) {
+        expr.load(mv);
+        mv.putstatic(declaringType.getInternalName(), fieldName, fieldType.getDescriptor());
+      }
+    };
+  }
+  
   
   public static JExpr xor(JExpr x, JExpr y) {
     return new BinaryOp(Opcodes.IXOR, x, y);
@@ -619,6 +649,34 @@ public class Expressions {
       }
     };
   }
+
+  public static JExpr max(final JExpr x, final JExpr y) {
+    final Type type = x.getType();
+    if(!type.equals(y.getType())) {
+      throw new IllegalArgumentException(type + " != " + y.getType());
+    }
+    if(x instanceof ConstantValue && y instanceof ConstantValue) {
+      if(type.equals(Type.INT_TYPE)) {
+        return new ConstantValue(type, Math.max(((ConstantValue) x).getIntValue(), ((ConstantValue) y).getIntValue()));
+      }
+    }
+    
+    return new JExpr() {
+      @Nonnull
+      @Override
+      public Type getType() {
+        return type;
+      }
+
+      @Override
+      public void load(@Nonnull MethodGenerator mv) {
+        x.load(mv);
+        y.load(mv);
+        mv.invokestatic(Math.class, "max", Type.getMethodDescriptor(type, type, type));
+      }
+    };
+  }
+
 
   private static class BinaryOp implements JExpr {
 

@@ -91,6 +91,10 @@ public class BytePtr implements Ptr {
     Arrays.fill(str, strOffset, strOffset + (c / Double.SIZE), (byte)c);
   }
 
+  public static byte memset(int c) {
+    return (byte) c;
+  }
+  
   @Override
   public byte[] getArray() {
     return array;

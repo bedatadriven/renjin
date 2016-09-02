@@ -1,5 +1,6 @@
 package org.renjin.gcc.codegen.type.fun;
 
+import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
@@ -20,4 +21,10 @@ public class FunPtrField extends SingleFieldStrategy {
     }
     return new FunPtr(Expressions.field(instance, FunPtrStrategy.METHOD_HANDLE_TYPE, fieldName));
   }
+
+  @Override
+  public void memset(MethodGenerator mv, JExpr instance, JExpr byteValue, JExpr byteCount) {
+    memsetReference(mv, instance, byteValue, byteCount);
+  }
+
 }

@@ -78,11 +78,23 @@ extern "C" void test_memset() {
     a[1].width = 42;
     a[2].width = 43;
     
+    memset(a, 0, 0);
+    ASSERT(a[0].width == 41);
     ASSERT(a[2].width == 43);
     
-    memset(a, 0, sizeof(Rectangle)*3);
+    memset(a, 0 , sizeof(Rectangle)*3);
     
     ASSERT(a[0].width == 0);
     ASSERT(a[1].width == 0);
     ASSERT(a[2].width == 0);
+}
+
+
+extern "C" void test_partial_malloc() {
+    Rectangle *p = (Rectangle*)malloc(sizeof(int)*2);
+    p[0].width = 41;
+    p[0].height = 42;
+    
+    ASSERT(p[0].width == 41);
+    ASSERT(p[0].height == 42);
 }

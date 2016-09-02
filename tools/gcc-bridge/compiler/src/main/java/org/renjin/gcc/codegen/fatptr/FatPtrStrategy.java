@@ -19,6 +19,7 @@ import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.repackaged.asm.Type;
 
+import static org.renjin.gcc.codegen.expr.Expressions.constantInt;
 import static org.renjin.gcc.codegen.expr.Expressions.newArray;
 import static org.renjin.repackaged.asm.Type.OBJECT;
 
@@ -165,9 +166,12 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
 
   @Override
   public FatPtr malloc(MethodGenerator mv, JExpr sizeInBytes) {
+    // Some C code tries to be tricky and only allocate *part* of a structure.
+    // We will try to handle this by always rounding from zero up to one.
     JExpr length = Expressions.divide(sizeInBytes, valueFunction.getArrayElementBytes());
+    JExpr ceil = Expressions.max(length, constantInt(1));
     
-    return FatPtrMalloc.alloc(mv, valueFunction, length);
+    return FatPtrMalloc.alloc(mv, valueFunction, ceil);
   }
 
   @Override

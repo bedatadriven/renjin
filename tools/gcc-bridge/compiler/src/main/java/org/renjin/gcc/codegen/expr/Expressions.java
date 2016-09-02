@@ -620,6 +620,33 @@ public class Expressions {
     };
   }
 
+  public static JExpr max(final JExpr x, final JExpr y) {
+    final Type type = x.getType();
+    if(!type.equals(y.getType())) {
+      throw new IllegalArgumentException(type + " != " + y.getType());
+    }
+    if(x instanceof ConstantValue && y instanceof ConstantValue) {
+      if(type.equals(Type.INT_TYPE)) {
+        return new ConstantValue(type, Math.max(((ConstantValue) x).getIntValue(), ((ConstantValue) y).getIntValue()));
+      }
+    }
+    
+    return new JExpr() {
+      @Nonnull
+      @Override
+      public Type getType() {
+        return type;
+      }
+
+      @Override
+      public void load(@Nonnull MethodGenerator mv) {
+        x.load(mv);
+        y.load(mv);
+        mv.invokestatic(Math.class, "max", Type.getMethodDescriptor(type, type, type));
+      }
+    };
+  }
+
   private static class BinaryOp implements JExpr {
 
     private int opcode;

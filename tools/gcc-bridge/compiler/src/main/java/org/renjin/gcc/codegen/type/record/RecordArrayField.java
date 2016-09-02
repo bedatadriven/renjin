@@ -49,10 +49,10 @@ public class RecordArrayField extends FieldStrategy {
   }
 
   @Override
-  public void memset(MethodGenerator mv, JExpr instance, JExpr byteValue, JExpr count) {
+  public void memset(MethodGenerator mv, JExpr instance, JExpr byteValue, JExpr byteCount) {
     JExpr arrayExpr = Expressions.field(instance, arrayType, name);
     
-    Memset.primitiveMemset(mv, valueFunction.getValueType(), arrayExpr, Expressions.zero(), byteValue, count);
+    Memset.primitiveMemset(mv, valueFunction.getValueType(), arrayExpr, Expressions.zero(), byteValue, byteCount);
   }
 
   @Override

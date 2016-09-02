@@ -6,7 +6,7 @@ import org.renjin.gcc.annotations.GccSize;
 import org.renjin.gcc.codegen.expr.ArrayElement;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.type.FieldStrategy;
+import org.renjin.gcc.codegen.type.record.RecordClassLayout;
 import org.renjin.gcc.codegen.var.LocalVarAllocator;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
 import org.renjin.repackaged.asm.*;
@@ -17,7 +17,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.Collection;
+import java.util.List;
 
 import static org.renjin.repackaged.asm.Opcodes.*;
 import static org.renjin.repackaged.asm.Type.INT_TYPE;
@@ -36,9 +36,9 @@ public class RecordClassGenerator {
   private Type className;
   private Type superClassName;
   private int size;
-  private Collection<FieldStrategy> fields;
+  private List<RecordClassLayout.Field> fields;
 
-  public RecordClassGenerator(Type className, Type superClassName, Collection<FieldStrategy> fields, int size) {
+  public RecordClassGenerator(Type className, Type superClassName, List<RecordClassLayout.Field> fields, int size) {
     this.size = size;
     this.fields = fields;
     this.className = className;
@@ -86,8 +86,8 @@ public class RecordClassGenerator {
   }
 
   private void emitFields() {
-    for (FieldStrategy fieldStrategy : fields) {
-      fieldStrategy.writeFields(cv);
+    for (RecordClassLayout.Field field : fields) {
+      field.getStrategy().writeFields(cv);
     }
   }
 
@@ -104,9 +104,9 @@ public class RecordClassGenerator {
     JExpr sourceExpr = mv.getLocalVarAllocator().reserve(className);
     
     // Now copy each field member
-    for (FieldStrategy field : fields) {
+    for (RecordClassLayout.Field field : fields) {
       try {
-        field.copy(mv, sourceExpr, thisExpr);
+        field.getStrategy().copy(mv, sourceExpr, thisExpr);
       } catch (Exception e) {
         throw new InternalCompilerException("Exception generating copy code for " + className + ", field: " + field, e);
       }
@@ -126,18 +126,39 @@ public class RecordClassGenerator {
     JExpr thisExpr = mv.getLocalVarAllocator().reserve(className);
     JExpr valueExpr = mv.getLocalVarAllocator().reserve(INT_TYPE);
     LocalVarAllocator.LocalVar byteCountExpr = mv.getLocalVarAllocator().reserve(INT_TYPE);
-
+    LocalVarAllocator.LocalVar fieldByteCount = mv.getLocalVarAllocator().reserve(INT_TYPE);
+    
+    Label exit = new Label();
+    
     // Set fields
-    for (FieldStrategy field : fields) {
+    for (RecordClassLayout.Field field : fields) {
+      
+      // compute the number of bytes to copy of this field
+      
+      // subtract the field's offset from the number of bytes to copy
+      byteCountExpr.load(mv);
+      mv.iconst(field.getOffsetInBytes());
+      mv.sub(Type.INT_TYPE);
+
+      // Now limit the number of bytes to copy to the field's declared length.
+      mv.iconst(field.getSizeInBytes());
+      mv.invokestatic(Math.class, "min", Type.getMethodDescriptor(Type.INT_TYPE, Type.INT_TYPE, Type.INT_TYPE));
+      
+      mv.dup();
+      mv.store(fieldByteCount.getIndex(), Type.INT_TYPE);
+      
+      // if count <= 0, stop setting 
+      mv.iflt(exit);
+      
       // memset() the field
       try {
-        field.memset(mv, thisExpr, valueExpr, byteCountExpr);
+        field.getStrategy().memset(mv, thisExpr, valueExpr, fieldByteCount);
       } catch (Exception e) {
         throw new InternalCompilerException("Exception generating field memset code for " + field + " in " + 
             className, e);
       }
     }
-    
+    mv.mark(exit);
     mv.areturn(Type.VOID_TYPE);
     mv.visitMaxs(1, 1);
     mv.visitEnd();
@@ -222,8 +243,8 @@ public class RecordClassGenerator {
     mv.visitVarInsn(ALOAD, 0);
     mv.visitMethodInsn(INVOKESPECIAL, superClassName.getInternalName(), "<init>", "()V", false);
 
-    for (FieldStrategy fieldStrategy : fields) {
-      fieldStrategy.emitInstanceInit(mv);
+    for (RecordClassLayout.Field field : fields) {
+      field.getStrategy().emitInstanceInit(mv);
     }
 
     mv.visitInsn(RETURN);

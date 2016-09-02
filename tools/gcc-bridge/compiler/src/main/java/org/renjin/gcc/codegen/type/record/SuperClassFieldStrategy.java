@@ -69,12 +69,12 @@ public class SuperClassFieldStrategy extends FieldStrategy {
   }
 
   @Override
-  public void memset(MethodGenerator mv, JExpr instance, JExpr byteValue, JExpr count) {
+  public void memset(MethodGenerator mv, JExpr instance, JExpr byteValue, JExpr byteCount) {
     // super.memset(byteValue, count)
     Type superType = fieldTypeStrategy.getJvmType();
     instance.load(mv);
     byteValue.load(mv);
-    count.load(mv);
+    byteCount.load(mv);
     mv.invokevirtual(superType, "memset", getMethodDescriptor(VOID_TYPE, INT_TYPE, INT_TYPE), false);
   }
 

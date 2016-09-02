@@ -78,9 +78,9 @@ public class AddressableField extends FieldStrategy {
   }
 
   @Override
-  public void memset(MethodGenerator mv, JExpr instance, JExpr byteValue, JExpr count) {
+  public void memset(MethodGenerator mv, JExpr instance, JExpr byteValue, JExpr byteCount) {
     JLValue arrayField = Expressions.field(instance, arrayType, this.arrayField);
-    valueFunction.memorySet(mv, arrayField, Expressions.zero(), byteValue, count);
+    valueFunction.memorySet(mv, arrayField, Expressions.zero(), byteValue, byteCount);
   }
 
 }

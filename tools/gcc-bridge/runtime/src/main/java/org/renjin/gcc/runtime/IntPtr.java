@@ -5,6 +5,8 @@ import java.util.Arrays;
 
 public class IntPtr implements Ptr {
   
+  public static final int BYTES = Integer.SIZE / 8;
+  
   public static final IntPtr NULL = new IntPtr();
   
   public final int[] array;
@@ -73,9 +75,9 @@ public class IntPtr implements Ptr {
    */
   public static void memset(int[] str, int strOffset, int byteValue, int n) {
     
-    assert n % Integer.SIZE == 0;
+    assert n % BYTES == 0;
 
-    Arrays.fill(str, strOffset, strOffset + (n / Integer.SIZE), memset(byteValue));
+    Arrays.fill(str, strOffset, strOffset + (n / BYTES), memset(byteValue));
   }
 
   /**

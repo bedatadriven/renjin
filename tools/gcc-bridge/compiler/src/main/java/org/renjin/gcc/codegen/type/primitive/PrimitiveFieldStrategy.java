@@ -47,7 +47,7 @@ public class PrimitiveFieldStrategy extends SingleFieldStrategy {
   }
 
   @Override
-  public void memset(MethodGenerator mv, JExpr instance, JExpr byteValue, JExpr count) {
+  public void memset(MethodGenerator mv, JExpr instance, JExpr byteValue, JExpr byteCount) {
     instance.load(mv);
     byteValue.load(mv);
     mv.invokestatic(Wrappers.wrapperType(fieldType), "memset", Type.getMethodDescriptor(fieldType, Type.INT_TYPE));

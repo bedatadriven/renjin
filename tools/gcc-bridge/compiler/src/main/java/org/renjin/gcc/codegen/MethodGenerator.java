@@ -8,6 +8,8 @@ import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.repackaged.guava.base.Preconditions;
 
+import java.util.Arrays;
+
 
 public class MethodGenerator extends InstructionAdapter {
   
@@ -109,4 +111,28 @@ public class MethodGenerator extends InstructionAdapter {
     
   }
 
+  public void fillArray(JExpr array, JExpr fromIndex, JExpr toIndex, JExpr value) {
+    Preconditions.checkArgument(array.getType().getSort() == Type.ARRAY, "array must have sort ARRAY");
+    Preconditions.checkArgument(fromIndex.getType().getSort() == Type.INT, "fromIndex must have type int");
+    Preconditions.checkArgument(toIndex.getType().getSort() == Type.INT, "toIndex must have type int");
+
+    int elementSort = array.getType().getElementType().getSort();
+    
+    array.load(this);
+    fromIndex.load(this);
+    toIndex.load(this);
+    value.load(this);
+    
+    if(elementSort == Type.OBJECT || elementSort == Type.ARRAY) {
+      // General type: Object[], Object
+      invokestatic(Arrays.class, "fill", Type.getMethodDescriptor(Type.VOID_TYPE,
+          Type.getType(Object[].class),
+          Type.INT_TYPE,
+          Type.INT_TYPE,
+          Type.getType(Object.class)));
+    } else {
+      // Primitive type, double[], double
+      throw new UnsupportedOperationException("TODO");
+    }
+  }
 }

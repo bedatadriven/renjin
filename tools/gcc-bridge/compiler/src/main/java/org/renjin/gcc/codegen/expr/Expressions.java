@@ -567,6 +567,8 @@ public class Expressions {
     return staticMethodCall(Type.getType(declaringType), methodName, descriptor, arguments);
   }
   
+  
+  
   public static JExpr staticMethodCall(final Type declaringType, final String methodName, 
                                        final String descriptor, final JExpr... arguments) {
     return new JExpr() {
@@ -585,6 +587,34 @@ public class Expressions {
       }
     };
   }
+  
+  public static JLValue staticField(final Type declaringType, final String fieldName, final Type fieldType) {
+    
+    if(declaringType.getSort() != Type.OBJECT) {
+      throw new IllegalArgumentException(declaringType + " is not a class");
+    }
+    
+    return new JLValue() {
+
+      @Nonnull
+      @Override
+      public Type getType() {
+        return fieldType;
+      }
+
+      @Override
+      public void load(@Nonnull MethodGenerator mv) {
+        mv.getstatic(declaringType.getInternalName(), fieldName, fieldType.getDescriptor());
+      }
+
+      @Override
+      public void store(MethodGenerator mv, JExpr expr) {
+        expr.load(mv);
+        mv.putstatic(declaringType.getInternalName(), fieldName, fieldType.getDescriptor());
+      }
+    };
+  }
+  
   
   public static JExpr xor(JExpr x, JExpr y) {
     return new BinaryOp(Opcodes.IXOR, x, y);
@@ -646,6 +676,7 @@ public class Expressions {
       }
     };
   }
+
 
   private static class BinaryOp implements JExpr {
 

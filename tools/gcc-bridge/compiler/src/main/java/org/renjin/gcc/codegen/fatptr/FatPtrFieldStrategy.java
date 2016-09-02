@@ -55,7 +55,7 @@ public class FatPtrFieldStrategy extends FieldStrategy {
   }
 
   @Override
-  public void memset(MethodGenerator mv, JExpr instance, JExpr byteValue, JExpr count) {
+  public void memset(MethodGenerator mv, JExpr instance, JExpr byteValue, JExpr byteCount) {
     // Any value will lead to a garbage pointer, so we assume
     // that assigning NULL will have the same effect
     instance.load(mv);

@@ -41,8 +41,8 @@ public class PointerUnionField extends SingleFieldStrategy {
   }
 
   @Override
-  public void memset(MethodGenerator mv, JExpr instance, JExpr byteValue, JExpr count) {
-    memsetReference(mv, instance, byteValue, count);
+  public void memset(MethodGenerator mv, JExpr instance, JExpr byteValue, JExpr byteCount) {
+    memsetReference(mv, instance, byteValue, byteCount);
   }
 
   private class FatPtrMemberExpr implements FatPtr {

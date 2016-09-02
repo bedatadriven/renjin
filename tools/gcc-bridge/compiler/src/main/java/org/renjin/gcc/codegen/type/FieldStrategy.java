@@ -28,6 +28,6 @@ public abstract class FieldStrategy {
   
   public abstract void copy(MethodGenerator mv, JExpr source, JExpr dest);
   
-  public abstract void memset(MethodGenerator mv, JExpr instance, JExpr byteValue, JExpr count);
+  public abstract void memset(MethodGenerator mv, JExpr instance, JExpr byteValue, JExpr byteCount);
 
 }

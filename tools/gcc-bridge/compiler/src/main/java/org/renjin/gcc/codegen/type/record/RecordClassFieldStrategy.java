@@ -46,14 +46,14 @@ public class RecordClassFieldStrategy extends SingleFieldStrategy {
   }
 
   @Override
-  public void memset(MethodGenerator mv, JExpr instance, JExpr byteValue, JExpr count) {
+  public void memset(MethodGenerator mv, JExpr instance, JExpr byteValue, JExpr byteCount) {
     // Load the field value onto the stack
     instance.load(mv);
     mv.getfield(ownerClass, fieldName, fieldType);
     
     // Invoke the field's class's memset() method
     byteValue.load(mv);
-    count.load(mv);
+    byteCount.load(mv);
     mv.invokevirtual(fieldType, "memset", getMethodDescriptor(Type.VOID_TYPE, Type.INT_TYPE, Type.INT_TYPE), false);
   }
 

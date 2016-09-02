@@ -182,7 +182,11 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>
 
   @Override
   public void memorySet(MethodGenerator mv, RecordUnitPtr pointer, JExpr byteValue, JExpr length) {
-    throw new UnsupportedOperationException("TODO");
+    pointer.unwrap().load(mv);
+    byteValue.load(mv);
+    length.load(mv);
+    mv.invokevirtual(strategy.getJvmType(), "memset", 
+        Type.getMethodDescriptor(Type.VOID_TYPE, Type.INT_TYPE, Type.INT_TYPE), false);
   }
 
   @Override

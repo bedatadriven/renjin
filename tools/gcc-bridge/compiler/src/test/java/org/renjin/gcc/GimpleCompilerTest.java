@@ -1007,5 +1007,10 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void voidPtrSet() throws Exception {
     compileAndTest("void_ptr_set.c");
   }
+ 
+  @Test
+  public void addressableFieldMemSet() throws Exception {
+    compileAndTest("addr_field_memset.c");
+  }
   
 }

@@ -79,7 +79,7 @@ public class PrimitivePointerUnionField extends FieldStrategy {
   }
 
   @Override
-  public void memset(MethodGenerator mv, JExpr instance, JExpr byteValue, JExpr count) {
+  public void memset(MethodGenerator mv, JExpr instance, JExpr byteValue, JExpr byteCount) {
     instance.load(mv);
     mv.aconst(null);
     mv.putfield(declaringClass, arrayFieldName, OBJECT_TYPE);

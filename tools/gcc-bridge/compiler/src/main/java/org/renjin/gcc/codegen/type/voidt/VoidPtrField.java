@@ -30,7 +30,7 @@ public class VoidPtrField extends SingleFieldStrategy {
   }
 
   @Override
-  public void memset(MethodGenerator mv, JExpr instance, JExpr byteValue, JExpr count) {
+  public void memset(MethodGenerator mv, JExpr instance, JExpr byteValue, JExpr byteCount) {
     instance.load(mv);
     mv.aconst(null);
     mv.putfield(ownerClass, fieldName, VoidPtrStrategy.OBJECT_TYPE);

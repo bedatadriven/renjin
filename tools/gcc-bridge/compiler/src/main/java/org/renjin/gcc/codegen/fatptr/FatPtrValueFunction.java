@@ -4,11 +4,11 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -83,19 +83,10 @@ public class FatPtrValueFunction implements ValueFunction {
     // all to NULL with
     // Arrays.fill(array, fromIndex, toIndex, DoublePtr.NULL)
     
-    // First compute toIndex
     JExpr toIndex = Expressions.sum(offset, divide(length, constantInt(GimplePointerType.SIZE / 8)));
-    
-    array.load(mv);
-    offset.load(mv);
-    toIndex.load(mv);
-    mv.getstatic(getValueType().getInternalName(), "NULL", getValueType().getDescriptor());
-    
-    mv.invokestatic(Type.getType(Arrays.class), "fill", Type.getMethodDescriptor(
-        Type.getType(Object[].class), 
-        Type.INT_TYPE,
-        Type.INT_TYPE,
-        Type.getType(Object.class)));
+    JLValue nullInstance = Expressions.staticField(getValueType(), "NULL", getValueType());
+
+    mv.fillArray(array, offset, toIndex, nullInstance);
   }
 
 

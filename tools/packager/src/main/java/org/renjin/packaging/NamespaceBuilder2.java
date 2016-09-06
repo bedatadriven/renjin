@@ -44,6 +44,7 @@ public class NamespaceBuilder2 {
             buildContext.getClassLoader()));
     
     importDependencies(context, namespace);
+    loadPackageData(context, namespace);
     evaluateSources(context, namespace.getNamespaceEnvironment());
     serializeEnvironment(context, namespace.getNamespaceEnvironment(), environmentFile);
     writeRequires();
@@ -66,6 +67,19 @@ public class NamespaceBuilder2 {
       context.evaluate(FunctionCall.newCall(Symbol.get("library"), StringVector.valueOf(name)));
     }
     return context;
+  }
+  
+  private void loadPackageData(Context context, Namespace namespace) throws IOException {
+    File sysDataFile = new File(source.getSourceDir(), "sysdata.rda");
+    if (sysDataFile.exists()) {
+      buildContext.getLogger().info("Loading " + sysDataFile.getName());
+      try {
+        context.evaluate(FunctionCall.newCall(Symbol.get("load"), StringVector.valueOf(sysDataFile.getAbsolutePath())),
+            namespace.getNamespaceEnvironment());
+      } catch (EvalException e) {
+        throw new IOException("Error evaluating sysdata.rda");
+      }
+    }
   }
 
   private void evaluateSources(Context context, Environment namespaceEnvironment)  {

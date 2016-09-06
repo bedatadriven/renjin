@@ -146,20 +146,6 @@ public class NativeSourceBuilder {
     }
   }
 
-//  private void archiveHeaders() throws MojoExecutionException {
-//    File instDir = new File(project.getBasedir(), "inst");
-//    File includeDir = new File(instDir, "include");
-//
-//    // Some packages copy or create headers here as part of the 
-//    // build process
-//    File stagingIncludes = new File(stagingDir, "include");
-//
-//    if(includeDir.exists() || stagingIncludes.exists()) {
-//      GccBridgeHelper.archiveHeaders(log, project, includeDir, stagingIncludes);
-//    }
-//  }
-
-
   private boolean objectsDefinedByMakeVars(File makevars) throws IOException {
     if(!makevars.exists()) {
       return false;

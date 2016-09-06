@@ -8,10 +8,12 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
+import org.renjin.gcc.maven.GccBridgeHelper;
 import org.renjin.packaging.PackageBuilder;
 import org.renjin.packaging.PackageSource;
 
 import javax.annotation.concurrent.ThreadSafe;
+import java.io.File;
 import java.util.Collections;
 
 /**
@@ -46,8 +48,23 @@ public class GnurBuildMojo extends AbstractMojo {
       PackageBuilder builder = new PackageBuilder(packageSource, buildContext);
       builder.build();
 
+      archiveHeaders(buildContext);
+
+
     } catch (Exception e) {
       throw new MojoExecutionException(e.getMessage(), e);
     }
+    
   }
+
+
+  private void archiveHeaders(MavenBuildContext buildContext) throws MojoExecutionException {
+
+    File stagingIncludes = new File(buildContext.getPackageOutputDir(), "include");
+    
+    if(stagingIncludes.exists()) {
+      GccBridgeHelper.archiveHeaders(getLog(), project, stagingIncludes);
+    }
+  }
+  
 }

@@ -2,6 +2,7 @@ package org.renjin.maven;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.renjin.gcc.Gcc;
 import org.renjin.gcc.maven.GccBridgeHelper;
@@ -27,7 +28,7 @@ public class MavenBuildContext implements BuildContext {
 
   private MavenProject project;
   
-  private MavenBuildLogger logger = new MavenBuildLogger();
+  private MavenBuildLogger logger;
 
   private File buildDir;
   private File outputDir;
@@ -44,8 +45,10 @@ public class MavenBuildContext implements BuildContext {
   
   private List<String> defaultPackages = Collections.emptyList();
 
-  public MavenBuildContext(MavenProject project, Collection<Artifact> pluginDependencies) throws MojoExecutionException {
+  public MavenBuildContext(MavenProject project, Collection<Artifact> pluginDependencies, Log log) throws MojoExecutionException {
     this.project = project;
+    this.logger = new MavenBuildLogger(log);
+    
     this.buildDir = new File(project.getBuild().getDirectory());
     this.outputDir = new File(project.getBuild().getOutputDirectory());
     this.packageOuputDir = new File(project.getBuild().getOutputDirectory() + File.separator + 

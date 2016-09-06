@@ -1,15 +1,14 @@
 package org.renjin.maven;
 
 import org.apache.maven.plugin.logging.Log;
-import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.renjin.packaging.BuildLogger;
 
 public class MavenBuildLogger implements BuildLogger {
   
   private Log log;
 
-  public MavenBuildLogger() {
-    log = new SystemStreamLog();
+  public MavenBuildLogger(Log log) {
+    this.log = log;    
   }
 
   public Log getLog() {

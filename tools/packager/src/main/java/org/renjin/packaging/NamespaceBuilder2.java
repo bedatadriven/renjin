@@ -8,6 +8,7 @@ import org.renjin.primitives.packaging.Namespace;
 import org.renjin.primitives.packaging.NamespaceFile;
 import org.renjin.primitives.packaging.PackageLoader;
 import org.renjin.repackaged.guava.base.Charsets;
+import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.repackaged.guava.io.CharSource;
 import org.renjin.repackaged.guava.io.Files;
 import org.renjin.sexp.*;
@@ -15,6 +16,7 @@ import org.renjin.sexp.*;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.PrintWriter;
 
 /**
  * Evaluates a package's sources
@@ -44,6 +46,7 @@ public class NamespaceBuilder2 {
     importDependencies(context, namespace);
     evaluateSources(context, namespace.getNamespaceEnvironment());
     serializeEnvironment(context, namespace.getNamespaceEnvironment(), environmentFile);
+    writeRequires();
   }
 
   private void importDependencies(Context context, Namespace namespace) throws IOException {
@@ -94,6 +97,33 @@ public class NamespaceBuilder2 {
       builder.build(namespaceEnv);
     } catch(IOException e) {
       throw new RuntimeException("Exception encountered serializing namespace environment", e);
+    }
+  }
+
+
+
+  private void writeRequires() {
+    // save a list of packages that are to be loaded onto the
+    // global search path when this package is loaded
+
+    if(source.getDescriptionFile().exists()) {
+      PackageDescription description;
+      try {
+        description = PackageDescription.fromFile(source.getDescriptionFile());
+      } catch(IOException e) {
+        throw new RuntimeException("Exception reading DESCRIPTION file");
+      }
+      try {
+        PrintWriter requireWriter = new PrintWriter(new File(buildContext.getPackageOutputDir(), "requires"));
+        for(PackageDescription.PackageDependency dep : description.getDepends()) {
+          if(!dep.getName().equals("R") && !Strings.isNullOrEmpty(dep.getName())) {
+            requireWriter.println(dep.getName());
+          }
+        }
+        requireWriter.close();
+      } catch (IOException e) {
+        throw new RuntimeException("Exception writing requires file", e);
+      }
     }
   }
 

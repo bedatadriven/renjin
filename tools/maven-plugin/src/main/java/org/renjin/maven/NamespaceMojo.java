@@ -10,16 +10,11 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.renjin.packaging.PackageBuilder;
-import org.renjin.packaging.PackageDescription;
 import org.renjin.packaging.PackageSource;
-import org.renjin.repackaged.guava.base.Strings;
-import org.renjin.repackaged.guava.io.Files;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.lang.reflect.Constructor;
 import java.util.List;
 
 /**
@@ -105,65 +100,6 @@ public class NamespaceMojo extends AbstractMojo {
     }
   }
 
-  private void compileNamespaceEnvironment(MavenBuildContext buildContext) throws MojoExecutionException {
-
-    PackageSource source;
-    try {
-      source = new PackageSource.Builder(project.getBasedir())
-          .setGroupId(groupId)
-          .setNamespaceFile(namespaceFile)
-          .setDescriptionFile(descriptionFile)
-          .setSourceDir(sourceDirectory)
-          .setSourceFiles(sourceFiles)
-          .build();
-    } catch (IOException e) {
-      throw new MojoExecutionException(e.getMessage(), e);
-    }
-
-    
-    ClassLoader classLoader = buildContext.getClassLoader();
-    ClassLoader contextLoader = Thread.currentThread().getContextClassLoader();
-
-    try {
-      Thread.currentThread().setContextClassLoader(classLoader);
-
-      Object builder = classLoader.loadClass("org.renjin.packaging.NamespaceBuilder").newInstance();
-      builder.getClass()
-          .getMethod("build", String.class, String.class, File.class, List.class, File.class, List.class)
-          .invoke(builder, groupId, namespaceName, namespaceFile, source.getSourceFiles(), getEnvironmentFile(),
-              defaultPackages);
-
-    } catch(Exception e) {
-      throw new MojoExecutionException("exception", e);
-    } finally {
-      Thread.currentThread().setContextClassLoader(contextLoader);
-    }
-  }
-
-  private void compileDatasets(MavenBuildContext buildContext) throws MojoExecutionException {
-
-    
-    ClassLoader classLoader = buildContext.getClassLoader();
-    ClassLoader contextLoader = Thread.currentThread().getContextClassLoader();
-    try {
-      Thread.currentThread().setContextClassLoader(classLoader);
-
-      Constructor ctor = classLoader.loadClass("org.renjin.packaging.DatasetsBuilder")
-          .getConstructor(File.class, File.class);
-      Object builder = ctor.newInstance(dataDirectory, getPackageRoot());
-      builder.getClass().getMethod("build").invoke(builder);
-    } catch(Exception e) {
-      throw new MojoExecutionException("exception", e);
-    } finally {
-      Thread.currentThread().setContextClassLoader(contextLoader);
-    }
-
-  }
-
-  private File getEnvironmentFile() {
-    return new File(getPackageRoot(), "environment");
-  }
-
   private File getPackageRoot() {
     File packageRoot = new File(outputDirectory.getAbsoluteFile() + File.separator +
         groupId.replace(".", File.separator) + File.separator + packageName);
@@ -171,47 +107,4 @@ public class NamespaceMojo extends AbstractMojo {
     return packageRoot;
   }
 
-  private void copyResources() {
-    try {
-      if(!namespaceFile.exists()) {
-        System.err.println("NAMESPACE file is missing. (looked in " + namespaceFile.getAbsolutePath() + ")");
-        throw new RuntimeException("Missing NAMESPACE file");
-      }
-      Files.copy(namespaceFile, new File(getPackageRoot(), "NAMESPACE"));
-
-      if(descriptionFile.exists()) {
-        Files.copy(descriptionFile, new File(getPackageRoot(), "DESCRIPTION"));
-      }
-
-    } catch (IOException e) {
-      throw new RuntimeException("Exception copying NAMESPACE file", e);
-    }
-
-  }
-
-
-  private void writeRequires() {
-    // save a list of packages that are to be loaded onto the
-    // global search path when this package is loaded
-
-    if(descriptionFile.exists()) {
-      PackageDescription description;
-      try {
-        description = PackageDescription.fromFile(descriptionFile);
-      } catch(IOException e) {
-        throw new RuntimeException("Exception reading DESCRIPTION file");
-      }
-      try {
-        PrintWriter requireWriter = new PrintWriter(new File(getPackageRoot(), "requires"));
-        for(PackageDescription.PackageDependency dep : description.getDepends()) {
-          if(!dep.getName().equals("R") && !Strings.isNullOrEmpty(dep.getName())) {
-            requireWriter.println(dep.getName());
-          }
-        }
-        requireWriter.close();
-      } catch (IOException e) {
-        throw new RuntimeException("Exception writing requires file", e);
-      }
-    }
-  }
 }

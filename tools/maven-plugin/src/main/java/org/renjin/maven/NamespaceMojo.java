@@ -87,7 +87,7 @@ public class NamespaceMojo extends AbstractMojo {
           .setDataDir(dataDirectory)
           .build();
 
-      MavenBuildContext buildContext = new MavenBuildContext(project, pluginDependencies);
+      MavenBuildContext buildContext = new MavenBuildContext(project, pluginDependencies, getLog());
       buildContext.setDefaultPackages(defaultPackages);
 
       PackageBuilder builder = new PackageBuilder(source, buildContext);
@@ -98,13 +98,6 @@ public class NamespaceMojo extends AbstractMojo {
     } catch (IOException e) {
       throw new MojoExecutionException("IOException: " + e.getMessage(), e);
     }
-  }
-
-  private File getPackageRoot() {
-    File packageRoot = new File(outputDirectory.getAbsoluteFile() + File.separator +
-        groupId.replace(".", File.separator) + File.separator + packageName);
-    packageRoot.mkdirs();
-    return packageRoot;
   }
 
 }

@@ -42,7 +42,7 @@ public class GnurBuildMojo extends AbstractMojo {
           .setGroupId(project.getGroupId())
           .build();
       
-      MavenBuildContext buildContext = new MavenBuildContext(project, Collections.<Artifact>emptySet());
+      MavenBuildContext buildContext = new MavenBuildContext(project, Collections.<Artifact>emptySet(), getLog());
       buildContext.setDefaultPackagesIfDependencies();
       
       PackageBuilder builder = new PackageBuilder(packageSource, buildContext);

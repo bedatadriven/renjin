@@ -1,6 +1,9 @@
 package org.renjin.packaging;
 
+import org.renjin.primitives.packaging.PackageLoader;
+
 import java.io.File;
+import java.util.List;
 
 /**
  * Provides general access to the build environment, whether
@@ -47,10 +50,17 @@ public interface BuildContext {
   File getPackageOutputDir();
 
 
+  PackageLoader getPackageLoader();
+
   /**
    * @return the class loader to use for evaluating R sources
    */
   ClassLoader getClassLoader();
 
-  
+  /**
+   * 
+   * @return the nmaes of the packages that should be on the search path when the 
+   * 
+   */
+  List<String> getDefaultPackages();
 }

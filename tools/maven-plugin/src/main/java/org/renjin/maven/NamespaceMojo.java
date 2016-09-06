@@ -9,6 +9,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
+import org.renjin.packaging.PackageBuilder;
 import org.renjin.packaging.PackageDescription;
 import org.renjin.packaging.PackageSource;
 import org.renjin.repackaged.guava.base.Strings;
@@ -76,17 +77,32 @@ public class NamespaceMojo extends AbstractMojo {
   private List<String> sourceFiles;
 
   @Parameter
-  private List defaultPackages;
+  private List<String> defaultPackages;
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
 
-    MavenBuildContext buildContext = new MavenBuildContext(project, pluginDependencies);
+    try {
+      PackageSource source = new PackageSource.Builder(project.getBasedir())
+          .setGroupId(groupId)
+          .setDescriptionFile(descriptionFile)
+          .setNamespaceFile(namespaceFile)
+          .setSourceDir(sourceDirectory)
+          .setSourceFiles(sourceFiles)
+          .setDataDir(dataDirectory)
+          .build();
 
-    copyResources();
-    compileNamespaceEnvironment(buildContext);
-    writeRequires();
-    compileDatasets(buildContext);
+      MavenBuildContext buildContext = new MavenBuildContext(project, pluginDependencies);
+      buildContext.setDefaultPackages(defaultPackages);
+
+      PackageBuilder builder = new PackageBuilder(source, buildContext);
+      builder.copyRootFiles();
+      builder.compileNamespace();
+      builder.compileDatasets();
+
+    } catch (IOException e) {
+      throw new MojoExecutionException("IOException: " + e.getMessage(), e);
+    }
   }
 
   private void compileNamespaceEnvironment(MavenBuildContext buildContext) throws MojoExecutionException {

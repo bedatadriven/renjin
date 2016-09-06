@@ -9,6 +9,9 @@ import org.renjin.gnur.GnurInstallation;
 import org.renjin.packaging.BuildContext;
 import org.renjin.packaging.BuildException;
 import org.renjin.packaging.BuildLogger;
+import org.renjin.packaging.DefaultPackages;
+import org.renjin.primitives.packaging.ClasspathPackageLoader;
+import org.renjin.primitives.packaging.PackageLoader;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Sets;
 
@@ -17,9 +20,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 
 public class MavenBuildContext implements BuildContext {
@@ -30,24 +31,54 @@ public class MavenBuildContext implements BuildContext {
 
   private File buildDir;
   private File outputDir;
+  private File packageOuputDir;
   private File pluginFile;
   private File homeDir;
   private File unpackedIncludeDir;
+  
   private URL[] classpath;
+  private final URLClassLoader classloader;
+  private ClasspathPackageLoader packageLoader;
   
   private Collection<Artifact> pluginDependencies;
+  
+  private List<String> defaultPackages = Collections.emptyList();
 
   public MavenBuildContext(MavenProject project, Collection<Artifact> pluginDependencies) throws MojoExecutionException {
     this.project = project;
     this.buildDir = new File(project.getBuild().getDirectory());
     this.outputDir = new File(project.getBuild().getOutputDirectory());
+    this.packageOuputDir = new File(project.getBuild().getOutputDirectory() + File.separator + 
+        project.getGroupId().replace('.', File.separatorChar) + File.separator +  
+        project.getArtifactId());
     this.pluginDependencies = pluginDependencies;
     this.homeDir = new File(buildDir, "gnur");
     this.pluginFile = new File(buildDir, "bridge.so");
     this.unpackedIncludeDir = new File(buildDir, "include");
     this.classpath = buildClassPath();
+
+    ensureDirExists(outputDir);
+    ensureDirExists(packageOuputDir);
+    ensureDirExists(getGnuRHomeDir());
+    ensureDirExists(unpackedIncludeDir);
+    
+    classloader = new URLClassLoader(classpath, getClass().getClassLoader());
+    packageLoader = new ClasspathPackageLoader(classloader);
   }
 
+  private File ensureDirExists(File dir) throws MojoExecutionException {
+    if(dir.exists()) {
+      if(!dir.isDirectory()) {
+        throw new MojoExecutionException(dir.getAbsoluteFile() + " is not a directory.");
+      }
+    } else {
+      boolean created = dir.mkdirs();
+      if(!created) {
+        throw new MojoExecutionException("Failed to create directory " + dir.getAbsolutePath());
+      }
+    }
+    return dir;
+  }
 
   public void setupNativeCompilation()  {
     // Unpack any headers from dependencies
@@ -95,12 +126,17 @@ public class MavenBuildContext implements BuildContext {
 
   @Override
   public File getPackageOutputDir() {
-    return buildDir;
+    return packageOuputDir;
+  }
+
+  @Override
+  public PackageLoader getPackageLoader() {
+    return packageLoader;
   }
 
   @Override
   public ClassLoader getClassLoader() {
-    return new URLClassLoader(classpath);
+    return classloader;
   }
 
   private URL[] buildClassPath() throws MojoExecutionException  {
@@ -134,5 +170,39 @@ public class MavenBuildContext implements BuildContext {
     } catch(MalformedURLException e) {
       throw new MojoExecutionException("Exception resolving classpath", e);
     }
+  }
+
+  public void setDefaultPackages(List<String> defaultPackages) {
+    if(defaultPackages == null) {
+      this.defaultPackages = Collections.emptyList();
+    } else {
+      this.defaultPackages = defaultPackages;
+    }
+  }
+
+  @Override
+  public List<String> getDefaultPackages() {
+    return defaultPackages;
+  }
+
+  public void setDefaultPackagesIfDependencies() {
+    List<String> defaultPackages = new ArrayList<>();
+    for (String packageName : DefaultPackages.DEFAULT_PACKAGES) {
+      if(isDependency(packageName)) {
+        defaultPackages.add(packageName);
+      }
+    }
+    setDefaultPackages(defaultPackages);
+  }
+
+  private boolean isDependency(String packageName) {
+    Iterable<Artifact> dependencies = project.getCompileArtifacts();
+    for (Artifact dependency : dependencies) {
+      if(dependency.getGroupId().equals("org.renjin") &&
+          dependency.getArtifactId().equals(packageName)) {
+        return true;
+      }
+    }
+    return false;
   }
 }

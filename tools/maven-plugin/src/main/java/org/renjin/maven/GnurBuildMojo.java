@@ -1,6 +1,6 @@
 package org.renjin.maven;
 
-import edu.emory.mathcs.backport.java.util.Collections;
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -12,6 +12,7 @@ import org.renjin.packaging.PackageBuilder;
 import org.renjin.packaging.PackageSource;
 
 import javax.annotation.concurrent.ThreadSafe;
+import java.util.Collections;
 
 /**
  * Builds a complete package laid out according to GNU R conventions.
@@ -38,7 +39,9 @@ public class GnurBuildMojo extends AbstractMojo {
       PackageSource packageSource = new PackageSource.Builder(project.getBasedir())
           .setGroupId(project.getGroupId())
           .build();
-      MavenBuildContext buildContext = new MavenBuildContext(project, Collections.emptySet());
+      
+      MavenBuildContext buildContext = new MavenBuildContext(project, Collections.<Artifact>emptySet());
+      buildContext.setDefaultPackagesIfDependencies();
       
       PackageBuilder builder = new PackageBuilder(packageSource, buildContext);
       builder.build();

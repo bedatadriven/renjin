@@ -26,14 +26,18 @@ public class PackageBuilder {
     copyRootFiles();
     compileNativeSources();
     copyInstalledFiles();
+    compileNamespace();
+    compileDatasets();
   }
 
 
   /**
    * Copies files from the package root, including DESCRIPTION and NAMESPACE
    */
-  private void copyRootFiles() throws IOException {
-    copyRootFile(packageSource.getDescriptionFile());
+  public void copyRootFiles() throws IOException {
+    if(packageSource.getDescriptionFile().exists()) {
+      copyRootFile(packageSource.getDescriptionFile());
+    }
     copyRootFile(packageSource.getNamespaceFile());
   }
 
@@ -92,4 +96,15 @@ public class PackageBuilder {
     }
   }
 
+
+  public void compileNamespace() throws IOException {
+    NamespaceBuilder2 builder = new NamespaceBuilder2(packageSource, context);
+    builder.compile();
+  }
+
+
+  public void compileDatasets() throws IOException {
+    DatasetsBuilder2 build = new DatasetsBuilder2(packageSource, context);
+    build.build();
+  }
 }

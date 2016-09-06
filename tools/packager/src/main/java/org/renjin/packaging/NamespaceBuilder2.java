@@ -4,9 +4,9 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.SessionBuilder;
 import org.renjin.parser.RParser;
-import org.renjin.primitives.packaging.FqPackageName;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.primitives.packaging.NamespaceFile;
+import org.renjin.primitives.packaging.PackageLoader;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.io.CharSource;
 import org.renjin.repackaged.guava.io.Files;
@@ -15,42 +15,32 @@ import org.renjin.sexp.*;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.List;
 
 /**
  * Evaluates a package's sources
  */
-public class NamespaceBuilder {
+public class NamespaceBuilder2 {
 
-  private FqPackageName name;
-  private File namespaceFile;
-  private List<File> sources;
-  private File environmentFile;
-  private List<String> defaultPackages;
+  private PackageSource source;
+  private BuildContext buildContext;
+  private final File environmentFile;
 
-  public void build(String groupId, String namespaceName, 
-                    File namespaceFile, 
-                    List<File> sourceFiles,
-                    File environmentFile, List<String> defaultPackages) throws IOException {
-
-    this.name = new FqPackageName(groupId, namespaceName);
-    this.namespaceFile = namespaceFile;
-    this.sources = sourceFiles;
-    this.environmentFile = environmentFile;
-    this.defaultPackages = defaultPackages;
-
-    compileNamespaceEnvironment();
+  public NamespaceBuilder2(PackageSource source, BuildContext buildContext) {
+    this.source = source;
+    this.buildContext = buildContext;
+    environmentFile = new File(buildContext.getPackageOutputDir(), "environment");
   }
 
-  private void compileNamespaceEnvironment() throws IOException {
-    if(isUpToDate(sources)) {
-      return;
-    }
-
+  public void compile() throws IOException {
+    
     Context context = initContext();
 
     Namespace namespace = context.getNamespaceRegistry().createNamespace(
-        new InitializingPackage(name, environmentFile.getParentFile(), getClass().getClassLoader()));
+        new InitializingPackage(
+            source.getFqName(), 
+            buildContext.getPackageOutputDir(),
+            buildContext.getClassLoader()));
+    
     importDependencies(context, namespace);
     evaluateSources(context, namespace.getNamespaceEnvironment());
     serializeEnvironment(context, namespace.getNamespaceEnvironment(), environmentFile);
@@ -58,42 +48,25 @@ public class NamespaceBuilder {
 
   private void importDependencies(Context context, Namespace namespace) throws IOException {
 
-    CharSource namespaceSource = Files.asCharSource(namespaceFile, Charsets.UTF_8);
+    CharSource namespaceSource = Files.asCharSource(source.getNamespaceFile(), Charsets.UTF_8);
     NamespaceFile namespaceFile = NamespaceFile.parse(context, namespaceSource);
 
     namespace.initImports(context, context.getNamespaceRegistry(), namespaceFile);
   }
 
-  private boolean isUpToDate(List<File> sources) {
-    long lastModified = 0;
-    for(File source : sources) {
-      if(source.lastModified() > lastModified) {
-        lastModified = source.lastModified();
-      }
-    }
-
-    if(lastModified < environmentFile.lastModified()) {
-      System.out.println("namespaceEnvironment is up to date, skipping compilation");
-      return true;
-    }
-
-    return false;
-  }
-
   private Context initContext()  {
     SessionBuilder builder = new SessionBuilder();
+    builder.bind(PackageLoader.class, buildContext.getPackageLoader());
+    
     Context context = builder.build().getTopLevelContext();
-    if(defaultPackages != null) {
-      for(String name : defaultPackages) {
-        context.evaluate(FunctionCall.newCall(Symbol.get("library"), StringVector.valueOf(name)));
-      }
+    for(String name : buildContext.getDefaultPackages()) {
+      context.evaluate(FunctionCall.newCall(Symbol.get("library"), StringVector.valueOf(name)));
     }
     return context;
   }
 
-
   private void evaluateSources(Context context, Environment namespaceEnvironment)  {
-    for(File sourceFile : sources) {
+    for(File sourceFile : source.getSourceFiles()) {
       System.err.println("Evaluating '" + sourceFile + "'");
       try {
         FileReader reader = new FileReader(sourceFile);

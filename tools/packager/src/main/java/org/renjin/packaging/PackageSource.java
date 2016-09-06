@@ -1,6 +1,7 @@
 package org.renjin.packaging;
 
 
+import org.renjin.primitives.packaging.FqPackageName;
 import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.io.Files;
@@ -28,7 +29,9 @@ public class PackageSource {
 
   private File sourceDir;
   private List<File> sourceFiles;
-
+  
+  private File dataDir;
+  
   private PackageSource() {
   }
 
@@ -46,6 +49,10 @@ public class PackageSource {
   
   public String getName() {
     return description.getPackage();
+  }
+
+  public FqPackageName getFqName() {
+    return new FqPackageName(getGroupId(), getPackageName());
   }
 
   public File getNamespaceFile() {
@@ -89,7 +96,7 @@ public class PackageSource {
   }
 
   public File getDataDir() {
-    return new File(packageDir, "data");
+    return dataDir;
   }
 
   public File getTestsDir() {
@@ -107,6 +114,7 @@ public class PackageSource {
       source.descriptionFile = new File(baseDir, "DESCRIPTION");
       source.namespaceFile = new File(baseDir, "NAMESPACE");
       source.sourceDir = new File(baseDir, "R");
+      source.dataDir = new File(baseDir, "data");
     }
 
     public Builder(String packagePath) {
@@ -147,6 +155,11 @@ public class PackageSource {
       return this;
     }
 
+    public Builder setDataDir(File dir) {
+      source.dataDir = dir;
+      return this;
+    }
+    
     public PackageSource build() throws IOException {
       checkExists("Package directory", source.packageDir);
       checkExists("NAMESPACE file", source.namespaceFile);

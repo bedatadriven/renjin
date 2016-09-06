@@ -16,10 +16,12 @@ import java.util.Collections;
 public class InitializingPackage extends Package {
 
   private final File packageRoot;
+  private ClassLoader classLoader;
 
-  protected InitializingPackage(FqPackageName name, File packageRoot) {
+  protected InitializingPackage(FqPackageName name, File packageRoot, ClassLoader classLoader) {
     super(name);
     this.packageRoot = packageRoot;
+    this.classLoader = classLoader;
   }
 
   @Override
@@ -34,7 +36,7 @@ public class InitializingPackage extends Package {
 
   @Override
   public Class loadClass(String className) throws ClassNotFoundException {
-    return getClass().getClassLoader().loadClass(className);
+    return classLoader.loadClass(className);
   }
 
   @Override

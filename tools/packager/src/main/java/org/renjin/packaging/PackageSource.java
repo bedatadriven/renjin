@@ -103,7 +103,14 @@ public class PackageSource {
     return new File(packageDir, "tests");
   }
 
-
+  /**
+   *
+   * @return the directory containing Java Jars to be deployed with this project.
+   */
+  public File getJavaDir() {
+    return new File(getInstalledFilesDir(), "java");
+  }
+  
   public static class Builder {
     private PackageSource source = new PackageSource();
     

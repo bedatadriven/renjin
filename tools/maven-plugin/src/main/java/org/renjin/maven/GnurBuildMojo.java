@@ -20,7 +20,7 @@ import java.util.Collections;
  * Builds a complete package laid out according to GNU R conventions.
  */
 @ThreadSafe
-@Mojo(name = "build-gnur", requiresDependencyCollection = ResolutionScope.COMPILE)
+@Mojo(name = "gnur-compile", requiresDependencyCollection = ResolutionScope.COMPILE)
 public class GnurBuildMojo extends AbstractMojo {
 
 

@@ -32,7 +32,7 @@
           <execution>
             <id>build</id>
             <goals>
-              <goal>build-gnur</goal>
+              <goal>gnur-compile</goal>
             </goals>
             <phase>compile</phase>
           </execution>

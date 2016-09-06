@@ -1,18 +1,23 @@
 package org.renjin.packaging;
 
 
+import org.renjin.repackaged.guava.io.ByteStreams;
 import org.renjin.repackaged.guava.io.Files;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.jar.JarEntry;
+import java.util.jar.JarInputStream;
 
 public class PackageBuilder {
-  
+
   private PackageSource packageSource;
   private BuildContext context;
 
   private boolean ignoreNativeCompilationFailure;
-  
+
   public PackageBuilder(PackageSource packageSource, BuildContext context) {
     this.packageSource = packageSource;
     this.context = context;
@@ -70,30 +75,43 @@ public class PackageBuilder {
   private void copyInstalledFiles() throws IOException {
 
     if(packageSource.getInstalledFilesDir().exists()) {
-      copyInstalledFiles(packageSource.getInstalledFilesDir(), context.getPackageOutputDir());      
+      copyInstalledFiles(packageSource.getInstalledFilesDir(), context.getPackageOutputDir());
     }
   }
 
   private void copyInstalledFiles(File sourceDir, File targetDir) throws IOException {
-    
+
     if(!targetDir.exists()) {
       boolean created = targetDir.mkdirs();
       if(!created) {
         throw new IOException("Failed to create output directory '" + targetDir.getAbsolutePath() + "'");
       }
     }
-    
+
     File[] sourceFiles = sourceDir.listFiles();
     if(sourceFiles != null) {
       for (File sourceFile : sourceFiles) {
         File targetFile = new File(targetDir, sourceFile.getName());
         if(sourceFile.isDirectory()) {
           copyInstalledFiles(sourceFile, targetFile);
+          
+        } else if(isJarFile(sourceFile)) {
+          mergeJar(sourceFile);
+          
         } else {
           Files.copy(sourceFile, targetFile);
         }
       }
     }
+  }
+
+  private boolean isJarFile(File sourceFile) {
+    if( sourceFile.getName().endsWith(".jar") &&
+        sourceFile.getParentFile().getName().equals("java") &&
+        sourceFile.getParentFile().getParentFile().getName().equals("inst")) {
+      return true;
+    }
+    return false;
   }
 
 
@@ -106,5 +124,33 @@ public class PackageBuilder {
   public void compileDatasets() throws IOException {
     DatasetsBuilder2 build = new DatasetsBuilder2(packageSource, context);
     build.build();
+  }
+
+  /**
+   * GNU R packages have a convention of including compiled Java JAR files in the 
+   * package source, located in inst/java, which are then loaded by rJava at runtime.
+   *
+   * <p>If we merge the classes from those JARs into the JAR for this package, then
+   * they will be on the normal classpath as expected at runtime and we don't have to mess 
+   * around with the classpath later.</p>
+   */
+  private void mergeJar(File jarFile) throws IOException {
+    try (JarInputStream in = new JarInputStream(new FileInputStream(jarFile))) {
+      JarEntry entry;
+      while ((entry = in.getNextJarEntry()) != null) {
+        if (!entry.isDirectory()) {
+          File outputFile = new File(context.getOutputDir().getAbsolutePath() + "/" + entry.getName());
+          if(!outputFile.getParentFile().exists()) {
+            boolean created = outputFile.getParentFile().mkdirs();
+            if(!created) {
+              throw new IOException("Failed to create " + outputFile.getParent());
+            }
+          }
+          try (FileOutputStream outputStream = new FileOutputStream(outputFile)) {
+            ByteStreams.copy(in, outputStream);
+          }
+        }
+      }
+    }
   }
 }

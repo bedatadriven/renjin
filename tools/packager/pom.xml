@@ -18,6 +18,11 @@
             <artifactId>renjin-core</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.renjin</groupId>
+            <artifactId>renjin-gnur-compiler</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
     
 </project>

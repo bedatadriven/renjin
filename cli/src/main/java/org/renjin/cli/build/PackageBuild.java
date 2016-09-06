@@ -11,8 +11,7 @@ import org.eclipse.aether.util.artifact.SubArtifact;
 import org.renjin.aether.AetherFactory;
 import org.renjin.eval.Session;
 import org.renjin.gnur.GnurSourcesCompiler;
-import org.renjin.packaging.DatasetsBuilder;
-import org.renjin.packaging.NamespaceBuilder;
+import org.renjin.packaging.*;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.io.Files;
 
@@ -191,7 +190,6 @@ public class PackageBuild {
     NamespaceBuilder builder = new NamespaceBuilder();
     try {
       builder.build(source.getGroupId(), source.getName(), source.getNamespaceFile(),
-          source.getSourceDir(),
           source.getSourceFiles(),
           environmentFile,
           Session.DEFAULT_PACKAGES);

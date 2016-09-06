@@ -6,6 +6,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
 import org.renjin.eval.SessionController;
+import org.renjin.packaging.BuildException;
 import org.renjin.primitives.packaging.ClasspathPackageLoader;
 import org.renjin.primitives.packaging.PackageLoader;
 import org.renjin.repl.JlineRepl;

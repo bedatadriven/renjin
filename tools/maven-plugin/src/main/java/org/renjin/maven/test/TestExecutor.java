@@ -1,5 +1,6 @@
 package org.renjin.maven.test;
 
+import com.google.common.base.Throwables;
 import jline.UnsupportedTerminal;
 import jline.console.ConsoleReader;
 import org.renjin.eval.Context;
@@ -133,12 +134,13 @@ public class TestExecutor {
     }
   }
 
-  private void loadLibrary(Session session, String namespaceName) {
+  private void loadLibrary(Session session, String namespaceName, PrintStream testOutput) {
     try {
       session.getTopLevelContext().evaluate(FunctionCall.newCall(Symbol.get("library"), Symbol.get(namespaceName)));
     } catch(Exception e) {
-      System.err.println("Could not load this project's namespace (it may not have one)");
-      e.printStackTrace();
+      testOutput.println("Failed to load namespace " + namespaceName);
+      testOutput.println(Throwables.getStackTraceAsString(e));
+      throw new EvalException("Failed to load namespace " + namespaceName, e);
     }
   }
 
@@ -171,7 +173,7 @@ public class TestExecutor {
 
       // Examples assume that the package is already on the search path
       if (sourceFile.getName().endsWith(".Rd")) {
-        loadLibrary(session, namespaceUnderTest);
+        loadLibrary(session, namespaceUnderTest, testOutput);
       }
 
       UnsupportedTerminal term = new UnsupportedTerminal();
@@ -277,7 +279,7 @@ public class TestExecutor {
 
     for(String pkg : defaultPackages) {
       System.err.println("Loading default package " + pkg);
-      loadLibrary(session, pkg);
+      loadLibrary(session, pkg, testOutput);
     }
 
     return session;

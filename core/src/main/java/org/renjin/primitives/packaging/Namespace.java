@@ -376,7 +376,8 @@ public class Namespace {
     // Find the environment in which the original generic function was defined
     Optional<Environment> definitionEnv = resolveGenericFunctionNamespace(context, entry.getGenericMethod());
     if(!definitionEnv.isPresent()) {
-      context.warn("Cannot resolve namespace environment from generic function '%s'");
+      context.warn(String.format("Cannot resolve namespace environment from generic function '%s'", 
+          entry.getGenericMethod()));
       return;
     } 
     

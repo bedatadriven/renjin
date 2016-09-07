@@ -1013,4 +1013,9 @@ public class GimpleCompilerTest extends AbstractGccTest {
     compileAndTest("addr_field_memset.c");
   }
   
+  @Test
+  public void zeroLengthArrayFields() throws Exception {
+    compileAndTest("zero_array_fields.c");
+  }
+  
 }

@@ -368,11 +368,15 @@ static void dump_record_type_decl(tree type) {
         if(DECL_FIELD_OFFSET (field)) {
           json_start_object();
           json_int_field("id", DEBUG_TEMP_UID (field));
-          json_int_field("offset", int_bit_position(field));
-          json_int_field("size", tree_low_cst (DECL_SIZE (field), 1));
           if(DECL_NAME(field)) {
             json_string_field("name", IDENTIFIER_POINTER(DECL_NAME(field)));
           }
+          json_int_field("offset", int_bit_position(field));              
+          if(DECL_SIZE(field)) {
+            json_int_field("size", tree_low_cst (DECL_SIZE (field), 1));
+          } else {
+            json_int_field("size", 0); 
+          }        
           json_field("type");
           dump_type(TREE_TYPE(field));
           json_end_object();
@@ -516,9 +520,10 @@ static void dump_op(tree op) {
       json_int_field("id", DEBUG_TEMP_UID (op));
       if(DECL_NAME(op)) {
         json_string_field("name", IDENTIFIER_POINTER(DECL_NAME(op)));
+        TRACE("field_name = %s\n", IDENTIFIER_POINTER(DECL_NAME(op)));
       }
       json_int_field("offset", int_bit_position(op));
-      json_int_field("size", tree_low_cst (DECL_SIZE (op), 1));
+   //      json_int_field("size", tree_low_cst (DECL_SIZE (op), 1));
       break;
       
     case CONST_DECL:

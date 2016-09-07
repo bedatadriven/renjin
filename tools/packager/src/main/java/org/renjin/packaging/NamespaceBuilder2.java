@@ -43,11 +43,26 @@ public class NamespaceBuilder2 {
             buildContext.getPackageOutputDir(),
             buildContext.getClassLoader()));
     
+    loadDepends(context);
     importDependencies(context, namespace);
     loadPackageData(context, namespace);
     evaluateSources(context, namespace.getNamespaceEnvironment());
     serializeEnvironment(context, namespace.getNamespaceEnvironment(), environmentFile);
     writeRequires();
+  }
+
+  /**
+   * Load packages in the Depends field onto the global search path
+   */
+  private void loadDepends(Context context) {
+    
+    if(source.getDescription() != null) {
+      for (PackageDescription.PackageDependency dependency : source.getDescription().getDepends()) {
+        if(!dependency.getName().equals("R")) {
+          context.evaluate(FunctionCall.newCall(Symbol.get("library"), StringVector.valueOf(dependency.getName())));
+        }
+      }
+    }
   }
 
   private void importDependencies(Context context, Namespace namespace) throws IOException {

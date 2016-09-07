@@ -523,7 +523,7 @@ static void dump_op(tree op) {
         TRACE("field_name = %s\n", IDENTIFIER_POINTER(DECL_NAME(op)));
       }
       json_int_field("offset", int_bit_position(op));
-   //      json_int_field("size", tree_low_cst (DECL_SIZE (op), 1));
+      json_int_field("size", tree_low_cst (DECL_SIZE (op), 1));
       break;
       
     case CONST_DECL:

@@ -58,7 +58,7 @@ public class PackageBuild {
     this.outputDir = new File(
             stagingDir + File.separator + 
             source.getGroupId().replace('.', File.separatorChar) + File.separator + 
-            source.getName());
+            source.getPackageName());
     
     mkdirs(outputDir);
 
@@ -67,7 +67,7 @@ public class PackageBuild {
             "META-INF" + File.separator + 
             "maven" + File.separator +
             source.getGroupId() + File.separator + 
-            source.getName());
+            source.getPackageName());
     
     mkdirs(mavenMetaDir);
     
@@ -112,7 +112,7 @@ public class PackageBuild {
   }
 
   public File getJarFile() {
-    return new File(source.getPackageDir().getParentFile(), source.getName() + "-" + buildVersion + ".jar");
+    return new File(source.getPackageDir().getParentFile(), source.getPackageName() + "-" + buildVersion + ".jar");
   }
 
   public File getPomFile() {
@@ -150,7 +150,7 @@ public class PackageBuild {
     compiler.addSources(source.getNativeSourceDir());
     compiler.setVerbose(false);
     compiler.setPackageName(source.getJavaPackageName());
-    compiler.setClassName(source.getName());
+    compiler.setClassName(source.getPackageName());
     compiler.setWorkDirectory(gccWorkDir("work"));
     compiler.setGimpleDirectory(gccWorkDir("gimple"));
     compiler.setOutputDirectory(stagingDir);
@@ -189,7 +189,7 @@ public class PackageBuild {
     
     NamespaceBuilder builder = new NamespaceBuilder();
     try {
-      builder.build(source.getGroupId(), source.getName(), source.getNamespaceFile(),
+      builder.build(source.getGroupId(), source.getPackageName(), source.getNamespaceFile(),
           source.getSourceFiles(),
           environmentFile,
           Session.DEFAULT_PACKAGES);
@@ -217,7 +217,7 @@ public class PackageBuild {
   private void writePomProperties() {
     Properties properties = new Properties();
     properties.setProperty("groupId", source.getGroupId());
-    properties.setProperty("artifactId", source.getName());
+    properties.setProperty("artifactId", source.getPackageName());
     properties.setProperty("version", buildVersion);
 
     try {
@@ -243,7 +243,7 @@ public class PackageBuild {
     RepositorySystem system = AetherFactory.newRepositorySystem();
     RepositorySystemSession session = AetherFactory.newRepositorySystemSession(system);
 
-    Artifact jarArtifact = new DefaultArtifact( source.getGroupId(), source.getName(), "jar", buildVersion);
+    Artifact jarArtifact = new DefaultArtifact( source.getGroupId(), source.getPackageName(), "jar", buildVersion);
     jarArtifact = jarArtifact.setFile(getJarFile());
 
     Artifact pomArtifact = new SubArtifact( jarArtifact, "", "pom" );

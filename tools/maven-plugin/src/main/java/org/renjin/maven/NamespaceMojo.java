@@ -80,6 +80,7 @@ public class NamespaceMojo extends AbstractMojo {
     try {
       PackageSource source = new PackageSource.Builder(project.getBasedir())
           .setGroupId(groupId)
+          .setPackageName(packageName)
           .setDescriptionFile(descriptionFile)
           .setNamespaceFile(namespaceFile)
           .setSourceDir(sourceDirectory)

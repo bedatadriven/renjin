@@ -47,9 +47,6 @@ public class PackageSource {
     return groupId;
   }
   
-  public String getName() {
-    return description.getPackage();
-  }
 
   public FqPackageName getFqName() {
     return new FqPackageName(getGroupId(), getPackageName());
@@ -84,7 +81,7 @@ public class PackageSource {
   }
 
   public String getJavaPackageName() {
-    return groupId + "." + getName();
+    return groupId + "." + getPackageName();
   }
 
   public boolean needsCompilation() {
@@ -133,6 +130,11 @@ public class PackageSource {
       return this;
     }
 
+    public Builder setPackageName(String name) {
+      source.packageName = name;
+      return this;
+    }
+    
     /**
      * Overrides the location of the NAMESPACE file. (Defaults to $basedir/NAMESPACE)
      */
@@ -173,10 +175,18 @@ public class PackageSource {
 
       check(!Strings.isNullOrEmpty(source.groupId), "GroupId must be set.");
 
-      source.packageName = source.packageDir.getCanonicalFile().getName();
       if(source.descriptionFile.exists()) {
         source.description = readDescription();
       }
+      
+      if(source.packageName == null) {
+        if(source.description != null) {
+          source.packageName = source.description.getPackage();
+        } else {
+          source.packageName = source.packageDir.getCanonicalFile().getName();
+        }
+      }
+      
       source.sourceFiles = sourceFiles();
       return source;
     }
@@ -261,5 +271,6 @@ public class PackageSource {
 
       return list;
     }
+    
   }
 }

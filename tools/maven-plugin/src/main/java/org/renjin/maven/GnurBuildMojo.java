@@ -47,6 +47,7 @@ public class GnurBuildMojo extends AbstractMojo {
       buildContext.setDefaultPackagesIfDependencies();
       
       PackageBuilder builder = new PackageBuilder(packageSource, buildContext);
+      builder.setIgnoreNativeCompilationFailure(ignoreFailure);
       builder.build();
 
       archiveHeaders(buildContext);

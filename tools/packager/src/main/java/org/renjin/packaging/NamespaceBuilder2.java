@@ -92,7 +92,7 @@ public class NamespaceBuilder2 {
         context.evaluate(FunctionCall.newCall(Symbol.get("load"), StringVector.valueOf(sysDataFile.getAbsolutePath())),
             namespace.getNamespaceEnvironment());
       } catch (EvalException e) {
-        throw new IOException("Error evaluating sysdata.rda");
+        throw new IOException("Error evaluating sysdata.rda", e);
       }
     }
   }

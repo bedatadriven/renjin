@@ -80,7 +80,25 @@ public class Connections {
 
     return newConnection(context, open, new GzFileConnection(context.resolveFile(path)));
   }
-  
+
+  @Internal
+  public static IntVector xzfile(@Current final Context context,
+                                 final String path, String open, String encoding, double compressionLevel)
+      throws IOException {
+
+    return newConnection(context, open, new XzFileConnection(context.resolveFile(path)));
+  }
+
+
+  @Internal
+  public static IntVector bzfile(@Current final Context context,
+                                 final String path, String open, String encoding, double compressionLevel)
+      throws IOException {
+
+    return newConnection(context, open, new BzipFileConnection(context.resolveFile(path)));
+  }
+
+
   /**
    * Opens a connection to a file.
    * 

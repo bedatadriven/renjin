@@ -933,8 +933,8 @@ public class Primitives {
     f("pipe", /*pipe*/ null, 11);
     f("fifo", /*fifo*/ null, 11);
     f("gzfile", Connections.class, 11);
-    f("bzfile", /*gzfile*/ null, 11);
-    f("xzfile", /*gzfile*/ null, 11);
+    f("bzfile", Connections.class, 11);
+    f("xzfile", Connections.class, 11);
     f("unz", /*unz*/ null, 11);
     f("seek", /*seek*/ null, 11);
     f("truncate", /*truncate*/ null, 11);

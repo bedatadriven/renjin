@@ -24,9 +24,7 @@ package org.renjin.primitives.io.connections;
 import org.apache.commons.vfs2.FileObject;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 /**
@@ -42,7 +40,6 @@ public class GzFileConnection extends FileConnection {
 
   public static final int GZIP_MAGIC_BYTE1 = 31;
   public static final int GZIP_MAGIC_BYTE2 = 139;
-
 
   public GzFileConnection(FileObject file) throws IOException {
     super(file);

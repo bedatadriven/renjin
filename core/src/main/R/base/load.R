@@ -30,11 +30,11 @@ load <- function (file, envir = parent.frame())
             if(grepl("RD[ABX][12]\r", magic))
                 stop("input has been corrupted, with LF replaced by CR")
             ## Not a version 2 magic number, so try the pre-R-1.4.0 code
-            warning(gettextf("file %s has magic number '%s'\n   Use of save versions prior to 2 is deprecated",
+            stop(gettextf("file %s has magic number '%s'\n   Use of save versions prior to 2 is unsupported",
                              sQuote(basename(file)),
                              gsub("[\n\r]*", "", magic)),
                     domain = NA, call. = FALSE)
-            return(.Internal(load(file, envir)))
+           
         }
     } else if (inherits(file, "connection")) {
         con <- if(inherits(file, "gzfile") || inherits(file, "gzcon")) file

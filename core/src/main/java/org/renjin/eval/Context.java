@@ -190,6 +190,12 @@ public class Context {
   
   public Vector materialize(Vector sexp) {
     if(sexp instanceof DeferredComputation && !sexp.isConstantAccessTime()) {
+      if(sexp instanceof MemoizedComputation) {
+        MemoizedComputation memo = (MemoizedComputation) sexp;
+        if(memo.isCalculated()) {
+          return memo.forceResult();
+        }
+      }
       return session.getVectorEngine().materialize((DeferredComputation)sexp);
     } else {
       return sexp;

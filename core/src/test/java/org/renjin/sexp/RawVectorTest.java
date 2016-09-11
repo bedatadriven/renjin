@@ -1,7 +1,7 @@
 package org.renjin.sexp;
 
-import com.google.common.primitives.UnsignedBytes;
 import org.junit.Test;
+import org.renjin.repackaged.guava.primitives.UnsignedBytes;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;

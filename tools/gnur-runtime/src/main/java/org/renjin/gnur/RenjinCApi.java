@@ -1,7 +1,6 @@
 package org.renjin.gnur;
 
 
-import com.google.common.collect.Sets;
 import org.apache.commons.math.util.FastMath;
 import org.renjin.eval.EvalException;
 import org.renjin.gcc.runtime.BytePtr;
@@ -9,6 +8,7 @@ import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.FunPtr;
 import org.renjin.gcc.runtime.IntPtr;
 import org.renjin.gnur.sexp.GnuSymbol;
+import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.IntVector;
 import org.renjin.sexp.SEXP;

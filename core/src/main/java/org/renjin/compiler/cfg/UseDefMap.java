@@ -1,13 +1,13 @@
 package org.renjin.compiler.cfg;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
 import org.renjin.compiler.ir.tac.TreeNode;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.LValue;
 import org.renjin.compiler.ir.tac.statements.Assignment;
 import org.renjin.compiler.ir.tac.statements.Statement;
+import org.renjin.repackaged.guava.collect.HashMultimap;
+import org.renjin.repackaged.guava.collect.Maps;
+import org.renjin.repackaged.guava.collect.Multimap;
 
 import java.util.Collection;
 import java.util.HashSet;

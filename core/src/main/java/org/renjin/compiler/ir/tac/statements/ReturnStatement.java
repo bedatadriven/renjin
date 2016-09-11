@@ -1,6 +1,5 @@
 package org.renjin.compiler.ir.tac.statements;
 
-import com.google.common.collect.Lists;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.VariableStorage;
 import org.renjin.compiler.ir.ValueBounds;
@@ -10,6 +9,7 @@ import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.LValue;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
+import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.*;
 
 import java.util.Collections;

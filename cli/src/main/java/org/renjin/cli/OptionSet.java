@@ -1,7 +1,7 @@
 package org.renjin.cli;
 
-import com.google.common.base.Charsets;
-import com.google.common.io.Resources;
+import org.renjin.repackaged.guava.base.Charsets;
+import org.renjin.repackaged.guava.io.Resources;
 
 import java.io.IOException;
 import java.io.PrintStream;

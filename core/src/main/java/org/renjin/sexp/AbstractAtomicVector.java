@@ -21,9 +21,9 @@
 
 package org.renjin.sexp;
 
-import com.google.common.collect.UnmodifiableIterator;
 import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.Profiler;
+import org.renjin.repackaged.guava.collect.UnmodifiableIterator;
 
 import java.util.Iterator;
 

@@ -4,8 +4,18 @@ package org.renjin.gcc.runtime;
 import java.util.Arrays;
 
 public class IntPtr implements Ptr {
-  public int[] array;
-  public int offset;
+  
+  public static final int BYTES = Integer.SIZE / 8;
+  
+  public static final IntPtr NULL = new IntPtr();
+  
+  public final int[] array;
+  public final int offset;
+
+  private IntPtr() {
+    this.array = null;
+    this.offset = 0;
+  }
 
   public IntPtr(int[] array, int offset) {
     this.array = array;
@@ -48,11 +58,6 @@ public class IntPtr implements Ptr {
   public void set(int value) {
     array[offset] = value;
   }
-  
-  public void update(int[] array, int offset) {
-    this.array = array;
-    this.offset = offset;
-  }
 
   @Override
   public String toString() {
@@ -70,16 +75,21 @@ public class IntPtr implements Ptr {
    */
   public static void memset(int[] str, int strOffset, int byteValue, int n) {
     
-    assert n % Integer.SIZE == 0;
-    
-    int value = byteValue << 24 | 
-        (byteValue & 0xFF) << 16 | 
-        (byteValue & 0xFF) << 8 | 
-        (byteValue & 0xFF);
-    
-    Arrays.fill(str, strOffset, strOffset + (n / Integer.SIZE), value);
+    assert n % BYTES == 0;
+
+    Arrays.fill(str, strOffset, strOffset + (n / BYTES), memset(byteValue));
   }
-  
+
+  /**
+   * Sets all bytes of an {@code int} to the {@code byteValue}
+   */
+  public static int memset(int byteValue) {
+    return byteValue << 24 | 
+          (byteValue & 0xFF) << 16 | 
+          (byteValue & 0xFF) << 8 | 
+          (byteValue & 0xFF);
+  }
+
   public static int memcmp(IntPtr x, IntPtr y, int n) {
     return memcmp(x.array, x.offset, y.array, y.offset, n);
   }

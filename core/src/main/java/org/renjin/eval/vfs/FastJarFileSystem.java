@@ -1,12 +1,12 @@
 package org.renjin.eval.vfs;
 
-import com.google.common.collect.Lists;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.vfs2.*;
 import org.apache.commons.vfs2.provider.AbstractFileName;
 import org.apache.commons.vfs2.provider.AbstractFileSystem;
 import org.apache.commons.vfs2.provider.zip.ZipFileSystem;
+import org.renjin.repackaged.guava.collect.Lists;
 
 import java.io.File;
 import java.io.IOException;

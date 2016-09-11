@@ -1,10 +1,10 @@
 package org.renjin.gcc.codegen.type.record;
 
-import com.google.common.base.Optional;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
 import org.renjin.gcc.gimple.type.*;
 import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.guava.base.Optional;
+import org.renjin.repackaged.guava.collect.Iterables;
+import org.renjin.repackaged.guava.collect.Sets;
 
 import java.util.HashSet;
 import java.util.List;
@@ -165,39 +165,6 @@ public class FieldTypeSet {
     return false;
   }
 
-  private Type widestType() {
-
-    // Otherwise return the largest type, favoring integer types 
-    int maxSize = 0;
-    for (Type valueType : valueTypes) {
-      switch (valueType.getSort()) {
-        case Type.LONG:
-        case Type.DOUBLE:
-          maxSize = 64;
-          break;
-        case Type.FLOAT:
-        case Type.INT:
-          maxSize = Math.max(maxSize, 32);
-          break;
-        case Type.SHORT:
-        case Type.CHAR:
-          maxSize = Math.max(maxSize, 16);
-          break;
-        case Type.BYTE:
-        case Type.BOOLEAN:
-          maxSize = Math.max(maxSize, 8);
-          break;
-      }
-    }
-
-    switch (maxSize) {
-      case 64:
-        return Type.LONG_TYPE;
-      default:
-        return Type.INT_TYPE;
-    }
-  }
-
   private static GimpleType findUltimateComponentType(GimpleArrayType arrayType) {
     if(arrayType.getComponentType() instanceof GimpleArrayType) {
       return findUltimateComponentType((GimpleArrayType) arrayType.getComponentType());
@@ -218,6 +185,14 @@ public class FieldTypeSet {
     return true;
   }
 
+  public boolean allFunctionPointers() {
+    for (GimpleType gimpleType : gimpleTypes) {
+      if(!gimpleType.isPointerTo(GimpleFunctionType.class)) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   public boolean allPointers() {
     for (GimpleType gimpleType : gimpleTypes) {

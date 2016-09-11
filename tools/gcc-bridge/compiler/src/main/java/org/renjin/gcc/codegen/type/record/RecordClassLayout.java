@@ -1,6 +1,5 @@
 package org.renjin.gcc.codegen.type.record;
 
-import com.google.common.base.Optional;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.RecordClassGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
@@ -10,22 +9,50 @@ import org.renjin.gcc.codegen.fatptr.AddressableField;
 import org.renjin.gcc.codegen.type.FieldStrategy;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.TypeStrategy;
+import org.renjin.gcc.codegen.type.fun.FunPtrField;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrValueFunction;
+import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.guava.base.Optional;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 
 public class RecordClassLayout implements RecordLayout {
 
+  public static class Field {
+    private RecordClassLayoutTree.Node node;
+    private FieldStrategy strategy;
+
+    public Field(RecordClassLayoutTree.Node node, FieldStrategy strategy) {
+      this.node = node;
+      this.strategy = strategy;
+    }
+
+    public FieldStrategy getStrategy() {
+      return strategy;
+    }
+
+    public int getOffsetInBytes() {
+      return node.getOffset() / 8;
+    }
+
+    public int getSizeInBytes() {
+      return node.getSize() / 8;
+    }
+  }
+  
   private RecordClassLayoutTree tree;
   private UnionSet unionSet;
   private Type type;
 
-  private TreeMap<Integer, FieldStrategy> fields = new TreeMap<>();
+  private List<Field> fields;
+  
+  /**
+   * Maps an offset to a FieldStrategy.
+   */
+  private TreeMap<Integer, FieldStrategy> fieldMap = new TreeMap<>();
 
   private Set<String> fieldNames = new HashSet<>();
   
@@ -38,8 +65,11 @@ public class RecordClassLayout implements RecordLayout {
 
   @Override
   public void linkFields(TypeOracle typeOracle) {
+    fields = new ArrayList<>();
     for (RecordClassLayoutTree.Node node : tree.getTree()) {
-      fields.put(node.getOffset(), buildStrategy(typeOracle, node));
+      Field field = new Field(node, buildStrategy(typeOracle, node));
+      fields.add(field);
+      fieldMap.put(node.getOffset(), field.getStrategy());
     }
   }
 
@@ -64,7 +94,10 @@ public class RecordClassLayout implements RecordLayout {
       } else {
         return new PrimitivePointerUnionField(type, uniqueFieldName(node));
       }
-   
+
+    } else if(typeSet.allFunctionPointers()) {
+      return new FunPtrField(type, uniqueFieldName(node));
+      
     } else if(typeSet.allPointers()) {
       if(node.isAddressable()) {
         return new AddressableField(type, uniqueFieldName(node), new VoidPtrValueFunction());
@@ -80,6 +113,12 @@ public class RecordClassLayout implements RecordLayout {
       return new PrimitiveUnionField(type, uniqueFieldName(node), commonType.get());
       
     } else {
+      Optional<Type> commonType = typeSet.tryComputeCommonType();
+      if(commonType.isPresent()) {
+        int arrayLength = node.getSize() / GimplePrimitiveType.fromJvmType(commonType.get()).getSize();
+        return new RecordArrayField(type, uniqueFieldName(node), commonType.get(), arrayLength);
+      }
+
       throw new UnsupportedOperationException("TODO: " + unionSet.debugString());
     }
   }
@@ -133,8 +172,8 @@ public class RecordClassLayout implements RecordLayout {
     JExpr instanceVar = mv.getLocalVarAllocator().tempIfNeeded(mv, instanceRef);
 
     // Find the logical field that contains this bit range
-    Integer fieldStart = fields.floorKey(offset);
-    FieldStrategy fieldStrategy = fields.get(fieldStart);
+    Integer fieldStart = fieldMap.floorKey(offset);
+    FieldStrategy fieldStrategy = fieldMap.get(fieldStart);
 
     if(fieldStrategy == null) {
       throw new IllegalStateException(type + " has no field at offset " + offset);
@@ -145,13 +184,13 @@ public class RecordClassLayout implements RecordLayout {
 
   @Override
   public void writeClassFiles(File outputDir) throws IOException {
-    RecordClassGenerator generator = new RecordClassGenerator(type, getSuperClass(), fields.values(), 
+    RecordClassGenerator generator = new RecordClassGenerator(type, getSuperClass(), fields, 
         unionSet.sizeOf());
     generator.writeClassFile(outputDir);
   }
 
   private Type getSuperClass() {
-    for (FieldStrategy fieldStrategy : fields.values()) {
+    for (FieldStrategy fieldStrategy : fieldMap.values()) {
       if(fieldStrategy instanceof SuperClassFieldStrategy) {
         return ((SuperClassFieldStrategy) fieldStrategy).getType();
       }

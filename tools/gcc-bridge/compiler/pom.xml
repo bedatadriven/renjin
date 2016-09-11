@@ -29,8 +29,8 @@
 
   <dependencies>
     <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
+      <groupId>org.renjin</groupId>
+      <artifactId>renjin-guava</artifactId>
     </dependency>
     <dependency>
       <groupId>org.renjin</groupId>
@@ -46,6 +46,12 @@
       <groupId>io.airlift</groupId>
       <artifactId>airline</artifactId>
       <version>0.4</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.renjin</groupId>
@@ -57,7 +63,6 @@
       <version>${project.version}</version>
       <classifier>${envClassifier}</classifier>
     </dependency>
-
     <dependency>
       <groupId>com.google.code.findbugs</groupId>
       <artifactId>jsr305</artifactId>

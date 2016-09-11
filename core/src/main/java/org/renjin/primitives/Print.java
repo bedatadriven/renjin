@@ -21,14 +21,14 @@
 
 package org.renjin.primitives;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import org.renjin.eval.Context;
 import org.renjin.invoke.annotations.*;
 import org.renjin.parser.StringLiterals;
 import org.renjin.primitives.print.*;
 import org.renjin.primitives.vector.RowNamesVector;
+import org.renjin.repackaged.guava.base.Function;
+import org.renjin.repackaged.guava.collect.Iterables;
+import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.*;
 
 import java.io.IOException;

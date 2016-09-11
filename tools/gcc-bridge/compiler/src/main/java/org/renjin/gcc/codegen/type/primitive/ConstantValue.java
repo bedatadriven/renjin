@@ -1,7 +1,5 @@
 package org.renjin.gcc.codegen.type.primitive;
 
-import com.google.common.base.Preconditions;
-import com.google.common.primitives.UnsignedBytes;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
@@ -9,6 +7,8 @@ import org.renjin.gcc.gimple.expr.GimplePrimitiveConstant;
 import org.renjin.gcc.gimple.type.GimpleIntegerType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.guava.base.Preconditions;
+import org.renjin.repackaged.guava.primitives.UnsignedBytes;
 
 import javax.annotation.Nonnull;
 

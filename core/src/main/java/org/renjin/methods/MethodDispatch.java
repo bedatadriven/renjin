@@ -1,12 +1,12 @@
 package org.renjin.methods;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
 import org.renjin.eval.Calls;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.SessionScoped;
 import org.renjin.primitives.Evaluation;
+import org.renjin.repackaged.guava.base.Preconditions;
+import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.sexp.*;
 
 import java.util.HashMap;

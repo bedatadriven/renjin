@@ -1,7 +1,7 @@
 package org.renjin.gnur;
 
 
-import com.google.common.io.ByteStreams;
+import org.renjin.repackaged.guava.io.ByteStreams;
 
 import java.io.File;
 import java.io.FileOutputStream;

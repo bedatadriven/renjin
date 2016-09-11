@@ -1,14 +1,15 @@
 package org.renjin.gcc.codegen.type.fun;
 
-import com.google.common.base.Optional;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
+import org.renjin.gcc.codegen.fatptr.Memset;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.fatptr.WrappedFatPtrExpr;
 import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.guava.base.Optional;
 
 import java.lang.invoke.MethodHandle;
 import java.util.Collections;
@@ -63,6 +64,11 @@ public class FunPtrValueFunction implements ValueFunction {
   @Override
   public void memoryCopy(MethodGenerator mv, JExpr destinationArray, JExpr destinationOffset, JExpr sourceArray, JExpr sourceOffset, JExpr valueCount) {
     mv.arrayCopy(sourceArray, sourceOffset, destinationArray, destinationOffset, valueCount);
+  }
+
+  @Override
+  public void memorySet(MethodGenerator mv, JExpr array, JExpr offset, JExpr byteValue, JExpr length) {
+    Memset.zeroOutRefArray(mv, array, offset, length);
   }
 
   @Override

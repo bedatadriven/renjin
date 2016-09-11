@@ -209,6 +209,9 @@ public class MallocThunk {
     return new MallocThunk(size);
   }
 
+  public static Object calloc(int numElements, int elementSize) {
+    return new MallocThunk(numElements * elementSize);
+  }
   
   /**
    * The C library function void free(void *ptr) deallocates the memory previously allocated by a

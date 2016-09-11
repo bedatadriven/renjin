@@ -1,13 +1,13 @@
 package org.renjin.gcc.symbols;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
 import org.renjin.gcc.gimple.expr.GimpleSymbolRef;
+import org.renjin.repackaged.guava.base.Preconditions;
+import org.renjin.repackaged.guava.collect.Maps;
 
 import java.util.Map;
 

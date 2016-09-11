@@ -1,12 +1,12 @@
 package org.renjin.gcc.analysis;
 
-import com.google.common.collect.Sets;
 import org.renjin.gcc.TreeLogger;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleExprVisitor;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleVariableRef;
+import org.renjin.repackaged.guava.collect.Sets;
 
 import java.util.ListIterator;
 import java.util.Set;

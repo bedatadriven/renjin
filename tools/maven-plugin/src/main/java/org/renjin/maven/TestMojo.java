@@ -1,7 +1,5 @@
 package org.renjin.maven;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -12,6 +10,8 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.renjin.maven.test.ForkedTestController;
+import org.renjin.repackaged.guava.base.Joiner;
+import org.renjin.repackaged.guava.collect.Lists;
 
 import java.io.File;
 import java.net.MalformedURLException;

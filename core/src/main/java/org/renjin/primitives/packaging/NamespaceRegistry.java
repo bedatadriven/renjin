@@ -1,13 +1,13 @@
 package org.renjin.primitives.packaging;
 
-import com.google.common.base.Charsets;
-import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
-import com.google.common.collect.*;
-import com.google.common.io.CharSource;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.SessionScoped;
+import org.renjin.repackaged.guava.base.Charsets;
+import org.renjin.repackaged.guava.base.Joiner;
+import org.renjin.repackaged.guava.base.Optional;
+import org.renjin.repackaged.guava.collect.*;
+import org.renjin.repackaged.guava.io.CharSource;
 import org.renjin.sexp.*;
 
 import java.io.IOException;

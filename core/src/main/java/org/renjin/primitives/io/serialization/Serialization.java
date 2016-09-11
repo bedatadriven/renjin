@@ -129,7 +129,7 @@ public class Serialization {
     writer.save(list.build());
     
     if (!wasOpen) {
-      con.close();
+      Connections.close(context, connHandle);
     }
   }
   

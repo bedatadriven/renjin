@@ -1,7 +1,5 @@
 package org.renjin.compiler.ir.ssa;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 import org.renjin.compiler.cfg.FlowEdge;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.ir.ValueBounds;
@@ -9,6 +7,8 @@ import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.Variable;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
+import org.renjin.repackaged.guava.base.Joiner;
+import org.renjin.repackaged.guava.collect.Lists;
 
 import java.util.Iterator;
 import java.util.List;

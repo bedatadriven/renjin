@@ -1,13 +1,13 @@
 package org.renjin.gcc.codegen.fatptr;
 
-import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleParameter;
 import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.guava.base.Optional;
+import org.renjin.repackaged.guava.collect.Lists;
 
 import java.util.List;
 
@@ -29,9 +29,20 @@ public class WrappedFatPtrParamStrategy implements ParamStrategy {
 
   @Override
   public GExpr emitInitialization(MethodGenerator mv, GimpleParameter parameter, List<JLValue> paramVars, VarAllocator localVars) {
-    
-    if(valueFunction.getValueType().getSort() == Type.OBJECT) {
-      return new WrappedFatPtrExpr(valueFunction, paramVars.get(0));
+
+    JLValue wrapper = paramVars.get(0);
+
+    if(parameter.isAddressable()) {
+      
+      // Allocate a unit array for this parameter
+      JLValue unitArray = localVars.reserveUnitArray(parameter.getName() + "$address",
+          wrapper.getType(), Optional.<JExpr>of(wrapper));
+
+      return new DereferencedFatPtr(unitArray, Expressions.constantInt(0), 
+          new FatPtrValueFunction(valueFunction));
+
+    } else if(valueFunction.getValueType().getSort() == Type.OBJECT) {
+      return new WrappedFatPtrExpr(valueFunction, wrapper);
 
     } else {
       
@@ -40,7 +51,6 @@ public class WrappedFatPtrParamStrategy implements ParamStrategy {
       JLValue array = localVars.reserve(parameter.getName() + "$array", Wrappers.valueArrayType(valueFunction.getValueType()));
       JLValue offset = localVars.reserveInt(parameter.getName() + "$offset");
 
-      JExpr wrapper = paramVars.get(0);
       JExpr arrayField = Wrappers.arrayField(wrapper, valueFunction.getValueType());
       JExpr offsetField = Wrappers.offsetField(wrapper);
 

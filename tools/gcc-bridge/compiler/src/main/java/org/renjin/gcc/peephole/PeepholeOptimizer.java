@@ -1,13 +1,13 @@
 package org.renjin.gcc.peephole;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.tree.AbstractInsnNode;
 import org.renjin.repackaged.asm.tree.JumpInsnNode;
 import org.renjin.repackaged.asm.tree.MethodNode;
 import org.renjin.repackaged.asm.util.Textifier;
 import org.renjin.repackaged.asm.util.TraceMethodVisitor;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.collect.Sets;
 
 import java.util.List;
 import java.util.ListIterator;

@@ -21,9 +21,9 @@
 
 package org.renjin.util;
 
-import com.google.common.base.Preconditions;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.repackaged.guava.base.Preconditions;
 import org.renjin.sexp.*;
 
 /**

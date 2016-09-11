@@ -21,8 +21,8 @@
 
 package org.renjin.primitives.text.regex;
 
-import com.google.common.base.Predicate;
 import org.renjin.eval.EvalException;
+import org.renjin.repackaged.guava.base.Predicate;
 
 /**
  * Compiles a regular expression based on the supplied options.

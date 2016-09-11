@@ -4,8 +4,16 @@ import java.util.Arrays;
 
 
 public class ShortPtr implements Ptr {
-  public short[] array;
-  public int offset;
+  
+  public static final ShortPtr NULL = new ShortPtr();
+  
+  public final short[] array;
+  public final int offset;
+  
+  private ShortPtr() {
+    this.array = null;
+    this.offset = 0;
+  }
 
   public ShortPtr(short[] array, int offset) {
     this.array = array;
@@ -44,6 +52,15 @@ public class ShortPtr implements Ptr {
   @Override
   public String toString() {
     return offset + "+" + Arrays.toString(array);
+  }
+
+
+  public static void memset(short[] array, int offset, int value, int length) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  public static short memset(int byteValue) {
+    throw new UnsupportedOperationException("TODO");
   }
 
   public static ShortPtr cast(Object voidPointer) {

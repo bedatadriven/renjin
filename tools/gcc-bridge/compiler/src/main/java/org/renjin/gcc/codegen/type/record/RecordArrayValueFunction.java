@@ -1,6 +1,5 @@
 package org.renjin.gcc.codegen.type.record;
 
-import com.google.common.base.Optional;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
@@ -8,6 +7,7 @@ import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.fatptr.WrappedFatPtrExpr;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.guava.base.Optional;
 
 import java.util.List;
 
@@ -77,6 +77,11 @@ public class RecordArrayValueFunction implements ValueFunction {
   @Override
   public void memoryCopy(MethodGenerator mv, JExpr destinationArray, JExpr destinationOffset, JExpr sourceArray, JExpr sourceOffset, JExpr valueCount) {
     mv.arrayCopy(sourceArray, sourceOffset, destinationArray, destinationOffset, valueCount);
+  }
+
+  @Override
+  public void memorySet(MethodGenerator mv, JExpr array, JExpr offset, JExpr byteValue, JExpr length) {
+    throw new UnsupportedOperationException("TODO");
   }
 
   @Override

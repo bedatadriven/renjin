@@ -21,6 +21,11 @@
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.renjin</groupId>
+      <artifactId>stats</artifactId>
+      <version>${project.version}</version>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
@@ -30,19 +35,9 @@
         <version>${project.version}</version>
         <executions>
           <execution>
-            <id>build</id>
-            <goals>
-              <goal>namespace-compile</goal>
-            </goals>
-            <phase>compile</phase>
-            <configuration>
-              <sourceDirectory>R</sourceDirectory>
-            </configuration>
-          </execution>
-          <execution>
             <id>compile-c-sources</id>
             <goals>
-              <goal>make-gnur-sources</goal>
+              <goal>gnur-compile</goal>
             </goals>
             <phase>compile</phase>
           </execution>

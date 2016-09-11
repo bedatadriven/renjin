@@ -1,12 +1,12 @@
 package org.renjin.gcc.cpp;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
 import org.renjin.gcc.AbstractGccTest;
 import org.renjin.gcc.Gcc;
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.codegen.lib.cpp.CppSymbolLibrary;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
+import org.renjin.repackaged.guava.base.Strings;
+import org.renjin.repackaged.guava.collect.Lists;
 
 import java.io.File;
 import java.io.IOException;

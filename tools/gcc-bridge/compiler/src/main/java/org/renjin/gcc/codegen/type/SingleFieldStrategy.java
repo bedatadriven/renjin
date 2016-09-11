@@ -1,12 +1,12 @@
 package org.renjin.gcc.codegen.type;
 
-import com.google.common.base.Preconditions;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.primitive.FieldValue;
 import org.renjin.repackaged.asm.ClassVisitor;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.guava.base.Preconditions;
 
 public abstract class SingleFieldStrategy extends FieldStrategy {
   
@@ -25,6 +25,12 @@ public abstract class SingleFieldStrategy extends FieldStrategy {
   @Override
   public final void writeFields(ClassVisitor cv) {
     cv.visitField(Opcodes.ACC_PUBLIC, fieldName, fieldType.getDescriptor(), null, null);
+  }
+  
+  protected final void memsetReference(MethodGenerator mv, JExpr instance, JExpr byteValue, JExpr count) {
+    instance.load(mv);
+    mv.aconst(null);
+    mv.putfield(ownerClass, fieldName, fieldType);
   }
   
   @Override

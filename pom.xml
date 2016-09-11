@@ -231,8 +231,8 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>com.google.guava</groupId>
-        <artifactId>guava</artifactId>
+        <groupId>org.renjin</groupId>
+        <artifactId>renjin-guava</artifactId>
         <version>17.0</version>
       </dependency>
       <dependency>

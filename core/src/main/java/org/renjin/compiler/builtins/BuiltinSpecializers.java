@@ -1,12 +1,12 @@
 package org.renjin.compiler.builtins;
 
-import com.google.common.base.Preconditions;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.common.collect.Maps;
 import org.renjin.compiler.ir.exception.InternalCompilerException;
 import org.renjin.primitives.Primitives;
+import org.renjin.repackaged.guava.base.Preconditions;
+import org.renjin.repackaged.guava.cache.CacheBuilder;
+import org.renjin.repackaged.guava.cache.CacheLoader;
+import org.renjin.repackaged.guava.cache.LoadingCache;
+import org.renjin.repackaged.guava.collect.Maps;
 
 import java.util.Map;
 import java.util.concurrent.ExecutionException;

@@ -6,9 +6,16 @@ import java.util.Arrays;
 
 public class BytePtr implements Ptr {
   
-  public byte[] array;
-  public int offset;
+  public static final BytePtr NULL = new BytePtr();
+  
+  public final byte[] array;
+  public final int offset;
 
+  private BytePtr() {
+    this.array = null;
+    this.offset = 0;
+  }
+  
   public BytePtr(byte... array) {
     this(array, 0);
   }
@@ -84,6 +91,10 @@ public class BytePtr implements Ptr {
     Arrays.fill(str, strOffset, strOffset + (c / Double.SIZE), (byte)c);
   }
 
+  public static byte memset(int c) {
+    return (byte) c;
+  }
+  
   @Override
   public byte[] getArray() {
     return array;

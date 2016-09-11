@@ -21,10 +21,10 @@
 
 package org.renjin.sexp;
 
-import com.google.common.collect.Iterables;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Profiler;
 import org.renjin.parser.NumericLiterals;
+import org.renjin.repackaged.guava.collect.Iterables;
 
 import java.util.Arrays;
 import java.util.Collection;

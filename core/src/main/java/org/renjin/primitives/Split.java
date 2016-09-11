@@ -1,7 +1,7 @@
 package org.renjin.primitives;
 
-import com.google.common.collect.Maps;
 import org.renjin.invoke.annotations.Internal;
+import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.sexp.*;
 
 import java.util.Map;

@@ -1,8 +1,8 @@
 package org.renjin.gcc.codegen.type.record;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.Iterables;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
+import org.renjin.repackaged.guava.base.Strings;
+import org.renjin.repackaged.guava.collect.Iterables;
 
 import java.util.Iterator;
 import java.util.List;

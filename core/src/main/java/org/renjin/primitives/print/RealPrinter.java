@@ -1,7 +1,7 @@
 package org.renjin.primitives.print;
 
-import com.google.common.base.Function;
 import org.renjin.parser.NumericLiterals;
+import org.renjin.repackaged.guava.base.Function;
 
 public class RealPrinter implements Function<Double, String> {
   @Override

@@ -1,6 +1,5 @@
 package org.renjin.gcc.codegen.array;
 
-import com.google.common.base.Optional;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
@@ -8,6 +7,7 @@ import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.fatptr.WrappedFatPtrExpr;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.guava.base.Optional;
 
 import java.util.List;
 
@@ -61,6 +61,11 @@ public class ArrayValueFunction implements ValueFunction {
                          JExpr valueCount) {
 
     mv.arrayCopy(sourceArray, sourceOffset, destinationArray, destinationOffset, valueCount);
+  }
+
+  @Override
+  public void memorySet(MethodGenerator mv, JExpr array, JExpr offset, JExpr byteValue, JExpr length) {
+    elementValueFunction.memorySet(mv, array, offset, byteValue, length);
   }
 
   @Override

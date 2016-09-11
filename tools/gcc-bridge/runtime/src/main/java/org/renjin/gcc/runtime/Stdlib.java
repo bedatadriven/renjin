@@ -291,5 +291,18 @@ public class Stdlib {
     throw new UnsupportedOperationException("fopen() not implemented");
   }
 
+  /**
+   * test for infinity.
+   * 
+   * <p>__isinf() has the same specification as isinf() in ISO POSIX (2003), except that the
+   * argument type for __isinf() is known to be double.
+   *
+   * <p>__isinf() is not in the source standard; it is only in the binary standard.
+   * <p>See <a href="https://refspecs.linuxbase.org/LSB_3.0.0/LSB-PDA/LSB-PDA/baselib---isinf.html">
+   *   Linux Standard Base PDA Specification 3.0RC1</a></p>
+   */
+  public static int __isinf(double x) {
+    return Double.isInfinite(x) ? 1 : 0;
+  }
   
 }

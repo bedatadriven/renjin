@@ -1,8 +1,8 @@
 package org.renjin.gcc.analysis;
 
-import com.google.common.collect.Maps;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleVarDecl;
+import org.renjin.repackaged.guava.collect.Maps;
 
 import java.util.List;
 import java.util.ListIterator;

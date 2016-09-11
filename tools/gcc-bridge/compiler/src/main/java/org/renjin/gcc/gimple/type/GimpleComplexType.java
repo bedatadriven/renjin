@@ -1,7 +1,7 @@
 package org.renjin.gcc.gimple.type;
 
-import com.google.common.base.Preconditions;
 import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.guava.base.Preconditions;
 
 /**
  * Type representing complex numbers
@@ -46,10 +46,6 @@ public class GimpleComplexType extends AbstractGimpleType {
   
   public GimpleRealType getPartType() {
     return new GimpleRealType(getSize() / 2);
-  }
-
-  public boolean hasValidSize() {
-    return getSize() == 64 || getSize() == 128;
   }
 
   @Override

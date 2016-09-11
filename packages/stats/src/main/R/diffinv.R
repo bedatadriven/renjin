@@ -70,7 +70,7 @@ diffinv.ts <- function (x, lag = 1, differences = 1, xi, ...)
     ts(y, frequency = frequency(x), end = end(x))
 }
 
-toeplitz <- function (x)
+toeplitz <- function (x, ...)
 {
     if (!is.vector(x)) stop ("'x' is not a vector")
     n <- length (x)

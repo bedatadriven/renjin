@@ -78,4 +78,8 @@ public class Realloc {
     }
     return np;
   }
+  
+  public static Object realloc(Object p, int newSize) {
+    throw new UnsupportedOperationException("TODO");
+  }
 }

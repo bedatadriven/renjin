@@ -1,17 +1,14 @@
 package org.renjin.gcc.codegen.type.complex;
 
-import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.fatptr.FatPtr;
-import org.renjin.gcc.codegen.fatptr.FatPtrPair;
-import org.renjin.gcc.codegen.fatptr.ValueFunction;
-import org.renjin.gcc.codegen.fatptr.WrappedFatPtrExpr;
+import org.renjin.gcc.codegen.fatptr.*;
 import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.guava.base.Optional;
+import org.renjin.repackaged.guava.base.Preconditions;
+import org.renjin.repackaged.guava.collect.Lists;
 
 import java.util.List;
 
@@ -82,6 +79,11 @@ public class ComplexValueFunction implements ValueFunction {
     
     mv.arrayCopy(sourceArray, sourceOffset, destinationArray, destinationOffset, 
         Expressions.product(valueCount, 2));
+  }
+
+  @Override
+  public void memorySet(MethodGenerator mv, JExpr array, JExpr offset, JExpr byteValue, JExpr length) {
+    Memset.primitiveMemset(mv, valueType, array, offset, byteValue, length);
   }
 
   @Override

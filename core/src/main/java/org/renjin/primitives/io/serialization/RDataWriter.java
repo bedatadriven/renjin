@@ -21,11 +21,11 @@
 
 package org.renjin.primitives.io.serialization;
 
-import com.google.common.base.Charsets;
-import com.google.common.collect.Maps;
 import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.Context;
 import org.renjin.primitives.io.serialization.Serialization.SerializationType;
+import org.renjin.repackaged.guava.base.Charsets;
+import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.sexp.*;
 
 import java.io.DataOutputStream;

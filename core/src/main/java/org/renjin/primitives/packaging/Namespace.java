@@ -1,14 +1,15 @@
 package org.renjin.primitives.packaging;
 
-import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.reflection.ClassBindingImpl;
 import org.renjin.methods.S4;
+import org.renjin.primitives.Native;
 import org.renjin.primitives.S3;
 import org.renjin.primitives.text.regex.ExtendedRE;
 import org.renjin.primitives.text.regex.RESyntaxException;
+import org.renjin.repackaged.guava.base.Optional;
+import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.*;
 
 import java.lang.invoke.MethodHandle;
@@ -224,10 +225,14 @@ public class Namespace {
       // Call the initialization routine
       Optional<Method> initMethod = findInitRoutine(entry.getLibraryName(), clazz);
       if(initMethod.isPresent()) {
+        Context previousContext = Native.CURRENT_CONTEXT.get();
+        Native.CURRENT_CONTEXT.set(context);
         try {
           initMethod.get().invoke(null, info);
         } catch (InvocationTargetException e) {
           throw new EvalException("Exception initializing compiled GNU R library " + entry.getLibraryName(), e.getCause());
+        } finally {
+          Native.CURRENT_CONTEXT.set(previousContext);
         }
       }
 
@@ -239,7 +244,7 @@ public class Namespace {
         }
         // Use the symbols registered by the R_init_xxx() function
         for (DllSymbol symbol : info.getSymbols()) {
-          namespaceEnvironment.setVariable(symbol.getName(), symbol.createObject());
+          namespaceEnvironment.setVariable(entry.getPrefix() + symbol.getName(), symbol.createObject());
         }
 
       } else if(!entry.getSymbols().isEmpty()) {
@@ -371,7 +376,8 @@ public class Namespace {
     // Find the environment in which the original generic function was defined
     Optional<Environment> definitionEnv = resolveGenericFunctionNamespace(context, entry.getGenericMethod());
     if(!definitionEnv.isPresent()) {
-      context.warn("Cannot resolve namespace environment from generic function '%s'");
+      context.warn(String.format("Cannot resolve namespace environment from generic function '%s'", 
+          entry.getGenericMethod()));
       return;
     } 
     

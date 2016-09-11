@@ -1,11 +1,11 @@
 package org.renjin.compiler.cfg;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.renjin.compiler.ir.tac.IRBody;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.statements.BasicBlockEndingStatement;
 import org.renjin.compiler.ir.tac.statements.Statement;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.util.DebugGraph;
 
 import java.util.*;

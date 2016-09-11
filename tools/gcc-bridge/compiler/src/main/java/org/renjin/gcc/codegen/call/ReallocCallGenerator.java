@@ -5,8 +5,13 @@ import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.TypeOracle;
+import org.renjin.gcc.codegen.type.fun.FunctionRefGenerator;
 import org.renjin.gcc.gimple.statement.GimpleCall;
 import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.gcc.runtime.Realloc;
+import org.renjin.repackaged.asm.Handle;
+import org.renjin.repackaged.asm.Opcodes;
+import org.renjin.repackaged.asm.Type;
 
 /**
  * Generates calls to realloc().
@@ -14,7 +19,7 @@ import org.renjin.gcc.gimple.type.GimpleType;
  * <p>The C library function void *realloc(void *ptr, size_t size) attempts to resize the memory block pointed to
  * by ptr that was previously allocated with a call to malloc or calloc. .</p>
  */
-public class ReallocCallGenerator implements CallGenerator {
+public class ReallocCallGenerator implements CallGenerator, MethodHandleGenerator {
 
   private TypeOracle typeOracle;
 
@@ -41,5 +46,14 @@ public class ReallocCallGenerator implements CallGenerator {
 
     GExpr lhs = exprFactory.findGenerator(call.getLhs());
     lhs.store(mv, reallocatedPointer);
+  }
+
+
+
+  @Override
+  public JExpr getMethodHandle() {
+    return new FunctionRefGenerator(new Handle(Opcodes.H_INVOKESTATIC,
+        Type.getInternalName(Realloc.class), "realloc",
+        Type.getMethodDescriptor(Type.getType(Object.class), Type.getType(Object.class), Type.INT_TYPE)));
   }
 }

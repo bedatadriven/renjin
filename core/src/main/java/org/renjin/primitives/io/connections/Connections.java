@@ -20,9 +20,6 @@
  */
 package org.renjin.primitives.io.connections;
 
-import com.google.common.base.Charsets;
-import com.google.common.base.Joiner;
-import com.google.common.base.Strings;
 import org.apache.commons.vfs2.FileSystemException;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
@@ -30,6 +27,9 @@ import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.invoke.annotations.Recycle;
 import org.renjin.primitives.io.connections.Connection.Type;
+import org.renjin.repackaged.guava.base.Charsets;
+import org.renjin.repackaged.guava.base.Joiner;
+import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.sexp.*;
 
 import java.io.DataInputStream;
@@ -80,7 +80,25 @@ public class Connections {
 
     return newConnection(context, open, new GzFileConnection(context.resolveFile(path)));
   }
-  
+
+  @Internal
+  public static IntVector xzfile(@Current final Context context,
+                                 final String path, String open, String encoding, double compressionLevel)
+      throws IOException {
+
+    return newConnection(context, open, new XzFileConnection(context.resolveFile(path)));
+  }
+
+
+  @Internal
+  public static IntVector bzfile(@Current final Context context,
+                                 final String path, String open, String encoding, double compressionLevel)
+      throws IOException {
+
+    return newConnection(context, open, new BzipFileConnection(context.resolveFile(path)));
+  }
+
+
   /**
    * Opens a connection to a file.
    * 
@@ -186,9 +204,13 @@ public class Connections {
   }
 
   @Internal
-  public static void close(@Current Context context, SEXP conn, String type /* Unused */)
-      throws IOException {
-    getConnection(context, conn).close();
+  public static void close(@Current Context context, SEXP conn, String type /* Unused */) throws IOException {
+    close(context, conn);
+  }
+
+  public static void close(@Current Context context, SEXP conn) throws IOException {
+    int connIndex = getConnectionIndex(conn);
+    context.getSession().getConnectionTable().close(connIndex);
   }
 
   @Internal

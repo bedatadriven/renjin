@@ -5,6 +5,7 @@ import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
+import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
@@ -74,6 +75,11 @@ public class ComplexTypeStrategy implements TypeStrategy<ComplexValue> {
   @Override
   public ReturnStrategy getReturnStrategy() {
     return new ComplexReturnStrategy(type);
+  }
+
+  @Override
+  public ValueFunction getValueFunction() {
+    return new ComplexValueFunction(type.getJvmPartType());
   }
 
   @Override

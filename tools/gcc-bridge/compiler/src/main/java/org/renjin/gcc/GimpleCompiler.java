@@ -1,12 +1,5 @@
 package org.renjin.gcc;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Preconditions;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import com.google.common.io.Files;
 import org.renjin.gcc.analysis.*;
 import org.renjin.gcc.codegen.FunctionGenerator;
 import org.renjin.gcc.codegen.TrampolineClassGenerator;
@@ -22,6 +15,13 @@ import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
 import org.renjin.gcc.link.LinkSymbol;
 import org.renjin.gcc.symbols.GlobalSymbolTable;
+import org.renjin.repackaged.guava.annotations.VisibleForTesting;
+import org.renjin.repackaged.guava.base.Preconditions;
+import org.renjin.repackaged.guava.base.Predicate;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.collect.Maps;
+import org.renjin.repackaged.guava.collect.Sets;
+import org.renjin.repackaged.guava.io.Files;
 
 import java.io.File;
 import java.io.IOException;
@@ -157,6 +157,7 @@ public class GimpleCompiler  {
     try {
       
       GlobalVarMerger.merge(units);
+      ImplicitFieldDeclFinder.find(units);
 
       // Prune unused functions 
       SymbolPruner.prune(rootLogger, units, entryPointPredicate);

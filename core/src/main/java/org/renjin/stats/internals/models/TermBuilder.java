@@ -1,14 +1,12 @@
 package org.renjin.stats.internals.models;
 
 
-import java.util.List;
-
+import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
 
-
-import com.google.common.collect.Lists;
+import java.util.List;
 
 public class TermBuilder {
   

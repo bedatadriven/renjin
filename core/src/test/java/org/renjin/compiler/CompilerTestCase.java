@@ -1,8 +1,5 @@
 package org.renjin.compiler;
 
-import com.google.common.base.Charsets;
-import com.google.common.base.Joiner;
-import com.google.common.io.Resources;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
@@ -14,6 +11,9 @@ import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
 import org.renjin.parser.RParser;
+import org.renjin.repackaged.guava.base.Charsets;
+import org.renjin.repackaged.guava.base.Joiner;
+import org.renjin.repackaged.guava.io.Resources;
 import org.renjin.sexp.ExpressionVector;
 
 import java.io.IOException;

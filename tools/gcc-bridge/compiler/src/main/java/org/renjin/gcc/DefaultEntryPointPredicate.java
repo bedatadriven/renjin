@@ -1,7 +1,7 @@
 package org.renjin.gcc;
 
-import com.google.common.base.Predicate;
 import org.renjin.gcc.gimple.GimpleFunction;
+import org.renjin.repackaged.guava.base.Predicate;
 
 import javax.annotation.Nullable;
 

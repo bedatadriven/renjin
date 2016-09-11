@@ -1,7 +1,5 @@
 package org.renjin.gcc.codegen.type.record;
 
-import com.google.common.base.Optional;
-import com.google.common.collect.Maps;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategies;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
@@ -9,6 +7,7 @@ import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.AddressableField;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
+import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrStrategy;
@@ -19,6 +18,8 @@ import org.renjin.gcc.gimple.expr.GimpleFieldRef;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
 import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.guava.base.Optional;
+import org.renjin.repackaged.guava.collect.Maps;
 
 import java.util.Map;
 
@@ -66,6 +67,11 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<RecordValue> imp
   }
 
   @Override
+  public ValueFunction getValueFunction() {
+    return new RecordClassValueFunction(this);
+  }
+
+  @Override
   public RecordValue variable(GimpleVarDecl decl, VarAllocator allocator) {
 
     JLValue instance = allocator.reserve(decl.getName(), layout.getType(), new RecordConstructor(this));
@@ -88,14 +94,14 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<RecordValue> imp
 
   @Override
   public FieldStrategy fieldGenerator(Type className, String fieldName) {
-    return new RecordFieldStrategy(this, className, fieldName);
+    return new RecordClassFieldStrategy(this, className, fieldName);
   }
 
   @Override
   public FieldStrategy addressableFieldGenerator(Type className, String fieldName) {
     if(isUnitPointer()) {
       // If this type is a unit pointer, we don't need to do anything special
-      return new RecordFieldStrategy(this, className, fieldName);
+      return new RecordClassFieldStrategy(this, className, fieldName);
     } else {
       return new AddressableField(getJvmType(), fieldName, new RecordClassValueFunction(this));
     }

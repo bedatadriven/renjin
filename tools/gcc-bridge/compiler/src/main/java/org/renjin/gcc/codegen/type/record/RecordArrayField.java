@@ -2,8 +2,11 @@ package org.renjin.gcc.codegen.type.record;
 
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
+import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
+import org.renjin.gcc.codegen.fatptr.Memset;
+import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.fatptr.Wrappers;
 import org.renjin.gcc.codegen.type.FieldStrategy;
 import org.renjin.gcc.codegen.type.TypeStrategy;
@@ -20,12 +23,12 @@ public class RecordArrayField extends FieldStrategy {
   private Type arrayType;
   private int arrayLength;
 
-  public RecordArrayField(Type declaringClass, String name, RecordArrayValueFunction valueFunction, 
-                          Type arrayType, int arrayLength) {
+  public RecordArrayField(Type declaringClass, String name,
+                          Type elementType, int arrayLength) {
     this.declaringClass = declaringClass;
     this.name = name;
-    this.valueFunction = valueFunction;
-    this.arrayType = arrayType;
+    this.valueFunction = new RecordArrayValueFunction(elementType, arrayLength);
+    this.arrayType = Type.getType("[" + elementType.getDescriptor());
     this.arrayLength = arrayLength;
   }
 
@@ -46,6 +49,13 @@ public class RecordArrayField extends FieldStrategy {
   }
 
   @Override
+  public void memset(MethodGenerator mv, JExpr instance, JExpr byteValue, JExpr byteCount) {
+    JExpr arrayExpr = Expressions.field(instance, arrayType, name);
+    
+    Memset.primitiveMemset(mv, valueFunction.getValueType(), arrayExpr, Expressions.zero(), byteValue, byteCount);
+  }
+
+  @Override
   public void emitInstanceInit(MethodGenerator mv) {
     JLValue arrayField = Expressions.field(Expressions.thisValue(declaringClass), arrayType, name);
     JExpr newArray = Expressions.newArray(Wrappers.componentType(arrayType), arrayLength);
@@ -54,15 +64,14 @@ public class RecordArrayField extends FieldStrategy {
   }
 
   @Override
-  public RecordArrayExpr memberExpr(JExpr instance, int offset, int size, TypeStrategy expectedType) {
+  public GExpr memberExpr(JExpr instance, int offset, int size, TypeStrategy expectedType) {
 
-    if(offset != 0) {
-      throw new UnsupportedOperationException("TODO: offset = " + offset);
-    }
+    ValueFunction valueFunction = expectedType.getValueFunction();
     
     JLValue arrayField = Expressions.field(instance, arrayType, name);
+    JExpr offsetIndex = Expressions.constantInt(offset / 8 / valueFunction.getArrayElementBytes());    
 
-    return new RecordArrayExpr(valueFunction, arrayField, arrayLength);
+    return valueFunction.dereference(arrayField, offsetIndex);
   }
 
 }

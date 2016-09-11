@@ -1,10 +1,7 @@
 package org.renjin.compiler.codegen;
 
 
-import org.renjin.compiler.CompiledBody;
-import org.renjin.compiler.CompiledLoopBody;
-import org.renjin.compiler.NotCompilableException;
-import org.renjin.compiler.TypeSolver;
+import org.renjin.compiler.*;
 import org.renjin.compiler.cfg.BasicBlock;
 import org.renjin.compiler.cfg.ControlFlowGraph;
 import org.renjin.compiler.ir.exception.InternalCompilerException;
@@ -46,7 +43,7 @@ public class ByteCodeEmitter implements Opcodes {
     writeConstructor();
     writeClassEnd();
 
-    return new MyClassLoader().defineClass(className.replace('/', '.'), cw.toByteArray());
+    return JitClassLoader.defineClass(CompiledBody.class, className.replace('/', '.'), cw.toByteArray());
   }
 
   public Class<CompiledLoopBody> compileLoopBody() {
@@ -55,7 +52,7 @@ public class ByteCodeEmitter implements Opcodes {
     writeConstructor();
     writeClassEnd();
 
-    return new MyClassLoader().defineClass(className.replace('/', '.'), cw.toByteArray());
+    return JitClassLoader.defineClass(CompiledLoopBody.class, className.replace('/', '.'), cw.toByteArray());
   }
   
   private void startClass(Class<?> interfaceClass) {
@@ -138,6 +135,11 @@ public class ByteCodeEmitter implements Opcodes {
   }
 
   private class MyClassLoader extends ClassLoader {
+
+    public MyClassLoader(ClassLoader parent) {
+      super(parent);
+    }
+
     Class defineClass(String name, byte[] b) {
       return defineClass(name, b, 0, b.length);
     }

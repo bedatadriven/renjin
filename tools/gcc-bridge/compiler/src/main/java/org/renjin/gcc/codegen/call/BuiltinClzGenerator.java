@@ -1,6 +1,5 @@
 package org.renjin.gcc.codegen.call;
 
-import com.google.common.base.Preconditions;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.ExprFactory;
@@ -8,6 +7,7 @@ import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
 import org.renjin.gcc.gimple.statement.GimpleCall;
+import org.renjin.repackaged.guava.base.Preconditions;
 
 /**
  * Count leading zeros of an integer

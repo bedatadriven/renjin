@@ -21,8 +21,6 @@
 
 package org.renjin;
 
-import com.google.common.collect.Lists;
-import com.google.common.primitives.UnsignedBytes;
 import org.apache.commons.math.complex.Complex;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -38,6 +36,8 @@ import org.renjin.parser.RLexer;
 import org.renjin.parser.RParser;
 import org.renjin.primitives.Warning;
 import org.renjin.primitives.io.connections.ResourceConnection;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.primitives.UnsignedBytes;
 import org.renjin.sexp.*;
 
 import java.io.IOException;

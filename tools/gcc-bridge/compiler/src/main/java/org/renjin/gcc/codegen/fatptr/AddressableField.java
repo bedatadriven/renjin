@@ -1,15 +1,16 @@
 package org.renjin.gcc.codegen.fatptr;
 
-import com.google.common.base.Optional;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.gcc.codegen.type.FieldStrategy;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.repackaged.asm.ClassVisitor;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.guava.base.Optional;
 
 
 public class AddressableField extends FieldStrategy {
@@ -74,6 +75,12 @@ public class AddressableField extends FieldStrategy {
     GExpr sourceExpr = dereference(source);
     GExpr destExpr = dereference(dest);
     destExpr.store(mv, sourceExpr);
+  }
+
+  @Override
+  public void memset(MethodGenerator mv, JExpr instance, JExpr byteValue, JExpr byteCount) {
+    JLValue arrayField = Expressions.field(instance, arrayType, this.arrayField);
+    valueFunction.memorySet(mv, arrayField, Expressions.zero(), byteValue, byteCount);
   }
 
 }

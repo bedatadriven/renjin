@@ -6,15 +6,20 @@ import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.TypeOracle;
+import org.renjin.gcc.codegen.type.fun.FunctionRefGenerator;
 import org.renjin.gcc.gimple.statement.GimpleCall;
 import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.gcc.runtime.MallocThunk;
+import org.renjin.repackaged.asm.Handle;
+import org.renjin.repackaged.asm.Opcodes;
+import org.renjin.repackaged.asm.Type;
 
 /**
  * Allocates zeroed-out memory
  * 
  * <p>This actually what the JVM does by default.</p>
  */
-public class CallocGenerator implements CallGenerator {
+public class CallocGenerator implements CallGenerator, MethodHandleGenerator {
   private TypeOracle typeOracle;
 
   public CallocGenerator(TypeOracle typeOracle) {
@@ -39,5 +44,12 @@ public class CallocGenerator implements CallGenerator {
     GExpr mallocGenerator = typeOracle.forPointerType(pointerType).malloc(mv, totalBytes);
     GExpr lhs = exprFactory.findGenerator(call.getLhs());
     lhs.store(mv, mallocGenerator);
+  }
+  
+  @Override
+  public JExpr getMethodHandle() {
+    return new FunctionRefGenerator(new Handle(Opcodes.H_INVOKESTATIC,
+        Type.getInternalName(MallocThunk.class), "calloc",
+        Type.getMethodDescriptor(Type.getType(Object.class), Type.INT_TYPE, Type.INT_TYPE)));
   }
 }

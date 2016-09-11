@@ -1,6 +1,5 @@
 package org.renjin.gcc.analysis;
 
-import com.google.common.collect.Sets;
 import org.renjin.gcc.TreeLogger;
 import org.renjin.gcc.gimple.GimpleBasicBlock;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
@@ -9,6 +8,7 @@ import org.renjin.gcc.gimple.expr.GimpleAddressOf;
 import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
 import org.renjin.gcc.gimple.statement.GimpleCall;
 import org.renjin.gcc.gimple.statement.GimpleStatement;
+import org.renjin.repackaged.guava.collect.Sets;
 
 import java.util.ListIterator;
 import java.util.Set;

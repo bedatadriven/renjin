@@ -1,8 +1,8 @@
 package org.renjin.primitives.text;
 
-import java.nio.charset.Charset;
+import org.renjin.repackaged.guava.base.Charsets;
 
-import com.google.common.base.Charsets;
+import java.nio.charset.Charset;
 
 public final class RCharsets {
   

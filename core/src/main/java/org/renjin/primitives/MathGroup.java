@@ -20,12 +20,12 @@
  */
 package org.renjin.primitives;
 
-import com.google.common.math.IntMath;
 import org.apache.commons.math.complex.Complex;
 import org.apache.commons.math.util.MathUtils;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
+import org.renjin.repackaged.guava.math.IntMath;
 import org.renjin.sexp.*;
 
 import java.math.BigDecimal;

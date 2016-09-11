@@ -21,7 +21,6 @@
 
 package org.renjin.methods;
 
-import com.google.common.base.Strings;
 import org.renjin.eval.Context;
 import org.renjin.eval.Context.Type;
 import org.renjin.eval.EvalException;
@@ -30,6 +29,7 @@ import org.renjin.invoke.annotations.Current;
 import org.renjin.methods.PrimitiveMethodTable.prim_methods_t;
 import org.renjin.primitives.Contexts;
 import org.renjin.primitives.special.SubstituteFunction;
+import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.sexp.*;
 
 public class Methods {

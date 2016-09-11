@@ -1,13 +1,13 @@
 package org.renjin.primitives.files;
 
-import com.google.common.base.Charsets;
-import com.google.common.io.Files;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
+import org.renjin.repackaged.guava.base.Charsets;
+import org.renjin.repackaged.guava.io.Files;
 import org.renjin.sexp.StringVector;
 
 import java.io.File;
@@ -69,7 +69,7 @@ public class FilesTest extends EvalTestCase {
   public void renameFiles() throws IOException {
 
     // Create a temp directory with a source file
-    File tempDir = com.google.common.io.Files.createTempDir();
+    File tempDir = org.renjin.repackaged.guava.io.Files.createTempDir();
     File sourceFile = new File(tempDir, "a.txt");
     File destFile = new File(tempDir, "b.txt");
     Files.write("ABC", sourceFile, Charsets.UTF_8);

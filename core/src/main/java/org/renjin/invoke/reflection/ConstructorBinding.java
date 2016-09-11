@@ -1,16 +1,14 @@
 package org.renjin.invoke.reflection;
 
+import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.sexp.SEXP;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.List;
-
-import org.renjin.eval.Context;
-import org.renjin.eval.EvalException;
-import org.renjin.sexp.SEXP;
-
-
-import com.google.common.collect.Lists;
 
 public class ConstructorBinding implements MemberBinding {
 

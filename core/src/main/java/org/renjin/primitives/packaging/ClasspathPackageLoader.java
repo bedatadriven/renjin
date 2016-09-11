@@ -1,6 +1,6 @@
 package org.renjin.primitives.packaging;
 
-import com.google.common.base.Optional;
+import org.renjin.repackaged.guava.base.Optional;
 
 /**
  * Loads Packages from the class path

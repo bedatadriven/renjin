@@ -1,18 +1,20 @@
 package org.renjin.packaging;
 
-import com.google.common.base.Charsets;
-import com.google.common.base.Function;
-import com.google.common.base.Strings;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.io.ByteSource;
-import com.google.common.io.CharStreams;
-import com.google.common.io.Files;
+import org.renjin.repackaged.guava.annotations.VisibleForTesting;
+import org.renjin.repackaged.guava.base.Charsets;
+import org.renjin.repackaged.guava.base.Function;
+import org.renjin.repackaged.guava.base.Strings;
+import org.renjin.repackaged.guava.collect.ArrayListMultimap;
+import org.renjin.repackaged.guava.collect.Iterables;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.io.ByteSource;
+import org.renjin.repackaged.guava.io.CharStreams;
+import org.renjin.repackaged.guava.io.Files;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -184,11 +186,38 @@ public class PackageDescription {
     List<String> files = Lists.newArrayList();
     List<String> propertyValues = getProperty("Collate");
     for (String propertyValue : propertyValues) {
-      files.addAll(Arrays.asList(propertyValue.split("\\s+")));
+      files.addAll(parseFileList(propertyValue));
     }
     return files;
   }
-  
+
+  @VisibleForTesting
+  static List<String> parseFileList(String propertyValue) {
+    List<String> names = new ArrayList<>();
+    StringBuilder name = new StringBuilder();
+    boolean quoted = false;
+    boolean squoted = false;
+    for (int i = 0; i < propertyValue.length(); i++) {
+      char c = propertyValue.charAt(i);
+      if(!quoted && c == '\'') {
+        squoted = !squoted;
+      } else if(!squoted && c == '"') {
+        quoted = !quoted;
+      } else if(!quoted && !squoted && Character.isWhitespace(c)) {
+        if(name.length() > 0) {
+          names.add(name.toString());
+          name.setLength(0);
+        }
+      } else {
+        name.append(c);
+      }
+    }
+    if(name.length() > 0) {
+      names.add(name.toString());
+    }
+    return names;
+  }
+
   public boolean hasProperty(String key) {
     return properties.containsKey(key);
   }

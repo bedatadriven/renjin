@@ -1,13 +1,13 @@
 package org.renjin.compiler.cfg;
 
-import com.google.common.base.Predicates;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import org.renjin.compiler.ir.ssa.PhiFunction;
 import org.renjin.compiler.ir.tac.IRBody;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.expressions.Variable;
 import org.renjin.compiler.ir.tac.statements.*;
+import org.renjin.repackaged.guava.base.Predicates;
+import org.renjin.repackaged.guava.collect.Iterables;
+import org.renjin.repackaged.guava.collect.Lists;
 
 import java.util.ArrayList;
 import java.util.HashSet;

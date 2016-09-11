@@ -1,11 +1,11 @@
 package org.renjin.utils;
 
-import com.google.common.collect.Lists;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.primitives.io.connections.Connection;
 import org.renjin.primitives.io.connections.Connections;
+import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.*;
 
 import java.io.IOException;

@@ -1,16 +1,10 @@
 package org.renjin.eval;
 
+import org.renjin.repackaged.guava.collect.Maps;
+import org.renjin.sexp.*;
+
 import java.util.Map;
 import java.util.Set;
-
-import org.renjin.sexp.AtomicVector;
-import org.renjin.sexp.IntArrayVector;
-import org.renjin.sexp.LogicalArrayVector;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.StringArrayVector;
-
-import com.google.common.collect.Maps;
 
 /**
  * Session-level options for 

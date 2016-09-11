@@ -21,10 +21,10 @@
 
 package org.renjin.sexp;
 
-import com.google.common.base.Predicate;
-import com.google.common.base.Strings;
-import com.google.common.collect.Iterators;
-import com.google.common.collect.UnmodifiableIterator;
+import org.renjin.repackaged.guava.base.Predicate;
+import org.renjin.repackaged.guava.base.Strings;
+import org.renjin.repackaged.guava.collect.Iterators;
+import org.renjin.repackaged.guava.collect.UnmodifiableIterator;
 
 import java.util.Arrays;
 import java.util.Collections;

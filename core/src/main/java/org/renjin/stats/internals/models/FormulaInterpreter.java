@@ -1,7 +1,7 @@
 package org.renjin.stats.internals.models;
 
-import com.google.common.collect.Lists;
 import org.renjin.eval.EvalException;
+import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.*;
 
 import java.util.HashSet;

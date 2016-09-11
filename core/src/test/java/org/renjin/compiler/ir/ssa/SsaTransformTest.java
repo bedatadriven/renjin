@@ -1,6 +1,5 @@
 package org.renjin.compiler.ir.ssa;
 
-import com.google.common.collect.Iterables;
 import org.junit.Test;
 import org.renjin.compiler.CompilerTestCase;
 import org.renjin.compiler.cfg.BasicBlock;
@@ -10,6 +9,7 @@ import org.renjin.compiler.cfg.DominanceTree;
 import org.renjin.compiler.ir.tac.IRBody;
 import org.renjin.compiler.ir.tac.expressions.EnvironmentVariable;
 import org.renjin.compiler.ir.tac.statements.ReturnStatement;
+import org.renjin.repackaged.guava.collect.Iterables;
 
 import java.io.IOException;
 

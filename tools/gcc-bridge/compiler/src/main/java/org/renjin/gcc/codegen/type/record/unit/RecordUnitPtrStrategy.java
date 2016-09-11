@@ -1,16 +1,12 @@
 package org.renjin.gcc.codegen.type.record.unit;
 
-import com.google.common.base.Optional;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategies;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.*;
-import org.renjin.gcc.codegen.fatptr.AddressableField;
-import org.renjin.gcc.codegen.fatptr.FatPtr;
-import org.renjin.gcc.codegen.fatptr.FatPtrPair;
-import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
+import org.renjin.gcc.codegen.fatptr.*;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.type.primitive.ConstantValue;
 import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
@@ -23,6 +19,7 @@ import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.guava.base.Optional;
 
 import javax.annotation.Nonnull;
 
@@ -90,6 +87,11 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>
   @Override
   public ReturnStrategy getReturnStrategy() {
     return new RecordUnitPtrReturnStrategy(strategy.getJvmType());
+  }
+
+  @Override
+  public ValueFunction getValueFunction() {
+    return valueFunction;
   }
 
   @Override
@@ -180,7 +182,11 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>
 
   @Override
   public void memorySet(MethodGenerator mv, RecordUnitPtr pointer, JExpr byteValue, JExpr length) {
-    throw new UnsupportedOperationException("TODO");
+    pointer.unwrap().load(mv);
+    byteValue.load(mv);
+    length.load(mv);
+    mv.invokevirtual(strategy.getJvmType(), "memset", 
+        Type.getMethodDescriptor(Type.VOID_TYPE, Type.INT_TYPE, Type.INT_TYPE), false);
   }
 
   @Override

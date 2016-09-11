@@ -1,19 +1,19 @@
 package org.renjin.gcc.analysis;
 
-import com.google.common.collect.Iterables;
-import com.google.common.io.Resources;
-import org.junit.Before;
 import org.junit.Test;
 import org.renjin.gcc.Gcc;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
+import org.renjin.repackaged.guava.collect.Iterables;
+import org.renjin.repackaged.guava.io.Resources;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class RecordUsageAnalyzerTest {
 

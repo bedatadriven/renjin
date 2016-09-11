@@ -1,15 +1,16 @@
 package org.renjin.cli.build;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.apache.maven.model.*;
 import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
 import org.renjin.RenjinVersion;
 import org.renjin.eval.Session;
 import org.renjin.packaging.PackageDescription;
+import org.renjin.packaging.PackageSource;
 import org.renjin.primitives.packaging.NamespaceRegistry;
+import org.renjin.repackaged.guava.base.Strings;
+import org.renjin.repackaged.guava.collect.Iterables;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.collect.Sets;
 
 import java.io.IOException;
 import java.io.StringWriter;

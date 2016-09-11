@@ -1,9 +1,9 @@
 package org.renjin.gcc.gimple;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
+import org.renjin.repackaged.guava.base.Joiner;
+import org.renjin.repackaged.guava.collect.Iterables;
+import org.renjin.repackaged.guava.collect.Lists;
 
 import java.io.File;
 import java.util.List;
@@ -76,4 +76,12 @@ public class GimpleCompilationUnit {
     return Joiner.on("\n").join(functions);
   }
 
+  public void accept(GimpleExprVisitor visitor) {
+    for (GimpleVarDecl globalVariable : globalVariables) {
+      globalVariable.accept(visitor);
+    }
+    for (GimpleFunction function : functions) {
+      function.accept(visitor);
+    }
+  }
 }

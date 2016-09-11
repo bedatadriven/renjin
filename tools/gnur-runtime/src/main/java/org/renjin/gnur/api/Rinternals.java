@@ -8,6 +8,7 @@ import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
 import org.renjin.gcc.runtime.ObjectPtr;
 import org.renjin.primitives.Native;
+import org.renjin.primitives.R$primitive$getNamespace;
 import org.renjin.primitives.Types;
 import org.renjin.primitives.Vectors;
 import org.renjin.sexp.*;
@@ -661,9 +662,6 @@ public final class Rinternals {
       }
     } else if(x instanceof CHARSEXP) {
       throw new UnsupportedOperationException();
-//      res = IntegerFromString(x, &warn);
-//      CoercionWarning(warn);
-//      return res;
     }
     return IntVector.NA;
   }
@@ -679,9 +677,6 @@ public final class Rinternals {
       }
     } else if(x instanceof CHARSEXP) {
       throw new UnsupportedOperationException();
-//      res = IntegerFromString(x, &warn);
-//      CoercionWarning(warn);
-//      return res;
     }
     return DoubleVector.NA;
   }
@@ -802,8 +797,11 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_CreateTag");
   }
 
-  public static void Rf_defineVar(SEXP p0, SEXP p1, SEXP p2) {
-    throw new UnimplementedGnuApiMethod("Rf_defineVar");
+  public static void Rf_defineVar(SEXP nameSexp, SEXP value, SEXP rhoSexp) {
+    Symbol name = (Symbol) nameSexp;
+    Environment rho = (Environment) rhoSexp;
+    
+    rho.setVariable(name, value);
   }
 
   public static SEXP Rf_dimgets(SEXP p0, SEXP p1) {
@@ -848,11 +846,7 @@ public final class Rinternals {
   }
 
   public static SEXP Rf_eval(SEXP expr, SEXP rho) {
-    Context context = Native.CURRENT_CONTEXT.get();
-    if(context == null) {
-      throw new IllegalStateException("Renjin context not initialized for this thread.");
-    }
-    return context.evaluate(expr, (Environment) rho);
+    return Native.currentContext().evaluate(expr, (Environment) rho);
   }
 
   public static SEXP Rf_findFun(SEXP p0, SEXP p1) {
@@ -909,8 +903,8 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_gsetVar");
   }
 
-  public static SEXP Rf_install(BytePtr p0) {
-    throw new UnimplementedGnuApiMethod("Rf_install");
+  public static SEXP Rf_install(BytePtr name) {
+    return Symbol.get(name.nullTerminatedString());
   }
 
   public static SEXP Rf_installChar(SEXP p0) {
@@ -1271,8 +1265,9 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("R_NamespaceEnvSpec");
   }
 
-  public static SEXP R_FindNamespace(SEXP info) {
-    throw new UnimplementedGnuApiMethod("R_FindNamespace");
+  public static SEXP R_FindNamespace(SEXP namespaceExp) throws Exception {
+    Context context = Native.currentContext();
+    return R$primitive$getNamespace.doApply(context, context.getEnvironment(), namespaceExp);
   }
 
   public static void R_LockEnvironment(SEXP env, boolean bindings) {
@@ -1630,10 +1625,9 @@ public final class Rinternals {
     }
   }
 
-  public static SEXP Rf_mkString(BytePtr p0) {
-    throw new UnimplementedGnuApiMethod("Rf_mkString");
+  public static SEXP Rf_mkString(BytePtr string) {
+    return new StringArrayVector(string.nullTerminatedString());
   }
-
 
   public static int Rf_nlevels(SEXP p0) {
     throw new UnimplementedGnuApiMethod("Rf_nlevels");

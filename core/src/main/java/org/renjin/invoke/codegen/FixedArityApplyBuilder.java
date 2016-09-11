@@ -1,11 +1,11 @@
 package org.renjin.invoke.codegen;
 
 
-import com.google.common.collect.Lists;
 import com.sun.codemodel.*;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.invoke.model.PrimitiveModel;
+import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.SEXP;
 
 import java.util.List;

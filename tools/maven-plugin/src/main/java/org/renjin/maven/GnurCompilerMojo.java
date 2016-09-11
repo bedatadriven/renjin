@@ -1,6 +1,5 @@
 package org.renjin.maven;
 
-import com.google.common.collect.Lists;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -13,6 +12,7 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
 import org.renjin.gcc.maven.GccBridgeHelper;
 import org.renjin.gnur.GnurSourcesCompiler;
+import org.renjin.repackaged.guava.collect.Lists;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;

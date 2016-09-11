@@ -1,11 +1,11 @@
 package org.renjin.invoke.reflection;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.ClassBinding;
+import org.renjin.repackaged.guava.collect.ArrayListMultimap;
+import org.renjin.repackaged.guava.collect.Maps;
+import org.renjin.repackaged.guava.collect.Multimap;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
 

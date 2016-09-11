@@ -1,16 +1,15 @@
 package org.renjin.primitives.io;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Current;
-import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.primitives.io.connections.Connections;
 import org.renjin.primitives.io.connections.PushbackBufferedReader;
 import org.renjin.primitives.matrix.StringMatrixBuilder;
+import org.renjin.repackaged.guava.collect.Iterables;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.StringVector;
 import org.renjin.sexp.Vector;

@@ -1,0 +1,4 @@
+Package: nativeWithPrefix
+Title: Native Package Test with Prefix
+Version: 0.1
+NeedsCompilation: yes

@@ -1,7 +1,7 @@
 package org.renjin.gcc.gimple.type;
 
-import com.google.common.base.Strings;
 import org.renjin.gcc.gimple.expr.GimpleFieldRef;
+import org.renjin.repackaged.guava.base.Strings;
 
 public class GimpleField {
   private int id;

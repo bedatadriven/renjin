@@ -1,8 +1,8 @@
 package org.renjin.maven.test;
 
-import com.google.common.base.Charsets;
-import com.google.common.base.Joiner;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.renjin.repackaged.guava.base.Charsets;
+import org.renjin.repackaged.guava.base.Joiner;
 
 import java.io.*;
 import java.util.HashMap;
@@ -74,7 +74,6 @@ public class ForkedTestController {
         }
       }
     }
-
   }
 
   public void executeTest(File testFile) throws MojoExecutionException {
@@ -124,7 +123,7 @@ public class ForkedTestController {
       ProcessBuilder processBuilder = new ProcessBuilder();
       processBuilder.command("java", TestExecutor.class.getName());
       processBuilder.environment().putAll(environmentVariables);
-      processBuilder.redirectError(ProcessBuilder.Redirect.INHERIT);
+      processBuilder.redirectErrorStream(true);
       process = processBuilder.start();
       processChannel = new DataOutputStream(process.getOutputStream());
     } catch (Exception e) {
@@ -147,13 +146,15 @@ public class ForkedTestController {
   }
 
   private void destroyFork() {
-    try {
-      process.destroy();
-    } catch (Exception e) {
-      e.printStackTrace();
+    if(process != null) {
+      try {
+        process.destroy();
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+      process = null;
+      processChannel = null;
     }
-    process = null;
-    processChannel = null;
   }
 
   public boolean allTestsSucceeded() {
@@ -188,7 +189,9 @@ public class ForkedTestController {
           // Process exited!!
           reporter.testCaseFailed();
           try {
-            System.err.println("Forked JVM exited with code " + process.waitFor());
+            if(process != null) {
+              System.err.println("Forked JVM exited with code " + process.waitFor());
+            }
           } catch (InterruptedException e) {
             System.err.println("Interrupted while waiting for process to exit.");
           }

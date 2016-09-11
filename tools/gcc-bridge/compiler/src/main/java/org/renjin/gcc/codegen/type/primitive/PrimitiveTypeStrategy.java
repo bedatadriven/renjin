@@ -1,16 +1,11 @@
 package org.renjin.gcc.codegen.type.primitive;
 
-import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.ArrayExpr;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategies;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.*;
-import org.renjin.gcc.codegen.fatptr.AddressableField;
-import org.renjin.gcc.codegen.fatptr.FatPtr;
-import org.renjin.gcc.codegen.fatptr.FatPtrPair;
-import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
+import org.renjin.gcc.codegen.fatptr.*;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.type.primitive.op.CastGenerator;
 import org.renjin.gcc.codegen.var.VarAllocator;
@@ -19,6 +14,8 @@ import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.guava.base.Optional;
+import org.renjin.repackaged.guava.base.Preconditions;
 
 /**
  * Strategy for dealing with primitive types.
@@ -51,6 +48,10 @@ public class PrimitiveTypeStrategy implements SimpleTypeStrategy<PrimitiveValue>
   @Override
   public ReturnStrategy getReturnStrategy() {
     return new SimpleReturnStrategy(this);
+  }
+
+  public ValueFunction getValueFunction() {
+    return valueFunction();
   }
 
   @Override

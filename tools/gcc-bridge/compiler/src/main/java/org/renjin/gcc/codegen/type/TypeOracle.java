@@ -1,8 +1,5 @@
 package org.renjin.gcc.codegen.type;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.annotations.Struct;
 import org.renjin.gcc.codegen.WrapperType;
@@ -30,6 +27,9 @@ import org.renjin.gcc.gimple.type.*;
 import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.ObjectPtr;
 import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.guava.base.Strings;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.collect.Maps;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Method;

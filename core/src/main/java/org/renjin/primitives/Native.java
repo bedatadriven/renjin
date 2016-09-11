@@ -1,10 +1,5 @@
 package org.renjin.primitives;
 
-import com.google.common.base.Charsets;
-import com.google.common.base.Optional;
-import com.google.common.base.Strings;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import org.renjin.base.Base;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
@@ -18,6 +13,11 @@ import org.renjin.invoke.reflection.FunctionBinding;
 import org.renjin.methods.Methods;
 import org.renjin.primitives.packaging.FqPackageName;
 import org.renjin.primitives.packaging.Namespace;
+import org.renjin.repackaged.guava.base.Charsets;
+import org.renjin.repackaged.guava.base.Optional;
+import org.renjin.repackaged.guava.base.Strings;
+import org.renjin.repackaged.guava.collect.Iterables;
+import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.*;
 
 import java.awt.*;
@@ -35,6 +35,13 @@ public class Native {
 
   public static final ThreadLocal<Context> CURRENT_CONTEXT = new ThreadLocal<>();
 
+  public static Context currentContext() {
+    Context context = Native.CURRENT_CONTEXT.get();
+    if(context == null) {
+      throw new IllegalStateException("Renjin context not initialized for this thread.");
+    }
+    return context;
+  }
 
   @Builtin(".C")
   public static SEXP dotC(@Current Context context,

@@ -81,8 +81,8 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
+      <groupId>org.renjin</groupId>
+      <artifactId>renjin-guava</artifactId>
     </dependency>
 	<dependency>
       <groupId>org.apache.maven.surefire</groupId>

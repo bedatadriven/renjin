@@ -1,7 +1,7 @@
 package org.renjin.gnur.api;
 
-import com.google.common.base.Charsets;
 import org.renjin.gcc.runtime.BytePtr;
+import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.sexp.AttributeMap;
 import org.renjin.sexp.StringVector;
 

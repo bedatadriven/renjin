@@ -1,9 +1,9 @@
 package org.renjin.stats.internals.models;
 
-import com.google.common.base.Functions;
-import com.google.common.collect.Collections2;
-import com.google.common.collect.Lists;
 import org.renjin.primitives.matrix.IntMatrixBuilder;
+import org.renjin.repackaged.guava.base.Functions;
+import org.renjin.repackaged.guava.collect.Collections2;
+import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.*;
 
 import java.util.List;

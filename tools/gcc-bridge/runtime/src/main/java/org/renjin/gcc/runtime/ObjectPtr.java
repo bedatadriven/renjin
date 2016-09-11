@@ -1,26 +1,31 @@
 package org.renjin.gcc.runtime;
 
+import org.renjin.gcc.annotations.GccSize;
+
 import java.util.Arrays;
 
 public class ObjectPtr<T> implements Ptr {
-  public Object[] array;
-  public int offset;
+  
+  public static final ObjectPtr NULL = new ObjectPtr();
+  
+  public final Object[] array;
+  public final int offset;
   public Class baseType;
 
-  public ObjectPtr() {
+  private ObjectPtr() {
+    this.array = null;
+    this.offset = 0;
   }
-  
+
   /**
    * Constructs a new ObjectPtr to a single value.
    */
   public ObjectPtr(T... array) {
-    //assert array.getClass().equals(Object[].class);s
     this.array = array;
     offset = 0;
   }
   
   public ObjectPtr(Object[] array, int offset) {
-    //assert array.getClass().equals(Object[].class) : "array class: " + array.getClass().getName();
     this.array = array;
     this.offset = offset;
   }
@@ -49,11 +54,6 @@ public class ObjectPtr<T> implements Ptr {
   @Override
   public Ptr pointerPlus(int bytes) {
     throw new UnsupportedOperationException("TODO");
-  }
-
-  public void update(Object[] array, int offset) {
-    this.array = array;
-    this.offset = offset;
   }
   
   public T get() {
@@ -103,7 +103,6 @@ public class ObjectPtr<T> implements Ptr {
     return (T)array[offset+index];
   }
 
-
   /**
    * Copies the character c (an unsigned char) to 
    * the first n characters of the string pointed to, by the argument str.
@@ -111,15 +110,45 @@ public class ObjectPtr<T> implements Ptr {
    * @param str an array of doubles
    * @param strOffset the first element to set
    * @param c the byte value to set
-   * @param n the number of bytes to set
+   * @param byteCount the number of bytes to set
    */
-  public static void memset(Object[] str, int strOffset, int c, int n) {
+  public static void memset(Object[] str, int strOffset, int c, int byteCount) {
 
-    if(c != 0) {
-      throw new IllegalArgumentException("Unsafe operation: memset(T**) can only be used when c = 0");
+    if(byteCount == 0) {
+      return;
     }
+
+
+    Class<?> elementType = str.getClass().getComponentType();
     
-    Arrays.fill(str, strOffset, strOffset + (c / 32), null);
+    if(Ptr.class.isAssignableFrom(elementType)) {
+
+      // This is an array of DoublePtr[] etc
+      // Fill it with DoublePtr.NULL instance
+
+      Object nullInstance;
+      try {
+        nullInstance = elementType.getField("NULL").get(null);
+      } catch (IllegalAccessException | NoSuchFieldException e) {
+        throw new IllegalStateException("Cannot access NULL instance for " + elementType.getName());
+      }
+      Arrays.fill(str, strOffset, strOffset + (byteCount / 4), nullInstance);
+
+    } else {
+      
+      // Otherwise a record class: we need to memset each instance
+      // Calculate the number of records based on the "size" of the record
+      // as understood by GCC
+
+      GccSize size = elementType.getAnnotation(GccSize.class);
+      if(size == null) {
+        throw new IllegalStateException(elementType.getClass().getName() + " is missing @GccSize annotation");
+      }
+      int numElements = byteCount / size.value();
+
+      for (int i = 0; i < numElements; i++) {
+      }
+    }
   }
 
   public static ObjectPtr cast(Object voidPointer) {

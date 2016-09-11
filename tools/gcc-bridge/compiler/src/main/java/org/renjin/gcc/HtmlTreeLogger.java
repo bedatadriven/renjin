@@ -1,10 +1,10 @@
 package org.renjin.gcc;
 
-import com.google.common.base.Charsets;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-import com.google.common.html.HtmlEscapers;
-import com.google.common.io.Resources;
+import org.renjin.repackaged.guava.base.Charsets;
+import org.renjin.repackaged.guava.base.Preconditions;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.html.HtmlEscapers;
+import org.renjin.repackaged.guava.io.Resources;
 
 import java.io.File;
 import java.io.IOException;

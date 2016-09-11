@@ -3,9 +3,9 @@ package org.renjin.gcc.gimple.expr;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.google.common.base.Predicate;
 import org.renjin.gcc.gimple.GimpleExprVisitor;
 import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.repackaged.guava.base.Predicate;
 
 import java.util.List;
 

@@ -1,10 +1,10 @@
 package org.renjin.compiler.ir.tac;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.renjin.compiler.ir.tac.expressions.ReadParam;
 import org.renjin.compiler.ir.tac.statements.Statement;
+import org.renjin.repackaged.guava.base.Strings;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.collect.Sets;
 
 import java.util.*;
 import java.util.Map.Entry;

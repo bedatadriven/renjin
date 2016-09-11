@@ -1,15 +1,18 @@
 
 package org.renjin.primitives.io.connections;
 
+import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
 import org.apache.commons.vfs2.FileNotFoundException;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.renjin.eval.EvalException;
+import org.tukaani.xz.XZInputStream;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PushbackInputStream;
+import java.util.Arrays;
 import java.util.zip.GZIPInputStream;
 
 
@@ -57,23 +60,36 @@ public class FileConnection extends AbstractConnection {
   }
 
   protected InputStream doOpenForInput() throws IOException {
-    // We want to automatically decompress if the underlying file is gzipped
-    int pushBackBufferSize = 2;
+    // We want to automatically decompress if the underlying file is gz/xz/bzipped
+    int header[] = new int[6];
+    int pushBackBufferSize = header.length;
     PushbackInputStream in;
     try {
       in = new PushbackInputStream(file.getContent().getInputStream(), pushBackBufferSize);
     } catch (FileNotFoundException e) {
       throw new EvalException(e.getMessage());
     }
-    int b1 = in.read();
-    int b2 = in.read();
-    in.unread(b2);
-    in.unread(b1);
-    if(b1 == GzFileConnection.GZIP_MAGIC_BYTE1 && b2 == GzFileConnection.GZIP_MAGIC_BYTE2) {
-      return new GZIPInputStream(in);
-    } else {
-      return in;
+
+    for(int i = 0; i < header.length; ++i) {
+      header[i] = in.read();
     }
+    for(int i = header.length - 1; i>=0; --i) {
+      if (header[i] != -1) {
+        in.unread(header[i]);
+      }
+    }
+    if(header[0] == GzFileConnection.GZIP_MAGIC_BYTE1 && header[1] == GzFileConnection.GZIP_MAGIC_BYTE2) {
+      return new GZIPInputStream(in);
+    } 
+    if(header[0] == 'B' && header[1] == 'Z') {
+      return new BZip2CompressorInputStream(in);
+    }
+    
+    if(Arrays.equals(header, XzFileConnection.XZ_MAGIC_BYTES)) {
+      return new XZInputStream(in);
+    }
+    
+    return in;
   }
   
   private OutputStream assureOpenForOutput() throws IOException {

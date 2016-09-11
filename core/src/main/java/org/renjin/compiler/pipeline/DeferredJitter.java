@@ -1,5 +1,6 @@
 package org.renjin.compiler.pipeline;
 
+import org.renjin.compiler.JitClassLoader;
 import org.renjin.repackaged.asm.ClassVisitor;
 import org.renjin.repackaged.asm.ClassWriter;
 import org.renjin.repackaged.asm.MethodVisitor;
@@ -68,7 +69,7 @@ public class DeferredJitter {
     byte[] classBytes = cw.toByteArray();
     long compileTime = System.nanoTime() - startTime;
 
-    Class jitClass = new MyClassLoader().defineClass(className, classBytes);
+    Class<JittedComputation> jitClass = JitClassLoader.defineClass(JittedComputation.class, className, classBytes);
 
     long loadTime = System.nanoTime() - startTime - compileTime;
 
@@ -78,7 +79,7 @@ public class DeferredJitter {
     }
 
     try {
-      return (JittedComputation) jitClass.newInstance();
+      return jitClass.newInstance();
     } catch (Exception e) {
       throw new RuntimeException("Could not invoke jitted computation", e);
     }
@@ -157,9 +158,4 @@ public class DeferredJitter {
     }
   }
 
-  class MyClassLoader extends ClassLoader {
-    public Class defineClass(String name, byte[] b) {
-      return defineClass(name, b, 0, b.length);
-    }
-  }
 }

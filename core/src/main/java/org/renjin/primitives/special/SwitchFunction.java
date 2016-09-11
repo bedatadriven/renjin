@@ -23,17 +23,8 @@ package org.renjin.primitives.special;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.sexp.AtomicVector;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.SpecialFunction;
-import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
-
-import com.google.common.collect.Iterables;
+import org.renjin.repackaged.guava.collect.Iterables;
+import org.renjin.sexp.*;
 
 public class SwitchFunction extends SpecialFunction {
 

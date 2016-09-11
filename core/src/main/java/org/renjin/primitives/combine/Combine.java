@@ -21,9 +21,9 @@
 
 package org.renjin.primitives.combine;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Iterables;
 import org.renjin.invoke.annotations.*;
+import org.renjin.repackaged.guava.base.Function;
+import org.renjin.repackaged.guava.collect.Iterables;
 import org.renjin.sexp.ListVector;
 import org.renjin.sexp.NamedValue;
 import org.renjin.sexp.Null;

@@ -1,6 +1,5 @@
 package org.renjin.gcc.codegen.type.fun;
 
-import com.google.common.base.Preconditions;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategies;
@@ -8,6 +7,7 @@ import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
+import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveTypeStrategy;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrStrategy;
@@ -20,6 +20,7 @@ import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.guava.base.Preconditions;
 
 import java.lang.invoke.MethodHandle;
 
@@ -61,6 +62,11 @@ public class FunPtrStrategy implements PointerTypeStrategy<FunPtr>, SimpleTypeSt
   @Override
   public ReturnStrategy getReturnStrategy() {
     return new SimpleReturnStrategy(this);
+  }
+
+  @Override
+  public ValueFunction getValueFunction() {
+    return new FunPtrValueFunction(32);
   }
 
   @Override

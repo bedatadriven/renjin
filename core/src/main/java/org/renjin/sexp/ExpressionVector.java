@@ -21,7 +21,7 @@
 
 package org.renjin.sexp;
 
-import com.google.common.base.Joiner;
+import org.renjin.repackaged.guava.base.Joiner;
 
 import java.util.List;
 

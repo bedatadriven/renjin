@@ -1,9 +1,9 @@
 package org.renjin.maven.test;
 
 
-import com.google.common.collect.Lists;
-import com.google.common.io.Files;
 import junit.framework.TestCase;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.io.Files;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,7 +16,7 @@ public class ExamplesParserTest extends TestCase {
     File testFile = new File(getClass().getResource("/man/p.hboxp.Rd").getFile());
     String examples = ExamplesParser.parseExamples(testFile);
     
-    TestExecutor runner = new TestExecutor("foo",  Lists.<String>newArrayList(), reportDir);
+    TestExecutor runner = new TestExecutor("base",  Lists.<String>newArrayList(), reportDir);
     runner.executeTestFile(testFile, examples);
 
   }

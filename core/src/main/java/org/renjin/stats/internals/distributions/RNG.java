@@ -6,6 +6,7 @@ import org.renjin.eval.EvalException;
 import org.renjin.eval.Session;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
+import org.renjin.primitives.System;
 import org.renjin.sexp.*;
 
 import java.lang.invoke.MethodHandle;
@@ -87,37 +88,57 @@ public class RNG {
   }
 
   @Internal
-  public static DoubleVector runif(@Current Context context, int n, double a, double b) {
+  public static DoubleVector runif(@Current Context context, Vector n, Vector a, Vector max) {
+    double min = a.getElementAsDouble(0);
+    int n1 = (n.length() != 1) ? n.length() : n.getElementAsInt(0);
     RNG rng = context.getSession().rng;
-    DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
-    for (int i = 0; i < n; i++) {
-      vb.add(a + rng.unif_rand() * (b - a));
+    DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n1);
+    int j = 0;
+    for (int i = 0; i < n1; i++) {
+      if (max.length() != 1 && j == max.length()-1) {
+        j = 0;
+      }
+      vb.add(min + rng.unif_rand() * (max.getElementAsDouble(j) - min));
+      j++;
     }
     return (vb.build());
   }
 
   @Internal
-  public static DoubleVector rnorm(@Current Context context, int n, double mean, double sd) {
-    DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
-    for (int i = 0; i < n; i++) {
-      vb.add(Normal.rnorm(context.getSession(), mean, sd));
+  public static DoubleVector rnorm(@Current Context context, Vector n, double mean, Vector sd) {
+    int n1 = (n.length() != 1) ? n.length() : n.getElementAsInt(0);
+    DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n1);
+    int j = 0;
+    for (int i = 0; i < n1; i++) {
+      if (sd.length() != 1 && j == sd.length()-1) {
+        j = 0;
+      }
+      vb.add(Normal.rnorm(context.getSession(), mean, sd.getElementAsDouble(j)));
+      j++;
     }
     return (vb.build());
   }
 
   @Internal
-  public static DoubleVector rgamma(@Current Context context, int n, double shape, double scale) {
-    DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
-    for (int i = 0; i < n; i++) {
-      vb.add(Gamma.rgamma(context.getSession(), shape, scale));
+  public static DoubleVector rgamma(@Current Context context, Vector n, double shape, Vector scale) {
+    int n1 = (n.length() != 1) ? n.length() : n.getElementAsInt(0);
+    DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n1);
+    int j = 0;
+    for (int i = 0; i < n1; i++) {
+      if (scale.length() != 1 && j == scale.length()-1) {
+          j = 0;
+      }
+      vb.add(Gamma.rgamma(context.getSession(), shape, scale.getElementAsDouble(j)));
+      j++;
     }
     return (vb.build());
   }
 
   @Internal
-  public static DoubleVector rchisq(@Current Context context, int n, double df) {
-    DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
-    for (int i = 0; i < n; i++) {
+  public static DoubleVector rchisq(@Current Context context, Vector n, double df) {
+    int n1 = (n.length() != 1) ? n.length() : n.getElementAsInt(0);
+    DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n1);
+    for (int i = 0; i < n1; i++) {
       vb.add(ChiSquare.rchisq(context.getSession(), df));
     }
     return (vb.build());
@@ -142,28 +163,36 @@ public class RNG {
   }
 
   @Internal
-  public static DoubleVector rpois(@Current Context context, int n, double mu) {
+  public static DoubleVector rpois(@Current Context context, Vector n, double mu) {
+    int n1 = (n.length() != 1) ? n.length() : n.getElementAsInt(0);
     DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i < n1; i++) {
       vb.add(Poisson.rpois(context.getSession(), mu));
     }
     return (vb.build());
   }
 
   @Internal
-  public static DoubleVector rsignrank(@Current Context context, int nn, double n) {
+  public static DoubleVector rsignrank(@Current Context context, Vector nn, double n) {
+    int nn1 = (nn.length() != 1) ? nn.length() : nn.getElementAsInt(0);
     DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
-    for (int i = 0; i < nn; i++) {
+    for (int i = 0; i < nn1; i++) {
       vb.add(SignRank.rsignrank(context.getSession(), n));
     }
     return (vb.build());
   }
 
   @Internal
-  public static DoubleVector rwilcox(@Current Context context, int nn, double m, double n) {
+  public static DoubleVector rwilcox(@Current Context context, Vector nn, Vector m, double n) {
+    int nn1 = (nn.length() != 1) ? nn.length() : nn.getElementAsInt(0);
     DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
-    for (int i = 0; i < nn; i++) {
-      vb.add(Wilcox.rwilcox(context.getSession(), m, n));
+    int j = 0;
+    for (int i = 0; i < nn1; i++) {
+      if (m.length() != 1 && j == m.length()-1) {
+        j = 0;
+      }
+      vb.add(Wilcox.rwilcox(context.getSession(), m.getElementAsDouble(j), n));
+      j++;
     }
     return (vb.build());
   }
@@ -223,28 +252,46 @@ public class RNG {
   }
 
   @Internal
-  public static DoubleVector rnbinom(@Current Context context, int n, double size, double prob) {
+  public static DoubleVector rnbinom(@Current Context context, Vector n, Vector size, double prob) {
+    int n1 = (n.length() != 1) ? n.length() : n.getElementAsInt(0);
     DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
-    for (int i = 0; i < n; i++) {
-      vb.add(NegativeBinom.rnbinom(context.getSession(), size, prob));
+    int j = 0;
+    for (int i = 0; i < n1; i++) {
+      if (size.length() != 1 && j == size.length()-1) {
+        j = 0;
+      }
+      vb.add(NegativeBinom.rnbinom(context.getSession(), size.getElementAsDouble(j), prob));
+      j++;
     }
     return (vb.build());
   }
 
   @Internal
-  public static DoubleVector rnbinom_mu(@Current Context context, int n, double size, double mu) {
+  public static DoubleVector rnbinom_mu(@Current Context context, Vector n, Vector size, double mu) {
+    int n1 = (n.length() != 1) ? n.length() : n.getElementAsInt(0);
     DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
-    for (int i = 0; i < n; i++) {
-      vb.add(NegativeBinom.rnbinom_mu(context.getSession(), size, mu));
+    int j = 0;
+    for (int i = 0; i < n1; i++) {
+      if (size.length() != 1 && j == size.length()-1) {
+        j = 0;
+      }
+      vb.add(NegativeBinom.rnbinom_mu(context.getSession(), size.getElementAsDouble(j), mu));
+      j++;
     }
     return (vb.build());
   }
 
   @Internal
-  public static DoubleVector rbinom(@Current Context context, int n, double size, double prob) {
+  public static DoubleVector rbinom(@Current Context context, Vector n, Vector size, double prob) {
+    int n1 = (n.length() != 1) ? n.length() : n.getElementAsInt(0);
     DoubleArrayVector.Builder vb = new DoubleArrayVector.Builder();
-    for (int i = 0; i < n; i++) {
-      vb.add(Binom.rbinom(context.getSession(), size, prob));
+    int j = 0;
+    for (int i = 0; i < n1; i++) {
+      if (size.length() != 1 && j == size.length()-1) {
+        j = 0;
+      }
+      vb.add(Binom.rbinom(context.getSession(), size.getElementAsDouble(j), prob));
+      j++;
     }
     return (vb.build());
   }

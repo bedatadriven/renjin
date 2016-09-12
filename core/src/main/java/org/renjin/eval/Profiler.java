@@ -24,6 +24,9 @@ public class Profiler {
 
   private static final long MIN_LOOP_TIME_RECORD = TimeUnit.MILLISECONDS.toNanos(500);
 
+  private static long MATERIALIZATION_TIME = 0;
+  private static long MATERIALIZATION_COUNT = 0;
+
   private static class FunctionProfile {
     private Symbol symbol;
     private long count;
@@ -40,6 +43,12 @@ public class Profiler {
     private long startTime;
     private long childTime;
     private long bytesAllocated;
+
+    /**
+     * Nanos spent materializing deferred computations
+     */
+    private long materializationTime;
+    private long materializeCount;
   }
   
   private static class LoopProfile {
@@ -115,7 +124,16 @@ public class Profiler {
     
     CURRENT_LOOP = timing;
   }
-  
+
+  public static void materialized(long time) {
+    MATERIALIZATION_TIME += time;
+    MATERIALIZATION_COUNT ++;
+    
+    if(CURRENT != null) {
+      CURRENT.materializationTime += time;
+      CURRENT.materializeCount ++;
+    }
+  }
 
   /**
    * Reports the end of a function call
@@ -203,6 +221,7 @@ public class Profiler {
     printTopFunctions(out, totalRunningTime);
     printFunctionTimings(out, totalRunningTime);
     printLoopTimings(out);
+    printMaterializationStats(out);
   }
 
 
@@ -289,6 +308,15 @@ public class Profiler {
     }
   }
 
+  private static void printMaterializationStats(PrintStream out) {
+    out.println();
+    out.println("VECTOR PIPELINER");
+    out.println("================");
+
+    System.out.println("Materialization count: " + MATERIALIZATION_COUNT);
+    System.out.println("Materialization time (ms): " + TimeUnit.NANOSECONDS.toMillis(MATERIALIZATION_TIME));
+
+  }
 
   private static String formatAlloc(long bytes) {
     if(bytes < 1024) {

@@ -1,5 +1,6 @@
 package org.renjin.compiler.pipeline;
 
+import org.renjin.eval.Profiler;
 import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.repackaged.guava.collect.HashMultimap;
 import org.renjin.repackaged.guava.collect.Multimap;
@@ -24,6 +25,9 @@ public class MultiThreadedVectorPipeliner implements VectorPipeliner {
 
   @Override
   public Vector materialize(DeferredComputation root) {
+    
+    long start = System.nanoTime();
+    
     DeferredGraph graph = new DeferredGraph(root);
 
     if(VectorPipeliner.DEBUG) {
@@ -39,6 +43,10 @@ public class MultiThreadedVectorPipeliner implements VectorPipeliner {
       throw new RuntimeException(e);
     }
 
+    if(Profiler.ENABLED) {
+      long time = System.nanoTime() - start;
+      Profiler.materialized(time);
+    }
     // return result
     return root;
   }

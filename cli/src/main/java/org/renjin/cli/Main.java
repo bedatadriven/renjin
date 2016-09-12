@@ -10,7 +10,7 @@ import org.renjin.eval.Profiler;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
 import org.renjin.primitives.packaging.PackageLoader;
-import org.renjin.primitives.special.LoopCompiler;
+import org.renjin.primitives.special.ForFunction;
 import org.renjin.repl.JlineRepl;
 import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.Symbol;
@@ -58,7 +58,7 @@ public class Main {
     
     // Set process-wide flags
     if(optionSet.isFlagSet(OptionSet.COMPILE_LOOPS)) {
-      LoopCompiler.COMPILE_LOOPS = true;
+      ForFunction.COMPILE_LOOPS = true;
     }
     
     try {

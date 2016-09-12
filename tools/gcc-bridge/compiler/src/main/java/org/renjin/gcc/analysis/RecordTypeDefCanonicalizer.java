@@ -73,6 +73,8 @@ public class RecordTypeDefCanonicalizer {
     boolean changing;
     do {
 
+      System.out.println("*** ITERATION STARTING *** ");
+      
       changing = false;
 
       // Remove duplicates using our key function
@@ -84,6 +86,9 @@ public class RecordTypeDefCanonicalizer {
         }
         
         String key = key(recordTypeDef);
+        
+        System.out.println(String.format("%s %s => %s", recordTypeDef.getId(), recordTypeDef.getName(), key));
+        
         GimpleRecordTypeDef canonical = keyMap.get(key);
         if (canonical == null) {
           // first time seen, this is a canonical record
@@ -140,7 +145,6 @@ public class RecordTypeDefCanonicalizer {
     }
   }
 
-
   private String key(GimpleRecordTypeDef typeDef) {
     StringBuilder key = new StringBuilder();
     if(typeDef.getName() != null) {
@@ -174,8 +178,12 @@ public class RecordTypeDefCanonicalizer {
       }
     
     } else if(type instanceof GimpleIndirectType) {
-      key.append("*");
-      appendTypeKeyTo(rootRecordTypeDef, type.getBaseType(), key);
+      if(type.getBaseType() instanceof GimpleRecordType) {
+        key.append("*record");
+      } else {
+        key.append("*");
+        appendTypeKeyTo(rootRecordTypeDef, type.getBaseType(), key);
+      }
     
     } else if(type instanceof GimpleArrayType) {
       key.append("[");

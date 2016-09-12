@@ -32,7 +32,8 @@ public class ArrayField extends SingleFieldStrategy {
 
   @Override
   public void emitInstanceInit(MethodGenerator mv) {
-    JExpr newArray = FatPtrMalloc.allocArray(mv, valueFunction, constantInt(arrayLength));
+    JExpr newArray = FatPtrMalloc.allocArray(mv, valueFunction, 
+        constantInt(arrayLength * valueFunction.getElementLength()));
     JLValue arrayField = Expressions.field(Expressions.thisValue(this.ownerClass), fieldType, fieldName);
     
     arrayField.store(mv, newArray);

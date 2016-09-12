@@ -1018,4 +1018,9 @@ public class GimpleCompilerTest extends AbstractGccTest {
     compileAndTest("zero_array_fields.c");
   }
   
+  @Test
+  public void fatPtrFieldParamAssign() throws Exception {
+    compileAndTest("fatptrfield_param_assign.c");
+  }
+  
 }

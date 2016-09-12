@@ -146,6 +146,9 @@ public class Wrappers {
     tempVar.store(mv, wrapper);
     
     JExpr array = Wrappers.arrayField(tempVar, valueType(wrapper.getType()));
+    if(wrapper.getType().equals(Type.getType(ObjectPtr.class))) {
+      array = Expressions.cast(array, Wrappers.arrayType(valueFunction.getValueType()));
+    }
     JExpr offset = Wrappers.offsetField(tempVar);
 
     return new FatPtrPair(valueFunction, array, offset);

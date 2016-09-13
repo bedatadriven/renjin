@@ -3,6 +3,7 @@ package org.renjin.sexp;
 public class Symbols {
 
 
+
   private Symbols() {}
 
   public static final Symbol NAMES = Symbol.get("names");
@@ -16,6 +17,7 @@ public class Symbols {
   public static final Symbol TEMP_VAL = Symbol.get("*tmp*");
   public static final Symbol DIMNAMES = Symbol.get("dimnames");
   public static final Symbol NAME = Symbol.get("name");
+  public static final Symbol FQNAME = Symbol.get("fqname");
   public static final Symbol DOT_ENVIRONMENT = Symbol.get(".Environment");
   public static final Symbol COMMENT = Symbol.get("comment");
   public static final Symbol LEFT_BRACE = Symbol.get("{");

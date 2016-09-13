@@ -22,6 +22,11 @@ public class Packages {
 
     Namespace namespace = namespaceRegistry.getNamespace(context, packageName);
     
+    // Check to see if already on the search path...
+    if(isAttached(context, namespace)) {
+      return;
+    }
+    
     // Add "Depends" packages to the global search path
     // (But not "Imports" !)
     for(String dependencyName : namespace.getPackage().getPackageDependencies()) {
@@ -31,8 +36,9 @@ public class Packages {
     
     // Create the package environment
     Environment packageEnv = context.getGlobalEnvironment().insertAbove(new HashFrame());
-    packageEnv.setAttribute(Symbols.NAME, StringVector.valueOf("package:" + packageName));
-    
+    packageEnv.setAttribute(Symbols.NAME,  StringVector.valueOf("package:" + namespace.getFullyQualifiedName().getPackageName()));
+    packageEnv.setAttribute(Symbols.FQNAME,  StringVector.valueOf("package:" + namespace.getFullyQualifiedName().toString()));
+
     // Copy in the namespace's exports
     namespace.copyExportsTo(context, packageEnv);
     
@@ -48,6 +54,24 @@ public class Packages {
     }
     
     context.setInvisibleFlag();
+  }
+
+  private static boolean isAttached(Context context, Namespace namespace) {
+    
+    String expected = "package:" + namespace.getFullyQualifiedName().toString();
+    
+    Environment env = context.getGlobalEnvironment();
+    while(env != Environment.EMPTY) {
+      SEXP fqNameSexp = env.getAttribute(Symbols.FQNAME);
+      if(fqNameSexp instanceof StringVector && fqNameSexp.length() == 1) {
+        String fqName = ((StringVector) fqNameSexp).getElementAsString(0);
+        if(expected.equals(fqName)) {
+          return true;
+        }
+      }
+      env = env.getParent();
+    }
+    return false;
   }
 
   private static void maybeUpdateS4MetadataCache(Context context, Namespace namespace) {

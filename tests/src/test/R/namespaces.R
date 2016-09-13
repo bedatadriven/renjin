@@ -42,3 +42,13 @@ test.requireNamespace <- function() {
 test.requireNamespaceNonExistant <- function() {
     assertFalse(requireNamespace("fooooobarrr"))
 }
+
+test.library.multiple <- function() {
+    searchPathLen <- length(search())
+    
+    library(stats)
+    library(stats)
+    library(methods)
+    
+    assertThat(length(search()), identicalTo(searchPathLen))
+}

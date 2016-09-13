@@ -45,10 +45,10 @@ for(dist in names(dists)) {
   
   params <- dists[[dist]]
   
-  writeTest(test, rfn, ARGS = c(list(n = 1), params))
-  writeTest(test, rfn, ARGS = c(list(n = 1:5), params))
-  writeTest(test, rfn, ARGS = c(list(n = 15), params))
-  writeTest(test, rfn, ARGS = c(list(n = numeric(0)), params))
+  writeTest(test, rfn, ARGS = c(list(n = 1), params), tol = tol)
+  writeTest(test, rfn, ARGS = c(list(n = 1:5), params), tol = tol)
+  writeTest(test, rfn, ARGS = c(list(n = 15), params), tol = tol)
+  writeTest(test, rfn, ARGS = c(list(n = numeric(0)), params), tol)
 
   params.with.na <- params
   params.with.na[[1]][1] <- NA

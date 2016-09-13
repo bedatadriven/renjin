@@ -18,6 +18,7 @@ import org.renjin.util.FileSystemUtils;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.Reader;
+import java.lang.invoke.MethodHandle;
 import java.util.List;
 import java.util.Map;
 
@@ -172,6 +173,10 @@ public class Session {
     this.sessionController = sessionController;
   }
   
+  public RNG getRNG() {
+    return rng;
+  }
+  
   public Environment getGlobalEnvironment() {
     return globalEnvironment;
   }
@@ -299,4 +304,7 @@ public class Session {
     }
   }
 
+  public MethodHandle getRngMethod() {
+    return rng.getMethodHandle();
+  }
 }

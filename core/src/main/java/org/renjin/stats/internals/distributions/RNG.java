@@ -6,8 +6,7 @@ import org.renjin.eval.EvalException;
 import org.renjin.eval.Session;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
-import org.renjin.primitives.System;
-import org.renjin.repackaged.guava.base.Strings;
+import org.renjin.nmath.rchisq;
 import org.renjin.sexp.*;
 
 import java.lang.invoke.MethodHandle;
@@ -22,10 +21,12 @@ public class RNG {
   public N01type N01_kind = N01type.INVERSION; //default
   int randomseed = 0;
   public Session context;
+  private MethodHandle methodHandle;
 
 
   public RNG(Session globals){
     this.context = globals;
+    this.methodHandle = createMethodHandle(this);
   }
 
   @Internal
@@ -169,9 +170,10 @@ public class RNG {
       return (DoubleArrayVector.Builder.withInitialSize(n).build());
     }
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
+    MethodHandle runif = context.getSession().getRngMethod();
     int j = 0;
     for (int i = 0; i < n; i++) {
-      vb.add(ChiSquare.rchisq(context.getSession(), df.getElementAsDouble(j)));
+      vb.add(rchisq.rchisq(runif, df.getElementAsDouble(j)));
       j++;
       if (j == dfLength) {
         j = 0;
@@ -179,7 +181,7 @@ public class RNG {
     }
     return (vb.build());
   }
-
+  
   @Internal
   public static DoubleVector rnchisq(@Current Context context, Vector nVector, AtomicVector df, double ncp) {
     int n = defineSize(nVector);
@@ -675,5 +677,23 @@ public class RNG {
     default:
       throw new EvalException(RNG_kind + " not implemented yet");
     }
+  }
+
+
+  private static MethodHandle createMethodHandle(RNG rng) {
+    try {
+      MethodHandle instanceMethod = MethodHandles.publicLookup().findVirtual(RNG.class, "unif_rand",
+          MethodType.methodType(double.class));
+      MethodHandle staticMethod = MethodHandles.insertArguments(instanceMethod, 0, rng);
+
+      return staticMethod;
+
+    } catch (NoSuchMethodException | IllegalAccessException e) {
+      throw new IllegalStateException("getMethodHandle() failed: " + e.getMessage(), e);
+    }
+  }
+  
+  public MethodHandle getMethodHandle() {
+    return methodHandle;
   }
 }

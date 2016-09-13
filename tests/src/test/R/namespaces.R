@@ -48,7 +48,6 @@ test.library.multiple <- function() {
     
     library(stats)
     library(stats)
-    library(methods)
     
     assertThat(length(search()), identicalTo(searchPathLen))
 }

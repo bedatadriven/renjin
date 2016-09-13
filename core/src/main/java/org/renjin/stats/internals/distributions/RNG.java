@@ -91,341 +91,498 @@ public class RNG {
   @Internal
   public static DoubleVector runif(@Current Context context, Vector nVector, AtomicVector min, AtomicVector max) {
     int n = defineSize(nVector);
+    int minLength = min.length();
+    int maxLength = min.length();
     RNG rng = context.getSession().rng;
+    if (minLength == 0 || maxLength == 0) {
+      return (DoubleArrayVector.Builder.withInitialSize(n).build());
+    }
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
-    if (min.length() == 0 || max.length() == 0) return (DoubleArrayVector.Builder.withInitialSize(n).build());
     int j = 0, k = 0;
     for (int i = 0; i < n; i++) {
-      if (j == min.length()-1) j = 0;
-      if (k == max.length()-1) k = 0;
       vb.add(min.getElementAsDouble(j) + rng.unif_rand() * (max.getElementAsDouble(k) - min.getElementAsDouble(j)));
-      if (min.length() > 1) j++;
-      if (max.length() > 1) k++;
+      j++;
+      k++;
+      if (j == minLength) {
+        j = 0;
+      }
+      if (k == maxLength) {
+        k = 0;
+      }
     }
     return (vb.build());
   }
 
   @Internal
-  public static DoubleVector rnorm(@Current Context context, Vector nVector, DoubleVector mean, DoubleVector sd) {
+  public static DoubleVector rnorm(@Current Context context, Vector nVector, AtomicVector mean, AtomicVector sd) {
     int n = defineSize(nVector);
-    DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
-    if (mean.length() == 0 || sd.length() == 0) return (DoubleArrayVector.Builder.withInitialSize(n).build());
-    int j = 0, k = 0;
-    for (int i = 0; i < n; i++) {
-      if (j == mean.length()-1) j = 0;
-      if (k == sd.length()-1) k = 0;
-      vb.add(Normal.rnorm(context.getSession(), mean.getElementAsDouble(j), sd.getElementAsDouble(k)));
-      if (mean.length() > 1) j++;
-      if (sd.length() > 1) k++;
+    int meanLength  = mean.length();
+    int sdLength = sd.length();
+    if (meanLength == 0 || sdLength == 0) {
+      return (DoubleArrayVector.Builder.withInitialSize(n).build());
     }
-    return (vb.build());
+    DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
+      int j = 0, k = 0;
+      for (int i = 0; i < n; i++) {
+        vb.add(Normal.rnorm(context.getSession(), mean.getElementAsDouble(j), sd.getElementAsDouble(k)));
+        j++;
+        k++;
+        if (j == meanLength) {
+          j = 0;
+        }
+        if (k == sdLength) {
+          k = 0;
+        }
+      }
+      return (vb.build());
   }
 
   @Internal
-  public static DoubleVector rgamma(@Current Context context, Vector nVector, DoubleVector shape, DoubleVector scale) {
+  public static DoubleVector rgamma(@Current Context context, Vector nVector, AtomicVector shape, AtomicVector scale) {
     int n  = defineSize(nVector);
+    int shapeLength = shape.length();
+    int scaleLength = scale.length();
+    if (shapeLength == 0 || scaleLength == 0) {
+      return (DoubleArrayVector.Builder.withInitialSize(n).build());
+    }
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
-    if (shape.length() == 0 || scale.length() == 0) return (DoubleArrayVector.Builder.withInitialSize(n).build());
     int j = 0, k = 0;
     for (int i = 0; i < n; i++) {
-      if (j == shape.length()-1) j = 0;
-      if (k == scale.length()-1) k = 0;
       vb.add(Gamma.rgamma(context.getSession(), shape.getElementAsDouble(j), scale.getElementAsDouble(k)));
       j++;
       k++;
+      if (j == shapeLength) {
+        j = 0;
+      }
+      if (k == scaleLength) {
+        k = 0;
+      }
     }
     return (vb.build());
   }
 
   @Internal
-  public static DoubleVector rchisq(@Current Context context, Vector nVector, DoubleVector df) {
+  public static DoubleVector rchisq(@Current Context context, Vector nVector, AtomicVector df) {
     int n = defineSize(nVector);
+    int dfLength = df.length();
+    if (dfLength == 0) {
+      return (DoubleArrayVector.Builder.withInitialSize(n).build());
+    }
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
-    if (df.length() == 0) return (DoubleArrayVector.Builder.withInitialSize(n).build());
     int j = 0;
     for (int i = 0; i < n; i++) {
-      if (j == df.length()-1) j = 0;
       vb.add(ChiSquare.rchisq(context.getSession(), df.getElementAsDouble(j)));
-      if (df.length() > 1) j++;
+      j++;
+      if (j == dfLength) {
+        j = 0;
+      }
     }
     return (vb.build());
   }
 
   @Internal
-  public static DoubleVector rnchisq(@Current Context context, Vector nVector, DoubleVector df, double ncp) {
+  public static DoubleVector rnchisq(@Current Context context, Vector nVector, AtomicVector df, double ncp) {
     int n = defineSize(nVector);
+    int dfLength = df.length();
+    if (dfLength == 0) {
+      return (DoubleArrayVector.Builder.withInitialSize(n).build());
+    }
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
-    if (df.length() == 0) return (DoubleArrayVector.Builder.withInitialSize(n).build());
     int j = 0;
     for (int i = 0; i < n; i++) {
-      if (j == df.length()-1) j = 0;
       vb.add(ChiSquare.rnchisq(context.getSession(), df.getElementAsDouble(j), ncp));
-      if (df.length() > 1) j++;
+      j++;
+      if (j == dfLength) {
+        j = 0;
+      }
     }
     return (vb.build());
   }
 
   @Internal
-  public static DoubleVector rexp(@Current Context context, Vector nVector, DoubleVector invrate) {
+  public static DoubleVector rexp(@Current Context context, Vector nVector, AtomicVector invrate) {
     int n = defineSize(nVector);
+    int invrateLength = invrate.length();
+    if (invrateLength == 0) {
+      return (DoubleArrayVector.Builder.withInitialSize(n).build());
+    }
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
-    if (invrate.length() == 0) return (DoubleArrayVector.Builder.withInitialSize(n).build());
     int j = 0;
     for (int i = 0; i < n; i++) {
-      if (j == invrate.length()-1) j = 0;
       vb.add(Exponantial.rexp(context.getSession(), invrate.getElementAsDouble(j)));
-      if (invrate.length() > 1) j++;
+      j++;
+      if (j == invrateLength) {
+        j = 0;
+      }
     }
     return (vb.build());
   }
 
   @Internal
-  public static DoubleVector rpois(@Current Context context, Vector nVector, DoubleVector mu) {
+  public static DoubleVector rpois(@Current Context context, Vector nVector, AtomicVector mu) {
     int n = defineSize(nVector);
+    int muLength = mu.length();
+    if (muLength == 0) {
+      return (DoubleArrayVector.Builder.withInitialSize(n).build());
+    }
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
-    if (mu.length() == 0) return (DoubleArrayVector.Builder.withInitialSize(n).build());
     int j = 0;
     for (int i = 0; i < n; i++) {
-      if (j == mu.length()-1) j = 0;
       vb.add(Poisson.rpois(context.getSession(), mu.getElementAsDouble(j)));
-      if (mu.length() > 1) j++;
+      j++;
+      if (j == muLength) {
+        j = 0;
+      }
     }
     return (vb.build());
   }
 
   @Internal
-  public static DoubleVector rsignrank(@Current Context context, Vector nnVector, DoubleVector n) {
+  public static DoubleVector rsignrank(@Current Context context, Vector nnVector, AtomicVector n) {
     int nn = defineSize(nnVector);
+    int nLength = n.length();
+    if (nLength == 0) {
+      return (DoubleArrayVector.Builder.withInitialSize(nn).build());
+    }
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(nn);
-    if (n.length() == 0) return (DoubleArrayVector.Builder.withInitialSize(nn).build());
     int j = 0;
     for (int i = 0; i < nn; i++) {
-      if (j == n.length()-1) j = 0;
       vb.add(SignRank.rsignrank(context.getSession(), n.getElementAsDouble(j)));
-      if (n.length() > 1) j++;
+      j++;
+      if (j == nLength) {
+        j = 0;
+      }
     }
     return (vb.build());
   }
 
   @Internal
-  public static DoubleVector rwilcox(@Current Context context, Vector nnVector, DoubleVector m, DoubleVector n) {
+  public static DoubleVector rwilcox(@Current Context context, Vector nnVector, AtomicVector m, AtomicVector n) {
     int nn = defineSize(nnVector);
+    int mLength = m.length();
+    int nLength = n.length();
+    if (mLength == 0 || nLength == 0) {
+      return (DoubleArrayVector.Builder.withInitialSize(nn).build());
+    }
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(nn);
-    if (m.length() == 0 || n.length() == 0) return (DoubleArrayVector.Builder.withInitialSize(nn).build());
     int j = 0, k = 0;
     for (int i = 0; i < nn; i++) {
-      if (j == m.length()-1) j = 0;
-      if (k == n.length()-1) k = 0;
       vb.add(Wilcox.rwilcox(context.getSession(), m.getElementAsDouble(j), n.getElementAsDouble(k)));
-      if (m.length() > 1) j++;
-      if (n.length() > 1) k++;
+      j++;
+      k++;
+      if (j == mLength) {
+        j = 0;
+      }
+      if (k == nLength) {
+        k = 0;
+      }
     }
     return (vb.build());
   }
 
   @Internal
-  public static DoubleVector rgeom(@Current Context context, Vector nVector, DoubleVector p) {
+  public static DoubleVector rgeom(@Current Context context, Vector nVector, AtomicVector p) {
     int n = defineSize(nVector);
+    int pLength = p.length();
+    if (pLength == 0) {
+      return (DoubleArrayVector.Builder.withInitialSize(n).build());
+    }
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
-    if (p.length() == 0) return (DoubleArrayVector.Builder.withInitialSize(n).build());
     int j = 0;
     for (int i = 0; i < n; i++) {
-      if (j == p.length()-1) j = 0;
       vb.add(Geometric.rgeom(context.getSession(), p.getElementAsDouble(j)));
-      if (p.length() > 1) j++;
+      j++;
+      if (j == pLength) {
+        j = 0;
+      }
     }
     return (vb.build());
   }
 
   @Internal
-  public static DoubleVector rt(@Current Context context, Vector nVector, DoubleVector df) {
+  public static DoubleVector rt(@Current Context context, Vector nVector, AtomicVector df) {
     int n = defineSize(nVector);
+    int dfLength = df.length();
+    if (dfLength == 0) {
+      return (DoubleArrayVector.Builder.withInitialSize(n).build());
+    }
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
-    if (df.length() == 0) return (DoubleArrayVector.Builder.withInitialSize(n).build());
     int j = 0;
     for (int i = 0; i < n; i++) {
-      if (j == df.length()-1) j = 0;
       vb.add(StudentsT.rt(context.getSession(), df.getElementAsDouble(j)));
-      if (df.length() > 1) j++;
+      j++;
+      if (j == dfLength) {
+        j = 0;
+      }
     }
     return (vb.build());
   }
 
   @Internal
-  public static DoubleVector rcauchy(@Current Context context, Vector nVector, DoubleVector location, DoubleVector scale) {
+  public static DoubleVector rcauchy(@Current Context context, Vector nVector, AtomicVector location, AtomicVector scale) {
     int n = defineSize(nVector);
+    int locationLength = location.length();
+    int scaleLength = scale.length();
+    if (locationLength == 0 || scaleLength == 0) {
+      return (DoubleArrayVector.Builder.withInitialSize(n).build());
+    }
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
-    if (location.length() == 0 || scale.length() == 0) return (DoubleArrayVector.Builder.withInitialSize(n).build());
     int j = 0, k = 0;
     for (int i = 0; i < n; i++) {
-      if (j == location.length()-1) j = 0;
-      if (k == scale.length()-1) k = 0;
       vb.add(Cauchy.rcauchy(context.getSession(), location.getElementAsDouble(j), scale.getElementAsDouble(k)));
-      if (location.length() > 1) j++;
-      if (scale.length() > 1) k++;
+      j++;
+      k++;
+      if (j == locationLength) {
+        j = 0;
+      }
+      if (k == scaleLength) {
+        k = 0;
+      }
     }
     return (vb.build());
   }
 
   @Internal
-  public static DoubleVector rlnorm(@Current Context context, Vector nVector, DoubleVector meanlog, DoubleVector sdlog) {
+  public static DoubleVector rlnorm(@Current Context context, Vector nVector, AtomicVector meanlog, AtomicVector sdlog) {
     int n = defineSize(nVector);
+    int meanlogLenght = meanlog.length();
+    int sdlogLength = sdlog.length();
+    if (meanlogLenght == 0 || sdlogLength == 0) {
+      return (DoubleArrayVector.Builder.withInitialSize(n).build());
+    }
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
-    if (meanlog.length() == 0 || sdlog.length() == 0) return (DoubleArrayVector.Builder.withInitialSize(n).build());
     int j = 0, k = 0;
     for (int i = 0; i < n; i++) {
-      if (j == meanlog.length()-1) j = 0;
-      if (k == sdlog.length()-1) k = 0;
       vb.add(LNorm.rlnorm(context.getSession(), meanlog.getElementAsDouble(j), sdlog.getElementAsDouble(k)));
-      if (meanlog.length() > 1) j++;
-      if (sdlog.length() > 1) k++;
+      j++;
+      k++;
+      if (j == meanlogLenght) {
+        j = 0;
+      }
+      if (k == sdlogLength) {
+        k = 0;
+      }
     }
     return (vb.build());
   }
 
   @Internal
-  public static DoubleVector rlogis(@Current Context context, Vector nVector, DoubleVector location, DoubleVector scale) {
+  public static DoubleVector rlogis(@Current Context context, Vector nVector, AtomicVector location, AtomicVector scale) {
     int n = defineSize(nVector);
+    int locationLength = location.length();
+    int scaleLength = scale.length();
+    if (locationLength == 0 || scaleLength == 0) {
+      return (DoubleArrayVector.Builder.withInitialSize(n).build());
+    }
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
-    if (location.length() == 0 || scale.length() == 0) return (DoubleArrayVector.Builder.withInitialSize(n).build());
     int j = 0, k = 0;
     for (int i = 0; i < n; i++) {
-      if (j == location.length()-1) j = 0;
-      if (k == scale.length()-1) k = 0;
       vb.add(RLogis.rlogis(context.getSession(), location.getElementAsDouble(j), scale.getElementAsDouble(k)));
-      if (location.length() > 1) j++;
-      if (scale.length() > 1) k++;
+      j++;
+      k++;
+      if (j == locationLength) {
+        j = 0;
+      }
+      if (k == scaleLength) {
+        k = 0;
+      }
     }
     return (vb.build());
   }
 
   @Internal
-  public static DoubleVector rweibull(@Current Context context, Vector nVector, DoubleVector shape, DoubleVector scale) {
+  public static DoubleVector rweibull(@Current Context context, Vector nVector, AtomicVector shape, AtomicVector scale) {
     int n = defineSize(nVector);
+    int shapeLength = shape.length();
+    int scaleLength = scale.length();
+    if (shapeLength == 0 || scaleLength == 0) {
+      return (DoubleArrayVector.Builder.withInitialSize(n).build());
+    }
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
-    if (shape.length() == 0 || scale.length() == 0) return (DoubleArrayVector.Builder.withInitialSize(n).build());
     int j = 0, k = 0;
     for (int i = 0; i < n; i++) {
-      if (j == shape.length()-1) j = 0;
-      if (k == scale.length()-1) k = 0;
       vb.add(Weibull.rweibull(context.getSession(), shape.getElementAsDouble(j), scale.getElementAsDouble(k)));
-      if (shape.length() > 1) j++;
-      if (scale.length() > 1) k++;
+      j++;
+      k++;
+      if (j == shapeLength) {
+        j = 0;
+      }
+      if (k == scaleLength) {
+        k = 0;
+      }
     }
     return (vb.build());
   }
 
   @Internal
-  public static DoubleVector rnbinom(@Current Context context, Vector nVector, DoubleVector size, DoubleVector prob) {
+  public static DoubleVector rnbinom(@Current Context context, Vector nVector, AtomicVector size, AtomicVector prob) {
     int n = defineSize(nVector);
+    int sizeLength = size.length();
+    int probLength = prob.length();
+    if (sizeLength == 0 || probLength == 0) {
+      return (DoubleArrayVector.Builder.withInitialSize(n).build());
+    }
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
-    if (size.length() == 0 || prob.length() == 0) return (DoubleArrayVector.Builder.withInitialSize(n).build());
     int j = 0, k = 0;
     for (int i = 0; i < n; i++) {
-      if (j == size.length()-1) j = 0;
-      if (k == prob.length()-1) k = 0;
       vb.add(NegativeBinom.rnbinom(context.getSession(), size.getElementAsDouble(j), prob.getElementAsDouble(k)));
-      if (size.length() > 1) j++;
-      if (prob.length() > 1) k++;
+      j++;
+      k++;
+      if (j == sizeLength) {
+        j = 0;
+      }
+      if (k == probLength) {
+        k = 0;
+      }
     }
     return (vb.build());
   }
 
   @Internal
-  public static DoubleVector rnbinom_mu(@Current Context context, Vector nVector, DoubleVector size, DoubleVector mu) {
+  public static DoubleVector rnbinom_mu(@Current Context context, Vector nVector, AtomicVector size, AtomicVector mu) {
     int n = defineSize(nVector);
+    int sizeLength = size.length();
+    int muLenght = mu.length();
+    if (sizeLength == 0 || muLenght == 0) {
+      return (DoubleArrayVector.Builder.withInitialSize(n).build());
+    }
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
-    if (size.length() == 0 || mu.length() == 0) return (DoubleArrayVector.Builder.withInitialSize(n).build());
     int j = 0, k = 0;
     for (int i = 0; i < n; i++) {
-      if (j == size.length()-1) j = 0;
-      if (k == mu.length()-1) k = 0;
       vb.add(NegativeBinom.rnbinom_mu(context.getSession(), size.getElementAsDouble(j), mu.getElementAsDouble(k)));
-      if (size.length() > 1) j++;
-      if (mu.length() > 1) k++;
+      j++;
+      k++;
+      if (j == sizeLength) {
+        j = 0;
+      }
+      if (k == muLenght) {
+        k = 0;
+      }
     }
     return (vb.build());
   }
 
   @Internal
-  public static DoubleVector rbinom(@Current Context context, Vector nVector, DoubleVector size, DoubleVector prob) {
+  public static DoubleVector rbinom(@Current Context context, Vector nVector, AtomicVector size, AtomicVector prob) {
     int n = defineSize(nVector);
+    int sizeLength = size.length();
+    int probLength = prob.length();
+    if (sizeLength == 0 || probLength == 0) {
+      return (DoubleArrayVector.Builder.withInitialSize(n).build());
+    }
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
-    if (size.length() == 0 || prob.length() == 0) return (DoubleArrayVector.Builder.withInitialSize(n).build());
     int j = 0, k = 0;
     for (int i = 0; i < n; i++) {
-      if (j == size.length()-1) j = 0;
-      if (k == prob.length()-1) k = 0;
       vb.add(Binom.rbinom(context.getSession(), size.getElementAsDouble(j), prob.getElementAsDouble(k)));
-      if (size.length() > 1) j++;
-      if (prob.length() > 1) k++;
+      j++;
+      k++;
+      if (j == sizeLength) {
+        j = 0;
+      }
+      if (k == probLength) {
+        k = 0;
+      }
     }
     return (vb.build());
   }
 
 
   @Internal
-  public static DoubleVector rf(@Current Context context, Vector nVector, DoubleVector df1, DoubleVector df2) {
+  public static DoubleVector rf(@Current Context context, Vector nVector, AtomicVector df1, AtomicVector df2) {
     int n = defineSize(nVector);
+    int df1Length = df1.length();
+    int df2Length = df2.length();
+    if (df1Length == 0 || df2.length() == 0) {
+      return (DoubleArrayVector.Builder.withInitialSize(n).build());
+    }
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
-    if (df1.length() == 0 || df2.length() == 0) return (DoubleArrayVector.Builder.withInitialSize(n).build());
     int j = 0, k = 0;
     for (int i = 0; i < n; i++) {
-      if (j == df1.length()-1) j = 0;
-      if (k == df2.length()-1) k = 0;
       vb.add(F.rf(context.getSession(), df1.getElementAsDouble(j), df2.getElementAsDouble(k)));
-      if (df1.length() > 1) j++;
-      if (df2.length() > 1) k++;
+      j++;
+      k++;
+      if (j == df1Length) {
+        j = 0;
+      }
+      if (k == df2Length) {
+        k = 0;
+      }
     }
     return (vb.build());
   }
 
   @Internal
-  public static DoubleVector rbeta(@Current Context context, Vector nVector, DoubleVector shape1, DoubleVector shape2) {
+  public static DoubleVector rbeta(@Current Context context, Vector nVector, AtomicVector shape1, AtomicVector shape2) {
     int n = defineSize(nVector);
+    int shape1Length = shape1.length();
+    int shape2Length = shape2.length();
+    if (shape1Length == 0 || shape2Length == 0) {
+      return (DoubleArrayVector.Builder.withInitialSize(n).build());
+    }
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
-    if (shape1.length() == 0 || shape2.length() == 0) return (DoubleArrayVector.Builder.withInitialSize(n).build());
     int j = 0, k = 0;
     for (int i = 0; i < n; i++) {
-      if (j == shape1.length()-1) j = 0;
-      if (k == shape2.length()-1) k = 0;
       vb.add(Beta.rbeta(context.getSession(), shape1.getElementAsDouble(j), shape2.getElementAsDouble(k)));
-      if (shape1.length() > 1) j++;
-      if (shape2.length() > 1) k++;
+      j++;
+      k++;
+      if (j == shape1Length) {
+        j = 0;
+      }
+      if (k == shape2Length) {
+        k = 0;
+      }
     }
     return (vb.build());
   }
 
   @Internal
-  public static DoubleVector rhyper(@Current Context context, Vector nnVector, DoubleVector m, DoubleVector n, DoubleVector k) {
+  public static DoubleVector rhyper(@Current Context context, Vector nnVector, AtomicVector m, AtomicVector n, AtomicVector k) {
     int nn = defineSize(nnVector);
+    int mLength = m.length();
+    int nLength = n.length();
+    int kLength = k.length();
+    if (mLength == 0 || nLength == 0 || kLength == 0) {
+      return (DoubleArrayVector.Builder.withInitialSize(nn).build());
+    }
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(nn);
-    if (m.length() == 0 || n.length() == 0 || k.length() == 0) return (DoubleArrayVector.Builder.withInitialSize(nn).build());
     int j = 0, p = 0, q = 0;
     for (int i = 0; i < nn; i++) {
-      if (j == m.length()-1) j = 0;
-      if (p == n.length()-1) p = 0;
-      if (q == k.length()-1) q = 0;
       vb.add(HyperGeometric.Random_hyper_geometric.rhyper(
               context.getSession(), m.getElementAsDouble(j), n.getElementAsDouble(p), k.getElementAsDouble(q)));
-      if (m.length() > 1) j++;
-      if (n.length() > 1) p++;
-      if (k.length() > 1) q++;
+      j++;
+      p++;
+      q++;
+      if (j == mLength) {
+        j = 0;
+      }
+      if (p == nLength) {
+        p = 0;
+      }
+      if (q == kLength) {
+        q = 0;
+      }
     }
     return (vb.build());
   }
 
   @Internal
-  public static DoubleVector rmultinom(@Current Context context, Vector nVector, IntVector size, DoubleVector prob){
+  public static DoubleVector rmultinom(@Current Context context, Vector nVector, AtomicVector size, AtomicVector prob){
     int n = defineSize(nVector);
+    int sizeLength = size.length();
+    int probLength = prob.length();
+    if (sizeLength == 0 || probLength == 0) {
+      return (DoubleArrayVector.Builder.withInitialSize(n).build());
+    }
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
-    if (size.length() == 0 || prob.length() == 0) return (DoubleArrayVector.Builder.withInitialSize(n).build());
     int k = 0;
-    int[] RN = new int[prob.length()];
+    int[] RN = new int[probLength];
     for (int i = 0; i < n; i++){
-      if (size.length() != 1 && k == size.length()-1) k = 0;
-      Multinomial.rmultinom(context.getSession(), size.getElementAsInt(k), prob.toDoubleArray(), prob.length(), RN);
-      for (int j = 0; j < prob.length(); j++) {
+      Multinomial.rmultinom(context.getSession(), size.getElementAsInt(k), prob.toDoubleArray(), probLength, RN);
+      k++;
+      if (k == sizeLength) {
+        k = 0;
+      }
+      for (int j = 0; j < probLength; j++) {
         vb.add(RN[j]);
       }
     }

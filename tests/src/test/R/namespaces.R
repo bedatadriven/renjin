@@ -35,3 +35,10 @@ ignore.test.getNamespaceImports <- function() {
     assertThat(imports$utils, identicalTo(str = str))
 }
 
+test.requireNamespace <- function() {
+    assertTrue(requireNamespace("stats"))
+}
+
+test.requireNamespaceNonExistant <- function() {
+    assertFalse(requireNamespace("fooooobarrr"))
+}

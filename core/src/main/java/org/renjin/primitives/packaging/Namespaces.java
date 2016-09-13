@@ -36,7 +36,16 @@ import java.io.IOException;
 public class Namespaces {
 
   @Internal
-  public static SEXP getRegisteredNamespace(@Current Context context, @Current NamespaceRegistry registry, Symbol name) {
+  public static SEXP getRegisteredNamespace(@Current Context context, @Current NamespaceRegistry registry, SEXP nameSexp) {
+    Symbol name;
+    if(nameSexp instanceof Symbol) {
+      name = (Symbol) nameSexp; 
+    } else if(nameSexp instanceof StringVector) {
+      name = Symbol.get(nameSexp.asString());
+    } else {
+      throw new EvalException("Illegal type of argument name: '%s'", nameSexp.getTypeName());
+    }
+    
     if(registry.isRegistered(name)) {
       return registry.getNamespace(context, name).getNamespaceEnvironment();
     } else {
@@ -58,6 +67,7 @@ public class Namespaces {
   public static SEXP getNamespace(@Current Context context, @Current NamespaceRegistry registry, String name) {
     return registry.getNamespace(context, name).getNamespaceEnvironment();
   }
+  
 
   @Builtin
   public static boolean isNamespace(@Current NamespaceRegistry registry, SEXP envExp) {

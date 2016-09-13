@@ -41,6 +41,7 @@ for(dist in names(dists)) {
   rfn <- sprintf("r%s", dist)
   test <- test.open("gen-dist-tests.R", rfn)
   writeln(test, "library(hamcrest)")
+  writeln(test, "library(stats)")
   writeFixture(test, "set.seed(1)")
   
   params <- dists[[dist]]

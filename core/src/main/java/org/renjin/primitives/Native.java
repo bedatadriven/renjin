@@ -11,6 +11,7 @@ import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.NamedFlag;
 import org.renjin.invoke.reflection.FunctionBinding;
 import org.renjin.methods.Methods;
+import org.renjin.primitives.ni.DeferredFortranCall;
 import org.renjin.primitives.packaging.FqPackageName;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.repackaged.guava.base.Charsets;
@@ -238,70 +239,27 @@ public class Native {
       throw new EvalException("Invalid argument type for method = %s", methodExp.getTypeName());
     }
 
-    Class<?>[] fortranTypes = method.type().parameterArray();
-    if(fortranTypes.length != callArguments.length()) {
-      throw new EvalException("Invalid number of args");
-    }
-
-    Object[] fortranArgs = new Object[fortranTypes.length];
-    ListVector.NamedBuilder returnValues = ListVector.newNamedBuilder();
-
+    DeferredFortranCall fortranCall = new DeferredFortranCall(method, callArguments);
+    
     if(Profiler.ENABLED) {
       Profiler.functionStart(Symbol.get(methodName), 'F');
     }
-
-    // For .Fortran() calls, we make a copy of the arguments, pass them by
-    // reference to the fortran subroutine, and then return the modified arguments
-    // as a ListVector.
-
-    for(int i=0;i!=callArguments.length();++i) {
-      AtomicVector vector = (AtomicVector) callArguments.get(i);
-      if(fortranTypes[i].equals(DoublePtr.class)) {
-        double[] array = vector.toDoubleArray();
-        fortranArgs[i] = new DoublePtr(array, 0);
-        returnValues.add(callArguments.getName(i), DoubleArrayVector.unsafe(array, vector.getAttributes()));
-
-      } else if(fortranTypes[i].equals(IntPtr.class)) {
-        int[] array = vector.toIntArray();
-        fortranArgs[i] = new IntPtr(array, 0);
-        returnValues.add(callArguments.getName(i), IntArrayVector.unsafe(array, vector.getAttributes()));
-
-      } else if(fortranTypes[i].equals(BooleanPtr.class)) {
-        boolean[] array = toBooleanArray(vector);
-        fortranArgs[i] = new BooleanPtr(array);
-        returnValues.add(callArguments.getName(i), BooleanArrayVector.unsafe(array));
-
-      } else {
-        throw new UnsupportedOperationException("fortran type: " + fortranTypes[i]);
-      }
-    }
-
+    
     try {
-      method.invokeWithArguments(fortranArgs);
-    } catch (Error e) {
-      throw e;
-    } catch (Throwable e) {
-      throw new EvalException("Exception thrown while executing " + methodName, e);
+
+//      context.getSession().getVectorEngine().materialize()
+      
+      fortranCall.evaluate();
+
     } finally {
       if(Profiler.ENABLED) {
         Profiler.functionEnd();
       }
     }
 
-    return returnValues.build();
+    return fortranCall.getOutputList();
   }
 
-  private static boolean[] toBooleanArray(AtomicVector vector) {
-    boolean array[] = new boolean[vector.length()];
-    for(int i=0;i<vector.length();++i) {
-      int element = vector.getElementAsRawLogical(i);
-      if(element == IntVector.NA) {
-        throw new EvalException("NAs cannot be passed to logical fortran argument");
-      }
-      array[i] = (element != 0);
-    }
-    return array;
-  }
 
 
   private static MethodHandle findFortranMethod(Context context, String className, String methodName) throws IllegalAccessException {

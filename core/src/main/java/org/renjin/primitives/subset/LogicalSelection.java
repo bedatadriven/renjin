@@ -161,7 +161,7 @@ class LogicalSelection implements SelectionStrategy {
 
   @Override
   public SEXP getSingleListElement(ListVector source, boolean exact) {
-    throw new UnsupportedOperationException("[[ operator never uses logical subscrpts");
+    throw new UnsupportedOperationException("[[ operator never uses logical subscripts");
   }
 
   @Override

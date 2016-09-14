@@ -122,6 +122,8 @@
             <configuration>
               <optimize>
                 <class>org.renjin.stats.fft__</class>
+                <class>org.renjin.stats.kmns__</class>
+                <class>org.renjin.stats.hclust__</class>
               </optimize>
             </configuration>
           </execution>

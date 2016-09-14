@@ -1,14 +1,17 @@
 package org.renjin.compiler.pipeline.accessor;
 
+import org.renjin.repackaged.asm.Opcodes;
+import org.renjin.repackaged.guava.base.Optional;
+import org.renjin.repackaged.asm.Label;
+import org.renjin.repackaged.asm.MethodVisitor;
+import org.renjin.repackaged.asm.Type;
 import org.renjin.compiler.pipeline.ComputeMethod;
 import org.renjin.compiler.pipeline.DeferredNode;
-import org.renjin.repackaged.asm.MethodVisitor;
-import org.renjin.repackaged.asm.Opcodes;
-import org.renjin.repackaged.asm.Type;
 import org.renjin.sexp.Vector;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
 
 import static org.renjin.repackaged.asm.Opcodes.*;
 
@@ -19,15 +22,14 @@ public class BinaryVectorOpAccessor extends Accessor {
   private int lengthLocal2;
   private int lengthLocal;
   private Method applyMethod;
-  private Class<?> operandType;
+  private Class argumentType;
 
   public BinaryVectorOpAccessor(DeferredNode node, InputGraph inputGraph) {
     this.operandAccessors[0] = Accessors.create(node.getOperands().get(0), inputGraph);
     this.operandAccessors[1] = Accessors.create(node.getOperands().get(1), inputGraph);
     applyMethod = findStaticApply(node.getVector());
     assert applyMethod != null;
-
-    operandType = applyMethod.getParameterTypes()[0];
+    argumentType = applyMethod.getParameterTypes()[0];
   }
 
   public static boolean accept(DeferredNode node) {
@@ -35,15 +37,15 @@ public class BinaryVectorOpAccessor extends Accessor {
   }
 
   private static Method findStaticApply(Vector vector) {
-    for(Method method : vector.getClass().getMethods()) {
-      if(method.getName().equals("compute") &&
+    for (Method method : vector.getClass().getMethods()) {
+      if (method.getName().equals("compute") &&
               Modifier.isPublic(method.getModifiers()) &&
               Modifier.isStatic(method.getModifiers()) &&
               method.getParameterTypes().length == 2) {
         
         if (supportedType(method.getReturnType()) &&
             supportedType(method.getParameterTypes()[0]) &&
-            method.getParameterTypes()[0].equals(method.getParameterTypes()[1]) ) {
+            supportedType(method.getParameterTypes()[1])) {
           return method;
         }
       }
@@ -74,99 +76,184 @@ public class BinaryVectorOpAccessor extends Accessor {
     method.getVisitor().visitVarInsn(ILOAD, lengthLocal);
   }
 
-
-  private void pushDoubleArguments(ComputeMethod method) {
-    
-    // At this point:
-    // The index must be the top of the stack
-    
-    MethodVisitor mv = method.getVisitor();
-    mv.visitInsn(DUP); // keep the index on the stack for the next operand
-    
-    mv.visitVarInsn(ILOAD, lengthLocal1);
-    // stack => { index, index, length1 }
-    mv.visitInsn(IREM);
-    // stack => { index, index1 }
-    operandAccessors[0].pushDouble(method);
-    
-    // stack => { index, [value1, value1] }
-    mv.visitInsn(DUP2_X1); // next two instructions equivalent to swap
-    mv.visitInsn(POP2);
-    // stack => { value1, index}
-    mv.visitVarInsn(ILOAD, lengthLocal2);
-    // stack => { value1, index, length2 }
-    mv.visitInsn(IREM);
-    // stack => { value1, index2 }
-    operandAccessors[1].pushDouble(method);
-    // stack => { value1, value2}
-
+  @Override
+  public void pushElementAsInt(ComputeMethod method, Optional<Label> integerNaLabel) {
+    if (argumentType.equals(double.class)) {
+      computeDouble(method, integerNaLabel);
+    } else if(argumentType.equals(int.class)) {
+      computeInt(method, integerNaLabel);
+    } else {
+      throw new UnsupportedOperationException();
+    }
+    cast(method.getVisitor(), applyMethod.getReturnType(), int.class);
   }
 
-  private void pushIntArguments(ComputeMethod method) {
+  @Override
+  public boolean mustCheckForIntegerNAs() {
+    return operandAccessors[0].mustCheckForIntegerNAs() || operandAccessors[1].mustCheckForIntegerNAs();
+  }
 
-    // At this point:
-    // The index must be the top of the stack
+  @Override
+  public void pushElementAsDouble(ComputeMethod method, Optional<Label> naIntegerLabel) {
+    if (argumentType.equals(double.class)) {
+      computeDouble(method, naIntegerLabel);
+    } else if (argumentType.equals(int.class)) {
+      computeInt(method, naIntegerLabel);
+    } else {
+      throw new UnsupportedOperationException(argumentType.getName());
+    }
+    cast(method.getVisitor(), applyMethod.getReturnType(), double.class);
+  }
+
+
+  private void computeInt(ComputeMethod method, Optional<Label> naLabel) {
+
+    // If we've been asked to handle NA checking, then we have to set up our
+    // internal NA handler block to handle the case that one of the arguments
+    // is NA so that we can clean up the stack before jumping to the outer naLabel.
+
+    // The Java bytecode verifier will not accept that multiple execution paths
+    // arrive at the same point with different types on the stack.
+
+    Optional<Label> argNaLabel = Optional.absent();
+    if(naLabel.isPresent() &&
+            (operandAccessors[0].mustCheckForIntegerNAs() || operandAccessors[1].mustCheckForIntegerNAs())) {
+      argNaLabel = Optional.of(new Label());
+    }
+
+    Optional<Label> done = Optional.absent();
+    if(argNaLabel.isPresent()) {
+      done = Optional.of(new Label());
+    }
 
     MethodVisitor mv = method.getVisitor();
-    mv.visitInsn(DUP); // keep the index on the stack for the next operand
-
+    mv.visitInsn(DUP);
     mv.visitVarInsn(ILOAD, lengthLocal1);
     // stack => { index, index, length1 }
     mv.visitInsn(IREM);
     // stack => { index, index1 }
-    operandAccessors[0].pushInt(method);
+
+    operandAccessors[0].pushElementAsInt(method, argNaLabel);
 
     // stack => { index, value1 }
     mv.visitInsn(SWAP);
-
     // stack => { value1, index}
     mv.visitVarInsn(ILOAD, lengthLocal2);
     // stack => { value1, index, length2 }
     mv.visitInsn(IREM);
     // stack => { value1, index2 }
-    operandAccessors[1].pushInt(method);
+
+    operandAccessors[1].pushElementAsInt(method, argNaLabel);
     // stack => { value1, value2}
-  }
-  
-  private void pushComputation(ComputeMethod method) {
-    if(operandType.equals(double.class)) {
-      pushDoubleArguments(method);
-    } else if(operandType.equals(int.class)) {
-      pushIntArguments(method);
-    } else {
-      throw new IllegalStateException("operandType: " + operandType);
+
+    mv.visitMethodInsn(INVOKESTATIC,
+            Type.getInternalName(applyMethod.getDeclaringClass()),
+            applyMethod.getName(),
+            Type.getMethodDescriptor(applyMethod), false);
+
+    if(done.isPresent()) {
+      mv.visitJumpInsn(GOTO, done.get());
     }
 
-    method.getVisitor().visitMethodInsn(INVOKESTATIC,
-        Type.getInternalName(applyMethod.getDeclaringClass()),
-        applyMethod.getName(),
-        Type.getMethodDescriptor(applyMethod), false);
+    if(argNaLabel.isPresent()) {
+      mv.visitLabel(argNaLabel.get());
+      // upon arriving here, the stack either contains
+      // { index, value1 } if is.na(arg1), or
+      // { value1, value2 } if !is.na(arg1) && is.na(arg2).
+      // in either case, we have to get rid of one of the ints
+      // so that we jump to the outer na block, there is exactly
+      // one extra int on the stack as expected.
+      mv.visitInsn(POP);
+      mv.visitJumpInsn(GOTO, naLabel.get());
+    }
+
+    if(done.isPresent()) {
+      mv.visitLabel(done.get());
+    }
   }
 
+  private void computeDouble(ComputeMethod method, Optional<Label> integerNaLabel) {
 
-  @Override
-  public void pushDouble(ComputeMethod method) {
-    pushComputation(method);
+
+    // If we've been asked to handle NA checking, then it gets even more complicated
+    // than above because the stack will look different depending on which argument is NA,
+    // because the double value of the first operand we push onto the stack requires
+    // two positions on the stack.
+
+
+    Optional<Label> argNaLabel1 = Optional.absent();
+    if(integerNaLabel.isPresent() && operandAccessors[0].mustCheckForIntegerNAs()) {
+      argNaLabel1 = Optional.of(new Label());
+    }
+
+    Optional<Label> argNaLabel2 = Optional.absent();
+    if(integerNaLabel.isPresent() && operandAccessors[1].mustCheckForIntegerNAs()) {
+      argNaLabel2 = Optional.of(new Label());
+    }
+
+    Optional<Label> done = Optional.absent();
+    if(argNaLabel1.isPresent() || argNaLabel2.isPresent()) {
+      done = Optional.of(new Label());
+    }
+
+
+    MethodVisitor mv = method.getVisitor();
+    mv.visitInsn(DUP);
+    mv.visitVarInsn(ILOAD, lengthLocal1);
+    // stack => { index, index, length1 }
+    mv.visitInsn(IREM);
+    // stack => { index, index1 }
     
-    if(applyMethod.getReturnType().equals(int.class)) {
-      method.getVisitor().visitInsn(Opcodes.I2D);
-    } else if(applyMethod.getReturnType().equals(double.class)) {
-      // NOOP
-    } else {
-      throw new UnsupportedOperationException("returnType: " + applyMethod.getReturnType());
+    operandAccessors[0].pushElementAsDouble(method, argNaLabel1);
+
+    // stack => { index, [value1, value1] }
+    mv.visitInsn(DUP2_X1); // next two instructions equivalent to swap
+    mv.visitInsn(POP2);
+    // stack => { value1, value1, index}
+    mv.visitVarInsn(ILOAD, lengthLocal2);
+    // stack => { value1, value1, index, length2 }
+    mv.visitInsn(IREM);
+    // stack => { value1, value1, index2 }
+    operandAccessors[1].pushElementAsDouble(method, argNaLabel2);
+    // stack => { value1, value2}
+
+
+    mv.visitMethodInsn(INVOKESTATIC,
+            Type.getInternalName(applyMethod.getDeclaringClass()),
+            applyMethod.getName(),
+            Type.getMethodDescriptor(applyMethod), false);
+
+    if(done.isPresent()) {
+      mv.visitJumpInsn(GOTO, done.get());
     }
-  }
 
-  @Override
-  public void pushInt(ComputeMethod method) {
-    pushComputation(method);
+    if(argNaLabel1.isPresent()) {
+      mv.visitLabel(argNaLabel1.get());
+      // upon arriving here, the stack contains
+      // { index, value1::int } if is.na(arg1)
+      // get rid of one of the ints
+      // so that we jump to the outer na block, there is exactly
+      // one extra int on the stack as expected.
+      mv.visitInsn(POP);
+      mv.visitJumpInsn(GOTO, integerNaLabel.get());
+    }
 
-    if(applyMethod.getReturnType().equals(int.class)) {
-      // NOOP
-    } else if(applyMethod.getReturnType().equals(double.class)) {
-      method.getVisitor().visitInsn(Opcodes.D2I);
-    } else {
-      throw new UnsupportedOperationException("returnType: " + applyMethod.getReturnType());
-    }  
+    if(argNaLabel2.isPresent()) {
+      mv.visitLabel(argNaLabel2.get());
+      
+      // upon arriving here, the stack contains
+      // {value1, value1}, value2::int if is.na(arg2)
+      // because the first value has already been converted to a double,
+      // which occupies two slots on the stack
+      mv.visitInsn(POP);
+      mv.visitInsn(POP2);
+      mv.visitInsn(ICONST_0);
+      mv.visitJumpInsn(GOTO, integerNaLabel.get());
+    }
+    
+
+    if(done.isPresent()) {
+      mv.visitLabel(done.get());
+    }
   }
 }

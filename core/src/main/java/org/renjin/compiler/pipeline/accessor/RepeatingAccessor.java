@@ -1,9 +1,11 @@
 package org.renjin.compiler.pipeline.accessor;
 
+import org.renjin.repackaged.guava.base.Optional;
+import org.renjin.repackaged.asm.Label;
+import org.renjin.repackaged.asm.MethodVisitor;
 import org.renjin.compiler.pipeline.ComputeMethod;
 import org.renjin.compiler.pipeline.DeferredNode;
 import org.renjin.primitives.sequence.RepDoubleVector;
-import org.renjin.repackaged.asm.MethodVisitor;
 
 import static org.renjin.repackaged.asm.Opcodes.*;
 
@@ -38,16 +40,20 @@ public class RepeatingAccessor extends Accessor {
   public void pushLength(ComputeMethod method) {
     MethodVisitor mv = method.getVisitor();
     mv.visitVarInsn(ILOAD, sourceLengthLocal);
-    mv.visitInsn(ICONST_0);
-    timesAccessor.pushInt(method);
+    timesAccessor.pushElementAsInt(method, 0);
     mv.visitInsn(IMUL);
   }
 
   @Override
-  public void pushDouble(ComputeMethod method) {
+  public boolean mustCheckForIntegerNAs() {
+    return sourceAccessor.mustCheckForIntegerNAs();
+  }
+
+  @Override
+  public void pushElementAsDouble(ComputeMethod method, Optional<Label> integerNaLabel) {
     MethodVisitor mv = method.getVisitor();
     mv.visitVarInsn(ILOAD, sourceLengthLocal);
     mv.visitInsn(IREM);
-    sourceAccessor.pushDouble(method);
+    sourceAccessor.pushElementAsDouble(method);
   }
 }

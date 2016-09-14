@@ -1,10 +1,11 @@
 package org.renjin.compiler.pipeline.accessor;
 
+import org.renjin.repackaged.guava.base.Optional;
+import org.renjin.repackaged.asm.Label;
+import org.renjin.repackaged.asm.MethodVisitor;
+import org.renjin.repackaged.asm.Type;
 import org.renjin.compiler.pipeline.ComputeMethod;
 import org.renjin.compiler.pipeline.DeferredNode;
-import org.renjin.repackaged.asm.MethodVisitor;
-import org.renjin.repackaged.asm.Opcodes;
-import org.renjin.repackaged.asm.Type;
 import org.renjin.sexp.Vector;
 
 import java.lang.reflect.Method;
@@ -24,6 +25,7 @@ public class UnaryVectorOpAccessor extends Accessor {
   public UnaryVectorOpAccessor(DeferredNode node, InputGraph inputGraph) {
     this.operandIndex = inputGraph.getOperandIndex(node);
     this.operandAccessor = Accessors.create(node.getOperands().get(0), inputGraph);
+
     applyMethod = findStaticApply(node.getVector());
     assert applyMethod != null;
 
@@ -61,15 +63,22 @@ public class UnaryVectorOpAccessor extends Accessor {
     operandAccessor.pushLength(method);
   }
 
+  @Override
+  public boolean mustCheckForIntegerNAs() {
+    return operandAccessor.mustCheckForIntegerNAs();
+  }
 
-  private void push(ComputeMethod method) {
+  private void pushResult(ComputeMethod method, Optional<Label> integerNaLabel) {
     if (operandType.equals(double.class)) {
-      operandAccessor.pushDouble(method);
+      operandAccessor.pushElementAsDouble(method, integerNaLabel);
+
     } else if(operandType.equals(int.class)) {
-      operandAccessor.pushInt(method);
+      operandAccessor.pushElementAsInt(method, integerNaLabel);
+
     } else {
       throw new UnsupportedOperationException("operandType: " + operandType);
     }
+
     MethodVisitor mv = method.getVisitor();
     mv.visitMethodInsn(INVOKESTATIC,
         Type.getInternalName(applyMethod.getDeclaringClass()),
@@ -78,28 +87,15 @@ public class UnaryVectorOpAccessor extends Accessor {
   }
   
   @Override
-  public void pushDouble(ComputeMethod method) {
-    push(method);
-
-    if(returnType.equals(int.class)) {
-      method.getVisitor().visitInsn(Opcodes.I2D);
-    } else if(returnType.equals(double.class)) {
-      // NOOP 
-    } else {
-      throw new UnsupportedOperationException("returnType: " + returnType);
-    }
+  public void pushElementAsDouble(ComputeMethod method, Optional<Label> integerNaLabel) {
+    pushResult(method, integerNaLabel);
+    cast(method.getVisitor(), returnType, double.class);
   }
 
-  @Override
-  public void pushInt(ComputeMethod method) {
-    push(method);
 
-    if(returnType.equals(int.class)) {
-      // NOOP 
-    } else if(returnType.equals(double.class)) {
-      method.getVisitor().visitInsn(Opcodes.D2I);
-    } else {
-      throw new UnsupportedOperationException("returnType: " + returnType);
-    }
+  @Override
+  public void pushElementAsInt(ComputeMethod method, Optional<Label> naLabel) {
+    pushResult(method, naLabel);
+    cast(method.getVisitor(), returnType, int.class);
   }
 }

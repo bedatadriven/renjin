@@ -79,5 +79,4 @@ public class SquareOptimizer implements Optimizer {
       return true;
     }
   }
-
 }

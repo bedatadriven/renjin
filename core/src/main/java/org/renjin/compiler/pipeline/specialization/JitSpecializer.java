@@ -1,13 +1,19 @@
-package org.renjin.compiler.pipeline;
+package org.renjin.compiler.pipeline.specialization;
 
 import org.renjin.compiler.JitClassLoader;
-import org.renjin.repackaged.asm.ClassVisitor;
-import org.renjin.repackaged.asm.ClassWriter;
-import org.renjin.repackaged.asm.MethodVisitor;
+import org.renjin.compiler.builtins.Specializer;
 import org.renjin.repackaged.asm.tree.MethodNode;
 import org.renjin.repackaged.asm.util.Textifier;
 import org.renjin.repackaged.asm.util.TraceMethodVisitor;
+import org.renjin.repackaged.guava.io.Files;
+import org.renjin.repackaged.asm.ClassVisitor;
+import org.renjin.repackaged.asm.ClassWriter;
+import org.renjin.repackaged.asm.MethodVisitor;
+import org.renjin.compiler.pipeline.ComputeMethod;
+import org.renjin.compiler.pipeline.DeferredNode;
+import org.renjin.compiler.pipeline.VectorPipeliner;
 
+import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
@@ -45,37 +51,49 @@ import static org.renjin.repackaged.asm.Opcodes.*;
  * <p>Because we totally inline getElementAsDouble,
  * we need a new Jitted class for each combination of operators and vector classes.</p>
  */
-public class DeferredJitter {
+public class JitSpecializer {
+
+  public static final boolean DEBUG = System.getProperty("renjin.vp.jit.debug") != null;
 
   private String className;
   private ClassVisitor cv;
 
-  public DeferredJitter() {
+  public JitSpecializer() {
     className = "Jit" + System.identityHashCode(this);
   }
 
-  public JittedComputation compile(DeferredNode node)  {
+  public SpecializedComputer compile(DeferredNode node)  {
     long startTime = System.nanoTime();
     ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
     cv = cw;
     cv.visit(V1_6, ACC_PUBLIC + ACC_SUPER, className, null, "java/lang/Object",
-            new String[]{"org/renjin/compiler/pipeline/JittedComputation"});
+            new String[]{"org/renjin/compiler/pipeline/specialization/SpecializedComputer"});
 
     writeConstructor();
-    writeCompute(node);
+    writeComputeDebug(node);
 
     cv.visitEnd();
 
     byte[] classBytes = cw.toByteArray();
     long compileTime = System.nanoTime() - startTime;
 
-    Class<JittedComputation> jitClass = JitClassLoader.defineClass(JittedComputation.class, className, classBytes);
+    Class<SpecializedComputer> jitClass = JitClassLoader.defineClass(SpecializedComputer.class, className, classBytes);
 
     long loadTime = System.nanoTime() - startTime - compileTime;
 
     if(VectorPipeliner.DEBUG) {
-      System.out.println("compile: " + (compileTime/1e6) + "ms");
-      System.out.println("load: " + (loadTime/1e6) + "ms");
+      System.out.println(className + ": " + node.jitKey());
+      System.out.println(className + ": compile: " + (compileTime/1e6) + "ms");
+      System.out.println(className + ": load: " + (loadTime / 1e6) + "ms");
+      if(DEBUG) {
+        try {
+          File classFile = File.createTempFile("Specialization", ".class");
+          Files.write(classBytes, classFile);
+          System.out.println("Wrote class file to " + classFile);
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+      }
     }
 
     try {
@@ -96,18 +114,21 @@ public class DeferredJitter {
   }
 
   private void writeCompute(DeferredNode node) {
-    MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "compute", "([Lorg/renjin/sexp/Vector;)[D", null, null);
-    mv.visitCode();
+    String typeDescriptor = "([Lorg/renjin/sexp/Vector;)[D";
+
+    MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "compute", typeDescriptor, null, null);
+//
+//    mv = new CheckMethodAdapter(ACC_PUBLIC, "compute", typeDescriptor, mv, new HashMap());
+//    mv.visitCode();
 
     ComputeMethod methodContext = new ComputeMethod(mv);
 
-    FunctionJitter function = getFunction(node);
+    FunctionSpecializer function = FunctionSpecializers.INSTANCE.get(node);
     function.compute(methodContext, node);
 
     mv.visitMaxs(1, methodContext.getMaxLocals());
     mv.visitEnd();
   }
-
 
   private void writeComputeDebug(DeferredNode node) {
 
@@ -116,16 +137,17 @@ public class DeferredJitter {
 
     ComputeMethod methodContext = new ComputeMethod(mv);
 
-    FunctionJitter function = getFunction(node);
+    FunctionSpecializer function = FunctionSpecializers.INSTANCE.get(node);
     function.compute(methodContext, node);
 
     mv.visitMaxs(1, methodContext.getMaxLocals());
     mv.visitEnd();
-    
-    System.out.println(toString(mv));
-    
+
     try {
       mv.accept(cv);
+      
+      System.out.println(toString(mv));
+      
     } catch (Exception e) {
       throw new RuntimeException("Toxic bytecode generated: " + toString(mv), e);
     }
@@ -140,21 +162,9 @@ public class DeferredJitter {
       try (PrintWriter pw = new PrintWriter(sw)) {
         p.print(pw);
       }
-      return sw.toString(); 
+      return sw.toString();
     } catch (Exception e) {
       return "<Exception generating bytecode: " + e.getClass().getName() + ": " + e.getMessage() + ">";
-    }
-  }
-
-  private FunctionJitter getFunction(DeferredNode node) {
-    if(node.getComputation().getComputationName().equals("mean")) {
-      return new MeanJitter();
-    } else if(node.getComputation().getComputationName().equals("rowMeans")) {
-      return new RowMeanJitter();
-    } else if(node.getComputation().getComputationName().equals("sum")) {
-      return new SumJitter();
-    } else {
-      throw new UnsupportedOperationException(node.toString());
     }
   }
 

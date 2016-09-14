@@ -1,14 +1,16 @@
-package org.renjin.compiler.pipeline;
+package org.renjin.compiler.pipeline.specialization;
 
+import org.renjin.repackaged.asm.Label;
+import org.renjin.repackaged.asm.MethodVisitor;
+import org.renjin.compiler.pipeline.ComputeMethod;
+import org.renjin.compiler.pipeline.DeferredNode;
 import org.renjin.compiler.pipeline.accessor.Accessor;
 import org.renjin.compiler.pipeline.accessor.Accessors;
 import org.renjin.compiler.pipeline.accessor.InputGraph;
-import org.renjin.repackaged.asm.Label;
-import org.renjin.repackaged.asm.MethodVisitor;
 
 import static org.renjin.repackaged.asm.Opcodes.*;
 
-public class RowMeanJitter implements FunctionJitter  {
+public class RowMeanSpecializer implements FunctionSpecializer {
 
   @Override
   public void compute(ComputeMethod method, DeferredNode node) {
@@ -27,8 +29,7 @@ public class RowMeanJitter implements FunctionJitter  {
     int rowLocal = method.reserveLocal(1);
     int counterLocal = method.reserveLocal(1);
 
-    mv.visitInsn(ICONST_0);
-    numRows.pushInt(method);
+    numRows.pushElementAsInt(method, 0);
     mv.visitInsn(DUP);
     mv.visitVarInsn(ISTORE, numRowsLocal);
 
@@ -64,7 +65,7 @@ public class RowMeanJitter implements FunctionJitter  {
 
     // load the next value onto the stack
     mv.visitVarInsn(ILOAD, counterLocal);
-    matrix.pushDouble(method);
+    matrix.pushElementAsDouble(method);
 
     // add to sum
     mv.visitInsn(DADD);

@@ -1,13 +1,16 @@
 package org.renjin.compiler.pipeline;
 
-import org.renjin.primitives.sequence.RepDoubleVector;
-import org.renjin.primitives.vector.DeferredComputation;
-import org.renjin.primitives.vector.MemoizedComputation;
 import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Sets;
+
+import org.renjin.compiler.pipeline.specialization.SpecializationKey;
+import org.renjin.primitives.sequence.RepDoubleVector;
+import org.renjin.primitives.vector.DeferredComputation;
+import org.renjin.primitives.vector.MemoizedComputation;
 import org.renjin.sexp.DoubleArrayVector;
 import org.renjin.sexp.IntArrayVector;
+import org.renjin.sexp.IntBufferVector;
 import org.renjin.sexp.Vector;
 
 import java.util.List;
@@ -65,13 +68,13 @@ public class DeferredNode {
       if(vector.length() == 1) {
         return Double.toString(vector.getElementAsDouble(0));
       } else {
-        return "[" + vector.length() + "d]";
+        return "[" + vector.length() + "]";
       }
-    } else if(vector instanceof IntArrayVector) {
+    } else if(vector instanceof IntArrayVector || vector instanceof IntBufferVector) {
       if(vector.length() == 1) {
         return Integer.toString(vector.getElementAsInt(0));
       } else {
-        return "[" + vector.length() + "i]";
+        return "[" + vector.length()  + "]";
       }
     } else if(vector instanceof DeferredComputation) {
       return getComputation().getComputationName();
@@ -132,7 +135,7 @@ public class DeferredNode {
       return false;
     }
   }
-
+  
   @Override
   public String toString() {
     if(operands.isEmpty()) {
@@ -164,16 +167,17 @@ public class DeferredNode {
     return vectors;
   }
 
-  public JitKey jitKey() {
+  public SpecializationKey jitKey() {
     List<DeferredNode> nodes = flatten();
     Class[] classes = new Class[nodes.size()];
     for(int i=0;i!=classes.length;++i) {
       classes[i] = nodes.get(i).getVector().getClass();
     }
-    return new JitKey(classes);
+    return new SpecializationKey(classes);
   }
 
   public void setResult(Vector result) {
+    //System.out.println(this + " I got a result: " +    AggregationRecycler.isCached(this.toString()) + "/"+ this.isMemoized());
     this.vector = result;
     for(DeferredNode operand : operands) {
       operand.removeUse(this);

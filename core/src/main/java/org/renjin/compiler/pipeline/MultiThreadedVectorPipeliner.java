@@ -14,7 +14,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 
-
 public class MultiThreadedVectorPipeliner implements VectorPipeliner {
 
   private final ExecutorService executorService;
@@ -66,7 +65,7 @@ public class MultiThreadedVectorPipeliner implements VectorPipeliner {
   private void forceMemoizedValues(DeferredGraph graph) throws InterruptedException, ExecutionException {
     Multimap<DeferredNode, DeferredNode> dependencies = HashMultimap.create();
     findDependencies(graph.getRoot(), graph.getRoot(), dependencies);
-
+    
     // define set of nodes to be computed
     Set<DeferredNode> toCompute = Sets.newHashSet();
     for(DeferredNode node : graph.getNodes()) {
@@ -74,7 +73,7 @@ public class MultiThreadedVectorPipeliner implements VectorPipeliner {
         toCompute.add(node);
       }
     }
-
+    
     // execute in parallel
     ExecutorCompletionService<DeferredNode> service = new ExecutorCompletionService<DeferredNode>(executorService);
 
@@ -97,7 +96,7 @@ public class MultiThreadedVectorPipeliner implements VectorPipeliner {
       DeferredNode computed = service.take().get();
       running --;
       if(VectorPipeliner.DEBUG) {
-        System.out.println("Completed " + computed);
+        //System.out.println("Completed " + computed);
       }
     }
   }

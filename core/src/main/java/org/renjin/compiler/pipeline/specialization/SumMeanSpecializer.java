@@ -1,15 +1,17 @@
-package org.renjin.compiler.pipeline;
+package org.renjin.compiler.pipeline.specialization;
 
-
+import org.renjin.repackaged.asm.Label;
+import org.renjin.repackaged.asm.MethodVisitor;
+import org.renjin.compiler.pipeline.ComputeMethod;
+import org.renjin.compiler.pipeline.DeferredNode;
 import org.renjin.compiler.pipeline.accessor.Accessor;
 import org.renjin.compiler.pipeline.accessor.Accessors;
 import org.renjin.compiler.pipeline.accessor.InputGraph;
-import org.renjin.repackaged.asm.Label;
-import org.renjin.repackaged.asm.MethodVisitor;
 
 import static org.renjin.repackaged.asm.Opcodes.*;
 
-public class SumJitter implements FunctionJitter {
+public class SumMeanSpecializer implements FunctionSpecializer {
+
   @Override
   public void compute(ComputeMethod method, DeferredNode node) {
 
@@ -48,7 +50,7 @@ public class SumJitter implements FunctionJitter {
     // load the sum on to the stack, and the next value
     mv.visitVarInsn(DLOAD, sumLocal);
     mv.visitVarInsn(ILOAD, counterLocal);
-    accessor.pushDouble(method);
+    accessor.pushElementAsDouble(method);
 
     // add the two values and store back into sum
     mv.visitInsn(DADD);
@@ -66,6 +68,13 @@ public class SumJitter implements FunctionJitter {
     mv.visitInsn(DUP);
     mv.visitInsn(ICONST_0);
     mv.visitVarInsn(DLOAD, sumLocal);
+    
+    if(node.getComputation().getComputationName().equals("mean")) {
+      mv.visitVarInsn(ILOAD, lengthLocal);
+      mv.visitInsn(I2D);
+      mv.visitInsn(DDIV);
+    }
+    
     mv.visitInsn(DASTORE);
     mv.visitInsn(ARETURN);
   }

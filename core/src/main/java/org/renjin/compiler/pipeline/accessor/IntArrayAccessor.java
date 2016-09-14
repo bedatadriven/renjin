@@ -1,9 +1,11 @@
 package org.renjin.compiler.pipeline.accessor;
 
-import org.renjin.compiler.pipeline.ComputeMethod;
-import org.renjin.repackaged.asm.MethodVisitor;
-
 import static org.renjin.repackaged.asm.Opcodes.*;
+
+import org.renjin.repackaged.guava.base.Optional;
+import org.renjin.repackaged.asm.Label;
+import org.renjin.repackaged.asm.MethodVisitor;
+import org.renjin.compiler.pipeline.ComputeMethod;
 
 public class IntArrayAccessor extends Accessor {
 
@@ -24,7 +26,7 @@ public class IntArrayAccessor extends Accessor {
 
     MethodVisitor mv = method.getVisitor();
     mv.visitVarInsn(ALOAD, method.getOperandsLocalIndex());
-    pushOperandIndex(mv, operandIndex);
+    pushIntConstant(mv, operandIndex);
     mv.visitInsn(AALOAD);
     mv.visitTypeInsn(CHECKCAST, "org/renjin/sexp/IntArrayVector");
     mv.visitMethodInsn(INVOKEVIRTUAL, "org/renjin/sexp/IntArrayVector", "toIntArrayUnsafe", "()[I");
@@ -39,20 +41,24 @@ public class IntArrayAccessor extends Accessor {
   }
 
   @Override
-  public void pushDouble(ComputeMethod method) {
+  public void pushElementAsDouble(ComputeMethod method, Optional<Label> integerNaLabel) {
+    pushElementAsInt(method, integerNaLabel);
     MethodVisitor mv = method.getVisitor();
-    mv.visitVarInsn(ALOAD, arrayLocalIndex);
-    mv.visitInsn(SWAP);
-    mv.visitInsn(IALOAD);
     mv.visitInsn(I2D);
   }
 
   @Override
-  public void pushInt(ComputeMethod method) {
+  public void pushElementAsInt(ComputeMethod method, Optional<Label> integerNaLabel) {
     MethodVisitor mv = method.getVisitor();
     mv.visitVarInsn(ALOAD, arrayLocalIndex);
     mv.visitInsn(SWAP);
     mv.visitInsn(IALOAD);
+    doIntegerNaCheck(mv, integerNaLabel);
   }
-   
+
+  @Override
+  public boolean mustCheckForIntegerNAs() {
+    return true;
+  }
+
 }

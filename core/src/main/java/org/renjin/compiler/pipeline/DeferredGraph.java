@@ -1,10 +1,11 @@
 package org.renjin.compiler.pipeline;
 
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.collect.Maps;
+
 import org.renjin.compiler.pipeline.optimize.Optimizers;
 import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.primitives.vector.MemoizedComputation;
-import org.renjin.repackaged.guava.collect.Lists;
-import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.sexp.Vector;
 
 import java.io.File;
@@ -35,6 +36,11 @@ public class DeferredGraph {
     addChildren(this.rootNode);
 
     Optimizers optimizers = new Optimizers();
+    if(VectorPipeliner.DEBUG) {
+      System.out.print("unopt");
+      this.dumpGraph();
+    }
+    
     optimizers.optimize(this);
     removeOrphans();
   }
@@ -44,6 +50,9 @@ public class DeferredGraph {
   }
 
   private void addChildren(DeferredNode parent) {
+    if (!parent.isComputation()) {
+      return;
+    }
     for(Vector operand : parent.getComputation().getOperands()) {
       DeferredNode node = nodeMap.get(operand);
       if(node == null) {

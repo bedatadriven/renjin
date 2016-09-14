@@ -61,6 +61,11 @@ public class IntArrayVector extends IntVector {
   }
 
   @Override
+  public int hashCode() {
+    return values.hashCode();
+  }
+  
+  @Override
   public int length() {
     return values.length;
   }
@@ -69,7 +74,7 @@ public class IntArrayVector extends IntVector {
   public int getElementAsInt(int i) {
     return values[i];
   }
-
+  
   @Override
   protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
     IntArrayVector clone = new IntArrayVector(attributes);

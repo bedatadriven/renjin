@@ -49,4 +49,9 @@ public class ModelMatrix extends DoubleVector {
   public int length() {
     return numRows * columns.size();
   }
+  
+  @Override
+  public int hashCode() {
+    return 37 * numRows + columns.hashCode();
+  }
 }

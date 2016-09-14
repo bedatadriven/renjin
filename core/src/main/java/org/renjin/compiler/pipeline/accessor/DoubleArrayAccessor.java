@@ -1,7 +1,9 @@
 package org.renjin.compiler.pipeline.accessor;
 
-import org.renjin.compiler.pipeline.ComputeMethod;
+import org.renjin.repackaged.guava.base.Optional;
+import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.MethodVisitor;
+import org.renjin.compiler.pipeline.ComputeMethod;
 
 import static org.renjin.repackaged.asm.Opcodes.*;
 
@@ -24,7 +26,7 @@ public class DoubleArrayAccessor extends Accessor {
 
     MethodVisitor mv = method.getVisitor();
     mv.visitVarInsn(ALOAD, method.getOperandsLocalIndex());
-    pushOperandIndex(mv, operandIndex);
+    pushIntConstant(mv, operandIndex);
     mv.visitInsn(AALOAD);
     mv.visitTypeInsn(CHECKCAST, "org/renjin/sexp/DoubleArrayVector");
     mv.visitMethodInsn(INVOKEVIRTUAL, "org/renjin/sexp/DoubleArrayVector", "toDoubleArrayUnsafe", "()[D");
@@ -39,7 +41,12 @@ public class DoubleArrayAccessor extends Accessor {
   }
 
   @Override
-  public void pushDouble(ComputeMethod method) {
+  public boolean mustCheckForIntegerNAs() {
+    return false;
+  }
+
+  @Override
+  public void pushElementAsDouble(ComputeMethod method, Optional<Label> integerNaLabel) {
     MethodVisitor mv = method.getVisitor();
     mv.visitVarInsn(ALOAD, arrayLocalIndex);
     mv.visitInsn(SWAP);

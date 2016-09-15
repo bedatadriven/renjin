@@ -3,7 +3,6 @@ package org.renjin.eval;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
-import org.renjin.compiler.pipeline.SimpleVectorPipeliner;
 import org.renjin.compiler.pipeline.VectorPipeliner;
 import org.renjin.primitives.io.connections.ConnectionTable;
 import org.renjin.primitives.packaging.NamespaceRegistry;
@@ -20,6 +19,7 @@ import java.io.PrintWriter;
 import java.io.Reader;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 
 /**
  * Outermost context for R evaluation.
@@ -94,8 +94,8 @@ public class Session {
    */
   boolean invisible;
 
-  Session(Map<Class, Object> bindings) {
-    this.fileSystemManager = (FileSystemManager) bindings.get(FileSystemManager.class);
+  Session(FileSystemManager fileSystemManager, PackageLoader packageLoader, ExecutorService executorService) {
+    this.fileSystemManager = fileSystemManager;
     this.homeDirectory = FileSystemUtils.homeDirectoryInCoreJar();
     this.workingDirectory = FileSystemUtils.workingDirectory(fileSystemManager);
     this.systemEnvironment = Maps.newHashMap(System.getenv()); //load system environment variables
@@ -104,15 +104,10 @@ public class Session {
     this.baseNamespaceEnv = Environment.createBaseNamespaceEnvironment(globalEnvironment, baseEnvironment);
     this.baseNamespaceEnv.setVariable(Symbol.get(".BaseNamespaceEnv"), baseNamespaceEnv);
     this.topLevelContext = new Context(this);
-
-    namespaceRegistry = new NamespaceRegistry((PackageLoader) bindings.get(PackageLoader.class),  topLevelContext, baseNamespaceEnv);
+    namespaceRegistry = new NamespaceRegistry(packageLoader,  topLevelContext, baseNamespaceEnv);
     securityManager = new SecurityManager(); 
-    
-    if(bindings.containsKey(VectorPipeliner.class)) {
-      vectorPipeliner = (VectorPipeliner) bindings.get(VectorPipeliner.class);
-    } else {
-      vectorPipeliner = new SimpleVectorPipeliner();
-    }
+
+    this.vectorPipeliner = new VectorPipeliner(executorService);
 
     // TODO(alex)
     // several packages rely on the presence of .Random.seed in the global

@@ -8,7 +8,6 @@ import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
 import org.renjin.parser.RParser;
 import org.renjin.primitives.packaging.FqPackageName;
-import org.renjin.primitives.packaging.PackageLoader;
 import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.sexp.ExpressionVector;
 import org.renjin.sexp.SEXP;
@@ -115,8 +114,7 @@ public class AetherTest {
     aetherLoader.setRepositoryListener(new ConsoleRepositoryListener(System.out));
 
     Session session = new SessionBuilder()
-        .bind(ClassLoader.class, aetherLoader.getClassLoader())
-        .bind(PackageLoader.class, aetherLoader)
+        .setPackageLoader(aetherLoader)
         .build();
 
 

@@ -8,7 +8,6 @@ import org.renjin.parser.RParser;
 import org.renjin.primitives.io.connections.GzFileConnection;
 import org.renjin.primitives.io.serialization.RDataReader;
 import org.renjin.primitives.io.serialization.RDataWriter;
-import org.renjin.primitives.packaging.PackageLoader;
 import org.renjin.repackaged.guava.annotations.VisibleForTesting;
 import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.repackaged.guava.collect.HashMultimap;
@@ -212,7 +211,7 @@ public class DatasetsBuilder2 {
     FunctionCall call = new FunctionCall(readTable, args.build());
 
     Session session = new SessionBuilder()
-        .bind(PackageLoader.class, buildContext.getPackageLoader())
+        .setPackageLoader(buildContext.getPackageLoader())
         .build();
     SEXP dataFrame = session.getTopLevelContext().evaluate(call);
 
@@ -266,7 +265,7 @@ public class DatasetsBuilder2 {
     debug(scriptFile, "evaluating as script.");
 
     Session session = new SessionBuilder()
-        .bind(PackageLoader.class, buildContext.getPackageLoader())
+        .setPackageLoader(buildContext.getPackageLoader())
         .build();
     FileReader reader = new FileReader(scriptFile);
     ExpressionVector source = RParser.parseAllSource(reader);

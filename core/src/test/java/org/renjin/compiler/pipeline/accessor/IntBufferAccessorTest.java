@@ -1,7 +1,7 @@
 package org.renjin.compiler.pipeline.accessor;
 
 import org.junit.Test;
-import org.renjin.compiler.pipeline.MultiThreadedVectorPipeliner;
+import org.renjin.compiler.pipeline.VectorPipeliner;
 import org.renjin.primitives.summary.DeferredMean;
 import org.renjin.sexp.AttributeMap;
 import org.renjin.sexp.IntBufferVector;
@@ -23,7 +23,7 @@ public class IntBufferAccessorTest {
 
     DeferredMean sum = new DeferredMean(vector, AttributeMap.EMPTY);
 
-    MultiThreadedVectorPipeliner pipeliner = new MultiThreadedVectorPipeliner(Executors.newFixedThreadPool(1));
+    VectorPipeliner pipeliner = new VectorPipeliner(Executors.newFixedThreadPool(1));
     Vector result = pipeliner.materialize(sum);
 
     System.out.println(result);

@@ -1,16 +1,17 @@
 package org.renjin.compiler.pipeline;
 
-import org.renjin.repackaged.guava.collect.Lists;
-import org.renjin.repackaged.guava.collect.Maps;
-
 import org.renjin.compiler.pipeline.optimize.Optimizers;
 import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.primitives.vector.MemoizedComputation;
+import org.renjin.repackaged.guava.base.Preconditions;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.sexp.Vector;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.ListIterator;
@@ -24,16 +25,13 @@ import java.util.ListIterator;
  */
 public class DeferredGraph {
 
-  private DeferredNode rootNode;
+  private List<DeferredNode> rootNodes = new ArrayList<>();
   private List<DeferredNode> nodes = Lists.newArrayList();
   private int nextNodeId = 1;
   private IdentityHashMap<Vector, DeferredNode> nodeMap = Maps.newIdentityHashMap();
 
   public DeferredGraph(DeferredComputation root) {
-    this.rootNode = new DeferredNode(nextNodeId(), root);
-    nodes.add(rootNode);
-    nodeMap.put(root, rootNode);
-    addChildren(this.rootNode);
+    addRoot(root);
 
     Optimizers optimizers = new Optimizers();
     if(VectorPipeliner.DEBUG) {
@@ -43,6 +41,14 @@ public class DeferredGraph {
     
     optimizers.optimize(this);
     removeOrphans();
+  }
+
+  private void addRoot(DeferredComputation root) {
+    DeferredNode rootNode = new DeferredNode(nextNodeId(), root);
+    rootNodes.add(rootNode);
+    nodes.add(rootNode);
+    nodeMap.put(root, rootNode);
+    addChildren(rootNode);
   }
 
   private int nextNodeId() {
@@ -120,9 +126,15 @@ public class DeferredGraph {
     }
   }
 
-  public DeferredNode getRoot() {
-    return rootNode;
+  public Iterable<DeferredNode> getRoots() {
+    return rootNodes;
   }
+
+  public DeferredNode getRoot() {
+    Preconditions.checkState(rootNodes.size() == 1);
+    return rootNodes.get(0);
+  }
+  
 
   public List<DeferredNode> getNodes() {
     return nodes;
@@ -151,7 +163,7 @@ public class DeferredGraph {
       ListIterator<DeferredNode> it = nodes.listIterator();
       while(it.hasNext()) {
         DeferredNode node = it.next();
-        if(node != rootNode && !node.isUsed()) {
+        if(!rootNodes.contains(node) && !node.isUsed()) {
           removing = true;
           it.remove();
         }

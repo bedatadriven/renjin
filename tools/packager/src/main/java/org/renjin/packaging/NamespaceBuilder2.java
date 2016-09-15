@@ -6,7 +6,6 @@ import org.renjin.eval.SessionBuilder;
 import org.renjin.parser.RParser;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.primitives.packaging.NamespaceFile;
-import org.renjin.primitives.packaging.PackageLoader;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.repackaged.guava.io.CharSource;
@@ -75,7 +74,7 @@ public class NamespaceBuilder2 {
 
   private Context initContext()  {
     SessionBuilder builder = new SessionBuilder();
-    builder.bind(PackageLoader.class, buildContext.getPackageLoader());
+    builder.setPackageLoader(buildContext.getPackageLoader());
     
     Context context = builder.build().getTopLevelContext();
     for(String name : buildContext.getDefaultPackages()) {

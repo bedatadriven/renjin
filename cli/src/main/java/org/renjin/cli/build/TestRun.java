@@ -8,7 +8,6 @@ import org.renjin.eval.SessionBuilder;
 import org.renjin.eval.SessionController;
 import org.renjin.packaging.BuildException;
 import org.renjin.primitives.packaging.ClasspathPackageLoader;
-import org.renjin.primitives.packaging.PackageLoader;
 import org.renjin.repl.JlineRepl;
 
 import java.io.*;
@@ -74,7 +73,7 @@ public class TestRun {
 
   private Session newSession() {
     SessionBuilder builder = new SessionBuilder().withDefaultPackages();
-    builder.bind(PackageLoader.class, createPackageLoader());
+    builder.setPackageLoader(createPackageLoader());
 //    builder.wrap(SessionController.class, createSessionControler)
     Session session = builder.build();
     session.setWorkingDirectory(resolveTestDir(session));

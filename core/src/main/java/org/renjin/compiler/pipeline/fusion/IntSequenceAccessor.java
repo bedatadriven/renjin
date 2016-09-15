@@ -1,4 +1,4 @@
-package org.renjin.compiler.pipeline.accessor;
+package org.renjin.compiler.pipeline.fusion;
 
 import org.renjin.compiler.pipeline.ComputeMethod;
 import org.renjin.primitives.sequence.IntSequence;

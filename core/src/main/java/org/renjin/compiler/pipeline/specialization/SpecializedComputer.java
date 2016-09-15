@@ -1,5 +1,6 @@
 package org.renjin.compiler.pipeline.specialization;
 
+import org.renjin.compiler.pipeline.node.DeferredNode;
 import org.renjin.sexp.Vector;
 
 /**
@@ -10,7 +11,7 @@ public interface SpecializedComputer {
 
   /**
    *
-   * @param operands the flattened set of vectors from a {@link org.renjin.compiler.pipeline.DeferredNode} and its descendants.
+   * @param operands the flattened set of vectors from a {@link DeferredNode} and its descendants.
    * @return
    */
   public double[] compute(Vector[] operands);

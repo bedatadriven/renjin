@@ -4,7 +4,10 @@ import org.renjin.base.Base;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Profiler;
-import org.renjin.gcc.runtime.*;
+import org.renjin.gcc.runtime.BytePtr;
+import org.renjin.gcc.runtime.DoublePtr;
+import org.renjin.gcc.runtime.IntPtr;
+import org.renjin.gcc.runtime.ObjectPtr;
 import org.renjin.invoke.annotations.ArgumentList;
 import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Current;
@@ -239,18 +242,14 @@ public class Native {
       throw new EvalException("Invalid argument type for method = %s", methodExp.getTypeName());
     }
 
-    DeferredFortranCall fortranCall = new DeferredFortranCall(method, callArguments);
+    DeferredFortranCall fortranCall = new DeferredFortranCall(methodName, method, callArguments);
     
     if(Profiler.ENABLED) {
       Profiler.functionStart(Symbol.get(methodName), 'F');
     }
     
     try {
-
-//      context.getSession().getVectorEngine().materialize()
-      
-      fortranCall.evaluate();
-
+   //   context.getSession().getVectorEngine().materialize(fortranCall);
     } finally {
       if(Profiler.ENABLED) {
         Profiler.functionEnd();

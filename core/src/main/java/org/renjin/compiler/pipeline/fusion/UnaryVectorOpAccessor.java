@@ -1,11 +1,11 @@
-package org.renjin.compiler.pipeline.accessor;
+package org.renjin.compiler.pipeline.fusion;
 
-import org.renjin.repackaged.guava.base.Optional;
+import org.renjin.compiler.pipeline.ComputeMethod;
+import org.renjin.compiler.pipeline.node.DeferredNode;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.MethodVisitor;
 import org.renjin.repackaged.asm.Type;
-import org.renjin.compiler.pipeline.ComputeMethod;
-import org.renjin.compiler.pipeline.DeferredNode;
+import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.sexp.Vector;
 
 import java.lang.reflect.Method;

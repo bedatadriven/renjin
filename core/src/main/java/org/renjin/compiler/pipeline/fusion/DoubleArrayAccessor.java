@@ -1,9 +1,9 @@
-package org.renjin.compiler.pipeline.accessor;
+package org.renjin.compiler.pipeline.fusion;
 
-import org.renjin.repackaged.guava.base.Optional;
+import org.renjin.compiler.pipeline.ComputeMethod;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.MethodVisitor;
-import org.renjin.compiler.pipeline.ComputeMethod;
+import org.renjin.repackaged.guava.base.Optional;
 
 import static org.renjin.repackaged.asm.Opcodes.*;
 

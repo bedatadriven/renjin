@@ -1,6 +1,6 @@
 package org.renjin.compiler.pipeline.specialization;
 
-import org.renjin.compiler.pipeline.DeferredNode;
+import org.renjin.compiler.pipeline.node.ComputationNode;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,11 +24,11 @@ public enum FunctionSpecializers {
     }
   }
 
-  public boolean supports(DeferredNode node) {
-    return map.containsKey(node.getComputation().getComputationName());
+  public boolean supports(ComputationNode node) {
+    return map.containsKey(node.getComputationName());
   }
 
-  public FunctionSpecializer get(DeferredNode node) {
-    return map.get(node.getComputation().getComputationName());
+  public FunctionSpecializer get(ComputationNode node) {
+    return map.get(node.getComputationName());
   }
 }

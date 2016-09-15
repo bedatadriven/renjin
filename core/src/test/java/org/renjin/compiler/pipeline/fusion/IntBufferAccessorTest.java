@@ -1,4 +1,4 @@
-package org.renjin.compiler.pipeline.accessor;
+package org.renjin.compiler.pipeline.fusion;
 
 import org.junit.Test;
 import org.renjin.compiler.pipeline.VectorPipeliner;

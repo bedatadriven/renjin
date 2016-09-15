@@ -4,6 +4,8 @@ package org.renjin.primitives.sequence;
 import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.sexp.*;
 
+import java.util.Arrays;
+
 public class RepDoubleVector extends DoubleVector implements DeferredComputation {
 
   public static final int LENGTH_THRESHOLD = 100;
@@ -29,12 +31,18 @@ public class RepDoubleVector extends DoubleVector implements DeferredComputation
     this.each = 1;
   }
 
-  public static DoubleVector createConstantVector(double constant,
-      int length) {
+  public static DoubleVector createConstantVector(double constant, int length) {
     if (length <= 0) {
       return DoubleVector.EMPTY;
     }
-    return new RepDoubleVector(constant, length);
+    if (length < LENGTH_THRESHOLD) {
+      double array[] = new double[length];
+      Arrays.fill(array, constant);
+      return new DoubleArrayVector(array);
+    
+    } else {
+      return new RepDoubleVector(constant, length);
+    }
   }
 
   @Override

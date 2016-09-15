@@ -1,13 +1,13 @@
 package org.renjin.compiler.pipeline.specialization;
 
-import org.renjin.repackaged.guava.base.Optional;
+import org.renjin.compiler.pipeline.ComputeMethod;
+import org.renjin.compiler.pipeline.fusion.Accessor;
+import org.renjin.compiler.pipeline.fusion.Accessors;
+import org.renjin.compiler.pipeline.fusion.InputGraph;
+import org.renjin.compiler.pipeline.node.DeferredNode;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.MethodVisitor;
-import org.renjin.compiler.pipeline.ComputeMethod;
-import org.renjin.compiler.pipeline.DeferredNode;
-import org.renjin.compiler.pipeline.accessor.Accessor;
-import org.renjin.compiler.pipeline.accessor.Accessors;
-import org.renjin.compiler.pipeline.accessor.InputGraph;
+import org.renjin.repackaged.guava.base.Optional;
 
 import static org.renjin.repackaged.asm.Opcodes.*;
 

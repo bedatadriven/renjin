@@ -1,6 +1,6 @@
-package org.renjin.compiler.pipeline.accessor;
+package org.renjin.compiler.pipeline.fusion;
 
-import org.renjin.compiler.pipeline.DeferredNode;
+import org.renjin.compiler.pipeline.node.DeferredNode;
 
 import java.util.List;
 

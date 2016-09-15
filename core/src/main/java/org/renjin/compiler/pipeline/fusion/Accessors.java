@@ -1,6 +1,6 @@
-package org.renjin.compiler.pipeline.accessor;
+package org.renjin.compiler.pipeline.fusion;
 
-import org.renjin.compiler.pipeline.DeferredNode;
+import org.renjin.compiler.pipeline.node.DeferredNode;
 import org.renjin.primitives.matrix.TransposingMatrix;
 import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.sexp.DoubleArrayVector;

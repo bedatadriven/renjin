@@ -1,15 +1,15 @@
-package org.renjin.compiler.pipeline.accessor;
+package org.renjin.compiler.pipeline.fusion;
+
+import org.renjin.compiler.pipeline.ComputeMethod;
+import org.renjin.compiler.pipeline.VectorPipeliner;
+import org.renjin.repackaged.asm.Label;
+import org.renjin.repackaged.asm.MethodVisitor;
+import org.renjin.repackaged.guava.base.Optional;
+import org.renjin.sexp.IntVector;
+import org.renjin.sexp.Vector;
 
 import java.lang.reflect.Modifier;
 import java.util.logging.Logger;
-
-import org.renjin.repackaged.guava.base.Optional;
-import org.renjin.repackaged.asm.Label;
-import org.renjin.repackaged.asm.MethodVisitor;
-import org.renjin.compiler.pipeline.ComputeMethod;
-import org.renjin.compiler.pipeline.VectorPipeliner;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.Vector;
 
 import static org.renjin.repackaged.asm.Opcodes.*;
 

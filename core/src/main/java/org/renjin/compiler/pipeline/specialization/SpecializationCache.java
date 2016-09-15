@@ -1,7 +1,7 @@
 package org.renjin.compiler.pipeline.specialization;
 
+import org.renjin.compiler.pipeline.node.DeferredNode;
 import org.renjin.repackaged.guava.util.concurrent.SettableFuture;
-import org.renjin.compiler.pipeline.DeferredNode;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;

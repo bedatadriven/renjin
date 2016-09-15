@@ -1,12 +1,13 @@
 package org.renjin.compiler.pipeline.specialization;
 
+import org.renjin.compiler.pipeline.ComputeMethod;
+import org.renjin.compiler.pipeline.fusion.Accessor;
+import org.renjin.compiler.pipeline.fusion.Accessors;
+import org.renjin.compiler.pipeline.fusion.InputGraph;
+import org.renjin.compiler.pipeline.node.ComputationNode;
+import org.renjin.compiler.pipeline.node.DeferredNode;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.MethodVisitor;
-import org.renjin.compiler.pipeline.ComputeMethod;
-import org.renjin.compiler.pipeline.DeferredNode;
-import org.renjin.compiler.pipeline.accessor.Accessor;
-import org.renjin.compiler.pipeline.accessor.Accessors;
-import org.renjin.compiler.pipeline.accessor.InputGraph;
 
 import static org.renjin.repackaged.asm.Opcodes.*;
 
@@ -69,7 +70,7 @@ public class SumMeanSpecializer implements FunctionSpecializer {
     mv.visitInsn(ICONST_0);
     mv.visitVarInsn(DLOAD, sumLocal);
     
-    if(node.getComputation().getComputationName().equals("mean")) {
+    if(((ComputationNode) node).getComputationName().equals("mean")) {
       mv.visitVarInsn(ILOAD, lengthLocal);
       mv.visitInsn(I2D);
       mv.visitInsn(DDIV);

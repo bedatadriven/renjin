@@ -1,9 +1,9 @@
 package org.renjin.compiler.pipeline.optimize;
 
-import org.renjin.repackaged.guava.collect.Lists;
-
 import org.renjin.compiler.pipeline.DeferredGraph;
-import org.renjin.compiler.pipeline.DeferredNode;
+import org.renjin.compiler.pipeline.node.ComputationNode;
+import org.renjin.compiler.pipeline.node.DeferredNode;
+import org.renjin.repackaged.guava.collect.Lists;
 
 import java.util.List;
 
@@ -27,8 +27,11 @@ public class Optimizers {
       changed = false;
       List<DeferredNode> nodes = Lists.newArrayList(graph.getNodes());
       for(DeferredNode node : nodes) {
-        for(Optimizer optimizer : optimizers) {
-          changed |= optimizer.optimize(graph, node);
+        if(node instanceof ComputationNode) {
+          ComputationNode computationNode = (ComputationNode) node;
+          for (Optimizer optimizer : optimizers) {
+            changed |= optimizer.optimize(graph, computationNode);
+          }
         }
       }
     } while(changed);

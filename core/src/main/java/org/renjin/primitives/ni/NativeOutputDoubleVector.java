@@ -46,4 +46,14 @@ public class NativeOutputDoubleVector extends DoubleVector implements NativeOutp
   public boolean isDeferred() {
     return !call.isEvaluated();
   }
+
+  @Override
+  public DeferredNativeCall getCall() {
+    return call;
+  }
+
+  @Override
+  public int getOutputIndex() {
+    return outputIndex;
+  }
 }

@@ -1,8 +1,10 @@
 package org.renjin.compiler.pipeline;
 
+import org.renjin.compiler.pipeline.node.*;
 import org.renjin.compiler.pipeline.optimize.Optimizers;
+import org.renjin.primitives.ni.DeferredNativeCall;
+import org.renjin.primitives.ni.NativeOutputVector;
 import org.renjin.primitives.vector.DeferredComputation;
-import org.renjin.primitives.vector.MemoizedComputation;
 import org.renjin.repackaged.guava.base.Preconditions;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Maps;
@@ -28,54 +30,108 @@ public class DeferredGraph {
   private List<DeferredNode> rootNodes = new ArrayList<>();
   private List<DeferredNode> nodes = Lists.newArrayList();
   private int nextNodeId = 1;
-  private IdentityHashMap<Vector, DeferredNode> nodeMap = Maps.newIdentityHashMap();
+  private IdentityHashMap<Vector, DeferredNode> vectorMap = Maps.newIdentityHashMap();
+  private IdentityHashMap<DeferredNativeCall, CallNode> callMap = Maps.newIdentityHashMap();
 
-  public DeferredGraph(DeferredComputation root) {
+  public DeferredGraph(DeferredNativeCall call) {
+    addRoot(call);
+  }
+
+  public DeferredGraph(Vector root) {
     addRoot(root);
+  }
 
+  public void optimize() {
     Optimizers optimizers = new Optimizers();
-    if(VectorPipeliner.DEBUG) {
-      System.out.print("unopt");
-      this.dumpGraph();
-    }
-    
     optimizers.optimize(this);
     removeOrphans();
   }
+  
 
-  private void addRoot(DeferredComputation root) {
-    DeferredNode rootNode = new DeferredNode(nextNodeId(), root);
+  private void addRoot(Vector root) {
+    DeferredNode rootNode = addNode(root);
+    rootNodes.add(rootNode);
+  }
+
+  /**
+   * Adds a new node to the graph, if a node does not already exist for the 
+   * given {@code vector}
+   */
+  private DeferredNode addNode(Vector vector) {
+    DeferredNode node = vectorMap.get(vector);
+    if(node != null) {
+      return node;
+    }
+
+    if(vector.isDeferred()) {
+      if(vector instanceof NativeOutputVector) {
+        node = new OutputNode(nextNodeId(), (NativeOutputVector) vector);
+      } else if(vector instanceof DeferredComputation) {
+        node = new ComputationNode(nextNodeId(), (DeferredComputation) vector);
+      } else {
+        throw new UnsupportedOperationException("deferred: " + vector.getClass().getName());
+      }
+    } else {
+      node = new DataNode(nextNodeId(), vector);
+    }
+    
+    nodes.add(node);
+    vectorMap.put(vector, node);
+
+    if(vector instanceof NativeOutputVector) {
+      addCallChild(node, ((NativeOutputVector) vector).getCall());
+
+    } else if(vector instanceof DeferredComputation) {
+      addChildren(node, ((DeferredComputation) vector).getOperands());
+    }
+    
+    return node;
+  }
+  
+  private CallNode addNode(DeferredNativeCall call) {
+    CallNode node = callMap.get(call);
+    if(node != null) {
+      return node;
+    }
+    
+    node = new CallNode(nextNodeId(), call);
+    nodes.add(node);
+    callMap.put(call, node);
+    
+    addChildren(node, call.getOperands());
+    
+    return node;
+  }
+
+  private void addCallChild(DeferredNode parentNode, DeferredNativeCall call) {
+
+    CallNode callNode = addNode(call);
+    
+    parentNode.addInput(callNode);
+    callNode.addOutput(parentNode);
+  }
+
+  private void addRoot(DeferredNativeCall call) {
+    DeferredNode rootNode = new CallNode(nextNodeId(), call);
     rootNodes.add(rootNode);
     nodes.add(rootNode);
-    nodeMap.put(root, rootNode);
-    addChildren(rootNode);
+    addChildren(rootNode, call.getOperands());
   }
 
   private int nextNodeId() {
     return nextNodeId++;
   }
 
-  private void addChildren(DeferredNode parent) {
-    if (!parent.isComputation()) {
-      return;
-    }
-    for(Vector operand : parent.getComputation().getOperands()) {
-      DeferredNode node = nodeMap.get(operand);
-      if(node == null) {
-        node = new DeferredNode(nextNodeId(), operand);
-        if(node.isComputation()) {
-          addChildren(node);
-        }
-        node = tryMerge(node);
-        nodeMap.put(operand, node);
-      }
-      parent.addOperand(node);
-      node.addUse(parent);
+  private void addChildren(DeferredNode parent, Vector[] operands) {
+    for(Vector operand : operands) {
+      DeferredNode node = addNode(operand);
+      parent.addInput(node);
+      node.addOutput(parent);
     }
   }
 
   private DeferredNode tryMerge(DeferredNode newNode) {
-    for(DeferredNode node : nodeMap.values()) {
+    for(DeferredNode node : vectorMap.values()) {
       if(node.equivalent(newNode)) {
         return node;
       }
@@ -110,19 +166,12 @@ public class DeferredGraph {
       }
     }
   }
+  
 
   private void printNodes(PrintWriter writer) {
     for(DeferredNode node : nodes) {
-      String shape = "box";
-      if(node.isComputation()) {
-        if(node.getComputation() instanceof  MemoizedComputation) {
-          shape = "ellipse";
-        } else {
-          shape = "parallelogram";
-        }
-      }
       writer.println(node.getDebugId() + " [ label=\"" + node.getDebugLabel() + "\",  " +
-          "shape=\"" + shape + "\"]");
+          "shape=\"" + node.getShape() + "\"]");
     }
   }
 

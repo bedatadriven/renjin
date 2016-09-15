@@ -49,4 +49,14 @@ public class NativeOutputIntVector extends IntVector implements NativeOutputVect
   public boolean isDeferred() {
     return !call.isEvaluated();
   }
+
+  @Override
+  public DeferredNativeCall getCall() {
+    return call;
+  }
+
+  @Override
+  public int getOutputIndex() {
+    return outputIndex;
+  }
 }

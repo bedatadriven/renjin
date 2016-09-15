@@ -8,6 +8,7 @@ import org.renjin.gcc.runtime.IntPtr;
 import org.renjin.sexp.AtomicVector;
 import org.renjin.sexp.IntVector;
 import org.renjin.sexp.ListVector;
+import org.renjin.sexp.Vector;
 
 import java.lang.invoke.MethodHandle;
 
@@ -17,11 +18,11 @@ import java.lang.invoke.MethodHandle;
  */
 public class DeferredFortranCall implements DeferredNativeCall {
 
+  private String methodName;
   private final MethodHandle method;
   private final Class<?>[] parameterType;
   
-  private final ListVector inputs;
-  
+  private final Vector[] operands;
   private final Object outputArrays[];
   private final ListVector outputList;
   
@@ -30,15 +31,16 @@ public class DeferredFortranCall implements DeferredNativeCall {
   private boolean evaluated = false;
   
   
-  public DeferredFortranCall(MethodHandle method, ListVector inputs) {
+  public DeferredFortranCall(String methodName, MethodHandle method, ListVector inputs) {
+    this.methodName = methodName;
     this.method = method;
-    this.inputs = inputs;
 
     parameterType = method.type().parameterArray();
     if(parameterType.length != inputs.length()) {
       throw new EvalException("Invalid number of args");
     }
 
+    operands = new Vector[inputs.length()];
     outputArrays = new Object[inputs.length()];
     
     // Construct a named list with placeholders for the output
@@ -46,6 +48,8 @@ public class DeferredFortranCall implements DeferredNativeCall {
     ListVector.NamedBuilder outputList = new ListVector.NamedBuilder();
     for(int i = 0; i!= inputs.length(); ++i) {
       AtomicVector vector = (AtomicVector) inputs.get(i);
+      
+      operands[i] = vector;
       
       if(vector.isDeferred()) {
         inputsDeferred = true;
@@ -66,7 +70,17 @@ public class DeferredFortranCall implements DeferredNativeCall {
     }
     this.outputList = outputList.build();
   }
-  
+
+  @Override
+  public Vector[] getOperands() {
+    return operands;
+  }
+
+  @Override
+  public String getOutputName(int outputIndex) {
+    return outputList.getNames().getElementAsString(outputIndex);
+  }
+
   public boolean isEvaluated() {
     return evaluated;
   }
@@ -79,6 +93,11 @@ public class DeferredFortranCall implements DeferredNativeCall {
     return outputArrays[outputIndex];
   }
 
+  @Override
+  public String getDebugName() {
+    return methodName;
+  }
+
   public ListVector getOutputList() {
     return outputList;
   }
@@ -86,8 +105,8 @@ public class DeferredFortranCall implements DeferredNativeCall {
   public void evaluate() {
     
     // First make copies of the input arguments
-    for (int i = 0; i < inputs.length(); i++) {
-      AtomicVector inputVector = (AtomicVector) inputs.get(i);
+    for (int i = 0; i < operands.length; i++) {
+      AtomicVector inputVector = (AtomicVector) operands[i];
       if(parameterType[i].equals(DoublePtr.class)) {
         outputArrays[i] = inputVector.toDoubleArray();
       } else if(parameterType[i].equals(IntPtr.class)) {
@@ -115,8 +134,8 @@ public class DeferredFortranCall implements DeferredNativeCall {
 
   private void invoke() {
     // Wrap the input arguments into FatPtrs
-    Object[] fortranArgs = new Object[inputs.length()];
-    for (int i = 0; i < inputs.length(); i++) {
+    Object[] fortranArgs = new Object[operands.length];
+    for (int i = 0; i < operands.length; i++) {
       if(parameterType[i].equals(DoublePtr.class)) {
         fortranArgs[i] = new DoublePtr((double[]) outputArrays[i]);
       } else if(parameterType[i].equals(IntPtr.class)) {
@@ -124,7 +143,7 @@ public class DeferredFortranCall implements DeferredNativeCall {
       } else if(parameterType[i].equals(BooleanPtr.class)) {
         fortranArgs[i] = new BooleanPtr((boolean[])outputArrays[i]);
       } else {
-        throw new UnsupportedOperationException("parameterType: " + parameterType);
+        throw new UnsupportedOperationException("parameterType: " + parameterType[i]);
       }    
     }
 

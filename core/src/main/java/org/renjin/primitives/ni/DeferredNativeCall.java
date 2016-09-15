@@ -1,5 +1,7 @@
 package org.renjin.primitives.ni;
 
+import org.renjin.sexp.Vector;
+
 public interface DeferredNativeCall {
 
 
@@ -14,4 +16,10 @@ public interface DeferredNativeCall {
    */
   Object output(int outputIndex);
 
+  String getDebugName();
+
+  Vector[] getOperands();
+  
+  String getOutputName(int outputIndex);
+  
 }

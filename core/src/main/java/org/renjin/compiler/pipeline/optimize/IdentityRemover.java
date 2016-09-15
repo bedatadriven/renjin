@@ -1,7 +1,8 @@
 package org.renjin.compiler.pipeline.optimize;
 
 import org.renjin.compiler.pipeline.DeferredGraph;
-import org.renjin.compiler.pipeline.DeferredNode;
+import org.renjin.compiler.pipeline.node.ComputationNode;
+import org.renjin.compiler.pipeline.node.DeferredNode;
 import org.renjin.primitives.vector.DeferredComputation;
 
 /**
@@ -11,19 +12,17 @@ public class IdentityRemover implements Optimizer {
   private static boolean DEBUG = false;
 
   @Override
-  public boolean optimize(DeferredGraph graph, DeferredNode node) {
-    if(node.isComputation()) {
-      DeferredNode replacementValue = trySimplify(node);
-      if(replacementValue != null) {
-        graph.replaceNode(node, replacementValue);
-        return true;
-      }
+  public boolean optimize(DeferredGraph graph, ComputationNode node) {
+    DeferredNode replacementValue = trySimplify(node);
+    if(replacementValue != null) {
+      graph.replaceNode(node, replacementValue);
+      return true;
     }
     return false;
   }
 
-  private DeferredNode trySimplify(DeferredNode node) {
-    String op = ((DeferredComputation) node.getVector()).getComputationName();
+  private DeferredNode trySimplify(ComputationNode node) {
+    String op = node.getComputationName();
 
 
     if(node.getOperands().size() == 2) {
@@ -73,7 +72,7 @@ public class IdentityRemover implements Optimizer {
     }
 
     if ("mean".equals(op) || "min".equals(op) || "max".equals(op)) {
-      if (node.getOperand(0).isComputation() &&
+      if (node.getOperand(0) instanceof DeferredComputation &&
           ((DeferredComputation) node.getOperand(0).getVector()).getComputationName().equals("rep")) {
         if (DEBUG) {
           System.out.println("Killed mean/max/min(rep(x))");

@@ -47,4 +47,14 @@ public class NativeOutputBoolVector extends LogicalVector implements NativeOutpu
   public boolean isDeferred() {
     return !call.isEvaluated();
   }
+
+  @Override
+  public DeferredNativeCall getCall() {
+    return call;
+  }
+
+  @Override
+  public int getOutputIndex() {
+    return outputIndex;
+  }
 }

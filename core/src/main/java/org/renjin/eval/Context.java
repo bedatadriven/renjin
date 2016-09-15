@@ -176,16 +176,13 @@ public class Context {
    * @return
    */
   public SEXP materialize(SEXP sexp) {
-
-    if(sexp instanceof MemoizedComputation && ((MemoizedComputation) sexp).isCalculated()) {
-      return sexp;
+    if(sexp instanceof Vector) {
+      Vector vector = (Vector) sexp;
+      if(vector.isDeferred() && !vector.isConstantAccessTime()) {
+        return session.getVectorEngine().materialize(vector);
+      }
     }
-    
-    if(sexp instanceof DeferredComputation && !((DeferredComputation) sexp).isConstantAccessTime()) {
-      return session.getVectorEngine().materialize((DeferredComputation)sexp);
-    } else {
-      return sexp;
-    }
+    return sexp;
   }
   
   public Vector materialize(Vector sexp) {

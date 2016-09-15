@@ -1,17 +1,17 @@
 package org.renjin.compiler.pipeline.specialization;
 
 import org.renjin.compiler.JitClassLoader;
-import org.renjin.compiler.builtins.Specializer;
+import org.renjin.compiler.pipeline.ComputeMethod;
+import org.renjin.compiler.pipeline.VectorPipeliner;
+import org.renjin.compiler.pipeline.node.ComputationNode;
+import org.renjin.compiler.pipeline.node.DeferredNode;
+import org.renjin.repackaged.asm.ClassVisitor;
+import org.renjin.repackaged.asm.ClassWriter;
+import org.renjin.repackaged.asm.MethodVisitor;
 import org.renjin.repackaged.asm.tree.MethodNode;
 import org.renjin.repackaged.asm.util.Textifier;
 import org.renjin.repackaged.asm.util.TraceMethodVisitor;
 import org.renjin.repackaged.guava.io.Files;
-import org.renjin.repackaged.asm.ClassVisitor;
-import org.renjin.repackaged.asm.ClassWriter;
-import org.renjin.repackaged.asm.MethodVisitor;
-import org.renjin.compiler.pipeline.ComputeMethod;
-import org.renjin.compiler.pipeline.DeferredNode;
-import org.renjin.compiler.pipeline.VectorPipeliner;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -123,7 +123,7 @@ public class JitSpecializer {
 
     ComputeMethod methodContext = new ComputeMethod(mv);
 
-    FunctionSpecializer function = FunctionSpecializers.INSTANCE.get(node);
+    FunctionSpecializer function = FunctionSpecializers.INSTANCE.get((ComputationNode) node);
     function.compute(methodContext, node);
 
     mv.visitMaxs(1, methodContext.getMaxLocals());
@@ -137,7 +137,7 @@ public class JitSpecializer {
 
     ComputeMethod methodContext = new ComputeMethod(mv);
 
-    FunctionSpecializer function = FunctionSpecializers.INSTANCE.get(node);
+    FunctionSpecializer function = FunctionSpecializers.INSTANCE.get((ComputationNode) node);
     function.compute(methodContext, node);
 
     mv.visitMaxs(1, methodContext.getMaxLocals());

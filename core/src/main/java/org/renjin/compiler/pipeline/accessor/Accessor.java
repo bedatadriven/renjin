@@ -1,11 +1,11 @@
 package org.renjin.compiler.pipeline.accessor;
 
+import org.renjin.compiler.pipeline.ComputeMethod;
+import org.renjin.repackaged.asm.Label;
+import org.renjin.repackaged.asm.MethodVisitor;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
-import org.renjin.repackaged.asm.Label;
-import org.renjin.repackaged.asm.MethodVisitor;
-import org.renjin.compiler.pipeline.ComputeMethod;
 
 import static org.renjin.repackaged.asm.Opcodes.*;
 
@@ -52,7 +52,7 @@ public abstract class Accessor {
     } else if(value < Byte.MAX_VALUE) {
       mv.visitIntInsn(BIPUSH, value);
     } else {
-      throw new UnsupportedOperationException("operandIndex: " + value);
+      mv.visitLdcInsn(value);
     }
   }
   

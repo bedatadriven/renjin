@@ -9,8 +9,8 @@ public class CallNode extends DeferredNode {
 
   private DeferredNativeCall call;
 
-  public CallNode(int id, DeferredNativeCall call) {
-    super(id);
+  public CallNode(DeferredNativeCall call) {
+    super();
     this.call = call;
   }
 
@@ -20,12 +20,8 @@ public class CallNode extends DeferredNode {
   }
 
   @Override
-  public String getShape() {
-    return "ellipse";
+  public NodeShape getShape() {
+    return NodeShape.ELLIPSE;
   }
 
-  @Override
-  public boolean equivalent(DeferredNode newNode) {
-    throw new UnsupportedOperationException();
-  }
 }

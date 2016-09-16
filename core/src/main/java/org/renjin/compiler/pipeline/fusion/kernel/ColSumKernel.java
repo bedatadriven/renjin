@@ -1,9 +1,9 @@
-package org.renjin.compiler.pipeline.specialization;
+package org.renjin.compiler.pipeline.fusion.kernel;
 
 import org.renjin.compiler.pipeline.ComputeMethod;
-import org.renjin.compiler.pipeline.fusion.Accessor;
 import org.renjin.compiler.pipeline.fusion.Accessors;
-import org.renjin.compiler.pipeline.fusion.InputGraph;
+import org.renjin.compiler.pipeline.fusion.node.InputGraph;
+import org.renjin.compiler.pipeline.fusion.node.LoopNode;
 import org.renjin.compiler.pipeline.node.DeferredNode;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.MethodVisitor;
@@ -12,7 +12,7 @@ import org.renjin.repackaged.guava.base.Optional;
 import static org.renjin.repackaged.asm.Opcodes.*;
 
 
-public class ColSumSpecializer implements FunctionSpecializer {
+public class ColSumKernel implements LoopKernel {
 
   @Override
   public void compute(ComputeMethod method, DeferredNode node) {
@@ -20,10 +20,10 @@ public class ColSumSpecializer implements FunctionSpecializer {
     InputGraph inputGraph = new InputGraph(node);
     MethodVisitor mv = method.getVisitor();
 
-    Accessor matrix = Accessors.create(node.getOperand(0), inputGraph);
+    LoopNode matrix = Accessors.create(node.getOperand(0), inputGraph);
     matrix.init(method);
 
-    Accessor numColumnsAccessor = Accessors.create(node.getOperand(1), inputGraph);
+    LoopNode numColumnsAccessor = Accessors.create(node.getOperand(1), inputGraph);
     numColumnsAccessor.init(method);
 
     int numColumns = method.reserveLocal(1);
@@ -126,5 +126,10 @@ public class ColSumSpecializer implements FunctionSpecializer {
     mv.visitVarInsn(ALOAD, resultArray);
     mv.visitInsn(ARETURN);
 
+  }
+
+  @Override
+  public String debugLabel(LoopNode[] operands) {
+    return "colSums(" + operands[0] + ")";
   }
 }

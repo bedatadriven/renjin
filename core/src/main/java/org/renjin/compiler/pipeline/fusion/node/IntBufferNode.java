@@ -1,4 +1,4 @@
-package org.renjin.compiler.pipeline.fusion;
+package org.renjin.compiler.pipeline.fusion.node;
 
 import org.renjin.compiler.pipeline.ComputeMethod;
 import org.renjin.repackaged.asm.Label;
@@ -11,7 +11,7 @@ import static org.renjin.repackaged.asm.Opcodes.*;
  * Generates the bytecode to access elements stored within an {@link java.nio.IntBuffer}
  *
  */
-public class IntBufferAccessor extends Accessor {
+public class IntBufferNode extends LoopNode {
 
   private int operandIndex;
 
@@ -23,7 +23,7 @@ public class IntBufferAccessor extends Accessor {
 
   private int bufferLengthLocal;
 
-  public IntBufferAccessor(int operandIndex) {
+  public IntBufferNode(int operandIndex) {
     this.operandIndex = operandIndex;
   }
 
@@ -77,5 +77,10 @@ public class IntBufferAccessor extends Accessor {
   @Override
   public boolean mustCheckForIntegerNAs() {
     return true;
+  }
+
+  @Override
+  public String toString() {
+    return "x" + operandIndex;
   }
 }

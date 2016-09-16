@@ -1,7 +1,7 @@
 package org.renjin.compiler.pipeline;
 
+import org.renjin.compiler.pipeline.fusion.LoopKernels;
 import org.renjin.compiler.pipeline.node.ComputationNode;
-import org.renjin.compiler.pipeline.specialization.FunctionSpecializers;
 import org.renjin.compiler.pipeline.specialization.SpecializationCache;
 import org.renjin.compiler.pipeline.specialization.SpecializedComputer;
 import org.renjin.primitives.vector.MemoizedComputation;
@@ -28,7 +28,7 @@ public class DeferredNodeComputer implements Runnable {
     // TODO: at the moment, we can compile only a small number of summary
     // function, eventually we want to generate bytecode on the fly based
     // on their implementations elsewhere.
-    if(FunctionSpecializers.INSTANCE.supports(((ComputationNode) node))) {
+    if(LoopKernels.INSTANCE.supports(((ComputationNode) node))) {
       try {
         Vector[] operands = node.flattenVectors();
         SpecializedComputer computer = SpecializationCache.INSTANCE.compile(node);

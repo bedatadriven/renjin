@@ -1,27 +1,27 @@
-package org.renjin.compiler.pipeline.specialization;
+package org.renjin.compiler.pipeline.fusion.kernel;
 
 import org.renjin.compiler.pipeline.ComputeMethod;
-import org.renjin.compiler.pipeline.fusion.Accessor;
 import org.renjin.compiler.pipeline.fusion.Accessors;
-import org.renjin.compiler.pipeline.fusion.InputGraph;
+import org.renjin.compiler.pipeline.fusion.node.InputGraph;
+import org.renjin.compiler.pipeline.fusion.node.LoopNode;
 import org.renjin.compiler.pipeline.node.DeferredNode;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.MethodVisitor;
 
 import static org.renjin.repackaged.asm.Opcodes.*;
 
-public class RowMeanSpecializer implements FunctionSpecializer {
+public class RowMeanKernel implements LoopKernel {
 
   @Override
   public void compute(ComputeMethod method, DeferredNode node) {
 
     InputGraph inputGraph = new InputGraph(node);
 
-    Accessor matrix = Accessors.create(node.getOperand(0), inputGraph);
+    LoopNode matrix = Accessors.create(node.getOperand(0), inputGraph);
     matrix.init(method);
 
     int meansLocal = method.reserveLocal(1);
-    Accessor numRows = Accessors.create(node.getOperand(1), inputGraph);
+    LoopNode numRows = Accessors.create(node.getOperand(1), inputGraph);
     numRows.init(method);
 
     MethodVisitor mv = method.getVisitor();
@@ -140,5 +140,10 @@ public class RowMeanSpecializer implements FunctionSpecializer {
 
     mv.visitVarInsn(ALOAD, meansLocal);
     mv.visitInsn(ARETURN);
+  }
+
+  @Override
+  public String debugLabel(LoopNode[] operands) {
+    return "rowMeans(" + operands[0] + ")";
   }
 }

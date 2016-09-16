@@ -1,7 +1,6 @@
-package org.renjin.compiler.pipeline.fusion;
+package org.renjin.compiler.pipeline.fusion.node;
 
 import org.renjin.compiler.pipeline.ComputeMethod;
-import org.renjin.compiler.pipeline.node.DeferredNode;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.MethodVisitor;
 import org.renjin.repackaged.asm.Type;
@@ -13,31 +12,28 @@ import java.lang.reflect.Modifier;
 
 import static org.renjin.repackaged.asm.Opcodes.INVOKESTATIC;
 
-public class UnaryVectorOpAccessor extends Accessor {
+public class UnaryVectorOpNode extends LoopNode {
 
-
-  private int operandIndex;
-  private Accessor operandAccessor;
+  private String operatorName;
+  private LoopNode operand;
   private final Class<?> operandType;
   private Method applyMethod;
   private Class<?> returnType;
 
-  public UnaryVectorOpAccessor(DeferredNode node, InputGraph inputGraph) {
-    this.operandIndex = inputGraph.getOperandIndex(node);
-    this.operandAccessor = Accessors.create(node.getOperands().get(0), inputGraph);
+  public UnaryVectorOpNode(String name, Method operator, LoopNode operand) {
+    this.operatorName = name;
 
-    applyMethod = findStaticApply(node.getVector());
+    applyMethod = operator;
     assert applyMethod != null;
 
     this.operandType = applyMethod.getParameterTypes()[0];
+    this.operand = operand;
+    
     returnType = applyMethod.getReturnType();
   }
 
-  public static boolean accept(DeferredNode node) {
-    return findStaticApply(node.getVector()) != null;
-  }
 
-  private static Method findStaticApply(Vector vector) {
+  public static Method findMethod(Vector vector) {
     for(Method method : vector.getClass().getMethods()) {
       if(method.getName().equals("compute") &&
               Modifier.isPublic(method.getModifiers()) &&
@@ -55,25 +51,25 @@ public class UnaryVectorOpAccessor extends Accessor {
 
   @Override
   public void init(ComputeMethod method) {
-    operandAccessor.init(method);
+    operand.init(method);
   }
 
   @Override
   public void pushLength(ComputeMethod method) {
-    operandAccessor.pushLength(method);
+    operand.pushLength(method);
   }
 
   @Override
   public boolean mustCheckForIntegerNAs() {
-    return operandAccessor.mustCheckForIntegerNAs();
+    return operand.mustCheckForIntegerNAs();
   }
 
   private void pushResult(ComputeMethod method, Optional<Label> integerNaLabel) {
     if (operandType.equals(double.class)) {
-      operandAccessor.pushElementAsDouble(method, integerNaLabel);
+      operand.pushElementAsDouble(method, integerNaLabel);
 
     } else if(operandType.equals(int.class)) {
-      operandAccessor.pushElementAsInt(method, integerNaLabel);
+      operand.pushElementAsInt(method, integerNaLabel);
 
     } else {
       throw new UnsupportedOperationException("operandType: " + operandType);
@@ -97,5 +93,10 @@ public class UnaryVectorOpAccessor extends Accessor {
   public void pushElementAsInt(ComputeMethod method, Optional<Label> naLabel) {
     pushResult(method, naLabel);
     cast(method.getVisitor(), returnType, int.class);
+  }
+
+  @Override
+  public String toString() {
+    return operatorName + "(" + operand + ")";
   }
 }

@@ -10,7 +10,7 @@ import org.renjin.sexp.Vector;
 import java.nio.IntBuffer;
 import java.util.concurrent.Executors;
 
-public class IntBufferAccessorTest {
+public class IntBufferNodeTest {
 
   @Test
   public void test() {

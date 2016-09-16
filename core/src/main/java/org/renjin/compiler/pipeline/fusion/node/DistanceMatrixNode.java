@@ -1,6 +1,7 @@
-package org.renjin.compiler.pipeline.fusion;
+package org.renjin.compiler.pipeline.fusion.node;
 
 import org.renjin.compiler.pipeline.ComputeMethod;
+import org.renjin.compiler.pipeline.fusion.Accessors;
 import org.renjin.compiler.pipeline.node.DeferredNode;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.MethodVisitor;
@@ -8,14 +9,14 @@ import org.renjin.repackaged.guava.base.Optional;
 
 import static org.renjin.repackaged.asm.Opcodes.*;
 
-public class DistanceMatrixAccessor extends Accessor {
+public class DistanceMatrixNode extends LoopNode {
   private int operandIndex;
-  private Accessor operandAccessor;
+  private LoopNode operandAccessor;
   private int indexTempLocal;
   private int rowTempLocal;
   private int colTempLocal;
 
-  public DistanceMatrixAccessor(DeferredNode node, InputGraph inputGraph) {
+  public DistanceMatrixNode(DeferredNode node, InputGraph inputGraph) {
     this.operandIndex = inputGraph.getOperandIndex(node);
     this.operandAccessor = Accessors.create(node.getOperands().get(0), inputGraph);
   }

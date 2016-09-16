@@ -1,4 +1,4 @@
-package org.renjin.compiler.pipeline.fusion;
+package org.renjin.compiler.pipeline.fusion.node;
 
 import org.renjin.compiler.pipeline.ComputeMethod;
 import org.renjin.primitives.sequence.IntSequence;
@@ -10,7 +10,7 @@ import org.renjin.repackaged.guava.base.Optional;
 
 import static org.renjin.repackaged.asm.Opcodes.*;
 
-public class IntSequenceAccessor extends Accessor {
+public class IntSeqNode extends LoopNode {
 
   private static final String SEQUENCE_CLASS = Type.getInternalName(IntSequence.class);
   
@@ -19,7 +19,7 @@ public class IntSequenceAccessor extends Accessor {
   private int byVar;
   private int lengthVar;
 
-  public IntSequenceAccessor(int operandIndex) {
+  public IntSeqNode(int operandIndex) {
     this.operandIndex = operandIndex;
   }
 

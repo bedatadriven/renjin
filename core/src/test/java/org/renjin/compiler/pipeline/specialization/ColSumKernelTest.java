@@ -2,6 +2,7 @@ package org.renjin.compiler.pipeline.specialization;
 
 import org.junit.Test;
 import org.renjin.compiler.pipeline.DeferredGraph;
+import org.renjin.compiler.pipeline.fusion.LoopKernelCompiler;
 import org.renjin.primitives.R$primitive$$times$deferred_dd;
 import org.renjin.primitives.R$primitive$$times$deferred_ii;
 import org.renjin.primitives.matrix.DeferredColSums;
@@ -13,7 +14,7 @@ import java.util.Arrays;
 
 import static org.junit.Assert.assertArrayEquals;
 
-public class ColSumSpecializerTest {
+public class ColSumKernelTest {
 
   @Test
   public void simpleTest() throws Exception {
@@ -28,7 +29,7 @@ public class ColSumSpecializerTest {
 
     DeferredGraph graph = new DeferredGraph(colSums);
 
-    JitSpecializer specializer = new JitSpecializer();
+    LoopKernelCompiler specializer = new LoopKernelCompiler();
     SpecializedComputer computation = specializer.compile(graph.getRoot());
 
     double[] resultArray = computation.compute(graph.getRoot().flattenVectors());
@@ -52,7 +53,7 @@ public class ColSumSpecializerTest {
 
     DeferredGraph graph = new DeferredGraph(colSums);
 
-    JitSpecializer specializer = new JitSpecializer();
+    LoopKernelCompiler specializer = new LoopKernelCompiler();
     SpecializedComputer computation = specializer.compile(graph.getRoot());
 
     double[] resultArray = computation.compute(graph.getRoot().flattenVectors());
@@ -74,7 +75,7 @@ public class ColSumSpecializerTest {
 
     DeferredGraph graph = new DeferredGraph(colSums);
 
-    JitSpecializer specializer = new JitSpecializer();
+    LoopKernelCompiler specializer = new LoopKernelCompiler();
     SpecializedComputer computation = specializer.compile(graph.getRoot());
 
     double[] resultArray = computation.compute(graph.getRoot().flattenVectors());
@@ -98,7 +99,7 @@ public class ColSumSpecializerTest {
 
     DeferredGraph graph = new DeferredGraph(colSums);
 
-    JitSpecializer specializer = new JitSpecializer();
+    LoopKernelCompiler specializer = new LoopKernelCompiler();
     SpecializedComputer computation = specializer.compile(graph.getRoot());
 
     double[] resultArray = computation.compute(graph.getRoot().flattenVectors());
@@ -120,7 +121,7 @@ public class ColSumSpecializerTest {
 
     DeferredGraph graph = new DeferredGraph(colSums);
 
-    JitSpecializer specializer = new JitSpecializer();
+    LoopKernelCompiler specializer = new LoopKernelCompiler();
     SpecializedComputer computation = specializer.compile(graph.getRoot());
 
     double[] resultArray = computation.compute(graph.getRoot().flattenVectors());

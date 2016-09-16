@@ -1,4 +1,4 @@
-package org.renjin.compiler.pipeline.fusion;
+package org.renjin.compiler.pipeline.fusion.node;
 
 import org.renjin.compiler.pipeline.ComputeMethod;
 import org.renjin.repackaged.asm.Label;
@@ -9,7 +9,7 @@ import org.renjin.repackaged.guava.base.Optional;
 
 import static org.renjin.repackaged.asm.Opcodes.*;
 
-public abstract class Accessor {
+public abstract class LoopNode {
 
   public abstract void init(ComputeMethod method);
 

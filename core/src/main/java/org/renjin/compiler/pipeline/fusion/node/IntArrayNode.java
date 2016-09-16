@@ -1,4 +1,4 @@
-package org.renjin.compiler.pipeline.fusion;
+package org.renjin.compiler.pipeline.fusion.node;
 
 import org.renjin.compiler.pipeline.ComputeMethod;
 import org.renjin.repackaged.asm.Label;
@@ -7,7 +7,7 @@ import org.renjin.repackaged.guava.base.Optional;
 
 import static org.renjin.repackaged.asm.Opcodes.*;
 
-public class DoubleArrayAccessor extends Accessor {
+public class IntArrayNode extends LoopNode {
 
   /**
    * The local variable where we're storing the
@@ -16,7 +16,7 @@ public class DoubleArrayAccessor extends Accessor {
   private int arrayLocalIndex;
   private int operandIndex;
 
-  public DoubleArrayAccessor(int operandIndex) {
+  public IntArrayNode(int operandIndex) {
     this.operandIndex = operandIndex;
   }
 
@@ -28,8 +28,8 @@ public class DoubleArrayAccessor extends Accessor {
     mv.visitVarInsn(ALOAD, method.getOperandsLocalIndex());
     pushIntConstant(mv, operandIndex);
     mv.visitInsn(AALOAD);
-    mv.visitTypeInsn(CHECKCAST, "org/renjin/sexp/DoubleArrayVector");
-    mv.visitMethodInsn(INVOKEVIRTUAL, "org/renjin/sexp/DoubleArrayVector", "toDoubleArrayUnsafe", "()[D");
+    mv.visitTypeInsn(CHECKCAST, "org/renjin/sexp/IntArrayVector");
+    mv.visitMethodInsn(INVOKEVIRTUAL, "org/renjin/sexp/IntArrayVector", "toIntArrayUnsafe", "()[I", false);
     mv.visitVarInsn(ASTORE, arrayLocalIndex);
   }
 
@@ -41,15 +41,28 @@ public class DoubleArrayAccessor extends Accessor {
   }
 
   @Override
-  public boolean mustCheckForIntegerNAs() {
-    return false;
+  public void pushElementAsDouble(ComputeMethod method, Optional<Label> integerNaLabel) {
+    pushElementAsInt(method, integerNaLabel);
+    MethodVisitor mv = method.getVisitor();
+    mv.visitInsn(I2D);
   }
 
   @Override
-  public void pushElementAsDouble(ComputeMethod method, Optional<Label> integerNaLabel) {
+  public void pushElementAsInt(ComputeMethod method, Optional<Label> integerNaLabel) {
     MethodVisitor mv = method.getVisitor();
     mv.visitVarInsn(ALOAD, arrayLocalIndex);
     mv.visitInsn(SWAP);
-    mv.visitInsn(DALOAD);
+    mv.visitInsn(IALOAD);
+    doIntegerNaCheck(mv, integerNaLabel);
+  }
+
+  @Override
+  public boolean mustCheckForIntegerNAs() {
+    return true;
+  }
+
+  @Override
+  public String toString() {
+    return "x" + operandIndex;
   }
 }

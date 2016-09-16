@@ -1,5 +1,6 @@
 package org.renjin.compiler.pipeline.node;
 
+import org.renjin.primitives.vector.MemoizedComputation;
 import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.IntVector;
 import org.renjin.sexp.LogicalVector;
@@ -13,9 +14,13 @@ public class DataNode extends DeferredNode {
 
   private Vector vector;
   
-  public DataNode(int id, Vector vector) {
-    super(id);
-    this.vector = vector;
+  public DataNode(Vector vector) {
+    super();
+    if(vector instanceof MemoizedComputation) {
+      this.vector = ((MemoizedComputation) vector).forceResult();
+    } else {
+      this.vector = vector;
+    }
   }
 
   @Override
@@ -38,8 +43,13 @@ public class DataNode extends DeferredNode {
   }
 
   @Override
-  public String getShape() {
-    return "box";
+  public Vector getVector() {
+    return vector;
+  }
+
+  @Override
+  public NodeShape getShape() {
+    return NodeShape.BOX;
   }
 
   @Override
@@ -47,25 +57,24 @@ public class DataNode extends DeferredNode {
     return vector.length() == 1 && vector.getElementAsDouble(0) == x;
   }
 
-  @Override
-  public boolean equivalent(DeferredNode that) {
-
-    if (!(that instanceof DataNode)) {
+  public boolean equivalent(DeferredNode other) {
+    if(!(other instanceof DataNode)) {
       return false;
     }
-
-    DataNode thatNode = (DataNode) that;
-    if (this.vector.length() != thatNode.vector.length()) {
+    DataNode otherData = (DataNode) other;
+    Vector.Type vectorType = this.getVector().getVectorType();
+    if(!vectorType.equals(otherData.vector.getVectorType())) {
       return false;
     }
-    if (vector.length() > 10) {
+    if(this.vector.length() > 10) {
       return false;
     }
-    for (int i = 0; i != vector.length(); ++i) {
-      if (vector.getVectorType().compareElements(vector, i, thatNode.vector, i) != 0) {
+    for (int i = 0; i < this.vector.length(); i++) {
+      if(vectorType.compareElements(this.vector, i, otherData.vector, i) != 0) {
         return false;
       }
     }
     return true;
   }
+  
 }

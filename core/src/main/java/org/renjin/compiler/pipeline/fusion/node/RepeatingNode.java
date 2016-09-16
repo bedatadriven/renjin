@@ -1,4 +1,4 @@
-package org.renjin.compiler.pipeline.fusion;
+package org.renjin.compiler.pipeline.fusion.node;
 
 import org.renjin.compiler.pipeline.ComputeMethod;
 import org.renjin.compiler.pipeline.node.DeferredNode;
@@ -9,30 +9,28 @@ import org.renjin.repackaged.guava.base.Optional;
 
 import static org.renjin.repackaged.asm.Opcodes.*;
 
-public class RepeatingAccessor extends Accessor {
-  private Accessor sourceAccessor;
-  private Accessor timesAccessor;
+public class RepeatingNode extends LoopNode {
+  private LoopNode sourceNode;
+  private LoopNode timesNode;
   private int sourceLengthLocal;
 
-  public RepeatingAccessor(DeferredNode node, InputGraph graph) {
-    this.sourceAccessor = Accessors.create(node.getOperand(0), graph);
-    this.timesAccessor = Accessors.create(node.getOperand(1), graph);
-    if(!node.getOperand(2).hasValue(1)) {
-      throw new IllegalArgumentException("each != 1 is not supported");
-    }
+  public RepeatingNode(LoopNode sourceNode, LoopNode timesNode) {
+    this.sourceNode = sourceNode;
+    this.timesNode = timesNode;
   }
 
   public static boolean accept(DeferredNode node) {
-    return node.getVector() instanceof RepDoubleVector;
+    return node.getVector() instanceof RepDoubleVector &&
+        node.getOperand(2).hasValue(1);
   }
 
   @Override
   public void init(ComputeMethod method) {
     MethodVisitor mv = method.getVisitor();
-    sourceAccessor.init(method);
-    timesAccessor.init(method);
+    sourceNode.init(method);
+    timesNode.init(method);
     sourceLengthLocal = method.reserveLocal(1);
-    sourceAccessor.pushLength(method);
+    sourceNode.pushLength(method);
     mv.visitVarInsn(ISTORE, sourceLengthLocal);
   }
 
@@ -40,13 +38,13 @@ public class RepeatingAccessor extends Accessor {
   public void pushLength(ComputeMethod method) {
     MethodVisitor mv = method.getVisitor();
     mv.visitVarInsn(ILOAD, sourceLengthLocal);
-    timesAccessor.pushElementAsInt(method, 0);
+    timesNode.pushElementAsInt(method, 0);
     mv.visitInsn(IMUL);
   }
 
   @Override
   public boolean mustCheckForIntegerNAs() {
-    return sourceAccessor.mustCheckForIntegerNAs();
+    return sourceNode.mustCheckForIntegerNAs();
   }
 
   @Override
@@ -54,6 +52,6 @@ public class RepeatingAccessor extends Accessor {
     MethodVisitor mv = method.getVisitor();
     mv.visitVarInsn(ILOAD, sourceLengthLocal);
     mv.visitInsn(IREM);
-    sourceAccessor.pushElementAsDouble(method);
+    sourceNode.pushElementAsDouble(method);
   }
 }

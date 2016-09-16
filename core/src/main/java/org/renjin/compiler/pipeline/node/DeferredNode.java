@@ -1,8 +1,8 @@
 package org.renjin.compiler.pipeline.node;
 
 import org.renjin.compiler.pipeline.specialization.SpecializationKey;
-import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.repackaged.guava.base.Joiner;
+import org.renjin.repackaged.guava.base.Predicate;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.sexp.Vector;
@@ -12,20 +12,26 @@ import java.util.Set;
 
 public abstract class DeferredNode {
 
-  private int id;
   private List<DeferredNode> operands = Lists.newArrayList();
   private Set<DeferredNode> uses = Sets.newIdentityHashSet();
   
-  public DeferredNode(int id) {
-    this.id = id;
+  public DeferredNode() {
   }
 
-  public void addInput(DeferredNode node) {
+  public int addInput(DeferredNode node) {
 //    assertNotCircularReference(node);
     operands.add(node);
 //    if(vector instanceof RepDoubleVector && operands.size() > 3) {
 //      System.out.println("duplicates added");
 //    }
+    return operands.size() - 1;
+  }
+
+
+  public void addInputs(DeferredNode[] array) {
+    for (int i = 0; i < array.length; i++) {
+      operands.add(array[i]);
+    }
   }
 
   public void addOutput(DeferredNode node) {
@@ -39,10 +45,6 @@ public abstract class DeferredNode {
 //    }
 //  }
 
-  public int getId() {
-    return id;
-  }
-
   public abstract String getDebugLabel();
 
   public List<DeferredNode> getOperands() {
@@ -54,28 +56,15 @@ public abstract class DeferredNode {
   }
 
   public String getDebugId() {
-    return "N" + getId();
+    return "N" + Integer.toHexString(System.identityHashCode(this));
   }
 
 
   /**
    * @return the name of the shape when plotting this node to graphviz.
    */
-  public abstract String getShape();
+  public abstract NodeShape getShape();
 
-  /**
-   * Checks if this node is "equivalent" (can replace)
-   * the given {@code newNode}. Two nodes are equivalent if they are
-   * <ul>
-   *   <li>Are both {@link DeferredComputation}s with equal {@code class}es with equivalent operands</li>
-   *   <li>Are both ArrayVectors with the same memory address</li>
-   *   <li>Are both scalars with equal values</li>
-   * </ul>
-   * @param newNode
-   * @return
-   */
-  public abstract boolean equivalent(DeferredNode newNode);
-  
   @Override
   public String toString() {
     if(operands.isEmpty()) {
@@ -112,6 +101,13 @@ public abstract class DeferredNode {
       }
     }
   }
+  
+  public void removeAllInputs() {
+    for (DeferredNode input : getOperands()) {
+      input.removeUse(this);
+    }
+    getOperands().clear();
+  }
 
   public void removeUse(DeferredNode node) {
     uses.remove(node);
@@ -128,49 +124,48 @@ public abstract class DeferredNode {
   }
   
   public Vector getVector() {
-    throw new UnsupportedOperationException("getVector()");
+    throw new UnsupportedOperationException("getVector(): " + this.getClass().getName());
   }
 
   public void setResult(Vector result) {
     throw new UnsupportedOperationException();
   }
 
-  public Vector[] flattenVectors() {
-    throw new UnsupportedOperationException();
-  }
-
-  public List<DeferredNode> flatten() {
-    throw new UnsupportedOperationException();
-  }
 
   public SpecializationKey jitKey() {
     throw new UnsupportedOperationException();
   }
   
 
-//
-//  /**
-//   *  Flattens this subgraph into
-//   */
-//  public List<DeferredNode> flatten() {
-//    List<DeferredNode> nodes = Lists.newArrayList();
-//    flatten(nodes);
-//    return nodes;
-//  }
-//
-//  private void flatten(List<DeferredNode> nodes) {
-//    nodes.add(this);
-//    for(DeferredNode operand : operands) {
-//      operand.flatten(nodes);
-//    }
-//  }
-//
-//  public Vector[] flattenVectors() {
-//    List<DeferredNode> nodes = flatten();
-//    Vector[] vectors = new Vector[nodes.size()];
-//    for(int i=0;i!=vectors.length;++i) {
-//      vectors[i] = nodes.get(i).getVector();
-//    }
-//    return vectors;
-//  }
+
+  /**
+   *  Flattens this subgraph into
+   */
+  public List<DeferredNode> flatten(Predicate<DeferredNode> predicate) {
+    List<DeferredNode> nodes = Lists.newArrayList();
+    flatten(predicate, nodes);
+    return nodes;
+  }
+
+  private void flatten(Predicate<DeferredNode> predicate, List<DeferredNode> nodes) {
+    nodes.add(this);
+    if(predicate.apply(this)) {
+      for (DeferredNode operand : operands) {
+        operand.flatten(predicate, nodes);
+      }
+    }
+  }
+
+  public Vector[] flattenVectors() {
+    List<DeferredNode> nodes = flatten(null);
+    Vector[] vectors = new Vector[nodes.size()];
+    for(int i=0;i!=vectors.length;++i) {
+      vectors[i] = nodes.get(i).getVector();
+    }
+    return vectors;
+  }
+
+  public Set<DeferredNode> getUses() {
+    return uses;
+  }
 }

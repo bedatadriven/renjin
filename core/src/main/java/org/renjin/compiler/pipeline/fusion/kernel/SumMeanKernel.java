@@ -1,31 +1,39 @@
-package org.renjin.compiler.pipeline.specialization;
+package org.renjin.compiler.pipeline.fusion.kernel;
 
 import org.renjin.compiler.pipeline.ComputeMethod;
-import org.renjin.compiler.pipeline.fusion.Accessor;
-import org.renjin.compiler.pipeline.fusion.Accessors;
-import org.renjin.compiler.pipeline.fusion.InputGraph;
-import org.renjin.compiler.pipeline.node.ComputationNode;
+import org.renjin.compiler.pipeline.fusion.node.LoopNode;
 import org.renjin.compiler.pipeline.node.DeferredNode;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.MethodVisitor;
 
 import static org.renjin.repackaged.asm.Opcodes.*;
 
-public class SumMeanSpecializer implements FunctionSpecializer {
+public class SumMeanKernel implements LoopKernel {
 
+  private boolean mean;
+
+  private SumMeanKernel(boolean mean) {
+    this.mean = mean;
+  }
+
+  public static SumMeanKernel mean() {
+    return new SumMeanKernel(true);
+  } 
+  
+  public static SumMeanKernel sum() {
+    return new SumMeanKernel(false);
+  }
+  
   @Override
   public void compute(ComputeMethod method, DeferredNode node) {
 
-    InputGraph inputGraph = new InputGraph(node);
-
-    Accessor accessor = Accessors.create(node.getOperands().get(0), inputGraph);
-    accessor.init(method);
-
+    LoopNode vector = null;
+    
     MethodVisitor mv = method.getVisitor();
 
     // get the length of the vector
     int lengthLocal = method.reserveLocal(1);
-    accessor.pushLength(method);
+    vector.pushLength(method);
     mv.visitVarInsn(ISTORE, lengthLocal);
 
     // initial the sum variable
@@ -51,7 +59,7 @@ public class SumMeanSpecializer implements FunctionSpecializer {
     // load the sum on to the stack, and the next value
     mv.visitVarInsn(DLOAD, sumLocal);
     mv.visitVarInsn(ILOAD, counterLocal);
-    accessor.pushElementAsDouble(method);
+    vector.pushElementAsDouble(method);
 
     // add the two values and store back into sum
     mv.visitInsn(DADD);
@@ -70,7 +78,7 @@ public class SumMeanSpecializer implements FunctionSpecializer {
     mv.visitInsn(ICONST_0);
     mv.visitVarInsn(DLOAD, sumLocal);
     
-    if(((ComputationNode) node).getComputationName().equals("mean")) {
+    if(mean) {
       mv.visitVarInsn(ILOAD, lengthLocal);
       mv.visitInsn(I2D);
       mv.visitInsn(DDIV);
@@ -78,5 +86,10 @@ public class SumMeanSpecializer implements FunctionSpecializer {
     
     mv.visitInsn(DASTORE);
     mv.visitInsn(ARETURN);
+  }
+
+  @Override
+  public String debugLabel(LoopNode[] operands) {
+    return (mean ? "mean" : "sum") + "(" + operands[0] + ")";
   }
 }

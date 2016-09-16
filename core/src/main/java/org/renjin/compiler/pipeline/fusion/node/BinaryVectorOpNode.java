@@ -1,7 +1,6 @@
-package org.renjin.compiler.pipeline.fusion;
+package org.renjin.compiler.pipeline.fusion.node;
 
 import org.renjin.compiler.pipeline.ComputeMethod;
-import org.renjin.compiler.pipeline.node.DeferredNode;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.MethodVisitor;
 import org.renjin.repackaged.asm.Type;
@@ -13,28 +12,26 @@ import java.lang.reflect.Modifier;
 
 import static org.renjin.repackaged.asm.Opcodes.*;
 
-public class BinaryVectorOpAccessor extends Accessor {
+public class BinaryVectorOpNode extends LoopNode {
 
-  private Accessor[] operandAccessors = new Accessor[2];
+  private String operatorName;
+  private LoopNode[] operandAccessors = new LoopNode[2];
   private int lengthLocal1;
   private int lengthLocal2;
   private int lengthLocal;
   private Method applyMethod;
   private Class argumentType;
 
-  public BinaryVectorOpAccessor(DeferredNode node, InputGraph inputGraph) {
-    this.operandAccessors[0] = Accessors.create(node.getOperands().get(0), inputGraph);
-    this.operandAccessors[1] = Accessors.create(node.getOperands().get(1), inputGraph);
-    applyMethod = findStaticApply(node.getVector());
+  public BinaryVectorOpNode(String operatorName, Method operator, LoopNode x, LoopNode y) {
+    this.operatorName = operatorName;
+    this.operandAccessors[0] = x;
+    this.operandAccessors[1] = y;
+    applyMethod = operator;
     assert applyMethod != null;
     argumentType = applyMethod.getParameterTypes()[0];
   }
 
-  public static boolean accept(DeferredNode node) {
-    return findStaticApply(node.getVector()) != null;
-  }
-
-  private static Method findStaticApply(Vector vector) {
+  public static Method findMethod(Vector vector) {
     for (Method method : vector.getClass().getMethods()) {
       if (method.getName().equals("compute") &&
               Modifier.isPublic(method.getModifiers()) &&
@@ -253,5 +250,10 @@ public class BinaryVectorOpAccessor extends Accessor {
     if(done.isPresent()) {
       mv.visitLabel(done.get());
     }
+  }
+
+  @Override
+  public String toString() {
+    return "(" + operandAccessors[0] + operatorName +  operandAccessors[1] + ")";
   }
 }

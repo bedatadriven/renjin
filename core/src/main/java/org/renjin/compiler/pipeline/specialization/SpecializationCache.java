@@ -1,5 +1,6 @@
 package org.renjin.compiler.pipeline.specialization;
 
+import org.renjin.compiler.pipeline.fusion.LoopKernelCompiler;
 import org.renjin.compiler.pipeline.node.DeferredNode;
 import org.renjin.repackaged.guava.util.concurrent.SettableFuture;
 
@@ -36,7 +37,7 @@ public class SpecializationCache {
       }
 
       //
-      JitSpecializer jitter = new JitSpecializer();
+      LoopKernelCompiler jitter = new LoopKernelCompiler();
       newlyCompiledSpecialization.set(jitter.compile(node));
 
       return newlyCompiledSpecialization.get();

@@ -10,6 +10,8 @@ import javax.script.ScriptException;
 import java.util.concurrent.Executors;
 
 public class FortranCallTest {
+
+  
   
   @Test
   public void test() throws ScriptException {
@@ -21,8 +23,9 @@ public class FortranCallTest {
     RenjinScriptEngine scriptEngine = factory.getScriptEngine(session);
 
     scriptEngine.eval("library(stats)");
-    scriptEngine.eval("x <- 1:1000 + 2");
+    scriptEngine.eval("x <- (1:1000 + (1:10 * 3))");
     scriptEngine.eval("k <- kmeans(x, 3)");
-    scriptEngine.eval("print(k$withinss)");
+    scriptEngine.eval("y <- x * k$withinss / 3 * 4");
+    scriptEngine.eval("print(mean(y))");
   }
 }

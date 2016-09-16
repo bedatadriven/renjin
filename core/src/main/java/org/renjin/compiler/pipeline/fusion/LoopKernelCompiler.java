@@ -1,10 +1,12 @@
-package org.renjin.compiler.pipeline.specialization;
+package org.renjin.compiler.pipeline.fusion;
 
 import org.renjin.compiler.JitClassLoader;
 import org.renjin.compiler.pipeline.ComputeMethod;
 import org.renjin.compiler.pipeline.VectorPipeliner;
+import org.renjin.compiler.pipeline.fusion.kernel.LoopKernel;
 import org.renjin.compiler.pipeline.node.ComputationNode;
 import org.renjin.compiler.pipeline.node.DeferredNode;
+import org.renjin.compiler.pipeline.specialization.SpecializedComputer;
 import org.renjin.repackaged.asm.ClassVisitor;
 import org.renjin.repackaged.asm.ClassWriter;
 import org.renjin.repackaged.asm.MethodVisitor;
@@ -51,14 +53,14 @@ import static org.renjin.repackaged.asm.Opcodes.*;
  * <p>Because we totally inline getElementAsDouble,
  * we need a new Jitted class for each combination of operators and vector classes.</p>
  */
-public class JitSpecializer {
+public class LoopKernelCompiler {
 
   public static final boolean DEBUG = System.getProperty("renjin.vp.jit.debug") != null;
 
   private String className;
   private ClassVisitor cv;
 
-  public JitSpecializer() {
+  public LoopKernelCompiler() {
     className = "Jit" + System.identityHashCode(this);
   }
 
@@ -123,7 +125,7 @@ public class JitSpecializer {
 
     ComputeMethod methodContext = new ComputeMethod(mv);
 
-    FunctionSpecializer function = FunctionSpecializers.INSTANCE.get((ComputationNode) node);
+    LoopKernel function = LoopKernels.INSTANCE.get((ComputationNode) node);
     function.compute(methodContext, node);
 
     mv.visitMaxs(1, methodContext.getMaxLocals());
@@ -137,7 +139,7 @@ public class JitSpecializer {
 
     ComputeMethod methodContext = new ComputeMethod(mv);
 
-    FunctionSpecializer function = FunctionSpecializers.INSTANCE.get((ComputationNode) node);
+    LoopKernel function = LoopKernels.INSTANCE.get((ComputationNode) node);
     function.compute(methodContext, node);
 
     mv.visitMaxs(1, methodContext.getMaxLocals());

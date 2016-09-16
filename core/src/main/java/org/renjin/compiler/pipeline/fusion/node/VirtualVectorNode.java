@@ -1,4 +1,4 @@
-package org.renjin.compiler.pipeline.fusion;
+package org.renjin.compiler.pipeline.fusion.node;
 
 import org.renjin.compiler.pipeline.ComputeMethod;
 import org.renjin.compiler.pipeline.VectorPipeliner;
@@ -13,9 +13,9 @@ import java.util.logging.Logger;
 
 import static org.renjin.repackaged.asm.Opcodes.*;
 
-public class VirtualAccessor extends Accessor {
+public class VirtualVectorNode extends LoopNode {
 
-  private static final Logger LOGGER = Logger.getLogger(VirtualAccessor.class.getName());
+  private static final Logger LOGGER = Logger.getLogger(VirtualVectorNode.class.getName());
   
   /**
    * The local variable where we're storing the
@@ -26,7 +26,7 @@ public class VirtualAccessor extends Accessor {
   private int operandIndex;
   private Vector.Type vectorType;
 
-  public VirtualAccessor(Vector vector, int operandIndex) {
+  public VirtualVectorNode(Vector vector, int operandIndex) {
     if(VectorPipeliner.DEBUG) {
       System.out.println("VirtualAccessor for " + vector.getClass().getName());
     }

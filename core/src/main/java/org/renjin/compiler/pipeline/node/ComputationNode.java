@@ -9,8 +9,8 @@ public class ComputationNode extends DeferredNode {
 
   private DeferredComputation vector;
 
-  public ComputationNode(int id, DeferredComputation vector) {
-    super(id);
+  public ComputationNode(DeferredComputation vector) {
+    super();
     this.vector = vector;
   }
 
@@ -35,11 +35,11 @@ public class ComputationNode extends DeferredNode {
   }
 
   @Override
-  public String getShape() {
+  public NodeShape getShape() {
     if(vector instanceof MemoizedComputation) {
-      return "ellipse";
+      return NodeShape.ELLIPSE;
     } else {
-      return "parallelogram";
+      return NodeShape.PARALLELOGRAM;
     }
   }
 
@@ -55,32 +55,8 @@ public class ComputationNode extends DeferredNode {
   }
 
 
-
-  @Override
-  public boolean equivalent(DeferredNode that) {
-
-    if (!(that instanceof ComputationNode)) {
-      return false;
-    }
-
-    ComputationNode thatNode = (ComputationNode) that;
-
-    if (!vector.getClass().equals(thatNode.vector.getClass())) {
-      return false;
-    }
-    if (getOperands().size() != that.getOperands().size()) {
-      return false;
-    }
-
-    for (int i = 0; i != getOperands().size(); ++i) {
-      if (getOperands().get(i).getId() != that.getOperands().get(i).getId()) {
-        return false;
-      }
-    }
-    return true;
-  }
-
   public String getComputationName() {
     return vector.getComputationName();
   }
+
 }

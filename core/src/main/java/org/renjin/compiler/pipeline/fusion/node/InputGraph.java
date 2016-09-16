@@ -1,4 +1,4 @@
-package org.renjin.compiler.pipeline.fusion;
+package org.renjin.compiler.pipeline.fusion.node;
 
 import org.renjin.compiler.pipeline.node.DeferredNode;
 
@@ -10,7 +10,7 @@ public class InputGraph {
 
   public InputGraph(DeferredNode root) {
     this.root = root;
-    this.flattened = root.flatten();
+    this.flattened = root.flatten(null);
   }
 
   public int getOperandIndex(DeferredNode node) {

@@ -6,8 +6,8 @@ public class OutputNode extends DeferredNode {
   
   private NativeOutputVector vector;
 
-  public OutputNode(int id, NativeOutputVector vector) {
-    super(id);
+  public OutputNode(NativeOutputVector vector) {
+    super();
     this.vector = vector;
   }
 
@@ -17,18 +17,8 @@ public class OutputNode extends DeferredNode {
   }
 
   @Override
-  public String getShape() {
-    return "box";
+  public NodeShape getShape() {
+    return NodeShape.BOX;
   }
 
-  @Override
-  public boolean equivalent(DeferredNode that) {
-    if(!(that instanceof OutputNode)) {
-      return false;
-    }
-    OutputNode thatNode = (OutputNode) that;
-    return 
-        this.vector.getCall() == thatNode.vector.getCall()  &&
-        this.vector.getOutputIndex() == thatNode.vector.getOutputIndex();
-  }
 }

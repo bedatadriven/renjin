@@ -1,6 +1,7 @@
-package org.renjin.compiler.pipeline.fusion;
+package org.renjin.compiler.pipeline.fusion.node;
 
 import org.renjin.compiler.pipeline.ComputeMethod;
+import org.renjin.compiler.pipeline.fusion.Accessors;
 import org.renjin.compiler.pipeline.node.DeferredNode;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.MethodVisitor;
@@ -8,14 +9,14 @@ import org.renjin.repackaged.guava.base.Optional;
 
 import static org.renjin.repackaged.asm.Opcodes.*;
 
-public class TransposingAccessor extends Accessor {
+public class TransposeNode extends LoopNode {
 
-  private Accessor operandAccessor;
-  private Accessor sourceRowCountAccessor;
+  private LoopNode operandAccessor;
+  private LoopNode sourceRowCountAccessor;
   private int sourceRowCountLocal;
   private int sourceColCountLocal;
 
-  public TransposingAccessor(DeferredNode node, InputGraph inputGraph) {
+  public TransposeNode(DeferredNode node, InputGraph inputGraph) {
     this.operandAccessor = Accessors.create(node.getOperand(0), inputGraph);
     this.sourceRowCountAccessor = Accessors.create(node.getOperand(1), inputGraph);
   }

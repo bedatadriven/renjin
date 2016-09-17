@@ -1,15 +1,8 @@
 package org.renjin.primitives.matrix;
 
 import org.renjin.primitives.vector.AttributeDecoratingVector;
-import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.primitives.vector.MemoizedComputation;
-import org.renjin.sexp.AtomicVector;
-import org.renjin.sexp.AttributeMap;
-import org.renjin.sexp.DoubleArrayVector;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.IntArrayVector;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
 
 public class DeferredColSums extends DoubleVector implements MemoizedComputation {
 
@@ -88,6 +81,11 @@ public class DeferredColSums extends DoubleVector implements MemoizedComputation
   @Override
   public boolean isCalculated() {
     return sums != null;
+  }
+
+  @Override
+  public boolean isDeferred() {
+    return !isCalculated();
   }
 
   @Override

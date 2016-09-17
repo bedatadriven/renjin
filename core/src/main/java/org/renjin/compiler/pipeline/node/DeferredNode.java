@@ -9,8 +9,9 @@ import org.renjin.sexp.Vector;
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
-public abstract class DeferredNode {
+public abstract class DeferredNode implements Callable<DeferredNode> {
 
   private List<DeferredNode> operands = Lists.newArrayList();
   private Set<DeferredNode> uses = Sets.newIdentityHashSet();
@@ -168,4 +169,7 @@ public abstract class DeferredNode {
   public Set<DeferredNode> getUses() {
     return uses;
   }
+
+  @Override
+  public abstract DeferredNode call();
 }

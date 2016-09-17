@@ -1,9 +1,9 @@
 package org.renjin.compiler.pipeline;
 
 import org.renjin.compiler.pipeline.fusion.LoopKernels;
+import org.renjin.compiler.pipeline.fusion.kernel.CompiledKernel;
 import org.renjin.compiler.pipeline.node.ComputationNode;
 import org.renjin.compiler.pipeline.specialization.SpecializationCache;
-import org.renjin.compiler.pipeline.specialization.SpecializedComputer;
 import org.renjin.primitives.vector.MemoizedComputation;
 import org.renjin.sexp.DoubleArrayVector;
 import org.renjin.sexp.Vector;
@@ -31,7 +31,7 @@ public class DeferredNodeComputer implements Runnable {
     if(LoopKernels.INSTANCE.supports(((ComputationNode) node))) {
       try {
         Vector[] operands = node.flattenVectors();
-        SpecializedComputer computer = SpecializationCache.INSTANCE.compile(node);
+        CompiledKernel computer = SpecializationCache.INSTANCE.compile(node);
 
         Vector result = DoubleArrayVector.unsafe(computer.compute(operands));
 

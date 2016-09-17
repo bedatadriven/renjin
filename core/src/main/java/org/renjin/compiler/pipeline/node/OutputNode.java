@@ -21,4 +21,8 @@ public class OutputNode extends DeferredNode {
     return NodeShape.BOX;
   }
 
+  @Override
+  public DeferredNode call() {
+    throw new UnsupportedOperationException("TODO");
+  }
 }

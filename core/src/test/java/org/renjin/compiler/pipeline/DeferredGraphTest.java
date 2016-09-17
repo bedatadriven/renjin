@@ -5,9 +5,9 @@ import org.renjin.EvalTestCase;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Vector;
 
-/**
- * Created by alex on 16-9-16.
- */
+import java.util.concurrent.Executors;
+
+
 public class DeferredGraphTest extends EvalTestCase {
 
   @Test
@@ -18,9 +18,12 @@ public class DeferredGraphTest extends EvalTestCase {
     
     DeferredGraph graph = new DeferredGraph((Vector)sum);
     graph.dumpGraph();
-    
     graph.optimize();
     graph.dumpGraph();
+    
+    
+    VectorPipeliner pipeliner = new VectorPipeliner(Executors.newFixedThreadPool(1));
+    pipeliner.evaluate(graph);
   }
   
 }

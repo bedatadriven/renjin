@@ -59,4 +59,8 @@ public class ComputationNode extends DeferredNode {
     return vector.getComputationName();
   }
 
+  @Override
+  public DeferredNode call() {
+    throw new UnsupportedOperationException("TODO");
+  }
 }

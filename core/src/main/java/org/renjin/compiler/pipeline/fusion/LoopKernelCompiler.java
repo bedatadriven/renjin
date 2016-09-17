@@ -1,12 +1,12 @@
 package org.renjin.compiler.pipeline.fusion;
 
+import jdk.nashorn.internal.codegen.types.Type;
 import org.renjin.compiler.JitClassLoader;
 import org.renjin.compiler.pipeline.ComputeMethod;
 import org.renjin.compiler.pipeline.VectorPipeliner;
+import org.renjin.compiler.pipeline.fusion.kernel.CompiledKernel;
 import org.renjin.compiler.pipeline.fusion.kernel.LoopKernel;
-import org.renjin.compiler.pipeline.node.ComputationNode;
-import org.renjin.compiler.pipeline.node.DeferredNode;
-import org.renjin.compiler.pipeline.specialization.SpecializedComputer;
+import org.renjin.compiler.pipeline.fusion.node.LoopNode;
 import org.renjin.repackaged.asm.ClassVisitor;
 import org.renjin.repackaged.asm.ClassWriter;
 import org.renjin.repackaged.asm.MethodVisitor;
@@ -54,9 +54,11 @@ import static org.renjin.repackaged.asm.Opcodes.*;
  * we need a new Jitted class for each combination of operators and vector classes.</p>
  */
 public class LoopKernelCompiler {
-
+  
   public static final boolean DEBUG = System.getProperty("renjin.vp.jit.debug") != null;
 
+  private static final String KERNEL_INTERFACE = Type.getInternalName(CompiledKernel.class);
+  
   private String className;
   private ClassVisitor cv;
 
@@ -64,27 +66,26 @@ public class LoopKernelCompiler {
     className = "Jit" + System.identityHashCode(this);
   }
 
-  public SpecializedComputer compile(DeferredNode node)  {
+  public CompiledKernel compile(LoopKernel kernel, LoopNode[] operands)  {
     long startTime = System.nanoTime();
     ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
     cv = cw;
-    cv.visit(V1_6, ACC_PUBLIC + ACC_SUPER, className, null, "java/lang/Object",
-            new String[]{"org/renjin/compiler/pipeline/specialization/SpecializedComputer"});
+    cv.visit(V1_6, ACC_PUBLIC + ACC_SUPER, className, null, "java/lang/Object", new String[]{ KERNEL_INTERFACE });
 
     writeConstructor();
-    writeComputeDebug(node);
+    writeComputeDebug(kernel, operands);
 
     cv.visitEnd();
 
     byte[] classBytes = cw.toByteArray();
     long compileTime = System.nanoTime() - startTime;
 
-    Class<SpecializedComputer> jitClass = JitClassLoader.defineClass(SpecializedComputer.class, className, classBytes);
+    Class<CompiledKernel> jitClass = JitClassLoader.defineClass(CompiledKernel.class, className, classBytes);
 
     long loadTime = System.nanoTime() - startTime - compileTime;
 
     if(VectorPipeliner.DEBUG) {
-      System.out.println(className + ": " + node.jitKey());
+     // System.out.println(className + ": " + kernel.jitKey());
       System.out.println(className + ": compile: " + (compileTime/1e6) + "ms");
       System.out.println(className + ": load: " + (loadTime / 1e6) + "ms");
       if(DEBUG) {
@@ -115,7 +116,7 @@ public class LoopKernelCompiler {
     mv.visitEnd();
   }
 
-  private void writeCompute(DeferredNode node) {
+  private void writeCompute(LoopKernel kernel, LoopNode[] operands) {
     String typeDescriptor = "([Lorg/renjin/sexp/Vector;)[D";
 
     MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "compute", typeDescriptor, null, null);
@@ -125,22 +126,20 @@ public class LoopKernelCompiler {
 
     ComputeMethod methodContext = new ComputeMethod(mv);
 
-    LoopKernel function = LoopKernels.INSTANCE.get((ComputationNode) node);
-    function.compute(methodContext, node);
+    kernel.compute(methodContext, operands);
 
     mv.visitMaxs(1, methodContext.getMaxLocals());
     mv.visitEnd();
   }
 
-  private void writeComputeDebug(DeferredNode node) {
+  private void writeComputeDebug(LoopKernel kernel, LoopNode[] operands) {
 
     MethodNode mv = new MethodNode(ACC_PUBLIC, "compute", "([Lorg/renjin/sexp/Vector;)[D", null, null);
     mv.visitCode();
 
     ComputeMethod methodContext = new ComputeMethod(mv);
 
-    LoopKernel function = LoopKernels.INSTANCE.get((ComputationNode) node);
-    function.compute(methodContext, node);
+    kernel.compute(methodContext, operands);
 
     mv.visitMaxs(1, methodContext.getMaxLocals());
     mv.visitEnd();

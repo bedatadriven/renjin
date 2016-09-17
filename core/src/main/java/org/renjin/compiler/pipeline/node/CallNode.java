@@ -24,4 +24,8 @@ public class CallNode extends DeferredNode {
     return NodeShape.ELLIPSE;
   }
 
+  @Override
+  public DeferredNode call() {
+    throw new UnsupportedOperationException("TODO");
+  }
 }

@@ -1,10 +1,7 @@
 package org.renjin.compiler.pipeline.fusion.kernel;
 
 import org.renjin.compiler.pipeline.ComputeMethod;
-import org.renjin.compiler.pipeline.fusion.Accessors;
-import org.renjin.compiler.pipeline.fusion.node.InputGraph;
 import org.renjin.compiler.pipeline.fusion.node.LoopNode;
-import org.renjin.compiler.pipeline.node.DeferredNode;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.MethodVisitor;
 
@@ -13,15 +10,13 @@ import static org.renjin.repackaged.asm.Opcodes.*;
 public class RowMeanKernel implements LoopKernel {
 
   @Override
-  public void compute(ComputeMethod method, DeferredNode node) {
+  public void compute(ComputeMethod method, LoopNode kernelOperands[]) {
 
-    InputGraph inputGraph = new InputGraph(node);
-
-    LoopNode matrix = Accessors.create(node.getOperand(0), inputGraph);
+    LoopNode matrix = kernelOperands[0];
     matrix.init(method);
 
     int meansLocal = method.reserveLocal(1);
-    LoopNode numRows = Accessors.create(node.getOperand(1), inputGraph);
+    LoopNode numRows = kernelOperands[1];
     numRows.init(method);
 
     MethodVisitor mv = method.getVisitor();

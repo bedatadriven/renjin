@@ -2,7 +2,6 @@ package org.renjin.compiler.pipeline.fusion.kernel;
 
 import org.renjin.compiler.pipeline.ComputeMethod;
 import org.renjin.compiler.pipeline.fusion.node.LoopNode;
-import org.renjin.compiler.pipeline.node.DeferredNode;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.MethodVisitor;
 
@@ -25,11 +24,13 @@ public class SumMeanKernel implements LoopKernel {
   }
   
   @Override
-  public void compute(ComputeMethod method, DeferredNode node) {
+  public void compute(ComputeMethod method, LoopNode[] operands) {
 
-    LoopNode vector = null;
     
     MethodVisitor mv = method.getVisitor();
+
+    LoopNode vector = operands[0];
+    vector.init(method);
 
     // get the length of the vector
     int lengthLocal = method.reserveLocal(1);

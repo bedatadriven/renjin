@@ -1,11 +1,12 @@
 package org.renjin.compiler.pipeline.node;
 
+import org.renjin.compiler.pipeline.fusion.LoopKernelCompiler;
 import org.renjin.compiler.pipeline.fusion.LoopKernels;
+import org.renjin.compiler.pipeline.fusion.kernel.CompiledKernel;
 import org.renjin.compiler.pipeline.fusion.kernel.LoopKernel;
 import org.renjin.compiler.pipeline.fusion.node.*;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.IntBufferVector;
-import org.renjin.sexp.IntVector;
+import org.renjin.primitives.sequence.IntSequence;
+import org.renjin.sexp.*;
 
 import java.lang.reflect.Method;
 
@@ -17,6 +18,8 @@ public class FusedNode extends DeferredNode {
 
   private LoopKernel kernel;
   private LoopNode[] kernelOperands;
+  
+  private DoubleArrayVector resultVector;
   
   public FusedNode(ComputationNode node) {
     super();
@@ -76,6 +79,10 @@ public class FusedNode extends DeferredNode {
     if(node.getVector() instanceof IntBufferVector) {
       return new IntBufferNode(inputIndex);
     }
+    
+    if(node.getVector() instanceof IntSequence) {
+      return new IntSeqNode(inputIndex);
+    }
 
     if(node.getVector() instanceof DoubleVector) {
       return new DoubleArrayNode(inputIndex);
@@ -98,4 +105,27 @@ public class FusedNode extends DeferredNode {
     return NodeShape.ELLIPSE;
   }
 
+  @Override
+  public DeferredNode call() {
+
+    Vector[] vectorOperands = new Vector[getOperands().size()];
+    for (int i = 0; i < vectorOperands.length; i++) {
+      vectorOperands[i] = getOperand(i).getVector();
+    }
+    
+    LoopKernelCompiler compiler = new LoopKernelCompiler();
+    CompiledKernel compiledKernel = compiler.compile(kernel, kernelOperands);
+
+    double[] result = compiledKernel.compute(vectorOperands);
+    resultVector = new DoubleArrayVector(result);
+    
+    return this;
+  }
+  
+  public DoubleArrayVector getVector() {
+    if(resultVector == null) {
+      throw new IllegalStateException("Not computed yet.");
+    }
+    return resultVector;
+  }
 }

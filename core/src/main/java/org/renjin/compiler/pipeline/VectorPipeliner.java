@@ -1,5 +1,6 @@
 package org.renjin.compiler.pipeline;
 
+import org.renjin.compiler.pipeline.node.DeferredNode;
 import org.renjin.eval.Profiler;
 import org.renjin.primitives.ni.DeferredNativeCall;
 import org.renjin.primitives.vector.DeferredComputation;
@@ -83,8 +84,15 @@ public class VectorPipeliner {
     }
   }
   
+  public void evaluate(DeferredGraph graph)  {
+    for (DeferredNode deferredNode : graph.getRoots()) {
+      deferredNode.call();
+    }
+  }
   
   private void forceMemoizedValues(DeferredGraph graph) throws InterruptedException, ExecutionException {
+
+    
     throw new UnsupportedOperationException();
 //    Multimap<DeferredNode, DeferredNode> dependencies = HashMultimap.create();
 //    for(DeferredNode root : graph.getRoots()) {

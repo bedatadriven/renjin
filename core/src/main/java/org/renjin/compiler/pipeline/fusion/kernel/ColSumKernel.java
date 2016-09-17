@@ -1,10 +1,7 @@
 package org.renjin.compiler.pipeline.fusion.kernel;
 
 import org.renjin.compiler.pipeline.ComputeMethod;
-import org.renjin.compiler.pipeline.fusion.Accessors;
-import org.renjin.compiler.pipeline.fusion.node.InputGraph;
 import org.renjin.compiler.pipeline.fusion.node.LoopNode;
-import org.renjin.compiler.pipeline.node.DeferredNode;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.MethodVisitor;
 import org.renjin.repackaged.guava.base.Optional;
@@ -15,15 +12,14 @@ import static org.renjin.repackaged.asm.Opcodes.*;
 public class ColSumKernel implements LoopKernel {
 
   @Override
-  public void compute(ComputeMethod method, DeferredNode node) {
+  public void compute(ComputeMethod method, LoopNode operands[]) {
 
-    InputGraph inputGraph = new InputGraph(node);
     MethodVisitor mv = method.getVisitor();
 
-    LoopNode matrix = Accessors.create(node.getOperand(0), inputGraph);
+    LoopNode matrix = operands[0];
     matrix.init(method);
 
-    LoopNode numColumnsAccessor = Accessors.create(node.getOperand(1), inputGraph);
+    LoopNode numColumnsAccessor = operands[1];
     numColumnsAccessor.init(method);
 
     int numColumns = method.reserveLocal(1);

@@ -1,8 +1,8 @@
-package org.renjin.compiler.pipeline.specialization;
+package org.renjin.compiler.pipeline.fusion.kernel;
 
 import org.junit.Test;
 import org.renjin.compiler.pipeline.DeferredGraph;
-import org.renjin.compiler.pipeline.fusion.LoopKernelCompiler;
+import org.renjin.compiler.pipeline.node.FusedNode;
 import org.renjin.primitives.R$primitive$$times$deferred_dd;
 import org.renjin.primitives.R$primitive$$times$deferred_ii;
 import org.renjin.primitives.matrix.DeferredColSums;
@@ -27,12 +27,7 @@ public class ColSumKernelTest {
     //  [4,]    4    8   12
     DeferredColSums colSums = new DeferredColSums(new IntSequence(1, 1, 12), 3, false, AttributeMap.EMPTY);
 
-    DeferredGraph graph = new DeferredGraph(colSums);
-
-    LoopKernelCompiler specializer = new LoopKernelCompiler();
-    SpecializedComputer computation = specializer.compile(graph.getRoot());
-
-    double[] resultArray = computation.compute(graph.getRoot().flattenVectors());
+    double[] resultArray = compute(colSums);
 
     System.out.println(Arrays.toString(resultArray));
 
@@ -51,12 +46,7 @@ public class ColSumKernelTest {
 
     DeferredColSums colSums = new DeferredColSums(matrix, 3, false, AttributeMap.EMPTY);
 
-    DeferredGraph graph = new DeferredGraph(colSums);
-
-    LoopKernelCompiler specializer = new LoopKernelCompiler();
-    SpecializedComputer computation = specializer.compile(graph.getRoot());
-
-    double[] resultArray = computation.compute(graph.getRoot().flattenVectors());
+    double[] resultArray = compute(colSums);
 
     System.out.println(Arrays.toString(resultArray));
 
@@ -73,12 +63,7 @@ public class ColSumKernelTest {
 
     DeferredColSums colSums = new DeferredColSums(times, 1, false, AttributeMap.EMPTY);
 
-    DeferredGraph graph = new DeferredGraph(colSums);
-
-    LoopKernelCompiler specializer = new LoopKernelCompiler();
-    SpecializedComputer computation = specializer.compile(graph.getRoot());
-
-    double[] resultArray = computation.compute(graph.getRoot().flattenVectors());
+    double[] resultArray = compute(colSums);
 
     System.out.println(Arrays.toString(resultArray));
 
@@ -97,16 +82,11 @@ public class ColSumKernelTest {
 
     DeferredColSums colSums = new DeferredColSums(times, 1, false, AttributeMap.EMPTY);
 
-    DeferredGraph graph = new DeferredGraph(colSums);
-
-    LoopKernelCompiler specializer = new LoopKernelCompiler();
-    SpecializedComputer computation = specializer.compile(graph.getRoot());
-
-    double[] resultArray = computation.compute(graph.getRoot().flattenVectors());
+    double[] resultArray = compute(colSums);
 
     System.out.println(Arrays.toString(resultArray));
 
-    assertArrayEquals(new double[]{10 }, resultArray, 0.1);
+    assertArrayEquals(new double[] { 10 }, resultArray, 0.1);
   }
 
   @Test
@@ -119,15 +99,22 @@ public class ColSumKernelTest {
 
     DeferredColSums colSums = new DeferredColSums(times, 1, false, AttributeMap.EMPTY);
 
-    DeferredGraph graph = new DeferredGraph(colSums);
-
-    LoopKernelCompiler specializer = new LoopKernelCompiler();
-    SpecializedComputer computation = specializer.compile(graph.getRoot());
-
-    double[] resultArray = computation.compute(graph.getRoot().flattenVectors());
-
+    double[] resultArray = compute(colSums);
+    
     System.out.println(Arrays.toString(resultArray));
 
     assertArrayEquals(new double[]{10 }, resultArray, 0.1);
+  }
+
+
+
+  private double[] compute(DeferredColSums colSums) {
+    DeferredGraph graph = new DeferredGraph(colSums);
+    graph.optimize();
+    graph.fuse();
+    FusedNode root = (FusedNode) graph.getRoot();
+    root.call();
+
+    return root.getVector().toDoubleArray();
   }
 }

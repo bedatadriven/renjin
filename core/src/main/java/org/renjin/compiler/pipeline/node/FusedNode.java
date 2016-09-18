@@ -6,6 +6,8 @@ import org.renjin.compiler.pipeline.fusion.kernel.CompiledKernel;
 import org.renjin.compiler.pipeline.fusion.kernel.LoopKernel;
 import org.renjin.compiler.pipeline.fusion.node.*;
 import org.renjin.primitives.sequence.IntSequence;
+import org.renjin.primitives.sequence.RepDoubleVector;
+import org.renjin.repackaged.asm.Type;
 import org.renjin.sexp.*;
 
 import java.lang.reflect.Method;
@@ -83,13 +85,23 @@ public class FusedNode extends DeferredNode {
     if(node.getVector() instanceof IntSequence) {
       return new IntSeqNode(inputIndex);
     }
+    
+    if(node.getVector() instanceof RepDoubleVector) {
+      return new RepeatingNode(
+          addLoopNode(node.getOperand(0)),
+          addLoopNode(node.getOperand(1)));
+    }
 
     if(node.getVector() instanceof DoubleVector) {
-      return new DoubleArrayNode(inputIndex);
+      return new DoubleArrayNode(inputIndex, node.getResultVectorType());
     }
 
     if(node.getVector() instanceof IntVector) {
-      return new IntArrayNode(inputIndex);
+      return new IntArrayNode(inputIndex, node.getResultVectorType());
+    }
+    
+    if(node.getVector() instanceof LogicalVector) {
+      return new IntArrayNode(inputIndex, node.getResultVectorType());
     }
 
     throw new UnsupportedOperationException("operand: " + node.getVector().getClass().getName());
@@ -103,6 +115,11 @@ public class FusedNode extends DeferredNode {
   @Override
   public NodeShape getShape() {
     return NodeShape.ELLIPSE;
+  }
+
+  @Override
+  public Type getResultVectorType() {
+    return Type.getType(DoubleArrayVector.class);
   }
 
   @Override

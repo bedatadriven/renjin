@@ -1,7 +1,9 @@
 package org.renjin.primitives.ni;
 
 
-public interface NativeOutputVector {
+import org.renjin.sexp.AtomicVector;
+
+public interface NativeOutputVector extends AtomicVector {
   
   DeferredNativeCall getCall();
   

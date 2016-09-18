@@ -1,8 +1,8 @@
 package org.renjin.compiler.pipeline.node;
 
 import org.renjin.compiler.pipeline.specialization.SpecializationKey;
+import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Joiner;
-import org.renjin.repackaged.guava.base.Predicate;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.sexp.Vector;
@@ -75,6 +75,8 @@ public abstract class DeferredNode implements Callable<DeferredNode> {
     }
   }
 
+  public abstract Type getResultVectorType();
+  
   public boolean hasValue(double x) {
     return false;
   }
@@ -101,13 +103,6 @@ public abstract class DeferredNode implements Callable<DeferredNode> {
         replacementValue.addOutput(this);
       }
     }
-  }
-  
-  public void removeAllInputs() {
-    for (DeferredNode input : getOperands()) {
-      input.removeUse(this);
-    }
-    getOperands().clear();
   }
 
   public void removeUse(DeferredNode node) {
@@ -137,35 +132,6 @@ public abstract class DeferredNode implements Callable<DeferredNode> {
     throw new UnsupportedOperationException();
   }
   
-
-
-  /**
-   *  Flattens this subgraph into
-   */
-  public List<DeferredNode> flatten(Predicate<DeferredNode> predicate) {
-    List<DeferredNode> nodes = Lists.newArrayList();
-    flatten(predicate, nodes);
-    return nodes;
-  }
-
-  private void flatten(Predicate<DeferredNode> predicate, List<DeferredNode> nodes) {
-    nodes.add(this);
-    if(predicate.apply(this)) {
-      for (DeferredNode operand : operands) {
-        operand.flatten(predicate, nodes);
-      }
-    }
-  }
-
-  public Vector[] flattenVectors() {
-    List<DeferredNode> nodes = flatten(null);
-    Vector[] vectors = new Vector[nodes.size()];
-    for(int i=0;i!=vectors.length;++i) {
-      vectors[i] = nodes.get(i).getVector();
-    }
-    return vectors;
-  }
-
   public Set<DeferredNode> getUses() {
     return uses;
   }

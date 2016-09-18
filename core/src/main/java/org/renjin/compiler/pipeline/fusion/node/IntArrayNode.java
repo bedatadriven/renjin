@@ -3,6 +3,7 @@ package org.renjin.compiler.pipeline.fusion.node;
 import org.renjin.compiler.pipeline.ComputeMethod;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.MethodVisitor;
+import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
 
 import static org.renjin.repackaged.asm.Opcodes.*;
@@ -13,11 +14,13 @@ public class IntArrayNode extends LoopNode {
    * The local variable where we're storing the
    * raw array, double[]
    */
-  private int arrayLocalIndex;
-  private int operandIndex;
+  protected int arrayLocalIndex;
+  protected int operandIndex;
+  private String vectorType;
 
-  public IntArrayNode(int operandIndex) {
+  public IntArrayNode(int operandIndex, Type vectorType) {
     this.operandIndex = operandIndex;
+    this.vectorType = vectorType.getInternalName();
   }
 
   public void init(ComputeMethod method) {
@@ -28,8 +31,8 @@ public class IntArrayNode extends LoopNode {
     mv.visitVarInsn(ALOAD, method.getOperandsLocalIndex());
     pushIntConstant(mv, operandIndex);
     mv.visitInsn(AALOAD);
-    mv.visitTypeInsn(CHECKCAST, "org/renjin/sexp/IntArrayVector");
-    mv.visitMethodInsn(INVOKEVIRTUAL, "org/renjin/sexp/IntArrayVector", "toIntArrayUnsafe", "()[I", false);
+    mv.visitTypeInsn(CHECKCAST, vectorType);
+    mv.visitMethodInsn(INVOKEVIRTUAL, vectorType, "toIntArrayUnsafe", "()[I", false);
     mv.visitVarInsn(ASTORE, arrayLocalIndex);
   }
 

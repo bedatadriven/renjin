@@ -12,7 +12,6 @@ import java.util.concurrent.Executors;
 public class FortranCallTest {
 
   
-  
   @Test
   public void test() throws ScriptException {
     Session session = new SessionBuilder()

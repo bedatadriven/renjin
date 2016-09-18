@@ -5,6 +5,8 @@ import org.renjin.eval.Profiler;
 import org.renjin.primitives.ni.DeferredNativeCall;
 import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.primitives.vector.MemoizedDoubleVector;
+import org.renjin.repackaged.guava.util.concurrent.ListeningExecutorService;
+import org.renjin.repackaged.guava.util.concurrent.MoreExecutors;
 import org.renjin.sexp.DoubleArrayVector;
 import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.Vector;
@@ -18,10 +20,10 @@ public class VectorPipeliner {
   public static boolean DEBUG = "true".equals(System.getProperty("renjin.vp.debug"));
   public static int MAX_DEPTH = 25;
   
-  private final ExecutorService executorService;
+  private final ListeningExecutorService executorService;
 
   public VectorPipeliner(ExecutorService executorService) {
-    this.executorService = executorService;
+    this.executorService = MoreExecutors.listeningDecorator(executorService);
   }
 
 
@@ -52,11 +54,7 @@ public class VectorPipeliner {
     }
 
     // force any memoized values in the graph
-    try {
-      forceMemoizedValues(graph);
-    } catch (InterruptedException | ExecutionException e) {
-      throw new RuntimeException(e);
-    }
+    evaluate(graph);
 
     if(Profiler.ENABLED) {
       long time = System.nanoTime() - start;

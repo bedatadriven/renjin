@@ -1,6 +1,7 @@
 package org.renjin.compiler.pipeline.node;
 
 import org.renjin.primitives.vector.MemoizedComputation;
+import org.renjin.repackaged.asm.Type;
 import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.IntVector;
 import org.renjin.sexp.LogicalVector;
@@ -50,6 +51,11 @@ public class DataNode extends DeferredNode {
   @Override
   public NodeShape getShape() {
     return NodeShape.BOX;
+  }
+
+  @Override
+  public Type getResultVectorType() {
+    return Type.getType(vector.getClass());
   }
 
   @Override

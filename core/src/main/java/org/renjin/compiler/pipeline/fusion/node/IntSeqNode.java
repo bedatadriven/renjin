@@ -74,4 +74,10 @@ public class IntSeqNode extends LoopNode {
   public void pushLength(ComputeMethod method) {
     method.getVisitor().visitVarInsn(Opcodes.ILOAD, lengthVar);
   }
+
+
+  @Override
+  public String toString() {
+    return "x" + operandIndex;
+  }
 }

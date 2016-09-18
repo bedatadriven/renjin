@@ -56,4 +56,11 @@ public class NativeOutputDoubleVector extends DoubleVector implements NativeOutp
   public int getOutputIndex() {
     return outputIndex;
   }
+  
+  public double[] toDoubleArrayUnsafe() {
+    if(array == null) {
+      array = (double[])call.output(outputIndex);
+    }
+    return array;
+  }
 }

@@ -3,6 +3,7 @@ package org.renjin.compiler.pipeline.fusion.node;
 import org.renjin.compiler.pipeline.ComputeMethod;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.MethodVisitor;
+import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
 
 import static org.renjin.repackaged.asm.Opcodes.*;
@@ -15,9 +16,11 @@ public class DoubleArrayNode extends LoopNode {
    */
   private int arrayLocalIndex;
   private int operandIndex;
+  private String vectorType;
 
-  public DoubleArrayNode(int operandIndex) {
+  public DoubleArrayNode(int operandIndex, Type vectorType) {
     this.operandIndex = operandIndex;
+    this.vectorType = vectorType.getInternalName();
   }
 
   public void init(ComputeMethod method) {
@@ -28,8 +31,8 @@ public class DoubleArrayNode extends LoopNode {
     mv.visitVarInsn(ALOAD, method.getOperandsLocalIndex());
     pushIntConstant(mv, operandIndex);
     mv.visitInsn(AALOAD);
-    mv.visitTypeInsn(CHECKCAST, "org/renjin/sexp/DoubleArrayVector");
-    mv.visitMethodInsn(INVOKEVIRTUAL, "org/renjin/sexp/DoubleArrayVector", "toDoubleArrayUnsafe", "()[D", false);
+    mv.visitTypeInsn(CHECKCAST, vectorType);
+    mv.visitMethodInsn(INVOKEVIRTUAL, vectorType, "toDoubleArrayUnsafe", "()[D", false);
     mv.visitVarInsn(ASTORE, arrayLocalIndex);
   }
 

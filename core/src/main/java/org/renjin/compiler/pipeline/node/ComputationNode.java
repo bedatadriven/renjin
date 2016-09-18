@@ -3,11 +3,13 @@ package org.renjin.compiler.pipeline.node;
 import org.renjin.compiler.pipeline.specialization.SpecializationKey;
 import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.primitives.vector.MemoizedComputation;
-import org.renjin.sexp.Vector;
+import org.renjin.repackaged.asm.Type;
+import org.renjin.sexp.*;
 
 public class ComputationNode extends DeferredNode {
 
   private DeferredComputation vector;
+  private Vector result;
 
   public ComputationNode(DeferredComputation vector) {
     super();
@@ -43,6 +45,19 @@ public class ComputationNode extends DeferredNode {
     }
   }
 
+  @Override
+  public Type getResultVectorType() {
+    if(vector instanceof DoubleVector) {
+      return Type.getType(DoubleArrayVector.class);
+    } else if(vector instanceof IntArrayVector) {
+      return Type.getType(IntArrayVector.class);
+    } else if(vector instanceof LogicalVector) {
+      return Type.getType(LogicalArrayVector.class);
+    } else {
+      throw new UnsupportedOperationException("TODO: " + vector.getClass().getName());
+    }
+  }
+
 
   public SpecializationKey jitKey() {
 //    List<DeferredNode> nodes = flatten();
@@ -61,6 +76,17 @@ public class ComputationNode extends DeferredNode {
 
   @Override
   public DeferredNode call() {
-    throw new UnsupportedOperationException("TODO");
+    if(vector instanceof MemoizedComputation) {
+      this.result = ((MemoizedComputation) vector).forceResult();
+    } else if(vector instanceof DoubleVector) {
+      this.result = DoubleArrayVector.unsafe(vector.toDoubleArray());
+    } else if(vector instanceof IntVector) {
+      this.result = IntArrayVector.unsafe(vector.toIntArray());
+    } else if(vector instanceof LogicalVector) {
+      this.result = LogicalArrayVector.unsafe(vector.toIntArray());
+    } else {
+      throw new UnsupportedOperationException("vector: " + vector.getClass().getName());
+    }
+    return this;
   }
 }

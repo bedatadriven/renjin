@@ -1,6 +1,8 @@
 package org.renjin.compiler.pipeline.node;
 
 import org.renjin.primitives.ni.NativeOutputVector;
+import org.renjin.repackaged.asm.Type;
+import org.renjin.sexp.Vector;
 
 public class OutputNode extends DeferredNode {
   
@@ -22,7 +24,17 @@ public class OutputNode extends DeferredNode {
   }
 
   @Override
+  public Type getResultVectorType() {
+    return Type.getType(vector.getClass());
+  }
+
+  @Override
   public DeferredNode call() {
     throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public Vector getVector() {
+    return vector;
   }
 }

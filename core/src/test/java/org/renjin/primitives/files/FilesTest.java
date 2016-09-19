@@ -96,4 +96,34 @@ public class FilesTest extends EvalTestCase {
 
   }
 
+  @Test
+  public void removeFile() throws IOException {
+
+    // Create a temp directory with a source file
+    File tempDir = org.renjin.repackaged.guava.io.Files.createTempDir();
+    File file = new File(tempDir, "a.txt");
+    Files.write("ABC", file, Charsets.UTF_8);
+
+    topLevelContext.getGlobalEnvironment().setVariable("rootDir", StringVector.valueOf(tempDir.getAbsolutePath()));
+
+    eval("setwd(rootDir)");
+    eval("x <- file.remove('a.txt')");
+
+    assertThat(eval("x"), equalTo(c(true)));
+
+    assertTrue("source file does not exist", !file.exists());
+
+  }
+
+  @Test
+  public void removeFilesFailure() throws IOException {
+
+    // Failure returns false, does not throw error
+
+    eval("x <- file.remove('doesnotexist.txt')");
+
+    assertThat(eval("x"), equalTo(c(false)));
+
+  }
+
 }

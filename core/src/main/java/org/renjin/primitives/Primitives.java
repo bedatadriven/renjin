@@ -773,7 +773,7 @@ public class Primitives {
     f("file.show", /*fileshow*/ null, 111);
     f("file.edit", /*fileedit*/ null, 111);
     f("file.create", Files.class, 11);
-    f("file.remove", /*fileremove*/ null, 11);
+    f("file.remove", Files.class, 11);
     f("file.rename", Files.class, 11);
     f("file.append", Files.class, 11);
     f("codeFiles.append", /*fileappend*/ null, 11);

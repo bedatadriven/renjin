@@ -625,6 +625,38 @@ public class Files {
     }
   }
 
+  @Internal("file.remove")
+  public static LogicalVector fileRemove(@Current Context context, StringVector files)
+          throws FileSystemException {
+
+
+    LogicalArrayVector.Builder result = new LogicalArrayVector.Builder();
+
+    for (int i = 0; i < files.length(); i++) {
+      boolean succeeded = removeFile(context, files.getElementAsString(i));
+      result.add(succeeded);
+    }
+    return result.build();
+  }
+
+  private static boolean removeFile(@Current Context context, String file) {
+
+    FileObject fileObject;
+
+    try {
+      fileObject = context.resolveFile(file);
+      if(!fileObject.exists()) {
+        throw new FileSystemException("No such file or directory");
+      }
+
+      return fileObject.delete();
+    } catch(FileSystemException e) {
+      context.warn(String.format("cannot remove file '%s', reason: '%s'", file, e.getMessage()));
+      return false;
+    }
+  }
+
+
 
   /**
    * Extract files from or list a zip archive.

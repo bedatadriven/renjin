@@ -1,6 +1,5 @@
 package org.renjin.compiler.pipeline;
 
-import org.renjin.compiler.pipeline.node.DeferredNode;
 import org.renjin.eval.Profiler;
 import org.renjin.primitives.ni.DeferredNativeCall;
 import org.renjin.primitives.vector.DeferredComputation;
@@ -11,7 +10,6 @@ import org.renjin.sexp.DoubleArrayVector;
 import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.Vector;
 
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 
 public class VectorPipeliner {
@@ -25,7 +23,6 @@ public class VectorPipeliner {
   public VectorPipeliner(ExecutorService executorService) {
     this.executorService = MoreExecutors.listeningDecorator(executorService);
   }
-
 
   public void materialize(DeferredNativeCall call) {
 
@@ -83,62 +80,8 @@ public class VectorPipeliner {
   }
   
   public void evaluate(DeferredGraph graph)  {
-    for (DeferredNode deferredNode : graph.getRoots()) {
-      deferredNode.call();
-    }
-  }
-  
-  private void forceMemoizedValues(DeferredGraph graph) throws InterruptedException, ExecutionException {
-
-    
-    throw new UnsupportedOperationException();
-//    Multimap<DeferredNode, DeferredNode> dependencies = HashMultimap.create();
-//    for(DeferredNode root : graph.getRoots()) {
-//      findDependencies(root, root, dependencies);
-//    }
-//    
-//    // define set of nodes to be computed
-//    Set<DeferredNode> toCompute = Sets.newHashSet();
-//    for(DeferredNode node : graph.getNodes()) {
-//      if(node.isCall() || node.isMemoized()) {
-//        toCompute.add(node);
-//      }
-//    }
-//    
-//    // execute in parallel
-//    ExecutorCompletionService<DeferredNode> service = new ExecutorCompletionService<>(executorService);
-//
-//    int running = 0;
-//    while(!toCompute.isEmpty() || running > 0) {
-//
-//      // queue all memoized values with no remaining dependencies
-//      Iterator<DeferredNode> it = toCompute.iterator();
-//      while(it.hasNext()) {
-//        DeferredNode node = it.next();
-//        if(allComputed(dependencies.get(node))) {
-//          if(VectorPipeliner.DEBUG) {
-//            System.out.println("Starting " + node);
-//          }
-//          service.submit(new DeferredNodeComputer(node), node);
-//          running ++;
-//          it.remove();
-//        }
-//      }
-//      DeferredNode computed = service.take().get();
-//      running --;
-//      if(VectorPipeliner.DEBUG) {
-//        //System.out.println("Completed " + computed);
-//      }
-//    }
+    DeferredGraphEval eval = new DeferredGraphEval(graph, executorService);
+    eval.execute();
   }
 
-//  private boolean allComputed(Collection<DeferredNode> deferredNodes) {
-//    for(DeferredNode node : deferredNodes) {
-//      if(!node.isComputed()) {
-//        return false;
-//      }
-//    }
-//    return true;
-//  }
-  
 }

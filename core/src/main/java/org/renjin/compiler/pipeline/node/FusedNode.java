@@ -16,14 +16,14 @@ import java.lang.reflect.Method;
  * A {@code {@link DeferredNode} that represents a loop operation, such as {@code sum} or 
  * {@code mean} into which one more vector operations have been fused.
  */
-public class FusedNode extends DeferredNode {
+public class FusedNode extends DeferredNode implements Runnable {
 
   private LoopKernel kernel;
   private LoopNode[] kernelOperands;
   
   private DoubleArrayVector resultVector;
   
-  public FusedNode(ComputationNode node) {
+  public FusedNode(FunctionNode node) {
     super();
     
     this.kernel = LoopKernels.INSTANCE.get(node);
@@ -40,9 +40,9 @@ public class FusedNode extends DeferredNode {
     // If this Deferred is a binary or unary vector operator, then 
     // we can inline into the loop
     
-    if(node instanceof ComputationNode) {
+    if(node instanceof FunctionNode) {
 
-      ComputationNode computation = (ComputationNode) node;
+      FunctionNode computation = (FunctionNode) node;
 
       int arity = node.getOperands().size();
 
@@ -123,7 +123,7 @@ public class FusedNode extends DeferredNode {
   }
 
   @Override
-  public DeferredNode call() {
+  public void run() {
 
     Vector[] vectorOperands = new Vector[getOperands().size()];
     for (int i = 0; i < vectorOperands.length; i++) {
@@ -135,8 +135,6 @@ public class FusedNode extends DeferredNode {
 
     double[] result = compiledKernel.compute(vectorOperands);
     resultVector = new DoubleArrayVector(result);
-    
-    return this;
   }
   
   public DoubleArrayVector getVector() {

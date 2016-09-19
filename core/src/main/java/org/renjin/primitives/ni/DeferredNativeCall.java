@@ -4,7 +4,6 @@ import org.renjin.sexp.Vector;
 
 public interface DeferredNativeCall {
 
-
   /**
    * 
    * @return true if the call has already been evaluated.
@@ -21,5 +20,6 @@ public interface DeferredNativeCall {
   Vector[] getOperands();
   
   String getOutputName(int outputIndex);
-  
+
+  void evaluate(Vector[] operands);
 }

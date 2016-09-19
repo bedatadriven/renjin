@@ -1,8 +1,8 @@
 package org.renjin.compiler.pipeline.optimize;
 
 import org.renjin.compiler.pipeline.DeferredGraph;
-import org.renjin.compiler.pipeline.node.ComputationNode;
 import org.renjin.compiler.pipeline.node.DeferredNode;
+import org.renjin.compiler.pipeline.node.FunctionNode;
 import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.sexp.AttributeMap;
 import org.renjin.sexp.DoubleVector;
@@ -16,7 +16,7 @@ public class SquareOptimizer implements Optimizer {
   }
 
   @Override
-  public boolean optimize(DeferredGraph graph, ComputationNode node) {
+  public boolean optimize(DeferredGraph graph, FunctionNode node) {
     if(isEligible(node)) {
 
       DeferredNode operand = node.getOperand(0);
@@ -27,7 +27,7 @@ public class SquareOptimizer implements Optimizer {
     return false;
   }
 
-  private boolean isEligible(ComputationNode node) {
+  private boolean isEligible(FunctionNode node) {
     return node.getComputationName().equals("*") &&
            node.getOperand(0) == node.getOperand(1);
   }

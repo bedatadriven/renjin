@@ -4,6 +4,9 @@ import org.renjin.primitives.ni.NativeOutputVector;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.sexp.Vector;
 
+/**
+ * A Vector that is the output of 
+ */
 public class OutputNode extends DeferredNode {
   
   private NativeOutputVector vector;
@@ -26,11 +29,6 @@ public class OutputNode extends DeferredNode {
   @Override
   public Type getResultVectorType() {
     return Type.getType(vector.getClass());
-  }
-
-  @Override
-  public DeferredNode call() {
-    throw new UnsupportedOperationException("TODO");
   }
 
   @Override

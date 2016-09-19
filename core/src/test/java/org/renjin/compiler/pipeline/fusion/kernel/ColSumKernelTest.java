@@ -113,7 +113,7 @@ public class ColSumKernelTest {
     graph.optimize();
     graph.fuse();
     FusedNode root = (FusedNode) graph.getRoot();
-    root.call();
+    root.run();
 
     return root.getVector().toDoubleArray();
   }

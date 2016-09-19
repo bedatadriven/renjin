@@ -83,8 +83,4 @@ public class DataNode extends DeferredNode {
     return true;
   }
 
-  @Override
-  public DeferredNode call() {
-    return this;
-  }
 }

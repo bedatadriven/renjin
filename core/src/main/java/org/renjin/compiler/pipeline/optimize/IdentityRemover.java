@@ -1,8 +1,8 @@
 package org.renjin.compiler.pipeline.optimize;
 
 import org.renjin.compiler.pipeline.DeferredGraph;
-import org.renjin.compiler.pipeline.node.ComputationNode;
 import org.renjin.compiler.pipeline.node.DeferredNode;
+import org.renjin.compiler.pipeline.node.FunctionNode;
 import org.renjin.primitives.vector.DeferredComputation;
 
 /**
@@ -12,7 +12,7 @@ public class IdentityRemover implements Optimizer {
   private static boolean DEBUG = false;
 
   @Override
-  public boolean optimize(DeferredGraph graph, ComputationNode node) {
+  public boolean optimize(DeferredGraph graph, FunctionNode node) {
     DeferredNode replacementValue = trySimplify(node);
     if(replacementValue != null) {
       graph.replaceNode(node, replacementValue);
@@ -21,7 +21,7 @@ public class IdentityRemover implements Optimizer {
     return false;
   }
 
-  private DeferredNode trySimplify(ComputationNode node) {
+  private DeferredNode trySimplify(FunctionNode node) {
     String op = node.getComputationName();
 
 

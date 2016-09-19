@@ -102,7 +102,8 @@ public class DeferredFortranCall implements DeferredNativeCall {
     return outputList;
   }
 
-  public void evaluate() {
+  @Override
+  public void evaluate(Vector[] operands) {
     
     // First make copies of the input arguments
     for (int i = 0; i < operands.length; i++) {

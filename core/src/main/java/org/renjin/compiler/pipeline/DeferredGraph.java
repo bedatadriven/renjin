@@ -20,7 +20,6 @@ import java.util.*;
  *
  * <p>This graph as is constructed at the moment that the
  * interpreter actually needs the result of a computation.
- *
  */
 public class DeferredGraph {
 
@@ -28,7 +27,7 @@ public class DeferredGraph {
   private List<DeferredNode> nodes = Lists.newArrayList();
   private IdentityHashMap<Vector, DeferredNode> vectorMap = Maps.newIdentityHashMap();
   private IdentityHashMap<DeferredNativeCall, CallNode> callMap = Maps.newIdentityHashMap();
-  private Multimap<String, ComputationNode> computationIndex = HashMultimap.create();
+  private Multimap<String, FunctionNode> computationIndex = HashMultimap.create();
 
   public DeferredGraph(DeferredNativeCall call) {
     addRoot(call);
@@ -61,7 +60,7 @@ public class DeferredGraph {
 
   private DeferredNode tryFuse(DeferredNode root) {
     if(LoopKernels.INSTANCE.supports(root)) {
-      return new FusedNode((ComputationNode) root);
+      return new FusedNode((FunctionNode) root);
     }
     return null;
   }
@@ -116,14 +115,14 @@ public class DeferredGraph {
     
     // Does the operation already exist in the graph?
     if(computationIndex.containsKey(vector.getComputationName())) {
-      for (ComputationNode existingNode : computationIndex.get(vector.getComputationName())) {
+      for (FunctionNode existingNode : computationIndex.get(vector.getComputationName())) {
         if(equivalent(children, existingNode.getOperands())) {
           return existingNode;
         }
       }
     }
     
-    ComputationNode newNode = new ComputationNode(vector);
+    FunctionNode newNode = new FunctionNode(vector);
     newNode.addInputs(children);
     nodes.add(newNode);
     vectorMap.put(vector, newNode);
@@ -278,5 +277,4 @@ public class DeferredGraph {
       node.replaceUse(toReplace, replacementNode);
     }
   }
-
 }

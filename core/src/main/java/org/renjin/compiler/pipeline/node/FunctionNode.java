@@ -6,12 +6,15 @@ import org.renjin.primitives.vector.MemoizedComputation;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.sexp.*;
 
-public class ComputationNode extends DeferredNode {
+/**
+ * Node that applies a function to one or more vector operands.
+ */
+public class FunctionNode extends DeferredNode implements Runnable {
 
   private DeferredComputation vector;
   private Vector result;
 
-  public ComputationNode(DeferredComputation vector) {
+  public FunctionNode(DeferredComputation vector) {
     super();
     this.vector = vector;
   }
@@ -19,12 +22,6 @@ public class ComputationNode extends DeferredNode {
   public void replaceVector(DeferredComputation vector) {
     this.vector = vector;
   }
-
-//  public boolean hasValue(double v) {
-//    return (vector instanceof DoubleArrayVector || vector instanceof IntArrayVector) &&
-//        vector.length() == 1 &&
-//        vector.getElementAsDouble(0) == v;
-//  }
 
   @Override
   public String getDebugLabel() {
@@ -75,7 +72,7 @@ public class ComputationNode extends DeferredNode {
   }
 
   @Override
-  public DeferredNode call() {
+  public void run() {
     if(vector instanceof MemoizedComputation) {
       this.result = ((MemoizedComputation) vector).forceResult();
     } else if(vector instanceof DoubleVector) {
@@ -87,6 +84,5 @@ public class ComputationNode extends DeferredNode {
     } else {
       throw new UnsupportedOperationException("vector: " + vector.getClass().getName());
     }
-    return this;
   }
 }

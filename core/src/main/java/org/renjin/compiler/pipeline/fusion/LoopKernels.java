@@ -4,8 +4,8 @@ import org.renjin.compiler.pipeline.fusion.kernel.ColSumKernel;
 import org.renjin.compiler.pipeline.fusion.kernel.LoopKernel;
 import org.renjin.compiler.pipeline.fusion.kernel.RowMeanKernel;
 import org.renjin.compiler.pipeline.fusion.kernel.SumMeanKernel;
-import org.renjin.compiler.pipeline.node.ComputationNode;
 import org.renjin.compiler.pipeline.node.DeferredNode;
+import org.renjin.compiler.pipeline.node.FunctionNode;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,13 +30,13 @@ public enum LoopKernels {
   }
 
   public boolean supports(DeferredNode node) {
-    if(node instanceof ComputationNode) {
-      return map.containsKey(((ComputationNode) node).getComputationName());
+    if(node instanceof FunctionNode) {
+      return map.containsKey(((FunctionNode) node).getComputationName());
     }
     return false;
   }
 
-  public LoopKernel get(ComputationNode node) {
+  public LoopKernel get(FunctionNode node) {
     return map.get(node.getComputationName());
   }
 }

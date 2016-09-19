@@ -1,8 +1,8 @@
 package org.renjin.compiler.pipeline.optimize;
 
 import org.renjin.compiler.pipeline.DeferredGraph;
-import org.renjin.compiler.pipeline.node.ComputationNode;
 import org.renjin.compiler.pipeline.node.DeferredNode;
+import org.renjin.compiler.pipeline.node.FunctionNode;
 import org.renjin.repackaged.guava.cache.Cache;
 import org.renjin.repackaged.guava.cache.CacheBuilder;
 
@@ -20,7 +20,7 @@ public class AggregationRecycler implements Optimizer {
   // vectors
 
   @Override
-  public boolean optimize(DeferredGraph graph, ComputationNode node) {
+  public boolean optimize(DeferredGraph graph, FunctionNode node) {
 //    if (node.getVector() instanceof MemoizedComputation
 //            && !(node.getVector() instanceof CachedResultNode)) {
 //      String op = ((DeferredComputation) node.getVector()).getComputationName();

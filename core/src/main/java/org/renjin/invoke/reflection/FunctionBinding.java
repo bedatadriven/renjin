@@ -32,6 +32,7 @@ import org.renjin.sexp.SEXP;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.List;
 
 /**
@@ -91,7 +92,15 @@ public class FunctionBinding {
       // workaround reflection problem calling 
       // public methods on private subclasses
       // see http://download.oracle.com/javase/tutorial/reflect/member/methodTrouble.html
-      this.method.setAccessible(true);
+      if(!Modifier.isPublic(method.getDeclaringClass().getModifiers())) {
+        try {
+          this.method.setAccessible(true);
+        } catch (SecurityException ignored) {
+          // if the security settings prevent us from accessing this class via reflection,
+          // there may be a RuntimeException later on if there is an attempt to invoke this method,
+          // but we should still continue constructing the metadata for this class.
+        }
+      }
     }
     
     public Class getDeclaringClass() {

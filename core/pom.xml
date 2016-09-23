@@ -237,7 +237,6 @@
                 org/renjin/graphics/*.java,
                 org/renjin/graphics/internals/*.java,
                 org/renjin/graphics/geom/*.java,
-                org/renjin/primitives/text/FuzzyMatcher.java
               </excludes>
             </configuration>
             <goals>
@@ -245,6 +244,21 @@
             </goals>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>com.mycila</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>src/main/R/base/**.R</exclude>            
+            <exclude>src/main/java/org/renjin/primitives/text/regex/*.java</exclude>
+            <exclude>src/main/java/org/renjin/primitives/text/Formatter.java</exclude>
+            
+            <exclude>src/main/java/org/renjin/stats/internals/optimize/Blas_f77.java</exclude>
+            <exclude>src/main/java/org/renjin/stats/internals/optimize/Uncmin.java</exclude>
+
+          </excludes>
+        </configuration>
       </plugin>
     </plugins>
 

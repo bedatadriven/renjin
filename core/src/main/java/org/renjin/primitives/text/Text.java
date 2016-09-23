@@ -26,6 +26,7 @@ import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
 import org.renjin.primitives.Deparse;
 import org.renjin.primitives.text.regex.ExtendedRE;
+import org.renjin.primitives.text.regex.FuzzyMatcher;
 import org.renjin.primitives.text.regex.RE;
 import org.renjin.primitives.text.regex.REFactory;
 import org.renjin.repackaged.guava.base.Function;

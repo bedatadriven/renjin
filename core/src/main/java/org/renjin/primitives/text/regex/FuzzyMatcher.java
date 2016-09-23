@@ -18,7 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with FREJ.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package org.renjin.primitives.text;
+package org.renjin.primitives.text.regex;
 
 /**
  * Finds the region for which Demerau-Levenshtein distance is minimal.

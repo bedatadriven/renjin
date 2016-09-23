@@ -24,6 +24,7 @@ import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.cache.NullFilesCache;
 import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
 import org.apache.commons.vfs2.provider.LocalFileProvider;
+import org.apache.commons.vfs2.provider.res.ResourceFileProvider;
 import org.apache.commons.vfs2.provider.url.UrlFileProvider;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
@@ -95,6 +96,7 @@ public class AppEngineContextFactory {
       DefaultFileSystemManager dfsm = new DefaultFileSystemManager();
       dfsm.addProvider("jar", jarFileProvider);
       dfsm.addProvider("file", localFileProvider);
+      dfsm.addProvider("res", new ResourceFileProvider());
       dfsm.addExtensionMap("jar", "jar");
       dfsm.setDefaultProvider(new UrlFileProvider());
       dfsm.setFilesCache(new NullFilesCache());

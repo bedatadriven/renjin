@@ -30,6 +30,12 @@
   <packaging>pom</packaging>
   <name>Renjin Parent</name>
 
+  <organization>
+    <name>BeDataDriven</name>
+    <url>http://www.bedatadriven.com</url>
+  </organization>
+  <inceptionYear>2010</inceptionYear>
+  
   <licenses>
     <license>
       <name>GNU Public License, v2</name>
@@ -238,12 +244,12 @@
       <dependency>
         <groupId>org.renjin</groupId>
         <artifactId>renjin-guava</artifactId>
-        <version>17.0</version>
+        <version>17.0b</version>
       </dependency>
       <dependency>
         <groupId>org.renjin</groupId>
         <artifactId>renjin-asm</artifactId>
-        <version>5.0.4</version>
+        <version>5.0.4b</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

@@ -56,6 +56,15 @@
   				</execution>
   			</executions>
   		</plugin>
+			<plugin>
+				<groupId>com.mycila</groupId>
+				<artifactId>license-maven-plugin</artifactId>
+				<configuration>
+					<excludes>
+						<exclude>src/main/R/**</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
   	</plugins>
   </build>
 </project>

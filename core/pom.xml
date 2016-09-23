@@ -247,6 +247,7 @@
         </executions>
       </plugin>
     </plugins>
+
     <pluginManagement>
       <plugins>
         <!--This plugin's configuration is used to store Eclipse m2e settings 
@@ -290,6 +291,7 @@
             </lifecycleMappingMetadata>
           </configuration>
         </plugin>
+        
       </plugins>
     </pluginManagement>
   </build>

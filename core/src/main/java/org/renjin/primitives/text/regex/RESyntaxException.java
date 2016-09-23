@@ -26,7 +26,6 @@ package org.renjin.primitives.text.regex;
  *
  * @author <a href="mailto:jonl@muppetlabs.com">Jonathan Locke</a>
  * @author <a href="mailto:gholam@xtra.co.nz>Michael McCallum</a>
- * @version $Id$
  */
 public class RESyntaxException extends Exception
 {

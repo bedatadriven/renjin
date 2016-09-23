@@ -21,7 +21,6 @@ package org.renjin.primitives.text.regex;
  * Encapsulates String as CharacterIterator.
  *
  * @author <a href="mailto:ales.novak@netbeans.com">Ales Novak</a>
- * @version CVS $Id$
  */
 public final class StringCharacterIterator implements CharacterIterator
 {

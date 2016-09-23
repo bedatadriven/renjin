@@ -22,7 +22,6 @@ package org.renjin.primitives.text.regex;
  * Defines a set of common methods
  *
  * @author <a href="mailto:ales.novak@netbeans.com">Ales Novak</a>
- * @version CVS $Id$
  */
 public interface CharacterIterator
 {

@@ -9,16 +9,6 @@
   </parent>
   <artifactId>grDevices</artifactId>
   <description>The R Graphics Package</description>
-  <licenses>
-    <license>
-      <name>Part of R 2.14.2</name>
-    </license>
-  </licenses>
-  <developers>
-    <developer>
-      <name>R Development Core Team and contributors worldwide</name>
-    </developer>
-  </developers>
   <dependencies>
     <dependency>
       <groupId>org.renjin</groupId>
@@ -60,6 +50,13 @@
             </configuration>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>com.mycila</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
       </plugin>
     </plugins>
   </build>

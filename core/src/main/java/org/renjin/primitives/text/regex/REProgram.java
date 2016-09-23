@@ -29,7 +29,6 @@ import java.io.Serializable;
  * @see RECompiler
  *
  * @author <a href="mailto:jonl@muppetlabs.com">Jonathan Locke</a>
- * @version $Id$
  */
 public class REProgram implements Serializable
 {

@@ -1,13 +1,10 @@
-/*
- * R : A Computer Language for Statistical Data Analysis
- * Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- * Copyright (C) 1997--2008  The R Development Core Team
- * Copyright (C) 2003, 2004  The R Foundation
- * Copyright (C) 2010 bedatadriven
+/**
+ * Renjin : JVM-based interpreter for the R language for the statistical analysis
+ * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
  *
- * This program is free software: you can redistribute it and/or modify
+ * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
+ * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -16,31 +13,21 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program; if not, a copy is available at
+ * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-
 package org.renjin.studio;
 
 
-import java.awt.BorderLayout;
-import java.awt.event.KeyEvent;
-import java.io.PrintWriter;
-
-import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JFrame;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.JRadioButtonMenuItem;
-import javax.swing.JSplitPane;
-import javax.swing.UIManager;
-
 import org.apache.commons.vfs2.FileSystemException;
-import org.renjin.eval.Context;
-import org.renjin.eval.Session;
 import org.renjin.studio.console.Console;
 import org.renjin.studio.console.ConsoleFrame;
 import org.renjin.studio.console.Repl;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.KeyEvent;
+import java.io.PrintWriter;
 
 
 public class MainFrame extends JFrame {

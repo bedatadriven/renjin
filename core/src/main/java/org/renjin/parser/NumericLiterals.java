@@ -143,6 +143,9 @@ public class NumericLiterals {
     while ( p < endIndex && Character.isWhitespace(s.charAt(p))) {
       p++;
     }
+    while ( endIndex >= p && Character.isWhitespace(s.charAt(endIndex-1))) {
+      endIndex--;
+    }
 
     if (NA && (p+2 < endIndex) && s.charAt(p) == 'N' && s.charAt(p+1) == 'A') {
       ans = DoubleVector.NA;
@@ -234,6 +237,14 @@ public class NumericLiterals {
           ans *= fac;
         }
       }
+
+      // Safeguard against malformed input
+      if(p < endIndex){
+        ans = DoubleVector.NA;
+        p = 0; /* back out */
+        return (sign * ans);
+      }
+
       return sign * ans;
     }
 
@@ -266,6 +277,13 @@ public class NumericLiterals {
         n = n * 10 + (s.charAt(p) - '0');
       }
       expn += expsign * n;
+    }
+
+    // Safeguard against malformed input
+    if(p < endIndex){
+      ans = DoubleVector.NA;
+      p = 0; /* back out */
+      return (sign * ans);
     }
   
       /* avoid unnecessary underflow for large negative exponents */

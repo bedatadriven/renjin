@@ -30,6 +30,13 @@
   <packaging>pom</packaging>
   <name>Renjin Parent</name>
 
+  <licenses>
+    <license>
+      <name>GNU Public License, v2</name>
+      <url>https://www.gnu.org/licenses/old-licenses/gpl-2.0.txt</url>
+    </license>
+  </licenses>
+  
   <modules>
     <module>core</module>
     <module>script-engine</module>
@@ -77,8 +84,6 @@
   </distributionManagement>
 
   <repositories>
-
-    <!-- We go to mvnsearch.org after latest GAE SDK artifacts -->
     <repository>
       <id>bedatadriven</id>
       <name>bedatadriven public repo</name>

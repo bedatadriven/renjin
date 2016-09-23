@@ -9,11 +9,6 @@
   </parent>
   <artifactId>splines</artifactId>
   <description>Regression Spline Functions and Classes</description>
-  <licenses>
-    <license>
-      <name>Part of R 2.14.2</name>
-    </license>
-  </licenses>
   <developers>
     <developer>
       <name>Douglas M. Bates</name>

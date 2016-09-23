@@ -9,16 +9,6 @@
   </parent>
   <artifactId>datasets</artifactId>
   <description>Base R datasets</description>
-  <licenses>
-    <license>
-      <name>Part of R 2.14.2</name>
-    </license>
-  </licenses>
-  <developers>
-    <developer>
-      <name>R Development Core Team and contributors worldwide</name>
-    </developer>
-  </developers>
   <dependencies>
   	<dependency>
   		<groupId>org.renjin</groupId>

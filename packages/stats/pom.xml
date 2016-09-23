@@ -9,16 +9,6 @@
   </parent>
   <artifactId>stats</artifactId>
   <description>R statistical functions</description>
-  <licenses>
-    <license>
-      <name>Part of R 2.14.2</name>
-    </license>
-  </licenses>
-  <developers>
-    <developer>
-      <name>R Development Core Team and contributors worldwide</name>
-    </developer>
-  </developers>
   <dependencies>
     <dependency>
       <groupId>org.renjin</groupId>

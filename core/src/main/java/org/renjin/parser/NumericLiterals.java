@@ -143,7 +143,7 @@ public class NumericLiterals {
     while ( p < endIndex && Character.isWhitespace(s.charAt(p))) {
       p++;
     }
-    while ( endIndex >= p && Character.isWhitespace(s.charAt(endIndex-1))) {
+    while ( endIndex > p && Character.isWhitespace(s.charAt(endIndex-1))) {
       endIndex--;
     }
 

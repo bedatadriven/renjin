@@ -42,6 +42,8 @@ public class NumericLiteralsTest {
     assertTrue("Illegal character return NaN", Double.isNaN(NumericLiterals.parseDouble("a")));
     assertTrue("Whitespace in literal returns NaN", Double.isNaN(NumericLiterals.parseDouble("4 2")));
     assertTrue("Whitespace in hexadecimals returns NaN", Double.isNaN(NumericLiterals.parseDouble("0xep2 2")));
+    assertTrue("Empty string return NaN", Double.isNaN(NumericLiterals.parseDouble("")));
+    assertTrue("Empty string with whitespace return NaN", Double.isNaN(NumericLiterals.parseDouble(" ")));
   }
 
 }

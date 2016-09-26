@@ -10,4 +10,4 @@ test.rcauchy.3 <- function() assertThat(rcauchy(n = 15, location = c(0, -2), sca
 set.seed(1)
 test.rcauchy.4 <- function() assertThat(rcauchy(n = numeric(0), location = c(0, -2), scale = c(0, 0.5, 1, 2)), identicalTo(numeric(0)))
 set.seed(1)
-test.rcauchy.5 <- function() assertThat(rcauchy(n = 3, location = c(NA, -2), scale = c(0, 0.5, 1, 2)), identicalTo(c(NaN, -2.44125219851949, NaN)))
+test.rcauchy.5 <- function() assertThat({x = rcauchy(n = 3, location = c(NA, -2), scale = c(0, 0.5, 1, 2)); x}, identicalTo(c(NaN, -0x1.72e0a0b80357fp+0, NaN), tol = 1e-6))

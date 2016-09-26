@@ -13,6 +13,7 @@ test.RNGkind <- function() {
 test.runif <- function() {
 	set.seed(12345, 'Mersenne-Twister','I')
 	assertThat(runif(1,0,2), closeTo(1.441808, 0.01))
+	set.seed(12345, 'Mersenne-Twister','I')
 	assertThat(mean(runif(100000,0,2)), closeTo(1.001036, 0.01))
 }
 
@@ -20,8 +21,10 @@ test.runif <- function() {
 test.rbinom <- function() {
 	set.seed(12345, 'Mersenne-Twister','I')
 	assertThat(mean(rbinom(1000,100,0.5)), closeTo(50.078, DELTA))
-	assertThat(mean(rbinom(1000,200,0.9)), closeTo(180.132, DELTA))
-	assertThat(mean(rbinom(1000,250,0.12)), closeTo(30.339, DELTA))
+    set.seed(12345, 'Mersenne-Twister','I')
+	assertThat(mean(rbinom(1000,200,0.9)), closeTo(179.844, DELTA))
+    set.seed(12345, 'Mersenne-Twister','I')
+	assertThat(mean(rbinom(1000,250,0.12)), closeTo(29.681, DELTA))
 }
 
 test.rsignrank <- function() {
@@ -116,6 +119,7 @@ test.rt <- function() {
 test.rmultinom <- function() {
 	set.seed(1234, 'Mersenne-Twister','I')
 	assertThat(rmultinom(1,3,c(0.5,0.5)), equalTo(structure(c(0,3), .Dim = 2:1)))
+    set.seed(1234, 'Mersenne-Twister','I')
 	assertThat(dim(rmultinom(20,3,c(0.5,0.3,0.2))), equalTo(c(3,20)))
 }
 

@@ -112,6 +112,9 @@ public class RNG {
   @Internal
   public static DoubleVector runif(@Current Context context, Vector nVector, AtomicVector min, AtomicVector max) {
     int n = defineSize(nVector);
+    if (n == 0) {
+      return DoubleVector.EMPTY;
+    }
     int minLength = min.length();
     int maxLength = min.length();
     RNG rng = context.getSession().rng;
@@ -137,6 +140,9 @@ public class RNG {
   @Internal
   public static DoubleVector rnorm(@Current Context context, Vector nVector, AtomicVector mean, AtomicVector sd) {
     int n = defineSize(nVector);
+    if (n == 0) {
+      return DoubleVector.EMPTY;
+    }
     int meanLength  = mean.length();
     int sdLength = sd.length();
     if (meanLength == 0 || sdLength == 0) {
@@ -162,6 +168,9 @@ public class RNG {
   @Internal
   public static DoubleVector rgamma(@Current Context context, Vector nVector, AtomicVector shape, AtomicVector scale) {
     int n  = defineSize(nVector);
+    if (n == 0) {
+      return DoubleVector.EMPTY;
+    }
     int shapeLength = shape.length();
     int scaleLength = scale.length();
     if (shapeLength == 0 || scaleLength == 0) {
@@ -187,6 +196,9 @@ public class RNG {
   @Internal
   public static DoubleVector rchisq(@Current Context context, Vector nVector, AtomicVector df) {
     int n = defineSize(nVector);
+    if (n == 0) {
+      return DoubleVector.EMPTY;
+    }
     int dfLength = df.length();
     boolean hasNA = df.containsNA();
     if (dfLength == 0) {
@@ -224,6 +236,9 @@ public class RNG {
   @Internal
   public static DoubleVector rnchisq(@Current Context context, Vector nVector, AtomicVector df, double ncp) {
     int n = defineSize(nVector);
+    if (n == 0) {
+      return DoubleVector.EMPTY;
+    }
     int dfLength = df.length();
     if (dfLength == 0) {
       return (DoubleArrayVector.Builder.withInitialSize(n).build());
@@ -244,6 +259,9 @@ public class RNG {
   @Internal
   public static DoubleVector rexp(@Current Context context, Vector nVector, AtomicVector invrate) {
     int n = defineSize(nVector);
+    if (n == 0) {
+      return DoubleVector.EMPTY;
+    }
     int invrateLength = invrate.length();
     if (invrateLength == 0) {
       return (DoubleArrayVector.Builder.withInitialSize(n).build());
@@ -264,6 +282,9 @@ public class RNG {
   @Internal
   public static DoubleVector rpois(@Current Context context, Vector nVector, AtomicVector mu) {
     int n = defineSize(nVector);
+    if (n == 0) {
+      return DoubleVector.EMPTY;
+    }
     int muLength = mu.length();
     if (muLength == 0) {
       return (DoubleArrayVector.Builder.withInitialSize(n).build());
@@ -284,6 +305,9 @@ public class RNG {
   @Internal
   public static DoubleVector rsignrank(@Current Context context, Vector nnVector, AtomicVector n) {
     int nn = defineSize(nnVector);
+    if (nn == 0) {
+      return DoubleVector.EMPTY;
+    }
     int nLength = n.length();
     if (nLength == 0) {
       return (DoubleArrayVector.Builder.withInitialSize(nn).build());
@@ -304,6 +328,9 @@ public class RNG {
   @Internal
   public static DoubleVector rwilcox(@Current Context context, Vector nnVector, AtomicVector m, AtomicVector n) {
     int nn = defineSize(nnVector);
+    if (nn == 0) {
+      return DoubleVector.EMPTY;
+    }
     int mLength = m.length();
     int nLength = n.length();
     if (mLength == 0 || nLength == 0) {
@@ -327,13 +354,16 @@ public class RNG {
   }
 
   @Internal
-  public static DoubleVector rgeom(@Current Context context, Vector nVector, AtomicVector p) {
+  public static IntVector rgeom(@Current Context context, Vector nVector, AtomicVector p) {
     int n = defineSize(nVector);
+    if (n == 0) {
+      return IntVector.EMPTY;
+    }
     int pLength = p.length();
     if (pLength == 0) {
-      return (DoubleArrayVector.Builder.withInitialSize(n).build());
+      return (IntArrayVector.Builder.withInitialSize(n).build());
     }
-    DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
+    IntArrayVector.Builder vb = IntArrayVector.Builder.withInitialCapacity(n);
     MethodHandle runif = context.getSession().getRngMethod();
     int j = 0;
     for (int i = 0; i < n; i++) {
@@ -349,6 +379,9 @@ public class RNG {
   @Internal
   public static DoubleVector rt(@Current Context context, Vector nVector, AtomicVector df) {
     int n = defineSize(nVector);
+    if (n == 0) {
+      return DoubleVector.EMPTY;
+    }
     int dfLength = df.length();
     if (dfLength == 0) {
       return (DoubleArrayVector.Builder.withInitialSize(n).build());
@@ -369,6 +402,9 @@ public class RNG {
   @Internal
   public static DoubleVector rcauchy(@Current Context context, Vector nVector, AtomicVector location, AtomicVector scale) {
     int n = defineSize(nVector);
+    if (n == 0) {
+      return DoubleVector.EMPTY;
+    }
     int locationLength = location.length();
     int scaleLength = scale.length();
     if (locationLength == 0 || scaleLength == 0) {
@@ -394,6 +430,9 @@ public class RNG {
   @Internal
   public static DoubleVector rlnorm(@Current Context context, Vector nVector, AtomicVector meanlog, AtomicVector sdlog) {
     int n = defineSize(nVector);
+    if (n == 0) {
+      return DoubleVector.EMPTY;
+    }
     int meanlogLenght = meanlog.length();
     int sdlogLength = sdlog.length();
     if (meanlogLenght == 0 || sdlogLength == 0) {
@@ -419,6 +458,9 @@ public class RNG {
   @Internal
   public static DoubleVector rlogis(@Current Context context, Vector nVector, AtomicVector location, AtomicVector scale) {
     int n = defineSize(nVector);
+    if (n == 0) {
+      return DoubleVector.EMPTY;
+    }
     int locationLength = location.length();
     int scaleLength = scale.length();
     if (locationLength == 0 || scaleLength == 0) {
@@ -444,6 +486,9 @@ public class RNG {
   @Internal
   public static DoubleVector rweibull(@Current Context context, Vector nVector, AtomicVector shape, AtomicVector scale) {
     int n = defineSize(nVector);
+    if (n == 0) {
+      return DoubleVector.EMPTY;
+    }
     int shapeLength = shape.length();
     int scaleLength = scale.length();
     if (shapeLength == 0 || scaleLength == 0) {
@@ -469,6 +514,9 @@ public class RNG {
   @Internal
   public static DoubleVector rnbinom(@Current Context context, Vector nVector, AtomicVector size, AtomicVector prob) {
     int n = defineSize(nVector);
+    if (n == 0) {
+      return DoubleVector.EMPTY;
+    }
     int sizeLength = size.length();
     int probLength = prob.length();
     if (sizeLength == 0 || probLength == 0) {
@@ -494,6 +542,9 @@ public class RNG {
   @Internal
   public static DoubleVector rnbinom_mu(@Current Context context, Vector nVector, AtomicVector size, AtomicVector mu) {
     int n = defineSize(nVector);
+    if (n == 0) {
+      return DoubleVector.EMPTY;
+    }
     int sizeLength = size.length();
     int muLenght = mu.length();
     if (sizeLength == 0 || muLenght == 0) {
@@ -519,10 +570,13 @@ public class RNG {
   @Internal
   public static IntVector rbinom(@Current Context context, Vector nVector, AtomicVector size, AtomicVector prob) {
     int n = defineSize(nVector);
+    if (n == 0) {
+      return IntVector.EMPTY;
+    }
     int sizeLength = size.length();
     int probLength = prob.length();
     if (sizeLength == 0 || probLength == 0) {
-      return (IntArrayVector.Builder.withInitialCapacity(n).build());
+      return (IntArrayVector.Builder.withInitialSize(n).build());
     }
     IntArrayVector.Builder vb = IntArrayVector.Builder.withInitialCapacity(n);
     MethodHandle runif = context.getSession().getRngMethod();
@@ -545,6 +599,9 @@ public class RNG {
   @Internal
   public static DoubleVector rf(@Current Context context, Vector nVector, AtomicVector df1, AtomicVector df2) {
     int n = defineSize(nVector);
+    if (n == 0) {
+      return DoubleVector.EMPTY;
+    }
     int df1Length = df1.length();
     int df2Length = df2.length();
     if (df1Length == 0 || df2.length() == 0) {
@@ -570,6 +627,9 @@ public class RNG {
   @Internal
   public static DoubleVector rbeta(@Current Context context, Vector nVector, AtomicVector shape1, AtomicVector shape2) {
     int n = defineSize(nVector);
+    if (n == 0) {
+      return DoubleVector.EMPTY;
+    }
     int shape1Length = shape1.length();
     int shape2Length = shape2.length();
     if (shape1Length == 0 || shape2Length == 0) {
@@ -595,6 +655,9 @@ public class RNG {
   @Internal
   public static DoubleVector rhyper(@Current Context context, Vector nnVector, AtomicVector m, AtomicVector n, AtomicVector k) {
     int nn = defineSize(nnVector);
+    if (nn == 0) {
+      return DoubleVector.EMPTY;
+    }
     int mLength = m.length();
     int nLength = n.length();
     int kLength = k.length();
@@ -626,6 +689,9 @@ public class RNG {
   @Internal
   public static DoubleVector rmultinom(@Current Context context, Vector nVector, AtomicVector size, AtomicVector prob){
     int n = defineSize(nVector);
+    if (n == 0) {
+      return DoubleVector.EMPTY;
+    }
     int sizeLength = size.length();
     int probLength = prob.length();
     if (sizeLength == 0 || probLength == 0) {
@@ -694,7 +760,7 @@ public class RNG {
 
   public static int defineSize(Vector input) {
     int inputLength = (input.length() == 1) ? input.getElementAsInt(0) : input.length();
-    if (input.length() == 0 || (input.length() == 1 && (input.isElementNA(0) || input.isElementNaN(0)))) {
+    if (input.length() == 1 && (input.isElementNA(0) || input.isElementNaN(0))) {
       throw new EvalException("invalid arguments.");
     }
     return inputLength;

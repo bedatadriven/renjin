@@ -7,11 +7,31 @@ import org.renjin.eval.Session;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.nmath.rchisq;
+import org.renjin.nmath.rnorm;
+import org.renjin.nmath.rgamma;
+import org.renjin.nmath.rnchisq;
+import org.renjin.nmath.rexp;
+import org.renjin.nmath.rpois;
+//import org.renjin.nmath.rsignrank;
+//import org.renjin.nmath.rwilcox;
+import org.renjin.nmath.rgeom;
+import org.renjin.nmath.rt;
+import org.renjin.nmath.rcauchy;
+import org.renjin.nmath.rlnorm;
+import org.renjin.nmath.rlogis;
+import org.renjin.nmath.rweibull;
+import org.renjin.nmath.rnbinom;
+//import org.renjin.nmath.rnbinom_mu;
+import org.renjin.nmath.rbinom;
+import org.renjin.nmath.rf;
+import org.renjin.nmath.rbeta;
+//import org.renjin.nmath.rhyper;
 import org.renjin.sexp.*;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class RNG {
@@ -123,9 +143,10 @@ public class RNG {
       return (DoubleArrayVector.Builder.withInitialSize(n).build());
     }
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
+    MethodHandle runif = context.getSession().getRngMethod();
       int j = 0, k = 0;
       for (int i = 0; i < n; i++) {
-        vb.add(Normal.rnorm(context.getSession(), mean.getElementAsDouble(j), sd.getElementAsDouble(k)));
+        vb.add(rnorm.rnorm(runif, mean.getElementAsDouble(j), sd.getElementAsDouble(k)));
         j++;
         k++;
         if (j == meanLength) {
@@ -147,9 +168,10 @@ public class RNG {
       return (DoubleArrayVector.Builder.withInitialSize(n).build());
     }
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
+    MethodHandle runif = context.getSession().getRngMethod();
     int j = 0, k = 0;
     for (int i = 0; i < n; i++) {
-      vb.add(Gamma.rgamma(context.getSession(), shape.getElementAsDouble(j), scale.getElementAsDouble(k)));
+      vb.add(rgamma.rgamma(runif, shape.getElementAsDouble(j), scale.getElementAsDouble(k)));
       j++;
       k++;
       if (j == shapeLength) {
@@ -166,17 +188,34 @@ public class RNG {
   public static DoubleVector rchisq(@Current Context context, Vector nVector, AtomicVector df) {
     int n = defineSize(nVector);
     int dfLength = df.length();
+    boolean hasNA = df.containsNA();
     if (dfLength == 0) {
       return (DoubleArrayVector.Builder.withInitialSize(n).build());
     }
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
     MethodHandle runif = context.getSession().getRngMethod();
     int j = 0;
-    for (int i = 0; i < n; i++) {
-      vb.add(rchisq.rchisq(runif, df.getElementAsDouble(j)));
-      j++;
-      if (j == dfLength) {
-        j = 0;
+
+    if (hasNA) {
+      // When df element is NA, check what should be given as input to the function to get NaN (like in GNU R)
+      // df.indexOfNA() != -1
+      double dfElement = df.getElementAsDouble(j);
+      for (int i = 0; i < n; i++) {
+        if (!DoubleVector.isNA(dfElement)) {
+          vb.add(rchisq.rchisq(runif, df.getElementAsDouble(j)));
+        }
+        j++;
+        if (j == dfLength) {
+          j = 0;
+        }
+      }
+    } else {
+      for (int i = 0; i < n; i++) {
+        vb.add(rchisq.rchisq(runif, df.getElementAsDouble(j)));
+        j++;
+        if (j == dfLength) {
+          j = 0;
+        }
       }
     }
     return (vb.build());
@@ -190,9 +229,10 @@ public class RNG {
       return (DoubleArrayVector.Builder.withInitialSize(n).build());
     }
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
+    MethodHandle runif = context.getSession().getRngMethod();
     int j = 0;
     for (int i = 0; i < n; i++) {
-      vb.add(ChiSquare.rnchisq(context.getSession(), df.getElementAsDouble(j), ncp));
+      vb.add(rnchisq.rnchisq(runif, df.getElementAsDouble(j), ncp));
       j++;
       if (j == dfLength) {
         j = 0;
@@ -209,9 +249,10 @@ public class RNG {
       return (DoubleArrayVector.Builder.withInitialSize(n).build());
     }
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
+    MethodHandle runif = context.getSession().getRngMethod();
     int j = 0;
     for (int i = 0; i < n; i++) {
-      vb.add(Exponantial.rexp(context.getSession(), invrate.getElementAsDouble(j)));
+      vb.add(rexp.rexp(runif, invrate.getElementAsDouble(j)));
       j++;
       if (j == invrateLength) {
         j = 0;
@@ -228,9 +269,10 @@ public class RNG {
       return (DoubleArrayVector.Builder.withInitialSize(n).build());
     }
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
+    MethodHandle runif = context.getSession().getRngMethod();
     int j = 0;
     for (int i = 0; i < n; i++) {
-      vb.add(Poisson.rpois(context.getSession(), mu.getElementAsDouble(j)));
+      vb.add(rpois.rpois(runif, mu.getElementAsDouble(j)));
       j++;
       if (j == muLength) {
         j = 0;
@@ -247,6 +289,7 @@ public class RNG {
       return (DoubleArrayVector.Builder.withInitialSize(nn).build());
     }
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(nn);
+    //MethodHandle runif = context.getSession().getRngMethod();
     int j = 0;
     for (int i = 0; i < nn; i++) {
       vb.add(SignRank.rsignrank(context.getSession(), n.getElementAsDouble(j)));
@@ -267,6 +310,7 @@ public class RNG {
       return (DoubleArrayVector.Builder.withInitialSize(nn).build());
     }
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(nn);
+    //MethodHandle runif = context.getSession().getRngMethod();
     int j = 0, k = 0;
     for (int i = 0; i < nn; i++) {
       vb.add(Wilcox.rwilcox(context.getSession(), m.getElementAsDouble(j), n.getElementAsDouble(k)));
@@ -290,9 +334,10 @@ public class RNG {
       return (DoubleArrayVector.Builder.withInitialSize(n).build());
     }
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
+    MethodHandle runif = context.getSession().getRngMethod();
     int j = 0;
     for (int i = 0; i < n; i++) {
-      vb.add(Geometric.rgeom(context.getSession(), p.getElementAsDouble(j)));
+      vb.add(rgeom.rgeom(runif, p.getElementAsDouble(j)));
       j++;
       if (j == pLength) {
         j = 0;
@@ -309,9 +354,10 @@ public class RNG {
       return (DoubleArrayVector.Builder.withInitialSize(n).build());
     }
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
+    MethodHandle runif = context.getSession().getRngMethod();
     int j = 0;
     for (int i = 0; i < n; i++) {
-      vb.add(StudentsT.rt(context.getSession(), df.getElementAsDouble(j)));
+      vb.add(rt.rt(runif, df.getElementAsDouble(j)));
       j++;
       if (j == dfLength) {
         j = 0;
@@ -329,9 +375,10 @@ public class RNG {
       return (DoubleArrayVector.Builder.withInitialSize(n).build());
     }
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
+    MethodHandle runif = context.getSession().getRngMethod();
     int j = 0, k = 0;
     for (int i = 0; i < n; i++) {
-      vb.add(Cauchy.rcauchy(context.getSession(), location.getElementAsDouble(j), scale.getElementAsDouble(k)));
+      vb.add(rcauchy.rcauchy(runif, location.getElementAsDouble(j), scale.getElementAsDouble(k)));
       j++;
       k++;
       if (j == locationLength) {
@@ -353,9 +400,10 @@ public class RNG {
       return (DoubleArrayVector.Builder.withInitialSize(n).build());
     }
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
+    MethodHandle runif = context.getSession().getRngMethod();
     int j = 0, k = 0;
     for (int i = 0; i < n; i++) {
-      vb.add(LNorm.rlnorm(context.getSession(), meanlog.getElementAsDouble(j), sdlog.getElementAsDouble(k)));
+      vb.add(rlnorm.rlnorm(runif, meanlog.getElementAsDouble(j), sdlog.getElementAsDouble(k)));
       j++;
       k++;
       if (j == meanlogLenght) {
@@ -377,9 +425,10 @@ public class RNG {
       return (DoubleArrayVector.Builder.withInitialSize(n).build());
     }
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
+    MethodHandle runif = context.getSession().getRngMethod();
     int j = 0, k = 0;
     for (int i = 0; i < n; i++) {
-      vb.add(RLogis.rlogis(context.getSession(), location.getElementAsDouble(j), scale.getElementAsDouble(k)));
+      vb.add(rlogis.rlogis(runif, location.getElementAsDouble(j), scale.getElementAsDouble(k)));
       j++;
       k++;
       if (j == locationLength) {
@@ -401,9 +450,10 @@ public class RNG {
       return (DoubleArrayVector.Builder.withInitialSize(n).build());
     }
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
+    MethodHandle runif = context.getSession().getRngMethod();
     int j = 0, k = 0;
     for (int i = 0; i < n; i++) {
-      vb.add(Weibull.rweibull(context.getSession(), shape.getElementAsDouble(j), scale.getElementAsDouble(k)));
+      vb.add(rweibull.rweibull(runif, shape.getElementAsDouble(j), scale.getElementAsDouble(k)));
       j++;
       k++;
       if (j == shapeLength) {
@@ -425,9 +475,10 @@ public class RNG {
       return (DoubleArrayVector.Builder.withInitialSize(n).build());
     }
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
+    MethodHandle runif = context.getSession().getRngMethod();
     int j = 0, k = 0;
     for (int i = 0; i < n; i++) {
-      vb.add(NegativeBinom.rnbinom(context.getSession(), size.getElementAsDouble(j), prob.getElementAsDouble(k)));
+      vb.add(rnbinom.rnbinom(runif, size.getElementAsDouble(j), prob.getElementAsDouble(k)));
       j++;
       k++;
       if (j == sizeLength) {
@@ -449,6 +500,7 @@ public class RNG {
       return (DoubleArrayVector.Builder.withInitialSize(n).build());
     }
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
+    //MethodHandle runif = context.getSession().getRngMethod();
     int j = 0, k = 0;
     for (int i = 0; i < n; i++) {
       vb.add(NegativeBinom.rnbinom_mu(context.getSession(), size.getElementAsDouble(j), mu.getElementAsDouble(k)));
@@ -465,17 +517,18 @@ public class RNG {
   }
 
   @Internal
-  public static DoubleVector rbinom(@Current Context context, Vector nVector, AtomicVector size, AtomicVector prob) {
+  public static IntVector rbinom(@Current Context context, Vector nVector, AtomicVector size, AtomicVector prob) {
     int n = defineSize(nVector);
     int sizeLength = size.length();
     int probLength = prob.length();
     if (sizeLength == 0 || probLength == 0) {
-      return (DoubleArrayVector.Builder.withInitialSize(n).build());
+      return (IntArrayVector.Builder.withInitialCapacity(n).build());
     }
-    DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
+    IntArrayVector.Builder vb = IntArrayVector.Builder.withInitialCapacity(n);
+    MethodHandle runif = context.getSession().getRngMethod();
     int j = 0, k = 0;
     for (int i = 0; i < n; i++) {
-      vb.add(Binom.rbinom(context.getSession(), size.getElementAsDouble(j), prob.getElementAsDouble(k)));
+      vb.add(rbinom.rbinom(runif, size.getElementAsDouble(j), prob.getElementAsDouble(k)));
       j++;
       k++;
       if (j == sizeLength) {
@@ -498,9 +551,10 @@ public class RNG {
       return (DoubleArrayVector.Builder.withInitialSize(n).build());
     }
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
+    MethodHandle runif = context.getSession().getRngMethod();
     int j = 0, k = 0;
     for (int i = 0; i < n; i++) {
-      vb.add(F.rf(context.getSession(), df1.getElementAsDouble(j), df2.getElementAsDouble(k)));
+      vb.add(rf.rf(runif, df1.getElementAsDouble(j), df2.getElementAsDouble(k)));
       j++;
       k++;
       if (j == df1Length) {
@@ -522,9 +576,10 @@ public class RNG {
       return (DoubleArrayVector.Builder.withInitialSize(n).build());
     }
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
+    MethodHandle runif = context.getSession().getRngMethod();
     int j = 0, k = 0;
     for (int i = 0; i < n; i++) {
-      vb.add(Beta.rbeta(context.getSession(), shape1.getElementAsDouble(j), shape2.getElementAsDouble(k)));
+      vb.add(rbeta.rbeta(runif, shape1.getElementAsDouble(j), shape2.getElementAsDouble(k)));
       j++;
       k++;
       if (j == shape1Length) {
@@ -547,6 +602,7 @@ public class RNG {
       return (DoubleArrayVector.Builder.withInitialSize(nn).build());
     }
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(nn);
+    //MethodHandle runif = context.getSession().getRngMethod();
     int j = 0, p = 0, q = 0;
     for (int i = 0; i < nn; i++) {
       vb.add(HyperGeometric.Random_hyper_geometric.rhyper(
@@ -576,6 +632,7 @@ public class RNG {
       return (DoubleArrayVector.Builder.withInitialSize(n).build());
     }
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
+    //MethodHandle runif = context.getSession().getRngMethod();
     int k = 0;
     int[] RN = new int[probLength];
     for (int i = 0; i < n; i++){

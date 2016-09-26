@@ -207,6 +207,10 @@ public class IntArrayVector extends IntVector {
       }
     }
 
+    public static Builder withInitialSize(int size) {
+      return new Builder(size, size);
+    }
+
     public static Builder withInitialCapacity(int capacity) {
       return new Builder(0, capacity);
     }

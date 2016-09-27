@@ -1,3 +1,21 @@
+/**
+ * Renjin : JVM-based interpreter for the R language for the statistical analysis
+ * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, a copy is available at
+ * https://www.gnu.org/licenses/gpl-2.0.txt
+ */
 package org.renjin.primitives.files;
 
 import org.apache.commons.vfs2.FileObject;
@@ -91,6 +109,36 @@ public class FilesTest extends EvalTestCase {
     // Failure returns false, does not throw error
     
     eval("x <- file.rename('doesnotexist.txt', 'b.txt')");
+
+    assertThat(eval("x"), equalTo(c(false)));
+
+  }
+
+  @Test
+  public void removeFile() throws IOException {
+
+    // Create a temp directory with a source file
+    File tempDir = org.renjin.repackaged.guava.io.Files.createTempDir();
+    File file = new File(tempDir, "a.txt");
+    Files.write("ABC", file, Charsets.UTF_8);
+
+    topLevelContext.getGlobalEnvironment().setVariable("rootDir", StringVector.valueOf(tempDir.getAbsolutePath()));
+
+    eval("setwd(rootDir)");
+    eval("x <- file.remove('a.txt')");
+
+    assertThat(eval("x"), equalTo(c(true)));
+
+    assertTrue("source file does not exist", !file.exists());
+
+  }
+
+  @Test
+  public void removeFilesFailure() throws IOException {
+
+    // Failure returns false, does not throw error
+
+    eval("x <- file.remove('doesnotexist.txt')");
 
     assertThat(eval("x"), equalTo(c(false)));
 

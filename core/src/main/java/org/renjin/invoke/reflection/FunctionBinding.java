@@ -1,3 +1,21 @@
+/**
+ * Renjin : JVM-based interpreter for the R language for the statistical analysis
+ * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, a copy is available at
+ * https://www.gnu.org/licenses/gpl-2.0.txt
+ */
 package org.renjin.invoke.reflection;
 
 import org.renjin.eval.Context;
@@ -14,6 +32,7 @@ import org.renjin.sexp.SEXP;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.List;
 
 /**
@@ -73,7 +92,15 @@ public class FunctionBinding {
       // workaround reflection problem calling 
       // public methods on private subclasses
       // see http://download.oracle.com/javase/tutorial/reflect/member/methodTrouble.html
-      this.method.setAccessible(true);
+      if(!Modifier.isPublic(method.getDeclaringClass().getModifiers())) {
+        try {
+          this.method.setAccessible(true);
+        } catch (SecurityException ignored) {
+          // if the security settings prevent us from accessing this class via reflection,
+          // there may be a RuntimeException later on if there is an attempt to invoke this method,
+          // but we should still continue constructing the metadata for this class.
+        }
+      }
     }
     
     public Class getDeclaringClass() {

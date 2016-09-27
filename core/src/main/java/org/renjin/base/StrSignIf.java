@@ -1,46 +1,22 @@
-/*
- *  Copyright (C) Martin Maechler, 1994, 1998
- *  Copyright (C) 2001-2011 the R Development Core Team
+/**
+ * Renjin : JVM-based interpreter for the R language for the statistical analysis
+ * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
  *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, a copy is available at
- *  http://www.r-project.org/Licenses/
- *
- *  I want you to preserve the copyright of the original author(s),
- *  and encourage you to send me any improvements by e-mail. (MM).
- *
- *  Originally from Bill Dunlap
- *  bill@stat.washington.edu
- *  Wed Feb 21, 1990
- *
- *  Much improved by Martin Maechler, including the "fg" format.
- *
- *  Patched by Friedrich.Leisch@ci.tuwien.ac.at
- *  Fri Nov 22, 1996
- *
- *  Some fixes by Ross Ihaka
- *  ihaka@stat.auckland.ac.nz
- *  Sat Dec 21, 1996
- *  Integer arguments changed from "long" to "int"
- *  Bus error due to non-writable strings fixed
- *
- *  BDR 2001-10-30 use R_alloc not Calloc as memory was not
- *  reclaimed on error (and there are many error exits).
- *
- *  type  "double" or "integer" (R - numeric 'mode').
- *
-
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, a copy is available at
+ * https://www.gnu.org/licenses/gpl-2.0.txt
  */
+
 
 package org.renjin.base;
 

@@ -1,25 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ R : A Computer Language for Statistical Data Analysis
-  ~ Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
-  ~ Copyright (C) 1997-2008  The R Development Core Team
-  ~ Copyright (C) 2003, 2004  The R Foundation
-  ~ Copyright (C) 2010 bedatadriven
-  ~
-  ~ This program is free software: you can redistribute it and/or modify
-  ~ it under the terms of the GNU General Public License as published by
-  ~ the Free Software Foundation, either version 3 of the License, or
-  ~ (at your option) any later version.
-  ~
-  ~ This program is distributed in the hope that it will be useful,
-  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  ~ GNU General Public License for more details.
-  ~
-  ~ You should have received a copy of the GNU General Public License
-  ~ along with this program.  If not, see <http://www.gnu.org/licenses />.
-  -->
 
+  Renjin Parent
+  Copyright © 2010 BeDataDriven Groep B.V. and contributors
+  
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, a copy is available at
+  https://www.gnu.org/licenses/gpl-2.0.txt
+
+-->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
@@ -30,6 +29,19 @@
   <packaging>pom</packaging>
   <name>Renjin Parent</name>
 
+  <organization>
+    <name>BeDataDriven</name>
+    <url>http://www.bedatadriven.com</url>
+  </organization>
+  <inceptionYear>2010</inceptionYear>
+  
+  <licenses>
+    <license>
+      <name>GNU Public License, v2</name>
+      <url>https://www.gnu.org/licenses/old-licenses/gpl-2.0.txt</url>
+    </license>
+  </licenses>
+  
   <modules>
     <module>core</module>
     <module>script-engine</module>
@@ -77,8 +89,6 @@
   </distributionManagement>
 
   <repositories>
-
-    <!-- We go to mvnsearch.org after latest GAE SDK artifacts -->
     <repository>
       <id>bedatadriven</id>
       <name>bedatadriven public repo</name>
@@ -146,6 +156,69 @@
             <goals>
               <goal>check</goal>
             </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>com.mycila</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <version>3.0</version>
+        <configuration>
+          <inlineHeader>
+Renjin : JVM-based interpreter for the R language for the statistical analysis
+Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, a copy is available at
+https://www.gnu.org/licenses/gpl-2.0.txt
+          </inlineHeader>
+          <mapping>
+            <R>SCRIPT_STYLE</R>
+          </mapping>
+          <includes>
+            <include>**/*.java</include>
+            <include>**/*.R</include>
+          </includes>
+        </configuration>
+          <dependencies>
+            <dependency>
+              <groupId>com.mycila</groupId>
+              <artifactId>license-maven-plugin-git</artifactId>
+              <version>3.0</version>
+            </dependency>
+          </dependencies>
+        <executions>
+          <execution>
+            <id>check-license</id>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <phase>verify</phase>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <phase>package</phase>
           </execution>
         </executions>
       </plugin>
@@ -233,12 +306,12 @@
       <dependency>
         <groupId>org.renjin</groupId>
         <artifactId>renjin-guava</artifactId>
-        <version>17.0</version>
+        <version>17.0b</version>
       </dependency>
       <dependency>
         <groupId>org.renjin</groupId>
         <artifactId>renjin-asm</artifactId>
-        <version>5.0.4</version>
+        <version>5.0.4b</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

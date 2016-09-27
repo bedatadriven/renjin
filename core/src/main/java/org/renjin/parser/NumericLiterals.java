@@ -1,3 +1,21 @@
+/**
+ * Renjin : JVM-based interpreter for the R language for the statistical analysis
+ * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, a copy is available at
+ * https://www.gnu.org/licenses/gpl-2.0.txt
+ */
 package org.renjin.parser;
 
 import org.apache.commons.math.complex.Complex;
@@ -125,6 +143,9 @@ public class NumericLiterals {
     while ( p < endIndex && Character.isWhitespace(s.charAt(p))) {
       p++;
     }
+    while ( endIndex > p && Character.isWhitespace(s.charAt(endIndex-1))) {
+      endIndex--;
+    }
 
     if (NA && (p+2 < endIndex) && s.charAt(p) == 'N' && s.charAt(p+1) == 'A') {
       ans = DoubleVector.NA;
@@ -216,6 +237,14 @@ public class NumericLiterals {
           ans *= fac;
         }
       }
+
+      // Safeguard against malformed input
+      if(p < endIndex){
+        ans = DoubleVector.NA;
+        p = 0; /* back out */
+        return (sign * ans);
+      }
+
       return sign * ans;
     }
 
@@ -248,6 +277,13 @@ public class NumericLiterals {
         n = n * 10 + (s.charAt(p) - '0');
       }
       expn += expsign * n;
+    }
+
+    // Safeguard against malformed input
+    if(p < endIndex){
+      ans = DoubleVector.NA;
+      p = 0; /* back out */
+      return (sign * ans);
     }
   
       /* avoid unnecessary underflow for large negative exponents */

@@ -56,7 +56,7 @@ See [BUILDING](BUILDING.md) for more information.
 License
 =======
 
-Renjin is available under the GPLv3 license, see [LICENSE](LICENSE.txt) for the
+Renjin is available under the GPLv2 (or higher) license, see [LICENSE](LICENSE.txt) for the
 full text of the license. Renjin also includes code from R which is
 redistributed here. R uses
 [many different licenses](http://www.r-project.org/Licenses/) so check the file

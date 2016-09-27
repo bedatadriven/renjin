@@ -1,3 +1,21 @@
+/**
+ * Renjin : JVM-based interpreter for the R language for the statistical analysis
+ * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, a copy is available at
+ * https://www.gnu.org/licenses/gpl-2.0.txt
+ */
 package org.renjin.eval;
 
 import org.renjin.repackaged.guava.base.Predicate;
@@ -24,6 +42,9 @@ public class Profiler {
 
   private static final long MIN_LOOP_TIME_RECORD = TimeUnit.MILLISECONDS.toNanos(500);
 
+  private static long MATERIALIZATION_TIME = 0;
+  private static long MATERIALIZATION_COUNT = 0;
+
   private static class FunctionProfile {
     private Symbol symbol;
     private long count;
@@ -40,6 +61,12 @@ public class Profiler {
     private long startTime;
     private long childTime;
     private long bytesAllocated;
+
+    /**
+     * Nanos spent materializing deferred computations
+     */
+    private long materializationTime;
+    private long materializeCount;
   }
   
   private static class LoopProfile {
@@ -115,7 +142,16 @@ public class Profiler {
     
     CURRENT_LOOP = timing;
   }
-  
+
+  public static void materialized(long time) {
+    MATERIALIZATION_TIME += time;
+    MATERIALIZATION_COUNT ++;
+    
+    if(CURRENT != null) {
+      CURRENT.materializationTime += time;
+      CURRENT.materializeCount ++;
+    }
+  }
 
   /**
    * Reports the end of a function call
@@ -203,6 +239,7 @@ public class Profiler {
     printTopFunctions(out, totalRunningTime);
     printFunctionTimings(out, totalRunningTime);
     printLoopTimings(out);
+    printMaterializationStats(out);
   }
 
 
@@ -289,6 +326,15 @@ public class Profiler {
     }
   }
 
+  private static void printMaterializationStats(PrintStream out) {
+    out.println();
+    out.println("VECTOR PIPELINER");
+    out.println("================");
+
+    System.out.println("Materialization count: " + MATERIALIZATION_COUNT);
+    System.out.println("Materialization time (ms): " + TimeUnit.NANOSECONDS.toMillis(MATERIALIZATION_TIME));
+
+  }
 
   private static String formatAlloc(long bytes) {
     if(bytes < 1024) {

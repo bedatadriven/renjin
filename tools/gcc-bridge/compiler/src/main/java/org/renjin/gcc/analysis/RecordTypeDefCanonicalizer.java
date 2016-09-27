@@ -1,3 +1,21 @@
+/**
+ * Renjin : JVM-based interpreter for the R language for the statistical analysis
+ * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, a copy is available at
+ * https://www.gnu.org/licenses/gpl-2.0.txt
+ */
 package org.renjin.gcc.analysis;
 
 import org.renjin.gcc.TreeLogger;
@@ -73,6 +91,8 @@ public class RecordTypeDefCanonicalizer {
     boolean changing;
     do {
 
+      System.out.println("*** ITERATION STARTING *** ");
+      
       changing = false;
 
       // Remove duplicates using our key function
@@ -84,6 +104,9 @@ public class RecordTypeDefCanonicalizer {
         }
         
         String key = key(recordTypeDef);
+        
+        System.out.println(String.format("%s %s => %s", recordTypeDef.getId(), recordTypeDef.getName(), key));
+        
         GimpleRecordTypeDef canonical = keyMap.get(key);
         if (canonical == null) {
           // first time seen, this is a canonical record
@@ -140,7 +163,6 @@ public class RecordTypeDefCanonicalizer {
     }
   }
 
-
   private String key(GimpleRecordTypeDef typeDef) {
     StringBuilder key = new StringBuilder();
     if(typeDef.getName() != null) {
@@ -174,8 +196,12 @@ public class RecordTypeDefCanonicalizer {
       }
     
     } else if(type instanceof GimpleIndirectType) {
-      key.append("*");
-      appendTypeKeyTo(rootRecordTypeDef, type.getBaseType(), key);
+      if(type.getBaseType() instanceof GimpleRecordType) {
+        key.append("*record");
+      } else {
+        key.append("*");
+        appendTypeKeyTo(rootRecordTypeDef, type.getBaseType(), key);
+      }
     
     } else if(type instanceof GimpleArrayType) {
       key.append("[");

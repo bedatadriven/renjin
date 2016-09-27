@@ -414,11 +414,11 @@ public class Distributions {
     int j = 0;
 
     if (hasNA) {
-      // When df element is NA, check what should be given as input to the function to get NaN (like in GNU R)
-      // df.indexOfNA() != -1
-      double dfElement = df.getElementAsDouble(j);
       for (int i = 0; i < n; i++) {
-        if (!DoubleVector.isNA(dfElement)) {
+        double dfElement = df.getElementAsDouble(j);
+        if (DoubleVector.isNA(dfElement)) {
+          vb.add(DoubleVector.NaN);
+        } else {
           vb.add(rchisq.rchisq(runif, df.getElementAsDouble(j)));
         }
         j++;

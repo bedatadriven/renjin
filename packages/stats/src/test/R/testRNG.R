@@ -40,7 +40,7 @@ test.rwilcox <- function() {
 
 test.rhyper <- function() {
 	set.seed(12345, 'Mersenne-Twister','I')
-	assertThat(mean(rhyper(10000,17,16,13)), closeTo(6.3045, DELTA))
+	assertThat(mean(rhyper(10000,17,16,13)), closeTo(6.6955, DELTA))
 }
 
 

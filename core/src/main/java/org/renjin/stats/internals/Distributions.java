@@ -504,16 +504,16 @@ public class Distributions {
   }
 
   @Internal
-  public static DoubleVector rpois(@Current Context context, Vector nVector, AtomicVector mu) {
+  public static IntVector rpois(@Current Context context, Vector nVector, AtomicVector mu) {
     int n = defineSize(nVector);
     if (n == 0) {
-      return DoubleVector.EMPTY;
+      return IntVector.EMPTY;
     }
     int muLength = mu.length();
     if (muLength == 0) {
-      return (DoubleArrayVector.Builder.withInitialSize(n).build());
+      return (IntArrayVector.Builder.withInitialSize(n).build());
     }
-    DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
+    IntArrayVector.Builder vb = IntArrayVector.Builder.withInitialCapacity(n);
     MethodHandle runif = context.getSession().getRngMethod();
     int j = 0;
     for (int i = 0; i < n; i++) {

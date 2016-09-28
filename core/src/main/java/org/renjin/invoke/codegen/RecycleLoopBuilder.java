@@ -256,7 +256,9 @@ public class RecycleLoopBuilder {
   private void incrementCounters(JBlock loopBody) {
     for(RecycledArgument arg : recycledArguments) {
       loopBody.assignPlus(arg.currentElementIndex, lit(1));
-      loopBody._if(arg.currentElementIndex.eq(arg.length))._then().assign(arg.currentElementIndex, lit(0));
+      if(recycledArguments.size() > 1) {
+        loopBody._if(arg.currentElementIndex.eq(arg.length))._then().assign(arg.currentElementIndex, lit(0));
+      }
     }
   }
 

@@ -20,15 +20,15 @@
 # Common functions for generating
 # test cases
 
-deparse0 <- function(x) paste(deparse(x), collapse = "")
+deparse0 <- function(x) paste(deparse(x, control = c("hexNumeric", "showAttributes", "keepInteger")), collapse = "")
 
 deparseExpected <- function(x) {
    if(typeof(x) == "language") {
-    sprintf("quote(%s)", deparse(x))
+    sprintf("quote(%s)", deparse(x, control = c("hexNumeric", "showAttributes", "keepInteger")))
    } else if(typeof(x) == "expression") {
     sprintf("as.expression(%s)", deparse0(as.list(x)))
    } else if(typeof(x) == "symbol") {
-    sprintf("as.name(%s)", deparse(x)) 
+    sprintf("as.name(%s)", deparse(x, control = c("hexNumeric", "showAttributes", "keepInteger")))
    } else {
     if(typeof(x) == "list") {
       for(i in seq_along(x)) {
@@ -116,7 +116,7 @@ writeTest <- function(test, fn, ..., ARGS, tol = NULL) {
     matcher <- sprintf("identicalTo(%s, tol = %f)", deparseExpected(expected), tol)
   }
   
-  writeln(test, "test.%s.%d <- function() assertThat(%s, %s)",
+  writeln(test, "test.%s.%d <- function() assertThat({set.seed(1);%s}, %s)",
                             fn, test$index, deparse0(call), matcher)
   test$index <- test$index + 1
 }

@@ -911,22 +911,25 @@ public class Distributions {
   }
 
   @Internal
-  public static DoubleVector rmultinom(@Current Context context, Vector nVector, AtomicVector size, AtomicVector prob){
-    int n = defineSize(nVector);
+  public static IntVector rmultinom(@Current Context context, Vector nVector, AtomicVector size, AtomicVector prob){
+    int n = nVector.getElementAsInt(0);
     if (n == 0) {
-      throw new EvalException("invalid arguments.");
+      throw new EvalException("invalid first argument 'n'");
+    }
+    if (size.containsNA()) {
+      throw new EvalException("invalid second argument 'size'");
     }
     int sizeLength = size.length();
     int probLength = prob.length();
     if (sizeLength == 0 || probLength == 0) {
-      return (DoubleArrayVector.Builder.withInitialSize(n).build());
+      return (IntArrayVector.Builder.withInitialSize(n).build());
     }
-    DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
+    IntArrayVector.Builder vb = IntArrayVector.Builder.withInitialCapacity(n);
     MethodHandle runif = context.getSession().getRngMethod();
     int k = 0;
     int[] RN = new int[probLength];
     for (int i = 0; i < n; i++){
-      rmultinom.rmultinom(runif, size.getElementAsInt(k), new DoublePtr(prob.toDoubleArray()), probLength, new IntPtr(RN));
+      rmultinom.rmultinom(runif, size.getElementAsInt(0), new DoublePtr(prob.toDoubleArray()), probLength, new IntPtr(RN));
       k++;
       if (k == sizeLength) {
         k = 0;
@@ -936,7 +939,8 @@ public class Distributions {
       }
     }
     vb.setAttribute(Symbols.DIM, new IntArrayVector(prob.length(), n));
-    return (vb.build());
+    IntVector result = vb.build();
+    return result;
   }
 
   public static int defineSize(Vector input) {

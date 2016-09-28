@@ -33,7 +33,7 @@ import static com.sun.codemodel.JExpr.lit;
 
 public class DeferredVectorBuilder {
 
-  public static final int LENGTH_THRESHOLD = 100;
+  public static final int LENGTH_THRESHOLD = 300;
 
   private final JExpression contextArgument;
   private JCodeModel codeModel;

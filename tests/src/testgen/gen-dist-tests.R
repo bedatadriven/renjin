@@ -49,6 +49,60 @@ dists <- list(
   f = list(
     df1 = c(1, 2, 5, 10),
     df2 = c(1, 2, 5, 10)
+  ),
+  unif = list(
+    min = c(1, 2, 3, 4, 5.5),
+    max = c(6, 10, 15, 125.4, 8)
+  ),
+  norm = list(
+    mean = c(10, 20, 30, 55.5),
+    sd = c(2.5, 5, 8, 0.5, 8.8)
+  ),
+  gamma = list(
+    shape = c(0.1, 0.3, 1),
+    rate = c(1, 2, 3, 4)
+  ),
+  pois = list(
+    lambda = c(1, 3, 5.5, -10)
+  ),
+  signrank = list(
+    n = c(5, -5, 0, 0.4)
+  ),
+  wilcox = list(
+    m = c(5, -5, 0, 0.4),
+    n = c(0, 5, -5, 0.4)
+  ),
+  geom = list(
+    prob = c(0, 5, -5, 0.4)
+  ),
+  t = list(
+    df = c(0, 5, -5, 0.4),
+    ncp = c(5, -5, 0, 0.4)
+  ),
+  lnorm = list(
+    meanlog = c(0, 5, -5, 6.4),
+    sdlog = c(5, -5, 0, 0.4)
+  ),
+  logis = list(
+    location = c(0, 5, -5, 0.4),
+    scale = c(5, -5, 0, 1.4)
+  ),
+  weibull = list(
+    shape = c(0, 5, -5, 0.4),
+    scale = c(5, -5, 0, 1.4)
+  ),
+  nbinom = list(
+    size = c(0, 5, -5, 0.4),
+    prob = c(5, -5, 0, 1.4)
+  ),
+  hyper = list(
+    m = c(3, 2.5, 3),
+    n = c(5, 3, 9.5),
+    k = c(2, 3.5, 0)
+  ),
+  multinom = list(
+    size = c(0, 5, -5, 0.4),
+    prob = c(5, -5, 0, 1.4)
   )
 )
 

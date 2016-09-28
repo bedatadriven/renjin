@@ -31,19 +31,33 @@ public class WhileFunction extends SpecialFunction {
   public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
     SEXP condition = args.getElementAsSEXP(0);
     SEXP statement = args.getElementAsSEXP(1);
+    
+//    int iterationCount = 0;
+//    boolean compilationFailed = false;
 
     while(asLogicalNoNA(context, call, context.evaluate( condition, rho))) {
 
       try {
 
+//        if(iterationCount > 50 && !compilationFailed) {
+//          if(LoopCompiler.tryCompileAndRun(context, rho, call)) {
+//            break;
+//          } else {
+//            compilationFailed = false;
+//          }
+//        }
+//        
         context.evaluate( statement, rho);
 
+//        iterationCount ++;
+        
       } catch(BreakException e) {
         break;
       } catch(NextException e) {
         // next loop iteration
       }
     }
+//    System.out.println("While count: " + iterationCount);
     context.setInvisibleFlag();
     return Null.INSTANCE;
   }

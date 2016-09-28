@@ -33,7 +33,6 @@ import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Profiler;
-import org.renjin.primitives.Deparse;
 import org.renjin.sexp.*;
 
 
@@ -98,6 +97,8 @@ public class ForFunction extends SpecialFunction {
       }
     }
 
+    System.out.println("For Loop: " + i);
+    
     context.setInvisibleFlag();
     return Null.INSTANCE;
   }
@@ -130,7 +131,7 @@ public class ForFunction extends SpecialFunction {
       compiledBody = emitter.compileLoopBody().newInstance();
 
     } catch (NotCompilableException e) {
-      context.warn("Could not compile loop with %d iterations because: " + format(context, e));
+      context.warn("Could not compile loop with %d iterations because: " + e.toString(context));
       return false;
 
     } catch (InvalidSyntaxException e) {
@@ -145,20 +146,4 @@ public class ForFunction extends SpecialFunction {
     return true;
   }
 
-  private String format(Context context, NotCompilableException e) {
-    StringBuilder s = new StringBuilder();
-    while(e != null) {
-      if(s.length() > 0) {
-        s.append(" > ");
-      }
-      if(e.getSexp() != null) {
-        s.append(Deparse.deparseExp(context, e.getSexp()));
-      }
-      if(e.getMessage() != null) {
-        s.append(": ").append(e.getMessage());
-      }
-      e = e.getCause();
-    }
-    return s.toString();
-  }
 }

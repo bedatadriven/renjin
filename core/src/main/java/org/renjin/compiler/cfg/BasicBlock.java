@@ -28,8 +28,8 @@ import org.renjin.repackaged.guava.collect.Iterables;
 import org.renjin.repackaged.guava.collect.Lists;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Set;
 
 public class BasicBlock {
@@ -37,7 +37,7 @@ public class BasicBlock {
   private String debugId;
   
   private Set<IRLabel> labels;
-  private List<Statement> statements = Lists.newArrayList();
+  private List<Statement> statements = Lists.newLinkedList();
   
   List<BasicBlock> flowSuccessors = new ArrayList<>();
   List<BasicBlock> flowPredecessors = new ArrayList<>();
@@ -45,8 +45,8 @@ public class BasicBlock {
   List<BasicBlock> dominanceSuccessors = new ArrayList<>();
   List<BasicBlock> dominancePredecessors = new ArrayList<>();
   
-  final Set<FlowEdge> outgoing = new HashSet<>();
-  final Set<FlowEdge> incoming = new HashSet<>();
+  final List<FlowEdge> outgoing = new ArrayList<>();
+  final List<FlowEdge> incoming = new ArrayList<>();
   
   public BasicBlock(IRBody parent) {
     super();
@@ -57,7 +57,7 @@ public class BasicBlock {
     statements.add(statement);
   }
   
-  public void insertPhiFunction(Variable variable, Set<FlowEdge> incomingEdges) {
+  public void insertPhiFunction(Variable variable, List<FlowEdge> incomingEdges) {
     statements.add(0, new Assignment(variable, new PhiFunction(variable, incomingEdges)));
   }
 
@@ -116,11 +116,11 @@ public class BasicBlock {
     basicBlock.dominancePredecessors.add(this);
   }
 
-  public Set<FlowEdge> getIncoming() {
+  public List<FlowEdge> getIncoming() {
     return incoming;
   }
 
-  public Set<FlowEdge> getOutgoing() {
+  public List<FlowEdge> getOutgoing() {
     return outgoing;
   }
 
@@ -192,5 +192,25 @@ public class BasicBlock {
   public int hashCode() {
     // Use a stable hash code to get consistent results
     return debugId.hashCode();
+  }
+
+  public void removeDeadEdges(Set<BasicBlock> live) {
+    flowPredecessors.retainAll(live);
+    flowSuccessors.retainAll(live);
+
+    ListIterator<FlowEdge> incomingIt = incoming.listIterator();
+    while(incomingIt.hasNext()) {
+      if(!live.contains(incomingIt.next().getPredecessor())) {
+        incomingIt.remove();
+      }
+    }
+    
+    ListIterator<FlowEdge> outgoingIt = outgoing.listIterator();
+    while(outgoingIt.hasNext()) {
+      if(!live.contains(outgoingIt.next().getSuccessor())) {
+        outgoingIt.remove();
+      }
+    }
+
   }
 }

@@ -39,6 +39,8 @@ public class Closure extends AbstractSEXP implements Function {
   private Environment enclosingEnvironment;
   private SEXP body;
   private PairList formals;
+  
+  private int invocationCount = 0;
 
   public Closure(Environment enclosingEnvironment, PairList formals, SEXP body, AttributeMap attributes) {
     super(attributes);
@@ -74,6 +76,13 @@ public class Closure extends AbstractSEXP implements Function {
 
   @Override
   public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
+    
+    invocationCount++;
+    
+    if(invocationCount > 5000) {
+      System.out.println("INVOCATION COUNT: " + invocationCount);
+    }
+    
     ClosureDispatcher dispatcher = new ClosureDispatcher(context, rho, call);
     return dispatcher.applyClosure(this, args);
   }

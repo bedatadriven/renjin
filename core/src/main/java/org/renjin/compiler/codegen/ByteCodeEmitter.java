@@ -101,9 +101,17 @@ public class ByteCodeEmitter implements Opcodes {
     MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "evaluate", 
         getMethodDescriptor(Type.VOID_TYPE, getType(Context.class), getType(Environment.class)), 
         null, null);
+
+//    Textifier p = new Textifier();
+//    mv = new TraceMethodVisitor(mv, p);
+//    
     mv.visitCode();
     writeBody(emitContext, mv);
     mv.visitEnd();
+    
+//    try (PrintWriter pw = new PrintWriter(System.out)) {
+//      p.print(pw);
+//    }
   }
 
   private void writeLoopImplementation() {

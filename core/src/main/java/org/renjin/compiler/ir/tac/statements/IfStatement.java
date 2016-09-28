@@ -169,8 +169,8 @@ public class IfStatement implements Statement, BasicBlockEndingStatement {
       if (storage.getType().equals(Type.BOOLEAN_TYPE) ||
           storage.getType().equals(Type.INT_TYPE)) {
         mv.visitVarInsn(Opcodes.ILOAD, storage.getSlotIndex());
-        mv.visitJumpInsn(IFEQ, emitContext.getAsmLabel(trueTarget));
-        mv.visitJumpInsn(GOTO, emitContext.getAsmLabel(falseTarget));
+        mv.visitJumpInsn(IFEQ, emitContext.getAsmLabel(falseTarget));
+        mv.visitJumpInsn(GOTO, emitContext.getAsmLabel(trueTarget));
       } else {
         throw new UnsupportedOperationException("TODO: " + storage.getType());
       }

@@ -101,12 +101,10 @@ dists <- list(
     k = c(2, 3.5, 0)
   ),
   multinom = list(
-    size = c(0, 5, -5, 0.4),
-    prob = c(5, -5, 0, 1.4)
+    size = c(10, 5, 1, 0),
+    prob = c(0, 0.5, 1)
   )
 )
-
-tol <- 0.0001
 
 for(dist in names(dists)) {
 

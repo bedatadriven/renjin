@@ -106,6 +106,8 @@ dists <- list(
   )
 )
 
+tol <- 0.0001
+
 for(dist in names(dists)) {
 
   ## Test Random generation functions first
@@ -117,14 +119,14 @@ for(dist in names(dists)) {
   
   params <- dists[[dist]]
   
-  writeTest(test, rfn, ARGS = c(list(n = 1), params), tol = tol)
-  writeTest(test, rfn, ARGS = c(list(n = 1:5), params), tol = tol)
-  writeTest(test, rfn, ARGS = c(list(n = 15), params), tol = tol)
-  writeTest(test, rfn, ARGS = c(list(n = numeric(0)), params), tol)
+  writeTest(test, rfn, ARGS = c(list(n = 1), params), tol = tol, SET.SEED = TRUE)
+  writeTest(test, rfn, ARGS = c(list(n = 1:5), params), tol = tol, SET.SEED = TRUE)
+  writeTest(test, rfn, ARGS = c(list(n = 15), params), tol = tol, SET.SEED = TRUE)
+  writeTest(test, rfn, ARGS = c(list(n = numeric(0)), params), tol, SET.SEED = TRUE)
 
   params.with.na <- params
   params.with.na[[1]][1] <- NA
-  writeTest(test, rfn, ARGS = c(list(n = 3), params.with.na))
+  writeTest(test, rfn, ARGS = c(list(n = 3), params.with.na), SET.SEED = TRUE)
 
   
   close(test)

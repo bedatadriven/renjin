@@ -76,8 +76,7 @@ dists <- list(
     prob = c(0.1, 0.5, 1)
   ),
   t = list(
-    df = c(0, 0.5, 5, 1),
-    ncp = c(0, 0.5, 5, -5)
+    df = c(0, 0.5, 5, 1)
   ),
   lnorm = list(
     meanlog = c(0, 0.5, 5),
@@ -102,7 +101,7 @@ dists <- list(
   ),
   multinom = list(
     size = c(10, 5, 1, 0),
-    prob = c(0, 0.5, 1)
+    prob = c(0, 0.2, 0.3, 0.5)
   )
 )
 

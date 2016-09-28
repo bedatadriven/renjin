@@ -610,30 +610,14 @@ public class Distributions {
     if (dfLength == 0) {
       return (DoubleArrayVector.Builder.withInitialSize(n).build());
     }
-    boolean hasNA = df.containsNA();
     DoubleArrayVector.Builder vb = DoubleArrayVector.Builder.withInitialCapacity(n);
     MethodHandle runif = context.getSession().getRngMethod();
     int j = 0;
-    if (hasNA) {
-      for (int i = 0; i < n; i++) {
-        double dfElement = df.getElementAsDouble(j);
-        if (DoubleVector.isNA(dfElement)) {
-          vb.add(DoubleVector.NaN);
-        } else {
-          vb.add(rchisq.rchisq(runif, df.getElementAsDouble(j)));
-        }
-        j++;
-        if (j == dfLength) {
-          j = 0;
-        }
-      }
-    } else {
-      for (int i = 0; i < n; i++) {
-        vb.add(rt.rt(runif, df.getElementAsDouble(j)));
-        j++;
-        if (j == dfLength) {
-          j = 0;
-        }
+    for (int i = 0; i < n; i++) {
+      vb.add(rt.rt(runif, df.getElementAsDouble(j)));
+      j++;
+      if (j == dfLength) {
+        j = 0;
       }
     }
     return (vb.build());

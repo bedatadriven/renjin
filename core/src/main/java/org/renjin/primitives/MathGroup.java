@@ -173,19 +173,19 @@ public class MathGroup {
     if(Double.isInfinite(val)) {
       return val;
     }
-    return (Math.log(val + Math.sqrt(val * val + 1)));
+    return Math.log(val + Math.sqrt(val * val + 1));
   }
 
   @Deferrable
   @Builtin
-  @DataParallel(PreserveAttributeStyle.ALL)
+  @DataParallel(value = PreserveAttributeStyle.ALL, passNA = true)
   public static double cos(double val) {
     return Math.cos(val);
   }
 
   @Deferrable
   @Builtin
-  @DataParallel(PreserveAttributeStyle.ALL)
+  @DataParallel(value = PreserveAttributeStyle.ALL, passNA = true)
   public static double cosh(double val) {
     return Math.cosh(val);
   }
@@ -193,71 +193,71 @@ public class MathGroup {
 
   @Deferrable
   @Builtin
-  @DataParallel(PreserveAttributeStyle.ALL)
+  @DataParallel(value = PreserveAttributeStyle.ALL, passNA = true)
   public static double cospi(double x) {
     return org.renjin.nmath.cospi.cospi(x);
   }
 
   @Deferrable
   @Builtin
-  @DataParallel(PreserveAttributeStyle.ALL)
+  @DataParallel(value = PreserveAttributeStyle.ALL, passNA = true)
   public static double acos(double val) {
     return Math.acos(val);
   }
   
   @Deferrable
   @Builtin
-  @DataParallel(PreserveAttributeStyle.ALL)
+  @DataParallel(value = PreserveAttributeStyle.ALL, passNA = true)
   public static double acosh(double val) {
-    return (Math.log(val + Math.sqrt(val + 1) * Math.sqrt(val - 1)));
+    return Math.log(val + Math.sqrt(val + 1) * Math.sqrt(val - 1));
   }
 
   @Deferrable
   @Builtin
-  @DataParallel(PreserveAttributeStyle.ALL)
+  @DataParallel(value = PreserveAttributeStyle.ALL, passNA = true)
   public static double atanh(double val) {
-    return (0.5 * Math.log((1 + val) / (1 - val)));
+    return 0.5 * Math.log((1 + val) / (1 - val));
   }
 
   @Deferrable
   @Builtin
-  @DataParallel(PreserveAttributeStyle.ALL)
+  @DataParallel(value = PreserveAttributeStyle.ALL, passNA = true)
   public static double tan(double x) {
     return Math.tan(x);
   }
 
   @Deferrable
   @Builtin
-  @DataParallel(PreserveAttributeStyle.ALL)
+  @DataParallel(value = PreserveAttributeStyle.ALL, passNA = true)
   public static double tanh(double x) {
     return Math.tanh(x);
   }
 
   @Deferrable
   @Builtin
-  @DataParallel(PreserveAttributeStyle.ALL)
+  @DataParallel(value = PreserveAttributeStyle.ALL, passNA = true)
   public static double tanpi(double x) {
     return org.renjin.nmath.cospi.tanpi(x);
   }
 
   @Deferrable
   @Builtin
-  @DataParallel(PreserveAttributeStyle.ALL)
+  @DataParallel(value = PreserveAttributeStyle.ALL, passNA = true)
   public static double atan(double x) {
     return Math.atan(x);
   }
   
   @Deferrable
   @Internal
-  @DataParallel(PreserveAttributeStyle.ALL)
+  @DataParallel(value = PreserveAttributeStyle.ALL, passNA = true)
   public static double atan2(double y, double x) {
-    return (Math.atan2(y, x));
+    return Math.atan2(y, x);
   }
 
 
   @Deferrable
   @Builtin
-  @DataParallel(PreserveAttributeStyle.ALL)
+  @DataParallel(value = PreserveAttributeStyle.ALL, passNA = true)
   public static double signif(double x) {
     return signif(x, 6);
   }
@@ -265,7 +265,7 @@ public class MathGroup {
 
   @Deferrable
   @Builtin
-  @DataParallel(PreserveAttributeStyle.ALL)
+  @DataParallel(value = PreserveAttributeStyle.ALL, passNA = true)
   public static double signif(double x, int digits) {
     if(Double.isInfinite(x) || Double.isNaN(x)) {
       return x;
@@ -285,21 +285,21 @@ public class MathGroup {
 
   @Deferrable
   @Builtin
-  @DataParallel(PreserveAttributeStyle.ALL)
+  @DataParallel(value = PreserveAttributeStyle.ALL, passNA = true)
   public static double exp(double x) {
     return Math.exp(x);
   }
 
   @Deferrable
   @Builtin
-  @DataParallel(PreserveAttributeStyle.ALL)
+  @DataParallel(value = PreserveAttributeStyle.ALL, passNA = true)
   public static double expm1(double x) {
     return Math.expm1(x);
   }
 
   @Deferrable
   @Builtin
-  @DataParallel(PreserveAttributeStyle.ALL)
+  @DataParallel(value = PreserveAttributeStyle.ALL, passNA = true)
   public static double log1p(double x) {
     return Math.log1p(x);
   }
@@ -307,14 +307,14 @@ public class MathGroup {
 
   @Builtin
   @Deferrable
-  @DataParallel(PreserveAttributeStyle.ALL)
+  @DataParallel(value = PreserveAttributeStyle.ALL, passNA = true)
   public static double floor(double x) {
     return Math.floor(x);
   }
   
   @Builtin
   @Deferrable
-  @DataParallel(PreserveAttributeStyle.ALL)
+  @DataParallel(value = PreserveAttributeStyle.ALL, passNA = true)
   public static double ceiling(double x) {
     return Math.ceil(x);
   }
@@ -322,14 +322,14 @@ public class MathGroup {
   
   @Builtin
   @Deferrable
-  @DataParallel(PreserveAttributeStyle.ALL)
+  @DataParallel(value = PreserveAttributeStyle.ALL, passNA = true)
   public static double round(double x) {
     return Math.rint(x);
   }
   
   @Builtin
   @Deferrable
-  @DataParallel(PreserveAttributeStyle.ALL)
+  @DataParallel(value = PreserveAttributeStyle.ALL, passNA = true)
   public static double round(double x, int digits) {
     // adapted from the nmath library, fround.c
 
@@ -382,7 +382,7 @@ public class MathGroup {
 
   @Deferrable
   @Builtin
-  @DataParallel(PreserveAttributeStyle.ALL)
+  @DataParallel(value = PreserveAttributeStyle.ALL, passNA = true)
   public static double trunc(double x) {
     if(x < 0) {
       return Math.ceil(x);
@@ -470,7 +470,7 @@ public class MathGroup {
       }
       result.set(i, sum);
     }
-    return (result.build());
+    return result.build();
   }
 
 

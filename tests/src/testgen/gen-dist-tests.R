@@ -63,37 +63,37 @@ dists <- list(
     rate = c(1, 2, 3, 4)
   ),
   pois = list(
-    lambda = c(1, 3, 5.5, -10)
+    lambda = c(1, 3, 5.5, 0)
   ),
   signrank = list(
-    n = c(5, -5, 0, 0.4)
+    n = c(5, 0.5, 0, 0.4)
   ),
   wilcox = list(
-    m = c(5, -5, 0, 0.4),
-    n = c(0, 5, -5, 0.4)
+    m = c(3, 0.5, 0),
+    n = c(5, 0, 0.5, 1)
   ),
   geom = list(
-    prob = c(0, 5, -5, 0.4)
+    prob = c(0.1, 0.5, 1)
   ),
   t = list(
-    df = c(0, 5, -5, 0.4),
-    ncp = c(5, -5, 0, 0.4)
+    df = c(0, 0.5, 5, 1),
+    ncp = c(0, 0.5, 5, -5)
   ),
   lnorm = list(
-    meanlog = c(0, 5, -5, 6.4),
-    sdlog = c(5, -5, 0, 0.4)
+    meanlog = c(0, 0.5, 5),
+    sdlog = c(0, 1, 0.5, 5)
   ),
   logis = list(
-    location = c(0, 5, -5, 0.4),
-    scale = c(5, -5, 0, 1.4)
+    location = c(0, 0.5, 5),
+    scale = c(0, 1, 0.5, 5)
   ),
   weibull = list(
-    shape = c(0, 5, -5, 0.4),
-    scale = c(5, -5, 0, 1.4)
+    shape = c(0.1, 0.5, 5),
+    scale = c(0, 1, 0.5, 5)
   ),
   nbinom = list(
-    size = c(0, 5, -5, 0.4),
-    prob = c(5, -5, 0, 1.4)
+    size = c(0.1, 1, 5),
+    prob = c(0.1, 0.5)
   ),
   hyper = list(
     m = c(3, 2.5, 3),

@@ -18,6 +18,9 @@
  */
 package org.renjin.primitives.subset;
 
+import org.renjin.compiler.ir.TypeSet;
+import org.renjin.compiler.ir.ValueBounds;
+import org.renjin.compiler.ir.exception.InvalidSyntaxException;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.Indexes;
@@ -28,7 +31,7 @@ import java.util.List;
 /**
  * Selects elements using dimension coordinates like {@code x[1,2] or x[3,]}
  */
-class MatrixSelection implements SelectionStrategy {
+public class MatrixSelection implements SelectionStrategy {
 
   private List<SEXP> subscripts;
   
@@ -207,6 +210,61 @@ class MatrixSelection implements SelectionStrategy {
     return newDimNames.build();
   }
 
+
+  public static ValueBounds computeResultBounds(ValueBounds source, List<ValueBounds> subscripts, ValueBounds drop) {
+
+    // The type of the result will generally be the same as the source vector,
+    // EXCEPT if the source is a pairlist, in which case it is first converted to a list
+    int resultTypeSet = source.getTypeSet() & TypeSet.ANY_VECTOR;
+    if( (source.getTypeSet() & TypeSet.PAIRLIST) != 0) {
+      resultTypeSet |= TypeSet.LIST;
+    }
+
+    // Are the dimensions of the source known? this will help
+    // calculate the result values
+    int sourceDim[] = null;
+    if (source.isDimAttributeConstant()) {
+      AtomicVector dimAttr = source.getConstantDimAttribute();
+      if(dimAttr.length() != subscripts.size()) {
+        throw new InvalidSyntaxException("incorrect number of dimensions");
+      }
+      sourceDim = dimAttr.toIntArray();
+    }
+
+    int resultDims[] = new int[subscripts.size()];
+
+    for (int i = 0; i < subscripts.size(); i++) {
+      resultDims[i] = -1;
+      ValueBounds subscript = subscripts.get(i);
+      if(subscript.isConstant(Symbol.MISSING_ARG)) {
+        if(sourceDim != null) {
+          resultDims[i] = sourceDim[i];
+        }
+      } else if(subscript.isLengthConstant() && TypeSet.isDefinitelyNumeric(subscript)) {
+        resultDims[i] = subscript.getLength();
+      }
+    }
+
+    return ValueBounds.vector(resultTypeSet, computeLengthBounds(resultDims));
+  }
+
+  /**
+   * Computes the length of the result vector, based on available information on the 
+   * inputs.
+   * @param subscriptDim the length of each provided subscript, or -1 if not known.
+   * @return the lenght of the resulting selection, or {@link ValueBounds#UNKNOWN_LENGTH} if not known
+   */
+  private static int computeLengthBounds(int subscriptDim[]) {
+    int length = 1;
+    for (int i = 0; i < subscriptDim.length; i++) {
+      if(subscriptDim[i] < 0) {
+        return ValueBounds.UNKNOWN_LENGTH;
+      }
+      length = length * subscriptDim[i];
+    }
+    return length;
+  }
+  
 
   @Override
   public ListVector replaceSingleListElement(ListVector source, SEXP replacement) {

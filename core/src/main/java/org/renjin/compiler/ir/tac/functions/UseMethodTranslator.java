@@ -76,11 +76,21 @@ public class UseMethodTranslator extends FunctionCallTranslator {
       throw new NotCompilableException(call);
     }
     
-    if(inlinedContext.getFormals().length() > 1) {
-      throw new NotCompilableException(call, "UseMethod() not yet supported when more than one argument is present.");
-    }
+    assertUnaryFunction(call, inlinedContext.getFormals());
     
     return new UseMethodCall(builder.getRuntimeState(), call, generic, objectExpr);
+  }
+
+  private void assertUnaryFunction(FunctionCall call, PairList formals) {
+    PairList second = ((PairList.Node) formals).getNext();
+    if(second == Null.INSTANCE) {
+      return;
+    }
+    // A second argument is fine as long as it is the ... 
+    PairList.Node secondNode = (PairList.Node) second;
+    if(secondNode.getRawTag() != Symbols.ELLIPSES || secondNode.getNext() != Null.INSTANCE) {
+      throw new NotCompilableException(call, "UseMethod() not yet supported when more than one argument is present.");
+    }
   }
 
   @Override

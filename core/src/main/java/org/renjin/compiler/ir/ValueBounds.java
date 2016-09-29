@@ -145,6 +145,10 @@ public class ValueBounds {
   public boolean isConstant() {
     return constantValue != null;
   }
+  
+  public boolean isConstant(Symbol symbol) {
+    return constantValue == symbol;
+  }
 
   public boolean isLengthConstant() {
     return length != UNKNOWN_LENGTH;

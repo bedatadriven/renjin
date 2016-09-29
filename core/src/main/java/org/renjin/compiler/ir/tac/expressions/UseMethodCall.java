@@ -90,7 +90,7 @@ public class UseMethodCall implements Expression {
     ValueBounds objectBounds = typeMap.get(objectExpr);
     StringVector objectClass = S3.computeDataClasses(objectBounds);
     
-    if(objectBounds != null) {
+    if(objectClass != null) {
 
       // Otherwise, try to resolve the function 
       Function function = runtimeState.findMethod(generic, null, objectClass);

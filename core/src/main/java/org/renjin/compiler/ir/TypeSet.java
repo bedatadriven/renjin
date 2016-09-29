@@ -111,6 +111,9 @@ public class TypeSet {
     } else if (type.equals(boolean.class)) {
       return LOGICAL;
 
+    } else if (type.equals(byte.class)) {
+      return RAW;
+
     } else if (type.equals(String.class)) {
       return STRING;
 
@@ -220,5 +223,13 @@ public class TypeSet {
     }
   }
 
-  
+
+  public static boolean isDefinitelyNumeric(ValueBounds subscript) {
+    return isDefinitelyNumeric(subscript.getTypeSet());
+  }
+
+  private static boolean isDefinitelyNumeric(int typeSet) {
+    return (typeSet & NUMERIC) != 0 &&
+        (typeSet & ~NUMERIC) == 0;
+  }
 }

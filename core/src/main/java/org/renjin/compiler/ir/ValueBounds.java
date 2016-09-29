@@ -57,6 +57,11 @@ public class ValueBounds {
   private SEXP constantValue = null;
 
   /**
+   * This value's dim attribute, or {@code null} if the dim attribute is unknown or not constant.
+   */
+  private AtomicVector constantDimAttribute = null;
+
+  /**
    * This value's class attribute, or {@code null} if the class attribute is unknown or not constant.
    */
   private AtomicVector constantClassAttribute = null;
@@ -75,23 +80,32 @@ public class ValueBounds {
     this.constantValue = toCopy.constantValue;
     this.constantAttributes = toCopy.constantAttributes;
     this.constantClassAttribute = toCopy.constantClassAttribute;
+    this.constantDimAttribute = toCopy.constantDimAttribute;
   }
 
+  /**
+   * Constructs a {@code ValueBounds} for a scalar value of a known type with no attributes.
+   */
   public static ValueBounds primitive(int type) {
     ValueBounds valueBounds = new ValueBounds();
     valueBounds.typeSet = type;
     valueBounds.length = SCALAR_LENGTH;
     valueBounds.constantClassAttribute = Null.INSTANCE;
+    valueBounds.constantDimAttribute = Null.INSTANCE;
     valueBounds.constantAttributes = AttributeMap.EMPTY;
     return valueBounds;
   }
 
+  /**
+   * Constructs a {@code ValueBounds} for a constant {@code SEXP}, that is, an {@code SEXP} that we
+   */
   public static ValueBounds of(SEXP value) {
     ValueBounds valueBounds = new ValueBounds();
     valueBounds.constantValue = value;
     valueBounds.typeSet = TypeSet.of(value);
     valueBounds.length = value.length();
     valueBounds.constantClassAttribute = value.getAttributes().getClassVector();
+    valueBounds.constantDimAttribute = value.getAttributes().getDim();
     valueBounds.constantAttributes = value.getAttributes();
     return valueBounds;
   }
@@ -124,13 +138,13 @@ public class ValueBounds {
     ValueBounds bounds = new ValueBounds(this);
     bounds.constantAttributes = attributes;
     bounds.constantClassAttribute = attributes.getClassVector();
+    bounds.constantDimAttribute = attributes.getDim();
     return bounds;
   }
   
   public boolean isConstant() {
     return constantValue != null;
   }
-
 
   public boolean isLengthConstant() {
     return length != UNKNOWN_LENGTH;
@@ -140,6 +154,12 @@ public class ValueBounds {
     return constantClassAttribute != null;
   }
 
+  public boolean isDimAttributeConstant() { return constantDimAttribute != null; }
+
+  public boolean isDimCountConstant() {
+    return constantDimAttribute != null;
+  }
+  
   public boolean isAttributeConstant() {
     return constantAttributes != null;
   }
@@ -149,6 +169,20 @@ public class ValueBounds {
       throw new IllegalStateException("class attribute is not constant");
     }
     return constantClassAttribute;
+  }
+  
+  public AtomicVector getConstantDimAttribute() {
+    if(constantDimAttribute == null) {
+      throw new IllegalStateException("dim attribute is not constant");
+    }
+    return constantDimAttribute;
+  }
+
+  public int getConstantDimCount() {
+    if(constantDimAttribute == null) {
+      throw new IllegalStateException("dim attribute is not constant");
+    }
+    return constantDimAttribute.length();
   }
 
   public AttributeMap getConstantAttributes() {
@@ -177,7 +211,9 @@ public class ValueBounds {
     u.typeSet = this.typeSet | other.typeSet;
     u.length = unionLengths(this.length, other.length);
     u.constantClassAttribute = unionConstant(this.constantClassAttribute, other.constantClassAttribute);
+    u.constantDimAttribute = unionConstant(this.constantDimAttribute, other.constantDimAttribute);
     u.constantAttributes = unionConstant(this.constantAttributes, other.constantAttributes);
+    
     return u;
   }
 

@@ -28,9 +28,12 @@ import org.renjin.compiler.ir.tac.statements.Statement;
 import org.renjin.eval.Context;
 import org.renjin.repackaged.asm.*;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
+import org.renjin.repackaged.asm.util.Textifier;
+import org.renjin.repackaged.asm.util.TraceMethodVisitor;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.SEXP;
 
+import java.io.PrintWriter;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.renjin.repackaged.asm.Type.getMethodDescriptor;
@@ -99,19 +102,19 @@ public class ByteCodeEmitter implements Opcodes {
     EmitContext emitContext = new EmitContext(cfg, argumentSize, variableSlots);
     
     MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "evaluate", 
-        getMethodDescriptor(Type.VOID_TYPE, getType(Context.class), getType(Environment.class)), 
+        getMethodDescriptor(Type.getType(SEXP.class), getType(Context.class), getType(Environment.class)), 
         null, null);
 
-//    Textifier p = new Textifier();
-//    mv = new TraceMethodVisitor(mv, p);
-//    
+    Textifier p = new Textifier();
+    mv = new TraceMethodVisitor(mv, p);
+    
     mv.visitCode();
     writeBody(emitContext, mv);
     mv.visitEnd();
     
-//    try (PrintWriter pw = new PrintWriter(System.out)) {
-//      p.print(pw);
-//    }
+    try (PrintWriter pw = new PrintWriter(System.out)) {
+      p.print(pw);
+    }
   }
 
   private void writeLoopImplementation() {
@@ -122,7 +125,7 @@ public class ByteCodeEmitter implements Opcodes {
     emitContext.setLoopIterationIndex(4);
     
     MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "run",
-        getMethodDescriptor(Type.VOID_TYPE, getType(Context.class), getType(Environment.class),
+        getMethodDescriptor(Type.getType(SEXP.class), getType(Context.class), getType(Environment.class),
         getType(SEXP.class), Type.INT_TYPE),
         null, null);
     

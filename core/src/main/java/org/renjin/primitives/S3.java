@@ -18,6 +18,8 @@
  */
 package org.renjin.primitives;
 
+import org.renjin.compiler.ir.TypeSet;
+import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.eval.*;
 import org.renjin.invoke.annotations.ArgumentList;
 import org.renjin.invoke.annotations.Builtin;
@@ -82,6 +84,56 @@ public class S3 {
            .applyNext(context, context.getEnvironment(), extraArgs);
   }
 
+  /**
+   * Attempts to compute the classes used for S3 dispatch based on value bounds for an expression.
+   * 
+   * @param valueBounds
+   * @return a StringVector containing the known class list for this expression, or {@code null} if they could not
+   * be deduced.
+   */
+  public static StringVector computeDataClasses(ValueBounds valueBounds) {
+    // If we don't know what the value's class attribute is, we can't make
+    // any further assumptions
+    if(!valueBounds.isClassAttributeConstant()) {
+      return null;
+    }
+
+    AtomicVector classAttribute = valueBounds.getConstantClassAttribute();
+    if(classAttribute.length() > 0) {
+      // S3 class has been explicitly defined and is constant at compile time
+      return (StringVector) classAttribute;
+    }
+    
+    // Otherwise we compute based on the type and dimensions
+    // So in the absence of a constant class attribute, these two
+    // properties need to be constant.
+    if(!valueBounds.isDimCountConstant()) {
+      return null;
+    }
+
+    int typeSet = valueBounds.getTypeSet();
+    String implicitClass = TypeSet.implicitClass(typeSet);
+    if(implicitClass == null) {
+      return null;
+    }
+    
+    StringArrayVector.Builder dataClass = new StringArrayVector.Builder();
+
+    int dimCount = valueBounds.getConstantDimCount();
+    if(dimCount == 2) {
+      dataClass.add("matrix");
+    } else if(dimCount > 0) {
+      dataClass.add("array");
+    }
+    
+    dataClass.add(implicitClass);
+    
+    if((typeSet & TypeSet.NUMERIC) != 0) {
+      dataClass.add("numeric");
+    }
+    return dataClass.build();
+  }
+  
 
   /**
    * Computes the class list used for normal S3 Dispatch. Note that this
@@ -109,11 +161,11 @@ public class S3 {
       SEXP dim = exp.getAttribute(Symbols.DIM);
       if(dim.length() == 2) {
         dataClass.add("matrix");
-      } else if(dim.length() == 1) {
+      } else if(dim.length() > 0) {
         dataClass.add("array");
       }
       if(exp instanceof IntVector || exp instanceof DoubleVector) {
-        dataClass.add(exp.getTypeName());
+        dataClass.add(exp.getImplicitClass());
         dataClass.add("numeric");
       } else {
         dataClass.add(exp.getImplicitClass());
@@ -524,6 +576,7 @@ public class S3 {
     }
 
     public GenericMethod findNext() {
+      
       Environment methodTable = getMethodTable();
       GenericMethod method;
       

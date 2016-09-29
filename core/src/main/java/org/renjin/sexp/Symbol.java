@@ -234,7 +234,6 @@ public final class Symbol extends AbstractSEXP {
     return IMPLICIT_CLASS;
   }
   
-  
 
   @Override
   protected SEXP cloneWithNewAttributes(AttributeMap attributes) {

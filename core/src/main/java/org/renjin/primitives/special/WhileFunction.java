@@ -18,6 +18,7 @@
  */
 package org.renjin.primitives.special;
 
+import org.renjin.compiler.Compiler;
 import org.renjin.eval.Context;
 import org.renjin.sexp.*;
 
@@ -32,24 +33,23 @@ public class WhileFunction extends SpecialFunction {
     SEXP condition = args.getElementAsSEXP(0);
     SEXP statement = args.getElementAsSEXP(1);
     
-//    int iterationCount = 0;
-//    boolean compilationFailed = false;
+    int iterationCount = 0;
+    boolean compilationFailed = false;
 
     while(asLogicalNoNA(context, call, context.evaluate( condition, rho))) {
 
       try {
+        iterationCount ++;
 
-//        if(iterationCount > 50 && !compilationFailed) {
-//          if(LoopCompiler.tryCompileAndRun(context, rho, call)) {
-//            break;
-//          } else {
-//            compilationFailed = false;
-//          }
-//        }
-//        
+        if(iterationCount > 50 && !compilationFailed) {
+          if(Compiler.tryCompileAndRun(context, rho, call)) {
+            break;
+          } else {
+            compilationFailed = false;
+          }
+        }
+        
         context.evaluate( statement, rho);
-
-//        iterationCount ++;
         
       } catch(BreakException e) {
         break;

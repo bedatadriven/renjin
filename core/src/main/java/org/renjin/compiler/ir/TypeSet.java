@@ -42,6 +42,7 @@ public class TypeSet {
   public static final int ANY_VECTOR = LIST | ANY_ATOMIC_VECTOR;
   public static final int ANY_TYPE = ANY_VECTOR | PAIRLIST | ENVIRONMENT | SYMBOL | FUNCTION;
 
+  public static final int NUMERIC = INT | DOUBLE;
 
   public static int of(SEXP constant) {
     if(constant instanceof ListVector) {
@@ -89,6 +90,9 @@ public class TypeSet {
     } else if (type.equals(Complex.class)) {
       return COMPLEX;
 
+    } else if (type.equals(IntVector.class)) {
+      return INT;
+
     } else if (type.equals(SEXP.class)) {
       return ANY_TYPE;
       
@@ -128,6 +132,9 @@ public class TypeSet {
     } else if(type.equals(RawVector.class)) {
       return RAW;
 
+    } else if(type.equals(Vector.class)) {
+      return ANY_VECTOR;
+
     } else if (type.equals(SEXP.class)) {
       return ANY_TYPE;
 
@@ -136,6 +143,41 @@ public class TypeSet {
     }
   }
 
+  /**
+   * @return the unique S3 implicit class of this typeset, or {@code null} if it is not 
+   * known to be a single class.
+   */
+  public static String implicitClass(int typeSet) {
+    switch (typeSet) {
+      case LIST:
+        return "list";
+      case NULL:
+        return "NULL";
+      case INT:
+        return "integer";
+      case DOUBLE:
+        return "double";
+      case LOGICAL:
+        return "logical";
+      case STRING:
+        return "character";
+      case COMPLEX:
+        return "complex";
+      case RAW:
+        return "raw";
+      case SYMBOL:
+        return "name";
+      case FUNCTION:
+        return "function";
+      case ENVIRONMENT:
+        return "environment";
+      case PAIRLIST:
+        return "pairlist";
+      default:
+        return null;
+    }
+  }
+  
   public static boolean matches(Class clazz, int typeSet) {
     // compute the set of bits that we will accept
     int mask = accepts(clazz);
@@ -178,4 +220,5 @@ public class TypeSet {
     }
   }
 
+  
 }

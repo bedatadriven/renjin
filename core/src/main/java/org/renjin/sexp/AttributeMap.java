@@ -67,7 +67,7 @@ public class AttributeMap {
    * @return the <em>dim</em> attribute, or {@code Null.INSTANCE} if no
    * <em>dim</em> attribute is present.
    */
-  public Vector getDim() {
+  public AtomicVector getDim() {
     return dim == null ? Null.INSTANCE : dim;
   }
 

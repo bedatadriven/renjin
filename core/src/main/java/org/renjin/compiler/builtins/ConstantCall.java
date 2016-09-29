@@ -26,6 +26,7 @@ import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.IntVector;
+import org.renjin.sexp.SEXP;
 
 import java.util.Iterator;
 import java.util.List;
@@ -48,7 +49,11 @@ public class ConstantCall implements Specialization {
     } else if(constantValue instanceof Double) {
       type = Type.DOUBLE_TYPE;
       valueBounds = ValueBounds.of(DoubleVector.valueOf((Double) constantValue));
-    
+
+    } else if(constantValue instanceof SEXP) {
+      type = Type.getType(constantValue.getClass());
+      valueBounds = ValueBounds.of((SEXP)constantValue);
+      
     } else {
       throw new UnsupportedOperationException("constantValue: " + constantValue);
     }

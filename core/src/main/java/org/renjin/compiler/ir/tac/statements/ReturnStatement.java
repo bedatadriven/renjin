@@ -137,7 +137,8 @@ public class ReturnStatement implements Statement, BasicBlockEndingStatement {
       }
     }
     
-    mv.areturn(Type.VOID_TYPE);
+    returnValue.load(emitContext, mv);
+    mv.areturn(Type.getType(SEXP.class));
     return 0;
   }
 

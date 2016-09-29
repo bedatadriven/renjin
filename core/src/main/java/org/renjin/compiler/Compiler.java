@@ -12,22 +12,19 @@ import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.Environment;
-import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.SEXP;
 
 /**
  * Created by alex on 28-9-16.
  */
-public class LoopCompiler {
+public class Compiler {
 
-
-  public static boolean tryCompileAndRun(Context context, Environment rho, FunctionCall call) {
-
-    CompiledBody compiledBody;
+  public static CompiledBody tryCompile(Context context, Environment rho, SEXP expression) {
     try {
 
       RuntimeState runtimeState = new RuntimeState(context, rho);
       IRBodyBuilder builder = new IRBodyBuilder(runtimeState);
-      IRBody body = builder.build(call);
+      IRBody body = builder.build(expression);
 
       ControlFlowGraph cfg = new ControlFlowGraph(body);
 
@@ -49,20 +46,30 @@ public class LoopCompiler {
       System.out.println(cfg);
 
       ByteCodeEmitter emitter = new ByteCodeEmitter(cfg, types);
-      compiledBody = emitter.compile().newInstance();
+      return emitter.compile().newInstance();
 
     } catch (NotCompilableException e) {
+      System.out.println(e.toString());
       context.warn("Could not compile loop: " + e.toString(context));
-      return false;
+      return null;
 
     } catch (InvalidSyntaxException e) {
+      e.printStackTrace();
       throw new EvalException(e.getMessage());
 
     } catch (Exception e) {
       throw new EvalException("Exception compiling loop: " + e.getMessage(), e);
     }
+  }
 
-    compiledBody.evaluate(context, rho);
+  public static boolean tryCompileAndRun(Context context, Environment rho, SEXP expression) {
+
+    CompiledBody body = tryCompile(context, rho, expression);
+    if(body == null) {
+      return false;
+    }
+
+    body.evaluate(context, rho);
 
     return true;
   }

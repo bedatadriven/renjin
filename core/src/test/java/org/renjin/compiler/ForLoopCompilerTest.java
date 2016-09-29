@@ -118,5 +118,15 @@ public class ForLoopCompilerTest extends EvalTestCase {
         closeTo(c(673.224), 1d));
 
   }
-
+  
+  @Test
+  public void useMethod() {
+    eval("foo <- function(a) UseMethod('foo') ");
+    eval("foo.default <- function(a) a * 2 ");
+    eval("s <- 0");
+    eval("print(system.time({ for(i in 1:1e6) s <- s + foo(i) }))");
+    eval("print(s)");
+    
+    assertThat(eval("s"), equalTo(c(1.000001e+12)));
+  }
 }

@@ -21,7 +21,6 @@ package org.renjin.compiler.ir.tac.expressions;
 import org.renjin.compiler.NotCompilableException;
 import org.renjin.compiler.cfg.InlinedFunction;
 import org.renjin.compiler.codegen.EmitContext;
-import org.renjin.compiler.codegen.InlineParamExpr;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.compiler.ir.tac.IRMatchedArguments;
@@ -83,14 +82,8 @@ public class ClosureCall implements Expression {
     if(matching.hasExtraArguments()) {
       throw new NotCompilableException(call, "Extra arguments not supported");
     }
-    
-    for (int i = 0; i < arguments.size(); i++) {
-      Expression argumentExpr = arguments.get(i).getExpression();
-      ValueBounds argumentBounds = typeMap.get(argumentExpr);
-      inlinedFunction.updateParam(i, argumentBounds);
-    }
-    
-    returnBounds = inlinedFunction.computeBounds();
+   
+    returnBounds = inlinedFunction.updateBounds(arguments, typeMap);
     type = returnBounds.storageType();
     
     return returnBounds;
@@ -109,14 +102,7 @@ public class ClosureCall implements Expression {
       throw new NotCompilableException(call, "Extra arguments not supported");
     }
     
-    EmitContext inlineContext = emitContext.inlineContext(inlinedFunction.getCfg(), inlinedFunction.getTypes());
-
-    for (Map.Entry<Symbol, Integer> formal : matching.getMatchedFormals().entrySet()) {
-      inlineContext.setInlineParameter(formal.getKey(),
-          new InlineParamExpr(emitContext, arguments.get(formal.getValue()).getExpression()));
-    }
-
-    inlinedFunction.writeInline(inlineContext, mv);
+    inlinedFunction.writeInline(emitContext, mv, matching, arguments);
     
     return 0;
   }

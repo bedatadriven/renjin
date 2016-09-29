@@ -54,7 +54,7 @@ public final class Utils {
   }
 
   public static void Rf_rPsort(DoublePtr p0, int p1, int p2) {
-    throw new UnimplementedGnuApiMethod("Rf_rPsort");
+    org.renjin.gnur.Sort.Rf_rPsort(p0, p1, p2);
   }
 
   // void Rf_cPsort (Rcomplex *, int, int)

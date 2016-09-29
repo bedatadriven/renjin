@@ -145,13 +145,31 @@ public class IntArrayVector extends IntVector {
       return this;
     }
 
+    public Builder set(int index, double value) {
+      if (Double.isNaN(value)) {
+        set(index, IntVector.NA);
+      } else {
+        set(index, (int)value);
+      }
+      return this;
+    }
+
     public Builder add(int value) {
+      return set(size, value);
+    }
+
+    public Builder add(double value) {
       return set(size, value);
     }
 
     @Override
     public Builder add(Number value) {
-      return add(value.intValue());
+      if (value instanceof Integer) {
+        add(value.intValue());
+      } else {
+        add(value.doubleValue());
+      }
+      return this;
     }
 
     @Override
@@ -202,6 +220,10 @@ public class IntArrayVector extends IntVector {
       } else {
         return new IntArrayVector(values, size, buildAttributes());
       }
+    }
+
+    public static Builder withInitialSize(int size) {
+      return new Builder(size, size);
     }
 
     public static Builder withInitialCapacity(int capacity) {

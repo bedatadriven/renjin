@@ -513,31 +513,31 @@ public class Primitives {
 
 /* Random Numbers */
 
-    f("rchisq", RNG.class, 11);
-    f("rexp", RNG.class, 11);
-    f("rgeom", RNG.class, 11);
-    f("rpois", RNG.class, 11);
-    f("rt", RNG.class, 11);
-    f("rsignrank", RNG.class, 11);
+    f("rchisq", Distributions.class, 11);
+    f("rexp", Distributions.class, 11);
+    f("rgeom", Distributions.class, 11);
+    f("rpois", Distributions.class, 11);
+    f("rt", Distributions.class, 11);
+    f("rsignrank", Distributions.class, 11);
 
-    f("rbeta", RNG.class, 11);
-    f("rbinom", RNG.class, 11);
-    f("rcauchy",RNG.class, 11);
-    f("rf", RNG.class, 11);
-    f("rgamma", RNG.class, 11);
-    f("rlnorm", RNG.class, 11);
-    f("rlogis", RNG.class, 11);
-    f("rnbinom",RNG.class, 11);
-    f("rnbinom_mu", RNG.class , 11);
-    f("rnchisq", RNG.class, 11);
-    f("rnorm", RNG.class, 11);
-    f("runif", RNG.class, 11);
-    f("rweibull", RNG.class, 11);
-    f("rwilcox", RNG.class, 11);
+    f("rbeta", Distributions.class, 11);
+    f("rbinom", Distributions.class, 11);
+    f("rcauchy",Distributions.class, 11);
+    f("rf", Distributions.class, 11);
+    f("rgamma", Distributions.class, 11);
+    f("rlnorm", Distributions.class, 11);
+    f("rlogis", Distributions.class, 11);
+    f("rnbinom",Distributions.class, 11);
+    f("rnbinom_mu", Distributions.class , 11);
+    f("rnchisq", Distributions.class, 11);
+    f("rnorm", Distributions.class, 11);
+    f("runif", Distributions.class, 11);
+    f("rweibull", Distributions.class, 11);
+    f("rwilcox", Distributions.class, 11);
 
-    f("rhyper", RNG.class, 11);
+    f("rhyper", Distributions.class, 11);
 
-    f("rmultinom", RNG.class, 11);
+    f("rmultinom", Distributions.class, 11);
     f("sample", Sampling.class, 11);
 
     f("RNGkind", RNG.class, 11);

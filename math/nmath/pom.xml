@@ -25,7 +25,6 @@
 
   <artifactId>renjin-nmath</artifactId>
   <name>Renjin nmath Library</name>
-
   <dependencies>
     <dependency>
       <groupId>org.renjin</groupId>
@@ -35,6 +34,11 @@
     <dependency>
       <groupId>org.renjin</groupId>
       <artifactId>renjin-blas</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.renjin</groupId>
+      <artifactId>renjin-math-common</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>

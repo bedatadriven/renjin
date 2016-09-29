@@ -1,0 +1,5 @@
+# C Error handler for nmath
+type=METHOD
+class=org/renjin/math/Errors
+descriptor=(Lorg/renjin/gcc/runtime/BytePtr;D)V
+member=arith_error

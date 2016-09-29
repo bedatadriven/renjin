@@ -77,6 +77,6 @@ test.ExtendClassFromMethodAndExportToNamespace = function() {
 test.ImportMethodFrom = function() {
   b = new("mle_ext")
 
-  assertThat( coef(b), identicalTo(numeric(0)) )
+  assertThat( coef(b), identicalTo(structure(numeric(0), __S4_BIT = TRUE)) )
 
 }

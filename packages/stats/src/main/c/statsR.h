@@ -41,7 +41,11 @@ SEXP nextn(SEXP n, SEXP factors);
 
 SEXP cfilter(SEXP sx, SEXP sfilter, SEXP ssides, SEXP scircular);
 SEXP rfilter(SEXP x, SEXP filter, SEXP out);
+
+#ifndef R_STATS_H
 SEXP lowess(SEXP x, SEXP y, SEXP sf, SEXP siter, SEXP sdelta);
+#endif
+
 SEXP DoubleCentre(SEXP A);
 SEXP BinDist(SEXP x, SEXP weights, SEXP slo, SEXP sup, SEXP sn);
 

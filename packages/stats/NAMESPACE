@@ -25,7 +25,19 @@ useDynLib(stats, .registration = FALSE, .fixes="C_",
     SplineEval,
     monoFC_m,
     cov,
-    cor
+    cor,
+    KalmanLike,
+    KalmanSmooth,
+    KalmanFore,
+    ARIMA_undoPars,
+    ARIMA_transPars,
+    ARIMA_Invtrans,
+    ARIMA_Gradtrans,
+    ARIMA_Like,
+    ARIMA_CSS,
+    TSconv,
+    getQ0,
+    getQ0bis
     )
 
 # exportPattern("^[^\\.]")

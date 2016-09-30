@@ -48,3 +48,9 @@ ignoreTestLm <- function() {
 	y <- sin(x)
 	fit <- lm(y~x)
 }
+
+test.lowess <- function() {
+  x <- lowess(data.frame(a=c(1,1,2,2),b=c(3,4,2,1)))
+  y <- structure(list(x = c(1, 1, 2, 2), y = c(3.5, 3.5, 1.5, 1.5)), .Names = c("x", "y"))
+  assertThat(x, identicalTo(y))
+}

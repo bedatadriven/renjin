@@ -306,7 +306,7 @@ plot.new <- function()
         if (is.character(fun)) fun <- get(fun)
         try(fun())
     }
-    .Internal(plot.new())
+    warning("graphics are not yet implemented.")
     for(fun in getHook("plot.new")) {
         if(is.character(fun)) fun <- get(fun)
         try(fun())
@@ -317,7 +317,9 @@ plot.new <- function()
 frame <- plot.new
 
 plot.window <- function(xlim, ylim, log = "", asp = NA, ...)
-    .Internal(plot.window(xlim, ylim, log, asp, ...))
+{
+    warning("graphics are not yet implemented.")
+}
 
 plot.data.frame <- function (x, ...)
 {

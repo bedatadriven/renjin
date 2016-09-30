@@ -36,6 +36,6 @@ rect <-
                 density = density, angle = angle, ...)
     }
     else {
-        cat("Sorry, we haven't implemented much of the graphics stuff. Looking for volunteers!\n")
+        warning("graphics are not yet implemented.")
     }
 }

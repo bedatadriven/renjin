@@ -17,25 +17,25 @@
 ### xy.coords() is now in the imported 'grDevices' package
 
 plot <- function (x, y, ...)  {
- cat("Sorry, we haven't implemented much of the graphics stuff. Looking for volunteers!\n")
+    warning("graphics are not yet implemented.\n")
 }
 
 
 ## xlim = NULL (instead of "missing", since it will be passed to plot.default):
 plot.function <-
     function(x, y = 0, to = 1, from = y, xlim = NULL, ylab = NULL, ...)
-{
- cat("Sorry, we haven't implemented much of the graphics stuff. Looking for volunteers!\n")
-}
+    {
+        warning("graphics are not yet implemented.\n")
+    }
 
 plot.default <-
     function(x, y = NULL, type = "p", xlim = NULL, ylim = NULL,
              log = "", main = NULL, sub = NULL, xlab = NULL, ylab = NULL,
              ann = par("ann"), axes = TRUE, frame.plot = axes,
              panel.first = NULL, panel.last = NULL, asp = NA, ...)
-{
- cat("Sorry, we haven't implemented much of the graphics stuff. Looking for volunteers!\n")
-}
+    {
+        warning("graphics are not yet implemented.\n")
+    }
 
 plot.factor <- function(x, y, legend.text = NULL, ...)
 {
@@ -295,7 +295,7 @@ plot.xy <- function(xy, type, pch = par("pch"), lty = par("lty"),
                     col = par("col"), bg = NA, cex = 1, lwd = par("lwd"),
                     ...)
 {
- cat("Sorry, we haven't implemented much of the graphics stuff. Looking for volunteers!\n")
+    warning("graphics are not yet implemented.\n")
 }
 
 

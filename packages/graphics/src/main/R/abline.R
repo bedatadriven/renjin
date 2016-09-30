@@ -17,7 +17,5 @@
 abline <- function(a = NULL, b = NULL, h = NULL, v = NULL, reg = NULL,
                    coef = NULL, untf = FALSE, ...)
 {
-    {
-        cat("Sorry, we haven't implemented much of the graphics stuff. Looking for volunteers!\n")
-    }
+    warning("graphics are not yet implemented.")
 }

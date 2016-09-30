@@ -23,7 +23,7 @@ polygon <-
   function(x, y = NULL, density = NULL, angle = 45,
            border = NULL, col = NA, lty = par("lty"), ..., fillOddEven=FALSE)
 {
-  cat("Sorry, we haven't implemented much of the graphics stuff. Looking for volunteers!\n")
+  warning("graphics are not yet implemented.\n")
 }
 
 xspline <-
@@ -33,7 +33,7 @@ xspline <-
     xy <- xy.coords(x, y)
     s <- rep.int(shape, length(xy$x))
     if(open) s[1L] <- s[length(x)] <- 0
-    .Internal(xspline(xy$x, xy$y, s, open, repEnds, draw, col, border, ...))
+    warning("graphics are not yet implemented.\n")
 }
 
 polypath <-
@@ -52,17 +52,13 @@ polypath <-
     # Determine path components
     breaks <- which(is.na(xy$x) | is.na(xy$y))
     if (length(breaks) == 0) { # Only one path
-        .Internal(path(xy$x, xy$y,
-                       as.integer(length(xy$x)), as.integer(rule),
-                       col, border, lty, ...))
+        warning("graphics are not yet implemented.")
     } else {
         nb <- length(breaks)
         lengths <- c(breaks[1] - 1,
                      diff(breaks) - 1,
                      length(xy$x) - breaks[nb])
-        .Internal(path(xy$x[-breaks], xy$y[-breaks],
-                       as.integer(lengths), as.integer(rule),
-                       col, border, lty, ...))
+        warning("graphics are not yet implemented.")
     }
 }
 

@@ -37,7 +37,7 @@
 
 par <- function (..., no.readonly = FALSE)
 {
-    cat("Sorry, we haven't implemented much of the graphics stuff. Looking for volunteers!\n")
+	warning("graphics are not yet implemented.")
 }
 
 clip <- function(x1, x2, y1, y2) .Internal(clip(x1, x2, y1, y2))

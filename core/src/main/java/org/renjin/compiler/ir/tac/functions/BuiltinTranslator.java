@@ -38,7 +38,8 @@ class BuiltinTranslator extends FunctionCallTranslator {
 
   @Override
   public Expression translateToExpression(IRBodyBuilder builder, TranslationContext context, Function resolvedFunction, FunctionCall call) {
-    Primitives.Entry entry = Primitives.getBuiltinEntry(((PrimitiveFunction) resolvedFunction).getName());
+    String functionName = ((PrimitiveFunction) resolvedFunction).getName();
+    Primitives.Entry entry = Primitives.getBuiltinEntry(functionName);
     if(entry == null) {
       throw new NotCompilableException(call);
     }

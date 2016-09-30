@@ -54,6 +54,7 @@ public class BuiltinSpecializers {
     specializers.put(Primitives.getBuiltinEntry("length"), new GenericBuiltinGuard(new LengthSpecializer()));
     specializers.put(Primitives.getBuiltinEntry("[<-"), new GenericBuiltinGuard(new ReplaceSpecializer()));
     specializers.put(Primitives.getBuiltinEntry("["), new GenericBuiltinGuard(new SubsetSpecializer()));
+    specializers.put(Primitives.getBuiltinEntry("c"), new GenericBuiltinGuard(new CombineSpecializer()));
     specializers.put(Primitives.getBuiltinEntry("is.array"), new GenericBuiltinGuard(new IsArraySpecializer()));
     specializers.put(Primitives.getBuiltinEntry("dim"), new GenericBuiltinGuard(new DimSpecializer()));
 

@@ -121,6 +121,8 @@ public class ValueBounds {
 
   public static ValueBounds of(Class returnType) {
     ValueBounds valueBounds = new ValueBounds();
+    valueBounds.attributesOpen = true;
+    valueBounds.attributes = Collections.emptyMap();
     valueBounds.typeSet = TypeSet.of(returnType);
     if(returnType.isPrimitive()) {
       valueBounds.length = 1;

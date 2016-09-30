@@ -26,10 +26,13 @@ import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.IntVector;
+import org.renjin.sexp.ListVector;
 import org.renjin.sexp.SEXP;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Call to a builtin with constant arguments whose value is known at compile-time.
@@ -81,19 +84,39 @@ public class ConstantCall implements Specialization {
   }
 
   public static ConstantCall evaluate(JvmMethod method, List<ValueBounds> arguments) {
+
+
+    ListVector.Builder varArgs = null;
+    Map<String, Object> namedFlags = null;
+    
+    if(method.acceptsArgumentList()) {
+      namedFlags = new HashMap<>();
+      varArgs = ListVector.newBuilder();
+      for (JvmMethod.Argument formal : method.getFormals()) {
+        if(formal.isNamedFlag()) {
+          namedFlags.put(formal.getName(), formal.getDefaultValue());
+        }
+      }
+      for (ValueBounds argument : arguments) {
+        varArgs.add(argument.getConstantValue());
+      }
+    }
+    
     List<JvmMethod.Argument> formals = method.getAllArguments();
     Object[] args = new Object[formals.size()];
-    for (int i = 0; i < formals.size(); i++) {
-      method.getAllArguments();
-    }
     Iterator<ValueBounds> it = arguments.iterator();
     int argI = 0;
     for (JvmMethod.Argument formal : formals) {
-      if(formal.isContextual() || formal.isVarArg() || formal.isNamedFlag()) {
+      if(formal.isVarArg()) {
+        args[argI++] = varArgs.build();
+      } else if(formal.isNamedFlag()) {
+        args[argI++] = namedFlags.get(formal.getName());
+      } else if(formal.isContextual()) {
         throw new UnsupportedOperationException("in " + method +  ", " + "formal: " + formal);
+      } else {
+        ValueBounds argument = it.next();
+        args[argI++] = argument.getConstantValue();
       }
-      ValueBounds argument = it.next();
-      args[argI++] = argument.getConstantValue();
     }
 
     Object constantValue;
@@ -104,5 +127,10 @@ public class ConstantCall implements Specialization {
     }
 
     return new ConstantCall(constantValue);
+  }
+
+  private static void evaluateVarArgs(JvmMethod method, List<ValueBounds> arguments) {
+    
+    
   }
 }

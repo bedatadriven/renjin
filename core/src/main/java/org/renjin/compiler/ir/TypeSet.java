@@ -93,9 +93,15 @@ public class TypeSet {
     } else if (type.equals(IntVector.class)) {
       return INT;
 
+    } else if (type.equals(ListVector.class)) {
+      return LIST;
+
+    } else if (type.equals(AtomicVector.class)) {
+      return ANY_ATOMIC_VECTOR;
+      
     } else if (type.equals(SEXP.class)) {
       return ANY_TYPE;
-      
+
     } else {
       throw new UnsupportedOperationException("type: " + type);
     }

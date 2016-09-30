@@ -1025,10 +1025,13 @@ public class Primitives {
   }
 
   private void add(SpecialFunction fn) {
-    builtins.put(Symbol.get(fn.getName()), fn);
+    Symbol name = Symbol.get(fn.getName());
+    builtins.put(name, fn);
+    // Dummy entry
+    builtinEntries.put(name, new Entry(fn.getName(), fn.getClass(), "apply", 0));
   }
 
-  private void add(Entry entry) {     
+  private void add(Entry entry) {
     if (entry.isInternal()) {
       internalEntries.put(Symbol.get(entry.name), entry);
     } else {

@@ -1,4 +1,5 @@
 importClassesFrom(stats4, mle)
+importMethodsFrom(stats4, coef)
 exportClasses("seq")
 exportClasses("mle_ext")
 exportMethods(setType, getSequence, findType)

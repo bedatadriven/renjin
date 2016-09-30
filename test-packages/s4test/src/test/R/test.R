@@ -73,3 +73,9 @@ test.ExtendClassFromMethodAndExportToNamespace = function() {
   assertThat( e@names, identicalTo(c("B","c")))
   
 }
+
+test.ImportMethodFrom = function() {
+  b = new("mle_ext")
+  assertThat( typeof(coef(b)), identicalTo( "double" ) )
+  assertThat( length(coef(b)), identicalTo( 0L ) )
+}

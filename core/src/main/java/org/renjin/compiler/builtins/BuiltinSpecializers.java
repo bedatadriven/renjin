@@ -38,7 +38,7 @@ public class BuiltinSpecializers {
   /**
    * For a few builtins, we have extra-special specializers.
    */
-  private final Map<Primitives.Entry, Specializer> specializers = Maps.newHashMap();
+  private final Map<String, Specializer> specializers = Maps.newHashMap();
 
   
   /**
@@ -46,35 +46,38 @@ public class BuiltinSpecializers {
    * in the code base. To avoid rebuilding the metadata each time one is needed, 
    * cache instances of BuiltinSpecializer here.
    */
-  private final LoadingCache<Primitives.Entry, BuiltinSpecializer> cache;
+  private final LoadingCache<String, BuiltinSpecializer> cache;
   
   
   public BuiltinSpecializers() {
     
-    specializers.put(Primitives.getBuiltinEntry("length"), new GenericBuiltinGuard(new LengthSpecializer()));
-    specializers.put(Primitives.getBuiltinEntry("[<-"), new GenericBuiltinGuard(new ReplaceSpecializer()));
-    specializers.put(Primitives.getBuiltinEntry("["), new GenericBuiltinGuard(new SubsetSpecializer()));
-    specializers.put(Primitives.getBuiltinEntry("c"), new GenericBuiltinGuard(new CombineSpecializer()));
-    specializers.put(Primitives.getBuiltinEntry("is.array"), new GenericBuiltinGuard(new IsArraySpecializer()));
-    specializers.put(Primitives.getBuiltinEntry("dim"), new GenericBuiltinGuard(new DimSpecializer()));
+    specializers.put("length", new GenericBuiltinGuard(new LengthSpecializer()));
+    specializers.put("[<-", new GenericBuiltinGuard(new ReplaceSpecializer()));
+    specializers.put("[", new GenericBuiltinGuard(new SubsetSpecializer()));
+    specializers.put("c", new GenericBuiltinGuard(new CombineSpecializer()));
+    specializers.put("is.array", new GenericBuiltinGuard(new IsArraySpecializer()));
+    specializers.put("dim", new GenericBuiltinGuard(new DimSpecializer()));
 
-    cache = CacheBuilder.newBuilder().build(new CacheLoader<Primitives.Entry, BuiltinSpecializer>() {
+    cache = CacheBuilder.newBuilder().build(new CacheLoader<String, BuiltinSpecializer>() {
       @Override
-      public BuiltinSpecializer load(Primitives.Entry entry) throws Exception {
-        return new BuiltinSpecializer(entry);
+      public BuiltinSpecializer load(String primitiveName) throws Exception {
+        Primitives.Entry builtinEntry = Primitives.getBuiltinEntry(primitiveName);
+        if(builtinEntry == null) {
+          throw new IllegalStateException("No builtin entry for " + primitiveName);
+        }
+        return new BuiltinSpecializer(builtinEntry);
       }
     });
   }
   
-  public Specializer get(Primitives.Entry primitive) {
-    Preconditions.checkNotNull(primitive);
+  public Specializer get(String primitiveName) {
     
-    if(specializers.containsKey(primitive)) {
-      return specializers.get(primitive);
+    if(specializers.containsKey(primitiveName)) {
+      return specializers.get(primitiveName);
     }
     
     try {
-      return cache.get(primitive);
+      return cache.get(primitiveName);
     } catch (ExecutionException e) {
       throw new InternalCompilerException(e);
     }

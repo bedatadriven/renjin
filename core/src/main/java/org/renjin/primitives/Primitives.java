@@ -1027,8 +1027,6 @@ public class Primitives {
   private void add(SpecialFunction fn) {
     Symbol name = Symbol.get(fn.getName());
     builtins.put(name, fn);
-    // Dummy entry
-    builtinEntries.put(name, new Entry(fn.getName(), fn.getClass(), "apply", 0));
   }
 
   private void add(Entry entry) {

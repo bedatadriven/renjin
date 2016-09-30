@@ -41,19 +41,19 @@ public class BuiltinCall implements CallExpression {
 
   private final RuntimeState runtimeState;
   private FunctionCall call;
-  private final Primitives.Entry primitive;
+  private String primitiveName;
   private final List<IRArgument> arguments;
 
   private final Specializer specializer;
   
   private Specialization specialization = UnspecializedCall.INSTANCE;
 
-  public BuiltinCall(RuntimeState runtimeState, FunctionCall call, Primitives.Entry primitive, List<IRArgument> arguments) {
+  public BuiltinCall(RuntimeState runtimeState, FunctionCall call, String primitiveName, List<IRArgument> arguments) {
     this.runtimeState = runtimeState;
     this.call = call;
-    this.primitive = primitive;
+    this.primitiveName = primitiveName;
     this.arguments = arguments;
-    this.specializer = BuiltinSpecializers.INSTANCE.get(primitive);
+    this.specializer = BuiltinSpecializers.INSTANCE.get(primitiveName);
   }
 
   @Override
@@ -83,7 +83,7 @@ public class BuiltinCall implements CallExpression {
       specialization.load(emitContext, mv, arguments);
 
     } catch (FailedToSpecializeException e) {
-      throw new NotCompilableException(call, "Failed to specialize .Primitive(" + primitive.name + ")");
+      throw new NotCompilableException(call, "Failed to specialize .Primitive(" + primitiveName + ")");
     }
     return 1;
   }
@@ -111,6 +111,6 @@ public class BuiltinCall implements CallExpression {
   
   @Override
   public String toString() {
-    return "(" + primitive.name + " " + Joiner.on(" ").join(arguments) + ")";
+    return "(" + primitiveName + " " + Joiner.on(" ").join(arguments) + ")";
   }
 }

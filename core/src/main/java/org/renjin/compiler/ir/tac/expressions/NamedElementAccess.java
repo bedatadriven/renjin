@@ -21,20 +21,29 @@ package org.renjin.compiler.ir.tac.expressions;
 
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.ir.ValueBounds;
+import org.renjin.primitives.special.DollarFunction;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.SEXP;
+
+import java.util.Map;
 
 /**
  * Element access in the form x$name
  */
-public class NamedElementAccess extends SpecializedCallExpression {
+public class NamedElementAccess implements Expression {
 
+  private Expression expression;
   private String memberName;
-  private ValueBounds valueBounds = ValueBounds.UNBOUNDED;
+  private ValueBounds valueBounds;
 
   public NamedElementAccess(Expression expression, String memberName) {
-    super(expression);
+    this.expression = expression;
     this.memberName = memberName;
+    
+    valueBounds = ValueBounds.UNBOUNDED;
   }
 
   @Override
@@ -48,6 +57,17 @@ public class NamedElementAccess extends SpecializedCallExpression {
   }
 
   @Override
+  public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
+    
+    ValueBounds argumentBounds = typeMap.get(expression);
+    if(argumentBounds.isConstant()) {
+      valueBounds = ValueBounds.of(DollarFunction.apply(argumentBounds.getConstantValue(), memberName));
+    }
+    
+    return valueBounds;
+  }
+
+  @Override
   public Type getType() {
     return valueBounds.storageType();
   }
@@ -57,13 +77,29 @@ public class NamedElementAccess extends SpecializedCallExpression {
     return valueBounds;
   }
 
+
   @Override
-  public boolean isFunctionDefinitelyPure() {
-    return true;
+  public void setChild(int childIndex, Expression child) {
+    if(childIndex != 0) {
+      throw new IllegalArgumentException("childIndex:" + childIndex);
+    }
+    expression = child;
   }
 
   @Override
-  public String toString() {
-    return arguments[0] + "$" + memberName;
+  public int getChildCount() {
+    return 1;
   }
+
+  @Override
+  public Expression childAt(int index) {
+    return expression;
+  }
+
+
+  @Override
+  public String toString() {
+    return expression + "$" + memberName;
+  }
+
 }

@@ -17,5 +17,5 @@
 title <- function(main=NULL, sub=NULL, xlab=NULL, ylab=NULL,
                   line=NA, outer=FALSE, ...)
 {
-    cat("Sorry, we haven't implemented much of the graphics stuff. Looking for volunteers!\n")
+    warning("graphics are not yet implemented.")
 }

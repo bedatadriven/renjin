@@ -15,7 +15,7 @@
 #  http://www.r-project.org/Licenses/
 
 text <- function(x, ...) {
-    cat("Sorry, we haven't implemented much of the graphics stuff. Looking for volunteers!\n")
+    warning("graphics are not yet implemented.")
 }
 
 text.default <-

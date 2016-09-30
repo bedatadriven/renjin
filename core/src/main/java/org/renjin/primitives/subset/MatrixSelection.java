@@ -119,7 +119,7 @@ public class MatrixSelection implements SelectionStrategy {
   /**
    * Counts the number of dimensions that are not dropped.
    */
-  private int countDims(boolean[] droppedDim) {
+  private static int countDims(boolean[] droppedDim) {
     int count = 0;
     for (int i = 0; i < droppedDim.length; i++) {
       if(!droppedDim[i]) {
@@ -141,7 +141,7 @@ public class MatrixSelection implements SelectionStrategy {
    * @return an array of booleans of the same length as subscript dim, with the
    * a value of {@code true} for each dimension to be dropped.
    */
-  private boolean[] dropRedundantDimensions(int[] subscriptDim, boolean drop) {
+  private static boolean[] dropRedundantDimensions(int[] subscriptDim, boolean drop) {
     boolean[] dropped = new boolean[subscriptDim.length];
     if(drop) {
       // If drop = TRUE, then drop any dimensions with a length of exactly one
@@ -154,7 +154,7 @@ public class MatrixSelection implements SelectionStrategy {
     return dropped;
   }
 
-  private IntVector buildDimAttribute(int[] subscriptDim, boolean[] dropped) {
+  private static IntVector buildDimAttribute(int[] subscriptDim, boolean[] dropped) {
     IntArrayVector.Builder vector = new IntArrayVector.Builder(0, subscriptDim.length);
     for (int i = 0; i < subscriptDim.length; i++) {
       if(!dropped[i]) {
@@ -211,14 +211,108 @@ public class MatrixSelection implements SelectionStrategy {
   }
 
 
-  public static ValueBounds computeResultBounds(ValueBounds source, List<ValueBounds> subscripts, ValueBounds drop) {
+  /**
+   * Computes the {@code ValueBounds} of the result of this matrix selection based on available type information.
+   * @param source
+   * @param subscripts
+   * @param drop
+   * @return
+   */
+  public static ValueBounds computeResultBounds(ValueBounds source, List<ValueBounds> subscripts, boolean drop) {
 
-    // The type of the result will generally be the same as the source vector,
+    
+    // What we can infer depends on what we know about the inputs. Specifically, it depdends on three pieces
+    // of information:
+    // A. The source type
+    // B. The subscriptDim (function of subscript lengths and possibly source dimensions)
+    // C. The the source dim names
+    
+    // Depending on the inputs, there are three cases:
+    // A only => result type only
+    // B => result length and result dims
+    // B+C => complete result attributes
+    
+    // Here we go:
+    
+    ValueBounds.Builder resultBounds = new ValueBounds.Builder();
+    
+    
+    // (A) The type of the result will generally be the same as the source vector,
     // EXCEPT if the source is a pairlist, in which case it is first converted to a list
+    resultBounds.setTypeSet(computeResultTypeBounds(source));
+    resultBounds.setAttributeSetOpen(false);
+    
+    // (B) Compute the dimensions of the subscripts based on available
+    // subscript types
+    int[] subscriptDims = computeSubscriptDimBounds(source, subscripts);
+    boolean subscriptDimsKnown = subscriptDims != null;
+    
+    
+    // (C) Are the dimnames known (or known to be absent) ?
+    Vector sourceDimNames = null;
+    if(source.isAttributeConstant()) {
+      sourceDimNames = source.getConstantAttributes().getDimNames();
+    }
+    
+    // If we were able to infer the subscript dimensions, then we know the length
+    // as well as the result dims
+    if(subscriptDimsKnown) {
+      resultBounds.setLength(computeLength(subscriptDims));
+
+      boolean[] droppedDim = dropRedundantDimensions(subscriptDims, drop);
+      int dimCount = countDims(droppedDim);
+
+      AtomicVector resultDim;
+      if (drop && (dimCount == 0 || dimCount == 1)) {
+        // Drop the dim attribute. If the source has a dimnames attribute, this is converted
+        // to a names attribute
+        if (source.attributeCouldBePresent(Symbols.DIMNAMES)) {
+          resultBounds.attributeCouldBePresent(Symbols.NAMES);
+        }
+      } else {
+        // Keep the dim and (possibly) dimnames attribute
+        resultBounds.setDimAttribute(buildDimAttribute(subscriptDims, droppedDim));
+        if(source.attributeCouldBePresent(Symbols.DIMNAMES)) {
+          resultBounds.attributeCouldBePresent(Symbols.DIMNAMES);
+        }
+      }
+    } else {
+      // all we know is what we could end up with
+      resultBounds.attributeCouldBePresent(Symbols.DIM);
+      if(source.attributeCouldBePresent(Symbols.DIMNAMES)) {
+        resultBounds.attributeCouldBePresent(Symbols.DIMNAMES);
+        resultBounds.attributeCouldBePresent(Symbols.DIMNAMES);
+      }
+    }
+
+    return resultBounds.build();
+  }
+
+  private static int computeLength(int dim[]) {
+    int length = 1;
+    for (int i = 0; i < dim.length; i++) {
+      length *= dim[i];
+    }
+    return length;
+  }
+  
+  private static int computeResultTypeBounds(ValueBounds source) {
+    
+    // The only possible result types are vectors. 
+    
     int resultTypeSet = source.getTypeSet() & TypeSet.ANY_VECTOR;
+
+    // Pairlists are converted to ListVectors first, so if the input type set includes
+    // a pair list, then the result type set must contain a list vector.
+
     if( (source.getTypeSet() & TypeSet.PAIRLIST) != 0) {
       resultTypeSet |= TypeSet.LIST;
     }
+    return resultTypeSet;
+  }
+
+  private static int[] computeSubscriptDimBounds(ValueBounds source, List<ValueBounds> subscripts) {
+    int subscriptDims[] = new int[subscripts.size()];
 
     // Are the dimensions of the source known? this will help
     // calculate the result values
@@ -231,39 +325,28 @@ public class MatrixSelection implements SelectionStrategy {
       sourceDim = dimAttr.toIntArray();
     }
 
-    int resultDims[] = new int[subscripts.size()];
-
     for (int i = 0; i < subscripts.size(); i++) {
-      resultDims[i] = -1;
+      subscriptDims[i] = -1;
       ValueBounds subscript = subscripts.get(i);
       if(subscript.isConstant(Symbol.MISSING_ARG)) {
+        // x[ , 1] for example
         if(sourceDim != null) {
-          resultDims[i] = sourceDim[i];
+          subscriptDims[i] = sourceDim[i];
+        } else {
+          // Without knowing dim(x), we don't know how many elements
+          // will be selected.
+          return null;
         }
       } else if(subscript.isLengthConstant() && TypeSet.isDefinitelyNumeric(subscript)) {
-        resultDims[i] = subscript.getLength();
+        subscriptDims[i] = subscript.getLength();
+      } else {
+        // we don't know enough about the subscript, could be anything
+        return null;
       }
     }
-
-    return ValueBounds.vector(resultTypeSet, computeLengthBounds(resultDims));
+    return subscriptDims;
   }
-
-  /**
-   * Computes the length of the result vector, based on available information on the 
-   * inputs.
-   * @param subscriptDim the length of each provided subscript, or -1 if not known.
-   * @return the lenght of the resulting selection, or {@link ValueBounds#UNKNOWN_LENGTH} if not known
-   */
-  private static int computeLengthBounds(int subscriptDim[]) {
-    int length = 1;
-    for (int i = 0; i < subscriptDim.length; i++) {
-      if(subscriptDim[i] < 0) {
-        return ValueBounds.UNKNOWN_LENGTH;
-      }
-      length = length * subscriptDim[i];
-    }
-    return length;
-  }
+  
   
 
   @Override

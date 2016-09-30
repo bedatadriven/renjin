@@ -122,7 +122,7 @@ public class Deparse {
       if(exp instanceof FunctionCall) {
         return false;
       }
-      return !exp.getAttributes().empty();
+      return !exp.getAttributes().isEmpty();
     }
 
     @Override

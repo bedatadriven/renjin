@@ -6,7 +6,6 @@ import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.primitives.subset.MatrixSelection;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
-import org.renjin.sexp.LogicalVector;
 
 import java.util.List;
 
@@ -23,7 +22,7 @@ public class MatrixSubset implements Specialization {
   public MatrixSubset(ValueBounds source, List<ValueBounds> subscripts) {
     this.source = source;
     this.subscripts = subscripts;
-    this.result = MatrixSelection.computeResultBounds(source, subscripts, ValueBounds.of(LogicalVector.TRUE));
+    this.result = MatrixSelection.computeResultBounds(source, subscripts, true);
   }
 
 

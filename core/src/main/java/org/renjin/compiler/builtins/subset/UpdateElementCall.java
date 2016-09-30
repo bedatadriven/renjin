@@ -49,7 +49,7 @@ public class UpdateElementCall implements Specialization {
 
   @Override
   public ValueBounds getValueBounds() {
-    return ValueBounds.vector(inputVector.getTypeSet(), inputVector.getLength());
+    return inputVector.withVaryingValues();
   }
 
   @Override

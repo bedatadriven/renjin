@@ -25,6 +25,7 @@ import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Maps;
 
+import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
@@ -128,6 +129,26 @@ public class AttributeMap {
     }
   }
 
+  public Map<Symbol, SEXP> toMap() {
+    Map<Symbol, SEXP> map = new HashMap<>();
+    if(classes != null) {
+      map.put(Symbols.CLASS, classes);
+    }
+    if(names != null) {
+      map.put(Symbols.NAMES, names);
+    }
+    if(dim != null) {
+      map.put(Symbols.DIM, dim);
+    }
+    if(dimNames != null) {
+      map.put(Symbols.DIMNAMES, dimNames);
+    }
+    if(this.map != null) {
+      map.putAll(this.map);
+    }
+    return map;
+  }
+
   public SEXP get(String what) {
     return get(Symbol.get(what));
   }
@@ -209,7 +230,7 @@ public class AttributeMap {
     return names;
   }
 
-  public boolean empty() {
+  public boolean isEmpty() {
     return this == EMPTY;
   }
 

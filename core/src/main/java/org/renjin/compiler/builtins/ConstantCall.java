@@ -90,7 +90,7 @@ public class ConstantCall implements Specialization {
     int argI = 0;
     for (JvmMethod.Argument formal : formals) {
       if(formal.isContextual() || formal.isVarArg() || formal.isNamedFlag()) {
-        throw new UnsupportedOperationException("formal: " + formal);
+        throw new UnsupportedOperationException("in " + method +  ", " + "formal: " + formal);
       }
       ValueBounds argument = it.next();
       args[argI++] = argument.getConstantValue();

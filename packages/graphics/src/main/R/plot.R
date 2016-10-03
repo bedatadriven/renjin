@@ -304,12 +304,12 @@ plot.new <- function()
     # TODO: define a general runHook() and use instead
     for (fun in getHook("before.plot.new")) {
         if (is.character(fun)) fun <- get(fun)
-        try(fun())
+        warning("graphics are not yet implemented.")
     }
     warning("graphics are not yet implemented.")
     for(fun in getHook("plot.new")) {
         if(is.character(fun)) fun <- get(fun)
-        try(fun())
+        warning("graphics are not yet implemented.")
     }
     invisible()
 }

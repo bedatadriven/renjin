@@ -698,6 +698,7 @@ public class Primitives {
     f(".C", Native.class, -1);
     f(".Fortran", Native.class, -1);
     f(".External",  Native.class, -1);
+    f(".External2",  Native.class, -1);
     f(".Call", Native.class, -1);
     f(".External.graphics", /*Externalgr*/ null, 1);
     f(".Call.graphics", /*dotcallgr*/ null, 1);
@@ -905,8 +906,8 @@ public class Primitives {
     f("fmin", Optimizations.class, 11);
     f("zeroin", /*zeroin*/ null, 11);
     f("zeroin2", Roots.class, 11);
-    f("optim", Optimizations.class, 11);
-    f("optimhess", /*optimhess*/ null, 11);
+    //f("optim", Optimizations.class, 11);
+    //f("optimhess", /*optimhess*/ null, 11);
     f("terms.formula", Models.class, 11);
     f("update.formula", /*updateform*/ null, 11);
     f("model.matrix", Models.class, 11);

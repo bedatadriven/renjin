@@ -478,6 +478,56 @@ public class Native {
     }
   }
 
+
+
+  @Builtin(".External2")
+  public static SEXP external2(@Current Context context,
+                              @Current Environment rho,
+                              SEXP methodExp,
+                              @ArgumentList ListVector callArguments,
+                              @NamedFlag("PACKAGE") String packageName,
+                              @NamedFlag("CLASS") String className) throws ClassNotFoundException {
+
+    if(!methodExp.inherits("NativeSymbolInfo")) {
+      throw new EvalException("Expected object of class 'NativeSymbolInfo'");
+    }
+
+    ExternalPtr<MethodHandle> address = (ExternalPtr<MethodHandle>) ((ListVector)methodExp).get("address");
+    MethodHandle methodHandle = address.getInstance();
+    if(methodHandle.type().parameterCount() != 4) {
+      throw new EvalException("Expected method with four argument, found %d",
+              methodHandle.type().parameterCount(),
+              callArguments.length());
+    }
+    SEXP offsetValue = (SEXP) IntVector.valueOf(1);
+    StringVector functionName = (StringVector) ((ListVector) methodExp).get("name");
+    SEXP argumentList = new PairList.Node(functionName, PairList.Node.fromVector(callArguments));
+
+    if(Profiler.ENABLED) {
+      StringVector nameExp = (StringVector)((ListVector) methodExp).get("name");
+      Profiler.functionStart(Symbol.get(nameExp.getElementAsString(0)), 'C');
+    }
+    Context previousContext = CURRENT_CONTEXT.get();
+    try {
+      CURRENT_CONTEXT.set(context);
+      if (methodHandle.type().returnType().equals(void.class)) {
+        methodHandle.invokeExact(methodExp, offsetValue, argumentList, (SEXP) rho);
+        return Null.INSTANCE;
+      } else {
+        return (SEXP) methodHandle.invokeExact(methodExp, offsetValue, argumentList, (SEXP) rho);
+      }
+    } catch (Error e) {
+      throw e;
+    } catch (Throwable e) {
+      throw new EvalException("Exception calling " + methodExp + " : " + e.getMessage(), e);
+    } finally {
+      CURRENT_CONTEXT.set(previousContext);
+      if(Profiler.ENABLED) {
+        Profiler.functionEnd();
+      }
+    }
+  }
+
   private static SEXP[] toSexpArray(ListVector callArguments) {
     SEXP args[] = new SEXP[callArguments.length()];
     for (int i = 0; i < callArguments.length(); i++) {

@@ -26,7 +26,9 @@ useDynLib(stats, .registration = FALSE, .fixes="C_",
     monoFC_m,
     cov,
     cor,
-    lowess
+    lowess,
+    optim,
+    optimhess
     )
 
 # exportPattern("^[^\\.]")

@@ -1425,7 +1425,11 @@ static void cauchy(int n, double *x, double *l, double *u, int *nbd,
 	if (iwhere[i] != 0 && iwhere[i] != -1) {
 	    d[i] = 0.;
 	} else {
-	    d[i] = neggi;
+	    printf("i = %d\n", i);
+	    printf("i = %i\n", i);
+	    printf("i = %f\n", i);
+
+	    safeAssign(d+i, neggi);
 	    f1 -= neggi * neggi;
 /*	       calculate p := p - W'e_i* (g_i). */
 	    i__2 = *col;

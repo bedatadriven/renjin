@@ -158,6 +158,12 @@ public class Stdlib {
     
     return outputString.length();
   }
+
+  public static void safeAssign(DoublePtr p, double value) {
+    if (p.offset >= 0 && p.offset < p.array.length) {
+      p.array[p.offset] = value;
+    }
+  }
   
   public static int puts(BytePtr string) {
     System.out.print(string.nullTerminatedString());

@@ -80,6 +80,8 @@ public class ValueBounds {
     this.length = toCopy.length;
     this.typeSet = toCopy.typeSet;
     this.constantValue = toCopy.constantValue;
+    this.attributes = toCopy.attributes;
+    this.attributesOpen = toCopy.attributesOpen;
   }
 
   /**
@@ -131,14 +133,7 @@ public class ValueBounds {
     }
     return valueBounds;
   }
-  
-  public ValueBounds withAttributes(AttributeMap attributes) {
-    ValueBounds bounds = new ValueBounds(this);
-    bounds.attributes = attributes.toMap();
-    bounds.attributesOpen = false;
-    return bounds;
-  }
-  
+
   public boolean isConstant() {
     return constantValue != null;
   }
@@ -269,18 +264,21 @@ public class ValueBounds {
     
     u.attributesOpen = this.attributesOpen || other.attributesOpen;
     
-    if(this.attributes != null && this.attributes == other.attributes) {
+    if(this.attributes == other.attributes) {
+      Preconditions.checkNotNull(attributes, "attributes");
       u.attributes = attributes;
+    } else if(this.attributes.isEmpty() && other.attributes.isEmpty()) {
+      u.attributes = Collections.emptyMap();
+    } else {
+      u.attributes = new HashMap<>();
+      Set<Symbol> attributeNames = Sets.union(this.attributes.keySet(), other.attributes.keySet());
+      for (Symbol attributeName : attributeNames) {
+        SEXP thisValue = this.attributes.get(attributeName);
+        SEXP otherValue = other.attributes.get(attributeName);
+
+        attributes.put(attributeName, unionConstant(thisValue, otherValue));
+      }
     }
-    
-    Set<Symbol> attributeNames = Sets.union(this.attributes.keySet(), other.attributes.keySet());
-    for (Symbol attributeName : attributeNames) {
-      SEXP thisValue = this.attributes.get(attributeName);
-      SEXP otherValue = other.attributes.get(attributeName);
-      
-      attributes.put(attributeName, unionConstant(thisValue, otherValue));
-    }
-    
     return u;
   }
 

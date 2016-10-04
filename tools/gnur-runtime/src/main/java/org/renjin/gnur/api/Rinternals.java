@@ -435,11 +435,11 @@ public final class Rinternals {
   public static SEXP SETCDR(SEXP x, SEXP y) {
     throw new UnimplementedGnuApiMethod("SETCDR");
   }
-
   public static SEXP SETCADR(SEXP x, SEXP y) {
-    throw new UnimplementedGnuApiMethod("SETCADR");
+    PairList.Node pb = (PairList.Node) x;
+    pb.getNextNode().setValue(y);
+    return (SEXP) pb;
   }
-
   public static SEXP SETCADDR(SEXP x, SEXP y) {
     throw new UnimplementedGnuApiMethod("SETCADDR");
   }

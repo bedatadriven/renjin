@@ -9,14 +9,14 @@ In addition to the standard Java tools, Renjin relies on a GCC-based
 build chain to compile C/Fortran math routines to JVM byte code.
 These tools are in the early stages of development and are a bit
 sensitive to different versions of GCC. The current version of Renjin
-requires GCC 4.6.x.
+requires GCC 4.7.x.
 
 
 Requirements
 ------------
 1. Oracle JDK 1.6+
 2. Apache Maven 3+
-3. GCC 4.6.x
+3. GCC 4.7.x
 
 ### Vagrant
 
@@ -46,14 +46,14 @@ by Renjin's code generator.
 
 You can install GCC and friends through the APT package manager:
 
-    sudo apt-get install maven gcc-4.6 gcc-4.6-plugin-dev gfortran-4.6 g++-4.6 make
+    sudo apt-get install maven gcc-4.7 gcc-4.7-plugin-dev gfortran-4.7 g++-4.7 make
 
 If you are using a 64-bit version of Ubuntu, you will need to
 install additional libraries in order to have GCC cross compile
 to 32-bits (Renjin uses JVM arrays to back pointers, and the JVM
 limits array indices to 32-bits on all platforms)
 
-    sudo apt-get install gcc-4.6.multilib
+    sudo apt-get install gcc-4.7.multilib g++-4.7-multilib
 
 Then build:
 
@@ -73,7 +73,7 @@ This setup uses [Homebrew](http://brew.sh/), so if you do not have it yet, pleas
 
 Download and install JDK 8 from the [Oracle Website](http://www.oracle.com/technetwork/java/javase/downloads/index.html). 
 
-You need to install the legacy GCC version 4.6 using Homebrew. We need an old formula for this:
+You need to install the legacy GCC version 4.7 using Homebrew. We need an old formula for this:
 
     wget https://raw.githubusercontent.com/alexpennace/homebrew-versions/6f55c92c25f08bbc103196ac29e89de97ab36bdf/gcc46.rb -O /usr/local/Library/Formula/gcc46.rb
 
@@ -83,7 +83,7 @@ You should now be able to install GCC using
 
 Finally, we need to link the file libiberty.h
 
-    ln /usr/local/Cellar/gcc46/4.6.4/lib/gcc/x86_64-apple-darwin14.0.0/4.6.4/plugin/include/libiberty-4.6.h /usr/local/Cellar/gcc46/4.6.4/lib/gcc/x86_64-apple-darwin14.0.0/4.6.4/plugin/include/libiberty.h
+    ln /usr/local/Cellar/gcc46/4.7.4/lib/gcc/x86_64-apple-darwin14.0.0/4.7.4/plugin/include/libiberty-4.7.h /usr/local/Cellar/gcc46/4.7.4/lib/gcc/x86_64-apple-darwin14.0.0/4.7.4/plugin/include/libiberty.h
 
 Install gettext from Homebrew by typing
 

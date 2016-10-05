@@ -67,11 +67,20 @@ public class GimpleConstructor extends GimpleExpr {
   }
  
   private List<Element> elements = new ArrayList<Element>();
+  private boolean clobber;
 
   public List<Element> getElements() {
     return elements;
   }
 
+
+  public boolean isClobber() {
+    return clobber;
+  }
+
+  public void setClobber(boolean clobber) {
+    this.clobber = clobber;
+  }
 
   public <X extends GimpleExpr> X getElement(int i) {
     return (X)elements.get(i).getValue();

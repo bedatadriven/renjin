@@ -394,6 +394,8 @@ static void dump_constructor(tree node) {
   unsigned HOST_WIDE_INT ix;
   tree field, val;
   bool is_struct_init = FALSE;
+
+  json_bool_field("clobber", TREE_CLOBBER_P(node));
   
  json_array_field("elements");
 
@@ -1018,13 +1020,18 @@ static unsigned int dump_function (void)
   json_bool_field("inline", DECL_DECLARED_INLINE_P(cfun->decl));
   
   json_array_field("aliases");
-  
-  struct cgraph_node *cgn = cgraph_node(cfun->decl);
+
+  struct cgraph_node *cgn = cgraph_get_node(cfun->decl);
   struct cgraph_node *n;
-  for (n = cgn->same_body; n; n = n->next)
-  {
-    json_string_value(IDENTIFIER_POINTER(DECL_ASSEMBLER_NAME(n->decl)));
-  }
+
+  FOR_EACH_FUNCTION_WITH_GIMPLE_BODY(n)
+    if(cgraph_alias_aliased_node(n) == cgn) {
+// TODO: segfaults...
+//        if(IDENTIFIER_POINTER(DECL_ASSEMBLER_NAME(n->decl))) {
+//            json_string_value(IDENTIFIER_POINTER(DECL_ASSEMBLER_NAME(n->decl)));
+//        }
+    }
+
   json_end_array();
     
   json_bool_field("extern", TREE_PUBLIC(cfun->decl));
@@ -1159,7 +1166,7 @@ static struct gimple_opt_pass dump_functions_pass =
       NULL,		        /* sub */
       NULL,		        /* next */
       0,		          /* static_pass_number */
-      0,		          /* tv_id */
+      TV_NONE,	         /* tv_id */
       PROP_cfg | PROP_referenced_vars,   		/* properties_required */
       0,		          /* properties_provided */
       0,		          /* properties_destroyed */

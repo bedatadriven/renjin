@@ -42,7 +42,7 @@ AR = ar
 AWK = /usr/bin/awk
 BLAS_LIBS = -lblas
 C_VISIBILITY = -fvisibility=hidden
-CC = gcc-4.6 -std=gnu99
+CC = gcc-4.7 -std=gnu99
 CFLAGS = ${RENJIN_FLAGS} -g ${OPT_FLAGS} -fstack-protector --param=ssp-buffer-size=4 -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 -g $(LTO)
 CPICFLAGS = -fpic
 CPPFLAGS = 

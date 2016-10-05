@@ -318,7 +318,8 @@ public class ExprFactory {
       case MEM_REF:
         // Cast the pointer type first, then dereference
         return memRef((GimpleMemRef) operands.get(0), expectedType);
-      
+
+      case CONSTRUCTOR:
       case CONVERT_EXPR:
       case FIX_TRUNC_EXPR:
       case FLOAT_EXPR:
@@ -388,6 +389,7 @@ public class ExprFactory {
 
       case CONJ_EXPR:
         return findComplexGenerator(operands.get(0)).conjugate();
+
 
       default:
         throw new UnsupportedOperationException("op: " + op);

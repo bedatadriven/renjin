@@ -96,7 +96,8 @@ public class Assignment implements Statement {
   @Override
   public int emit(EmitContext emitContext, InstructionAdapter mv) {
 
-    VariableStorage storage = emitContext.getVariableStorage(lhs);
+
+      VariableStorage storage = emitContext.getVariableStorage(lhs);
     if(storage == null) {
       throw new IllegalStateException("Variable " + lhs + " not allocated.");
     }

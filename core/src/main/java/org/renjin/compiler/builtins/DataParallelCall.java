@@ -26,10 +26,7 @@ import org.renjin.primitives.Primitives;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.repackaged.guava.collect.Lists;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbol;
-import org.renjin.sexp.Symbols;
+import org.renjin.sexp.*;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -44,16 +41,16 @@ public class DataParallelCall implements Specialization {
 
   private final String name;
   private final JvmMethod method;
-  private List<ValueBounds> argumentTypes;
-  private final ValueBounds valueBounds;
+  private List<ValueBounds> argumentBounds;
+  private final ValueBounds resultBounds;
   private final Type type;
 
-  public DataParallelCall(Primitives.Entry primitive, JvmMethod method, List<ValueBounds> argumentTypes) {
+  public DataParallelCall(Primitives.Entry primitive, JvmMethod method, List<ValueBounds> argumentBounds) {
     this.name = primitive.name;
     this.method = method;
-    this.argumentTypes = argumentTypes;
-    this.valueBounds = computeBounds(argumentTypes);
-    this.type = valueBounds.storageType();
+    this.argumentBounds = argumentBounds;
+    this.resultBounds = computeBounds(argumentBounds);
+    this.type = resultBounds.storageType();
   }
 
   
@@ -61,7 +58,7 @@ public class DataParallelCall implements Specialization {
     
     List<ValueBounds> recycledArguments = recycledArgumentBounds(argumentBounds);
 
-    int resultLength = computeResultLength(argumentTypes);
+    int resultLength = computeResultLength(this.argumentBounds);
 
     ValueBounds.Builder bounds = new ValueBounds.Builder();
     bounds.setType(method.getReturnType());
@@ -72,10 +69,10 @@ public class DataParallelCall implements Specialization {
         bounds.setEmptyAttributes();
         break;
       case STRUCTURAL:
-        buildStructuralBounds(bounds, argumentBounds, resultLength);
+        buildStructuralBounds(bounds, recycledArguments, resultLength);
         break;
       case ALL:
-        buildAllBounds(bounds, argumentBounds, resultLength);
+        buildAllBounds(bounds, recycledArguments, resultLength);
         break;
     }
     
@@ -181,16 +178,63 @@ public class DataParallelCall implements Specialization {
   }
 
 
-
   public Specialization specializeFurther() {
-    if(valueBounds.getLength() == 1) {
-      DoubleBinaryOp op = DoubleBinaryOp.trySpecialize(name, method, valueBounds);
+    if(resultBounds.getLength() == 1) {
+
+      if(ValueBounds.allConstant(argumentBounds)) {
+        return evaluateConstant();
+      }
+
+      DoubleBinaryOp op = DoubleBinaryOp.trySpecialize(name, method, resultBounds);
       if(op != null) {
         return op;
       }
-      return new DataParallelScalarCall(method, argumentTypes, valueBounds).trySpecializeFurther();
+      return new DataParallelScalarCall(method, argumentBounds, resultBounds).trySpecializeFurther();
     }
     return this;
+  }
+
+  private Specialization evaluateConstant() {
+
+    assert !method.acceptsArgumentList();
+
+    List<JvmMethod.Argument> formals = method.getAllArguments();
+    Object[] args = new Object[formals.size()];
+    Iterator<ValueBounds> it = argumentBounds.iterator();
+    int argI = 0;
+    for (JvmMethod.Argument formal : formals) {
+      if(formal.isContextual()) {
+        throw new UnsupportedOperationException("in " + method +  ", " + "formal: " + formal);
+      } else {
+        ValueBounds argument = it.next();
+        args[argI++] = convert(argument.getConstantValue(), formal.getClazz());
+
+      }
+    }
+
+    Object constantValue;
+    try {
+      constantValue = method.getMethod().invoke(null, args);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+
+    return new ConstantCall(constantValue);
+
+  }
+
+  private Object convert(SEXP constantValue, Class formalType) {
+    if(formalType.equals(double.class)) {
+      return constantValue.asReal();
+    } else if(formalType.equals(int.class)) {
+      return constantValue.asInt();
+    } else if(formalType.equals(String.class)) {
+      return constantValue.asString();
+    } else if(SEXP.class.isAssignableFrom(formalType)) {
+      return constantValue;
+    } else {
+      throw new UnsupportedOperationException("formal type: " + formalType);
+    }
   }
 
   @Override
@@ -198,9 +242,8 @@ public class DataParallelCall implements Specialization {
     return type;
   }
 
-  @Override
-  public ValueBounds getValueBounds() {
-    return valueBounds;
+  public ValueBounds getResultBounds() {
+    return resultBounds;
   }
 
   @Override

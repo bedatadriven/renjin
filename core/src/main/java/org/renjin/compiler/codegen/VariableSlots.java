@@ -45,7 +45,7 @@ public class VariableSlots {
         throw new NullPointerException("bounds(" + entry.getKey() + ")");
       }
       storage.put(variable, new VariableStorage(firstSlot + nextSlot, bounds.storageType()));
-      
+
       nextSlot += variable.getType().getSize();
     }
   }

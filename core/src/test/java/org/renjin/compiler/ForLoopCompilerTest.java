@@ -129,4 +129,15 @@ public class ForLoopCompilerTest extends EvalTestCase {
     
     assertThat(eval("s"), equalTo(c(1.000001e+12)));
   }
+
+  @Test
+  public void constantConditional() {
+
+    eval("s <- 0");
+//    eval("for(i in 1:10000) if(typeof(s) == 'double') s <- s + i else stop('not a number')");
+    eval("for(i in 1:10000) s <- s + i");
+
+    assertThat(eval("s"), equalTo(c(5.0005e7)));
+
+  }
 }

@@ -38,8 +38,7 @@ public class MatrixSubset implements Specialization {
     return result.storageType();
   }
 
-  @Override
-  public ValueBounds getValueBounds() {
+  public ValueBounds getResultBounds() {
     return result;
   }
 

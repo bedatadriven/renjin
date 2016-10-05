@@ -41,6 +41,8 @@ public class IfStatement implements Statement, BasicBlockEndingStatement {
   private IRLabel trueTarget;
   private IRLabel falseTarget;
   private IRLabel naTarget;
+
+  private Logical constantValue;
   
   public IfStatement(Expression condition, IRLabel trueTarget, IRLabel falseTarget, IRLabel naTarget) {
     this.condition = condition;
@@ -95,25 +97,6 @@ public class IfStatement implements Statement, BasicBlockEndingStatement {
   public void setRHS(Expression newRHS) {
     this.condition = newRHS;
   }
- 
-  private Logical toLogical(Object obj) {
-    if(obj instanceof Boolean) {
-      return ((Boolean)obj) ? Logical.TRUE : Logical.FALSE;
-    } else if(obj instanceof SEXP) {
-      SEXP s = (SEXP)obj;
-      if (s.length() == 0) {
-        throw new EvalException("argument is of length zero");
-      }
-      if( (s instanceof DoubleVector) ||
-          (s instanceof ComplexVector) ||
-          (s instanceof IntVector) ||
-          (s instanceof LogicalVector) ) {
-        return ((SEXP)obj).asLogical();        
-      }
-    } 
-    throw new EvalException("invalid type where logical expected");
-    
-  }
 
   @Override
   public String toString() {
@@ -144,6 +127,14 @@ public class IfStatement implements Statement, BasicBlockEndingStatement {
     }
   }
 
+  public Logical getConstantValue() {
+    return constantValue;
+  }
+
+  public void setConstantValue(Logical constantValue) {
+    this.constantValue = constantValue;
+  }
+
   @Override
   public void accept(StatementVisitor visitor) {
     visitor.visitIf(this);
@@ -151,6 +142,13 @@ public class IfStatement implements Statement, BasicBlockEndingStatement {
 
   @Override
   public int emit(EmitContext emitContext, InstructionAdapter mv) {
+
+    if(constantValue == Logical.TRUE) {
+      mv.visitJumpInsn(GOTO, emitContext.getAsmLabel(trueTarget));
+    }
+    if(constantValue == Logical.FALSE) {
+      mv.visitJumpInsn(GOTO, emitContext.getAsmLabel(falseTarget));
+    }
 
     int stackSizeIncrease = 0;
 

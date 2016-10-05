@@ -47,8 +47,7 @@ public class UpdateElementCall implements Specialization {
     return inputVector.storageType();
   }
 
-  @Override
-  public ValueBounds getValueBounds() {
+  public ValueBounds getResultBounds() {
     return inputVector.withVaryingValues();
   }
 

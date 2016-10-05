@@ -47,6 +47,8 @@ public class BasicBlock {
   
   final List<FlowEdge> outgoing = new ArrayList<>();
   final List<FlowEdge> incoming = new ArrayList<>();
+
+  private boolean live = false;
   
   public BasicBlock(IRBody parent) {
     super();
@@ -59,6 +61,14 @@ public class BasicBlock {
   
   public void insertPhiFunction(Variable variable, List<FlowEdge> incomingEdges) {
     statements.add(0, new Assignment(variable, new PhiFunction(variable, incomingEdges)));
+  }
+
+  public boolean isLive() {
+    return live;
+  }
+
+  public void setLive(boolean live) {
+    this.live = live;
   }
 
   public Statement replaceStatement(Statement stmt, Statement newStmt) {
@@ -122,6 +132,15 @@ public class BasicBlock {
 
   public List<FlowEdge> getOutgoing() {
     return outgoing;
+  }
+
+  public FlowEdge getOutgoing(IRLabel target) {
+    for (FlowEdge flowEdge : outgoing) {
+      if(flowEdge.getSuccessor().getLabels().contains(target)) {
+        return flowEdge;
+      }
+    }
+    throw new IllegalStateException("No outgoing edge to " + target);
   }
 
   public List<BasicBlock> getFlowSuccessors() {
@@ -213,4 +232,5 @@ public class BasicBlock {
     }
 
   }
+
 }

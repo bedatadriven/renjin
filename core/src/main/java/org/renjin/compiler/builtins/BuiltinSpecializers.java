@@ -25,6 +25,7 @@ import org.renjin.repackaged.guava.cache.CacheBuilder;
 import org.renjin.repackaged.guava.cache.CacheLoader;
 import org.renjin.repackaged.guava.cache.LoadingCache;
 import org.renjin.repackaged.guava.collect.Maps;
+import org.renjin.sexp.Symbol;
 
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -57,15 +58,20 @@ public class BuiltinSpecializers {
     specializers.put("c", new GenericBuiltinGuard(new CombineSpecializer()));
     specializers.put("is.array", new GenericBuiltinGuard(new IsArraySpecializer()));
     specializers.put("dim", new GenericBuiltinGuard(new DimSpecializer()));
+    specializers.put("rep", new RepSpecializer());
 
     cache = CacheBuilder.newBuilder().build(new CacheLoader<String, BuiltinSpecializer>() {
       @Override
-      public BuiltinSpecializer load(String primitiveName) throws Exception {
-        Primitives.Entry builtinEntry = Primitives.getBuiltinEntry(primitiveName);
-        if(builtinEntry == null) {
+      public BuiltinSpecializer load(String primitive) throws Exception {
+        Symbol primitiveName = Symbol.get(primitive);
+        Primitives.Entry entry = Primitives.getBuiltinEntry(primitiveName);
+        if(entry == null) {
+          entry = Primitives.getInternalEntry(primitiveName);
+        }
+        if(entry == null) {
           throw new IllegalStateException("No builtin entry for " + primitiveName);
         }
-        return new BuiltinSpecializer(builtinEntry);
+        return new BuiltinSpecializer(entry);
       }
     });
   }

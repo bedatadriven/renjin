@@ -34,10 +34,12 @@ import org.renjin.compiler.ir.tac.statements.Statement;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.sexp.Closure;
 import org.renjin.sexp.Function;
 import org.renjin.sexp.Symbol;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -104,9 +106,8 @@ public class InlinedFunction {
 
   public void updateParam(int i, ValueBounds argumentBounds) {
     params.get(i).updateBounds(argumentBounds);
-
   }
-  
+
   public ValueBounds updateBounds(List<IRArgument> arguments, Map<Expression, ValueBounds> typeMap) {
 
     for (int i = 0; i < arguments.size(); i++) {
@@ -151,9 +152,10 @@ public class InlinedFunction {
     types.verifyFunctionAssumptions(runtimeState);
 
     Label exitLabel = new Label();
-    
+
     for(BasicBlock basicBlock : cfg.getBasicBlocks()) {
-      if(basicBlock != cfg.getEntry() && basicBlock != cfg.getExit()) {
+      if(basicBlock != cfg.getEntry() && basicBlock != cfg.getExit() &&
+          basicBlock.isLive()) {
         for(IRLabel label : basicBlock.getLabels()) {
           mv.visitLabel(inlineContext.getAsmLabel(label));
         }

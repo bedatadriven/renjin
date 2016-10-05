@@ -1,5 +1,6 @@
 package org.renjin.compiler;
 
+import org.easymock.internal.ThrowableWrapper;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 
@@ -22,11 +23,15 @@ public class LoopCompilerTest extends EvalTestCase {
 
   @Test
   public void whileLoop() {
-    eval("s <- 0");
-    eval("i <- 0");
-    eval("while(i <= 10000) { s <- s + i; i <- i+1 }");
+    try {
+      eval("s <- 0");
+      eval("i <- 0");
+      eval("while(i <= 10000) { s <- s + i; i <- i+1 }");
 
-    assertThat(eval("s"), equalTo(c(50005000d)));
-    assertThat(eval("i"), equalTo(c(10001)));
+      assertThat(eval("s"), equalTo(c(50005000d)));
+      assertThat(eval("i"), equalTo(c(10001)));
+    } catch (Throwable e) {
+      e.printStackTrace();
+    }
   }
 }

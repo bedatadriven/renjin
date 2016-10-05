@@ -21,6 +21,7 @@ package org.renjin.compiler;
 import org.renjin.compiler.cfg.*;
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
+import org.renjin.compiler.ir.exception.InvalidSyntaxException;
 import org.renjin.compiler.ir.ssa.PhiFunction;
 import org.renjin.compiler.ir.ssa.SsaVariable;
 import org.renjin.compiler.ir.tac.RuntimeState;
@@ -30,8 +31,7 @@ import org.renjin.compiler.ir.tac.statements.IfStatement;
 import org.renjin.compiler.ir.tac.statements.Statement;
 import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.repackaged.guava.collect.Sets;
-import org.renjin.sexp.Function;
-import org.renjin.sexp.Symbol;
+import org.renjin.sexp.*;
 
 import java.util.*;
 
@@ -96,9 +96,13 @@ public class TypeSolver {
     return map;
   }
 
+
   public void execute() {
 
     executable.clear();
+    for (BasicBlock basicBlock : cfg.getBasicBlocks()) {
+      basicBlock.setLive(false);
+    }
     conditionalBounds.clear();
     flowWorkList.clear();
     ssaWorkList.clear();
@@ -126,7 +130,8 @@ public class TypeSolver {
         FlowEdge edge = flowWorkList.pop();
         if(!executable.contains(edge)) {
           BasicBlock node = edge.getSuccessor();
-          
+          node.setLive(true);
+
           // (a) mark the executable node as true
           executable.add(edge);
 
@@ -265,10 +270,29 @@ public class TypeSolver {
 
         conditionalBounds.put(conditional, newBounds);
 
-        flowWorkList.addAll(block.getOutgoing());
+        if(newBounds.isConstant()) {
+          // only add add the branch that will be executed
+          Logical conditionValue = newBounds.getConstantValue().asLogical();
+          if(conditionValue == Logical.NA) {
+            throw new InvalidSyntaxException("missing value where TRUE/FALSE needed");
+          }
+
+          conditional.setConstantValue(conditionValue);
+          if(conditionValue == Logical.TRUE) {
+            flowWorkList.add(block.getOutgoing(conditional.getTrueTarget()));
+          } else {
+            flowWorkList.add(block.getOutgoing(conditional.getFalseTarget()));
+          }
+
+        } else {
+          // have to assume that both branches are executable
+          conditional.setConstantValue(null);
+          flowWorkList.addAll(block.getOutgoing());
+        }
       }
     }
   }
+
 
   public int countIncomingExecutableEdges(BasicBlock block) {
     int count = 0;

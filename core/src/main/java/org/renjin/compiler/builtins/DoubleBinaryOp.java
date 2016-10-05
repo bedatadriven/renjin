@@ -48,8 +48,7 @@ public class DoubleBinaryOp implements Specialization {
     return Type.DOUBLE_TYPE;
   }
 
-  @Override
-  public ValueBounds getValueBounds() {
+  public ValueBounds getResultBounds() {
     return valueBounds;
   }
 

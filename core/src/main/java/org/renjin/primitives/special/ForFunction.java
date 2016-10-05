@@ -112,13 +112,10 @@ public class ForFunction extends SpecialFunction {
       IRBody body = builder.buildLoopBody(call, elements);
 
       ControlFlowGraph cfg = new ControlFlowGraph(body);
-      
 
       DominanceTree dTree = new DominanceTree(cfg);
       SsaTransformer ssaTransformer = new SsaTransformer(cfg, dTree);
       ssaTransformer.transform();
-
-      System.out.println(cfg);
 
 
       UseDefMap useDefMap = new UseDefMap(cfg);
@@ -128,7 +125,11 @@ public class ForFunction extends SpecialFunction {
       types.verifyFunctionAssumptions(runtimeState);
 
       ssaTransformer.removePhiFunctions(types);
-      
+
+
+      System.out.println(cfg);
+      types.dumpBounds();
+
       ByteCodeEmitter emitter = new ByteCodeEmitter(cfg, types);
       compiledBody = emitter.compileLoopBody().newInstance();
 

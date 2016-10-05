@@ -60,6 +60,12 @@ public interface SEXP {
    */
   double asReal();
 
+  /**
+   *
+   * Coerces this {@code SEXP} to a single integer value
+   */
+  int asInt();
+
 
   String asString();
 

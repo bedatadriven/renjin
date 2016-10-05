@@ -94,6 +94,11 @@ public abstract class AbstractSEXP implements SEXP {
     return DoubleVector.NA;
   }
 
+  @Override
+  public int asInt() {
+    return IntVector.NA;
+  }
+
   /**
    * @return the R language class of this expression
    */

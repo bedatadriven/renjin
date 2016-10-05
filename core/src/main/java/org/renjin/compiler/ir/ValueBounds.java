@@ -34,7 +34,7 @@ public class ValueBounds {
   public static final int UNKNOWN_LENGTH = -1;
   public static final int SCALAR_LENGTH = 1;
   
-  public static final ValueBounds UNBOUNDED = new ValueBounds();
+  public static final ValueBounds UNBOUNDED = new ValueBounds.Builder().build();
   
   public static final ValueBounds INT_PRIMITIVE = primitive(TypeSet.INT);
   
@@ -77,6 +77,7 @@ public class ValueBounds {
   private ValueBounds() {};
   
   private ValueBounds(ValueBounds toCopy) {
+    assert toCopy.attributes != null;
     this.length = toCopy.length;
     this.typeSet = toCopy.typeSet;
     this.constantValue = toCopy.constantValue;
@@ -487,7 +488,7 @@ public class ValueBounds {
     }
     
     public Builder(ValueBounds bounds) {
-      bounds = new ValueBounds(bounds);
+      this.bounds = new ValueBounds(bounds);
     }
     
     public Builder setLength(int length) {

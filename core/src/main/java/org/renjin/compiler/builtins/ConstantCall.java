@@ -22,12 +22,10 @@ import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.invoke.model.JvmMethod;
+import org.renjin.invoke.reflection.converters.BooleanArrayConverter;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.SEXP;
+import org.renjin.sexp.*;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -53,6 +51,14 @@ public class ConstantCall implements Specialization {
       type = Type.DOUBLE_TYPE;
       valueBounds = ValueBounds.of(DoubleVector.valueOf((Double) constantValue));
 
+    } else if(constantValue instanceof Boolean) {
+      type = Type.BOOLEAN_TYPE;
+      valueBounds = ValueBounds.of(LogicalVector.valueOf((Boolean) constantValue));
+
+    } else if(constantValue instanceof String) {
+      type = Type.getType(String.class);
+      valueBounds = ValueBounds.of(StringVector.valueOf((String) constantValue));
+
     } else if(constantValue instanceof SEXP) {
       type = Type.getType(constantValue.getClass());
       valueBounds = ValueBounds.of((SEXP)constantValue);
@@ -67,8 +73,7 @@ public class ConstantCall implements Specialization {
     return type;
   }
 
-  @Override
-  public ValueBounds getValueBounds() {
+  public ValueBounds getResultBounds() {
     return valueBounds;
   }
 
@@ -78,8 +83,10 @@ public class ConstantCall implements Specialization {
       mv.iconst((Integer) constantValue);
     } else if(constantValue instanceof Double) {
       mv.dconst((Double) constantValue);
+    } else if(constantValue instanceof Boolean) {
+      mv.iconst(constantValue == Boolean.TRUE ? 1 : 0);
     } else {
-      throw new UnsupportedOperationException();
+      throw new UnsupportedOperationException("constantValue: " + constantValue.getClass());
     }
   }
 
@@ -88,7 +95,7 @@ public class ConstantCall implements Specialization {
 
     ListVector.Builder varArgs = null;
     Map<String, Object> namedFlags = null;
-    
+
     if(method.acceptsArgumentList()) {
       namedFlags = new HashMap<>();
       varArgs = ListVector.newBuilder();
@@ -115,7 +122,16 @@ public class ConstantCall implements Specialization {
         throw new UnsupportedOperationException("in " + method +  ", " + "formal: " + formal);
       } else {
         ValueBounds argument = it.next();
-        args[argI++] = argument.getConstantValue();
+        Class formalType = formal.getClazz();
+        if(formalType.equals(double.class)) {
+          args[argI++] = argument.getConstantValue().asReal();
+        } else if(formalType.equals(int.class)) {
+          args[argI++] = argument.getConstantValue().asInt();
+        } else if(SEXP.class.isAssignableFrom(formalType)) {
+          args[argI++] = argument.getConstantValue();
+        } else {
+          throw new UnsupportedOperationException("formal type: " + formalType);
+        }
       }
     }
 

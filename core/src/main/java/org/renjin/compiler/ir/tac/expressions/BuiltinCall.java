@@ -24,7 +24,6 @@ import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.compiler.ir.tac.RuntimeState;
-import org.renjin.primitives.Primitives;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.repackaged.guava.base.Joiner;
@@ -96,7 +95,7 @@ public class BuiltinCall implements CallExpression {
     }
     specialization = specializer.trySpecialize(runtimeState, argumentTypes);
     
-    return specialization.getValueBounds();
+    return specialization.getResultBounds();
   }
 
   @Override
@@ -106,7 +105,7 @@ public class BuiltinCall implements CallExpression {
 
   @Override
   public ValueBounds getValueBounds() {
-    return specialization.getValueBounds();
+    return specialization.getResultBounds();
   }
   
   @Override

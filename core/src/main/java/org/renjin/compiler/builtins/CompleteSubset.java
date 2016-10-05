@@ -24,8 +24,7 @@ public class CompleteSubset implements Specialization {
     return sourceBounds.storageType();
   }
 
-  @Override
-  public ValueBounds getValueBounds() {
+  public ValueBounds getResultBounds() {
     return sourceBounds;
   }
 

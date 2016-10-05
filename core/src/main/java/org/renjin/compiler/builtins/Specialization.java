@@ -31,7 +31,7 @@ public interface Specialization {
   
   Type getType();
 
-  ValueBounds getValueBounds();
+  ValueBounds getResultBounds();
 
   void load(EmitContext emitContext, InstructionAdapter mv, List<IRArgument> arguments);
   

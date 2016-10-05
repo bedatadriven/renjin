@@ -144,6 +144,9 @@ public class TypeSet {
     } else if(type.equals(Vector.class)) {
       return ANY_VECTOR;
 
+    } else if(type.equals(AtomicVector.class)) {
+      return ANY_ATOMIC_VECTOR;
+
     } else if (type.equals(SEXP.class)) {
       return ANY_TYPE;
 

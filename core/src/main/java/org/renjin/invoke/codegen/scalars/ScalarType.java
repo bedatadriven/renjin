@@ -36,7 +36,15 @@ public abstract class ScalarType {
   public abstract Class getVectorType();
 
   public abstract Class<? extends Vector.Builder<?>> getBuilderClass();
+  
+  public abstract Class getBuilderArrayElementClass();
 
+  public JExpression toBuildArrayElementType(JExpression resultValue) {
+    return resultValue;
+  }
+  
+  public abstract Class getArrayVectorClass();
+  
   public JExpression testExpr(JCodeModel codeModel, JVar sexpVariable, Argument formal) {
     JClass vectorClass = codeModel.ref(Vector.class);
     JExpression vectorType =  codeModel.ref(getVectorType()).staticRef("VECTOR_TYPE");
@@ -57,4 +65,9 @@ public abstract class ScalarType {
       throw new RuntimeException(e);
     }
   }
+
+  public abstract JExpression naLiteral(JCodeModel codeModel);
+  
+  
+  
 }

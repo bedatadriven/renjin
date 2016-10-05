@@ -19,6 +19,7 @@
 package org.renjin.invoke.codegen.scalars;
 
 import com.sun.codemodel.JCodeModel;
+import com.sun.codemodel.JExpr;
 import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JVar;
 import org.renjin.invoke.annotations.CoerceLanguageToString;
@@ -62,9 +63,24 @@ public class StringType extends ScalarType {
       return vectorTest;
     }
   }
-  
+
+  @Override
+  public JExpression naLiteral(JCodeModel codeModel) {
+    return JExpr._null();
+  }
+
   @Override
   public Class<StringArrayVector.Builder> getBuilderClass() {
     return StringArrayVector.Builder.class;
+  }
+
+  @Override
+  public Class getBuilderArrayElementClass() {
+    return String.class;
+  }
+
+  @Override
+  public Class getArrayVectorClass() {
+    return StringArrayVector.class;
   }
 }

@@ -93,8 +93,9 @@ sort.int <-
     y
 }
 
-order <- function(..., na.last = TRUE, decreasing = FALSE)
+order <- function(..., na.last = TRUE, decreasing = FALSE, method = c("shift", "radix"))
 {
+    method = if(is.na(method)) "shift" else match.arg(method)
     z <- list(...)
     if(any(unlist(lapply(z, is.object)))) {
         z <- lapply(z, function(x) if(is.object(x)) xtfrm(x) else x)

@@ -69,9 +69,9 @@ public class Primitives {
   // these are loaded on demand
   private IdentityHashMap<Symbol, Entry> builtinEntries = new IdentityHashMap<Symbol, Entry>();
   private IdentityHashMap<Symbol, Entry> internalEntries = new IdentityHashMap<Symbol, Entry>();
-  
+
   private static final Primitives INSTANCE = new Primitives();
-  
+
   public static PrimitiveFunction getBuiltin(String name) {
     return getBuiltin(Symbol.get(name));
   }
@@ -114,7 +114,7 @@ public class Primitives {
   public static Entry getBuiltinEntry(Symbol name) {
     return INSTANCE.builtinEntries.get(name);
   }
-  
+
   public static Entry getInternalEntry(Symbol name) {
     return INSTANCE.internalEntries.get(name);
   }
@@ -123,7 +123,7 @@ public class Primitives {
     return getBuiltinEntry(Symbol.get(name));
   }
 
-  
+
   public static Set<Symbol> getBuiltinSymbols() {
     return Sets.union(INSTANCE.builtins.keySet(), INSTANCE.builtinEntries.keySet());
   }
@@ -142,8 +142,8 @@ public class Primitives {
       };
     }
   }
-  
-   
+
+
   public Primitives() {
     add(new IfFunction());
     add(new WhileFunction());
@@ -182,13 +182,13 @@ public class Primitives {
 
     add(new AssignLeftFunction());
     add(new AssignFunction());
-    
+
     add(new ReassignLeftFunction());
     add(new BeginFunction());
     add(new ParenFunction());
-      
+
     add(new AssignSlotFunction());
-      
+
     f(".subset", Subsetting.class, 1);
     f(".subset2", Subsetting.class, 1);
     f("[",Subsetting.class, -1);
@@ -328,7 +328,7 @@ public class Primitives {
     f("match.call", Match.class, 11);
     f("complete.cases", CompleteCases.class, 11);
 
-    f("attach", Environments.class, 111);   
+    f("attach", Environments.class, 111);
     f("detach", Environments.class, 111);
     f("search", Environments.class, 11);
 
@@ -349,7 +349,7 @@ public class Primitives {
     f("sqrt", MathGroup.class, 1);
     f("sign", MathGroup.class, 1);
     f("trunc", MathGroup.class, 1);
-    
+
     f("exp", MathGroup.class, 1);
     f("expm1", MathGroup.class, 1);
     f("log1p", MathGroup.class, 1);
@@ -612,7 +612,7 @@ public class Primitives {
     f("iconv", Text.class, 11);
     f("strtrim", Text.class, 11);
     f("strtoi", Text.class, 11);
-    
+
 /* Type Checking (typically implemented in ./coerce.c ) */
 
     f("is.null", Types.class,   /*NILSXP*/ 1);
@@ -649,7 +649,7 @@ public class Primitives {
     f("is.nan", Types.class, 1);
     f("is.finite", Types.class, 1);
     f("is.infinite", Types.class, 1);
-      
+
     f("isS4", Types.class, 1);
     f("setS4Object", Types.class, 11);
     f(".isMethodsDispatchOn", Methods.class, 1);
@@ -728,7 +728,7 @@ public class Primitives {
     f("is.unsorted", Sort.class, 11);
     f("psort", Sort.class, null, 11);
     f("qsort", Sort.class, 11);
-    f("radixsort", /*radixsort*/ null, 11);
+    f("radixsort", Sort.class, 11);
     f("order", Sort.class, 11);
     f("rank", Sort.class, 11);
     f("missing", Evaluation.class, "missing", 0);
@@ -774,7 +774,7 @@ public class Primitives {
     f("object.size", /*objectsize*/ null, 11);
     f("inspect", /*inspect*/ null, 111);
     f("mem.limits", /*memlimits*/ null, 11);
- // Internal merge function is replaced with pure R code //  f("merge", /*merge*/ null, 11);
+    // Internal merge function is replaced with pure R code //  f("merge", /*merge*/ null, 11);
     f("capabilities", System.class, 11);
     f("capabilitiesX11", /*capabilitiesX11*/ null, 11);
     f("new.env", Environments.class, 11);
@@ -893,7 +893,7 @@ public class Primitives {
     f("grconvertX", Graphics.class, 11);
     f("grconvertY", Graphics.class, 11);
 
-/* Objects */   
+/* Objects */
     f("inherits", Attributes.class, 11);
     f("UseMethod", S3.class, 200);
     f("NextMethod", S3.class, 210);
@@ -992,18 +992,18 @@ public class Primitives {
 /* looks like mkUnbound is unused in base R */
     f("mkUnbound", /*mkUnbound*/ null, 111);
     f("isNamespace", Namespaces.class, 0);
-  // hiding:  f("registerNamespace", Namespaces.class, 0, 11, 2);
-   // hiding: f("unregisterNamespace", Namespaces.class, 0, 11, 1);
+    // hiding:  f("registerNamespace", Namespaces.class, 0, 11, 2);
+    // hiding: f("unregisterNamespace", Namespaces.class, 0, 11, 1);
     f("getNamespace", Namespaces.class, 0);
     f("getRegisteredNamespace",Namespaces.class, 11);
     f("loadedNamespaces", Namespaces.class, 0);
     f("getNamespaceName", Namespaces.class, 0);
     f("getNamespaceExports", Namespaces.class, 0);
     f("getNamespaceImports", Namespaces.class, 0);
-    
+
     f("getNamespaceRegistry", Namespaces.class, 11);
-      
-   // hiding f("importIntoEnv", Namespaces.class, 0, 11, 4);
+
+    // hiding f("importIntoEnv", Namespaces.class, 0, 11, 4);
     f("env.profile", /*envprofile*/ null, 211);
     f(":::", Namespaces.class, 0);
     f("::", Namespaces.class, 0);
@@ -1011,11 +1011,11 @@ public class Primitives {
     f("find.package", Namespaces.class, 11);
     f("Encoding", Types.class, 11);
     f("setEncoding", Types.class, 11);
-  // REMOVED: f("lazyLoadDBfetch", Serialization.class, 0, 1, 4);
+    // REMOVED: f("lazyLoadDBfetch", Serialization.class, 0, 1, 4);
     f("setTimeLimit", /*setTimeLimit*/ null, 111);
     f("setSessionTimeLimit", /*setSessionTimeLimit*/ null, 111);
     f("icuSetCollate", /*ICUset*/ null, 111) ;
-    
+
     // jvm specific
     f("import", Jvmi.class, 0);
     f("jload", Jvmi.class, 0);
@@ -1028,7 +1028,7 @@ public class Primitives {
     builtins.put(Symbol.get(fn.getName()), fn);
   }
 
-  private void add(Entry entry) {     
+  private void add(Entry entry) {
     if (entry.isInternal()) {
       internalEntries.put(Symbol.get(entry.name), entry);
     } else {

@@ -97,95 +97,123 @@ public class Sort {
   }
 
   @Internal
-  public static Vector radixsort(IntVector x, Logical naLast, LogicalVector decreasing, @ArgumentList final ListVector columns) {
+  public static Vector radixsort(@ArgumentList final ListVector arguments) {
+
+    if (arguments.length() < 5) {
+      throw new EvalException("radixsort requires at least 5 arguments.");
+    }
+
+    boolean naLast = arguments.getElementAsLogical(0).toBooleanStrict();
+    boolean decreasing = (Boolean) arguments.getElementAsObject(1);
+    boolean returnGroup = arguments.getElementAsLogical(2).toBooleanStrict();
+    boolean sortString = arguments.getElementAsLogical(3).toBooleanStrict();
 
 
     //
     // code from radixsort.c:1564
     //
     //
-    boolean returnGroup = Boolean.FALSE;
-    boolean sortString = Boolean.FALSE;
     int nl = 0;
     int narg = 0;
-    if (columns.length() == 1) {
-      returnGroup = (boolean) columns.getElementAsLogical(0).toBooleanStrict();
-    }
-    if (columns.length() >= 2) {
-      returnGroup = (boolean) columns.getElementAsLogical(0).toBooleanStrict();
-      sortString = (boolean) columns.getElementAsLogical(1).toBooleanStrict();
-      if (columns.getElementAsObject(2) instanceof Vector) {
-        nl = ((Vector) columns.getElementAsObject(2)).length();
+    if (arguments.length() >= 5) {
+      if (arguments.getElementAsObject(4) instanceof Vector) {
+        nl = ((Vector) arguments.getElementAsObject(4)).length();
       }
-      if (columns.length() >= 3) {
-        for (int i = 3; i < columns.length(); i++) {
-          if (!(columns.getElementAsObject(i) instanceof Vector)) {
-            throw new EvalException("argument " + i+1 +" is not a vector");
+      if (arguments.length() >= 6) {
+        for (int i = 5; i < arguments.length(); i++) {
+          int argumentNumber = i + 1;
+          if (!(arguments.getElementAsObject(i) instanceof Vector)) {
+            throw new EvalException("argument " + argumentNumber +" is not a vector");
           }
-          if (columns.length() != nl) {
+          if (((Vector) arguments.getElementAsObject(i)).length() != nl) {
             throw new EvalException("argument lengths differ");
           }
           narg++;
         }
       }
     }
-    if (narg != decreasing.length()) {
-      throw new EvalException("length(decreasing) must match the number of order arguments");
-    }
-    for (int i = 0; i < narg; i++) {
-      if (decreasing.getElementAsString(i) == StringVector.NA) {
-        throw new EvalException("'decreasing' elements must be TRUE or FALSE");
-      }
-    }
+//    if (narg != decreasing.length()) {
+//      throw new EvalException("length(decreasing) must match the number of order arguments");
+//    }
+//    for (int i = 0; i < narg; i++) {
+//      if (decreasing.getElementAsString(i) == StringVector.NA) {
+//        throw new EvalException("'decreasing' elements must be TRUE or FALSE");
+//      }
+//    }
 
-    int n = nl;
-
-
-    int naLastValue;
-    if (naLast == Logical.NA) {
-      naLastValue = 0;
-    } else if (naLast == Logical.FALSE) {
-      naLastValue = -1;
-    } else {
-      naLastValue = 1;
-    }
-
-    if(x.getAttribute(Symbols.NAMES)!= Null.INSTANCE) {
+    if(arguments.getElementAsSEXP(0).getAttribute(Symbols.NAMES)!= Null.INSTANCE) {
       throw new EvalException("sorting of vectors with names not yet implemented!");
     }
 
-    int sorted[] = x.toIntArray();
+    // this now only sorts the first input object and should be extended to
+    // sort all the inputs and respect grouping/character sort
 
-    // from http://www.thecrazyprogrammer.com/2015/06/radix-sort-java-program-and-algorithm.html
-    int i, max = sorted[0], exp = 1, n = sorted.length;
-    int[] b = new int[10];
-    for (i = 1; i < n; i++) {
-      if (sorted[i] > max) {
-        max = sorted[i];
+    if (arguments.length() == 5) {
+      int sorted[] = ((IntVector) arguments.getElementAsSEXP(4)).toIntArray();
+      // from http://www.thecrazyprogrammer.com/2015/06/radix-sort-java-program-and-algorithm.html
+      int i, max = sorted[0], exp = 1, length = sorted.length;
+      int[] b = new int[10];
+      for (i = 1; i < length; i++) {
+        if (sorted[i] > max) {
+          max = sorted[i];
+        }
       }
-    }
-    while (max / exp > 0) {
-      int[] bucket = new int[10];
-      for (i = 0; i < n; i++) {
-        bucket[(sorted[i] / exp) % 10]++;
+      while (max / exp > 0) {
+        int[] bucket = new int[10];
+        for (i = 0; i < length; i++) {
+          bucket[(sorted[i] / exp) % 10]++;
+        }
+        for (i = 1; i < 10; i++) {
+          bucket[i] += bucket[i - 1];
+        }
+        for (i = length - 1; i >= 0; i--) {
+          b[--bucket[(sorted[i] / exp) % 10]] = sorted[i];
+        }
+        for (i = 0; i < length; i++) {
+          sorted[i] = b[i];
+        }
+        exp *= 10;
       }
-      for (i = 1; i < 10; i++) {
-        bucket[i] += bucket[i - 1];
+      if(decreasing) {
+        reverse(sorted);
       }
-      for (i = n - 1; i >= 0; i--) {
-        b[--bucket[(sorted[i] / exp) % 10]] = sorted[i];
+      return new IntArrayVector(sorted, arguments.getElementAsSEXP(4).getAttributes());
+    } else {
+      ListVector.Builder result = new ListVector.Builder();
+      for (int m = 4; m < arguments.length(); m++) {
+        int sorted[] = ((IntVector) arguments.getElementAsSEXP(m)).toIntArray();
+        // from http://www.thecrazyprogrammer.com/2015/06/radix-sort-java-program-and-algorithm.html
+        int i, max = sorted[0], exp = 1, length = sorted.length;
+        int[] b = new int[10];
+        for (i = 1; i < length; i++) {
+          if (sorted[i] > max) {
+            max = sorted[i];
+          }
+        }
+        while (max / exp > 0) {
+          int[] bucket = new int[10];
+          for (i = 0; i < length; i++) {
+            bucket[(sorted[i] / exp) % 10]++;
+          }
+          for (i = 1; i < 10; i++) {
+            bucket[i] += bucket[i - 1];
+          }
+          for (i = length - 1; i >= 0; i--) {
+            b[--bucket[(sorted[i] / exp) % 10]] = sorted[i];
+          }
+          for (i = 0; i < length; i++) {
+            sorted[i] = b[i];
+          }
+          exp *= 10;
+        }
+        if(decreasing) {
+          reverse(sorted);
+        }
+        result.add(new IntArrayVector(sorted, arguments.getElementAsSEXP(4).getAttributes()) );
       }
-      for (i = 0; i < n; i++) {
-        sorted[i] = b[i];
-      }
-      exp *= 10;
+      return result.build();
     }
 
-    if(decreasing.getElementAsLogical(0).toBooleanStrict()) {
-      reverse(sorted);
-    }
-
-    return new IntArrayVector(sorted, x.getAttributes());
   }
 
   @Internal("is.unsorted")

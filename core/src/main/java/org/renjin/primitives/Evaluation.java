@@ -167,7 +167,8 @@ public class Evaluation {
     return result.build();
   }
 
-  public static ListVector mapply(Context context, SEXP f, SEXP varyingArgs, Vector constantArgs, Environment rho) {
+  @Internal
+  public static ListVector mapply(@Current Context context, SEXP f, SEXP varyingArgs, Vector constantArgs, Environment rho) {
 
     int longest = 0;
     int[] lengths = new int[varyingArgs.length()];

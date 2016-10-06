@@ -328,7 +328,7 @@ public class Primitives {
     f("match.call", Match.class, 11);
     f("complete.cases", CompleteCases.class, 11);
 
-    f("attach", Environments.class, 111);   
+    f("attach", Environments.class, 111);
     f("detach", Environments.class, 111);
     f("search", Environments.class, 11);
 
@@ -760,7 +760,9 @@ public class Primitives {
     f("eapply", /*eapply*/ null, 10);
     f("lapply", Evaluation.class, 10);
     f("vapply", Evaluation.class, 10);
+    f("mapply", Evaluation.class, 10);
     f("rapply", /*rapply*/ null, 11);
+
     f("islistfactor",  Types.class, 11);
     f("colSums", Matrices.class, 11);
     f("colMeans", Matrices.class, 11);
@@ -779,7 +781,7 @@ public class Primitives {
     f("capabilitiesX11", /*capabilitiesX11*/ null, 11);
     f("new.env", Environments.class, 11);
     f("parent.env", Environments.class, 11);
-    f("parent.env<-", Environments.class, 2);
+    f("parent.env<-", Environments.class, 11);
     f("visibleflag", /*visibleflag*/ null, 1);
     f("l10n_info", /*l10n_info*/ null, 11);
     f("Cstack_info", /*Cstack_info*/ null, 11);

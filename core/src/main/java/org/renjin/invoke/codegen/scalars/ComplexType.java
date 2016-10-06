@@ -18,6 +18,8 @@
  */
 package org.renjin.invoke.codegen.scalars;
 
+import com.sun.codemodel.JCodeModel;
+import com.sun.codemodel.JExpression;
 import org.apache.commons.math.complex.Complex;
 import org.renjin.sexp.ComplexArrayVector;
 import org.renjin.sexp.ComplexVector;
@@ -49,6 +51,21 @@ public class ComplexType extends ScalarType{
   @Override
   public Class<ComplexArrayVector.Builder> getBuilderClass() {
     return ComplexArrayVector.Builder.class;
+  }
+
+  @Override
+  public Class getBuilderArrayElementClass() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public Class getArrayVectorClass() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public JExpression naLiteral(JCodeModel codeModel) {
+    throw new UnsupportedOperationException();
   }
 
 }

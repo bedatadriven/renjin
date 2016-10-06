@@ -93,9 +93,16 @@ sort.int <-
     y
 }
 
-order <- function(..., na.last = TRUE, decreasing = FALSE)
-{
-    z <- list(...)
+order <- function(..., na.last = TRUE, decreasing = FALSE,
+                           method = c("shell", "radix"))
+         {
+             z <- list(...)
+
+             if (missing(method)) {
+                 method <- "shell"
+             } else {
+                 method <- match.arg(method)
+             }
     if(any(unlist(lapply(z, is.object)))) {
         z <- lapply(z, function(x) if(is.object(x)) xtfrm(x) else x)
         if(!is.na(na.last))

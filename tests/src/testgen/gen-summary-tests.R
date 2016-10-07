@@ -97,6 +97,12 @@ for(fn in unary) {
   test <- test.open("gen-summary-tests.R", fn)
   writeln(test, "library(hamcrest)")
   
+  # min/max/range behavior is dependant on the 
+  # current locale.
+  if(unary %in% c("min", "max", "range")) {
+    writeFixture(test, "Sys.setlocale('LC_COLLATE', 'C')")
+  }
+  
   # define some nonsense generic functions
   writeln(test, "%s.foo <- function(...) 41", fn)
   writeln(test, "Math.bar <- function(...) 44")
@@ -114,7 +120,18 @@ for(fn in unary) {
   for(input in inputs) {
     writeTest(test, fn, input, tol = tol)
   }
-  
+
+  # Check combinations for min, max, range
+  if(fn %in% c("min", "max", "range")) {
+    for(na.rm in c(TRUE, FALSE)) {
+        for(i in inputs) {
+            for(j in inputs) {
+                writeTest(test, fn, i, j, na.rm = TRUE)
+            }
+        }
+    }
+  }
+
   # Check S3 dispatch
   writeTest(test, fn, structure("foo", class='foo'))
   writeTest(test, fn, structure(list(1L, "bar"), class='bar'))

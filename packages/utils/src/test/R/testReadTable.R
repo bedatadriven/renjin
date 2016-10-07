@@ -39,8 +39,8 @@ test.issue.102 <- function() {
     df <- read.csv("tables/issue102.txt", stringsAsFactors = FALSE)
     
     expected <- data.frame(
-        X_id = c("3909D56A13834DBDAA7A5F637A48B4N41",
-                "3151D4C10A17440584D1363747F933B2",  
+        X_id = c("3909D56A13834DBDAA7A5F637A48B441",
+                "3151D4C10A17440584D1363747F933B2",
                 "A01F4909C00542BD919602F6922DCC0C", 
                 "993E4E765C5947519D89B8C9068346AF",  
                 "235122AAA820439EAE043CA3DD8BF0DF"), 

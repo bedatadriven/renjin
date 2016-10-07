@@ -26,6 +26,7 @@ source("src/testgen/gen.R")
 unary <- c('cumsum', 'cumprod', 'cummax', 'cummin', 
            'sum', 'prod', 'min', 'max', 'range', 'any', 'all')
 
+
 inputs <- list(
   
   NULL,
@@ -90,6 +91,11 @@ inputs <- list(
  # TODO: GNU R does not seem to handle this correctly...  as.raw(c(0, 255, 31))
 )
 
+inputsWithAttributes <- list(
+  
+  
+)
+
 
 for(fn in unary) {
 
@@ -99,7 +105,7 @@ for(fn in unary) {
   
   # min/max/range behavior is dependant on the 
   # current locale.
-  if(unary %in% c("min", "max", "range")) {
+  if(fn %in% c("min", "max", "range")) {
     writeFixture(test, "Sys.setlocale('LC_COLLATE', 'C')")
   }
   
@@ -120,12 +126,14 @@ for(fn in unary) {
   for(input in inputs) {
     writeTest(test, fn, input, tol = tol)
   }
-
+  
   # Check combinations for min, max, range
+  # But skip those with attributes to reduce explosion
+  short.list <- inputs[ sapply(inputs, function(i) is.null(attributes(i))) ]
   if(fn %in% c("min", "max", "range")) {
     for(na.rm in c(TRUE, FALSE)) {
-        for(i in inputs) {
-            for(j in inputs) {
+        for(i in short.list) {
+            for(j in short.list) {
                 writeTest(test, fn, i, j, na.rm = TRUE)
             }
         }

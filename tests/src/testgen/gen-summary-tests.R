@@ -91,11 +91,6 @@ inputs <- list(
  # TODO: GNU R does not seem to handle this correctly...  as.raw(c(0, 255, 31))
 )
 
-inputsWithAttributes <- list(
-  
-  
-)
-
 
 for(fn in unary) {
 
@@ -130,7 +125,7 @@ for(fn in unary) {
   # Check combinations for min, max, range
   # But skip those with attributes to reduce explosion
   short.list <- inputs[ sapply(inputs, function(i) is.null(attributes(i))) ]
-  if(fn %in% c("min", "max", "range")) {
+  if(fn %in% c("min", "max")) {
     for(na.rm in c(TRUE, FALSE)) {
         for(i in short.list) {
             for(j in short.list) {

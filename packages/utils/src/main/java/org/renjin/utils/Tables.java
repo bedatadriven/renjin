@@ -81,7 +81,7 @@ public class Tables {
                                    String dec, String numerals) {
 
     Set<String> naSet = createHashSet(naStrings);
-    Converter<?> converter = getConverter(vector, naSet);
+    Converter<?> converter = getConverter(vector, naSet, dec.charAt(0));
     if(converter != null) {
       return converter.build(vector, naSet);
     } else if(asIs) {
@@ -131,11 +131,11 @@ public class Tables {
     return Strings.isNullOrEmpty(string) || naStrings.contains(string);
   }
 
-  private static Converter<?> getConverter(StringVector vector, Set<String> naStrings) {
+  private static Converter<?> getConverter(StringVector vector, Set<String> naStrings, char decimal) {
     Converter<?> converters[] = new Converter<?>[] {
         new LogicalConverter(),
         new IntConverter(),
-        new DoubleConverter()
+        new DoubleConverter(decimal)
     };
     for(Converter<?> converter : converters) {
       if(converter.accept(vector, naStrings)) {
@@ -219,17 +219,23 @@ public class Tables {
 
   private static class DoubleConverter extends Converter<DoubleArrayVector.Builder> {
 
+    private final char decimal;
+
+    public DoubleConverter(char decimal) {
+      this.decimal = decimal;
+    }
+
     @Override
     public boolean accept(String string) {
       try {
-        return !DoubleVector.isNA(NumericLiterals.parseDouble(string));
+        return !DoubleVector.isNA(NumericLiterals.parseDouble(string, 0, string.length(), decimal, false));
       } catch(Exception e) {
         return false;
       }
     }
     @Override
     public void set(DoubleArrayVector.Builder builder, int index, String string) {
-      builder.set(index, NumericLiterals.parseDouble(string));
+      builder.set(index, NumericLiterals.parseDouble(string, 0, string.length(), decimal, false));
     }
     @Override
     DoubleArrayVector.Builder newBuilder(int length) {

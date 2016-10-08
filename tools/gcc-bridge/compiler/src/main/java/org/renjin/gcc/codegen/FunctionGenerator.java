@@ -32,16 +32,15 @@ import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.type.ReturnStrategy;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.TypeStrategy;
+import org.renjin.gcc.codegen.var.GlobalVarAllocator;
+import org.renjin.gcc.codegen.var.LocalStaticVarAllocator;
 import org.renjin.gcc.gimple.*;
 import org.renjin.gcc.gimple.statement.*;
 import org.renjin.gcc.gimple.type.GimpleVoidType;
 import org.renjin.gcc.peephole.PeepholeOptimizer;
 import org.renjin.gcc.symbols.LocalVariableTable;
 import org.renjin.gcc.symbols.UnitSymbolTable;
-import org.renjin.repackaged.asm.ClassVisitor;
-import org.renjin.repackaged.asm.Handle;
-import org.renjin.repackaged.asm.Label;
-import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.asm.*;
 import org.renjin.repackaged.asm.tree.MethodNode;
 import org.renjin.repackaged.asm.util.Textifier;
 import org.renjin.repackaged.asm.util.TraceMethodVisitor;
@@ -69,6 +68,7 @@ public class FunctionGenerator implements InvocationStrategy {
   private Labels labels = new Labels();
   private TypeOracle typeOracle;
   private ExprFactory exprFactory;
+  private LocalStaticVarAllocator staticVarAllocator;
   private LocalVariableTable symbolTable;
   
   private Label beginLabel = new Label();
@@ -76,12 +76,14 @@ public class FunctionGenerator implements InvocationStrategy {
   
   private MethodGenerator mv;
 
-  public FunctionGenerator(String className, GimpleFunction function, TypeOracle typeOracle, UnitSymbolTable symbolTable) {
+  public FunctionGenerator(String className, GimpleFunction function, TypeOracle typeOracle,
+                           GlobalVarAllocator globalVarAllocator, UnitSymbolTable symbolTable) {
     this.className = className;
     this.function = function;
     this.typeOracle = typeOracle;
     this.params = this.typeOracle.forParameters(function.getParameters());
     this.returnStrategy = this.typeOracle.returnStrategyFor(function.getReturnType());
+    this.staticVarAllocator = new LocalStaticVarAllocator("$" + function.getMangledName() + "$", globalVarAllocator);
     this.symbolTable = new LocalVariableTable(symbolTable);
   }
 
@@ -216,9 +218,23 @@ public class FunctionGenerator implements InvocationStrategy {
     mv.getLocalVarAllocator().initializeVariables(mv);
     
     for (GimpleVarDecl decl : function.getVariableDeclarations()) {
-      GExpr lhs = symbolTable.getVariable(decl);
-      if(decl.getValue() != null) {
-        lhs.store(mv, exprFactory.findGenerator(decl.getValue()));
+      if(!decl.isStatic()) {
+        GExpr lhs = symbolTable.getVariable(decl);
+        if (decl.getValue() != null) {
+          lhs.store(mv, exprFactory.findGenerator(decl.getValue()));
+        }
+      }
+    }
+  }
+
+  public void emitLocalStaticVarInitialization(MethodGenerator mv) {
+
+    for (GimpleVarDecl decl : function.getVariableDeclarations()) {
+      if(decl.isStatic()) {
+        GExpr lhs = symbolTable.getVariable(decl);
+        if (decl.getValue() != null) {
+          lhs.store(mv, exprFactory.findGenerator(decl.getValue()));
+        }
       }
     }
   }
@@ -230,11 +246,13 @@ public class FunctionGenerator implements InvocationStrategy {
 
     // Dumb scheduling: give every local variable it's own slot
     for (GimpleVarDecl varDecl : function.getVariableDeclarations()) {
-      
       try {
         GExpr generator;
         TypeStrategy factory = typeOracle.forType(varDecl.getType());
-        generator = factory.variable(varDecl, mv.getLocalVarAllocator());
+        generator = factory.variable(varDecl,
+            varDecl.isStatic() ?
+                staticVarAllocator :
+                mv.getLocalVarAllocator());
 
         symbolTable.addVariable(varDecl.getId(), generator);
       } catch (Exception e) {
@@ -347,7 +365,7 @@ public class FunctionGenerator implements InvocationStrategy {
   
   @Override
   public List<ParamStrategy> getParamStrategies() {
-    List<ParamStrategy> parameterTypes = new ArrayList<ParamStrategy>();
+    List<ParamStrategy> parameterTypes = new ArrayList<>();
     for (GimpleParameter parameter : function.getParameters()) {
       ParamStrategy generator = params.get(parameter);
       parameterTypes.add(generator);

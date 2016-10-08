@@ -932,6 +932,7 @@ static void dump_local_decl(tree decl) {
   } 
 
   json_int_field("id", DEBUG_TEMP_UID (decl));
+  json_bool_field("static", TREE_STATIC(decl));
   if(TREE_TYPE(decl)) {
     json_field("type");
     dump_type(TREE_TYPE(decl));
@@ -940,14 +941,14 @@ static void dump_local_decl(tree decl) {
     json_field("value");
     dump_op(DECL_INITIAL(decl));
   }
-  
+
   json_end_object();
 }
 
 static void dump_local_decls(struct function *fun) {
   unsigned ix;
   tree var;
-  
+
   json_array_field("variableDeclarations");
 
   FOR_EACH_LOCAL_DECL (fun, ix, var)

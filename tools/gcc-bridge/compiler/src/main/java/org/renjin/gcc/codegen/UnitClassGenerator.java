@@ -43,9 +43,7 @@ import org.renjin.repackaged.guava.collect.Sets;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Field;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static org.renjin.repackaged.asm.Opcodes.*;
 
@@ -79,7 +77,8 @@ public class UnitClassGenerator {
     this.typeOracle = typeOracle;
     this.globalVarAllocator = new GlobalVarAllocator(className);
     this.symbolTable = new UnitSymbolTable(functionTable);
-  
+
+    // Setup global variables that have global scoping
     for (GimpleVarDecl decl : unit.getGlobalVariables()) {
       if(!isIgnored(decl)) {
         TypeStrategy typeStrategy = typeOracle.forType(decl.getType());
@@ -104,7 +103,7 @@ public class UnitClassGenerator {
     for (GimpleFunction function : unit.getFunctions()) {
       try {
         symbolTable.addFunction(function,
-            new FunctionGenerator(className, function, typeOracle, symbolTable));
+            new FunctionGenerator(className, function, typeOracle, globalVarAllocator, symbolTable));
       } catch (Exception e) {
         throw new InternalCompilerException(String.format("Exception creating %s for %s in %s: %s",
             FunctionGenerator.class.getSimpleName(),
@@ -157,8 +156,8 @@ public class UnitClassGenerator {
     cv.visit(V1_7, ACC_PUBLIC + ACC_SUPER, className, null, "java/lang/Object", new String[0]);
     cv.visitSource(unit.getSourceName(), null);
     emitDefaultConstructor();
-    emitGlobalVariables();
     emitFunctions(logger, unit);
+    emitGlobalVariables();
     cv.visitEnd();
   }
 
@@ -205,6 +204,11 @@ public class UnitClassGenerator {
                 unit.getSourceName()), e);
       }
     }
+
+    for (FunctionGenerator function : symbolTable.getFunctions()) {
+      function.emitLocalStaticVarInitialization(mv);
+    }
+
     mv.visitInsn(RETURN);
     mv.visitMaxs(1, 1);
     mv.visitEnd();

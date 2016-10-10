@@ -1,0 +1,30 @@
+Package: S4Vectors
+Title: S4 implementation of vectors and lists
+Description: The S4Vectors package defines the Vector and List virtual classes
+	and a set of generic functions that extend the semantic of ordinary
+	vectors and lists in R. Package developers can easily implement
+	vector-like or list-like objects as concrete subclasses of Vector or
+	List. In addition, a few low-level concrete subclasses of general
+	interest (e.g. DataFrame, Rle, and Hits) are implemented in the
+	S4Vectors package itself (many more are implemented in the IRanges
+	package and in other Bioconductor infrastructure packages).
+Version: 0.10.3
+Encoding: UTF-8
+Author: H. Pagès, M. Lawrence and P. Aboyoun
+Maintainer: Bioconductor Package Maintainer <maintainer@bioconductor.org>
+biocViews: Infrastructure, DataRepresentation
+Depends: R (>= 3.3.0), methods, utils, stats, stats4, BiocGenerics (>=
+        0.15.10)
+Suggests: IRanges, GenomicRanges, RUnit
+License: Artistic-2.0
+Collate: S4-utils.R show-utils.R utils.R normarg-utils.R isSorted.R
+        subsetting-utils.R vector-utils.R logical-utils.R int-utils.R
+        str-utils.R eval-utils.R DataTable-class.R Annotated-class.R
+        Vector-class.R Vector-comparison.R Vector-setops.R Hits-class.R
+        Hits-comparison.R Hits-setops.R Rle-class.R Rle-utils.R
+        List-class.R List-comparison.R List-utils.R SimpleList-class.R
+        HitsList-class.R DataFrame-class.R expand-methods.R
+        FilterRules-class.R aggregate-methods.R shiftApply-methods.R
+        split-methods.R Pairs-class.R zzz.R
+NeedsCompilation: yes
+Packaged: 2016-08-16 04:20:49 UTC; biocbuild

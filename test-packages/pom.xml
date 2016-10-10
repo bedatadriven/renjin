@@ -32,6 +32,7 @@
     <module>nativeWithPrefix</module>
     <module>nativeWithoutRegistration</module>
     <module>link</module>
+    <module>S4Vectors</module>
   </modules>
 
   <!-- Do not deploy test packages -->

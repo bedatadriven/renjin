@@ -1,0 +1,387 @@
+useDynLib(S4Vectors)
+
+import(methods)
+importFrom(utils, head, tail, head.matrix, tail.matrix)
+importFrom(stats, var, cov, cor, sd, median, quantile,
+           smoothEnds, runmed, window, "window<-", aggregate,
+           na.omit, na.exclude, complete.cases, setNames)
+importFrom(stats4, summary, update)
+
+import(BiocGenerics)
+
+
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+### Export S4 classes
+###
+
+exportClasses(
+    characterORNULL, vectorORfactor,
+    DataTable,
+    NSBS,
+    Annotated,
+    DataTableORNULL, Vector,
+    Hits, SelfHits, SortedByQueryHits, SortedByQuerySelfHits,
+    Rle,
+    List,
+    SimpleList,
+    HitsList, SortedByQueryHitsList,
+    DataFrame,
+    expressionORfunction, FilterRules, FilterMatrix,
+    Pairs
+)
+
+
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+### Export S3 methods
+###
+
+S3method(aggregate, Vector)
+
+S3method(anyDuplicated, NSBS)
+
+S3method(as.data.frame, Vector)
+S3method(as.data.frame, DataTable)
+
+S3method(as.list, Vector)
+
+S3method(as.matrix, Vector)
+
+S3method(as.vector, Rle)
+
+S3method(cbind, DataFrame)
+
+S3method(diff, Rle)
+
+S3method(droplevels, List)
+S3method(droplevels, Rle)
+
+S3method(duplicated, DataTable)
+S3method(duplicated, Vector)
+
+S3method(head, DataTable)
+S3method(head, Vector)
+
+S3method(levels, Rle)
+
+S3method(mean, Rle)
+
+S3method(median, Rle)
+
+S3method(quantile, Rle)
+
+S3method(rbind, DataFrame)
+
+S3method(rev, Rle)
+
+S3method(sort, Vector)
+
+S3method(summary, Rle)
+
+S3method(tail, DataTable)
+S3method(tail, Vector)
+
+S3method(unique, DataTable)
+S3method(unique, Vector)
+
+S3method(window, Vector)
+
+### We also export them thru the export() directive so that (a) they can be
+### called directly, (b) tab-completion on the name of the generic shows them,
+### and (c) methods() doesn't asterisk them.
+export(
+    aggregate.Vector,
+
+    anyDuplicated.NSBS,
+
+    as.data.frame.Vector,
+    as.data.frame.DataTable,
+
+    as.list.Vector,
+
+    as.vector.Rle,
+
+    diff.Rle,
+
+    droplevels.Rle,
+    droplevels.List,
+    
+    duplicated.DataTable,
+    duplicated.Vector,
+
+    head.DataTable,
+    head.Vector,
+
+    levels.Rle,
+
+    mean.Rle,
+
+    median.Rle,
+
+    quantile.Rle,
+
+    rev.Rle,
+
+    sort.Vector,
+
+    summary.Rle,
+
+    tail.DataTable,
+    tail.Vector,
+
+    unique.DataTable,
+    unique.Vector,
+
+    window.Vector
+)
+
+
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+### Export S4 methods for generics not defined in S4Vectors
+###
+
+exportMethods(
+    ## Methods for generics defined in the base package:
+    length, names, "names<-",
+    nrow, ncol, dim,
+    NROW, NCOL,
+    rownames, "rownames<-",
+    colnames, "colnames<-",
+    dimnames, "dimnames<-",
+    is.na, anyNA,
+    as.logical, as.integer, as.numeric, as.complex, as.character, as.raw,
+    as.factor,
+    as.list, as.data.frame,
+    as.matrix, as.table,
+    "[", "[<-",
+    subset,
+    c, append,
+    merge,
+    "==", "!=", "<=", ">=", "<", ">",
+    "!",
+    match, duplicated, unique, anyDuplicated, "%in%",
+    order, sort, is.unsorted, rank, xtfrm,
+    t,
+    by,
+    transform,
+    nchar, substr, substring, levels, "levels<-", droplevels,
+    "[[", "[[<-", "$", "$<-",
+    split,
+    eval, with, within,
+    ifelse,  # Defunct
+
+    ## Methods for generics defined in the methods package:
+    coerce, show,
+
+    ## Methods for generics defined in the utils package:
+    head, tail,
+
+    ## Methods for generics defined in the stats package:
+    var, cov, cor, sd, window, aggregate, na.omit, na.exclude, complete.cases,
+
+    ## Methods for generics defined in the stats4 package:
+    summary,
+
+    ## Methods for generics defined in the BiocGenerics package:
+    cbind, rbind,
+    lapply, sapply,
+    Reduce, Filter,
+    unlist,
+    do.call,
+    union, intersect, setdiff, setequal,
+    xtabs,
+    start, end, width,
+    grep, grepl,
+    updateObject
+)
+
+
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+### Export non-generic functions
+###
+
+export(
+    ## S4-utils.R:
+    setValidity2, new2, setMethods,
+
+    ## utils.R:
+    wmsg,
+    .Call2,
+    get_showHeadLines, get_showTailLines,
+    printAtomicVectorInAGrid,
+
+    ## normarg-utils.R:
+    isTRUEorFALSE, isSingleInteger, isSingleNumber, isSingleString,
+    isSingleNumberOrNA, isSingleStringOrNA,
+    recycleIntegerArg, recycleNumericArg,
+    recycleLogicalArg, recycleCharacterArg,
+    recycleArg,
+    fold,
+
+    ## subsetting-utils.R:
+    normalizeSingleBracketSubscript,
+    normalizeDoubleBracketSubscript,
+
+    ## int-utils.R:
+    orderIntegerPairs,
+    matchIntegerPairs, selfmatchIntegerPairs, duplicatedIntegerPairs,
+    orderIntegerQuads,
+    matchIntegerQuads, selfmatchIntegerQuads, duplicatedIntegerQuads,
+
+    ## str-utils.R:
+    safeExplode,
+    strsplitAsListOfIntegerVectors,
+    svn.time,
+
+    ## Vector-comparison.R:
+    compare,
+
+    ## Hits-class.R:
+    queryHits, subjectHits,
+    queryLength, subjectLength,
+    countQueryHits, countSubjectHits,
+    Hits, SelfHits,
+    selectHits,
+    remapHits,
+    isSelfHit,
+    isRedundantHit,
+
+    ## List-class.R:
+    List, phead, ptail, pc,
+
+    ## SimpleList-class.R:
+    SimpleList,
+
+    ## HitsList-class.R:
+    HitsList,
+
+    ## DataFrame-class.R:
+    DataFrame,
+
+    ## FilterRules-class.R:
+    FilterRules, FilterMatrix,
+
+    ## Pairs-class.R:
+    Pairs, first, "first<-", second, "second<-", zipup, zipdown
+)
+
+
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+### Export S4 generics obtained by explicit promotion of functions not
+### defined in S4Vectors to S4 generics
+###
+
+export(
+    ## DataTable-class.R:
+    rowSums, colSums, rowMeans, colMeans
+)
+
+
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+### Export S4 generics defined in S4Vectors + export corresponding methods
+###
+
+export(
+    ## isSorted.R:
+    isConstant, isSorted, isStrictlySorted,
+
+    ## subsetting-utils.R:
+    NSBS,
+    normalizeSingleBracketReplacementValue,
+    extractROWS, replaceROWS,
+    getListElement, setListElement,
+
+    ## str-utils.R:
+    unstrsplit,
+
+    ## DataTable-class.R:
+    ROWNAMES,
+    as.env,
+
+    ## Annotated-class.R:
+    metadata, "metadata<-",
+
+    ## Vector-class.R:
+    parallelSlotNames, parallelVectorNames,
+    elementMetadata, mcols, values,
+    "elementMetadata<-", "mcols<-", "values<-",
+    rename,
+    classNameForDisplay, showAsCell,
+    expand.grid,
+
+    ## Vector-comparison.R:
+    pcompare,
+    selfmatch,
+    findMatches, countMatches,
+
+    ## Hits-class.R:
+    from, to, nLnode, nRnode, nnode, countLnodeHits, countRnodeHits,
+
+    ## Rle-class.R:
+    runLength, "runLength<-", runValue, "runValue<-", nrun,
+    Rle,
+    findRun,
+
+    ## Rle-utils.R:
+    runsum, runmean, runwtsum, runq,
+
+    ## List-class.R:
+    elementType, elementNROWS, elementLengths, lengths,
+    isEmpty,
+    relistToClass,
+
+    ## List-comparison.R:
+    pcompareRecursively,
+
+    ## List-utils.R:
+    endoapply, mendoapply,
+    revElements,
+
+    ## HitsList-class.R:
+    space,
+
+    ## expand-methods.R
+    expand,
+
+    ## FilterRules-class.R:
+    active, "active<-", evalSeparately, subsetByFilter, params, filterRules,
+
+    ## shiftApply-methods.R:
+    shiftApply
+)
+
+### Exactly the same list as above.
+exportMethods(
+    isConstant, isSorted, isStrictlySorted,
+    NSBS,
+    normalizeSingleBracketReplacementValue,
+    extractROWS, replaceROWS,
+    getListElement, setListElement,
+    unstrsplit,
+    ROWNAMES,
+    as.env,
+    metadata, "metadata<-",
+    parallelSlotNames, parallelVectorNames,
+    elementMetadata, mcols, values,
+    "elementMetadata<-", "mcols<-", "values<-",
+    rename,
+    classNameForDisplay, showAsCell,
+    pcompare, 
+    selfmatch,
+    findMatches, countMatches,
+    from, to, nLnode, nRnode, nnode, countLnodeHits, countRnodeHits,
+    runLength, "runLength<-", runValue, "runValue<-", nrun,
+    Rle,
+    findRun,
+    runsum, runmean, runwtsum, runq,
+    elementType, elementNROWS, elementLengths, lengths,
+    isEmpty,
+    relistToClass,
+    pcompareRecursively,
+    endoapply, mendoapply,
+    revElements,
+    space,
+    expand,
+    active, "active<-", evalSeparately, subsetByFilter, params, filterRules,
+    shiftApply
+)
+

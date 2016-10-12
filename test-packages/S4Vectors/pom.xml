@@ -66,6 +66,7 @@
             <configuration>
               <defaultPackages>
                 <defaultPackage>methods</defaultPackage>
+                <defaultPackage>BiocGenerics</defaultPackage>
               </defaultPackages>
             </configuration>
           </execution>

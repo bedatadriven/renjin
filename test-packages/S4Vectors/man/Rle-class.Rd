@@ -293,18 +293,18 @@
       Prints out the Rle object in a user-friendly way.
     }
     \item{}{
-      \code{order(..., na.last = TRUE, decreasing = FALSE, method = c("shell", "radix"))}:
+      \code{order(..., nalast = TRUE, decreas = FALSE, method = c("shell", "radix"))}:
       Returns a permutation which rearranges its first argument
       into ascending or descending order, breaking ties by further
       arguments. See \code{\link[BiocGenerics]{order}}.
     }
     \item{}{
-      \code{sort(x, decreasing = FALSE, na.last = NA)}:
+      \code{sort(x, decreas = FALSE, nalast = NA)}:
       Sorts the values in \code{x}.
       \describe{
-        \item{\code{decreasing}}{If \code{TRUE}, sort values in decreasing
+        \item{\code{decreas}}{If \code{TRUE}, sort values in decreasing
           order. If \code{FALSE}, sort values in increasing order.}
-        \item{\code{na.last}}{If \code{TRUE}, missing values are placed last.
+        \item{\code{nalast}}{If \code{TRUE}, missing values are placed last.
           If \code{FALSE}, they are placed first. If \code{NA}, they are
           removed.}
       }

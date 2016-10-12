@@ -98,23 +98,21 @@ setMethod("match", c("Hits", "Hits"),
 ### 'na.last' is pointless (Hits objects don't contain NAs) so is ignored.
 ### 'method' is also ignored at the moment.
 setMethod("order", "Hits",
-    function(..., na.last=TRUE, decreasing=FALSE, method=c("shell", "radix"))
+    function(..., nalast=TRUE, decreas=FALSE, method=c("shell", "radix"))
     {
-        if (!isTRUEorFALSE(decreasing))
+        if (!isTRUEorFALSE(decreas))
             stop("'decreasing' must be TRUE or FALSE")
         ## All arguments in '...' are guaranteed to be Hits objects.
         args <- list(...)
         if (length(args) == 1L) {
             x <- args[[1L]]
-            return(orderIntegerPairs(from(x), to(x), decreasing=decreasing))
+            return(orderIntegerPairs(from(x), to(x), decreas=decreas))
         }
-        print(111)
-        order_args <- vector("list", 2L * length(args));print(order_args)
-        idx <- 2L * seq_along(args); print(idx)
-        order_args[idx - 1L] <- lapply(args, from); print(order_args)
-        order_args[idx] <- lapply(args, to); print(order_args)
-        print(116);
-        do.call(order, c(order_args, list(na.last=TRUE, decreasing=FALSE, method="shell")))
+        order_args <- vector("list", 2L * length(args))
+        idx <- 2L * seq_along(args)
+        order_args[idx - 1L] <- lapply(args, from)
+        order_args[idx] <- lapply(args, to)
+        do.call(order, c(order_args, list(decreas=decreas)))
     }
 )
 

@@ -101,7 +101,7 @@ function(x, ...)
         pos <- c(which(!ind),
                  which(ind)[order(as.numeric_version(sub(" *patched", ".1",
                                                          vstrings[ind])),
-                                  decreasing = TRUE)])
+                                  decreas = TRUE)])
         vchunks <- vchunks[pos]
 	if(length(vchunks)) {
             dates <- sapply(vchunks, function(v) v$Date[1L])

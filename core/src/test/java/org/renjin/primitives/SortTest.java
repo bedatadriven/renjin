@@ -95,8 +95,8 @@ public class SortTest extends EvalTestCase {
          *  1 1 1 
          */
 
-    assertThat( eval(".Internal(order(TRUE,FALSE,c(1,1,1), c(1,2,1), c(3,9,1)))"), equalTo(c_i(3,1,2)));
-    assertThat( eval(".Internal(order(TRUE,TRUE,c(1,1,1), c(1,2,1), c(3,9,1)))"), equalTo(c_i(2,1,3)));
+    assertThat( eval(".Internal(order(TRUE,FALSE,\"shell\",c(1,1,1), c(1,2,1), c(3,9,1)))"), equalTo(c_i(3,1,2)));
+    assertThat( eval(".Internal(order(TRUE,TRUE,\"shell\",c(1,1,1), c(1,2,1), c(3,9,1)))"), equalTo(c_i(2,1,3)));
   }
 
   @Test

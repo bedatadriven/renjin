@@ -25,7 +25,7 @@ rowsum.default <- function(x, group, reorder=TRUE, na.rm = FALSE, ...)
     if (any(is.na(group)))
         warning("missing values for 'group'")
     ugroup <- unique(group)
-    if (reorder) ugroup <- sort(ugroup, na.last=TRUE, method="quick")
+    if (reorder) ugroup <- sort(ugroup, nalast=TRUE, method="quick")
 
     rval <- .Call("Rrowsum_matrix", x, NCOL(x), group, ugroup, na.rm,
                   PACKAGE="base")
@@ -42,7 +42,7 @@ rowsum.data.frame <- function(x, group, reorder=TRUE, na.rm = FALSE, ...)
     if (any(is.na(group)))
         warning("missing values for 'group'")
     ugroup <- unique(group)
-    if (reorder) ugroup <- sort(ugroup, na.last=TRUE, method="quick")
+    if (reorder) ugroup <- sort(ugroup, nalast=TRUE, method="quick")
 
     rval <- .Call("Rrowsum_df", x, NCOL(x), group, ugroup, na.rm,
                   PACKAGE="base")

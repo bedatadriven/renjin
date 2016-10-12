@@ -60,7 +60,7 @@ eigen <- function(x, symmetric, only.values = FALSE, EISPACK = FALSE)
             else
                 .Call("rg_cmplx", x, only.values, CLASS = "org.renjin.base.Lapack")
 	
-            ord <- sort.list(Mod(z$values), decreasing = TRUE)
+            ord <- sort.list(Mod(z$values), decreas = TRUE)
         }
         return(list(values = z$values[ord],
                     vectors = if (!only.values) z$vectors[, ord, drop = FALSE]))
@@ -108,7 +108,7 @@ eigen <- function(x, symmetric, only.values = FALSE, EISPACK = FALSE)
 		stop(gettextf("'rs' returned code %d in 'eigen'", z$ierr),
                      domain = NA)
 	}
-	ord <- sort.list(z$values, decreasing = TRUE)
+	ord <- sort.list(z$values, decreas = TRUE)
     }
     else {##- Asymmetric :
 	if(complex.x) {
@@ -164,7 +164,7 @@ eigen <- function(x, symmetric, only.values = FALSE, EISPACK = FALSE)
 		}
 	    }
 	}
-	ord <- sort.list(Mod(z$values), decreasing = TRUE)
+	ord <- sort.list(Mod(z$values), decreas = TRUE)
     }
     list(values = z$values[ord],
 	 vectors = if(!only.values) z$vectors[,ord, drop = FALSE])

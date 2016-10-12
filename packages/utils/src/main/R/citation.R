@@ -999,10 +999,10 @@ function(object, ...)
 }
 
 sort.bibentry <-
-function(x, decreasing = FALSE, .bibstyle = NULL, drop = FALSE, ...)
+function(x, decreas = FALSE, .bibstyle = NULL, drop = FALSE, ...)
 {
     x[order(tools::bibstyle(.bibstyle)$sortKeys(x),
-            decreasing = decreasing),
+            decreas = decreas),
       drop = drop]
 }
 

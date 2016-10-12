@@ -964,8 +964,8 @@ unique.POSIXlt <- function(x, incomparables = FALSE, ...)
 
 ## ---- additions in 2.4.0 -----
 
-sort.POSIXlt <- function(x, decreasing = FALSE, na.last = NA, ...)
-    x[order(as.POSIXct(x), na.last = na.last, decreasing = decreasing)]
+sort.POSIXlt <- function(x, decreas = FALSE, nalast = NA, ...)
+    x[order(as.POSIXct(x), nalast = nalast, decreas = decreas)]
 
 
 ## ---- additions in 2.6.0 -----

@@ -3207,19 +3207,19 @@ public class MicroTest extends AbstractMicroTest {
   }
   @Test
   public void micro1157() {
-    assertIdentical("{ order(c(1,1,1), 3:1, decreasing=FALSE) }", "c(3L, 2L, 1L)");
+    assertIdentical("{ order(c(1,1,1), 3:1, decreas=FALSE) }", "c(3L, 2L, 1L)");
   }
   @Test
   public void micro1158() {
-    assertIdentical("{ order(c(1,1,1), 3:1, decreasing=TRUE, na.last=TRUE) }", "1:3");
+    assertIdentical("{ order(c(1,1,1), 3:1, decreas=TRUE, nalast=TRUE) }", "1:3");
   }
   @Test
   public void micro1159() {
-    assertIdentical("{ order(c(1,1,1), 3:1, decreasing=TRUE, na.last=NA) }", "1:3");
+    assertIdentical("{ order(c(1,1,1), 3:1, nalast=NA, decreas=TRUE) }", "1:3");
   }
   @Test
   public void micro1160() {
-    assertIdentical("{ order(c(1,1,1), 3:1, decreasing=TRUE, na.last=FALSE) }", "1:3");
+    assertIdentical("{ order(c(1,1,1), 3:1, decreas=TRUE, nalast=FALSE) }", "1:3");
   }
   @Test
   public void micro1162() {
@@ -3235,11 +3235,11 @@ public class MicroTest extends AbstractMicroTest {
   }
   @Test
   public void micro1165() {
-    assertIdentical("{ order(c(1,2,3,NA), na.last=FALSE) }", "c(4L, 1L, 2L, 3L)");
+    assertIdentical("{ order(c(1,2,3,NA), nalast=FALSE) }", "c(4L, 1L, 2L, 3L)");
   }
   @Test
   public void micro1166() {
-    assertIdentical("{ order(c(1,2,3,NA), na.last=FALSE, decreasing=TRUE) }", "c(4L, 3L, 2L, 1L)");
+    assertIdentical("{ order(c(1,2,3,NA), nalast=FALSE, decreas=TRUE) }", "c(4L, 3L, 2L, 1L)");
   }
   @Test
   public void micro1167() {
@@ -3247,7 +3247,7 @@ public class MicroTest extends AbstractMicroTest {
   }
   @Test
   public void micro1168() {
-    assertIdentical("{ order(c(0/0, -1/0, 2), na.last=NA) }", "2:3");
+    assertIdentical("{ order(c(0/0, -1/0, 2), nalast=NA) }", "2:3");
   }
   @Test
   public void micro1172() {
@@ -4259,15 +4259,15 @@ public class MicroTest extends AbstractMicroTest {
   }
   @Test
   public void micro1476() {
-    assertIdentical("{ sort(c(2,1,0/0,NA), na.last=NA) }", "c(1, 2)");
+    assertIdentical("{ sort(c(2,1,0/0,NA), nalast=NA) }", "c(1, 2)");
   }
   @Test
   public void micro1477() {
-    assertIdentical("{ sort(c(3,0/0,2,NA), na.last=TRUE) }", "c(2, 3, NaN, NA)");
+    assertIdentical("{ sort(c(3,0/0,2,NA), nalast=TRUE) }", "c(2, 3, NaN, NA)");
   }
   @Test
   public void micro1478() {
-    assertIdentical("{ sort(c(3,NA,0/0,2), na.last=FALSE) }", "c(NA, NaN, 2, 3)");
+    assertIdentical("{ sort(c(3,NA,0/0,2), nalast=FALSE) }", "c(NA, NaN, 2, 3)");
   }
   @Test
   public void micro1479() {
@@ -4275,23 +4275,23 @@ public class MicroTest extends AbstractMicroTest {
   }
   @Test
   public void micro1480() {
-    assertIdentical("{ sort(c(3L,NA,-2L), na.last=TRUE) }", "c(-2L, 3L, NA)");
+    assertIdentical("{ sort(c(3L,NA,-2L), nalast=TRUE) }", "c(-2L, 3L, NA)");
   }
   @Test
   public void micro1481() {
-    assertIdentical("{ sort(c(3L,NA,-2L), na.last=FALSE) }", "c(NA, -2L, 3L)");
+    assertIdentical("{ sort(c(3L,NA,-2L), nalast=FALSE) }", "c(NA, -2L, 3L)");
   }
   @Test
   public void micro1482() {
-    assertIdentical("{ sort(c(a=NA,b=NA,c=3,d=1),na.last=TRUE, decreasing=TRUE) }", "structure(c(3, 1, NA, NA), .Names = c(\"c\", \"d\", \"a\", \"b\"))");
+    assertIdentical("{ sort(c(a=NA,b=NA,c=3,d=1),nalast=TRUE, decreas=TRUE) }", "structure(c(3, 1, NA, NA), .Names = c(\"c\", \"d\", \"a\", \"b\"))");
   }
   @Test
   public void micro1483() {
-    assertIdentical("{ sort(c(a=NA,b=NA,c=3,d=1),na.last=FALSE, decreasing=FALSE) }", "structure(c(NA, NA, 1, 3), .Names = c(\"a\", \"b\", \"d\", \"c\"))");
+    assertIdentical("{ sort(c(a=NA,b=NA,c=3,d=1),nalast=FALSE, decreas=FALSE) }", "structure(c(NA, NA, 1, 3), .Names = c(\"a\", \"b\", \"d\", \"c\"))");
   }
   @Test
   public void micro1484() {
-    assertIdentical("{ sort(c(a=0/0,b=1/0,c=3,d=NA),na.last=TRUE, decreasing=FALSE) }", "structure(c(3, Inf, NaN, NA), .Names = c(\"c\", \"b\", \"a\", \"d\"))");
+    assertIdentical("{ sort(c(a=0/0,b=1/0,c=3,d=NA),nalast=TRUE, decreas=FALSE) }", "structure(c(3, Inf, NaN, NA), .Names = c(\"c\", \"b\", \"a\", \"d\"))");
   }
   @Test
   public void micro1485() {
@@ -4299,11 +4299,11 @@ public class MicroTest extends AbstractMicroTest {
   }
   @Test
   public void micro1486() {
-    assertIdentical("{ sort(c(a=NA,b=NA,c=3L,d=-1L),na.last=TRUE, decreasing=FALSE) }", "structure(c(-1L, 3L, NA, NA), .Names = c(\"d\", \"c\", \"a\", \"b\"))");
+    assertIdentical("{ sort(c(a=NA,b=NA,c=3L,d=-1L),nalast=TRUE, decreas=FALSE) }", "structure(c(-1L, 3L, NA, NA), .Names = c(\"d\", \"c\", \"a\", \"b\"))");
   }
   @Test
   public void micro1487() {
-    assertIdentical("{ sort(c(3,NA,1,d=10), decreasing=FALSE, index.return=TRUE) }", "structure(list(x = structure(c(1, 3, 10), .Names = c(\"\", \"\", \"d\")), ix = c(2L, 1L, 3L)), .Names = c(\"x\", \"ix\"))");
+    assertIdentical("{ sort(c(3,NA,1,d=10), decreas=FALSE, index.return=TRUE) }", "structure(list(x = structure(c(1, 3, 10), .Names = c(\"\", \"\", \"d\")), ix = c(2L, 1L, 3L)), .Names = c(\"x\", \"ix\"))");
   }
   @Test
   public void micro1488() {
@@ -4315,19 +4315,19 @@ public class MicroTest extends AbstractMicroTest {
   }
   @Test
   public void micro1491() {
-    assertIdentical("{ sort(c(a=NA,1,b=NA,0/0,2,3), na.last=TRUE, decreasing=FALSE) }", "structure(c(1, 2, 3, NA, NA, NaN), .Names = c(\"\", \"\", \"\", \"a\", \"b\", \"\"))");
+    assertIdentical("{ sort(c(a=NA,1,b=NA,0/0,2,3), nalast=TRUE, decreas=FALSE) }", "structure(c(1, 2, 3, NA, NA, NaN), .Names = c(\"\", \"\", \"\", \"a\", \"b\", \"\"))");
   }
   @Test
   public void micro1492() {
-    assertIdentical("{ sort(c(a=NA,1L,b=NA,0L,2L,-3L), na.last=TRUE, decreasing=TRUE) }", "structure(c(2L, 1L, 0L, -3L, NA, NA), .Names = c(\"\", \"\", \"\", \"\", \"a\", \"b\"))");
+    assertIdentical("{ sort(c(a=NA,1L,b=NA,0L,2L,-3L), nalast=TRUE, decreas=TRUE) }", "structure(c(2L, 1L, 0L, -3L, NA, NA), .Names = c(\"\", \"\", \"\", \"\", \"a\", \"b\"))");
   }
   @Test
   public void micro1493() {
-    assertIdentical("{ sort(c(a=NA,1L,b=NA,0L,2L,-3L), na.last=FALSE, decreasing=TRUE) }", "structure(c(NA, NA, 2L, 1L, 0L, -3L), .Names = c(\"a\", \"b\", \"\", \"\", \"\", \"\"))");
+    assertIdentical("{ sort(c(a=NA,1L,b=NA,0L,2L,-3L), nalast=FALSE, decreas=TRUE) }", "structure(c(NA, NA, 2L, 1L, 0L, -3L), .Names = c(\"a\", \"b\", \"\", \"\", \"\", \"\"))");
   }
   @Test
   public void micro1494() {
-    assertIdentical("{ sort(c(a=NA,1L,b=NA,0L,2L,-3L), na.last=NA, decreasing=TRUE) }", "structure(c(2L, 1L, 0L, -3L), .Names = c(\"\", \"\", \"\", \"\"))");
+    assertIdentical("{ sort(c(a=NA,1L,b=NA,0L,2L,-3L), nalast=NA, decreas=TRUE) }", "structure(c(2L, 1L, 0L, -3L), .Names = c(\"\", \"\", \"\", \"\"))");
   }
   @Test
   public void micro1507() {

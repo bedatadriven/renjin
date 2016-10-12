@@ -697,22 +697,22 @@ setMethod("match", c("Rle", "Rle"),
 
 ### FIXME: Remove in R 3.3
 setMethod("order", "Rle",
-    function(..., na.last=TRUE, decreasing=FALSE, method=c("shell", "radix"))
+    function(..., nalast=TRUE, decreas=FALSE, method=c("shell", "radix"))
     {
         args <- lapply(unname(list(...)), decodeRle)
-        do.call(order, c(args, list(na.last=na.last,
-                                    decreasing=decreasing,
+        do.call(order, c(args, list(nalast=nalast,
+                                    decreas=decreas,
                                     method=method)))
     }
 )
 
-.sort.Rle <- function(x, decreasing=FALSE, na.last=NA, ...)
+.sort.Rle <- function(x, decreas=FALSE, nalast=NA, ...)
 {
-    if (is.na(na.last)) {
+    if (is.na(nalast)) {
         if (anyMissing(runValue(x)))
             x <- x[!is.na(x)]
     }
-    ord <- base::order(runValue(x), na.last=na.last, decreasing=decreasing)
+    ord <- base::order(runValue(x), nalast=nalast, decreas=decreas)
     new_Rle(runValue(x)[ord], runLength(x)[ord], check=FALSE)
 }
 setMethod("sort", "Rle", .sort.Rle)

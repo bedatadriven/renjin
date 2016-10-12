@@ -14,22 +14,22 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-sort <- function(x, decreasing = FALSE, ...)
+sort <- function(x, decreas = FALSE, ...)
 {
-    if(!is.logical(decreasing) || length(decreasing) != 1L)
+    if(!is.logical(decreas) || length(decreas) != 1L)
         stop("'decreasing' must be a length-1 logical vector.\nDid you intend to set 'partial'?")
     UseMethod("sort")
 }
 
-sort.default <- function(x, decreasing = FALSE, na.last = NA, ...)
+sort.default <- function(x, decreas = FALSE, nalast = NA, ...)
 {
     ## The first case includes factors.
-    if(is.object(x)) x[order(x, na.last = na.last, decreasing = decreasing)]
-    else sort.int(x, na.last = na.last, decreasing = decreasing, ...)
+    if(is.object(x)) x[order(x, nalast = nalast, decreas = decreas)]
+    else sort.int(x, nalast = nalast, decreas = decreas, ...)
 }
 
 sort.int <-
-    function(x, partial = NULL, na.last = NA, decreasing = FALSE,
+    function(x, partial = NULL, nalast = NA, decreas = FALSE,
              method = c("shell", "quick"), index.return = FALSE)
 {
     if(isfact <- is.factor(x)) {
@@ -45,10 +45,10 @@ sort.int <-
         nas <- x[ina]
         x <-  x[!ina]
     }
-    if(index.return && !is.na(na.last))
+    if(index.return && !is.na(nalast))
         stop("'index.return' only for 'na.last = NA'")
     if(!is.null(partial)) {
-        if(index.return || decreasing || isfact || !missing(method))
+        if(index.return || decreas || isfact || !missing(method))
 	    stop("unsupported options for partial sorting")
         if(!all(is.finite(partial))) stop("non-finite 'partial'")
         y <- if(length(partial) <= 10L) {
@@ -63,66 +63,76 @@ sort.int <-
         switch(method,
                "quick" = {
                    if(!is.null(nms)) {
-                       if(decreasing) x <- -x
+                       if(decreas) x <- -x
                        y <- .Internal(qsort(x, TRUE))
-                       if(decreasing) y$x <- -y$x
+                       if(decreas) y$x <- -y$x
                        names(y$x) <- nms[y$ix]
                        if (!index.return) y <- y$x
                    } else {
-                       if(decreasing) x <- -x
+                       if(decreas) x <- -x
                        y <- .Internal(qsort(x, index.return))
-                       if(decreasing)
+                       if(decreas)
                            if(index.return) y$x <- -y$x else y <- -y
                    }
                },
                "shell" = {
                    if(index.return || !is.null(nms)) {
-                       o <- sort.list(x, decreasing = decreasing)
+                       o <- sort.list(x, decreas = decreas)
                        y <- if (index.return) list(x = x[o], ix = o) else x[o]
                        ## names(y) <- nms[o] # pointless!
                    }
                    else
-                       y <- .Internal(sort(x, decreasing))
+                       y <- .Internal(sort(x, decreas))
                })
     }
-    if(!is.na(na.last) && has.na)
-	y <- if(!na.last) c(nas, y) else c(y, nas)
+    if(!is.na(nalast) && has.na)
+	y <- if(!nalast) c(nas, y) else c(y, nas)
     if(isfact)
         y <- (if (isord) ordered else factor)(y, levels=seq_len(nlev),
                                               labels=lev)
     y
 }
 
-order <- function(..., na.last = TRUE, decreasing = FALSE,
-                           method = c("shell", "radix"))
-         {
-             z <- list(...)
+order <- function(..., nalast = TRUE, decreas = FALSE, method = c("shell", "radix"))
+{
+    z <- list(...)
+cat("\n100, ")
+    method <- if (missing(method)) "shell" else "shell"
 
-             if (missing(method)) {
-                 method <- "shell"
-             } else {
-                 method <- match.arg(method)
-             }
     if(any(unlist(lapply(z, is.object)))) {
-        z <- lapply(z, function(x) if(is.object(x)) xtfrm(x) else x)
-        if(!is.na(na.last))
-            return(do.call("order", c(z, na.last=na.last,
-                                      decreasing=decreasing)))
-    } else if(!is.na(na.last))
-        return(.Internal(order(na.last, decreasing, ...)))
-    ## remove nas
-    if(any(diff(l.z <- vapply(z, length, 1L)) != 0L))
+    cat("104, ")
+        z <- lapply(z, function(x) if(is.object(x)) as.vector(xtfrm(x)) else x)
+        if(method == "radix" || !is.na(nalast))
+            return(do.call("order", c(z, nalast = nalast,
+                                      decreas = decreas,
+                                      method = method)))
+    } else if(method != "radix" && !is.na(nalast)) {
+    cat("111, ")
+        return(.Internal(order(nalast, decreas, method, ...)))
+    }
+cat("114, ")
+    if (method == "radix") {
+        decreas <- rep_len(as.logical(decreas), length(z))
+        return(.Internal(radixsort(nalast, decreas, FALSE, TRUE, ...)))
+    }
+cat("119, ")
+    ## na.last = NA case: remove nas
+    if(any(diff((l.z <- lengths(z)) != 0L)))
         stop("argument lengths differ")
-    ans <- vapply(z, is.na, rep.int(NA, l.z[1L]))
-    ok <- if(is.matrix(ans)) !apply(ans, 1, any) else !any(ans)
+    na <- vapply(z, is.na, rep.int(NA, l.z[1L]))
+cat("123, ")
+    ok <- if(is.matrix(na)) rowSums(na) == 0L else !any(na)
+cat("125, ")
     if(all(!ok)) return(integer())
+cat("127, ")
     z[[1L]][!ok] <- NA
-    ans <- do.call("order", c(z, decreasing=decreasing))
-    keep <- seq_along(ok)[ok]
-    ans[ans %in% keep]
+cat("129, ")
+    if (is.na(nalast)) nalast <- TRUE
+    ans <- do.call("order", c(z, list(nalast=nalast, decreas = decreas, method=method) ) )
+    ans[ok[ans]]
 }
 
-sort.list <- function(x, partial = NULL, na.last = TRUE, decreasing = FALSE,
+sort.list <- function(x, partial = NULL, nalast = TRUE, decreas = FALSE,
                       method = c("shell", "quick", "radix"))
 {
     method <- match.arg(method)
@@ -133,21 +143,21 @@ sort.list <- function(x, partial = NULL, na.last = TRUE, decreasing = FALSE,
     if(method == "quick") {
         if(is.factor(x)) x <- as.integer(x) # sort the internal codes
         if(is.numeric(x))
-            return(sort(x, na.last = na.last, decreasing = decreasing,
+            return(sort(x, nalast = nalast, decreas = decreas,
                         method = "quick", index.return = TRUE)$ix)
         else stop("method=\"quick\" is only for numeric 'x'")
     }
     if(method == "radix") {
         if(!typeof(x) == "integer") # do want to allow factors here
             stop("method=\"radix\" is only for integer 'x'")
-        if(is.na(na.last))
-            return(.Internal(radixsort(x[!is.na(x)], TRUE, decreasing)))
+        if(is.na(nalast))
+            return(.Internal(radixsort(x[!is.na(x)], TRUE, decreas)))
         else
-            return(.Internal(radixsort(x, na.last, decreasing)))
+            return(.Internal(radixsort(x, nalast, decreas)))
     }
     ## method == "shell"
-    if(is.na(na.last)) .Internal(order(TRUE, decreasing, x[!is.na(x)]))
-    else .Internal(order(na.last, decreasing, x))
+    if(is.na(nalast)) .Internal(order(TRUE, decreas, method, x[!is.na(x)]))
+    else .Internal(order(nalast, decreas, method, x))
 }
 
 

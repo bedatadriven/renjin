@@ -249,11 +249,12 @@ public class Text {
    * @param x
    * @param type
    * @param allowNA
+   * @param keepNA
    * @return
    */
   @Internal
   @DataParallel(passNA = true)
-  public static int nchar(@Recycle String x, String type, boolean allowNA) {
+  public static int nchar(@Recycle String x, String type, boolean allowNA, boolean keepNA) {
     if(StringVector.isNA(x)) {
       return 2;
     } else {

@@ -156,7 +156,7 @@ public class TextTest extends EvalTestCase {
 
   @Test
   public void nchar() {
-    eval("nchar <- function (x, type = 'chars', allowNA = FALSE) .Internal(nchar(x, type, allowNA))");
+    eval("nchar <- function (x, type = 'chars', allowNA = FALSE, keepNA = FALSE) .Internal(nchar(x, type, allowNA, keepNA))");
 
     assertThat( eval("nchar('xyz')"), equalTo( c_i(3) ));
     assertThat( eval("nchar(c('xyz', NA, 'a', '', 'abcde'))"), equalTo( c_i(3, 2, 1, 0, 5) ));
@@ -165,7 +165,7 @@ public class TextTest extends EvalTestCase {
 
   @Test
   public void ncharWithNas() {
-    assertThat( eval(".Internal(nchar(c(NA,-5),'chars', FALSE))"), equalTo( c_i(2,2) ));
+    assertThat( eval(".Internal(nchar(c(NA,-5),'chars', FALSE, FALSE))"), equalTo( c_i(2,2) ));
   }
 
   @Test

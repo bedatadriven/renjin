@@ -218,7 +218,7 @@ public class Sort {
    * @return
    */
   @Internal
-  public static Vector order(final boolean naLast, final boolean decreasing, @ArgumentList final ListVector columns) {
+  public static Vector order(final boolean naLast, final boolean decreasing, String method, @ArgumentList final ListVector columns) {
         
     if (columns.length() == 0) {
       return Null.INSTANCE;

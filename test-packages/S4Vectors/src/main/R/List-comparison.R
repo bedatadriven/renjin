@@ -227,23 +227,23 @@ setMethod("is.na", "List",
 ###
 
 setMethod("order", "List",
-    function(..., na.last=TRUE, decreasing=FALSE, method=c("shell", "radix"))
+    function(..., nalast=TRUE, decreas=FALSE, method=c("shell", "radix"))
     {
         args <- list(...)
         if (length(args) != 1L)
             stop("\"order\" method for List objects ",
                  "can only take one input object")
         .op1_apply(order, args[[1L]],
-                   na.last=na.last, decreasing=decreasing, method=method,
+                   nalast=nalast, decreas=decreas, method=method,
                    ANS_CONSTRUCTOR=IntegerList)
     }
 )
 
-.sort.List <- function(x, decreasing=FALSE, na.last=NA)
+.sort.List <- function(x, decreas=FALSE, nalast=NA)
 {
     if (!pcompareRecursively(x))
         return(callNextMethod())
-    i <- order(x, na.last=na.last, decreasing=decreasing)  # IntegerList
+    i <- order(x, nalast=nalast, decreas=decreas)  # IntegerList
     x[i]
 }
 setMethod("sort", "List", .sort.List)

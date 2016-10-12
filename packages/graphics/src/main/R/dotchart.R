@@ -72,7 +72,7 @@ function(x, labels = NULL, groups = NULL, gdata = NULL, cex = par("cex"),
 	ylim <- c(0, n + 1)
     }
     else {
-	o <- sort.list(as.numeric(groups), decreasing = TRUE)
+	o <- sort.list(as.numeric(groups), decreas = TRUE)
 	x <- x[o]
 	groups <- groups[o]
 	color <- rep(color, length.out=length(groups))[o]

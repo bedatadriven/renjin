@@ -285,17 +285,17 @@ setMethod("countMatches", c("ANY", "ANY"), .countMatches.default)
 ###
 
 ### S3/S4 combo for sort.Vector
-.sort.Vector <- function(x, decreasing=FALSE, na.last=NA, by)
+.sort.Vector <- function(x, decreas=FALSE, nalast=NA, by)
 {
     if (!missing(by)) {
-        i <- orderBy(by, x, decreasing=decreasing, na.last=na.last)
+        i <- orderBy(by, x, decreas=decreas, nalast=nalast)
     } else {
-        i <- order(x, na.last=na.last, decreasing=decreasing)
+        i <- order(x, nalast=nalast, decreas=decreas)
     }
     extractROWS(x, i)
 }
-sort.Vector <- function(x, decreasing=FALSE, ...)
-    sort(x, decreasing=decreasing, ...)
+sort.Vector <- function(x, decreas=FALSE, ...)
+    sort(x, decreas=decreas, ...)
 setMethod("sort", "Vector", .sort.Vector)
 
 formulaAsListCall <- function(formula) attr(terms(formula), "variables")
@@ -304,9 +304,9 @@ formulaValues <- function(x, formula) {
     eval(formulaAsListCall(formula), as.env(x, environment(formula)))
 }
 
-orderBy <- function(formula, x, decreasing=FALSE, na.last=TRUE) {
+orderBy <- function(formula, x, decreas=FALSE, nalast=TRUE) {
   values <- formulaValues(x, formula)
-  do.call(order, c(decreasing=decreasing, na.last=na.last, values))
+  do.call(order, c(decreas=decreas, nalast=nalast, values))
 }
 
 setMethod("xtfrm", "Vector", function(x) {
@@ -322,7 +322,7 @@ setMethod("rank", "Vector",
             }
             ties.method <- match.arg(ties.method)
             if (ties.method == "first") {
-              oo <- order(x, na.last=na.last)
+              oo <- order(x, nalast=na.last)
               ## 'ans' is the reverse permutation of 'oo'
               ans <- integer(length(oo))
               ans[oo] <- seq_len(length(oo))

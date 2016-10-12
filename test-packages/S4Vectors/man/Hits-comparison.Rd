@@ -28,7 +28,7 @@
 \S4method{match}{Hits,Hits}(x, table, nomatch=NA_integer_, incomparables=NULL,
       method=c("auto", "quick", "hash"))
 
-\S4method{order}{Hits}(..., na.last=TRUE, decreasing=FALSE, method=c("shell", "radix"))
+\S4method{order}{Hits}(..., nalast=TRUE, decreas=FALSE, method=c("shell", "radix"))
 }
 
 \arguments{
@@ -58,10 +58,10 @@
     One or more \link{Hits} objects. The additional \link{Hits} objects
     are used to break ties.
   }
-  \item{na.last}{
+  \item{nalast}{
     Ignored.
   }
-  \item{decreasing}{
+  \item{decreas}{
     \code{TRUE} or \code{FALSE}.
   }
 }

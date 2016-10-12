@@ -167,8 +167,8 @@ mem.limits <- function(nsize=NA, vsize=NA)
     structure(.Internal(mem.limits(nsize, vsize)), names = c("nsize", "vsize"))
 }
 
-nchar <- function(x, type = "chars", allowNA = FALSE)
-    .Internal(nchar(x, type, allowNA))
+nchar <- function(x, type = "chars", allowNA = FALSE, keepNA = NA)
+    .Internal(nchar(x, type, allowNA, keepNA))
 
 polyroot <- function(z).Internal(polyroot(z))
 

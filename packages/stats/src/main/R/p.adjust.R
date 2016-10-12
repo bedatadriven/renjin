@@ -61,19 +61,19 @@ p.adjust <- function(p, method = p.adjust.methods, n = length(p))
 	       },
 	       hochberg = {
 		   i <- lp:1L
-		   o <- order(p, decreasing = TRUE)
+		   o <- order(p, decreas = TRUE)
 		   ro <- order(o)
 		   pmin(1, cummin( (n - i + 1L) * p[o] ))[ro]
 	       },
 	       BH = {
 		   i <- lp:1L
-		   o <- order(p, decreasing = TRUE)
+		   o <- order(p, decreas = TRUE)
 		   ro <- order(o)
 		   pmin(1, cummin( n / i * p[o] ))[ro]
 	       },
 	       BY = {
 		   i <- lp:1L
-		   o <- order(p, decreasing = TRUE)
+		   o <- order(p, decreas = TRUE)
 		   ro <- order(o)
 		   q <- sum(1L/(1L:n))
 		   pmin(1, cummin(q * n / i * p[o]))[ro]

@@ -122,14 +122,15 @@ public class PrimitiveCmpGenerator implements ConditionGenerator {
     // But because we have floating points, we need to be mindful of NaN values.
 
     //            CMPG:     CMPL
-    // x <  y        1         1
+    // x <  y       -1        -1
     // y == 0        0         0 
-    // x >  y       -1        -1
+    // x >  y        1         1
     // NaN           1        -1
 
     // So if we're interested in whether x is less than y, we need to use
     // CMPL to make sure that our condition is false if either x or y is NaN
     switch (op) {
+      case UNGT_EXPR:
       case LT_EXPR:
       case LE_EXPR:
         mv.visitInsn(isDouble() ? DCMPG : FCMPG);
@@ -159,6 +160,7 @@ public class PrimitiveCmpGenerator implements ConditionGenerator {
         mv.visitJumpInsn(IFNE, trueLabel);
         break;
 
+      case UNGT_EXPR:
       case GT_EXPR:
         mv.visitJumpInsn(IFGT, trueLabel);
         break;
@@ -166,6 +168,9 @@ public class PrimitiveCmpGenerator implements ConditionGenerator {
       case GE_EXPR:
         mv.visitJumpInsn(IFGE, trueLabel);
         break;
+
+      default:
+        throw new UnsupportedOperationException("op: " + op);
     }
   }
 

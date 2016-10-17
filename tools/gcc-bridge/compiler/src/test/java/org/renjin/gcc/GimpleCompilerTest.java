@@ -424,7 +424,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
 
   @Test
   public void fpComparison() throws Exception {
-    Class clazz = compile("fpcmp.c");
+    Class clazz = compileAndTest("fpcmp.c");
 
     assertThat(call(clazz, "lessThan", -2.4, -2.3), equalTo(1));
     assertThat(call(clazz, "lessThan", -2.4, -2.4), equalTo(0));
@@ -1044,7 +1044,11 @@ public class GimpleCompilerTest extends AbstractGccTest {
   @Test
   public void constantStaticVar() throws Exception {
     compileAndTest("staticvar.c");
+  }
 
+  @Test
+  public void tukey() throws Exception {
+    compile("dt.c");
   }
   
 }

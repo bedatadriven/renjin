@@ -11,6 +11,10 @@ import org.renjin.gcc.gimple.expr.GimpleMemRef;
 import org.renjin.gcc.gimple.expr.GimplePointerPlus;
 import org.renjin.gcc.gimple.statement.GimpleAssignment;
 import org.renjin.gcc.gimple.statement.GimpleStatement;
+import org.renjin.gcc.gimple.type.GimpleArrayType;
+import org.renjin.gcc.gimple.type.GimpleIndirectType;
+import org.renjin.gcc.gimple.type.GimpleIntegerType;
+import org.renjin.gcc.gimple.type.GimpleType;
 
 public class AddressableSimplifier implements FunctionBodyTransformer {
 
@@ -52,9 +56,44 @@ public class AddressableSimplifier implements FunctionBodyTransformer {
               updated = true;
             }
           }
+
+          // Fix types in *a = *b
+          // which sometimes have types (int8[] = int8[])
+          GimpleIntegerType int8 = new GimpleIntegerType(8);
+          if( assignment.getLHS() instanceof GimpleMemRef &&
+              assignment.getOperator() == GimpleOp.MEM_REF) {
+
+            GimpleMemRef lhs = (GimpleMemRef) assignment.getLHS();
+            GimpleMemRef rhs = (GimpleMemRef) assignment.getOperands().get(0);
+
+            if( isByteArray(lhs.getType()) &&
+                isByteArray(rhs.getType())) {
+
+              if (lhs.isOffsetZero() && rhs.isOffsetZero()) {
+                GimpleIndirectType lhsType = (GimpleIndirectType) lhs.getPointer().getType();
+                GimpleIndirectType rhsType = (GimpleIndirectType) rhs.getPointer().getType();
+
+                lhs.setType(lhsType.getBaseType());
+                rhs.setType(rhsType.getBaseType());
+              }
+            }
+          }
         }
       }
     }
     return updated;
+  }
+
+  private boolean isByteArray(GimpleType type) {
+    if(type instanceof GimpleArrayType) {
+      GimpleArrayType arrayType = (GimpleArrayType) type;
+      if(arrayType.getComponentType() instanceof GimpleIntegerType) {
+        GimpleIntegerType integerType = (GimpleIntegerType) arrayType.getComponentType();
+        if(integerType.getPrecision() == 8) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 }

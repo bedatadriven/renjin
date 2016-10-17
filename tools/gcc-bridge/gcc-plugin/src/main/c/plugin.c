@@ -62,8 +62,8 @@ int json_needs_comma = 0;
 #define JSON_OBJECT  2
 
 
-#define TRACE(...) printf(__VA_ARGS__)
-//#define TRACE(...) do { if(0) printf(__VA_ARGS__); } while(0)
+//#define TRACE(...) printf(__VA_ARGS__)
+#define TRACE(...) do { if(0) printf(__VA_ARGS__); } while(0)
 
 typedef struct json_context {
   int needs_comma;

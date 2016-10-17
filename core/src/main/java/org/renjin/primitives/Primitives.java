@@ -1024,6 +1024,14 @@ public class Primitives {
     f("library", Packages.class, 11);
     f("require", Packages.class, 11);
 
+    // bitwise
+    f("bitwiseNot", /*Raw*/ null, 11);
+    f("bitwiseXor", /*Raw*/ null, 11);
+    f("bitwiseShiftL", /*Raw*/ null, 11);
+    f("bitwiseShiftR", /*Raw*/ null, 11);
+    f("bitwiseAnd", Raw.class, 11);
+    f("bitwiseOr", Raw.class, 11);
+
   }
 
   private void add(SpecialFunction fn) {

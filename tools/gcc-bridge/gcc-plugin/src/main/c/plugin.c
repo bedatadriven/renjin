@@ -62,8 +62,8 @@ int json_needs_comma = 0;
 #define JSON_OBJECT  2
 
 
-//#define TRACE(...) printf(__VA_ARGS__)
-#define TRACE(...) do { if(0) printf(__VA_ARGS__); } while(0)
+#define TRACE(...) printf(__VA_ARGS__)
+//#define TRACE(...) do { if(0) printf(__VA_ARGS__); } while(0)
 
 typedef struct json_context {
   int needs_comma;
@@ -1019,19 +1019,22 @@ static unsigned int dump_function (void)
   json_string_field("mangledName", IDENTIFIER_POINTER(DECL_ASSEMBLER_NAME(cfun->decl)));
   json_bool_field("weak", DECL_WEAK(cfun->decl));
   json_bool_field("inline", DECL_DECLARED_INLINE_P(cfun->decl));
-  
+
+  TRACE("dump_function: checking aliases\n");
   json_array_field("aliases");
 
   struct cgraph_node *cgn = cgraph_get_node(cfun->decl);
   struct cgraph_node *n;
 
-  FOR_EACH_FUNCTION_WITH_GIMPLE_BODY(n)
-    if(cgraph_alias_aliased_node(n) == cgn) {
-// TODO: segfaults...
-//        if(IDENTIFIER_POINTER(DECL_ASSEMBLER_NAME(n->decl))) {
-//            json_string_value(IDENTIFIER_POINTER(DECL_ASSEMBLER_NAME(n->decl)));
-//        }
+  FOR_EACH_DEFINED_FUNCTION(n) {
+    if (DECL_ASSEMBLER_NAME_SET_P (n->decl)) {
+      TRACE("dump_function: name = %s\n", IDENTIFIER_POINTER(DECL_ASSEMBLER_NAME(n->decl)));
+      if (n->alias && n->thunk.alias == cfun->decl) {
+        TRACE("alias = true\n");
+        json_string_value(IDENTIFIER_POINTER (DECL_ASSEMBLER_NAME (n->decl)));
+      }
     }
+  }
 
   json_end_array();
     

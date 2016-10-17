@@ -96,11 +96,45 @@ public enum GimpleOp {
    */
   PAREN_EXPR,
 
+  ORDERED_EXPR,
+
   /**
    * From GCC source code: Additional relational operators for floating point
    * unordered.
    */
   UNORDERED_EXPR,
+
+  /**
+   *  Returns true if either operand is an IEEE NaN or the first operand is less than the second.
+   */
+  UNLT_EXPR,
+
+  /**
+   *  Returns true if either operand is an IEEE NaN or the first operand is less than or equal to the second.
+   */
+  UNLE_EXPR,
+
+  /**
+   *  Returns true if either operand is an IEEE NaN or the first operand is greater than the second.
+   */
+  UNGT_EXPR,
+
+  /**
+   *  Returns true if either operand is an IEEE NaN or the first operand is greater than or equal to the second.
+   */
+  UNGE_EXPR,
+
+  /**
+   *  Returns true if either operand is an IEEE NaN or the first operand is equal to the second.
+   */
+  UNEQ_EXPR,
+
+
+  /**
+   *  Returns true if either operand is an IEEE NaN or the first operand is equal to the second.
+   */
+  LTGT_EXPR,
+
 
   CONVERT_EXPR, TRUNC_MOD_EXPR,
 

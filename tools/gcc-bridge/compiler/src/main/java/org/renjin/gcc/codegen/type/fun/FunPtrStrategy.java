@@ -84,17 +84,17 @@ public class FunPtrStrategy implements PointerTypeStrategy<FunPtr>, SimpleTypeSt
 
   @Override
   public ValueFunction getValueFunction() {
-    return new FunPtrValueFunction(32);
+    return new FunPtrValueFunction(4);
   }
 
   @Override
   public FatPtrStrategy pointerTo() {
-    return new FatPtrStrategy(new FunPtrValueFunction(32), 2);
+    return new FatPtrStrategy(new FunPtrValueFunction(4), 2);
   }
 
   @Override
   public ArrayTypeStrategy arrayOf(GimpleArrayType arrayType) {
-    return ArrayTypeStrategies.of(arrayType, new FunPtrValueFunction(32));
+    return ArrayTypeStrategies.of(arrayType, new FunPtrValueFunction(4));
   }
 
   @Override

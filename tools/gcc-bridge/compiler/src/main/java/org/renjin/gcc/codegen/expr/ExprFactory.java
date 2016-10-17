@@ -120,6 +120,18 @@ public class ExprFactory {
         return new FatPtrPair(new PrimitiveValueFunction(value.getType()), Expressions.newArray(value));
 
       } else  {
+
+        // Try to simplify expressions in the form &*x to x
+        if(addressOf.getValue() instanceof GimpleMemRef) {
+          GimpleMemRef memRef = (GimpleMemRef) addressOf.getValue();
+          if(memRef.isOffsetZero()) {
+            return findGenerator(memRef.getPointer());
+          } else {
+            return pointerPlus(memRef.getPointer(), memRef.getOffset(), memRef.getPointer().getType());
+          }
+        }
+
+        // Otherwise delgate addressOf operation to expr generator
         GExpr value = findGenerator(addressOf.getValue());
         try {
           return value.addressOf();

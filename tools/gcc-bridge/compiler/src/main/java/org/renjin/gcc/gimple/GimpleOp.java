@@ -96,11 +96,15 @@ public enum GimpleOp {
    */
   PAREN_EXPR,
 
+  /**
+   * Take two floating point operands and determine whether they are ordered or unordered relative to each other.
+   * If b operand is an IEEE NaN, their comparison is defined to be unordered.
+   */
   ORDERED_EXPR,
 
   /**
-   * From GCC source code: Additional relational operators for floating point
-   * unordered.
+   * Take two floating point operands and determine whether they are ordered or unordered relative to each other.
+   * If either operand is an IEEE NaN, their comparison is defined to be unordered.
    */
   UNORDERED_EXPR,
 

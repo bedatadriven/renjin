@@ -62,6 +62,9 @@
 							<goal>test</goal>
 						</goals>
 						<phase>test</phase>
+						<configuration>
+							<outputLimit>51200000</outputLimit>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>

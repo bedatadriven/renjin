@@ -39,8 +39,8 @@ test.issue.102 <- function() {
     df <- read.csv("tables/issue102.txt", stringsAsFactors = FALSE)
     
     expected <- data.frame(
-        X_id = c("3909D56A13834DBDAA7A5F637A48B441", 
-                "3151D4C10A17440584D1363747F933B2",  
+        X_id = c("3909D56A13834DBDAA7A5F637A48B441",
+                "3151D4C10A17440584D1363747F933B2",
                 "A01F4909C00542BD919602F6922DCC0C", 
                 "993E4E765C5947519D89B8C9068346AF",  
                 "235122AAA820439EAE043CA3DD8BF0DF"), 
@@ -55,7 +55,7 @@ test.issue.102 <- function() {
         orderCloseTime = c("2015-02-17T09:08:57Z",  
                 "2015-02-17T15:20:24Z", 
                 "2015-02-18T03:00:00Z", 
-                "2015-02-18T07:30:00Z",  
+                "2015-02-18T07:30:00Z",
                 "2015-02-18T19:00:49Z"), 
         orderProfit = c(-151.5, -16, -52.5,  -82.5, -27), 
         orderSwap = c(0L, 0L, 0L, 0L, 0L), 
@@ -66,4 +66,13 @@ test.issue.102 <- function() {
         stringsAsFactors = FALSE)
         
     assertThat(df, identicalTo(expected))
+}
+
+test.issue.257 <- function() {
+
+    df <- read.csv2("tables/tableau.txt", sep=";", dec=",", stringsAsFactors=FALSE)
+
+    assertThat(df$typo, identicalTo(c("A", "B", "C")))
+    assertThat(df$quantite, identicalTo(c(1.5, 2.6, 3.8)))
+
 }

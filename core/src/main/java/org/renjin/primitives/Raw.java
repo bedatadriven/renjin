@@ -19,6 +19,7 @@
 package org.renjin.primitives;
 
 import org.renjin.eval.EvalException;
+import org.renjin.invoke.annotations.DataParallel;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.sexp.RawVector;
@@ -116,5 +117,17 @@ public final class Raw {
       }
     }
     return bits.build();
+  }
+
+  @Internal
+  @DataParallel
+  public static int bitwiseAnd(int a, int b) {
+    return a & b;
+  }
+
+  @Internal
+  @DataParallel
+  public static int bitwiseOr(int a, int b) {
+    return a | b;
   }
 }

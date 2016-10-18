@@ -23,6 +23,7 @@
 
   <artifactId>renjin-debian-package</artifactId>
   <name>Renjin</name>
+  <packaging>pom</packaging>
 
   <dependencies>
     <dependency>

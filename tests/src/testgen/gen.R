@@ -20,15 +20,17 @@
 # Common functions for generating
 # test cases
 
-deparse0 <- function(x) paste(deparse(x, control = c("hexNumeric", "showAttributes", "keepInteger")), collapse = "")
+deparse0 <- function(x)
+    paste(deparse(x,
+        control = c("showAttributes", "keepInteger", "keepNA")), collapse = "")
 
 deparseExpected <- function(x) {
    if(typeof(x) == "language") {
-    sprintf("quote(%s)", deparse(x, control = c("hexNumeric", "showAttributes", "keepInteger")))
+    sprintf("quote(%s)", deparse0(x))
    } else if(typeof(x) == "expression") {
     sprintf("as.expression(%s)", deparse0(as.list(x)))
    } else if(typeof(x) == "symbol") {
-    sprintf("as.name(%s)", deparse(x, control = c("hexNumeric", "showAttributes", "keepInteger")))
+    sprintf("as.name(%s)", deparse0(x))
    } else {
     if(typeof(x) == "list") {
       for(i in seq_along(x)) {
@@ -98,7 +100,7 @@ writeFixture <- function(test, format, ...) {
 writeTest <- function(test, fn, ..., ARGS, tol = NULL, SET.SEED = FALSE) {
   call <- callWithQuotedArgs(fn, if(missing(ARGS)) list(...) else ARGS)
   if (SET.SEED) {
-    eval(as.call(c(as.name("set.seed"), 1)), envir = .GlobalEnv)
+    set.seed(1)
   }
 
   expected <- tryCatch(eval(call, envir = .GlobalEnv), error = function(e) e)
@@ -119,8 +121,15 @@ writeTest <- function(test, fn, ..., ARGS, tol = NULL, SET.SEED = FALSE) {
     matcher <- sprintf("identicalTo(%s, tol = %f)", deparseExpected(expected), tol)
   }
   
-  writeln(test, "test.%s.%d <- function() assertThat({set.seed(1);%s}, %s)",
-                            fn, test$index, deparse0(call), matcher)
+  if(SET.SEED) {
+    writeln(test, "test.%s.%d <- function() { set.seed(1); assertThat(%s, %s) }",
+            fn, test$index, deparse0(call), matcher)
+    
+  } else {
+    writeln(test, "test.%s.%d <- function() assertThat(%s, %s)",
+            fn, test$index, deparse0(call), matcher)
+    
+  }
   test$index <- test$index + 1
 }
 

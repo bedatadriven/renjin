@@ -263,7 +263,7 @@ public class Profiler {
     out.println("TOP-LEVEL FUNCTION CALLS");
     out.println("==================");
     out.println();
-    out.println(String.format("  %-25s%5s%10s%10s%4s%10s", "Function", "Count", "Time", "Own Time", "%", "kb Alloc"));
+    out.println(String.format("  %-25s%10s%10s%10s%4s%10s", "Function", "Count", "Time", "Own Time", "%", "kb Alloc"));
 
     printProfiles(out, totalRunningTime, Iterables.limit(profiles, 10));
   }
@@ -284,14 +284,14 @@ public class Profiler {
     out.println("FUNCTION CALLS BY OWN TIME");
     out.println("==========================");
     out.println();
-    out.println(String.format("  %-25s%5s%10s%10s%4s%10s", "Function", "Count", "Time", "Own Time", "%", "kb Alloc"));
+    out.println(String.format("  %-25s%10s%10s%10s%4s%10s", "Function", "Count", "Time", "Own Time", "%", "kb Alloc"));
 
     printProfiles(out, totalRunningTime, profiles);
   }
 
   private static void printProfiles(PrintStream out, double totalRunningTime, Iterable<FunctionProfile> profiles) {
     for (FunctionProfile profile : profiles) {
-      out.println(String.format("%c %-25s%5d%10d%10d%3.0f%%%10s",
+      out.println(String.format("%c %-25s%10d%10d%10d%3.0f%%%10s",
           profile.type,
           profile.symbol.getPrintName(),
           profile.count,

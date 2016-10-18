@@ -1041,14 +1041,16 @@ public class GimpleCompilerTest extends AbstractGccTest {
     compileAndTest("fatptrfield_param_assign.c");
   }
 
-  @Test
-  public void constantStaticVar() throws Exception {
-    compileAndTest("staticvar.c");
-  }
 
   @Test
   public void tukey() throws Exception {
     compile("dt.c");
   }
-  
+
+  @Test
+  public void constantStaticVar() throws Exception {
+    compileAndTest("staticvar.c");
+
+  }
+
 }

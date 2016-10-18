@@ -18,6 +18,9 @@
  */
 package org.renjin.invoke.codegen.scalars;
 
+import com.sun.codemodel.JCodeModel;
+import com.sun.codemodel.JExpression;
+import org.renjin.sexp.IntVector;
 import org.renjin.sexp.Logical;
 import org.renjin.sexp.LogicalArrayVector;
 import org.renjin.sexp.LogicalVector;
@@ -48,6 +51,21 @@ public class LogicalType extends ScalarType {
   @Override
   public Class<LogicalArrayVector.Builder> getBuilderClass() {
     return LogicalArrayVector.Builder.class;
+  }
+
+  @Override
+  public Class getBuilderArrayElementClass() {
+    return int.class;
+  }
+
+  @Override
+  public Class getArrayVectorClass() {
+    return LogicalArrayVector.class;
+  }
+
+  @Override
+  public JExpression naLiteral(JCodeModel codeModel) {
+    return codeModel.ref(IntVector.class).staticRef("NA");
   }
 
 

@@ -54,7 +54,23 @@ public class RDataReaderTest extends EvalTestCase {
     assertThat(pairList.length(), equalTo(1));
     assertThat(pairList.getValue(), equalTo( c(1,2,3,4) ));
   }
-  
+
+  @Test
+  public void loadSimpleHashEnvironment() throws IOException {
+    InputStream in = getClass().getResourceAsStream("/HashedEnvironment.RData");
+    GZIPInputStream gzipIn = new GZIPInputStream(in);
+    RDataReader reader = new RDataReader(topLevelContext, gzipIn);
+
+    SEXP exp = reader.readFile();
+    assertThat(exp, instanceOf(PairList.Node.class));
+
+    PairList.Node pairList = (PairList.Node) exp;
+    Environment env = (Environment) pairList.getValue();
+    assertThat(pairList.length(), equalTo(1));
+    assertThat(env.getVariable("yyyy0yyyyy"), equalTo( c_i(1, 2, 3) ));
+    assertThat(env.getVariable("yyyy8yyyyy"), equalTo( c(8) ));
+    assertThat(env.getVariable("yyyy3yyyyy"), equalTo( c("a","b") ));
+  }
   @Test
   public void isRDataFile() throws IOException {
     ByteSource rdata = new ByteSource() {

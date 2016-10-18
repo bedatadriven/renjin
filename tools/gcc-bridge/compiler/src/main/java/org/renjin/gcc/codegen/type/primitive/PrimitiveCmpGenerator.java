@@ -73,6 +73,16 @@ public class PrimitiveCmpGenerator implements ConditionGenerator {
     if(!tx.equals(ty)) {
       throw new UnsupportedOperationException("Type mismatch: " + tx + " != " + ty);
     }
+
+    if(op == GimpleOp.ORDERED_EXPR) {
+      emitOrderedJump(mv, trueLabel, falseLabel);
+      return;
+    }
+    if(op == GimpleOp.UNORDERED_EXPR) {
+      emitOrderedJump(mv, falseLabel, trueLabel);
+      return;
+    }
+
     
     // Push two operands on the stack
     x.load(mv);
@@ -80,6 +90,7 @@ public class PrimitiveCmpGenerator implements ConditionGenerator {
 
     if(tx.equals(Type.DOUBLE_TYPE) ||
         ty.equals(Type.FLOAT_TYPE)) {
+
 
       emitRealJump(mv, trueLabel);
 
@@ -89,6 +100,16 @@ public class PrimitiveCmpGenerator implements ConditionGenerator {
     } 
     
     mv.visitJumpInsn(GOTO, falseLabel);
+  }
+
+  private void emitOrderedJump(MethodGenerator mv, Label orderedLabel, Label unorderedLabel) {
+    x.load(mv);
+    mv.invokestatic(Double.class, "isNaN", Type.getMethodDescriptor(Type.BOOLEAN_TYPE, x.getType()));
+    mv.ifne(unorderedLabel);
+    y.load(mv);
+    mv.invokestatic(Double.class, "isNaN", Type.getMethodDescriptor(Type.BOOLEAN_TYPE, y.getType()));
+    mv.ifne(unorderedLabel);
+    mv.goTo(orderedLabel);
   }
 
   private int integerComparison() {

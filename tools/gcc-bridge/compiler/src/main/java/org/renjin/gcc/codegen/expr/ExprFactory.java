@@ -381,6 +381,13 @@ public class ExprFactory {
       case NE_EXPR:
       case GT_EXPR:
       case GE_EXPR:
+      case UNORDERED_EXPR:
+      case ORDERED_EXPR:
+      case UNEQ_EXPR:
+      case UNLT_EXPR:
+      case UNLE_EXPR:
+      case UNGT_EXPR:
+      case UNGE_EXPR:
         return primitive(new ConditionExpr(
             findComparisonGenerator(op,operands.get(0), operands.get(1))));
 
@@ -393,11 +400,6 @@ public class ExprFactory {
       case ABS_EXPR:
         return primitive(new AbsValue(
             findPrimitiveGenerator(operands.get(0))));
-
-      case UNORDERED_EXPR:
-        return primitive(new UnorderedExpr(
-            findPrimitiveGenerator(operands.get(0)),
-            findPrimitiveGenerator(operands.get(1))));
 
       case CONJ_EXPR:
         return findComplexGenerator(operands.get(0)).conjugate();

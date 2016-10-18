@@ -57,7 +57,7 @@ public class RDataWriter {
   private StreamWriter out;
   private SerializationType serializationType;
 
-  private Map<SEXP, Integer> references = Maps.newHashMap();
+  private Map<SEXP, Integer> references = Maps.newIdentityHashMap();
 
   public RDataWriter(WriteContext context, PersistenceHook hook, OutputStream out,
                      SerializationType type) {
@@ -366,14 +366,18 @@ public class RDataWriter {
   }
 
   private void writePairList(PairList.Node node) throws IOException {
-    writeFlags(SexpType.LISTSXP, node);
-    writeAttributes(node);
-    writeTag(node);
-    writeExp(node.getValue());
-    if(node.hasNextNode()) {
-      writeExp(node.getNextNode());
-    } else {
-      writeNull();
+
+    while(true) {
+      writeFlags(SexpType.LISTSXP, node);
+      writeAttributes(node);
+      writeTag(node);
+      writeExp(node.getValue());
+
+      if(node.getNext() == Null.INSTANCE) {
+        writeNull();
+        break;
+      }
+      node = node.getNextNode();
     }
   }
 
@@ -398,7 +402,6 @@ public class RDataWriter {
   }
   
   private void writeEnvironment(Environment env) throws IOException {
-    // add reference FIRST to avoid infinite loops
 
     if(context.isGlobalEnvironment(env)) {
       out.writeInt(SerializationFormat.GLOBALENV_SXP);

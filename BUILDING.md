@@ -49,11 +49,11 @@ as normal.
 You can install the required tools through the APT package manager. 
 For 64-bit systems:
 
-    sudo apt-get install openjdk-8-jdk maven make gcc-4.7 gcc-4.7-plugin-dev gfortran-4.7 g++-4.7 gcc-4.7.multilib g++-4.7-multilib
+    sudo apt-get install openjdk-7-jdk maven make gcc-4.7 gcc-4.7-plugin-dev gfortran-4.7 g++-4.7 gcc-4.7.multilib g++-4.7-multilib
 
 For 34-bit systems:
 
-    sudo apt-get install openjdk-8-jdk maven make gcc-4.7 gcc-4.7-plugin-dev gfortran-4.7 g++-4.7 
+    sudo apt-get install openjdk-7-jdk maven make gcc-4.7 gcc-4.7-plugin-dev gfortran-4.7 g++-4.7 
 
 Then build:
 

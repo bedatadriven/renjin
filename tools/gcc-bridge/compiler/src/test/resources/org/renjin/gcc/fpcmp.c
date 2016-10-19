@@ -1,4 +1,8 @@
 
+#include <math.h>
+#include <float.h>
+
+#include "assert.h"
 
 int lessThan(double x, double y) {
   int i;
@@ -56,4 +60,11 @@ int greaterThanEqual(double x, double y) {
 int truncate(double x) {
   int y = (int)x;
   return y;
+}
+
+void test() {
+
+    ASSERT(greaterThanEqual(42, 0) == 1);
+    ASSERT(greaterThanEqual(0, NAN) == 0);
+    ASSERT(greaterThanEqual(2.5, 2.5) == 1);
 }

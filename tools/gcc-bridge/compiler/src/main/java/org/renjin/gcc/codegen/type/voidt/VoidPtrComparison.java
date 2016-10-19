@@ -74,6 +74,9 @@ public class VoidPtrComparison implements ConditionGenerator {
       case GE_EXPR:
         mv.ifge(trueLabel);
         break;
+
+      default:
+        throw new UnsupportedOperationException("op: " + op);
     }
     mv.goTo(falseLabel);
   }

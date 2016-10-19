@@ -94,6 +94,8 @@ public class FatPtrConditionGenerator implements ConditionGenerator {
       case GE_EXPR:
         mv.ificmpgt(trueLabel);
         break;
+      default:
+        throw new UnsupportedOperationException("op: " + op);
     }
     mv.goTo(falseLabel);
     
@@ -115,6 +117,9 @@ public class FatPtrConditionGenerator implements ConditionGenerator {
       case GE_EXPR:
         mv.ificmpge(trueLabel);
         break;
+
+      default:
+        throw new UnsupportedOperationException("op: " + op);
     }
     
     mv.goTo(falseLabel);

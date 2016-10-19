@@ -35,6 +35,7 @@ import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.var.GlobalVarAllocator;
 import org.renjin.gcc.codegen.var.LocalStaticVarAllocator;
 import org.renjin.gcc.gimple.*;
+import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.statement.*;
 import org.renjin.gcc.gimple.type.GimpleVoidType;
 import org.renjin.gcc.peephole.PeepholeOptimizer;
@@ -315,6 +316,11 @@ public class FunctionGenerator implements InvocationStrategy {
   }
 
   private void emitAssignment(GimpleAssignment ins) {
+
+    if(isClobber(ins)) {
+      return;
+    }
+
     try {
       GExpr lhs = exprFactory.findGenerator(ins.getLHS());
       GExpr rhs = exprFactory.findGenerator(ins.getOperator(), ins.getOperands(), ins.getLHS().getType());
@@ -324,6 +330,12 @@ public class FunctionGenerator implements InvocationStrategy {
     } catch (Exception e) {
       throw new RuntimeException("Exception compiling assignment to " + ins, e);
     }
+  }
+
+  private boolean isClobber(GimpleAssignment ins) {
+    return ins.getOperator() == GimpleOp.CONSTRUCTOR &&
+        ins.getOperands().get(0) instanceof GimpleConstructor &&
+        ((GimpleConstructor) ins.getOperands().get(0)).isClobber();
   }
 
   private void emitGoto(GimpleGoto ins) {

@@ -120,6 +120,18 @@ public class ExprFactory {
         return new FatPtrPair(new PrimitiveValueFunction(value.getType()), Expressions.newArray(value));
 
       } else  {
+
+        // Try to simplify expressions in the form &*x to x
+        if(addressOf.getValue() instanceof GimpleMemRef) {
+          GimpleMemRef memRef = (GimpleMemRef) addressOf.getValue();
+          if(memRef.isOffsetZero()) {
+            return findGenerator(memRef.getPointer());
+          } else {
+            return pointerPlus(memRef.getPointer(), memRef.getOffset(), memRef.getPointer().getType());
+          }
+        }
+
+        // Otherwise delgate addressOf operation to expr generator
         GExpr value = findGenerator(addressOf.getValue());
         try {
           return value.addressOf();
@@ -318,7 +330,8 @@ public class ExprFactory {
       case MEM_REF:
         // Cast the pointer type first, then dereference
         return memRef((GimpleMemRef) operands.get(0), expectedType);
-      
+
+      case CONSTRUCTOR:
       case CONVERT_EXPR:
       case FIX_TRUNC_EXPR:
       case FLOAT_EXPR:
@@ -368,6 +381,13 @@ public class ExprFactory {
       case NE_EXPR:
       case GT_EXPR:
       case GE_EXPR:
+      case UNORDERED_EXPR:
+      case ORDERED_EXPR:
+      case UNEQ_EXPR:
+      case UNLT_EXPR:
+      case UNLE_EXPR:
+      case UNGT_EXPR:
+      case UNGE_EXPR:
         return primitive(new ConditionExpr(
             findComparisonGenerator(op,operands.get(0), operands.get(1))));
 
@@ -381,13 +401,9 @@ public class ExprFactory {
         return primitive(new AbsValue(
             findPrimitiveGenerator(operands.get(0))));
 
-      case UNORDERED_EXPR:
-        return primitive(new UnorderedExpr(
-            findPrimitiveGenerator(operands.get(0)),
-            findPrimitiveGenerator(operands.get(1))));
-
       case CONJ_EXPR:
         return findComplexGenerator(operands.get(0)).conjugate();
+
 
       default:
         throw new UnsupportedOperationException("op: " + op);

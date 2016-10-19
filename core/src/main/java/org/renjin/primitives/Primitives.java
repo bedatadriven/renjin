@@ -805,6 +805,7 @@ public class Primitives {
     f("file.info", Files.class, 11);
     f("file.access", Files.class, 11);
     f("dir.create", Files.class, 11);
+    f("dir.exists", Files.class, 11);
     f("tempfile", Files.class, 11);
     f("tempdir", Files.class, 11);
     f("R.home", System.class, "getRHome", 11);

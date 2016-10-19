@@ -569,10 +569,18 @@ public class BasePackageTest extends EvalTestCase {
 
     assertThat(eval(" cut(c(1,2,3,4,5,6), breaks=c(0,2,6))"), equalTo(c_i(1,1,2,2,2,2)));
     assertThat(eval(" cut(c(1,2,3,4,5,6), breaks=c(0,2,6), right=F)"),
-        equalTo(c_i(1,2,2,2,2,IntVector.NA)));
+            equalTo(c_i(1,2,2,2,2,IntVector.NA)));
     assertThat(eval(" cut(c(1,2,3,4,5,6), breaks=c(0,2,6), right=F, include.lowest=T)"),
-        equalTo(c_i(1,2,2,2,2,2)));
+            equalTo(c_i(1,2,2,2,2,2)));
   }
 
+  @Test
+  public void dirExists() {
+
+    assertThat(eval(" dir.exists(c(FALSE, NA, NaN, NULL, \"/home\", \"/home/parham\", \"/bla/bla\", 12.5, 11L))"),
+            equalTo(c(false, false, false,  true,  true, false, false, false)));
+    assertThat(eval("dir.exists(character(0))"),
+            equalTo((SEXP) LogicalVector.EMPTY));
+  }
 
 }

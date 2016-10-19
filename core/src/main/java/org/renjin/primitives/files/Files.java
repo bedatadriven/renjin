@@ -32,9 +32,12 @@ import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.io.ByteStreams;
 import org.renjin.sexp.*;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -311,6 +314,55 @@ public class Files {
 
     context.setInvisibleFlag();
     return new LogicalArrayVector(true);
+  }
+
+  /**
+   * Checks if input directory exists.
+
+   * @param context the current call Context
+   * @param paths character vectors containing file or directory paths.
+   *              Tilde expansion (see ‘path.expand’) is done.
+   * @return true if the operation succeeded for each of the directory attempted.
+   *  Using a missing value for a path name will always be regarded as a failure.
+   *  returns false if the directory already exists
+   * @throws FileSystemException
+   */
+  @Internal("dir.exists")
+  public static LogicalVector dirExists(@Current Context context, SEXP paths) throws FileSystemException {
+
+    LogicalArrayVector.Builder result = new LogicalArrayVector.Builder();
+
+    if (paths == Symbol.MISSING_ARG) {
+      throw new EvalException("argument \"paths\" is missing, with no default");
+    }
+    if (!(paths instanceof StringArrayVector)) {
+      throw new EvalException("invalid filename argument");
+    }
+    if (paths.length() == 0 ) {
+      return result.build();
+    }
+
+    for (int i = 0; i < paths.length(); i++) {
+
+      SEXP currentElement = paths.getElementAsSEXP(i);
+      boolean isNA = ((StringVector)currentElement).isElementNA(0);
+
+      if (currentElement != Null.INSTANCE) {
+        if (isNA) {
+          result.add(LogicalVector.FALSE);
+        } else {
+          Path path = Paths.get(((StringVector) paths).getElementAsObject(i));
+          if (java.nio.file.Files.exists(path)) {
+            result.add(LogicalVector.TRUE);
+          } else {
+            result.add(LogicalVector.FALSE);
+          }
+        }
+      }
+
+    }
+
+    return result.build();
   }
 
   /**

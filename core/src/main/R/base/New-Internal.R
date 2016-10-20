@@ -136,19 +136,33 @@ drop <- function(x).Internal(drop(x))
 format.info <- function(x, digits = NULL, nsmall = 0L)
     .Internal(format.info(x, digits, nsmall))
 
-gc <- function(verbose = getOption("verbose"),	reset=FALSE)
-{
-    res <- .Internal(gc(verbose, reset))
-    res <- matrix(res, 2L, 7L,
+gc <- function(verbose = getOption("verbose"),	reset=FALSE) {
+
+    # This is implemented as a NO OP in Renjin.
+    # While it is possible to force the JVM to stop and run
+    # garbage collection, it is very UNLIKELY to yield any
+    # performance benefit because the JVM does its job very well
+    # without intervention, and generally in parallel, while calling
+    # Runtime.gc() stops the world to run an exhaustive collection.
+
+    res <- matrix(numeric(14), 2L, 7L,
 		  dimnames = list(c("Ncells","Vcells"),
 		  c("used", "(Mb)", "gc trigger", "(Mb)",
 		    "limit (Mb)", "max used", "(Mb)")))
     if(all(is.na(res[, 5L]))) res[, -5L] else res
 }
-gcinfo <- function(verbose) .Internal(gcinfo(verbose))
-gctorture <- function(on=TRUE) invisible(.Internal(gctorture(on)))
-gctorture2 <- function(step, wait = step, inhibit_release = FALSE)
-    .Internal(gctorture2(step, wait, inhibit_release))
+
+gcinfo <- function(verbose) FALSE
+
+gctorture <- function(on=TRUE) {
+    warning("Renjin does not implement the gc torture mode.")
+    FALSE
+}
+
+gctorture2 <- function(step, wait = step, inhibit_release = FALSE) {
+    warning("Renjin does not implement the gc torture mode.")
+    FALSE
+}
 
 is.unsorted <- function(x, na.rm = FALSE, strictly = FALSE)
 {

@@ -683,9 +683,7 @@ public class Primitives {
     f("print.function", Print.class, 111);
     f("prmatrix", /*prmatrix*/ null, 111);
     f("invisible", Types.class, 101);
-    f("gc", System.class, 11);
-    f("gcinfo", /*gcinfo*/ null, 11);
-    f("gctorture", /*gctorture*/ null, 11);
+
     f("memory.profile", /*memoryprofile*/ null, 11);
     add(new RepFunction());
     f("rep.int", Sequences.class, 11);

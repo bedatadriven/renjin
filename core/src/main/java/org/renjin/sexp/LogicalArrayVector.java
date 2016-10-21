@@ -103,11 +103,6 @@ public class LogicalArrayVector extends LogicalVector {
   }
 
   @Override
-  public boolean isElementTrue(int index) {
-    return values[index] == 1;
-  }
-
-  @Override
   public boolean isConstantAccessTime() {
     return true;
   }

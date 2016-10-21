@@ -26,8 +26,6 @@ import org.renjin.primitives.vector.IsNaVector;
 import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.sexp.*;
 
-import java.util.BitSet;
-
 /**
  * Builtin type inspection and coercion functions
  */
@@ -218,16 +216,19 @@ public class Types {
   @Generic
   @Builtin("is.na")
   public static LogicalVector isNA(final AtomicVector vector) {
-    if(vector.length() > 50000 || vector.isDeferred()) {
+    if(vector.length() > 100 || vector.isDeferred()) {
       return new IsNaVector(vector);
 
     } else {
-      BitSet bitSet = new BitSet();
+      LogicalArrayVector.Builder result = new LogicalArrayVector.Builder(vector.length());
       for (int i = 0; i != vector.length(); ++i) {
-        bitSet.set(i, vector.isElementNaN(i));
+        result.set(i, vector.isElementNaN(i));
       }
+      result.setAttribute(Symbols.DIM, vector.getAttribute(Symbols.DIM));
+      result.setAttribute(Symbols.NAMES, vector.getAttribute(Symbols.NAMES));
+      result.setAttribute(Symbols.DIMNAMES, vector.getAttribute(Symbols.DIMNAMES));
 
-      return LogicalBitSetVector.unsafe(bitSet, vector.length(), vector.getAttributes().copyStructural());
+      return result.build();
     }
   }
 

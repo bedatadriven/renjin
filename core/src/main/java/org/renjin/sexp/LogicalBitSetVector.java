@@ -18,9 +18,6 @@
  */
 package org.renjin.sexp;
 
-import org.renjin.eval.Profiler;
-
-import java.util.Arrays;
 import java.util.BitSet;
 
 /**
@@ -32,23 +29,11 @@ public class LogicalBitSetVector extends LogicalVector {
 
   private final BitSet bitSet;
   private final int length;
-
+  
   public LogicalBitSetVector(BitSet bitSet, int length, AttributeMap attributes) {
-    this(bitSet, length, attributes, true);
-  }
-
-  private LogicalBitSetVector(BitSet bitSet, int length, AttributeMap attributes, boolean copy) {
     super(attributes);
     this.length = length;
-    this.bitSet = copy ? (BitSet) bitSet.clone() : bitSet;
-  }
-
-  /**
-   * Creates a new LogicalBitSetVector from a {@link BitSet} instance, without creating a copy. The provided
-   * {@code bitset} must NOT be subsequently modified.
-   */
-  public static LogicalBitSetVector unsafe(BitSet bitSet, int length, AttributeMap attributeMap) {
-    return new LogicalBitSetVector(bitSet, length, attributeMap, false);
+    this.bitSet = (BitSet) bitSet.clone();
   }
 
   public LogicalBitSetVector(BitSet bitSet, int length) {
@@ -65,17 +50,7 @@ public class LogicalBitSetVector extends LogicalVector {
   public int getElementAsRawLogical(int index) {
     return bitSet.get(index) ? 1 : 0;
   }
-
-  @Override
-  public boolean isElementNA(int index) {
-    return false;
-  }
-
-  @Override
-  public boolean isElementTrue(int index) {
-    return bitSet.get(index);
-  }
-
+  
   @Override
   public boolean isConstantAccessTime() {
     return true;
@@ -90,66 +65,5 @@ public class LogicalBitSetVector extends LogicalVector {
   protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
     return new LogicalBitSetVector(this.bitSet, length, attributes);
   }
-
-  public static class Builder
-      extends AbstractAtomicBuilder {
-
-    private BitSet bitSet = new BitSet();
-    private int size;
-
-    public Builder(int initialSize) {
-      size = initialSize;
-    }
-
-    public Builder add(int value) {
-      return set(size, value);
-    }
-
-    public Builder add(boolean value) {
-      return set(size, value);
-    }
-
-    public Builder add(Number value) {
-      return add(value.intValue() != 0 ? 1 : 0);
-    }
-
-    public Builder set(int index, boolean value) {
-      bitSet.set(index, value);
-      if(index+1 > size) {
-        size = index+1;
-      }
-      return this;
-    }
-
-    public Builder set(int index, int value) {
-      if(IntVector.isNA(value)) {
-        throw new IllegalArgumentException("LogicalBitSetVector cannot accept NA values");
-      }
-      return set(index, value != 0);
-    }
-
-    public Builder set(int index, Logical value) {
-      return set(index, value.getInternalValue());
-    }
-
-    @Override
-    public Builder setNA(int index) {
-      return set(index, NA);
-    }
-
-    @Override
-    public Builder setFrom(int destinationIndex, Vector source, int sourceIndex) {
-      return set(destinationIndex, source.getElementAsRawLogical(sourceIndex));
-    }
-
-    @Override
-    public int length() {
-      return size;
-    }
-
-    @Override
-    public LogicalVector build() {
-      return new LogicalBitSetVector(bitSet, size, buildAttributes(), false);
-    }
-  }
+  
 }

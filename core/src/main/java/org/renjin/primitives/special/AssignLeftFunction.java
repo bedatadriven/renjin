@@ -95,6 +95,9 @@ public class AssignLeftFunction extends SpecialFunction {
   }
 
   protected void assignResult(Context context, Environment rho, Symbol target, SEXP rhs) {
+    if(target.isReservedWord() && rhs instanceof Function) {
+      context.warn("Renjin does not honor redefinition of '" + target.getPrintName() + "' function");
+    }
     rho.setVariable(target, rhs);
   }
 }

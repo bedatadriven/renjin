@@ -24,6 +24,7 @@ import org.apache.commons.vfs2.FileSystemManager;
 import org.renjin.base.BaseFrame;
 import org.renjin.compiler.pipeline.VectorPipeliner;
 import org.renjin.parser.RParser;
+import org.renjin.primitives.Primitives;
 import org.renjin.primitives.Warning;
 import org.renjin.primitives.packaging.NamespaceRegistry;
 import org.renjin.primitives.special.ControlFlowException;
@@ -319,6 +320,9 @@ public class Context {
   private Function evaluateFunction(SEXP functionExp, Environment rho) {
     if(functionExp instanceof Symbol) {
       Symbol symbol = (Symbol) functionExp;
+      if(symbol.isReservedWord()) {
+        return Primitives.getReservedBuiltin(symbol);
+      }
       Function fn = rho.findFunction(this, symbol);
       if(fn == null) {
         throw new EvalException("could not find function '%s'", symbol.getPrintName());      

@@ -16,32 +16,30 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.stats.internals.distributions;
+package org.renjin.gcc.codegen.var;
+
+import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.expr.JLValue;
+import org.renjin.repackaged.asm.Type;
 
 
-import org.renjin.eval.Session;
+public class LocalStaticVarAllocator extends VarAllocator {
 
+  private String prefix;
+  private GlobalVarAllocator globalVarAllocator;
 
-public class StudentsT {
-
-  /*
-   * if df is infinite then a normal random should be returned.
-   * I don't know the way of getting whether df is infinite or not
-   * so i am leaving it as is. Something needed:
-   * 
-   * if (df is infinite){
-   * return(Normal.norm_rand());
-   * }else{
-   * return Normal.norm_rand() / Math.sqrt(ChiSquare.rchisq(df) / df);
-   * }
-   */
-  public static double rt(Session context, double df) {
-    if (Double.isNaN(df) || df <= 0.0) {
-      return (Double.NaN);
-    }
-
-    return Normal.norm_rand(context) / Math.sqrt(ChiSquare.rchisq(context, df) / df);
-
+  public LocalStaticVarAllocator(String prefix, GlobalVarAllocator globalVarAllocator) {
+    this.prefix = prefix;
+    this.globalVarAllocator = globalVarAllocator;
   }
 
+  @Override
+  public JLValue reserve(String name, Type type) {
+    return globalVarAllocator.reserve(prefix + name, type);
+  }
+
+  @Override
+  public JLValue reserve(String name, Type type, JExpr initialValue) {
+    return globalVarAllocator.reserve(prefix + name, type, initialValue);
+  }
 }

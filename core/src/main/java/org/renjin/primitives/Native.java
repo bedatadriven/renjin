@@ -23,11 +23,16 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Profiler;
 import org.renjin.gcc.runtime.*;
+import org.renjin.invoke.ClassBinding;
+import org.renjin.invoke.ClassBindings;
 import org.renjin.invoke.annotations.ArgumentList;
 import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.NamedFlag;
+import org.renjin.invoke.reflection.ClassBindingImpl;
 import org.renjin.invoke.reflection.FunctionBinding;
+import org.renjin.invoke.reflection.MemberBinding;
+import org.renjin.invoke.reflection.StaticBinding;
 import org.renjin.methods.Methods;
 import org.renjin.primitives.packaging.FqPackageName;
 import org.renjin.primitives.packaging.Namespace;
@@ -496,14 +501,10 @@ public class Native {
                                           String methodName,
                                           ListVector arguments) {
 
-    List<Method> overloads = findMethod(clazz, methodName);
+    ClassBindingImpl classBinding = ClassBindingImpl.get(clazz);
+    FunctionBinding functionBinding = classBinding.getStaticMethodBinding(methodName);
 
-    if(overloads.isEmpty()) {
-      throw new EvalException("Method " + methodName + " not defined in " + clazz.getName());
-    }
-
-    FunctionBinding binding = new FunctionBinding(overloads);
-    return binding.invoke(null, context, arguments);
+    return functionBinding.invoke(null, context, arguments);
   }
 
   public static List<Method> findMethod(Class packageClass, String methodName) {

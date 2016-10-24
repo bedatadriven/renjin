@@ -46,6 +46,9 @@ public class GimpleVarDecl implements GimpleDecl {
   
   private boolean weak;
 
+  @JsonProperty("static")
+  private boolean _static;
+
   /**
    * True if this local variable is addressable
    */
@@ -154,6 +157,14 @@ public class GimpleVarDecl implements GimpleDecl {
 
   public void setWeak(boolean weak) {
     this.weak = weak;
+  }
+
+  public boolean isStatic() {
+    return _static;
+  }
+
+  public void setStatic(boolean _static) {
+    this._static = _static;
   }
 
   public Predicate<GimpleExpr> isReference() {

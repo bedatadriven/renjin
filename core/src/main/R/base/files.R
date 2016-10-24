@@ -166,6 +166,8 @@ dir.create <- function(path, showWarnings = TRUE, recursive = FALSE,
     invisible(.Internal(dir.create(path, showWarnings, recursive,
                                    as.octmode(mode))))
 
+dir.exists <- function(paths) .Internal(dir.exists(paths))
+
 system.file <- function(..., package = "base", lib.loc = NULL, mustWork = FALSE)
 {
     if(nargs() == 0L)

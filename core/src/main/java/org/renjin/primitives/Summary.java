@@ -22,6 +22,8 @@ import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
+import org.renjin.parser.NumericLiterals;
+import org.renjin.parser.StringLiterals;
 import org.renjin.primitives.summary.DeferredMean;
 import org.renjin.primitives.summary.DeferredSum;
 import org.renjin.sexp.*;
@@ -87,14 +89,20 @@ public class Summary {
             .getRange();
   }
 
-  private static class RangeContainsNA extends Exception {  }
-
   private static class RangeCalculator {
     private boolean removeNA;
     private boolean recursive;
-    private Vector minValue = null;
-    private Vector maxValue = null;
+
     private Vector.Type resultType = IntVector.VECTOR_TYPE;
+
+    private double minDoubleValue = Double.POSITIVE_INFINITY;
+    private double maxDoubleValue = Double.NEGATIVE_INFINITY;
+    private int minIntValue = Integer.MAX_VALUE;
+    private int maxIntValue = Integer.MIN_VALUE;
+    private boolean hasValues;
+    private String minStringValue;
+    private String maxStringValue;
+
 
     /**
      * It is tempting to immediately return once the first NA is encountered,
@@ -131,67 +139,234 @@ public class Summary {
     private void addVector(SEXP argument) {
       AtomicVector vector = EvalException.checkedCast(argument);
 
-      if(vector instanceof ComplexVector) {
+      if (vector instanceof ComplexVector) {
         throw new EvalException("invalid 'type' (complex) of argument");
       }
 
-      if(vector.getVectorType().isWiderThan(resultType)) {
-        resultType = vector.getVectorType();
+      if (vector instanceof StringVector) {
+        addStringVector((StringVector)vector);
+
+      } else if (vector instanceof DoubleVector) {
+        addDoubleVector((DoubleVector) vector);
+
+      } else {
+        addIntVector(vector);
+      }
+    }
+    private void addIntVector(AtomicVector vector) {
+
+      // An integer vector will never trigger a promotion of the
+      // result type, so no need to continue if we've encountered an NA
+      if(naEncountered) {
+        return;
       }
 
-      for(int i=0;i!=vector.length();++i) {
-        if(vector.isElementNA(i)) {
-          if (!removeNA) {
+      // Find the min/max of this vector FIRST,
+      // before converting the type and THEN compare to the
+      // extrema of the other vectors
+
+      int minValue = Integer.MAX_VALUE;
+      int maxValue = Integer.MIN_VALUE;
+
+      boolean hasValues = false;
+
+      for (int i = 0; i < vector.length(); i++) {
+        int value = vector.getElementAsInt(i);
+
+        if(IntVector.isNA(value)) {
+          if(!removeNA) {
+            // If we encounter an NA and na.rm = FALSE,
+            // we can stop processing immediately.
             naEncountered = true;
-          }
-        } else if(isNaN(vector, i)) {
-          if( !removeNA) {
-            nanEncountered = true;
+            return;
           }
         } else {
-          resultType = Vector.Type.widest(resultType, vector.getVectorType());
+          hasValues = true;
+          minValue = Math.min(minValue, value);
+          maxValue = Math.max(maxValue, value);
+        }
+      }
 
-          if(maxValue == null || resultType.compareElements(maxValue, 0, vector, i) < 0) {
-            maxValue = resultType.getElementAsVector(vector, i);
-          }
-          if(minValue == null || resultType.compareElements(minValue, 0, vector, i) > 0) {
-            minValue = resultType.getElementAsVector(vector, i);
-          }
+      if(hasValues) {
+        if(resultType == StringVector.VECTOR_TYPE) {
+          addStringRange(Integer.toString(minValue), Integer.toString(maxValue));
+        } else {
+          this.hasValues = true;
+          minIntValue = Math.min(minIntValue, minValue);
+          maxIntValue = Math.max(maxIntValue, maxValue);
+          minDoubleValue = Math.min(minDoubleValue, minValue);
+          maxDoubleValue = Math.max(maxDoubleValue, maxValue);
         }
       }
     }
 
-    private boolean isNaN(AtomicVector vector, int i) {
-      if(vector instanceof DoubleVector) {
-        double x = vector.getElementAsDouble(i);
-        if(Double.isNaN(x)) {
-          return true;
+    private void addDoubleVector(DoubleVector vector) {
+
+      // Promote the result from integer to double if necessary
+      if(resultType == IntVector.VECTOR_TYPE) {
+        resultType = DoubleVector.VECTOR_TYPE;
+      }
+
+      // No need to look at the values if we've already encountered
+      // an NA value. Note that if we've encountered an NaN value,
+      // we have to keep looking for an NA value.
+      if(naEncountered) {
+        return;
+      }
+
+      double minValue = Double.POSITIVE_INFINITY;
+      double maxValue = Double.NEGATIVE_INFINITY;
+      boolean hasValues = false;
+
+      int length = vector.length();
+      for (int i = 0; i < length; i++) {
+        double value = vector.getElementAsDouble(i);
+        if(Double.isNaN(value)) {
+          if(!removeNA) {
+            if (DoubleVector.isNA(value)) {
+              // If we encounter an NA, we can stop processing immediately.
+              naEncountered = true;
+              return;
+            } else {
+              // If we encounter an NaN, we have to keep going to check for
+              // an NA value.
+              nanEncountered = true;
+            }
+            break;
+          }
+        } else {
+          hasValues = true;
+          if(value > maxValue) {
+            maxValue = value;
+          }
+          if(value < minValue) {
+            minValue = value;
+          }
         }
       }
-      return false;
+
+      if(nanEncountered) {
+        if(resultType == StringVector.VECTOR_TYPE) {
+          addStringRange("NaN", "NaN");
+        } else {
+          minDoubleValue = Double.NaN;
+          maxDoubleValue = Double.NaN;
+        }
+      } else if(hasValues) {
+        if (resultType == StringVector.VECTOR_TYPE) {
+          addStringRange(NumericLiterals.format(minValue, "NA"), NumericLiterals.format(maxValue, "NA"));
+
+        } else {
+          this.minDoubleValue = Math.min(minDoubleValue, minValue);
+          this.maxDoubleValue = Math.max(maxDoubleValue, maxValue);
+          this.hasValues = true;
+        }
+      }
+    }
+
+    private void addStringVector(StringVector vector) {
+
+      // Promote the result to string if necessary
+      if(!naEncountered && hasValues) {
+        if (resultType == IntVector.VECTOR_TYPE) {
+          minStringValue = Integer.toString(minIntValue);
+          maxStringValue = Integer.toString(maxIntValue);
+        } else if(resultType == DoubleVector.VECTOR_TYPE) {
+          minStringValue = NumericLiterals.toString(minDoubleValue);
+          maxStringValue = NumericLiterals.toString(maxDoubleValue);
+        }
+      }
+      resultType = StringVector.VECTOR_TYPE;
+
+      // If we've already encountered an NA, no need to process
+      // the contents of this vector.
+      if(naEncountered) {
+        return;
+      }
+
+      // Compute the extrema of this vector.
+      String minValue = null;
+      String maxValue = null;
+      boolean hasValues = false;
+
+      int length = vector.length();
+      for (int i = 0; i < length; i++) {
+        String value = vector.getElementAsString(i);
+        if (value == null) {
+          if (!removeNA) {
+            naEncountered = true;
+            return;
+          }
+        } else {
+          if (hasValues) {
+            minValue = min(minValue, value);
+            if (value.compareTo(minValue) < 0) {
+              minValue = value;
+            }
+            if (value.compareTo(maxValue) > 0) {
+              maxValue = value;
+            }
+          } else {
+            minValue = value;
+            maxValue = value;
+            hasValues = true;
+          }
+        }
+      }
+
+      if(hasValues) {
+        addStringRange(minValue, maxValue);
+      }
+    }
+
+    private String min(String x, String y) {
+      if(x.compareTo(y) < 0) {
+        return x;
+      } else {
+        return y;
+      }
+    }
+
+    private String max(String x, String y) {
+      if(x.compareTo(y) > 0) {
+        return x;
+      } else {
+        return y;
+      }
+    }
+
+    private void addStringRange(String minValue, String maxValue) {
+      if(this.hasValues) {
+        minStringValue = min(minStringValue, minValue);
+        maxStringValue = max(maxStringValue, maxValue);
+      } else {
+        minStringValue = minValue;
+        maxStringValue = maxValue;
+        hasValues = true;
+      }
     }
 
     public Vector getRange() {
-      if(!naEncountered && !nanEncountered && maxValue == null) {
+      if(nanEncountered) {
+        return new DoubleArrayVector(Double.NaN, Double.NaN);
+      } else if(naEncountered) {
+        return resultType.newBuilder().addNA().addNA().build();
+      } else if(!hasValues) {
         if(resultType == StringVector.VECTOR_TYPE) {
           return new StringArrayVector(StringVector.NA, StringVector.NA);
         } else {
+          // Even if the arguments are all integers, we promote the result to double
+          // so that we can return an infinite value.
           return new DoubleArrayVector(Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY);
         }
+      } else if(resultType == IntVector.VECTOR_TYPE) {
+        return new IntArrayVector(minIntValue, maxIntValue);
+      } else if(resultType == DoubleVector.VECTOR_TYPE) {
+        return new DoubleArrayVector(minDoubleValue, maxDoubleValue);
+      } else if(resultType == StringVector.VECTOR_TYPE) {
+        return new StringArrayVector(minStringValue, maxStringValue);
       } else {
-        Vector.Builder result = resultType.newBuilder();
-        if(naEncountered) {
-          result.addNA();
-          result.addNA();
-        } else if(nanEncountered) {
-          assert result instanceof DoubleArrayVector.Builder;
-          result.add(Double.NaN);
-          result.add(Double.NaN);
-        } else {
-          result.addFrom(minValue, 0);
-          result.addFrom(maxValue, 0);
-        }
-        return result.build();
+        throw new UnsupportedOperationException();
       }
     }
 
@@ -203,9 +378,6 @@ public class Summary {
       return getRange().getElementAsSEXP(1);
     }
 
-    private Vector buildNA() {
-      return resultType.newBuilder().addNA().build();
-    }
   }
 
   /**

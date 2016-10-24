@@ -328,7 +328,7 @@ public class Primitives {
     f("match.call", Match.class, 11);
     f("complete.cases", CompleteCases.class, 11);
 
-    f("attach", Environments.class, 111);   
+    f("attach", Environments.class, 111);
     f("detach", Environments.class, 111);
     f("search", Environments.class, 11);
 
@@ -513,31 +513,31 @@ public class Primitives {
 
 /* Random Numbers */
 
-    f("rchisq", RNG.class, 11);
-    f("rexp", RNG.class, 11);
-    f("rgeom", RNG.class, 11);
-    f("rpois", RNG.class, 11);
-    f("rt", RNG.class, 11);
-    f("rsignrank", RNG.class, 11);
+    f("rchisq", Distributions.class, 11);
+    f("rexp", Distributions.class, 11);
+    f("rgeom", Distributions.class, 11);
+    f("rpois", Distributions.class, 11);
+    f("rt", Distributions.class, 11);
+    f("rsignrank", Distributions.class, 11);
 
-    f("rbeta", RNG.class, 11);
-    f("rbinom", RNG.class, 11);
-    f("rcauchy",RNG.class, 11);
-    f("rf", RNG.class, 11);
-    f("rgamma", RNG.class, 11);
-    f("rlnorm", RNG.class, 11);
-    f("rlogis", RNG.class, 11);
-    f("rnbinom",RNG.class, 11);
-    f("rnbinom_mu", RNG.class , 11);
-    f("rnchisq", RNG.class, 11);
-    f("rnorm", RNG.class, 11);
-    f("runif", RNG.class, 11);
-    f("rweibull", RNG.class, 11);
-    f("rwilcox", RNG.class, 11);
+    f("rbeta", Distributions.class, 11);
+    f("rbinom", Distributions.class, 11);
+    f("rcauchy",Distributions.class, 11);
+    f("rf", Distributions.class, 11);
+    f("rgamma", Distributions.class, 11);
+    f("rlnorm", Distributions.class, 11);
+    f("rlogis", Distributions.class, 11);
+    f("rnbinom",Distributions.class, 11);
+    f("rnbinom_mu", Distributions.class , 11);
+    f("rnchisq", Distributions.class, 11);
+    f("rnorm", Distributions.class, 11);
+    f("runif", Distributions.class, 11);
+    f("rweibull", Distributions.class, 11);
+    f("rwilcox", Distributions.class, 11);
 
-    f("rhyper", RNG.class, 11);
+    f("rhyper", Distributions.class, 11);
 
-    f("rmultinom", RNG.class, 11);
+    f("rmultinom", Distributions.class, 11);
     f("sample", Sampling.class, 11);
 
     f("RNGkind", RNG.class, 11);
@@ -683,9 +683,7 @@ public class Primitives {
     f("print.function", Print.class, 111);
     f("prmatrix", /*prmatrix*/ null, 111);
     f("invisible", Types.class, 101);
-    f("gc", System.class, 11);
-    f("gcinfo", /*gcinfo*/ null, 11);
-    f("gctorture", /*gctorture*/ null, 11);
+
     f("memory.profile", /*memoryprofile*/ null, 11);
     add(new RepFunction());
     f("rep.int", Sequences.class, 11);
@@ -760,7 +758,9 @@ public class Primitives {
     f("eapply", /*eapply*/ null, 10);
     f("lapply", Evaluation.class, 10);
     f("vapply", Evaluation.class, 10);
+    f("mapply", Evaluation.class, 10);
     f("rapply", /*rapply*/ null, 11);
+
     f("islistfactor",  Types.class, 11);
     f("colSums", Matrices.class, 11);
     f("colMeans", Matrices.class, 11);
@@ -779,7 +779,7 @@ public class Primitives {
     f("capabilitiesX11", /*capabilitiesX11*/ null, 11);
     f("new.env", Environments.class, 11);
     f("parent.env", Environments.class, 11);
-    f("parent.env<-", Environments.class, 2);
+    f("parent.env<-", Environments.class, 11);
     f("visibleflag", /*visibleflag*/ null, 1);
     f("l10n_info", /*l10n_info*/ null, 11);
     f("Cstack_info", /*Cstack_info*/ null, 11);
@@ -803,6 +803,7 @@ public class Primitives {
     f("file.info", Files.class, 11);
     f("file.access", Files.class, 11);
     f("dir.create", Files.class, 11);
+    f("dir.exists", Files.class, 11);
     f("tempfile", Files.class, 11);
     f("tempdir", Files.class, 11);
     f("R.home", System.class, "getRHome", 11);
@@ -1021,6 +1022,14 @@ public class Primitives {
     f("jload", Jvmi.class, 0);
     f("library", Packages.class, 11);
     f("require", Packages.class, 11);
+
+    // bitwise
+    f("bitwiseNot", /*Raw*/ null, 11);
+    f("bitwiseXor", /*Raw*/ null, 11);
+    f("bitwiseShiftL", /*Raw*/ null, 11);
+    f("bitwiseShiftR", /*Raw*/ null, 11);
+    f("bitwiseAnd", Raw.class, 11);
+    f("bitwiseOr", Raw.class, 11);
 
   }
 

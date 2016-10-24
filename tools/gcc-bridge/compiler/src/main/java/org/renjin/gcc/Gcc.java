@@ -151,7 +151,7 @@ public class Gcc {
    */
   private String callGcc(List<String> arguments) throws IOException {
     List<String> command = Lists.newArrayList();
-    command.add("gcc-4.6");
+    command.add("gcc-4.7");
     command.addAll(arguments);
 
     Process gcc = new ProcessBuilder().command(command).directory(workingDirectory).redirectErrorStream(true).start();
@@ -232,12 +232,12 @@ public class Gcc {
   public void checkVersion() {
     try {
       String versionOutput = callGcc(Arrays.asList("--version"));
-      if (!versionOutput.contains("4.6.3")) {
-        System.err.println("WARNING: gcc-bridge has been tested against 4.6.3, other versions may not work correctly.");
+      if (!versionOutput.contains("4.7.4")) {
+        System.err.println("WARNING: gcc-bridge has been tested against 4.7.4, other versions may not work correctly.");
       }
     } catch (IOException e) {
       throw new GccException("Failed to start GCC: " + e.getMessage() + ".\n" +
-              "Make sure gcc 4.6.3 is installed." );
+              "Make sure gcc 4.7.4 is installed." );
     }
   }
 

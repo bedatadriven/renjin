@@ -39,7 +39,7 @@ public class Ops  {
 
   @Deferrable
   @Builtin("+")
-  @DataParallel(PreserveAttributeStyle.ALL)
+  @DataParallel(value = PreserveAttributeStyle.ALL, passNA = true)
   public static double plus(double x, double y) {
     return x + y;
   }
@@ -78,7 +78,7 @@ public class Ops  {
 
   @Deferrable
   @Builtin("-")
-  @DataParallel(PreserveAttributeStyle.ALL)
+  @DataParallel(value = PreserveAttributeStyle.ALL, passNA = true)
   public static double minus(double x, double y) {
     return x - y;
   }
@@ -97,7 +97,7 @@ public class Ops  {
 
   @Deferrable
   @Builtin("-")
-  @DataParallel(PreserveAttributeStyle.ALL)
+  @DataParallel(value = PreserveAttributeStyle.ALL, passNA = true)
   public static double minus(@Cast(CastStyle.EXPLICIT) double x) {
     return -x;
   }
@@ -125,7 +125,7 @@ public class Ops  {
 
   @Deferrable
   @Builtin("/")
-  @DataParallel(PreserveAttributeStyle.ALL)
+  @DataParallel(value = PreserveAttributeStyle.ALL, passNA = true)
   public static double divide(double x, double y) {
     return x / y;
   }
@@ -182,7 +182,7 @@ public class Ops  {
   
   @Deferrable
   @Builtin("*")
-  @DataParallel(PreserveAttributeStyle.ALL)
+  @DataParallel(value = PreserveAttributeStyle.ALL, passNA = true)
   public static double multiply(double x, double y) {
     return x * y;
   }

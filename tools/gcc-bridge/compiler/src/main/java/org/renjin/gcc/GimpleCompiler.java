@@ -91,6 +91,7 @@ public class GimpleCompiler  {
   private Predicate<GimpleFunction> entryPointPredicate = new DefaultEntryPointPredicate();
 
   public GimpleCompiler() {
+    functionBodyTransformers.add(AddressableSimplifier.INSTANCE);
     functionBodyTransformers.add(FunctionCallPruner.INSTANCE);
     functionBodyTransformers.add(LocalVariablePruner.INSTANCE);
     functionBodyTransformers.add(VoidPointerTypeDeducer.INSTANCE);

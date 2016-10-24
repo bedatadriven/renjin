@@ -95,6 +95,7 @@ public class NamespaceFile {
     private boolean allSymbols;
     private List<Symbol> symbols = Lists.newArrayList();
     private List<String> classes = Lists.newArrayList();
+    private List<String> methods = Lists.newArrayList();
 
     public PackageImportEntry(String packageName) {
       this.packageName = packageName;
@@ -129,6 +130,14 @@ public class NamespaceFile {
      */
     public List<String> getClasses() {
       return classes;
+    }
+
+    /**
+     *
+     * @return the list of S4 methods that should be imported from this package's namespace.
+     */
+    public List<String> getMethods() {
+      return methods;
     }
   }
 
@@ -285,6 +294,8 @@ public class NamespaceFile {
       parseImportFromClass(call);
     } else if(directiveName.equals("importClassesFrom")) {
       parseImportS4ClassesFrom(call);
+    } else if(directiveName.equals("importMethodsFrom")) {
+      parseImportS4MethodsFrom(call);
     } else if(directiveName.equals("S3method")) {
       parseS3Export(call);
     } else if(directiveName.equals("export") ||
@@ -406,6 +417,23 @@ public class NamespaceFile {
 
     for(int i=1;i<call.getArguments().length();++i) {
       packageImport.classes.add(parseStringArgument(call.getArgument(i)));
+    }
+  }
+
+  /**
+   * Parses the {@code importMethodsFrom(packageName, class1, class2, ...)} directive, which
+   * imports each of the given S4 methods from the given {@code packageName}.
+   *
+   */
+  private void parseImportS4MethodsFrom(FunctionCall call) {
+    if(call.getArguments().length() < 2) {
+      throw new EvalException("Expected at least two arguments to importMethodsFrom directive");
+    }
+
+    PackageImportEntry packageImport = packageImport(call.getArgument(0));
+
+    for(int i=1;i<call.getArguments().length();++i) {
+      packageImport.methods.add(parseStringArgument(call.getArgument(i)));
     }
   }
 

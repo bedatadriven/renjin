@@ -14,19 +14,13 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-lowess <- function(x, y=NULL, f=2/3, iter=3, delta=.01*diff(range(xy$x[o]))) {
-    xy <- xy.coords(x,y)
-    n <- as.integer(length(xy$x))
-    if(n == 0) stop("'x' is empty")
+lowess <-
+function (x, y = NULL, f = 2/3, iter = 3L, delta = 0.01 * diff(range(x)))
+{
+    xy <- xy.coords(x, y)
     o <- order(xy$x)
-    .C(C_lowess,
-       x=as.double(xy$x[o]),
-       as.double(xy$y[o]),
-       n,
-       as.double(f),
-       as.integer(iter),
-       as.double(delta),
-       y=double(n),
-       double(n),
-       double(n), PACKAGE="stats")[c("x","y")]
+    x <- as.double(xy$x[o])
+    list(x = x, y = .Call(C_lowess, x, as.double(xy$y[o]), f,
+    iter, delta))
 }
+

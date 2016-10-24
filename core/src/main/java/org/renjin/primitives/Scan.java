@@ -79,9 +79,9 @@ public class Scan {
     
     Scanner scanner;
     if(what instanceof ListVector) {
-      scanner = new ListReader((ListVector)what, splitter);
+      scanner = new ListReader((ListVector)what, splitter, dec.charAt(0));
     } else {
-      scanner = new ScalarReader(getAtomicScanner(what), splitter);
+      scanner = new ScalarReader(getAtomicScanner(what, dec.charAt(0)), splitter);
     }
 
     String line;
@@ -129,15 +129,17 @@ public class Scan {
   }
   
   private static class DoubleReader implements Scanner {
+    private final char decimal;
     private final DoubleArrayVector.Builder builder;
-    
-    private DoubleReader() {
+
+    private DoubleReader(char decimal) {
+      this.decimal = decimal;
       this.builder = new DoubleArrayVector.Builder();
     }
 
     @Override
     public void read(String line) {
-      builder.add( NumericLiterals.parseDouble(line) );
+      builder.add( NumericLiterals.parseDouble(line, 0, line.length(), decimal, false) );
     }
 
     @Override
@@ -162,11 +164,11 @@ public class Scan {
   
   
   
-  private static Scanner getAtomicScanner(SEXP exp) {
+  private static Scanner getAtomicScanner(SEXP exp, char decimal) {
     if(exp instanceof StringVector) {
       return new StringReader();
     } else if(exp instanceof DoubleVector) {
-      return new DoubleReader();
+      return new DoubleReader(decimal);
     } else if(exp instanceof IntVector) {
       return new IntReader();
     } else {
@@ -204,11 +206,11 @@ public class Scan {
     private StringVector names;
     private List<Scanner> columnReaders = Lists.newArrayList();
         
-    public ListReader(ListVector columns, Splitter splitter) {
+    public ListReader(ListVector columns, Splitter splitter, char decimal) {
       this.splitter = splitter;
       this.names = (StringVector) columns.getAttribute(Symbols.NAMES);
       for(SEXP column : columns) {
-        columnReaders.add(getAtomicScanner(column));
+        columnReaders.add(getAtomicScanner(column, decimal));
       }
     }
     

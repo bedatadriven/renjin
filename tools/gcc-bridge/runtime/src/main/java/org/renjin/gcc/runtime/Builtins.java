@@ -131,7 +131,7 @@ public class Builtins {
   }
 
   public static int __finite(double x) {
-    return Double.isInfinite(x) ? 0 : 1;
+    return Double.isInfinite(x) || Double.isNaN(x) ? 0 : 1;
   }
 
   public static boolean unordered(double x, double y) {

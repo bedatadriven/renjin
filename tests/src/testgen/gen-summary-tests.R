@@ -26,6 +26,7 @@ source("src/testgen/gen.R")
 unary <- c('cumsum', 'cumprod', 'cummax', 'cummin', 
            'sum', 'prod', 'min', 'max', 'range', 'any', 'all')
 
+
 inputs <- list(
   
   NULL,
@@ -97,6 +98,12 @@ for(fn in unary) {
   test <- test.open("gen-summary-tests.R", fn)
   writeln(test, "library(hamcrest)")
   
+  # min/max/range behavior is dependant on the 
+  # current locale.
+  if(fn %in% c("min", "max", "range")) {
+    writeFixture(test, "Sys.setlocale('LC_COLLATE', 'C')")
+  }
+  
   # define some nonsense generic functions
   writeln(test, "%s.foo <- function(...) 41", fn)
   writeln(test, "Math.bar <- function(...) 44")
@@ -115,6 +122,19 @@ for(fn in unary) {
     writeTest(test, fn, input, tol = tol)
   }
   
+  # Check combinations for min, max, range
+  # But skip those with attributes to reduce explosion
+  short.list <- inputs[ sapply(inputs, function(i) is.null(attributes(i))) ]
+  if(fn %in% c("min", "max")) {
+    for(na.rm in c(TRUE, FALSE)) {
+        for(i in short.list) {
+            for(j in short.list) {
+                writeTest(test, fn, i, j, na.rm = TRUE)
+            }
+        }
+    }
+  }
+
   # Check S3 dispatch
   writeTest(test, fn, structure("foo", class='foo'))
   writeTest(test, fn, structure(list(1L, "bar"), class='bar'))

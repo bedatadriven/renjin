@@ -497,27 +497,8 @@ public class Context {
     baseFrame.load(this);
     
     evaluate(FunctionCall.newCall(Symbol.get(".onLoad")), session.getBaseNamespaceEnv());
-    
-//    evalBaseResource("/org/renjin/library/base/R/Rprofile");
-//    
-//    // FunctionCall.newCall(new Symbol(".OptRequireMethods")).evaluate(this, environment);
-//    evaluate( FunctionCall.newCall(Symbol.get(".First.sys")), environment);
   }
 
-  protected void evalBaseResource(String resourceName) throws IOException {
-    Context evalContext = this.beginEvalContext(session.getBaseNamespaceEnv());
-    InputStream in = getClass().getResourceAsStream(resourceName);
-    if(in == null) {
-      throw new IOException("Could not load resource '" + resourceName + "'");
-    }
-    Reader reader = new InputStreamReader(in);
-    try {
-      evalContext.evaluate(RParser.parseSource(reader));
-    } finally {
-      reader.close();
-    }
-  }
-  
   public void setInvisibleFlag() {
     session.invisible = true;
   }

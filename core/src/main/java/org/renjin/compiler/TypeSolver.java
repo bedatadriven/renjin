@@ -212,10 +212,7 @@ public class TypeSolver {
     }
     
     if(!boundSet.isEmpty()) {
-
-      ValueBounds newBounds = ValueBounds.union(boundSet);
-      ValueBounds oldBounds = variableBounds.put(assignment.getLHS(), newBounds);
-      assignment.getLHS().update(newBounds);
+      maybeUpdateLhs(assignment, ValueBounds.union(boundSet));
     }
   }
   
@@ -243,17 +240,7 @@ public class TypeSolver {
     //     SSA edges starting at the definition for that node.
 
     if(statement instanceof Assignment) {
-      Assignment assignment = (Assignment) statement;
-      ValueBounds oldBounds = variableBounds.get(assignment.getLHS());
-      
-      if(!Objects.equals(oldBounds, newBounds)) {
-        assignment.getLHS().update(newBounds);
-        variableBounds.put(assignment.getLHS(), newBounds);
-        
-        Collection<SsaEdge> outgoingEdges = useDefMap.getSsaEdges(assignment.getLHS());
-
-        ssaWorkList.addAll(outgoingEdges);
-      }
+      maybeUpdateLhs((Assignment)statement, newBounds);
     }
 
     // (2) If the expression controls a conditional branch, some outgoing flow graph
@@ -290,6 +277,20 @@ public class TypeSolver {
           flowWorkList.addAll(block.getOutgoing());
         }
       }
+    }
+  }
+
+  private void maybeUpdateLhs(Assignment assignment, ValueBounds newBounds) {
+
+    ValueBounds oldBounds = variableBounds.put(assignment.getLHS(), newBounds);
+
+    if(!Objects.equals(oldBounds, newBounds)) {
+      assignment.getLHS().update(newBounds);
+      variableBounds.put(assignment.getLHS(), newBounds);
+
+      Collection<SsaEdge> outgoingEdges = useDefMap.getSsaEdges(assignment.getLHS());
+
+      ssaWorkList.addAll(outgoingEdges);
     }
   }
 

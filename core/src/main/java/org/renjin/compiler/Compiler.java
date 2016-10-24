@@ -39,6 +39,8 @@ public class Compiler {
       TypeSolver types = new TypeSolver(cfg, useDefMap);
       types.execute();
 
+      types.dumpBounds();
+
 
       types.verifyFunctionAssumptions(runtimeState);
 

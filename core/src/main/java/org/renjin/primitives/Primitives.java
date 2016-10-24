@@ -59,9 +59,12 @@ import org.renjin.stats.internals.optimize.Roots;
 
 import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class Primitives {
+
+  private IdentityHashMap<Symbol, PrimitiveFunction> reserved = new IdentityHashMap<>();
 
   private IdentityHashMap<Symbol, PrimitiveFunction> builtins = new IdentityHashMap<Symbol, PrimitiveFunction>();
   private IdentityHashMap<Symbol, PrimitiveFunction> internals = new IdentityHashMap<Symbol, PrimitiveFunction>();
@@ -74,6 +77,13 @@ public class Primitives {
   
   public static PrimitiveFunction getBuiltin(String name) {
     return getBuiltin(Symbol.get(name));
+  }
+
+  public static PrimitiveFunction getReservedBuiltin(Symbol symbol) {
+    assert symbol.isReservedWord();
+    PrimitiveFunction fn = INSTANCE.reserved.get(symbol);
+    assert fn != null : "missing reserved: " + symbol;
+    return fn;
   }
 
   public static PrimitiveFunction getBuiltin(Symbol symbol) {
@@ -1031,6 +1041,19 @@ public class Primitives {
     f("bitwiseAnd", Raw.class, 11);
     f("bitwiseOr", Raw.class, 11);
 
+    // Build map of reserved functions
+    for (Map.Entry<Symbol, PrimitiveFunction> entry : builtins.entrySet()) {
+      if(entry.getKey().isReservedWord()) {
+        reserved.put(entry.getKey(), entry.getValue());
+      }
+    }
+    for (Map.Entry<Symbol, Entry> entry : builtinEntries.entrySet()) {
+      if(entry.getKey().isReservedWord()) {
+        PrimitiveFunction fn = createFunction(entry.getValue());
+        builtins.put(entry.getKey(), fn);
+        reserved.put(entry.getKey(), fn);
+      }
+    }
   }
 
   private void add(SpecialFunction fn) {
@@ -1038,7 +1061,7 @@ public class Primitives {
     builtins.put(name, fn);
   }
 
-  private void add(Entry entry) {
+  private void add(Entry entry) {     
     if (entry.isInternal()) {
       internalEntries.put(Symbol.get(entry.name), entry);
     } else {

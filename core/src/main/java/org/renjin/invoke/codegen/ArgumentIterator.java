@@ -68,22 +68,13 @@ public class ArgumentIterator {
   
     SEXP value = node.getValue();
 
-
     if(Symbols.ELLIPSES.equals(value)) {
-      PromisePairList dotdot = (PromisePairList) context.evaluate( value, rho);
-      ellipses = dotdot;
+      ellipses = (PromisePairList) context.evaluate( value, rho);
       return evalNext();
 
     } else {
       this.currentName = node.getName();
-      SEXP evaluated = context.evaluate(value, rho);
-      if(evaluated == null) {
-        SEXP retry = context.evaluate(value, rho);
-      }
-//      if(evaluated == Symbol.MISSING_ARG) {
-//        throw new EvalException("Missing argument with no default: " + value);
-//      }
-      return evaluated;
+      return context.evaluate(value, rho);
     } 
   }
   

@@ -524,9 +524,13 @@ public class EvaluationTest extends EvalTestCase {
     eval("f <- function(x) UseMethod('f')");
     eval("f.numeric <- function(x) 'numeric' ");
     eval("f.double <- function(x) 'double' ");
-    
-   
+    eval("f.integer <- function(x) 'integer'");
+
     assertThat(eval("f(9)"), equalTo(c("double")));
+    assertThat(eval("f(9L)"), equalTo(c("integer")));
+
+    assertThat(eval("class(9)"), equalTo(c("numeric")));
+    assertThat(eval("class(9L)"), equalTo(c("integer")));
   }
 
   @Test

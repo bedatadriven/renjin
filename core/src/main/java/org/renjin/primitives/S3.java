@@ -164,8 +164,11 @@ public class S3 {
       } else if(dim.length() > 0) {
         dataClass.add("array");
       }
-      if(exp instanceof IntVector || exp instanceof DoubleVector) {
-        dataClass.add(exp.getImplicitClass());
+      if(exp instanceof IntVector) {
+        dataClass.add("integer");
+        dataClass.add("numeric");
+      } else if(exp instanceof DoubleVector) {
+        dataClass.add("double");
         dataClass.add("numeric");
       } else {
         dataClass.add(exp.getImplicitClass());

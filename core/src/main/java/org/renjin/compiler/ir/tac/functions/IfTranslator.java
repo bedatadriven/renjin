@@ -21,15 +21,12 @@ package org.renjin.compiler.ir.tac.functions;
 
 import org.renjin.compiler.ir.tac.IRBodyBuilder;
 import org.renjin.compiler.ir.tac.IRLabel;
-import org.renjin.compiler.ir.tac.expressions.Constant;
-import org.renjin.compiler.ir.tac.expressions.Expression;
-import org.renjin.compiler.ir.tac.expressions.SimpleExpression;
-import org.renjin.compiler.ir.tac.expressions.Temp;
-import org.renjin.compiler.ir.tac.statements.Assignment;
-import org.renjin.compiler.ir.tac.statements.GotoStatement;
-import org.renjin.compiler.ir.tac.statements.IfStatement;
+import org.renjin.compiler.ir.tac.expressions.*;
+import org.renjin.compiler.ir.tac.statements.*;
+import org.renjin.invoke.reflection.converters.Specificity;
 import org.renjin.sexp.Function;
 import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.SpecialFunction;
 
 
 public class IfTranslator extends FunctionCallTranslator {
@@ -40,13 +37,14 @@ public class IfTranslator extends FunctionCallTranslator {
     
     // since "if" is being used in the context of an expression, we need
     // to store its final value somewhere
-    Temp ifResult = builder.newTemp(); 
+    LocalVariable ifResult = builder.newLocalVariable("zz");
     
     IRLabel trueTarget = builder.newLabel();
     IRLabel falseTarget = builder.newLabel();
+    IRLabel naTarget = builder.newLabel();
     IRLabel endLabel = builder.newLabel();
     
-    IfStatement jump = new IfStatement(condition, trueTarget, falseTarget);
+    IfStatement jump = new IfStatement(condition, trueTarget, falseTarget, naTarget);
     builder.addStatement(jump);
     
     // evaluate "if true" expression
@@ -71,7 +69,13 @@ public class IfTranslator extends FunctionCallTranslator {
     }
     
     builder.addStatement(new Assignment(ifResult, ifFalseResult));
-    
+    builder.addStatement(new GotoStatement(endLabel));
+
+    builder.addLabel(naTarget);
+    builder.addStatement(new UpdateStatement());
+    builder.addStatement(new ThrowStatement(SpecialFunction.MISSING_VALUE_ERROR));
+
+
     builder.addLabel(endLabel);
     
     return ifResult;
@@ -85,8 +89,11 @@ public class IfTranslator extends FunctionCallTranslator {
   public void addStatement(IRBodyBuilder builder, TranslationContext context, Function resolvedFunction, FunctionCall call) {
 
     SimpleExpression condition = builder.translateSimpleExpression(context, call.getArgument(0));
+
+
     IRLabel trueLabel = builder.newLabel();
     IRLabel falseLabel = builder.newLabel();
+    IRLabel naLabel = builder.newLabel();
     IRLabel endLabel;
 
     if(hasElse(call)) {
@@ -95,19 +102,24 @@ public class IfTranslator extends FunctionCallTranslator {
       endLabel = falseLabel;
     }
     
-    IfStatement jump = new IfStatement(condition, trueLabel, falseLabel);
+    IfStatement jump = new IfStatement(condition, trueLabel, falseLabel, naLabel);
     builder.addStatement(jump);
     
     // evaluate "if true" expression for side effects
     builder.addLabel(trueLabel);
     builder.translateStatements(context, call.getArgument(1));
-    
+    builder.addStatement(new GotoStatement(endLabel));
+
     if(hasElse(call)) {
-      builder.addStatement(new GotoStatement(endLabel));
       builder.addLabel(falseLabel);
       builder.translateStatements(context, call.getArgument(2));
-    }    
-    
+      builder.addStatement(new GotoStatement(endLabel));
+    }
+
+    builder.addLabel(naLabel);
+    builder.addStatement(new UpdateStatement());
+    builder.addStatement(new ThrowStatement(SpecialFunction.MISSING_VALUE_ERROR));
+
     builder.addLabel(endLabel);
   }
 }

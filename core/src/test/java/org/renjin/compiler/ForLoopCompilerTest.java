@@ -24,6 +24,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
+import org.renjin.eval.EvalException;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
 import org.renjin.parser.RParser;
@@ -158,6 +159,29 @@ public class ForLoopCompilerTest extends EvalTestCase {
     eval("for(i in as.numeric(1:1e6)) s <- s + f(i)");
     assertThat(eval("s"), equalTo(c(2e+06)));
 
+  }
+
+  @Test
+  public void naPossible() {
+    eval("z <- 0");
+    try {
+      eval("for(i in 1:1e6) { y <- if(z < 220) TRUE else NA; if(y) z <- z+1; } ");
+    } catch (EvalException e) {
+      // expected after 220 iterations
+    }
+    assertThat(eval("z"), equalTo(c(220)));
+  }
+
+
+  @Test
+  public void naPossibleInExpr() {
+    eval("z <- 0");
+    try {
+      eval("for(i in 1:1e6) { y <- if(z < 220) TRUE else NA; z <- if(y) z+1 else 0 ; } ");
+    } catch (EvalException e) {
+      // expected after 220 iterations
+    }
+    assertThat(eval("z"), equalTo(c(220)));
   }
 
 

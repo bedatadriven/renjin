@@ -26,6 +26,7 @@ import org.renjin.primitives.Warning;
 public abstract class SpecialFunction extends PrimitiveFunction {
   
   public static final String TYPE_NAME = "special";
+  public static final String MISSING_VALUE_ERROR = "missing value where TRUE/FALSE needed";
 
   private final String name;
   
@@ -56,10 +57,10 @@ public abstract class SpecialFunction extends PrimitiveFunction {
     if (s.length() > 1) {
       Warning.invokeWarning(context, call, "the condition has length > 1 and only the first element will be used");
     }
-    
+
     Logical logical = s.asLogical();
     if (logical == Logical.NA) {
-      throw new EvalException("missing value where TRUE/FALSE needed");
+      throw new EvalException(MISSING_VALUE_ERROR);
     }
 
     return logical == Logical.TRUE;

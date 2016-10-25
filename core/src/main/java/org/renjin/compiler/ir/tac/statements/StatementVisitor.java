@@ -25,6 +25,6 @@ public interface StatementVisitor {
   void visitGoto(GotoStatement statement);
   void visitIf(IfStatement ifStatement);
   void visitReturn(ReturnStatement returnStatement);
-  
+  void visitUpdate(UpdateStatement updateStatement);
   
 }

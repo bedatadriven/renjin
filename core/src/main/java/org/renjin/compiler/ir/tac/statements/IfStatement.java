@@ -25,6 +25,8 @@ import org.renjin.compiler.ir.tac.expressions.CmpGE;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.LValue;
 import org.renjin.eval.EvalException;
+import org.renjin.primitives.special.IfFunction;
+import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
@@ -75,6 +77,10 @@ public class IfStatement implements Statement, BasicBlockEndingStatement {
   public IRLabel getFalseTarget() {
     return falseTarget;
   }
+
+  public IRLabel getNaTarget() {
+    return naTarget;
+  }
   
   public IfStatement setTrueTarget(IRLabel label) {
     return new IfStatement(condition, label, falseTarget, naTarget);
@@ -100,8 +106,11 @@ public class IfStatement implements Statement, BasicBlockEndingStatement {
 
   @Override
   public String toString() {
-    return "if " + condition + " => TRUE:" + trueTarget + ", FALSE:" +  falseTarget +
-          ", NA:" + (naTarget == null ? "ERROR" : naTarget);
+    String s = "if " + condition + " => TRUE:" + trueTarget + ", FALSE:" +  falseTarget;
+    if(naTarget != null) {
+      s += ", NA:" + naTarget;
+    }
+    return s;
   }
 
   @Override
@@ -150,6 +159,13 @@ public class IfStatement implements Statement, BasicBlockEndingStatement {
       mv.visitJumpInsn(GOTO, emitContext.getAsmLabel(falseTarget));
     }
 
+    if(constantValue == Logical.NA) {
+      if(naTarget == null) {
+        throw new IllegalStateException("Resolved to NA constant condition, but no NA branch defined.");
+      }
+      mv.visitJumpInsn(GOTO, emitContext.getAsmLabel(naTarget));
+    }
+
     int stackSizeIncrease = 0;
 
     if(condition instanceof CmpGE) {
@@ -164,11 +180,39 @@ public class IfStatement implements Statement, BasicBlockEndingStatement {
 
     } else if (condition instanceof LValue) {
       VariableStorage storage = emitContext.getVariableStorage((LValue) condition);
+
       if (storage.getType().equals(Type.BOOLEAN_TYPE) ||
           storage.getType().equals(Type.INT_TYPE)) {
-        mv.visitVarInsn(Opcodes.ILOAD, storage.getSlotIndex());
-        mv.visitJumpInsn(IFEQ, emitContext.getAsmLabel(falseTarget));
-        mv.visitJumpInsn(GOTO, emitContext.getAsmLabel(trueTarget));
+
+        boolean naCheckRequired = storage.getType() == Type.INT_TYPE &&
+            naTarget != null;
+
+        if(naCheckRequired) {
+          // Requires NA Check...
+
+          Label naTrampoline = new Label();
+          mv.visitVarInsn(Opcodes.ILOAD, storage.getSlotIndex());
+          mv.visitInsn(Opcodes.DUP);
+          mv.visitLdcInsn(IntVector.NA);
+          mv.visitJumpInsn(Opcodes.IF_ICMPEQ, naTrampoline);
+          mv.visitJumpInsn(IFEQ, emitContext.getAsmLabel(falseTarget));
+          mv.visitJumpInsn(GOTO, emitContext.getAsmLabel(trueTarget));
+
+          // Before jumping to NA target, we need to clear the extra condition from
+          // the stack
+          mv.visitLabel(naTrampoline);
+          mv.visitInsn(Opcodes.POP);
+          mv.visitJumpInsn(GOTO, emitContext.getAsmLabel(naTarget));
+
+        } else {
+
+          // Simple Branch with no NA checking
+          mv.visitVarInsn(Opcodes.ILOAD, storage.getSlotIndex());
+          mv.visitJumpInsn(IFEQ, emitContext.getAsmLabel(falseTarget));
+          mv.visitJumpInsn(GOTO, emitContext.getAsmLabel(trueTarget));
+        }
+
+
       } else {
         throw new UnsupportedOperationException("TODO: " + storage.getType());
       }
@@ -176,4 +220,5 @@ public class IfStatement implements Statement, BasicBlockEndingStatement {
 
     return stackSizeIncrease;
   }
+
 }

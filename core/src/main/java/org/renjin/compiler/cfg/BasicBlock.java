@@ -159,15 +159,16 @@ public class BasicBlock {
     return dominancePredecessors;
   }
 
-  public boolean returns() {
-    return getTerminal() instanceof ReturnStatement;
+  public boolean exits() {
+    return getTerminal() instanceof ReturnStatement || getTerminal() instanceof ThrowStatement;
   }
   
   public boolean fallsThrough() {
     Statement terminal = getTerminal();
     return !( terminal instanceof GotoStatement ||
               terminal instanceof IfStatement ||
-              terminal instanceof ReturnStatement);
+              terminal instanceof ReturnStatement ||
+              terminal instanceof ThrowStatement);
   }
   
   public Iterable<IRLabel> targets() {

@@ -260,15 +260,13 @@ public class TypeSolver {
         if(newBounds.isConstant()) {
           // only add add the branch that will be executed
           Logical conditionValue = newBounds.getConstantValue().asLogical();
-          if(conditionValue == Logical.NA) {
-            throw new InvalidSyntaxException("missing value where TRUE/FALSE needed");
-          }
-
           conditional.setConstantValue(conditionValue);
           if(conditionValue == Logical.TRUE) {
             flowWorkList.add(block.getOutgoing(conditional.getTrueTarget()));
-          } else {
+          } else if(conditionValue == Logical.FALSE) {
             flowWorkList.add(block.getOutgoing(conditional.getFalseTarget()));
+          } else if(conditionValue == Logical.NA) {
+            flowWorkList.add(block.getOutgoing(conditional.getNaTarget()));
           }
 
         } else {
@@ -285,6 +283,9 @@ public class TypeSolver {
     ValueBounds oldBounds = variableBounds.put(assignment.getLHS(), newBounds);
 
     if(!Objects.equals(oldBounds, newBounds)) {
+
+      System.out.println(assignment + " <=== " + newBounds);
+
       assignment.getLHS().update(newBounds);
       variableBounds.put(assignment.getLHS(), newBounds);
 

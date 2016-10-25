@@ -99,6 +99,9 @@ public class ElementAccess extends SpecializedCallExpression {
       if(resultType.equals(Type.INT_TYPE)) {
         mv.invokeinterface(Type.getInternalName(Vector.class), "getElementAsInt",
             Type.getMethodDescriptor(Type.INT_TYPE, Type.INT_TYPE));
+      } else if(resultType.equals(Type.DOUBLE_TYPE)) {
+        mv.invokeinterface(Type.getInternalName(Vector.class), "getElementAsDouble",
+            Type.getMethodDescriptor(Type.DOUBLE_TYPE, Type.INT_TYPE));
       } else {
         throw new UnsupportedOperationException("resultType: " + resultType);
       }

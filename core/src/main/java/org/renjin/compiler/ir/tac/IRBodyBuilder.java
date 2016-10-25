@@ -95,6 +95,7 @@ public class IRBodyBuilder {
     
     ForTranslator.buildLoop(bodyContext, this, call, vector, counter);
 
+    addStatement(new UpdateStatement());
     addStatement(new ReturnStatement(new Constant(Null.INSTANCE)));
     
     removeRedundantJumps();

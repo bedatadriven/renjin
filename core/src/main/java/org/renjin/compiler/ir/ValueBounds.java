@@ -277,7 +277,7 @@ public class ValueBounds {
         SEXP thisValue = this.attributes.get(attributeName);
         SEXP otherValue = other.attributes.get(attributeName);
 
-        attributes.put(attributeName, unionConstant(thisValue, otherValue));
+        u.attributes.put(attributeName, unionConstant(thisValue, otherValue));
       }
     }
     return u;
@@ -438,7 +438,10 @@ public class ValueBounds {
 
     ValueBounds that = (ValueBounds) o;
 
-    return length == that.length && typeSet == that.typeSet;
+    return length == that.length && typeSet == that.typeSet &&
+        this.attributesOpen == that.attributesOpen &&
+        Objects.equals(this.constantValue, that.constantValue) &&
+        Objects.equals(this.attributes, that.attributes);
   }
 
   @Override

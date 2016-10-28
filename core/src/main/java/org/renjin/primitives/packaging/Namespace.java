@@ -25,6 +25,8 @@ import org.renjin.methods.S4;
 import org.renjin.primitives.Native;
 import org.renjin.primitives.S3;
 import org.renjin.primitives.text.regex.ExtendedRE;
+import org.renjin.primitives.text.regex.RE;
+import org.renjin.primitives.text.regex.REFactory;
 import org.renjin.primitives.text.regex.RESyntaxException;
 import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.repackaged.guava.collect.Lists;
@@ -346,12 +348,12 @@ public class Namespace {
 
     // First add all symbols that match the patterns
     for (String pattern : file.getExportedPatterns()) {
-      ExtendedRE re = null;
-      try {
-        re = new ExtendedRE(pattern);
-      } catch (RESyntaxException e) {
-        throw new EvalException("Invalid export pattern '%s': %s", pattern, e.getMessage());
-      }
+      RE re = REFactory.compile(pattern,
+          /* ignore.case = */ false,
+          /* perl = */ false,
+          /* fixed = */ false,
+          /* useBytes = */ false);
+
       for(Symbol symbol : namespaceEnvironment.getSymbolNames()) {
         if(re.match(symbol.getPrintName())) {
           exports.add(symbol);

@@ -237,8 +237,26 @@ public class TypeSet {
     return isDefinitelyNumeric(subscript.getTypeSet());
   }
 
-  private static boolean isDefinitelyNumeric(int typeSet) {
+  public static boolean isDefinitelyNumeric(int typeSet) {
     return (typeSet & NUMERIC) != 0 &&
         (typeSet & ~NUMERIC) == 0;
+  }
+
+
+  public static int elementOf(int typeSet) {
+
+    // If typeset is not limited to atomic, then could be anything
+    if((typeSet & ~ANY_ATOMIC_VECTOR) != 0) {
+      return ANY_TYPE;
+    }
+
+    // if we are limited to atomic, then the elements will be the same type
+    return typeSet;
+
+  }
+
+  public static boolean isDefinitelyAtomic(int typeSet) {
+    return (typeSet & ANY_ATOMIC_VECTOR) != 0 &&
+        (typeSet & ~ANY_ATOMIC_VECTOR) == 0;
   }
 }

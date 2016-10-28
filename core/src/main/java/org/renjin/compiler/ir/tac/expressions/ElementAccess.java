@@ -30,7 +30,10 @@ import java.util.Map;
 
 
 /**
- * Extracts a single element from a vector. 
+ * Extracts a single element from a vector, dropping all attributes.
+ *
+ * <p>This is used to compile the extraction of the element from the for loops, so it is not meant to have
+ * the full semantics of R subset operator.
  */
 public class ElementAccess extends SpecializedCallExpression {
 

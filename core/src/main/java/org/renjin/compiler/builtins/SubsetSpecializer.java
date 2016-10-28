@@ -51,6 +51,10 @@ public class SubsetSpecializer implements Specializer {
       return new CompleteSubset(source);
     }
 
+    if(GetElement.accept(source, subscript)) {
+      return new GetElement(source, subscript);
+    }
+
     return UnspecializedCall.INSTANCE;
     
 //    // A single subscript can also contain a matrix in the form

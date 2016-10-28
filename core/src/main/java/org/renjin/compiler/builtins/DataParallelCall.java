@@ -62,6 +62,7 @@ public class DataParallelCall implements Specialization {
 
     ValueBounds.Builder bounds = new ValueBounds.Builder();
     bounds.setType(method.getReturnType());
+    bounds.setNA(anyNAs(argumentBounds));
     bounds.setLength(resultLength);
     
     switch (method.getPreserveAttributesStyle()) {
@@ -79,7 +80,14 @@ public class DataParallelCall implements Specialization {
     return bounds.build();
   }
 
-
+  private int anyNAs(List<ValueBounds> argumentBounds) {
+    for (ValueBounds argumentBound : argumentBounds) {
+      if(argumentBound.getNA() == ValueBounds.MAY_HAVE_NA) {
+        return ValueBounds.MAY_HAVE_NA;
+      }
+    }
+    return ValueBounds.NO_NA;
+  }
 
   /**
    * Makes a list of {@link ValueBounds} for @Recycled arguments.
@@ -189,7 +197,9 @@ public class DataParallelCall implements Specialization {
       if(op != null) {
         return op;
       }
-      return new DataParallelScalarCall(method, argumentBounds, resultBounds).trySpecializeFurther();
+      if(resultBounds.getNA() == ValueBounds.NO_NA) {
+        return new DataParallelScalarCall(method, argumentBounds, resultBounds).trySpecializeFurther();
+      }
     }
     return this;
   }

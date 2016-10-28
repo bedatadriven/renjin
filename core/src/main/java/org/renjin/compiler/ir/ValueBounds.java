@@ -33,7 +33,19 @@ public class ValueBounds {
   
   public static final int UNKNOWN_LENGTH = -1;
   public static final int SCALAR_LENGTH = 1;
-  
+
+  /**
+   * The value may have some elements which are NA
+   */
+  public static final int MAY_HAVE_NA = 0;
+
+
+  /**
+   * The values has no elements which are NAs
+   */
+  public static final int NO_NA = 1;
+
+
   public static final ValueBounds UNBOUNDED = new ValueBounds.Builder().build();
   
   public static final ValueBounds INT_PRIMITIVE = primitive(TypeSet.INT);
@@ -46,6 +58,12 @@ public class ValueBounds {
    * The length of this value, or {@code UNKNOWN_LENGTH} if not known or known to vary.
    */
   private int length = UNKNOWN_LENGTH;
+
+
+  /**
+   * Whether this value may have NA elements
+   */
+  private int na = MAY_HAVE_NA;
   
   /**
    * The bit set of this value's possible types.
@@ -72,21 +90,21 @@ public class ValueBounds {
    */
   private Map<Symbol, SEXP> attributes;
 
-  
-
-  private ValueBounds() {};
+  private ValueBounds() {}
   
   private ValueBounds(ValueBounds toCopy) {
     assert toCopy.attributes != null;
     this.length = toCopy.length;
     this.typeSet = toCopy.typeSet;
+    this.na = toCopy.na;
     this.constantValue = toCopy.constantValue;
     this.attributes = toCopy.attributes;
     this.attributesOpen = toCopy.attributesOpen;
   }
 
   /**
-   * Constructs a {@code ValueBounds} for a scalar value of a known type with no attributes.
+   * Constructs a {@code ValueBounds} for a scalar value of a known type with no attributes
+   * and not NA.
    */
   public static ValueBounds primitive(int type) {
     ValueBounds valueBounds = new ValueBounds();
@@ -94,6 +112,7 @@ public class ValueBounds {
     valueBounds.length = SCALAR_LENGTH;
     valueBounds.attributes = Collections.emptyMap();
     valueBounds.attributesOpen = false;
+    valueBounds.na = NO_NA;
     return valueBounds;
   }
 
@@ -102,12 +121,22 @@ public class ValueBounds {
    */
   public static ValueBounds of(SEXP value) {
     ValueBounds valueBounds = new ValueBounds();
+    valueBounds.na = hasAnyNAs(value);
     valueBounds.constantValue = value;
     valueBounds.typeSet = TypeSet.of(value);
     valueBounds.length = value.length();
     valueBounds.attributes = value.getAttributes().toMap();
     valueBounds.attributesOpen = false;
     return valueBounds;
+  }
+
+  private static int hasAnyNAs(SEXP value) {
+    if(value instanceof AtomicVector) {
+      if(((AtomicVector) value).containsNA()) {
+        return MAY_HAVE_NA;
+      }
+    }
+    return NO_NA;
   }
 
   public ValueBounds of(Object value) {
@@ -120,7 +149,6 @@ public class ValueBounds {
     }
     throw new UnsupportedOperationException("value: " + value);
   }
-
 
   public static ValueBounds of(Class returnType) {
     ValueBounds valueBounds = new ValueBounds();
@@ -160,6 +188,10 @@ public class ValueBounds {
     }
   }
 
+
+  public boolean isAttributeDefinitelyNull(Symbol name) {
+    return getAttributeIfConstant(name) == Null.INSTANCE;
+  }
 
   public SEXP getAttributeIfConstant(Symbol name) {
     if(attributesOpen) {
@@ -251,6 +283,15 @@ public class ValueBounds {
     return typeSet;
   }
 
+  public int getNA() {
+    return na;
+  }
+
+
+  public boolean maybeNA() {
+    return na == MAY_HAVE_NA;
+  }
+
   public int getLength() {
     return length;
   }
@@ -262,7 +303,7 @@ public class ValueBounds {
     ValueBounds u = new ValueBounds();
     u.typeSet = this.typeSet | other.typeSet;
     u.length = unionLengths(this.length, other.length);
-    
+    u.na = this.na & other.na;
     u.attributesOpen = this.attributesOpen || other.attributesOpen;
     
     if(this.attributes == other.attributes) {
@@ -376,6 +417,9 @@ public class ValueBounds {
     } else {
       s.append(length);
     }
+    if(na == MAY_HAVE_NA) {
+      s.append(", ?NA");
+    }
     for (Map.Entry<Symbol, SEXP> attribute : attributes.entrySet()) {
       s.append(", ").append(attribute.getKey().getPrintName()).append("=");
       if(attribute.getValue() == null) {
@@ -440,6 +484,7 @@ public class ValueBounds {
 
     return length == that.length && typeSet == that.typeSet &&
         this.attributesOpen == that.attributesOpen &&
+        this.na == that.na &&
         Objects.equals(this.constantValue, that.constantValue) &&
         Objects.equals(this.attributes, that.attributes);
   }
@@ -501,6 +546,11 @@ public class ValueBounds {
     
     public Builder setTypeSet(int typeSet) {
       bounds.typeSet = typeSet;
+      return this;
+    }
+
+    public Builder setNA(int na) {
+      bounds.na = na;
       return this;
     }
 

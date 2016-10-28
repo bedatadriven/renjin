@@ -41,12 +41,12 @@ public class VariableSlots {
     for (Map.Entry<LValue, ValueBounds> entry : types.getVariables().entrySet()) {
       LValue variable = entry.getKey();
       ValueBounds bounds = entry.getValue();
-      if(bounds == null) {
-        throw new NullPointerException("bounds(" + entry.getKey() + ")");
-      }
-      storage.put(variable, new VariableStorage(firstSlot + nextSlot, bounds.storageType()));
 
-      nextSlot += variable.getType().getSize();
+      // If this variable is used, allocate storage for it.
+      if(bounds != null) {
+        storage.put(variable, new VariableStorage(firstSlot + nextSlot, bounds.storageType()));
+        nextSlot += variable.getType().getSize();
+      }
     }
   }
 

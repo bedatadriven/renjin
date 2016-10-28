@@ -221,7 +221,7 @@ public class MatrixSelection implements SelectionStrategy {
   public static ValueBounds computeResultBounds(ValueBounds source, List<ValueBounds> subscripts, boolean drop) {
 
     
-    // What we can infer depends on what we know about the inputs. Specifically, it depdends on three pieces
+    // What we can infer depends on what we know about the inputs. Specifically, it depends on three pieces
     // of information:
     // A. The source type
     // B. The subscriptDim (function of subscript lengths and possibly source dimensions)

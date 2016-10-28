@@ -193,6 +193,5 @@ public class ForLoopCompilerTest extends EvalTestCase {
     eval("for(i in 1:10000) s <- s + i");
 
     assertThat(eval("s"), equalTo(c(5.0005e7)));
-
   }
 }

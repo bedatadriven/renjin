@@ -66,6 +66,11 @@ public class IntegerType extends ScalarType {
   }
 
   @Override
+  public JExpression isNA(JCodeModel codeModel, JExpression value) {
+    return codeModel.ref(IntVector.class).staticInvoke("isNA").arg(value);
+  }
+
+  @Override
   public JExpression testExpr(JCodeModel codeModel, JVar sexpVariable, JvmMethod.Argument formal) {
     if(formal.getCastStyle() == CastStyle.IMPLICIT) {
       return sexpVariable._instanceof(codeModel.ref(IntVector.class))

@@ -64,6 +64,11 @@ public class ComplexType extends ScalarType{
   }
 
   @Override
+  public JExpression isNA(JCodeModel codeModel, JExpression value) {
+    return codeModel.ref(ComplexVector.class).staticInvoke("isNA").arg(value);
+  }
+
+  @Override
   public JExpression naLiteral(JCodeModel codeModel) {
     throw new UnsupportedOperationException();
   }

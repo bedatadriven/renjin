@@ -83,4 +83,9 @@ public class StringType extends ScalarType {
   public Class getArrayVectorClass() {
     return StringArrayVector.class;
   }
+
+  @Override
+  public JExpression isNA(JCodeModel codeModel, JExpression value) {
+    return value.eq(JExpr._null());
+  }
 }

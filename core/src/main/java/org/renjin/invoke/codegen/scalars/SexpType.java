@@ -62,6 +62,11 @@ public class SexpType extends ScalarType {
   }
 
   @Override
+  public JExpression isNA(JCodeModel codeModel, JExpression value) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public JExpression naLiteral(JCodeModel codeModel) {
     throw new UnsupportedOperationException();
   }

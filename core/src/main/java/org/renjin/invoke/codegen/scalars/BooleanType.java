@@ -39,7 +39,7 @@ public class BooleanType extends ScalarType {
 
   @Override
   public String getAccessorMethod() {
-    return "isElementTrue";
+    return "getElementAsRawLogical";
   }
 
   @Override
@@ -60,6 +60,11 @@ public class BooleanType extends ScalarType {
   @Override
   public Class getArrayVectorClass() {
     return LogicalArrayVector.class;
+  }
+
+  @Override
+  public JExpression isNA(JCodeModel codeModel, JExpression value) {
+    return codeModel.ref(IntVector.class).staticInvoke("isNA").arg(value);
   }
 
   @Override

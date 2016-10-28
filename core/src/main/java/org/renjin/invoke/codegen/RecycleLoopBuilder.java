@@ -30,7 +30,6 @@ import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.sexp.AttributeMap;
 import org.renjin.sexp.Null;
-import org.renjin.sexp.Symbols;
 import org.renjin.sexp.Vector;
 
 import java.util.Iterator;
@@ -52,7 +51,7 @@ public class RecycleLoopBuilder {
     private JVar vector;
     private JVar length;
     private JVar currentElementIndex;
-
+    private JVar elementVar;
 
     public RecycledArgument(JvmMethod.Argument argument, JExpression parameter) {
       this.formal = argument;
@@ -74,9 +73,9 @@ public class RecycleLoopBuilder {
       // otherwise treat them as NA
       if(overload.getReturnType().equals(double.class) ||
           overload.getReturnType().equals(Complex.class)) {
-        return vector.invoke("isElementNA").arg(currentElementIndex);
+        return scalarType.isNA(codeModel, elementVar);
       } else {
-        return vector.invoke("isElementNaN").arg(currentElementIndex);
+        return scalarType.isNA(codeModel, elementVar);
       }
     }
 
@@ -97,6 +96,7 @@ public class RecycleLoopBuilder {
   private final JExpression contextVar;
   private List<RecycledArgument> recycledArguments = Lists.newArrayList();
   private Map<JvmMethod.Argument, JExpression> argumentMap = Maps.newHashMap();
+  private Map<JvmMethod.Argument, JExpression> argumentVarmMap = Maps.newHashMap();
 
   private JVar cycleCount;
   private JVar cycleIndex;
@@ -208,10 +208,6 @@ public class RecycleLoopBuilder {
     return list;
   }
 
-  private JExpression emptyResult() {
-    return codeModel.ref(resultType.getVectorType()).staticRef("EMPTY");
-  }
-
   private void initializeBuilder() {
 
 
@@ -233,6 +229,15 @@ public class RecycleLoopBuilder {
     cycleIndex = loop.init(codeModel.INT, "i", lit(0));
     loop.test(cycleIndex.ne(cycleCount));
     loop.update(cycleIndex.incr());
+
+    for (RecycledArgument recycledArgument : recycledArguments) {
+      JVar decl = loop.body().decl(
+          codeModel._ref(recycledArgument.scalarType.getBuilderArrayElementClass()),
+          "_arg" + recycledArgument.formal.getIndex(),
+          argumentMap.get(recycledArgument.formal));
+
+      recycledArgument.elementVar = decl;
+    }
 
     calculateResult(loop.body());
     incrementCounters(loop.body());
@@ -381,11 +386,6 @@ public class RecycleLoopBuilder {
     } else {
       throw new UnsupportedOperationException();
     }
-  }
-
-
-  private JExpression symbol(String name) {
-    return codeModel.ref(Symbols.class).staticRef(name);
   }
 
 

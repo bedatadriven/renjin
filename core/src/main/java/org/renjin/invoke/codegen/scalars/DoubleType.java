@@ -61,6 +61,11 @@ public class DoubleType extends ScalarType {
   }
 
   @Override
+  public JExpression isNA(JCodeModel codeModel, JExpression value) {
+    return codeModel.ref(DoubleVector.class).staticInvoke("isNA").arg(value);
+  }
+
+  @Override
   public JExpression naLiteral(JCodeModel codeModel) {
     return codeModel.ref(DoubleVector.class).staticRef("NA");
   }

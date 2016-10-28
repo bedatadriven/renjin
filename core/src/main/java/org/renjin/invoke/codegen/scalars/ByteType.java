@@ -61,6 +61,11 @@ public class ByteType extends ScalarType {
   }
 
   @Override
+  public JExpression isNA(JCodeModel codeModel, JExpression value) {
+    return JExpr.FALSE;
+  }
+
+  @Override
   public JExpression naLiteral(JCodeModel codeModel) {
     return JExpr.lit(0);
   }

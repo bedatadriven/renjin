@@ -44,7 +44,9 @@ public abstract class ScalarType {
   }
   
   public abstract Class getArrayVectorClass();
-  
+
+  public abstract JExpression isNA(JCodeModel codeModel, JExpression value);
+
   public JExpression testExpr(JCodeModel codeModel, JVar sexpVariable, Argument formal) {
     JClass vectorClass = codeModel.ref(Vector.class);
     JExpression vectorType =  codeModel.ref(getVectorType()).staticRef("VECTOR_TYPE");

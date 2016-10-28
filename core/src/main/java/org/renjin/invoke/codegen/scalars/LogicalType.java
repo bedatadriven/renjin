@@ -64,6 +64,11 @@ public class LogicalType extends ScalarType {
   }
 
   @Override
+  public JExpression isNA(JCodeModel codeModel, JExpression value) {
+    return value.eq(codeModel.ref(Logical.class).staticRef("NA"));
+  }
+
+  @Override
   public JExpression naLiteral(JCodeModel codeModel) {
     return codeModel.ref(IntVector.class).staticRef("NA");
   }

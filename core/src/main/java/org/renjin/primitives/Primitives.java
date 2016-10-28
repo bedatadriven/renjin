@@ -1034,12 +1034,12 @@ public class Primitives {
     f("require", Packages.class, 11);
 
     // bitwise
-    f("bitwiseNot", /*Raw*/ null, 11);
-    f("bitwiseXor", /*Raw*/ null, 11);
-    f("bitwiseShiftL", /*Raw*/ null, 11);
-    f("bitwiseShiftR", /*Raw*/ null, 11);
-    f("bitwiseAnd", Raw.class, 11);
-    f("bitwiseOr", Raw.class, 11);
+    f("bitwiseNot", Bitwise.class, 11);
+    f("bitwiseXor", Bitwise.class, 11);
+    f("bitwiseShiftL", Bitwise.class, 11);
+    f("bitwiseShiftR", Bitwise.class, 11);
+    f("bitwiseAnd", Bitwise.class, 11);
+    f("bitwiseOr", Bitwise.class, 11);
 
     // Build map of reserved functions
     for (Map.Entry<Symbol, PrimitiveFunction> entry : builtins.entrySet()) {

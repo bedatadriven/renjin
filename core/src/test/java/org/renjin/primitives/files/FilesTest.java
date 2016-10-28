@@ -134,6 +134,46 @@ public class FilesTest extends EvalTestCase {
   }
 
   @Test
+  public void removeDirRecursive() throws IOException {
+
+    // Create a temp directory with a source file
+    File tempDir = org.renjin.repackaged.guava.io.Files.createTempDir();
+    File file = new File(tempDir, "a.txt");
+    Files.write("ABC", file, Charsets.UTF_8);
+
+    topLevelContext.getGlobalEnvironment().setVariable("tempDir", StringVector.valueOf(tempDir.getAbsolutePath()));
+
+    eval("x <- unlink(tempDir, recursive = TRUE)");
+
+    assertThat(eval("x"), equalTo(c_i(1)));
+
+    assertTrue("child file has been removed", !file.exists());
+    assertTrue("temp dir has been removed", !tempDir.exists());
+  }
+
+  @Test
+  public void removeDirRecursiveTwoLevels() throws IOException {
+
+    // Create a temp directory with a source file
+    File tempDir = org.renjin.repackaged.guava.io.Files.createTempDir();
+    File childDir  = new File(tempDir, "child");
+    File grandChild = new File(childDir, "grandChild.txt");
+
+    Files.createParentDirs(grandChild);
+    Files.write("ABC", grandChild, Charsets.UTF_8);
+
+    topLevelContext.getGlobalEnvironment().setVariable("tempDir", StringVector.valueOf(tempDir.getAbsolutePath()));
+
+    eval("x <- unlink(tempDir, recursive = TRUE)");
+
+    assertThat(eval("x"), equalTo(c_i(1)));
+
+    assertTrue("grand child file has been removed", !grandChild.exists());
+    assertTrue("child dir has been removed", !childDir.exists());
+    assertTrue("temp dir has been removed", !tempDir.exists());
+  }
+
+  @Test
   public void removeFilesFailure() throws IOException {
 
     // Failure returns false, does not throw error

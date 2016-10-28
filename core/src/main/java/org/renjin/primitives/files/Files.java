@@ -596,6 +596,7 @@ public class Files {
         if(file.getChildren().length == 0) {
           file.delete();
         } else if(recursive) {
+          file.delete(new AllFileSelector());
           file.delete();
         }
       }

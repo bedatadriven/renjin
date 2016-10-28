@@ -154,7 +154,9 @@ public abstract class DoubleVector extends AbstractAtomicVector implements Itera
   @Override
   public int getElementAsInt(int index) {
     double value = getElementAsDouble(index);
-    if(Double.isNaN(value) || Double.isInfinite(value)) {
+    if(Double.isNaN(value) || Double.isInfinite(value) ||
+        value > Integer.MAX_VALUE ||
+        value < Integer.MIN_VALUE) {
       return IntVector.NA;
     } else {
       return (int) value;

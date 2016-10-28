@@ -51,6 +51,12 @@ public class REFactory {
           return new FixedRE(pattern);
         }
       } else {
+        // There are a few cases that are a bit illogical
+        // but we need to handle like GNU R does...
+        if(!perl && pattern.equals("*")) {
+          return new EmptyFixedRE();
+        }
+
         return new ExtendedRE(pattern, ignoreCase);
       }
     } catch (RESyntaxException e) {

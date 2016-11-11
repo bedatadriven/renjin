@@ -26,6 +26,7 @@ import org.renjin.repackaged.guava.io.Files;
 import org.renjin.repackaged.guava.primitives.UnsignedBytes;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
@@ -204,7 +205,12 @@ public class PackageSource {
     private PackageDescription readDescription() {
       PackageDescription description = null;
       try {
-        description = PackageDescription.fromFile(new File(source.sourceDir, "DESCRIPTION"));
+        File descriptionFile = new File(source.packageDir, "DESCRIPTION");
+        if(!descriptionFile.exists()) {
+          throw new FileNotFoundException(descriptionFile.getAbsolutePath() + " does not exist.");
+        }
+
+        description = PackageDescription.fromFile(descriptionFile);
       } catch (IOException e) {
         throw new BuildException("Exception reading DESCRIPTION file: " + e.getMessage());
       }

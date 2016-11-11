@@ -837,6 +837,9 @@ public final class Rinternals {
   }
 
   public static SEXP Rf_duplicate(SEXP sexp) {
+    if(sexp == Null.INSTANCE) {
+      return sexp;
+    }
     if(sexp instanceof DoubleVector) {
       return new DoubleArrayVector((DoubleVector)sexp);
     } else if(sexp instanceof IntVector) {

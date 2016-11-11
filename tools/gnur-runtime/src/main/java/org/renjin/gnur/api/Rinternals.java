@@ -25,7 +25,11 @@ import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
 import org.renjin.gcc.runtime.ObjectPtr;
+import org.renjin.methods.MethodDispatch;
+import org.renjin.methods.Methods;
 import org.renjin.primitives.*;
+import org.renjin.primitives.packaging.Namespace;
+import org.renjin.primitives.subset.Subsetting;
 import org.renjin.sexp.*;
 
 import java.lang.System;
@@ -227,11 +231,11 @@ public final class Rinternals {
   }
 
   public static void SET_S4_OBJECT(SEXP x) {
-    throw new UnimplementedGnuApiMethod("SET_S4_OBJECT");
+    Rf_setAttrib(x, Symbols.S4_BIT, LogicalVector.TRUE);
   }
 
   public static void UNSET_S4_OBJECT(SEXP x) {
-    throw new UnimplementedGnuApiMethod("UNSET_S4_OBJECT");
+    Rf_setAttrib(x, Symbols.S4_BIT, Null.INSTANCE);
   }
 
   public static int LENGTH(SEXP x) {
@@ -841,6 +845,8 @@ public final class Rinternals {
       return new ComplexArrayVector((ComplexVector) sexp);
     } else if(sexp instanceof StringVector) {
       return new StringArrayVector((StringVector) sexp);
+    } else if(sexp instanceof S4Object) {
+      return new S4Object(sexp.getAttributes());
     }
     throw new UnimplementedGnuApiMethod("Rf_duplicate: " + sexp.getTypeName());
   }
@@ -1367,11 +1373,24 @@ public final class Rinternals {
   // SEXP R_Unserialize (R_inpstream_t ips)
 
   public static SEXP R_do_slot(SEXP obj, SEXP name) {
-    throw new UnimplementedGnuApiMethod("R_do_slot");
+    Context context = Native.currentContext();
+    MethodDispatch methodDispatch = context.getSingleton(MethodDispatch.class);
+    return Subsetting.getSlotValue(context, methodDispatch, obj, ((Symbol) name));
   }
 
   public static SEXP R_do_slot_assign(SEXP obj, SEXP name, SEXP value) {
-    throw new UnimplementedGnuApiMethod("R_do_slot_assign");
+
+    /* Ensure that name is a symbol */
+    if(name instanceof StringVector && LENGTH(name) == 1) {
+      name = Symbol.get(name.asString());
+    } else if(name instanceof GnuCharSexp) {
+      name = Symbol.get(((GnuCharSexp) name).getValue().nullTerminatedString());
+    }
+    if(!(name instanceof Symbol)) {
+      throw new EvalException("invalid type or length for slot name");
+    }
+
+    return Methods.R_set_slot(Native.currentContext(), obj, name.asString(), value);
   }
 
   public static int R_has_slot(SEXP obj, SEXP name) {
@@ -1379,15 +1398,29 @@ public final class Rinternals {
   }
 
   public static SEXP R_do_MAKE_CLASS(BytePtr what) {
-    throw new UnimplementedGnuApiMethod("R_do_MAKE_CLASS");
+    if(what == null || what.array == null) {
+      throw new EvalException("C level MAKE_CLASS macro called with NULL string pointer");
+    }
+    Context context = Native.currentContext();
+    Namespace methodsNamespace = context.getNamespaceRegistry().getNamespace(context, "methods");
+
+    return context.evaluate(FunctionCall.newCall(Symbol.get("getClass"),
+        StringVector.valueOf(what.nullTerminatedString())));
   }
 
   public static SEXP R_getClassDef(BytePtr what) {
-    throw new UnimplementedGnuApiMethod("R_getClassDef");
+    if(what == null || what.array == null) {
+      throw new EvalException("R_getClassDef(.) called with NULL string pointer");
+    }
+
+    return R_getClassDef_R(StringArrayVector.valueOf(what.nullTerminatedString()));
   }
 
   public static SEXP R_getClassDef_R(SEXP what) {
-    throw new UnimplementedGnuApiMethod("R_getClassDef_R");
+    Context context = Native.currentContext();
+    Namespace methodsNamespace = context.getNamespaceRegistry().getNamespace(context, "methods");
+
+    return context.evaluate(FunctionCall.newCall(Symbol.get("getClassDef"), what));
   }
 
   public static boolean R_has_methods_attached() {
@@ -1403,7 +1436,23 @@ public final class Rinternals {
   }
 
   public static SEXP R_do_new_object(SEXP class_def) {
-    throw new UnimplementedGnuApiMethod("R_do_new_object");
+
+    if(class_def == null) {
+      throw new EvalException("C level NEW macro called with null class definition pointer");
+    }
+    SEXP virtual = R_do_slot(class_def, Symbol.get("virtual"));
+    SEXP className = R_do_slot(class_def, Symbol.get("className"));
+
+    if(virtual.asLogical() != Logical.FALSE)  { /* includes NA, TRUE, or anything other than FALSE */
+      throw new EvalException("trying to generate an object from a virtual class (\"%s\")", className.asString());
+    }
+    SEXP value = Rf_duplicate(R_do_slot(class_def, Symbol.get("prototype")));
+    if(value instanceof S4Object || Rf_getAttrib(className, R_PackageSymbol) != R_NilValue) {
+      /* Anything but an object from a base "class" (numeric, matrix,..) */
+      Rf_setAttrib(value, R_ClassSymbol, className);
+      SET_S4_OBJECT(value);
+    }
+    return value;
   }
 
   // int R_check_class_and_super (SEXP x, const char **valid, SEXP rho)

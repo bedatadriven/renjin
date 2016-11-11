@@ -421,9 +421,14 @@ public class Native {
       if(Profiler.ENABLED) {
         Profiler.functionStart(Symbol.get(methodName), 'C');
       }
+      Context previousContext = CURRENT_CONTEXT.get();
+      CURRENT_CONTEXT.set(context);
+
       try {
         return delegateToJavaMethod(context, clazz, methodName, callArguments);
       } finally {
+        CURRENT_CONTEXT.set(previousContext);
+
         if(Profiler.ENABLED) {
           Profiler.functionEnd();
         }

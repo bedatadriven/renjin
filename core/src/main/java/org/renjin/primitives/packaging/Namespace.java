@@ -204,7 +204,7 @@ public class Namespace {
       try {
         importedClass = pkg.loadClass(entry.getClassName());
       } catch (ClassNotFoundException e) {
-        throw new EvalException("Could not load class '%s' from package '%s'", entry.getClassName(), pkg.getName());
+        throw new EvalException("Could not load JVM class '%s' from package '%s'", entry.getClassName(), pkg.getName());
       }
 
       if(entry.isClassImported()) {

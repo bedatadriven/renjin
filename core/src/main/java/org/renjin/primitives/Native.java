@@ -548,7 +548,7 @@ public class Native {
       try {
         return namespace.getPackage().loadClass(packageClassName);
       } catch (ClassNotFoundException e) {
-        throw new EvalException("Could not load class '%s' from package '%s'", packageClassName, packageClassName);
+        throw new EvalException("Could not load JVM class '%s' from package '%s'", packageClassName, packageClassName);
       }
     }
   }

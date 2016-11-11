@@ -26,6 +26,8 @@ import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.io.Files;
+import org.renjin.sexp.LogicalVector;
+import org.renjin.sexp.SEXP;
 import org.renjin.sexp.StringVector;
 
 import java.io.File;
@@ -41,8 +43,15 @@ import static org.junit.Assert.assertTrue;
 public class FilesTest extends EvalTestCase {
 
   @Before
-  public void setUpTests() {
+  public void setUpTests() throws FileSystemException {
     assumingBasePackagesLoad();
+
+    // For reproducible tests, we've included a hierarchy of files in src/test/resources
+    // These should be on the classpath when tests are run
+    URL resourceURL = FilesTest.class.getResource("FilesTest/a.txt");
+    FileObject rootDir = topLevelContext.resolveFile(resourceURL.getPath()).getParent();
+
+    topLevelContext.getGlobalEnvironment().setVariable("rootDir", StringVector.valueOf(rootDir.toString()));
   }
 
 
@@ -58,12 +67,6 @@ public class FilesTest extends EvalTestCase {
   @Test
   public void listFiles() throws URISyntaxException, FileSystemException {
 
-    // For reproducible tests, we've included a hierarchy of files in src/test/resources
-    // These should be on the classpath when tests are run
-    URL resourceURL = FilesTest.class.getResource("FilesTest/a.txt");
-    FileObject rootDir = topLevelContext.resolveFile(resourceURL.getPath()).getParent();
-
-    topLevelContext.getGlobalEnvironment().setVariable("rootDir", StringVector.valueOf(rootDir.toString()));
 
     assertThat(eval("list.files(rootDir)"), equalTo(c("a.txt", "b.txt", "c")));
 
@@ -183,5 +186,30 @@ public class FilesTest extends EvalTestCase {
     assertThat(eval("x"), equalTo(c(false)));
 
   }
+
+  @Test
+  public void fileExists() {
+
+    assertThat(eval("file.exists(rootDir)"), equalTo(c(true)));
+    assertThat(eval("file.exists(file.path(rootDir, 'a.txt'))"), equalTo(c(true)));
+
+    assertThat(eval("file.exists(c(FALSE, NA, NaN, NULL, \"/bla/bla\", 12.5, 11L))"),
+        equalTo(c(false, false, false, false, false, false)));
+    assertThat(eval("file.exists(character(0))"),
+        equalTo((SEXP) LogicalVector.EMPTY));
+  }
+
+  @Test
+  public void dirExists() {
+
+    assertThat(eval("dir.exists(rootDir)"), equalTo(c(true)));
+    assertThat(eval("dir.exists(file.path(rootDir, 'a.txt'))"), equalTo(c(false)));
+
+    assertThat(eval(" dir.exists(c(FALSE, NA, NaN, NULL, \"/bla/bla\", 12.5, 11L))"),
+        equalTo(c(false, false, false, false, false, false)));
+    assertThat(eval("dir.exists(character(0))"),
+        equalTo((SEXP) LogicalVector.EMPTY));
+  }
+
 
 }

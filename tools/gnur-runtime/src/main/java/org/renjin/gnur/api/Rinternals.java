@@ -1188,35 +1188,35 @@ public final class Rinternals {
   }
 
   public static SEXP R_MakeExternalPtr(Object p, SEXP tag, SEXP prot) {
-    throw new UnimplementedGnuApiMethod("R_MakeExternalPtr");
+    return new ExternalPtr<>(p, tag, prot);
   }
 
   public static Object R_ExternalPtrAddr(SEXP s) {
-    throw new UnimplementedGnuApiMethod("R_ExternalPtrAddr");
+    return ((ExternalPtr) s).getInstance();
   }
 
   public static SEXP R_ExternalPtrTag(SEXP s) {
-    throw new UnimplementedGnuApiMethod("R_ExternalPtrTag");
+    return ((ExternalPtr) s).getTag();
   }
 
   public static SEXP R_ExternalPtrProtected(SEXP s) {
-    throw new UnimplementedGnuApiMethod("R_ExternalPtrProtected");
+    return ((ExternalPtr) s).getProtected();
   }
 
   public static void R_ClearExternalPtr(SEXP s) {
-    throw new UnimplementedGnuApiMethod("R_ClearExternalPtr");
+    ((ExternalPtr) s).unsafeSetAddress(null);
   }
 
   public static void R_SetExternalPtrAddr(SEXP s, Object p) {
-    throw new UnimplementedGnuApiMethod("R_SetExternalPtrAddr");
+    ((ExternalPtr) s).unsafeSetAddress(p);
   }
 
   public static void R_SetExternalPtrTag(SEXP s, SEXP tag) {
-    throw new UnimplementedGnuApiMethod("R_SetExternalPtrTag");
+    ((ExternalPtr) s).unsafeSetTag(tag);
   }
 
-  public static void R_SetExternalPtrProtected(SEXP s, SEXP p) {
-    throw new UnimplementedGnuApiMethod("R_SetExternalPtrProtected");
+  public static void R_SetExternalPtrProtected(SEXP s, SEXP tag) {
+    ((ExternalPtr) s).unsafeSetProtected(tag);
   }
 
   public static void R_RegisterFinalizer(SEXP s, SEXP fun) {

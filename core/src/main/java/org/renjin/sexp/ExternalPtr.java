@@ -28,21 +28,20 @@ import org.renjin.invoke.reflection.MemberBinding;
  */
 public final class ExternalPtr<T> extends AbstractSEXP {
 
-  private final T instance;
-  private final ClassBinding binding;
+  private T instance;
+  private ClassBinding binding;
+  private SEXP tag;
+  private SEXP _protected;
 
   public ExternalPtr(T instance, AttributeMap attributes) {
     super(attributes);
-    this.instance = instance;
-    if(instance == null) {
-      this.binding = null;
-    } else {
-      if(instance instanceof Class) {
-        this.binding = ClassBindings.getClassDefinitionBinding((Class) instance);
-      } else {
-        this.binding = ClassBindings.getClassBinding(instance.getClass());
-      }
-    }
+    unsafeSetAddress(instance);
+  }
+
+  public ExternalPtr(T instance, SEXP tag, SEXP prot) {
+    this(instance);
+    this.tag = tag;
+    this._protected = prot;
   }
 
   public ExternalPtr(T instance) {
@@ -72,6 +71,21 @@ public final class ExternalPtr<T> extends AbstractSEXP {
     return instance;
   }
 
+
+  /**
+   * @return the external pointer's tag. Used by the GNU R API adapters.
+   */
+  public SEXP getTag() {
+    return tag;
+  }
+
+  /**
+   * @return the protected value. Used by the GNU R API adapters.
+   */
+  public SEXP getProtected() {
+    return _protected;
+  }
+
   @Override
   public void accept(SexpVisitor visitor) {
     visitor.visit(this);
@@ -81,5 +95,26 @@ public final class ExternalPtr<T> extends AbstractSEXP {
   protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
     this.attributes = attributes;
     return this;
+  }
+
+  public void unsafeSetAddress(T address) {
+    this.instance = address;
+    if(instance == null) {
+      this.binding = null;
+    } else {
+      if(instance instanceof Class) {
+        this.binding = ClassBindings.getClassDefinitionBinding((Class) instance);
+      } else {
+        this.binding = ClassBindings.getClassBinding(instance.getClass());
+      }
+    }
+  }
+
+  public void unsafeSetTag(SEXP tag) {
+    this.tag = tag;
+  }
+
+  public void unsafeSetProtected(SEXP _protected) {
+    this._protected = _protected;
   }
 }

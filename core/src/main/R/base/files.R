@@ -59,8 +59,12 @@ file.show <-
     }
     if(is.function(pager))
 	pager(files, header, title, delete.file)
-    else
-        .Internal(file.show(files, header, title, delete.file, pager))
+    else {
+        for(i in seq_along(files)) {
+            cat(header[i], "\n\n")
+            cat(readLines(files), sep = "\n")
+        }
+    }
 }
 
 file.append <- function(file1, file2)

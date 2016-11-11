@@ -791,7 +791,6 @@ public class Primitives {
     f("parent.env", Environments.class, 11);
     f("parent.env<-", Environments.class, 11);
     f("visibleflag", /*visibleflag*/ null, 1);
-    f("l10n_info", /*l10n_info*/ null, 11);
     f("Cstack_info", /*Cstack_info*/ null, 11);
     f("startHTTPD", /*startHTTPD*/ null, 11);
     f("stopHTTPD", /*stopHTTPD*/ null, 11);

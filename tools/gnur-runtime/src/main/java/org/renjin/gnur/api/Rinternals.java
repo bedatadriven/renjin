@@ -25,12 +25,10 @@ import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
 import org.renjin.gcc.runtime.ObjectPtr;
-import org.renjin.primitives.Native;
-import org.renjin.primitives.R$primitive$getNamespace;
-import org.renjin.primitives.Types;
-import org.renjin.primitives.Vectors;
+import org.renjin.primitives.*;
 import org.renjin.sexp.*;
 
+import java.lang.System;
 import java.util.Arrays;
 
 @SuppressWarnings("unused")
@@ -867,20 +865,29 @@ public final class Rinternals {
     return Native.currentContext().evaluate(expr, (Environment) rho);
   }
 
-  public static SEXP Rf_findFun(SEXP p0, SEXP p1) {
-    throw new UnimplementedGnuApiMethod("Rf_findFun");
+  public static SEXP Rf_findFun(SEXP rho, SEXP symbol) {
+    return ((Environment) rho).findFunction(Native.currentContext(), ((Symbol) symbol));
   }
 
-  public static SEXP Rf_findVar(SEXP p0, SEXP p1) {
-    throw new UnimplementedGnuApiMethod("Rf_findVar");
+  public static SEXP Rf_findVar(SEXP rho, SEXP symbol) {
+    return ((Environment) rho).findVariable(((Symbol) symbol));
   }
 
-  public static SEXP Rf_findVarInFrame(SEXP p0, SEXP p1) {
-    throw new UnimplementedGnuApiMethod("Rf_findVarInFrame");
+  public static SEXP Rf_findVarInFrame(SEXP rho, SEXP symbol) {
+    return Rf_findVarInFrame3(rho, symbol, true);
   }
 
-  public static SEXP Rf_findVarInFrame3(SEXP p0, SEXP p1, boolean p2) {
-    throw new UnimplementedGnuApiMethod("Rf_findVarInFrame3");
+  /**
+   *
+   * @param rho the environment in which to look
+   * @param symbol the symbol to find
+   * @param doGet whether whether the lookup is being done in order to get the value (TRUE) or
+   *  simply to check whether there is a value bound to the specified
+   *  symbol in this frame (FALSE).
+   * @return
+   */
+  public static SEXP Rf_findVarInFrame3(SEXP rho, SEXP symbol, boolean doGet) {
+    return ((Environment) rho).getVariable((Symbol)symbol);
   }
 
   public static SEXP Rf_getAttrib(SEXP sexp, SEXP attributeSexp) {
@@ -959,12 +966,17 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_xlengthgets");
   }
 
-  public static SEXP R_lsInternal(SEXP p0, boolean p1) {
-    throw new UnimplementedGnuApiMethod("R_lsInternal");
+  public static SEXP R_lsInternal(SEXP env, boolean allNames) {
+    return Environments.ls((Environment) env, allNames);
   }
 
-  public static SEXP R_lsInternal3(SEXP p0, boolean p1, boolean p2) {
-    throw new UnimplementedGnuApiMethod("R_lsInternal3");
+  public static SEXP R_lsInternal3(SEXP env, boolean allNames, boolean sorted) {
+    StringVector names = Environments.ls((Environment) env, allNames);
+    if(sorted) {
+      return Sort.sort(names, false);
+    } else {
+      return names;
+    }
   }
 
   public static SEXP Rf_match(SEXP p0, SEXP p1, int p2) {

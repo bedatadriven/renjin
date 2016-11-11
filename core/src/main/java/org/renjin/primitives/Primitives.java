@@ -61,13 +61,14 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Primitives {
 
   private IdentityHashMap<Symbol, PrimitiveFunction> reserved = new IdentityHashMap<>();
 
-  private IdentityHashMap<Symbol, PrimitiveFunction> builtins = new IdentityHashMap<Symbol, PrimitiveFunction>();
-  private IdentityHashMap<Symbol, PrimitiveFunction> internals = new IdentityHashMap<Symbol, PrimitiveFunction>();
+  private ConcurrentHashMap<Symbol, PrimitiveFunction> builtins = new ConcurrentHashMap<>();
+  private ConcurrentHashMap<Symbol, PrimitiveFunction> internals = new ConcurrentHashMap<>();
 
   // these are loaded on demand
   private IdentityHashMap<Symbol, Entry> builtinEntries = new IdentityHashMap<Symbol, Entry>();
@@ -87,31 +88,35 @@ public class Primitives {
   }
 
   public static PrimitiveFunction getBuiltin(Symbol symbol) {
-    synchronized (INSTANCE) {
-      PrimitiveFunction fn = INSTANCE.builtins.get(symbol);
-      if(fn == null) {
-        Entry entry = INSTANCE.builtinEntries.get(symbol);
-        if(entry != null) {
-          fn = createFunction(entry);
-          INSTANCE.builtins.put(symbol, fn);
-        }
-      }
-      return fn;
-    }
+    return getPrimitive(INSTANCE.builtinEntries, INSTANCE.builtins, symbol);
   }
 
   public static PrimitiveFunction getInternal(Symbol symbol) {
-    synchronized (INSTANCE) {
-      PrimitiveFunction fn = INSTANCE.internals.get(symbol);
-      if(fn == null) {
-        Entry entry = INSTANCE.internalEntries.get(symbol);
-        if(entry != null) {
-          fn = createFunction(entry);
-          INSTANCE.internals.put(symbol, fn);
-        }
-      }
-      return fn;
+    return getPrimitive(INSTANCE.internalEntries, INSTANCE.internals, symbol);
+  }
+
+  private static PrimitiveFunction getPrimitive(IdentityHashMap<Symbol, Entry> entryMap,
+                                                ConcurrentHashMap<Symbol, PrimitiveFunction> cache,
+                                                Symbol symbol) {
+
+    PrimitiveFunction existing = cache.get(symbol);
+    if(existing != null) {
+      return existing;
     }
+
+    Entry entry = entryMap.get(symbol);
+    if(entry == null) {
+      // No such primitive
+      return null;
+    }
+
+    PrimitiveFunction newFunction = createFunction(entry);
+    existing = cache.putIfAbsent(symbol, newFunction);
+    if(existing != null) {
+      return existing;
+    }
+
+    return newFunction;
   }
 
   public static List<Entry> getEntries() {

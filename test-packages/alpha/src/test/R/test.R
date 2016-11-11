@@ -55,3 +55,11 @@ test.dependenciesLoadedOnClasspath <- function() {
 test.definedDuringLoad <- function() {
     assertThat(defined.during.load, identicalTo(84))
 }
+
+
+test.packageRds <- function() {
+    path <- file.path(find.package('alpha'), "Meta", "package.rds")
+
+    assertTrue(file.exists(path))
+
+}

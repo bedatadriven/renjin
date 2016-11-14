@@ -73,7 +73,10 @@ public class NativeSourceBuilder {
     commandLine.add("make");
 
     // Combine R's default Makefile with package-specific Makevars if present
-    File makevars = new File(source.getNativeSourceDir(), "Makevars");
+    File makevars = new File(source.getNativeSourceDir(), "Makevars.renjin");
+    if (!makevars.exists()) {
+      makevars =  new File(source.getNativeSourceDir(), "Makevars");
+    }
     if (makevars.exists()) {
       commandLine.add("-f");
       commandLine.add("Makevars");

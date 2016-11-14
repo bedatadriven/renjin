@@ -1050,7 +1050,11 @@ public class GimpleCompilerTest extends AbstractGccTest {
   @Test
   public void constantStaticVar() throws Exception {
     compileAndTest("staticvar.c");
+  }
 
+  @Test
+  public void deferenceToUnitRecord() throws Exception {
+    compileAndTest("void_deref_to_unit_rec.c");
   }
 
 }

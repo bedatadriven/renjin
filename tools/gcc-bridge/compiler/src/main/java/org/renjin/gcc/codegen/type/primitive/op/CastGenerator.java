@@ -167,7 +167,7 @@ public class CastGenerator implements JExpr {
   }
 
   public static void castBoolToUnsignedInt64(MethodGenerator mv) {
-    // NOOP
+    mv.visitInsn(Opcodes.I2L);
   }
 
   public static void castBoolToReal32(MethodGenerator mv) {

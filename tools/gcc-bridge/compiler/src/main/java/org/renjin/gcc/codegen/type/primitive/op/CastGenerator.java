@@ -152,8 +152,31 @@ public class CastGenerator implements JExpr {
   public static void castBoolToInt64(MethodGenerator mv) {
     mv.visitInsn(Opcodes.I2L);
   }
-  
-  
+
+  public static void castBoolToUnsignedInt8(MethodGenerator mv) {
+    // NOOP
+  }
+
+  public static void castBoolToUnsignedInt16(MethodGenerator mv) {
+    // NOOP
+  }
+
+
+  public static void castBoolToUnsignedInt32(MethodGenerator mv) {
+    // NOOP
+  }
+
+  public static void castBoolToUnsignedInt64(MethodGenerator mv) {
+    // NOOP
+  }
+
+  public static void castBoolToReal32(MethodGenerator mv) {
+    mv.visitInsn(Opcodes.I2F);
+  }
+
+  public static void castBoolToReal64(MethodGenerator mv) {
+    mv.visitInsn(Opcodes.I2D);
+  }
 
   /** From Int8 (byte) **/
   

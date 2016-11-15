@@ -83,7 +83,10 @@ public class GnurSourcesCompiler {
   }
 
   private boolean isSourceFile(String name) {
-    return name.endsWith(".c") || name.endsWith(".f") || name.endsWith(".cpp");
+    return name.endsWith(".c") || name.endsWith(".cpp") ||
+            name.toLowerCase().endsWith(".f") || name.toLowerCase().endsWith(".f90") ||
+            name.toLowerCase().endsWith(".f95") || name.toLowerCase().endsWith(".f03") ||
+            name.toLowerCase().endsWith(".for");
   }
 
   public void setLinkClassLoader(ClassLoader linkClassLoader) {

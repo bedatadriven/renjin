@@ -43,7 +43,7 @@ import java.util.regex.Pattern;
  */
 public class NativeSourceBuilder {
 
-  private static final List<String> SOURCE_EXTENSIONS = Lists.newArrayList("c", "f", "f77", "cpp", "cxx");
+  private static final List<String> SOURCE_EXTENSIONS = Lists.newArrayList("c", "f", "f77", "f90", "f95", "f03", "for", "cpp", "cxx");
 
   private PackageSource source;
   private BuildContext buildContext;

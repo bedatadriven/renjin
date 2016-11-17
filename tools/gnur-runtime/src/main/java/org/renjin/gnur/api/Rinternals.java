@@ -38,7 +38,7 @@ import java.util.Arrays;
 @SuppressWarnings("unused")
 public final class Rinternals {
 
-  
+
   private Rinternals() { }
 
   /* Evaluation Environment */
@@ -191,7 +191,7 @@ public final class Rinternals {
 
   /**
    * @param sexp
-   * @return the value of the {@code SEXP}'s named bit. 
+   * @return the value of the {@code SEXP}'s named bit.
    */
   public static int NAMED(SEXP sexp) {
     // Renjin's contract for AtomicVector is that a vector's contents can never be changed
@@ -287,7 +287,7 @@ public final class Rinternals {
       throw new UnsupportedOperationException("DATAPTR on type " + x.getClass().getName());
     }
   }
-  
+
   public static IntPtr LOGICAL(SEXP x) {
     if(x instanceof LogicalArrayVector) {
       return new IntPtr(((LogicalArrayVector)x).toIntArrayUnsafe());
@@ -348,7 +348,7 @@ public final class Rinternals {
   public static SEXP STRING_ELT(SEXP x, /*R_xlen_t*/ int i) {
     StringVector stringVector = (StringVector) x;
     String string = stringVector.getElementAsString(i);
-    
+
     return new GnuCharSexp(string);
   }
 
@@ -385,7 +385,7 @@ public final class Rinternals {
   public static SEXP CDR(SEXP e) {
     return ((PairList.Node) e).getNext();
   }
-  
+
   public static SEXP CAAR(SEXP e) {
     return CAR(CAR(e));
   }
@@ -418,6 +418,10 @@ public final class Rinternals {
     return CAR(CDR(CDR(CDR(CDR(e)))));
   }
 
+  public static SEXP CD4R(SEXP x) {
+    return CDR(CDR(CDR(CDR(x))));
+  }
+
   public static int MISSING(SEXP x) {
     throw new UnimplementedGnuApiMethod("MISSING");
   }
@@ -431,27 +435,76 @@ public final class Rinternals {
   }
 
   public static SEXP SETCAR(SEXP x, SEXP y) {
-    throw new UnimplementedGnuApiMethod("SETCAR");
+    if (x == null || x == R_NilValue) {
+      throw new EvalException("bad value");
+    }
+
+    ((PairList.Node) x).setValue(y);
+    return y;
   }
 
   public static SEXP SETCDR(SEXP x, SEXP y) {
-    throw new UnimplementedGnuApiMethod("SETCDR");
+    if (x == null || x == R_NilValue) {
+      throw new EvalException("bad value");
+    }
+
+    ((PairList.Node) x).setNextNode((PairList.Node) y);
+    return y;
   }
 
   public static SEXP SETCADR(SEXP x, SEXP y) {
-    throw new UnimplementedGnuApiMethod("SETCADR");
+    SEXP cell;
+    if (x == null || x == R_NilValue ||
+        CDR(x) == null || CDR(x) == R_NilValue) {
+      throw new EvalException("bad value");
+    }
+    cell = CDR(x);
+    ((PairList.Node) cell).setValue(y);
+    return y;
+  }
+
+  public static SEXP CHK(SEXP sexp) {
+    return sexp;
   }
 
   public static SEXP SETCADDR(SEXP x, SEXP y) {
-    throw new UnimplementedGnuApiMethod("SETCADDR");
+    SEXP cell;
+    if (x == null || x == R_NilValue ||
+        CDR(x) == null || CDR(x) == R_NilValue ||
+        CDDR(x) == null || CDDR(x) == R_NilValue) {
+      throw new EvalException("bad value");
+    }
+
+    cell = CDDR(x);
+    ((PairList.Node) cell).setValue(y);
+    return y;
   }
 
   public static SEXP SETCADDDR(SEXP x, SEXP y) {
-    throw new UnimplementedGnuApiMethod("SETCADDDR");
+    SEXP cell;
+    if (CHK(x) == null || x == R_NilValue ||
+        CHK(CDR(x)) == null || CDR(x) == R_NilValue ||
+        CHK(CDDR(x)) == null || CDDR(x) == R_NilValue ||
+        CHK(CDDDR(x)) == null || CDDDR(x) == R_NilValue) {
+      throw new EvalException("bad value");
+    }
+    cell = CDDDR(x);
+    ((PairList.Node) cell).setValue(y);
+    return y;
   }
 
-  public static SEXP SETCAD4R(SEXP e, SEXP y) {
-    throw new UnimplementedGnuApiMethod("SETCAD4R");
+  public static SEXP SETCAD4R(SEXP x, SEXP y) {
+    SEXP cell;
+    if (CHK(x) == null || x == R_NilValue ||
+        CHK(CDR(x)) == null || CDR(x) == R_NilValue ||
+        CHK(CDDR(x)) == null || CDDR(x) == R_NilValue ||
+        CHK(CDDDR(x)) == null || CDDDR(x) == R_NilValue ||
+        CHK(CD4R(x)) == null || CD4R(x) == R_NilValue) {
+      throw new EvalException("bad value");
+    }
+    cell = CD4R(x);
+    ((PairList.Node) cell).setValue(y);
+    return y;
   }
 
   public static SEXP CONS_NR(SEXP a, SEXP b) {
@@ -459,15 +512,15 @@ public final class Rinternals {
   }
 
   public static SEXP FORMALS(SEXP x) {
-    throw new UnimplementedGnuApiMethod("FORMALS");
+    return ((Closure) x).getFormals();
   }
 
   public static SEXP BODY(SEXP x) {
-    throw new UnimplementedGnuApiMethod("BODY");
+    return ((Closure) x).getBody();
   }
 
   public static SEXP CLOENV(SEXP x) {
-    throw new UnimplementedGnuApiMethod("CLOENV");
+    return ((Closure) x).getEnclosingEnvironment();
   }
 
   public static int RDEBUG(SEXP x) {

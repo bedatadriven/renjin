@@ -21,6 +21,7 @@ package org.renjin.gcc.codegen.type.record;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.type.TypeStrategy;
+import org.renjin.gcc.gimple.expr.GimpleFieldRef;
 import org.renjin.gcc.gimple.type.GimpleField;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
@@ -59,4 +60,10 @@ public abstract class RecordTypeStrategy<ExprT extends GExpr> implements TypeStr
     return false;
   }
 
+  /**
+   * @return true if the given {@code field} was pruned because it was not referenced.
+   */
+  public boolean isFieldPruned(GimpleFieldRef field) {
+    return false;
+  }
 }

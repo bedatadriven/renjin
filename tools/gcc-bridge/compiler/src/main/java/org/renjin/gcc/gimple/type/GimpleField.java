@@ -28,6 +28,7 @@ public class GimpleField {
   private String name;
   private GimpleType type;
   private boolean addressed;
+  private boolean referenced;
 
   public GimpleField() {
   }
@@ -45,7 +46,14 @@ public class GimpleField {
     this.addressed = addressed;
   }
 
-  
+  public boolean isReferenced() {
+    return referenced;
+  }
+
+  public void setReferenced(boolean referenced) {
+    this.referenced = referenced;
+  }
+
   public String getName() {
     return Strings.nullToEmpty(name);
   }

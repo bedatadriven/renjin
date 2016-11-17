@@ -68,6 +68,9 @@ public class RecordTypeDefCanonicalizer {
     RecordTypeUseFinder finder = new RecordTypeUseFinder(canonicalTypeDefs);
     finder.visit(units);
 
+    RecordFieldUseFinder fieldFinder = new RecordFieldUseFinder(canonicalTypeDefs);
+    fieldFinder.visit(units);
+
     // Include only those that are actually used
     Set<GimpleRecordTypeDef> usedDefs = new HashSet<>();
     for (GimpleRecordTypeDef typeDef : canonicalTypeDefs) {

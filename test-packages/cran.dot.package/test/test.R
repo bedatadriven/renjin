@@ -18,5 +18,12 @@
 #
 
 
+library(utils)
+library(cran.dot.package)
 
-compute <- function(x) 22
+stopifnot(compute(0) == 22)
+stopifnot(recompute(1:3) == 3L)
+
+data(colors)
+print(colors)
+

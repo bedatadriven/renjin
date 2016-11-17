@@ -18,6 +18,8 @@
 #
 
 
-library(cran.dot.package)
 
-stopifnot(compute(0) == 22)
+compute <- function(x) 22
+
+
+recompute <- function(x) .Call("recompute", x)

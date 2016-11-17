@@ -24,6 +24,7 @@ import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleParser;
 import org.renjin.gnur.GnurSourcesCompiler;
+import org.renjin.primitives.packaging.Namespace;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.repackaged.guava.base.Predicate;
@@ -142,8 +143,10 @@ public class NativeSourceBuilder {
     GimpleCompiler compiler = new GimpleCompiler();
     compiler.setLinkClassLoader(buildContext.getClassLoader());
     compiler.setOutputDirectory(buildContext.getOutputDir());
-    compiler.setPackageName(source.getGroupId() + "." + source.getPackageName());
-    compiler.setClassName(source.getPackageName());
+    compiler.setPackageName(source.getGroupId() + "." +
+        Namespace.sanitizePackageNameForClassFiles(source.getPackageName()));
+    compiler.setClassName(
+        Namespace.sanitizePackageNameForClassFiles(source.getPackageName()));
 
     if(entryPoints != null && !entryPoints.isEmpty()) {
       compiler.setEntryPointPredicate(new Predicate<GimpleFunction>() {

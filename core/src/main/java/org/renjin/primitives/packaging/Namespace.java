@@ -164,6 +164,17 @@ public class Namespace {
     return pkg;
   }
 
+  /**
+   * It is legal for package names to contain dots, and we can load resources with dots in their names, such
+   * as environment, serialized symbols, and data files, but we CANNOT load a class through reflection with a dot
+   * in its name.
+   *
+   * @param packageName the original package name
+   * @return a sanitized name of a package with '.', replaced with '$'
+   */
+  public static String sanitizePackageNameForClassFiles(String packageName) {
+    return packageName.replace('.', '$');
+  }
 
   public void initImports(Context context, NamespaceRegistry registry, NamespaceFile file) {
 
@@ -232,7 +243,9 @@ public class Namespace {
     try {
 
       FqPackageName packageName = pkg.getName();
-      String className = packageName.getGroupId() + "." + packageName.getPackageName() + "." + entry.getLibraryName();
+      String className = packageName.getGroupId() + "." +
+          Namespace.sanitizePackageNameForClassFiles(packageName.getPackageName()) + "." +
+          Namespace.sanitizePackageNameForClassFiles(entry.getLibraryName());
       clazz = pkg.loadClass(className);
 
     } catch (ClassNotFoundException e) {
@@ -286,10 +299,8 @@ public class Namespace {
             nativeSymbolMap.put(method.getName(), clazz);
           }
         }
-        
       }
 
-      
     } catch(Exception e) {
       // Allow the program to continue, there may be some packages whose gnur
       // compilation failed but can still partially function.

@@ -543,8 +543,9 @@ public class Native {
     } else {
       Namespace namespace = context.getNamespaceRegistry().getNamespace(context, packageName);
       FqPackageName fqname = namespace.getFullyQualifiedName();
-      String packageClassName = fqname.getGroupId()+"."+fqname.getPackageName() + "." +
-          fqname.getPackageName();
+      String packageClassName = fqname.getGroupId()+ "." +
+          Namespace.sanitizePackageNameForClassFiles(fqname.getPackageName()) + "." +
+          Namespace.sanitizePackageNameForClassFiles(fqname.getPackageName());
       try {
         return namespace.getPackage().loadClass(packageClassName);
       } catch (ClassNotFoundException e) {

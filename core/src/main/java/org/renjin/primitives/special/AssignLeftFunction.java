@@ -69,7 +69,7 @@ public class AssignLeftFunction extends SpecialFunction {
       
       FunctionCall setterCall = new FunctionCall(setter, setterArgs);
       
-      rhs = context.evaluate(setterCall, rho);
+      rhs = Promise.repromise(context.evaluate(setterCall, rho));
 
       lhs = call.getArgument(0);
     }

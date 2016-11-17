@@ -903,6 +903,12 @@ public final class Rinternals {
       return new StringArrayVector((StringVector) sexp);
     } else if(sexp instanceof S4Object) {
       return new S4Object(sexp.getAttributes());
+    } else if(sexp instanceof ListVector) {
+      SEXP[] elements = ((ListVector) sexp).toArrayUnsafe();
+      for (int i = 0; i < elements.length; i++) {
+        elements[i] = Rf_duplicate(elements[i]);
+      }
+      return new ListVector(elements, sexp.getAttributes());
     }
     throw new UnimplementedGnuApiMethod("Rf_duplicate: " + sexp.getTypeName());
   }

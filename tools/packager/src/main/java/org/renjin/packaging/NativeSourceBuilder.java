@@ -44,7 +44,10 @@ import java.util.regex.Pattern;
  */
 public class NativeSourceBuilder {
 
-  private static final List<String> SOURCE_EXTENSIONS = Lists.newArrayList("c", "f", "f77", "f90", "f95", "f03", "for", "cpp", "cxx");
+  private static final List<String> SOURCE_EXTENSIONS = Lists.newArrayList(
+      "c",
+      "f", "f77", "f90", "f95", "f03", "for",
+      "cpp", "cxx");
 
   private PackageSource source;
   private BuildContext buildContext;
@@ -58,11 +61,35 @@ public class NativeSourceBuilder {
   }
 
   public void build() throws IOException, InterruptedException {
-
+    configure();
     make();
     compileGimple();
     buildContext.getLogger().info("Compilation of GNU R sources succeeded.");
-//    archiveHeaders();
+  }
+
+  private void configure() throws IOException, InterruptedException {
+
+    File configure = new File(source.getPackageDir(), "configure");
+    if(!configure.exists()) {
+      buildContext.getLogger().debug("No ./configure script found at " + configure.getAbsolutePath() +
+          ", skipping...");
+      return;
+    }
+
+    buildContext.getLogger().debug("Running Configure...");
+
+    // Setup process
+    ProcessBuilder builder = new ProcessBuilder()
+        .command("sh", "configure")
+        .directory(source.getPackageDir())
+        .inheritIO();
+
+    builder.environment().put("R_HOME", buildContext.getGnuRHomeDir().getAbsolutePath());
+
+    int exitCode = builder.start().waitFor();
+    if (exitCode != 0) {
+      throw new InternalCompilerException("Failed to execute ./configure");
+    }
   }
 
   private void make() throws IOException, InterruptedException {

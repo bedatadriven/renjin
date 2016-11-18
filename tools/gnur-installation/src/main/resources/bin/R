@@ -18,7 +18,10 @@ then
 fi
 
 
-case "$3" in
+case "$3"
+    F77)
+        echo gfortran-4.7
+        ;;
     FC)
         echo gfortran-4.7
         ;;
@@ -37,6 +40,12 @@ case "$3" in
         ;;
     CXX1XSTD)
         echo -std=c++11
+        ;;
+    MAKE)
+        echo make
+        ;;
+    BLAS_LIBS)
+        # Already on classpath
         ;;
     *)
         >&2 echo "Warning: unsupported configuration variable $3"

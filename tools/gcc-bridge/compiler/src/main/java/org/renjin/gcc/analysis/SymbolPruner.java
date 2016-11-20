@@ -85,7 +85,6 @@ public class SymbolPruner {
     for (GimpleCompilationUnit unit : units) {
       for (GimpleFunction function : unit.getFunctions()) {
         if(entryPointPredicate.apply(function)) {
-          logger.debug("Retaining entry point: " + function.getName() + " [" + function.getMangledName() + "]");
           visitor.retained.add(new Symbol(function, symbolTable.scope(function)));
         }
       }
@@ -106,16 +105,6 @@ public class SymbolPruner {
     // Remove all but the referenced functions
     Set<GimpleDecl> retained = visitor.retainedDeclarations();
     for (GimpleCompilationUnit unit : units) {
-      for (GimpleFunction function : unit.getFunctions()) {
-        if(!retained.contains(function)) {
-          logger.debug("Pruning function " + function.getMangledName());
-        }
-      }
-      for (GimpleVarDecl varDecl : unit.getGlobalVariables()) {
-        if(!retained.contains(varDecl)) {
-          logger.debug("Pruning global variable " + varDecl.getName());
-        }
-      }
       unit.getFunctions().retainAll(retained);
       unit.getGlobalVariables().retainAll(retained);
     }
@@ -137,14 +126,9 @@ public class SymbolPruner {
     public void visitFunctionRef(GimpleFunctionRef functionRef) {
       Optional<GimpleFunction> referencedFunction = currentScope.lookupFunction(functionRef);
       
-      if(!referencedFunction.isPresent()) {
-        logger.info("Reference to undefined function " + functionRef.getName());
-      }
-      
       if(referencedFunction.isPresent()) {
         Symbol symbol = new Symbol(referencedFunction.get(), symbolTable.scope(referencedFunction.get()));
         if(retained.add(symbol)) {
-          logger.info("Adding referenced function " + symbol);
           changing = true;
         }
       }
@@ -152,15 +136,10 @@ public class SymbolPruner {
     @Override
     public void visitVariableRef(GimpleVariableRef variableRef) {
       Optional<GimpleVarDecl> decl = currentScope.lookupVariable(variableRef);
-      
-      if(!decl.isPresent() && !Strings.isNullOrEmpty(variableRef.getName())) {
-        logger.info("Reference to undefined global variable " + variableRef.getName());
-      }
-      
+
       if(decl.isPresent()) {
         Symbol symbol = new Symbol(decl.get(), symbolTable.scope(decl.get().getUnit()));
         if(retained.add(symbol)) {
-          logger.info("Adding referenced variable " + symbol);
           changing = true;
         }
       }

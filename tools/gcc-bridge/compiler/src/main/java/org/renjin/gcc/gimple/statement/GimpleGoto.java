@@ -42,7 +42,7 @@ public class GimpleGoto extends GimpleStatement {
 
   @Override
   public String toString() {
-    return "goto <" + getTargetLabel() + ">";
+    return "goto " + getTargetLabel();
   }
 
   @Override

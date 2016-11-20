@@ -19,6 +19,7 @@
 package org.renjin.packaging;
 
 import org.renjin.gcc.GimpleCompiler;
+import org.renjin.gcc.HtmlTreeLogger;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
@@ -174,6 +175,10 @@ public class NativeSourceBuilder {
         Namespace.sanitizePackageNameForClassFiles(source.getPackageName()));
     compiler.setClassName(
         Namespace.sanitizePackageNameForClassFiles(source.getPackageName()));
+
+    if (buildContext.getCompileLogDir() != null) {
+      compiler.setLogger(new HtmlTreeLogger(buildContext.getCompileLogDir()));
+    }
 
     if(entryPoints != null && !entryPoints.isEmpty()) {
       compiler.setEntryPointPredicate(new Predicate<GimpleFunction>() {

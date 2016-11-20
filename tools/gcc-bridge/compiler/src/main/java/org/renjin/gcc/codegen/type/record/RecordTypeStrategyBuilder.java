@@ -166,7 +166,6 @@ public class RecordTypeStrategyBuilder {
   private void buildUnion(TreeLogger logger, UnionSet set) {
     
     if(set.getTypeSet().isEmpty()) {
-      logger.debug("Using EmptyRecordStrategy.");
       buildEmpty(set);
     
     } else {
@@ -174,8 +173,6 @@ public class RecordTypeStrategyBuilder {
       // Try to see if we can represent all values in the type 
       Optional<Type> commonType = set.getTypeSet().tryComputeCommonType();
       if (commonType.isPresent()) {
-        logger.debug("Using RecordArrayTypeStrategy: " + commonType.get());
-
         for (GimpleRecordTypeDef typeDef : set.getAllTypes()) {
           typeOracle.addRecordType(typeDef, new RecordArrayTypeStrategy(typeDef, commonType.get()));
         }
@@ -190,10 +187,7 @@ public class RecordTypeStrategyBuilder {
   private void buildClassStrategy(TreeLogger logger, UnionSet set) {
     
     RecordClassLayout layout = new RecordClassLayout(set, nextRecordName(set.name()));
-    logger.debug("Using RecordClassTypeStrategy: " + layout.getType());
-
     boolean unitPointer = isUnitPointer(set);
-    logger.debug("unitPointer = " + unitPointer);
 
     for (GimpleRecordTypeDef typeDef : set.getAllTypes()) {
       RecordClassTypeStrategy strategy = new RecordClassTypeStrategy(typeOracle, typeDef, layout);

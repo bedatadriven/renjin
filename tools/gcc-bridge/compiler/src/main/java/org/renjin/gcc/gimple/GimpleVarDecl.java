@@ -135,7 +135,11 @@ public class GimpleVarDecl implements GimpleDecl {
 
   @Override
   public String toString() {
-    return type + " " + getName() + " = " + value;
+    StringBuilder s = new StringBuilder().append(type).append(" ").append(getName());
+    if(value != null) {
+      s.append(" = ").append(value);
+    }
+    return s.toString();
   }
 
   /**

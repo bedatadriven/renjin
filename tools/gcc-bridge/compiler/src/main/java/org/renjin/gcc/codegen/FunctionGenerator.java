@@ -109,10 +109,14 @@ public class FunctionGenerator implements InvocationStrategy {
 
   public void emit(TreeLogger parentLogger, ClassVisitor cw) {
 
+
     TreeLogger logger = parentLogger.branch("Generating bytecode for " + 
         function.getName() + " [" + function.getMangledName() + "]");
     logger.debug("Aliases: " + function.getAliases());
     logger.debug("Gimple:", function);
+
+    logger.dump(function.getUnit().getSourceName(), function.getSafeMangledName(), "gimple", function);
+
 
     if(GimpleCompiler.TRACE) {
       System.out.println(function);
@@ -157,6 +161,8 @@ public class FunctionGenerator implements InvocationStrategy {
     mv.visitMaxs(1, 1);
     mv.visitEnd();
 
+    logger.dump(function.getUnit().getSourceName(), function.getSafeMangledName(), "j", toString(methodNode));
+
     // Reduce the size of the bytecode by applying simple optimizations
     PeepholeOptimizer.INSTANCE.optimize(methodNode);
 
@@ -164,6 +170,9 @@ public class FunctionGenerator implements InvocationStrategy {
     if(estimatedSize > 65536) {
       System.err.println("WARNING: Method size of " + className + "." + function.getMangledName() + " may be exceeded.");
     }
+
+    logger.dump(function.getUnit().getSourceName(), function.getSafeMangledName(), "opt.j", toString(methodNode));
+
 
     try {
       methodNode.accept(cw);

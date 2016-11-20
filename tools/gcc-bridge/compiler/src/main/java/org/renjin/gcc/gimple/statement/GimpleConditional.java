@@ -84,11 +84,9 @@ public class GimpleConditional extends GimpleStatement {
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    sb.append("gimple_cond<").append(operator).append(",");
-
-    Joiner.on(", ").appendTo(sb, operands);
-    sb.append("> goto <").append("BB").append(trueLabel).append("> else goto <").append("BB").append(falseLabel)
-        .append(">");
+    sb.append("if(").append(operator.format(operands)).append(") then ");
+    sb.append(trueLabel);
+    sb.append("else ").append(falseLabel);
     return sb.toString();
   }
 

@@ -22,6 +22,7 @@ import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.base.Preconditions;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.html.HtmlEscapers;
+import org.renjin.repackaged.guava.io.Files;
 import org.renjin.repackaged.guava.io.Resources;
 
 import java.io.File;
@@ -41,33 +42,49 @@ public class HtmlTreeLogger extends TreeLogger {
   private List<HtmlTreeLogger> children = Lists.newArrayListWithCapacity(0);
 
   public HtmlTreeLogger(File loggingDirectory) {
-    this(Level.INFO, "Compilation starting");
+    this(loggingDirectory, Level.INFO, "Compilation starting");
     this.loggingDirectory = loggingDirectory;
   }
   
   private HtmlTreeLogger() {
   }
 
-  private HtmlTreeLogger(Level level, String message) {
+  private HtmlTreeLogger(File loggingDirectory, Level level, String message) {
+    this.loggingDirectory = loggingDirectory;
     this.level = level;
     this.message = message;
   }
-  
+
+  @Override
+  public void dump(String dir, String file, String ext, Object value) {
+    File dumpDir = new File(loggingDirectory.getAbsolutePath() + File.separator + dir);
+    if(!dumpDir.exists()) {
+      dumpDir.mkdirs();
+    }
+
+    File dumpFile = new File(dumpDir, file + "." + ext);
+    try {
+      Files.write(value.toString(), dumpFile, Charsets.UTF_8);
+    } catch (IOException e) {
+      throw new RuntimeException("Exception dumping to " + dumpFile.getAbsolutePath());
+    }
+  }
+
   @Override
   public void log(Level level, String message) {
-    children.add(new HtmlTreeLogger(Level.DEBUG, message)); 
+    children.add(new HtmlTreeLogger(loggingDirectory, Level.DEBUG, message));
   }
 
   @Override
   public TreeLogger branch(Level level, String message) {
-    HtmlTreeLogger child = new HtmlTreeLogger(level, message);
+    HtmlTreeLogger child = new HtmlTreeLogger(loggingDirectory, level, message);
     children.add(child);
     return child;
   }
 
   @Override
   public TreeLogger debug(String message, Object code) {
-    HtmlTreeLogger child = new HtmlTreeLogger(Level.DEBUG, message);
+    HtmlTreeLogger child = new HtmlTreeLogger(loggingDirectory, Level.DEBUG, message);
     child.code = code;
     children.add(child);
     return child;

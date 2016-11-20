@@ -23,6 +23,10 @@ package org.renjin.gcc;
  */
 public class NullTreeLogger extends TreeLogger {
   @Override
+  public void dump(String dir, String file, String ext, Object value) {
+  }
+
+  @Override
   public void log(Level level, String message) {
   }
 

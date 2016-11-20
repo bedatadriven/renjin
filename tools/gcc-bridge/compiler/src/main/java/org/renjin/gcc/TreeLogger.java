@@ -30,11 +30,7 @@ public abstract class TreeLogger {
     INFO,
     DEBUG
   }
-  
-  
-  public final void info(String message) {
-    log(Level.INFO, message);
-  }
+
 
   public final TreeLogger branch(String message) {
     return branch(Level.INFO, message);
@@ -43,6 +39,8 @@ public abstract class TreeLogger {
   public final void debug(String message) {
     log(Level.DEBUG, message);
   }
+
+  public abstract void dump(String dir, String file, String ext, Object value);
 
   public abstract void log(Level level, String message);
 

@@ -1062,4 +1062,9 @@ public class GimpleCompilerTest extends AbstractGccTest {
     compileAndTest("null_ptr.c");
   }
 
+  @Test
+  public void voidRealloc() throws Exception {
+    compileAndTest("void_realloc.c");
+  }
+
 }

@@ -1057,4 +1057,9 @@ public class GimpleCompilerTest extends AbstractGccTest {
     compileAndTest("void_deref_to_unit_rec.c");
   }
 
+  @Test
+  public void nullWrappedPtr() throws Exception {
+    compileAndTest("null_ptr.c");
+  }
+
 }

@@ -75,6 +75,10 @@ public class GimpleFunction implements GimpleDecl {
     }
     return mangledName;
   }
+
+  public String getSafeMangledName() {
+    return getMangledName().replace('.', '$');
+  }
   
   public List<String> getMangledNames() {
     List<String> names = Lists.newArrayList();

@@ -219,10 +219,10 @@ public class UnitClassGenerator {
     // Check for duplicate names...
     Set<String> names = Sets.newHashSet();
     for (FunctionGenerator functionGenerator : symbolTable.getFunctions()) {
-      if(names.contains(functionGenerator.getMangledName())) {
-        throw new InternalCompilerException("Duplicate function names " + functionGenerator.getMangledName());
+      if(names.contains(functionGenerator.getSafeMangledName())) {
+        throw new InternalCompilerException("Duplicate function names " + functionGenerator.getSafeMangledName());
       }
-      names.add(functionGenerator.getMangledName());
+      names.add(functionGenerator.getSafeMangledName());
     }
     
     // Now actually emit the function bodies

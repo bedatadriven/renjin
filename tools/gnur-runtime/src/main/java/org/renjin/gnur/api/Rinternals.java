@@ -21,10 +21,7 @@ package org.renjin.gnur.api;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.gcc.runtime.BytePtr;
-import org.renjin.gcc.runtime.DoublePtr;
-import org.renjin.gcc.runtime.IntPtr;
-import org.renjin.gcc.runtime.ObjectPtr;
+import org.renjin.gcc.runtime.*;
 import org.renjin.methods.MethodDispatch;
 import org.renjin.methods.Methods;
 import org.renjin.primitives.*;
@@ -407,7 +404,7 @@ public final class Rinternals {
   }
 
   public static SEXP CADDR(SEXP e) {
-    return 	CAR(CDR(CDR(e)));
+    return CAR(CDR(CDR(e)));
   }
 
   public static SEXP CADDDR(SEXP e) {
@@ -1517,9 +1514,78 @@ public final class Rinternals {
     return value;
   }
 
-  // int R_check_class_and_super (SEXP x, const char **valid, SEXP rho)
+  /**
+   * Return the 0-based index of an is() match in a vector of class-name
+   * strings terminated by an empty string.  Returns -1 for no match.
+   *
+   * @param x  an R object, about which we want is(x, .) information.
+   * @param valid vector of possible matches terminated by an empty string.
+   * @param rho  the environment in which the class definitions exist.
+   *
+   * @return index of match or -1 for no match
+   */
+  public static int R_check_class_and_super (SEXP x, ObjectPtr<BytePtr> valid, SEXP rho) {
+    int ans;
+    SEXP cl = Rf_asChar(Rf_getAttrib(x, R_ClassSymbol));
+    BytePtr class_ = R_CHAR(cl);
+    for (ans = 0; ; ans++) {
+      if (Stdlib.strlen(valid.get(ans)) == 0) { // empty string
+        break;
+      }
+      if (Stdlib.strcmp(class_, valid.get(ans)) == 0) {
+        return ans;
+      }
+    }
+    /* if not found directly, now search the non-virtual super classes :*/
+    if(IS_S4_OBJECT(x) != 0) {
+        /* now try the superclasses, i.e.,  try   is(x, "....");  superCl :=
+           .selectSuperClasses(getClass("....")@contains, dropVirtual=TRUE)  */
+      SEXP classExts, superCl, _call;
+      Symbol s_contains      = Symbol.get("contains");
+      Symbol s_selectSuperCl = Symbol.get(".selectSuperClasses");
+      SEXP classDef = R_getClassDef(class_);
+      classExts = R_do_slot(classDef, s_contains);
+      _call = Rf_lang3(s_selectSuperCl, classExts,
+                              /* dropVirtual = */ Rf_ScalarLogical(1));
+      superCl = Rf_eval(_call, rho);
+      for(int i=0; i < LENGTH(superCl); i++) {
+        BytePtr s_class = R_CHAR(STRING_ELT(superCl, i));
+        for (ans = 0; ; ans++) {
+          if (Stdlib.strlen(valid.get(ans)) == 0) {
+            break;
+          }
+          if (Stdlib.strcmp(s_class, valid.get(ans)) == 0) {
+            return ans;
+          }
+        }
+      }
+    }
+    return -1;
+  }
 
-  // int R_check_class_etc (SEXP x, const char **valid)
+  public static int R_check_class_etc (SEXP x, ObjectPtr<BytePtr> valid) {
+    SEXP cl = Rf_getAttrib(x, R_ClassSymbol);
+    SEXP rho = R_GlobalEnv;
+    SEXP pkg;
+    Symbol meth_classEnv = Symbol.get(".classEnv");
+
+    pkg = Rf_getAttrib(cl, R_PackageSymbol); /* ==R== packageSlot(class(x)) */
+    if(!Rf_isNull(pkg)) { /* find  rho := correct class Environment */
+      SEXP clEnvCall;
+      // FIXME: fails if 'methods' is not loaded.
+      clEnvCall = Rf_lang2(meth_classEnv, cl);
+      rho = Rf_eval(clEnvCall, methodsNamespace());
+      if(!Rf_isEnvironment(rho)) {
+        throw new EvalException("could not find correct environment; please report!");
+      }
+    }
+    int res = R_check_class_and_super(x, valid, rho);
+    return res;
+  }
+
+  private static Environment methodsNamespace() {
+    return Native.currentContext().getNamespaceRegistry().getNamespaceIfPresent(Symbol.get("methods")).get().getNamespaceEnvironment();
+  }
 
   public static void R_PreserveObject(SEXP p0) {
     // NOOP

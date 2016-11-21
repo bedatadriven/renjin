@@ -18,7 +18,7 @@ then
 fi
 
 
-case "$3"
+case "$3" in
     F77)
         echo gfortran-4.7
         ;;

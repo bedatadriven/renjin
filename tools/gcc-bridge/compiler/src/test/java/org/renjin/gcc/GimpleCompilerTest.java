@@ -1077,4 +1077,9 @@ public class GimpleCompilerTest extends AbstractGccTest {
     compileAndTest("void_realloc.c");
   }
 
+  @Test
+  public void voidPtrToRecordPtrParam() throws Exception {
+    compileAndTest("void_to_rec_ptr_param.c");
+  }
+
 }

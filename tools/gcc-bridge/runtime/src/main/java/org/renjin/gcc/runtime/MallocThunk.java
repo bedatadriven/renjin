@@ -104,7 +104,7 @@ public class MallocThunk implements Ptr {
     return (DoublePtr) pointer;
   }
   
-  public Object recordUnitPtr(Class recordType) {
+  public <T> T recordUnitPtr(Class<T> recordType) {
     if(pointer == null) {
       if(this.bytes != sizeOf(recordType)) {
         throw new IllegalStateException(String.format(
@@ -118,7 +118,7 @@ public class MallocThunk implements Ptr {
         throw new RuntimeException("Failed to malloc element of type " + recordType.getClass().getName(), e);
       }
     }
-    return pointer;
+    return (T)pointer;
   }
   
   public ObjectPtr objectPtr(Class<?> componentType) {

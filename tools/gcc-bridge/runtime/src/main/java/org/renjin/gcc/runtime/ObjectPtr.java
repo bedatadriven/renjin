@@ -164,15 +164,33 @@ public class ObjectPtr<T> implements Ptr {
       }
       int numElements = byteCount / size.value();
 
-      for (int i = 0; i < numElements; i++) {
-      }
+//      for (int i = 0; i < numElements; i++) {
+//      }
+      throw new UnsupportedOperationException("TODO");
     }
   }
 
   public static ObjectPtr cast(Object voidPointer) {
     if(voidPointer instanceof MallocThunk) {
-      throw new UnsupportedOperationException("TODO");
+      throw new UnsupportedOperationException("Casting of void* to record type without type information. " +
+          "Please recompile against the latest version of gcc-bridge to resolve.");
     }
     return (ObjectPtr) voidPointer;
+  }
+
+
+  public static ObjectPtr cast(Object voidPointer, Class<?> recordType) {
+    if(voidPointer instanceof MallocThunk) {
+      return ((MallocThunk) voidPointer).objectPtr(recordType);
+    }
+
+    return (ObjectPtr)voidPointer;
+  }
+
+  public static <T> T castUnit(Object voidPointer, Class<T> recordType) {
+    if(voidPointer instanceof MallocThunk) {
+      return ((MallocThunk) voidPointer).recordUnitPtr(recordType);
+    }
+    return (T)recordType;
   }
 }

@@ -680,7 +680,7 @@ public final class Rinternals {
   }
 
   public static SEXP Rf_asChar(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_asChar");
+    return new GnuCharSexp(((AtomicVector) p0).getElementAsString(0));
   }
 
   public static SEXP Rf_coerceVector(SEXP p0, /*SEXPTYPE*/ int type) {

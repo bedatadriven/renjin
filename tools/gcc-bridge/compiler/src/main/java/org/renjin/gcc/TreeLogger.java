@@ -26,6 +26,8 @@ import java.io.IOException;
 public abstract class TreeLogger {
 
 
+  public abstract boolean isEnabled();
+
   public enum Level {
     INFO,
     DEBUG

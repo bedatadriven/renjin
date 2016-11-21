@@ -56,6 +56,11 @@ public class HtmlTreeLogger extends TreeLogger {
   }
 
   @Override
+  public boolean isEnabled() {
+    return true;
+  }
+
+  @Override
   public void dump(String dir, String file, String ext, Object value) {
     File dumpDir = new File(loggingDirectory.getAbsolutePath() + File.separator + dir);
     if(!dumpDir.exists()) {

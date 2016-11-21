@@ -189,6 +189,16 @@ public class GimpleCompilerTest extends AbstractGccTest {
     System.out.println(x);
   }
 
+  @Test
+  public void fortranMultiDimArrays() throws Exception {
+    Class clazz = compile("lbound_alloc.f");
+
+    Method test = clazz.getMethod("testprogram_");
+    test.invoke(null);
+
+  }
+
+
   @Test(expected = InvocationTargetException.class)
   public void files() throws Exception {
     compileAndTest("files.c");

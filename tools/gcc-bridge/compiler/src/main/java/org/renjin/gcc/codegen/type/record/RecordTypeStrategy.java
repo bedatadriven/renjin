@@ -60,10 +60,4 @@ public abstract class RecordTypeStrategy<ExprT extends GExpr> implements TypeStr
     return false;
   }
 
-  /**
-   * @return true if the given {@code field} was pruned because it was not referenced.
-   */
-  public boolean isFieldPruned(GimpleFieldRef field) {
-    return false;
-  }
 }

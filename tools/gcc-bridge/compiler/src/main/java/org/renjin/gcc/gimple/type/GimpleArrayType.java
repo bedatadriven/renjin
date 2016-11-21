@@ -59,7 +59,16 @@ public class GimpleArrayType extends AbstractGimpleType {
 
   @Override
   public String toString() {
-    return componentType + "[]";
+    StringBuilder s = new StringBuilder(componentType.toString());
+    s.append("[");
+    if(lbound != 0) {
+      s.append(lbound).append(":");
+    }
+    if(ubound != null) {
+      s.append(ubound);
+    }
+    s.append("]");
+    return s.toString();
   }
   
 

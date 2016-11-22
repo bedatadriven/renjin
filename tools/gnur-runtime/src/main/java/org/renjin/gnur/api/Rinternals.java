@@ -301,6 +301,8 @@ public final class Rinternals {
       return new IntPtr(((IntArrayVector) x).toIntArrayUnsafe());
     } else if(x instanceof LogicalArrayVector) {
       return new IntPtr(((LogicalArrayVector) x).toIntArrayUnsafe());
+    } else if (x instanceof DoubleVector) {
+      return new IntPtr(((DoubleVector) x).toIntArray());
     } else if(x instanceof IntVector) {
       // TODO: cache arrays for the case of repeated INTEGER() calls?
       return new IntPtr(((IntVector) x).toIntArray());

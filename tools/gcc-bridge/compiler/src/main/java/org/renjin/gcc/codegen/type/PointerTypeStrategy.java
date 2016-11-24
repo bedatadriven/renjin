@@ -30,6 +30,8 @@ public interface PointerTypeStrategy<ExprT extends GExpr> extends TypeStrategy<E
   
   ExprT malloc(MethodGenerator mv, JExpr sizeInBytes);
 
+  ExprT newArray(MethodGenerator mv, JExpr count);
+
   ExprT realloc(MethodGenerator mv, ExprT pointer, JExpr newSizeInBytes);
 
   ExprT pointerPlus(MethodGenerator mv, ExprT pointer, JExpr offsetInBytes);

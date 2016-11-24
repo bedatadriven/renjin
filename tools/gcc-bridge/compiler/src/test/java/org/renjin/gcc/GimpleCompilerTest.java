@@ -1087,4 +1087,13 @@ public class GimpleCompilerTest extends AbstractGccTest {
     compileAndTest("first_field.c");
   }
 
+  @Test
+  public void superClassBug() throws Exception {
+    compileAndTest("superclass_bug.c");
+  }
+
+  @Test
+  public void newArray() throws Exception {
+    compileAndTest("new_array.cpp");
+  }
 }

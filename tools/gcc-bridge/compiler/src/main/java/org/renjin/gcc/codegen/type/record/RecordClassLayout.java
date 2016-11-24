@@ -96,7 +96,7 @@ public class RecordClassLayout implements RecordLayout {
     if(typeSet.getGimpleTypes().size() == 1) {
       TypeStrategy typeStrategy = typeOracle.forType(typeSet.getGimpleTypes().iterator().next());
 
-      if(isPotentialSuperClass(typeStrategy)) {
+      if(isPotentialSuperClass(node, typeStrategy)) {
         return new SuperClassFieldStrategy((RecordClassTypeStrategy) typeStrategy);
       }
 
@@ -161,11 +161,14 @@ public class RecordClassLayout implements RecordLayout {
     }
   }
 
-  private boolean isPotentialSuperClass(TypeStrategy strategy) {
-    if(strategy instanceof RecordClassTypeStrategy) {
-      RecordClassTypeStrategy recordStrategy = (RecordClassTypeStrategy) strategy;
-      if (!recordStrategy.getJvmType().equals(this.type)) {
-        return true;
+  private boolean isPotentialSuperClass(RecordClassLayoutTree.Node node, TypeStrategy strategy) {
+
+    if(node.getOffset() == 0) {
+      if (strategy instanceof RecordClassTypeStrategy) {
+        RecordClassTypeStrategy recordStrategy = (RecordClassTypeStrategy) strategy;
+        if (!recordStrategy.getJvmType().equals(this.type)) {
+          return true;
+        }
       }
     }
     return false;

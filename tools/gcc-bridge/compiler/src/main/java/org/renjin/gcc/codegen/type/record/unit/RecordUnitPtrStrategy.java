@@ -140,6 +140,11 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>
   }
 
   @Override
+  public RecordUnitPtr newArray(MethodGenerator mv, JExpr count) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public RecordUnitPtr realloc(MethodGenerator mv, RecordUnitPtr pointer, JExpr newSizeInBytes) {
     throw new UnsupportedOperationException("TODO");
   }

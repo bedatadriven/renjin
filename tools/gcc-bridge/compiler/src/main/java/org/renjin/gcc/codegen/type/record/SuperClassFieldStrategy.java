@@ -77,6 +77,8 @@ public class SuperClassFieldStrategy extends FieldStrategy {
       RecordClassTypeStrategy expectedRecordType = (RecordClassTypeStrategy) expectedType;
       if(expectedRecordType.equals(fieldTypeStrategy)) {
         return fieldValue;
+      } else {
+        throw new UnsupportedOperationException("expected type: " + expectedRecordType);
       }
     }
 

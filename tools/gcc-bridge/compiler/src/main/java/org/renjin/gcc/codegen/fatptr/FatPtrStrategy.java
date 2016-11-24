@@ -40,7 +40,6 @@ import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.repackaged.asm.Type;
 
 import static org.renjin.gcc.codegen.expr.Expressions.constantInt;
-import static org.renjin.gcc.codegen.expr.Expressions.newArray;
 import static org.renjin.repackaged.asm.Type.OBJECT;
 
 /**
@@ -124,7 +123,7 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
       Type wrapperType = Wrappers.wrapperType(valueFunction.getValueType());
       Type wrapperArrayType = Wrappers.valueArrayType(wrapperType);
       
-      JExpr newArray = newArray(wrapperType, 1);
+      JExpr newArray = Expressions.newArray(wrapperType, 1);
       
       JLValue unitArray = allocator.reserve(decl.getName(), wrapperArrayType, newArray);
       
@@ -192,6 +191,11 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
     JExpr ceil = Expressions.max(length, constantInt(1));
     
     return FatPtrMalloc.alloc(mv, valueFunction, ceil);
+  }
+
+  @Override
+  public FatPtr newArray(MethodGenerator mv, JExpr count) {
+    return FatPtrMalloc.alloc(mv, valueFunction, count);
   }
 
   @Override

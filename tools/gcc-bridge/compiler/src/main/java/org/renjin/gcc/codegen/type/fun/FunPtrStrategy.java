@@ -27,6 +27,7 @@ import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.*;
+import org.renjin.gcc.codegen.type.primitive.ConstantValue;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveTypeStrategy;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrStrategy;
 import org.renjin.gcc.codegen.type.record.unit.RefConditionGenerator;
@@ -160,6 +161,11 @@ public class FunPtrStrategy implements PointerTypeStrategy<FunPtr>, SimpleTypeSt
   @Override
   public FunPtr malloc(MethodGenerator mv, JExpr sizeInBytes) {
     throw new UnsupportedOperationException("Cannot malloc function pointers");
+  }
+
+  @Override
+  public FunPtr newArray(MethodGenerator mv, JExpr count) {
+    throw new UnsupportedOperationException("Cannot allocate array of function pointers");
   }
 
   @Override

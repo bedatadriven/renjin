@@ -111,7 +111,11 @@ public class RecordTypeStrategyBuilder {
     // Write details to logging if enabled
     if(logger.isEnabled()) {
       for (GimpleRecordTypeDef recordTypeDef : recordTypeDefs) {
-        logger.dump("records", recordTypeDef.getName(), "def", recordTypeDef);
+        String name = recordTypeDef.getName();
+        if(name == null) {
+          name = "anonymous_" + recordTypeDef.getId();
+        }
+        logger.dump("records", name, "def", recordTypeDef);
       }
     }
   }
@@ -217,7 +221,7 @@ public class RecordTypeStrategyBuilder {
     
     // Make sure we write superclasses first
     
-    
+
     // Finally write out the record class files for those records which are  not provided
     for (RecordLayout layout : layouts) {
       layout.writeClassFiles(outputDirectory);

@@ -166,9 +166,7 @@ public class Gcc {
     } catch (InterruptedException e) {
       throw new GccException("Compiler interrupted");
     }
-
-    System.out.println(outputCollector.getOutput());
-
+    p
     if (gcc.exitValue() != 0) {
 
       if(outputCollector.getOutput().contains("error trying to exec 'f951': execvp: No such file or directory")) {

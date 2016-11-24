@@ -36,8 +36,8 @@ public class GimpleCompilationUnit {
   private final List<GimpleVarDecl> globalVariables = Lists.newArrayList();
   private final List<GimpleAlias> aliases = new ArrayList<>();
   
-  
-  
+
+
   /**
    * 
    * @return the name of the compilation unit, stripped of all extensions

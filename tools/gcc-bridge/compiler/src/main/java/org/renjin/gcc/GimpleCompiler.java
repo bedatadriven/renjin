@@ -174,7 +174,7 @@ public class GimpleCompiler  {
   public void compile(List<GimpleCompilationUnit> units) throws Exception {
 
     try {
-      
+      PmfRewriter.rewrite(units);
       GlobalVarMerger.merge(units);
       ImplicitFieldDeclFinder.find(units);
 

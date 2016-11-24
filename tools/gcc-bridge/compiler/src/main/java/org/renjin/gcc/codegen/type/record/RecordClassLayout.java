@@ -194,6 +194,9 @@ public class RecordClassLayout implements RecordLayout {
 
     // Find the logical field that contains this bit range
     Integer fieldStart = fieldMap.floorKey(offset);
+    if(fieldStart == null) {
+      throw new IllegalStateException("No field declared at offset " + offset);
+    }
     FieldStrategy fieldStrategy = fieldMap.get(fieldStart);
 
     if(fieldStrategy == null) {

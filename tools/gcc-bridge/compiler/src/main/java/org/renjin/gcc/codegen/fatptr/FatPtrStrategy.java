@@ -251,11 +251,11 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
       
       return new FatPtrPair(valueFunction, newArray);
 
-    } else if(typeStrategy instanceof RecordClassTypeStrategy) {
+    } else if(typeStrategy instanceof RecordTypeStrategy) {
 
       // We can make this cast work if the first field of the record type is a compatible pointer type
-      RecordClassTypeStrategy recordClassTypeStrategy = (RecordClassTypeStrategy) typeStrategy;
-      return (FatPtr)recordClassTypeStrategy.memberOf(mv, ((RecordValue) value), 0, 32, this);
+      RecordTypeStrategy recordTypeStrategy = (RecordTypeStrategy) typeStrategy;
+      return (FatPtr) recordTypeStrategy.memberOf(mv, value, 0, 32, this);
     }
     
     throw new UnsupportedCastException();

@@ -1101,4 +1101,9 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void emptyFunctions() throws Exception {
     compileAndTest("empty_fns.cpp");
   }
+
+  @Test
+  public void pointerMemberFunctions() throws Exception {
+    compileAndTest("pmf.cpp");
+  }
 }

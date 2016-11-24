@@ -40,7 +40,7 @@ public class PointerUnionField extends SingleFieldStrategy {
   }
 
   @Override
-  public GExpr memberExpr(JExpr instance, int offset, int size, TypeStrategy expectedType) {
+  public GExpr memberExpr(MethodGenerator mv, JExpr instance, int offset, int size, TypeStrategy expectedType) {
 
     if(offset != 0) {
       throw new UnsupportedOperationException("TODO: offset = " + offset);

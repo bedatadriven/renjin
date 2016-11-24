@@ -51,7 +51,7 @@ public class RecordClassFieldStrategy extends SingleFieldStrategy {
   }
 
   @Override
-  public RecordValue memberExpr(JExpr instance, int offset, int size, TypeStrategy expectedType) {
+  public RecordValue memberExpr(MethodGenerator mv, JExpr instance, int offset, int size, TypeStrategy expectedType) {
 
     if(offset != 0) {
       throw new IllegalStateException("offset = " + offset);

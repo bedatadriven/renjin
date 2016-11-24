@@ -197,7 +197,7 @@ public class RecordClassLayout implements RecordLayout {
       throw new IllegalStateException(type + " has no field at offset " + offset);
     }
     
-    return fieldStrategy.memberExpr(instanceVar, offset - fieldStart, size, fieldTypeStrategy);
+    return fieldStrategy.memberExpr(mv, instanceVar, offset - fieldStart, size, fieldTypeStrategy);
   }
 
   @Override

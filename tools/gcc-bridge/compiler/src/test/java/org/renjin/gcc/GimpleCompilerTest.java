@@ -1082,4 +1082,9 @@ public class GimpleCompilerTest extends AbstractGccTest {
     compileAndTest("void_to_rec_ptr_param.c");
   }
 
+  @Test
+  public void firstFirstFieldCast() throws Exception {
+    compileAndTest("first_field.c");
+  }
+
 }

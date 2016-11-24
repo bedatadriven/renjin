@@ -23,7 +23,6 @@ import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.type.FieldStrategy;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.TypeStrategy;
-import org.renjin.gcc.gimple.expr.GimpleFieldRef;
 import org.renjin.gcc.gimple.type.GimpleField;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
 import org.renjin.repackaged.asm.Type;
@@ -72,6 +71,6 @@ public class ProvidedLayout implements RecordLayout {
     if(fieldStrategy == null) {
       throw new IllegalStateException("Cannot find field at offset " + offset);
     }
-    return fieldStrategy.memberExpr(instance.unwrap(), 0, size, fieldTypeStrategy);
+    return fieldStrategy.memberExpr(mv, instance.unwrap(), 0, size, fieldTypeStrategy);
   }
 }

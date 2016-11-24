@@ -56,11 +56,6 @@ public class VoidPtrStrategy implements PointerTypeStrategy<VoidPtr>, SimpleType
   }
 
   @Override
-  public VoidPtr newArray(MethodGenerator mv, JExpr count) {
-    throw new UnsupportedOperationException("TODO");
-  }
-
-  @Override
   public VoidPtr realloc(MethodGenerator mv, final VoidPtr pointer, JExpr newSizeInBytes) {
     return new VoidPtr(new VoidPtrRealloc(pointer.unwrap(), newSizeInBytes));
   }

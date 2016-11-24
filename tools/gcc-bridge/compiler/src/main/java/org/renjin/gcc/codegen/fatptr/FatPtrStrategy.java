@@ -27,7 +27,9 @@ import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.type.primitive.ConstantValue;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
+import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
 import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
+import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
 import org.renjin.gcc.codegen.type.record.RecordValue;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrStrategy;
@@ -191,11 +193,6 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
     JExpr ceil = Expressions.max(length, constantInt(1));
     
     return FatPtrMalloc.alloc(mv, valueFunction, ceil);
-  }
-
-  @Override
-  public FatPtr newArray(MethodGenerator mv, JExpr count) {
-    return FatPtrMalloc.alloc(mv, valueFunction, count);
   }
 
   @Override

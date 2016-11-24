@@ -94,6 +94,9 @@ public class PrimitiveCmpGenerator implements ConditionGenerator {
 
       emitRealJump(mv, trueLabel);
 
+    } else if (tx.equals(Type.LONG_TYPE)) {
+      emitLongJump(mv, trueLabel);
+
     } else {
       
       mv.visitJumpInsn(integerComparison(), trueLabel);
@@ -101,6 +104,8 @@ public class PrimitiveCmpGenerator implements ConditionGenerator {
     
     mv.visitJumpInsn(GOTO, falseLabel);
   }
+
+
 
   private void emitOrderedJump(MethodGenerator mv, Label orderedLabel, Label unorderedLabel) {
     x.load(mv);
@@ -128,6 +133,14 @@ public class PrimitiveCmpGenerator implements ConditionGenerator {
         return IF_ICMPGE;
     }
     throw new UnsupportedOperationException("op: " + op);
+  }
+
+
+  private void emitLongJump(MethodGenerator mv, Label trueLabel) {
+
+    mv.visitInsn(LCMP);
+    jumpOnComparison(mv, trueLabel);
+
   }
 
 
@@ -162,6 +175,10 @@ public class PrimitiveCmpGenerator implements ConditionGenerator {
     }
 
     // Now we jump based on the comparison of the above result to zero
+    jumpOnComparison(mv, trueLabel);
+  }
+
+  private void jumpOnComparison(MethodGenerator mv, Label trueLabel) {
     switch (op) {
       case LT_EXPR:
         // 1: x < y

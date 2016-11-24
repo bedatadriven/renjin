@@ -1111,4 +1111,9 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void cacheBug() throws Exception {
     compileAndTest("cache_bug.c");
   }
+
+  @Test
+  public void matrixCompileBug() throws Exception {
+    compile("matrix_bug.c");
+  }
 }

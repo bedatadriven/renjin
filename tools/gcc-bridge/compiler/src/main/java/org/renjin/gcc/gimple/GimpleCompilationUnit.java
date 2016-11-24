@@ -24,15 +24,17 @@ import org.renjin.repackaged.guava.collect.Iterables;
 import org.renjin.repackaged.guava.collect.Lists;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 public class GimpleCompilationUnit {
+  private File sourceFile;
+  private String mainInputFilename;
 
   private final List<GimpleFunction> functions = Lists.newArrayList();
   private final List<GimpleRecordTypeDef> recordTypes = Lists.newArrayList();
   private final List<GimpleVarDecl> globalVariables = Lists.newArrayList();
-  private File sourceFile;
-  private String mainInputFilename;
+  private final List<GimpleAlias> aliases = new ArrayList<>();
   
   
   
@@ -87,6 +89,10 @@ public class GimpleCompilationUnit {
 
   public void setSourceFile(File sourceFile) {
     this.sourceFile = sourceFile;
+  }
+
+  public List<GimpleAlias> getAliases() {
+    return aliases;
   }
 
   @Override

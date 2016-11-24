@@ -18,6 +18,11 @@
  */
 package org.renjin.gcc;
 
+import org.renjin.repackaged.guava.io.ByteStreams;
+
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+
 /**
  * TreeLogger implementation which does nothing.
  */
@@ -25,6 +30,11 @@ public class NullTreeLogger extends TreeLogger {
   @Override
   public boolean isEnabled() {
     return false;
+  }
+
+  @Override
+  public PrintWriter debugLog(String name) {
+    return new PrintWriter(ByteStreams.nullOutputStream());
   }
 
   @Override

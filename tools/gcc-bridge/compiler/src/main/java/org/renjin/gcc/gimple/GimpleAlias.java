@@ -16,44 +16,38 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.gcc;
-
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintWriter;
+package org.renjin.gcc.gimple;
 
 /**
- * Supports detailed logging of the compilation process
+ * Alias of a function name
  */
-public abstract class TreeLogger {
+public class GimpleAlias {
 
+  private String alias;
+  private String definition;
+  private boolean extern;
 
-  public abstract boolean isEnabled();
-
-  public enum Level {
-    INFO,
-    DEBUG
+  public String getAlias() {
+    return alias;
   }
 
-  public abstract PrintWriter debugLog(String name);
-
-  public final TreeLogger branch(String message) {
-    return branch(Level.INFO, message);
-  }
-  
-  public final void debug(String message) {
-    log(Level.DEBUG, message);
+  public void setAlias(String alias) {
+    this.alias = alias;
   }
 
-  public abstract void dump(String dir, String file, String ext, Object value);
+  public String getDefinition() {
+    return definition;
+  }
 
-  public abstract void log(Level level, String message);
+  public void setDefinition(String definition) {
+    this.definition = definition;
+  }
 
-  public abstract TreeLogger branch(Level level, String message);
-  
-  public abstract TreeLogger debug(String message, Object code);
+  public boolean isExtern() {
+    return extern;
+  }
 
-  public abstract void finish() throws IOException;
-
-  
+  public void setExtern(boolean extern) {
+    this.extern = extern;
+  }
 }

@@ -334,8 +334,9 @@ public class GimpleCompiler  {
         System.out.println(unit);
       }
       for (GimpleFunction function : unit.getFunctions()) {
-        
-        transformFunctionBody(rootLogger.branch("Transforming " + function.getName()), unit, function);
+        if(!function.isEmpty()) {
+          transformFunctionBody(rootLogger.branch("Transforming " + function.getName()), unit, function);
+        }
       }
     }
   }

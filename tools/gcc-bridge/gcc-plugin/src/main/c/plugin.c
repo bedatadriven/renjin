@@ -1020,24 +1020,6 @@ static unsigned int dump_function (void)
   json_bool_field("weak", DECL_WEAK(cfun->decl));
   json_bool_field("inline", DECL_DECLARED_INLINE_P(cfun->decl));
 
-  TRACE("dump_function: checking aliases\n");
-  json_array_field("aliases");
-
-  struct cgraph_node *cgn = cgraph_get_node(cfun->decl);
-  struct cgraph_node *n;
-
-  FOR_EACH_DEFINED_FUNCTION(n) {
-    if (DECL_ASSEMBLER_NAME_SET_P (n->decl)) {
-      TRACE("dump_function: name = %s\n", IDENTIFIER_POINTER(DECL_ASSEMBLER_NAME(n->decl)));
-      if (n->alias && n->thunk.alias == cfun->decl) {
-        TRACE("alias = true\n");
-        json_string_value(IDENTIFIER_POINTER (DECL_ASSEMBLER_NAME (n->decl)));
-      }
-    }
-  }
-
-  json_end_array();
-    
   json_bool_field("extern", TREE_PUBLIC(cfun->decl));
   
   TRACE("dump_function: dumping arguments...\n");
@@ -1138,13 +1120,37 @@ static void start_unit_callback (void *gcc_data, void *user_data)
   json_start_object();
   json_string_field("mainInputFilename", main_input_filename);
   json_array_field("functions");
-  
+
+}
+
+static void dump_aliases() {
+
+  TRACE("dump_function: checking aliases\n");
+  json_array_field("aliases");
+
+  struct cgraph_node *n;
+
+  FOR_EACH_DEFINED_FUNCTION(n) {
+    if (DECL_ASSEMBLER_NAME_SET_P (n->decl)) {
+      if(n->alias && n->thunk.alias) {
+          json_start_object();
+          json_string_field("alias",  IDENTIFIER_POINTER(DECL_ASSEMBLER_NAME(n->decl)));
+          json_string_field("definition",  IDENTIFIER_POINTER(DECL_ASSEMBLER_NAME(n->thunk.alias)));
+          json_bool_field("extern", TREE_PUBLIC(n->decl));
+          json_end_object();
+      }
+    }
+  }
+
+  json_end_array();
 }
 
 static void finish_unit_callback (void *gcc_data, void *user_data)
 {
   int i;
   json_end_array();
+
+  dump_aliases();
   
   dump_global_vars();
 

@@ -22,10 +22,12 @@ import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.base.Preconditions;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.html.HtmlEscapers;
+import org.renjin.repackaged.guava.io.ByteStreams;
 import org.renjin.repackaged.guava.io.Files;
 import org.renjin.repackaged.guava.io.Resources;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URL;
@@ -58,6 +60,21 @@ public class HtmlTreeLogger extends TreeLogger {
   @Override
   public boolean isEnabled() {
     return true;
+  }
+
+  @Override
+  public PrintWriter debugLog(String name) {
+    File dumpFile = new File(loggingDirectory, name + ".log");
+    if(!dumpFile.getParentFile().exists()) {
+      dumpFile.getParentFile().mkdirs();
+    }
+
+    try {
+      return new PrintWriter(dumpFile);
+    } catch (FileNotFoundException e) {
+      System.err.println("Warning: could not open log file at " + dumpFile.getAbsolutePath());
+      return new PrintWriter(ByteStreams.nullOutputStream());
+    }
   }
 
   @Override

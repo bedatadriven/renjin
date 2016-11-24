@@ -1096,4 +1096,9 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void newArray() throws Exception {
     compileAndTest("new_array.cpp");
   }
+
+  @Test
+  public void emptyFunctions() throws Exception {
+    compileAndTest("empty_fns.cpp");
+  }
 }

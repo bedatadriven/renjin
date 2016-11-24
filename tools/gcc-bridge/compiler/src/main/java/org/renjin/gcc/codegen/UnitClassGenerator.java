@@ -27,6 +27,7 @@ import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.var.GlobalVarAllocator;
 import org.renjin.gcc.codegen.var.ProvidedVarAllocator;
+import org.renjin.gcc.gimple.GimpleAlias;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleVarDecl;
@@ -112,6 +113,11 @@ public class UnitClassGenerator {
             e.getMessage()), e);
       }
     }
+
+    for (GimpleAlias alias : unit.getAliases()) {
+      symbolTable.addAlias(alias);
+    }
+
   }
 
   private boolean isIgnored(GimpleVarDecl decl) {

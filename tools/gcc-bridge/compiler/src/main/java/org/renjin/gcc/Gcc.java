@@ -167,6 +167,8 @@ public class Gcc {
       throw new GccException("Compiler interrupted");
     }
 
+    System.out.println(outputCollector.getOutput());
+
     if (gcc.exitValue() != 0) {
 
       if(outputCollector.getOutput().contains("error trying to exec 'f951': execvp: No such file or directory")) {
@@ -191,7 +193,7 @@ public class Gcc {
   }
   
   public void extractPlugin() throws IOException {
-    
+
     if(!Strings.isNullOrEmpty(System.getProperty("gcc.bridge.plugin"))) {
       pluginLibrary = new File(System.getProperty("gcc.bridge.plugin"));
       if(pluginLibrary.exists()) {

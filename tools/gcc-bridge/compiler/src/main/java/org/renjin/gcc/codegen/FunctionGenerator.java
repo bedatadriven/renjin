@@ -63,6 +63,7 @@ public class FunctionGenerator implements InvocationStrategy {
 
   private String className;
   private GimpleFunction function;
+  private final List<String> aliases = new ArrayList<>();
   private Map<GimpleParameter, ParamStrategy> params = Maps.newHashMap();
   private ReturnStrategy returnStrategy;
   
@@ -95,12 +96,16 @@ public class FunctionGenerator implements InvocationStrategy {
   public String getSafeMangledName() {
     return function.getSafeMangledName();
   }
-  
+
   public List<String> getMangledNames() {
     List<String> names = Lists.newArrayList();
     names.add(function.getMangledName());
-    names.addAll(function.getAliases());
+    names.addAll(aliases);
     return names;
+  }
+
+  public void addAlias(String alias) {
+    aliases.add(alias);
   }
 
   public GimpleFunction getFunction() {
@@ -112,7 +117,7 @@ public class FunctionGenerator implements InvocationStrategy {
 
     TreeLogger logger = parentLogger.branch("Generating bytecode for " + 
         function.getName() + " [" + function.getMangledName() + "]");
-    logger.debug("Aliases: " + function.getAliases());
+    logger.debug("Aliases: " + aliases);
     logger.debug("Gimple:", function);
 
     logger.dump(function.getUnit().getSourceName(), function.getSafeMangledName(), "gimple", function);
@@ -143,12 +148,12 @@ public class FunctionGenerator implements InvocationStrategy {
     
     // Verify that GCC is not letting us fall through with out a return statement
     GimpleBasicBlock lastBlock = function.getLastBasicBlock();
-    if(lastBlock.fallsThrough()) {
+    if (function.isEmpty() || function.getLastBasicBlock().fallsThrough()) {
       JExpr defaultReturnValue = returnStrategy.getDefaultReturnValue();
       defaultReturnValue.load(mv);
       mv.areturn(defaultReturnValue.getType());
     }
-    
+
     mv.visitLabel(endLabel);
 
     // Javac does not like our variable table

@@ -24,6 +24,7 @@ import org.renjin.gcc.codegen.call.FunctionCallGenerator;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.fun.FunctionRefGenerator;
+import org.renjin.gcc.gimple.GimpleAlias;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
@@ -84,6 +85,19 @@ public class UnitSymbolTable implements SymbolTable {
       if(function.isExtern()) {
         globalSymbolTable.addFunction(name, new FunctionCallGenerator(functionGenerator));
       }
+    }
+  }
+
+  public void addAlias(GimpleAlias alias) {
+    FunctionGenerator generator = functionNameMap.get(alias.getDefinition());
+    if(generator == null) {
+      throw new IllegalStateException(String.format("Alias %s defined for undefined function %s",
+          alias.getAlias(),
+          alias.getDefinition()));
+    }
+    generator.addAlias(alias.getAlias());
+    if(alias.isExtern()) {
+      globalSymbolTable.addFunction(alias.getAlias(), new FunctionCallGenerator(generator));
     }
   }
   

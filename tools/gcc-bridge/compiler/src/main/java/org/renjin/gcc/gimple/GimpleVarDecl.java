@@ -186,11 +186,6 @@ public class GimpleVarDecl implements GimpleDecl {
   }
 
   @Override
-  public List<String> getMangledNames() {
-    return Collections.singletonList(name);
-  }
-
-  @Override
   public void accept(GimpleExprVisitor visitor) {
     if(value != null) {
       value.accept(visitor);

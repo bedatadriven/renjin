@@ -120,11 +120,11 @@ public final class Utils {
   }
 
   public static void R_CheckStack() {
-    throw new UnimplementedGnuApiMethod("R_CheckStack");
+    // Noop: JVM will throw a StackOverflowError for us if need be
   }
 
   public static void R_CheckStack2(/*size_t*/ int p0) {
-    throw new UnimplementedGnuApiMethod("R_CheckStack2");
+    // Noop: JVM will throw a StackOverflowError for us if need be
   }
 
   public static int findInterval(DoublePtr xt, int n, double x, boolean rightmost_closed, boolean all_inside, int ilo, IntPtr mflag) {

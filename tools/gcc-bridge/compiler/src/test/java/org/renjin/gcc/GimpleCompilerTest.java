@@ -1106,4 +1106,9 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void pointerMemberFunctions() throws Exception {
     compileAndTest("pmf.cpp");
   }
+
+  @Test
+  public void cacheBug() throws Exception {
+    compileAndTest("cache_bug.c");
+  }
 }

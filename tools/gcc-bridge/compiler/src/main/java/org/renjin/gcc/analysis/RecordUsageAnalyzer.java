@@ -18,18 +18,23 @@
  */
 package org.renjin.gcc.analysis;
 
+import org.renjin.gcc.codegen.cpp.CppStandardLibrary;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrStrategy;
 import org.renjin.gcc.gimple.GimpleBasicBlock;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleVarDecl;
+import org.renjin.gcc.gimple.expr.GimpleAddressOf;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
+import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
 import org.renjin.gcc.gimple.expr.GimpleIntegerConstant;
 import org.renjin.gcc.gimple.statement.GimpleCall;
 import org.renjin.gcc.gimple.statement.GimpleStatement;
 import org.renjin.gcc.gimple.type.*;
 import org.renjin.repackaged.guava.annotations.VisibleForTesting;
 import org.renjin.repackaged.guava.collect.Maps;
+import org.renjin.repackaged.guava.collect.Sets;
 
 import java.util.*;
 
@@ -45,6 +50,15 @@ import java.util.*;
  * {@link RecordFatPtrStrategy}</p>
  */
 public class RecordUsageAnalyzer  {
+
+  private static final Set<String> MALLOC_FUNCTIONS = Sets.newHashSet(
+      "malloc",
+      "alloca",
+      "realloc",
+      "calloc",
+      "__builtin_malloc",
+      CppStandardLibrary.NEW_ARRAY_OPERATOR,
+      CppStandardLibrary.NEW_OPERATOR);
 
   private Map<String, GimpleRecordTypeDef> map = Maps.newHashMap();
 
@@ -124,8 +138,9 @@ public class RecordUsageAnalyzer  {
           for (GimpleStatement statement : basicBlock.getStatements()) {
             if(statement instanceof GimpleCall) {
               GimpleCall call = (GimpleCall) statement;
-              if(Malloc.isMalloc(call.getFunction())) {
-                checkForRecordMalloc(call);
+              String functionName = getFunctionName(call.getFunction());
+              if(MALLOC_FUNCTIONS.contains(functionName)) {
+                checkForRecordMalloc(functionName, call);
               }
             }
           }
@@ -133,6 +148,19 @@ public class RecordUsageAnalyzer  {
       }
     }
   }
+
+
+  private String getFunctionName(GimpleExpr functionExpr) {
+    if (functionExpr instanceof GimpleAddressOf) {
+      GimpleAddressOf addressOf = (GimpleAddressOf) functionExpr;
+      if (addressOf.getValue() instanceof GimpleFunctionRef) {
+        GimpleFunctionRef ref = (GimpleFunctionRef) addressOf.getValue();
+        return ref.getName();
+      }
+    }
+    return null;
+  }
+
 
   /**
    * Check for assignment from (record**) to (void**). 
@@ -170,7 +198,7 @@ public class RecordUsageAnalyzer  {
   }
 
 
-  private void checkForRecordMalloc(GimpleCall mallocCall) {
+  private void checkForRecordMalloc(String functionName, GimpleCall mallocCall) {
 
     GimpleType pointerType = mallocCall.getLhs().getType();
     assert pointerType instanceof GimplePointerType : "Malloc must be assigned to a pointer";
@@ -180,10 +208,20 @@ public class RecordUsageAnalyzer  {
 
       // struct record_t *p = malloc(size) does NOT violate our assumption
       // as long as size == sizeof(record_t)
-      GimpleExpr size = mallocCall.getOperands().get(0);
+      if(functionName.equals("calloc")) {
+        GimpleExpr elements = mallocCall.getOperands().get(0);
+        GimpleExpr elementSize = mallocCall.getOperands().get(1);
 
-      if(!staticallyEqual(size, recordType.sizeOf())) {
-        unitPointerAssumptionsHold.remove(recordType.getId());
+        if (!staticallyEqual(elements, 1) ||
+            !staticallyEqual(elementSize, recordType.sizeOf())) {
+          unitPointerAssumptionsHold.remove(recordType.getId());
+        }
+
+      } else {
+        GimpleExpr size = mallocCall.getOperands().get(0);
+        if (!staticallyEqual(size, recordType.sizeOf())) {
+          unitPointerAssumptionsHold.remove(recordType.getId());
+        }
       }
     }
   }

@@ -118,7 +118,7 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<RecordValue> imp
       // If this type is a unit pointer, we don't need to do anything special
       return new RecordClassFieldStrategy(this, className, fieldName);
     } else {
-      return new AddressableField(getJvmType(), fieldName, new RecordClassValueFunction(this));
+      return new AddressableField(className, fieldName, new RecordClassValueFunction(this));
     }
   }
   

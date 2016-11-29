@@ -90,14 +90,13 @@ public class UnitSymbolTable implements SymbolTable {
 
   public void addAlias(GimpleAlias alias) {
     FunctionGenerator generator = functionNameMap.get(alias.getDefinition());
-    if(generator == null) {
-      throw new IllegalStateException(String.format("Alias %s defined for undefined function %s",
-          alias.getAlias(),
-          alias.getDefinition()));
-    }
-    generator.addAlias(alias.getAlias());
-    if(alias.isExtern()) {
-      globalSymbolTable.addFunction(alias.getAlias(), new FunctionCallGenerator(generator));
+
+    // The definition may have been pruned...
+    if(generator != null) {
+      generator.addAlias(alias.getAlias());
+      if (alias.isExtern()) {
+        globalSymbolTable.addFunction(alias.getAlias(), new FunctionCallGenerator(generator));
+      }
     }
   }
   

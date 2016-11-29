@@ -37,15 +37,15 @@ import java.util.List;
 
 class RecordUnitPtrParam implements ParamStrategy {
 
-  private Type recordType;
+  private RecordUnitPtrStrategy strategy;
 
-  public RecordUnitPtrParam(Type recordType) {
-    this.recordType = recordType;
+  public RecordUnitPtrParam(RecordUnitPtrStrategy strategy) {
+    this.strategy = strategy;
   }
 
   @Override
   public List<Type> getParameterTypes() {
-    return Collections.singletonList(recordType);
+    return Collections.singletonList(strategy.getJvmType());
   }
 
   @Override
@@ -65,22 +65,23 @@ class RecordUnitPtrParam implements ParamStrategy {
       return;
     }
 
+
     GExpr expr = argument.get();
     if(expr instanceof RecordUnitPtr) {
-      Expressions.cast(((RecordUnitPtr) expr).unwrap(), recordType).load(mv);
+      Expressions.cast(((RecordUnitPtr) expr).unwrap(), strategy.getJvmType()).load(mv);
 
     } else if(expr instanceof VoidPtr) {
       ((VoidPtr) expr).unwrap().load(mv);
-      mv.visitLdcInsn(recordType);
+      mv.visitLdcInsn(strategy.getJvmType());
       mv.invokestatic(ObjectPtr.class, "castUnit",
           Type.getMethodDescriptor(Type.getType(Object.class),
               Type.getType(Object.class), Type.getType(Class.class)));
 
-      mv.checkcast(recordType);
+      mv.checkcast(strategy.getJvmType());
 
     } else {
       throw new UnsupportedOperationException("Cannot pass expression of type " + expr.getClass().getName() +
-          " as a record unit pointer of type " + recordType);
+          " as a record unit pointer of type " + strategy.getJvmType());
     }
 
   }

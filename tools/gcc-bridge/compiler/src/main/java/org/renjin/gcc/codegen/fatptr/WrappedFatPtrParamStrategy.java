@@ -112,7 +112,9 @@ public class WrappedFatPtrParamStrategy implements ParamStrategy {
     
     } else if(argumentValue instanceof FatPtr) {
       FatPtr fatPtrExpr = (FatPtr) argumentValue;
-      fatPtrExpr.wrap().load(mv);
+      JExpr wrappedExpr = Expressions.cast(fatPtrExpr.wrap(), wrappedType);
+      wrappedExpr.load(mv);
+
 
     } else {
       throw new IllegalArgumentException("argument: " + argumentValue);

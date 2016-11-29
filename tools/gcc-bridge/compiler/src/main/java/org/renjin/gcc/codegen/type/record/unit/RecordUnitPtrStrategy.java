@@ -54,7 +54,7 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>
 
   @Override
   public ParamStrategy getParamStrategy() {
-    return new RecordUnitPtrParam(strategy.getJvmType());
+    return new RecordUnitPtrParam(this);
   }
 
   @Override

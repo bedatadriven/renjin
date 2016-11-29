@@ -1633,6 +1633,8 @@ public final class Rinternals {
         return new ListVector(elements);
       case SexpType.STRSXP:
         return new GnuStringVector(new BytePtr[length]);
+      case SexpType.RAWSXP:
+        return new RawVector(new byte[length]);
     }
     throw new UnimplementedGnuApiMethod("Rf_allocVector: type = " + type);
   }

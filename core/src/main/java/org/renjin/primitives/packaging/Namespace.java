@@ -261,7 +261,11 @@ public class Namespace {
         Context previousContext = Native.CURRENT_CONTEXT.get();
         Native.CURRENT_CONTEXT.set(context);
         try {
-          initMethod.get().invoke(null, info);
+          if(initMethod.get().getParameterTypes().length == 0) {
+            initMethod.get().invoke(null);
+          } else {
+            initMethod.get().invoke(null, info);
+          }
         } catch (InvocationTargetException e) {
           throw new EvalException("Exception initializing compiled GNU R library " + entry.getLibraryName(), e.getCause());
         } finally {
@@ -325,7 +329,8 @@ public class Namespace {
 
     for (Method method : clazz.getMethods()) {
       if(method.getName().equals(initName)) {
-        if(!Arrays.equals(method.getParameterTypes(), expectedParameterTypes)) {
+        if(method.getParameterTypes().length != 0 &&
+            !Arrays.equals(method.getParameterTypes(), expectedParameterTypes)) {
           throw new EvalException(String.format("%s.%s has invalid signature: %s. Expected %s(DllInfo info)",
               clazz.getName(),
               initName,

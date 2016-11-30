@@ -291,11 +291,11 @@ public class Session {
     return getClass().getClassLoader();
   }
 
-  public void registerFinalizer(Environment environment, Closure function, boolean onExit) {
+  public void registerFinalizer(SEXP sexp, FinalizationHandler handler, boolean onExit) {
     if(finalizers == null) {
       finalizers = new FinalizerRegistry();
     }
-    finalizers.register(environment, function, onExit);
+    finalizers.register(sexp, handler, onExit);
   }
 
   /**

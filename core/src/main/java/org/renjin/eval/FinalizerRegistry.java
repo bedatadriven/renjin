@@ -18,10 +18,7 @@
  */
 package org.renjin.eval;
 
-import org.renjin.sexp.Closure;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.PairList;
+import org.renjin.sexp.*;
 
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
@@ -38,22 +35,22 @@ import java.util.Set;
  */
 public class FinalizerRegistry {
 
-  private class Finalizer extends WeakReference<Environment> {
-    private final Closure function;
+  private class Finalizer extends WeakReference<SEXP> {
+    private final FinalizationHandler function;
     private boolean onExit;
 
-    public Finalizer(Environment environment, Closure function, boolean onExit) {
-      super(environment, queue);
+    public Finalizer(SEXP sexp, FinalizationHandler function, boolean onExit) {
+      super(sexp, queue);
       this.function = function;
       this.onExit = onExit;
     }
 
     private void invoke(Context context) {
-      context.evaluate(new FunctionCall(function, PairList.Node.singleton(getEnvironment())));
+      function.finalize(context, get());
     }
 
-    public Environment getEnvironment() {
-      Environment e = get();
+    public SEXP getSexp() {
+      SEXP e = get();
       if(e == null) {
         throw new IllegalStateException("Environment has already been garbage collected!");
       }
@@ -65,11 +62,11 @@ public class FinalizerRegistry {
     }
   }
 
-  private final ReferenceQueue<Environment> queue = new ReferenceQueue<Environment>();
+  private final ReferenceQueue<SEXP> queue = new ReferenceQueue<SEXP>();
   private final Set<Finalizer> finalizers = new HashSet<Finalizer>();
 
-  public void register(Environment environment, Closure closure, boolean onExit) {
-    finalizers.add(new Finalizer(environment, closure, onExit));
+  public void register(SEXP sexp, FinalizationHandler handler, boolean onExit) {
+    finalizers.add(new Finalizer(sexp, handler, onExit));
   }
 
   /**
@@ -79,7 +76,7 @@ public class FinalizerRegistry {
    * @param context the context in which to evaluate the finalizer function.
    */
   public void finalizeDisposedEnvironments(Context context) {
-    Reference<? extends Environment> ref;
+    Reference<? extends SEXP> ref;
     while((ref = queue.poll()) != null) {
       Finalizer finalizer = (Finalizer)ref;
       finalizers.remove(finalizer);

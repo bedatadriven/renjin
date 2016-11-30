@@ -21,6 +21,8 @@ package org.renjin.gnur.api;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.eval.FinalizationClosure;
+import org.renjin.eval.FinalizationHandler;
 import org.renjin.gcc.runtime.*;
 import org.renjin.methods.MethodDispatch;
 import org.renjin.methods.Methods;
@@ -30,6 +32,7 @@ import org.renjin.primitives.subset.Subsetting;
 import org.renjin.sexp.*;
 
 import java.lang.System;
+import java.lang.invoke.MethodHandle;
 import java.util.Arrays;
 
 @SuppressWarnings("unused")
@@ -1284,16 +1287,30 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("R_RegisterFinalizer");
   }
 
-  // void R_RegisterCFinalizer (SEXP s, R_CFinalizer_t fun)
-
   public static void R_RegisterFinalizerEx(SEXP s, SEXP fun, boolean onexit) {
-    throw new UnimplementedGnuApiMethod("R_RegisterFinalizerEx");
+    Native.currentContext().getSession().registerFinalizer(s, new FinalizationClosure((Closure)fun), onexit);
   }
 
-  // void R_RegisterCFinalizerEx (SEXP s, R_CFinalizer_t fun, Rboolean onexit)
+  public static void R_RegisterCFinalizer (SEXP s, final MethodHandle fun) {
+    R_RegisterCFinalizerEx(s, fun, false);
+  }
+
+  public static void R_RegisterCFinalizerEx (SEXP s, final MethodHandle fun, boolean onexit) {
+    FinalizationHandler handler = new FinalizationHandler() {
+      @Override
+      public void finalize(Context context, SEXP sexp) {
+        try {
+          fun.invoke(sexp);
+        } catch (Throwable throwable) {
+          throw new RuntimeException(throwable);
+        }
+      }
+    };
+    Native.currentContext().getSession().registerFinalizer(s, handler, onexit);
+  }
 
   public static void R_RunPendingFinalizers() {
-    throw new UnimplementedGnuApiMethod("R_RunPendingFinalizers");
+    Native.currentContext().getSession().runFinalizers();
   }
 
   public static SEXP R_MakeWeakRef(SEXP key, SEXP val, SEXP fin, boolean onexit) {

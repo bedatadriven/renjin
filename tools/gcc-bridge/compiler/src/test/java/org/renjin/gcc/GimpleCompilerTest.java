@@ -1116,4 +1116,9 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void matrixCompileBug() throws Exception {
     compile("matrix_bug.c");
   }
+
+  @Test
+  public void strcpy() throws Exception {
+    compileAndTest("strcpy.c");
+  }
 }

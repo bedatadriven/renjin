@@ -1121,4 +1121,9 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void strcpy() throws Exception {
     compileAndTest("strcpy.c");
   }
+
+  @Test
+  public void unitPtrSuperClass() throws Exception {
+    compileAndTest("unit_ptr_superclass.c");
+  }
 }

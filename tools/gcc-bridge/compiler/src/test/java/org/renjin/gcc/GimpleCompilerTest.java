@@ -1118,6 +1118,11 @@ public class GimpleCompilerTest extends AbstractGccTest {
   }
 
   @Test
+  public void emptyRecordCopy() throws Exception {
+    compile("empty_record_copy.cpp");
+  }
+
+  @Test
   public void strcpy() throws Exception {
     compileAndTest("strcpy.c");
   }

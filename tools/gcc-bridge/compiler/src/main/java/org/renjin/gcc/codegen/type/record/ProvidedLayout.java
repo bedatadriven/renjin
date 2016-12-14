@@ -62,7 +62,7 @@ public class ProvidedLayout implements RecordLayout {
 
   @Override
   public void writeClassFiles(File outputDir) throws IOException {
-    
+
   }
 
   @Override
@@ -72,5 +72,10 @@ public class ProvidedLayout implements RecordLayout {
       throw new IllegalStateException("Cannot find field at offset " + offset);
     }
     return fieldStrategy.memberExpr(mv, instance.unwrap(), 0, size, fieldTypeStrategy);
+  }
+
+  @Override
+  public RecordValue clone(MethodGenerator mv, RecordValue recordValue) {
+    return RecordClassLayout.doClone(mv, recordValue);
   }
 }

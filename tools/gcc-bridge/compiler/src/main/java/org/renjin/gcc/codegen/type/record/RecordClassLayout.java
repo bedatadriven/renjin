@@ -29,6 +29,7 @@ import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.type.fun.FunPtrField;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrValueFunction;
+import org.renjin.gcc.codegen.var.LocalVarAllocator;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
@@ -204,6 +205,20 @@ public class RecordClassLayout implements RecordLayout {
     }
     
     return fieldStrategy.memberExpr(mv, instanceVar, offset - fieldStart, size, fieldTypeStrategy);
+  }
+
+  @Override
+  public RecordValue clone(MethodGenerator mv, RecordValue recordValue) {
+    return doClone(mv, recordValue);
+  }
+
+  public static RecordValue doClone(MethodGenerator mv, RecordValue recordValue) {
+    LocalVarAllocator.LocalVar clone = mv.getLocalVarAllocator().reserve(recordValue.getJvmType());
+    recordValue.getRef().load(mv);
+    mv.invokevirtual(recordValue.getJvmType(), "clone", Type.getMethodDescriptor(recordValue.getJvmType()), false);
+    clone.store(mv);
+
+    return new RecordValue(clone);
   }
 
   @Override

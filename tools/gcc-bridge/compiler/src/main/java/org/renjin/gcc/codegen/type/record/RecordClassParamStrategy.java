@@ -77,10 +77,11 @@ public class RecordClassParamStrategy implements ParamStrategy {
   public void loadParameter(MethodGenerator mv, Optional<GExpr> argument) {
     if(argument.isPresent()) {
       RecordValue recordValue = (RecordValue) argument.get();
-      recordValue.getRef().load(mv);
-      // We are passing by value, so we need to put a clone of the record on the stack
-      mv.invokevirtual(recordValue.getJvmType(), "clone", Type.getMethodDescriptor(recordValue.getJvmType()), false);
-      
+      RecordValue clonedValue = strategy.clone(mv, recordValue);
+
+      clonedValue.getRef().load(mv);
+
+
     } else {
       mv.aconst(null);
     }

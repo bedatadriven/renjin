@@ -138,6 +138,10 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<RecordValue> imp
     return layout.memberOf(mv, instance, offset, size, fieldTypeStrategy);
   }
 
+  public RecordValue clone(MethodGenerator mv, RecordValue recordValue) {
+    return layout.clone(mv, recordValue);
+  }
+
   @Override
   public ArrayTypeStrategy arrayOf(GimpleArrayType arrayType) {
     return ArrayTypeStrategies.of(arrayType, new RecordClassValueFunction(this));

@@ -21,6 +21,7 @@ package org.renjin.gcc.codegen.type.record;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.type.ParamStrategy;
@@ -59,8 +60,10 @@ public class RecordClassParamStrategy implements ParamStrategy {
    
     } else {
       if (parameter.isAddressable()) {
+        // Allocate an array
+        // record$class[] param$array = new record$class[] { param }
         JLValue array = localVars.reserveUnitArray(parameter.getName(), strategy.getJvmType(),
-            Optional.of(Expressions.newObject(strategy.getJvmType())));
+            Optional.<JExpr>of(paramVars.get(0)));
 
         FatPtrPair address = new FatPtrPair(new RecordClassValueFunction(strategy), array);
         RecordValue value = new RecordValue(Expressions.elementAt(array, 0), address);

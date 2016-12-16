@@ -1131,4 +1131,9 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void unitPtrSuperClass() throws Exception {
     compileAndTest("unit_ptr_superclass.c");
   }
+
+  @Test
+  public void addrRecordParam() throws Exception {
+    compileAndTest("addr_record_param.c");
+  }
 }

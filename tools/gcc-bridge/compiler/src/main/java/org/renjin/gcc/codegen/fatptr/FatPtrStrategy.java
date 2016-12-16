@@ -127,7 +127,7 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
       
       JExpr newArray = Expressions.newArray(wrapperType, 1);
       
-      JLValue unitArray = allocator.reserve(decl.getName(), wrapperArrayType, newArray);
+      JLValue unitArray = allocator.reserve(decl.getNameIfPresent(), wrapperArrayType, newArray);
       
       return new DereferencedFatPtr(unitArray, Expressions.constantInt(0), valueFunction);
 

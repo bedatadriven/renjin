@@ -138,7 +138,7 @@ public final class FatPtrPair implements FatPtr, PtrExpr {
     if (!(array instanceof JLValue)) {
       throw new InternalCompilerException(array + " is not an LValue");
     }
-    ((JLValue) array).store(mv, arrayRhs);
+    ((JLValue) array).store(mv, Expressions.cast(arrayRhs, array.getType()));
 
     // Normally, the offset must also be an LValue, but the exception 
     // is that if both the lhs and rhs are constants, and they are equal

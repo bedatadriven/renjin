@@ -20,6 +20,7 @@ package org.renjin.gcc.analysis;
 
 import org.renjin.gcc.TreeLogger;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
+import org.renjin.gcc.gimple.expr.GimpleFieldRef;
 import org.renjin.gcc.gimple.type.*;
 import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.repackaged.guava.collect.Lists;
@@ -115,7 +116,8 @@ public class RecordTypeDefCanonicalizer {
           // first time seen, this is a canonical record
           keyMap.put(key, recordTypeDef);
         } else {
-          // duplicate of already seen structure, map it's id to the canonical version
+          // duplicate of already seen structure, map its id to the canonical version
+          mergeInto(canonical, recordTypeDef);
           idToCanonicalMap.put(recordTypeDef.getId(), canonical);
           
           // remap any structures pointing to this one
@@ -137,7 +139,27 @@ public class RecordTypeDefCanonicalizer {
     
     this.canonical = distinct;
   }
-  
+
+
+  /**
+   * We do some type erasure of record pointers so it's important to merge that information
+   * into the canonical record def to avoid loosing it.
+   *
+   */
+  private void mergeInto(GimpleRecordTypeDef canonical, GimpleRecordTypeDef recordTypeDef) {
+    Map<Integer, GimpleField> fieldMap = new HashMap<>();
+    for (GimpleField field : canonical.getFields()) {
+      fieldMap.put(field.getOffset(), field);
+    }
+
+    for (GimpleField field : recordTypeDef.getFields()) {
+      GimpleField canonicalField = fieldMap.get(field.getOffset());
+      if(canonicalField != null && !canonicalField.getType().equals(field.getType())) {
+        canonical.getFields().add(field);
+      }
+    }
+  }
+
   private void updateAllTypes(List<GimpleCompilationUnit> units) {
 
 

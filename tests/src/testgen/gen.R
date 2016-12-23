@@ -97,7 +97,7 @@ writeFixture <- function(test, format, ...) {
   eval(parse(text = expr), envir = .GlobalEnv)
 }
 
-writeTest <- function(test, fn, ..., ARGS, tol = NULL, SET.SEED = FALSE) {
+writeTest <- function(test, fn, ..., ARGS, tol = NULL, SET.SEED = FALSE, TEST.NAME = fn) {
   call <- callWithQuotedArgs(fn, if(missing(ARGS)) list(...) else ARGS)
   if (SET.SEED) {
     set.seed(1)
@@ -123,11 +123,11 @@ writeTest <- function(test, fn, ..., ARGS, tol = NULL, SET.SEED = FALSE) {
   
   if(SET.SEED) {
     writeln(test, "test.%s.%d <- function() { set.seed(1); assertThat(%s, %s) }",
-            fn, test$index, deparse0(call), matcher)
+            TEST.NAME, test$index, deparse0(call), matcher)
     
   } else {
     writeln(test, "test.%s.%d <- function() assertThat(%s, %s)",
-            fn, test$index, deparse0(call), matcher)
+            TEST.NAME, test$index, deparse0(call), matcher)
     
   }
   test$index <- test$index + 1

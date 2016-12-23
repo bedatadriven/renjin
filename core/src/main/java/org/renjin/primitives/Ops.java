@@ -268,6 +268,7 @@ public class Ops  {
   @Deferrable
   @Builtin("==")
   @DataParallel
+  @CoerceLists
   public static boolean equalTo(double x, double y) {
     return x == y;
   }
@@ -275,6 +276,7 @@ public class Ops  {
   @Deferrable
   @Builtin("==")
   @DataParallel
+  @CoerceLists
   public static boolean equalTo(Complex x, Complex y) {
     return x.equals(y);
   }
@@ -282,6 +284,7 @@ public class Ops  {
   @Deferrable
   @Builtin("==")
   @DataParallel
+  @CoerceLists
   public static boolean equalTo(@CoerceLanguageToString String x, @CoerceLanguageToString String y) {
     return x.equals(y);
   }

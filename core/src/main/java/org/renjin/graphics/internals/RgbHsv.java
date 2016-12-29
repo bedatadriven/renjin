@@ -1028,24 +1028,23 @@ public class RgbHsv {
   }
 
   @Internal
-  public static StringVector rgb(DoubleVector red, DoubleVector green,
-                                 DoubleVector blue, DoubleVector alpha, DoubleVector maxcolorvalue,
+  public static StringVector rgb(AtomicVector red, AtomicVector green,
+                                 AtomicVector blue, AtomicVector alpha, AtomicVector maxColorValue,
                                  AtomicVector names) {
     int maxindex = Math
         .max(Math.max(Math.max(red.length(), green.length()),
             blue.length()), alpha.length());
     StringVector.Builder builder = new StringVector.Builder();
     for (int i = 0; i < maxindex; i++) {
-      double cred = red.get(i % red.length());
-      double cgreen = green.get(i % green.length());
-      double cblue = blue.get(i % blue.length());
-      double calpha = alpha.get(i % alpha.length());
-      double cmax = maxcolorvalue.get(i % maxcolorvalue.length());
+      double cred = red.getElementAsDouble(i % red.length());
+      double cgreen = green.getElementAsDouble(i % green.length());
+      double cblue = blue.getElementAsDouble(i % blue.length());
+      double calpha = alpha.getElementAsDouble(i % alpha.length());
+      double cmax = maxColorValue.getElementAsDouble(i % maxColorValue.length());
       builder.add(getHexRgb(cred, cgreen, cblue, calpha, cmax, true));
     }
     builder.setAttribute(Symbols.NAMES, names);
-    StringVector vect = builder.build();
-    return (vect);
+    return builder.build();
   }
 
   @Internal
@@ -1088,6 +1087,13 @@ public class RgbHsv {
   private static String getColorStrFromName(String name) {
     String result = null;
     String n = name.replace('\"', ' ').trim();
+
+    if(name.startsWith("#")) {
+      // validate code
+      getRGBComponentsFromCode(name);
+      return name;
+    }
+
     initColorDataBase();
     for (int i = 0; i < colorDataBase.size(); i++) {
       if (colorDataBase.get(i).getName().equals(n)) {
@@ -1095,18 +1101,25 @@ public class RgbHsv {
         break;
       }
     }
-    return (result);
+    return result;
   }
 
   private static int[] getRGBComponentsFromCode(String sharpcode) {
+    if(sharpcode == null || !sharpcode.startsWith("#") || sharpcode.length() != 7) {
+      throw new EvalException("invalid RGB specification");
+    }
     String red = sharpcode.substring(1, 3);
     String green = sharpcode.substring(3, 5);
     String blue = sharpcode.substring(5);
     int[] result = new int[3];
-    result[0] = Integer.parseInt(red, 16);
-    result[1] = Integer.parseInt(green, 16);
-    result[2] = Integer.parseInt(blue, 16);
-    return (result);
+    try {
+      result[0] = Integer.parseInt(red, 16);
+      result[1] = Integer.parseInt(green, 16);
+      result[2] = Integer.parseInt(blue, 16);
+    } catch (NumberFormatException e) {
+      throw new EvalException("Invalid hex digit in RGB specification: " + e.getMessage());
+    }
+    return result;
   }
 
   @Internal
@@ -1136,10 +1149,15 @@ public class RgbHsv {
       }
     }
     ib.setAttribute(Symbols.DIM, new IntArrayVector(3, s.length()));
-    ib.setAttribute(Symbols.ROW_NAMES, new StringArrayVector(new String[]{
-        "red", "green", "blue"}));
-    return (ib.build());
+
+    if(s instanceof StringVector) {
+      ib.setAttribute(Symbols.DIMNAMES, new ListVector(
+          new StringArrayVector("red", "green", "blue"),
+          s));
+    }
+    return ib.build();
   }
+
 
   @Internal
   public static DoubleVector rgb2hsv(DoubleVector rgb) {
@@ -1154,8 +1172,7 @@ public class RgbHsv {
       result.add(hsvvals[2]);
     }
     result.setAttribute(Symbols.DIM, new IntArrayVector(3, rgb.length() / 3));
-    result.setAttribute(Symbols.ROW_NAMES, new StringArrayVector(new String[]{
-        "h", "s", "v"}));
+    result.setAttribute(Symbols.DIMNAMES, new ListVector(new StringArrayVector("h", "s", "v"), Null.INSTANCE));
     return (result.build());
   }
 

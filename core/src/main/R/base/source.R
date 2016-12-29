@@ -42,8 +42,6 @@ source <-
 			} else stop("'local' must be TRUE, FALSE or an environment")
 	have_encoding <- !missing(encoding) && encoding != "unknown"
 
-	cat(c("encoding = ", encoding, ", have_encoding = ", have_encoding, "\n"))
-	
 	if (!missing(echo)) {
 		if (!is.logical(echo))
 			stop("'echo' must be logical")

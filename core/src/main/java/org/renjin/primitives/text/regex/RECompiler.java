@@ -1013,10 +1013,6 @@ public class RECompiler
                 {
                     syntaxError("Bad closure operand");
                 }
-                if ((terminalFlags[0] & NODE_NULLABLE) != 0)
-                {
-                    syntaxError("Closure operand can't be nullable");
-                }
         }
 
         // If the next character is a '?', make the closure non-greedy (reluctant)

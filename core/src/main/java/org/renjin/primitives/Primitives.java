@@ -867,7 +867,6 @@ public class Primitives {
     f("hsv", RgbHsv.class, 11);
     f("hcl", /*hcl*/ null, 11);
     f("gray", RgbHsv.class, 11);
-    f("colors", /*colors*/ null, 11);
     f("col2rgb", RgbHsv.class, 11);
     f("palette", /*palette*/ null, 11);
     f("plot.new", Plot.class, 111);

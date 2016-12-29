@@ -121,7 +121,34 @@ public class RECompilerTest {
     assertTrue(re.match("["));
     assertTrue(re.match(">="));
   }
-  
+
+  @Test
+  public void hexDigitsWithBrackets() throws RESyntaxException {
+    ExtendedRE re = new ExtendedRE("\\x{42}aa");
+    assertTrue(re.match("Baa"));
+    assertTrue(re.match("Baazzz"));
+    assertFalse(re.match("B"));
+    assertFalse(re.match("baa"));
+  }
+
+  @Test
+  public void fourHexDigitsWithBrackets() throws RESyntaxException {
+    ExtendedRE re = new ExtendedRE("\\x{0042}aa");
+    assertTrue(re.match("Baa"));
+    assertTrue(re.match("Baazzz"));
+    assertFalse(re.match("B"));
+    assertFalse(re.match("baa"));  }
+
+  @Test
+  public void hexDigitsWithoutBrackets() throws RESyntaxException {
+    ExtendedRE re = new ExtendedRE("\\x42aa");
+    assertTrue(re.match("Baa"));
+    assertTrue(re.match("Baazzz"));
+    assertFalse(re.match("B"));
+    assertFalse(re.match("baa"));
+  }
+
+
   @Ignore("not implemented")
   @Test
   public void zeroWidthNegativeLookAheadAssertion() throws RESyntaxException {

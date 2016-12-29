@@ -150,9 +150,12 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
   
 
   public void remove(Symbol symbol) {
+    if(locked) {
+      throw new EvalException("cannot remove bindings from a locked environment");
+    }
     frame.remove(symbol);
   }
-  
+
   public void clear() {
     frame.clear();
   }
@@ -229,7 +232,7 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     
     if(bindingIsLocked(symbol)) {
       throw new EvalException("cannot change value of locked binding for '%s'", symbol.getPrintName());
-    } else if(locked && frame.getVariable(symbol) != Symbol.UNBOUND_VALUE) {
+    } else if(locked && frame.getVariable(symbol) == Symbol.UNBOUND_VALUE) {
       throw new EvalException("cannot add bindings to a locked environment");
     }
     frame.setVariable(symbol, value);

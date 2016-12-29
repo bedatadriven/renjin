@@ -520,7 +520,7 @@ public class RDataReader implements AutoCloseable {
 
     env.setParent( parent == Null.INSTANCE ? Environment.EMPTY : (Environment)parent );
     env.setVariables( (PairList) frame );
-
+    env.setAttributes(AttributeMap.fromPairList((PairList) attributes));
 
     if(locked) {
       env.lock(true);

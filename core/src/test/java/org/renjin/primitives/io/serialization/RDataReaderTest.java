@@ -20,6 +20,7 @@ package org.renjin.primitives.io.serialization;
 
 import org.junit.Test;
 import org.renjin.EvalTestCase;
+import org.renjin.eval.Context;
 import org.renjin.repackaged.guava.io.ByteSource;
 import org.renjin.sexp.*;
 
@@ -183,18 +184,29 @@ public class RDataReaderTest extends EvalTestCase {
   
   @Test
   public void loadDataFrameWithGnuRCompactRowNames() throws IOException {
-    InputStream in = getClass().getResourceAsStream("rownames.rds");
-    GZIPInputStream gzipIn = new GZIPInputStream(in);
-    RDataReader reader = new RDataReader(topLevelContext, gzipIn);
-    SEXP df = reader.readFile();
+    SEXP df = readRds("rownames.rds");
 
     assertThat(df.getS3Class().getElementAsString(0), equalTo("data.frame"));
     assertThat(df.getAttribute(Symbol.get("row.names")).length(), equalTo(1000));
+  }
+
+  @Test
+  public void loadEnvWithAttributes() throws IOException {
+    SEXP env = readRds("env_attr.rds");
+
+    assertThat(env, instanceOf(Environment.class));
+    assertThat(env.getAttributes().getClassVector(), equalTo(c("MyRefClass")));
   }
 
   protected Symbol symbol(String name){
     return Symbol.get(name);
   }
 
+  private SEXP readRds(String resourceName) throws IOException {
+    InputStream in = getClass().getResourceAsStream(resourceName);
+    GZIPInputStream gzipIn = new GZIPInputStream(in);
+    RDataReader reader = new RDataReader(topLevelContext, gzipIn);
+    return reader.readFile();
+  }
 
 }

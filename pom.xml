@@ -212,6 +212,7 @@ https://www.gnu.org/licenses/gpl-2.0.txt
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
+        <version>3.0.1</version>
         <executions>
           <execution>
             <id>attach-sources</id>

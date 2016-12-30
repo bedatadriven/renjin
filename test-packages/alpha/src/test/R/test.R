@@ -51,3 +51,15 @@ test.dependenciesLoadedOnClasspath <- function() {
     om <- ObjectMapper$new()
     assertThat(om$version()$toString(), identicalTo("2.5.1"))
 }
+
+test.definedDuringLoad <- function() {
+    assertThat(defined.during.load, identicalTo(84))
+}
+
+
+test.packageRds <- function() {
+    path <- file.path(find.package('alpha'), "Meta", "package.rds")
+
+    assertTrue(file.exists(path))
+
+}

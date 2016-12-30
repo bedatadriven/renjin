@@ -68,11 +68,9 @@ public class GimpleAssignment extends GimpleStatement {
   
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    sb.append("gimple_assign<").append(operator).append(", ").append(lhs).append(", ");
-    Joiner.on(", ").appendTo(sb, operands);
-    sb.append(">");
+    sb.append(lhs).append(" = ").append(operator.format(operands));
     if(getLineNumber() != null) {
-      sb.append("  #").append(getLineNumber());
+      sb.append("\t\t\t#").append(getLineNumber());
     }
     return sb.toString();
   }

@@ -301,6 +301,13 @@ public class EvaluationTest extends EvalTestCase {
   }
 
   @Test
+  public void complexAssignmentFunctionCall() {
+    // Should not trigger evaluation...
+    eval( " x <- list(call = quote(stop()))");
+    eval( " x$call$foo <- 'bar' ");
+  }
+
+  @Test
   public void complexReassignment() {
     eval( " x <- list(a = 1)");
     eval( " f<- function() x$a <<- 3 ");

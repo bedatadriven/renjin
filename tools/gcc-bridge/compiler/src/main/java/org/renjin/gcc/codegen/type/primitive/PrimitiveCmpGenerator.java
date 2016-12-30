@@ -73,6 +73,16 @@ public class PrimitiveCmpGenerator implements ConditionGenerator {
     if(!tx.equals(ty)) {
       throw new UnsupportedOperationException("Type mismatch: " + tx + " != " + ty);
     }
+
+    if(op == GimpleOp.ORDERED_EXPR) {
+      emitOrderedJump(mv, trueLabel, falseLabel);
+      return;
+    }
+    if(op == GimpleOp.UNORDERED_EXPR) {
+      emitOrderedJump(mv, falseLabel, trueLabel);
+      return;
+    }
+
     
     // Push two operands on the stack
     x.load(mv);
@@ -81,7 +91,11 @@ public class PrimitiveCmpGenerator implements ConditionGenerator {
     if(tx.equals(Type.DOUBLE_TYPE) ||
         ty.equals(Type.FLOAT_TYPE)) {
 
+
       emitRealJump(mv, trueLabel);
+
+    } else if (tx.equals(Type.LONG_TYPE)) {
+      emitLongJump(mv, trueLabel);
 
     } else {
       
@@ -89,6 +103,18 @@ public class PrimitiveCmpGenerator implements ConditionGenerator {
     } 
     
     mv.visitJumpInsn(GOTO, falseLabel);
+  }
+
+
+
+  private void emitOrderedJump(MethodGenerator mv, Label orderedLabel, Label unorderedLabel) {
+    x.load(mv);
+    mv.invokestatic(Double.class, "isNaN", Type.getMethodDescriptor(Type.BOOLEAN_TYPE, x.getType()));
+    mv.ifne(unorderedLabel);
+    y.load(mv);
+    mv.invokestatic(Double.class, "isNaN", Type.getMethodDescriptor(Type.BOOLEAN_TYPE, y.getType()));
+    mv.ifne(unorderedLabel);
+    mv.goTo(orderedLabel);
   }
 
   private int integerComparison() {
@@ -110,6 +136,14 @@ public class PrimitiveCmpGenerator implements ConditionGenerator {
   }
 
 
+  private void emitLongJump(MethodGenerator mv, Label trueLabel) {
+
+    mv.visitInsn(LCMP);
+    jumpOnComparison(mv, trueLabel);
+
+  }
+
+
   private void emitRealJump(MethodGenerator mv, Label trueLabel) {
 
 
@@ -122,14 +156,15 @@ public class PrimitiveCmpGenerator implements ConditionGenerator {
     // But because we have floating points, we need to be mindful of NaN values.
 
     //            CMPG:     CMPL
-    // x <  y        1         1
+    // x <  y       -1        -1
     // y == 0        0         0 
-    // x >  y       -1        -1
+    // x >  y        1         1
     // NaN           1        -1
 
     // So if we're interested in whether x is less than y, we need to use
     // CMPL to make sure that our condition is false if either x or y is NaN
     switch (op) {
+      case UNGT_EXPR:
       case LT_EXPR:
       case LE_EXPR:
         mv.visitInsn(isDouble() ? DCMPG : FCMPG);
@@ -140,6 +175,10 @@ public class PrimitiveCmpGenerator implements ConditionGenerator {
     }
 
     // Now we jump based on the comparison of the above result to zero
+    jumpOnComparison(mv, trueLabel);
+  }
+
+  private void jumpOnComparison(MethodGenerator mv, Label trueLabel) {
     switch (op) {
       case LT_EXPR:
         // 1: x < y
@@ -159,6 +198,7 @@ public class PrimitiveCmpGenerator implements ConditionGenerator {
         mv.visitJumpInsn(IFNE, trueLabel);
         break;
 
+      case UNGT_EXPR:
       case GT_EXPR:
         mv.visitJumpInsn(IFGT, trueLabel);
         break;
@@ -166,6 +206,9 @@ public class PrimitiveCmpGenerator implements ConditionGenerator {
       case GE_EXPR:
         mv.visitJumpInsn(IFGE, trueLabel);
         break;
+
+      default:
+        throw new UnsupportedOperationException("op: " + op);
     }
   }
 

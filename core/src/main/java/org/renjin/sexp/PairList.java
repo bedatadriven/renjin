@@ -321,9 +321,16 @@ public interface PairList extends SEXP {
 
     @Override
     public int hashCode() {
-      int result = tag != null ? tag.hashCode() : 0;
-      result = 31 * result + (value != null ? value.hashCode() : 0);
-      result = 31 * result + (nextNode != null ? nextNode.hashCode() : 0);
+      int result = 1;
+      PairList.Node node = this;
+      while(true) {
+        result = 31 * result + (tag != null ? tag.hashCode() : 0);
+        result = 31 * result + (node.value != null ? node.value.hashCode() : 0);
+        if(node.nextNode == Null.INSTANCE) {
+          break;
+        }
+        node = (Node) node.nextNode;
+      }
       return result;
     }
 

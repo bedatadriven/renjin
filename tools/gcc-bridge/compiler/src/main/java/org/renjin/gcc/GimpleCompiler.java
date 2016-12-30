@@ -91,6 +91,7 @@ public class GimpleCompiler  {
   private Predicate<GimpleFunction> entryPointPredicate = new DefaultEntryPointPredicate();
 
   public GimpleCompiler() {
+    functionBodyTransformers.add(AddressableSimplifier.INSTANCE);
     functionBodyTransformers.add(FunctionCallPruner.INSTANCE);
     functionBodyTransformers.add(LocalVariablePruner.INSTANCE);
     functionBodyTransformers.add(VoidPointerTypeDeducer.INSTANCE);
@@ -173,7 +174,7 @@ public class GimpleCompiler  {
   public void compile(List<GimpleCompilationUnit> units) throws Exception {
 
     try {
-      
+      PmfRewriter.rewrite(units);
       GlobalVarMerger.merge(units);
       ImplicitFieldDeclFinder.find(units);
 
@@ -333,8 +334,9 @@ public class GimpleCompiler  {
         System.out.println(unit);
       }
       for (GimpleFunction function : unit.getFunctions()) {
-        
-        transformFunctionBody(rootLogger.branch("Transforming " + function.getName()), unit, function);
+        if(!function.isEmpty()) {
+          transformFunctionBody(rootLogger.branch("Transforming " + function.getName()), unit, function);
+        }
       }
     }
   }

@@ -51,7 +51,7 @@ public class FatPtrFieldStrategy extends FieldStrategy {
   }
 
   @Override
-  public FatPtrPair memberExpr(JExpr instance, int offset, int size, TypeStrategy expectedType) {
+  public FatPtrPair memberExpr(MethodGenerator mv, JExpr instance, int offset, int size, TypeStrategy expectedType) {
 
     if(offset != 0) {
       throw new IllegalStateException("offset = " + offset);

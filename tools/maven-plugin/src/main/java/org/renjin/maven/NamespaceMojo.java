@@ -18,6 +18,7 @@
  */
 package org.renjin.maven;
 
+import com.google.common.base.Strings;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -27,7 +28,9 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
+import org.renjin.RenjinVersion;
 import org.renjin.packaging.PackageBuilder;
+import org.renjin.packaging.PackageDescription;
 import org.renjin.packaging.PackageSource;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -99,7 +102,7 @@ public class NamespaceMojo extends AbstractMojo {
       PackageSource source = new PackageSource.Builder(project.getBasedir())
           .setGroupId(groupId)
           .setPackageName(packageName)
-          .setDescriptionFile(descriptionFile)
+          .setDescription(buildDescription())
           .setNamespaceFile(namespaceFile)
           .setSourceDir(sourceDirectory)
           .setSourceFiles(sourceFiles)
@@ -119,4 +122,25 @@ public class NamespaceMojo extends AbstractMojo {
     }
   }
 
+  private PackageDescription buildDescription() throws MojoExecutionException {
+    PackageDescription description;
+    if(descriptionFile.exists()) {
+      try {
+        description =  PackageDescription.fromFile(descriptionFile);
+      } catch (IOException e) {
+        throw new MojoExecutionException("Exception parsing DESCRIPTION file at " + descriptionFile, e);
+      }
+    } else {
+      description = new PackageDescription();
+    }
+    // Override with settings from POM
+    description.setPackage(project.getArtifactId());
+    if(!Strings.isNullOrEmpty(project.getDescription())) {
+      description.setTitle(project.getDescription());
+    }
+    description.setVersion(project.getVersion());
+    description.setProperty("GroupId", project.getGroupId());
+
+    return description;
+  }
 }

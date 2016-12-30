@@ -39,7 +39,6 @@ public class GimpleFunction implements GimpleDecl {
   private String name;
   private String mangledName;
   private GimpleType returnType;
-  private List<String> aliases = Lists.newArrayList();
   private GimpleCompilationUnit unit;
   private List<GimpleBasicBlock> basicBlocks = Lists.newArrayList();
   private List<GimpleParameter> parameters = Lists.newArrayList();
@@ -75,16 +74,9 @@ public class GimpleFunction implements GimpleDecl {
     }
     return mangledName;
   }
-  
-  public List<String> getMangledNames() {
-    List<String> names = Lists.newArrayList();
-    names.add(getMangledName());
-    names.addAll(getAliases());
-    return names;
-  }
 
-  public List<String> getAliases() {
-    return aliases;
+  public String getSafeMangledName() {
+    return getMangledName().replace('.', '$');
   }
 
   public void setName(String name) {
@@ -258,5 +250,9 @@ public class GimpleFunction implements GimpleDecl {
     for (GimpleBasicBlock basicBlock : basicBlocks) {
       basicBlock.accept(visitor);
     }
+  }
+
+  public boolean isEmpty() {
+    return basicBlocks.isEmpty();
   }
 }

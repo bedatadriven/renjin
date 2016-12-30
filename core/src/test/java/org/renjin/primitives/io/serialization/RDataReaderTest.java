@@ -20,6 +20,7 @@ package org.renjin.primitives.io.serialization;
 
 import org.junit.Test;
 import org.renjin.EvalTestCase;
+import org.renjin.eval.Context;
 import org.renjin.repackaged.guava.io.ByteSource;
 import org.renjin.sexp.*;
 
@@ -54,7 +55,23 @@ public class RDataReaderTest extends EvalTestCase {
     assertThat(pairList.length(), equalTo(1));
     assertThat(pairList.getValue(), equalTo( c(1,2,3,4) ));
   }
-  
+
+  @Test
+  public void loadSimpleHashEnvironment() throws IOException {
+    InputStream in = getClass().getResourceAsStream("/HashedEnvironment.RData");
+    GZIPInputStream gzipIn = new GZIPInputStream(in);
+    RDataReader reader = new RDataReader(topLevelContext, gzipIn);
+
+    SEXP exp = reader.readFile();
+    assertThat(exp, instanceOf(PairList.Node.class));
+
+    PairList.Node pairList = (PairList.Node) exp;
+    Environment env = (Environment) pairList.getValue();
+    assertThat(pairList.length(), equalTo(1));
+    assertThat(env.getVariable("yyyy0yyyyy"), equalTo( c_i(1, 2, 3) ));
+    assertThat(env.getVariable("yyyy8yyyyy"), equalTo( c(8) ));
+    assertThat(env.getVariable("yyyy3yyyyy"), equalTo( c("a","b") ));
+  }
   @Test
   public void isRDataFile() throws IOException {
     ByteSource rdata = new ByteSource() {
@@ -167,18 +184,29 @@ public class RDataReaderTest extends EvalTestCase {
   
   @Test
   public void loadDataFrameWithGnuRCompactRowNames() throws IOException {
-    InputStream in = getClass().getResourceAsStream("rownames.rds");
-    GZIPInputStream gzipIn = new GZIPInputStream(in);
-    RDataReader reader = new RDataReader(topLevelContext, gzipIn);
-    SEXP df = reader.readFile();
+    SEXP df = readRds("rownames.rds");
 
     assertThat(df.getS3Class().getElementAsString(0), equalTo("data.frame"));
     assertThat(df.getAttribute(Symbol.get("row.names")).length(), equalTo(1000));
+  }
+
+  @Test
+  public void loadEnvWithAttributes() throws IOException {
+    SEXP env = readRds("env_attr.rds");
+
+    assertThat(env, instanceOf(Environment.class));
+    assertThat(env.getAttributes().getClassVector(), equalTo(c("MyRefClass")));
   }
 
   protected Symbol symbol(String name){
     return Symbol.get(name);
   }
 
+  private SEXP readRds(String resourceName) throws IOException {
+    InputStream in = getClass().getResourceAsStream(resourceName);
+    GZIPInputStream gzipIn = new GZIPInputStream(in);
+    RDataReader reader = new RDataReader(topLevelContext, gzipIn);
+    return reader.readFile();
+  }
 
 }

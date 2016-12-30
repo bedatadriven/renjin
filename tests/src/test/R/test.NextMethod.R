@@ -21,12 +21,76 @@
 library(hamcrest)
 library(stats)
 
+Ops.bar <- function(e1, e2) {
+    .Method
+}
+
+Ops.foo <- function(e1, e2) {
+    NextMethod(.Generic)
+}
+
+Ops.baz <- function(e1, e2) {
+    .Method
+}
+
+
+
+test.ordered.factor <- function() {
+    run <- structure(c(4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 10L, 10L, 10L, 10L, 10L, 10L, 10L, 10L, 10L, 10L, 10L, 10L, 10L, 10L,
+                    10L, 10L, 11L, 11L, 11L, 11L, 11L, 11L, 11L, 11L, 11L, 11L, 11L, 11L, 11L, 11L, 11L, 11L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L,
+                    5L, 5L, 5L, 5L, 5L, 7L, 7L, 7L, 7L, 7L, 7L, 7L, 7L, 7L, 7L, 7L, 7L, 7L, 7L, 7L, 7L, 9L, 9L, 9L, 9L, 9L, 9L, 9L, 9L, 9L, 9L, 9L, 9L, 9L,
+                    9L, 9L, 9L, 8L, 8L, 8L, 8L, 8L, 8L, 8L, 8L, 8L, 8L, 8L, 8L, 8L, 8L, 8L, 8L, 6L, 6L, 6L, 6L, 6L, 6L, 6L, 6L, 6L, 6L, 6L, 6L, 6L, 6L, 6L,
+                    6L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 2L,
+                    2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L),
+                    class = c("ordered", "factor"),
+                    .Label = c("10", "11", "9", "1", "4", "8", "5", "7", "6", "2", "3"))
+
+
+
+    assertThat(which(run == 1), identicalTo(1:16))
+
+
+}
+
+
+
+test.ops.method1 <- function() {
+
+    # Single level of dispatch
+
+    x <- 1
+    class(x) <- c("baz")
+
+    assertThat( x == 1, identicalTo( c("Ops.baz", "") ))
+    assertThat( 1 == x, identicalTo( c("", "Ops.baz") ))
+    assertThat( x == x, identicalTo( c("Ops.baz", "Ops.baz") ))
+}
+
+test.ops.method2 <- function() {
+
+    # Double dispatch, first to Ops.foo, then via NextMethod() to Ops.bar
+
+    x <- 1
+    class(x) <- c("foo", "bar")
+
+    y <- 2
+    class(y) <- "foo"
+
+    assertThat( x == 1, identicalTo( c("Ops.bar", "") ))
+    assertThat( y == 1, identicalTo( FALSE ) )
+    assertThat( x == y, identicalTo( c("Ops.bar", "Ops.bar") ))
+    assertThat( 1 == x, identicalTo( c("", "Ops.bar") ))
+
+}
+
+
+
 test.many <- function() {
 
-    x <-  ts(1:10, frequency = 4, start = c(1959, 2)) 
+    x <-  ts(1:10, frequency = 4, start = c(1959, 2))
     y <- x - x
-    
-    assertThat(y, identicalTo(structure(c(0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L), 
+
+    assertThat(y, identicalTo(structure(c(0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L),
                     .Tsp = c(1959.25, 1961.5, 4), class = 'ts')))
-     
+
 }

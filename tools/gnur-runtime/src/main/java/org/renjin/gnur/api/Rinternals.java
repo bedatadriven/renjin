@@ -21,22 +21,24 @@ package org.renjin.gnur.api;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.gcc.runtime.BytePtr;
-import org.renjin.gcc.runtime.DoublePtr;
-import org.renjin.gcc.runtime.IntPtr;
-import org.renjin.gcc.runtime.ObjectPtr;
-import org.renjin.primitives.Native;
-import org.renjin.primitives.R$primitive$getNamespace;
-import org.renjin.primitives.Types;
-import org.renjin.primitives.Vectors;
+import org.renjin.eval.FinalizationClosure;
+import org.renjin.eval.FinalizationHandler;
+import org.renjin.gcc.runtime.*;
+import org.renjin.methods.MethodDispatch;
+import org.renjin.methods.Methods;
+import org.renjin.primitives.*;
+import org.renjin.primitives.packaging.Namespace;
+import org.renjin.primitives.subset.Subsetting;
 import org.renjin.sexp.*;
 
+import java.lang.System;
+import java.lang.invoke.MethodHandle;
 import java.util.Arrays;
 
 @SuppressWarnings("unused")
 public final class Rinternals {
 
-  
+
   private Rinternals() { }
 
   /* Evaluation Environment */
@@ -189,7 +191,7 @@ public final class Rinternals {
 
   /**
    * @param sexp
-   * @return the value of the {@code SEXP}'s named bit. 
+   * @return the value of the {@code SEXP}'s named bit.
    */
   public static int NAMED(SEXP sexp) {
     // Renjin's contract for AtomicVector is that a vector's contents can never be changed
@@ -229,11 +231,11 @@ public final class Rinternals {
   }
 
   public static void SET_S4_OBJECT(SEXP x) {
-    throw new UnimplementedGnuApiMethod("SET_S4_OBJECT");
+    Rf_setAttrib(x, Symbols.S4_BIT, LogicalVector.TRUE);
   }
 
   public static void UNSET_S4_OBJECT(SEXP x) {
-    throw new UnimplementedGnuApiMethod("UNSET_S4_OBJECT");
+    Rf_setAttrib(x, Symbols.S4_BIT, Null.INSTANCE);
   }
 
   public static int LENGTH(SEXP x) {
@@ -285,7 +287,7 @@ public final class Rinternals {
       throw new UnsupportedOperationException("DATAPTR on type " + x.getClass().getName());
     }
   }
-  
+
   public static IntPtr LOGICAL(SEXP x) {
     if(x instanceof LogicalArrayVector) {
       return new IntPtr(((LogicalArrayVector)x).toIntArrayUnsafe());
@@ -302,6 +304,8 @@ public final class Rinternals {
       return new IntPtr(((IntArrayVector) x).toIntArrayUnsafe());
     } else if(x instanceof LogicalArrayVector) {
       return new IntPtr(((LogicalArrayVector) x).toIntArrayUnsafe());
+    } else if (x instanceof DoubleVector) {
+      return new IntPtr(((DoubleVector) x).toIntArray());
     } else if(x instanceof IntVector) {
       // TODO: cache arrays for the case of repeated INTEGER() calls?
       return new IntPtr(((IntVector) x).toIntArray());
@@ -346,7 +350,7 @@ public final class Rinternals {
   public static SEXP STRING_ELT(SEXP x, /*R_xlen_t*/ int i) {
     StringVector stringVector = (StringVector) x;
     String string = stringVector.getElementAsString(i);
-    
+
     return new GnuCharSexp(string);
   }
 
@@ -383,7 +387,7 @@ public final class Rinternals {
   public static SEXP CDR(SEXP e) {
     return ((PairList.Node) e).getNext();
   }
-  
+
   public static SEXP CAAR(SEXP e) {
     return CAR(CAR(e));
   }
@@ -405,7 +409,7 @@ public final class Rinternals {
   }
 
   public static SEXP CADDR(SEXP e) {
-    return 	CAR(CDR(CDR(e)));
+    return CAR(CDR(CDR(e)));
   }
 
   public static SEXP CADDDR(SEXP e) {
@@ -414,6 +418,10 @@ public final class Rinternals {
 
   public static SEXP CAD4R(SEXP e) {
     return CAR(CDR(CDR(CDR(CDR(e)))));
+  }
+
+  public static SEXP CD4R(SEXP x) {
+    return CDR(CDR(CDR(CDR(x))));
   }
 
   public static int MISSING(SEXP x) {
@@ -429,27 +437,76 @@ public final class Rinternals {
   }
 
   public static SEXP SETCAR(SEXP x, SEXP y) {
-    throw new UnimplementedGnuApiMethod("SETCAR");
+    if (x == null || x == R_NilValue) {
+      throw new EvalException("bad value");
+    }
+
+    ((PairList.Node) x).setValue(y);
+    return y;
   }
 
   public static SEXP SETCDR(SEXP x, SEXP y) {
-    throw new UnimplementedGnuApiMethod("SETCDR");
+    if (x == null || x == R_NilValue) {
+      throw new EvalException("bad value");
+    }
+
+    ((PairList.Node) x).setNextNode((PairList.Node) y);
+    return y;
   }
 
   public static SEXP SETCADR(SEXP x, SEXP y) {
-    throw new UnimplementedGnuApiMethod("SETCADR");
+    SEXP cell;
+    if (x == null || x == R_NilValue ||
+        CDR(x) == null || CDR(x) == R_NilValue) {
+      throw new EvalException("bad value");
+    }
+    cell = CDR(x);
+    ((PairList.Node) cell).setValue(y);
+    return y;
+  }
+
+  public static SEXP CHK(SEXP sexp) {
+    return sexp;
   }
 
   public static SEXP SETCADDR(SEXP x, SEXP y) {
-    throw new UnimplementedGnuApiMethod("SETCADDR");
+    SEXP cell;
+    if (x == null || x == R_NilValue ||
+        CDR(x) == null || CDR(x) == R_NilValue ||
+        CDDR(x) == null || CDDR(x) == R_NilValue) {
+      throw new EvalException("bad value");
+    }
+
+    cell = CDDR(x);
+    ((PairList.Node) cell).setValue(y);
+    return y;
   }
 
   public static SEXP SETCADDDR(SEXP x, SEXP y) {
-    throw new UnimplementedGnuApiMethod("SETCADDDR");
+    SEXP cell;
+    if (CHK(x) == null || x == R_NilValue ||
+        CHK(CDR(x)) == null || CDR(x) == R_NilValue ||
+        CHK(CDDR(x)) == null || CDDR(x) == R_NilValue ||
+        CHK(CDDDR(x)) == null || CDDDR(x) == R_NilValue) {
+      throw new EvalException("bad value");
+    }
+    cell = CDDDR(x);
+    ((PairList.Node) cell).setValue(y);
+    return y;
   }
 
-  public static SEXP SETCAD4R(SEXP e, SEXP y) {
-    throw new UnimplementedGnuApiMethod("SETCAD4R");
+  public static SEXP SETCAD4R(SEXP x, SEXP y) {
+    SEXP cell;
+    if (CHK(x) == null || x == R_NilValue ||
+        CHK(CDR(x)) == null || CDR(x) == R_NilValue ||
+        CHK(CDDR(x)) == null || CDDR(x) == R_NilValue ||
+        CHK(CDDDR(x)) == null || CDDDR(x) == R_NilValue ||
+        CHK(CD4R(x)) == null || CD4R(x) == R_NilValue) {
+      throw new EvalException("bad value");
+    }
+    cell = CD4R(x);
+    ((PairList.Node) cell).setValue(y);
+    return y;
   }
 
   public static SEXP CONS_NR(SEXP a, SEXP b) {
@@ -457,15 +514,15 @@ public final class Rinternals {
   }
 
   public static SEXP FORMALS(SEXP x) {
-    throw new UnimplementedGnuApiMethod("FORMALS");
+    return ((Closure) x).getFormals();
   }
 
   public static SEXP BODY(SEXP x) {
-    throw new UnimplementedGnuApiMethod("BODY");
+    return ((Closure) x).getBody();
   }
 
   public static SEXP CLOENV(SEXP x) {
-    throw new UnimplementedGnuApiMethod("CLOENV");
+    return ((Closure) x).getEnclosingEnvironment();
   }
 
   public static int RDEBUG(SEXP x) {
@@ -625,7 +682,7 @@ public final class Rinternals {
   }
 
   public static SEXP Rf_asChar(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_asChar");
+    return new GnuCharSexp(((AtomicVector) p0).getElementAsString(0));
   }
 
   public static SEXP Rf_coerceVector(SEXP p0, /*SEXPTYPE*/ int type) {
@@ -835,6 +892,9 @@ public final class Rinternals {
   }
 
   public static SEXP Rf_duplicate(SEXP sexp) {
+    if(sexp == Null.INSTANCE) {
+      return sexp;
+    }
     if(sexp instanceof DoubleVector) {
       return new DoubleArrayVector((DoubleVector)sexp);
     } else if(sexp instanceof IntVector) {
@@ -843,6 +903,14 @@ public final class Rinternals {
       return new ComplexArrayVector((ComplexVector) sexp);
     } else if(sexp instanceof StringVector) {
       return new StringArrayVector((StringVector) sexp);
+    } else if(sexp instanceof S4Object) {
+      return new S4Object(sexp.getAttributes());
+    } else if(sexp instanceof ListVector) {
+      SEXP[] elements = ((ListVector) sexp).toArrayUnsafe();
+      for (int i = 0; i < elements.length; i++) {
+        elements[i] = Rf_duplicate(elements[i]);
+      }
+      return new ListVector(elements, sexp.getAttributes());
     }
     throw new UnimplementedGnuApiMethod("Rf_duplicate: " + sexp.getTypeName());
   }
@@ -867,20 +935,29 @@ public final class Rinternals {
     return Native.currentContext().evaluate(expr, (Environment) rho);
   }
 
-  public static SEXP Rf_findFun(SEXP p0, SEXP p1) {
-    throw new UnimplementedGnuApiMethod("Rf_findFun");
+  public static SEXP Rf_findFun(SEXP rho, SEXP symbol) {
+    return ((Environment) rho).findFunction(Native.currentContext(), ((Symbol) symbol));
   }
 
-  public static SEXP Rf_findVar(SEXP p0, SEXP p1) {
-    throw new UnimplementedGnuApiMethod("Rf_findVar");
+  public static SEXP Rf_findVar(SEXP rho, SEXP symbol) {
+    return ((Environment) rho).findVariable(((Symbol) symbol));
   }
 
-  public static SEXP Rf_findVarInFrame(SEXP p0, SEXP p1) {
-    throw new UnimplementedGnuApiMethod("Rf_findVarInFrame");
+  public static SEXP Rf_findVarInFrame(SEXP rho, SEXP symbol) {
+    return Rf_findVarInFrame3(rho, symbol, true);
   }
 
-  public static SEXP Rf_findVarInFrame3(SEXP p0, SEXP p1, boolean p2) {
-    throw new UnimplementedGnuApiMethod("Rf_findVarInFrame3");
+  /**
+   *
+   * @param rho the environment in which to look
+   * @param symbol the symbol to find
+   * @param doGet whether whether the lookup is being done in order to get the value (TRUE) or
+   *  simply to check whether there is a value bound to the specified
+   *  symbol in this frame (FALSE).
+   * @return
+   */
+  public static SEXP Rf_findVarInFrame3(SEXP rho, SEXP symbol, boolean doGet) {
+    return ((Environment) rho).getVariable((Symbol)symbol);
   }
 
   public static SEXP Rf_getAttrib(SEXP sexp, SEXP attributeSexp) {
@@ -959,12 +1036,17 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_xlengthgets");
   }
 
-  public static SEXP R_lsInternal(SEXP p0, boolean p1) {
-    throw new UnimplementedGnuApiMethod("R_lsInternal");
+  public static SEXP R_lsInternal(SEXP env, boolean allNames) {
+    return Environments.ls((Environment) env, allNames);
   }
 
-  public static SEXP R_lsInternal3(SEXP p0, boolean p1, boolean p2) {
-    throw new UnimplementedGnuApiMethod("R_lsInternal3");
+  public static SEXP R_lsInternal3(SEXP env, boolean allNames, boolean sorted) {
+    StringVector names = Environments.ls((Environment) env, allNames);
+    if(sorted) {
+      return Sort.sort(names, false);
+    } else {
+      return names;
+    }
   }
 
   public static SEXP Rf_match(SEXP p0, SEXP p1, int p2) {
@@ -1170,51 +1252,65 @@ public final class Rinternals {
   }
 
   public static SEXP R_MakeExternalPtr(Object p, SEXP tag, SEXP prot) {
-    throw new UnimplementedGnuApiMethod("R_MakeExternalPtr");
+    return new ExternalPtr<>(p, tag, prot);
   }
 
   public static Object R_ExternalPtrAddr(SEXP s) {
-    throw new UnimplementedGnuApiMethod("R_ExternalPtrAddr");
+    return ((ExternalPtr) s).getInstance();
   }
 
   public static SEXP R_ExternalPtrTag(SEXP s) {
-    throw new UnimplementedGnuApiMethod("R_ExternalPtrTag");
+    return ((ExternalPtr) s).getTag();
   }
 
   public static SEXP R_ExternalPtrProtected(SEXP s) {
-    throw new UnimplementedGnuApiMethod("R_ExternalPtrProtected");
+    return ((ExternalPtr) s).getProtected();
   }
 
   public static void R_ClearExternalPtr(SEXP s) {
-    throw new UnimplementedGnuApiMethod("R_ClearExternalPtr");
+    ((ExternalPtr) s).unsafeSetAddress(null);
   }
 
   public static void R_SetExternalPtrAddr(SEXP s, Object p) {
-    throw new UnimplementedGnuApiMethod("R_SetExternalPtrAddr");
+    ((ExternalPtr) s).unsafeSetAddress(p);
   }
 
   public static void R_SetExternalPtrTag(SEXP s, SEXP tag) {
-    throw new UnimplementedGnuApiMethod("R_SetExternalPtrTag");
+    ((ExternalPtr) s).unsafeSetTag(tag);
   }
 
-  public static void R_SetExternalPtrProtected(SEXP s, SEXP p) {
-    throw new UnimplementedGnuApiMethod("R_SetExternalPtrProtected");
+  public static void R_SetExternalPtrProtected(SEXP s, SEXP tag) {
+    ((ExternalPtr) s).unsafeSetProtected(tag);
   }
 
   public static void R_RegisterFinalizer(SEXP s, SEXP fun) {
     throw new UnimplementedGnuApiMethod("R_RegisterFinalizer");
   }
 
-  // void R_RegisterCFinalizer (SEXP s, R_CFinalizer_t fun)
-
   public static void R_RegisterFinalizerEx(SEXP s, SEXP fun, boolean onexit) {
-    throw new UnimplementedGnuApiMethod("R_RegisterFinalizerEx");
+    Native.currentContext().getSession().registerFinalizer(s, new FinalizationClosure((Closure)fun), onexit);
   }
 
-  // void R_RegisterCFinalizerEx (SEXP s, R_CFinalizer_t fun, Rboolean onexit)
+  public static void R_RegisterCFinalizer (SEXP s, final MethodHandle fun) {
+    R_RegisterCFinalizerEx(s, fun, false);
+  }
+
+  public static void R_RegisterCFinalizerEx (SEXP s, final MethodHandle fun, boolean onexit) {
+    FinalizationHandler handler = new FinalizationHandler() {
+      @Override
+      public void finalize(Context context, SEXP sexp) {
+        try {
+          fun.invoke(sexp);
+        } catch (Throwable throwable) {
+          throw new RuntimeException(throwable);
+        }
+      }
+    };
+    Native.currentContext().getSession().registerFinalizer(s, handler, onexit);
+  }
 
   public static void R_RunPendingFinalizers() {
-    throw new UnimplementedGnuApiMethod("R_RunPendingFinalizers");
+    Native.currentContext().getSession().runFinalizers();
   }
 
   public static SEXP R_MakeWeakRef(SEXP key, SEXP val, SEXP fin, boolean onexit) {
@@ -1355,11 +1451,24 @@ public final class Rinternals {
   // SEXP R_Unserialize (R_inpstream_t ips)
 
   public static SEXP R_do_slot(SEXP obj, SEXP name) {
-    throw new UnimplementedGnuApiMethod("R_do_slot");
+    Context context = Native.currentContext();
+    MethodDispatch methodDispatch = context.getSingleton(MethodDispatch.class);
+    return Subsetting.getSlotValue(context, methodDispatch, obj, ((Symbol) name));
   }
 
   public static SEXP R_do_slot_assign(SEXP obj, SEXP name, SEXP value) {
-    throw new UnimplementedGnuApiMethod("R_do_slot_assign");
+
+    /* Ensure that name is a symbol */
+    if(name instanceof StringVector && LENGTH(name) == 1) {
+      name = Symbol.get(name.asString());
+    } else if(name instanceof GnuCharSexp) {
+      name = Symbol.get(((GnuCharSexp) name).getValue().nullTerminatedString());
+    }
+    if(!(name instanceof Symbol)) {
+      throw new EvalException("invalid type or length for slot name");
+    }
+
+    return Methods.R_set_slot(Native.currentContext(), obj, name.asString(), value);
   }
 
   public static int R_has_slot(SEXP obj, SEXP name) {
@@ -1367,15 +1476,29 @@ public final class Rinternals {
   }
 
   public static SEXP R_do_MAKE_CLASS(BytePtr what) {
-    throw new UnimplementedGnuApiMethod("R_do_MAKE_CLASS");
+    if(what == null || what.array == null) {
+      throw new EvalException("C level MAKE_CLASS macro called with NULL string pointer");
+    }
+    Context context = Native.currentContext();
+    Namespace methodsNamespace = context.getNamespaceRegistry().getNamespace(context, "methods");
+
+    return context.evaluate(FunctionCall.newCall(Symbol.get("getClass"),
+        StringVector.valueOf(what.nullTerminatedString())));
   }
 
   public static SEXP R_getClassDef(BytePtr what) {
-    throw new UnimplementedGnuApiMethod("R_getClassDef");
+    if(what == null || what.array == null) {
+      throw new EvalException("R_getClassDef(.) called with NULL string pointer");
+    }
+
+    return R_getClassDef_R(StringArrayVector.valueOf(what.nullTerminatedString()));
   }
 
   public static SEXP R_getClassDef_R(SEXP what) {
-    throw new UnimplementedGnuApiMethod("R_getClassDef_R");
+    Context context = Native.currentContext();
+    Namespace methodsNamespace = context.getNamespaceRegistry().getNamespace(context, "methods");
+
+    return context.evaluate(FunctionCall.newCall(Symbol.get("getClassDef"), what));
   }
 
   public static boolean R_has_methods_attached() {
@@ -1391,12 +1514,97 @@ public final class Rinternals {
   }
 
   public static SEXP R_do_new_object(SEXP class_def) {
-    throw new UnimplementedGnuApiMethod("R_do_new_object");
+
+    if(class_def == null) {
+      throw new EvalException("C level NEW macro called with null class definition pointer");
+    }
+    SEXP virtual = R_do_slot(class_def, Symbol.get("virtual"));
+    SEXP className = R_do_slot(class_def, Symbol.get("className"));
+
+    if(virtual.asLogical() != Logical.FALSE)  { /* includes NA, TRUE, or anything other than FALSE */
+      throw new EvalException("trying to generate an object from a virtual class (\"%s\")", className.asString());
+    }
+    SEXP value = Rf_duplicate(R_do_slot(class_def, Symbol.get("prototype")));
+    if(value instanceof S4Object || Rf_getAttrib(className, R_PackageSymbol) != R_NilValue) {
+      /* Anything but an object from a base "class" (numeric, matrix,..) */
+      Rf_setAttrib(value, R_ClassSymbol, className);
+      SET_S4_OBJECT(value);
+    }
+    return value;
   }
 
-  // int R_check_class_and_super (SEXP x, const char **valid, SEXP rho)
+  /**
+   * Return the 0-based index of an is() match in a vector of class-name
+   * strings terminated by an empty string.  Returns -1 for no match.
+   *
+   * @param x  an R object, about which we want is(x, .) information.
+   * @param valid vector of possible matches terminated by an empty string.
+   * @param rho  the environment in which the class definitions exist.
+   *
+   * @return index of match or -1 for no match
+   */
+  public static int R_check_class_and_super (SEXP x, ObjectPtr<BytePtr> valid, SEXP rho) {
+    int ans;
+    SEXP cl = Rf_asChar(Rf_getAttrib(x, R_ClassSymbol));
+    BytePtr class_ = R_CHAR(cl);
+    for (ans = 0; ; ans++) {
+      if (Stdlib.strlen(valid.get(ans)) == 0) { // empty string
+        break;
+      }
+      if (Stdlib.strcmp(class_, valid.get(ans)) == 0) {
+        return ans;
+      }
+    }
+    /* if not found directly, now search the non-virtual super classes :*/
+    if(IS_S4_OBJECT(x) != 0) {
+        /* now try the superclasses, i.e.,  try   is(x, "....");  superCl :=
+           .selectSuperClasses(getClass("....")@contains, dropVirtual=TRUE)  */
+      SEXP classExts, superCl, _call;
+      Symbol s_contains      = Symbol.get("contains");
+      Symbol s_selectSuperCl = Symbol.get(".selectSuperClasses");
+      SEXP classDef = R_getClassDef(class_);
+      classExts = R_do_slot(classDef, s_contains);
+      _call = Rf_lang3(s_selectSuperCl, classExts,
+                              /* dropVirtual = */ Rf_ScalarLogical(1));
+      superCl = Rf_eval(_call, rho);
+      for(int i=0; i < LENGTH(superCl); i++) {
+        BytePtr s_class = R_CHAR(STRING_ELT(superCl, i));
+        for (ans = 0; ; ans++) {
+          if (Stdlib.strlen(valid.get(ans)) == 0) {
+            break;
+          }
+          if (Stdlib.strcmp(s_class, valid.get(ans)) == 0) {
+            return ans;
+          }
+        }
+      }
+    }
+    return -1;
+  }
 
-  // int R_check_class_etc (SEXP x, const char **valid)
+  public static int R_check_class_etc (SEXP x, ObjectPtr<BytePtr> valid) {
+    SEXP cl = Rf_getAttrib(x, R_ClassSymbol);
+    SEXP rho = R_GlobalEnv;
+    SEXP pkg;
+    Symbol meth_classEnv = Symbol.get(".classEnv");
+
+    pkg = Rf_getAttrib(cl, R_PackageSymbol); /* ==R== packageSlot(class(x)) */
+    if(!Rf_isNull(pkg)) { /* find  rho := correct class Environment */
+      SEXP clEnvCall;
+      // FIXME: fails if 'methods' is not loaded.
+      clEnvCall = Rf_lang2(meth_classEnv, cl);
+      rho = Rf_eval(clEnvCall, methodsNamespace());
+      if(!Rf_isEnvironment(rho)) {
+        throw new EvalException("could not find correct environment; please report!");
+      }
+    }
+    int res = R_check_class_and_super(x, valid, rho);
+    return res;
+  }
+
+  private static Environment methodsNamespace() {
+    return Native.currentContext().getNamespaceRegistry().getNamespaceIfPresent(Symbol.get("methods")).get().getNamespaceEnvironment();
+  }
 
   public static void R_PreserveObject(SEXP p0) {
     // NOOP
@@ -1442,6 +1650,8 @@ public final class Rinternals {
         return new ListVector(elements);
       case SexpType.STRSXP:
         return new GnuStringVector(new BytePtr[length]);
+      case SexpType.RAWSXP:
+        return new RawVector(new byte[length]);
     }
     throw new UnimplementedGnuApiMethod("Rf_allocVector: type = " + type);
   }

@@ -135,7 +135,11 @@ public class GimpleVarDecl implements GimpleDecl {
 
   @Override
   public String toString() {
-    return type + " " + getName() + " = " + value;
+    StringBuilder s = new StringBuilder().append(type).append(" ").append(getName());
+    if(value != null) {
+      s.append(" = ").append(value);
+    }
+    return s.toString();
   }
 
   /**
@@ -179,11 +183,6 @@ public class GimpleVarDecl implements GimpleDecl {
 
   public GimpleVariableRef newRef() {
     return new GimpleVariableRef(id, type);
-  }
-
-  @Override
-  public List<String> getMangledNames() {
-    return Collections.singletonList(name);
   }
 
   @Override

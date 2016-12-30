@@ -22,6 +22,7 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.TypeStrategy;
+import org.renjin.gcc.codegen.var.LocalVarAllocator;
 import org.renjin.repackaged.asm.Type;
 
 import java.io.File;
@@ -31,9 +32,12 @@ import java.io.IOException;
  * Layout for a record that has no fields.
  */
 public class EmptyRecordLayout implements RecordLayout {
+
+  private static final Type TYPE = Type.getType(Object.class);
+
   @Override
   public Type getType() {
-    return Type.getType(Object.class);
+    return TYPE;
   }
 
   @Override
@@ -49,5 +53,20 @@ public class EmptyRecordLayout implements RecordLayout {
   @Override
   public GExpr memberOf(MethodGenerator mv, RecordValue instance, int offset, int size, TypeStrategy fieldTypeStrategy) {
     throw new UnsupportedOperationException("Empty record has no fields.");
+  }
+
+  @Override
+  public RecordValue clone(MethodGenerator mv, RecordValue recordValue) {
+
+    // Simply create a new instance as the instance holds no data
+
+    LocalVarAllocator.LocalVar copy = mv.getLocalVarAllocator().reserve(TYPE);
+
+    mv.anew(TYPE);
+    mv.dup();
+    mv.invokeconstructor(TYPE);
+    copy.store(mv);
+
+    return new RecordValue(copy);
   }
 }

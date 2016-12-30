@@ -17,7 +17,21 @@
 # https://www.gnu.org/licenses/gpl-2.0.txt
 #
 
+# There are a few patterns that are bit illogical but still
+# accepted by GNU R
 
-library(cran.dot.package)
+library(hamcrest)
 
-stopifnot(compute(0) == 22)
+test.wildcard <- function() {
+    assertTrue(grepl("*", ""))
+    assertTrue(grepl("*", "XYZ123"))
+    assertFalse(grepl("*", NA))
+}
+
+test.wildcard.perl <- function() {
+    assertThat(grepl("*", "ABC", perl = TRUE), throwsError())
+}
+
+test.wildcard.strsplit <- function() {
+    assertThat(strsplit("XYZ", "*"), identicalTo(list(c("X", "Y", "Z"))))
+}

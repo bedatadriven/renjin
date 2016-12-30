@@ -157,7 +157,10 @@ public class IntPtr implements Ptr {
   public static IntPtr cast(Object voidPointer) {
     if(voidPointer instanceof MallocThunk) {
       return ((MallocThunk) voidPointer).intPtr();
-    } 
+    }
+    if(voidPointer == null) {
+      return NULL;
+    }
     return (IntPtr) voidPointer;
   }
 

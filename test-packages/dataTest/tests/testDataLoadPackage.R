@@ -17,6 +17,7 @@
 # https://www.gnu.org/licenses/gpl-2.0.txt
 #
 
+library(hamcrest)
+library(utils)
 
-
-compute <- function(x) 22
+data(protein, package = "org.renjin.test.dataTest")

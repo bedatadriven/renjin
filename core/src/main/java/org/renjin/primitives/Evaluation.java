@@ -280,9 +280,17 @@ public class Evaluation {
     // calls and the like will not be able to access this root environment of the script
     
     Context evalContext = context.beginEvalContext(rho);
-    
-    SEXP result = evalContext.evaluate( expression, rho);
-    
+
+    SEXP result;
+    try {
+      result = evalContext.evaluate(expression, rho);
+
+    } catch (ReturnException e) {
+      if(e.getEnvironment() != rho) {
+        throw e;
+      }
+      result = e.getValue();
+    }
     evalContext.exit();
     
     return result;

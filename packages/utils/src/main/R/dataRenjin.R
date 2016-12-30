@@ -20,10 +20,14 @@ data <-
 {
 
 	names <- c(as.character(substitute(list(...))[-1L]), list)
-	
-	s <- search()
-	packages <- substring(s[substr(s, 1L, 8L) == "package:"], 9)
-	
+
+	packages <- if(is.null(package)) {
+        s <- search()
+        packages <- substring(s[substr(s, 1L, 8L) == "package:"], 9)
+	} else {
+	    package
+	}
+
 	for(name in names) {
 		found <- FALSE
 		for(pkg in packages) {

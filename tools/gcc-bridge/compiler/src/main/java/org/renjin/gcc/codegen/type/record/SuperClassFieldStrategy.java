@@ -48,19 +48,12 @@ public class SuperClassFieldStrategy extends FieldStrategy {
   }
 
   @Override
-  public GExpr memberExpr(final JExpr instance, final int offset, int size, TypeStrategy expectedType) {
+  public GExpr memberExpr(MethodGenerator mv, final JExpr instance, final int offset, int size, TypeStrategy expectedType) {
 
     if(offset != 0) {
       throw new IllegalStateException("offset = " + offset);
     }
 
-    if(expectedType != null) {
-      RecordClassTypeStrategy expectedRecordType = (RecordClassTypeStrategy) expectedType;
-      if(!expectedRecordType.equals(fieldTypeStrategy)) {
-        throw new UnsupportedOperationException("expectedType: " + expectedType);
-      }
-    }
-    
     JExpr superInstance = new JExpr() {
       @Nonnull
       @Override
@@ -73,8 +66,23 @@ public class SuperClassFieldStrategy extends FieldStrategy {
         instance.load(mv);
       }
     };
-    
-    return new RecordValue(superInstance, new RecordUnitPtr(superInstance));
+
+    RecordValue fieldValue = new RecordValue(superInstance, new RecordUnitPtr(superInstance));
+
+    if(expectedType == null) {
+      return fieldValue;
+    }
+
+    if(expectedType instanceof RecordClassTypeStrategy) {
+      RecordClassTypeStrategy expectedRecordType = (RecordClassTypeStrategy) expectedType;
+      if(expectedRecordType.equals(fieldTypeStrategy)) {
+        return fieldValue;
+      } else {
+        throw new UnsupportedOperationException("expected type: " + expectedRecordType);
+      }
+    }
+
+    return fieldTypeStrategy.memberOf(mv, fieldValue, 0, size, expectedType);
   }
 
   @Override

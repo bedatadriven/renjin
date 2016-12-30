@@ -421,9 +421,14 @@ public class Native {
       if(Profiler.ENABLED) {
         Profiler.functionStart(Symbol.get(methodName), 'C');
       }
+      Context previousContext = CURRENT_CONTEXT.get();
+      CURRENT_CONTEXT.set(context);
+
       try {
         return delegateToJavaMethod(context, clazz, methodName, callArguments);
       } finally {
+        CURRENT_CONTEXT.set(previousContext);
+
         if(Profiler.ENABLED) {
           Profiler.functionEnd();
         }
@@ -538,12 +543,13 @@ public class Native {
     } else {
       Namespace namespace = context.getNamespaceRegistry().getNamespace(context, packageName);
       FqPackageName fqname = namespace.getFullyQualifiedName();
-      String packageClassName = fqname.getGroupId()+"."+fqname.getPackageName() + "." +
-          fqname.getPackageName();
+      String packageClassName = fqname.getGroupId()+ "." +
+          Namespace.sanitizePackageNameForClassFiles(fqname.getPackageName()) + "." +
+          Namespace.sanitizePackageNameForClassFiles(fqname.getPackageName());
       try {
         return namespace.getPackage().loadClass(packageClassName);
       } catch (ClassNotFoundException e) {
-        throw new EvalException("Could not load class '%s' from package '%s'", packageClassName, packageClassName);
+        throw new EvalException("Could not load JVM class '%s' from package '%s'", packageClassName, packageClassName);
       }
     }
   }

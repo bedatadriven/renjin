@@ -5,3 +5,5 @@ importClass(org.renjin.test.Alpha)
 export(parseAlpha)
 export(alphaVersion)
 export(alphaName)
+
+exportPattern("defined.+")

@@ -189,6 +189,16 @@ public class GimpleCompilerTest extends AbstractGccTest {
     System.out.println(x);
   }
 
+  @Test
+  public void fortranMultiDimArrays() throws Exception {
+    Class clazz = compile("lbound_alloc.f");
+
+    Method test = clazz.getMethod("testprogram_");
+    test.invoke(null);
+
+  }
+
+
   @Test(expected = InvocationTargetException.class)
   public void files() throws Exception {
     compileAndTest("files.c");
@@ -424,7 +434,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
 
   @Test
   public void fpComparison() throws Exception {
-    Class clazz = compile("fpcmp.c");
+    Class clazz = compileAndTest("fpcmp.c");
 
     assertThat(call(clazz, "lessThan", -2.4, -2.3), equalTo(1));
     assertThat(call(clazz, "lessThan", -2.4, -2.4), equalTo(0));
@@ -1041,10 +1051,89 @@ public class GimpleCompilerTest extends AbstractGccTest {
     compileAndTest("fatptrfield_param_assign.c");
   }
 
+
+  @Test
+  public void tukey() throws Exception {
+    compile("dt.c");
+  }
+
   @Test
   public void constantStaticVar() throws Exception {
     compileAndTest("staticvar.c");
-
   }
-  
+
+  @Test
+  public void deferenceToUnitRecord() throws Exception {
+    compileAndTest("void_deref_to_unit_rec.c");
+  }
+
+  @Test
+  public void nullWrappedPtr() throws Exception {
+    compileAndTest("null_ptr.c");
+  }
+
+  @Test
+  public void voidRealloc() throws Exception {
+    compileAndTest("void_realloc.c");
+  }
+
+  @Test
+  public void voidPtrToRecordPtrParam() throws Exception {
+    compileAndTest("void_to_rec_ptr_param.c");
+  }
+
+  @Test
+  public void firstFirstFieldCast() throws Exception {
+    compileAndTest("first_field.c");
+  }
+
+  @Test
+  public void superClassBug() throws Exception {
+    compileAndTest("superclass_bug.c");
+  }
+
+  @Test
+  public void newArray() throws Exception {
+    compileAndTest("new_array.cpp");
+  }
+
+  @Test
+  public void emptyFunctions() throws Exception {
+    compileAndTest("empty_fns.cpp");
+  }
+
+  @Test
+  public void pointerMemberFunctions() throws Exception {
+    compileAndTest("pmf.cpp");
+  }
+
+  @Test
+  public void cacheBug() throws Exception {
+    compileAndTest("cache_bug.c");
+  }
+
+  @Test
+  public void matrixCompileBug() throws Exception {
+    compile("matrix_bug.c");
+  }
+
+  @Test
+  public void emptyRecordCopy() throws Exception {
+    compile("empty_record_copy.cpp");
+  }
+
+  @Test
+  public void strcpy() throws Exception {
+    compileAndTest("strcpy.c");
+  }
+
+  @Test
+  public void unitPtrSuperClass() throws Exception {
+    compileAndTest("unit_ptr_superclass.c");
+  }
+
+  @Test
+  public void addrRecordParam() throws Exception {
+    compileAndTest("addr_record_param.c");
+  }
 }

@@ -27,6 +27,7 @@ import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.var.GlobalVarAllocator;
 import org.renjin.gcc.codegen.var.ProvidedVarAllocator;
+import org.renjin.gcc.gimple.GimpleAlias;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleVarDecl;
@@ -112,6 +113,11 @@ public class UnitClassGenerator {
             e.getMessage()), e);
       }
     }
+
+    for (GimpleAlias alias : unit.getAliases()) {
+      symbolTable.addAlias(alias);
+    }
+
   }
 
   private boolean isIgnored(GimpleVarDecl decl) {
@@ -219,10 +225,10 @@ public class UnitClassGenerator {
     // Check for duplicate names...
     Set<String> names = Sets.newHashSet();
     for (FunctionGenerator functionGenerator : symbolTable.getFunctions()) {
-      if(names.contains(functionGenerator.getMangledName())) {
-        throw new InternalCompilerException("Duplicate function names " + functionGenerator.getMangledName());
+      if(names.contains(functionGenerator.getSafeMangledName())) {
+        throw new InternalCompilerException("Duplicate function names " + functionGenerator.getSafeMangledName());
       }
-      names.add(functionGenerator.getMangledName());
+      names.add(functionGenerator.getSafeMangledName());
     }
     
     // Now actually emit the function bodies

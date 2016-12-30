@@ -23,7 +23,7 @@ import org.renjin.repackaged.asm.tree.AbstractInsnNode;
 
 
 public enum Pattern {
-  
+
   LOAD {
     @Override
     public boolean match(AbstractInsnNode node) {
@@ -39,14 +39,14 @@ public enum Pattern {
       }
     }
   },
-  
+
   ILOAD {
     @Override
     public boolean match(AbstractInsnNode node) {
       return node.getOpcode() == Opcodes.ILOAD;
     }
   },
-  
+
   STORE {
     @Override
     public boolean match(AbstractInsnNode node) {
@@ -62,14 +62,14 @@ public enum Pattern {
       }
     }
   },
-  
+
   ISTORE {
     @Override
     public boolean match(AbstractInsnNode node) {
       return node.getOpcode() == Opcodes.ISTORE;
     }
   },
-  
+
   ICONST {
     @Override
     public boolean match(AbstractInsnNode node) {
@@ -84,13 +84,13 @@ public enum Pattern {
         case Opcodes.BIPUSH:
         case Opcodes.SIPUSH:
           return true;
-        
+
         default:
           return false;
       }
     }
   },
-  
+
   I_ARITHMETIC {
     @Override
     public boolean match(AbstractInsnNode node) {
@@ -100,23 +100,63 @@ public enum Pattern {
         case Opcodes.IDIV:
         case Opcodes.IMUL:
           return true;
-        
+
         default:
           return false;
       }
     }
   },
-  
-  
+
+
   IADD {
     @Override
     public boolean match(AbstractInsnNode node) {
       return node.getOpcode() == Opcodes.IADD;
     }
-  }
-  ;
-  
+  },
+  ZERO {
+    @Override
+    public boolean match(AbstractInsnNode node) {
+      return node.getOpcode() == Opcodes.ICONST_0;
+    }
+  },
+
+  INT_COMPARISON {
+    @Override
+    public boolean match(AbstractInsnNode node) {
+
+      switch (node.getOpcode()) {
+        case Opcodes.IF_ICMPEQ:
+        case Opcodes.IF_ICMPNE:
+        case Opcodes.IF_ICMPLT:
+        case Opcodes.IF_ICMPGE:
+        case Opcodes.IF_ICMPGT:
+        case Opcodes.IF_ICMPLE:
+          return true;
+        default:
+          return false;
+      }
+    }
+  },
+  ZERO_COMPARISON {
+    @Override
+    public boolean match(AbstractInsnNode node) {
+
+      switch (node.getOpcode()) {
+        case Opcodes.IFEQ:
+        case Opcodes.IFNE:
+        case Opcodes.IFLT:
+        case Opcodes.IFGE:
+        case Opcodes.IFGT:
+        case Opcodes.IFLE:
+          return true;
+        default:
+          return false;
+      }
+    }
+  };
+
   public abstract boolean match(AbstractInsnNode node);
-  
-  
+
+
 }

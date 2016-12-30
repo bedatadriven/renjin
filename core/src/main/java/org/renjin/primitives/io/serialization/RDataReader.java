@@ -505,15 +505,22 @@ public class RDataReader implements AutoCloseable {
     boolean locked = in.readInt() == 1;
     SEXP parent = readExp();
     SEXP frame = readExp();
-    SEXP hashtab = readExp(); // unused
+    SEXP hashtab = readExp();
 
+    for (int i = 0; i < hashtab.length(); ++i) {
+      PairList node = hashtab.getElementAsSEXP(i);
+      while (node != Null.INSTANCE) {
+        env.setVariable(node.getTag(), ((PairList.Node)node).getValue());
+        node = ((PairList.Node) node).getNext();
+      }
+    }
     // NB: environment's attributes is ALWAYS written,
     // regardless of flag
     SEXP attributes = readExp();
 
     env.setParent( parent == Null.INSTANCE ? Environment.EMPTY : (Environment)parent );
     env.setVariables( (PairList) frame );
-
+    env.setAttributes(AttributeMap.fromPairList((PairList) attributes));
 
     if(locked) {
       env.lock(true);

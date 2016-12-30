@@ -111,6 +111,9 @@ public class FloatPtr implements Ptr {
     if(voidPointer instanceof MallocThunk) {
       return ((MallocThunk) voidPointer).floatPtr();
     }
+    if(voidPointer == null) {
+      return NULL;
+    }
     return (FloatPtr) voidPointer;
   }
 }

@@ -16,31 +16,19 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.gcc.codegen.expr;
+package org.renjin.eval;
 
-import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.repackaged.asm.Type;
+import org.renjin.sexp.*;
 
-import javax.annotation.Nonnull;
+public class FinalizationClosure implements FinalizationHandler {
+  private Closure function;
 
-
-public class CloneInvocation implements JExpr {
-  
-  private JExpr instance;
-
-  public CloneInvocation(JExpr instance) {
-    this.instance = instance;
-  }
-
-  @Nonnull
-  @Override
-  public Type getType() {
-    return instance.getType();
+  public FinalizationClosure(Closure function) {
+    this.function = function;
   }
 
   @Override
-  public void load(@Nonnull MethodGenerator mv) {
-    instance.load(mv);
-    mv.invokevirtual(instance.getType().getInternalName(), "clone", Type.getMethodDescriptor(instance.getType()), false);
+  public void finalize(Context context, SEXP sexp) {
+    context.evaluate(new FunctionCall(function, PairList.Node.singleton(sexp)));
   }
 }

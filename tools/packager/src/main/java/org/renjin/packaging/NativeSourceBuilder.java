@@ -19,11 +19,13 @@
 package org.renjin.packaging;
 
 import org.renjin.gcc.GimpleCompiler;
+import org.renjin.gcc.HtmlTreeLogger;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.GimpleParser;
 import org.renjin.gnur.GnurSourcesCompiler;
+import org.renjin.primitives.packaging.Namespace;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.repackaged.guava.base.Predicate;
@@ -43,7 +45,10 @@ import java.util.regex.Pattern;
  */
 public class NativeSourceBuilder {
 
-  private static final List<String> SOURCE_EXTENSIONS = Lists.newArrayList("c", "f", "f77", "cpp", "cxx");
+  private static final List<String> SOURCE_EXTENSIONS = Lists.newArrayList(
+      "c",
+      "f", "f77", "f90", "f95", "f03", "for",
+      "cpp", "cxx");
 
   private PackageSource source;
   private BuildContext buildContext;
@@ -57,11 +62,35 @@ public class NativeSourceBuilder {
   }
 
   public void build() throws IOException, InterruptedException {
-
+    configure();
     make();
     compileGimple();
     buildContext.getLogger().info("Compilation of GNU R sources succeeded.");
-//    archiveHeaders();
+  }
+
+  private void configure() throws IOException, InterruptedException {
+
+    File configure = new File(source.getPackageDir(), "configure");
+    if(!configure.exists()) {
+      buildContext.getLogger().debug("No ./configure script found at " + configure.getAbsolutePath() +
+          ", skipping...");
+      return;
+    }
+
+    buildContext.getLogger().debug("Running Configure...");
+
+    // Setup process
+    ProcessBuilder builder = new ProcessBuilder()
+        .command("sh", "configure")
+        .directory(source.getPackageDir())
+        .inheritIO();
+
+    builder.environment().put("R_HOME", buildContext.getGnuRHomeDir().getAbsolutePath());
+
+    int exitCode = builder.start().waitFor();
+    if (exitCode != 0) {
+      throw new InternalCompilerException("Failed to execute ./configure");
+    }
   }
 
   private void make() throws IOException, InterruptedException {
@@ -73,7 +102,10 @@ public class NativeSourceBuilder {
     commandLine.add("make");
 
     // Combine R's default Makefile with package-specific Makevars if present
-    File makevars = new File(source.getNativeSourceDir(), "Makevars");
+    File makevars = new File(source.getNativeSourceDir(), "Makevars.renjin");
+    if (!makevars.exists()) {
+      makevars =  new File(source.getNativeSourceDir(), "Makevars");
+    }
     if (makevars.exists()) {
       commandLine.add("-f");
       commandLine.add("Makevars");
@@ -139,8 +171,14 @@ public class NativeSourceBuilder {
     GimpleCompiler compiler = new GimpleCompiler();
     compiler.setLinkClassLoader(buildContext.getClassLoader());
     compiler.setOutputDirectory(buildContext.getOutputDir());
-    compiler.setPackageName(source.getGroupId() + "." + source.getPackageName());
-    compiler.setClassName(source.getPackageName());
+    compiler.setPackageName(source.getGroupId() + "." +
+        Namespace.sanitizePackageNameForClassFiles(source.getPackageName()));
+    compiler.setClassName(
+        Namespace.sanitizePackageNameForClassFiles(source.getPackageName()));
+
+    if (buildContext.getCompileLogDir() != null) {
+      compiler.setLogger(new HtmlTreeLogger(buildContext.getCompileLogDir()));
+    }
 
     if(entryPoints != null && !entryPoints.isEmpty()) {
       compiler.setEntryPointPredicate(new Predicate<GimpleFunction>() {

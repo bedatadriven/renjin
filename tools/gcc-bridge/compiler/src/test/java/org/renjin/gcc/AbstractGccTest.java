@@ -96,7 +96,7 @@ public abstract class AbstractGccTest {
     return Class.forName(PACKAGE_NAME + "." + className);
   }
   
-  protected final void compileAndTest(String source) throws Exception {
+  protected final Class<?> compileAndTest(String source) throws Exception {
     Class<?> clazz = compile(source);
 
     boolean testsRun = false;
@@ -115,6 +115,8 @@ public abstract class AbstractGccTest {
     if(!testsRun) {
       throw new IllegalStateException("No test_ methods declared: " + methods);
     }
+
+    return clazz;
   }
   
 

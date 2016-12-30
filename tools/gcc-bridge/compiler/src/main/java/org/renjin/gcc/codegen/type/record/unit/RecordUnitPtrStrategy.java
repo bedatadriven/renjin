@@ -54,7 +54,7 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>
 
   @Override
   public ParamStrategy getParamStrategy() {
-    return new RefPtrParamStrategy<>(this);
+    return new RecordUnitPtrParam(this);
   }
 
   @Override

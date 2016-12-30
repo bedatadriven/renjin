@@ -20,6 +20,7 @@ package org.renjin.primitives;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.eval.FinalizationClosure;
 import org.renjin.invoke.annotations.*;
 import org.renjin.repackaged.guava.base.Objects;
 import org.renjin.repackaged.guava.base.Predicate;
@@ -187,6 +188,11 @@ public final class Environments {
   @Internal
   public static boolean environmentIsLocked(Environment env) {
     return env.isLocked();
+  }
+
+  @Internal
+  public static boolean bindingIsActive(Symbol symbol, Environment env) {
+    return false;
   }
 
   /*----------------------------------------------------------------------
@@ -410,6 +416,6 @@ public final class Environments {
   public static void registerFinalizer(@Current org.renjin.eval.Session session,
                                        Environment environment, Closure function, boolean onExit) {
 
-    session.registerFinalizer(environment, function, onExit);
+    session.registerFinalizer(environment, new FinalizationClosure(function), onExit);
   }
 }

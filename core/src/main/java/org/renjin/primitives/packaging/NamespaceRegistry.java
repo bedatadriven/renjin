@@ -207,15 +207,26 @@ public class NamespaceRegistry {
         // set up the namespace
         populateNamespace(context, pkg, namespace);
 
-        // setup namespace from NAMESPACE file
-        setupImportsExports(context, pkg, namespace);
+        // set up the imported symbols
+        CharSource namespaceSource = pkg.getResource("NAMESPACE").asCharSource(Charsets.UTF_8);
+        NamespaceFile namespaceFile = NamespaceFile.parse(context, namespaceSource);
+
+        namespace.initImports(context, this, namespaceFile);
 
         // invoke the .onLoad hook
+        // (Before we export symbols!)
         if(namespace.getNamespaceEnvironment().hasVariable(Symbol.get(".onLoad"))) {
           StringVector nameArgument = StringVector.valueOf(pkg.getName().getPackageName());
           context.evaluate(FunctionCall.newCall(Symbol.get(".onLoad"), nameArgument, nameArgument),
               namespace.getNamespaceEnvironment());
         }
+
+        // finally export symbols from the namespace
+        namespace.initExports(namespaceFile);
+        namespace.registerS3Methods(context, namespaceFile);
+
+        // Update our method name lookup
+        nativeSymbolMap.putAll(namespace.getNativeSymbolMap());
 
         return Optional.of(namespace);
 
@@ -238,29 +249,6 @@ public class NamespaceRegistry {
   private void populateNamespace(Context context, Package pkg, Namespace namespace) throws IOException {
     for(NamedValue value : pkg.loadSymbols(context)) {
       namespace.getNamespaceEnvironment().setVariable(Symbol.get(value.getName()), value.getValue());
-    }
-  }
-
-  /**
-   * Sets up imports and exports defined in the NAMESPACE file.
-   *
-   */
-  private void setupImportsExports(Context context, Package pkg, Namespace namespace) throws IOException {
-
-    try {
-      CharSource namespaceSource = pkg.getResource("NAMESPACE").asCharSource(Charsets.UTF_8);
-      NamespaceFile namespaceFile = NamespaceFile.parse(context, namespaceSource);
-
-      namespace.initImports(context, this, namespaceFile);
-      namespace.initExports(namespaceFile);
-      namespace.registerS3Methods(context, namespaceFile);
-
-      // Update our method name lookup
-      nativeSymbolMap.putAll(namespace.getNativeSymbolMap());
-      
-    } catch (Exception e) {
-      throw new EvalException("Exception setting up imports/exports for namespace " + namespace.getName() +
-          ": " + e.getMessage(), e);
     }
   }
 

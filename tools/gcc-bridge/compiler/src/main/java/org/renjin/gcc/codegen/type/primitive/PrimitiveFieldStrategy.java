@@ -39,7 +39,7 @@ public class PrimitiveFieldStrategy extends SingleFieldStrategy {
   }
 
   @Override
-  public GExpr memberExpr(JExpr instance, int offset, int size, TypeStrategy expectedType) {
+  public GExpr memberExpr(MethodGenerator mv, JExpr instance, int offset, int size, TypeStrategy expectedType) {
     
     JLValue fieldExpr = Expressions.field(instance, fieldType, fieldName);
     

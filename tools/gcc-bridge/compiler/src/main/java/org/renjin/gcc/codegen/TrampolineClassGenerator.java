@@ -63,7 +63,7 @@ public class TrampolineClassGenerator {
   
   public void emitTrampolineMethod(FunctionGenerator functionGenerator) {
     MethodVisitor mv = cv.visitMethod(ACC_PUBLIC | ACC_STATIC,
-        functionGenerator.getMangledName(),
+        functionGenerator.getSafeMangledName(),
         functionGenerator.getFunctionDescriptor(),
         null, null);
     
@@ -77,7 +77,7 @@ public class TrampolineClassGenerator {
       }
     }
     mv.visitMethodInsn(Opcodes.INVOKESTATIC, functionGenerator.getClassName(), 
-        functionGenerator.getMangledName(),
+        functionGenerator.getSafeMangledName(),
         functionGenerator.getFunctionDescriptor(),
         false);
     

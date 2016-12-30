@@ -30,12 +30,10 @@ import org.renjin.repackaged.guava.io.CharStreams;
 import org.renjin.repackaged.guava.io.Files;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * Package DESCRIPTION file
@@ -43,6 +41,8 @@ import java.util.List;
 public class PackageDescription {
 
   private ArrayListMultimap<String, String> properties = ArrayListMultimap.create();
+
+
 
   public static class PackageDependency {
     private String name;
@@ -244,12 +244,28 @@ public class PackageDescription {
     return getFirstProperty("Package");
   }
 
+  public void setProperty(String name, String value) {
+    properties.replaceValues(name, Collections.singleton(value));
+  }
+
+  public void setPackage(String packageName) {
+    setProperty("Package", packageName);
+  }
+
   public String getTitle() {
     return getFirstProperty("Title");
   }
 
+  public void setTitle(String title) {
+    setProperty("Title", title);
+  }
+
   public String getVersion() {
     return getFirstProperty("Version");
+  }
+
+  public void setVersion(String version) {
+    setProperty("Version", version);
   }
 
   public Iterable<Person> getAuthors() {
@@ -272,7 +288,7 @@ public class PackageDescription {
     return getPackageDependencyList("Depends");
   }
 
-  private Iterable<PackageDependency> getPackageDependencyList(String property) {
+  public Iterable<PackageDependency> getPackageDependencyList(String property) {
     String list = getFirstProperty(property);
     if(Strings.isNullOrEmpty(list)) {
       return Collections.emptySet();
@@ -297,5 +313,17 @@ public class PackageDescription {
     String needed = Strings.nullToEmpty(getFirstProperty("NeedsCompilation")).trim();
     
     return "yes".equalsIgnoreCase(needed);
+  }
+
+
+  public void writeTo(File description) throws IOException {
+    try(FileWriter writer = new FileWriter(description)) {
+      for (Map.Entry<String, String> entry : properties.entries()) {
+        writer.append(entry.getKey());
+        writer.append(": ");
+        writer.append(entry.getValue());
+        writer.append("\n");
+      }
+    }
   }
 }

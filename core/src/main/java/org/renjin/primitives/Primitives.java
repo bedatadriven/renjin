@@ -59,12 +59,16 @@ import org.renjin.stats.internals.optimize.Roots;
 
 import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Primitives {
 
-  private IdentityHashMap<Symbol, PrimitiveFunction> builtins = new IdentityHashMap<Symbol, PrimitiveFunction>();
-  private IdentityHashMap<Symbol, PrimitiveFunction> internals = new IdentityHashMap<Symbol, PrimitiveFunction>();
+  private IdentityHashMap<Symbol, PrimitiveFunction> reserved = new IdentityHashMap<>();
+
+  private ConcurrentHashMap<Symbol, PrimitiveFunction> builtins = new ConcurrentHashMap<>();
+  private ConcurrentHashMap<Symbol, PrimitiveFunction> internals = new ConcurrentHashMap<>();
 
   // these are loaded on demand
   private IdentityHashMap<Symbol, Entry> builtinEntries = new IdentityHashMap<Symbol, Entry>();
@@ -76,32 +80,43 @@ public class Primitives {
     return getBuiltin(Symbol.get(name));
   }
 
+  public static PrimitiveFunction getReservedBuiltin(Symbol symbol) {
+    assert symbol.isReservedWord();
+    PrimitiveFunction fn = INSTANCE.reserved.get(symbol);
+    assert fn != null : "missing reserved: " + symbol;
+    return fn;
+  }
+
   public static PrimitiveFunction getBuiltin(Symbol symbol) {
-    synchronized (INSTANCE) {
-      PrimitiveFunction fn = INSTANCE.builtins.get(symbol);
-      if(fn == null) {
-        Entry entry = INSTANCE.builtinEntries.get(symbol);
-        if(entry != null) {
-          fn = createFunction(entry);
-          INSTANCE.builtins.put(symbol, fn);
-        }
-      }
-      return fn;
-    }
+    return getPrimitive(INSTANCE.builtinEntries, INSTANCE.builtins, symbol);
   }
 
   public static PrimitiveFunction getInternal(Symbol symbol) {
-    synchronized (INSTANCE) {
-      PrimitiveFunction fn = INSTANCE.internals.get(symbol);
-      if(fn == null) {
-        Entry entry = INSTANCE.internalEntries.get(symbol);
-        if(entry != null) {
-          fn = createFunction(entry);
-          INSTANCE.internals.put(symbol, fn);
-        }
-      }
-      return fn;
+    return getPrimitive(INSTANCE.internalEntries, INSTANCE.internals, symbol);
+  }
+
+  private static PrimitiveFunction getPrimitive(IdentityHashMap<Symbol, Entry> entryMap,
+                                                ConcurrentHashMap<Symbol, PrimitiveFunction> cache,
+                                                Symbol symbol) {
+
+    PrimitiveFunction existing = cache.get(symbol);
+    if(existing != null) {
+      return existing;
     }
+
+    Entry entry = entryMap.get(symbol);
+    if(entry == null) {
+      // No such primitive
+      return null;
+    }
+
+    PrimitiveFunction newFunction = createFunction(entry);
+    existing = cache.putIfAbsent(symbol, newFunction);
+    if(existing != null) {
+      return existing;
+    }
+
+    return newFunction;
   }
 
   public static List<Entry> getEntries() {
@@ -683,9 +698,7 @@ public class Primitives {
     f("print.function", Print.class, 111);
     f("prmatrix", /*prmatrix*/ null, 111);
     f("invisible", Types.class, 101);
-    f("gc", System.class, 11);
-    f("gcinfo", /*gcinfo*/ null, 11);
-    f("gctorture", /*gctorture*/ null, 11);
+
     f("memory.profile", /*memoryprofile*/ null, 11);
     add(new RepFunction());
     f("rep.int", Sequences.class, 11);
@@ -783,7 +796,6 @@ public class Primitives {
     f("parent.env", Environments.class, 11);
     f("parent.env<-", Environments.class, 11);
     f("visibleflag", /*visibleflag*/ null, 1);
-    f("l10n_info", /*l10n_info*/ null, 11);
     f("Cstack_info", /*Cstack_info*/ null, 11);
     f("startHTTPD", /*startHTTPD*/ null, 11);
     f("stopHTTPD", /*stopHTTPD*/ null, 11);
@@ -805,6 +817,7 @@ public class Primitives {
     f("file.info", Files.class, 11);
     f("file.access", Files.class, 11);
     f("dir.create", Files.class, 11);
+    f("dir.exists", Files.class, 11);
     f("tempfile", Files.class, 11);
     f("tempdir", Files.class, 11);
     f("R.home", System.class, "getRHome", 11);
@@ -854,7 +867,6 @@ public class Primitives {
     f("hsv", RgbHsv.class, 11);
     f("hcl", /*hcl*/ null, 11);
     f("gray", RgbHsv.class, 11);
-    f("colors", /*colors*/ null, 11);
     f("col2rgb", RgbHsv.class, 11);
     f("palette", /*palette*/ null, 11);
     f("plot.new", Plot.class, 111);
@@ -990,7 +1002,7 @@ public class Primitives {
     f("unlockBinding", Environments.class, 111);
     f("bindingIsLocked", Environments.class, 11);
     f("makeActiveBinding", /*mkActiveBnd*/ null, 111);
-    f("bindingIsActive", /*bndIsActive*/ null, 11);
+    f("bindingIsActive", Environments.class, 11);
 /* looks like mkUnbound is unused in base R */
     f("mkUnbound", /*mkUnbound*/ null, 111);
     f("isNamespace", Namespaces.class, 0);
@@ -1024,17 +1036,39 @@ public class Primitives {
     f("library", Packages.class, 11);
     f("require", Packages.class, 11);
 
+    // bitwise
+    f("bitwiseNot", Bitwise.class, 11);
+    f("bitwiseXor", Bitwise.class, 11);
+    f("bitwiseShiftL", Bitwise.class, 11);
+    f("bitwiseShiftR", Bitwise.class, 11);
+    f("bitwiseAnd", Bitwise.class, 11);
+    f("bitwiseOr", Bitwise.class, 11);
+
+    // Build map of reserved functions
+    for (Map.Entry<Symbol, PrimitiveFunction> entry : builtins.entrySet()) {
+      if(entry.getKey().isReservedWord()) {
+        reserved.put(entry.getKey(), entry.getValue());
+      }
+    }
+    for (Map.Entry<Symbol, Entry> entry : builtinEntries.entrySet()) {
+      if(entry.getKey().isReservedWord()) {
+        PrimitiveFunction fn = createFunction(entry.getValue());
+        builtins.put(entry.getKey(), fn);
+        reserved.put(entry.getKey(), fn);
+      }
+    }
   }
 
   private void add(SpecialFunction fn) {
     builtins.put(Symbol.get(fn.getName()), fn);
   }
 
-  private void add(Entry entry) {     
+  private void add(Entry entry) {
+    Symbol symbol = Symbol.get(entry.name);
     if (entry.isInternal()) {
-      internalEntries.put(Symbol.get(entry.name), entry);
+      internalEntries.put(symbol, entry);
     } else {
-      builtinEntries.put(Symbol.get(entry.name), entry);
+      builtinEntries.put(symbol, entry);
     }
   }
 

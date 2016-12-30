@@ -53,6 +53,10 @@ public class BitwiseNot implements JExpr {
       mv.iconst(0xFF);
       mv.xor(Type.BYTE_TYPE);
 
+    } else if (argument.getType().equals(Type.BOOLEAN_TYPE)) {
+      mv.iconst(0x1);
+      mv.xor(Type.BOOLEAN_TYPE);
+
     } else if (argument.getType().equals(Type.CHAR_TYPE)) {
       // unsigned 16 bit
       mv.iconst(0xFFFF);

@@ -18,7 +18,9 @@
  */
 package org.renjin.gcc;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
 
 /**
  * Supports detailed logging of the compilation process
@@ -26,15 +28,14 @@ import java.io.IOException;
 public abstract class TreeLogger {
 
 
+  public abstract boolean isEnabled();
+
   public enum Level {
     INFO,
     DEBUG
   }
-  
-  
-  public final void info(String message) {
-    log(Level.INFO, message);
-  }
+
+  public abstract PrintWriter debugLog(String name);
 
   public final TreeLogger branch(String message) {
     return branch(Level.INFO, message);
@@ -43,6 +44,8 @@ public abstract class TreeLogger {
   public final void debug(String message) {
     log(Level.DEBUG, message);
   }
+
+  public abstract void dump(String dir, String file, String ext, Object value);
 
   public abstract void log(Level level, String message);
 

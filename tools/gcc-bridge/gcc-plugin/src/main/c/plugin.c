@@ -394,6 +394,8 @@ static void dump_constructor(tree node) {
   unsigned HOST_WIDE_INT ix;
   tree field, val;
   bool is_struct_init = FALSE;
+
+  json_bool_field("clobber", TREE_CLOBBER_P(node));
   
  json_array_field("elements");
 
@@ -1017,17 +1019,7 @@ static unsigned int dump_function (void)
   json_string_field("mangledName", IDENTIFIER_POINTER(DECL_ASSEMBLER_NAME(cfun->decl)));
   json_bool_field("weak", DECL_WEAK(cfun->decl));
   json_bool_field("inline", DECL_DECLARED_INLINE_P(cfun->decl));
-  
-  json_array_field("aliases");
-  
-  struct cgraph_node *cgn = cgraph_node(cfun->decl);
-  struct cgraph_node *n;
-  for (n = cgn->same_body; n; n = n->next)
-  {
-    json_string_value(IDENTIFIER_POINTER(DECL_ASSEMBLER_NAME(n->decl)));
-  }
-  json_end_array();
-    
+
   json_bool_field("extern", TREE_PUBLIC(cfun->decl));
   
   TRACE("dump_function: dumping arguments...\n");
@@ -1128,13 +1120,37 @@ static void start_unit_callback (void *gcc_data, void *user_data)
   json_start_object();
   json_string_field("mainInputFilename", main_input_filename);
   json_array_field("functions");
-  
+
+}
+
+static void dump_aliases() {
+
+  TRACE("dump_function: checking aliases\n");
+  json_array_field("aliases");
+
+  struct cgraph_node *n;
+
+  FOR_EACH_DEFINED_FUNCTION(n) {
+    if (DECL_ASSEMBLER_NAME_SET_P (n->decl)) {
+      if(n->alias && n->thunk.alias) {
+          json_start_object();
+          json_string_field("alias",  IDENTIFIER_POINTER(DECL_ASSEMBLER_NAME(n->decl)));
+          json_string_field("definition",  IDENTIFIER_POINTER(DECL_ASSEMBLER_NAME(n->thunk.alias)));
+          json_bool_field("extern", TREE_PUBLIC(n->decl));
+          json_end_object();
+      }
+    }
+  }
+
+  json_end_array();
 }
 
 static void finish_unit_callback (void *gcc_data, void *user_data)
 {
   int i;
   json_end_array();
+
+  dump_aliases();
   
   dump_global_vars();
 
@@ -1160,7 +1176,7 @@ static struct gimple_opt_pass dump_functions_pass =
       NULL,		        /* sub */
       NULL,		        /* next */
       0,		          /* static_pass_number */
-      0,		          /* tv_id */
+      TV_NONE,	         /* tv_id */
       PROP_cfg | PROP_referenced_vars,   		/* properties_required */
       0,		          /* properties_provided */
       0,		          /* properties_destroyed */

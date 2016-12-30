@@ -208,12 +208,13 @@ public class TestExecutor {
         repl.run();
         sendMessage(PASS_MESSAGE);
 
-        // Note that we only catch Exceptions here --
-        // Errors should NOT be caught as we should allow the JVM to cleanup and shutdown
-        // a new JVM will be started for the subsequent test.
-      } catch (Exception e) {
+      } catch (Throwable e) {
         e.printStackTrace(testOutput);
         sendMessage(FAIL_MESSAGE);
+
+        if(e instanceof OutOfMemoryError) {
+          throw (OutOfMemoryError)e;
+        }
         return;
       }
 

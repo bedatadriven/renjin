@@ -23,7 +23,7 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
 import org.renjin.primitives.Warning;
-import org.renjin.primitives.text.regex.ExtendedRE;
+import org.renjin.primitives.text.regex.ExtendedPattern;
 import org.renjin.primitives.text.regex.REFactory;
 import org.renjin.primitives.text.regex.RESyntaxException;
 import org.renjin.repackaged.guava.base.Predicate;
@@ -32,12 +32,9 @@ import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.io.ByteStreams;
 import org.renjin.sexp.*;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -382,7 +379,7 @@ public class Files {
           nameFilter = Predicates.alwaysTrue();
         } else {
           try {
-            nameFilter = REFactory.asPredicate(new ExtendedRE(pattern).ignoreCase(ignoreCase));
+            nameFilter = REFactory.asPredicate(new ExtendedPattern(pattern).ignoreCase(ignoreCase));
           } catch (RESyntaxException e) {
             throw new EvalException("Invalid pattern '%s': %s", pattern, e.getMessage());
           }

@@ -26,7 +26,7 @@ import java.util.Hashtable;
  * with RE.  For a description of the syntax accepted by RECompiler and what you can
  * do with regular expressions, see the documentation for the RE matcher class.
  *
- * @see ExtendedRE
+ * @see ExtendedPattern
  *
  * @author <a href="mailto:jonl@muppetlabs.com">Jonathan Locke</a>
  * @author <a href="mailto:gholam@xtra.co.nz">Michael McCallum</a>
@@ -63,20 +63,20 @@ public class RECompiler
     static final Hashtable hashPOSIX = new Hashtable();
     static
     {
-        hashPOSIX.put("alnum",     new Character(ExtendedRE.POSIX_CLASS_ALNUM));
-        hashPOSIX.put("alpha",     new Character(ExtendedRE.POSIX_CLASS_ALPHA));
-        hashPOSIX.put("blank",     new Character(ExtendedRE.POSIX_CLASS_BLANK));
-        hashPOSIX.put("cntrl",     new Character(ExtendedRE.POSIX_CLASS_CNTRL));
-        hashPOSIX.put("digit",     new Character(ExtendedRE.POSIX_CLASS_DIGIT));
-        hashPOSIX.put("graph",     new Character(ExtendedRE.POSIX_CLASS_GRAPH));
-        hashPOSIX.put("lower",     new Character(ExtendedRE.POSIX_CLASS_LOWER));
-        hashPOSIX.put("print",     new Character(ExtendedRE.POSIX_CLASS_PRINT));
-        hashPOSIX.put("punct",     new Character(ExtendedRE.POSIX_CLASS_PUNCT));
-        hashPOSIX.put("space",     new Character(ExtendedRE.POSIX_CLASS_SPACE));
-        hashPOSIX.put("upper",     new Character(ExtendedRE.POSIX_CLASS_UPPER));
-        hashPOSIX.put("xdigit",    new Character(ExtendedRE.POSIX_CLASS_XDIGIT));
-        hashPOSIX.put("javastart", new Character(ExtendedRE.POSIX_CLASS_JSTART));
-        hashPOSIX.put("javapart",  new Character(ExtendedRE.POSIX_CLASS_JPART));
+        hashPOSIX.put("alnum",     new Character(ExtendedPattern.POSIX_CLASS_ALNUM));
+        hashPOSIX.put("alpha",     new Character(ExtendedPattern.POSIX_CLASS_ALPHA));
+        hashPOSIX.put("blank",     new Character(ExtendedPattern.POSIX_CLASS_BLANK));
+        hashPOSIX.put("cntrl",     new Character(ExtendedPattern.POSIX_CLASS_CNTRL));
+        hashPOSIX.put("digit",     new Character(ExtendedPattern.POSIX_CLASS_DIGIT));
+        hashPOSIX.put("graph",     new Character(ExtendedPattern.POSIX_CLASS_GRAPH));
+        hashPOSIX.put("lower",     new Character(ExtendedPattern.POSIX_CLASS_LOWER));
+        hashPOSIX.put("print",     new Character(ExtendedPattern.POSIX_CLASS_PRINT));
+        hashPOSIX.put("punct",     new Character(ExtendedPattern.POSIX_CLASS_PUNCT));
+        hashPOSIX.put("space",     new Character(ExtendedPattern.POSIX_CLASS_SPACE));
+        hashPOSIX.put("upper",     new Character(ExtendedPattern.POSIX_CLASS_UPPER));
+        hashPOSIX.put("xdigit",    new Character(ExtendedPattern.POSIX_CLASS_XDIGIT));
+        hashPOSIX.put("javastart", new Character(ExtendedPattern.POSIX_CLASS_JSTART));
+        hashPOSIX.put("javapart",  new Character(ExtendedPattern.POSIX_CLASS_JPART));
     }
 
     /**
@@ -138,14 +138,14 @@ public class RECompiler
     void nodeInsert(char opcode, int opdata, int insertAt)
     {
         // Make room for a new node
-        ensure(ExtendedRE.nodeSize);
+        ensure(ExtendedPattern.nodeSize);
 
         // Move everything from insertAt to the end down nodeSize elements
-        System.arraycopy(instruction, insertAt, instruction, insertAt + ExtendedRE.nodeSize, lenInstruction - insertAt);
+        System.arraycopy(instruction, insertAt, instruction, insertAt + ExtendedPattern.nodeSize, lenInstruction - insertAt);
         instruction[insertAt /* + RE.offsetOpcode */] = opcode;
-        instruction[insertAt    + ExtendedRE.offsetOpdata   ] = (char) opdata;
-        instruction[insertAt    + ExtendedRE.offsetNext     ] = 0;
-        lenInstruction += ExtendedRE.nodeSize;
+        instruction[insertAt    + ExtendedPattern.offsetOpdata   ] = (char) opdata;
+        instruction[insertAt    + ExtendedPattern.offsetNext     ] = 0;
+        lenInstruction += ExtendedPattern.nodeSize;
     }
 
     /**
@@ -155,7 +155,7 @@ public class RECompiler
      */
     void setNextOfEnd(int node, int pointTo) throws RESyntaxException {
         // Traverse the chain until the next offset is 0
-        int next = instruction[node + ExtendedRE.offsetNext];
+        int next = instruction[node + ExtendedPattern.offsetNext];
         // while the 'node' is not the last in the chain
         // and the 'node' is not the last in the program.
         while ( next != 0 && node < lenInstruction )
@@ -170,7 +170,7 @@ public class RECompiler
                 pointTo = lenInstruction;
             }
             node += next;
-            next = instruction[node + ExtendedRE.offsetNext];
+            next = instruction[node + ExtendedPattern.offsetNext];
         }
 
         // if we have reached the end of the program then dont set the pointTo.
@@ -185,7 +185,7 @@ public class RECompiler
             }
 
             // Point the last node in the chain to pointTo.
-            instruction[node + ExtendedRE.offsetNext] = (char) (short) offset;
+            instruction[node + ExtendedPattern.offsetNext] = (char) (short) offset;
         }
     }
 
@@ -198,16 +198,16 @@ public class RECompiler
     int node(char opcode, int opdata)
     {
         // Make room for a new node
-        ensure(ExtendedRE.nodeSize);
+        ensure(ExtendedPattern.nodeSize);
 
         // Add new node at end
         instruction[lenInstruction /* + RE.offsetOpcode */] = opcode;
-        instruction[lenInstruction    + ExtendedRE.offsetOpdata   ] = (char) opdata;
-        instruction[lenInstruction    + ExtendedRE.offsetNext     ] = 0;
-        lenInstruction += ExtendedRE.nodeSize;
+        instruction[lenInstruction    + ExtendedPattern.offsetOpdata   ] = (char) opdata;
+        instruction[lenInstruction    + ExtendedPattern.offsetNext     ] = 0;
+        lenInstruction += ExtendedPattern.nodeSize;
 
         // Return index of new node
-        return lenInstruction - ExtendedRE.nodeSize;
+        return lenInstruction - ExtendedPattern.nodeSize;
     }
 
 
@@ -358,16 +358,16 @@ public class RECompiler
         char escapeChar = pattern.charAt(idx - 1);
         switch (escapeChar)
         {
-            case ExtendedRE.E_BOUND:
-            case ExtendedRE.E_NBOUND:
+            case ExtendedPattern.E_BOUND:
+            case ExtendedPattern.E_NBOUND:
                 return ESC_COMPLEX;
 
-            case ExtendedRE.E_ALNUM:
-            case ExtendedRE.E_NALNUM:
-            case ExtendedRE.E_SPACE:
-            case ExtendedRE.E_NSPACE:
-            case ExtendedRE.E_DIGIT:
-            case ExtendedRE.E_NDIGIT:
+            case ExtendedPattern.E_ALNUM:
+            case ExtendedPattern.E_NALNUM:
+            case ExtendedPattern.E_SPACE:
+            case ExtendedPattern.E_NSPACE:
+            case ExtendedPattern.E_DIGIT:
+            case ExtendedPattern.E_NDIGIT:
                 return ESC_CLASS;
 
             case 'x':
@@ -494,7 +494,7 @@ public class RECompiler
         }
 
         // Try to build a class.  Create OP_ANYOF node
-        int ret = node(ExtendedRE.OP_ANYOF, 0);
+        int ret = node(ExtendedPattern.OP_ANYOF, 0);
 
         // Parse class declaration
         char CHAR_INVALID = Character.MAX_VALUE;
@@ -593,14 +593,14 @@ public class RECompiler
                             // Handle specific type of class (some are ok)
                             switch (pattern.charAt(idx - 1))
                             {
-                                case ExtendedRE.E_NSPACE:
+                                case ExtendedPattern.E_NSPACE:
                                     range.include(Character.MIN_VALUE, 7, include);   // [Min - \b )
                                     range.include((char) 11, include);                // ( \n - \f )
                                     range.include(14, 31, include);                   // ( \r - ' ')
                                     range.include(33, Character.MAX_VALUE, include);  // (' ' - Max]
                                     break;
 
-                                case ExtendedRE.E_NALNUM:
+                                case ExtendedPattern.E_NALNUM:
                                     range.include(Character.MIN_VALUE, '/', include); // [Min - '0')
                                     range.include(':', '@', include);                 // ('9' - 'A')
                                     range.include('[', '^', include);                 // ('Z' - '_')
@@ -608,12 +608,12 @@ public class RECompiler
                                     range.include('{', Character.MAX_VALUE, include); // ('z' - Max]
                                     break;
 
-                                case ExtendedRE.E_NDIGIT:
+                                case ExtendedPattern.E_NDIGIT:
                                     range.include(Character.MIN_VALUE, '/', include); // [Min - '0')
                                     range.include(':', Character.MAX_VALUE, include); // ('9' - Max]
                                     break;
 
-                                case ExtendedRE.E_SPACE:
+                                case ExtendedPattern.E_SPACE:
                                     range.include('\t', include);
                                     range.include('\r', include);
                                     range.include('\f', include);
@@ -622,14 +622,14 @@ public class RECompiler
                                     range.include(' ', include);
                                     break;
 
-                                case ExtendedRE.E_ALNUM:
+                                case ExtendedPattern.E_ALNUM:
                                     range.include('a', 'z', include);
                                     range.include('A', 'Z', include);
                                     range.include('_', include);
 
                                     // Fall through!
 
-                                case ExtendedRE.E_DIGIT:
+                                case ExtendedPattern.E_DIGIT:
                                     range.include('0', '9', include);
                                     break;
                             }
@@ -718,7 +718,7 @@ public class RECompiler
         idx++;
 
         // Emit character class definition
-        instruction[ret + ExtendedRE.offsetOpdata] = (char)range.num;
+        instruction[ret + ExtendedPattern.offsetOpdata] = (char)range.num;
         for (int i = 0; i < range.num; i++)
         {
             emit((char)range.minRange[i]);
@@ -768,7 +768,7 @@ public class RECompiler
     int atom() throws RESyntaxException
     {
         // Create a string node
-        int ret = node(ExtendedRE.OP_ATOM, 0);
+        int ret = node(ExtendedPattern.OP_ATOM, 0);
 
         // Length of atom
         int lenAtom = 0;
@@ -876,7 +876,7 @@ public class RECompiler
         }
 
         // Emit the atom length into the program
-        instruction[ret + ExtendedRE.offsetOpdata] = (char)lenAtom;
+        instruction[ret + ExtendedPattern.offsetOpdata] = (char)lenAtom;
         return ret;
     }
 
@@ -890,9 +890,9 @@ public class RECompiler
     {
         switch (pattern.charAt(idx))
         {
-        case ExtendedRE.OP_EOL:
-        case ExtendedRE.OP_BOL:
-        case ExtendedRE.OP_ANY:
+        case ExtendedPattern.OP_EOL:
+        case ExtendedPattern.OP_BOL:
+        case ExtendedPattern.OP_ANY:
             return node(pattern.charAt(idx++), 0);
 
         case '[':
@@ -930,7 +930,7 @@ public class RECompiler
                     case ESC_CLASS:
                     case ESC_COMPLEX:
                         flags[0] &= ~NODE_NULLABLE;
-                        return node(ExtendedRE.OP_ESCAPE, pattern.charAt(idx - 1));
+                        return node(ExtendedPattern.OP_ESCAPE, pattern.charAt(idx - 1));
 
                     case ESC_BACKREF:
                         {
@@ -940,7 +940,7 @@ public class RECompiler
                                 syntaxError("Bad backreference");
                             }
                             flags[0] |= NODE_NULLABLE;
-                            return node(ExtendedRE.OP_BACKREF, backreference);
+                            return node(ExtendedPattern.OP_BACKREF, backreference);
                         }
 
                     default:
@@ -1009,7 +1009,7 @@ public class RECompiler
 
                 // Don't allow blantant stupidity
                 int opcode = instruction[ret /* + RE.offsetOpcode */];
-                if (opcode == ExtendedRE.OP_BOL || opcode == ExtendedRE.OP_EOL)
+                if (opcode == ExtendedPattern.OP_BOL || opcode == ExtendedPattern.OP_EOL)
                 {
                     syntaxError("Bad closure operand");
                 }
@@ -1051,39 +1051,39 @@ public class RECompiler
                         // Drop through now and closure expression.
                         // We are done with the {m,} expr, so skip rest
                         idx = bracketEnd;
-                        nodeInsert(ExtendedRE.OP_STAR, 0, pos);
-                        setNextOfEnd(pos + ExtendedRE.nodeSize, pos);
+                        nodeInsert(ExtendedPattern.OP_STAR, 0, pos);
+                        setNextOfEnd(pos + ExtendedPattern.nodeSize, pos);
                         break;
                     }
                     else if (bracketOpt > 0)
                     {
                         int opt[] = new int[bracketOpt + 1];
                         // Surround first optional terminal with MAYBE
-                        nodeInsert(ExtendedRE.OP_MAYBE, 0, pos);
+                        nodeInsert(ExtendedPattern.OP_MAYBE, 0, pos);
                         opt[0] = pos;
 
                         // Add all the rest optional terminals with preceeding MAYBEs
                         for (int c = 1; c < bracketOpt; c++)
                         {
-                            opt[c] = node(ExtendedRE.OP_MAYBE, 0);
+                            opt[c] = node(ExtendedPattern.OP_MAYBE, 0);
                             // Rewind stream and run it through again - more matchers coming
                             idx = idxBeforeTerminal;
                             terminal(terminalFlags);
                         }
 
                         // Tie ends together
-                        int end = opt[bracketOpt] = node(ExtendedRE.OP_NOTHING, 0);
+                        int end = opt[bracketOpt] = node(ExtendedPattern.OP_NOTHING, 0);
                         for (int c = 0; c < bracketOpt; c++)
                         {
                             setNextOfEnd(opt[c], end);
-                            setNextOfEnd(opt[c] + ExtendedRE.nodeSize, opt[c + 1]);
+                            setNextOfEnd(opt[c] + ExtendedPattern.nodeSize, opt[c + 1]);
                         }
                     }
                     else
                     {
                         // Rollback terminal - no opt matchers present
                         lenInstruction = pos;
-                        node(ExtendedRE.OP_NOTHING, 0);
+                        node(ExtendedPattern.OP_NOTHING, 0);
                     }
 
                     // We are done. skip the reminder of {m,n} expr
@@ -1093,25 +1093,25 @@ public class RECompiler
 
                 case '?':
                 {
-                    nodeInsert(ExtendedRE.OP_MAYBE, 0, ret);
-                    int n = node(ExtendedRE.OP_NOTHING, 0);
+                    nodeInsert(ExtendedPattern.OP_MAYBE, 0, ret);
+                    int n = node(ExtendedPattern.OP_NOTHING, 0);
                     setNextOfEnd(ret, n);
-                    setNextOfEnd(ret + ExtendedRE.nodeSize, n);
+                    setNextOfEnd(ret + ExtendedPattern.nodeSize, n);
                     break;
                 }
 
                 case '*':
                 {
-                    nodeInsert(ExtendedRE.OP_STAR, 0, ret);
-                    setNextOfEnd(ret + ExtendedRE.nodeSize, ret);
+                    nodeInsert(ExtendedPattern.OP_STAR, 0, ret);
+                    setNextOfEnd(ret + ExtendedPattern.nodeSize, ret);
                     break;
                 }
 
                 case '+':
                 {
-                    nodeInsert(ExtendedRE.OP_CONTINUE, 0, ret);
-                    int n = node(ExtendedRE.OP_PLUS, 0);
-                    setNextOfEnd(ret + ExtendedRE.nodeSize, n);
+                    nodeInsert(ExtendedPattern.OP_CONTINUE, 0, ret);
+                    int n = node(ExtendedPattern.OP_PLUS, 0);
+                    setNextOfEnd(ret + ExtendedPattern.nodeSize, n);
                     setNextOfEnd(n, ret);
                     break;
                 }
@@ -1124,26 +1124,26 @@ public class RECompiler
             {
                 case '?':
                 {
-                    nodeInsert(ExtendedRE.OP_RELUCTANTMAYBE, 0, ret);
-                    int n = node(ExtendedRE.OP_NOTHING, 0);
+                    nodeInsert(ExtendedPattern.OP_RELUCTANTMAYBE, 0, ret);
+                    int n = node(ExtendedPattern.OP_NOTHING, 0);
                     setNextOfEnd(ret, n);
-                    setNextOfEnd(ret + ExtendedRE.nodeSize, n);
+                    setNextOfEnd(ret + ExtendedPattern.nodeSize, n);
                     break;
                 }
 
                 case '*':
                 {
-                    nodeInsert(ExtendedRE.OP_RELUCTANTSTAR, 0, ret);
-                    setNextOfEnd(ret + ExtendedRE.nodeSize, ret);
+                    nodeInsert(ExtendedPattern.OP_RELUCTANTSTAR, 0, ret);
+                    setNextOfEnd(ret + ExtendedPattern.nodeSize, ret);
                     break;
                 }
 
                 case '+':
                 {
-                    nodeInsert(ExtendedRE.OP_CONTINUE, 0, ret);
-                    int n = node(ExtendedRE.OP_RELUCTANTPLUS, 0);
+                    nodeInsert(ExtendedPattern.OP_CONTINUE, 0, ret);
+                    int n = node(ExtendedPattern.OP_RELUCTANTPLUS, 0);
                     setNextOfEnd(n, ret);
-                    setNextOfEnd(ret + ExtendedRE.nodeSize, n);
+                    setNextOfEnd(ret + ExtendedPattern.nodeSize, n);
                     break;
                 }
             }
@@ -1193,7 +1193,7 @@ public class RECompiler
         // If we don't run loop, make a nothing node
         if (ret == -1)
         {
-            ret = node(ExtendedRE.OP_NOTHING, 0);
+            ret = node(ExtendedPattern.OP_NOTHING, 0);
         }
 
         // Set nullable flag for this branch
@@ -1226,7 +1226,7 @@ public class RECompiler
             {
                 paren = 2;
                 idx += 3;
-                ret = node(ExtendedRE.OP_OPEN_CLUSTER, 0);
+                ret = node(ExtendedPattern.OP_OPEN_CLUSTER, 0);
             } else {
                 
                 // This implementation doesn't support look ahead/behind assertions.
@@ -1247,7 +1247,7 @@ public class RECompiler
                 }
                 paren = 1;
                 idx++;
-                ret = node(ExtendedRE.OP_OPEN, parens++);
+                ret = node(ExtendedPattern.OP_OPEN, parens++);
             }
         }
         flags[0] &= ~NODE_TOPLEVEL;
@@ -1269,12 +1269,12 @@ public class RECompiler
         {
             // Now open the first branch since there are more than one
             if (!open) {
-                nodeInsert(ExtendedRE.OP_BRANCH, 0, branch);
+                nodeInsert(ExtendedPattern.OP_BRANCH, 0, branch);
                 open = true;
             }
 
             idx++;
-            setNextOfEnd(branch, branch = node(ExtendedRE.OP_BRANCH, 0));
+            setNextOfEnd(branch, branch = node(ExtendedPattern.OP_BRANCH, 0));
             branch(flags);
         }
 
@@ -1292,16 +1292,16 @@ public class RECompiler
             }
             if (paren == 1)
             {
-                end = node(ExtendedRE.OP_CLOSE, closeParens);
+                end = node(ExtendedPattern.OP_CLOSE, closeParens);
             }
             else
             {
-                end = node(ExtendedRE.OP_CLOSE_CLUSTER, 0);
+                end = node(ExtendedPattern.OP_CLOSE_CLUSTER, 0);
             }
         }
         else
         {
-            end = node(ExtendedRE.OP_END, 0);
+            end = node(ExtendedPattern.OP_END, 0);
         }
 
         // Append the ending node to the ret nodelist
@@ -1309,16 +1309,16 @@ public class RECompiler
 
         // Hook the ends of each branch to the end node
         int currentNode = ret;
-        int nextNodeOffset = instruction[currentNode + ExtendedRE.offsetNext];
+        int nextNodeOffset = instruction[currentNode + ExtendedPattern.offsetNext];
         // while the next node o
         while (nextNodeOffset != 0 && currentNode < lenInstruction)
         {
             // If branch, make the end of the branch's operand chain point to the end node.
-            if (instruction[currentNode /* + RE.offsetOpcode */] == ExtendedRE.OP_BRANCH)
+            if (instruction[currentNode /* + RE.offsetOpcode */] == ExtendedPattern.OP_BRANCH)
             {
-                setNextOfEnd(currentNode + ExtendedRE.nodeSize, end);
+                setNextOfEnd(currentNode + ExtendedPattern.nodeSize, end);
             }
-            nextNodeOffset = instruction[currentNode + ExtendedRE.offsetNext];
+            nextNodeOffset = instruction[currentNode + ExtendedPattern.offsetNext];
             currentNode += nextNodeOffset;
         }
 
@@ -1334,7 +1334,7 @@ public class RECompiler
      * @return A compiled regular expression program.
      * @exception RESyntaxException Thrown if the regular expression has invalid syntax.
      * @see RECompiler
-     * @see ExtendedRE
+     * @see ExtendedPattern
      */
     public REProgram compile(String pattern) throws RESyntaxException
     {

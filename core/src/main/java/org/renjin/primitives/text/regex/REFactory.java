@@ -22,6 +22,9 @@
 package org.renjin.primitives.text.regex;
 
 import org.renjin.eval.EvalException;
+import org.renjin.regexp.EmptyFixedPattern;
+import org.renjin.regexp.FixedPattern;
+import org.renjin.regexp.Pattern;
 import org.renjin.repackaged.guava.base.Predicate;
 
 /**
@@ -40,24 +43,24 @@ public class REFactory {
    * @param useBytes true to match on bytes (not implemented)
    * @return the compiled regular expression
    */
-  public static RE compile(String pattern, boolean ignoreCase, boolean perl, boolean fixed,
-                           boolean useBytes) {
+  public static Pattern compile(String pattern, boolean ignoreCase, boolean perl, boolean fixed,
+                                boolean useBytes) {
     
     try {
       if (fixed) {
         if (pattern.length() == 0) {
-          return new EmptyFixedRE();
+          return new EmptyFixedPattern();
         } else {
-          return new FixedRE(pattern);
+          return new FixedPattern(pattern);
         }
       } else {
         // There are a few cases that are a bit illogical
         // but we need to handle like GNU R does...
         if(!perl && pattern.equals("*")) {
-          return new EmptyFixedRE();
+          return new EmptyFixedPattern();
         }
 
-        return new ExtendedRE(pattern, ignoreCase);
+        return new ExtendedPattern(pattern, ignoreCase);
       }
     } catch (RESyntaxException e) {
       throw new EvalException("Invalid pattern '%s': %s (perl=%s, fixed=%s)",
@@ -68,11 +71,11 @@ public class REFactory {
     }
   }
   
-  public static Predicate<String> asPredicate(final RE re) {
+  public static Predicate<String> asPredicate(final Pattern pattern) {
     return new Predicate<String>() {
       @Override
       public boolean apply(String input) {
-        return re.match(input);
+        return pattern.match(input);
       }
     };
   }

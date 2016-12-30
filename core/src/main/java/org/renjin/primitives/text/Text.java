@@ -22,10 +22,9 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
 import org.renjin.primitives.Deparse;
-import org.renjin.primitives.text.regex.ExtendedRE;
-import org.renjin.primitives.text.regex.FuzzyMatcher;
-import org.renjin.primitives.text.regex.RE;
-import org.renjin.primitives.text.regex.REFactory;
+import org.renjin.primitives.text.regex.*;
+import org.renjin.primitives.text.regex.ExtendedPattern;
+import org.renjin.regexp.Pattern;
 import org.renjin.repackaged.guava.base.Function;
 import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.repackaged.guava.collect.Lists;
@@ -283,8 +282,8 @@ public class Text {
                            boolean fixed,
                            boolean useBytes) {
     
-    RE re = REFactory.compile(pattern, ignoreCase, perl, fixed, useBytes);
-    return  re.subst(x, replacement, ExtendedRE.REPLACE_FIRSTONLY | ExtendedRE.REPLACE_BACKREFERENCES );
+    Pattern re = REFactory.compile(pattern, ignoreCase, perl, fixed, useBytes);
+    return  re.subst(x, replacement, ExtendedPattern.REPLACE_FIRSTONLY | ExtendedPattern.REPLACE_BACKREFERENCES );
   }
 
 
@@ -310,8 +309,8 @@ public class Text {
                             boolean fixed,
                             boolean useBytes) {
 
-    RE re = REFactory.compile(pattern, ignoreCase, perl, fixed, useBytes);
-    return re.subst(x, replacement, ExtendedRE.REPLACE_ALL | ExtendedRE.REPLACE_BACKREFERENCES );
+    Pattern re = REFactory.compile(pattern, ignoreCase, perl, fixed, useBytes);
+    return re.subst(x, replacement, ExtendedPattern.REPLACE_ALL | ExtendedPattern.REPLACE_BACKREFERENCES );
   }
 
   /**
@@ -331,8 +330,8 @@ public class Text {
                                       boolean perl,
                                       boolean useBytes) {
 
-    RE re = REFactory.compile(split, false, perl, fixed, useBytes);
-    return new StringArrayVector( re.split(x) );
+    Pattern pattern = REFactory.compile(split, false, perl, fixed, useBytes);
+    return new StringArrayVector( pattern.split(x) );
   }
 
   @Internal
@@ -350,7 +349,7 @@ public class Text {
       return new StringArrayVector(new String[x.length()]);
     }
 
-    RE re = REFactory.compile(pattern,ignoreCase, perl, fixed, useBytes);
+    Pattern re = REFactory.compile(pattern,ignoreCase, perl, fixed, useBytes);
     if(value) {
       StringVector.Builder result = new StringVector.Builder();
       for(String string : x) {
@@ -400,7 +399,7 @@ public class Text {
       return new StringArrayVector(new String[x.length()]);
     }
 
-    RE re = REFactory.compile(pattern, ignoreCase,  perl, fixed, useBytes);
+    Pattern re = REFactory.compile(pattern, ignoreCase,  perl, fixed, useBytes);
     LogicalArrayVector.Builder result = new LogicalArrayVector.Builder();
     for(String string : x) {
       result.add( ! StringVector.isNA(string) && re.match(string ));
@@ -464,7 +463,7 @@ public class Text {
   public static IntVector regexpr(String pattern, StringVector vector, boolean ignoreCase, boolean perl,
                                   boolean fixed, boolean useBytes) {
 
-    RE re = REFactory.compile(pattern, ignoreCase,  perl, fixed, useBytes);
+    Pattern re = REFactory.compile(pattern, ignoreCase,  perl, fixed, useBytes);
     IntArrayVector.Builder position = IntArrayVector.Builder.withInitialCapacity(vector.length());
     IntArrayVector.Builder matchLength = IntArrayVector.Builder.withInitialCapacity(vector.length());
 
@@ -491,7 +490,7 @@ public class Text {
                                   boolean fixed, boolean useBytes) {
 
     ListVector.Builder regexpResults = new ListVector.Builder(0, vector.length());
-    RE re = REFactory.compile(pattern, ignoreCase,  perl, fixed, useBytes);
+    Pattern re = REFactory.compile(pattern, ignoreCase,  perl, fixed, useBytes);
 
     for(String text : vector) {
       IntArrayVector.Builder position = IntArrayVector.Builder.withInitialCapacity(vector.length());

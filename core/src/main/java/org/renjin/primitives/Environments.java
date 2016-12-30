@@ -190,6 +190,11 @@ public final class Environments {
     return env.isLocked();
   }
 
+  @Internal
+  public static boolean bindingIsActive(Symbol symbol, Environment env) {
+    return false;
+  }
+
   /*----------------------------------------------------------------------
 
     do_libfixup

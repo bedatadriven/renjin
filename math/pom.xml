@@ -22,5 +22,6 @@
     <module>blas</module>
     <module>appl</module>
     <module>nmath</module>
+    <module>regex</module>
   </modules>
 </project>

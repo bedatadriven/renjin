@@ -18,6 +18,7 @@
  */
 package org.renjin.primitives.io.serialization;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.eval.Context;
@@ -30,7 +31,9 @@ import java.util.zip.GZIPInputStream;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 
 public class RDataReaderTest extends EvalTestCase {
@@ -196,6 +199,31 @@ public class RDataReaderTest extends EvalTestCase {
 
     assertThat(env, instanceOf(Environment.class));
     assertThat(env.getAttributes().getClassVector(), equalTo(c("MyRefClass")));
+  }
+
+  @Test
+  public void readLockedEnvironment() throws IOException {
+
+    // Environment is locked, but not bindings, so they can be changed
+
+    Environment env = (Environment) readRds("locked-env.rds");
+
+    assertTrue(env.isLocked());
+    assertFalse(env.bindingIsLocked(Symbol.get("a")));
+    assertFalse(env.bindingIsLocked(Symbol.get("b")));
+  }
+
+  @Test
+  @Ignore
+  public void readLockedEnvironmentAndBindings() throws IOException {
+
+    // Environment is locked, but not bindings, so they can be changed
+    // TODO:
+
+    Environment env = (Environment) readRds("locked-env-bindings.rds");
+
+    assertTrue(env.isLocked());
+    assertTrue(env.bindingIsLocked(Symbol.get("a")));
   }
 
   protected Symbol symbol(String name){

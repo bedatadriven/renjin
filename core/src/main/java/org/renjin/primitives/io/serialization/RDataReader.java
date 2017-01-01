@@ -502,8 +502,7 @@ public class RDataReader implements AutoCloseable {
     Environment env = Environment.createChildEnvironment(Environment.EMPTY);
     addReadRef(env);
 
-    int lockedBits = in.readInt();
-    boolean locked = (lockedBits==1);
+    boolean locked = (in.readInt() == 1);
     SEXP parent = readExp();
     SEXP frame = readExp();
     SEXP hashtab = readExp();

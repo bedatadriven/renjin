@@ -245,7 +245,7 @@ public class PmfRewriter {
 
     GimpleComponentRef componentRef = (GimpleComponentRef) value;
 
-    return componentRef.getMember().getName().equals("__pfn") &&
+    return "__pfn".equals(componentRef.getMember().getName()) &&
            componentRef.getType().isPointerTo(GimpleFunctionType.class);
   }
 

@@ -105,8 +105,11 @@ public class FieldTypeSet {
     } else if(type instanceof GimpleRecordType) {
       recordTypes.add((GimpleRecordType) type);
 
+    } else if(type instanceof GimpleOffsetType) {
+      // TODO
+
     } else {
-      throw new IllegalThreadStateException("type: " + type);
+      throw new IllegalStateException("type: " + type);
     }
   }
 

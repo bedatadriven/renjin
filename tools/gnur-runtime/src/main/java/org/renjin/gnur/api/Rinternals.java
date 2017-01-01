@@ -184,6 +184,10 @@ public final class Rinternals {
       return SexpType.LISTSXP;
     } else if(s instanceof S4Object) {
       return SexpType.S4SXP;
+    } else if(s instanceof Promise) {
+      return SexpType.PROMSXP;
+    } else if(s instanceof Symbol) {
+      return SexpType.SYMSXP;
     } else {
       throw new UnsupportedOperationException("Unknown SEXP Type: " + s.getClass().getName());
     }
@@ -630,7 +634,12 @@ public final class Rinternals {
   }
 
   public static SEXP PRENV(SEXP x) {
-    throw new UnimplementedGnuApiMethod("PRENV");
+    Promise promise = (Promise) x;
+    if(promise.isEvaluated()) {
+      return Null.INSTANCE;
+    } else {
+      return promise.getEnvironment();
+    }
   }
 
   public static SEXP PRVALUE(SEXP x) {
@@ -939,7 +948,7 @@ public final class Rinternals {
     return ((Environment) rho).findFunction(Native.currentContext(), ((Symbol) symbol));
   }
 
-  public static SEXP Rf_findVar(SEXP rho, SEXP symbol) {
+  public static SEXP Rf_findVar(SEXP symbol, SEXP rho) {
     return ((Environment) rho).findVariable(((Symbol) symbol));
   }
 
@@ -1331,8 +1340,8 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("R_RunWeakRefFinalizer");
   }
 
-  public static SEXP R_PromiseExpr(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("R_PromiseExpr");
+  public static SEXP R_PromiseExpr(SEXP x) {
+    return ((Promise) x).getExpression();
   }
 
   public static SEXP R_ClosureExpr(SEXP p0) {

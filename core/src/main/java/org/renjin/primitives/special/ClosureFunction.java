@@ -32,8 +32,7 @@ public class ClosureFunction extends SpecialFunction {
   public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
     PairList formals = EvalException.checkedCast(call.getArgument(0));
     SEXP body = call.getArgument(1);
-    SEXP source = call.getArgument(2);
 
-    return new Closure(rho,formals, body);
+    return new Closure(rho, formals, body);
   }
 }

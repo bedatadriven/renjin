@@ -23,10 +23,8 @@ import jline.console.ConsoleReader;
 import org.apache.commons.vfs2.FileObject;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
-import org.renjin.eval.SessionController;
 import org.renjin.packaging.BuildException;
 import org.renjin.primitives.packaging.ClasspathPackageLoader;
-import org.renjin.primitives.packaging.PackageLoader;
 import org.renjin.repl.JlineRepl;
 
 import java.io.*;
@@ -92,8 +90,7 @@ public class TestRun {
 
   private Session newSession() {
     SessionBuilder builder = new SessionBuilder().withDefaultPackages();
-    builder.bind(PackageLoader.class, createPackageLoader());
-//    builder.wrap(SessionController.class, createSessionControler)
+    builder.setPackageLoader(createPackageLoader());
     Session session = builder.build();
     session.setWorkingDirectory(resolveTestDir(session));
     return session;
@@ -148,11 +145,5 @@ public class TestRun {
       return false;
     }
   }
-  
-  private class TestSessionController extends SessionController {
-    @Override
-    public boolean isInteractive() {
-      return false;
-    }
-  }
+
 }

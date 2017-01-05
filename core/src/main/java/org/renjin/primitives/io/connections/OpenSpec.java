@@ -23,7 +23,8 @@ import org.renjin.repackaged.guava.base.Strings;
 
 /**
  * 
- * Defines the way a connection should be opened.
+ * Helper class for parsing and building R language open specifications.
+ *
  * Possible values are:
  * <ul>
  * <li>‘"r"’ or ‘"rt"’ Open for reading in text mode.

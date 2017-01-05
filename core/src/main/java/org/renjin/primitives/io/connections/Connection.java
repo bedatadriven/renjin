@@ -24,7 +24,10 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 
 /**
- *  By default the connection is not opened when created (except for ‘socketConnection’), but may
+ *
+ *
+ *
+ * <p>By default the connection is not opened when created (except for ‘socketConnection’), but may
  *  be opened by setting a non-empty value of argument ‘open’.
  *
  */
@@ -34,24 +37,63 @@ public interface Connection {
     TEXT,
     BINARY
   };
-  
+
+  /**
+   * Opens the connection using the given open specification.
+   * @param spec specifies whether to open for read or write, for text or binary.
+   * @throws IOException
+   */
   void open(OpenSpec spec) throws IOException;
   
   /**
-   * 
-   * @return the file 
+   * Returns a reference to the binary input stream for this Connection.
+   *
+   * <p>If the connection is not yet
+   * open, it will be opened in mode "rb"
+   *
+   * @return the InputStream for reading.
    * @throws IOException 
    */
   InputStream getInputStream() throws IOException;
-  
+
+  /**
+   * Returns a reference to the text input reader for this Connection.
+   *
+   * <p>If the connection is not yet
+   * open. it will be opened in mode "rt"
+   *
+   * @return the reader for this connection.
+   * @throws IOException
+   */
   PushbackBufferedReader getReader() throws IOException;
-  
+
+  /**
+   * Returns a reference to the {@code OutputStream} for binary writing to this Connection.
+   *
+   * <p>If the connection is not yet
+   * open, it will be opened in mode "wb".
+   *
+   */
   OutputStream getOutputStream() throws IOException;
 
+  /**
+   * Returns a reference to the {@code Printwriter} for text writing to this Connection.
+   *
+   * <p>If the connection is not
+   * @return
+   * @throws IOException
+   */
   PrintWriter getPrintWriter() throws IOException;
-  
+
+  /**
+   * Closes this Connection.
+   * @throws IOException
+   */
   void close() throws IOException;
-  
+
+  /**
+   * @return true if this Connection has been opened and not yet closed.
+   */
   boolean isOpen();
   
   /**
@@ -59,7 +101,7 @@ public interface Connection {
    * @return the S3 "sub" class of this connection (e.g. "terminal", "file", etc)
    */
   String getClassName();
-  
+
   String getDescription();
 
   String getMode();
@@ -67,6 +109,9 @@ public interface Connection {
   boolean canRead();
   
   boolean canWrite();
-  
+
+  /**
+   * @return the type of Connection: either {@link Type#BINARY} or {@link Type#TEXT}
+   */
   Type getType();
 }

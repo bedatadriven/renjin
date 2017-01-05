@@ -21,6 +21,9 @@ package org.renjin.gnur.api;
 
 import org.renjin.gcc.runtime.IntPtr;
 
+/**
+ * GNU R API methods defined in the "R_ext/GetX11Image.h" header file
+ */
 @SuppressWarnings("unused")
 public final class GetX11Image {
 

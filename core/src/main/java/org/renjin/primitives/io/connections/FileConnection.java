@@ -33,7 +33,9 @@ import java.io.PushbackInputStream;
 import java.util.Arrays;
 import java.util.zip.GZIPInputStream;
 
-
+/**
+ * A connection to a file.
+ */
 public class FileConnection extends AbstractConnection {
 
   private InputStream in;  

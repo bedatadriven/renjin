@@ -35,6 +35,13 @@ import java.lang.System;
 import java.lang.invoke.MethodHandle;
 import java.util.Arrays;
 
+/**
+ * GNU R API methods defined in the "Rinternals.h" header file.
+ *
+ * <p>Note that Renjin's tool chain always compiles native package code as if
+ * {@code USE_RINTERNALS} was not defined, so all of these symbols always resolve to function
+ * calls and not macro expansions, even for packages which define {@code USE_RINTERNALS}</p>
+ */
 @SuppressWarnings("unused")
 public final class Rinternals {
 

@@ -21,6 +21,9 @@ package org.renjin.gnur.api;
 
 import org.renjin.sexp.SEXP;
 
+/**
+ * GNU R API methods defined in the "Graphics.h" header file
+ */
 @SuppressWarnings("unused")
 public final class Graphics {
 

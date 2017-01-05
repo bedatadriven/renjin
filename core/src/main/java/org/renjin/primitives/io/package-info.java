@@ -17,6 +17,6 @@
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
 /**
- * Connection object implementations
+ * Implementation of I/O builtins
  */
 package org.renjin.primitives.io;

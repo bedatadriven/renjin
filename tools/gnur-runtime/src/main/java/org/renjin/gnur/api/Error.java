@@ -25,6 +25,10 @@ import org.renjin.gcc.runtime.Stdlib;
 
 import static org.renjin.gnur.api.Utils.R_CheckUserInterrupt;
 
+
+/**
+ * GNU R API methods defined in the "ext/Error.h" header file
+ */
 @SuppressWarnings("unused")
 public final class Error {
 

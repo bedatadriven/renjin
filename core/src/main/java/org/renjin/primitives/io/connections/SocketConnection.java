@@ -22,6 +22,7 @@ import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
+
 public class SocketConnection implements Connection {
 
   private final Socket socket;

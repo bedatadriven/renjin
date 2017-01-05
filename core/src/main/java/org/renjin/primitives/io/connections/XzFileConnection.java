@@ -31,7 +31,6 @@ public class XzFileConnection extends FileConnection {
     super(file);
   }
 
-
   @Override
   protected OutputStream doOpenForOutput() throws IOException {
     return new XZCompressorOutputStream(super.doOpenForOutput());

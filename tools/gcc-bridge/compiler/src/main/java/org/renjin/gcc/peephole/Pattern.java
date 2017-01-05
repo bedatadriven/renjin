@@ -21,7 +21,9 @@ package org.renjin.gcc.peephole;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.tree.AbstractInsnNode;
 
-
+/**
+ * Pattern-matching for byte-code instructions.
+ */
 public enum Pattern {
 
   LOAD {
@@ -156,6 +158,9 @@ public enum Pattern {
     }
   };
 
+  /**
+   * Returns true if this Pattern matches the given instruction {@code node}.
+   */
   public abstract boolean match(AbstractInsnNode node);
 
 

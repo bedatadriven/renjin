@@ -54,7 +54,8 @@
             <goals>
               <goal>compile</goal>
             </goals>
-            <phase>compile</phase>
+            <!-- Run during generate sources phase so javadoc produced by compiler is available -->
+            <phase>generate-sources</phase>
             <configuration>
               <packageName>org.renjin.nmath</packageName>
               <generateJavadoc>true</generateJavadoc>

@@ -21,16 +21,14 @@ package org.renjin.invoke.annotations;
 import org.renjin.eval.Context;
 import org.renjin.sexp.Environment;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 
 /**
  * Indicates that the parameter should be mapped to the 
  * current {@link Context} or {@link Environment}
  */
+@Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.PARAMETER)
 public @interface Current {

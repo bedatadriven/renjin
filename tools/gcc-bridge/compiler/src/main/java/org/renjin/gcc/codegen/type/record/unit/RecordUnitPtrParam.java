@@ -52,6 +52,11 @@ class RecordUnitPtrParam implements ParamStrategy {
   }
 
   @Override
+  public List<String> getParameterNames(String name) {
+    return Collections.singletonList(name);
+  }
+
+  @Override
   public GExpr emitInitialization(MethodGenerator methodVisitor, GimpleParameter parameter, List<JLValue> paramVars, VarAllocator localVars) {
     if(parameter.isAddressable()) {
       throw new UnsupportedOperationException("TODO: Addressable parameters");

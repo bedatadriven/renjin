@@ -49,6 +49,11 @@ public class RecordClassParamStrategy implements ParamStrategy {
   }
 
   @Override
+  public List<String> getParameterNames(String name) {
+    return Collections.singletonList(name);
+  }
+
+  @Override
   public RecordValue emitInitialization(MethodGenerator methodVisitor, GimpleParameter parameter, List<JLValue> paramVars, VarAllocator localVars) {
     if(strategy.isUnitPointer()) {
       // If this type can be represented as a unit pointer, then 

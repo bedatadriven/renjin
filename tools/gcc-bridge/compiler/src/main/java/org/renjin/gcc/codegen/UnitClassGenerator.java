@@ -23,14 +23,12 @@ import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.TreeLogger;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.var.GlobalVarAllocator;
 import org.renjin.gcc.codegen.var.ProvidedVarAllocator;
-import org.renjin.gcc.gimple.GimpleAlias;
-import org.renjin.gcc.gimple.GimpleCompilationUnit;
-import org.renjin.gcc.gimple.GimpleFunction;
-import org.renjin.gcc.gimple.GimpleVarDecl;
+import org.renjin.gcc.gimple.*;
 import org.renjin.gcc.symbols.GlobalSymbolTable;
 import org.renjin.gcc.symbols.UnitSymbolTable;
 import org.renjin.repackaged.asm.ClassVisitor;
@@ -41,6 +39,8 @@ import org.renjin.repackaged.asm.util.TraceClassVisitor;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Sets;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Field;
@@ -245,4 +245,111 @@ public class UnitClassGenerator {
     cv.visitEnd();
     return cw.toByteArray();
   }
+
+  /**
+   * Writes out a java source file for this compilation unit with only the method declarations so that
+   * we can produce javadoc.
+   *
+   * @param outputDir the root directory for the sources
+   */
+  public void emitJavaDoc(File outputDir) throws IOException {
+    File sourceFile = new File(outputDir.getAbsolutePath() + File.separator + className + ".java");
+    if(!sourceFile.getParentFile().exists()) {
+      boolean created = sourceFile.getParentFile().mkdirs();
+      if(!created) {
+        throw new IOException("Failed to create directory for java source file: " + sourceFile.getParentFile());
+      }
+    }
+
+    String[] javaNames = getJavaNames();
+
+    PrintWriter s = new PrintWriter(sourceFile);
+    s.println("package " + javaNames[0] + ";");
+    s.println();
+    s.println("public class " + javaNames[1] + " {");
+    s.println();
+
+    for (FunctionGenerator functionGenerator : symbolTable.getFunctions()) {
+      s.print("  public static ");
+      s.print(javaName(functionGenerator.getReturnStrategy().getType()));
+      s.print(" ");
+      s.print(functionGenerator.getMangledName());
+      s.print("(");
+
+      boolean needsComma = false;
+
+      List<GimpleParameter> params = functionGenerator.getFunction().getParameters();
+      for (int i = 0; i < params.size(); i++) {
+        GimpleParameter param = params.get(i);
+        ParamStrategy paramStrategy = functionGenerator.getParamStrategies().get(i);
+
+        List<Type> types = paramStrategy.getParameterTypes();
+        List<String> names = paramStrategy.getParameterNames(param.getName());
+        if(types.size() != names.size()) {
+          throw new IllegalStateException("strategy: " + paramStrategy);
+        }
+
+        for (int j = 0; j < types.size(); j++) {
+          if(needsComma) {
+            s.print(", ");
+          }
+          s.print(javaName(types.get(j)));
+          s.print(" ");
+          s.print(names.get(j));
+          needsComma = true;
+        }
+      }
+      s.println(") { throw new UnsupportedOperationException(); }");
+    }
+
+    s.println("}");
+    s.close();
+  }
+
+
+  private String[] getJavaNames() {
+    int packageEnd = className.lastIndexOf('/');
+    if(packageEnd == -1) {
+      throw new IllegalStateException("className: " + className);
+    }
+
+    return new String[] {
+        className.substring(0, packageEnd).replace('/', '.'),
+        className.substring(packageEnd+1)
+    };
+  }
+
+
+  private String javaName(Type type) {
+    switch (type.getSort()) {
+      case Type.VOID:
+        return "void";
+      case Type.BOOLEAN:
+        return "boolean";
+      case Type.BYTE:
+        return "byte";
+      case Type.SHORT:
+        return "short";
+      case Type.CHAR:
+        return "char";
+      case Type.INT:
+        return "int";
+      case Type.LONG:
+        return "long";
+      case Type.FLOAT:
+        return "float";
+      case Type.DOUBLE:
+        return "double";
+
+      case Type.OBJECT:
+        return type.getInternalName().replace('/', '.');
+
+      case Type.ARRAY:
+        return javaName(type.getElementType()) + "[]";
+
+      default:
+        throw new IllegalArgumentException("type: " + type);
+    }
+  }
+
 }

@@ -67,6 +67,8 @@ public class GimpleCompiler  {
 
   private File outputDirectory;
 
+  private File javadocOutputDirectory;
+
   private String packageName;
 
   private boolean verbose;
@@ -126,6 +128,17 @@ public class GimpleCompiler  {
    */
   public void setOutputDirectory(File directory) {
     this.outputDirectory = directory;
+  }
+
+
+  /**
+   * Sets the output directory for writing java source stubs for use by the javadoc tool.
+   *
+   * @param javadocOutputDirectory the root directory, or {@code null} if no stub sources should
+   *                               be written.
+   */
+  public void setJavadocOutputDirectory(File javadocOutputDirectory) {
+    this.javadocOutputDirectory = javadocOutputDirectory;
   }
 
   public void setEntryPointPredicate(Predicate<GimpleFunction> entryPointPredicate) {
@@ -220,6 +233,10 @@ public class GimpleCompiler  {
       for (UnitClassGenerator generator : unitClassGenerators) {
         generator.emit(codegenLogger);
         writeClass(generator.getClassName(), generator.toByteArray());
+
+        if(trampolineClassName == null && javadocOutputDirectory != null) {
+          generator.emitJavaDoc(javadocOutputDirectory);
+        }
       }
 
       // Write link metadata to META-INF/org.renjin.gcc.symbols
@@ -239,6 +256,7 @@ public class GimpleCompiler  {
       }
     }
   }
+
 
   private void compileRecords(List<GimpleCompilationUnit> units) throws IOException {
     RecordTypeStrategyBuilder builder = new RecordTypeStrategyBuilder(
@@ -417,4 +435,6 @@ public class GimpleCompiler  {
   public void setLinkClassLoader(ClassLoader linkClassLoader) {
     this.globalSymbolTable.setLinkClassLoader(linkClassLoader);
   }
+
+
 }

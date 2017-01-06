@@ -57,6 +57,7 @@
             <phase>compile</phase>
             <configuration>
               <packageName>org.renjin.nmath</packageName>
+              <generateJavadoc>true</generateJavadoc>
               <cFlags>
                 <flag>-std=gnu99</flag>
                 <flag>-DMATHLIB_STANDALONE</flag>
@@ -72,6 +73,14 @@
         <artifactId>license-maven-plugin</artifactId>
         <configuration>
           <skip>true</skip>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.10.4</version>
+        <configuration>
+          <sourcepath>${project.build.directory}/gcc-bridge-javadoc</sourcepath>
         </configuration>
       </plugin>
     </plugins>

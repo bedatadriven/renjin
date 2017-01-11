@@ -64,12 +64,12 @@ typedef int reg_errcode_t;
    structs and enums ourselves. */
 
 typedef int regoff_t;
-typedef struct regex_t_ {
+typedef struct regex_t {
   size_t re_nsub;  /* Number of parenthesized subexpressions. */
   void *value;	   /* For internal use only. */
 } regex_t;
 
-typedef struct {
+typedef struct regmatch_t {
   regoff_t rm_so;
   regoff_t rm_eo;
 } regmatch_t;

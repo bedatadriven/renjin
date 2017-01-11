@@ -267,7 +267,7 @@ public class GimpleCompiler  {
         units);
 
     if(Strings.isNullOrEmpty(recordClassPrefix)) {
-      builder.setRecordClassPrefix(packageName.replace('.', '/'));
+      builder.setRecordClassPrefix(packageName.replace('.', '/') + "/");
     } else {
       builder.setRecordClassPrefix(getInternalClassName(recordClassPrefix) + "$");
     }

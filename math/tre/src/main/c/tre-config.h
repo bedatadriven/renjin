@@ -23,3 +23,6 @@
 
 /* TRE version string. */
 #define TRE_VERSION "0.8.0"
+
+
+#define TRE_DEBUG 1

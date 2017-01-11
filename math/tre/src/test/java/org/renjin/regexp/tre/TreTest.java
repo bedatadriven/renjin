@@ -22,19 +22,31 @@ package org.renjin.regexp.tre;
 
 import org.junit.Test;
 import org.renjin.gcc.runtime.BytePtr;
+import org.renjin.gcc.runtime.IntPtr;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
-/**
- * Created by alex on 11-1-17.
- */
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
+
 public class TreTest {
 
   @Test
   public void basicTest() {
 
-    record$regex_t_  regex = new record$regex_t_();
-    regcomp.tre_regcomp(regex, BytePtr.nullTerminatedString("foo+", StandardCharsets.US_ASCII), 0);
+    regex_t  regex = new regex_t();
+    regcomp.tre_regcomp(regex, BytePtr.nullTerminatedString("^foo+", StandardCharsets.US_ASCII), 1);
+
+    IntPtr matches = new IntPtr(new int[4]);
+    int result = regexec.tre_regexec(regex, BytePtr.nullTerminatedString("fooooo", StandardCharsets.US_ASCII), 1, matches, 0);
+
+    System.out.println("result = " + result);
+    System.out.println("matches = " + Arrays.toString(matches.array));
+
+    assertThat(result, equalTo(0));
+    assertThat(matches.array[0], equalTo(0));
+    assertThat(matches.array[1], equalTo(6));
   }
 }

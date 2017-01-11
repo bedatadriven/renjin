@@ -35,9 +35,9 @@ import java.util.concurrent.TimeUnit;
 public class Stdlib {
   
   public static final int CLOCKS_PER_SEC = 4;
-  
+
   private static long PROGRAM_START = System.currentTimeMillis();
-  
+
   public static BytePtr tzname;
   public static int timezone;
   public static int daylight;
@@ -46,7 +46,7 @@ public class Stdlib {
     for(int i=0;i<n;++i) {
       byte bx = x.array[x.offset+i];
       byte by = y.array[y.offset+i];
-      
+
       if(bx < by) {
         return -1;
       } else if(bx > by) {
@@ -58,13 +58,13 @@ public class Stdlib {
     }
     return 0;
   }
-  
+
   public static int strcmp(BytePtr x, BytePtr y) {
     return strncmp(x, y, Integer.MAX_VALUE);
   }
-  
+
   /**
-   * Copies the C string pointed by source into the array pointed by destination, including the terminating 
+   * Copies the C string pointed by source into the array pointed by destination, including the terminating
    * null character (and stopping at that point).
    * @return destination is returned.
    */
@@ -73,25 +73,25 @@ public class Stdlib {
     System.arraycopy(source.array, source.offset, destination.array, destination.offset, length+1);
     return destination;
   }
-  
+
   /**
-   * Copies the first num characters of source to destination. 
-   * If the end of the source C string (which is signaled by a null-character) is 
+   * Copies the first num characters of source to destination.
+   * If the end of the source C string (which is signaled by a null-character) is
    * found before num characters have been copied, destination is padded with zeros until a
    * total of num characters have been written to it.
-   * 
-   * <p>No null-character is implicitly appended at the end of destination if source is longer than num. 
-   * Thus, in this case, destination shall not be considered a null terminated C string (reading it as 
+   *
+   * <p>No null-character is implicitly appended at the end of destination if source is longer than num.
+   * Thus, in this case, destination shall not be considered a null terminated C string (reading it as
    * such would overflow).</p>
-   * 
+   *
    * <p>destination and source shall not overlap</p>
-   * 
+   *
    * @return destination pointer
    */
   public static BytePtr strncpy(BytePtr destination, BytePtr source, int num) {
     int di = destination.offset;
     int si = source.offset;
-    
+
     while(num > 0) {
       byte srcChar = source.array[si++];
       destination.array[di++] = srcChar;
@@ -104,7 +104,7 @@ public class Stdlib {
       destination.array[di++] = 0;
       num--;
     }
-   
+
     return destination;
   }
 
@@ -126,6 +126,36 @@ public class Stdlib {
   }
 
   /**
+   * Locate first occurrence of character in string.
+   *
+   * Returns a pointer to the first occurrence of character in the C string str.
+   *
+   * The terminating null-character is considered part of the C string. Therefore,
+   * it can also be located in order to retrieve a pointer to the end of a string.
+   *
+   * @param str C string
+   * @param character Character to be located. It is passed as its int promotion, but it is internally converted
+   *                  back to char for the comparison.
+   * @return Returns a pointer to the first occurrence of character in the C string str.
+   */
+  public static BytePtr strchr(BytePtr str, int character) {
+    byte search = (byte) character;
+    byte[] array = str.array;
+    int i = str.offset;
+    while(true) {
+      byte c = array[i];
+      if(c == search) {
+        return new BytePtr(array, i);
+      }
+      if(c == 0) {
+        return BytePtr.NULL;
+      }
+      i++;
+      assert i < array.length : "str is not null-terminated.";
+    }
+  }
+
+  /**
    * Appends the string pointed to by src to the end of the string pointed to by dest.
    *
    * @return pointer to the resulting string dest.
@@ -138,16 +168,55 @@ public class Stdlib {
     }
     // Find the length of the src string
     int srcLen = strlen(src);
-    
+
     // Copy into the dest buffer
     System.arraycopy(src.array, src.offset, dest.array, start, srcLen);
-    
+
     // Null terminate the concatenated string
     dest.array[start+srcLen] = 0;
-    
+
     return dest;
   }
-  
+
+  /**
+   * Write character to stream
+   *
+   * Writes a character to the stream and advances the position indicator.
+   *
+   * The character is written at the position indicated by the internal position indicator of the stream,
+   * which is then automatically advanced by one.
+   *
+   * @param character The int promotion of the character to be written.
+   * @param stream Pointer to a FILE object that identifies an output stream.
+   * @return On success, the character written is returned.
+   *  If a writing error occurs, EOF is returned and the error indicator (ferror) is set.
+   */
+  public static int fputc( int character, Object stream) {
+    System.out.print((char)character);
+    return character;
+  }
+
+  /**
+   * Write character to stdout
+   *
+   * Writes a character to the standard output (stdout).
+   *
+   * It is equivalent to calling putc with stdout as second argument.
+   *
+   * @param character The int promotion of the character to be written.
+   *                  The value is internally converted to an unsigned char when written.
+   * @return On success, the character written is returned.
+   * If a writing error occurs, EOF is returned and the error indicator (ferror) is set.
+   */
+  public static int putchar( int character ) {
+    System.out.print((char)character);
+    return character;
+  }
+
+  public static int fprintf(Object file, BytePtr format, Object... arguments) {
+    return printf(format, arguments);
+  }
+
   public static int printf(BytePtr format, Object... arguments) {
     String outputString;
 
@@ -156,17 +225,42 @@ public class Stdlib {
     } catch (Exception e) {
       return -1;
     }
-    
+
     System.out.print(outputString);
-    
+
     return outputString.length();
   }
-  
+
+  /**
+   * Writes a string to stdout up to but not including the null character.
+   * A newline character is appended to the output.
+   *
+   * @param string  This is the C string to be written.
+   * @return If successful, non-negative value is returned. On error, the function returns {@code EOF}.
+   */
   public static int puts(BytePtr string) {
-    System.out.print(string.nullTerminatedString());
+    System.out.println(string.nullTerminatedString());
     return 0;
   }
-  
+
+  /**
+   * Writes data from the array pointed to, by ptr to the given stream.
+   *
+   * This function returns the total number of elements successfully returned as a size_t object, which
+   * is an integral data type. If this number differs from the nmemb parameter, it will show an error.
+   *
+   * @param ptr  This is the pointer to the array of elements to be written.
+   * @param size This is the size in bytes of each element to be written.
+   * @param nmemb This is the number of elements, each one with a size of size bytes.
+   * @param stream This is the pointer to a FILE object that specifies an output stream.
+   */
+  public static int fwrite(Object ptr, int size, int nmemb, Object stream) {
+    System.out.print(((BytePtr) ptr).nullTerminatedString());
+    System.out.flush();
+    return nmemb;
+  }
+
+
   public static int sprintf(BytePtr string, BytePtr format, Object... arguments) {
     return snprintf(string, Integer.MAX_VALUE, format, arguments);
   }
@@ -197,7 +291,7 @@ public class Stdlib {
     return outputBytes.length;
   }
 
-  public static int sscanf(BytePtr format, Object... arguments) { 
+  public static int sscanf(BytePtr format, Object... arguments) {
     throw new UnsupportedOperationException("TODO: implement " + Stdlib.class.getName() + ".sscanf");
   }
 
@@ -252,8 +346,8 @@ public class Stdlib {
       throw new UnsupportedOperationException("base: " + base.getClass().getName());
     }
   }
-  
-  
+
+
   public static ObjectPtr<CharPtr> __ctype_b_loc() {
     return CharTypes.TABLE_PTR;
   }
@@ -263,12 +357,12 @@ public class Stdlib {
   public static int[] div(int numer, int denom) {
     int quot = numer / denom;
     int rem = numer % denom;
-    
+
     return new int[] { quot, rem };
   }
 
   /**
-   * Returns the time since the Epoch (00:00:00 UTC, January 1, 1970), measured in seconds. 
+   * Returns the time since the Epoch (00:00:00 UTC, January 1, 1970), measured in seconds.
    * If seconds is not NULL, the return value is also stored in variable seconds.
    */
   public static int time(IntPtr seconds) {
@@ -285,7 +379,7 @@ public class Stdlib {
 
 
   /**
-   * The tzset function initializes the tzname variable from the value of the TZ environment variable. 
+   * The tzset function initializes the tzname variable from the value of the TZ environment variable.
    * It is not usually necessary for your program to call this function, because it is called automatically
    * when you use the other time conversion functions that depend on the time zone.
    */
@@ -295,7 +389,7 @@ public class Stdlib {
     timezone = currentTimezone.getOffset(System.currentTimeMillis());
     daylight = currentTimezone.inDaylightTime(new Date()) ? 1 : 0;
   }
-  
+
   public static void fflush(Object file) {
     // TODO: implement properly
   }
@@ -309,23 +403,23 @@ public class Stdlib {
     int secondsSinceProgramStart = (int)TimeUnit.MILLISECONDS.toSeconds(millisSinceProgramStart);
     return secondsSinceProgramStart * CLOCKS_PER_SEC;
   }
-  
+
   private static final int CLOCK_REALTIME = 0;
   private static final int CLOCK_MONOTONIC = 1;
   private static final int CLOCK_REALTIME_COARSE = 5;
-  
+
   public static int clock_gettime(int clockId, timespec tp) {
-    
+
     switch (clockId) {
       case CLOCK_REALTIME:
       case CLOCK_REALTIME_COARSE:
         // Return the current time since 1970-01-01
         tp.set(System.currentTimeMillis(), TimeUnit.MILLISECONDS);
         return 0;
-      
+
       case CLOCK_MONOTONIC:
         // Return a high precision time from some arbitrary offset
-        tp.set(System.nanoTime(), TimeUnit.NANOSECONDS);        
+        tp.set(System.nanoTime(), TimeUnit.NANOSECONDS);
         return 0;
 
       default:
@@ -333,14 +427,14 @@ public class Stdlib {
         return -1;
     }
   }
-  
+
   public static Object fopen() {
     throw new UnsupportedOperationException("fopen() not implemented");
   }
 
   /**
    * test for infinity.
-   * 
+   *
    * <p>__isinf() has the same specification as isinf() in ISO POSIX (2003), except that the
    * argument type for __isinf() is known to be double.
    *
@@ -351,5 +445,5 @@ public class Stdlib {
   public static int __isinf(double x) {
     return Double.isInfinite(x) ? 1 : 0;
   }
-  
+
 }

@@ -119,7 +119,7 @@ tre_tnfa_run_parallel(const tre_tnfa_t *tnfa, const void *string, int len,
 #ifdef TRE_MBSTATE
   mbstate_t mbstate;
 #endif /* TRE_MBSTATE */
-#endif /* TRE_WCHAR */
+#endif /* TRE_WCHAR */tre_tnfa_reach_t
   int reg_notbol = eflags & REG_NOTBOL;
   int reg_noteol = eflags & REG_NOTEOL;
   int reg_newline = tnfa->cflags & REG_NEWLINE;
@@ -160,6 +160,21 @@ tre_tnfa_run_parallel(const tre_tnfa_t *tnfa, const void *string, int len,
     rbytes = sizeof(*reach_next) * (tnfa->num_states + 1);
     pbytes = sizeof(*reach_pos) * tnfa->num_states;
     xbytes = sizeof(int) * num_tags;
+
+
+#ifdef RENJIN
+    // Have to allocate different types individually
+    tmp_tags = malloc(tbytes);
+    reach = malloc(rbytes);
+    reach_next = malloc(rbytes);
+    reach_pos = malloc(pbytes);
+    for (i = 0; i < tnfa->num_states; i++)
+      {
+	reach[i].tags = malloc(xbytes);
+	reach_next[i].tags = malloc(xbytes);
+      }
+
+#else
     total_bytes =
       (sizeof(long) - 1) * 4 /* for alignment paddings */
       + (rbytes + xbytes * tnfa->num_states) * 2 + tbytes + pbytes;
@@ -194,6 +209,8 @@ tre_tnfa_run_parallel(const tre_tnfa_t *tnfa, const void *string, int len,
 	reach_next[i].tags = (void *)tmp_buf;
 	tmp_buf += xbytes;
       }
+#endif
+
   }
 
   for (i = 0; i < tnfa->num_states; i++)
@@ -320,7 +337,7 @@ tre_tnfa_run_parallel(const tre_tnfa_t *tnfa, const void *string, int len,
       else
 	{
 	  if (num_tags == 0 || reach_next_i == reach_next)
-	    /* We have found a match. */
+	    /*ï¿½We have found a match. */
 	    break;
 	}
 

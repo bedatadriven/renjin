@@ -101,7 +101,7 @@ public class GccBridgeMojo extends AbstractMojo {
   @Parameter
   private List<String> cFlags;
 
-  @Parameter(defaultValue = "record")
+  @Parameter
   private String recordClassPrefix;
 
 

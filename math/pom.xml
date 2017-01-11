@@ -23,5 +23,6 @@
     <module>appl</module>
     <module>nmath</module>
     <module>regex</module>
+    <module>tre</module>
   </modules>
 </project>

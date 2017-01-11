@@ -418,13 +418,29 @@ public class ExprFactory {
     GimpleExpr pointer = gimpleExpr.getPointer();
     
     // Case of *&x, which can be simplified to x
-    if(pointer instanceof GimpleAddressOf) {
+    if(pointer instanceof GimpleAddressOf && gimpleExpr.isOffsetZero()) {
       GimpleAddressOf addressOf = (GimpleAddressOf) pointer;
       return findGenerator(addressOf.getValue(), expectedType);
     }
-    
+
     GimpleIndirectType pointerType = (GimpleIndirectType) pointer.getType();
-    
+
+    // Check for implicit field refs in the form *(precord+field_offset)
+    if (pointerType.getBaseType() instanceof GimpleRecordType &&
+        !pointerType.getBaseType().equals(expectedType) &&
+        gimpleExpr.getOffset() instanceof GimplePrimitiveConstant ) {
+
+      GimplePrimitiveConstant offset = (GimplePrimitiveConstant) gimpleExpr.getOffset();
+
+      int offsetInBits = offset.getNumberValue().intValue() * 8;
+
+      GimpleComponentRef componentRef = new GimpleComponentRef(
+          new GimpleMemRef(gimpleExpr.getPointer()),
+            new GimpleFieldRef(null, offsetInBits, expectedType));
+
+      return this.findGenerator(componentRef, expectedType);
+    }
+
     if(pointerType.getBaseType() instanceof GimpleVoidType) {
       // We can't dereference a null pointer, so cast the pointer first, THEN dereference
       return castThenDereference(gimpleExpr, expectedType);

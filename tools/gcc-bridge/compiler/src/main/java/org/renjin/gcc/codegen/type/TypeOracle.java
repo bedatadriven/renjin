@@ -254,6 +254,10 @@ public class TypeOracle {
         strategies.add(new PrimitiveParamStrategy(Type.getType(paramClass)));
         index++;
 
+      } else if (paramClass.equals(Object.class)) {
+        strategies.add(new VoidPtrStrategy().getParamStrategy());
+        index++;
+
       } else if (paramClass.equals(String.class)) {
         strategies.add(new StringParamStrategy());
         index++;
@@ -266,11 +270,7 @@ public class TypeOracle {
       } else if (paramClass.equals(MethodHandle.class)) {
         strategies.add(new FunPtrStrategy().getParamStrategy());
         index++;
-        
-      } else if(paramClass.equals(Object.class)) {
-        strategies.add(new VoidPtrStrategy().getParamStrategy());
-        index++;
-        
+
       } else {
         throw new UnsupportedOperationException(String.format(
             "Unsupported parameter %d of type %s", 

@@ -21,7 +21,10 @@ package org.renjin.gcc.runtime;
 import org.renjin.gcc.annotations.Struct;
 
 import java.lang.invoke.MethodHandle;
+import java.lang.reflect.Array;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
@@ -220,8 +223,34 @@ public class Stdlib {
     throw new UnsupportedOperationException();
   }
 
-  public static void qsort(Object base, int nitems, int size, MethodHandle comparator) {
-    throw new UnsupportedOperationException();
+  public static void qsort(Object base, int nitems, int size, final MethodHandle comparatorMethod) {
+    if(base instanceof ObjectPtr) {
+
+      // We need to pass the comparatorMethod a pointer, so
+      // allocate a fly-weight instance now to avoid a hit on each comparison
+      ObjectPtr ptr = (ObjectPtr) base;
+      final Object[] array = Arrays.copyOf(ptr.array, 2);
+      final ObjectPtr p1 = new ObjectPtr(array, 0);
+      final ObjectPtr p2 = new ObjectPtr(array, 1);
+
+      Comparator<Object> comparator = new Comparator<Object>() {
+        @Override
+        public int compare(Object x, Object y) {
+          array[0] = x;
+          array[1] = y;
+          try {
+            return (int)comparatorMethod.invoke(p1, p2);
+          } catch (Throwable throwable) {
+            throw new RuntimeException(throwable);
+          }
+        }
+      };
+      ObjectPtr objectPtr = (ObjectPtr) base;
+      Arrays.sort(objectPtr.array, objectPtr.offset, objectPtr.offset + nitems, comparator);
+
+    } else {
+      throw new UnsupportedOperationException("base: " + base.getClass().getName());
+    }
   }
   
   

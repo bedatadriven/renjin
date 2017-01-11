@@ -47,9 +47,11 @@
             <phase>compile</phase>
             <configuration>
               <packageName>org.renjin.regexp.tre</packageName>
+              <recordClassPrefix></recordClassPrefix>
               <cFlags>
                 <flag>-I${basedir}/src/main/c</flag>
                 <flag>-DHAVE_CONFIG_H</flag>
+                <flag>-DRENJIN</flag>
               </cFlags>
             </configuration>
           </execution>

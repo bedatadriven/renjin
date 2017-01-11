@@ -8,7 +8,7 @@
 #define TRE_APPROX 1
 
 /* Define to enable multibyte character set support. */
-#define TRE_MULTIBYTE 1
+//#define TRE_MULTIBYTE 1
 
 /* Define to a field in the regex_t struct where TRE should store a pointer to
    the internal tre_tnfa_t structure */
@@ -19,7 +19,7 @@
 /* #define TRE_USE_ALLOCA 1 */
 
 /* Define to enable wide character (wchar_t) support. */
-#define TRE_WCHAR 1
+//#define TRE_WCHAR 1
 
 /* TRE version string. */
 #define TRE_VERSION "0.8.0"

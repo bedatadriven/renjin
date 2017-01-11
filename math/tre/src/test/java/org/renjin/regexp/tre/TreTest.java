@@ -20,8 +20,21 @@
 
 package org.renjin.regexp.tre;
 
+import org.junit.Test;
+import org.renjin.gcc.runtime.BytePtr;
+
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+
 /**
  * Created by alex on 11-1-17.
  */
 public class TreTest {
+
+  @Test
+  public void basicTest() {
+
+    record$regex_t_  regex = new record$regex_t_();
+    regcomp.tre_regcomp(regex, BytePtr.nullTerminatedString("foo+", StandardCharsets.US_ASCII), 0);
+  }
 }

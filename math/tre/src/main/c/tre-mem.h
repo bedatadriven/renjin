@@ -28,6 +28,7 @@ typedef struct tre_mem_struct {
 } *tre_mem_t;
 
 
+
 tre_mem_t tre_mem_new_impl(int provided, void *provided_block);
 void *tre_mem_alloc_impl(tre_mem_t mem, int provided, void *provided_block,
 			 int zero, size_t size);
@@ -37,12 +38,21 @@ void *tre_mem_alloc_impl(tre_mem_t mem, int provided, void *provided_block,
 
 /* Allocates a block of `size' bytes from `mem'.  Returns a pointer to the
    allocated block or NULL if an underlying malloc() failed. */
+#ifdef RENJIN
+#define tre_mem_alloc(mem, size) malloc(size)
+#else
 #define tre_mem_alloc(mem, size) tre_mem_alloc_impl(mem, 0, NULL, 0, size)
+#endif
 
 /* Allocates a block of `size' bytes from `mem'.  Returns a pointer to the
    allocated block or NULL if an underlying malloc() failed.  The memory
    is set to zero. */
+
+#ifdef RENJIN
+#define tre_mem_calloc(mem, size) calloc(1, size)
+#else
 #define tre_mem_calloc(mem, size) tre_mem_alloc_impl(mem, 0, NULL, 1, size)
+#endif
 
 #ifdef TRE_USE_ALLOCA
 /* alloca() versions.  Like above, but memory is allocated with alloca()

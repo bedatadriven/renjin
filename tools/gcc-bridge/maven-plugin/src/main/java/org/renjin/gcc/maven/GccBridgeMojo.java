@@ -101,6 +101,9 @@ public class GccBridgeMojo extends AbstractMojo {
   @Parameter
   private List<String> cFlags;
 
+  @Parameter(defaultValue = "record")
+  private String recordClassPrefix;
+
 
   public void execute() throws MojoExecutionException {
 
@@ -214,7 +217,8 @@ public class GccBridgeMojo extends AbstractMojo {
     compiler.addMathLibrary();
     compiler.setOutputDirectory(outputDirectory);
     compiler.setLinkClassLoader(getLinkClassLoader());
-    
+    compiler.setRecordClassPrefix(recordClassPrefix);
+
     ClassLoader classLoader = createClassLoader();
     
     if(importClasses != null) {

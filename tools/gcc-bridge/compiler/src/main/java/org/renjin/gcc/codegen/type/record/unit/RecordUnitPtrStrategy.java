@@ -30,11 +30,13 @@ import org.renjin.gcc.codegen.type.primitive.ConstantValue;
 import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.codegen.type.record.RecordConstructor;
 import org.renjin.gcc.codegen.type.voidt.VoidPtr;
+import org.renjin.gcc.codegen.var.LocalVarAllocator;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
+import org.renjin.gcc.runtime.ObjectPtr;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
@@ -96,9 +98,17 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>
       return new RecordUnitPtr(Expressions.cast(ptrExpr.unwrap(), strategy.getJvmType()));
       
     } else if(value instanceof VoidPtr) {
-      VoidPtr voidPtr = (VoidPtr) value;
-      return new RecordUnitPtr(Expressions.cast(voidPtr.unwrap(), strategy.getJvmType()));
-    } 
+      LocalVarAllocator.LocalVar var = mv.getLocalVarAllocator().reserve(strategy.getJvmType());
+
+      ((VoidPtr) value).unwrap().load(mv);
+      mv.visitLdcInsn(strategy.getJvmType());
+      mv.invokestatic(ObjectPtr.class, "castUnit",
+          Type.getMethodDescriptor(Type.getType(Object.class),
+              Type.getType(Object.class), Type.getType(Class.class)));
+      mv.checkcast(strategy.getJvmType());
+      mv.store(var.getIndex(), strategy.getJvmType());
+      return new RecordUnitPtr(var);
+    }
     throw new UnsupportedCastException();
   }
 

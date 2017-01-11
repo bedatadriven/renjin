@@ -1146,4 +1146,9 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void fieldOffsetRef() throws Exception {
     compileAndTest("field_offset_ref.c");
   }
+
+  @Test
+  public void mallocField() throws Exception {
+    compileAndTest("malloc_field.c");
+  }
 }

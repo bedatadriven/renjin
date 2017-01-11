@@ -16,15 +16,8 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.gnur.sexp;
-
-
-public class GnuSymbol {
-  private String name;
-
-  public GnuSymbol(String name) {
-    this.name = name;
-  }
-
-
-}
+/**
+ * Adapter layer to support the GNU R C API.
+ *
+ */
+package org.renjin.gnur.api;

@@ -309,8 +309,15 @@ public class Connections {
     PushbackBufferedReader reader = getConnection(context, connection).getReader();
     return reader.countLinesPushedBack();
   }
-  
-  
+
+
+  /**
+   * Helper function which retrieves the {@link Connection} instance for a given R-language connection handle.
+   *
+   * @param context the Renjin execution context.
+   * @param conn An R-language connection handle of type 'integer' and class 'connection'
+   * @return the {@code Connection} implementation.
+   */
   public static Connection getConnection(Context context, SEXP conn) {
     int connIndex = getConnectionIndex(conn);
     return context.getSession().getConnectionTable().getConnection(connIndex);

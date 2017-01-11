@@ -19,6 +19,7 @@
 package org.renjin.eval;
 
 import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystem;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.renjin.compiler.pipeline.SimpleVectorPipeliner;
@@ -107,14 +108,20 @@ public class Session {
   
   private VectorPipeliner vectorPipeliner;
 
+  private ClassLoader classLoader;
+
   /**
    * Whether the result of the evaluation should be "invisible" in a
    * REPL
    */
   boolean invisible;
 
-  Session(Map<Class, Object> bindings) {
-    this.fileSystemManager = (FileSystemManager) bindings.get(FileSystemManager.class);
+  Session(FileSystemManager fileSystemManager,
+          ClassLoader classLoader,
+          PackageLoader packageLoader,
+          VectorPipeliner pipeliner) {
+    this.fileSystemManager = fileSystemManager;
+    this.classLoader = classLoader;
     this.homeDirectory = FileSystemUtils.homeDirectoryInCoreJar();
     this.workingDirectory = FileSystemUtils.workingDirectory(fileSystemManager);
     this.systemEnvironment = Maps.newHashMap(System.getenv()); //load system environment variables
@@ -124,14 +131,11 @@ public class Session {
     this.baseNamespaceEnv.setVariable(Symbol.get(".BaseNamespaceEnv"), baseNamespaceEnv);
     this.topLevelContext = new Context(this);
 
-    namespaceRegistry = new NamespaceRegistry((PackageLoader) bindings.get(PackageLoader.class),  topLevelContext, baseNamespaceEnv);
+    namespaceRegistry = new NamespaceRegistry(packageLoader, topLevelContext, baseNamespaceEnv);
     securityManager = new SecurityManager(); 
-    
-    if(bindings.containsKey(VectorPipeliner.class)) {
-      vectorPipeliner = (VectorPipeliner) bindings.get(VectorPipeliner.class);
-    } else {
-      vectorPipeliner = new SimpleVectorPipeliner();
-    }
+
+    this.vectorPipeliner = pipeliner;
+
 
     // TODO(alex)
     // several packages rely on the presence of .Random.seed in the global
@@ -288,7 +292,7 @@ public class Session {
   }
   
   public ClassLoader getClassLoader() {
-    return getClass().getClassLoader();
+    return classLoader;
   }
 
   public void registerFinalizer(SEXP sexp, FinalizationHandler handler, boolean onExit) {

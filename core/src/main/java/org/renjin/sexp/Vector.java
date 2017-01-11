@@ -317,7 +317,7 @@ public interface Vector extends SEXP {
     Builder combineAttributesFrom(SEXP vector);
 
     /**
-     * Combines {@code dim}, {@cocde dimnames} and {@code names} 
+     * Combines {@code dim}, {@code dimnames} and {@code names} 
      * attributes from the provided {@code vector} argument by adding 
      * the attributes if they are not already set, and checking for consistency.
      * @param vector the vector whose attributes are to be combined

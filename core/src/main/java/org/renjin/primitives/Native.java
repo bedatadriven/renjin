@@ -358,7 +358,7 @@ public class Native {
   }
 
   @Builtin(".Call")
-  public static SEXP dotCall(@Current Context context,
+  public static SEXP redotCall(@Current Context context,
                              @Current Environment rho,
                              SEXP methodExp,
                              @ArgumentList ListVector callArguments,

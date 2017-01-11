@@ -18,7 +18,6 @@
 
   <modules>
     <module>gcc-bridge</module>
-    <module>gnur-compiler</module>
     <module>gnur-runtime</module>
     <module>gnur-installation</module>
     <module>maven-plugin</module>

@@ -26,7 +26,9 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 
 
-
+/**
+ * Connection object for the standard output stream.
+ */
 public class StdOutConnection implements Connection {
 
   private PrintWriter stream = new PrintWriter(System.out);

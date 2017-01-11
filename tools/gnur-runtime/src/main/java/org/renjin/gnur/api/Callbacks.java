@@ -22,6 +22,9 @@ package org.renjin.gnur.api;
 import org.renjin.gcc.runtime.CharPtr;
 import org.renjin.sexp.SEXP;
 
+/**
+ * GNU R API methods defined in the "ext/Callbacks.h" header file
+ */
 @SuppressWarnings("unused")
 public final class Callbacks {
 

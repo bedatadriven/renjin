@@ -24,6 +24,9 @@ import org.apache.commons.vfs2.FileObject;
 import java.io.IOException;
 import java.io.OutputStream;
 
+/**
+ * Connection to
+ */
 public class BzipFileConnection extends FileConnection {
 
   public BzipFileConnection(FileObject file) throws IOException {

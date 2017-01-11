@@ -22,6 +22,9 @@ package org.renjin.gnur.api;
 import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.IntVector;
 
+/**
+ * GNU R API methods defined in the "ext/Arith.h" header file
+ */
 @SuppressWarnings("unused")
 public final class Arith {
 

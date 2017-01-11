@@ -19,6 +19,9 @@
 // Initial template generated from GraphicsBase.h from R 3.2.2
 package org.renjin.gnur.api;
 
+/**
+ * GNU R API methods defined in the "GraphicsBase.h" header file
+ */
 @SuppressWarnings("unused")
 public final class GraphicsBase {
 

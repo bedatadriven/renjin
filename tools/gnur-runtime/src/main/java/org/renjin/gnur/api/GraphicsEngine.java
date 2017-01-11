@@ -23,6 +23,9 @@ import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
 import org.renjin.sexp.SEXP;
 
+/**
+ * GNU R API methods defined in the "R_ext/GraphicsEngine.h" header file
+ */
 @SuppressWarnings("unused")
 public final class GraphicsEngine {
 

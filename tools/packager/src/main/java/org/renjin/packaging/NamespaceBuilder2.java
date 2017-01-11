@@ -96,7 +96,7 @@ public class NamespaceBuilder2 {
 
   private Context initContext()  {
     SessionBuilder builder = new SessionBuilder();
-    builder.bind(PackageLoader.class, buildContext.getPackageLoader());
+    builder.setPackageLoader(buildContext.getPackageLoader());
     
     Context context = builder.build().getTopLevelContext();
     for(String name : buildContext.getDefaultPackages()) {

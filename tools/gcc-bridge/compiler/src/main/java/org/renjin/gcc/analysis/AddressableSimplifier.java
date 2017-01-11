@@ -34,6 +34,9 @@ import org.renjin.gcc.gimple.type.GimpleIndirectType;
 import org.renjin.gcc.gimple.type.GimpleIntegerType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
+/**
+ * Simplifies redundant Gimple address of expressions such as {@code &*x} to {@code x}.
+ */
 public class AddressableSimplifier implements FunctionBodyTransformer {
 
   public static final AddressableSimplifier INSTANCE = new AddressableSimplifier();

@@ -18,10 +18,7 @@
  */
 package org.renjin.invoke.annotations;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
  * Indicates than an argument should be passed, unevaluated, to 
@@ -30,6 +27,7 @@ import java.lang.annotation.Target;
  * to {@code NULL}
  *
  */
+@Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.PARAMETER)
 public @interface InvokeAsCharacter {

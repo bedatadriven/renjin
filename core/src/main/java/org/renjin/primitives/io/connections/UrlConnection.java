@@ -25,6 +25,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 
+/**
+ * Connection to a URL, read-only.
+ */
 public class UrlConnection extends AbstractConnection {
 
   private final URL url;

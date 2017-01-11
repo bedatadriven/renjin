@@ -22,6 +22,10 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.*;
 
+/**
+ * Provides the implementation of the `function` function, which creates
+ * a closure from a pair list of formals and an unevaluated body.
+ */
 public class ClosureFunction extends SpecialFunction {
 
   public ClosureFunction() {
@@ -30,10 +34,16 @@ public class ClosureFunction extends SpecialFunction {
 
   @Override
   public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
-    PairList formals = EvalException.checkedCast(call.getArgument(0));
-    SEXP body = call.getArgument(1);
-    SEXP source = call.getArgument(2);
+    if(args.length() < 2) {
+      throw new EvalException("incorrect number of arguments to \"function\"");
+    }
+    SEXP formals = call.getArgument(0);
+    if(!(formals instanceof PairList) || formals instanceof FunctionCall) {
+      throw new EvalException("invalid formal argument list for \"function\"");
+    }
 
-    return new Closure(rho,formals, body);
+    SEXP body = call.getArgument(1);
+
+    return new Closure(rho, (PairList) formals, body);
   }
 }

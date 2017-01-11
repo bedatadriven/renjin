@@ -42,6 +42,7 @@ public class Closure extends AbstractSEXP implements Function {
 
   public Closure(Environment enclosingEnvironment, PairList formals, SEXP body, AttributeMap attributes) {
     super(attributes);
+    assert !(formals instanceof FunctionCall);
     this.enclosingEnvironment = enclosingEnvironment;
     this.body = body;
     this.formals = formals; 

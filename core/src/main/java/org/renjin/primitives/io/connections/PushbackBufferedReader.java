@@ -25,8 +25,9 @@ import java.io.IOException;
 import java.io.Reader;
 
 /**
- * Specialized reader class to support R character streams
- * which have pushback support. We need this because
+ * Reader implementation with pushback <em>and</em> buffered line support for R character streams.
+ *
+ * <p>We need this because
  * the JRE's PusbackReader and BufferedReader do not 
  * play well together.
  */

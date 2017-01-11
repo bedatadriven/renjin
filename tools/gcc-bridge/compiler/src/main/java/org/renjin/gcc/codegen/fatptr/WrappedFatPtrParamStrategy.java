@@ -29,6 +29,7 @@ import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.repackaged.guava.collect.Lists;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -45,6 +46,11 @@ public class WrappedFatPtrParamStrategy implements ParamStrategy {
   @Override
   public List<Type> getParameterTypes() {
     return Lists.newArrayList(Wrappers.wrapperType(valueFunction.getValueType()));
+  }
+
+  @Override
+  public List<String> getParameterNames(String name) {
+    return Collections.singletonList(name);
   }
 
   @Override

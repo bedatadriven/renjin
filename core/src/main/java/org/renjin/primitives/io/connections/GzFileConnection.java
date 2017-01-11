@@ -25,7 +25,7 @@ import java.io.OutputStream;
 import java.util.zip.GZIPOutputStream;
 
 /**
- * A connection to a gzipped file.
+ * Connection to a gzipped file.
  * The connection can be written to or read from, but once read to
  * it can be written to, and vice-versa
  *

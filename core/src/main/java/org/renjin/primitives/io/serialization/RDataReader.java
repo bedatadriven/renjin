@@ -502,7 +502,7 @@ public class RDataReader implements AutoCloseable {
     Environment env = Environment.createChildEnvironment(Environment.EMPTY);
     addReadRef(env);
 
-    boolean locked = in.readInt() == 1;
+    boolean locked = (in.readInt() == 1);
     SEXP parent = readExp();
     SEXP frame = readExp();
     SEXP hashtab = readExp();
@@ -523,7 +523,7 @@ public class RDataReader implements AutoCloseable {
     env.setAttributes(AttributeMap.fromPairList((PairList) attributes));
 
     if(locked) {
-      env.lock(true);
+      env.lock(false);
     }
 
     return env;

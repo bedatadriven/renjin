@@ -25,7 +25,9 @@ import org.renjin.repackaged.asm.tree.IntInsnNode;
 import org.renjin.repackaged.asm.tree.LdcInsnNode;
 import org.renjin.repackaged.asm.util.Textifier;
 
-
+/**
+ * Functions for manipulating {@link AbstractInsnNode} objects.
+ */
 public class Instructions {
   
   public static int getInteger(AbstractInsnNode node) {

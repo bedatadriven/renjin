@@ -24,7 +24,7 @@ import org.renjin.repackaged.asm.tree.JumpInsnNode;
 import static org.renjin.gcc.peephole.Instructions.getInteger;
 
 /**
- * Replaces constant
+ * Removes constant conditional branches
  */
 public class ConstantBranch implements PeepholeOptimization {
   @Override

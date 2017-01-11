@@ -22,6 +22,10 @@ import org.renjin.eval.EvalException;
 
 import java.io.*;
 
+/**
+ * Connection to a character vector.
+ *
+ */
 public class TextConnection implements Connection {
 
   private final String objectName;

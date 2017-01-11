@@ -30,6 +30,9 @@ import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Finds all uses of a Record's fields.
+ */
 public class RecordFieldUseFinder extends GimpleExprVisitor {
 
   private final Map<String, GimpleRecordTypeDef> typeDefMap = new HashMap<>();

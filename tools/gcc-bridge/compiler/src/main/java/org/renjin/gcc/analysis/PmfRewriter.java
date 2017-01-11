@@ -30,7 +30,9 @@ import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
 import java.util.ListIterator;
 
 /**
- * GCC's C++ frontend (currently) compiles pointers to member functions in a way that stores information using
+ * Rewrites Pointers to Member Function references.
+ *
+ * <p>GCC's C++ frontend (currently) compiles pointers to member functions in a way that stores information using
  * bit-twiddling of the underlying function pointer. Since we cannot twiddle the bits of a MethodHandle, this must
  * be adapted.
  *
@@ -245,7 +247,7 @@ public class PmfRewriter {
 
     GimpleComponentRef componentRef = (GimpleComponentRef) value;
 
-    return componentRef.getMember().getName().equals("__pfn") &&
+    return "__pfn".equals(componentRef.getMember().getName()) &&
            componentRef.getType().isPointerTo(GimpleFunctionType.class);
   }
 

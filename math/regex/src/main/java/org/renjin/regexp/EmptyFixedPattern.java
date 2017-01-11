@@ -23,32 +23,32 @@ package org.renjin.regexp;
  * An empty '' pattern
  */
 public class EmptyFixedPattern implements Pattern {
-    @Override
-    public boolean match(String search) {
-        return true;
-    }
+  @Override
+  public boolean match(String search) {
+    return true;
+  }
 
   @Override
-    public String subst(String substituteIn, String substitution, int flags) {
-        throw new UnsupportedOperationException("zero-length pattern");
-    }
+  public String subst(String substituteIn, String substitution, int flags) {
+    throw new UnsupportedOperationException("zero-length pattern");
+  }
 
-    @Override
-    public String[] split(String s) {
-        String[] chars = new String[s.length()];
-        for(int i=0;i<s.length();++i) {
-            chars[i] = s.substring(i, i+1);
-        }
-        return chars;
+  @Override
+  public String[] split(String s) {
+    String[] chars = new String[s.length()];
+    for (int i = 0; i < s.length(); ++i) {
+      chars[i] = s.substring(i, i + 1);
     }
+    return chars;
+  }
 
-    @Override
-    public int getGroupStart(int groupIndex) {
-        throw new UnsupportedOperationException("zero-length pattern");
-    }
+  @Override
+  public int getGroupStart(int groupIndex) {
+    throw new UnsupportedOperationException("zero-length pattern");
+  }
 
-    @Override
-    public int getGroupEnd(int groupIndex) {
-        throw new UnsupportedOperationException("zero-length pattern");
-    }
+  @Override
+  public int getGroupEnd(int groupIndex) {
+    throw new UnsupportedOperationException("zero-length pattern");
+  }
 }

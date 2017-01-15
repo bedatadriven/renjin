@@ -25,6 +25,7 @@ import org.renjin.primitives.Deparse;
 import org.renjin.primitives.text.regex.*;
 import org.renjin.primitives.text.regex.ExtendedPattern;
 import org.renjin.regexp.Pattern;
+import org.renjin.repackaged.guava.base.CharMatcher;
 import org.renjin.repackaged.guava.base.Function;
 import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.repackaged.guava.collect.Lists;
@@ -480,8 +481,22 @@ public class Text {
     }
 
     position.setAttribute("match.length", matchLength.build());
-    position.setAttribute("useBytes", new LogicalArrayVector(useBytes));
+    if(useBytes || allAscii(pattern, vector)) {
+      position.setAttribute("useBytes", LogicalArrayVector.TRUE);
+    }
     return position.build();
+  }
+
+  private static boolean allAscii(String pattern, StringVector vector) {
+    if(!CharMatcher.ASCII.matchesAllOf(pattern)) {
+      return false;
+    }
+    for(String x : vector) {
+      if(x != null && !CharMatcher.ASCII.matchesAllOf(x)) {
+        return false;
+      }
+    }
+    return true;
   }
 
 
@@ -516,7 +531,9 @@ public class Text {
       }
 
       position.setAttribute("match.length", matchLength.build());
-      position.setAttribute("useBytes", new LogicalArrayVector(useBytes));
+      if(useBytes || allAscii(pattern, vector)) {
+        position.setAttribute("useBytes", LogicalArrayVector.TRUE);
+      }
       regexpResults.add( position.build() );
     }
 

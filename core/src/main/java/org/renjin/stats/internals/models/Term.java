@@ -18,6 +18,7 @@
  */
 package org.renjin.stats.internals.models;
 
+import org.renjin.primitives.Deparse;
 import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.repackaged.guava.collect.Iterators;
 import org.renjin.repackaged.guava.collect.Lists;
@@ -83,7 +84,7 @@ public class Term implements Iterable<SEXP> {
   }
 
   public String getLabel() {
-    return Joiner.on(":").join(expressions);
+    return Deparse.deparseExp(null, expressions.get(0));
   }
   
   @Override

@@ -17,28 +17,10 @@
 # https://www.gnu.org/licenses/gpl-2.0.txt
 #
 
+
 library(hamcrest)
 
-test.paste <- function() {
-    s1 <- paste("foo", "bar")
-    s2 <- paste("x", 0, sep = "")
-    s3 <- paste(c("A", "B"), collapse = ", ")
+assertThat(file.path("a", "b", fsep="/"), identicalTo("a/b"))
+assertThat(file.path(sep="a", "b", fsep="/"), identicalTo("a/b"))
+assertThat(file.path(), identicalTo(character(0)))
 
-    assertThat(s1, equalTo("foo bar"))
-    assertThat(s2, equalTo("x0"))
-    assertThat(s3, equalTo("A, B"))
-}
-
-
-test.paste.factors <- function() {
-
-    x <- as.factor(c("Geothermal", "Electricity"))
-
-    assertThat(paste(x[1], x[2]), identicalTo("Geothermal Electricity"))
-}
-
-test.paste.null <- function() {
-
-    assertThat(paste(NULL), identicalTo(character(0)))
-    assertThat(paste(NULL, collapse=""), identicalTo(""))
-}

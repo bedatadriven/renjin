@@ -49,16 +49,20 @@ public class Text {
 
     int resultLength = arguments.maxElementLength();
 
-    List<StringVector> argumentVectors = new ArrayList<>();
+    List<StringVector> argumentVectors = new ArrayList<>( resultLength );
     for (SEXP argument : arguments) {
       if(argument instanceof StringVector) {
         argumentVectors.add((StringVector) argument);
       } else {
+        // TODO: Make FunctionCall.newCall an invariant.
         SEXP result = context.evaluate(FunctionCall.newCall(Symbol.get("as.character"), argument));
-        if(!(result instanceof StringVector)) {
+        
+        try {
+          argumentVectors.add((StringVector) result);
+        }
+        catch( final Exception ex ) {
           throw new EvalException("as.character() returned non-character");
         }
-        argumentVectors.add((StringVector) result);
       }
     }
 

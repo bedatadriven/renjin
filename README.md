@@ -61,3 +61,8 @@ full text of the license. Renjin also includes code from R which is
 redistributed here. R uses
 [many different licenses](http://www.r-project.org/Licenses/) so check the file
 sources to see which license applies.
+
+Demonstration
+=============
+
+Try the sandboxed version: http://renjindemo.appspot.com/

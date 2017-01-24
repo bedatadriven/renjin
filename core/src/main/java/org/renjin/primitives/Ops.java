@@ -18,15 +18,18 @@
  */
 package org.renjin.primitives;
 
+import jdk.nashorn.internal.ir.EmptyNode;
 import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
 import org.renjin.sexp.*;
+import org.renjin.sexp.SexpType;
 
 import static java.lang.Double.isInfinite;
 import static java.lang.Double.isNaN;
 import static java.lang.Math.copySign;
 import static org.renjin.sexp.DoubleVector.isFinite;
+import static org.renjin.util.CDefines.*;
 
 
 /**
@@ -277,6 +280,143 @@ public class Ops  {
   @DataParallel
   public static boolean equalTo(Complex x, Complex y) {
     return x.equals(y);
+  }
+
+
+  /*
+  * Relational operators in R are in do_relop function within relop.c file
+  * do_relop handles all cases where NA has to be returned, find whether Real or Integer
+  * functions should be used, and calls 'de_relop_dflt()'. Here Scalar cases are handeled
+  * by dispatch to DO_SCALAR_RELOP() macros, and list/vector input is coerced by calling
+  * coerceVector() function located within coerce.c
+  * coerceVector() function handles different SEXP types by calling the following functions:
+  *
+  * Type        Function
+  * SYMSXP      coerceSymbol()
+  * NILSXP      coercePairList()
+  * LISTSXP     coercePairList()
+  * LANGSXP     coercePairList()
+  * VECSXP      coerceVectorList()
+  * EXPRSXP     coerceVectorList()
+  * ENVSXP      error "environments cannot be coerced to other types"
+  * LGLSXP      COERCE_ERROR macro "cannot coerce type '%s' to vector of type '%s'"
+  * INTSXP      COERCE_ERROR macro
+  * REALSXP     COERCE_ERROR macro
+  * CPLSXP      COERCE_ERROR macro
+  * STRSXP      COERCE_ERROR macro
+  * RAWSXP      COERCE_ERROR macro
+  *
+  * coercePairList() calls PairToVectorList() to convert a PairList to a List
+  */
+
+  public static SEXP coerceSymbol(SEXP vector, int type) {
+    SEXP rval;
+      switch(type) {
+          case SexpType.EXPRSXP:
+              ListVector.Builder listVector = new ListVector.Builder(1);
+              rval = listVector.add(vector).build();
+              break;
+          case SexpType.CHARSXP:
+          case SexpType.STRSXP:
+              StringVector.Builder stringVector = new StringVector.Builder(1);
+              rval = stringVector.add(vector.getNames()).build();
+              break;
+          default:
+              throw new EvalException("(symbol) object cannot be coerced to type " + type2char(type));
+      };
+      return rval;
+  }
+
+  public static SEXP PairToVectorList(SEXP vector) {
+      // Should convert a PairList to a List and copies all the attributes including TAGs
+
+      return vector;
+  }
+
+  public static SEXP coercePairlist(SEXP vectors, int type) {
+      int i, n = 0;
+      SEXP rval = null, vp, names;
+
+      if (type == SexpType.LISTSXP) {
+          return vectors;
+      }
+
+      names = vectors;
+
+      if (type == SexpType.EXPRSXP) {
+          StringVector.Builder stringVector = new StringVector.Builder(1);
+          rval = stringVector.add(vectors.getNames()).build();
+          return rval;
+
+      } else if (type == SexpType.STRSXP) {
+          n = vectors.length();
+          StringVector.Builder stringVector = new StringVector.Builder(n);
+          for(vp = vectors, i = 0; vp != ListVector.EMPTY; vp = CDR(vp), i++) {
+            if (isString(CAR(vp)) && CAR(vp).length() == 1) {
+                stringVector.add(STRING_ELT(CAR(vp), 0));
+            } else {
+                stringVector.add(STRING_ELT(deparse1line(CAR(vp), 0), 0));
+            }
+          }
+
+      } else if (type == SexpType.VECSXP) {
+          /* */
+          rval = PairToVectorList(vectors);
+          return rval;
+
+      } else if (isVectorizable(vectors)) {
+
+          switch(type) {
+              case SexpType.LGLSXP:
+                  // for (i = 0, vp = v; i < n; i++, vp = CDR(vp))
+                  // LOGICAL(rval)[i] = asLogical(CAR(vp));
+                  break;
+              case: SexpType.INTSXP:
+
+                  break;
+              case: SexpType.REALSXP:
+
+                  break;
+              case: SexpType.CPLXSXP:
+
+                  break;
+              case: SexpType.RAWSXP:
+
+                  break;
+              default: throw new EvalException("UNIMPLEMENTED_TYPE");
+          }
+
+      } else {
+          throw new EvalException("'pairlist' object cannot be coerced to type " + type2char(type));
+      }
+
+      // use names (from PRINTNAME(TAG()) ) to setAttrib(rval, R_NamesSymbol, names)
+      //return rval;
+  }
+
+
+  @Builtin("==")
+  @DataParallel
+  public static SEXP equalTo(ListVector x, SEXP y) {
+    LogicalArrayVector.Builder res = new LogicalArrayVector.Builder();
+    int yLength = y.length();
+    int yIndex = 0;
+
+    if (yLength > 1) {
+      for (SEXP xElement : x) {
+        if (yIndex == yLength) {
+          yIndex = 0;
+          res.add(xElement.toString().equals(y.getElementAsSEXP(yIndex).toString()));
+          yIndex += 1;
+        }
+      }
+    } else {
+      for (SEXP xElement : x) {
+        res.add(xElement.toString().equals(y.toString()));
+      }
+    }
+
+    return res.build().getElementAsSEXP(0);
   }
   
   @Deferrable

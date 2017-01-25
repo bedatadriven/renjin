@@ -766,7 +766,7 @@ public class Primitives {
     f("reg.finalizer", Environments.class, 11);
     f("options", Types.class, 211);
     f("sink", Connections.class, 111);
-    f("sink.number", /*sinknumber*/ null, 11);
+    f("sink.number", Connections.class, 11);
     f("lib.fixup", Types.class, 111);
     f("pos.to.env", /*pos2env*/ null, 1);
     f("eapply", /*eapply*/ null, 10);

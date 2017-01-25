@@ -74,7 +74,12 @@ public class SingleThreadedFifoConnection implements Connection {
   }
 
   @Override
-  public PrintWriter getPrintWriter() throws IOException {
+  public PrintWriter getPrintWriter() {
+    return writer;
+  }
+
+  @Override
+  public PrintWriter getOpenPrintWriter() {
     return writer;
   }
 

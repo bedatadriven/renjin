@@ -19,11 +19,14 @@
 package org.renjin.primitives.io.connections;
 
 import org.renjin.eval.EvalException;
+import org.renjin.repackaged.guava.base.Preconditions;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 
 /**
@@ -31,12 +34,29 @@ import java.io.PrintWriter;
  */
 public class StdOutConnection implements Connection {
 
-  private PrintWriter stream = new PrintWriter(System.out);
+  /**
+   * The designated output stream. Can be temporarily overriden by the sink() function.
+   */
+  private PrintWriter stream;
 
-  public void setOutputStream(PrintWriter out) {
-    this.stream = out;
+  /**
+   * The current sink, or none if this connection is not sunk.
+   */
+  private Deque<Sink> sinkStack = new ArrayDeque<>();
+
+
+  public StdOutConnection() {
+    this.stream = new PrintWriter(System.out);
   }
-  
+
+  public void setStream(PrintWriter stream) {
+    this.stream = stream;
+  }
+
+  public PrintWriter getStream() {
+    return stream;
+  }
+
   @Override
   public InputStream getInputStream() throws IOException {
     throw new EvalException("cannot read from stdout");
@@ -46,10 +66,24 @@ public class StdOutConnection implements Connection {
   public PushbackBufferedReader getReader() throws IOException {
     throw new EvalException("cannot read from stdout");
   }
-  
+
+  /**
+   * Gets the effective {@code PrintWriter}, based on the current
+   * @return
+   * @throws IOException
+   */
   @Override
-  public PrintWriter getPrintWriter()  {
-    return stream;
+  public PrintWriter getPrintWriter() {
+    return getOpenPrintWriter();
+  }
+
+  @Override
+  public PrintWriter getOpenPrintWriter() {
+    if(sinkStack.isEmpty()) {
+      return stream;
+    } else {
+      return sinkStack.peek().getPrintWriter(stream);
+    }
   }
 
   @Override
@@ -69,7 +103,13 @@ public class StdOutConnection implements Connection {
 
   @Override
   public void open(OpenSpec spec) throws IOException {
-    
+  }
+
+  /**
+   * @return number of sinks in the stack.
+   */
+  public int getSinkStackHeight() {
+    return sinkStack.size();
   }
 
   @Override
@@ -100,5 +140,20 @@ public class StdOutConnection implements Connection {
   @Override
   public Type getType() {
     return Type.TEXT;
+  }
+
+  /**
+   * Applies a sink to this source.
+   * @param sink the sink to connect, or {@code null} to clear the sink.
+   */
+  void sink(Sink sink) throws IOException {
+    Preconditions.checkNotNull(sink, "sink");
+    this.sinkStack.push(sink);
+  }
+
+  void clearSink() throws IOException {
+    if(!this.sinkStack.isEmpty()) {
+      sinkStack.pop().disconnect();
+    }
   }
 }

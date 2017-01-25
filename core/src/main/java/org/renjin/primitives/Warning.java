@@ -25,6 +25,7 @@ import org.renjin.invoke.annotations.Internal;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 
 
 public class Warning {
@@ -48,8 +49,9 @@ public class Warning {
       emitWarning(context, currentCall, immediate, message);
 
     } else {
-      context.getSession().getStdOut().println("Warning message:");
-      context.getSession().getStdOut().println(message);
+      PrintWriter stderr = context.getSession().getEffectiveStdErr();
+      stderr.println("Warning message:");
+      stderr.println(message);
     }
   }
 
@@ -98,8 +100,9 @@ public class Warning {
   private static void uncaughtWarning(Context context, FunctionCall call, boolean immediate, String message) {
     int warnMode = context.getSession().getSingleton(Options.class).getInt("warn", 0);
     if(warnMode == 1 || (warnMode <= 0 && immediate)) {
-      context.getSession().getStdOut().println("Warning in " + call.toString() + " :");
-      context.getSession().getStdOut().println("  " + message);
+      PrintWriter stderr = context.getSession().getEffectiveStdErr();
+      stderr.println("Warning in " + call.toString() + " :");
+      stderr.println("  " + message);
     } else if(warnMode == 0) {
       // store warnings until end of evaluation
 
@@ -120,7 +123,7 @@ public class Warning {
 
   @Internal
   public static void printDeferredWarnings(@Current Context context) {
-    context.getSession().getConnectionTable().getStderr().getPrintWriter().println("In addition: (TODO)");
+    context.getSession().getEffectiveStdErr().println("In addition: (TODO)");
   }
 
 }

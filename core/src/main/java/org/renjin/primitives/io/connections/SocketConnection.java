@@ -64,6 +64,14 @@ public class SocketConnection implements Connection {
   }
 
   @Override
+  public PrintWriter getOpenPrintWriter() {
+    if(this.writer == null) {
+      throw new IllegalStateException("not open");
+    }
+    return this.writer;
+  }
+
+  @Override
   public void close() throws IOException {
     if(this.writer != null) {
       this.writer.flush();

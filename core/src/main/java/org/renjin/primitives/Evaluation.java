@@ -281,19 +281,18 @@ public class Evaluation {
     
     Context evalContext = context.beginEvalContext(rho);
 
-    SEXP result;
     try {
-      result = evalContext.evaluate(expression, rho);
+      return evalContext.evaluate(expression, rho);
 
     } catch (ReturnException e) {
       if(e.getEnvironment() != rho) {
         throw e;
       }
-      result = e.getValue();
+      return e.getValue();
+
+    } finally {
+      evalContext.exit();
     }
-    evalContext.exit();
-    
-    return result;
   }
   
   

@@ -95,8 +95,6 @@ public class RecordTypeDefCanonicalizer {
     boolean changing;
     do {
 
-      System.out.println("*** ITERATION STARTING *** ");
-      
       changing = false;
 
       // Remove duplicates using our key function
@@ -108,9 +106,7 @@ public class RecordTypeDefCanonicalizer {
         }
         
         String key = key(recordTypeDef);
-        
-        System.out.println(String.format("%s %s => %s", recordTypeDef.getId(), recordTypeDef.getName(), key));
-        
+
         GimpleRecordTypeDef canonical = keyMap.get(key);
         if (canonical == null) {
           // first time seen, this is a canonical record

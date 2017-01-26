@@ -108,7 +108,7 @@ public class Context {
    * Handlers are R functions that are called immediately when
    * conditions are signaled.
    */
-  private Map<String, SEXP> conditionHandlers = Maps.newHashMap();
+  private Map<String, ConditionHandler> conditionHandlers = Maps.newHashMap();
 
   private Map<Class, Object> stateMap = null;
 
@@ -475,14 +475,17 @@ public class Context {
    * @see org.renjin.primitives.Conditions
    *
    * @param conditionClass  the (S3) condition class to be handled by this handler.
-   * @param function an expression that evaluates to a function that accepts a signaled
+   * @param function a function that accepts a signaled
    * condition as an argument.
+   * @param calling true if this is a "calling" handler and should be invoked in the {@code Context}
+   *                 in which the condition is signaled, {@code false} if control should first
+   *                 be returned to the {@code Context} in which it was registered.
    */
-  public void setConditionHandler(String conditionClass, SEXP function) {
-    conditionHandlers.put(conditionClass, function);
+  public void setConditionHandler(String conditionClass, SEXP function, boolean calling) {
+    conditionHandlers.put(conditionClass, new ConditionHandler(function, calling));
   }
 
-  public SEXP getConditionHandler(String conditionClass) {
+  public ConditionHandler getConditionHandler(String conditionClass) {
     return conditionHandlers.get(conditionClass);
   }
 

@@ -108,9 +108,9 @@ public class ClosureDispatcher {
   
   private static SEXP findHandler(Context context, Iterable<String> conditionClasses) {
     for(String conditionClass : conditionClasses) {
-      SEXP handler = context.getConditionHandler(conditionClass);
+      ConditionHandler handler = context.getConditionHandler(conditionClass);
       if(handler != null) {
-        return handler;
+        return handler.getFunction();
       }
     }
     return null;

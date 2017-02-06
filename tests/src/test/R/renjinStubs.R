@@ -27,6 +27,10 @@ test.paste0 <- function() {
     assertThat(s2, equalTo("A, B"))
 }
 
+test.paste0.sep <- function() {
+    assertThat(paste0("a", "b", sep=""), identicalTo("ab"))
+}
+
 test.rep_len <- function() {
     assertThat(rep_len("a", 2), identicalTo(c("a", "a")))
 }

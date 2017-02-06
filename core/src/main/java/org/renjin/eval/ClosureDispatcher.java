@@ -70,12 +70,10 @@ public class ClosureDispatcher {
         dispatchChain.populateEnvironment(functionEnvironment);
       }
 
-      SEXP result = closure.doApply(functionContext);
-      
-      functionContext.exit();
+      return closure.doApply(functionContext);
 
-      return result;
     } catch(ReturnException e) {
+
       if (e.getEnvironment() != functionEnvironment) {
         throw e;
       }
@@ -90,6 +88,7 @@ public class ClosureDispatcher {
       }
 
     } catch(EvalException e) {
+
       e.initContext(functionContext);
       SEXP handler = findHandler(functionContext, Arrays.asList("simpleError", "error", "condition"));
       if(handler != null) {
@@ -102,6 +101,8 @@ public class ClosureDispatcher {
       } else {
         throw e;
       }
+    } finally {
+      functionContext.exit();
     }
   }
   

@@ -77,13 +77,17 @@ public interface Connection {
   OutputStream getOutputStream() throws IOException;
 
   /**
-   * Returns a reference to the {@code Printwriter} for text writing to this Connection.
+   * Returns a reference to the {@code PrintWriter} for text writing to this Connection.
    *
-   * <p>If the connection is not
-   * @return
-   * @throws IOException
+   * <p>If the connection is not yet open, it is opened in mode "wt"
    */
   PrintWriter getPrintWriter() throws IOException;
+
+  /**
+   * @return a reference to the open {@code PrintWriter}.
+   * @throws IllegalStateException if the Connection is not open.
+   */
+  PrintWriter getOpenPrintWriter();
 
   /**
    * Closes this Connection.

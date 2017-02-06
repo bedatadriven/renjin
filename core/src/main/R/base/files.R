@@ -90,7 +90,8 @@ list.dirs <- function(path = ".", full.names = TRUE, recursive = TRUE)
 
 file.path <-
 function(..., fsep=.Platform$file.sep)
-    .Internal(file.path(list(...), fsep))
+    .Internal(paste(list(...), sep = fsep, collapse = NULL))
+
 
 
 file.exists <- function(...) .Internal(file.exists(c(...)))

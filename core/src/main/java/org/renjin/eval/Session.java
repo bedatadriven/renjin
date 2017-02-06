@@ -19,10 +19,8 @@
 package org.renjin.eval;
 
 import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSystem;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
-import org.renjin.compiler.pipeline.SimpleVectorPipeliner;
 import org.renjin.compiler.pipeline.VectorPipeliner;
 import org.renjin.primitives.io.connections.ConnectionTable;
 import org.renjin.primitives.packaging.NamespaceRegistry;
@@ -35,6 +33,7 @@ import org.renjin.stats.internals.distributions.RNG;
 import org.renjin.util.FileSystemUtils;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.lang.invoke.MethodHandle;
@@ -132,7 +131,7 @@ public class Session {
     this.topLevelContext = new Context(this);
 
     namespaceRegistry = new NamespaceRegistry(packageLoader, topLevelContext, baseNamespaceEnv);
-    securityManager = new SecurityManager(); 
+    securityManager = new SecurityManager();
 
     this.vectorPipeliner = pipeliner;
 
@@ -140,21 +139,12 @@ public class Session {
     // TODO(alex)
     // several packages rely on the presence of .Random.seed in the global
     // even though it's an implementation detail.
-    globalEnvironment.setVariable(".Random.seed", IntVector.valueOf(1)); 
-  }
-
-  /** 
-   * Sets the paths in which to search for libraries.
-   *
-   * @param paths a semi-colon delimited list of paths
-   */
-  public void setLibraryPaths(String paths) {
-    systemEnvironment.put("R_LIBS", paths);
+    globalEnvironment.setVariable(".Random.seed", IntVector.valueOf(1));
   }
 
 
   public void setStdOut(PrintWriter writer) {
-    this.connectionTable.getStdout().setOutputStream(writer);
+    this.connectionTable.getStdout().setStream(writer);
   }
 
   public void setStdIn(Reader reader) {
@@ -162,7 +152,7 @@ public class Session {
   }
   
   public void setStdErr(PrintWriter writer) {
-    this.connectionTable.getStderr().setOutputStream(writer);
+    this.connectionTable.getStderr().setStream(writer);
   }
   
   public SessionController getSessionController() {
@@ -243,12 +233,37 @@ public class Session {
     return invisible;
   }
 
+  /**
+   *
+   * Returns the standard output stream associated with this Session. This is always the original
+   * stream provided via {@link #setStdOut(PrintWriter)} even if there is an active sink.
+   */
   public PrintWriter getStdOut() {
-    return connectionTable.getStdout().getPrintWriter();
+    return connectionTable.getStdout().getStream();
   }
-  
+
+  /**
+   * Returns the standard output stream associated with this Stream or the sink writer if a sink
+   * is active.
+   */
+  public PrintWriter getEffectiveStdOut() {
+    return connectionTable.getStdout().getOpenPrintWriter();
+  }
+
+  /**
+   *
+   * Returns the standard error stream associated with this Session. This is always the original
+   * stream provided via {@link #setStdErr(PrintWriter)} even if there is an active sink.
+   */
   public PrintWriter getStdErr() {
-    return connectionTable.getStderr().getPrintWriter();
+    return connectionTable.getStderr().getStream();
+  }
+
+  /**
+   * Returns the standard error stream associated with this Session or the sink writer if one is active.
+   */
+  public PrintWriter getEffectiveStdErr() {
+    return connectionTable.getStderr().getOpenPrintWriter();
   }
 
   public Reader getStdIn() {

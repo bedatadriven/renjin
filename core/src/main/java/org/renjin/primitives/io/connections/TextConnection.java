@@ -81,6 +81,11 @@ public class TextConnection implements Connection {
 
   @Override
   public PrintWriter getPrintWriter() throws IOException {
+    return getOpenPrintWriter();
+  }
+
+  @Override
+  public PrintWriter getOpenPrintWriter() {
     throw new EvalException("reading bytes from TextConnections is not supported");
   }
 

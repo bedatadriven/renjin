@@ -125,8 +125,8 @@ public class Repl implements Runnable {
     PrintStream out = console.getOut();
     out.print("Renjin " + RenjinVersion.getVersionName() + "\n");
 
-    out.print("Copyright (C) 2013 The R Foundation for Statistical Computing\n");
-    out.print("Copyright (C) 2014 BeDataDriven\n");
+    out.print("Copyright (C) 2017 The R Foundation for Statistical Computing\n");
+    out.print("Copyright (C) 2017 BeDataDriven\n");
 
   }
 

@@ -19,26 +19,37 @@
 
 library(hamcrest)
 
-test.paste <- function() {
-    s1 <- paste("foo", "bar")
-    s2 <- paste("x", 0, sep = "")
-    s3 <- paste(c("A", "B"), collapse = ", ")
+test.sink <- function() {
 
-    assertThat(s1, equalTo("foo bar"))
-    assertThat(s2, equalTo("x0"))
-    assertThat(s3, equalTo("A, B"))
+    f1 <- tempfile()
+    f2 <- tempfile()
+    sink(f1)
+    cat("A\n")
+    cat("B\n")
+    sink(f2)
+    cat("C\n")
+    cat("D\n")
+    sink()
+    cat("E\n")
+    sink()
+
+    assertThat(readLines(f1), identicalTo(c("A", "B", "E")))
+    assertThat(readLines(f2), identicalTo(c("C", "D")))
 }
 
 
-test.paste.factors <- function() {
+test.sink.number <- function() {
 
-    x <- as.factor(c("Geothermal", "Electricity"))
+    f1 <- tempfile()
+    f2 <- tempfile()
 
-    assertThat(paste(x[1], x[2]), identicalTo("Geothermal Electricity"))
+    assertThat(sink.number(), identicalTo(0L))
+    sink(f1)
+    sink(f2)
+    assertThat(sink.number(), identicalTo(2L))
+    sink()
+    assertThat(sink.number(), identicalTo(1L))
+    sink()
+    assertThat(sink.number(), identicalTo(0L))
 }
 
-test.paste.null <- function() {
-
-    assertThat(paste(NULL), identicalTo(character(0)))
-    assertThat(paste(NULL, collapse=""), identicalTo(""))
-}

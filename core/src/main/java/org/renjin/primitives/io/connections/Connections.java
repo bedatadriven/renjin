@@ -24,6 +24,7 @@ import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.invoke.annotations.Recycle;
+import org.renjin.primitives.Identical;
 import org.renjin.primitives.io.connections.Connection.Type;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.base.Joiner;
@@ -276,8 +277,37 @@ public class Connections {
   }
   
   @Internal
-  public static void sink(SEXP file, SEXP closeOnExit, SEXP arg2, SEXP split) {
-    // todo: implement
+  public static void sink(@Current Context context, SEXP connection,
+                          boolean closeOnExit,
+                          boolean messages,
+                          boolean split) throws IOException {
+
+    ConnectionTable table = context.getSession().getConnectionTable();
+
+    StdOutConnection source;
+    if(messages) {
+      source = table.getStderr();
+    } else {
+      source = table.getStdout();
+    }
+
+    if(Identical.identical(connection, new IntArrayVector(-1))) {
+      source.clearSink();
+    } else {
+      Connection sinkConnection = getConnection(context , connection);
+      source.sink(new Sink(sinkConnection, split, closeOnExit));
+    }
+  }
+
+  @Internal("sink.number")
+  public static int sinkNumber(@Current Context context, boolean output) {
+    StdOutConnection source;
+    if(output) {
+      source = context.getSession().getConnectionTable().getStdout();
+    } else {
+      source = context.getSession().getConnectionTable().getStderr();
+    }
+    return source.getSinkStackHeight();
   }
   
   @Internal

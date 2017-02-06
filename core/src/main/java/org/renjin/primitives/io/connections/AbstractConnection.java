@@ -46,6 +46,14 @@ public abstract class AbstractConnection implements Connection {
   }
 
   @Override
+  public PrintWriter getOpenPrintWriter() {
+    if(writer == null) {
+      throw new IllegalStateException();
+    }
+    return this.writer;
+  }
+
+  @Override
   public void close() throws IOException {
     if(reader != null) {
       reader.close();

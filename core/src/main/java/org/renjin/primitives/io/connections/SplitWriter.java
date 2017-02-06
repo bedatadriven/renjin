@@ -16,9 +16,39 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
+package org.renjin.primitives.io.connections;
 
+import java.io.IOException;
+import java.io.Writer;
 
 /**
- * Implementation of connection builtins: file(), gzfile(), stdin(), etc.
+ * Writer which delegates to two different Writers.
  */
-package org.renjin.primitives.io.connections;
+class SplitWriter extends Writer {
+
+  private Writer writer1;
+  private Writer writer2;
+
+  public SplitWriter(Writer writer1, Writer writer2) {
+    this.writer1 = writer1;
+    this.writer2 = writer2;
+  }
+
+  @Override
+  public void write(char[] chars, int off, int len) throws IOException {
+    writer1.write(chars, off, len);
+    writer2.write(chars, off, len);
+  }
+
+  @Override
+  public void flush() throws IOException {
+    writer1.flush();
+    writer2.flush();
+  }
+
+  @Override
+  public void close() throws IOException {
+    writer1.close();
+    writer2.close();
+  }
+}

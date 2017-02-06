@@ -2367,7 +2367,27 @@ public final class Rinternals {
   }
 
   public static boolean Rf_isVectorizable(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_isVectorizable");
+    /**
+     * each element of a list or pairlist is a vector of length 0 or 1
+     *
+     * */
+    if (p0 instanceof PairList) {
+      PairList.Node node = (PairList.Node) p0;
+      while (node.hasNextNode()) {
+        if(node.getValue().length() != 1 && node.getValue().length() != 0 ) {
+          return false;
+        }
+        node = node.getNextNode();
+      }
+      return true;
+    } else if (p0 instanceof ListVector) {
+      if(((ListVector) p0).maxElementLength() > 1) {
+        return false;
+      }
+      return true;
+    } else {
+      return false;
+    }
   }
 
   public static SEXP Rf_lang1(SEXP p0) {

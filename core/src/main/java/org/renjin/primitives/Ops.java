@@ -20,8 +20,10 @@ package org.renjin.primitives;
 
 import jdk.nashorn.internal.ir.EmptyNode;
 import org.apache.commons.math.complex.Complex;
+import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
+import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.sexp.*;
 import org.renjin.sexp.SexpType;
 
@@ -85,13 +87,13 @@ public class Ops  {
   public static double minus(double x, double y) {
     return x - y;
   }
-  
+
   @Builtin("-")
   @DataParallel(PreserveAttributeStyle.ALL)
   public static Complex negative(Complex x) {
     return ComplexVector.complex(-x.getReal(), -x.getImaginary());
   }
-  
+
   @Builtin("-")
   @DataParallel(PreserveAttributeStyle.ALL)
   public static Complex minus(Complex x, Complex y) {
@@ -165,13 +167,13 @@ public class Ops  {
       if (c == 0.0 && d == 0.0 && (!isNaN(a) || !isNaN(b))) {
         x = copySign(Double.POSITIVE_INFINITY, c) * a;
         y = copySign(Double.POSITIVE_INFINITY, c) * b;
-      
+
       } else if ((isInfinite(a) || isInfinite(b)) && isFinite(c) && isFinite(d)) {
         double ra = convertInf(a);
         double rb = convertInf(b);
         x = Double.POSITIVE_INFINITY * (ra * c + rb * d);
         y = Double.POSITIVE_INFINITY * (rb * c - ra * d);
-      
+
       } else if ((isInfinite(c) || isInfinite(d)) && isFinite(a) && isFinite(b)) {
         double rc = convertInf(c);
         double rd = convertInf(d);
@@ -182,7 +184,7 @@ public class Ops  {
     return ComplexVector.complex(x, y);
   }
 
-  
+
   @Deferrable
   @Builtin("*")
   @DataParallel(value = PreserveAttributeStyle.ALL, passNA = true)
@@ -309,94 +311,108 @@ public class Ops  {
   * coercePairList() calls PairToVectorList() to convert a PairList to a List
   */
 
+
+
   public static SEXP coerceSymbol(SEXP vector, int type) {
     SEXP rval;
-      switch(type) {
-          case SexpType.EXPRSXP:
-              ListVector.Builder listVector = new ListVector.Builder(1);
-              rval = listVector.add(vector).build();
-              break;
-          case SexpType.CHARSXP:
-          case SexpType.STRSXP:
-              StringVector.Builder stringVector = new StringVector.Builder(1);
-              rval = stringVector.add(vector.getNames()).build();
-              break;
-          default:
-              throw new EvalException("(symbol) object cannot be coerced to type " + type2char(type));
-      };
-      return rval;
+    switch(type) {
+      case SexpType.EXPRSXP:
+        ListVector.Builder listVector = new ListVector.Builder(1);
+        rval = listVector.add(vector).build();
+        break;
+      case SexpType.CHARSXP:
+      case SexpType.STRSXP:
+        StringVector.Builder stringVector = new StringVector.Builder(1);
+        rval = stringVector.add(vector.getNames()).build();
+        break;
+      default:
+        throw new EvalException("(symbol) object cannot be coerced to type " + type); //+ type2char(type));
+    };
+    return rval;
   }
 
   public static SEXP PairToVectorList(SEXP vector) {
-      // Should convert a PairList to a List and copies all the attributes including TAGs
+    // Should convert a PairList to a List and copies all the attributes including TAGs
 
-      return vector;
   }
 
-  public static SEXP coercePairlist(SEXP vectors, int type) {
-      int i, n = 0;
-      SEXP rval = null, vp, names;
+  /* SHOULD BE IN Deparse CLASS: */
+  /* deparse1line concatenates all lines into one long one */
+  /* This is needed in terms.formula, where we must be able */
+  /* to deparse a term label into a single line of text so */
+  /* that it can be reparsed correctly */
+  public static String deparse1line(@Current Context context, SEXP call, boolean abbrev) {
+    //
+    return Deparse.deparseExp(context, call);
+  }
 
-      if (type == SexpType.LISTSXP) {
-          return vectors;
+  public static boolean isVectorizable(SEXP vector) {
+    return Rf_isVectorizable(vector);
+  }
+
+  public static SEXP coercePairlist(@Current Context context, Vector vectors, int type) {
+    int i, n = 0;
+    SEXP rval = null, vp, names;
+
+    if (type == SexpType.LISTSXP) {
+      return vectors;
+    }
+
+    names = vectors;
+
+    if (type == SexpType.EXPRSXP) {
+      StringVector.Builder stringVector = new StringVector.Builder(1);
+      rval = stringVector.add(vectors.getNames()).build();
+      return rval;
+
+    } else if (type == SexpType.STRSXP) {
+      n = vectors.length();
+      StringVector.Builder stringVector = new StringVector.Builder(n);
+      for(vp = vectors, i = 0; vp != ListVector.EMPTY; vp = CDR(vp), i++) {
+        if (isString(CAR(vp)) && CAR(vp).length() == 1) {
+          stringVector.add(STRING_ELT(CAR(vp), 0));
+        } else {
+          stringVector.add(deparse1line(context, STRING_ELT(CAR(vp), 0), false));
+        }
       }
 
-      names = vectors;
+    } else if (type == SexpType.VECSXP) {
+      rval = PairList.Node.fromVector(vectors);
+      return rval;
 
-      if (type == SexpType.EXPRSXP) {
-          StringVector.Builder stringVector = new StringVector.Builder(1);
-          rval = stringVector.add(vectors.getNames()).build();
-          return rval;
+    } else if (isVectorizable(vectors)) {
 
-      } else if (type == SexpType.STRSXP) {
-          n = vectors.length();
-          StringVector.Builder stringVector = new StringVector.Builder(n);
-          for(vp = vectors, i = 0; vp != ListVector.EMPTY; vp = CDR(vp), i++) {
-            if (isString(CAR(vp)) && CAR(vp).length() == 1) {
-                stringVector.add(STRING_ELT(CAR(vp), 0));
-            } else {
-                stringVector.add(STRING_ELT(deparse1line(CAR(vp), 0), 0));
-            }
-          }
+      switch(type) {
+        case SexpType.LGLSXP:
+          // for (i = 0, vp = v; i < n; i++, vp = CDR(vp))
+          // LOGICAL(rval)[i] = asLogical(CAR(vp));
+          break;
+        case SexpType.INTSXP:
 
-      } else if (type == SexpType.VECSXP) {
-          /* */
-          rval = PairToVectorList(vectors);
-          return rval;
+          break;
+        case SexpType.REALSXP:
 
-      } else if (isVectorizable(vectors)) {
+          break;
+        case SexpType.CPLXSXP:
 
-          switch(type) {
-              case SexpType.LGLSXP:
-                  // for (i = 0, vp = v; i < n; i++, vp = CDR(vp))
-                  // LOGICAL(rval)[i] = asLogical(CAR(vp));
-                  break;
-              case: SexpType.INTSXP:
+          break;
+        case SexpType.RAWSXP:
 
-                  break;
-              case: SexpType.REALSXP:
-
-                  break;
-              case: SexpType.CPLXSXP:
-
-                  break;
-              case: SexpType.RAWSXP:
-
-                  break;
-              default: throw new EvalException("UNIMPLEMENTED_TYPE");
-          }
-
-      } else {
-          throw new EvalException("'pairlist' object cannot be coerced to type " + type2char(type));
+          break;
+        default: throw new EvalException("UNIMPLEMENTED_TYPE");
       }
 
-      // use names (from PRINTNAME(TAG()) ) to setAttrib(rval, R_NamesSymbol, names)
-      //return rval;
+    } else {
+      throw new EvalException("'pairlist' object cannot be coerced to type " + type); //+ type2char(type));
+    }
+
+    // use names (from PRINTNAME(TAG()) ) to setAttrib(rval, R_NamesSymbol, names)
+    //return rval;
   }
 
 
   @Builtin("==")
-  @DataParallel
+  // @DataParallel
   public static SEXP equalTo(ListVector x, SEXP y) {
     LogicalArrayVector.Builder res = new LogicalArrayVector.Builder();
     int yLength = y.length();
@@ -406,19 +422,19 @@ public class Ops  {
       for (SEXP xElement : x) {
         if (yIndex == yLength) {
           yIndex = 0;
-          res.add(xElement.toString().equals(y.getElementAsSEXP(yIndex).toString()));
+          res.add(((Vector) xElement).getVectorType().elementsEqual((Vector) xElement, yIndex, (Vector) y, yIndex));
           yIndex += 1;
         }
       }
     } else {
       for (SEXP xElement : x) {
-        res.add(xElement.toString().equals(y.toString()));
+        res.add(((Vector) xElement).getVectorType().elementsEqual((Vector) xElement, 0, (Vector) y, 0));
       }
     }
 
     return res.build().getElementAsSEXP(0);
   }
-  
+
   @Deferrable
   @Builtin("==")
   @DataParallel

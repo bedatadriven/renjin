@@ -93,7 +93,7 @@ public class Coerce {
     return rval;
   }
 
-  public static SEXP coercePairlist(@Current Context context, Vector vectors, int type) {
+  public static SEXP coercePairList(@Current Context context, Vector vectors, int type) {
     int i, n = 0;
     // SEXP rval = null, vp, names;
     //names = vectors;
@@ -280,55 +280,50 @@ public class Coerce {
 
 
 
-  public static SEXP coerceVector(@Current Context context, SEXP v, SexpType type) {
+  public static SEXP coerceVector(@Current Context context, SEXP vector, SexpType type) {
     SEXP op, vp, ans = R_NilValue;	/* -Wall */
     int i, n;
 
-    if (TYPEOF(v) == type) {
-      return v;
+    if (TYPEOF(vector) == type) {
+      return vector;
     }
     /* code to allow classes to extend ENVSXP, SYMSXP, etc */
-    if(R_isS4Object(v).equals(LogicalVector.TRUE) && TYPEOF(v) == S4SXP) {
-      SEXP vv = R_getS4DataSlot(v, ANYSXP);
+    if(R_isS4Object(vector).equals(LogicalVector.TRUE) && TYPEOF(vector) == S4SXP) {
+      SEXP vv = R_getS4DataSlot(vector, ANYSXP);
       if(vv == R_NilValue) {
         throw new EvalException("no method for coercing this S4 class to a vector");
       }
       else if(TYPEOF(vv) == type) {
         return vv;
       }
-      v = vv;
+      vector = vv;
     }
 
-    switch (TYPEOF(v)) {
-//#ifdef NOTYET
-      case SexpType.NILSXP:
-        ans = coerceNull(v, type);
-        break;
-//#endif
+    switch (TYPEOF(vector)) {
       case SexpType.SYMSXP:
-        ans = coerceSymbol(v, type);
+        ans = coerceSymbol(vector, type);
         break;
       case SexpType.NILSXP:
       case SexpType.LISTSXP:
-        ans = coercePairList(v, type);
+        ans = coercePairList(context, (Vector) vector, type);
         break;
       case SexpType.LANGSXP:
         if (type != STRSXP) {
-          ans = coercePairList(v, type);
+          ans = coercePairList(context, (Vector) vector, type);
           break;
         }
 
         /* This is mostly copied from coercePairList, but we need to
          * special-case the first element so as not to get operators
          * put in backticks. */
-        n = v.length();
+        n = vector.length();
         ans = allocVector(type, n);
         if (n == 0) {
           /* Can this actually happen? */
           break;
         }
         i = 0;
-        op = CAR(v);
+        op = CAR(vector);
         /* The case of practical relevance is "lhs ~ rhs", which
          * people tend to split using as.character(), modify, and
          * paste() back together. However, we might as well
@@ -336,13 +331,13 @@ public class Coerce {
         if (TYPEOF(op) == SYMSXP) {
           SET_STRING_ELT(ans, i, PRINTNAME(op));
           i++;
-          v = CDR(v);
+          vector = CDR(vector);
         }
 
         /* The distinction between strings and other elements was
          * here "always", but is really dubious since it makes x <- a
          * and x <- "a" come out identical. Won't fix just now. */
-        for (vp = v;  vp != R_NilValue; vp = CDR(vp), i++) {
+        for (vp = vector;  vp != R_NilValue; vp = CDR(vp), i++) {
           if (isString(CAR(vp)) && length(CAR(vp)) == 1) {
             SET_STRING_ELT(ans, i, STRING_ELT(CAR(vp), 0));
           } else {
@@ -352,7 +347,7 @@ public class Coerce {
         break;
       case VECSXP:
       case EXPRSXP:
-        ans = coerceVectorList(context, v, type);
+        ans = coerceVectorList(context, vector, type);
         break;
       case ENVSXP:
         throw new EvalException("environments cannot be coerced to other types");
@@ -363,43 +358,44 @@ public class Coerce {
       case CPLXSXP:
       case STRSXP:
       case RAWSXP:
-        switch (type) {
-          case SYMSXP:
-            ans = coerceToSymbol(v);
-            break;
-          case LGLSXP:
-            ans = coerceToLogical(v);
-            break;
-          case INTSXP:
-            ans = coerceToInteger(v);
-            break;
-          case REALSXP:
-            ans = coerceToReal(v);
-            break;
-          case CPLXSXP:
-            ans = coerceToComplex(v);
-            break;
-          case RAWSXP:
-            ans = coerceToRaw(v);
-            break;
-          case STRSXP:
-            ans = coerceToString(v);
-            break;
-          case EXPRSXP:
-            ans = coerceToExpression(v);
-            break;
-          case VECSXP:
-            ans = coerceToVectorList(v);
-            break;
-          case LISTSXP:
-            ans = coerceToPairList(v);
-            break;
-          default:
-            throw new EvalException("cannot coerce type '%s' to vector of type '%s'", type2char(TYPEOF(v)), type2char(type));
-        }
+//        switch (type) {
+//          case SYMSXP:
+//            ans = coerceToSymbol(vector);
+//            break;
+//          case LGLSXP:
+//            ans = coerceToLogical(vector);
+//            break;
+//          case INTSXP:
+//            ans = coerceToInteger(vector);
+//            break;
+//          case REALSXP:
+//            ans = coerceToReal(vector);
+//            break;
+//          case CPLXSXP:
+//            ans = coerceToComplex(vector);
+//            break;
+//          case RAWSXP:
+//            ans = coerceToRaw(vector);
+//            break;
+//          case STRSXP:
+//            ans = coerceToString(vector);
+//            break;
+//          case EXPRSXP:
+//            ans = coerceToExpression(vector);
+//            break;
+//          case VECSXP:
+//            ans = coerceToVectorList(vector);
+//            break;
+//          case LISTSXP:
+//            ans = coerceToPairList(vector);
+//            break;
+//          default:
+//            throw new EvalException("cannot coerce type '%s' to vector of type '%s'", type2char(TYPEOF(vector)), type2char(type));
+//        }
+        throw new EvalException("TODO: coercion RAWSXP to other object types not yet implemented.");
         break;
       default:
-        throw new EvalException("cannot coerce type '%s' to vector of type '%s'", type2char(TYPEOF(v)), type2char(type));
+        throw new EvalException("cannot coerce type '%s' to vector of type '%s'", type2char(TYPEOF(vector)), type2char(type));
     }
     return ans;
   }

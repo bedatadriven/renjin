@@ -26,11 +26,15 @@ import org.renjin.invoke.annotations.*;
 import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.sexp.*;
 import org.renjin.sexp.SexpType;
+import org.renjin.util.CDefines;
+
+import java.lang.*;
 
 import static java.lang.Double.isInfinite;
 import static java.lang.Double.isNaN;
 import static java.lang.Math.copySign;
 import static org.renjin.sexp.DoubleVector.isFinite;
+import static org.renjin.sexp.SexpType.EXPRSXP;
 import static org.renjin.util.CDefines.*;
 
 
@@ -287,7 +291,7 @@ public class Ops  {
 
   /*
   * Relational operators in R are in do_relop function within relop.c file
-  * do_relop handles all cases where NA has to be returned, find whether Real or Integer
+  * do_relop handles all cases where NA has to be returned, finds whether Real or Integer
   * functions should be used, and calls 'de_relop_dflt()'. Here Scalar cases are handeled
   * by dispatch to DO_SCALAR_RELOP() macros, and list/vector input is coerced by calling
   * coerceVector() function located within coerce.c
@@ -307,108 +311,8 @@ public class Ops  {
   * CPLSXP      COERCE_ERROR macro
   * STRSXP      COERCE_ERROR macro
   * RAWSXP      COERCE_ERROR macro
-  *
-  * coercePairList() calls PairToVectorList() to convert a PairList to a List
   */
 
-
-
-  public static SEXP coerceSymbol(SEXP vector, int type) {
-    SEXP rval;
-    switch(type) {
-      case SexpType.EXPRSXP:
-        ListVector.Builder listVector = new ListVector.Builder(1);
-        rval = listVector.add(vector).build();
-        break;
-      case SexpType.CHARSXP:
-      case SexpType.STRSXP:
-        StringVector.Builder stringVector = new StringVector.Builder(1);
-        rval = stringVector.add(vector.getNames()).build();
-        break;
-      default:
-        throw new EvalException("(symbol) object cannot be coerced to type " + type); //+ type2char(type));
-    };
-    return rval;
-  }
-
-  public static SEXP PairToVectorList(SEXP vector) {
-    // Should convert a PairList to a List and copies all the attributes including TAGs
-
-  }
-
-  /* SHOULD BE IN Deparse CLASS: */
-  /* deparse1line concatenates all lines into one long one */
-  /* This is needed in terms.formula, where we must be able */
-  /* to deparse a term label into a single line of text so */
-  /* that it can be reparsed correctly */
-  public static String deparse1line(@Current Context context, SEXP call, boolean abbrev) {
-    //
-    return Deparse.deparseExp(context, call);
-  }
-
-  public static boolean isVectorizable(SEXP vector) {
-    return Rf_isVectorizable(vector);
-  }
-
-  public static SEXP coercePairlist(@Current Context context, Vector vectors, int type) {
-    int i, n = 0;
-    SEXP rval = null, vp, names;
-
-    if (type == SexpType.LISTSXP) {
-      return vectors;
-    }
-
-    names = vectors;
-
-    if (type == SexpType.EXPRSXP) {
-      StringVector.Builder stringVector = new StringVector.Builder(1);
-      rval = stringVector.add(vectors.getNames()).build();
-      return rval;
-
-    } else if (type == SexpType.STRSXP) {
-      n = vectors.length();
-      StringVector.Builder stringVector = new StringVector.Builder(n);
-      for(vp = vectors, i = 0; vp != ListVector.EMPTY; vp = CDR(vp), i++) {
-        if (isString(CAR(vp)) && CAR(vp).length() == 1) {
-          stringVector.add(STRING_ELT(CAR(vp), 0));
-        } else {
-          stringVector.add(deparse1line(context, STRING_ELT(CAR(vp), 0), false));
-        }
-      }
-
-    } else if (type == SexpType.VECSXP) {
-      rval = PairList.Node.fromVector(vectors);
-      return rval;
-
-    } else if (isVectorizable(vectors)) {
-
-      switch(type) {
-        case SexpType.LGLSXP:
-          // for (i = 0, vp = v; i < n; i++, vp = CDR(vp))
-          // LOGICAL(rval)[i] = asLogical(CAR(vp));
-          break;
-        case SexpType.INTSXP:
-
-          break;
-        case SexpType.REALSXP:
-
-          break;
-        case SexpType.CPLXSXP:
-
-          break;
-        case SexpType.RAWSXP:
-
-          break;
-        default: throw new EvalException("UNIMPLEMENTED_TYPE");
-      }
-
-    } else {
-      throw new EvalException("'pairlist' object cannot be coerced to type " + type); //+ type2char(type));
-    }
-
-    // use names (from PRINTNAME(TAG()) ) to setAttrib(rval, R_NamesSymbol, names)
-    //return rval;
-  }
 
 
   @Builtin("==")

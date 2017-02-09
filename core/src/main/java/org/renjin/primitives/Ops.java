@@ -306,34 +306,37 @@ public class Ops  {
 
 
 
-  @Builtin("==")
-  // @DataParallel
-  public static SEXP equalTo(ListVector x, SEXP y) {
-    LogicalArrayVector.Builder res = new LogicalArrayVector.Builder();
-    int yLength = y.length();
-    int yIndex = 0;
-
-    if (yLength > 1) {
-      for (SEXP xElement : x) {
-        if (yIndex == yLength) {
-          yIndex = 0;
-          res.add(((Vector) xElement).getVectorType().elementsEqual((Vector) xElement, yIndex, (Vector) y, yIndex));
-          yIndex += 1;
-        }
-      }
-    } else {
-      for (SEXP xElement : x) {
-        res.add(((Vector) xElement).getVectorType().elementsEqual((Vector) xElement, 0, (Vector) y, 0));
-      }
-    }
-
-    return res.build().getElementAsSEXP(0);
-  }
+//  @Builtin("==")
+//  // @DataParallel
+//  public static SEXP equalTo(ListVector x, SEXP y) {
+//    LogicalArrayVector.Builder res = new LogicalArrayVector.Builder();
+//    int yLength = y.length();
+//    int yIndex = 0;
+//
+//    if (yLength > 1) {
+//      for (int i = 0; i < x.length(); ++i) {
+//        if (yIndex == yLength) {
+//          yIndex = 0;
+//          res.add(((Vector)x.get(i)).getVectorType().elementsEqual((Vector) x.get(i), yIndex, (Vector) y, yIndex));
+//          yIndex += 1;
+//        } else {
+//          res.add(((Vector)x.get(i)).getVectorType().elementsEqual((Vector) x.get(i), yIndex, (Vector) y, yIndex));
+//          yIndex += 1;
+//        }
+//      }
+//    } else {
+//      for (int i = 0; i < x.length(); ++i) {
+//        res.add(((Vector) x.get(i)).getVectorType().elementsEqual((Vector) x.get(i), 0, (Vector) y, 0));
+//      }
+//    }
+//
+//    return res.build();
+//  }
 
   @Deferrable
   @Builtin("==")
   @DataParallel
-  public static boolean equalTo(@CoerceLanguageToString String x, @CoerceLanguageToString String y) {
+  public static boolean equalTo( String x, String y) {
     return x.equals(y);
   }
 
@@ -347,7 +350,7 @@ public class Ops  {
   @Deferrable
   @Builtin("!=")
   @DataParallel
-  public static boolean notEqualTo(@CoerceLanguageToString String x, @CoerceLanguageToString String y) {
+  public static boolean notEqualTo( String x, String y) {
     return !x.equals(y);
   }
 
@@ -361,7 +364,7 @@ public class Ops  {
   @Deferrable
   @Builtin("<")
   @DataParallel
-  public static boolean lessThan(@CoerceLanguageToString String x, @CoerceLanguageToString String y) {
+  public static boolean lessThan( String x, String y) {
     return x.compareTo(y) < 0;
   }
 
@@ -381,7 +384,7 @@ public class Ops  {
   @Deferrable
   @Builtin("<=")
   @DataParallel
-  public static boolean lessThanOrEqualTo(@CoerceLanguageToString String x, @CoerceLanguageToString String y) {
+  public static boolean lessThanOrEqualTo(String x, String y) {
     return x.compareTo(y) <= 0;
   }
 
@@ -401,7 +404,7 @@ public class Ops  {
   @Deferrable
   @Builtin(">")
   @DataParallel
-  public static boolean greaterThan(@CoerceLanguageToString String x, @CoerceLanguageToString String y) {
+  public static boolean greaterThan( String x,  String y) {
     return x.compareTo(y) > 0;
   }
 
@@ -427,7 +430,7 @@ public class Ops  {
   @Deferrable
   @Builtin(">=")
   @DataParallel
-  public static boolean greaterThanOrEqual(@CoerceLanguageToString String x, @CoerceLanguageToString String y) {
+  public static boolean greaterThanOrEqual( String x,  String y) {
     return x.compareTo(y) >= 0;
   }
 

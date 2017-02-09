@@ -155,4 +155,10 @@ public class PrimitiveModel {
     return overloads;
   }
 
+  public boolean isRelationalOperator() {
+    if(getName().equals("==")) {
+      return true;
+    }
+    return false;
+  }
 }

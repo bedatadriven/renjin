@@ -26,12 +26,13 @@ import org.renjin.invoke.annotations.Materialize;
 import org.renjin.invoke.annotations.SessionScoped;
 import org.renjin.invoke.codegen.args.ArgConverterStrategies;
 import org.renjin.invoke.codegen.args.ArgConverterStrategy;
+import org.renjin.invoke.codegen.scalars.ScalarType;
+import org.renjin.invoke.codegen.scalars.ScalarTypes;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.invoke.model.PrimitiveModel;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Maps;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.SEXP;
+import org.renjin.sexp.*;
 
 import java.util.Collections;
 import java.util.List;
@@ -75,16 +76,33 @@ public class OverloadWrapperBuilder implements ApplyMethodContext {
     IfElseBuilder matchSequence = new IfElseBuilder(method.body());
     List<JvmMethod> overloads = Lists.newArrayList( primitive.overloadsWithPosArgCountOf(arity) );
 
+    if(primitive.isRelationalOperator()) {
+      JVar arg0 = arguments.get(0);
+      JVar arg1 = arguments.get(1);
+      Collections.sort( overloads, new OverloadComparator());
+      Collections.reverse(overloads);
+
+      for(JvmMethod overload : overloads) {
+        ScalarType scalarType = ScalarTypes.get(overload.getFormals().get(0).getClazz());
+        JClass vectorType = codeModel.ref(scalarType.getVectorType());
+        JBlock stringBlock = matchSequence
+          ._if(arg0._instanceof(vectorType)
+          .cor(arg1._instanceof(vectorType)));
+        invokeOverload(overload, stringBlock);
+      }
+
+    } else {
     /*
      * Sort the overloads so that we test more narrow types first, e.g.,
      * try "int" before falling back to "double".
      */
-    Collections.sort( overloads, new OverloadComparator());
-    for(JvmMethod overload : overloads) {
+      Collections.sort( overloads, new OverloadComparator());
+      for(JvmMethod overload : overloads) {
       /*
        * If the types match, invoke the Java method
        */
-      invokeOverload(overload, matchSequence._if(argumentsMatch(overload)));
+        invokeOverload(overload, matchSequence._if(argumentsMatch(overload)));
+      }
     }
 
     /**

@@ -18,24 +18,15 @@
  */
 package org.renjin.primitives;
 
-import jdk.nashorn.internal.ir.EmptyNode;
 import org.apache.commons.math.complex.Complex;
-import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
-import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.sexp.*;
-import org.renjin.sexp.SexpType;
-import org.renjin.util.CDefines;
-
-import java.lang.*;
 
 import static java.lang.Double.isInfinite;
 import static java.lang.Double.isNaN;
 import static java.lang.Math.copySign;
 import static org.renjin.sexp.DoubleVector.isFinite;
-import static org.renjin.sexp.SexpType.EXPRSXP;
-import static org.renjin.util.CDefines.*;
 
 
 /**

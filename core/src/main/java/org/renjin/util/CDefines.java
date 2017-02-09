@@ -418,8 +418,8 @@ public class CDefines {
   public static SexpType TYPEOF(SEXP exp) {
     if(exp instanceof Closure) {
       return CLOSXP;
-    } else if(exp instanceof ExpressionVector) {
-      return EXPRSXP;
+//    } else if(exp instanceof ExpressionVector) {
+//      return EXPRSXP;
     } else if(exp instanceof ListVector){
       return VECSXP;
     } else {
@@ -438,31 +438,31 @@ public class CDefines {
   }
 
 
-  public static final SexpType NILSXP = new SexpType();
-  public static final SexpType SYMSXP = new SexpType();
-  public static final SexpType LISTSXP = new SexpType();
+  //  public static final SexpType NILSXP = new SexpType();
+//  public static final SexpType SYMSXP = new SexpType();
+//  public static final SexpType LISTSXP = new SexpType();
   public static final SexpType CLOSXP = new SexpType();
-  public static final SexpType ENVSXP = new SexpType();
-  public static final SexpType PROMSXP = new SexpType();
-  public static final SexpType LANGSXP = new SexpType();
-  public static final SexpType SPECIALSXP = new SexpType();
-  public static final SexpType BUILTINSXP = new SexpType();
-  public static final SexpType CHARSXP = new SexpType();
-  public static final SexpType LGLSXP = new SexpType();
-  public static final SexpType INTSXP = new SexpType();
-  public static final SexpType REALSXP = new SexpType();
-  public static final SexpType CPLXSXP = new SexpType();
-  public static final SexpType STRSXP = new SexpType();
-  public static final SexpType DOTSXP = new SexpType();
-  public static final SexpType ANYSXP = new SexpType();
   public static final SexpType VECSXP = new SexpType();
-  public static final SexpType EXPRSXP = new SexpType();
-  public static final SexpType BCODESXP = new SexpType();
-  public static final SexpType EXTPTRSXP = new SexpType();
-  public static final SexpType RAWSXP = new SexpType();
-  public static final SexpType S4SXP = new SexpType();
-  public static final SexpType FUNSXP = new SexpType();
-  public static final SexpType REFSXP = new SexpType();
+  public static final SexpType STRSXP = new SexpType();
+  public static final SexpType REALSXP = new SexpType();
+  public static final SexpType INTSXP = new SexpType();
+//  public static final SexpType ENVSXP = new SexpType();
+//  public static final SexpType PROMSXP = new SexpType();
+//  public static final SexpType LANGSXP = new SexpType();
+//  public static final SexpType SPECIALSXP = new SexpType();
+//  public static final SexpType BUILTINSXP = new SexpType();
+//  public static final SexpType CHARSXP = new SexpType();
+//  public static final SexpType LGLSXP = new SexpType();
+//  public static final SexpType CPLXSXP = new SexpType();
+//  public static final SexpType DOTSXP = new SexpType();
+//  public static final SexpType ANYSXP = new SexpType();
+//  public static final SexpType EXPRSXP = new SexpType();
+//  public static final SexpType BCODESXP = new SexpType();
+//  public static final SexpType EXTPTRSXP = new SexpType();
+//  public static final SexpType RAWSXP = new SexpType();
+//  public static final SexpType S4SXP = new SexpType();
+//  public static final SexpType FUNSXP = new SexpType();
+//  public static final SexpType REFSXP = new SexpType();
 
   public static Vector.Builder allocVector(SexpType type, int size) {
     if(type == VECSXP) {

@@ -28,6 +28,7 @@ import org.renjin.invoke.codegen.args.ArgConverterStrategies;
 import org.renjin.invoke.codegen.args.ArgConverterStrategy;
 import org.renjin.invoke.codegen.scalars.ScalarType;
 import org.renjin.invoke.codegen.scalars.ScalarTypes;
+import org.renjin.invoke.codegen.WrapperRuntime;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.invoke.model.PrimitiveModel;
 import org.renjin.repackaged.guava.collect.Lists;
@@ -81,6 +82,12 @@ public class OverloadWrapperBuilder implements ApplyMethodContext {
       JVar arg1 = arguments.get(1);
       Collections.sort( overloads, new OverloadComparator());
       Collections.reverse(overloads);
+
+//      This code will be generated to handle FunctionCall and Symbol coercion to character
+//      arg0 = maybeConvertToStringVector(arg0);
+//      arg1 = WrapperRuntime.maybeConvertToStringVector(arg1);
+      method.body().assign(JExpr.ref("arg0"), codeModel.ref(WrapperRuntime.class).staticInvoke("maybeConvertToStringVector").arg(context).arg(arg0));
+      method.body().assign(JExpr.ref("arg1"), codeModel.ref(WrapperRuntime.class).staticInvoke("maybeConvertToStringVector").arg(context).arg(arg1));
 
       for(JvmMethod overload : overloads) {
         ScalarType scalarType = ScalarTypes.get(overload.getFormals().get(0).getClazz());

@@ -275,6 +275,13 @@ public class Ops  {
   @Deferrable
   @Builtin("==")
   @DataParallel
+  public static boolean equalTo(int x, int y) {
+    return x == y;
+  }
+
+  @Deferrable
+  @Builtin("==")
+  @DataParallel
   public static boolean equalTo(Complex x, Complex y) {
     return x.equals(y);
   }
@@ -286,6 +293,7 @@ public class Ops  {
     return x.equals(y);
   }
 
+
   @Deferrable
   @Builtin("!=")
   @DataParallel
@@ -296,8 +304,22 @@ public class Ops  {
   @Deferrable
   @Builtin("!=")
   @DataParallel
+  public static boolean notEqualTo(int x, int y) {
+    return x != y;
+  }
+
+  @Deferrable
+  @Builtin("!=")
+  @DataParallel
   public static boolean notEqualTo( String x, String y) {
     return !x.equals(y);
+  }
+
+  @Deferrable
+  @Builtin("<")
+  @DataParallel
+  public static boolean lessThan(int x, int y) {
+    return x < y;
   }
 
   @Deferrable
@@ -330,6 +352,13 @@ public class Ops  {
   @Deferrable
   @Builtin("<=")
   @DataParallel
+  public static boolean lessThanOrEqualTo(int x, int y) {
+    return x <= y;
+  }
+
+  @Deferrable
+  @Builtin("<=")
+  @DataParallel
   public static boolean lessThanOrEqualTo(String x, String y) {
     return x.compareTo(y) <= 0;
   }
@@ -350,6 +379,13 @@ public class Ops  {
   @Deferrable
   @Builtin(">")
   @DataParallel
+  public static boolean greaterThan(int x, int y) {
+    return x > y;
+  }
+
+  @Deferrable
+  @Builtin(">")
+  @DataParallel
   public static boolean greaterThan( String x,  String y) {
     return x.compareTo(y) > 0;
   }
@@ -364,6 +400,13 @@ public class Ops  {
   @Builtin(">=")
   @DataParallel
   public static boolean greaterThanOrEqual(double x, double y) {
+    return x >= y;
+  }
+
+  @Deferrable
+  @Builtin(">=")
+  @DataParallel
+  public static boolean greaterThanOrEqual(int x, int y) {
     return x >= y;
   }
 

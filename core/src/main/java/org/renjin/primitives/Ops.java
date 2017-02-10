@@ -415,7 +415,7 @@ public class Ops  {
   @Builtin("<=")
   @DataParallel
   public static boolean lessThanOrEqualTo(boolean x, boolean y) {
-    return y && !x;
+    return y || !x;
   }
 
   @Deferrable

@@ -86,8 +86,8 @@ public class OverloadWrapperBuilder implements ApplyMethodContext {
         ScalarType scalarType = ScalarTypes.get(overload.getFormals().get(0).getClazz());
         JClass vectorType = codeModel.ref(scalarType.getVectorType());
         JBlock stringBlock = matchSequence
-          ._if(arg0._instanceof(vectorType)
-          .cor(arg1._instanceof(vectorType)));
+            ._if(arg0._instanceof(vectorType)
+                .cor(arg1._instanceof(vectorType)));
         invokeOverload(overload, stringBlock);
       }
 
@@ -109,7 +109,7 @@ public class OverloadWrapperBuilder implements ApplyMethodContext {
      * No matching methods, throw an exception
      */
     matchSequence._else()._throw(_new(codeModel.ref(EvalException.class))
-            .arg(typeMismatchErrorMessage(arguments)));
+        .arg(typeMismatchErrorMessage(arguments)));
   }
 
   private JExpression typeMismatchErrorMessage(List<JVar> arguments) {
@@ -181,7 +181,7 @@ public class OverloadWrapperBuilder implements ApplyMethodContext {
 
     if(overload.isDataParallel()) {
       new RecycleLoopBuilder(codeModel, block, context, primitive, overload, mapArguments(overload))
-            .build();
+          .build();
     } else {
       invokeSimpleMethod(overload, block);
     }
@@ -193,7 +193,7 @@ public class OverloadWrapperBuilder implements ApplyMethodContext {
    */
   private void invokeSimpleMethod(JvmMethod overload, JBlock block) {
     JInvocation invocation = codeModel.ref(overload.getDeclaringClass())
-            .staticInvoke(overload.getName());
+        .staticInvoke(overload.getName());
 
     Map<JvmMethod.Argument, JExpression> argumentMap = mapArguments(overload);
 
@@ -211,7 +211,7 @@ public class OverloadWrapperBuilder implements ApplyMethodContext {
    */
   private JExpression convert(JvmMethod.Argument argument, JExpression sexp) {
     return ArgConverterStrategies.findArgConverterStrategy(argument)
-            .convertArgument(this, sexp);
+        .convertArgument(this, sexp);
   }
 
   /**
@@ -224,7 +224,7 @@ public class OverloadWrapperBuilder implements ApplyMethodContext {
     for (int i = 0; i != posFormals.size(); ++i) {
 
       ArgConverterStrategy strategy = ArgConverterStrategies
-              .findArgConverterStrategy(posFormals.get(i));
+          .findArgConverterStrategy(posFormals.get(i));
 
       JExpression argCondition = strategy.getTestExpr(codeModel, arguments.get(i));
       if(condition == null) {

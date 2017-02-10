@@ -279,60 +279,6 @@ public class Ops  {
     return x.equals(y);
   }
 
-
-  /*
-  * Relational operators in R are in do_relop function within relop.c file
-  * do_relop handles all cases where NA has to be returned, finds whether Real or Integer
-  * functions should be used, and calls 'de_relop_dflt()'. Here Scalar cases are handeled
-  * by dispatch to DO_SCALAR_RELOP() macros, and list/vector input is coerced by calling
-  * coerceVector() function located within coerce.c
-  * coerceVector() function handles different SEXP types by calling the following functions:
-  *
-  * Type        Function
-  * SYMSXP      coerceSymbol()
-  * NILSXP      coercePairList()
-  * LISTSXP     coercePairList()
-  * LANGSXP     coercePairList()
-  * VECSXP      coerceVectorList()
-  * EXPRSXP     coerceVectorList()
-  * ENVSXP      error "environments cannot be coerced to other types"
-  * LGLSXP      COERCE_ERROR macro "cannot coerce type '%s' to vector of type '%s'"
-  * INTSXP      COERCE_ERROR macro
-  * REALSXP     COERCE_ERROR macro
-  * CPLSXP      COERCE_ERROR macro
-  * STRSXP      COERCE_ERROR macro
-  * RAWSXP      COERCE_ERROR macro
-  */
-
-
-
-//  @Builtin("==")
-//  // @DataParallel
-//  public static SEXP equalTo(ListVector x, SEXP y) {
-//    LogicalArrayVector.Builder res = new LogicalArrayVector.Builder();
-//    int yLength = y.length();
-//    int yIndex = 0;
-//
-//    if (yLength > 1) {
-//      for (int i = 0; i < x.length(); ++i) {
-//        if (yIndex == yLength) {
-//          yIndex = 0;
-//          res.add(((Vector)x.get(i)).getVectorType().elementsEqual((Vector) x.get(i), yIndex, (Vector) y, yIndex));
-//          yIndex += 1;
-//        } else {
-//          res.add(((Vector)x.get(i)).getVectorType().elementsEqual((Vector) x.get(i), yIndex, (Vector) y, yIndex));
-//          yIndex += 1;
-//        }
-//      }
-//    } else {
-//      for (int i = 0; i < x.length(); ++i) {
-//        res.add(((Vector) x.get(i)).getVectorType().elementsEqual((Vector) x.get(i), 0, (Vector) y, 0));
-//      }
-//    }
-//
-//    return res.build();
-//  }
-
   @Deferrable
   @Builtin("==")
   @DataParallel

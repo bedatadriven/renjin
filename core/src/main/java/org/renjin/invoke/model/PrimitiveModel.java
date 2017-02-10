@@ -156,7 +156,9 @@ public class PrimitiveModel {
   }
 
   public boolean isRelationalOperator() {
-    if(getName().equals("==")) {
+    if(getName().equals("==") || getName().equals("!=") ||
+        getName().equals(">=") || getName().equals("<=") ||
+        getName().equals(">") || getName().equals("<")) {
       return true;
     }
     return false;

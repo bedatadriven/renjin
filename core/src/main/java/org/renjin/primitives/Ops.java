@@ -282,6 +282,13 @@ public class Ops  {
   @Deferrable
   @Builtin("==")
   @DataParallel
+  public static boolean equalTo(boolean x, boolean y) {
+    return x == y;
+  }
+
+  @Deferrable
+  @Builtin("==")
+  @DataParallel
   public static boolean equalTo(Complex x, Complex y) {
     return x.equals(y);
   }
@@ -311,6 +318,13 @@ public class Ops  {
   @Deferrable
   @Builtin("!=")
   @DataParallel
+  public static boolean notEqualTo(boolean x, boolean y) {
+    return x != y;
+  }
+
+  @Deferrable
+  @Builtin("!=")
+  @DataParallel
   public static boolean notEqualTo( String x, String y) {
     return !x.equals(y);
   }
@@ -320,6 +334,16 @@ public class Ops  {
   @DataParallel
   public static boolean lessThan(int x, int y) {
     return x < y;
+  }
+
+  @Deferrable
+  @Builtin("<")
+  @DataParallel
+  public static boolean lessThan(boolean x, boolean y) {
+    if (!x && y) {
+      return true;
+    }
+    return false;
   }
 
   @Deferrable
@@ -359,6 +383,16 @@ public class Ops  {
   @Deferrable
   @Builtin("<=")
   @DataParallel
+  public static boolean lessThanOrEqualTo(boolean x, boolean y) {
+    if(x && !y) {
+      return false;
+    }
+    return true;
+  }
+
+  @Deferrable
+  @Builtin("<=")
+  @DataParallel
   public static boolean lessThanOrEqualTo(String x, String y) {
     return x.compareTo(y) <= 0;
   }
@@ -386,6 +420,16 @@ public class Ops  {
   @Deferrable
   @Builtin(">")
   @DataParallel
+  public static boolean greaterThan(boolean x, boolean y) {
+    if(x && !y) {
+      return true;
+    }
+    return false;
+  }
+
+  @Deferrable
+  @Builtin(">")
+  @DataParallel
   public static boolean greaterThan( String x,  String y) {
     return x.compareTo(y) > 0;
   }
@@ -408,6 +452,16 @@ public class Ops  {
   @DataParallel
   public static boolean greaterThanOrEqual(int x, int y) {
     return x >= y;
+  }
+
+  @Deferrable
+  @Builtin(">=")
+  @DataParallel
+  public static boolean greaterThanOrEqual(boolean x, boolean y) {
+    if(!x && y) {
+      return false;
+    }
+    return true;
   }
 
   @Builtin(">=")

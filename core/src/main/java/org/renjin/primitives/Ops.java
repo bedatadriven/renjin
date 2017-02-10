@@ -268,6 +268,20 @@ public class Ops  {
   @Deferrable
   @Builtin("==")
   @DataParallel
+  public static boolean equalTo( String x, String y) {
+    return x.equals(y);
+  }
+
+  @Deferrable
+  @Builtin("==")
+  @DataParallel
+  public static boolean equalTo(Complex x, Complex y) {
+    return x.equals(y);
+  }
+
+  @Deferrable
+  @Builtin("==")
+  @DataParallel
   public static boolean equalTo(double x, double y) {
     return x == y;
   }
@@ -289,15 +303,15 @@ public class Ops  {
   @Deferrable
   @Builtin("==")
   @DataParallel
-  public static boolean equalTo(Complex x, Complex y) {
-    return x.equals(y);
+  public static boolean equalTo(byte x, byte y) {
+    return x == y;
   }
 
   @Deferrable
-  @Builtin("==")
+  @Builtin("!=")
   @DataParallel
-  public static boolean equalTo( String x, String y) {
-    return x.equals(y);
+  public static boolean notEqualTo( String x, String y) {
+    return !x.equals(y);
   }
 
 
@@ -325,8 +339,28 @@ public class Ops  {
   @Deferrable
   @Builtin("!=")
   @DataParallel
-  public static boolean notEqualTo( String x, String y) {
-    return !x.equals(y);
+  public static boolean notEqualTo(byte x, byte y) {
+    return x != y;
+  }
+
+  @Deferrable
+  @Builtin("<")
+  @DataParallel
+  public static boolean lessThan( String x, String y) {
+    return x.compareTo(y) < 0;
+  }
+
+  @Builtin("<")
+  @DataParallel
+  public static boolean lessThan(Complex x, Complex y) {
+    throw new EvalException("invalid comparison with complex values");
+  }
+
+  @Deferrable
+  @Builtin("<")
+  @DataParallel
+  public static boolean lessThan(double x, double y) {
+    return x < y;
   }
 
   @Deferrable
@@ -340,29 +374,26 @@ public class Ops  {
   @Builtin("<")
   @DataParallel
   public static boolean lessThan(boolean x, boolean y) {
-    if (!x && y) {
-      return true;
-    }
-    return false;
+    return !x && y;
   }
 
   @Deferrable
   @Builtin("<")
   @DataParallel
-  public static boolean lessThan(double x, double y) {
+  public static boolean lessThan(byte x, byte y) {
     return x < y;
   }
 
   @Deferrable
-  @Builtin("<")
+  @Builtin("<=")
   @DataParallel
-  public static boolean lessThan( String x, String y) {
-    return x.compareTo(y) < 0;
+  public static boolean lessThanOrEqualTo(String x, String y) {
+    return x.compareTo(y) <= 0;
   }
 
-  @Builtin("<")
+  @Builtin("<=")
   @DataParallel
-  public static boolean lessThan(Complex x, Complex y) {
+  public static boolean lessThanOrEqualTo(Complex x, Complex y) {
     throw new EvalException("invalid comparison with complex values");
   }
 
@@ -384,22 +415,26 @@ public class Ops  {
   @Builtin("<=")
   @DataParallel
   public static boolean lessThanOrEqualTo(boolean x, boolean y) {
-    if(x && !y) {
-      return false;
-    }
-    return true;
+    return y && !x;
   }
 
   @Deferrable
   @Builtin("<=")
   @DataParallel
-  public static boolean lessThanOrEqualTo(String x, String y) {
-    return x.compareTo(y) <= 0;
+  public static boolean lessThanOrEqualTo(byte x, byte y) {
+    return x <= y;
   }
 
-  @Builtin("<=")
+  @Deferrable
+  @Builtin(">")
   @DataParallel
-  public static boolean lessThanOrEqualTo(Complex x, Complex y) {
+  public static boolean greaterThan( String x,  String y) {
+    return x.compareTo(y) > 0;
+  }
+
+  @Builtin(">")
+  @DataParallel
+  public static boolean greaterThan(Complex x, Complex y) {
     throw new EvalException("invalid comparison with complex values");
   }
 
@@ -421,22 +456,26 @@ public class Ops  {
   @Builtin(">")
   @DataParallel
   public static boolean greaterThan(boolean x, boolean y) {
-    if(x && !y) {
-      return true;
-    }
-    return false;
+    return x && !y;
   }
 
   @Deferrable
   @Builtin(">")
   @DataParallel
-  public static boolean greaterThan( String x,  String y) {
-    return x.compareTo(y) > 0;
+  public static boolean greaterThan(byte x, byte y) {
+    return x > y;
   }
 
-  @Builtin(">")
+  @Deferrable
+  @Builtin(">=")
   @DataParallel
-  public static boolean greaterThan(Complex x, Complex y) {
+  public static boolean greaterThanOrEqual( String x,  String y) {
+    return x.compareTo(y) >= 0;
+  }
+
+  @Builtin(">=")
+  @DataParallel
+  public static boolean greaterThanOrEqual(Complex x, Complex y) {
     throw new EvalException("invalid comparison with complex values");
   }
 
@@ -458,23 +497,14 @@ public class Ops  {
   @Builtin(">=")
   @DataParallel
   public static boolean greaterThanOrEqual(boolean x, boolean y) {
-    if(!x && y) {
-      return false;
-    }
-    return true;
-  }
-
-  @Builtin(">=")
-  @DataParallel
-  public static boolean greaterThanOrEqual(Complex x, Complex y) {
-    throw new EvalException("invalid comparison with complex values");
+    return x || !y;
   }
 
   @Deferrable
   @Builtin(">=")
   @DataParallel
-  public static boolean greaterThanOrEqual( String x,  String y) {
-    return x.compareTo(y) >= 0;
+  public static boolean greaterThanOrEqual(byte x, byte y) {
+    return x >= y;
   }
 
   @Deferrable

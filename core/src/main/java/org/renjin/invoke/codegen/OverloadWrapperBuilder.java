@@ -83,6 +83,8 @@ public class OverloadWrapperBuilder implements ApplyMethodContext {
       Collections.sort( overloads, new OverloadComparator());
       Collections.reverse(overloads);
 
+      method.body()._if(codeModel.ref(WrapperRuntime.class).staticInvoke("isEmptyOrNull").arg(arg0).cor(codeModel.ref(WrapperRuntime.class).staticInvoke("isEmptyOrNull").arg(arg1)))._then()._return(codeModel.ref(LogicalVector.class).staticRef("EMPTY"));
+
 //      This code will be generated to handle FunctionCall and Symbol coercion to character
 //      arg0 = maybeConvertToStringVector(arg0);
 //      arg1 = WrapperRuntime.maybeConvertToStringVector(arg1);

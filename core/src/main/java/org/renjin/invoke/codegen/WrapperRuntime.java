@@ -182,4 +182,11 @@ public class WrapperRuntime {
     return vector;
   }
 
+  public static boolean isEmptyOrNull(SEXP vector) {
+    if(vector instanceof Vector) {
+      return ((Vector) vector).length() == 0;
+    }
+    return false;
+  }
+
 }

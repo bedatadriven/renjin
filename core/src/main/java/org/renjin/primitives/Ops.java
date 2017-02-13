@@ -304,7 +304,7 @@ public class Ops  {
   @Builtin("==")
   @DataParallel
   public static boolean equalTo(byte x, byte y) {
-    return (x & 0xFF) == (y & 0xFF);
+    return x == y;
   }
 
   @Deferrable
@@ -347,7 +347,7 @@ public class Ops  {
   @Builtin("!=")
   @DataParallel
   public static boolean notEqualTo(byte x, byte y) {
-    return (x & 0xFF) != (y & 0xFF);
+    return x != y;
   }
 
   @Deferrable

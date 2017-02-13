@@ -314,6 +314,13 @@ public class Ops  {
     return !x.equals(y);
   }
 
+  @Deferrable
+  @Builtin("!=")
+  @DataParallel
+  public static boolean notEqualTo( Complex x, Complex y) {
+    return !x.equals(y);
+  }
+
 
   @Deferrable
   @Builtin("!=")

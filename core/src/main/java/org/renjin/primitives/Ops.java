@@ -304,7 +304,7 @@ public class Ops  {
   @Builtin("==")
   @DataParallel
   public static boolean equalTo(byte x, byte y) {
-    return x == y;
+    return (x & 0xFF) == (y & 0xFF);
   }
 
   @Deferrable
@@ -340,7 +340,7 @@ public class Ops  {
   @Builtin("!=")
   @DataParallel
   public static boolean notEqualTo(byte x, byte y) {
-    return x != y;
+    return (x & 0xFF) != (y & 0xFF);
   }
 
   @Deferrable
@@ -381,7 +381,7 @@ public class Ops  {
   @Builtin("<")
   @DataParallel
   public static boolean lessThan(byte x, byte y) {
-    return x < y;
+    return (x & 0xFF) < (y & 0xFF);
   }
 
   @Deferrable
@@ -422,7 +422,7 @@ public class Ops  {
   @Builtin("<=")
   @DataParallel
   public static boolean lessThanOrEqualTo(byte x, byte y) {
-    return x <= y;
+    return (x & 0xFF) <= (y & 0xFF);
   }
 
   @Deferrable
@@ -463,7 +463,7 @@ public class Ops  {
   @Builtin(">")
   @DataParallel
   public static boolean greaterThan(byte x, byte y) {
-    return x > y;
+    return (x & 0xFF) > (y & 0xFF);
   }
 
   @Deferrable
@@ -504,7 +504,7 @@ public class Ops  {
   @Builtin(">=")
   @DataParallel
   public static boolean greaterThanOrEqual(byte x, byte y) {
-    return x >= y;
+    return (x & 0xFF) >= (y & 0xFF);
   }
 
   @Deferrable

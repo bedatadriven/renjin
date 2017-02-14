@@ -268,6 +268,9 @@ public abstract class LogicalVector extends AbstractAtomicVector implements Iter
     return IntVector.isNA(getElementAsRawLogical(index));
   }
 
+  public static boolean isNA(int value) {
+    return IntVector.isNA(value);
+  }
 
   private static class LogicalType extends Vector.Type {
     public LogicalType() {

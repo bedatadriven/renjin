@@ -76,6 +76,10 @@ public abstract class ComplexVector extends AbstractAtomicVector implements Iter
     return DoubleVector.isNA(value.getReal());
   }
 
+  public static boolean isNaN(Complex value) {
+    return Double.isNaN(value.getReal());
+  }
+
   @Override
   public String getTypeName() {
     return TYPE_NAME;
@@ -186,11 +190,7 @@ public abstract class ComplexVector extends AbstractAtomicVector implements Iter
     }
     return -1;
   }
-   
 
-  private boolean isNaN(Complex value) {
-    return Double.isNaN(value.getReal());
-  }
 
   @Override
   public Iterator<Complex> iterator() {

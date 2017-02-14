@@ -20,7 +20,8 @@
 
 ## Generates test cases for
 ## comparison functions
-
+o_LC_COLLATE <- Sys.getlocale("LC_COLLATE")
+Sys.setlocale("LC_COLLATE", "C")
 source("src/testgen/gen.R")
 
 ops <- c(equals = "==",
@@ -131,3 +132,4 @@ run.test <- function() {
   }
 }
 
+Sys.setlocale("LC_COLLATE", o_LC_COLLATE)

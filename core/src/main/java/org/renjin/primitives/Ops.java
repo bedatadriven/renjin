@@ -65,7 +65,7 @@ public class Ops  {
   }
 
   @Builtin("+")
-  @DataParallel(PreserveAttributeStyle.ALL)
+  @DataParallel(value = PreserveAttributeStyle.ALL, passNA = true)
   public static Complex plus(Complex x, Complex y) {
     return x.add(y);
   }
@@ -84,13 +84,13 @@ public class Ops  {
   }
 
   @Builtin("-")
-  @DataParallel(PreserveAttributeStyle.ALL)
+  @DataParallel(value = PreserveAttributeStyle.ALL, passNA = true)
   public static Complex negative(Complex x) {
     return ComplexVector.complex(-x.getReal(), -x.getImaginary());
   }
 
   @Builtin("-")
-  @DataParallel(PreserveAttributeStyle.ALL)
+  @DataParallel(value = PreserveAttributeStyle.ALL, passNA = true)
   public static Complex minus(Complex x, Complex y) {
     return x.subtract(y);
   }
@@ -131,7 +131,7 @@ public class Ops  {
   }
 
   @Builtin("/")
-  @DataParallel(PreserveAttributeStyle.ALL)
+  @DataParallel(value = PreserveAttributeStyle.ALL, passNA = true)
   public static Complex divide(Complex dividend, Complex divisor) {
     // LICENSE: transcribed code from GCC, which is licensed under GPL
     // libgcc2 - Translated by Tomas Kalibera
@@ -202,7 +202,7 @@ public class Ops  {
 
 
   @Builtin("*")
-  @DataParallel(PreserveAttributeStyle.ALL)
+  @DataParallel(value = PreserveAttributeStyle.ALL, passNA = true)
   public static Complex multiply(Complex x, Complex y) {
     // LICENSE: transcribed code from GCC, which is licensed under GPL
     // libgcc2 - Adapted by Tomas Kalibera

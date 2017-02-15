@@ -125,7 +125,7 @@ public class MathGroup {
 
   @Deferrable
   @Builtin
-  @DataParallel(PreserveAttributeStyle.ALL)
+  @DataParallel(value = PreserveAttributeStyle.ALL, passNA = true)
   public static double abs(Complex x) {
     return x.abs();
   }

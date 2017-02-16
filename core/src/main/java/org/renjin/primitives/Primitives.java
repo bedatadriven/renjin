@@ -181,8 +181,8 @@ public class Primitives {
     f(".dfltStop", Conditions.class, 11);
     f(".dfltWarn", /*dfltWarn*/ null, 11);
     f(".addRestart", Conditions.class, 11);
-    f(".getRestart", /*getRestart*/ null, 11);
-    f(".invokeRestart", /*invokeRestart*/ null, 11);
+    f(".getRestart", Conditions.class, 11);
+    f(".invokeRestart", Conditions.class, 11);
     f(".addTryHandlers", /*addTryHandlers*/ null, 111);
 
     f("geterrmessage", Conditions.class, 11);

@@ -115,6 +115,14 @@ public class Session {
    */
   boolean invisible;
 
+
+  /**
+   * When this is set, we are evaluating a calling handler and should only match handlers at this
+   * level or higher.
+   */
+  Context conditionStack = null;
+
+
   Session(FileSystemManager fileSystemManager,
           ClassLoader classLoader,
           PackageLoader packageLoader,
@@ -309,6 +317,8 @@ public class Session {
   public ClassLoader getClassLoader() {
     return classLoader;
   }
+
+
 
   public void registerFinalizer(SEXP sexp, FinalizationHandler handler, boolean onExit) {
     if(finalizers == null) {

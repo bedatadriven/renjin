@@ -160,9 +160,17 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
   public double getElementAsDouble(String name) {
     return getElementAsDouble(getIndexByName(name));
   }
+
+  public String getElementAsString(String name) {
+    return getElementAsString(getIndexByName(name));
+  }
   
   public ListVector getElementAsList(String name) {
     return (ListVector)getElementAsSEXP(getIndexByName(name));
+  }
+
+  public SEXP getElementAsSEXP(String name) {
+    return getElementAsSEXP(getIndexByName(name));
   }
 
   public Vector getElementAsVector(String name) {

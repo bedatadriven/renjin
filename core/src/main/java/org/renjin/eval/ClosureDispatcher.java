@@ -81,8 +81,16 @@ public class ClosureDispatcher {
 
 
     } catch(ConditionException e) {
-      if(e.getHandlerContext() == functionContext) {
+      if (e.getHandlerContext() == functionContext) {
         return new ListVector(e.getCondition(), Null.INSTANCE, e.getHandler());
+      } else {
+        throw e;
+      }
+
+    } catch (RestartException e) {
+      if(e.getExitEnvironment() == functionContext.getEnvironment()) {
+        // This return value is consumed by the R code in conditions.R
+        return e.getArguments();
       } else {
         throw e;
       }

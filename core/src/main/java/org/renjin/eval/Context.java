@@ -38,6 +38,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -87,6 +89,7 @@ public class Context {
   }
 
   private List<SEXP> onExit = Lists.newArrayList();
+  private List<SEXP> restarts = null;
 
   private Context parent;
   private int evaluationDepth;
@@ -95,7 +98,7 @@ public class Context {
   private Session session; 
   private FunctionCall call;
   private Closure closure;
-  
+
   /**
    * The environment from which the closure was called
    */
@@ -108,7 +111,7 @@ public class Context {
    * Handlers are R functions that are called immediately when
    * conditions are signaled.
    */
-  private Map<String, ConditionHandler> conditionHandlers = Maps.newHashMap();
+  private Map<String, ConditionHandler> conditionHandlers = null;
 
   private Map<Class, Object> stateMap = null;
 
@@ -144,7 +147,7 @@ public class Context {
     context.environment = Environment.createChildEnvironment(closure.getEnclosingEnvironment());
     context.session = session;
     context.arguments = arguments;
-    context.call= call;
+    context.call = call;
     context.callingEnvironment = rho;
     return context;
   }
@@ -157,6 +160,27 @@ public class Context {
     context.environment = environment;
     context.session = session;
     return context;
+  }
+
+  /**
+   *
+   * @return the context in which to start searching for condition handlers.
+   */
+  public Context getConditionStack() {
+    Context stack = this.session.conditionStack;
+    if(stack == null) {
+      stack = this;
+    }
+    return stack;
+  }
+
+  public SEXP evaluateCallingHandler(Context definitionContext, SEXP expression) {
+    this.session.conditionStack = definitionContext.getParent();
+    try {
+      return evaluate(expression);
+    } finally {
+      this.session.conditionStack = null;
+    }
   }
   
   public SEXP evaluate(SEXP expression) {
@@ -273,6 +297,37 @@ public class Context {
     } else {
       return value;
     }
+  }
+
+  /**
+   * Adds a restart object by name to this Context.
+   */
+  public void addRestart(SEXP restartObject) {
+    if(restarts == null) {
+      restarts = new ArrayList<>();
+    }
+    restarts.add(restartObject);
+  }
+
+  /**
+   * Tries to find a restart with the given name in this context or
+   * one of it's parents.
+   * @param index the zero-based index of the restart to find. Index "0" is the last added restart
+   *            in this context or its nearest parent.
+   */
+  public SEXP getRestart(int index) {
+    Context context = this;
+    while(!context.isTopLevel()) {
+      if(context.restarts != null) {
+        for (int i = 0; i < context.restarts.size(); i++, index--) {
+          if(index == 0) {
+            return context.restarts.get(i);
+          }
+        }
+      }
+      context = context.getParent();
+    }
+    return Null.INSTANCE;
   }
   
   private SEXP evaluateExpressionVector(ExpressionVector expressionVector, Environment rho) {
@@ -482,10 +537,16 @@ public class Context {
    *                 be returned to the {@code Context} in which it was registered.
    */
   public void setConditionHandler(String conditionClass, SEXP function, boolean calling) {
+    if(conditionHandlers == null) {
+      conditionHandlers = new HashMap<>();
+    }
     conditionHandlers.put(conditionClass, new ConditionHandler(function, calling));
   }
 
   public ConditionHandler getConditionHandler(String conditionClass) {
+    if(conditionHandlers == null) {
+      return null;
+    }
     return conditionHandlers.get(conditionClass);
   }
 

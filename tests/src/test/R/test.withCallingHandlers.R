@@ -19,30 +19,65 @@
 
 library(hamcrest)
 
-signalerCompleted <- FALSE
-handlerCalled1 <- FALSE
-handlerCalled2 <- FALSE
+test.simple <- function() {
+
+    signalerCompleted <- FALSE
+    handlerCalled1 <- FALSE
+    handlerCalled2 <- FALSE
 
 
-do_signal <- function() {
+    do_signal <- function() {
 
-  condition <- structure(
-    list(message = "foo"),
-    class = c("condition_a", "condition_b", "condition"))
+      condition <- structure(
+        list(message = "foo"),
+        class = c("condition_a", "condition_b", "condition"))
 
-  signalCondition(condition)
+      signalCondition(condition)
 
-  # execution should continue
-  signalerCompleted <<- TRUE
+      # execution should continue
+      signalerCompleted <<- TRUE
+    }
+
+    withCallingHandlers(
+      do_signal(),
+      condition_a = function(e) { handlerCalled1 <<- TRUE },
+      condition_b = function(e) { handlerCalled2 <<- TRUE }
+    )
+
+
+    assertTrue(signalerCompleted)
+    assertTrue(handlerCalled1)
+    assertTrue(handlerCalled2)
+
 }
 
-withCallingHandlers(
-  do_signal(),
-  condition_a = function(e) { handlerCalled1 <<- TRUE },
-  condition_b = function(e) { handlerCalled2 <<- TRUE }
-)
+test.rethrow <- function() {
+
+    # From testthat
+
+    skip <- function(message) {
+      cond <- structure(list(message = message), class = c("skip", "condition"))
+      stop(cond)
+    }
+
+    code <- quote(skip("foobar"))
+
+    handled <- FALSE
+
+    handle_skip <- function(e) {
+        handled <<- TRUE
+        signalCondition(e)
+    }
+
+    tryCatch(
+        withCallingHandlers({
+          eval(code)
+          },
+          skip = handle_skip
+        ),
+    # skip silently terminate code
+    skip =  function(e) {}
+    )
 
 
-assertTrue(signalerCompleted)
-assertTrue(handlerCalled1)
-assertTrue(handlerCalled2)
+}

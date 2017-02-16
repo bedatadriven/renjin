@@ -302,8 +302,8 @@ public class TestExecutor {
     // to the expected location
     PairList.Builder options = new PairList.Builder();
     options.add("testthat.default_check_reporter", StringVector.valueOf("junit"));
-    options.add("testthat.junit_output_file", StringVector.valueOf(
-        new File(testReportDirectory, "TEST-testthat-junit.xml").getAbsolutePath()));
+    options.add("testthat.junit.output_file", StringVector.valueOf(
+        new File(testReportDirectory, "TEST-testthat-results.xml").getAbsolutePath()));
 
     session.getTopLevelContext().evaluate(new FunctionCall(Symbol.get("options"), options.build()));
 

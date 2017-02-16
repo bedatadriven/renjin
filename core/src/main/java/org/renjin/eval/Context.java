@@ -174,10 +174,20 @@ public class Context {
     return stack;
   }
 
-  public SEXP evaluateCallingHandler(Context definitionContext, SEXP expression) {
+  /**
+   * Evaluates the given calling handler function call in this context, but temporarily sets
+   * the conditionStack pointer to the parent of the context in which the handler was defined.
+   *
+   * <p>This ensures that a signal can be rethrown within the condition handler and not be caught
+   * infinitely.</p>
+   *
+   * @param definitionContext the context in which the condition handler was defined.
+   * @param handlerCall the function call to evaluate.
+   */
+  public SEXP evaluateCallingHandler(Context definitionContext, SEXP handlerCall) {
     this.session.conditionStack = definitionContext.getParent();
     try {
-      return evaluate(expression);
+      return evaluate(handlerCall);
     } finally {
       this.session.conditionStack = null;
     }
@@ -310,8 +320,9 @@ public class Context {
   }
 
   /**
-   * Tries to find a restart with the given name in this context or
+   * Tries to find a restart in this context or
    * one of it's parents.
+   *
    * @param index the zero-based index of the restart to find. Index "0" is the last added restart
    *            in this context or its nearest parent.
    */

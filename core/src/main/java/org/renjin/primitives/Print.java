@@ -170,7 +170,7 @@ public class Print {
 
     @Override
     public void visit(StringVector vector) {
-      printVector(vector, Alignment.LEFT, new StringPrinter().withQuotes(quote), "character");
+      printVector(vector, Alignment.LEFT, new StringPrinter().setQuotes(quote), "character");
     }
 
     @Override

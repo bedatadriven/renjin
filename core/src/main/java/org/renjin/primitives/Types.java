@@ -465,7 +465,7 @@ public class Types {
 
     } else if (arguments.length() == 1
         && arguments.getElementAsSEXP(0) instanceof ListVector
-        && StringVector.isNA(arguments.getName(0))) {
+        && !arguments.hasName(0)) {
       ListVector list = (ListVector) arguments.getElementAsSEXP(0);
       if (list.getAttribute(Symbols.NAMES) == Null.INSTANCE) {
         throw new EvalException("list argument has no valid names");

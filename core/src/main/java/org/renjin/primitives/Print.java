@@ -125,6 +125,10 @@ public class Print {
         String name = list.getName(i);
 
         if(StringVector.isNA(name)) {
+          name = "<NA>";
+        }
+
+        if(name.isEmpty()) {
           out.append("[[").append(index).append("]]\n");
         } else {
           out.append("$").append(name).append("\n");

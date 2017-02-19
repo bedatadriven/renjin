@@ -22,6 +22,7 @@ import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -61,12 +62,12 @@ public final class NamesBuilder {
     set(size, name);
   }
   
-  public void addNA() {
-    set(size, StringVector.NA);
+  public void addBlank() {
+    set(size, "");
   }
   
   public void set(int index, String name) {
-    if(names == null && StringVector.isNA(name)) {
+    if(names == null && "".equals(name)) {
       // no actual data yet, just
       // maintain our internal count
       if(index+1 > size) {

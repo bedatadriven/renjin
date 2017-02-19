@@ -598,11 +598,11 @@ public class Vectors {
     Vector.Builder result;
     NamesBuilder names = NamesBuilder.withInitialCapacity(x.length());
     if ("character".equals(mode)) {
-      result = new StringVector.Builder();
+      result = new StringVector.Builder(0, x.length());
     } else if ("logical".equals(mode)) {
-      result = new LogicalArrayVector.Builder(x.length());
+      result = new LogicalArrayVector.Builder(0, x.length());
     } else if ("numeric".equals(mode)) {
-      result = new DoubleArrayVector.Builder(x.length());
+      result = new DoubleArrayVector.Builder(0, x.length());
     } else if ("list".equals(mode)) {
       result = new ListVector.Builder();
     } else if ("expression".equals(mode)) {
@@ -624,7 +624,7 @@ public class Vectors {
       if (node.hasTag()) {
         names.add(node.getTag().getPrintName());
       } else {
-        names.addNA();
+        names.addBlank();
       }
       if(node.getValue() instanceof AtomicVector) {
         result.add(node.getValue());

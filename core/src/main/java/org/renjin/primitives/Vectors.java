@@ -388,12 +388,7 @@ public class Vectors {
     ComplexArrayVector.Builder result = new ComplexArrayVector.Builder(x.length());
     // in this context, NaNs are treated exceptionally as NAs
     for (int i = 0; i < x.length(); i++) {
-      double doubleValue = x.getElementAsDouble(i);
-      if(Double.isNaN(doubleValue)) {
-        result.setNA(i);
-      } else {
-        result.set(i, ComplexVector.complex(doubleValue));
-      }
+      result.set(i, x.getElementAsDouble(i), 0);
     }
     return result.build();
   }

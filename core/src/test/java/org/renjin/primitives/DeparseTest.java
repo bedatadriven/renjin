@@ -28,11 +28,6 @@ import static org.junit.Assert.assertThat;
 
 public class DeparseTest extends EvalTestCase {
 
-  @Before
-  public void defineDeparse() {
-    eval("deparse<-function(expr) .Internal(deparse(expr, 60L, FALSE, 1L, -1L))");    
-  }
-  
   @Test
   public void deparse() {
     

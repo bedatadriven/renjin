@@ -168,6 +168,12 @@ public class Vectors {
     return LogicalArrayVector.EMPTY;
   }
 
+
+  @Generic
+  @Builtin("as.logical")
+  public static LogicalVector asLogical(PairList.Node pairlist) {
+    return asLogical(pairlist.toVector());
+  }
   
   @Generic
   @Builtin("as.integer")
@@ -197,6 +203,13 @@ public class Vectors {
   @Builtin("as.integer")
   public static IntVector asInteger() {
     return IntArrayVector.EMPTY;
+  }
+
+
+  @Generic
+  @Builtin("as.integer")
+  public static IntVector asInteger(PairList.Node pairlist) {
+    return asInteger(pairlist.toVector());
   }
 
 
@@ -234,6 +247,12 @@ public class Vectors {
 
   @Generic
   @Builtin("as.double")
+  public static DoubleVector asDouble(PairList.Node pairlist) {
+    return asDouble(pairlist.toVector());
+  }
+
+  @Generic
+  @Builtin("as.double")
   public static DoubleVector asDouble() {
     return DoubleArrayVector.EMPTY;
   }
@@ -254,6 +273,12 @@ public class Vectors {
     checkForListThatCannotBeCoercedToAtomicVector(source, "raw");
     
     return (RawVector) Vectors.convertToAtomicVector(new RawVector.Builder(), source);
+  }
+
+  @Generic
+  @Builtin("as.raw")
+  public static RawVector asRaw(PairList.Node source) {
+    return asRaw(source.toVector());
   }
 
   static Vector convertToAtomicVector(Vector.Builder builder, Vector source) {
@@ -290,6 +315,13 @@ public class Vectors {
   @Builtin("as.complex")
   public static ComplexVector asComplex() {
     return ComplexArrayVector.EMPTY;
+  }
+
+
+  @Generic
+  @Builtin("as.complex")
+  public static ComplexVector asComplex(PairList.Node pairlist) {
+    return asComplex(pairlist.toVector());
   }
 
   @Generic
@@ -589,26 +621,32 @@ public class Vectors {
     if("pairlist".equals(mode) || "any".equals(mode)) {
       return x;
     }
-    
+
+    // When coercing to list, we preserve all attributes
+    if("list".equals(mode)) {
+      return x.toVector().setAttributes(x.getAttributes());
+    }
+
+    // .. When coercing to mode "expression", we just return a new
+    // expression vector with this pairlist as its single element
+    if("expression".equals(mode)) {
+      return new ExpressionVector(x);
+    }
+
     Vector.Builder result;
     NamesBuilder names = NamesBuilder.withInitialCapacity(x.length());
     if ("character".equals(mode)) {
       result = new StringVector.Builder(0, x.length());
     } else if ("logical".equals(mode)) {
       result = new LogicalArrayVector.Builder(0, x.length());
-    } else if ("numeric".equals(mode)) {
+    } else if ("numeric".equals(mode) || "double".equals(mode)) {
       result = new DoubleArrayVector.Builder(0, x.length());
+    } else if ("complex".equals(mode)) {
+      result = new ComplexArrayVector.Builder(0, x.length());
+    } else if ("integer".equals(mode)) {
+      result = new IntArrayVector.Builder(0, x.length());
     } else if ("list".equals(mode)) {
       result = new ListVector.Builder();
-    } else if ("expression".equals(mode)) {
-      result = new ExpressionVector.Builder();
-      
-      // Special case...
-      if(x instanceof FunctionCall) {
-        result.add(x);
-        return result.build();
-      }
-      
     } else if ("raw".equals(mode)) {
       result = new RawVector.Builder();
     } else {
@@ -616,24 +654,16 @@ public class Vectors {
     }
 
     for (PairList.Node node : x.nodes()) {
-      if (node.hasTag()) {
-        names.add(node.getTag().getPrintName());
-      } else {
-        names.addBlank();
-      }
-      if(node.getValue() instanceof AtomicVector) {
+      if(node.getValue() instanceof AtomicVector && node.getValue() != Null.INSTANCE) {
         result.add(node.getValue());
       } else {
-        if(result instanceof ListVector.Builder) {
-          result.add(node.getValue());
-        } else if(result instanceof StringArrayVector.Builder) {
+        if(result instanceof StringArrayVector.Builder) {
           ((StringVector.Builder) result).add(Deparse.deparseExp(context, node.getValue()));
         } else {
           throw new EvalException("'%s' cannot be coerced to type '%s'", x.getTypeName(), mode);
         }
       }
     }
-    result.setAttribute(Symbols.NAMES.getPrintName(), names.build(result.length()));
     return result.build();
   }
 

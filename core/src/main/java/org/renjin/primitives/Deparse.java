@@ -280,7 +280,7 @@ public class Deparse {
         } else {
           needsComma = true;
         }
-        maybeAppendName(namedValue);
+        maybeAppendArgumentName(namedValue);
         DeparsingVisitor elementVisitor = new DeparsingVisitor(context, 0, namedValue.getValue());
         deparsed.append(elementVisitor.getResult());
       }
@@ -296,17 +296,22 @@ public class Deparse {
         } else {
           needsComma = true;
         }
-        maybeAppendName(namedValue);
+        maybeAppendArgumentName(namedValue);
         deparse(namedValue.getValue());
       }
       deparsed.append(")");
     }
 
-    private void maybeAppendName(NamedValue namedValue) {
+    private void maybeAppendArgumentName(NamedValue namedValue) {
       if(namedValue.hasName()) {
         String name = namedValue.getName();
         if(StringVector.isNA(name)) {
-          deparsed.append("`NA`");
+          // This is not actually correct - for example list("NA" = 1) will
+          // evaluate to the a list with a names vector containing the *string* "NA", *not* NA_character_
+          // However, there is actually no way to specify an NA name using this syntax, so we will
+          // just abide by the convention used by GNU R. If "showAttributes" is enabled, then the structure() call
+          // will include the correct representation of NA which will be used during evaluation.
+          deparsed.append("\"NA\"");
         } else {
           deparsed.append(name);
         }

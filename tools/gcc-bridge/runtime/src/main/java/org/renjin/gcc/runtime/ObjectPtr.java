@@ -191,6 +191,6 @@ public class ObjectPtr<T> implements Ptr {
     if(voidPointer instanceof MallocThunk) {
       return ((MallocThunk) voidPointer).recordUnitPtr(recordType);
     }
-    return (T)recordType;
+    return (T)voidPointer;
   }
 }

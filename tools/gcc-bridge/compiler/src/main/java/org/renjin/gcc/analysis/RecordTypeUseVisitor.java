@@ -130,6 +130,9 @@ public abstract class RecordTypeUseVisitor {
         GimpleComponentRef ref = (GimpleComponentRef) expr;
         updateTypes(ref.getValue());
         updateTypes(ref.getMember());
+      } else if (expr instanceof GimpleBitFieldRefExpr) {
+        GimpleBitFieldRefExpr ref = (GimpleBitFieldRefExpr) expr;
+        updateTypes(ref.getValue());
       } else if (expr instanceof GimpleArrayRef) {
         updateTypes(((GimpleArrayRef) expr).getArray());
       } else if (expr instanceof GimpleNopExpr) {

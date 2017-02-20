@@ -252,7 +252,7 @@ public class RecordTypeStrategyBuilder {
 
   private Type nextRecordName(String name) {
     
-    String recordClassName = String.format("%s$%s", recordClassPrefix, uniqueName(name));
+    String recordClassName = recordClassPrefix + uniqueName(name);
 
     return Type.getType("L" + recordClassName + ";");
   }

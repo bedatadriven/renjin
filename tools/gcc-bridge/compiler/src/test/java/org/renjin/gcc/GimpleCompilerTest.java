@@ -1136,4 +1136,19 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void addrRecordParam() throws Exception {
     compileAndTest("addr_record_param.c");
   }
+
+  @Test
+  public void qsort() throws Exception {
+    compileAndTest("qsort.c");
+  }
+
+  @Test
+  public void fieldOffsetRef() throws Exception {
+    compileAndTest("field_offset_ref.c");
+  }
+
+  @Test
+  public void mallocField() throws Exception {
+    compileAndTest("malloc_field.c");
+  }
 }

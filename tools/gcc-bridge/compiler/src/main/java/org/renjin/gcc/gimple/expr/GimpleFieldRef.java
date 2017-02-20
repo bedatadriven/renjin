@@ -34,6 +34,12 @@ public class GimpleFieldRef extends GimpleExpr {
   public GimpleFieldRef() {
   }
 
+  /**
+   *
+   * @param name the field name (can be null)
+   * @param offset the offset, in bits
+   * @param type the type of the field
+   */
   public GimpleFieldRef(String name, int offset, GimpleType type) {
     this.offset = offset;
     this.setType(type);

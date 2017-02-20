@@ -36,6 +36,7 @@ import org.renjin.gcc.symbols.GlobalSymbolTable;
 import org.renjin.repackaged.guava.annotations.VisibleForTesting;
 import org.renjin.repackaged.guava.base.Preconditions;
 import org.renjin.repackaged.guava.base.Predicate;
+import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.repackaged.guava.collect.Sets;
@@ -264,8 +265,13 @@ public class GimpleCompiler  {
         recordTypeDefs, 
         providedRecordTypes, 
         units);
-    
-    builder.setRecordClassPrefix(getInternalClassName(recordClassPrefix));
+
+    if(Strings.isNullOrEmpty(recordClassPrefix)) {
+      builder.setRecordClassPrefix(packageName.replace('.', '/') + "/");
+    } else {
+      builder.setRecordClassPrefix(getInternalClassName(recordClassPrefix) + "$");
+    }
+
     builder.build(rootLogger);
     builder.writeClasses(outputDirectory);
 

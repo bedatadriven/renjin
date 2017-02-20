@@ -49,6 +49,12 @@
     </dependency>
 
     <dependency>
+      <groupId>org.renjin</groupId>
+      <artifactId>renjin-regex</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
       <groupId>com.github.fommil.netlib</groupId>
       <artifactId>core</artifactId>
       <version>1.1.2</version>

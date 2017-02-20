@@ -18,7 +18,6 @@
  */
 package org.renjin.primitives.text.regex;
 
-import org.hamcrest.CoreMatchers;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -26,11 +25,11 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-public class RECompilerTest {
+public class PatternCompilerTest {
 
   @Test
   public void posixCharacterClasses1() throws RESyntaxException {
-    ExtendedRE re = new ExtendedRE("^[[:alpha:].]+$");
+    ExtendedPattern re = new ExtendedPattern("^[[:alpha:].]+$");
     assertTrue(re.match("tools"));
     assertTrue(re.match("too.ls"));
     assertFalse(re.match("too9s"));
@@ -39,19 +38,19 @@ public class RECompilerTest {
 
   @Test
   public void dashInCharacterClass() throws RESyntaxException {
-    ExtendedRE re = new ExtendedRE("^[AB-]+$");
+    ExtendedPattern re = new ExtendedPattern("^[AB-]+$");
     assertTrue(re.match("A--BBBB"));
   }
   
   @Test
   public void upperAndLowerCase() throws RESyntaxException {
-    ExtendedRE re = new ExtendedRE("^[ABab]+$");
+    ExtendedPattern re = new ExtendedPattern("^[ABab]+$");
     assertTrue(re.match("ABa"));  
   }
   
   @Test
   public void bigCharClass() throws RESyntaxException {
-    ExtendedRE re = new ExtendedRE(
+    ExtendedPattern re = new ExtendedPattern(
         "^" +
         "[AB^-]+" +
         "$");
@@ -61,7 +60,7 @@ public class RECompilerTest {
   
   @Test
   public void negateCharClass() throws RESyntaxException {
-    ExtendedRE re = new ExtendedRE("^[^a]+$");
+    ExtendedPattern re = new ExtendedPattern("^[^a]+$");
  
     assertTrue(re.match("b334 "));
     assertFalse(re.match("ab"));
@@ -70,11 +69,11 @@ public class RECompilerTest {
   
   @Test
   public void caretInCharacterClass() throws RESyntaxException {
-    ExtendedRE re = new ExtendedRE("^[a^]+$");
+    ExtendedPattern re = new ExtendedPattern("^[a^]+$");
     assertTrue(re.match("aaaaa"));
     assertTrue(re.match("a^a^a^a"));
 
-    re = new ExtendedRE("^[a^b]+$");
+    re = new ExtendedPattern("^[a^b]+$");
     assertTrue(re.match("a^a^b^a"));
 
   }
@@ -82,7 +81,7 @@ public class RECompilerTest {
   @Test
   public void emailRegexp() throws RESyntaxException {
     // used in tools package
-    ExtendedRE re = new ExtendedRE(
+    ExtendedPattern re = new ExtendedPattern(
         "^(" +
             "\\\".+\\\"|" +
             "([ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$%*/?|^{}`~&'+=_-]+\\.)*" +
@@ -103,7 +102,7 @@ public class RECompilerTest {
   
   @Test
   public void simpleCharClass() throws RESyntaxException {
-    ExtendedRE re = new ExtendedRE("^[Abc]+$");
+    ExtendedPattern re = new ExtendedPattern("^[Abc]+$");
     assertTrue(re.match("AAAAAAc"));
     assertFalse(re.match("AAAxxAAAc"));
     
@@ -111,7 +110,7 @@ public class RECompilerTest {
   
   @Test
   public void posixCharacterClasses() throws RESyntaxException {
-    ExtendedRE re = new ExtendedRE("^(R|[[:alpha:]][[:alnum:].]*[[:alnum:]])$");
+    ExtendedPattern re = new ExtendedPattern("^(R|[[:alpha:]][[:alnum:].]*[[:alnum:]])$");
     assertTrue(re.match("tools"));
     assertFalse(re.match("my cool package!"));
     
@@ -119,14 +118,14 @@ public class RECompilerTest {
   
   @Test
   public void compileProblem() throws RESyntaxException {
-    ExtendedRE re = new ExtendedRE("[[<>=!]+");
+    ExtendedPattern re = new ExtendedPattern("[[<>=!]+");
     assertTrue(re.match("["));
     assertTrue(re.match(">="));
   }
 
   @Test
   public void hexDigitsWithBrackets() throws RESyntaxException {
-    ExtendedRE re = new ExtendedRE("\\x{42}aa");
+    ExtendedPattern re = new ExtendedPattern("\\x{42}aa");
     assertTrue(re.match("Baa"));
     assertTrue(re.match("Baazzz"));
     assertFalse(re.match("B"));
@@ -135,7 +134,7 @@ public class RECompilerTest {
 
   @Test
   public void fourHexDigitsWithBrackets() throws RESyntaxException {
-    ExtendedRE re = new ExtendedRE("\\x{0042}aa");
+    ExtendedPattern re = new ExtendedPattern("\\x{0042}aa");
     assertTrue(re.match("Baa"));
     assertTrue(re.match("Baazzz"));
     assertFalse(re.match("B"));
@@ -143,7 +142,7 @@ public class RECompilerTest {
 
   @Test
   public void hexDigitsWithoutBrackets() throws RESyntaxException {
-    ExtendedRE re = new ExtendedRE("\\x42aa");
+    ExtendedPattern re = new ExtendedPattern("\\x42aa");
     assertTrue(re.match("Baa"));
     assertTrue(re.match("Baazzz"));
     assertFalse(re.match("B"));
@@ -152,7 +151,7 @@ public class RECompilerTest {
 
   @Test
   public void nonCapturingGroups() throws RESyntaxException {
-    ExtendedRE re = new ExtendedRE("(?:foo)?bar");
+    ExtendedPattern re = new ExtendedPattern("(?:foo)?bar");
     assertTrue(re.match("foobar"));
     assertTrue(re.match("bar"));
     assertFalse(re.match("baz"));
@@ -160,7 +159,7 @@ public class RECompilerTest {
 
   @Test
   public void nullClosureOperand() throws RESyntaxException {
-    ExtendedRE re = new ExtendedRE("^(?:(?:AB{0,3})*)?C");
+    ExtendedPattern re = new ExtendedPattern("^(?:(?:AB{0,3})*)?C");
     assertTrue(re.match("C"));
     assertFalse(re.match("ZC"));
 
@@ -177,7 +176,7 @@ public class RECompilerTest {
   @Test
   public void zeroWidthNegativeLookAheadAssertion() throws RESyntaxException {
     //  x = c("~", "c(y1, y2, y3)", "u"), split = "~(?![^\\(].*\\))", out = list("", "c(y1, y2, y3)", "u")
-    ExtendedRE re = new ExtendedRE("~(?![^\\(].*\\))");
+    ExtendedPattern re = new ExtendedPattern("~(?![^\\(].*\\))");
   //  x = c("~", "y", "1"), split = "~(?![^\\(].*\\))", out = list("", "y", "1")
   }
 }

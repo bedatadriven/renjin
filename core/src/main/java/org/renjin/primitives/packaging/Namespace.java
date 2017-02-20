@@ -24,10 +24,8 @@ import org.renjin.invoke.reflection.ClassBindingImpl;
 import org.renjin.methods.S4;
 import org.renjin.primitives.Native;
 import org.renjin.primitives.S3;
-import org.renjin.primitives.text.regex.ExtendedRE;
-import org.renjin.primitives.text.regex.RE;
+import org.renjin.regexp.Pattern;
 import org.renjin.primitives.text.regex.REFactory;
-import org.renjin.primitives.text.regex.RESyntaxException;
 import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.*;
@@ -364,7 +362,7 @@ public class Namespace {
 
     // First add all symbols that match the patterns
     for (String pattern : file.getExportedPatterns()) {
-      RE re = REFactory.compile(pattern,
+      Pattern re = REFactory.compile(pattern,
           /* ignore.case = */ false,
           /* perl = */ false,
           /* fixed = */ false,

@@ -56,6 +56,10 @@ public class Combine {
   @Internal
   public static SEXP unlist(SEXP sexp, boolean recursive, boolean useNames) {
 
+    if(sexp instanceof FunctionCall) {
+      return sexp;
+    }
+
     if(sexp instanceof PairList.Node) {
       sexp = ((PairList.Node) sexp).toVector();
     }

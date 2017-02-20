@@ -31,7 +31,9 @@ test.as.pairlist.3 <- function() assertThat(as.pairlist(c(TRUE, TRUE, FALSE, FAL
 test.as.pairlist.4 <- function() assertThat(as.pairlist(structure(c(TRUE, FALSE), .Names = c("a", ""))), identicalTo(pairlist(a = TRUE, FALSE)))
 test.as.pairlist.5 <- function() assertThat(as.pairlist(c(TRUE, FALSE, NA)), identicalTo(pairlist(TRUE, FALSE, NA)))
 test.as.pairlist.6 <- function() assertThat(as.pairlist(integer(0)), identicalTo(NULL))
-test.as.pairlist.7 <- function() assertThat(as.pairlist(structure(integer(0), .Names = character(0))), throwsError())
+
+# Updated: GNU R throws an erorr but that seems like a bug.
+test.as.pairlist.7 <- function() assertThat(as.pairlist(structure(integer(0), .Names = character(0))), identicalTo(NULL))
 test.as.pairlist.8 <- function() assertThat(as.pairlist(1:3), identicalTo(pairlist(1L, 2L, 3L)))
 test.as.pairlist.9 <- function() assertThat(as.pairlist(c(1L, NA, 4L, NA, 999L)), identicalTo(pairlist(1L, NA_integer_, 4L, NA_integer_, 999L)))
 test.as.pairlist.10 <- function() assertThat(as.pairlist(c(1L, 2L, 1073741824L, 1073741824L)), identicalTo(pairlist(1L, 2L, 1073741824L, 1073741824L)))
@@ -54,7 +56,7 @@ test.as.pairlist.26 <- function() assertThat(as.pairlist(list(1L, 2L, 3L)), iden
 test.as.pairlist.27 <- function() assertThat(as.pairlist(list(1L, 2L, NULL)), identicalTo(pairlist(1L, 2L, NULL)))
 test.as.pairlist.28 <- function() assertThat(as.pairlist(list(1, 2, list(3, 4))), identicalTo(pairlist(1, 2, list(3, 4))))
 test.as.pairlist.29 <- function() assertThat(as.pairlist(list(3, "a", structure(list("b", z = list(TRUE, "c")), .Names = c("", "z")))), identicalTo(pairlist(3, "a", structure(list("b", z = list(TRUE, "c")), .Names = c("", "z")))))
-test.as.pairlist.30 <- function() assertThat(as.pairlist(structure(list(`NA` = 1, 2, b = 3), .Names = c(NA, "", "b"))), identicalTo(pairlist(NA = 1, 2, b = 3)))
+test.as.pairlist.30 <- function() assertThat(as.pairlist(structure(list(`NA` = 1, 2, b = 3), .Names = c(NA, "", "b"))), identicalTo(pairlist(`NA` = 1, 2, b = 3)))
 test.as.pairlist.31 <- function() assertThat(as.pairlist(pairlist(41, "a", 21L)), identicalTo(pairlist(41, "a", 21L)))
 test.as.pairlist.32 <- function() assertThat(as.pairlist(pairlist(a = 41, 42)), identicalTo(pairlist(a = 41, 42)))
 test.as.pairlist.33 <- function() assertThat(as.pairlist(pairlist(a = 41, NULL)), identicalTo(pairlist(a = 41, NULL)))

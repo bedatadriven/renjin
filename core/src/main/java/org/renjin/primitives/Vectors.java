@@ -174,7 +174,7 @@ public class Vectors {
   public static LogicalVector asLogical(PairList.Node pairlist) {
     return asLogical(pairlist.toVector());
   }
-  
+
   @Generic
   @Builtin("as.integer")
   public static IntVector asInteger(ExternalPtr ptr) {
@@ -624,7 +624,7 @@ public class Vectors {
 
     // When coercing to list, we preserve all attributes
     if("list".equals(mode)) {
-      return x.toVector().setAttributes(x.getAttributes());
+      return x.toVector();
     }
 
     // .. When coercing to mode "expression", we just return a new

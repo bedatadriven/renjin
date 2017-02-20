@@ -84,7 +84,7 @@ public class Duplicates {
    
     algorithm.init(x);
     
-    /** Maps elements -> first encountered index */
+    /* Maps elements -> first encountered index */
     HashMap<Object, Integer> seen = Maps.newHashMap();
    
     for(Integer index : new IndexSequence(x, fromLast)) {

@@ -22,6 +22,7 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
 import org.renjin.primitives.Deparse;
+import org.renjin.primitives.print.StringPrinter;
 import org.renjin.primitives.text.regex.ExtendedRE;
 import org.renjin.primitives.text.regex.FuzzyMatcher;
 import org.renjin.primitives.text.regex.RE;
@@ -84,10 +85,32 @@ public class Text {
   }
 
   @Internal("encodeString")
-  public static StringVector encodeString(StringVector x, int width, String quote, 
-      int justify, boolean naEncode) {
-    
-    return x;
+  public static StringVector encodeString(StringVector x, int width, String quote, int justify, boolean naEncode) {
+
+    StringPrinter printer = new StringPrinter();
+    StringArrayVector.Builder result = new StringArrayVector.Builder(0, x.length());
+
+    if(!StringVector.isNA(quote) && !quote.isEmpty()) {
+      printer.setQuote(quote.charAt(0));
+    }
+
+    for (int i = 0; i < x.length(); i++) {
+      String element = x.getElementAsString(i);
+      if(!naEncode && StringVector.isNA(element)) {
+        result.addNA();
+      } else {
+        result.add(printer.apply(element));
+      }
+    }
+
+    // Copy all attributes EXCEPT "class"
+    for (Symbol attribute : x.getAttributes().names()) {
+      if(attribute != Symbols.CLASS) {
+        result.setAttribute(attribute, x.getAttribute(attribute));
+      }
+    }
+
+    return result.build();
   }
 
   @Internal

@@ -53,7 +53,7 @@ public class UniqueTest extends EvalTestCase {
     assertThat( eval(" .Internal(unique(list('a','b','a','a'), FALSE,FALSE))"), equalTo(list("a","b")));
     assertThat( eval(" .Internal(unique(list('a','a', c(1,2), c(1,2)), FALSE,FALSE))"), 
         equalTo(list("a",c(1,2))));
-    assertThat( eval(" length(.Internal(unique(list('a','a', c(1,2), c(a=1,b=2)), FALSE,FALSE)))"), 
+    assertThat( eval(" length(unique(list('a','a', c(1,2), c(a=1,b=2))))"),
         equalTo(c_i(3)));
     
 

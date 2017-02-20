@@ -448,6 +448,11 @@ public class Vectors {
     for (int i = 0; i != x.length(); ++i) {
       builder.add(x.getName(i), x.getElementAsSEXP(i));
     }
+    for (Symbol attribute : x.getAttributes().names()) {
+      if(attribute != Symbols.NAMES) {
+        builder.setAttribute(attribute, x.getAttribute(attribute));
+      }
+    }
     return builder.build();
   }
 
@@ -634,7 +639,6 @@ public class Vectors {
     }
 
     Vector.Builder result;
-    NamesBuilder names = NamesBuilder.withInitialCapacity(x.length());
     if ("character".equals(mode)) {
       result = new StringVector.Builder(0, x.length());
     } else if ("logical".equals(mode)) {

@@ -113,7 +113,25 @@ for(op in names(ops)) {
   
   for(x in inputs) {
     for(y in inputs) {
-      writeTest(test, ops[op], x, y, TEST.NAME =  op);
+      if(is.null(dim(x))) {
+        if(is.null(dim(y))) {
+          writeTest(test, ops[op], x, y, TEST.NAME =  op);
+        } else {
+          if(length(x) == dim(y)) {
+            writeTest(test, ops[op], x, y, TEST.NAME =  op);
+          }
+        }
+      } else {
+        if(is.null(dim(y))) {
+          if(dim(x)[1] == length(y)) {
+            writeTest(test, ops[op], x, y, TEST.NAME =  op);
+          }
+        } else {
+          if(all(dim(x) == dim(y))) {
+            writeTest(test, ops[op], x, y, TEST.NAME =  op);
+          }
+        }
+      }
     }
   }
   

@@ -448,9 +448,13 @@ public class Vectors {
     for (int i = 0; i != x.length(); ++i) {
       builder.add(x.getName(i), x.getElementAsSEXP(i));
     }
-    for (Symbol attribute : x.getAttributes().names()) {
-      if(attribute != Symbols.NAMES) {
-        builder.setAttribute(attribute, x.getAttribute(attribute));
+    // Attributes are only copied from lists, not atomic vectors
+    // (go figure)
+    if(x instanceof ListVector) {
+      for (Symbol attribute : x.getAttributes().names()) {
+        if (attribute != Symbols.NAMES) {
+          builder.setAttribute(attribute, x.getAttribute(attribute));
+        }
       }
     }
     return builder.build();

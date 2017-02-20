@@ -280,7 +280,7 @@ public class Deparse {
         } else {
           needsComma = true;
         }
-        maybeAppendArgumentName(namedValue);
+        maybeAppendArgumentName(namedValue, "`NA`");
         DeparsingVisitor elementVisitor = new DeparsingVisitor(context, 0, namedValue.getValue());
         deparsed.append(elementVisitor.getResult());
       }
@@ -296,13 +296,13 @@ public class Deparse {
         } else {
           needsComma = true;
         }
-        maybeAppendArgumentName(namedValue);
+        maybeAppendArgumentName(namedValue, "\"NA\"");
         deparse(namedValue.getValue());
       }
       deparsed.append(")");
     }
 
-    private void maybeAppendArgumentName(NamedValue namedValue) {
+    private void maybeAppendArgumentName(NamedValue namedValue, String naNameLiteral) {
       if(namedValue.hasName()) {
         String name = namedValue.getName();
         if(StringVector.isNA(name)) {
@@ -311,7 +311,7 @@ public class Deparse {
           // However, there is actually no way to specify an NA name using this syntax, so we will
           // just abide by the convention used by GNU R. If "showAttributes" is enabled, then the structure() call
           // will include the correct representation of NA which will be used during evaluation.
-          deparsed.append("\"NA\"");
+          deparsed.append(naNameLiteral);
         } else {
           deparsed.append(name);
         }

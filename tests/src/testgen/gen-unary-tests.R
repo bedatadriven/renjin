@@ -177,6 +177,12 @@ for(fn in fns) {
 
   # Check that numerical values are correct
   for(input in inputs) {
+    
+    if(is.pairlist(input) && fn %in% c("as.array", "as.matrix", "is.unsorted")) {
+      # GNU R does not handle these cases well,
+      next;
+    }
+    
     writeTest(test, fn, input, tol = tol)
   }
 

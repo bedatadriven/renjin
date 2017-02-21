@@ -139,7 +139,20 @@ public class Sort {
       return LogicalVector.NA_VECTOR;
     }
   }
- 
+
+  @Internal("is.unsorted")
+  public static LogicalVector isUnsorted(PairList.Node pairlist, boolean strict) {
+    if(pairlist instanceof FunctionCall) {
+      throw new EvalException("invalid argument (language)");
+    }
+    return isUnsorted(pairlist.toVector(), strict);
+  }
+
+  @Internal("is.unsorted")
+  public static LogicalVector isUnsorted(Symbol symbol, boolean strict) {
+    return LogicalVector.FALSE;
+  }
+
   @Internal
   public static DoubleVector qsort(DoubleVector x, LogicalVector returnIndexes) {
 

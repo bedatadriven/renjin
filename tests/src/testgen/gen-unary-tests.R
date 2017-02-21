@@ -60,7 +60,6 @@ fns <- c('as.array',
          'is.integer',
          'is.language',
          'is.list',
-         'is.loaded',
          'is.logical',
          'is.matrix',
          'is.na',
@@ -83,8 +82,7 @@ fns <- c('as.array',
          'is.na',
          'length',
          't',
-         'unlist',
-         'deparse')
+         'unlist')
 
 
 inputs <- list(
@@ -165,6 +163,9 @@ for(fn in fns) {
   test <- test.open("gen-unary-tests.R", fn)
   writeln(test, "library(hamcrest)")
 
+  # ensure consistent locale for ordered tests
+  writeFixture(test, "Sys.setlocale('LC_COLLATE', 'C')")
+  
   # define some nonsense generic functions
   writeFixture(test, "%s.foo <- function(...) 41L", fn)
   writeFixture(test, "as.vector.foo <- function(...) 99", fn)

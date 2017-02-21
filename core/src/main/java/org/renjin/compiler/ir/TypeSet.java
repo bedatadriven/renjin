@@ -107,6 +107,9 @@ public class TypeSet {
     } else if (type.equals(boolean.class)) {
       return LOGICAL;
 
+    } else if (type.equals(byte.class)) {
+      return RAW;
+
     } else if (type.equals(String.class)) {
       return STRING;
 

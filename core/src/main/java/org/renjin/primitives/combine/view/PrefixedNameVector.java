@@ -35,7 +35,7 @@ public class PrefixedNameVector extends StringVector {
   public PrefixedNameVector(String prefix, AtomicVector namesVector, boolean numberUnnamedElements, AttributeMap attributes) {
     super(attributes);
     this.numberUnnamedElements = numberUnnamedElements;
-    this.prefix = CombinedNames.toString(prefix);
+    this.prefix = prefix;
     this.namesVector = namesVector;
   }
 
@@ -56,9 +56,9 @@ public class PrefixedNameVector extends StringVector {
       name = namesVector.getElementAsString(index);
     }
     if(CombinedNames.isPresent(name)) {
-      return prefix + "." + CombinedNames.toString(name);
+      return CombinedNames.toString(prefix) + "." + CombinedNames.toString(name);
     } else if(numberUnnamedElements) {
-      return prefix + Integer.toString(index+1);
+      return CombinedNames.toString(prefix) + Integer.toString(index+1);
     } else {
       return prefix;
     }

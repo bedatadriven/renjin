@@ -125,6 +125,10 @@ public class Print {
         String name = list.getName(i);
 
         if(StringVector.isNA(name)) {
+          name = "<NA>";
+        }
+
+        if(name.isEmpty()) {
           out.append("[[").append(index).append("]]\n");
         } else {
           out.append("$").append(name).append("\n");
@@ -170,7 +174,7 @@ public class Print {
 
     @Override
     public void visit(StringVector vector) {
-      printVector(vector, Alignment.LEFT, new StringPrinter().withQuotes(quote), "character");
+      printVector(vector, Alignment.LEFT, new StringPrinter().setQuotes(quote), "character");
     }
 
     @Override

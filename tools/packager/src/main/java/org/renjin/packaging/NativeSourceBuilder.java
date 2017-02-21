@@ -108,7 +108,7 @@ public class NativeSourceBuilder {
     }
     if (makevars.exists()) {
       commandLine.add("-f");
-      commandLine.add("Makevars");
+      commandLine.add(makevars.getName());
     }
 
     // Makeconf file

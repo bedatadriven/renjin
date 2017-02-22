@@ -20,6 +20,7 @@ package org.renjin.invoke.codegen.scalars;
 
 import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JExpression;
+import com.sun.codemodel.JVar;
 import org.apache.commons.math.complex.Complex;
 import org.renjin.sexp.ComplexArrayVector;
 import org.renjin.sexp.ComplexVector;
@@ -66,6 +67,12 @@ public class ComplexType extends ScalarType{
   @Override
   public JExpression naLiteral(JCodeModel codeModel) {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public JExpression testNaExpr(JCodeModel codeModel, JVar scalarVariable) {
+    JExpression testNA = codeModel.ref(ComplexVector.class).staticInvoke("isNaN").arg(scalarVariable);
+    return testNA;
   }
 
 }

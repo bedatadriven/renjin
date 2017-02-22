@@ -484,6 +484,12 @@ public class AttributeMap {
       }
       this.dimNames = (ListVector) value;
       this.empty = false;
+
+      // Arrays cannot have both dimnames and names
+      if(this.dim != null && this.dim.length() == 1) {
+        this.names = null;
+      }
+
       return this;
     }
 

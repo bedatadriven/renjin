@@ -21,10 +21,7 @@ package org.renjin.primitives.combine;
 import org.renjin.invoke.annotations.*;
 import org.renjin.repackaged.guava.base.Function;
 import org.renjin.repackaged.guava.collect.Iterables;
-import org.renjin.sexp.ListVector;
-import org.renjin.sexp.NamedValue;
-import org.renjin.sexp.Null;
-import org.renjin.sexp.SEXP;
+import org.renjin.sexp.*;
 
 /**
  * Implementation of the combine-related functions, including c(), list(), unlist(),
@@ -58,7 +55,15 @@ public class Combine {
   @Generic
   @Internal
   public static SEXP unlist(SEXP sexp, boolean recursive, boolean useNames) {
-    
+
+    if(sexp instanceof FunctionCall) {
+      return sexp;
+    }
+
+    if(sexp instanceof PairList.Node) {
+      sexp = ((PairList.Node) sexp).toVector();
+    }
+
     if(!(sexp instanceof ListVector)) {
       return sexp;
     }

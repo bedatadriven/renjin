@@ -68,6 +68,18 @@ public abstract class ScalarType {
 
   public abstract JExpression naLiteral(JCodeModel codeModel);
   
-  
+  public JExpression testNaExpr(JCodeModel codeModel, JVar scalarVariable) {
+    JExpression testNA = codeModel.ref(getVectorType()).staticInvoke("isNA").arg(scalarVariable);
+    return testNA;
+  }
+
+  public Class<?> getElementStorageType() {
+    return getScalarType();
+  }
+
+  public JExpression fromElementStorageType(JExpression expression) {
+
+    return expression;
+  }
   
 }

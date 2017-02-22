@@ -107,7 +107,7 @@ public class Subsetting {
     ListVector.NamedBuilder copyBuilder = ListVector.newNamedBuilder();
     StringVector namesVector = vector.getAttributes().getNames();
     for(int i=0;i!=vector.length();++i) {
-      String elementName = null;
+      String elementName = "";
       if(namesVector != null) {
         elementName = namesVector.getElementAsString(i);
       }

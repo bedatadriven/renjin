@@ -52,6 +52,8 @@ public class RecycleLoopBuilder {
     private JVar vector;
     private JVar length;
     private JVar currentElementIndex;
+    private JVar currentElement;
+
 
 
     public RecycledArgument(JvmMethod.Argument argument, JExpression parameter) {
@@ -63,6 +65,7 @@ public class RecycleLoopBuilder {
       this.length = parent.decl(codeModel._ref(int.class), "length" + formal.getIndex(),
           vector.invoke("length"));
       this.currentElementIndex = parent.decl(codeModel._ref(int.class), "currentElementIndex" + formal.getIndex(), lit(0));
+      this.currentElement = parent.decl(codeModel._ref(scalarType.getElementStorageType()), "s" + formal.getIndex());
     }
 
     public JType getVectorType() {
@@ -70,18 +73,15 @@ public class RecycleLoopBuilder {
     }
 
     public JExpression isCurrentElementNA() {
-      // If we're returning a double/complex vector, we can handle NaNs,
-      // otherwise treat them as NA
-      if(overload.getReturnType().equals(double.class) ||
-          overload.getReturnType().equals(Complex.class)) {
-        return vector.invoke("isElementNA").arg(currentElementIndex);
-      } else {
-        return vector.invoke("isElementNaN").arg(currentElementIndex);
-      }
+      return scalarType.testNaExpr(codeModel, currentElement);
     }
 
     public JExpression getCurrentElement() {
       return vector.invoke(scalarType.getAccessorMethod()).arg(currentElementIndex);
+    }
+
+    public JExpression getCurrentElementInScalarType() {
+      return scalarType.fromElementStorageType(currentElement);
     }
   }
 
@@ -124,7 +124,7 @@ public class RecycleLoopBuilder {
       if(argument.isRecycle()) {
         RecycledArgument recycledArgument = new RecycledArgument(argument, argumentMap.get(argument));
         recycledArguments.add(recycledArgument);
-        this.argumentMap.put(argument, recycledArgument.getCurrentElement());
+        this.argumentMap.put(argument, recycledArgument.getCurrentElementInScalarType());
       } else {
         this.argumentMap.put(argument, argumentMap.get(argument));
       }
@@ -240,6 +240,9 @@ public class RecycleLoopBuilder {
   }
 
   private void calculateResult(JBlock loopBody) {
+    for (RecycledArgument recycledArgument : recycledArguments) {
+      loopBody.assign(recycledArgument.currentElement, recycledArgument.getCurrentElement());
+    }
     if(!overload.isPassNA()) {
       // by default, primitive implementations do not have to deal
       // with missing values, so we need to handle them here

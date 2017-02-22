@@ -16,27 +16,18 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.primitives.io.connections;
+package org.renjin.primitives.text;
 
-import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
-import org.apache.commons.vfs2.FileObject;
+import org.junit.Test;
 
-import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.charset.Charset;
 
-/**
- * Connection to
- */
-public class BzipFileConnection extends FileConnection {
+public class RCharsetsTest {
 
-  public BzipFileConnection(FileObject file, Charset charset) throws IOException {
-    super(file, charset);
+  @Test
+  public void latin1() {
+    Charset charset = RCharsets.getByName("latin1");
+    System.out.println(charset.displayName());
   }
 
-
-  @Override
-  protected OutputStream doOpenForOutput() throws IOException {
-    return new BZip2CompressorOutputStream(super.doOpenForOutput());
-  }
 }

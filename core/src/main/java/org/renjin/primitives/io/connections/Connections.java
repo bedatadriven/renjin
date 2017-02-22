@@ -26,6 +26,7 @@ import org.renjin.invoke.annotations.Internal;
 import org.renjin.invoke.annotations.Recycle;
 import org.renjin.primitives.Identical;
 import org.renjin.primitives.io.connections.Connection.Type;
+import org.renjin.primitives.text.RCharsets;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.repackaged.guava.base.Strings;
@@ -77,7 +78,7 @@ public class Connections {
       final String path, String open, String encoding, double compressionLevel)
       throws IOException {
 
-    return newConnection(context, open, new GzFileConnection(context.resolveFile(path)));
+    return newConnection(context, open, new GzFileConnection(context.resolveFile(path), RCharsets.getByName(encoding)));
   }
 
   @Internal
@@ -85,7 +86,7 @@ public class Connections {
                                  final String path, String open, String encoding, double compressionLevel)
       throws IOException {
 
-    return newConnection(context, open, new XzFileConnection(context.resolveFile(path)));
+    return newConnection(context, open, new XzFileConnection(context.resolveFile(path), RCharsets.getByName(encoding)));
   }
 
 
@@ -94,7 +95,7 @@ public class Connections {
                                  final String path, String open, String encoding, double compressionLevel)
       throws IOException {
 
-    return newConnection(context, open, new BzipFileConnection(context.resolveFile(path)));
+    return newConnection(context, open, new BzipFileConnection(context.resolveFile(path), RCharsets.getByName(encoding)));
   }
 
 
@@ -136,7 +137,7 @@ public class Connections {
     } else if (path.startsWith("http://") || path.startsWith("https://")) {
       return url(context, path, open, blocking, encoding);
     } else {
-      return newConnection(context, open, new FileConnection(context.resolveFile(path)));
+      return newConnection(context, open, new FileConnection(context.resolveFile(path), RCharsets.getByName(encoding)));
     }
   }
   
@@ -144,7 +145,7 @@ public class Connections {
   public static IntVector url(@Current final Context context,
       final String description, String open, boolean blocking, String encoding) throws IOException {
   
-    return newConnection(context, open, new UrlConnection(new URL(description)));
+    return newConnection(context, open, new UrlConnection(new URL(description), RCharsets.getByName(encoding)));
   }
   
   @Internal
@@ -272,7 +273,7 @@ public class Connections {
   
   //FIXME: port should be an int
   @Internal("socketConnection")
-  public static IntVector socketConnection(@Current Context context, String host, double port) throws UnknownHostException, IOException{
+  public static IntVector socketConnection(@Current Context context, String host, double port) throws IOException{
     return newConnection(context, "", new SocketConnection(host, (int) port));
   }
   

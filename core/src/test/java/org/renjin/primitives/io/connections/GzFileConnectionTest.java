@@ -22,6 +22,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.VFS;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
+import org.renjin.primitives.text.RCharsets;
 import org.renjin.sexp.SEXP;
 
 import java.io.BufferedReader;

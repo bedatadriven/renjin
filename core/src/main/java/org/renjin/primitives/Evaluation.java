@@ -29,6 +29,7 @@ import org.renjin.parser.RParser;
 import org.renjin.primitives.io.connections.Connection;
 import org.renjin.primitives.io.connections.Connections;
 import org.renjin.primitives.special.ReturnException;
+import org.renjin.primitives.text.RCharsets;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.io.CharSource;
 import org.renjin.sexp.*;
@@ -422,7 +423,7 @@ public class Evaluation {
             
       } else if(file.inherits("connection")) {
         Connection conn = Connections.getConnection(context, file);
-        Reader reader = new InputStreamReader(conn.getInputStream());
+        Reader reader = new InputStreamReader(conn.getInputStream(), RCharsets.getByName(encoding));
         return RParser.parseAllSource(reader, sourceFile);
       
       } else {

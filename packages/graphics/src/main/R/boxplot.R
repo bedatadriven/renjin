@@ -45,31 +45,32 @@ function(x, ..., range = 1.5, width = NULL, varwidth = FALSE,
     cls <- sapply(groups, function(x) class(x)[1L])
     cl <- if(all(cls == cls[1L])) cls[1L] else NULL
     for(i in 1L:n)
-	groups[i] <- list(boxplot.stats(unclass(groups[[i]]), range)) # do.conf=notch)
+		groups[i] <- list(boxplot.stats(unclass(groups[[i]]), range)) # do.conf=notch)
     stats <- matrix(0, nrow=5L, ncol=n)
     conf  <- matrix(0, nrow=2L, ncol=n)
     ng <- out <- group <- numeric(0L)
     ct <- 1
     for(i in groups) {
-	stats[,ct] <- i$stats
-	conf [,ct] <- i$conf
-	ng <- c(ng, i$n)
-	if((lo <- length(i$out))) {
-	    out	  <- c(out,i$out)
-	    group <- c(group, rep.int(ct, lo))
-	}
-	ct <- ct+1
+		stats[,ct] <- i$stats
+		conf [,ct] <- i$conf
+		ng <- c(ng, i$n)
+		if((lo <- length(i$out))) {
+			out	  <- c(out,i$out)
+			group <- c(group, rep.int(ct, lo))
+		}
+		ct <- ct+1
     }
     if(length(cl) && cl != "numeric") oldClass(stats) <- cl
     z <- list(stats = stats, n = ng, conf = conf, out = out, group = group,
 	      names = names)
     if(plot) {
-        if(is.null(pars$boxfill) && is.null(args$boxfill)) pars$boxfill <- col
-        do.call("bxp",
-                c(list(z, notch = notch, width = width, varwidth = varwidth,
-                       log = log, border = border, pars = pars,
-                       outline = outline, horizontal = horizontal, add = add,
-                       at = at), args[namedargs]))
+		warning("graphics are not yet implemented (boxplot.default).\n")
+        #if(is.null(pars$boxfill) && is.null(args$boxfill)) pars$boxfill <- col
+        #do.call("bxp",
+        #        c(list(z, notch = notch, width = width, varwidth = varwidth,
+        #               log = log, border = border, pars = pars,
+        #               outline = outline, horizontal = horizontal, add = add,
+        #               at = at), args[namedargs]))
 	invisible(z)
     }
     else z
@@ -85,7 +86,8 @@ boxplot.matrix <- function(x, use.cols = TRUE, ...)
   else split(x, seq(nrow(x)))
   ## Make use of col/row names if present
   if (length(nam <- dimnames(x)[[1+use.cols]])) names(groups) <- nam
-  invisible(boxplot(groups, ...))
+  #invisible(boxplot(groups, ...))
+  warning("graphics are not yet implemented (boxplot.matrix).\n")
 }
 
 boxplot.formula <-
@@ -102,7 +104,8 @@ boxplot.formula <-
     m[[1L]] <- as.name("model.frame")
     mf <- eval(m, parent.frame())
     response <- attr(attr(mf, "terms"), "response")
-    boxplot(split(mf[[response]], mf[-response]), ...)
+    #boxplot(split(mf[[response]], mf[-response]), ...)
+	warning("graphics are not yet implemented (boxplot.formula).\n")
 }
 
 bxp <- function(z, notch=FALSE, width=NULL, varwidth=FALSE, outline = TRUE,

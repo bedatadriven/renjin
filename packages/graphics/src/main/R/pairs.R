@@ -104,48 +104,49 @@ function (x, labels, panel = points, ...,
         if (!is.null(main)) oma[3L] <- 6
     }
     opar <- par(mfrow = c(nc, nc), mar = rep.int(gap/2, 4), oma = oma)
-    on.exit(par(opar))
-    dev.hold(); on.exit(dev.flush(), add = TRUE)
+    # on.exit(par(opar))
+    # dev.hold(); on.exit(dev.flush(), add = TRUE)
 
-    for (i in if(row1attop) 1L:nc else nc:1L)
-        for (j in 1L:nc) {
-            localPlot(x[, j], x[, i], xlab = "", ylab = "",
-                      axes = FALSE, type = "n", ...)
-            if(i == j || (i < j && has.lower) || (i > j && has.upper) ) {
-                box()
-                if(i == 1  && (!(j %% 2) || !has.upper || !has.lower ))
-                    localAxis(1 + 2*row1attop, x[, j], x[, i], ...)
-                if(i == nc && (  j %% 2  || !has.upper || !has.lower ))
-                    localAxis(3 - 2*row1attop, x[, j], x[, i], ...)
-                if(j == 1  && (!(i %% 2) || !has.upper || !has.lower ))
-                    localAxis(2, x[, j], x[, i], ...)
-                if(j == nc && (  i %% 2  || !has.upper || !has.lower ))
-                    localAxis(4, x[, j], x[, i], ...)
-                mfg <- par("mfg")
-                if(i == j) {
-                    if (has.diag) localDiagPanel(as.vector(x[, i]), ...)
-                    if (has.labs) {
-                        par(usr = c(0, 1, 0, 1))
-                        if(is.null(cex.labels)) {
-                            l.wid <- strwidth(labels, "user")
-                            cex.labels <- max(0.8, min(2, .9 / max(l.wid)))
-                        }
-                        text.panel(0.5, label.pos, labels[i],
-                                   cex = cex.labels, font = font.labels)
-                    }
-                } else if(i < j)
-                    localLowerPanel(as.vector(x[, j]), as.vector(x[, i]), ...)
-                else
-                    localUpperPanel(as.vector(x[, j]), as.vector(x[, i]), ...)
-                if (any(par("mfg") != mfg))
-                    stop("the 'panel' function made a new plot")
-            } else par(new = FALSE)
+    # for (i in if(row1attop) 1L:nc else nc:1L)
+    #     for (j in 1L:nc) {
+    #         localPlot(x[, j], x[, i], xlab = "", ylab = "",
+    #                   axes = FALSE, type = "n", ...)
+    #         if(i == j || (i < j && has.lower) || (i > j && has.upper) ) {
+    #             box()
+    #             if(i == 1  && (!(j %% 2) || !has.upper || !has.lower ))
+    #                 localAxis(1 + 2*row1attop, x[, j], x[, i], ...)
+    #             if(i == nc && (  j %% 2  || !has.upper || !has.lower ))
+    #                 localAxis(3 - 2*row1attop, x[, j], x[, i], ...)
+    #             if(j == 1  && (!(i %% 2) || !has.upper || !has.lower ))
+    #                 localAxis(2, x[, j], x[, i], ...)
+    #             if(j == nc && (  i %% 2  || !has.upper || !has.lower ))
+    #                 localAxis(4, x[, j], x[, i], ...)
+    #             mfg <- par("mfg")
+    #             if(i == j) {
+    #                 if (has.diag) localDiagPanel(as.vector(x[, i]), ...)
+    #                 if (has.labs) {
+    #                     par(usr = c(0, 1, 0, 1))
+    #                     if(is.null(cex.labels)) {
+    #                         l.wid <- strwidth(labels, "user")
+    #                         cex.labels <- max(0.8, min(2, .9 / max(l.wid)))
+    #                     }
+    #                     text.panel(0.5, label.pos, labels[i],
+    #                                cex = cex.labels, font = font.labels)
+    #                 }
+    #             } else if(i < j)
+    #                 localLowerPanel(as.vector(x[, j]), as.vector(x[, i]), ...)
+    #             else
+    #                 localUpperPanel(as.vector(x[, j]), as.vector(x[, i]), ...)
+    #             if (any(par("mfg") != mfg))
+    #                 stop("the 'panel' function made a new plot")
+    #         } else par(new = FALSE)
 
-        }
-    if (!is.null(main)) {
-        font.main <- if("font.main" %in% nmdots) dots$font.main else par("font.main")
-        cex.main <- if("cex.main" %in% nmdots) dots$cex.main else par("cex.main")
-        mtext(main, 3, 3, TRUE, 0.5, cex = cex.main, font = font.main)
-    }
+    #     }
+    # if (!is.null(main)) {
+    #     font.main <- if("font.main" %in% nmdots) dots$font.main else par("font.main")
+    #     cex.main <- if("cex.main" %in% nmdots) dots$cex.main else par("cex.main")
+    #     mtext(main, 3, 3, TRUE, 0.5, cex = cex.main, font = font.main)
+    # }
+    warning("graphics are not yet implemented (pairs.default).")
     invisible(NULL)
 }

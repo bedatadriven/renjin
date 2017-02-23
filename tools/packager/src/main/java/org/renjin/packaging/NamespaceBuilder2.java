@@ -18,23 +18,25 @@
  */
 package org.renjin.packaging;
 
+import org.joda.time.DateTime;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.SessionBuilder;
 import org.renjin.parser.RParser;
+import org.renjin.primitives.io.serialization.HeadlessWriteContext;
+import org.renjin.primitives.io.serialization.RDataWriter;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.primitives.packaging.NamespaceFile;
 import org.renjin.primitives.packaging.PackageLoader;
+import org.renjin.primitives.time.DateTimeFormat;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.base.Strings;
+import org.renjin.repackaged.guava.collect.Iterables;
 import org.renjin.repackaged.guava.io.CharSource;
 import org.renjin.repackaged.guava.io.Files;
 import org.renjin.sexp.*;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 
 /**
  * Evaluates a package's sources
@@ -67,6 +69,7 @@ public class NamespaceBuilder2 {
     evaluateSources(context, namespace.getNamespaceEnvironment());
     serializeEnvironment(context, namespace.getNamespaceEnvironment(), environmentFile);
     writeRequires();
+    writePackageRds();
   }
 
   /**
@@ -93,7 +96,7 @@ public class NamespaceBuilder2 {
 
   private Context initContext()  {
     SessionBuilder builder = new SessionBuilder();
-    builder.bind(PackageLoader.class, buildContext.getPackageLoader());
+    builder.setPackageLoader(buildContext.getPackageLoader());
     
     Context context = builder.build().getTopLevelContext();
     for(String name : buildContext.getDefaultPackages()) {
@@ -148,21 +151,75 @@ public class NamespaceBuilder2 {
   }
 
 
+  private void writePackageRds() throws IOException {
+    ListVector.NamedBuilder metadata = new ListVector.NamedBuilder();
+    metadata.add("DESCRIPTION", descriptionVector());
+    metadata.add("Built", new ListVector.NamedBuilder()
+        .add("Platform", "")
+        .add("Date", DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss ZZ").print(new DateTime()))
+        .add("OStype", "unix"));
+
+    metadata.add("Rdepends", Null.INSTANCE);
+    metadata.add("Rdepends2", Null.INSTANCE);
+
+    metadata.add("Depends", packageVector("Depends"));
+    metadata.add("Suggests", packageVector("Suggests"));
+    metadata.add("Imports", packageVector("Imports"));
+    metadata.add("LinkingTo", packageVector("LinkingTo"));
+
+
+    File metaDir = new File(buildContext.getPackageOutputDir(), "Meta");
+    if(!metaDir.exists()) {
+      boolean created = metaDir.mkdirs();
+      if(!created) {
+        throw new IOException("Failed to create " + metaDir.getAbsolutePath());
+      }
+    }
+    File packageRdsFile = new File(metaDir, "package.rds");
+    try(RDataWriter writer = new RDataWriter(HeadlessWriteContext.INSTANCE, new FileOutputStream(packageRdsFile))) {
+      writer.serialize(metadata.build());
+    }
+  }
+
+  private StringVector descriptionVector() {
+    StringVector.Builder vector = new StringVector.Builder();
+    StringVector.Builder names = new StringVector.Builder();
+
+    PackageDescription description = source.getDescription();
+    if(description != null) {
+      for (String property : description.getProperties()) {
+        names.add(property);
+        vector.add(description.getFirstProperty(property));
+      }
+    }
+
+    vector.setAttribute(Symbols.NAMES, names.build());
+    return vector.build();
+  }
+
+  private ListVector packageVector(String type) {
+    ListVector.NamedBuilder list = new ListVector.NamedBuilder();
+    if(source.getDescription() != null) {
+      for (PackageDescription.PackageDependency dependency : source.getDescription().getPackageDependencyList(type)) {
+        ListVector.NamedBuilder depSexp = new ListVector.NamedBuilder();
+        depSexp.add("name", dependency.getName());
+        list.add(dependency.getName(), depSexp.build());
+      }
+    }
+    return list.build();
+  }
+
 
   private void writeRequires() {
     // save a list of packages that are to be loaded onto the
     // global search path when this package is loaded
 
-    if(source.getDescriptionFile().exists()) {
-      PackageDescription description;
-      try {
-        description = PackageDescription.fromFile(source.getDescriptionFile());
-      } catch(IOException e) {
-        throw new RuntimeException("Exception reading DESCRIPTION file");
-      }
+    Iterable<PackageDescription.PackageDependency> depends = source.getDescription().getDepends();
+
+    if(!Iterables.isEmpty(depends)) {
       try {
         PrintWriter requireWriter = new PrintWriter(new File(buildContext.getPackageOutputDir(), "requires"));
-        for(PackageDescription.PackageDependency dep : description.getDepends()) {
+        for(PackageDescription.PackageDependency dep : depends) {
           if(!dep.getName().equals("R") && !Strings.isNullOrEmpty(dep.getName())) {
             requireWriter.println(dep.getName());
           }
@@ -173,6 +230,5 @@ public class NamespaceBuilder2 {
       }
     }
   }
-
 }
 

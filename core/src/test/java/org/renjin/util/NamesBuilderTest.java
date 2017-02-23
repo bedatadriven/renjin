@@ -19,7 +19,10 @@
 package org.renjin.util;
 
 import org.junit.Test;
+import org.renjin.sexp.IntArrayVector;
+import org.renjin.sexp.StringArrayVector;
 import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Vector;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -32,13 +35,26 @@ public class NamesBuilderTest {
     NamesBuilder builder = NamesBuilder.withInitialLength(3);
     assertThat(builder.haveNames(), equalTo(false));
     
-    builder.set(0, StringVector.NA);
-    builder.set(1, StringVector.NA);
+    builder.set(0, "");
+    builder.set(1, "");
     assertThat(builder.haveNames(), equalTo(false));
 
     builder.add("Foo");
     assertThat(builder.haveNames(), equalTo(true));
-    
+  }
+
+  @Test
+  public void cloneFrom() {
+    IntArrayVector vectorWithoutNames = new IntArrayVector(1, 2);
+    NamesBuilder builder = NamesBuilder.clonedFrom(vectorWithoutNames);
+    builder.set(2, "c");
+    StringVector names = (StringVector) builder.build(3);
+
+    assertThat(names.getElementAsString(0), equalTo(""));
+    assertThat(names.getElementAsString(1), equalTo(""));
+    assertThat(names.getElementAsString(2), equalTo("c"));
+
+
   }
   
 }

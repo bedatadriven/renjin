@@ -150,7 +150,11 @@ public abstract class AbstractSEXP implements SEXP {
     if(hasNames()) {
       return getNames().getElementAsString(index);
     } 
-    return StringVector.NA;
+    return "";
+  }
+
+  public boolean hasName(int i) {
+    return !"".equals(getName(i));
   }
 
   /**
@@ -250,4 +254,5 @@ public abstract class AbstractSEXP implements SEXP {
     this.attributes = attributes.validateAndBuildFor(this);
     
   }
+
 }

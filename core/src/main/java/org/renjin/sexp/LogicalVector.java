@@ -38,7 +38,7 @@ public abstract class LogicalVector extends AbstractAtomicVector implements Iter
   public static SEXP valueOf(boolean value) {
     return value ? TRUE : FALSE;
   }
-
+  
   public static SEXP valueOf(Logical value) {
     switch (value) {
       case TRUE:
@@ -51,7 +51,7 @@ public abstract class LogicalVector extends AbstractAtomicVector implements Iter
         throw new IllegalArgumentException("value: " + value);
     }
   }
-
+  
   public LogicalVector(AttributeMap attributes) {
     super(attributes);
   }
@@ -104,7 +104,7 @@ public abstract class LogicalVector extends AbstractAtomicVector implements Iter
     int value = getElementAsInt(index);
     if(IntVector.isNA(value)) {
       throw new IllegalStateException(String.format("The element at index %d is NA," +
-              " and cannot be represented as a Boolean. Make sure you are calling isElementNA() first.", index));
+          " and cannot be represented as a Boolean. Make sure you are calling isElementNA() first.", index));
     } else {
       return value != 0;
     }
@@ -268,6 +268,9 @@ public abstract class LogicalVector extends AbstractAtomicVector implements Iter
     return IntVector.isNA(getElementAsRawLogical(index));
   }
 
+  public static boolean isNA(int value) {
+    return IntVector.isNA(value);
+  }
 
   private static class LogicalType extends Vector.Type {
     public LogicalType() {

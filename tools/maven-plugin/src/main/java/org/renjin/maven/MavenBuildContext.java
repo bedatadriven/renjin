@@ -146,6 +146,11 @@ public class MavenBuildContext implements BuildContext {
   }
 
   @Override
+  public File getCompileLogDir() {
+    return new File(buildDir, "gcc-bridge-logs");
+  }
+
+  @Override
   public File getPackageOutputDir() {
     return packageOuputDir;
   }

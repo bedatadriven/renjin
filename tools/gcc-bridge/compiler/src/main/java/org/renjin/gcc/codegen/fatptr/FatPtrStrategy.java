@@ -27,6 +27,10 @@ import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.type.primitive.ConstantValue;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
+import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
+import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
+import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
+import org.renjin.gcc.codegen.type.record.RecordValue;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidPtr;
@@ -38,7 +42,6 @@ import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.repackaged.asm.Type;
 
 import static org.renjin.gcc.codegen.expr.Expressions.constantInt;
-import static org.renjin.gcc.codegen.expr.Expressions.newArray;
 import static org.renjin.repackaged.asm.Type.OBJECT;
 
 /**
@@ -122,9 +125,9 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
       Type wrapperType = Wrappers.wrapperType(valueFunction.getValueType());
       Type wrapperArrayType = Wrappers.valueArrayType(wrapperType);
       
-      JExpr newArray = newArray(wrapperType, 1);
+      JExpr newArray = Expressions.newArray(wrapperType, 1);
       
-      JLValue unitArray = allocator.reserve(decl.getName(), wrapperArrayType, newArray);
+      JLValue unitArray = allocator.reserve(decl.getNameIfPresent(), wrapperArrayType, newArray);
       
       return new DereferencedFatPtr(unitArray, Expressions.constantInt(0), valueFunction);
 
@@ -247,6 +250,12 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
       JExpr newArray = Expressions.newArray(ref);
       
       return new FatPtrPair(valueFunction, newArray);
+
+    } else if(typeStrategy instanceof RecordTypeStrategy) {
+
+      // We can make this cast work if the first field of the record type is a compatible pointer type
+      RecordTypeStrategy recordTypeStrategy = (RecordTypeStrategy) typeStrategy;
+      return (FatPtr) recordTypeStrategy.memberOf(mv, value, 0, 32, this);
     }
     
     throw new UnsupportedCastException();

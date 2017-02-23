@@ -50,6 +50,11 @@ public class RecordArrayParamStrategy implements ParamStrategy {
   }
 
   @Override
+  public List<String> getParameterNames(String name) {
+    return Collections.singletonList(name);
+  }
+
+  @Override
   public RecordArrayExpr emitInitialization(MethodGenerator methodVisitor, 
                                  GimpleParameter parameter, 
                                  List<JLValue> paramVars, 

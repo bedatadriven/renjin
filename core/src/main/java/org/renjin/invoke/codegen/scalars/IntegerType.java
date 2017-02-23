@@ -56,6 +56,16 @@ public class IntegerType extends ScalarType {
   }
 
   @Override
+  public Class getBuilderArrayElementClass() {
+    return int.class;
+  }
+
+  @Override
+  public Class getArrayVectorClass() {
+    return IntArrayVector.class;
+  }
+
+  @Override
   public JExpression testExpr(JCodeModel codeModel, JVar sexpVariable, JvmMethod.Argument formal) {
     if(formal.getCastStyle() == CastStyle.IMPLICIT) {
       return sexpVariable._instanceof(codeModel.ref(IntVector.class))
@@ -65,6 +75,11 @@ public class IntegerType extends ScalarType {
       return sexpVariable._instanceof(codeModel.ref(IntVector.class))
           .cor(sexpVariable._instanceof(codeModel.ref(LogicalVector.class)));
     }
+  }
+
+  @Override
+  public JExpression naLiteral(JCodeModel codeModel) {
+    return codeModel.ref(IntVector.class).staticRef("NA");
   }
 }
 

@@ -19,6 +19,7 @@
 package org.renjin.gcc.gimple.expr;
 
 import org.renjin.gcc.gimple.GimpleExprVisitor;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.guava.base.Predicate;
 
 /**
@@ -33,8 +34,10 @@ public class GimpleFieldRef extends GimpleExpr {
   public GimpleFieldRef() {
   }
 
-  public GimpleFieldRef(int id,  String name) {
-    this.id = id;
+  public GimpleFieldRef(String name, int offset, GimpleType type) {
+    this.offset = offset;
+    this.setType(type);
+    this.size = type.getSize();
     this.name = name;
   }
 

@@ -17,7 +17,7 @@
 ### xy.coords() is now in the imported 'grDevices' package
 
 plot <- function (x, y, ...)  {
-    warning("graphics are not yet implemented.\n")
+    warning("graphics are not yet implemented (plot).\n")
 }
 
 
@@ -25,7 +25,7 @@ plot <- function (x, y, ...)  {
 plot.function <-
     function(x, y = 0, to = 1, from = y, xlim = NULL, ylab = NULL, ...)
     {
-        warning("graphics are not yet implemented.\n")
+        warning("graphics are not yet implemented (plot.function).\n")
     }
 
 plot.default <-
@@ -34,7 +34,7 @@ plot.default <-
              ann = par("ann"), axes = TRUE, frame.plot = axes,
              panel.first = NULL, panel.last = NULL, asp = NA, ...)
     {
-        warning("graphics are not yet implemented.\n")
+        warning("graphics are not yet implemented (plot.default).\n")
     }
 
 plot.factor <- function(x, y, legend.text = NULL, ...)
@@ -81,9 +81,10 @@ plot.table <-
 	if(is.null(ylab)) ylab <- xnam
         is.num <- suppressWarnings(!any(is.na(xx <- as.numeric(nx))))
 	x0 <- if(is.num) xx else seq.int(x)
-	plot(x0, unclass(x), type = type,
-	     ylim = ylim, xlab = xlab, ylab = ylab, frame.plot = frame.plot,
-	     lwd = lwd, ..., xaxt = "n")
+	# plot(x0, unclass(x), type = type,
+	#      ylim = ylim, xlab = xlab, ylab = ylab, frame.plot = frame.plot,
+	#      lwd = lwd, ..., xaxt = "n")
+    warning("graphics are not yet implemented (plot.table).\n")
 	xaxt <-
 	    if(length(as <- list(...))) {
 		if(!is.null(as$axes) && !as$axes) "n" else as$xaxt
@@ -304,12 +305,12 @@ plot.new <- function()
     # TODO: define a general runHook() and use instead
     for (fun in getHook("before.plot.new")) {
         if (is.character(fun)) fun <- get(fun)
-        try(fun())
+        warning("graphics are not yet implemented.")
     }
-    .Internal(plot.new())
+    warning("graphics are not yet implemented.")
     for(fun in getHook("plot.new")) {
         if(is.character(fun)) fun <- get(fun)
-        try(fun())
+        warning("graphics are not yet implemented.")
     }
     invisible()
 }
@@ -317,7 +318,9 @@ plot.new <- function()
 frame <- plot.new
 
 plot.window <- function(xlim, ylim, log = "", asp = NA, ...)
-    .Internal(plot.window(xlim, ylim, log, asp, ...))
+{
+    warning("graphics are not yet implemented (plot.window).")
+}
 
 plot.data.frame <- function (x, ...)
 {
@@ -357,12 +360,14 @@ grconvertX <- function(x, from = "user", to = "user")
 {
     from <- pmatch(from, .units)
     to <- pmatch(to, .units)
-    .Internal(grconvertX(as.double(x), from, to))
+    # .Internal(grconvertX(as.double(x), from, to))
+    warning("graphics are not yet implemented (grconvertX).")
 }
 
 grconvertY <- function(y, from = "user", to = "user")
 {
     from <- pmatch(from, .units)
     to <- pmatch(to, .units)
-    .Internal(grconvertY(as.double(y), from, to))
+    # .Internal(grconvertY(as.double(y), from, to))
+    warning("graphics are not yet implemented (grconvertY).")
 }

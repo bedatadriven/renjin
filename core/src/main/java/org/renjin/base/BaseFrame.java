@@ -18,6 +18,8 @@
  */
 package org.renjin.base;
 
+import org.renjin.RVersion;
+import org.renjin.RenjinVersion;
 import org.renjin.eval.Context;
 import org.renjin.packaging.LazyLoadFrame;
 import org.renjin.primitives.Primitives;
@@ -89,6 +91,8 @@ public class BaseFrame implements Frame {
   public BaseFrame() {
     installPlatform();
     installMachine();
+    loaded.put(Symbol.get("R.version.string"),
+        StringVector.valueOf("Renjin version " + RenjinVersion.getVersionName()));
   }
 
   private void installPlatform() {

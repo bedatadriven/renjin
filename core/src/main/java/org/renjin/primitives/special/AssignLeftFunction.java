@@ -59,8 +59,8 @@ public class AssignLeftFunction extends SpecialFunction {
 
     while(lhs instanceof FunctionCall) {
       FunctionCall call = (FunctionCall) lhs;
-      Symbol getter = (Symbol) call.getFunction();
-      Symbol setter = Symbol.get(getter.getPrintName() + "<-");
+      SEXP getter = call.getFunction();
+      SEXP setter = setterFromGetter(getter);
 
       PairList setterArgs = PairList.Node.newBuilder()
           .addAll(call.getArguments())
@@ -69,7 +69,7 @@ public class AssignLeftFunction extends SpecialFunction {
       
       FunctionCall setterCall = new FunctionCall(setter, setterArgs);
       
-      rhs = context.evaluate(setterCall, rho);
+      rhs = Promise.repromise(context.evaluate(setterCall, rho));
 
       lhs = call.getArgument(0);
     }
@@ -94,7 +94,29 @@ public class AssignLeftFunction extends SpecialFunction {
     return evaluatedValue;
   }
 
+  private SEXP setterFromGetter(SEXP getter) {
+    if(getter instanceof Symbol) {
+      return Symbol.get(((Symbol) getter).getPrintName() + "<-");
+    }
+
+    if(getter instanceof FunctionCall) {
+      FunctionCall call = (FunctionCall) getter;
+      if(call.getArguments().length() == 2 &&
+          (call.getFunction() == Symbol.get("::") ||
+           call.getFunction() == Symbol.get(":::"))) {
+        SEXP namespace = call.getArgument(0);
+        SEXP namespacedGetter = call.getArgument(1);
+        SEXP setter = setterFromGetter(namespacedGetter);
+        return FunctionCall.newCall(call.getFunction(), namespace, setter);
+      }
+    }
+    throw new EvalException("invalid function in complex assignment");
+  }
+
   protected void assignResult(Context context, Environment rho, Symbol target, SEXP rhs) {
+    if(target.isReservedWord() && rhs instanceof Function) {
+      context.warn("Renjin does not honor redefinition of '" + target.getPrintName() + "' function");
+    }
     rho.setVariable(target, rhs);
   }
 }

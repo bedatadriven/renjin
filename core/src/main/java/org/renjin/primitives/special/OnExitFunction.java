@@ -33,11 +33,14 @@ public class OnExitFunction extends SpecialFunction {
     EvalException.check(call.getArguments().length() <= 2,
         "invalid number of arguments");
 
+    // If on.exit is evaluated from within a Promise, we may need to
+    // crawl a few levels up to find the appropriate context to which
+    // attach the exit handler
+    Context exitContext = findMatchingContext(context, rho);
+
     if(call.getArguments().length() == 0) {
       // remove existing on exit functions
-      context.clearOnExits();
-      context.setInvisibleFlag();
-      return Null.INSTANCE;
+      exitContext.clearOnExits();
 
     } else {
 
@@ -48,12 +51,29 @@ public class OnExitFunction extends SpecialFunction {
       }
 
       if(add) {
-        context.addOnExit(value);
+        exitContext.addOnExit(value);
       } else {
-        context.setOnExit(value);
+        exitContext.setOnExit(value);
       }
-      context.setInvisibleFlag();
-      return Null.INSTANCE;
+    }
+
+    // Always return invisible()
+    context.setInvisibleFlag();
+    return Null.INSTANCE;
+  }
+
+  /**
+   * Find the context matching the calling environment.
+   */
+  private Context findMatchingContext(Context context, Environment rho) {
+    while(true) {
+      if(context.getEnvironment() == rho) {
+        return context;
+      }
+      if(context.getType() == Context.Type.TOP_LEVEL) {
+        return context;
+      }
+      context = context.getParent();
     }
   }
 }

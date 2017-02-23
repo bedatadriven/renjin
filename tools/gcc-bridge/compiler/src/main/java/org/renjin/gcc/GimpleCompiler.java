@@ -67,6 +67,8 @@ public class GimpleCompiler  {
 
   private File outputDirectory;
 
+  private File javadocOutputDirectory;
+
   private String packageName;
 
   private boolean verbose;
@@ -91,6 +93,7 @@ public class GimpleCompiler  {
   private Predicate<GimpleFunction> entryPointPredicate = new DefaultEntryPointPredicate();
 
   public GimpleCompiler() {
+    functionBodyTransformers.add(AddressableSimplifier.INSTANCE);
     functionBodyTransformers.add(FunctionCallPruner.INSTANCE);
     functionBodyTransformers.add(LocalVariablePruner.INSTANCE);
     functionBodyTransformers.add(VoidPointerTypeDeducer.INSTANCE);
@@ -125,6 +128,17 @@ public class GimpleCompiler  {
    */
   public void setOutputDirectory(File directory) {
     this.outputDirectory = directory;
+  }
+
+
+  /**
+   * Sets the output directory for writing java source stubs for use by the javadoc tool.
+   *
+   * @param javadocOutputDirectory the root directory, or {@code null} if no stub sources should
+   *                               be written.
+   */
+  public void setJavadocOutputDirectory(File javadocOutputDirectory) {
+    this.javadocOutputDirectory = javadocOutputDirectory;
   }
 
   public void setEntryPointPredicate(Predicate<GimpleFunction> entryPointPredicate) {
@@ -173,7 +187,7 @@ public class GimpleCompiler  {
   public void compile(List<GimpleCompilationUnit> units) throws Exception {
 
     try {
-      
+      PmfRewriter.rewrite(units);
       GlobalVarMerger.merge(units);
       ImplicitFieldDeclFinder.find(units);
 
@@ -219,6 +233,10 @@ public class GimpleCompiler  {
       for (UnitClassGenerator generator : unitClassGenerators) {
         generator.emit(codegenLogger);
         writeClass(generator.getClassName(), generator.toByteArray());
+
+        if(trampolineClassName == null && javadocOutputDirectory != null) {
+          generator.emitJavaDoc(javadocOutputDirectory);
+        }
       }
 
       // Write link metadata to META-INF/org.renjin.gcc.symbols
@@ -238,6 +256,7 @@ public class GimpleCompiler  {
       }
     }
   }
+
 
   private void compileRecords(List<GimpleCompilationUnit> units) throws IOException {
     RecordTypeStrategyBuilder builder = new RecordTypeStrategyBuilder(
@@ -333,8 +352,9 @@ public class GimpleCompiler  {
         System.out.println(unit);
       }
       for (GimpleFunction function : unit.getFunctions()) {
-        
-        transformFunctionBody(rootLogger.branch("Transforming " + function.getName()), unit, function);
+        if(!function.isEmpty()) {
+          transformFunctionBody(rootLogger.branch("Transforming " + function.getName()), unit, function);
+        }
       }
     }
   }
@@ -415,4 +435,6 @@ public class GimpleCompiler  {
   public void setLinkClassLoader(ClassLoader linkClassLoader) {
     this.globalSymbolTable.setLinkClassLoader(linkClassLoader);
   }
+
+
 }

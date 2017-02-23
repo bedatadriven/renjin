@@ -30,9 +30,9 @@ import java.util.Arrays;
 
 
 public class MethodGenerator extends InstructionAdapter {
-  
+
   private final LocalVarAllocator localVarAllocator = new LocalVarAllocator();
-  
+
   public MethodGenerator(MethodVisitor mv) {
     super(Opcodes.ASM5, mv);
   }
@@ -40,11 +40,11 @@ public class MethodGenerator extends InstructionAdapter {
   public LocalVarAllocator getLocalVarAllocator() {
     return localVarAllocator;
   }
-  
+
   public void invokestatic(Class<?> ownerClass, String methodName, String descriptor) {
     invokestatic(Type.getInternalName(ownerClass), methodName, descriptor, false);
   }
-  
+
   public void invokestatic(Type ownerClass, String methodName, String descriptor) {
     invokestatic(ownerClass.getInternalName(), methodName, descriptor, false);
   }
@@ -52,14 +52,14 @@ public class MethodGenerator extends InstructionAdapter {
   public void invokeconstructor(Type ownerClass, Type... argumentTypes) {
     invokespecial(ownerClass.getInternalName(), "<init>", Type.getMethodDescriptor(Type.VOID_TYPE, argumentTypes), false);
   }
-  
+
   public void invokevirtual(Type declaringType, String methodName, String descriptor, boolean interfaceMethod) {
     invokevirtual(declaringType.getInternalName(),
         methodName,
         descriptor,
         interfaceMethod);
   }
-  
+
   public void invokevirtual(Class<?> declaringClass, String methodName, Type returnType, Type... argumentTypes) {
     invokevirtual(Type.getType(declaringClass).getInternalName(),
         methodName,

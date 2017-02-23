@@ -20,6 +20,8 @@ package org.renjin.gcc.gimple;
 
 import org.renjin.gcc.gimple.expr.*;
 
+import java.util.List;
+
 /**
  * Visitor 
  */
@@ -133,5 +135,11 @@ public class GimpleExprVisitor {
 
   public void visitVariableRef(GimpleVariableRef variableRef) {
     visit(variableRef);
+  }
+
+  public void visit(List<GimpleCompilationUnit> units) {
+    for (GimpleCompilationUnit unit : units) {
+      unit.accept(this);
+    }
   }
 }

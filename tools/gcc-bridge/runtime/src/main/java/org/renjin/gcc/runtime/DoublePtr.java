@@ -157,6 +157,9 @@ public class DoublePtr implements Ptr {
     if(voidPointer instanceof MallocThunk) {
       return ((MallocThunk) voidPointer).doublePtr();
     }
+    if(voidPointer == null) {
+      return NULL;
+    }
     return (DoublePtr) voidPointer;
   }
 }

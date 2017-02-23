@@ -232,10 +232,7 @@ public class Base {
   public static SEXP R_do_new_object(S4Object classRepresentation) {
     return Methods.R_do_new_object(classRepresentation);
   }
-  
-  public static ListVector do_mapply(@Current Context context, Function fun, ListVector varyingArgs, Vector constantArgs, Environment rho) {
-    return Evaluation.mapply(context, fun, varyingArgs, constantArgs, rho);
-  }
+
 
   /* bincode  cuts up the data using half open intervals defined as [a,b)
      (if right = FALSE) or (a, b] (if right = TRUE)

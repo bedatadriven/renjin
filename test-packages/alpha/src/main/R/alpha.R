@@ -33,3 +33,16 @@ alphaVersion <- function() {
 alphaName <- function() {
     Alpha$execute()
 }
+
+.onLoad <- function(libname, pkgname) {
+    # The following loads the 'protein' dataset and inserts
+    # into this package's namespace.
+
+    # This means that the collecting the exports needs
+    # to be done AFTER .onLoad runs
+
+    cat("defining .onLoad\n")
+
+    where = asNamespace(pkgname)
+    where$defined.during.load <- 84
+}

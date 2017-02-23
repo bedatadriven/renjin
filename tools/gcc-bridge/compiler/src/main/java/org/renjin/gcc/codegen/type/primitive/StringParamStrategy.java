@@ -40,6 +40,11 @@ public class StringParamStrategy implements ParamStrategy {
   }
 
   @Override
+  public List<String> getParameterNames(String name) {
+    return Collections.singletonList(name);
+  }
+
+  @Override
   public GExpr emitInitialization(MethodGenerator methodVisitor, GimpleParameter parameter, List<JLValue> paramVars, VarAllocator localVars) {
     throw new UnsupportedOperationException();
   }

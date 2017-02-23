@@ -1,3 +1,10 @@
 
 importClass(org.renjin.tools.Md5)
 export(md5sum)
+
+export(file_ext,
+    file_path_as_absolute,
+    file_path_sans_ext,
+    file_test,
+    list_files_with_exts,
+    list_files_with_type)

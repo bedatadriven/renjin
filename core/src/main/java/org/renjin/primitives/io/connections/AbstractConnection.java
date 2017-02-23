@@ -18,21 +18,34 @@
  */
 package org.renjin.primitives.io.connections;
 
+import org.renjin.repackaged.guava.base.Charsets;
+
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.nio.charset.Charset;
 
 public abstract class AbstractConnection implements Connection {
 
   private PushbackBufferedReader reader;
   private PrintWriter writer;
-  
+  private Charset charset;
+
+  protected AbstractConnection(Charset charset) {
+    this.charset = charset;
+  }
+
+  public AbstractConnection() {
+    this(Charsets.UTF_8);
+  }
+
   @Override
   public final PushbackBufferedReader getReader() throws IOException {
     if(this.reader == null) {
       this.reader =
           new PushbackBufferedReader(
-          new InputStreamReader(getInputStream()));
+          new InputStreamReader(getInputStream(), charset));
     }
     return this.reader;
   }
@@ -40,7 +53,15 @@ public abstract class AbstractConnection implements Connection {
   @Override
   public final PrintWriter getPrintWriter() throws IOException {
     if(writer == null) {
-      this.writer = new PrintWriter(getOutputStream());
+      this.writer = new PrintWriter(new OutputStreamWriter(getOutputStream(), charset));
+    }
+    return this.writer;
+  }
+
+  @Override
+  public PrintWriter getOpenPrintWriter() {
+    if(writer == null) {
+      throw new IllegalStateException();
     }
     return this.writer;
   }

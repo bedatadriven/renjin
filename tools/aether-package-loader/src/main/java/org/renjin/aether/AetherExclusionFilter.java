@@ -28,7 +28,7 @@ import java.util.Set;
 
 /**
  * Excludes core Renjin dependencies and packages that have already been loaded
- * from the 
+ * from the classpath.
  */
 public class AetherExclusionFilter implements DependencyFilter {
 

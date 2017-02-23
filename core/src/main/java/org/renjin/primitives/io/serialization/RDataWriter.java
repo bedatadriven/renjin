@@ -32,7 +32,7 @@ import java.util.Map;
 
 import static org.renjin.primitives.io.serialization.SerializationFormat.*;
 
-public class RDataWriter {
+public class RDataWriter implements AutoCloseable {
 
 
   /**
@@ -57,7 +57,7 @@ public class RDataWriter {
   private StreamWriter out;
   private SerializationType serializationType;
 
-  private Map<SEXP, Integer> references = Maps.newHashMap();
+  private Map<SEXP, Integer> references = Maps.newIdentityHashMap();
 
   public RDataWriter(WriteContext context, PersistenceHook hook, OutputStream out,
                      SerializationType type) {
@@ -124,7 +124,14 @@ public class RDataWriter {
     writeVersion();
     writeExp(exp);
   }
-    
+
+
+  @Override
+  public void close() throws IOException {
+    out.close();
+  }
+
+
   private void writeVersion() throws IOException {
     out.writeInt(VERSION2);
     out.writeInt(Version.CURRENT.asPacked());
@@ -220,10 +227,10 @@ public class RDataWriter {
     if( context.isBaseEnvironment((Environment) exp) ) {
       return true;
     }
-    if( context.isNamespaceEnvironment((Environment) exp)) {
+    if(context.isNamespaceEnvironment((Environment) exp)) {
       return true;
     }
-    if( isPackageEnvironment(exp)) {
+    if(isPackageEnvironment(exp)) {
       return true;
     }
     return false;
@@ -366,14 +373,18 @@ public class RDataWriter {
   }
 
   private void writePairList(PairList.Node node) throws IOException {
-    writeFlags(SexpType.LISTSXP, node);
-    writeAttributes(node);
-    writeTag(node);
-    writeExp(node.getValue());
-    if(node.hasNextNode()) {
-      writeExp(node.getNextNode());
-    } else {
-      writeNull();
+
+    while(true) {
+      writeFlags(SexpType.LISTSXP, node);
+      writeAttributes(node);
+      writeTag(node);
+      writeExp(node.getValue());
+
+      if(node.getNext() == Null.INSTANCE) {
+        writeNull();
+        break;
+      }
+      node = node.getNextNode();
     }
   }
 
@@ -398,7 +409,6 @@ public class RDataWriter {
   }
   
   private void writeEnvironment(Environment env) throws IOException {
-    // add reference FIRST to avoid infinite loops
 
     if(context.isGlobalEnvironment(env)) {
       out.writeInt(SerializationFormat.GLOBALENV_SXP);
@@ -540,11 +550,14 @@ public class RDataWriter {
     out.writeInt(Flags.computeFlags(exp, type));
   }
 
-  private interface StreamWriter {
+  private interface StreamWriter extends AutoCloseable {
     void writeInt(int v) throws IOException;
     void writeString(byte[] bytes) throws IOException;
     void writeLong(long l) throws IOException;
     void writeDouble(double d) throws IOException;
+
+    @Override
+    void close() throws IOException;
   }
 
   private static class AsciiWriter implements StreamWriter {
@@ -597,6 +610,11 @@ public class RDataWriter {
       }
       out.writeBytes("\n");
     }
+
+    @Override
+    public void close() throws IOException {
+      out.close();
+    }
   }
   
   private static class XdrWriter implements StreamWriter {
@@ -620,6 +638,11 @@ public class RDataWriter {
       
     public void writeString(byte[] bytes) throws IOException {
       out.write(bytes);
+    }
+
+    @Override
+    public void close() throws IOException {
+      out.close();
     }
   }
 }

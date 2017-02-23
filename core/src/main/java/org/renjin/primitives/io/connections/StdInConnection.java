@@ -41,6 +41,11 @@ public class StdInConnection implements Connection {
   }
 
   @Override
+  public PrintWriter getOpenPrintWriter() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public void close() throws IOException {
     /* NOOP */
   }
@@ -54,7 +59,7 @@ public class StdInConnection implements Connection {
   public PushbackBufferedReader getReader() {
     return stream;
   }
-  
+
   public void setReader(Reader reader) {
     stream = new PushbackBufferedReader(reader);
   }
@@ -66,7 +71,7 @@ public class StdInConnection implements Connection {
 
   @Override
   public void open(OpenSpec spec) throws IOException {
-    
+
   }
 
   @Override

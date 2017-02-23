@@ -18,9 +18,7 @@
  */
 package org.renjin.primitives;
 
-import org.renjin.eval.ConditionException;
-import org.renjin.eval.Context;
-import org.renjin.eval.EvalException;
+import org.renjin.eval.*;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.sexp.*;
@@ -134,7 +132,7 @@ public class Conditions {
                                           ListVector handlers,
                                           Environment parentEnv,
                                           SEXP target,
-                                          LogicalVector calling) {
+                                          boolean calling) {
 
     if(classes.length() != handlers.length()) {
       throw new EvalException("bad handler data");
@@ -144,30 +142,92 @@ public class Conditions {
 
     for (int i = n - 1; i >= 0; i--) {
       context.setConditionHandler(classes.getElementAsString(i),
-          Promise.repromise(parentEnv, handlers.getElementAsSEXP(i)));
+          Promise.repromise(parentEnv, handlers.getElementAsSEXP(i)), calling);
     }
   }
 
+  /**
+   * Adds a restart to the current context.
+   *
+   * <p>The {@code restart} object has the following elements:</p>
+   * <ul>
+   *   <li>name</li>
+   *   <li>exit</li>
+   *   <li>handler - a function</li>
+   *   <li>description</li>
+   *   <li>test - a function</li>
+   *   <li>interactive</li>
+   * </ul>
+   */
   @Internal(".addRestart")
-  public static void addRestart(SEXP restart) {
-    // TODO : implement
+  public static void addRestart(@Current Context context, SEXP restart) {
+    context.addRestart(restart);
   }
 
+  @Internal(".getRestart")
+  public static SEXP getRestart(@Current Context context, int index) {
+    return context.getRestart(index - 1);
+  }
+
+  @Internal(".invokeRestart")
+  public static SEXP invokeRestart(@Current Context context, ListVector restart, ListVector arguments) {
+
+    SEXP handler = restart.getElementAsSEXP("handler");
+    if(!(handler instanceof Function)) {
+      throw new EvalException("restart$handler is not a function");
+    }
+    SEXP exitEnvironment = restart.getElementAsSEXP("exit");
+    if(!(exitEnvironment instanceof Environment)) {
+      throw new EvalException("restart$exit is not an environment");
+    }
+
+    throw new RestartException((Environment)exitEnvironment, (Function) handler, arguments);
+  }
 
   @Internal(".signalCondition")
   public static void signalCondition(@Current Context context, SEXP condition, String message, SEXP call) {
 
+    //  If a condition is signaled while evaluating ‘expr’ then
+    //  established handlers are checked, starting with the most recently
+    //  established ones, for one matching the class of the condition.
+    //  When several handlers are supplied in a single ‘tryCatch’ then the
+    //  first one is considered more recent than the second.  If a handler
+    //  is found then control is transferred to the ‘tryCatch’ call that
+    //  established the handler, the handler found and all more recent
+    //  handlers are disestablished, the handler is called with the
+    //  condition as its argument, and the result returned by the handler
+    //  is returned as the value of the ‘tryCatch’ call.
+    //
+    //      Calling handlers are established by ‘withCallingHandlers’.  If a
+    //  condition is signaled and the applicable handler is a calling
+    //  handler, then the handler is called by ‘signalCondition’ in the
+    //  context where the condition was signaled but with the available
+    //  handlers restricted to those below the handler called in the
+    //  handler stack.  If the handler returns, then the next handler is
+    //  tried; once the last handler has been tried, ‘signalCondition’
+    //  returns ‘NULL’.
+
     StringVector conditionClasses = condition.getS3Class();
 
-    while(!context.isTopLevel()) {
+    Context definitionContext = context.getConditionStack();
+
+    while(!definitionContext.isTopLevel()) {
       for(String conditionClass : conditionClasses) {
-        SEXP handler = context.getConditionHandler(conditionClass);
+        ConditionHandler handler = definitionContext.getConditionHandler(conditionClass);
         if(handler != null) {
-          throw new ConditionException(condition, context, handler);
+          if(handler.isCalling()) {
+            // For "calling" handlers, we invoke in THIS context
+            FunctionCall handlerCall = FunctionCall.newCall(handler.getFunction(), condition);
+            context.evaluateCallingHandler(definitionContext, handlerCall);
+
+          } else {
+            // otherwise return control to the context in which the handler was defined
+            throw new ConditionException(condition, definitionContext, handler.getFunction());
+          }
         }
       }
 
-      context = context.getParent();
+      definitionContext = definitionContext.getParent();
     }
   }
   

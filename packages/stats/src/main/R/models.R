@@ -579,7 +579,7 @@ model.matrix.default <- function(object, data = environment(object),
 	defined.contrasts <- lapply(names(data), function(name) {
 		x <- data[[name]]		
 		if(is.factor(x) || is.logical(x)) {
-			if(!is.null(contrasts.arg[[name]])) {
+			if(is.list(contrasts.arg) && !is.null(contrasts.arg[[name]])) {
 				contrasts.arg[[name]]
 			} else if(!is.null(attr(x, 'contrasts'))) {
 				attr(x, 'contrasts')

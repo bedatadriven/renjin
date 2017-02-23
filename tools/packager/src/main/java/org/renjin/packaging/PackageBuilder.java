@@ -58,9 +58,7 @@ public class PackageBuilder {
    * Copies files from the package root, including DESCRIPTION and NAMESPACE
    */
   public void copyRootFiles() throws IOException {
-    if(packageSource.getDescriptionFile().exists()) {
-      copyRootFile(packageSource.getDescriptionFile());
-    }
+    packageSource.getDescription().writeTo(new File(context.getPackageOutputDir(), "DESCRIPTION"));
     copyRootFile(packageSource.getNamespaceFile());
   }
 

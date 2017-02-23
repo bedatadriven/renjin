@@ -26,7 +26,9 @@ import org.renjin.gcc.codegen.expr.GSimpleExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
+import org.renjin.gcc.codegen.var.LocalVarAllocator;
 import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.guava.base.Preconditions;
 
 import static org.renjin.gcc.codegen.expr.Expressions.elementAt;
 
@@ -88,4 +90,5 @@ public class RecordValue implements GSimpleExpr {
   public JExpr unwrap() {
     return ref;
   }
+
 }

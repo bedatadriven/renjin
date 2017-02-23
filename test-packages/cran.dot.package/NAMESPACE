@@ -1,2 +1,3 @@
-
+useDynLib(cran.dot.package)
 export(compute)
+export(recompute)

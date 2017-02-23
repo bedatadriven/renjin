@@ -58,7 +58,7 @@ public class ArrayField extends SingleFieldStrategy {
   }
 
   @Override
-  public GExpr memberExpr(JExpr instance, int offset, int size, TypeStrategy expectedType) {
+  public GExpr memberExpr(MethodGenerator mv, JExpr instance, int offset, int size, TypeStrategy expectedType) {
     JExpr arrayExpr = Expressions.field(instance, fieldType, fieldName);
     JExpr offsetExpr = constantInt(offset / 8 / valueFunction.getArrayElementBytes());
     

@@ -18,10 +18,12 @@
  */
 package org.renjin.primitives.text.regex;
 
+import org.hamcrest.CoreMatchers;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 public class RECompilerTest {
@@ -121,7 +123,56 @@ public class RECompilerTest {
     assertTrue(re.match("["));
     assertTrue(re.match(">="));
   }
-  
+
+  @Test
+  public void hexDigitsWithBrackets() throws RESyntaxException {
+    ExtendedRE re = new ExtendedRE("\\x{42}aa");
+    assertTrue(re.match("Baa"));
+    assertTrue(re.match("Baazzz"));
+    assertFalse(re.match("B"));
+    assertFalse(re.match("baa"));
+  }
+
+  @Test
+  public void fourHexDigitsWithBrackets() throws RESyntaxException {
+    ExtendedRE re = new ExtendedRE("\\x{0042}aa");
+    assertTrue(re.match("Baa"));
+    assertTrue(re.match("Baazzz"));
+    assertFalse(re.match("B"));
+    assertFalse(re.match("baa"));  }
+
+  @Test
+  public void hexDigitsWithoutBrackets() throws RESyntaxException {
+    ExtendedRE re = new ExtendedRE("\\x42aa");
+    assertTrue(re.match("Baa"));
+    assertTrue(re.match("Baazzz"));
+    assertFalse(re.match("B"));
+    assertFalse(re.match("baa"));
+  }
+
+  @Test
+  public void nonCapturingGroups() throws RESyntaxException {
+    ExtendedRE re = new ExtendedRE("(?:foo)?bar");
+    assertTrue(re.match("foobar"));
+    assertTrue(re.match("bar"));
+    assertFalse(re.match("baz"));
+  }
+
+  @Test
+  public void nullClosureOperand() throws RESyntaxException {
+    ExtendedRE re = new ExtendedRE("^(?:(?:AB{0,3})*)?C");
+    assertTrue(re.match("C"));
+    assertFalse(re.match("ZC"));
+
+    assertTrue(re.match("AC"));
+    assertTrue(re.match("ABBC"));
+    assertTrue(re.match("ABBBC"));
+    assertFalse(re.match("ABBBBC"));
+
+
+  }
+
+
   @Ignore("not implemented")
   @Test
   public void zeroWidthNegativeLookAheadAssertion() throws RESyntaxException {

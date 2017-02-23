@@ -25,15 +25,48 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
     if(!missing(lib.loc)) {
         warning("Renjin ignores the library(lib.loc) argument.");
     }
+
+    if(!missing(help)) {
+        if(!character.only)
+            help <- as.character(substitute(help)) # allowing "require(eda)"
+
+        return(.library.help(help[1L]))          # only give help on one package
+    }
+
     if(!character.only)
         package <- as.character(substitute(package)) # allowing "require(eda)"
-        
+
     .Internal(library(package))
  
     if (logical.return)
 	    TRUE
     else 
         invisible(.packages())
+}
+
+.library.help <- function(pkgName) {
+    pkgPath <- find.package(pkgName, lib.loc, verbose = verbose)
+
+    # Read and format the description file from package.rds
+    # if it exists
+    description <- local({
+        f <- file.path(pkgPath, "Meta", "package.rds")
+        if(file.exists(f)) {
+            txt <- readRDS(f)$DESCRIPTION
+            nm <- paste0(names(txt), ":")
+            formatDL(nm, txt, indent = max(nchar(nm, "w")) + 3)
+        }
+    })
+
+    # We don't currently build help files, but some packages (affy)
+    # expect something to be here, so add some blank lines...
+    index <- c("", "", "")
+    vignettes <- NULL
+
+
+    y <- list(name = pkgName, path = pkgPath, info = list(description, index, vignettes))
+    class(y) <- "packageInfo"
+    return(y)
 }
 
 format.libraryIQR <-

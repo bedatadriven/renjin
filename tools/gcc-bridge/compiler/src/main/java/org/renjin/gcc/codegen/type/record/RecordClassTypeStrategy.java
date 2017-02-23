@@ -22,10 +22,7 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategies;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.*;
-import org.renjin.gcc.codegen.fatptr.AddressableField;
-import org.renjin.gcc.codegen.fatptr.FatPtrPair;
-import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
-import org.renjin.gcc.codegen.fatptr.ValueFunction;
+import org.renjin.gcc.codegen.fatptr.*;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrStrategy;
@@ -121,7 +118,7 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<RecordValue> imp
       // If this type is a unit pointer, we don't need to do anything special
       return new RecordClassFieldStrategy(this, className, fieldName);
     } else {
-      return new AddressableField(getJvmType(), fieldName, new RecordClassValueFunction(this));
+      return new AddressableField(className, fieldName, new RecordClassValueFunction(this));
     }
   }
   
@@ -139,6 +136,10 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<RecordValue> imp
   @Override
   public GExpr memberOf(MethodGenerator mv, RecordValue instance, int offset, int size, TypeStrategy fieldTypeStrategy) {
     return layout.memberOf(mv, instance, offset, size, fieldTypeStrategy);
+  }
+
+  public RecordValue clone(MethodGenerator mv, RecordValue recordValue) {
+    return layout.clone(mv, recordValue);
   }
 
   @Override

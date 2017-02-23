@@ -43,7 +43,7 @@ public class ExpressionFunction extends SpecialFunction {
       if(node.hasName()) {
         names.add(node.getName());
       } else {
-        names.addNA();
+        names.addBlank();
       }
       expressions.add(node.getValue());
     }

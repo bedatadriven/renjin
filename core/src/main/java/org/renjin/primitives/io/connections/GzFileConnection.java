@@ -19,13 +19,15 @@
 package org.renjin.primitives.io.connections;
 
 import org.apache.commons.vfs2.FileObject;
+import org.renjin.repackaged.guava.base.Charsets;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.util.zip.GZIPOutputStream;
 
 /**
- * A connection to a gzipped file.
+ * Connection to a gzipped file.
  * The connection can be written to or read from, but once read to
  * it can be written to, and vice-versa
  *
@@ -38,8 +40,12 @@ public class GzFileConnection extends FileConnection {
   public static final int GZIP_MAGIC_BYTE1 = 31;
   public static final int GZIP_MAGIC_BYTE2 = 139;
 
+  public GzFileConnection(FileObject file, Charset charset) throws IOException {
+    super(file, charset);
+  }
+
   public GzFileConnection(FileObject file) throws IOException {
-    super(file);
+    this(file, Charsets.UTF_8);
   }
 
   @Override

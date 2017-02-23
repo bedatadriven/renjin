@@ -20,7 +20,6 @@ package org.renjin.invoke.codegen;
 
 import com.sun.codemodel.*;
 import org.apache.commons.math.complex.Complex;
-import org.renjin.invoke.annotations.PreserveAttributeStyle;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.invoke.model.PrimitiveModel;
 import org.renjin.primitives.vector.DeferredComputation;
@@ -33,7 +32,7 @@ import static com.sun.codemodel.JExpr.lit;
 
 public class DeferredVectorBuilder {
 
-  public static final int LENGTH_THRESHOLD = 100;
+  public static final int LENGTH_THRESHOLD = 300;
 
   private final JExpression contextArgument;
   private JCodeModel codeModel;
@@ -177,7 +176,7 @@ public class DeferredVectorBuilder {
     }
   }
 
-  public void maybeReturn(JBlock parent, JExpression cycleCount, List<JExpression> arguments) {
+  public void maybeReturn(JBlock parent, JExpression cycleCount, List<JExpression> arguments, JExpression attributes) {
 
     // Defer if the result will be large, OR any of the arguments are 
     // already deferred
@@ -192,7 +191,6 @@ public class DeferredVectorBuilder {
     
     
     JBlock ifBig = parent._if(condition)._then();
-    JExpression attributes = copyAttributes(arguments);
 
     JInvocation newInvocation = JExpr._new(vectorClass);
     for(JExpression arg : arguments) {
@@ -203,47 +201,6 @@ public class DeferredVectorBuilder {
     ifBig._return(contextArgument.invoke("simplify").arg(newInvocation));
   }
 
-  private JExpression copyAttributes(List<JExpression> arguments) {
-    if(overload.getPreserveAttributesStyle() == PreserveAttributeStyle.NONE) {
-      return codeModel.ref(AttributeMap.class).staticRef("EMPTY");
-    } else {
-      if(arity == 1) {
-        return copyAttributes(arguments.get(0));
-      } else if(arity == 2) {
-        return copyAttributes(arguments.get(0), arguments.get(1));
-      } else {
-        throw new UnsupportedOperationException("arity = " + arity);
-      }
-    }
-  }
-
-  private JExpression copyAttributes(JExpression arg0, JExpression arg1)  {
-    String combineMethod;
-    switch(overload.getPreserveAttributesStyle()) {
-      case ALL:
-        combineMethod = "combineAttributes";
-        break;
-      case STRUCTURAL:
-        combineMethod = "combineStructuralAttributes";
-        break;
-      default:
-        throw new UnsupportedOperationException();
-    }
-
-    return codeModel.ref(AttributeMap.class).staticInvoke(combineMethod)
-        .arg(arg0)
-        .arg(arg1);
-  }
-
-  private JExpression copyAttributes(JExpression arg) {
-    if(overload.getPreserveAttributesStyle() == PreserveAttributeStyle.ALL) {
-      return arg.invoke("getAttributes");
-    } else if(overload.getPreserveAttributesStyle() == PreserveAttributeStyle.STRUCTURAL) {
-      return arg.invoke("getAttributes").invoke("copyStructural");
-    } else {
-      throw new UnsupportedOperationException();
-    }
-  }
 
   private void writeConstructor() {
 //    public DoubleBinaryFnVector(Vector arg0, Vector arg1, AttributeMap attributes) {

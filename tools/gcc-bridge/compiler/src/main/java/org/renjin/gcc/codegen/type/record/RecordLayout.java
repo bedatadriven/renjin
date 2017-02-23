@@ -37,5 +37,6 @@ public interface RecordLayout {
   void writeClassFiles(File outputDir) throws IOException;
   
   GExpr memberOf(MethodGenerator mv, RecordValue instance, int offset, int size, TypeStrategy fieldTypeStrategy);
-  
+
+  RecordValue clone(MethodGenerator mv, RecordValue recordValue);
 }

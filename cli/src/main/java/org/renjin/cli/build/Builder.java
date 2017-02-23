@@ -27,6 +27,9 @@ import java.util.Arrays;
 import java.util.List;
 
 
+/**
+ * Builds an R package
+ */
 public class Builder {
 
   public static void execute(String action, String[] args) throws IOException {

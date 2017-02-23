@@ -66,14 +66,14 @@ public class Sort {
 
     return (Vector) DoubleArrayVector.unsafe(sorted).setAttributes(x.getAttributes());
   }
-
+  
   private static void reverse(double[] b) {
-    int left  = 0;
-    int right = b.length-1;
+    int left  = 0;          
+    int right = b.length-1; 
 
     while (left < right) {
-      double temp = b[left];
-      b[left]  = b[right];
+      double temp = b[left]; 
+      b[left]  = b[right]; 
       b[right] = temp;
 
       // move the bounds toward the center
@@ -83,137 +83,39 @@ public class Sort {
   }
 
   @Internal
-  public static Vector sort(IntVector x, boolean decreasing) {
+  public static IntArrayVector sort(IntVector x, boolean decreasing) {
 
     if(x.getAttribute(Symbols.NAMES)!= Null.INSTANCE) {
       throw new EvalException("sorting of vectors with names not yet implemented!");
     }
+
     int sorted[] = x.toIntArray();
+
     Arrays.sort(sorted);
+
     if(decreasing) {
       reverse(sorted);
     }
+
     return new IntArrayVector(sorted, x.getAttributes());
   }
 
   @Internal
-  public static Vector radixsort(@ArgumentList final ListVector arguments) {
+  public static Vector sort(LogicalVector x, boolean decreasing) {
 
-    if (arguments.length() < 5) {
-      throw new EvalException("radixsort requires at least 5 arguments.");
-    }
-
-    boolean naLast = arguments.getElementAsLogical(0).toBooleanStrict();
-    boolean decreasing = (Boolean) arguments.getElementAsObject(1);
-    boolean returnGroup = arguments.getElementAsLogical(2).toBooleanStrict();
-    boolean sortString = arguments.getElementAsLogical(3).toBooleanStrict();
-
-
-    //
-    // code from radixsort.c:1564
-    //
-    //
-    int nl = 0;
-    int narg = 0;
-    if (arguments.length() >= 5) {
-      if (arguments.getElementAsObject(4) instanceof Vector) {
-        nl = ((Vector) arguments.getElementAsObject(4)).length();
-      }
-      if (arguments.length() >= 6) {
-        for (int i = 5; i < arguments.length(); i++) {
-          int argumentNumber = i + 1;
-          if (!(arguments.getElementAsObject(i) instanceof Vector)) {
-            throw new EvalException("argument " + argumentNumber +" is not a vector");
-          }
-          if (((Vector) arguments.getElementAsObject(i)).length() != nl) {
-            throw new EvalException("argument lengths differ");
-          }
-          narg++;
-        }
-      }
-    }
-//    if (narg != decreasing.length()) {
-//      throw new EvalException("length(decreasing) must match the number of order arguments");
-//    }
-//    for (int i = 0; i < narg; i++) {
-//      if (decreasing.getElementAsString(i) == StringVector.NA) {
-//        throw new EvalException("'decreasing' elements must be TRUE or FALSE");
-//      }
-//    }
-
-    if(arguments.getElementAsSEXP(0).getAttribute(Symbols.NAMES)!= Null.INSTANCE) {
+    if(x.getAttribute(Symbols.NAMES)!= Null.INSTANCE) {
       throw new EvalException("sorting of vectors with names not yet implemented!");
     }
 
-    // this now only sorts the first input object and should be extended to
-    // sort all the inputs and respect grouping/character sort
+    int sorted[] = x.toIntArray();
 
-    if (arguments.length() == 5) {
-      int sorted[] = ((IntVector) arguments.getElementAsSEXP(4)).toIntArray();
-      // from http://www.thecrazyprogrammer.com/2015/06/radix-sort-java-program-and-algorithm.html
-      int i, max = sorted[0], exp = 1, length = sorted.length;
-      int[] b = new int[10];
-      for (i = 1; i < length; i++) {
-        if (sorted[i] > max) {
-          max = sorted[i];
-        }
-      }
-      while (max / exp > 0) {
-        int[] bucket = new int[10];
-        for (i = 0; i < length; i++) {
-          bucket[(sorted[i] / exp) % 10]++;
-        }
-        for (i = 1; i < 10; i++) {
-          bucket[i] += bucket[i - 1];
-        }
-        for (i = length - 1; i >= 0; i--) {
-          b[--bucket[(sorted[i] / exp) % 10]] = sorted[i];
-        }
-        for (i = 0; i < length; i++) {
-          sorted[i] = b[i];
-        }
-        exp *= 10;
-      }
-      if(decreasing) {
-        reverse(sorted);
-      }
-      return new IntArrayVector(sorted, arguments.getElementAsSEXP(4).getAttributes());
-    } else {
-      ListVector.Builder result = new ListVector.Builder();
-      for (int m = 4; m < arguments.length(); m++) {
-        int sorted[] = ((IntVector) arguments.getElementAsSEXP(m)).toIntArray();
-        // from http://www.thecrazyprogrammer.com/2015/06/radix-sort-java-program-and-algorithm.html
-        int i, max = sorted[0], exp = 1, length = sorted.length;
-        int[] b = new int[10];
-        for (i = 1; i < length; i++) {
-          if (sorted[i] > max) {
-            max = sorted[i];
-          }
-        }
-        while (max / exp > 0) {
-          int[] bucket = new int[10];
-          for (i = 0; i < length; i++) {
-            bucket[(sorted[i] / exp) % 10]++;
-          }
-          for (i = 1; i < 10; i++) {
-            bucket[i] += bucket[i - 1];
-          }
-          for (i = length - 1; i >= 0; i--) {
-            b[--bucket[(sorted[i] / exp) % 10]] = sorted[i];
-          }
-          for (i = 0; i < length; i++) {
-            sorted[i] = b[i];
-          }
-          exp *= 10;
-        }
-        if(decreasing) {
-          reverse(sorted);
-        }
-        result.add(new IntArrayVector(sorted, arguments.getElementAsSEXP(4).getAttributes()) );
-      }
-      return result.build();
+    Arrays.sort(sorted);
+
+    if(decreasing) {
+      reverse(sorted);
     }
 
+    return new LogicalArrayVector(sorted, x.getAttributes());
   }
 
   @Internal("is.unsorted")
@@ -228,7 +130,7 @@ public class Sort {
     }
     return false;
   }
-
+  
   @Internal("is.unsorted")
   public static LogicalVector isUnsorted(ListVector x, boolean strictly) {
     if(x.length() <= 1) {
@@ -238,23 +140,36 @@ public class Sort {
     }
   }
 
+  @Internal("is.unsorted")
+  public static LogicalVector isUnsorted(PairList.Node pairlist, boolean strict) {
+    if(pairlist instanceof FunctionCall) {
+      throw new EvalException("invalid argument (language)");
+    }
+    return isUnsorted(pairlist.toVector(), strict);
+  }
+
+  @Internal("is.unsorted")
+  public static LogicalVector isUnsorted(Symbol symbol, boolean strict) {
+    return LogicalVector.FALSE;
+  }
+
   @Internal
   public static DoubleVector qsort(DoubleVector x, LogicalVector returnIndexes) {
 
     if(returnIndexes.isElementTrue(0)) {
       throw new EvalException("qsort(indexes=TRUE) not yet implemented");
     }
-
+    
     double[] values = x.toDoubleArray();
     Arrays.sort(values);
-
+    
     DoubleVector sorted = new DoubleArrayVector(values, x.getAttributes());
-
+    
     // drop the names attributes if present because it will not be sorted
     return (DoubleVector)sorted
-            .setAttribute(Symbols.NAMES, Null.INSTANCE);
+            .setAttribute(Symbols.NAMES, Null.INSTANCE);  
   }
-
+  
   @Internal
   public static DoubleVector psort(DoubleVector x, Vector indexes) {
     // stub implementation: we just do a full sort
@@ -267,15 +182,15 @@ public class Sort {
     if(returnIndexes.isElementTrue(0)) {
       throw new EvalException("qsort(indexes=TRUE) not yet implemented");
     }
-
+    
     int[] values = x.toIntArray();
     Arrays.sort(values);
-
+    
     IntVector sorted = new IntArrayVector(values, x.getAttributes());
-
+    
     // drop the names attributes if present because it will not be sorted
     return (IntVector)sorted
-            .setAttribute(Symbols.NAMES, Null.INSTANCE);
+            .setAttribute(Symbols.NAMES, Null.INSTANCE);  
   }
 
   @Internal
@@ -290,31 +205,31 @@ public class Sort {
     if(returnIndexes) {
       throw new EvalException("qsort(indexes=TRUE) not yet implemented");
     }
-
+    
     int[] array = x.toIntArray();
-
+    
     Arrays.sort(array);
 
     LogicalVector sorted = new LogicalArrayVector(array, x.getAttributes());
-
+    
 
     // drop the names attributes if present because it will not be sorted
     return (LogicalVector)sorted
-            .setAttribute(Symbols.NAMES, Null.INSTANCE);
+        .setAttribute(Symbols.NAMES, Null.INSTANCE);
   }
-
+  
   @Internal
   public static LogicalVector psort(LogicalVector x, Vector indexes) {
     return qsort(x, false);
   }
 
   private static void reverse(int[] b) {
-    int left  = 0;
-    int right = b.length-1;
+    int left  = 0;          
+    int right = b.length-1; 
 
     while (left < right) {
-      int temp = b[left];
-      b[left]  = b[right];
+      int temp = b[left]; 
+      b[left]  = b[right]; 
       b[right] = temp;
 
       // move the bounds toward the center
@@ -322,7 +237,7 @@ public class Sort {
       right--;
     }
   }
-
+  
   /**
    * Returns a permutation which rearranges its first argument into ascending or
    * descending order, breaking ties by further arguments.
@@ -335,7 +250,7 @@ public class Sort {
    */
   @Internal
   public static Vector order(final boolean naLast, final boolean decreasing, @ArgumentList final ListVector columns) {
-
+        
     if (columns.length() == 0) {
       return Null.INSTANCE;
     }
@@ -384,8 +299,8 @@ public class Sort {
         } else {
           // 42 <-> 41
           return decreasing ?
-                  -column.compare(row1, row2) :
-                  +column.compare(row1, row2);
+              -column.compare(row1, row2) :
+              +column.compare(row1, row2);
         }
       }
 
@@ -397,7 +312,7 @@ public class Sort {
     }
 
     return result.build();
-  }
+  }   
 
   @Internal("which.min")
   public static IntVector whichMin(Vector input) {
@@ -409,7 +324,7 @@ public class Sort {
       if (!Double.isNaN(value)) {
         if(minIndex == -1 || value < minValue) {
           minValue = input.getElementAsDouble(i);
-          minIndex = i;
+          minIndex = i;          
         }
       }
     }

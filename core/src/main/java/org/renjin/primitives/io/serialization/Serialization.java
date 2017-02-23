@@ -34,7 +34,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-
+/**
+ * Implementation of serialization builtins and internal functions.
+ */
 public class Serialization {
 
 

@@ -18,6 +18,8 @@
  */
 package org.renjin.invoke.codegen.scalars;
 
+import com.sun.codemodel.JCodeModel;
+import com.sun.codemodel.JExpression;
 import org.renjin.sexp.ListVector;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Vector.Builder;
@@ -47,6 +49,21 @@ public class SexpType extends ScalarType {
   @Override
   public Class<? extends Builder<?>> getBuilderClass() {
     return ListVector.Builder.class;
+  }
+
+  @Override
+  public Class getBuilderArrayElementClass() {
+    return SEXP.class;
+  }
+
+  @Override
+  public Class getArrayVectorClass() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public JExpression naLiteral(JCodeModel codeModel) {
+    throw new UnsupportedOperationException();
   }
 
 }

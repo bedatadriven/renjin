@@ -30,10 +30,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PushbackInputStream;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.zip.GZIPInputStream;
 
-
+/**
+ * A connection to a file.
+ */
 public class FileConnection extends AbstractConnection {
 
   private InputStream in;  
@@ -42,7 +45,8 @@ public class FileConnection extends AbstractConnection {
   private FileObject file;
   private OpenSpec openSpec = null;
   
-  public FileConnection(FileObject file) throws IOException {
+  public FileConnection(FileObject file, Charset charset) throws IOException {
+    super(charset);
     this.file = file;
   }
   

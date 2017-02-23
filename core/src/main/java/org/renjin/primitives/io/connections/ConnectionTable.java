@@ -27,7 +27,7 @@ import org.renjin.sexp.Symbols;
 import java.io.IOException;
 
 /**
- * Maintains a list of per-Apartment connections.
+ * Maintains a table of per-Session connection objects.
  * 
  * <p>Note that this is maybe not the best design, it 
  * certainly introduces threading issues to think about,

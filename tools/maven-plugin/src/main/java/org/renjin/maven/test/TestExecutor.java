@@ -31,10 +31,7 @@ import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.repackaged.guava.io.Files;
 import org.renjin.repl.JlineRepl;
-import org.renjin.sexp.Closure;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbol;
+import org.renjin.sexp.*;
 
 import java.io.*;
 import java.util.Arrays;
@@ -208,12 +205,13 @@ public class TestExecutor {
         repl.run();
         sendMessage(PASS_MESSAGE);
 
-        // Note that we only catch Exceptions here --
-        // Errors should NOT be caught as we should allow the JVM to cleanup and shutdown
-        // a new JVM will be started for the subsequent test.
-      } catch (Exception e) {
+      } catch (Throwable e) {
         e.printStackTrace(testOutput);
         sendMessage(FAIL_MESSAGE);
+
+        if(e instanceof OutOfMemoryError) {
+          throw (OutOfMemoryError)e;
+        }
         return;
       }
 
@@ -299,6 +297,15 @@ public class TestExecutor {
       System.err.println("Loading default package " + pkg);
       loadLibrary(session, pkg, testOutput);
     }
+
+    // Setup options for testthat so that test results are written in junit format
+    // to the expected location
+    PairList.Builder options = new PairList.Builder();
+    options.add("testthat.default_check_reporter", StringVector.valueOf("junit"));
+    options.add("testthat.junit.output_file", StringVector.valueOf(
+        new File(testReportDirectory, "TEST-testthat-results.xml").getAbsolutePath()));
+
+    session.getTopLevelContext().evaluate(new FunctionCall(Symbol.get("options"), options.build()));
 
     return session;
   }

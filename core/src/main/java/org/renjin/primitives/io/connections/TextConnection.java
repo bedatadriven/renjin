@@ -22,6 +22,10 @@ import org.renjin.eval.EvalException;
 
 import java.io.*;
 
+/**
+ * Connection to a character vector.
+ *
+ */
 public class TextConnection implements Connection {
 
   private final String objectName;
@@ -77,6 +81,11 @@ public class TextConnection implements Connection {
 
   @Override
   public PrintWriter getPrintWriter() throws IOException {
+    return getOpenPrintWriter();
+  }
+
+  @Override
+  public PrintWriter getOpenPrintWriter() {
     throw new EvalException("reading bytes from TextConnections is not supported");
   }
 

@@ -21,6 +21,8 @@ package org.renjin.invoke.reflection;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.ClassBinding;
+import org.renjin.repackaged.guava.cache.Cache;
+import org.renjin.repackaged.guava.cache.CacheBuilder;
 import org.renjin.repackaged.guava.collect.ArrayListMultimap;
 import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.repackaged.guava.collect.Multimap;
@@ -30,30 +32,33 @@ import org.renjin.sexp.Symbol;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 
 public class ClassBindingImpl implements ClassBinding {
   
-  private static final IdentityHashMap<Class, ClassBindingImpl> TABLE = Maps.newIdentityHashMap();
+  private static final Cache<Class, ClassBindingImpl> TABLE = CacheBuilder.newBuilder().build();
   
-  public static ClassBindingImpl get(Class clazz) {
-    synchronized (TABLE) {
-      ClassBindingImpl binding = TABLE.get(clazz);
-      if(binding == null) {
-        binding = new ClassBindingImpl(clazz);
-        TABLE.put(clazz, binding);
-      }
-      return binding;
+  public static ClassBindingImpl get(final Class clazz) {
+    try {
+      return TABLE.get(clazz, new Callable<ClassBindingImpl>() {
+        @Override
+        public ClassBindingImpl call() throws Exception {
+          return new ClassBindingImpl(clazz);
+        }
+      });
+    } catch (ExecutionException e) {
+      throw new EvalException(e.getCause());
     }
   }
   
   private Class clazz;
-  
+
+  private Map<String, FunctionBinding> staticMethods = Maps.newHashMap();
+
   private ConstructorBinding constructorBinding;
-  private IdentityHashMap<Symbol, MemberBinding> members = Maps.newIdentityHashMap(); 
+  private IdentityHashMap<Symbol, MemberBinding> members = Maps.newIdentityHashMap();
   private IdentityHashMap<Symbol, StaticBinding> staticMembers = Maps.newIdentityHashMap();
 
   
@@ -89,7 +94,7 @@ public class ClassBindingImpl implements ClassBinding {
     // Combine method overloads like getElement(String), getElement(int) into
     // a single binding
     for (Symbol methodName : methods.keySet()) {
-      this.members.put(methodName, new MethodBinding(methodName, methods.get(methodName)));
+      this.members.put(methodName, new MethodBinding(methodName, new FunctionBinding(methods.get(methodName))));
     }
 
     // Add any getters as properties so that getAge() for example can be 
@@ -107,7 +112,9 @@ public class ClassBindingImpl implements ClassBinding {
     }
     
     for(Symbol name : staticMethods.keySet()) {
-      this.staticMembers.put(name, new StaticBinding(new MethodBinding(name, staticMethods.get(name))));
+      FunctionBinding functionBinding = new FunctionBinding(staticMethods.get(name));
+      this.staticMethods.put(name.getPrintName(), functionBinding);
+      this.staticMembers.put(name, new StaticBinding(new MethodBinding(name, functionBinding)));
     }
 
     for(Field field : clazz.getFields()) {
@@ -170,7 +177,7 @@ public class ClassBindingImpl implements ClassBinding {
     }
     return memberBinding;
   }
-  
+
   public Set<Symbol> getStaticMembers() {
     return staticMembers.keySet();
   }
@@ -189,6 +196,18 @@ public class ClassBindingImpl implements ClassBinding {
 
   public Class getBoundClass() {
     return clazz;
+  }
+
+  /**
+   * Returns the {@code FunctionBinding} for the static method of the given {@code name}.
+   * @throws IllegalArgumentException if the class has no such method.
+   */
+  public FunctionBinding getStaticMethodBinding(String name) {
+    FunctionBinding functionBinding = staticMethods.get(name);
+    if(functionBinding == null) {
+      throw new IllegalArgumentException("Class " + clazz.getName() + " has no method named " + name);
+    }
+    return functionBinding;
   }
 
   public ConstructorBinding getConstructorBinding() {

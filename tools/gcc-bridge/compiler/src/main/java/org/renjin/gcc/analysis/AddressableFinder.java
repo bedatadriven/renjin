@@ -67,6 +67,8 @@ public class AddressableFinder {
 
     @Override
     public void visitAddressOf(GimpleAddressOf addressOf) {
+      super.visitAddressOf(addressOf);
+
       markExpr(addressOf.getValue());
     }
 

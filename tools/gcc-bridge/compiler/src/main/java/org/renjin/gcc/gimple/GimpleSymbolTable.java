@@ -72,13 +72,11 @@ public class GimpleSymbolTable {
       
       for (GimpleFunction function : unit.getFunctions()) {
         // Add the function decl to the unit- and global-scoped tables
-        for (String mangledName : function.getMangledNames()) {
-          unitTable.functionMap.put(mangledName, function);
-          if(function.isExtern()) {
-            globalFunctions.put(mangledName, function);
-          }
+        unitTable.functionMap.put(function.getMangledName(), function);
+        if(function.isExtern()) {
+          globalFunctions.put(function.getMangledName(), function);
         }
-        
+
         // Build the local variable table for the function
         LocalTable localTable = new LocalTable();
         for (GimpleVarDecl varDecl : function.getVariableDeclarations()) {
@@ -86,6 +84,16 @@ public class GimpleSymbolTable {
         }
         localMap.put(function, localTable);
       }
+
+      for (GimpleAlias alias : unit.getAliases()) {
+
+        GimpleFunction definition = unitTable.functionMap.get(alias.getDefinition());
+        unitTable.functionMap.put(alias.getAlias(), definition);
+        if(alias.isExtern()) {
+          globalFunctions.put(alias.getAlias(), definition);
+        }
+      }
+
       unitMap.put(unit, unitTable);
     }
   }

@@ -39,3 +39,4 @@ test.rowSums.17 <- function() assertThat(rowSums(structure(c(1, NA, NA, 3), .Dim
 test.rowSums.18 <- function() assertThat(rowSums(structure(1:3, .Dim = c(3L, 1L)), na.rm = TRUE), identicalTo(c(1, 2, 3), tol = 0.000001))
 test.rowSums.19 <- function() assertThat(rowSums(structure(1:3, .Dim = c(3L, 1L), .Dimnames = list(c("a", "b", "c"), NULL)), na.rm = TRUE), identicalTo(structure(c(1, 2, 3), .Names = c("a", "b", "c")), tol = 0.000001))
 test.rowSums.20 <- function() assertThat(rowSums(structure(1:3, .Dim = c(3L, 1L), .Dimnames = structure(list(    x = c("a", "b", "c"), y = NULL), .Names = c("x", "y"))),     na.rm = TRUE), identicalTo(structure(c(1, 2, 3), .Names = c("a", "b", "c")), tol = 0.000001))
+test.dotrowSums.1 <- function() assertThat(.rowSums(matrix(1:12, ncol=3, dimnames=list(c("a","b","c","d"), c("E","F","G"))),3,4), identicalTo(c(22, 26, 30)))

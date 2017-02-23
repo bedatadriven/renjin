@@ -37,6 +37,7 @@ public class ConstantMath implements PeepholeOptimization {
 
       it.remove(3);
       it.insert(constantNode(compute(op, x, y)));
+      return true;
     }
     return false;
   }

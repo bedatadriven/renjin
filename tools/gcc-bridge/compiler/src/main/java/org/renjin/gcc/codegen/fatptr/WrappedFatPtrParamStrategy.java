@@ -21,12 +21,15 @@ package org.renjin.gcc.codegen.fatptr;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.type.ParamStrategy;
+import org.renjin.gcc.codegen.type.voidt.VoidPtr;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleParameter;
+import org.renjin.gcc.runtime.ObjectPtr;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.repackaged.guava.collect.Lists;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -43,6 +46,11 @@ public class WrappedFatPtrParamStrategy implements ParamStrategy {
   @Override
   public List<Type> getParameterTypes() {
     return Lists.newArrayList(Wrappers.wrapperType(valueFunction.getValueType()));
+  }
+
+  @Override
+  public List<String> getParameterNames(String name) {
+    return Collections.singletonList(name);
   }
 
   @Override
@@ -88,16 +96,31 @@ public class WrappedFatPtrParamStrategy implements ParamStrategy {
     }
     
     GExpr argumentValue = argument.get();
-    
+    Type wrappedType = Wrappers.wrapperType(valueFunction.getValueType());
+
     // Check for a void*
-    if(argumentValue instanceof RefPtrExpr) {
+    if(argumentValue instanceof VoidPtr) {
+      VoidPtr voidPtr = (VoidPtr) argumentValue;
+      voidPtr.unwrap().load(mv);
+      if(wrappedType.equals(Type.getType(ObjectPtr.class))) {
+        // Need to provide type
+        mv.visitLdcInsn(valueFunction.getValueType());
+        mv.invokestatic(wrappedType, "cast", Type.getMethodDescriptor(wrappedType,
+            Type.getType(Object.class), Type.getType(Class.class)));
+
+      } else {
+        mv.invokestatic(wrappedType, "cast", Type.getMethodDescriptor(wrappedType, Type.getType(Object.class)));
+      }
+    } else if(argumentValue instanceof RefPtrExpr) {
       RefPtrExpr refPtr = (RefPtrExpr) argumentValue;
-      JExpr wrappedPtr = Expressions.cast(refPtr.unwrap(), Wrappers.wrapperType(valueFunction.getValueType()));
+      JExpr wrappedPtr = Expressions.cast(refPtr.unwrap(), wrappedType);
       wrappedPtr.load(mv);
     
     } else if(argumentValue instanceof FatPtr) {
       FatPtr fatPtrExpr = (FatPtr) argumentValue;
-      fatPtrExpr.wrap().load(mv);
+      JExpr wrappedExpr = Expressions.cast(fatPtrExpr.wrap(), wrappedType);
+      wrappedExpr.load(mv);
+
 
     } else {
       throw new IllegalArgumentException("argument: " + argumentValue);

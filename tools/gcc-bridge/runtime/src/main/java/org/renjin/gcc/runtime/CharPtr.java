@@ -88,7 +88,10 @@ public class CharPtr implements Ptr {
   public static CharPtr cast(Object voidPointer) {
     if(voidPointer instanceof MallocThunk) {
       return ((MallocThunk) voidPointer).charPtr();
-    } 
+    }
+    if(voidPointer == null) {
+      return NULL;
+    }
     return (CharPtr) voidPointer;
   }
 

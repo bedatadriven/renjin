@@ -173,5 +173,20 @@ public class WrapperRuntime {
     return new LogicalArrayVector(result);
   }
 
+  public static SEXP maybeConvertToStringVector(Context context, SEXP vector) {
+    if(vector instanceof Symbol) {
+      return StringVector.valueOf(((Symbol)vector).getPrintName());
+    } else if(vector instanceof FunctionCall) {
+      return StringVector.valueOf(Deparse.deparseExp(context, vector));
+    }
+    return vector;
+  }
+
+  public static boolean isEmptyOrNull(SEXP vector) {
+    if(vector instanceof Vector) {
+      return ((Vector) vector).length() == 0;
+    }
+    return false;
+  }
 
 }

@@ -18,10 +18,12 @@
  */
 package org.renjin.stats.internals.models;
 
+import org.renjin.primitives.Deparse;
 import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.repackaged.guava.collect.Iterators;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringVector;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -83,7 +85,15 @@ public class Term implements Iterable<SEXP> {
   }
 
   public String getLabel() {
-    return Joiner.on(":").join(expressions);
+    String varNames = Deparse.deparseExp(null, expressions.get(0));
+    if (expressions.size() > 1) {
+      for (int i = 1; i < expressions.size(); i++) {
+        varNames = varNames.concat(":").concat(Deparse.deparseExp(null, expressions.get(i)));
+      }
+    } else {
+      return varNames;
+    }
+    return varNames;
   }
   
   @Override

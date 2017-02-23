@@ -133,8 +133,8 @@ public class AetherTest {
     aetherLoader.setRepositoryListener(new ConsoleRepositoryListener(System.out));
 
     Session session = new SessionBuilder()
-        .bind(ClassLoader.class, aetherLoader.getClassLoader())
-        .bind(PackageLoader.class, aetherLoader)
+        .setClassLoader(aetherLoader.getClassLoader())
+        .setPackageLoader(aetherLoader)
         .build();
 
 

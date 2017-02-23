@@ -22,6 +22,7 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
 import org.renjin.primitives.Deparse;
+import org.renjin.primitives.print.StringPrinter;
 import org.renjin.primitives.text.regex.ExtendedRE;
 import org.renjin.primitives.text.regex.FuzzyMatcher;
 import org.renjin.primitives.text.regex.RE;
@@ -33,6 +34,7 @@ import org.renjin.sexp.*;
 
 import java.nio.charset.Charset;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -44,15 +46,28 @@ public class Text {
   private Text() {}
 
   @Internal
-  public static StringVector paste(ListVector arguments, String separator, String collapse) {
+  public static StringVector paste(@Current Context context, ListVector arguments, String separator, String collapse) {
 
     int resultLength = arguments.maxElementLength();
+
+    List<StringVector> argumentVectors = new ArrayList<>();
+    for (SEXP argument : arguments) {
+      if(argument instanceof StringVector) {
+        argumentVectors.add((StringVector) argument);
+      } else {
+        SEXP result = context.evaluate(FunctionCall.newCall(Symbol.get("as.character"), argument));
+        if(!(result instanceof StringVector)) {
+          throw new EvalException("as.character() returned non-character");
+        }
+        argumentVectors.add((StringVector) result);
+      }
+    }
 
     if(collapse == null) {
       String results[] = new String[resultLength];
       for(int index=0; index!=resultLength; ++index) {
         results[index] = Joiner.on(separator).join(
-            transform(arguments, new StringElementAt(index)));
+            transform(argumentVectors, new StringElementAt(index)));
       }
       return new StringArrayVector( results );
 
@@ -63,22 +78,39 @@ public class Text {
           result.append(collapse);
         }
         Joiner.on(separator).appendTo(result,
-            transform(arguments, new StringElementAt(index)));
+            transform(argumentVectors, new StringElementAt(index)));
       }
       return StringVector.valueOf(result.toString());
     }
   }
 
   @Internal("encodeString")
-  public static StringVector encodeString(StringVector x, int width, String quote, 
-      int justify, boolean naEncode) {
-    
-    return x;
-  }
-  
-  @Internal("file.path")
-  public static StringVector filePath(ListVector components, String fileSeparator) {
-    return paste(components, fileSeparator, null);
+  public static StringVector encodeString(StringVector x, int width, String quote, int justify, boolean naEncode) {
+
+    StringPrinter printer = new StringPrinter();
+    StringArrayVector.Builder result = new StringArrayVector.Builder(0, x.length());
+
+    if(!StringVector.isNA(quote) && !quote.isEmpty()) {
+      printer.setQuote(quote.charAt(0));
+    }
+
+    for (int i = 0; i < x.length(); i++) {
+      String element = x.getElementAsString(i);
+      if(!naEncode && StringVector.isNA(element)) {
+        result.addNA();
+      } else {
+        result.add(printer.apply(element));
+      }
+    }
+
+    // Copy all attributes EXCEPT "class"
+    for (Symbol attribute : x.getAttributes().names()) {
+      if(attribute != Symbols.CLASS) {
+        result.setAttribute(attribute, x.getAttribute(attribute));
+      }
+    }
+
+    return result.build();
   }
 
   @Internal

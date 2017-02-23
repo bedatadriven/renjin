@@ -28,6 +28,7 @@ import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -47,6 +48,11 @@ public class FatPtrParamStrategy implements ParamStrategy {
     Type offsetType = Type.INT_TYPE;
     
     return Arrays.asList(arrayType, offsetType);
+  }
+
+  @Override
+  public List<String> getParameterNames(String name) {
+    return Arrays.asList(name, name + "_offset");
   }
 
   @Override

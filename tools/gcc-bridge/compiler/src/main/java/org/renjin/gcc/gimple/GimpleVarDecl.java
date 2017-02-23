@@ -46,6 +46,9 @@ public class GimpleVarDecl implements GimpleDecl {
   
   private boolean weak;
 
+  @JsonProperty("static")
+  private boolean _static;
+
   /**
    * True if this local variable is addressable
    */
@@ -132,7 +135,11 @@ public class GimpleVarDecl implements GimpleDecl {
 
   @Override
   public String toString() {
-    return type + " " + getName() + " = " + value;
+    StringBuilder s = new StringBuilder().append(type).append(" ").append(getName());
+    if(value != null) {
+      s.append(" = ").append(value);
+    }
+    return s.toString();
   }
 
   /**
@@ -156,6 +163,14 @@ public class GimpleVarDecl implements GimpleDecl {
     this.weak = weak;
   }
 
+  public boolean isStatic() {
+    return _static;
+  }
+
+  public void setStatic(boolean _static) {
+    this._static = _static;
+  }
+
   public Predicate<GimpleExpr> isReference() {
     return new Predicate<GimpleExpr>() {
       @Override
@@ -168,11 +183,6 @@ public class GimpleVarDecl implements GimpleDecl {
 
   public GimpleVariableRef newRef() {
     return new GimpleVariableRef(id, type);
-  }
-
-  @Override
-  public List<String> getMangledNames() {
-    return Collections.singletonList(name);
   }
 
   @Override

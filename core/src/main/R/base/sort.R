@@ -1,7 +1,5 @@
 #  File src/library/base/R/sort.R
-#  Part of the R package, https://www.R-project.org
-#
-#  Copyright (C) 1995-2016 The R Core Team
+#  Part of the R package, http://www.R-project.org
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -14,7 +12,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  https://www.R-project.org/Licenses/
+#  http://www.r-project.org/Licenses/
 
 sort <- function(x, decreasing = FALSE, ...)
 {
@@ -41,12 +39,12 @@ sort.int <-
         if (!is.null(partial)) {
             stop("'partial' sorting not supported by radix method")
         }
-        o <- order(x, na.last = na.last, decreasing = decreasing,
-                   method = "radix")
-        y <- x[o]
-        if (index.return)
-            return(list(x = y, ix = o))
-        else return(y)
+        # o <- order(x, na.last = na.last, decreasing = decreasing,
+        #            method = "shell")
+        # y <- x[o]
+        # if (index.return)
+        #     return(list(x = y, ix = o))
+        # else return(y)
     }
 
     if(isfact <- is.factor(x)) {
@@ -54,7 +52,7 @@ sort.int <-
 	lev <- levels(x)
 	nlev <- nlevels(x)
  	isord <- is.ordered(x)
-        x <- c(x) # drop attributes
+        x <- c(x)
     } else if(!is.atomic(x))
         stop("'x' must be atomic")
 
@@ -77,6 +75,7 @@ sort.int <-
         nms <- names(x)
 	method <- if(is.numeric(x) && !missing(method)) match.arg(method)
 		  else "shell"
+    if (method == "radix") method = "shell"
         switch(method,
                "quick" = {
                    if(!is.null(nms)) {
@@ -113,49 +112,30 @@ order <- function(..., na.last = TRUE, decreasing = FALSE,
                   method = c("shell", "radix"))
 {
     z <- list(...)
-#    if (missing(method)) {
-#        ints <- all(vapply(z, function(x) is.integer(x) || is.factor(x),
-#                           logical(1L)))
-#        method <- if (ints) "radix" else "shell"
-#    } else {
-#        method <- match.arg(method)
-#    }
-    if (missing(method)) {
-        method <- "shell"
-    } else {
-        method <- match.arg(method)
-    }
+    method <- "shell"
 
     if(any(unlist(lapply(z, is.object)))) {
-        z <- lapply(z, function(x) if(is.object(x)) as.vector(xtfrm(x)) else x)
-        if(method == "radix" || !is.na(na.last))
+        z <- lapply(z, function(x) if(is.object(x)) xtfrm(x) else x)
+        if(!is.na(na.last))
             return(do.call("order", c(z, na.last = na.last,
-                                      decreasing = decreasing,
-                                      method = method)))
-    } else if(method != "radix" && !is.na(na.last)) {
+                                      decreasing = decreasing)))
+    } else if(!is.na(na.last))
         return(.Internal(order(na.last, decreasing, ...)))
-    }
-
-    if (method == "radix") {
-        decreasing <- rep_len(as.logical(decreasing), length(z))
-        return(.Internal(radixsort(na.last, decreasing, FALSE, TRUE, ...)))
-    }
-
-    ## na.last = NA case: remove nas
-    if(any(diff((l.z <- lengths(z)) != 0L)))
+    ## remove nas
+    if(any(diff(l.z <- vapply(z, length, 1L)) != 0L))
         stop("argument lengths differ")
-    na <- vapply(z, is.na, rep.int(NA, l.z[1L]))
-    ok <- if(is.matrix(na)) rowSums(na) == 0L else !any(na)
+    ans <- vapply(z, is.na, rep.int(NA, l.z[1L]))
+    ok <- if(is.matrix(ans)) !apply(ans, 1, any) else !any(ans)
     if(all(!ok)) return(integer())
     z[[1L]][!ok] <- NA
     ans <- do.call("order", c(z, decreasing = decreasing))
-    ans[ok[ans]]
+    keep <- seq_along(ok)[ok]
+    ans[ans %in% keep]
 }
 
 sort.list <- function(x, partial = NULL, na.last = TRUE, decreasing = FALSE,
                       method = c("shell", "quick", "radix"))
 {
-    if (is.integer(x) || is.factor(x)) method <- "radix"
     method <- match.arg(method)
     if(!is.atomic(x))
         stop("'x' must be atomic for 'sort.list'\nHave you called 'sort' on a list?")
@@ -173,7 +153,7 @@ sort.list <- function(x, partial = NULL, na.last = TRUE, decreasing = FALSE,
         na.last <- TRUE
     }
     if(method == "radix") {
-        return(order(x, na.last=na.last, decreasing=decreasing, method="radix"))
+        return(order(x, na.last = na.last, decreasing = decreasing, method = "shell"))
     }
     ## method == "shell"
     .Internal(order(na.last, decreasing, x))
@@ -187,7 +167,7 @@ xtfrm.default <- function(x)
                                                      na.last = "keep"))
 xtfrm.factor <- function(x) as.integer(x) # primitive, so needs a wrapper
 xtfrm.Surv <- function(x)
-    order(if(ncol(x) == 2L) order(x[,1L], x[,2L]) else order(x[,1L], x[,2L], x[,3L])) # needed by 'party'
+    order(if(ncol(x) == 2L) order(x[ ,1L], x[ ,2L]) else order(x[ ,1L], x[ ,2L], x[ ,3L])) # needed by 'party'
 xtfrm.AsIs <- function(x)
 {
     if(length(cl <- class(x)) > 1) oldClass(x) <- cl[-1L]

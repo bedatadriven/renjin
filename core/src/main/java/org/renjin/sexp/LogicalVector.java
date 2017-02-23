@@ -103,7 +103,8 @@ public abstract class LogicalVector extends AbstractAtomicVector implements Iter
   public Boolean getElementAsObject(int index) {
     int value = getElementAsInt(index);
     if(IntVector.isNA(value)) {
-      return null;
+      throw new IllegalStateException(String.format("The element at index %d is NA," +
+          " and cannot be represented as a Boolean. Make sure you are calling isElementNA() first.", index));
     } else {
       return value != 0;
     }

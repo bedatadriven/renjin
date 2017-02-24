@@ -1386,8 +1386,16 @@ metaNameUndo <- function(strings, prefix, searchForm = FALSE)
 
 .identC <- function(c1 = NULL, c2 = NULL)
 {
-    ## are the two objects identical class or genric function string names?
-    .Call(C_R_identC, c1, c2)
+  ## are the two objects identical class or genric function string names?
+  .Call("R_identC", c1, c2, PACKAGE="methods")
+#  if(class(c1) == "character" & class(c2) == "character" & length(c1) == 1 && length(c2) == 1) {
+#    if(!is.na(c1)) {
+#      return(c1 == c2)
+#    } else {
+#      return(FALSE)
+#    }
+#  }
+#  FALSE
 }
 
 ## match default exprs in the method to those in the generic

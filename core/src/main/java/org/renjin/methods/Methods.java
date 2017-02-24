@@ -23,11 +23,15 @@ import org.renjin.eval.Context.Type;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Current;
+import org.renjin.invoke.annotations.DotCall;
 import org.renjin.methods.PrimitiveMethodTable.prim_methods_t;
 import org.renjin.primitives.Contexts;
+import org.renjin.primitives.Environments;
 import org.renjin.primitives.special.SubstituteFunction;
 import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.sexp.*;
+
+import static org.renjin.util.CDefines.*;
 
 public class Methods {
 
@@ -136,18 +140,61 @@ public class Methods {
    * both of length 1 with equal string values.
    * 
    **/
-  public static boolean R_identC(SEXP e1, SEXP e2) {
+  public static SEXP R_identC(SEXP e1, SEXP e2) {
     if(e1 instanceof StringVector && e2 instanceof StringVector &&
         e1.length() == 1 && e2.length() == 1) {
 
       StringVector s1 = (StringVector) e1;
       StringVector s2 = (StringVector) e2;
       if(!s1.isElementNA(0)) {
-        return s1.getElementAsString(0).equals(s2.getElementAsString(0));
+        return LogicalVector.valueOf(s1.getElementAsString(0).equals(s2.getElementAsString(0)));
+      } else {
+        return LogicalVector.FALSE;
       }
 
     }
-    return false;
+    return LogicalVector.FALSE;
+  }
+
+  public static StringVector check_single_string(SEXP obj, boolean nonEmpty, String what) {
+    StringVector string = StringVector.EMPTY;
+    if(isString(obj)) {
+      if(length(obj) != 1) {
+        error(_("'%s' must be a single string (got a character vector of length %d)"), what, length(obj));
+      }
+      string = StringVector.valueOf(CHAR(STRING_ELT(obj, 0)));
+      if(nonEmpty && (string == StringVector.EMPTY)) {
+        error(_("'%s' must be a non-empty string; got an empty string"), what);
+      }
+    }
+    else {
+      error(_("'%s' must be a single string (got an object of class \"%s\")"), what, obj.getTypeName());
+    }
+    return string;
+  }
+
+
+  public static SEXP R_getGeneric(@ Context context, SEXP name, SEXP mustFind, SEXP env, SEXP jpackage) {
+    SEXP value;
+    if(name instanceof Symbol) {
+
+    } else {
+      check_single_string(name, true, "The argument 'f' to getGeneric ");
+    }
+    check_single_string(jpackage, false, "The argument 'package' to getGeneric ");
+    value = get_generic(name, env, jpackage)
+    if(value == R_UnboundValue) {
+      if(mustFind.asLogical().getInternalValue() == 1) {
+        if(env == Environments.globalenv(context))
+          error(_("no generic function definition found for '%s'"),
+            CHAR(asChar(name)));
+        else
+          error(_("no generic function definition found for '%s' in the supplied environment"),
+            CHAR(asChar(name)));
+      }
+      value = R_NilValue;
+    }
+    return value;
   }
 
   public static SEXP R_do_new_object(S4Object classRepresentation) {

@@ -18,17 +18,30 @@
  */
 package org.renjin.primitives.text;
 
+import org.renjin.eval.EvalException;
 import org.renjin.repackaged.guava.base.Charsets;
 
 import java.nio.charset.Charset;
+import java.nio.charset.UnsupportedCharsetException;
 
 public final class RCharsets {
-  
+
+  /**
+   * Returns a Java {@link Charset} object for an R encoding name.
+   *
+   * @throws EvalException if the encoding is unsupported.
+   */
   public static Charset getByName(String name) {
     if("UTF8".equals(name) || "unknown".equals(name)) {
       return Charsets.UTF_8;
+    } else if("native.enc".equals(name)) {
+      return Charsets.UTF_8;
     } else {
-      return Charset.forName(name);
+      try {
+        return Charset.forName(name);
+      } catch (UnsupportedCharsetException e) {
+        throw new EvalException("Unsupported encoding: " + name);
+      }
     }
   }
 }

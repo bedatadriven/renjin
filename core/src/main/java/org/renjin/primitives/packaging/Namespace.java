@@ -25,6 +25,8 @@ import org.renjin.methods.S4;
 import org.renjin.primitives.Native;
 import org.renjin.primitives.S3;
 import org.renjin.primitives.text.regex.ExtendedRE;
+import org.renjin.primitives.text.regex.RE;
+import org.renjin.primitives.text.regex.REFactory;
 import org.renjin.primitives.text.regex.RESyntaxException;
 import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.repackaged.guava.collect.Lists;
@@ -162,6 +164,17 @@ public class Namespace {
     return pkg;
   }
 
+  /**
+   * It is legal for package names to contain dots, and we can load resources with dots in their names, such
+   * as environment, serialized symbols, and data files, but we CANNOT load a class through reflection with a dot
+   * in its name.
+   *
+   * @param packageName the original package name
+   * @return a sanitized name of a package with '.', replaced with '$'
+   */
+  public static String sanitizePackageNameForClassFiles(String packageName) {
+    return packageName.replace('.', '$');
+  }
 
   public void initImports(Context context, NamespaceRegistry registry, NamespaceFile file) {
 
@@ -202,7 +215,7 @@ public class Namespace {
       try {
         importedClass = pkg.loadClass(entry.getClassName());
       } catch (ClassNotFoundException e) {
-        throw new EvalException("Could not load class '%s' from package '%s'", entry.getClassName(), pkg.getName());
+        throw new EvalException("Could not load JVM class '%s' from package '%s'", entry.getClassName(), pkg.getName());
       }
 
       if(entry.isClassImported()) {
@@ -230,7 +243,9 @@ public class Namespace {
     try {
 
       FqPackageName packageName = pkg.getName();
-      String className = packageName.getGroupId() + "." + packageName.getPackageName() + "." + entry.getLibraryName();
+      String className = packageName.getGroupId() + "." +
+          Namespace.sanitizePackageNameForClassFiles(packageName.getPackageName()) + "." +
+          Namespace.sanitizePackageNameForClassFiles(entry.getLibraryName());
       clazz = pkg.loadClass(className);
 
     } catch (ClassNotFoundException e) {
@@ -246,7 +261,11 @@ public class Namespace {
         Context previousContext = Native.CURRENT_CONTEXT.get();
         Native.CURRENT_CONTEXT.set(context);
         try {
-          initMethod.get().invoke(null, info);
+          if(initMethod.get().getParameterTypes().length == 0) {
+            initMethod.get().invoke(null);
+          } else {
+            initMethod.get().invoke(null, info);
+          }
         } catch (InvocationTargetException e) {
           throw new EvalException("Exception initializing compiled GNU R library " + entry.getLibraryName(), e.getCause());
         } finally {
@@ -284,10 +303,8 @@ public class Namespace {
             nativeSymbolMap.put(method.getName(), clazz);
           }
         }
-        
       }
 
-      
     } catch(Exception e) {
       // Allow the program to continue, there may be some packages whose gnur
       // compilation failed but can still partially function.
@@ -312,7 +329,8 @@ public class Namespace {
 
     for (Method method : clazz.getMethods()) {
       if(method.getName().equals(initName)) {
-        if(!Arrays.equals(method.getParameterTypes(), expectedParameterTypes)) {
+        if(method.getParameterTypes().length != 0 &&
+            !Arrays.equals(method.getParameterTypes(), expectedParameterTypes)) {
           throw new EvalException(String.format("%s.%s has invalid signature: %s. Expected %s(DllInfo info)",
               clazz.getName(),
               initName,
@@ -346,12 +364,12 @@ public class Namespace {
 
     // First add all symbols that match the patterns
     for (String pattern : file.getExportedPatterns()) {
-      ExtendedRE re = null;
-      try {
-        re = new ExtendedRE(pattern);
-      } catch (RESyntaxException e) {
-        throw new EvalException("Invalid export pattern '%s': %s", pattern, e.getMessage());
-      }
+      RE re = REFactory.compile(pattern,
+          /* ignore.case = */ false,
+          /* perl = */ false,
+          /* fixed = */ false,
+          /* useBytes = */ false);
+
       for(Symbol symbol : namespaceEnvironment.getSymbolNames()) {
         if(re.match(symbol.getPrintName())) {
           exports.add(symbol);

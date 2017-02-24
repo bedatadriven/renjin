@@ -23,23 +23,45 @@ import org.renjin.repackaged.guava.base.Function;
 import org.renjin.sexp.StringVector;
 
 public class StringPrinter implements Function<String, String> {
-  private boolean quote = true;
+  private char quote = 0;
+  private String naString = "NA";
+  private int width = -1;
   
   /**
    * 
    * @param quote true if the strings should be double-quoted (")
    */
-  public StringPrinter withQuotes(boolean quote) {
-    this.quote = quote;
+  public StringPrinter setQuotes(boolean quote) {
+    if(quote) {
+      this.quote = '"';
+    } else {
+      this.quote = 0;
+    }
     return this;
   }
-  
+
+  public StringPrinter setNaString(String naString) {
+    this.naString = naString;
+    return this;
+  }
+
   @Override
   public String apply(String s) {
-    if(quote || StringVector.isNA(s)) {
-      return StringLiterals.format(s, "NA");        
-    } else {
-      return s;
+    StringBuilder sb = new StringBuilder();
+    if(StringVector.isNA(s)) {
+      return naString;
     }
+    if(quote != 0) {
+      sb.append(quote);
+    }
+    StringLiterals.appendEscaped(sb, s);
+    if(quote != 0) {
+      sb.append(quote);
+    }
+    return sb.toString();
+  }
+
+  public void setQuote(char quote) {
+    this.quote = quote;
   }
 }

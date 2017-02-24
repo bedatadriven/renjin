@@ -30,3 +30,15 @@ test.paste <- function() {
 }
 
 
+test.paste.factors <- function() {
+
+    x <- as.factor(c("Geothermal", "Electricity"))
+
+    assertThat(paste(x[1], x[2]), identicalTo("Geothermal Electricity"))
+}
+
+test.paste.null <- function() {
+
+    assertThat(paste(NULL), identicalTo(character(0)))
+    assertThat(paste(NULL, collapse=""), identicalTo(""))
+}

@@ -19,6 +19,7 @@
 package org.renjin.primitives;
 
 import org.renjin.eval.EvalException;
+import org.renjin.invoke.annotations.DataParallel;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.sexp.RawVector;
@@ -117,4 +118,5 @@ public final class Raw {
     }
     return bits.build();
   }
+
 }

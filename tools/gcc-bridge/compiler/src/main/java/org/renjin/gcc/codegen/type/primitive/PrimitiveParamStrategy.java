@@ -50,6 +50,11 @@ public class PrimitiveParamStrategy implements ParamStrategy {
   }
 
   @Override
+  public List<String> getParameterNames(String name) {
+    return Collections.singletonList(name);
+  }
+
+  @Override
   public GExpr emitInitialization(MethodGenerator mv,
                                   GimpleParameter parameter,
                                   List<JLValue> paramVars,

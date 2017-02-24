@@ -67,7 +67,7 @@ public class Stdlib {
    */
   public static BytePtr strcpy(BytePtr destination, BytePtr source) {
     int length = source.nullTerminatedStringLength();
-    System.arraycopy(source, source.offset, destination, destination.offset, length+1);
+    System.arraycopy(source.array, source.offset, destination.array, destination.offset, length+1);
     return destination;
   }
   

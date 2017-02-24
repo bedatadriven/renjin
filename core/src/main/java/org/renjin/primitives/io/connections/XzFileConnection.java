@@ -23,14 +23,14 @@ import org.apache.commons.vfs2.FileObject;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 
 public class XzFileConnection extends FileConnection {
   public static final int[] XZ_MAGIC_BYTES = { 0xFD, '7', 'z', 'X', 'Z', 0x00 };
 
-  public XzFileConnection(FileObject file) throws IOException {
-    super(file);
+  public XzFileConnection(FileObject file, Charset charset) throws IOException {
+    super(file, charset);
   }
-
 
   @Override
   protected OutputStream doOpenForOutput() throws IOException {

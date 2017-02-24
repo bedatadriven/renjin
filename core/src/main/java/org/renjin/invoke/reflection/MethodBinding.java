@@ -22,17 +22,15 @@ import org.renjin.eval.EvalException;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
 
-import java.lang.reflect.Method;
-
 
 public class MethodBinding implements MemberBinding {
   
   private Symbol name;
   private FunctionBinding binding;
   
-  public MethodBinding(Symbol name, Iterable<Method> overloads) {
+  public MethodBinding(Symbol name, FunctionBinding functionBinding) {
     this.name = name;
-    this.binding = new FunctionBinding(overloads);
+    this.binding = functionBinding;
   }
 
   @Override

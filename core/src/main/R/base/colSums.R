@@ -38,6 +38,10 @@ colSums <- function(x, na.rm = FALSE, dims = 1L)
     z
 }
 
+.colSums <- function (x, m, n, na.rm = FALSE) {
+    .Internal(colSums(x, m, n, na.rm))
+}
+
 colMeans <- function(x, na.rm = FALSE, dims = 1L)
 {
     if(is.data.frame(x)) x <- as.matrix(x)
@@ -56,6 +60,10 @@ colMeans <- function(x, na.rm = FALSE, dims = 1L)
         dimnames(z) <- dimnames(x)[-(1L:dims)]
     } else names(z) <- dimnames(x)[[dims+1]]
     z
+}
+
+.colMeans <- function (x, m, n, na.rm = FALSE)  {
+    .Internal(colMeans(x, m, n, na.rm))
 }
 
 rowSums <- function(x, na.rm = FALSE, dims = 1L)
@@ -78,6 +86,10 @@ rowSums <- function(x, na.rm = FALSE, dims = 1L)
     z
 }
 
+.rowSums <- function (x, m, n, na.rm = FALSE) {
+    .Internal(rowSums(x, m, n, na.rm))
+}
+
 rowMeans <- function(x, na.rm = FALSE, dims = 1L)
 {
     if(is.data.frame(x)) x <- as.matrix(x)
@@ -96,4 +108,8 @@ rowMeans <- function(x, na.rm = FALSE, dims = 1L)
         dimnames(z) <- dimnames(x)[1L:dims]
     } else  names(z) <- dimnames(x)[[1L]]
     z
+}
+
+.rowMeans <- function (x, m, n, na.rm = FALSE) {
+    .Internal(rowMeans(x, m, n, na.rm))
 }

@@ -26,4 +26,17 @@ package org.renjin.primitives.special;
  *
  */
 public class ControlFlowException extends RuntimeException {
+
+  protected ControlFlowException() {
+
+    // Avoid the cost of constructing stack trace, which
+    // adds enormous cost to return() function calls.
+
+    super(
+        /* message = */ null,
+        /* cause = */ null,
+        /* enableSuppression = */ true,
+        /* writableStackTrace = */ false);
+  }
+
 }

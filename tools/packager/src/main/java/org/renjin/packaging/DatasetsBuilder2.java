@@ -230,7 +230,7 @@ public class DatasetsBuilder2 {
     FunctionCall call = new FunctionCall(readTable, args.build());
 
     Session session = new SessionBuilder()
-        .bind(PackageLoader.class, buildContext.getPackageLoader())
+        .setPackageLoader(buildContext.getPackageLoader())
         .build();
     SEXP dataFrame = session.getTopLevelContext().evaluate(call);
 
@@ -284,7 +284,7 @@ public class DatasetsBuilder2 {
     debug(scriptFile, "evaluating as script.");
 
     Session session = new SessionBuilder()
-        .bind(PackageLoader.class, buildContext.getPackageLoader())
+        .setPackageLoader(buildContext.getPackageLoader())
         .build();
     FileReader reader = new FileReader(scriptFile);
     ExpressionVector source = RParser.parseAllSource(reader);

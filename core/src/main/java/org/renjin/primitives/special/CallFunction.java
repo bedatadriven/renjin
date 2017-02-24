@@ -34,14 +34,23 @@ public class CallFunction extends SpecialFunction {
     if (call.length() < 1) {
       throw new EvalException("first argument must be character string");
     }
-    SEXP name = context.evaluate(call.getArgument(0), rho);
+    PairList.Node arg = (PairList.Node) args;
+    SEXP name = context.evaluate(arg.getValue(), rho);
     if (!(name instanceof StringVector) || name.length() != 1) {
       throw new EvalException("first argument must be character string");
     }
 
     Symbol function = Symbol.get(((StringVector) name).getElementAsString(0));
-    PairList callArguments = ((PairList.Node) call.getArguments()).getNext();
 
-    return new FunctionCall(function, callArguments);
+    // Evaluate arguments to call()
+    PairList.Builder evaluatedArguments = new PairList.Builder();
+    PairList callArg = arg.getNext();
+    while(callArg != Null.INSTANCE) {
+      PairList.Node callArgNode = (PairList.Node) callArg;
+      evaluatedArguments.add(callArgNode.getRawTag(), context.evaluate(callArgNode.getValue(), rho));
+      callArg = callArgNode.getNext();
+    }
+
+    return new FunctionCall(function, evaluatedArguments.build());
   }
 }

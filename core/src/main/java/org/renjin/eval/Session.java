@@ -21,7 +21,6 @@ package org.renjin.eval;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
-import org.renjin.compiler.pipeline.SimpleVectorPipeliner;
 import org.renjin.compiler.pipeline.VectorPipeliner;
 import org.renjin.primitives.io.connections.ConnectionTable;
 import org.renjin.primitives.packaging.NamespaceRegistry;
@@ -34,6 +33,7 @@ import org.renjin.stats.internals.distributions.RNG;
 import org.renjin.util.FileSystemUtils;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.lang.invoke.MethodHandle;
@@ -107,14 +107,28 @@ public class Session {
   
   private VectorPipeliner vectorPipeliner;
 
+  private ClassLoader classLoader;
+
   /**
    * Whether the result of the evaluation should be "invisible" in a
    * REPL
    */
   boolean invisible;
 
-  Session(Map<Class, Object> bindings) {
-    this.fileSystemManager = (FileSystemManager) bindings.get(FileSystemManager.class);
+
+  /**
+   * When this is set, we are evaluating a calling handler and should only match handlers at this
+   * level or higher.
+   */
+  Context conditionStack = null;
+
+
+  Session(FileSystemManager fileSystemManager,
+          ClassLoader classLoader,
+          PackageLoader packageLoader,
+          VectorPipeliner pipeliner) {
+    this.fileSystemManager = fileSystemManager;
+    this.classLoader = classLoader;
     this.homeDirectory = FileSystemUtils.homeDirectoryInCoreJar();
     this.workingDirectory = FileSystemUtils.workingDirectory(fileSystemManager);
     this.systemEnvironment = Maps.newHashMap(System.getenv()); //load system environment variables
@@ -124,33 +138,21 @@ public class Session {
     this.baseNamespaceEnv.setVariable(Symbol.get(".BaseNamespaceEnv"), baseNamespaceEnv);
     this.topLevelContext = new Context(this);
 
-    namespaceRegistry = new NamespaceRegistry((PackageLoader) bindings.get(PackageLoader.class),  topLevelContext, baseNamespaceEnv);
-    securityManager = new SecurityManager(); 
-    
-    if(bindings.containsKey(VectorPipeliner.class)) {
-      vectorPipeliner = (VectorPipeliner) bindings.get(VectorPipeliner.class);
-    } else {
-      vectorPipeliner = new SimpleVectorPipeliner();
-    }
+    namespaceRegistry = new NamespaceRegistry(packageLoader, topLevelContext, baseNamespaceEnv);
+    securityManager = new SecurityManager();
+
+    this.vectorPipeliner = pipeliner;
+
 
     // TODO(alex)
     // several packages rely on the presence of .Random.seed in the global
     // even though it's an implementation detail.
-    globalEnvironment.setVariable(".Random.seed", IntVector.valueOf(1)); 
-  }
-
-  /** 
-   * Sets the paths in which to search for libraries.
-   *
-   * @param paths a semi-colon delimited list of paths
-   */
-  public void setLibraryPaths(String paths) {
-    systemEnvironment.put("R_LIBS", paths);
+    globalEnvironment.setVariable(".Random.seed", IntVector.valueOf(1));
   }
 
 
   public void setStdOut(PrintWriter writer) {
-    this.connectionTable.getStdout().setOutputStream(writer);
+    this.connectionTable.getStdout().setStream(writer);
   }
 
   public void setStdIn(Reader reader) {
@@ -158,7 +160,7 @@ public class Session {
   }
   
   public void setStdErr(PrintWriter writer) {
-    this.connectionTable.getStderr().setOutputStream(writer);
+    this.connectionTable.getStderr().setStream(writer);
   }
   
   public SessionController getSessionController() {
@@ -239,12 +241,37 @@ public class Session {
     return invisible;
   }
 
+  /**
+   *
+   * Returns the standard output stream associated with this Session. This is always the original
+   * stream provided via {@link #setStdOut(PrintWriter)} even if there is an active sink.
+   */
   public PrintWriter getStdOut() {
-    return connectionTable.getStdout().getPrintWriter();
+    return connectionTable.getStdout().getStream();
   }
-  
+
+  /**
+   * Returns the standard output stream associated with this Stream or the sink writer if a sink
+   * is active.
+   */
+  public PrintWriter getEffectiveStdOut() {
+    return connectionTable.getStdout().getOpenPrintWriter();
+  }
+
+  /**
+   *
+   * Returns the standard error stream associated with this Session. This is always the original
+   * stream provided via {@link #setStdErr(PrintWriter)} even if there is an active sink.
+   */
   public PrintWriter getStdErr() {
-    return connectionTable.getStderr().getPrintWriter();
+    return connectionTable.getStderr().getStream();
+  }
+
+  /**
+   * Returns the standard error stream associated with this Session or the sink writer if one is active.
+   */
+  public PrintWriter getEffectiveStdErr() {
+    return connectionTable.getStderr().getOpenPrintWriter();
   }
 
   public Reader getStdIn() {
@@ -288,14 +315,16 @@ public class Session {
   }
   
   public ClassLoader getClassLoader() {
-    return getClass().getClassLoader();
+    return classLoader;
   }
 
-  public void registerFinalizer(Environment environment, Closure function, boolean onExit) {
+
+
+  public void registerFinalizer(SEXP sexp, FinalizationHandler handler, boolean onExit) {
     if(finalizers == null) {
       finalizers = new FinalizerRegistry();
     }
-    finalizers.register(environment, function, onExit);
+    finalizers.register(sexp, handler, onExit);
   }
 
   /**

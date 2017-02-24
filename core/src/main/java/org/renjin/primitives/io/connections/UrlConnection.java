@@ -24,7 +24,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
+import java.nio.charset.Charset;
 
+/**
+ * Connection to a URL, read-only.
+ */
 public class UrlConnection extends AbstractConnection {
 
   private final URL url;
@@ -32,7 +36,11 @@ public class UrlConnection extends AbstractConnection {
   private OpenSpec openSpec = new OpenSpec("r");
 
   public UrlConnection(URL url) {
-    super();
+    this.url = url;
+  }
+
+  public UrlConnection(URL url, Charset charset) {
+    super(charset);
     this.url = url;
   }
 

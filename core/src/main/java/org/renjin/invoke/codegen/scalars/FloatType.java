@@ -18,6 +18,8 @@
  */
 package org.renjin.invoke.codegen.scalars;
 
+import com.sun.codemodel.JCodeModel;
+import com.sun.codemodel.JExpression;
 import org.renjin.sexp.DoubleArrayVector;
 import org.renjin.sexp.DoubleVector;
 
@@ -47,5 +49,20 @@ public class FloatType extends ScalarType {
   @Override
   public Class<DoubleArrayVector.Builder> getBuilderClass() {
     return DoubleArrayVector.Builder.class;
+  }
+
+  @Override
+  public Class getBuilderArrayElementClass() {
+    return double.class;
+  }
+
+  @Override
+  public Class getArrayVectorClass() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public JExpression naLiteral(JCodeModel codeModel) {
+    return codeModel.ref(DoubleVector.class).staticRef("NA");
   }
 }

@@ -36,7 +36,7 @@ public class PrimitiveUnionField extends SingleFieldStrategy {
   }
 
   @Override
-  public GExpr memberExpr(JExpr instance, int offset, int size, TypeStrategy expectedType) {
+  public GExpr memberExpr(MethodGenerator mv, JExpr instance, int offset, int size, TypeStrategy expectedType) {
     throw new UnsupportedOperationException();
   }
 

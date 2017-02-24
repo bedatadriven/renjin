@@ -48,6 +48,9 @@ public class PeepholeOptimizer {
     optimizations.add(new LoadLoad());
     optimizations.add(new IntegerIncrement());
     optimizations.add(new ConstantMath());
+    optimizations.add(new ZeroComparison());
+    optimizations.add(new ZeroAdd());
+    optimizations.add(new ConstantBranch());
   }
 
   public void optimize(MethodNode methodNode) {

@@ -59,8 +59,12 @@ file.show <-
     }
     if(is.function(pager))
 	pager(files, header, title, delete.file)
-    else
-        .Internal(file.show(files, header, title, delete.file, pager))
+    else {
+        for(i in seq_along(files)) {
+            cat(header[i], "\n\n")
+            cat(readLines(files), sep = "\n")
+        }
+    }
 }
 
 file.append <- function(file1, file2)
@@ -86,7 +90,8 @@ list.dirs <- function(path = ".", full.names = TRUE, recursive = TRUE)
 
 file.path <-
 function(..., fsep=.Platform$file.sep)
-    .Internal(file.path(list(...), fsep))
+    .Internal(paste(list(...), sep = fsep, collapse = NULL))
+
 
 
 file.exists <- function(...) .Internal(file.exists(c(...)))
@@ -165,6 +170,8 @@ dir.create <- function(path, showWarnings = TRUE, recursive = FALSE,
                        mode = "0777")
     invisible(.Internal(dir.create(path, showWarnings, recursive,
                                    as.octmode(mode))))
+
+dir.exists <- function(paths) .Internal(dir.exists(paths))
 
 system.file <- function(..., package = "base", lib.loc = NULL, mustWork = FALSE)
 {

@@ -155,32 +155,7 @@ test.models.with.null.extras <- function() {
 }
 
 
-
-#  @Test
-#  public void modelMatrixFactors() {
-#    eval("x <- c('Good', 'Bad', 'Ugly', 'Good') ");
-#    
-#    eval("print(mm <- model.matrix(~x))");
-#    
-#    assertThat(eval("mm[,2]"), equalTo(c(1,0,0,1)));
-#    assertThat(eval("mm[,3]"), equalTo(c(0,0,1,0)));
-#    assertThat(eval("colnames(mm)"), equalTo(c("(Intercept)", "xGood", "xUgly")));
-#    assertThat(eval("attr(mm, 'contrasts')$x"), equalTo(c("contr.treatment")));
-#  }
-#  
-#  @Test
-#  public void simpleInteraction() {
-#    eval("x <- 1:10 ");
-#    eval("y <- 10:1 ");
-#    
-#    eval("print(mm <- model.matrix(~x*y))"); 
-#  }
-# 
-#  
-#  @Test
-#  public void interactionWithFactors() {
-#    eval("x <- 1:10 ");
-#    eval("y <- rep(c('Good', 'Bad', 'Ugly'), length=10) ");
-#    
-#    eval("print(mm <- model.matrix(~x*y))"); 
-#  }
+test.model.matrix.factor <- function() {
+    x = structure(c(1L, 1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 2L, 2L), class = "factor", .Label = c("a", "b", "c", "d", "e", "f", "g", "h"))
+    mm <- model.matrix( ~ x - 1, model.frame( ~ x - 1 ),  contrasts=FALSE )  # vec
+}

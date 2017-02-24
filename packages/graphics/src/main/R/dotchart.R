@@ -48,7 +48,7 @@ function(x, labels = NULL, groups = NULL, gdata = NULL, cex = par("cex"),
         }
     }
 
-    plot.new() # for strwidth()
+    # plot.new() # for strwidth()
 
     linch <-
 	if(!is.null(labels)) max(strwidth(labels, "inch"), na.rm = TRUE) else 0
@@ -60,11 +60,11 @@ function(x, labels = NULL, groups = NULL, gdata = NULL, cex = par("cex"),
 	ginch <- max(strwidth(glabels, "inch"), na.rm = TRUE)
 	goffset <- 0.4
     }
-    if (!(is.null(labels) && is.null(glabels))) {
-	nmai <- par("mai")
-	nmai[2L] <- nmai[4L] + max(linch + goffset, ginch) + 0.1
-	par(mai = nmai)
-    }
+    # if (!(is.null(labels) && is.null(glabels))) {
+	# nmai <- par("mai")
+	# nmai[2L] <- nmai[4L] + max(linch + goffset, ginch) + 0.1
+	# par(mai = nmai)
+    # }
 
     if (is.null(groups)) {
 	o <- 1L:n
@@ -82,9 +82,9 @@ function(x, labels = NULL, groups = NULL, gdata = NULL, cex = par("cex"),
 	ylim <- range(0, y + 2)
     }
 
-    plot.window(xlim = xlim, ylim = ylim, log = "")
+    # plot.window(xlim = xlim, ylim = ylim, log = "")
 #    xmin <- par("usr")[1L]
-    lheight <- par("csi")
+    # lheight <- par("csi")
     if (!is.null(labels)) {
 	linch <- max(strwidth(labels, "inch"), na.rm = TRUE)
 	loffset <- (linch + 0.1)/lheight
@@ -92,21 +92,21 @@ function(x, labels = NULL, groups = NULL, gdata = NULL, cex = par("cex"),
         mtext(labs, side = 2, line = loffset, at = y, adj = 0,
               col = color, las = 2, cex = cex, ...)
     }
-    abline(h = y, lty = "dotted", col = lcolor)
-    points(x, y, pch = pch, col = color, bg = bg)
+    # abline(h = y, lty = "dotted", col = lcolor)
+    # points(x, y, pch = pch, col = color, bg = bg)
     if (!is.null(groups)) {
 	gpos <- rev(cumsum(rev(tapply(groups, groups, length)) + 2) - 1)
 	ginch <- max(strwidth(glabels, "inch"), na.rm = TRUE)
 	goffset <- (max(linch+0.2, ginch, na.rm = TRUE) + 0.1)/lheight
         mtext(glabels, side = 2, line = goffset, at = gpos,
               adj = 0, col = gcolor, las = 2, cex = cex, ...)
-	if (!is.null(gdata)) {
-	    abline(h = gpos, lty = "dotted")
-	    points(gdata, gpos, pch = gpch, col = gcolor, bg = bg, ...)
-	}
+	# if (!is.null(gdata)) {
+	#     abline(h = gpos, lty = "dotted")
+	#     points(gdata, gpos, pch = gpch, col = gcolor, bg = bg, ...)
+	# }
     }
-    axis(1)
-    box()
-    title(main=main, xlab=xlab, ylab=ylab, ...)
+    # axis(1)
+    # box()
+    # title(main=main, xlab=xlab, ylab=ylab, ...)
     invisible()
 }

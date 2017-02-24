@@ -26,6 +26,7 @@ import org.renjin.repackaged.guava.io.Files;
 import org.renjin.repackaged.guava.primitives.UnsignedBytes;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
@@ -40,7 +41,6 @@ public class PackageSource {
   private String packageName;
   private File packageDir;
   
-  private File descriptionFile;
   private File namespaceFile;
 
   private PackageDescription description;
@@ -55,10 +55,6 @@ public class PackageSource {
 
   public String getPackageName() {
     return packageName;
-  }
-
-  public File getDescriptionFile() {
-    return new File(packageDir, "DESCRIPTION");
   }
 
   public String getGroupId() {
@@ -133,7 +129,6 @@ public class PackageSource {
     
     public Builder(File baseDir) {
       source.packageDir = baseDir;
-      source.descriptionFile = new File(baseDir, "DESCRIPTION");
       source.namespaceFile = new File(baseDir, "NAMESPACE");
       source.sourceDir = new File(baseDir, "R");
       source.dataDir = new File(baseDir, "data");
@@ -161,11 +156,9 @@ public class PackageSource {
       return this;
     }
 
-    /**
-     * Overrides the location of the DESCRIPTION file. (Defaults to $basedir/DESCRIPTION)
-     */
-    public Builder setDescriptionFile(File descriptionFile) {
-      source.descriptionFile = descriptionFile;
+
+    public Builder setDescription(PackageDescription description) {
+      source.description = description;
       return this;
     }
 
@@ -193,7 +186,7 @@ public class PackageSource {
 
       check(!Strings.isNullOrEmpty(source.groupId), "GroupId must be set.");
 
-      if(source.descriptionFile.exists()) {
+      if(source.description == null) {
         source.description = readDescription();
       }
       
@@ -212,7 +205,12 @@ public class PackageSource {
     private PackageDescription readDescription() {
       PackageDescription description = null;
       try {
-        description = PackageDescription.fromFile(source.descriptionFile);
+        File descriptionFile = new File(source.packageDir, "DESCRIPTION");
+        if(!descriptionFile.exists()) {
+          throw new FileNotFoundException(descriptionFile.getAbsolutePath() + " does not exist.");
+        }
+
+        description = PackageDescription.fromFile(descriptionFile);
       } catch (IOException e) {
         throw new BuildException("Exception reading DESCRIPTION file: " + e.getMessage());
       }
@@ -289,6 +287,5 @@ public class PackageSource {
 
       return list;
     }
-    
   }
 }

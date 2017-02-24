@@ -44,6 +44,11 @@ public class RefPtrParamStrategy<T extends RefPtrExpr> implements ParamStrategy 
   }
 
   @Override
+  public List<String> getParameterNames(String name) {
+    return Collections.singletonList(name);
+  }
+
+  @Override
   public GExpr emitInitialization(MethodGenerator methodVisitor, GimpleParameter parameter, 
                                   List<JLValue> paramVars, VarAllocator localVars) {
     if(parameter.isAddressable()) {

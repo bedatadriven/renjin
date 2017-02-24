@@ -170,8 +170,8 @@ public class Main {
 
     packageLoader = new AetherPackageLoader();
     this.session = new SessionBuilder()
-        .bind(PackageLoader.class, packageLoader)
-        .bind(VectorPipeliner.class, new MultiThreadedVectorPipeliner(threadPool))
+        .setPackageLoader(packageLoader)
+        .setVectorPipeliner(new MultiThreadedVectorPipeliner(threadPool))
         .build();
     
     loadDefaultPackages();

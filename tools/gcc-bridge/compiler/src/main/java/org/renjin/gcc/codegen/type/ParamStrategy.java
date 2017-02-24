@@ -55,6 +55,13 @@ public interface ParamStrategy {
   List<Type> getParameterTypes();
 
   /**
+   *
+   * @param name a java-friendly name for each java parameter required for a parameter with the given
+   *             {@code name}
+   */
+  List<String> getParameterNames(String name);
+
+  /**
    * Emits any bytecode necessary to initialize the parameter at the start of the generated method body, 
    * and returns an ExprGenerator which can be used to retrieve its value
    *

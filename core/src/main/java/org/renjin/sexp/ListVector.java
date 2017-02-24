@@ -160,9 +160,17 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
   public double getElementAsDouble(String name) {
     return getElementAsDouble(getIndexByName(name));
   }
+
+  public String getElementAsString(String name) {
+    return getElementAsString(getIndexByName(name));
+  }
   
   public ListVector getElementAsList(String name) {
     return (ListVector)getElementAsSEXP(getIndexByName(name));
+  }
+
+  public SEXP getElementAsSEXP(String name) {
+    return getElementAsSEXP(getIndexByName(name));
   }
 
   public Vector getElementAsVector(String name) {
@@ -197,7 +205,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
     if(value.length() == 1 && value instanceof AtomicVector) {
       return ((AtomicVector) value).getElementAsObject(0);
     }
-    return Deparse.deparseExp(null, value);
+    return Deparse.deparseExpWithAttributes(null, value);
   }
 
   @Override
@@ -645,7 +653,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
 
     @Override
     public boolean hasName() {
-      return !Strings.isNullOrEmpty(name);
+      return !"".equals(name);
     }
 
     @Override

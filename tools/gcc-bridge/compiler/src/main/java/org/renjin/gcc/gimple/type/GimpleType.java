@@ -36,7 +36,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
     @Type(value = GimpleEnumeralType.class, name = "enumeral_type"),
     @Type(value = GimpleComplexType.class, name = "complex_type"),
     @Type(value = GimpleUnionType.class, name = "union_type"),
-    @Type(value = GimpleMethodType.class, name = "method_type")
+    @Type(value = GimpleMethodType.class, name = "method_type"),
+    @Type(value = GimpleOffsetType.class, name = "offset_type")
     })
 public interface GimpleType {
 

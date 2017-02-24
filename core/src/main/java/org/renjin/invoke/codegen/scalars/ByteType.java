@@ -18,6 +18,10 @@
  */
 package org.renjin.invoke.codegen.scalars;
 
+import com.sun.codemodel.JCodeModel;
+import com.sun.codemodel.JExpr;
+import com.sun.codemodel.JExpression;
+import com.sun.codemodel.JVar;
 import org.renjin.sexp.RawVector;
 
 public class ByteType extends ScalarType {
@@ -45,6 +49,26 @@ public class ByteType extends ScalarType {
   @Override
   public Class<RawVector.Builder> getBuilderClass() {
     return RawVector.Builder.class;
+  }
+
+  @Override
+  public Class getBuilderArrayElementClass() {
+    return byte.class;
+  }
+
+  @Override
+  public Class getArrayVectorClass() {
+    return RawVector.class;
+  }
+
+  @Override
+  public JExpression naLiteral(JCodeModel codeModel) {
+    return JExpr.lit(0);
+  }
+
+  @Override
+  public JExpression testNaExpr(JCodeModel codeModel, JVar scalarVariable) {
+    return JExpr.FALSE;
   }
 
 }

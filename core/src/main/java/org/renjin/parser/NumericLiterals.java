@@ -39,10 +39,6 @@ public class NumericLiterals {
   public static String format(double value, String naString) {
     if(DoubleVector.isNA(value)) {
       return naString;
-    } else if(Double.isNaN(value)) {
-      return "NaN";
-    } else if(Double.isInfinite(value)) {
-      return "Inf";
     } else {
       return toString(value);
     }
@@ -53,6 +49,16 @@ public class NumericLiterals {
   }
 
   public static String toString(double value) {
+    if(Double.isNaN(value)) {
+      return "NaN";
+    }
+    if(Double.isInfinite(value)) {
+      if (value < 0) {
+        return "-Inf";
+      } else {
+        return "Inf";
+      }
+    }
     // TODO: the original R implementation formats numbers based on options,
     // this is just a quick hack
     if(value > 100000) {

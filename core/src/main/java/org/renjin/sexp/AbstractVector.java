@@ -117,13 +117,19 @@ abstract class AbstractVector extends AbstractSEXP implements Vector {
 
     @Override
     public Builder combineAttributesFrom(SEXP vector) {
-      attributes.combineFrom(vector.getAttributes());
+      AttributeMap attributes = vector.getAttributes();
+      if(attributes != AttributeMap.EMPTY) {
+        this.attributes.combineFrom(attributes);
+      }
       return this;
     }
 
     @Override
     public Builder combineStructuralAttributesFrom(SEXP vector) {
-      attributes.combineStructuralFrom(vector.getAttributes());
+      AttributeMap vectorAttributes = vector.getAttributes();
+      if(vectorAttributes != AttributeMap.EMPTY) {
+        this.attributes.combineStructuralFrom(vectorAttributes);
+      }
       return this;
     }
 

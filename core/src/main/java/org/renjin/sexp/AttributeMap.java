@@ -484,6 +484,12 @@ public class AttributeMap {
       }
       this.dimNames = (ListVector) value;
       this.empty = false;
+
+      // Arrays cannot have both dimnames and names
+      if(this.dim != null && this.dim.length() == 1) {
+        this.names = null;
+      }
+
       return this;
     }
 
@@ -644,10 +650,25 @@ public class AttributeMap {
      * </ul>
      */
     public Builder combineStructuralFrom(AttributeMap other) {
-      return combineFrom(other, false);
+      if(empty) {
+        // Fast path
+        this.dim = other.dim;
+        this.names = other.names;
+        this.dimNames = other.dimNames;
+        if(this.dim != null || this.names != null || this.dimNames != null) {
+          empty = false;
+        }
+      } else {
+        combineFrom(other, false);
+      }
+      return this;
     }
 
     private Builder combineFrom(AttributeMap other, boolean all) {
+      if(other == EMPTY) {
+        return this;
+      }
+      
       if(other.names != null) {
         if(this.names == null && this.dim == null) {
           this.names = other.names;

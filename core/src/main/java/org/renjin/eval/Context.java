@@ -24,6 +24,7 @@ import org.apache.commons.vfs2.FileSystemManager;
 import org.renjin.base.BaseFrame;
 import org.renjin.compiler.pipeline.VectorPipeliner;
 import org.renjin.parser.RParser;
+import org.renjin.primitives.Primitives;
 import org.renjin.primitives.Warning;
 import org.renjin.primitives.packaging.NamespaceRegistry;
 import org.renjin.primitives.special.ControlFlowException;
@@ -37,6 +38,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -86,6 +89,7 @@ public class Context {
   }
 
   private List<SEXP> onExit = Lists.newArrayList();
+  private List<SEXP> restarts = null;
 
   private Context parent;
   private int evaluationDepth;
@@ -94,7 +98,7 @@ public class Context {
   private Session session; 
   private FunctionCall call;
   private Closure closure;
-  
+
   /**
    * The environment from which the closure was called
    */
@@ -107,7 +111,7 @@ public class Context {
    * Handlers are R functions that are called immediately when
    * conditions are signaled.
    */
-  private Map<String, SEXP> conditionHandlers = Maps.newHashMap();
+  private Map<String, ConditionHandler> conditionHandlers = null;
 
   private Map<Class, Object> stateMap = null;
 
@@ -143,7 +147,7 @@ public class Context {
     context.environment = Environment.createChildEnvironment(closure.getEnclosingEnvironment());
     context.session = session;
     context.arguments = arguments;
-    context.call= call;
+    context.call = call;
     context.callingEnvironment = rho;
     return context;
   }
@@ -156,6 +160,37 @@ public class Context {
     context.environment = environment;
     context.session = session;
     return context;
+  }
+
+  /**
+   *
+   * @return the context in which to start searching for condition handlers.
+   */
+  public Context getConditionStack() {
+    Context stack = this.session.conditionStack;
+    if(stack == null) {
+      stack = this;
+    }
+    return stack;
+  }
+
+  /**
+   * Evaluates the given calling handler function call in this context, but temporarily sets
+   * the conditionStack pointer to the parent of the context in which the handler was defined.
+   *
+   * <p>This ensures that a signal can be rethrown within the condition handler and not be caught
+   * infinitely.</p>
+   *
+   * @param definitionContext the context in which the condition handler was defined.
+   * @param handlerCall the function call to evaluate.
+   */
+  public SEXP evaluateCallingHandler(Context definitionContext, SEXP handlerCall) {
+    this.session.conditionStack = definitionContext.getParent();
+    try {
+      return evaluate(handlerCall);
+    } finally {
+      this.session.conditionStack = null;
+    }
   }
   
   public SEXP evaluate(SEXP expression) {
@@ -273,6 +308,38 @@ public class Context {
       return value;
     }
   }
+
+  /**
+   * Adds a restart object by name to this Context.
+   */
+  public void addRestart(SEXP restartObject) {
+    if(restarts == null) {
+      restarts = new ArrayList<>();
+    }
+    restarts.add(restartObject);
+  }
+
+  /**
+   * Tries to find a restart in this context or
+   * one of it's parents.
+   *
+   * @param index the zero-based index of the restart to find. Index "0" is the last added restart
+   *            in this context or its nearest parent.
+   */
+  public SEXP getRestart(int index) {
+    Context context = this;
+    while(!context.isTopLevel()) {
+      if(context.restarts != null) {
+        for (int i = 0; i < context.restarts.size(); i++, index--) {
+          if(index == 0) {
+            return context.restarts.get(i);
+          }
+        }
+      }
+      context = context.getParent();
+    }
+    return Null.INSTANCE;
+  }
   
   private SEXP evaluateExpressionVector(ExpressionVector expressionVector, Environment rho) {
     if(expressionVector.length() == 0) {
@@ -319,6 +386,9 @@ public class Context {
   private Function evaluateFunction(SEXP functionExp, Environment rho) {
     if(functionExp instanceof Symbol) {
       Symbol symbol = (Symbol) functionExp;
+      if(symbol.isReservedWord()) {
+        return Primitives.getReservedBuiltin(symbol);
+      }
       Function fn = rho.findFunction(this, symbol);
       if(fn == null) {
         throw new EvalException("could not find function '%s'", symbol.getPrintName());      
@@ -471,14 +541,23 @@ public class Context {
    * @see org.renjin.primitives.Conditions
    *
    * @param conditionClass  the (S3) condition class to be handled by this handler.
-   * @param function an expression that evaluates to a function that accepts a signaled
+   * @param function a function that accepts a signaled
    * condition as an argument.
+   * @param calling true if this is a "calling" handler and should be invoked in the {@code Context}
+   *                 in which the condition is signaled, {@code false} if control should first
+   *                 be returned to the {@code Context} in which it was registered.
    */
-  public void setConditionHandler(String conditionClass, SEXP function) {
-    conditionHandlers.put(conditionClass, function);
+  public void setConditionHandler(String conditionClass, SEXP function, boolean calling) {
+    if(conditionHandlers == null) {
+      conditionHandlers = new HashMap<>();
+    }
+    conditionHandlers.put(conditionClass, new ConditionHandler(function, calling));
   }
 
-  public SEXP getConditionHandler(String conditionClass) {
+  public ConditionHandler getConditionHandler(String conditionClass) {
+    if(conditionHandlers == null) {
+      return null;
+    }
     return conditionHandlers.get(conditionClass);
   }
 
@@ -497,27 +576,8 @@ public class Context {
     baseFrame.load(this);
     
     evaluate(FunctionCall.newCall(Symbol.get(".onLoad")), session.getBaseNamespaceEnv());
-    
-//    evalBaseResource("/org/renjin/library/base/R/Rprofile");
-//    
-//    // FunctionCall.newCall(new Symbol(".OptRequireMethods")).evaluate(this, environment);
-//    evaluate( FunctionCall.newCall(Symbol.get(".First.sys")), environment);
   }
 
-  protected void evalBaseResource(String resourceName) throws IOException {
-    Context evalContext = this.beginEvalContext(session.getBaseNamespaceEnv());
-    InputStream in = getClass().getResourceAsStream(resourceName);
-    if(in == null) {
-      throw new IOException("Could not load resource '" + resourceName + "'");
-    }
-    Reader reader = new InputStreamReader(in);
-    try {
-      evalContext.evaluate(RParser.parseSource(reader));
-    } finally {
-      reader.close();
-    }
-  }
-  
   public void setInvisibleFlag() {
     session.invisible = true;
   }

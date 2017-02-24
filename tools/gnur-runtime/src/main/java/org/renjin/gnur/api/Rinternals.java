@@ -21,83 +21,276 @@ package org.renjin.gnur.api;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.gcc.runtime.BytePtr;
-import org.renjin.gcc.runtime.DoublePtr;
-import org.renjin.gcc.runtime.IntPtr;
-import org.renjin.gcc.runtime.ObjectPtr;
-import org.renjin.primitives.Native;
-import org.renjin.primitives.R$primitive$getNamespace;
-import org.renjin.primitives.Types;
-import org.renjin.primitives.Vectors;
+import org.renjin.eval.FinalizationClosure;
+import org.renjin.eval.FinalizationHandler;
+import org.renjin.gcc.runtime.*;
+import org.renjin.methods.MethodDispatch;
+import org.renjin.methods.Methods;
+import org.renjin.primitives.*;
+import org.renjin.primitives.packaging.Namespace;
+import org.renjin.primitives.subset.Subsetting;
 import org.renjin.sexp.*;
 
+import java.lang.System;
+import java.lang.invoke.MethodHandle;
 import java.util.Arrays;
 
-@SuppressWarnings("unused")
+/**
+ * GNU R API methods defined in the "Rinternals.h" header file.
+ *
+ * <p>Note that Renjin's tool chain always compiles native package code as if
+ * {@code USE_RINTERNALS} was not defined, so all of these symbols always resolve to function
+ * calls and not macro expansions, even for packages which define {@code USE_RINTERNALS}</p>
+ */
+@SuppressWarnings({"unused", "WeakerAccess"})
 public final class Rinternals {
 
-  
+
   private Rinternals() { }
 
   /* Evaluation Environment */
-  public static SEXP	R_GlobalEnv;	    /* The "global" environment */
 
-  public static SEXP  R_EmptyEnv;	    /* An empty environment at the root of the
-				    	environment tree */
-  public static SEXP  R_BaseEnv;	    /* The base environment; formerly R_NilValue */
-  public static SEXP	R_BaseNamespace;    /* The (fake) namespace for base */
-  public static SEXP	R_NamespaceRegistry;/* Registry for registered namespaces */
+  /**
+   * The "global" environment
+   */
+  public static SEXP	R_GlobalEnv;
 
-  public static SEXP	R_Srcref;           /* Current srcref, for debuggers */
+  /**
+   * The empty environment at the root of the environment tree
+   */
+  public static SEXP  R_EmptyEnv;
+
+  /**
+   * The base environment; formerly R_NilEnv
+   */
+  public static SEXP  R_BaseEnv;
+
+  /**
+   * The (fake) namespace for base
+   */
+  public static SEXP	R_BaseNamespace;
+
+
+  /**
+   *  Registry for registered namespaces
+   */
+  public static SEXP	R_NamespaceRegistry;
+
+  /**
+   * Current srcref for debuggers
+   */
+  public static SEXP	R_Srcref;
 
   /* Special Values */
-  public static SEXP	R_NilValue = Null.INSTANCE;	    /* The nil object */
-  public static  SEXP	R_UnboundValue = Symbol.UNBOUND_VALUE;	    /* Unbound marker */
-  public static  SEXP	R_MissingArg = Symbol.MISSING_ARG;	    /* Missing argument marker */
 
-  public static SEXP	R_RestartToken;     /* Marker for restarted function calls */
+  /**
+   * The nil object
+   */
+  public static SEXP	R_NilValue = Null.INSTANCE;
+
+  /**
+   * Unbound marker
+   */
+  public static  SEXP	R_UnboundValue = Symbol.UNBOUND_VALUE;
+
+  /**
+   * Missing argument marker
+   */
+  public static  SEXP	R_MissingArg = Symbol.MISSING_ARG;
+
+  /**
+   * Marker for restarted function calls
+   */
+  public static SEXP	R_RestartToken;
 
   /* Symbol Table Shortcuts */
-  public static  SEXP	R_baseSymbol = Symbol.get("base"); // <-- backcompatible version of:
-  public static  SEXP	R_BaseSymbol = Symbol.get("base");	// "base"
-  public static  SEXP	R_BraceSymbol = Symbol.get("{");	    /* "{" */
-  public static  SEXP	R_Bracket2Symbol = Symbol.get("[[");   /* "[[" */
-  public static  SEXP	R_BracketSymbol = Symbol.get("[");    /* "[" */
-  public static  SEXP	R_ClassSymbol = Symbol.get("class");	    /* "class" */
-  public static  SEXP	R_DeviceSymbol = Symbol.get(".Device");	    /* ".Device" */
-  public static  SEXP	R_DimNamesSymbol = Symbol.get("dimnames");   /* "dimnames" */
-  public static  SEXP	R_DimSymbol = Symbol.get("dim");	    /* "dim" */
-  public static  SEXP	R_DollarSymbol = Symbol.get("$");	    /* "$" */
-  public static  SEXP	R_DotsSymbol = Symbol.get("...");	    /* "..." */
-  public static  SEXP	R_DoubleColonSymbol = Symbol.get("::"); // "::"
-  public static  SEXP	R_DropSymbol = Symbol.get("drop");	    /* "drop" */
-  public static  SEXP	R_LastvalueSymbol = Symbol.get(".Last.value");  /* ".Last.value" */
-  public static  SEXP	R_LevelsSymbol = Symbol.get("level");	    /* "levels" */
-  public static  SEXP	R_ModeSymbol = Symbol.get("mode");	    /* "mode" */
-  public static  SEXP	R_NaRmSymbol = Symbol.get("na.rm");	    /* "na.rm" */
-  public static  SEXP	R_NameSymbol = Symbol.get("name");	    /* "name" */
-  public static  SEXP	R_NamesSymbol = Symbol.get("names");	    /* "names" */
-  public static  SEXP	R_NamespaceEnvSymbol = Symbol.get(".__NAMESPACE__.");// ".__NAMESPACE__."
-  public static  SEXP	R_PackageSymbol = Symbol.get("package");    /* "package" */
-  public static  SEXP	R_PreviousSymbol = Symbol.get("previous");   /* "previous" */
-  public static  SEXP	R_QuoteSymbol = Symbol.get("quote");	    /* "quote" */
-  public static  SEXP	R_RowNamesSymbol = Symbol.get("row.names");   /* "row.names" */
-  public static  SEXP	R_SeedsSymbol = Symbol.get(".Random.seed");	    /* ".Random.seed" */
-  public static  SEXP	R_SortListSymbol = Symbol.get("sort.list");   /* "sort.list" */
-  public static  SEXP	R_SourceSymbol = Symbol.get("source");	    /* "source" */
-  public static  SEXP	R_SpecSymbol = Symbol.get("spec");	// "spec"
-  public static  SEXP	R_TripleColonSymbol = Symbol.get(":::");// ":::"
-  public static  SEXP	R_TspSymbol = Symbol.get("tsp");	    /* "tsp" */
 
-  public static  SEXP  R_dot_defined = Symbol.get(".defined");      /* ".defined" */
-  public static  SEXP  R_dot_Method = Symbol.get(".Method");       /* ".Method" */
-  public static  SEXP	R_dot_packageName = Symbol.get(".packageName");// ".packageName"
-  public static  SEXP  R_dot_target = Symbol.get(".target");       /* ".target" */
+  /**
+   * "base" Symbol
+   */
+  public static  SEXP	R_baseSymbol = Symbol.get("base");
+
+  /**
+   * "base" Symbol
+   */
+  public static  SEXP	R_BaseSymbol = Symbol.get("base");	// "base"
+
+  /**
+   * {@code { Symbol
+   */
+  public static  SEXP	R_BraceSymbol = Symbol.get("{");
+
+  /**
+   * "[[" Symbol
+   */
+  public static  SEXP	R_Bracket2Symbol = Symbol.get("[[");
+
+  /**
+   * "[" Symbol
+   */
+  public static  SEXP	R_BracketSymbol = Symbol.get("[");
+
+  /**
+   * "class" Symbol
+   */
+  public static  SEXP	R_ClassSymbol = Symbol.get("class");
+
+  /**
+   * ".Device" symbol
+   */
+  public static  SEXP	R_DeviceSymbol = Symbol.get(".Device");
+
+  /**
+   * "dimnames" symbol
+   */
+  public static  SEXP	R_DimNamesSymbol = Symbol.get("dimnames");
+
+  /**
+   * "dim" symbol
+   */
+  public static  SEXP	R_DimSymbol = Symbol.get("dim");
+
+  /**
+   * "$" Symbol
+   */
+  public static  SEXP	R_DollarSymbol = Symbol.get("$");
+
+  /**
+   * "..." Symbol
+   */
+  public static  SEXP	R_DotsSymbol = Symbol.get("...");
+
+  /**
+   * "::" Symbol
+   */
+  public static  SEXP	R_DoubleColonSymbol = Symbol.get("::");
+
+  /**
+   * "drop" Symbol
+   */
+  public static  SEXP	R_DropSymbol = Symbol.get("drop");
+
+  /**
+   * ".Last.value" Symbol
+   */
+  public static  SEXP	R_LastvalueSymbol = Symbol.get(".Last.value");
+
+  /**
+   * "level" Symbol
+   */
+  public static  SEXP	R_LevelsSymbol = Symbol.get("level");
+
+  /**
+   * "mode" symbol
+   */
+  public static  SEXP	R_ModeSymbol = Symbol.get("mode");
+
+  /**
+   * "na.rm" Symbol
+   */
+  public static  SEXP	R_NaRmSymbol = Symbol.get("na.rm");
+
+  /**
+   * "name" Symbol
+   */
+  public static  SEXP	R_NameSymbol = Symbol.get("name");
+
+  /**
+   * "names" Symbol
+   */
+  public static  SEXP	R_NamesSymbol = Symbol.get("names");
+
+  /**
+   * ".__NAMESPACE__." Symbol
+   */
+  public static  SEXP	R_NamespaceEnvSymbol = Symbol.get(".__NAMESPACE__.");
+
+  /**
+   * "package" Symbol
+   */
+  public static  SEXP	R_PackageSymbol = Symbol.get("package");
+
+  /**
+   * "previous" Symbol
+   */
+  public static  SEXP	R_PreviousSymbol = Symbol.get("previous");
+
+  /**
+   * "quote" Symbol
+   */
+  public static  SEXP	R_QuoteSymbol = Symbol.get("quote");
+
+  /**
+   * "row.names" Symbol
+   */
+  public static  SEXP	R_RowNamesSymbol = Symbol.get("row.names");
+
+  /**
+   * ".Random.seed" Symbol
+   */
+  public static  SEXP	R_SeedsSymbol = Symbol.get(".Random.seed");
+
+  /**
+   * "sort.list" Symbol
+   */
+  public static  SEXP	R_SortListSymbol = Symbol.get("sort.list");
+
+  /**
+   * "source" Symbol
+   */
+  public static  SEXP	R_SourceSymbol = Symbol.get("source");
+
+  /**
+   * "spec" Symbol
+   */
+  public static  SEXP	R_SpecSymbol = Symbol.get("spec");
+
+  /**
+   * ":::" Symbol
+   */
+  public static  SEXP	R_TripleColonSymbol = Symbol.get(":::");
+
+  /**
+   * "tsp" Symbol
+   */
+  public static  SEXP	R_TspSymbol = Symbol.get("tsp");
+
+  /**
+   * ".defined" Symbol
+   */
+  public static  SEXP  R_dot_defined = Symbol.get(".defined");
+
+  /**
+   * ".Method" Symbol
+   */
+  public static  SEXP  R_dot_Method = Symbol.get(".Method");
+
+  /**
+   * ".packageName" Symbol
+   */
+  public static  SEXP	R_dot_packageName = Symbol.get(".packageName");
+
+  /**
+   * ".target" Symbol
+   */
+  public static  SEXP  R_dot_target = Symbol.get(".target");
 
 /* Missing Values - others from Arith.h */
-  public static  SEXP	R_NaString = null;	    /* NA_STRING as a CHARSXP */
-  public static  SEXP	R_BlankString = new GnuCharSexp("");	    /* "" as a CHARSXP */
-  public static  SEXP	R_BlankScalarString = new GnuStringVector("");	    /* "" as a STRSXP */
+
+  /**
+   * NA_String as a CHARSXP
+   */
+  public static  SEXP	R_NaString = null;
+
+  /**
+   * ""as a CHARSEXP
+   */
+  public static  SEXP	R_BlankString = new GnuCharSexp("");
+
+  /**
+   * "" as a STRSXP
+   */
+  public static  SEXP	R_BlankScalarString = new GnuStringVector("");
 
 
   public static BytePtr R_CHAR(SEXP x) {
@@ -137,6 +330,13 @@ public final class Rinternals {
     return s instanceof StringVector;
   }
 
+  /** Does an object have a class attribute?
+   *
+   * @param s Pointer to an R value.
+   *
+   * @return TRUE iff the object pointed to by \a s has a
+   * class attribute.
+   */
   public static boolean Rf_isObject(SEXP s) {
     throw new UnimplementedGnuApiMethod("Rf_isObject");
   }
@@ -182,14 +382,17 @@ public final class Rinternals {
       return SexpType.LISTSXP;
     } else if(s instanceof S4Object) {
       return SexpType.S4SXP;
+    } else if(s instanceof Promise) {
+      return SexpType.PROMSXP;
+    } else if(s instanceof Symbol) {
+      return SexpType.SYMSXP;
     } else {
       throw new UnsupportedOperationException("Unknown SEXP Type: " + s.getClass().getName());
     }
   }
 
   /**
-   * @param sexp
-   * @return the value of the {@code SEXP}'s named bit. 
+   * @return the value of the {@code SEXP}'s named bit.
    */
   public static int NAMED(SEXP sexp) {
     // Renjin's contract for AtomicVector is that a vector's contents can never be changed
@@ -229,17 +432,25 @@ public final class Rinternals {
   }
 
   public static void SET_S4_OBJECT(SEXP x) {
-    throw new UnimplementedGnuApiMethod("SET_S4_OBJECT");
+    Rf_setAttrib(x, Symbols.S4_BIT, LogicalVector.TRUE);
   }
 
   public static void UNSET_S4_OBJECT(SEXP x) {
-    throw new UnimplementedGnuApiMethod("UNSET_S4_OBJECT");
+    Rf_setAttrib(x, Symbols.S4_BIT, Null.INSTANCE);
   }
 
   public static int LENGTH(SEXP x) {
     return x.length();
   }
 
+  /**
+   * @param x Pointer to a vector object.
+   *
+   * @return The 'true length' of {@code x}.  According to the R Internals
+   *         document for R 2.4.1, this is only used for certain hash
+   *         tables, and signifies the number of used slots in the
+   *         table.
+   */
   public static int TRUELENGTH(SEXP x) {
     throw new UnimplementedGnuApiMethod("TRUELENGTH");
   }
@@ -248,6 +459,13 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("SETLENGTH");
   }
 
+  /**
+   * Set 'true length' of vector.
+   *
+   * @param x Pointer to a vector object.
+   *
+   * @param v The required new 'true length'.
+   */
   public static void SET_TRUELENGTH(SEXP x, int v) {
     throw new UnimplementedGnuApiMethod("SET_TRUELENGTH");
   }
@@ -285,7 +503,7 @@ public final class Rinternals {
       throw new UnsupportedOperationException("DATAPTR on type " + x.getClass().getName());
     }
   }
-  
+
   public static IntPtr LOGICAL(SEXP x) {
     if(x instanceof LogicalArrayVector) {
       return new IntPtr(((LogicalArrayVector)x).toIntArrayUnsafe());
@@ -302,6 +520,8 @@ public final class Rinternals {
       return new IntPtr(((IntArrayVector) x).toIntArrayUnsafe());
     } else if(x instanceof LogicalArrayVector) {
       return new IntPtr(((LogicalArrayVector) x).toIntArrayUnsafe());
+    } else if (x instanceof DoubleVector) {
+      return new IntPtr(((DoubleVector) x).toIntArray());
     } else if(x instanceof IntVector) {
       // TODO: cache arrays for the case of repeated INTEGER() calls?
       return new IntPtr(((IntVector) x).toIntArray());
@@ -343,29 +563,70 @@ public final class Rinternals {
     }
   }
 
+  /**
+   * Examine element of a character vector.
+   *
+   * @param x Pointer to a character vector.
+   *
+   * @param i Index of the required element.  There is no bounds
+   *          checking.
+   *
+   * @return Pointer to extracted {@code i} 'th element as a {@link GnuCharSexp}
+   */
   public static SEXP STRING_ELT(SEXP x, /*R_xlen_t*/ int i) {
     StringVector stringVector = (StringVector) x;
     String string = stringVector.getElementAsString(i);
-    
+
     return new GnuCharSexp(string);
   }
 
+  /**
+   * Examine element of a list.
+   *
+   * @param x Pointer to a list.
+   *
+   * @param i Index of the required element.  There is no bounds checking.
+   *
+   * @return The value of the {@code i}th element.
+   */
   public static SEXP VECTOR_ELT(SEXP x, /*R_xlen_t*/ int i) {
     return ((ListVector) x).getElementAsSEXP(i);
   }
 
-  public static void SET_STRING_ELT(SEXP x, /*R_xlen_t*/ int index, SEXP value) {
-    GnuStringVector stringVector = (GnuStringVector) x;
-    GnuCharSexp charValue = (GnuCharSexp) value;
 
-    stringVector.set(index, charValue);
+  /**
+   *  Set element of character vector.
+   *
+   * @param x Pointer to a character vector as a {@link GnuCharSexp}.
+   *
+   * @param i Index of the required element.  There is no bounds checking.
+   *
+   * @param v Pointer to CHARSXP representing the new value.
+   */
+  public static void SET_STRING_ELT(SEXP x, /*R_xlen_t*/ int i, SEXP v) {
+    GnuStringVector stringVector = (GnuStringVector) x;
+    GnuCharSexp charValue = (GnuCharSexp) v;
+
+    stringVector.set(i, charValue);
   }
 
-  public static SEXP SET_VECTOR_ELT(SEXP x, /*R_xlen_t*/ int index, SEXP value) {
+
+  /**
+   *  Set element of list.
+   *
+   * @param x Pointer to a list.
+   *
+   * @param i Index of the required element.
+   *
+   * @param v Pointer to R value representing the new value.
+   *
+   * @return The new value {@code v}
+   */
+  public static SEXP SET_VECTOR_ELT(SEXP x, /*R_xlen_t*/ int i, SEXP v) {
     ListVector listVector = (ListVector) x;
     SEXP[] elements = listVector.toArrayUnsafe();
-    elements[index] = value;
-    return value;
+    elements[i] = v;
+    return v;
   }
 
   // SEXP*() STRING_PTR (SEXP x)
@@ -383,7 +644,7 @@ public final class Rinternals {
   public static SEXP CDR(SEXP e) {
     return ((PairList.Node) e).getNext();
   }
-  
+
   public static SEXP CAAR(SEXP e) {
     return CAR(CAR(e));
   }
@@ -405,7 +666,7 @@ public final class Rinternals {
   }
 
   public static SEXP CADDR(SEXP e) {
-    return 	CAR(CDR(CDR(e)));
+    return CAR(CDR(CDR(e)));
   }
 
   public static SEXP CADDDR(SEXP e) {
@@ -414,6 +675,10 @@ public final class Rinternals {
 
   public static SEXP CAD4R(SEXP e) {
     return CAR(CDR(CDR(CDR(CDR(e)))));
+  }
+
+  public static SEXP CD4R(SEXP x) {
+    return CDR(CDR(CDR(CDR(x))));
   }
 
   public static int MISSING(SEXP x) {
@@ -429,27 +694,76 @@ public final class Rinternals {
   }
 
   public static SEXP SETCAR(SEXP x, SEXP y) {
-    throw new UnimplementedGnuApiMethod("SETCAR");
+    if (x == null || x == R_NilValue) {
+      throw new EvalException("bad value");
+    }
+
+    ((PairList.Node) x).setValue(y);
+    return y;
   }
 
   public static SEXP SETCDR(SEXP x, SEXP y) {
-    throw new UnimplementedGnuApiMethod("SETCDR");
+    if (x == null || x == R_NilValue) {
+      throw new EvalException("bad value");
+    }
+
+    ((PairList.Node) x).setNextNode((PairList.Node) y);
+    return y;
   }
+
   public static SEXP SETCADR(SEXP x, SEXP y) {
-    PairList.Node pb = (PairList.Node) x;
-    pb.getNextNode().setValue(y);
-    return (SEXP) pb;
+    SEXP cell;
+    if (x == null || x == R_NilValue ||
+        CDR(x) == null || CDR(x) == R_NilValue) {
+      throw new EvalException("bad value");
+    }
+    cell = CDR(x);
+    ((PairList.Node) cell).setValue(y);
+    return y;
   }
+
+  public static SEXP CHK(SEXP sexp) {
+    return sexp;
+  }
+
   public static SEXP SETCADDR(SEXP x, SEXP y) {
-    throw new UnimplementedGnuApiMethod("SETCADDR");
+    SEXP cell;
+    if (x == null || x == R_NilValue ||
+        CDR(x) == null || CDR(x) == R_NilValue ||
+        CDDR(x) == null || CDDR(x) == R_NilValue) {
+      throw new EvalException("bad value");
+    }
+
+    cell = CDDR(x);
+    ((PairList.Node) cell).setValue(y);
+    return y;
   }
 
   public static SEXP SETCADDDR(SEXP x, SEXP y) {
-    throw new UnimplementedGnuApiMethod("SETCADDDR");
+    SEXP cell;
+    if (CHK(x) == null || x == R_NilValue ||
+        CHK(CDR(x)) == null || CDR(x) == R_NilValue ||
+        CHK(CDDR(x)) == null || CDDR(x) == R_NilValue ||
+        CHK(CDDDR(x)) == null || CDDDR(x) == R_NilValue) {
+      throw new EvalException("bad value");
+    }
+    cell = CDDDR(x);
+    ((PairList.Node) cell).setValue(y);
+    return y;
   }
 
-  public static SEXP SETCAD4R(SEXP e, SEXP y) {
-    throw new UnimplementedGnuApiMethod("SETCAD4R");
+  public static SEXP SETCAD4R(SEXP x, SEXP y) {
+    SEXP cell;
+    if (CHK(x) == null || x == R_NilValue ||
+        CHK(CDR(x)) == null || CDR(x) == R_NilValue ||
+        CHK(CDDR(x)) == null || CDDR(x) == R_NilValue ||
+        CHK(CDDDR(x)) == null || CDDDR(x) == R_NilValue ||
+        CHK(CD4R(x)) == null || CD4R(x) == R_NilValue) {
+      throw new EvalException("bad value");
+    }
+    cell = CD4R(x);
+    ((PairList.Node) cell).setValue(y);
+    return y;
   }
 
   public static SEXP CONS_NR(SEXP a, SEXP b) {
@@ -457,15 +771,15 @@ public final class Rinternals {
   }
 
   public static SEXP FORMALS(SEXP x) {
-    throw new UnimplementedGnuApiMethod("FORMALS");
+    return ((Closure) x).getFormals();
   }
 
   public static SEXP BODY(SEXP x) {
-    throw new UnimplementedGnuApiMethod("BODY");
+    return ((Closure) x).getBody();
   }
 
   public static SEXP CLOENV(SEXP x) {
-    throw new UnimplementedGnuApiMethod("CLOENV");
+    return ((Closure) x).getEnclosingEnvironment();
   }
 
   public static int RDEBUG(SEXP x) {
@@ -500,18 +814,49 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("SET_BODY");
   }
 
+  /** Replace the environment of a closure.
+   *
+   * @param x Pointer to a closure object.
+   *
+   * @param v Pointer to the environment now to be
+   *          considered as the environment of this closure.
+   *          R_NilValue is not permissible.
+   */
   public static void SET_CLOENV(SEXP x, SEXP v) {
     throw new UnimplementedGnuApiMethod("SET_CLOENV");
   }
 
+  /** Symbol name.
+   *
+   * @param x Pointer to a symbol.
+   *
+   * @return Pointer to a CHARSXP representing {@code x}'s name.
+   */
   public static SEXP PRINTNAME(SEXP x) {
     throw new UnimplementedGnuApiMethod("PRINTNAME");
   }
 
+  /**
+   * Symbol's value in the base environment.
+   *
+   * @param x Pointer to a symbol.
+   *
+   * @return Pointer to an R value representings {@code x}'s value.
+   *         Returns R_UnboundValue if no value is currently
+   *         associated with the Symbol.
+   */
   public static SEXP SYMVALUE(SEXP x) {
     throw new UnimplementedGnuApiMethod("SYMVALUE");
   }
 
+  /** Get function accessed via <tt>.Internal()</tt>.
+   *
+   * @param x Pointer to a symbol.
+   *
+   * @return If {@code x} is associated with a function invoked in R
+   * via <tt>.Internal()</tt>, then a pointer to the appropriate
+   * function, otherwise R_NilValue.
+   */
   public static SEXP INTERNAL(SEXP x) {
     throw new UnimplementedGnuApiMethod("INTERNAL");
   }
@@ -528,18 +873,51 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("SET_PRINTNAME");
   }
 
-  public static void SET_SYMVALUE(SEXP x, SEXP v) {
+  /**  Set symbol's value in the base environment.
+   *
+   * @param x Pointer to a symbol.
+   *
+   * @param val Pointer to the R value now to be considered as
+   *            the value of this symbol.  R_NilValue or
+   *            R_UnboundValue are permissible values of {@code val}
+   *
+   */
+  public static void SET_SYMVALUE(SEXP x, SEXP val) {
     throw new UnimplementedGnuApiMethod("SET_SYMVALUE");
   }
 
+  /**
+   * Associate a Symbol with a <tt>.Internal()</tt> function.
+   *
+   * @param x Pointer to a symbol.
+   *
+   * @param v Pointer to the builtin function to be
+   * associated by this symbol.  R_NilValue is permissible, and
+   * signifies that any previous association of {@code sym} with a
+   * function is to be removed from the table.
+   */
   public static void SET_INTERNAL(SEXP x, SEXP v) {
     throw new UnimplementedGnuApiMethod("SET_INTERNAL");
   }
 
+  /**  Access an environment's Frame, represented as a pairlist.
+   *
+   * @param x Pointer to an environment.
+   *
+   * @return Pointer to a pairlist representing the contents of the
+   * Frame of {@code x} (may be R_NilValue).
+   */
   public static SEXP FRAME(SEXP x) {
     throw new UnimplementedGnuApiMethod("FRAME");
   }
 
+  /**
+   *  Access enclosing environment.
+   *
+   * @param x Pointer to an environment.
+   *
+   * @return Pointer to the enclosing environment of {@code x}.
+   */
   public static SEXP ENCLOS(SEXP x) {
     throw new UnimplementedGnuApiMethod("ENCLOS");
   }
@@ -568,14 +946,42 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("SET_HASHTAB");
   }
 
+  /**
+   *  Access the expression of a promise.
+   *
+   * @param x Pointer to a promise.
+   *
+   * @return Pointer to the expression to be evaluated by the
+   *         promise.
+   */
   public static SEXP PRCODE(SEXP x) {
     throw new UnimplementedGnuApiMethod("PRCODE");
   }
 
+  /** Access the environment of a promise.
+   *
+   * @param x Pointer to a promise.
+   *
+   * @return Pointer to the environment in which the promise
+   *         is to be  evaluated.  Set to R_NilValue when the
+   *         promise has been evaluated.
+   */
   public static SEXP PRENV(SEXP x) {
-    throw new UnimplementedGnuApiMethod("PRENV");
+    Promise promise = (Promise) x;
+    if(promise.isEvaluated()) {
+      return Null.INSTANCE;
+    } else {
+      return promise.getEnvironment();
+    }
   }
 
+  /** Access the value of a promise.
+   *
+   * @param x Pointer to a promise.
+   *
+   * @return Pointer to the value of the promise, or to
+   *         R_UnboundValue if it has not yet been evaluated..
+   */
   public static SEXP PRVALUE(SEXP x) {
     throw new UnimplementedGnuApiMethod("PRVALUE");
   }
@@ -592,6 +998,16 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("SET_PRENV");
   }
 
+  /** Set the value of a promise.
+   *
+   * Once the value is set to something other than R_UnboundValue,
+   * the environment pointer is set to R_NilValue.
+   *
+   * @param x Pointer to a promise.
+   *
+   * @param v Pointer to the value to be assigned to the promise.
+   *
+   */
   public static void SET_PRVALUE(SEXP x, SEXP v) {
     throw new UnimplementedGnuApiMethod("SET_PRVALUE");
   }
@@ -625,7 +1041,7 @@ public final class Rinternals {
   }
 
   public static SEXP Rf_asChar(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_asChar");
+    return new GnuCharSexp(((AtomicVector) p0).getElementAsString(0));
   }
 
   public static SEXP Rf_coerceVector(SEXP p0, /*SEXPTYPE*/ int type) {
@@ -755,10 +1171,25 @@ public final class Rinternals {
     }
   }
 
-  public static SEXP Rf_allocList(int p0) {
+  /**
+   * Create a pairlist of a specified length.
+   *
+   * This constructor creates a pairlist with a specified
+   * number of elements.  On creation, each element has 'car' and 'tag'
+   * set to R_NilValue.
+   *
+   * @param n Number of elements required in the list.
+   *
+   * @return The constructed list, or R_NilValue if {@code n} is zero.
+   */
+  public static SEXP Rf_allocList(int n) {
     throw new UnimplementedGnuApiMethod("Rf_allocList");
   }
 
+  /** Create an S4 object.
+   *
+   * @return Pointer to the created object.
+   */
   public static SEXP Rf_allocS4Object() {
     throw new UnimplementedGnuApiMethod("Rf_allocS4Object");
   }
@@ -787,7 +1218,18 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_classgets");
   }
 
-  public static SEXP Rf_cons(SEXP p0, SEXP p1) {
+  /** Creates a pairlist with a specified car and tail.
+   *
+   * <p>This function protects its arguments from the garbage collector.
+   *
+   * @param cr Pointer to the 'car' of the element to be created.
+   *
+   * @param tl Pointer to the 'tail' of the element to be created,
+   *          which must be a pairlist or R_NilValue.
+   *
+   * @return Pointer to the constructed pairlist.
+   */
+  public static SEXP Rf_cons(SEXP cr, SEXP tl) {
     throw new UnimplementedGnuApiMethod("Rf_cons");
   }
 
@@ -799,7 +1241,23 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_copyListMatrix");
   }
 
-  public static void Rf_copyMostAttrib(SEXP p0, SEXP p1) {
+
+  /** Copy attributes, with some exceptions.
+   *
+   * <p>This is called in the case of binary operations to copy most
+   * attributes from one of the input arguments to the output.
+   * Note that the Dim, Dimnames and Names attributes are not
+   * copied: these should have been assigned elsewhere.  The
+   * function also copies the S4 object status.
+   *
+   * @param inp Pointer to the R value from which attributes are to
+   *          be copied.
+   *
+   * @param ans Pointer to the R value to which attributes are to be
+   *          copied.
+   *
+   */
+  public static void Rf_copyMostAttrib(SEXP inp, SEXP ans) {
     throw new UnimplementedGnuApiMethod("Rf_copyMostAttrib");
   }
 
@@ -835,6 +1293,9 @@ public final class Rinternals {
   }
 
   public static SEXP Rf_duplicate(SEXP sexp) {
+    if(sexp == Null.INSTANCE) {
+      return sexp;
+    }
     if(sexp instanceof DoubleVector) {
       return new DoubleArrayVector((DoubleVector)sexp);
     } else if(sexp instanceof IntVector) {
@@ -843,6 +1304,14 @@ public final class Rinternals {
       return new ComplexArrayVector((ComplexVector) sexp);
     } else if(sexp instanceof StringVector) {
       return new StringArrayVector((StringVector) sexp);
+    } else if(sexp instanceof S4Object) {
+      return new S4Object(sexp.getAttributes());
+    } else if(sexp instanceof ListVector) {
+      SEXP[] elements = ((ListVector) sexp).toArrayUnsafe();
+      for (int i = 0; i < elements.length; i++) {
+        elements[i] = Rf_duplicate(elements[i]);
+      }
+      return new ListVector(elements, sexp.getAttributes());
     }
     throw new UnimplementedGnuApiMethod("Rf_duplicate: " + sexp.getTypeName());
   }
@@ -863,28 +1332,82 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("R_envHasNoSpecialSymbols");
   }
 
-  public static SEXP Rf_eval(SEXP expr, SEXP rho) {
-    return Native.currentContext().evaluate(expr, (Environment) rho);
+  /**  Evaluate an object in a specified Environment.
+   *
+   * @param e Pointer to the object to be evaluated.
+   *
+   * @param rho Pointer to an Environment
+   *
+   * @return Pointer to the result of evaluating {@code e} in {@code rho}.
+   */
+  public static SEXP Rf_eval(SEXP e, SEXP rho) {
+    return Native.currentContext().evaluate(e, (Environment) rho);
   }
 
-  public static SEXP Rf_findFun(SEXP p0, SEXP p1) {
-    throw new UnimplementedGnuApiMethod("Rf_findFun");
+  public static SEXP Rf_findFun(SEXP rho, SEXP symbol) {
+    return ((Environment) rho).findFunction(Native.currentContext(), ((Symbol) symbol));
   }
 
-  public static SEXP Rf_findVar(SEXP p0, SEXP p1) {
-    throw new UnimplementedGnuApiMethod("Rf_findVar");
+  /**
+   * Find the binding of a symbol in an environment and its enclosing environments.
+   *
+   * <p>This function calls {@link #Rf_findVarInFrame3} on the given frame and its enclosing
+   * environments, until a binding is found or the empty environment is reached.
+   *
+   * @param symbol the {@code SYMSXP} that should be looked up
+   * @param rho an {@code ENVSXP} that is the starting point for the lookup
+   *
+   * @return Returns the binding value, or {@link #R_UnboundValue} if none was found.
+   *
+   */
+  public static SEXP Rf_findVar(SEXP symbol, SEXP rho) {
+    return ((Environment) rho).findVariable(((Symbol) symbol));
   }
 
-  public static SEXP Rf_findVarInFrame(SEXP p0, SEXP p1) {
-    throw new UnimplementedGnuApiMethod("Rf_findVarInFrame");
+  public static SEXP Rf_findVarInFrame(SEXP rho, SEXP symbol) {
+    return Rf_findVarInFrame3(rho, symbol, true);
   }
 
-  public static SEXP Rf_findVarInFrame3(SEXP p0, SEXP p1, boolean p2) {
-    throw new UnimplementedGnuApiMethod("Rf_findVarInFrame3");
+  /**
+   *  Find the binding for a symbol in a single environment.
+
+  /**
+   *
+   * <p>The lookup will query user defined databases if the environment is of class
+   * "UserDefinedDatabase" (using R_ObjectTable), and query active binding
+   * (R_MakeActiveBinding).
+   *
+   * @param rho an ENVSXP in which the lookup will take place
+   * @param symbol the SYMSXP that should be looked up
+   * @param doGet specifies if the lookup is done to get the value (TRUE), as opposed to
+   *     only determining whether there is a binding. The only effect is that, if this is
+   *     FALSE, R_ObjectTable::exists is called before calling R_ObjectTable::get.
+   *
+   * @return Returns the binding value, or {@link #R_UnboundValue} if none was found.
+   */
+  public static SEXP Rf_findVarInFrame3(SEXP rho, SEXP symbol, boolean doGet) {
+    return ((Environment) rho).getVariable((Symbol)symbol);
   }
 
-  public static SEXP Rf_getAttrib(SEXP sexp, SEXP attributeSexp) {
-    return sexp.getAttribute((Symbol)attributeSexp);
+
+  /**
+   *  Access a named attribute.
+   *
+   * @param vec Pointer to the R value whose attributes are to be
+   *          accessed.
+   *
+   * @param name Either a pointer to the symbol representing the
+   *          required attribute, or a pointer to a character vector
+   *          containing the required symbol name as the first element; in
+   *          the latter case, as a side effect, the corresponding
+   *          symbol is installed if necessary.
+   *
+   * @return Pointer to the requested attribute, or R_NilValue
+   *         if there is no such attribute.
+   *
+   */
+  public static SEXP Rf_getAttrib(SEXP vec, SEXP name) {
+    return vec.getAttribute((Symbol)name);
   }
 
   public static SEXP Rf_GetArrayDimnames(SEXP p0) {
@@ -921,6 +1444,20 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_gsetVar");
   }
 
+
+  /**
+   * Get a pointer to a regular Symbol object.
+   *
+   * <p>If no Symbol with the specified name currently exists, one will
+   * be created, and a pointer to it returned.  Otherwise a pointer
+   * to the existing Symbol will be returned.
+   *
+   * @param name The name of the required Symbol (CE_NATIVE encoding
+   *          is assumed).
+   *
+   * @return Pointer to a Symbol (preexisting or newly created) with
+   * the required name.
+   */
   public static SEXP Rf_install(BytePtr name) {
     return Symbol.get(name.nullTerminatedString());
   }
@@ -959,12 +1496,17 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_xlengthgets");
   }
 
-  public static SEXP R_lsInternal(SEXP p0, boolean p1) {
-    throw new UnimplementedGnuApiMethod("R_lsInternal");
+  public static SEXP R_lsInternal(SEXP env, boolean allNames) {
+    return Environments.ls((Environment) env, allNames);
   }
 
-  public static SEXP R_lsInternal3(SEXP p0, boolean p1, boolean p2) {
-    throw new UnimplementedGnuApiMethod("R_lsInternal3");
+  public static SEXP R_lsInternal3(SEXP env, boolean allNames, boolean sorted) {
+    StringVector names = Environments.ls((Environment) env, allNames);
+    if(sorted) {
+      return Sort.sort(names, false);
+    } else {
+      return names;
+    }
   }
 
   public static SEXP Rf_match(SEXP p0, SEXP p1, int p2) {
@@ -1049,14 +1591,33 @@ public final class Rinternals {
 
   // void Rf_readS3VarsFromFrame (SEXP, SEXP *, SEXP *, SEXP *, SEXP *, SEXP *, SEXP *)
 
-  public static SEXP Rf_setAttrib(SEXP sexp, SEXP attributeName, SEXP newValue) {
-    if(attributeName == null) {
+  /**
+   *  Set or remove a named attribute.
+   *
+   * @param vec Pointer to the value whose attributes are to be
+   *          modified.
+   *
+   * @param name Either a pointer to the symbol representing the
+   *          required attribute, or a pointer to a character vector
+   *          containing the required symbol name as the first element; in
+   *          the latter case, as a side effect, the corresponding
+   *          symbol is installed if necessary.
+   *
+   * @param val Either the value to which the attribute is to be
+   *          set, or R_NilValue.  In the latter case the
+   *          attribute (if present) is removed.
+   *
+   * @return Refer to source code.  (Sometimes vec, sometimes
+   * val, sometime R_NilValue ...)
+   */
+  public static SEXP Rf_setAttrib(SEXP vec, SEXP name, SEXP val) {
+    if(name == null) {
       throw new IllegalArgumentException("attributeName is NULL");
     }
-    Symbol attributeSymbol = (Symbol) attributeName;
-    AbstractSEXP abstractSEXP = (AbstractSEXP) sexp;
-    abstractSEXP.unsafeSetAttributes(sexp.getAttributes().copy().set(attributeSymbol, newValue));
-    return sexp;
+    Symbol attributeSymbol = (Symbol) name;
+    AbstractSEXP abstractSEXP = (AbstractSEXP) vec;
+    abstractSEXP.unsafeSetAttributes(vec.getAttributes().copy().set(attributeSymbol, val));
+    return vec;
   }
 
   // void Rf_setSVector (SEXP *, int, SEXP)
@@ -1089,11 +1650,26 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_translateChar0");
   }
 
-  public static BytePtr Rf_translateCharUTF8(SEXP p0) {
+  /**
+   *  Convert contents of a CHARSXP to UTF8.
+   *
+   * @param x Pointer to a CHARSXP.
+   *
+   * @return The text of {@code x} rendered in UTF8 encoding.
+   */
+  public static BytePtr Rf_translateCharUTF8(SEXP x) {
     throw new UnimplementedGnuApiMethod("Rf_translateCharUTF8");
   }
 
-  public static BytePtr Rf_type2char(/*SEXPTYPE*/ int p0) {
+  /** Name of type within R.
+   *
+   * Translate a SEXPTYPE to the name by which it is known within R.
+   *
+   * @param st The SEXPTYPE whose name is required.
+   *
+   * @return The SEXPTYPE's name within R.
+   */
+  public static BytePtr Rf_type2char(/*SEXPTYPE*/ int st) {
     throw new UnimplementedGnuApiMethod("Rf_type2char");
   }
 
@@ -1159,9 +1735,50 @@ public final class Rinternals {
 
   // cetype_t Rf_getCharCE (SEXP)
 
-  // SEXP Rf_mkCharCE (const char *, cetype_t)
+  /**
+   *  Get a pointer to a CHARSXP object.
+   *
+   * <p>If no CHARSXP with the specified text and encoding
+   * currently exists, one will be created.  Otherwise a pointer to
+   * the existing CHARSXP will be returned.
+   *
+   * @param str The null-terminated text of the required cached string.
+   *
+   * @param encoding The encoding of the required String.
+   *          Only CE_NATIVE, CE_UTF8 or CE_LATIN1 are permitted in
+   *          this context.
+   *
+   * @return Pointer to a string object representing the specified
+   *         text in the specified encoding.
+   */
+  public static SEXP Rf_mkCharCE (BytePtr str, Object encoding) {
+    throw new UnimplementedGnuApiMethod("Rf_mkCharCE");
+  }
 
-  // SEXP Rf_mkCharLenCE (const char *, int, cetype_t)
+  /** Create a CHARSXP object for specified text and
+   * encoding.
+   *
+   * <p>If no CHARSXP with the specified text and encoding
+   * currently exists, one will be created.  Otherwise a pointer to
+   * the existing CHARSXP will be returned.
+   *
+   * @param text The text of the string to be created, possibly
+   *          including embedded null characters.  The encoding is
+   *          assumed to be CE_NATIVE.
+   *
+   * @param length The length of the string pointed to by {@code text}.
+   *          Must be non-negative.  The created string will comprise
+   *          the text plus an appended null byte.
+   *
+   * @param encoding The encoding of the required String.
+   *          Only CE_NATIVE, CE_UTF8 or CE_LATIN1 are permitted in
+   *          this context.
+   *
+   * @return Pointer to the created string.
+   */
+  public static SEXP Rf_mkCharLenCE (BytePtr text, int length, Object encoding) {
+    throw new UnimplementedGnuApiMethod("Rf_mkCharLenCE");
+  }
 
   // const char* Rf_reEnc (const char *x, cetype_t ce_in, cetype_t ce_out, int subst)
 
@@ -1169,52 +1786,122 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("R_forceAndCall");
   }
 
+/* External pointer interface */
+
+  /** Create an external pointer object.
+   *
+   * @param p The pointer that the external pointer object is
+   *          to encapsulate.  May be NULL.
+   * @param tag Pointer to the tag object.  May be R_NilValue (and
+   *          often is).
+   * @param prot Pointer to the protege object.  May be R_NilValue
+   *          (and often is).
+   *
+   * @return Pointer to the created external pointer object.
+   */
   public static SEXP R_MakeExternalPtr(Object p, SEXP tag, SEXP prot) {
-    throw new UnimplementedGnuApiMethod("R_MakeExternalPtr");
+    return new ExternalPtr<>(p, tag, prot);
   }
 
+
+  /**
+   *  Get the encapsulated external pointer.
+   *
+   * @param s Pointer to an external pointer object.
+   *
+   * @return the external pointer encapsulated by {@code s}
+   */
   public static Object R_ExternalPtrAddr(SEXP s) {
-    throw new UnimplementedGnuApiMethod("R_ExternalPtrAddr");
+    return ((ExternalPtr) s).getInstance();
   }
 
+  /** Get pointer to tag object.
+   *
+   * @param s Pointer to an external pointer object.
+   *
+   * @return a pointer to the tag object of {@code s}.
+   */
   public static SEXP R_ExternalPtrTag(SEXP s) {
-    throw new UnimplementedGnuApiMethod("R_ExternalPtrTag");
+    return ((ExternalPtr) s).getTag();
   }
 
+  /** Get pointer to protege object.
+   *
+   * @param s Pointer to an external pointer object.
+   *
+   * @return a pointer to the protege object of {@code s}.
+   */
   public static SEXP R_ExternalPtrProtected(SEXP s) {
-    throw new UnimplementedGnuApiMethod("R_ExternalPtrProtected");
+    return ((ExternalPtr) s).getProtected();
   }
 
+  /**  Reset the encapsulated pointer to R_NilValue.
+   *
+   * @param s Pointer to an external pointer object.
+   */
   public static void R_ClearExternalPtr(SEXP s) {
-    throw new UnimplementedGnuApiMethod("R_ClearExternalPtr");
+    ((ExternalPtr<?>) s).unsafeSetAddress(null);
   }
 
+  /** Set the value of the encapsulated pointer
+   *
+   * @param s Pointer to an external pointer object.
+   *
+   * @param p New pointer value (may be NULL).
+   */
+  @SuppressWarnings("unchecked")
   public static void R_SetExternalPtrAddr(SEXP s, Object p) {
-    throw new UnimplementedGnuApiMethod("R_SetExternalPtrAddr");
+    ((ExternalPtr) s).unsafeSetAddress(p);
   }
 
+  /** Designate the tag object.
+   *
+   * @param s Pointer to an external pointer object.
+   *
+   * @param tag Pointer to the new tag object (or R_NilValue).
+   */
   public static void R_SetExternalPtrTag(SEXP s, SEXP tag) {
-    throw new UnimplementedGnuApiMethod("R_SetExternalPtrTag");
+    ((ExternalPtr) s).unsafeSetTag(tag);
   }
 
+  /** Designate the protege object.
+   *
+   * @param s Pointer to an external pointer object.
+   *
+   * @param p Pointer to the new protege object (or R_NilValue).
+   */
   public static void R_SetExternalPtrProtected(SEXP s, SEXP p) {
-    throw new UnimplementedGnuApiMethod("R_SetExternalPtrProtected");
+    ((ExternalPtr) s).unsafeSetProtected(p);
   }
 
   public static void R_RegisterFinalizer(SEXP s, SEXP fun) {
     throw new UnimplementedGnuApiMethod("R_RegisterFinalizer");
   }
 
-  // void R_RegisterCFinalizer (SEXP s, R_CFinalizer_t fun)
-
   public static void R_RegisterFinalizerEx(SEXP s, SEXP fun, boolean onexit) {
-    throw new UnimplementedGnuApiMethod("R_RegisterFinalizerEx");
+    Native.currentContext().getSession().registerFinalizer(s, new FinalizationClosure((Closure)fun), onexit);
   }
 
-  // void R_RegisterCFinalizerEx (SEXP s, R_CFinalizer_t fun, Rboolean onexit)
+  public static void R_RegisterCFinalizer (SEXP s, final MethodHandle fun) {
+    R_RegisterCFinalizerEx(s, fun, false);
+  }
+
+  public static void R_RegisterCFinalizerEx (SEXP s, final MethodHandle fun, boolean onexit) {
+    FinalizationHandler handler = new FinalizationHandler() {
+      @Override
+      public void finalize(Context context, SEXP sexp) {
+        try {
+          fun.invoke(sexp);
+        } catch (Throwable throwable) {
+          throw new RuntimeException(throwable);
+        }
+      }
+    };
+    Native.currentContext().getSession().registerFinalizer(s, handler, onexit);
+  }
 
   public static void R_RunPendingFinalizers() {
-    throw new UnimplementedGnuApiMethod("R_RunPendingFinalizers");
+    Native.currentContext().getSession().runFinalizers();
   }
 
   public static SEXP R_MakeWeakRef(SEXP key, SEXP val, SEXP fin, boolean onexit) {
@@ -1235,8 +1922,8 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("R_RunWeakRefFinalizer");
   }
 
-  public static SEXP R_PromiseExpr(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("R_PromiseExpr");
+  public static SEXP R_PromiseExpr(SEXP x) {
+    return ((Promise) x).getExpression();
   }
 
   public static SEXP R_ClosureExpr(SEXP p0) {
@@ -1355,11 +2042,24 @@ public final class Rinternals {
   // SEXP R_Unserialize (R_inpstream_t ips)
 
   public static SEXP R_do_slot(SEXP obj, SEXP name) {
-    throw new UnimplementedGnuApiMethod("R_do_slot");
+    Context context = Native.currentContext();
+    MethodDispatch methodDispatch = context.getSingleton(MethodDispatch.class);
+    return Subsetting.getSlotValue(context, methodDispatch, obj, ((Symbol) name));
   }
 
   public static SEXP R_do_slot_assign(SEXP obj, SEXP name, SEXP value) {
-    throw new UnimplementedGnuApiMethod("R_do_slot_assign");
+
+    /* Ensure that name is a symbol */
+    if(name instanceof StringVector && LENGTH(name) == 1) {
+      name = Symbol.get(name.asString());
+    } else if(name instanceof GnuCharSexp) {
+      name = Symbol.get(((GnuCharSexp) name).getValue().nullTerminatedString());
+    }
+    if(!(name instanceof Symbol)) {
+      throw new EvalException("invalid type or length for slot name");
+    }
+
+    return Methods.R_set_slot(Native.currentContext(), obj, name.asString(), value);
   }
 
   public static int R_has_slot(SEXP obj, SEXP name) {
@@ -1367,15 +2067,29 @@ public final class Rinternals {
   }
 
   public static SEXP R_do_MAKE_CLASS(BytePtr what) {
-    throw new UnimplementedGnuApiMethod("R_do_MAKE_CLASS");
+    if(what == null || what.array == null) {
+      throw new EvalException("C level MAKE_CLASS macro called with NULL string pointer");
+    }
+    Context context = Native.currentContext();
+    Namespace methodsNamespace = context.getNamespaceRegistry().getNamespace(context, "methods");
+
+    return context.evaluate(FunctionCall.newCall(Symbol.get("getClass"),
+        StringVector.valueOf(what.nullTerminatedString())));
   }
 
   public static SEXP R_getClassDef(BytePtr what) {
-    throw new UnimplementedGnuApiMethod("R_getClassDef");
+    if(what == null || what.array == null) {
+      throw new EvalException("R_getClassDef(.) called with NULL string pointer");
+    }
+
+    return R_getClassDef_R(StringArrayVector.valueOf(what.nullTerminatedString()));
   }
 
   public static SEXP R_getClassDef_R(SEXP what) {
-    throw new UnimplementedGnuApiMethod("R_getClassDef_R");
+    Context context = Native.currentContext();
+    Namespace methodsNamespace = context.getNamespaceRegistry().getNamespace(context, "methods");
+
+    return context.evaluate(FunctionCall.newCall(Symbol.get("getClassDef"), what));
   }
 
   public static boolean R_has_methods_attached() {
@@ -1391,12 +2105,96 @@ public final class Rinternals {
   }
 
   public static SEXP R_do_new_object(SEXP class_def) {
-    throw new UnimplementedGnuApiMethod("R_do_new_object");
+
+    if(class_def == null) {
+      throw new EvalException("C level NEW macro called with null class definition pointer");
+    }
+    SEXP virtual = R_do_slot(class_def, Symbol.get("virtual"));
+    SEXP className = R_do_slot(class_def, Symbol.get("className"));
+
+    if(virtual.asLogical() != Logical.FALSE)  { /* includes NA, TRUE, or anything other than FALSE */
+      throw new EvalException("trying to generate an object from a virtual class (\"%s\")", className.asString());
+    }
+    SEXP value = Rf_duplicate(R_do_slot(class_def, Symbol.get("prototype")));
+    if(value instanceof S4Object || Rf_getAttrib(className, R_PackageSymbol) != R_NilValue) {
+      /* Anything but an object from a base "class" (numeric, matrix,..) */
+      Rf_setAttrib(value, R_ClassSymbol, className);
+      SET_S4_OBJECT(value);
+    }
+    return value;
   }
 
-  // int R_check_class_and_super (SEXP x, const char **valid, SEXP rho)
+  /**
+   * Return the 0-based index of an is() match in a vector of class-name
+   * strings terminated by an empty string.  Returns -1 for no match.
+   *
+   * @param x  an R object, about which we want is(x, .) information.
+   * @param valid vector of possible matches terminated by an empty string.
+   * @param rho  the environment in which the class definitions exist.
+   *
+   * @return index of match or -1 for no match
+   */
+  public static int R_check_class_and_super (SEXP x, ObjectPtr<BytePtr> valid, SEXP rho) {
+    int ans;
+    SEXP cl = Rf_asChar(Rf_getAttrib(x, R_ClassSymbol));
+    BytePtr class_ = R_CHAR(cl);
+    for (ans = 0; ; ans++) {
+      if (Stdlib.strlen(valid.get(ans)) == 0) { // empty string
+        break;
+      }
+      if (Stdlib.strcmp(class_, valid.get(ans)) == 0) {
+        return ans;
+      }
+    }
+    /* if not found directly, now search the non-virtual super classes :*/
+    if(IS_S4_OBJECT(x) != 0) {
+        /* now try the superclasses, i.e.,  try   is(x, "....");  superCl :=
+           .selectSuperClasses(getClass("....")@contains, dropVirtual=TRUE)  */
+      SEXP classExts, superCl, _call;
+      Symbol s_contains      = Symbol.get("contains");
+      Symbol s_selectSuperCl = Symbol.get(".selectSuperClasses");
+      SEXP classDef = R_getClassDef(class_);
+      classExts = R_do_slot(classDef, s_contains);
+      _call = Rf_lang3(s_selectSuperCl, classExts,
+                              /* dropVirtual = */ Rf_ScalarLogical(1));
+      superCl = Rf_eval(_call, rho);
+      for(int i=0; i < LENGTH(superCl); i++) {
+        BytePtr s_class = R_CHAR(STRING_ELT(superCl, i));
+        for (ans = 0; ; ans++) {
+          if (Stdlib.strlen(valid.get(ans)) == 0) {
+            break;
+          }
+          if (Stdlib.strcmp(s_class, valid.get(ans)) == 0) {
+            return ans;
+          }
+        }
+      }
+    }
+    return -1;
+  }
 
-  // int R_check_class_etc (SEXP x, const char **valid)
+  public static int R_check_class_etc (SEXP x, ObjectPtr<BytePtr> valid) {
+    SEXP cl = Rf_getAttrib(x, R_ClassSymbol);
+    SEXP rho = R_GlobalEnv;
+    SEXP pkg;
+    Symbol meth_classEnv = Symbol.get(".classEnv");
+
+    pkg = Rf_getAttrib(cl, R_PackageSymbol); /* ==R== packageSlot(class(x)) */
+    if(!Rf_isNull(pkg)) { /* find  rho := correct class Environment */
+      SEXP clEnvCall;
+      // FIXME: fails if 'methods' is not loaded.
+      clEnvCall = Rf_lang2(meth_classEnv, cl);
+      rho = Rf_eval(clEnvCall, methodsNamespace());
+      if(!Rf_isEnvironment(rho)) {
+        throw new EvalException("could not find correct environment; please report!");
+      }
+    }
+    return R_check_class_and_super(x, valid, rho);
+  }
+
+  private static Environment methodsNamespace() {
+    return Native.currentContext().getNamespaceRegistry().getNamespaceIfPresent(Symbol.get("methods")).get().getNamespaceEnvironment();
+  }
 
   public static void R_PreserveObject(SEXP p0) {
     // NOOP
@@ -1428,8 +2226,21 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("R_orderVector");
   }
 
-  public static SEXP Rf_allocVector(/*SEXPTYPE*/ int type, /*R_xlen_t*/ int length) {
-    switch (type) {
+  /**
+   * Create a vector object.
+   *
+   *  Allocate a vector object.  This ensures only validity of
+   *  SEXPTYPE values representing lists (as the elements must be
+   *  initialized).
+   *
+   * @param stype The type of vector required.
+   *
+   * @param length The length of the vector to be created.
+   *
+   * @return Pointer to the created vector.
+   */
+  public static SEXP Rf_allocVector(/*SEXPTYPE*/ int stype, /*R_xlen_t*/ int length) {
+    switch (stype) {
       case SexpType.INTSXP:
         return new IntArrayVector(new int[length]);
       case SexpType.REALSXP:
@@ -1442,8 +2253,10 @@ public final class Rinternals {
         return new ListVector(elements);
       case SexpType.STRSXP:
         return new GnuStringVector(new BytePtr[length]);
+      case SexpType.RAWSXP:
+        return new RawVector(new byte[length]);
     }
-    throw new UnimplementedGnuApiMethod("Rf_allocVector: type = " + type);
+    throw new UnimplementedGnuApiMethod("Rf_allocVector: type = " + stype);
   }
 
   public static boolean Rf_conformable(SEXP p0, SEXP p1) {
@@ -1497,13 +2310,10 @@ public final class Rinternals {
   public static boolean Rf_isNumber(SEXP p0) {
     if(p0 instanceof IntVector) {
       return !p0.inherits("factor");
-    } else if(
-        p0 instanceof LogicalVector ||
-        p0 instanceof DoubleVector ||
-        p0 instanceof ComplexVector) {
-      return true;
     } else {
-      return false;
+      return p0 instanceof LogicalVector ||
+          p0 instanceof DoubleVector ||
+          p0 instanceof ComplexVector;
     }
   }
 
@@ -1535,6 +2345,15 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_isValidStringF");
   }
 
+  /** Is an R value a vector?
+   *
+   * Vector in this context embraces R matrices and arrays.
+   *
+   * @param s Pointer to the R value to be tested.  The value may be
+   *          R_NilValue, in which case the function returns FALSE.
+   *
+   * @return TRUE iff {@code s} points to a vector object.
+   */
   public static boolean Rf_isVector(SEXP s) {
     return s instanceof Vector;
   }
@@ -1579,8 +2398,20 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_lastElt");
   }
 
-  public static SEXP Rf_lcons(SEXP p0, SEXP p1) {
-    return new FunctionCall(p0, (PairList) p1);
+  /**
+   *  Create an Expression with a specified car and tail.
+   *
+   * This function protects its arguments from the garbage collector.
+   *
+   * @param cr Pointer to the 'car' of the element to be created.
+   *
+   * @param tl Pointer to the 'tail' of the element to be created,
+   *          which must be a pairlist or R_NilValue.
+   *
+   * @return Pointer to the constructed list.
+   */
+  public static SEXP Rf_lcons(SEXP cr, SEXP tl) {
+    return new FunctionCall(cr, (PairList) tl);
   }
 
   public static int Rf_length (SEXP sexp) {
@@ -1685,20 +2516,73 @@ public final class Rinternals {
     return p0.length();
   }
 
-  public static SEXP Rf_protect(SEXP p0) {
+  /** Push a node pointer onto the C pointer protection stack.
+   *
+   * <p>In Renjin, this is a NO-OP.</p>
+   *
+   * @param node Pointer to the node to be protected from the
+   *          garbage collector.
+   * @return a copy of {@code node}
+   */
+  public static SEXP Rf_protect(SEXP node) {
     // NOOP
-    return p0;
+    return node;
   }
 
-  public static void Rf_unprotect(int p0) {
+  /**
+   *  Pop cells from the C pointer protection stack.
+   *
+   * <p>In Renjin, this is a NO-OP.</p>
+   *
+   * @param count Number of cells to be popped.  Must not be
+   *          larger than the current size of the C pointer
+   *          protection stack.
+   */
+  public static void Rf_unprotect(int count) {
     // NOOP
   }
 
-  public static void R_ProtectWithIndex(SEXP p0, /*PROTECT_INDEX **/ IntPtr p1) {
+
+  /**
+   *
+   * Push a node pointer onto the C pointer protection stack.
+   *
+   * <p>Push a node pointer onto the C pointer protection stack, and
+   * record the index of the resulting stack cell (for subsequent
+   * use with R_Reprotect).
+   *
+   * <p>In Renjin, this is a NO-OP.
+   *
+   * @param node Pointer to the node to be protected from the
+   *          garbage collector.
+   *
+   * @param iptr Pointer to a location in which the stack cell index
+   *          is to be stored.
+   */
+  public static void R_ProtectWithIndex(SEXP node, /*PROTECT_INDEX **/ IntPtr iptr) {
     // NOOP
   }
 
-  public static void R_Reprotect(SEXP p0, /*PROTECT_INDEX*/ int p1) {
+  /** Retarget a cell in the C pointer protection stack.
+   *
+   * <p>Change the node that a particular cell in the C pointer
+   * protection stack protects.  As a consistency check, it is
+   * required that the reprotect takes place within the same
+   * ProtectStack::Scope as the original protect.
+   *
+   * <p>In Renjin, this is a NO-OP.</p>
+   *
+   * @param node Pointer to the node now to be protected from
+   *          the garbage collector by the designated stack
+   *          cell.  (Not necessarily a different node from the
+   *          one currently protected.)
+   *
+   * @param index Index (as returned by R_ProtectWithIndex() ) of
+   *          the stack cell to be retargeted to node.  Must be less
+   *          than the current size of the C pointer protection
+   *          stack.
+   */
+  public static void R_Reprotect(SEXP node, /*PROTECT_INDEX*/ int index) {
     // NOOP
   }
 

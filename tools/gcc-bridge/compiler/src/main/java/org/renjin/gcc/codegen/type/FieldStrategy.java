@@ -35,14 +35,16 @@ public abstract class FieldStrategy {
 
 
   /**
-   * Returns a {@code {@link GExpr} for this field of the given {@code instance}.
+   * Returns a {@code {@link GExpr} for this field of the given {@code instance}. The {@code expectedType}
+   * parameter is used as a hint in order to support unioned fields.
    * 
    * @param instance the instance of the class from which to access the member
    * @param offset the offset, in bits, from the <em>start</em> of this field.
    * @param size The size of the value, in bits, to access.
-   * @param expectedType The strategy for the expected type of the field.
+   * @param expectedType The strategy for the expected type of the field, or {@code null} if the
+   * fields declared type should be returned.
    */
-  public abstract GExpr memberExpr(JExpr instance, int offset, int size, TypeStrategy expectedType);
+  public abstract GExpr memberExpr(MethodGenerator mv, JExpr instance, int offset, int size, TypeStrategy expectedType);
   
   public abstract void copy(MethodGenerator mv, JExpr source, JExpr dest);
   

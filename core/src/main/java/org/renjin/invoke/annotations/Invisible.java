@@ -18,16 +18,14 @@
  */
 package org.renjin.invoke.annotations;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
  * Indicates that the global visibility flag should
  * set to false after this function finishes evaluation.
  *
  */
+@Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface Invisible {

@@ -137,6 +137,9 @@ public class BytePtr implements Ptr {
     if(voidPointer instanceof MallocThunk) {
       return ((MallocThunk) voidPointer).bytePtr();
     }
+    if(voidPointer == null) {
+      return NULL;
+    }
     return (BytePtr) voidPointer;
   }
 }

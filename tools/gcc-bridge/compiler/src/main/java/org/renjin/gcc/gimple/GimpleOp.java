@@ -18,29 +18,67 @@
  */
 package org.renjin.gcc.gimple;
 
+import org.renjin.gcc.gimple.expr.GimpleExpr;
+import org.renjin.repackaged.guava.base.Joiner;
+
+import java.util.List;
+
 /**
  * Enumeration of Gimple operations
  */
 public enum GimpleOp {
-  NOP_EXPR, MULT_EXPR, RDIV_EXPR,
+  NOP_EXPR {
+    @Override
+    public String format(List<GimpleExpr> operands) {
+      return operands.get(0).toString();
+    }
+  },
 
+  MULT_EXPR {
+    @Override
+    public String format(List<GimpleExpr> operands) {
+      return GimpleOp.infix("*", operands);
+    }
+  },
 
-  ABS_EXPR, 
-  
+  RDIV_EXPR {
+    @Override
+    public String format(List<GimpleExpr> operands) {
+      return GimpleOp.infix("/", operands);
+    }
+  },
+
+  ABS_EXPR,
+
   MIN_EXPR,
   MAX_EXPR,
 
-  ADDR_EXPR,
+  ADDR_EXPR {
+    @Override
+    public String format(List<GimpleExpr> operands) {
+      return "&" + operands.get(0);
+    }
+  },
 
   /**
    * Converting integer to real
    */
-  FLOAT_EXPR,
+  FLOAT_EXPR {
+    @Override
+    public String format(List<GimpleExpr> operands) {
+      return "(float)" + operands.get(0);
+    }
+  },
 
   /**
    * Truncate float to integer
    */
-  FIX_TRUNC_EXPR,
+  FIX_TRUNC_EXPR {
+    @Override
+    public String format(List<GimpleExpr> operands) {
+      return GimpleOp.call("trunc", operands);
+    }
+  },
 
   /**
    * The EXACT_DIV_EXPR code is used to represent integer divisions where the numerator is
@@ -48,47 +86,227 @@ public enum GimpleOp {
    *  backend to choose between the faster of TRUNC_DIV_EXPR, CEIL_DIV_EXPR and
    *  FLOOR_DIV_EXPR for the current target
    */
-  EXACT_DIV_EXPR,
-  
-  TRUNC_DIV_EXPR,
+  EXACT_DIV_EXPR {
+    @Override
+    public String format(List<GimpleExpr> operands) {
+      return GimpleOp.infix("/", operands);
+    }
+  },
+
+  TRUNC_DIV_EXPR {
+    @Override
+    public String format(List<GimpleExpr> operands) {
+      return GimpleOp.infix("/", operands);
+    }
+  },
 
   /**
    * Real Constant
    */
-  REAL_CST,
+  REAL_CST {
+    @Override
+    public String format(List<GimpleExpr> operands) {
+      return "(real)" + operands.get(0);
+    }
+  },
 
   /**
    * Integer Constant
    */
-  INTEGER_CST,
+  INTEGER_CST {
+    @Override
+    public String format(List<GimpleExpr> operands) {
+      return "(int)" + operands.get(0);
+    }
+  },
 
-  STRING_CST,
-  
-  NE_EXPR, EQ_EXPR, LT_EXPR, GT_EXPR, LE_EXPR, GE_EXPR,
+  STRING_CST {
+    @Override
+    public String format(List<GimpleExpr> operands) {
+      return "(string)" + operands.get(0);
+    }
+  },
 
-  TRUTH_NOT_EXPR,
-  TRUTH_XOR_EXPR,
-  TRUTH_OR_EXPR, 
-  TRUTH_AND_EXPR,
+  NE_EXPR {
+    @Override
+    public String format(List<GimpleExpr> operands) {
+      return GimpleOp.infix("!=", operands);
+    }
+  },
 
-  POINTER_PLUS_EXPR, INDIRECT_REF, PLUS_EXPR, MINUS_EXPR, SSA_NAME,
+  EQ_EXPR {
+    @Override
+    public String format(List<GimpleExpr> operands) {
+      return GimpleOp.infix("==", operands);
+    }
+  },
+  LT_EXPR {
+    @Override
+    public String format(List<GimpleExpr> operands) {
+      return GimpleOp.infix("<", operands);
+    }
+  },
 
-  PARM_DECL,
+  GT_EXPR {
+    @Override
+    public String format(List<GimpleExpr> operands) {
+      return GimpleOp.infix(">", operands);
+    }
+  },
 
-  VAR_DECL,
+  LE_EXPR {
+    @Override
+    public String format(List<GimpleExpr> operands) {
+      return GimpleOp.infix("<=", operands);
+    }
+  },
 
-  COMPONENT_REF, ARRAY_REF, MEM_REF,
+  GE_EXPR {
+    @Override
+    public String format(List<GimpleExpr> operands) {
+      return GimpleOp.infix(">=", operands);
+    }
+  },
 
-  BIT_NOT_EXPR,
-  BIT_AND_EXPR,
-  
-  BIT_IOR_EXPR,
-  BIT_XOR_EXPR,
-  LSHIFT_EXPR,
-  RSHIFT_EXPR,
+  TRUTH_NOT_EXPR {
+    @Override
+    public String format(List<GimpleExpr> operands) {
+      return "!" + operands.get(0);
+    }
+  },
+  TRUTH_XOR_EXPR {
+    @Override
+    public String format(List<GimpleExpr> operands) {
+      return GimpleOp.infix("^", operands);
+    }
+  },
+  TRUTH_OR_EXPR {
+    @Override
+    public String format(List<GimpleExpr> operands) {
+      return GimpleOp.infix("||", operands);
+    }
+  },
+  TRUTH_AND_EXPR {
+    @Override
+    public String format(List<GimpleExpr> operands) {
+      return GimpleOp.infix("&&", operands);
+    }
+  },
+
+  POINTER_PLUS_EXPR {
+    @Override
+    public String format(List<GimpleExpr> operands) {
+      return GimpleOp.infix("+", operands);
+    }
+  },
+
+  INDIRECT_REF,
+
+
+  PLUS_EXPR {
+    @Override
+    public String format(List<GimpleExpr> operands) {
+      return GimpleOp.infix("+", operands);
+    }
+  },
+
+  MINUS_EXPR {
+    @Override
+    public String format(List<GimpleExpr> operands) {
+      return GimpleOp.infix("-", operands);
+    }
+  },
+
+  SSA_NAME {
+    @Override
+    public String format(List<GimpleExpr> operands) {
+      return operands.get(0).toString();
+    }
+  },
+
+  PARM_DECL {
+    @Override
+    public String format(List<GimpleExpr> operands) {
+      return operands.get(0).toString();
+    }
+  },
+
+  VAR_DECL {
+    @Override
+    public String format(List<GimpleExpr> operands) {
+      return operands.get(0).toString();
+    }
+  },
+
+  COMPONENT_REF {
+    @Override
+    public String format(List<GimpleExpr> operands) {
+      assert operands.size() == 1;
+      return operands.get(0).toString();
+    }
+  },
+
+  ARRAY_REF {
+    @Override
+    public String format(List<GimpleExpr> operands) {
+      assert operands.size() == 1;
+      return operands.get(0).toString();
+    }
+  },
+
+  MEM_REF {
+    @Override
+    public String format(List<GimpleExpr> operands) {
+      assert operands.size() == 1;
+      return operands.get(0).toString();
+    }
+  },
+
+  BIT_NOT_EXPR {
+    @Override
+    public String format(List<GimpleExpr> operands) {
+      return "~" + operands.get(0);
+    }
+  },
+  BIT_AND_EXPR {
+    @Override
+    public String format(List<GimpleExpr> operands) {
+      return GimpleOp.infix("&", operands);
+    }
+  },
+
+  BIT_IOR_EXPR {
+    @Override
+    public String format(List<GimpleExpr> operands) {
+      return GimpleOp.infix("|", operands);
+    }
+  },
+  BIT_XOR_EXPR {
+    @Override
+    public String format(List<GimpleExpr> operands) {
+      return GimpleOp.infix("^^", operands);
+    }
+  },
+  LSHIFT_EXPR {
+    @Override
+    public String format(List<GimpleExpr> operands) {
+      return GimpleOp.infix("<<", operands);
+    }
+  },
+  RSHIFT_EXPR {
+    @Override
+    public String format(List<GimpleExpr> operands) {
+      return GimpleOp.infix(">>", operands);
+    }
+  },
   LROTATE_EXPR,
-  
-  NEGATE_EXPR,
+
+  NEGATE_EXPR {
+    @Override
+    public String format(List<GimpleExpr> operands) {
+      return "-" + operands.get(0);
+    }
+  },
 
   /**
    * From GCC source code: Represents a re-association barrier for floating
@@ -97,24 +315,74 @@ public enum GimpleOp {
   PAREN_EXPR,
 
   /**
-   * From GCC source code: Additional relational operators for floating point
-   * unordered.
+   * Take two floating point operands and determine whether they are ordered or unordered relative to each other.
+   * If b operand is an IEEE NaN, their comparison is defined to be unordered.
+   */
+  ORDERED_EXPR,
+
+  /**
+   * Take two floating point operands and determine whether they are ordered or unordered relative to each other.
+   * If either operand is an IEEE NaN, their comparison is defined to be unordered.
    */
   UNORDERED_EXPR,
 
-  CONVERT_EXPR, TRUNC_MOD_EXPR,
+  /**
+   *  Returns true if either operand is an IEEE NaN or the first operand is less than the second.
+   */
+  UNLT_EXPR,
+
+  /**
+   *  Returns true if either operand is an IEEE NaN or the first operand is less than or equal to the second.
+   */
+  UNLE_EXPR,
+
+  /**
+   *  Returns true if either operand is an IEEE NaN or the first operand is greater than the second.
+   */
+  UNGT_EXPR,
+
+  /**
+   *  Returns true if either operand is an IEEE NaN or the first operand is greater than or equal to the second.
+   */
+  UNGE_EXPR,
+
+  /**
+   *  Returns true if either operand is an IEEE NaN or the first operand is equal to the second.
+   */
+  UNEQ_EXPR,
+
+
+  /**
+   *  Returns true if either operand is an IEEE NaN or the first operand is equal to the second.
+   */
+  LTGT_EXPR,
+
+
+  CONVERT_EXPR,
+
+  TRUNC_MOD_EXPR,
 
   CONSTRUCTOR,
 
   /**
    * Extracts the real part of complex number expression
    */
-  REALPART_EXPR,
+  REALPART_EXPR {
+    @Override
+    public String format(List<GimpleExpr> operands) {
+      return GimpleOp.call("Re", operands);
+    }
+  },
 
   /**
    * Extracts the imaginary part of a complex number expression
    */
-  IMAGPART_EXPR,
+  IMAGPART_EXPR {
+    @Override
+    public String format(List<GimpleExpr> operands) {
+      return GimpleOp.call("Im", operands);
+    }
+  },
 
 
   /**
@@ -128,8 +396,24 @@ public enum GimpleOp {
    * Complex conjugate expression
    */
   CONJ_EXPR,
-  
-  BIT_FIELD_REF
-  
-  
+
+  BIT_FIELD_REF {
+    @Override
+    public String format(List<GimpleExpr> operands) {
+      return operands.get(0).toString();
+    }
+  };
+
+  public String format(List<GimpleExpr> operands) {
+    return call(name().replace("_EXPR", "").toLowerCase(), operands);
+  }
+
+  private static String infix(String op, List<GimpleExpr> operands) {
+    return operands.get(0) + " " + op + " " + operands.get(1);
+  }
+
+  private static String call(String name, List<GimpleExpr> operands) {
+    return name + "(" + Joiner.on(", ").join(operands) + ")";
+  }
+
 }

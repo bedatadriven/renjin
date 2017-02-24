@@ -32,9 +32,12 @@ import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.io.ByteStreams;
 import org.renjin.sexp.*;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -213,8 +216,11 @@ public class Files {
    * @throws FileSystemException
    */
   @Internal("file.exists")
-  @DataParallel
+  @DataParallel(value = PreserveAttributeStyle.NONE, passNA = true)
   public static boolean fileExists(@Current Context context, String path) throws FileSystemException {
+    if(path == null) {
+      return false;
+    }
     return context.resolveFile(path).exists();
   }
 
@@ -311,6 +317,28 @@ public class Files {
 
     context.setInvisibleFlag();
     return new LogicalArrayVector(true);
+  }
+
+  /**
+   * Checks if input directory exists.
+
+   * @param context the current call Context
+   * @param paths character vectors containing file or directory paths.
+   *              Tilde expansion (see ‘path.expand’) is done.
+   * @return true if the operation succeeded for each of the directory attempted.
+   *  Using a missing value for a path name will always be regarded as a failure.
+   *  returns false if the directory already exists
+   */
+  @DataParallel(value = PreserveAttributeStyle.NONE, passNA = true)
+  @Internal("dir.exists")
+  public static boolean dirExists(@Current Context context, String uri) throws FileSystemException {
+
+    if(uri == null) {
+      return false;
+    }
+
+    FileObject fileObject = context.resolveFile(uri);
+    return fileObject.exists() && fileObject.getType() == FileType.FOLDER;
   }
 
   /**
@@ -544,6 +572,7 @@ public class Files {
         if(file.getChildren().length == 0) {
           file.delete();
         } else if(recursive) {
+          file.delete(new AllFileSelector());
           file.delete();
         }
       }

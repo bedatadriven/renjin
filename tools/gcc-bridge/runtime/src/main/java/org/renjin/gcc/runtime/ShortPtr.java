@@ -85,6 +85,9 @@ public class ShortPtr implements Ptr {
     if(voidPointer instanceof MallocThunk) {
       return ((MallocThunk) voidPointer).shortPtr();
     }
+    if(voidPointer == null) {
+      return NULL;
+    }
     return (ShortPtr) voidPointer;  
   }
 }

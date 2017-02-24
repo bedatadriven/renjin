@@ -52,18 +52,15 @@
               <debug>true</debug>
               <keepScriptFile>false</keepScriptFile>
               <script>
-                GCCPLUGINS_DIR=`gcc-4.6 -print-file-name=plugin`
+                GCCPLUGINS_DIR=`gcc-4.7 -print-file-name=plugin`
                 OUTPUT_DIR=${basedir}/target/classes/org/renjin/gcc/
                 SRC_DIR=${basedir}/src/main/c
                 WORK_DIR=${basedir}/target/objs
+                CXXFLAGS="-I$GCCPLUGINS_DIR/include -fPIC -fno-rtti -O2"
                 mkdir -p $OUTPUT_DIR
                 mkdir -p $WORK_DIR
-                gcc-4.6 -I$GCCPLUGINS_DIR/include -fPIC -c -o $WORK_DIR/plugin.o $SRC_DIR/plugin.c
-                RETVAL=$?
-                if [ $RETVAL -ne 0 ]; then
-                  exit $RETVAL
-                fi
-                gcc-4.6 ${gccLinkFlag} -o $OUTPUT_DIR/gcc-bridge-${envClassifier}.so $WORK_DIR/plugin.o
+                g++-4.7 -shared $CXXFLAGS $SRC_DIR/plugin.c -o $OUTPUT_DIR/gcc-bridge-${envClassifier}.so
+                #exit $?
               </script>
             </configuration>
           </execution>

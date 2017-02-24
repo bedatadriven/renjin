@@ -21,6 +21,9 @@ package org.renjin.gnur.api;
 
 import org.renjin.gcc.runtime.CharPtr;
 
+/**
+ * GNU R API methods defined in the "R_ext/GraphicsDevice.h" header file
+ */
 @SuppressWarnings("unused")
 public final class GraphicsDevice {
 

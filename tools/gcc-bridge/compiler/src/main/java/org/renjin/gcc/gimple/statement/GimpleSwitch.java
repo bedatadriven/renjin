@@ -67,8 +67,17 @@ public class GimpleSwitch extends GimpleStatement {
       this.basicBlockIndex = basicBlockIndex;
     }
 
-    public String toString(){
-      return String.format("[ %d, %d]: %d",this.low,this.high,this.basicBlockIndex);
+    public String toString() {
+      StringBuilder s = new StringBuilder();
+      s.append("case ");
+      if(this.low == this.high) {
+        s.append(this.low);
+      } else {
+        s.append(this.low).append("-").append(high);
+      }
+      s.append(": goto ");
+      s.append(this.basicBlockIndex);
+      return s.toString();
     }
 
     public int getRange() {
@@ -163,11 +172,10 @@ public class GimpleSwitch extends GimpleStatement {
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    sb.append("gimple_switch<").append(value).append("\n");
-
+    sb.append("switch(").append(value).append(") {");
     Joiner.on("\n").appendTo(sb, cases);
     if(defaultCase!=null) {
-      sb.append(String.format("\nDefault: goto %d",defaultCase.basicBlockIndex));
+      sb.append(String.format("\ndefault: goto %d",defaultCase.basicBlockIndex));
     }
     return sb.toString();
   }

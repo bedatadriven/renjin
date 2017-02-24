@@ -22,6 +22,7 @@ import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
+
 public class SocketConnection implements Connection {
 
   private final Socket socket;
@@ -58,6 +59,14 @@ public class SocketConnection implements Connection {
   public PrintWriter getPrintWriter() throws IOException {
     if(this.writer == null) {
       this.writer = new PrintWriter(getOutputStream());
+    }
+    return this.writer;
+  }
+
+  @Override
+  public PrintWriter getOpenPrintWriter() {
+    if(this.writer == null) {
+      throw new IllegalStateException("not open");
     }
     return this.writer;
   }

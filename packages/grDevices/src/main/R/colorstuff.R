@@ -14,8 +14,7 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-colors <- function() .Internal(colors())
-colours <- colors
+
 col2rgb <- function(col, alpha=FALSE) {
   result <- .Internal(col2rgb(col))
   if (!alpha)

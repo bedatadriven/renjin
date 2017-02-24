@@ -25,13 +25,9 @@ import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.FunPtr;
 import org.renjin.gcc.runtime.IntPtr;
-import org.renjin.gnur.sexp.GnuSymbol;
-import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.IntVector;
 import org.renjin.sexp.SEXP;
-
-import java.util.Set;
 
 /**
  * Emulation of the C API for code compiled via GCC.
@@ -50,10 +46,6 @@ public class RenjinCApi {
   public static final double R_NaN = Double.NaN;
 
   public static final double R_PosInf = Double.POSITIVE_INFINITY;
-
-  public static final GnuSymbol R_DimSymbol = new GnuSymbol("dim")  ;
-  
-  public static final Set<GnuSymbol> SYMBOL_TABLE = Sets.newHashSet();
 
   public static void warning(BytePtr text) {
     java.lang.System.out.println(text.nullTerminatedString());

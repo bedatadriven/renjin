@@ -76,10 +76,8 @@ public class RecordTypeStrategyBuilder {
     }
   }
 
-  public void build(TreeLogger parentLogger) {
+  public void build(TreeLogger logger) {
 
-    TreeLogger logger = parentLogger.branch("Building RecordTypeStrategies...");
-    
     // The first thing we need to do is identify UnionSets, which tell us
     // which record types need to have a compatible layout in memory.
     
@@ -94,10 +92,10 @@ public class RecordTypeStrategyBuilder {
       try {
         if (set.isSingleton()) {
           // Simple case, we can do as we like
-          buildSingleton(logger, set);
+          buildSingleton(set);
 
         } else {
-          buildUnion(setLogger, set);
+          buildUnion(set);
         }
       } catch (Exception e) {
         dumpSet(set, e);
@@ -108,6 +106,17 @@ public class RecordTypeStrategyBuilder {
     // FieldGenerators
     for (RecordLayout layout : layouts) {
       layout.linkFields(typeOracle);
+    }
+
+    // Write details to logging if enabled
+    if(logger.isEnabled()) {
+      for (GimpleRecordTypeDef recordTypeDef : recordTypeDefs) {
+        String name = recordTypeDef.getName();
+        if(name == null) {
+          name = "anonymous_" + recordTypeDef.getId();
+        }
+        logger.dump("records", name, "def", recordTypeDef);
+      }
     }
   }
 
@@ -145,7 +154,7 @@ public class RecordTypeStrategyBuilder {
    * Builds a strategy for a "normal" record type that is not unioned with
    * any other record types.
    */
-  private void buildSingleton(TreeLogger logger, UnionSet set) {
+  private void buildSingleton(UnionSet set) {
     
     if(isProvided(set.singleton())) {
       typeOracle.addRecordType(set.singleton(), providedTypeStrategy(set.singleton()));
@@ -154,19 +163,18 @@ public class RecordTypeStrategyBuilder {
       buildEmpty(set);
       
     } else if(set.getTypeSet().isBestRepresentableAsArray()) {
-      typeOracle.addRecordType(set.singleton(), 
+      typeOracle.addRecordType(set.singleton(),
           new RecordArrayTypeStrategy(set.singleton(), set.getTypeSet().uniquePrimitiveType()));
 
     } else {
       // Otherwise, we need to build a JVM class for this record
-      buildClassStrategy(logger, set);
+      buildClassStrategy(set);
     }
   }
   
-  private void buildUnion(TreeLogger logger, UnionSet set) {
+  private void buildUnion(UnionSet set) {
     
     if(set.getTypeSet().isEmpty()) {
-      logger.debug("Using EmptyRecordStrategy.");
       buildEmpty(set);
     
     } else {
@@ -174,26 +182,21 @@ public class RecordTypeStrategyBuilder {
       // Try to see if we can represent all values in the type 
       Optional<Type> commonType = set.getTypeSet().tryComputeCommonType();
       if (commonType.isPresent()) {
-        logger.debug("Using RecordArrayTypeStrategy: " + commonType.get());
-
         for (GimpleRecordTypeDef typeDef : set.getAllTypes()) {
           typeOracle.addRecordType(typeDef, new RecordArrayTypeStrategy(typeDef, commonType.get()));
         }
       } else {
         // Fields are heterogeneous, 
         // we need to construct a class for this union
-        buildClassStrategy(logger, set);
+        buildClassStrategy(set);
       }
     }
   }
 
-  private void buildClassStrategy(TreeLogger logger, UnionSet set) {
+  private void buildClassStrategy(UnionSet set) {
     
     RecordClassLayout layout = new RecordClassLayout(set, nextRecordName(set.name()));
-    logger.debug("Using RecordClassTypeStrategy: " + layout.getType());
-
     boolean unitPointer = isUnitPointer(set);
-    logger.debug("unitPointer = " + unitPointer);
 
     for (GimpleRecordTypeDef typeDef : set.getAllTypes()) {
       RecordClassTypeStrategy strategy = new RecordClassTypeStrategy(typeOracle, typeDef, layout);
@@ -218,7 +221,7 @@ public class RecordTypeStrategyBuilder {
     
     // Make sure we write superclasses first
     
-    
+
     // Finally write out the record class files for those records which are  not provided
     for (RecordLayout layout : layouts) {
       layout.writeClassFiles(outputDirectory);

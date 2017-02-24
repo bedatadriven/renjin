@@ -1,0 +1,53 @@
+#!/bin/sh
+
+## This is a stub for the R binary that may be called by package
+## scripts during the build process.
+
+if [ "$1" != "CMD" ]
+then
+    echo "This is a stub of the R binary that only supports CMD config."
+    echo "Exiting."
+    exit 1
+fi
+
+if [ "$2" != "config" ]
+then
+    echo "This is a stub of the R binary that only supports CMD config."
+    echo "Exiting."
+    exit 1
+fi
+
+
+case "$3" in
+    F77)
+        echo gfortran-4.7
+        ;;
+    FC)
+        echo gfortran-4.7
+        ;;
+    CC)
+        echo gcc-4.7
+        ;;
+
+    CPP)
+        echo cpp-4.7
+        ;;
+    CXX)
+        echo g++-4.7
+        ;;
+    CXX1X)
+        echo g++-4.7
+        ;;
+    CXX1XSTD)
+        echo -std=c++11
+        ;;
+    MAKE)
+        echo make
+        ;;
+    BLAS_LIBS)
+        # Already on classpath
+        ;;
+    *)
+        >&2 echo "Warning: unsupported configuration variable $3"
+        exit 2
+esac

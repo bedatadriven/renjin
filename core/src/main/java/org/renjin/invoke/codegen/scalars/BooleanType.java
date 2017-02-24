@@ -18,10 +18,9 @@
  */
 package org.renjin.invoke.codegen.scalars;
 
-import com.sun.codemodel.JCodeModel;
-import com.sun.codemodel.JExpression;
-import com.sun.codemodel.JVar;
+import com.sun.codemodel.*;
 import org.renjin.invoke.model.JvmMethod;
+import org.renjin.sexp.IntVector;
 import org.renjin.sexp.LogicalArrayVector;
 import org.renjin.sexp.LogicalVector;
 import org.renjin.sexp.Vector;
@@ -40,7 +39,7 @@ public class BooleanType extends ScalarType {
 
   @Override
   public String getAccessorMethod() {
-    return "isElementTrue";
+    return "getElementAsRawLogical";
   }
 
   @Override
@@ -54,7 +53,37 @@ public class BooleanType extends ScalarType {
   }
 
   @Override
+  public Class getBuilderArrayElementClass() {
+    return int.class;
+  }
+
+  @Override
+  public Class getArrayVectorClass() {
+    return LogicalArrayVector.class;
+  }
+
+  @Override
+  public JExpression toBuildArrayElementType(JExpression resultValue) {
+    return JOp.cond(resultValue, JExpr.lit(1), JExpr.lit(0));
+  }
+
+  @Override
   public JExpression testExpr(JCodeModel codeModel, JVar sexpVariable, JvmMethod.Argument formal) {
     return sexpVariable._instanceof(codeModel.ref(Vector.class));
+  }
+
+  @Override
+  public JExpression naLiteral(JCodeModel codeModel) {
+    return codeModel.ref(IntVector.class).staticRef("NA");
+  }
+
+  @Override
+  public Class<?> getElementStorageType() {
+    return int.class;
+  }
+
+  @Override
+  public JExpression fromElementStorageType(JExpression expression) {
+    return expression.ne(JExpr.lit(0));
   }
 }

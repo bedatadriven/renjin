@@ -146,8 +146,8 @@ public class JlineRepl {
       reader.println("Renjin");
     }
 
-    reader.println("Copyright (C) 2016 The R Foundation for Statistical Computing");
-    reader.println("Copyright (C) 2016 BeDataDriven");
+    reader.println("Copyright (C) 2017 The R Foundation for Statistical Computing");
+    reader.println("Copyright (C) 2017 BeDataDriven");
 
     printBlasLibrary();
 

@@ -188,14 +188,19 @@ public class ComplexArrayVector extends ComplexVector {
       copyAttributesFrom(exp);
     }
 
-    public Builder set(int index, Complex value) {
+
+    public Builder set(int index, double real, double imaginary) {
       ensureCapacity(index+1);
       if(index+1 > size) {
         this.size = index+1;
       }
-      this.builderValues[index*2] = value.getReal();
-      this.builderValues[index*2+1] = value.getImaginary();
+      this.builderValues[index*2] = real;
+      this.builderValues[index*2+1] = imaginary;
       return this;
+    }
+
+    public Builder set(int index, Complex value) {
+      return set(index, value.getReal(), value.getImaginary());
     }
 
     public Builder add(Complex value) {
@@ -250,5 +255,6 @@ public class ComplexArrayVector extends ComplexVector {
         return new ComplexArrayVector(this.builderValues, buildAttributes());
       }
     }
+
   }
 }

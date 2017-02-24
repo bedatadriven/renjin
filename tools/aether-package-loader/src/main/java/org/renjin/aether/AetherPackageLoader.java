@@ -35,11 +35,17 @@ import org.renjin.primitives.packaging.Package;
 import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.repackaged.guava.collect.Lists;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-
+/**
+ * A {@link PackageLoader} implementation that attempts to load packages from remote repositories.
+ *
+ * <p>When a package is requested, {@code AetherPackageLoader} first attempts to load the package from the given
+ * {@code parentClassLoader}. If this is not successful, then the loader will query the remove
+ */
 public class AetherPackageLoader implements PackageLoader {
 
   private DynamicURLClassLoader classLoader;
@@ -47,24 +53,59 @@ public class AetherPackageLoader implements PackageLoader {
   private final List<RemoteRepository> repositories = Lists.newArrayList();
   private final RepositorySystem system = AetherFactory.newRepositorySystem();
   private final DefaultRepositorySystemSession session = AetherFactory.newRepositorySystemSession(system);
-  
+
   private PackageListener packageListener = null;
 
 
   /**
    * Keeps track of already-loaded packages. Each entry should be in the form groupId:artifactId
    */
-  private Set<String> loadedPackages = new HashSet<String>();
+  private Set<String> loadedPackages = new HashSet<>();
 
+  /**
+   *
+   * @return the default remote repositories, which include Maven Central and Renjin's repository hosted by
+   * BeDataDriven.
+   */
+  public static List<RemoteRepository> defaultRepositories() {
+    return Arrays.asList(
+        AetherFactory.mavenCentral(),
+        AetherFactory.renjinRepo());
+  }
+
+  /**
+   * Create a new {@code AetherPackageLoader} using this class' {@code ClassLoader} and
+   * the {@link #defaultRepositories()}
+   */
   public AetherPackageLoader() {
+    this(AetherPackageLoader.class.getClassLoader(), defaultRepositories());
+  }
+
+  /**
+   * Create a new {@code AetherPackageLoader} using the given {@code parentClassLoader} and the {@link #defaultRepositories()}
+   *
+   * @param parentClassLoader a {@link ClassLoader} that is first consulted when loading new packages before querying
+   *                          remote repositories.
+   */
+  public AetherPackageLoader(ClassLoader parentClassLoader) {
+    this(parentClassLoader, defaultRepositories());
+  }
+
+  /**
+   * Create a new {@code AetherPackageLoader} using the given parent {@link ClassLoader} and list of
+   * {@link RemoteRepository}
+   *
+   * @param parentClassLoader a {@link ClassLoader} that is first consulted when loading new packages before querying
+   *                          remote repositories.
+   */
+  public AetherPackageLoader(ClassLoader parentClassLoader, List<RemoteRepository> remoteRepositories) {
     
     // Create our own ClassLoader to which we can add additional packages at runtime
-    classLoader = new DynamicURLClassLoader(getClass().getClassLoader());
-    classpathPackageLoader = new ClasspathPackageLoader(classLoader);
+    this.classLoader = new DynamicURLClassLoader(parentClassLoader);
+    classpathPackageLoader = new ClasspathPackageLoader(this.classLoader);
 
-    repositories.add(AetherFactory.mavenCentral());
-    repositories.add(AetherFactory.renjinRepo());
-    
+    repositories.addAll(remoteRepositories);
+
     // Ensure that we don't load old versions of renjin onto the classpath
     // that might conflict with the current version.
     loadedPackages.add("org.renjin:renjin-core");

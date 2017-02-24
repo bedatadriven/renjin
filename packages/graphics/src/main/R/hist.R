@@ -130,10 +130,11 @@ hist.default <-
 			xname = xname, equidist = equidist),
 		   class = "histogram")
     if (plot) {
-	plot(r, freq = freq1, col = col, border = border,
-	     angle = angle, density = density,
-	     main = main, xlim = xlim, ylim = ylim, xlab = xlab, ylab = ylab,
-	     axes = axes, labels = labels, ...)
+	# plot(r, freq = freq1, col = col, border = border,
+	#      angle = angle, density = density,
+	#      main = main, xlim = xlim, ylim = ylim, xlab = xlab, ylab = ylab,
+	#      axes = axes, labels = labels, ...)
+	warning("graphics are not yet implemented (hist.default).")
 	invisible(r)
     }
     else { ## plot is FALSE
@@ -175,29 +176,30 @@ plot.histogram <-
     nB <- length(x$breaks)
     if(is.null(y) || 0L == nB) stop("'x' is wrongly structured")
 
-    dev.hold(); on.exit(dev.flush())
-    if(!add) {
-	if(is.null(ylim))
-	    ylim <- range(y, 0)
-	if (missing(ylab))
-	    ylab <- if (!freq) "Density" else "Frequency"
-	plot.new()
-	plot.window(xlim, ylim, "", ...)	#-> ylim's default from 'y'
-	if(ann) title(main = main, sub = sub, xlab = xlab, ylab = ylab, ...)
-	if(axes) {
-	    axis(1, ...)
-	    axis(2, ...)
-	}
-    }
-    rect(x$breaks[-nB], 0, x$breaks[-1L], y,
-	 col = col, border = border,
-	 angle = angle, density = density, lty = lty)
-    if((logl <- is.logical(labels) && labels) || is.character(labels))
-	text(x$mids, y,
-	     labels = if(logl) {
-		 if(freq) x$counts else round(x$density,3)
-	     } else labels,
-	     adj = c(0.5, -0.5))
+    # dev.hold(); on.exit(dev.flush())
+    # if(!add) {
+	# if(is.null(ylim))
+	#     ylim <- range(y, 0)
+	# if (missing(ylab))
+	#     ylab <- if (!freq) "Density" else "Frequency"
+	# plot.new()
+	# plot.window(xlim, ylim, "", ...)	#-> ylim's default from 'y'
+	# if(ann) title(main = main, sub = sub, xlab = xlab, ylab = ylab, ...)
+	# if(axes) {
+	#     axis(1, ...)
+	#     axis(2, ...)
+	# }
+    # }
+    # rect(x$breaks[-nB], 0, x$breaks[-1L], y,
+	#  col = col, border = border,
+	#  angle = angle, density = density, lty = lty)
+    # if((logl <- is.logical(labels) && labels) || is.character(labels))
+	# text(x$mids, y,
+	#      labels = if(logl) {
+	# 	 if(freq) x$counts else round(x$density,3)
+	#      } else labels,
+	#      adj = c(0.5, -0.5))
+	warning("graphics are not yet implemented (plot.histogram).")
     invisible()
 }
 

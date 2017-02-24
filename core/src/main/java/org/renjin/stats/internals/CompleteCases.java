@@ -49,14 +49,16 @@ public class CompleteCases {
     BitSet bitSet = allocBitVector(numCases);
     
     for(AtomicVector vector : vectors) {
-      int caseIndex = 0;
-      for(int i=0;i!=vector.length();++i) {
-        if(vector.isElementNA(i)) {
-          bitSet.clear(caseIndex);
-        } 
-        caseIndex ++;
-        if(caseIndex == numCases) {
-          caseIndex = 0;
+      if(vector != Null.INSTANCE) {
+        int caseIndex = 0;
+        for (int i = 0; i != vector.length(); ++i) {
+          if (vector.isElementNA(i)) {
+            bitSet.clear(caseIndex);
+          }
+          caseIndex++;
+          if (caseIndex == numCases) {
+            caseIndex = 0;
+          }
         }
       }
     }
@@ -94,13 +96,18 @@ public class CompleteCases {
   private static int countNumCases(List<AtomicVector> variables) {
     int n = -1;
     for(AtomicVector arg : variables) {
-      if(n == -1) {
-        n = numCases(arg);
-      } else {
-        if(n != numCases(arg)) {
-          throw new EvalException("not all arguments have the same length");
+      if(arg != Null.INSTANCE) {
+        if (n == -1) {
+          n = numCases(arg);
+        } else {
+          if (n != numCases(arg)) {
+            throw new EvalException("not all arguments have the same length");
+          }
         }
       }
+    }
+    if(n == -1) {
+      throw new EvalException("no input has determined the number of cases");
     }
     return n;
   }

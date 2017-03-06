@@ -20,6 +20,7 @@
 package org.renjin.gnur.api;
 
 import org.renjin.eval.EvalException;
+import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.CharPtr;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
@@ -75,7 +76,12 @@ public final class Utils {
     org.renjin.gnur.qsort.R_qsort_int_I(iv, II, i, j);
   }
 
+  @Deprecated
   public static CharPtr R_ExpandFileName(CharPtr p0) {
+    throw new UnimplementedGnuApiMethod("R_ExpandFileName");
+  }
+
+  public static BytePtr R_ExpandFileName(BytePtr p0) {
     throw new UnimplementedGnuApiMethod("R_ExpandFileName");
   }
 

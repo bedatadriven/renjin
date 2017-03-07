@@ -217,7 +217,7 @@ public class FieldTypeSet {
 
   public boolean allPointers() {
     for (GimpleType gimpleType : gimpleTypes) {
-      if(!(gimpleType instanceof GimplePointerType)) {
+      if(!(gimpleType instanceof GimpleIndirectType)) {
         return false;
       }
     }

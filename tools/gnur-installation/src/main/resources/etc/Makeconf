@@ -43,15 +43,15 @@ AWK = /usr/bin/awk
 BLAS_LIBS = -lblas
 C_VISIBILITY = -fvisibility=hidden
 CC = gcc-4.7 -std=gnu99
-CFLAGS = ${RENJIN_FLAGS} -g ${OPT_FLAGS} -fstack-protector --param=ssp-buffer-size=4 -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 -g $(LTO)
+CFLAGS = ${RENJIN_FLAGS} -g ${OPT_FLAGS} -fno-elide-constructors -fstack-protector --param=ssp-buffer-size=4 -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 -g $(LTO)
 CPICFLAGS = -fpic
 CPPFLAGS = 
 CXX = g++-4.7
 CXXCPP = $(CXX) -E
-CXXFLAGS = ${RENJIN_FLAGS} -g ${OPT_FLAGS} -fstack-protector --param=ssp-buffer-size=4 -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 -g $(LTO)
+CXXFLAGS = ${RENJIN_FLAGS} -g ${OPT_FLAGS} -fno-elide-constructors -fstack-protector --param=ssp-buffer-size=4 -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 -g $(LTO)
 CXXPICFLAGS = -fpic
 CXX1X = g++-4.7
-CXX1XFLAGS = -g ${OPT_FLAGS} -fstack-protector --param=ssp-buffer-size=4 -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 -g
+CXX1XFLAGS = -g ${OPT_FLAGS} -fno-elide-constructors -fstack-protector --param=ssp-buffer-size=4 -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 -g
 CXX1XPICFLAGS = -fpic
 CXX1XSTD =  -std=c++11
 DYLIB_EXT = .so

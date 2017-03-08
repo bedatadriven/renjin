@@ -98,8 +98,10 @@ public class Gcc {
     // for debugging preprocessor output
 //    arguments.add("-E");
 //    arguments.add("-P");
-    
+
     arguments.add("-fno-rtti");
+
+    arguments.add("-fno-elide-constructors");
 
     arguments.add("-D");
     arguments.add("_GCC_BRIDGE");

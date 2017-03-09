@@ -76,7 +76,7 @@ public class Gcc {
     this.gimpleOutputDir.mkdirs();
   }
 
-  public void addCFlags(List<String> flags) {
+  public void   addCFlags(List<String> flags) {
     cFlags.addAll(flags);
   }
   

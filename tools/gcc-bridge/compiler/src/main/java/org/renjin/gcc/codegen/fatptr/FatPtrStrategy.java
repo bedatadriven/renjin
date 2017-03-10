@@ -34,6 +34,7 @@ import org.renjin.gcc.codegen.type.record.RecordValue;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidPtr;
+import org.renjin.gcc.codegen.var.LocalVarAllocator;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.GimpleVarDecl;
@@ -122,7 +123,7 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
       //   double x = p.array[p.offset] + p.array[p.offset+1]
       // }
 
-      Type wrapperType = Wrappers.wrapperType(valueFunction.getValueType());
+      Type wrapperType = getWrapperType();
       Type wrapperArrayType = Wrappers.valueArrayType(wrapperType);
       
       JExpr newArray = Expressions.newArray(wrapperType, 1);
@@ -241,15 +242,19 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
       return new FatPtrPair(valueFunction, address, castedArray, offset);
 
     } else if(typeStrategy instanceof RecordUnitPtrStrategy) {
+
+      // Object -> ObjectPtr
+      // in most cases this will fail at runtime, becuase you can't cast a PersonRecord, for example,
+      // to an ObjectPtr, but this will scuceed in the case of an empty record where the java class is
+      // java.lang.Object
+
       RecordUnitPtr ptr = (RecordUnitPtr) value;
-      if(valueFunction.getValueType().getSort() != Type.OBJECT) {
-        throw new InternalCompilerException("Cannot cast value using RecordUnitPtrStrategy to array of " + 
-            valueFunction.getValueType());
-      }
-      JExpr ref = Expressions.cast(ptr.unwrap(), valueFunction.getValueType());
-      JExpr newArray = Expressions.newArray(ref);
-      
-      return new FatPtrPair(valueFunction, newArray);
+      JExpr castedRef = Expressions.cast(ptr.unwrap(), getWrapperType());
+
+      LocalVarAllocator.LocalVar wrapperVar = mv.getLocalVarAllocator().reserve(getWrapperType());
+      wrapperVar.store(mv, castedRef);
+
+      return new WrappedFatPtrExpr(valueFunction, wrapperVar);
 
     } else if(typeStrategy instanceof RecordTypeStrategy) {
 
@@ -340,7 +345,7 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
   public FatPtr unmarshallVoidPtrReturnValue(MethodGenerator mv, JExpr voidPointer) {
 
     // cast the result to the wrapper type, e.g. ObjectPtr or DoublePtr
-    Type wrapperType = Wrappers.wrapperType(valueFunction.getValueType());
+    Type wrapperType = getWrapperType();
     JExpr wrapperPtr = Wrappers.cast(valueFunction.getValueType(), voidPointer);
 
     // Reserve a local variable to hold the result
@@ -358,6 +363,10 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
     offsetVar.store(mv, Wrappers.offsetField(retVal));
     
     return new FatPtrPair(valueFunction, arrayVar, offsetVar);
+  }
+
+  private Type getWrapperType() {
+    return Wrappers.wrapperType(valueFunction.getValueType());
   }
 
   @Override

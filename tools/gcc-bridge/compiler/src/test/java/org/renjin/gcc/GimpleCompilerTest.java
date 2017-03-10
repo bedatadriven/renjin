@@ -1136,4 +1136,19 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void addrRecordParam() throws Exception {
     compileAndTest("addr_record_param.c");
   }
+
+  @Test
+  public void emptyBaseClassWithRecordArray() throws Exception {
+    compileAndTest("empty_base_array.cpp");
+  }
+
+  @Test
+  public void emptyBaseClassWithObjectPtr() throws Exception {
+    compileAndTest("empty_base_objectptr.cpp");
+  }
+
+  @Test
+  public void emptyBaseClassWithUnitPtr() throws Exception {
+    compileAndTest("empty_base_unitptr.cpp");
+  }
 }

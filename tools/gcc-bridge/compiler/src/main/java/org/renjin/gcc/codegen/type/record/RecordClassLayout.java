@@ -31,6 +31,7 @@ import org.renjin.gcc.codegen.type.fun.FunPtrField;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrValueFunction;
 import org.renjin.gcc.codegen.var.LocalVarAllocator;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
+import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
 
@@ -135,9 +136,8 @@ public class RecordClassLayout implements RecordLayout {
       Optional<Type> commonType = typeSet.tryComputeCommonType();
       if(commonType.isPresent()) {
         int arrayLength = node.getSize() / GimplePrimitiveType.fromJvmType(commonType.get()).getSize();
-        return new RecordArrayField(type, uniqueFieldName(node), commonType.get(), arrayLength);
+        return new RecordArrayField(type, uniqueFieldName(node), commonType.get(), arrayLength, new GimpleRecordType(this.unionSet.getAllTypes().iterator().next()));
       }
-
       throw new UnsupportedOperationException("TODO: " + unionSet.debugString());
     }
   }

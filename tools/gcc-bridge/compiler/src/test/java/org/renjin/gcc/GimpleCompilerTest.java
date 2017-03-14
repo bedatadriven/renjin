@@ -1151,4 +1151,9 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void emptyBaseClassWithUnitPtr() throws Exception {
     compileAndTest("empty_base_unitptr.cpp");
   }
+
+  @Test
+  public void addressFatPtr() throws Exception {
+    compileAndTest("address_fatptr.c");
+  }
 }

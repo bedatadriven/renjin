@@ -65,7 +65,7 @@ public class WrappedFatPtrParamStrategy implements ParamStrategy {
           wrapper.getType(), Optional.<JExpr>of(wrapper));
 
       return new DereferencedFatPtr(unitArray, Expressions.constantInt(0), 
-          new FatPtrValueFunction(valueFunction));
+          new FatPtrValueFunction(valueFunction)).valueOf();
 
     } else if(valueFunction.getValueType().getSort() == Type.OBJECT) {
       return new WrappedFatPtrExpr(valueFunction, wrapper);

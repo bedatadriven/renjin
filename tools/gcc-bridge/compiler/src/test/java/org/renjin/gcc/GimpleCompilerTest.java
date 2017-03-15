@@ -1156,4 +1156,9 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void addressFatPtr() throws Exception {
     compileAndTest("address_fatptr.c");
   }
+
+  @Test
+  public void differentTypesOfUnionPtr() throws Exception {
+    compileAndTest("unionptr_different_types.c");
+  }
 }

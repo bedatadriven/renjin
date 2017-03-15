@@ -88,7 +88,7 @@ public class HtmlTreeLogger extends TreeLogger {
     try {
       Files.write(value.toString(), dumpFile, Charsets.UTF_8);
     } catch (IOException e) {
-      throw new RuntimeException("Exception dumping to " + dumpFile.getAbsolutePath());
+      System.err.println("Exception dumping to " + dumpFile.getAbsolutePath());
     }
   }
 

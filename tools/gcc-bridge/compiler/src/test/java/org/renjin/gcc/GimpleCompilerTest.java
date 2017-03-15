@@ -1161,4 +1161,9 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void differentTypesOfUnionPtr() throws Exception {
     compileAndTest("unionptr_different_types.c");
   }
+
+  @Test
+  public void addressableParameter() throws Exception {
+    compileAndTest("addr_parameter.c");
+  }
 }

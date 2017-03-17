@@ -42,6 +42,7 @@ import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.repackaged.guava.io.Files;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -287,7 +288,11 @@ public class GimpleCompiler  {
           FunctionGenerator functionGenerator = (FunctionGenerator) functionCallGenerator.getStrategy();
           for (String mangledName : functionGenerator.getMangledNames()) {
             LinkSymbol symbol = LinkSymbol.forFunction(mangledName, functionGenerator.getMethodHandle());
-            symbol.write(outputDirectory);
+            try {
+              symbol.write(outputDirectory);
+            } catch (FileNotFoundException e) {
+              System.err.println("Exception writing link metadata for " + symbol.getName() + ": " + e.getMessage());
+            }
           }
         }
       }

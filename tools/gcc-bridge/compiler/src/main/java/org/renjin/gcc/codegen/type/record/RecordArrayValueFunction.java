@@ -26,6 +26,7 @@ import org.renjin.gcc.codegen.fatptr.Memset;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.fatptr.WrappedFatPtrExpr;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
+import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
 
@@ -39,10 +40,12 @@ public class RecordArrayValueFunction implements ValueFunction {
   
   private Type fieldType;
   private int arrayLength;
+  private GimpleRecordType gimpleRecordType;
 
-  public RecordArrayValueFunction(Type fieldType, int fieldCount) {
+  public RecordArrayValueFunction(Type fieldType, int fieldCount, GimpleRecordType gimpleRecordType) {
     this.fieldType = fieldType;
     this.arrayLength = fieldCount;
+    this.gimpleRecordType = gimpleRecordType;
   }
 
   @Override

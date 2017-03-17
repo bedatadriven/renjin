@@ -247,6 +247,11 @@ public class GimpleFunction implements GimpleDecl {
   }
   
   public void accept(GimpleExprVisitor visitor) {
+    for (GimpleVarDecl decl : variableDeclarations) {
+      if(decl.getValue() != null) {
+        decl.getValue().accept(visitor);
+      }
+    }
     for (GimpleBasicBlock basicBlock : basicBlocks) {
       basicBlock.accept(visitor);
     }

@@ -54,7 +54,7 @@ public class RecordClassLayoutTree {
 
     public Node(GimpleField field, int start) {
       this.start = start;
-      this.end = this.start + field.getType().getSize();
+      this.end = this.start + field.getSize();
       addField(field);
     }
     

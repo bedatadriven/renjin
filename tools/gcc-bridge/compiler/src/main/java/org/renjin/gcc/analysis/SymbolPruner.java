@@ -168,7 +168,7 @@ public class SymbolPruner {
         logger.println("  Reference to undefined global variable " + variableRef.getName());
       }
 
-      if(decl.isPresent()) {
+      if(decl.isPresent() && decl.get().isGlobal()) {
         Symbol symbol = new Symbol(decl.get(), symbolTable.scope(decl.get().getUnit()));
         if(retained.add(symbol)) {
           logger.println("  Adding referenced variable " + symbol);

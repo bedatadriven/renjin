@@ -98,7 +98,7 @@ public class Gcc {
     // for debugging preprocessor output
 //    arguments.add("-E");
 //    arguments.add("-P");
-    
+
     arguments.add("-fno-rtti");
 
     arguments.add("-D");

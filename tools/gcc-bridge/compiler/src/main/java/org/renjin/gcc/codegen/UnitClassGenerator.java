@@ -81,6 +81,8 @@ public class UnitClassGenerator {
 
     // Setup global variables that have global scoping
     for (GimpleVarDecl decl : unit.getGlobalVariables()) {
+      System.out.println("GlobalVariable: " + decl.getMangledName());
+      System.out.println("GlobalVariableDeclaration: " + decl.toString());
       if(!isIgnored(decl)) {
         TypeStrategy typeStrategy = typeOracle.forType(decl.getType());
         GExpr varGenerator;
@@ -198,7 +200,12 @@ public class UnitClassGenerator {
       try {
         GExpr varGenerator = symbolTable.getGlobalVariable(decl);
         if(decl.getValue() != null) {
-          varGenerator.store(mv, exprFactory.findGenerator(decl.getValue()));
+          try {
+            varGenerator.store(mv, exprFactory.findGenerator(decl.getValue()));
+          } catch (Exception e) {
+            System.err.println("Warning: could not generate code for global variable " + decl.getMangledName() +
+                ": " + e.getMessage());
+          }
         }
 
       } catch (Exception e) {

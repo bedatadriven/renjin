@@ -21,10 +21,11 @@ package org.renjin.gcc.codegen.type.record.unit;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
-import org.renjin.gcc.codegen.fatptr.FatPtr;
-import org.renjin.gcc.codegen.fatptr.WrappedFatPtrExpr;
+import org.renjin.gcc.codegen.fatptr.*;
 import org.renjin.gcc.codegen.type.ParamStrategy;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveValueFunction;
 import org.renjin.gcc.codegen.type.record.RecordValue;
 import org.renjin.gcc.codegen.type.voidt.VoidPtr;
 import org.renjin.gcc.codegen.var.VarAllocator;
@@ -58,11 +59,18 @@ class RecordUnitPtrParam implements ParamStrategy {
 
   @Override
   public GExpr emitInitialization(MethodGenerator methodVisitor, GimpleParameter parameter, List<JLValue> paramVars, VarAllocator localVars) {
+    JLValue unitPtr = paramVars.get(0);
     if(parameter.isAddressable()) {
-      throw new UnsupportedOperationException("TODO: Addressable parameters");
-    }
+      // Allocate a unit array for this parameter
+      JLValue unitArray = localVars.reserveUnitArray(parameter.getName() + "$address",
+          unitPtr.getType(), Optional.<JExpr>of(unitPtr));
+      FatPtrPair address = new FatPtrPair(strategy.getValueFunction(), unitArray);
 
-    return new RecordUnitPtr(paramVars.get(0));
+      JExpr value = Expressions.elementAt(address.getArray(), 0);
+
+      return new RecordUnitPtr(value, address);
+    }
+    return new RecordUnitPtr(unitPtr);
   }
 
   @Override

@@ -207,7 +207,7 @@ public class TypeOracle {
     } else if(method.isAnnotationPresent(Struct.class)) {
       Type arrayType = Type.getReturnType(method);
       Type componentType = Type.getType(arrayType.getDescriptor().substring(1));
-      return new RecordArrayReturnStrategy(new RecordArrayValueFunction(componentType, 0), arrayType, 0);
+      return new RecordArrayReturnStrategy(new RecordArrayValueFunction(componentType, 0, null), arrayType, 0);
 
     } else if(returnType.equals(MethodHandle.class)) {
       return new FunPtrStrategy().getReturnStrategy();

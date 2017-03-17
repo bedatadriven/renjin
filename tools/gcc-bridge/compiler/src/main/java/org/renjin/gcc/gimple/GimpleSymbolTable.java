@@ -22,6 +22,7 @@ import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
 import org.renjin.gcc.gimple.expr.GimpleParamRef;
 import org.renjin.gcc.gimple.expr.GimpleVariableRef;
 import org.renjin.repackaged.guava.base.Optional;
+import org.renjin.repackaged.guava.base.Preconditions;
 import org.renjin.repackaged.guava.collect.Maps;
 
 import java.util.Collection;
@@ -136,6 +137,9 @@ public class GimpleSymbolTable {
   }
   
   public Scope scope(final GimpleCompilationUnit unit) {
+
+    Preconditions.checkNotNull(unit, "unit");
+
     final UnitTable unitTable = unitMap.get(unit);
 
     return new Scope() {

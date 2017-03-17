@@ -24,6 +24,7 @@ import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.gcc.codegen.type.SingleFieldStrategy;
 import org.renjin.gcc.codegen.type.TypeStrategy;
+import org.renjin.gcc.codegen.type.primitive.FieldValue;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
 import org.renjin.repackaged.asm.Type;
 
@@ -75,4 +76,11 @@ public class RecordClassFieldStrategy extends SingleFieldStrategy {
     mv.invokevirtual(fieldType, "memset", getMethodDescriptor(Type.VOID_TYPE, Type.INT_TYPE, Type.INT_TYPE), false);
   }
 
+  @Override
+  public void copy(MethodGenerator mv, JExpr source, JExpr dest) {
+    FieldValue sourceExpr = new FieldValue(source, fieldName, fieldType);
+    FieldValue destExpr = new FieldValue(dest, fieldName, fieldType);
+    RecordValue clonedValue = strategy.clone(mv, new RecordValue(sourceExpr));
+    destExpr.store(mv, clonedValue.unwrap());
+  }
 }

@@ -49,6 +49,9 @@ public abstract class RecordTypeUseVisitor {
         }
         for (GimpleVarDecl decl : function.getVariableDeclarations()) {
           visitType(decl.getType());
+          if(decl.getValue() != null) {
+            updateTypes(decl.getValue());
+          }
         }
         for (GimpleBasicBlock basicBlock : function.getBasicBlocks()) {
           for (GimpleStatement statement : basicBlock.getStatements()) {

@@ -25,6 +25,7 @@ import org.netlib.util.doubleW;
 import org.netlib.util.intW;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.DotCall;
+import org.renjin.invoke.annotations.Internal;
 import org.renjin.primitives.ComplexGroup;
 import org.renjin.primitives.Types;
 import org.renjin.sexp.*;
@@ -48,8 +49,7 @@ public class Lapack {
    * @param sz the number of columns of x containing the Choleski decomposition.
    * @return
    */
-  @DotCall()
-  public static DoubleVector chol2inv(DoubleVector a, int sz) {
+  public static DoubleVector La_chol2inv(DoubleVector a, int sz) {
 
     if(IntVector.isNA(sz) || sz < 1) {
       throw new EvalException("'size' argument must be a positive integer");
@@ -295,6 +295,79 @@ public class Lapack {
       ret.add("vectors", DoubleArrayVector.newMatrix(rz, n, n));
     }
     return ret.build();
+  }
+
+  @Internal
+  public static SEXP La_chol(SEXP a, int pivot, double tol) {
+
+    if (!Types.isMatrix(a)) {
+      throw new EvalException("'a' must be a numeric matrix");
+    }
+
+    double result[] = ((AtomicVector) a).toDoubleArray();
+    int[] dim = a.getAttributes().getDimArray();
+
+    int m = dim[0];
+    int n = dim[1];
+
+    if (m != n) {
+      throw new EvalException("'a' must be a square matrix");
+    }
+    if (m <= 0) {
+      throw new EvalException("'a' must have dims > 0");
+    }
+
+    int N = dim[0];
+    for (int j = 0; j < n; j++) {       /* zero the lower triangle */
+      for (int i = j + 1; i < n; i++) {
+        result[i + N * j] = 0.;
+      }
+    }
+    if (pivot != 0 && pivot != 1) {
+      throw new EvalException("invalid 'pivot' value");
+    }
+    if (pivot == 0) {
+      intW info = new intW(0);
+      LAPACK.getInstance().dpotrf("Upper", m, result, m, info);
+      if (info.val != 0) {
+        if (info.val > 0) {
+          throw new EvalException("the leading minor of order %d is not positive definite", info);
+        } else {
+          throw new EvalException("argument %d of Lapack routine %s had invalid value", info, "dpotrf");
+        }
+      }
+      return new DoubleArrayVector(result, a.getAttributes());
+
+    } else {
+
+      throw new UnsupportedOperationException();
+//      SEXP piv = PROTECT(allocVector(INTSXP, m));
+//        int *ip = INTEGER(piv);
+//        double *work = (double *)R_alloc(2 * (size_t) m, sizeof(double));
+//      int rank, info;
+//      LAPACK.getInstance().
+//      F77_CALL(dpstrf) ("U", &m, REAL(ans), &m, ip, &rank, &tol, work, &info);
+//      if (info != 0) {
+//        if (info > 0) {
+//         // warning(_("the matrix is either rank-deficient or indefinite"));
+//        } else {
+//          throw new EvalException("argument %d of Lapack routine %s had invalid value",
+//              -info, "dpstrf");
+//        }
+//      }
+//      setAttrib(ans, install("pivot"), piv);
+//      SEXP s_rank = install("rank");
+//      setAttrib(ans, s_rank, ScalarInteger(rank));
+//      SEXP cn, dn = getAttrib(ans, R_DimNamesSymbol);
+//      if (!isNull(dn) && !isNull(cn = VECTOR_ELT(dn, 1))) {
+//        // need to pivot the colnames
+//        SEXP dn2 = PROTECT(duplicate(dn));
+//        SEXP cn2 = VECTOR_ELT(dn2, 1);
+//        for (int i = 0; i < m; i++)
+//          SET_STRING_ELT(cn2, i, STRING_ELT(cn, ip[i] - 1)); // base 1
+//        setAttrib(ans, R_DimNamesSymbol, dn2);
+//      }
+    }
   }
 
 

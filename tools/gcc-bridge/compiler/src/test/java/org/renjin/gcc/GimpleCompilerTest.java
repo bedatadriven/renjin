@@ -1171,9 +1171,4 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void inheritanceGlobalVars() throws Exception {
     compileAndTest("inheritance_globalvars.cpp");
   }
-
-  @Test
-  public void iostreamTest() throws Exception {
-    compileAndTest("iostream_test.cpp");
-  }
 }

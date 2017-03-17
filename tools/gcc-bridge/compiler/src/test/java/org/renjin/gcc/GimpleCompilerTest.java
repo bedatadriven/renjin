@@ -1166,4 +1166,14 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void addressableParameter() throws Exception {
     compileAndTest("addr_parameter.c");
   }
+
+  @Test
+  public void inheritanceGlobalVars() throws Exception {
+    compileAndTest("inheritance_globalvars.cpp");
+  }
+
+  @Test
+  public void iostreamTest() throws Exception {
+    compileAndTest("iostream_test.cpp");
+  }
 }

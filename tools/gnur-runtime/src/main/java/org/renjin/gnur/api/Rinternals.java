@@ -634,7 +634,7 @@ public final class Rinternals {
   // SEXP*() VECTOR_PTR (SEXP x)
 
   public static SEXP TAG(SEXP e) {
-    throw new UnimplementedGnuApiMethod("TAG");
+    return ((PairList.Node) e).getTag();
   }
 
   public static SEXP CAR(SEXP e) {

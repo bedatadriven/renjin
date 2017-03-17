@@ -480,6 +480,8 @@ public class GimpleCompilerTest extends AbstractGccTest {
     assertThat(call(clazz, "bitwise_rshift", 16, 2), equalTo(16 >> 2));
     assertThat(call(clazz, "bitwise_xor", 16, 1024), equalTo(16 ^ 1024));
     assertThat(call(clazz, "bitwise_not", 4096), equalTo(~4096));
+    assertThat(call(clazz, "bitwise_not_long", 32342355L), equalTo(-32342356L));
+
 
     assertThat(call(clazz, "byte_lshift", (byte) 1, (byte) 1), equalTo(2));
     assertThat(call(clazz, "byte_lshift", (byte) 1, (byte) 7), equalTo(0x80));

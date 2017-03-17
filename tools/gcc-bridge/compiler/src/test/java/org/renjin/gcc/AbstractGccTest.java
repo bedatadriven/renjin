@@ -49,6 +49,11 @@ public abstract class AbstractGccTest {
     return (Integer) method.invoke(null, x);
   }
 
+  protected Long call(Class clazz, String methodName, long x) throws Exception {
+    Method method = clazz.getMethod(methodName, long.class);
+    return (Long) method.invoke(null, x);
+  }
+
   protected Integer call(Class clazz, String methodName, byte x, byte y) throws Exception {
     Method method = clazz.getMethod(methodName, byte.class, byte.class);
     return (Integer) method.invoke(null, x, y);

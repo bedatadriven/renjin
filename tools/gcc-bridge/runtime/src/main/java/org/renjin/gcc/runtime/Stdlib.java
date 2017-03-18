@@ -22,6 +22,8 @@ import org.renjin.gcc.annotations.Struct;
 
 import java.lang.invoke.MethodHandle;
 import java.nio.charset.StandardCharsets;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
@@ -248,6 +250,26 @@ public class Stdlib {
       seconds.array[seconds.offset] = time;
     }
     return time;
+  }
+
+  private static final DateFormat CTIME_FORMAT = new SimpleDateFormat("E MMM d HH:mm:ss YYYY");
+
+  /**
+   * Interprets the value pointed by timer as a calendar time and converts it to a C-string containing a human-readable
+   * version of the corresponding time and date, in terms of local time.
+   *
+   * <p>The returned string has the following format:</p>
+   * <blockquote>Www Mmm dd hh:mm:ss yyyy</blockquote>
+   *
+   * <p>The returned value points to an internal array whose validity or value may be altered by any
+   * subsequent call to asctime or ctime.</p>
+   *
+   * @param timePtr Pointer to an object of type time_t that contains a time value.
+   * @return A C-string containing the date and time information in a human-readable format.
+   */
+  public static BytePtr ctime(IntPtr timePtr) {
+    Date date = new Date(timePtr.get() * 1000L);
+    return BytePtr.nullTerminatedString(CTIME_FORMAT.format(date) + "\n", StandardCharsets.US_ASCII);
   }
 
   public static tm localtime(IntPtr time) {

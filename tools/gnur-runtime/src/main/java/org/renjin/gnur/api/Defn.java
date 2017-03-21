@@ -19,7 +19,7 @@
 // Initial template generated from Defn.h from R 3.2.2
 package org.renjin.gnur.api;
 
-import org.renjin.gcc.runtime.CharPtr;
+import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
 import org.renjin.sexp.SEXP;
@@ -114,7 +114,7 @@ public final class Defn {
     throw new UnimplementedGnuApiMethod("R_set_prim_method");
   }
 
-  public static SEXP do_set_prim_method(SEXP op, CharPtr code_string, SEXP fundef, SEXP mlist) {
+  public static SEXP do_set_prim_method(SEXP op, BytePtr code_string, SEXP fundef, SEXP mlist) {
     throw new UnimplementedGnuApiMethod("do_set_prim_method");
   }
 
@@ -130,11 +130,11 @@ public final class Defn {
 
   // int R_ReadConsole (const char *, unsigned char *, int, int)
 
-  public static void R_WriteConsole(CharPtr p0, int p1) {
+  public static void R_WriteConsole(BytePtr p0, int p1) {
     throw new UnimplementedGnuApiMethod("R_WriteConsole");
   }
 
-  public static void R_WriteConsoleEx(CharPtr p0, int p1, int p2) {
+  public static void R_WriteConsoleEx(BytePtr p0, int p1, int p2) {
     throw new UnimplementedGnuApiMethod("R_WriteConsoleEx");
   }
 
@@ -158,23 +158,23 @@ public final class Defn {
 
   // int R_EditFiles (int, const char **, const char **, const char *)
 
-  public static int R_ChooseFile(int p0, CharPtr p1, int p2) {
+  public static int R_ChooseFile(int p0, BytePtr p1, int p2) {
     throw new UnimplementedGnuApiMethod("R_ChooseFile");
   }
 
-  public static CharPtr R_HomeDir() {
+  public static BytePtr R_HomeDir() {
     throw new UnimplementedGnuApiMethod("R_HomeDir");
   }
 
-  public static boolean R_FileExists(CharPtr p0) {
+  public static boolean R_FileExists(BytePtr p0) {
     throw new UnimplementedGnuApiMethod("R_FileExists");
   }
 
-  public static boolean R_HiddenFile(CharPtr p0) {
+  public static boolean R_HiddenFile(BytePtr p0) {
     throw new UnimplementedGnuApiMethod("R_HiddenFile");
   }
 
-  public static double R_FileMtime(CharPtr p0) {
+  public static double R_FileMtime(BytePtr p0) {
     throw new UnimplementedGnuApiMethod("R_FileMtime");
   }
 
@@ -230,7 +230,7 @@ public final class Defn {
     throw new UnimplementedGnuApiMethod("Rf_asVecSize");
   }
 
-  public static void Rf_check1arg(SEXP p0, SEXP p1, CharPtr p2) {
+  public static void Rf_check1arg(SEXP p0, SEXP p1, BytePtr p2) {
     throw new UnimplementedGnuApiMethod("Rf_check1arg");
   }
 
@@ -452,7 +452,7 @@ public final class Defn {
     throw new UnimplementedGnuApiMethod("isMethodsDispatchOn");
   }
 
-  public static int Rf_isValidName(CharPtr p0) {
+  public static int Rf_isValidName(BytePtr p0) {
     throw new UnimplementedGnuApiMethod("Rf_isValidName");
   }
 
@@ -474,7 +474,7 @@ public final class Defn {
 
   // SEXP Rf_makeSubscript (SEXP, SEXP, R_xlen_t *, SEXP)
 
-  public static SEXP Rf_markKnown(CharPtr p0, SEXP p1) {
+  public static SEXP Rf_markKnown(BytePtr p0, SEXP p1) {
     throw new UnimplementedGnuApiMethod("Rf_markKnown");
   }
 
@@ -568,15 +568,15 @@ public final class Defn {
     throw new UnimplementedGnuApiMethod("Rf_PrintValueRec");
   }
 
-  public static void Rf_PrintVersion(CharPtr p0, /*size_t*/ int len) {
+  public static void Rf_PrintVersion(BytePtr p0, /*size_t*/ int len) {
     throw new UnimplementedGnuApiMethod("Rf_PrintVersion");
   }
 
-  public static void Rf_PrintVersion_part_1(CharPtr p0, /*size_t*/ int len) {
+  public static void Rf_PrintVersion_part_1(BytePtr p0, /*size_t*/ int len) {
     throw new UnimplementedGnuApiMethod("Rf_PrintVersion_part_1");
   }
 
-  public static void Rf_PrintVersionString(CharPtr p0, /*size_t*/ int len) {
+  public static void Rf_PrintVersionString(BytePtr p0, /*size_t*/ int len) {
     throw new UnimplementedGnuApiMethod("Rf_PrintVersionString");
   }
 
@@ -610,7 +610,7 @@ public final class Defn {
     throw new UnimplementedGnuApiMethod("R_data_class2");
   }
 
-  public static CharPtr R_LibraryFileName(CharPtr p0, CharPtr p1, /*size_t*/ int p2) {
+  public static BytePtr R_LibraryFileName(BytePtr p0, BytePtr p1, /*size_t*/ int p2) {
     throw new UnimplementedGnuApiMethod("R_LibraryFileName");
   }
 
@@ -620,13 +620,13 @@ public final class Defn {
     throw new UnimplementedGnuApiMethod("R_NewHashedEnv");
   }
 
-  public static int R_Newhashpjw(CharPtr p0) {
+  public static int R_Newhashpjw(BytePtr p0) {
     throw new UnimplementedGnuApiMethod("R_Newhashpjw");
   }
 
   // FILE* R_OpenLibraryFile (const char *)
 
-  public static SEXP R_Primitive(CharPtr p0) {
+  public static SEXP R_Primitive(BytePtr p0) {
     throw new UnimplementedGnuApiMethod("R_Primitive");
   }
 
@@ -634,7 +634,7 @@ public final class Defn {
     throw new UnimplementedGnuApiMethod("R_RestoreGlobalEnv");
   }
 
-  public static void R_RestoreGlobalEnvFromFile(CharPtr p0, boolean p1) {
+  public static void R_RestoreGlobalEnvFromFile(BytePtr p0, boolean p1) {
     throw new UnimplementedGnuApiMethod("R_RestoreGlobalEnvFromFile");
   }
 
@@ -642,7 +642,7 @@ public final class Defn {
     throw new UnimplementedGnuApiMethod("R_SaveGlobalEnv");
   }
 
-  public static void R_SaveGlobalEnvToFile(CharPtr p0) {
+  public static void R_SaveGlobalEnvToFile(BytePtr p0) {
     throw new UnimplementedGnuApiMethod("R_SaveGlobalEnvToFile");
   }
 
@@ -662,7 +662,7 @@ public final class Defn {
     throw new UnimplementedGnuApiMethod("R_SetOptionWidth");
   }
 
-  public static void R_Suicide(CharPtr p0) {
+  public static void R_Suicide(BytePtr p0) {
     throw new UnimplementedGnuApiMethod("R_Suicide");
   }
 
@@ -674,7 +674,7 @@ public final class Defn {
     throw new UnimplementedGnuApiMethod("R_isMissing");
   }
 
-  public static CharPtr Rf_sexptype2char(/*SEXPTYPE*/ int type) {
+  public static BytePtr Rf_sexptype2char(/*SEXPTYPE*/ int type) {
     throw new UnimplementedGnuApiMethod("Rf_sexptype2char");
   }
 
@@ -682,13 +682,13 @@ public final class Defn {
     throw new UnimplementedGnuApiMethod("Rf_sortVector");
   }
 
-  public static void Rf_SrcrefPrompt(CharPtr p0, SEXP p1) {
+  public static void Rf_SrcrefPrompt(BytePtr p0, SEXP p1) {
     throw new UnimplementedGnuApiMethod("Rf_SrcrefPrompt");
   }
 
   // void Rf_ssort (SEXP *, int)
 
-  public static int Rf_StrToInternal(CharPtr p0) {
+  public static int Rf_StrToInternal(BytePtr p0) {
     throw new UnimplementedGnuApiMethod("Rf_StrToInternal");
   }
 
@@ -756,7 +756,7 @@ public final class Defn {
     throw new UnimplementedGnuApiMethod("R_SetMaxNSize");
   }
 
-  public static /*R_size_t*/ int R_Decode2Long(CharPtr p, IntPtr ierr) {
+  public static /*R_size_t*/ int R_Decode2Long(BytePtr p, IntPtr ierr) {
     throw new UnimplementedGnuApiMethod("R_Decode2Long");
   }
 
@@ -772,11 +772,11 @@ public final class Defn {
 
   // const char* Rf_EncodeString (SEXP, int, int, Rprt_adj)
 
-  public static CharPtr Rf_EncodeReal2(double p0, int p1, int p2, int p3) {
+  public static BytePtr Rf_EncodeReal2(double p0, int p1, int p2, int p3) {
     throw new UnimplementedGnuApiMethod("Rf_EncodeReal2");
   }
 
-  public static CharPtr Rf_EncodeChar(SEXP p0) {
+  public static BytePtr Rf_EncodeChar(SEXP p0) {
     throw new UnimplementedGnuApiMethod("Rf_EncodeChar");
   }
 
@@ -792,15 +792,15 @@ public final class Defn {
     throw new UnimplementedGnuApiMethod("R_subassign3_dflt");
   }
 
-  public static void /*NORET*/ UNIMPLEMENTED_TYPE(CharPtr s, SEXP x) {
+  public static void /*NORET*/ UNIMPLEMENTED_TYPE(BytePtr s, SEXP x) {
     throw new UnimplementedGnuApiMethod("UNIMPLEMENTED_TYPE");
   }
 
-  public static void /*NORET*/ UNIMPLEMENTED_TYPEt(CharPtr s, /*SEXPTYPE*/ int t) {
+  public static void /*NORET*/ UNIMPLEMENTED_TYPEt(BytePtr s, /*SEXPTYPE*/ int t) {
     throw new UnimplementedGnuApiMethod("UNIMPLEMENTED_TYPEt");
   }
 
-  public static boolean Rf_strIsASCII(CharPtr str) {
+  public static boolean Rf_strIsASCII(BytePtr str) {
     throw new UnimplementedGnuApiMethod("Rf_strIsASCII");
   }
 
@@ -834,19 +834,19 @@ public final class Defn {
 
   // size_t Rf_mbrtowc (wchar_t *wc, const char *s, size_t n, mbstate_t *ps)
 
-  public static boolean mbcsValid(CharPtr str) {
+  public static boolean mbcsValid(BytePtr str) {
     throw new UnimplementedGnuApiMethod("mbcsValid");
   }
 
-  public static boolean utf8Valid(CharPtr str) {
+  public static boolean utf8Valid(BytePtr str) {
     throw new UnimplementedGnuApiMethod("utf8Valid");
   }
 
-  public static CharPtr Rf_strchr(CharPtr s, int c) {
+  public static BytePtr Rf_strchr(BytePtr s, int c) {
     throw new UnimplementedGnuApiMethod("Rf_strchr");
   }
 
-  public static CharPtr Rf_strrchr(CharPtr s, int c) {
+  public static BytePtr Rf_strrchr(BytePtr s, int c) {
     throw new UnimplementedGnuApiMethod("Rf_strrchr");
   }
 
@@ -874,7 +874,7 @@ public final class Defn {
     throw new UnimplementedGnuApiMethod("reset_duplicate_counter");
   }
 
-  public static void Rf_BindDomain(CharPtr p0) {
+  public static void Rf_BindDomain(BytePtr p0) {
     throw new UnimplementedGnuApiMethod("Rf_BindDomain");
   }
 
@@ -904,15 +904,15 @@ public final class Defn {
 
   // double R_strtod (const char *str, char **endptr)
 
-  public static double R_atof(CharPtr str) {
+  public static double R_atof(BytePtr str) {
     throw new UnimplementedGnuApiMethod("R_atof");
   }
 
-  public static void set_rl_word_breaks(CharPtr str) {
+  public static void set_rl_word_breaks(BytePtr str) {
     throw new UnimplementedGnuApiMethod("set_rl_word_breaks");
   }
 
-  public static CharPtr locale2charset(CharPtr p0) {
+  public static BytePtr locale2charset(BytePtr p0) {
     throw new UnimplementedGnuApiMethod("locale2charset");
   }
   

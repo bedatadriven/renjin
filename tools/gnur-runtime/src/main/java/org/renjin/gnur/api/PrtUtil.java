@@ -19,7 +19,7 @@
 // Initial template generated from PrtUtil.h from R 3.2.2
 package org.renjin.gnur.api;
 
-import org.renjin.gcc.runtime.CharPtr;
+import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
 
@@ -44,15 +44,15 @@ public final class PrtUtil {
 
   // void Rf_formatComplex (Rcomplex *, R_xlen_t, int *, int *, int *, int *, int *, int *, int)
 
-  public static CharPtr Rf_EncodeLogical(int p0, int p1) {
+  public static BytePtr Rf_EncodeLogical(int p0, int p1) {
     throw new UnimplementedGnuApiMethod("Rf_EncodeLogical");
   }
 
-  public static CharPtr Rf_EncodeInteger(int p0, int p1) {
+  public static BytePtr Rf_EncodeInteger(int p0, int p1) {
     throw new UnimplementedGnuApiMethod("Rf_EncodeInteger");
   }
 
-  public static CharPtr Rf_EncodeReal0(double p0, int p1, int p2, int p3, CharPtr p4) {
+  public static BytePtr Rf_EncodeReal0(double p0, int p1, int p2, int p3, BytePtr p4) {
     throw new UnimplementedGnuApiMethod("Rf_EncodeReal0");
   }
 

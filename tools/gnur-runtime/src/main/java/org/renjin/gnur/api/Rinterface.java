@@ -19,7 +19,7 @@
 // Initial template generated from Rinterface.h from R 3.2.2
 package org.renjin.gnur.api;
 
-import org.renjin.gcc.runtime.CharPtr;
+import org.renjin.gcc.runtime.BytePtr;
 
 @SuppressWarnings("unused")
 public final class Rinterface {
@@ -32,7 +32,7 @@ public final class Rinterface {
     throw new UnimplementedGnuApiMethod("R_RestoreGlobalEnv");
   }
 
-  public static void R_RestoreGlobalEnvFromFile(CharPtr p0, boolean p1) {
+  public static void R_RestoreGlobalEnvFromFile(BytePtr p0, boolean p1) {
     throw new UnimplementedGnuApiMethod("R_RestoreGlobalEnvFromFile");
   }
 
@@ -40,7 +40,7 @@ public final class Rinterface {
     throw new UnimplementedGnuApiMethod("R_SaveGlobalEnv");
   }
 
-  public static void R_SaveGlobalEnvToFile(CharPtr p0) {
+  public static void R_SaveGlobalEnvToFile(BytePtr p0) {
     throw new UnimplementedGnuApiMethod("R_SaveGlobalEnvToFile");
   }
 
@@ -52,11 +52,11 @@ public final class Rinterface {
     throw new UnimplementedGnuApiMethod("R_ClearerrConsole");
   }
 
-  public static void R_Suicide(CharPtr p0) {
+  public static void R_Suicide(BytePtr p0) {
     throw new UnimplementedGnuApiMethod("R_Suicide");
   }
 
-  public static CharPtr R_HomeDir() {
+  public static BytePtr R_HomeDir() {
     throw new UnimplementedGnuApiMethod("R_HomeDir");
   }
 

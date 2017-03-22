@@ -152,7 +152,6 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
       setVariable(node.getTag(), node.getValue());
     }
   }
-  
 
   public void remove(Symbol symbol) {
     if(locked) {
@@ -164,7 +163,6 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
   public void clear() {
     frame.clear();
   }
-
 
   public String getName() {
     SEXP nameAttribute = this.attributes.get(Symbols.NAME);
@@ -220,6 +218,10 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
 
   public boolean bindingIsLocked(Symbol symbol) {
     return lockedBindings != null && lockedBindings.contains(symbol);
+  }
+
+  public void makeBinding(Symbol sym, FunctionCall fun) {
+
   }
   
   public void setVariable(String name, SEXP value) {
@@ -427,11 +429,9 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     return Null.INSTANCE;
   }
 
-
   public boolean hasVariable(Symbol symbol) {
     return frame.getVariable(symbol) != Symbol.UNBOUND_VALUE;
   }
-  
 
   @Override
   protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
@@ -576,5 +576,4 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     } 
     
   }
-
 }

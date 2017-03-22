@@ -195,6 +195,11 @@ public final class Environments {
     return false;
   }
 
+  @Internal
+  public static void makeActiveBinding(Symbol sym, FunctionCall fun, Environment env) {
+    env.makeBinding(sym, fun);
+  }
+
   /*----------------------------------------------------------------------
 
     do_libfixup

@@ -19,7 +19,7 @@
 // Initial template generated from Callbacks.h from R 3.2.2
 package org.renjin.gnur.api;
 
-import org.renjin.gcc.runtime.CharPtr;
+import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.sexp.SEXP;
 
 /**
@@ -36,7 +36,7 @@ public final class Callbacks {
     throw new UnimplementedGnuApiMethod("Rf_removeTaskCallbackByIndex");
   }
 
-  public static boolean Rf_removeTaskCallbackByName(CharPtr name) {
+  public static boolean Rf_removeTaskCallbackByName(BytePtr name) {
     throw new UnimplementedGnuApiMethod("Rf_removeTaskCallbackByName");
   }
 

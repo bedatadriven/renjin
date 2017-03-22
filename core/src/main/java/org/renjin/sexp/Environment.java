@@ -62,6 +62,7 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
 
   private boolean locked;
   private Set<Symbol> lockedBindings;
+  private Map<Symbol, FunctionCall> bindings;
 
   /**
    * Keeps track of the number of times setVariable() has been called on this 
@@ -94,6 +95,7 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     global.name = GLOBAL_ENVIRONMENT_NAME;
     global.parent = baseEnvironment;
     global.frame = frame;
+    global.bindings = new HashMap<>();
 
     return global;
   }
@@ -108,6 +110,7 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     base.name = "base";
     base.parent = EMPTY;
     base.frame = new BaseFrame();
+    base.bindings = new HashMap<>();
     return base;
   }
 
@@ -124,12 +127,14 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
   public static Environment createNamedEnvironment(Environment parent, String name) {
     Environment ns = createChildEnvironment(parent);
     ns.name = name;
+    ns.bindings = new HashMap<>();
     return ns;
   }
   
   public static Environment createBaseNamespaceEnvironment(Environment globalEnv, Environment baseEnvironment) {
     Environment ns = createChildEnvironment(globalEnv, baseEnvironment.getFrame());
     ns.name = "namespace:base";
+    ns.bindings = new HashMap<>();
     return ns;
   }
 
@@ -137,6 +142,7 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     Environment child = new Environment();
     child.parent = parent;
     child.frame = frame;
+    child.bindings = new HashMap<>();
     return child;
   }
   
@@ -221,7 +227,7 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
   }
 
   public void makeBinding(Symbol sym, FunctionCall fun) {
-
+    setBinding(sym, fun);
   }
   
   public void setVariable(String name, SEXP value) {
@@ -229,6 +235,19 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
       name = "NA";
     }
     setVariable(Symbol.get(name), value);
+  }
+
+  public void setBinding(Symbol symbol, FunctionCall fun) {
+    if(bindingIsLocked(symbol)) {
+      throw new EvalException("cannot change value of locked binding for '%s'", symbol.getPrintName());
+    } else if(locked && frame.getVariable(symbol) == Symbol.UNBOUND_VALUE) {
+      throw new EvalException("cannot add bindings to a locked environment");
+    }
+    bindings.put(symbol, fun);
+  }
+
+  public SEXP getBinding(Symbol symbol) {
+    return bindings.get(symbol);
   }
 
   public void setVariable(Symbol symbol, SEXP value) {
@@ -438,7 +457,6 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     unsafeSetAttributes(attributes);
     return this;
   }
-
 
   private static class EnvIterator extends UnmodifiableIterator<Environment> {
     private Environment next;

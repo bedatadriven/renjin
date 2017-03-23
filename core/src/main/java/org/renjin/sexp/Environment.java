@@ -62,7 +62,7 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
 
   private boolean locked;
   private Set<Symbol> lockedBindings;
-  private Map<Symbol, FunctionCall> bindings;
+  private Map<Symbol, FunctionCall> bindings = new HashMap<>();;
 
   /**
    * Keeps track of the number of times setVariable() has been called on this 
@@ -95,7 +95,6 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     global.name = GLOBAL_ENVIRONMENT_NAME;
     global.parent = baseEnvironment;
     global.frame = frame;
-    global.bindings = new HashMap<>();
 
     return global;
   }
@@ -110,7 +109,6 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     base.name = "base";
     base.parent = EMPTY;
     base.frame = new BaseFrame();
-    base.bindings = new HashMap<>();
     return base;
   }
 
@@ -127,14 +125,12 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
   public static Environment createNamedEnvironment(Environment parent, String name) {
     Environment ns = createChildEnvironment(parent);
     ns.name = name;
-    ns.bindings = new HashMap<>();
     return ns;
   }
   
   public static Environment createBaseNamespaceEnvironment(Environment globalEnv, Environment baseEnvironment) {
     Environment ns = createChildEnvironment(globalEnv, baseEnvironment.getFrame());
     ns.name = "namespace:base";
-    ns.bindings = new HashMap<>();
     return ns;
   }
 
@@ -142,7 +138,6 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     Environment child = new Environment();
     child.parent = parent;
     child.frame = frame;
-    child.bindings = new HashMap<>();
     return child;
   }
   

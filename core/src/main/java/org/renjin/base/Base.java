@@ -22,7 +22,6 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.methods.Methods;
-import org.renjin.primitives.Evaluation;
 import org.renjin.primitives.io.serialization.Serialization;
 import org.renjin.primitives.matrix.Matrix;
 import org.renjin.primitives.matrix.MatrixBuilder;
@@ -185,7 +184,7 @@ public class Base {
 
     ListVector.NamedBuilder val = new ListVector.NamedBuilder();
     for(String var : vars) {
-      SEXP boundValue = env.getVariable(var);
+      SEXP boundValue = env.getVariable(context, var);
       if(boundValue == Symbol.UNBOUND_VALUE) {
         throw new EvalException("object %s not found", boundValue);
       }

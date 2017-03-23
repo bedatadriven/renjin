@@ -73,7 +73,7 @@ public abstract class EvalTestCase {
 
   
   private void printWarnings() {
-    SEXP warnings = topLevelContext.getBaseEnvironment().getVariable(Warning.LAST_WARNING);
+    SEXP warnings = topLevelContext.getBaseEnvironment().getVariable(topLevelContext, Warning.LAST_WARNING);
     if(warnings != Symbol.UNBOUND_VALUE) {
       topLevelContext.evaluate( FunctionCall.newCall(Symbol.get("print.warnings"), warnings),
           topLevelContext.getBaseEnvironment());
@@ -330,7 +330,7 @@ public abstract class EvalTestCase {
   }
   
   protected final String getString(String variableName) {
-    SEXP sexp = topLevelContext.getGlobalEnvironment().getVariable(variableName);
+    SEXP sexp = topLevelContext.getGlobalEnvironment().getVariable(topLevelContext, variableName);
     return ((StringVector) sexp).getElementAsString(0);
   }
 }

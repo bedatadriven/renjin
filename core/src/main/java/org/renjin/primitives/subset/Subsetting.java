@@ -116,8 +116,8 @@ public class Subsetting {
     return setSingleListElementByName(pairList.newCopyBuilder(), name, value);
   }
 
-  public static SEXP setElementByName(Environment env, String name, SEXP value) {
-    env.setVariable(name, value);
+  public static SEXP setElementByName(Context context, Environment env, String name, SEXP value) {
+    env.setVariable(context, name, value);
     return env;
   }
 
@@ -141,16 +141,16 @@ public class Subsetting {
   }
 
   @Builtin(".subset2")
-  public static SEXP getSingleElementNonGeneric(SEXP source, @ArgumentList ListVector subscripts,
+  public static SEXP getSingleElementNonGeneric(@Current Context context, SEXP source, @ArgumentList ListVector subscripts,
                                                 @NamedFlag("exact") @DefaultValue(true) boolean exact,
                                                 @NamedFlag("drop") @DefaultValue(true) boolean drop) {
 
-    return getSingleElement(source, subscripts, exact, drop);
+    return getSingleElement(context, source, subscripts, exact, drop);
   }
 
   @Generic
   @Builtin("[[")
-  public static SEXP getSingleElement(SEXP source,
+  public static SEXP getSingleElement(@Current Context context, SEXP source,
                                       @ArgumentList ListVector subscripts,
                                       @NamedFlag("exact") @DefaultValue(true) boolean exact,
                                       @NamedFlag("drop") @DefaultValue(true) boolean drop) {
@@ -165,7 +165,7 @@ public class Subsetting {
 
     // Environments are handled very differently from vectors, specialize now.
     if(source instanceof Environment) {
-      return getSingleEnvironmentElement((Environment) source, subscripts);
+      return getSingleEnvironmentElement(context, (Environment) source, subscripts);
     }
 
     // For the purpose of this operator, convert pairlists to list vectors before continuing
@@ -177,7 +177,7 @@ public class Subsetting {
     // are used to index the vector recursively
     if(source instanceof ListVector && isRecursiveIndexingArgument(subscripts)) {
 
-      return getSingleElementRecursively((ListVector) source, (AtomicVector) subscripts.getElementAsSEXP(0), exact, drop);
+      return getSingleElementRecursively(context, (ListVector) source, (AtomicVector) subscripts.getElementAsSEXP(0), exact, drop);
 
     } else {
 
@@ -195,7 +195,7 @@ public class Subsetting {
     }
   }
 
-  private static SEXP getSingleEnvironmentElement(Environment source, ListVector subscripts) {
+  private static SEXP getSingleEnvironmentElement(Context context, Environment source, ListVector subscripts) {
     if(subscripts.length() != 1) {
       throw new EvalException("subsetting an environment requires a single argument");
     }
@@ -209,7 +209,7 @@ public class Subsetting {
       throw new EvalException("subset argument for environment cannot be NA");
     }
 
-    SEXP value = source.getVariable(symbolName);
+    SEXP value = source.getVariable(context, symbolName);
     if(value == Symbol.UNBOUND_VALUE) {
       return Null.INSTANCE;
     }
@@ -227,7 +227,7 @@ public class Subsetting {
     return subscript instanceof AtomicVector && subscript.length() > 1;
   }
 
-  private static SEXP getSingleElementRecursively(ListVector source, AtomicVector indexes, boolean exact, boolean drop) {
+  private static SEXP getSingleElementRecursively(Context context, ListVector source, AtomicVector indexes, boolean exact, boolean drop) {
 
     assert indexes.length() > 0;
 
@@ -238,7 +238,7 @@ public class Subsetting {
       if(!(result instanceof Vector)) {
         throw new EvalException("Recursive indexing failed at level %d", i+1);
       }
-      result = getSingleElement(result, new ListVector(indexes.getElementAsSEXP(i)), exact, drop);
+      result = getSingleElement(context, result, new ListVector(indexes.getElementAsSEXP(i)), exact, drop);
     }
     return result;
   }
@@ -324,7 +324,7 @@ public class Subsetting {
 
     // Handle environment case as exceptional first
     if(source instanceof Environment) {
-      return setSingleEnvironmentElement((Environment) source, argumentList);
+      return setSingleEnvironmentElement(context, (Environment) source, argumentList);
     }
 
     SEXP replacement = argumentList.getElementAsSEXP(argumentList.length() - 1);
@@ -412,7 +412,7 @@ public class Subsetting {
   /**
    *  Environment[[name]] <- value
    */
-  private static Environment setSingleEnvironmentElement(Environment source, ListVector arguments) {
+  private static Environment setSingleEnvironmentElement(Context context, Environment source, ListVector arguments) {
     if(arguments.length() != 2) {
       throw new EvalException("wrong args for environment subassignment");
     }
@@ -425,7 +425,7 @@ public class Subsetting {
 
     StringVector subscript = (StringVector) subscriptExp;
 
-    source.setVariable(subscript.getElementAsString(0), value);
+    source.setVariable(context, subscript.getElementAsString(0), value);
 
     return source;
   }

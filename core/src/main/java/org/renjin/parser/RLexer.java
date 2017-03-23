@@ -19,6 +19,8 @@
 package org.renjin.parser;
 
 import org.apache.commons.math.complex.Complex;
+import org.renjin.eval.Context;
+import org.renjin.invoke.annotations.Current;
 import org.renjin.parser.RParser.*;
 import org.renjin.sexp.*;
 
@@ -705,8 +707,8 @@ an ANSI digit or not */
                                          build()
                                        ), 
                   parseState.srcFileProt);
-        env.setVariable(Symbol.get("filename"), newname);
-        env.setVariable(Symbol.get("original"), oldname);
+        env.setVariableOnlyIfThereAreNoActiveBindings(null, Symbol.get("filename"), newname);
+        env.setVariableOnlyIfThereAreNoActiveBindings(null, Symbol.get("original"), oldname);
     } else {
         REPROTECT(parseState.srcFile = /*duplicate(*/newname/*)*/, parseState.srcFileProt);
     }

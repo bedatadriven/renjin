@@ -42,24 +42,24 @@ public final class Environments {
   }
 
   @Internal
-  public static ListVector env2list(Environment env, boolean allNames) {
+  public static ListVector env2list(@Current Context context, Environment env, boolean allNames) {
     ListVector.NamedBuilder list = new ListVector.NamedBuilder();
     for(Symbol name : env.getSymbolNames()) {
       if(allNames || !name.getPrintName().startsWith(".")) {
-        list.add(name, env.getVariable(name));
+        list.add(name, env.getVariable(context, name));
       }
     }
     return list.build();
   }
 
   @Internal
-  public static Environment list2env(ListVector list, Environment env) {
+  public static Environment list2env(@Current Context context, ListVector list, Environment env) {
     AtomicVector names = list.getNames();
     if(names.length() != list.length()) {
       throw new EvalException("names(x) must be a character vector of the same length as x");
     }
     for (NamedValue namedValue : list.namedValues()) {
-      env.setVariable(namedValue.getName(), namedValue.getValue());
+      env.setVariable(context, namedValue.getName(), namedValue.getValue());
     }
     
     return env;
@@ -119,10 +119,10 @@ public final class Environments {
   }
 
   @Builtin("as.environment")
-  public static Environment asEnvironment(ListVector list) {
+  public static Environment asEnvironment(@Current Context context, ListVector list) {
     Environment env = Environment.createChildEnvironment(Environment.EMPTY);
     for(NamedValue namedValue : list.namedValues()) {
-      env.setVariable(namedValue.getName(), namedValue.getValue());
+      env.setVariable(context, namedValue.getName(), namedValue.getValue());
     }
     return env;
   }
@@ -196,8 +196,8 @@ public final class Environments {
   }
 
   @Internal
-  public static void makeActiveBinding(Symbol sym, FunctionCall fun, Environment env) {
-    env.makeBinding(sym, fun);
+  public static void makeActiveBinding(Symbol sym, Closure closure, Environment env) {
+    env.makeActiveBinding(sym, closure);
   }
 
   /*----------------------------------------------------------------------
@@ -216,16 +216,16 @@ public final class Environments {
     loading a package.
      */
   @Internal("lib.fixup")
-  public static Environment libfixup(Environment loadEnv, Environment libEnv) {
+  public static Environment libfixup(@Current Context context, Environment loadEnv, Environment libEnv) {
     for (Symbol name : loadEnv.getSymbolNames()) {
-      SEXP value = loadEnv.getVariable(name);
+      SEXP value = loadEnv.getVariable(context, name);
       if (value instanceof Closure) {
         Closure closure = (Closure) value;
         if (closure.getEnclosingEnvironment() == loadEnv) {
           value = closure.setEnclosingEnvironment(libEnv);
         }
       }
-      loadEnv.setVariable(name, value);
+      loadEnv.setVariable(context, name, value);
     }
     return libEnv;
   }
@@ -288,20 +288,20 @@ public final class Environments {
     // We need to handle the "any" mode specially to avoid forcing promises
     // that may not yet be evaluated
     if("any".equals(mode)) {
-      return existsAnySymbol(Symbol.get(x), environment, inherits);
+      return existsAnySymbol(context, Symbol.get(x), environment, inherits);
     }
     
     return environment.findVariable(context, Symbol.get(x), Vectors.modePredicate(mode),
         inherits) != Symbol.UNBOUND_VALUE;
   }
 
-  private static boolean existsAnySymbol(Symbol symbol, Environment environment, boolean inherits) {
-    SEXP value = environment.getVariable(symbol);
+  private static boolean existsAnySymbol(@Current Context context, Symbol symbol, Environment environment, boolean inherits) {
+    SEXP value = environment.getVariable(context, symbol);
     if(value != Symbol.UNBOUND_VALUE) {
       return true;
     }
     if(inherits && environment.getParent() != Environment.EMPTY) {
-      return existsAnySymbol(symbol, environment.getParent(), inherits);
+      return existsAnySymbol(context, symbol, environment.getParent(), inherits);
     } else {
       return false;
     }
@@ -400,7 +400,7 @@ public final class Environments {
         if(!namedValue.hasName()) {
           throw new UnsupportedOperationException("all elements of a list must be named");
         }
-        newEnv.setVariable(namedValue.getName(), namedValue.getValue());
+        newEnv.setVariable(context, namedValue.getName(), namedValue.getValue());
       }
     } else {
       throw new EvalException("object of type '%s' cannot be attached", what.getTypeName());

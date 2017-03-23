@@ -105,7 +105,7 @@ public class SerializationTest extends EvalTestCase {
     assumingBasePackagesLoad();
     
     File tempFile = File.createTempFile("renjin", "rds");
-    global.setVariable("tempFile", new StringArrayVector(tempFile.getAbsolutePath()));
+    global.setVariable(topLevelContext, "tempFile", new StringArrayVector(tempFile.getAbsolutePath()));
     
     eval("saveRDS('A', file=tempFile, compress=FALSE)");
 
@@ -117,7 +117,7 @@ public class SerializationTest extends EvalTestCase {
     assumingBasePackagesLoad();
 
     String rdsFile = Resources.getResource("expectedSimple.rds").getFile();
-    global.setVariable("file" , new StringArrayVector(rdsFile));
+    global.setVariable(topLevelContext, "file" , new StringArrayVector(rdsFile));
     
     eval("x <- readRDS(file)");
     
@@ -135,7 +135,7 @@ public class SerializationTest extends EvalTestCase {
     eval("z <- .GlobalEnv");
 
     File tempFile = File.createTempFile("renjin", "RData");
-    global.setVariable("tempFile", new StringArrayVector(tempFile.getAbsolutePath()));
+    global.setVariable(topLevelContext, "tempFile", new StringArrayVector(tempFile.getAbsolutePath()));
 
     eval("save(x,y,z ,file=tempFile, compress=FALSE)");
 

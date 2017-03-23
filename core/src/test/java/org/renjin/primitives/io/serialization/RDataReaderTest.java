@@ -21,7 +21,6 @@ package org.renjin.primitives.io.serialization;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
-import org.renjin.eval.Context;
 import org.renjin.repackaged.guava.io.ByteSource;
 import org.renjin.sexp.*;
 
@@ -71,9 +70,9 @@ public class RDataReaderTest extends EvalTestCase {
     PairList.Node pairList = (PairList.Node) exp;
     Environment env = (Environment) pairList.getValue();
     assertThat(pairList.length(), equalTo(1));
-    assertThat(env.getVariable("yyyy0yyyyy"), equalTo( c_i(1, 2, 3) ));
-    assertThat(env.getVariable("yyyy8yyyyy"), equalTo( c(8) ));
-    assertThat(env.getVariable("yyyy3yyyyy"), equalTo( c("a","b") ));
+    assertThat(env.getVariable(topLevelContext, "yyyy0yyyyy"), equalTo( c_i(1, 2, 3) ));
+    assertThat(env.getVariable(topLevelContext, "yyyy8yyyyy"), equalTo( c(8) ));
+    assertThat(env.getVariable(topLevelContext, "yyyy3yyyyy"), equalTo( c("a","b") ));
   }
   @Test
   public void isRDataFile() throws IOException {
@@ -163,7 +162,7 @@ public class RDataReaderTest extends EvalTestCase {
     GZIPInputStream gzipIn = new GZIPInputStream(in);
     RDataReader reader = new RDataReader(topLevelContext, gzipIn);
 
-    topLevelContext.getGlobalEnvironment().setVariable("f", reader.readFile());
+    topLevelContext.getGlobalEnvironment().setVariable(topLevelContext, "f", reader.readFile());
     
     assertThat(eval("identical(body(f), quote(x*x))"), equalTo(c(true)));
     assertThat(eval("f(8)"), equalTo(c(64)));

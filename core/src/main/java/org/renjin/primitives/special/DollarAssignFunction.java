@@ -61,7 +61,7 @@ public class DollarAssignFunction extends SpecialFunction {
       return Subsetting.setElementByName((PairList.Node)object, name, value);
 
     } else if(object instanceof Environment) {
-      return Subsetting.setElementByName((Environment)object, name, value);
+      return Subsetting.setElementByName(context, (Environment)object, name, value);
 
     } else if(object instanceof ListVector) {
       return Subsetting.setElementByName((ListVector)object, name, value);

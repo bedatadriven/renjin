@@ -84,8 +84,8 @@ public class VectorPipelinerTest extends EvalTestCase {
   
   @Test
   public void logicalArgument() {
-    topLevelContext.getGlobalEnvironment().setVariable("x", new LogicalArrayVector(new int[1000]));
-    topLevelContext.getGlobalEnvironment().setVariable("y", new DoubleArrayVector(new double[1000]));
+    topLevelContext.getGlobalEnvironment().setVariable(topLevelContext, "x", new LogicalArrayVector(new int[1000]));
+    topLevelContext.getGlobalEnvironment().setVariable(topLevelContext, "y", new DoubleArrayVector(new double[1000]));
 
     eval("a <- !x");
     eval("b <- y * a");

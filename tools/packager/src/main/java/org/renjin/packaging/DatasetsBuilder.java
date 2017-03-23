@@ -277,7 +277,7 @@ public class DatasetsBuilder {
     PairList.Builder pairList = new PairList.Builder();
     for(Symbol symbol : session.getGlobalEnvironment().getSymbolNames()) {
       if(!symbol.getPrintName().startsWith(".")) {
-        pairList.add(symbol, session.getGlobalEnvironment().getVariable(symbol));
+        pairList.add(symbol, session.getGlobalEnvironment().getVariable(, symbol));
       }
     }   
     writePairList(logicalDatasetName, session, pairList.build());

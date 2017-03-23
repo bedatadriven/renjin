@@ -426,7 +426,7 @@ public strictfp class TypesTest extends EvalTestCase {
     list.add("a", Symbol.MISSING_ARG);
     list.add("b", new DoubleArrayVector(2));
     list.add(FunctionCall.newCall(Symbol.get("+"), Symbol.get("a"), Symbol.get("b")));
-    global.setVariable(Symbol.get("x"), list.build());
+    global.setVariable(topLevelContext, Symbol.get("x"), list.build());
     
     eval("f <- .Internal(as.function.default(x, globalenv()))");
     assertThat(eval("f(1)"), equalTo(c(3)));
@@ -621,7 +621,7 @@ public strictfp class TypesTest extends EvalTestCase {
   @Test
   public void naSymbol() {
     eval(" s <- .Internal(as.vector('NA', 'symbol'))");
-    assertTrue(global.getVariable("s").equals(Symbol.get("NA")));
+    assertTrue(global.getVariable(topLevelContext, "s").equals(Symbol.get("NA")));
   }
 
 
@@ -636,7 +636,7 @@ public strictfp class TypesTest extends EvalTestCase {
     eval(" as.vector <- function (x, mode = 'any') .Internal(as.vector(x, mode)) ");
     eval(" x <- as.vector( c(a=1,b=2), mode = 'pairlist') ");
 
-    PairList.Node head = (PairList.Node) global.getVariable("x");
+    PairList.Node head = (PairList.Node) global.getVariable(topLevelContext, "x");
     assertThat( head.length(), equalTo(2));
     assertThat( head.getNode(0).getTag(), equalTo( symbol("a")));
     assertThat( head.getElementAsSEXP(0), equalTo( c(1) ));

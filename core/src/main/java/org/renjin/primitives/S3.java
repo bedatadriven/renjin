@@ -550,7 +550,7 @@ public class S3 {
         return new GenericMethod(this, method, className, (Function) function);
         
       } else if(methodTable != null && methodTable.hasVariable(method)) {
-        return new GenericMethod(this, method, className, (Function) methodTable.getVariable(method).force(context));
+        return new GenericMethod(this, method, className, (Function) methodTable.getVariable(context, method).force(context));
       
       } else {
         return null;
@@ -558,7 +558,7 @@ public class S3 {
     }
 
     private Environment getMethodTable() {
-      SEXP table = definitionEnvironment.getVariable(METHODS_TABLE).force(context);
+      SEXP table = definitionEnvironment.getVariable(context, METHODS_TABLE).force(context);
       if(table instanceof Environment) {
         return (Environment) table;
       } else if(table == Symbol.UNBOUND_VALUE) {
@@ -704,7 +704,7 @@ public class S3 {
       PairList formals = closure.getFormals();
       Environment previousEnv = parentContext.getEnvironment();
 
-      return updateArguments(actuals, formals, previousEnv, extraArgs);
+      return updateArguments(parentContext, actuals, formals, previousEnv, extraArgs);
     }
 
 
@@ -736,7 +736,7 @@ public class S3 {
     }
   }
 
-  public static PairList updateArguments(PairList actuals, PairList formals, 
+  public static PairList updateArguments(@Current Context context, PairList actuals, PairList formals,
                                          Environment previousEnv, ListVector extraArgs) {
     // match each actual to a formal name so we can update it's value. but we can't reorder!
 
@@ -795,7 +795,7 @@ public class S3 {
     for (int i = 0; i!=matchedNames.size();++i) {
       SEXP updatedValue;
       if(matchedNames.get(i) != null) {
-        updatedValue = previousEnv.getVariable(matchedNames.get(i));
+        updatedValue = previousEnv.getVariable(context, matchedNames.get(i));
         assert updatedValue != Symbol.UNBOUND_VALUE;
       } else {
         updatedValue = actualValues.get(i);

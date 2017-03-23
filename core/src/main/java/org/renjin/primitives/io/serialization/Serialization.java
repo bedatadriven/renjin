@@ -95,7 +95,7 @@ public class Serialization {
     
     RDataWriter writer = new RDataWriter(context,
         createHook(context, refhook), Connections.getConnection(context, con).getOutputStream());
-    writer.serialize(object);
+    writer.serialize(context, object);
     
   }
   
@@ -135,7 +135,7 @@ public class Serialization {
     }
     PairList.Builder list = new PairList.Builder();
     for(String name : names) {
-      SEXP value = envir.getVariable(name);
+      SEXP value = envir.getVariable(context, name);
       if(value == Symbol.UNBOUND_VALUE) {
         throw new EvalException("object '%s' not found", name);
       }
@@ -146,7 +146,7 @@ public class Serialization {
     }
     
     RDataWriter writer = new RDataWriter(context, con.getOutputStream());
-    writer.save(list.build());
+    writer.save(context, list.build());
     
     if (!wasOpen) {
       Connections.close(context, connHandle);
@@ -215,7 +215,7 @@ public class Serialization {
     StringArrayVector.Builder names = new StringArrayVector.Builder();
 
     for (NamedValue pair : data.namedValues()) {
-      env.setVariable(Symbol.get(pair.getName()), pair.getValue());
+      env.setVariable(context, Symbol.get(pair.getName()), pair.getValue());
       names.add(pair.getName());
     }
 
@@ -248,7 +248,7 @@ public class Serialization {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     RDataWriter writer = new RDataWriter(context, baos, 
             ascii? SerializationType.ASCII: SerializationType.XDR);
-    writer.serialize(object);
+    writer.serialize(context, object);
    
     return new RawVector(baos.toByteArray());
   }

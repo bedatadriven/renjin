@@ -241,7 +241,7 @@ public class IRBodyBuilderTest extends EvalTestCase {
     topLevelContext.evaluate(
         RParser.parseSource(new InputStreamReader(getClass().getResourceAsStream("/meanOnline.R"))));
     
-    Closure closure = (Closure) topLevelContext.getGlobalEnvironment().getVariable("mean.online");
+    Closure closure = (Closure) topLevelContext.getGlobalEnvironment().getVariable(topLevelContext, "mean.online");
     IRBodyBuilder factory = newBodyBuilder();
     factory.dump(closure.getBody());
   }

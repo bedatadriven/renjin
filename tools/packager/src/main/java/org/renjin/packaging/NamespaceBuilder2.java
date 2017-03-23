@@ -57,7 +57,7 @@ public class NamespaceBuilder2 {
     
     Context context = initContext();
 
-    Namespace namespace = context.getNamespaceRegistry().createNamespace(
+    Namespace namespace = context.getNamespaceRegistry().createNamespace(context,
         new InitializingPackage(
             source.getFqName(), 
             buildContext.getPackageOutputDir(),

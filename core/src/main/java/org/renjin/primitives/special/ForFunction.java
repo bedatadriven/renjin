@@ -84,7 +84,7 @@ public class ForFunction extends SpecialFunction {
             }
           }
 
-          rho.setVariable(symbol, elements.getElementAsSEXP(i));
+          rho.setVariable(context, symbol, elements.getElementAsSEXP(i));
           context.evaluate(statement, rho);
         } catch (BreakException e) {
           break;

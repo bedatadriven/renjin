@@ -90,7 +90,7 @@ public class Namespaces {
                                        @Unevaluated Symbol namespace,
                                        @Unevaluated Symbol entry) {
 
-    return registry.getNamespace(context, namespace).getEntry(entry).force(context);
+    return registry.getNamespace(context, namespace).getEntry(context, entry).force(context);
   }
 
   @Builtin("::")
@@ -99,7 +99,7 @@ public class Namespaces {
                                                @Unevaluated Symbol namespace,
                                                @Unevaluated Symbol entry) {
 
-    return registry.getNamespace(context, namespace).getExport(entry).force(context);
+    return registry.getNamespace(context, namespace).getExport(context, entry).force(context);
   }
 
   @Internal

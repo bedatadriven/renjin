@@ -57,11 +57,11 @@ public class DispatchChain {
   }
 
   public void populateEnvironment(Environment rho) {
-    rho.setVariable(CLASS, classes);
-    rho.setVariable(METHOD, new StringArrayVector(method));
-    rho.setVariable(GENERIC, StringVector.valueOf(generic));
+    rho.setVariable(context, CLASS, classes);
+    rho.setVariable(context, METHOD, new StringArrayVector(method));
+    rho.setVariable(context, GENERIC, StringVector.valueOf(generic));
     if(group != null) {
-      rho.setVariable(GROUP, StringVector.valueOf(group));
+      rho.setVariable(context, GROUP, StringVector.valueOf(group));
     }
   }
 

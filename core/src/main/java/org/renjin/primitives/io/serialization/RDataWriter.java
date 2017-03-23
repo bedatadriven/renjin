@@ -94,8 +94,8 @@ public class RDataWriter implements AutoCloseable {
    * @throws IOException 
    */
   @Deprecated
-  public void writeFile(SEXP sexp) throws IOException {
-    save(sexp);
+  public void writeFile(Context contextEnv, SEXP sexp) throws IOException {
+    save(contextEnv, sexp);
   }
 
   /**
@@ -103,17 +103,17 @@ public class RDataWriter implements AutoCloseable {
    * magic bytes 'RDX\n'
    * @throws IOException
    */
-  public void save(SEXP sexp) throws IOException {
+  public void save(Context contextEnv, SEXP sexp) throws IOException {
     if(serializationType == SerializationType.ASCII) {
       conn.writeBytes(ASCII_MAGIC_HEADER);
     } else {
       conn.writeBytes(XDR_MAGIC_HEADER);
     }
     
-    serialize(sexp);
+    serialize(contextEnv, sexp);
   }
 
-  public void serialize(SEXP exp) throws IOException {
+  public void serialize(Context contextEnv, SEXP exp) throws IOException {
     if(serializationType == SerializationType.ASCII) {
       conn.writeByte(ASCII_FORMAT);
     } else {
@@ -122,7 +122,7 @@ public class RDataWriter implements AutoCloseable {
     
     conn.writeByte('\n');
     writeVersion();
-    writeExp(exp);
+    writeExp(contextEnv, exp);
   }
 
 
@@ -138,7 +138,7 @@ public class RDataWriter implements AutoCloseable {
     out.writeInt(new Version(2,3,0).asPacked());
   }
 
-  private void writeExp(SEXP exp) throws IOException {
+  private void writeExp(Context contextEnv, SEXP exp) throws IOException {
     if(tryWriteRef(exp)) {
       return;
     }
@@ -150,37 +150,37 @@ public class RDataWriter implements AutoCloseable {
     if(exp instanceof Null) {
       writeNull();
     } else if(exp instanceof LogicalVector) {
-      writeLogical((LogicalVector) exp);
+      writeLogical(contextEnv, (LogicalVector) exp);
     } else if(exp instanceof IntVector) {
-      writeIntVector((IntVector) exp);
+      writeIntVector(contextEnv, (IntVector) exp);
     } else if(exp instanceof DoubleVector) {
-      writeDoubleVector((DoubleVector) exp);
+      writeDoubleVector(contextEnv, (DoubleVector) exp);
     } else if(exp instanceof StringVector) {
-      writeStringVector((StringVector) exp);
+      writeStringVector(contextEnv, (StringVector) exp);
     } else if(exp instanceof ComplexVector) {
-      writeComplexVector((ComplexVector)exp);
+      writeComplexVector(contextEnv, (ComplexVector)exp);
     } else if(exp instanceof Promise) {
-      writePromise((Promise)exp);
+      writePromise(contextEnv, (Promise)exp);
     } else if(exp instanceof ListVector) {
-      writeList((ListVector) exp);
+      writeList(contextEnv, (ListVector) exp);
     } else if(exp instanceof FunctionCall) {
-      writeFunctionCall((FunctionCall)exp);
+      writeFunctionCall(contextEnv, (FunctionCall)exp);
     } else if(exp instanceof PairList.Node) {
-      writePairList((PairList.Node) exp);
+      writePairList(contextEnv, (PairList.Node) exp);
     } else if(exp instanceof Symbol) {
       writeSymbol((Symbol) exp);
     } else if(exp instanceof Closure) {
-      writeClosure((Closure)exp);
+      writeClosure(contextEnv, (Closure)exp);
     } else if(exp instanceof RawVector) {
-      writeRawVector((RawVector) exp);
+      writeRawVector(contextEnv, (RawVector) exp);
     } else if(exp instanceof Environment) {
-      writeEnvironment((Environment)exp);
+      writeEnvironment(contextEnv, (Environment)exp);
     } else if(exp instanceof PrimitiveFunction) {
       writePrimitive((PrimitiveFunction)exp);
     } else if(exp instanceof S4Object) {
-      writeS4((S4Object)exp);
+      writeS4(contextEnv, (S4Object)exp);
     } else if(exp instanceof ExternalPtr) {
-      writeExternalPtr((ExternalPtr)exp);
+      writeExternalPtr(contextEnv, (ExternalPtr)exp);
     } else if(exp instanceof CHARSEXP) {
       writeCharExp(((CHARSEXP)exp).getValue());
     } else {
@@ -245,16 +245,16 @@ public class RDataWriter implements AutoCloseable {
     out.writeInt(NILVALUE_SXP);
   }
 
-  private void writeLogical(LogicalVector vector) throws IOException {
+  private void writeLogical(Context contextEnv, LogicalVector vector) throws IOException {
     writeFlags(SexpType.LGLSXP, vector);
     out.writeInt(vector.length());
     for(int i=0;i!=vector.length();++i) {
       out.writeInt(vector.getElementAsRawLogical(i));
     }
-    writeAttributes(vector);
+    writeAttributes(contextEnv, vector);
   }
 
-  private void writeIntVector(IntVector vector) throws IOException {
+  private void writeIntVector(Context contextEnv, IntVector vector) throws IOException {
     writeFlags(SexpType.INTSXP, vector);
     out.writeInt(vector.length());
     if(serializationType == SerializationType.ASCII) {
@@ -271,10 +271,10 @@ public class RDataWriter implements AutoCloseable {
       }
     }
     
-    writeAttributes(vector);
+    writeAttributes(contextEnv, vector);
   }
 
-  private void writeDoubleVector(DoubleVector vector) throws IOException {
+  private void writeDoubleVector(Context contextEnv, DoubleVector vector) throws IOException {
     writeFlags(SexpType.REALSXP, vector);
     out.writeInt(vector.length());
     if(serializationType == SerializationType.ASCII) {
@@ -302,24 +302,24 @@ public class RDataWriter implements AutoCloseable {
       }
     }
     
-    writeAttributes(vector);
+    writeAttributes(contextEnv, vector);
   }
 
 
-  private void writeS4(S4Object exp) throws IOException {
+  private void writeS4(Context contextEnv, S4Object exp) throws IOException {
     writeFlags(SexpType.S4SXP, exp);
-    writeAttributes(exp);
+    writeAttributes(contextEnv, exp);
   }
 
-  private void writeExternalPtr(ExternalPtr exp) throws IOException {
+  private void writeExternalPtr(Context contextEnv, ExternalPtr exp) throws IOException {
     addRef(exp);
     writeFlags(SexpType.EXTPTRSXP, exp);
-    writeExp(Null.INSTANCE); // protected value (not currently used)
-    writeExp(Null.INSTANCE); // tag (not currently used)
-    writeAttributes(exp);
+    writeExp(contextEnv, Null.INSTANCE); // protected value (not currently used)
+    writeExp(contextEnv, Null.INSTANCE); // tag (not currently used)
+    writeAttributes(contextEnv, exp);
   }
 
-  private void writeComplexVector(ComplexVector vector) throws IOException {
+  private void writeComplexVector(Context contextEnv, ComplexVector vector) throws IOException {
     writeFlags(SexpType.CPLXSXP, vector);
     out.writeInt(vector.length());
     for(int i=0;i!=vector.length();++i) {
@@ -327,10 +327,10 @@ public class RDataWriter implements AutoCloseable {
       out.writeDouble(value.getReal());
       out.writeDouble(value.getImaginary());
     }
-    writeAttributes(vector);
+    writeAttributes(contextEnv, vector);
   }
 
-  private void writeRawVector(RawVector vector) throws IOException {
+  private void writeRawVector(Context contextEnv, RawVector vector) throws IOException {
     writeFlags(SexpType.RAWSXP, vector);
     out.writeInt(vector.length());
     if(serializationType == SerializationType.ASCII) {
@@ -341,44 +341,44 @@ public class RDataWriter implements AutoCloseable {
     } else {
       out.writeString(vector.toByteArray());
     }
-    writeAttributes(vector);
+    writeAttributes(contextEnv, vector);
   }
   
-  private void writeStringVector(StringVector vector) throws IOException {
+  private void writeStringVector(Context contextEnv, StringVector vector) throws IOException {
     writeFlags(SexpType.STRSXP, vector);
     out.writeInt(vector.length());
     for(int i=0;i!=vector.length();++i) {
       writeCharExp(vector.getElementAsString(i));
     }
-    writeAttributes(vector);
+    writeAttributes(contextEnv, vector);
   }
 
-  private void writeList(ListVector vector) throws IOException {
+  private void writeList(Context contextEnv, ListVector vector) throws IOException {
     writeFlags(SexpType.VECSXP, vector);
     out.writeInt(vector.length());
     for(SEXP element : vector) {
-      writeExp(element);
+      writeExp(contextEnv, element);
     }
-    writeAttributes(vector);
+    writeAttributes(contextEnv, vector);
   }
 
-  private void writePromise(Promise exp) throws IOException {
+  private void writePromise(Context contextEnv, Promise exp) throws IOException {
     out.writeInt(Flags.computePromiseFlags(exp));
-    writeAttributes(exp);
+    writeAttributes(contextEnv, exp);
     if(exp.getEnvironment() != null) {
-      writeExp(exp.getEnvironment());
+      writeExp(contextEnv, exp.getEnvironment());
     }
-    writeExp(exp.getValue() == null ? Null.INSTANCE : exp.getValue());
-    writeExp(exp.getExpression());  
+    writeExp(contextEnv, exp.getValue() == null ? Null.INSTANCE : exp.getValue());
+    writeExp(contextEnv, exp.getExpression());
   }
 
-  private void writePairList(PairList.Node node) throws IOException {
+  private void writePairList(Context contextEnv, PairList.Node node) throws IOException {
 
     while(true) {
       writeFlags(SexpType.LISTSXP, node);
-      writeAttributes(node);
-      writeTag(node);
-      writeExp(node.getValue());
+      writeAttributes(contextEnv, node);
+      writeTag(contextEnv, node);
+      writeExp(contextEnv, node.getValue());
 
       if(node.getNext() == Null.INSTANCE) {
         writeNull();
@@ -388,27 +388,27 @@ public class RDataWriter implements AutoCloseable {
     }
   }
 
-  private void writeFunctionCall(FunctionCall exp) throws IOException {
+  private void writeFunctionCall(Context contextEnv, FunctionCall exp) throws IOException {
     writeFlags(SexpType.LANGSXP, exp);
-    writeAttributes(exp);
-    writeTag(exp);
-    writeExp(exp.getValue());
+    writeAttributes(contextEnv, exp);
+    writeTag(contextEnv, exp);
+    writeExp(contextEnv, exp.getValue());
     if(exp.hasNextNode()) {
-      writeExp(exp.getNextNode());
+      writeExp(contextEnv, exp.getNextNode());
     } else {
       writeNull();
     }
   }
 
-  private void writeClosure(Closure exp) throws IOException {
+  private void writeClosure(Context contextEnv, Closure exp) throws IOException {
     writeFlags(SexpType.CLOSXP, exp);
-    writeAttributes(exp);
-    writeExp(exp.getEnclosingEnvironment());
-    writeExp(exp.getFormals());
-    writeExp(exp.getBody());
+    writeAttributes(contextEnv, exp);
+    writeExp(contextEnv, exp.getEnclosingEnvironment());
+    writeExp(contextEnv, exp.getFormals());
+    writeExp(contextEnv, exp.getBody());
   }
   
-  private void writeEnvironment(Environment env) throws IOException {
+  private void writeEnvironment(Context contextEnv, Environment env) throws IOException {
 
     if(context.isGlobalEnvironment(env)) {
       out.writeInt(SerializationFormat.GLOBALENV_SXP);
@@ -423,23 +423,23 @@ public class RDataWriter implements AutoCloseable {
         addRef(env);
         writeFlags(SexpType.ENVSXP, env);
         out.writeInt(env.isLocked() ? 1 : 0);
-        writeExp(env.getParent());
-        writeFrame(env);
-        writeExp(Null.INSTANCE); // hashtab (unused)
+        writeExp(contextEnv, env.getParent());
+        writeFrame(contextEnv, env);
+        writeExp(contextEnv, Null.INSTANCE); // hashtab (unused)
         
         // NB: attributes for an environment are
         // ALWAYS written, even if NULL
-        writeExp(env.getAttributes().asPairList());
+        writeExp(contextEnv, env.getAttributes().asPairList());
       }
     }
   }
   
-  private void writeFrame(Environment exp) throws IOException {
+  private void writeFrame(Context contextEnv, Environment exp) throws IOException {
     PairList.Builder frame = new PairList.Builder();
     for(Symbol name : exp.getSymbolNames()) {
-      frame.add(name, exp.getVariable(name));
+      frame.add(name, exp.getVariable(contextEnv, name));
     }
-    writeExp(frame.build());
+    writeExp(contextEnv, frame.build());
   }
 
   private void writeNamespace(Environment ns) throws IOException {
@@ -513,7 +513,7 @@ public class RDataWriter implements AutoCloseable {
     }
   }
 
-  private void writeAttributes(SEXP exp) throws IOException {
+  private void writeAttributes(Context contextEnv, SEXP exp) throws IOException {
     
     PairList attributes = exp.getAttributes().asPairList();
 
@@ -525,13 +525,13 @@ public class RDataWriter implements AutoCloseable {
       if(!(attributes instanceof PairList.Node)) {
         throw new AssertionError(attributes.getClass());
       }
-      writeExp(attributes);
+      writeExp(contextEnv, attributes);
     }
   }
 
-  private void writeTag(PairList.Node node) throws IOException {
+  private void writeTag(Context contextEnv, PairList.Node node) throws IOException {
     if(node.hasTag()) {
-      writeExp(node.getTag());
+      writeExp(contextEnv, node.getTag());
     }
   }
 

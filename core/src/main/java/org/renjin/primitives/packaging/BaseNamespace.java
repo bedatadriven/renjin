@@ -18,6 +18,9 @@
  */
 package org.renjin.primitives.packaging;
 
+import org.renjin.eval.Context;
+import org.renjin.invoke.annotations.Current;
+import org.renjin.sexp.ComplexVector;
 import org.renjin.sexp.Environment;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Symbol;
@@ -29,9 +32,9 @@ public class BaseNamespace extends Namespace {
   }
 
   @Override
-  public SEXP getExport(Symbol entry) {
+  public SEXP getExport(@Current Context context, Symbol entry) {
     // all symbols in base namespace are exported
-    return getEntry(entry);
+    return getEntry(context, entry);
   }
 
   

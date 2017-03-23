@@ -99,7 +99,7 @@ public class OptTest extends EvalTestCase{
   
   @Test
   public void negatedLogical() {
-    topLevelContext.getEnvironment().setVariable(Symbol.get("x"), LogicalVector.EMPTY);
+    topLevelContext.getEnvironment().setVariable(topLevelContext, Symbol.get("x"), LogicalVector.EMPTY);
     assertThat(eval("!x"), equalTo((SEXP)LogicalVector.EMPTY));
   }
   

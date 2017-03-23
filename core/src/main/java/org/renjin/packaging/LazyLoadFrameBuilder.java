@@ -90,7 +90,7 @@ public class LazyLoadFrameBuilder {
   private byte[] serializeSymbol(NamedValue namedValue) throws IOException {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     RDataWriter writer = new RDataWriter(context, baos);
-    writer.serialize(namedValue.getValue());
+    writer.serialize(context, namedValue.getValue());
     baos.close();
     return baos.toByteArray();
   }

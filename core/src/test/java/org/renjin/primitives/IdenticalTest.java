@@ -69,8 +69,8 @@ public class IdenticalTest extends EvalTestCase {
 
   @Test
   public void identicalS4() {
-    topLevelContext.getGlobalEnvironment().setVariable("x", new S4Object());
-    topLevelContext.getGlobalEnvironment().setVariable("y", new S4Object());
+    topLevelContext.getGlobalEnvironment().setVariable(topLevelContext, "x", new S4Object());
+    topLevelContext.getGlobalEnvironment().setVariable(topLevelContext, "y", new S4Object());
     eval("attr(x, 'foo') <- 'bar' ");
     eval("attr(y, 'foo') <- 'baz' ");
 

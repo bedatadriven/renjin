@@ -202,7 +202,7 @@ public class NamespaceRegistry {
       try {
         // load the serialized functions/values from the classpath
         // and add them to our private namespace environment
-        Namespace namespace = createNamespace(pkg);
+        Namespace namespace = createNamespace(context, pkg);
 
         // set up the namespace
         populateNamespace(context, pkg, namespace);
@@ -248,7 +248,7 @@ public class NamespaceRegistry {
    */
   private void populateNamespace(Context context, Package pkg, Namespace namespace) throws IOException {
     for(NamedValue value : pkg.loadSymbols(context)) {
-      namespace.getNamespaceEnvironment().setVariable(Symbol.get(value.getName()), value.getValue());
+      namespace.getNamespaceEnvironment().setVariable(context, Symbol.get(value.getName()), value.getValue());
     }
   }
 
@@ -264,7 +264,7 @@ public class NamespaceRegistry {
   /**
    * Creates a new empty namespace
    */
-  public Namespace createNamespace(Package pkg) {
+  public Namespace createNamespace(Context context, Package pkg) {
     // each namespace has environment which is the leaf in a hierarchy that
     // looks like this:
     // BASE-NS -> IMPORTS -> ENVIRONMENT
@@ -280,7 +280,7 @@ public class NamespaceRegistry {
     envirMap.put(namespaceEnv, namespace);
 
     // save the name to the environment
-    namespaceEnv.setVariable(".packageName", StringVector.valueOf(pkg.getName().getPackageName()));
+    namespaceEnv.setVariable(context, ".packageName", StringVector.valueOf(pkg.getName().getPackageName()));
     return namespace;
   }
 

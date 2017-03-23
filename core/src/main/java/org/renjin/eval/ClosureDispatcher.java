@@ -136,7 +136,7 @@ public class ClosureDispatcher {
           value =  Promise.promiseMissing(innerEnv, defaultValue);
         }
       }
-      innerEnv.setVariable(node.getTag(), value);
+      innerEnv.setVariable(innerContext, node.getTag(), value);
     }
   }
 

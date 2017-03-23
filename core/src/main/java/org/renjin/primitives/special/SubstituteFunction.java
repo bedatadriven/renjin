@@ -56,7 +56,7 @@ public class SubstituteFunction extends SpecialFunction {
     SEXP expr;
     if(exprArgument == Symbols.ELLIPSES) {
       
-      SEXP ellipses = rho.getVariable(Symbols.ELLIPSES);
+      SEXP ellipses = rho.getVariable(context, Symbols.ELLIPSES);
       if(ellipses == Null.INSTANCE) {
         expr = Null.INSTANCE;
       } else {
@@ -103,34 +103,34 @@ public class SubstituteFunction extends SpecialFunction {
     return substitute(exp, buildContext(context, environment));
   }
 
-  private static SEXP substitute(SEXP exp, SubstituteContext context) {
-    SubstitutingVisitor visitor = new SubstitutingVisitor(context);
+  private static SEXP substitute(SEXP exp, SubstituteContext subContext) {
+    SubstitutingVisitor visitor = new SubstitutingVisitor(subContext);
     exp.accept(visitor);
     return visitor.getResult() ;
   }
 
   public static class SubstitutingVisitor extends SexpVisitor<SEXP> {
-    private final SubstituteContext context;
+    private final SubstituteContext subContext;
     private SEXP result;
 
-    public SubstitutingVisitor(SubstituteContext context) {
-      this.context = context;
+    public SubstitutingVisitor(SubstituteContext subContext) {
+      this.subContext = subContext;
     }
 
     @Override
     public void visit(FunctionCall call) {
       result = new FunctionCall(
           substitute(call.getFunction()),
-          substituteArgumentList(call.getArguments()),
+          substituteArgumentList(Context.newTopLevelContext(), call.getArguments()),
           call.getAttributes()
       );
     }
 
-    private PairList substituteArgumentList(PairList arguments) {
+    private PairList substituteArgumentList(Context context, PairList arguments) {
       PairList.Builder builder = PairList.Node.newBuilder();
       for(PairList.Node node : arguments.nodes()) {
         if(node.getValue().equals(Symbols.ELLIPSES)) {
-          SEXP extraArguments = context.getVariable(Symbols.ELLIPSES);
+          SEXP extraArguments = subContext.getVariable(context, Symbols.ELLIPSES);
           if(extraArguments != Symbol.UNBOUND_VALUE) {
             builder.addAll(unpackPromiseList((PromisePairList) extraArguments));
           } else {
@@ -173,8 +173,8 @@ public class SubstituteFunction extends SpecialFunction {
 
     @Override
     public void visit(Symbol symbol) {
-      if(context.hasVariable(symbol)) {
-        result = unpromise(context.getVariable(symbol));
+      if(subContext.hasVariable(Context.newTopLevelContext(), symbol)) {
+        result = unpromise(subContext.getVariable(Context.newTopLevelContext(), symbol));
       } else {
         result = symbol;
       }
@@ -211,13 +211,13 @@ public class SubstituteFunction extends SpecialFunction {
     }
 
     private SEXP substitute(SEXP exp) {
-      return SubstituteFunction.substitute(exp, context);
+      return SubstituteFunction.substitute(exp, subContext);
     }
   }
   
   private interface SubstituteContext {
-    SEXP getVariable(Symbol name);
-    boolean hasVariable(Symbol name);
+    SEXP getVariable(Context context, Symbol name);
+    boolean hasVariable(Context context, Symbol name);
   }
   
   private static class EnvironmentContext implements SubstituteContext {
@@ -229,12 +229,12 @@ public class SubstituteFunction extends SpecialFunction {
     }
 
     @Override
-    public SEXP getVariable(Symbol name) {
-      return rho.getVariable(name);
+    public SEXP getVariable(Context context, Symbol name) {
+      return rho.getVariable(context, name);
     }
 
     @Override
-    public boolean hasVariable(Symbol name) {
+    public boolean hasVariable(Context context, Symbol name) {
       return rho.hasVariable(name);
     }
   
@@ -243,12 +243,12 @@ public class SubstituteFunction extends SpecialFunction {
   private static class GlobalEnvironmentContext implements SubstituteContext {
 
     @Override
-    public SEXP getVariable(Symbol name) {
+    public SEXP getVariable(Context context, Symbol name) {
       return Symbol.UNBOUND_VALUE;
     }
 
     @Override
-    public boolean hasVariable(Symbol name) {
+    public boolean hasVariable(Context context, Symbol name) {
       return false;
     }
   }
@@ -261,7 +261,7 @@ public class SubstituteFunction extends SpecialFunction {
     }
 
     @Override
-    public SEXP getVariable(Symbol name) {
+    public SEXP getVariable(Context context, Symbol name) {
       int index = list.getIndexByName(name.getPrintName());
       if(index == -1) {
         return Symbol.UNBOUND_VALUE;
@@ -271,7 +271,7 @@ public class SubstituteFunction extends SpecialFunction {
     }
 
     @Override
-    public boolean hasVariable(Symbol name) {
+    public boolean hasVariable(Context context, Symbol name) {
       return list.getIndexByName(name.getPrintName()) != -1;
     }
         
@@ -285,7 +285,7 @@ public class SubstituteFunction extends SpecialFunction {
     }
 
     @Override
-    public SEXP getVariable(Symbol name) {
+    public SEXP getVariable(Context context, Symbol name) {
       for(PairList.Node node : list.nodes()) {
         if(node.getTag() == name) {
           return node.getValue();
@@ -295,8 +295,8 @@ public class SubstituteFunction extends SpecialFunction {
     }
 
     @Override
-    public boolean hasVariable(Symbol name) {
-      return getVariable(name) != Symbol.UNBOUND_VALUE;
+    public boolean hasVariable(Context context, Symbol name) {
+      return getVariable(context, name) != Symbol.UNBOUND_VALUE;
     }
         
   }

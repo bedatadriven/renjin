@@ -40,7 +40,7 @@ public class Calls {
 
       // copy supplied environment values into the function environment
       for(Symbol name : suppliedEnvironment.getSymbols()) {
-        functionEnvironment.setVariable(name, suppliedEnvironment.getVariable(name));
+        functionEnvironment.setVariable(context, name, suppliedEnvironment.getVariable(name));
       }
 
       return functionContext.evaluate( closure.getBody(), functionEnvironment);

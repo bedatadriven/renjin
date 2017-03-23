@@ -1277,7 +1277,7 @@ public final class Rinternals {
     Symbol name = (Symbol) nameSexp;
     Environment rho = (Environment) rhoSexp;
     
-    rho.setVariable(name, value);
+    rho.setVariable(, name, value);
   }
 
   public static SEXP Rf_dimgets(SEXP p0, SEXP p1) {
@@ -1386,7 +1386,7 @@ public final class Rinternals {
    * @return Returns the binding value, or {@link #R_UnboundValue} if none was found.
    */
   public static SEXP Rf_findVarInFrame3(SEXP rho, SEXP symbol, boolean doGet) {
-    return ((Environment) rho).getVariable((Symbol)symbol);
+    return ((Environment) rho).getVariable(, (Symbol)symbol);
   }
 
 

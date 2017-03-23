@@ -128,7 +128,7 @@ public class RDataWriterTest extends EvalTestCase {
     eval("g <- function(x) x");
     eval("f <- function(x, fn = g) fn(x) ");
     
-    assertReRead(topLevelContext.getEnvironment().getVariable("f"));
+    assertReRead(topLevelContext.getEnvironment().getVariable(topLevelContext, "f"));
   } 
 
   @Test

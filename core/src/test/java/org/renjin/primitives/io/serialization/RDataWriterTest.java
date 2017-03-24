@@ -85,7 +85,7 @@ public class RDataWriterTest extends EvalTestCase {
   @Test
   public void sharedEnvironmentBetweenClosures() throws IOException {
         
-    Environment child = Environment.createChildEnvironment(topLevelContext.getGlobalEnvironment());
+    Environment child = Environment.createChildEnvironment(topLevelContext.getGlobalEnvironment()).build();
         
     Closure f = new Closure(child, 
           PairList.Node.singleton("x", Symbol.MISSING_ARG),
@@ -153,7 +153,7 @@ public class RDataWriterTest extends EvalTestCase {
     FileOutputStream fos = new FileOutputStream(fileName);
     GZIPOutputStream zos = new GZIPOutputStream(fos);
     RDataWriter writer = new RDataWriter(topLevelContext, zos);
-    writer.save(topLevelContext, exp);
+    writer.save(exp);
     zos.close();
   }
 
@@ -164,7 +164,7 @@ public class RDataWriterTest extends EvalTestCase {
   private SEXP writeAndReRead(SEXP exp) throws IOException {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     RDataWriter writer = new RDataWriter(topLevelContext, baos);
-    writer.save(topLevelContext, exp);
+    writer.save(exp);
 
     ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
     RDataReader reader = new RDataReader(topLevelContext, bais);

@@ -39,7 +39,7 @@ public class LazyLoadFrameBuilderTest {
   public void test() throws Exception {
     
     Context tlContext = Context.newTopLevelContext();
-    Namespace ns = tlContext.getNamespaceRegistry().createNamespace(tlContext, new TestPackage());
+    Namespace ns = tlContext.getNamespaceRegistry().createNamespace(new TestPackage());
     
     Context ctx = tlContext.beginEvalContext(ns.getNamespaceEnvironment());
     ctx.evaluate(RParser.parseSource("f <- function(x) x*x*42\n"));
@@ -53,9 +53,9 @@ public class LazyLoadFrameBuilderTest {
     
     // now reload into a new context
     tlContext = Context.newTopLevelContext();
-    tlContext.getNamespaceRegistry().createNamespace(tlContext, new TestPackage());
+    tlContext.getNamespaceRegistry().createNamespace(new TestPackage());
     
-    Iterable<NamedValue> namedValues = LazyLoadFrame.load(tlContext, null);
+    Iterable<NamedValue> namedValues = LazyLoadFrame.load(null, null);
     NamedValue namedValue = namedValues.iterator().next();
     assertThat(namedValue.getName(),equalTo("f"));
     Closure f = (Closure) namedValue.getValue().force(tlContext);

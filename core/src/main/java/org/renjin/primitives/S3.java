@@ -550,7 +550,7 @@ public class S3 {
         return new GenericMethod(this, method, className, (Function) function);
         
       } else if(methodTable != null && methodTable.hasVariable(method)) {
-        return new GenericMethod(this, method, className, (Function) methodTable.getVariable(context, method).force(context));
+        return new GenericMethod(this, method, className, (Function) methodTable.getVariableUnsafe(method).force(context));
       
       } else {
         return null;
@@ -558,7 +558,7 @@ public class S3 {
     }
 
     private Environment getMethodTable() {
-      SEXP table = definitionEnvironment.getVariable(context, METHODS_TABLE).force(context);
+      SEXP table = definitionEnvironment.getVariableUnsafe(METHODS_TABLE).force(context);
       if(table instanceof Environment) {
         return (Environment) table;
       } else if(table == Symbol.UNBOUND_VALUE) {

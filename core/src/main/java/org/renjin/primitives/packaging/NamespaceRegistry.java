@@ -202,7 +202,7 @@ public class NamespaceRegistry {
       try {
         // load the serialized functions/values from the classpath
         // and add them to our private namespace environment
-        Namespace namespace = createNamespace(context, pkg);
+        Namespace namespace = createNamespace(pkg);
 
         // set up the namespace
         populateNamespace(context, pkg, namespace);
@@ -264,15 +264,15 @@ public class NamespaceRegistry {
   /**
    * Creates a new empty namespace
    */
-  public Namespace createNamespace(Context context, Package pkg) {
+  public Namespace createNamespace(Package pkg) {
     // each namespace has environment which is the leaf in a hierarchy that
     // looks like this:
     // BASE-NS -> IMPORTS -> ENVIRONMENT
 
     Environment imports = Environment.createNamedEnvironment(getBaseNamespaceEnv(),
-        "imports:" + pkg.getName().toString('.'));
+        "imports:" + pkg.getName().toString('.')).build();
 
-    Environment namespaceEnv = Environment.createNamespaceEnvironment(imports, pkg.getName().getPackageName());
+    Environment namespaceEnv = Environment.createNamespaceEnvironment(imports, pkg.getName().getPackageName()).build();
     Namespace namespace = new Namespace(pkg, namespaceEnv);
     localNameMap.put(pkg.getName().getPackageSymbol(), namespace);
     namespaceMap.put(pkg.getName(), namespace);
@@ -280,7 +280,7 @@ public class NamespaceRegistry {
     envirMap.put(namespaceEnv, namespace);
 
     // save the name to the environment
-    namespaceEnv.setVariable(context, ".packageName", StringVector.valueOf(pkg.getName().getPackageName()));
+    namespaceEnv.setVariableUnsafe(".packageName", StringVector.valueOf(pkg.getName().getPackageName()));
     return namespace;
   }
 

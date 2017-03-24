@@ -40,7 +40,8 @@ public class Calls {
 
       // copy supplied environment values into the function environment
       for(Symbol name : suppliedEnvironment.getSymbols()) {
-        functionEnvironment.setVariable(context, name, suppliedEnvironment.getVariable(name));
+        // functionEnvironment is just created and has no bindings yet, therefore we use the unsafe version of setVariable
+        functionEnvironment.setVariableUnsafe(name, suppliedEnvironment.getVariable(name));
       }
 
       return functionContext.evaluate( closure.getBody(), functionEnvironment);

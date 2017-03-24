@@ -499,7 +499,7 @@ public class RDataReader implements AutoCloseable {
 
   private SEXP readEnv(int flags) throws IOException {
 
-    Environment env = Environment.createChildEnvironment(Environment.EMPTY);
+    Environment env = Environment.createChildEnvironment(Environment.EMPTY).build();
     addReadRef(env);
 
     boolean locked = (in.readInt() == 1);
@@ -510,7 +510,8 @@ public class RDataReader implements AutoCloseable {
     for (int i = 0; i < hashtab.length(); ++i) {
       PairList node = hashtab.getElementAsSEXP(i);
       while (node != Null.INSTANCE) {
-        env.setVariable((Context) readContext, node.getTag(), ((PairList.Node)node).getValue());
+        // Not sure if bindings are null at this point
+        env.setVariableUnsafe(node.getTag(), ((PairList.Node)node).getValue());
         node = ((PairList.Node) node).getNext();
       }
     }
@@ -519,7 +520,9 @@ public class RDataReader implements AutoCloseable {
     SEXP attributes = readExp();
 
     env.setParent( parent == Null.INSTANCE ? Environment.EMPTY : (Environment)parent );
-    env.setVariables((Context) readContext, (PairList) frame);
+    for ( PairList.Node node : ((PairList) frame).nodes()) {
+      env.setVariableUnsafe( node.getTag(), node.getValue() );
+    }
     env.setAttributes(AttributeMap.fromPairList((PairList) attributes));
 
     if(locked) {

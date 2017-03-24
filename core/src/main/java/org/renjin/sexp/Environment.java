@@ -21,6 +21,7 @@ package org.renjin.sexp;
 import org.renjin.base.BaseFrame;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.primitives.Contexts;
 import org.renjin.primitives.Evaluation;
 import org.renjin.repackaged.guava.base.Predicate;
 import org.renjin.repackaged.guava.collect.Sets;
@@ -113,33 +114,30 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     return base;
   }
 
-  public static Environment createChildEnvironment(Environment parent) {
+  public static Builder createChildEnvironment(Environment parent) {
     return createChildEnvironment(parent, new HashFrame());
   }
 
-  public static Environment createNamespaceEnvironment(Environment parent, String namespaceName) {
-    Environment ns = createChildEnvironment(parent);
+  public static Builder createNamespaceEnvironment(Environment parent, String namespaceName) {
+    Builder ns = createChildEnvironment(parent);
     ns.name = "namespace:" + namespaceName;
     return ns;
   }
   
-  public static Environment createNamedEnvironment(Environment parent, String name) {
-    Environment ns = createChildEnvironment(parent);
+  public static Builder createNamedEnvironment(Environment parent, String name) {
+    Builder ns = createChildEnvironment(parent);
     ns.name = name;
     return ns;
   }
   
-  public static Environment createBaseNamespaceEnvironment(Environment globalEnv, Environment baseEnvironment) {
-    Environment ns = createChildEnvironment(globalEnv, baseEnvironment.getFrame());
+  public static Builder createBaseNamespaceEnvironment(Environment globalEnv, Environment baseEnvironment) {
+    Builder ns = createChildEnvironment(globalEnv, baseEnvironment.getFrame());
     ns.name = "namespace:base";
     return ns;
   }
 
-  public static Environment createChildEnvironment(Environment parent, Frame frame) {
-    Environment child = new Environment();
-    child.parent = parent;
-    child.frame = frame;
-    return child;
+  public static Builder createChildEnvironment(Environment parent, Frame frame) {
+    return new Builder(parent, frame);
   }
   
   public Environment() {}
@@ -222,7 +220,16 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     return lockedBindings != null && lockedBindings.contains(symbol);
   }
 
-  public void setVariableOnlyIfThereAreNoActiveBindings(Context context, Symbol symbol, SEXP value) {
+  public void setVariableUnsafe(Symbol symbol, SEXP value) {
+    /*
+     * Besides being used to for Binding van variables, setVariable is also used for setting
+     * Active Bindings. Since active bindings require evaluation of the function (with 1 argument in case
+     * of setVariable and without arguments when getVariable), setVariable and getVariable have a Context
+     * argument. setVariableUnsafe lacks the Context argument and should only be used when it is absolutely
+     * certain that the Symbol is not used in any active binding. This is the case when activeBindings field
+     * is not yet initiated (and thus null).
+     *
+     */
     assert ( activeBindings == null );
 
     if(value == Symbol.UNBOUND_VALUE) {
@@ -238,12 +245,20 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     modCount++;
   }
 
-  public void setVariableOnlyIfThereAreNoActiveBindings(Context context, String name, SEXP value) {
-    assert ( context != null );
+  public void setVariableUnsafe(String name, SEXP value) {
+    /*
+     * Besides being used to for Binding van variables, setVariable is also used for setting
+     * Active Bindings. Since active bindings require evaluation of the function (with 1 argument in case
+     * of setVariable and without arguments when getVariable), setVariable and getVariable have a Context
+     * argument. setVariableUnsafe lacks the Context argument and should only be used when it is absolutely
+     * certain that the Symbol is not used in any active binding. This is the case when activeBindings field
+     * is not yet initiated (and thus null).
+     *
+     */
     if(StringVector.isNA(name)) {
       name = "NA";
     }
-    setVariableOnlyIfThereAreNoActiveBindings(context, Symbol.get(name), value);
+    setVariableUnsafe(Symbol.get(name), value);
   }
 
   public void setVariable(Context context, String name, SEXP value) {
@@ -462,14 +477,31 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     return getVariable(context, Symbol.get(symbolName));
   }
 
-  public SEXP getVariableUnsafe(Context context, Symbol symbol) {
+  public SEXP getVariableUnsafe(Symbol symbol) {
+    /*
+     * Besides being used to for Binding van variables, setVariable is also used for setting
+     * Active Bindings. Since active bindings require evaluation of the function (with 1 argument in case
+     * of setVariable and without arguments when getVariable), setVariable and getVariable have a Context
+     * argument. setVariableUnsafe lacks the Context argument and should only be used when it is absolutely
+     * certain that the Symbol is not used in any active binding. This is the case when activeBindings field
+     * is not yet initiated (and thus null).
+     *
+     */
     assert ( activeBindings == null);
-    assert ( context == null );
     return frame.getVariable(symbol);
   }
 
-  public SEXP getVariableUnsafe(Context context, String symbolName) {
-    return getVariable(context, Symbol.get(symbolName));
+  public SEXP getVariableUnsafe(String symbolName) {
+    /*
+     * Besides being used to for Binding van variables, setVariable is also used for setting
+     * Active Bindings. Since active bindings require evaluation of the function (with 1 argument in case
+     * of setVariable and without arguments when getVariable), setVariable and getVariable have a Context
+     * argument. setVariableUnsafe lacks the Context argument and should only be used when it is absolutely
+     * certain that the Symbol is not used in any active binding. This is the case when activeBindings field
+     * is not yet initiated (and thus null).
+     *
+     */
+    return getVariableUnsafe(Symbol.get(symbolName));
   }
 
   /**
@@ -528,7 +560,7 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
   }
 
   public Environment insertAbove(Frame frame) {
-    Environment newEnv = Environment.createChildEnvironment(parent, frame);
+    Environment newEnv = Environment.createChildEnvironment(parent, frame).build();
     setParent(newEnv);
     return newEnv;
   }
@@ -611,7 +643,7 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
       BoundValue boundValue = new BoundValue();
       Symbol name = names.next();
       boundValue.name = name;
-      boundValue.value = getVariable(Context.newTopLevelContext(), name);
+      boundValue.value = getVariableUnsafe(name);
       return boundValue;
     }
     
@@ -637,5 +669,34 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
       return value;
     } 
     
+  }
+
+  /**
+   *
+   */
+  public static class Builder {
+
+
+    private final Environment parent;
+    private final Frame frame;
+    public String name;
+
+    public Builder(Environment parent, Frame frame) {
+
+      this.parent = parent;
+      this.frame = frame;
+    }
+
+    public Builder setVariable(Symbol symbol, SEXP value) {
+      frame.setVariable(symbol, value);
+      return this;
+    }
+
+    public Environment build() {
+      Environment child = new Environment();
+      child.parent = parent;
+      child.frame = frame;
+      return child;
+    }
   }
 }

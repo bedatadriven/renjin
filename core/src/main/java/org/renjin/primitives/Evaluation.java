@@ -264,7 +264,7 @@ public class Evaluation {
       Environment parent = enclosing == Null.INSTANCE ? context.getBaseEnvironment() :
           EvalException.<Environment>checkedCast(enclosing);
 
-      rho = Environment.createChildEnvironment(parent);
+      rho = Environment.createChildEnvironment(parent).build();
 
       if(environment instanceof ListVector) {
         for(NamedValue namedValue : ((ListVector) environment).namedValues()) {

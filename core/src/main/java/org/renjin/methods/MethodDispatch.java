@@ -481,7 +481,7 @@ public class MethodDispatch {
 
     /* create a new environment frame enclosed by the lexical
        environment of the method */
-    Environment newrho = Environment.createChildEnvironment(op.getEnclosingEnvironment());
+    Environment newrho = Environment.createChildEnvironment(op.getEnclosingEnvironment()).build();
     
     /* copy the bindings for the formal environment from the top frame
        of the internal environment of the generic call to the new

@@ -144,7 +144,7 @@ public class Context {
     context.parent = this;
     context.evaluationDepth = evaluationDepth+1;
     context.closure = closure;
-    context.environment = Environment.createChildEnvironment(closure.getEnclosingEnvironment());
+    context.environment = Environment.createChildEnvironment(closure.getEnclosingEnvironment()).build();
     context.session = session;
     context.arguments = arguments;
     context.call = call;
@@ -573,7 +573,7 @@ public class Context {
    */
   public void init() throws IOException {
     BaseFrame baseFrame = (BaseFrame) session.getBaseEnvironment().getFrame();
-    baseFrame.load(session.getTopLevelContext());
+    baseFrame.load(this);
     
     evaluate(FunctionCall.newCall(Symbol.get(".onLoad")), session.getBaseNamespaceEnv());
   }

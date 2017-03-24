@@ -97,7 +97,7 @@ public class Packages {
     Optional<Namespace> methods = context.getNamespaceRegistry()
         .getNamespaceIfPresent(Symbol.get("methods"));
     if(methods.isPresent()) {
-      SEXP cacheFunction = methods.get().getEntry(context, Symbol.get("cacheMetaData"));
+      SEXP cacheFunction = methods.get().getEntry(Symbol.get("cacheMetaData"));
       FunctionCall cacheCall = FunctionCall.newCall(cacheFunction, 
           namespace.getNamespaceEnvironment(),
           LogicalVector.TRUE,

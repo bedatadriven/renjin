@@ -52,7 +52,7 @@ public class Namespaces {
   
   @Internal
   public static Environment getNamespaceRegistry(@Current NamespaceRegistry registry) {
-    return Environment.createChildEnvironment(Environment.EMPTY, new NamespaceFrame(registry));
+    return Environment.createChildEnvironment(Environment.EMPTY, new NamespaceFrame(registry)).build();
   }
 
   @Builtin
@@ -90,7 +90,7 @@ public class Namespaces {
                                        @Unevaluated Symbol namespace,
                                        @Unevaluated Symbol entry) {
 
-    return registry.getNamespace(context, namespace).getEntry(context, entry).force(context);
+    return registry.getNamespace(context, namespace).getEntry(entry).force(context);
   }
 
   @Builtin("::")
@@ -99,7 +99,7 @@ public class Namespaces {
                                                @Unevaluated Symbol namespace,
                                                @Unevaluated Symbol entry) {
 
-    return registry.getNamespace(context, namespace).getExport(context, entry).force(context);
+    return registry.getNamespace(context, namespace).getExport(entry).force(context);
   }
 
   @Internal

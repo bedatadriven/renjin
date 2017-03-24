@@ -331,7 +331,7 @@ public class DatasetsBuilder2 {
       File targetFile = new File(datasetDir, node.getName());
       FileOutputStream out = new FileOutputStream(targetFile);
       RDataWriter writer = new RDataWriter(session.getTopLevelContext(), out);
-      writer.save(session.getTopLevelContext(), node.getValue());
+      writer.save(node.getValue());
       out.close();    
     }
   }

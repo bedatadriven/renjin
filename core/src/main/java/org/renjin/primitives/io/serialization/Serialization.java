@@ -95,7 +95,7 @@ public class Serialization {
     
     RDataWriter writer = new RDataWriter(context,
         createHook(context, refhook), Connections.getConnection(context, con).getOutputStream());
-    writer.serialize(context, object);
+    writer.serialize(object);
     
   }
   
@@ -146,7 +146,7 @@ public class Serialization {
     }
     
     RDataWriter writer = new RDataWriter(context, con.getOutputStream());
-    writer.save(context, list.build());
+    writer.save(list.build());
     
     if (!wasOpen) {
       Connections.close(context, connHandle);
@@ -248,7 +248,7 @@ public class Serialization {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     RDataWriter writer = new RDataWriter(context, baos, 
             ascii? SerializationType.ASCII: SerializationType.XDR);
-    writer.serialize(context, object);
+    writer.serialize(object);
    
     return new RawVector(baos.toByteArray());
   }

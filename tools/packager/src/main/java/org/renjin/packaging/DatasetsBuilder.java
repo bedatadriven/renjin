@@ -278,7 +278,7 @@ public class DatasetsBuilder {
     PairList.Builder pairList = new PairList.Builder();
     for(Symbol symbol : session.getGlobalEnvironment().getSymbolNames()) {
       if(!symbol.getPrintName().startsWith(".")) {
-        pairList.add(symbol, session.getGlobalEnvironment().getVariable(Context.newTopLevelContext(), symbol));
+        pairList.add(symbol, session.getGlobalEnvironment().getVariable(session.getTopLevelContext(), symbol));
       }
     }   
     writePairList(logicalDatasetName, session, pairList.build());
@@ -307,7 +307,7 @@ public class DatasetsBuilder {
       File targetFile = new File(datasetDir, node.getName());
       FileOutputStream out = new FileOutputStream(targetFile);
       RDataWriter writer = new RDataWriter(session.getTopLevelContext(), out);
-      writer.save(session.getTopLevelContext(), node.getValue());
+      writer.save(node.getValue());
       out.close();    
     }
   }

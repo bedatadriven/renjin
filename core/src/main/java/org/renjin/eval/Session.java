@@ -134,7 +134,7 @@ public class Session {
     this.baseEnvironment = Environment.createBaseEnvironment();
     this.globalEnvironment = Environment.createGlobalEnvironment(baseEnvironment, globalFrame);
     this.baseNamespaceEnv = Environment.createBaseNamespaceEnvironment(globalEnvironment, baseEnvironment);
-    this.baseNamespaceEnv.setVariable(conditionStack, Symbol.get(".BaseNamespaceEnv"), baseNamespaceEnv);
+    this.baseNamespaceEnv.setVariable(getTopLevelContext(), Symbol.get(".BaseNamespaceEnv"), baseNamespaceEnv);
     this.topLevelContext = new Context(this);
 
     namespaceRegistry = new NamespaceRegistry(packageLoader, topLevelContext, baseNamespaceEnv);
@@ -146,7 +146,7 @@ public class Session {
     // TODO(alex)
     // several packages rely on the presence of .Random.seed in the global
     // even though it's an implementation detail.
-    globalEnvironment.setVariable(topLevelContext, ".Random.seed", IntVector.valueOf(1));
+    globalEnvironment.setVariable(getTopLevelContext(), ".Random.seed", IntVector.valueOf(1));
   }
 
 

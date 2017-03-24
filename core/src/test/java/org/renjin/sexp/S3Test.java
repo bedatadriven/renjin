@@ -71,7 +71,7 @@ public class S3Test extends EvalTestCase {
     env.setVariable(topLevelContext, "i", ni);
     env.setVariable(topLevelContext, "x", x);
 
-    PairList updated = S3.updateArguments(actuals, formals, env, new ListVector());
+    PairList updated = S3.updateArguments(topLevelContext, actuals, formals, env, new ListVector());
 
     assertThat(updated.length(), equalTo(2));
     assertThat(updated.getElementAsSEXP(0), equalTo(x));

@@ -573,7 +573,7 @@ public class Context {
    */
   public void init() throws IOException {
     BaseFrame baseFrame = (BaseFrame) session.getBaseEnvironment().getFrame();
-    baseFrame.load(this);
+    baseFrame.load(session.getTopLevelContext());
     
     evaluate(FunctionCall.newCall(Symbol.get(".onLoad")), session.getBaseNamespaceEnv());
   }

@@ -222,10 +222,6 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     return lockedBindings != null && lockedBindings.contains(symbol);
   }
 
-  public void setVariable(Symbol sym, SEXP val) {
-
-  }
-
   public void setVariableOnlyIfThereAreNoActiveBindings(Context context, Symbol symbol, SEXP value) {
     assert ( activeBindings == null );
 
@@ -240,6 +236,14 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     }
     frame.setVariable(symbol, value);
     modCount++;
+  }
+
+  public void setVariableOnlyIfThereAreNoActiveBindings(Context context, String name, SEXP value) {
+    assert ( context != null );
+    if(StringVector.isNA(name)) {
+      name = "NA";
+    }
+    setVariableOnlyIfThereAreNoActiveBindings(context, Symbol.get(name), value);
   }
 
   public void setVariable(Context context, String name, SEXP value) {
@@ -447,6 +451,7 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
   }
 
   public SEXP getVariable(Context context, Symbol symbol) {
+    assert ( context != null);
     if(activeBindings != null && activeBindings.containsKey(symbol)) {
       return Evaluation.eval(context, getActiveBinding(symbol), parent, ExpressionVector.EMPTY);
     }
@@ -454,6 +459,16 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
   }
 
   public SEXP getVariable(Context context, String symbolName) {
+    return getVariable(context, Symbol.get(symbolName));
+  }
+
+  public SEXP getVariableUnsafe(Context context, Symbol symbol) {
+    assert ( activeBindings == null);
+    assert ( context == null );
+    return frame.getVariable(symbol);
+  }
+
+  public SEXP getVariableUnsafe(Context context, String symbolName) {
     return getVariable(context, Symbol.get(symbolName));
   }
 

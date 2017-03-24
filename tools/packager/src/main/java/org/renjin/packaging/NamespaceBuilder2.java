@@ -177,7 +177,7 @@ public class NamespaceBuilder2 {
     }
     File packageRdsFile = new File(metaDir, "package.rds");
     try(RDataWriter writer = new RDataWriter(HeadlessWriteContext.INSTANCE, new FileOutputStream(packageRdsFile))) {
-      writer.serialize(metadata.build());
+      writer.serialize(Context.newTopLevelContext(), metadata.build());
     }
   }
 

@@ -55,7 +55,7 @@ public class LazyLoadFrameBuilderTest {
     tlContext = Context.newTopLevelContext();
     tlContext.getNamespaceRegistry().createNamespace(tlContext, new TestPackage());
     
-    Iterable<NamedValue> namedValues = LazyLoadFrame.load(null, null);
+    Iterable<NamedValue> namedValues = LazyLoadFrame.load(tlContext, null);
     NamedValue namedValue = namedValues.iterator().next();
     assertThat(namedValue.getName(),equalTo("f"));
     Closure f = (Closure) namedValue.getValue().force(tlContext);

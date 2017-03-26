@@ -20,10 +20,13 @@ package org.renjin.primitives;
 
 import org.junit.Test;
 import org.renjin.EvalTestCase;
+import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.S4Object;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 public class IdenticalTest extends EvalTestCase {
 
@@ -76,6 +79,21 @@ public class IdenticalTest extends EvalTestCase {
     eval("attr(y, 'foo') <- 'bar' ");
 
     assertThat(eval(".Internal(identical(x,y,TRUE,TRUE,TRUE,TRUE))"), equalTo(c(true)));
+  }
+
+  @Test
+  public void doubleEquals() {
+    boolean bitwiseComparison = false;
+    boolean bitwiseComparisonNaN = false;
+
+    assertTrue(Identical.equals(DoubleVector.NaN, DoubleVector.NaN, bitwiseComparison, bitwiseComparisonNaN));
+    assertTrue(Identical.equals(DoubleVector.NA, DoubleVector.NA, bitwiseComparison, bitwiseComparisonNaN));
+    assertFalse(Identical.equals(DoubleVector.NA, Double.POSITIVE_INFINITY, bitwiseComparison, bitwiseComparisonNaN));
+
+    assertFalse(Identical.equals(DoubleVector.NA, DoubleVector.NaN, bitwiseComparison, bitwiseComparisonNaN));
+    assertFalse(Identical.equals(DoubleVector.NaN, DoubleVector.NA, bitwiseComparison, bitwiseComparisonNaN));
+    assertFalse(Identical.equals(Double.POSITIVE_INFINITY, DoubleVector.NA, bitwiseComparison, bitwiseComparisonNaN));
+
   }
 
 }

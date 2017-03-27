@@ -262,6 +262,12 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
   }
 
   public void setVariable(Context context, String name, SEXP value) {
+    /*
+     * setVariable when there is an active binding should call the the function bound to the Symbol.get(name) with
+     * value as first argument. Context is necessary to evaluate the binding function and must be provided,
+     * but if context is not available and one is absolutely sure there will never be any bindings during
+     * setVariable call, then setVariableUnsafe() can be used.
+     */
     assert ( context != null );
     if(StringVector.isNA(name)) {
       name = "NA";
@@ -269,7 +275,13 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     setVariable(context, Symbol.get(name), value);
   }
 
-  public void setVariable(Context context, Symbol symbol, SEXP value) {
+  public SEXP setVariable(Context context, Symbol symbol, SEXP value) {
+    /*
+     * setVariable when there is an active binding should call the the function bound to the symbol with
+     * value as first argument. Context is necessary to evaluate the binding function and must be provided,
+     * but if context is not available and one is absolutely sure there will never be any bindings during
+     * setVariable call, then setVariableUnsafe() can be used.
+     */
     assert ( context != null );
 
     if(value == Symbol.UNBOUND_VALUE) {

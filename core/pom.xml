@@ -257,6 +257,8 @@
             <exclude>src/main/java/org/renjin/stats/internals/optimize/Blas_f77.java</exclude>
             <exclude>src/main/java/org/renjin/stats/internals/optimize/Uncmin.java</exclude>
 
+            <exclude>src/main/java/org/renjin/parser/FDBigInteger.java</exclude>
+
             <exclude>src/test/resources/**.*</exclude>
           </excludes>
         </configuration>

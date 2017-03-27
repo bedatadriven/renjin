@@ -120,11 +120,11 @@ public final class Environments {
 
   @Builtin("as.environment")
   public static Environment asEnvironment(ListVector list) {
-    Environment env = Environment.createChildEnvironment(Environment.EMPTY).build();
+    Environment.Builder env = Environment.createChildEnvironment(Environment.EMPTY);
     for(NamedValue namedValue : list.namedValues()) {
-      env.setVariableUnsafe(namedValue.getName(), namedValue.getValue());
+      env.setVariable(Symbol.get(namedValue.getName()), namedValue.getValue());
     }
-    return env;
+    return env.build();
   }
 
   @Builtin("as.environment")
@@ -288,20 +288,20 @@ public final class Environments {
     // We need to handle the "any" mode specially to avoid forcing promises
     // that may not yet be evaluated
     if("any".equals(mode)) {
-      return existsAnySymbol(context, Symbol.get(x), environment, inherits);
+      return existsAnySymbol(Symbol.get(x), environment, inherits);
     }
     
     return environment.findVariable(context, Symbol.get(x), Vectors.modePredicate(mode),
         inherits) != Symbol.UNBOUND_VALUE;
   }
 
-  private static boolean existsAnySymbol(@Current Context context, Symbol symbol, Environment environment, boolean inherits) {
-    SEXP value = environment.getVariable(context, symbol);
+  private static boolean existsAnySymbol(Symbol symbol, Environment environment, boolean inherits) {
+    SEXP value = environment.getVariableUnsafe(symbol);
     if(value != Symbol.UNBOUND_VALUE) {
       return true;
     }
     if(inherits && environment.getParent() != Environment.EMPTY) {
-      return existsAnySymbol(context, symbol, environment.getParent(), inherits);
+      return existsAnySymbol(symbol, environment.getParent(), inherits);
     } else {
       return false;
     }

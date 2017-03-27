@@ -510,7 +510,6 @@ public class RDataReader implements AutoCloseable {
     for (int i = 0; i < hashtab.length(); ++i) {
       PairList node = hashtab.getElementAsSEXP(i);
       while (node != Null.INSTANCE) {
-        // Not sure if bindings are null at this point
         env.setVariableUnsafe(node.getTag(), ((PairList.Node)node).getValue());
         node = ((PairList.Node) node).getNext();
       }

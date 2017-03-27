@@ -301,13 +301,12 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     }
     if(activeBindings != null && activeBindings.containsKey(symbol)) {
       Closure fun = activeBindings.get(symbol);
-      Environment environment = fun.getEnclosingEnvironment();
       PairList.Builder args = new PairList.Builder().add(value);
-      return context.evaluate(new FunctionCall(fun, args.build()), environment);
+      return context.evaluate(new FunctionCall(fun, args.build()));
     } else {
       frame.setVariable(symbol, value);
       modCount++;
-      return null;
+      return Null.INSTANCE;
     }
   }
 
@@ -394,7 +393,7 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
 
   
   private SEXP findVarArg(int varArgReferenceIndex) {
-    SEXP ellipses = findVariable(Native.currentContext(), Symbols.ELLIPSES);
+    SEXP ellipses = findVariableUnsafe(Symbols.ELLIPSES);
     if(ellipses == Symbol.UNBOUND_VALUE) {
       throw new EvalException("..%d used in an incorrect context, no ... to look in", varArgReferenceIndex);
     }
@@ -506,7 +505,10 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
   public SEXP getVariable(Context context, Symbol symbol) {
     assert ( context != null );
     if(activeBindings != null && activeBindings.containsKey(symbol)) {
-      return context.evaluate(activeBindings.get(symbol));
+
+      Closure fun = activeBindings.get(symbol);
+      PairList.Builder args = new PairList.Builder();
+      return context.evaluate(new FunctionCall(fun, args.build()));
     }
     return frame.getVariable(symbol);
   }
@@ -538,6 +540,10 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
    */
   public SEXP getVariableUnsafe(String symbolName) {
     return getVariableUnsafe(Symbol.get(symbolName));
+  }
+
+  public SEXP getEllipsesVariable(Symbol symbol) {
+    return getVariableUnsafe(symbol);
   }
 
   /**

@@ -135,7 +135,7 @@ public class Session {
     this.globalEnvironment = Environment.createGlobalEnvironment(baseEnvironment, globalFrame);
     this.baseNamespaceEnv = Environment.createBaseNamespaceEnvironment(globalEnvironment, baseEnvironment).build();
     this.topLevelContext = new Context(this);
-    this.baseNamespaceEnv.setVariable(getTopLevelContext(), Symbol.get(".BaseNamespaceEnv"), baseNamespaceEnv);
+    this.baseNamespaceEnv.setVariableUnsafe(Symbol.get(".BaseNamespaceEnv"), baseNamespaceEnv);
 
     namespaceRegistry = new NamespaceRegistry(packageLoader, topLevelContext, baseNamespaceEnv);
     securityManager = new SecurityManager();

@@ -21,8 +21,10 @@ package org.renjin.sexp;
 import org.renjin.base.BaseFrame;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.eval.Session;
 import org.renjin.primitives.Contexts;
 import org.renjin.primitives.Evaluation;
+import org.renjin.primitives.Native;
 import org.renjin.repackaged.guava.base.Predicate;
 import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.repackaged.guava.collect.UnmodifiableIterator;
@@ -294,32 +296,36 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
       throw new EvalException("cannot add bindings to a locked environment");
     }
     if(activeBindings != null && activeBindings.containsKey(symbol)) {
-      callActiveBinding(context, symbol, value);
+      Closure fun = activeBindings.get(symbol);
+      Environment environment = fun.getEnclosingEnvironment();
+      PairList.Builder args = new PairList.Builder().add(value);
+      return context.evaluate(new FunctionCall(fun, args.build()), environment);
     } else {
       frame.setVariable(symbol, value);
       modCount++;
+      return null;
     }
   }
 
-  public SEXP callActiveBinding(Context context, Symbol symbol, SEXP argument) {
-    return Evaluation.eval(context, getActiveBinding(symbol), parent, argument);
-  }
-
-  public void makeActiveBinding(Symbol sym, Closure closure) {
-    setActiveBinding(sym, closure);
-  }
-
-  public void setActiveBinding(Symbol symbol, Closure closure) {
+  public SEXP makeActiveBinding(Symbol symbol, Closure closure) {
     if(bindingIsLocked(symbol)) {
       throw new EvalException("cannot change value of locked binding for '%s'", symbol.getPrintName());
     } else if(locked && frame.getVariable(symbol) == Symbol.UNBOUND_VALUE) {
       throw new EvalException("cannot add bindings to a locked environment");
     }
+    if(activeBindings == null) {
+      activeBindings = new HashMap<Symbol, Closure>();
+    }
     activeBindings.put(symbol, closure);
+    return Null.INSTANCE;
   }
 
-  public SEXP getActiveBinding(Symbol symbol) {
-    return activeBindings.get(symbol);
+  public boolean isActiveBinding(Symbol symbol) {
+    return activeBindings != null && activeBindings.containsKey(symbol);
+  }
+
+  public boolean isActiveBinding(String name) {
+    return isActiveBinding(Symbol.get(name));
   }
 
   /**
@@ -494,9 +500,9 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
   }
 
   public SEXP getVariable(Context context, Symbol symbol) {
-    assert ( context != null);
+    assert ( context != null );
     if(activeBindings != null && activeBindings.containsKey(symbol)) {
-      return Evaluation.eval(context, getActiveBinding(symbol), parent, ExpressionVector.EMPTY);
+      return context.evaluate(activeBindings.get(symbol));
     }
     return frame.getVariable(symbol);
   }

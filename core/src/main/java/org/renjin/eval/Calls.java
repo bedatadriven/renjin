@@ -81,7 +81,7 @@ public class Calls {
       /* Is this double promise mechanism really needed? */
 
       if (node.getValue().equals(Symbols.ELLIPSES)) {
-        PromisePairList dotExp = (PromisePairList)rho.findVariable(Symbols.ELLIPSES);
+        PromisePairList dotExp = (PromisePairList)rho.findVariable(context, Symbols.ELLIPSES);
         for(PairList.Node dotNode : dotExp.nodes()) {
           list.add(dotNode.getRawTag(), dotNode.getValue());
         }

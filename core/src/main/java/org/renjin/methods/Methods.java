@@ -566,7 +566,7 @@ public class Methods {
     /* for primitive .nextMethod's, suppress further dispatch to avoid
      * going into an infinite loop of method calls
     */
-    op =  ev.findVariable(MethodDispatch.R_dot_nextMethod);
+    op =  ev.findVariable(context, MethodDispatch.R_dot_nextMethod);
 
     if(op == Symbol.UNBOUND_VALUE) {
       throw new EvalException(

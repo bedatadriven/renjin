@@ -505,7 +505,7 @@ public class MethodDispatch {
       }
 
       Symbol symbol = next.getTag();
-      SEXP val = rho.findVariable(symbol);
+      SEXP val = rho.findVariable(context, symbol);
       if(val == Symbol.UNBOUND_VALUE) {
         throw new EvalException("could not find symbol \"%s\" in the environment of the generic function", symbol.getPrintName());
       }
@@ -536,14 +536,14 @@ public class MethodDispatch {
 
     /* copy the bindings of the spacial dispatch variables in the top
        frame of the generic call to the new frame */
-    newrho.setVariable(context, DOT_DEFINED, rho.findVariableOrThrow(DOT_DEFINED));
-    newrho.setVariable(context, DOT_METHOD, rho.findVariableOrThrow(DOT_METHOD));
-    newrho.setVariable(context, DOT_TARGET, rho.findVariableOrThrow(DOT_TARGET));
+    newrho.setVariable(context, DOT_DEFINED, rho.findVariableOrThrow(context, DOT_DEFINED));
+    newrho.setVariable(context, DOT_METHOD, rho.findVariableOrThrow(context, DOT_METHOD));
+    newrho.setVariable(context, DOT_TARGET, rho.findVariableOrThrow(context, DOT_TARGET));
 
     /* copy the bindings for .Generic and .Methods.  We know (I think)
        that they are in the second frame, so we could use that. */
-    newrho.setVariable(context, DOT_GENERIC, rho.findVariableOrThrow(DOT_GENERIC));
-    newrho.setVariable(context, DOT_METHODS, rho.findVariableOrThrow(DOT_METHODS));
+    newrho.setVariable(context, DOT_GENERIC, rho.findVariableOrThrow(context, DOT_GENERIC));
+    newrho.setVariable(context, DOT_METHODS, rho.findVariableOrThrow(context, DOT_METHODS));
 
     /* Find the calling context.  Should be R_GlobalContext unless
        profiling has inserted a CTXT_BUILTIN frame. */

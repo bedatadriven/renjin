@@ -356,7 +356,10 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
    * @param symbol the symbol for which to search
    * @return the bound value, or {@code Symbol.UNBOUND_VALUE} if not found
    */
-  public SEXP findVariable(Symbol symbol) {
+  public SEXP findVariable(Context context, Symbol symbol) {
+    if(activeBindings != null && activeBindings.containsKey(symbol)) {
+      return context.evaluate(activeBindings.get(symbol));
+    }
     if(symbol.isVarArgReference()) {
       return findVarArg(symbol.getVarArgReferenceIndex());
     }
@@ -364,11 +367,24 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     if(value != Symbol.UNBOUND_VALUE) {
       return value;
     }
-    return parent.findVariable(symbol);
+    return parent.findVariable(context, symbol);
   }
+
+  public SEXP findVariableUnsafe(Symbol symbol) {
+    assert ( activeBindings == null);
+    if(symbol.isVarArgReference()) {
+      return findVarArg(symbol.getVarArgReferenceIndex());
+    }
+    SEXP value = frame.getVariable(symbol);
+    if(value != Symbol.UNBOUND_VALUE) {
+      return value;
+    }
+    return parent.findVariableUnsafe(symbol);
+  }
+
   
   private SEXP findVarArg(int varArgReferenceIndex) {
-    SEXP ellipses = findVariable(Symbols.ELLIPSES);
+    SEXP ellipses = findVariable(Native.currentContext(), Symbols.ELLIPSES);
     if(ellipses == Symbol.UNBOUND_VALUE) {
       throw new EvalException("..%d used in an incorrect context, no ... to look in", varArgReferenceIndex);
     }
@@ -379,16 +395,16 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     return varArgs.getElementAsSEXP(varArgReferenceIndex - 1);
   }
 
-  public SEXP findVariableOrThrow(Symbol name) {
-    SEXP value = findVariable(name);
+  public SEXP findVariableOrThrow(Context context, Symbol name) {
+    SEXP value = findVariable(context, name);
     if(value == Symbol.UNBOUND_VALUE) {
       throw new EvalException("object '" + name.getPrintName() + "' not found");
     }
     return value;
   }
 
-  public SEXP findVariableOrThrow(String name) {
-    return findVariableOrThrow(Symbol.get(name));
+  public SEXP findVariableOrThrow(Context context, String name) {
+    return findVariableOrThrow(context, Symbol.get(name));
   }
 
   public Function findFunction(Context context, Symbol symbol) {
@@ -593,7 +609,12 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     }
 
     @Override
-    public SEXP findVariable(Symbol symbol) {
+    public SEXP findVariable(Context context, Symbol symbol) {
+      return Symbol.UNBOUND_VALUE;
+    }
+
+    @Override
+    public SEXP findVariableUnsafe(Symbol symbol) {
       return Symbol.UNBOUND_VALUE;
     }
 

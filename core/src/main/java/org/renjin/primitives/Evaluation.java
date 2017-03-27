@@ -334,7 +334,7 @@ public class Evaluation {
       return isVarArgMissing(context, rho, symbol.getVarArgReferenceIndex());
     }
     
-    SEXP value = rho.findVariable(symbol);
+    SEXP value = rho.findVariable(context, symbol);
     
     if(value == Symbol.UNBOUND_VALUE) {
       throw new EvalException("'missing' can only be used for arguments");
@@ -348,7 +348,7 @@ public class Evaluation {
   }
 
   private static boolean isVarArgMissing(@Current Context context, Environment rho, int varArgReferenceIndex) {
-    SEXP ellipses = rho.findVariable(Symbols.ELLIPSES);
+    SEXP ellipses = rho.findVariable(context, Symbols.ELLIPSES);
     if(ellipses == Symbol.UNBOUND_VALUE) {
       throw new EvalException("This function does not have a ... argument");
     }

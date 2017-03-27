@@ -297,7 +297,7 @@ public class Context {
     if(symbol == Symbol.MISSING_ARG) {
       return symbol;
     }
-    SEXP value = rho.findVariable(symbol);
+    SEXP value = rho.findVariable(this, symbol);
     if(value == Symbol.UNBOUND_VALUE) {
       throw new EvalException(String.format("object '%s' not found", symbol.getPrintName()));
     } 

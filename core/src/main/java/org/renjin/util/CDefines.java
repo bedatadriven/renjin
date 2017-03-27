@@ -20,6 +20,7 @@ package org.renjin.util;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.primitives.Native;
 import org.renjin.repackaged.guava.base.Preconditions;
 import org.renjin.sexp.*;
 
@@ -404,7 +405,7 @@ public class CDefines {
   }
   
   public static SEXP findVar(SEXP devName, SEXP env) {
-    return ((Environment)env).findVariable((Symbol)devName);
+    return ((Environment)env).findVariable(Native.currentContext(), (Symbol)devName);
   }
   
   public static SEXP findVarInFrame(Frame frame, SEXP name) {

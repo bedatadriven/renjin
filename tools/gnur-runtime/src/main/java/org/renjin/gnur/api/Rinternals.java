@@ -1362,7 +1362,7 @@ public final class Rinternals {
    *
    */
   public static SEXP Rf_findVar(SEXP symbol, SEXP rho) {
-    return ((Environment) rho).findVariable(((Symbol) symbol));
+    return ((Environment) rho).findVariable(Native.currentContext(), ((Symbol) symbol));
   }
 
   public static SEXP Rf_findVarInFrame(SEXP rho, SEXP symbol) {

@@ -62,7 +62,8 @@ public class RuntimeState {
   }
 
   public SEXP findVariable(Symbol name) {
-    SEXP value = rho.findVariable(name);
+
+    SEXP value = rho.findVariable(context, name);
     if(value instanceof Promise) {
       Promise promisedValue = (Promise) value;
       if(promisedValue.isEvaluated()) {

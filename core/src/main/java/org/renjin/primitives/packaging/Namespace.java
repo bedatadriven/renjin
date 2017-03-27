@@ -117,7 +117,7 @@ public class Namespace {
 
     }
     if(exports.contains(entry)) {
-      return this.namespaceEnvironment.findVariable(entry);
+      return this.namespaceEnvironment.findVariableUnsafe(entry);
     }
     return Symbol.UNBOUND_VALUE;
   }
@@ -145,7 +145,7 @@ public class Namespace {
    */
   public void copyExportsTo(Context context, Environment packageEnv) {
     for(Symbol name : exports) {
-      SEXP exportValue = namespaceEnvironment.findVariable(name);
+      SEXP exportValue = namespaceEnvironment.findVariable(context, name);
       if(exportValue == Symbol.UNBOUND_VALUE) {
         context.warn(String.format("Symbol '%s' is not defined in package '%s'", name.getPrintName(), pkg.getName()));
       } else {

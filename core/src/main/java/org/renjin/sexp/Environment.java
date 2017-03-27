@@ -247,43 +247,47 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     modCount++;
   }
 
+  /**
+   * setVariable without checking if variable is an 'active' binding.
+   * Only be used when it is absolutely certain that the Symbol is not used in any active binding.
+   *
+   * @param name variable name.
+   * @param value value to be assigned.
+   */
   public void setVariableUnsafe(String name, SEXP value) {
-    /*
-     * Besides being used to for Binding van variables, setVariable is also used for setting
-     * Active Bindings. Since active bindings require evaluation of the function (with 1 argument in case
-     * of setVariable and without arguments when getVariable), setVariable and getVariable have a Context
-     * argument. setVariableUnsafe lacks the Context argument and should only be used when it is absolutely
-     * certain that the Symbol is not used in any active binding. This is the case when activeBindings field
-     * is not yet initiated (and thus null).
-     *
-     */
     if(StringVector.isNA(name)) {
       name = "NA";
     }
     setVariableUnsafe(Symbol.get(name), value);
   }
 
-  public void setVariable(Context context, String name, SEXP value) {
-    /*
-     * setVariable when there is an active binding should call the the function bound to the Symbol.get(name) with
-     * value as first argument. Context is necessary to evaluate the binding function and must be provided,
-     * but if context is not available and one is absolutely sure there will never be any bindings during
-     * setVariable call, then setVariableUnsafe() can be used.
-     */
+  /**
+   * setVariable with ability to handle active bindings.
+   * This is the default binding method that should be used.
+   *
+   * @param context where the assignment is taking place.
+   * @param name variable name.
+   * @param value value to be assigned.
+   * @return invisible NULL
+   */
+  public SEXP setVariable(Context context, String name, SEXP value) {
     assert ( context != null );
     if(StringVector.isNA(name)) {
       name = "NA";
     }
-    setVariable(context, Symbol.get(name), value);
+    return setVariable(context, Symbol.get(name), value);
   }
 
+  /**
+   * setVariable with ability to handle active bindings.
+   * This is the default binding method that should be used.
+   *
+   * @param context where the assignment is taking place.
+   * @param symbol The Symbol to assign binding to.
+   * @param value the value/closure to be assigned
+   * @return invisible NULL
+   */
   public SEXP setVariable(Context context, Symbol symbol, SEXP value) {
-    /*
-     * setVariable when there is an active binding should call the the function bound to the symbol with
-     * value as first argument. Context is necessary to evaluate the binding function and must be provided,
-     * but if context is not available and one is absolutely sure there will never be any bindings during
-     * setVariable call, then setVariableUnsafe() can be used.
-     */
     assert ( context != null );
 
     if(value == Symbol.UNBOUND_VALUE) {
@@ -525,16 +529,14 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     return frame.getVariable(symbol);
   }
 
+  /**
+   * getVariable returns the value for the provided symbol without handling active bindings.
+   * Will fail if there are active bindings present.
+   *
+   * @param symbolName The Symbol for the value should be returned
+   * @return SEXP value
+   */
   public SEXP getVariableUnsafe(String symbolName) {
-    /*
-     * Besides being used to for Binding van variables, setVariable is also used for setting
-     * Active Bindings. Since active bindings require evaluation of the function (with 1 argument in case
-     * of setVariable and without arguments when getVariable), setVariable and getVariable have a Context
-     * argument. setVariableUnsafe lacks the Context argument and should only be used when it is absolutely
-     * certain that the Symbol is not used in any active binding. This is the case when activeBindings field
-     * is not yet initiated (and thus null).
-     *
-     */
     return getVariableUnsafe(Symbol.get(symbolName));
   }
 

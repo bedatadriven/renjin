@@ -71,8 +71,7 @@ public class ComplexType extends ScalarType{
 
   @Override
   public JExpression testNaExpr(JCodeModel codeModel, JVar scalarVariable) {
-    JExpression testNA = codeModel.ref(ComplexVector.class).staticInvoke("isNaN").arg(scalarVariable);
-    return testNA;
+    return codeModel.ref(ComplexVector.class).staticInvoke("isNaN").arg(scalarVariable);
   }
 
 }

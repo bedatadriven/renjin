@@ -34,7 +34,7 @@ import org.renjin.sexp.*;
 public class ComplexGroup {
 
   @Builtin
-  @DataParallel(value = PreserveAttributeStyle.ALL, passNA = true)
+  @DataParallel(value = PreserveAttributeStyle.ALL)
   public static double Mod(Complex z) {
     return z.abs();
   }
@@ -48,6 +48,9 @@ public class ComplexGroup {
   @Builtin
   @DataParallel(value = PreserveAttributeStyle.ALL, passNA = true)
   public static double Arg(Complex z) {
+    if(ComplexVector.isNA(z)) {
+      return DoubleVector.NA;
+    }
     return z.getArgument();
   }
   

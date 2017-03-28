@@ -55,6 +55,7 @@
     <module>studio</module>
     <module>dist/generic</module>
     <module>dist/deb</module>
+    <module>dist/gnur</module>
     <module>math</module>
   </modules>
 

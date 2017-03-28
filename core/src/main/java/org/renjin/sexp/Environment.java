@@ -89,13 +89,18 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
    *
    * @return the Global environment
    */
-  public static Environment createGlobalEnvironment(Environment baseEnvironment) {
+  public static Environment createGlobalEnvironment(Environment baseEnvironment, Frame frame) {
     Environment global = new Environment();
     global.name = GLOBAL_ENVIRONMENT_NAME;
     global.parent = baseEnvironment;
-    global.frame = new HashFrame();
+    global.frame = frame;
 
     return global;
+  }
+
+
+  public static Environment createGlobalEnvironment(Environment baseEnvironment) {
+    return createGlobalEnvironment(baseEnvironment, new HashFrame());
   }
 
   public static Environment createBaseEnvironment() {
@@ -433,6 +438,7 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     unsafeSetAttributes(attributes);
     return this;
   }
+
 
   private static class EnvIterator extends UnmodifiableIterator<Environment> {
     private Environment next;

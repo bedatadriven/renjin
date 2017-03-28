@@ -126,14 +126,14 @@ public class Session {
   Session(FileSystemManager fileSystemManager,
           ClassLoader classLoader,
           PackageLoader packageLoader,
-          VectorPipeliner pipeliner) {
+          VectorPipeliner pipeliner, Frame globalFrame) {
     this.fileSystemManager = fileSystemManager;
     this.classLoader = classLoader;
     this.homeDirectory = FileSystemUtils.homeDirectoryInCoreJar();
     this.workingDirectory = FileSystemUtils.workingDirectory(fileSystemManager);
     this.systemEnvironment = Maps.newHashMap(System.getenv()); //load system environment variables
     this.baseEnvironment = Environment.createBaseEnvironment();
-    this.globalEnvironment = Environment.createGlobalEnvironment(baseEnvironment);
+    this.globalEnvironment = Environment.createGlobalEnvironment(baseEnvironment, globalFrame);
     this.baseNamespaceEnv = Environment.createBaseNamespaceEnvironment(globalEnvironment, baseEnvironment);
     this.baseNamespaceEnv.setVariable(Symbol.get(".BaseNamespaceEnv"), baseNamespaceEnv);
     this.topLevelContext = new Context(this);

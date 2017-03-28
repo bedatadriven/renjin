@@ -27,19 +27,28 @@ test.makeActiveBinding <- function() {
       if(!missing(v)) m <<- v
       m
     }
-
+    g <- function(w) {
+      if(!missing(w)) o <<- w
+      o
+    }
     makeActiveBinding("fred", f, e)
+    makeActiveBinding("gred", g, e)
 
     e$fred <- 1 + 1
     x <- e$fred
     e$fred <- 2 + 2
     y = e$fred
     assign("fred", 100, envir = e)
+    assign("gred", 100, envir = e)
+    e$gred <- 200
 
     assertTrue( x != y )
     assertTrue( y > x )
     assertTrue( e$fred == 100 )
     assertTrue( get("fred", e) == 100 )
+    assertTrue( mget(c("fred", "gred"), e)[[1]] == 100 )
+    assertTrue( names(mget(c("fred", "gred"), e))[2] == c("gred") )
+    assertTrue( ls(e)[2] == c("gred") )
 
 }
 

@@ -8,13 +8,12 @@
     <fileSets>
         <fileSet>
             <directory>${project.basedir}</directory>
-            <outputDirectory>/</outputDirectory>
             <includes>
                 <include>README*</include>
                 <include>NAMESPACE</include>
-                <include>inst</include>
-                <include>R</include>
-                <include>java</include>
+                <include>inst/</include>
+                <include>R/</include>
+                <include>java/</include>
             </includes>
         </fileSet>
     </fileSets>

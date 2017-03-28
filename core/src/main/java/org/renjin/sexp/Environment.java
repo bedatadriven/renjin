@@ -94,25 +94,18 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
    *
    * @return the Global environment
    */
-  public static Environment createGlobalEnvironment(Environment baseEnvironment, Frame frame) {
-    Environment global = new Environment();
+  public static Environment createGlobalEnvironment(Environment baseEnvironment) {
+    Environment global = new Environment(new HashFrame());
     global.name = GLOBAL_ENVIRONMENT_NAME;
     global.parent = baseEnvironment;
-    global.frame = frame;
 
     return global;
   }
 
-
-  public static Environment createGlobalEnvironment(Environment baseEnvironment) {
-    return createGlobalEnvironment(baseEnvironment, new HashFrame());
-  }
-
   public static Environment createBaseEnvironment() {
-    Environment base = new Environment();
+    Environment base = new Environment(new BaseFrame());
     base.name = "base";
     base.parent = EMPTY;
-    base.frame = new BaseFrame();
     return base;
   }
 
@@ -141,10 +134,19 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
   public static Builder createChildEnvironment(Environment parent, Frame frame) {
     return new Builder(parent, frame);
   }
-  
-  public Environment() {}
 
-  public Environment(AttributeMap attributes) { super(attributes); }
+  private Environment(Frame frame) {
+    this.frame = frame;
+  }
+
+  private Environment() {
+    this.frame = new HashFrame();
+  }
+
+  public Environment(AttributeMap attributes) {
+    super(attributes);
+    this.frame = new HashFrame();
+  }
 
   public void setVariables(Context context, PairList pairList) {
     for(PairList.Node node : pairList.nodes()) {
@@ -222,16 +224,15 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     return lockedBindings != null && lockedBindings.contains(symbol);
   }
 
+  /**
+   * setVariable without checking if variable is an 'active' binding.
+   * Only be used when it is absolutely certain that the Symbol is not used in any active binding.
+   *
+   * @param symbol variable Symbol.
+   * @param value value to be assigned.
+   * @throws AssertionError when active bindings are present.
+   */
   public void setVariableUnsafe(Symbol symbol, SEXP value) {
-    /*
-     * Besides being used to for Binding van variables, setVariable is also used for setting
-     * Active Bindings. Since active bindings require evaluation of the function (with 1 argument in case
-     * of setVariable and without arguments when getVariable), setVariable and getVariable have a Context
-     * argument. setVariableUnsafe lacks the Context argument and should only be used when it is absolutely
-     * certain that the Symbol is not used in any active binding. This is the case when activeBindings field
-     * is not yet initiated (and thus null).
-     *
-     */
     assert ( activeBindings == null );
 
     if(value == Symbol.UNBOUND_VALUE) {
@@ -253,6 +254,7 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
    *
    * @param name variable name.
    * @param value value to be assigned.
+   * @throws AssertionError when active bindings are present.
    */
   public void setVariableUnsafe(String name, SEXP value) {
     if(StringVector.isNA(name)) {
@@ -269,6 +271,7 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
    * @param name variable name.
    * @param value value to be assigned.
    * @return invisible NULL
+   * @throws AssertionError when Context is not null
    */
   public SEXP setVariable(Context context, String name, SEXP value) {
     assert ( context != null );
@@ -282,10 +285,12 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
    * setVariable with ability to handle active bindings.
    * This is the default binding method that should be used.
    *
+   *
    * @param context where the assignment is taking place.
    * @param symbol The Symbol to assign binding to.
    * @param value the value/closure to be assigned
    * @return invisible NULL
+   * @throws AssertionError when Context is null.
    */
   public SEXP setVariable(Context context, Symbol symbol, SEXP value) {
     assert ( context != null );
@@ -343,7 +348,7 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
    * @return the bound value or {@code Symbol.UNBOUND_VALUE} if not found
    */
   public SEXP findVariable(Context context, Symbol symbol, Predicate<SEXP> predicate, boolean inherits) {
-    SEXP value = frame.getVariable(symbol);
+    SEXP value = getVariable(context, symbol);
     if(value != Symbol.UNBOUND_VALUE) {
       if(value instanceof Promise) {
         value = value.force(context);
@@ -533,10 +538,11 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
 
   /**
    * getVariable returns the value for the provided symbol without handling active bindings.
-   * Will fail if there are active bindings present.
    *
-   * @param symbolName The Symbol for the value should be returned
-   * @return SEXP value
+   *
+   * @param symbolName The Symbol for the value should be returned.
+   * @return SEXP value.
+   * @throws AssertionError if active bindings are present.
    */
   public SEXP getVariableUnsafe(String symbolName) {
     return getVariableUnsafe(Symbol.get(symbolName));
@@ -740,9 +746,8 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     }
 
     public Environment build() {
-      Environment child = new Environment();
+      Environment child = new Environment(frame);
       child.parent = parent;
-      child.frame = frame;
       return child;
     }
   }

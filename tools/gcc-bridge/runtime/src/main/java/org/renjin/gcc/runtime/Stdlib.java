@@ -344,5 +344,27 @@ public class Stdlib {
   public static int __isinf(double x) {
     return Double.isInfinite(x) ? 1 : 0;
   }
+
+  public static float logf(float x) {
+    return (float)Math.log(x);
+  }
+
+  public static long lroundf(float x) {
+
+    if(Float.isInfinite(x)) {
+      if(x < 0) {
+        return Long.MIN_VALUE;
+      } else {
+        return Long.MAX_VALUE;
+      }
+    }
+
+    // Math.round() rounds ties towards positive infinity,
+    // while lroundf is meant to round ties away from zero.
+    long sign = (long)Math.signum(x);
+    long closest = Math.round((double)Math.abs(x));
+
+    return closest * sign;
+  }
   
 }

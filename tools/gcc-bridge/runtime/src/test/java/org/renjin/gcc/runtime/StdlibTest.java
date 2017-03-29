@@ -20,6 +20,7 @@ package org.renjin.gcc.runtime;
 
 import org.junit.Test;
 
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.*;
 
 public class StdlibTest {
@@ -31,6 +32,22 @@ public class StdlibTest {
     BytePtr str = Stdlib.ctime(time);
 
     System.out.println(str.nullTerminatedString());
+  }
+
+  @Test
+  public void lroundf() {
+
+    assertThat(Stdlib.lroundf( 2.3f), equalTo(2L));
+    assertThat(Stdlib.lroundf( 2.5f), equalTo(3L));
+    assertThat(Stdlib.lroundf( 2.7f), equalTo(3L));
+    assertThat(Stdlib.lroundf(-2.3f), equalTo(-2L));
+    assertThat(Stdlib.lroundf(-2.5f), equalTo(-3L));
+    assertThat(Stdlib.lroundf(-2.7f), equalTo(-3L));
+    assertThat(Stdlib.lroundf(-0), equalTo(0L));
+    assertThat(Stdlib.lroundf(Float.NEGATIVE_INFINITY), equalTo(Long.MIN_VALUE));
+    assertThat(Stdlib.lroundf(Float.POSITIVE_INFINITY), equalTo(Long.MAX_VALUE));
+
+    assertThat(Stdlib.lroundf(Long.MAX_VALUE+1.5f), equalTo(Long.MAX_VALUE));
   }
 
 }

@@ -140,29 +140,79 @@ test.chol2inv.2 <- function() {
   actual <- chol2inv(x=input)
 
   assertThat(actual, identicalTo(expected))
-#
-#
-#   # print(hamcrest:::identical.rec(expected, actual))
-#tol <- 1e-6
-# rel.diff <- abs(expected - actual) / abs(expected)
-#  finite <- is.finite(rel.diff) & expected != 0
-#  finiteValuesCloseEnough <- all(rel.diff[finite] < tol)
-#  nonFiniteValuesIdentical <- identical(expected[!finite], actual[!finite])
-#
-#  print(rel.diff)
-#  print(which(!(rel.diff[finite] < tol)))
-#
+
+}
+
+test.chol2inv.99 <- function() {
+
+ expected <- structure(c(0x1.a609ea91d80dep-6, -0x1.0a1e693006b71p-14, -0x1.f4d1f6aa7158dp-52,
+        -0x1.80fb8976a3914p-58, -0x1.2015381a96702p-8, -0x1.85613deff919fp-59,
+        0x1.5fa7d4ad6bfdcp-12, 0x1.2bb3c2c052fe1p-60, -0x1.56da0fd144389p-62,
+        0x1.181ba8fbc54dp-66, -0x1.0a1e693006b71p-14, 0x1.638812594f1ebp+2,
+        -0x1.adffad5562e14p-6, -0x1.a8639f4fca141p-7, 0x1.6b4deed0dbee7p-17,
+        -0x1.73dcb5a92c641p-66, -0x1.bb7a053ec74acp-21, 0x1.a147b2f87a9f5p-61,
+        -0x1.db03e6f44a7a4p-63, -0x1.78788b774fa5p-70, -0x1.f4d1f6aa7158dp-52,
+        -0x1.adffad5562e14p-6, 0x1.260af16323625p+7, 0x1.00a3b05bf4p-14,
+        0x1.ca4p-52, 0x1.2330f027c70b3p-5, -0x1.6134ad68b8ed5p-59, -0x1.1d0aed3112392p-1,
+        0x1.9fe62f90447fdp-3, -0x1.73998d59340b1p-56, -0x1.80fb8976a3914p-58,
+        -0x1.a8639f4fca141p-7, 0x1.00a3b05bf4p-14, 0x1.795cba08efdb1p+6,
+        -0x1.bee7d94da0dbp-10, 0x1.efd4a9266a2b6p-13, 0x1.d86e86dae89a4p-65,
+        0x1.90189f8538979p-4, 0x1.5cdf6f5856725p-4, 0x1.139b88e2ff0e6p-59,
+        -0x1.2015381a96702p-8, 0x1.6b4deed0dbee7p-17, 0x1.ca4p-52, -0x1.bee7d94da0dbp-10,
+        0x1.79c4b089543a7p-8, -0x1.6c94d6ba5d2f3p-11, -0x1.e0143659957e4p-15,
+        -0x1.a20482f5934a2p-61, 0x1.41a6d5ae05433p-15, 0x1.344edb2426bdcp-69,
+        -0x1.85613deff919fp-59, -0x1.73dcb5a92c641p-66, 0x1.2330f027c70b3p-5,
+        0x1.efd4a9266a2b6p-13, -0x1.6c94d6ba5d2f3p-11, 0x1.46dc106b98f22p-12,
+        -0x1.9c4p-69, -0x1.1a476aa717928p-13, 0x1.6f4213d95991ap-15,
+        -0x1.76ac94d0bfa43p-20, 0x1.5fa7d4ad6bfdcp-12, -0x1.bb7a053ec74acp-21,
+        -0x1.6134ad68b8ed5p-59, 0x1.d86e86dae89a4p-65, -0x1.e0143659957e4p-15,
+        -0x1.9c4p-69, 0x1.596c39d44c3aep-9, 0x1.1p-69, 0x1.33ab6p-71,
+        0x1.12855133e6f24p-15, 0x1.2bb3c2c052fe1p-60, 0x1.a147b2f87a9f5p-61,
+        -0x1.1d0aed3112392p-1, 0x1.90189f8538979p-4, -0x1.a20482f5934a2p-61,
+        -0x1.1a476aa717928p-13, 0x1.1p-69, 0x1.24467f7c90757p-7, -0x1.64e4606de436dp-11,
+        -0x1.22c0b4ccf94ffp-12, -0x1.56da0fd144389p-62, -0x1.db03e6f44a7a4p-63,
+        0x1.9fe62f90447fdp-3, 0x1.5cdf6f5856725p-4, 0x1.41a6d5ae05433p-15,
+        0x1.6f4213d95991ap-15, 0x1.33ab6p-71, -0x1.64e4606de436dp-11,
+        0x1.8167ad9778c2ep-6, -0x1.6f001d4e4d763p-29, 0x1.181ba8fbc54dp-66,
+        -0x1.78788b774fa5p-70, -0x1.73998d59340b1p-56, 0x1.139b88e2ff0e6p-59,
+        0x1.344edb2426bdcp-69, -0x1.76ac94d0bfa43p-20, 0x1.12855133e6f24p-15,
+        -0x1.22c0b4ccf94ffp-12, -0x1.6f001d4e4d763p-29, 0x1.3675177adc056p-6
+        ), .Dim = c(10L, 10L))
 
 
-#      rel.diff <- abs(expected - actual) / abs(expected)
-#      finite <- is.finite(rel.diff) & expected != 0
-#      finiteValuesCloseEnough <- all(rel.diff[finite] < tol)
-#      nonFiniteValuesIdentical <- identical(expected[!finite], actual[!finite])
-#
-#      cat(sprintf("finiteValuesCloseEnough = %s\n", deparse(finiteValuesCloseEnough)))
-#      cat(sprintf("nonFiniteValuesIdentical = %s\n", deparse(nonFiniteValuesIdentical)))
-#
-#
-#    assertThat(actual,  identicalTo( expected, tol = 1e-6 ) )
+assertThat(chol2inv(x=structure(
+      c(0x1.b8a404130a498p+2, 0x0p+0, 0x0p+0, 0x0p+0, 0x0p+0, 0x0p+0,
+        0x0p+0, 0x0p+0, 0x0p+0, 0x0p+0, 0x1.7f12894cdf98fp-15, 0x1.b2761e1004019p-2,
+        0x0p+0, 0x0p+0, 0x0p+0, 0x0p+0, 0x0p+0, 0x0p+0, 0x0p+0, 0x0p+0,
+        -0x1.070af644ad205p-8, 0x1.a82a78f57fd1cp-14, 0x1.8ac4e6f4e8795p-4,
+        0x0p+0, 0x0p+0, 0x0p+0, 0x0p+0, 0x0p+0, 0x0p+0, 0x0p+0, 0x1.9c2319c475b54p-14,
+        0x1.bfed7b5ca35abp-15, -0x1.68ab39dc971dfp-8, 0x1.a8f91760f07ccp-4,
+        0x0p+0, 0x0p+0, 0x0p+0, 0x0p+0, 0x0p+0, 0x0p+0, 0x1.cffb538d36b4ep+2,
+        -0x1.4fc7a458aac5ap-9, -0x1.60dd458b6b661p+0, -0x1.5604061c2f32fp-5,
+        0x1.edb5a40b317ffp+3, 0x0p+0, 0x0p+0, 0x0p+0, 0x0p+0, 0x0p+0,
+        0x1.0a18d973f1d93p+4, -0x1.e575fa074e79ep-7, -0x1.6e34d4fb8259ep+3,
+        -0x1.3eee477c84c54p-1, 0x1.15372569edbd4p+5, 0x1.c6a2c120be4b5p+5,
+        0x0p+0, 0x0p+0, 0x0p+0, 0x0p+0, -0x1.70000eacfaa89p-1, 0x1.405eb91e988fep-14,
+        -0x1.fbb3f7c0ce6abp-6, -0x1.6ae336c2a3592p-11, 0x1.56f6fcc32bf3bp-2,
+        -0x1.b1abc61bb1f5fp-13, 0x1.37ad328d3b83bp+4, 0x0p+0, 0x0p+0,
+        0x0p+0, -0x1.39ff32f3d31cap-10, 0x1.64777a1b1e3fp-8, 0x1.76f341423d24bp+2,
+        -0x1.2d65f5d355f9p+0, 0x1.08f7efa9f7e8dp-1, 0x1.b42e88bb77424p-1,
+        -0x1.12e53206f899ap-10, 0x1.53479e115fe57p+3, 0x0p+0, 0x0p+0,
+        -0x1.16dfd53d028f3p-7, -0x1.cbecc1411718bp-11, -0x1.3cf18a4d26e2fp-1,
+        -0x1.a25225c89cfc5p-2, -0x1.31d4d62618eeap-4, -0x1.4c40449cce5cbp-4,
+        -0x1.fd2e269f6920ep-16, 0x1.3a2de682868e3p-2, 0x1.a148976e0f99ap+2,
+        0x0p+0, 0x1.40f90ef0f1119p-9, 0x1.48b5fe2bb7c56p-14, 0x1.5beb17457a10cp-4,
+        -0x1.1b007275969d9p-6, 0x1.38d5ede511f2bp-7, 0x1.10d6baf542ae1p-6,
+        -0x1.13b979fc44172p-5, 0x1.3dbef126d166dp-3, 0x1.ed485dc35828cp-21,
+                                0x1.d0ee74c82f8e7p+2),
+     .Dim = c(10L, 10L),
+     .Dimnames = list(
+        c("seeds", "seeds.per.fruit", "synchrony",
+            "fruit.set", "fruits", "flowers", "competition", "intensity",
+            "moment", "size"),
+        c("seeds", "seeds.per.fruit", "synchrony",
+            "fruit.set", "fruits", "flowers", "competition", "intensity",
+            "moment", "size")))),
+    identicalTo( expected, tol = 1e-6 ) )
 
 }

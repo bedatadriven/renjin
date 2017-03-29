@@ -35,6 +35,12 @@
       <artifactId>renjin-nmath</artifactId>
       <version>${project.version}</version>
     </dependency>
+
+    <dependency>
+      <groupId>org.renjin</groupId>
+      <artifactId>renjin-lapack</artifactId>
+      <version>${project.version}</version>
+    </dependency>
     
     <dependency>
       <groupId>org.apache.commons</groupId>

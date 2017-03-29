@@ -23,8 +23,12 @@ import com.github.fommil.netlib.LAPACK;
 import org.apache.commons.math.complex.Complex;
 import org.netlib.util.doubleW;
 import org.netlib.util.intW;
+import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.invoke.annotations.DotCall;
+import org.renjin.gcc.runtime.BytePtr;
+import org.renjin.gcc.runtime.DoublePtr;
+import org.renjin.gcc.runtime.IntPtr;
+import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.primitives.ComplexGroup;
 import org.renjin.primitives.Types;
@@ -41,6 +45,8 @@ import java.util.List;
  */
 public class Lapack {
 
+  public static final BytePtr UPPER_TRIANGLE = BytePtr.asciiString("U");
+
   /**
    * Invert a symmetric, positive definite square matrix from its Choleski decomposition, using
    * the {@code dpotri} routine.
@@ -49,6 +55,7 @@ public class Lapack {
    * @param sz the number of columns of x containing the Choleski decomposition.
    * @return
    */
+  @Internal
   public static DoubleVector La_chol2inv(DoubleVector a, int sz) {
 
     if(IntVector.isNA(sz) || sz < 1) {
@@ -297,14 +304,23 @@ public class Lapack {
     return ret.build();
   }
 
+  /**
+   * Compute the Choleski factorization of a real symmetric
+   * positive-definite square matrix.
+   *
+   * @param context the current evaluation context
+   * @param a a square, real-valued matrix
+   * @param pivot should pivoting be used?
+   * @param tol a numeric tolerance for use with 'pivot = TRUE'
+   */
   @Internal
-  public static SEXP La_chol(SEXP a, int pivot, double tol) {
+  public static SEXP La_chol(@Current Context context, SEXP a, int pivot, double tol) {
 
     if (!Types.isMatrix(a)) {
       throw new EvalException("'a' must be a numeric matrix");
     }
 
-    double result[] = ((AtomicVector) a).toDoubleArray();
+    double matrix[] = ((AtomicVector) a).toDoubleArray();
     int[] dim = a.getAttributes().getDimArray();
 
     int m = dim[0];
@@ -317,10 +333,11 @@ public class Lapack {
       throw new EvalException("'a' must have dims > 0");
     }
 
+    /* zero the lower triangle */
     int N = dim[0];
-    for (int j = 0; j < n; j++) {       /* zero the lower triangle */
+    for (int j = 0; j < n; j++) {
       for (int i = j + 1; i < n; i++) {
-        result[i + N * j] = 0.;
+        matrix[i + N * j] = 0.;
       }
     }
     if (pivot != 0 && pivot != 1) {
@@ -328,7 +345,7 @@ public class Lapack {
     }
     if (pivot == 0) {
       intW info = new intW(0);
-      LAPACK.getInstance().dpotrf("Upper", m, result, m, info);
+      LAPACK.getInstance().dpotrf("Upper", m, matrix, m, info);
       if (info.val != 0) {
         if (info.val > 0) {
           throw new EvalException("the leading minor of order %d is not positive definite", info);
@@ -336,38 +353,60 @@ public class Lapack {
           throw new EvalException("argument %d of Lapack routine %s had invalid value", info, "dpotrf");
         }
       }
-      return new DoubleArrayVector(result, a.getAttributes());
+      return DoubleArrayVector.unsafe(matrix, a.getAttributes());
 
     } else {
 
-      throw new UnsupportedOperationException();
-//      SEXP piv = PROTECT(allocVector(INTSXP, m));
-//        int *ip = INTEGER(piv);
-//        double *work = (double *)R_alloc(2 * (size_t) m, sizeof(double));
-//      int rank, info;
-//      LAPACK.getInstance().
-//      F77_CALL(dpstrf) ("U", &m, REAL(ans), &m, ip, &rank, &tol, work, &info);
-//      if (info != 0) {
-//        if (info > 0) {
-//         // warning(_("the matrix is either rank-deficient or indefinite"));
-//        } else {
-//          throw new EvalException("argument %d of Lapack routine %s had invalid value",
-//              -info, "dpstrf");
-//        }
-//      }
-//      setAttrib(ans, install("pivot"), piv);
-//      SEXP s_rank = install("rank");
-//      setAttrib(ans, s_rank, ScalarInteger(rank));
-//      SEXP cn, dn = getAttrib(ans, R_DimNamesSymbol);
-//      if (!isNull(dn) && !isNull(cn = VECTOR_ELT(dn, 1))) {
-//        // need to pivot the colnames
-//        SEXP dn2 = PROTECT(duplicate(dn));
-//        SEXP cn2 = VECTOR_ELT(dn2, 1);
-//        for (int i = 0; i < m; i++)
-//          SET_STRING_ELT(cn2, i, STRING_ELT(cn, ip[i] - 1)); // base 1
-//        setAttrib(ans, R_DimNamesSymbol, dn2);
-//      }
+      int pivoti[] = new int[m];
+      double work[] = new double[m * 2];
+      IntPtr rank = new IntPtr(0);
+      IntPtr info = new IntPtr(0);
+      org.renjin.math.Lapack.dpstrf_(
+          /* UPLO = */ UPPER_TRIANGLE,        // (in) Specifies whether the upper or lower triangular part of th
+          /* N = */    new IntPtr(m),         // (in) The order of the matrix A.  N >= 0.
+          /* A = */    new DoublePtr(matrix), // (in, out) The symmetric matrix A
+          /* LDA = */  new IntPtr(m),         // (in) The leading dimension of the array A. LDA >= max(1,N)
+          /* PIV = */  new IntPtr(pivoti),    // (out) PIV is such that the nonzero entries are P( PIV(K), K ) = 1
+          /* RANK = */ rank,                  // (out) rank of A given by the number of steps the algorithm compl.
+          /* TOL = */  new DoublePtr(tol),    // (in) User defined tolerance.
+          /* WORK = */ new DoublePtr(work),   // (out) Work space. dimension (2*N)
+          /* INFO = */ info,                  // (out)
+          /* LEN(UPLO) = */ 1);
+
+      if (info.get() != 0) {
+        if (info.get() > 0) {
+          context.warn("the matrix is either rank-deficient or indefinite");
+        } else {
+          throw new EvalException("argument %d of Lapack routine %s had invalid value", -info.get(), "dpstrf");
+        }
+      }
+
+      return DoubleArrayVector.unsafe(matrix,
+          a.getAttributes().copy()
+            .set("pivot", IntArrayVector.unsafe(pivoti))
+            .set("rank", IntArrayVector.unsafe(rank.array))
+            .setDimNames(pivotColumnNames(a.getAttributes().getDimNames(), pivoti))
+            .build());
     }
+  }
+
+  private static Vector pivotColumnNames(Vector dimNames, int[] pivoti) {
+    if(dimNames == Null.INSTANCE) {
+      return Null.INSTANCE;
+    }
+    Vector colNames = dimNames.getElementAsSEXP(1);
+    if(colNames == Null.INSTANCE) {
+      return dimNames;
+    }
+    ListVector dimNamesList = (ListVector) dimNames;
+    StringVector.Builder pivotedCallNames = new StringVector.Builder(colNames.length());
+    for (int i = 0; i < pivoti.length; i++) {
+      pivotedCallNames.set(i, colNames.getElementAsString(pivoti[i] - 1));
+    }
+
+    return dimNamesList.newCopyBuilder()
+        .set(1, pivotedCallNames.build())
+        .build();
   }
 
 

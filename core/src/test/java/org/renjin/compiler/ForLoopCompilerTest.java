@@ -29,6 +29,7 @@ import org.renjin.eval.SessionBuilder;
 import org.renjin.parser.RParser;
 import org.renjin.primitives.special.ForFunction;
 import org.renjin.repackaged.guava.base.Charsets;
+import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.repackaged.guava.io.Resources;
 import org.renjin.sexp.ExpressionVector;
 
@@ -114,9 +115,50 @@ public class ForLoopCompilerTest extends EvalTestCase {
 
   @Test
   public void verifyFunctionRedefinitionIsRespected() throws IOException {
-    assertThat(eval("{ s <- 0; for(i in 1:10000) { if(i>100) { sqrt <- sin; }; s <- s + sqrt(i) }; s }"), 
+    assertThat(eval("{ s <- 0; for(i in 1:10000) { if(i>100) { sqrt <- sin; }; s <- s + sqrt(i) }; s }"),
         closeTo(c(673.224), 1d));
 
+  }
+
+  @Test
+  public void activeBindingForLoopIndex() {
+
+    eval(Joiner.on("\n").join(
+        "    j <- 4",
+        "    ib <- function(val) {",
+        "        if(missing(val)) {",
+        "            j <<- j + 1",
+        "            j",
+        "        } else {",
+        "            j <<- val * 2",
+        "        }",
+        "    }",
+        "    makeActiveBinding('i', ib, environment())",
+        "    sum <- 0",
+        "    for(i in 1:10) {",
+        "        sum <- sum + i",
+        "    }"));
+
+    assertThat(eval("sum"), equalTo(c(25010000d)));
+
+  }
+
+  @Test
+  public void activeBindingInEnvironment() {
+
+    eval(Joiner.on("\n").join(
+        ".q <- 0",
+        ".qb <- function(val) {",
+          ".q <<- .q + 1  # side effect!!",
+          ".q",
+        "}",
+        "makeActiveBinding('q', .qb, environment())",
+        "sum <- 0",
+        "for(i in 1:1e6) {",
+          "sum <- sum + (i * q)",
+        "}"));
+
+    assertThat(eval("sum"), equalTo(c(3.333338e+17)));
   }
 
 }

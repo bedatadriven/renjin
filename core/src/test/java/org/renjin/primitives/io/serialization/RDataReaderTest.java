@@ -225,6 +225,22 @@ public class RDataReaderTest extends EvalTestCase {
     assertTrue(env.bindingIsLocked(Symbol.get("a")));
   }
 
+  @Test
+  public void readEnvironmentWithActiveBindings() throws IOException {
+
+    // Read environment created with:
+    //  rho <- new.env()
+    // f <- function(val) 42
+    // makeActiveBinding("f", f, rho)
+
+    Environment env = (Environment) readRds("activebinding.rds");
+    assertThat( env.getVariable(topLevelContext, "f"), equalTo(c(42)));
+
+    // Assigning should have no effect
+    env.setVariable(topLevelContext, "f", c(99));
+    assertThat( env.getVariable(topLevelContext, "f"), equalTo(c(42)));
+  }
+
   protected Symbol symbol(String name){
     return Symbol.get(name);
   }

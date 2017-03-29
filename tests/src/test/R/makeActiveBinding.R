@@ -49,6 +49,59 @@ test.makeActiveBinding <- function() {
     assertTrue( mget(c("fred", "gred"), e)[[1]] == 100 )
     assertTrue( names(mget(c("fred", "gred"), e))[2] == c("gred") )
     assertTrue( ls(e)[2] == c("gred") )
+    assertTrue( exists("fred", envir = e) )
+}
 
+test.redefine <- function() {
+
+    makeActiveBinding("xx", function(val) 41, environment())
+    assertThat(xx, identicalTo(41))
+
+    makeActiveBinding("xx", function(val) 42, environment())
+    assertThat(xx, identicalTo(42))
+
+}
+
+test.cannot.rebind <- function() {
+
+    rho <- new.env()
+    rho$x <- 41
+
+    f <- function(val) 0
+
+    assertThat( { makeActiveBinding("x", f, rho) }, throwsError())
+}
+
+
+test.remove <- function() {
+
+    makeActiveBinding("yy", function(val) 41, environment())
+    assertTrue(exists("yy"))
+    assertThat(yy, identicalTo(41))
+
+    rm("yy")
+    assertFalse(exists("yy"))
+}
+
+test.for.loop.index <- function() {
+
+    j <- 4
+    ib <- function(val) {
+        if(missing(val)) {
+            j <<- j + 1
+            j
+        } else {
+            j <<- val * 2
+        }
+    }
+
+    makeActiveBinding("i", ib, environment())
+
+    sum <- 0
+    for(i in 1:10) {
+        sum <- sum + i
+    }
+
+    assertThat(sum, identicalTo(120))
 }
 

@@ -561,7 +561,7 @@ public class MethodDispatch {
        execute the method, and return the result */
     FunctionCall call = cptr.getCall();
     PairList arglist = cptr.getArguments();
-    SEXP val = R_execClosure(context, call, op, arglist, callerenv, newrho.build());
+    SEXP val = R_execClosure(context, call, op, arglist, callerenv, newrho);
     return val;
   }
 

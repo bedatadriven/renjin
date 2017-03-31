@@ -101,7 +101,7 @@ public abstract class EvalTestCase {
     if(!source.endsWith(";") && !source.endsWith("\n")) {
       source = source + "\n";
     }
-    SEXP exp = parse(source);
+    SEXP exp = RParser.parseSource(source);
 
 
     return topLevelContext.evaluate( exp );

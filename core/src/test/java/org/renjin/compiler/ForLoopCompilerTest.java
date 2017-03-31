@@ -139,7 +139,7 @@ public class ForLoopCompilerTest extends EvalTestCase {
         "        sum <- sum + i",
         "    }"));
 
-    assertThat(eval("sum"), equalTo(c(25010000d)));
+    assertThat(eval("sum"), equalTo(c(120d)));
 
   }
 
@@ -158,7 +158,7 @@ public class ForLoopCompilerTest extends EvalTestCase {
           "sum <- sum + (i * q)",
         "}"));
 
-    assertThat(eval("sum"), equalTo(c(3.333338e+17)));
+    assertThat(eval("sum"), equalTo(c(0x1.280f56bddc2e6p+58)));
   }
 
 }

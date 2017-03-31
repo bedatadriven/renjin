@@ -192,7 +192,7 @@ public final class Environments {
 
   @Internal
   public static boolean bindingIsActive(Symbol symbol, Environment env) {
-    return false;
+    return env.isActiveBinding(symbol);
   }
 
   @Internal

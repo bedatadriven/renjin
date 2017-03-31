@@ -315,17 +315,20 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     }
   }
 
-  public SEXP makeActiveBinding(Symbol symbol, Closure closure) {
+  public void makeActiveBinding(Symbol symbol, Closure closure) {
     if(bindingIsLocked(symbol)) {
       throw new EvalException("cannot change value of locked binding for '%s'", symbol.getPrintName());
     } else if(locked && frame.getVariable(symbol) == Symbol.UNBOUND_VALUE) {
       throw new EvalException("cannot add bindings to a locked environment");
     }
+    if(frame.getSymbols().contains(symbol)) {
+      throw new EvalException("Error in makeActiveBinding(%s, %s, %s) :\n   symbol already has a regular binding",
+        symbol.getPrintName(), closure.getTypeName(), closure.getEnclosingEnvironment().getTypeName());
+    }
     if(activeBindings == null) {
       activeBindings = new HashMap<Symbol, Closure>();
     }
     activeBindings.put(symbol, closure);
-    return Null.INSTANCE;
   }
 
   public boolean isActiveBinding(Symbol symbol) {
@@ -372,7 +375,7 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
    */
   public SEXP findVariable(Context context, Symbol symbol) {
     if(activeBindings != null && activeBindings.containsKey(symbol)) {
-      return context.evaluate(activeBindings.get(symbol));
+      return evaluateFunction(context, symbol);
     }
     if(symbol.isVarArgReference()) {
       return findVarArg(symbol.getVarArgReferenceIndex());
@@ -510,10 +513,7 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
   public SEXP getVariable(Context context, Symbol symbol) {
     assert ( context != null );
     if(activeBindings != null && activeBindings.containsKey(symbol)) {
-
-      Closure fun = activeBindings.get(symbol);
-      PairList.Builder args = new PairList.Builder();
-      return context.evaluate(new FunctionCall(fun, args.build()));
+      return evaluateFunction(context, symbol);
     }
     return frame.getVariable(symbol);
   }
@@ -751,4 +751,11 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
       return child;
     }
   }
+
+  public SEXP evaluateFunction(Context context, Symbol symbol) {
+    Closure fun = activeBindings.get(symbol);
+    PairList.Builder args = new PairList.Builder();
+    return context.evaluate(new FunctionCall(fun, args.build()));
+  }
+
 }

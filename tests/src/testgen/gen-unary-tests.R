@@ -153,7 +153,20 @@ inputs <- list(
   as.name('xyz'),
 
   # Function Calls
-  call('sin', 3.14)
+  call('sin', 3.14),
+
+  # Strings with nubmers or things that might be mistaken for numbers...
+  'NaN', 
+  'NABOOM!', 
+  'NaNaNabooboo', 
+  '-Inf', 
+  '+Infinity', 
+  'Infinity and beyond!', 
+  'Infi', 
+  '0.03f', 
+  '  0.0330   '
+
+
 )
 
 

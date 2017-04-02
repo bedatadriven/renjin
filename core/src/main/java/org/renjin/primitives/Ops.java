@@ -92,7 +92,8 @@ public class Ops  {
   @Builtin("-")
   @DataParallel(value = PreserveAttributeStyle.ALL, passNA = true)
   public static Complex minus(Complex x, Complex y) {
-    return x.subtract(y);
+    return new Complex(x.getReal() - y.getReal(),
+                       x.getImaginary() - y.getImaginary());
   }
 
   @Deferrable

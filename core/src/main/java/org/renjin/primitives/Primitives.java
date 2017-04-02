@@ -18,6 +18,7 @@
  */
 package org.renjin.primitives;
 
+import org.renjin.base.Lapack;
 import org.renjin.base.internals.AllNamesVisitor;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
@@ -1042,6 +1043,11 @@ public class Primitives {
     f("bitwiseShiftR", Bitwise.class, 11);
     f("bitwiseAnd", Bitwise.class, 11);
     f("bitwiseOr", Bitwise.class, 11);
+
+    // Add LAPACK wrappers as internals
+    f("La_chol", Lapack.class, 11);
+    f("La_chol2inv", Lapack.class, 11);
+
 
     // Build map of reserved functions
     for (Map.Entry<Symbol, PrimitiveFunction> entry : builtins.entrySet()) {

@@ -19,7 +19,6 @@
 package org.renjin.primitives.special;
 
 import org.renjin.eval.Context;
-import org.renjin.eval.EvalException;
 import org.renjin.sexp.*;
 
 public class IfFunction extends SpecialFunction {

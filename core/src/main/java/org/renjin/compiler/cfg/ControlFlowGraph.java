@@ -96,7 +96,7 @@ public class ControlFlowGraph {
       if(bb.fallsThrough()) {
         addEdge(bb, basicBlocks.get(i + 1));
         
-      } else if(bb.exits()) {
+      } else if(bb.returns()) {
         addEdge(bb, exit);
 
       } else {

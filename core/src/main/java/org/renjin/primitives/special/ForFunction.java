@@ -112,9 +112,6 @@ public class ForFunction extends SpecialFunction {
       IRBody body = builder.buildLoopBody(call, elements);
 
       ControlFlowGraph cfg = new ControlFlowGraph(body);
-      cfg.dumpGraph();
-
-      System.out.println(cfg);
 
       DominanceTree dTree = new DominanceTree(cfg);
       SsaTransformer ssaTransformer = new SsaTransformer(cfg, dTree);

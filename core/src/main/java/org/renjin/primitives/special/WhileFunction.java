@@ -45,7 +45,7 @@ public class WhileFunction extends SpecialFunction {
           if(Compiler.tryCompileAndRun(context, rho, call)) {
             break;
           } else {
-            compilationFailed = true;
+            compilationFailed = false;
           }
         }
         

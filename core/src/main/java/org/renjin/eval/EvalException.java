@@ -32,10 +32,6 @@ public class EvalException extends RuntimeException {
   private SEXP condition;
   private Context context;
 
-  public EvalException(String message) {
-    this(message, (Throwable)null);
-  }
-
   public EvalException(String message, Throwable t) {
     super(message, t);
     ListVector.NamedBuilder condition = ListVector.newNamedBuilder();

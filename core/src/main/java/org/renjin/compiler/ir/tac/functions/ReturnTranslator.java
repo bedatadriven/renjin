@@ -22,7 +22,6 @@ import org.renjin.compiler.ir.tac.IRBodyBuilder;
 import org.renjin.compiler.ir.tac.expressions.Constant;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.statements.ReturnStatement;
-import org.renjin.compiler.ir.tac.statements.UpdateStatement;
 import org.renjin.sexp.Function;
 import org.renjin.sexp.FunctionCall;
 
@@ -43,7 +42,6 @@ public class ReturnTranslator extends FunctionCallTranslator {
     } else {
       returnExpression = Constant.NULL;
     }
-    builder.addStatement(new UpdateStatement());
     builder.addStatement(new ReturnStatement(returnExpression));
   }
 }

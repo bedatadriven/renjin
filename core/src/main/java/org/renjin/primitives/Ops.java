@@ -65,7 +65,7 @@ public class Ops  {
   }
 
   @Builtin("+")
-  @DataParallel(PreserveAttributeStyle.ALL)
+  @DataParallel(value = PreserveAttributeStyle.ALL, passNA = true)
   public static Complex plus(Complex x, Complex y) {
     return x.add(y);
   }
@@ -82,17 +82,18 @@ public class Ops  {
   public static double minus(double x, double y) {
     return x - y;
   }
-  
+
   @Builtin("-")
-  @DataParallel(PreserveAttributeStyle.ALL)
+  @DataParallel(value = PreserveAttributeStyle.ALL, passNA = true)
   public static Complex negative(Complex x) {
     return ComplexVector.complex(-x.getReal(), -x.getImaginary());
   }
-  
+
   @Builtin("-")
-  @DataParallel(PreserveAttributeStyle.ALL)
+  @DataParallel(value = PreserveAttributeStyle.ALL, passNA = true)
   public static Complex minus(Complex x, Complex y) {
-    return x.subtract(y);
+    return new Complex(x.getReal() - y.getReal(),
+                       x.getImaginary() - y.getImaginary());
   }
 
   @Deferrable
@@ -131,7 +132,7 @@ public class Ops  {
   }
 
   @Builtin("/")
-  @DataParallel(PreserveAttributeStyle.ALL)
+  @DataParallel(value = PreserveAttributeStyle.ALL, passNA = true)
   public static Complex divide(Complex dividend, Complex divisor) {
     // LICENSE: transcribed code from GCC, which is licensed under GPL
     // libgcc2 - Translated by Tomas Kalibera
@@ -162,13 +163,13 @@ public class Ops  {
       if (c == 0.0 && d == 0.0 && (!isNaN(a) || !isNaN(b))) {
         x = copySign(Double.POSITIVE_INFINITY, c) * a;
         y = copySign(Double.POSITIVE_INFINITY, c) * b;
-      
+
       } else if ((isInfinite(a) || isInfinite(b)) && isFinite(c) && isFinite(d)) {
         double ra = convertInf(a);
         double rb = convertInf(b);
         x = Double.POSITIVE_INFINITY * (ra * c + rb * d);
         y = Double.POSITIVE_INFINITY * (rb * c - ra * d);
-      
+
       } else if ((isInfinite(c) || isInfinite(d)) && isFinite(a) && isFinite(b)) {
         double rc = convertInf(c);
         double rd = convertInf(d);
@@ -179,7 +180,7 @@ public class Ops  {
     return ComplexVector.complex(x, y);
   }
 
-  
+
   @Deferrable
   @Builtin("*")
   @DataParallel(value = PreserveAttributeStyle.ALL, passNA = true)
@@ -202,7 +203,7 @@ public class Ops  {
 
 
   @Builtin("*")
-  @DataParallel(PreserveAttributeStyle.ALL)
+  @DataParallel(value = PreserveAttributeStyle.ALL, passNA = true)
   public static Complex multiply(Complex x, Complex y) {
     // LICENSE: transcribed code from GCC, which is licensed under GPL
     // libgcc2 - Adapted by Tomas Kalibera
@@ -268,8 +269,8 @@ public class Ops  {
   @Deferrable
   @Builtin("==")
   @DataParallel
-  public static boolean equalTo(double x, double y) {
-    return x == y;
+  public static boolean equalTo( String x, String y) {
+    return x.equals(y);
   }
 
   @Deferrable
@@ -278,13 +279,49 @@ public class Ops  {
   public static boolean equalTo(Complex x, Complex y) {
     return x.equals(y);
   }
-  
+
   @Deferrable
   @Builtin("==")
   @DataParallel
-  public static boolean equalTo(@CoerceLanguageToString String x, @CoerceLanguageToString String y) {
-    return x.equals(y);
+  public static boolean equalTo(double x, double y) {
+    return x == y;
   }
+
+  @Deferrable
+  @Builtin("==")
+  @DataParallel
+  public static boolean equalTo(int x, int y) {
+    return x == y;
+  }
+
+  @Deferrable
+  @Builtin("==")
+  @DataParallel
+  public static boolean equalTo(boolean x, boolean y) {
+    return x == y;
+  }
+
+  @Deferrable
+  @Builtin("==")
+  @DataParallel
+  public static boolean equalTo(byte x, byte y) {
+    return x == y;
+  }
+
+  @Deferrable
+  @Builtin("!=")
+  @DataParallel
+  public static boolean notEqualTo( String x, String y) {
+    return !x.equals(y);
+  }
+
+  @Deferrable
+  @Builtin("!=")
+  @DataParallel
+  public static boolean notEqualTo( Complex x, Complex y) {
+    return !x.equals(y);
+  }
+
 
   @Deferrable
   @Builtin("!=")
@@ -296,8 +333,35 @@ public class Ops  {
   @Deferrable
   @Builtin("!=")
   @DataParallel
-  public static boolean notEqualTo(@CoerceLanguageToString String x, @CoerceLanguageToString String y) {
-    return !x.equals(y);
+  public static boolean notEqualTo(int x, int y) {
+    return x != y;
+  }
+
+  @Deferrable
+  @Builtin("!=")
+  @DataParallel
+  public static boolean notEqualTo(boolean x, boolean y) {
+    return x != y;
+  }
+
+  @Deferrable
+  @Builtin("!=")
+  @DataParallel
+  public static boolean notEqualTo(byte x, byte y) {
+    return x != y;
+  }
+
+  @Deferrable
+  @Builtin("<")
+  @DataParallel
+  public static boolean lessThan( String x, String y) {
+    return x.compareTo(y) < 0;
+  }
+
+  @Builtin("<")
+  @DataParallel
+  public static boolean lessThan(Complex x, Complex y) {
+    throw new EvalException("invalid comparison with complex values");
   }
 
   @Deferrable
@@ -310,13 +374,34 @@ public class Ops  {
   @Deferrable
   @Builtin("<")
   @DataParallel
-  public static boolean lessThan(@CoerceLanguageToString String x, @CoerceLanguageToString String y) {
-    return x.compareTo(y) < 0;
+  public static boolean lessThan(int x, int y) {
+    return x < y;
   }
 
+  @Deferrable
   @Builtin("<")
   @DataParallel
-  public static boolean lessThan(Complex x, Complex y) {
+  public static boolean lessThan(boolean x, boolean y) {
+    return !x && y;
+  }
+
+  @Deferrable
+  @Builtin("<")
+  @DataParallel
+  public static boolean lessThan(byte x, byte y) {
+    return (x & 0xFF) < (y & 0xFF);
+  }
+
+  @Deferrable
+  @Builtin("<=")
+  @DataParallel
+  public static boolean lessThanOrEqualTo(String x, String y) {
+    return x.compareTo(y) <= 0;
+  }
+
+  @Builtin("<=")
+  @DataParallel
+  public static boolean lessThanOrEqualTo(Complex x, Complex y) {
     throw new EvalException("invalid comparison with complex values");
   }
 
@@ -330,13 +415,34 @@ public class Ops  {
   @Deferrable
   @Builtin("<=")
   @DataParallel
-  public static boolean lessThanOrEqualTo(@CoerceLanguageToString String x, @CoerceLanguageToString String y) {
-    return x.compareTo(y) <= 0;
+  public static boolean lessThanOrEqualTo(int x, int y) {
+    return x <= y;
   }
 
+  @Deferrable
   @Builtin("<=")
   @DataParallel
-  public static boolean lessThanOrEqualTo(Complex x, Complex y) {
+  public static boolean lessThanOrEqualTo(boolean x, boolean y) {
+    return y || !x;
+  }
+
+  @Deferrable
+  @Builtin("<=")
+  @DataParallel
+  public static boolean lessThanOrEqualTo(byte x, byte y) {
+    return (x & 0xFF) <= (y & 0xFF);
+  }
+
+  @Deferrable
+  @Builtin(">")
+  @DataParallel
+  public static boolean greaterThan( String x,  String y) {
+    return x.compareTo(y) > 0;
+  }
+
+  @Builtin(">")
+  @DataParallel
+  public static boolean greaterThan(Complex x, Complex y) {
     throw new EvalException("invalid comparison with complex values");
   }
 
@@ -350,21 +456,29 @@ public class Ops  {
   @Deferrable
   @Builtin(">")
   @DataParallel
-  public static boolean greaterThan(@CoerceLanguageToString String x, @CoerceLanguageToString String y) {
-    return x.compareTo(y) > 0;
+  public static boolean greaterThan(int x, int y) {
+    return x > y;
   }
 
+  @Deferrable
   @Builtin(">")
   @DataParallel
-  public static boolean greaterThan(Complex x, Complex y) {
-    throw new EvalException("invalid comparison with complex values");
+  public static boolean greaterThan(boolean x, boolean y) {
+    return x && !y;
+  }
+
+  @Deferrable
+  @Builtin(">")
+  @DataParallel
+  public static boolean greaterThan(byte x, byte y) {
+    return (x & 0xFF) > (y & 0xFF);
   }
 
   @Deferrable
   @Builtin(">=")
   @DataParallel
-  public static boolean greaterThanOrEqual(double x, double y) {
-    return x >= y;
+  public static boolean greaterThanOrEqual( String x,  String y) {
+    return x.compareTo(y) >= 0;
   }
 
   @Builtin(">=")
@@ -376,8 +490,29 @@ public class Ops  {
   @Deferrable
   @Builtin(">=")
   @DataParallel
-  public static boolean greaterThanOrEqual(@CoerceLanguageToString String x, @CoerceLanguageToString String y) {
-    return x.compareTo(y) >= 0;
+  public static boolean greaterThanOrEqual(double x, double y) {
+    return x >= y;
+  }
+
+  @Deferrable
+  @Builtin(">=")
+  @DataParallel
+  public static boolean greaterThanOrEqual(int x, int y) {
+    return x >= y;
+  }
+
+  @Deferrable
+  @Builtin(">=")
+  @DataParallel
+  public static boolean greaterThanOrEqual(boolean x, boolean y) {
+    return x || !y;
+  }
+
+  @Deferrable
+  @Builtin(">=")
+  @DataParallel
+  public static boolean greaterThanOrEqual(byte x, byte y) {
+    return (x & 0xFF) >= (y & 0xFF);
   }
 
   @Deferrable

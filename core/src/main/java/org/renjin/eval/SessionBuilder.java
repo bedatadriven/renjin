@@ -19,31 +19,44 @@
 package org.renjin.eval;
 
 import org.apache.commons.vfs2.FileSystemManager;
+import org.renjin.compiler.pipeline.SimpleVectorPipeliner;
+import org.renjin.compiler.pipeline.VectorPipeliner;
 import org.renjin.primitives.packaging.ClasspathPackageLoader;
 import org.renjin.primitives.packaging.PackageLoader;
 import org.renjin.repackaged.guava.collect.Lists;
-import org.renjin.repackaged.guava.collect.Maps;
+import org.renjin.sexp.Frame;
 import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.HashFrame;
 import org.renjin.sexp.Symbol;
 import org.renjin.util.FileSystemUtils;
 
 import java.util.List;
-import java.util.Map;
 
 public class SessionBuilder {
 
   private boolean loadBasePackage = true;
-  private Map<Class, Object> bindings = Maps.newHashMap();
   private List<String> packagesToLoad = Lists.newArrayList();
+
+  private FileSystemManager fileSystemManager;
+  private PackageLoader packageLoader;
+  private VectorPipeliner vectorPipeliner;
+  private ClassLoader classLoader;
+
+  private Frame globalFrame = new HashFrame();
  
   public SessionBuilder() {
-    // set default bindings
-    bind(PackageLoader.class, new ClasspathPackageLoader());
+
   }
-  
+
+  /**
+   *
+   * @param fsm
+   * @return
+   * @deprecated see {@link #setFileSystemManager(FileSystemManager)}
+   */
+  @Deprecated
   public SessionBuilder withFileSystemManager(FileSystemManager fsm) {
-    bindings.put(FileSystemManager.class, fsm);
-    return this;
+    return setFileSystemManager(fsm);
   }
   
   /**
@@ -57,31 +70,111 @@ public class SessionBuilder {
   }
   
   /**
-   * Loads the default packages for R 2.14.2 (stats, utils, graphics, grDevices, datasets, methods)
+   * Loads the default packages for R 3.3.2 (stats, graphics, grDevices, utils, datasets, methods)
    */
   public SessionBuilder withDefaultPackages() {
     packagesToLoad = Session.DEFAULT_PACKAGES;
     return this;
   }
-  
+
   /**
-   * Binds a Renjin interface to its implementation
-   * @param clazz
-   * @param instance
-   * @return
+   * Sets the {@link FileSystemManager} used to implement calls to R's builtin functions.
+   *
+   * <p>By default, the new {@code Session} will use {@link FileSystemUtils#getMinimalFileSystemManager()},
+   * but a custom {@code FileSystemManager} can be provided to limit or customize the access of R scripts
+   * to the filesystem.</p>
+   *
+   * @param fileSystemManager
    */
-  public <T> SessionBuilder bind(Class<T> clazz, T instance) {
-    bindings.put(clazz, instance);
+  public SessionBuilder setFileSystemManager(FileSystemManager fileSystemManager) {
+    this.fileSystemManager = fileSystemManager;
     return this;
   }
-  
+
+  /**
+   * Sets the {@link PackageLoader} implementation to be used for loading R packages by the new {@code Session}.
+   *
+   * <p>By default, the new {@code Session} will use a {@link ClasspathPackageLoader} with the provided
+   * {@code ClassPathLoader}, or this class' {@code ClassPathLoader} if none is provided.
+   *
+   * <p>If new {@code Session} should load packages from remote repositories on demand, you can use the
+   * {@code AetherPackageLoader} from the {@code renjin-aether-package-loader} module.
+   *
+   */
+  public SessionBuilder setPackageLoader(PackageLoader packageLoader) {
+    this.packageLoader = packageLoader;
+    return this;
+  }
+
+  /**
+   * Sets the {@link VectorPipeliner} implementation to use.
+   *
+   * <p>Note that this method will change in the near future!</p>
+   *
+   */
+  public SessionBuilder setVectorPipeliner(VectorPipeliner vectorPipeliner) {
+    this.vectorPipeliner = vectorPipeliner;
+    return this;
+  }
+
+  /**
+   * Sets the {@link ClassLoader} to use to resolve JVM classes by the {@code import()} builtin.
+   */
+  public SessionBuilder setClassLoader(ClassLoader classLoader) {
+    this.classLoader = classLoader;
+    return this;
+  }
+
+  /**
+   * Sets the {@link Frame} that backs the Global Environment.
+   */
+  public SessionBuilder setGlobalFrame(Frame globalFrame) {
+    this.globalFrame = globalFrame;
+    return this;
+  }
+
+  /**
+   * Binds a Renjin interface to its implementation
+   * @deprecated Use {@link #setFileSystemManager(FileSystemManager)}
+   */
+  @Deprecated
+  public <T> SessionBuilder bind(Class<T> clazz, T instance) {
+    if(clazz.equals(FileSystemManager.class)) {
+      setFileSystemManager((FileSystemManager) instance);
+    } else if(clazz.equals(PackageLoader.class)) {
+      setPackageLoader((PackageLoader) instance);
+    } else if(clazz.equals(VectorPipeliner.class)) {
+      setVectorPipeliner((VectorPipeliner) instance);
+    } else if(clazz.equals(ClassLoader.class)) {
+      setClassLoader((ClassLoader) instance);
+    } else {
+      // Do nothing: this was the behavior of the previous
+      // implementation.
+    }
+    return this;
+  }
+
   public Session build() {
     try {
-      if(!bindings.containsKey(FileSystemManager.class)) {
-        bindings.put(FileSystemManager.class, FileSystemUtils.getMinimalFileSystemManager());
+
+      if(fileSystemManager == null) {
+        fileSystemManager = FileSystemUtils.getMinimalFileSystemManager();
       }
-         
-      Session session = new Session(bindings);
+
+      if(classLoader == null) {
+        classLoader = getClass().getClassLoader();
+      }
+
+      if(vectorPipeliner == null) {
+        vectorPipeliner = new SimpleVectorPipeliner();
+      }
+
+      if(packageLoader == null) {
+        packageLoader = new ClasspathPackageLoader(classLoader);
+      }
+
+      Session session = new Session(fileSystemManager, classLoader, packageLoader, vectorPipeliner,
+          globalFrame);
       if(loadBasePackage) {
         session.getTopLevelContext().init();
       }

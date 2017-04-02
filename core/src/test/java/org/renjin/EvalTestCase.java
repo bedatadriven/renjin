@@ -70,7 +70,7 @@ public abstract class EvalTestCase {
     return result;
   }
 
-  
+
   
   private void printWarnings() {
     SEXP warnings = topLevelContext.getBaseEnvironment().getVariable(Warning.LAST_WARNING);

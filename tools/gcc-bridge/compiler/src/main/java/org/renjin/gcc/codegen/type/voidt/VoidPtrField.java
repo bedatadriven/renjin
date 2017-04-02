@@ -37,7 +37,7 @@ public class VoidPtrField extends SingleFieldStrategy {
   }
 
   @Override
-  public VoidPtr memberExpr(JExpr instance, int offset, int size, TypeStrategy expectedType) {
+  public VoidPtr memberExpr(MethodGenerator mv, JExpr instance, int offset, int size, TypeStrategy expectedType) {
 
     if(offset != 0) {
       throw new IllegalStateException("offset = " + offset);

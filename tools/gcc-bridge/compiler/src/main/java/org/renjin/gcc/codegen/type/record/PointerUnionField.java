@@ -23,6 +23,8 @@ import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.*;
 import org.renjin.gcc.codegen.type.SingleFieldStrategy;
 import org.renjin.gcc.codegen.type.TypeStrategy;
+import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
+import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidPtr;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
@@ -40,7 +42,7 @@ public class PointerUnionField extends SingleFieldStrategy {
   }
 
   @Override
-  public GExpr memberExpr(JExpr instance, int offset, int size, TypeStrategy expectedType) {
+  public GExpr memberExpr(MethodGenerator mv, JExpr instance, int offset, int size, TypeStrategy expectedType) {
 
     if(offset != 0) {
       throw new UnsupportedOperationException("TODO: offset = " + offset);
@@ -54,7 +56,12 @@ public class PointerUnionField extends SingleFieldStrategy {
 
     if(expectedType instanceof FatPtrStrategy) {
       return new FatPtrMemberExpr(fieldExpr, expectedType.getValueFunction());
-    } 
+    }
+
+    if(expectedType instanceof RecordUnitPtrStrategy) {
+      return new RecordUnitPtr(Expressions.cast(fieldExpr, ((RecordUnitPtrStrategy) expectedType).getJvmType()));
+    }
+
     throw new UnsupportedOperationException(String.format("TODO: strategy = %s", expectedType));
   }
 

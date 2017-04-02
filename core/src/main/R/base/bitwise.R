@@ -16,14 +16,14 @@
 #  A copy of the GNU General Public License is available at
 #  https://www.R-project.org/Licenses/
 
-#bitwNot <- function(a) .Internal(bitwiseNot(a))
+bitwNot <- function(a) .Internal(bitwiseNot(a))
 
 bitwAnd <- function(a, b) .Internal(bitwiseAnd(a, b))
 
 bitwOr <- function(a, b) .Internal(bitwiseOr(a, b))
 
-#bitwXor <- function(a, b) .Internal(bitwiseXor(a, b))
+bitwXor <- function(a, b) .Internal(bitwiseXor(a, b))
 
-#bitwShiftL <- function(a, n) .Internal(bitwiseShiftL(a, n))
+bitwShiftL <- function(a, n) .Internal(bitwiseShiftL(a, n))
 
-#bitwShiftR <- function(a, n) .Internal(bitwiseShiftR(a, n))
+bitwShiftR <- function(a, n) .Internal(bitwiseShiftR(a, n))

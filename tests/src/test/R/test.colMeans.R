@@ -39,3 +39,4 @@ test.colMeans.17 <- function() assertThat(colMeans(structure(c(1, NA, NA, 3), .D
 test.colMeans.18 <- function() assertThat(colMeans(structure(1:3, .Dim = c(3L, 1L)), na.rm = TRUE), identicalTo(2, tol = 0.000001))
 test.colMeans.19 <- function() assertThat(colMeans(structure(1:3, .Dim = c(3L, 1L), .Dimnames = list(c("a", "b", "c"), NULL)), na.rm = TRUE), identicalTo(2, tol = 0.000001))
 test.colMeans.20 <- function() assertThat(colMeans(structure(1:3, .Dim = c(3L, 1L), .Dimnames = structure(list(    x = c("a", "b", "c"), y = NULL), .Names = c("x", "y"))),     na.rm = TRUE), identicalTo(2, tol = 0.000001))
+test.dotcolMeans.1 <- function() assertThat(.colMeans(matrix(1:12, ncol=3, dimnames=list(c("a","b","c","d"), c("E","F","G"))),3,4), identicalTo(c(2, 5, 8, 11)))

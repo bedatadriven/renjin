@@ -22,6 +22,7 @@ import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
 import org.renjin.gcc.gimple.expr.GimpleParamRef;
 import org.renjin.gcc.gimple.expr.GimpleVariableRef;
 import org.renjin.repackaged.guava.base.Optional;
+import org.renjin.repackaged.guava.base.Preconditions;
 import org.renjin.repackaged.guava.collect.Maps;
 
 import java.util.Collection;
@@ -72,13 +73,11 @@ public class GimpleSymbolTable {
       
       for (GimpleFunction function : unit.getFunctions()) {
         // Add the function decl to the unit- and global-scoped tables
-        for (String mangledName : function.getMangledNames()) {
-          unitTable.functionMap.put(mangledName, function);
-          if(function.isExtern()) {
-            globalFunctions.put(mangledName, function);
-          }
+        unitTable.functionMap.put(function.getMangledName(), function);
+        if(function.isExtern()) {
+          globalFunctions.put(function.getMangledName(), function);
         }
-        
+
         // Build the local variable table for the function
         LocalTable localTable = new LocalTable();
         for (GimpleVarDecl varDecl : function.getVariableDeclarations()) {
@@ -86,6 +85,16 @@ public class GimpleSymbolTable {
         }
         localMap.put(function, localTable);
       }
+
+      for (GimpleAlias alias : unit.getAliases()) {
+
+        GimpleFunction definition = unitTable.functionMap.get(alias.getDefinition());
+        unitTable.functionMap.put(alias.getAlias(), definition);
+        if(alias.isExtern()) {
+          globalFunctions.put(alias.getAlias(), definition);
+        }
+      }
+
       unitMap.put(unit, unitTable);
     }
   }
@@ -128,6 +137,9 @@ public class GimpleSymbolTable {
   }
   
   public Scope scope(final GimpleCompilationUnit unit) {
+
+    Preconditions.checkNotNull(unit, "unit");
+
     final UnitTable unitTable = unitMap.get(unit);
 
     return new Scope() {

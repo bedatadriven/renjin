@@ -18,8 +18,6 @@
  */
 package org.renjin.primitives.special;
 
-import javax.naming.ldap.Control;
-
 /**
  * Superclass of exceptions that are used to control flow
  * during runtime, for example by breaking out of a loop

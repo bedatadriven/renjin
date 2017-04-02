@@ -98,7 +98,7 @@ public class Gcc {
     // for debugging preprocessor output
 //    arguments.add("-E");
 //    arguments.add("-P");
-    
+
     arguments.add("-fno-rtti");
 
     arguments.add("-D");
@@ -191,7 +191,7 @@ public class Gcc {
   }
   
   public void extractPlugin() throws IOException {
-    
+
     if(!Strings.isNullOrEmpty(System.getProperty("gcc.bridge.plugin"))) {
       pluginLibrary = new File(System.getProperty("gcc.bridge.plugin"));
       if(pluginLibrary.exists()) {

@@ -370,11 +370,17 @@ public class RECompiler
             case ExtendedRE.E_NDIGIT:
                 return ESC_CLASS;
 
-            case 'u':
             case 'x':
                 {
-                    // Exact required hex digits for escape type
-                    int hexDigits = (escapeChar == 'u' ? 4 : 2);
+                    // Max digits
+                    int hexDigits = 2;
+                    boolean bracketed = false;
+
+                    if(idx + 1 < len && pattern.charAt(idx) == '{') {
+                        bracketed = true;
+                        hexDigits = Integer.MAX_VALUE;
+                        idx++;
+                    }
 
                     // Parse up to hexDigits characters from input
                     int val = 0;
@@ -382,6 +388,10 @@ public class RECompiler
                     {
                         // Get char
                         char c = pattern.charAt(idx);
+
+                        if(bracketed && c == '}') {
+                            break;
+                        }
 
                         // If it's a hexadecimal digit (0-9)
                         if (c >= '0' && c <= '9')
@@ -405,6 +415,12 @@ public class RECompiler
                                 syntaxError("Expected " + hexDigits + " hexadecimal digits after \\" + escapeChar);
                             }
                         }
+                    }
+                    if ( bracketed ) {
+                        if( ! (idx < len) || pattern.charAt(idx) != '}') {
+                            syntaxError("Expected closing '}'");
+                        }
+                        idx++;
                     }
                     return val;
                 }
@@ -996,10 +1012,6 @@ public class RECompiler
                 if (opcode == ExtendedRE.OP_BOL || opcode == ExtendedRE.OP_EOL)
                 {
                     syntaxError("Bad closure operand");
-                }
-                if ((terminalFlags[0] & NODE_NULLABLE) != 0)
-                {
-                    syntaxError("Closure operand can't be nullable");
                 }
         }
 

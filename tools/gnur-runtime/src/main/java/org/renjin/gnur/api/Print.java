@@ -41,11 +41,11 @@ public final class Print {
 
   // void Rf_formatString (SEXP *, R_xlen_t, int *, int)
 
-  public static CharPtr Rf_EncodeElement0(SEXP p0, int p1, int p2, CharPtr p3) {
+  public static BytePtr Rf_EncodeElement0(SEXP p0, int p1, int p2, BytePtr p3) {
     throw new UnimplementedGnuApiMethod("Rf_EncodeElement0");
   }
 
-  public static CharPtr Rf_EncodeEnvironment(SEXP p0) {
+  public static BytePtr Rf_EncodeEnvironment(SEXP p0) {
     throw new UnimplementedGnuApiMethod("Rf_EncodeEnvironment");
   }
 
@@ -55,11 +55,11 @@ public final class Print {
     throw new UnimplementedGnuApiMethod("Rf_printArray");
   }
 
-  public static void Rf_printMatrix(SEXP p0, int p1, SEXP p2, int p3, int p4, SEXP p5, SEXP p6, CharPtr p7, CharPtr p8) {
+  public static void Rf_printMatrix(SEXP p0, int p1, SEXP p2, int p3, int p4, SEXP p5, SEXP p6, BytePtr p7, BytePtr p8) {
     throw new UnimplementedGnuApiMethod("Rf_printMatrix");
   }
 
-  public static void Rf_printNamedVector(SEXP p0, SEXP p1, int p2, CharPtr p3) {
+  public static void Rf_printNamedVector(SEXP p0, SEXP p1, int p2, BytePtr p3) {
     throw new UnimplementedGnuApiMethod("Rf_printNamedVector");
   }
 
@@ -67,11 +67,11 @@ public final class Print {
     throw new UnimplementedGnuApiMethod("Rf_printVector");
   }
 
-  public static int dblepr0(CharPtr p0, IntPtr p1, DoublePtr p2, IntPtr p3) {
+  public static int dblepr0(BytePtr p0, IntPtr p1, DoublePtr p2, IntPtr p3) {
     throw new UnimplementedGnuApiMethod("dblepr0");
   }
 
-  public static int intpr0(CharPtr p0, IntPtr p1, IntPtr p2, IntPtr p3) {
+  public static int intpr0(BytePtr p0, IntPtr p1, IntPtr p2, IntPtr p3) {
     throw new UnimplementedGnuApiMethod("intpr0");
   }
 

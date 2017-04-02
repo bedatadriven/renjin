@@ -42,6 +42,7 @@ import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.repackaged.guava.io.Files;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -66,6 +67,8 @@ public class GimpleCompiler  {
   public static boolean TRACE = false;
 
   private File outputDirectory;
+
+  private File javadocOutputDirectory;
 
   private String packageName;
 
@@ -128,6 +131,17 @@ public class GimpleCompiler  {
     this.outputDirectory = directory;
   }
 
+
+  /**
+   * Sets the output directory for writing java source stubs for use by the javadoc tool.
+   *
+   * @param javadocOutputDirectory the root directory, or {@code null} if no stub sources should
+   *                               be written.
+   */
+  public void setJavadocOutputDirectory(File javadocOutputDirectory) {
+    this.javadocOutputDirectory = javadocOutputDirectory;
+  }
+
   public void setEntryPointPredicate(Predicate<GimpleFunction> entryPointPredicate) {
     this.entryPointPredicate = entryPointPredicate;
   }
@@ -174,7 +188,7 @@ public class GimpleCompiler  {
   public void compile(List<GimpleCompilationUnit> units) throws Exception {
 
     try {
-      
+      PmfRewriter.rewrite(units);
       GlobalVarMerger.merge(units);
       ImplicitFieldDeclFinder.find(units);
 
@@ -184,7 +198,7 @@ public class GimpleCompiler  {
       // create the mapping from the compilation unit's version of the record types
       // to the canonical version shared by all compilation units
       recordTypeDefs = RecordTypeDefCanonicalizer.canonicalize(rootLogger, units);
-      recordTypeDefs = RecordTypeDefCanonicalizer.prune(units, recordTypeDefs);
+      recordTypeDefs = RecordTypeDefCanonicalizer.prune(rootLogger, units, recordTypeDefs);
       if (verbose) {
         for (GimpleRecordTypeDef recordTypeDef : recordTypeDefs) {
           System.out.println(recordTypeDef);
@@ -220,6 +234,10 @@ public class GimpleCompiler  {
       for (UnitClassGenerator generator : unitClassGenerators) {
         generator.emit(codegenLogger);
         writeClass(generator.getClassName(), generator.toByteArray());
+
+        if(trampolineClassName == null && javadocOutputDirectory != null) {
+          generator.emitJavaDoc(javadocOutputDirectory);
+        }
       }
 
       // Write link metadata to META-INF/org.renjin.gcc.symbols
@@ -239,6 +257,7 @@ public class GimpleCompiler  {
       }
     }
   }
+
 
   private void compileRecords(List<GimpleCompilationUnit> units) throws IOException {
     RecordTypeStrategyBuilder builder = new RecordTypeStrategyBuilder(
@@ -269,7 +288,11 @@ public class GimpleCompiler  {
           FunctionGenerator functionGenerator = (FunctionGenerator) functionCallGenerator.getStrategy();
           for (String mangledName : functionGenerator.getMangledNames()) {
             LinkSymbol symbol = LinkSymbol.forFunction(mangledName, functionGenerator.getMethodHandle());
-            symbol.write(outputDirectory);
+            try {
+              symbol.write(outputDirectory);
+            } catch (FileNotFoundException e) {
+              System.err.println("Exception writing link metadata for " + symbol.getName() + ": " + e.getMessage());
+            }
           }
         }
       }
@@ -334,8 +357,9 @@ public class GimpleCompiler  {
         System.out.println(unit);
       }
       for (GimpleFunction function : unit.getFunctions()) {
-        
-        transformFunctionBody(rootLogger.branch("Transforming " + function.getName()), unit, function);
+        if(!function.isEmpty()) {
+          transformFunctionBody(rootLogger.branch("Transforming " + function.getName()), unit, function);
+        }
       }
     }
   }
@@ -416,4 +440,6 @@ public class GimpleCompiler  {
   public void setLinkClassLoader(ClassLoader linkClassLoader) {
     this.globalSymbolTable.setLinkClassLoader(linkClassLoader);
   }
+
+
 }

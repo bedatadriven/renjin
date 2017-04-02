@@ -43,16 +43,17 @@ public class Calls {
         functionEnvironment.setVariable(name, suppliedEnvironment.getVariable(name));
       }
 
-      SEXP result = functionContext.evaluate( closure.getBody(), functionEnvironment);
+      return functionContext.evaluate( closure.getBody(), functionEnvironment);
 
-      functionContext.exit();
-
-      return result;
     } catch(ReturnException e) {
+
       if(e.getEnvironment() != functionEnvironment) {
         throw e;
       }
       return e.getValue();
+
+    } finally {
+      functionContext.exit();
     }
   }
 

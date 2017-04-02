@@ -22,12 +22,9 @@ import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JExpr;
 import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JVar;
-import org.renjin.invoke.annotations.CoerceLanguageToString;
 import org.renjin.invoke.model.JvmMethod;
-import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.StringArrayVector;
 import org.renjin.sexp.StringVector;
-import org.renjin.sexp.Symbol;
 
 public class StringType extends ScalarType {
 
@@ -53,15 +50,9 @@ public class StringType extends ScalarType {
   
   @Override
   public JExpression testExpr(JCodeModel codeModel, JVar sexpVariable,
-      JvmMethod.Argument formal) {
+                              JvmMethod.Argument formal) {
     JExpression vectorTest = super.testExpr(codeModel, sexpVariable, formal);
-    if(formal.isAnnotatedWith(CoerceLanguageToString.class)) {
-      return vectorTest
-          .cor(sexpVariable._instanceof(codeModel.ref(FunctionCall.class)))
-          .cor(sexpVariable._instanceof(codeModel.ref(Symbol.class)));
-    } else {
-      return vectorTest;
-    }
+    return vectorTest;
   }
 
   @Override

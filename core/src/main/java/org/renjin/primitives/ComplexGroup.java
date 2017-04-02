@@ -34,20 +34,23 @@ import org.renjin.sexp.*;
 public class ComplexGroup {
 
   @Builtin
-  @DataParallel(PreserveAttributeStyle.ALL)
+  @DataParallel(value = PreserveAttributeStyle.ALL)
   public static double Mod(Complex z) {
     return z.abs();
   }
 
   @Builtin
-  @DataParallel(PreserveAttributeStyle.ALL)
+  @DataParallel(value = PreserveAttributeStyle.ALL, passNA = true)
   public static double Mod(double x) {
     return Math.abs(x);
   }
 
   @Builtin
-  @DataParallel(PreserveAttributeStyle.ALL)
+  @DataParallel(value = PreserveAttributeStyle.ALL, passNA = true)
   public static double Arg(Complex z) {
+    if(ComplexVector.isNA(z)) {
+      return DoubleVector.NA;
+    }
     return z.getArgument();
   }
   
@@ -83,13 +86,13 @@ public class ComplexGroup {
   }
 
   @Builtin
-  @DataParallel(PreserveAttributeStyle.ALL)
+  @DataParallel(value = PreserveAttributeStyle.ALL, passNA = true)
   public static double Conj(double x) {
     return x;
   }
   
   @Builtin
-  @DataParallel(PreserveAttributeStyle.ALL)
+  @DataParallel(value = PreserveAttributeStyle.ALL, passNA = true)
   public static Complex Conj(Complex z) {
     return ComplexVector.complex(z.getReal(),-1*z.getImaginary());
   }

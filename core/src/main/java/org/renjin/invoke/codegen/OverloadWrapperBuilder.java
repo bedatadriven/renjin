@@ -26,12 +26,14 @@ import org.renjin.invoke.annotations.Materialize;
 import org.renjin.invoke.annotations.SessionScoped;
 import org.renjin.invoke.codegen.args.ArgConverterStrategies;
 import org.renjin.invoke.codegen.args.ArgConverterStrategy;
+import org.renjin.invoke.codegen.scalars.ScalarType;
+import org.renjin.invoke.codegen.scalars.ScalarTypes;
+import org.renjin.invoke.codegen.WrapperRuntime;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.invoke.model.PrimitiveModel;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Maps;
-import org.renjin.sexp.Environment;
-import org.renjin.sexp.SEXP;
+import org.renjin.sexp.*;
 
 import java.util.Collections;
 import java.util.List;
@@ -75,23 +77,48 @@ public class OverloadWrapperBuilder implements ApplyMethodContext {
     IfElseBuilder matchSequence = new IfElseBuilder(method.body());
     List<JvmMethod> overloads = Lists.newArrayList( primitive.overloadsWithPosArgCountOf(arity) );
 
+    if(primitive.isRelationalOperator()) {
+      JVar arg0 = arguments.get(0);
+      JVar arg1 = arguments.get(1);
+      Collections.sort( overloads, new OverloadComparator());
+      Collections.reverse(overloads);
+
+      method.body()._if(codeModel.ref(WrapperRuntime.class).staticInvoke("isEmptyOrNull").arg(arg0).cor(codeModel.ref(WrapperRuntime.class).staticInvoke("isEmptyOrNull").arg(arg1)))._then()._return(codeModel.ref(LogicalVector.class).staticRef("EMPTY"));
+
+//      This code will be generated to handle FunctionCall and Symbol coercion to character
+//      arg0 = maybeConvertToStringVector(arg0);
+//      arg1 = WrapperRuntime.maybeConvertToStringVector(arg1);
+      method.body().assign(JExpr.ref("arg0"), codeModel.ref(WrapperRuntime.class).staticInvoke("maybeConvertToStringVector").arg(context).arg(arg0));
+      method.body().assign(JExpr.ref("arg1"), codeModel.ref(WrapperRuntime.class).staticInvoke("maybeConvertToStringVector").arg(context).arg(arg1));
+
+      for(JvmMethod overload : overloads) {
+        ScalarType scalarType = ScalarTypes.get(overload.getFormals().get(0).getClazz());
+        JClass vectorType = codeModel.ref(scalarType.getVectorType());
+        JBlock stringBlock = matchSequence
+            ._if(arg0._instanceof(vectorType)
+                .cor(arg1._instanceof(vectorType)));
+        invokeOverload(overload, stringBlock);
+      }
+
+    } else {
     /*
      * Sort the overloads so that we test more narrow types first, e.g.,
      * try "int" before falling back to "double".
      */
-    Collections.sort( overloads, new OverloadComparator());
-    for(JvmMethod overload : overloads) {
+      Collections.sort( overloads, new OverloadComparator());
+      for(JvmMethod overload : overloads) {
       /*
        * If the types match, invoke the Java method
        */
-      invokeOverload(overload, matchSequence._if(argumentsMatch(overload)));
+        invokeOverload(overload, matchSequence._if(argumentsMatch(overload)));
+      }
     }
 
     /**
      * No matching methods, throw an exception
      */
     matchSequence._else()._throw(_new(codeModel.ref(EvalException.class))
-            .arg(typeMismatchErrorMessage(arguments)));
+        .arg(typeMismatchErrorMessage(arguments)));
   }
 
   private JExpression typeMismatchErrorMessage(List<JVar> arguments) {
@@ -163,7 +190,7 @@ public class OverloadWrapperBuilder implements ApplyMethodContext {
 
     if(overload.isDataParallel()) {
       new RecycleLoopBuilder(codeModel, block, context, primitive, overload, mapArguments(overload))
-            .build();
+          .build();
     } else {
       invokeSimpleMethod(overload, block);
     }
@@ -175,7 +202,7 @@ public class OverloadWrapperBuilder implements ApplyMethodContext {
    */
   private void invokeSimpleMethod(JvmMethod overload, JBlock block) {
     JInvocation invocation = codeModel.ref(overload.getDeclaringClass())
-            .staticInvoke(overload.getName());
+        .staticInvoke(overload.getName());
 
     Map<JvmMethod.Argument, JExpression> argumentMap = mapArguments(overload);
 
@@ -193,7 +220,7 @@ public class OverloadWrapperBuilder implements ApplyMethodContext {
    */
   private JExpression convert(JvmMethod.Argument argument, JExpression sexp) {
     return ArgConverterStrategies.findArgConverterStrategy(argument)
-            .convertArgument(this, sexp);
+        .convertArgument(this, sexp);
   }
 
   /**
@@ -206,7 +233,7 @@ public class OverloadWrapperBuilder implements ApplyMethodContext {
     for (int i = 0; i != posFormals.size(); ++i) {
 
       ArgConverterStrategy strategy = ArgConverterStrategies
-              .findArgConverterStrategy(posFormals.get(i));
+          .findArgConverterStrategy(posFormals.get(i));
 
       JExpression argCondition = strategy.getTestExpr(codeModel, arguments.get(i));
       if(condition == null) {

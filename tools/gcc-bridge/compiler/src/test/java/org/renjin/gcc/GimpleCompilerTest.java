@@ -189,6 +189,16 @@ public class GimpleCompilerTest extends AbstractGccTest {
     System.out.println(x);
   }
 
+  @Test
+  public void fortranMultiDimArrays() throws Exception {
+    Class clazz = compile("lbound_alloc.f");
+
+    Method test = clazz.getMethod("testprogram_");
+    test.invoke(null);
+
+  }
+
+
   @Test(expected = InvocationTargetException.class)
   public void files() throws Exception {
     compileAndTest("files.c");
@@ -470,6 +480,8 @@ public class GimpleCompilerTest extends AbstractGccTest {
     assertThat(call(clazz, "bitwise_rshift", 16, 2), equalTo(16 >> 2));
     assertThat(call(clazz, "bitwise_xor", 16, 1024), equalTo(16 ^ 1024));
     assertThat(call(clazz, "bitwise_not", 4096), equalTo(~4096));
+    assertThat(call(clazz, "bitwise_not_long", 32342355L), equalTo(-32342356L));
+
 
     assertThat(call(clazz, "byte_lshift", (byte) 1, (byte) 1), equalTo(2));
     assertThat(call(clazz, "byte_lshift", (byte) 1, (byte) 7), equalTo(0x80));
@@ -1050,7 +1062,115 @@ public class GimpleCompilerTest extends AbstractGccTest {
   @Test
   public void constantStaticVar() throws Exception {
     compileAndTest("staticvar.c");
-
   }
 
+  @Test
+  public void deferenceToUnitRecord() throws Exception {
+    compileAndTest("void_deref_to_unit_rec.c");
+  }
+
+  @Test
+  public void nullWrappedPtr() throws Exception {
+    compileAndTest("null_ptr.c");
+  }
+
+  @Test
+  public void voidRealloc() throws Exception {
+    compileAndTest("void_realloc.c");
+  }
+
+  @Test
+  public void voidPtrToRecordPtrParam() throws Exception {
+    compileAndTest("void_to_rec_ptr_param.c");
+  }
+
+  @Test
+  public void firstFirstFieldCast() throws Exception {
+    compileAndTest("first_field.c");
+  }
+
+  @Test
+  public void superClassBug() throws Exception {
+    compileAndTest("superclass_bug.c");
+  }
+
+  @Test
+  public void newArray() throws Exception {
+    compileAndTest("new_array.cpp");
+  }
+
+  @Test
+  public void emptyFunctions() throws Exception {
+    compileAndTest("empty_fns.cpp");
+  }
+
+  @Test
+  public void pointerMemberFunctions() throws Exception {
+    compileAndTest("pmf.cpp");
+  }
+
+  @Test
+  public void cacheBug() throws Exception {
+    compileAndTest("cache_bug.c");
+  }
+
+  @Test
+  public void matrixCompileBug() throws Exception {
+    compile("matrix_bug.c");
+  }
+
+  @Test
+  public void emptyRecordCopy() throws Exception {
+    compile("empty_record_copy.cpp");
+  }
+
+  @Test
+  public void strcpy() throws Exception {
+    compileAndTest("strcpy.c");
+  }
+
+  @Test
+  public void unitPtrSuperClass() throws Exception {
+    compileAndTest("unit_ptr_superclass.c");
+  }
+
+  @Test
+  public void addrRecordParam() throws Exception {
+    compileAndTest("addr_record_param.c");
+  }
+
+  @Test
+  public void emptyBaseClassWithRecordArray() throws Exception {
+    compileAndTest("empty_base_array.cpp");
+  }
+
+  @Test
+  public void emptyBaseClassWithObjectPtr() throws Exception {
+    compileAndTest("empty_base_objectptr.cpp");
+  }
+
+  @Test
+  public void emptyBaseClassWithUnitPtr() throws Exception {
+    compileAndTest("empty_base_unitptr.cpp");
+  }
+
+  @Test
+  public void addressFatPtr() throws Exception {
+    compileAndTest("address_fatptr.c");
+  }
+
+  @Test
+  public void differentTypesOfUnionPtr() throws Exception {
+    compileAndTest("unionptr_different_types.c");
+  }
+
+  @Test
+  public void addressableParameter() throws Exception {
+    compileAndTest("addr_parameter.c");
+  }
+
+  @Test
+  public void inheritanceGlobalVars() throws Exception {
+    compileAndTest("inheritance_globalvars.cpp");
+  }
 }

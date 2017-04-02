@@ -30,6 +30,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -46,6 +47,11 @@ public abstract class AbstractGccTest {
   protected Integer call(Class clazz, String methodName, double x) throws Exception {
     Method method = clazz.getMethod(methodName, double.class);
     return (Integer) method.invoke(null, x);
+  }
+
+  protected Long call(Class clazz, String methodName, long x) throws Exception {
+    Method method = clazz.getMethod(methodName, long.class);
+    return (Long) method.invoke(null, x);
   }
 
   protected Integer call(Class clazz, String methodName, byte x, byte y) throws Exception {
@@ -147,7 +153,11 @@ public abstract class AbstractGccTest {
     List<GimpleCompilationUnit> units = Lists.newArrayList();
 
     for (String sourceName : sources) {
-      File source = new File(AbstractGccTest.class.getResource(sourceName).getFile());
+      URL resource = AbstractGccTest.class.getResource(sourceName);
+      if(resource == null) {
+        throw new IOException("Could not find source: " + sourceName);
+      }
+      File source = new File(resource.getFile());
       GimpleCompilationUnit unit = gcc.compileToGimple(source);
 
       units.add(unit);

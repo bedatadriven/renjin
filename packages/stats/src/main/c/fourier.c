@@ -36,11 +36,8 @@
 #endif
 
 
-void fft_factor(int n, int *pmaxf, int *pmaxp);
-Rboolean fft_work(double *a, double *b, int nseg, int n, int nspn,
-		  int isn, double *work, int *iwork);
-
 #include "statsR.h"
+#include "fft.h"
 
 /* Fourier Transform for Univariate Spatial and Time Series */
 
@@ -76,10 +73,14 @@ SEXP fft(SEXP z, SEXP inverse)
     else
 	inv = 2;
 
+	// Define state for *this* call to avoid problems
+	// with thread-safety
+	fft_state state;
+
     if (LENGTH(z) > 1) {
 	if (isNull(d = getAttrib(z, R_DimSymbol))) {  /* temporal transform */
 	    n = length(z);
-	    fft_factor(n, &maxf, &maxp);
+	    fft_factor(&state, n, &maxf, &maxp);
 	    if (maxf == 0)
 		error(_("fft factorization error"));
 	    smaxf = maxf;
@@ -87,7 +88,7 @@ SEXP fft(SEXP z, SEXP inverse)
 		error("fft too large");
 	    work = (double*)R_alloc(4 * smaxf, sizeof(double));
 	    iwork = (int*)R_alloc(maxp, sizeof(int));
-	    fft_work(&(COMPLEX(z)[0].r), &(COMPLEX(z)[0].i),
+	    fft_work(&state, &(COMPLEX(z)[0].r), &(COMPLEX(z)[0].i),
 		     1, n, 1, inv, work, iwork);
 	}
 	else {					     /* spatial transform */
@@ -97,7 +98,7 @@ SEXP fft(SEXP z, SEXP inverse)
 	    /* do whole loop just for error checking and maxmax[fp] .. */
 	    for (i = 0; i < ndims; i++) {
 		if (INTEGER(d)[i] > 1) {
-		    fft_factor(INTEGER(d)[i], &maxf, &maxp);
+		    fft_factor(&state, INTEGER(d)[i], &maxf, &maxp);
 		    if (maxf == 0)
 			error(_("fft factorization error"));
 		    if (maxf > maxmaxf)
@@ -119,8 +120,8 @@ SEXP fft(SEXP z, SEXP inverse)
 		    nspn *= n;
 		    n = INTEGER(d)[i];
 		    nseg /= n;
-		    fft_factor(n, &maxf, &maxp);
-		    fft_work(&(COMPLEX(z)[0].r), &(COMPLEX(z)[0].i),
+		    fft_factor(&state, n, &maxf, &maxp);
+		    fft_work(&state, &(COMPLEX(z)[0].r), &(COMPLEX(z)[0].i),
 			     nseg, n, nspn, inv, work, iwork);
 		}
 	    }
@@ -169,18 +170,21 @@ SEXP mvfft(SEXP z, SEXP inverse)
     if (inv == NA_INTEGER || inv == 0) inv = -2;
     else inv = 2;
 
+    fft_state state;
+
     if (n > 1) {
-	fft_factor(n, &maxf, &maxp);
+	fft_factor(&state, n, &maxf, &maxp);
 	if (maxf == 0)
 	    error(_("fft factorization error"));
 	smaxf = maxf;
 	if (smaxf > maxsize)
 	    error("fft too large");
+
 	work = (double*)R_alloc(4 * smaxf, sizeof(double));
 	iwork = (int*)R_alloc(maxp, sizeof(int));
 	for (i = 0; i < p; i++) {
-	    fft_factor(n, &maxf, &maxp);
-	    fft_work(&(COMPLEX(z)[i*n].r), &(COMPLEX(z)[i*n].i),
+	    fft_factor(&state, n, &maxf, &maxp);
+	    fft_work(&state, &(COMPLEX(z)[i*n].r), &(COMPLEX(z)[i*n].i),
 		     1, n, 1, inv, work, iwork);
 	}
     }

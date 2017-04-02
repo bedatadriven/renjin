@@ -196,7 +196,7 @@ public class PackageBuild {
   private void copyResources()  {
     try {
       Files.copy(source.getNamespaceFile(), new File(outputDir, "NAMESPACE"));
-      Files.copy(source.getDescriptionFile(), new File(outputDir, "DESCRIPTION"));
+      source.getDescription().writeTo(new File(outputDir, "DESCRIPTION"));
       
     } catch (IOException e) {
       throw new BuildException("Exception copying package resources");

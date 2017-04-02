@@ -18,6 +18,7 @@
  */
 package org.renjin.gcc.gimple.type;
 
+import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleFieldRef;
 import org.renjin.repackaged.guava.base.Strings;
 
@@ -28,11 +29,19 @@ public class GimpleField {
   private String name;
   private GimpleType type;
   private boolean addressed;
+  private boolean referenced;
 
   public GimpleField() {
   }
 
   public GimpleField(String name, GimpleType type) {
+    this.name = name;
+    this.type = type;
+  }
+
+  public GimpleField(String name, GimpleType type, int offset) {
+    this.offset = offset;
+    this.size = type.getSize();
     this.name = name;
     this.type = type;
   }
@@ -45,7 +54,14 @@ public class GimpleField {
     this.addressed = addressed;
   }
 
-  
+  public boolean isReferenced() {
+    return referenced;
+  }
+
+  public void setReferenced(boolean referenced) {
+    this.referenced = referenced;
+  }
+
   public String getName() {
     return Strings.nullToEmpty(name);
   }
@@ -58,11 +74,7 @@ public class GimpleField {
   public void setType(GimpleType type) {
     this.type = type;
   }
-  
-  
-  public GimpleFieldRef refTo() {
-    return new GimpleFieldRef(id, name);
-  }
+
 
   public int getId() {
     return id;
@@ -96,5 +108,9 @@ public class GimpleField {
   @Override
   public String toString() {
     return "GimpleField[" + (addressed ? "&" : "") + name + ":" + type + "]";
+  }
+
+  public GimpleExpr refTo() {
+    return new GimpleFieldRef(name, offset, type);
   }
 }

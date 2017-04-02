@@ -41,8 +41,8 @@ public class StudioSession {
     threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
     this.session = new SessionBuilder()
-        .bind(PackageLoader.class, new AetherPackageLoader())
-        .bind(VectorPipeliner.class, new MultiThreadedVectorPipeliner(threadPool))
+        .setPackageLoader(new AetherPackageLoader())
+        .setVectorPipeliner(new MultiThreadedVectorPipeliner(threadPool))
         .withDefaultPackages().build();
   }
 

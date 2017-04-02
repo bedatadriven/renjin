@@ -336,7 +336,7 @@ public class Expressions {
     
     if (toType.getSort() != Type.OBJECT && 
         toType.getSort() != Type.ARRAY) {
-      throw new IllegalArgumentException("Target type for cast must be an array or object: " + toType);
+      throw new IllegalArgumentException("Cannot cast from " + fromType + " to " + toType);
     }
     int fromSort = fromType.getSort();
     int toSort = toType.getSort();

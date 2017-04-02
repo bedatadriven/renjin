@@ -38,6 +38,7 @@ public class GimpleVarDecl implements GimpleDecl {
   private String mangledName;
   private GimpleExpr value;
   private GimpleCompilationUnit unit;
+  private boolean global;
   
   @JsonProperty("const")
   private boolean constant;
@@ -135,7 +136,11 @@ public class GimpleVarDecl implements GimpleDecl {
 
   @Override
   public String toString() {
-    return type + " " + getName() + " = " + value;
+    StringBuilder s = new StringBuilder().append(type).append(" ").append(getName());
+    if(value != null) {
+      s.append(" = ").append(value);
+    }
+    return s.toString();
   }
 
   /**
@@ -182,16 +187,17 @@ public class GimpleVarDecl implements GimpleDecl {
   }
 
   @Override
-  public List<String> getMangledNames() {
-    return Collections.singletonList(name);
-  }
-
-  @Override
   public void accept(GimpleExprVisitor visitor) {
     if(value != null) {
       value.accept(visitor);
     }
   }
-  
-  
+
+  public boolean isGlobal(){
+    return global;
+  }
+
+  public void setGlobal(boolean global) {
+    this.global = global;
+  }
 }

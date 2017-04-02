@@ -94,6 +94,6 @@ public class DereferencedFatPtr implements RefPtrExpr, FatPtr {
 
   @Override
   public GExpr valueOf() {
-    throw new UnsupportedOperationException("TODO");
+    return valueFunction.dereference(array, offset);
   }
 }

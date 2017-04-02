@@ -89,13 +89,18 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
    *
    * @return the Global environment
    */
-  public static Environment createGlobalEnvironment(Environment baseEnvironment) {
+  public static Environment createGlobalEnvironment(Environment baseEnvironment, Frame frame) {
     Environment global = new Environment();
     global.name = GLOBAL_ENVIRONMENT_NAME;
     global.parent = baseEnvironment;
-    global.frame = new HashFrame();
+    global.frame = frame;
 
     return global;
+  }
+
+
+  public static Environment createGlobalEnvironment(Environment baseEnvironment) {
+    return createGlobalEnvironment(baseEnvironment, new HashFrame());
   }
 
   public static Environment createBaseEnvironment() {
@@ -150,9 +155,12 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
   
 
   public void remove(Symbol symbol) {
+    if(locked) {
+      throw new EvalException("cannot remove bindings from a locked environment");
+    }
     frame.remove(symbol);
   }
-  
+
   public void clear() {
     frame.clear();
   }
@@ -229,7 +237,7 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     
     if(bindingIsLocked(symbol)) {
       throw new EvalException("cannot change value of locked binding for '%s'", symbol.getPrintName());
-    } else if(locked && frame.getVariable(symbol) != Symbol.UNBOUND_VALUE) {
+    } else if(locked && frame.getVariable(symbol) == Symbol.UNBOUND_VALUE) {
       throw new EvalException("cannot add bindings to a locked environment");
     }
     frame.setVariable(symbol, value);
@@ -430,6 +438,7 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     unsafeSetAttributes(attributes);
     return this;
   }
+
 
   private static class EnvIterator extends UnmodifiableIterator<Environment> {
     private Environment next;

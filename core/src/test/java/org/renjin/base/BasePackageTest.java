@@ -574,13 +574,5 @@ public class BasePackageTest extends EvalTestCase {
             equalTo(c_i(1,2,2,2,2,2)));
   }
 
-  @Test
-  public void dirExists() {
-
-    assertThat(eval(" dir.exists(c(FALSE, NA, NaN, NULL, \"/bla/bla\", 12.5, 11L))"),
-            equalTo(c(false, false, false, false, false, false)));
-    assertThat(eval("dir.exists(character(0))"),
-            equalTo((SEXP) LogicalVector.EMPTY));
-  }
 
 }

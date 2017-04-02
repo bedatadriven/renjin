@@ -18,6 +18,8 @@
  */
 package org.renjin.primitives.io.connections;
 
+import org.renjin.repackaged.guava.base.Charsets;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -27,7 +29,7 @@ public class ResourceConnection extends AbstractConnection {
   private String name;
 
   public ResourceConnection(Class clazz, String name) {
-    super();
+    super(Charsets.UTF_8);
     this.clazz = clazz;
     this.name = name;
   }

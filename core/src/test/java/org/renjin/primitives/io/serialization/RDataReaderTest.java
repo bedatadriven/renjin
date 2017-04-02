@@ -18,8 +18,10 @@
  */
 package org.renjin.primitives.io.serialization;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
+import org.renjin.eval.Context;
 import org.renjin.repackaged.guava.io.ByteSource;
 import org.renjin.sexp.*;
 
@@ -29,7 +31,9 @@ import java.util.zip.GZIPInputStream;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 
 public class RDataReaderTest extends EvalTestCase {
@@ -183,18 +187,54 @@ public class RDataReaderTest extends EvalTestCase {
   
   @Test
   public void loadDataFrameWithGnuRCompactRowNames() throws IOException {
-    InputStream in = getClass().getResourceAsStream("rownames.rds");
-    GZIPInputStream gzipIn = new GZIPInputStream(in);
-    RDataReader reader = new RDataReader(topLevelContext, gzipIn);
-    SEXP df = reader.readFile();
+    SEXP df = readRds("rownames.rds");
 
     assertThat(df.getS3Class().getElementAsString(0), equalTo("data.frame"));
     assertThat(df.getAttribute(Symbol.get("row.names")).length(), equalTo(1000));
+  }
+
+  @Test
+  public void loadEnvWithAttributes() throws IOException {
+    SEXP env = readRds("env_attr.rds");
+
+    assertThat(env, instanceOf(Environment.class));
+    assertThat(env.getAttributes().getClassVector(), equalTo(c("MyRefClass")));
+  }
+
+  @Test
+  public void readLockedEnvironment() throws IOException {
+
+    // Environment is locked, but not bindings, so they can be changed
+
+    Environment env = (Environment) readRds("locked-env.rds");
+
+    assertTrue(env.isLocked());
+    assertFalse(env.bindingIsLocked(Symbol.get("a")));
+    assertFalse(env.bindingIsLocked(Symbol.get("b")));
+  }
+
+  @Test
+  @Ignore
+  public void readLockedEnvironmentAndBindings() throws IOException {
+
+    // Environment is locked, but not bindings, so they can be changed
+    // TODO:
+
+    Environment env = (Environment) readRds("locked-env-bindings.rds");
+
+    assertTrue(env.isLocked());
+    assertTrue(env.bindingIsLocked(Symbol.get("a")));
   }
 
   protected Symbol symbol(String name){
     return Symbol.get(name);
   }
 
+  private SEXP readRds(String resourceName) throws IOException {
+    InputStream in = getClass().getResourceAsStream(resourceName);
+    GZIPInputStream gzipIn = new GZIPInputStream(in);
+    RDataReader reader = new RDataReader(topLevelContext, gzipIn);
+    return reader.readFile();
+  }
 
 }

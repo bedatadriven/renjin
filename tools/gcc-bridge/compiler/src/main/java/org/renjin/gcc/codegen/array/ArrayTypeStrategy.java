@@ -126,7 +126,8 @@ public class ArrayTypeStrategy implements TypeStrategy<ArrayExpr> {
 
   public GExpr elementAt(GExpr array, GExpr index) {
     ArrayExpr arrayFatPtr = (ArrayExpr) array;
-    PrimitiveValue indexValue = (PrimitiveValue) index;
+    PrimitiveValue indexPrimitiveValue = (PrimitiveValue) index;
+    JExpr indexValue =  Expressions.castPrimitive(indexPrimitiveValue.unwrap(), Type.INT_TYPE);
 
     // New offset  = ptr.offset + (index * value.length)
     // for arrays of doubles, for example, this will be the same as ptr.offset + index
@@ -134,7 +135,7 @@ public class ArrayTypeStrategy implements TypeStrategy<ArrayExpr> {
     JExpr newOffset = Expressions.sum(
         arrayFatPtr.getOffset(),
         Expressions.product(
-            Expressions.difference(indexValue.unwrap(), arrayType.getLbound()),
+            Expressions.difference(indexValue, arrayType.getLbound()),
             elementValueFunction.getElementLength()));
 
     return elementValueFunction.dereference(arrayFatPtr.getArray(), newOffset);

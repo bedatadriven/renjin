@@ -50,9 +50,8 @@ public class Subsetting {
     }
   }
 
-  @Builtin("$<-")
-  public static SEXP setElementByName(ExternalPtr<?> externalPtr, @Unevaluated SEXP nameExp, SEXP value) {
-    externalPtr.setMember(asSymbol(nameExp), value);
+  public static SEXP setElementByName(ExternalPtr<?> externalPtr, String name, SEXP value) {
+    externalPtr.setMember(Symbol.get(name), value);
     return externalPtr;
   }
 
@@ -95,36 +94,29 @@ public class Subsetting {
   }
 
 
-  @Builtin("$<-")
-  public static SEXP setElementByName(ListVector list,
-                                      @Unevaluated Symbol name, SEXP value) {
-    return setSingleListElementByName(list.newCopyNamedBuilder(), name.getPrintName(), value);
+  public static SEXP setElementByName(ListVector list, String name, SEXP value) {
+    return setSingleListElementByName(list.newCopyNamedBuilder(), name, value);
   }
 
-  @Builtin("$<-")
-  public static SEXP setElementByName(AtomicVector vector, @Unevaluated Symbol nameToReplace, SEXP value) {
+  public static SEXP setElementByName(AtomicVector vector, String nameToReplace, SEXP value) {
     // Coerce the atomic vector to a list first
     ListVector.NamedBuilder copyBuilder = ListVector.newNamedBuilder();
     StringVector namesVector = vector.getAttributes().getNames();
     for(int i=0;i!=vector.length();++i) {
-      String elementName = null;
+      String elementName = "";
       if(namesVector != null) {
         elementName = namesVector.getElementAsString(i);
       }
       copyBuilder.add(elementName, vector.getElementAsSEXP(i));
     }
-    return setSingleListElementByName(copyBuilder, nameToReplace.getPrintName(), value);
+    return setSingleListElementByName(copyBuilder, nameToReplace, value);
   }
 
-  @Builtin("$<-")
-  public static SEXP setElementByName(PairList.Node pairList,
-                                      @Unevaluated Symbol name, SEXP value) {
-    return setSingleListElementByName(pairList.newCopyBuilder(), name.getPrintName(), value);
+  public static SEXP setElementByName(PairList.Node pairList, String name, SEXP value) {
+    return setSingleListElementByName(pairList.newCopyBuilder(), name, value);
   }
 
-  @Builtin("$<-")
-  public static SEXP setElementByName(Environment env,
-                                      @Unevaluated Symbol name, SEXP value) {
+  public static SEXP setElementByName(Environment env, String name, SEXP value) {
     env.setVariable(name, value);
     return env;
   }

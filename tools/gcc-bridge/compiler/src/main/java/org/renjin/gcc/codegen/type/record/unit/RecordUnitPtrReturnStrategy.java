@@ -25,7 +25,10 @@ import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.ReturnStrategy;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
+import org.renjin.gcc.codegen.type.voidt.VoidPtr;
+import org.renjin.gcc.codegen.type.voidt.VoidPtrStrategy;
 import org.renjin.repackaged.asm.Type;
+
 
 public class RecordUnitPtrReturnStrategy implements ReturnStrategy {
   private Type jvmType;
@@ -62,7 +65,10 @@ public class RecordUnitPtrReturnStrategy implements ReturnStrategy {
       // would expect. I can't seem to reproduce this in a test case, so here is a workaround:
       RecordClassTypeStrategy lhsValueTypeStrategy = (RecordClassTypeStrategy) lhsTypeStrategy;
       return new RecordUnitPtr(Expressions.cast(returnValue, lhsValueTypeStrategy.getJvmType()));
-    
+
+    } else if(lhsTypeStrategy instanceof VoidPtrStrategy) {
+      return new VoidPtr(returnValue);
+
     } else {
       throw new UnsupportedOperationException(
           String.format("Unsupported cast from return value %s to record unit pointer [%s]", 

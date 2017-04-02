@@ -253,7 +253,11 @@ encodeString <- function(x, width = 0L, quote = "", na.encode = TRUE,
     .Internal(encodeString(x, width, quote, justify, na.encode))
 }
 
-l10n_info <- function() .Internal(l10n_info())
+
+l10n_info <- function() {
+    list(MBCS = TRUE, `UTF-8` = TRUE, `Latin-1` = FALSE)
+}
+
 
 iconv <- function(x, from = "", to = "", sub = NA, mark = TRUE, toRaw = FALSE)
 {

@@ -343,8 +343,8 @@ dev.size <- function(units = c("in", "cm", "px"))
         if(units == "cm") 2.54 else 1
 }
 
-dev.hold <- function(level = 1L) .Internal(devHoldFlush(max(0L, level)))
-dev.flush <- function(level = 1L) .Internal(devHoldFlush(-max(0L, level)))
+dev.hold <- function(level = 1L) warning("graphics are not yet implemented.") # .Internal(devHoldFlush(max(0L, level)))
+dev.flush <- function(level = 1L) warning("graphics are not yet implemented.") # .Internal(devHoldFlush(-max(0L, level)))
 
 dev.capture <- function(native = FALSE) .Internal(devCapture(native))
 

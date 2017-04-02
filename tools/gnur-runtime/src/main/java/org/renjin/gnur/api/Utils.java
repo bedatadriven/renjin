@@ -20,6 +20,7 @@
 package org.renjin.gnur.api;
 
 import org.renjin.eval.EvalException;
+import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.CharPtr;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
@@ -75,7 +76,12 @@ public final class Utils {
     org.renjin.gnur.qsort.R_qsort_int_I(iv, II, i, j);
   }
 
+  @Deprecated
   public static CharPtr R_ExpandFileName(CharPtr p0) {
+    throw new UnimplementedGnuApiMethod("R_ExpandFileName");
+  }
+
+  public static BytePtr R_ExpandFileName(BytePtr p0) {
     throw new UnimplementedGnuApiMethod("R_ExpandFileName");
   }
 
@@ -87,29 +93,29 @@ public final class Utils {
     throw new UnimplementedGnuApiMethod("Rf_setRVector");
   }
 
-  public static boolean Rf_StringFalse(CharPtr p0) {
+  public static boolean Rf_StringFalse(BytePtr p0) {
     throw new UnimplementedGnuApiMethod("Rf_StringFalse");
   }
 
-  public static boolean Rf_StringTrue(CharPtr p0) {
+  public static boolean Rf_StringTrue(BytePtr p0) {
     throw new UnimplementedGnuApiMethod("Rf_StringTrue");
   }
 
-  public static boolean Rf_isBlankString(CharPtr p0) {
+  public static boolean Rf_isBlankString(BytePtr p0) {
     throw new UnimplementedGnuApiMethod("Rf_isBlankString");
   }
 
-  public static double R_atof(CharPtr str) {
+  public static double R_atof(BytePtr str) {
     throw new UnimplementedGnuApiMethod("R_atof");
   }
 
   // double R_strtod (const char *c, char **end)
 
-  public static CharPtr R_tmpnam(CharPtr prefix, CharPtr tempdir) {
+  public static BytePtr R_tmpnam(BytePtr prefix, BytePtr tempdir) {
     throw new UnimplementedGnuApiMethod("R_tmpnam");
   }
 
-  public static CharPtr R_tmpnam2(CharPtr prefix, CharPtr tempdir, CharPtr fileext) {
+  public static BytePtr R_tmpnam2(BytePtr prefix, BytePtr tempdir, BytePtr fileext) {
     throw new UnimplementedGnuApiMethod("R_tmpnam2");
   }
 
@@ -120,11 +126,11 @@ public final class Utils {
   }
 
   public static void R_CheckStack() {
-    throw new UnimplementedGnuApiMethod("R_CheckStack");
+    // Noop: JVM will throw a StackOverflowError for us if need be
   }
 
   public static void R_CheckStack2(/*size_t*/ int p0) {
-    throw new UnimplementedGnuApiMethod("R_CheckStack2");
+    // Noop: JVM will throw a StackOverflowError for us if need be
   }
 
   public static int findInterval(DoublePtr xt, int n, double x, boolean rightmost_closed, boolean all_inside, int ilo, IntPtr mflag) {

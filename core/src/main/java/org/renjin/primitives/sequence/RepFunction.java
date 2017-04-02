@@ -72,6 +72,7 @@ public class RepFunction extends SpecialFunction {
     formals.add("times", Symbol.MISSING_ARG);
     formals.add("length.out", Symbol.MISSING_ARG);
     formals.add("each", Symbol.MISSING_ARG);
+    formals.add(Symbols.ELLIPSES, Symbol.MISSING_ARG);
 
     PairList matched = Calls.matchArguments(formals.build(), evaled.build(), true);
 

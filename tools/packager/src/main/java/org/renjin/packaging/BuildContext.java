@@ -56,6 +56,11 @@ public interface BuildContext {
    */
   File getOutputDir();
 
+  /**
+   *
+   * @return the directory to which compile logs hsould be written
+   */
+  File getCompileLogDir();
 
   /**
    * Returns the directory where package output is to be written.

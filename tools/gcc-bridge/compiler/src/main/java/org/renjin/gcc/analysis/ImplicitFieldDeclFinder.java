@@ -57,6 +57,8 @@ public class ImplicitFieldDeclFinder {
 
     @Override
     public void visitComponentRef(GimpleComponentRef componentRef) {
+      super.visitComponentRef(componentRef);
+
       GimpleExpr record = componentRef.getValue();
       if(!(record.getType() instanceof GimpleRecordType)) {
         throw new IllegalStateException("record.type = " + record.getType());

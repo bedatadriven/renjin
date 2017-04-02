@@ -25,7 +25,7 @@ import java.util.List;
  */
 public interface GimpleDecl {
   
-  List<String> getMangledNames();
+  String getMangledName();
   
   void accept(GimpleExprVisitor visitor);
 

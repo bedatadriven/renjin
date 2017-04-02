@@ -29,6 +29,15 @@ public class GimpleComponentRef extends GimpleLValue {
   private GimpleExpr value;
   private GimpleExpr member;
 
+  public GimpleComponentRef() {
+  }
+
+  public GimpleComponentRef(GimpleExpr value, GimpleExpr member) {
+    this.value = value;
+    this.member = member;
+    setType(member.getType());
+  }
+
   public GimpleExpr getValue() {
     return value;
   }

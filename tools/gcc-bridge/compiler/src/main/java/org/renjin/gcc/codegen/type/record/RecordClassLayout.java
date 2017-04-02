@@ -29,7 +29,9 @@ import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.type.fun.FunPtrField;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrValueFunction;
+import org.renjin.gcc.codegen.var.LocalVarAllocator;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
+import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
 
@@ -96,7 +98,7 @@ public class RecordClassLayout implements RecordLayout {
     if(typeSet.getGimpleTypes().size() == 1) {
       TypeStrategy typeStrategy = typeOracle.forType(typeSet.getGimpleTypes().iterator().next());
 
-      if(isPotentialSuperClass(typeStrategy)) {
+      if(isPotentialSuperClass(node, typeStrategy)) {
         return new SuperClassFieldStrategy((RecordClassTypeStrategy) typeStrategy);
       }
 
@@ -134,9 +136,8 @@ public class RecordClassLayout implements RecordLayout {
       Optional<Type> commonType = typeSet.tryComputeCommonType();
       if(commonType.isPresent()) {
         int arrayLength = node.getSize() / GimplePrimitiveType.fromJvmType(commonType.get()).getSize();
-        return new RecordArrayField(type, uniqueFieldName(node), commonType.get(), arrayLength);
+        return new RecordArrayField(type, uniqueFieldName(node), commonType.get(), arrayLength, new GimpleRecordType(this.unionSet.getAllTypes().iterator().next()));
       }
-
       throw new UnsupportedOperationException("TODO: " + unionSet.debugString());
     }
   }
@@ -161,11 +162,14 @@ public class RecordClassLayout implements RecordLayout {
     }
   }
 
-  private boolean isPotentialSuperClass(TypeStrategy strategy) {
-    if(strategy instanceof RecordClassTypeStrategy) {
-      RecordClassTypeStrategy recordStrategy = (RecordClassTypeStrategy) strategy;
-      if (!recordStrategy.getJvmType().equals(this.type)) {
-        return true;
+  private boolean isPotentialSuperClass(RecordClassLayoutTree.Node node, TypeStrategy strategy) {
+
+    if(node.getOffset() == 0) {
+      if (strategy instanceof RecordClassTypeStrategy) {
+        RecordClassTypeStrategy recordStrategy = (RecordClassTypeStrategy) strategy;
+        if (!recordStrategy.getJvmType().equals(this.type)) {
+          return true;
+        }
       }
     }
     return false;
@@ -191,13 +195,30 @@ public class RecordClassLayout implements RecordLayout {
 
     // Find the logical field that contains this bit range
     Integer fieldStart = fieldMap.floorKey(offset);
+    if(fieldStart == null) {
+      throw new IllegalStateException("No field declared at offset " + offset);
+    }
     FieldStrategy fieldStrategy = fieldMap.get(fieldStart);
 
     if(fieldStrategy == null) {
       throw new IllegalStateException(type + " has no field at offset " + offset);
     }
     
-    return fieldStrategy.memberExpr(instanceVar, offset - fieldStart, size, fieldTypeStrategy);
+    return fieldStrategy.memberExpr(mv, instanceVar, offset - fieldStart, size, fieldTypeStrategy);
+  }
+
+  @Override
+  public RecordValue clone(MethodGenerator mv, RecordValue recordValue) {
+    return doClone(mv, recordValue);
+  }
+
+  public static RecordValue doClone(MethodGenerator mv, RecordValue recordValue) {
+    LocalVarAllocator.LocalVar clone = mv.getLocalVarAllocator().reserve(recordValue.getJvmType());
+    recordValue.getRef().load(mv);
+    mv.invokevirtual(recordValue.getJvmType(), "clone", Type.getMethodDescriptor(recordValue.getJvmType()), false);
+    clone.store(mv);
+
+    return new RecordValue(clone);
   }
 
   @Override

@@ -38,3 +38,12 @@ test.identicalTol.NaN <- function() {
 test.equals <- function() {
     assertThat( c(15, -2.5, -2.5, -2.5, -2.5), equalTo(c(15, -2.5, -2.5, -2.5, -2.5)))
 }
+
+test.identical.infinite <- function() {
+
+    matcher <- identicalTo(NA_real_)
+    assertTrue(matcher(NA_real_))
+    assertFalse(matcher(Inf))
+    assertFalse(matcher(-Inf))
+}
+

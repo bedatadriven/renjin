@@ -51,7 +51,12 @@ public class GimpleCall extends GimpleStatement {
   public GimpleExpr getOperand(int i) {
     return operands.get(i);
   }
-  
+
+
+  public void setOperand(int i, GimpleExpr op) {
+    operands.set(i, op);
+  }
+
   public GimpleLValue getLhs() {
     return lhs;
   }
@@ -95,9 +100,9 @@ public class GimpleCall extends GimpleStatement {
     StringBuilder sb = new StringBuilder();
     sb.append(lhs);
     sb.append(" = ");
-    sb.append("gimple_call <").append(function).append(", ");
+    sb.append(function).append("(");
     Joiner.on(", ").appendTo(sb, operands);
-    sb.append(">");
+    sb.append(")");
     return sb.toString();
   }
 

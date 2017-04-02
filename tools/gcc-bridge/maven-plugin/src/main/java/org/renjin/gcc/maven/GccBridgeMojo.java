@@ -61,6 +61,12 @@ public class GccBridgeMojo extends AbstractMojo {
   
   @Parameter( defaultValue = "${project.build.outputDirectory}")
   private File outputDirectory;
+
+  @Parameter(defaultValue = "false")
+  private boolean generateJavadoc;
+
+  @Parameter (defaultValue = "${project.build.directory}/gcc-bridge-javadoc")
+  private File javadocOutputDirectory;
   
   @Parameter(required = true, defaultValue = "${project.groupId}")
   private String packageName;
@@ -239,6 +245,10 @@ public class GccBridgeMojo extends AbstractMojo {
           }
         }
       }
+    }
+
+    if(generateJavadoc) {
+      compiler.setJavadocOutputDirectory(javadocOutputDirectory);
     }
     
     try {

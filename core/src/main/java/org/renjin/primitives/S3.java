@@ -582,7 +582,7 @@ public class S3 {
       
       Environment methodTable = getMethodTable();
       GenericMethod method;
-      
+
       for(String className : classes) {
         
         method = findNext(methodTable, genericMethodName, className);
@@ -667,7 +667,27 @@ public class S3 {
     }
 
     public SEXP applyNext(Context context, Environment environment, ListVector extraArgs) {
-      return doApply(context, environment, nextArguments(context, extraArgs));
+      PairList arguments = nextArguments(context, extraArgs);
+
+      if("Ops".equals(resolver.group) && arguments.length() == 2) {
+        withMethodVector(groupsMethodVector());
+      }
+
+      return doApply(context, environment, arguments);
+    }
+
+    private String[] groupsMethodVector() {
+      GenericMethod previousMethod = resolver.previousContext.getState(GenericMethod.class);
+      String methodVector[] = previousMethod.methodVector.toArray();
+
+      String methodName = this.methodVector.getElementAsString(0);
+
+      for (int i = 0; i < methodVector.length; i++) {
+        if(!methodVector[i].equals("")) {
+          methodVector[i] = methodName;
+        }
+      }
+      return methodVector;
     }
 
     public SEXP doApply(Context callContext, Environment callEnvironment, PairList args) {

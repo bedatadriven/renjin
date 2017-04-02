@@ -33,6 +33,16 @@ public class Deparse {
 
   private static final char BACK_TICK = '`';
 
+  public static int KEEP_INTEGER = 1;
+  public static int QUOTE_EXPRESSIONS = 2;
+  public static int SHOW_ATTRIBUTES = 4;
+  public static int USE_SOURCE = 8;
+  public static int WARN_INCOMPLETE = 16;
+  public static int DELAY_PROMISES = 32;
+  public static int KEEP_NA = 64;
+  public static int S_COMPAT = 128;
+  public static int HEX_NUMERIC = 256;
+  public static int DIGITS_16 = 512;
 
   public static String[] BINARY_OPS = new String[] {
     "+", "-",  "/",  "*",
@@ -57,25 +67,31 @@ public class Deparse {
 
   @Internal
   public static String deparse(@Current Context context, SEXP exp, int widthCutoff, boolean backTick, int options, int nlines) {
-    return new DeparsingVisitor(context, exp).getResult();
+    return new DeparsingVisitor(context, options, exp).getResult();
   }
   
   public static String deparseExp(Context context, SEXP exp) {
-    return new DeparsingVisitor(context, exp).getResult();
+    return new DeparsingVisitor(context, 0, exp).getResult();
+  }
+
+  public static String deparseExpWithAttributes(Context context, SEXP sexp) {
+    return new DeparsingVisitor(context, SHOW_ATTRIBUTES, sexp).getResult();
   }
 
   private static class DeparsingVisitor extends SexpVisitor<String> {
 
     private StringBuilder deparsed = new StringBuilder();
     private Context context;
+    private boolean keepAttributes;
 
-    public DeparsingVisitor(Context context, SEXP exp) {
+    public DeparsingVisitor(Context context, int options, SEXP exp) {
       this.context = context;
+      this.keepAttributes = (options & SHOW_ATTRIBUTES) != 0;
       deparse(exp);
     }
-    
+
     public void deparse(SEXP exp) {
-      if(requiresStructure(exp)) {
+      if(keepAttributes && requiresStructure(exp)) {
         deparsed.append("structure(");
         exp.accept(this);
         deparseAttributes(exp);
@@ -122,7 +138,29 @@ public class Deparse {
       if(exp instanceof FunctionCall) {
         return false;
       }
+
+      // and for expression objects, only use structure if there
+      // are attributes OTHER than names
+      if(exp instanceof ExpressionVector) {
+        return exp.getAttributes().hasAnyBesidesName() ||
+            hasNamesRequiringSpecialHandling(exp);
+      }
+
       return !exp.getAttributes().isEmpty();
+    }
+
+    private boolean hasNamesRequiringSpecialHandling(SEXP exp) {
+      AttributeMap attributes = exp.getAttributes();
+      if(!attributes.hasNames()) {
+        return false;
+      }
+      StringVector names = attributes.getNames();
+      for (int i = 0; i < names.length(); i++) {
+        if(names.isElementNA(i)) {
+          return true;
+        }
+      }
+      return false;
     }
 
     @Override
@@ -192,7 +230,7 @@ public class Deparse {
 
     @Override
     public void visit(PairList.Node pairList) {
-      deparseList("list", pairList.namedValues());
+      deparseList("pairlist", pairList.namedValues());
     }
 
     @Override
@@ -231,9 +269,23 @@ public class Deparse {
 
     @Override
     public void visit(ExpressionVector vector) {
-      deparseList("expression", vector.namedValues());
-    }
+      // Special handling because elements of the expression
+      // are always deparsed WITHOUT attributes
 
+      deparsed.append("expression(");
+      boolean needsComma = false;
+      for(NamedValue namedValue : vector.namedValues()) {
+        if(needsComma) {
+          deparsed.append(", ");
+        } else {
+          needsComma = true;
+        }
+        maybeAppendArgumentName(namedValue, "`NA`");
+        DeparsingVisitor elementVisitor = new DeparsingVisitor(context, 0, namedValue.getValue());
+        deparsed.append(elementVisitor.getResult());
+      }
+      deparsed.append(")");
+    }
 
     private void deparseList(final String listType, Iterable<NamedValue> list) {
       deparsed.append(listType + "(");
@@ -244,14 +296,29 @@ public class Deparse {
         } else {
           needsComma = true;
         }
-        if(namedValue.hasName()) {
-          deparsed.append(namedValue.getName()).append(" = ");
-        }
+        maybeAppendArgumentName(namedValue, "\"NA\"");
         deparse(namedValue.getValue());
       }
       deparsed.append(")");
     }
-    
+
+    private void maybeAppendArgumentName(NamedValue namedValue, String naNameLiteral) {
+      if(namedValue.hasName()) {
+        String name = namedValue.getName();
+        if(StringVector.isNA(name)) {
+          // This is not actually correct - for example list("NA" = 1) will
+          // evaluate to the a list with a names vector containing the *string* "NA", *not* NA_character_
+          // However, there is actually no way to specify an NA name using this syntax, so we will
+          // just abide by the convention used by GNU R. If "showAttributes" is enabled, then the structure() call
+          // will include the correct representation of NA which will be used during evaluation.
+          deparsed.append(naNameLiteral);
+        } else {
+          deparsed.append(name);
+        }
+        deparsed.append(" = ");
+      }
+    }
+
     @Override
     public void visit(FunctionCall call) {
       if(call.getFunction() instanceof Symbol) {

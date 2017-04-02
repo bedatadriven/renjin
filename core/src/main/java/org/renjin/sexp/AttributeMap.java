@@ -68,7 +68,7 @@ public class AttributeMap {
    * @return the <em>dim</em> attribute, or {@code Null.INSTANCE} if no
    * <em>dim</em> attribute is present.
    */
-  public AtomicVector getDim() {
+  public Vector getDim() {
     return dim == null ? Null.INSTANCE : dim;
   }
 
@@ -505,6 +505,12 @@ public class AttributeMap {
       }
       this.dimNames = (ListVector) value;
       this.empty = false;
+
+      // Arrays cannot have both dimnames and names
+      if(this.dim != null && this.dim.length() == 1) {
+        this.names = null;
+      }
+
       return this;
     }
 

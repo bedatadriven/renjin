@@ -19,8 +19,11 @@
 // Initial template generated from GraphicsDevice.h from R 3.2.2
 package org.renjin.gnur.api;
 
-import org.renjin.gcc.runtime.CharPtr;
+import org.renjin.gcc.runtime.BytePtr;
 
+/**
+ * GNU R API methods defined in the "R_ext/GraphicsDevice.h" header file
+ */
 @SuppressWarnings("unused")
 public final class GraphicsDevice {
 
@@ -76,7 +79,7 @@ public final class GraphicsDevice {
     throw new UnimplementedGnuApiMethod("Rf_onintr");
   }
 
-  public static Object Rf_AdobeSymbol2utf8(CharPtr out, CharPtr in, /*size_t*/ int nwork) {
+  public static Object Rf_AdobeSymbol2utf8(BytePtr out, BytePtr in, /*size_t*/ int nwork) {
     throw new UnimplementedGnuApiMethod("Rf_AdobeSymbol2utf8");
   }
 

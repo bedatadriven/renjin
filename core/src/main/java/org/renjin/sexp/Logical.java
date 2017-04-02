@@ -53,6 +53,10 @@ public enum Logical {
     }
   }
 
+  public boolean toBooleanStrict() {
+    return this.getInternalValue() == 1 ? Boolean.TRUE : Boolean.FALSE;
+  }
+
   public int getInternalValue() {
     return internalValue;
   }

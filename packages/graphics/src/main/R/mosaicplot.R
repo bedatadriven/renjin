@@ -300,8 +300,8 @@ function(x, main = deparse(substitute(x)), sub = NULL, xlab = NULL,
     }
 
     ##-- Plotting
-    dev.hold(); on.exit(dev.flush())
-    plot.new()
+    # dev.hold(); on.exit(dev.flush())
+    # plot.new()
     if(!extended) {
         opar <- par(usr = c(1, 1000, 1, 1000), mgp = c(1, 1, 0))
         on.exit(par(opar), add = TRUE)
@@ -339,20 +339,20 @@ function(x, main = deparse(substitute(x)), sub = NULL, xlab = NULL,
         y.t <- 1000 * rev(seq.int(from = 0.95, by = - bh, length.out = 2 * len))
         y.b <- y.t - 1000 * 0.8 * bh
         ltype <- c(rep.int(2, len), rep.int(1, len))
-        for(i in 1 : (2 * len)) {
-            polygon(c(x.l, x.r, x.r, x.l),
-                    c(y.b[i], y.b[i], y.t[i], y.t[i]),
-                    col = color[i], lty = ltype[i], border = border)
-        }
+        # for(i in 1 : (2 * len)) {
+        #     polygon(c(x.l, x.r, x.r, x.l),
+        #             c(y.b[i], y.b[i], y.t[i], y.t[i]),
+        #             col = color[i], lty = ltype[i], border = border)
+        # }
         brks <- round(breaks, 2)
         y.m <- y.b + 1000 * 0.4 * bh
-        text(1000 * (1.05 + rtxtWidth), y.m,
-             c(paste("<", brks[2L], sep = ""),
-               paste(brks[2 : (2 * len - 1)],
-                     brks[3 : (2 * len)],
-                     sep = ":"),
-               paste(">", brks[2 * len], sep = "")),
-             srt = 90, cex = cex.axis, xpd = NA)
+        # text(1000 * (1.05 + rtxtWidth), y.m,
+        #      c(paste("<", brks[2L], sep = ""),
+        #        paste(brks[2 : (2 * len - 1)],
+        #              brks[3 : (2 * len)],
+        #              sep = ":"),
+        #        paste(">", brks[2 * len], sep = "")),
+        #      srt = 90, cex = cex.axis, xpd = NA)
     }
 
     if (!is.null(main) || !is.null(xlab) || !is.null(ylab) || !is.null(sub))
@@ -376,13 +376,13 @@ function(x, main = deparse(substitute(x)), sub = NULL, xlab = NULL,
         adj.y <- 0
         x1 <- x1 + maxlen.ylabel
     }
-
-    mosaic.cell(Ind, x1 = x1, y1 = y1, x2 = x2, y2 = y2,
-                srt.x = srt.x, srt.y = srt.y, adj.x = adj.x,
-                adj.y = adj.y, off = off / 100, dir = dir,
-                color = color, lablevx = 2, lablevy = 2,
-                maxdim = apply(as.matrix(Ind[,1L:dimd]), 2L, max),
-                currlev = 1, label = label)
+    warning("graphics are not yet implemented (mosaicplot.default).\n")
+    #mosaic.cell(Ind, x1 = x1, y1 = y1, x2 = x2, y2 = y2,
+    #            srt.x = srt.x, srt.y = srt.y, adj.x = adj.x,
+    #            adj.y = adj.y, off = off / 100, dir = dir,
+    #            color = color, lablevx = 2, lablevy = 2,
+    #            maxdim = apply(as.matrix(Ind[,1L:dimd]), 2L, max),
+    #            currlev = 1, label = label)
 }
 
 mosaicplot.formula <-
@@ -400,7 +400,8 @@ function(formula, data = NULL, ...,
         if(all(varnames != "."))
             data <- margin.table(data,
                                  match(varnames, names(dimnames(data))))
-        mosaicplot(data, main = main, ...)
+        #mosaicplot(data, main = main, ...)
+        warning("graphics are not yet implemented (mosaicplot.formula).\n")
     } else {
         if(is.matrix(edata))
             m$data <- as.data.frame(data)
@@ -408,6 +409,7 @@ function(formula, data = NULL, ...,
         m$na.action <- na.action
         m[[1L]] <- as.name("model.frame")
         mf <- eval(m, parent.frame())
-        mosaicplot(table(mf), main = main, ...)
+        #mosaicplot(table(mf), main = main, ...)
+        warning("graphics are not yet implemented (mosaicplot.formula).\n")
     }
 }

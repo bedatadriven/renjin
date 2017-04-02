@@ -18,12 +18,14 @@
  */
 package org.renjin.invoke.annotations;
 
+import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 /**
- * 
+ * Identifies the annotated methods as the implementation of an R builtin function.
  */
+@Documented
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Builtin {
   String value() default "";

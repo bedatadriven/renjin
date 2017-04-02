@@ -19,6 +19,9 @@
 // Initial template generated from Memory.h from R 3.2.2
 package org.renjin.gnur.api;
 
+/**
+ * GNU R API methods defined in the "R_ext/Memory.h" header file
+ */
 @SuppressWarnings("unused")
 public final class Memory {
 
@@ -34,10 +37,16 @@ public final class Memory {
     throw new UnimplementedGnuApiMethod("vmaxset");
   }
 
+  /**
+   * Intended to invoke the R garbage collector but implemented to have no effect in Renjin.
+   */
   public static void R_gc() {
     // NOOP
   }
 
+  /**
+   * Intended to return TRUE if the garbage collector is running. Renjin's implementation always returns FALSE.
+   */
   public static int R_gc_running() {
     return 0;
   }

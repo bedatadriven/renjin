@@ -18,6 +18,8 @@
  */
 package org.renjin.gcc.runtime;
 
+import java.util.Arrays;
+
 public class Builtins {
 
   public static double __builtin_powi__(double base, int exponent) {
@@ -108,6 +110,60 @@ public class Builtins {
       result *= base;
     }
     return result;
+  }
+
+  /**
+   * Compares two fortran strings.
+   *
+   * <p>Ported from {@code compare_strings} in libfortran/intrinsics/string_intrinsics_inc.c</p>
+   *
+   * @param len1 length of the first string
+   * @param s1 the first string
+   * @param len2 length of the second string
+   * @param s2 the second string
+   * @return 0 if the strings are equal, -1 if the first is less than the second, or +1 if the
+   * first is greater than the second.
+   */
+  public static int _gfortran_compare_string(int len1, BytePtr s1, int len2, BytePtr s2) {
+
+    int res = BytePtr.memcmp(s1, s2, ((len1 < len2) ? len1 : len2));
+    if (res != 0) {
+      return res;
+    }
+
+    if (len1 == len2) {
+      return 0;
+    }
+
+    int len;
+    byte[] s;
+    int si;
+
+    if (len1 < len2) {
+      len = len2 - len1;
+      s = s2.array;
+      si = s2.offset + len1;
+      res = -1;
+
+    }  else  {
+      len = len1 - len2;
+      s = s1.array;
+      si = s1.offset + len2;
+      res = 1;
+    }
+
+    while (len-- != 0) {
+      if (s[si] != ' ') {
+        if (s[si] > ' ') {
+          return res;
+        } else {
+          return -res;
+        }
+      }
+      si++;
+    }
+
+    return 0;
   }
 
   public static float __builtin_powif__(float base, int exponent) {

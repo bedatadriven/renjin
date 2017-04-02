@@ -52,9 +52,17 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>
     this.valueFunction = new RecordUnitPtrValueFunction(strategy.getJvmType());
   }
 
+  public boolean isEmpty() {
+    return strategy.getJvmType().equals(Type.getType(Object.class));
+  }
+
   @Override
   public ParamStrategy getParamStrategy() {
-    return new RefPtrParamStrategy<>(this);
+    if(strategy.getJvmType().equals(Type.getType(Object.class))) {
+      return new EmptyRecordPtrParam(this);
+    } else {
+      return new RecordUnitPtrParam(this);
+    }
   }
 
   @Override

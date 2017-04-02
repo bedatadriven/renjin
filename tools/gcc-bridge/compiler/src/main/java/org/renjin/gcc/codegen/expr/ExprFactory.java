@@ -466,7 +466,7 @@ public class ExprFactory {
     
     GExpr valueExpr = ((PtrExpr) ptrExpr).valueOf();
 
-    return maybeCast(valueExpr, pointerType.getBaseType(), expectedType);
+    return maybeCast(valueExpr, expectedType, pointerType.getBaseType());
   }
 
   private GExpr pointerPlus(GimpleExpr pointerExpr, GimpleExpr offsetExpr, GimpleType expectedType) {

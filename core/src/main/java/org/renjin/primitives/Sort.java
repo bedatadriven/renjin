@@ -83,14 +83,14 @@ public class Sort {
   }
 
   @Internal
-  public static Vector sort(IntVector x, boolean decreasing) {
+  public static IntArrayVector sort(IntVector x, boolean decreasing) {
 
     if(x.getAttribute(Symbols.NAMES)!= Null.INSTANCE) {
       throw new EvalException("sorting of vectors with names not yet implemented!");
     }
 
     int sorted[] = x.toIntArray();
-    
+
     Arrays.sort(sorted);
 
     if(decreasing) {
@@ -98,6 +98,24 @@ public class Sort {
     }
 
     return new IntArrayVector(sorted, x.getAttributes());
+  }
+
+  @Internal
+  public static Vector sort(LogicalVector x, boolean decreasing) {
+
+    if(x.getAttribute(Symbols.NAMES)!= Null.INSTANCE) {
+      throw new EvalException("sorting of vectors with names not yet implemented!");
+    }
+
+    int sorted[] = x.toIntArray();
+
+    Arrays.sort(sorted);
+
+    if(decreasing) {
+      reverse(sorted);
+    }
+
+    return new LogicalArrayVector(sorted, x.getAttributes());
   }
 
   @Internal("is.unsorted")
@@ -121,7 +139,20 @@ public class Sort {
       return LogicalVector.NA_VECTOR;
     }
   }
- 
+
+  @Internal("is.unsorted")
+  public static LogicalVector isUnsorted(PairList.Node pairlist, boolean strict) {
+    if(pairlist instanceof FunctionCall) {
+      throw new EvalException("invalid argument (language)");
+    }
+    return isUnsorted(pairlist.toVector(), strict);
+  }
+
+  @Internal("is.unsorted")
+  public static LogicalVector isUnsorted(Symbol symbol, boolean strict) {
+    return LogicalVector.FALSE;
+  }
+
   @Internal
   public static DoubleVector qsort(DoubleVector x, LogicalVector returnIndexes) {
 

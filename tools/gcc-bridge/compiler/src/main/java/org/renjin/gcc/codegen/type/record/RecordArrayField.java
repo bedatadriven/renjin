@@ -28,6 +28,7 @@ import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.fatptr.Wrappers;
 import org.renjin.gcc.codegen.type.FieldStrategy;
 import org.renjin.gcc.codegen.type.TypeStrategy;
+import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.repackaged.asm.ClassVisitor;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
@@ -42,10 +43,10 @@ public class RecordArrayField extends FieldStrategy {
   private int arrayLength;
 
   public RecordArrayField(Type declaringClass, String name,
-                          Type elementType, int arrayLength) {
+                          Type elementType, int arrayLength, GimpleRecordType gimpleRecordType) {
     this.declaringClass = declaringClass;
     this.name = name;
-    this.valueFunction = new RecordArrayValueFunction(elementType, arrayLength);
+    this.valueFunction = new RecordArrayValueFunction(elementType, arrayLength, gimpleRecordType);
     this.arrayType = Type.getType("[" + elementType.getDescriptor());
     this.arrayLength = arrayLength;
   }
@@ -82,7 +83,7 @@ public class RecordArrayField extends FieldStrategy {
   }
 
   @Override
-  public GExpr memberExpr(JExpr instance, int offset, int size, TypeStrategy expectedType) {
+  public GExpr memberExpr(MethodGenerator mv, JExpr instance, int offset, int size, TypeStrategy expectedType) {
 
     ValueFunction valueFunction = expectedType.getValueFunction();
     

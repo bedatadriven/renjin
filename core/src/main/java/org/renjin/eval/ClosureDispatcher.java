@@ -70,12 +70,10 @@ public class ClosureDispatcher {
         dispatchChain.populateEnvironment(functionEnvironment);
       }
 
-      SEXP result = closure.doApply(functionContext);
-      
-      functionContext.exit();
+      return closure.doApply(functionContext);
 
-      return result;
     } catch(ReturnException e) {
+
       if (e.getEnvironment() != functionEnvironment) {
         throw e;
       }
@@ -83,13 +81,22 @@ public class ClosureDispatcher {
 
 
     } catch(ConditionException e) {
-      if(e.getHandlerContext() == functionContext) {
+      if (e.getHandlerContext() == functionContext) {
         return new ListVector(e.getCondition(), Null.INSTANCE, e.getHandler());
       } else {
         throw e;
       }
 
+    } catch (RestartException e) {
+      if(e.getExitEnvironment() == functionContext.getEnvironment()) {
+        // This return value is consumed by the R code in conditions.R
+        return e.getArguments();
+      } else {
+        throw e;
+      }
+
     } catch(EvalException e) {
+
       e.initContext(functionContext);
       SEXP handler = findHandler(functionContext, Arrays.asList("simpleError", "error", "condition"));
       if(handler != null) {
@@ -102,14 +109,16 @@ public class ClosureDispatcher {
       } else {
         throw e;
       }
+    } finally {
+      functionContext.exit();
     }
   }
   
   private static SEXP findHandler(Context context, Iterable<String> conditionClasses) {
     for(String conditionClass : conditionClasses) {
-      SEXP handler = context.getConditionHandler(conditionClass);
+      ConditionHandler handler = context.getConditionHandler(conditionClass);
       if(handler != null) {
-        return handler;
+        return handler.getFunction();
       }
     }
     return null;

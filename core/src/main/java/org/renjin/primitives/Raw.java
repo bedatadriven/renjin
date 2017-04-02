@@ -119,15 +119,4 @@ public final class Raw {
     return bits.build();
   }
 
-  @Internal
-  @DataParallel
-  public static int bitwiseAnd(int a, int b) {
-    return a & b;
-  }
-
-  @Internal
-  @DataParallel
-  public static int bitwiseOr(int a, int b) {
-    return a | b;
-  }
 }

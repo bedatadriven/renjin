@@ -434,7 +434,7 @@ public class CDefines {
   public static boolean isNewList(SEXP s) {
     return (s == R_NilValue || TYPEOF(s) == VECSXP);
   }
-  
+
   public static final SexpType CLOSXP = new SexpType();
   public static final SexpType VECSXP = new SexpType();
   public static final SexpType STRSXP = new SexpType();

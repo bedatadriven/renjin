@@ -19,9 +19,8 @@
 package org.renjin.sexp;
 
 import org.renjin.eval.EvalException;
-import org.renjin.repackaged.guava.collect.Maps;
 
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class Symbol extends AbstractSEXP {
 
@@ -33,7 +32,7 @@ public final class Symbol extends AbstractSEXP {
    * we can compare symbols using reference equality (==) rather than
    * the equals() method.
    */
-  private static final HashMap<String, Symbol> TABLE;
+  private static final ConcurrentHashMap<String, Symbol> TABLE;
 
   public static final Symbol UNBOUND_VALUE = new Symbol();
   
@@ -56,7 +55,7 @@ public final class Symbol extends AbstractSEXP {
   private static final int NUM_RESERVED_BITS = 4;
   
   static { 
-    TABLE = Maps.newHashMap();
+    TABLE = new ConcurrentHashMap<>();
     addReserved(0, 
         "if", 
         ".Internal",   
@@ -167,13 +166,17 @@ public final class Symbol extends AbstractSEXP {
       throw new EvalException("attempt to use zero-length variable name");
     }
 
-    synchronized (TABLE) {
-      Symbol symbol = TABLE.get(printName);
-      if(symbol == null) {
-        symbol = new Symbol(printName, calcHashBit(printName));
-        TABLE.put(printName, symbol);
-      }
-      return symbol;
+    Symbol existing = TABLE.get(printName);
+    if(existing != null) {
+      return existing;
+    }
+
+    Symbol newEntry = new Symbol(printName, calcHashBit(printName));
+    existing = TABLE.putIfAbsent(printName, newEntry);
+    if(existing == null) {
+      return newEntry;
+    } else {
+      return existing;
     }
   }
 

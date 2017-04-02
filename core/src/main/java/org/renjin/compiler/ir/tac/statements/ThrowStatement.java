@@ -1,11 +1,11 @@
 package org.renjin.compiler.ir.tac.statements;
 
-import jdk.internal.org.objectweb.asm.Opcodes;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.NullExpression;
 import org.renjin.eval.EvalException;
+import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 
@@ -24,7 +24,7 @@ public class ThrowStatement implements Statement, BasicBlockEndingStatement {
 
   @Override
   public void setChild(int childIndex, Expression child) {
-   throw new IllegalArgumentException();
+    throw new IllegalArgumentException();
   }
 
   @Override

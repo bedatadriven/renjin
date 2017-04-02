@@ -153,6 +153,9 @@ public class LongPtr implements Ptr {
     if(voidPointer instanceof MallocThunk) {
       return ((MallocThunk) voidPointer).longPtr();
     }
+    if(voidPointer == null) {
+      return NULL;
+    }
     return (LongPtr) voidPointer;
   }
   

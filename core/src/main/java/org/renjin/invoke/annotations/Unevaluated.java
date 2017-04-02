@@ -18,15 +18,13 @@
  */
 package org.renjin.invoke.annotations;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
  * Determines whether an argument is evaluated before
  * being passed to the function call
  */
+@Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.PARAMETER)
 public @interface Unevaluated {

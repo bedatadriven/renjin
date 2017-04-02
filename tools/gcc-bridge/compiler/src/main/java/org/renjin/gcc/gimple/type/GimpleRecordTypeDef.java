@@ -69,6 +69,21 @@ public class GimpleRecordTypeDef {
     return size;
   }
 
+  public void setSize(int size) {
+    this.size = size;
+  }
+
+  public String debugName() {
+    StringBuilder s = new StringBuilder();
+    if(name == null) {
+      s.append("ANONYMOUS");
+    } else {
+      s.append(name);
+    }
+    s.append(" ").append("[").append(id).append("]");
+    return s.toString();
+  }
+
   public String toString() {
     StringBuilder out = new StringBuilder();
     out.append("struct ").append(name).append("[").append(id).append("]").append(" {\n");

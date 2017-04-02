@@ -57,6 +57,7 @@
             <phase>compile</phase>
             <configuration>
               <packageName>org.renjin.nmath</packageName>
+              <generateJavadoc>true</generateJavadoc>
               <cFlags>
                 <flag>-std=gnu99</flag>
                 <flag>-DMATHLIB_STANDALONE</flag>

@@ -161,6 +161,9 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     if(locked) {
       throw new EvalException("cannot remove bindings from a locked environment");
     }
+    if(isActiveBinding(symbol)) {
+      activeBindings.remove(symbol);
+    }
     frame.remove(symbol);
   }
 

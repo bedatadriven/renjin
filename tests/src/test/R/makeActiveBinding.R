@@ -105,34 +105,42 @@ test.for.loop.index <- function() {
     assertThat(sum, identicalTo(120))
 }
 
-test.sys.frame.1 <- function() {
+test.sys.frame <- function() {
 
-    y <- 92
-    f <- function() print( sys.frame(sys.parent(1))$y )
-    makeActiveBinding("x", f, .GlobalEnv)
-    g <- function() {
-        y = 94
-        x }
-    h <- function() {
-        y = 95
-        g() }
-    assertThat( h(), identicalTo(92) )
-    y <- 29
-    assertThat( h(), identicalTo(29) )
-
-    y <- 92
+    y <- 90
     f <- function() print( sys.frame(-1)$y )
     makeActiveBinding("x", f, .GlobalEnv)
-    assertThat( h(), identicalTo(94) )
+    g <- function() {
+        y = 91
+        x }
+    h <- function() {
+        y = 92
+        g() }
+    i <- function() {
+        y = 93
+        h() }
+    assertThat( i(), identicalTo(91) )
 
-    f <- function() print( sys.frame(0)$y )
-    makeActiveBinding("x", f, .GlobalEnv)
-    assertThat( h(), identicalTo(92) )
-    y <- 29
-    assertThat( h(), identicalTo(29) )
-
-    y <- 92
     f <- function() print( sys.frame(-2)$y )
     makeActiveBinding("x", f, .GlobalEnv)
-    assertThat( h(), identicalTo(95) )
+    assertThat( i(), identicalTo(92) )
+
+    f <- function() print( sys.frame(-3)$y )
+    makeActiveBinding("x", f, .GlobalEnv)
+    assertThat( i(), identicalTo(93) )
+
+    f <- function() print( sys.frame(-4)$y )
+    makeActiveBinding("x", f, .GlobalEnv)
+    assertThat( i(), identicalTo(NULL) )
+
+}
+
+test.sys.call <- function() {
+    f <- function() sys.call(-1)
+    makeActiveBinding("x", f, .GlobalEnv)
+    g <- function() x
+    h <- function() g()
+    i <- function() h()
+
+    assertThat(i(), identicalTo(quote(g())))
 }

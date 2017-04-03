@@ -198,6 +198,11 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
 
   public Collection<Symbol> getSymbolNames() {
     List<Symbol> ordered = new ArrayList<Symbol>(frame.getSymbols());
+    if(activeBindings != null) {
+      List<Symbol> ordered2 = new ArrayList<Symbol>(activeBindings.keySet());
+      ordered.addAll(ordered2);
+    }
+
     Collections.sort(ordered,new Comparator<Symbol>(){
       @Override
       public int compare(Symbol o1, Symbol o2) {

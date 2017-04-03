@@ -99,7 +99,7 @@ public class Wrapper {
     Environment parent = (Environment) wrap(engine.rniParentEnv(sexp));
     FrameWrapper frame = new FrameWrapper(engine, sexp);
     frame.setWrapper(this);
-    return Environment.createChildEnvironment(parent, frame);
+    return Environment.createChildEnvironment(parent, frame).build();
   }
 
   private SEXP createList(long sexp) {

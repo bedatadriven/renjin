@@ -504,24 +504,14 @@ public class RDataReader implements AutoCloseable {
 
     boolean locked = (in.readInt() == 1);
     SEXP parent = readExp();
-    SEXP frame = readExp();
-    SEXP hashtab = readExp();
+    readEnvFrame(env);
+    readEnvHashTab(env);
 
-    for (int i = 0; i < hashtab.length(); ++i) {
-      PairList node = hashtab.getElementAsSEXP(i);
-      while (node != Null.INSTANCE) {
-        env.setVariableUnsafe(node.getTag(), ((PairList.Node)node).getValue());
-        node = ((PairList.Node) node).getNext();
-      }
-    }
     // NB: environment's attributes is ALWAYS written,
     // regardless of flag
     SEXP attributes = readExp();
 
     env.setParent( parent == Null.INSTANCE ? Environment.EMPTY : (Environment)parent );
-    for ( PairList.Node node : ((PairList) frame).nodes()) {
-      env.setVariableUnsafe( node.getTag(), node.getValue() );
-    }
     env.setAttributes(AttributeMap.fromPairList((PairList) attributes));
 
     if(locked) {
@@ -530,6 +520,65 @@ public class RDataReader implements AutoCloseable {
 
     return env;
   }
+
+  /**
+   * Reads an environment's hash table.
+   *
+   * <p>GNU R serializes environments with a hashtable using the same format as the in-memory layout of the
+   * hash table, which is a ListVector of the size of the hash table, with each hash entry stored as
+   * a PairList of values matching the hash.</p>
+   */
+  private void readEnvHashTab(Environment env) throws IOException {
+    int tableFlags = in.readInt();
+    if(Flags.getType(tableFlags) == NILVALUE_SXP) {
+      return;
+    }
+    if(Flags.getType(tableFlags) != SexpType.VECSXP) {
+      throw new IOException("Expected type VECSEXP for environment hashtable.");
+    }
+    int length = in.readInt();
+    for (int i = 0; i < length; i++) {
+      readEnvFrame(env);
+    }
+  }
+
+  /**
+   * Reads an environment's frame.
+   *
+   * <p>An environment's frame, or list of symbol-value bindings is stored in the same way
+   * as a pairlist, but we provided a special implementation here to handle active bindings.</p>
+   *
+   * <p>Active bindings are indicated by setting the {@link Flags#ACTIVE_BINDING_MASK} on
+   * the 32-bit head for the pairlist node that is an active binding.</p>
+   */
+  private void readEnvFrame(Environment env) throws IOException {
+
+    int flags = in.readInt();
+
+    while(Flags.getType(flags) != NILVALUE_SXP) {
+
+      if(Flags.getType(flags) != SexpType.LISTSXP) {
+        throw new IOException("Expected type LISTSXP for environment frame");
+      }
+
+      AttributeMap attributes = readAttributes(flags);
+      Symbol tag = (Symbol)readTag(flags);
+      SEXP value = readExp();
+
+      if (tag == Symbols.ROW_NAMES && RowNamesVector.isOldCompactForm(value)) {
+        value = RowNamesVector.fromOldCompactForm(value);
+      }
+      if(Flags.isActiveBinding(flags)) {
+        env.makeActiveBinding(tag, (Closure) value);
+      } else {
+        env.setVariableUnsafe(tag, value);
+      }
+
+      // read the next element in the list
+      flags = in.readInt();
+    }
+  }
+
 
   private SEXP readS4XP(int flags) throws IOException {
     return new S4Object(readAttributes(flags));

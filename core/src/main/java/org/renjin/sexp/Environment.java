@@ -522,6 +522,14 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     };
   }
 
+  /**
+   * Get variable value or execute function bound to a symbol. In case of normal binding return the SEXP value,
+   * otherwise if its an active binding evalute the function in provided context.
+   * @param context the current evaluation context
+   * @param symbol the {@code SYMSXP} that should be looked up
+   * @return SEXP value of binding or result of active binding evaluation
+   * @throws AssertionError if context is not provided
+   */
   public SEXP getVariable(Context context, Symbol symbol) {
     assert ( context != null );
     if(activeBindings != null && activeBindings.containsKey(symbol)) {
@@ -534,16 +542,16 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     return getVariable(context, Symbol.get(symbolName));
   }
 
+  /**
+   * Get the variable assigned to a Symbol when no active bindings are present. If variable is an active binding
+   * getting the variable results into a call that requires the context. Therefor, this is only used when its
+   * absolutely sure that there are no active bindings present.
+   *
+   * @param symbol the {@code SYMSXP} that should be looked up
+   * @return SEXP value
+   * @throws AssertionError if active bindings are present.
+   */
   public SEXP getVariableUnsafe(Symbol symbol) {
-    /*
-     * Besides being used to for Binding van variables, setVariable is also used for setting
-     * Active Bindings. Since active bindings require evaluation of the function (with 1 argument in case
-     * of setVariable and without arguments when getVariable), setVariable and getVariable have a Context
-     * argument. setVariableUnsafe lacks the Context argument and should only be used when it is absolutely
-     * certain that the Symbol is not used in any active binding. This is the case when activeBindings field
-     * is not yet initiated (and thus null).
-     *
-     */
     assert ( activeBindings == null);
     return frame.getVariable(symbol);
   }

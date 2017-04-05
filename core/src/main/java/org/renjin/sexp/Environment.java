@@ -351,6 +351,10 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     return isActiveBinding(Symbol.get(name));
   }
 
+  public Closure getActiveBinding(Symbol symbol) {
+    return activeBindings.get(symbol);
+  }
+
   /**
    * Searches the environment for a value that matches the given predicate.
    *

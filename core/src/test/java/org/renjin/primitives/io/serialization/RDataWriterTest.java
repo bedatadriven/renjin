@@ -18,16 +18,15 @@
  */
 package org.renjin.primitives.io.serialization;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.sexp.*;
 import org.renjin.sexp.PairList.Builder;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
+import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -186,5 +185,24 @@ public class RDataWriterTest extends EvalTestCase {
 
     byte[] bytes = string.getBytes(Charsets.UTF_8);
     return string.length() == bytes.length;
+  }
+
+  @Ignore
+  public void writeEnvironmentWithActiveBindings() throws IOException {
+    eval("f <- function(x) 2");
+    eval("rho <- new.env()");
+    eval("makeActiveBinding(\"x\", f, rho)");
+    write("EnvWithActiveBindings.rds", eval("rho"));
+    Environment env = (Environment) readRds("EnvWithActiveBindings.rds");
+    assertThat( env.getVariable(topLevelContext, "x"), equalTo(c(2)));
+    assertThat( env.isActiveBinding("x"), equalTo(true));
+
+  }
+
+  private SEXP readRds(String resourceName) throws IOException {
+    InputStream in = getClass().getResourceAsStream(resourceName);
+    GZIPInputStream gzipIn = new GZIPInputStream(in);
+    RDataReader reader = new RDataReader(topLevelContext, gzipIn);
+    return reader.readFile();
   }
 }

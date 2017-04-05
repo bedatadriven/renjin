@@ -578,8 +578,8 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     return getVariableUnsafe(Symbol.get(symbolName));
   }
 
-  public SEXP getEllipsesVariable(Symbol symbol) {
-    return getVariableUnsafe(symbol);
+  public SEXP getEllipsesVariable() {
+    return getVariableUnsafe(Symbols.ELLIPSES);
   }
 
   public boolean hasVariable(Symbol symbol) {

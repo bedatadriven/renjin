@@ -56,7 +56,7 @@ public class SubstituteFunction extends SpecialFunction {
     SEXP expr;
     if(exprArgument == Symbols.ELLIPSES) {
       
-      SEXP ellipses = rho.getEllipsesVariable(Symbols.ELLIPSES);
+      SEXP ellipses = rho.getEllipsesVariable();
       if(ellipses == Null.INSTANCE) {
         expr = Null.INSTANCE;
       } else {

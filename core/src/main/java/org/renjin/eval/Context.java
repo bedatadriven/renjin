@@ -597,4 +597,12 @@ public class Context {
   public NamespaceRegistry getNamespaceRegistry() {
     return session.getNamespaceRegistry();
   }
+
+  public void setGlobalVariable(Context context, Symbol symbol, Object value) {
+    context.getGlobalEnvironment().setVariable(context, symbol, (SEXP) value);
+  }
+
+  public void setGlobalVariable(Context context, String name, Object value) {
+    setGlobalVariable(context, Symbol.get(name), value);
+  }
 }

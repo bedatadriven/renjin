@@ -50,7 +50,7 @@ public class RDataWriter implements AutoCloseable {
      */
     Vector apply(SEXP exp);
   }
-
+  
   private WriteContext context;
   private PersistenceHook hook;
   private DataOutputStream conn;
@@ -70,7 +70,7 @@ public class RDataWriter implements AutoCloseable {
       default: this.out = new XdrWriter(this.conn); break;
     }
   }
-
+  
   public RDataWriter(Context context, PersistenceHook hook, OutputStream out) throws IOException {
     this(new SessionWriteContext(context), hook, out, SerializationType.XDR);
   }
@@ -78,7 +78,7 @@ public class RDataWriter implements AutoCloseable {
   public RDataWriter(Context context, OutputStream out, SerializationType st) throws IOException {
     this(new SessionWriteContext(context), null, out, st);
   }
-
+  
   public RDataWriter(Context context, OutputStream out) throws IOException {
     this(context, null, out);
   }
@@ -99,7 +99,7 @@ public class RDataWriter implements AutoCloseable {
   }
 
   /**
-   * Serializes the given {@code sexp}, prefixed by the 
+   * Serializes the given {@code sexp}, prefixed by the
    * magic bytes 'RDX\n'
    * @throws IOException
    */
@@ -109,7 +109,7 @@ public class RDataWriter implements AutoCloseable {
     } else {
       conn.writeBytes(XDR_MAGIC_HEADER);
     }
-
+    
     serialize(sexp);
   }
 
@@ -119,7 +119,7 @@ public class RDataWriter implements AutoCloseable {
     } else {
       conn.writeByte(XDR_FORMAT);
     }
-
+    
     conn.writeByte('\n');
     writeVersion();
     writeExp(exp);
@@ -142,7 +142,7 @@ public class RDataWriter implements AutoCloseable {
     if(tryWriteRef(exp)) {
       return;
     }
-
+    
     if(tryWritePersistent(exp)) {
       return;
     }
@@ -201,7 +201,7 @@ public class RDataWriter implements AutoCloseable {
     if(name == Null.INSTANCE) {
       return false;
     }
-
+    
     out.writeInt(SerializationFormat.PERSISTSXP);
     writePersistentNameVector((StringVector) name);
     addRef(exp);
@@ -237,7 +237,7 @@ public class RDataWriter implements AutoCloseable {
   }
 
   private boolean isPackageEnvironment(SEXP exp) {
-    // TODO 
+    // TODO
     return false;
   }
 
@@ -270,7 +270,7 @@ public class RDataWriter implements AutoCloseable {
         out.writeInt(vector.getElementAsInt(i));
       }
     }
-
+    
     writeAttributes(vector);
   }
 
@@ -301,7 +301,7 @@ public class RDataWriter implements AutoCloseable {
         }
       }
     }
-
+    
     writeAttributes(vector);
   }
 
@@ -343,7 +343,7 @@ public class RDataWriter implements AutoCloseable {
     }
     writeAttributes(vector);
   }
-
+  
   private void writeStringVector(StringVector vector) throws IOException {
     writeFlags(SexpType.STRSXP, vector);
     out.writeInt(vector.length());
@@ -407,7 +407,7 @@ public class RDataWriter implements AutoCloseable {
     writeExp(exp.getFormals());
     writeExp(exp.getBody());
   }
-
+  
   private void writeEnvironment(Environment env) throws IOException {
 
     if(context.isGlobalEnvironment(env)) {
@@ -426,14 +426,14 @@ public class RDataWriter implements AutoCloseable {
         writeExp(env.getParent());
         writeFrame(env);
         writeExp(Null.INSTANCE); // hashtab (unused)
-
+        
         // NB: attributes for an environment are
         // ALWAYS written, even if NULL
         writeExp(env.getAttributes().asPairList());
       }
     }
   }
-
+  
   private void writeFrame(Environment exp) throws IOException {
     PairList.Builder frame = new PairList.Builder();
     for(Symbol name : exp.getSymbolNames()) {
@@ -469,7 +469,7 @@ public class RDataWriter implements AutoCloseable {
       out.writeInt(SexpType.REFSXP | (index << 8));
     }
   }
-
+ 
   private void addRef(SEXP exp) {
     references.put(exp, references.size() + 1);
   }
@@ -491,11 +491,11 @@ public class RDataWriter implements AutoCloseable {
   }
 
   private void writeCharExp(String string) throws IOException {
-
+    
     if(StringVector.isNA(string)) {
       out.writeInt( Flags.computeCharSexpFlags(ASCII_MASK));
       out.writeInt(-1);
-
+    
     } else {
 
       byte[] bytes = string.getBytes(Charsets.UTF_8);
@@ -514,13 +514,13 @@ public class RDataWriter implements AutoCloseable {
   }
 
   private void writeAttributes(SEXP exp) throws IOException {
-
+    
     PairList attributes = exp.getAttributes().asPairList();
 
     if(exp.getAttributes() != AttributeMap.EMPTY && attributes == Null.INSTANCE) {
       throw new IllegalStateException("exp != AttributeMap.EMPTY but has no attributes");
     }
-
+    
     if(attributes != Null.INSTANCE) {
       if(!(attributes instanceof PairList.Node)) {
         throw new AssertionError(attributes.getClass());
@@ -545,7 +545,7 @@ public class RDataWriter implements AutoCloseable {
     conn.writeBytes(exp.getName());
   }
 
-
+  
   private void writeFlags(int type, SEXP exp) throws IOException {
     out.writeInt(Flags.computeFlags(exp, type));
   }
@@ -562,19 +562,19 @@ public class RDataWriter implements AutoCloseable {
 
   private static class AsciiWriter implements StreamWriter {
     private DataOutputStream out;
-
+    
     private AsciiWriter(DataOutputStream out) {
       this.out = out;
     }
-
+    
     public void writeInt(int v) throws IOException {
       out.writeBytes(v + "\n");
     }
-
+    
     public void writeDouble(double d) throws IOException {
       out.writeBytes(d + "\n");
     }
-
+    
     public void writeLong(long l) throws IOException {
       out.writeBytes(l + "\n");
     }
@@ -616,7 +616,7 @@ public class RDataWriter implements AutoCloseable {
       out.close();
     }
   }
-
+  
   private static class XdrWriter implements StreamWriter {
     private DataOutputStream out;
 

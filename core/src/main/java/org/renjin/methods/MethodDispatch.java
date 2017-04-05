@@ -481,7 +481,7 @@ public class MethodDispatch {
 
     /* create a new environment frame enclosed by the lexical
        environment of the method */
-    Environment newrho = Environment.createChildEnvironment(op.getEnclosingEnvironment()).build();
+    Environment.Builder newrho = Environment.createChildEnvironment(op.getEnclosingEnvironment());
     
     /* copy the bindings for the formal environment from the top frame
        of the internal environment of the generic call to the new
@@ -513,7 +513,7 @@ public class MethodDispatch {
       //      SET_FRAME(newrho, CONS(val, FRAME(newrho)));
       //      SET_TAG(FRAME(newrho), symbol);
 
-      newrho.setVariable(context, symbol, val);
+      newrho.setVariable(symbol, val);
 
       //      if (missing) {
       //        SET_MISSING(FRAME(newrho), missing);
@@ -536,14 +536,14 @@ public class MethodDispatch {
 
     /* copy the bindings of the spacial dispatch variables in the top
        frame of the generic call to the new frame */
-    newrho.setVariable(context, DOT_DEFINED, rho.findVariableOrThrow(context, DOT_DEFINED));
-    newrho.setVariable(context, DOT_METHOD, rho.findVariableOrThrow(context, DOT_METHOD));
-    newrho.setVariable(context, DOT_TARGET, rho.findVariableOrThrow(context, DOT_TARGET));
+    newrho.setVariable(DOT_DEFINED, rho.findVariableOrThrow(context, DOT_DEFINED));
+    newrho.setVariable(DOT_METHOD, rho.findVariableOrThrow(context, DOT_METHOD));
+    newrho.setVariable(DOT_TARGET, rho.findVariableOrThrow(context, DOT_TARGET));
 
     /* copy the bindings for .Generic and .Methods.  We know (I think)
        that they are in the second frame, so we could use that. */
-    newrho.setVariable(context, DOT_GENERIC, rho.findVariableOrThrow(context, DOT_GENERIC));
-    newrho.setVariable(context, DOT_METHODS, rho.findVariableOrThrow(context, DOT_METHODS));
+    newrho.setVariable(DOT_GENERIC, rho.findVariableOrThrow(context, DOT_GENERIC));
+    newrho.setVariable(DOT_METHODS, rho.findVariableOrThrow(context, DOT_METHODS));
 
     /* Find the calling context.  Should be R_GlobalContext unless
        profiling has inserted a CTXT_BUILTIN frame. */
@@ -561,7 +561,7 @@ public class MethodDispatch {
        execute the method, and return the result */
     FunctionCall call = cptr.getCall();
     PairList arglist = cptr.getArguments();
-    SEXP val = R_execClosure(context, call, op, arglist, callerenv, newrho);
+    SEXP val = R_execClosure(context, call, op, arglist, callerenv, newrho.build());
     return val;
   }
 

@@ -403,15 +403,7 @@ public class CDefines {
   public static String _(String s) {
     return s;
   }
-  
-  public static SEXP findVar(SEXP devName, SEXP env) {
-    return ((Environment)env).findVariable(Native.currentContext(), (Symbol)devName);
-  }
-  
-  public static SEXP findVarInFrame(Frame frame, SEXP name) {
-    return frame.getVariable((Symbol)name);
-  }
-  
+
   public static SEXP eval(SEXP exp, Context context, SEXP rho) {
     return context.evaluate(exp, (Environment)rho);
   }

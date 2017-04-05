@@ -29,6 +29,15 @@ public class GimplePointerPlus extends GimpleExpr {
   private GimpleExpr pointer;
   private GimpleExpr offset;
 
+  public GimplePointerPlus() {
+  }
+
+  public GimplePointerPlus(GimpleExpr pointer, GimpleExpr offset) {
+    this.pointer = pointer;
+    this.offset = offset;
+    setType(pointer.getType());
+  }
+
   public GimpleExpr getPointer() {
     return pointer;
   }

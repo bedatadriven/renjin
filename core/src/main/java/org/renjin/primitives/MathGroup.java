@@ -508,11 +508,7 @@ public class MathGroup {
       result.add(prod);
       for (int i = 1; i < source.length(); i++) {
         prod *= source.getElementAsDouble(i);
-        if (Double.isNaN(prod)) {
-          result.addNA();
-        } else {
-          result.add(prod);
-        }
+        result.add(prod);
       }
     }
     return result.build();

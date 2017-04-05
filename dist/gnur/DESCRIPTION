@@ -1,0 +1,9 @@
+Package: renjin
+Type: Package
+Title: Renjin R Interpreter
+Version: 0.0.1
+Author: BeDataDriven
+Maintainer: Alex Bertram <alex@bedatadriven.com>
+Description: Allows evluation of R code by Renjin from within GNU R
+License: GPL v2
+Imports: rJava

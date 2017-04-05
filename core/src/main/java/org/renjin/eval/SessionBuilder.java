@@ -24,7 +24,9 @@ import org.renjin.compiler.pipeline.VectorPipeliner;
 import org.renjin.primitives.packaging.ClasspathPackageLoader;
 import org.renjin.primitives.packaging.PackageLoader;
 import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.sexp.Frame;
 import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.HashFrame;
 import org.renjin.sexp.Symbol;
 import org.renjin.util.FileSystemUtils;
 
@@ -39,6 +41,8 @@ public class SessionBuilder {
   private PackageLoader packageLoader;
   private VectorPipeliner vectorPipeliner;
   private ClassLoader classLoader;
+
+  private Frame globalFrame = new HashFrame();
  
   public SessionBuilder() {
 
@@ -122,6 +126,14 @@ public class SessionBuilder {
   }
 
   /**
+   * Sets the {@link Frame} that backs the Global Environment.
+   */
+  public SessionBuilder setGlobalFrame(Frame globalFrame) {
+    this.globalFrame = globalFrame;
+    return this;
+  }
+
+  /**
    * Binds a Renjin interface to its implementation
    * @deprecated Use {@link #setFileSystemManager(FileSystemManager)}
    */
@@ -161,7 +173,8 @@ public class SessionBuilder {
         packageLoader = new ClasspathPackageLoader(classLoader);
       }
 
-      Session session = new Session(fileSystemManager, classLoader, packageLoader, vectorPipeliner);
+      Session session = new Session(fileSystemManager, classLoader, packageLoader, vectorPipeliner,
+          globalFrame);
       if(loadBasePackage) {
         session.getTopLevelContext().init();
       }

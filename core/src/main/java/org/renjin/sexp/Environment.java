@@ -240,7 +240,7 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
    * setVariable without checking if variable is an 'active' binding.
    * Only be used when it is absolutely certain that the Symbol is not used in any active binding.
    *
-   * @param symbol variable Symbol.
+   * @param symbol  the {@code SYMSXP} that should be looked up
    * @param value value to be assigned.
    * @throws AssertionError when active bindings are present.
    */
@@ -279,7 +279,7 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
    * setVariable with ability to handle active bindings.
    * This is the default binding method that should be used.
    *
-   * @param context where the assignment is taking place.
+   * @param context the current evaluation context
    * @param name variable name.
    * @param value value to be assigned.
    * @return invisible NULL
@@ -298,8 +298,8 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
    * This is the default binding method that should be used.
    *
    *
-   * @param context where the assignment is taking place.
-   * @param symbol The Symbol to assign binding to.
+   * @param context the current evaluation context
+   * @param symbol  the {@code SYMSXP} that should be looked up
    * @param value the value/closure to be assigned
    * @return invisible NULL
    * @throws AssertionError when Context is null.
@@ -356,8 +356,8 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
    *
    *
    *
-   * @param context
-   * @param symbol The symbol for which to search
+   * @param context the current evaluation context
+   * @param symbol  the {@code SYMSXP} that should be looked up
    * @param predicate a predicate that tests possible return values
    * @param inherits if {@code true}, enclosing frames are searched
    * @return the bound value or {@code Symbol.UNBOUND_VALUE} if not found
@@ -380,10 +380,12 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
   }
 
   /**
-   * Recursively searches this environment and its parent for the symbol {@code symbol}
+   * Recursively searches this environment and its parent for the symbol {@code symbol}. Returns the
+   * binding value or in case of active binding returns the result of function evaluation in current context.
    * 
-   * @param symbol the symbol for which to search
-   * @return the bound value, or {@code Symbol.UNBOUND_VALUE} if not found
+   * @param symbol  the {@code SYMSXP} that should be looked up
+   * @return the bound value, or {@code Symbol.UNBOUND_VALUE} if not found, or if active binding the result of
+   * function evaluation in the current context
    */
   public SEXP findVariable(Context context, Symbol symbol) {
     if(activeBindings != null && activeBindings.containsKey(symbol)) {
@@ -399,6 +401,14 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     return parent.findVariable(context, symbol);
   }
 
+  /**
+   * Recursively searches this environment and its parent for the symbol {@code symbol} assuming there are no
+   * active bindings present in the current environment (up to the environment where {@code symbol} is found)
+   *
+   * @param symbol the {@code SYMSXP} that should be looked up
+   * @return
+   * @throws AssertionError if there are any active bindings
+   */
   public SEXP findVariableUnsafe(Symbol symbol) {
     assert ( activeBindings == null);
     if(symbol.isVarArgReference()) {
@@ -560,7 +570,7 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
    * getVariable returns the value for the provided symbol without handling active bindings.
    *
    *
-   * @param symbolName The Symbol for the value should be returned.
+   * @param symbolName the {@code SYMSXP} name that should be looked up
    * @return SEXP value.
    * @throws AssertionError if active bindings are present.
    */

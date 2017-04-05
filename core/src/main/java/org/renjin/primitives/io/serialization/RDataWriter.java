@@ -91,7 +91,7 @@ public class RDataWriter implements AutoCloseable {
   /**
    * @deprecated Call save() explicitly
    * @param sexp
-   * @throws IOException
+   * @throws IOException 
    */
   @Deprecated
   public void writeFile(SEXP sexp) throws IOException {
@@ -99,7 +99,7 @@ public class RDataWriter implements AutoCloseable {
   }
 
   /**
-   * Serializes the given {@code sexp}, prefixed by the
+   * Serializes the given {@code sexp}, prefixed by the 
    * magic bytes 'RDX\n'
    * @throws IOException
    */
@@ -146,7 +146,7 @@ public class RDataWriter implements AutoCloseable {
     if(tryWritePersistent(exp)) {
       return;
     }
-
+     
     if(exp instanceof Null) {
       writeNull();
     } else if(exp instanceof LogicalVector) {
@@ -206,7 +206,7 @@ public class RDataWriter implements AutoCloseable {
     writePersistentNameVector((StringVector) name);
     addRef(exp);
     return true;
-  }
+  } 
 
   private void writePersistentNameVector(StringVector name) throws IOException {
     // place holder to allow names attribute
@@ -237,7 +237,7 @@ public class RDataWriter implements AutoCloseable {
   }
 
   private boolean isPackageEnvironment(SEXP exp) {
-    // TODO
+    // TODO 
     return false;
   }
 
@@ -290,10 +290,10 @@ public class RDataWriter implements AutoCloseable {
           }
         } else {
           out.writeDouble(vector.getElementAsDouble(i));
-        }
+        }  
       }
     } else {
-      for(int i=0;i!=vector.length();++i) {
+      for(int i=0;i!=vector.length();++i) { 
         if(vector.isElementNA(i)) {
           out.writeLong(DoubleVector.NA_BITS);
         } else {
@@ -369,7 +369,7 @@ public class RDataWriter implements AutoCloseable {
       writeExp(exp.getEnvironment());
     }
     writeExp(exp.getValue() == null ? Null.INSTANCE : exp.getValue());
-    writeExp(exp.getExpression());
+    writeExp(exp.getExpression());  
   }
 
   private void writePairList(PairList.Node node) throws IOException {
@@ -416,7 +416,7 @@ public class RDataWriter implements AutoCloseable {
       out.writeInt(SerializationFormat.BASEENV_SXP);
     } else if(env == Environment.EMPTY) {
       out.writeInt(SerializationFormat.EMPTYENV_SXP);
-    } else {
+    } else {      
       if(context.isNamespaceEnvironment(env)) {
         writeNamespace(env);
       } else {
@@ -501,7 +501,7 @@ public class RDataWriter implements AutoCloseable {
       byte[] bytes = string.getBytes(Charsets.UTF_8);
 
       // Normally we would just write this out as UTF-8
-      // but GNU R seems to only write out string in UTF-8 if
+      // but GNU R seems to only write out string in UTF-8 if 
       // it's really needed. This will lead to bitwise-level
       // differences between Renjin and GNU R that cause problems
       // with digests, etc.
@@ -619,23 +619,23 @@ public class RDataWriter implements AutoCloseable {
   
   private static class XdrWriter implements StreamWriter {
     private DataOutputStream out;
-
+      
     private XdrWriter(DataOutputStream out) {
       this.out = out;
     }
-
+      
     public void writeInt(int v) throws IOException {
       out.writeInt(v);
     }
-
+      
     public void writeDouble(double d) throws IOException {
       out.writeDouble(d);
     }
-
+      
     public void writeLong(long l) throws IOException {
       out.writeLong(l);
     }
-
+      
     public void writeString(byte[] bytes) throws IOException {
       out.write(bytes);
     }

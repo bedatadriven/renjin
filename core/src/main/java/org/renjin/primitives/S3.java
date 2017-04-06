@@ -736,7 +736,7 @@ public class S3 {
     }
   }
 
-  public static PairList updateArguments(@Current Context context, PairList actuals, PairList formals,
+  public static PairList updateArguments(Context context, PairList actuals, PairList formals,
                                          Environment previousEnv, ListVector extraArgs) {
     // match each actual to a formal name so we can update it's value. but we can't reorder!
 
@@ -795,7 +795,7 @@ public class S3 {
     for (int i = 0; i!=matchedNames.size();++i) {
       SEXP updatedValue;
       if(matchedNames.get(i) != null) {
-        updatedValue = previousEnv.getVariable(context, matchedNames.get(i));
+        updatedValue = previousEnv.getVariableUnsafe(matchedNames.get(i));
         assert updatedValue != Symbol.UNBOUND_VALUE;
       } else {
         updatedValue = actualValues.get(i);

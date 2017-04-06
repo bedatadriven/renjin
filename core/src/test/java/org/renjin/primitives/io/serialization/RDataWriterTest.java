@@ -187,16 +187,15 @@ public class RDataWriterTest extends EvalTestCase {
     return string.length() == bytes.length;
   }
 
-  @Ignore
+  @Test
   public void writeEnvironmentWithActiveBindings() throws IOException {
     eval("f <- function(x) 2");
     eval("rho <- new.env()");
     eval("makeActiveBinding(\"x\", f, rho)");
-    write("EnvWithActiveBindings.rds", eval("rho"));
-    Environment env = (Environment) readRds("EnvWithActiveBindings.rds");
+    write("src/test/resources/org/renjin/primitives/io/serialization/env-with-active-bindings.rds", eval("rho"));
+    Environment env = (Environment) readRds("env-with-active-bindings.rds");
     assertThat( env.getVariable(topLevelContext, "x"), equalTo(c(2)));
     assertThat( env.isActiveBinding("x"), equalTo(true));
-
   }
 
   private SEXP readRds(String resourceName) throws IOException {

@@ -66,6 +66,15 @@ class Flags {
     return   ((flags) >> 8);
   }
 
+  public static int computeBindingFlag(boolean activeBinding) {
+    int flags = SexpType.LISTSXP;
+    flags |= HAS_TAG_BIT_MASK;
+    if (activeBinding) {
+      flags |= ACTIVE_BINDING_MASK;
+    }
+    return flags;
+  }
+
   public static int computeFlags(SEXP exp, int type) {
     int flags = type;
 

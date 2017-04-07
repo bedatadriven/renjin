@@ -61,7 +61,11 @@ public class Jvmi {
     }
 
     ExternalPtr ptr = new ExternalPtr(clazz);
-    rho.setVariableUnsafe(Symbol.get(clazz.getSimpleName()), ptr);
+    try {
+      rho.setVariable(context, Symbol.get(clazz.getSimpleName()), ptr);
+    } catch ( EvalException e) {
+      throw new EvalException(e.getMessage());
+    }
     context.setInvisibleFlag();
 
     return ptr;

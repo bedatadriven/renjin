@@ -144,3 +144,33 @@ test.sys.call <- function() {
 
     assertThat(i(), identicalTo(quote(g())))
 }
+
+test.ellipses.1 <- function() {
+    f <- function(val) 42
+    g <- function(...) {
+        makeActiveBinding("...", f, environment())
+        list(...)
+    }
+    assertThat(g(43), throwsError())
+}
+
+test.ellipses.2 <- function() {
+    assertThat(makeActiveBinding(sym=`...`, fun=function(...) 42), throwsError())
+}
+
+test.import <- function() {
+    f <- function(val) 42
+    makeActiveBinding("HashMap", f, environment())
+    import(java.util.HashMap)
+
+    assertThat(HashMap, identicalTo(42))
+}
+
+test.ellipses.3 <- function() {
+    f <- function(val) 42
+    g <- function(...) {
+    	makeActiveBinding("..2", f, environment())
+            ..2
+    }
+    assertThat(g(c("A"),c("B")), identicalTo("B"))
+}

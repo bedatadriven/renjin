@@ -261,7 +261,7 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
    * @throws AssertionError when active bindings are present.
    */
   public void setVariableUnsafe(Symbol symbol, SEXP value) {
-    assert ( activeBindings == null );
+    assert ( !isActiveBinding(symbol) );
 
     if(value == Symbol.UNBOUND_VALUE) {
       throw new EvalException("Unbound: " + symbol);
@@ -443,11 +443,11 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
    * function evaluation in the current context
    */
   public SEXP findVariable(Context context, Symbol symbol) {
-    if(activeBindings != null && activeBindings.containsKey(symbol)) {
-      return evaluateFunction(context, symbol);
-    }
     if(symbol.isVarArgReference()) {
       return findVarArg(symbol.getVarArgReferenceIndex());
+    }
+    if(activeBindings != null && activeBindings.containsKey(symbol)) {
+      return evaluateFunction(context, symbol);
     }
     SEXP value = frame.getVariable(symbol);
     if(value != Symbol.UNBOUND_VALUE) {

@@ -55,7 +55,7 @@ public class RuntimeState {
   }
 
   public PairList getEllipsesVariable() {
-    SEXP ellipses = rho.getVariable(context, Symbols.ELLIPSES);
+    SEXP ellipses = rho.getEllipsesVariable();
     if(ellipses == Symbol.UNBOUND_VALUE) {
       throw new InvalidSyntaxException("'...' used in an incorrect context.");
     }

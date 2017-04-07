@@ -21,6 +21,7 @@ package org.renjin.primitives.io.serialization;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
+import org.renjin.primitives.Native;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.sexp.*;
 import org.renjin.sexp.PairList.Builder;
@@ -192,8 +193,16 @@ public class RDataWriterTest extends EvalTestCase {
     eval("f <- function(x) 2");
     eval("rho <- new.env()");
     eval("makeActiveBinding(\"x\", f, rho)");
-    write("src/test/resources/org/renjin/primitives/io/serialization/env-with-active-bindings.rds", eval("rho"));
-    Environment env = (Environment) readRds("env-with-active-bindings.rds");
+
+
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    RDataWriter writer = new RDataWriter(this.topLevelContext, out);
+    writer.save(eval("rho"));
+
+    ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+    RDataReader reader = new RDataReader(in);
+
+    Environment env = (Environment) reader.readFile();
     assertThat( env.getVariable(topLevelContext, "x"), equalTo(c(2)));
     assertThat( env.isActiveBinding("x"), equalTo(true));
   }

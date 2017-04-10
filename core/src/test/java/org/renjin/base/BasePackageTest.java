@@ -66,7 +66,7 @@ public class BasePackageTest extends EvalTestCase {
   }
 
   private SEXP getValue(Environment env, String name) {
-    SEXP value = env.getVariable(name);
+    SEXP value = env.getVariable(topLevelContext, name);
     if(value instanceof Promise) {
       value = value.force(topLevelContext);
     }
@@ -347,7 +347,7 @@ public class BasePackageTest extends EvalTestCase {
     assumingBasePackagesLoad();
 
     String file = BasePackageTest.class.getResource("SourceTest.R").getFile();
-    global.setVariable(Symbol.get("fn"),
+    global.setVariable(topLevelContext, Symbol.get("fn"),
         StringVector.valueOf(new File(file).getAbsolutePath()));
     eval("source(fn)");
   }
@@ -387,7 +387,7 @@ public class BasePackageTest extends EvalTestCase {
 
     // expected : ~0 + births 
 
-    FunctionCall tildeCall = (FunctionCall) topLevelContext.getGlobalEnvironment().getVariable("x");
+    FunctionCall tildeCall = (FunctionCall) topLevelContext.getGlobalEnvironment().getVariable(topLevelContext, "x");
     assertThat(tildeCall.getFunction(), equalTo((SEXP)symbol("~")));
     assertThat(tildeCall.getArguments().length(), equalTo(1));
 

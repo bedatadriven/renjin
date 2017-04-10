@@ -24,10 +24,8 @@ import org.renjin.invoke.reflection.ClassBindingImpl;
 import org.renjin.methods.S4;
 import org.renjin.primitives.Native;
 import org.renjin.primitives.S3;
-import org.renjin.primitives.text.regex.ExtendedRE;
 import org.renjin.primitives.text.regex.RE;
 import org.renjin.primitives.text.regex.REFactory;
-import org.renjin.primitives.text.regex.RESyntaxException;
 import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.*;
@@ -96,7 +94,7 @@ public class Namespace {
   }
 
   public SEXP getEntry(Symbol entry) {
-    SEXP value = namespaceEnvironment.getVariable(entry);
+    SEXP value = namespaceEnvironment.getVariableUnsafe(entry);
     if(value == Symbol.UNBOUND_VALUE) {
       throw new EvalException("Namespace " + pkg.getName() + " has no symbol named '" + entry + "'");
     }
@@ -115,11 +113,11 @@ public class Namespace {
     // the base package's namespace is treated specially for historical reasons:
     // all symbols are considered to be exported.
     if(FqPackageName.BASE.equals(pkg.getName())) {
-      return namespaceEnvironment.getVariable(entry);
+      return namespaceEnvironment.getVariableUnsafe(entry);
 
     }
     if(exports.contains(entry)) {
-      return this.namespaceEnvironment.findVariable(entry);
+      return this.namespaceEnvironment.findVariableUnsafe(entry);
     }
     return Symbol.UNBOUND_VALUE;
   }
@@ -147,11 +145,11 @@ public class Namespace {
    */
   public void copyExportsTo(Context context, Environment packageEnv) {
     for(Symbol name : exports) {
-      SEXP exportValue = namespaceEnvironment.findVariable(name);
+      SEXP exportValue = namespaceEnvironment.findVariableUnsafe(name);
       if(exportValue == Symbol.UNBOUND_VALUE) {
         context.warn(String.format("Symbol '%s' is not defined in package '%s'", name.getPrintName(), pkg.getName()));
       } else {
-        packageEnv.setVariable(name, exportValue);
+        packageEnv.setVariableUnsafe(name, exportValue);
       }
     }
   }
@@ -191,7 +189,7 @@ public class Namespace {
                 symbol.getPrintName(), 
                 importedNamespace.getName()));
           } else {
-            importsEnvironment.setVariable(symbol, export);
+            importsEnvironment.setVariableUnsafe(symbol, export);
           }
         }
 
@@ -203,7 +201,7 @@ public class Namespace {
                 className, 
                 importedNamespace.getName()));
           } else {
-            importsEnvironment.setVariable(symbol, export);
+            importsEnvironment.setVariableUnsafe(symbol, export);
           }
         }
       }
@@ -219,12 +217,12 @@ public class Namespace {
       }
 
       if(entry.isClassImported()) {
-        importsEnvironment.setVariable(importedClass.getSimpleName(), new ExternalPtr(importedClass));
+        importsEnvironment.setVariableUnsafe(importedClass.getSimpleName(), new ExternalPtr(importedClass));
       }
       if(!entry.getMethods().isEmpty()) {
         ClassBindingImpl importedClassBinding = ClassBindingImpl.get(importedClass);
         for (String method : entry.getMethods()) {
-          importsEnvironment.setVariable(method, importedClassBinding.getStaticMember(method).getValue());
+          importsEnvironment.setVariableUnsafe(method, importedClassBinding.getStaticMember(method).getValue());
         }
       }
     }
@@ -281,7 +279,7 @@ public class Namespace {
         }
         // Use the symbols registered by the R_init_xxx() function
         for (DllSymbol symbol : info.getSymbols()) {
-          namespaceEnvironment.setVariable(entry.getPrefix() + symbol.getName(), symbol.createObject());
+          namespaceEnvironment.setVariableUnsafe(entry.getPrefix() + symbol.getName(), symbol.createObject());
         }
 
       } else if(!entry.getSymbols().isEmpty()) {
@@ -291,7 +289,7 @@ public class Namespace {
           DllSymbol symbol = new DllSymbol(info);
           symbol.setName(declaredSymbol.getSymbolName());
           symbol.setMethodHandle(findGnurMethod(clazz, declaredSymbol.getSymbolName()));
-          namespaceEnvironment.setVariable(entry.getPrefix() + declaredSymbol.getAlias(), symbol.createObject());
+          namespaceEnvironment.setVariableUnsafe(entry.getPrefix() + declaredSymbol.getAlias(), symbol.createObject());
         }
       
       } else {
@@ -419,14 +417,14 @@ public class Namespace {
     
     // Add an entry in a special .__S3MethodsTable__. so that UseMethod() can find this specialization
     if (!definitionEnv.get().hasVariable(S3.METHODS_TABLE)) {
-      definitionEnv.get().setVariable(S3.METHODS_TABLE, Environment.createChildEnvironment(context.getBaseEnvironment()));
+      definitionEnv.get().setVariableUnsafe(S3.METHODS_TABLE, Environment.createChildEnvironment(context.getBaseEnvironment()).build());
     }
-    Environment methodsTable = (Environment) definitionEnv.get().getVariable(S3.METHODS_TABLE);
-    methodsTable.setVariable(entry.getGenericMethod() + "." + entry.getClassName(), method);
+    Environment methodsTable = (Environment) definitionEnv.get().getVariableUnsafe(S3.METHODS_TABLE);
+    methodsTable.setVariableUnsafe(entry.getGenericMethod() + "." + entry.getClassName(), method);
   }
 
   private Function resolveFunction(Context context, String functionName) {
-    SEXP methodExp = namespaceEnvironment.getVariable(functionName).force(context);
+    SEXP methodExp = namespaceEnvironment.getVariableUnsafe(functionName).force(context);
     if (methodExp == Symbol.UNBOUND_VALUE) {
       throw new EvalException("Missing export: " + functionName + " not found in " + getName());
     }

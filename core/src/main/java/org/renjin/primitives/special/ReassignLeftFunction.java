@@ -34,12 +34,12 @@ public class ReassignLeftFunction extends AssignLeftFunction {
 
     for(Environment env : rho.parents()) {
       if(env.hasVariable(lhs))  {
-        env.setVariable(lhs, rhs);
+        env.setVariable(context, lhs, rhs);
         return;
       }
     }
 
     // not defined anywhere we can see, define it anew in the global environment
-    context.getGlobalEnvironment().setVariable(lhs, rhs);
+    context.getGlobalEnvironment().setVariable(context, lhs, rhs);
   }
 }

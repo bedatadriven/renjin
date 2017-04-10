@@ -20,6 +20,9 @@ package org.renjin.parser;
 
 import org.apache.commons.math.complex.Complex;
 import org.renjin.parser.RParser.*;
+import org.renjin.primitives.Native;
+import org.renjin.primitives.io.serialization.ReadContext;
+import org.renjin.primitives.io.serialization.SessionReadContext;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
@@ -695,7 +698,7 @@ an ANSI digit or not */
   private void setParseFilename(SEXP newname) {
     if (isEnvironment(parseState.srcFile)) {
         Environment env = (Environment)parseState.srcFile;
-    	SEXP oldname = env.findVariable(Symbol.get("filename"));
+    	SEXP oldname = env.findVariableUnsafe(Symbol.get("filename"));
     	if (isString(oldname) && oldname.length() > 0 &&
             oldname.asString().equals(newname.asString())) {
         return;
@@ -705,8 +708,8 @@ an ANSI digit or not */
                                          build()
                                        ), 
                   parseState.srcFileProt);
-        env.setVariable(Symbol.get("filename"), newname);
-        env.setVariable(Symbol.get("original"), oldname);
+        env.setVariableUnsafe(Symbol.get("filename"), newname);
+        env.setVariableUnsafe(Symbol.get("original"), oldname);
     } else {
         REPROTECT(parseState.srcFile = /*duplicate(*/newname/*)*/, parseState.srcFileProt);
     }

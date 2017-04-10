@@ -1001,7 +1001,7 @@ public class Primitives {
     f("lockBinding", Environments.class, 111);
     f("unlockBinding", Environments.class, 111);
     f("bindingIsLocked", Environments.class, 11);
-    f("makeActiveBinding", /*mkActiveBnd*/ null, 111);
+    f("makeActiveBinding", /*mkActiveBnd*/ Environments.class, 111);
     f("bindingIsActive", Environments.class, 11);
 /* looks like mkUnbound is unused in base R */
     f("mkUnbound", /*mkUnbound*/ null, 111);

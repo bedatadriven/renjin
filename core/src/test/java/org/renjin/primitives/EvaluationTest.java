@@ -644,7 +644,7 @@ public class EvaluationTest extends EvalTestCase {
   @Test
   public void primitive() {
     eval("f <- .Primitive('if')");
-    assertThat(global.getVariable("f"), instanceOf(IfFunction.class));
+    assertThat(global.getVariable(topLevelContext, "f"), instanceOf(IfFunction.class));
   } 
   
 

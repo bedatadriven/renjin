@@ -59,7 +59,7 @@ public class JvmiTest extends EvalTestCase {
   public void toDataFrame() {
     
     List<MyBean> beans = Arrays.asList(new MyBean("Huey"), new MyBean("Louey"), new MyBean("Dewey"));
-    topLevelContext.getGlobalEnvironment().setVariable("df", DataFrameBuilder.build(MyBean.class, beans));
+    topLevelContext.getGlobalEnvironment().setVariable(topLevelContext, "df", DataFrameBuilder.build(MyBean.class, beans));
     
     eval("print(df)");
     
@@ -155,7 +155,7 @@ public class JvmiTest extends EvalTestCase {
   
   @Test
   public void publicMethodCallOnPrivateObject() {
-    topLevelContext.getGlobalEnvironment().setVariable("obj", new ExternalPtr(new MyPrivateImpl()));
+    topLevelContext.getGlobalEnvironment().setVariable(topLevelContext, "obj", new ExternalPtr(new MyPrivateImpl()));
     eval("obj$doSomething()");
   }
   

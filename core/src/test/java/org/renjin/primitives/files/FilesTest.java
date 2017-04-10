@@ -51,7 +51,7 @@ public class FilesTest extends EvalTestCase {
     URL resourceURL = FilesTest.class.getResource("FilesTest/a.txt");
     FileObject rootDir = topLevelContext.resolveFile(resourceURL.getPath()).getParent();
 
-    topLevelContext.getGlobalEnvironment().setVariable("rootDir", StringVector.valueOf(rootDir.toString()));
+    topLevelContext.getGlobalEnvironment().setVariable(topLevelContext, "rootDir", StringVector.valueOf(rootDir.toString()));
   }
 
 
@@ -95,7 +95,7 @@ public class FilesTest extends EvalTestCase {
     File destFile = new File(tempDir, "b.txt");
     Files.write("ABC", sourceFile, Charsets.UTF_8);
 
-    topLevelContext.getGlobalEnvironment().setVariable("rootDir", StringVector.valueOf(tempDir.getAbsolutePath()));
+    topLevelContext.getGlobalEnvironment().setVariable(topLevelContext, "rootDir", StringVector.valueOf(tempDir.getAbsolutePath()));
     
     eval("setwd(rootDir)");
     eval("x <- file.rename('a.txt', 'b.txt')");
@@ -125,7 +125,7 @@ public class FilesTest extends EvalTestCase {
     File file = new File(tempDir, "a.txt");
     Files.write("ABC", file, Charsets.UTF_8);
 
-    topLevelContext.getGlobalEnvironment().setVariable("rootDir", StringVector.valueOf(tempDir.getAbsolutePath()));
+    topLevelContext.getGlobalEnvironment().setVariable(topLevelContext, "rootDir", StringVector.valueOf(tempDir.getAbsolutePath()));
 
     eval("setwd(rootDir)");
     eval("x <- file.remove('a.txt')");
@@ -144,7 +144,7 @@ public class FilesTest extends EvalTestCase {
     File file = new File(tempDir, "a.txt");
     Files.write("ABC", file, Charsets.UTF_8);
 
-    topLevelContext.getGlobalEnvironment().setVariable("tempDir", StringVector.valueOf(tempDir.getAbsolutePath()));
+    topLevelContext.getGlobalEnvironment().setVariable(topLevelContext, "tempDir", StringVector.valueOf(tempDir.getAbsolutePath()));
 
     eval("x <- unlink(tempDir, recursive = TRUE)");
 
@@ -165,7 +165,7 @@ public class FilesTest extends EvalTestCase {
     Files.createParentDirs(grandChild);
     Files.write("ABC", grandChild, Charsets.UTF_8);
 
-    topLevelContext.getGlobalEnvironment().setVariable("tempDir", StringVector.valueOf(tempDir.getAbsolutePath()));
+    topLevelContext.getGlobalEnvironment().setVariable(topLevelContext, "tempDir", StringVector.valueOf(tempDir.getAbsolutePath()));
 
     eval("x <- unlink(tempDir, recursive = TRUE)");
 

@@ -21,6 +21,10 @@ package org.renjin.sexp;
 import org.renjin.base.BaseFrame;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.eval.Session;
+import org.renjin.primitives.Contexts;
+import org.renjin.primitives.Evaluation;
+import org.renjin.primitives.Native;
 import org.renjin.repackaged.guava.base.Predicate;
 import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.repackaged.guava.collect.UnmodifiableIterator;
@@ -62,6 +66,7 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
 
   private boolean locked;
   private Set<Symbol> lockedBindings;
+  private Map<Symbol, Closure> activeBindings = null;
 
   /**
    * Keeps track of the number of times setVariable() has been called on this 
@@ -90,73 +95,84 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
    * @return the Global environment
    */
   public static Environment createGlobalEnvironment(Environment baseEnvironment, Frame frame) {
-    Environment global = new Environment();
+    Environment global = new Environment(frame);
     global.name = GLOBAL_ENVIRONMENT_NAME;
     global.parent = baseEnvironment;
-    global.frame = frame;
 
     return global;
   }
-
 
   public static Environment createGlobalEnvironment(Environment baseEnvironment) {
     return createGlobalEnvironment(baseEnvironment, new HashFrame());
   }
 
   public static Environment createBaseEnvironment() {
-    Environment base = new Environment();
+    Environment base = new Environment(new BaseFrame());
     base.name = "base";
     base.parent = EMPTY;
-    base.frame = new BaseFrame();
     return base;
   }
 
-  public static Environment createChildEnvironment(Environment parent) {
+  public static Builder createChildEnvironment(Environment parent) {
     return createChildEnvironment(parent, new HashFrame());
   }
 
-  public static Environment createNamespaceEnvironment(Environment parent, String namespaceName) {
-    Environment ns = createChildEnvironment(parent);
+  public static Builder createNamespaceEnvironment(Environment parent, String namespaceName) {
+    Builder ns = createChildEnvironment(parent);
     ns.name = "namespace:" + namespaceName;
     return ns;
   }
   
-  public static Environment createNamedEnvironment(Environment parent, String name) {
-    Environment ns = createChildEnvironment(parent);
+  public static Builder createNamedEnvironment(Environment parent, String name) {
+    Builder ns = createChildEnvironment(parent);
     ns.name = name;
     return ns;
   }
   
-  public static Environment createBaseNamespaceEnvironment(Environment globalEnv, Environment baseEnvironment) {
-    Environment ns = createChildEnvironment(globalEnv, baseEnvironment.getFrame());
+  public static Builder createBaseNamespaceEnvironment(Environment globalEnv, Environment baseEnvironment) {
+    Builder ns = createChildEnvironment(globalEnv, baseEnvironment.getFrame());
     ns.name = "namespace:base";
     return ns;
   }
 
-  public static Environment createChildEnvironment(Environment parent, Frame frame) {
-    Environment child = new Environment();
-    child.parent = parent;
-    child.frame = frame;
-    return child;
+  public static Builder createChildEnvironment(Environment parent, Frame frame) {
+    return new Builder(parent, frame);
   }
-  
-  public Environment() {}
 
-  public Environment(AttributeMap attributes) { super(attributes); }
+  private Environment(Frame frame) {
+    this.frame = frame;
+  }
 
-  public void setVariables(PairList pairList) {
+  private Environment() {
+    this.frame = new HashFrame();
+  }
+
+  public Environment(AttributeMap attributes) {
+    super(attributes);
+    this.frame = new HashFrame();
+  }
+
+  /**
+   * set multiple variables at the same time.
+   * if variable is an active binding it will be invoked
+   * @param context
+   * @param pairList
+   */
+  public void setVariables(Context context, PairList pairList) {
     for(PairList.Node node : pairList.nodes()) {
       if(!node.hasTag()) {
         throw new IllegalArgumentException("All elements of pairList must be tagged");
       }
-      setVariable(node.getTag(), node.getValue());
+      setVariable(context, node.getTag(), node.getValue());
     }
   }
-  
 
   public void remove(Symbol symbol) {
     if(locked) {
       throw new EvalException("cannot remove bindings from a locked environment");
+    }
+    if(isActiveBinding(symbol)) {
+      activeBindings.remove(symbol);
     }
     frame.remove(symbol);
   }
@@ -164,7 +180,6 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
   public void clear() {
     frame.clear();
   }
-
 
   public String getName() {
     SEXP nameAttribute = this.attributes.get(Symbols.NAME);
@@ -177,10 +192,20 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     }
   }
 
+  /**
+   * return the parent Environment
+   *
+   * @return parent environment
+   */
   public Environment getParent() {
     return parent;
   }
 
+  /**
+   * set parent environment to provided environment
+   *
+   * @param parent environment to be set as parent environment
+   */
   public void setParent(Environment parent) {
     this.parent = parent;
     modCount ++;
@@ -193,6 +218,11 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
 
   public Collection<Symbol> getSymbolNames() {
     List<Symbol> ordered = new ArrayList<Symbol>(frame.getSymbols());
+    if(activeBindings != null) {
+      List<Symbol> ordered2 = new ArrayList<Symbol>(activeBindings.keySet());
+      ordered.addAll(ordered2);
+    }
+
     Collections.sort(ordered,new Comparator<Symbol>(){
       @Override
       public int compare(Symbol o1, Symbol o2) {
@@ -221,20 +251,22 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
   public boolean bindingIsLocked(Symbol symbol) {
     return lockedBindings != null && lockedBindings.contains(symbol);
   }
-  
-  public void setVariable(String name, SEXP value) {
-    if(StringVector.isNA(name)) {
-      name = "NA";
-    }
-    setVariable(Symbol.get(name), value);
-  }
 
-  public void setVariable(Symbol symbol, SEXP value) {
-    
+  /**
+   * set Variable without checking if variable is an 'active' binding.
+   * Only be used when it is absolutely certain that the Symbol is not used in any active binding.
+   *
+   * @param symbol  the {@code SYMSXP} that should be looked up
+   * @param value value to be assigned.
+   * @throws AssertionError when active bindings are present.
+   */
+  public void setVariableUnsafe(Symbol symbol, SEXP value) {
+    assert ( !isActiveBinding(symbol) );
+
     if(value == Symbol.UNBOUND_VALUE) {
       throw new EvalException("Unbound: " + symbol);
     }
-    
+
     if(bindingIsLocked(symbol)) {
       throw new EvalException("cannot change value of locked binding for '%s'", symbol.getPrintName());
     } else if(locked && frame.getVariable(symbol) == Symbol.UNBOUND_VALUE) {
@@ -245,18 +277,148 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
   }
 
   /**
+   * set Variable without checking if variable is an 'active' binding.
+   * Only be used when it is absolutely certain that the Symbol is not used in any active binding.
+   *
+   * @param name variable name.
+   * @param value value to be assigned.
+   * @throws AssertionError when active bindings are present.
+   */
+  public void setVariableUnsafe(String name, SEXP value) {
+    if(StringVector.isNA(name)) {
+      name = "NA";
+    }
+    setVariableUnsafe(Symbol.get(name), value);
+  }
+
+  /**
+   * set Variable without context (for backward compatibility). This method does not invoke active bindings.
+   * Use setVariableUnsafe instead, when variable can not be an active binding.
+   *
+   * @param name variable name
+   * @param value value to be assigned
+   */
+  @Deprecated
+  public void setVariable(String name, SEXP value) {
+    setVariableUnsafe(name, value);
+  }
+
+  @Deprecated
+  public void setVariable(Symbol symbol, SEXP value) {
+    setVariableUnsafe(symbol, value);
+  }
+
+  /**
+   * sets Variable and invokes function if variable is an active binding.
+   * This is the default binding method that should be used.
+   *
+   * @param context the current evaluation context
+   * @param name variable name.
+   * @param value value to be assigned.
+   * @return invisible NULL
+   * @throws AssertionError when Context is not null
+   */
+  public SEXP setVariable(Context context, String name, SEXP value) {
+    assert ( context != null );
+    if(StringVector.isNA(name)) {
+      name = "NA";
+    }
+    return setVariable(context, Symbol.get(name), value);
+  }
+
+  /**
+   * sets Variable and invokes function if variable is an active binding.
+   * This is the default binding method that should be used.
+   *
+   *
+   * @param context the current evaluation context
+   * @param symbol  the {@code SYMSXP} that should be looked up
+   * @param value the value/closure to be assigned
+   * @return invisible NULL
+   * @throws AssertionError when Context is null.
+   */
+  public SEXP setVariable(Context context, Symbol symbol, SEXP value) {
+    assert ( context != null );
+
+    if(value == Symbol.UNBOUND_VALUE) {
+      throw new EvalException("Unbound: " + symbol);
+    }
+
+    if(bindingIsLocked(symbol)) {
+      throw new EvalException("cannot change value of locked binding for '%s'", symbol.getPrintName());
+    } else if(locked && frame.getVariable(symbol) == Symbol.UNBOUND_VALUE) {
+      throw new EvalException("cannot add bindings to a locked environment");
+    }
+    if(activeBindings != null && activeBindings.containsKey(symbol)) {
+      Closure fun = activeBindings.get(symbol);
+      PairList.Builder args = new PairList.Builder().add(value);
+      return context.evaluate(new FunctionCall(fun, args.build()));
+    } else {
+      frame.setVariable(symbol, value);
+      modCount++;
+      return Null.INSTANCE;
+    }
+  }
+
+  /**
+   * Creates an active binding to given variable name
+   *
+   * @param symbol variable name
+   * @param closure function closure to bind to variable
+   */
+  public void makeActiveBinding(Symbol symbol, Closure closure) {
+    if(bindingIsLocked(symbol)) {
+      throw new EvalException("cannot change value of locked binding for '%s'", symbol.getPrintName());
+    } else if(locked && frame.getVariable(symbol) == Symbol.UNBOUND_VALUE) {
+      throw new EvalException("cannot add bindings to a locked environment");
+    }
+    if(frame.getSymbols().contains(symbol)) {
+      throw new EvalException("Error in makeActiveBinding(%s, %s, %s) :\n   symbol already has a regular binding",
+        symbol.getPrintName(), closure.getTypeName(), closure.getEnclosingEnvironment().getTypeName());
+    }
+    if(activeBindings == null) {
+      activeBindings = new HashMap<Symbol, Closure>();
+    }
+    activeBindings.put(symbol, closure);
+  }
+
+  /**
+   * Checks if active bindings are assigned to a given variable name
+   *
+   * @param symbol variable name
+   * @return
+   */
+  public boolean isActiveBinding(Symbol symbol) {
+    return activeBindings != null && activeBindings.containsKey(symbol);
+  }
+
+  public boolean isActiveBinding(String name) {
+    return isActiveBinding(Symbol.get(name));
+  }
+
+  /**
+   * returns the active binding without invocation
+   *
+   * @param symbol name of active binding
+   * @return
+   */
+  public Closure getActiveBinding(Symbol symbol) {
+    return activeBindings.get(symbol);
+  }
+
+  /**
    * Searches the environment for a value that matches the given predicate.
    *
    *
    *
-   * @param context
-   * @param symbol The symbol for which to search
+   * @param context the current evaluation context
+   * @param symbol  the {@code SYMSXP} that should be looked up
    * @param predicate a predicate that tests possible return values
    * @param inherits if {@code true}, enclosing frames are searched
    * @return the bound value or {@code Symbol.UNBOUND_VALUE} if not found
    */
   public SEXP findVariable(Context context, Symbol symbol, Predicate<SEXP> predicate, boolean inherits) {
-    SEXP value = frame.getVariable(symbol);
+    SEXP value = getVariable(context, symbol);
     if(value != Symbol.UNBOUND_VALUE) {
       if(value instanceof Promise) {
         value = value.force(context);
@@ -273,24 +435,70 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
   }
 
   /**
-   * Recursively searches this environment and its parent for the symbol {@code symbol}
+   * Recursively searches this environment and its parent for the symbol {@code symbol}. Returns the
+   * binding value or in case of active binding returns the result of function evaluation in current context.
    * 
-   * @param symbol the symbol for which to search
-   * @return the bound value, or {@code Symbol.UNBOUND_VALUE} if not found
+   * @param symbol the {@code SYMSXP} that should be looked up
+   * @return the bound value, or {@code Symbol.UNBOUND_VALUE} if not found, or if active binding the result of
+   * function evaluation in the current context
    */
-  public SEXP findVariable(Symbol symbol) {
+  public SEXP findVariable(Context context, Symbol symbol) {
     if(symbol.isVarArgReference()) {
       return findVarArg(symbol.getVarArgReferenceIndex());
+    }
+    if(activeBindings != null && activeBindings.containsKey(symbol)) {
+      return evaluateFunction(context, symbol);
     }
     SEXP value = frame.getVariable(symbol);
     if(value != Symbol.UNBOUND_VALUE) {
       return value;
     }
-    return parent.findVariable(symbol);
+    return parent.findVariable(context, symbol);
   }
-  
+
+  /**
+   * findVariable without context information (for backward compatibility), please use findVariableUnsafe()
+   * instead, if variable can not be an active binding.
+   * recursively searches the frames and parent frames and returns the variable but does not invoke active
+   * bindings
+   *
+   * @param symbol the {@code SYMSXP} that should be looked up
+   * @return
+   */
+  @Deprecated
+  public SEXP findVariable(Symbol symbol) {
+    return findVariableUnsafe(symbol);
+  }
+
+  /**
+   * Recursively searches this environment and its parent for the symbol {@code symbol} assuming there are no
+   * active bindings present in the current environment (up to the environment where {@code symbol} is found)
+   *
+   * @param symbol the {@code SYMSXP} that should be looked up
+   * @return
+   * @throws AssertionError if the symbol is an active binding
+   */
+  public SEXP findVariableUnsafe(Symbol symbol) {
+    if(symbol.isVarArgReference()) {
+      return findVarArg(symbol.getVarArgReferenceIndex());
+    }
+    assert ( !isActiveBinding(symbol) );
+    SEXP value = frame.getVariable(symbol);
+    if(value != Symbol.UNBOUND_VALUE) {
+      return value;
+    }
+    return parent.findVariableUnsafe(symbol);
+  }
+
+
+  /**
+   * returns varArg value at provided index
+   *
+   * @param varArgReferenceIndex index of varArg to return
+   * @return
+   */
   private SEXP findVarArg(int varArgReferenceIndex) {
-    SEXP ellipses = findVariable(Symbols.ELLIPSES);
+    SEXP ellipses = findVariableUnsafe(Symbols.ELLIPSES);
     if(ellipses == Symbol.UNBOUND_VALUE) {
       throw new EvalException("..%d used in an incorrect context, no ... to look in", varArgReferenceIndex);
     }
@@ -301,16 +509,62 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     return varArgs.getElementAsSEXP(varArgReferenceIndex - 1);
   }
 
-  public SEXP findVariableOrThrow(Symbol name) {
-    SEXP value = findVariable(name);
+  /**
+   * return variable value or invoke associated active binding and otherwise throw error
+   *
+   * @param context
+   * @param symbol the {@code SYMSXP} that should be looked up
+   * @return
+   * @throws EvalException if variable is not found
+   */
+  public SEXP findVariableOrThrow(Context context, Symbol symbol) {
+    SEXP value = findVariable(context, symbol);
     if(value == Symbol.UNBOUND_VALUE) {
-      throw new EvalException("object '" + name.getPrintName() + "' not found");
+      throw new EvalException("object '" + symbol.getPrintName() + "' not found");
     }
     return value;
   }
 
-  public SEXP findVariableOrThrow(String name) {
-    return findVariableOrThrow(Symbol.get(name));
+
+  /**
+   * return variable value or invoke associated active binding and otherwise throw error
+   *
+   * @param context
+   * @param name the {@code SYMSXP} name that should be looked up
+   * @return
+   * @throws EvalException if variable is not found
+   */
+  public SEXP findVariableOrThrow(Context context, String name) {
+    return findVariableOrThrow(context, Symbol.get(name));
+  }
+
+  /**
+   * return variable value or otherwise throw error (for backward compatibility)
+   * does not look for active bindings
+   *
+   * @param symbol the {@code SYMSXP} that should be looked up
+   * @return
+   * @throws EvalException if variable is not found
+   */
+  public SEXP findVariableOrThrowUnsafe(Symbol symbol) {
+    SEXP value = findVariableUnsafe(symbol);
+    if(value == Symbol.UNBOUND_VALUE) {
+      throw new EvalException("object '" + symbol.getPrintName() + "' not found");
+    }
+    return value;
+  }
+
+
+  /**
+   * return variable value or otherwise throw error (for backward compatibility)
+   * does not look for active bindings
+   *
+   * @param name the {@code SYMSXP} name that should be looked up
+   * @return
+   * @throws EvalException if variable is not found
+   */
+  public SEXP findVariableOrThrowUnsafe(String name) {
+    return findVariableOrThrowUnsafe(Symbol.get(name));
   }
 
   public Function findFunction(Context context, Symbol symbol) {
@@ -366,6 +620,11 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     }
   }
 
+  /**
+   * Locking the binding prevents changing the value of the variable
+   *
+   * @param symbol variable symbol
+   */
   public void lockBinding(Symbol symbol) {
     if(frame.getVariable(symbol) == Symbol.UNBOUND_VALUE) {
       throw new EvalException("no binding for '%s'", symbol);
@@ -376,6 +635,11 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     lockedBindings.add(symbol);
   }
 
+  /**
+   * Unlocks the binding to allow changing the value of the variable
+   *
+   * @param symbol
+   */
   public void unlockBinding(Symbol symbol) {
     if(frame.getVariable(symbol) == Symbol.UNBOUND_VALUE) {
       throw new EvalException("no binding for '%s'", symbol);
@@ -399,46 +663,96 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     };
   }
 
-  public SEXP getVariable(Symbol symbol) {
-    return frame.getVariable(symbol);
-  }
-
-  public SEXP getVariable(String symbolName) {
-    return getVariable(Symbol.get(symbolName));
+  /**
+   * get Variable without using context (for backward compatibility)
+   * Will not invoke active bindings. Please replace with getVariableUnsafe()
+   *
+   * @param name variable name to look up
+   */
+  @Deprecated
+  public SEXP getVariable(String name) {
+    return getVariableUnsafe(name);
   }
 
   /**
-   * Finds a variable by prefix, for example, "x" will
-   * match "xx" and "i" will match imaginary.
-   * @param prefix
-   * @return the first matching binding, or NULL if there
-   * are no matching bindings
+   * get Variable without using context (for backward compatibility)
+   * Will not invoke active bindings. Please replace with getVariableUnsafe()
+   *
+   * @param symbol variable name to look up
    */
-  public SEXP getVariableByPrefix(String prefix) {
-    SEXP value = null;
-    if(frame.getSymbols().contains(Symbol.get(prefix))) {
-      return frame.getVariable(Symbol.get(prefix));
-    }
-    for(Symbol name : frame.getSymbols()) {
-      if(name.getPrintName().startsWith(prefix)) {
-        return frame.getVariable(name);
-      }
-    }
-    return Null.INSTANCE;
+  @Deprecated
+  public SEXP getVariable(Symbol symbol) {
+    return getVariableUnsafe(symbol);
   }
 
+  /**
+   * Get variable value or execute function bound to a symbol. In case of normal binding return the SEXP value,
+   * otherwise if its an active binding evaluate the function in provided context.
+   * @param context the current evaluation context
+   * @param symbol the {@code SYMSXP} that should be looked up
+   * @return SEXP value of binding or result of active binding evaluation
+   * @throws AssertionError if context is not provided
+   */
+  public SEXP getVariable(Context context, Symbol symbol) {
+    assert ( context != null );
+    if(activeBindings != null && activeBindings.containsKey(symbol)) {
+      return evaluateFunction(context, symbol);
+    }
+    return frame.getVariable(symbol);
+  }
+
+
+  /**
+   * Get variable value or execute function bound to a symbol. In case of normal binding return the SEXP value,
+   * otherwise if its an active binding evaluate the function in provided context.
+   * @param context the current evaluation context
+   * @param symbolName the {@code SYMSXP} name that should be looked up
+   * @return SEXP value of binding or result of active binding evaluation
+   * @throws AssertionError if context is not provided
+   */
+  public SEXP getVariable(Context context, String symbolName) {
+    return getVariable(context, Symbol.get(symbolName));
+  }
+
+  /**
+   * Get the variable assigned to a Symbol when no active bindings are present. If variable is an active binding
+   * getting the variable results into a call that requires the context. Therefor, this is only used when its
+   * absolutely sure that there are no active bindings present.
+   *
+   * @param symbol the {@code SYMSXP} that should be looked up
+   * @return SEXP value
+   * @throws AssertionError if symbol is active binding.
+   */
+  public SEXP getVariableUnsafe(Symbol symbol) {
+    assert ( !isActiveBinding(symbol) );
+    return frame.getVariable(symbol);
+  }
+
+  /**
+   * getVariable returns the value for the provided symbol without handling active bindings.
+   * Does not invoke active bindings
+   *
+   * @param symbolName the {@code SYMSXP} name that should be looked up
+   * @return SEXP value.
+   * @throws AssertionError if active bindings are present.
+   */
+  public SEXP getVariableUnsafe(String symbolName) {
+    return getVariableUnsafe(Symbol.get(symbolName));
+  }
+
+  public SEXP getEllipsesVariable() {
+    return getVariableUnsafe(Symbols.ELLIPSES);
+  }
 
   public boolean hasVariable(Symbol symbol) {
     return frame.getVariable(symbol) != Symbol.UNBOUND_VALUE;
   }
-  
 
   @Override
   protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
     unsafeSetAttributes(attributes);
     return this;
   }
-
 
   private static class EnvIterator extends UnmodifiableIterator<Environment> {
     private Environment next;
@@ -466,7 +780,7 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
   }
 
   public Environment insertAbove(Frame frame) {
-    Environment newEnv = Environment.createChildEnvironment(parent, frame);
+    Environment newEnv = Environment.createChildEnvironment(parent, frame).build();
     setParent(newEnv);
     return newEnv;
   }
@@ -487,12 +801,17 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     }
 
     @Override
-    public SEXP findVariable(Symbol symbol) {
+    public SEXP findVariable(Context context, Symbol symbol) {
       return Symbol.UNBOUND_VALUE;
     }
 
     @Override
-    public SEXP getVariable(Symbol symbol) {
+    public SEXP findVariableUnsafe(Symbol symbol) {
+      return Symbol.UNBOUND_VALUE;
+    }
+
+    @Override
+    public SEXP getVariable(Context context, Symbol symbol) {
       return Symbol.UNBOUND_VALUE;
     }
 
@@ -549,7 +868,7 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
       BoundValue boundValue = new BoundValue();
       Symbol name = names.next();
       boundValue.name = name;
-      boundValue.value = getVariable(name);
+      boundValue.value = getVariableUnsafe(name);
       return boundValue;
     }
     
@@ -575,6 +894,40 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
       return value;
     } 
     
+  }
+
+  /**
+   *
+   */
+  public static class Builder {
+
+
+    private final Environment parent;
+    private final Frame frame;
+    public String name;
+
+    public Builder(Environment parent, Frame frame) {
+
+      this.parent = parent;
+      this.frame = frame;
+    }
+
+    public Builder setVariable(Symbol symbol, SEXP value) {
+      frame.setVariable(symbol, value);
+      return this;
+    }
+
+    public Environment build() {
+      Environment child = new Environment(frame);
+      child.parent = parent;
+      return child;
+    }
+  }
+
+  private SEXP evaluateFunction(Context context, Symbol symbol) {
+    Closure fun = activeBindings.get(symbol);
+    PairList.Builder args = new PairList.Builder();
+    return context.evaluate(new FunctionCall(fun, args.build()));
   }
 
 }

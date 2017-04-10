@@ -29,6 +29,8 @@ class Flags {
   private final static int HAS_ATTR_BIT_MASK = (1 << 9);
   private final static int HAS_TAG_BIT_MASK = (1 << 10);
 
+  private final static int ACTIVE_BINDING_MASK = (1 << 27);
+
   private Flags() {
   }
 
@@ -48,6 +50,10 @@ class Flags {
     return (flags & HAS_TAG_BIT_MASK) == HAS_TAG_BIT_MASK;
   }
 
+  public static boolean isActiveBinding(int flags) {
+    return (flags & ACTIVE_BINDING_MASK) == ACTIVE_BINDING_MASK;
+  }
+
   public static boolean isUTF8Encoded(int flags) {
     return (getLevels(flags) & SerializationFormat.UTF8_MASK) == SerializationFormat.UTF8_MASK;
   }
@@ -58,6 +64,15 @@ class Flags {
 
   public static int unpackRefIndex(int flags) {
     return   ((flags) >> 8);
+  }
+
+  public static int computeBindingFlag(boolean activeBinding) {
+    int flags = SexpType.LISTSXP;
+    flags |= HAS_TAG_BIT_MASK;
+    if (activeBinding) {
+      flags |= ACTIVE_BINDING_MASK;
+    }
+    return flags;
   }
 
   public static int computeFlags(SEXP exp, int type) {

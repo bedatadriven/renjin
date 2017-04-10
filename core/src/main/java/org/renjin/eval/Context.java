@@ -144,7 +144,7 @@ public class Context {
     context.parent = this;
     context.evaluationDepth = evaluationDepth+1;
     context.closure = closure;
-    context.environment = Environment.createChildEnvironment(closure.getEnclosingEnvironment());
+    context.environment = Environment.createChildEnvironment(closure.getEnclosingEnvironment()).build();
     context.session = session;
     context.arguments = arguments;
     context.call = call;
@@ -297,7 +297,7 @@ public class Context {
     if(symbol == Symbol.MISSING_ARG) {
       return symbol;
     }
-    SEXP value = rho.findVariable(symbol);
+    SEXP value = rho.findVariable(this, symbol);
     if(value == Symbol.UNBOUND_VALUE) {
       throw new EvalException(String.format("object '%s' not found", symbol.getPrintName()));
     } 
@@ -596,5 +596,13 @@ public class Context {
 
   public NamespaceRegistry getNamespaceRegistry() {
     return session.getNamespaceRegistry();
+  }
+
+  public void setGlobalVariable(Context context, Symbol symbol, Object value) {
+    context.getGlobalEnvironment().setVariable(context, symbol, (SEXP) value);
+  }
+
+  public void setGlobalVariable(Context context, String name, Object value) {
+    setGlobalVariable(context, Symbol.get(name), value);
   }
 }

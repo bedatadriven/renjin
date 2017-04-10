@@ -18,16 +18,16 @@
  */
 package org.renjin.primitives.io.serialization;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
+import org.renjin.primitives.Native;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.sexp.*;
 import org.renjin.sexp.PairList.Builder;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
+import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -85,7 +85,7 @@ public class RDataWriterTest extends EvalTestCase {
   @Test
   public void sharedEnvironmentBetweenClosures() throws IOException {
         
-    Environment child = Environment.createChildEnvironment(topLevelContext.getGlobalEnvironment());
+    Environment child = Environment.createChildEnvironment(topLevelContext.getGlobalEnvironment()).build();
         
     Closure f = new Closure(child, 
           PairList.Node.singleton("x", Symbol.MISSING_ARG),
@@ -128,7 +128,7 @@ public class RDataWriterTest extends EvalTestCase {
     eval("g <- function(x) x");
     eval("f <- function(x, fn = g) fn(x) ");
     
-    assertReRead(topLevelContext.getEnvironment().getVariable("f"));
+    assertReRead(topLevelContext.getEnvironment().getVariable(topLevelContext, "f"));
   } 
 
   @Test
@@ -186,5 +186,31 @@ public class RDataWriterTest extends EvalTestCase {
 
     byte[] bytes = string.getBytes(Charsets.UTF_8);
     return string.length() == bytes.length;
+  }
+
+  @Test
+  public void writeEnvironmentWithActiveBindings() throws IOException {
+    eval("f <- function(x) 2");
+    eval("rho <- new.env()");
+    eval("makeActiveBinding(\"x\", f, rho)");
+
+
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    RDataWriter writer = new RDataWriter(this.topLevelContext, out);
+    writer.save(eval("rho"));
+
+    ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+    RDataReader reader = new RDataReader(in);
+
+    Environment env = (Environment) reader.readFile();
+    assertThat( env.getVariable(topLevelContext, "x"), equalTo(c(2)));
+    assertThat( env.isActiveBinding("x"), equalTo(true));
+  }
+
+  private SEXP readRds(String resourceName) throws IOException {
+    InputStream in = getClass().getResourceAsStream(resourceName);
+    GZIPInputStream gzipIn = new GZIPInputStream(in);
+    RDataReader reader = new RDataReader(topLevelContext, gzipIn);
+    return reader.readFile();
   }
 }

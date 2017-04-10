@@ -162,13 +162,13 @@ public class MethodDispatch {
       throw new EvalException("Expected a generic function or a primitive for dispatch, " +
           "got an object of class \"%s\"", fdef.getImplicitClass());
     }
-    SEXP mtable = f_env.getVariable(R_allmtable);
+    SEXP mtable = f_env.getVariable(context, R_allmtable);
     if(mtable == Symbol.UNBOUND_VALUE) {
       do_mtable(fdef, ev); /* Should initialize the generic */
-      mtable = f_env.getVariable(R_allmtable);
+      mtable = f_env.getVariable(context, R_allmtable);
     }
-    SEXP sigargs = f_env.getVariable(R_sigargs);
-    SEXP siglength = f_env.getVariable(R_siglength);
+    SEXP sigargs = f_env.getVariable(context, R_sigargs);
+    SEXP siglength = f_env.getVariable(context, R_siglength);
 
     if(sigargs == Symbol.UNBOUND_VALUE || siglength == Symbol.UNBOUND_VALUE ||
         mtable == Symbol.UNBOUND_VALUE) {
@@ -203,7 +203,7 @@ public class MethodDispatch {
       buf.append(thisClass.asString());
     }
     ListVector classes = classListBuilder.build();
-    method = ((Environment)mtable).getVariable(buf.toString());
+    method = ((Environment)mtable).getVariable(context, buf.toString());
     if(method == Symbol.UNBOUND_VALUE) {
       method = do_inherited_table(context, classes, fdef, mtable, (Environment)ev);
     }
@@ -246,7 +246,7 @@ public class MethodDispatch {
 
     if(fdef instanceof Closure) {
       f_env = ((Closure) fdef).getEnclosingEnvironment();
-      mlist = f_env.getVariable(".Methods");
+      mlist = f_env.getVariable(context, ".Methods");
       if(mlist == Symbol.UNBOUND_VALUE) {
         mlist = Null.INSTANCE;
       }
@@ -327,22 +327,22 @@ public class MethodDispatch {
     for(PairList.Node s : attrib.nodes()) {
       SEXP t = s.getTag();
       if(t == R_target) {
-        ev.setVariable(R_dot_target, s.getValue());
+        ev.setVariable(context, R_dot_target, s.getValue());
         found++;
       }
       else if(t == R_defined) {
-        ev.setVariable(R_dot_defined, s.getValue());
+        ev.setVariable(context, R_dot_defined, s.getValue());
         found++;
       }
       else if(t == R_nextMethod)  {
-        ev.setVariable(R_dot_nextMethod, s.getValue());
+        ev.setVariable(context, R_dot_nextMethod, s.getValue());
         found++;
       }
       else if(t == Symbols.SOURCE)  {
         /* ignore */ found++;
       }
     }
-    ev.setVariable(R_dot_Method, def);
+    ev.setVariable(context, R_dot_Method, def);
 
     /* this shouldn't be needed but check the generic being
        "loadMethod", which would produce a recursive loop */
@@ -481,7 +481,7 @@ public class MethodDispatch {
 
     /* create a new environment frame enclosed by the lexical
        environment of the method */
-    Environment newrho = Environment.createChildEnvironment(op.getEnclosingEnvironment());
+    Environment.Builder newrho = Environment.createChildEnvironment(op.getEnclosingEnvironment());
     
     /* copy the bindings for the formal environment from the top frame
        of the internal environment of the generic call to the new
@@ -505,7 +505,7 @@ public class MethodDispatch {
       }
 
       Symbol symbol = next.getTag();
-      SEXP val = rho.findVariable(symbol);
+      SEXP val = rho.findVariable(context, symbol);
       if(val == Symbol.UNBOUND_VALUE) {
         throw new EvalException("could not find symbol \"%s\" in the environment of the generic function", symbol.getPrintName());
       }
@@ -536,14 +536,14 @@ public class MethodDispatch {
 
     /* copy the bindings of the spacial dispatch variables in the top
        frame of the generic call to the new frame */
-    newrho.setVariable(DOT_DEFINED, rho.findVariableOrThrow(DOT_DEFINED));
-    newrho.setVariable(DOT_METHOD, rho.findVariableOrThrow(DOT_METHOD));
-    newrho.setVariable(DOT_TARGET, rho.findVariableOrThrow(DOT_TARGET));
+    newrho.setVariable(DOT_DEFINED, rho.findVariableOrThrow(context, DOT_DEFINED));
+    newrho.setVariable(DOT_METHOD, rho.findVariableOrThrow(context, DOT_METHOD));
+    newrho.setVariable(DOT_TARGET, rho.findVariableOrThrow(context, DOT_TARGET));
 
     /* copy the bindings for .Generic and .Methods.  We know (I think)
        that they are in the second frame, so we could use that. */
-    newrho.setVariable(DOT_GENERIC, rho.findVariableOrThrow(DOT_GENERIC));
-    newrho.setVariable(DOT_METHODS, rho.findVariableOrThrow(DOT_METHODS));
+    newrho.setVariable(DOT_GENERIC, rho.findVariableOrThrow(context, DOT_GENERIC));
+    newrho.setVariable(DOT_METHODS, rho.findVariableOrThrow(context, DOT_METHODS));
 
     /* Find the calling context.  Should be R_GlobalContext unless
        profiling has inserted a CTXT_BUILTIN frame. */
@@ -561,7 +561,7 @@ public class MethodDispatch {
        execute the method, and return the result */
     FunctionCall call = cptr.getCall();
     PairList arglist = cptr.getArguments();
-    SEXP val = R_execClosure(context, call, op, arglist, callerenv, newrho);
+    SEXP val = R_execClosure(context, call, op, arglist, callerenv, newrho.build());
     return val;
   }
 

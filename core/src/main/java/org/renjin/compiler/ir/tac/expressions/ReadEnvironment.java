@@ -54,7 +54,7 @@ public class ReadEnvironment implements Expression {
     mv.visitLdcInsn(name.getPrintName());
     mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(Symbol.class), "get", 
         Type.getMethodDescriptor(Type.getType(Symbol.class), Type.getType(String.class)), false);
-    mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(Environment.class), "findVariable", 
+    mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(Environment.class), "findVariableUnsafe",
         Type.getMethodDescriptor(Type.getType(SEXP.class), Type.getType(Symbol.class)), false);
     mv.visitVarInsn(Opcodes.ALOAD, emitContext.getContextVarIndex());
     mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, Type.getInternalName(SEXP.class), "force", 

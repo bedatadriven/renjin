@@ -40,7 +40,7 @@ public class RecallFunction extends SpecialFunction {
       throw new EvalException("Recall() must be called from within a closure");
     }
     
-    PairList newArguments = (PairList)rho.getVariable(Symbols.ELLIPSES);
+    PairList newArguments = (PairList)rho.getVariable(context, Symbols.ELLIPSES);
     FunctionCall newCall = new FunctionCall(originalContext.getCall().getFunction(), newArguments);
     
     return closure.apply(originalContext, 

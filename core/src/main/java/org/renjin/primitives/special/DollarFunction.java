@@ -20,6 +20,7 @@ package org.renjin.primitives.special;
 
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.invoke.annotations.Current;
 import org.renjin.primitives.S3;
 import org.renjin.sexp.*;
 
@@ -61,7 +62,7 @@ public class DollarFunction extends SpecialFunction {
       return fromPairList((PairList) object, name);
     
     } else if(object instanceof Environment) {
-      return fromEnvironment((Environment)object, name);
+      return fromEnvironment(context, (Environment)object, name);
       
     } else if(object instanceof ListVector) {
       return fromList((ListVector) object, name);
@@ -102,8 +103,8 @@ public class DollarFunction extends SpecialFunction {
     return matchCount == 1 ? match : Null.INSTANCE;
   }
   
-  public static SEXP fromEnvironment(Environment env, String name) {
-    SEXP value = env.getVariable(name);
+  public static SEXP fromEnvironment(@Current Context context, Environment env, String name) {
+    SEXP value = env.getVariable(context, name);
     if (value == Symbol.UNBOUND_VALUE) {
       return Null.INSTANCE;
     }

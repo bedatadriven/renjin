@@ -52,7 +52,7 @@ public class Namespaces {
   
   @Internal
   public static Environment getNamespaceRegistry(@Current NamespaceRegistry registry) {
-    return Environment.createChildEnvironment(Environment.EMPTY, new NamespaceFrame(registry));
+    return Environment.createChildEnvironment(Environment.EMPTY, new NamespaceFrame(registry)).build();
   }
 
   @Builtin

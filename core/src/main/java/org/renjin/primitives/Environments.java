@@ -42,24 +42,24 @@ public final class Environments {
   }
 
   @Internal
-  public static ListVector env2list(Environment env, boolean allNames) {
+  public static ListVector env2list(@Current Context context, Environment env, boolean allNames) {
     ListVector.NamedBuilder list = new ListVector.NamedBuilder();
     for(Symbol name : env.getSymbolNames()) {
       if(allNames || !name.getPrintName().startsWith(".")) {
-        list.add(name, env.getVariable(name));
+        list.add(name, env.getVariable(context, name));
       }
     }
     return list.build();
   }
 
   @Internal
-  public static Environment list2env(ListVector list, Environment env) {
+  public static Environment list2env(@Current Context context, ListVector list, Environment env) {
     AtomicVector names = list.getNames();
     if(names.length() != list.length()) {
       throw new EvalException("names(x) must be a character vector of the same length as x");
     }
     for (NamedValue namedValue : list.namedValues()) {
-      env.setVariable(namedValue.getName(), namedValue.getValue());
+      env.setVariable(context, namedValue.getName(), namedValue.getValue());
     }
     
     return env;
@@ -120,11 +120,11 @@ public final class Environments {
 
   @Builtin("as.environment")
   public static Environment asEnvironment(ListVector list) {
-    Environment env = Environment.createChildEnvironment(Environment.EMPTY);
+    Environment.Builder env = Environment.createChildEnvironment(Environment.EMPTY);
     for(NamedValue namedValue : list.namedValues()) {
-      env.setVariable(namedValue.getName(), namedValue.getValue());
+      env.setVariable(Symbol.get(namedValue.getName()), namedValue.getValue());
     }
-    return env;
+    return env.build();
   }
 
   @Builtin("as.environment")
@@ -192,7 +192,12 @@ public final class Environments {
 
   @Internal
   public static boolean bindingIsActive(Symbol symbol, Environment env) {
-    return false;
+    return env.isActiveBinding(symbol);
+  }
+
+  @Internal
+  public static void makeActiveBinding(Symbol sym, Closure closure, Environment env) {
+    env.makeActiveBinding(sym, closure);
   }
 
   /*----------------------------------------------------------------------
@@ -211,16 +216,16 @@ public final class Environments {
     loading a package.
      */
   @Internal("lib.fixup")
-  public static Environment libfixup(Environment loadEnv, Environment libEnv) {
+  public static Environment libfixup(@Current Context context, Environment loadEnv, Environment libEnv) {
     for (Symbol name : loadEnv.getSymbolNames()) {
-      SEXP value = loadEnv.getVariable(name);
+      SEXP value = loadEnv.getVariable(context, name);
       if (value instanceof Closure) {
         Closure closure = (Closure) value;
         if (closure.getEnclosingEnvironment() == loadEnv) {
           value = closure.setEnclosingEnvironment(libEnv);
         }
       }
-      loadEnv.setVariable(name, value);
+      loadEnv.setVariable(context, name, value);
     }
     return libEnv;
   }
@@ -257,7 +262,7 @@ public final class Environments {
 
   @Internal("new.env")
   public static Environment newEnv(boolean hash, Environment parent, int size) {
-    return Environment.createChildEnvironment(parent);
+    return Environment.createChildEnvironment(parent).build();
   }
 
   @Builtin
@@ -291,7 +296,10 @@ public final class Environments {
   }
 
   private static boolean existsAnySymbol(Symbol symbol, Environment environment, boolean inherits) {
-    SEXP value = environment.getVariable(symbol);
+    if(environment.isActiveBinding(symbol)) {
+      return true;
+    }
+    SEXP value = environment.getVariableUnsafe(symbol);
     if(value != Symbol.UNBOUND_VALUE) {
       return true;
     }
@@ -383,7 +391,7 @@ public final class Environments {
       child = child.getParent();
     }
 
-    Environment newEnv = Environment.createChildEnvironment(child.getParent());
+    Environment newEnv = Environment.createChildEnvironment(child.getParent()).build();
     child.setParent(newEnv);
 
     newEnv.setAttribute(Symbols.NAME.getPrintName(), StringVector.valueOf(name));
@@ -395,7 +403,7 @@ public final class Environments {
         if(!namedValue.hasName()) {
           throw new UnsupportedOperationException("all elements of a list must be named");
         }
-        newEnv.setVariable(namedValue.getName(), namedValue.getValue());
+        newEnv.setVariable(context, namedValue.getName(), namedValue.getValue());
       }
     } else {
       throw new EvalException("object of type '%s' cannot be attached", what.getTypeName());

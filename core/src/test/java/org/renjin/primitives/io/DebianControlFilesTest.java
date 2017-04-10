@@ -36,7 +36,7 @@ public class DebianControlFilesTest extends EvalTestCase {
    
     
     SEXP conn = openResourceAsConn("/org/renjin/share/licenses/license.db");
-    topLevelContext.getEnvironment().setVariable("x",
+    topLevelContext.getEnvironment().setVariable(topLevelContext, "x",
         DebianControlFiles.readDCF(topLevelContext, conn, Null.INSTANCE, true));
     
     assertThat(eval("dim(x)"), equalTo(c_i(29,7)));
@@ -56,7 +56,7 @@ public class DebianControlFilesTest extends EvalTestCase {
     SEXP conn = openResourceAsConn("continuation.dcf");
     SEXP db = DebianControlFiles.readDCF(topLevelContext, conn, Null.INSTANCE, true);
        
-    topLevelContext.getEnvironment().setVariable("x",
+    topLevelContext.getEnvironment().setVariable(topLevelContext, "x",
         db);
 
     

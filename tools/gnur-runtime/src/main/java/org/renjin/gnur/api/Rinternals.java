@@ -24,6 +24,7 @@ import org.renjin.eval.EvalException;
 import org.renjin.eval.FinalizationClosure;
 import org.renjin.eval.FinalizationHandler;
 import org.renjin.gcc.runtime.*;
+import org.renjin.invoke.annotations.Current;
 import org.renjin.methods.MethodDispatch;
 import org.renjin.methods.Methods;
 import org.renjin.primitives.*;
@@ -1277,7 +1278,7 @@ public final class Rinternals {
     Symbol name = (Symbol) nameSexp;
     Environment rho = (Environment) rhoSexp;
     
-    rho.setVariable(name, value);
+    rho.setVariable(Native.currentContext(), name, value);
   }
 
   public static SEXP Rf_dimgets(SEXP p0, SEXP p1) {
@@ -1361,7 +1362,7 @@ public final class Rinternals {
    *
    */
   public static SEXP Rf_findVar(SEXP symbol, SEXP rho) {
-    return ((Environment) rho).findVariable(((Symbol) symbol));
+    return ((Environment) rho).findVariable(Native.currentContext(), ((Symbol) symbol));
   }
 
   public static SEXP Rf_findVarInFrame(SEXP rho, SEXP symbol) {
@@ -1386,7 +1387,7 @@ public final class Rinternals {
    * @return Returns the binding value, or {@link #R_UnboundValue} if none was found.
    */
   public static SEXP Rf_findVarInFrame3(SEXP rho, SEXP symbol, boolean doGet) {
-    return ((Environment) rho).getVariable((Symbol)symbol);
+    return ((Environment) rho).getVariable(Native.currentContext(), (Symbol)symbol);
   }
 
 

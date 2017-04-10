@@ -222,7 +222,7 @@ public class TestExecutor {
       testOutput.println();
       for (Symbol name : session.getGlobalEnvironment().getSymbolNames()) {
         if (name.getPrintName().startsWith("test.")) {
-          SEXP value = session.getGlobalEnvironment().getVariable(name);
+          SEXP value = session.getGlobalEnvironment().getVariable(session.getTopLevelContext(), name);
           if (isZeroArgFunction(value)) {
             executeTestFunction(session.getTopLevelContext(), name, testOutput);
           }

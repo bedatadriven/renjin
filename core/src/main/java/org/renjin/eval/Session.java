@@ -33,7 +33,6 @@ import org.renjin.stats.internals.distributions.RNG;
 import org.renjin.util.FileSystemUtils;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.lang.invoke.MethodHandle;
@@ -134,9 +133,9 @@ public class Session {
     this.systemEnvironment = Maps.newHashMap(System.getenv()); //load system environment variables
     this.baseEnvironment = Environment.createBaseEnvironment();
     this.globalEnvironment = Environment.createGlobalEnvironment(baseEnvironment, globalFrame);
-    this.baseNamespaceEnv = Environment.createBaseNamespaceEnvironment(globalEnvironment, baseEnvironment);
-    this.baseNamespaceEnv.setVariable(Symbol.get(".BaseNamespaceEnv"), baseNamespaceEnv);
+    this.baseNamespaceEnv = Environment.createBaseNamespaceEnvironment(globalEnvironment, baseEnvironment).build();
     this.topLevelContext = new Context(this);
+    this.baseNamespaceEnv.setVariableUnsafe(Symbol.get(".BaseNamespaceEnv"), baseNamespaceEnv);
 
     namespaceRegistry = new NamespaceRegistry(packageLoader, topLevelContext, baseNamespaceEnv);
     securityManager = new SecurityManager();
@@ -147,7 +146,7 @@ public class Session {
     // TODO(alex)
     // several packages rely on the presence of .Random.seed in the global
     // even though it's an implementation detail.
-    globalEnvironment.setVariable(".Random.seed", IntVector.valueOf(1));
+    globalEnvironment.setVariable(topLevelContext, ".Random.seed", IntVector.valueOf(1));
   }
 
 

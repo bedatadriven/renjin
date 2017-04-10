@@ -248,7 +248,7 @@ public class NamespaceRegistry {
    */
   private void populateNamespace(Context context, Package pkg, Namespace namespace) throws IOException {
     for(NamedValue value : pkg.loadSymbols(context)) {
-      namespace.getNamespaceEnvironment().setVariable(Symbol.get(value.getName()), value.getValue());
+      namespace.getNamespaceEnvironment().setVariable(context, Symbol.get(value.getName()), value.getValue());
     }
   }
 
@@ -270,9 +270,9 @@ public class NamespaceRegistry {
     // BASE-NS -> IMPORTS -> ENVIRONMENT
 
     Environment imports = Environment.createNamedEnvironment(getBaseNamespaceEnv(),
-        "imports:" + pkg.getName().toString('.'));
+        "imports:" + pkg.getName().toString('.')).build();
 
-    Environment namespaceEnv = Environment.createNamespaceEnvironment(imports, pkg.getName().getPackageName());
+    Environment namespaceEnv = Environment.createNamespaceEnvironment(imports, pkg.getName().getPackageName()).build();
     Namespace namespace = new Namespace(pkg, namespaceEnv);
     localNameMap.put(pkg.getName().getPackageSymbol(), namespace);
     namespaceMap.put(pkg.getName(), namespace);
@@ -280,7 +280,7 @@ public class NamespaceRegistry {
     envirMap.put(namespaceEnv, namespace);
 
     // save the name to the environment
-    namespaceEnv.setVariable(".packageName", StringVector.valueOf(pkg.getName().getPackageName()));
+    namespaceEnv.setVariableUnsafe(".packageName", StringVector.valueOf(pkg.getName().getPackageName()));
     return namespace;
   }
 

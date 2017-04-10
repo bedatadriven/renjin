@@ -18,19 +18,13 @@
 #
 
 
-# During package build, GNU R orders files using LC_COLLATE=C, ensuring that
-# ordering is done on a byte-by-byte basis, which means that upper case letters
-# come _before_ lower case letters, among other differences.
+library(hamcrest)
+library(utils)
 
-defined.first <- 42
+x <- getNamespace("evalOrder")
+assertThat(x$abc, equalTo(43))
+assertThat(isActiveBinding("abc", x), equalTo(FALSE))
 
 
-f <- local( {
-         x <- 1
-         function(v) {
-            if (!missing(v)) x <<- v
-            x
-         }
-     })
 
-makeActiveBinding("abc", f, environment())
+

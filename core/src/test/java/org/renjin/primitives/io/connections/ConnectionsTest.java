@@ -38,7 +38,7 @@ public class ConnectionsTest extends EvalTestCase {
   @Test
   public void readAllLines() {
     
-    topLevelContext.getGlobalEnvironment().setVariable("conn", openResourceAsConn("lines.txt"));
+    topLevelContext.getGlobalEnvironment().setVariable(topLevelContext, "conn", openResourceAsConn("lines.txt"));
     
     eval("lines <- .Internal(readLines(conn, -1, TRUE, FALSE, 'UTF-8'))");
  
@@ -48,7 +48,7 @@ public class ConnectionsTest extends EvalTestCase {
   @Test
   public void readSomeLines() {
     
-    topLevelContext.getGlobalEnvironment().setVariable("conn", openResourceAsConn("lines.txt"));
+    topLevelContext.getGlobalEnvironment().setVariable(topLevelContext, "conn", openResourceAsConn("lines.txt"));
     
     eval("lines <- .Internal(readLines(conn, 2, TRUE, FALSE, 'UTF-8'))");
     assertThat(eval("length(lines)"), equalTo(c_i(2)));
@@ -56,7 +56,7 @@ public class ConnectionsTest extends EvalTestCase {
   
   @Test
   public void readLinesSequence() {
-    topLevelContext.getGlobalEnvironment().setVariable("conn", openResourceAsConn("lines.txt"));
+    topLevelContext.getGlobalEnvironment().setVariable(topLevelContext, "conn", openResourceAsConn("lines.txt"));
 
     eval("line1 <- .Internal(readLines(conn, 1, TRUE, FALSE, 'UTF-8'))");
     eval("line2 <- .Internal(readLines(conn, 1, TRUE, FALSE, 'UTF-8'))");

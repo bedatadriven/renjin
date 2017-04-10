@@ -435,11 +435,18 @@ public class RDataWriter implements AutoCloseable {
   }
   
   private void writeFrame(Environment exp) throws IOException {
-    PairList.Builder frame = new PairList.Builder();
     for(Symbol name : exp.getSymbolNames()) {
-      frame.add(name, exp.getVariable(name));
+      if(exp.isActiveBinding(name)) {
+        out.writeInt(Flags.computeBindingFlag(true));
+        writeExp(name);
+        writeExp(exp.getActiveBinding(name));
+      } else {
+        out.writeInt(Flags.computeBindingFlag(false));
+        writeExp(name);
+        writeExp(exp.getVariableUnsafe(name));
+      }
     }
-    writeExp(frame.build());
+    writeNull();
   }
 
   private void writeNamespace(Environment ns) throws IOException {

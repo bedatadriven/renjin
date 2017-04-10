@@ -19,6 +19,7 @@
 package org.renjin.packaging;
 
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
+import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
@@ -26,7 +27,6 @@ import org.renjin.parser.RParser;
 import org.renjin.primitives.io.connections.GzFileConnection;
 import org.renjin.primitives.io.serialization.RDataReader;
 import org.renjin.primitives.io.serialization.RDataWriter;
-import org.renjin.primitives.packaging.PackageLoader;
 import org.renjin.repackaged.guava.annotations.VisibleForTesting;
 import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.repackaged.guava.collect.HashMultimap;
@@ -302,7 +302,7 @@ public class DatasetsBuilder2 {
     PairList.Builder pairList = new PairList.Builder();
     for(Symbol symbol : session.getGlobalEnvironment().getSymbolNames()) {
       if(!symbol.getPrintName().startsWith(".")) {
-        pairList.add(symbol, session.getGlobalEnvironment().getVariable(symbol));
+        pairList.add(symbol, session.getGlobalEnvironment().getVariable(session.getTopLevelContext(), symbol));
       }
     }   
     writePairList(logicalDatasetName, session, pairList.build());

@@ -26,3 +26,13 @@ library("org.renjin.test:s4test")
 # NSBS is exported by s4test,
 # but extends a class NativeNSBS that is NOT exported
 setClass("RleNSBS", contains="NSBS", representation(subscript="Rle"))
+
+test.extend.primitive = function() {
+
+    setClass("Gene", representation(name="character", sequence="character", quality="numeric"))
+    setMethod("[", signature="Gene", function(x, i, j, ...) x@quality[i])
+
+    a <- new("Gene", name="GeneA", sequence="ATGAAA", quality=c(99,89.5,67,86.5,20,3.2) )
+
+    assertThat(a[5:6], identicalTo( c(20,3.2) ))
+}

@@ -202,7 +202,8 @@ public class Subsetting {
   private static SEXP handleS4object(@Current Context context, SEXP source, String functionName, @ArgumentList ListVector subscripts) {
     String functionEnvName = ".__T__" + functionName + ":base";
     Environment functionEnv = (Environment) context.getGlobalEnvironment().findVariable(context, Symbol.get(functionEnvName));
-    Closure function = (Closure) functionEnv.findVariable(context, Symbol.get("Gene"));
+    String className = source.getAttributes().getClassVector().getElementAsString(0);
+    Closure function = (Closure) functionEnv.findVariable(context, Symbol.get(className));
     PairList.Builder args = new PairList.Builder();
     args.add(source);
     args.addAll(subscripts);

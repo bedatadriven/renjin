@@ -35,4 +35,5 @@ test.extend.primitive = function() {
     a <- new("Gene", name="GeneA", sequence="ATGAAA", quality=c(99,89.5,67,86.5,20,3.2) )
 
     assertThat(a[5:6], identicalTo( c(20,3.2) ))
+    assertThat(a[2:3], identicalTo( c(89.5, 67)) )
 }

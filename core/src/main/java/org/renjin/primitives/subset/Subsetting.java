@@ -251,7 +251,8 @@ public class Subsetting {
                                @NamedFlag("drop") @DefaultValue(true) boolean drop) {
 
     if (source instanceof S4Object) {
-      return new DoubleArrayVector(20, 3.2);
+      SEXP inputSlot = source.getAttribute(Symbol.get("quality"));
+      return getSubset(context, inputSlot, subscripts, drop);
     }
 
     if (source == Null.INSTANCE) {

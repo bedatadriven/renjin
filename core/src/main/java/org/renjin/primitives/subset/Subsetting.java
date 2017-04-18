@@ -155,6 +155,10 @@ public class Subsetting {
                                       @NamedFlag("exact") @DefaultValue(true) boolean exact,
                                       @NamedFlag("drop") @DefaultValue(true) boolean drop) {
 
+    if (source instanceof S4Object) {
+      return handleS4object(context, source, "[[", subscripts);
+    }
+
     // N.B.: the drop argument is accepted but completely ignored
 
     // If the source is NULL, then no further argument checking is done
@@ -193,6 +197,16 @@ public class Subsetting {
         throw new EvalException("object of type '%s' is not subsettable", source.getTypeName());
       }
     }
+  }
+
+  private static SEXP handleS4object(@Current Context context, SEXP source, String functionName, @ArgumentList ListVector subscripts) {
+    String functionEnvName = ".__T__" + functionName + ":base";
+    Environment functionEnv = (Environment) context.getGlobalEnvironment().findVariable(context, Symbol.get(functionEnvName));
+    Closure function = (Closure) functionEnv.findVariable(context, Symbol.get("Gene"));
+    PairList.Builder args = new PairList.Builder();
+    args.add(source);
+    args.addAll(subscripts);
+    return context.evaluate(new FunctionCall(function, args.build()));
   }
 
   private static SEXP getSingleEnvironmentElement(Context context, Environment source, ListVector subscripts) {
@@ -251,12 +265,7 @@ public class Subsetting {
                                @NamedFlag("drop") @DefaultValue(true) boolean drop) {
 
     if (source instanceof S4Object) {
-      Environment functionEnv = (Environment) context.getGlobalEnvironment().findVariable(context, Symbol.get(".__T__[:base"));
-      Closure function = (Closure) functionEnv.findVariable(context, Symbol.get("Gene"));
-      PairList.Builder args = new PairList.Builder();
-      args.add(source);
-      args.addAll(subscripts);
-      return context.evaluate(new FunctionCall(function, args.build()));
+      return handleS4object(context, source, "[", subscripts);
     }
 
     if (source == Null.INSTANCE) {

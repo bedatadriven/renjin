@@ -267,11 +267,15 @@ public class S3 {
     String functionEnvName = ".__T__" + functionName + ":base";
     Environment functionEnv = (Environment) context.getGlobalEnvironment().findVariable(context, Symbol.get(functionEnvName));
     String className = source.getAttributes().getClassVector().getElementAsString(0);
-    Closure function = (Closure) functionEnv.findVariable(context, Symbol.get(className));
+    SEXP function = functionEnv.findVariable(context, Symbol.get(className));
+    if (function == Symbol.UNBOUND_VALUE) {
+      className = source.getS3Class().toString() + "#" + args.getElementAsSEXP(1).getS3Class().toString();
+      function = functionEnv.findVariable(context, Symbol.get(className));
+    }
     PairList.Builder allArgs = new PairList.Builder();
     allArgs.add(source);
     allArgs.add(args.getElementAsSEXP(1));
-    return context.evaluate(new FunctionCall(function, allArgs.build()));
+    return context.evaluate(new FunctionCall((Closure) function, allArgs.build()));
   }
 
   public static SEXP tryDispatchFromPrimitive(Context context, Environment rho, FunctionCall call,

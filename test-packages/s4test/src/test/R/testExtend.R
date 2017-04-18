@@ -27,7 +27,7 @@ library("org.renjin.test:s4test")
 # but extends a class NativeNSBS that is NOT exported
 setClass("RleNSBS", contains="NSBS", representation(subscript="Rle"))
 
-test.extend.primitive.1 = function() {
+test.extend.primitive.0 = function() {
 
     setClass("Gene", representation(name="character", sequence="character", quality="numeric"))
     setMethod("[", signature="Gene", function(x, i, j, ...) x@quality[i])
@@ -37,7 +37,7 @@ test.extend.primitive.1 = function() {
     assertThat(a[2:3], identicalTo( c(89.5, 67)) )
 }
 
-test.extend.primitive2 = function() {
+test.extend.primitive.1 = function() {
 
     setClass("Gene", representation(name="character", sequence="character", quality="numeric"))
     setMethod("[", signature="Gene", function(x, i, j, ...) 50.5)
@@ -47,7 +47,7 @@ test.extend.primitive2 = function() {
     assertThat(a[2:3], identicalTo( c(50.5)) )
 }
 
-test.extend.primitive3 = function() {
+test.extend.primitive.2 = function() {
 
     setClass("Gene", representation(name="character", sequence="character", quality="numeric"))
     setMethod("[[", signature="Gene", function(x, i, j, ...) 87.4)
@@ -56,7 +56,7 @@ test.extend.primitive3 = function() {
     assertThat(a[[1]], identicalTo( c(87.4) ))
 }
 
-test.extend.primitive4 = function() {
+test.extend.primitive.3 = function() {
 
     setClass("Promoter", representation(name="character", sequence="character", quality="numeric"))
     setMethod("[[", signature="Promoter", function(x, i, j, ...) 65.78)
@@ -65,12 +65,35 @@ test.extend.primitive4 = function() {
     assertThat(a[[1]], identicalTo( c(65.78) ))
 }
 
-test.extend.primitive5 = function() {
+test.extend.primitive.4 = function() {
 
     setClass("Promoter", representation(name="character", sequence="character", quality="numeric"))
     setMethod("[[", signature="Promoter", function(x, i, j, ...) 65.78)
-
     a <- new("Promoter", name="IRES", sequence="ATGAAAC", quality=c(80,79.5,100,100,98,0.8,10) )
 
     assertThat(a[[stop()]], identicalTo( c(65.78) ))
+}
+
+test.extend.primitive.5 = function() {
+
+    setClass("Promoter", representation(name="character", sequence="character", quality="numeric"))
+    setMethod("[[", signature=c("Promoter", "numeric"), function(x, i, j, ...) 65.78)
+    setMethod("[[", signature=c("Promoter", "character"), function(x, i, j, ...) 99.99)
+    a <- new("Promoter", name="IRES", sequence="ATGAAAC", quality=c(80,79.5,100,100,98,0.8,10) )
+
+    assertThat(a[["hello"]], identicalTo( c(99.99) ))
+    assertThat(a[[1]], identicalTo( c(65.78) ))
+
+}
+
+test.extend.primitive.6 = function() {
+
+    setClass("Promoter", representation(name="character", sequence="character", quality="numeric"))
+    setMethod("[", signature=c("Promoter", "numeric"), function(x, i, j, ...) 165.78)
+    setMethod("[", signature=c("Promoter", "character"), function(x, i, j, ...) 299.99)
+    a <- new("Promoter", name="IRES", sequence="ATGAAAC", quality=c(80,79.5,100,100,98,0.8,10) )
+
+    assertThat(a["hello"], identicalTo( c(299.99) ))
+    assertThat(a[1], identicalTo( c(165.78) ))
+
 }

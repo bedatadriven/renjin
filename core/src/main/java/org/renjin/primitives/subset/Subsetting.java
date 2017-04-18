@@ -251,8 +251,12 @@ public class Subsetting {
                                @NamedFlag("drop") @DefaultValue(true) boolean drop) {
 
     if (source instanceof S4Object) {
-      SEXP inputSlot = source.getAttribute(Symbol.get("quality"));
-      return getSubset(context, inputSlot, subscripts, drop);
+      Environment functionEnv = (Environment) context.getGlobalEnvironment().findVariable(context, Symbol.get(".__T__[:base"));
+      Closure function = (Closure) functionEnv.findVariable(context, Symbol.get("Gene"));
+      PairList.Builder args = new PairList.Builder();
+      args.add(source);
+      args.addAll(subscripts);
+      return context.evaluate(new FunctionCall(function, args.build()));
     }
 
     if (source == Null.INSTANCE) {

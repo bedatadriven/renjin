@@ -77,8 +77,8 @@ test.extend.primitive.4 = function() {
 test.extend.primitive.5 = function() {
 
     setClass("Promoter", representation(name="character", sequence="character", quality="numeric"))
-    setMethod("[[", signature=c("Promoter", "numeric"), function(x, i, j, ...) 65.78)
     setMethod("[[", signature=c("Promoter", "character"), function(x, i, j, ...) 99.99)
+    setMethod("[[", signature=c("Promoter", "numeric"), function(x, i, j, ...) 65.78)
     a <- new("Promoter", name="IRES", sequence="ATGAAAC", quality=c(80,79.5,100,100,98,0.8,10) )
 
     assertThat(a[["hello"]], identicalTo( c(99.99) ))
@@ -89,11 +89,51 @@ test.extend.primitive.5 = function() {
 test.extend.primitive.6 = function() {
 
     setClass("Promoter", representation(name="character", sequence="character", quality="numeric"))
-    setMethod("[", signature=c("Promoter", "numeric"), function(x, i, j, ...) 165.78)
     setMethod("[", signature=c("Promoter", "character"), function(x, i, j, ...) 299.99)
+    setMethod("[", signature=c("Promoter", "numeric"), function(x, i, j, ...) 165.78)
     a <- new("Promoter", name="IRES", sequence="ATGAAAC", quality=c(80,79.5,100,100,98,0.8,10) )
 
     assertThat(a["hello"], identicalTo( c(299.99) ))
     assertThat(a[1], identicalTo( c(165.78) ))
+
+}
+
+test.extend.primitive.7 = function() {
+
+    setClass("Promoter", representation(name="character", sequence="character", quality="numeric"))
+    setMethod("[", signature=c("Promoter", "double"), function(x, i, j, ...) 36.18)
+    a <- new("Promoter", name="IRES", sequence="ATGAAAC", quality=c(80,79.5,100,100,98,0.8,10) )
+
+    assertThat(a[1.0], identicalTo( c(36.18) ))
+
+}
+
+test.extend.primitive.8 = function() {
+
+    setClass("Promoter", representation(name="character", sequence="character", quality="numeric"))
+    setMethod("[", signature=c("Promoter", "integer"), function(x, i, j, ...) 83.18)
+    a <- new("Promoter", name="IRES", sequence="ATGAAAC", quality=c(80,79.5,100,100,98,0.8,10) )
+
+    assertThat(a[1L], identicalTo( c(83.18) ))
+
+}
+
+test.extend.primitive.9 = function() {
+
+    setClass("Promoter2", representation(name="character", sequence="character", quality="numeric"))
+    setMethod("[", signature=c("Promoter2", "numeric"), function(x, i, j, ...) 57.98)
+    b <- new("Promoter2", name="IRES", sequence="ATGAAAC", quality=c(80,79.5,100,100,98,0.8,10) )
+
+    assertThat(b[1L], identicalTo( c(57.98) ))
+
+}
+
+test.extend.primitive.10 = function() {
+
+    setClass("Promoter", representation(name="character", sequence="character", quality="numeric"))
+    setMethod("[", signature=c("Promoter", "numeric"), function(x, i, j, ...) 69.98)
+    a <- new("Promoter", name="IRES", sequence="ATGAAAC", quality=c(80,79.5,100,100,98,0.8,10) )
+
+    assertThat(a[1.0], identicalTo( c(69.98) ))
 
 }

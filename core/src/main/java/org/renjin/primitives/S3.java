@@ -269,13 +269,24 @@ public class S3 {
     String className = source.getAttributes().getClassVector().getElementAsString(0);
     SEXP function = functionEnv.findVariable(context, Symbol.get(className));
     if (function == Symbol.UNBOUND_VALUE) {
-      className = source.getS3Class().toString() + "#" + args.getElementAsSEXP(1).getS3Class().toString();
-      function = functionEnv.findVariable(context, Symbol.get(className));
+      SEXP arg2 = args.getElementAsSEXP(1);
+      String arg2class = arg2.getTypeName();
+      if (arg2class.equals("double") || arg2class.equals("integer")) {
+        Symbol symbol = Symbol.get(className + "#" + arg2class);
+        function = functionEnv.findVariable(context, symbol);
+        if(function == Symbol.UNBOUND_VALUE) {
+          className = className + "#numeric";
+          function = functionEnv.findVariable(context, Symbol.get(className));
+        }
+      } else {
+        className = className + "#" + arg2class;
+        function = functionEnv.findVariable(context, Symbol.get(className));
+      }
     }
     PairList.Builder allArgs = new PairList.Builder();
     allArgs.add(source);
     allArgs.add(args.getElementAsSEXP(1));
-    return context.evaluate(new FunctionCall((Closure) function, allArgs.build()));
+    return context.evaluate(new FunctionCall(function, allArgs.build()));
   }
 
   public static SEXP tryDispatchFromPrimitive(Context context, Environment rho, FunctionCall call,

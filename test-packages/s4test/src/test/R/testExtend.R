@@ -27,11 +27,10 @@ library("org.renjin.test:s4test")
 # but extends a class NativeNSBS that is NOT exported
 setClass("RleNSBS", contains="NSBS", representation(subscript="Rle"))
 
-test.extend.primitive = function() {
+test.extend.primitive.1 = function() {
 
     setClass("Gene", representation(name="character", sequence="character", quality="numeric"))
     setMethod("[", signature="Gene", function(x, i, j, ...) x@quality[i])
-
     a <- new("Gene", name="GeneA", sequence="ATGAAA", quality=c(99,89.5,67,86.5,20,3.2) )
 
     assertThat(a[5:6], identicalTo( c(20,3.2) ))
@@ -42,7 +41,6 @@ test.extend.primitive2 = function() {
 
     setClass("Gene", representation(name="character", sequence="character", quality="numeric"))
     setMethod("[", signature="Gene", function(x, i, j, ...) 50.5)
-
     a <- new("Gene", name="GeneA", sequence="ATGAAA", quality=c(99,89.5,67,86.5,20,3.2) )
 
     assertThat(a[5:6], identicalTo( c(50.5) ))
@@ -53,7 +51,6 @@ test.extend.primitive3 = function() {
 
     setClass("Gene", representation(name="character", sequence="character", quality="numeric"))
     setMethod("[[", signature="Gene", function(x, i, j, ...) 87.4)
-
     a <- new("Gene", name="GeneA", sequence="ATGAAA", quality=c(99,89.5,67,86.5,20,3.2) )
 
     assertThat(a[[1]], identicalTo( c(87.4) ))
@@ -63,8 +60,17 @@ test.extend.primitive4 = function() {
 
     setClass("Promoter", representation(name="character", sequence="character", quality="numeric"))
     setMethod("[[", signature="Promoter", function(x, i, j, ...) 65.78)
-
     a <- new("Promoter", name="IRES", sequence="ATGAAAC", quality=c(80,79.5,100,100,98,0.8,10) )
 
     assertThat(a[[1]], identicalTo( c(65.78) ))
+}
+
+test.extend.primitive5 = function() {
+
+    setClass("Promoter", representation(name="character", sequence="character", quality="numeric"))
+    setMethod("[[", signature="Promoter", function(x, i, j, ...) 65.78)
+
+    a <- new("Promoter", name="IRES", sequence="ATGAAAC", quality=c(80,79.5,100,100,98,0.8,10) )
+
+    assertThat(a[[stop()]], identicalTo( c(65.78) ))
 }

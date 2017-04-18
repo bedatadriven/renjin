@@ -243,6 +243,10 @@ public class S3 {
       return null;
     }
 
+    if(object instanceof S4Object && context.getGlobalEnvironment().getSymbolNames().contains(Symbol.get(".__T__" + name + ":base"))) {
+      return handleS4object(context, object, name, args);
+    }
+
     GenericMethod method = Resolver
         .start(context, name, object)
         .withBaseDefinitionEnvironment()
@@ -257,6 +261,17 @@ public class S3 {
     PairList newArgs = reassembleAndEvaluateArgs(object, args, context, rho);
     
     return method.doApply(context, rho, newArgs);
+  }
+
+  private static SEXP handleS4object(@Current Context context, SEXP source, String functionName, PairList args) {
+    String functionEnvName = ".__T__" + functionName + ":base";
+    Environment functionEnv = (Environment) context.getGlobalEnvironment().findVariable(context, Symbol.get(functionEnvName));
+    String className = source.getAttributes().getClassVector().getElementAsString(0);
+    Closure function = (Closure) functionEnv.findVariable(context, Symbol.get(className));
+    PairList.Builder allArgs = new PairList.Builder();
+    allArgs.add(source);
+    allArgs.add(args.getElementAsSEXP(1));
+    return context.evaluate(new FunctionCall(function, allArgs.build()));
   }
 
   public static SEXP tryDispatchFromPrimitive(Context context, Environment rho, FunctionCall call,

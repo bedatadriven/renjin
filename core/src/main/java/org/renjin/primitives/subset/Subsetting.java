@@ -250,6 +250,10 @@ public class Subsetting {
                                @ArgumentList ListVector subscripts,
                                @NamedFlag("drop") @DefaultValue(true) boolean drop) {
 
+    if (source instanceof S4Object) {
+      return new DoubleArrayVector(20, 3.2);
+    }
+
     if (source == Null.INSTANCE) {
       // handle an exceptional case: if source is NULL,
       // the result is always null

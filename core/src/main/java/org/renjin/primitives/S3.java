@@ -266,21 +266,21 @@ public class S3 {
   private static SEXP handleS4object(@Current Context context, SEXP source, String functionName, PairList args) {
     String functionEnvName = ".__T__" + functionName + ":base";
     Environment functionEnv = (Environment) context.getGlobalEnvironment().findVariable(context, Symbol.get(functionEnvName));
-    String className = source.getAttributes().getClassVector().getElementAsString(0);
-    SEXP function = functionEnv.findVariable(context, Symbol.get(className));
+    StringVector arg1Classes = Attributes.getClass(source);
+    String currentArg1Class = arg1Classes.getElementAsString(0);
+    SEXP function = functionEnv.findVariable(context, Symbol.get(currentArg1Class));
+    for(int i = 1; i < arg1Classes.length() && function == Symbol.UNBOUND_VALUE; ++i) {
+      currentArg1Class = arg1Classes.getElementAsString(i);
+      function = functionEnv.findVariable(context, Symbol.get(currentArg1Class));
+    }
     if (function == Symbol.UNBOUND_VALUE) {
       SEXP arg2 = args.getElementAsSEXP(1);
-      String arg2class = arg2.getTypeName();
-      if (arg2class.equals("double") || arg2class.equals("integer")) {
-        Symbol symbol = Symbol.get(className + "#" + arg2class);
-        function = functionEnv.findVariable(context, symbol);
-        if(function == Symbol.UNBOUND_VALUE) {
-          className = className + "#numeric";
-          function = functionEnv.findVariable(context, Symbol.get(className));
-        }
-      } else {
-        className = className + "#" + arg2class;
-        function = functionEnv.findVariable(context, Symbol.get(className));
+      StringVector arg2Classes = Attributes.getClass(arg2); // returns "name" instead of object classes, causing all tests depending on 2nd argument to fail.
+      String currentArg2Class = arg2Classes.getElementAsString(0);
+      function = functionEnv.findVariable(context, Symbol.get(currentArg1Class + "#" + currentArg2Class));
+      for(int j = 1; j < arg1Classes.length() && function == Symbol.UNBOUND_VALUE; ++j) {
+        currentArg2Class = arg2Classes.getElementAsString(j);
+        function = functionEnv.findVariable(context, Symbol.get(currentArg1Class + "#" + currentArg2Class));
       }
     }
     PairList.Builder allArgs = new PairList.Builder();

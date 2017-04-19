@@ -137,3 +137,27 @@ test.extend.primitive.10 = function() {
     assertThat(a[1.0], identicalTo( c(69.98) ))
 
 }
+
+test.extend.primitive.11 = function() {
+
+    setClass("Promoter", representation(name="character", sequence="character", quality="numeric"))
+    setClass("KOZAK", representation("character"))
+    setMethod("[", signature=c("Promoter", "KOZAK"), function(x, i, j, ...) 70.71)
+    a <- new("Promoter", name="IRES", sequence="ATGAAAC", quality=c(80,79.5,100,100,98,0.8,10) )
+    b <- new("KOZAK", "ACCATG")
+
+    assertThat(a[b], identicalTo( c(70.71) ))
+
+}
+
+test.extend.primitive.12 = function() {
+
+    setClass("Promoter", representation(name="character", sequence="character", quality="numeric"))
+    setClass("KOZAK", representation("character"))
+    setMethod("[", signature=c("Promoter", "KOZAK", "Promoter"), function(x, i, j, ...) 56.56)
+    a <- new("Promoter", name="IRES", sequence="ATGAAAC", quality=c(80,79.5,100,100,98,0.8,10) )
+    b <- new("KOZAK", "ACCATG")
+
+    assertThat(a[b,a], identicalTo( c(56.56) ))
+
+}

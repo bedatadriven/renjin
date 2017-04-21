@@ -161,3 +161,123 @@ test.extend.primitive.12 = function() {
     assertThat(a[b,a], identicalTo( c(56.56) ))
 
 }
+
+test.method_selection.0 = function() {
+    setClass("D", representation(d = "character"))
+    setClass("C", representation(c = "character"), contains = "D")
+    setClass("B", representation(b = "character"), contains = "C")
+    setClass("A", representation(a = "character"), contains = "B")
+    d = new("D", d = "d")
+    c = new("C", d = "cd", c = "c")
+    b = new("B", d = "bd", c = "bc", b = "b")
+    a = new("A", d = "ad", c = "ac", b = "ab", a = "a")
+
+    setMethod("[", signature("B","C","C"), function(x, i, j, ...) 3.5)
+    setMethod("[", signature("B","D","B"), function(x, i, j, ...) 5.5)
+
+    assertThat(a[a,a], identicalTo( c(3.5) ))
+    assertThat(b[b,b], identicalTo( c(3.5) ))
+    assertThat(a[c,c], identicalTo( c(3.5) ))
+    assertThat(a[a,c], identicalTo( c(3.5) ))
+    assertThat(a[a,b], identicalTo( c(5.5) ))
+    assertThat(a[b,b], identicalTo( c(5.5) ))
+
+}
+
+test.method_selection.1 = function() {
+    setClass("D", representation(d = "character"))
+    setClass("C", representation(c = "character"), contains = "D")
+    setClass("B", representation(b = "character"), contains = "C")
+    setClass("A", representation(a = "character"), contains = "B")
+    d = new("D", d = "d")
+    c = new("C", d = "cd", c = "c")
+    b = new("B", d = "bd", c = "bc", b = "b")
+    a = new("A", d = "ad", c = "ac", b = "ab", a = "a")
+
+    setMethod("[", signature("B","C","C"), function(x, i, j, ...) 3.5)
+    setMethod("[", signature("B","D","B"), function(x, i, j, ...) 5.5)
+    setMethod("[", signature("C","C","A"), function(x, i, j, ...) 7.5)
+
+    assertThat(a[a,a], identicalTo( c(7.5) ))
+}
+
+test.method_selection.2 = function() {
+    setClass("D", representation(d = "character"))
+    setClass("C", representation(c = "character"), contains = "D")
+    setClass("B", representation(b = "character"), contains = "C")
+    setClass("A", representation(a = "character"), contains = "B")
+    d = new("D", d = "d")
+    c = new("C", d = "cd", c = "c")
+    b = new("B", d = "bd", c = "bc", b = "b")
+    a = new("A", d = "ad", c = "ac", b = "ab", a = "a")
+
+    setMethod("[", signature("B","C","C"), function(x, i, j, ...) 3.5)
+    setMethod("[", signature("B","D","B"), function(x, i, j, ...) 5.5)
+    setMethod("[", signature("C","C","A"), function(x, i, j, ...) 7.5)
+    setMethod("[", signature("C","A","C"), function(x, i, j, ...) 9.5)
+
+    assertThat(a[a,a], identicalTo( c(9.5) ))
+}
+
+test.method_selection.3 = function() {
+    setClass("D", representation(d = "character"))
+    setClass("C", representation(c = "character"), contains = "D")
+    setClass("B", representation(b = "character"), contains = "C")
+    setClass("A", representation(a = "character"), contains = "B")
+    d = new("D", d = "d")
+    c = new("C", d = "cd", c = "c")
+    b = new("B", d = "bd", c = "bc", b = "b")
+    a = new("A", d = "ad", c = "ac", b = "ab", a = "a")
+
+    setMethod("[", signature("B","C","C"), function(x, i, j, ...) 3.5)
+    setMethod("[", signature("B","D","B"), function(x, i, j, ...) 5.5)
+    setMethod("[", signature("C","C","A"), function(x, i, j, ...) 7.5)
+    setMethod("[", signature("C","A","C"), function(x, i, j, ...) 9.5)
+    setMethod("[", signature("A","C","C"), function(x, i, j, ...) 11.5)
+
+    assertThat(a[a,a], identicalTo( c(11.5) ))
+}
+
+test.method_selection.4 = function() {
+    setClass("D", representation(d = "character"))
+    setClass("C", representation(c = "character"), contains = "D")
+    setClass("B", representation(b = "character"), contains = "C")
+    setClass("A", representation(a = "character"), contains = "B")
+    d = new("D", d = "d")
+    c = new("C", d = "cd", c = "c")
+    b = new("B", d = "bd", c = "bc", b = "b")
+    a = new("A", d = "ad", c = "ac", b = "ab", a = "a")
+
+    setMethod("[", signature("B","C","C"), function(x, i, j, ...) 3.5)
+    setMethod("[", signature("B","D","B"), function(x, i, j, ...) 5.5)
+    setMethod("[", signature("C","C","A"), function(x, i, j, ...) 7.5)
+    setMethod("[", signature("C","A","C"), function(x, i, j, ...) 9.5)
+    setMethod("[", signature("A","C","C"), function(x, i, j, ...) 11.5)
+    setMethod("[", signature("A","B","D"), function(x, i, j, ...) 13.5)
+
+    assertThat(a[a,a], identicalTo( c(13.5) ))
+}
+
+test.method_selection.5 = function() {
+    setClass("D", representation(d = "character"))
+    setClass("C", representation(c = "character"), contains = "D")
+    setClass("B", representation(b = "character"), contains = "C")
+    setClass("A", representation(a = "character"), contains = "B")
+    d = new("D", d = "d")
+    c = new("C", d = "cd", c = "c")
+    b = new("B", d = "bd", c = "bc", b = "b")
+    a = new("A", d = "ad", c = "ac", b = "ab", a = "a")
+
+    setMethod("[", signature("B","C","C"), function(x, i, j, ...) 3.5)
+    setMethod("[", signature("B","D","B"), function(x, i, j, ...) 5.5)
+    setMethod("[", signature("C","C","A"), function(x, i, j, ...) 7.5)
+    setMethod("[", signature("C","A","C"), function(x, i, j, ...) 9.5)
+    setMethod("[", signature("A","C","C"), function(x, i, j, ...) 11.5)
+    setMethod("[", signature("A","D","B"), function(x, i, j, ...) 15.5)
+
+    assertThat(a[a,a], identicalTo( c(11.5) ))
+    assertThat(b[b,b], identicalTo( c(3.5) ))
+    assertThat(b[b,a], identicalTo( c(7.5) ))
+    assertThat(a[a,b], identicalTo( c(11.5) ))
+    assertThat(a[b,b], identicalTo( c(11.5) ))
+}

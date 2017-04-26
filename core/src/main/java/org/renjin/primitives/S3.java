@@ -244,7 +244,7 @@ public class S3 {
     }
 
     if(object instanceof S4Object && context.getGlobalEnvironment().getSymbolNames().contains(Symbol.get(".__T__" + name + ":base"))) {
-      return handleS4object(context, object, name, args);
+      return handleS4object(context, object, name, args, rho);
     }
 
     GenericMethod method = Resolver
@@ -263,7 +263,7 @@ public class S3 {
     return method.doApply(context, rho, newArgs);
   }
 
-  private static SEXP handleS4object(@Current Context context, SEXP source, String functionName, PairList args) {
+  private static SEXP handleS4object(@Current Context context, SEXP source, String functionName, PairList args, Environment rho) {
     String functionEnvName = ".__T__" + functionName + ":base";
     Environment functionEnv = (Environment) context.getGlobalEnvironment().findVariable(context, Symbol.get(functionEnvName));
     StringVector arg1Classes = Attributes.getClass(source);
@@ -275,12 +275,39 @@ public class S3 {
     }
     if (function == Symbol.UNBOUND_VALUE) {
       SEXP arg2 = args.getElementAsSEXP(1);
-      StringVector arg2Classes = Attributes.getClass(arg2); // returns "name" instead of object classes, causing all tests depending on 2nd argument to fail.
-      String currentArg2Class = arg2Classes.getElementAsString(0);
+      StringArrayVector arg2Classes;
+      String currentArg2Class;
+      if(arg2 instanceof Symbol) {
+        SEXP arg2Value = rho.findVariable(context, Symbol.get(((Symbol) arg2).getPrintName()));
+        arg2Classes = (StringArrayVector) Attributes.getClass(arg2Value);
+        currentArg2Class = arg2Classes.getElementAsString(0);
+      } else {
+        arg2Classes = (StringArrayVector) Attributes.getClass(arg2); // returns "name" instead of object classes, causing all tests depending on 2nd argument to fail.
+        currentArg2Class = arg2Classes.getElementAsString(0);
+      }
       function = functionEnv.findVariable(context, Symbol.get(currentArg1Class + "#" + currentArg2Class));
       for(int j = 1; j < arg1Classes.length() && function == Symbol.UNBOUND_VALUE; ++j) {
         currentArg2Class = arg2Classes.getElementAsString(j);
         function = functionEnv.findVariable(context, Symbol.get(currentArg1Class + "#" + currentArg2Class));
+      }
+
+      if (function == Symbol.UNBOUND_VALUE) {
+        SEXP arg3 = args.getElementAsSEXP(2);
+        StringArrayVector arg3Classes;
+        String currentArg3Class;
+        if(arg3 instanceof Symbol) {
+          SEXP arg3Value = rho.findVariable(context, Symbol.get(((Symbol) arg3).getPrintName()));
+          arg3Classes = (StringArrayVector) Attributes.getClass(arg3Value);
+          currentArg3Class = arg3Classes.getElementAsString(0);
+        } else {
+          arg3Classes = (StringArrayVector) Attributes.getClass(arg3); // returns "name" instead of object classes, causing all tests depending on 2nd argument to fail.
+          currentArg3Class = arg3Classes.getElementAsString(0);
+        }
+        function = functionEnv.findVariable(context, Symbol.get(currentArg1Class + "#" + currentArg2Class + "#" + currentArg3Class));
+        for(int j = 1; j < arg1Classes.length() && function == Symbol.UNBOUND_VALUE; ++j) {
+          currentArg3Class = arg3Classes.getElementAsString(j);
+          function = functionEnv.findVariable(context, Symbol.get(currentArg1Class + "#" + currentArg2Class + "#" + currentArg3Class));
+        }
       }
     }
     PairList.Builder allArgs = new PairList.Builder();

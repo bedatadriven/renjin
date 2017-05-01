@@ -264,56 +264,53 @@ public class S3 {
   }
 
   private static SEXP handleS4object(@Current Context context, SEXP source, String functionName, PairList args, Environment rho) {
+    StringArrayVector[] argClasses = new StringArrayVector[3];
+    String[] currentArgClass = new String[3];
+
     String functionEnvName = ".__T__" + functionName + ":base";
     Environment functionEnv = (Environment) context.getGlobalEnvironment().findVariable(context, Symbol.get(functionEnvName));
-    StringVector arg1Classes = Attributes.getClass(source);
-    String currentArg1Class = arg1Classes.getElementAsString(0);
-    SEXP function = functionEnv.findVariable(context, Symbol.get(currentArg1Class));
-    for(int i = 1; i < arg1Classes.length() && function == Symbol.UNBOUND_VALUE; ++i) {
-      currentArg1Class = arg1Classes.getElementAsString(i);
-      function = functionEnv.findVariable(context, Symbol.get(currentArg1Class));
-    }
-    if (function == Symbol.UNBOUND_VALUE) {
-      SEXP arg2 = args.getElementAsSEXP(1);
-      StringArrayVector arg2Classes;
-      String currentArg2Class;
-      if(arg2 instanceof Symbol) {
-        SEXP arg2Value = rho.findVariable(context, Symbol.get(((Symbol) arg2).getPrintName()));
-        arg2Classes = (StringArrayVector) Attributes.getClass(arg2Value);
-        currentArg2Class = arg2Classes.getElementAsString(0);
-      } else {
-        arg2Classes = (StringArrayVector) Attributes.getClass(arg2); // returns "name" instead of object classes, causing all tests depending on 2nd argument to fail.
-        currentArg2Class = arg2Classes.getElementAsString(0);
-      }
-      function = functionEnv.findVariable(context, Symbol.get(currentArg1Class + "#" + currentArg2Class));
-      for(int j = 1; j < arg1Classes.length() && function == Symbol.UNBOUND_VALUE; ++j) {
-        currentArg2Class = arg2Classes.getElementAsString(j);
-        function = functionEnv.findVariable(context, Symbol.get(currentArg1Class + "#" + currentArg2Class));
-      }
+    argClasses[0] = (StringArrayVector) Attributes.getClass(source);
+    currentArgClass[0] = argClasses[0].getElementAsString(0);
 
+    SEXP function = getFunction(context, rho, args, functionEnv, argClasses, currentArgClass, 0);
+    if (function == Symbol.UNBOUND_VALUE) {
+      function = getFunction(context, rho, args, functionEnv, argClasses, currentArgClass, 1);
       if (function == Symbol.UNBOUND_VALUE) {
-        SEXP arg3 = args.getElementAsSEXP(2);
-        StringArrayVector arg3Classes;
-        String currentArg3Class;
-        if(arg3 instanceof Symbol) {
-          SEXP arg3Value = rho.findVariable(context, Symbol.get(((Symbol) arg3).getPrintName()));
-          arg3Classes = (StringArrayVector) Attributes.getClass(arg3Value);
-          currentArg3Class = arg3Classes.getElementAsString(0);
-        } else {
-          arg3Classes = (StringArrayVector) Attributes.getClass(arg3); // returns "name" instead of object classes, causing all tests depending on 2nd argument to fail.
-          currentArg3Class = arg3Classes.getElementAsString(0);
-        }
-        function = functionEnv.findVariable(context, Symbol.get(currentArg1Class + "#" + currentArg2Class + "#" + currentArg3Class));
-        for(int j = 1; j < arg1Classes.length() && function == Symbol.UNBOUND_VALUE; ++j) {
-          currentArg3Class = arg3Classes.getElementAsString(j);
-          function = functionEnv.findVariable(context, Symbol.get(currentArg1Class + "#" + currentArg2Class + "#" + currentArg3Class));
-        }
+        function = getFunction(context, rho, args, functionEnv, argClasses, currentArgClass, 2);
       }
     }
     PairList.Builder allArgs = new PairList.Builder();
     allArgs.add(source);
     allArgs.add(args.getElementAsSEXP(1));
     return context.evaluate(new FunctionCall(function, allArgs.build()));
+  }
+
+  public static String createSignature(String[] currentArgClass, int signatureLength) {
+    String signature = currentArgClass[0];
+    for(int i = 1; i < signatureLength+1; i++) {
+      signature = signature.concat("#").concat(currentArgClass[i]);
+    }
+    return signature;
+  }
+
+  public static SEXP getFunction(Context context, Environment rho, PairList args, Environment functionEnv,
+                                 StringArrayVector[] argClasses, String[] currentArgClass, int signatureLength) {
+    SEXP function;
+    SEXP arg = args.getElementAsSEXP(signatureLength);
+    if(arg instanceof Symbol) {
+      SEXP argValue = rho.findVariable(context, (Symbol) arg);
+      argClasses[signatureLength] = (StringArrayVector) Attributes.getClass(argValue);
+      currentArgClass[signatureLength] = argClasses[signatureLength].getElementAsString(0);
+    } else {
+      argClasses[signatureLength] = (StringArrayVector) Attributes.getClass(arg); // returns "name" instead of object classes, causing all tests depending on 2nd argument to fail.
+      currentArgClass[signatureLength] = argClasses[signatureLength].getElementAsString(0);
+    }
+    function = functionEnv.findVariable(context, Symbol.get(createSignature(currentArgClass, signatureLength)));
+    for(int j = 1; j < argClasses[signatureLength].length() && function == Symbol.UNBOUND_VALUE; ++j) {
+      currentArgClass[signatureLength] = argClasses[signatureLength].getElementAsString(j);
+      function = functionEnv.findVariable(context, Symbol.get(createSignature(currentArgClass, signatureLength)));
+    }
+    return function;
   }
 
   public static SEXP tryDispatchFromPrimitive(Context context, Environment rho, FunctionCall call,

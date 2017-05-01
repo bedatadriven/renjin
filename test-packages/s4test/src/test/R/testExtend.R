@@ -86,7 +86,7 @@ test.extend.primitive.5 = function() {
 
 }
 
-test.extend.primitive.6 = function() {
+ignore.test.extend.primitive.6 = function() {
 
     setClass("Promoter", representation(name="character", sequence="character", quality="numeric"))
     setMethod("[", signature=c("Promoter", "character"), function(x, i, j, ...) 299.99)
@@ -98,7 +98,7 @@ test.extend.primitive.6 = function() {
 
 }
 
-test.extend.primitive.7 = function() {
+ignore.test.extend.primitive.7 = function() {
 
     setClass("Promoter", representation(name="character", sequence="character", quality="numeric"))
     setMethod("[", signature=c("Promoter", "double"), function(x, i, j, ...) 36.18)
@@ -108,7 +108,7 @@ test.extend.primitive.7 = function() {
 
 }
 
-test.extend.primitive.8 = function() {
+ignore.test.extend.primitive.8 = function() {
 
     setClass("Promoter", representation(name="character", sequence="character", quality="numeric"))
     setMethod("[", signature=c("Promoter", "integer"), function(x, i, j, ...) 83.18)
@@ -118,7 +118,7 @@ test.extend.primitive.8 = function() {
 
 }
 
-test.extend.primitive.9 = function() {
+ignore.test.extend.primitive.9 = function() {
 
     setClass("Promoter2", representation(name="character", sequence="character", quality="numeric"))
     setMethod("[", signature=c("Promoter2", "numeric"), function(x, i, j, ...) 57.98)
@@ -162,7 +162,7 @@ test.extend.primitive.12 = function() {
 
 }
 
-test.method_selection.0 = function() {
+ignore.test.method_selection.0 = function() {
     setClass("D", representation(d = "character"))
     setClass("C", representation(c = "character"), contains = "D")
     setClass("B", representation(b = "character"), contains = "C")
@@ -184,7 +184,7 @@ test.method_selection.0 = function() {
 
 }
 
-test.method_selection.1 = function() {
+ignore.test.method_selection.1 = function() {
     setClass("D", representation(d = "character"))
     setClass("C", representation(c = "character"), contains = "D")
     setClass("B", representation(b = "character"), contains = "C")
@@ -201,7 +201,7 @@ test.method_selection.1 = function() {
     assertThat(a[a,a], identicalTo( c(7.5) ))
 }
 
-test.method_selection.2 = function() {
+ignore.test.method_selection.2 = function() {
     setClass("D", representation(d = "character"))
     setClass("C", representation(c = "character"), contains = "D")
     setClass("B", representation(b = "character"), contains = "C")
@@ -219,7 +219,7 @@ test.method_selection.2 = function() {
     assertThat(a[a,a], identicalTo( c(9.5) ))
 }
 
-test.method_selection.3 = function() {
+ignore.test.method_selection.3 = function() {
     setClass("D", representation(d = "character"))
     setClass("C", representation(c = "character"), contains = "D")
     setClass("B", representation(b = "character"), contains = "C")
@@ -238,7 +238,7 @@ test.method_selection.3 = function() {
     assertThat(a[a,a], identicalTo( c(11.5) ))
 }
 
-test.method_selection.4 = function() {
+ignore.test.method_selection.4 = function() {
     setClass("D", representation(d = "character"))
     setClass("C", representation(c = "character"), contains = "D")
     setClass("B", representation(b = "character"), contains = "C")
@@ -258,7 +258,7 @@ test.method_selection.4 = function() {
     assertThat(a[a,a], identicalTo( c(13.5) ))
 }
 
-test.method_selection.5 = function() {
+ignore.test.method_selection.5 = function() {
     setClass("D", representation(d = "character"))
     setClass("C", representation(c = "character"), contains = "D")
     setClass("B", representation(b = "character"), contains = "C")

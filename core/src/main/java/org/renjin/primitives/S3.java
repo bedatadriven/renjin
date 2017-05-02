@@ -262,17 +262,21 @@ public class S3 {
   }
 
   private static SEXP handleS4object(@Current Context context, SEXP source, String functionName, PairList args, Environment rho) {
-    String[] currentArgClass = new String[3];
     String functionEnvName = ".__T__" + functionName + ":base";
     Environment functionEnv = (Environment) context.getGlobalEnvironment().findVariable(context, Symbol.get(functionEnvName));
-    StringArrayVector argClasses = (StringArrayVector) Attributes.getClass(source);
-    currentArgClass[0] = argClasses.getElementAsString(0);
+    String[] allArgClasses = new String[10];
 
-    SEXP function = findFunctionWithSignature(context, rho, args, functionEnv, currentArgClass, 0);
+    allArgClasses[0] = Attributes.getClass(source).getElementAsString(0);
+
+    SEXP function = findFunctionWithSignature(context, rho, args, functionEnv, allArgClasses, 0);
     if (function == Symbol.UNBOUND_VALUE) {
-      function = findFunctionWithSignature(context, rho, args, functionEnv, currentArgClass, 1);
+      String nextClass = evaluateAndGetClass(context, args, rho, 1);
+      allArgClasses[1] = nextClass;
+      function = findFunctionWithSignature(context, rho, args, functionEnv, allArgClasses, 1);
       if (function == Symbol.UNBOUND_VALUE) {
-        function = findFunctionWithSignature(context, rho, args, functionEnv, currentArgClass, 2);
+        String lastClass = evaluateAndGetClass(context, args, rho, 2);
+        allArgClasses[2] = lastClass;
+        function = findFunctionWithSignature(context, rho, args, functionEnv, allArgClasses, 2);
       }
     }
 
@@ -280,6 +284,39 @@ public class S3 {
     allArgs.add(source);
     allArgs.add(args.getElementAsSEXP(1));
     return context.evaluate(new FunctionCall(function, allArgs.build()));
+  }
+
+  public static SEXP findFunctionWithSignature(Context context, Environment rho, PairList args, Environment functionEnv,
+                                 String[] allArgClasses, int argumentIndex) {
+
+    String[] argSuperClasses = getSuperClasses(context, allArgClasses, argumentIndex);
+    ArrayList<String> argClassAndSuperClass = new ArrayList<>(argSuperClasses.length + 1);
+    argClassAndSuperClass.add(allArgClasses[argumentIndex]);
+    for (int i = 0; i < argSuperClasses.length; i++) {
+      argClassAndSuperClass.add(argSuperClasses[i]);
+    }
+
+    int superLevel = 0;
+    SEXP function = null;
+    while((function == Symbol.UNBOUND_VALUE || function == null) && superLevel < argClassAndSuperClass.size()) {
+      String superClass = argClassAndSuperClass.get(superLevel);
+      allArgClasses[argumentIndex] = superClass;
+      String signature = createSignature(allArgClasses, argumentIndex);
+      function = functionEnv.findVariable(context, Symbol.get(signature));
+      superLevel++;
+    }
+    return function;
+  }
+
+  public static String evaluateAndGetClass(Context context, PairList args, Environment rho, int argumentIndex) {
+    String className;
+    SEXP evaluatedArg = context.evaluate(args.getElementAsSEXP(argumentIndex), rho);
+    if(evaluatedArg.getAttributes().hasClass()) {
+      className = evaluatedArg.getAttributes().getClassVector().getElementAsString(0);
+    } else {
+      className = Attributes.getClass(evaluatedArg).getElementAsString(0);
+    }
+    return className;
   }
 
   public static String createSignature(String[] currentArgClass, int signatureLength) {
@@ -290,39 +327,19 @@ public class S3 {
     return signature;
   }
 
-  public static SEXP findFunctionWithSignature(Context context, Environment rho, PairList args, Environment functionEnv,
-                                 String[] currentArgClass, int signatureLength) {
-
-    StringArrayVector argSuperClasses = getSuperClasses(context, currentArgClass, signatureLength);
-    ArrayList<String> currentArgClassAndSuperClass = new ArrayList<>(argSuperClasses.length()+1);
-
-    SEXP evaluatedArg = context.evaluate(args.getElementAsSEXP(signatureLength), rho);
-    if(evaluatedArg.getAttributes().hasClass()) {
-      currentArgClassAndSuperClass.add(evaluatedArg.getAttributes().getClassVector().getElementAsString(0));
-    } else {
-      currentArgClassAndSuperClass.add(Attributes.getClass(evaluatedArg).getTypeName());
-    }
-
-    for (int i = 0; i < argSuperClasses.length(); i++) {
-      currentArgClassAndSuperClass.add(argSuperClasses.getElementAsString(i));
-    }
-
-    int superLevel = 0;
-    SEXP function = null;
-    while((function == Symbol.UNBOUND_VALUE || function == null) && superLevel < currentArgClassAndSuperClass.size()) {
-      currentArgClass[signatureLength] = currentArgClassAndSuperClass.get(superLevel);
-      function = functionEnv.findVariable(context, Symbol.get(createSignature(currentArgClass, signatureLength)));
-      superLevel++;
-    }
-    return function;
-  }
-
-  public static StringArrayVector getSuperClasses(Context context, String[] currentArgClass, int signatureLength) {
-    Symbol argClassObjectName = Symbol.get(".__C__" + currentArgClass[signatureLength]);
+  public static String[] getSuperClasses(Context context, String[] allArgClasses, int signatureLength) {
+    Symbol argClassObjectName = Symbol.get(".__C__" + allArgClasses[signatureLength]);
     Frame globalFrame = context.getGlobalEnvironment().getFrame();
     AttributeMap map = globalFrame.getVariable(argClassObjectName).getAttributes();
-    StringArrayVector argSuperClasses = (StringArrayVector) map.get("contains").getNames();
-    return argSuperClasses;
+    SEXP argSuperClasses = map.get("contains").getNames();
+    String[] result = new String[argSuperClasses.length()];
+    if(argSuperClasses == null || argSuperClasses instanceof Null) {
+      return new String[0];
+    }
+    for(int i = 0; i < argSuperClasses.length(); i++) {
+      result[i] = ((StringArrayVector)argSuperClasses).getElementAsString(i);
+    }
+    return result;
   }
 
   public static SEXP tryDispatchFromPrimitive(Context context, Environment rho, FunctionCall call,

@@ -38,6 +38,22 @@ test.method_selection.01 = function() {
 
 }
 
+test.method_selection.02 = function() {
+
+    setMethod("[", signature("DD", "DD"), function(x, i, j, ...) 3.5)
+
+    assertThat(c[c], identicalTo( c(3.5) ))
+
+}
+
+test.method_selection.03 = function() {
+
+    setMethod("[[", signature("DD", "DD", "CC"), function(x, i, j, ...) 5.5)
+
+    assertThat(c[[c,c]], identicalTo( c(5.5) ))
+
+}
+
 ignore.test.method_selection.00 = function() {
 
     setMethod("[", signature("B","C","C"), function(x, i, j, ...) 3.5)

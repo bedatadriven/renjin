@@ -303,8 +303,8 @@ public class S3 {
     }
     currentArgClass[signatureLength] = ((StringArrayVector) currentArgClasses).getElementAsString(0);
     function = functionEnv.findVariable(context, Symbol.get(createSignature(currentArgClass, signatureLength)));
-    for(int j = 1; j < argClasses[signatureLength].length() && function == Symbol.UNBOUND_VALUE; ++j) {
-      currentArgClass[signatureLength] = argClasses[signatureLength].getElementAsString(j);
+    for(int j = 1; j < ((StringArrayVector) currentArgClasses).length() && function == Symbol.UNBOUND_VALUE; ++j) {
+      currentArgClass[signatureLength] = ((StringArrayVector) currentArgClasses).getElementAsString(j);
       function = functionEnv.findVariable(context, Symbol.get(createSignature(currentArgClass, signatureLength)));
     }
     return function;

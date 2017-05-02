@@ -24,10 +24,10 @@ library(methods)
 
 setClass("Gene", representation(name="character", sequence="character", quality="numeric"))
 setClass("Promoter", representation(name="character", sequence="character", quality="numeric"))
-setClass("KOZAK", representation("character"))
+setClass("KOZAK", representation(sequence="character"))
 a <- new("Gene", name="GeneA", sequence="ATGAAA", quality=c(99,89.5,67,86.5,20,3.2) )
 p <- new("Promoter", name="IRES", sequence="ATGAAAC", quality=c(80,79.5,100,100,98,0.8,10) )
-k <- new("KOZAK", "ACCATG")
+k <- new("KOZAK", sequence="ACCATG")
 
 test.extend.primitive.0 = function() {
 

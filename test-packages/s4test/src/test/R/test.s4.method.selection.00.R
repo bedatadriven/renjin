@@ -21,18 +21,18 @@
 library(hamcrest)
 library(methods)
 
-setClass("D", representation(d = "character"))
-setClass("C", representation(c = "character"), contains = "D")
-setClass("B", representation(b = "character"), contains = "C")
-setClass("A", representation(a = "character"), contains = "B")
-d = new("D", d = "d")
-c = new("C", d = "cd", c = "c")
-b = new("B", d = "bd", c = "bc", b = "b")
-a = new("A", d = "ad", c = "ac", b = "ab", a = "a")
+setClass("DD", representation(d = "character"))
+setClass("CC", representation(c = "character"), contains = "DD")
+setClass("BB", representation(b = "character"), contains = "CC")
+setClass("AA", representation(a = "character"), contains = "BB")
+d = new("DD", d = "d")
+c = new("CC", d = "cd", c = "c")
+b = new("BB", d = "bd", c = "bc", b = "b")
+a = new("AA", d = "ad", c = "ac", b = "ab", a = "a")
 
-ignore.test.method_selection.01 = function() {
+test.method_selection.01 = function() {
 
-    setMethod("[", signature("D"), function(x, i, j, ...) 3.5)
+    setMethod("[", signature("DD"), function(x, i, j, ...) 3.5)
 
     assertThat(c[1], identicalTo( c(3.5) ))
 

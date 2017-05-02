@@ -27,11 +27,9 @@ import org.renjin.invoke.codegen.ArgumentIterator;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.sexp.*;
+import org.renjin.sexp.Vector;
 
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Primitives used in the implementation of the S3 object system
@@ -264,21 +262,20 @@ public class S3 {
   }
 
   private static SEXP handleS4object(@Current Context context, SEXP source, String functionName, PairList args, Environment rho) {
-    StringArrayVector[] argClasses = new StringArrayVector[3];
     String[] currentArgClass = new String[3];
-
     String functionEnvName = ".__T__" + functionName + ":base";
     Environment functionEnv = (Environment) context.getGlobalEnvironment().findVariable(context, Symbol.get(functionEnvName));
-    argClasses[0] = (StringArrayVector) Attributes.getClass(source);
-    currentArgClass[0] = argClasses[0].getElementAsString(0);
+    StringArrayVector argClasses = (StringArrayVector) Attributes.getClass(source);
+    currentArgClass[0] = argClasses.getElementAsString(0);
 
-    SEXP function = getFunction(context, rho, args, functionEnv, argClasses, currentArgClass, 0);
+    SEXP function = findFunctionWithSignature(context, rho, args, functionEnv, currentArgClass, 0);
     if (function == Symbol.UNBOUND_VALUE) {
-      function = getFunction(context, rho, args, functionEnv, argClasses, currentArgClass, 1);
+      function = findFunctionWithSignature(context, rho, args, functionEnv, currentArgClass, 1);
       if (function == Symbol.UNBOUND_VALUE) {
-        function = getFunction(context, rho, args, functionEnv, argClasses, currentArgClass, 2);
+        function = findFunctionWithSignature(context, rho, args, functionEnv, currentArgClass, 2);
       }
     }
+
     PairList.Builder allArgs = new PairList.Builder();
     allArgs.add(source);
     allArgs.add(args.getElementAsSEXP(1));
@@ -293,21 +290,39 @@ public class S3 {
     return signature;
   }
 
-  public static SEXP getFunction(Context context, Environment rho, PairList args, Environment functionEnv,
-                                 StringArrayVector[] argClasses, String[] currentArgClass, int signatureLength) {
-    SEXP function;
-    SEXP arg = args.getElementAsSEXP(signatureLength);
-    SEXP currentArgClasses = context.evaluate(arg, rho).getAttributes().getClassVector();
-    if(currentArgClasses instanceof Null) {
-      currentArgClasses = Attributes.getClass(arg);
+  public static SEXP findFunctionWithSignature(Context context, Environment rho, PairList args, Environment functionEnv,
+                                 String[] currentArgClass, int signatureLength) {
+
+    StringArrayVector argSuperClasses = getSuperClasses(context, currentArgClass, signatureLength);
+    ArrayList<String> currentArgClassAndSuperClass = new ArrayList<>(argSuperClasses.length()+1);
+
+    SEXP evaluatedArg = context.evaluate(args.getElementAsSEXP(signatureLength), rho);
+    if(evaluatedArg.getAttributes().hasClass()) {
+      currentArgClassAndSuperClass.add(evaluatedArg.getAttributes().getClassVector().getElementAsString(0));
+    } else {
+      currentArgClassAndSuperClass.add(Attributes.getClass(evaluatedArg).getTypeName());
     }
-    currentArgClass[signatureLength] = ((StringArrayVector) currentArgClasses).getElementAsString(0);
-    function = functionEnv.findVariable(context, Symbol.get(createSignature(currentArgClass, signatureLength)));
-    for(int j = 1; j < ((StringArrayVector) currentArgClasses).length() && function == Symbol.UNBOUND_VALUE; ++j) {
-      currentArgClass[signatureLength] = ((StringArrayVector) currentArgClasses).getElementAsString(j);
+
+    for (int i = 0; i < argSuperClasses.length(); i++) {
+      currentArgClassAndSuperClass.add(argSuperClasses.getElementAsString(i));
+    }
+
+    int superLevel = 0;
+    SEXP function = null;
+    while((function == Symbol.UNBOUND_VALUE || function == null) && superLevel < currentArgClassAndSuperClass.size()) {
+      currentArgClass[signatureLength] = currentArgClassAndSuperClass.get(superLevel);
       function = functionEnv.findVariable(context, Symbol.get(createSignature(currentArgClass, signatureLength)));
+      superLevel++;
     }
     return function;
+  }
+
+  public static StringArrayVector getSuperClasses(Context context, String[] currentArgClass, int signatureLength) {
+    Symbol argClassObjectName = Symbol.get(".__C__" + currentArgClass[signatureLength]);
+    Frame globalFrame = context.getGlobalEnvironment().getFrame();
+    AttributeMap map = globalFrame.getVariable(argClassObjectName).getAttributes();
+    StringArrayVector argSuperClasses = (StringArrayVector) map.get("contains").getNames();
+    return argSuperClasses;
   }
 
   public static SEXP tryDispatchFromPrimitive(Context context, Environment rho, FunctionCall call,

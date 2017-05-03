@@ -280,19 +280,9 @@ public class S3 {
     // arguments.
     int signatureLength = ((Symbol) functionEnv.getFrame().getSymbols().toArray()[0]).getPrintName().split("#").length;
 
-    allArgClasses = argumentIndex == 0 ? new ArrayList<String>(signatureLength) : allArgClasses;
+    String[] allPossibleSignatures = generateAllPossibleSignatures(context, rho, args, null, signatureLength, 0);
 
-    function = findFunctionWithSignature(context, functionEnv, allArgClasses, argumentIndex, args, rho);
-    if (function == Symbol.UNBOUND_VALUE && argumentIndex < signatureLength && argumentIndex < args.length()-1) {
-      // recursively go through arguments and get their class and lookup until the signature is found.
-      // Issues:
-      // - We know how long the signature should be, we need to avoid generation and lookup of shorter signatures
-      // - In latest recursion, this is using only the most base classes of earlier arguments and therefor
-      //   will not generate all possible signatures.
-      // - Stops with the first hit
-      // - Is not aware of distance between classes of input arguments to different method signatures
-      return handleS4object(context, source, functionName, args, rho, argumentIndex + 1, allArgClasses);
-    }
+    function = findFunctionMatchingAnyOfSignatures(context, functionEnv, allPossibleSignatures, 0, Symbol.UNBOUND_VALUE);
 
     if(function == Symbol.UNBOUND_VALUE) {
       throw new EvalException("object of type 'S4' is not subsettable");
@@ -304,27 +294,56 @@ public class S3 {
     return result;
   }
 
-  public static SEXP findFunctionWithSignature(Context context, Environment functionEnv, ArrayList<String> allArgClasses,
-                                               int argumentIndex, PairList args, Environment rho) {
+  private static SEXP findFunctionMatchingAnyOfSignatures(Context context, Environment functionEnv, String[] signatures, int useSignature, SEXP function) {
+    // recursively go through arguments and get their class and lookup until the signature is found.
+    // Issues:
+    // - Stops with the first hit
+    // - Is not aware of distance between classes of input arguments to different method signatures
+    if(function == Symbol.UNBOUND_VALUE && useSignature < signatures.length) {
+      function = functionEnv.findVariable(context, Symbol.get(signatures[useSignature]));
 
-    allArgClasses.add(argumentIndex, evaluateAndGetClass(context, args, rho, argumentIndex));
-    String[] argSuperClasses = getSuperClasses(context, allArgClasses, argumentIndex);
-    ArrayList<String> argClassAndSuperClass = new ArrayList<>(argSuperClasses.length + 1);
-    argClassAndSuperClass.add(allArgClasses.get(argumentIndex));
-    for (int i = 0; i < argSuperClasses.length; i++) {
-      argClassAndSuperClass.add(argSuperClasses[i]);
-    }
-
-    int superLevel = 0;
-    SEXP function = null;
-    while((function == Symbol.UNBOUND_VALUE || function == null) && superLevel < argClassAndSuperClass.size()) {
-      String superClass = argClassAndSuperClass.get(superLevel);
-      allArgClasses.set(argumentIndex, superClass);
-      String signature = createSignature(allArgClasses, argumentIndex);
-      function = functionEnv.findVariable(context, Symbol.get(signature));
-      superLevel++;
+      if(function == Symbol.UNBOUND_VALUE) {
+        useSignature++;
+        return findFunctionMatchingAnyOfSignatures(context, functionEnv, signatures, useSignature, function);
+      } else {
+        return function;
+      }
     }
     return function;
+  }
+
+  public static String[] generateAllPossibleSignatures(Context context, Environment rho, PairList args, String[] signature, int depth, int current) {
+    if(current < depth) {
+      String evaluatedArg = evaluateAndGetClass(context, args, rho, current);
+      ArrayList<String> argument = new ArrayList<>(1);
+      argument.add(evaluatedArg);
+      String[] evaluatedArgSuperClasses = getSuperClasses(context, argument, 0);
+
+      String[] allArgClasses = new String[evaluatedArgSuperClasses.length + 1];
+      allArgClasses[0] = evaluatedArg;
+      for(int i = 1; i < evaluatedArgSuperClasses.length + 1; i++) {
+        allArgClasses[i] = evaluatedArgSuperClasses[i-1];
+      }
+
+      if(signature == null) {
+        current++;
+        return generateAllPossibleSignatures(context, rho, args, allArgClasses, depth, current);
+      }
+
+      String[] finalSignature = new String[signature.length * allArgClasses.length];
+
+      int idx = 0;
+      for(int j = 0; j < signature.length; j++){
+        for(int k = 0; k < allArgClasses.length; k++) {
+          finalSignature[idx] = signature[j] + "#" + allArgClasses[k];
+          idx++;
+        }
+      }
+
+      current++;
+      return generateAllPossibleSignatures(context, rho, args, finalSignature, depth, current);
+    }
+    return signature;
   }
 
   public static String evaluateAndGetClass(Context context, PairList args, Environment rho, int argumentIndex) {
@@ -338,15 +357,6 @@ public class S3 {
       className = Attributes.getClass(evaluatedArg).getElementAsString(0);
     }
     return className;
-  }
-
-  public static String createSignature(ArrayList<String> currentArgClass, int signatureLength) {
-    // different methods for the same generic are stored based on their signature seperated by #
-    String signature = currentArgClass.get(0);
-    for(int i = 1; i < signatureLength + 1; i++) {
-      signature = signature.concat("#").concat(currentArgClass.get(i));
-    }
-    return signature;
   }
 
   public static String[] getSuperClasses(Context context, ArrayList<String> allArgClasses, int signatureLength) {

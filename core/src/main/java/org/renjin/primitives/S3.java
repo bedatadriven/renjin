@@ -263,16 +263,34 @@ public class S3 {
 
   private static SEXP handleS4object(@Current Context context, SEXP source, String functionName, PairList args,
                                      Environment rho, int argumentIndex, ArrayList<String> allArgClasses) {
+    // for now the namespace is hardcoded (":base") since all primitives are from the base package. But to
+    // allow this function to also work with standardGeneric the namespace needs to be identified at runtime
+    // since these standardGenerics migh be in .GlobalEnv or elsewhere.
     String functionEnvName = ".__T__" + functionName + ":base";
     Environment functionEnv = (Environment) context.getGlobalEnvironment().findVariable(context, Symbol.get(functionEnvName));
     SEXP function = null;
     PairList.Builder allArgs = new PairList.Builder();
+    // S4 methods for each generic function is stored in an environment. methods for each signature is stored
+    // separately using the signature as name. for example
+    // setMethod("[", signature("AA","BB","CC"), function(x, i, j, ...))
+    // is stored as `AA#BB#CC` in an environment named `.__T__[:base`
+    // here we get the first method from the method environment and split the name by # to know what the expected
+    // signature length is. This might be longer the length of arguments and #ANY should be used for missing
+    // arguments. In case signature is shorted than the number of arguments we don't need to evaluate the extra
+    // arguments.
     int signatureLength = ((Symbol) functionEnv.getFrame().getSymbols().toArray()[0]).getPrintName().split("#").length;
 
     allArgClasses = argumentIndex == 0 ? new ArrayList<String>(signatureLength) : allArgClasses;
 
     function = findFunctionWithSignature(context, functionEnv, allArgClasses, argumentIndex, args, rho);
     if (function == Symbol.UNBOUND_VALUE && argumentIndex < signatureLength && argumentIndex < args.length()-1) {
+      // recursively go through arguments and get their class and lookup until the signature is found.
+      // Issues:
+      // - We know how long the signature should be, we need to avoid generation and lookup of shorter signatures
+      // - In latest recursion, this is using only the most base classes of earlier arguments and therefor
+      //   will not generate all possible signatures.
+      // - Stops with the first hit
+      // - Is not aware of distance between classes of input arguments to different method signatures
       return handleS4object(context, source, functionName, args, rho, argumentIndex + 1, allArgClasses);
     }
 
@@ -310,6 +328,8 @@ public class S3 {
   }
 
   public static String evaluateAndGetClass(Context context, PairList args, Environment rho, int argumentIndex) {
+    // To get the class of an argument we have to evaluate the argument first. If its an atomic, than it lacks class
+    // attribute. In this case we use Attributes.getClass() to get the class name.
     String className;
     SEXP evaluatedArg = context.evaluate(args.getElementAsSEXP(argumentIndex), rho);
     if(evaluatedArg.getAttributes().hasClass()) {
@@ -321,6 +341,7 @@ public class S3 {
   }
 
   public static String createSignature(ArrayList<String> currentArgClass, int signatureLength) {
+    // different methods for the same generic are stored based on their signature seperated by #
     String signature = currentArgClass.get(0);
     for(int i = 1; i < signatureLength + 1; i++) {
       signature = signature.concat("#").concat(currentArgClass.get(i));

@@ -267,12 +267,17 @@ public class S3 {
     Environment functionEnv = (Environment) context.getGlobalEnvironment().findVariable(context, Symbol.get(functionEnvName));
     SEXP function = null;
     PairList.Builder allArgs = new PairList.Builder();
+    int signatureLength = ((Symbol) functionEnv.getFrame().getSymbols().toArray()[0]).getPrintName().split("#").length;
 
-    allArgClasses = argumentIndex == 0 ? new ArrayList<String>(args.length() + 1) : allArgClasses;
+    allArgClasses = argumentIndex == 0 ? new ArrayList<String>(signatureLength) : allArgClasses;
 
     function = findFunctionWithSignature(context, functionEnv, allArgClasses, argumentIndex, args, rho);
-    if (function == Symbol.UNBOUND_VALUE && argumentIndex < args.length()) {
+    if (function == Symbol.UNBOUND_VALUE && argumentIndex < signatureLength && argumentIndex < args.length()-1) {
       return handleS4object(context, source, functionName, args, rho, argumentIndex + 1, allArgClasses);
+    }
+
+    if(function == Symbol.UNBOUND_VALUE) {
+      throw new EvalException("object of type 'S4' is not subsettable");
     }
 
     allArgs.add(source);

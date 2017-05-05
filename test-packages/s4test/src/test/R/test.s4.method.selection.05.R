@@ -22,26 +22,38 @@ library(hamcrest)
 library(methods)
 
 
-ignore.test.method_selection.05 = function() {
-    setClass("D", representation(d = "character"))
-    setClass("C", representation(c = "character"), contains = "D")
-    setClass("B", representation(b = "character"), contains = "C")
-    setClass("A", representation(a = "character"), contains = "B")
-    d = new("D", d = "d")
-    c = new("C", d = "cd", c = "c")
-    b = new("B", d = "bd", c = "bc", b = "b")
-    a = new("A", d = "ad", c = "ac", b = "ab", a = "a")
+setClass("D", representation(d = "character"))
+setClass("C", representation(c = "character"), contains = "D")
+setClass("B", representation(b = "character"), contains = "C")
+setClass("A", representation(a = "character"), contains = "B")
+d = new("D", d = "d")
+c = new("C", d = "cd", c = "c")
+b = new("B", d = "bd", c = "bc", b = "b")
+a = new("A", d = "ad", c = "ac", b = "ab", a = "a")
 
-    setMethod("[", signature("B","C","C"), function(x, i, j, ...) 3.5)
-    setMethod("[", signature("B","D","B"), function(x, i, j, ...) 5.5)
-    setMethod("[", signature("C","C","A"), function(x, i, j, ...) 7.5)
-    setMethod("[", signature("C","A","C"), function(x, i, j, ...) 9.5)
-    setMethod("[", signature("A","C","C"), function(x, i, j, ...) 11.5)
-    setMethod("[", signature("A","D","B"), function(x, i, j, ...) 15.5)
+setMethod("[", signature("B","C","C"), function(x, i, j, ...) 3.5)
+setMethod("[", signature("B","D","B"), function(x, i, j, ...) 5.5)
+setMethod("[", signature("C","C","A"), function(x, i, j, ...) 7.5)
+setMethod("[", signature("C","A","C"), function(x, i, j, ...) 9.5)
+setMethod("[", signature("A","C","C"), function(x, i, j, ...) 11.5)
+setMethod("[", signature("A","D","B"), function(x, i, j, ...) 15.5)
 
+ignore.test.method_selection.05a = function() {
     assertThat(a[a,a], identicalTo( c(11.5) ))
+}
+
+test.method_selection.05b = function() {
     assertThat(b[b,b], identicalTo( c(3.5) ))
+}
+
+test.method_selection.05c = function() {
     assertThat(b[b,a], identicalTo( c(7.5) ))
+}
+
+ignore.test.method_selection.05d = function() {
     assertThat(a[a,b], identicalTo( c(11.5) ))
+}
+
+ignore.test.method_selection.05e = function() {
     assertThat(a[b,b], identicalTo( c(11.5) ))
 }

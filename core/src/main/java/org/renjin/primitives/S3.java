@@ -319,7 +319,7 @@ public class S3 {
           distances[i] = (Integer) currentSig[i + 1];
         }
 
-        double methodRating = computeMethodRating(distances);
+        double methodRating = computeMethodRank(distances);
         methods.put(methodRating, function);
       }
       useSignature++;
@@ -328,25 +328,25 @@ public class S3 {
     return methods;
   }
 
-  private static double computeMethodRating(int[] distances) {
-    double methodRating = 0.0;
+  private static double computeMethodRank(int[] distances) {
+    double methodRank = 0.0;
     boolean hasZero = Arrays.asList(distances).contains(0);
     int totalDist = 0;
     for(int i = 0; i < distances.length; i++) {
       totalDist = totalDist + distances[i];
     }
-    methodRating = methodRating + (totalDist * 1000.0);
+    methodRank = methodRank + ((double)totalDist * 1000.0);
 
     double initRate = 10.0;
     for(int i = 0; i < distances.length; i++) {
-      methodRating = methodRating + (initRate / i + 1) * distances[i];
+      methodRank = methodRank + (initRate / ((double)i + 1)) * (double)distances[i];
     }
 
     if(!hasZero) {
-      methodRating = methodRating + 10000.00;
+      methodRank = methodRank + 10000.00;
     }
 
-    return methodRating;
+    return methodRank;
   }
 
   public static Object[][] generateAllPossibleSignatures(Context context, Environment rho, PairList args,

@@ -22,7 +22,7 @@ library(hamcrest)
 library(methods)
 
 
-ignore.test.method_selection.03 = function() {
+test.method_selection.03 = function() {
     setClass("D", representation(d = "character"))
     setClass("C", representation(c = "character"), contains = "D")
     setClass("B", representation(b = "character"), contains = "C")

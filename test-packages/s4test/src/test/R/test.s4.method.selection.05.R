@@ -38,7 +38,7 @@ setMethod("[", signature("C","A","C"), function(x, i, j, ...) 9.5)
 setMethod("[", signature("A","C","C"), function(x, i, j, ...) 11.5)
 setMethod("[", signature("A","D","B"), function(x, i, j, ...) 15.5)
 
-ignore.test.method_selection.05a = function() {
+test.method_selection.05a = function() {
     assertThat(a[a,a], identicalTo( c(11.5) ))
 }
 
@@ -50,10 +50,10 @@ test.method_selection.05c = function() {
     assertThat(b[b,a], identicalTo( c(7.5) ))
 }
 
-ignore.test.method_selection.05d = function() {
+test.method_selection.05d = function() {
     assertThat(a[a,b], identicalTo( c(11.5) ))
 }
 
-ignore.test.method_selection.05e = function() {
+test.method_selection.05e = function() {
     assertThat(a[b,b], identicalTo( c(11.5) ))
 }

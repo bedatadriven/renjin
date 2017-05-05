@@ -77,11 +77,11 @@ test.method_selection.03d = function() {
     assertThat(a[a,c], identicalTo( c(3.5) ))
 }
 
-ignore.test.method_selection.03e = function() {
+.test.method_selection.03e = function() {
     assertThat(a[a,b], identicalTo( c(5.5) ))
 
 }
 
-ignore.test.method_selection.03f = function() {
+.test.method_selection.03f = function() {
     assertThat(a[b,b], identicalTo( c(5.5) ))
 }

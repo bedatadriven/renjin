@@ -290,7 +290,7 @@ public class S3 {
       throw new EvalException("object of type 'S4' is not subsettable");
     }
 
-    TreeMap<Double, SEXP> map = new TreeMap<Double, SEXP>(methods);
+    TreeMap<Double, SEXP> map = new TreeMap<>(methods);
     function = map.get(map.firstKey());
 
     allArgs.add(source);
@@ -330,7 +330,14 @@ public class S3 {
 
   private static double computeMethodRank(int[] distances) {
     double methodRank = 0.0;
-    boolean hasZero = Arrays.asList(distances).contains(0);
+    boolean hasZero = false;
+
+    for(int i = 0; i < distances.length && hasZero == false; i++) {
+      if (distances[i] == 0) {
+        hasZero = true;
+      }
+    }
+
     int totalDist = 0;
     for(int i = 0; i < distances.length; i++) {
       totalDist = totalDist + distances[i];
@@ -355,7 +362,7 @@ public class S3 {
       String evaluatedArg = evaluateAndGetClass(context, args, rho, current);
       ArrayList<String> argument = new ArrayList<>(1);
       argument.add(evaluatedArg);
-      Map<String, Integer> superClassesAndDistance = getSuperClasses(context, argument, 0);
+      Map<String, Integer> superClassesAndDistance = getSuperClasses(context, argument, 0, current);
 
       Object[] evaledArgSupClass = superClassesAndDistance.keySet().toArray();
       String[] evaluatedArgSuperClasses = new String[evaledArgSupClass.length];
@@ -374,8 +381,8 @@ public class S3 {
       allArgClasses[0] = evaluatedArg;
       allArgClassesDistance[0] = 0;
       for(int i = 1; i < evaluatedArgSuperClasses.length + 1; i++) {
-        allArgClasses[i] = evaluatedArgSuperClasses[i-1];
-        allArgClassesDistance[i] = evaluatedArgSuperClassesDistance[i-1];
+        allArgClasses[i] = evaluatedArgSuperClasses[i - 1];
+        allArgClassesDistance[i] = evaluatedArgSuperClassesDistance[i - 1];
       }
 
       if(signature == null) {
@@ -405,11 +412,11 @@ public class S3 {
 
         newSig[row][0] = signature[lastSigIdx][0] + "#" + allArgClasses[currSigIdx];
 
-        for (int col = 1; col < current+1; col++) {
+        for (int col = 1; col < current + 1; col++) {
           newSig[row][col] = signature[lastSigIdx][col];
         }
 
-        newSig[row][current+1] = allArgClassesDistance[currSigIdx];
+        newSig[row][current + 1] = allArgClassesDistance[currSigIdx];
         lastSigIdx++;
       }
       current++;
@@ -432,7 +439,7 @@ public class S3 {
     return className;
   }
 
-  public static Map<String, Integer> getSuperClasses(Context context, ArrayList<String> allArgClasses, int signatureLength) {
+  public static Map<String, Integer> getSuperClasses(Context context, ArrayList<String> allArgClasses, int signatureLength, int current) {
     Symbol argClassObjectName = Symbol.get(".__C__" + allArgClasses.get(signatureLength));
     Frame globalFrame = context.getGlobalEnvironment().getFrame();
     AttributeMap map = globalFrame.getVariable(argClassObjectName).getAttributes();
@@ -450,6 +457,9 @@ public class S3 {
     }
     for(int i = 0; i < argSuperClasses.length(); i++) {
       result.put(((StringArrayVector)argSuperClasses).getElementAsString(i), distances[i]);
+    }
+    if(current != 0) {
+      result.put("ANY", distances[argSuperClasses.length() - 1] + 1);
     }
     return result;
   }

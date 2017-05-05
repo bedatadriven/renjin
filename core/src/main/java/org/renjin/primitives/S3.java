@@ -362,7 +362,7 @@ public class S3 {
       String evaluatedArg = evaluateAndGetClass(context, args, rho, current);
       ArrayList<String> argument = new ArrayList<>(1);
       argument.add(evaluatedArg);
-      Map<String, Integer> superClassesAndDistance = getSuperClasses(context, argument, 0, current);
+      Map<String, Integer> superClassesAndDistance = getSuperClasses(context, argument, 0);
 
       Object[] evaledArgSupClass = superClassesAndDistance.keySet().toArray();
       String[] evaluatedArgSuperClasses = new String[evaledArgSupClass.length];
@@ -439,7 +439,7 @@ public class S3 {
     return className;
   }
 
-  public static Map<String, Integer> getSuperClasses(Context context, ArrayList<String> allArgClasses, int signatureLength, int current) {
+  public static Map<String, Integer> getSuperClasses(Context context, ArrayList<String> allArgClasses, int signatureLength) {
     Symbol argClassObjectName = Symbol.get(".__C__" + allArgClasses.get(signatureLength));
     Frame globalFrame = context.getGlobalEnvironment().getFrame();
     AttributeMap map = globalFrame.getVariable(argClassObjectName).getAttributes();
@@ -458,9 +458,8 @@ public class S3 {
     for(int i = 0; i < argSuperClasses.length(); i++) {
       result.put(((StringArrayVector)argSuperClasses).getElementAsString(i), distances[i]);
     }
-    if(current != 0) {
-      result.put("ANY", distances[argSuperClasses.length() - 1] + 1);
-    }
+    result.put("ANY", distances[argSuperClasses.length() - 1] + 1);
+
     return result;
   }
 

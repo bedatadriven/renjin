@@ -269,7 +269,6 @@ public class S3 {
     String functionEnvName = ".__T__" + functionName + ":base";
     Environment functionEnv = (Environment) context.getGlobalEnvironment().findVariable(context, Symbol.get(functionEnvName));
     SEXP function = null;
-    PairList.Builder allArgs = new PairList.Builder();
     // S4 methods for each generic function is stored in an environment. methods for each signature is stored
     // separately using the signature as name. for example
     // setMethod("[", signature("AA","BB","CC"), function(x, i, j, ...))
@@ -278,13 +277,11 @@ public class S3 {
     // signature length is. This might be longer the length of arguments and #ANY should be used for missing
     // arguments. In case signature is shorted than the number of arguments we don't need to evaluate the extra
     // arguments.
-    int signatureLength = ((Symbol) functionEnv.getFrame().getSymbols().toArray()[0]).getPrintName().split("#").length;
+    int signatureLength = functionEnv.getFrame().getSymbols().iterator().next().getPrintName().split("#").length;
 
     Object[][] allPossibleSignatures = generateAllPossibleSignatures(context, rho, args, null, signatureLength, 0);
 
-    //function = findFunctionMatchingAnyOfSignatures(context, functionEnv, allPossibleSignatures, 0, Symbol.UNBOUND_VALUE);
-
-    Map<Double, SEXP> methods = findFunctionMatchingAnyOfSignatures(context, functionEnv, allPossibleSignatures, 0, null);
+    Map<Double, SEXP> methods = findFunctionMatchingAnyOfSignatures(context, functionEnv, allPossibleSignatures, null);
 
     if(methods.isEmpty()) {
       throw new EvalException("object of type 'S4' is not subsettable");
@@ -293,22 +290,19 @@ public class S3 {
     TreeMap<Double, SEXP> map = new TreeMap<>(methods);
     function = map.get(map.firstKey());
 
-    allArgs.add(source);
-    allArgs.add(args.getElementAsSEXP(1));
-    SEXP result = context.evaluate(new FunctionCall(function, allArgs.build()));
+    SEXP result = context.evaluate(new FunctionCall(function, args));
     return result;
   }
 
-  private static Map<Double, SEXP> findFunctionMatchingAnyOfSignatures(Context context, Environment functionEnv, Object[][] signatures, int useSignature, Map<Double, SEXP> methods) {
+  private static Map<Double, SEXP> findFunctionMatchingAnyOfSignatures(Context context, Environment functionEnv, Object[][] signatures, Map<Double, SEXP> methods) {
     // recursively go through arguments and get their class and lookup until the signature is found.
-    // Issues:
-    // - Stops with the first hit
-    // - Is not aware of distance between classes of input arguments to different method signatures
+    // add the found method and its rank to the map.
     if(methods == null) {
       methods = new HashMap<>(signatures.length);
     }
-    if(useSignature < signatures.length) {
-      Object[] currentSig = signatures[useSignature];
+
+    for(int signatureIndex = 0; signatureIndex < signatures.length; ++signatureIndex) {
+      Object[] currentSig = signatures[signatureIndex];
       int currentSigLength = currentSig.length;
       Symbol methodName = Symbol.get((String) currentSig[0]);
       SEXP function = functionEnv.findVariable(context, methodName);
@@ -322,9 +316,8 @@ public class S3 {
         double methodRating = computeMethodRank(distances);
         methods.put(methodRating, function);
       }
-      useSignature++;
-      return findFunctionMatchingAnyOfSignatures(context, functionEnv, signatures, useSignature, methods);
     }
+
     return methods;
   }
 
@@ -342,15 +335,15 @@ public class S3 {
     for(int i = 0; i < distances.length; i++) {
       totalDist = totalDist + distances[i];
     }
-    methodRank = methodRank + ((double)totalDist * 1000.0);
+    methodRank = methodRank + ((double)totalDist * 10007.0);
 
-    double initRate = 10.0;
+    double initialRank = 13.0;
     for(int i = 0; i < distances.length; i++) {
-      methodRank = methodRank + (initRate / ((double)i + 1)) * (double)distances[i];
+      methodRank = methodRank + (initialRank / ((double)i + 1)) * (double)distances[i];
     }
 
     if(!hasZero) {
-      methodRank = methodRank + 10000.00;
+      methodRank = methodRank + 1000003.00;
     }
 
     return methodRank;
@@ -376,31 +369,31 @@ public class S3 {
         evaluatedArgSuperClassesDistance[i] = (Integer) evalDist[i];
       }
 
-      String[] allArgClasses = new String[evaluatedArgSuperClasses.length + 1];
+      String[] allCurrentArgumentClasses = new String[evaluatedArgSuperClasses.length + 1];
       int[] allArgClassesDistance = new int[evaluatedArgSuperClasses.length + 1];
-      allArgClasses[0] = evaluatedArg;
+      allCurrentArgumentClasses[0] = evaluatedArg;
       allArgClassesDistance[0] = 0;
       for(int i = 1; i < evaluatedArgSuperClasses.length + 1; i++) {
-        allArgClasses[i] = evaluatedArgSuperClasses[i - 1];
+        allCurrentArgumentClasses[i] = evaluatedArgSuperClasses[i - 1];
         allArgClassesDistance[i] = evaluatedArgSuperClassesDistance[i - 1];
       }
 
       if(signature == null) {
         current++;
-        signature = new Object[allArgClasses.length][2];
-        for(int i = 0; i < allArgClasses.length; i++) {
-          signature[i][0] = allArgClasses[i];
+        signature = new Object[allCurrentArgumentClasses.length][2];
+        for(int i = 0; i < allCurrentArgumentClasses.length; i++) {
+          signature[i][0] = allCurrentArgumentClasses[i];
           signature[i][1] = allArgClassesDistance[i];
         }
         return generateAllPossibleSignatures(context, rho, args, signature, depth, current);
       }
 
-      int rows = signature.length * allArgClasses.length;
+      int rows = signature.length * allCurrentArgumentClasses.length;
       int cols = depth + 1;
       Object[][] newSig = new Object[rows][cols];
 
       int lastSigIdx = 0; int lastSigMax = signature.length;
-      int currSigIdx = 0; int currSigMax = allArgClasses.length;
+      int currSigIdx = 0; int currSigMax = allCurrentArgumentClasses.length;
       for(int row = 0; row < rows; row++) {
         if (lastSigIdx == lastSigMax) {
           lastSigIdx = 0;
@@ -410,7 +403,7 @@ public class S3 {
           currSigIdx = 0;
         }
 
-        newSig[row][0] = signature[lastSigIdx][0] + "#" + allArgClasses[currSigIdx];
+        newSig[row][0] = signature[lastSigIdx][0] + "#" + allCurrentArgumentClasses[currSigIdx];
 
         for (int col = 1; col < current + 1; col++) {
           newSig[row][col] = signature[lastSigIdx][col];

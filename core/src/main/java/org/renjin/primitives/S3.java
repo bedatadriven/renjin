@@ -350,7 +350,7 @@ public class S3 {
   }
 
   public static Object[][] generateAllPossibleSignatures(Context context, Environment rho, PairList args,
-                                                       Object[][] signature, int depth, int current) {
+                                                         Object[][] signature, int depth, int current) {
     if(current < depth) {
       String evaluatedArg = evaluateAndGetClass(context, args, rho, current);
       ArrayList<String> argument = new ArrayList<>(1);
@@ -395,22 +395,22 @@ public class S3 {
       int lastSigIdx = 0; int lastSigMax = signature.length;
       int currSigIdx = 0; int currSigMax = allArgClasses.length;
       for(int row = 0; row < rows; row++) {
-          if (lastSigIdx == lastSigMax) {
-            lastSigIdx = 0;
-            currSigIdx++;
-          }
-          if (currSigIdx == currSigMax) {
-            currSigIdx = 0;
-          }
+        if (lastSigIdx == lastSigMax) {
+          lastSigIdx = 0;
+          currSigIdx++;
+        }
+        if (currSigIdx == currSigMax) {
+          currSigIdx = 0;
+        }
 
-          newSig[row][0] = signature[lastSigIdx][0] + "#" + allArgClasses[currSigIdx];
+        newSig[row][0] = signature[lastSigIdx][0] + "#" + allArgClasses[currSigIdx];
 
-          for (int col = 1; col < current+1; col++) {
-            newSig[row][col] = signature[lastSigIdx][col];
-          }
+        for (int col = 1; col < current+1; col++) {
+          newSig[row][col] = signature[lastSigIdx][col];
+        }
 
-          newSig[row][current+1] = allArgClassesDistance[currSigIdx];
-          lastSigIdx++;
+        newSig[row][current+1] = allArgClassesDistance[currSigIdx];
+        lastSigIdx++;
       }
       current++;
       return generateAllPossibleSignatures(context, rho, args, newSig, depth, current);

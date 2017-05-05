@@ -30,7 +30,6 @@ import org.renjin.sexp.*;
 import org.renjin.sexp.Vector;
 
 import java.util.*;
-import java.util.stream.IntStream;
 
 /**
  * Primitives used in the implementation of the S3 object system
@@ -311,15 +310,16 @@ public class S3 {
     if(useSignature < signatures.length) {
       Object[] currentSig = signatures[useSignature];
       int currentSigLength = currentSig.length;
-      SEXP function = functionEnv.findVariable(context, Symbol.get((String) currentSig[0]));
-      int[] distances = new int[currentSigLength - 1];
-      for(int i = 0; i < currentSigLength - 1; i++) {
-        distances[i] = (Integer) currentSig[i + 1];
-      }
-
-      double methodRating = computeMethodRating(distances);
+      Symbol methodName = Symbol.get((String) currentSig[0]);
+      SEXP function = functionEnv.findVariable(context, methodName);
 
       if(function != Symbol.UNBOUND_VALUE) {
+        int[] distances = new int[currentSigLength - 1];
+        for(int i = 0; i < currentSigLength - 1; i++) {
+          distances[i] = (Integer) currentSig[i + 1];
+        }
+
+        double methodRating = computeMethodRating(distances);
         methods.put(methodRating, function);
       }
       useSignature++;
@@ -388,46 +388,32 @@ public class S3 {
         return generateAllPossibleSignatures(context, rho, args, signature, depth, current);
       }
 
-      int maxPossibleSignatures = signature.length * allArgClasses.length;
-
-      int sizeClassesCurrentArg = allArgClasses.length;
-      int sizeLastPossibleSignatures = signature.length;
-      int rows = maxPossibleSignatures;
+      int rows = signature.length * allArgClasses.length;
       int cols = depth + 1;
-      Object[][] sigDist = new Object[rows][cols];
+      Object[][] newSig = new Object[rows][cols];
 
-      int idx = 0;
-      int sigIdx = 0;
-      for(int j = 0; j < cols - 1; j++){
-        for(int k = 0; k < sizeClassesCurrentArg; k++) {
-          if(sigIdx == sizeLastPossibleSignatures - 1) {
-            sigIdx = 0;
+      int lastSigIdx = 0; int lastSigMax = signature.length;
+      int currSigIdx = 0; int currSigMax = allArgClasses.length;
+      for(int row = 0; row < rows; row++) {
+          if (lastSigIdx == lastSigMax) {
+            lastSigIdx = 0;
+            currSigIdx++;
+          }
+          if (currSigIdx == currSigMax) {
+            currSigIdx = 0;
           }
 
-          Object[] newSigDist = new Object[current + 2];
-          newSigDist[0] = ((String) signature[sigIdx][0]) + "#" + allArgClasses[k];
-          for(int n = 1; n < signature[sigIdx].length + 1; n++) {
-            newSigDist[n] = signature[sigIdx][n - 1];
+          newSig[row][0] = signature[lastSigIdx][0] + "#" + allArgClasses[currSigIdx];
+
+          for (int col = 1; col < current+1; col++) {
+            newSig[row][col] = signature[lastSigIdx][col];
           }
 
-//          int rows = maxPossibleSignatures
-//          int cols = dept + 1
-//          int[][] tempArray = new int[rows][cols];
-//          for (int i = 0; i < rows; i++)
-//            for (int j = 0; j < cols; j++)
-//              tempArray[i][j] = m[i][j];
-
-          newSigDist[current + 1] = allArgClassesDistance[k];
-
-          sigDist[idx] = newSigDist;
-
-          sigIdx++;
-          idx++;
-        }
+          newSig[row][current+1] = allArgClassesDistance[currSigIdx];
+          lastSigIdx++;
       }
-
       current++;
-      return generateAllPossibleSignatures(context, rho, args, sigDist, depth, current);
+      return generateAllPossibleSignatures(context, rho, args, newSig, depth, current);
     }
 
     return signature;

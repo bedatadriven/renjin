@@ -30,49 +30,15 @@ c = new("CC", d = "cd", c = "c")
 b = new("BB", d = "bd", c = "bc", b = "b")
 a = new("AA", d = "ad", c = "ac", b = "ab", a = "a")
 
-test.method_selection.01 = function() {
+setMethod("[", signature("DD"), function(x, i, j, ...) 1.5)
+setMethod("[", signature("DD", "DD"), function(x, i, j, ...) 2.5)
+setMethod("[", signature("BB","CC","CC"), function(x, i, j, ...) 3.5)
+setMethod("[", signature("BB","DD","BB"), function(x, i, j, ...) 5.5)
 
-    setMethod("[", signature("DD"), function(x, i, j, ...) 3.5)
-
-    assertThat(c[1], identicalTo( c(3.5) ))
-
+test.method_selection.00 = function() {
+    assertThat(a[a,b], identicalTo( c(5.5) ))
 }
 
-test.method_selection.02 = function() {
-
-    setMethod("[", signature("DD", "DD"), function(x, i, j, ...) 3.5)
-
-    assertThat(c[c], identicalTo( c(3.5) ))
-
-}
-
-test.method_selection.03 = function() {
-
-    setMethod("[[", signature("DD", "DD", "CC"), function(x, i, j, ...) 5.5)
-
-    assertThat(c[[c,c]], identicalTo( c(5.5) ))
-
-}
-
-test.method_selection.03a1 = function() {
-    setMethod("[", signature("BB","CC","CC"), function(x, i, j, ...) 3.5)
-    assertThat(a[a,a], identicalTo( c(3.5) ))
-}
-
-test.method_selection.03a2 = function() {
-    setMethod("[", signature("BB","CC","CC"), function(x, i, j, ...) 3.5)
-    setMethod("[", signature("BB","DD","BB"), function(x, i, j, ...) 5.5)
-    assertThat(a[a,a], identicalTo( c(3.5) ))
-}
-
-test.method_selection.03b = function() {
-    assertThat(b[b,b], identicalTo( c(3.5) ))
-}
-
-test.method_selection.03c = function() {
-    assertThat(a[c,c], identicalTo( c(3.5) ))
-}
-
-test.method_selection.03d = function() {
-    assertThat(a[a,c], identicalTo( c(3.5) ))
+test.method_selection.03f = function() {
+    assertThat(a[b,b], identicalTo( c(5.5) ))
 }

@@ -241,8 +241,9 @@ public class S3 {
       return null;
     }
 
-    if(object instanceof S4Object && context.getGlobalEnvironment().getSymbolNames().contains(Symbol.get(".__T__" + name + ":base"))) {
-      return handleS4object(context, object, name, args, rho, 0, null);
+    String methodEnvironmentName = ".__T__" + name + ":base";
+    if(object instanceof S4Object && context.getGlobalEnvironment().getSymbolNames().contains(Symbol.get(methodEnvironmentName))) {
+      return handleS4object(context, object, methodEnvironmentName, args, rho, 0, null);
     }
 
     GenericMethod method = Resolver
@@ -261,13 +262,12 @@ public class S3 {
     return method.doApply(context, rho, newArgs);
   }
 
-  private static SEXP handleS4object(@Current Context context, SEXP source, String functionName, PairList args,
+  private static SEXP handleS4object(@Current Context context, SEXP source, String methodEnvName, PairList args,
                                      Environment rho, int argumentIndex, ArrayList<String> allArgClasses) {
     // for now the namespace is hardcoded (":base") since all primitives are from the base package. But to
     // allow this function to also work with standardGeneric the namespace needs to be identified at runtime
     // since these standardGenerics migh be in .GlobalEnv or elsewhere.
-    String functionEnvName = ".__T__" + functionName + ":base";
-    Environment functionEnv = (Environment) context.getGlobalEnvironment().findVariable(context, Symbol.get(functionEnvName));
+    Environment functionEnv = (Environment) context.getGlobalEnvironment().findVariable(context, Symbol.get(methodEnvName));
     SEXP function = null;
     // S4 methods for each generic function is stored in an environment. methods for each signature is stored
     // separately using the signature as name. for example

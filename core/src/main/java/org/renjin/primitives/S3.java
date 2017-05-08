@@ -279,7 +279,7 @@ public class S3 {
     // arguments.
     int signatureLength = functionEnv.getFrame().getSymbols().iterator().next().getPrintName().split("#").length;
 
-    Object[][] allPossibleSignatures = generateAllPossibleSignatures(context, rho, args, null, signatureLength, 0);
+    SignatureDist[] allPossibleSignatures = generateAllPossibleSignatures(context, rho, args, signatureLength);
 
     Map<Double, SEXP> methods = findFunctionMatchingAnyOfSignatures(context, functionEnv, allPossibleSignatures, null);
 
@@ -294,7 +294,7 @@ public class S3 {
     return result;
   }
 
-  private static Map<Double, SEXP> findFunctionMatchingAnyOfSignatures(Context context, Environment functionEnv, Object[][] signatures, Map<Double, SEXP> methods) {
+  private static Map<Double, SEXP> findFunctionMatchingAnyOfSignatures(Context context, Environment functionEnv, SignatureDist[] signatures, Map<Double, SEXP> methods) {
     // recursively go through arguments and get their class and lookup until the signature is found.
     // add the found method and its rank to the map.
     if(methods == null) {
@@ -302,17 +302,12 @@ public class S3 {
     }
 
     for(int signatureIndex = 0; signatureIndex < signatures.length; ++signatureIndex) {
-      Object[] currentSig = signatures[signatureIndex];
-      int currentSigLength = currentSig.length;
-      Symbol methodName = Symbol.get((String) currentSig[0]);
+      String currentSig = signatures[signatureIndex].getSignature();
+      Symbol methodName = Symbol.get(currentSig);
       SEXP function = functionEnv.findVariable(context, methodName);
 
       if(function != Symbol.UNBOUND_VALUE) {
-        int[] distances = new int[currentSigLength - 1];
-        for(int i = 0; i < currentSigLength - 1; i++) {
-          distances[i] = (Integer) currentSig[i + 1];
-        }
-
+        int[] distances = signatures[signatureIndex].getDistance();
         double methodRating = computeMethodRank(distances);
         methods.put(methodRating, function);
       }
@@ -339,7 +334,7 @@ public class S3 {
 
     double initialRank = 13.0;
     for(int i = 0; i < distances.length; i++) {
-      methodRank = methodRank + (initialRank / ((double)i + 1)) * (double)distances[i];
+      methodRank = methodRank + (initialRank / ((double) i + 1)) * (double) distances[i];
     }
 
     if(!hasZero) {
@@ -349,74 +344,59 @@ public class S3 {
     return methodRank;
   }
 
-  public static Object[][] generateAllPossibleSignatures(Context context, Environment rho, PairList args,
-                                                         Object[][] signature, int depth, int current) {
-    if(current < depth) {
-      String evaluatedArg = evaluateAndGetClass(context, args, rho, current);
-      ArrayList<String> argument = new ArrayList<>(1);
-      argument.add(evaluatedArg);
-      Map<String, Integer> superClassesAndDistance = getSuperClasses(context, argument, 0);
+  public static SignatureDist[] generateAllPossibleSignatures(Context context, Environment rho,
+                                                              PairList args, int depth) {
 
-      Object[] evaledArgSupClass = superClassesAndDistance.keySet().toArray();
-      String[] evaluatedArgSuperClasses = new String[evaledArgSupClass.length];
-      for(int i = 0; i < evaledArgSupClass.length; i++) {
-        evaluatedArgSuperClasses[i] = (String) evaledArgSupClass[i];
-      }
+    String[] argsClass = new String[depth];
+    ArgumentSig[] argumentSigs = new ArgumentSig[depth];
 
-      Object[] evalDist = superClassesAndDistance.values().toArray();
-      int[] evaluatedArgSuperClassesDistance = new int[evalDist.length];
-      for(int i = 0; i < evalDist.length; i++) {
-        evaluatedArgSuperClassesDistance[i] = (Integer) evalDist[i];
-      }
-
-      String[] allCurrentArgumentClasses = new String[evaluatedArgSuperClasses.length + 1];
-      int[] allArgClassesDistance = new int[evaluatedArgSuperClasses.length + 1];
-      allCurrentArgumentClasses[0] = evaluatedArg;
-      allArgClassesDistance[0] = 0;
-      for(int i = 1; i < evaluatedArgSuperClasses.length + 1; i++) {
-        allCurrentArgumentClasses[i] = evaluatedArgSuperClasses[i - 1];
-        allArgClassesDistance[i] = evaluatedArgSuperClassesDistance[i - 1];
-      }
-
-      if(signature == null) {
-        current++;
-        signature = new Object[allCurrentArgumentClasses.length][2];
-        for(int i = 0; i < allCurrentArgumentClasses.length; i++) {
-          signature[i][0] = allCurrentArgumentClasses[i];
-          signature[i][1] = allArgClassesDistance[i];
-        }
-        return generateAllPossibleSignatures(context, rho, args, signature, depth, current);
-      }
-
-      int rows = signature.length * allCurrentArgumentClasses.length;
-      int cols = depth + 1;
-      Object[][] newSig = new Object[rows][cols];
-
-      int lastSigIdx = 0; int lastSigMax = signature.length;
-      int currSigIdx = 0; int currSigMax = allCurrentArgumentClasses.length;
-      for(int row = 0; row < rows; row++) {
-        if (lastSigIdx == lastSigMax) {
-          lastSigIdx = 0;
-          currSigIdx++;
-        }
-        if (currSigIdx == currSigMax) {
-          currSigIdx = 0;
-        }
-
-        newSig[row][0] = signature[lastSigIdx][0] + "#" + allCurrentArgumentClasses[currSigIdx];
-
-        for (int col = 1; col < current + 1; col++) {
-          newSig[row][col] = signature[lastSigIdx][col];
-        }
-
-        newSig[row][current + 1] = allArgClassesDistance[currSigIdx];
-        lastSigIdx++;
-      }
-      current++;
-      return generateAllPossibleSignatures(context, rho, args, newSig, depth, current);
+    for(int i = 0; i < depth; i++) {
+      String currentClass = evaluateAndGetClass(context, args, rho, i);
+      argsClass[i] = currentClass;
+      argumentSigs[i] = getAllClassAndDistance(context, currentClass, 0);
     }
 
-    return signature;
+    int maxSigSize = 1;
+    for(int i = 0; i < argumentSigs.length; i++) {
+      maxSigSize = maxSigSize * argumentSigs[i].getArgument().length;
+    }
+
+    SignatureDist[] sigDist = new SignatureDist[maxSigSize];
+
+    int rows = maxSigSize;
+    int currSigIdx = 0; int currArgumentClassesLength;
+    int repeat = 1;
+    int r = 0;
+
+    for(int col = 0; col < depth; col++) {
+      currArgumentClassesLength = argumentSigs[col].getArgument().length;
+
+      for(int row = 0; row < rows; row++, r++) {
+
+        currSigIdx = currSigIdx == currArgumentClassesLength ? 0 : currSigIdx;
+        ArgumentSig argSig = argumentSigs[col];
+
+        if(sigDist[row] == null) {
+          sigDist[row] =   new SignatureDist(argSig.getArgument(currSigIdx), argSig.getDistanceAsArray(currSigIdx));
+        } else {
+          sigDist[row] = sigDist[row].append(argSig.getArgument(currSigIdx), argSig.getDistance(currSigIdx));
+        }
+
+        if(repeat == 1) {
+          currSigIdx++;
+        }
+        if(r == repeat) {
+          r = 0;
+          currSigIdx++;
+        }
+
+
+      }
+      r = 0;
+      repeat = repeat * currArgumentClassesLength;
+    }
+
+    return sigDist;
   }
 
   public static String evaluateAndGetClass(Context context, PairList args, Environment rho, int argumentIndex) {
@@ -432,29 +412,33 @@ public class S3 {
     return className;
   }
 
-  public static Map<String, Integer> getSuperClasses(Context context, ArrayList<String> allArgClasses, int signatureLength) {
-    Symbol argClassObjectName = Symbol.get(".__C__" + allArgClasses.get(signatureLength));
+  public static ArgumentSig getAllClassAndDistance(Context context, String argClass, int signatureLength) {
+    Symbol argClassObjectName = Symbol.get(".__C__" + argClass);
     Frame globalFrame = context.getGlobalEnvironment().getFrame();
     AttributeMap map = globalFrame.getVariable(argClassObjectName).getAttributes();
     SEXP containsSlot = map.get("contains");
     SEXP argSuperClasses = containsSlot.getNames();
-    Map<String, Integer> result = new HashMap<>();
-    int[] distances = new int[argSuperClasses.length()];
+    int[] distances = new int[argSuperClasses.length() + 2];
+    String[] classes = new String[argSuperClasses.length() + 2];
+    classes[0] = argClass;
+    distances[0] = 0;
     for(int i = 0; i < argSuperClasses.length(); i++) {
       DoubleArrayVector distanceSlot = (DoubleArrayVector) ((ListVector) containsSlot).get(i).getAttributes().get("distance");
-      distances[i] = distanceSlot.getElementAsInt(0);
+      distances[i + 1] = distanceSlot.getElementAsInt(0);
+      classes[i + 1] = ((StringArrayVector) argSuperClasses).getElementAsString(i);
     }
 
-    if(argSuperClasses == null || argSuperClasses instanceof Null) {
-      result.put("ANY", 1);
-      return result;
+    int max = 0;
+    for(int i = 0; i < distances.length; i++) {
+      if(distances[i] > max) {
+        max = distances[i];
+      }
     }
-    for(int i = 0; i < argSuperClasses.length(); i++) {
-      result.put(((StringArrayVector)argSuperClasses).getElementAsString(i), distances[i]);
-    }
-    result.put("ANY", distances[argSuperClasses.length() - 1] + 1);
 
-    return result;
+    distances[argSuperClasses.length() + 1] = max + 1;
+    classes[distances.length - 1] = "ANY";
+
+    return new ArgumentSig(classes, distances);
   }
 
   public static SEXP tryDispatchFromPrimitive(Context context, Environment rho, FunctionCall call,
@@ -1049,4 +1033,95 @@ public class S3 {
       }
     }
   }
+
+  public static class ArgumentSig {
+    String[] argument;
+    int[] distance;
+
+    ArgumentSig(String[] arg, int[] dist) {
+      this.argument = arg;
+      this.distance = dist;
+    }
+
+    public int[] getDistance() {
+      return distance;
+    }
+
+    public String[] getArgument() {
+      return argument;
+    }
+
+    public String getArgument(int position) {
+      return this.argument[position];
+    }
+
+    public int getDistance(int position) {
+      return this.distance[position];
+    }
+
+    public int[] getDistanceAsArray(int position) {
+      int[] array = new int[1];
+      array[0] = this.distance[position];
+      return array;
+    }
+
+    public void setArgument(String[] argument) {
+      this.argument = argument;
+    }
+
+    public void setDistance(int[] distance) {
+      this.distance = distance;
+    }
+  }
+
+  public static class SignatureDist {
+    String signature;
+    int[] distance;
+
+    SignatureDist(String signature, int[] distance) {
+      this.signature = signature;
+      this.distance = distance;
+    }
+
+    public void setSignature(String signature) {
+      this.signature = signature;
+    }
+
+    public void setDistance(int[] distance) {
+      this.distance = distance;
+    }
+
+    public SignatureDist append(String argument, int[] distance) {
+      String newSig = this.signature + "#" + argument;
+      int[] newDist = new int[this.distance.length + 1];
+      for(int i = 0; i < this.distance.length; i++) {
+        newDist[i] = this.distance[i];
+      }
+      newDist[this.distance.length] = distance[distance.length - 1];
+      this.signature = newSig;
+      this.distance = newDist;
+      return this;
+    }
+
+    public SignatureDist append(String argument, int distance) {
+      String newSig = this.signature + "#" + argument;
+      int[] newDist = new int[this.distance.length + 1];
+      for(int i = 0; i < this.distance.length; i++) {
+        newDist[i] = this.distance[i];
+      }
+      newDist[this.distance.length] = distance;
+      this.signature = newSig;
+      this.distance = newDist;
+      return this;
+    }
+
+    public String getSignature() {
+      return signature;
+    }
+
+    public int[] getDistance() {
+      return distance;
+    }
+  }
+
 }

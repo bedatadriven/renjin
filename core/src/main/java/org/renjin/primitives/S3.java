@@ -446,6 +446,7 @@ public class S3 {
     }
 
     if(argSuperClasses == null || argSuperClasses instanceof Null) {
+      result.put("ANY", 1);
       return result;
     }
     for(int i = 0; i < argSuperClasses.length(); i++) {

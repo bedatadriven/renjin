@@ -335,7 +335,7 @@ public class S3 {
     for(int i = 0; i < distances.length; i++) {
       totalDist = totalDist + distances[i];
     }
-    methodRank = methodRank + ((double)totalDist * 10007.0);
+    methodRank = methodRank + ((double)totalDist * 100003.00);
 
     double initialRank = 13.0;
     for(int i = 0; i < distances.length; i++) {
@@ -343,7 +343,7 @@ public class S3 {
     }
 
     if(!hasZero) {
-      methodRank = methodRank + 1000003.00;
+      methodRank = methodRank + 10007.0;
     }
 
     return methodRank;

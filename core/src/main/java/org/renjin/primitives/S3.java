@@ -126,19 +126,19 @@ public class S3 {
     /*
      * First we need to see if we've already been through this.
      * (It's complicated)
-     * 
-     * - This method is called by "generic" primitives that, before doing 
+     *
+     * - This method is called by "generic" primitives that, before doing
      *   their normal thing, check to see if there's a user-defined function
-     *   out there that provides specific behavior for the object. 
-     * 
-     * - It can happen that that user function in turn calls NextMethod() 
+     *   out there that provides specific behavior for the object.
+     *
+     * - It can happen that that user function in turn calls NextMethod()
      *   to defer to the default behavior of the primitive. In this case,
      *   we don't want to check again because we've already been through
      *   that; to do so would be to loop infinitely.
-     *   
+     *
      * - We can only tell whether this is the first or second time around,
      *   because if it's the second, NextMethod() will invoke the primitive
-     *   by the name "<primitive>.default", like "as.character.default". 
+     *   by the name "<primitive>.default", like "as.character.default".
      */
     if(call.getFunction() instanceof Symbol && 
         ((Symbol) call.getFunction()).getPrintName().endsWith(".default")) {
@@ -193,7 +193,7 @@ public class S3 {
       }
     }
     left.withMethodVector(m);
-    
+
 
     /* the arguments have been evaluated; since we are passing them */
     /* out to a closure we need to wrap them in promises so that */
@@ -588,8 +588,8 @@ public class S3 {
     }
 
     /**
-     * Sets the name of the generic method to resolve from 
-     * an argument provided to UseMethod(). 
+     * Sets the name of the generic method to resolve from
+     * an argument provided to UseMethod().
      * 
      * @param generic the 'generic' argument, giving the name of the method, like
      * 'as.character', or 'print'.
@@ -602,8 +602,8 @@ public class S3 {
     }
     
     /**
-     * Sets the name of the generic method to resolve from 
-     * an argument provided to UseMethod(). 
+     * Sets the name of the generic method to resolve from
+     * an argument provided to UseMethod().
      * 
      * @param genericName the 'generic' argument, giving the name of the method, like
      * 'as.character', or 'print'.
@@ -726,15 +726,15 @@ public class S3 {
     /**
      * The vector stored in .Method
      * 
-     * <p>Normally it is just a single string containing the 
+     * <p>Normally it is just a single string containing the
      * name of the selected method, but for Ops group members,
-     * it a two element string vector of the form 
+     * it a two element string vector of the form
      * 
      * [ "Ops.factor", ""]
      * [ "", "Ops.factor"] or
-     * [ "Ops.factor", "Ops.factor"] 
+     * [ "Ops.factor", "Ops.factor"]
      * 
-     * depending on which (or both) of the operands belong to 
+     * depending on which (or both) of the operands belong to
      * the selected class.
      * 
      */
@@ -788,7 +788,7 @@ public class S3 {
       }
       try {
         if (function instanceof Closure) {
-          // Note that the callingEnvironment or "sys.parent" of the selected function will be the calling 
+          // Note that the callingEnvironment or "sys.parent" of the selected function will be the calling
           // environment of the wrapper function that calls UseMethod, NOT the environment in which UseMethod
           // is evaluated.
           Environment callingEnvironment = callContext.getCallingEnvironment();
@@ -821,16 +821,16 @@ public class S3 {
       /*
        * Get the arguments to the function that called NextMethod(),
        * no arguments are really passed to NextMethod() at all.
-       * 
-       * Note that we have to do a bit of climbing here-- it can be that previous 
+       *
+       * Note that we have to do a bit of climbing here-- it can be that previous
        * method looked like:
-       * 
+       *
        * `[.simple.list <- function(x, i, ...) structure(NextMethod('['], class=class(x))
-       * 
+       *
        * In this case, NextMethod is passed a promise to the closure 'structure',
        * and so our parent context is NOT the function context of `[.simple.list`
-       * but that of `structure`. 
-       * 
+       * but that of `structure`.
+       *
        */
       Context parentContext = callContext.getParent();
       while(parentContext.getParent() != resolver.previousContext) {
@@ -1089,13 +1089,14 @@ public class S3 {
     @Override
     public int compareTo(SignatureDist o) {
       int i = Integer.valueOf(this.getTotalDist()).compareTo(o.getTotalDist());
-      if (i != 0) return i;
-
+      if (i != 0) {
+        return i;
+      }
       i = Integer.valueOf(this.isHas0()).compareTo(o.isHas0());
-      if (i != 0) return i;
-
+      if (i != 0) {
+        return i;
+      }
       return Double.compare(rank, o.getRank());
     }
   }
-
 }

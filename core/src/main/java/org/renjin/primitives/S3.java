@@ -363,39 +363,35 @@ public class S3 {
 
     SignatureDist[] sigDist = new SignatureDist[maxSigSize];
 
-    int rows = maxSigSize;
-    int currSigIdx = 0; int currArgumentClassesLength;
+    int currArgumentClassesLength;
+    int currSigIdx = 0;
     int repeat = 1;
-    int r = 0;
+    int r = 1;
 
     for(int col = 0; col < depth; col++) {
       currArgumentClassesLength = argumentSigs[col].getArgument().length;
-
-      for(int row = 0; row < rows; row++, r++) {
-
-        currSigIdx = currSigIdx == currArgumentClassesLength ? 0 : currSigIdx;
+      for(int row = 0; row < maxSigSize; row++, r++) {
+        if(currSigIdx == currArgumentClassesLength) {
+          currSigIdx = 0;
+        }
         ArgumentSig argSig = argumentSigs[col];
-
         if(sigDist[row] == null) {
           sigDist[row] =   new SignatureDist(argSig.getArgument(currSigIdx), argSig.getDistanceAsArray(currSigIdx));
         } else {
           sigDist[row] = sigDist[row].append(argSig.getArgument(currSigIdx), argSig.getDistance(currSigIdx));
         }
-
         if(repeat == 1) {
           currSigIdx++;
         }
-        if(r == repeat) {
+        if(repeat != 1 && r == repeat) {
           r = 0;
           currSigIdx++;
         }
-
-
       }
-      r = 0;
+      r = 1;
+      currSigIdx = 0;
       repeat = repeat * currArgumentClassesLength;
     }
-
     return sigDist;
   }
 

@@ -28,12 +28,12 @@ setMethod("^", c("Gene","Gene"), function(e1, e2) 3.5)
 a <- new("Gene", name="Gene1", size = 5)
 b <- new("Gene", name="Gene2", size = 6)
 
-test.dispatch.group.00 = function() {
+ignore.test.dispatch.group.00 = function() {
     assertThat(a+b, identicalTo(11))
     assertThat(a-b, identicalTo(-1))
     assertThat(a*b, identicalTo(30))
 }
 
-test.dispatch.group.01 = function(){
+ignore.test.dispatch.group.01 = function(){
     assertThat(a^b, identicalTo(3.5))
 }

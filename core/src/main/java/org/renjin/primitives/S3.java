@@ -154,7 +154,12 @@ public class S3 {
       nargs = 1;
     }
 
-    GenericMethod left = Resolver.start(context, group, opName, args.getElementAsSEXP(0))
+    GenericMethod left;
+    if(args.getElementAsSEXP(0) instanceof S4Object) {
+      return handleS4object(context, args.getElementAsSEXP(0), args, rho, group, opName);
+    }
+
+    left = Resolver.start(context, group, opName, args.getElementAsSEXP(0))
         .withBaseDefinitionEnvironment()
         .findNext();
         
@@ -243,7 +248,7 @@ public class S3 {
 
     String methodEnvironmentName = ".__T__" + name + ":base";
     if(object instanceof S4Object && context.getGlobalEnvironment().getSymbolNames().contains(Symbol.get(methodEnvironmentName))) {
-      return handleS4object(context, object, methodEnvironmentName, args, rho, 0, null);
+      return handleS4object(context, object, args, rho, null, name);
     }
 
     GenericMethod method = Resolver
@@ -258,16 +263,22 @@ public class S3 {
     }
 
     PairList newArgs = reassembleAndEvaluateArgs(object, args, context, rho);
-    
+
     return method.doApply(context, rho, newArgs);
   }
 
-  private static SEXP handleS4object(@Current Context context, SEXP source, String methodEnvName, PairList args,
-                                     Environment rho, int argumentIndex, ArrayList<String> allArgClasses) {
+  private static SEXP handleS4object(@Current Context context, SEXP source, PairList args,
+                                     Environment rho, String group, String opName) {
     // for now the namespace is hardcoded (":base") since all primitives are from the base package. But to
     // allow this function to also work with standardGeneric the namespace needs to be identified at runtime
     // since these standardGenerics migh be in .GlobalEnv or elsewhere.
-    Environment functionEnv = (Environment) context.getGlobalEnvironment().findVariable(context, Symbol.get(methodEnvName));
+    
+    SEXP env1 = context.getGlobalEnvironment().findVariable(context, Symbol.get(".__T__" + opName + ":base"));
+    SEXP env2 = context.getGlobalEnvironment().findVariable(context, Symbol.get(".__T__" + group + ":base"));
+    Environment functionEnv = env1 instanceof Environment ? (Environment) env1 : null;
+    Environment funGroupEnv = env2 instanceof Environment ? (Environment) env2 : null;;
+ 
+    
     SEXP function = null;
     // S4 methods for each generic function is stored in an environment. methods for each signature is stored
     // separately using the signature as name. for example
@@ -277,12 +288,21 @@ public class S3 {
     // signature length is. This might be longer the length of arguments and #ANY should be used for missing
     // arguments. In case signature is shorted than the number of arguments we don't need to evaluate the extra
     // arguments.
-    int signatureLength = functionEnv.getFrame().getSymbols().iterator().next().getPrintName().split("#").length;
-
+    
+    int signatureLength;
+    if(functionEnv == null) {
+      if (funGroupEnv == null) {
+        throw new EvalException("No S4 method found for '" + opName + "'");
+      }
+      signatureLength = funGroupEnv.getFrame().getSymbols().iterator().next().getPrintName().split("#").length;
+    } else {
+      signatureLength = functionEnv.getFrame().getSymbols().iterator().next().getPrintName().split("#").length;
+    }
+    
     ArrayList<MethodRanking> allPossibleSignatures = generateAllPossibleSignatures(context, rho, args, signatureLength);
     Collections.sort(allPossibleSignatures);
 
-    ArrayList<SEXP> methods = findFunctionMatchingAnyOfSignatures(context, functionEnv, allPossibleSignatures);
+    ArrayList<SEXP> methods = findFunctionMatchingAnyOfSignatures(context, functionEnv, allPossibleSignatures, group);
 
     if(methods.isEmpty()) {
       throw new EvalException("object of type 'S4' is not subsettable");
@@ -292,7 +312,7 @@ public class S3 {
   }
 
   private static ArrayList<SEXP> findFunctionMatchingAnyOfSignatures(Context context, Environment functionEnv,
-                                                                     ArrayList<MethodRanking> signatures) {
+                                                                     ArrayList<MethodRanking> signatures, String group) {
     // recursively go through arguments and get their class and lookup until the signature is found.
     // add the found method and its rank to the map.
 
@@ -302,6 +322,12 @@ public class S3 {
       String currentSig = signatures.get(signatureIndex).getSignature();
       Symbol methodName = Symbol.get(currentSig);
       SEXP function = functionEnv.findVariable(context, methodName);
+
+      if(function == Symbol.UNBOUND_VALUE && group != null) {
+        SEXP foundSymbol = context.getGlobalEnvironment().findVariable(context, Symbol.get(".__T__" + group + ":base"));
+        Environment funGrpEnv = foundSymbol instanceof Environment ? (Environment) foundSymbol : null;
+        function = funGrpEnv.findVariable(context, methodName);
+      }
 
       if(function != Symbol.UNBOUND_VALUE) {
         methods.add(function);
@@ -619,7 +645,7 @@ public class S3 {
     /**
      * Sets the name of the generic method to resolve from
      * an argument provided to UseMethod().
-     * 
+     *
      * @param genericName the 'generic' argument, giving the name of the method, like
      * 'as.character', or 'print'.
      */

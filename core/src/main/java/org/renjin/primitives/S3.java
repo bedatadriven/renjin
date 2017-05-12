@@ -266,7 +266,7 @@ public class S3 {
 
     return method.doApply(context, rho, newArgs);
   }
-
+  
   private static SEXP handleS4object(@Current Context context, SEXP source, PairList args,
                                      Environment rho, String group, String opName) {
     // for now the namespace is hardcoded (":base") since all primitives are from the base package. But to
@@ -274,12 +274,26 @@ public class S3 {
     // since these standardGenerics migh be in .GlobalEnv or elsewhere.
     
     SEXP env1 = context.getGlobalEnvironment().findVariable(context, Symbol.get(".__T__" + opName + ":base"));
-    SEXP env2 = context.getGlobalEnvironment().findVariable(context, Symbol.get(".__T__" + group + ":base"));
     Environment functionEnv = env1 instanceof Environment ? (Environment) env1 : null;
-    Environment funGroupEnv = env2 instanceof Environment ? (Environment) env2 : null;;
- 
     
-    SEXP function = null;
+    SEXP env2 = null;
+    Environment funGroupEnv = null;
+    
+    if (group != null && group.equals("Ops")) {
+      String[] groups = {".__T__Arith:base", ".__T__Compare:base", ".__T__Logic:base", ".__T__Ops:base"};
+      for(int i = 0; i < groups.length && !(env2 instanceof Environment); i++) {
+        env2 = context.getGlobalEnvironment().findVariable(context, Symbol.get(groups[i]));
+        funGroupEnv = env2 instanceof Environment ? (Environment) env2 : funGroupEnv;
+      }
+      if (funGroupEnv == null) {
+        throw new EvalException("No S4 method found for '" + opName + "'");
+      }
+    } else {
+      env2 = context.getGlobalEnvironment().findVariable(context, Symbol.get(".__T__" + group + ":base"));
+      funGroupEnv = env2 instanceof Environment ? (Environment) env2 : funGroupEnv;
+    }
+    
+    
     // S4 methods for each generic function is stored in an environment. methods for each signature is stored
     // separately using the signature as name. for example
     // setMethod("[", signature("AA","BB","CC"), function(x, i, j, ...))
@@ -291,9 +305,6 @@ public class S3 {
     
     int signatureLength;
     if(functionEnv == null) {
-      if (funGroupEnv == null) {
-        throw new EvalException("No S4 method found for '" + opName + "'");
-      }
       signatureLength = funGroupEnv.getFrame().getSymbols().iterator().next().getPrintName().split("#").length;
     } else {
       signatureLength = functionEnv.getFrame().getSymbols().iterator().next().getPrintName().split("#").length;
@@ -301,36 +312,121 @@ public class S3 {
     
     ArrayList<MethodRanking> allPossibleSignatures = generateAllPossibleSignatures(context, rho, args, signatureLength);
     Collections.sort(allPossibleSignatures);
-
-    ArrayList<SEXP> methods = findFunctionMatchingAnyOfSignatures(context, functionEnv, allPossibleSignatures, group);
-
+    
+    ArrayList<SelectedMethod> methods = findFunctionMatchingAnyOfSignatures(context, functionEnv, allPossibleSignatures, group);
+    
     if(methods.isEmpty()) {
       throw new EvalException("object of type 'S4' is not subsettable");
     }
-
-    return context.evaluate(new FunctionCall(methods.get(0), args));
+    SelectedMethod method = methods.get(0);
+    /*
+    * if selected method is from Group or if its from standard generic but distance is > 0
+    * returned function environment is populated with the following metadata objects:
+    * - .defined:  signature method
+    * - .target:   signature target
+    * - .Generic:
+    * - .Method:   method definition
+    * - .Methods:  function call
+    * - e1:        arg1
+    * - e2:        arg2
+    *
+    * otherwise only e1 and e2.
+    *
+    * */
+    if (method.getGroup().equals("generic")) { /*  && method.getDistance() == 0 */
+      return context.evaluate(new FunctionCall(methods.get(0).getFunction(), args));
+    } else {
+      // .defined
+      StringArrayVector.Builder objDefinedBuilder = new StringArrayVector.Builder();
+      String[] objDefinedClasses = method.getInputSignature().split("#");
+      for(int i = 0; i < objDefinedClasses.length; i++) {
+        objDefinedBuilder.add(objDefinedClasses[i]);
+      }
+      SEXP objDefined = objDefinedBuilder.build();
+      objDefined.setAttribute(".Names", null);  /* c(e1, e2)                               */
+      objDefined.setAttribute("package", null); /* c(.GlobalEnv, .GlobalEnv)               */
+      objDefined.setAttribute("class", null);   /* structure(signature, package = methods) */
+  
+      // .generic
+      SEXP generic = Symbol.get(opName);
+      generic.setAttribute("package", StringVector.valueOf("base"));
+  
+      // .Method
+  
+      
+      // .Methods
+      Function objMethods = context.getGlobalEnvironment().findFunction(context, Symbol.get(opName));
+      
+      // .target
+      StringArrayVector.Builder objTargetBuilder = new StringArrayVector.Builder();
+      String[] objTergetClasses = method.getSignature().split("#");
+      for(int i = 0; i < objTergetClasses.length; i++) {
+        objTargetBuilder.add(objTergetClasses[i]);
+      }
+      SEXP objTarget = objTargetBuilder.build();
+      objTarget.setAttribute(".Names", null);  /* c(e1, e2)                               */
+      objTarget.setAttribute("package", null); /* c(.GlobalEnv, .GlobalEnv)               */
+      objTarget.setAttribute("class", null);   /* structure(signature, package = methods) */
+      
+      // metadata
+      Map<Symbol, SEXP> metadata = new HashMap<>();
+      metadata.put(Symbol.get(".defined"), objDefined); /* structure(c("Gene","Gene"), .Names=c(e1, e2), package = c(.GlobalEnv, .GlobalEnv), class = structure(signature, package = methods)) )*/
+      metadata.put(Symbol.get(".generic"), generic);    /* structure(+, package = base) */
+      metadata.put(Symbol.get(".Method"), null);        /* MethodDefinition */
+      metadata.put(Symbol.get(".Methods"), objMethods); /* function(e1, e2) .Primitive(+)     ".Primitive(+)" */
+      metadata.put(Symbol.get(".target"), objTarget);   /*structure(c(Gene,Gene), .Names=c(e1, e2), package = c(.GlobalEnv, .GlobalEnv), class = structure(signature, package = methods)) )*/
+      
+      
+    return ClosureDispatcher.apply(context,rho, new FunctionCall(method.getFunction(), args), (Closure)method.getFunction(), args, metadata);
+    }
   }
 
-  private static ArrayList<SEXP> findFunctionMatchingAnyOfSignatures(Context context, Environment functionEnv,
+  private static ArrayList<SelectedMethod> findFunctionMatchingAnyOfSignatures(Context context, Environment functionEnv,
                                                                      ArrayList<MethodRanking> signatures, String group) {
     // recursively go through arguments and get their class and lookup until the signature is found.
     // add the found method and its rank to the map.
-
-    ArrayList<SEXP> methods = new ArrayList<>();
+    ArrayList<SelectedMethod> methods = new ArrayList<>();
+    String inputSignature = signatures.get(0).getSignature();
 
     for(int signatureIndex = 0; signatureIndex < signatures.size(); ++signatureIndex) {
+      SEXP function;
+      
       String currentSig = signatures.get(signatureIndex).getSignature();
+      String source = null;
+      int currentDistance = signatures.get(signatureIndex).getTotalDist();
       Symbol methodName = Symbol.get(currentSig);
-      SEXP function = functionEnv.findVariable(context, methodName);
 
+      if (functionEnv == null) {
+        function = Symbol.UNBOUND_VALUE;
+      } else {
+        function = functionEnv.findVariable(context, methodName);
+        source = "generic";
+      }
+      
       if(function == Symbol.UNBOUND_VALUE && group != null) {
-        SEXP foundSymbol = context.getGlobalEnvironment().findVariable(context, Symbol.get(".__T__" + group + ":base"));
-        Environment funGrpEnv = foundSymbol instanceof Environment ? (Environment) foundSymbol : null;
-        function = funGrpEnv.findVariable(context, methodName);
+        SEXP foundSymbol = null;
+        Environment funGrpEnv = null;
+        if (group.equals("Ops")) {
+          String[] groups = {".__T__Arith:base", ".__T__Compare:base", ".__T__Logic:base", ".__T__Ops:base"};
+          for(int i = 0; i < groups.length && !(funGrpEnv instanceof Environment); i++) {
+            foundSymbol = context.getGlobalEnvironment().findVariable(context, Symbol.get(groups[i]));
+            funGrpEnv = foundSymbol instanceof Environment ? (Environment) foundSymbol : null;
+          }
+  
+          function = funGrpEnv.findVariable(context, methodName);
+          source = "group";
+          
+        } else {
+          foundSymbol = context.getGlobalEnvironment().findVariable(context, Symbol.get(".__T__" + group + ":base"));
+          funGrpEnv = foundSymbol instanceof Environment ? (Environment) foundSymbol : null;
+          function = funGrpEnv.findVariable(context, methodName);
+          source = "group";
+        }
+        
       }
 
       if(function != Symbol.UNBOUND_VALUE) {
-        methods.add(function);
+        methods.add(new SelectedMethod(function, source, currentDistance, currentSig, methodName, inputSignature));
       }
     }
 
@@ -1137,6 +1233,48 @@ public class S3 {
         return i;
       }
       return Double.compare(rank, o.getRank());
+    }
+  }
+  
+  public static class SelectedMethod {
+    private SEXP function;
+    private String group;
+    private int currentDistance;
+    private String currentSig;
+    private Symbol methodName;
+    private String methodInputSignature;
+    
+    SelectedMethod(SEXP fun, String grp, int dist, String sig, Symbol method, String methSig) {
+      this.function = fun;
+      this.group = grp;
+      this.currentDistance = dist;
+      this.currentSig = sig;
+      this.methodName = method;
+      this.methodInputSignature = methSig;
+    }
+    
+    public SEXP getFunction() {
+      return function;
+    }
+    
+    public String getGroup() {
+      return group;
+    }
+    
+    public int getDistance() {
+      return currentDistance;
+    }
+    
+    public String getSignature() {
+      return currentSig;
+    }
+    
+    public Symbol getMethod() {
+      return methodName;
+    }
+    
+    public String getInputSignature() {
+      return methodInputSignature;
     }
   }
 }

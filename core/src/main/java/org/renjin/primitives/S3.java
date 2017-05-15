@@ -31,6 +31,8 @@ import org.renjin.sexp.Vector;
 
 import java.util.*;
 
+import static org.renjin.primitives.Deparse.deparse;
+
 /**
  * Primitives used in the implementation of the S3 object system
  */
@@ -198,7 +200,7 @@ public class S3 {
       }
     }
     left.withMethodVector(m);
-
+    
 
     /* the arguments have been evaluated; since we are passing them */
     /* out to a closure we need to wrap them in promises so that */
@@ -263,7 +265,7 @@ public class S3 {
     }
 
     PairList newArgs = reassembleAndEvaluateArgs(object, args, context, rho);
-
+    
     return method.doApply(context, rho, newArgs);
   }
   
@@ -278,21 +280,41 @@ public class S3 {
     
     SEXP env2 = null;
     Environment funGroupEnv = null;
+  
+    List<String> Arith = Arrays.asList("+", "-", "*", "^", "%%", "%/%", "/");
+    List<String> Compare = Arrays.asList("==", ">", "<", "!=", "<=", ">=");
+    List<String> Logic = Arrays.asList("&", "&&", "|", "||", "xor");
     
-    if (group != null && group.equals("Ops")) {
-      String[] groups = {".__T__Arith:base", ".__T__Compare:base", ".__T__Logic:base", ".__T__Ops:base"};
-      for(int i = 0; i < groups.length && !(env2 instanceof Environment); i++) {
-        env2 = context.getGlobalEnvironment().findVariable(context, Symbol.get(groups[i]));
+    if (group != null) {
+      if (group.equals("Ops")) {
+        if(Arith.contains(opName)) {
+          String[] groups = {".__T__Arith:base", ".__T__Ops:base"};
+          for (int i = 0; i < groups.length && !(env2 instanceof Environment); i++) {
+            env2 = context.getGlobalEnvironment().findVariable(context, Symbol.get(groups[i]));
+            funGroupEnv = env2 instanceof Environment ? (Environment) env2 : funGroupEnv;
+          }
+        } else if (Compare.contains(opName)) {
+          String[] groups = {".__T__Compare:methods", ".__T__Ops:base"};
+          for (int i = 0; i < groups.length && !(env2 instanceof Environment); i++) {
+            env2 = context.getGlobalEnvironment().findVariable(context, Symbol.get(groups[i]));
+            funGroupEnv = env2 instanceof Environment ? (Environment) env2 : funGroupEnv;
+          }
+        } else if (Logic.contains(opName)) {
+          String[] groups = {".__T__Logic:base", ".__T__Ops:base"};
+          for (int i = 0; i < groups.length && !(env2 instanceof Environment); i++) {
+            env2 = context.getGlobalEnvironment().findVariable(context, Symbol.get(groups[i]));
+            funGroupEnv = env2 instanceof Environment ? (Environment) env2 : funGroupEnv;
+          }
+        }
+        
+        if (funGroupEnv == null) {
+          throw new EvalException("No S4 method found for '" + opName + "'");
+        }
+      } else {
+        env2 = context.getGlobalEnvironment().findVariable(context, Symbol.get(".__T__" + group + ":base"));
         funGroupEnv = env2 instanceof Environment ? (Environment) env2 : funGroupEnv;
       }
-      if (funGroupEnv == null) {
-        throw new EvalException("No S4 method found for '" + opName + "'");
-      }
-    } else {
-      env2 = context.getGlobalEnvironment().findVariable(context, Symbol.get(".__T__" + group + ":base"));
-      funGroupEnv = env2 instanceof Environment ? (Environment) env2 : funGroupEnv;
     }
-    
     
     // S4 methods for each generic function is stored in an environment. methods for each signature is stored
     // separately using the signature as name. for example
@@ -313,7 +335,7 @@ public class S3 {
     ArrayList<MethodRanking> allPossibleSignatures = generateAllPossibleSignatures(context, rho, args, signatureLength);
     Collections.sort(allPossibleSignatures);
     
-    ArrayList<SelectedMethod> methods = findFunctionMatchingAnyOfSignatures(context, functionEnv, allPossibleSignatures, group);
+    ArrayList<SelectedMethod> methods = findFunctionMatchingAnyOfSignatures(context, functionEnv, allPossibleSignatures, group, opName);
     
     if(methods.isEmpty()) {
       throw new EvalException("object of type 'S4' is not subsettable");
@@ -337,54 +359,57 @@ public class S3 {
       return context.evaluate(new FunctionCall(methods.get(0).getFunction(), args));
     } else {
       // .defined
-      StringArrayVector.Builder objDefinedBuilder = new StringArrayVector.Builder();
+      StringVector.Builder objDefinedSig = new StringVector.Builder();
       String[] objDefinedClasses = method.getInputSignature().split("#");
       for(int i = 0; i < objDefinedClasses.length; i++) {
-        objDefinedBuilder.add(objDefinedClasses[i]);
+        objDefinedSig.add(objDefinedClasses[i]);
       }
-      SEXP objDefined = objDefinedBuilder.build();
-      objDefined.setAttribute(".Names", null);  /* c(e1, e2)                               */
-      objDefined.setAttribute("package", null); /* c(.GlobalEnv, .GlobalEnv)               */
-      objDefined.setAttribute("class", null);   /* structure(signature, package = methods) */
+      SEXP objDefined = Symbol.get(deparse(context, objDefinedSig.build(), 256, false, 0, 1));
+      objDefined.setAttribute(".Names", ((Closure) method.getFunction()).getFormals().getNames());
+      
+      StringVector.Builder objDefinedPkg = new StringVector.Builder();
+      for(int i = 0; i < objDefinedClasses.length; i++) {
+        Environment environment = context.getGlobalEnvironment();
+        SEXP classS4Object = environment.findVariable(context, Symbol.get(".__C__" + objDefinedClasses[i]));
+        objDefinedPkg.add(classS4Object.getAttribute(Symbol.get("package")).asString());
+      }
+      objDefined.setAttribute("package", objDefinedPkg.build());
   
-      // .generic
+      StringVector.Builder sv2 = new StringVector.Builder();
+      sv2.add("structure(\"signature\", package = \"methods\")");
+      objDefined.setAttribute("class", sv2.build());
+      
+      
+      // .Generic
       SEXP generic = Symbol.get(opName);
       generic.setAttribute("package", StringVector.valueOf("base"));
-  
-      // .Method
-  
-      
-      // .Methods
-      Function objMethods = context.getGlobalEnvironment().findFunction(context, Symbol.get(opName));
-      
-      // .target
-      StringArrayVector.Builder objTargetBuilder = new StringArrayVector.Builder();
-      String[] objTergetClasses = method.getSignature().split("#");
-      for(int i = 0; i < objTergetClasses.length; i++) {
-        objTargetBuilder.add(objTergetClasses[i]);
-      }
-      SEXP objTarget = objTargetBuilder.build();
-      objTarget.setAttribute(".Names", null);  /* c(e1, e2)                               */
-      objTarget.setAttribute("package", null); /* c(.GlobalEnv, .GlobalEnv)               */
-      objTarget.setAttribute("class", null);   /* structure(signature, package = methods) */
       
       // metadata
       Map<Symbol, SEXP> metadata = new HashMap<>();
-      metadata.put(Symbol.get(".defined"), objDefined); /* structure(c("Gene","Gene"), .Names=c(e1, e2), package = c(.GlobalEnv, .GlobalEnv), class = structure(signature, package = methods)) )*/
-      metadata.put(Symbol.get(".generic"), generic);    /* structure(+, package = base) */
-      metadata.put(Symbol.get(".Method"), null);        /* MethodDefinition */
-      metadata.put(Symbol.get(".Methods"), objMethods); /* function(e1, e2) .Primitive(+)     ".Primitive(+)" */
-      metadata.put(Symbol.get(".target"), objTarget);   /*structure(c(Gene,Gene), .Names=c(e1, e2), package = c(.GlobalEnv, .GlobalEnv), class = structure(signature, package = methods)) )*/
+      metadata.put(Symbol.get(".defined"), objDefined);
+      metadata.put(Symbol.get(".Generic"), generic);
+      metadata.put(Symbol.get(".Method"), method.getFunction());
+      metadata.put(Symbol.get(".Methods"), Symbol.get(".Primitive(\"" + opName +"\")"));
+      metadata.put(Symbol.get(".target"), objDefined);
       
-      
-    return ClosureDispatcher.apply(context,rho, new FunctionCall(method.getFunction(), args), (Closure)method.getFunction(), args, metadata);
+      return ClosureDispatcher.apply(context,rho, new FunctionCall(method.getFunction(), args), (Closure)method.getFunction(), args, metadata);
     }
   }
 
   private static ArrayList<SelectedMethod> findFunctionMatchingAnyOfSignatures(Context context, Environment functionEnv,
-                                                                     ArrayList<MethodRanking> signatures, String group) {
-    // recursively go through arguments and get their class and lookup until the signature is found.
-    // add the found method and its rank to the map.
+                                                                     ArrayList<MethodRanking> signatures, String group, String opName) {
+    /**
+     * This function loops through an ArrayList of generated MethodRankings and stores the signatures for
+     * which a method can be found, together with the method and the accompanying meta data from MethodRanking
+     * class in an new ArrayList<SelectedMethod>. The ArrayList<MethodRanking> input should be sorted before
+     * calling this function.
+     *
+     * The selected method, method signature, total distance, and method type (generic or group) information
+     * are stored in SelectedMethod class. This is necessary to be able to give generic methods priority over
+     * group methods, and also for giving a warning for ignored valid methods.
+     *
+     * */
+    
     ArrayList<SelectedMethod> methods = new ArrayList<>();
     String inputSignature = signatures.get(0).getSignature();
 
@@ -402,17 +427,36 @@ public class S3 {
         function = functionEnv.findVariable(context, methodName);
         source = "generic";
       }
+  
+      List<String> Arith = Arrays.asList("+", "-", "*", "^", "%%", "%/%", "/");
+      List<String> Compare = Arrays.asList("==", ">", "<", "!=", "<=", ">=");
+      List<String> Logic = Arrays.asList("&", "&&", "|", "||", "xor");
       
       if(function == Symbol.UNBOUND_VALUE && group != null) {
         SEXP foundSymbol = null;
         Environment funGrpEnv = null;
+        SEXP env2 = null;
         if (group.equals("Ops")) {
-          String[] groups = {".__T__Arith:base", ".__T__Compare:base", ".__T__Logic:base", ".__T__Ops:base"};
-          for(int i = 0; i < groups.length && !(funGrpEnv instanceof Environment); i++) {
-            foundSymbol = context.getGlobalEnvironment().findVariable(context, Symbol.get(groups[i]));
-            funGrpEnv = foundSymbol instanceof Environment ? (Environment) foundSymbol : null;
+          if(Arith.contains(opName)) {
+            String[] groups = {".__T__Arith:base", ".__T__Ops:base"};
+            for (int i = 0; i < groups.length && !(env2 instanceof Environment); i++) {
+              env2 = context.getGlobalEnvironment().findVariable(context, Symbol.get(groups[i]));
+              funGrpEnv = env2 instanceof Environment ? (Environment) env2 : funGrpEnv;
+            }
+          } else if (Compare.contains(opName)) {
+            String[] groups = {".__T__Compare:methods", ".__T__Ops:base"};
+            for (int i = 0; i < groups.length && !(env2 instanceof Environment); i++) {
+              env2 = context.getGlobalEnvironment().findVariable(context, Symbol.get(groups[i]));
+              funGrpEnv = env2 instanceof Environment ? (Environment) env2 : funGrpEnv;
+            }
+          } else if (Logic.contains(opName)) {
+            String[] groups = {".__T__Logic:base", ".__T__Ops:base"};
+            for (int i = 0; i < groups.length && !(env2 instanceof Environment); i++) {
+              env2 = context.getGlobalEnvironment().findVariable(context, Symbol.get(groups[i]));
+              funGrpEnv = env2 instanceof Environment ? (Environment) env2 : funGrpEnv;
+            }
           }
-  
+          
           function = funGrpEnv.findVariable(context, methodName);
           source = "group";
           
@@ -435,6 +479,13 @@ public class S3 {
 
   public static ArrayList<MethodRanking> generateAllPossibleSignatures(Context context, Environment rho,
                                                                        PairList args, int depth) {
+    
+    /**
+     * Provided a PairList of arguments and the number of arguments used for signature
+     * this function first evaluates the arguments and extracts their class and superclass
+     * information.
+     *
+     * */
 
     String[] argsClass = new String[depth];
     ArgumentSignature[] argumentSignatures = new ArgumentSignature[depth];
@@ -502,15 +553,16 @@ public class S3 {
 
   public static ArgumentSignature getAllClassAndDistance(Context context, String argClass) {
 
-//    // It is possible to get the list of supper classes by calling the R function
-//    // extends() with the argument class as the only argument. However, extends() doesn't provide
-//    // the distances, which need to be extracted separately.
-//
-//    SEXP extendsFunction = context.getGlobalEnvironment().findVariable(context, Symbol.get("extends"));
-//    PairList extendsArgument = new PairList.Builder().add(context.getGlobalEnvironment().findVariable(context, Symbol.get(".__C__"+argClass))).build();
-//    SEXP contains = context.evaluate(new FunctionCall(extendsFunction, extendsArgument));
-//    String[] classes2 = ((StringArrayVector) contains).toArray();
-
+    /**
+     * Each class is stored as an S4 object with prefix '.__C__'. This S4 object
+     * has a attribute 'contains' where the superclass names and distance are stored.
+     * The first class is the input class with distance of 0. All of the super classes
+     * and their distance are added using the names of 'contains' and the accompanying
+     * value in 'distance' slot. "ANY" is added as the last class and the distance is
+     * defined as the maximum distance + 1. The class names and distances are stored in
+     * an ArgumentSignature class and return.
+     *
+     * */
     Symbol argClassObjectName = Symbol.get(".__C__" + argClass);
     Frame globalFrame = context.getGlobalEnvironment().getFrame();
     AttributeMap map = globalFrame.getVariable(argClassObjectName).getAttributes();

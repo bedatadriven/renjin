@@ -57,12 +57,22 @@ public class Namespaces {
 
   @Builtin
   public static SEXP getNamespace(@Current Context context, @Current NamespaceRegistry registry, Symbol name) {
-    return registry.getNamespace(context, name).getNamespaceEnvironment();
+    Namespace namespace = registry.getNamespace(context, name);
+    if (namespace == null) {
+      return Null.INSTANCE;
+    }
+    Environment namespaceEnv = namespace.getNamespaceEnvironment();
+    return namespaceEnv;
   }
 
   @Builtin
   public static SEXP getNamespace(@Current Context context, @Current NamespaceRegistry registry, String name) {
-    return registry.getNamespace(context, name).getNamespaceEnvironment();
+    Namespace namespace = registry.getNamespace(context, name);
+    if(namespace == null) {
+      return Null.INSTANCE;
+    }
+    SEXP namespaceEnv = namespace.getNamespaceEnvironment();
+    return namespaceEnv;
   }
   
 

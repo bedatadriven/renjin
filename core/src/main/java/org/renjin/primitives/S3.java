@@ -336,36 +336,30 @@ public class S3 {
   }
   
   private static SEXP generateObjectGenericMetadata(String opName) {
-    SEXP generic = Symbol.get(opName);
+    SEXP generic = StringVector.valueOf(opName);
     generic.setAttribute("package", StringVector.valueOf("base"));
     return generic;
   }
   
-  private static SEXP generateDefinedObjectMetadata(@Current Context context, SelectedMethod method) {
-    StringVector.Builder objDefinedSig = new StringVector.Builder();
-    String[] objDefinedClasses = method.getInputSignature().split("#");
-    for(int i = 0; i < objDefinedClasses.length; i++) {
-      objDefinedSig.add(objDefinedClasses[i]);
-    }
-    SEXP objDefined = Symbol.get(deparse(context, objDefinedSig.build(), 256, false, 0, 1));
-    objDefined.setAttribute(".Names", ((Closure) method.getFunction()).getFormals().getNames());
+  private static SEXP generateDefinedObjectMetadata(@Current Context context, SelectedMethod selectedMethod) {
     
-    StringVector.Builder objDefinedPkg = new StringVector.Builder();
-    for(int i = 0; i < objDefinedClasses.length; i++) {
+    SEXP variableDefined = Symbol.get(deparse(context, selectedMethod.getArgumentClassesAsVector(), 256, false, 0, 1));
+    variableDefined.setAttribute(".Names", ((Closure) selectedMethod.getFunction()).getFormals().getNames());
+    
+    StringVector.Builder variableDefinedPackage = new StringVector.Builder();
+    String[] inputClasses = selectedMethod.getArgumentClasses();
+    for(int i = 0; i < inputClasses.length; i++) {
       Environment environment = context.getGlobalEnvironment();
-      SEXP classS4Object = environment.findVariable(context, Symbol.get(".__C__" + objDefinedClasses[i]));
-      objDefinedPkg.add(classS4Object.getAttribute(Symbol.get("package")).asString());
+      SEXP classS4Object = environment.findVariable(context, Symbol.get(".__C__" + inputClasses[i]));
+      variableDefinedPackage.add(classS4Object.getAttribute(Symbol.get("package")).asString());
     }
-    objDefined.setAttribute("package", objDefinedPkg.build());
+    variableDefined.setAttribute("package", variableDefinedPackage.build());
     
-    StringVector.Builder sv2 = new StringVector.Builder();
-    sv2.add("signature");
-    SEXP classSignature = sv2.build();
-    StringVector.Builder sv3 = new StringVector.Builder();
-    sv3.add("methods");
-    classSignature.setAttribute("package", sv3.build());
-    objDefined.setAttribute("class", classSignature);
-    return objDefined;
+    SEXP variableDefinedClass = StringVector.valueOf("signature");
+    variableDefinedClass.setAttribute("package", StringVector.valueOf("methods"));
+    variableDefined.setAttribute("class", variableDefinedClass);
+    
+    return variableDefined;
   }
   
   private static Environment findMethodEnvironment(@Current Context context, String opName) {
@@ -1312,6 +1306,19 @@ public class S3 {
     
     public String getInputSignature() {
       return methodInputSignature;
+    }
+    
+    public String[] getArgumentClasses() {
+      return this.methodInputSignature.split("#");
+    }
+    
+    public StringVector getArgumentClassesAsVector() {
+      String[] classes = this.getArgumentClasses();
+      StringVector.Builder stringVector = new StringVector.Builder();
+      for(int i = 0; i < classes.length; i++) {
+        stringVector.add(classes[i]);
+      }
+      return stringVector.build();
     }
   }
 }

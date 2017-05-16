@@ -20,7 +20,7 @@
 library(hamcrest)
 library(methods)
 
-ignore.test.group.dispatch.00 = function() {
+test.group.dispatch.00 = function() {
 
     setGroupGeneric('SequenceAnalysis', function(x, y) NULL)
     setClass("Gene", representation(name="character", size="numeric"))
@@ -34,7 +34,7 @@ ignore.test.group.dispatch.00 = function() {
     assertThat(add(a, b), identicalTo(11))
 }
 
-ignore.test.group.dispatch.01 = function() {
+test.group.dispatch.01 = function() {
     a <- new("Gene", name="Gene1", size = 5)
     b <- new("Gene", name="Gene2", size = 6)
     assertThat(devide(b, a), identicalTo(1.2))

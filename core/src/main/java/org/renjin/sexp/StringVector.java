@@ -397,11 +397,12 @@ public abstract class StringVector extends AbstractAtomicVector implements Itera
       add(NumericLiterals.toString(value.doubleValue()));
       return this;
     }
-
-    public void addAll(Iterable<String> values) {
+  
+    public StringVector.Builder addAll(Iterable<String> values) {
       for(String value : values) {
         add(value);
       }
+      return this;
     }
 
     @Override

@@ -25,7 +25,7 @@ setClass("AA", representation(a="numeric"))
 setMethod("[", signature("AA","ANY"), function(x,i,j,...) 1.5)
 setMethod("[", signature("AA","AA"), function(x,i,j,...) 2.5)
 
-test.arg.eval.01 = function() {
+ignore.test.arg.eval.01 = function() {
     f.count <- 0
     f <- function() { f.count <<- f.count+1; 1}
     a <- new("AA")

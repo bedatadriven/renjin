@@ -31,8 +31,6 @@ import org.renjin.sexp.Vector;
 
 import java.util.*;
 
-import static org.renjin.primitives.Deparse.deparse;
-
 /**
  * Primitives used in the implementation of the S3 object system
  */
@@ -318,63 +316,72 @@ public class S3 {
 //
 //     otherwise only e1 and e2.
   
-    if (method.getGroup().equals("generic")) { /*  && method.getDistance() == 0 */
+    if (method.getGroup().equals("generic") && method.getDistance() == 0) {
       return context.evaluate(new FunctionCall(selectedMethods.get(0).getFunction(), args));
     } else {
-      SEXP objDefined = generateDefinedObjectMetadata(context, method);
-      SEXP generic = generateObjectGenericMetadata(opName);
+      SEXP variableDotDefined = buildDotTargetOrDefined(context, method, true);
+      SEXP variableDotTarget = buildDotTargetOrDefined(context, method, false);
+      SEXP variableDotGeneric = buildDotGeneric(opName);
     
       Map<Symbol, SEXP> metadata = new HashMap<>();
-      metadata.put(Symbol.get(".defined"), objDefined);
-      metadata.put(Symbol.get(".Generic"), generic);
+      metadata.put(Symbol.get(".defined"), variableDotDefined);
+      metadata.put(Symbol.get(".Generic"), variableDotGeneric);
       metadata.put(Symbol.get(".Method"), method.getFunction());
       metadata.put(Symbol.get(".Methods"), Symbol.get(".Primitive(\"" + opName +"\")"));
-      metadata.put(Symbol.get(".target"), objDefined);
+      metadata.put(Symbol.get(".target"), variableDotTarget);
     
       return ClosureDispatcher.apply(context,rho, new FunctionCall(method.getFunction(), args), (Closure) method.getFunction(), args, metadata);
     }
   }
   
-  private static SEXP generateObjectGenericMetadata(String opName) {
+  private static SEXP buildDotGeneric(String opName) {
     SEXP generic = StringVector.valueOf(opName);
     generic.setAttribute("package", StringVector.valueOf("base"));
     return generic;
   }
   
-  private static SEXP generateDefinedObjectMetadata(@Current Context context, SelectedMethod selectedMethod) {
+  private static SEXP buildDotTargetOrDefined(Context context, SelectedMethod method, boolean defined) {
     
-    SEXP variableDefined = Symbol.get(deparse(context, selectedMethod.getArgumentClassesAsVector(), 256, false, 0, 1));
-    variableDefined.setAttribute(".Names", ((Closure) selectedMethod.getFunction()).getFormals().getNames());
-    
-    StringVector.Builder variableDefinedPackage = new StringVector.Builder();
-    String[] inputClasses = selectedMethod.getArgumentClasses();
-    for(int i = 0; i < inputClasses.length; i++) {
-      Environment environment = context.getGlobalEnvironment();
-      SEXP classS4Object = environment.findVariable(context, Symbol.get(".__C__" + inputClasses[i]));
-      variableDefinedPackage.add(classS4Object.getAttribute(Symbol.get("package")).asString());
+    List<String> argumentClasses;
+    if(defined) {
+      argumentClasses = Arrays.asList(method.getInputSignature().split("#"));
+    } else {
+      argumentClasses = Arrays.asList(method.getSignature().split("#"));
     }
-    variableDefined.setAttribute("package", variableDefinedPackage.build());
     
-    SEXP variableDefinedClass = StringVector.valueOf("signature");
-    variableDefinedClass.setAttribute("package", StringVector.valueOf("methods"));
-    variableDefined.setAttribute("class", variableDefinedClass);
+    List<String> argumentPackages = new ArrayList<>();
     
-    return variableDefined;
+    for (String argumentClass : argumentClasses) {
+      argumentPackages.add(findClassPackage(context, argumentClass));
+    }
+    
+    return new StringVector.Builder()
+      .addAll(argumentClasses)
+      .setAttribute("names", ((Closure) method.getFunction()).getFormals().getNames())
+      .setAttribute("package", new StringArrayVector(argumentPackages))
+      .setAttribute("class", classWithPackage("signature", "methods"))
+        .build();
   }
   
-  private static Environment findMethodEnvironment(@Current Context context, String opName) {
+  private static SEXP classWithPackage(String className, String packageName) {
+    return StringVector.valueOf(className)
+      .setAttribute("package", StringVector.valueOf(packageName));
+  }
+  
+  private static String findClassPackage(Context context, String className) {
+    Environment environment = context.getGlobalEnvironment();
+    SEXP classS4Object = environment.findVariable(context, Symbol.get(".__C__" + className));
+    return classS4Object.getAttribute(Symbol.get("package")).asString();
+  }
+  
+  private static Environment findMethodEnvironment(Context context, String opName) {
     SEXP genericMethodSymbol = context.getGlobalEnvironment().findVariable(context, Symbol.get(".__T__" + opName + ":base"));
     return genericMethodSymbol instanceof Environment ? (Environment) genericMethodSymbol : null;
   }
   
   private static int computeSignatureLength(Environment genericMethodEnvironment, Environment groupMethodEnvironment) {
-    int signatureLength;
-    if(genericMethodEnvironment == null) {
-      signatureLength = groupMethodEnvironment.getFrame().getSymbols().iterator().next().getPrintName().split("#").length;
-    } else {
-      signatureLength = genericMethodEnvironment.getFrame().getSymbols().iterator().next().getPrintName().split("#").length;
-    }
-    return signatureLength;
+    Environment methodEnvironment = genericMethodEnvironment == null ? groupMethodEnvironment : genericMethodEnvironment;
+    return methodEnvironment.getFrame().getSymbols().iterator().next().getPrintName().split("#").length;
   }
   
   
@@ -1274,7 +1281,7 @@ public class S3 {
     private String currentSig;
     private Symbol methodName;
     private String methodInputSignature;
-    
+  
     SelectedMethod(SEXP fun, String grp, int dist, String sig, Symbol method, String methSig) {
       this.function = fun;
       this.group = grp;
@@ -1306,19 +1313,6 @@ public class S3 {
     
     public String getInputSignature() {
       return methodInputSignature;
-    }
-    
-    public String[] getArgumentClasses() {
-      return this.methodInputSignature.split("#");
-    }
-    
-    public StringVector getArgumentClassesAsVector() {
-      String[] classes = this.getArgumentClasses();
-      StringVector.Builder stringVector = new StringVector.Builder();
-      for(int i = 0; i < classes.length; i++) {
-        stringVector.add(classes[i]);
-      }
-      return stringVector.build();
     }
   }
 }

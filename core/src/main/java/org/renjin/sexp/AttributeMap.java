@@ -917,7 +917,7 @@ public class AttributeMap {
 
     private StringVector toNameVector(SEXP sexp) {
       if(sexp instanceof StringVector) {
-        return (StringVector)sexp.setAttributes(AttributeMap.EMPTY);
+        return (StringVector)sexp.setAttributes(new AttributeMap.Builder().combineFrom(sexp.getAttributes()));
       } else if(sexp instanceof Vector) {
         return StringArrayVector.fromVector((Vector) sexp);
       } else {

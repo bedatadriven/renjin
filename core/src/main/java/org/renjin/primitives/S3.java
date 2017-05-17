@@ -39,6 +39,12 @@ public class S3 {
   public static final Symbol METHODS_TABLE = Symbol.get(".__S3MethodsTable__.");
 
   public static final Set<String> GROUPS = Sets.newHashSet("Ops", "Math", "Summary");
+  
+  private static final Set<String> ARITH_GROUP = Sets.newHashSet("+", "-", "*", "^", "%%", "%/%", "/");
+  
+  private static final Set<String> COMPARE_GROUP = Sets.newHashSet("==", ">", "<", "!=", "<=", ">=");
+  
+  private static final Set<String> LOGIC_GROUP = Sets.newHashSet("&", "&&", "|", "||", "xor");
 
   @Builtin
   public static SEXP UseMethod(@Current Context context, String genericMethodName) {
@@ -297,11 +303,8 @@ public class S3 {
   
     Collections.sort(possibleSignatures);
   
-    ArrayList<SelectedMethod> selectedMethods = findMatchingMethods(context, genericMethodEnvironment, possibleSignatures, group, opName);
+    ArrayList<SelectedMethod> selectedMethods = (ArrayList<SelectedMethod>) findMatchingMethods(context, genericMethodEnvironment, possibleSignatures, group, opName);
   
-    if(selectedMethods.isEmpty()) {
-      throw new EvalException("object of type 'S4' is not subsettable");
-    }
     SelectedMethod method = selectedMethods.get(0);
 
 //     if selected method is from Group or if its from standard generic but distance is > 0
@@ -398,7 +401,7 @@ public class S3 {
    *
    *
    * */
-  private static ArrayList<SelectedMethod> findMatchingMethods(Context context, Environment methodEnvironment,
+  private static List<SelectedMethod> findMatchingMethods(Context context, Environment methodEnvironment,
                                                                ArrayList<MethodRanking> possibleSignatures, String group, String opName) {
   
     List<SelectedMethod> selectedMethods = new ArrayList<>();
@@ -428,39 +431,35 @@ public class S3 {
       }
     }
   
-    return (ArrayList<SelectedMethod>)selectedMethods;
+    return selectedMethods;
   }
   
   public static Environment findOpsMethodEnvironment(Context context, String opName) {
-    List<String> Arith = Arrays.asList("+", "-", "*", "^", "%%", "%/%", "/");
-    List<String> Compare = Arrays.asList("==", ">", "<", "!=", "<=", ">=");
-    List<String> Logic = Arrays.asList("&", "&&", "|", "||", "xor");
     Environment methodEnvironment = null;
     
-    if(Arith.contains(opName)) {
+    if(ARITH_GROUP.contains(opName)) {
       String[] groups = {".__T__Arith:base", ".__T__Ops:base"};
-      for (int i = 0; i < groups.length && !(methodEnvironment instanceof Environment); i++) {
-        SEXP foundMethodEnvironment = context.getGlobalEnvironment().findVariable(context, Symbol.get(groups[i]));
-        methodEnvironment = foundMethodEnvironment instanceof Environment ? (Environment) foundMethodEnvironment : null;
-      }
-    } else if (Compare.contains(opName)) {
+      methodEnvironment = getEnvironment(context, null, groups);
+    } else if (COMPARE_GROUP.contains(opName)) {
       String[] groups = {".__T__Compare:methods", ".__T__Ops:base"};
-      for (int i = 0; i < groups.length && !(methodEnvironment instanceof Environment); i++) {
-        SEXP foundMethodEnvironment = context.getGlobalEnvironment().findVariable(context, Symbol.get(groups[i]));
-        methodEnvironment = foundMethodEnvironment instanceof Environment ? (Environment) foundMethodEnvironment : null;
-      }
-    } else if (Logic.contains(opName)) {
+      methodEnvironment = getEnvironment(context, null, groups);
+    } else if (LOGIC_GROUP.contains(opName)) {
       String[] groups = {".__T__Logic:base", ".__T__Ops:base"};
-      for (int i = 0; i < groups.length && !(methodEnvironment instanceof Environment); i++) {
-        SEXP foundMethodEnvironment = context.getGlobalEnvironment().findVariable(context, Symbol.get(groups[i]));
-        methodEnvironment = foundMethodEnvironment instanceof Environment ? (Environment) foundMethodEnvironment : null;
-      }
+      methodEnvironment = getEnvironment(context, null, groups);
     }
     
     if (methodEnvironment == null) {
       throw new EvalException("No S4 method found for '" + opName + "'");
     }
     
+    return methodEnvironment;
+  }
+  
+  private static Environment getEnvironment(Context context, Environment methodEnvironment, String[] groups) {
+    for (int i = 0; i < groups.length && methodEnvironment == null; i++) {
+      SEXP foundMethodEnvironment = context.getGlobalEnvironment().findVariable(context, Symbol.get(groups[i]));
+      methodEnvironment = foundMethodEnvironment instanceof Environment ? (Environment) foundMethodEnvironment : null;
+    }
     return methodEnvironment;
   }
   
@@ -478,7 +477,7 @@ public class S3 {
   
     for(int i = 0; i < depth; i++) {
       String argumentClass = evaluateAndGetClass(context, args, rho, i);
-      argSignatures[i] = getAllClassAndDistance(context, argumentClass);
+      argSignatures[i] = getClassAndDistance(context, argumentClass);
     }
   
     int numberOfPossibleSignatures = 1;
@@ -548,7 +547,7 @@ public class S3 {
    *
    * */
 
-  private static ArgumentSignature getAllClassAndDistance(Context context, String argClass) {
+  private static ArgumentSignature getClassAndDistance(Context context, String argClass) {
     Symbol argClassObjectName = Symbol.get(".__C__" + argClass);
     Frame globalFrame = context.getGlobalEnvironment().getFrame();
     AttributeMap map = globalFrame.getVariable(argClassObjectName).getAttributes();
@@ -560,8 +559,8 @@ public class S3 {
     classes[0] = argClass;
     distances[0] = 0;
     for(int i = 0; i < argSuperClasses.length(); i++) {
-      DoubleArrayVector distanceSlot = (DoubleArrayVector) ((ListVector) containsSlot).get(i).getAttributes().get("distance");
-      distances[i + 1] = distanceSlot.getElementAsInt(0);
+      SEXP distanceSlot = ((ListVector) containsSlot).get(i).getAttributes().get("distance");
+      distances[i + 1] = ((Vector) distanceSlot).getElementAsInt(0);
       classes[i + 1] = ((StringArrayVector) argSuperClasses).getElementAsString(i);
     }
 
@@ -1262,11 +1261,11 @@ public class S3 {
 
     @Override
     public int compareTo(MethodRanking o) {
-      int i = Integer.valueOf(this.getTotalDist()).compareTo(o.getTotalDist());
+      int i = Integer.compare(this.getTotalDist(), o.getTotalDist());
       if (i != 0) {
         return i;
       }
-      i = Integer.valueOf(this.isHas0()).compareTo(o.isHas0());
+      i = Integer.compare(this.isHas0(), o.isHas0());
       if (i != 0) {
         return i;
       }

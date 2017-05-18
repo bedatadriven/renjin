@@ -525,14 +525,8 @@ public class S3 {
   private static String evaluateAndGetClass(Context context, PairList args, Environment rho, int argumentIndex) {
     // To get the class of an argument we have to evaluate the argument first. If its an atomic, than it lacks class
     // attribute. In this case we use Attributes.getClass() to get the class name.
-    String className;
     SEXP evaluatedArg = context.evaluate(args.getElementAsSEXP(argumentIndex), rho);
-    if(evaluatedArg.getAttributes().hasClass()) {
-      className = evaluatedArg.getAttributes().getClassVector().getElementAsString(0);
-    } else {
-      className = Attributes.getClass(evaluatedArg).getElementAsString(0);
-    }
-    return className;
+    return Attributes.getClass(evaluatedArg).getElementAsString(0);
   }
   
   

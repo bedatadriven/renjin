@@ -95,3 +95,10 @@ test.s4.dispatch.metadata.03 = function() {
     assertThat( attr(attr(m$.Method, "defined"), "package") , identicalTo( c(".GlobalEnv", ".GlobalEnv") ))
     assertThat( attr(attr(m$.Method, "defined"), "class")[1], identicalTo( "signature"))
 }
+
+
+test.extend.primitive.5 = function() {
+    setClass("Foo", contains="numeric")
+    x <- new("Foo", .Data = 42)
+    assertThat(x[1], identicalTo(42))
+}

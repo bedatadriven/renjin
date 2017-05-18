@@ -299,11 +299,11 @@ public class S3 {
   
     int signatureLength = computeSignatureLength(genericMethodEnvironment, groupMethodEnvironment);
   
-    ArrayList<MethodRanking> possibleSignatures = generatePossibleSignatures(context, rho, args, signatureLength);
+    List<MethodRanking> possibleSignatures = generatePossibleSignatures(context, rho, args, signatureLength);
   
     Collections.sort(possibleSignatures);
   
-    ArrayList<SelectedMethod> selectedMethods = (ArrayList<SelectedMethod>) findMatchingMethods(context, genericMethodEnvironment, possibleSignatures, group, opName);
+    List<SelectedMethod> selectedMethods = findMatchingMethods(context, genericMethodEnvironment, possibleSignatures, group, opName);
   
     SelectedMethod method = selectedMethods.get(0);
 
@@ -402,7 +402,7 @@ public class S3 {
    *
    * */
   private static List<SelectedMethod> findMatchingMethods(Context context, Environment methodEnvironment,
-                                                               ArrayList<MethodRanking> possibleSignatures, String group, String opName) {
+                                                               List<MethodRanking> possibleSignatures, String group, String opName) {
   
     List<SelectedMethod> selectedMethods = new ArrayList<>();
     String inputSignature = possibleSignatures.get(0).getSignature();
@@ -469,7 +469,7 @@ public class S3 {
    * information.
    *
    * */
-  private static ArrayList<MethodRanking> generatePossibleSignatures(Context context, Environment rho,
+  private static List<MethodRanking> generatePossibleSignatures(Context context, Environment rho,
                                                                      PairList args, int depth) {
   
   
@@ -485,7 +485,7 @@ public class S3 {
       numberOfPossibleSignatures = numberOfPossibleSignatures * argSignatures[i].getArgument().length;
     }
   
-    ArrayList<MethodRanking> possibleSignatures = new ArrayList<>(numberOfPossibleSignatures);
+    List<MethodRanking> possibleSignatures = new ArrayList<>(numberOfPossibleSignatures);
   
     int numberOfClassesCurrentArgument;
     int argumentClassIdx = 0;
@@ -561,7 +561,7 @@ public class S3 {
     for(int i = 0; i < argSuperClasses.length(); i++) {
       SEXP distanceSlot = ((ListVector) containsSlot).get(i).getAttributes().get("distance");
       distances[i + 1] = ((Vector) distanceSlot).getElementAsInt(0);
-      classes[i + 1] = ((StringArrayVector) argSuperClasses).getElementAsString(i);
+      classes[i + 1] = ((Vector) argSuperClasses).getElementAsString(i);
     }
 
     int max = 0;

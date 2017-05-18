@@ -253,11 +253,14 @@ public class S3 {
       return null;
     }
 
-    String methodEnvironmentName = ".__T__" + name + ":base";
-    if(object instanceof S4Object && context.getGlobalEnvironment().getSymbolNames().contains(Symbol.get(methodEnvironmentName))) {
-      return handleS4object(context, object, args, rho, null, name);
+    SEXP resultS4Dispatch = null;
+    if(Types.isS4(object) && !("@<-".equals(name))) {
+      resultS4Dispatch = handleS4object(context, object, args, rho, null, name);
     }
-
+    if (resultS4Dispatch != null) {
+      return resultS4Dispatch;
+    }
+    
     GenericMethod method = Resolver
         .start(context, name, object)
         .withBaseDefinitionEnvironment()
@@ -288,7 +291,10 @@ public class S3 {
     } else {
       groupMethodEnvironment = findMethodEnvironment(context, group);
     }
-    
+  
+    if (groupMethodEnvironment == null && genericMethodEnvironment == null) {
+      return null;
+    }
     // S4 methods for each generic function is stored in an environment. methods for each signature is stored
     // separately using the signature as name. for example
     // setMethod("[", signature("AA","BB","CC"), function(x, i, j, ...))
@@ -306,6 +312,10 @@ public class S3 {
   
     List<SelectedMethod> selectedMethods = findMatchingMethods(context, genericMethodEnvironment, possibleSignatures, group, opName);
   
+    if (selectedMethods.size() == 0) {
+      return null;
+    }
+    
     SelectedMethod method = selectedMethods.get(0);
 
 //     if selected method is from Group or if its from standard generic but distance is > 0
@@ -320,7 +330,7 @@ public class S3 {
 //
 //     otherwise only e1 and e2.
   
-    if (method.getGroup().equals("generic") && method.getDistance() == 0) {
+    if ("generic".equals(method.getGroup()) && method.getDistance() == 0) {
       return context.evaluate(new FunctionCall(selectedMethods.get(0).getFunction(), args));
     } else {
       SEXP variableDotDefined = buildDotTargetOrDefined(context, method, true);

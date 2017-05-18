@@ -24,6 +24,7 @@ import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.invoke.codegen.ArgumentIterator;
+import org.renjin.packaging.SerializedPromise;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.sexp.*;
@@ -343,19 +344,36 @@ public class S3 {
     return generic;
   }
   
+  /**
+   * Current GNU R (v3.3.1) seems to set the package-attribute in '.target' to
+   * 'methods' for all the arguments (independent of input and method signature).
+   *
+   * For '.defined', the class of selected method formals are used. 'methods' is
+   * used for the selected method arguments of class "ANY" or atomic vectors.
+   *
+   * > setClass("A", representation(a="numeric"))
+   * > setMethod("[", signature("A","A","ANY"), function(x,i,j,...) environment())
+   * > x <- a[a,1]
+   * > cat(deparse( attr(x$.target, "package") ))
+   * c("methods", "methods","methods")
+   * > cat(deparse( attr(x$.defined, "package") ))
+   * c("methods", ".GlobalEnv","methods")
+   * */
   private static SEXP buildDotTargetOrDefined(Context context, SelectedMethod method, boolean defined) {
-    
+
     List<String> argumentClasses;
-    if(defined) {
-      argumentClasses = Arrays.asList(method.getInputSignature().split("#"));
-    } else {
-      argumentClasses = Arrays.asList(method.getSignature().split("#"));
-    }
+    argumentClasses = Arrays.asList(method.getSignature().split("#"));
     
     List<String> argumentPackages = new ArrayList<>();
     
-    for (String argumentClass : argumentClasses) {
-      argumentPackages.add(findClassPackage(context, argumentClass));
+    if(defined) {
+      for (String argumentClass : argumentClasses) {
+        argumentPackages.add(findClassPackage(context, argumentClass));
+      }
+    } else {
+      for (String ignored : argumentClasses) {
+        argumentPackages.add("methods");
+      }
     }
     
     return new StringVector.Builder()
@@ -374,6 +392,9 @@ public class S3 {
   private static String findClassPackage(Context context, String className) {
     Environment environment = context.getGlobalEnvironment();
     SEXP classS4Object = environment.findVariable(context, Symbol.get(".__C__" + className));
+    if (classS4Object instanceof SerializedPromise || "ANY".equals(className)) {
+      return "methods";
+    }
     return classS4Object.getAttribute(Symbol.get("package")).asString();
   }
   

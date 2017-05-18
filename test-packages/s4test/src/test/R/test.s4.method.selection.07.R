@@ -25,14 +25,23 @@ setClass("AA", representation(a="numeric"))
 setMethod("[", signature("AA","ANY"), function(x,i,j,...) 1.5)
 setMethod("[", signature("AA","AA"), function(x,i,j,...) 2.5)
 
-ignore.test.arg.eval.01 = function() {
-    f.count <- 0
-    f <- function() { f.count <<- f.count+1; 1}
-    a <- new("AA")
+f.count <- 0
+f <- function() { f.count <<- f.count+1; 1}
+a <- new("AA")
 
+test.arg.eval.01 = function() {
     assertThat(a[f()], identicalTo(1.5))
+}
+
+test.arg.eval.02 = function() {
     assertThat(f.count, identicalTo(1))
+}
+
+test.arg.eval.03 = function() {
     assertThat(a[f()], identicalTo(1.5))
+}
+
+test.arg.eval.04 = function() {
     assertThat(f.count, identicalTo(2))
 }
 

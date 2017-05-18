@@ -119,9 +119,6 @@ public class NamespaceRegistry {
     if(symbol.getPrintName().equals("base")) {
       return baseNamespace;
     }
-    if(symbol.getPrintName().equals(".GlobalEnv")) {
-      return null;
-    }
 
     // try to match name to currently loaded namespaces
     for (FqPackageName fqPackageName : namespaceMap.keySet()) {

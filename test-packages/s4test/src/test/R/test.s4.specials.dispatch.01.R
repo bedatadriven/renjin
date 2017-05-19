@@ -23,7 +23,10 @@ library(methods)
 
 fg <- setRefClass("foo", c("bar", "flag"))
 f1 <- fg(flag = "testing")
-ignore.test.dispatch.specials.001 = function() {
+test.dispatch.specials.001 = function() {
     f1$bar <- 1
     assertThat(f1$bar, identicalTo(1))
+
+    f1$bar <- 2
+    assertThat(f1$bar, identicalTo(2))
 }

@@ -49,6 +49,8 @@ public class S3 {
   private static final Set<String> LOGIC_GROUP = Sets.newHashSet("&", "&&", "|", "||", "xor");
   
   private static final Set<String> SPECIAL = Sets.newHashSet("$", "$<-");
+  
+  private static final Set<String> NON_S4_CLASS = Sets.newHashSet("list", "data.frame", "vector");
 
   @Builtin
   public static SEXP UseMethod(@Current Context context, String genericMethodName) {
@@ -456,19 +458,19 @@ public class S3 {
       int distance = possibleSignature.getTotalDist();
       Symbol signatureSymbol = Symbol.get(signature);
     
-      function = methodEnvironment != null ? methodEnvironment.findVariable(context, signatureSymbol) : function;
+      function = methodEnvironment != null ? methodEnvironment.findVariable(context, signatureSymbol).force(context) : function;
     
       if (function == Symbol.UNBOUND_VALUE && group != null) {
         source = "group";
         if ("Ops".equals(group)) {
-          function = findOpsMethodEnvironment(context, opName).findVariable(context, signatureSymbol);
+          function = findOpsMethodEnvironment(context, opName).findVariable(context, signatureSymbol).force(context);
         } else {
-          function = findMethodEnvironment(context, opName).findVariable(context, signatureSymbol);
+          function = findMethodEnvironment(context, opName).findVariable(context, signatureSymbol).force(context);
         }
       }
     
-      if (function != Symbol.UNBOUND_VALUE) {
-        selectedMethods.add(new SelectedMethod(function, source, distance, signature, signatureSymbol, inputSignature));
+      if (function != Symbol.UNBOUND_VALUE && function instanceof Closure && !(SPECIAL.contains(opName) && NON_S4_CLASS.contains(signature))) {
+        selectedMethods.add(new SelectedMethod((Closure) function, source, distance, signature, signatureSymbol, inputSignature));
       }
     }
   
@@ -1309,14 +1311,14 @@ public class S3 {
   }
   
   public static class SelectedMethod {
-    private SEXP function;
+    private Closure function;
     private String group;
     private int currentDistance;
     private String currentSig;
     private Symbol methodName;
     private String methodInputSignature;
   
-    SelectedMethod(SEXP fun, String grp, int dist, String sig, Symbol method, String methSig) {
+    SelectedMethod(Closure fun, String grp, int dist, String sig, Symbol method, String methSig) {
       this.function = fun;
       this.group = grp;
       this.currentDistance = dist;
@@ -1325,7 +1327,7 @@ public class S3 {
       this.methodInputSignature = methSig;
     }
     
-    public SEXP getFunction() {
+    public Closure getFunction() {
       return function;
     }
     

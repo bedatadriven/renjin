@@ -25,6 +25,7 @@ import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.invoke.codegen.ArgumentIterator;
 import org.renjin.packaging.SerializedPromise;
+import org.renjin.primitives.packaging.Namespace;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.sexp.*;
@@ -46,6 +47,8 @@ public class S3 {
   private static final Set<String> COMPARE_GROUP = Sets.newHashSet("==", ">", "<", "!=", "<=", ">=");
   
   private static final Set<String> LOGIC_GROUP = Sets.newHashSet("&", "&&", "|", "||", "xor");
+  
+  private static final Set<String> SPECIAL = Sets.newHashSet("$", "$<-");
 
   @Builtin
   public static SEXP UseMethod(@Current Context context, String genericMethodName) {
@@ -409,7 +412,14 @@ public class S3 {
   }
   
   private static Environment findMethodEnvironment(Context context, String opName) {
-    SEXP genericMethodSymbol = context.getGlobalEnvironment().findVariable(context, Symbol.get(".__T__" + opName + ":base"));
+    Symbol methodSymbol = Symbol.get(".__T__" + opName + ":base");
+    SEXP genericMethodSymbol = context.getGlobalEnvironment().findVariable(context, methodSymbol);
+    if (genericMethodSymbol instanceof Environment) {
+      return (Environment) genericMethodSymbol;
+    } else if (SPECIAL.contains(opName)) {
+      Namespace methodsNamespace = context.getNamespaceRegistry().getNamespace(context, "methods");
+      genericMethodSymbol = methodsNamespace.getNamespaceEnvironment().findVariable(context, methodSymbol).force(context);
+    }
     return genericMethodSymbol instanceof Environment ? (Environment) genericMethodSymbol : null;
   }
   

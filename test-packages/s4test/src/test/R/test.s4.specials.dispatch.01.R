@@ -23,10 +23,14 @@ library(methods)
 
 fg <- setRefClass("foo", c("bar", "flag"))
 f1 <- fg(flag = "testing")
-test.dispatch.specials.001 = function() {
-    f1$bar <- 1
-    assertThat(f1$bar, identicalTo(1))
 
-    f1$bar <- 2
-    assertThat(f1$bar, identicalTo(2))
+test.dispatch.specials.01 = function() {
+    # special '$'
+    assertThat(f1$flag, identicalTo("testing"))
+}
+
+test.dispatch.specials.02 = function() {
+    # special '$<-' and '$'
+    f1$bar <- 3
+    assertThat(f1$bar, identicalTo(3))
 }

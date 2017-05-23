@@ -9,34 +9,34 @@ library(stats)
 library(methods)
 
 set.seed(864)
-xx <- data.frame(a=rnorm(10),
-                 b=as.factor(sample(c("T", "F"), 10, TRUE)),
-                 row.names = paste("R",1:10,sep=":"))
-setClass("myData", representation(extra = "character"),
-         contains = "data.frame")
+xx <- data.frame(a=rnorm(3),
+                 b=as.factor(sample(c("T", "F"), 3, TRUE)),
+                 row.names = paste("R",1:3,sep=":"))
+
+setClass("myData", representation(extra = "character"), contains = "data.frame")
 mx <- new("myData", xx, extra = "testing")
 
-## three kinds of $<-: replace, add, delete (NULL value)
-mx$a <- mx$a * 2
-mx$c <- 1:10
-mx$b <- NULL
-xx$a <- xx$a * 2
-xx$c <- 1:10
-xx$b <- NULL
+# three kinds of $<-: replace, add, delete (NULL value)
+mx$a <- mx$a * 2; mx$c <- 1:3; mx$b <- NULL
+xx$a <- xx$a * 2; xx$c <- 1:3; xx$b <- NULL
+
+ox <- new("myData", xx, extra = "testing")
 
 test.relationS3toS4.01 <- function(){
-    assertThat(
-        mx,
-        identicalTo( new("myData", xx, extra = "testing") )
-    )
+    assertThat(mx, identicalTo( ox ))
 }
 
-.ignore.test.relationS3toS4.02 <- function(){
+tx <- mx
+ChrVectr <- c("A", "B", "C"); IntVectr <- 10:8; DblVectr <- c(0.1, 0.2, 0.3); LgcVectr <- c(TRUE, TRUE, FALSE)
+Chr <- "ABC"; Int <- 5L; Dbl <- 1.5; Lgc <- TRUE
+tx$ChrVectr <- ChrVectr; tx$IntVectr <- IntVectr; tx$DblVectr <- DblVectr; tx$LgcVectr <- LgcVectr;
+tx$Chr <- Chr; tx$Int <- Int; tx$Dbl <- Dbl; tx$Lgc <- Lgc;
 
-    mx$newChar <- "testing_more"
-    mx$newInt <- 10:1
-    assertThat(
-        mx,
-        identicalTo( new("myData", cbind(xx, newCol="testing_more", newInt = 10:1), extra = "testing") )
-    )
+xy <- cbind(xx, ChrVectr = ChrVectr, IntVectr = IntVectr, DblVectr = DblVectr, LgcVectr = LgcVectr,
+                     Chr = Chr, Int = Int, Dbl = Dbl, Lgc = Lgc, stringsAsFactors = FALSE)
+
+nx <- new("myData", xy, extra = "testing")
+
+test.relationS3toS4.02 <- function(){
+    assertThat(tx, identicalTo( nx ))
 }

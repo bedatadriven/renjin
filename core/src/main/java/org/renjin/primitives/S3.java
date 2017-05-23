@@ -394,7 +394,7 @@ public class S3 {
     
     return new StringVector.Builder()
       .addAll(argumentClasses)
-      .setAttribute("names", ((Closure) method.getFunction()).getFormals().getNames())
+      .setAttribute("names", method.getFunction().getFormals().getNames())
       .setAttribute("package", new StringArrayVector(argumentPackages))
       .setAttribute("class", classWithPackage("signature", "methods"))
         .build();

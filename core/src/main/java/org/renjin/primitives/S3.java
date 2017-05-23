@@ -26,6 +26,7 @@ import org.renjin.invoke.annotations.Internal;
 import org.renjin.invoke.codegen.ArgumentIterator;
 import org.renjin.packaging.SerializedPromise;
 import org.renjin.primitives.packaging.Namespace;
+import org.renjin.primitives.subset.Subsetting;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.sexp.*;
@@ -282,18 +283,7 @@ public class S3 {
   
   private static SEXP handleS4object(@Current Context context, SEXP source, PairList args,
                                      Environment rho, String group, String opName) {
-
-//    // dispatch to S3 methods for SPECIAL functions with S4 object containing .S3Class attribute
-//    boolean hasS3Class = source.getAttribute(Symbol.get(".S3Class")).length() > 0;
-//    if( SPECIAL.contains(opName) && hasS3Class) {
-//        return null;
-//    }
-
-
-    // for now the namespace is hardcoded (":base") since all primitives are from the base package. But to
-    // allow this function to also work with standardGeneric the namespace needs to be identified at runtime
-    // since these standardGenerics migh be in .GlobalEnv or elsewhere.
-
+    
     Environment groupMethodEnvironment = null;
     Environment genericMethodEnvironment = findMethodEnvironment(context, opName);
     
@@ -324,6 +314,11 @@ public class S3 {
     List<SelectedMethod> selectedMethods = findMatchingMethods(context, genericMethodEnvironment, source, possibleSignatures, group, opName);
   
     if (selectedMethods.size() == 0) {
+      if("$<-".equals(opName) && source instanceof ListVector) {
+        SEXP value = context.evaluate(args.getElementAsSEXP(2), rho);
+        String name = args.getElementAsSEXP(1).toString();
+        return Subsetting.setS4SingleListElementByName(source, name, value);
+      }
       return null;
     }
     

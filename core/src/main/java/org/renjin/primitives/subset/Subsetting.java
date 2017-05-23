@@ -97,6 +97,55 @@ public class Subsetting {
   public static SEXP setElementByName(ListVector list, String name, SEXP value) {
     return setSingleListElementByName(list.newCopyNamedBuilder(), name, value);
   }
+  
+  private static SEXP setMultipleListElementByName(ListVector list, String name, SEXP value) {
+    ListBuilder builder = list.newCopyNamedBuilder();
+    int index = builder.getIndexByName(name);
+    boolean dropDimensions = false;
+    
+    Vector.Builder newBuilder;
+    if (value instanceof StringArrayVector) {
+      newBuilder = new StringVector.Builder();
+    } else if (value instanceof IntArrayVector) {
+      newBuilder = new IntArrayVector.Builder();
+    } else if (value instanceof DoubleArrayVector) {
+      newBuilder = new DoubleArrayVector.Builder();
+    } else if (value instanceof ComplexArrayVector) {
+      newBuilder = new ComplexArrayVector.Builder();
+    } else if (value instanceof LogicalArrayVector) {
+      newBuilder = new LogicalArrayVector.Builder();
+    } else if (value instanceof RawVector) {
+      newBuilder = new RawVector.Builder();
+    } else {
+      newBuilder = (Vector.Builder) new StringArrayVector();
+    }
+    
+    if(value == Null.INSTANCE) {
+      if(index != -1) {
+        builder.remove(index);
+        dropDimensions = true;
+      }
+    } else {
+      if(index == -1) {
+        for (int i = 0; i < list.get(0).length(); i++) {
+          for (int j = 0; j < value.length(); j++) {
+            newBuilder.set(i, value.getElementAsSEXP(j));
+            if (j == value.length()) {
+              j = 0;
+            }
+          }
+        }
+        builder.add(name, newBuilder.build());
+        dropDimensions = true;
+      } else {
+        builder.set(index, value);
+      }
+    }
+    if(dropDimensions) {
+      builder.removeAttribute(Symbols.DIM);
+    }
+    return builder.build();
+  }
 
   public static SEXP setElementByName(AtomicVector vector, String nameToReplace, SEXP value) {
     // Coerce the atomic vector to a list first
@@ -429,11 +478,11 @@ public class Subsetting {
 
     return source;
   }
-
+  
   private static SEXP setSingleListElementByName(ListBuilder builder, String nameToReplace, SEXP replacement) {
     int index = builder.getIndexByName(nameToReplace);
     boolean dropDimensions = false;
-
+    
     if(replacement == Null.INSTANCE) {
       if(index != -1) {
         builder.remove(index);
@@ -443,7 +492,7 @@ public class Subsetting {
       if(index == -1) {
         builder.add(nameToReplace, replacement);
         dropDimensions = true;
-
+        
       } else {
         builder.set(index, replacement);
       }
@@ -457,8 +506,19 @@ public class Subsetting {
   public static SEXP setS4SingleListElementByName(SEXP source, String nameToReplace, SEXP replacement) {
     ListBuilder builder = ((ListVector) source).newCopyNamedBuilder();
     int dataSize = source.getElementAsSEXP(0).length();
+    int index = builder.getIndexByName(nameToReplace);
+    boolean dropDimensions = false;
     
-    if (replacement.length() < dataSize) {
+    if(replacement == Null.INSTANCE) {
+      if(index != -1) {
+        builder.remove(index);
+        dropDimensions = true;
+      }
+    } else {
+      if(index == -1) {
+  
+        if (replacement.length() < dataSize) {
+  
           Vector.Builder newBuilder;
           if (replacement instanceof StringArrayVector) {
             newBuilder = new StringVector.Builder(dataSize);
@@ -475,15 +535,29 @@ public class Subsetting {
           } else {
             newBuilder = new StringArrayVector.Builder(dataSize);
           }
+  
           for (int i = 0; i < dataSize; i++) {
             for (int j = 0; j < replacement.length(); j++) {
               j = j == replacement.length() ? 0 : j;
               newBuilder.set(i, replacement.getElementAsSEXP(j));
             }
           }
-          return setSingleListElementByName(builder, nameToReplace, newBuilder.build());
+          builder.add(nameToReplace, newBuilder.build());
+          dropDimensions = true;
+        } else {
+          builder.add(nameToReplace, replacement);
+          dropDimensions = true;
         }
-    return setSingleListElementByName(builder, nameToReplace, replacement);
+          
+        
+      } else {
+        builder.set(index, replacement);
+      }
+    }
+    if(dropDimensions) {
+      builder.removeAttribute(Symbols.DIM);
+    }
+    return builder.build();
   }
 
 }

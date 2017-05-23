@@ -49,8 +49,6 @@ public class S3 {
   private static final Set<String> LOGIC_GROUP = Sets.newHashSet("&", "&&", "|", "||", "xor");
   
   private static final Set<String> SPECIAL = Sets.newHashSet("$", "$<-");
-  
-  private static final Set<String> NON_S4_CLASS = Sets.newHashSet("list", "data.frame", "vector");
 
   @Builtin
   public static SEXP UseMethod(@Current Context context, String genericMethodName) {
@@ -284,10 +282,18 @@ public class S3 {
   
   private static SEXP handleS4object(@Current Context context, SEXP source, PairList args,
                                      Environment rho, String group, String opName) {
+
+//    // dispatch to S3 methods for SPECIAL functions with S4 object containing .S3Class attribute
+//    boolean hasS3Class = source.getAttribute(Symbol.get(".S3Class")).length() > 0;
+//    if( SPECIAL.contains(opName) && hasS3Class) {
+//        return null;
+//    }
+
+
     // for now the namespace is hardcoded (":base") since all primitives are from the base package. But to
     // allow this function to also work with standardGeneric the namespace needs to be identified at runtime
     // since these standardGenerics migh be in .GlobalEnv or elsewhere.
-  
+
     Environment groupMethodEnvironment = null;
     Environment genericMethodEnvironment = findMethodEnvironment(context, opName);
     
@@ -315,7 +321,7 @@ public class S3 {
   
     Collections.sort(possibleSignatures);
   
-    List<SelectedMethod> selectedMethods = findMatchingMethods(context, genericMethodEnvironment, possibleSignatures, group, opName);
+    List<SelectedMethod> selectedMethods = findMatchingMethods(context, genericMethodEnvironment, source, possibleSignatures, group, opName);
   
     if (selectedMethods.size() == 0) {
       return null;
@@ -341,15 +347,15 @@ public class S3 {
       SEXP variableDotDefined = buildDotTargetOrDefined(context, method, true);
       SEXP variableDotTarget = buildDotTargetOrDefined(context, method, false);
       SEXP variableDotGeneric = buildDotGeneric(opName);
-    
+
       Map<Symbol, SEXP> metadata = new HashMap<>();
       metadata.put(Symbol.get(".defined"), variableDotDefined);
       metadata.put(Symbol.get(".Generic"), variableDotGeneric);
       metadata.put(Symbol.get(".Method"), method.getFunction());
       metadata.put(Symbol.get(".Methods"), Symbol.get(".Primitive(\"" + opName +"\")"));
       metadata.put(Symbol.get(".target"), variableDotTarget);
-    
-      return ClosureDispatcher.apply(context,rho, new FunctionCall(method.getFunction(), args), (Closure) method.getFunction(), args, metadata);
+
+      return ClosureDispatcher.apply(context,rho, new FunctionCall(method.getFunction(), args), method.getFunction(), args, metadata);
     }
   }
   
@@ -444,7 +450,7 @@ public class S3 {
    *
    *
    * */
-  private static List<SelectedMethod> findMatchingMethods(Context context, Environment methodEnvironment,
+  private static List<SelectedMethod> findMatchingMethods(Context context, Environment methodEnvironment, SEXP sourceCall,
                                                                List<MethodRanking> possibleSignatures, String group, String opName) {
   
     List<SelectedMethod> selectedMethods = new ArrayList<>();
@@ -458,7 +464,7 @@ public class S3 {
       int distance = possibleSignature.getTotalDist();
       Symbol signatureSymbol = Symbol.get(signature);
     
-      function = methodEnvironment != null ? methodEnvironment.findVariable(context, signatureSymbol).force(context) : function;
+      function = methodEnvironment != null ? methodEnvironment.getFrame().getVariable(signatureSymbol).force(context) : function;
     
       if (function == Symbol.UNBOUND_VALUE && group != null) {
         source = "group";
@@ -468,8 +474,9 @@ public class S3 {
           function = findMethodEnvironment(context, opName).findVariable(context, signatureSymbol).force(context);
         }
       }
-    
-      if (function != Symbol.UNBOUND_VALUE && function instanceof Closure && !(SPECIAL.contains(opName) && NON_S4_CLASS.contains(signature))) {
+
+      boolean hasNoS3Class = sourceCall.getAttribute(Symbol.get(".S3Class")).length() == 0;
+      if (function instanceof Closure && hasNoS3Class) {
         selectedMethods.add(new SelectedMethod((Closure) function, source, distance, signature, signatureSymbol, inputSignature));
       }
     }

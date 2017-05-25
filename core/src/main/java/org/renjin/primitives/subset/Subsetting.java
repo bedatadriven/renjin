@@ -502,40 +502,4 @@ public class Subsetting {
     }
     return builder.build();
   }
-  
-  public static SEXP setS4SingleListElementByName(SEXP source, String nameToReplace, SEXP replacement) {
-    ListBuilder builder = ((ListVector) source).newCopyNamedBuilder();
-    int dataSize = source.getElementAsSEXP(0).length();
-    
-    if(replacement == Null.INSTANCE || replacement.length() >= dataSize) {
-      return setSingleListElementByName(builder, nameToReplace, replacement);
-    } else {
-      Vector.Builder newBuilder;
-      if (replacement instanceof StringArrayVector) {
-        newBuilder = new StringVector.Builder(dataSize);
-      } else if (replacement instanceof IntArrayVector) {
-        newBuilder = new IntArrayVector.Builder(dataSize);
-      } else if (replacement instanceof DoubleArrayVector) {
-        newBuilder = new DoubleArrayVector.Builder(dataSize);
-      } else if (replacement instanceof ComplexArrayVector) {
-        newBuilder = new ComplexArrayVector.Builder(dataSize);
-      } else if (replacement instanceof LogicalArrayVector) {
-        newBuilder = new LogicalArrayVector.Builder(dataSize);
-      } else if (replacement instanceof RawVector) {
-        newBuilder = new RawVector.Builder(dataSize);
-      } else {
-        newBuilder = new StringArrayVector.Builder(dataSize);
-      }
-      
-      for (int i = 0; i < dataSize; i++) {
-        for (int j = 0; j < replacement.length(); j++) {
-          j = j == replacement.length() ? 0 : j;
-          newBuilder.set(i, replacement.getElementAsSEXP(j));
-        }
-      }
-      
-      return setSingleListElementByName(builder, nameToReplace, newBuilder.build());
-    }
-  }
-
 }

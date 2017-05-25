@@ -314,6 +314,10 @@ public class S3 {
     
     int signatureLength = computeSignatureLength(genericMethodEnvironment, groupMethodEnvironment);
     
+    if(signatureLength == 0) {
+      return null;
+    }
+    
     List<MethodRanking> possibleSignatures = generatePossibleSignatures(context, rho, args, signatureLength);
     
     Collections.sort(possibleSignatures);
@@ -436,7 +440,11 @@ public class S3 {
   
   private static int computeSignatureLength(Environment genericMethodEnvironment, Environment groupMethodEnvironment) {
     Environment methodEnvironment = genericMethodEnvironment == null ? groupMethodEnvironment : genericMethodEnvironment;
-    return methodEnvironment.getFrame().getSymbols().iterator().next().getPrintName().split("#").length;
+    
+    if(methodEnvironment.getFrame().getSymbols().iterator().hasNext()) {
+      return methodEnvironment.getFrame().getSymbols().iterator().next().getPrintName().split("#").length;
+    }
+    return 0;
   }
   
   

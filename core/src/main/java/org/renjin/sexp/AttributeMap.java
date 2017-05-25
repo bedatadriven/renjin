@@ -489,7 +489,7 @@ public class AttributeMap {
       if(value.length() == 0) {
         return remove(Symbols.CLASS);
       }
-      this.classes = toNameVector(value);
+      this.classes = toClassVector(value);
       this.empty = false;
       return this;
     }
@@ -935,7 +935,7 @@ public class AttributeMap {
       }
       return toNameVector(names);
     }
-
+  
     private StringVector toNameVector(SEXP sexp) {
       if(sexp instanceof StringVector) {
         return (StringVector)sexp.setAttributes(new AttributeMap.Builder().combineFrom(sexp.getAttributes()));
@@ -945,7 +945,17 @@ public class AttributeMap {
         throw new EvalException("Cannot coerce '%s' to character", sexp.getTypeName());
       }
     }
-
+  
+    private StringVector toClassVector(SEXP sexp) {
+      if(sexp instanceof StringVector) {
+        return (StringVector)sexp;
+      } else if(sexp instanceof Vector) {
+        return StringArrayVector.fromVector((Vector) sexp);
+      } else {
+        throw new EvalException("Cannot coerce '%s' to character", sexp.getTypeName());
+      }
+    }
+  
   }
 
   public static AttributeMap fromListVector(ListVector attributes) {

@@ -18,13 +18,10 @@
  */
 package org.renjin.primitives;
 
-import org.apache.commons.math.linear.RealMatrix;
 import org.junit.Before;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.Vector;
-import org.renjin.util.CommonsMath;
 
 import java.io.IOException;
 
@@ -217,29 +214,6 @@ public class MatrixTest extends EvalTestCase {
         row(0, 0)), 0.0000001));
   }
 
-
-  @Test
-  public void matrixMultiplication() {
-
-    eval("y <- c(1,0,0,0,0,2,0,0,0,0,3,0,0,0,0,4)");
-    eval("dim(y) <- c(4,4) ");
-
-    eval("z <- 1:12 ");
-    eval("dim(z) <- c(4,3)");
-
-    RealMatrix m = CommonsMath.asRealMatrix((Vector)eval("z"));
-    assertThat(m.getEntry(0, 0), equalTo(1d));
-    assertThat(m.getEntry(1, 0), equalTo(2d));
-    assertThat(m.getEntry(0, 2), equalTo(9d));
-    assertThat(m.getEntry(3-1, 2-1), equalTo(7d));
-    assertThat(m.getEntry(2-1, 3-1), equalTo(10d));
-
-    eval("q <- y %*% z");
-
-    assertThat( eval("q"), equalTo(c(1,4,9,16,5,12,21,32,9,20,33,48)));
-    assertThat( eval("dim(q)"), equalTo(c_i(4,3)));
-
-  }
 
   @Test
   public void matrixProduct() throws IOException{

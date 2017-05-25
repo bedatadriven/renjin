@@ -321,8 +321,6 @@ public class MethodDispatch {
        dispatch is done. */
     int found = 1; /* we "know" the class attribute is there */
 
-    found++; // we also have our fake __S4_BIt for renjin
-
     PairList attrib = def.getAttributes().asPairList();
     for(PairList.Node s : attrib.nodes()) {
       SEXP t = s.getTag();

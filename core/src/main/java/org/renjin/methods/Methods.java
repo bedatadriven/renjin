@@ -25,6 +25,7 @@ import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.methods.PrimitiveMethodTable.prim_methods_t;
 import org.renjin.primitives.Contexts;
+import org.renjin.primitives.Types;
 import org.renjin.primitives.special.SubstituteFunction;
 import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.sexp.*;
@@ -466,7 +467,8 @@ public class Methods {
     SEXP val = context.evaluate(FunctionCall.newCall(MethodDispatch.s_getDataPart, obj),
         context.getSession().getSingleton(MethodDispatch.class).getMethodsNamespace());
 
-    return val.setAttribute(Symbols.S4_BIT, Null.INSTANCE);
+    // Clear S4 object
+    return Types.setS4Object(val, false, false);
   }
 
 

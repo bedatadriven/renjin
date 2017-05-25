@@ -433,11 +433,13 @@ public final class Rinternals {
   }
 
   public static void SET_S4_OBJECT(SEXP x) {
-    Rf_setAttrib(x, Symbols.S4_BIT, LogicalVector.TRUE);
+    AbstractSEXP abstractSEXP = (AbstractSEXP) x;
+    abstractSEXP.unsafeSetAttributes(x.getAttributes().copy().setS4(true));
   }
 
   public static void UNSET_S4_OBJECT(SEXP x) {
-    Rf_setAttrib(x, Symbols.S4_BIT, Null.INSTANCE);
+    AbstractSEXP abstractSEXP = (AbstractSEXP) x;
+    abstractSEXP.unsafeSetAttributes(x.getAttributes().copy().setS4(false));
   }
 
   public static int LENGTH(SEXP x) {

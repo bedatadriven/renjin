@@ -286,20 +286,16 @@ public class Types {
     if(object instanceof S4Object) {
       return true;
     }
-    SEXP bit = object.getAttribute(Symbols.S4_BIT);
-    if(bit instanceof LogicalVector && bit.length() == 1 && ((LogicalVector) bit).getElementAsLogical(0) == Logical.TRUE) {
-      return true;
-    } else {
-      return false;
-    }
+    return object.getAttributes().isS4();
   }
 
   @Internal
-  public static SEXP setS4Object(SEXP object, boolean bool, boolean complete) {
+  public static SEXP setS4Object(SEXP object, boolean flag, boolean complete) {
     if(object instanceof S4Object) {
       return object;
     } else {
-      return object.setAttribute(Symbols.S4_BIT, LogicalVector.TRUE);
+      return object.setAttributes(
+          object.getAttributes().copy().setS4(flag).build());
     }
   }
 

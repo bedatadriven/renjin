@@ -224,7 +224,6 @@ public class RDataReader implements AutoCloseable {
   }
 
 
-
   private SEXP rawRawVector(int flags) throws IOException {
     int length = in.readInt();
     byte[] bytes = in.readString(length);
@@ -339,7 +338,7 @@ public class RDataReader implements AutoCloseable {
         switch (type) {
           case ATTRLANGSXP:
           case ATTRLISTSXP:
-            attributes = readAttributes();
+            attributes = readAttributeValues(0);
             break;
           
           default:
@@ -420,15 +419,30 @@ public class RDataReader implements AutoCloseable {
 
   private AttributeMap readAttributes(int flags) throws IOException {
     if(Flags.hasAttributes(flags)) {
-      return readAttributes();
+      return readAttributeValues(flags);
+    } else if(Flags.isS4(flags)) {
+      return AttributeMap.builder().setS4(true).build();
     } else {
       return AttributeMap.EMPTY;
     }
   }
 
-  private AttributeMap readAttributes() throws IOException {
-    SEXP pairList = readExp();
-    AttributeMap attributes = AttributeMap.fromPairList((PairList) pairList);
+  private AttributeMap readAttributeValues(int flags) throws IOException {
+    PairList pairList = (PairList) readExp();
+    AttributeMap.Builder attributes = AttributeMap.builder();
+
+    for(PairList.Node node : pairList.nodes()) {
+      if(node.getTag() == Flags.OLD_S4_BIT) {
+        attributes.setS4(true);
+      } else {
+        attributes.set(node.getTag(), node.getValue());
+      }
+    }
+
+    if(Flags.isS4(flags)) {
+      attributes.setS4(true);
+    }
+
     SEXP rns = attributes.get(Symbols.ROW_NAMES);
       /* 
        * There is a special case when GNU R serializes a empty 
@@ -440,12 +454,10 @@ public class RDataReader implements AutoCloseable {
       if (rniv.length() == 2 && rniv.isElementNA(0)) {
         ConvertingStringVector csv = new ConvertingStringVector(
             IntSequence.fromTo(1, rniv.getElementAsInt(1)), AttributeMap.EMPTY);
-        AttributeMap.Builder amb = attributes.copy();
-        amb.set(Symbols.ROW_NAMES, csv);
-        attributes = amb.build();
+        attributes.set(Symbols.ROW_NAMES, csv);
       }
     }
-    return attributes;
+    return attributes.build();
   }
 
   private SEXP readPackage() throws IOException {

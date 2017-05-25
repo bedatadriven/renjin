@@ -22,6 +22,7 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.methods.Methods;
+import org.renjin.primitives.Types;
 import org.renjin.primitives.io.serialization.Serialization;
 import org.renjin.primitives.matrix.Matrix;
 import org.renjin.primitives.matrix.MatrixBuilder;
@@ -218,14 +219,9 @@ public class Base {
   public static String crc64ToString(String value) {
     return Crc64.getCrc64(value);
   }
+
   public static SEXP R_isS4Object(SEXP exp) {
-    if(exp instanceof S4Object) {
-      return LogicalVector.TRUE;
-    } else if(exp.getAttribute(Symbols.S4_BIT) != Null.INSTANCE) {
-      return LogicalVector.TRUE;
-    } else {
-      return LogicalVector.FALSE;
-    }
+    return LogicalArrayVector.valueOf(Types.isS4(exp));
   }
   
   public static SEXP R_do_new_object(S4Object classRepresentation) {

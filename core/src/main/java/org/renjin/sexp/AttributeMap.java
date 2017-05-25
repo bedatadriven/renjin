@@ -48,14 +48,10 @@ public class AttributeMap {
   private StringVector names = null;
   private IntVector dim = null;
   private ListVector dimNames = null;
+  private boolean s4 = false;
 
   private Map<Symbol, SEXP> map;
 
-  public static boolean CATCH_DEFINED = false;
-
-  public static void catchDefined() {
-    CATCH_DEFINED = true;
-  }
 
   public static final AttributeMap EMPTY = new AttributeMap();
 
@@ -97,9 +93,14 @@ public class AttributeMap {
   }
 
   public PairList asPairList() {
+    PairList.Builder list = asPairListBuilder();
+    return list.build();
+  }
+
+  public PairList.Builder asPairListBuilder() {
     PairList.Builder list = new PairList.Builder();
     addTo(list);
-    return list.build();
+    return list;
   }
 
   public ListVector toVector() {
@@ -166,6 +167,10 @@ public class AttributeMap {
     return map != null || classes != null|| dim != null || dimNames != null;
   }
 
+  public boolean hasAnyBesidesS4Flag() {
+    return map != null || classes != null|| dim != null || dimNames != null || names != null;
+  }
+
   private boolean hasDim() {
     return dim != null;
   }
@@ -207,6 +212,10 @@ public class AttributeMap {
 
   public StringVector getNames() {
     return names;
+  }
+
+  public boolean isS4() {
+    return this.s4;
   }
 
   public boolean empty() {
@@ -341,6 +350,9 @@ public class AttributeMap {
     if (dimNames != null ? !dimNames.equals(that.dimNames) : that.dimNames != null) {
       return false;
     }
+    if (this.s4 != that.s4) {
+      return false;
+    }
     return !(map != null ? !map.equals(that.map) : that.map != null);
 
   }
@@ -359,7 +371,9 @@ public class AttributeMap {
     return new Builder();
   }
 
+
   public static class Builder {
+    private boolean s4 = false;
     private StringVector classes = null;
     private StringVector names = null;
     private IntVector dim = null;
@@ -373,6 +387,7 @@ public class AttributeMap {
     }
 
     private Builder(AttributeMap attributes) {
+      this.s4 = attributes.s4;
       this.classes = attributes.classes;
       this.names = attributes.names;
       this.dim = attributes.dim;
@@ -382,6 +397,13 @@ public class AttributeMap {
       }
       updateEmptyFlag();
     }
+
+    public Builder setS4(boolean flag) {
+      this.s4 = flag;
+      updateEmptyFlag();
+      return this;
+    }
+
 
     /**
      * Sets the {@code dim} attribute.
@@ -514,9 +536,6 @@ public class AttributeMap {
     }
 
     public Builder set(Symbol name, SEXP value) {
-      if(CATCH_DEFINED && name.getPrintName().equals("defined")) {
-        throw new EvalException(value.toString());
-      }
 
       if(value == Null.INSTANCE) {
         return remove(name);
@@ -589,7 +608,7 @@ public class AttributeMap {
     }
 
     private void updateEmptyFlag() {
-      this.empty = (classes == null && dim == null && dimNames == null && names == null &&
+      this.empty = (!s4 && classes == null && dim == null && dimNames == null && names == null &&
           (map == null || map.isEmpty()));
     }
 
@@ -776,6 +795,7 @@ public class AttributeMap {
       attributes.classes = classes;
       attributes.dim = dim;
       attributes.dimNames = validateDimNames();
+      attributes.s4 = this.s4;
 
       if(names != null) {
         attributes.names = names;
@@ -812,6 +832,7 @@ public class AttributeMap {
       assert !reallyEmpty() : "empty flag is wrong";
 
       AttributeMap attributes = new AttributeMap();
+      attributes.s4 = s4;
       attributes.classes = classes;
       attributes.dim = validateDim(length);
       attributes.dimNames = validateDimNames();

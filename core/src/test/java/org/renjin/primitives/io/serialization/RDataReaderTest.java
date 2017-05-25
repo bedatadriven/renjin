@@ -21,6 +21,7 @@ package org.renjin.primitives.io.serialization;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
+import org.renjin.primitives.Types;
 import org.renjin.repackaged.guava.io.ByteSource;
 import org.renjin.sexp.*;
 
@@ -190,6 +191,23 @@ public class RDataReaderTest extends EvalTestCase {
 
     assertThat(df.getS3Class().getElementAsString(0), equalTo("data.frame"));
     assertThat(df.getAttribute(Symbol.get("row.names")).length(), equalTo(1000));
+  }
+
+  @Test
+  public void loadObjectWithS4BitSet() throws IOException {
+    SEXP x = readRds("s4.rds");
+
+    assertThat(x, equalTo(c(1)));
+    assertTrue("s4 bit is true", Types.isS4(x));
+  }
+
+
+  @Test
+  public void loadObjectWithOldS4Attribute() throws IOException {
+    SEXP x = readRds("old-s4.rds");
+
+    assertThat(x, equalTo(c(1)));
+    assertTrue("s4 bit is true", Types.isS4(x));
   }
 
   @Test

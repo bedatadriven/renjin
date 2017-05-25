@@ -18,16 +18,17 @@
  */
 package org.renjin.primitives.io.serialization;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
-import org.renjin.primitives.Native;
+import org.renjin.primitives.Types;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.sexp.*;
 import org.renjin.sexp.PairList.Builder;
 
-import java.io.*;
-import java.util.zip.GZIPInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.zip.GZIPOutputStream;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -207,10 +208,47 @@ public class RDataWriterTest extends EvalTestCase {
     assertThat( env.isActiveBinding("x"), equalTo(true));
   }
 
-  private SEXP readRds(String resourceName) throws IOException {
-    InputStream in = getClass().getResourceAsStream(resourceName);
-    GZIPInputStream gzipIn = new GZIPInputStream(in);
-    RDataReader reader = new RDataReader(topLevelContext, gzipIn);
-    return reader.readFile();
+  @Test
+  public void writeObjectWithS4BitSet() throws IOException {
+
+    SEXP vector = Types.setS4Object(new DoubleArrayVector(1, 2, 3), true, false);
+
+    assertTrue(Types.isS4(vector));
+
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    RDataWriter writer = new RDataWriter(this.topLevelContext, out);
+    writer.save(vector);
+
+    ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+    RDataReader reader = new RDataReader(in);
+
+    SEXP result = reader.readFile();
+    assertTrue("s4 bit is read", Types.isS4(result));
   }
+
+
+  @Test
+  public void writeObjectWithS4AndClassBitSet() throws IOException {
+
+    SEXP vector = Types.setS4Object(new DoubleArrayVector(1, 2, 3), true, false);
+
+    vector = vector.setAttribute(Symbols.CLASS_NAME, StringVector.valueOf("foo"));
+
+    assertTrue(Types.isS4(vector));
+
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    RDataWriter writer = new RDataWriter(this.topLevelContext, out);
+    writer.save(vector);
+
+    ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+    RDataReader reader = new RDataReader(in);
+
+    SEXP result = reader.readFile();
+    assertTrue("s4 bit is read", Types.isS4(result));
+  }
+
+
+
+
+
 }

@@ -36,7 +36,16 @@ public class Namespaces {
   public static SEXP getRegisteredNamespace(@Current Context context, @Current NamespaceRegistry registry, SEXP nameSexp) {
     Symbol name;
     if(nameSexp instanceof Symbol) {
-      name = (Symbol) nameSexp; 
+      name = (Symbol) nameSexp;
+      
+      // Some GNU R functions use the name in package-attribute to load the necessary namespace. However, the
+      // package-attribute is also used to store information about where a class is created which can be in
+      // global environment (.GlobalEnv). In those cases no namespace need to be loaded. GNU R, therefor, returns
+      // NULL when getNamespace is called on ".GlobalEnv".
+      if (".GlobalEnv".equals(name.getPrintName())) {
+        return Null.INSTANCE;
+      }
+      
     } else if(nameSexp instanceof StringVector) {
       name = Symbol.get(nameSexp.asString());
     } else {
@@ -57,12 +66,16 @@ public class Namespaces {
 
   @Builtin
   public static SEXP getNamespace(@Current Context context, @Current NamespaceRegistry registry, Symbol name) {
-    return registry.getNamespace(context, name).getNamespaceEnvironment();
+    Namespace namespace = registry.getNamespace(context, name);
+    Environment namespaceEnv = namespace.getNamespaceEnvironment();
+    return namespaceEnv;
   }
 
   @Builtin
   public static SEXP getNamespace(@Current Context context, @Current NamespaceRegistry registry, String name) {
-    return registry.getNamespace(context, name).getNamespaceEnvironment();
+    Namespace namespace = registry.getNamespace(context, name);
+    SEXP namespaceEnv = namespace.getNamespaceEnvironment();
+    return namespaceEnv;
   }
   
 

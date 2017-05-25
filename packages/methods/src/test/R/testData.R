@@ -8,7 +8,7 @@ test.data.assign <- function() {
 	value@.Data <- function(x) length(x)
 	
 	assertThat(typeof(value), identicalTo("closure"))
-	assertThat(attr(value, 'class'), identicalTo("MethodDefinition"))
+	assertThat(attr(value, 'class')[1], identicalTo("MethodDefinition"))
 }
 
 test.data.assign.attribs.preserved <- function() {

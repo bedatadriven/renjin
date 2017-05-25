@@ -20,13 +20,22 @@
 
 library(hamcrest)
 library(methods)
-library("org.renjin.test:s4test")
 
 
-# NSBS is exported by s4test,
-# but extends a class NativeNSBS that is NOT exported
-setClass("RleNSBS", contains="NSBS", representation(subscript="Rle"))
+test.method_selection.2 = function() {
+    setClass("D", representation(d = "character"))
+    setClass("C", representation(c = "character"), contains = "D")
+    setClass("B", representation(b = "character"), contains = "C")
+    setClass("A", representation(a = "character"), contains = "B")
+    d = new("D", d = "d")
+    c = new("C", d = "cd", c = "c")
+    b = new("B", d = "bd", c = "bc", b = "b")
+    a = new("A", d = "ad", c = "ac", b = "ab", a = "a")
 
+    setMethod("[", signature("B","C","C"), function(x, i, j, ...) 3.5)
+    setMethod("[", signature("B","D","B"), function(x, i, j, ...) 5.5)
+    setMethod("[", signature("C","C","A"), function(x, i, j, ...) 7.5)
+    setMethod("[", signature("C","A","C"), function(x, i, j, ...) 9.5)
 
-
-
+    assertThat(a[a,a], identicalTo( c(9.5) ))
+}

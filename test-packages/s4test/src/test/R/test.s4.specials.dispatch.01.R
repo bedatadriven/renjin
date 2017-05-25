@@ -17,16 +17,20 @@
 # https://www.gnu.org/licenses/gpl-2.0.txt
 #
 
-
 library(hamcrest)
 library(methods)
-library("org.renjin.test:s4test")
 
 
-# NSBS is exported by s4test,
-# but extends a class NativeNSBS that is NOT exported
-setClass("RleNSBS", contains="NSBS", representation(subscript="Rle"))
+fg <- setRefClass("foo", c("bar", "flag"))
+f1 <- fg(flag = "testing")
 
+test.dispatch.specials.01 = function() {
+    # special '$'
+    assertThat(f1$flag, identicalTo("testing"))
+}
 
-
-
+test.dispatch.specials.02 = function() {
+    # special '$<-' and '$'
+    f1$bar <- 3
+    assertThat(f1$bar, identicalTo(3))
+}

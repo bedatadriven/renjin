@@ -429,11 +429,11 @@ public class Subsetting {
 
     return source;
   }
-
+  
   private static SEXP setSingleListElementByName(ListBuilder builder, String nameToReplace, SEXP replacement) {
     int index = builder.getIndexByName(nameToReplace);
     boolean dropDimensions = false;
-
+    
     if(replacement == Null.INSTANCE) {
       if(index != -1) {
         builder.remove(index);
@@ -443,7 +443,7 @@ public class Subsetting {
       if(index == -1) {
         builder.add(nameToReplace, replacement);
         dropDimensions = true;
-
+        
       } else {
         builder.set(index, replacement);
       }
@@ -453,5 +453,4 @@ public class Subsetting {
     }
     return builder.build();
   }
-
 }

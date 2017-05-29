@@ -221,8 +221,8 @@ public class Vectors {
     if (DoubleConverter.accept(clazz)) {
       return (DoubleVector) DoubleConverter.INSTANCE.convertToR(instance);
       
-    } else if (DoubleArrayConverter.accept(clazz)) {
-      return (DoubleVector)new DoubleArrayConverter(clazz).convertToR(instance);
+    } else if (DoubleArrayConverter.DOUBLE_ARRAY.accept(clazz)) {
+      return DoubleArrayConverter.DOUBLE_ARRAY.convertToR(instance);
    
     } else {
       return new DoubleArrayVector(DoubleVector.NA);

@@ -130,7 +130,7 @@ public class JvmiTest extends EvalTestCase {
     assertThat( eval("x$sayHello(as.integer(3))"), equalTo(c("HelloHelloHello")));
     
   }
-  
+
   @Test
   public void callToArray() {
     eval("import(org.renjin.primitives.MyBean)");
@@ -145,7 +145,21 @@ public class JvmiTest extends EvalTestCase {
     eval("import(org.renjin.primitives.MyBean)");
     assertThat( eval("MyBean$sum(1:5)"), equalTo(c(15)));
   }
-  
+
+  @Test
+  public void floatArguments() {
+    eval("import(org.renjin.primitives.MyBean)");
+    assertThat( eval("MyBean$sum32(2, 3)"), equalTo(c(5)));
+  }
+
+  @Test
+  public void floatArrayArguments() {
+    eval("import(org.renjin.primitives.MyBean)");
+    assertThat( eval("MyBean$sumArray32(c(2, 3, 9))"), equalTo(c(14)));
+    assertThat( eval("MyBean$sumArray32(c(2L, 3L, 9L))"), equalTo(c(14)));
+    assertThat( eval("MyBean$sumArray32(numeric(0))"), equalTo(c(0)));
+  }
+
   private static class MyPrivateImpl implements MyPublicInterface {
 
     @Override

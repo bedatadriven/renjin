@@ -29,22 +29,20 @@ import java.lang.reflect.Array;
  */
 public class DoubleArrayConverter implements Converter<Object> {
 
-  public final Class componentClass;
+  public static final DoubleArrayConverter DOUBLE_ARRAY = new DoubleArrayConverter(double.class);
 
-  public DoubleArrayConverter(Class clazz) {
-    componentClass = clazz.getComponentType();
+  private final Class componentClass;
+
+  protected DoubleArrayConverter(Class clazz) {
+    componentClass = clazz;
   }
 
-  public static boolean accept(Class clazz) {
-    Class iclazz = clazz.getComponentType();
-    return clazz.isArray()
-        && (iclazz == Double.TYPE || iclazz == Double.class
-            || iclazz == Float.TYPE || iclazz == Float.class
-            || iclazz == Long.TYPE || iclazz == Long.class);
+  public boolean accept(Class clazz) {
+    return clazz.isArray() && clazz.getComponentType().equals(componentClass);
   }
 
   @Override
-  public SEXP convertToR(Object value) {
+  public final DoubleVector convertToR(Object value) {
     if (value == null) {
       return new DoubleArrayVector(DoubleVector.NA);
     } else {
@@ -57,32 +55,26 @@ public class DoubleArrayConverter implements Converter<Object> {
   }
 
   @Override
-  public boolean acceptsSEXP(SEXP exp) {
+  public final boolean acceptsSEXP(SEXP exp) {
     return  exp instanceof DoubleVector ||
             exp instanceof IntVector ||
             exp instanceof LogicalVector;
   }
 
   @Override
-  public int getSpecificity() {
+  public final int getSpecificity() {
     return Specificity.DOUBLE;
   }
 
   @Override
-  public Object convertToJava(SEXP value) {  
+  public final Object convertToJava(SEXP value) {
     if(!(value instanceof AtomicVector)) {
       throw new EvalException("It's not an AtomicVector", value.getTypeName());
-    } else if(value.length() < 1) {
-      //to keep its type info
-      return new Double[0];
     }
-    AtomicVector dv= (AtomicVector)value;
-    int length = dv.length();
-   
-    Object array = Array.newInstance(componentClass, value.length());
-    for(int i=0;i<length;i++){
-      Array.set(array, i, dv.getElementAsObject(i));
-    }
-    return array;
+    return convertToJavaArray((AtomicVector) value);
+  }
+
+  protected Object convertToJavaArray(AtomicVector vector) {
+    return vector.toDoubleArray();
   }
 }

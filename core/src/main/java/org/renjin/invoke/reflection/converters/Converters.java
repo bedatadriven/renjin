@@ -40,7 +40,10 @@ public class Converters  {
       return IntegerConverter.INSTANCE;
       
     } else if(LongConverter.accept(clazz)) {
-      return LongConverter.INSTANCE; 
+      return LongConverter.INSTANCE;
+
+    } else if(FloatConverter.accept(clazz)) {
+      return FloatConverter.INSTANCE;
       
     } else if(DoubleConverter.accept(clazz)) {
       return DoubleConverter.INSTANCE;
@@ -62,9 +65,15 @@ public class Converters  {
       
     } else if(IntegerArrayConverter.accept(clazz)) {
       return IntegerArrayConverter.INSTANCE;
-      
-    }else if(DoubleArrayConverter.accept(clazz)) {
-      return new DoubleArrayConverter(clazz);
+
+    } else if(LongArrayConverter.LONG_ARRAY.accept(clazz)) {
+      return LongArrayConverter.LONG_ARRAY;
+
+    } else if(FloatArrayConverter.FLOAT_ARRAY.accept(clazz)) {
+      return FloatArrayConverter.FLOAT_ARRAY;
+
+    } else if(DoubleArrayConverter.DOUBLE_ARRAY.accept(clazz)) {
+      return DoubleArrayConverter.DOUBLE_ARRAY;
       
     }else if(ObjectConverter.accept(clazz)) {
       return ObjectConverter.INSTANCE;

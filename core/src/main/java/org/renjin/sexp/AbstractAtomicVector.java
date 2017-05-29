@@ -107,6 +107,33 @@ public abstract class AbstractAtomicVector extends AbstractVector implements Ato
   }
 
   @Override
+  public final boolean equals(Object obj) {
+    if(this == obj) {
+      return true;
+    }
+    if(!(obj instanceof AtomicVector)) {
+      return false;
+    }
+    AtomicVector other = (AtomicVector) obj;
+    if(this.length() != other.length()) {
+      return false;
+    }
+    if(!this.getVectorType().equals(other.getVectorType())) {
+      return false;
+    }
+    if(!this.getAttributes().equals(other.getAttributes())) {
+      return false;
+    }
+    Vector.Type vectorType = getVectorType();
+    for (int i = 0; i < length(); i++) {
+      if(!vectorType.elementsIdentical(this, i, other, i)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @Override
   public final boolean isWiderThan(Vector vector) {
     return getVectorType().isWiderThan(vector.getVectorType());
   }

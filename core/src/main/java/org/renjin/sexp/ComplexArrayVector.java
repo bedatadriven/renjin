@@ -96,16 +96,6 @@ public class ComplexArrayVector extends ComplexVector {
   }
 
   @Override
-  public boolean equals(Object x){
-    if(x instanceof ComplexArrayVector){
-      ComplexArrayVector that = (ComplexArrayVector)x;
-      return Arrays.equals(this.values, that.values);
-    } else {
-      return false;
-    }
-  }
-  
-  @Override
   protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
     return new ComplexArrayVector(this.values, attributes);
   }
@@ -222,11 +212,6 @@ public class ComplexArrayVector extends ComplexVector {
       return set(destinationIndex, source.getElementAsComplex(sourceIndex));
     }
 
-   
-//    public Builder set(int index, Double value) {
-//      return set(index, (double)value);
-//    }
-
     @Override
     public int length() {
       return size;
@@ -255,6 +240,5 @@ public class ComplexArrayVector extends ComplexVector {
         return new ComplexArrayVector(this.builderValues, buildAttributes());
       }
     }
-
   }
 }

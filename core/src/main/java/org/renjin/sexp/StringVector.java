@@ -208,27 +208,6 @@ public abstract class StringVector extends AbstractAtomicVector implements Itera
     return TYPE_NAME;
   }
 
-  @Override
-  public final boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || !(o instanceof StringVector)) {
-      return false;
-    }
-
-    StringVector that = (StringVector) o;
-    if(that.length() != this.length()) {
-      return false;
-    }
-
-    for(int i=0;i!=length();++i) {
-      if(!Objects.equal(this.getElementAsString(i), that.getElementAsString(i))) {
-        return false;
-      }
-    }
-    return true;
-  }
 
   @Override
   public final int hashCode() {
@@ -326,14 +305,11 @@ public abstract class StringVector extends AbstractAtomicVector implements Itera
     }
 
     @Override
-    public boolean elementsEqual(Vector vector1, int index1, Vector vector2,
-        int index2) {
+    public boolean elementsIdentical(Vector vector1, int index1, Vector vector2,
+                                     int index2) {
       String s1 = vector1.getElementAsString(index1);
       String s2 = vector2.getElementAsString(index2);
-      if(s1 == null || s2 == null) {
-        return false;
-      }
-      return s1.equals(s2);
+      return Objects.equal(s1, s2);
     }
 
     @Override

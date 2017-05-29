@@ -136,10 +136,7 @@ public class Identical {
     }
 
     for(int i=0;i!=x.length();++i) {
-      if(x.isElementNA(i) && y.isElementNA(i)) {
-        continue;
-      }
-      if(!vectorType.elementsEqual(x, i, y, i)) {
+      if(!vectorType.elementsIdentical(x, i, y, i)) {
         return false;
       }
     }

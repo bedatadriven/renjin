@@ -176,4 +176,30 @@ public interface SEXP {
   
   SEXP force(Context context);
 
+
+  /**
+   * Returns true if this SEXP is equal to the {@code other} SEXP given, using the same rules as the
+   * builtin {@link org.renjin.primitives.Identical#identical(SEXP, SEXP)} function, namely:
+   *
+   * <ul>
+   *   <li>This SEXP must have the same R type as the {@code other} SEXP</li>
+   *   <li>This SEXP must have identical attributes as the {@code other} SEXP</li>
+   *   <li>For {@link Vector}s, this SEXP must have the same length and identical elements as the
+   *   {@code other} SEXP, where two NA elements are considered identical.
+   * </ul>
+   */
+  @Override
+  boolean equals(Object other);
+
+  /**
+   * Returns a String representation of this SEXP intended <strong>only</strong> for use in debugging.
+   *
+   * <p>Callers should not expect this method to return valid R code or even a complete representation of this
+   * SEXP.</p>
+   *
+   * <p></p>
+   */
+  @Override
+  String toString();
+
 }

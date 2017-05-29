@@ -74,8 +74,14 @@ public class Converters  {
 
     } else if(DoubleArrayConverter.DOUBLE_ARRAY.accept(clazz)) {
       return DoubleArrayConverter.DOUBLE_ARRAY;
+
+    } else if(BoxedDoubleArrayConverter.BOXED_DOUBLE_ARRAY.accept(clazz)) {
+      return BoxedDoubleArrayConverter.BOXED_DOUBLE_ARRAY;
+
+    } else if(BoxedFloatArrayConverter.BOXED_FLOAT_ARRAY.accept(clazz)) {
+      return BoxedFloatArrayConverter.BOXED_FLOAT_ARRAY;
       
-    }else if(ObjectConverter.accept(clazz)) {
+    } else if(ObjectConverter.accept(clazz)) {
       return ObjectConverter.INSTANCE;
       
     } else {

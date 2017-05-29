@@ -18,18 +18,22 @@
  */
 package org.renjin.invoke.reflection.converters;
 
-import org.junit.Test;
+import org.renjin.sexp.AtomicVector;
 
-import static org.junit.Assert.*;
+public class BoxedDoubleArrayConverter extends DoubleArrayConverter {
 
-/**
- * Created by alex on 29-5-17.
- */
-public class FloatArrayConverterTest {
+  public static final BoxedDoubleArrayConverter BOXED_DOUBLE_ARRAY = new BoxedDoubleArrayConverter(Double.class);
 
-  @Test
-  public void testAccept() {
-    assertTrue(FloatArrayConverter.FLOAT_ARRAY.accept(float[].class));
+  protected BoxedDoubleArrayConverter(Class clazz) {
+    super(clazz);
   }
 
+  @Override
+  protected Object convertToJavaArray(AtomicVector vector) {
+    Double[] array = new Double[vector.length()];
+    for (int i = 0; i < vector.length(); i++) {
+      array[i] = vector.getElementAsDouble(i);
+    }
+    return array;
+  }
 }

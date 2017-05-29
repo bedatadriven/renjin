@@ -31,7 +31,7 @@ public class DoubleArrayConverter implements Converter<Object> {
 
   public static final DoubleArrayConverter DOUBLE_ARRAY = new DoubleArrayConverter(double.class);
 
-  private final Class componentClass;
+  protected final Class componentClass;
 
   protected DoubleArrayConverter(Class clazz) {
     componentClass = clazz;

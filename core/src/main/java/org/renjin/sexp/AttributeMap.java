@@ -25,9 +25,7 @@ import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Maps;
 
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 /**
@@ -40,8 +38,7 @@ import java.util.Map;
  * <p>There are many "special" attributes however, that
  * determine how the value is interpreted. The
  * The most commonly accessed attributes
- * are stored in this structure as direct pointers, others in an
- * IdentityHashMap.
+ * are stored in this structure as direct pointers, others in a HashMap.
  */
 public class AttributeMap {
   private StringVector classes = null;
@@ -50,7 +47,7 @@ public class AttributeMap {
   private ListVector dimNames = null;
   private boolean s4 = false;
 
-  private Map<Symbol, SEXP> map;
+  private HashMap<Symbol, SEXP> map;
 
 
   public static final AttributeMap EMPTY = new AttributeMap();
@@ -267,7 +264,7 @@ public class AttributeMap {
       if(this.map != null) {
         SEXP dimnames = map.get(Symbols.DIMNAMES);
         if(dimnames != null) {
-          copy.map = Maps.newIdentityHashMap();
+          copy.map = Maps.newHashMap();
           copy.map.put(Symbols.DIMNAMES, dimnames);
         }
       }
@@ -353,7 +350,7 @@ public class AttributeMap {
     if (this.s4 != that.s4) {
       return false;
     }
-    return !(map != null ? !map.equals(that.map) : that.map != null);
+    return Objects.equals(map, that.map);
 
   }
 
@@ -379,7 +376,7 @@ public class AttributeMap {
     private IntVector dim = null;
     private ListVector dimNames = null;
 
-    private Map<Symbol, SEXP> map;
+    private HashMap<Symbol, SEXP> map;
 
     private boolean empty = true;
 
@@ -393,7 +390,7 @@ public class AttributeMap {
       this.dim = attributes.dim;
       this.dimNames = attributes.dimNames;
       if(attributes.map != null) {
-        this.map = new IdentityHashMap<>(attributes.map);
+        this.map = new HashMap<>(attributes.map);
       }
       updateEmptyFlag();
     }
@@ -556,7 +553,7 @@ public class AttributeMap {
         } else {
           this.empty = false;
           if(map == null) {
-            map = Maps.newIdentityHashMap();
+            map = Maps.newHashMap();
           }
           if(name == Symbols.ROW_NAMES) {
             map.put(name, validateRowNames(value));
@@ -717,7 +714,7 @@ public class AttributeMap {
         }
         if (other.map != null) {
           if (this.map == null) {
-            this.map = new IdentityHashMap<>(other.map);
+            this.map = new HashMap<>(other.map);
           } else {
             for (Map.Entry<Symbol, SEXP> entry : other.map.entrySet()) {
               if (!this.map.containsKey(entry.getKey())) {
@@ -768,7 +765,7 @@ public class AttributeMap {
       if(attributes.map != null) {
         for(Map.Entry<Symbol, SEXP> entry : attributes.map.entrySet()) {
           if(this.map == null) {
-            this.map = Maps.newIdentityHashMap();
+            this.map = new HashMap<>();
           }
           this.map.put(entry.getKey(), entry.getValue());
           this.empty = false;

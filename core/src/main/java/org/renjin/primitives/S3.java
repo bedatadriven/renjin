@@ -220,11 +220,14 @@ public class S3 {
     }
     if(promisedArgs != Null.INSTANCE) {
       PairList.Node promised = (PairList.Node)promisedArgs;
-      PairList.Node evaluated = (PairList.Node)args;
 
       while(true) {
 
-        ((Promise)promised.getValue()).setResult(evaluated.getValue());
+        /* The first argument has been evaluated, but not the rest */
+        if(promised == promisedArgs) {
+          ((Promise)promised.getValue()).setResult(((PairList.Node) args).getValue());
+        }
+
         /* ensure positional matching for operators */
         if (isOps) {
           promised.setTag(Null.INSTANCE);
@@ -233,11 +236,9 @@ public class S3 {
           break;
         }
         promised = promised.getNextNode();
-        evaluated = evaluated.getNextNode();
       }
     }
     return left.doApply(context, rho, promisedArgs);
-//    return Calls.applyClosure((Closure) left.sxp, context, newCall, promisedArgs, rho, newrho);
   }
 
   /**

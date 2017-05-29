@@ -18,6 +18,7 @@
  */
 package org.renjin.primitives.io.serialization;
 
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.primitives.Types;
@@ -62,7 +63,6 @@ public class RDataWriterTest extends EvalTestCase {
 
 
     assertReRead(file.build());
-   // write("test.rdata", file.build());
   }
 
   @Test
@@ -101,7 +101,7 @@ public class RDataWriterTest extends EvalTestCase {
     
     assertThat(relist.getElementAsSEXP(0), instanceOf(Closure.class));
     assertThat(relist.getElementAsSEXP(1), instanceOf(Closure.class));
-    assertThat(relist.getElementAsSEXP(2), equalTo(c(1,2,3)));
+    assertThat(relist.getElementAsSEXP(2), elementsIdenticalTo(c(1,2,3)));
 
   }
 
@@ -159,7 +159,7 @@ public class RDataWriterTest extends EvalTestCase {
   }
 
   private void assertReRead(SEXP exp) throws IOException {
-    assertThat(writeAndReRead(exp), equalTo(exp));
+    assertThat(writeAndReRead(exp), Matchers.equalTo(exp));
   }
 
   private SEXP writeAndReRead(SEXP exp) throws IOException {
@@ -204,7 +204,7 @@ public class RDataWriterTest extends EvalTestCase {
     RDataReader reader = new RDataReader(in);
 
     Environment env = (Environment) reader.readFile();
-    assertThat( env.getVariable(topLevelContext, "x"), equalTo(c(2)));
+    assertThat( env.getVariable(topLevelContext, "x"), elementsIdenticalTo(c(2)));
     assertThat( env.isActiveBinding("x"), equalTo(true));
   }
 

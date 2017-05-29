@@ -77,12 +77,12 @@ public class EvaluationTest extends EvalTestCase {
   
   @Test
   public void ifWithString() {
-    assertThat(eval(" if('TRUE') 1 else 0 "), equalTo(c(1)));
-    assertThat(eval(" if('FALSE') 1 else 0 "), equalTo(c(0)));
-    assertThat(eval(" if('true') 1 else 0 "), equalTo(c(1)));
-    assertThat(eval(" if('false') 1 else 0 "), equalTo(c(0)));
-    assertThat(eval(" if('T') 1 else 0 "), equalTo(c(1)));
-    assertThat(eval(" if('F') 1 else 0 "), equalTo(c(0)));
+    assertThat(eval(" if('TRUE') 1 else 0 "), elementsIdenticalTo(c(1)));
+    assertThat(eval(" if('FALSE') 1 else 0 "), elementsIdenticalTo(c(0)));
+    assertThat(eval(" if('true') 1 else 0 "), elementsIdenticalTo(c(1)));
+    assertThat(eval(" if('false') 1 else 0 "), elementsIdenticalTo(c(0)));
+    assertThat(eval(" if('T') 1 else 0 "), elementsIdenticalTo(c(1)));
+    assertThat(eval(" if('F') 1 else 0 "), elementsIdenticalTo(c(0)));
   }
 
   @Test
@@ -92,19 +92,19 @@ public class EvaluationTest extends EvalTestCase {
 
   @Test
   public void emptyBraces() throws IOException {
-    assertThat(eval("{}"), equalTo((SEXP) Null.INSTANCE));
+    assertThat(eval("{}"), identicalTo(Null.INSTANCE));
   }
 
   @Test
   public void assign() throws IOException {
-    assertThat(eval("x<-2"), equalTo(c(2)));
-    assertThat(eval("x"), equalTo(c(2)));
+    assertThat(eval("x<-2"), elementsIdenticalTo(c(2)));
+    assertThat(eval("x"), elementsIdenticalTo(c(2)));
   }
   
   @Test
   public void oldAssign() {
-    assertThat(eval("x=2"), equalTo(c(2)));
-    assertThat(eval("x"), equalTo(c(2)));
+    assertThat(eval("x=2"), elementsIdenticalTo(c(2)));
+    assertThat(eval("x"), elementsIdenticalTo(c(2)));
   }
 
   @Test
@@ -155,7 +155,7 @@ public class EvaluationTest extends EvalTestCase {
     eval("y<-0");
     eval("repeat { y <- y + 1; if(y > 5) break }");
     
-    assertThat( eval("y"), equalTo(c(6)));
+    assertThat( eval("y"), elementsIdenticalTo(c(6)));
     
   }
   
@@ -165,7 +165,7 @@ public class EvaluationTest extends EvalTestCase {
     eval("y<-0");
     eval("while(x<5) {  x<-x+1; if(x==3) next; y<-y+1 }");
 
-    assertThat(eval("y"), equalTo(c(3)));
+    assertThat(eval("y"), elementsIdenticalTo(c(3)));
   }
   
   @Test
@@ -173,7 +173,7 @@ public class EvaluationTest extends EvalTestCase {
     
     eval("f <- function(x = (z + 1)) { mx <- missing(x); z <- 1; x }\n");
     
-    assertThat(eval("f()"), equalTo(c(2)));
+    assertThat(eval("f()"), elementsIdenticalTo(c(2)));
     
   }
 
@@ -190,7 +190,7 @@ public class EvaluationTest extends EvalTestCase {
     eval("alist <- c('a','b','c')");
     eval("for(item in alist) { y<-item } ");
     
-    assertThat(eval("y"), equalTo(c("c")));
+    assertThat(eval("y"), elementsIdenticalTo(c("c")));
   }
   
   @Test
@@ -202,8 +202,8 @@ public class EvaluationTest extends EvalTestCase {
   @Test
   public void functionWithMissing() throws IOException {
     eval("f <- function(x) { missing(x) }");
-    assertThat(eval("f()"), equalTo(c(true)));
-    assertThat(eval("f(1)"), equalTo(c(false)));
+    assertThat(eval("f()"), elementsIdenticalTo(c(true)));
+    assertThat(eval("f(1)"), elementsIdenticalTo(c(false)));
   }
 
   @Test
@@ -211,8 +211,8 @@ public class EvaluationTest extends EvalTestCase {
     eval("f <- function(x) missing(x) ");
     eval("g <- function(x) f(x) ");
     eval("h <- function(x) g(x) ");
-    assertThat(eval("g()"), equalTo(c(true)));
-    assertThat(eval("h()"), equalTo(c(true)));
+    assertThat(eval("g()"), elementsIdenticalTo(c(true)));
+    assertThat(eval("h()"), elementsIdenticalTo(c(true)));
 
   }
 
@@ -220,7 +220,7 @@ public class EvaluationTest extends EvalTestCase {
   public void missingWithDefaultArg() {
     eval("f<-function(x=1) missing(x) ");
 
-    assertThat( eval("f()"), equalTo( c(true)));
+    assertThat( eval("f()"), elementsIdenticalTo( c(true)));
   }
   
   @Test
@@ -228,8 +228,8 @@ public class EvaluationTest extends EvalTestCase {
     eval("f<-function(y, x=1) missing(x) ");
     eval("g<-function(z, ...) f(y=z,...) ");
     
-    assertThat(eval("g(4)"), equalTo(c(true)));
-    assertThat(eval("g(x=4)"), equalTo(c(false)));
+    assertThat(eval("g(4)"), elementsIdenticalTo(c(true)));
+    assertThat(eval("g(x=4)"), elementsIdenticalTo(c(false)));
   }
 
   @Test
@@ -237,7 +237,7 @@ public class EvaluationTest extends EvalTestCase {
     eval("f<-function(x) { print(x); missing(x) } ");
     eval("g<-function(z=1) f(z) ");
 
-    assertThat( eval("g(4)"), equalTo(c(false)));
+    assertThat( eval("g(4)"), elementsIdenticalTo(c(false)));
   }
 
 
@@ -247,7 +247,7 @@ public class EvaluationTest extends EvalTestCase {
     eval("f <- function(formula, ...) UseMethod('f'); ");
 
     eval("data <-88");
-    assertThat( eval("f(1, data=data)"), equalTo( c(false)));
+    assertThat( eval("f(1, data=data)"), elementsIdenticalTo( c(false)));
   }
 
   @Test
@@ -255,7 +255,7 @@ public class EvaluationTest extends EvalTestCase {
     eval("y <- 4");
     eval("f<-function(x=1) missing(x) ");
 
-    assertThat( eval("f(y)"), equalTo(c(false)));
+    assertThat( eval("f(y)"), elementsIdenticalTo(c(false)));
   }
 
   @Test
@@ -270,7 +270,7 @@ public class EvaluationTest extends EvalTestCase {
     eval(" f<-function() { on.exit( .Internal(eval(quote(launchMissiles<-42), globalenv(), NULL))) }");
     eval(" f() ");
 
-    assertThat(eval(" launchMissiles "), equalTo(c(42)));
+    assertThat(eval(" launchMissiles "), elementsIdenticalTo(c(42)));
   }
 
   @Test
@@ -289,7 +289,7 @@ public class EvaluationTest extends EvalTestCase {
         "}");
     eval("myf(3)");
 
-    assertThat(eval("Global.res"), equalTo(c(16)));
+    assertThat(eval("Global.res"), elementsIdenticalTo(c(16)));
   }
 
   @Test
@@ -297,7 +297,7 @@ public class EvaluationTest extends EvalTestCase {
     eval( " x <- list(a = 1)");
     eval( " x$a <- 3");
 
-    assertThat(eval("x$a"), equalTo(c(3)));
+    assertThat(eval("x$a"), elementsIdenticalTo(c(3)));
   }
 
   @Test
@@ -313,7 +313,7 @@ public class EvaluationTest extends EvalTestCase {
     eval( " f<- function() x$a <<- 3 ");
     eval(" f()");
 
-    assertThat( eval("x$a"), equalTo( c(3)));
+    assertThat( eval("x$a"), elementsIdenticalTo( c(3)));
   }
   
   @Test
@@ -321,8 +321,8 @@ public class EvaluationTest extends EvalTestCase {
     eval( " x<- list(a = 1)");
     eval( " class(x$a) <- 'foo' ");
 
-    assertThat(eval(" x$a "), equalTo(c(1)));
-    assertThat(eval(" class(x$a) "), equalTo(c("foo")));
+    assertThat(eval(" x$a "), elementsIdenticalTo(c(1)));
+    assertThat(eval(" class(x$a) "), elementsIdenticalTo(c("foo")));
   }
 
   @Test
@@ -339,22 +339,22 @@ public class EvaluationTest extends EvalTestCase {
     
     eval(" f(y,1:10) <- 4");
     
-    assertThat(eval("d"), equalTo(c(false)));
+    assertThat(eval("d"), elementsIdenticalTo(c(false)));
   }
 
   @Test
   public void chainedComplexAssignment() {
     eval( "x <- y <- z <- 1");
 
-    assertThat( eval("x"), equalTo(c(1)));
-    assertThat( eval("y"), equalTo(c(1)));
-    assertThat(eval("z"), equalTo(c(1)));
+    assertThat( eval("x"), elementsIdenticalTo(c(1)));
+    assertThat( eval("y"), elementsIdenticalTo(c(1)));
+    assertThat(eval("z"), elementsIdenticalTo(c(1)));
 
     eval(" class(x) <- class(y) <- class(z) <- 'foo'");
 
-    assertThat(eval("class(x)"), equalTo(c("foo")));
-    assertThat(eval("class(y)"), equalTo(c("foo")));
-    assertThat(eval("class(z)"), equalTo(c("foo")));
+    assertThat(eval("class(x)"), elementsIdenticalTo(c("foo")));
+    assertThat(eval("class(y)"), elementsIdenticalTo(c("foo")));
+    assertThat(eval("class(z)"), elementsIdenticalTo(c("foo")));
   }
 
   @Test
@@ -363,7 +363,7 @@ public class EvaluationTest extends EvalTestCase {
     eval("f<-function(x) x");
     eval("g<-function() { f<-3; f(f); }");
 
-    assertThat( eval(" g() "), equalTo(c(3)));
+    assertThat( eval(" g() "), elementsIdenticalTo(c(3)));
 
   }
  
@@ -371,7 +371,7 @@ public class EvaluationTest extends EvalTestCase {
   @Test
   public void dotDotDotToPrimitive() {
     eval("f<-function(...) sqrt(...) ");
-    assertThat( eval("f(4)"), equalTo(c(2)));
+    assertThat( eval("f(4)"), elementsIdenticalTo(c(2)));
   }
 
   @Test
@@ -382,9 +382,9 @@ public class EvaluationTest extends EvalTestCase {
    
     eval(" a <- 10  ");
 
-    assertThat( eval(" f1(a) "), equalTo( c(11) ) );
-    assertThat(eval(" s1(a) "), equalTo(c(11)));
-    assertThat( eval(" s2(a) "), equalTo( symbol("a") ));
+    assertThat( eval(" f1(a) "), elementsIdenticalTo( c(11) ) );
+    assertThat(eval(" s1(a) "), elementsIdenticalTo(c(11)));
+    assertThat( eval(" s2(a) "), identicalTo( symbol("a") ));
   }
   
   @Test
@@ -392,51 +392,51 @@ public class EvaluationTest extends EvalTestCase {
     eval(" x <- 42");
     eval(" y <- substitute(x)");
     
-    assertThat( eval("y"), equalTo((SEXP)Symbol.get("x")));
+    assertThat( eval("y"), identicalTo(Symbol.get("x")));
   }
   
   @Test
   public void substituteArgumentMatchingByName() {
     
-    assertThat( eval("substitute(env=.GlobalEnv, expr=x)"), equalTo((SEXP)Symbol.get("x")));
+    assertThat( eval("substitute(env=.GlobalEnv, expr=x)"), identicalTo(Symbol.get("x")));
     
     eval("f <- function(...) substitute(...) ");
     eval("e <- list(x = 99) ");
     eval("x <- 42");
     
-    assertThat( eval("f(x)"), equalTo((SEXP)Symbol.get("x")));
-    assertThat( eval("f(x, e)"), equalTo((SEXP)Symbol.get("x")));
-    assertThat( eval("f(x, env=e)"), equalTo((SEXP)Symbol.get("x")));
-    assertThat( eval("f(env=e, x)"), equalTo((SEXP)Symbol.get("e")));
+    assertThat( eval("f(x)"), identicalTo(Symbol.get("x")));
+    assertThat( eval("f(x, e)"), identicalTo(Symbol.get("x")));
+    assertThat( eval("f(x, env=e)"), identicalTo(Symbol.get("x")));
+    assertThat( eval("f(env=e, x)"), identicalTo(Symbol.get("e")));
 
-    assertThat( eval("substitute(x, e)"), equalTo(c(99)));
-    assertThat( eval("substitute(env=e, x)"), equalTo(c(99)));
-    assertThat( eval("substitute(e, expr=x)"), equalTo(c(99)));
+    assertThat( eval("substitute(x, e)"), elementsIdenticalTo(c(99)));
+    assertThat( eval("substitute(env=e, x)"), elementsIdenticalTo(c(99)));
+    assertThat( eval("substitute(e, expr=x)"), elementsIdenticalTo(c(99)));
 
-    assertThat( eval("f()"), equalTo( (SEXP)Null.INSTANCE ));
+    assertThat( eval("f()"), identicalTo(Null.INSTANCE));
     
-    assertThat( eval("substitute()"), equalTo((SEXP)Symbol.MISSING_ARG));
+    assertThat( eval("substitute()"), identicalTo(Symbol.MISSING_ARG));
 
   }
   
   @Test
   public void substituteWithList() {
-    assertThat( eval(" substitute(x, list(x=42)) "), equalTo(c(42)));
+    assertThat( eval(" substitute(x, list(x=42)) "), elementsIdenticalTo(c(42)));
   }
 
   @Test
   public void substituteDotDot() {
     eval(" f<- function(...) substitute(list(...)) ");
 
-    assertThat( eval("f(a,b)"), equalTo( (SEXP) new FunctionCall(Symbol.get("list"),
-        PairList.Node.fromArray(Symbol.get("a"), Symbol.get("b"))) ));
+    assertThat( eval("f(a,b)"), identicalTo(new FunctionCall(Symbol.get("list"),
+        PairList.Node.fromArray(Symbol.get("a"), Symbol.get("b")))));
   }
   
   @Test
   public void substituteWithMissingEllipses() {
     eval(" f<- function(a=1) substitute(list(...)) ");
 
-    assertThat( eval("f()"), equalTo( (SEXP) new FunctionCall(Symbol.get("list"), 
+    assertThat( eval("f()"), identicalTo(new FunctionCall(Symbol.get("list"),
             PairList.Node.fromArray(Symbols.ELLIPSES))));
   }
 
@@ -445,7 +445,7 @@ public class EvaluationTest extends EvalTestCase {
   public void listFromArgs() {
     eval(" f<- function(...) list(...) ");
     
-    assertThat( eval("f(1,2,3)"), equalTo(list(1d, 2d, 3d)));
+    assertThat( eval("f(1,2,3)"), elementsIdenticalTo(list(1d, 2d, 3d)));
   }
 
   @Test
@@ -458,37 +458,37 @@ public class EvaluationTest extends EvalTestCase {
         "}");
 
 
-    assertThat( eval("f()"), equalTo(c(42)));
+    assertThat( eval("f()"), elementsIdenticalTo(c(42)));
   }
   
 
   @Test
   public void quoteSymbol() {
     eval("x <- quote(y)");
-    assertThat( eval("x"), equalTo(symbol("y")));
+    assertThat( eval("x"), identicalTo(symbol("y")));
   }
 
   @Test
   public void symbolToCharacter() {
-    assertThat( eval(" as.character(quote(x)) "), equalTo( c("x")));
+    assertThat( eval(" as.character(quote(x)) "), elementsIdenticalTo( c("x")));
   }
 
   @Test
   public void doSwitch() {
     
-    assertThat( eval("switch('z', alligator=4,aardvark=2, 44)"), equalTo( c(44)));
-    assertThat( eval("switch('a', alligator=4,aardvark=2, 44)"), equalTo( c(44)));
-    assertThat(eval("switch('a', alligator=4,aardvark=2)"), equalTo(NULL));
-    assertThat(eval("switch('all', alligator=4,aardvark=2)"), equalTo(c(4)));
-    assertThat(eval("switch('all')"), equalTo(NULL));
+    assertThat( eval("switch('z', alligator=4,aardvark=2, 44)"), elementsIdenticalTo( c(44)));
+    assertThat( eval("switch('a', alligator=4,aardvark=2, 44)"), elementsIdenticalTo( c(44)));
+    assertThat(eval("switch('a', alligator=4,aardvark=2)"), identicalTo(NULL));
+    assertThat(eval("switch('all', alligator=4,aardvark=2)"), elementsIdenticalTo(c(4)));
+    assertThat(eval("switch('all')"), identicalTo(NULL));
 
-    assertThat(eval("switch(1, 'first', 'second')"), equalTo(c("first")));
-    assertThat(eval("switch(2, 'first', 'second')"), equalTo(c("second")));
-    assertThat( eval("switch(99, 'first', 'second')"), equalTo( NULL ));
-    assertThat( eval("switch(4)"), equalTo( NULL ));
+    assertThat(eval("switch(1, 'first', 'second')"), elementsIdenticalTo(c("first")));
+    assertThat(eval("switch(2, 'first', 'second')"), elementsIdenticalTo(c("second")));
+    assertThat( eval("switch(99, 'first', 'second')"), identicalTo( NULL ));
+    assertThat( eval("switch(4)"), identicalTo( NULL ));
 
-    assertThat(eval("switch('a', a=,b=,c=3) "), equalTo(c(3)));
-    assertThat( eval("switch(NA_character_, a=1,b=2)"), equalTo( NULL ));
+    assertThat(eval("switch('a', a=,b=,c=3) "), elementsIdenticalTo(c(3)));
+    assertThat( eval("switch(NA_character_, a=1,b=2)"), identicalTo( NULL ));
   }
 
   @Test
@@ -500,12 +500,12 @@ public class EvaluationTest extends EvalTestCase {
     eval("x<-33");
     eval("class(x) <- 'foo'");
 
-    assertThat( eval("fry(1,5)"), equalTo( eval("list(desc='fried numbers', what=1, howlong=5)") ) );
-    assertThat(eval("fry(x,15)"), equalTo(eval("list(desc='fried stuff', what=33, howlong=15)")));
+    assertThat( eval("fry(1,5)"), identicalTo( eval("structure(list(desc = \"fried numbers\", number = 1, howlong = 5), .Names = c(\"desc\",  \"number\", \"howlong\"))") ) );
+    assertThat(eval("fry(x,15)"), identicalTo(eval("structure(list(desc = \"fried stuff\", what = structure(33, class = \"foo\"),      howlong = 15), .Names = c(\"desc\", \"what\", \"howlong\"))")));
 
     eval("cook <- function() { eggs<-6; fry(eggs, 5) }");
 
-    assertThat(eval("cook()"), equalTo(eval("list(desc='fried numbers', what=6, howlong=5) ")));
+    assertThat(eval("cook()"), elementsIdenticalTo(eval("list(desc='fried numbers', what=6, howlong=5) ")));
   }
   
   @Test(expected=EvalException.class)
@@ -523,7 +523,7 @@ public class EvaluationTest extends EvalTestCase {
     eval("m <- 1:12");
     eval("dim(m) <- c(3,4)");
    
-    assertThat(eval("f(m)"), equalTo(c("matrix")));
+    assertThat(eval("f(m)"), elementsIdenticalTo(c("matrix")));
   }
   
   @Test
@@ -533,16 +533,16 @@ public class EvaluationTest extends EvalTestCase {
     eval("f.double <- function(x) 'double' ");
     
    
-    assertThat(eval("f(9)"), equalTo(c("double")));
+    assertThat(eval("f(9)"), elementsIdenticalTo(c("double")));
   }
 
   @Test
   public void nargs() {
     eval("test <- function(a, b = 3, ...) {nargs()}");
 
-    assertThat(eval("test()"), equalTo(c_i(0)));
-    assertThat(eval("test(clicketyclack)"), equalTo(c_i(1)));
-    assertThat( eval("test(c1, a2, rr3)"), equalTo( c_i(3)));
+    assertThat(eval("test()"), elementsIdenticalTo(c_i(0)));
+    assertThat(eval("test(clicketyclack)"), elementsIdenticalTo(c_i(1)));
+    assertThat( eval("test(c1, a2, rr3)"), elementsIdenticalTo( c_i(3)));
   }
 
   @Test
@@ -557,14 +557,14 @@ public class EvaluationTest extends EvalTestCase {
     eval(" y<-3");
     eval(" f<-function(x) x^2 ");
 
-    assertThat( eval("x"), equalTo(c(9)));
+    assertThat( eval("x"), elementsIdenticalTo(c(9)));
   }
 
   @Test
   public void evalWithPairList() {
     eval(" params <- list(a=1,b=99)");
     eval(" c<-25");
-    assertThat( eval( ".Internal(eval(quote((a+b)/c), params, globalenv()))") , equalTo(c(4)));
+    assertThat( eval( ".Internal(eval(quote((a+b)/c), params, globalenv()))") , elementsIdenticalTo(c(4)));
   }
   
   @Test
@@ -576,7 +576,7 @@ public class EvaluationTest extends EvalTestCase {
     eval(" k <- list(1,2,3) ");
     eval(" k[[2]] <- onlyonce()");
 
-    assertThat(eval("k"), equalTo(list(1d, 16d, 3d)));
+    assertThat(eval("k"), elementsIdenticalTo(list(1d, 16d, 3d)));
 
   }
 
@@ -595,8 +595,8 @@ public class EvaluationTest extends EvalTestCase {
     eval("f<-function(a,b) match.call()");
     eval("matched <- f(b=1,a=2)");
     
-    assertThat(eval("matched$a"), equalTo(c(2)));
-    assertThat(eval("matched$b"), equalTo(c(1)));
+    assertThat(eval("matched$a"), elementsIdenticalTo(c(2)));
+    assertThat(eval("matched$b"), elementsIdenticalTo(c(1)));
   }
   
 
@@ -607,20 +607,20 @@ public class EvaluationTest extends EvalTestCase {
     eval("f<-function(a,b) match.call()");
     eval("matched <- f(b=1)");
     
-    assertThat(eval("length(matched)"), equalTo(c_i(2)));
+    assertThat(eval("length(matched)"), elementsIdenticalTo(c_i(2)));
   }
   
   @Test
   public void noPartialMatchingOnArgumentsFollowingElipses() {
     eval("f<-function(..., aardvark) names(list(...))");
-    assertThat(eval("f(a=1)"), equalTo(c("a")));
+    assertThat(eval("f(a=1)"), elementsIdenticalTo(c("a")));
   }
   
   @Test
   public void partialMatchingOnArgumentsPrecedingElipses() {
     eval("f<-function(aardvark=0, ... , aard) aardvark");
     //assertThat(eval("f(aard=1)"), equalTo(c(0))); // match exactly to "aard"
-    assertThat(eval("f(aar=1)"), equalTo(c(1))); // match partially to arguments preceding elipses
+    assertThat(eval("f(aar=1)"), elementsIdenticalTo(c(1))); // match partially to arguments preceding elipses
   }
   
   @Test
@@ -632,13 +632,13 @@ public class EvaluationTest extends EvalTestCase {
     // try without dots expanded
     eval("matched <- f(expand.dots=FALSE, 1,2,3)");
     
-    assertThat(eval("as.list(matched$...)"), equalTo(list(1d,2d,3d)));
+    assertThat(eval("as.list(matched$...)"), elementsIdenticalTo(list(1d,2d,3d)));
     
     // now with dots expanded
     eval("matched <- f(expand.dots=TRUE, 44, 55, 90, 50)");
     
-    assertThat(eval("matched$..."), equalTo(NULL));
-    assertThat(eval("length(matched)"), equalTo(c_i(6)));
+    assertThat(eval("matched$..."), identicalTo(NULL));
+    assertThat(eval("length(matched)"), elementsIdenticalTo(c_i(6)));
   }
 
   @Test
@@ -655,7 +655,7 @@ public class EvaluationTest extends EvalTestCase {
     eval("z<-f(~(0+births))");
       
 
-    assertThat(eval(".Internal(typeof(z[[2]]))"), equalTo(c("language")));
+    assertThat(eval(".Internal(typeof(z[[2]]))"), elementsIdenticalTo(c("language")));
   }
   
   @Test
@@ -677,7 +677,7 @@ public class EvaluationTest extends EvalTestCase {
     eval("g <- function(x,b = 16) UseMethod('g') ");
     eval("x<-1");
     eval("class(x) <- 'foo'");
-    assertThat(eval("g(x)"), equalTo(c(42)));
+    assertThat(eval("g(x)"), elementsIdenticalTo(c(42)));
   }
 
   @Test
@@ -689,7 +689,7 @@ public class EvaluationTest extends EvalTestCase {
     eval("g <- function(a,b) UseMethod('g') ");
     eval("x<-1");
     eval("class(x) <- 'foo'");
-    assertThat(eval("g(41,42)"), equalTo(c(41)));
+    assertThat(eval("g(41,42)"), elementsIdenticalTo(c(41)));
   }
 
   
@@ -702,7 +702,7 @@ public class EvaluationTest extends EvalTestCase {
     eval("g <- function(x) UseMethod('g') ");
     eval("x<-1");
     eval("class(x) <- 'foo'");
-    assertThat(eval("g()"), equalTo(c(42)));
+    assertThat(eval("g()"), elementsIdenticalTo(c(42)));
   }
   
   @Test
@@ -715,8 +715,8 @@ public class EvaluationTest extends EvalTestCase {
     eval("g <- function(x,i,j) UseMethod('g') ");
     eval("x<-1");
     eval("class(x) <- 'foo'");
-    assertThat(eval("g(x,1)"), equalTo(c_i(2)));
-    assertThat(eval("g(x,1,2)"), equalTo(c_i(3)));
+    assertThat(eval("g(x,1)"), elementsIdenticalTo(c_i(2)));
+    assertThat(eval("g(x,1,2)"), elementsIdenticalTo(c_i(3)));
   }
   
   @Test
@@ -726,7 +726,7 @@ public class EvaluationTest extends EvalTestCase {
     eval("f <- function(x, filter) UseMethod('f') ");
     eval("x <- 1");
     eval("class(x) <- 'foo'");
-    assertThat(eval("f(x, a+b)"), equalTo(c(45)));
+    assertThat(eval("f(x, a+b)"), elementsIdenticalTo(c(45)));
   }
   
   @Test
@@ -735,7 +735,7 @@ public class EvaluationTest extends EvalTestCase {
     eval("f <- function(fn) fn(16) ");
     eval("g <- function(fn) f(fn) ");
     eval("h <- sqrt");
-    assertThat(eval("g(h)"), equalTo(c(4)));
+    assertThat(eval("g(h)"), elementsIdenticalTo(c(4)));
   }
   
  
@@ -757,7 +757,7 @@ public class EvaluationTest extends EvalTestCase {
     
     eval("f<-function() { zz <- 42; local({ zz }) }");
     
-    assertThat(eval("f()"), equalTo(c(42)));
+    assertThat(eval("f()"), elementsIdenticalTo(c(42)));
 
   }
 
@@ -771,7 +771,7 @@ public class EvaluationTest extends EvalTestCase {
     FunctionCall call = (FunctionCall) eval("call('my.function') ");
     
     assertTrue(call.getArguments().length() == 0);
-    assertThat((Symbol) call.getFunction(), equalTo(Symbol.get("my.function")));
+    assertThat(call.getFunction(), identicalTo(Symbol.get("my.function")));
   }
   
   @Test
@@ -779,14 +779,14 @@ public class EvaluationTest extends EvalTestCase {
     eval(" f <- function() eval(quote(x), envir=0L) ");
     eval(" environment(f) <- new.env() ");
     eval(" x <- 42" );
-    assertThat(eval("f()"), equalTo(c(42)));
+    assertThat(eval("f()"), elementsIdenticalTo(c(42)));
   }
   
   @Test
   public void evalWithNumericNegEnv() {
     eval(" f <- function() eval(quote(x), envir=-2L) ");
     eval(" g <- function() { x<- 43; f() }");
-    assertThat(eval("g()"), equalTo(c(43)));
+    assertThat(eval("g()"), elementsIdenticalTo(c(43)));
   }
 
   @Test
@@ -794,9 +794,9 @@ public class EvaluationTest extends EvalTestCase {
     eval(" f <- function(...) ..1 ");
     eval(" g <- function(...) missing(..1) ");
 
-    assertThat(eval("f(41,42,43)"), equalTo(c(41)));
-    assertThat(eval("g(1)"), equalTo(c(false)));
-    assertThat(eval("g()"), equalTo(c(true)));
+    assertThat(eval("f(41,42,43)"), elementsIdenticalTo(c(41)));
+    assertThat(eval("g(1)"), elementsIdenticalTo(c(false)));
+    assertThat(eval("g()"), elementsIdenticalTo(c(true)));
   }
   
   @Test
@@ -816,28 +816,28 @@ public class EvaluationTest extends EvalTestCase {
   public void catchErrors() {
     eval("x <- tryCatch( stop('foo') , error = function(e) e)");
     
-    assertThat(eval("class(x)"), equalTo(c("simpleError", "error", "condition")));
+    assertThat(eval("class(x)"), elementsIdenticalTo(c("simpleError", "error", "condition")));
   }
 
   @Test
   public void catchErrorsAndHandle() {
     eval("x <- tryCatch( stop('foo') , error = function(e) 42)");
 
-    assertThat(eval("x"), equalTo(c(42)));
+    assertThat(eval("x"), elementsIdenticalTo(c(42)));
   }
   
   @Test
   public void signalErrorUnhandled() {
     eval("x <- tryCatch( { signalCondition(simpleError('STOP')); 46 } )");
     
-    assertThat(eval("x"), equalTo(c(46)));
+    assertThat(eval("x"), elementsIdenticalTo(c(46)));
   }
 
   @Test
   public void signalErrorHandled() {
     eval("x <- tryCatch( { signalCondition(simpleError('STOP')); 46 }, error = function(e) 42 )");
 
-    assertThat(eval("x"), equalTo(c(42)));
+    assertThat(eval("x"), elementsIdenticalTo(c(42)));
   }
   
   @Test
@@ -845,16 +845,16 @@ public class EvaluationTest extends EvalTestCase {
     eval(" p <- quote(foo(x)) ");
     eval(" x <- tryCatch({ p[NA] <- list }, error = function(e) 42) ");
     
-    assertThat(eval("x"), equalTo(c(42)));
+    assertThat(eval("x"), elementsIdenticalTo(c(42)));
   }
   
   @Test
   public void caughtWarnings() {
     eval("x <- tryCatch({ warning('foo'); 'not caught' }, warning = function(e) e)");
     
-    assertThat(eval("class(x)"), equalTo(c("simpleWarning", "warning", "condition")));
-    assertThat(eval("x$message"), equalTo(c("foo")));
-    assertThat(eval("x$call[[1]]"), equalTo(symbol("doTryCatch")));
+    assertThat(eval("class(x)"), elementsIdenticalTo(c("simpleWarning", "warning", "condition")));
+    assertThat(eval("x$message"), elementsIdenticalTo(c("foo")));
+    assertThat(eval("x$call[[1]]"), identicalTo(symbol("doTryCatch")));
   }
   
   @Test
@@ -864,8 +864,8 @@ public class EvaluationTest extends EvalTestCase {
     
     eval(" x <- f(...=1, 2) ");
     
-    assertThat(eval("x"), equalTo(list(1d, 2d)));
-    assertThat(eval("names(x)"), equalTo(c("...", "")));
+    assertThat(eval("x"), elementsIdenticalTo(list(1d, 2d)));
+    assertThat(eval("names(x)"), elementsIdenticalTo(c("...", "")));
   }
 
   @Test
@@ -894,7 +894,7 @@ public class EvaluationTest extends EvalTestCase {
     eval("x <- 1");
     eval("y <- 2");
     eval("f(x) <- y"); 
-    assertThat(eval("x"), equalTo(c(false)));
+    assertThat(eval("x"), elementsIdenticalTo(c(false)));
   }
 
   @Test
@@ -902,14 +902,14 @@ public class EvaluationTest extends EvalTestCase {
 
     eval("`f<-` <- function(lhs, value) missing(value)");
     eval("g <- function(y=1) { x<-1; f(x) <- y; x; }");
-    assertThat(eval("g()"), equalTo(c(false)));
+    assertThat(eval("g()"), elementsIdenticalTo(c(false)));
   }
   
   @Test
   public void missingEvaluatedPromise() {
     
     eval("g <- function(y=1) { y+1; missing(y); }");
-    assertThat(eval("g()"), equalTo(c(true)));  
+    assertThat(eval("g()"), elementsIdenticalTo(c(true)));
   }
   
   @Test
@@ -918,14 +918,14 @@ public class EvaluationTest extends EvalTestCase {
     eval("f <- function(a) { a+a } ");
     eval("x <- 1");
     eval("class(x) <- 'foo'");
-    assertThat(eval("f(x)"), equalTo(c(false)));
+    assertThat(eval("f(x)"), elementsIdenticalTo(c(false)));
   }
 
   @Test
   public void missingnessDoesNotPropogate() {
     eval("g <- function(y = NULL) missing(y)");
     eval("f <- function(x = NULL) g(y = x)");
-    assertThat(eval("f()"), equalTo(c(false)));
+    assertThat(eval("f()"), elementsIdenticalTo(c(false)));
   }
 }
 

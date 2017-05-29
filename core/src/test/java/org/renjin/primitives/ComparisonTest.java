@@ -27,7 +27,6 @@ import org.renjin.sexp.SEXP;
 
 import java.io.IOException;
 
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.renjin.sexp.Logical.*;
 
@@ -35,12 +34,12 @@ public class ComparisonTest extends EvalTestCase {
 
   @Test
   public void scalarRealEquality() throws IOException {
-    assertThat( eval("1 == 1"), equalTo(c(TRUE)) );
-    assertThat( eval("1 > 2"), equalTo(c(FALSE)) );
-    assertThat( eval("2 > 1"), equalTo(c(TRUE)) );
-    assertThat( eval("2 >= 2"), equalTo(c(TRUE)) );
-    assertThat( eval("is.na(NA_real_ > 1)"), equalTo(c(TRUE)) );
-    assertThat( eval("1 < 999"), equalTo(c(TRUE)) );
+    assertThat( eval("1 == 1"), elementsIdenticalTo(c(TRUE)) );
+    assertThat( eval("1 > 2"), elementsIdenticalTo(c(FALSE)) );
+    assertThat( eval("2 > 1"), elementsIdenticalTo(c(TRUE)) );
+    assertThat( eval("2 >= 2"), elementsIdenticalTo(c(TRUE)) );
+    assertThat( eval("is.na(NA_real_ > 1)"), elementsIdenticalTo(c(TRUE)) );
+    assertThat( eval("1 < 999"), elementsIdenticalTo(c(TRUE)) );
   }
 
   /**
@@ -49,69 +48,69 @@ public class ComparisonTest extends EvalTestCase {
   @Test
   public void integersImplicitlyCastToDoubles() throws IOException {
 
-    assertThat( eval("1L == 1"), equalTo(c(TRUE)) );
+    assertThat( eval("1L == 1"), elementsIdenticalTo(c(TRUE)) );
 
   }
 
   @Test
   public void logicalsImplicitlyCastToDoubles() throws IOException {
-    assertThat( eval("3 == NA"), equalTo(c(NA)) );
-    assertThat( eval("0 < TRUE"), equalTo(c(TRUE)) );
-    assertThat( eval("TRUE > FALSE"), equalTo(c(TRUE)) );
-    assertThat( eval("TRUE <= TRUE"), equalTo(c(TRUE)) );
+    assertThat( eval("3 == NA"), elementsIdenticalTo(c(NA)) );
+    assertThat( eval("0 < TRUE"), elementsIdenticalTo(c(TRUE)) );
+    assertThat( eval("TRUE > FALSE"), elementsIdenticalTo(c(TRUE)) );
+    assertThat( eval("TRUE <= TRUE"), elementsIdenticalTo(c(TRUE)) );
   }
 
   @Test
   public void realLists() throws IOException {
-    assertThat( eval("c(1,2,3) < c(0, 99, 3)"), equalTo(c(false, true, false)));
+    assertThat( eval("c(1,2,3) < c(0, 99, 3)"), elementsIdenticalTo(c(false, true, false)));
   }
 
   @Test
   public void unequalSizeLists() throws IOException {
-    assertThat( eval("c(1,2,3) <= 2"), equalTo(c(true, true, false)));
-    assertThat( eval("2 != c(1,2,3)"), equalTo(c(true, false, true)));
+    assertThat( eval("c(1,2,3) <= 2"), elementsIdenticalTo(c(true, true, false)));
+    assertThat( eval("2 != c(1,2,3)"), elementsIdenticalTo(c(true, false, true)));
   }
 
   @Test
   public void platform() throws IOException {
     // this was failing in dynaload.R
-    assertThat( eval("if(.Platform$OS.type == \"windows\") { 1 } else { 42 }"), equalTo(c(42)) );
+    assertThat( eval("if(.Platform$OS.type == \"windows\") { 1 } else { 42 }"), elementsIdenticalTo(c(42)) );
   }
 
   @Test
   public void or() {
-    assertThat( eval("0 || 0"), equalTo(c(Logical.FALSE)) );
-    assertThat( eval("0 || 1"), equalTo(c(Logical.TRUE)) );
-    assertThat( eval("1 || 0"), equalTo(c(Logical.TRUE)) );
-    assertThat( eval("1 || 1"), equalTo(c(Logical.TRUE)) );
+    assertThat( eval("0 || 0"), elementsIdenticalTo(c(Logical.FALSE)) );
+    assertThat( eval("0 || 1"), elementsIdenticalTo(c(Logical.TRUE)) );
+    assertThat( eval("1 || 0"), elementsIdenticalTo(c(Logical.TRUE)) );
+    assertThat( eval("1 || 1"), elementsIdenticalTo(c(Logical.TRUE)) );
 
-    assertThat( eval("FALSE || FALSE"), equalTo(c(Logical.FALSE)) );
-    assertThat( eval("FALSE || TRUE"), equalTo(c(Logical.TRUE)) );
-    assertThat( eval("TRUE || FALSE"), equalTo(c(Logical.TRUE)) );
-    assertThat( eval("TRUE || TRUE"), equalTo(c(Logical.TRUE)) );
+    assertThat( eval("FALSE || FALSE"), elementsIdenticalTo(c(Logical.FALSE)) );
+    assertThat( eval("FALSE || TRUE"), elementsIdenticalTo(c(Logical.TRUE)) );
+    assertThat( eval("TRUE || FALSE"), elementsIdenticalTo(c(Logical.TRUE)) );
+    assertThat( eval("TRUE || TRUE"), elementsIdenticalTo(c(Logical.TRUE)) );
 
-    assertThat( eval("c(0) || c(0)"), equalTo(c(Logical.FALSE)));
-    assertThat( eval("c(0) || c(1)"), equalTo(c(Logical.TRUE)));
-    assertThat( eval("c(1) || c(0)"), equalTo(c(Logical.TRUE)));
-    assertThat( eval("c(1) || c(1)"), equalTo(c(Logical.TRUE)));
+    assertThat( eval("c(0) || c(0)"), elementsIdenticalTo(c(Logical.FALSE)));
+    assertThat( eval("c(0) || c(1)"), elementsIdenticalTo(c(Logical.TRUE)));
+    assertThat( eval("c(1) || c(0)"), elementsIdenticalTo(c(Logical.TRUE)));
+    assertThat( eval("c(1) || c(1)"), elementsIdenticalTo(c(Logical.TRUE)));
     
-    assertThat( eval("c(0,2,3) || c(0, 99, 3)"), equalTo(c(Logical.FALSE)));
-    assertThat( eval("c(0,2,3) || c(1, 99, 3)"), equalTo(c(Logical.TRUE)));
-    assertThat( eval("c(1,2,3) || c(0, 99, 3)"), equalTo(c(Logical.TRUE)));
-    assertThat( eval("c(1,2,3) || c(1, 99, 3)"), equalTo(c(Logical.TRUE)));
+    assertThat( eval("c(0,2,3) || c(0, 99, 3)"), elementsIdenticalTo(c(Logical.FALSE)));
+    assertThat( eval("c(0,2,3) || c(1, 99, 3)"), elementsIdenticalTo(c(Logical.TRUE)));
+    assertThat( eval("c(1,2,3) || c(0, 99, 3)"), elementsIdenticalTo(c(Logical.TRUE)));
+    assertThat( eval("c(1,2,3) || c(1, 99, 3)"), elementsIdenticalTo(c(Logical.TRUE)));
 
-    assertThat( eval("c(FALSE) || c(FALSE)"), equalTo(c(Logical.FALSE)) );
-    assertThat( eval("c(FALSE) || c(TRUE)"), equalTo(c(Logical.TRUE)) );
-    assertThat( eval("c(TRUE) || c(FALSE)"), equalTo(c(Logical.TRUE)) );
-    assertThat( eval("c(TRUE) || c(TRUE)"), equalTo(c(Logical.TRUE)) );
+    assertThat( eval("c(FALSE) || c(FALSE)"), elementsIdenticalTo(c(Logical.FALSE)) );
+    assertThat( eval("c(FALSE) || c(TRUE)"), elementsIdenticalTo(c(Logical.TRUE)) );
+    assertThat( eval("c(TRUE) || c(FALSE)"), elementsIdenticalTo(c(Logical.TRUE)) );
+    assertThat( eval("c(TRUE) || c(TRUE)"), elementsIdenticalTo(c(Logical.TRUE)) );
 
-    assertThat( eval("c(FALSE) || c(0)"), equalTo(c(Logical.FALSE)) );
-    assertThat( eval("c(FALSE) || c(1)"), equalTo(c(Logical.TRUE)) );
-    assertThat( eval("c(TRUE) || c(0)"), equalTo(c(Logical.TRUE)) );
-    assertThat( eval("c(TRUE) || c(1)"), equalTo(c(Logical.TRUE)) );
+    assertThat( eval("c(FALSE) || c(0)"), elementsIdenticalTo(c(Logical.FALSE)) );
+    assertThat( eval("c(FALSE) || c(1)"), elementsIdenticalTo(c(Logical.TRUE)) );
+    assertThat( eval("c(TRUE) || c(0)"), elementsIdenticalTo(c(Logical.TRUE)) );
+    assertThat( eval("c(TRUE) || c(1)"), elementsIdenticalTo(c(Logical.TRUE)) );
 
-    assertThat( eval("c(TRUE) || list()"), equalTo(c(Logical.TRUE)) );
-    assertThat( eval("c(TRUE) || 'a'"), equalTo(c(Logical.TRUE)) );
+    assertThat( eval("c(TRUE) || list()"), elementsIdenticalTo(c(Logical.TRUE)) );
+    assertThat( eval("c(TRUE) || 'a'"), elementsIdenticalTo(c(Logical.TRUE)) );
   }
 
   @Test(expected = EvalException.class)
@@ -121,176 +120,176 @@ public class ComparisonTest extends EvalTestCase {
 
   @Test
   public void orWithNA() {
-    assertThat(eval(" TRUE || NA "), equalTo(c(TRUE)));
-    assertThat( eval(" FALSE || NA "), equalTo(c(NA)));
+    assertThat(eval(" TRUE || NA "), elementsIdenticalTo(c(TRUE)));
+    assertThat( eval(" FALSE || NA "), elementsIdenticalTo(c(NA)));
   }
 
   @Test
   public void bitwiseOr() {
-    assertThat( eval("0 | 0"), equalTo(c(Logical.FALSE)) );
-    assertThat( eval("0 | 1"), equalTo(c(Logical.TRUE)) );
-    assertThat( eval("1 | 0"), equalTo(c(Logical.TRUE)) );
-    assertThat( eval("1 | 1"), equalTo(c(Logical.TRUE)) );
+    assertThat( eval("0 | 0"), elementsIdenticalTo(c(Logical.FALSE)) );
+    assertThat( eval("0 | 1"), elementsIdenticalTo(c(Logical.TRUE)) );
+    assertThat( eval("1 | 0"), elementsIdenticalTo(c(Logical.TRUE)) );
+    assertThat( eval("1 | 1"), elementsIdenticalTo(c(Logical.TRUE)) );
 
-    assertThat( eval("FALSE | FALSE"), equalTo(c(Logical.FALSE)) );
-    assertThat( eval("FALSE | TRUE"), equalTo(c(Logical.TRUE)) );
-    assertThat( eval("TRUE | FALSE"), equalTo(c(Logical.TRUE)) );
-    assertThat( eval("TRUE | TRUE"), equalTo(c(Logical.TRUE)) );
+    assertThat( eval("FALSE | FALSE"), elementsIdenticalTo(c(Logical.FALSE)) );
+    assertThat( eval("FALSE | TRUE"), elementsIdenticalTo(c(Logical.TRUE)) );
+    assertThat( eval("TRUE | FALSE"), elementsIdenticalTo(c(Logical.TRUE)) );
+    assertThat( eval("TRUE | TRUE"), elementsIdenticalTo(c(Logical.TRUE)) );
 
-    assertThat( eval("c(0) | c(0)"), equalTo(c(Logical.FALSE)));
-    assertThat( eval("c(0) | c(1)"), equalTo(c(Logical.TRUE)));
-    assertThat( eval("c(1) | c(0)"), equalTo(c(Logical.TRUE)));
-    assertThat( eval("c(1) | c(1)"), equalTo(c(Logical.TRUE)));
+    assertThat( eval("c(0) | c(0)"), elementsIdenticalTo(c(Logical.FALSE)));
+    assertThat( eval("c(0) | c(1)"), elementsIdenticalTo(c(Logical.TRUE)));
+    assertThat( eval("c(1) | c(0)"), elementsIdenticalTo(c(Logical.TRUE)));
+    assertThat( eval("c(1) | c(1)"), elementsIdenticalTo(c(Logical.TRUE)));
 
-    assertThat( eval("c(0,2,3) | c(0, 99, 3)"), equalTo(c(Logical.FALSE, Logical.TRUE, Logical.TRUE)));
-    assertThat( eval("c(0,2,3) | c(1, 99, 3)"), equalTo(c(Logical.TRUE, Logical.TRUE, Logical.TRUE)));
-    assertThat( eval("c(1,2,3) | c(0, 99, 3)"), equalTo(c(Logical.TRUE, Logical.TRUE, Logical.TRUE)));
-    assertThat( eval("c(1,2,3) | c(1, 99, 3)"), equalTo(c(Logical.TRUE, Logical.TRUE, Logical.TRUE)));
+    assertThat( eval("c(0,2,3) | c(0, 99, 3)"), elementsIdenticalTo(c(Logical.FALSE, Logical.TRUE, Logical.TRUE)));
+    assertThat( eval("c(0,2,3) | c(1, 99, 3)"), elementsIdenticalTo(c(Logical.TRUE, Logical.TRUE, Logical.TRUE)));
+    assertThat( eval("c(1,2,3) | c(0, 99, 3)"), elementsIdenticalTo(c(Logical.TRUE, Logical.TRUE, Logical.TRUE)));
+    assertThat( eval("c(1,2,3) | c(1, 99, 3)"), elementsIdenticalTo(c(Logical.TRUE, Logical.TRUE, Logical.TRUE)));
 
-    assertThat( eval("c(FALSE) | c(FALSE)"), equalTo(c(Logical.FALSE)) );
-    assertThat( eval("c(FALSE) | c(TRUE)"), equalTo(c(Logical.TRUE)) );
-    assertThat( eval("c(TRUE) | c(FALSE)"), equalTo(c(Logical.TRUE)) );
-    assertThat( eval("c(TRUE) | c(TRUE)"), equalTo(c(Logical.TRUE)) );
+    assertThat( eval("c(FALSE) | c(FALSE)"), elementsIdenticalTo(c(Logical.FALSE)) );
+    assertThat( eval("c(FALSE) | c(TRUE)"), elementsIdenticalTo(c(Logical.TRUE)) );
+    assertThat( eval("c(TRUE) | c(FALSE)"), elementsIdenticalTo(c(Logical.TRUE)) );
+    assertThat( eval("c(TRUE) | c(TRUE)"), elementsIdenticalTo(c(Logical.TRUE)) );
 
-    assertThat( eval("c(FALSE, FALSE) | c(FALSE)"), equalTo(c(Logical.FALSE, Logical.FALSE)) );
-    assertThat( eval("c(FALSE, FALSE) | c(TRUE)"), equalTo(c(Logical.TRUE, Logical.TRUE)) );
-    assertThat( eval("c(TRUE, TRUE) | c(FALSE)"), equalTo(c(Logical.TRUE, Logical.TRUE)) );
-    assertThat( eval("c(TRUE, TRUE) | c(TRUE)"), equalTo(c(Logical.TRUE, Logical.TRUE)) );
+    assertThat( eval("c(FALSE, FALSE) | c(FALSE)"), elementsIdenticalTo(c(Logical.FALSE, Logical.FALSE)) );
+    assertThat( eval("c(FALSE, FALSE) | c(TRUE)"), elementsIdenticalTo(c(Logical.TRUE, Logical.TRUE)) );
+    assertThat( eval("c(TRUE, TRUE) | c(FALSE)"), elementsIdenticalTo(c(Logical.TRUE, Logical.TRUE)) );
+    assertThat( eval("c(TRUE, TRUE) | c(TRUE)"), elementsIdenticalTo(c(Logical.TRUE, Logical.TRUE)) );
 
-    assertThat( eval("c(FALSE, FALSE) | c(FALSE, FALSE)"), equalTo(c(Logical.FALSE, Logical.FALSE)) );
-    assertThat( eval("c(TRUE, FALSE) | c(FALSE, TRUE)"), equalTo(c(Logical.TRUE, Logical.TRUE)) );
-    assertThat( eval("c(TRUE, TRUE) | c(TRUE, TRUE)"), equalTo(c(Logical.TRUE, Logical.TRUE)) );
+    assertThat( eval("c(FALSE, FALSE) | c(FALSE, FALSE)"), elementsIdenticalTo(c(Logical.FALSE, Logical.FALSE)) );
+    assertThat( eval("c(TRUE, FALSE) | c(FALSE, TRUE)"), elementsIdenticalTo(c(Logical.TRUE, Logical.TRUE)) );
+    assertThat( eval("c(TRUE, TRUE) | c(TRUE, TRUE)"), elementsIdenticalTo(c(Logical.TRUE, Logical.TRUE)) );
 
-    assertThat( eval("c(FALSE) | c(0)"), equalTo(c(Logical.FALSE)) );
-    assertThat( eval("c(FALSE) | c(1)"), equalTo(c(Logical.TRUE)) );
-    assertThat( eval("c(TRUE) | c(0)"), equalTo(c(Logical.TRUE)) );
-    assertThat( eval("c(TRUE) | c(1)"), equalTo(c(Logical.TRUE)) );
+    assertThat( eval("c(FALSE) | c(0)"), elementsIdenticalTo(c(Logical.FALSE)) );
+    assertThat( eval("c(FALSE) | c(1)"), elementsIdenticalTo(c(Logical.TRUE)) );
+    assertThat( eval("c(TRUE) | c(0)"), elementsIdenticalTo(c(Logical.TRUE)) );
+    assertThat( eval("c(TRUE) | c(1)"), elementsIdenticalTo(c(Logical.TRUE)) );
   }
 
   @Test
   public void elementWiseOrWithNA() {
-    assertThat( eval("FALSE | NA"), equalTo( c(NA)));
-    assertThat( eval("NA | FALSE"), equalTo( c(NA)));
-    assertThat( eval("TRUE | NA"), equalTo(c(TRUE)));
-    assertThat( eval("NA | TRUE"), equalTo(c(TRUE)));
-    assertThat( eval("NA | NA"), equalTo(c(NA)));
+    assertThat( eval("FALSE | NA"), elementsIdenticalTo( c(NA)));
+    assertThat( eval("NA | FALSE"), elementsIdenticalTo( c(NA)));
+    assertThat( eval("TRUE | NA"), elementsIdenticalTo(c(TRUE)));
+    assertThat( eval("NA | TRUE"), elementsIdenticalTo(c(TRUE)));
+    assertThat( eval("NA | NA"), elementsIdenticalTo(c(NA)));
   }
 
   @Test
   public void and() {
-    assertThat( eval("0 && 0"), equalTo(c(Logical.FALSE)) );
-    assertThat( eval("0 && 1"), equalTo(c(Logical.FALSE)) );
-    assertThat( eval("1 && 0"), equalTo(c(Logical.FALSE)) );
-    assertThat( eval("1 && 1"), equalTo(c(Logical.TRUE)) );
+    assertThat( eval("0 && 0"), elementsIdenticalTo(c(Logical.FALSE)) );
+    assertThat( eval("0 && 1"), elementsIdenticalTo(c(Logical.FALSE)) );
+    assertThat( eval("1 && 0"), elementsIdenticalTo(c(Logical.FALSE)) );
+    assertThat( eval("1 && 1"), elementsIdenticalTo(c(Logical.TRUE)) );
 
-    assertThat( eval("FALSE && FALSE"), equalTo(c(Logical.FALSE)) );
-    assertThat( eval("FALSE && TRUE"), equalTo(c(Logical.FALSE)) );
-    assertThat( eval("TRUE && FALSE"), equalTo(c(Logical.FALSE)) );
-    assertThat( eval("TRUE && TRUE"), equalTo(c(Logical.TRUE)) );
+    assertThat( eval("FALSE && FALSE"), elementsIdenticalTo(c(Logical.FALSE)) );
+    assertThat( eval("FALSE && TRUE"), elementsIdenticalTo(c(Logical.FALSE)) );
+    assertThat( eval("TRUE && FALSE"), elementsIdenticalTo(c(Logical.FALSE)) );
+    assertThat( eval("TRUE && TRUE"), elementsIdenticalTo(c(Logical.TRUE)) );
 
-    assertThat( eval("c(0) && c(0)"), equalTo(c(Logical.FALSE)));
-    assertThat( eval("c(0) && c(1)"), equalTo(c(Logical.FALSE)));
-    assertThat( eval("c(1) && c(0)"), equalTo(c(Logical.FALSE)));
-    assertThat( eval("c(1) && c(1)"), equalTo(c(Logical.TRUE)));
+    assertThat( eval("c(0) && c(0)"), elementsIdenticalTo(c(Logical.FALSE)));
+    assertThat( eval("c(0) && c(1)"), elementsIdenticalTo(c(Logical.FALSE)));
+    assertThat( eval("c(1) && c(0)"), elementsIdenticalTo(c(Logical.FALSE)));
+    assertThat( eval("c(1) && c(1)"), elementsIdenticalTo(c(Logical.TRUE)));
 
-    assertThat( eval("c(0,2,3) && c(0, 99, 3)"), equalTo(c(Logical.FALSE)));
-    assertThat( eval("c(0,2,3) && c(1, 99, 3)"), equalTo(c(Logical.FALSE)));
-    assertThat( eval("c(1,2,3) && c(0, 99, 3)"), equalTo(c(Logical.FALSE)));
-    assertThat( eval("c(1,2,3) && c(1, 99, 3)"), equalTo(c(Logical.TRUE)));
+    assertThat( eval("c(0,2,3) && c(0, 99, 3)"), elementsIdenticalTo(c(Logical.FALSE)));
+    assertThat( eval("c(0,2,3) && c(1, 99, 3)"), elementsIdenticalTo(c(Logical.FALSE)));
+    assertThat( eval("c(1,2,3) && c(0, 99, 3)"), elementsIdenticalTo(c(Logical.FALSE)));
+    assertThat( eval("c(1,2,3) && c(1, 99, 3)"), elementsIdenticalTo(c(Logical.TRUE)));
 
-    assertThat( eval("c(FALSE) && c(FALSE)"), equalTo(c(Logical.FALSE)) );
-    assertThat( eval("c(FALSE) && c(TRUE)"), equalTo(c(Logical.FALSE)) );
-    assertThat( eval("c(TRUE) && c(FALSE)"), equalTo(c(Logical.FALSE)) );
-    assertThat( eval("c(TRUE) && c(TRUE)"), equalTo(c(Logical.TRUE)) );
+    assertThat( eval("c(FALSE) && c(FALSE)"), elementsIdenticalTo(c(Logical.FALSE)) );
+    assertThat( eval("c(FALSE) && c(TRUE)"), elementsIdenticalTo(c(Logical.FALSE)) );
+    assertThat( eval("c(TRUE) && c(FALSE)"), elementsIdenticalTo(c(Logical.FALSE)) );
+    assertThat( eval("c(TRUE) && c(TRUE)"), elementsIdenticalTo(c(Logical.TRUE)) );
 
-    assertThat( eval("c(FALSE) && c(0)"), equalTo(c(Logical.FALSE)) );
-    assertThat( eval("c(FALSE) && c(1)"), equalTo(c(Logical.FALSE)) );
-    assertThat( eval("c(TRUE) && c(0)"), equalTo(c(Logical.FALSE)) );
-    assertThat( eval("c(TRUE) && c(1)"), equalTo(c(Logical.TRUE)) );
+    assertThat( eval("c(FALSE) && c(0)"), elementsIdenticalTo(c(Logical.FALSE)) );
+    assertThat( eval("c(FALSE) && c(1)"), elementsIdenticalTo(c(Logical.FALSE)) );
+    assertThat( eval("c(TRUE) && c(0)"), elementsIdenticalTo(c(Logical.FALSE)) );
+    assertThat( eval("c(TRUE) && c(1)"), elementsIdenticalTo(c(Logical.TRUE)) );
 
-    assertThat( eval("c(FALSE) && list()"), equalTo(c(Logical.FALSE)) );
-    assertThat( eval("c(FALSE) && 'a'"), equalTo(c(Logical.FALSE)) );
+    assertThat( eval("c(FALSE) && list()"), elementsIdenticalTo(c(Logical.FALSE)) );
+    assertThat( eval("c(FALSE) && 'a'"), elementsIdenticalTo(c(Logical.FALSE)) );
   }
 
   @Test
   public void andWithNAs() {
-    assertThat( eval("NA && NA"), equalTo( c(Logical.NA)));
-    assertThat( eval("TRUE && NA"), equalTo( c(Logical.NA)));
-    assertThat( eval("NA && TRUE"), equalTo( c(Logical.NA)));
-    assertThat( eval("FALSE && NA"), equalTo( c(Logical.FALSE)));
-    assertThat( eval("NA && FALSE"), equalTo( c(Logical.FALSE)));
+    assertThat( eval("NA && NA"), elementsIdenticalTo( c(Logical.NA)));
+    assertThat( eval("TRUE && NA"), elementsIdenticalTo( c(Logical.NA)));
+    assertThat( eval("NA && TRUE"), elementsIdenticalTo( c(Logical.NA)));
+    assertThat( eval("FALSE && NA"), elementsIdenticalTo( c(Logical.FALSE)));
+    assertThat( eval("NA && FALSE"), elementsIdenticalTo( c(Logical.FALSE)));
   }
 
   @Test
   public void bitwiseAnd() {
-    assertThat( eval("0 & 0"), equalTo(c(Logical.FALSE)) );
-    assertThat( eval("0 & 1"), equalTo(c(Logical.FALSE)) );
-    assertThat( eval("1 & 0"), equalTo(c(Logical.FALSE)) );
-    assertThat( eval("1 & 1"), equalTo(c(Logical.TRUE)) );
+    assertThat( eval("0 & 0"), elementsIdenticalTo(c(Logical.FALSE)) );
+    assertThat( eval("0 & 1"), elementsIdenticalTo(c(Logical.FALSE)) );
+    assertThat( eval("1 & 0"), elementsIdenticalTo(c(Logical.FALSE)) );
+    assertThat( eval("1 & 1"), elementsIdenticalTo(c(Logical.TRUE)) );
 
-    assertThat( eval("FALSE & FALSE"), equalTo(c(Logical.FALSE)) );
-    assertThat( eval("FALSE & TRUE"), equalTo(c(Logical.FALSE)) );
-    assertThat( eval("TRUE & FALSE"), equalTo(c(Logical.FALSE)) );
-    assertThat( eval("TRUE & TRUE"), equalTo(c(Logical.TRUE)) );
+    assertThat( eval("FALSE & FALSE"), elementsIdenticalTo(c(Logical.FALSE)) );
+    assertThat( eval("FALSE & TRUE"), elementsIdenticalTo(c(Logical.FALSE)) );
+    assertThat( eval("TRUE & FALSE"), elementsIdenticalTo(c(Logical.FALSE)) );
+    assertThat( eval("TRUE & TRUE"), elementsIdenticalTo(c(Logical.TRUE)) );
 
-    assertThat( eval("c(0) & c(0)"), equalTo(c(Logical.FALSE)));
-    assertThat( eval("c(0) & c(1)"), equalTo(c(Logical.FALSE)));
-    assertThat( eval("c(1) & c(0)"), equalTo(c(Logical.FALSE)));
-    assertThat( eval("c(1) & c(1)"), equalTo(c(Logical.TRUE)));
+    assertThat( eval("c(0) & c(0)"), elementsIdenticalTo(c(Logical.FALSE)));
+    assertThat( eval("c(0) & c(1)"), elementsIdenticalTo(c(Logical.FALSE)));
+    assertThat( eval("c(1) & c(0)"), elementsIdenticalTo(c(Logical.FALSE)));
+    assertThat( eval("c(1) & c(1)"), elementsIdenticalTo(c(Logical.TRUE)));
 
-    assertThat( eval("c(0,2,3) & c(0, 99, 3)"), equalTo(c(Logical.FALSE, Logical.TRUE, Logical.TRUE)));
-    assertThat( eval("c(0,2,3) & c(1, 99, 3)"), equalTo(c(Logical.FALSE, Logical.TRUE, Logical.TRUE)));
-    assertThat( eval("c(1,2,3) & c(0, 99, 3)"), equalTo(c(Logical.FALSE, Logical.TRUE, Logical.TRUE)));
-    assertThat( eval("c(1,2,3) & c(1, 99, 3)"), equalTo(c(Logical.TRUE, Logical.TRUE, Logical.TRUE)));
+    assertThat( eval("c(0,2,3) & c(0, 99, 3)"), elementsIdenticalTo(c(Logical.FALSE, Logical.TRUE, Logical.TRUE)));
+    assertThat( eval("c(0,2,3) & c(1, 99, 3)"), elementsIdenticalTo(c(Logical.FALSE, Logical.TRUE, Logical.TRUE)));
+    assertThat( eval("c(1,2,3) & c(0, 99, 3)"), elementsIdenticalTo(c(Logical.FALSE, Logical.TRUE, Logical.TRUE)));
+    assertThat( eval("c(1,2,3) & c(1, 99, 3)"), elementsIdenticalTo(c(Logical.TRUE, Logical.TRUE, Logical.TRUE)));
 
-    assertThat( eval("c(FALSE) & c(FALSE)"), equalTo(c(Logical.FALSE)) );
-    assertThat( eval("c(FALSE) & c(TRUE)"), equalTo(c(Logical.FALSE)) );
-    assertThat( eval("c(TRUE) & c(FALSE)"), equalTo(c(Logical.FALSE)) );
-    assertThat( eval("c(TRUE) & c(TRUE)"), equalTo(c(Logical.TRUE)) );
+    assertThat( eval("c(FALSE) & c(FALSE)"), elementsIdenticalTo(c(Logical.FALSE)) );
+    assertThat( eval("c(FALSE) & c(TRUE)"), elementsIdenticalTo(c(Logical.FALSE)) );
+    assertThat( eval("c(TRUE) & c(FALSE)"), elementsIdenticalTo(c(Logical.FALSE)) );
+    assertThat( eval("c(TRUE) & c(TRUE)"), elementsIdenticalTo(c(Logical.TRUE)) );
 
-    assertThat( eval("c(FALSE, FALSE) & c(FALSE)"), equalTo(c(Logical.FALSE, Logical.FALSE)) );
-    assertThat( eval("c(FALSE, FALSE) & c(TRUE)"), equalTo(c(Logical.FALSE, Logical.FALSE)) );
-    assertThat( eval("c(TRUE, TRUE) & c(FALSE)"), equalTo(c(Logical.FALSE, Logical.FALSE)) );
-    assertThat( eval("c(TRUE, TRUE) & c(TRUE)"), equalTo(c(Logical.TRUE, Logical.TRUE)) );
+    assertThat( eval("c(FALSE, FALSE) & c(FALSE)"), elementsIdenticalTo(c(Logical.FALSE, Logical.FALSE)) );
+    assertThat( eval("c(FALSE, FALSE) & c(TRUE)"), elementsIdenticalTo(c(Logical.FALSE, Logical.FALSE)) );
+    assertThat( eval("c(TRUE, TRUE) & c(FALSE)"), elementsIdenticalTo(c(Logical.FALSE, Logical.FALSE)) );
+    assertThat( eval("c(TRUE, TRUE) & c(TRUE)"), elementsIdenticalTo(c(Logical.TRUE, Logical.TRUE)) );
 
-    assertThat( eval("c(FALSE, FALSE) & c(FALSE, FALSE)"), equalTo(c(Logical.FALSE, Logical.FALSE)) );
-    assertThat( eval("c(TRUE, FALSE) & c(FALSE, TRUE)"), equalTo(c(Logical.FALSE, Logical.FALSE)) );
-    assertThat( eval("c(TRUE, TRUE) & c(TRUE, TRUE)"), equalTo(c(Logical.TRUE, Logical.TRUE)) );
+    assertThat( eval("c(FALSE, FALSE) & c(FALSE, FALSE)"), elementsIdenticalTo(c(Logical.FALSE, Logical.FALSE)) );
+    assertThat( eval("c(TRUE, FALSE) & c(FALSE, TRUE)"), elementsIdenticalTo(c(Logical.FALSE, Logical.FALSE)) );
+    assertThat( eval("c(TRUE, TRUE) & c(TRUE, TRUE)"), elementsIdenticalTo(c(Logical.TRUE, Logical.TRUE)) );
 
-    assertThat( eval("c(FALSE) & c(0)"), equalTo(c(Logical.FALSE)) );
-    assertThat( eval("c(FALSE) & c(1)"), equalTo(c(Logical.FALSE)) );
-    assertThat( eval("c(TRUE) & c(0)"), equalTo(c(Logical.FALSE)) );
-    assertThat( eval("c(TRUE) & c(1)"), equalTo(c(Logical.TRUE)) );
+    assertThat( eval("c(FALSE) & c(0)"), elementsIdenticalTo(c(Logical.FALSE)) );
+    assertThat( eval("c(FALSE) & c(1)"), elementsIdenticalTo(c(Logical.FALSE)) );
+    assertThat( eval("c(TRUE) & c(0)"), elementsIdenticalTo(c(Logical.FALSE)) );
+    assertThat( eval("c(TRUE) & c(1)"), elementsIdenticalTo(c(Logical.TRUE)) );
   }
 
   @Test
   public void elementWiseAndWithNA() {
-    assertThat( eval("FALSE & NA"), equalTo( c(FALSE)));
-    assertThat( eval("NA & FALSE"), equalTo( c(FALSE)));
-    assertThat( eval("TRUE & NA"), equalTo(c(NA)));
-    assertThat( eval("NA & TRUE"), equalTo(c(NA)));
-    assertThat( eval("NA & NA"), equalTo(c(NA)));
+    assertThat( eval("FALSE & NA"), elementsIdenticalTo( c(FALSE)));
+    assertThat( eval("NA & FALSE"), elementsIdenticalTo( c(FALSE)));
+    assertThat( eval("TRUE & NA"), elementsIdenticalTo(c(NA)));
+    assertThat( eval("NA & TRUE"), elementsIdenticalTo(c(NA)));
+    assertThat( eval("NA & NA"), elementsIdenticalTo(c(NA)));
   }
 
   @Test
   public void not() {
-    assertThat( eval(" !TRUE"), equalTo( c(false)));
-    assertThat( eval(" !c(TRUE, FALSE, NA) "), equalTo(c(FALSE, TRUE, NA)));
-    assertThat( eval(" !c(1,0,1) "), equalTo( c(FALSE,TRUE,FALSE) ));
-    assertThat( eval(" !c(1L,0L,4L) "), equalTo( c(FALSE,TRUE,FALSE) ));
+    assertThat( eval(" !TRUE"), elementsIdenticalTo( c(false)));
+    assertThat( eval(" !c(TRUE, FALSE, NA) "), elementsIdenticalTo(c(FALSE, TRUE, NA)));
+    assertThat( eval(" !c(1,0,1) "), elementsIdenticalTo( c(FALSE,TRUE,FALSE) ));
+    assertThat( eval(" !c(1L,0L,4L) "), elementsIdenticalTo( c(FALSE,TRUE,FALSE) ));
   }
 
   @Test
   public void any() {
-    assertThat( eval(" any(FALSE, NA) "), equalTo( c(NA)) );
-    assertThat( eval(" any(FALSE, NA, na.rm=TRUE) "), equalTo( c(FALSE)) );
-    assertThat( eval(" any(TRUE, NA) "), equalTo( c(TRUE)) );
-    assertThat( eval(" any('TRUE') "), equalTo( c(TRUE)));
-    assertThat( eval(" any(c(0,0,0,1), list())"), equalTo( c(TRUE)));
+    assertThat( eval(" any(FALSE, NA) "), elementsIdenticalTo( c(NA)) );
+    assertThat( eval(" any(FALSE, NA, na.rm=TRUE) "), elementsIdenticalTo( c(FALSE)) );
+    assertThat( eval(" any(TRUE, NA) "), elementsIdenticalTo( c(TRUE)) );
+    assertThat( eval(" any('TRUE') "), elementsIdenticalTo( c(TRUE)));
+    assertThat( eval(" any(c(0,0,0,1), list())"), elementsIdenticalTo( c(TRUE)));
   }
 
   @Test
   public void notEmptyList() {
-    assertThat( eval( "!list()"), equalTo( (SEXP) LogicalArrayVector.EMPTY));
+    assertThat( eval( "!list()"), identicalTo( (SEXP) LogicalArrayVector.EMPTY));
   }
 }

@@ -42,7 +42,7 @@ public class ConnectionsTest extends EvalTestCase {
     
     eval("lines <- .Internal(readLines(conn, -1, TRUE, FALSE, 'UTF-8'))");
  
-    assertThat(eval("length(lines)"), equalTo(c_i(7)));
+    assertThat(eval("length(lines)"), elementsIdenticalTo(c_i(7)));
   }
 
   @Test
@@ -51,7 +51,7 @@ public class ConnectionsTest extends EvalTestCase {
     topLevelContext.getGlobalEnvironment().setVariable(topLevelContext, "conn", openResourceAsConn("lines.txt"));
     
     eval("lines <- .Internal(readLines(conn, 2, TRUE, FALSE, 'UTF-8'))");
-    assertThat(eval("length(lines)"), equalTo(c_i(2)));
+    assertThat(eval("length(lines)"), elementsIdenticalTo(c_i(2)));
   }
   
   @Test
@@ -61,8 +61,8 @@ public class ConnectionsTest extends EvalTestCase {
     eval("line1 <- .Internal(readLines(conn, 1, TRUE, FALSE, 'UTF-8'))");
     eval("line2 <- .Internal(readLines(conn, 1, TRUE, FALSE, 'UTF-8'))");
     
-    assertThat(eval("line1"), equalTo(c("This is the first line")));
-    assertThat(eval("line2"), equalTo(c("And the second")));
+    assertThat(eval("line1"), elementsIdenticalTo(c("This is the first line")));
+    assertThat(eval("line2"), elementsIdenticalTo(c("And the second")));
 
 
   }
@@ -82,38 +82,38 @@ public class ConnectionsTest extends EvalTestCase {
   @Test
   public void summary() {
     eval("x <- .Internal(summary.connection(.Internal(stdin())))");
-    assertThat(eval("x$description"), equalTo(c("stdin")));
-    assertThat(eval("x$class"), equalTo(c("terminal")));
-    assertThat(eval("x$mode"), equalTo(c("r")));
-    assertThat(eval("x$text"), equalTo(c("text")));
-    assertThat(eval("x$opened"), equalTo(c("opened")));
-    assertThat(eval("x$`can read`"), equalTo(c("yes")));
-    assertThat(eval("x$`can write`"), equalTo(c("no")));
+    assertThat(eval("x$description"), elementsIdenticalTo(c("stdin")));
+    assertThat(eval("x$class"), elementsIdenticalTo(c("terminal")));
+    assertThat(eval("x$mode"), elementsIdenticalTo(c("r")));
+    assertThat(eval("x$text"), elementsIdenticalTo(c("text")));
+    assertThat(eval("x$opened"), elementsIdenticalTo(c("opened")));
+    assertThat(eval("x$`can read`"), elementsIdenticalTo(c("yes")));
+    assertThat(eval("x$`can write`"), elementsIdenticalTo(c("no")));
 
     eval("y <- .Internal(summary.connection(.Internal(file('target/testwb', 'wb', TRUE, 'UTF8', FALSE))))");
     //assertThat(eval("y$description"), equalTo(c("/dev/null")));
-    assertThat(eval("y$class"), equalTo(c("file")));
-    assertThat(eval("y$mode"), equalTo(c("wb")));
-    assertThat(eval("y$text"), equalTo(c("binary")));
-    assertThat(eval("y$opened"), equalTo(c("opened")));
-    assertThat(eval("y$`can read`"), equalTo(c("no")));
-    assertThat(eval("y$`can write`"), equalTo(c("yes")));
+    assertThat(eval("y$class"), elementsIdenticalTo(c("file")));
+    assertThat(eval("y$mode"), elementsIdenticalTo(c("wb")));
+    assertThat(eval("y$text"), elementsIdenticalTo(c("binary")));
+    assertThat(eval("y$opened"), elementsIdenticalTo(c("opened")));
+    assertThat(eval("y$`can read`"), elementsIdenticalTo(c("no")));
+    assertThat(eval("y$`can write`"), elementsIdenticalTo(c("yes")));
     
     // When the openSpec is left blank, potentially both read and write 
     eval("z <- .Internal(summary.connection(.Internal(file('target/testwb', '', TRUE, 'UTF8', FALSE))))");
-    assertThat(eval("z$mode"), equalTo(c("r")));
-    assertThat(eval("z$text"), equalTo(c("text")));
-    assertThat(eval("z$opened"), equalTo(c("closed")));
-    assertThat(eval("z$`can read`"), equalTo(c("yes")));
-    assertThat(eval("z$`can write`"), equalTo(c("yes")));
+    assertThat(eval("z$mode"), elementsIdenticalTo(c("r")));
+    assertThat(eval("z$text"), elementsIdenticalTo(c("text")));
+    assertThat(eval("z$opened"), elementsIdenticalTo(c("closed")));
+    assertThat(eval("z$`can read`"), elementsIdenticalTo(c("yes")));
+    assertThat(eval("z$`can write`"), elementsIdenticalTo(c("yes")));
     
     // however if 'r' is explicitly provided, then no write
     eval("z <- .Internal(summary.connection(.Internal(file('target/testwb', 'r', TRUE, 'UTF8', FALSE))))");
-    assertThat(eval("z$mode"), equalTo(c("r")));
-    assertThat(eval("z$text"), equalTo(c("text")));
-    assertThat(eval("z$opened"), equalTo(c("opened")));
-    assertThat(eval("z$`can read`"), equalTo(c("yes")));
-    assertThat(eval("z$`can write`"), equalTo(c("no")));
+    assertThat(eval("z$mode"), elementsIdenticalTo(c("r")));
+    assertThat(eval("z$text"), elementsIdenticalTo(c("text")));
+    assertThat(eval("z$opened"), elementsIdenticalTo(c("opened")));
+    assertThat(eval("z$`can read`"), elementsIdenticalTo(c("yes")));
+    assertThat(eval("z$`can write`"), elementsIdenticalTo(c("no")));
    
   }
   

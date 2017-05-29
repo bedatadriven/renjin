@@ -64,6 +64,6 @@ public class ClassBindingTest extends EvalTestCase {
     MyBean instance = new MyBean();
 
     MemberBinding nameBinding = binding.getMemberBinding(Symbol.get("name"));
-    assertThat(nameBinding.getValue(instance), equalTo(c("foo")));
+    assertThat(nameBinding.getValue(instance), elementsIdenticalTo(c("foo")));
   }
 }

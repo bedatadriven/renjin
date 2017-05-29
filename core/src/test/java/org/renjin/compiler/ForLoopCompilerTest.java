@@ -35,7 +35,6 @@ import org.renjin.sexp.ExpressionVector;
 
 import java.io.IOException;
 
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 public class ForLoopCompilerTest extends EvalTestCase {
@@ -76,7 +75,7 @@ public class ForLoopCompilerTest extends EvalTestCase {
     eval(" s <- structure(1, class='foo') ");
     eval(" for(i in 1:500) s <- s + sqrt(i) ");
       
-    assertThat(eval("s"), equalTo(c(42)));
+    assertThat(eval("s"), elementsIdenticalTo(c(42)));
   }
   
   @Test
@@ -105,7 +104,7 @@ public class ForLoopCompilerTest extends EvalTestCase {
     eval(" for(i in 1:500) s <- s + sqrt(i) ");
 
     assertThat(eval(" s "), closeTo(c(7465.534), 0.01));
-    assertThat(eval(" attr(s, 'foo') "), equalTo(c("bar")));
+    assertThat(eval(" attr(s, 'foo') "), elementsIdenticalTo(c("bar")));
   }
 
   @Test
@@ -139,7 +138,7 @@ public class ForLoopCompilerTest extends EvalTestCase {
         "        sum <- sum + i",
         "    }"));
 
-    assertThat(eval("sum"), equalTo(c(120d)));
+    assertThat(eval("sum"), elementsIdenticalTo(c(120d)));
 
   }
 
@@ -158,7 +157,7 @@ public class ForLoopCompilerTest extends EvalTestCase {
           "sum <- sum + (i * q)",
         "}"));
 
-    assertThat(eval("sum"), equalTo(c(0x1.280f56bddc2e6p+58)));
+    assertThat(eval("sum"), elementsIdenticalTo(c(0x1.280f56bddc2e6p+58)));
   }
 
 }

@@ -56,7 +56,7 @@ public class RDataReaderTest extends EvalTestCase {
 
     PairList.Node pairList = (PairList.Node) exp;
     assertThat(pairList.length(), equalTo(1));
-    assertThat(pairList.getValue(), equalTo( c(1,2,3,4) ));
+    assertThat(pairList.getValue(), elementsIdenticalTo( c(1,2,3,4) ));
   }
 
   @Test
@@ -71,9 +71,9 @@ public class RDataReaderTest extends EvalTestCase {
     PairList.Node pairList = (PairList.Node) exp;
     Environment env = (Environment) pairList.getValue();
     assertThat(pairList.length(), equalTo(1));
-    assertThat(env.getVariable(topLevelContext, "yyyy0yyyyy"), equalTo( c_i(1, 2, 3) ));
-    assertThat(env.getVariable(topLevelContext, "yyyy8yyyyy"), equalTo( c(8) ));
-    assertThat(env.getVariable(topLevelContext, "yyyy3yyyyy"), equalTo( c("a","b") ));
+    assertThat(env.getVariable(topLevelContext, "yyyy0yyyyy"), elementsIdenticalTo( c_i(1, 2, 3) ));
+    assertThat(env.getVariable(topLevelContext, "yyyy8yyyyy"), elementsIdenticalTo( c(8) ));
+    assertThat(env.getVariable(topLevelContext, "yyyy3yyyyy"), elementsIdenticalTo( c("a","b") ));
   }
   @Test
   public void isRDataFile() throws IOException {
@@ -106,10 +106,10 @@ public class RDataReaderTest extends EvalTestCase {
     assertThat(exp, instanceOf(PairList.Node.class));
 
     PairList.Node pairList = (PairList.Node) exp;
-    assertThat(pairList.findByTag(symbol("a")), elementsEqualTo( eval("1:99") ));
-    assertThat(pairList.findByTag(symbol("b")), elementsEqualTo( eval("sqrt(1:25) ") ));
-    assertThat(pairList.findByTag(symbol("c")), elementsEqualTo( c(Logical.NA )));
-    assertThat(pairList.findByTag(symbol("d")), equalTo( list(c(Logical.NA), DoubleVector.NA, IntVector.NA, NULL )));
+    assertThat(pairList.findByTag(symbol("a")), elementsIdenticalTo( eval("1:99") ));
+    assertThat(pairList.findByTag(symbol("b")), elementsIdenticalTo( eval("sqrt(1:25) ") ));
+    assertThat(pairList.findByTag(symbol("c")), elementsIdenticalTo( c(Logical.NA )));
+    assertThat(pairList.findByTag(symbol("d")), elementsIdenticalTo( list(c(Logical.NA), DoubleVector.NA, IntVector.NA, NULL )));
 
     ListVector d = (ListVector) pairList.findByTag(symbol("d"));
     DoubleVector d_2 = (DoubleVector) d.getElementAsSEXP(1);
@@ -165,8 +165,8 @@ public class RDataReaderTest extends EvalTestCase {
 
     topLevelContext.getGlobalEnvironment().setVariable(topLevelContext, "f", reader.readFile());
     
-    assertThat(eval("identical(body(f), quote(x*x))"), equalTo(c(true)));
-    assertThat(eval("f(8)"), equalTo(c(64)));
+    assertThat(eval("identical(body(f), quote(x*x))"), elementsIdenticalTo(c(true)));
+    assertThat(eval("f(8)"), elementsIdenticalTo(c(64)));
   }
   
   @Test
@@ -181,7 +181,7 @@ public class RDataReaderTest extends EvalTestCase {
     SEXP list = reader.readFile();
     assertThat(list.getElementAsSEXP(0), instanceOf(Closure.class));
     assertThat(list.getElementAsSEXP(1), instanceOf(Closure.class));
-    assertThat(list.getElementAsSEXP(2), equalTo(c(42)));
+    assertThat(list.getElementAsSEXP(2), elementsIdenticalTo(c(42)));
 
   }
   
@@ -197,7 +197,7 @@ public class RDataReaderTest extends EvalTestCase {
   public void loadObjectWithS4BitSet() throws IOException {
     SEXP x = readRds("s4.rds");
 
-    assertThat(x, equalTo(c(1)));
+    assertThat(x, elementsIdenticalTo(c(1)));
     assertTrue("s4 bit is true", Types.isS4(x));
   }
 
@@ -206,7 +206,7 @@ public class RDataReaderTest extends EvalTestCase {
   public void loadObjectWithOldS4Attribute() throws IOException {
     SEXP x = readRds("old-s4.rds");
 
-    assertThat(x, equalTo(c(1)));
+    assertThat(x, elementsIdenticalTo(c(1)));
     assertTrue("s4 bit is true", Types.isS4(x));
   }
 
@@ -215,7 +215,7 @@ public class RDataReaderTest extends EvalTestCase {
     SEXP env = readRds("env_attr.rds");
 
     assertThat(env, instanceOf(Environment.class));
-    assertThat(env.getAttributes().getClassVector(), equalTo(c("MyRefClass")));
+    assertThat(env.getAttributes().getClassVector(), elementsIdenticalTo(c("MyRefClass")));
   }
 
   @Test
@@ -252,11 +252,11 @@ public class RDataReaderTest extends EvalTestCase {
     // makeActiveBinding("f", f, rho)
 
     Environment env = (Environment) readRds("activebinding.rds");
-    assertThat( env.getVariable(topLevelContext, "f"), equalTo(c(42)));
+    assertThat( env.getVariable(topLevelContext, "f"), elementsIdenticalTo(c(42)));
 
     // Assigning should have no effect
     env.setVariable(topLevelContext, "f", c(99));
-    assertThat( env.getVariable(topLevelContext, "f"), equalTo(c(42)));
+    assertThat( env.getVariable(topLevelContext, "f"), elementsIdenticalTo(c(42)));
   }
 
   protected Symbol symbol(String name){

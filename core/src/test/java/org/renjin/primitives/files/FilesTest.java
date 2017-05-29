@@ -35,7 +35,6 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -60,7 +59,7 @@ public class FilesTest extends EvalTestCase {
   public void getSetWd(){
     eval("older<-getwd()");
     eval("setwd('/path/to/file')");
-    assertThat(eval("getwd()"), equalTo(c("file:///path/to/file")));
+    assertThat(eval("getwd()"), elementsIdenticalTo(c("file:///path/to/file")));
     eval("setwd(older)");
   }
 
@@ -68,22 +67,22 @@ public class FilesTest extends EvalTestCase {
   public void listFiles() throws URISyntaxException, FileSystemException {
 
 
-    assertThat(eval("list.files(rootDir)"), equalTo(c("a.txt", "b.txt", "c")));
+    assertThat(eval("list.files(rootDir)"), elementsIdenticalTo(c("a.txt", "b.txt", "c")));
 
-    assertThat(eval("list.files(rootDir, all.files=TRUE)"), equalTo(c(".", "..", ".hidden.txt", "a.txt", "b.txt", "c")));
+    assertThat(eval("list.files(rootDir, all.files=TRUE)"), elementsIdenticalTo(c(".", "..", ".hidden.txt", "a.txt", "b.txt", "c")));
 
-    assertThat(eval("list.files(rootDir, pattern='txt$')"), equalTo(c("a.txt", "b.txt")));
+    assertThat(eval("list.files(rootDir, pattern='txt$')"), elementsIdenticalTo(c("a.txt", "b.txt")));
 
-    assertThat(eval("list.files(rootDir, pattern='TXT$', ignore.case=TRUE)"), equalTo(c("a.txt", "b.txt")));
+    assertThat(eval("list.files(rootDir, pattern='TXT$', ignore.case=TRUE)"), elementsIdenticalTo(c("a.txt", "b.txt")));
 
     assertThat(eval("list.files(rootDir, pattern='txt$', all.files=TRUE)"),
-        equalTo(c(".hidden.txt", "a.txt", "b.txt")));
+        elementsIdenticalTo(c(".hidden.txt", "a.txt", "b.txt")));
 
     assertThat(eval("list.files(rootDir, pattern='txt$', recursive=TRUE)"),
-        equalTo(c("a.txt", "b.txt", "c/ca.txt", "c/cb.txt", "c/d/cda.txt")));
+        elementsIdenticalTo(c("a.txt", "b.txt", "c/ca.txt", "c/cb.txt", "c/d/cda.txt")));
 
     assertThat(eval("list.files(rootDir, pattern='c', recursive=TRUE, include.dirs=TRUE)"),
-        equalTo(c("c", "c/ca.txt", "c/cb.txt", "c/d/cda.txt")));
+        elementsIdenticalTo(c("c", "c/ca.txt", "c/cb.txt", "c/d/cda.txt")));
   }
 
   @Test
@@ -100,7 +99,7 @@ public class FilesTest extends EvalTestCase {
     eval("setwd(rootDir)");
     eval("x <- file.rename('a.txt', 'b.txt')");
     
-    assertThat(eval("x"), equalTo(c(true)));
+    assertThat(eval("x"), elementsIdenticalTo(c(true)));
     
     assertTrue("source file does not exist", !sourceFile.exists());
     assertTrue("dest file exists", destFile.exists());
@@ -113,7 +112,7 @@ public class FilesTest extends EvalTestCase {
     
     eval("x <- file.rename('doesnotexist.txt', 'b.txt')");
 
-    assertThat(eval("x"), equalTo(c(false)));
+    assertThat(eval("x"), elementsIdenticalTo(c(false)));
 
   }
 
@@ -130,7 +129,7 @@ public class FilesTest extends EvalTestCase {
     eval("setwd(rootDir)");
     eval("x <- file.remove('a.txt')");
 
-    assertThat(eval("x"), equalTo(c(true)));
+    assertThat(eval("x"), elementsIdenticalTo(c(true)));
 
     assertTrue("source file does not exist", !file.exists());
 
@@ -148,7 +147,7 @@ public class FilesTest extends EvalTestCase {
 
     eval("x <- unlink(tempDir, recursive = TRUE)");
 
-    assertThat(eval("x"), equalTo(c_i(1)));
+    assertThat(eval("x"), elementsIdenticalTo(c_i(1)));
 
     assertTrue("child file has been removed", !file.exists());
     assertTrue("temp dir has been removed", !tempDir.exists());
@@ -169,7 +168,7 @@ public class FilesTest extends EvalTestCase {
 
     eval("x <- unlink(tempDir, recursive = TRUE)");
 
-    assertThat(eval("x"), equalTo(c_i(1)));
+    assertThat(eval("x"), elementsIdenticalTo(c_i(1)));
 
     assertTrue("grand child file has been removed", !grandChild.exists());
     assertTrue("child dir has been removed", !childDir.exists());
@@ -183,32 +182,32 @@ public class FilesTest extends EvalTestCase {
 
     eval("x <- file.remove('doesnotexist.txt')");
 
-    assertThat(eval("x"), equalTo(c(false)));
+    assertThat(eval("x"), elementsIdenticalTo(c(false)));
 
   }
 
   @Test
   public void fileExists() {
 
-    assertThat(eval("file.exists(rootDir)"), equalTo(c(true)));
-    assertThat(eval("file.exists(file.path(rootDir, 'a.txt'))"), equalTo(c(true)));
+    assertThat(eval("file.exists(rootDir)"), elementsIdenticalTo(c(true)));
+    assertThat(eval("file.exists(file.path(rootDir, 'a.txt'))"), elementsIdenticalTo(c(true)));
 
     assertThat(eval("file.exists(c(FALSE, NA, NaN, NULL, \"/bla/bla\", 12.5, 11L))"),
-        equalTo(c(false, false, false, false, false, false)));
+        elementsIdenticalTo(c(false, false, false, false, false, false)));
     assertThat(eval("file.exists(character(0))"),
-        equalTo((SEXP) LogicalVector.EMPTY));
+        identicalTo((SEXP) LogicalVector.EMPTY));
   }
 
   @Test
   public void dirExists() {
 
-    assertThat(eval("dir.exists(rootDir)"), equalTo(c(true)));
-    assertThat(eval("dir.exists(file.path(rootDir, 'a.txt'))"), equalTo(c(false)));
+    assertThat(eval("dir.exists(rootDir)"), elementsIdenticalTo(c(true)));
+    assertThat(eval("dir.exists(file.path(rootDir, 'a.txt'))"), elementsIdenticalTo(c(false)));
 
     assertThat(eval(" dir.exists(c(FALSE, NA, NaN, NULL, \"/bla/bla\", 12.5, 11L))"),
-        equalTo(c(false, false, false, false, false, false)));
+        elementsIdenticalTo(c(false, false, false, false, false, false)));
     assertThat(eval("dir.exists(character(0))"),
-        equalTo((SEXP) LogicalVector.EMPTY));
+        identicalTo((SEXP) LogicalVector.EMPTY));
   }
 
 

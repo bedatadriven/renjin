@@ -242,11 +242,7 @@ public class Primitives {
     f("*", Ops.class,  /*TIMESOP ,*/  2);
     f("/", Ops.class,  /*DIVOP,*/  2);
     f("^", Ops.class,   /*POWOP,*/  2);
-//    add(new OpsFunction("+"));
-//    add(new OpsFunction("-"));
-//    add(new OpsFunction("*"));
-//    add(new OpsFunction("/"));
-//    add(new OpsFunction("^"));
+
 
     f("%%", Ops.class,  /* MODOP */ 2);
     f("%/%", Ops.class,  /* IDIVOP */ 2);
@@ -265,15 +261,6 @@ public class Primitives {
     f("&", Ops.class, 2);
     f("|", Ops.class, 2);
     f("!", Ops.class, 1);
-//    add(new OpsFunction("=="));
-//    add(new OpsFunction("!="));
-//    add(new OpsFunction("<"));
-//    add(new OpsFunction("<="));
-//    add(new OpsFunction(">"));
-//    add(new OpsFunction(">="));
-//    add(new OpsFunction("&"));
-//    add(new OpsFunction("|"));
-//    add(new OpsFunction("!"));
 
     f("&&", Comparison.class, "and", 0);
     f("||", Comparison.class, "or", 0);
@@ -1047,6 +1034,7 @@ public class Primitives {
     // Add LAPACK wrappers as internals
     f("La_chol", Lapack.class, 11);
     f("La_chol2inv", Lapack.class, 11);
+    f("backsolve", Lapack.class, 11);
 
 
     // Build map of reserved functions

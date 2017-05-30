@@ -19,10 +19,12 @@
 package org.renjin.base;
 
 
+import com.github.fommil.netlib.BLAS;
 import com.github.fommil.netlib.LAPACK;
 import org.apache.commons.math.complex.Complex;
 import org.netlib.util.doubleW;
 import org.netlib.util.intW;
+import org.renjin.compiler.pipeline.accessor.DoubleArrayAccessor;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.gcc.runtime.BytePtr;
@@ -32,8 +34,10 @@ import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.primitives.ComplexGroup;
 import org.renjin.primitives.Types;
+import org.renjin.primitives.Vectors;
 import org.renjin.sexp.*;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -408,6 +412,74 @@ public class Lapack {
         .set(1, pivotedCallNames.build())
         .build();
   }
+
+
+  /**
+   * Solves a triangular system of linear equations.
+
+   * @param r an upper (or lower) triangular matrix giving the coefficients for the system to be solved.
+   *          Values below (above) the diagonal are ignored.
+   * @param b a matrix whose columns give the right-hand sides for the equations.
+   * @param k The number of columns of ‘r’ and rows of ‘x’ to use.
+   * @param upper if true, the upper triangle part of {@code r} is used. Otherwise, the lower one.
+   * @param trans if ‘TRUE’, solve r' * y = x for y, i.e., ‘t(r) %*% y == x’.
+   */
+  @Internal
+  public static SEXP backsolve(AtomicVector r, AtomicVector b, int k, boolean upper, boolean trans) {
+
+
+    int nrr = r.getAttributes().getDimArray()[0];
+    int nrb = b.getAttributes().getDimArray()[0];
+    int ncb = b.getAttributes().getDimArray()[1];
+
+    /* k is the number of rows to be used: there must be at least that
+       many rows and cols in the rhs and at least that many rows on
+       the rhs.
+    */
+    if (IntVector.isNA(k) || k <= 0 || k > nrr || k > r.getAttributes().getDimArray()[1] || k > nrb) {
+      throw new EvalException("invalid k argument");
+    }
+
+    double rr[] = r.toDoubleArray();
+
+    /* check for zeros on diagonal of r: only k row/cols are used. */
+    int incr = nrr + 1;
+    for(int i = 0; i < k; i++) { /* check for zeros on diagonal */
+      if (rr[i * incr] == 0.0) {
+        throw new EvalException("singular matrix in 'backsolve'. First zero in diagonal [%d]", i + 1);
+      }
+    }
+
+    double ans[] = new double[k * ncb];
+    double[] ba = b.toDoubleArray();
+    double one = 1.0;
+
+    if (k > 0 && ncb > 0) {
+       /* copy (part) cols of b to ans */
+      for (int j = 0; j < ncb; j++) {
+        System.arraycopy(
+            /* Source = */ ba,
+            /* Source offset = */ j * nrb,
+            /* Destination = */ ans,
+            /* Destination offset = */ j * k,
+            /* Length = */ k);
+      }
+      BLAS.getInstance().dtrsm(
+          /* SIDE = */    "L",
+          /* UPLO = */    upper ? "U" : "L",
+          /* TRANSA = */  trans ? "T" : "N", "N",
+          k,
+          ncb,
+          one,
+          rr,
+          nrr,
+          ans,
+          k);
+    }
+
+    return DoubleArrayVector.unsafe(ans, AttributeMap.builder().setDim(k, ncb));
+  }
+
 
 
   /**

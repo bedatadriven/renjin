@@ -1034,6 +1034,11 @@ public class Primitives {
     // Add LAPACK wrappers as internals
     f("La_chol", Lapack.class, 11);
     f("La_chol2inv", Lapack.class, 11);
+    f("La_dlange", Lapack.class, 11);
+    f("La_dtrcon", Lapack.class, 11);
+    f("La_dgecon", Lapack.class, 11);
+    f("La_zgecon", Lapack.class, 11);
+    f("La_ztrcon", Lapack.class, 11);
     f("backsolve", Lapack.class, 11);
 
 

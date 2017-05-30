@@ -35,6 +35,7 @@ import org.renjin.invoke.annotations.Internal;
 import org.renjin.primitives.ComplexGroup;
 import org.renjin.primitives.Types;
 import org.renjin.primitives.Vectors;
+import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.sexp.*;
 
 import java.lang.reflect.Array;
@@ -42,6 +43,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
+import static org.renjin.util.CDefines.UNPROTECT;
 
 /**
  * R Bindings for the LAPACK library, used
@@ -387,10 +390,10 @@ public class Lapack {
 
       return DoubleArrayVector.unsafe(matrix,
           a.getAttributes().copy()
-            .set("pivot", IntArrayVector.unsafe(pivoti))
-            .set("rank", IntArrayVector.unsafe(rank.array))
-            .setDimNames(pivotColumnNames(a.getAttributes().getDimNames(), pivoti))
-            .build());
+              .set("pivot", IntArrayVector.unsafe(pivoti))
+              .set("rank", IntArrayVector.unsafe(rank.array))
+              .setDimNames(pivotColumnNames(a.getAttributes().getDimNames(), pivoti))
+              .build());
     }
   }
 
@@ -480,6 +483,210 @@ public class Lapack {
     return DoubleArrayVector.unsafe(ans, AttributeMap.builder().setDim(k, ncb));
   }
 
+  /**
+   * Returns the value of the 1-norm, Frobenius norm, infinity-norm, or the largest absolute value of any
+   * element of a general rectangular matrix.
+   *
+   * @param A the real-valued matrix
+   * @param type the type of norm to return
+   * @see <a href="http://www.netlib.org/lapack/explore-3.1.1-html/dlange.f.html">LAPACK Reference</a>
+   */
+  @Internal
+  public static double La_dlange(AtomicVector A, StringVector type) {
+
+    if(!Types.isMatrix(A)) {
+      throw new EvalException("'A' must be a numeric matrix");
+    }
+
+    double a[] = A.toDoubleArray();
+
+    int xdims[] = A.getAttributes().getDimArray();
+    int m = xdims[0];
+    int n = xdims[1]; /* m x n  matrix {using Lapack naming convention} */
+
+    double work[] = null;
+
+    String normalizationType = La_norm_type(type);
+    if(normalizationType.equals("I")) {
+      work = new double[m];
+    }
+
+    return LAPACK.getInstance().dlange(normalizationType, m, n, a, m, work);
+  }
+
+  private static String La_norm_type(StringVector typeVector) {
+
+    String type = Strings.nullToEmpty(typeVector.getElementAsString(0)).toUpperCase();
+    switch (type) {
+      case "1":       // alias for "one norm"
+        return "O";
+      case "E":       // alias for Frobenius norm
+        return "F";
+      case "M":
+      case "O":
+      case "I":
+      case "F":
+        return type;
+
+      default:
+        throw new EvalException("argument type[1]='%s' must be one of 'M','1','O','I','F' or 'E'", type);
+    }
+  }
+
+  private static String La_rcond_type(StringVector typeVector) {
+    String type = Strings.nullToEmpty(typeVector.getElementAsString(0)).toUpperCase();
+    switch (type) {
+      case "1":
+        return "O";
+      case "O":
+      case "I":
+        return type;
+      default:
+        throw new EvalException("argument type[1]='%s' must be one of '1','O', or 'I'", type);
+    }
+  }
+
+
+  /**
+   * Estimates the reciprocal of the condition number of a
+   * triangular matrix A, in either the 1-norm or the infinity-norm.
+   *
+   * @param A a real-valued matrix
+   * @param typeVector the type, either the 1-norm ("O") or the infinity-norm ("I")
+   * @see <a href="http://www.netlib.org/lapack/explore-3.1.1-html/dtrcon.f.html">LAPACK Reference</a>
+   */
+  @Internal
+  public static double La_dtrcon(AtomicVector A, StringVector typeVector) {
+
+    if(!Types.isMatrix(A)) {
+      throw new EvalException("'A' must be a numeric matrix");
+    }
+
+    double a[] = A.toDoubleArray();
+
+    int xdims[] = A.getAttributes().getDimArray();
+    int n = xdims[0];
+    int m = xdims[1];
+
+    if(n != m) {
+      throw new EvalException("'A' must be a *square* matrix");
+    }
+
+    String type = La_rcond_type(typeVector);
+
+    doubleW val = new doubleW(0);
+    intW info = new intW(0);
+
+    LAPACK.getInstance().dtrcon(
+        /* NORM = */  type, // Specifies whether the 1-norm condition number ("O") or the
+                            // infinity-norm condition ("I") number is required
+        /* UPLO = */  "U",  // Upper triangle
+        /* DIAG = */  "N",  // Non-unit triangular
+        /* N = */     n,    // The order of the matrix
+        /* A = */     a,    // The triangular matrix A. Only the upper part is referenced
+        /* LDA = */   n,    // The leading dimension of the array A
+        /* RCOND = */ val,  // (output) The reciprocal of the condition number of the matrix A,
+                            //          computed as RCOND = 1/(norm(A) * norm(inv(A))).
+        new double[n],      // (workspace) DOUBLE PRECISION array, dimension (3*N)
+        new int[n],         // (workspace) INTEGER array, dimension (N)
+        info);              // (output)  successful exit (0) or error code
+
+    if (info.val != 0) {
+      throw new EvalException("error [%d] from Lapack 'dtrcon()'", info.val);
+    }
+
+    return val.val;
+  }
+
+  /**
+   * Estimates the reciprocal of the condition number of a general
+   * real matrix A, in either the 1-norm or the infinity-norm, using
+   * the LU factorization computed by DGETRF.
+   *
+   * An estimate is obtained for norm(inv(A)), and the reciprocal of the
+   * condition number is computed as
+   * {@code RCOND = 1 / ( norm(A) * norm(inv(A)) )}
+   */
+  @Internal
+  public static double La_dgecon(AtomicVector A, StringVector norm) {
+
+    if(!Types.isMatrix(A)) {
+      throw new EvalException("'A' must be a numeric matrix");
+    }
+
+    int xdims[] = A.getAttributes().getDimArray();
+    int m = xdims[0];
+    int n = xdims[1];
+
+    String typeNorm = La_rcond_type(norm);
+
+    double[] work;
+    if(typeNorm.equals("I") && m > 4*n) {
+      work = new double[m];
+    } else {
+      work = new double[4*n];
+    }
+
+    double a[] = A.toDoubleArray();
+    int iwork[] = new int[m];
+
+    double anorm = LAPACK.getInstance().dlange(
+        /* NORM = */  typeNorm,
+        /* M = */     m,        // (input) The number of rows of the matrix A.  M >= 0.
+        /* N = */     n,        // (input) The number of columns of the matrix A.  N >= 0.
+        /* A = */     a,        // (input) DOUBLE PRECISION array, dimension (LDA,N)
+        /* LDA = */   m,        // (input) DOUBLE PRECISION array, dimension (LDA,N)
+        /* WORK = */  work);    // (workspace) DOUBLE PRECISION array, dimension (MAX(1,LWORK)),
+
+
+    // Compute the LU-decomposition and overwrite 'A' with result :
+    intW info = new intW(0);
+    LAPACK.getInstance().dgetrf(
+        /* M = */     m,        // (input)  The number of rows of the matrix A.  M >= 0.
+        /* N = */     n,        // (input)  The number of columns of the matrix A.  N >= 0.
+        /* A = */     a,        // (input/output) array, dimension (LDA,N)
+        /* LDA = */   m,        // (input)  The leading dimension of the array A.  LDA >= max(1,M).
+        /* IPIV = */  iwork,    // (output) The pivot indices; for 1 <= i <= min(M,N), row i of the matrix was
+                                //          interchanged with row IPIV(i).
+        /* INFO = */  info);    // (output) = 0:  successful exit
+
+    if (info.val != 0) {
+      if (info.val < 0) {
+        throw new EvalException("error [%d] from Lapack 'dgetrf()'", info.val);
+      } else {
+        // i := info > 0:  LU decomp. is completed, but  U[i,i] = 0
+        //   <==> singularity
+        return 0;
+      }
+    }
+
+    doubleW val = new doubleW(0);
+    LAPACK.getInstance().dgecon(
+        /* NORM = */  typeNorm,
+        /* N = */     n,
+        /* A = */     a,
+        /* LDA = */   n,
+        /* ANORM = */ anorm,
+        /* RCOND = */ val,
+        /* WORK = */  work,
+        /* IWORK = */ iwork,
+        /* INFO = */  info);
+
+    if (info.val != 0) {
+      throw new EvalException("error [%d] from Lapack 'dgecon()'", info.val);
+    }
+    return val.val;
+  }
+
+  @Internal
+  public static SEXP La_zgecon(SEXP x, StringVector norm) {
+    throw new EvalException("TODO");
+  }
+
+  @Internal
+  public static SEXP La_ztrcon(SEXP x, StringVector norm) {
+    throw new EvalException("TODO");
+  }
 
 
   /**

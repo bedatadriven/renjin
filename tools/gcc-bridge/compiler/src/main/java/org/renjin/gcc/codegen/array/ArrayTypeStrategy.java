@@ -185,7 +185,7 @@ public class ArrayTypeStrategy implements TypeStrategy<ArrayExpr> {
     List<JExpr> values = Lists.newArrayList();
     addElementConstructors(values, exprFactory, constructor);
 
-    JExpr array = Expressions.newArray(elementValueFunction.getValueType(), values);
+    JExpr array = Expressions.newArray(elementValueFunction.getValueType(), arrayLength, values);
     JExpr offset = Expressions.zero();
 
     return new ArrayExpr(elementValueFunction, arrayLength, array, offset);

@@ -1173,4 +1173,9 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void inheritanceGlobalVars() throws Exception {
     compileAndTest("inheritance_globalvars.cpp");
   }
+
+  @Test
+  public void badArrayLiteral() throws Exception {
+    compileAndTest("bad_array_literal.c");
+  }
 }

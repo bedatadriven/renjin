@@ -294,11 +294,11 @@ public class S3 {
     Environment groupMethodEnvironment = null;
     Environment genericMethodEnvironment = null;
     
-    genericMethodEnvironment = findMethodEnvironment(context, opName, packageName);
+    genericMethodEnvironment = findMethodEnvironment(context, opName);
     if ("Ops".equals(group)) {
-      groupMethodEnvironment = findOpsMethodEnvironment(context, opName, packageName);
+      groupMethodEnvironment = findOpsMethodEnvironment(context, opName);
     } else {
-      groupMethodEnvironment = findMethodEnvironment(context, group, packageName);
+      groupMethodEnvironment = findMethodEnvironment(context, group);
     }
     
     if (groupMethodEnvironment == null && genericMethodEnvironment == null) {
@@ -421,15 +421,9 @@ public class S3 {
     return classS4Object.getAttribute(Symbol.get("package")).asString();
   }
   
-  private static Environment findMethodEnvironment(Context context, String opName, String packageName) {
-    Environment environment;
-    if(packageName == null) {
-      environment = context.getGlobalEnvironment();
-    } else {
-      environment = context.getNamespaceRegistry().getNamespace(context, packageName).getNamespaceEnvironment();
-    }
+  private static Environment findMethodEnvironment(Context context, String opName) {
     Symbol methodSymbol = Symbol.get(".__T__" + opName + ":base");
-    SEXP genericMethodSymbol = environment.findVariable(context, methodSymbol);
+    SEXP genericMethodSymbol = context.getEnvironment().findVariable(context, methodSymbol).force(context);
     if (genericMethodSymbol instanceof Environment) {
       return (Environment) genericMethodSymbol;
     } else if (SPECIAL.contains(opName)) {
@@ -492,18 +486,18 @@ public class S3 {
     return selectedMethods;
   }
   
-  private static Environment findOpsMethodEnvironment(Context context, String opName, String packageName) {
+  private static Environment findOpsMethodEnvironment(Context context, String opName) {
     Environment methodEnvironment = null;
     
     if(ARITH_GROUP.contains(opName)) {
       String[] groups = {".__T__Arith:base", ".__T__Ops:base"};
-      methodEnvironment = getEnvironment(context, null, groups, packageName);
+      methodEnvironment = getEnvironment(context, groups);
     } else if (COMPARE_GROUP.contains(opName)) {
       String[] groups = {".__T__Compare:methods", ".__T__Ops:base"};
-      methodEnvironment = getEnvironment(context, null, groups, packageName);
+      methodEnvironment = getEnvironment(context, groups);
     } else if (LOGIC_GROUP.contains(opName)) {
       String[] groups = {".__T__Logic:base", ".__T__Ops:base"};
-      methodEnvironment = getEnvironment(context, null, groups, packageName);
+      methodEnvironment = getEnvironment(context, groups);
     }
     
     if (methodEnvironment == null) {
@@ -513,16 +507,10 @@ public class S3 {
     return methodEnvironment;
   }
   
-  private static Environment getEnvironment(Context context, Environment methodEnvironment,
-                                            String[] groups, String packageName) {
+  private static Environment getEnvironment(Context context, String[] groups) {
+    Environment methodEnvironment = null;
     for (int i = 0; i < groups.length && methodEnvironment == null; i++) {
-      Environment environment;
-      if(packageName == null) {
-        environment = context.getGlobalEnvironment();
-      } else {
-        environment = context.getNamespaceRegistry().getNamespace(context, packageName).getNamespaceEnvironment();
-      }
-      SEXP foundMethodEnvironment = environment.findVariable(context, Symbol.get(groups[i]));
+      SEXP foundMethodEnvironment = context.getEnvironment().findVariable(context, Symbol.get(groups[i]));
       methodEnvironment = foundMethodEnvironment instanceof Environment ? (Environment) foundMethodEnvironment : null;
     }
     return methodEnvironment;
@@ -590,8 +578,14 @@ public class S3 {
   private static String evaluateAndGetClass(Context context, PairList args, Environment rho, int argumentIndex) {
     // To get the class of an argument we have to evaluate the argument first. If its an atomic, than it lacks class
     // attribute. In this case we use Attributes.getClass() to get the class name.
-    SEXP evaluatedArg = context.evaluate(args.getElementAsSEXP(argumentIndex), rho);
-    return Attributes.getClass(evaluatedArg).getElementAsString(0);
+    if(argumentIndex < args.length()) {
+      if(args.getElementAsSEXP(argumentIndex) == Symbol.MISSING_ARG) {
+        return null;
+      }
+      SEXP evaluatedArg = context.evaluate(args.getElementAsSEXP(argumentIndex), rho);
+      return Attributes.getClass(evaluatedArg).getElementAsString(0);
+    }
+    return null;
   }
   
   
@@ -607,13 +601,18 @@ public class S3 {
    * */
   
   private static ArgumentSignature getClassAndDistance(Context context, String argClass) {
+    if(argClass == null) {
+      int[] distances = { 1, 1};
+      String[] classes = { "missing", "ANY" };
+      return new ArgumentSignature(classes, distances);
+    }
     Symbol argClassObjectName = Symbol.get(".__C__" + argClass);
     Frame globalFrame = context.getGlobalEnvironment().getFrame();
     AttributeMap map = globalFrame.getVariable(argClassObjectName).getAttributes();
     SEXP containsSlot = map.get("contains");
     SEXP argSuperClasses = containsSlot.getNames();
-    int[] distances = new int[argSuperClasses.length() + 2];
-    String[] classes = new String[argSuperClasses.length() + 2];
+    int[] distances = new int[argSuperClasses.length() + 3];
+    String[] classes = new String[argSuperClasses.length() + 3];
     
     classes[0] = argClass;
     distances[0] = 0;
@@ -629,9 +628,12 @@ public class S3 {
         max = distances[i];
       }
     }
-    
+  
     distances[argSuperClasses.length() + 1] = max + 1;
-    classes[distances.length - 1] = "ANY";
+    classes[distances.length - 2] = "ANY";
+  
+    distances[argSuperClasses.length() + 2] = max + 1;
+    classes[distances.length - 1] = "missing";
     
     return new ArgumentSignature(classes, distances);
   }

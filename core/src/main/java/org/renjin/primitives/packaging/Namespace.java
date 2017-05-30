@@ -50,7 +50,7 @@ public class Namespace {
   private final Environment baseNamespaceEnvironment;
 
   private final List<Symbol> exports = Lists.newArrayList();
-  private final Map<String, Class> nativeSymbolMap = new HashMap<>();
+  private final Map<String, DllSymbol> nativeSymbolMap = new HashMap<>();
 
   public Namespace(Package pkg, Environment namespaceEnvironment) {
     this.pkg = pkg;
@@ -89,7 +89,7 @@ public class Namespace {
     }
   }
 
-  public Map<String, Class> getNativeSymbolMap() {
+  public Map<String, DllSymbol> getNativeSymbolMap() {
     return nativeSymbolMap;
   }
 
@@ -227,7 +227,7 @@ public class Namespace {
       }
     }
 
-    // Import from transpiled classes
+    // Import from compiled classes
     for (NamespaceFile.DynLibEntry library : file.getDynLibEntries()) {
       importDynamicLibrary(context, library);
     }
@@ -264,6 +264,12 @@ public class Namespace {
           } else {
             initMethod.get().invoke(null, info);
           }
+
+          // Index the exported methods
+          for (DllSymbol dllSymbol : info.getSymbols()) {
+            nativeSymbolMap.put(dllSymbol.getName(), dllSymbol);
+          }
+
         } catch (InvocationTargetException e) {
           throw new EvalException("Exception initializing compiled GNU R library " + entry.getLibraryName(), e.getCause());
         } finally {
@@ -279,17 +285,18 @@ public class Namespace {
         }
         // Use the symbols registered by the R_init_xxx() function
         for (DllSymbol symbol : info.getSymbols()) {
-          namespaceEnvironment.setVariableUnsafe(entry.getPrefix() + symbol.getName(), symbol.createObject());
+          namespaceEnvironment.setVariableUnsafe(entry.getPrefix() + symbol.getName(), symbol.toSexp());
         }
 
       } else if(!entry.getSymbols().isEmpty()) {
 
         // Add the explicitly imported symbols as objects to the namespace
         for (NamespaceFile.DynLibSymbol declaredSymbol : entry.getSymbols()) {
-          DllSymbol symbol = new DllSymbol(info);
+          DllSymbol symbol = new DllSymbol();
           symbol.setName(declaredSymbol.getSymbolName());
           symbol.setMethodHandle(findGnurMethod(clazz, declaredSymbol.getSymbolName()));
-          namespaceEnvironment.setVariableUnsafe(entry.getPrefix() + declaredSymbol.getAlias(), symbol.createObject());
+          namespaceEnvironment.setVariableUnsafe(entry.getPrefix() + declaredSymbol.getAlias(), symbol.toSexp());
+          nativeSymbolMap.put(declaredSymbol.getSymbolName(), symbol);
         }
       
       } else {
@@ -298,7 +305,10 @@ public class Namespace {
         // a PACKAGE argument
         for (Method method : clazz.getMethods()) {
           if(Modifier.isStatic(method.getModifiers()) && Modifier.isPublic(method.getModifiers())) {
-            nativeSymbolMap.put(method.getName(), clazz);
+            DllSymbol symbol = new DllSymbol();
+            symbol.setName(method.getName());
+            symbol.setMethodHandle(MethodHandles.lookup().unreflect(method));
+            nativeSymbolMap.put(method.getName(), symbol);
           }
         }
       }

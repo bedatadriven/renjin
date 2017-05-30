@@ -19,6 +19,7 @@
 package org.renjin.primitives.packaging;
 
 import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.sexp.SEXP;
 
 import java.util.List;
 
@@ -45,4 +46,6 @@ public class DllInfo {
   public List<DllSymbol> getSymbols() {
     return symbols;
   }
+
+
 }

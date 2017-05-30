@@ -289,7 +289,6 @@ public class S3 {
                                      Environment rho, String group, String opName) {
     
     boolean hasS3Class = source.getAttribute(Symbol.get(".S3Class")).length() != 0;
-    String packageName = hasS3Class ? "methods" : null;
     
     Environment groupMethodEnvironment = null;
     Environment genericMethodEnvironment = null;
@@ -319,7 +318,7 @@ public class S3 {
       return null;
     }
     
-    List<MethodRanking> possibleSignatures = generatePossibleSignatures(context, rho, args, signatureLength);
+    List<MethodRanking> possibleSignatures = generatePossibleSignatures(context, rho, genericMethodEnvironment, groupMethodEnvironment, args, signatureLength);
     
     Collections.sort(possibleSignatures);
     
@@ -522,15 +521,36 @@ public class S3 {
    * information.
    *
    * */
-  private static List<MethodRanking> generatePossibleSignatures(Context context, Environment rho,
-                                                                PairList args, int depth) {
-    
+  private static List<MethodRanking> generatePossibleSignatures(Context context, Environment rho, Environment genericMethodEnvironment,
+                                                                Environment groupMethodEnvironment, PairList args, int depth) {
     
     ArgumentSignature[] argSignatures = new ArgumentSignature[depth];
+  
+    Environment functionEnv = genericMethodEnvironment == null ? groupMethodEnvironment: genericMethodEnvironment;
+    Closure genericClosure = (Closure) functionEnv.getFrame().getVariable((Symbol) functionEnv.getFrame().getSymbols().toArray()[0]);
+    AttributeMap genericAttributes = genericClosure.getFormals().toVector().getAttributes();
+    List<String> formalNames = new ArrayList<>(Arrays.asList(genericAttributes.getNames().toArray()));
+    if(formalNames.contains("...")) {
+      formalNames.remove(formalNames.indexOf("..."));
+    }
+    List<String> argNames= null;
+    if(args.getNames() != null && args.getNames() != Null.INSTANCE) {
+      argNames = new ArrayList<>(Arrays.asList(((StringArrayVector) args.getNames()).toArray()));
+    }
     
-    for(int i = 0; i < depth; i++) {
+    for(int i = 0; i < depth && i < args.length(); i++) {
       String argumentClass = evaluateAndGetClass(context, args, rho, i);
-      argSignatures[i] = getClassAndDistance(context, argumentClass);
+      if(argNames == null || "".equals(argNames.get(i))) {
+        argSignatures[i] = getClassAndDistance(context, argumentClass);
+      } else {
+        argSignatures[formalNames.indexOf(argNames.get(i))] = getClassAndDistance(context, argumentClass);
+      }
+    }
+    
+    for(int i = 0; i < argSignatures.length; i++) {
+      if(argSignatures[i] == null) {
+        argSignatures[i] = new ArgumentSignature(new String[]{"missing", "ANY"}, new int[]{0, 1} );
+      }
     }
     
     int numberOfPossibleSignatures = 1;
@@ -578,14 +598,8 @@ public class S3 {
   private static String evaluateAndGetClass(Context context, PairList args, Environment rho, int argumentIndex) {
     // To get the class of an argument we have to evaluate the argument first. If its an atomic, than it lacks class
     // attribute. In this case we use Attributes.getClass() to get the class name.
-    if(argumentIndex < args.length()) {
-      if(args.getElementAsSEXP(argumentIndex) == Symbol.MISSING_ARG) {
-        return null;
-      }
-      SEXP evaluatedArg = context.evaluate(args.getElementAsSEXP(argumentIndex), rho);
-      return Attributes.getClass(evaluatedArg).getElementAsString(0);
-    }
-    return null;
+    SEXP evaluatedArg = context.evaluate(args.getElementAsSEXP(argumentIndex), rho);
+    return Attributes.getClass(evaluatedArg).getElementAsString(0);
   }
   
   
@@ -601,11 +615,6 @@ public class S3 {
    * */
   
   private static ArgumentSignature getClassAndDistance(Context context, String argClass) {
-    if(argClass == null) {
-      int[] distances = { 1, 1};
-      String[] classes = { "missing", "ANY" };
-      return new ArgumentSignature(classes, distances);
-    }
     Symbol argClassObjectName = Symbol.get(".__C__" + argClass);
     Frame globalFrame = context.getGlobalEnvironment().getFrame();
     AttributeMap map = globalFrame.getVariable(argClassObjectName).getAttributes();
@@ -630,10 +639,10 @@ public class S3 {
     }
   
     distances[argSuperClasses.length() + 1] = max + 1;
-    classes[distances.length - 2] = "ANY";
+    classes[distances.length - 2] = "missing";
   
-    distances[argSuperClasses.length() + 2] = max + 1;
-    classes[distances.length - 1] = "missing";
+    distances[argSuperClasses.length() + 2] = max + 2;
+    classes[distances.length - 1] = "ANY";
     
     return new ArgumentSignature(classes, distances);
   }

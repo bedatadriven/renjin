@@ -28,15 +28,15 @@ setMethod("[[", c(x="A", j="ANY",     i="ANY"    ), function(x, i, j, ...) 1.43)
 setMethod("[[", c(x="A", j="missing", i="A"      ), function(x, i, ...)    1.5 )
 setMethod("[[", c(x="A", j="ANY",     i="A"      ), function(x, i, j, ...) 1.55)
 setMethod("[[", c(x="A", j="A",       i="missing"), function(x, j, ...)    1.6 )
-setMethod("[[", c(x="A", j="A",       i="ANY"    ), function(x, i, j, ...) 1.6 )
-setMethod("[[", c(x="A", i="A",       j="A"      ), function(x, i, j, ...) 1.7 )
+setMethod("[[", c(x="A", j="A",       i="ANY"    ), function(x, i, j, ...) 1.7 )
+setMethod("[[", c(x="A", i="A",       j="A"      ), function(x, i, j, ...) 1.8 )
 
 test.s4.missing.01 = function() {
     assertThat( a[[]] , identicalTo( 1.4 ))
 }
 
 test.s4.missing.02 = function() {
-    assertThat( a[[a,a]] , identicalTo( 1.7 ))
+    assertThat( a[[a,a]] , identicalTo( 1.8 ))
 }
 
 test.s4.missing.03 = function() {
@@ -51,8 +51,9 @@ test.s4.missing.05 = function() {
     assertThat( a[[i=a,j=]] , identicalTo( 1.5 ))
 }
 
+# GNU R will return 1.5, and doesn't consider provided argument names
 test.s4.missing.06 = function() {
-    assertThat( a[[j=a,i=]] , identicalTo( 1.5 ))
+    assertThat( a[[j=a,i=]] , identicalTo( 1.6 ))
 }
 
 

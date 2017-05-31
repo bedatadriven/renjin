@@ -154,6 +154,93 @@ test.ellipses.1 <- function() {
     assertThat(g(43), throwsError())
 }
 
+
+
+test.locked.bindings <- function() {
+
+    env <- new.env();
+    fval <- 1L
+    f <- function(val) {
+        if(missing(val)) {
+            fval
+        } else {
+            fval <<- val
+        }
+    }
+
+    makeActiveBinding("f", f, env)
+
+
+    # Lock the environment so that symbols
+    # cannnot be added or removed,
+    # but DON'T lock the values themselves
+    lockEnvironment(env, bindings = FALSE)
+
+
+    # This should allow us to change a value
+    # via an active binding
+    env$f <- 33
+
+    assertThat(env$f, identicalTo(33))
+
+    # We should not be able to add new active bindings
+    assertThat( { makeActiveBinding("g", f, env) }, throwsError())
+}
+
+
+test.locked.binding <- function() {
+
+    env <- new.env();
+    fval <- 1L
+    f <- function(val) {
+        if(missing(val)) {
+            fval
+        } else {
+            fval <<- val
+        }
+    }
+
+    makeActiveBinding("f", f, env)
+
+    # Lock the environment so that symbols
+    # cannnot be added or removed,
+    # and DO lock the values themselves
+    lockEnvironment(env, bindings = TRUE)
+
+    # This means that values also cannot
+    # be set via active bindings.
+    assertThat( { env$f <- 33 }, throwsError())
+}
+
+
+
+test.single.locked.binding <- function() {
+
+    env <- new.env();
+    fval <- 1L
+    f <- function(val) {
+        if(missing(val)) {
+            fval * 2
+        } else {
+            fval <<- val
+        }
+    }
+
+    makeActiveBinding("f", f, env)
+
+    lockBinding("f", env)
+
+    # This means that values also cannot
+    # be set via active bindings.
+    assertThat( { env$f <- 33 }, throwsError())
+
+    unlockBinding("f", env)
+
+    env$f <- 33
+    assertThat(env$f, identicalTo(66))
+}
+
+
 test.ellipses.2 <- function() {
     assertThat(makeActiveBinding(sym=`...`, fun=function(...) 42), throwsError())
 }
@@ -174,3 +261,4 @@ test.ellipses.3 <- function() {
     }
     assertThat(g(c("A"),c("B")), identicalTo("B"))
 }
+

@@ -346,18 +346,21 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
 
     if(bindingIsLocked(symbol)) {
       throw new EvalException("cannot change value of locked binding for '%s'", symbol.getPrintName());
-    } else if(locked && frame.getVariable(symbol) == Symbol.UNBOUND_VALUE) {
-      throw new EvalException("cannot add bindings to a locked environment");
     }
+
     if(activeBindings != null && activeBindings.containsKey(symbol)) {
       Closure fun = activeBindings.get(symbol);
       PairList.Builder args = new PairList.Builder().add(value);
       return context.evaluate(new FunctionCall(fun, args.build()));
-    } else {
-      frame.setVariable(symbol, value);
-      modCount++;
-      return Null.INSTANCE;
     }
+
+    if(locked && frame.getVariable(symbol) == Symbol.UNBOUND_VALUE) {
+      throw new EvalException("cannot add bindings to a locked environment");
+    }
+
+    frame.setVariable(symbol, value);
+    modCount++;
+    return Null.INSTANCE;
   }
 
   /**
@@ -617,7 +620,19 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     this.locked = true;
     if(lockBindings) {
       lockedBindings = Sets.newHashSet(frame.getSymbols());
+      if(activeBindings != null) {
+        lockedBindings.addAll(activeBindings.keySet());
+      }
     }
+  }
+
+  /**
+   * Returns true if the given {@code symbol} is bound to either a normal value, or
+   * to an active binding in this Environment.
+   */
+  public boolean exists(Symbol symbol) {
+    return frame.getVariable(symbol) != Symbol.UNBOUND_VALUE ||
+        isActiveBinding(symbol);
   }
 
   /**
@@ -626,7 +641,7 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
    * @param symbol variable symbol
    */
   public void lockBinding(Symbol symbol) {
-    if(frame.getVariable(symbol) == Symbol.UNBOUND_VALUE) {
+    if (!exists(symbol)) {
       throw new EvalException("no binding for '%s'", symbol);
     }
     if(lockedBindings == null) {
@@ -636,14 +651,19 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
   }
 
   /**
-   * Unlocks the binding to allow changing the value of the variable
+   * Unlocks the binding to allow changing the value of the given {@code symbol}.
    *
-   * @param symbol
+   * <p>A binding, either normal or active, <strong>must</strong> exist, or an error
+   * is thrown. No error is thrown if the binding exists but is not locked.</p>
+   *
+   * @throws EvalException if a binding for the given {@code symbol} does not exist.
    */
   public void unlockBinding(Symbol symbol) {
-    if(frame.getVariable(symbol) == Symbol.UNBOUND_VALUE) {
+
+    if(!exists(symbol)) {
       throw new EvalException("no binding for '%s'", symbol);
     }
+
     if(lockedBindings != null) {
       lockedBindings.remove(symbol);
     }

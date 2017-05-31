@@ -76,3 +76,11 @@ test.method_selection.03c = function() {
 test.method_selection.03d = function() {
     assertThat(a[a,c], identicalTo( c(3.5) ))
 }
+
+test.method_selection.04 = function() {
+    setMethod("[", signature("BB","numeric","numeric"), function(x, i, j, ...) 9.9)
+    assertThat(a[1L,1L], identicalTo( c(9.9) ))
+    assertThat(a[1.0,1.0], identicalTo( c(9.9) ))
+    assertThat(a[1L,1.0], identicalTo( c(9.9) ))
+    assertThat(a[1.0,1L], identicalTo( c(9.9) ))
+}

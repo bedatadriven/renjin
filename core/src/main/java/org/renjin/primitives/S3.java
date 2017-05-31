@@ -28,6 +28,7 @@ import org.renjin.packaging.SerializedPromise;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Sets;
+import org.renjin.repackaged.guava.primitives.Ints;
 import org.renjin.sexp.*;
 import org.renjin.sexp.Vector;
 
@@ -539,7 +540,7 @@ public class S3 {
     }
     
     for(int i = 0; i < depth && i < args.length(); i++) {
-      String argumentClass = evaluateAndGetClass(context, args, rho, i);
+      String[] argumentClass = evaluateAndGetClass(context, args, rho, i);
       if(argNames == null || "".equals(argNames.get(i))) {
         argSignatures[i] = getClassAndDistance(context, argumentClass);
       } else {
@@ -595,11 +596,12 @@ public class S3 {
     return possibleSignatures;
   }
   
-  private static String evaluateAndGetClass(Context context, PairList args, Environment rho, int argumentIndex) {
+  private static String[] evaluateAndGetClass(Context context, PairList args, Environment rho, int argumentIndex) {
     // To get the class of an argument we have to evaluate the argument first. If its an atomic, than it lacks class
     // attribute. In this case we use Attributes.getClass() to get the class name.
     SEXP evaluatedArg = context.evaluate(args.getElementAsSEXP(argumentIndex), rho);
-    return Attributes.getClass(evaluatedArg).getElementAsString(0);
+    StringVector classes = computeDataClasses(context, evaluatedArg);
+    return classes.toArray();
   }
   
   
@@ -614,37 +616,34 @@ public class S3 {
    *
    * */
   
-  private static ArgumentSignature getClassAndDistance(Context context, String argClass) {
-    Symbol argClassObjectName = Symbol.get(".__C__" + argClass);
+  private static ArgumentSignature getClassAndDistance(Context context, String[] argClass) {
+
+    List<Integer> distances = new ArrayList<>();
+    List<String> classes = new ArrayList<>();
+    for(int i = 0; i < argClass.length; i++) {
+      classes.add(argClass[i]);
+      distances.add(0);
+    }
+    Symbol argClassObjectName = Symbol.get(".__C__" + argClass[0]);
     Frame globalFrame = context.getGlobalEnvironment().getFrame();
     AttributeMap map = globalFrame.getVariable(argClassObjectName).getAttributes();
     SEXP containsSlot = map.get("contains");
     SEXP argSuperClasses = containsSlot.getNames();
-    int[] distances = new int[argSuperClasses.length() + 3];
-    String[] classes = new String[argSuperClasses.length() + 3];
-    
-    classes[0] = argClass;
-    distances[0] = 0;
+
     for(int i = 0; i < argSuperClasses.length(); i++) {
       SEXP distanceSlot = ((ListVector) containsSlot).get(i).getAttributes().get("distance");
-      distances[i + 1] = ((Vector) distanceSlot).getElementAsInt(0);
-      classes[i + 1] = ((Vector) argSuperClasses).getElementAsString(i);
+      distances.add(((Vector) distanceSlot).getElementAsInt(0));
+      classes.add(((Vector) argSuperClasses).getElementAsString(i));
     }
-    
-    int max = 0;
-    for(int i = 0; i < distances.length; i++) {
-      if(distances[i] > max) {
-        max = distances[i];
-      }
-    }
-  
-    distances[argSuperClasses.length() + 1] = max + 1;
-    classes[distances.length - 2] = "missing";
-  
-    distances[argSuperClasses.length() + 2] = max + 2;
-    classes[distances.length - 1] = "ANY";
-    
-    return new ArgumentSignature(classes, distances);
+
+    int max = Collections.max(distances);
+    distances.add(max + 1);
+    classes.add("missing");
+    distances.add(max + 2);
+    classes.add("ANY");
+
+    return new ArgumentSignature(classes.toArray(new String[0]), Ints.toArray(distances));
+
   }
   
   public static SEXP tryDispatchFromPrimitive(Context context, Environment rho, FunctionCall call,

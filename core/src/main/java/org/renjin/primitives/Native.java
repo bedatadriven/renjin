@@ -96,7 +96,8 @@ public class Native {
     if(Profiler.ENABLED) {
       Profiler.functionStart(Symbol.get(method.getName()), 'C');
     }
-
+    Context previousContext = CURRENT_CONTEXT.get();
+    CURRENT_CONTEXT.set(context);
     try {
       handle.invokeWithArguments(nativeArguments);
     } catch (EvalException | Error e) {
@@ -104,6 +105,7 @@ public class Native {
     } catch (Throwable e) {
       throw new EvalException(e.getMessage(), e);
     } finally {
+      CURRENT_CONTEXT.set(previousContext);
       if(Profiler.ENABLED) {
         Profiler.functionEnd();
       }
@@ -238,6 +240,8 @@ public class Native {
       }
     }
 
+    Context previousContext = CURRENT_CONTEXT.get();
+    CURRENT_CONTEXT.set(context);
     try {
       method.getMethodHandle().invokeWithArguments(fortranArgs);
     } catch (Error e) {
@@ -245,6 +249,7 @@ public class Native {
     } catch (Throwable e) {
       throw new EvalException("Exception thrown while executing " + method.getName(), e);
     } finally {
+      CURRENT_CONTEXT.set(previousContext);
       if(Profiler.ENABLED) {
         Profiler.functionEnd();
       }
@@ -291,13 +296,12 @@ public class Native {
     MethodHandle transformedHandle = methodHandle.asSpreader(SEXP[].class, methodHandle.type().parameterCount());
     SEXP[] arguments = toSexpArray(callArguments);
     if(Profiler.ENABLED) {
-      StringVector nameExp = (StringVector)((ListVector) methodExp).get("name");
-      Profiler.functionStart(Symbol.get(nameExp.getElementAsString(0)), 'C');
+      Profiler.functionStart(Symbol.get(method.getName()), 'C');
     }
     Context previousContext = CURRENT_CONTEXT.get();
     try {
       CURRENT_CONTEXT.set(context);
-      if (methodHandle.type().returnType().equals(void.class)) {
+      if (transformedHandle.type().returnType().equals(void.class)) {
         transformedHandle.invokeExact(arguments);
         return Null.INSTANCE;
       } else {
@@ -306,7 +310,7 @@ public class Native {
     } catch (Error e) {
       throw e;
     } catch (Throwable e) {
-      throw new EvalException("Exception calling " + methodExp + " : " + e.getMessage(), e);
+      throw new EvalException("Exception calling " +  method.getName() + " : " + e.getMessage(), e);
     } finally {
       CURRENT_CONTEXT.set(previousContext);
       if(Profiler.ENABLED) {

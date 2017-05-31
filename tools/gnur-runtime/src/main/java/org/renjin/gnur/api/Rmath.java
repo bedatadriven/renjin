@@ -125,8 +125,8 @@ public final class Rmath {
     return Distributions.dgamma(x, shape, scale, log != 0);
   }
 
-  public static double Rf_pgamma(double p0, double p1, double p2, int p3, int p4) {
-    throw new UnimplementedGnuApiMethod("Rf_pgamma");
+  public static double Rf_pgamma(double q, double shape, double scale, int lowerTail, int logP) {
+    return Distributions.pgamma(q, shape, scale, lowerTail != 0, logP != 0);
   }
 
   public static double Rf_qgamma(double p, double shape, double scale, int lowerTail, int logP) {

@@ -18,13 +18,8 @@
 #
 
 
-library(hamcrest)
+# Should still be able to call an unregistered method by name...
 
-assertThat(mysum(1:10), identicalTo(56))
-assertThat(mydsum(1:10), identicalTo(56))
-
-x <- try( mydpchim() )
-assertThat(inherits(x, "try-error"), identicalTo(TRUE) )
-
-
-assertThat(secret(1:3), identicalTo(3*42))
+secret  <- function(x) {
+    .Call("_secret" , as.numeric(x))
+}

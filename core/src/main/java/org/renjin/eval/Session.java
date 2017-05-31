@@ -23,6 +23,7 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.renjin.compiler.pipeline.VectorPipeliner;
 import org.renjin.primitives.io.connections.ConnectionTable;
+import org.renjin.primitives.packaging.DllInfo;
 import org.renjin.primitives.packaging.NamespaceRegistry;
 import org.renjin.primitives.packaging.PackageLoader;
 import org.renjin.repackaged.guava.collect.ImmutableList;
@@ -36,6 +37,7 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.lang.invoke.MethodHandle;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -107,6 +109,12 @@ public class Session {
   private VectorPipeliner vectorPipeliner;
 
   private ClassLoader classLoader;
+
+  /**
+   * Dynamic libraries that have been loaded for this session.
+   */
+  private List<DllInfo> loadedLibraries = new ArrayList<>();
+
 
   /**
    * Whether the result of the evaluation should be "invisible" in a
@@ -352,5 +360,13 @@ public class Session {
 
   public MethodHandle getRngMethod() {
     return rng.getMethodHandle();
+  }
+
+  public void loadLibrary(DllInfo library) {
+    loadedLibraries.add(library);
+  }
+
+  public Iterable<DllInfo> getLoadedLibraries() {
+    return loadedLibraries;
   }
 }

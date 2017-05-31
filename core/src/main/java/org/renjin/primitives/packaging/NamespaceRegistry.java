@@ -61,12 +61,6 @@ public class NamespaceRegistry {
 
   private Map<Environment, Namespace> envirMap = Maps.newIdentityHashMap();
 
-  /**
-   * Mapping of "native" methods to the namespace in which they are declared. used to resolve
-   * .Call invocations without a PACKAGE parameter.
-   */
-  private Map<String, DllSymbol> nativeSymbolMap = Maps.newHashMap();
-  
   private final Namespace baseNamespace;
 
   public NamespaceRegistry(PackageLoader loader, Context context, Environment baseNamespaceEnv) {
@@ -106,11 +100,7 @@ public class NamespaceRegistry {
       return Optional.absent();
     }
   }
-  
-  public Optional<DllSymbol> resolveNativeMethod(String methodName) {
-    return Optional.fromNullable(nativeSymbolMap.get(methodName));
-  }
-  
+
   public Namespace getNamespace(Context context, String name) {
     return getNamespace(context, Symbol.get(name));
   }
@@ -224,9 +214,6 @@ public class NamespaceRegistry {
         // finally export symbols from the namespace
         namespace.initExports(namespaceFile);
         namespace.registerS3Methods(context, namespaceFile);
-
-        // Update our method name lookup
-        nativeSymbolMap.putAll(namespace.getNativeSymbolMap());
 
         return Optional.of(namespace);
 

@@ -22,7 +22,6 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.reflection.ClassBindingImpl;
 import org.renjin.methods.S4;
-import org.renjin.primitives.Native;
 import org.renjin.primitives.S3;
 import org.renjin.primitives.text.regex.RE;
 import org.renjin.primitives.text.regex.REFactory;
@@ -30,11 +29,6 @@ import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.*;
 
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.*;
 
 /**
@@ -50,7 +44,8 @@ public class Namespace {
   private final Environment baseNamespaceEnvironment;
 
   private final List<Symbol> exports = Lists.newArrayList();
-  private final Map<String, DllSymbol> nativeSymbolMap = new HashMap<>();
+
+  private final List<DllInfo> libraries = new ArrayList<>(0);
 
   public Namespace(Package pkg, Environment namespaceEnvironment) {
     this.pkg = pkg;
@@ -87,10 +82,6 @@ public class Namespace {
     } else {
       return Collections.unmodifiableCollection(exports);
     }
-  }
-
-  public Map<String, DllSymbol> getNativeSymbolMap() {
-    return nativeSymbolMap;
   }
 
   public SEXP getEntry(Symbol entry) {
@@ -235,16 +226,32 @@ public class Namespace {
   }
 
   private void importDynamicLibrary(Context context, NamespaceFile.DynLibEntry entry) {
-    DllInfo info = new DllInfo(entry.getLibraryName());
-    Class clazz;
 
+    // The process of loading a "native" library is slightly complicated.
+    // Comments below are excerpts from the Writing R Extensions Guide:
+    // https://cran.r-project.org/doc/manuals/r-release/R-exts.html#useDynLib
+
+    // A NAMESPACE file can contain one or more useDynLib directives which allows shared objects that need to be loaded.
+    // The directive
+    //
+    //    useDynLib(foo)
+    //
+    // registers the shared object foo for loading with library.dynam.
+    // Loading of registered object(s) occurs after the package code has been loaded
+    // and before running the load hook function.
+
+
+    // NOTE: By convention, Renjin's build tools generate a single JVM "trampoline" class named
+    // {groupId}.{packageName}.{packageName}.class that contains a public static method for all "native" methods
+    // compiled from the package.
+
+    Class libraryClass;
     try {
-
       FqPackageName packageName = pkg.getName();
       String className = packageName.getGroupId() + "." +
           Namespace.sanitizePackageNameForClassFiles(packageName.getPackageName()) + "." +
           Namespace.sanitizePackageNameForClassFiles(entry.getLibraryName());
-      clazz = pkg.loadClass(className);
+      libraryClass = pkg.loadClass(className);
 
     } catch (ClassNotFoundException e) {
       context.warn("Could not load compiled Fortran/C/C++ sources class for package " + pkg.getName() + ".\n" +
@@ -252,120 +259,57 @@ public class Namespace {
           "particular package. As a result, some functions may not work.\n");
       return;
     }
-    try {
-      // Call the initialization routine
-      Optional<Method> initMethod = findInitRoutine(entry.getLibraryName(), clazz);
-      if(initMethod.isPresent()) {
-        Context previousContext = Native.CURRENT_CONTEXT.get();
-        Native.CURRENT_CONTEXT.set(context);
-        try {
-          if(initMethod.get().getParameterTypes().length == 0) {
-            initMethod.get().invoke(null);
-          } else {
-            initMethod.get().invoke(null, info);
-          }
 
-          // Index the exported methods
-          for (DllSymbol dllSymbol : info.getSymbols()) {
-            nativeSymbolMap.put(dllSymbol.getName(), dllSymbol);
-          }
+    DllInfo library = new DllInfo(entry.getLibraryName(), libraryClass);
+    library.initialize(context);
 
-        } catch (InvocationTargetException e) {
-          throw new EvalException("Exception initializing compiled GNU R library " + entry.getLibraryName(), e.getCause());
-        } finally {
-          Native.CURRENT_CONTEXT.set(previousContext);
-        }
+
+    // The useDynLib directive also accepts the names of the native routines that are to be used in R via the .C,
+    // .Call, .Fortran and .External interface functions. These are given as additional arguments to the directive,
+    // for example,
+    //
+    //    useDynLib(foo, myRoutine, myOtherRoutine)
+    //
+    // By specifying these names in the useDynLib directive, the native symbols are resolved when the package is
+    // loaded and R variables identifying these symbols are added to the package’s namespace with these names.
+    // These can be used in the .C, .Call, .Fortran and .External calls in place of the name of the routine and the
+    // PACKAGE argument.
+
+    for (NamespaceFile.DynLibSymbol declaredSymbol : entry.getSymbols()) {
+      Optional<DllSymbol> symbol = library.lookup(declaredSymbol.getSymbolName());
+      if(symbol.isPresent()) {
+        namespaceEnvironment.setVariableUnsafe(entry.getPrefix() + declaredSymbol.getAlias(), symbol.get().toSexp());
       }
-
-      // Create NativeSymbol objects in the namespace environment for registered 
-      // methods. 
-      if(entry.isRegistration()) {
-        if (!initMethod.isPresent()) {
-          throw new EvalException("useDynLib(.registration = TRUE) but no init method found!");
-        }
-        // Use the symbols registered by the R_init_xxx() function
-        for (DllSymbol symbol : info.getSymbols()) {
-          namespaceEnvironment.setVariableUnsafe(entry.getPrefix() + symbol.getName(), symbol.toSexp());
-        }
-
-      } else if(!entry.getSymbols().isEmpty()) {
-
-        // Add the explicitly imported symbols as objects to the namespace
-        for (NamespaceFile.DynLibSymbol declaredSymbol : entry.getSymbols()) {
-          DllSymbol symbol = new DllSymbol();
-          symbol.setName(declaredSymbol.getSymbolName());
-          symbol.setMethodHandle(findGnurMethod(clazz, declaredSymbol.getSymbolName()));
-          namespaceEnvironment.setVariableUnsafe(entry.getPrefix() + declaredSymbol.getAlias(), symbol.toSexp());
-          nativeSymbolMap.put(declaredSymbol.getSymbolName(), symbol);
-        }
-      
-      } else {
-
-        // Make a list of all exported methods, we'll need this to resolve .Call() calls without
-        // a PACKAGE argument
-        for (Method method : clazz.getMethods()) {
-          if(Modifier.isStatic(method.getModifiers()) && Modifier.isPublic(method.getModifiers())) {
-            DllSymbol symbol = new DllSymbol();
-            symbol.setName(method.getName());
-            symbol.setMethodHandle(MethodHandles.lookup().unreflect(method));
-            nativeSymbolMap.put(method.getName(), symbol);
-          }
-        }
-      }
-
-    } catch(Exception e) {
-      // Allow the program to continue, there may be some packages whose gnur
-      // compilation failed but can still partially function.
-      e.printStackTrace();
-      System.err.println("WARNING: Failed to import dynLib entries for " + getName() + ", expect subsequent failures");
     }
+
+    // If the package has registration information (via the library's R_init_mylib method), then we can use that
+    // directly rather than specifying the list of symbols again in the useDynLib directive in the NAMESPACE file.
+    //
+    // Using the .registration argument of useDynLib, we can instruct the namespace mechanism to create R
+    // variables for these symbols.
+
+    if(entry.isRegistration()) {
+      // Use the symbols registered by the R_init_xxx() function
+      for (DllSymbol symbol : library.getRegisteredSymbols()) {
+        namespaceEnvironment.setVariableUnsafe(entry.getPrefix() + symbol.getName(), symbol.toSexp());
+      }
+    }
+
+    // Add the library to this session's list
+    context.getSession().loadLibrary(library);
+
+    // And to our package's list
+    libraries.add(library);
   }
 
-  /**
-   * GNU R provides a way of executing some code automatically when a object/DLL is either loaded or unloaded. 
-   * This can be used, for example, to register native routines with R's dynamic symbol mechanism, initialize some data 
-   * in the native code, or initialize a third party library. On loading a DLL, R will look for a routine within that
-   * DLL named R_init_lib where lib is the name of the DLL file with the extension removed.
-   *
-   * @param libraryName the name of the library to load
-   * @param clazz the JVM class containing the compiled routines
-   * @return the method handle if it exists
-   */
-  private Optional<Method> findInitRoutine(String libraryName, Class clazz) {
-    String initName = "R_init_" + libraryName;
-    Class[] expectedParameterTypes = new Class[] { DllInfo.class };
-
-    for (Method method : clazz.getMethods()) {
-      if(method.getName().equals(initName)) {
-        if(method.getParameterTypes().length != 0 &&
-            !Arrays.equals(method.getParameterTypes(), expectedParameterTypes)) {
-          throw new EvalException(String.format("%s.%s has invalid signature: %s. Expected %s(DllInfo info)",
-              clazz.getName(),
-              initName,
-              method.toString(),
-              initName));
-        }
-        return Optional.of(method);
+  public Optional<DllSymbol> lookupSymbol(String name) {
+    for (DllInfo library : libraries) {
+      Optional<DllSymbol> symbol = library.lookup(name);
+      if(symbol.isPresent()) {
+        return symbol;
       }
     }
     return Optional.absent();
-  }
-
-  private boolean isPublicStatic(Method method) {
-    return Modifier.isStatic(method.getModifiers()) && Modifier.isPublic(method.getModifiers());
-  }
-
-  private MethodHandle findGnurMethod(Class clazz, String symbolName) {
-    for(Method method : clazz.getMethods()) {
-      if(method.getName().equals(symbolName) && isPublicStatic(method)) {
-        try {
-          return MethodHandles.publicLookup().unreflect(method);
-        } catch (IllegalAccessException e) {
-          throw new RuntimeException(e);
-        }
-      }
-    }
-    throw new RuntimeException("Couldn't find method '" + symbolName + "'");
   }
 
   public void initExports(NamespaceFile file) {

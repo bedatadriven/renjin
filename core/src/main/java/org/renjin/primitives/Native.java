@@ -30,19 +30,18 @@ import org.renjin.invoke.annotations.NamedFlag;
 import org.renjin.invoke.reflection.ClassBindingImpl;
 import org.renjin.invoke.reflection.FunctionBinding;
 import org.renjin.methods.Methods;
+import org.renjin.primitives.packaging.DllInfo;
 import org.renjin.primitives.packaging.DllSymbol;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.repackaged.guava.base.Strings;
-import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.*;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
-import java.util.List;
 
 public class Native {
 
@@ -445,9 +444,9 @@ public class Native {
 
     } else {
       Namespace namespace = context.getNamespaceRegistry().getNamespace(context, packageName);
-      DllSymbol symbol = namespace.getNativeSymbolMap().get(methodName);
+      Optional<DllSymbol> symbol = namespace.lookupSymbol(methodName);
 
-      if(symbol == null) {
+      if(!symbol.isPresent()) {
         // Special case...
         // This should no longer be necessary if/when we update to latest version of GNU R stats.
         if("stats".equals(packageName)) {
@@ -455,11 +454,11 @@ public class Native {
         }
       }
 
-      if(symbol == null) {
+      if(!symbol.isPresent()) {
         throw new EvalException("Could not resolve native method '%s' in package '%s'", methodName, packageName);
       }
 
-      return symbol;
+      return symbol.get();
     }
   }
 
@@ -493,12 +492,13 @@ public class Native {
    * the global lookup.
    */
   private static DllSymbol findGlobalMethodByName(Context context, String methodName) {
-    Optional<DllSymbol> symbol = context.getNamespaceRegistry().resolveNativeMethod(methodName);
-    if(symbol.isPresent()) {
-      return symbol.get();
-    } else {
-      throw new EvalException("Could not resolve native method '%s'", methodName);
-    }
-  }
 
+    for (DllInfo library : context.getSession().getLoadedLibraries()) {
+      Optional<DllSymbol> symbol = library.lookup(methodName);
+      if(symbol.isPresent()) {
+        return symbol.get();
+      }
+    }
+    throw new EvalException("Could not resolve native method '%s'", methodName);
+  }
 }

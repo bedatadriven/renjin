@@ -24,4 +24,5 @@ assign.storage.mode <- function(x, mode) {
     x
 }
 
-assertThat(assign.storage.mode(1L, "numeric"), identicalTo(1L))
+assertThat(assign.storage.mode(1L, "numeric"), identicalTo(1.0))
+assertThat(assign.storage.mode(1.0, "integer"), identicalTo(1L))

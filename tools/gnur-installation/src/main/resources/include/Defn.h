@@ -114,32 +114,25 @@ extern0 SEXP	R_StringHash;       /* Global hash of CHARSXPs */
 #define HASHASH_MASK 1
 /**** HASHASH uses the first bit -- see HASHASH_MASK defined below */
 
-#ifdef USE_RINTERNALS
-# define IS_BYTES(x) ((x)->sxpinfo.gp & BYTES_MASK)
-# define SET_BYTES(x) (((x)->sxpinfo.gp) |= BYTES_MASK)
-# define IS_LATIN1(x) ((x)->sxpinfo.gp & LATIN1_MASK)
-# define SET_LATIN1(x) (((x)->sxpinfo.gp) |= LATIN1_MASK)
-# define IS_ASCII(x) ((x)->sxpinfo.gp & ASCII_MASK)
-# define SET_ASCII(x) (((x)->sxpinfo.gp) |= ASCII_MASK)
-# define IS_UTF8(x) ((x)->sxpinfo.gp & UTF8_MASK)
-# define SET_UTF8(x) (((x)->sxpinfo.gp) |= UTF8_MASK)
-# define ENC_KNOWN(x) ((x)->sxpinfo.gp & (LATIN1_MASK | UTF8_MASK))
-# define SET_CACHED(x) (((x)->sxpinfo.gp) |= CACHED_MASK)
-# define IS_CACHED(x) (((x)->sxpinfo.gp) & CACHED_MASK)
-#else
-/* Needed only for write-barrier testing */
+// No Internals for you!!
 int IS_BYTES(SEXP x);
 void SET_BYTES(SEXP x);
-int IS_LATIN1(SEXP x);
+//int IS_LATIN1(SEXP x);
 void SET_LATIN1(SEXP x);
-int IS_ASCII(SEXP x);
+//int IS_ASCII(SEXP x);
 void SET_ASCII(SEXP x);
-int IS_UTF8(SEXP x);
+//int IS_UTF8(SEXP x);
 void SET_UTF8(SEXP x);
-int ENC_KNOWN(SEXP x);
+//int ENC_KNOWN(SEXP x);
 int SET_CACHED(SEXP x);
 int IS_CACHED(SEXP x);
-#endif
+
+// In Renjin, character vectors are always UTF-8
+#define IS_ASCII(x) 0
+#define IS_UTF-8(x) 1
+#define IS_LATIN1(x) 0
+
+
 /* macros and declarations for managing CHARSXP cache */
 # define CXHEAD(x) (x)
 # define CXTAIL(x) ATTRIB(x)
@@ -367,7 +360,9 @@ typedef struct {
     PPinfo gram;     /* pretty-print info */
 } FUNTAB;
 
-#ifdef USE_RINTERNALS
+// No internals for you!!
+//#ifdef USE_RINTERNALS
+#ifdef 0
 /* There is much more in Rinternals.h, including function versions
  * of the Promise and Hashing groups.
  */

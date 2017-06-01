@@ -1178,4 +1178,9 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void badArrayLiteral() throws Exception {
     compileAndTest("bad_array_literal.c");
   }
+
+  @Test
+  public void longArrayIndex() throws Exception {
+    compileAndTest("long_index.c");
+  }
 }

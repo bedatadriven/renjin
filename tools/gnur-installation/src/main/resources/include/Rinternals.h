@@ -175,16 +175,6 @@ typedef enum {
 #define TYPE_BITS 5
 #define MAX_NUM_SEXPTYPE (1<<TYPE_BITS)
 
-
-// WE DONT respect USE_RINTERNALS, but if a package
-// DOES define this flag, then SEXPREC needs to be a complete type
-#ifdef USE_RINTERNALS
-typedef struct SEXPREC {
-    int f1;         // Define a few fields to be extra sure that GCC-Bridge doesn't collapse the type into
-    double f2;      // an array
-} SEXPREC, *SEXP;
-#endif
-
 // ======================= USE_RINTERNALS section
 #if 0 // REnjin never allows USE_RINTERNALS
 /* This is intended for use only within R itself.

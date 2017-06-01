@@ -32,6 +32,11 @@ import java.util.List;
 public class Sort {
 
   @Internal
+  public static Null sort(Null x, boolean decreasing) {
+    return x;
+  }
+
+  @Internal
   public static Vector sort(StringVector x, boolean decreasing) {
 
     if(x.getAttribute(Symbols.NAMES)!= Null.INSTANCE) {
@@ -46,7 +51,7 @@ public class Sort {
       Arrays.sort(sorted);
     }
 
-    return new StringArrayVector(sorted, x.getAttributes());
+    return new StringArrayVector(sorted);
   }
 
   @Internal
@@ -64,7 +69,7 @@ public class Sort {
       reverse(sorted);
     }
 
-    return (Vector) DoubleArrayVector.unsafe(sorted).setAttributes(x.getAttributes());
+    return DoubleArrayVector.unsafe(sorted);
   }
   
   private static void reverse(double[] b) {
@@ -97,7 +102,7 @@ public class Sort {
       reverse(sorted);
     }
 
-    return new IntArrayVector(sorted, x.getAttributes());
+    return new IntArrayVector(sorted);
   }
 
   @Internal
@@ -115,7 +120,7 @@ public class Sort {
       reverse(sorted);
     }
 
-    return new LogicalArrayVector(sorted, x.getAttributes());
+    return new LogicalArrayVector(sorted);
   }
 
   @Internal("is.unsorted")

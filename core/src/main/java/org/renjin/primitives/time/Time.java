@@ -237,6 +237,8 @@ public class Time {
       return DateTimeZone.getDefault();
     } else if("GMT".equals(tz)) {
       return DateTimeZone.UTC;
+    } else if("Coordinated Universal Time".equals(tz)) {
+      return DateTimeZone.UTC;
     } else {
       return DateTimeZone.forID(tz);
     }

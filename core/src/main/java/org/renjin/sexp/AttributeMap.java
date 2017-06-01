@@ -25,7 +25,10 @@ import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Maps;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 
 /**
@@ -935,7 +938,7 @@ public class AttributeMap {
   
     private StringVector toNameVector(SEXP sexp) {
       if(sexp instanceof StringVector) {
-        return (StringVector)sexp.setAttributes(new AttributeMap.Builder().combineFrom(sexp.getAttributes()));
+        return (StringVector)sexp.setAttributes(AttributeMap.EMPTY);
       } else if(sexp instanceof Vector) {
         return StringArrayVector.fromVector((Vector) sexp);
       } else {

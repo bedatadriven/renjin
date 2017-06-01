@@ -313,7 +313,7 @@ https://www.gnu.org/licenses/gpl-2.0.txt
       <dependency>
         <groupId>org.renjin</groupId>
         <artifactId>renjin-asm</artifactId>
-        <version>5.0.4b</version>
+        <version>5.2</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

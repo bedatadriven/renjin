@@ -1183,4 +1183,9 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void longArrayIndex() throws Exception {
     compileAndTest("long_index.c");
   }
+
+  @Test
+  public void downcast64() throws Exception {
+    compileAndTest("downcast64.c");
+  }
 }

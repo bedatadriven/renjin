@@ -629,6 +629,8 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
   /**
    * Returns true if the given {@code symbol} is bound to either a normal value, or
    * to an active binding in this Environment.
+   *
+   * <p>This call is guaranteed to be free of side-effects.</p>
    */
   public boolean exists(Symbol symbol) {
     return frame.getVariable(symbol) != Symbol.UNBOUND_VALUE ||

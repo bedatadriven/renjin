@@ -262,3 +262,31 @@ test.ellipses.3 <- function() {
     assertThat(g(c("A"),c("B")), identicalTo("B"))
 }
 
+test.exists.side.effects <- function() {
+
+    env <- new.env();
+    fval <- 1
+    f <- function(val) {
+        if(missing(val)) {
+            # Accessing the value has a side-effect!
+            fval <<- fval + 1
+            fval
+        } else {
+            fval <<- val
+        }
+    }
+
+    makeActiveBinding("f", f, env)
+
+    assertThat( env$f, identicalTo(2))
+    assertThat( env$f, identicalTo(3))
+    assertThat( env$f, identicalTo(4))
+
+    # exists(), at least in GNU R 3.3.3,
+    # does NOT activate the active binding and so has no side effects
+    assertThat( exists("f", envir = env), identicalTo(TRUE))
+
+    assertThat( fval,  identicalTo(4))
+
+}
+

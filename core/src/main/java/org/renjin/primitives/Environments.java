@@ -296,11 +296,7 @@ public final class Environments {
   }
 
   private static boolean existsAnySymbol(Symbol symbol, Environment environment, boolean inherits) {
-    if(environment.isActiveBinding(symbol)) {
-      return true;
-    }
-    SEXP value = environment.getVariableUnsafe(symbol);
-    if(value != Symbol.UNBOUND_VALUE) {
+    if(environment.exists(symbol)) {
       return true;
     }
     if(inherits && environment.getParent() != Environment.EMPTY) {

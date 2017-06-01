@@ -213,7 +213,7 @@ public class Subsetting {
     if(value == Symbol.UNBOUND_VALUE) {
       return Null.INSTANCE;
     }
-    return value;
+    return value.force(context);
   }
 
 

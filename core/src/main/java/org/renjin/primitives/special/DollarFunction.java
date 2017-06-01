@@ -108,7 +108,7 @@ public class DollarFunction extends SpecialFunction {
     if (value == Symbol.UNBOUND_VALUE) {
       return Null.INSTANCE;
     }
-    return value;
+    return value.force(context);
   }
 
   public static SEXP fromExternalPtr(ExternalPtr<?> externalPtr, String name) {

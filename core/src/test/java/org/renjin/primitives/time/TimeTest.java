@@ -229,6 +229,27 @@ public class TimeTest extends EvalTestCase {
     assertThat(eval("format(ct)"), elementsIdenticalTo(c("2009-07-01")));
     assertThat(eval("names(format(ct))"), identicalTo(NULL));
   }
+
+  @Test
+  public void asPosixLtFromInt() {
+
+    eval("ct <- structure(1246406400L, class=c(\"POSIXct\", \"POSIXt\"), tzone = 'UTC')");
+
+    eval("lt <- as.POSIXlt(ct)");
+    assertThat(eval("lt$sec"), elementsIdenticalTo(c_i(0)));
+    assertThat(eval("lt$min"), elementsIdenticalTo(c_i(0)));
+    assertThat(eval("lt$hour"), elementsIdenticalTo(c_i(0)));
+    assertThat(eval("lt$mday"), elementsIdenticalTo(c_i(1)));
+    assertThat(eval("lt$mon"), elementsIdenticalTo(c_i(7-1)));
+    assertThat(eval("lt$year"), elementsIdenticalTo(c_i(2009-1900)));
+    assertThat(eval("lt$wday"), elementsIdenticalTo(c_i(3)));
+    assertThat(eval("lt$yday"), elementsIdenticalTo(c_i(181)));
+    assertThat(eval("attr(lt, 'tzone')"), elementsIdenticalTo(c("UTC")));
+
+    assertThat(eval("format(ct)"), elementsIdenticalTo(c("2009-07-01")));
+    assertThat(eval("names(format(ct))"), identicalTo(NULL));
+  }
+
   
   @Test
   public void dateAsPosixLt() {

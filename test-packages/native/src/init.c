@@ -23,6 +23,8 @@ R_init_native(DllInfo *dll)
     R_registerRoutines(dll, NULL, callMethods, Fentries, NULL);
     R_RegisterCCallable("native", "Cmysum", (DL_FUNC) &Cmysum);
     R_RegisterCCallable("native", "Cmydsum", (DL_FUNC) &Cmydsum);
+
+    // Allow lookup of symbols not listed above by name
     R_useDynamicSymbols(dll, TRUE);
 
 }

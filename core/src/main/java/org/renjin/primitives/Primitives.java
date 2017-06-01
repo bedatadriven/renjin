@@ -39,6 +39,7 @@ import org.renjin.primitives.io.serialization.Serialization;
 import org.renjin.primitives.match.Duplicates;
 import org.renjin.primitives.match.Match;
 import org.renjin.primitives.matrix.Matrices;
+import org.renjin.primitives.packaging.Namespace;
 import org.renjin.primitives.packaging.Namespaces;
 import org.renjin.primitives.packaging.Packages;
 import org.renjin.primitives.sequence.RepFunction;
@@ -1022,6 +1023,9 @@ public class Primitives {
     f("jload", Jvmi.class, 0);
     f("library", Packages.class, 11);
     f("require", Packages.class, 11);
+
+    f("library.dynam", Namespaces.class, 11);
+    f("library.dynam.unload", Namespaces.class, 11);
 
     // bitwise
     f("bitwiseNot", Bitwise.class, 11);

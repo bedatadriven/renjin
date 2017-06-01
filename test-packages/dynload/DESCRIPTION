@@ -1,0 +1,5 @@
+Package: dynload
+Title: Native Package Test, using library.dynamic
+Version: 0.1
+License: GPL 2
+

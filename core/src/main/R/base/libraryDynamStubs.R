@@ -7,6 +7,10 @@
 # but a survey of actual uses by packages shows that in the vast majority of cases,
 # the return values are not used.
 
-library.dynam <- function(chname, package, lib.loc, verbose = FALSE, file.ext = "", ...) invisible(NULL) 
-library.dynam.unload <- function(chname, libpath, verbose = FALSE, file.ext = "") invisible(NULL)
+library.dynam <- function(chname, package, lib.loc, verbose = FALSE, file.ext = "", ...) {
+    .Internal(library.dynam(chname, package))
+}
 
+library.dynam.unload <- function(chname, libpath, verbose = FALSE, file.ext = "") {
+    .Internal(library.dynam.unload(chname))
+}

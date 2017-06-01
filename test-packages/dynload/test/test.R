@@ -18,20 +18,11 @@
 #
 
 
+library(hamcrest)
 
-fortranCall <- function() {
-    data <- c(0, 1, 2)
-    output <- .Fortran("fortsub", as.double(data), length(data))
-    return(output[[1]])
-}
+dll <- library.dynam("dynload", package = "dynload", lib = .libPaths())
 
+assertThat(class(dll), identicalTo("DLLInfo"))
 
-dotCall <- function(x) {
-    .Call("_dotCall", x)
-}
-
-dotC <- function(x) {
-    data <- c(1L, 2L, 3L)
-    output <- .C("_dotC", data)
-    return(output[[1]])
-}
+assertThat(.Call("myFunction", 1L),  identicalTo(42))
+assertThat(.Call("myFunction", 1L, PACKAGE = "dynload"),  identicalTo(42))

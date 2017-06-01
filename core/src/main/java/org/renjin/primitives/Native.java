@@ -428,7 +428,7 @@ public class Native {
   private static DllSymbol findMethodByName(Context context, String methodName, String packageName, String className, DllSymbol.Convention convention) {
 
     if(convention == DllSymbol.Convention.FORTRAN) {
-      methodName = methodName + "_";
+      methodName = methodName.toLowerCase() + "_";
     }
 
     if(convention == DllSymbol.Convention.FORTRAN && "base".equals(packageName)) {

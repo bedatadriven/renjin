@@ -185,4 +185,24 @@ public class Namespaces {
     }
     return result.build();
   }
+
+  @Internal("library.dynam")
+  public static SEXP libraryDynam(@Current Context context, String libraryName, String packageName) {
+    Namespace namespace = context.getNamespaceRegistry().getNamespace(context, packageName);
+    DllInfo dllInfo;
+    try {
+      dllInfo = namespace.loadDynamicLibrary(context, libraryName);
+    } catch (ClassNotFoundException e) {
+      // Allow the package to continue loading...
+      context.warn("Could not load the dynamic library: " + e.getMessage());
+      return Null.INSTANCE;
+    }
+
+    return dllInfo.toSexp();
+  }
+
+  @Internal("library.dynam.unload")
+  public static SEXP libraryDynamUnload(@Current Context context, String name) {
+    return Null.INSTANCE;
+  }
 }

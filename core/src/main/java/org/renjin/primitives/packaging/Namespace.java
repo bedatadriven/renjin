@@ -240,29 +240,15 @@ public class Namespace {
     // Loading of registered object(s) occurs after the package code has been loaded
     // and before running the load hook function.
 
-
-    // NOTE: By convention, Renjin's build tools generate a single JVM "trampoline" class named
-    // {groupId}.{packageName}.{packageName}.class that contains a public static method for all "native" methods
-    // compiled from the package.
-
-    Class libraryClass;
+    DllInfo library;
     try {
-      FqPackageName packageName = pkg.getName();
-      String className = packageName.getGroupId() + "." +
-          Namespace.sanitizePackageNameForClassFiles(packageName.getPackageName()) + "." +
-          Namespace.sanitizePackageNameForClassFiles(entry.getLibraryName());
-      libraryClass = pkg.loadClass(className);
-
-    } catch (ClassNotFoundException e) {
+      library = loadDynamicLibrary(context, entry.getLibraryName());
+    } catch (Exception e) {
       context.warn("Could not load compiled Fortran/C/C++ sources class for package " + pkg.getName() + ".\n" +
-          "This is most likely because Renjin's compiler is not yet able to handle the sources for this\n" + 
+          "This is most likely because Renjin's compiler is not yet able to handle the sources for this\n" +
           "particular package. As a result, some functions may not work.\n");
       return;
     }
-
-    DllInfo library = new DllInfo(entry.getLibraryName(), libraryClass);
-    library.initialize(context);
-
 
     // The useDynLib directive also accepts the names of the native routines that are to be used in R via the .C,
     // .Call, .Fortran and .External interface functions. These are given as additional arguments to the directive,
@@ -294,12 +280,47 @@ public class Namespace {
         namespaceEnvironment.setVariableUnsafe(entry.getPrefix() + symbol.getName(), symbol.toSexp());
       }
     }
+  }
 
-    // Add the library to this session's list
+  /**
+   * Loads a compiled library from this namespace's package.
+   *
+   * <p>Many packages written for GNU R contain C, C++, Fortran sources, which are
+   * compiled into a dynamically-linked library (DLL) at build time, and then loaded
+   * dynamically when the package is loaded.</p>
+   *
+   * <p>Renjin does its best to map this system to the JVM with a few steps:</p>
+   *
+   * <p>At compile time, native sources are compiled to JVM byte code with gcc-bridge.
+   *
+   * <p>GCC Bridge generates a single "trampoline" class that contains a public static method
+   * for each of the functions that would normally be exported from a DLL. This trampoline class
+   * is named using the groupId and package name, for example "org.renjin.cran.Matrix".
+   *
+   * <p>At runtime, we load this trampoline class dynamically and locate "native" symbols
+   * with Java Reflection.</p>
+   *
+   */
+  public DllInfo loadDynamicLibrary(Context context, String libraryName) throws ClassNotFoundException {
+    Class libraryClass;
+
+    FqPackageName packageName = pkg.getName();
+    String className = packageName.getGroupId() + "." +
+        Namespace.sanitizePackageNameForClassFiles(packageName.getPackageName()) + "." +
+        Namespace.sanitizePackageNameForClassFiles(libraryName);
+    libraryClass = pkg.loadClass(className);
+
+
+    DllInfo library = new DllInfo(libraryName, libraryClass);
+    library.initialize(context);
+
+    // The "library" is registered both at the session-level...
     context.getSession().loadLibrary(library);
 
-    // And to our package's list
+    // ... within this namespace
     libraries.add(library);
+
+    return library;
   }
 
   public Optional<DllSymbol> lookupSymbol(String name) {

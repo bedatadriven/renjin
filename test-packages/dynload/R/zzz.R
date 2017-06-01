@@ -17,21 +17,13 @@
 # https://www.gnu.org/licenses/gpl-2.0.txt
 #
 
+noop <- function() NULL
 
-
-fortranCall <- function() {
-    data <- c(0, 1, 2)
-    output <- .Fortran("fortsub", as.double(data), length(data))
-    return(output[[1]])
-}
-
-
-dotCall <- function(x) {
-    .Call("_dotCall", x)
-}
-
-dotC <- function(x) {
-    data <- c(1L, 2L, 3L)
-    output <- .C("_dotC", data)
-    return(output[[1]])
+".onLoad" <-function(lib, pkg)
+{
+  cat("Loading dynload!\n")
+  cat(sprintf("pkg = %s, lib = %s\n", deparse(pkg), deparse(lib)))
+  
+  library.dynam("dynload", package = pkg, lib.loc = lib)
+  return(invisible(0)) 
 }

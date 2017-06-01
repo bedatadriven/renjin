@@ -22,6 +22,7 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.Native;
 import org.renjin.repackaged.guava.base.Optional;
+import org.renjin.sexp.*;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -183,4 +184,13 @@ public class DllInfo {
     return Optional.absent();
   }
 
+  public SEXP toSexp() {
+    ListVector.NamedBuilder object = ListVector.newNamedBuilder();
+    object.setAttribute(Symbols.CLASS, StringVector.valueOf("DLLInfo"));
+    object.add("name", libraryName);
+    object.add("path", libraryClass.getName());
+    object.add("dynamicLookup", useDynamicSymbols);
+    object.add("info", new ExternalPtr<>(this));
+    return object.build();
+  }
 }

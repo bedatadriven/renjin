@@ -332,7 +332,7 @@ public class Subsetting {
       return selection.replaceAtomicVectorElements(context, (AtomicVector) source, replacement);
 
     } else {
-      throw new EvalException("object of type '%' is not subsettable", source.getTypeName());
+      throw new EvalException("object of type '%s' is not subsettable", source.getTypeName());
     }
   }
 

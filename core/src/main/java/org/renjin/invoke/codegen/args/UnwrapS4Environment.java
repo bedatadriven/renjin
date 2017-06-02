@@ -18,37 +18,49 @@
  */
 package org.renjin.invoke.codegen.args;
 
+import com.sun.codemodel.JClass;
 import com.sun.codemodel.JCodeModel;
-import com.sun.codemodel.JExpr;
 import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JVar;
-import org.renjin.invoke.annotations.InvokeAsCharacter;
 import org.renjin.invoke.codegen.ApplyMethodContext;
 import org.renjin.invoke.codegen.WrapperRuntime;
 import org.renjin.invoke.model.JvmMethod.Argument;
 import org.renjin.sexp.Environment;
+import org.renjin.sexp.ExternalPtr;
+import org.renjin.sexp.SEXP;
 
+import static com.sun.codemodel.JExpr.cast;
+import static com.sun.codemodel.JExpr.invoke;
 
-public class UsingAsCharacter extends ArgConverterStrategy {
+/**
+ * Converts a formal argument of type 'Environment' via the
+ * {@link WrapperRuntime#unwrapEnvironmentSuperClass(SEXP)} method, which either
+ * casts the SEXP to an Environment, or accesses the environment super class from .xData slot of
+ * an S4 Object.
+ */
+public class UnwrapS4Environment extends ArgConverterStrategy {
 
-  public UsingAsCharacter(Argument formal) {
+  public UnwrapS4Environment(Argument formal) {
     super(formal);
   }
 
   public static boolean accept(Argument formal) {
-    return formal.isAnnotatedWith(InvokeAsCharacter.class);
+    return formal.getClazz().equals(Environment.class);
   }
 
   @Override
-  public JExpression convertArgument(ApplyMethodContext parent, JExpression sexp) {
-    return parent.classRef(WrapperRuntime.class).staticInvoke("invokeAsCharacter")
-            .arg(parent.getContext())
-            .arg(parent.getEnvironment())
-            .arg(sexp);
+  public JExpression getTestExpr(JCodeModel codeModel, JVar sexp) {
+    return codeModel
+        .ref(WrapperRuntime.class)
+        .staticInvoke("isEnvironmentOrEnvironmentSubclass")
+        .arg(sexp);
   }
 
   @Override
-  public JExpression getTestExpr(JCodeModel codeModel, JVar sexpVariable) {
-    return JExpr.TRUE;
+  public JExpression convertArgument(ApplyMethodContext method, JExpression sexp) {
+    return method.getCodeModel()
+        .ref(WrapperRuntime.class)
+        .staticInvoke("unwrapEnvironmentSuperClass")
+        .arg(sexp);
   }
 }

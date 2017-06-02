@@ -21,6 +21,7 @@ package org.renjin.primitives.special;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.S3;
+import org.renjin.primitives.Types;
 import org.renjin.primitives.subset.Subsetting;
 import org.renjin.sexp.*;
 
@@ -72,6 +73,8 @@ public class DollarAssignFunction extends SpecialFunction {
     } else if(object instanceof AtomicVector) {
       return Subsetting.setElementByName((AtomicVector) object, name, value);
 
+    } else if(object instanceof S4Object) {
+      return Subsetting.setElementByName(context, ((S4Object) object), name, value);
     } else {
       throw new EvalException("object of type '%s' is not subsettable", object.getTypeName());
     }

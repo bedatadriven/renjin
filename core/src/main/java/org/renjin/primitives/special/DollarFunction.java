@@ -22,6 +22,7 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.primitives.S3;
+import org.renjin.primitives.Types;
 import org.renjin.sexp.*;
 
 /**
@@ -55,6 +56,9 @@ public class DollarFunction extends SpecialFunction {
     if (genericResult!= null) {
       return genericResult;
     }
+
+    // Unwrap any environments hidden inside an S4 object
+    object = Types.unwrapS4Object(object);
     
     // If no generic function, extract the element
     String name = nameArgument.getElementAsString(0);

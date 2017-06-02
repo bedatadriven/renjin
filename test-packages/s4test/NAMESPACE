@@ -1,5 +1,9 @@
 importClassesFrom(stats4, mle)
 importMethodsFrom(stats4, coef)
+
+importClassesFrom(s3test, Country)
+importMethodsFrom(s3test, setCountryTemp, setCountryName)
+
 exportClasses("seq")
 exportClasses("mle_ext")
 exportMethods(setType, getSequence, findType)

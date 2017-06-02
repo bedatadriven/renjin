@@ -30,6 +30,9 @@ public class ArgConverterStrategies {
     
     } else if(UsingAsCharacter.accept(formal)) {
       return new UsingAsCharacter(formal);
+
+    } else if(UnwrapS4Environment.accept(formal)) {
+      return new UnwrapS4Environment(formal);
     
     } else if(SexpSubclass.accept(formal)) {
       return new SexpSubclass(formal);

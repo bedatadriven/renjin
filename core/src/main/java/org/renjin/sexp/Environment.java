@@ -626,6 +626,15 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     }
   }
 
+  @Override
+  public int length() {
+    int length = frame.getSymbols().size();
+    if(activeBindings != null) {
+      length += activeBindings.size();
+    }
+    return length;
+  }
+
   /**
    * Returns true if the given {@code symbol} is bound to either a normal value, or
    * to an active binding in this Environment.
@@ -733,6 +742,9 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
    * @throws AssertionError if context is not provided
    */
   public SEXP getVariable(Context context, String symbolName) {
+    if(StringVector.isNA(symbolName)) {
+      symbolName = "NA";
+    }
     return getVariable(context, Symbol.get(symbolName));
   }
 

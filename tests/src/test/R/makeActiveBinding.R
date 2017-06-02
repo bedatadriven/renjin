@@ -290,3 +290,17 @@ test.exists.side.effects <- function() {
 
 }
 
+test.length <- function() {
+
+    x <- new.env()
+    assertThat(length(x), identicalTo(0L))
+
+    x$a <- 41
+    x$b <- 42
+    assertThat(length(x), identicalTo(2L))
+
+    makeActiveBinding("f", function(...) 1, x)
+
+    assertThat(length(x), identicalTo(3L))
+
+}

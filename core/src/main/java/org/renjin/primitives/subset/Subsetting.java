@@ -121,6 +121,25 @@ public class Subsetting {
     return env;
   }
 
+
+  /**
+   * Tries to set a single element by name in an S4 object.
+   *
+   * <p>S4 objects that inherit from environments are handled specially. The environment is stored
+   * in an .xData attribute, where we have to update the value.</p>
+   */
+  public static SEXP setElementByName(Context context, S4Object object, String name, SEXP value) {
+    SEXP xData = object.getAttribute(Symbols.DOT_XDATA);
+    if(!(xData instanceof Environment)) {
+      throw new EvalException("object of type 'S4' is not subsettable.");
+    }
+
+    // Update environment object *in place*
+    setElementByName(context, (Environment)xData, name, value);
+
+    return object;
+  }
+
   /**
    * Same as "[" but not generic
    */
@@ -162,6 +181,9 @@ public class Subsetting {
     if(source == Null.INSTANCE) {
       return Null.INSTANCE;
     }
+
+    // Environments can be hidden inside of S4 objects...
+    source = Types.unwrapS4Object(source);
 
     // Environments are handled very differently from vectors, specialize now.
     if(source instanceof Environment) {
@@ -205,9 +227,6 @@ public class Subsetting {
     }
 
     String symbolName = ((StringVector) subscript).getElementAsString(0);
-    if(StringVector.isNA(symbolName)) {
-      throw new EvalException("subset argument for environment cannot be NA");
-    }
 
     SEXP value = source.getVariable(context, symbolName);
     if(value == Symbol.UNBOUND_VALUE) {
@@ -323,8 +342,8 @@ public class Subsetting {
   public static SEXP setSingleElement(@Current Context context, SEXP source, @ArgumentList ListVector argumentList) {
 
     // Handle environment case as exceptional first
-    if(source instanceof Environment) {
-      return setSingleEnvironmentElement(context, (Environment) source, argumentList);
+    if(source instanceof Environment || source instanceof S4Object) {
+      return setSingleEnvironmentElement(context, source, argumentList);
     }
 
     SEXP replacement = argumentList.getElementAsSEXP(argumentList.length() - 1);
@@ -411,8 +430,11 @@ public class Subsetting {
 
   /**
    *  Environment[[name]] <- value
+   *
+   *  @param source an SEXP of type Environment or an S4 Object which an embedded environment
+   *  @param arguments arguments to the [[<- operator
    */
-  private static Environment setSingleEnvironmentElement(Context context, Environment source, ListVector arguments) {
+  private static SEXP setSingleEnvironmentElement(Context context, SEXP source, ListVector arguments) {
     if(arguments.length() != 2) {
       throw new EvalException("wrong args for environment subassignment");
     }
@@ -425,11 +447,17 @@ public class Subsetting {
 
     StringVector subscript = (StringVector) subscriptExp;
 
-    source.setVariable(context, subscript.getElementAsString(0), value);
+    String name = subscript.getElementAsString(0);
 
-    return source;
+    if(source instanceof Environment) {
+      return setElementByName(context, ((Environment) source), name, value);
+    } else if(source instanceof S4Object) {
+      return setElementByName(context, ((S4Object) source), name, value);
+    } else {
+      throw new IllegalArgumentException("Must be environment or S4Object");
+    }
   }
-  
+
   private static SEXP setSingleListElementByName(ListBuilder builder, String nameToReplace, SEXP replacement) {
     int index = builder.getIndexByName(nameToReplace);
     boolean dropDimensions = false;
@@ -453,4 +481,5 @@ public class Subsetting {
     }
     return builder.build();
   }
+
 }

@@ -100,5 +100,7 @@ test.s4.dispatch.metadata.03 = function() {
 test.extend.primitive.5 = function() {
     setClass("Foo", contains="numeric")
     x <- new("Foo", .Data = 42)
+    assertThat(typeof(x), identicalTo("double"))
+    assertThat(is.double(x), identicalTo(TRUE))
     assertThat(x[1], identicalTo(42))
 }

@@ -62,6 +62,9 @@ public class Symbols {
 
   public static final Symbol DOT_DATA = Symbol.get(".Data");
 
+  public static final Symbol DOT_XDATA = Symbol.get(".xData");
+
+
 
 
   /**

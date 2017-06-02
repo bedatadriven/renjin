@@ -129,6 +129,11 @@ public class Namespace {
     return this.namespaceEnvironment;
   }
 
+
+  public List<DllInfo> getLibraries() {
+    return libraries;
+  }
+
   /**
    * Copies the exported (public) symbols from our namespace environment
    * to the given package environment
@@ -264,7 +269,7 @@ public class Namespace {
     for (NamespaceFile.DynLibSymbol declaredSymbol : entry.getSymbols()) {
       Optional<DllSymbol> symbol = library.lookup(declaredSymbol.getSymbolName());
       if(symbol.isPresent()) {
-        namespaceEnvironment.setVariableUnsafe(entry.getPrefix() + declaredSymbol.getAlias(), symbol.get().toSexp());
+        namespaceEnvironment.setVariableUnsafe(entry.getPrefix() + declaredSymbol.getAlias(), symbol.get().buildNativeSymbolInfoSexp());
       }
     }
 
@@ -277,7 +282,7 @@ public class Namespace {
     if(entry.isRegistration()) {
       // Use the symbols registered by the R_init_xxx() function
       for (DllSymbol symbol : library.getRegisteredSymbols()) {
-        namespaceEnvironment.setVariableUnsafe(entry.getPrefix() + symbol.getName(), symbol.toSexp());
+        namespaceEnvironment.setVariableUnsafe(entry.getPrefix() + symbol.getName(), symbol.buildNativeSymbolInfoSexp());
       }
     }
   }

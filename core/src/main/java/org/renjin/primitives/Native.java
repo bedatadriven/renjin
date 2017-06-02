@@ -23,10 +23,7 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Profiler;
 import org.renjin.gcc.runtime.*;
-import org.renjin.invoke.annotations.ArgumentList;
-import org.renjin.invoke.annotations.Builtin;
-import org.renjin.invoke.annotations.Current;
-import org.renjin.invoke.annotations.NamedFlag;
+import org.renjin.invoke.annotations.*;
 import org.renjin.invoke.reflection.ClassBindingImpl;
 import org.renjin.invoke.reflection.FunctionBinding;
 import org.renjin.methods.Methods;
@@ -56,6 +53,62 @@ public class Native {
       throw new IllegalStateException("Renjin context not initialized for this thread.");
     }
     return context;
+  }
+
+  @Internal
+  public static ListVector getLoadedDLLs(@Current Context context) {
+
+    ListVector.NamedBuilder list = new ListVector.NamedBuilder();
+    list.setAttribute(Symbols.CLASS, StringVector.valueOf("DLLInfoList"));
+
+    for (DllInfo dllInfo : context.getSession().getLoadedLibraries()) {
+      list.add(dllInfo.getLibraryName(), dllInfo.buildDllInfoSexp());
+    }
+
+    return list.build();
+  }
+
+  @Internal
+  public static ListVector getRegisteredRoutines(DllInfo dllInfo) {
+    return dllInfo.buildRegisteredRoutinesSexp();
+  }
+
+  @Internal
+  public static ListVector getSymbolInfo(@Current Context context, String name, String packageName, boolean withRegistrationInfo) {
+
+    if(packageName.isEmpty()) {
+      for (DllInfo dllInfo : context.getSession().getLoadedLibraries()) {
+        Optional<DllSymbol> symbol = dllInfo.getRegisteredSymbol(name);
+        if(symbol.isPresent()) {
+          return symbol.get().buildNativeSymbolInfoSexp();
+        }
+      }
+      throw new EvalException("No such symbol " +  name);
+
+    } else {
+
+      Optional<Namespace> namespace = context.getNamespaceRegistry().getNamespaceIfPresent(Symbol.get(packageName));
+      if(namespace.isPresent()) {
+        for (DllInfo dllInfo : namespace.get().getLibraries()) {
+          Optional<DllSymbol> symbol = dllInfo.getRegisteredSymbol(name);
+          if(symbol.isPresent()) {
+            return symbol.get().buildNativeSymbolInfoSexp();
+          }
+        }
+      }
+
+      throw new EvalException("No such symbol " + name + " in package " + packageName);
+    }
+  }
+
+  @Internal
+  public static ListVector getSymbolInfo(String name, DllInfo dllInfo, boolean withRegistrationInfo) {
+    Optional<DllSymbol> registeredSymbol = dllInfo.getRegisteredSymbol(name);
+    if(registeredSymbol.isPresent()) {
+      return registeredSymbol.get().buildNativeSymbolInfoSexp();
+    }
+
+    throw new EvalException("No such symbol " + name + " in library " + dllInfo.getLibraryName());
   }
 
   @Builtin(".C")

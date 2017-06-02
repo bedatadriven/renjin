@@ -198,7 +198,7 @@ public class Namespaces {
       return Null.INSTANCE;
     }
 
-    return dllInfo.toSexp();
+    return dllInfo.buildDllInfoSexp();
   }
 
   @Internal("library.dynam.unload")

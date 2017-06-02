@@ -134,3 +134,22 @@ test.PromisesAreForcedByGet <- function() {
 
     f(get(envir = x$env, 'data'))
 }
+
+test.RecallInPromise <- function() {
+
+    g <- function(x, y) {
+        x + y
+    }
+
+    f <- function(n) {
+        cat(sprintf("n = %d\n", n))
+        if(n < 0) {
+            99
+        } else {
+            Recall(n - 1)
+        }
+    }
+
+    print(f(3))
+
+}

@@ -700,6 +700,11 @@ public class Primitives {
     f(".Fortran", Native.class, -1);
     f(".External",  Native.class, -1);
     f(".Call", Native.class, -1);
+    f("getSymbolInfo", Native.class, 11);
+    f("getLoadedDLLs", Native.class, 11);
+    f("getRegisteredSymbols", Native.class, 11);
+    f("getRegisteredRoutines", Native.class, 11);
+
     f(".External.graphics", /*Externalgr*/ null, 1);
     f(".Call.graphics", /*dotcallgr*/ null, 1);
     f("recordGraphics", /*recordGraphics*/ null, 211);

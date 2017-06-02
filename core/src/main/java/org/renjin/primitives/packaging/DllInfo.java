@@ -24,8 +24,6 @@ import org.renjin.primitives.Native;
 import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.sexp.*;
 
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -91,8 +89,12 @@ public class DllInfo {
    */
   public boolean forceSymbols(boolean value) {
     boolean oldValue = this.forceSymbols;
-    this.forceSymbols = true;
+    this.forceSymbols = value;
     return oldValue;
+  }
+
+  public Optional<DllSymbol> getRegisteredSymbol(String name) {
+    return Optional.fromNullable(registeredSymbols.get(name));
   }
 
   public Iterable<DllSymbol> getRegisteredSymbols() {
@@ -128,10 +130,7 @@ public class DllInfo {
   }
 
   /**
-   * GNU R provides a way of executing some code automatically when a object/DLL is either loaded or unloaded.
-   * This can be used, for example, to register native routines with R's dynamic symbol mechanism, initialize some data
-   * in the native code, or initialize a third party library. On loading a DLL, R will look for a routine within that
-   * DLL named R_init_lib where lib is the name of the DLL file with the extension removed.
+   * Locates a dynamic library's initialization function, if one exists.
    *
    */
   private Optional<Method> findInitRoutine() {
@@ -184,13 +183,42 @@ public class DllInfo {
     return Optional.absent();
   }
 
-  public SEXP toSexp() {
+  /**
+   * Creates a "DLLInfo"  object with details of this library.
+   */
+  public SEXP buildDllInfoSexp() {
     ListVector.NamedBuilder object = ListVector.newNamedBuilder();
     object.setAttribute(Symbols.CLASS, StringVector.valueOf("DLLInfo"));
     object.add("name", libraryName);
     object.add("path", libraryClass.getName());
     object.add("dynamicLookup", useDynamicSymbols);
     object.add("info", new ExternalPtr<>(this));
+    return object.build();
+  }
+
+  /**
+   * Creates a "DLLRegisteredRoutines" object that lists all the registered elements
+   */
+  public ListVector buildRegisteredRoutinesSexp() {
+
+    ListVector.NamedBuilder object = new ListVector.NamedBuilder();
+    object.setAttribute(Symbols.CLASS, StringVector.valueOf("DLLRegisteredRoutines"));
+    object.add(".C", buildNativeRoutineList(DllSymbol.Convention.C));
+    object.add(".Call", buildNativeRoutineList(DllSymbol.Convention.CALL));
+    object.add(".Fortran", buildNativeRoutineList(DllSymbol.Convention.FORTRAN));
+    object.add(".External", buildNativeRoutineList(DllSymbol.Convention.EXTERNAL));
+    return object.build();
+  }
+
+  private ListVector buildNativeRoutineList(DllSymbol.Convention convention) {
+    ListVector.NamedBuilder object = new ListVector.NamedBuilder();
+    object.setAttribute(Symbols.CLASS, StringVector.valueOf("NativeRoutineList"));
+
+    for (DllSymbol symbol : registeredSymbols.values()) {
+      if(symbol.getConvention() == convention) {
+        object.add(symbol.getName(), symbol.buildNativeSymbolInfoSexp());
+      }
+    }
     return object.build();
   }
 }

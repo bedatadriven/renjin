@@ -56,6 +56,13 @@ public class DllSymbol {
   public DllSymbol() {
   }
 
+
+  public DllSymbol(String name, MethodHandle methodHandle, Convention convention) {
+    this.name = name;
+    this.methodHandle = methodHandle;
+    this.convention = convention;
+  }
+
   public DllSymbol(Method method) {
     this.name = method.getName();
     try {
@@ -73,23 +80,19 @@ public class DllSymbol {
     this.name = name;
   }
 
-  public void setMethodHandle(MethodHandle methodHandle) {
-    this.methodHandle = methodHandle;
-  }
-
   public MethodHandle getMethodHandle() {
     return methodHandle;
   }
 
-  public void setConvention(Convention convention) {
-    this.convention = convention;
+  public Convention getConvention() {
+    return convention;
   }
 
 
   /**
    * @return an R NativeSymbolInfo SEXP object
    */
-  public ListVector toSexp() {
+  public ListVector buildNativeSymbolInfoSexp() {
 
     ListVector.NamedBuilder symbol = new ListVector.NamedBuilder();
     symbol.add("name", name);
@@ -112,13 +115,20 @@ public class DllSymbol {
    */
   public static DllSymbol fromSexp(SEXP method) {
     ListVector list = (ListVector) method;
+    String name = list.getElementAsString("name");
     ExternalPtr<MethodHandle> address = (ExternalPtr<MethodHandle>) list.get("address");
+    Convention convention = conventionFromClass(method);
 
-    DllSymbol symbol = new DllSymbol();
-    symbol.setName(list.getElementAsString("name"));
-    symbol.setMethodHandle(address.getInstance());
+    return new DllSymbol(name, address.getInstance(), convention);
+  }
 
-    return symbol;
+  private static Convention conventionFromClass(SEXP method) {
+    for (Convention convention : Convention.values()) {
+      if(method.inherits(convention.getClassName())) {
+        return convention;
+      }
+    }
+    return Convention.C;
   }
 
 }

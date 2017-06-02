@@ -58,11 +58,7 @@ public final class Rdynload {
         if (def.fun == null) {
           break;
         }
-        DllSymbol symbol = new DllSymbol();
-        symbol.setMethodHandle(def.fun);
-        symbol.setConvention(convention);
-        symbol.setName(def.getName());
-        library.register(symbol);
+        library.register(new DllSymbol(def.getName(), def.fun, convention));
       }
     }
   }

@@ -1197,4 +1197,9 @@ public class GimpleCompilerTest extends AbstractGccTest {
       assertThat(e.getCause().getMessage(), equalTo("Compilation of inline assembly not supported"));
     }
   }
+
+  @Test
+  public void arraysOfMixedLength() throws Exception {
+    compileAndTest("array_mixed_len_union.c");
+  }
 }

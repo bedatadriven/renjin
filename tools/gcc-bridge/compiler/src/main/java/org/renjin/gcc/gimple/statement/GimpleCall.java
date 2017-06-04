@@ -41,7 +41,6 @@ public class GimpleCall extends GimpleStatement {
     return function;
   }
 
-  @Override
   @JsonProperty("arguments")
   public List<GimpleExpr> getOperands() {
     return operands;

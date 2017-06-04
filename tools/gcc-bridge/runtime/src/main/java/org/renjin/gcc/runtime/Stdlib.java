@@ -392,5 +392,8 @@ public class Stdlib {
   public static void __cxa_guard_abort(LongPtr p) {
 
   }
-  
+
+  public static void inlineAssembly() {
+    throw new UnsupportedOperationException("Compilation of inline assembly not supported");
+  }
 }

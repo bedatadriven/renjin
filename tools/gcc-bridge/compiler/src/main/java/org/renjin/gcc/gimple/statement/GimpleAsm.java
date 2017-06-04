@@ -16,41 +16,21 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.gcc.gimple;
+package org.renjin.gcc.gimple.statement;
 
-import org.renjin.gcc.gimple.statement.*;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.renjin.gcc.gimple.GimpleExprVisitor;
+import org.renjin.gcc.gimple.GimpleVisitor;
 
-public class GimpleVisitor {
-
-  public void visitAssignment(GimpleAssignment assignment) {
-
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class GimpleAsm extends GimpleStatement {
+  @Override
+  public void visit(GimpleVisitor visitor) {
+    visitor.visitAsm(this);
   }
 
-  public void visitCall(GimpleCall gimpleCall) {
-
-  }
-
-  public void visitConditional(GimpleConditional gimpleConditional) {
-
-  }
-
-  public void visitReturn(GimpleReturn gimpleReturn) {
-
-  }
-
-  public void blockStart(GimpleBasicBlock bb) {
-
-  }
-
-  public void visitGoto(GimpleGoto gotoIns) {
-
-  }
-
-  public void visitSwitch(GimpleSwitch gimpleSwitch) {
-
-  }
-
-  public void visitAsm(GimpleAsm gimpleAsm) {
+  @Override
+  public void accept(GimpleExprVisitor visitor) {
 
   }
 }

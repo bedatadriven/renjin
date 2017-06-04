@@ -16,41 +16,19 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.gcc.gimple;
+package org.renjin.gcc.gimple.expr;
 
-import org.renjin.gcc.gimple.statement.*;
+import org.renjin.gcc.gimple.GimpleExprVisitor;
+import org.renjin.repackaged.guava.base.Predicate;
 
-public class GimpleVisitor {
-
-  public void visitAssignment(GimpleAssignment assignment) {
-
+public class GimpleTreeList extends GimpleExpr {
+  @Override
+  public void replaceAll(Predicate<? super GimpleExpr> predicate, GimpleExpr newExpr) {
+    throw new UnsupportedOperationException();
   }
 
-  public void visitCall(GimpleCall gimpleCall) {
-
-  }
-
-  public void visitConditional(GimpleConditional gimpleConditional) {
-
-  }
-
-  public void visitReturn(GimpleReturn gimpleReturn) {
-
-  }
-
-  public void blockStart(GimpleBasicBlock bb) {
-
-  }
-
-  public void visitGoto(GimpleGoto gotoIns) {
-
-  }
-
-  public void visitSwitch(GimpleSwitch gimpleSwitch) {
-
-  }
-
-  public void visitAsm(GimpleAsm gimpleAsm) {
-
+  @Override
+  public void accept(GimpleExprVisitor visitor) {
+    throw new UnsupportedOperationException();
   }
 }

@@ -39,6 +39,7 @@ import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.statement.*;
 import org.renjin.gcc.gimple.type.GimpleVoidType;
 import org.renjin.gcc.peephole.PeepholeOptimizer;
+import org.renjin.gcc.runtime.Stdlib;
 import org.renjin.gcc.symbols.LocalVariableTable;
 import org.renjin.gcc.symbols.UnitSymbolTable;
 import org.renjin.repackaged.asm.*;
@@ -306,7 +307,7 @@ public class FunctionGenerator implements InvocationStrategy {
         } else if (ins instanceof GimpleSwitch) {
           emitSwitch((GimpleSwitch) ins);
         } else {
-          throw new UnsupportedOperationException("ins: " + ins);
+          emitAsm(ins);
         }
       } catch (Exception e) {
         throw new InternalCompilerException("Exception compiling instruction " + ins, e);
@@ -316,6 +317,10 @@ public class FunctionGenerator implements InvocationStrategy {
         mv.visitLineNumber(ins.getLineNumber(), insLabel);
       }
     }
+  }
+
+  private void emitAsm(GimpleStatement ins) {
+    mv.invokestatic(Stdlib.class, "inlineAssembly", "()V");
   }
 
   private void emitSwitch(GimpleSwitch ins) {

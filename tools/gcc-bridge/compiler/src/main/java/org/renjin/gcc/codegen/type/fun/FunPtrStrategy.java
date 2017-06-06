@@ -24,6 +24,7 @@ import org.renjin.gcc.codegen.array.ArrayTypeStrategies;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.*;
+import org.renjin.gcc.codegen.fatptr.AddressableField;
 import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.*;
@@ -74,7 +75,7 @@ public class FunPtrStrategy implements PointerTypeStrategy<FunPtr>, SimpleTypeSt
 
   @Override
   public FieldStrategy addressableFieldGenerator(Type className, String fieldName) {
-    throw new UnsupportedOperationException("TODO");
+    return new AddressableField(METHOD_HANDLE_TYPE, fieldName, getValueFunction());
   }
 
   @Override

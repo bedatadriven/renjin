@@ -19,10 +19,11 @@
 
 library(hamcrest)
 library(methods)
-library("org.renjin.test:s3test")
+library(org.renjin.test.s3test)
 
 nl <- new("Country", name = "The Netherlands", temp = "COLD")
 es <- new("Country", name = "Spain", temp = "WARM")
+city <- new("City", new.env(hash = TRUE, parent = emptyenv()) )
 
 test.simple.access = function() {
     assertThat(nl@name, identicalTo("The Netherlands"))
@@ -34,4 +35,10 @@ test.simple.update = function() {
     es <- setCountryTemp(es, "Hot!")
     assertThat(nl@name, identicalTo("Holland"))
     assertThat(es@temp, identicalTo("Hot!"))
+}
+
+test.imported.methods.extending.builtins = function() {
+    assertThat(city[[]], identicalTo( 300 ))
+    city[["a"]]<-1
+    assertThat(city[["a"]], identicalTo( 1 ))
 }

@@ -20,7 +20,8 @@
 
 
 library(hamcrest)
-library(org.renjin.test.s3test)
+library(methods)
+library("org.renjin.test.s3test")
 
 c1 <- new.circle(1)
 assertThat(as.character(c1), equalTo("circle of radius 1"))
@@ -33,3 +34,9 @@ assertThat(area(sq), equalTo(4))
 
 c2 <- new.circle(4)
 assertThat(c1 %/% c2, equalTo(1+4))
+
+city <- new("City", new.env(hash = TRUE, parent = emptyenv()) )
+assertThat(city[[]], identicalTo( 300 ))
+city[["a"]] <- 1
+assertThat(city@.xData$a, identicalTo( 1 ))
+assertThat(city[["a"]], identicalTo( 1 ))

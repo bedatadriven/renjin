@@ -21,6 +21,17 @@ library(methods)
 
 setClass("Country", representation(name="character",temp="character"))
 
+setClass( 'City', contains = 'environment')
+
+setMethod('[[', signature(x="City", i="missing", j="missing"), function(x,i,j,...,drop) 300)
+
+setReplaceMethod('[[', c(x="City", i="ANY", j="missing", value="ANY"),
+  function(x,i,value) {
+    assign( i, value, x@.xData )
+    return( x )
+  }
+)
+
 setGeneric(name = "setCountryTemp",
            def = function(object,value){
              standardGeneric("setCountryTemp")

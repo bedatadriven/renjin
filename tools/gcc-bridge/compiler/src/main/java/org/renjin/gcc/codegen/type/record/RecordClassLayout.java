@@ -29,6 +29,7 @@ import org.renjin.gcc.codegen.type.FieldStrategy;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.type.fun.FunPtrField;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveFieldStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrValueFunction;
 import org.renjin.gcc.codegen.var.LocalVarAllocator;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
@@ -132,8 +133,8 @@ public class RecordClassLayout implements RecordLayout {
       if(!commonType.isPresent()) {
         throw new UnsupportedOperationException("No common type possible for fields: " + node.getFields());
       }
-      return new PrimitiveUnionField(type, uniqueFieldName(node), commonType.get());
-      
+      return new PrimitiveFieldStrategy(type, uniqueFieldName(node), GimplePrimitiveType.fromJvmType(commonType.get()));
+
     } else {
       Optional<Type> commonType = typeSet.tryComputeCommonType();
       if(commonType.isPresent()) {

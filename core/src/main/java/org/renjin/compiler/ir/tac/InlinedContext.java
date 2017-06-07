@@ -24,9 +24,20 @@ import org.renjin.sexp.PairList;
 
 
 public class InlinedContext implements TranslationContext {
+
+  private PairList formals;
+
+  public InlinedContext(PairList formals) {
+    this.formals = formals;
+  }
+
   @Override
   public PairList getEllipsesArguments() {
     // We are only supporting the inlining of functions when no arguments are passed via ...
     return Null.INSTANCE;
+  }
+
+  public PairList getFormals() {
+    return formals;
   }
 }

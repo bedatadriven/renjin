@@ -23,6 +23,7 @@ import org.renjin.compiler.ir.exception.InvalidSyntaxException;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.packaging.SerializedPromise;
+import org.renjin.primitives.S3;
 import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.sexp.*;
 
@@ -36,6 +37,8 @@ import java.util.Map;
 public class RuntimeState {
   private Context context;
   private Environment rho;
+  
+  private Environment methodTable;
 
 
   /**
@@ -45,13 +48,31 @@ public class RuntimeState {
    */
   private Map<Symbol, Function> resolvedFunctions = Maps.newHashMap();
 
+  /**
+   * Creates a new {@code RuntimeState} for an arbitrary execution environment.
+   * @param context
+   * @param rho
+   */
   public RuntimeState(Context context, Environment rho) {
     this.context = context;
     this.rho = rho;
   }
 
+  /**
+   * Creates a new {@code RuntimeState} for an inlined function.
+   * @param parentState
+   * @param enclosingEnvironment
+   */
   public RuntimeState(RuntimeState parentState, Environment enclosingEnvironment) {
     this(parentState.context, enclosingEnvironment);
+    
+    SEXP methodTableSexp = enclosingEnvironment.getVariable(S3.METHODS_TABLE);
+    if(methodTableSexp instanceof Promise) {
+      throw new NotCompilableException(S3.METHODS_TABLE, S3.METHODS_TABLE + " is not evaluated.");
+    }
+    if(methodTableSexp instanceof Environment) {
+      methodTable = (Environment) methodTableSexp;
+    }
   }
 
   public PairList getEllipsesVariable() {
@@ -152,5 +173,66 @@ public class RuntimeState {
 
   public Map<Symbol, Function> getResolvedFunctions() {
     return resolvedFunctions;
+  }
+
+  /**
+   * Tries to safely resolve an S3 method, without forcing any promises that might have side effects.
+   * @param generic
+   * @param objectClass
+   */
+  public Function findMethod(String generic, String group, StringVector objectClasses) {
+
+    Function method = null;
+    
+    for(String className : objectClasses) {
+      method = findMethod(generic, group, className);
+      if(method != null) {
+        return method;
+      }
+    }
+    
+    return findMethod(generic, group, "default");
+  }
+  
+  private Function findMethod(String generic, String group, String className) {
+    
+    Function method = findMethod(generic, className);
+    if(method != null) {
+      return method;
+    }
+    if(group != null) {
+      method = findMethod(group, className);
+      if(method != null) {
+        return method;
+      }
+    }
+    return null;
+  }
+
+  private Function findMethod(String generic, String className) {
+
+    // TODO: this requires some thought because we are making
+    // assumptions about not only the functions we find, but those we DON'T find,
+    // and method table entires can easily be changed if new packages are loaded, even if the
+    // environment is sealed.
+
+
+    Symbol method = Symbol.get(generic + "." + className);
+    Function function = findFunctionIfExists(method);
+    if(function != null) {
+      return function;
+    }
+  
+    if(methodTable != null) {
+      SEXP functionSexp = methodTable.getVariable(method);
+      if(functionSexp instanceof Promise) {
+        throw new NotCompilableException(method, "Unevaluated entry in " + S3.METHODS_TABLE);
+      }
+      if(functionSexp instanceof Function) {
+        return (Function) functionSexp;
+      }
+    }
+    
+    return null;
   }
 }

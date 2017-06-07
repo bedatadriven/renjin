@@ -276,13 +276,6 @@ public abstract class DoubleVector extends AbstractAtomicVector implements Itera
     }
   }
 
-  public double asReal() {
-    if (length() == 0) {
-      return NA;
-    } else {
-      return getElementAsDouble(0);
-    }
-  }
 
   @Override
   public final int hashCode() {

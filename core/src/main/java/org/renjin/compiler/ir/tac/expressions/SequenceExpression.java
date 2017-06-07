@@ -51,7 +51,10 @@ public class SequenceExpression extends SpecializedCallExpression {
     ValueBounds fromType = childAt(0).updateTypeBounds(typeMap);
     ValueBounds toType = childAt(1).updateTypeBounds(typeMap);
 
-    valueBounds = ValueBounds.vector(fromType.getTypeSet() | toType.getTypeSet());
+    valueBounds = ValueBounds.builder()
+        .setTypeSet(fromType.getTypeSet() | toType.getTypeSet())
+        .setEmptyAttributes()
+        .build();
     
     return valueBounds;
   }

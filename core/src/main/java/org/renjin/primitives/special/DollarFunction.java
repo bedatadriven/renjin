@@ -62,6 +62,11 @@ public class DollarFunction extends SpecialFunction {
     
     // If no generic function, extract the element
     String name = nameArgument.getElementAsString(0);
+
+    return apply(context, object, name);
+  }
+
+  public static SEXP apply(Context context, SEXP object, String name) {
     if(object instanceof PairList) {
       return fromPairList((PairList) object, name);
     

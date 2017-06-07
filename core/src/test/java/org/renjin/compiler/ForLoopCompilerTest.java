@@ -160,4 +160,56 @@ public class ForLoopCompilerTest extends EvalTestCase {
     assertThat(eval("sum"), elementsIdenticalTo(c(0x1.280f56bddc2e6p+58)));
   }
 
+
+  @Test
+  public void useMethod() {
+    eval("foo <- function(a) UseMethod('foo') ");
+    eval("foo.default <- function(a) a * 2 ");
+    eval("s <- 0");
+    eval("print(system.time({ for(i in 1:1e6) s <- s + foo(i) }))");
+    eval("print(s)");
+
+    assertThat(eval("s"), elementsIdenticalTo(c(1.000001e+12)));
+  }
+
+  @Test
+  public void useMethodDispatchesToDoubleThenNumeric() {
+    eval("f <- function(x) UseMethod('f')");
+    eval("f.numeric <- function(x) 1 ");
+
+
+    eval("s <- 0");
+    eval("for(i in 1:1e6) s <- s + f(i)");
+
+    assertThat(eval("s"), elementsIdenticalTo(c(1e+06)));
+
+
+    // Define more specific overflows
+    eval("f.double <- function(x) 2 ");
+    eval("f.integer <- function(x) 3");
+
+
+    // Ensure that we dispatch to f.integer()
+    eval("s <- 0");
+    eval("for(i in 1:1e6) s <- s + f(i)");
+    assertThat(eval("s"), elementsIdenticalTo(c(3e+06)));
+
+
+    // Ensure that we dispatch to f.double()
+    eval("s <- 0");
+    eval("for(i in as.numeric(1:1e6)) s <- s + f(i)");
+    assertThat(eval("s"), elementsIdenticalTo(c(2e+06)));
+
+  }
+
+
+  @Test
+  public void constantConditional() {
+
+    eval("s <- 0");
+//    eval("for(i in 1:10000) if(typeof(s) == 'double') s <- s + i else stop('not a number')");
+    eval("for(i in 1:10000) s <- s + i");
+
+    assertThat(eval("s"), elementsIdenticalTo(c(5.0005e7)));
+  }
 }

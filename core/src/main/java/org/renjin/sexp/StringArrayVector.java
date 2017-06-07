@@ -89,17 +89,6 @@ public class StringArrayVector extends StringVector implements Iterable<String> 
     return true;
   }
 
-  @Override
-  public double asReal() {
-    if(values.length > 0 &&
-        values[0] != null &&
-        values[0].length() > 0)
-    {
-      return NumericLiterals.parseDouble(values[0]);
-    } else {
-      return DoubleVector.NA;
-    }
-  }
 
 
   @Override

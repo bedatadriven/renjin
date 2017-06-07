@@ -129,6 +129,26 @@ public class AttributeMap {
     }
   }
 
+  public Map<Symbol, SEXP> toMap() {
+    Map<Symbol, SEXP> map = new HashMap<>();
+    if(classes != null) {
+      map.put(Symbols.CLASS, classes);
+    }
+    if(names != null) {
+      map.put(Symbols.NAMES, names);
+    }
+    if(dim != null) {
+      map.put(Symbols.DIM, dim);
+    }
+    if(dimNames != null) {
+      map.put(Symbols.DIMNAMES, dimNames);
+    }
+    if(this.map != null) {
+      map.putAll(this.map);
+    }
+    return map;
+  }
+
   public SEXP get(String what) {
     return get(Symbol.get(what));
   }
@@ -218,7 +238,7 @@ public class AttributeMap {
     return this.s4;
   }
 
-  public boolean empty() {
+  public boolean isEmpty() {
     return this == EMPTY;
   }
 
@@ -935,7 +955,7 @@ public class AttributeMap {
       }
       return toNameVector(names);
     }
-  
+
     private StringVector toNameVector(SEXP sexp) {
       if(sexp instanceof StringVector) {
         return (StringVector)sexp.setAttributes(AttributeMap.EMPTY);
@@ -945,7 +965,7 @@ public class AttributeMap {
         throw new EvalException("Cannot coerce '%s' to character", sexp.getTypeName());
       }
     }
-  
+
     private StringVector toClassVector(SEXP sexp) {
       if(sexp instanceof StringVector) {
         return (StringVector)sexp;
@@ -955,7 +975,7 @@ public class AttributeMap {
         throw new EvalException("Cannot coerce '%s' to character", sexp.getTypeName());
       }
     }
-  
+
   }
 
   public static AttributeMap fromListVector(ListVector attributes) {

@@ -163,14 +163,6 @@ public abstract class IntVector extends AbstractAtomicVector implements Iterable
     return IMPLICIT_CLASS;
   }
 
-  @Override
-  public double asReal() {
-    if (length() == 0 || isElementNA(0)) {
-      return DoubleVector.NA;
-    } else {
-      return getElementAsDouble(0);
-    }
-  }
 
   public int[] toIntArray() {
     int[] array = new int[length()];

@@ -39,8 +39,7 @@ public class GenericPrimitive implements Specialization {
     return Type.getType(SEXP.class);
   }
 
-  @Override
-  public ValueBounds getValueBounds() {
+  public ValueBounds getResultBounds() {
     return ValueBounds.UNBOUNDED;
   }
 

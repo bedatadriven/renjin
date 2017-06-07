@@ -31,9 +31,21 @@ public class RepeatFunction extends SpecialFunction {
   public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
     SEXP statement = args.getElementAsSEXP(0);
 
+//    int iterationCount = 0;
+//    boolean compilationFailed = false;
+    
     while(true) {
       try {
+        
+//        if(iterationCount > 50) {
+//          if (LoopCompiler.tryCompileAndRun(context, rho, call)) {
+//            break;
+//          } else {
+//            compilationFailed = true;
+//          }
+//        }
         context.evaluate( statement, rho);
+//        iterationCount++;
       } catch(BreakException e) {
         break;
       } catch(NextException e) {
@@ -43,4 +55,5 @@ public class RepeatFunction extends SpecialFunction {
     context.setInvisibleFlag();
     return Null.INSTANCE;
   }
+
 }

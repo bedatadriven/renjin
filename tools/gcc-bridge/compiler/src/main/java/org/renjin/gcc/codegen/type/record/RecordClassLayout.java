@@ -20,6 +20,7 @@ package org.renjin.gcc.codegen.type.record;
 
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.RecordClassGenerator;
+import org.renjin.gcc.codegen.array.ArrayField;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
@@ -28,8 +29,10 @@ import org.renjin.gcc.codegen.type.FieldStrategy;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.type.fun.FunPtrField;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveFieldStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrValueFunction;
 import org.renjin.gcc.codegen.var.LocalVarAllocator;
+import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.repackaged.asm.Type;
@@ -130,14 +133,23 @@ public class RecordClassLayout implements RecordLayout {
       if(!commonType.isPresent()) {
         throw new UnsupportedOperationException("No common type possible for fields: " + node.getFields());
       }
-      return new PrimitiveUnionField(type, uniqueFieldName(node), commonType.get());
-      
+      return new PrimitiveFieldStrategy(type, uniqueFieldName(node), GimplePrimitiveType.fromJvmType(commonType.get()));
+
     } else {
       Optional<Type> commonType = typeSet.tryComputeCommonType();
       if(commonType.isPresent()) {
         int arrayLength = node.getSize() / GimplePrimitiveType.fromJvmType(commonType.get()).getSize();
         return new RecordArrayField(type, uniqueFieldName(node), commonType.get(), arrayLength, new GimpleRecordType(this.unionSet.getAllTypes().iterator().next()));
       }
+
+      Optional<GimpleRecordType> commonRecordType = typeSet.tryFindCommonRecordType();
+      if(commonRecordType.isPresent()) {
+        int arrayLength = node.getSize() / commonRecordType.get().getSize();
+        GimpleArrayType arrayType = new GimpleArrayType(commonRecordType.get(), arrayLength);
+        RecordTypeStrategy recordTypeStrategy = (RecordTypeStrategy) typeOracle.forType(commonRecordType.get());
+        return recordTypeStrategy.arrayOf(arrayType).fieldGenerator(type, uniqueFieldName(node));
+      }
+
       throw new UnsupportedOperationException("TODO: " + unionSet.debugString());
     }
   }

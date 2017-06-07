@@ -1173,4 +1173,33 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void inheritanceGlobalVars() throws Exception {
     compileAndTest("inheritance_globalvars.cpp");
   }
+
+  @Test
+  public void badArrayLiteral() throws Exception {
+    compileAndTest("bad_array_literal.c");
+  }
+
+  @Test
+  public void longArrayIndex() throws Exception {
+    compileAndTest("long_index.c");
+  }
+
+  @Test
+  public void inlineAssembly() throws Exception {
+    Class<?> clazz = compile("asm.c");
+
+    Method testMethod = clazz.getMethod("test_asm");
+
+    try {
+      testMethod.invoke(null);
+      throw new AssertionError("Should not complete - there's inline assembly!");
+    } catch (InvocationTargetException e) {
+      assertThat(e.getCause().getMessage(), equalTo("Compilation of inline assembly not supported"));
+    }
+  }
+
+  @Test
+  public void arraysOfMixedLength() throws Exception {
+    compileAndTest("array_mixed_len_union.c");
+  }
 }

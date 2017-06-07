@@ -24,6 +24,7 @@ import org.renjin.graphics.GraphicsDevice;
 import org.renjin.graphics.GraphicsDevices;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Symbol;
 
 import static org.renjin.util.CDefines.*;
 
@@ -43,7 +44,7 @@ public class Devices {
             grDevices need not be in the search path.
             So we look for it first on the global search path.
         */
-        defdev = findVar(devName, context.getGlobalEnvironment());
+        defdev = context.getGlobalEnvironment().findVariable(context, (Symbol)devName);
         if(defdev != R_UnboundValue) {
           PROTECT(defdev = lang1(devName));
           eval(defdev, context, context.getGlobalEnvironment());
@@ -56,7 +57,7 @@ public class Devices {
           */
           SEXP ns = context.getSession().getNamespaceRegistry().getNamespace(context, "grDevices").getNamespaceEnvironment();
           if(ns != R_UnboundValue &&
-                  findVar(devName, ns) != R_UnboundValue) {
+                  context.getGlobalEnvironment().findVariable(context, (Symbol)devName) != R_UnboundValue) {
             PROTECT(defdev = lang1(devName));
             eval(defdev, context, ns);
             UNPROTECT(1);

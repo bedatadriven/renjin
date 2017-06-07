@@ -16,25 +16,19 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.gcc.codegen.cpp;
+package org.renjin.gcc.gimple.expr;
 
-import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.call.CallGenerator;
-import org.renjin.gcc.codegen.expr.ExprFactory;
-import org.renjin.gcc.gimple.statement.GimpleCall;
+import org.renjin.gcc.gimple.GimpleExprVisitor;
+import org.renjin.repackaged.guava.base.Predicate;
 
-
-/**
- * will check if this object was already initialized or if anyone else is trying to initialize this object, 
- * and then it will signal the calling method to run x’s constructor if it’s safe to do so.
- */
-public class GuardAcquireGenerator implements CallGenerator {
-  
-  public static final String NAME = "__cxa_guard_acquire";
-  
+public class GimpleTreeList extends GimpleExpr {
+  @Override
+  public void replaceAll(Predicate<? super GimpleExpr> predicate, GimpleExpr newExpr) {
+    throw new UnsupportedOperationException();
+  }
 
   @Override
-  public void emitCall(MethodGenerator mv, ExprFactory exprFactory, GimpleCall call) {
-    mv.iconst(1); 
+  public void accept(GimpleExprVisitor visitor) {
+    throw new UnsupportedOperationException();
   }
 }

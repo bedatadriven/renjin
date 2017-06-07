@@ -149,6 +149,26 @@ public class MyBean {
     return sum;
   }
 
+  public static float sum32(float x, float y) {
+    return x + y;
+  }
+
+  public static float sumArray32(float[] values) {
+    float sum = 0;
+    for (int i = 0; i < values.length; i++) {
+      sum += values[i];
+    }
+    return sum;
+  }
+
+  public static long sumArrayLong(long[] values) {
+    long sum = 0;
+    for (int i = 0; i < values.length; i++) {
+      sum += values[i];
+    }
+    return sum;
+  }
+
   public static long calculateLong() {
     return LONG_VALUE;
   }

@@ -29,12 +29,12 @@ import org.renjin.eval.SessionBuilder;
 import org.renjin.parser.RParser;
 import org.renjin.primitives.special.ForFunction;
 import org.renjin.repackaged.guava.base.Charsets;
+import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.repackaged.guava.io.Resources;
 import org.renjin.sexp.ExpressionVector;
 
 import java.io.IOException;
 
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 public class ForLoopCompilerTest extends EvalTestCase {
@@ -75,7 +75,7 @@ public class ForLoopCompilerTest extends EvalTestCase {
     eval(" s <- structure(1, class='foo') ");
     eval(" for(i in 1:500) s <- s + sqrt(i) ");
       
-    assertThat(eval("s"), equalTo(c(42)));
+    assertThat(eval("s"), elementsIdenticalTo(c(42)));
   }
   
   @Test
@@ -104,7 +104,7 @@ public class ForLoopCompilerTest extends EvalTestCase {
     eval(" for(i in 1:500) s <- s + sqrt(i) ");
 
     assertThat(eval(" s "), closeTo(c(7465.534), 0.01));
-    assertThat(eval(" attr(s, 'foo') "), equalTo(c("bar")));
+    assertThat(eval(" attr(s, 'foo') "), elementsIdenticalTo(c("bar")));
   }
 
   @Test
@@ -114,11 +114,53 @@ public class ForLoopCompilerTest extends EvalTestCase {
 
   @Test
   public void verifyFunctionRedefinitionIsRespected() throws IOException {
-    assertThat(eval("{ s <- 0; for(i in 1:10000) { if(i>100) { sqrt <- sin; }; s <- s + sqrt(i) }; s }"), 
+    assertThat(eval("{ s <- 0; for(i in 1:10000) { if(i>100) { sqrt <- sin; }; s <- s + sqrt(i) }; s }"),
         closeTo(c(673.224), 1d));
 
   }
-  
+
+  @Test
+  public void activeBindingForLoopIndex() {
+
+    eval(Joiner.on("\n").join(
+        "    j <- 4",
+        "    ib <- function(val) {",
+        "        if(missing(val)) {",
+        "            j <<- j + 1",
+        "            j",
+        "        } else {",
+        "            j <<- val * 2",
+        "        }",
+        "    }",
+        "    makeActiveBinding('i', ib, environment())",
+        "    sum <- 0",
+        "    for(i in 1:10) {",
+        "        sum <- sum + i",
+        "    }"));
+
+    assertThat(eval("sum"), elementsIdenticalTo(c(120d)));
+
+  }
+
+  @Test
+  public void activeBindingInEnvironment() {
+
+    eval(Joiner.on("\n").join(
+        ".q <- 0",
+        ".qb <- function(val) {",
+          ".q <<- .q + 1  # side effect!!",
+          ".q",
+        "}",
+        "makeActiveBinding('q', .qb, environment())",
+        "sum <- 0",
+        "for(i in 1:1e6) {",
+          "sum <- sum + (i * q)",
+        "}"));
+
+    assertThat(eval("sum"), elementsIdenticalTo(c(0x1.280f56bddc2e6p+58)));
+  }
+
+
   @Test
   public void useMethod() {
     eval("foo <- function(a) UseMethod('foo') ");
@@ -127,7 +169,7 @@ public class ForLoopCompilerTest extends EvalTestCase {
     eval("print(system.time({ for(i in 1:1e6) s <- s + foo(i) }))");
     eval("print(s)");
 
-    assertThat(eval("s"), equalTo(c(1.000001e+12)));
+    assertThat(eval("s"), elementsIdenticalTo(c(1.000001e+12)));
   }
 
   @Test
@@ -139,7 +181,7 @@ public class ForLoopCompilerTest extends EvalTestCase {
     eval("s <- 0");
     eval("for(i in 1:1e6) s <- s + f(i)");
 
-    assertThat(eval("s"), equalTo(c(1e+06)));
+    assertThat(eval("s"), elementsIdenticalTo(c(1e+06)));
 
 
     // Define more specific overflows
@@ -150,13 +192,13 @@ public class ForLoopCompilerTest extends EvalTestCase {
     // Ensure that we dispatch to f.integer()
     eval("s <- 0");
     eval("for(i in 1:1e6) s <- s + f(i)");
-    assertThat(eval("s"), equalTo(c(3e+06)));
+    assertThat(eval("s"), elementsIdenticalTo(c(3e+06)));
 
 
     // Ensure that we dispatch to f.double()
     eval("s <- 0");
     eval("for(i in as.numeric(1:1e6)) s <- s + f(i)");
-    assertThat(eval("s"), equalTo(c(2e+06)));
+    assertThat(eval("s"), elementsIdenticalTo(c(2e+06)));
 
   }
 
@@ -168,6 +210,6 @@ public class ForLoopCompilerTest extends EvalTestCase {
 //    eval("for(i in 1:10000) if(typeof(s) == 'double') s <- s + i else stop('not a number')");
     eval("for(i in 1:10000) s <- s + i");
 
-    assertThat(eval("s"), equalTo(c(5.0005e7)));
+    assertThat(eval("s"), elementsIdenticalTo(c(5.0005e7)));
   }
 }

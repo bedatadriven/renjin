@@ -23,7 +23,6 @@ import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.eval.EvalException;
 
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.assertThat;
 
@@ -34,20 +33,20 @@ public class AttributeTest extends EvalTestCase {
 
     eval( "p <- list(x=1,y=3) ");
 
-    assertThat( eval("p$x"), equalTo(c(1)));
+    assertThat( eval("p$x"), elementsIdenticalTo(c(1)));
   }
   
   @Test
   public void noAttributesIsNull() {
-    assertThat( eval("attributes(1)"), equalTo((SEXP)Null.INSTANCE));
+    assertThat( eval("attributes(1)"), identicalTo((SEXP)Null.INSTANCE));
   }
   
   @Test
   public void arrayNamesDropsNames() {
     eval("x <- c(a=1,b=2,c=3)");
     eval("dim(x) <- 3L");
-    assertThat(eval("names(x)"), equalTo(NULL));
-    assertThat(eval("length(attributes(x))"), equalTo(c_i(1)));
+    assertThat(eval("names(x)"), identicalTo(NULL));
+    assertThat(eval("length(attributes(x))"), elementsIdenticalTo(c_i(1)));
   }
   
   @Test
@@ -56,7 +55,7 @@ public class AttributeTest extends EvalTestCase {
     eval("dim(x) <- 3L");
     eval("dimnames(x)[[1]] <- c('a','b','c')");
     
-    assertThat(eval("names(x)"), equalTo(c("a", "b", "c")));
+    assertThat(eval("names(x)"), elementsIdenticalTo(c("a", "b", "c")));
   }
 
   @Test
@@ -64,10 +63,10 @@ public class AttributeTest extends EvalTestCase {
     eval("x <- c(1,2,3)");
     eval("attr(x, 'foo') <- 'bar' ");
     
-    assertThat(eval("attr(x, 'foo', exact=TRUE)"), equalTo(c("bar")));
-    assertThat(eval("attr(x, 'foo', exact=FALSE)"), equalTo(c("bar")));
-    assertThat(eval("attr(x, 'f', exact=FALSE)"), equalTo(c("bar")));
-    assertThat(eval("attr(x, 'f', exact=TRUE)"), equalTo(NULL));
+    assertThat(eval("attr(x, 'foo', exact=TRUE)"), elementsIdenticalTo(c("bar")));
+    assertThat(eval("attr(x, 'foo', exact=FALSE)"), elementsIdenticalTo(c("bar")));
+    assertThat(eval("attr(x, 'f', exact=FALSE)"), elementsIdenticalTo(c("bar")));
+    assertThat(eval("attr(x, 'f', exact=TRUE)"), identicalTo(NULL));
   }
   
   @Test
@@ -77,7 +76,7 @@ public class AttributeTest extends EvalTestCase {
     
     SEXP x = eval("x");
     assertThat(x, instanceOf(ListVector.class));
-    assertThat(x.getAttributes().getClassVector(), equalTo(c("foo")));
+    assertThat(x.getAttributes().getClassVector(), elementsIdenticalTo(c("foo")));
   }
   
   @Test(expected = EvalException.class)
@@ -90,13 +89,13 @@ public class AttributeTest extends EvalTestCase {
     eval("x <- 1:2");
     eval("names(x) <- c('A', NA) ");
     
-    assertThat(eval("names(x)"), equalTo(c("A", null)));
+    assertThat(eval("names(x)"), elementsIdenticalTo(c("A", null)));
     
     eval("y <- c(x)");
-    assertThat(eval("names(y)"), equalTo(c("A", null)));
+    assertThat(eval("names(y)"), elementsIdenticalTo(c("A", null)));
 
     eval("z <- c(`NA`=x)");
-    assertThat(eval("names(z)"), equalTo(c("NA.A", "NA.NA")));
+    assertThat(eval("names(z)"), elementsIdenticalTo(c("NA.A", "NA.NA")));
   }
 
   @Test
@@ -104,7 +103,7 @@ public class AttributeTest extends EvalTestCase {
     eval("x <- matrix(1:12, nrow=3)");
     eval("dimnames(x) <- list(character(0), letters[1:4])");
     
-    assertThat(eval("dimnames(x)[[1]]"), equalTo((SEXP) Null.INSTANCE));
+    assertThat(eval("dimnames(x)[[1]]"), identicalTo((SEXP) Null.INSTANCE));
   }
  
   
@@ -120,7 +119,7 @@ public class AttributeTest extends EvalTestCase {
     
     eval("dim(m) <- c(1,3)");
 
-    assertThat(eval("dimnames(m)"), equalTo((SEXP) Null.INSTANCE));
+    assertThat(eval("dimnames(m)"), identicalTo((SEXP) Null.INSTANCE));
   }
 
   @Test
@@ -130,7 +129,7 @@ public class AttributeTest extends EvalTestCase {
 
     eval("dim(m) <- c(3,1)");
 
-    assertThat(eval("dimnames(m)"), equalTo((SEXP) Null.INSTANCE));
+    assertThat(eval("dimnames(m)"), identicalTo((SEXP) Null.INSTANCE));
   }
   
   @Test
@@ -162,7 +161,7 @@ public class AttributeTest extends EvalTestCase {
     eval("y <- c(x=20,y=40,z=50)");
     eval("z <- x + y");
     
-    assertThat(eval("names(z)"), equalTo(c("a", "b", "c")));
+    assertThat(eval("names(z)"), elementsIdenticalTo(c("a", "b", "c")));
   }
 
   @Test
@@ -171,8 +170,8 @@ public class AttributeTest extends EvalTestCase {
     eval("y <- matrix(1:4, nrow=2)");
     eval("z <- x + y");
     
-    assertThat(eval("dim(z)"), equalTo(c_i(2, 2)));
-    assertThat(eval("names(z)"), equalTo(NULL));
+    assertThat(eval("dim(z)"), elementsIdenticalTo(c_i(2, 2)));
+    assertThat(eval("names(z)"), identicalTo(NULL));
   }
   
   @Test
@@ -180,7 +179,7 @@ public class AttributeTest extends EvalTestCase {
     eval("x <- matrix(1:4, nrow=2)");
     eval("dimnames(x) <- list(a=c('X','Y'), b=c('A','B'))");
     
-    assertThat(eval("names(dimnames(x))"), equalTo(c("a", "b")));
+    assertThat(eval("names(dimnames(x))"), elementsIdenticalTo(c("a", "b")));
   }
   
   @Test
@@ -193,8 +192,8 @@ public class AttributeTest extends EvalTestCase {
     eval("y <- c(x=TRUE, y=FALSE)");
     eval("z <- x & y");
     
-    assertThat(eval("names(z)"), equalTo(c("a", "b")));
-    assertThat(eval("is.null(attr(z, 'class'))"), equalTo(c(true)));
+    assertThat(eval("names(z)"), elementsIdenticalTo(c("a", "b")));
+    assertThat(eval("is.null(attr(z, 'class'))"), elementsIdenticalTo(c(true)));
   }
   
   @Test
@@ -204,8 +203,8 @@ public class AttributeTest extends EvalTestCase {
     eval("y <- matrix(TRUE, nrow=2, ncol=2)");
     eval("z <- x | y");
     
-    assertThat(eval("dim(z)"), equalTo(c_i(2, 2)));
-    assertThat(eval("is.null(names(z))"), equalTo(c(true)));
+    assertThat(eval("dim(z)"), elementsIdenticalTo(c_i(2, 2)));
+    assertThat(eval("is.null(names(z))"), elementsIdenticalTo(c(true)));
   }
  
   @Test
@@ -213,7 +212,7 @@ public class AttributeTest extends EvalTestCase {
     eval("x <- matrix(1:12, nrow=3) ");
     eval("names(x) <- NULL");
     
-    assertThat(eval("dim(x)"), equalTo(c_i(3, 4)));
+    assertThat(eval("dim(x)"), elementsIdenticalTo(c_i(3, 4)));
   }
   
   @Test
@@ -222,8 +221,8 @@ public class AttributeTest extends EvalTestCase {
     eval("x <- matrix(1:12, nrow=3)");
     eval("names(x) <- letters[1:12] ");
     
-    assertThat(eval("dim(x)"), equalTo(c_i(3, 4)));
-    assertThat(eval("names(x)"), equalTo(c("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l")));
+    assertThat(eval("dim(x)"), elementsIdenticalTo(c_i(3, 4)));
+    assertThat(eval("names(x)"), elementsIdenticalTo(c("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l")));
   }
 
   @Test
@@ -233,8 +232,8 @@ public class AttributeTest extends EvalTestCase {
     eval("names(x) <- letters[1:12] ");
     eval("dim(x) <- c(3, 4)");
 
-    assertThat(eval("dim(x)"), equalTo(c_i(3, 4)));
-    assertThat(eval("names(x)"), equalTo(NULL));
+    assertThat(eval("dim(x)"), elementsIdenticalTo(c_i(3, 4)));
+    assertThat(eval("names(x)"), identicalTo(NULL));
   }
   
   @Test
@@ -245,7 +244,7 @@ public class AttributeTest extends EvalTestCase {
     eval("as.character.foo <- function(y) letters[y] ");
     
     eval("names(x) <- y");
-    assertThat(eval("names(x)"), equalTo(c("a", "b", "c")));
+    assertThat(eval("names(x)"), elementsIdenticalTo(c("a", "b", "c")));
   }
 
   @Test
@@ -256,17 +255,17 @@ public class AttributeTest extends EvalTestCase {
     eval("as.character.foo <- function(y) letters[y] ");
 
     eval("attr(x, 'names') <- y");
-    assertThat(eval("names(x)"), equalTo(c("1", "2", "3")));
+    assertThat(eval("names(x)"), elementsIdenticalTo(c("1", "2", "3")));
   }
 
   @Test
   public void setAttrNamesWithList() {
     eval("x <- 1:3");
     eval("attr(x, 'names') <- list('a', 'b', 'c')");
-    assertThat(eval("names(x)"), equalTo(c("a", "b", "c")));
+    assertThat(eval("names(x)"), elementsIdenticalTo(c("a", "b", "c")));
 
     eval("attr(x, 'names') <- list('a', 'b', 1:3)");
-    assertThat(eval("names(x)"), equalTo(c("a", "b", "1:3")));
+    assertThat(eval("names(x)"), elementsIdenticalTo(c("a", "b", "1:3")));
 
   }
 
@@ -277,7 +276,7 @@ public class AttributeTest extends EvalTestCase {
 
     // Result in GNU R does not match deparse(list(x=1,y=1))
     eval("attr(x, 'names') <- list('a', 'b', list(x=1,y=1))");
-    assertThat(eval("names(x)"), equalTo(c("a", "b", "list(x = 1, y = 1")));
+    assertThat(eval("names(x)"), elementsIdenticalTo(c("a", "b", "list(x = 1, y = 1")));
   }
   
   @Test
@@ -286,7 +285,7 @@ public class AttributeTest extends EvalTestCase {
     eval("dim(x) <- 3:4");
     eval("dimnames(x) <- list()");
     
-    assertThat(eval("dimnames(x)"), equalTo(NULL));
+    assertThat(eval("dimnames(x)"), identicalTo(NULL));
   }
 
   @Test
@@ -295,7 +294,7 @@ public class AttributeTest extends EvalTestCase {
     eval("dim(x) <- 3:4");
     eval("attr(x, 'dimnames') <- list()");
 
-    assertThat(eval("dimnames(x)"), equalTo(NULL));
+    assertThat(eval("dimnames(x)"), identicalTo(NULL));
   }
   
   @Test
@@ -304,7 +303,7 @@ public class AttributeTest extends EvalTestCase {
     eval("dim(x) <- 3:4");
     eval("dimnames(x) <- list(letters[1:3])");
 
-    assertThat(eval("dimnames(x)"), equalTo(list(c("a", "b", "c"), Null.INSTANCE)));
+    assertThat(eval("dimnames(x)"), elementsIdenticalTo(list(c("a", "b", "c"), Null.INSTANCE)));
   }
   
   @Test
@@ -313,7 +312,7 @@ public class AttributeTest extends EvalTestCase {
     eval("dim(x) <- 3:4");
     eval("attr(x, 'dimnames') <- list(letters[1:3])");
 
-    assertThat(eval("dimnames(x)"), equalTo(list(c("a", "b", "c"), Null.INSTANCE)));
+    assertThat(eval("dimnames(x)"), elementsIdenticalTo(list(c("a", "b", "c"), Null.INSTANCE)));
   }
   
 }

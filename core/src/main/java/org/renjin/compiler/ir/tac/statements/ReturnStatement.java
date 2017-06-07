@@ -132,7 +132,7 @@ public class ReturnStatement implements Statement, BasicBlockEndingStatement {
           }
         }
 
-        mv.invokevirtual(Type.getInternalName(Environment.class), "setVariable",
+        mv.invokevirtual(Type.getInternalName(Environment.class), "setVariableUnsafe",
             Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(String.class), Type.getType(SEXP.class)), false);
 
       }

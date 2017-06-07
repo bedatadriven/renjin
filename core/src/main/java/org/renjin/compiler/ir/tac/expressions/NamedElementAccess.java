@@ -26,6 +26,7 @@ import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.ListVector;
 import org.renjin.sexp.Null;
+import org.renjin.sexp.PairList;
 import org.renjin.sexp.SEXP;
 
 import java.util.Map;
@@ -61,7 +62,15 @@ public class NamedElementAccess implements Expression {
     
     ValueBounds argumentBounds = typeMap.get(expression);
     if(argumentBounds.isConstant()) {
-      valueBounds = ValueBounds.of(DollarFunction.apply(argumentBounds.getConstantValue(), memberName));
+      // Handle the cases where the $ function is pure
+      // if the object is a environment or an external pointer, then
+      // the operation may have side-effects.
+      SEXP object = argumentBounds.getConstantValue();
+      if(object instanceof ListVector) {
+        valueBounds = ValueBounds.of(DollarFunction.fromList((ListVector) object, memberName));
+      } else if(object instanceof PairList) {
+        valueBounds = ValueBounds.of(DollarFunction.fromPairList((PairList) object, memberName));
+      }
     }
     
     return valueBounds;

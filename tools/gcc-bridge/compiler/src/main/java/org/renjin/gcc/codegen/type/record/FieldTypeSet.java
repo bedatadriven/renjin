@@ -24,7 +24,9 @@ import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.repackaged.guava.collect.Iterables;
 import org.renjin.repackaged.guava.collect.Sets;
 
+import javax.swing.text.html.Option;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -104,7 +106,6 @@ public class FieldTypeSet {
 
     } else if(type instanceof GimpleRecordType) {
       recordTypes.add((GimpleRecordType) type);
-
     } else if(type instanceof GimpleOffsetType) {
       // TODO
 
@@ -173,9 +174,25 @@ public class FieldTypeSet {
 
     // If we have exactly one value type, that's the obvious choice for the 
     // element size
-    if(valueTypes.size() == 1) {
+    if(recordTypes.isEmpty() && valueTypes.size() == 1) {
       return Optional.of(Iterables.getOnlyElement(valueTypes));
     }
+
+    return Optional.absent();
+  }
+
+  public Optional<GimpleRecordType> tryFindCommonRecordType() {
+    if( pointerTypes.size() > 0 ||
+        valueTypes.size() > 0 ||
+        addressableValueTypes.size() > 0) {
+
+      return Optional.absent();
+    }
+
+    if(recordTypes.size() == 1) {
+      return Optional.of(Iterables.getOnlyElement(recordTypes));
+    }
+
     return Optional.absent();
   }
 

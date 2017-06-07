@@ -44,13 +44,13 @@ public class UnwrapExternalObject extends ArgConverterStrategy {
   public JExpression getTestExpr(JCodeModel codeModel, JVar sexp) {
     JClass externalClass = codeModel.ref(ExternalPtr.class);
     return sexp._instanceof(externalClass)
-            .cand(invoke(cast(externalClass, sexp), "getValue")._instanceof(codeModel.ref(formal.getClazz())));
+            .cand(invoke(cast(externalClass, sexp), "getInstance")._instanceof(codeModel.ref(formal.getClazz())));
   }
 
   @Override
   public JExpression convertArgument(ApplyMethodContext method, JExpression sexp) {
     JClass externalClass = method.classRef(ExternalPtr.class);
     JClass formalClass = method.classRef(formal.getClazz());
-    return cast(formalClass, invoke(cast(externalClass, sexp), "getValue"));
+    return cast(formalClass, invoke(cast(externalClass, sexp), "getInstance"));
   }
 }

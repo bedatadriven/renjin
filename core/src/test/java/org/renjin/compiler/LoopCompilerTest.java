@@ -34,8 +34,8 @@ public class LoopCompilerTest extends EvalTestCase {
     eval("i <- 0");
     eval("repeat { s <- s + i; i <- i+1; if(i > 10000) break; }");
     
-    assertThat(eval("s"), equalTo(c(50005000d)));
-    assertThat(eval("i"), equalTo(c(10001)));
+    assertThat(eval("s"), elementsIdenticalTo(c(50005000d)));
+    assertThat(eval("i"), elementsIdenticalTo(c(10001)));
   }
 
 
@@ -46,8 +46,8 @@ public class LoopCompilerTest extends EvalTestCase {
       eval("i <- 0");
       eval("while(i <= 10000) { s <- s + i; i <- i+1 }");
 
-      assertThat(eval("s"), equalTo(c(50005000d)));
-      assertThat(eval("i"), equalTo(c(10001)));
+      assertThat(eval("s"), elementsIdenticalTo(c(50005000d)));
+      assertThat(eval("i"), elementsIdenticalTo(c(10001)));
     } catch (Throwable e) {
       e.printStackTrace();
     }

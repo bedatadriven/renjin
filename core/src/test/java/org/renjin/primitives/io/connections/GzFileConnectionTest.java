@@ -22,7 +22,6 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.VFS;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
-import org.renjin.primitives.text.RCharsets;
 import org.renjin.sexp.SEXP;
 
 import java.io.BufferedReader;
@@ -43,7 +42,7 @@ public class GzFileConnectionTest extends EvalTestCase {
     BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
     assertThat(reader.readLine(), equalTo("hello world"));
   }
-  
+
   @Test
   public void readXZCompressed() throws IOException {
     String expected = "For if Jack Buggit could escape from the pickle jar";

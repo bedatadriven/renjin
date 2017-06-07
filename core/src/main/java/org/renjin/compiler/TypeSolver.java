@@ -276,9 +276,6 @@ public class TypeSolver {
           conditional.setConstantValue(null);
           flowWorkList.add(block.getOutgoing(conditional.getTrueTarget()));
           flowWorkList.add(block.getOutgoing(conditional.getFalseTarget()));
-          if(newBounds.getNA() == ValueBounds.MAY_HAVE_NA && conditional.getNaTarget() != null) {
-            flowWorkList.add(block.getOutgoing(conditional.getNaTarget()));
-          }
         }
       }
     }

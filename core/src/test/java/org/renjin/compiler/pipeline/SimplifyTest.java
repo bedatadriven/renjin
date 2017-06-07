@@ -27,7 +27,6 @@ import org.renjin.sexp.AttributeMap;
 import org.renjin.sexp.Symbols;
 import org.renjin.sexp.Vector;
 
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 public class SimplifyTest extends EvalTestCase {
@@ -43,7 +42,7 @@ public class SimplifyTest extends EvalTestCase {
     
     Vector xts = pipeliner.simplify(xt);
     
-    assertThat(xts.getAttribute(Symbols.DIM), equalTo(c_i(40,200)));
+    assertThat(xts.getAttribute(Symbols.DIM), elementsIdenticalTo(c_i(40,200)));
   }
 
 }

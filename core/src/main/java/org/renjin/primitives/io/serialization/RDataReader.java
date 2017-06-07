@@ -224,7 +224,6 @@ public class RDataReader implements AutoCloseable {
   }
 
 
-
   private SEXP rawRawVector(int flags) throws IOException {
     int length = in.readInt();
     byte[] bytes = in.readString(length);
@@ -339,7 +338,7 @@ public class RDataReader implements AutoCloseable {
         switch (type) {
           case ATTRLANGSXP:
           case ATTRLISTSXP:
-            attributes = readAttributes();
+            attributes = readAttributeValues(0);
             break;
           
           default:
@@ -420,15 +419,30 @@ public class RDataReader implements AutoCloseable {
 
   private AttributeMap readAttributes(int flags) throws IOException {
     if(Flags.hasAttributes(flags)) {
-      return readAttributes();
+      return readAttributeValues(flags);
+    } else if(Flags.isS4(flags)) {
+      return AttributeMap.builder().setS4(true).build();
     } else {
       return AttributeMap.EMPTY;
     }
   }
 
-  private AttributeMap readAttributes() throws IOException {
-    SEXP pairList = readExp();
-    AttributeMap attributes = AttributeMap.fromPairList((PairList) pairList);
+  private AttributeMap readAttributeValues(int flags) throws IOException {
+    PairList pairList = (PairList) readExp();
+    AttributeMap.Builder attributes = AttributeMap.builder();
+
+    for(PairList.Node node : pairList.nodes()) {
+      if(node.getTag() == Flags.OLD_S4_BIT) {
+        attributes.setS4(true);
+      } else {
+        attributes.set(node.getTag(), node.getValue());
+      }
+    }
+
+    if(Flags.isS4(flags)) {
+      attributes.setS4(true);
+    }
+
     SEXP rns = attributes.get(Symbols.ROW_NAMES);
       /* 
        * There is a special case when GNU R serializes a empty 
@@ -440,12 +454,10 @@ public class RDataReader implements AutoCloseable {
       if (rniv.length() == 2 && rniv.isElementNA(0)) {
         ConvertingStringVector csv = new ConvertingStringVector(
             IntSequence.fromTo(1, rniv.getElementAsInt(1)), AttributeMap.EMPTY);
-        AttributeMap.Builder amb = attributes.copy();
-        amb.set(Symbols.ROW_NAMES, csv);
-        attributes = amb.build();
+        attributes.set(Symbols.ROW_NAMES, csv);
       }
     }
-    return attributes;
+    return attributes.build();
   }
 
   private SEXP readPackage() throws IOException {
@@ -499,27 +511,19 @@ public class RDataReader implements AutoCloseable {
 
   private SEXP readEnv(int flags) throws IOException {
 
-    Environment env = Environment.createChildEnvironment(Environment.EMPTY);
+    Environment env = Environment.createChildEnvironment(Environment.EMPTY).build();
     addReadRef(env);
 
     boolean locked = (in.readInt() == 1);
     SEXP parent = readExp();
-    SEXP frame = readExp();
-    SEXP hashtab = readExp();
+    readEnvFrame(env);
+    readEnvHashTab(env);
 
-    for (int i = 0; i < hashtab.length(); ++i) {
-      PairList node = hashtab.getElementAsSEXP(i);
-      while (node != Null.INSTANCE) {
-        env.setVariable(node.getTag(), ((PairList.Node)node).getValue());
-        node = ((PairList.Node) node).getNext();
-      }
-    }
     // NB: environment's attributes is ALWAYS written,
     // regardless of flag
     SEXP attributes = readExp();
 
     env.setParent( parent == Null.INSTANCE ? Environment.EMPTY : (Environment)parent );
-    env.setVariables( (PairList) frame );
     env.setAttributes(AttributeMap.fromPairList((PairList) attributes));
 
     if(locked) {
@@ -528,6 +532,65 @@ public class RDataReader implements AutoCloseable {
 
     return env;
   }
+
+  /**
+   * Reads an environment's hash table.
+   *
+   * <p>GNU R serializes environments with a hashtable using the same format as the in-memory layout of the
+   * hash table, which is a ListVector of the size of the hash table, with each hash entry stored as
+   * a PairList of values matching the hash.</p>
+   */
+  private void readEnvHashTab(Environment env) throws IOException {
+    int tableFlags = in.readInt();
+    if(Flags.getType(tableFlags) == NILVALUE_SXP) {
+      return;
+    }
+    if(Flags.getType(tableFlags) != SexpType.VECSXP) {
+      throw new IOException("Expected type VECSEXP for environment hashtable.");
+    }
+    int length = in.readInt();
+    for (int i = 0; i < length; i++) {
+      readEnvFrame(env);
+    }
+  }
+
+  /**
+   * Reads an environment's frame.
+   *
+   * <p>An environment's frame, or list of symbol-value bindings is stored in the same way
+   * as a pairlist, but we provided a special implementation here to handle active bindings.</p>
+   *
+   * <p>Active bindings are indicated by setting the {@link Flags#ACTIVE_BINDING_MASK} on
+   * the 32-bit head for the pairlist node that is an active binding.</p>
+   */
+  private void readEnvFrame(Environment env) throws IOException {
+
+    int flags = in.readInt();
+
+    while(Flags.getType(flags) != NILVALUE_SXP) {
+
+      if(Flags.getType(flags) != SexpType.LISTSXP) {
+        throw new IOException("Expected type LISTSXP for environment frame");
+      }
+
+      AttributeMap attributes = readAttributes(flags);
+      Symbol tag = (Symbol)readTag(flags);
+      SEXP value = readExp();
+
+      if (tag == Symbols.ROW_NAMES && RowNamesVector.isOldCompactForm(value)) {
+        value = RowNamesVector.fromOldCompactForm(value);
+      }
+      if(Flags.isActiveBinding(flags)) {
+        env.makeActiveBinding(tag, (Closure) value);
+      } else {
+        env.setVariableUnsafe(tag, value);
+      }
+
+      // read the next element in the list
+      flags = in.readInt();
+    }
+  }
+
 
   private SEXP readS4XP(int flags) throws IOException {
     return new S4Object(readAttributes(flags));

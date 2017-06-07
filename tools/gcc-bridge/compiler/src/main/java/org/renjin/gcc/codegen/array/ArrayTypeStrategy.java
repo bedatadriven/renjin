@@ -28,6 +28,7 @@ import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.fatptr.Wrappers;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
+import org.renjin.gcc.codegen.type.primitive.op.CastGenerator;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
@@ -126,8 +127,10 @@ public class ArrayTypeStrategy implements TypeStrategy<ArrayExpr> {
 
   public GExpr elementAt(GExpr array, GExpr index) {
     ArrayExpr arrayFatPtr = (ArrayExpr) array;
-    PrimitiveValue indexPrimitiveValue = (PrimitiveValue) index;
-    JExpr indexValue =  Expressions.castPrimitive(indexPrimitiveValue.unwrap(), Type.INT_TYPE);
+    JExpr indexValue = ((PrimitiveValue) index).unwrap();
+    if(indexValue.getType().equals(Type.LONG_TYPE)) {
+      indexValue = Expressions.castPrimitive(indexValue, Type.INT_TYPE);
+    }
 
     // New offset  = ptr.offset + (index * value.length)
     // for arrays of doubles, for example, this will be the same as ptr.offset + index
@@ -182,7 +185,7 @@ public class ArrayTypeStrategy implements TypeStrategy<ArrayExpr> {
     List<JExpr> values = Lists.newArrayList();
     addElementConstructors(values, exprFactory, constructor);
 
-    JExpr array = Expressions.newArray(elementValueFunction.getValueType(), values);
+    JExpr array = Expressions.newArray(elementValueFunction.getValueType(), arrayLength, values);
     JExpr offset = Expressions.zero();
 
     return new ArrayExpr(elementValueFunction, arrayLength, array, offset);

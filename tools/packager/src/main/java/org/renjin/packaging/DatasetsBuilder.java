@@ -19,6 +19,7 @@
 package org.renjin.packaging;
 
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
+import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
@@ -277,7 +278,7 @@ public class DatasetsBuilder {
     PairList.Builder pairList = new PairList.Builder();
     for(Symbol symbol : session.getGlobalEnvironment().getSymbolNames()) {
       if(!symbol.getPrintName().startsWith(".")) {
-        pairList.add(symbol, session.getGlobalEnvironment().getVariable(symbol));
+        pairList.add(symbol, session.getGlobalEnvironment().getVariable(session.getTopLevelContext(), symbol));
       }
     }   
     writePairList(logicalDatasetName, session, pairList.build());

@@ -26,6 +26,7 @@ import org.renjin.invoke.annotations.InvokeAsCharacter;
 import org.renjin.invoke.codegen.ApplyMethodContext;
 import org.renjin.invoke.codegen.WrapperRuntime;
 import org.renjin.invoke.model.JvmMethod.Argument;
+import org.renjin.sexp.Environment;
 
 
 public class UsingAsCharacter extends ArgConverterStrategy {

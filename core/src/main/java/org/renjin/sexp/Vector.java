@@ -425,15 +425,13 @@ public interface Vector extends SEXP {
 
     
     /**
-     * Checks equality between the two elements, coercing types to this {@code Type}. If either
-     * of the two elements is NA, it will return false.
-     * @param vector1
-     * @param index1
-     * @param vector2
-     * @param index2
-     * @return
+     * Tests whether the element in {@code vector1} at {@code index1} is identical to the element in
+     * {@code vector2} at {@code index2}.
+     *
+     * <p>If both elements are {@code NA}, this method will return {@code true.}</p>
+     *
      */    
-    public abstract boolean elementsEqual(Vector vector1, int index1, Vector vector2, int index2);
+    public abstract boolean elementsIdentical(Vector vector1, int index1, Vector vector2, int index2);
 
     public static Type widest(Type a, Type b) {
       if(b.isWiderThan(a)) {

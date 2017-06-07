@@ -476,9 +476,8 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList, 
     }
 
     @Override
-    public boolean elementsEqual(Vector vector1, int index1, Vector vector2,
-        int index2) {
-      throw new UnsupportedOperationException();
+    public boolean elementsIdentical(Vector vector1, int index1, Vector vector2, int index2) {
+      throw new IllegalArgumentException(INDEX_OUT_OF_BOUNDS);
     }
 
     @Override

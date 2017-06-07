@@ -129,7 +129,7 @@ public class RecordClassLayoutTree {
     for (GimpleRecordTypeDef unionDef : unionSet.getUnions()) {
       for (GimpleField field : unionDef.getFields()) {
         if(!(field.getType() instanceof GimpleRecordType)) {
-          if(field.isReferenced()) {
+          if(field.isReferenced() || field.isAddressed()) {
             addField(field);
           }
         }
@@ -139,7 +139,7 @@ public class RecordClassLayoutTree {
     // Now add the fields from the records that are members of the union
     for (GimpleRecordTypeDef recordDef : unionSet.getRecords()) {
       for (GimpleField field : recordDef.getFields()) {
-        if(field.isReferenced()) {
+        if(field.isReferenced() || field.isAddressed()) {
           addField(field);
         }
       }

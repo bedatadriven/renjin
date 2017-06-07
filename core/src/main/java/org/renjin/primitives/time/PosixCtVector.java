@@ -31,8 +31,8 @@ import org.renjin.sexp.*;
 public class PosixCtVector extends TimeVector {
   
   private static final int MILLISECONDS_PER_SECOND = 1000;
-  
-  private final DoubleVector vector;
+
+  private final AtomicVector vector;
 
   /**
    * The zone associated with this vector. The timezone does not change the value of
@@ -41,22 +41,22 @@ public class PosixCtVector extends TimeVector {
    */
   private final DateTimeZone dateTimeZone;
 
-  public PosixCtVector(DoubleVector vector) {
+  public PosixCtVector(AtomicVector vector) {
     super();
     this.vector = vector;
     dateTimeZone = Time.timeZoneFromPosixObject(vector);
   }
-  
+
   @Override
   public int length() {
     return vector.length();
   }
-  
+
   @Override
   public DateTime getElementAsDateTime(int i) {
     return new DateTime((long)(vector.getElementAsDouble(i)*MILLISECONDS_PER_SECOND), dateTimeZone);
-  }  
-  
+  }
+
   public static class Builder {
     private final DoubleArrayVector.Builder vector;
     public Builder() {
@@ -80,7 +80,7 @@ public class PosixCtVector extends TimeVector {
       }
       return this;
     }
-    
+
     public Builder addNA() {
       vector.addNA();
       return this;
@@ -92,7 +92,7 @@ public class PosixCtVector extends TimeVector {
       }
       return this;
     }
-    
+
     public DoubleVector buildDoubleVector() {
       vector.setAttribute(Symbols.CLASS, new StringArrayVector("POSIXct", "POSIXt"));
       return vector.build();

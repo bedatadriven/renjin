@@ -22,6 +22,7 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.FatPtr;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
+import org.renjin.gcc.codegen.fatptr.WrappedFatPtrExpr;
 import org.renjin.repackaged.asm.Label;
 
 
@@ -44,8 +45,8 @@ public class VoidPtr implements RefPtrExpr {
   public void store(MethodGenerator mv, GExpr rhs) {
     JLValue lhs = (JLValue) this.objectRef;
 
-    if(rhs instanceof FatPtrPair) {
-      FatPtrPair fatPtrExpr = (FatPtrPair) rhs;
+    if(rhs instanceof FatPtr) {
+      FatPtr fatPtrExpr = (FatPtr) rhs;
       lhs.store(mv, fatPtrExpr.wrap());
     } else {
       lhs.store(mv, ((RefPtrExpr) rhs).unwrap());

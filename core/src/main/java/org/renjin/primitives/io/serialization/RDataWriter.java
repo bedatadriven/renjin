@@ -435,11 +435,18 @@ public class RDataWriter implements AutoCloseable {
   }
   
   private void writeFrame(Environment exp) throws IOException {
-    PairList.Builder frame = new PairList.Builder();
     for(Symbol name : exp.getSymbolNames()) {
-      frame.add(name, exp.getVariable(name));
+      if(exp.isActiveBinding(name)) {
+        out.writeInt(Flags.computeBindingFlag(true));
+        writeExp(name);
+        writeExp(exp.getActiveBinding(name));
+      } else {
+        out.writeInt(Flags.computeBindingFlag(false));
+        writeExp(name);
+        writeExp(exp.getVariableUnsafe(name));
+      }
     }
-    writeExp(frame.build());
+    writeNull();
   }
 
   private void writeNamespace(Environment ns) throws IOException {
@@ -514,13 +521,16 @@ public class RDataWriter implements AutoCloseable {
   }
 
   private void writeAttributes(SEXP exp) throws IOException {
-    
-    PairList attributes = exp.getAttributes().asPairList();
 
-    if(exp.getAttributes() != AttributeMap.EMPTY && attributes == Null.INSTANCE) {
-      throw new IllegalStateException("exp != AttributeMap.EMPTY but has no attributes");
+    PairList.Builder pairList = exp.getAttributes().asPairListBuilder();
+    if(Flags.WRITE_OLD_S4_ATTRIBUTE) {
+      if (exp.getAttributes().isS4()) {
+        pairList.add(Flags.OLD_S4_BIT, LogicalVector.TRUE);
+      }
     }
-    
+
+    PairList attributes = pairList.build();
+
     if(attributes != Null.INSTANCE) {
       if(!(attributes instanceof PairList.Node)) {
         throw new AssertionError(attributes.getClass());

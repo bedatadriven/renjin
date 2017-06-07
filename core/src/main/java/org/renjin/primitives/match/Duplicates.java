@@ -19,9 +19,12 @@
 package org.renjin.primitives.match;
 
 import org.renjin.invoke.annotations.Internal;
+import org.renjin.primitives.Identical;
 import org.renjin.primitives.match.DuplicateSearchAlgorithm.Action;
 import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.sexp.AtomicVector;
+import org.renjin.sexp.ListVector;
+import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Vector;
 
 import java.util.HashMap;
@@ -45,7 +48,7 @@ public class Duplicates {
   @Internal
   public static Vector unique(Vector x, Vector incomparables, boolean fromLast) {
     
-    return search(x, incomparables, fromLast, 
+    return search(x, incomparables, fromLast,
         new UniqueAlgorithm());
  
   }
@@ -81,15 +84,16 @@ public class Duplicates {
       Vector incomparables,
       boolean fromLast,
       DuplicateSearchAlgorithm<ResultType> algorithm) {
-   
+
+
     algorithm.init(x);
     
     /* Maps elements -> first encountered index */
-    HashMap<Object, Integer> seen = Maps.newHashMap();
+    HashMap<SEXP, Integer> seen = Maps.newHashMap();
    
     for(Integer index : new IndexSequence(x, fromLast)) {
       
-      Object element = x.getElementAsObject(index);
+      SEXP element = x.getElementAsSEXP(index);
       
       Integer originalIndex = seen.get(element);
       
@@ -104,5 +108,5 @@ public class Duplicates {
       }
     }
     return algorithm.getResult();
-  }  
+  }
 }

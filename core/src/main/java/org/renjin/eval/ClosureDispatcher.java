@@ -50,15 +50,16 @@ public class ClosureDispatcher {
 
   public SEXP apply(DispatchChain chain, PairList arguments) {
     this.dispatchChain = chain;
-    return apply(chain.getClosure(), arguments);
+    return apply(callingContext, callingEnvironment, call, chain.getClosure(), arguments, dispatchChain.createMetadata());
   }
 
   public SEXP applyClosure(Closure closure, PairList args) {
     PairList promisedArgs = Calls.promiseArgs(args, callingContext, callingEnvironment);
-    return apply(closure, promisedArgs);
+    return apply(callingContext, callingEnvironment, call, closure, promisedArgs, Collections.<Symbol, SEXP>emptyMap());
   }
 
-  private SEXP apply(Closure closure, PairList promisedArgs) {
+  public static SEXP apply(Context callingContext, Environment callingEnvironment,
+                     FunctionCall call, Closure closure, PairList promisedArgs, Map<Symbol, SEXP> metadata) {
 
     Context functionContext = callingContext.beginFunction(callingEnvironment, call, closure, promisedArgs);
     Environment functionEnvironment = functionContext.getEnvironment();
@@ -66,8 +67,10 @@ public class ClosureDispatcher {
     try {
       matchArgumentsInto(closure.getFormals(), promisedArgs, functionContext, functionEnvironment);
 
-      if(dispatchChain != null) {
-        dispatchChain.populateEnvironment(functionEnvironment);
+      if(!metadata.isEmpty()) {
+        for (Map.Entry<Symbol, SEXP> entry : metadata.entrySet()) {
+          functionEnvironment.setVariableUnsafe(entry.getKey(), entry.getValue());
+        }
       }
 
       return closure.doApply(functionContext);
@@ -136,7 +139,7 @@ public class ClosureDispatcher {
           value =  Promise.promiseMissing(innerEnv, defaultValue);
         }
       }
-      innerEnv.setVariable(node.getTag(), value);
+      innerEnv.setVariable(innerContext, node.getTag(), value);
     }
   }
 

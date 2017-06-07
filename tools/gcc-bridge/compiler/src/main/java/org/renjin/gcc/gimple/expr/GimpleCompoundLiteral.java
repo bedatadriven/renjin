@@ -62,4 +62,11 @@ public class GimpleCompoundLiteral extends GimpleLValue {
   public void accept(GimpleExprVisitor visitor) {
     visitor.visitCompoundLiteral(this);
   }
+
+  @Override
+  public String toString() {
+    return "GimpleCompoundLiteral{" +
+        "decl=" + decl +
+        '}';
+  }
 }

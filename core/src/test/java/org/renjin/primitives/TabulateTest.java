@@ -21,7 +21,6 @@ package org.renjin.primitives;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 
@@ -29,7 +28,7 @@ public class TabulateTest extends EvalTestCase {
 
   @Test
   public void tabulate() {
-    assertThat( eval(".C('R_tabulate', c(2L, 3L, 5L), 3L, 5L, 1:5, PACKAGE='base')$ans "), equalTo( c_i(0,1,1,0,1)));
+    assertThat( eval(".C('R_tabulate', c(2L, 3L, 5L), 3L, 5L, 1:5, PACKAGE='base')$ans "), elementsIdenticalTo( c_i(0,1,1,0,1)));
     
   }
   

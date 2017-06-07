@@ -21,6 +21,7 @@ package org.renjin.compiler.ir.tac;
 import org.renjin.compiler.NotCompilableException;
 import org.renjin.compiler.ir.exception.InvalidSyntaxException;
 import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
 import org.renjin.packaging.SerializedPromise;
 import org.renjin.primitives.S3;
 import org.renjin.repackaged.guava.collect.Maps;
@@ -75,7 +76,7 @@ public class RuntimeState {
   }
 
   public PairList getEllipsesVariable() {
-    SEXP ellipses = rho.getVariable(Symbols.ELLIPSES);
+    SEXP ellipses = rho.getEllipsesVariable();
     if(ellipses == Symbol.UNBOUND_VALUE) {
       throw new InvalidSyntaxException("'...' used in an incorrect context.");
     }
@@ -83,16 +84,28 @@ public class RuntimeState {
   }
 
   public SEXP findVariable(Symbol name) {
-    SEXP value = rho.findVariable(name);
-    if(value instanceof Promise) {
-      Promise promisedValue = (Promise) value;
-      if(promisedValue.isEvaluated()) {
-        value = promisedValue.force(context);
-      } else {
-        // Promises can have side effects, and evaluation order is important 
-        // so we can't just force all the promises in the beginning of the loop
-        throw new NotCompilableException(name, "Unevaluated promise encountered");
+
+    SEXP value = null;
+    Environment environment = rho;
+    while(environment != Environment.EMPTY) {
+      if (environment.isActiveBinding(name)) {
+        throw new NotCompilableException(name, "Active Binding encountered");
       }
+      value = rho.findVariable(context, name);
+      if(value instanceof Promise) {
+        Promise promisedValue = (Promise) value;
+        if(promisedValue.isEvaluated()) {
+          value = promisedValue.force(context);
+        } else {
+          // Promises can have side effects, and evaluation order is important
+          // so we can't just force all the promises in the beginning of the loop
+          throw new NotCompilableException(name, "Unevaluated promise encountered");
+        }
+      }
+      environment = environment.getParent();
+    }
+    if(value == null) {
+      throw new NotCompilableException(name, "Symbol not found. Should not reach here!");
     }
     return value;
   }
@@ -114,7 +127,7 @@ public class RuntimeState {
 
     Environment environment = rho;
     while(environment != Environment.EMPTY) {
-      Function f = isFunction(functionName, environment.getVariable(functionName));
+      Function f = isFunction(functionName, environment.getVariable(context, functionName));
       if(f != null) {
         resolvedFunctions.put(functionName, f);
         return f;

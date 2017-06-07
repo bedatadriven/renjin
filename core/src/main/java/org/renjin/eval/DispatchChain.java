@@ -21,6 +21,9 @@ package org.renjin.eval;
 import org.renjin.primitives.CollectionUtils;
 import org.renjin.sexp.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class DispatchChain {
   public static final Symbol GENERIC = Symbol.get(".Generic");
   public static final Symbol METHOD = Symbol.get(".Method");
@@ -56,13 +59,15 @@ public class DispatchChain {
     return null;
   }
 
-  public void populateEnvironment(Environment rho) {
-    rho.setVariable(CLASS, classes);
-    rho.setVariable(METHOD, new StringArrayVector(method));
-    rho.setVariable(GENERIC, StringVector.valueOf(generic));
+  public Map<Symbol, SEXP> createMetadata() {
+    Map<Symbol, SEXP> metadata = new HashMap<>();
+    metadata.put(CLASS, classes);
+    metadata.put(METHOD, new StringArrayVector(method));
+    metadata.put(GENERIC, StringVector.valueOf(generic));
     if(group != null) {
-      rho.setVariable(GROUP, StringVector.valueOf(group));
+      metadata.put(GROUP, StringVector.valueOf(group));
     }
+    return metadata;
   }
 
   public Closure getClosure() {

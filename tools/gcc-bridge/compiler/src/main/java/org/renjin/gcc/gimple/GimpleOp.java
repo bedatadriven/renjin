@@ -18,6 +18,7 @@
  */
 package org.renjin.gcc.gimple;
 
+import org.renjin.gcc.gimple.expr.GimpleAddressOf;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.repackaged.guava.base.Joiner;
 
@@ -56,7 +57,8 @@ public enum GimpleOp {
   ADDR_EXPR {
     @Override
     public String format(List<GimpleExpr> operands) {
-      return "&" + operands.get(0);
+      assert operands.get(0) instanceof GimpleAddressOf;
+      return operands.get(0).toString();
     }
   },
 

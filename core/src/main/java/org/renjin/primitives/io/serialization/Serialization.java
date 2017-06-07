@@ -135,7 +135,7 @@ public class Serialization {
     }
     PairList.Builder list = new PairList.Builder();
     for(String name : names) {
-      SEXP value = envir.getVariable(name);
+      SEXP value = envir.getVariable(context, name);
       if(value == Symbol.UNBOUND_VALUE) {
         throw new EvalException("object '%s' not found", name);
       }
@@ -215,7 +215,7 @@ public class Serialization {
     StringArrayVector.Builder names = new StringArrayVector.Builder();
 
     for (NamedValue pair : data.namedValues()) {
-      env.setVariable(Symbol.get(pair.getName()), pair.getValue());
+      env.setVariable(context, Symbol.get(pair.getName()), pair.getValue());
       names.add(pair.getName());
     }
 

@@ -42,6 +42,8 @@ import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.repackaged.asm.Type;
 
+import java.lang.reflect.Field;
+
 import static org.renjin.gcc.codegen.expr.Expressions.constantInt;
 import static org.renjin.repackaged.asm.Type.OBJECT;
 
@@ -139,7 +141,12 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
       return new FatPtrPair(valueFunction, array, offset);
     }
   }
-  
+
+  @Override
+  public FatPtr providedGlobalVariable(GimpleVarDecl decl, Field javaField) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
   public PrimitiveValue toInt(MethodGenerator mv, FatPtr fatPtrExpr) {
     // Converting pointers to integers and vice-versa is implementation-defined
     // So we will define an implementation that supports at least one useful case spotted in S4Vectors:

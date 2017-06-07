@@ -30,6 +30,8 @@ import org.renjin.repackaged.guava.base.Preconditions;
 import org.renjin.repackaged.guava.collect.Lists;
 
 import javax.annotation.Nonnull;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -604,6 +606,17 @@ public class Expressions {
         mv.invokestatic(declaringType, methodName, descriptor);
       }
     };
+  }
+
+  public static JLValue staticField(Field field) {
+    if(!Modifier.isStatic(field.getModifiers())) {
+      throw new IllegalArgumentException(field + " must be static");
+    }
+    Type declaringType = Type.getType(field.getDeclaringClass());
+    Type fieldType = Type.getType(field.getType());
+    String fieldName = field.getName();
+
+    return staticField(declaringType, fieldName, fieldType);
   }
   
   public static JLValue staticField(final Type declaringType, final String fieldName, final Type fieldType) {

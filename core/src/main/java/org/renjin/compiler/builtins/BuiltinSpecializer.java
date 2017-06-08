@@ -78,6 +78,7 @@ public class BuiltinSpecializer implements Specializer {
     if(classVector == Null.INSTANCE) {
       return null;
     }
+    // TODO: see UseMethodCall
     return GenericPrimitive.INSTANCE;
   }
 

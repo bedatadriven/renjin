@@ -18,21 +18,17 @@
  */
 package org.renjin.compiler.ir.tac.expressions;
 
-import org.renjin.compiler.NotCompilableException;
-import org.renjin.compiler.cfg.InlinedFunction;
+import org.renjin.compiler.builtins.S3Specialization;
+import org.renjin.compiler.builtins.Specialization;
+import org.renjin.compiler.builtins.UnspecializedCall;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
-import org.renjin.compiler.ir.tac.IRMatchedArguments;
 import org.renjin.compiler.ir.tac.RuntimeState;
-import org.renjin.primitives.S3;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.repackaged.guava.base.Joiner;
-import org.renjin.sexp.Closure;
-import org.renjin.sexp.Function;
 import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.StringVector;
 
 import java.util.Collections;
 import java.util.List;
@@ -42,35 +38,28 @@ import java.util.Map;
  * Call to UseMethod
  */
 public class UseMethodCall implements Expression {
-
+  
   private RuntimeState runtimeState;
   private FunctionCall call;
   /**
    * The name of the generic method. 
    */
   private final String generic;
-
+  
+  private final List<IRArgument> arguments;
+  
   /**
-   * The object expression whose class is used to dispatch the call. 
+   * The object expression whose class is used to dispatch the call.
    */
   private Expression objectExpr;
-  private List<IRArgument> arguments;
   
+  private Specialization specialization = UnspecializedCall.INSTANCE;
   
-  private InlinedFunction inlinedMethod = null;
-  private IRMatchedArguments matchedArguments;
-  
-  private Type type;
-  private ValueBounds returnBounds;
-  
-
   public UseMethodCall(RuntimeState runtimeState, FunctionCall call, String generic, Expression objectExpr) {
     this.runtimeState = runtimeState;
     this.call = call;
     this.generic = generic;
     this.objectExpr = objectExpr;
-    this.returnBounds = ValueBounds.UNBOUNDED;
-    this.type = returnBounds.storageType();    
     
     // Cheating for now because we only support unary functions...
     arguments = Collections.singletonList(new IRArgument(objectExpr));
@@ -83,64 +72,28 @@ public class UseMethodCall implements Expression {
 
   @Override
   public int load(EmitContext emitContext, InstructionAdapter mv) {
-
-    if(inlinedMethod == null) {
-      throw new NotCompilableException(call, "Could not resolve UseMethod() target");
-    }
-    
-    if(matchedArguments.hasExtraArguments()) {
-      throw new NotCompilableException(call, "Extra arguments not supported");
-    }
-
-    inlinedMethod.writeInline(emitContext, mv, matchedArguments, arguments);
-    
+    specialization.load(emitContext, mv, arguments);
     return 0;
   }
 
   @Override
   public Type getType() {
-    return type;
+    return specialization.getType();
   }
 
   @Override
   public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
 
     ValueBounds objectBounds = typeMap.get(objectExpr);
-    StringVector objectClass = S3.computeDataClasses(objectBounds);
     
-    if(objectClass != null) {
-
-      // Otherwise, try to resolve the function 
-      Function function = runtimeState.findMethod(generic, null, objectClass);
-      if(function instanceof Closure) {
-        Closure closure = (Closure) function;
-
-        if(inlinedMethod == null || inlinedMethod.getClosure() != function) {
-          matchedArguments = new IRMatchedArguments(closure, arguments);
-          inlinedMethod = new InlinedFunction(runtimeState, closure, matchedArguments.getSuppliedFormals());
-        }
-
-        if(matchedArguments.hasExtraArguments()) {
-          throw new NotCompilableException(call, "Extra arguments not supported");
-        }
-
-        returnBounds = inlinedMethod.updateBounds(arguments, typeMap);
-        type = returnBounds.storageType();
-        return returnBounds;
-      }
-    }
-
-    // if the class of the object is not known, or we can't find a matching
-    // generic function, then we can't do much
-    this.returnBounds = ValueBounds.UNBOUNDED;
-    this.type = returnBounds.storageType();
-
-    return returnBounds;
+    // Maybe see if we can avoid re-specializing entirely?
+    this.specialization = S3Specialization.trySpecialize(generic, runtimeState, objectBounds, typeMap, arguments);
+    return specialization.getResultBounds();
   }
 
   @Override
   public ValueBounds getValueBounds() {
-    return returnBounds;
+    return specialization.getResultBounds();
   }
 
   @Override

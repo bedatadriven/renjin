@@ -212,4 +212,11 @@ public class ForLoopCompilerTest extends EvalTestCase {
 
     assertThat(eval("s"), elementsIdenticalTo(c(5.0005e7)));
   }
+//
+//  @Test
+//  public void simpleS4dispatch() {
+//    eval("setClass('A', representation(x='numeric'))");
+//    eval("setMethod(')
+//
+//  }
 }

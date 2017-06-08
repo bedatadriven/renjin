@@ -299,31 +299,31 @@ public final class Rinternals {
   }
 
   public static boolean Rf_isNull(SEXP s) {
-    return s == Null.INSTANCE;
+    return Types.isNull(s);
   }
 
   public static boolean Rf_isSymbol(SEXP s) {
-    return s instanceof Symbol;
+    return Types.isSymbol(s);
   }
 
   public static boolean Rf_isLogical(SEXP s) {
-    return s instanceof LogicalVector;
+    return Types.isLogical(s);
   }
 
   public static boolean Rf_isReal(SEXP s) {
-    return s instanceof DoubleVector;
+    return Types.isReal(s);
   }
 
   public static boolean Rf_isComplex(SEXP s) {
-    return s instanceof ComplexVector;
+    return Types.isComplex(s);
   }
 
   public static boolean Rf_isExpression(SEXP s) {
-    return s instanceof ExpressionVector;
+    return Types.isExpression(s);
   }
 
   public static boolean Rf_isEnvironment(SEXP s) {
-    return s instanceof Environment;
+    return Types.isEnvironment(s);
   }
 
   public static boolean Rf_isString(SEXP s) {
@@ -338,7 +338,7 @@ public final class Rinternals {
    * class attribute.
    */
   public static boolean Rf_isObject(SEXP s) {
-    throw new UnimplementedGnuApiMethod("Rf_isObject");
+    return Types.isObject(s);
   }
 
   public static SEXP ATTRIB(SEXP x) {
@@ -428,7 +428,7 @@ public final class Rinternals {
   }
 
   public static int IS_S4_OBJECT(SEXP x) {
-    throw new UnimplementedGnuApiMethod("IS_S4_OBJECT");
+    return Types.isS4(x) ? 1 : 0;
   }
 
   public static void SET_S4_OBJECT(SEXP x) {
@@ -576,6 +576,9 @@ public final class Rinternals {
    * @return Pointer to extracted {@code i} 'th element as a {@link GnuCharSexp}
    */
   public static SEXP STRING_ELT(SEXP x, /*R_xlen_t*/ int i) {
+    if(x instanceof GnuStringVector) {
+      return ((GnuStringVector) x).getElementAsCharSexp(i);
+    }
     StringVector stringVector = (StringVector) x;
     String string = stringVector.getElementAsString(i);
 
@@ -1171,6 +1174,8 @@ public final class Rinternals {
         return new IntArrayVector(new int[numRows * numCols], attributes);
       case SexpType.REALSXP:
         return new DoubleArrayVector(new double[numRows * numCols], attributes);
+      case SexpType.LGLSXP:
+        return new LogicalArrayVector(new int[numRows * numCols], attributes);
       default:
         throw new IllegalArgumentException("type: " + type);
     }
@@ -1326,45 +1331,68 @@ public final class Rinternals {
   }
 
   private static void xcopyRealWithRecycle(SEXP dst, SEXP src, int dstart, int n, int nsrc) {
-    DoubleVector dv = (DoubleVector) dst;
-    if(!(src instanceof DoubleArrayVector)) {
+    DoubleVector sv = (DoubleVector) src;
+    if(!(dst instanceof DoubleArrayVector)) {
       throw new EvalException("Illegal modification of target vector: " + src.getClass().getName());
     }
-    DoubleArrayVector tv = (DoubleArrayVector) src;
+    DoubleArrayVector dv = (DoubleArrayVector) dst;
 
     double sa[];
-    double da[] = tv.toDoubleArrayUnsafe();
-    if(dv instanceof DoubleArrayVector) {
-      sa = ((DoubleArrayVector) dv).toDoubleArrayUnsafe();
+    double da[] = dv.toDoubleArrayUnsafe();
+    if(sv instanceof DoubleArrayVector) {
+      sa = ((DoubleArrayVector) sv).toDoubleArrayUnsafe();
     } else {
-      sa = dv.toDoubleArray();
-    }
-    if (nsrc >= n) { /* no recycle needed */
-      for(int i = 0; i < n; i++) {
-        da[dstart + i] = sa[i];
-      }
-      return;
-    }
-    if (nsrc == 1) {
-      double val = sa[0];
-      for(int i = 0; i < n; i++) {
-        da[dstart + i] = val;
-      }
-      return;
+      sa = sv.toDoubleArray();
     }
 
-    /* recycle needed */
-    int sidx = 0;
-    for(int i = 0; i < n; i++, sidx++) {
-      if (sidx == nsrc) {
-        sidx = 0;
+    if (nsrc >= n) { /* no recycle needed */
+      System.arraycopy(sa, 0, da, dstart, n);
+
+    } else if (nsrc == 1) {
+      Arrays.fill(da, dstart, dstart + n, sa[0]);
+
+    } else {
+      /* recycle needed */
+      int sidx = 0;
+      for (int i = 0; i < n; i++, sidx++) {
+        if (sidx == nsrc) {
+          sidx = 0;
+        }
+        da[dstart + i] = sa[sidx];
       }
-      da[dstart + i] = sa[sidx];
     }
   }
 
-  private static void xcopyIntegerWithRecycle(SEXP s, SEXP t, int i, int ns, int nt) {
-    throw new UnimplementedGnuApiMethod("xcopyIntegerWithRecycle");
+  private static void xcopyIntegerWithRecycle(SEXP dst, SEXP src, int dstart, int n, int nsrc) {
+    IntVector sv = (IntVector) src;
+    if(!(dst instanceof IntArrayVector)) {
+      throw new EvalException("Illegal modification of target vector: " + src.getClass().getName());
+    }
+    IntArrayVector dv = (IntArrayVector) dst;
+
+    int sa[];
+    int da[] = dv.toIntArrayUnsafe();
+    if(sv instanceof IntArrayVector) {
+      sa = ((IntArrayVector) sv).toIntArrayUnsafe();
+    } else {
+      sa = sv.toIntArray();
+    }
+    if (nsrc >= n) { /* no recycle needed */
+      System.arraycopy(sa, 0, da, dstart, n);
+
+    } else if (nsrc == 1) {
+      Arrays.fill(da, dstart, dstart + n, sa[0]);
+
+    } else {
+      /* recycle needed */
+      int sidx = 0;
+      for (int i = 0; i < n; i++, sidx++) {
+        if (sidx == nsrc) {
+          sidx = 0;
+        }
+        da[dstart + i] = sa[sidx];
+      }
+    }
   }
 
   private static void xcopyLogicalWithRecycle(SEXP s, SEXP t, int i, int ns, int nt) {
@@ -2180,6 +2208,7 @@ public final class Rinternals {
   }
 
   public static int R_has_slot(SEXP obj, SEXP name) {
+    // TODO(Matrix)
     throw new UnimplementedGnuApiMethod("R_has_slot");
   }
 
@@ -2335,8 +2364,20 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("R_system");
   }
 
-  public static boolean R_compute_identical(SEXP p0, SEXP p1, int p2) {
-    throw new UnimplementedGnuApiMethod("R_compute_identical");
+  private static final boolean NUM_EQ(int flags) { return (flags & 1) == 0; }
+
+  private static final boolean SINGLE_NA(int flags) { return (flags & 2) == 0; }
+
+  private static final boolean ATTR_AS_SET(int flags) { return (flags & 4) == 0; }
+
+  private static final boolean IGNORE_BYTECODE(int flags) { return (flags & 8) == 0; }
+
+  public static boolean R_compute_identical(SEXP x, SEXP y, int flags) {
+    return Identical.identical(x, y,
+        NUM_EQ(flags),
+        SINGLE_NA(flags),
+        ATTR_AS_SET(flags),
+        IGNORE_BYTECODE(flags));
   }
 
   public static void R_orderVector(IntPtr indx, int n, SEXP arglist, boolean nalast, boolean decreasing) {

@@ -74,4 +74,8 @@ public class GnuStringVector extends StringVector {
   public void set(int index, GnuCharSexp charValue) {
     values[index] = charValue;
   }
+
+  public GnuCharSexp getElementAsCharSexp(int index) {
+    return values[index];
+  }
 }

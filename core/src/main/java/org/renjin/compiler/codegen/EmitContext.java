@@ -135,12 +135,13 @@ public class EmitContext {
       // NOOP
       return 0;
 
+
     } else if(fromType.getSort() != Type.OBJECT && toType.getSort() != Type.OBJECT) {
       // Simple primitive conversion
       mv.cast(fromType, toType);
       return 0;
       
-    } else if(fromType.equals(Type.getType(SEXP.class))) {
+    } else if(fromType.equals(Type.getType(SEXP.class)) || fromType.equals(Type.getType(DoubleVector.class))) {
       // FROM SEXP -> .....
       if (toType.getSort() == Type.OBJECT) {
         mv.checkcast(toType);
@@ -159,6 +160,15 @@ public class EmitContext {
         return 1;
 
       }
+
+    } else if(toType.equals(Type.getType(AtomicVector.class))) {
+      // TO DOUBLE VECTOR
+
+      if (fromType.equals(Type.getType(DoubleVector.class))) {
+        // noop
+        return 0;
+      }
+
     } else if(toType.equals(Type.getType(SEXP.class))) {
       // TO SEXP --->
       

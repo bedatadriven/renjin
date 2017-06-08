@@ -123,8 +123,9 @@ public class ReturnStatement implements Statement, BasicBlockEndingStatement {
         if(variableStorage.getType().getSort() != Type.OBJECT) {
           ValueBounds bounds = environmentVariables.get(i).getValueBounds();
           if(bounds.isAttributeConstant()) {
-            if(bounds.getConstantAttributes() != AttributeMap.EMPTY) {
-              generateAttributes(mv, bounds.getConstantAttributes());
+            AttributeMap attributes = bounds.getConstantAttributes();
+            if(attributes != AttributeMap.EMPTY) {
+              generateAttributes(mv, attributes);
             } 
           } else {
             throw new UnsupportedOperationException("Lost attributes");
@@ -137,7 +138,8 @@ public class ReturnStatement implements Statement, BasicBlockEndingStatement {
       }
     }
     
-    mv.areturn(Type.VOID_TYPE);
+    returnValue.load(emitContext, mv);
+    mv.areturn(Type.getType(SEXP.class));
     return 0;
   }
 

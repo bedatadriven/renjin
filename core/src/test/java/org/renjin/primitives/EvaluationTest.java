@@ -534,6 +534,13 @@ public class EvaluationTest extends EvalTestCase {
     
    
     assertThat(eval("f(9)"), elementsIdenticalTo(c("double")));
+    eval("f.integer <- function(x) 'integer'");
+
+    assertThat(eval("f(9)"), elementsIdenticalTo(c("double")));
+    assertThat(eval("f(9L)"), elementsIdenticalTo(c("integer")));
+
+    assertThat(eval("class(9)"), elementsIdenticalTo(c("numeric")));
+    assertThat(eval("class(9L)"), elementsIdenticalTo(c("integer")));
   }
 
   @Test

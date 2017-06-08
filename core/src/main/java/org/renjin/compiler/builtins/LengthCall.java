@@ -35,8 +35,7 @@ public class LengthCall implements Specialization {
     return Type.INT_TYPE;
   }
 
-  @Override
-  public ValueBounds getValueBounds() {
+  public ValueBounds getResultBounds() {
     return ValueBounds.INT_PRIMITIVE;
   }
 

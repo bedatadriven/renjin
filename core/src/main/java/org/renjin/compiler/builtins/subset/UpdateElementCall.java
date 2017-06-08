@@ -18,6 +18,7 @@
  */
 package org.renjin.compiler.builtins.subset;
 
+import org.renjin.compiler.builtins.FailedToSpecializeException;
 import org.renjin.compiler.builtins.Specialization;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.ir.ValueBounds;
@@ -47,13 +48,12 @@ public class UpdateElementCall implements Specialization {
     return inputVector.storageType();
   }
 
-  @Override
-  public ValueBounds getValueBounds() {
-    return ValueBounds.vector(inputVector.getTypeSet(), inputVector.getLength());
+  public ValueBounds getResultBounds() {
+    return inputVector.withVaryingValues();
   }
 
   @Override
   public void load(EmitContext emitContext, InstructionAdapter mv, List<IRArgument> arguments) {
-    throw new UnsupportedOperationException();
+    throw new FailedToSpecializeException("TODO");
   }
 }

@@ -11,6 +11,7 @@ static const R_CallMethodDef callMethods[] = {
 
 static const R_FortranMethodDef Fentries[] = {
     {"Fdpchim",     (DL_FUNC) &dpchimtest_, 0},
+    {"fmyname",     (DL_FUNC) &dpchim2_, 1 },
     { NULL, NULL, 0 }
 };
 

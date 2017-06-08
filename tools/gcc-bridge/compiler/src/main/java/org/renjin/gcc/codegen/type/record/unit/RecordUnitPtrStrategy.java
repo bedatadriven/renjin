@@ -40,6 +40,7 @@ import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
 
 import javax.annotation.Nonnull;
+import java.lang.reflect.Field;
 
 
 public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>, SimpleTypeStrategy<RecordUnitPtr> {
@@ -135,6 +136,17 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>
     } else {
       return new RecordUnitPtr(allocator.reserve(decl.getNameIfPresent(), strategy.getJvmType()));
     }
+  }
+
+  @Override
+  public RecordUnitPtr providedGlobalVariable(GimpleVarDecl decl, Field javaField) {
+    Type javaFieldType = Type.getType(javaField.getType());
+    if(!javaFieldType.equals(this.strategy.getJvmType())) {
+      throw new UnsupportedOperationException("Cannot map global variable " + decl + " to existing field " + javaField + ". " +
+          "Expected field of type " + this.strategy.getJvmType());
+    }
+
+    return new RecordUnitPtr(Expressions.staticField(javaField));
   }
 
   @Override

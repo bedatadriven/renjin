@@ -44,7 +44,7 @@ public class BuiltinCallTest {
     Expression x = new EnvironmentVariable("x");
     Expression y = new EnvironmentVariable("y");
 
-    BuiltinCall call = new BuiltinCall(null, functionCall, Primitives.getBuiltinEntry("+"), 
+    BuiltinCall call = new BuiltinCall(null, functionCall, "+",
         Arrays.asList( new IRArgument(x), new IRArgument(y)));
 
     Map<Expression, ValueBounds> typeMap = new HashMap<>();
@@ -70,7 +70,7 @@ public class BuiltinCallTest {
     Expression x = new EnvironmentVariable("x");
     Expression y = new EnvironmentVariable("y");
 
-    BuiltinCall call = new BuiltinCall(null, functionCall, Primitives.getBuiltinEntry("+"), 
+    BuiltinCall call = new BuiltinCall(null, functionCall, "+",
         Arrays.asList( new IRArgument(x), new IRArgument(y) ));
 
     Map<Expression, ValueBounds> typeMap = new HashMap<>();

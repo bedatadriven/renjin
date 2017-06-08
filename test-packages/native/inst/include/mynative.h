@@ -8,5 +8,6 @@ SEXP Cmysum(SEXP vector);
 SEXP Cmydsum(SEXP vector);
 
 void dpchimtest_();
+void dpchim2_();
 
 #endif

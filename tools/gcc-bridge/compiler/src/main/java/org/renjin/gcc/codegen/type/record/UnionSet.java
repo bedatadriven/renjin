@@ -114,14 +114,13 @@ public class UnionSet {
   }
 
   public int sizeOf() {
-    Iterator<GimpleRecordTypeDef> it = getAllTypes().iterator();
-    int size = it.next().getSize();
-    while(it.hasNext()) {
-      if(it.next().getSize() != size) {
-        throw new IllegalStateException("inconsistent record sizes");
+    int max = 0;
+    for (GimpleRecordTypeDef recordTypeDef : getAllTypes()) {
+      if(recordTypeDef.getSize() > max) {
+        max = recordTypeDef.getSize();
       }
     }
-    return size / 8;
+    return max / 8;
   }
 
   public String debugString() {

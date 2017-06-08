@@ -637,7 +637,7 @@ public final class Rinternals {
   // SEXP*() VECTOR_PTR (SEXP x)
 
   public static SEXP TAG(SEXP e) {
-    return ((PairList.Node) e).getTag();
+    return ((PairList.Node) e).getRawTag();
   }
 
   public static SEXP CAR(SEXP e) {
@@ -836,7 +836,7 @@ public final class Rinternals {
    * @return Pointer to a CHARSXP representing {@code x}'s name.
    */
   public static SEXP PRINTNAME(SEXP x) {
-    throw new UnimplementedGnuApiMethod("PRINTNAME");
+    return new GnuCharSexp(((Symbol) x).getPrintName());
   }
 
   /**

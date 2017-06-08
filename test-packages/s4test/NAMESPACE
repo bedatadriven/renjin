@@ -1,8 +1,8 @@
 importClassesFrom(stats4, mle)
 importMethodsFrom(stats4, coef)
 
-importClassesFrom(s3test, Country)
-importMethodsFrom(s3test, setCountryTemp, setCountryName)
+importClassesFrom("org.renjin.test:s3test", Country)
+importMethodsFrom("org.renjin.test:s3test", setCountryTemp, setCountryName)
 
 exportClasses("seq")
 exportClasses("mle_ext")

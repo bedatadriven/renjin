@@ -152,14 +152,6 @@ public abstract class LogicalVector extends AbstractAtomicVector implements Iter
     return getElementAsLogical(0);
   }
 
-  @Override
-  public double asReal() {
-    if(length() == 0) {
-      return DoubleVector.NA;
-    } else {
-      return getElementAsDouble(0);
-    }
-  }
 
   @Override
   public void accept(SexpVisitor visitor) {

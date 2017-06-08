@@ -146,7 +146,7 @@ public class Deparse {
             hasNamesRequiringSpecialHandling(exp);
       }
 
-      return !exp.getAttributes().empty();
+      return !exp.getAttributes().isEmpty();
     }
 
     private boolean hasNamesRequiringSpecialHandling(SEXP exp) {

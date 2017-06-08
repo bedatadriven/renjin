@@ -37,7 +37,8 @@ public class ReplaceSpecializer implements Specializer {
       ValueBounds subscript = argumentTypes.get(1);
       ValueBounds replacement = argumentTypes.get(2);
       
-      if(subscript.getLength() == 1 && replacement.getLength() == 1) {
+      if(subscript.getLength() == 1 && replacement.getLength() == 1 &&
+          inputVector.getTypeSet() == replacement.getTypeSet()) {
         return new UpdateElementCall(inputVector, subscript, replacement);
       }
       

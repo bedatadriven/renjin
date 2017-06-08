@@ -53,8 +53,7 @@ public class DataParallelScalarCall implements Specialization {
     return Type.getType(method.getReturnType());
   }
 
-  @Override
-  public ValueBounds getValueBounds() {
+  public ValueBounds getResultBounds() {
     return valueBounds;
   }
 

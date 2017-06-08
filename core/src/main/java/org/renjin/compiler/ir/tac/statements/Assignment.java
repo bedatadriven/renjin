@@ -96,10 +96,13 @@ public class Assignment implements Statement {
   @Override
   public int emit(EmitContext emitContext, InstructionAdapter mv) {
 
+
     VariableStorage storage = emitContext.getVariableStorage(lhs);
     if(storage == null) {
-      throw new IllegalStateException("Variable " + lhs + " not allocated.");
+      // LHS never used.
+      return 0;
     }
+
     Type rhsType;
     if(rhs instanceof LValue) {
       rhsType = emitContext.getVariableStorage((LValue) rhs).getType();

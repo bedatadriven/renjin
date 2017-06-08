@@ -28,7 +28,6 @@ import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.fatptr.Wrappers;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
-import org.renjin.gcc.codegen.type.primitive.op.CastGenerator;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
@@ -37,6 +36,7 @@ import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Preconditions;
 import org.renjin.repackaged.guava.collect.Lists;
 
+import java.lang.reflect.Field;
 import java.util.List;
 
 
@@ -123,6 +123,11 @@ public class ArrayTypeStrategy implements TypeStrategy<ArrayExpr> {
     JExpr offset = Expressions.zero();
 
     return new ArrayExpr(elementValueFunction, arrayLength, array, offset);
+  }
+
+  @Override
+  public ArrayExpr providedGlobalVariable(GimpleVarDecl decl, Field javaField) {
+    throw new UnsupportedOperationException("TODO");
   }
 
   public GExpr elementAt(GExpr array, GExpr index) {

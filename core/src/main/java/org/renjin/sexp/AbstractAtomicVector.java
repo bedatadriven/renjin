@@ -82,6 +82,22 @@ public abstract class AbstractAtomicVector extends AbstractVector implements Ato
     }
   }
 
+  public final double asReal() {
+    if (length() == 0) {
+      return DoubleVector.NA;
+    } else {
+      return getElementAsDouble(0);
+    }
+  }
+
+  public final int asInt() {
+    if(length() == 0) {
+      return IntVector.NA;
+    } else {
+      return getElementAsInt(0);
+    }
+  }
+
   @Override
   public double[] toDoubleArray() {
     if(Profiler.ENABLED) {

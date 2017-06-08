@@ -124,7 +124,6 @@ public class GimpleSwitch extends GimpleStatement {
     this.value = value;
   }
 
-  @Override
   public List<GimpleExpr> getOperands() {
     return Collections.singletonList(value);
   }

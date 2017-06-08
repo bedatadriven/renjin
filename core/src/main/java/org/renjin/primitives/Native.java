@@ -480,32 +480,16 @@ public class Native {
 
   private static DllSymbol findMethodByName(Context context, String methodName, String packageName, String className, DllSymbol.Convention convention) {
 
-    if(convention == DllSymbol.Convention.FORTRAN) {
-      methodName = methodName.toLowerCase() + "_";
-    }
-
-    if(convention == DllSymbol.Convention.FORTRAN && "base".equals(packageName)) {
-      return findMethodByReflection(methodName, "org.renjin.appl.Appl");
-    }
-
     if(className != null) {
       return findMethodByReflection(methodName, className);
     }
 
     if(packageName == null) {
-      return findGlobalMethodByName(context, methodName);
+      return findGlobalMethodByName(context, convention, methodName);
 
     } else {
       Namespace namespace = context.getNamespaceRegistry().getNamespace(context, packageName);
-      Optional<DllSymbol> symbol = namespace.lookupSymbol(methodName);
-
-      if(!symbol.isPresent()) {
-        // Special case...
-        // This should no longer be necessary if/when we update to latest version of GNU R stats.
-        if("stats".equals(packageName)) {
-          return findMethodByReflection(methodName, "org.renjin.stats.stats");
-        }
-      }
+      Optional<DllSymbol> symbol = namespace.lookupSymbol(convention, methodName);
 
       if(!symbol.isPresent()) {
         throw new EvalException("Could not resolve native method '%s' in package '%s'", methodName, packageName);
@@ -544,10 +528,10 @@ public class Native {
    * When only a method name is provided without a package, we have to look for a native symbol in
    * the global lookup.
    */
-  private static DllSymbol findGlobalMethodByName(Context context, String methodName) {
+  private static DllSymbol findGlobalMethodByName(Context context, DllSymbol.Convention convention, String methodName) {
 
     for (DllInfo library : context.getSession().getLoadedLibraries()) {
-      Optional<DllSymbol> symbol = library.lookup(methodName);
+      Optional<DllSymbol> symbol = library.lookup(convention, methodName);
       if(symbol.isPresent()) {
         return symbol.get();
       }

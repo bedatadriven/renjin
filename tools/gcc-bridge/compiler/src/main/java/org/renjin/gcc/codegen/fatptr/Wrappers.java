@@ -140,7 +140,15 @@ public class Wrappers {
       @Override
       public void load(@Nonnull MethodGenerator mv) {
         pointer.load(mv);
-        mv.invokestatic(wrapperType, "cast", Type.getMethodDescriptor(wrapperType, Type.getType(Object.class)));
+        if(wrapperType.equals(Type.getType(ObjectPtr.class))) {
+          // If casting a void* to an ObjectPtr, we need additional type information
+          mv.visitLdcInsn(valueType);
+          mv.invokestatic(wrapperType, "cast", Type.getMethodDescriptor(wrapperType,
+              Type.getType(Object.class), Type.getType(Class.class)));
+        } else {
+          // For primitives like DoublePtr, IntPtr, etc, nothing additional is required
+          mv.invokestatic(wrapperType, "cast", Type.getMethodDescriptor(wrapperType, Type.getType(Object.class)));
+        }
       }
     };
   }

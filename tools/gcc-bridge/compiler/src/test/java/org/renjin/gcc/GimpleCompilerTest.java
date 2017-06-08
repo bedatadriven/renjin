@@ -1185,6 +1185,11 @@ public class GimpleCompilerTest extends AbstractGccTest {
   }
 
   @Test
+  public void downcast64() throws Exception {
+    compileAndTest("downcast64.c");
+  }
+
+  @Test
   public void inlineAssembly() throws Exception {
     Class<?> clazz = compile("asm.c");
 

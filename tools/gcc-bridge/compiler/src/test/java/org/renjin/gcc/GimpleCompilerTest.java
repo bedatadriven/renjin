@@ -1207,4 +1207,9 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void arraysOfMixedLength() throws Exception {
     compileAndTest("array_mixed_len_union.c");
   }
+
+  @Test
+  public void unsignedDiv() throws Exception {
+    compileAndTest("unsigned_div.c");
+  }
 }

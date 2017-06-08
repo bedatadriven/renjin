@@ -21,6 +21,7 @@ package org.renjin.compiler.ir.tac.expressions;
 import org.renjin.compiler.NotCompilableException;
 import org.renjin.compiler.builtins.*;
 import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.ir.ArgumentBounds;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.compiler.ir.tac.RuntimeState;
@@ -89,15 +90,22 @@ public class BuiltinCall implements CallExpression {
 
   @Override
   public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
-    List<ValueBounds> argumentTypes = new ArrayList<>();
-    for (IRArgument argument : arguments) {
-      argumentTypes.add(argument.getExpression().updateTypeBounds(typeMap));
-    }
+    List<ArgumentBounds> argumentTypes = makeArgumentBoundsList(typeMap, arguments);
     specialization = specializer.trySpecialize(runtimeState, argumentTypes);
     
     return specialization.getResultBounds();
   }
-
+  
+  public static List<ArgumentBounds> makeArgumentBoundsList(Map<Expression, ValueBounds> typeMap, List<IRArgument> arguments) {
+    List<ArgumentBounds> argumentBoundsList = new ArrayList<>();
+    List<ValueBounds> argumentTypes = new ArrayList<>();
+    for (IRArgument argument : arguments) {
+      ArgumentBounds argumentBounds = new ArgumentBounds(argument.getName(), typeMap.get(argument.getExpression()));
+      argumentBoundsList.add(argumentBounds);
+    }
+    return argumentBoundsList;
+  }
+  
   @Override
   public Type getType() {
     return specialization.getType();

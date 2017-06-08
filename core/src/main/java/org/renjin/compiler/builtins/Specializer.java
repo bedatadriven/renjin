@@ -18,6 +18,7 @@
  */
 package org.renjin.compiler.builtins;
 
+import org.renjin.compiler.ir.ArgumentBounds;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.RuntimeState;
 
@@ -28,5 +29,5 @@ import java.util.List;
  */
 public interface Specializer {
   
-  Specialization trySpecialize(RuntimeState runtimeState, List<ValueBounds> argumentTypes);
+  Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> argumentTypes);
 }

@@ -45,7 +45,7 @@ public class Namespace {
 
   private final List<Symbol> exports = Lists.newArrayList();
 
-  private final List<DllInfo> libraries = new ArrayList<>(0);
+  protected final List<DllInfo> libraries = new ArrayList<>(0);
 
   public Namespace(Package pkg, Environment namespaceEnvironment) {
     this.pkg = pkg;
@@ -267,7 +267,7 @@ public class Namespace {
     // PACKAGE argument.
 
     for (NamespaceFile.DynLibSymbol declaredSymbol : entry.getSymbols()) {
-      Optional<DllSymbol> symbol = library.lookup(declaredSymbol.getSymbolName());
+      Optional<DllSymbol> symbol = library.lookup(DllSymbol.Convention.C, declaredSymbol.getSymbolName());
       if(symbol.isPresent()) {
         namespaceEnvironment.setVariableUnsafe(entry.getPrefix() + declaredSymbol.getAlias(), symbol.get().buildNativeSymbolInfoSexp());
       }
@@ -328,9 +328,9 @@ public class Namespace {
     return library;
   }
 
-  public Optional<DllSymbol> lookupSymbol(String name) {
+  public Optional<DllSymbol> lookupSymbol(DllSymbol.Convention convention, String name) {
     for (DllInfo library : libraries) {
-      Optional<DllSymbol> symbol = library.lookup(name);
+      Optional<DllSymbol> symbol = library.lookup(convention, name);
       if(symbol.isPresent()) {
         return symbol;
       }

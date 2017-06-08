@@ -134,7 +134,7 @@ public class DllInfo {
    *
    */
   private Optional<Method> findInitRoutine() {
-    String initName = "R_init_" + libraryName;
+    String initName = "R_init_" + sanitizeLibraryName(libraryName);
     Class[] expectedParameterTypes = new Class[] { DllInfo.class };
 
     for (Method method : libraryClass.getMethods()) {
@@ -153,28 +153,51 @@ public class DllInfo {
     return Optional.absent();
   }
 
+  private String sanitizeLibraryName(String libraryName) {
+    return libraryName.replace('.', '_');
+  }
+
   private boolean isPublicStatic(Method method) {
     return Modifier.isStatic(method.getModifiers()) && Modifier.isPublic(method.getModifiers());
   }
 
-  public Optional<DllSymbol> lookup(String symbolName) {
+  public Optional<DllSymbol> lookup(DllSymbol.Convention convention, String symbolName) {
 
     if(forceSymbols) {
       return Optional.absent();
     }
 
-    if(registeredSymbols.containsKey(symbolName)) {
-      return Optional.of(registeredSymbols.get(symbolName));
+    Optional<DllSymbol> registeredSymbol = lookupRegisteredSymbol(convention, symbolName);
+    if(registeredSymbol.isPresent()) {
+      return registeredSymbol;
     }
 
     if(useDynamicSymbols) {
-      return lookupWithReflection(symbolName);
+      return lookupWithReflection(convention, symbolName);
     }
 
     return Optional.absent();
   }
 
-  private Optional<DllSymbol> lookupWithReflection(String symbolName) {
+  private Optional<DllSymbol> lookupRegisteredSymbol(DllSymbol.Convention convention, String symbolName) {
+
+    // When looking up methods using the registration table, calls via ".Fortran"
+    // lowercase the name, but do *not* add a trailing '_'
+    if(convention == DllSymbol.Convention.FORTRAN) {
+      symbolName = symbolName.toLowerCase();
+    }
+
+    return Optional.fromNullable(registeredSymbols.get(symbolName));
+  }
+
+  private Optional<DllSymbol> lookupWithReflection(DllSymbol.Convention convention, String symbolName) {
+
+    // When using "dynamic lookup", GNU R fully mangles Fortran
+    // symbols, applying both lower-casing and a trailing '_'
+    if(convention == DllSymbol.Convention.FORTRAN) {
+      symbolName = symbolName.toLowerCase() + "_";
+    }
+
     for(Method method : libraryClass.getMethods()) {
       if(method.getName().equals(symbolName) && isPublicStatic(method)) {
         return Optional.of(new DllSymbol(method));

@@ -24,7 +24,6 @@ import org.renjin.eval.EvalException;
 import org.renjin.eval.FinalizationClosure;
 import org.renjin.eval.FinalizationHandler;
 import org.renjin.gcc.runtime.*;
-import org.renjin.invoke.annotations.Current;
 import org.renjin.methods.MethodDispatch;
 import org.renjin.methods.Methods;
 import org.renjin.primitives.*;
@@ -281,17 +280,17 @@ public final class Rinternals {
   /**
    * NA_String as a CHARSXP
    */
-  public static  SEXP	R_NaString = null;
+  public static  SEXP	R_NaString = GnuCharSexp.NA_STRING;
 
   /**
    * ""as a CHARSEXP
    */
-  public static  SEXP	R_BlankString = new GnuCharSexp("");
+  public static  SEXP	R_BlankString = GnuCharSexp.BLANK_STRING;
 
   /**
    * "" as a STRSXP
    */
-  public static  SEXP	R_BlankScalarString = new GnuStringVector("");
+  public static  SEXP	R_BlankScalarString = new GnuStringVector(GnuCharSexp.BLANK_STRING);
 
 
   public static BytePtr R_CHAR(SEXP x) {
@@ -580,7 +579,7 @@ public final class Rinternals {
     StringVector stringVector = (StringVector) x;
     String string = stringVector.getElementAsString(i);
 
-    return new GnuCharSexp(string);
+    return GnuCharSexp.valueOf(string);
   }
 
   /**
@@ -836,7 +835,7 @@ public final class Rinternals {
    * @return Pointer to a CHARSXP representing {@code x}'s name.
    */
   public static SEXP PRINTNAME(SEXP x) {
-    return new GnuCharSexp(((Symbol) x).getPrintName());
+    return GnuCharSexp.valueOf(((Symbol) x).getPrintName());
   }
 
   /**
@@ -1044,7 +1043,10 @@ public final class Rinternals {
   }
 
   public static SEXP Rf_asChar(SEXP p0) {
-    return new GnuCharSexp(((AtomicVector) p0).getElementAsString(0));
+    if(p0.length() == 0) {
+      return R_NaString;
+    }
+    return GnuCharSexp.valueOf(((AtomicVector) p0).getElementAsString(0));
   }
 
   public static SEXP Rf_coerceVector(SEXP p0, /*SEXPTYPE*/ int type) {
@@ -1236,8 +1238,17 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_cons");
   }
 
-  public static void Rf_copyMatrix(SEXP p0, SEXP p1, boolean p2) {
-    throw new UnimplementedGnuApiMethod("Rf_copyMatrix");
+
+
+  public static void Rf_copyMatrix(SEXP s, SEXP t, boolean byrow) {
+    int nr = Rf_nrows(s), nc = Rf_ncols(s);
+    int nt = XLENGTH(t);
+
+    if (byrow) {
+      throw new UnimplementedGnuApiMethod("copyMatrix(byrow=TRUE)");
+    } else {
+      Rf_copyVector(s, t);
+    }
   }
 
   public static void Rf_copyListMatrix(SEXP p0, SEXP p1, boolean p2) {
@@ -1264,8 +1275,104 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_copyMostAttrib");
   }
 
-  public static void Rf_copyVector(SEXP p0, SEXP p1) {
-    throw new UnimplementedGnuApiMethod("Rf_copyVector");
+  public static void Rf_copyVector(SEXP s, SEXP t) {
+
+    int sT = TYPEOF(s), tT = TYPEOF(t);
+    if (sT != tT) {
+      throw new EvalException("vector types do not match in copyVector");
+    }
+
+    int ns = XLENGTH(s), nt = XLENGTH(t);
+    switch (sT) {
+      case SexpType.STRSXP:
+        xcopyStringWithRecycle(s, t, 0, ns, nt);
+        break;
+      case SexpType.LGLSXP:
+        xcopyLogicalWithRecycle(s, t, 0, ns, nt);
+        break;
+      case SexpType.INTSXP:
+        xcopyIntegerWithRecycle(s, t, 0, ns, nt);
+        break;
+      case SexpType.REALSXP:
+        xcopyRealWithRecycle(s, t, 0, ns, nt);
+        break;
+      case SexpType.CPLXSXP:
+        xcopyComplexWithRecycle(s, t, 0, ns, nt);
+        break;
+      case SexpType.EXPRSXP:
+      case SexpType.VECSXP:
+        xcopyVectorWithRecycle(s, t, 0, ns, nt);
+        break;
+      case SexpType.RAWSXP:
+        xcopyRawWithRecycle(s, t, 0, ns, nt);
+        break;
+      default:
+        UNIMPLEMENTED_TYPE("copyVector", s);
+    }
+  }
+
+  private static void xcopyRawWithRecycle(SEXP s, SEXP t, int i, int ns, int nt) {
+    throw new UnimplementedGnuApiMethod("xcopyRawWithRecycle");
+  }
+
+
+  private static void xcopyVectorWithRecycle(SEXP s, SEXP t, int i, int ns, int nt) {
+    throw new UnimplementedGnuApiMethod("xcopyVectorWithRecycle");
+  }
+
+  private static void xcopyComplexWithRecycle(SEXP s, SEXP t, int i, int ns, int nt) {
+    throw new UnimplementedGnuApiMethod("xcopyComplexWithRecycle");
+
+  }
+
+  private static void xcopyRealWithRecycle(SEXP dst, SEXP src, int dstart, int n, int nsrc) {
+    DoubleVector dv = (DoubleVector) dst;
+    if(!(src instanceof DoubleArrayVector)) {
+      throw new EvalException("Illegal modification of target vector: " + src.getClass().getName());
+    }
+    DoubleArrayVector tv = (DoubleArrayVector) src;
+
+    double sa[];
+    double da[] = tv.toDoubleArrayUnsafe();
+    if(dv instanceof DoubleArrayVector) {
+      sa = ((DoubleArrayVector) dv).toDoubleArrayUnsafe();
+    } else {
+      sa = dv.toDoubleArray();
+    }
+    if (nsrc >= n) { /* no recycle needed */
+      for(int i = 0; i < n; i++) {
+        da[dstart + i] = sa[i];
+      }
+      return;
+    }
+    if (nsrc == 1) {
+      double val = sa[0];
+      for(int i = 0; i < n; i++) {
+        da[dstart + i] = val;
+      }
+      return;
+    }
+
+    /* recycle needed */
+    int sidx = 0;
+    for(int i = 0; i < n; i++, sidx++) {
+      if (sidx == nsrc) {
+        sidx = 0;
+      }
+      da[dstart + i] = sa[sidx];
+    }
+  }
+
+  private static void xcopyIntegerWithRecycle(SEXP s, SEXP t, int i, int ns, int nt) {
+    throw new UnimplementedGnuApiMethod("xcopyIntegerWithRecycle");
+  }
+
+  private static void xcopyLogicalWithRecycle(SEXP s, SEXP t, int i, int ns, int nt) {
+    throw new UnimplementedGnuApiMethod("xcopyLogicalWithRecycle");
+  }
+
+  private static void xcopyStringWithRecycle(SEXP s, SEXP t, int i, int ns, int nt) {
+    throw new UnsupportedOperationException("xcopyStringWithRecycle: not yet supported by Renjin");
   }
 
   public static int Rf_countContexts(int p0, int p1) {
@@ -1525,7 +1632,14 @@ public final class Rinternals {
   }
 
   public static SEXP Rf_mkChar(BytePtr string) {
+    if(string.array == null) {
+      return GnuCharSexp.NA_STRING;
+    }
     int length = string.nullTerminatedStringLength();
+    if(length == 0) {
+      return R_BlankString;
+    }
+
     byte[] copy = new byte[length+1];
     System.arraycopy(string.array, string.offset, copy, 0, length);
     
@@ -2255,7 +2369,7 @@ public final class Rinternals {
         Arrays.fill(elements, Null.INSTANCE);
         return new ListVector(elements);
       case SexpType.STRSXP:
-        return new GnuStringVector(new BytePtr[length]);
+        return new GnuStringVector(new GnuCharSexp[length]);
       case SexpType.RAWSXP:
         return new RawVector(new byte[length]);
     }
@@ -2512,7 +2626,7 @@ public final class Rinternals {
   }
 
   public static SEXP Rf_ScalarString(SEXP p0) {
-    return new GnuStringVector(((GnuCharSexp) p0).getValue());
+    return new GnuStringVector(((GnuCharSexp) p0));
   }
 
   public static /*R_xlen_t*/ int Rf_xlength(SEXP p0) {

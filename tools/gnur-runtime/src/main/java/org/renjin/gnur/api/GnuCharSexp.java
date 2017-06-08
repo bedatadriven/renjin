@@ -21,21 +21,30 @@ package org.renjin.gnur.api;
 import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.sexp.AbstractSEXP;
+import org.renjin.sexp.SEXP;
 import org.renjin.sexp.SexpVisitor;
+import org.renjin.sexp.StringVector;
 
 /**
  * Internal character SEXP
  */
 public class GnuCharSexp extends AbstractSEXP {
-  
+
+  public static final GnuCharSexp NA_STRING = new GnuCharSexp(new byte[] { 'N', 'A', 0 });
+  public static final GnuCharSexp BLANK_STRING = new GnuCharSexp(new byte[0]);
+
   private byte[] value;
 
   public GnuCharSexp(byte[] value) {
     this.value = value;
   }
 
-  public GnuCharSexp(String value) {
-    this(BytePtr.nullTerminatedString(value, Charsets.UTF_8).array);
+  public static GnuCharSexp valueOf(String value) {
+    if(StringVector.isNA(value)) {
+      return NA_STRING;
+    } else {
+      return new GnuCharSexp(BytePtr.nullTerminatedString(value, Charsets.UTF_8).array);
+    }
   }
 
   @Override

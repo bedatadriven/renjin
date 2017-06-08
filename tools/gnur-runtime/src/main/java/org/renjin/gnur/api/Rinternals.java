@@ -1377,14 +1377,37 @@ public final class Rinternals {
     } else {
       sa = sv.toIntArray();
     }
-    if (nsrc >= n) { /* no recycle needed */
+    copy(sa, da, dstart, n, nsrc);
+  }
+
+  private static void xcopyLogicalWithRecycle(SEXP dst, SEXP src, int dstart, int n, int nsrc) {
+    LogicalVector sv = (LogicalVector) src;
+    if(!(dst instanceof LogicalArrayVector)) {
+      throw new EvalException("Illegal modification of target vector: " + dst.getClass().getName());
+    }
+    LogicalArrayVector dv = (LogicalArrayVector) dst;
+
+    int sa[];
+    int da[] = dv.toIntArrayUnsafe();
+    if(sv instanceof LogicalArrayVector) {
+      sa = ((LogicalArrayVector) sv).toIntArrayUnsafe();
+    } else {
+      sa = sv.toIntArray();
+    }
+    copy(sa, da, dstart, n, nsrc);
+  }
+
+  private static void copy(int[] sa, int[] da, int dstart, int n, int nsrc) {
+    if (nsrc >= n) {
+      // No recycling required
       System.arraycopy(sa, 0, da, dstart, n);
 
     } else if (nsrc == 1) {
+      // Fill with scalar
       Arrays.fill(da, dstart, dstart + n, sa[0]);
 
     } else {
-      /* recycle needed */
+      // Recycling need for source vector
       int sidx = 0;
       for (int i = 0; i < n; i++, sidx++) {
         if (sidx == nsrc) {
@@ -1393,10 +1416,6 @@ public final class Rinternals {
         da[dstart + i] = sa[sidx];
       }
     }
-  }
-
-  private static void xcopyLogicalWithRecycle(SEXP s, SEXP t, int i, int ns, int nt) {
-    throw new UnimplementedGnuApiMethod("xcopyLogicalWithRecycle");
   }
 
   private static void xcopyStringWithRecycle(SEXP s, SEXP t, int i, int ns, int nt) {
@@ -1418,12 +1437,12 @@ public final class Rinternals {
     rho.setVariable(Native.currentContext(), name, value);
   }
 
-  public static SEXP Rf_dimgets(SEXP p0, SEXP p1) {
-    throw new UnimplementedGnuApiMethod("Rf_dimgets");
+  public static SEXP Rf_dimgets(SEXP sexp, SEXP dim) {
+    return sexp.setAttributes(sexp.getAttributes().copy().setDim(dim));
   }
 
-  public static SEXP Rf_dimnamesgets(SEXP p0, SEXP p1) {
-    throw new UnimplementedGnuApiMethod("Rf_dimnamesgets");
+  public static SEXP Rf_dimnamesgets(SEXP sexp, SEXP dimnames) {
+    return sexp.setAttributes(sexp.getAttributes().copy().setDimNames(dimnames));
   }
 
   public static SEXP Rf_DropDims(SEXP p0) {

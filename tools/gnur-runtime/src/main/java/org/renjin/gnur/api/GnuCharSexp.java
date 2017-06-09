@@ -31,7 +31,7 @@ import org.renjin.sexp.StringVector;
 public class GnuCharSexp extends AbstractSEXP {
 
   public static final GnuCharSexp NA_STRING = new GnuCharSexp(new byte[] { 'N', 'A', 0 });
-  public static final GnuCharSexp BLANK_STRING = new GnuCharSexp(new byte[0]);
+  public static final GnuCharSexp BLANK_STRING = new GnuCharSexp(new byte[] { '0' });
 
   private byte[] value;
 
@@ -42,6 +42,8 @@ public class GnuCharSexp extends AbstractSEXP {
   public static GnuCharSexp valueOf(String value) {
     if(StringVector.isNA(value)) {
       return NA_STRING;
+    } else if(value.isEmpty()) {
+      return BLANK_STRING;
     } else {
       return new GnuCharSexp(BytePtr.nullTerminatedString(value, Charsets.UTF_8).array);
     }

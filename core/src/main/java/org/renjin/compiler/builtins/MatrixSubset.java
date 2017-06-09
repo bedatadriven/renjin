@@ -19,7 +19,6 @@
 package org.renjin.compiler.builtins;
 
 import org.renjin.compiler.codegen.EmitContext;
-import org.renjin.compiler.ir.ArgumentBounds;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.primitives.subset.MatrixSelection;
@@ -33,12 +32,12 @@ import java.util.List;
  */
 public class MatrixSubset implements Specialization {
   private final ValueBounds source;
-  private final List<ArgumentBounds> subscripts;
+  private final List<ValueBounds> subscripts;
   private ValueBounds result;
 
   private boolean drop = true;
   
-  public MatrixSubset(ValueBounds source, List<ArgumentBounds> subscripts) {
+  public MatrixSubset(ValueBounds source, List<ValueBounds> subscripts) {
     this.source = source;
     this.subscripts = subscripts;
     this.result = MatrixSelection.computeResultBounds(source, subscripts, true);

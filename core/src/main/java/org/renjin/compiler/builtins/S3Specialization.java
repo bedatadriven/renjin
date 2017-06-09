@@ -2,7 +2,6 @@ package org.renjin.compiler.builtins;
 
 import org.renjin.compiler.cfg.InlinedFunction;
 import org.renjin.compiler.codegen.EmitContext;
-import org.renjin.compiler.ir.ArgumentBounds;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.compiler.ir.tac.IRMatchedArguments;
@@ -59,7 +58,7 @@ public class S3Specialization implements Specialization {
     type = returnBounds.storageType();
   }
   
-  public static Specialization trySpecialize(String generic, RuntimeState runtimeState, ValueBounds objectExpr, Map<Expression, ArgumentBounds> typeMap, List<IRArgument> arguments) {
+  public static Specialization trySpecialize(String generic, RuntimeState runtimeState, ValueBounds objectExpr, Map<Expression, ValueBounds> typeMap, List<IRArgument> arguments) {
     StringVector objectClass = S3.computeDataClasses(objectExpr);
   
     if (objectClass == null) {

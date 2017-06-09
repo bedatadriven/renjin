@@ -18,7 +18,6 @@
  */
 package org.renjin.primitives.subset;
 
-import org.renjin.compiler.ir.ArgumentBounds;
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.exception.InvalidSyntaxException;
@@ -219,7 +218,7 @@ public class MatrixSelection implements SelectionStrategy {
    * @param drop
    * @return
    */
-  public static ValueBounds computeResultBounds(ValueBounds source, List<ArgumentBounds> subscripts, boolean drop) {
+  public static ValueBounds computeResultBounds(ValueBounds source, List<ValueBounds> subscripts, boolean drop) {
 
     
     // What we can infer depends on what we know about the inputs. Specifically, it depends on three pieces
@@ -312,7 +311,7 @@ public class MatrixSelection implements SelectionStrategy {
     return resultTypeSet;
   }
 
-  private static int[] computeSubscriptDimBounds(ValueBounds source, List<ArgumentBounds> subscripts) {
+  private static int[] computeSubscriptDimBounds(ValueBounds source, List<ValueBounds> subscripts) {
     int subscriptDims[] = new int[subscripts.size()];
 
     // Are the dimensions of the source known? this will help
@@ -328,7 +327,7 @@ public class MatrixSelection implements SelectionStrategy {
 
     for (int i = 0; i < subscripts.size(); i++) {
       subscriptDims[i] = -1;
-      ValueBounds subscript = subscripts.get(i).getValueBounds();
+      ValueBounds subscript = subscripts.get(i);
       if(subscript.isConstant(Symbol.MISSING_ARG)) {
         // x[ , 1] for example
         if(sourceDim != null) {

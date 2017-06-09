@@ -18,7 +18,6 @@
  */
 package org.renjin.compiler.builtins;
 
-import org.renjin.compiler.ir.ArgumentBounds;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.exception.InvalidSyntaxException;
 import org.renjin.compiler.ir.tac.RuntimeState;
@@ -40,11 +39,11 @@ public class DimSpecializer implements Specializer {
   }
 
   @Override
-  public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> argumentTypes) {
+  public Specialization trySpecialize(RuntimeState runtimeState, List<ValueBounds> argumentTypes) {
     if(argumentTypes.size() != 1) {
       throw new InvalidSyntaxException("dim() takes one argument.");
     }
-    ValueBounds sexp = argumentTypes.get(0).getValueBounds();
+    ValueBounds sexp = argumentTypes.get(0);
     
     if(sexp.isDimAttributeConstant()) {
       return new ConstantCall(sexp.getConstantDimAttribute());

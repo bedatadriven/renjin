@@ -18,7 +18,6 @@
  */
 package org.renjin.compiler.builtins;
 
-import org.renjin.compiler.ir.ArgumentBounds;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.sexp.Symbol;
@@ -31,10 +30,10 @@ import java.util.List;
 public class SubsetSpecializer implements Specializer {
 
   @Override
-  public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> argumentTypes) {
+  public Specialization trySpecialize(RuntimeState runtimeState, List<ValueBounds> argumentTypes) {
 
-    ValueBounds source = argumentTypes.get(0).getValueBounds();
-    List<ArgumentBounds> subscripts = argumentTypes.subList(1, argumentTypes.size());
+    ValueBounds source = argumentTypes.get(0);
+    List<ValueBounds> subscripts = argumentTypes.subList(1, argumentTypes.size());
     
     if (subscripts.size() == 0) {
       return new CompleteSubset(source);
@@ -46,7 +45,7 @@ public class SubsetSpecializer implements Specializer {
       return new MatrixSubset(source, subscripts).tryFurtherSpecialize();
     }
 
-    ValueBounds subscript = subscripts.get(0).getValueBounds();
+    ValueBounds subscript = subscripts.get(0);
 
     if(subscript.isConstant() && subscript.getConstantValue() == Symbol.MISSING_ARG) {
       return new CompleteSubset(source);

@@ -19,7 +19,6 @@
 package org.renjin.compiler.builtins;
 
 import org.renjin.compiler.builtins.subset.UpdateElementCall;
-import org.renjin.compiler.ir.ArgumentBounds;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.RuntimeState;
 
@@ -30,13 +29,13 @@ import java.util.List;
  */
 public class ReplaceSpecializer implements Specializer {
   @Override
-  public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> argumentTypes) {
+  public Specialization trySpecialize(RuntimeState runtimeState, List<ValueBounds> argumentTypes) {
     if(argumentTypes.size() == 3) {
       
       
-      ValueBounds inputVector = argumentTypes.get(0).getValueBounds();
-      ValueBounds subscript = argumentTypes.get(1).getValueBounds();
-      ValueBounds replacement = argumentTypes.get(2).getValueBounds();
+      ValueBounds inputVector = argumentTypes.get(0);
+      ValueBounds subscript = argumentTypes.get(1);
+      ValueBounds replacement = argumentTypes.get(2);
       
       if(subscript.getLength() == 1 && replacement.getLength() == 1 &&
           inputVector.getTypeSet() == replacement.getTypeSet()) {

@@ -19,7 +19,6 @@
 package org.renjin.compiler.builtins;
 
 import org.renjin.compiler.codegen.EmitContext;
-import org.renjin.compiler.ir.ArgumentBounds;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.invoke.model.JvmMethod;
@@ -27,7 +26,10 @@ import org.renjin.primitives.Primitives;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.repackaged.guava.collect.Lists;
-import org.renjin.sexp.*;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Symbol;
+import org.renjin.sexp.Symbols;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -42,11 +44,11 @@ public class DataParallelCall implements Specialization {
 
   private final String name;
   private final JvmMethod method;
-  private List<ArgumentBounds> argumentBounds;
+  private List<ValueBounds> argumentBounds;
   private final ValueBounds resultBounds;
   private final Type type;
 
-  public DataParallelCall(Primitives.Entry primitive, JvmMethod method, List<ArgumentBounds> argumentBounds) {
+  public DataParallelCall(Primitives.Entry primitive, JvmMethod method, List<ValueBounds> argumentBounds) {
     this.name = primitive.name;
     this.method = method;
     this.argumentBounds = argumentBounds;
@@ -55,9 +57,9 @@ public class DataParallelCall implements Specialization {
   }
 
   
-  private ValueBounds computeBounds(List<ArgumentBounds> argumentBounds) {
+  private ValueBounds computeBounds(List<ValueBounds> argumentBounds) {
     
-    List<ArgumentBounds> recycledArguments = recycledArgumentBounds(argumentBounds);
+    List<ValueBounds> recycledArguments = recycledArgumentBounds(argumentBounds);
 
     int resultLength = computeResultLength(this.argumentBounds);
 
@@ -81,9 +83,9 @@ public class DataParallelCall implements Specialization {
     return bounds.build();
   }
 
-  private int anyNAs(List<ArgumentBounds> argumentBounds) {
-    for (ArgumentBounds argumentBound : argumentBounds) {
-      if(argumentBound.getValueBounds().getNA() == ValueBounds.MAY_HAVE_NA) {
+  private int anyNAs(List<ValueBounds> argumentBounds) {
+    for (ValueBounds argumentBound : argumentBounds) {
+      if(argumentBound.getNA() == ValueBounds.MAY_HAVE_NA) {
         return ValueBounds.MAY_HAVE_NA;
       }
     }
@@ -93,9 +95,9 @@ public class DataParallelCall implements Specialization {
   /**
    * Makes a list of {@link ValueBounds} for @Recycled arguments.
    */
-  private List<ArgumentBounds> recycledArgumentBounds(List<ArgumentBounds> argumentBounds) {
-    List<ArgumentBounds> list = Lists.newArrayList();
-    Iterator<ArgumentBounds> argumentIt = argumentBounds.iterator();
+  private List<ValueBounds> recycledArgumentBounds(List<ValueBounds> argumentBounds) {
+    List<ValueBounds> list = Lists.newArrayList();
+    Iterator<ValueBounds> argumentIt = argumentBounds.iterator();
     for (JvmMethod.Argument formal : method.getFormals()) {
       if (formal.isRecycle()) {
         list.add(argumentIt.next());
@@ -104,12 +106,12 @@ public class DataParallelCall implements Specialization {
     return list;
   }
   
-  private int computeResultLength(List<ArgumentBounds> argumentBounds) {
-    Iterator<ArgumentBounds> it = argumentBounds.iterator();
+  private int computeResultLength(List<ValueBounds> argumentBounds) {
+    Iterator<ValueBounds> it = argumentBounds.iterator();
     int resultLength = 0;
     
     while(it.hasNext()) {
-      int argumentLength = it.next().getValueBounds().getLength();
+      int argumentLength = it.next().getLength();
       if(argumentLength == ValueBounds.UNKNOWN_LENGTH) {
         return ValueBounds.UNKNOWN_LENGTH;
       }
@@ -122,7 +124,7 @@ public class DataParallelCall implements Specialization {
     return resultLength;
   }
   
-  private void buildStructuralBounds(ValueBounds.Builder bounds, List<ArgumentBounds> argumentBounds, int resultLength) {
+  private void buildStructuralBounds(ValueBounds.Builder bounds, List<ValueBounds> argumentBounds, int resultLength) {
 
     Map<Symbol, SEXP> attributes = new HashMap<>();
     attributes.put(Symbols.DIM, combineAttribute(Symbols.DIM, argumentBounds, resultLength));
@@ -132,7 +134,7 @@ public class DataParallelCall implements Specialization {
     
   }
   
-  private SEXP combineAttribute(Symbol symbol, List<ArgumentBounds> argumentBounds, int resultLength) {
+  private SEXP combineAttribute(Symbol symbol, List<ValueBounds> argumentBounds, int resultLength) {
 
     // If we don't know the result length, we don't know which 
     // argument to take the attributes from.
@@ -140,10 +142,10 @@ public class DataParallelCall implements Specialization {
       return null; // unknown
     }
     
-    for (ArgumentBounds argumentBound : argumentBounds) {
-      if (argumentBound.getValueBounds().getLength() == resultLength) {
+    for (ValueBounds argumentBound : argumentBounds) {
+      if (argumentBound.getLength() == resultLength) {
 
-        SEXP value = argumentBound.getValueBounds().getAttributeIfConstant(symbol);
+        SEXP value = argumentBound.getAttributeIfConstant(symbol);
         if (value != Null.INSTANCE) {
           return value;
         }
@@ -153,7 +155,7 @@ public class DataParallelCall implements Specialization {
   }
 
 
-  private void buildAllBounds(ValueBounds.Builder bounds, List<ArgumentBounds> argumentBounds, int resultLength) {
+  private void buildAllBounds(ValueBounds.Builder bounds, List<ValueBounds> argumentBounds, int resultLength) {
 
 
     // If we don't know the result length, we don't know which 
@@ -168,14 +170,14 @@ public class DataParallelCall implements Specialization {
 
     boolean open = false;
     
-    for (ArgumentBounds argumentBound : argumentBounds) {
-      if (argumentBound.getValueBounds().getLength() == resultLength) {
+    for (ValueBounds argumentBound : argumentBounds) {
+      if (argumentBound.getLength() == resultLength) {
         
-        if(argumentBound.getValueBounds().isAttributeSetOpen()) {
+        if(argumentBound.isAttributeSetOpen()) {
           open = true;
         }
 
-        for (Map.Entry<Symbol, SEXP> entry : argumentBound.getValueBounds().getAttributeBounds().entrySet()) {
+        for (Map.Entry<Symbol, SEXP> entry : argumentBound.getAttributeBounds().entrySet()) {
           if(!attributes.containsKey(entry.getKey())) {
             attributes.put(entry.getKey(), entry.getValue());
           }

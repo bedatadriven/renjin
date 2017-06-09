@@ -18,7 +18,6 @@
  */
 package org.renjin.compiler.builtins;
 
-import org.renjin.compiler.ir.ArgumentBounds;
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.RuntimeState;
@@ -50,14 +49,14 @@ public class BuiltinSpecializer implements Specializer {
   }
   
   @Override
-  public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> argumentTypes) {
+  public Specialization trySpecialize(RuntimeState runtimeState, List<ValueBounds> argumentTypes) {
     JvmMethod method = selectOverload(argumentTypes);
     if(method == null) {
       return UnspecializedCall.INSTANCE;
     }
     
     if(method.isGeneric()) {
-      ValueBounds object = argumentTypes.get(0).getValueBounds();
+      ValueBounds object = argumentTypes.get(0);
       Specialization genericMethod = maybeSpecializeToGenericCall(object);
       if(genericMethod != null) {
         return genericMethod;
@@ -83,7 +82,7 @@ public class BuiltinSpecializer implements Specializer {
     return GenericPrimitive.INSTANCE;
   }
 
-  private JvmMethod selectOverload(List<ArgumentBounds> argumentTypes) {
+  private JvmMethod selectOverload(List<ValueBounds> argumentTypes) {
     for (JvmMethod method : methods) {
       if(matches(method, argumentTypes)) {
         return method;
@@ -92,13 +91,13 @@ public class BuiltinSpecializer implements Specializer {
     return null;
   }
 
-  private boolean matches(JvmMethod method, List<ArgumentBounds> argumentTypes) {
+  private boolean matches(JvmMethod method, List<ValueBounds> argumentTypes) {
     if(!arityMatches(method, argumentTypes)) {
       return false;
     }
     for (int i = 0; i < method.getPositionalFormals().size(); i++) {
       JvmMethod.Argument formal = method.getPositionalFormals().get(i);
-      ValueBounds actualType = argumentTypes.get(i).getValueBounds();
+      ValueBounds actualType = argumentTypes.get(i);
 
       if(!TypeSet.matches(formal.getClazz(), actualType.getTypeSet())) {
         return false;
@@ -107,7 +106,7 @@ public class BuiltinSpecializer implements Specializer {
     return true;
   }
 
-  private boolean arityMatches(JvmMethod method, List<ArgumentBounds> argumentTypes) {
+  private boolean arityMatches(JvmMethod method, List<ValueBounds> argumentTypes) {
     int numPosArgs = method.getPositionalFormals().size();
     return (argumentTypes.size() == numPosArgs) ||
         (method.acceptsArgumentList() && (argumentTypes.size() >= numPosArgs));

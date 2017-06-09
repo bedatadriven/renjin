@@ -2429,7 +2429,10 @@ public final class Rinternals {
         Arrays.fill(elements, Null.INSTANCE);
         return new ListVector(elements);
       case SexpType.STRSXP:
-        return new GnuStringVector(new GnuCharSexp[length]);
+        GnuCharSexp[] strings = new GnuCharSexp[length];
+        Arrays.fill(strings, GnuCharSexp.NA_STRING);
+        return new GnuStringVector(strings);
+
       case SexpType.RAWSXP:
         return new RawVector(new byte[length]);
     }

@@ -18,6 +18,7 @@
  */
 package org.renjin.compiler.builtins;
 
+import org.renjin.compiler.ir.ArgumentBounds;
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.RuntimeState;
@@ -27,7 +28,9 @@ import org.renjin.primitives.Primitives;
 import org.renjin.sexp.AtomicVector;
 import org.renjin.sexp.Null;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -49,14 +52,19 @@ public class BuiltinSpecializer implements Specializer {
   }
   
   @Override
-  public Specialization trySpecialize(RuntimeState runtimeState, List<ValueBounds> argumentTypes) {
-    JvmMethod method = selectOverload(argumentTypes);
+  public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> argumentTypes) {
+    List<ValueBounds> listValueBounds = new ArrayList<>();
+    Iterator<ArgumentBounds> it = (Iterator) argumentTypes;
+    while (it.hasNext()) {
+      listValueBounds.add(it.next().getValueBounds());
+    }
+    JvmMethod method = selectOverload(listValueBounds);
     if(method == null) {
       return UnspecializedCall.INSTANCE;
     }
     
     if(method.isGeneric()) {
-      ValueBounds object = argumentTypes.get(0);
+      ValueBounds object = listValueBounds.get(0);
       Specialization genericMethod = maybeSpecializeToGenericCall(object);
       if(genericMethod != null) {
         return genericMethod;
@@ -64,9 +72,9 @@ public class BuiltinSpecializer implements Specializer {
     }
     
     if(method.isDataParallel()) {
-      return new DataParallelCall(primitive, method, argumentTypes).specializeFurther();
+      return new DataParallelCall(primitive, method, listValueBounds).specializeFurther();
     } else {
-      return new StaticMethodCall(method).furtherSpecialize(argumentTypes);
+      return new StaticMethodCall(method).furtherSpecialize(listValueBounds);
     }
   }
 

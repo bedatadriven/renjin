@@ -18,6 +18,7 @@
  */
 package org.renjin.compiler.builtins;
 
+import org.renjin.compiler.ir.ArgumentBounds;
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.RuntimeState;
@@ -25,6 +26,8 @@ import org.renjin.primitives.combine.Combine;
 import org.renjin.sexp.ListVector;
 import org.renjin.sexp.SEXP;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -32,9 +35,14 @@ import java.util.List;
  */
 public class CombineSpecializer implements Specializer {
   @Override
-  public Specialization trySpecialize(RuntimeState runtimeState, List<ValueBounds> argumentTypes) {
+  public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> argumentTypes) {
+    List<ValueBounds> listValueBounds = new ArrayList<>();
+    Iterator<ArgumentBounds> it = (Iterator) argumentTypes;
+    while (it.hasNext()) {
+      listValueBounds.add(it.next().getValueBounds());
+    }
     
-    SEXP constantResult = tryCombine(argumentTypes);
+    SEXP constantResult = tryCombine(listValueBounds);
     if(constantResult != null) {
       return new ConstantCall(constantResult);
     }

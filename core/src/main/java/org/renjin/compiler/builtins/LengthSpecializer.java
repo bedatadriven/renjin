@@ -18,21 +18,29 @@
  */
 package org.renjin.compiler.builtins;
 
+import org.renjin.compiler.ir.ArgumentBounds;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.exception.InvalidSyntaxException;
 import org.renjin.compiler.ir.tac.RuntimeState;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 
 public class LengthSpecializer implements Specializer {
   @Override
-  public Specialization trySpecialize(RuntimeState runtimeState, List<ValueBounds> argumentTypes) {
+  public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> argumentTypes) {
+    List<ValueBounds> listValueBounds = new ArrayList<>();
+    Iterator<ArgumentBounds> it = (Iterator) argumentTypes;
+    while (it.hasNext()) {
+      listValueBounds.add(it.next().getValueBounds());
+    }
     if(argumentTypes.size() != 1) {
       throw new InvalidSyntaxException("length() takes one argument.");
     }
 
-    ValueBounds argumentBounds = argumentTypes.get(0);
+    ValueBounds argumentBounds = listValueBounds.get(0);
     if(argumentBounds.isLengthConstant()) {
       return new ConstantCall(argumentBounds.getLength());
     }

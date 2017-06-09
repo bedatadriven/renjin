@@ -18,6 +18,7 @@
  */
 package org.renjin.compiler.builtins;
 
+import org.renjin.compiler.ir.ArgumentBounds;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.exception.InvalidSyntaxException;
 import org.renjin.compiler.ir.tac.RuntimeState;
@@ -25,6 +26,8 @@ import org.renjin.invoke.model.JvmMethod;
 import org.renjin.primitives.Attributes;
 import org.renjin.repackaged.guava.collect.Iterables;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -39,11 +42,16 @@ public class DimSpecializer implements Specializer {
   }
 
   @Override
-  public Specialization trySpecialize(RuntimeState runtimeState, List<ValueBounds> argumentTypes) {
+  public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> argumentTypes) {
+    List<ValueBounds> listValueBounds = new ArrayList<>();
+    Iterator<ArgumentBounds> it = (Iterator) argumentTypes;
+    while (it.hasNext()) {
+      listValueBounds.add(it.next().getValueBounds());
+    }
     if(argumentTypes.size() != 1) {
       throw new InvalidSyntaxException("dim() takes one argument.");
     }
-    ValueBounds sexp = argumentTypes.get(0);
+    ValueBounds sexp = listValueBounds.get(0);
     
     if(sexp.isDimAttributeConstant()) {
       return new ConstantCall(sexp.getConstantDimAttribute());

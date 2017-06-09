@@ -1185,6 +1185,11 @@ public class GimpleCompilerTest extends AbstractGccTest {
   }
 
   @Test
+  public void downcast64() throws Exception {
+    compileAndTest("downcast64.c");
+  }
+
+  @Test
   public void inlineAssembly() throws Exception {
     Class<?> clazz = compile("asm.c");
 
@@ -1201,5 +1206,10 @@ public class GimpleCompilerTest extends AbstractGccTest {
   @Test
   public void arraysOfMixedLength() throws Exception {
     compileAndTest("array_mixed_len_union.c");
+  }
+
+  @Test
+  public void unsignedDiv() throws Exception {
+    compileAndTest("unsigned_div.c");
   }
 }

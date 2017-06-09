@@ -18,8 +18,6 @@
  */
 package org.renjin.gnur.api;
 
-import org.renjin.gcc.runtime.BytePtr;
-import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.sexp.AttributeMap;
 import org.renjin.sexp.StringVector;
 
@@ -28,17 +26,17 @@ import org.renjin.sexp.StringVector;
  */
 public class GnuStringVector extends StringVector {
   
-  private BytePtr[] values;
+  private GnuCharSexp[] values;
 
   public GnuStringVector(String string) {
-    this(BytePtr.nullTerminatedString(string, Charsets.UTF_8));
+    this(GnuCharSexp.valueOf(string));
   }
   
-  public GnuStringVector(BytePtr... values) {
+  public GnuStringVector(GnuCharSexp... values) {
     this(values, AttributeMap.EMPTY);
   }
   
-  public GnuStringVector(BytePtr[] values, AttributeMap attributes) {
+  public GnuStringVector(GnuCharSexp[] values, AttributeMap attributes) {
     super(attributes);
     this.values = values;
   }
@@ -55,11 +53,11 @@ public class GnuStringVector extends StringVector {
 
   @Override
   public String getElementAsString(int index) {
-    BytePtr value = values[index];
-    if(value == null) {
+    GnuCharSexp value = values[index];
+    if(value == GnuCharSexp.NA_STRING) {
       return null;
     } else {
-      return value.nullTerminatedString();
+      return value.getValue().nullTerminatedString();
     }
   }
 
@@ -74,6 +72,10 @@ public class GnuStringVector extends StringVector {
   }
 
   public void set(int index, GnuCharSexp charValue) {
-    values[index] = charValue.getValue();
+    values[index] = charValue;
+  }
+
+  public GnuCharSexp getElementAsCharSexp(int index) {
+    return values[index];
   }
 }

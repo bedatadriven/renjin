@@ -508,7 +508,7 @@ public class ExprFactory {
   private GExpr findBinOpGenerator(GimpleOp op, List<GimpleExpr> operands) {
     GimpleExpr x = operands.get(0);
     GimpleExpr y = operands.get(1);
-    
+
 
     if( x.getType() instanceof GimpleComplexType && 
         y.getType() instanceof GimpleComplexType) {
@@ -519,11 +519,53 @@ public class ExprFactory {
         x.getType() instanceof GimplePrimitiveType &&
         y.getType() instanceof GimplePrimitiveType) {
 
+
+      // Unsigned integer division needs to be handled specially on the JVM
+      if((isUnsignedInt(x.getType()) || isUnsignedInt(y.getType())) &&
+          isDivisionOperator(op)) {
+
+        GimpleIntegerType dividendType = (GimpleIntegerType) x.getType();
+        GimpleIntegerType divisorType = (GimpleIntegerType) y.getType();
+
+        if(!dividendType.equals(divisorType)) {
+          throw new UnsupportedOperationException("TODO: " + dividendType + " / " + divisorType);
+        }
+
+        switch (dividendType.getSize()) {
+          case 32:
+            return primitive(new UnsignedIntDiv(findPrimitiveGenerator(x), findPrimitiveGenerator(y)));
+          default:
+            throw new UnsupportedOperationException("unsigned integer division, size = " + dividendType.getSize());
+        }
+      }
+
+      // Otherwise we can use builtin JVM operators
+
       return primitive(new PrimitiveBinOpGenerator(op, findPrimitiveGenerator(x), findPrimitiveGenerator(y)));
 
     }
 
     throw new UnsupportedOperationException(op.name() + ": " + x.getType() + ", " + y.getType());
+  }
+
+  private boolean isDivisionOperator(GimpleOp op) {
+    switch (op) {
+      case RDIV_EXPR:
+      case TRUNC_DIV_EXPR:
+      case EXACT_DIV_EXPR:
+        return true;
+
+      default:
+        return false;
+    }
+  }
+
+  private boolean isUnsignedInt(GimpleType type) {
+    if(type instanceof GimpleIntegerType) {
+      GimpleIntegerType integerType = (GimpleIntegerType) type;
+      return integerType.isUnsigned();
+    }
+    return false;
   }
 
   private GExpr complexBinOp(GimpleOp op, ComplexValue cx, ComplexValue cy) {

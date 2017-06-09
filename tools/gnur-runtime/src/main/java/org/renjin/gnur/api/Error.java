@@ -44,7 +44,10 @@ public final class Error {
   }
 
   public static void Rf_error(BytePtr text, Object... formatArguments) {
-    throw new EvalException(text.nullTerminatedString());
+    BytePtr string = new BytePtr(new byte[1024]);
+    Stdlib.sprintf(string, text, formatArguments);
+
+    throw new EvalException(string.nullTerminatedString());
   }
 
   public static void UNIMPLEMENTED(BytePtr p0) {

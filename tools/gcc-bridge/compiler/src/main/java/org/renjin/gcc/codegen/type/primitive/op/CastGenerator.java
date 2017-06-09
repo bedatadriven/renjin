@@ -522,27 +522,32 @@ public class CastGenerator implements JExpr {
   public static void castUnsignedInt64ToBool(MethodGenerator mv) {
     mv.visitInsn(Opcodes.L2I);
   }
-  
+
   public static void castUnsignedInt64ToInt8(MethodGenerator mv) {
-    throw new UnsupportedOperationException();
+    mv.visitInsn(Opcodes.L2I);
+    mv.visitInsn(Opcodes.I2B);
   }
+
   public static void castUnsignedInt64ToUnsignedInt8(MethodGenerator mv) {
-    throw new UnsupportedOperationException();
+    mv.visitInsn(Opcodes.L2I);
+    mv.visitInsn(Opcodes.I2B);
   }
   public static void castUnsignedInt64ToInt16(MethodGenerator mv) {
-    throw new UnsupportedOperationException();
+    mv.visitInsn(Opcodes.L2I);
+    mv.visitInsn(Opcodes.I2S);
   }
   public static void castUnsignedInt64ToUnsignedInt16(MethodGenerator mv) {
-    throw new UnsupportedOperationException();
+    mv.visitInsn(Opcodes.L2I);
+    mv.visitInsn(Opcodes.I2S);
   }
   public static void castUnsignedInt64ToInt32(MethodGenerator mv) {
-    throw new UnsupportedOperationException();
+    mv.visitInsn(Opcodes.L2I);
   }
   public static void castUnsignedInt64ToUnsignedInt32(MethodGenerator mv) {
-    throw new UnsupportedOperationException();
+    mv.visitInsn(Opcodes.L2I);
   }
-  public static void castUnsignedInt64ToInt64(MethodGenerator mv) {    
-    throw new UnsupportedOperationException();
+  public static void castUnsignedInt64ToInt64(MethodGenerator mv) {
+    // NOOP same bitwise representation
   }
   public static void castUnsignedInt64ToReal32(MethodGenerator mv) {
     throw new UnsupportedOperationException();

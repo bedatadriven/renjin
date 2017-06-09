@@ -108,6 +108,9 @@ public class ObjectPtr<T> implements Ptr {
       } else if(array instanceof ObjectPtr[]) {
         this.array[offset] = thunk.objectPtr(baseType);
         
+      } else if(baseType.equals(Object.class)) {
+        // Don't force allocation yet...
+        this.array[offset] = thunk;
       } else {
         this.array[offset] = thunk.recordUnitPtr(this.array.getClass().getComponentType());
       }

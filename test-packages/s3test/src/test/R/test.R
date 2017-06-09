@@ -36,7 +36,14 @@ c2 <- new.circle(4)
 assertThat(c1 %/% c2, equalTo(1+4))
 
 city <- new("City", new.env(hash = TRUE, parent = emptyenv()) )
+assertThat(class(city@.xData), identicalTo("environment"))
+assertThat(class(city)[1], identicalTo("City"))
+assertThat(city[1], identicalTo(400))
 assertThat(city[[]], identicalTo( 300 ))
-city[["a"]] <- 1
-assertThat(city@.xData$a, identicalTo( 1 ))
-assertThat(city[["a"]], identicalTo( 1 ))
+assign( "a", 10, city@.xData )
+assign( "b", 120, city@.xData )
+assertThat(city@.xData$a, identicalTo(10))
+assertThat(city@.xData$b, identicalTo(120))
+#city[["c"]] <- 150
+#assertThat(city@.xData$c, identicalTo( 150 ))
+#assertThat(city[["c"]], identicalTo( 150 ))

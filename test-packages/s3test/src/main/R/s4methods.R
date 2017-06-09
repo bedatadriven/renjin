@@ -24,6 +24,7 @@ setClass("Country", representation(name="character",temp="character"))
 setClass( 'City', contains = 'environment')
 
 setMethod('[[', signature(x="City", i="missing", j="missing"), function(x,i,j,...,drop) 300)
+setMethod('[', signature(x="City", i="numeric", j="missing"), function(x,i,j,...,drop) 400)
 
 setReplaceMethod('[[', c(x="City", i="ANY", j="missing", value="ANY"),
   function(x,i,value) {

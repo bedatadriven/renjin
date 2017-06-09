@@ -41,11 +41,11 @@ public class WhileFunction extends SpecialFunction {
       try {
         iterationCount ++;
 
-        if(iterationCount > 50 && !compilationFailed) {
+        if(ForFunction.COMPILE_LOOPS && iterationCount > 50 && !compilationFailed) {
           if(Compiler.tryCompileAndRun(context, rho, call)) {
             break;
           } else {
-            compilationFailed = false;
+            compilationFailed = true;
           }
         }
         
@@ -57,7 +57,6 @@ public class WhileFunction extends SpecialFunction {
         // next loop iteration
       }
     }
-//    System.out.println("While count: " + iterationCount);
     context.setInvisibleFlag();
     return Null.INSTANCE;
   }

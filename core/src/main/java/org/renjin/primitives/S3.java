@@ -489,28 +489,28 @@ public class S3 {
     if (globalMethodEnv != null && globalMethodEnv instanceof Environment) {
       methodList.add((Environment) globalMethodEnv);
     }
-    
+  
     Iterator packageIterator = context.getNamespaceRegistry().getLoadedNamespaces().iterator();
     while(packageIterator.hasNext()) {
       String packageName = ((Symbol) packageIterator.next()).getPrintName();
       Collection<Symbol> exports = context.getNamespaceRegistry().getNamespace(context, packageName).getExports();
       if(exports.contains(Symbol.get("Arith")) ||
-        exports.contains(Symbol.get("Compare")) ||
-        exports.contains(Symbol.get("Logic")) ||
-        exports.contains(Symbol.get(opName))) {
+          exports.contains(Symbol.get("Compare")) ||
+          exports.contains(Symbol.get("Logic")) ||
+          exports.contains(Symbol.get(opName))) {
         Namespace packageNamespace = context.getNamespaceRegistry().getNamespace(context, packageName);
         Frame packageFrame = packageNamespace.getNamespaceEnvironment().getFrame();
         SEXP packageMethodEnvironment = getMethodEnvironment(context, opName, packageFrame);
         if(packageMethodEnvironment != null &&
-          packageMethodEnvironment instanceof Environment &&
-          ((Environment) packageMethodEnvironment).getFrame().getSymbols().size() > 0) {
+            packageMethodEnvironment instanceof Environment &&
+            ((Environment) packageMethodEnvironment).getFrame().getSymbols().size() > 0) {
           methodList.add((Environment) packageMethodEnvironment);
         }
       }
     }
     
     if (methodList.size() == 0) {
-      throw new EvalException("No S4 method found for '" + opName + "'");
+      return null;
     }
     
     return methodList;

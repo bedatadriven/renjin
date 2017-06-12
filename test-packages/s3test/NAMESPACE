@@ -2,7 +2,7 @@
 # export constructors
 export(new.circle)
 export(new.square)
-exportMethods(setCountryName, setCountryTemp, "[", "[[", "[[<-")
+exportMethods(setCountryName, setCountryTemp, "[", "[[", "[[<-", Arith, "/")
 exportClasses(Country, City)
 
 # export extensions of methods in other packages

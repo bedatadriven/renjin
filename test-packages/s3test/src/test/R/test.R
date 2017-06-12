@@ -21,7 +21,7 @@
 
 library(hamcrest)
 library(methods)
-library("org.renjin.test.s3test")
+library("org.renjin.test:s3test")
 
 c1 <- new.circle(1)
 assertThat(as.character(c1), equalTo("circle of radius 1"))

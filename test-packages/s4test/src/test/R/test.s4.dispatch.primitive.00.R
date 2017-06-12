@@ -71,7 +71,7 @@ test.extend.primitive.4 = function() {
 
 }
 
-test.extend.primitive.5 = function() {
+ignore.test.extend.primitive.5 = function() {
 
     setMethod("[[", signature="Promoter", function(x, i, j, ...) 65.78)
 

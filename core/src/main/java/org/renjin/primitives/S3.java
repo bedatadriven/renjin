@@ -18,6 +18,7 @@
  */
 package org.renjin.primitives;
 
+import jdk.internal.util.xml.impl.Pair;
 import org.renjin.eval.*;
 import org.renjin.invoke.annotations.ArgumentList;
 import org.renjin.invoke.annotations.Builtin;
@@ -28,10 +29,12 @@ import org.renjin.packaging.SerializedPromise;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Sets;
+import org.renjin.repackaged.guava.io.Closeables;
 import org.renjin.repackaged.guava.primitives.Ints;
 import org.renjin.sexp.*;
 import org.renjin.sexp.Vector;
 
+import java.lang.*;
 import java.util.*;
 
 /**
@@ -291,6 +294,7 @@ public class S3 {
     
     boolean hasS3Class = source.getAttribute(Symbol.get(".S3Class")).length() != 0;
     
+    
     List<Environment> groupMethodEnvironment = null;
     List<Environment> genericMethodEnvironment = null;
     
@@ -332,8 +336,21 @@ public class S3 {
       return null;
     }
     
-    Map<String, List<List<MethodRanking>>> possibleSignatures = generatePossibleSignatures(context, rho, mapEnvironmentLists, args, signatureLength);
+    List<Promise> promisedArgs = new ArrayList<>();
+    PairList.Builder builder= new PairList.Builder();
+    Iterator<PairList.Node> it = args.nodes().iterator();
+    while(it.hasNext()) {
+      PairList.Node node = it.next();
+      SEXP uneval = node.getValue();
+      SEXP evaled = context.evaluate(uneval, rho);
+      promisedArgs.add(new Promise(uneval, evaled));
+      builder.add(new Promise(uneval, evaled));
+    }
     
+    PairList rePromisedArgs = builder.build();
+  
+    Map<String, List<List<MethodRanking>>> possibleSignatures = generatePossibleSignatures(context, rho, mapEnvironmentLists, args, promisedArgs, signatureLength);
+  
     List<List<SelectedMethod>> selectedMethods = findMatchingMethods(context, mapEnvironmentLists, possibleSignatures);
     
     if(selectedMethods.size() == 0) {
@@ -354,7 +371,7 @@ public class S3 {
     } else {
       method = selectedMethods.get(0).get(0);
     }
-
+    
 //     if selected method is from Group or if its from standard generic but distance is > 0
 //     returned function environment is populated with the following metadata objects:
 //     - .defined:  signature method
@@ -381,7 +398,7 @@ public class S3 {
       metadata.put(Symbol.get(".Methods"), Symbol.get(".Primitive(\"" + opName +"\")"));
       metadata.put(Symbol.get(".target"), variableDotTarget);
       
-      return ClosureDispatcher.apply(context,rho, new FunctionCall(method.getFunction(), args), method.getFunction(), args, metadata);
+      return ClosureDispatcher.apply(context,rho, new FunctionCall(method.getFunction(), args), method.getFunction(), rePromisedArgs, metadata);
     }
   }
   
@@ -578,13 +595,13 @@ public class S3 {
       List<Environment> listEnv = mapEnvironmentLists.get(type);
       
       for(int i = 0; i < rankings.size(); i++) {
-        List<MethodRanking> possibleSignatures = rankings.get(i);
+        List<MethodRanking> methodRankings = rankings.get(i);
         List<SelectedMethod> selectedMethods = new ArrayList<>();
-        String inputSignature = possibleSignatures.get(0).getSignature();
+        String inputSignature = methodRankings.get(0).getSignature();
     
-        for (MethodRanking possibleSignature : possibleSignatures) {
-          String signature = possibleSignature.getSignature();
-          int distance = possibleSignature.getTotalDist();
+        for (MethodRanking methodRank : methodRankings) {
+          String signature = methodRank.getSignature();
+          int distance = methodRank.getTotalDist();
           Symbol signatureSymbol = Symbol.get(signature);
           SEXP function = listEnv.get(i).getFrame().getVariable(signatureSymbol).force(context);
       
@@ -606,8 +623,13 @@ public class S3 {
    *
    * */
   private static Map<String, List<List<MethodRanking>>> generatePossibleSignatures(Context context, Environment rho,
-                                                                                   Map<String, List<Environment>> mapEnvironmentLists,
-                                                                                   PairList args, int[] depth) {
+                                                            Map<String, List<Environment>> mapEnvironmentLists,
+                                                            PairList args, List<Promise> promisedArgs, int[] depth) {
+    
+    PairList.Builder builder2 = new PairList.Builder();
+    for(Promise promise : promisedArgs) {
+      builder2.add(promise.getValue());
+    }
     
     Map<String, List<List<MethodRanking>>> mapListMethods = new HashMap<>();
     
@@ -621,37 +643,26 @@ public class S3 {
         Environment functionEnv = functionEnvs.get(listIdx);
     
         ArgumentSignature[] argSignatures = new ArgumentSignature[depth[listIdx]];
-    
-        Closure genericClosure = (Closure) functionEnv.getFrame().getVariable((Symbol) functionEnv.getFrame().getSymbols().toArray()[0]);
-        AttributeMap genericAttributes = genericClosure.getFormals().toVector().getAttributes();
-        List<String> formalNames = new ArrayList<>(Arrays.asList(genericAttributes.getNames().toArray()));
-        if(formalNames.contains("...")) {
-          formalNames.remove(formalNames.indexOf("..."));
-        }
-        List<String> argNames= null;
-        if(args.getNames() != null && args.getNames() != Null.INSTANCE) {
-          argNames = new ArrayList<>(Arrays.asList(((StringArrayVector) args.getNames()).toArray()));
-        }
-    
-        for(int i = 0; i < depth[listIdx] && i < args.length(); i++) {
-          String[] argumentClass = evaluateAndGetClass(context, args, rho, i);
-          if(argNames == null || "".equals(argNames.get(i))) {
-            argSignatures[i] = getClassAndDistance(context, argumentClass);
+        Symbol methodSymbol = (Symbol) functionEnv.getFrame().getSymbols().toArray()[0];
+        Closure genericClosure = (Closure) functionEnv.getFrame().getVariable(methodSymbol);
+        PairList formals = genericClosure.getFormals();
+        PairList matched = ClosureDispatcher.matchArguments(formals, builder2.build(), true);
+        
+        Iterator<PairList.Node> it = matched.nodes().iterator();
+        int idx = 0;
+        while(it.hasNext() && idx < depth[listIdx]) {
+          PairList.Node node = it.next();
+          SEXP nodeValue = node.getValue();
+          if(nodeValue == Symbol.MISSING_ARG) {
+            argSignatures[idx] = new ArgumentSignature(new String[]{"missing", "ANY"}, new int[]{0, 1});
           } else {
-            int argIdx = formalNames.indexOf(argNames.get(i));
-            if(argIdx >= argSignatures.length) {
-              ArgumentSignature[] argSigNew = new ArgumentSignature[argIdx + 1];
-              for(int q = 0; q < argSignatures.length; q++) {
-                argSigNew[q] = argSignatures[q];
-              }
-              argSigNew[argIdx] = getClassAndDistance(context, argumentClass);
-              argSignatures = argSigNew;
-            } else {
-              argSignatures[argIdx] = getClassAndDistance(context, argumentClass);
-            }
+            String[] nodeClass = computeDataClasses(context, context.evaluate(nodeValue, rho)).toArray();
+            ArgumentSignature argSig = getClassAndDistance(context, nodeClass);
+            argSignatures[idx] = argSig;
           }
+          idx++;
         }
-    
+        
         for(int i = 0; i < argSignatures.length; i++) {
           if(argSignatures[i] == null) {
             argSignatures[i] = new ArgumentSignature(new String[]{"missing", "ANY"}, new int[]{0, 1} );
@@ -707,15 +718,6 @@ public class S3 {
     return mapListMethods;
   }
   
-  private static String[] evaluateAndGetClass(Context context, PairList args, Environment rho, int argumentIndex) {
-    // To get the class of an argument we have to evaluate the argument first. If its an atomic, than it lacks class
-    // attribute. In this case we use Attributes.getClass() to get the class name.
-    SEXP evaluatedArg = context.evaluate(args.getElementAsSEXP(argumentIndex), rho);
-    StringVector classes = computeDataClasses(context, evaluatedArg);
-    return classes.toArray();
-  }
-  
-  
   /**
    * Each class is stored as an S4 object with prefix '.__C__'. This S4 object
    * has a attribute 'contains' where the superclass names and distance are stored.
@@ -749,12 +751,9 @@ public class S3 {
 
     int max = Collections.max(distances);
     distances.add(max + 1);
-    classes.add("missing");
-    distances.add(max + 2);
     classes.add("ANY");
 
     return new ArgumentSignature(classes.toArray(new String[0]), Ints.toArray(distances));
-
   }
   
   public static SEXP tryDispatchFromPrimitive(Context context, Environment rho, FunctionCall call,
@@ -1400,7 +1399,14 @@ public class S3 {
       }
       this.totalDist = totalDistance;
     }
-    
+  
+    @Override
+    public String toString() {
+      return "MethodRanking{" +
+        "signature='" + signature + '\'' +
+        '}';
+    }
+  
     public MethodRanking append(String argument, int distance) {
       String newSig = this.signature + "#" + argument;
       int[] newDist = new int[this.distances.length + 1];

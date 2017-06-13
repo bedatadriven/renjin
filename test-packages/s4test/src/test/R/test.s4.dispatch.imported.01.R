@@ -37,7 +37,7 @@ test.simple.update = function() {
     assertThat(es@temp, identicalTo("Hot!"))
 }
 
-ignore.test.imported.methods.extending.builtins = function() {
+test.imported.methods.extending.builtins = function() {
     assertThat(city[[]], identicalTo( 300 ))
     city[["a"]]<-1
     assertThat(city[["a"]], identicalTo( 1 ))

@@ -51,9 +51,8 @@ test.s4.missing.05 = function() {
     assertThat( a[[i=a,j=]] , identicalTo( 1.5 ))
 }
 
-# GNU R will return 1.5, and doesn't consider provided argument names
 test.s4.missing.06 = function() {
-    assertThat( a[[j=a,i=]] , identicalTo( 1.6 ))
+    assertThat( a[[j=a,i=]] , identicalTo( 1.5 ))
 }
 
 

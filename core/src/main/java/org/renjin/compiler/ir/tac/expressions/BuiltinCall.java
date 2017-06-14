@@ -98,10 +98,12 @@ public class BuiltinCall implements CallExpression {
   
   public static List<ArgumentBounds> makeArgumentBoundsList(Map<Expression, ValueBounds> typeMap, List<IRArgument> arguments) {
     List<ArgumentBounds> argumentBoundsList = new ArrayList<>();
-    List<ValueBounds> argumentTypes = new ArrayList<>();
     for (IRArgument argument : arguments) {
-      ArgumentBounds argumentBounds = new ArgumentBounds(argument.getName(), typeMap.get(argument.getExpression()));
-      argumentBoundsList.add(argumentBounds);
+      ValueBounds valueBounds = typeMap.get(argument.getExpression());
+      if(valueBounds != null) {
+        ArgumentBounds argumentBounds = new ArgumentBounds(argument.getName(), typeMap.get(argument.getExpression()));
+        argumentBoundsList.add(argumentBounds);
+      }
     }
     return argumentBoundsList;
   }

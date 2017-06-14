@@ -18,7 +18,6 @@
  */
 package org.renjin.primitives;
 
-import jdk.internal.util.xml.impl.Pair;
 import org.renjin.eval.*;
 import org.renjin.invoke.annotations.ArgumentList;
 import org.renjin.invoke.annotations.Builtin;
@@ -29,12 +28,10 @@ import org.renjin.packaging.SerializedPromise;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Sets;
-import org.renjin.repackaged.guava.io.Closeables;
 import org.renjin.repackaged.guava.primitives.Ints;
 import org.renjin.sexp.*;
 import org.renjin.sexp.Vector;
 
-import java.lang.*;
 import java.util.*;
 
 /**
@@ -339,12 +336,20 @@ public class S3 {
     List<Promise> promisedArgs = new ArrayList<>();
     PairList.Builder builder= new PairList.Builder();
     Iterator<PairList.Node> it = args.nodes().iterator();
+    int argIdx = 0;
     while(it.hasNext()) {
-      PairList.Node node = it.next();
-      SEXP uneval = node.getValue();
-      SEXP evaled = context.evaluate(uneval, rho);
-      promisedArgs.add(new Promise(uneval, evaled));
-      builder.add(new Promise(uneval, evaled));
+      if(argIdx < maxSignatureLength) {
+        PairList.Node node = it.next();
+        SEXP uneval = node.getValue();
+        SEXP evaled = context.evaluate(uneval, rho);
+        promisedArgs.add(new Promise(uneval, evaled));
+        builder.add(new Promise(uneval, evaled));
+        argIdx++;
+      } else {
+        PairList.Node node = it.next();
+        SEXP uneval = node.getValue();
+        builder.add(new Promise(Environment.EMPTY, uneval));
+      }
     }
     
     PairList rePromisedArgs = builder.build();

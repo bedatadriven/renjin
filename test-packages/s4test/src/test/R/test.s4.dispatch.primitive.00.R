@@ -71,11 +71,13 @@ test.extend.primitive.4 = function() {
 
 }
 
-ignore.test.extend.primitive.5 = function() {
+test.extend.primitive.5 = function() {
 
     setMethod("[[", signature="Promoter", function(x, i, j, ...) 65.78)
 
-    assertThat(p[[stop()]], identicalTo( c(65.78) ))
+    assertThat(p[[p,p,stop()]], identicalTo( c(65.78) ))
+    assertThat(p[[p,stop()]], throwsError() )
+    assertThat(p[[stop()]], throwsError() )
 
 }
 

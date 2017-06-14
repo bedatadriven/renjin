@@ -17,8 +17,6 @@
 # https://www.gnu.org/licenses/gpl-2.0.txt
 #
 
-
-
 library(hamcrest)
 library(methods)
 library("org.renjin.test:s3test")
@@ -30,7 +28,6 @@ assertThat(area(c1), closeTo(pi, 0.001))
 sq <- new.square(2)
 assertThat(as.character(sq), equalTo("2x2 square"))
 assertThat(area(sq), equalTo(4))
-
 
 c2 <- new.circle(4)
 assertThat(c1 %/% c2, equalTo(1+4))
@@ -44,6 +41,6 @@ assign( "a", 10, city@.xData )
 assign( "b", 120, city@.xData )
 assertThat(city@.xData$a, identicalTo(10))
 assertThat(city@.xData$b, identicalTo(120))
-#city[["c"]] <- 150
-#assertThat(city@.xData$c, identicalTo( 150 ))
-#assertThat(city[["c"]], identicalTo( 150 ))
+city[["c"]] <- 150
+assertThat(city@.xData$c, identicalTo( 150 ))
+assertThat(city[["c"]], identicalTo( 150 ))

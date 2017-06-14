@@ -54,7 +54,7 @@ public class BuiltinSpecializer implements Specializer {
   @Override
   public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> argumentTypes) {
     List<ValueBounds> listValueBounds = new ArrayList<>();
-    Iterator<ArgumentBounds> it = (Iterator) argumentTypes;
+    Iterator<ArgumentBounds> it = argumentTypes.iterator();
     while (it.hasNext()) {
       listValueBounds.add(it.next().getValueBounds());
     }

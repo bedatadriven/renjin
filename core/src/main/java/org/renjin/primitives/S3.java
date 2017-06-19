@@ -496,16 +496,15 @@ public class S3 {
         methodList.add((Environment) globalMethodEnv);
       }
       
-      Iterator packageIterator = context.getNamespaceRegistry().getLoadedNamespaces().iterator();
-      while(packageIterator.hasNext()) {
-        String packageName = ((Symbol) packageIterator.next()).getPrintName();
+      for(Symbol loadedNamespace : context.getNamespaceRegistry().getLoadedNamespaces()) {
+        String packageName = loadedNamespace.getPrintName();
         Collection<Symbol> exports = context.getNamespaceRegistry().getNamespace(context, packageName).getExports();
         
         if(exports.contains(Symbol.get(opName))) {
           Namespace packageNamespace = context.getNamespaceRegistry().getNamespace(context, packageName);
           Environment packageEnvironment = packageNamespace.getNamespaceEnvironment();
           SEXP packageMethodEnv = packageEnvironment.getFrame().getVariable(methodSymbol).force(context);
-          if(packageMethodEnv != Symbol.UNBOUND_VALUE && packageMethodEnv instanceof Environment) {
+          if(packageMethodEnv instanceof Environment) {
             methodList.add((Environment) packageMethodEnv);
           }
         }
@@ -523,9 +522,8 @@ public class S3 {
       methodList.add((Environment) globalMethodEnv);
     }
   
-    Iterator packageIterator = context.getNamespaceRegistry().getLoadedNamespaces().iterator();
-    while(packageIterator.hasNext()) {
-      String packageName = ((Symbol) packageIterator.next()).getPrintName();
+    for(Symbol packageSymbol : context.getNamespaceRegistry().getLoadedNamespaces()) {
+      String packageName = packageSymbol.getPrintName();
       Collection<Symbol> exports = context.getNamespaceRegistry().getNamespace(context, packageName).getExports();
       if(exports.contains(Symbol.get("Arith")) ||
           exports.contains(Symbol.get("Compare")) ||
@@ -534,8 +532,7 @@ public class S3 {
         Namespace packageNamespace = context.getNamespaceRegistry().getNamespace(context, packageName);
         Frame packageFrame = packageNamespace.getNamespaceEnvironment().getFrame();
         SEXP packageMethodEnvironment = getMethodEnvironment(context, opName, packageFrame);
-        if(packageMethodEnvironment != null &&
-            packageMethodEnvironment instanceof Environment &&
+        if(packageMethodEnvironment instanceof Environment &&
             ((Environment) packageMethodEnvironment).getFrame().getSymbols().size() > 0) {
           methodList.add((Environment) packageMethodEnvironment);
         }
@@ -701,8 +698,8 @@ public class S3 {
             ArgumentSignature argSignature = argSignatures[col];
             String signature = argSignature.getArgument(argumentClassIdx);
             if(possibleSignatures.isEmpty() ||
-                possibleSignatures.toArray().length < row + 1 ||
-                possibleSignatures.toArray()[row] == null) {
+                possibleSignatures.size() < row + 1 ||
+                possibleSignatures.get(row) == null) {
               int[] distance = argSignature.getDistanceAsArray(argumentClassIdx);
               possibleSignatures.add(row, new MethodRanking(signature, distance));
             } else {

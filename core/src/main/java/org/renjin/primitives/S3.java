@@ -333,32 +333,29 @@ public class S3 {
       return null;
     }
     
-    List<Promise> promisedArgs = new ArrayList<>();
-    PairList.Builder rePromisedArgs = new PairList.Builder();
+    List<Promise> listPromises = new ArrayList<>();
     Iterator<PairList.Node> it = args.nodes().iterator();
     int argIdx = 0;
     while(it.hasNext()) {
-      if(argIdx < maxSignatureLength) {
-        PairList.Node node = it.next();
-        SEXP uneval = node.getValue();
+      PairList.Node node = it.next();
+      SEXP uneval = node.getValue();
+      if(argIdx == 0) {
+        listPromises.add(new Promise(uneval, source));
+      } else if(argIdx < maxSignatureLength) {
         SEXP evaled = context.evaluate(uneval, rho);
-        promisedArgs.add(new Promise(uneval, evaled));
-        rePromisedArgs.add(new Promise(uneval, evaled));
-        argIdx++;
+        listPromises.add(new Promise(uneval, evaled));
       } else {
-        PairList.Node node = it.next();
-        SEXP uneval = node.getValue();
-        rePromisedArgs.add(new Promise(Environment.EMPTY, uneval));
-        promisedArgs.add(new Promise(Environment.EMPTY, uneval));
+        listPromises.add(new Promise(rho, uneval));
       }
+      argIdx++;
     }
   
-    PairList.Builder inputArgs = new PairList.Builder();
-    for(Promise promise : promisedArgs) {
-      inputArgs.add(promise.getValue());
+    PairList.Builder rePromisedArgs = new PairList.Builder();
+    for(Promise promise : listPromises) {
+      rePromisedArgs.add(promise.force(context));
     }
   
-    Map<String, List<List<MethodRanking>>> possibleSignatures = generateSignatures(context, rho, mapEnvironmentLists, inputArgs.build(), signatureLength);
+    Map<String, List<List<MethodRanking>>> possibleSignatures = generateSignatures(context, rho, mapEnvironmentLists, rePromisedArgs.build(), signatureLength);
   
     List<List<SelectedMethod>> selectedMethods = findMatchingMethods(context, mapEnvironmentLists, possibleSignatures);
     
@@ -411,8 +408,7 @@ public class S3 {
       
       FunctionCall call = new FunctionCall(method.getFunction(), args);
       Closure closure = method.getFunction();
-      PairList newArgs = rePromisedArgs.build();
-      return ClosureDispatcher.apply(context,rho, call, closure, newArgs, metadata);
+      return ClosureDispatcher.apply(context,rho, call, closure, rePromisedArgs.build(), metadata);
     }
   }
   
@@ -664,7 +660,7 @@ public class S3 {
           if(nodeValue == Symbol.MISSING_ARG) {
             argSignatures[idx] = new ArgumentSignature();
           } else {
-            String[] nodeClass = computeDataClasses(context, context.evaluate(nodeValue, rho)).toArray();
+            String[] nodeClass = computeDataClasses(context, nodeValue).toArray();
             ArgumentSignature argSig = getClassAndDistance(context, nodeClass);
             argSignatures[idx] = argSig;
           }

@@ -20,7 +20,6 @@
 
 library(hamcrest)
 library(methods)
-#library("org.renjin.test:s4test")
 
 setClass("Gene", representation(name="character", sequence="character", quality="numeric"))
 setClass("Promoter", representation(name="character", sequence="character", quality="numeric"))

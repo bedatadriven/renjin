@@ -64,3 +64,11 @@ test.arg.eval.07 = function() {
 test.arg.eval.08 = function() {
     assertThat(f.count, identicalTo(4))
 }
+
+test.arg.eval.09 = function() {
+    assertThat(b[b,f()], identicalTo(4.5))
+}
+
+test.arg.eval.10 = function() {
+    assertThat(f.count, identicalTo(4))
+}

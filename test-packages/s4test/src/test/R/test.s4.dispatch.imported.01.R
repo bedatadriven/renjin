@@ -23,6 +23,7 @@ library("org.renjin.test:s3test")
 
 nl <- new("Country", name = "The Netherlands", temp = "COLD")
 es <- new("Country", name = "Spain", temp = "WARM")
+city <- new("City", new.env(hash = TRUE, parent = emptyenv()) )
 
 test.simple.access = function() {
     assertThat(nl@name, identicalTo("The Netherlands"))
@@ -34,4 +35,24 @@ test.simple.update = function() {
     es <- setCountryTemp(es, "Hot!")
     assertThat(nl@name, identicalTo("Holland"))
     assertThat(es@temp, identicalTo("Hot!"))
+}
+
+test.imported.methods.extending.builtins = function() {
+    assertThat(city[[]], identicalTo( 300 ))
+    city[["a"]]<-1
+    assertThat(city[["a"]], identicalTo( 1 ))
+}
+
+setMethod("-", c("City", "ANY"), function(e1, e2) 450)
+
+test.imported.methods.group.01 = function() {
+    assertThat(city + 1, identicalTo(350))
+}
+
+test.imported.methods.group.02 = function() {
+    assertThat(city - 1, identicalTo(450))
+}
+
+test.imported.methods.group.03 = function() {
+    assertThat(city / "A", identicalTo(351))
 }

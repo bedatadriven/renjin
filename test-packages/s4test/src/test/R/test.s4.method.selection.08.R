@@ -17,30 +17,21 @@
 # https://www.gnu.org/licenses/gpl-2.0.txt
 #
 
+
 library(hamcrest)
 library(methods)
-library("org.renjin.test:s3test")
 
-c1 <- new.circle(1)
-assertThat(as.character(c1), equalTo("circle of radius 1"))
-assertThat(area(c1), closeTo(pi, 0.001))
 
-sq <- new.square(2)
-assertThat(as.character(sq), equalTo("2x2 square"))
-assertThat(area(sq), equalTo(4))
+setClass("AA", representation(a="numeric"))
+a <- new("AA")
+x <- 2L
 
-c2 <- new.circle(4)
-assertThat(c1 %/% c2, equalTo(1+4))
+setMethod("[", signature(x="AA"), function(x,i,j,...) ifelse(i>j,10,20) )
 
-city <- new("City", new.env(hash = TRUE, parent = emptyenv()) )
-assertThat(class(city@.xData), identicalTo("environment"))
-assertThat(class(city)[1], identicalTo("City"))
-assertThat(city[1], identicalTo(400))
-assertThat(city[[]], identicalTo( 300 ))
-assign( "a", 10, city@.xData )
-assign( "b", 120, city@.xData )
-assertThat(city@.xData$a, identicalTo(10))
-assertThat(city@.xData$b, identicalTo(120))
-city[["c"]] <- 150
-assertThat(city@.xData$c, identicalTo( 150 ))
-assertThat(city[["c"]], identicalTo( 150 ))
+test.arg.eval.01 = function() {
+    assertThat(a[x+1,x+2], identicalTo(20))
+}
+
+test.arg.eval.02 = function() {
+    assertThat(a[x+2L, x+1L], identicalTo(10))
+}

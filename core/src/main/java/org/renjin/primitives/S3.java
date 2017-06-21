@@ -28,13 +28,14 @@ import org.renjin.invoke.annotations.Internal;
 import org.renjin.invoke.codegen.ArgumentIterator;
 import org.renjin.packaging.SerializedPromise;
 import org.renjin.primitives.packaging.Namespace;
-import org.renjin.repackaged.guava.collect.Lists;
-import org.renjin.repackaged.guava.collect.Sets;
+import org.renjin.repackaged.guava.collect.*;
 import org.renjin.repackaged.guava.primitives.Ints;
 import org.renjin.sexp.*;
 import org.renjin.sexp.Vector;
 
 import java.util.*;
+
+import static org.renjin.repackaged.guava.collect.Collections2.filter;
 
 /**
  * Primitives used in the implementation of the S3 object system
@@ -347,26 +348,26 @@ public class S3 {
     boolean hasS3Class = source.getAttribute(Symbol.get(".S3Class")).length() != 0;
     
     
-    List<Environment> groupMethodEnvironment = null;
-    List<Environment> genericMethodEnvironment = null;
+    List<Environment> groupMethodEnv = null;
+    List<Environment> genericMethodEnv = null;
     
-    genericMethodEnvironment = findMethodEnvironment(context, opName);
+    genericMethodEnv = findMethodEnvironment(context, opName);
     if("Ops".equals(group)) {
-      groupMethodEnvironment = findOpsMethodEnvironment(context, opName);
+      groupMethodEnv = findOpsMethodEnvironment(context, opName);
     } else if(!"".equals(group)) {
-      groupMethodEnvironment = findMethodEnvironment(context, group);
+      groupMethodEnv = findMethodEnvironment(context, group);
     }
     
-    if((groupMethodEnvironment == null || groupMethodEnvironment.size() == 0) && (genericMethodEnvironment == null || genericMethodEnvironment.size() == 0)) {
+    if((groupMethodEnv == null || groupMethodEnv.size() == 0) && (genericMethodEnv == null || genericMethodEnv.size() == 0)) {
       return null;
     }
     
-    Map<String, List<Environment>> mapEnvironmentLists = new HashMap<>();
-    if(genericMethodEnvironment != null && genericMethodEnvironment.size() != 0) {
-      mapEnvironmentLists.put("generic", genericMethodEnvironment);
+    Map<String, List<Environment>> mapMethodEnvList = new HashMap<>();
+    if(genericMethodEnv != null && genericMethodEnv.size() != 0) {
+      mapMethodEnvList.put("generic", genericMethodEnv);
     }
-    if(groupMethodEnvironment != null && groupMethodEnvironment.size() != 0) {
-      mapEnvironmentLists.put("group", groupMethodEnvironment);
+    if(groupMethodEnv != null && groupMethodEnv.size() != 0) {
+      mapMethodEnvList.put("group", groupMethodEnv);
     }
     
     // S4 methods for each generic function is stored in an environment. methods for each signature is stored
@@ -378,7 +379,7 @@ public class S3 {
     // arguments. In case signature is shorted than the number of arguments we don't need to evaluate the extra
     // arguments.
     
-    int[] signatureLength = computeSignatureLength(genericMethodEnvironment, groupMethodEnvironment);
+    int[] signatureLength = computeSignatureLength(genericMethodEnv, groupMethodEnv);
     
     int maxSignatureLength = 0;
     for(int i = 0; i < signatureLength.length; i++) {
@@ -405,9 +406,9 @@ public class S3 {
       argIdx++;
     }
   
-    Map<String, List<List<MethodRanking>>> possibleSignatures = generateSignatures(context, rho, mapEnvironmentLists, rePromisedArgs.build(), signatureLength);
+    Map<String, List<List<MethodRanking>>> possibleSignatures = generateSignatures(context, rho, mapMethodEnvList, rePromisedArgs.build(), signatureLength);
   
-    List<List<SelectedMethod>> selectedMethods = findMatchingMethods(context, mapEnvironmentLists, possibleSignatures);
+    List<List<SelectedMethod>> selectedMethods = findMatchingMethods(context, mapMethodEnvList, possibleSignatures);
     
     if(selectedMethods.size() == 0) {
       return null;
@@ -639,15 +640,15 @@ public class S3 {
    *
    *
    * */
-  private static List<List<SelectedMethod>> findMatchingMethods(Context context, Map<String, List<Environment>> mapEnvironmentLists,
-                                                          Map<String, List<List<MethodRanking>>> listSignatures) {
+  private static List<List<SelectedMethod>> findMatchingMethods(Context context, Map<String, List<Environment>> mapMethodEnvList,
+                                                          Map<String, List<List<MethodRanking>>> mapSignatureList) {
     
     List<List<SelectedMethod>> listMethods = new ArrayList<>();
     
-    for(int e = 0; e < listSignatures.size(); e++) {
-      String type = listSignatures.keySet().toArray(new String[0])[e];
-      List<List<MethodRanking>> rankings = listSignatures.get(type);
-      List<Environment> listEnv = mapEnvironmentLists.get(type);
+    for(int e = 0; e < mapSignatureList.size(); e++) {
+      String type = mapSignatureList.keySet().toArray(new String[0])[e];
+      List<List<MethodRanking>> rankings = mapSignatureList.get(type);
+      List<Environment> listMethodEnv = mapMethodEnvList.get(type);
       
       for(int i = 0; i < rankings.size(); i++) {
         List<MethodRanking> rankedMethodsList = rankings.get(i);
@@ -658,7 +659,7 @@ public class S3 {
           String signature = rankedMethod.getSignature();
           int distance = rankedMethod.getTotalDist();
           Symbol signatureSymbol = Symbol.get(signature);
-          SEXP function = listEnv.get(i).getFrame().getVariable(signatureSymbol).force(context);
+          SEXP function = listMethodEnv.get(i).getFrame().getVariable(signatureSymbol).force(context);
       
           if (function instanceof Closure) {
             selectedMethods.add(new SelectedMethod((Closure) function, type, distance, signature, signatureSymbol, inputSignature));
@@ -696,21 +697,29 @@ public class S3 {
         Symbol methodSymbol = (Symbol) functionEnv.getFrame().getSymbols().toArray()[0];
         Closure genericClosure = (Closure) functionEnv.getFrame().getVariable(methodSymbol);
         PairList formals = genericClosure.getFormals();
-        PairList matched = ClosureDispatcher.matchArguments(formals, inputArgs, true);
+        PairList matched = S3.matchArguments(formals, inputArgs, true);
         
         Iterator<PairList.Node> it = matched.nodes().iterator();
         int idx = 0;
         while(it.hasNext() && idx < depth[listIdx]) {
           PairList.Node node = it.next();
-          SEXP nodeValue = node.getValue();
-          if(nodeValue == Symbol.MISSING_ARG) {
-            argSignatures[idx] = new ArgumentSignature();
-          } else {
-            String[] nodeClass = computeDataClasses(context, nodeValue).toArray();
-            ArgumentSignature argSig = getClassAndDistance(context, nodeClass);
-            argSignatures[idx] = argSig;
+          if(node.getTag() != Symbols.ELLIPSES) {
+            SEXP nodeValue = node.getValue();
+            if(nodeValue == Symbol.MISSING_ARG || nodeValue.force(context) == Symbol.MISSING_ARG) {
+              argSignatures[idx] = new ArgumentSignature();
+            } else {
+              String[] nodeClass;
+              String[] testClass = computeDataClasses(context, nodeValue).toArray();
+              if(testClass.length == 1 && "signature".equals(testClass) && nodeValue.force(context) instanceof StringArrayVector) {
+                nodeClass = ((StringArrayVector)nodeValue.force(context)).toArray();
+              } else {
+                nodeClass = computeDataClasses(context, nodeValue).toArray();
+              }
+              ArgumentSignature argSig = getClassAndDistance(context, nodeClass);
+              argSignatures[idx] = argSig;
+            }
+            idx++;
           }
-          idx++;
         }
         
         for(int i = 0; i < argSignatures.length; i++) {
@@ -802,8 +811,10 @@ public class S3 {
     }
 
     int max = Collections.max(distances);
-    distances.add(max + 1);
-    classes.add("ANY");
+    if(!classes.contains("ANY")) {
+      distances.add(max + 1);
+      classes.add("ANY");
+    }
 
     return new ArgumentSignature(classes.toArray(new String[0]), Ints.toArray(distances));
   }
@@ -880,8 +891,134 @@ public class S3 {
 
     return dispatchGroup(group, call, name, newArgs, context, rho);
   }
-
-
+  
+  private static <X> X first(Iterable<X> values) {
+    return values.iterator().next();
+  }
+  
+  private static boolean hasNextUnTagged(PeekingIterator<PairList.Node> it) {
+    return it.hasNext() && !it.peek().hasTag();
+  }
+  
+  private static PairList.Node nextUnTagged(Iterator<PairList.Node> it) {
+    PairList.Node arg = it.next() ;
+    while( arg.hasTag() ) {
+      arg = it.next();
+    }
+    return arg;
+  }
+  
+  private static PairList matchArguments(PairList formals, PairList actuals, boolean populateMissing) {
+    
+    List<PairList.Node> unmatchedActuals = Lists.newArrayList();
+    for(PairList.Node argNode : actuals.nodes()) {
+      unmatchedActuals.add(argNode);
+    }
+    
+    List<PairList.Node> unmatchedFormals = Lists.newArrayList(formals.nodes());
+    List<SEXP> formalTags = new ArrayList<>();
+    Symbol[] tags = new Symbol[unmatchedFormals.size()];
+    SEXP[] values = new SEXP[unmatchedFormals.size()];
+    
+    // do exact matching
+    int argIdx = 0;
+    for(ListIterator<PairList.Node> formalIt = unmatchedFormals.listIterator(); formalIt.hasNext(); ) {
+      PairList.Node formal = formalIt.next();
+      formalTags.add(formal.getTag());
+      if(formal.hasTag()) {
+        Symbol name = formal.getTag();
+        if(name != Symbols.ELLIPSES) {
+          Collection<PairList.Node> matches = Collections2.filter(unmatchedActuals, PairList.Predicates.matches(name));
+          if (matches.size() == 1) {
+            PairList.Node match = first(matches);
+            SEXP value = match.getValue();
+            tags[argIdx] = name;
+            values[argIdx] = value;
+            formalIt.remove();
+            unmatchedActuals.remove(match);
+            
+          } else if (matches.size() > 1) {
+            throw new EvalException(String.format("Multiple named values provided for argument '%s'", name.getPrintName()));
+          }
+        }
+      }
+      argIdx++;
+    }
+    
+    // Partial matching
+    Collection<PairList.Node> remainingNamedFormals = filter(unmatchedFormals, PairList.Predicates.hasTag());
+    for (Iterator<PairList.Node> actualIt = unmatchedActuals.iterator(); actualIt.hasNext(); ) {
+      PairList.Node actual = actualIt.next();
+      int formalIdx = 0;
+      if (actual.hasTag() && actual.getTag() != Symbols.ELLIPSES) {
+        String argumentName = actual.getTag().getPrintName();
+        PairList.Node partialMatch = null;
+        for (PairList.Node formal : remainingNamedFormals) {
+          formalIdx = formalTags.indexOf(formal.getTag());
+          if(formal.getTag() == Symbols.ELLIPSES) {
+            break;
+          }
+          if(formal.getTag().getPrintName().startsWith(argumentName)) {
+            if(partialMatch == null) {
+              partialMatch = formal;
+            } else {
+              throw new EvalException(String.format("Provided argument '%s' matches multiple named formal arguments", argumentName));
+            }
+          }
+        }
+        
+        if (partialMatch != null) {
+          tags[formalIdx] = partialMatch.getTag();
+          values[formalIdx] = actual.getValue();
+          actualIt.remove();
+          unmatchedFormals.remove(partialMatch);
+        }
+      }
+      formalIdx++;
+    }
+    
+    // match any unnamed args positionally
+    
+    Iterator<PairList.Node> formalIt = unmatchedFormals.iterator();
+    PeekingIterator<PairList.Node> actualIt = Iterators.peekingIterator(unmatchedActuals.iterator());
+    for (int i = 0; i < values.length; i++) {
+      if(values[i] == null) {
+        if( formalIt.hasNext()) {
+          PairList.Node formal = formalIt.next();
+          if(Symbols.ELLIPSES.equals(formal.getTag())) {
+            PromisePairList.Builder promises = new PromisePairList.Builder();
+            while(actualIt.hasNext()) {
+              PairList.Node actual = actualIt.next();
+              promises.add( actual.getRawTag(),  actual.getValue() );
+            }
+            tags[i] = formal.getTag();
+            values[i] = promises.build();
+            
+          } else if( hasNextUnTagged(actualIt) ) {
+            PairList.Node nextUnTagged = nextUnTagged(actualIt);
+            tags[i] = formal.getTag();
+            values[i] = nextUnTagged.getValue();
+            
+          } else if(populateMissing) {
+            tags[i] = formal.getTag();
+            values[i] = Symbol.MISSING_ARG;
+          }
+        }
+      }
+    }
+    if(actualIt.hasNext()) {
+      throw new EvalException("Unmatched positional arguments");
+    }
+    PairList.Builder builder = new PairList.Builder();
+    for (int i = 0; i < values.length; i++) {
+      if(values[i] != null) {
+        builder.add(tags[i], values[i]);
+      }
+    }
+    PairList matchedArgs = builder.build();
+    return matchedArgs;
+  }
+  
 
   public static SEXP tryDispatchSummaryFromPrimitive(Context context, Environment rho, FunctionCall call,
       String name, ListVector evaluatedArguments, boolean naRm) {

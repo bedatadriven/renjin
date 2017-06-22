@@ -444,7 +444,7 @@ public class S3 {
 //     otherwise only e1 and e2.
     
     if (("generic".equals(method.getGroup()) && method.getDistance() == 0) || hasS3Class) {
-      return context.evaluate(new FunctionCall(method.getFunction(), args));
+      return context.evaluate(new FunctionCall(method.getFunction(), rePromisedArgs.build()));
     } else {
       SEXP variableDotDefined = buildDotTargetOrDefined(context, method, true);
       SEXP variableDotTarget = buildDotTargetOrDefined(context, method, false);
@@ -698,19 +698,31 @@ public class S3 {
         Closure genericClosure = (Closure) functionEnv.getFrame().getVariable(methodSymbol);
         PairList formals = genericClosure.getFormals();
         PairList matched = S3.matchArguments(formals, inputArgs, true);
-        
-        Iterator<PairList.Node> it = matched.nodes().iterator();
+
+        Iterator<PairList.Node> itMt = matched.nodes().iterator();
+        List<Symbol> matchSym = new ArrayList<>();
+        while (itMt.hasNext()) {
+          matchSym.add(itMt.next().getTag());
+        }
+        int dotIdx = matchSym.indexOf(Symbols.ELLIPSES);
+
+        Iterator<PairList.Node> it = inputArgs.nodes().iterator();
+        Iterator<PairList.Node> itM = matched.nodes().iterator();
         int idx = 0;
         while(it.hasNext() && idx < depth[listIdx]) {
           PairList.Node node = it.next();
-          if(node.getTag() != Symbols.ELLIPSES) {
+          if(!node.hasTag() || (node.hasTag() && node.getTag() != Symbols.ELLIPSES)) {
             SEXP nodeValue = node.getValue();
             if(nodeValue == Symbol.MISSING_ARG || nodeValue.force(context) == Symbol.MISSING_ARG) {
               argSignatures[idx] = new ArgumentSignature();
             } else {
+              if(node.hasTag() && matchSym.indexOf(node.getTag()) > dotIdx && idx < dotIdx) {
+                argSignatures[idx] = new ArgumentSignature();
+                idx++;
+              }
               String[] nodeClass;
               String[] testClass = computeDataClasses(context, nodeValue).toArray();
-              if(testClass.length == 1 && "signature".equals(testClass) && nodeValue.force(context) instanceof StringArrayVector) {
+              if(testClass.length == 1 && nodeValue.force(context) instanceof StringArrayVector && "signature".equals(testClass[0])) {
                 nodeClass = ((StringArrayVector)nodeValue.force(context)).toArray();
               } else {
                 nodeClass = computeDataClasses(context, nodeValue).toArray();
@@ -811,7 +823,7 @@ public class S3 {
     }
 
     int max = Collections.max(distances);
-    if(!classes.contains("ANY")) {
+    if(!classes.contains("ANY") && !classes.contains("NULL")) {
       distances.add(max + 1);
       classes.add("ANY");
     }

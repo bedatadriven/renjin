@@ -28,14 +28,14 @@ import org.renjin.invoke.annotations.Internal;
 import org.renjin.invoke.codegen.ArgumentIterator;
 import org.renjin.packaging.SerializedPromise;
 import org.renjin.primitives.packaging.Namespace;
-import org.renjin.repackaged.guava.collect.*;
+import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.collect.PeekingIterator;
+import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.repackaged.guava.primitives.Ints;
 import org.renjin.sexp.*;
 import org.renjin.sexp.Vector;
 
 import java.util.*;
-
-import static org.renjin.repackaged.guava.collect.Collections2.filter;
 
 /**
  * Primitives used in the implementation of the S3 object system
@@ -389,24 +389,23 @@ public class S3 {
       return null;
     }
     
-    PairList.Builder rePromisedArgs = new PairList.Builder();
+    PairList.Builder promisedArgs = new PairList.Builder();
     Iterator<PairList.Node> it = args.nodes().iterator();
     int argIdx = 0;
     while(it.hasNext()) {
       PairList.Node node = it.next();
       SEXP uneval = node.getValue();
       if(argIdx == 0) {
-        rePromisedArgs.add(node.getRawTag(), new Promise(uneval, source));
-      } else if(argIdx < maxSignatureLength) {
-        SEXP evaled = context.evaluate(uneval, rho);
-        rePromisedArgs.add(node.getRawTag(), new Promise(uneval, evaled));
+        // The source has already been evaluated to check for class
+        promisedArgs.add(node.getRawTag(), new Promise(uneval, source));
       } else {
-        rePromisedArgs.add(node.getRawTag(), new Promise(rho, uneval));
+        // otherwise a promise is created to evaluate if necessary
+        promisedArgs.add(node.getRawTag(), Promise.repromise(rho, uneval));
       }
       argIdx++;
     }
   
-    Map<String, List<List<MethodRanking>>> possibleSignatures = generateSignatures(context, rho, mapMethodEnvList, rePromisedArgs.build(), signatureLength);
+    Map<String, List<List<MethodRanking>>> possibleSignatures = generateSignatures(context, rho, mapMethodEnvList, promisedArgs.build(), signatureLength);
   
     List<List<SelectedMethod>> selectedMethods = findMatchingMethods(context, mapMethodEnvList, possibleSignatures);
     
@@ -444,22 +443,18 @@ public class S3 {
 //     otherwise only e1 and e2.
     
     if (("generic".equals(method.getGroup()) && method.getDistance() == 0) || hasS3Class) {
-      return context.evaluate(new FunctionCall(method.getFunction(), rePromisedArgs.build()));
+      return context.evaluate(new FunctionCall(method.getFunction(), promisedArgs.build()));
     } else {
-      SEXP variableDotDefined = buildDotTargetOrDefined(context, method, true);
-      SEXP variableDotTarget = buildDotTargetOrDefined(context, method, false);
-      SEXP variableDotGeneric = buildDotGeneric(opName);
-      
       Map<Symbol, SEXP> metadata = new HashMap<>();
-      metadata.put(Symbol.get(".defined"), variableDotDefined);
-      metadata.put(Symbol.get(".Generic"), variableDotGeneric);
+      metadata.put(Symbol.get(".defined"), buildDotTargetOrDefined(context, method, true));
+      metadata.put(Symbol.get(".Generic"), buildDotGeneric(opName));
       metadata.put(Symbol.get(".Method"), method.getFunction());
       metadata.put(Symbol.get(".Methods"), Symbol.get(".Primitive(\"" + opName +"\")"));
-      metadata.put(Symbol.get(".target"), variableDotTarget);
+      metadata.put(Symbol.get(".target"), buildDotTargetOrDefined(context, method, false));
       
       FunctionCall call = new FunctionCall(method.getFunction(), args);
       Closure closure = method.getFunction();
-      return ClosureDispatcher.apply(context,rho, call, closure, rePromisedArgs.build(), metadata);
+      return ClosureDispatcher.apply(context,rho, call, closure, promisedArgs.build(), metadata);
     }
   }
   
@@ -688,58 +683,48 @@ public class S3 {
       String type = mapEnvironmentLists.keySet().toArray(new String[0])[e];
       List<Environment> functionEnvs = mapEnvironmentLists.get(type);
       List<List<MethodRanking>> listSignatures = new ArrayList<>();
-  
-  
+      
       for(int listIdx = 0; listIdx < functionEnvs.size(); listIdx++) {
         Environment functionEnv = functionEnvs.get(listIdx);
-    
-        ArgumentSignature[] argSignatures = new ArgumentSignature[depth[listIdx]];
-        Symbol methodSymbol = (Symbol) functionEnv.getFrame().getSymbols().toArray()[0];
+        int currentDepth = depth[listIdx];
+        ArgumentSignature[] argSignatures = new ArgumentSignature[currentDepth];
+        Symbol methodSymbol = functionEnv.getFrame().getSymbols().iterator().next();
         Closure genericClosure = (Closure) functionEnv.getFrame().getVariable(methodSymbol);
         PairList formals = genericClosure.getFormals();
-        PairList matched = S3.matchArguments(formals, inputArgs, true);
-
-        Iterator<PairList.Node> itMt = matched.nodes().iterator();
-        List<Symbol> matchSym = new ArrayList<>();
-        while (itMt.hasNext()) {
-          matchSym.add(itMt.next().getTag());
+  
+        PairList matchedList = ClosureDispatcher.matchArguments(formals, inputArgs, true);
+        Map<Symbol, SEXP> matchedMap = new HashMap<>();
+        for (PairList.Node node : matchedList.nodes()) {
+          matchedMap.put(node.getTag(), node.getValue());
         }
-        int dotIdx = matchSym.indexOf(Symbols.ELLIPSES);
-
-        Iterator<PairList.Node> it = inputArgs.nodes().iterator();
-        Iterator<PairList.Node> itM = matched.nodes().iterator();
+ 
         int idx = 0;
-        while(it.hasNext() && idx < depth[listIdx]) {
-          PairList.Node node = it.next();
-          if(!node.hasTag() || (node.hasTag() && node.getTag() != Symbols.ELLIPSES)) {
-            SEXP nodeValue = node.getValue();
-            if(nodeValue == Symbol.MISSING_ARG || nodeValue.force(context) == Symbol.MISSING_ARG) {
+        for (PairList.Node node : formals.nodes()) {
+          Symbol formalName = node.getTag();
+          
+          if(formalName != Symbols.ELLIPSES) {
+            SEXP matchedValue = matchedMap.get(formalName).force(context);
+            if (matchedValue == Symbol.MISSING_ARG) {
               argSignatures[idx] = new ArgumentSignature();
+    
             } else {
-              if(node.hasTag() && matchSym.indexOf(node.getTag()) > dotIdx && idx < dotIdx) {
-                argSignatures[idx] = new ArgumentSignature();
-                idx++;
-              }
               String[] nodeClass;
-              String[] testClass = computeDataClasses(context, nodeValue).toArray();
-              if(testClass.length == 1 && nodeValue.force(context) instanceof StringArrayVector && "signature".equals(testClass[0])) {
-                nodeClass = ((StringArrayVector)nodeValue.force(context)).toArray();
+              String[] testClass = computeDataClasses(context, matchedValue).toArray();
+              if (testClass.length == 1 && matchedValue instanceof StringVector && "signature".equals(testClass[0])) {
+                nodeClass = ((StringVector) matchedValue).toArray();
               } else {
-                nodeClass = computeDataClasses(context, nodeValue).toArray();
+                nodeClass = computeDataClasses(context, matchedValue).toArray();
               }
               ArgumentSignature argSig = getClassAndDistance(context, nodeClass);
               argSignatures[idx] = argSig;
             }
             idx++;
+            if(idx >= argSignatures.length) {
+              break;
+            }
           }
         }
         
-        for(int i = 0; i < argSignatures.length; i++) {
-          if(argSignatures[i] == null) {
-            argSignatures[i] = new ArgumentSignature(new String[]{"missing", "ANY"}, new int[]{0, 1} );
-          }
-        }
-    
         int numberOfPossibleSignatures = 1;
         for(int i = 0; i < argSignatures.length; i++) {
           numberOfPossibleSignatures = numberOfPossibleSignatures * argSignatures[i].getArgument().length;
@@ -920,118 +905,7 @@ public class S3 {
     return arg;
   }
   
-  private static PairList matchArguments(PairList formals, PairList actuals, boolean populateMissing) {
-    
-    List<PairList.Node> unmatchedActuals = Lists.newArrayList();
-    for(PairList.Node argNode : actuals.nodes()) {
-      unmatchedActuals.add(argNode);
-    }
-    
-    List<PairList.Node> unmatchedFormals = Lists.newArrayList(formals.nodes());
-    List<SEXP> formalTags = new ArrayList<>();
-    Symbol[] tags = new Symbol[unmatchedFormals.size()];
-    SEXP[] values = new SEXP[unmatchedFormals.size()];
-    
-    // do exact matching
-    int argIdx = 0;
-    for(ListIterator<PairList.Node> formalIt = unmatchedFormals.listIterator(); formalIt.hasNext(); ) {
-      PairList.Node formal = formalIt.next();
-      formalTags.add(formal.getTag());
-      if(formal.hasTag()) {
-        Symbol name = formal.getTag();
-        if(name != Symbols.ELLIPSES) {
-          Collection<PairList.Node> matches = Collections2.filter(unmatchedActuals, PairList.Predicates.matches(name));
-          if (matches.size() == 1) {
-            PairList.Node match = first(matches);
-            SEXP value = match.getValue();
-            tags[argIdx] = name;
-            values[argIdx] = value;
-            formalIt.remove();
-            unmatchedActuals.remove(match);
-            
-          } else if (matches.size() > 1) {
-            throw new EvalException(String.format("Multiple named values provided for argument '%s'", name.getPrintName()));
-          }
-        }
-      }
-      argIdx++;
-    }
-    
-    // Partial matching
-    Collection<PairList.Node> remainingNamedFormals = filter(unmatchedFormals, PairList.Predicates.hasTag());
-    for (Iterator<PairList.Node> actualIt = unmatchedActuals.iterator(); actualIt.hasNext(); ) {
-      PairList.Node actual = actualIt.next();
-      int formalIdx = 0;
-      if (actual.hasTag() && actual.getTag() != Symbols.ELLIPSES) {
-        String argumentName = actual.getTag().getPrintName();
-        PairList.Node partialMatch = null;
-        for (PairList.Node formal : remainingNamedFormals) {
-          formalIdx = formalTags.indexOf(formal.getTag());
-          if(formal.getTag() == Symbols.ELLIPSES) {
-            break;
-          }
-          if(formal.getTag().getPrintName().startsWith(argumentName)) {
-            if(partialMatch == null) {
-              partialMatch = formal;
-            } else {
-              throw new EvalException(String.format("Provided argument '%s' matches multiple named formal arguments", argumentName));
-            }
-          }
-        }
-        
-        if (partialMatch != null) {
-          tags[formalIdx] = partialMatch.getTag();
-          values[formalIdx] = actual.getValue();
-          actualIt.remove();
-          unmatchedFormals.remove(partialMatch);
-        }
-      }
-      formalIdx++;
-    }
-    
-    // match any unnamed args positionally
-    
-    Iterator<PairList.Node> formalIt = unmatchedFormals.iterator();
-    PeekingIterator<PairList.Node> actualIt = Iterators.peekingIterator(unmatchedActuals.iterator());
-    for (int i = 0; i < values.length; i++) {
-      if(values[i] == null) {
-        if( formalIt.hasNext()) {
-          PairList.Node formal = formalIt.next();
-          if(Symbols.ELLIPSES.equals(formal.getTag())) {
-            PromisePairList.Builder promises = new PromisePairList.Builder();
-            while(actualIt.hasNext()) {
-              PairList.Node actual = actualIt.next();
-              promises.add( actual.getRawTag(),  actual.getValue() );
-            }
-            tags[i] = formal.getTag();
-            values[i] = promises.build();
-            
-          } else if( hasNextUnTagged(actualIt) ) {
-            PairList.Node nextUnTagged = nextUnTagged(actualIt);
-            tags[i] = formal.getTag();
-            values[i] = nextUnTagged.getValue();
-            
-          } else if(populateMissing) {
-            tags[i] = formal.getTag();
-            values[i] = Symbol.MISSING_ARG;
-          }
-        }
-      }
-    }
-    if(actualIt.hasNext()) {
-      throw new EvalException("Unmatched positional arguments");
-    }
-    PairList.Builder builder = new PairList.Builder();
-    for (int i = 0; i < values.length; i++) {
-      if(values[i] != null) {
-        builder.add(tags[i], values[i]);
-      }
-    }
-    PairList matchedArgs = builder.build();
-    return matchedArgs;
-  }
   
-
   public static SEXP tryDispatchSummaryFromPrimitive(Context context, Environment rho, FunctionCall call,
       String name, ListVector evaluatedArguments, boolean naRm) {
 

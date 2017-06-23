@@ -348,38 +348,39 @@ public class S3 {
     boolean hasS3Class = source.getAttribute(Symbol.get(".S3Class")).length() != 0;
     
     
-    List<Environment> groupMethodEnv = null;
-    List<Environment> genericMethodEnv = null;
+    List<Environment> groupMethodCache = null;
+    List<Environment> genericMethodCache = null;
     
-    genericMethodEnv = findMethodEnvironment(context, opName);
+    genericMethodCache = findMethodCache(context, opName);
     if("Ops".equals(group)) {
-      groupMethodEnv = findOpsMethodEnvironment(context, opName);
+      groupMethodCache = findOpsMethodCache(context, opName);
     } else if(!"".equals(group)) {
-      groupMethodEnv = findMethodEnvironment(context, group);
+      groupMethodCache = findMethodCache(context, group);
     }
     
-    if((groupMethodEnv == null || groupMethodEnv.size() == 0) && (genericMethodEnv == null || genericMethodEnv.size() == 0)) {
+    if((groupMethodCache == null || groupMethodCache.size() == 0) && (genericMethodCache == null || genericMethodCache.size() == 0)) {
       return null;
     }
     
-    Map<String, List<Environment>> mapMethodEnvList = new HashMap<>();
-    if(genericMethodEnv != null && genericMethodEnv.size() != 0) {
-      mapMethodEnvList.put("generic", genericMethodEnv);
+    Map<String, List<Environment>> mapMethodCacheList = new HashMap<>();
+    if(genericMethodCache != null && genericMethodCache.size() != 0) {
+      mapMethodCacheList.put("generic", genericMethodCache);
     }
-    if(groupMethodEnv != null && groupMethodEnv.size() != 0) {
-      mapMethodEnvList.put("group", groupMethodEnv);
+    if(groupMethodCache != null && groupMethodCache.size() != 0) {
+      mapMethodCacheList.put("group", groupMethodCache);
     }
     
-    // S4 methods for each generic function is stored in an environment. methods for each signature is stored
+    // S4 methods for each generic function is stored in cache of type environment. methods for each signature is stored
     // separately using the signature as name. for example
     // setMethod("[", signature("AA","BB","CC"), function(x, i, j, ...))
-    // is stored as `AA#BB#CC` in an environment named `.__T__[:base`
-    // here we get the first method from the method environment and split the name by # to know what the expected
+    // is stored as `AA#BB#CC` in an environment named `.__T__[:base` (we call this the methodCache)
+    // here we get the first method from the method cache and split the name by # to know what the expected
     // signature length is. This might be longer the length of arguments and #ANY should be used for missing
-    // arguments. In case signature is shorted than the number of arguments we don't need to evaluate the extra
+    // arguments. "ANY" should not be used for arguments which are explicitely named as "missing" or "NULL".
+    // In case signature is shorter than the number of arguments we don't need to evaluate the extra
     // arguments.
     
-    int[] signatureLength = computeSignatureLength(genericMethodEnv, groupMethodEnv);
+    int[] signatureLength = computeSignatureLength(genericMethodCache, groupMethodCache);
     
     int maxSignatureLength = 0;
     for(int i = 0; i < signatureLength.length; i++) {
@@ -405,9 +406,9 @@ public class S3 {
       argIdx++;
     }
   
-    Map<String, List<List<MethodRanking>>> possibleSignatures = generateSignatures(context, rho, mapMethodEnvList, promisedArgs.build(), signatureLength);
+    Map<String, List<List<MethodRanking>>> possibleSignatures = generateSignatures(context, mapMethodCacheList, promisedArgs.build(), signatureLength);
   
-    List<List<SelectedMethod>> selectedMethods = findMatchingMethods(context, mapMethodEnvList, possibleSignatures);
+    List<List<SelectedMethod>> selectedMethods = findMatchingMethods(context, mapMethodCacheList, possibleSignatures);
     
     if(selectedMethods.size() == 0) {
       return null;
@@ -518,46 +519,46 @@ public class S3 {
     return classS4Object.getAttribute(Symbol.get("package")).asString();
   }
   
-  private static List<Environment> findMethodEnvironment(Context context, String opName) {
+  private static List<Environment> findMethodCache(Context context, String opName) {
     Symbol methodSymbol = Symbol.get(".__T__" + opName + ":base");
-    SEXP genericMethodSymbol;
-    List<Environment> methodList = new ArrayList<>();
+    SEXP methodCacheInMethods;
+    List<Environment> methodCacheList = new ArrayList<>();
   
     if (SPECIAL.contains(opName)) {
       Namespace methodsNamespace = context.getNamespaceRegistry().getNamespace(context, "methods");
       Frame methodFrame = methodsNamespace.getNamespaceEnvironment().getFrame();
-      genericMethodSymbol = methodFrame.getVariable(methodSymbol).force(context);
-      if(genericMethodSymbol == Symbol.UNBOUND_VALUE || !(genericMethodSymbol instanceof Environment)) {
+      methodCacheInMethods = methodFrame.getVariable(methodSymbol).force(context);
+      if(methodCacheInMethods == Symbol.UNBOUND_VALUE || !(methodCacheInMethods instanceof Environment)) {
         return null;
       }
-      methodList.add((Environment) genericMethodSymbol);
+      methodCacheList.add((Environment) methodCacheInMethods);
     } else {
       
-      SEXP globalMethodEnv = context.getGlobalEnvironment().getFrame().getVariable(methodSymbol);
-      if (globalMethodEnv != Symbol.UNBOUND_VALUE && globalMethodEnv instanceof Environment) {
-        methodList.add((Environment) globalMethodEnv);
+      SEXP methodCacheInGlobalEnv = context.getGlobalEnvironment().getFrame().getVariable(methodSymbol);
+      if (methodCacheInGlobalEnv != Symbol.UNBOUND_VALUE && methodCacheInGlobalEnv instanceof Environment) {
+        methodCacheList.add((Environment) methodCacheInGlobalEnv);
       }
       
       for(Symbol loadedNamespace : context.getNamespaceRegistry().getLoadedNamespaces()) {
         String packageName = loadedNamespace.getPrintName();
         Namespace packageNamespace = context.getNamespaceRegistry().getNamespace(context, packageName);
         Environment packageEnvironment = packageNamespace.getNamespaceEnvironment();
-        SEXP packageMethodEnv = packageEnvironment.getFrame().getVariable(methodSymbol).force(context);
-        if(packageMethodEnv instanceof Environment) {
-          methodList.add((Environment) packageMethodEnv);
+        SEXP methodCacheInPackages = packageEnvironment.getFrame().getVariable(methodSymbol).force(context);
+        if(methodCacheInPackages instanceof Environment) {
+          methodCacheList.add((Environment) methodCacheInPackages);
         }
       }
     }
-    return methodList.size() == 0 ? null : methodList;
+    return methodCacheList.size() == 0 ? null : methodCacheList;
   }
   
-  private static List<Environment> findOpsMethodEnvironment(Context context, String opName) {
-    List<Environment> methodList = new ArrayList<>();
+  private static List<Environment> findOpsMethodCache(Context context, String opName) {
+    List<Environment> methodCacheList = new ArrayList<>();
     
     Frame globalFrame = context.getGlobalEnvironment().getFrame();
-    SEXP globalMethodEnv = getMethodEnvironment(context, opName, globalFrame);
-    if (globalMethodEnv != null && globalMethodEnv instanceof Environment) {
-      methodList.add((Environment) globalMethodEnv);
+    SEXP methodCacheInGlobalEnv = getMethodCache(context, opName, globalFrame);
+    if (methodCacheInGlobalEnv instanceof Environment) {
+      methodCacheList.add((Environment) methodCacheInGlobalEnv);
     }
   
     for(Symbol packageSymbol : context.getNamespaceRegistry().getLoadedNamespaces()) {
@@ -569,51 +570,51 @@ public class S3 {
           exports.contains(Symbol.get(opName))) {
         Namespace packageNamespace = context.getNamespaceRegistry().getNamespace(context, packageName);
         Frame packageFrame = packageNamespace.getNamespaceEnvironment().getFrame();
-        SEXP packageMethodEnvironment = getMethodEnvironment(context, opName, packageFrame);
-        if(packageMethodEnvironment instanceof Environment &&
-            ((Environment) packageMethodEnvironment).getFrame().getSymbols().size() > 0) {
-          methodList.add((Environment) packageMethodEnvironment);
+        SEXP methodCacheInPackage = getMethodCache(context, opName, packageFrame);
+        if(methodCacheInPackage instanceof Environment &&
+            ((Environment) methodCacheInPackage).getFrame().getSymbols().size() > 0) {
+          methodCacheList.add((Environment) methodCacheInPackage);
         }
       }
     }
     
-    if (methodList.size() == 0) {
+    if (methodCacheList.size() == 0) {
       return null;
     }
     
-    return methodList;
+    return methodCacheList;
   }
   
-  private static SEXP getMethodEnvironment(Context context, String opName, Frame packageFrame) {
-    SEXP packageMethodEnv = null;
+  private static SEXP getMethodCache(Context context, String opName, Frame packageFrame) {
+    SEXP methodCache = null;
     if(ARITH_GROUP.contains(opName)) {
       String[] groups = {".__T__Arith:base", ".__T__Ops:base"};
-      packageMethodEnv = getEnvironment(context, packageFrame, groups);
+      methodCache = getCache(context, packageFrame, groups);
     } else if (COMPARE_GROUP.contains(opName)) {
       String[] groups = {".__T__Compare:methods", ".__T__Ops:base"};
-      packageMethodEnv = getEnvironment(context, packageFrame, groups);
+      methodCache = getCache(context, packageFrame, groups);
     } else if (LOGIC_GROUP.contains(opName)) {
       String[] groups = {".__T__Logic:base", ".__T__Ops:base"};
-      packageMethodEnv = getEnvironment(context, packageFrame, groups);
+      methodCache = getCache(context, packageFrame, groups);
     }
-    return packageMethodEnv;
+    return methodCache;
   }
   
-  private static SEXP getEnvironment(Context context, Frame frame, String[] groups) {
-    SEXP method = null;
-    for (int i = 0; i < groups.length && method == null; i++) {
-      SEXP foundMethodEnvironment = frame.getVariable(Symbol.get(groups[i])).force(context);
-      method = foundMethodEnvironment instanceof Environment ? (Environment) foundMethodEnvironment : null;
+  private static SEXP getCache(Context context, Frame frame, String[] groups) {
+    SEXP cache = null;
+    for (int i = 0; i < groups.length && cache == null; i++) {
+      SEXP foundMethodCache = frame.getVariable(Symbol.get(groups[i])).force(context);
+      cache = foundMethodCache instanceof Environment ? (Environment) foundMethodCache : null;
     }
-    return method;
+    return cache;
   }
   
-  private static int[] computeSignatureLength(List<Environment> genericEnvs, List<Environment> groupEnvs) {
-    List<Environment> methodEnvironment = genericEnvs == null ? groupEnvs : genericEnvs;
-    int[] length = new int[methodEnvironment.size()];
-    for(int i = 0; i < methodEnvironment.size(); i++) {
-      if(methodEnvironment.get(i).getFrame().getSymbols().iterator().hasNext()) {
-        length[i] = methodEnvironment.get(i).getFrame().getSymbols().iterator().next().getPrintName().split("#").length;
+  private static int[] computeSignatureLength(List<Environment> genericMethodCache, List<Environment> groupMethodCache) {
+    List<Environment> methodCache = genericMethodCache == null ? groupMethodCache : genericMethodCache;
+    int[] length = new int[methodCache.size()];
+    for(int i = 0; i < methodCache.size(); i++) {
+      if(methodCache.get(i).getFrame().getSymbols().iterator().hasNext()) {
+        length[i] = methodCache.get(i).getFrame().getSymbols().iterator().next().getPrintName().split("#").length;
       } else {
         length[i] = 0;
       }
@@ -635,7 +636,7 @@ public class S3 {
    *
    *
    * */
-  private static List<List<SelectedMethod>> findMatchingMethods(Context context, Map<String, List<Environment>> mapMethodEnvList,
+  private static List<List<SelectedMethod>> findMatchingMethods(Context context, Map<String, List<Environment>> mapMethodCacheList,
                                                           Map<String, List<List<MethodRanking>>> mapSignatureList) {
     
     List<List<SelectedMethod>> listMethods = new ArrayList<>();
@@ -643,7 +644,7 @@ public class S3 {
     for(int e = 0; e < mapSignatureList.size(); e++) {
       String type = mapSignatureList.keySet().toArray(new String[0])[e];
       List<List<MethodRanking>> rankings = mapSignatureList.get(type);
-      List<Environment> listMethodEnv = mapMethodEnvList.get(type);
+      List<Environment> listMethodCache = mapMethodCacheList.get(type);
       
       for(int i = 0; i < rankings.size(); i++) {
         List<MethodRanking> rankedMethodsList = rankings.get(i);
@@ -654,7 +655,7 @@ public class S3 {
           String signature = rankedMethod.getSignature();
           int distance = rankedMethod.getTotalDist();
           Symbol signatureSymbol = Symbol.get(signature);
-          SEXP function = listMethodEnv.get(i).getFrame().getVariable(signatureSymbol).force(context);
+          SEXP function = listMethodCache.get(i).getFrame().getVariable(signatureSymbol).force(context);
       
           if (function instanceof Closure) {
             selectedMethods.add(new SelectedMethod((Closure) function, type, distance, signature, signatureSymbol, inputSignature));
@@ -673,19 +674,18 @@ public class S3 {
    * information.
    *
    * */
-  private static Map<String, List<List<MethodRanking>>> generateSignatures(Context context, Environment rho,
-                                                                           Map<String, List<Environment>> mapEnvironmentLists,
+  private static Map<String, List<List<MethodRanking>>> generateSignatures(Context context, Map<String, List<Environment>> mapMethodCacheLists,
                                                                            PairList inputArgs, int[] depth) {
     
     Map<String, List<List<MethodRanking>>> mapListMethods = new HashMap<>();
     
-    for(int e = 0; e < mapEnvironmentLists.size(); e++) {
-      String type = mapEnvironmentLists.keySet().toArray(new String[0])[e];
-      List<Environment> functionEnvs = mapEnvironmentLists.get(type);
+    for(int e = 0; e < mapMethodCacheLists.size(); e++) {
+      String type = mapMethodCacheLists.keySet().toArray(new String[0])[e];
+      List<Environment> methodCache = mapMethodCacheLists.get(type);
       List<List<MethodRanking>> listSignatures = new ArrayList<>();
       
-      for(int listIdx = 0; listIdx < functionEnvs.size(); listIdx++) {
-        Environment functionEnv = functionEnvs.get(listIdx);
+      for(int listIdx = 0; listIdx < methodCache.size(); listIdx++) {
+        Environment functionEnv = methodCache.get(listIdx);
         int currentDepth = depth[listIdx];
         ArgumentSignature[] argSignatures = new ArgumentSignature[currentDepth];
         Symbol methodSymbol = functionEnv.getFrame().getSymbols().iterator().next();

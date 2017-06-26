@@ -35,11 +35,11 @@ test.s4.missing.02 = function() { assertThat( a[[a,a]] , identicalTo( 1.8 )) }
 test.s4.missing.03 = function() { assertThat( a[[a,]] , identicalTo( 1.5 )) }
 test.s4.missing.04 = function() { assertThat( a[[,a]] , identicalTo( 1.6 )) }
 test.s4.missing.05 = function() { assertThat( a[[i=a,j=]] , identicalTo( 1.5 )) }
-ignore.test.s4.missing.06 = function() { assertThat( a[[j=a,i=]] , identicalTo( 1.5 )) }
+test.s4.missing.06 = function() { assertThat( a[[j=a,i=]] , identicalTo( 1.5 )) }
 test.s4.missing.07 = function() { assertThat( a[[a,1]] , identicalTo( 1.55 )) }
-ignore.test.s4.missing.07b = function() { assertThat( a[[j=a,i=1]] , identicalTo( 1.55 )) }
+test.s4.missing.07b = function() { assertThat( a[[j=a,i=1]] , identicalTo( 1.55 )) }
 test.s4.missing.08 = function() { assertThat( a[[1,a]] , identicalTo( 1.7 )) }
-ignore.test.s4.missing.08b = function() { assertThat( a[[j=1,i=a]] , identicalTo( 1.7 )) }
+test.s4.missing.08b = function() { assertThat( a[[j=1,i=a]] , identicalTo( 1.7 )) }
 
 setClass("B", representation(b = "numeric"))
 b <- new("B", b = 10)
@@ -64,9 +64,9 @@ d <- new("D", dval = 10)
 setMethod("[[<-", c(x = "D", i = "D", j = "missing", value = "D"    ), function(x, i,..., value) { x@dval <- 1.001; x} )
 setMethod("[[<-", c(x = "D", i = "D", j = "missing", value = "NULL"    ), function(x, i,..., value) { x@dval <- 1.002; x} )
 test.s4.missing.16 = function() { assertThat( {d[[d,]]<-d; d@dval} , identicalTo( 1.001 )) }
-ignore.test.s4.missing.18 = function() { assertThat( {d[[d]]<-d; d@dval} , identicalTo( 1.001 )) }
+test.s4.missing.18 = function() { assertThat( {d[[d]]<-d; d@dval} , identicalTo( 1.001 )) }
 test.s4.missing.17 = function() { assertThat( {d[[d,]]<-NULL; d@dval} , identicalTo( 1.002 )) }
-ignore.test.s4.missing.18 = function() { assertThat( {d[[j=d,i=]]<-NULL; d@dval} , identicalTo( 1.002 )) }
+test.s4.missing.18 = function() { assertThat( {d[[j=d,i=]]<-NULL; d@dval} , identicalTo( 1.002 )) }
 test.s4.missing.20 = function() { assertThat( {d[[d]]<-NULL; d@dval} , identicalTo( 1.002 )) }
 
 setClass("G", representation(gval = "numeric"))
@@ -77,49 +77,16 @@ test.s4.missing.21 = function() { assertThat( {g[[1,]]<-"test"; g@gval} , identi
 test.s4.missing.22 = function() { assertThat( {g[[1,]]<-NULL; g@gval} , identicalTo( 1.002 )) }
 test.s4.missing.23 = function() { assertThat( {g[[1]]<-"test"; g@gval} , identicalTo( 1.001 )) }
 test.s4.missing.24 = function() { assertThat( {g[[1]]<-NULL; g@gval} , identicalTo( 1.002 )) }
-ignore.test.s4.missing.25 = function() { assertThat( {g[[j=1]]<-NULL; g@gval} , identicalTo( 1.002 )) }
-ignore.test.s4.missing.26 = function() { assertThat( {g[[j=1,i=]]<-NULL; g@gval} , identicalTo( 1.002 )) }
+test.s4.missing.25 = function() { assertThat( {g[[1,]]<-NULL; g@gval} , identicalTo( 1.002 )) }
+test.s4.missing.26 = function() { assertThat( {g[[j=1,i=]]<-NULL; g@gval} , identicalTo( 1.002 )) }
 
 setClass("H", representation(hval = "numeric"))
 h <- new("H", hval = 10)
 setMethod("[", c(x = "H", i = "numeric", j = "missing", drop = "character"    ), function(x, i,..., drop) 1.001 )
 setMethod("[", c(x = "H", i = "numeric", j = "missing", drop = "NULL"    ), function(x, i,..., drop) 1.002 )
-ignore.test.s4.missing.27 = function() { assertThat( h[1,,NULL] , identicalTo( 1.002 )) }
-ignore.test.s4.missing.28 = function() { assertThat( h[1,,NULL] , identicalTo( 1.002 )) }
-ignore.test.s4.missing.29 = function() { assertThat( h[j=1,,NULL] , identicalTo( 1.002 )) }
-ignore.test.s4.missing.30 = function() { assertThat( h[j=1,i=,NULL] , identicalTo( 1.002 )) }
+test.s4.missing.27 = function() { assertThat( h[1,,NULL] , identicalTo( 1.002 )) }
+test.s4.missing.28 = function() { assertThat( h[1,,NULL] , identicalTo( 1.002 )) }
+test.s4.missing.29 = function() { assertThat( h[j=1,,NULL] , identicalTo( 1.002 )) }
+test.s4.missing.30 = function() { assertThat( h[j=1,i=,NULL] , identicalTo( 1.002 )) }
 test.s4.missing.31 = function() { assertThat( h[1,,drop="test"] , identicalTo( 1.001 ) ) }
 test.s4.missing.32 = function() { assertThat( h[1,,drop="test"] , identicalTo( 1.001 ) ) }
-
-
-setClass("city", contains = "environment")
-city <- new("city", new.env(hash = TRUE, parent = emptyenv()))
-setReplaceMethod("[[", c(x="city", i="character", j="missing", value="ANY"), function(x,i,value) { assign(i, value, x@.xData); x })
-setReplaceMethod("[[", c(x="city", i="character", j="missing", value="NULL"), function(x,i,value) { assign(i, value, x@.xData); x })
-setReplaceMethod("[[", c(x="city", i="missing", j="character", value="ANY"), function(x,j,value) { assign(j, value, x@.xData); x })
-setReplaceMethod("[[", c(x="city", i="missing", j="character", value="NULL"), function(x,j,value) { assign(j, value, x@.xData); x })
-
-ignore.test.s4.missing.33 = function() { assertThat( {city[["Name"]]<-"The Hague"; city@.xData$Name} , identicalTo( "The Hague" )) }
-ignore.test.s4.missing.34 = function() { assertThat( {city[["Name",]]<-NULL; city@.xData$Name} , identicalTo( NULL )) }
-ignore.test.s4.missing.35 = function() { assertThat( {city[[,"Country"]]<-"The Netherlands"; city@.xData$Country} , identicalTo( "The Netherlands" )) }
-ignore.test.s4.missing.36 = function() { assertThat( {assign("Country","Germany",city@.xData); city[[,"Country"]]<-NULL; city@.xData$Country} , identicalTo( NULL )) }
-
-
-setClass( 'City', contains = 'environment')
-city2 <- new("City", new.env(hash = TRUE, parent = emptyenv()))
-setReplaceMethod("[[", c(x="City", i="ANY", j="missing", value="ANY"), function(x,i,value) { assign(i, value, x@.xData); x })
-setReplaceMethod("[[", c(x="City", i="character", j="missing", value="NULL"), function(x,i,value) { assign(i, value, x@.xData); x })
-
-ignore.test.s4.missing.37 = function() {
-    assertThat( {                                          city2[["Name"]]<-"Amsterdam"; city2@.xData$Name } , identicalTo( "Amsterdam" ))
-}
-ignore.test.s4.missing.38 = function() {
-    assertThat( { assign("Name","Munich",city2@.xData);    city2[["Name", ]] <- "Amsterdam"; city2@.xData$Name } , identicalTo( "Amsterdam" ))
-}
-ignore.test.s4.missing.39 = function() {
-    assertThat( { assign("Name","Rotterdam",city2@.xData); city2[["Name", ]] <- NULL; city2@.xData$Name } , identicalTo( NULL ))
-}
-ignore.test.s4.missing.40 = function() {
-    assertThat( { assign("Name","Rotterdam",city2@.xData); city2[["Name"]] <- NULL; city2@.xData$Name } , identicalTo( NULL ))
-}
-

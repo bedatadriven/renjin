@@ -42,5 +42,5 @@ assign( "b", 120, city@.xData )
 assertThat(city@.xData$a, identicalTo(10))
 assertThat(city@.xData$b, identicalTo(120))
 city[["City"]] <- "Amsterdam"
-#assertThat(city@.xData$City, identicalTo( "Amsterdam" ))
-#assertThat(city[["City"]], identicalTo( "Amsterdam" ))
+assertThat(city@.xData$City, identicalTo( "Amsterdam" ))
+assertThat(city[["City"]], identicalTo( "Amsterdam" ))

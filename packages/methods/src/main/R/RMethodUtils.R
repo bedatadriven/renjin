@@ -356,7 +356,6 @@ conformMethod <- function(signature, mnames, fnames,
 
 rematchDefinition <- function(definition, generic, mnames, fnames, signature)
 {
-    cat(sprintf("definition: %s\n",deparse(definition)))
     added <- any(is.na(match(mnames, fnames)))
     keepsDots <- !is.na(match("...", mnames))
     if(!added && keepsDots) {

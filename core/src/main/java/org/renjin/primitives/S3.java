@@ -353,7 +353,7 @@ public class S3 {
     genericMethodEnvironment = findMethodEnvironment(context, opName);
     if("Ops".equals(group)) {
       groupMethodEnvironment = findOpsMethodEnvironment(context, opName);
-    } else if(!"".equals(group)) {
+    } else {
       groupMethodEnvironment = findMethodEnvironment(context, group);
     }
     
@@ -388,21 +388,26 @@ public class S3 {
       return null;
     }
     
-    PairList.Builder rePromisedArgs = new PairList.Builder();
+    List<Promise> listPromises = new ArrayList<>();
     Iterator<PairList.Node> it = args.nodes().iterator();
     int argIdx = 0;
     while(it.hasNext()) {
       PairList.Node node = it.next();
       SEXP uneval = node.getValue();
       if(argIdx == 0) {
-        rePromisedArgs.add(node.getRawTag(), new Promise(uneval, source));
+        listPromises.add(new Promise(uneval, source));
       } else if(argIdx < maxSignatureLength) {
         SEXP evaled = context.evaluate(uneval, rho);
-        rePromisedArgs.add(node.getRawTag(), new Promise(uneval, evaled));
+        listPromises.add(new Promise(uneval, evaled));
       } else {
-        rePromisedArgs.add(node.getRawTag(), new Promise(rho, uneval));
+        listPromises.add(new Promise(rho, uneval));
       }
       argIdx++;
+    }
+  
+    PairList.Builder rePromisedArgs = new PairList.Builder();
+    for(Promise promise : listPromises) {
+      rePromisedArgs.add(promise.force(context));
     }
   
     Map<String, List<List<MethodRanking>>> possibleSignatures = generateSignatures(context, rho, mapEnvironmentLists, rePromisedArgs.build(), signatureLength);
@@ -544,11 +549,15 @@ public class S3 {
       
       for(Symbol loadedNamespace : context.getNamespaceRegistry().getLoadedNamespaces()) {
         String packageName = loadedNamespace.getPrintName();
-        Namespace packageNamespace = context.getNamespaceRegistry().getNamespace(context, packageName);
-        Environment packageEnvironment = packageNamespace.getNamespaceEnvironment();
-        SEXP packageMethodEnv = packageEnvironment.getFrame().getVariable(methodSymbol).force(context);
-        if(packageMethodEnv instanceof Environment) {
-          methodList.add((Environment) packageMethodEnv);
+        Collection<Symbol> exports = context.getNamespaceRegistry().getNamespace(context, packageName).getExports();
+        
+        if(exports.contains(Symbol.get(opName))) {
+          Namespace packageNamespace = context.getNamespaceRegistry().getNamespace(context, packageName);
+          Environment packageEnvironment = packageNamespace.getNamespaceEnvironment();
+          SEXP packageMethodEnv = packageEnvironment.getFrame().getVariable(methodSymbol).force(context);
+          if(packageMethodEnv instanceof Environment) {
+            methodList.add((Environment) packageMethodEnv);
+          }
         }
       }
     }
@@ -650,13 +659,13 @@ public class S3 {
       List<Environment> listEnv = mapEnvironmentLists.get(type);
       
       for(int i = 0; i < rankings.size(); i++) {
-        List<MethodRanking> rankedMethodsList = rankings.get(i);
+        List<MethodRanking> methodRankings = rankings.get(i);
         List<SelectedMethod> selectedMethods = new ArrayList<>();
-        String inputSignature = rankedMethodsList.get(0).getSignature();
+        String inputSignature = methodRankings.get(0).getSignature();
     
-        for (MethodRanking rankedMethod : rankedMethodsList) {
-          String signature = rankedMethod.getSignature();
-          int distance = rankedMethod.getTotalDist();
+        for (MethodRanking methodRank : methodRankings) {
+          String signature = methodRank.getSignature();
+          int distance = methodRank.getTotalDist();
           Symbol signatureSymbol = Symbol.get(signature);
           SEXP function = listEnv.get(i).getFrame().getVariable(signatureSymbol).force(context);
       

@@ -691,36 +691,53 @@ public class S3 {
         Symbol methodSymbol = functionEnv.getFrame().getSymbols().iterator().next();
         Closure genericClosure = (Closure) functionEnv.getFrame().getVariable(methodSymbol);
         PairList formals = genericClosure.getFormals();
+        
+        // when length of all arguments is as long as formals length (except ...)
+        // then arguments are matched positionally and the argument tags are ignored
+        // Example:
+        // > setClass("ABC")
+        // > obj <- ABC()
+        // > obj[[i=1,j="hello"]] <- 100
+        // `[[` formals are x(i, j, ..., value)
+        // signature will be: x=ABC, i=numeric, j=character, value=numeric
+        //
+        // > obj[[j=1,i="hello"] <- 100
+        // signature will be: x=ABC, i=numeric, j=character, value=numeric
   
         PairList matchedList = ClosureDispatcher.matchArguments(formals, inputArgs, true);
         Map<Symbol, SEXP> matchedMap = new HashMap<>();
         for (PairList.Node node : matchedList.nodes()) {
           matchedMap.put(node.getTag(), node.getValue());
         }
- 
-        int idx = 0;
-        for (PairList.Node node : formals.nodes()) {
-          Symbol formalName = node.getTag();
-          
-          if(formalName != Symbols.ELLIPSES) {
-            SEXP matchedValue = matchedMap.get(formalName).force(context);
-            if (matchedValue == Symbol.MISSING_ARG) {
-              argSignatures[idx] = new ArgumentSignature();
-    
-            } else {
-              String[] nodeClass;
-              String[] testClass = computeDataClasses(context, matchedValue).toArray();
-              if (testClass.length == 1 && matchedValue instanceof StringVector && "signature".equals(testClass[0])) {
-                nodeClass = ((StringVector) matchedValue).toArray();
-              } else {
-                nodeClass = computeDataClasses(context, matchedValue).toArray();
-              }
-              ArgumentSignature argSig = getClassAndDistance(context, nodeClass);
-              argSignatures[idx] = argSig;
-            }
+        
+        List<SEXP> inputMap = new ArrayList<>();
+        for (PairList.Node node : inputArgs.nodes()) {
+          inputMap.add(node.getValue());
+        }
+        int matchLength = matchedMap.containsKey(Symbols.ELLIPSES) ? matchedMap.size()-1 : matchedMap.size();
+        boolean lengthMatchEqualsInput =  (matchLength - inputMap.size()) == 0;
+        
+        if (lengthMatchEqualsInput) {
+          int idx = 0;
+          for (PairList.Node node : inputArgs.nodes()) {
+            SEXP argValue = node.getValue().force(context);
+            argSignatures[idx] = getArgumentSignature(context, argValue);
             idx++;
             if(idx >= argSignatures.length) {
               break;
+            }
+          }
+        } else {
+          int idx = 0;
+          for (PairList.Node node : formals.nodes()) {
+            Symbol formalName = node.getTag();
+            if(formalName != Symbols.ELLIPSES) {
+              SEXP matchedValue = matchedMap.get(formalName).force(context);
+              argSignatures[idx] = getArgumentSignature(context, matchedValue);
+              idx++;
+              if(idx >= argSignatures.length) {
+                break;
+              }
             }
           }
         }
@@ -774,6 +791,20 @@ public class S3 {
     }
     
     return mapListMethods;
+  }
+  
+  private static ArgumentSignature getArgumentSignature(Context context, SEXP argValue) {
+    if (argValue == Symbol.MISSING_ARG) {
+      return new ArgumentSignature();
+    }
+    String[] nodeClass;
+    String[] testClass = computeDataClasses(context, argValue).toArray();
+    if (testClass.length == 1 && argValue instanceof StringVector && "signature".equals(testClass[0])) {
+      nodeClass = ((StringVector) argValue).toArray();
+    } else {
+      nodeClass = computeDataClasses(context, argValue).toArray();
+    }
+    return getClassAndDistance(context, nodeClass);
   }
   
   /**

@@ -692,17 +692,20 @@ public class S3 {
         Closure genericClosure = (Closure) functionEnv.getFrame().getVariable(methodSymbol);
         PairList formals = genericClosure.getFormals();
         
-        // when length of all arguments is as long as formals length (except ...)
+        // when length of all arguments used in function call is as long as formals length (except ...)
         // then arguments are matched positionally and the argument tags are ignored
         // Example:
         // > setClass("ABC")
-        // > obj <- ABC()
+        // > obj <- new("ABC")
         // > obj[[i=1,j="hello"]] <- 100
         // `[[` formals are x(i, j, ..., value)
-        // signature will be: x=ABC, i=numeric, j=character, value=numeric
+        // obj signature is:   x=ABC, i=numeric, j=character, value=numeric
         //
         // > obj[[j=1,i="hello"] <- 100
-        // signature will be: x=ABC, i=numeric, j=character, value=numeric
+        // obj signature is:   x=ABC, i=numeric, j=character, value=numeric
+        //
+        // > obj[[j=1]] <- 100
+        // obj signature is:   x=ABC, i=missing, j=numeric,   value=numeric
   
         PairList matchedList = ClosureDispatcher.matchArguments(formals, inputArgs, true);
         Map<Symbol, SEXP> matchedMap = new HashMap<>();
@@ -716,30 +719,11 @@ public class S3 {
         }
         int matchLength = matchedMap.containsKey(Symbols.ELLIPSES) ? matchedMap.size()-1 : matchedMap.size();
         boolean lengthMatchEqualsInput =  (matchLength - inputMap.size()) == 0;
-        
+  
         if (lengthMatchEqualsInput) {
-          int idx = 0;
-          for (PairList.Node node : inputArgs.nodes()) {
-            SEXP argValue = node.getValue().force(context);
-            argSignatures[idx] = getArgumentSignature(context, argValue);
-            idx++;
-            if(idx >= argSignatures.length) {
-              break;
-            }
-          }
+          argSignatures = computeArgumentSignatures(context, inputArgs.nodes(), null, currentDepth);
         } else {
-          int idx = 0;
-          for (PairList.Node node : formals.nodes()) {
-            Symbol formalName = node.getTag();
-            if(formalName != Symbols.ELLIPSES) {
-              SEXP matchedValue = matchedMap.get(formalName).force(context);
-              argSignatures[idx] = getArgumentSignature(context, matchedValue);
-              idx++;
-              if(idx >= argSignatures.length) {
-                break;
-              }
-            }
-          }
+          argSignatures = computeArgumentSignatures(context, formals.nodes(), matchedMap, currentDepth);
         }
         
         int numberOfPossibleSignatures = 1;
@@ -791,6 +775,36 @@ public class S3 {
     }
     
     return mapListMethods;
+  }
+  
+  private static ArgumentSignature[] computeArgumentSignatures(Context context, Iterable<PairList.Node> nodes, Map<Symbol, SEXP> matchedMap, int currentDepth) {
+  
+    ArgumentSignature[] argSignatures = new ArgumentSignature[currentDepth];
+    int idx = 0;
+    
+    for (PairList.Node node : nodes) {
+      SEXP value;
+      Symbol formalName = null;
+      if (matchedMap == null) {
+        value = node.getValue().force(context);
+      } else {
+        formalName = node.getTag();
+        value = matchedMap.get(formalName).force(context);
+      }
+    
+      if(matchedMap != null && formalName == Symbols.ELLIPSES) {
+        break;
+      }
+      
+      argSignatures[idx] = getArgumentSignature(context, value);
+      idx++;
+      
+      if(idx >= argSignatures.length) {
+        break;
+      }
+    }
+    
+    return argSignatures;
   }
   
   private static ArgumentSignature getArgumentSignature(Context context, SEXP argValue) {

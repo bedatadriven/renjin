@@ -38,6 +38,7 @@ public class TypeSet {
   public static final int FUNCTION = (1 << 10);
   public static final int ENVIRONMENT = (1 << 11);
   public static final int PAIRLIST = (1 << 12);
+  public static final int S4 = (1 << 16);
   public static final int ANY_ATOMIC_VECTOR = NULL | RAW | INT | LOGICAL | DOUBLE | COMPLEX | STRING;
   public static final int ANY_VECTOR = LIST | ANY_ATOMIC_VECTOR;
   public static final int ANY_TYPE = ANY_VECTOR | PAIRLIST | ENVIRONMENT | SYMBOL | FUNCTION;
@@ -69,6 +70,8 @@ public class TypeSet {
       return PAIRLIST;
     } else if(constant instanceof Function) {
       return FUNCTION;
+    } else if(constant instanceof S4Object) {
+      return S4;
     } else {
       throw new UnsupportedOperationException("TODO: " + constant.getClass().getName());
     }

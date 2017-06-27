@@ -348,26 +348,26 @@ public class S3 {
     boolean hasS3Class = source.getAttribute(Symbol.get(".S3Class")).length() != 0;
     
     
-    List<Environment> groupMethodCache = null;
-    List<Environment> genericMethodCache = null;
+    List<Environment> groupMethodTables = null;
+    List<Environment> genericMethodTables = null;
     
-    genericMethodCache = findMethodCache(context, opName);
+    genericMethodTables = findMethodTable(context, opName);
     if("Ops".equals(group)) {
-      groupMethodCache = findOpsMethodCache(context, opName);
+      groupMethodTables = findOpsMethodTable(context, opName);
     } else if(!"".equals(group)) {
-      groupMethodCache = findMethodCache(context, group);
+      groupMethodTables = findMethodTable(context, group);
     }
     
-    if((groupMethodCache == null || groupMethodCache.size() == 0) && (genericMethodCache == null || genericMethodCache.size() == 0)) {
+    if((groupMethodTables == null || groupMethodTables.size() == 0) && (genericMethodTables == null || genericMethodTables.size() == 0)) {
       return null;
     }
     
-    Map<String, List<Environment>> mapMethodCacheList = new HashMap<>();
-    if(genericMethodCache != null && genericMethodCache.size() != 0) {
-      mapMethodCacheList.put("generic", genericMethodCache);
+    Map<String, List<Environment>> mapMethodTableList = new HashMap<>();
+    if(genericMethodTables != null && genericMethodTables.size() != 0) {
+      mapMethodTableList.put("generic", genericMethodTables);
     }
-    if(groupMethodCache != null && groupMethodCache.size() != 0) {
-      mapMethodCacheList.put("group", groupMethodCache);
+    if(groupMethodTables != null && groupMethodTables.size() != 0) {
+      mapMethodTableList.put("group", groupMethodTables);
     }
     
     // S4 methods for each generic function is stored in cache of type environment. methods for each signature is stored
@@ -380,7 +380,7 @@ public class S3 {
     // In case signature is shorter than the number of arguments we don't need to evaluate the extra
     // arguments.
     
-    int[] signatureLength = computeSignatureLength(genericMethodCache, groupMethodCache);
+    int[] signatureLength = computeSignatureLength(genericMethodTables, groupMethodTables);
     
     int maxSignatureLength = 0;
     for(int i = 0; i < signatureLength.length; i++) {
@@ -406,29 +406,29 @@ public class S3 {
       argIdx++;
     }
   
-    Map<String, List<List<MethodRanking>>> possibleSignatures = generateSignatures(context, mapMethodCacheList, promisedArgs.build(), signatureLength);
+    Map<String, List<List<MethodRanking>>> possibleSignatures = generateSignatures(context, mapMethodTableList, promisedArgs.build(), signatureLength);
   
-    List<List<SelectedMethod>> selectedMethods = findMatchingMethods(context, mapMethodCacheList, possibleSignatures);
+    List<List<SelectedMethod>> validMethods = findMatchingMethods(context, mapMethodTableList, possibleSignatures);
     
-    if(selectedMethods.size() == 0) {
+    if(validMethods.size() == 0) {
       return null;
     }
     
     int maxNumberOfMethods = 0;
-    for(int i = 0; i < selectedMethods.size(); i++) {
-      if(selectedMethods.get(i).size() > maxNumberOfMethods) {
-        maxNumberOfMethods = selectedMethods.get(i).size();
+    for(int i = 0; i < validMethods.size(); i++) {
+      if(validMethods.get(i).size() > maxNumberOfMethods) {
+        maxNumberOfMethods = validMethods.get(i).size();
       }
     }
     if(maxNumberOfMethods == 0) {
       return null;
     }
   
-    SelectedMethod method = null;
-    if(selectedMethods.get(0).size() == 0) {
-      method = selectedMethods.get(1).get(0);
+    SelectedMethod method;
+    if(validMethods.get(0).size() == 0) {
+      method = validMethods.get(1).get(0);
     } else {
-      method = selectedMethods.get(0).get(0);
+      method = validMethods.get(0).get(0);
     }
     
 //     if selected method is from Group or if its from standard generic but distance is > 0
@@ -519,7 +519,7 @@ public class S3 {
     return classS4Object.getAttribute(Symbol.get("package")).asString();
   }
   
-  private static List<Environment> findMethodCache(Context context, String opName) {
+  private static List<Environment> findMethodTable(Context context, String opName) {
     Symbol methodSymbol = Symbol.get(".__T__" + opName + ":base");
     SEXP methodCacheInMethods;
     List<Environment> methodCacheList = new ArrayList<>();
@@ -552,7 +552,7 @@ public class S3 {
     return methodCacheList.size() == 0 ? null : methodCacheList;
   }
   
-  private static List<Environment> findOpsMethodCache(Context context, String opName) {
+  private static List<Environment> findOpsMethodTable(Context context, String opName) {
     List<Environment> methodCacheList = new ArrayList<>();
     
     Frame globalFrame = context.getGlobalEnvironment().getFrame();
@@ -636,7 +636,7 @@ public class S3 {
    *
    *
    * */
-  private static List<List<SelectedMethod>> findMatchingMethods(Context context, Map<String, List<Environment>> mapMethodCacheList,
+  private static List<List<SelectedMethod>> findMatchingMethods(Context context, Map<String, List<Environment>> mapMethodTableLists,
                                                           Map<String, List<List<MethodRanking>>> mapSignatureList) {
     
     List<List<SelectedMethod>> listMethods = new ArrayList<>();
@@ -644,7 +644,7 @@ public class S3 {
     for(int e = 0; e < mapSignatureList.size(); e++) {
       String type = mapSignatureList.keySet().toArray(new String[0])[e];
       List<List<MethodRanking>> rankings = mapSignatureList.get(type);
-      List<Environment> listMethodCache = mapMethodCacheList.get(type);
+      List<Environment> methodTableList = mapMethodTableLists.get(type);
       
       for(int i = 0; i < rankings.size(); i++) {
         List<MethodRanking> rankedMethodsList = rankings.get(i);
@@ -655,7 +655,7 @@ public class S3 {
           String signature = rankedMethod.getSignature();
           int distance = rankedMethod.getTotalDist();
           Symbol signatureSymbol = Symbol.get(signature);
-          SEXP function = listMethodCache.get(i).getFrame().getVariable(signatureSymbol).force(context);
+          SEXP function = methodTableList.get(i).getFrame().getVariable(signatureSymbol).force(context);
       
           if (function instanceof Closure) {
             selectedMethods.add(new SelectedMethod((Closure) function, type, distance, signature, signatureSymbol, inputSignature));
@@ -674,22 +674,22 @@ public class S3 {
    * information.
    *
    * */
-  private static Map<String, List<List<MethodRanking>>> generateSignatures(Context context, Map<String, List<Environment>> mapMethodCacheLists,
+  private static Map<String, List<List<MethodRanking>>> generateSignatures(Context context, Map<String, List<Environment>> mapMethodTableLists,
                                                                            PairList inputArgs, int[] depth) {
     
     Map<String, List<List<MethodRanking>>> mapListMethods = new HashMap<>();
     
-    for(int e = 0; e < mapMethodCacheLists.size(); e++) {
-      String type = mapMethodCacheLists.keySet().toArray(new String[0])[e];
-      List<Environment> methodCache = mapMethodCacheLists.get(type);
+    for(int e = 0; e < mapMethodTableLists.size(); e++) {
+      String type = mapMethodTableLists.keySet().toArray(new String[0])[e];
+      List<Environment> methodTableList = mapMethodTableLists.get(type);
       List<List<MethodRanking>> listSignatures = new ArrayList<>();
       
-      for(int listIdx = 0; listIdx < methodCache.size(); listIdx++) {
-        Environment functionEnv = methodCache.get(listIdx);
+      for(int listIdx = 0; listIdx < methodTableList.size(); listIdx++) {
+        Environment methodTable = methodTableList.get(listIdx);
         int currentDepth = depth[listIdx];
         ArgumentSignature[] argSignatures = new ArgumentSignature[currentDepth];
-        Symbol methodSymbol = functionEnv.getFrame().getSymbols().iterator().next();
-        Closure genericClosure = (Closure) functionEnv.getFrame().getVariable(methodSymbol);
+        Symbol methodSymbol = methodTable.getFrame().getSymbols().iterator().next();
+        Closure genericClosure = (Closure) methodTable.getFrame().getVariable(methodSymbol);
         PairList formals = genericClosure.getFormals();
         
         // when length of all arguments used in function call is as long as formals length (except ...)

@@ -780,20 +780,20 @@ public class S3 {
   private static ArgumentSignature[] computeArgumentSignatures(Context context, Iterable<PairList.Node> nodes, Map<Symbol, SEXP> matchedMap, int currentDepth) {
   
     ArgumentSignature[] argSignatures = new ArgumentSignature[currentDepth];
+  
     int idx = 0;
-    
     for (PairList.Node node : nodes) {
       SEXP value;
-      Symbol formalName = null;
+      Symbol formalName;
       if (matchedMap == null) {
         value = node.getValue().force(context);
       } else {
         formalName = node.getTag();
-        value = matchedMap.get(formalName).force(context);
-      }
-    
-      if(matchedMap != null && formalName == Symbols.ELLIPSES) {
-        break;
+        if(formalName != Symbols.ELLIPSES) {
+          value = matchedMap.get(formalName).force(context);
+        } else {
+          continue;
+        }
       }
       
       argSignatures[idx] = getArgumentSignature(context, value);

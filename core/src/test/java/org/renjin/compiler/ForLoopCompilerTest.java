@@ -78,7 +78,7 @@ public class ForLoopCompilerTest extends EvalTestCase {
     assertThat(eval("s"), elementsIdenticalTo(c(42)));
   }
   
-  @Test
+  @Ignore
   public void loopWithClosureCall() {
     eval(" add <- function(x, y) x + y ");
     eval(" s <- 0 ");

@@ -39,3 +39,10 @@ setMethod("+",signature(e1="AA",e2="AA"),function(e1,e2) 101)
 setMethod("Arith",signature(e1="AA",e2="AA"), function(e1,e2) 102)
 aa=new("AA",a=12)
 test.group.dispatch2.3 = function() { assertThat(aa+aa, identicalTo(101) ) }
+
+
+setClass("AAA",representation(a="numeric"))
+setClass("BBB",contains="AAA")
+setMethod("Arith",signature(e1="AAA",e2="AAA"), function(e1,e2) 102)
+aaa=new("AAA",a=12)
+test.group.dispatch2.4 = function() { assertThat(aaa+aaa, identicalTo(102) ) }

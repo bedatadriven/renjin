@@ -435,22 +435,40 @@ public class S3 {
     }
   
     SelectedMethod method;
-    if(validMethods.get(0).size() == 0) {
-      // select closest group method if no generic methods are found
-      method = validMethods.get(1).get(0);
-    } else if(validMethods.get(1).size() == 0){
-      // select closest generic method if no group methods are found
-      method = validMethods.get(0).get(0);
-    } else {
+    if(validMethods.size() > 1) {
       // select closest group method if distance is less than the distance of closest generic method
-      int genericDistance = validMethods.get(0).get(0).getDistance();
-      int groupDistance = validMethods.get(1).get(0).getDistance();
-      if(groupDistance < genericDistance) {
+      int genericDistance = validMethods.get(0).size() == 0 ? -1 : validMethods.get(0).get(0).getDistance();
+      int groupDistance = validMethods.get(1).size() == 0 ? -1 : validMethods.get(1).get(0).getDistance();
+      if(genericDistance == -1 || (groupDistance != -1 && groupDistance < genericDistance)) {
         method = validMethods.get(1).get(0);
       } else {
         method = validMethods.get(0).get(0);
       }
+    } else {
+      if(validMethods.get(0).size() == 0) {
+        // select closest group method if no generic methods are found
+        method = validMethods.get(1).get(0);
+      } else {
+        // select closest generic method if no group methods are found
+        method = validMethods.get(0).get(0);
+      }
     }
+//    if(validMethods.get(0).size() == 0) {
+//      // select closest group method if no generic methods are found
+//      method = validMethods.get(1).get(0);
+//    } else if(validMethods.get(1).size() == 0){
+//      // select closest generic method if no group methods are found
+//      method = validMethods.get(0).get(0);
+//    } else {
+//      // select closest group method if distance is less than the distance of closest generic method
+//      int genericDistance = validMethods.get(0).get(0).getDistance();
+//      int groupDistance = validMethods.get(1).get(0).getDistance();
+//      if(groupDistance < genericDistance) {
+//        method = validMethods.get(1).get(0);
+//      } else {
+//        method = validMethods.get(0).get(0);
+//      }
+//    }
     
 //     if selected method is from Group or if its from standard generic but distance is > 0
 //     returned function environment is populated with the following metadata objects:

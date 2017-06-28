@@ -378,7 +378,9 @@ public class S3 {
     // signature length is. This might be longer the length of arguments and #ANY should be used for missing
     // arguments. "ANY" should not be used for arguments which are explicitely named as "missing" or "NULL".
     // In case signature is shorter than the number of arguments we don't need to evaluate the extra
-    // arguments.
+    // arguments. Since each package can contain a method table for the same function but different signature
+    // lengths the return of computeSignatureLength is an integer array with the length of signature for
+    // each found method table.
     
     int[] signatureLength = computeSignatureLength(genericMethodTables, groupMethodTables);
     
@@ -406,8 +408,16 @@ public class S3 {
       argIdx++;
     }
   
+    // Based on the signature length in each method table and the class of the input arguments, signatures and
+    // distances (stored as MethodRanking class) are generated for each method table seperately. The method tables
+    // and resulting signatures for generic and group functions are kept seperately in HashMap with keys "generic" or
+    // "group". This is necessary since "generic" methods are prioritized over "group" methods when distance is same.
+    
     Map<String, List<List<MethodRanking>>> possibleSignatures = generateSignatures(context, mapMethodTableList, promisedArgs.build(), signatureLength);
   
+    // The generated signatures are sorted based on their distance to input signature and looked up in originating
+    // method table. All signatures are looked up and the ones present are returned.
+    
     List<List<SelectedMethod>> validMethods = findMatchingMethods(context, mapMethodTableList, possibleSignatures);
     
     if(validMethods.size() == 0) {
@@ -426,9 +436,20 @@ public class S3 {
   
     SelectedMethod method;
     if(validMethods.get(0).size() == 0) {
+      // select closest group method if no generic methods are found
       method = validMethods.get(1).get(0);
-    } else {
+    } else if(validMethods.get(1).size() == 0){
+      // select closest generic method if no group methods are found
       method = validMethods.get(0).get(0);
+    } else {
+      // select closest group method if distance is less than the distance of closest generic method
+      int genericDistance = validMethods.get(0).get(0).getDistance();
+      int groupDistance = validMethods.get(1).get(0).getDistance();
+      if(groupDistance < genericDistance) {
+        method = validMethods.get(1).get(0);
+      } else {
+        method = validMethods.get(0).get(0);
+      }
     }
     
 //     if selected method is from Group or if its from standard generic but distance is > 0

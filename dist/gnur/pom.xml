@@ -27,6 +27,7 @@
 
   <properties>
     <rJava.version>0.9-8</rJava.version>
+    <package.version>${project.version}</package.version>
   </properties>
 
   <dependencies>

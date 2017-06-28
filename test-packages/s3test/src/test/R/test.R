@@ -17,11 +17,9 @@
 # https://www.gnu.org/licenses/gpl-2.0.txt
 #
 
-
-
 library(hamcrest)
 library(methods)
-library("org.renjin.test.s3test")
+library("org.renjin.test:s3test")
 
 c1 <- new.circle(1)
 assertThat(as.character(c1), equalTo("circle of radius 1"))
@@ -31,12 +29,18 @@ sq <- new.square(2)
 assertThat(as.character(sq), equalTo("2x2 square"))
 assertThat(area(sq), equalTo(4))
 
-
 c2 <- new.circle(4)
 assertThat(c1 %/% c2, equalTo(1+4))
 
 city <- new("City", new.env(hash = TRUE, parent = emptyenv()) )
+assertThat(class(city@.xData), identicalTo("environment"))
+assertThat(class(city)[1], identicalTo("City"))
+assertThat(city[1], identicalTo(400))
 assertThat(city[[]], identicalTo( 300 ))
-city[["a"]] <- 1
-assertThat(city@.xData$a, identicalTo( 1 ))
-assertThat(city[["a"]], identicalTo( 1 ))
+assign( "a", 10, city@.xData )
+assign( "b", 120, city@.xData )
+assertThat(city@.xData$a, identicalTo(10))
+assertThat(city@.xData$b, identicalTo(120))
+city[["City"]] <- "Amsterdam"
+assertThat(city@.xData$City, identicalTo( "Amsterdam" ))
+assertThat(city[["City"]], identicalTo( "Amsterdam" ))

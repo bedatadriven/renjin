@@ -370,11 +370,11 @@ public class S3 {
       mapMethodTableList.put("group", groupMethodTables);
     }
     
-    // S4 methods for each generic function is stored in cache of type environment. methods for each signature is stored
+    // S4 methods for each generic function is stored in method table of type environment. methods for each signature is stored
     // separately using the signature as name. for example
     // setMethod("[", signature("AA","BB","CC"), function(x, i, j, ...))
     // is stored as `AA#BB#CC` in an environment named `.__T__[:base` (we call this the methodCache)
-    // here we get the first method from the method cache and split the name by # to know what the expected
+    // here we get the first method from the method table and split the name by # to know what the expected
     // signature length is. This might be longer the length of arguments and #ANY should be used for missing
     // arguments. "ANY" should not be used for arguments which are explicitely named as "missing" or "NULL".
     // In case signature is shorter than the number of arguments we don't need to evaluate the extra
@@ -521,44 +521,44 @@ public class S3 {
   
   private static List<Environment> findMethodTable(Context context, String opName) {
     Symbol methodSymbol = Symbol.get(".__T__" + opName + ":base");
-    SEXP methodCacheInMethods;
-    List<Environment> methodCacheList = new ArrayList<>();
+    SEXP methodTableMethodsPkg;
+    List<Environment> methodTableList = new ArrayList<>();
   
     if (SPECIAL.contains(opName)) {
       Namespace methodsNamespace = context.getNamespaceRegistry().getNamespace(context, "methods");
       Frame methodFrame = methodsNamespace.getNamespaceEnvironment().getFrame();
-      methodCacheInMethods = methodFrame.getVariable(methodSymbol).force(context);
-      if(methodCacheInMethods == Symbol.UNBOUND_VALUE || !(methodCacheInMethods instanceof Environment)) {
+      methodTableMethodsPkg = methodFrame.getVariable(methodSymbol).force(context);
+      if(methodTableMethodsPkg == Symbol.UNBOUND_VALUE || !(methodTableMethodsPkg instanceof Environment)) {
         return null;
       }
-      methodCacheList.add((Environment) methodCacheInMethods);
+      methodTableList.add((Environment) methodTableMethodsPkg);
     } else {
       
-      SEXP methodCacheInGlobalEnv = context.getGlobalEnvironment().getFrame().getVariable(methodSymbol);
-      if (methodCacheInGlobalEnv != Symbol.UNBOUND_VALUE && methodCacheInGlobalEnv instanceof Environment) {
-        methodCacheList.add((Environment) methodCacheInGlobalEnv);
+      SEXP methodTableGlobalEnv = context.getGlobalEnvironment().getFrame().getVariable(methodSymbol);
+      if (methodTableGlobalEnv != Symbol.UNBOUND_VALUE && methodTableGlobalEnv instanceof Environment) {
+        methodTableList.add((Environment) methodTableGlobalEnv);
       }
       
       for(Symbol loadedNamespace : context.getNamespaceRegistry().getLoadedNamespaces()) {
         String packageName = loadedNamespace.getPrintName();
         Namespace packageNamespace = context.getNamespaceRegistry().getNamespace(context, packageName);
         Environment packageEnvironment = packageNamespace.getNamespaceEnvironment();
-        SEXP methodCacheInPackages = packageEnvironment.getFrame().getVariable(methodSymbol).force(context);
-        if(methodCacheInPackages instanceof Environment) {
-          methodCacheList.add((Environment) methodCacheInPackages);
+        SEXP methodTablePackage = packageEnvironment.getFrame().getVariable(methodSymbol).force(context);
+        if(methodTablePackage instanceof Environment) {
+          methodTableList.add((Environment) methodTablePackage);
         }
       }
     }
-    return methodCacheList.size() == 0 ? null : methodCacheList;
+    return methodTableList.size() == 0 ? null : methodTableList;
   }
   
   private static List<Environment> findOpsMethodTable(Context context, String opName) {
-    List<Environment> methodCacheList = new ArrayList<>();
+    List<Environment> methodTableList = new ArrayList<>();
     
     Frame globalFrame = context.getGlobalEnvironment().getFrame();
-    SEXP methodCacheInGlobalEnv = getMethodCache(context, opName, globalFrame);
-    if (methodCacheInGlobalEnv instanceof Environment) {
-      methodCacheList.add((Environment) methodCacheInGlobalEnv);
+    SEXP methodTableGlobalEnv = getMethodTable(context, opName, globalFrame);
+    if (methodTableGlobalEnv instanceof Environment) {
+      methodTableList.add((Environment) methodTableGlobalEnv);
     }
   
     for(Symbol packageSymbol : context.getNamespaceRegistry().getLoadedNamespaces()) {
@@ -570,51 +570,51 @@ public class S3 {
           exports.contains(Symbol.get(opName))) {
         Namespace packageNamespace = context.getNamespaceRegistry().getNamespace(context, packageName);
         Frame packageFrame = packageNamespace.getNamespaceEnvironment().getFrame();
-        SEXP methodCacheInPackage = getMethodCache(context, opName, packageFrame);
-        if(methodCacheInPackage instanceof Environment &&
-            ((Environment) methodCacheInPackage).getFrame().getSymbols().size() > 0) {
-          methodCacheList.add((Environment) methodCacheInPackage);
+        SEXP methodTablePackage = getMethodTable(context, opName, packageFrame);
+        if(methodTablePackage instanceof Environment &&
+            ((Environment) methodTablePackage).getFrame().getSymbols().size() > 0) {
+          methodTableList.add((Environment) methodTablePackage);
         }
       }
     }
     
-    if (methodCacheList.size() == 0) {
+    if (methodTableList.size() == 0) {
       return null;
     }
     
-    return methodCacheList;
+    return methodTableList;
   }
   
-  private static SEXP getMethodCache(Context context, String opName, Frame packageFrame) {
-    SEXP methodCache = null;
+  private static SEXP getMethodTable(Context context, String opName, Frame packageFrame) {
+    SEXP methodTable = null;
     if(ARITH_GROUP.contains(opName)) {
       String[] groups = {".__T__Arith:base", ".__T__Ops:base"};
-      methodCache = getCache(context, packageFrame, groups);
+      methodTable = getMethod(context, packageFrame, groups);
     } else if (COMPARE_GROUP.contains(opName)) {
       String[] groups = {".__T__Compare:methods", ".__T__Ops:base"};
-      methodCache = getCache(context, packageFrame, groups);
+      methodTable = getMethod(context, packageFrame, groups);
     } else if (LOGIC_GROUP.contains(opName)) {
       String[] groups = {".__T__Logic:base", ".__T__Ops:base"};
-      methodCache = getCache(context, packageFrame, groups);
+      methodTable = getMethod(context, packageFrame, groups);
     }
-    return methodCache;
+    return methodTable;
   }
   
-  private static SEXP getCache(Context context, Frame frame, String[] groups) {
-    SEXP cache = null;
-    for (int i = 0; i < groups.length && cache == null; i++) {
-      SEXP foundMethodCache = frame.getVariable(Symbol.get(groups[i])).force(context);
-      cache = foundMethodCache instanceof Environment ? (Environment) foundMethodCache : null;
+  private static SEXP getMethod(Context context, Frame frame, String[] groups) {
+    SEXP methodTable = null;
+    for (int i = 0; i < groups.length && methodTable == null; i++) {
+      SEXP foundMethodTable = frame.getVariable(Symbol.get(groups[i])).force(context);
+      methodTable = foundMethodTable instanceof Environment ? (Environment) foundMethodTable : null;
     }
-    return cache;
+    return methodTable;
   }
   
-  private static int[] computeSignatureLength(List<Environment> genericMethodCache, List<Environment> groupMethodCache) {
-    List<Environment> methodCache = genericMethodCache == null ? groupMethodCache : genericMethodCache;
-    int[] length = new int[methodCache.size()];
-    for(int i = 0; i < methodCache.size(); i++) {
-      if(methodCache.get(i).getFrame().getSymbols().iterator().hasNext()) {
-        length[i] = methodCache.get(i).getFrame().getSymbols().iterator().next().getPrintName().split("#").length;
+  private static int[] computeSignatureLength(List<Environment> genericMethodTable, List<Environment> groupMethodTable) {
+    List<Environment> methodTable = genericMethodTable == null ? groupMethodTable : genericMethodTable;
+    int[] length = new int[methodTable.size()];
+    for(int i = 0; i < methodTable.size(); i++) {
+      if(methodTable.get(i).getFrame().getSymbols().iterator().hasNext()) {
+        length[i] = methodTable.get(i).getFrame().getSymbols().iterator().next().getPrintName().split("#").length;
       } else {
         length[i] = 0;
       }

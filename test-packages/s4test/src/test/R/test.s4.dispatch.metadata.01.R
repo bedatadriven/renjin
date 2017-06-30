@@ -47,9 +47,11 @@ test.s4.dispatch.metadata.01b = function() {
     assertThat( ls(m, all.names=TRUE) %in% c(".defined", "e1", "e2", ".Generic", ".Method", ".Methods", ".target") , identicalTo( c(TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE) ))
 }
 
-test.s4.dispatch.metadata.01c = function() {
-    assertThat( ls(n, all.names=TRUE) , identicalTo( c("e1", "e2") ))
-}
+# Failing in GNU R
+#
+#test.s4.dispatch.metadata.01c = function() {
+#    assertThat( ls(n, all.names=TRUE) , identicalTo( c("e1", "e2") ))
+#}
 
 test.s4.dispatch.metadata.01d = function() {
     assertThat( ls(o, all.names=TRUE) %in% c(".defined", "e1", "e2", ".Generic", ".Method", ".Methods", ".target"), identicalTo( c(TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE) ))
@@ -59,9 +61,10 @@ test.s4.dispatch.metadata.01e = function() {
     assertThat( ls(p, all.names=TRUE) %in% c(".defined", "e1", "e2", ".Generic", ".Method", ".Methods", ".target") , identicalTo( c(TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE) ))
 }
 
-test.s4.dispatch.metadata.01f = function() {
-    assertThat( ls(q, all.names=TRUE) %in% c("e1", "e2") , identicalTo( c(TRUE, TRUE) ))
-}
+# Failing in GNU R
+#test.s4.dispatch.metadata.01f = function() {
+#    assertThat( ls(q, all.names=TRUE) %in% c("e1", "e2") , identicalTo( c(TRUE, TRUE) ))
+#}
 
 test.s4.dispatch.metadata.02 = function() {
     # typeof

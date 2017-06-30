@@ -10,6 +10,8 @@ exportMethods(setType, getSequence, findType)
 
 exportClasses("NSBS")
 
+exportClasses("Z")
+
 
 # GNU R does not throw an error if the S4 metadata symbol
 # cannot be found. 

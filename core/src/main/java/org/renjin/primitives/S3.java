@@ -29,6 +29,7 @@ import org.renjin.invoke.codegen.ArgumentIterator;
 import org.renjin.packaging.SerializedPromise;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.repackaged.guava.collect.Lists;
+import org.renjin.repackaged.guava.collect.PeekingIterator;
 import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.repackaged.guava.primitives.Ints;
 import org.renjin.sexp.*;
@@ -346,46 +347,113 @@ public class S3 {
     
     boolean hasS3Class = source.getAttribute(Symbol.get(".S3Class")).length() != 0;
     
-    Environment groupMethodEnvironment = null;
-    Environment genericMethodEnvironment = null;
     
-    genericMethodEnvironment = findMethodEnvironment(context, opName);
-    if ("Ops".equals(group)) {
-      groupMethodEnvironment = findOpsMethodEnvironment(context, opName);
-    } else {
-      groupMethodEnvironment = findMethodEnvironment(context, group);
+    List<Environment> groupMethodTables = null;
+    List<Environment> genericMethodTables = null;
+    
+    genericMethodTables = findMethodTable(context, opName);
+    if("Ops".equals(group)) {
+      groupMethodTables = findOpsMethodTable(context, opName);
+    } else if(!"".equals(group)) {
+      groupMethodTables = findMethodTable(context, group);
     }
     
-    if (groupMethodEnvironment == null && genericMethodEnvironment == null) {
+    if((groupMethodTables == null || groupMethodTables.size() == 0) && (genericMethodTables == null || genericMethodTables.size() == 0)) {
       return null;
     }
-    // S4 methods for each generic function is stored in an environment. methods for each signature is stored
+    
+    Map<String, List<Environment>> mapMethodTableList = new HashMap<>();
+    if(genericMethodTables != null && genericMethodTables.size() != 0) {
+      mapMethodTableList.put("generic", genericMethodTables);
+    }
+    if(groupMethodTables != null && groupMethodTables.size() != 0) {
+      mapMethodTableList.put("group", groupMethodTables);
+    }
+    
+    // S4 methods for each generic function is stored in method table of type environment. methods for each signature is stored
     // separately using the signature as name. for example
     // setMethod("[", signature("AA","BB","CC"), function(x, i, j, ...))
-    // is stored as `AA#BB#CC` in an environment named `.__T__[:base`
-    // here we get the first method from the method environment and split the name by # to know what the expected
+    // is stored as `AA#BB#CC` in an environment named `.__T__[:base` (we call this the methodCache)
+    // here we get the first method from the method table and split the name by # to know what the expected
     // signature length is. This might be longer the length of arguments and #ANY should be used for missing
-    // arguments. In case signature is shorted than the number of arguments we don't need to evaluate the extra
-    // arguments.
+    // arguments. "ANY" should not be used for arguments which are explicitely named as "missing" or "NULL".
+    // In case signature is shorter than the number of arguments we don't need to evaluate the extra
+    // arguments. Since each package can contain a method table for the same function but different signature
+    // lengths the return of computeSignatureLength is an integer array with the length of signature for
+    // each found method table.
     
-    int signatureLength = computeSignatureLength(genericMethodEnvironment, groupMethodEnvironment);
+    int[] signatureLength = computeSignatureLength(genericMethodTables, groupMethodTables);
     
-    if(signatureLength == 0) {
+    int maxSignatureLength = 0;
+    for(int i = 0; i < signatureLength.length; i++) {
+      maxSignatureLength = signatureLength[i] < maxSignatureLength ? maxSignatureLength : signatureLength[i];
+    }
+    if(maxSignatureLength == 0) {
       return null;
     }
     
-    List<MethodRanking> possibleSignatures = generatePossibleSignatures(context, rho, genericMethodEnvironment, groupMethodEnvironment, args, signatureLength);
+    PairList.Builder promisedArgs = new PairList.Builder();
+    Iterator<PairList.Node> it = args.nodes().iterator();
+    int argIdx = 0;
+    while(it.hasNext()) {
+      PairList.Node node = it.next();
+      SEXP uneval = node.getValue();
+      if(argIdx == 0) {
+        // The source has already been evaluated to check for class
+        promisedArgs.add(node.getRawTag(), new Promise(uneval, source));
+      } else {
+        // otherwise a promise is created to evaluate if necessary
+        promisedArgs.add(node.getRawTag(), Promise.repromise(rho, uneval));
+      }
+      argIdx++;
+    }
+  
+    // Based on the signature length in each method table and the class of the input arguments, signatures and
+    // distances (stored as MethodRanking class) are generated for each method table seperately. The method tables
+    // and resulting signatures for generic and group functions are kept seperately in HashMap with keys "generic" or
+    // "group". This is necessary since "generic" methods are prioritized over "group" methods when distance is same.
     
-    Collections.sort(possibleSignatures);
+    Map<String, List<List<MethodRanking>>> possibleSignatures = generateSignatures(context, mapMethodTableList, promisedArgs.build(), signatureLength);
+  
+    // The generated signatures are sorted based on their distance to input signature and looked up in originating
+    // method table. All signatures are looked up and the ones present are returned.
     
-    List<SelectedMethod> selectedMethods = findMatchingMethods(context, genericMethodEnvironment, groupMethodEnvironment, possibleSignatures);
+    List<List<SelectedMethod>> validMethods = findMatchingMethods(context, mapMethodTableList, possibleSignatures);
     
-    if(selectedMethods.size() == 0) {
+    if(validMethods.size() == 0) {
       return null;
     }
     
-    SelectedMethod method = selectedMethods.get(0);
-
+    int maxNumberOfMethods = 0;
+    for(int i = 0; i < validMethods.size(); i++) {
+      if(validMethods.get(i).size() > maxNumberOfMethods) {
+        maxNumberOfMethods = validMethods.get(i).size();
+      }
+    }
+    if(maxNumberOfMethods == 0) {
+      return null;
+    }
+  
+    SelectedMethod method;
+    if(validMethods.size() > 1) {
+      // select closest group method if distance is less than the distance of closest generic method
+      int genericDistance = validMethods.get(0).size() == 0 ? -1 : validMethods.get(0).get(0).getDistance();
+      int groupDistance = validMethods.get(1).size() == 0 ? -1 : validMethods.get(1).get(0).getDistance();
+      if(genericDistance == -1 || (groupDistance != -1 && groupDistance < genericDistance)) {
+        method = validMethods.get(1).get(0);
+      } else {
+        method = validMethods.get(0).get(0);
+      }
+    } else {
+      if(validMethods.get(0).size() == 0) {
+        // select closest group method if no generic methods are found
+        method = validMethods.get(1).get(0);
+      } else {
+        // select closest generic method if no group methods are found
+        method = validMethods.get(0).get(0);
+      }
+    }
+    
 //     if selected method is from Group or if its from standard generic but distance is > 0
 //     returned function environment is populated with the following metadata objects:
 //     - .defined:  signature method
@@ -399,20 +467,18 @@ public class S3 {
 //     otherwise only e1 and e2.
     
     if (("generic".equals(method.getGroup()) && method.getDistance() == 0) || hasS3Class) {
-      return context.evaluate(new FunctionCall(method.getFunction(), args));
+      return context.evaluate(new FunctionCall(method.getFunction(), promisedArgs.build()));
     } else {
-      SEXP variableDotDefined = buildDotTargetOrDefined(context, method, true);
-      SEXP variableDotTarget = buildDotTargetOrDefined(context, method, false);
-      SEXP variableDotGeneric = buildDotGeneric(opName);
-      
       Map<Symbol, SEXP> metadata = new HashMap<>();
-      metadata.put(Symbol.get(".defined"), variableDotDefined);
-      metadata.put(Symbol.get(".Generic"), variableDotGeneric);
+      metadata.put(Symbol.get(".defined"), buildDotTargetOrDefined(context, method, true));
+      metadata.put(Symbol.get(".Generic"), buildDotGeneric(opName));
       metadata.put(Symbol.get(".Method"), method.getFunction());
       metadata.put(Symbol.get(".Methods"), Symbol.get(".Primitive(\"" + opName +"\")"));
-      metadata.put(Symbol.get(".target"), variableDotTarget);
+      metadata.put(Symbol.get(".target"), buildDotTargetOrDefined(context, method, false));
       
-      return ClosureDispatcher.apply(context,rho, new FunctionCall(method.getFunction(), args), method.getFunction(), args, metadata);
+      FunctionCall call = new FunctionCall(method.getFunction(), args);
+      Closure closure = method.getFunction();
+      return ClosureDispatcher.apply(context,rho, call, closure, promisedArgs.build(), metadata);
     }
   }
   
@@ -476,25 +542,107 @@ public class S3 {
     return classS4Object.getAttribute(Symbol.get("package")).asString();
   }
   
-  private static Environment findMethodEnvironment(Context context, String opName) {
+  private static List<Environment> findMethodTable(Context context, String opName) {
     Symbol methodSymbol = Symbol.get(".__T__" + opName + ":base");
-    SEXP genericMethodSymbol = context.getEnvironment().findVariable(context, methodSymbol).force(context);
-    if (genericMethodSymbol instanceof Environment) {
-      return (Environment) genericMethodSymbol;
-    } else if (SPECIAL.contains(opName)) {
+    SEXP methodTableMethodsPkg;
+    List<Environment> methodTableList = new ArrayList<>();
+  
+    if (SPECIAL.contains(opName)) {
       Namespace methodsNamespace = context.getNamespaceRegistry().getNamespace(context, "methods");
-      genericMethodSymbol = methodsNamespace.getNamespaceEnvironment().findVariable(context, methodSymbol).force(context);
+      Frame methodFrame = methodsNamespace.getNamespaceEnvironment().getFrame();
+      methodTableMethodsPkg = methodFrame.getVariable(methodSymbol).force(context);
+      if(methodTableMethodsPkg == Symbol.UNBOUND_VALUE || !(methodTableMethodsPkg instanceof Environment)) {
+        return null;
+      }
+      methodTableList.add((Environment) methodTableMethodsPkg);
+    } else {
+      
+      SEXP methodTableGlobalEnv = context.getGlobalEnvironment().getFrame().getVariable(methodSymbol);
+      if (methodTableGlobalEnv != Symbol.UNBOUND_VALUE && methodTableGlobalEnv instanceof Environment) {
+        methodTableList.add((Environment) methodTableGlobalEnv);
+      }
+      
+      for(Symbol loadedNamespace : context.getNamespaceRegistry().getLoadedNamespaces()) {
+        String packageName = loadedNamespace.getPrintName();
+        Namespace packageNamespace = context.getNamespaceRegistry().getNamespace(context, packageName);
+        Environment packageEnvironment = packageNamespace.getNamespaceEnvironment();
+        SEXP methodTablePackage = packageEnvironment.getFrame().getVariable(methodSymbol).force(context);
+        if(methodTablePackage instanceof Environment) {
+          methodTableList.add((Environment) methodTablePackage);
+        }
+      }
     }
-    return genericMethodSymbol instanceof Environment ? (Environment) genericMethodSymbol : null;
+    return methodTableList.size() == 0 ? null : methodTableList;
   }
   
-  private static int computeSignatureLength(Environment genericMethodEnvironment, Environment groupMethodEnvironment) {
-    Environment methodEnvironment = genericMethodEnvironment == null ? groupMethodEnvironment : genericMethodEnvironment;
+  private static List<Environment> findOpsMethodTable(Context context, String opName) {
+    List<Environment> methodTableList = new ArrayList<>();
     
-    if(methodEnvironment.getFrame().getSymbols().iterator().hasNext()) {
-      return methodEnvironment.getFrame().getSymbols().iterator().next().getPrintName().split("#").length;
+    Frame globalFrame = context.getGlobalEnvironment().getFrame();
+    SEXP methodTableGlobalEnv = getMethodTable(context, opName, globalFrame);
+    if (methodTableGlobalEnv instanceof Environment) {
+      methodTableList.add((Environment) methodTableGlobalEnv);
     }
-    return 0;
+  
+    for(Symbol packageSymbol : context.getNamespaceRegistry().getLoadedNamespaces()) {
+      String packageName = packageSymbol.getPrintName();
+      Collection<Symbol> exports = context.getNamespaceRegistry().getNamespace(context, packageName).getExports();
+      if(exports.contains(Symbol.get("Arith")) ||
+          exports.contains(Symbol.get("Compare")) ||
+          exports.contains(Symbol.get("Logic")) ||
+          exports.contains(Symbol.get(opName))) {
+        Namespace packageNamespace = context.getNamespaceRegistry().getNamespace(context, packageName);
+        Frame packageFrame = packageNamespace.getNamespaceEnvironment().getFrame();
+        SEXP methodTablePackage = getMethodTable(context, opName, packageFrame);
+        if(methodTablePackage instanceof Environment &&
+            ((Environment) methodTablePackage).getFrame().getSymbols().size() > 0) {
+          methodTableList.add((Environment) methodTablePackage);
+        }
+      }
+    }
+    
+    if (methodTableList.size() == 0) {
+      return null;
+    }
+    
+    return methodTableList;
+  }
+  
+  private static SEXP getMethodTable(Context context, String opName, Frame packageFrame) {
+    SEXP methodTable = null;
+    if(ARITH_GROUP.contains(opName)) {
+      String[] groups = {".__T__Arith:base", ".__T__Ops:base"};
+      methodTable = getMethod(context, packageFrame, groups);
+    } else if (COMPARE_GROUP.contains(opName)) {
+      String[] groups = {".__T__Compare:methods", ".__T__Ops:base"};
+      methodTable = getMethod(context, packageFrame, groups);
+    } else if (LOGIC_GROUP.contains(opName)) {
+      String[] groups = {".__T__Logic:base", ".__T__Ops:base"};
+      methodTable = getMethod(context, packageFrame, groups);
+    }
+    return methodTable;
+  }
+  
+  private static SEXP getMethod(Context context, Frame frame, String[] groups) {
+    SEXP methodTable = null;
+    for (int i = 0; i < groups.length && methodTable == null; i++) {
+      SEXP foundMethodTable = frame.getVariable(Symbol.get(groups[i])).force(context);
+      methodTable = foundMethodTable instanceof Environment ? (Environment) foundMethodTable : null;
+    }
+    return methodTable;
+  }
+  
+  private static int[] computeSignatureLength(List<Environment> genericMethodTable, List<Environment> groupMethodTable) {
+    List<Environment> methodTable = genericMethodTable == null ? groupMethodTable : genericMethodTable;
+    int[] length = new int[methodTable.size()];
+    for(int i = 0; i < methodTable.size(); i++) {
+      if(methodTable.get(i).getFrame().getSymbols().iterator().hasNext()) {
+        length[i] = methodTable.get(i).getFrame().getSymbols().iterator().next().getPrintName().split("#").length;
+      } else {
+        length[i] = 0;
+      }
+    }
+    return length;
   }
   
   
@@ -511,64 +659,36 @@ public class S3 {
    *
    *
    * */
-  private static List<SelectedMethod> findMatchingMethods(Context context, Environment methodEnvironment, Environment groupEnvironment,
-                                                          List<MethodRanking> possibleSignatures) {
+  private static List<List<SelectedMethod>> findMatchingMethods(Context context, Map<String, List<Environment>> mapMethodTableLists,
+                                                          Map<String, List<List<MethodRanking>>> mapSignatureList) {
     
-    List<SelectedMethod> selectedMethods = new ArrayList<>();
-    String inputSignature = possibleSignatures.get(0).getSignature();
+    List<List<SelectedMethod>> listMethods = new ArrayList<>();
     
-    for (MethodRanking possibleSignature : possibleSignatures) {
-      SEXP function = Symbol.UNBOUND_VALUE;
-      String source = "generic";
+    for(int e = 0; e < mapSignatureList.size(); e++) {
+      String type = mapSignatureList.keySet().toArray(new String[0])[e];
+      List<List<MethodRanking>> rankings = mapSignatureList.get(type);
+      List<Environment> methodTableList = mapMethodTableLists.get(type);
       
-      String signature = possibleSignature.getSignature();
-      int distance = possibleSignature.getTotalDist();
-      Symbol signatureSymbol = Symbol.get(signature);
+      for(int i = 0; i < rankings.size(); i++) {
+        List<MethodRanking> rankedMethodsList = rankings.get(i);
+        List<SelectedMethod> selectedMethods = new ArrayList<>();
+        String inputSignature = rankedMethodsList.get(0).getSignature();
+    
+        for (MethodRanking rankedMethod : rankedMethodsList) {
+          String signature = rankedMethod.getSignature();
+          int distance = rankedMethod.getTotalDist();
+          Symbol signatureSymbol = Symbol.get(signature);
+          SEXP function = methodTableList.get(i).getFrame().getVariable(signatureSymbol).force(context);
       
-      if(methodEnvironment != null) {
-        function = methodEnvironment.getFrame().getVariable(signatureSymbol).force(context);
-      }
-      if (function == Symbol.UNBOUND_VALUE && groupEnvironment != null) {
-        source = "group";
-        function = groupEnvironment.getFrame().getVariable(signatureSymbol).force(context);
-      }
-      
-      if (function instanceof Closure) {
-        selectedMethods.add(new SelectedMethod((Closure) function, source, distance, signature, signatureSymbol, inputSignature));
+          if (function instanceof Closure) {
+            selectedMethods.add(new SelectedMethod((Closure) function, type, distance, signature, signatureSymbol, inputSignature));
+          }
+        }
+        listMethods.add(selectedMethods);
       }
     }
     
-    return selectedMethods;
-  }
-  
-  private static Environment findOpsMethodEnvironment(Context context, String opName) {
-    Environment methodEnvironment = null;
-    
-    if(ARITH_GROUP.contains(opName)) {
-      String[] groups = {".__T__Arith:base", ".__T__Ops:base"};
-      methodEnvironment = getEnvironment(context, groups);
-    } else if (COMPARE_GROUP.contains(opName)) {
-      String[] groups = {".__T__Compare:methods", ".__T__Ops:base"};
-      methodEnvironment = getEnvironment(context, groups);
-    } else if (LOGIC_GROUP.contains(opName)) {
-      String[] groups = {".__T__Logic:base", ".__T__Ops:base"};
-      methodEnvironment = getEnvironment(context, groups);
-    }
-    
-    if (methodEnvironment == null) {
-      throw new EvalException("No S4 method found for '" + opName + "'");
-    }
-    
-    return methodEnvironment;
-  }
-  
-  private static Environment getEnvironment(Context context, String[] groups) {
-    Environment methodEnvironment = null;
-    for (int i = 0; i < groups.length && methodEnvironment == null; i++) {
-      SEXP foundMethodEnvironment = context.getEnvironment().findVariable(context, Symbol.get(groups[i]));
-      methodEnvironment = foundMethodEnvironment instanceof Environment ? (Environment) foundMethodEnvironment : null;
-    }
-    return methodEnvironment;
+    return listMethods;
   }
   
   /**
@@ -577,88 +697,147 @@ public class S3 {
    * information.
    *
    * */
-  private static List<MethodRanking> generatePossibleSignatures(Context context, Environment rho, Environment genericMethodEnvironment,
-                                                                Environment groupMethodEnvironment, PairList args, int depth) {
+  private static Map<String, List<List<MethodRanking>>> generateSignatures(Context context, Map<String, List<Environment>> mapMethodTableLists,
+                                                                           PairList inputArgs, int[] depth) {
     
-    ArgumentSignature[] argSignatures = new ArgumentSignature[depth];
+    Map<String, List<List<MethodRanking>>> mapListMethods = new HashMap<>();
+    
+    for(int e = 0; e < mapMethodTableLists.size(); e++) {
+      String type = mapMethodTableLists.keySet().toArray(new String[0])[e];
+      List<Environment> methodTableList = mapMethodTableLists.get(type);
+      List<List<MethodRanking>> listSignatures = new ArrayList<>();
+      
+      for(int listIdx = 0; listIdx < methodTableList.size(); listIdx++) {
+        Environment methodTable = methodTableList.get(listIdx);
+        int currentDepth = depth[listIdx];
+        ArgumentSignature[] argSignatures = new ArgumentSignature[currentDepth];
+        Symbol methodSymbol = methodTable.getFrame().getSymbols().iterator().next();
+        Closure genericClosure = (Closure) methodTable.getFrame().getVariable(methodSymbol);
+        PairList formals = genericClosure.getFormals();
+        
+        // when length of all arguments used in function call is as long as formals length (except ...)
+        // then arguments are matched positionally and the argument tags are ignored
+        // Example:
+        // > setClass("ABC")
+        // > obj <- new("ABC")
+        // > obj[[i=1,j="hello"]] <- 100
+        // `[[` formals are x(i, j, ..., value)
+        // obj signature is:   x=ABC, i=numeric, j=character, value=numeric
+        //
+        // > obj[[j=1,i="hello"] <- 100
+        // obj signature is:   x=ABC, i=numeric, j=character, value=numeric
+        //
+        // > obj[[j=1]] <- 100
+        // obj signature is:   x=ABC, i=missing, j=numeric,   value=numeric
   
-    Environment functionEnv = genericMethodEnvironment == null ? groupMethodEnvironment: genericMethodEnvironment;
-    Closure genericClosure = (Closure) functionEnv.getFrame().getVariable((Symbol) functionEnv.getFrame().getSymbols().toArray()[0]);
-    AttributeMap genericAttributes = genericClosure.getFormals().toVector().getAttributes();
-    List<String> formalNames = new ArrayList<>(Arrays.asList(genericAttributes.getNames().toArray()));
-    if(formalNames.contains("...")) {
-      formalNames.remove(formalNames.indexOf("..."));
-    }
-    List<String> argNames= null;
-    if(args.getNames() != null && args.getNames() != Null.INSTANCE) {
-      argNames = new ArrayList<>(Arrays.asList(((StringArrayVector) args.getNames()).toArray()));
-    }
-    
-    for(int i = 0; i < depth && i < args.length(); i++) {
-      String[] argumentClass = evaluateAndGetClass(context, args, rho, i);
-      if(argNames == null || "".equals(argNames.get(i))) {
-        argSignatures[i] = getClassAndDistance(context, argumentClass);
-      } else {
-        argSignatures[formalNames.indexOf(argNames.get(i))] = getClassAndDistance(context, argumentClass);
-      }
-    }
-    
-    for(int i = 0; i < argSignatures.length; i++) {
-      if(argSignatures[i] == null) {
-        argSignatures[i] = new ArgumentSignature(new String[]{"missing", "ANY"}, new int[]{0, 1} );
-      }
-    }
-    
-    int numberOfPossibleSignatures = 1;
-    for(int i = 0; i < argSignatures.length; i++) {
-      numberOfPossibleSignatures = numberOfPossibleSignatures * argSignatures[i].getArgument().length;
-    }
-    
-    List<MethodRanking> possibleSignatures = new ArrayList<>(numberOfPossibleSignatures);
-    
-    int numberOfClassesCurrentArgument;
-    int argumentClassIdx = 0;
-    int repeat = 1;
-    int repeatIdx = 1;
-    
-    for(int col = 0; col < depth; col++) {
-      numberOfClassesCurrentArgument = argSignatures[col].getArgument().length;
-      for(int row = 0; row < numberOfPossibleSignatures; row++, repeatIdx++) {
-        if(argumentClassIdx == numberOfClassesCurrentArgument) {
-          argumentClassIdx = 0;
+        PairList matchedList = ClosureDispatcher.matchArguments(formals, inputArgs, true);
+        Map<Symbol, SEXP> matchedMap = new HashMap<>();
+        for (PairList.Node node : matchedList.nodes()) {
+          matchedMap.put(node.getTag(), node.getValue());
         }
-        ArgumentSignature argSignature = argSignatures[col];
-        String signature = argSignature.getArgument(argumentClassIdx);
-        if(possibleSignatures.isEmpty() || possibleSignatures.toArray().length < row + 1 || possibleSignatures.toArray()[row] == null) {
-          int[] distance = argSignature.getDistanceAsArray(argumentClassIdx);
-          possibleSignatures.add(row, new MethodRanking(signature, distance));
+        
+        List<SEXP> inputMap = new ArrayList<>();
+        for (PairList.Node node : inputArgs.nodes()) {
+          inputMap.add(node.getValue());
+        }
+        int matchLength = matchedMap.containsKey(Symbols.ELLIPSES) ? matchedMap.size()-1 : matchedMap.size();
+        boolean lengthMatchEqualsInput =  (matchLength - inputMap.size()) == 0;
+  
+        if (lengthMatchEqualsInput) {
+          argSignatures = computeArgumentSignatures(context, inputArgs.nodes(), null, currentDepth);
         } else {
-          int distance = argSignature.getDistance(argumentClassIdx);
-          possibleSignatures.set(row, possibleSignatures.get(row).append(signature, distance));
+          argSignatures = computeArgumentSignatures(context, formals.nodes(), matchedMap, currentDepth);
         }
-        if(repeat == 1) {
-          argumentClassIdx++;
+        
+        int numberOfPossibleSignatures = 1;
+        for(int i = 0; i < argSignatures.length; i++) {
+          numberOfPossibleSignatures = numberOfPossibleSignatures * argSignatures[i].getArgument().length;
         }
-        if(repeat != 1 && repeatIdx == repeat) {
-          repeatIdx = 0;
-          argumentClassIdx++;
+    
+        List<MethodRanking> possibleSignatures = new ArrayList<>(numberOfPossibleSignatures);
+    
+        int numberOfClassesCurrentArgument;
+        int argumentClassIdx = 0;
+        int repeat = 1;
+        int repeatIdx = 1;
+    
+        for(int col = 0; col < depth[listIdx]; col++) {
+          numberOfClassesCurrentArgument = argSignatures[col].getArgument().length;
+          for(int row = 0; row < numberOfPossibleSignatures; row++, repeatIdx++) {
+            if(argumentClassIdx == numberOfClassesCurrentArgument) {
+              argumentClassIdx = 0;
+            }
+            ArgumentSignature argSignature = argSignatures[col];
+            String signature = argSignature.getArgument(argumentClassIdx);
+            if(possibleSignatures.isEmpty() ||
+                possibleSignatures.size() < row + 1 ||
+                possibleSignatures.get(row) == null) {
+              int[] distance = argSignature.getDistanceAsArray(argumentClassIdx);
+              possibleSignatures.add(row, new MethodRanking(signature, distance));
+            } else {
+              int distance = argSignature.getDistance(argumentClassIdx);
+              possibleSignatures.set(row, possibleSignatures.get(row).append(signature, distance));
+            }
+            if(repeat == 1) {
+              argumentClassIdx++;
+            }
+            if(repeat != 1 && repeatIdx == repeat) {
+              repeatIdx = 0;
+              argumentClassIdx++;
+            }
+          }
+          repeatIdx = 1;
+          argumentClassIdx = 0;
+          repeat = repeat * numberOfClassesCurrentArgument;
+        }
+        Collections.sort(possibleSignatures);
+        listSignatures.add(possibleSignatures);
+      }
+  
+      mapListMethods.put(type, listSignatures);
+    }
+    
+    return mapListMethods;
+  }
+  
+  private static ArgumentSignature[] computeArgumentSignatures(Context context, Iterable<PairList.Node> nodes, Map<Symbol, SEXP> matchedMap, int currentDepth) {
+  
+    ArgumentSignature[] argSignatures = new ArgumentSignature[currentDepth];
+  
+    int idx = 0;
+    for (PairList.Node node : nodes) {
+      SEXP value;
+      Symbol formalName;
+      if (matchedMap == null) {
+        value = node.getValue().force(context);
+      } else {
+        formalName = node.getTag();
+        if(formalName != Symbols.ELLIPSES) {
+          value = matchedMap.get(formalName).force(context);
+        } else {
+          continue;
         }
       }
-      repeatIdx = 1;
-      argumentClassIdx = 0;
-      repeat = repeat * numberOfClassesCurrentArgument;
+      
+      argSignatures[idx] = getArgumentSignature(context, value);
+      idx++;
+      
+      if(idx >= argSignatures.length) {
+        break;
+      }
     }
-    return possibleSignatures;
+    
+    return argSignatures;
   }
   
-  private static String[] evaluateAndGetClass(Context context, PairList args, Environment rho, int argumentIndex) {
-    // To get the class of an argument we have to evaluate the argument first. If its an atomic, than it lacks class
-    // attribute. In this case we use Attributes.getClass() to get the class name.
-    SEXP evaluatedArg = context.evaluate(args.getElementAsSEXP(argumentIndex), rho);
-    StringVector classes = computeDataClasses(context, evaluatedArg);
-    return classes.toArray();
+  private static ArgumentSignature getArgumentSignature(Context context, SEXP argValue) {
+    if (argValue == Symbol.MISSING_ARG) {
+      return new ArgumentSignature();
+    }
+    String[] nodeClass = computeDataClasses(context, argValue).toArray();
+
+    return getClassAndDistance(context, nodeClass);
   }
-  
   
   /**
    * Each class is stored as an S4 object with prefix '.__C__'. This S4 object
@@ -692,13 +871,12 @@ public class S3 {
     }
 
     int max = Collections.max(distances);
-    distances.add(max + 1);
-    classes.add("missing");
-    distances.add(max + 2);
-    classes.add("ANY");
+    if(!classes.contains("ANY") && !classes.contains("NULL")) {
+      distances.add(max + 1);
+      classes.add("ANY");
+    }
 
     return new ArgumentSignature(classes.toArray(new String[0]), Ints.toArray(distances));
-
   }
   
   public static SEXP tryDispatchFromPrimitive(Context context, Environment rho, FunctionCall call,
@@ -773,9 +951,24 @@ public class S3 {
 
     return dispatchGroup(group, call, name, newArgs, context, rho);
   }
-
-
-
+  
+  private static <X> X first(Iterable<X> values) {
+    return values.iterator().next();
+  }
+  
+  private static boolean hasNextUnTagged(PeekingIterator<PairList.Node> it) {
+    return it.hasNext() && !it.peek().hasTag();
+  }
+  
+  private static PairList.Node nextUnTagged(Iterator<PairList.Node> it) {
+    PairList.Node arg = it.next() ;
+    while( arg.hasTag() ) {
+      arg = it.next();
+    }
+    return arg;
+  }
+  
+  
   public static SEXP tryDispatchSummaryFromPrimitive(Context context, Environment rho, FunctionCall call,
       String name, ListVector evaluatedArguments, boolean naRm) {
 
@@ -1304,6 +1497,11 @@ public class S3 {
       this.distances = distances;
     }
     
+    ArgumentSignature() {
+      this.argumentClasses = new String[]{"missing", "ANY"};
+      this.distances = new int[]{0, 1};
+    }
+    
     public String[] getArgument() {
       return argumentClasses;
     }
@@ -1345,7 +1543,14 @@ public class S3 {
       }
       this.totalDist = totalDistance;
     }
-    
+  
+    @Override
+    public String toString() {
+      return "MethodRanking{" +
+        "signature='" + signature + '\'' +
+        '}';
+    }
+  
     public MethodRanking append(String argument, int distance) {
       String newSig = this.signature + "#" + argument;
       int[] newDist = new int[this.distances.length + 1];

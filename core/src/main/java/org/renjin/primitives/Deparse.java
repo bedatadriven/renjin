@@ -134,8 +134,8 @@ public class Deparse {
 
     private boolean requiresStructure(SEXP exp) {
       // for perhaps arbitrary reasons, attributes of 
-      // function calls are not included in the deparse
-      if(exp instanceof FunctionCall) {
+      // function calls and S4 objects are not included in the deparse
+      if(exp instanceof FunctionCall || exp instanceof S4Object) {
         return false;
       }
 
@@ -527,7 +527,16 @@ public class Deparse {
         }
       }
     }
-    
+
+    @Override
+    public void visit(S4Object s4Object) {
+      // Expected form: <S4 object of class structure("hash", package = "hash")>>
+
+      deparsed.append("<S4 object of class ");
+      deparse(s4Object.getAttribute(Symbols.CLASS));
+      deparsed.append(">");
+    }
+
     protected void unhandled(SEXP exp) {
       // TODO: this is just a fallback for missing impl
       deparsed.append(exp.toString());

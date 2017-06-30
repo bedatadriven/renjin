@@ -324,8 +324,16 @@ public class FunctionGenerator implements InvocationStrategy {
   }
 
   private void emitSwitch(GimpleSwitch ins) {
-    JExpr valueGenerator = exprFactory.findPrimitiveGenerator(ins.getValue());
-    valueGenerator.load(mv);
+    JExpr switchValue = exprFactory.findPrimitiveGenerator(ins.getValue());
+    if(switchValue.getType() == Type.INT_TYPE) {
+      switchValue.load(mv);
+    } else if(switchValue.getType() == Type.LONG_TYPE) {
+      switchValue.load(mv);
+      mv.visitInsn(Opcodes.L2I);
+    } else {
+      throw new InternalCompilerException("Invalid type for switch: " + switchValue.getType());
+    }
+
     Label defaultLabel = labels.of(ins.getDefaultCase().getBasicBlockIndex());
 
     int numCases = ins.getCaseCount();

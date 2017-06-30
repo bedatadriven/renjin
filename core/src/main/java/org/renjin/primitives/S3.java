@@ -834,13 +834,8 @@ public class S3 {
     if (argValue == Symbol.MISSING_ARG) {
       return new ArgumentSignature();
     }
-    String[] nodeClass;
-    String[] testClass = computeDataClasses(context, argValue).toArray();
-    if (testClass.length == 1 && argValue instanceof StringVector && "signature".equals(testClass[0])) {
-      nodeClass = ((StringVector) argValue).toArray();
-    } else {
-      nodeClass = computeDataClasses(context, argValue).toArray();
-    }
+    String[] nodeClass = computeDataClasses(context, argValue).toArray();
+
     return getClassAndDistance(context, nodeClass);
   }
   

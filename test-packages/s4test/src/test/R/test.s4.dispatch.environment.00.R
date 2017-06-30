@@ -29,25 +29,12 @@ setMethod("[[", c(x="B", i="missing", j="ANY"       ), function(x, i, ...)    2.
 setMethod("[[", c(x="B", j="missing", i="ANY"       ), function(x, i, ...)    2.58 )
 setMethod("[[", c(x="B", j="numeric", i="character" ), function(x, i, j, ...) 2.43 )
 setMethod("[[", c(x="B", i="numeric", j="character" ), function(x, i, j, ...) 2.55 )
-
-test.missing.env.01 = function() {
-    assertThat(b[[]] , identicalTo(2.4))
-}
-    test.missing.env.02 = function() {
-        assertThat(b[["a"]] , identicalTo(2.58))
-    }
-    test.missing.env.03 = function() {
-        assertThat(b[[1]] , identicalTo(2.58))
-    }
-test.missing.env.04 = function() {
-    assertThat(b[[,1]] , identicalTo(2.5))
-}
-    test.missing.env.05 = function() {
-        assertThat(b[[1.0,"c"]] , identicalTo(2.55))
-    }
-    test.missing.env.06 = function() {
-        assertThat(b[["c",1.0]] , identicalTo(2.43))
-    }
+test.missing.env.01 = function() { assertThat(b[[]] , identicalTo(2.4)) }
+test.missing.env.02 = function() { assertThat(b[["a"]] , identicalTo(2.58)) }
+test.missing.env.03 = function() { assertThat(b[[1]] , identicalTo(2.58)) }
+test.missing.env.04 = function() { assertThat(b[[,1]] , identicalTo(2.5)) }
+test.missing.env.05 = function() { assertThat(b[[1.0,"c"]] , identicalTo(2.55)) }
+test.missing.env.06 = function() { assertThat(b[["c",1.0]] , identicalTo(2.43)) }
 
 setClass("C", representation(a = "numeric"))
 c <- new("C", a = 100)
@@ -56,22 +43,9 @@ setMethod("[[", c(x="C", i="missing", j="ANY"       ), function(x, i, ...)    12
 setMethod("[[", c(x="C", j="missing", i="ANY"       ), function(x, i, ...)    12.58 )
 setMethod("[[", c(x="C", j="numeric", i="character" ), function(x, i, j, ...) 12.43 )
 setMethod("[[", c(x="C", i="numeric", j="character" ), function(x, i, j, ...) 12.55 )
-
-test.missing.std.01 = function() {
-    assertThat(c[[]] , identicalTo(12.4))
-}
-test.missing.std.02 = function() {
-    assertThat(c[["a"]] , identicalTo(12.58))
-}
-test.missing.std.03 = function() {
-    assertThat(c[[1]] , identicalTo(12.58))
-}
-test.missing.std.04 = function() {
-    assertThat(c[[,1]] , identicalTo(12.5))
-}
-test.missing.std.05 = function() {
-    assertThat(c[[1.0,"c"]] , identicalTo(12.55))
-}
-test.missing.std.06 = function() {
-    assertThat(c[["c",1.0]] , identicalTo(12.43))
-}
+test.missing.std.01 = function() { assertThat(c[[]] , identicalTo(12.4)) }
+test.missing.std.02 = function() { assertThat(c[["a"]] , identicalTo(12.58)) }
+test.missing.std.03 = function() { assertThat(c[[1]] , identicalTo(12.58)) }
+test.missing.std.04 = function() { assertThat(c[[,1]] , identicalTo(12.5)) }
+test.missing.std.05 = function() { assertThat(c[[1.0,"c"]] , identicalTo(12.55)) }
+test.missing.std.06 = function() { assertThat(c[["c",1.0]] , identicalTo(12.43)) }

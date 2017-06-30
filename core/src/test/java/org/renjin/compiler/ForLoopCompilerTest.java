@@ -84,7 +84,7 @@ public class ForLoopCompilerTest extends EvalTestCase {
     
     eval("  `+.foo` <- function(x, y) structure(42, class='foo') ");
     eval(" s <- structure(1, class='foo') ");
-    eval(" for(i in 1:500) s <- s + sqrt(i) ");
+    evalAndAssertCompiled(" for(i in 1:500) s <- s + sqrt(i) ");
       
     assertThat(eval("s"), elementsIdenticalTo(c(42)));
   }

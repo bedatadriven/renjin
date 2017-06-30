@@ -25,7 +25,19 @@ import org.renjin.compiler.ir.tac.RuntimeState;
 import java.util.List;
 
 
-public class LengthSpecializer implements Specializer {
+public class LengthSpecializer implements Specializer, BuiltinSpecializer {
+
+
+  @Override
+  public String getName() {
+    return "length";
+  }
+
+  @Override
+  public String getGroup() {
+    return null;
+  }
+
   @Override
   public Specialization trySpecialize(RuntimeState runtimeState, List<ValueBounds> argumentTypes) {
     if(argumentTypes.size() != 1) {
@@ -39,4 +51,5 @@ public class LengthSpecializer implements Specializer {
     
     return new LengthCall();
   }
+
 }

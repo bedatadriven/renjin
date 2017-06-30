@@ -24,8 +24,6 @@ import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.invoke.codegen.OverloadComparator;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.primitives.Primitives;
-import org.renjin.sexp.AtomicVector;
-import org.renjin.sexp.Null;
 
 import java.util.Collections;
 import java.util.List;
@@ -33,9 +31,10 @@ import java.util.List;
 /**
  * Generic builtin specializer that uses annotations to specialize method calls
  */
-public class AnnotationBasedSpecializer implements Specializer {
+public class AnnotationBasedSpecializer implements BuiltinSpecializer {
 
   private final Primitives.Entry primitive;
+  private final String genericGroup;
   private final List<JvmMethod> methods;
 
   public AnnotationBasedSpecializer(Primitives.Entry primitive) {
@@ -45,7 +44,28 @@ public class AnnotationBasedSpecializer implements Specializer {
         this.primitive.name, 
         this.primitive.methodName);
 
+    this.genericGroup = findGenericGroup(methods);
+
     Collections.sort( methods, new OverloadComparator());
+  }
+
+  @Override
+  public String getName() {
+    return primitive.name;
+  }
+
+  @Override
+  public String getGroup() {
+    return genericGroup;
+  }
+
+  private static String findGenericGroup(List<JvmMethod> methods) {
+    for (JvmMethod method : methods) {
+      if(method.isGroupGeneric()) {
+        return method.getGenericGroup();
+      }
+    }
+    return null;
   }
 
   public boolean isGeneric() {

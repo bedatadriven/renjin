@@ -27,7 +27,18 @@ import java.util.List;
 /**
  * Specializes calls to the {@code [} operator
  */
-public class SubsetSpecializer implements Specializer {
+public class SubsetSpecializer implements Specializer, BuiltinSpecializer {
+
+
+  @Override
+  public String getName() {
+    return "[";
+  }
+
+  @Override
+  public String getGroup() {
+    return null;
+  }
 
   @Override
   public Specialization trySpecialize(RuntimeState runtimeState, List<ValueBounds> argumentTypes) {
@@ -86,4 +97,5 @@ public class SubsetSpecializer implements Specializer {
 //    
 //    throw new UnsupportedOperationException();
   }
+
 }

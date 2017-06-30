@@ -30,9 +30,9 @@ import java.util.List;
  */
 public class GenericBuiltinGuard implements Specializer {
   
-  private final Specializer specializer;
+  private final BuiltinSpecializer specializer;
 
-  public GenericBuiltinGuard(Specializer specializer) {
+  public GenericBuiltinGuard(BuiltinSpecializer specializer) {
     this.specializer = specializer;
   }
 

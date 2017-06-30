@@ -30,12 +30,22 @@ import java.util.List;
 /**
  * Specializes calls to the {@code dim} primitive
  */
-public class DimSpecializer implements Specializer {
+public class DimSpecializer implements BuiltinSpecializer {
 
   private JvmMethod method;
 
   public DimSpecializer() {
     this.method = Iterables.getOnlyElement(JvmMethod.findOverloads(Attributes.class, "dim", null));
+  }
+
+  @Override
+  public String getName() {
+    return "dim";
+  }
+
+  @Override
+  public String getGroup() {
+    return null;
   }
 
   @Override

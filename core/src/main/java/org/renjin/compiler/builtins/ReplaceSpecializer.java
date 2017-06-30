@@ -26,7 +26,19 @@ import java.util.List;
 /**
  * Specializes {@code [<- } calls
  */
-public class ReplaceSpecializer implements Specializer {
+public class ReplaceSpecializer implements Specializer, BuiltinSpecializer {
+
+
+  @Override
+  public String getName() {
+    return "[<-";
+  }
+
+  @Override
+  public String getGroup() {
+    return null;
+  }
+
   @Override
   public Specialization trySpecialize(RuntimeState runtimeState, List<ValueBounds> argumentTypes) {
     if(argumentTypes.size() == 3) {
@@ -45,4 +57,5 @@ public class ReplaceSpecializer implements Specializer {
 
     return UnspecializedCall.INSTANCE;
   }
+
 }

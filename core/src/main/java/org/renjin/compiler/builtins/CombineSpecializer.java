@@ -30,7 +30,19 @@ import java.util.List;
 /**
  * Specializes calls to {@code c}
  */
-public class CombineSpecializer implements Specializer {
+public class CombineSpecializer implements Specializer, BuiltinSpecializer {
+
+
+  @Override
+  public String getName() {
+    return "c";
+  }
+
+  @Override
+  public String getGroup() {
+    return null;
+  }
+
   @Override
   public Specialization trySpecialize(RuntimeState runtimeState, List<ValueBounds> argumentTypes) {
     

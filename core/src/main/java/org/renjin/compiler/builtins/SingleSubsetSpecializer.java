@@ -30,7 +30,17 @@ import java.util.List;
 /**
  * Specializes the "[[" operator.
  */
-public class SingleSubsetSpecializer implements Specializer {
+public class SingleSubsetSpecializer implements BuiltinSpecializer {
+
+  @Override
+  public String getName() {
+    return "[[";
+  }
+
+  @Override
+  public String getGroup() {
+    return null;
+  }
 
   @Override
   public Specialization trySpecialize(RuntimeState runtimeState, List<ValueBounds> argumentTypes) {

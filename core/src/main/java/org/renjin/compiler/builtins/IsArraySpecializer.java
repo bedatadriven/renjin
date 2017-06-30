@@ -21,6 +21,7 @@ package org.renjin.compiler.builtins;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.exception.InvalidSyntaxException;
 import org.renjin.compiler.ir.tac.RuntimeState;
+import org.renjin.gcc.runtime.Builtins;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.primitives.Types;
 import org.renjin.repackaged.guava.collect.Iterables;
@@ -30,12 +31,22 @@ import java.util.List;
 /**
  * Specializes calls to the {@code is.array} primitive.
  */
-public class IsArraySpecializer implements Specializer {
+public class IsArraySpecializer implements BuiltinSpecializer {
   
   private JvmMethod method;
 
   public IsArraySpecializer() {
     this.method = Iterables.getOnlyElement(JvmMethod.findOverloads(Types.class, "is.array", null));
+  }
+
+  @Override
+  public String getName() {
+    return "is.array";
+  }
+
+  @Override
+  public String getGroup() {
+    return null;
   }
 
   @Override
@@ -51,4 +62,5 @@ public class IsArraySpecializer implements Specializer {
 
     return new StaticMethodCall(method);
   }
+
 }

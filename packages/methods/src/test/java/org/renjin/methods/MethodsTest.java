@@ -20,7 +20,6 @@ import java.io.StringReader;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
-@Ignore
 public class MethodsTest {
 
   private Session session;
@@ -50,6 +49,7 @@ public class MethodsTest {
     eval("print(hadley@age)");
   }
 
+  @Ignore
   @Test
   public void failure() throws IOException {
     eval("setClass('M', contains = 'matrix', representation(fuzz = 'numeric'))");
@@ -63,10 +63,10 @@ public class MethodsTest {
     assertThat(dim.getElementAsInt(1), equalTo(1));
   }
   
-  @Ignore
+  @Test
   public void loopS4MethodCall() throws IOException {
   
-    ForFunction.COMPILE_LOOPS = false;
+    ForFunction.COMPILE_LOOPS = true;
 //    String rdsFile = Resources.getResource("100k_36bp_Seqs_list.rds").getFile();
 //    global.setVariable(topLevelContext, "file" , new StringArrayVector(rdsFile));
 //    eval("y <- readRDS(file)");
@@ -91,8 +91,5 @@ public class MethodsTest {
   
     DoubleArrayVector count = (DoubleArrayVector) eval("atg@value");
     assertThat(count.getElementAsInt(0), equalTo( 4316 ));
-    
-//    StringArrayVector count = (StringArrayVector) eval("atg");
-//    assertThat(count.getElementAsString(0), equalTo( "10k x: p" ));
   }
 }

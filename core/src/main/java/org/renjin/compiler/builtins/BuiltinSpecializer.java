@@ -66,7 +66,11 @@ public class BuiltinSpecializer implements Specializer {
     if(method.isDataParallel()) {
       return new DataParallelCall(primitive, method, argumentTypes).specializeFurther();
     } else {
-      return new StaticMethodCall(method).furtherSpecialize(argumentTypes);
+      if(StaticMethodCall.isEligible(method)) {
+        return new StaticMethodCall(method).furtherSpecialize(argumentTypes);
+      } else {
+        return UnspecializedCall.INSTANCE;
+      }
     }
   }
 

@@ -53,6 +53,9 @@ public class ClosureCall implements Expression {
     this.call = call;
     this.closure = closure;
     this.arguments = arguments;
+    if (IRArgument.anyNamed(arguments)) {
+      throw new NotCompilableException(call, "Named arguments not yet supported.");
+    }
     this.matching = new IRMatchedArguments(closure, arguments);
     this.returnBounds = ValueBounds.UNBOUNDED;
     this.type = returnBounds.storageType();

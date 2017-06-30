@@ -18,6 +18,7 @@
  */
 package org.renjin.compiler.ir.tac;
 
+import org.renjin.compiler.NotCompilableException;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.*;
 
@@ -40,13 +41,10 @@ public class IRMatchedArguments {
   private final List<Integer> extraArguments = Lists.newArrayList();
 
   public IRMatchedArguments(Closure closure, List<IRArgument> arguments) {
+
     this.arguments = arguments;
 
-    if(IRArgument.anyNamed(arguments)) {
-      throw new UnsupportedOperationException("TODO");
-    } else {
-      matchPositionally(closure);
-    }
+    matchPositionally(closure);
   }
 
   public Set<Symbol> getSuppliedFormals() {
@@ -62,6 +60,7 @@ public class IRMatchedArguments {
   }
   
   private void matchPositionally(Closure closure) {
+    assert !IRArgument.anyNamed(arguments);
 
     int suppliedIndex = 0;
     int suppliedCount = arguments.size();

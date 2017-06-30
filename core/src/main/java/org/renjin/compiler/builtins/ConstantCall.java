@@ -18,6 +18,7 @@
  */
 package org.renjin.compiler.builtins;
 
+import org.renjin.compiler.codegen.ConstantBytecode;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
@@ -85,6 +86,8 @@ public class ConstantCall implements Specialization {
       mv.dconst((Double) constantValue);
     } else if(constantValue instanceof Boolean) {
       mv.iconst(constantValue == Boolean.TRUE ? 1 : 0);
+    } else if(constantValue instanceof SEXP) {
+      ConstantBytecode.pushConstant(mv, ((SEXP) constantValue));
     } else {
       throw new UnsupportedOperationException("constantValue: " + constantValue.getClass());
     }

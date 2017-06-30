@@ -82,7 +82,7 @@ public class ForLoopCompilerTest extends EvalTestCase {
     // The + operator is overloaded with a `+.foo` method for class 'foo'
     // We should either bailout or specialize to the provided function
     
-    eval("  `+.foo` <- function(x, y) structure(42, class='foo') ");
+    eval("  `+.foo` <- function(x, y) { x <- 42; class(x) <- 'foo'; x }");
     eval(" s <- structure(1, class='foo') ");
     evalAndAssertCompiled(" for(i in 1:500) s <- s + sqrt(i) ");
       

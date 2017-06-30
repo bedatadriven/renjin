@@ -19,6 +19,7 @@
 package org.renjin.compiler.codegen;
 
 
+import org.apache.commons.math.util.DoubleArray;
 import org.renjin.compiler.TypeSolver;
 import org.renjin.compiler.cfg.BasicBlock;
 import org.renjin.compiler.cfg.ControlFlowGraph;
@@ -131,6 +132,11 @@ public class EmitContext {
   }
 
   public int convert(InstructionAdapter mv, Type fromType, Type toType) {
+
+    if(fromType.equals(Type.getType(DoubleArrayVector.class))) {
+      fromType = Type.getType(DoubleVector.class);
+    }
+
     if(fromType.equals(toType)) {
       // NOOP
       return 0;

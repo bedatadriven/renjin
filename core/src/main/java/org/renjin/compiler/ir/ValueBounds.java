@@ -22,7 +22,9 @@ import org.renjin.primitives.sequence.IntSequence;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Preconditions;
 import org.renjin.repackaged.guava.collect.Sets;
+import org.renjin.repackaged.guava.reflect.TypeToken;
 import org.renjin.sexp.*;
+import org.renjin.sexp.Vector;
 
 import java.util.*;
 
@@ -260,7 +262,27 @@ public class ValueBounds {
   public boolean isAttributeSetOpen() {
     return attributesOpen;
   }
-  
+
+  /**
+   * @return the value bounds of elements of this vector.
+   */
+  public ValueBounds getElementBounds() {
+    if(constantValue instanceof Vector) {
+      ListVector constantList = (ListVector) this.constantValue;
+      List<ValueBounds> elementBounds = new ArrayList<>();
+      for (int i = 0; i < constantList.length(); i++) {
+        elementBounds.add(ValueBounds.of(constantList.getElementAsSEXP(i)));
+      }
+      return union(elementBounds);
+
+    } else if(TypeSet.isDefinitelyAtomic(typeSet)) {
+      return ValueBounds.primitive(typeSet);
+
+    } else {
+      return ValueBounds.UNBOUNDED;
+    }
+  }
+
   public AttributeMap getConstantAttributes() {
     
     if(attributesOpen) {

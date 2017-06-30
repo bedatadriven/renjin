@@ -20,7 +20,6 @@ package org.renjin.compiler.builtins;
 
 import org.renjin.compiler.ir.exception.InternalCompilerException;
 import org.renjin.primitives.Primitives;
-import org.renjin.repackaged.guava.base.Preconditions;
 import org.renjin.repackaged.guava.cache.CacheBuilder;
 import org.renjin.repackaged.guava.cache.CacheLoader;
 import org.renjin.repackaged.guava.cache.LoadingCache;
@@ -55,6 +54,7 @@ public class BuiltinSpecializers {
     specializers.put("length", new GenericBuiltinGuard(new LengthSpecializer()));
     specializers.put("[<-", new GenericBuiltinGuard(new ReplaceSpecializer()));
     specializers.put("[", new GenericBuiltinGuard(new SubsetSpecializer()));
+    specializers.put("[[", new GenericBuiltinGuard(new SingleSubsetSpecializer()));
     specializers.put("c", new GenericBuiltinGuard(new CombineSpecializer()));
     specializers.put("is.array", new GenericBuiltinGuard(new IsArraySpecializer()));
     specializers.put("dim", new GenericBuiltinGuard(new DimSpecializer()));

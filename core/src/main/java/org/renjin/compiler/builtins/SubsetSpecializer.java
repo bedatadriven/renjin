@@ -51,8 +51,8 @@ public class SubsetSpecializer implements Specializer {
       return new CompleteSubset(source);
     }
 
-    if(GetElement.accept(source, subscript)) {
-      return new GetElement(source, subscript);
+    if(GetAtomicElement.accept(source, subscript)) {
+      return new GetAtomicElement(source, subscript);
     }
 
     return UnspecializedCall.INSTANCE;

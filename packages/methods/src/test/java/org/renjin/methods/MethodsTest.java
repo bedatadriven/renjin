@@ -66,22 +66,24 @@ public class MethodsTest {
   @Test
   public void loopS4MethodCall() throws IOException {
   
-    ForFunction.COMPILE_LOOPS = true;
+    ForFunction.COMPILE_LOOPS = false;
 //    String rdsFile = Resources.getResource("100k_36bp_Seqs_list.rds").getFile();
 //    global.setVariable(topLevelContext, "file" , new StringArrayVector(rdsFile));
 //    eval("y <- readRDS(file)");
 //    eval("library(methods)");
     eval(" set.seed(101)                                                                   ");
     eval(" setClass('Seq', representation(seq = 'character') )                             ");
-    eval(" reads=character(10000)                                                          ");
+    eval(" reads=character(1000)                                                          ");
     eval(" aa=c('A','T','C','G')                                                           ");
     eval(" seqs=list()                                                                     ");
-    eval(" for(i in 1:1e4) reads[i] <- paste0(sample(aa, 36, replace = TRUE), collapse='') ");
-    eval(" for(i in 1:1e4) seqs[[i]] <- new('Seq', seq=reads[i])                           ");
+    eval(" for(i in 1:1e3) reads[i] <- paste0(sample(aa, 36, replace = TRUE), collapse='') ");
+    eval(" for(i in 1:1e3) seqs[[i]] <- new('Seq', seq=reads[i])                           ");
     eval(" setClass('SeqSum', representation(seq = 'character', value = 'numeric') )       ");
     eval(" setMethod('+', signature(e1 = 'SeqSum', e2 = 'Seq'), function(e1, e2) { hasSeq <- grep(e1@seq, e2@seq); if(length(hasSeq) > 0) e1@value <- e1@value + 1; return(e1) }) ");
     eval(" atg <- new('SeqSum', seq = 'ATG', value = 0)                                    ");
     ForFunction.COMPILE_LOOPS = true;
+    ForFunction.FAIL_ON_COMPILATION_ERROR = true;
+
     eval(" for(i in 1:1e4) { atg <- atg + seqs[[ i ]] }                                    ");
 //    eval(" x <- letters;x=c(x,x,x);x=c(x,x,x);x=c(x,x,x);x=c(x,x,x,x);x=c(x,x,x,x);       ");
 //    eval(" for(i in 1:1e4) { atg <- paste0('10k x: ', x[i]) }                         ");

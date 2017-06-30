@@ -18,7 +18,6 @@
  */
 package org.renjin.compiler.builtins;
 
-import org.renjin.compiler.builtins.subset.UpdateElementCall;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.RuntimeState;
 

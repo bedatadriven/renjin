@@ -35,7 +35,7 @@ import java.util.List;
 /**
  * Selects a single element from within an atomic vector
  */
-public class GetElement implements Specialization {
+public class GetAtomicElement implements Specialization {
 
 
   private final ValueBounds resultBounds;
@@ -57,7 +57,7 @@ public class GetElement implements Specialization {
     return true;
   }
 
-  public GetElement(ValueBounds source, ValueBounds subscript) {
+  public GetAtomicElement(ValueBounds source, ValueBounds subscript) {
     assert accept(source, subscript);
 
     ValueBounds.Builder resultBounds = new ValueBounds.Builder();

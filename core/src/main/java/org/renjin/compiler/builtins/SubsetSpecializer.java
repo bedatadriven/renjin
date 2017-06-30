@@ -41,10 +41,10 @@ public class SubsetSpecializer implements Specializer, BuiltinSpecializer {
   }
 
   @Override
-  public Specialization trySpecialize(RuntimeState runtimeState, List<ValueBounds> argumentTypes) {
+  public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> arguments) {
 
-    ValueBounds source = argumentTypes.get(0);
-    List<ValueBounds> subscripts = argumentTypes.subList(1, argumentTypes.size());
+    ValueBounds source = arguments.get(0).getBounds();
+    List<ValueBounds> subscripts = ArgumentBounds.withoutNames(arguments.subList(1, arguments.size()));
     
     if (subscripts.size() == 0) {
       return new CompleteSubset(source);

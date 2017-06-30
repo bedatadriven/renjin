@@ -39,12 +39,12 @@ public class LengthSpecializer implements Specializer, BuiltinSpecializer {
   }
 
   @Override
-  public Specialization trySpecialize(RuntimeState runtimeState, List<ValueBounds> argumentTypes) {
-    if(argumentTypes.size() != 1) {
+  public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> arguments) {
+    if(arguments.size() != 1) {
       throw new InvalidSyntaxException("length() takes one argument.");
     }
 
-    ValueBounds argumentBounds = argumentTypes.get(0);
+    ValueBounds argumentBounds = arguments.get(0).getBounds();
     if(argumentBounds.isLengthConstant()) {
       return new ConstantCall(argumentBounds.getLength());
     }

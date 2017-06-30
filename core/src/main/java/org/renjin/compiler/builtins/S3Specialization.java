@@ -22,7 +22,7 @@ import org.renjin.compiler.cfg.InlinedFunction;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
-import org.renjin.compiler.ir.tac.IRMatchedArguments;
+import org.renjin.compiler.ir.tac.MatchedArguments;
 import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.primitives.S3;
@@ -43,28 +43,30 @@ public class S3Specialization implements Specialization {
   
   private RuntimeState runtimeState;
   private Closure closure;
-  private List<IRArgument> arguments;
-  
+
   
   private InlinedFunction inlinedMethod = null;
-  private IRMatchedArguments matchedArguments;
+  private MatchedArguments matchedArguments;
   
   private Type type;
   private ValueBounds returnBounds;
-  
-  public S3Specialization(RuntimeState runtimeState, Closure closure, Map<Expression, ValueBounds> typeMap, List<IRArgument> arguments) {
+
+  public S3Specialization(RuntimeState runtimeState, Closure closure, List<ArgumentBounds> arguments) {
     this.runtimeState = runtimeState;
     this.closure = closure;
-    this.arguments = arguments;
-  
-    updateTypeBounds(closure, typeMap);
+
+    updateTypeBounds(closure, arguments);
+  }
+
+  public S3Specialization(RuntimeState runtimeState, Closure closure, Map<Expression, ValueBounds> typeMap, List<IRArgument> arguments) {
+    this(runtimeState, closure, ArgumentBounds.create(arguments, typeMap));
   }
   
-  private void updateTypeBounds(Closure function, Map<Expression, ValueBounds> typeMap) {
+  private void updateTypeBounds(Closure function, List<ArgumentBounds> arguments) {
   
     // Otherwise, try to resolve the function
     if(inlinedMethod == null || inlinedMethod.getClosure() != function) {
-      matchedArguments = new IRMatchedArguments(closure, arguments);
+      matchedArguments = MatchedArguments.matchArgumentBounds(closure, arguments);
       inlinedMethod = new InlinedFunction(runtimeState, closure, matchedArguments.getSuppliedFormals());
     }
     
@@ -72,11 +74,11 @@ public class S3Specialization implements Specialization {
       throw new FailedToSpecializeException("Extra arguments not supported");
     }
   
-    returnBounds = inlinedMethod.updateBounds(arguments, typeMap);
+    returnBounds = inlinedMethod.updateBounds(arguments);
     type = returnBounds.storageType();
   }
   
-  public static Specialization trySpecialize(String generic, RuntimeState runtimeState, ValueBounds objectExpr, Map<Expression, ValueBounds> typeMap, List<IRArgument> arguments) {
+  public static Specialization trySpecialize(String generic, RuntimeState runtimeState, ValueBounds objectExpr, List<ArgumentBounds> arguments) {
     StringVector objectClass = S3.computeDataClasses(objectExpr);
   
     if (objectClass == null) {
@@ -87,7 +89,7 @@ public class S3Specialization implements Specialization {
     // Otherwise, try to resolve the function
     Function function = runtimeState.findMethod(generic, null, objectClass);
     if(function instanceof Closure) {
-      return new S3Specialization(runtimeState, (Closure)function, typeMap, arguments);
+      return new S3Specialization(runtimeState, (Closure)function, arguments);
     }
     
     return UnspecializedCall.INSTANCE;

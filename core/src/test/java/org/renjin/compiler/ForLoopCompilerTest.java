@@ -165,11 +165,11 @@ public class ForLoopCompilerTest extends EvalTestCase {
         "}",
         "makeActiveBinding('q', .qb, environment())",
         "sum <- 0",
-        "for(i in 1:1e6) {",
+        "for(i in 1:10) {",
           "sum <- sum + (i * q)",
         "}"));
 
-    assertThat(eval("sum"), elementsIdenticalTo(c(0x1.280f56bddc2e6p+58)));
+    assertThat(eval("sum"), elementsIdenticalTo(c(385.0)));
   }
 
 

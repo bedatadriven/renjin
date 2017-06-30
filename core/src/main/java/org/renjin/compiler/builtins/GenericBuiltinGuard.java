@@ -37,14 +37,18 @@ public class GenericBuiltinGuard implements Specializer {
   }
 
   @Override
-  public Specialization trySpecialize(RuntimeState runtimeState, List<ValueBounds> argumentTypes) {
-    ValueBounds object = argumentTypes.get(0);
+  public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> arguments) {
+    ValueBounds object = arguments.get(0).getBounds();
     if(object.isClassAttributeConstant()) {
-      if(object.getConstantClassAttribute() == Null.INSTANCE) {
-        // The argument has no class attribute, so we can safely
-        // specialize the (builtin) default function.
-        return specializer.trySpecialize(runtimeState, argumentTypes);
+
+      // If the class attribute is not known to be NULL, we need to try to
+      // do S3 dispatch
+      if(object.getConstantClassAttribute() != Null.INSTANCE) {
+        return S3Specialization.trySpecialize(specializer.getName(), runtimeState, object, arguments);
       }
+
+      return specializer.trySpecialize(runtimeState, arguments);
+
     }
     // Can't make any assumptions. 
     return UnspecializedCall.INSTANCE;

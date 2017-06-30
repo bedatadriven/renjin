@@ -40,13 +40,13 @@ public class ReplaceSpecializer implements Specializer, BuiltinSpecializer {
   }
 
   @Override
-  public Specialization trySpecialize(RuntimeState runtimeState, List<ValueBounds> argumentTypes) {
-    if(argumentTypes.size() == 3) {
+  public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> arguments) {
+    if(arguments.size() == 3) {
       
       
-      ValueBounds inputVector = argumentTypes.get(0);
-      ValueBounds subscript = argumentTypes.get(1);
-      ValueBounds replacement = argumentTypes.get(2);
+      ValueBounds inputVector = arguments.get(0).getBounds();
+      ValueBounds subscript = arguments.get(1).getBounds();
+      ValueBounds replacement = arguments.get(2).getBounds();
       
       if(subscript.getLength() == 1 && replacement.getLength() == 1 &&
           inputVector.getTypeSet() == replacement.getTypeSet()) {

@@ -21,7 +21,6 @@ package org.renjin.compiler.builtins;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.exception.InvalidSyntaxException;
 import org.renjin.compiler.ir.tac.RuntimeState;
-import org.renjin.gcc.runtime.Builtins;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.primitives.Types;
 import org.renjin.repackaged.guava.collect.Iterables;
@@ -50,12 +49,12 @@ public class IsArraySpecializer implements BuiltinSpecializer {
   }
 
   @Override
-  public Specialization trySpecialize(RuntimeState runtimeState, List<ValueBounds> argumentTypes) {
-    if(argumentTypes.size() != 1) {
+  public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> arguments) {
+    if(arguments.size() != 1) {
       throw new InvalidSyntaxException("is.array() takes one argument.");
     }
 
-    ValueBounds argumentBounds = argumentTypes.get(0);
+    ValueBounds argumentBounds = arguments.get(0).getBounds();
     if(argumentBounds.isDimCountConstant()) {
       return new ConstantCall(argumentBounds.getConstantDimCount() > 0);
     }

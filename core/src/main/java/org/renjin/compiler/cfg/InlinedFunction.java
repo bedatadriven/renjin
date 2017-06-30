@@ -20,13 +20,13 @@ package org.renjin.compiler.cfg;
 
 import org.renjin.compiler.NotCompilableException;
 import org.renjin.compiler.TypeSolver;
+import org.renjin.compiler.builtins.ArgumentBounds;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.InlineParamExpr;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.exception.InternalCompilerException;
 import org.renjin.compiler.ir.ssa.SsaTransformer;
 import org.renjin.compiler.ir.tac.*;
-import org.renjin.compiler.ir.tac.expressions.Constant;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.ReadParam;
 import org.renjin.compiler.ir.tac.statements.ReturnStatement;
@@ -34,12 +34,10 @@ import org.renjin.compiler.ir.tac.statements.Statement;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.repackaged.guava.collect.Lists;
-import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.sexp.Closure;
 import org.renjin.sexp.Function;
 import org.renjin.sexp.Symbol;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -109,21 +107,13 @@ public class InlinedFunction {
   }
 
   public ValueBounds updateBounds(List<IRArgument> arguments, Map<Expression, ValueBounds> typeMap) {
+    return updateBounds(ArgumentBounds.create(arguments, typeMap));
+  }
 
+  public ValueBounds updateBounds(List<ArgumentBounds> arguments) {
     for (int i = 0; i < arguments.size(); i++) {
-      Expression argumentExpr = arguments.get(i).getExpression();
-      ValueBounds argumentBounds;
-      if(argumentExpr instanceof Constant) {
-        argumentBounds = argumentExpr.getValueBounds();
-      } else {
-        argumentBounds = typeMap.get(argumentExpr);
-      }
-      if(argumentBounds == null) {
-        throw new IllegalStateException("No argument bounds for " + arguments.get(i).getName());
-      }
-      updateParam(i, argumentBounds);
+      updateParam(i, arguments.get(i).getBounds());
     }
-    
     return computeBounds();
   }
   
@@ -138,7 +128,7 @@ public class InlinedFunction {
     }
   }
   
-  public void writeInline(EmitContext emitContext, InstructionAdapter mv, IRMatchedArguments matching, List<IRArgument> arguments) {
+  public void writeInline(EmitContext emitContext, InstructionAdapter mv, MatchedArguments matching, List<IRArgument> arguments) {
  
 
     EmitContext inlineContext = emitContext.inlineContext(cfg, types);

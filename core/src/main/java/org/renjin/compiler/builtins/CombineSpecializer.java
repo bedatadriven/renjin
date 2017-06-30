@@ -44,9 +44,9 @@ public class CombineSpecializer implements Specializer, BuiltinSpecializer {
   }
 
   @Override
-  public Specialization trySpecialize(RuntimeState runtimeState, List<ValueBounds> argumentTypes) {
+  public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> arguments) {
     
-    SEXP constantResult = tryCombine(argumentTypes);
+    SEXP constantResult = tryCombine(arguments);
     if(constantResult != null) {
       return new ConstantCall(constantResult);
     }
@@ -54,11 +54,11 @@ public class CombineSpecializer implements Specializer, BuiltinSpecializer {
     return UnspecializedCall.INSTANCE;
   }
 
-  private SEXP tryCombine(List<ValueBounds> argumentTypes) {
-    ListVector.Builder constants = ListVector.newBuilder();
-    for (ValueBounds argumentType : argumentTypes) {
-      if(argumentType.isConstant()) {
-        constants.add(argumentType.getConstantValue());
+  private SEXP tryCombine(List<ArgumentBounds> arguments) {
+    ListVector.NamedBuilder constants = ListVector.newNamedBuilder();
+    for (ArgumentBounds argument : arguments) {
+      if(argument.getBounds().isConstant()) {
+        constants.add(argument.getName(), argument.getBounds().getConstantValue());
       } else {
         return null;
       }

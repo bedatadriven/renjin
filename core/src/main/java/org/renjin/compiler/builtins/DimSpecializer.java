@@ -49,11 +49,11 @@ public class DimSpecializer implements BuiltinSpecializer {
   }
 
   @Override
-  public Specialization trySpecialize(RuntimeState runtimeState, List<ValueBounds> argumentTypes) {
-    if(argumentTypes.size() != 1) {
+  public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> arguments) {
+    if(arguments.size() != 1) {
       throw new InvalidSyntaxException("dim() takes one argument.");
     }
-    ValueBounds sexp = argumentTypes.get(0);
+    ValueBounds sexp = arguments.get(0).getBounds();
     
     if(sexp.isDimAttributeConstant()) {
       return new ConstantCall(sexp.getConstantDimAttribute());

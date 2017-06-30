@@ -20,7 +20,6 @@
 
 package org.renjin.compiler.builtins;
 
-import org.renjin.compiler.builtins.*;
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.RuntimeState;
@@ -43,14 +42,14 @@ public class SingleSubsetSpecializer implements BuiltinSpecializer {
   }
 
   @Override
-  public Specialization trySpecialize(RuntimeState runtimeState, List<ValueBounds> argumentTypes) {
+  public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> arguments) {
 
 
     // Case of x[[i]]:
-    if(argumentTypes.size() == 2) {
+    if(arguments.size() == 2) {
 
-      ValueBounds source = argumentTypes.get(0);
-      ValueBounds index = argumentTypes.get(1);
+      ValueBounds source = arguments.get(0).getBounds();
+      ValueBounds index = arguments.get(1).getBounds();
 
       if(TypeSet.isDefinitelyNumeric(index) &&
           index.isLengthConstant() &&

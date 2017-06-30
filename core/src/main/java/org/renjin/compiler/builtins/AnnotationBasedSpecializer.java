@@ -78,17 +78,18 @@ public class AnnotationBasedSpecializer implements BuiltinSpecializer {
   }
   
   @Override
-  public Specialization trySpecialize(RuntimeState runtimeState, List<ValueBounds> argumentTypes) {
-    JvmMethod method = selectOverload(argumentTypes);
+  public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> namedArguments) {
+    List<ValueBounds> arguments = ArgumentBounds.withoutNames(namedArguments);
+    JvmMethod method = selectOverload(arguments);
     if(method == null) {
       return UnspecializedCall.INSTANCE;
     }
     
     if(method.isDataParallel()) {
-      return new DataParallelCall(primitive, method, argumentTypes).specializeFurther();
+      return new DataParallelCall(primitive, method, arguments).specializeFurther();
     } else {
       if(StaticMethodCall.isEligible(method)) {
-        return new StaticMethodCall(method).furtherSpecialize(argumentTypes);
+        return new StaticMethodCall(method).furtherSpecialize(arguments);
       } else {
         return UnspecializedCall.INSTANCE;
       }

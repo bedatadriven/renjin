@@ -18,6 +18,7 @@
  */
 package org.renjin.compiler.ir.tac.expressions;
 
+import org.renjin.compiler.builtins.ArgumentBounds;
 import org.renjin.compiler.builtins.S3Specialization;
 import org.renjin.compiler.builtins.Specialization;
 import org.renjin.compiler.builtins.UnspecializedCall;
@@ -87,7 +88,7 @@ public class UseMethodCall implements Expression {
     ValueBounds objectBounds = typeMap.get(objectExpr);
     
     // Maybe see if we can avoid re-specializing entirely?
-    this.specialization = S3Specialization.trySpecialize(generic, runtimeState, objectBounds, typeMap, arguments);
+    this.specialization = S3Specialization.trySpecialize(generic, runtimeState, objectBounds, ArgumentBounds.create(arguments, typeMap));
     return specialization.getResultBounds();
   }
 

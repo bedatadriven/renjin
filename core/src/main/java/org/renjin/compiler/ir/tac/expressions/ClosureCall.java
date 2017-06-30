@@ -19,11 +19,12 @@
 package org.renjin.compiler.ir.tac.expressions;
 
 import org.renjin.compiler.NotCompilableException;
+import org.renjin.compiler.builtins.ArgumentBounds;
 import org.renjin.compiler.cfg.InlinedFunction;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
-import org.renjin.compiler.ir.tac.IRMatchedArguments;
+import org.renjin.compiler.ir.tac.MatchedArguments;
 import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
@@ -42,7 +43,7 @@ public class ClosureCall implements Expression {
   private final FunctionCall call;
   private final List<IRArgument> arguments;
   private Closure closure;
-  private IRMatchedArguments matching;
+  private MatchedArguments matching;
   private InlinedFunction inlinedFunction;
   
   private ValueBounds returnBounds;
@@ -53,10 +54,8 @@ public class ClosureCall implements Expression {
     this.call = call;
     this.closure = closure;
     this.arguments = arguments;
-    if (IRArgument.anyNamed(arguments)) {
-      throw new NotCompilableException(call, "Named arguments not yet supported.");
-    }
-    this.matching = new IRMatchedArguments(closure, arguments);
+
+    this.matching = MatchedArguments.matchIRArguments(closure, arguments);
     this.returnBounds = ValueBounds.UNBOUNDED;
     this.type = returnBounds.storageType();
   }
@@ -86,7 +85,7 @@ public class ClosureCall implements Expression {
       throw new NotCompilableException(call, "Extra arguments not supported");
     }
    
-    returnBounds = inlinedFunction.updateBounds(arguments, typeMap);
+    returnBounds = inlinedFunction.updateBounds(ArgumentBounds.create(arguments, typeMap));
     type = returnBounds.storageType();
     
     return returnBounds;

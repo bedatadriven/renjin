@@ -46,7 +46,7 @@ public class BuiltinSpecializers {
    * in the code base. To avoid rebuilding the metadata each time one is needed, 
    * cache instances of BuiltinSpecializer here.
    */
-  private final LoadingCache<String, BuiltinSpecializer> cache;
+  private final LoadingCache<String, Specializer> cache;
   
   
   public BuiltinSpecializers() {
@@ -60,9 +60,9 @@ public class BuiltinSpecializers {
     specializers.put("dim", new GenericBuiltinGuard(new DimSpecializer()));
     specializers.put("rep", new RepSpecializer());
 
-    cache = CacheBuilder.newBuilder().build(new CacheLoader<String, BuiltinSpecializer>() {
+    cache = CacheBuilder.newBuilder().build(new CacheLoader<String, Specializer>() {
       @Override
-      public BuiltinSpecializer load(String primitive) throws Exception {
+      public Specializer load(String primitive) throws Exception {
         Symbol primitiveName = Symbol.get(primitive);
         Primitives.Entry entry = Primitives.getBuiltinEntry(primitiveName);
         if(entry == null) {
@@ -71,7 +71,12 @@ public class BuiltinSpecializers {
         if(entry == null) {
           throw new IllegalStateException("No builtin entry for " + primitiveName);
         }
-        return new BuiltinSpecializer(entry);
+        AnnotationBasedSpecializer specializer = new AnnotationBasedSpecializer(entry);
+        if(specializer.isGeneric()) {
+          return new GenericBuiltinGuard(specializer);
+        } else {
+          return specializer;
+        }
       }
     });
   }

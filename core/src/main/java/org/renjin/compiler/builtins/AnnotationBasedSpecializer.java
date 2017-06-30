@@ -33,12 +33,12 @@ import java.util.List;
 /**
  * Generic builtin specializer that uses annotations to specialize method calls
  */
-public class BuiltinSpecializer implements Specializer {
+public class AnnotationBasedSpecializer implements Specializer {
 
   private final Primitives.Entry primitive;
   private final List<JvmMethod> methods;
 
-  public BuiltinSpecializer(Primitives.Entry primitive) {
+  public AnnotationBasedSpecializer(Primitives.Entry primitive) {
     this.primitive = primitive;
     this.methods = JvmMethod.findOverloads(
         this.primitive.functionClass, 
@@ -47,20 +47,21 @@ public class BuiltinSpecializer implements Specializer {
 
     Collections.sort( methods, new OverloadComparator());
   }
+
+  public boolean isGeneric() {
+    for (JvmMethod method : methods) {
+      if (method.isGeneric()) {
+        return true;
+      }
+    }
+    return false;
+  }
   
   @Override
   public Specialization trySpecialize(RuntimeState runtimeState, List<ValueBounds> argumentTypes) {
     JvmMethod method = selectOverload(argumentTypes);
     if(method == null) {
       return UnspecializedCall.INSTANCE;
-    }
-    
-    if(method.isGeneric()) {
-      ValueBounds object = argumentTypes.get(0);
-      Specialization genericMethod = maybeSpecializeToGenericCall(object);
-      if(genericMethod != null) {
-        return genericMethod;
-      }
     }
     
     if(method.isDataParallel()) {
@@ -72,18 +73,6 @@ public class BuiltinSpecializer implements Specializer {
         return UnspecializedCall.INSTANCE;
       }
     }
-  }
-
-  private Specialization maybeSpecializeToGenericCall(ValueBounds object) {
-    if(!object.isClassAttributeConstant()) {
-      return GenericPrimitive.INSTANCE;
-    }
-    AtomicVector classVector = object.getConstantClassAttribute();
-    if(classVector == Null.INSTANCE) {
-      return null;
-    }
-    // TODO: see UseMethodCall
-    return GenericPrimitive.INSTANCE;
   }
 
   private JvmMethod selectOverload(List<ValueBounds> argumentTypes) {

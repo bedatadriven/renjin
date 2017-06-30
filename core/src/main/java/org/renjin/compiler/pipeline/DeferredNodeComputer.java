@@ -39,7 +39,7 @@ public class DeferredNodeComputer implements Runnable {
     // TODO: at the moment, we can compile only a small number of summary
     // function, eventually we want to generate bytecode on the fly based
     // on their implementations elsewhere.
-    if(node.getComputation().getComputationName().equals("mean") ||
+    if( node.getComputation().getComputationName().equals("mean") ||
         node.getComputation().getComputationName().equals("rowMeans") ||
         node.getComputation().getComputationName().equals("sum")) {
       try {

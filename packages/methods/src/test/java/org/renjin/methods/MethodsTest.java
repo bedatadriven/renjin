@@ -64,6 +64,7 @@ public class MethodsTest {
   }
   
   @Test
+  @Ignore
   public void loopS4MethodCall() throws IOException {
   
     ForFunction.COMPILE_LOOPS = false;

@@ -16,83 +16,51 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.compiler.ir.tac;
+package org.renjin.eval;
 
-import org.renjin.compiler.builtins.ArgumentBounds;
-import org.renjin.eval.EvalException;
-import org.renjin.sexp.*;
+import org.renjin.sexp.Closure;
+import org.renjin.sexp.PairList;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Symbol;
 
-import java.util.*;
-
+import java.util.Arrays;
 
 /**
- * Matching between supplied arguments to a closure call and the
- * formally declared arguments of the closure.
+ * Matches arguments
  */
-public class MatchedArguments {
+public class ArgumentMatcher {
 
-  private String[] formalNames;
-  private final int[] formalMatches;
+  private final String[] formalNames;
+  private int formalElipses;
 
-  private int extraArgumentCount;
-  private int extraArguments[];
-
-  private MatchedArguments(String[] formalNames, int[] formalMatches, boolean[] matchedActuals) {
+  public ArgumentMatcher(String[] formalNames) {
     this.formalNames = formalNames;
-    this.formalMatches = formalMatches;
+    this.formalElipses = findElipses(this.formalNames);
+  }
 
-    this.extraArguments = new int[matchedActuals.length];
-    extraArgumentCount = 0;
-    for (int i = 0; i < extraArguments.length; i++) {
-      if(!matchedActuals[i]) {
-        extraArguments[extraArgumentCount++] = i;
+  public ArgumentMatcher(Closure closure) {
+    this(closure.getFormals());
+  }
+
+  public ArgumentMatcher(PairList formals) {
+    this(toNameArray(formals));
+  }
+
+  private static String[] toNameArray(PairList formals) {
+    String[] array = new String[formals.length()];
+    int i = 0;
+    for (PairList.Node node : formals.nodes()) {
+      SEXP tag = node.getRawTag();
+      if(tag instanceof Symbol) {
+        array[i++] = ((Symbol) tag).getPrintName();
       }
     }
+    return array;
   }
 
-  public static MatchedArguments matchIRArguments(Closure closure, List<IRArgument> arguments) {
-    String[] names  = new String[arguments.size()];
-    for (int i = 0; i < names.length; i++) {
-      names[i] = arguments.get(i).getName();
-    }
-    return match(closure, names);
+  public MatchedArguments match(PairList actuals) {
+    return match(toNameArray(actuals));
   }
-
-  public static MatchedArguments matchArgumentBounds(Closure closure, List<ArgumentBounds> arguments) {
-    String[] names  = new String[arguments.size()];
-    for (int i = 0; i < names.length; i++) {
-      names[i] = arguments.get(i).getName();
-    }
-    return match(closure, names);
-  }
-
-  public Set<Symbol> getSuppliedFormals() {
-    return getMatchedFormals().keySet();
-  }
-
-  /**
-   * @return the index of the provided argument that matches to the given {@code formalIndex}, or -1 if there
-   * is no match.
-   */
-  public int getActualIndex(int formalIndex) {
-    return formalMatches[formalIndex];
-  }
-
-  public Map<Symbol, Integer> getMatchedFormals() {
-    HashMap<Symbol, Integer> map = new HashMap<>();
-    for (int i = 0; i < formalMatches.length; i++) {
-      if(formalMatches[i] != -1) {
-        map.put(Symbol.get(formalNames[i]), formalMatches[i]);
-      }
-    }
-    return map;
-  }
-
-  public boolean hasExtraArguments() {
-    return extraArgumentCount > 0;
-  }
-
-
 
   /**
    * Argument matching is done by a three-pass process:
@@ -116,23 +84,10 @@ public class MatchedArguments {
    * If any arguments remain unmatched an error is declared.
    *
    */
-
-  public static MatchedArguments match(Closure closure, String[] actualNames) {
-    PairList formals = closure.getFormals();
-    String[] formalNames = new String[formals.length()];
-    int i = 0;
-    for (PairList.Node node : formals.nodes()) {
-      formalNames[i++] = node.getTag().getPrintName();
-    }
-    return match(formalNames, actualNames);
-  }
-
-  public static MatchedArguments match(String[] formalNames, String[] actualNames) {
+  public MatchedArguments match(String[] actualNames) {
 
     int[] formalToActual = new int[formalNames.length];
     Arrays.fill(formalToActual, -1);
-
-    int formalElipses = findElipses(formalNames);
 
     boolean[] matchedFormals = new boolean[formalNames.length];
     boolean[] matchedActuals = new boolean[actualNames.length];
@@ -167,13 +122,12 @@ public class MatchedArguments {
     // match any unnamed args positionally to remaining formals
 
     int nextActual = 0;
-
     for (int formalIndex = 0; formalIndex < formalNames.length; formalIndex++) {
       if(formalIndex == formalElipses) {
         break;
       }
       if(!matchedFormals[formalIndex]) {
-        nextActual = findNextUnmatched(matchedActuals, nextActual);
+        nextActual = findNextUnnamed(actualNames, nextActual);
         if(nextActual == -1) {
           break;
         }
@@ -185,12 +139,21 @@ public class MatchedArguments {
 
     // match any remaining unmatched actuals to extra arguments, if present
     if(formalElipses == -1) {
-      if (nextActual != -1 && findNextUnmatched(matchedActuals, nextActual) != -1) {
-        throw new EvalException("Unmatched positional arguments");
+      if (hasUnmatched(matchedActuals)) {
+        throw new EvalException("Unused arguments");
       }
     }
 
     return new MatchedArguments(formalNames, formalToActual, matchedActuals);
+  }
+
+  private boolean hasUnmatched(boolean[] matchedActuals) {
+    for (int i = 0; i < matchedActuals.length; i++) {
+      if(!matchedActuals[i]) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private static int findElipses(String[] formalNames) {
@@ -202,10 +165,22 @@ public class MatchedArguments {
     return -1;
   }
 
-  private static int findNextUnmatched(boolean[] matchedActuals, int start) {
+  private static int findNextUnnamed(String actualNames[], int start) {
     int i = start;
-    while(i < matchedActuals.length) {
-      if(!matchedActuals[i]) {
+    while(i < actualNames.length) {
+      if(actualNames[i] == null) {
+        return i;
+      }
+      i++;
+    }
+    return -1;
+  }
+
+
+  private static int findNextUnmatched(boolean[] actualMatched, int start) {
+    int i = start;
+    while(i < actualMatched.length) {
+      if(!actualMatched[i]) {
         return i;
       }
       i++;
@@ -262,8 +237,7 @@ public class MatchedArguments {
     return match;
   }
 
-
-  public int getExtraArgumentCount() {
-    return extraArgumentCount;
+  public boolean isFormalElipses(int i) {
+    return formalElipses == i;
   }
 }

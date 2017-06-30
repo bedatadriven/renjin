@@ -39,6 +39,8 @@ import org.renjin.sexp.*;
 public class ForFunction extends SpecialFunction {
 
   public static boolean COMPILE_LOOPS = Boolean.getBoolean("renjin.compile.loops");
+
+  public static boolean FAIL_ON_COMPILATION_ERROR = false;
   
   private static final int COMPILE_THRESHOLD = 200;
   private static final int WARMUP_ITERATIONS = 5;
@@ -135,7 +137,10 @@ public class ForFunction extends SpecialFunction {
       compiledBody = emitter.compileLoopBody().newInstance();
 
     } catch (NotCompilableException e) {
-      context.warn("Could not compile loop with %d iterations because: " + e.toString(context));
+      if(FAIL_ON_COMPILATION_ERROR) {
+        throw new AssertionError("Loop compilation failed: " + e.toString(context));
+      }
+      context.warn("Could not compile loop because: " + e.toString(context));
       return false;
 
     } catch (InvalidSyntaxException e) {

@@ -62,17 +62,25 @@ public class DeferredGraph {
   }
   
   public void fuse() {
-    ArrayDeque<DeferredNode> workList = new ArrayDeque<>(rootNodes);
-    while(!workList.isEmpty()) {
-      DeferredNode node = workList.poll();
-      DeferredNode fused = tryFuse(node);
-      
-      if(fused != null) {
-        replaceNode(node, fused);
-        workList.addAll(fused.getOperands());
-      } else {
-        workList.addAll(node.getOperands());
+    // Conduct a depth-first search of summary operators we can collapse
+
+    Set<DeferredNode> visited = Sets.newIdentityHashSet();
+    for (DeferredNode rootNode : rootNodes) {
+      fuse(visited, rootNode);
+    }
+  }
+
+  private void fuse(Set<DeferredNode> visited, DeferredNode node) {
+    if(visited.add(node)) {
+      // First time we've seen this node, try to fuse its operands
+      // before trying itself
+      for (DeferredNode operand : node.getOperands()) {
+        fuse(visited, operand);
       }
+    }
+    DeferredNode fused = tryFuse(node);
+    if(fused != null) {
+      replaceNode(node, fused);
     }
   }
 
@@ -292,7 +300,6 @@ public class DeferredGraph {
 
     for(DeferredNode node : toReplace.getUses()) {
       node.replaceOperand(toReplace, replacementNode);
-      node.replaceUse(toReplace, replacementNode);
     }
   }
 }

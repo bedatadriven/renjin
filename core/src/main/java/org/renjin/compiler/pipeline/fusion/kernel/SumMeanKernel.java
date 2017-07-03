@@ -109,6 +109,6 @@ public class SumMeanKernel implements LoopKernel {
 
   @Override
   public String debugLabel(LoopNode[] operands) {
-    return (mean ? "mean" : "sum") + "(" + operands[0] + ")";
+    return (mean ? "mean" : "sum") + "(...)";
   }
 }

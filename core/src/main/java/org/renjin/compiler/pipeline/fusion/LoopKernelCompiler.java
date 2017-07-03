@@ -164,8 +164,10 @@ public class LoopKernelCompiler {
 
     try {
       mv.accept(cv);
-      
-      System.out.println(toString(mv));
+
+      if(DEBUG) {
+        System.out.println(toString(mv));
+      }
       
     } catch (Exception e) {
       throw new RuntimeException("Toxic bytecode generated: " + toString(mv), e);

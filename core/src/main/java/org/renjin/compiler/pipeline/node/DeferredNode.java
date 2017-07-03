@@ -48,7 +48,9 @@ public abstract class DeferredNode {
 
   public void addInputs(DeferredNode[] array) {
     for (int i = 0; i < array.length; i++) {
-      operands.add(array[i]);
+      DeferredNode input = array[i];
+      operands.add(input);
+      input.uses.add(this);
     }
   }
 
@@ -112,10 +114,9 @@ public abstract class DeferredNode {
     return getOperands().get(index);
   }
 
-  public void replaceOperand(DeferredNode node, DeferredNode replacementValue) {
+  public void replaceOperand(DeferredNode toReplace, DeferredNode replacementValue) {
     for(int i=0;i!=operands.size();++i) {
-      if(operands.get(i) == node) {
-        operands.get(i).removeUse(this);
+      if(operands.get(i) == toReplace) {
         operands.set(i, replacementValue);
         replacementValue.addOutput(this);
       }

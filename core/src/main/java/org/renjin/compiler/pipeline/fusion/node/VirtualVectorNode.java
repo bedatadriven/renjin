@@ -44,7 +44,7 @@ public class VirtualVectorNode extends LoopNode {
   private int operandIndex;
   private Vector.Type vectorType;
 
-  public VirtualVectorNode(Vector vector, int operandIndex) {
+  public VirtualVectorNode(int operandIndex, Vector vector) {
     if(VectorPipeliner.DEBUG) {
       System.out.println("VirtualAccessor for " + vector.getClass().getName());
     }

@@ -18,6 +18,7 @@
  */
 package org.renjin.compiler.pipeline.node;
 
+import org.apache.commons.math.stat.clustering.EuclideanIntegerPoint;
 import org.renjin.compiler.pipeline.fusion.LoopKernelCompiler;
 import org.renjin.compiler.pipeline.fusion.LoopKernels;
 import org.renjin.compiler.pipeline.fusion.kernel.CompiledKernel;
@@ -25,6 +26,7 @@ import org.renjin.compiler.pipeline.fusion.kernel.LoopKernel;
 import org.renjin.compiler.pipeline.fusion.node.*;
 import org.renjin.primitives.sequence.IntSequence;
 import org.renjin.primitives.sequence.RepDoubleVector;
+import org.renjin.primitives.vector.MemoizedComputation;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.sexp.*;
 
@@ -38,14 +40,16 @@ public class FusedNode extends DeferredNode implements Runnable {
 
   private LoopKernel kernel;
   private LoopNode[] kernelOperands;
-  
+
+  private MemoizedComputation memoizedComputation;
   private DoubleArrayVector resultVector;
   
   public FusedNode(FunctionNode node) {
     super();
-    
+
     this.kernel = LoopKernels.INSTANCE.get(node);
     this.kernelOperands = new LoopNode[node.getOperands().size()];
+    this.memoizedComputation = (MemoizedComputation) node.getVector();
 
     for (int i = 0; i < kernelOperands.length; i++) {
       kernelOperands[i] = addLoopNode(node.getOperand(i));
@@ -61,6 +65,10 @@ public class FusedNode extends DeferredNode implements Runnable {
     if(node instanceof FunctionNode) {
 
       FunctionNode computation = (FunctionNode) node;
+
+      if(computation.getComputationName().equals("dist")) {
+        return new DistanceMatrixNode(addLoopNode(computation.getOperand(0)));
+      }
 
       int arity = node.getOperands().size();
 
@@ -96,6 +104,10 @@ public class FusedNode extends DeferredNode implements Runnable {
     int inputIndex = this.addInput(node);
     node.addOutput(this);
 
+    if(node instanceof FusedNode) {
+      return new DoubleArrayNode(inputIndex, Type.getType(DoubleArrayVector.class));
+    }
+
     if(node.getVector() instanceof IntBufferVector) {
       return new IntBufferNode(inputIndex);
     }
@@ -110,7 +122,7 @@ public class FusedNode extends DeferredNode implements Runnable {
           addLoopNode(node.getOperand(1)));
     }
 
-    if(node.getVector() instanceof DoubleVector) {
+    if(node.getVector() instanceof DoubleArrayVector) {
       return new DoubleArrayNode(inputIndex, node.getResultVectorType());
     }
 
@@ -122,7 +134,7 @@ public class FusedNode extends DeferredNode implements Runnable {
       return new IntArrayNode(inputIndex, node.getResultVectorType());
     }
 
-    throw new UnsupportedOperationException("operand: " + node.getVector().getClass().getName());
+    return new VirtualVectorNode(inputIndex, node.getVector());
   }
   
   @Override
@@ -153,6 +165,8 @@ public class FusedNode extends DeferredNode implements Runnable {
 
     double[] result = compiledKernel.compute(vectorOperands);
     resultVector = new DoubleArrayVector(result);
+
+    memoizedComputation.setResult(resultVector);
   }
   
   public DoubleArrayVector getVector() {

@@ -18,6 +18,7 @@
  */
 package org.renjin.compiler.builtins;
 
+import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.sexp.Null;
@@ -41,6 +42,10 @@ public class GenericBuiltinGuard implements Specializer {
     ValueBounds object = arguments.get(0).getBounds();
     if(object.isClassAttributeConstant()) {
 
+      if(object.getTypeSet() == TypeSet.S4) {
+        return S4Specialization.trySpecialize(specializer.getName(), runtimeState, object, arguments);
+      }
+      
       // If the class attribute is not known to be NULL, we need to try to
       // do S3 dispatch
       if(object.getConstantClassAttribute() != Null.INSTANCE) {

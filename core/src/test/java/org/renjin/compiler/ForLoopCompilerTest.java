@@ -77,7 +77,6 @@ public class ForLoopCompilerTest extends EvalTestCase {
   }
 
   @Test
-  @Ignore
   public void loopWithS3Call() {
 
     // The + operator is overloaded with a `+.foo` method for class 'foo'

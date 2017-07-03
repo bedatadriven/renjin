@@ -35,6 +35,18 @@ public class ConstantBytecode {
     // SEXP should be on the stack
     // Create new AttributeMap.Builder
 
+    Type builderType = pushAttributeBuilder(mv, constantAttributes);
+    // Stack:
+    // SEXP AttrbuteMap.Builder
+    mv.invokeinterface(Type.getInternalName(SEXP.class), "setAttributes",
+        Type.getMethodDescriptor(Type.getType(SEXP.class), builderType));
+
+  }
+
+  /**
+   * Generates the bytecode to push an AttributeBuilder instance onto the stack.
+   */
+  public static Type pushAttributeBuilder(InstructionAdapter mv, AttributeMap constantAttributes) {
     Type builderType = Type.getType(AttributeMap.Builder.class);
     mv.invokestatic(Type.getInternalName(AttributeMap.class), "newBuilder",
         Type.getMethodDescriptor(builderType), false);
@@ -68,11 +80,13 @@ public class ConstantBytecode {
             Type.getMethodDescriptor(builderType, Type.getType(String.class), Type.getType(SEXP.class)), false);
       }
     }
-    // Stack:
-    // SEXP AttrbuteMap.Builder
-    mv.invokeinterface(Type.getInternalName(SEXP.class), "setAttributes",
-        Type.getMethodDescriptor(Type.getType(SEXP.class), builderType));
+    return builderType;
+  }
 
+  public static void pushAttributes(InstructionAdapter mv, AttributeMap constantAttributes) {
+    pushAttributeBuilder(mv, constantAttributes);
+    mv.invokevirtual(Type.getInternalName(AttributeMap.Builder.class), "build",
+        Type.getMethodDescriptor(Type.getType(AttributeMap.class)), false);
   }
 
   public static void pushConstant(InstructionAdapter mv, SEXP value) {
@@ -88,7 +102,8 @@ public class ConstantBytecode {
         mv.anew(Type.getType(DoubleArrayVector.class));
         mv.dup();
         mv.dconst(((DoubleVector) value).getElementAsDouble(0));
-        generateAttributes(mv, value.getAttributes());
+        pushAttributes(mv, value.getAttributes());
+
         mv.invokespecial(Type.getInternalName(DoubleArrayVector.class), "<init>",
             Type.getMethodDescriptor(Type.VOID_TYPE, Type.DOUBLE_TYPE, Type.getType(AttributeMap.class)), false);
 

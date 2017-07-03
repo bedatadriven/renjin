@@ -20,6 +20,8 @@ package org.renjin.compiler.pipeline;
 
 import org.renjin.repackaged.asm.MethodVisitor;
 
+import static org.renjin.repackaged.asm.Opcodes.*;
+
 public class ComputeMethod {
   private int localCount = 2; // includes instance pointer and argument
 
@@ -41,6 +43,19 @@ public class ComputeMethod {
     return pos;
   }
 
+  /**
+   * Reserves a local variable slot for an integer counter and 
+   * initializes it to zero.
+   * 
+   * @return the local variable index
+   */
+  public int declareCounter() {
+    int localVar = reserveLocal(1);
+    visitor.visitInsn(ICONST_0);
+    visitor.visitVarInsn(ISTORE, localVar);
+    return localVar;
+  }
+
   public void stack(int change) {
     currentStack += change;
     if(currentStack > maxStackSize) {
@@ -59,4 +74,5 @@ public class ComputeMethod {
   public int getMaxLocals() {
     return localCount;
   }
+
 }

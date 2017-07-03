@@ -19,12 +19,9 @@
 package org.renjin.studio;
 
 import org.renjin.aether.AetherPackageLoader;
-import org.renjin.compiler.pipeline.MultiThreadedVectorPipeliner;
-import org.renjin.compiler.pipeline.VectorPipeliner;
 import org.renjin.eval.Context;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
-import org.renjin.primitives.packaging.PackageLoader;
 import org.renjin.sexp.SEXP;
 
 import java.io.PrintWriter;
@@ -42,7 +39,7 @@ public class StudioSession {
 
     this.session = new SessionBuilder()
         .setPackageLoader(new AetherPackageLoader())
-        .setVectorPipeliner(new MultiThreadedVectorPipeliner(threadPool))
+        .setExecutorService(threadPool)
         .withDefaultPackages().build();
   }
 

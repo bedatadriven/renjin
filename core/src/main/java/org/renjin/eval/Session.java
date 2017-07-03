@@ -40,6 +40,7 @@ import java.lang.invoke.MethodHandle;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 
 /**
  * Outermost context for R evaluation.
@@ -133,7 +134,7 @@ public class Session {
   Session(FileSystemManager fileSystemManager,
           ClassLoader classLoader,
           PackageLoader packageLoader,
-          VectorPipeliner pipeliner, Frame globalFrame) {
+          ExecutorService executorService, Frame globalFrame) {
     this.fileSystemManager = fileSystemManager;
     this.classLoader = classLoader;
     this.homeDirectory = FileSystemUtils.homeDirectoryInCoreJar();
@@ -148,7 +149,7 @@ public class Session {
     namespaceRegistry = new NamespaceRegistry(packageLoader, topLevelContext, baseNamespaceEnv);
     securityManager = new SecurityManager();
 
-    this.vectorPipeliner = pipeliner;
+    this.vectorPipeliner = new VectorPipeliner(executorService);
 
 
     // TODO(alex)
@@ -203,7 +204,7 @@ public class Session {
   public RNG getRNG() {
     return rng;
   }
-  
+
   public Environment getGlobalEnvironment() {
     return globalEnvironment;
   }

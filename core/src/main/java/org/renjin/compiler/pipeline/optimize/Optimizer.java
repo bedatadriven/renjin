@@ -19,8 +19,9 @@
 package org.renjin.compiler.pipeline.optimize;
 
 import org.renjin.compiler.pipeline.DeferredGraph;
-import org.renjin.compiler.pipeline.DeferredNode;
+import org.renjin.compiler.pipeline.node.FunctionNode;
 
 public interface Optimizer {
-  boolean optimize(DeferredGraph graph, DeferredNode node);
+  
+  boolean optimize(DeferredGraph graph, FunctionNode node);
 }

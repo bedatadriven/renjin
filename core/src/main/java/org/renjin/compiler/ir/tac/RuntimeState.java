@@ -264,7 +264,7 @@ public class RuntimeState {
     } //else if(!"".equals(group)) {
     //  groupMethodTables = findMethodTable(context, group);
     //}
-    
+  
     if(genericMethodTables != null) {
       s4GenericMethodTables.put(opName, genericMethodTables);
     }
@@ -318,14 +318,14 @@ public class RuntimeState {
       String packageName = packageSymbol.getPrintName();
       Collection<Symbol> exports = context.getNamespaceRegistry().getNamespace(context, packageName).getExports();
       if(exports.contains(Symbol.get("Arith")) ||
-        exports.contains(Symbol.get("Compare")) ||
-        exports.contains(Symbol.get("Logic")) ||
-        exports.contains(Symbol.get(generic))) {
+          exports.contains(Symbol.get("Compare")) ||
+          exports.contains(Symbol.get("Logic")) ||
+          exports.contains(Symbol.get(generic))) {
         Namespace packageNamespace = context.getNamespaceRegistry().getNamespace(context, packageName);
         Frame packageFrame = packageNamespace.getNamespaceEnvironment().getFrame();
         SEXP methodTablePackage = getMethodTable(context, generic, packageFrame);
         if(methodTablePackage instanceof Environment &&
-          ((Environment) methodTablePackage).getFrame().getSymbols().size() > 0) {
+            ((Environment) methodTablePackage).getFrame().getSymbols().size() > 0) {
           methodTableList.add((Environment) methodTablePackage);
         }
       }
@@ -362,12 +362,6 @@ public class RuntimeState {
     return methodTable;
   }
   
-  
-  
-  
-  
-  
-  
   public boolean hasS4MethodTable(Symbol opName) {
     return s4GenericMethodTables.containsKey(opName) ||
       s4GroupMethodTables.containsKey(opName);
@@ -394,7 +388,6 @@ public class RuntimeState {
     }
     return length;
   }
-  
   
   public Map<String,List<List<S3.MethodRanking>>> generateSignatures(Symbol opName, List<ArgumentBounds> arguments, int[] depth) {
   
@@ -468,8 +461,8 @@ public class RuntimeState {
             S3.ArgumentSignature argSignature = argSignatures[col];
             String signature = argSignature.getArgument(argumentClassIdx);
             if(possibleSignatures.isEmpty() ||
-              possibleSignatures.size() < row + 1 ||
-              possibleSignatures.get(row) == null) {
+                possibleSignatures.size() < row + 1 ||
+                possibleSignatures.get(row) == null) {
               int[] distance = argSignature.getDistanceAsArray(argumentClassIdx);
               possibleSignatures.add(row, new S3.MethodRanking(signature, distance));
             } else {
@@ -495,8 +488,6 @@ public class RuntimeState {
     }
     return mapListMethods;
   }
-  
-  
   
   private static S3.ArgumentSignature[] computeArgumentSignatures(Context context, Iterable<PairList.Node> nodes, Map<Symbol, SEXP> matchedMap, int currentDepth) {
     

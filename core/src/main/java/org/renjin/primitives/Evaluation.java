@@ -85,23 +85,6 @@ public class Evaluation {
   }
 
 
-  /**
-   * This is the so-called complex assignment, such as:
-   *  class(x) <- "foo" or
-   *  length(x) <- 3
-   *
-   *
-   */
-
-  @Builtin("on.exit")
-  public static void onExit( @Current Context context, @Unevaluated SEXP exp, boolean add ) {
-    if(add) {
-      context.addOnExit(exp);
-    } else {
-      context.setOnExit(exp);
-    }
-  }
-
   @Internal
   public static ListVector lapply(@Current Context context, @Current Environment rho, Vector vector,
       Function function) {

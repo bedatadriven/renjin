@@ -58,6 +58,11 @@ public class DistanceMatrixNode extends LoopNode {
   }
 
   @Override
+  public void appendToKey(StringBuilder key) {
+    key.append("DMN");
+  }
+
+  @Override
   public void pushElementAsDouble(ComputeMethod method, Optional<Label> integerNaLabel) {
     MethodVisitor mv = method.getVisitor();
 

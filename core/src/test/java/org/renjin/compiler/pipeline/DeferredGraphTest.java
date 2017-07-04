@@ -20,6 +20,8 @@ package org.renjin.compiler.pipeline;
 
 import org.junit.Test;
 import org.renjin.EvalTestCase;
+import org.renjin.compiler.pipeline.fusion.LoopKernelCache;
+import org.renjin.repackaged.guava.util.concurrent.MoreExecutors;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Vector;
 
@@ -36,7 +38,7 @@ public class DeferredGraphTest extends EvalTestCase {
     
     DeferredGraph graph = new DeferredGraph((Vector)sum);
     graph.dumpGraph();
-    graph.optimize();
+    graph.optimize(new LoopKernelCache(MoreExecutors.sameThreadExecutor()));
     graph.dumpGraph();
     
     

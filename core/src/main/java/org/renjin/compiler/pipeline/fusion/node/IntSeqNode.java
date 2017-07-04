@@ -83,6 +83,11 @@ public class IntSeqNode extends LoopNode {
   }
 
   @Override
+  public void appendToKey(StringBuilder key) {
+    key.append("ISN");
+  }
+
+  @Override
   public void pushElementAsDouble(ComputeMethod method, Optional<Label> integerNaLabel) {
     pushElementAsInt(method, integerNaLabel);
     method.getVisitor().visitInsn(Opcodes.I2D);

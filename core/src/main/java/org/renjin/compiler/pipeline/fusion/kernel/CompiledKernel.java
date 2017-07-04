@@ -18,7 +18,6 @@
  */
 package org.renjin.compiler.pipeline.fusion.kernel;
 
-import org.renjin.compiler.pipeline.node.DeferredNode;
 import org.renjin.sexp.Vector;
 
 /**
@@ -29,8 +28,7 @@ public interface CompiledKernel {
 
   /**
    *
-   * @param operands the flattened set of vectors from a {@link DeferredNode} and its descendants.
-   * @return
+   * @param operands the array of loop inputs.
    */
   public double[] compute(Vector[] operands);
 }

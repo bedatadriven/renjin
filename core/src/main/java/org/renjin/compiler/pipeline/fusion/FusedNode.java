@@ -16,14 +16,15 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.compiler.pipeline.node;
+package org.renjin.compiler.pipeline.fusion;
 
-import org.apache.commons.math.stat.clustering.EuclideanIntegerPoint;
-import org.renjin.compiler.pipeline.fusion.LoopKernelCompiler;
-import org.renjin.compiler.pipeline.fusion.LoopKernels;
 import org.renjin.compiler.pipeline.fusion.kernel.CompiledKernel;
 import org.renjin.compiler.pipeline.fusion.kernel.LoopKernel;
 import org.renjin.compiler.pipeline.fusion.node.*;
+import org.renjin.compiler.pipeline.node.DeferredNode;
+import org.renjin.compiler.pipeline.node.FunctionNode;
+import org.renjin.compiler.pipeline.node.NodeShape;
+import org.renjin.eval.EvalException;
 import org.renjin.primitives.sequence.IntSequence;
 import org.renjin.primitives.sequence.RepDoubleVector;
 import org.renjin.primitives.vector.MemoizedComputation;
@@ -31,9 +32,11 @@ import org.renjin.repackaged.asm.Type;
 import org.renjin.sexp.*;
 
 import java.lang.reflect.Method;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 /**
- * A {@code {@link DeferredNode} that represents a loop operation, such as {@code sum} or 
+ * A {@code {@link DeferredNode } that represents a loop operation, such as {@code sum} or
  * {@code mean} into which one more vector operations have been fused.
  */
 public class FusedNode extends DeferredNode implements Runnable {
@@ -43,7 +46,8 @@ public class FusedNode extends DeferredNode implements Runnable {
 
   private MemoizedComputation memoizedComputation;
   private DoubleArrayVector resultVector;
-  
+  private Future<CompiledKernel> compiledKernel;
+
   public FusedNode(FunctionNode node) {
     super();
 
@@ -58,6 +62,16 @@ public class FusedNode extends DeferredNode implements Runnable {
   
   private LoopNode addLoopNode(DeferredNode node) {
 
+
+    // Fused nodes are not available yet, but their result will be always
+    // be a double array vector
+
+    if(node instanceof FusedNode) {
+      int inputIndex = this.addInput(node);
+      node.addOutput(this);
+
+      return new DoubleArrayNode(inputIndex, Type.getType(DoubleArrayVector.class));
+    }
 
     // If this Deferred is a binary or unary vector operator, then 
     // we can inline into the loop
@@ -101,12 +115,16 @@ public class FusedNode extends DeferredNode implements Runnable {
   }
 
   private LoopNode addLoopInput(DeferredNode node) {
+
+    if(node.getVector() instanceof RepDoubleVector) {
+      return new RepeatingNode(
+          addLoopNode(node.getOperand(0)),
+          addLoopNode(node.getOperand(1)));
+    }
+
     int inputIndex = this.addInput(node);
     node.addOutput(this);
 
-    if(node instanceof FusedNode) {
-      return new DoubleArrayNode(inputIndex, Type.getType(DoubleArrayVector.class));
-    }
 
     if(node.getVector() instanceof IntBufferVector) {
       return new IntBufferNode(inputIndex);
@@ -114,12 +132,6 @@ public class FusedNode extends DeferredNode implements Runnable {
     
     if(node.getVector() instanceof IntSequence) {
       return new IntSeqNode(inputIndex);
-    }
-    
-    if(node.getVector() instanceof RepDoubleVector) {
-      return new RepeatingNode(
-          addLoopNode(node.getOperand(0)),
-          addLoopNode(node.getOperand(1)));
     }
 
     if(node.getVector() instanceof DoubleArrayVector) {
@@ -152,19 +164,29 @@ public class FusedNode extends DeferredNode implements Runnable {
     return Type.getType(DoubleArrayVector.class);
   }
 
+  public void startCompilation(LoopKernelCache loopKernelCache) {
+
+    this.compiledKernel = loopKernelCache.get(kernel, kernelOperands);
+  }
+
   @Override
   public void run() {
+
+    CompiledKernel kernel;
+    try {
+      kernel = compiledKernel.get();
+    } catch (InterruptedException | ExecutionException e) {
+      throw new EvalException("Exception compiling kernel", e);
+    }
 
     Vector[] vectorOperands = new Vector[getOperands().size()];
     for (int i = 0; i < vectorOperands.length; i++) {
       vectorOperands[i] = getOperand(i).getVector();
     }
-    
-    LoopKernelCompiler compiler = new LoopKernelCompiler();
-    CompiledKernel compiledKernel = compiler.compile(kernel, kernelOperands);
 
-    double[] result = compiledKernel.compute(vectorOperands);
-    resultVector = new DoubleArrayVector(result);
+    double[] result = kernel.compute(vectorOperands);
+
+    resultVector = DoubleArrayVector.unsafe(result);
 
     memoizedComputation.setResult(resultVector);
   }
@@ -175,4 +197,6 @@ public class FusedNode extends DeferredNode implements Runnable {
     }
     return resultVector;
   }
+
+
 }

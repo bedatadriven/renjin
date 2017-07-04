@@ -146,4 +146,9 @@ public class ColSumKernel implements LoopKernel {
   public String debugLabel(LoopNode[] operands) {
     return "colSums(" + operands[0] + ")";
   }
+
+  @Override
+  public void appendToKey(StringBuilder key) {
+    key.append("colSums");
+  }
 }

@@ -20,11 +20,13 @@ package org.renjin.compiler.pipeline.fusion.kernel;
 
 import org.junit.Test;
 import org.renjin.compiler.pipeline.DeferredGraph;
-import org.renjin.compiler.pipeline.node.FusedNode;
+import org.renjin.compiler.pipeline.fusion.FusedNode;
+import org.renjin.compiler.pipeline.fusion.LoopKernelCache;
 import org.renjin.primitives.R$primitive$$times$deferred_dd;
 import org.renjin.primitives.R$primitive$$times$deferred_ii;
 import org.renjin.primitives.matrix.DeferredColSums;
 import org.renjin.primitives.sequence.IntSequence;
+import org.renjin.repackaged.guava.util.concurrent.MoreExecutors;
 import org.renjin.sexp.*;
 
 import java.nio.IntBuffer;
@@ -128,8 +130,7 @@ public class ColSumKernelTest {
 
   private double[] compute(DeferredColSums colSums) {
     DeferredGraph graph = new DeferredGraph(colSums);
-    graph.optimize();
-    graph.fuse();
+    graph.optimize(new LoopKernelCache(MoreExecutors.sameThreadExecutor()));
     FusedNode root = (FusedNode) graph.getRoot();
     root.run();
 

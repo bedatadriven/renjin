@@ -164,5 +164,6 @@ public abstract class LoopNode {
    * Reports whether it is necessary to check for integer NAs when accessing or computing elements.
    */
   public abstract boolean mustCheckForIntegerNAs();
-  
+
+  public abstract void appendToKey(StringBuilder key);
 }

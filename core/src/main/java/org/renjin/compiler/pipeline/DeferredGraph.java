@@ -18,7 +18,10 @@
  */
 package org.renjin.compiler.pipeline;
 
+import org.renjin.compiler.pipeline.fusion.FusedNode;
+import org.renjin.compiler.pipeline.fusion.LoopKernelCache;
 import org.renjin.compiler.pipeline.fusion.LoopKernels;
+import org.renjin.compiler.pipeline.fusion.kernel.LoopKernel;
 import org.renjin.compiler.pipeline.node.*;
 import org.renjin.compiler.pipeline.optimize.Optimizers;
 import org.renjin.primitives.ni.DeferredNativeCall;
@@ -32,6 +35,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
 
 /**
  * Directed, acyclic graph (DAG) of a deferred computation.
@@ -55,36 +59,37 @@ public class DeferredGraph {
     addRoot(root);
   }
 
-  public void optimize() {
+  public void optimize(LoopKernelCache loopKernelCache) {
     Optimizers optimizers = new Optimizers();
     optimizers.optimize(this);
-    fuse();
+    fuse(loopKernelCache);
   }
   
-  public void fuse() {
+  public void fuse(LoopKernelCache loopKernelCache) {
     // Conduct a depth-first search of summary operators we can collapse
 
     Set<DeferredNode> visited = Sets.newIdentityHashSet();
     for (DeferredNode rootNode : rootNodes) {
-      fuse(visited, rootNode);
+      fuse(loopKernelCache, visited, rootNode);
     }
   }
 
-  private void fuse(Set<DeferredNode> visited, DeferredNode node) {
+  private void fuse(LoopKernelCache loopKernelCache, Set<DeferredNode> visited, DeferredNode node) {
     if(visited.add(node)) {
       // First time we've seen this node, try to fuse its operands
       // before trying itself
       for (DeferredNode operand : node.getOperands()) {
-        fuse(visited, operand);
+        fuse(loopKernelCache, visited, operand);
       }
     }
-    DeferredNode fused = tryFuse(node);
+    FusedNode fused = tryFuse(node);
     if(fused != null) {
+      fused.startCompilation(loopKernelCache);
       replaceNode(node, fused);
     }
   }
 
-  private DeferredNode tryFuse(DeferredNode root) {
+  private FusedNode tryFuse(DeferredNode root) {
     if(LoopKernels.INSTANCE.supports(root)) {
       return new FusedNode((FunctionNode) root);
     }

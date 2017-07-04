@@ -66,6 +66,15 @@ public class RepeatingNode extends LoopNode {
   }
 
   @Override
+  public void appendToKey(StringBuilder key) {
+    key.append("rep(");
+    sourceNode.appendToKey(key);
+    key.append(',');
+    timesNode.appendToKey(key);
+    key.append(')');
+  }
+
+  @Override
   public void pushElementAsDouble(ComputeMethod method, Optional<Label> integerNaLabel) {
     MethodVisitor mv = method.getVisitor();
     mv.visitVarInsn(ILOAD, sourceLengthLocal);

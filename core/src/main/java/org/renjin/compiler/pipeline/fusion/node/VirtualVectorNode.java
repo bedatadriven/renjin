@@ -108,4 +108,9 @@ public class VirtualVectorNode extends LoopNode {
   public boolean mustCheckForIntegerNAs() {
     return vectorType == IntVector.VECTOR_TYPE;
   }
+
+  @Override
+  public void appendToKey(StringBuilder key) {
+    key.append(vectorClass);
+  }
 }

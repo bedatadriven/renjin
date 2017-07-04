@@ -18,6 +18,7 @@
  */
 package org.renjin.compiler.pipeline;
 
+import org.renjin.compiler.pipeline.fusion.LoopKernelCache;
 import org.renjin.eval.Profiler;
 import org.renjin.primitives.ni.DeferredNativeCall;
 import org.renjin.primitives.vector.DeferredComputation;
@@ -38,14 +39,17 @@ public class VectorPipeliner {
   
   private final ListeningExecutorService executorService;
 
+  private final LoopKernelCache loopKernelCache;
+
   public VectorPipeliner(ExecutorService executorService) {
     this.executorService = MoreExecutors.listeningDecorator(executorService);
+    this.loopKernelCache = new LoopKernelCache(executorService);
   }
 
   public void materialize(DeferredNativeCall call) {
 
     DeferredGraph graph = new DeferredGraph(call);
-    graph.optimize();
+    graph.optimize(loopKernelCache);
     graph.dumpGraph();
     throw new UnsupportedOperationException("TODO");
   }
@@ -62,7 +66,7 @@ public class VectorPipeliner {
       graph.dumpGraph();
     }
 
-    graph.optimize();
+    graph.optimize(loopKernelCache);
 
     if(VectorPipeliner.DEBUG) {
       graph.dumpGraph();

@@ -36,6 +36,7 @@ import org.renjin.repackaged.guava.io.Files;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.concurrent.Callable;
 
 import static org.renjin.repackaged.asm.Opcodes.*;
 
@@ -71,28 +72,36 @@ import static org.renjin.repackaged.asm.Opcodes.*;
  * <p>Because we totally inline getElementAsDouble,
  * we need a new Jitted class for each combination of operators and vector classes.</p>
  */
-public class LoopKernelCompiler {
+public class LoopKernelCompiler implements Callable<CompiledKernel> {
   
   public static final boolean DEBUG = System.getProperty("renjin.vp.jit.debug") != null;
 
   private static final String KERNEL_INTERFACE = Type.getInternalName(CompiledKernel.class);
-  
+
+  private final LoopKernel kernel;
+  private final LoopNode[] operands;
+
   private String className;
   private ClassVisitor cv;
 
-  public LoopKernelCompiler() {
-    className = "Jit" + System.identityHashCode(this);
+  public LoopKernelCompiler(LoopKernel kernel, LoopNode[] operands) {
+    this.kernel = kernel;
+    this.operands = operands;
+    this.className = "Jit" + System.identityHashCode(this);
   }
 
-  public CompiledKernel compile(LoopKernel kernel, LoopNode[] operands)  {
+  public CompiledKernel call()  {
     long startTime = System.nanoTime();
     ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
     cv = cw;
     cv.visit(V1_6, ACC_PUBLIC + ACC_SUPER, className, null, "java/lang/Object", new String[]{ KERNEL_INTERFACE });
 
     writeConstructor();
-    writeComputeDebug(kernel, operands);
-
+    if(DEBUG) {
+      writeComputeDebug(kernel, operands);
+    } else {
+      writeCompute(kernel, operands);
+    }
     cv.visitEnd();
 
     byte[] classBytes = cw.toByteArray();
@@ -103,7 +112,6 @@ public class LoopKernelCompiler {
     long loadTime = System.nanoTime() - startTime - compileTime;
 
     if(VectorPipeliner.DEBUG) {
-     // System.out.println(className + ": " + kernel.jitKey());
       System.out.println(className + ": compile: " + (compileTime/1e6) + "ms");
       System.out.println(className + ": load: " + (loadTime / 1e6) + "ms");
       if(DEBUG) {

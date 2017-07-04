@@ -107,6 +107,17 @@ public class BinaryVectorOpNode extends LoopNode {
   }
 
   @Override
+  public void appendToKey(StringBuilder key) {
+    key.append(operatorName);
+    key.append('(');
+    for (LoopNode operandAccessor : operandAccessors) {
+      operandAccessor.appendToKey(key);
+      key.append(';');
+    }
+    key.append(')');
+  }
+
+  @Override
   public void pushElementAsDouble(ComputeMethod method, Optional<Label> naIntegerLabel) {
     if (argumentType.equals(double.class)) {
       computeDouble(method, naIntegerLabel);

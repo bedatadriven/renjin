@@ -83,6 +83,11 @@ public class IntArrayNode extends LoopNode {
   }
 
   @Override
+  public void appendToKey(StringBuilder key) {
+    key.append("IAN");
+  }
+
+  @Override
   public String toString() {
     return "x" + operandIndex;
   }

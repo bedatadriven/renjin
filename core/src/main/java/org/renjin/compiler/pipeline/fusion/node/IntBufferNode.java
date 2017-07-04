@@ -98,6 +98,11 @@ public class IntBufferNode extends LoopNode {
   }
 
   @Override
+  public void appendToKey(StringBuilder key) {
+    key.append("IBN");
+  }
+
+  @Override
   public String toString() {
     return "x" + operandIndex;
   }

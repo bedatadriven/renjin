@@ -82,6 +82,14 @@ public class UnaryVectorOpNode extends LoopNode {
     return operand.mustCheckForIntegerNAs();
   }
 
+  @Override
+  public void appendToKey(StringBuilder key) {
+    key.append(operatorName);
+    key.append('(');
+    operand.appendToKey(key);
+    key.append(')');
+  }
+
   private void pushResult(ComputeMethod method, Optional<Label> integerNaLabel) {
     if (operandType.equals(double.class)) {
       operand.pushElementAsDouble(method, integerNaLabel);

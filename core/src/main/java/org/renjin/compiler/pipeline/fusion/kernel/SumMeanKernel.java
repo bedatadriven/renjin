@@ -111,4 +111,9 @@ public class SumMeanKernel implements LoopKernel {
   public String debugLabel(LoopNode[] operands) {
     return (mean ? "mean" : "sum") + "(...)";
   }
+
+  @Override
+  public void appendToKey(StringBuilder key) {
+    key.append(mean ? "mean" : "sum");
+  }
 }

@@ -93,14 +93,8 @@ public class FunctionNode extends DeferredNode implements Runnable {
   public void run() {
     if(vector instanceof MemoizedComputation) {
       this.result = ((MemoizedComputation) vector).forceResult();
-    } else if(vector instanceof DoubleVector) {
-      this.result = DoubleArrayVector.unsafe(vector.toDoubleArray());
-    } else if(vector instanceof IntVector) {
-      this.result = IntArrayVector.unsafe(vector.toIntArray());
-    } else if(vector instanceof LogicalVector) {
-      this.result = LogicalArrayVector.unsafe(vector.toIntArray());
     } else {
-      throw new UnsupportedOperationException("vector: " + vector.getClass().getName());
+      this.result = vector;
     }
   }
 }

@@ -29,4 +29,6 @@ public interface LoopKernel {
   void compute(ComputeMethod method, LoopNode node[]);
   
   String debugLabel(LoopNode[] operands);
+
+  void appendToKey(StringBuilder key);
 }

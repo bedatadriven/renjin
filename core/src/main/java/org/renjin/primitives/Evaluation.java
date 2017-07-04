@@ -206,11 +206,6 @@ public class Evaluation {
     return result.build();
   }
 
-  @Builtin("return")
-  public static SEXP doReturn(@Current Environment rho, SEXP value) {
-    throw new ReturnException(rho, value);
-  }
-
   @Internal("do.call")
   public static SEXP doCall(@Current Context context, Function what, ListVector arguments, Environment environment) {
     PairList argumentPairList = new PairList.Builder().addAll(arguments).build();

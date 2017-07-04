@@ -125,4 +125,5 @@ public class UnaryVectorOpNode extends LoopNode {
   public String toString() {
     return operatorName + "(" + operand + ")";
   }
+
 }

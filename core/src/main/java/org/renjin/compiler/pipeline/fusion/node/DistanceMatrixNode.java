@@ -94,4 +94,9 @@ public class DistanceMatrixNode extends LoopNode {
     mv.visitInsn(DSUB);
     mv.visitMethodInsn(INVOKESTATIC, "java/lang/Math", "abs", "(D)D", false);
   }
+
+  @Override
+  public String toString() {
+    return "dist(" + operandNode + ")";
+  }
 }

@@ -81,4 +81,9 @@ public class RepeatingNode extends LoopNode {
     mv.visitInsn(IREM);
     sourceNode.pushElementAsDouble(method);
   }
+
+  @Override
+  public String toString() {
+    return "rep(" + sourceNode + ", " + timesNode + ")";
+  }
 }

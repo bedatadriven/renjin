@@ -33,7 +33,7 @@ import static org.renjin.repackaged.asm.Opcodes.*;
 public class BinaryVectorOpNode extends LoopNode {
 
   private String operatorName;
-  private LoopNode[] operandAccessors = new LoopNode[2];
+  private LoopNode[] operands = new LoopNode[2];
   private int lengthLocal1;
   private int lengthLocal2;
   private int lengthLocal;
@@ -42,8 +42,8 @@ public class BinaryVectorOpNode extends LoopNode {
 
   public BinaryVectorOpNode(String operatorName, Method operator, LoopNode x, LoopNode y) {
     this.operatorName = operatorName;
-    this.operandAccessors[0] = x;
-    this.operandAccessors[1] = y;
+    this.operands[0] = x;
+    this.operands[1] = y;
     applyMethod = operator;
     assert applyMethod != null;
     argumentType = applyMethod.getParameterTypes()[0];
@@ -69,15 +69,15 @@ public class BinaryVectorOpNode extends LoopNode {
   @Override
   public void init(ComputeMethod method) {
     MethodVisitor mv = method.getVisitor();
-    operandAccessors[0].init(method);
-    operandAccessors[1].init(method);
+    operands[0].init(method);
+    operands[1].init(method);
     lengthLocal1 = method.reserveLocal(1);
     lengthLocal2 = method.reserveLocal(1);
     lengthLocal = method.reserveLocal(1);
-    operandAccessors[0].pushLength(method);
+    operands[0].pushLength(method);
     mv.visitInsn(DUP);
     mv.visitVarInsn(ISTORE, lengthLocal1);
-    operandAccessors[1].pushLength(method);
+    operands[1].pushLength(method);
     mv.visitInsn(DUP);
     mv.visitVarInsn(ISTORE, lengthLocal2);
     method.getVisitor().visitMethodInsn(INVOKESTATIC, "java/lang/Math", "max", "(II)I", false);
@@ -103,14 +103,14 @@ public class BinaryVectorOpNode extends LoopNode {
 
   @Override
   public boolean mustCheckForIntegerNAs() {
-    return operandAccessors[0].mustCheckForIntegerNAs() || operandAccessors[1].mustCheckForIntegerNAs();
+    return operands[0].mustCheckForIntegerNAs() || operands[1].mustCheckForIntegerNAs();
   }
 
   @Override
   public void appendToKey(StringBuilder key) {
     key.append(operatorName);
     key.append('(');
-    for (LoopNode operandAccessor : operandAccessors) {
+    for (LoopNode operandAccessor : operands) {
       operandAccessor.appendToKey(key);
       key.append(';');
     }
@@ -141,7 +141,7 @@ public class BinaryVectorOpNode extends LoopNode {
 
     Optional<Label> argNaLabel = Optional.absent();
     if(naLabel.isPresent() &&
-            (operandAccessors[0].mustCheckForIntegerNAs() || operandAccessors[1].mustCheckForIntegerNAs())) {
+            (operands[0].mustCheckForIntegerNAs() || operands[1].mustCheckForIntegerNAs())) {
       argNaLabel = Optional.of(new Label());
     }
 
@@ -157,7 +157,7 @@ public class BinaryVectorOpNode extends LoopNode {
     mv.visitInsn(IREM);
     // stack => { index, index1 }
 
-    operandAccessors[0].pushElementAsInt(method, argNaLabel);
+    operands[0].pushElementAsInt(method, argNaLabel);
 
     // stack => { index, value1 }
     mv.visitInsn(SWAP);
@@ -167,7 +167,7 @@ public class BinaryVectorOpNode extends LoopNode {
     mv.visitInsn(IREM);
     // stack => { value1, index2 }
 
-    operandAccessors[1].pushElementAsInt(method, argNaLabel);
+    operands[1].pushElementAsInt(method, argNaLabel);
     // stack => { value1, value2}
 
     mv.visitMethodInsn(INVOKESTATIC,
@@ -206,12 +206,12 @@ public class BinaryVectorOpNode extends LoopNode {
 
 
     Optional<Label> argNaLabel1 = Optional.absent();
-    if(integerNaLabel.isPresent() && operandAccessors[0].mustCheckForIntegerNAs()) {
+    if(integerNaLabel.isPresent() && operands[0].mustCheckForIntegerNAs()) {
       argNaLabel1 = Optional.of(new Label());
     }
 
     Optional<Label> argNaLabel2 = Optional.absent();
-    if(integerNaLabel.isPresent() && operandAccessors[1].mustCheckForIntegerNAs()) {
+    if(integerNaLabel.isPresent() && operands[1].mustCheckForIntegerNAs()) {
       argNaLabel2 = Optional.of(new Label());
     }
 
@@ -228,7 +228,7 @@ public class BinaryVectorOpNode extends LoopNode {
     mv.visitInsn(IREM);
     // stack => { index, index1 }
     
-    operandAccessors[0].pushElementAsDouble(method, argNaLabel1);
+    operands[0].pushElementAsDouble(method, argNaLabel1);
 
     // stack => { index, [value1, value1] }
     mv.visitInsn(DUP2_X1); // next two instructions equivalent to swap
@@ -238,7 +238,7 @@ public class BinaryVectorOpNode extends LoopNode {
     // stack => { value1, value1, index, length2 }
     mv.visitInsn(IREM);
     // stack => { value1, value1, index2 }
-    operandAccessors[1].pushElementAsDouble(method, argNaLabel2);
+    operands[1].pushElementAsDouble(method, argNaLabel2);
     // stack => { value1, value2}
 
 
@@ -283,6 +283,6 @@ public class BinaryVectorOpNode extends LoopNode {
 
   @Override
   public String toString() {
-    return "(" + operandAccessors[0] + operatorName +  operandAccessors[1] + ")";
+    return "(" + operands[0] + operatorName +  operands[1] + ")";
   }
 }

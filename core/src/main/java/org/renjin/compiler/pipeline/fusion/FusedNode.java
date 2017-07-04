@@ -25,9 +25,7 @@ import org.renjin.compiler.pipeline.node.DeferredNode;
 import org.renjin.compiler.pipeline.node.FunctionNode;
 import org.renjin.compiler.pipeline.node.NodeShape;
 import org.renjin.eval.EvalException;
-import org.renjin.primitives.matrix.TransposingMatrix;
 import org.renjin.primitives.sequence.IntSequence;
-import org.renjin.primitives.sequence.RepDoubleVector;
 import org.renjin.primitives.vector.MemoizedComputation;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.sexp.*;
@@ -172,7 +170,6 @@ public class FusedNode extends DeferredNode implements Runnable {
   }
 
   public void startCompilation(LoopKernelCache loopKernelCache) {
-
     this.compiledKernel = loopKernelCache.get(kernel, kernelOperands);
   }
 

@@ -118,4 +118,8 @@ public class TransposeNode extends LoopNode {
     key.append(')');
   }
 
+  @Override
+  public String toString() {
+    return "t(" + operand + ")";
+  }
 }

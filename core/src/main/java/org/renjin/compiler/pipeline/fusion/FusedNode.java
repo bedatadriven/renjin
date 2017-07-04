@@ -25,6 +25,7 @@ import org.renjin.compiler.pipeline.node.DeferredNode;
 import org.renjin.compiler.pipeline.node.FunctionNode;
 import org.renjin.compiler.pipeline.node.NodeShape;
 import org.renjin.eval.EvalException;
+import org.renjin.primitives.matrix.TransposingMatrix;
 import org.renjin.primitives.sequence.IntSequence;
 import org.renjin.primitives.sequence.RepDoubleVector;
 import org.renjin.primitives.vector.MemoizedComputation;
@@ -64,7 +65,7 @@ public class FusedNode extends DeferredNode implements Runnable {
 
 
     // Fused nodes are not available yet, but their result will be always
-    // be a double array vector
+    // be a DoubleArrayVector
 
     if(node instanceof FusedNode) {
       int inputIndex = this.addInput(node);
@@ -79,9 +80,22 @@ public class FusedNode extends DeferredNode implements Runnable {
     if(node instanceof FunctionNode) {
 
       FunctionNode computation = (FunctionNode) node;
+      String name = computation.getComputationName();
 
-      if(computation.getComputationName().equals("dist")) {
+      if(name.equals("dist")) {
         return new DistanceMatrixNode(addLoopNode(computation.getOperand(0)));
+      }
+
+      if(name.equals("rep")) {
+        return new RepeatingNode(
+            addLoopNode(node.getOperand(0)),
+            addLoopNode(node.getOperand(1)));
+      }
+
+      if(name.equals("t")) {
+        return new TransposeNode(
+            addLoopNode(node.getOperand(0)),
+            addLoopNode(node.getOperand(1)));
       }
 
       int arity = node.getOperands().size();
@@ -90,7 +104,7 @@ public class FusedNode extends DeferredNode implements Runnable {
         Method unaryOperator = UnaryVectorOpNode.findMethod(node.getVector());
         if (unaryOperator != null) {
           return new UnaryVectorOpNode(
-              computation.getComputationName(), 
+              name,
               unaryOperator, addLoopNode(node.getOperand(0)));
         }
       }
@@ -99,7 +113,7 @@ public class FusedNode extends DeferredNode implements Runnable {
         Method binaryOperator = BinaryVectorOpNode.findMethod(node.getVector());
         if (binaryOperator != null) {
           return new BinaryVectorOpNode(
-              computation.getComputationName(),
+              name,
               binaryOperator,
               addLoopNode(node.getOperand(0)),
               addLoopNode(node.getOperand(1)));
@@ -116,15 +130,8 @@ public class FusedNode extends DeferredNode implements Runnable {
 
   private LoopNode addLoopInput(DeferredNode node) {
 
-    if(node.getVector() instanceof RepDoubleVector) {
-      return new RepeatingNode(
-          addLoopNode(node.getOperand(0)),
-          addLoopNode(node.getOperand(1)));
-    }
-
     int inputIndex = this.addInput(node);
     node.addOutput(this);
-
 
     if(node.getVector() instanceof IntBufferVector) {
       return new IntBufferNode(inputIndex);

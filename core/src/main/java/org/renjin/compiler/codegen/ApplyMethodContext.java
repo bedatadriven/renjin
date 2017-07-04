@@ -21,12 +21,9 @@
 package org.renjin.compiler.codegen;
 
 import org.renjin.compiler.cfg.ControlFlowGraph;
-import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.Symbol;
-
-import java.util.List;
 
 public class ApplyMethodContext extends EmitContext {
 
@@ -46,6 +43,5 @@ public class ApplyMethodContext extends EmitContext {
     } else {
       throw new IllegalStateException("argument: " + param);
     }
-
   }
 }

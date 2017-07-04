@@ -23,19 +23,23 @@ import org.renjin.EvalTestCase;
 import org.renjin.compiler.ApplyCallCompiler;
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
+import org.renjin.primitives.vector.DeferredComputation;
+import org.renjin.sexp.AttributeMap;
 import org.renjin.sexp.Closure;
 import org.renjin.sexp.Vector;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
 
 public class ApplyCallCompilerTest extends EvalTestCase {
 
   @Test
-  public void test() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+  public void test() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, InstantiationException {
 
     Closure function = (Closure) eval("function(x) x * 2");
     Vector vector = (Vector)eval("1:1000");
@@ -48,10 +52,25 @@ public class ApplyCallCompilerTest extends EvalTestCase {
 
     Class<?> compiledClass = compiler.compile();
 
+    // Verify that the static "apply" method is correct
     Method applyMethod = compiledClass.getMethod("apply", int.class);
     Double result = (Double) applyMethod.invoke(null, 8);
 
     assertThat(result, equalTo(16d));
+
+    // Now verify that we can use this as a DeferredVector
+    Constructor<?> constructor = compiledClass.getConstructor(Vector.class, AttributeMap.class);
+    DeferredComputation deferredComputation = (DeferredComputation) constructor.newInstance(vector, AttributeMap.EMPTY);
+
+    assertThat(deferredComputation.length(), equalTo(vector.length()));
+    assertThat(deferredComputation.getElementAsDouble(0) /* = 1*2 */, equalTo(2d));
+    assertThat(deferredComputation.getElementAsDouble(1) /* = 2*2 */, equalTo(4d));
+    assertThat(deferredComputation.getElementAsDouble(2) /* = 3*2 */, equalTo(6d));
+
+    Vector[] operands = deferredComputation.getOperands();
+    assertThat(operands.length, equalTo(1));
+    assertThat(operands[0], is(vector));
+
   }
 
 }

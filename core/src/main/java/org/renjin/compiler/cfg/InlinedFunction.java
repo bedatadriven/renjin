@@ -39,6 +39,7 @@ import org.renjin.sexp.Closure;
 import org.renjin.sexp.Function;
 import org.renjin.sexp.Symbol;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -107,10 +108,6 @@ public class InlinedFunction {
     params.get(i).updateBounds(argumentBounds);
   }
 
-  public ValueBounds updateBounds(List<IRArgument> arguments, Map<Expression, ValueBounds> typeMap) {
-    return updateBounds(ArgumentBounds.create(arguments, typeMap));
-  }
-
   public ValueBounds updateBounds(List<ArgumentBounds> arguments) {
     for (int i = 0; i < arguments.size(); i++) {
       updateParam(i, arguments.get(i).getBounds());
@@ -121,12 +118,20 @@ public class InlinedFunction {
   public ValueBounds computeBounds() {
     
     types.execute();
-    
-    if(returnStatements.size() == 1) {
-      return returnStatements.get(0).getRHS().getValueBounds();
-    } else {
-      throw new UnsupportedOperationException("TODO");
+
+    List<ValueBounds> returnBounds = new ArrayList<>();
+    for (ReturnStatement returnStatement : returnStatements) {
+      returnBounds.add(returnStatement.getRHS().getValueBounds());
     }
+    return ValueBounds.union(returnBounds);
+  }
+
+  /**
+   *
+   * @return true if it can be proven that this inlined function has no side effects.
+   */
+  public boolean isPure() {
+    return types.isPure();
   }
   
   public void writeInline(EmitContext emitContext, InstructionAdapter mv, MatchedArguments matching, List<IRArgument> arguments) {

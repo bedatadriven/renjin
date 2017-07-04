@@ -18,6 +18,7 @@
  */
 package org.renjin.primitives;
 
+import org.renjin.compiler.ir.tac.ApplyCallCompiler;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Builtin;
@@ -94,7 +95,7 @@ public class Evaluation {
       // For historical reasons, the calls created by lapply are unevaluated, and code has
       // been written (e.g. bquote) that relies on this.
       FunctionCall getElementCall = FunctionCall.newCall(Symbol.get("[["), vector, new IntArrayVector(i+1));
-      FunctionCall applyFunctionCall = new FunctionCall((SEXP)function, new PairList.Node(getElementCall,
+      FunctionCall applyFunctionCall = new FunctionCall(function, new PairList.Node(getElementCall,
           new PairList.Node(Symbols.ELLIPSES, Null.INSTANCE)));
       builder.add( context.evaluate(applyFunctionCall, rho) );
     }

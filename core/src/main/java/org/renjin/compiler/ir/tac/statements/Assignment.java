@@ -116,6 +116,11 @@ public class Assignment implements Statement {
     return stackIncrease;
   }
 
+  @Override
+  public boolean isPure() {
+    return rhs.isPure();
+  }
+
 
   public void setLHS(LValue lhs) {
     this.lhs = lhs;

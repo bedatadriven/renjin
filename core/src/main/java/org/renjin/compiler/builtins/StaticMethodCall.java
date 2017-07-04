@@ -89,4 +89,9 @@ public class StaticMethodCall implements Specialization {
         Type.getMethodDescriptor(method.getMethod()), false);
 
   }
+
+  @Override
+  public boolean isPure() {
+    return method.isPure();
+  }
 }

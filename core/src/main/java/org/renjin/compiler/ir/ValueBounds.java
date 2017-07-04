@@ -264,10 +264,11 @@ public class ValueBounds {
   }
 
   /**
-   * @return the value bounds of elements of this vector.
+   * @return the value bounds of elements of this vector, as if from the
+   * expression X[[i]]
    */
   public ValueBounds getElementBounds() {
-    if(constantValue instanceof Vector) {
+    if(constantValue instanceof ListVector) {
       ListVector constantList = (ListVector) this.constantValue;
       List<ValueBounds> elementBounds = new ArrayList<>();
       for (int i = 0; i < constantList.length(); i++) {

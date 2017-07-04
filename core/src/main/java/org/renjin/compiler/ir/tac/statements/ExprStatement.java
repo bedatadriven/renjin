@@ -89,12 +89,17 @@ public class ExprStatement implements Statement {
 
   @Override
   public int emit(EmitContext emitContext, InstructionAdapter mv) {
-    if(!operand.isDefinitelyPure()) {
+    if(!operand.isPure()) {
       int stackSizeIncrease = operand.load(emitContext, mv);
       mv.visitInsn(Opcodes.POP);
       return stackSizeIncrease;
     } else {
       return 0;
     }
+  }
+
+  @Override
+  public boolean isPure() {
+    return getRHS().isPure();
   }
 }

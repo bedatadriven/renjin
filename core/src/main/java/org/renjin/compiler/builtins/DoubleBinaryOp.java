@@ -67,6 +67,11 @@ public class DoubleBinaryOp implements Specialization {
     mv.visitInsn(opcode);
   }
 
+  @Override
+  public boolean isPure() {
+    return true;
+  }
+
   public static DoubleBinaryOp trySpecialize(String name, JvmMethod overload, ValueBounds resultBounds) {
     List<JvmMethod.Argument> formals = overload.getPositionalFormals();
     if(formals.size() == 2 &&

@@ -93,6 +93,11 @@ public class ConstantCall implements Specialization {
     }
   }
 
+  @Override
+  public boolean isPure() {
+    return true;
+  }
+
   public static ConstantCall evaluate(JvmMethod method, List<ValueBounds> arguments) {
 
 

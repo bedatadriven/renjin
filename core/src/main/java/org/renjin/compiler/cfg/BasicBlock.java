@@ -233,4 +233,12 @@ public class BasicBlock {
 
   }
 
+  public boolean isPure() {
+    for (Statement statement : statements) {
+      if(!statement.isPure()) {
+        return false;
+      }
+    }
+    return true;
+  }
 }

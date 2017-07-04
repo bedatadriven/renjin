@@ -46,7 +46,7 @@ public class CmpGE extends SpecializedCallExpression {
   }
 
   @Override
-  public boolean isDefinitelyPure() {
+  public boolean isPure() {
     return true;
   }
 

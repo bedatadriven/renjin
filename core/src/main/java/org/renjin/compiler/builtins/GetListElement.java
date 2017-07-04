@@ -75,4 +75,9 @@ public class GetListElement implements Specialization {
         Type.getMethodDescriptor(Type.getType(SEXP.class), Type.INT_TYPE));
 
   }
+
+  @Override
+  public boolean isPure() {
+    return true;
+  }
 }

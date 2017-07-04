@@ -40,7 +40,7 @@ public class ReadLoopVector implements Expression {
   }
 
   @Override
-  public boolean isDefinitelyPure() {
+  public boolean isPure() {
     return true;
   }
 

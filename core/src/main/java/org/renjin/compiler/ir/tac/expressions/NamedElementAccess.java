@@ -48,7 +48,7 @@ public class NamedElementAccess implements Expression {
   }
 
   @Override
-  public boolean isDefinitelyPure() {
+  public boolean isPure() {
     return true;
   }
 

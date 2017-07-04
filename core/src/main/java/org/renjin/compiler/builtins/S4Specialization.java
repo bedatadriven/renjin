@@ -195,4 +195,12 @@ public class S4Specialization implements Specialization {
     inlinedMethod.writeInline(emitContext, mv, matchedArguments, arguments);
     
   }
+
+  @Override
+  public boolean isPure() {
+    if(inlinedMethod == null) {
+      return false;
+    }
+    return inlinedMethod.isPure();
+  }
 }

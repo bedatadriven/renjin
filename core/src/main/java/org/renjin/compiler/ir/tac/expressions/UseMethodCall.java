@@ -67,8 +67,8 @@ public class UseMethodCall implements Expression {
   }
 
   @Override
-  public boolean isDefinitelyPure() {
-    return false;
+  public boolean isPure() {
+    return specialization.isPure();
   }
 
   @Override

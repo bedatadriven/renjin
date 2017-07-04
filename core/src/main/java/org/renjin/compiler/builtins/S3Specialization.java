@@ -35,16 +35,12 @@ import org.renjin.sexp.StringVector;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by parham on 8-6-17.
- */
 public class S3Specialization implements Specialization {
   
   
   private RuntimeState runtimeState;
   private Closure closure;
 
-  
   private InlinedFunction inlinedMethod = null;
   private MatchedArguments matchedArguments;
   
@@ -118,5 +114,13 @@ public class S3Specialization implements Specialization {
   
     inlinedMethod.writeInline(emitContext, mv, matchedArguments, arguments);
   
+  }
+
+  @Override
+  public boolean isPure() {
+    if(inlinedMethod == null) {
+      return false;
+    }
+    return inlinedMethod.isPure();
   }
 }

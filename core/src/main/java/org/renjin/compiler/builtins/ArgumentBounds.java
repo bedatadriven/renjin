@@ -36,6 +36,11 @@ public class ArgumentBounds {
     this.bounds = bounds;
   }
 
+  public ArgumentBounds(ValueBounds valueBounds) {
+    this.name = null;
+    this.bounds = valueBounds;
+  }
+
   public String getName() {
     return name;
   }

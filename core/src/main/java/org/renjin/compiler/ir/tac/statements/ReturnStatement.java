@@ -144,6 +144,11 @@ public class ReturnStatement implements Statement, BasicBlockEndingStatement {
     return 0;
   }
 
+  @Override
+  public boolean isPure() {
+    return true;
+  }
+
 
   @Override
   public String toString() {

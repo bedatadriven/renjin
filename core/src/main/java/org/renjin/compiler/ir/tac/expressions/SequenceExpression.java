@@ -42,7 +42,7 @@ public class SequenceExpression extends SpecializedCallExpression {
   }
 
   @Override
-  public boolean isDefinitelyPure() {
+  public boolean isPure() {
     return true;
   }
 

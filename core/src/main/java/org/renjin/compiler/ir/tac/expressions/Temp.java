@@ -44,7 +44,7 @@ public class Temp extends LValue {
   }
 
   @Override
-  public boolean isDefinitelyPure() {
+  public boolean isPure() {
     return true;
   }
 

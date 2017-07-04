@@ -58,8 +58,8 @@ public class PhiFunction implements Expression {
   }
 
   @Override
-  public boolean isDefinitelyPure() {
-    return false; // not sure... have to think about this
+  public boolean isPure() {
+    return true;
   }
 
   @Override

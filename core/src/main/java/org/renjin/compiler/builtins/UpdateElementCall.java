@@ -56,4 +56,11 @@ public class UpdateElementCall implements Specialization {
   public void load(EmitContext emitContext, InstructionAdapter mv, List<IRArgument> arguments) {
     throw new FailedToSpecializeException("TODO");
   }
+
+  @Override
+  public boolean isPure() {
+    // Despite the name, values in R have copy-on-write semantics
+    // so "update" operations have no side-effects, they return a new value.
+    return true;
+  }
 }

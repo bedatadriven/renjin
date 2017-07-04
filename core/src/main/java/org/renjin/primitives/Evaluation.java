@@ -18,6 +18,7 @@
  */
 package org.renjin.primitives;
 
+import org.renjin.compiler.ir.tac.ApplyCallCompiler;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Builtin;
@@ -85,23 +86,6 @@ public class Evaluation {
   }
 
 
-  /**
-   * This is the so-called complex assignment, such as:
-   *  class(x) <- "foo" or
-   *  length(x) <- 3
-   *
-   *
-   */
-
-  @Builtin("on.exit")
-  public static void onExit( @Current Context context, @Unevaluated SEXP exp, boolean add ) {
-    if(add) {
-      context.addOnExit(exp);
-    } else {
-      context.setOnExit(exp);
-    }
-  }
-
   @Internal
   public static ListVector lapply(@Current Context context, @Current Environment rho, Vector vector,
       Function function) {
@@ -111,7 +95,7 @@ public class Evaluation {
       // For historical reasons, the calls created by lapply are unevaluated, and code has
       // been written (e.g. bquote) that relies on this.
       FunctionCall getElementCall = FunctionCall.newCall(Symbol.get("[["), vector, new IntArrayVector(i+1));
-      FunctionCall applyFunctionCall = new FunctionCall((SEXP)function, new PairList.Node(getElementCall,
+      FunctionCall applyFunctionCall = new FunctionCall(function, new PairList.Node(getElementCall,
           new PairList.Node(Symbols.ELLIPSES, Null.INSTANCE)));
       builder.add( context.evaluate(applyFunctionCall, rho) );
     }
@@ -204,11 +188,6 @@ public class Evaluation {
     }
        
     return result.build();
-  }
-
-  @Builtin("return")
-  public static SEXP doReturn(@Current Environment rho, SEXP value) {
-    throw new ReturnException(rho, value);
   }
 
   @Internal("do.call")

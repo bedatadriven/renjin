@@ -223,6 +223,19 @@ public class TypeSolver {
       }
     }
   }
+
+  public boolean isPure() {
+    Set<BasicBlock> checked = Sets.newHashSet();
+    for (FlowEdge flowEdge : executable) {
+      BasicBlock basicBlock = flowEdge.getSuccessor();
+      if(checked.add(basicBlock)) {
+        if (!basicBlock.isPure()) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
   
   private void visitExpression(BasicBlock block, Statement statement) {
     

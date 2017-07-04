@@ -71,10 +71,9 @@ public class BuiltinCall implements CallExpression {
   }
   
   @Override
-  public boolean isDefinitelyPure() {
-    return false;
+  public boolean isPure() {
+    return specialization.isPure();
   }
-
 
   @Override
   public int load(EmitContext emitContext, InstructionAdapter mv) {

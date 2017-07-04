@@ -70,7 +70,7 @@ public final class Constant implements SimpleExpression {
   }
 
   @Override
-  public final boolean isDefinitelyPure() {
+  public final boolean isPure() {
     return true;
   }
 

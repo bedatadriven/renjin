@@ -61,8 +61,11 @@ public class ClosureCall implements Expression {
   }
 
   @Override
-  public boolean isDefinitelyPure() {
-    return false;
+  public boolean isPure() {
+    if(inlinedFunction == null) {
+      return false;
+    }
+    return inlinedFunction.isPure();
   }
 
   @Override

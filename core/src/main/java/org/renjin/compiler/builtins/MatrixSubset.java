@@ -64,4 +64,9 @@ public class MatrixSubset implements Specialization {
   public void load(EmitContext emitContext, InstructionAdapter mv, List<IRArgument> arguments) {
     throw new UnsupportedOperationException();
   }
+
+  @Override
+  public boolean isPure() {
+    return true;
+  }
 }

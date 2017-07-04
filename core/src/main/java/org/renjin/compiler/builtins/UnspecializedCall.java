@@ -48,4 +48,9 @@ public class UnspecializedCall implements Specialization {
   public void load(EmitContext emitContext, InstructionAdapter mv, List<IRArgument> arguments) {
     throw new FailedToSpecializeException("failed to specialize");
   }
+
+  @Override
+  public boolean isPure() {
+    return false;
+  }
 }

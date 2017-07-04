@@ -144,4 +144,9 @@ public class GetAtomicElement implements Specialization {
 
     }
   }
+
+  @Override
+  public boolean isPure() {
+    return true;
+  }
 }

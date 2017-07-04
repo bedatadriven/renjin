@@ -47,12 +47,12 @@ public abstract class SpecializedCallExpression implements Expression {
   public abstract boolean isFunctionDefinitelyPure();
 
   @Override
-  public boolean isDefinitelyPure() {
+  public boolean isPure() {
     if(!isFunctionDefinitelyPure()) {
       return false;
     }
     for(int i=0;i!=arguments.length;++i) {
-      if(!arguments[i].isDefinitelyPure()) {
+      if(!arguments[i].isPure()) {
         return false;
       }
     }

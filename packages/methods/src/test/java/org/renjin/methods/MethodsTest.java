@@ -63,15 +63,9 @@ public class MethodsTest {
     assertThat(dim.getElementAsInt(1), equalTo(1));
   }
   
-  @Test
   @Ignore
   public void loopS4MethodCall() throws IOException {
-  
     ForFunction.COMPILE_LOOPS = false;
-//    String rdsFile = Resources.getResource("100k_36bp_Seqs_list.rds").getFile();
-//    global.setVariable(topLevelContext, "file" , new StringArrayVector(rdsFile));
-//    eval("y <- readRDS(file)");
-//    eval("library(methods)");
     eval(" set.seed(101)                                                                   ");
     eval(" setClass('Seq', representation(seq = 'character') )                             ");
     eval(" reads=character(1000)                                                          ");
@@ -84,14 +78,31 @@ public class MethodsTest {
     eval(" atg <- new('SeqSum', seq = 'ATG', value = 0)                                    ");
     ForFunction.COMPILE_LOOPS = true;
     ForFunction.FAIL_ON_COMPILATION_ERROR = true;
-
     eval(" for(i in 1:1e4) { atg <- atg + seqs[[ i ]] }                                    ");
-//    eval(" x <- letters;x=c(x,x,x);x=c(x,x,x);x=c(x,x,x);x=c(x,x,x,x);x=c(x,x,x,x);       ");
-//    eval(" for(i in 1:1e4) { atg <- paste0('10k x: ', x[i]) }                         ");
     eval("                                                                                 ");
-  
+    
     ForFunction.COMPILE_LOOPS = false;
+    
+    DoubleArrayVector count = (DoubleArrayVector) eval("atg@value");
+    assertThat(count.getElementAsInt(0), equalTo( 4316 ));
+  }
   
+  @Ignore
+  public void loopS4MethodCallSimple() throws IOException {
+    ForFunction.COMPILE_LOOPS = false;
+    eval(" set.seed(101)                                                                   ");
+    eval(" reads=character(250)                                                          ");
+    eval(" aa=c('A','T','C','G')                                                           ");
+    eval(" for(i in 1:250) reads[i] <- paste0(sample(aa, 36, replace = TRUE), collapse='') ");
+    eval(" setClass('SeqSum', representation(seq = 'character', value = 'numeric') )       ");
+    eval(" setMethod('+', signature(e1 = 'SeqSum', e2 = 'character'), function(e1, e2) { hasSeq <- grep(e1@seq, seq); if(length(hasSeq) > 0) e1@value <- e1@value + 1; return(e1) }) ");
+    eval(" atg <- new('SeqSum', seq = 'ATG', value = 0)                                    ");
+    ForFunction.COMPILE_LOOPS = true;
+    ForFunction.FAIL_ON_COMPILATION_ERROR = true;
+    eval(" for(i in 1:250) { atg <- atg + reads[ i ] }                                    ");
+    
+    ForFunction.COMPILE_LOOPS = false;
+    
     DoubleArrayVector count = (DoubleArrayVector) eval("atg@value");
     assertThat(count.getElementAsInt(0), equalTo( 4316 ));
   }

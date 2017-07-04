@@ -19,7 +19,6 @@
 package org.renjin.eval;
 
 import org.apache.commons.vfs2.FileSystemManager;
-import org.renjin.compiler.pipeline.VectorPipeliner;
 import org.renjin.primitives.packaging.ClasspathPackageLoader;
 import org.renjin.primitives.packaging.PackageLoader;
 import org.renjin.repackaged.guava.collect.Lists;

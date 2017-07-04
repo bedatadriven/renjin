@@ -21,7 +21,7 @@ package org.renjin.eval;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
-import org.renjin.compiler.pipeline.VectorPipeliner;
+import org.renjin.pipeliner.VectorPipeliner;
 import org.renjin.primitives.io.connections.ConnectionTable;
 import org.renjin.primitives.packaging.DllInfo;
 import org.renjin.primitives.packaging.NamespaceRegistry;

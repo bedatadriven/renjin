@@ -140,7 +140,7 @@ public class ReturnStatement implements Statement, BasicBlockEndingStatement {
     }
     
     returnValue.load(emitContext, mv);
-    mv.areturn(Type.getType(SEXP.class));
+    emitContext.writeReturn(mv, returnValue.getType());
     return 0;
   }
 

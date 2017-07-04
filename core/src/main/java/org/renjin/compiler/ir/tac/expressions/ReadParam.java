@@ -51,8 +51,7 @@ public class ReadParam implements Expression {
 
   @Override
   public int load(EmitContext emitContext, InstructionAdapter mv) {
-    InlineParamExpr paramaterValue = emitContext.getInlineParameter(param);
-    paramaterValue.load(mv);
+    emitContext.loadParam(mv, param);
     return 0;
   }
 

@@ -20,8 +20,142 @@
 
 package org.renjin.compiler.codegen;
 
+import org.renjin.compiler.CompiledLoopBody;
+import org.renjin.compiler.JitClassLoader;
+import org.renjin.compiler.cfg.InlinedFunction;
+import org.renjin.compiler.ir.ValueBounds;
+import org.renjin.primitives.vector.MemoizedComputation;
+import org.renjin.repackaged.asm.ClassVisitor;
+import org.renjin.repackaged.asm.ClassWriter;
+import org.renjin.repackaged.asm.MethodVisitor;
+import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.asm.commons.InstructionAdapter;
+import org.renjin.repackaged.asm.util.TraceClassVisitor;
+import org.renjin.sexp.AttributeMap;
+import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.Symbol;
+import org.renjin.sexp.Vector;
+
+import java.io.PrintWriter;
+
+import static org.renjin.repackaged.asm.Opcodes.*;
+
 /**
- * Created by alex on 4-7-17.
+ * Generates a MemoizedComputation implementation for
+ * a deferred apply() call.
  */
 public class ApplyCallWriter {
+
+  private static final Type ATTRIBUTE_MAP_TYPE = Type.getType(AttributeMap.class);
+  private static final Type VECTOR_TYPE = Type.getType(Vector.class);
+
+  private ClassWriter cw;
+  private ClassVisitor cv;
+
+  private Type thisClass;
+  private Type superClass;
+  private InlinedFunction function;
+  private Symbol elementFormalName;
+  private ValueBounds elementBounds;
+  private ValueBounds resultBounds;
+
+  public ApplyCallWriter(InlinedFunction function, Symbol elementFormalName, ValueBounds elementBounds, ValueBounds resultBounds) {
+    this.function = function;
+    this.elementFormalName = elementFormalName;
+    this.elementBounds = elementBounds;
+    this.resultBounds = resultBounds;
+
+    thisClass = Type.getType("org/renjin/DeferredApply" + System.identityHashCode(this));
+    superClass =  Type.getType(Object.class);
+     //  Type.getType(DoubleVector.class);
+
+  }
+
+
+  public Class<?> build() {
+
+    startClass();
+//    writeVectorField();
+//    writeConstructor();
+
+    writeApplyImpl();
+    writeClassEnd();
+
+    return JitClassLoader.defineClass(CompiledLoopBody.class, thisClass.getInternalName().replace('/', '.'), cw.toByteArray());
+  }
+
+  private void startClass() {
+    cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+    cv = new TraceClassVisitor(cw, new PrintWriter(System.out));
+    cv.visit(V1_6, ACC_PUBLIC + ACC_SUPER, thisClass.getInternalName(), null,
+        superClass.getInternalName(), new String[] { Type.getInternalName(MemoizedComputation.class) });
+  }
+
+
+  /**
+   * Write a field to store the vector over which we are applying the function
+   */
+  private void writeVectorField() {
+    cv.visitField(ACC_PRIVATE, "vector", Type.getDescriptor(Vector.class), null, null);
+  }
+
+  /**
+   * Write a constructor which takes the input vector and an AttributeMap
+   */
+  private void writeConstructor() {
+
+    MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "<init>",
+        Type.getMethodDescriptor(Type.VOID_TYPE, VECTOR_TYPE, ATTRIBUTE_MAP_TYPE), null, null);
+    mv.visitCode();
+    mv.visitVarInsn(ALOAD, 0); // this
+    mv.visitVarInsn(ALOAD, 2); // Attributes
+    mv.visitMethodInsn(INVOKESPECIAL, superClass.getInternalName(), "<init>",
+        Type.getMethodDescriptor(Type.VOID_TYPE, ATTRIBUTE_MAP_TYPE), false);
+
+    // this.vector = vector
+    mv.visitVarInsn(ALOAD, 0);
+    mv.visitVarInsn(ALOAD, 1); // vector
+    mv.visitFieldInsn(PUTFIELD, thisClass.getInternalName(), "vector", VECTOR_TYPE.getDescriptor());
+
+    mv.visitInsn(RETURN);
+    mv.visitMaxs(2, 3);
+    mv.visitEnd();
+  }
+
+  private void writeLengthImpl() {
+    MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "length", "()D", null, null);
+    mv.visitCode();
+    mv.visitVarInsn(ALOAD, 0);
+    mv.visitFieldInsn(GETFIELD, thisClass.getInternalName(), "vector", VECTOR_TYPE.getDescriptor());
+    mv.visitMethodInsn(INVOKEINTERFACE, "org/renjin/sexp/SEXP", "length", "()D", true);
+    mv.visitInsn(DRETURN);
+    mv.visitMaxs(1, 3);
+    mv.visitEnd();
+  }
+
+  private void writeApplyImpl() {
+    MethodVisitor mv = cv.visitMethod(ACC_PUBLIC | ACC_STATIC, "apply",
+        Type.getMethodDescriptor(resultBounds.storageType(), elementBounds.storageType()), null, null);
+    mv.visitCode();
+
+    VariableSlots slots = new VariableSlots(elementBounds.storageType().getSize(), function.getTypes());
+    ApplyMethodContext emitContext = new ApplyMethodContext(function.getCfg(), elementFormalName,  elementBounds.storageType(), slots);
+
+    function.write(emitContext, new InstructionAdapter(mv));
+
+    mv.visitMaxs(1, 3);
+    mv.visitEnd();
+  }
+
+  private void writeGetElementImpl() {
+//    MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "getElementAsDouble", "(I)D", null, null);
+//    mv.visitCode();
+//    mv.visitVarInsn();
+  }
+
+  private void writeClassEnd() {
+    cv.visitEnd();
+  }
+
+
 }

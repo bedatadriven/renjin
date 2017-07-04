@@ -20,11 +20,14 @@ package org.renjin.compiler.ir.tac;
 
 import org.junit.Test;
 import org.renjin.EvalTestCase;
+import org.renjin.compiler.ApplyCallCompiler;
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.sexp.Closure;
-import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Vector;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.*;
@@ -32,7 +35,7 @@ import static org.junit.Assert.*;
 public class ApplyCallCompilerTest extends EvalTestCase {
 
   @Test
-  public void test() {
+  public void test() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
 
     Closure function = (Closure) eval("function(x) x * 2");
     Vector vector = (Vector)eval("1:1000");
@@ -43,8 +46,12 @@ public class ApplyCallCompilerTest extends EvalTestCase {
     assertThat(compiler.getFunctionBounds(), equalTo(ValueBounds.primitive(TypeSet.DOUBLE)));
     assertThat(compiler.isPure(), equalTo(true));
 
+    Class<?> compiledClass = compiler.compile();
 
+    Method applyMethod = compiledClass.getMethod("apply", int.class);
+    Double result = (Double) applyMethod.invoke(null, 8);
 
+    assertThat(result, equalTo(16d));
   }
 
 }

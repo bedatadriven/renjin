@@ -341,9 +341,10 @@ public class Native {
 
     MethodHandle methodHandle = method.getMethodHandle();
     if(methodHandle.type().parameterCount() != callArguments.length()) {
-      throw new EvalException("Expected %d arguments, found %d",
+      throw new EvalException("Expected %d arguments, found %d in call to %s",
           methodHandle.type().parameterCount(),
-          callArguments.length());
+          callArguments.length(),
+          method.getName());
     }
     MethodHandle transformedHandle = methodHandle.asSpreader(SEXP[].class, methodHandle.type().parameterCount());
     SEXP[] arguments = toSexpArray(callArguments);
@@ -404,6 +405,53 @@ public class Native {
         return Null.INSTANCE;
       } else {
         return (SEXP) methodHandle.invokeExact(argumentList);
+      }
+    } catch (Error e) {
+      throw e;
+    } catch (Throwable e) {
+      throw new EvalException("Exception calling " + methodExp + " : " + e.getMessage(), e);
+    } finally {
+      CURRENT_CONTEXT.set(previousContext);
+      if(Profiler.ENABLED) {
+        Profiler.functionEnd();
+      }
+    }
+  }
+
+  @Builtin(".External2")
+  public static SEXP external2(@Current Context context,
+                              SEXP methodExp,
+                              @ArgumentList ListVector callArguments,
+                              @NamedFlag("PACKAGE") String packageName,
+                              @NamedFlag("CLASS") String className) throws ClassNotFoundException {
+
+
+    DllSymbol symbol = findMethod(context, methodExp, packageName, className, DllSymbol.Convention.EXTERNAL);
+
+    MethodHandle methodHandle = symbol.getMethodHandle();
+    if(methodHandle.type().parameterCount() != 4) {
+      throw new EvalException("Expected method with four arguments, found %d",
+          methodHandle.type().parameterCount(),
+          callArguments.length());
+    }
+
+    SEXP call = context.getCall();
+    SEXP op = Null.INSTANCE;
+    SEXP args = new PairList.Node(StringVector.valueOf(symbol.getName()), PairList.Node.fromVector(callArguments));
+    SEXP rho = context.getEnvironment();
+
+    if(Profiler.ENABLED) {
+      StringVector nameExp = (StringVector)((ListVector) methodExp).get("name");
+      Profiler.functionStart(Symbol.get(nameExp.getElementAsString(0)), 'C');
+    }
+    Context previousContext = CURRENT_CONTEXT.get();
+    try {
+      CURRENT_CONTEXT.set(context);
+      if (methodHandle.type().returnType().equals(void.class)) {
+        methodHandle.invokeExact(call, op, args, rho);
+        return Null.INSTANCE;
+      } else {
+        return (SEXP) methodHandle.invokeExact(call, op, args, rho);
       }
     } catch (Error e) {
       throw e;

@@ -18,7 +18,6 @@
  */
 package org.renjin.primitives;
 
-import org.renjin.compiler.ir.tac.ApplyCallCompiler;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Builtin;

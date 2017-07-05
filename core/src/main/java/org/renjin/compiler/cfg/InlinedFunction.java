@@ -21,18 +21,19 @@ package org.renjin.compiler.cfg;
 import org.renjin.compiler.NotCompilableException;
 import org.renjin.compiler.TypeSolver;
 import org.renjin.compiler.builtins.ArgumentBounds;
-import org.renjin.compiler.codegen.EmitContext;
-import org.renjin.compiler.codegen.InlineParamExpr;
+import org.renjin.compiler.codegen.*;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.exception.InternalCompilerException;
 import org.renjin.compiler.ir.ssa.SsaTransformer;
 import org.renjin.compiler.ir.tac.*;
 import org.renjin.compiler.ir.tac.expressions.Expression;
+import org.renjin.compiler.ir.tac.expressions.LocalVariable;
 import org.renjin.compiler.ir.tac.expressions.ReadParam;
 import org.renjin.compiler.ir.tac.statements.ReturnStatement;
 import org.renjin.compiler.ir.tac.statements.Statement;
 import org.renjin.eval.MatchedArguments;
 import org.renjin.repackaged.asm.Label;
+import org.renjin.repackaged.asm.MethodVisitor;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.Closure;
@@ -136,8 +137,7 @@ public class InlinedFunction {
   
   public void writeInline(EmitContext emitContext, InstructionAdapter mv, MatchedArguments matching, List<IRArgument> arguments) {
  
-
-    EmitContext inlineContext = emitContext.inlineContext(cfg, types);
+    InlineEmitContext inlineContext = emitContext.inlineContext(cfg, types);
 
     for (Map.Entry<Symbol, Integer> formal : matching.getMatchedFormals().entrySet()) {
       inlineContext.setInlineParameter(formal.getKey(),
@@ -147,36 +147,19 @@ public class InlinedFunction {
     // Last check for assumption violations
     types.verifyFunctionAssumptions(runtimeState);
 
-    Label exitLabel = new Label();
-
-    for(BasicBlock basicBlock : cfg.getBasicBlocks()) {
-      if(basicBlock != cfg.getEntry() && basicBlock != cfg.getExit() &&
-          basicBlock.isLive()) {
-        for(IRLabel label : basicBlock.getLabels()) {
-          mv.visitLabel(inlineContext.getAsmLabel(label));
-        }
-        for(Statement stmt : basicBlock.getStatements()) {
-          try {
-            if (stmt instanceof ReturnStatement) {
-              // Instead of returning, just push the return value on the stack
-              // and jump to the exit point for the function.
-              stmt.getRHS().load(inlineContext, mv);
-              mv.goTo(exitLabel);
-
-            } else {
-              stmt.emit(inlineContext, mv);
-            }
-          } catch (NotCompilableException e) {
-            throw e;
-          } catch (Exception e) {
-            throw new InternalCompilerException("Exception compiling statement " + stmt, e);
-          }
-        }
-      }
-    }
-    mv.mark(exitLabel);
+    ByteCodeEmitter.writeBody(inlineContext, mv, cfg);
   }
-  
+
+
+  public void write(EmitContext emitContext, InstructionAdapter mv) {
+
+    // Last check for assumption violations
+    types.verifyFunctionAssumptions(runtimeState);
+
+    ByteCodeEmitter.writeBody(emitContext, mv, cfg);
+
+  }
+
 
   @Override
   public String toString() {
@@ -190,4 +173,5 @@ public class InlinedFunction {
   public Function getClosure() {
     return closure;
   }
+
 }

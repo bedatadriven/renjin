@@ -111,7 +111,7 @@ public class ByteCodeEmitter implements Opcodes {
     mv = new TraceMethodVisitor(mv, p);
     
     mv.visitCode();
-    writeBody(emitContext, mv);
+    writeBody(emitContext, mv, cfg);
     mv.visitEnd();
     
     try (PrintWriter pw = new PrintWriter(System.out)) {
@@ -143,7 +143,7 @@ public class ByteCodeEmitter implements Opcodes {
     mv = new TraceMethodVisitor(mv, p);
 
     mv.visitCode();
-    writeBody(emitContext, mv);
+    writeBody(emitContext, mv, cfg);
     mv.visitEnd();
 
     PrintWriter pw = new PrintWriter(System.out);
@@ -153,7 +153,7 @@ public class ByteCodeEmitter implements Opcodes {
     methodNode.accept(cv);
   }
 
-  private void writeBody(EmitContext emitContext, MethodVisitor mv) {
+  public static void writeBody(EmitContext emitContext, MethodVisitor mv, ControlFlowGraph cfg) {
     InstructionAdapter instructionAdapter = new InstructionAdapter(mv);
 
     for(BasicBlock basicBlock : cfg.getBasicBlocks()) {
@@ -173,6 +173,7 @@ public class ByteCodeEmitter implements Opcodes {
         }
       }
     }
+    emitContext.writeDone(instructionAdapter);
 
     mv.visitMaxs(0, emitContext.getLocalVariableCount());
   }

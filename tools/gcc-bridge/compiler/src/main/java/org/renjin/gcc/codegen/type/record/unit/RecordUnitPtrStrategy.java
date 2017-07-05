@@ -41,6 +41,7 @@ import org.renjin.repackaged.guava.base.Optional;
 
 import javax.annotation.Nonnull;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 
 
 public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>, SimpleTypeStrategy<RecordUnitPtr> {
@@ -144,6 +145,13 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>
     if(!javaFieldType.equals(this.strategy.getJvmType())) {
       throw new UnsupportedOperationException("Cannot map global variable " + decl + " to existing field " + javaField + ". " +
           "Expected field of type " + this.strategy.getJvmType());
+    }
+
+    if(Modifier.isFinal(javaField.getModifiers())) {
+      // If it's final, then we can make this variable addressable by creating an array on
+      // demand. Changes to the pointer's value by C code will have no effect, but that's a good thing??
+      FatPtrPair fakeAddress = new FatPtrPair(valueFunction, Expressions.newArray(Expressions.staticField(javaField)));
+      return new RecordUnitPtr(Expressions.staticField(javaField), fakeAddress);
     }
 
     return new RecordUnitPtr(Expressions.staticField(javaField));

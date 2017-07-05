@@ -86,211 +86,211 @@ public final class Rinternals {
   /**
    * The nil object
    */
-  public static SEXP	R_NilValue = Null.INSTANCE;
+  public final static SEXP	R_NilValue = Null.INSTANCE;
 
   /**
    * Unbound marker
    */
-  public static  SEXP	R_UnboundValue = Symbol.UNBOUND_VALUE;
+  public static final  SEXP	R_UnboundValue = Symbol.UNBOUND_VALUE;
 
   /**
    * Missing argument marker
    */
-  public static  SEXP	R_MissingArg = Symbol.MISSING_ARG;
+  public static final  SEXP	R_MissingArg = Symbol.MISSING_ARG;
 
   /**
    * Marker for restarted function calls
    */
-  public static SEXP	R_RestartToken; 
+  public static SEXP	R_RestartToken;
 
   /* Symbol Table Shortcuts */
 
   /**
    * "base" Symbol
    */
-  public static  SEXP	R_baseSymbol = Symbol.get("base");
+  public static final  SEXP	R_baseSymbol = Symbol.get("base");
 
   /**
    * "base" Symbol
    */
-  public static  SEXP	R_BaseSymbol = Symbol.get("base");	// "base"
+  public static final SEXP	R_BaseSymbol = Symbol.get("base");	// "base"
 
   /**
    * {@code { Symbol
    */
-  public static  SEXP	R_BraceSymbol = Symbol.get("{");
+  public static final SEXP	R_BraceSymbol = Symbol.get("{");
 
   /**
    * "[[" Symbol
    */
-  public static  SEXP	R_Bracket2Symbol = Symbol.get("[[");
+  public static final SEXP	R_Bracket2Symbol = Symbol.get("[[");
 
   /**
    * "[" Symbol
    */
-  public static  SEXP	R_BracketSymbol = Symbol.get("[");
+  public static final SEXP	R_BracketSymbol = Symbol.get("[");
 
   /**
    * "class" Symbol
    */
-  public static  SEXP	R_ClassSymbol = Symbol.get("class");
+  public static final SEXP	R_ClassSymbol = Symbol.get("class");
 
   /**
    * ".Device" symbol
    */
-  public static  SEXP	R_DeviceSymbol = Symbol.get(".Device");
+  public static final  SEXP	R_DeviceSymbol = Symbol.get(".Device");
 
   /**
    * "dimnames" symbol
    */
-  public static  SEXP	R_DimNamesSymbol = Symbol.get("dimnames");
+  public static  final SEXP	R_DimNamesSymbol = Symbol.get("dimnames");
 
   /**
    * "dim" symbol
    */
-  public static  SEXP	R_DimSymbol = Symbol.get("dim");
+  public static final SEXP	R_DimSymbol = Symbol.get("dim");
 
   /**
    * "$" Symbol
    */
-  public static  SEXP	R_DollarSymbol = Symbol.get("$");
+  public static final SEXP	R_DollarSymbol = Symbol.get("$");
 
   /**
    * "..." Symbol
    */
-  public static  SEXP	R_DotsSymbol = Symbol.get("...");
+  public static  final SEXP	R_DotsSymbol = Symbol.get("...");
 
   /**
    * "::" Symbol
    */
-  public static  SEXP	R_DoubleColonSymbol = Symbol.get("::");
+  public static final  SEXP	R_DoubleColonSymbol = Symbol.get("::");
 
   /**
    * "drop" Symbol
    */
-  public static  SEXP	R_DropSymbol = Symbol.get("drop");
+  public static final  SEXP	R_DropSymbol = Symbol.get("drop");
 
   /**
    * ".Last.value" Symbol
    */
-  public static  SEXP	R_LastvalueSymbol = Symbol.get(".Last.value");
+  public static final SEXP	R_LastvalueSymbol = Symbol.get(".Last.value");
 
   /**
    * "level" Symbol
    */
-  public static  SEXP	R_LevelsSymbol = Symbol.get("level");
+  public static final  SEXP	R_LevelsSymbol = Symbol.get("level");
 
   /**
    * "mode" symbol
    */
-  public static  SEXP	R_ModeSymbol = Symbol.get("mode");
+  public static final  SEXP	R_ModeSymbol = Symbol.get("mode");
 
   /**
    * "na.rm" Symbol
    */
-  public static  SEXP	R_NaRmSymbol = Symbol.get("na.rm");
+  public static final SEXP	R_NaRmSymbol = Symbol.get("na.rm");
 
   /**
    * "name" Symbol
    */
-  public static  SEXP	R_NameSymbol = Symbol.get("name");
+  public static final  SEXP	R_NameSymbol = Symbol.get("name");
 
   /**
    * "names" Symbol
    */
-  public static  SEXP	R_NamesSymbol = Symbol.get("names");
+  public static final  SEXP	R_NamesSymbol = Symbol.get("names");
 
   /**
    * ".__NAMESPACE__." Symbol
    */
-  public static  SEXP	R_NamespaceEnvSymbol = Symbol.get(".__NAMESPACE__.");
+  public static  final SEXP	R_NamespaceEnvSymbol = Symbol.get(".__NAMESPACE__.");
 
   /**
    * "package" Symbol
    */
-  public static  SEXP	R_PackageSymbol = Symbol.get("package");
+  public static final SEXP	R_PackageSymbol = Symbol.get("package");
 
   /**
    * "previous" Symbol
    */
-  public static  SEXP	R_PreviousSymbol = Symbol.get("previous");
+  public static final  SEXP	R_PreviousSymbol = Symbol.get("previous");
 
   /**
    * "quote" Symbol
    */
-  public static  SEXP	R_QuoteSymbol = Symbol.get("quote");
+  public static final SEXP	R_QuoteSymbol = Symbol.get("quote");
 
   /**
    * "row.names" Symbol
    */
-  public static  SEXP	R_RowNamesSymbol = Symbol.get("row.names");
+  public static final SEXP	R_RowNamesSymbol = Symbol.get("row.names");
 
   /**
    * ".Random.seed" Symbol
    */
-  public static  SEXP	R_SeedsSymbol = Symbol.get(".Random.seed");
+  public static final SEXP	R_SeedsSymbol = Symbol.get(".Random.seed");
 
   /**
    * "sort.list" Symbol
    */
-  public static  SEXP	R_SortListSymbol = Symbol.get("sort.list");
+  public static final  SEXP	R_SortListSymbol = Symbol.get("sort.list");
 
   /**
    * "source" Symbol
    */
-  public static  SEXP	R_SourceSymbol = Symbol.get("source");
+  public static final  SEXP	R_SourceSymbol = Symbol.get("source");
 
   /**
    * "spec" Symbol
    */
-  public static  SEXP	R_SpecSymbol = Symbol.get("spec");
+  public static final  SEXP	R_SpecSymbol = Symbol.get("spec");
 
   /**
    * ":::" Symbol
    */
-  public static  SEXP	R_TripleColonSymbol = Symbol.get(":::");
+  public static final  SEXP	R_TripleColonSymbol = Symbol.get(":::");
 
   /**
    * "tsp" Symbol
    */
-  public static  SEXP	R_TspSymbol = Symbol.get("tsp");
+  public static final  SEXP	R_TspSymbol = Symbol.get("tsp");
 
   /**
    * ".defined" Symbol
    */
-  public static  SEXP  R_dot_defined = Symbol.get(".defined");
+  public static final  SEXP  R_dot_defined = Symbol.get(".defined");
 
   /**
    * ".Method" Symbol
    */
-  public static  SEXP  R_dot_Method = Symbol.get(".Method");
+  public static final SEXP  R_dot_Method = Symbol.get(".Method");
 
   /**
    * ".packageName" Symbol
    */
-  public static  SEXP	R_dot_packageName = Symbol.get(".packageName");
+  public static final SEXP	R_dot_packageName = Symbol.get(".packageName");
 
   /**
    * ".target" Symbol
    */
-  public static  SEXP  R_dot_target = Symbol.get(".target");
+  public static final SEXP  R_dot_target = Symbol.get(".target");
 
 /* Missing Values - others from Arith.h */
 
   /**
    * NA_String as a CHARSXP
    */
-  public static  SEXP	R_NaString = GnuCharSexp.NA_STRING;
+  public static final SEXP	R_NaString = GnuCharSexp.NA_STRING;
 
   /**
    * ""as a CHARSEXP
    */
-  public static  SEXP	R_BlankString = GnuCharSexp.BLANK_STRING;
+  public static final SEXP	R_BlankString = GnuCharSexp.BLANK_STRING;
 
   /**
    * "" as a STRSXP
    */
-  public static  SEXP	R_BlankScalarString = new GnuStringVector(GnuCharSexp.BLANK_STRING);
+  public static final SEXP	R_BlankScalarString = new GnuStringVector(GnuCharSexp.BLANK_STRING);
 
 
   public static BytePtr R_CHAR(SEXP x) {

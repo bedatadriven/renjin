@@ -95,15 +95,21 @@ public class MethodsTest {
     eval(" aa=c('A','T','C','G')                                                           ");
     eval(" for(i in 1:250) reads[i] <- paste0(sample(aa, 36, replace = TRUE), collapse='') ");
     eval(" setClass('SeqSum', representation(seq = 'character', value = 'numeric') )       ");
-    eval(" setMethod('+', signature(e1 = 'SeqSum', e2 = 'character'), function(e1, e2) { hasSeq <- grep(e1@seq, seq); if(length(hasSeq) > 0) e1@value <- e1@value + 1; return(e1) }) ");
+    eval(" setMethod('+', signature(e1 = 'SeqSum', e2 = 'character'), function(e1, e2) { value <- e1@value; hasSeq <- grep(e1@seq, e2); if(length(hasSeq) > 0) value <- value + 1; return(  new('SeqSum', seq='ATG', value=value)  ) }) ");
     eval(" atg <- new('SeqSum', seq = 'ATG', value = 0)                                    ");
     ForFunction.COMPILE_LOOPS = true;
     ForFunction.FAIL_ON_COMPILATION_ERROR = true;
     eval(" for(i in 1:250) { atg <- atg + reads[ i ] }                                    ");
-    
     ForFunction.COMPILE_LOOPS = false;
     
     DoubleArrayVector count = (DoubleArrayVector) eval("atg@value");
-    assertThat(count.getElementAsInt(0), equalTo( 4316 ));
+    assertThat(count.getElementAsInt(0), equalTo( 111 ));
   }
+  
+  
+  
+  
+  
+  
+  
 }

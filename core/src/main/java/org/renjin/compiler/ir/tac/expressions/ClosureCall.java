@@ -39,26 +39,31 @@ import java.util.Map;
 
 public class ClosureCall implements Expression {
 
-  private RuntimeState runtimeState;
+  private final RuntimeState runtimeState;
   private final FunctionCall call;
   private final List<IRArgument> arguments;
-  private Closure closure;
+  private final Closure closure;
+
+  private final String debugName;
+
   private MatchedArguments matching;
   private InlinedFunction inlinedFunction;
   
   private ValueBounds returnBounds;
   private Type type;
 
-  public ClosureCall(RuntimeState runtimeState, FunctionCall call, Closure closure, List<IRArgument> arguments) {
+  public ClosureCall(RuntimeState runtimeState, FunctionCall call, Closure closure, String closureDebugName, List<IRArgument> arguments) {
     this.runtimeState = runtimeState;
     this.call = call;
     this.closure = closure;
     this.arguments = arguments;
+    this.debugName = closureDebugName;
 
     this.matching = MatchedArguments.matchIRArguments(closure, arguments);
     this.returnBounds = ValueBounds.UNBOUNDED;
     this.type = returnBounds.storageType();
   }
+
 
   @Override
   public boolean isPure() {
@@ -129,16 +134,9 @@ public class ClosureCall implements Expression {
   }
 
   @Override
-  public String toString() {
-    return functionName() + "(" + Joiner.on(", ").join(arguments) + ")";
-  }
 
-  private String functionName() {
-    if(call.getFunction() instanceof Symbol) {
-      return ((Symbol) call.getFunction()).getPrintName();
-    } else {
-      return "fn";
-    }
+  public String toString() {
+    return debugName + "(" + Joiner.on(", ").join(arguments) + ")";
   }
 
 }

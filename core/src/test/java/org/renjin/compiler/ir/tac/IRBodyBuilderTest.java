@@ -192,6 +192,12 @@ public class IRBodyBuilderTest extends EvalTestCase {
   public void interpretRepeat() {
     assertThat(evalIR("y<-1; repeat {y <- y+1; if(y > 10) break }; y"), elementsIdenticalTo(c(11)));
   }
+
+  @Test
+  public void complexAssignmentClosureSetter() {
+    IRBody block = build("storage.mode(x) <- 'integer'");
+    System.out.println(block);
+  }
   
   @Test
   public void shortCircuitAnd() {

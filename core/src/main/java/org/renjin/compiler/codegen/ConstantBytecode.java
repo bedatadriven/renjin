@@ -20,6 +20,7 @@ package org.renjin.compiler.codegen;
 
 import org.apache.commons.math.util.DoubleArray;
 import org.renjin.compiler.ir.tac.statements.ReturnStatement;
+import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.*;
@@ -90,6 +91,10 @@ public class ConstantBytecode {
   }
 
   public static void pushConstant(InstructionAdapter mv, SEXP value) {
+    if(value == Null.INSTANCE) {
+      mv.visitFieldInsn(Opcodes.GETSTATIC, Type.getInternalName(Null.class), "INSTANCE", Type.getDescriptor(Null.class));
+      return;
+    }
     if(value instanceof StringVector) {
       if(value.length() == 1 && value.getAttributes().isEmpty()) {
         mv.visitLdcInsn(((StringVector) value).getElementAsString(0));

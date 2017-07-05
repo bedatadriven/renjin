@@ -20,9 +20,12 @@ package org.renjin.compiler.ir.tac;
 
 import org.renjin.compiler.NotCompilableException;
 import org.renjin.compiler.builtins.ArgumentBounds;
+import org.renjin.compiler.ir.TypeSet;
+import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.exception.InvalidSyntaxException;
-import org.renjin.eval.ClosureDispatcher;
+import org.renjin.eval.ArgumentMatcher;
 import org.renjin.eval.Context;
+import org.renjin.eval.MatchedArguments;
 import org.renjin.packaging.SerializedPromise;
 import org.renjin.primitives.S3;
 import org.renjin.primitives.packaging.Namespace;
@@ -393,8 +396,12 @@ public class RuntimeState {
   
     Map<String, List<List<S3.MethodRanking>>> mapListMethods = new HashMap<>();
     Map<String, List<Environment>> mapMethodTableLists = new HashMap<>();
-    mapMethodTableLists.put("generic", s4GenericMethodTables.get(opName));
-    mapMethodTableLists.put("group", s4GroupMethodTables.get(opName));
+    if(s4GenericMethodTables.size() > 0) {
+      mapMethodTableLists.put("generic", s4GenericMethodTables.get(opName));
+    }
+    if(s4GroupMethodTables.size() > 0) {
+      mapMethodTableLists.put("group", s4GroupMethodTables.get(opName));
+    }
   
     for(int e = 0; e < mapMethodTableLists.size(); e++) {
       String type = mapMethodTableLists.keySet().toArray(new String[0])[e];
@@ -409,36 +416,18 @@ public class RuntimeState {
         Closure genericClosure = (Closure) methodTable.getFrame().getVariable(methodSymbol);
         PairList formals = genericClosure.getFormals();
   
-        PairList.Builder args = new PairList.Builder();
-        Iterator<ArgumentBounds> it = arguments.iterator();
-        while(it.hasNext()) {
-          ArgumentBounds node = it.next();
-          SEXP constantValue = node.getBounds().getConstantValue();
-          if(node.getName()==null) {
-            args.add(constantValue);
-          } else {
-            args.add(node.getName(), constantValue);
-          }
+        ArgumentMatcher argumentMatcher = new ArgumentMatcher(formals);
+        String[] argNames = new String[arguments.size()];
+        for(int i = 0; i < arguments.size(); i++) {
+          argNames[i] = arguments.get(i).getName();
         }
-      
-        PairList matchedList = ClosureDispatcher.matchArguments(formals, args.build(), true);
-        Map<Symbol, SEXP> matchedMap = new HashMap<>();
-        for (PairList.Node node : matchedList.nodes()) {
-          matchedMap.put(node.getTag(), node.getValue());
-        }
-      
-        List<SEXP> inputMap = new ArrayList<>();
-        for (PairList.Node node : args.build().nodes()) {
-          inputMap.add(node.getValue());
-        }
-        int matchLength = matchedMap.containsKey(Symbols.ELLIPSES) ? matchedMap.size()-1 : matchedMap.size();
-        boolean lengthMatchEqualsInput =  (matchLength - inputMap.size()) == 0;
-      
-        if (lengthMatchEqualsInput) {
-          argSignatures = computeArgumentSignatures(context, args.build().nodes(), null, currentDepth);
-        } else {
-          argSignatures = computeArgumentSignatures(context, formals.nodes(), matchedMap, currentDepth);
-        }
+        MatchedArguments matchedArguments = argumentMatcher.match(argNames);
+        
+        //if (!matchedArguments.hasExtraArguments()) {
+        argSignatures = computeArgumentSignatures(context, matchedArguments, arguments, currentDepth);
+        //} else {
+        //  argSignatures = computeArgumentSignatures(context, matchedArguments, arguments, currentDepth);
+        //}
       
         int numberOfPossibleSignatures = 1;
         for(int i = 0; i < argSignatures.length; i++) {
@@ -489,54 +478,47 @@ public class RuntimeState {
     return mapListMethods;
   }
   
-  private static S3.ArgumentSignature[] computeArgumentSignatures(Context context, Iterable<PairList.Node> nodes, Map<Symbol, SEXP> matchedMap, int currentDepth) {
+  private static S3.ArgumentSignature[] computeArgumentSignatures(Context context, MatchedArguments match, List<ArgumentBounds> arguments, int currentDepth) {
+    
+    String argClass;
     
     S3.ArgumentSignature[] argSignatures = new S3.ArgumentSignature[currentDepth];
     
     int idx = 0;
-    for (PairList.Node node : nodes) {
-      SEXP value;
-      Symbol formalName;
-      if (matchedMap == null) {
-        value = node.getValue().force(context);
+    for (int i = 0; i < currentDepth; i++) {
+      Symbol formal = match.getFormal(i);
+      ValueBounds value = arguments.get(match.getMatchedFormals().get(formal)).getBounds();
+      if (value.getConstantClassAttribute() != Null.INSTANCE) {
+        argClass = value.getConstantClassAttribute().getElementAsString(0);
       } else {
-        formalName = node.getTag();
-        if(formalName != Symbols.ELLIPSES) {
-          value = matchedMap.get(formalName).force(context);
-        } else {
-          continue;
-        }
+        argClass = TypeSet.implicitClass(value.getTypeSet());
       }
       
-      argSignatures[idx] = getArgumentSignature(context, value);
+      argSignatures[idx] = getClassAndDistance(context, argClass);
       idx++;
-      
-      if(idx >= argSignatures.length) {
-        break;
-      }
     }
     
     return argSignatures;
   }
   
-  private static S3.ArgumentSignature getArgumentSignature(Context context, SEXP argValue) {
-    if (argValue == Symbol.MISSING_ARG) {
-      return new S3.ArgumentSignature();
-    }
-    String[] nodeClass = S3.computeDataClasses(context, argValue).toArray();
-    
-    return getClassAndDistance(context, nodeClass);
-  }
+//  private static S3.ArgumentSignature getArgumentSignature(Context context, SEXP argValue) {
+//    if (argValue == Symbol.MISSING_ARG) {
+//      return new S3.ArgumentSignature();
+//    }
+//    String[] nodeClass = S3.computeDataClasses(context, argValue).toArray();
+//
+//    return getClassAndDistance(context, nodeClass);
+//  }
   
-  private static S3.ArgumentSignature getClassAndDistance(Context context, String[] argClass) {
+  private static S3.ArgumentSignature getClassAndDistance(Context context, String argClass) {
     
     List<Integer> distances = new ArrayList<>();
     List<String> classes = new ArrayList<>();
-    for(int i = 0; i < argClass.length; i++) {
-      classes.add(argClass[i]);
-      distances.add(0);
-    }
-    Symbol argClassObjectName = Symbol.get(".__C__" + argClass[0]);
+  
+    classes.add(argClass);
+    distances.add(0);
+    
+    Symbol argClassObjectName = Symbol.get(".__C__" + argClass);
     Frame globalFrame = context.getGlobalEnvironment().getFrame();
     AttributeMap map = globalFrame.getVariable(argClassObjectName).getAttributes();
     SEXP containsSlot = map.get("contains");
@@ -556,6 +538,35 @@ public class RuntimeState {
     
     return new S3.ArgumentSignature(classes.toArray(new String[0]), Ints.toArray(distances));
   }
+  
+//  private static S3.ArgumentSignature getClassAndDistance(Context context, String[] argClass) {
+//
+//    List<Integer> distances = new ArrayList<>();
+//    List<String> classes = new ArrayList<>();
+//    for(int i = 0; i < argClass.length; i++) {
+//      classes.add(argClass[i]);
+//      distances.add(0);
+//    }
+//    Symbol argClassObjectName = Symbol.get(".__C__" + argClass[0]);
+//    Frame globalFrame = context.getGlobalEnvironment().getFrame();
+//    AttributeMap map = globalFrame.getVariable(argClassObjectName).getAttributes();
+//    SEXP containsSlot = map.get("contains");
+//    SEXP argSuperClasses = containsSlot.getNames();
+//
+//    for(int i = 0; i < argSuperClasses.length(); i++) {
+//      SEXP distanceSlot = ((ListVector) containsSlot).get(i).getAttributes().get("distance");
+//      distances.add(((Vector) distanceSlot).getElementAsInt(0));
+//      classes.add(((Vector) argSuperClasses).getElementAsString(i));
+//    }
+//
+//    int max = Collections.max(distances);
+//    if(!classes.contains("ANY") && !classes.contains("NULL")) {
+//      distances.add(max + 1);
+//      classes.add("ANY");
+//    }
+//
+//    return new S3.ArgumentSignature(classes.toArray(new String[0]), Ints.toArray(distances));
+//  }
   
   public List<List<S3.SelectedMethod>> findMatchingMethods(Symbol opName, Map<String, List<List<S3.MethodRanking>>> signatures) {
     

@@ -20,17 +20,13 @@
 
 package org.renjin.compiler.codegen;
 
-import jdk.internal.org.objectweb.asm.Opcodes;
 import org.renjin.compiler.CompiledLoopBody;
 import org.renjin.compiler.JitClassLoader;
 import org.renjin.compiler.cfg.InlinedFunction;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.primitives.vector.MemoizedComputation;
-import org.renjin.repackaged.asm.ClassVisitor;
-import org.renjin.repackaged.asm.ClassWriter;
-import org.renjin.repackaged.asm.MethodVisitor;
-import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.asm.*;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.repackaged.asm.util.TraceClassVisitor;
 import org.renjin.sexp.AttributeMap;

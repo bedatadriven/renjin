@@ -86,7 +86,7 @@ public class InlinedFunction {
         returnStatements.add((ReturnStatement) statement);
       }
     }
-    
+
   }
 
   public ControlFlowGraph getCfg() {

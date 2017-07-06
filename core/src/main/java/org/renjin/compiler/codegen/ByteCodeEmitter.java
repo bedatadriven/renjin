@@ -108,7 +108,7 @@ public class ByteCodeEmitter implements Opcodes {
         null, null);
 
     Textifier p = new Textifier();
-    mv = new TraceMethodVisitor(mv, p);
+    //mv = new TraceMethodVisitor(mv, p);
     
     mv.visitCode();
     writeBody(emitContext, mv, cfg);
@@ -140,7 +140,7 @@ public class ByteCodeEmitter implements Opcodes {
 
 
     Textifier p = new Textifier();
-    mv = new TraceMethodVisitor(mv, p);
+  //  mv = new TraceMethodVisitor(mv, p);
 
     mv.visitCode();
     writeBody(emitContext, mv, cfg);

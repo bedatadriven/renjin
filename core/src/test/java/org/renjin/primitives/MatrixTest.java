@@ -240,6 +240,20 @@ public class MatrixTest extends EvalTestCase {
     assertThat(eval("colSums(q)"), elementsIdenticalTo(c(10,26,42,58,74,90,106,122)));
   }
 
+  
+  @Test
+  public void rowReplace() throws IOException {
+    eval("q <- matrix(as.numeric(1:32), 8)");
+    eval("print(q)");
+    assertThat(eval("colSums(q)"), elementsIdenticalTo(c(36,100,164,228)));
+    eval("q[4L,] <- as.numeric(-5:-2)");
+    eval("print(q)");
+
+    eval("print(colSums(q))");
+    //eval("q[4,] <- c( 4, 12, 20, 28)");
+    
+  }
+  
   @Test
   public void transpose() throws IOException {
     assertThat(eval("t(c(1,2,3,4))"), elementsIdenticalTo(c(1,2,3,4)));

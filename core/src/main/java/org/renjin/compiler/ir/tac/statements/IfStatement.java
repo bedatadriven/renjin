@@ -24,7 +24,6 @@ import org.renjin.compiler.ir.tac.IRLabel;
 import org.renjin.compiler.ir.tac.expressions.CmpGE;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.expressions.LValue;
-import org.renjin.eval.EvalException;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
@@ -175,5 +174,10 @@ public class IfStatement implements Statement, BasicBlockEndingStatement {
     }
 
     return stackSizeIncrease;
+  }
+
+  @Override
+  public boolean isPure() {
+    return condition.isPure();
   }
 }

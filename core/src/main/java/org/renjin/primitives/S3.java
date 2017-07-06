@@ -1492,12 +1492,12 @@ public class S3 {
     private String[] argumentClasses;
     private int[] distances;
     
-    ArgumentSignature(String[] classes, int[] distances) {
+    public ArgumentSignature(String[] classes, int[] distances) {
       this.argumentClasses = classes;
       this.distances = distances;
     }
     
-    ArgumentSignature() {
+    public ArgumentSignature() {
       this.argumentClasses = new String[]{"missing", "ANY"};
       this.distances = new int[]{0, 1};
     }
@@ -1528,7 +1528,7 @@ public class S3 {
     private int totalDist = 0;
     private double rank = 0.0;
     
-    MethodRanking(String signature, int[] distance) {
+    public MethodRanking(String signature, int[] distance) {
       this.signature = signature;
       this.distances = distance;
       
@@ -1611,7 +1611,7 @@ public class S3 {
     private Symbol methodName;
     private String methodInputSignature;
     
-    SelectedMethod(Closure fun, String grp, int dist, String sig, Symbol method, String methSig) {
+    public SelectedMethod(Closure fun, String grp, int dist, String sig, Symbol method, String methSig) {
       this.function = fun;
       this.group = grp;
       this.currentDistance = dist;

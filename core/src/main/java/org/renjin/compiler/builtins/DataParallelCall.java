@@ -21,6 +21,7 @@ package org.renjin.compiler.builtins;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
+import org.renjin.compiler.ir.tac.expressions.Constant;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.primitives.Primitives;
 import org.renjin.repackaged.asm.Type;
@@ -53,9 +54,9 @@ public class DataParallelCall implements Specialization {
     this.type = resultBounds.storageType();
   }
 
-  
+
   private ValueBounds computeBounds(List<ValueBounds> argumentBounds) {
-    
+
     List<ValueBounds> recycledArguments = recycledArgumentBounds(argumentBounds);
 
     int resultLength = computeResultLength(this.argumentBounds);
@@ -64,7 +65,7 @@ public class DataParallelCall implements Specialization {
     bounds.setType(method.getReturnType());
     bounds.setNA(anyNAs(argumentBounds));
     bounds.setLength(resultLength);
-    
+
     switch (method.getPreserveAttributesStyle()) {
       case NONE:
         bounds.setEmptyAttributes();
@@ -76,7 +77,7 @@ public class DataParallelCall implements Specialization {
         buildAllBounds(bounds, recycledArguments, resultLength);
         break;
     }
-    
+
     return bounds.build();
   }
 
@@ -102,11 +103,11 @@ public class DataParallelCall implements Specialization {
     }
     return list;
   }
-  
+
   private int computeResultLength(List<ValueBounds> argumentBounds) {
     Iterator<ValueBounds> it = argumentBounds.iterator();
     int resultLength = 0;
-    
+
     while(it.hasNext()) {
       int argumentLength = it.next().getLength();
       if(argumentLength == ValueBounds.UNKNOWN_LENGTH) {
@@ -120,7 +121,7 @@ public class DataParallelCall implements Specialization {
 
     return resultLength;
   }
-  
+
   private void buildStructuralBounds(ValueBounds.Builder bounds, List<ValueBounds> argumentBounds, int resultLength) {
 
     Map<Symbol, SEXP> attributes = new HashMap<>();
@@ -128,17 +129,17 @@ public class DataParallelCall implements Specialization {
     attributes.put(Symbols.DIMNAMES, combineAttribute(Symbols.DIM, argumentBounds, resultLength));
     attributes.put(Symbols.NAMES, combineAttribute(Symbols.DIM, argumentBounds, resultLength));
     bounds.setClosedAttributes(attributes);
-    
+
   }
-  
+
   private SEXP combineAttribute(Symbol symbol, List<ValueBounds> argumentBounds, int resultLength) {
 
-    // If we don't know the result length, we don't know which 
+    // If we don't know the result length, we don't know which
     // argument to take the attributes from.
     if(resultLength == ValueBounds.UNKNOWN_LENGTH && argumentBounds.size() > 1) {
       return null; // unknown
     }
-    
+
     for (ValueBounds argumentBound : argumentBounds) {
       if (argumentBound.getLength() == resultLength) {
 
@@ -155,21 +156,21 @@ public class DataParallelCall implements Specialization {
   private void buildAllBounds(ValueBounds.Builder bounds, List<ValueBounds> argumentBounds, int resultLength) {
 
 
-    // If we don't know the result length, we don't know which 
+    // If we don't know the result length, we don't know which
     // argument to take the attributes from.
     if(resultLength == ValueBounds.UNKNOWN_LENGTH && argumentBounds.size() > 1) {
-      // TOOD: if all argument bounds have closed attribute sets, then we can still 
+      // TOOD: if all argument bounds have closed attribute sets, then we can still
       // infer SOME information
       return;
-    } 
+    }
 
     Map<Symbol, SEXP> attributes = new HashMap<>();
 
     boolean open = false;
-    
+
     for (ValueBounds argumentBound : argumentBounds) {
       if (argumentBound.getLength() == resultLength) {
-        
+
         if(argumentBound.isAttributeSetOpen()) {
           open = true;
         }
@@ -211,14 +212,13 @@ public class DataParallelCall implements Specialization {
     List<JvmMethod.Argument> formals = method.getAllArguments();
     Object[] args = new Object[formals.size()];
     Iterator<ValueBounds> it = argumentBounds.iterator();
-    int argI = 0;
+    int argIndex = 0;
     for (JvmMethod.Argument formal : formals) {
       if(formal.isContextual()) {
         throw new UnsupportedOperationException("in " + method +  ", " + "formal: " + formal);
       } else {
         ValueBounds argument = it.next();
-        args[argI++] = convert(argument.getConstantValue(), formal.getClazz());
-
+        args[argIndex++] = ConstantCall.convert(argument.getConstantValue(), formal.getClazz());
       }
     }
 
@@ -230,21 +230,6 @@ public class DataParallelCall implements Specialization {
     }
 
     return new ConstantCall(constantValue);
-
-  }
-
-  private Object convert(SEXP constantValue, Class formalType) {
-    if(formalType.equals(double.class)) {
-      return constantValue.asReal();
-    } else if(formalType.equals(int.class)) {
-      return constantValue.asInt();
-    } else if(formalType.equals(String.class)) {
-      return constantValue.asString();
-    } else if(SEXP.class.isAssignableFrom(formalType)) {
-      return constantValue;
-    } else {
-      throw new UnsupportedOperationException("formal type: " + formalType);
-    }
   }
 
   @Override
@@ -258,6 +243,11 @@ public class DataParallelCall implements Specialization {
 
   @Override
   public void load(EmitContext emitContext, InstructionAdapter mv, List<IRArgument> arguments) {
-    throw new UnsupportedOperationException();
+    throw new FailedToSpecializeException();
+  }
+
+  @Override
+  public boolean isPure() {
+    return method.isPure();
   }
 }

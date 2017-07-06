@@ -27,13 +27,24 @@ import java.util.List;
 /**
  * Specializes calls to the {@code [} operator
  */
-public class SubsetSpecializer implements Specializer {
+public class SubsetSpecializer implements Specializer, BuiltinSpecializer {
+
 
   @Override
-  public Specialization trySpecialize(RuntimeState runtimeState, List<ValueBounds> argumentTypes) {
+  public String getName() {
+    return "[";
+  }
 
-    ValueBounds source = argumentTypes.get(0);
-    List<ValueBounds> subscripts = argumentTypes.subList(1, argumentTypes.size());
+  @Override
+  public String getGroup() {
+    return null;
+  }
+
+  @Override
+  public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> arguments) {
+
+    ValueBounds source = arguments.get(0).getBounds();
+    List<ValueBounds> subscripts = ArgumentBounds.withoutNames(arguments.subList(1, arguments.size()));
     
     if (subscripts.size() == 0) {
       return new CompleteSubset(source);
@@ -42,7 +53,8 @@ public class SubsetSpecializer implements Specializer {
     // If more than one subscript is provided
     // Such as x[i,j] or x[i,j,k], then treat this as a matrix selection
     if (subscripts.size() > 1) {
-      return new MatrixSubset(source, subscripts).tryFurtherSpecialize();
+      //return new MatrixSubset(source, subscripts).tryFurtherSpecialize();
+      return UnspecializedCall.INSTANCE;
     }
 
     ValueBounds subscript = subscripts.get(0);
@@ -51,8 +63,8 @@ public class SubsetSpecializer implements Specializer {
       return new CompleteSubset(source);
     }
 
-    if(GetElement.accept(source, subscript)) {
-      return new GetElement(source, subscript);
+    if(GetAtomicElement.accept(source, subscript)) {
+      return new GetAtomicElement(source, subscript);
     }
 
     return UnspecializedCall.INSTANCE;
@@ -86,4 +98,5 @@ public class SubsetSpecializer implements Specializer {
 //    
 //    throw new UnsupportedOperationException();
   }
+
 }

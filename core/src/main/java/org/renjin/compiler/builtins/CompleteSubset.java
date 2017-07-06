@@ -26,9 +26,6 @@ import org.renjin.repackaged.asm.commons.InstructionAdapter;
 
 import java.util.List;
 
-/**
- * Created by alex on 29-9-16.
- */
 public class CompleteSubset implements Specialization {
 
   private ValueBounds sourceBounds;
@@ -49,5 +46,10 @@ public class CompleteSubset implements Specialization {
   @Override
   public void load(EmitContext emitContext, InstructionAdapter mv, List<IRArgument> arguments) {
     arguments.get(0).getExpression().load(emitContext, mv);
+  }
+
+  @Override
+  public boolean isPure() {
+    return true;
   }
 }

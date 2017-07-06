@@ -30,7 +30,7 @@ import java.util.List;
 /**
  * Specializes calls to the {@code is.array} primitive.
  */
-public class IsArraySpecializer implements Specializer {
+public class IsArraySpecializer implements BuiltinSpecializer {
   
   private JvmMethod method;
 
@@ -39,16 +39,27 @@ public class IsArraySpecializer implements Specializer {
   }
 
   @Override
-  public Specialization trySpecialize(RuntimeState runtimeState, List<ValueBounds> argumentTypes) {
-    if(argumentTypes.size() != 1) {
+  public String getName() {
+    return "is.array";
+  }
+
+  @Override
+  public String getGroup() {
+    return null;
+  }
+
+  @Override
+  public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> arguments) {
+    if(arguments.size() != 1) {
       throw new InvalidSyntaxException("is.array() takes one argument.");
     }
 
-    ValueBounds argumentBounds = argumentTypes.get(0);
+    ValueBounds argumentBounds = arguments.get(0).getBounds();
     if(argumentBounds.isDimCountConstant()) {
       return new ConstantCall(argumentBounds.getConstantDimCount() > 0);
     }
 
     return new StaticMethodCall(method);
   }
+
 }

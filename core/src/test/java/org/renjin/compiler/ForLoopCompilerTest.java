@@ -32,6 +32,7 @@ import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.repackaged.guava.io.Resources;
 import org.renjin.sexp.ExpressionVector;
+import org.renjin.sexp.SEXP;
 
 import java.io.IOException;
 
@@ -49,6 +50,16 @@ public class ForLoopCompilerTest extends EvalTestCase {
     ForFunction.COMPILE_LOOPS = false;
   }
 
+  private SEXP evalAndAssertCompiled(String expression) {
+
+    ForFunction.FAIL_ON_COMPILATION_ERROR = true;
+    try {
+      return eval(expression);
+    } finally {
+      ForFunction.FAIL_ON_COMPILATION_ERROR = false;
+    }
+  }
+
   @Test
   @Ignore("only for demo purposes")
   public void simpleLoopDemo() throws IOException {
@@ -62,18 +73,18 @@ public class ForLoopCompilerTest extends EvalTestCase {
 
   @Test
   public void simpleLoop() throws IOException {
-    assertThat(eval("{ s <- 0; for(i in 1:10000) { s <- s + sqrt(i) }; s }"), closeTo(c(666716.5), 1d));
+    assertThat(evalAndAssertCompiled("{ s <- 0; for(i in 1:10000) { s <- s + sqrt(i) }; s }"), closeTo(c(666716.5), 1d));
   }
 
   @Test
   public void loopWithS3Call() {
-    
+
     // The + operator is overloaded with a `+.foo` method for class 'foo'
     // We should either bailout or specialize to the provided function
     
-    eval("  `+.foo` <- function(x, y) structure(42, class='foo') ");
+    eval("  `+.foo` <- function(x, y) { x <- 42; class(x) <- 'foo'; x }");
     eval(" s <- structure(1, class='foo') ");
-    eval(" for(i in 1:500) s <- s + sqrt(i) ");
+    evalAndAssertCompiled(" for(i in 1:500) s <- s + sqrt(i) ");
       
     assertThat(eval("s"), elementsIdenticalTo(c(42)));
   }
@@ -82,7 +93,8 @@ public class ForLoopCompilerTest extends EvalTestCase {
   public void loopWithClosureCall() {
     eval(" add <- function(x, y) x + y ");
     eval(" s <- 0 ");
-    eval(" for(i in 1:500) s <- add(s, sqrt(i)) ");
+
+    evalAndAssertCompiled(" for(i in 1:500) s <- add(s, sqrt(i)) ");
   
     assertThat(eval("s"), closeTo(c(7464.534), 2.0));
   }
@@ -92,7 +104,7 @@ public class ForLoopCompilerTest extends EvalTestCase {
     eval(" myfn <- function(i, z) (i/length(z))^2 ");
     eval(" s <- 0 ");
     eval(" z <- 1:500 ");
-    eval(" for(i in z) s <- s + myfn(i, z) ");
+    evalAndAssertCompiled(" for(i in z) s <- s + myfn(i, z) ");
 
     assertThat(eval("s"), closeTo(c(167.167), 0.1));
   }
@@ -101,7 +113,7 @@ public class ForLoopCompilerTest extends EvalTestCase {
   public void attributePropagation() {
     
     eval(" s <- structure(1, foo='bar') ");
-    eval(" for(i in 1:500) s <- s + sqrt(i) ");
+    evalAndAssertCompiled(" for(i in 1:500) s <- s + sqrt(i) ");
 
     assertThat(eval(" s "), closeTo(c(7465.534), 0.01));
     assertThat(eval(" attr(s, 'foo') "), elementsIdenticalTo(c("bar")));
@@ -153,11 +165,11 @@ public class ForLoopCompilerTest extends EvalTestCase {
         "}",
         "makeActiveBinding('q', .qb, environment())",
         "sum <- 0",
-        "for(i in 1:1e6) {",
+        "for(i in 1:10) {",
           "sum <- sum + (i * q)",
         "}"));
 
-    assertThat(eval("sum"), elementsIdenticalTo(c(0x1.280f56bddc2e6p+58)));
+    assertThat(eval("sum"), elementsIdenticalTo(c(385.0)));
   }
 
 
@@ -166,7 +178,7 @@ public class ForLoopCompilerTest extends EvalTestCase {
     eval("foo <- function(a) UseMethod('foo') ");
     eval("foo.default <- function(a) a * 2 ");
     eval("s <- 0");
-    eval("print(system.time({ for(i in 1:1e6) s <- s + foo(i) }))");
+    evalAndAssertCompiled("print(system.time({ for(i in 1:1e6) s <- s + foo(i) }))");
     eval("print(s)");
 
     assertThat(eval("s"), elementsIdenticalTo(c(1.000001e+12)));
@@ -179,7 +191,7 @@ public class ForLoopCompilerTest extends EvalTestCase {
 
 
     eval("s <- 0");
-    eval("for(i in 1:1e6) s <- s + f(i)");
+    evalAndAssertCompiled("for(i in 1:1e6) s <- s + f(i)");
 
     assertThat(eval("s"), elementsIdenticalTo(c(1e+06)));
 
@@ -191,13 +203,13 @@ public class ForLoopCompilerTest extends EvalTestCase {
 
     // Ensure that we dispatch to f.integer()
     eval("s <- 0");
-    eval("for(i in 1:1e6) s <- s + f(i)");
+    evalAndAssertCompiled("for(i in 1:1e6) s <- s + f(i)");
     assertThat(eval("s"), elementsIdenticalTo(c(3e+06)));
 
 
     // Ensure that we dispatch to f.double()
     eval("s <- 0");
-    eval("for(i in as.numeric(1:1e6)) s <- s + f(i)");
+    evalAndAssertCompiled("for(i in as.numeric(1:1e6)) s <- s + f(i)");
     assertThat(eval("s"), elementsIdenticalTo(c(2e+06)));
 
   }
@@ -208,8 +220,9 @@ public class ForLoopCompilerTest extends EvalTestCase {
 
     eval("s <- 0");
 //    eval("for(i in 1:10000) if(typeof(s) == 'double') s <- s + i else stop('not a number')");
-    eval("for(i in 1:10000) s <- s + i");
+    evalAndAssertCompiled("for(i in 1:10000) s <- s + i");
 
     assertThat(eval("s"), elementsIdenticalTo(c(5.0005e7)));
   }
+
 }

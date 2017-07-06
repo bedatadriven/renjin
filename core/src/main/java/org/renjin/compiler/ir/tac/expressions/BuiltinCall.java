@@ -71,10 +71,9 @@ public class BuiltinCall implements CallExpression {
   }
   
   @Override
-  public boolean isDefinitelyPure() {
-    return false;
+  public boolean isPure() {
+    return specialization.isPure();
   }
-
 
   @Override
   public int load(EmitContext emitContext, InstructionAdapter mv) {
@@ -89,9 +88,9 @@ public class BuiltinCall implements CallExpression {
 
   @Override
   public ValueBounds updateTypeBounds(Map<Expression, ValueBounds> typeMap) {
-    List<ValueBounds> argumentTypes = new ArrayList<>();
+    List<ArgumentBounds> argumentTypes = new ArrayList<>();
     for (IRArgument argument : arguments) {
-      argumentTypes.add(argument.getExpression().updateTypeBounds(typeMap));
+      argumentTypes.add(new ArgumentBounds(argument.getName(), argument.getExpression().updateTypeBounds(typeMap)));
     }
     specialization = specializer.trySpecialize(runtimeState, argumentTypes);
     

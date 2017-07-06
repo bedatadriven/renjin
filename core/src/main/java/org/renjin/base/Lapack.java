@@ -24,7 +24,6 @@ import com.github.fommil.netlib.LAPACK;
 import org.apache.commons.math.complex.Complex;
 import org.netlib.util.doubleW;
 import org.netlib.util.intW;
-import org.renjin.compiler.pipeline.accessor.DoubleArrayAccessor;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.gcc.runtime.BytePtr;
@@ -34,17 +33,13 @@ import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.primitives.ComplexGroup;
 import org.renjin.primitives.Types;
-import org.renjin.primitives.Vectors;
 import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.sexp.*;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
-import static org.renjin.util.CDefines.UNPROTECT;
 
 /**
  * R Bindings for the LAPACK library, used

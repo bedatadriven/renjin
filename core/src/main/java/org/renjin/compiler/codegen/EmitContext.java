@@ -46,10 +46,8 @@ public class EmitContext {
   
   private int loopVectorIndex;
   private int loopIterationIndex;
-  
-  private int maxInlineVariables = 0;
-  
-  private Map<Symbol, InlineParamExpr> inlinedParameters = Maps.newHashMap();
+
+  private int maxInlineVariables;
 
   public EmitContext(ControlFlowGraph cfg, int paramSize, VariableSlots variableSlots) {
     this.paramSize = paramSize;
@@ -83,32 +81,22 @@ public class EmitContext {
     }
     return asmLabel;
   }
-  
-  public EmitContext inlineContext(ControlFlowGraph cfg, TypeSolver types) {
-    
+
+  /**
+   * Creates a new {@code EmitContext} that allocates local variables in the same context, and overrides
+   * {@link #writeReturn(InstructionAdapter, Type)} to jump to the end of the inlined function rather than
+   * actually returning.
+   */
+  public InlineEmitContext inlineContext(ControlFlowGraph cfg, TypeSolver types) {
     VariableSlots childSlots = new VariableSlots(paramSize + variableSlots.getNumLocals(), types);
     if(childSlots.getNumLocals() > maxInlineVariables) {
       maxInlineVariables = childSlots.getNumLocals();
     }
-    
-    EmitContext childContext = new EmitContext(cfg, paramSize + this.variableSlots.getNumLocals(), childSlots);
-    
-    return childContext;
+    return new InlineEmitContext(cfg,
+        EmitContext.this.paramSize +
+        EmitContext.this.variableSlots.getNumLocals(),
+        childSlots);
   }
-  
-  public void setInlineParameter(Symbol parameterName, InlineParamExpr value) {
-    inlinedParameters.put(parameterName, value);
-  }
-
-
-  public InlineParamExpr getInlineParameter(Symbol param) {
-    InlineParamExpr paramExpr = inlinedParameters.get(param);
-    if(paramExpr == null) {
-      throw new IllegalStateException("No expression set for parameter " + param);
-    }
-    return paramExpr;
-  }
-  
 
   public int getLoopVectorIndex() {
     return loopVectorIndex;
@@ -131,6 +119,11 @@ public class EmitContext {
   }
 
   public int convert(InstructionAdapter mv, Type fromType, Type toType) {
+
+    if(fromType.equals(Type.getType(DoubleArrayVector.class))) {
+      fromType = Type.getType(DoubleVector.class);
+    }
+
     if(fromType.equals(toType)) {
       // NOOP
       return 0;
@@ -185,8 +178,6 @@ public class EmitContext {
           return box(mv, DoubleVector.class, Type.DOUBLE_TYPE);
         
       }
-      
-      
     }
     
     throw new UnsupportedOperationException("Unsupported conversion: " + fromType + " -> " + toType);
@@ -203,7 +194,19 @@ public class EmitContext {
   }
 
   public int getLocalVariableCount() {
-    return paramSize + variableSlots.getNumLocals() + maxInlineVariables;
+    return paramSize + variableSlots.getNumLocals();
+  }
+
+  public void writeReturn(InstructionAdapter mv, Type returnType) {
+    mv.areturn(returnType);
+  }
+
+  public void writeDone(InstructionAdapter mv) {
+
+  }
+
+  public void loadParam(InstructionAdapter mv, Symbol param) {
+    throw new IllegalStateException();
   }
 
 }

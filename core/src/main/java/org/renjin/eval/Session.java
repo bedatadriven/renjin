@@ -21,7 +21,8 @@ package org.renjin.eval;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
-import org.renjin.compiler.pipeline.VectorPipeliner;
+import org.renjin.pipeliner.VectorPipeliner;
+import org.renjin.primitives.Warning;
 import org.renjin.primitives.io.connections.ConnectionTable;
 import org.renjin.primitives.packaging.DllInfo;
 import org.renjin.primitives.packaging.NamespaceRegistry;
@@ -40,6 +41,7 @@ import java.lang.invoke.MethodHandle;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 
 /**
  * Outermost context for R evaluation.
@@ -133,7 +135,7 @@ public class Session {
   Session(FileSystemManager fileSystemManager,
           ClassLoader classLoader,
           PackageLoader packageLoader,
-          VectorPipeliner pipeliner, Frame globalFrame) {
+          ExecutorService executorService, Frame globalFrame) {
     this.fileSystemManager = fileSystemManager;
     this.classLoader = classLoader;
     this.homeDirectory = FileSystemUtils.homeDirectoryInCoreJar();
@@ -148,7 +150,7 @@ public class Session {
     namespaceRegistry = new NamespaceRegistry(packageLoader, topLevelContext, baseNamespaceEnv);
     securityManager = new SecurityManager();
 
-    this.vectorPipeliner = pipeliner;
+    this.vectorPipeliner = new VectorPipeliner(executorService);
 
 
     // TODO(alex)
@@ -203,7 +205,7 @@ public class Session {
   public RNG getRNG() {
     return rng;
   }
-  
+
   public Environment getGlobalEnvironment() {
     return globalEnvironment;
   }
@@ -368,5 +370,19 @@ public class Session {
 
   public Iterable<DllInfo> getLoadedLibraries() {
     return loadedLibraries;
+  }
+
+
+  public void printWarnings() {
+    SEXP warnings = baseEnvironment.getVariable(topLevelContext, Warning.LAST_WARNING);
+    if(warnings != Symbol.UNBOUND_VALUE) {
+      topLevelContext.evaluate( FunctionCall.newCall(Symbol.get("print.warnings"), warnings),
+          topLevelContext.getBaseEnvironment());
+
+    }
+  }
+
+  public void clearWarnings() {
+    baseEnvironment.remove(Warning.LAST_WARNING);
   }
 }

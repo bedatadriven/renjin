@@ -30,7 +30,7 @@ import java.util.List;
 /**
  * Specializes calls to the {@code dim} primitive
  */
-public class DimSpecializer implements Specializer {
+public class DimSpecializer implements BuiltinSpecializer {
 
   private JvmMethod method;
 
@@ -39,11 +39,21 @@ public class DimSpecializer implements Specializer {
   }
 
   @Override
-  public Specialization trySpecialize(RuntimeState runtimeState, List<ValueBounds> argumentTypes) {
-    if(argumentTypes.size() != 1) {
+  public String getName() {
+    return "dim";
+  }
+
+  @Override
+  public String getGroup() {
+    return null;
+  }
+
+  @Override
+  public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> arguments) {
+    if(arguments.size() != 1) {
       throw new InvalidSyntaxException("dim() takes one argument.");
     }
-    ValueBounds sexp = argumentTypes.get(0);
+    ValueBounds sexp = arguments.get(0).getBounds();
     
     if(sexp.isDimAttributeConstant()) {
       return new ConstantCall(sexp.getConstantDimAttribute());

@@ -231,27 +231,11 @@ public class Matrices {
 
   @Internal
   public static DoubleVector colSums(AtomicVector x, int columnLength, int numColumns, boolean naRm) {
-
-    double sums[] = new double[numColumns];
-    for(int column=0;column < numColumns; column++) {
-      int sourceIndex = columnLength*column;
-
-      double sum = 0;
-      for(int row=0;row < columnLength; ++row) {
-        double cellValue = x.getElementAsDouble(sourceIndex++);
-        if(Double.isNaN(cellValue)) {
-          if(!naRm) {
-            sum = DoubleVector.NA;
-            break;
-          }
-        } else {
-          sum += cellValue;
-        }
-      }
-      sums[column] = sum;
+    DeferredColSums dcs =  new DeferredColSums(x, numColumns, naRm, AttributeMap.EMPTY);
+    if (System.getProperty("renjin.disable.colsums") != null) {
+      return (DoubleVector) dcs.forceResult();
     }
-
-    return new DoubleArrayVector(sums);
+    return dcs;
   }
 
   @Internal

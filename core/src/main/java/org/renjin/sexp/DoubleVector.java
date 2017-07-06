@@ -278,7 +278,7 @@ public abstract class DoubleVector extends AbstractAtomicVector implements Itera
 
 
   @Override
-  public final int hashCode() {
+  public int hashCode() {
     int hash = 37;
     for(int i=0;i!=length();++i) {
       long value = Double.doubleToRawLongBits(getElementAsDouble(i));

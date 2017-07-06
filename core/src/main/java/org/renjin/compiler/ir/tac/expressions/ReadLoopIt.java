@@ -28,7 +28,7 @@ import java.util.Map;
 
 public class ReadLoopIt implements Expression {
   @Override
-  public boolean isDefinitelyPure() {
+  public boolean isPure() {
     return true;
   }
 

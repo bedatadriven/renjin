@@ -18,7 +18,7 @@
  */
 package org.renjin.maven.test;
 
-import com.google.common.base.Throwables;
+import org.renjin.repackaged.guava.base.Throwables;
 import jline.UnsupportedTerminal;
 import jline.console.ConsoleReader;
 import org.renjin.eval.Context;

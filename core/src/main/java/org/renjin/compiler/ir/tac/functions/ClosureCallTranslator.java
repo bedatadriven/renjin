@@ -23,10 +23,9 @@ import org.renjin.compiler.ir.tac.IRBodyBuilder;
 import org.renjin.compiler.ir.tac.expressions.ClosureCall;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.compiler.ir.tac.statements.ExprStatement;
-import org.renjin.sexp.Closure;
-import org.renjin.sexp.Function;
-import org.renjin.sexp.FunctionCall;
+import org.renjin.sexp.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -48,11 +47,31 @@ public class ClosureCallTranslator extends FunctionCallTranslator {
     
     List<IRArgument> arguments = builder.translateArgumentList(context, call.getArguments());
     
-    return new ClosureCall(builder.getRuntimeState(), call, function, arguments);
+    return new ClosureCall(builder.getRuntimeState(), call, function, functionName(call), arguments);
   }
 
   @Override
   public void addStatement(IRBodyBuilder builder, TranslationContext context, Function resolvedFunction, FunctionCall call) {
     builder.addStatement(new ExprStatement(translateToExpression(builder, context, resolvedFunction, call)));
+  }
+
+  @Override
+  public Expression translateToSetterExpression(IRBodyBuilder builder, TranslationContext context, Function resolvedFunction, FunctionCall getterCall, Expression rhs) {
+
+    List<IRArgument> setterArguments = new ArrayList<>();
+    setterArguments.addAll(builder.translateArgumentList(context, getterCall.getArguments()));
+    setterArguments.add(new IRArgument("value", rhs));
+
+    String functionName = functionName(getterCall) + "<-";
+    return new ClosureCall(builder.getRuntimeState(), getterCall, (Closure) resolvedFunction, functionName, setterArguments);
+  }
+
+
+  private String functionName(FunctionCall call) {
+    if(call.getFunction() instanceof Symbol) {
+      return ((Symbol) call.getFunction()).getPrintName();
+    } else {
+      return "fn";
+    }
   }
 }

@@ -1130,17 +1130,9 @@ public class Primitives {
     public String methodName;
     public int eval;     /* evaluate args? */
 
-    public Entry group(String groupName) {
-      this.group = groupName;
-      return this;
-    }
-
     public boolean isSpecial() {
       return eval % 10 == 0;
     }
 
-    public boolean isGroupGeneric() {
-      return group != null;
-    }
   }
 }

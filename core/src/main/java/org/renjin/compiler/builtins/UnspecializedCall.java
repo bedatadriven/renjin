@@ -30,9 +30,14 @@ import java.util.List;
 
 public class UnspecializedCall implements Specialization {
 
-  public static final UnspecializedCall INSTANCE = new UnspecializedCall();
-  
-  private UnspecializedCall() {
+  public static final UnspecializedCall INSTANCE = new UnspecializedCall(false);
+
+  public static final UnspecializedCall PURE = new UnspecializedCall(true);
+
+  private final boolean pure;
+
+  private UnspecializedCall(boolean pure) {
+    this.pure = pure;
   }
 
   @Override
@@ -47,5 +52,10 @@ public class UnspecializedCall implements Specialization {
   @Override
   public void load(EmitContext emitContext, InstructionAdapter mv, List<IRArgument> arguments) {
     throw new FailedToSpecializeException("failed to specialize");
+  }
+
+  @Override
+  public boolean isPure() {
+    return false;
   }
 }

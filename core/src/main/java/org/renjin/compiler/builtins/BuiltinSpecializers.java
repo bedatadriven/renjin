@@ -20,7 +20,6 @@ package org.renjin.compiler.builtins;
 
 import org.renjin.compiler.ir.exception.InternalCompilerException;
 import org.renjin.primitives.Primitives;
-import org.renjin.repackaged.guava.base.Preconditions;
 import org.renjin.repackaged.guava.cache.CacheBuilder;
 import org.renjin.repackaged.guava.cache.CacheLoader;
 import org.renjin.repackaged.guava.cache.LoadingCache;
@@ -47,7 +46,7 @@ public class BuiltinSpecializers {
    * in the code base. To avoid rebuilding the metadata each time one is needed, 
    * cache instances of BuiltinSpecializer here.
    */
-  private final LoadingCache<String, BuiltinSpecializer> cache;
+  private final LoadingCache<String, Specializer> cache;
   
   
   public BuiltinSpecializers() {
@@ -55,14 +54,16 @@ public class BuiltinSpecializers {
     specializers.put("length", new GenericBuiltinGuard(new LengthSpecializer()));
     specializers.put("[<-", new GenericBuiltinGuard(new ReplaceSpecializer()));
     specializers.put("[", new GenericBuiltinGuard(new SubsetSpecializer()));
+    specializers.put("[[", new GenericBuiltinGuard(new SingleSubsetSpecializer()));
     specializers.put("c", new GenericBuiltinGuard(new CombineSpecializer()));
     specializers.put("is.array", new GenericBuiltinGuard(new IsArraySpecializer()));
     specializers.put("dim", new GenericBuiltinGuard(new DimSpecializer()));
     specializers.put("rep", new RepSpecializer());
+    specializers.put("invisible", new InvisibleSpecializer());
 
-    cache = CacheBuilder.newBuilder().build(new CacheLoader<String, BuiltinSpecializer>() {
+    cache = CacheBuilder.newBuilder().build(new CacheLoader<String, Specializer>() {
       @Override
-      public BuiltinSpecializer load(String primitive) throws Exception {
+      public Specializer load(String primitive) throws Exception {
         Symbol primitiveName = Symbol.get(primitive);
         Primitives.Entry entry = Primitives.getBuiltinEntry(primitiveName);
         if(entry == null) {
@@ -71,7 +72,12 @@ public class BuiltinSpecializers {
         if(entry == null) {
           throw new IllegalStateException("No builtin entry for " + primitiveName);
         }
-        return new BuiltinSpecializer(entry);
+        AnnotationBasedSpecializer specializer = new AnnotationBasedSpecializer(entry);
+        if(specializer.isGeneric()) {
+          return new GenericBuiltinGuard(specializer);
+        } else {
+          return specializer;
+        }
       }
     });
   }

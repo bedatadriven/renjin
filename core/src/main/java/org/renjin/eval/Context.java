@@ -22,8 +22,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.renjin.base.BaseFrame;
-import org.renjin.compiler.pipeline.VectorPipeliner;
-import org.renjin.parser.RParser;
+import org.renjin.pipeliner.VectorPipeliner;
 import org.renjin.primitives.Primitives;
 import org.renjin.primitives.Warning;
 import org.renjin.primitives.packaging.NamespaceRegistry;
@@ -35,9 +34,6 @@ import org.renjin.repackaged.guava.collect.Maps;
 import org.renjin.sexp.*;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -208,16 +204,13 @@ public class Context {
    * @return
    */
   public SEXP materialize(SEXP sexp) {
-
-    if(sexp instanceof MemoizedComputation && ((MemoizedComputation) sexp).isCalculated()) {
-      return sexp;
+    if(sexp instanceof Vector) {
+      Vector vector = (Vector) sexp;
+      if(vector.isDeferred() && !vector.isConstantAccessTime()) {
+        return session.getVectorEngine().materialize(vector);
+      }
     }
-    
-    if(sexp instanceof DeferredComputation && !((DeferredComputation) sexp).isConstantAccessTime()) {
-      return session.getVectorEngine().materialize((DeferredComputation)sexp);
-    } else {
-      return sexp;
-    }
+    return sexp;
   }
   
   public Vector materialize(Vector sexp) {

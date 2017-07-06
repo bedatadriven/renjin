@@ -19,6 +19,7 @@
 package org.renjin.compiler.ir;
 
 import org.apache.commons.math.complex.Complex;
+import org.renjin.repackaged.asm.Type;
 import org.renjin.sexp.*;
 
 
@@ -28,9 +29,9 @@ public class TypeSet {
   // Type Flags
   public static final int LIST = (1 << 1);
   public static final int NULL = (1 << 2);
-  public static final int INT = (1 << 3);
-  public static final int DOUBLE = (1 << 4);
-  public static final int LOGICAL = (1 << 5);
+  public static final int LOGICAL = (1 << 3);
+  public static final int INT = (1 << 4);
+  public static final int DOUBLE = (1 << 5);
   public static final int STRING = (1 << 6);
   public static final int COMPLEX = (1 << 7);
   public static final int RAW = (1 << 8);
@@ -38,6 +39,7 @@ public class TypeSet {
   public static final int FUNCTION = (1 << 10);
   public static final int ENVIRONMENT = (1 << 11);
   public static final int PAIRLIST = (1 << 12);
+  public static final int S4 = (1 << 13);
   public static final int ANY_ATOMIC_VECTOR = NULL | RAW | INT | LOGICAL | DOUBLE | COMPLEX | STRING;
   public static final int ANY_VECTOR = LIST | ANY_ATOMIC_VECTOR;
   public static final int ANY_TYPE = ANY_VECTOR | PAIRLIST | ENVIRONMENT | SYMBOL | FUNCTION;
@@ -69,6 +71,8 @@ public class TypeSet {
       return PAIRLIST;
     } else if(constant instanceof Function) {
       return FUNCTION;
+    } else if(constant instanceof S4Object) {
+      return S4;
     } else {
       throw new UnsupportedOperationException("TODO: " + constant.getClass().getName());
     }
@@ -81,7 +85,7 @@ public class TypeSet {
     } else if(type.equals(double.class)) {
       return DOUBLE;
 
-    } else if (type.equals(boolean.class)) {
+    } else if (type.equals(boolean.class) || type.equals(Logical.class)) {
       return LOGICAL;
 
     } else if (type.equals(String.class)) {
@@ -189,7 +193,7 @@ public class TypeSet {
         return null;
     }
   }
-  
+
   public static boolean matches(Class clazz, int typeSet) {
     // compute the set of bits that we will accept
     int mask = accepts(clazz);
@@ -220,6 +224,7 @@ public class TypeSet {
     appendType(s, "function", mask, FUNCTION);
     appendType(s, "environment", mask, ENVIRONMENT);
     appendType(s, "pairlist", mask, PAIRLIST);
+    appendType(s, "S4", mask, S4);
     return s.toString();
   }
   
@@ -242,6 +247,9 @@ public class TypeSet {
         (typeSet & ~NUMERIC) == 0;
   }
 
+  public static int widestVectorType(int x, int y) {
+    return Math.max(x, y);
+  }
 
   public static int elementOf(int typeSet) {
 

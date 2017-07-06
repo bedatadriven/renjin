@@ -22,6 +22,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.renjin.pipeliner.VectorPipeliner;
+import org.renjin.primitives.Warning;
 import org.renjin.primitives.io.connections.ConnectionTable;
 import org.renjin.primitives.packaging.DllInfo;
 import org.renjin.primitives.packaging.NamespaceRegistry;
@@ -369,5 +370,19 @@ public class Session {
 
   public Iterable<DllInfo> getLoadedLibraries() {
     return loadedLibraries;
+  }
+
+
+  public void printWarnings() {
+    SEXP warnings = baseEnvironment.getVariable(topLevelContext, Warning.LAST_WARNING);
+    if(warnings != Symbol.UNBOUND_VALUE) {
+      topLevelContext.evaluate( FunctionCall.newCall(Symbol.get("print.warnings"), warnings),
+          topLevelContext.getBaseEnvironment());
+
+    }
+  }
+
+  public void clearWarnings() {
+    baseEnvironment.remove(Warning.LAST_WARNING);
   }
 }

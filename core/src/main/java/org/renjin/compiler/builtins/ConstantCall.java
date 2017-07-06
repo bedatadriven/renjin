@@ -24,6 +24,7 @@ import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.invoke.reflection.converters.BooleanArrayConverter;
+import org.renjin.invoke.reflection.converters.Converters;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.sexp.*;
@@ -131,15 +132,7 @@ public class ConstantCall implements Specialization {
       } else {
         ValueBounds argument = it.next();
         Class formalType = formal.getClazz();
-        if(formalType.equals(double.class)) {
-          args[argI++] = argument.getConstantValue().asReal();
-        } else if(formalType.equals(int.class)) {
-          args[argI++] = argument.getConstantValue().asInt();
-        } else if(SEXP.class.isAssignableFrom(formalType)) {
-          args[argI++] = argument.getConstantValue();
-        } else {
-          throw new UnsupportedOperationException("formal type: " + formalType);
-        }
+        args[argI++] = convert(argument.getConstantValue(), formalType);
       }
     }
 
@@ -151,6 +144,11 @@ public class ConstantCall implements Specialization {
     }
 
     return new ConstantCall(constantValue);
+  }
+
+
+  public static Object convert(SEXP constantValue, Class formalType) {
+    return Converters.get(formalType).convertToJava(constantValue);
   }
 
   private static void evaluateVarArgs(JvmMethod method, List<ValueBounds> arguments) {

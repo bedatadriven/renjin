@@ -19,6 +19,7 @@
 package org.renjin.compiler.ir;
 
 import org.apache.commons.math.complex.Complex;
+import org.renjin.repackaged.asm.Type;
 import org.renjin.sexp.*;
 
 
@@ -28,9 +29,9 @@ public class TypeSet {
   // Type Flags
   public static final int LIST = (1 << 1);
   public static final int NULL = (1 << 2);
-  public static final int INT = (1 << 3);
-  public static final int DOUBLE = (1 << 4);
-  public static final int LOGICAL = (1 << 5);
+  public static final int LOGICAL = (1 << 3);
+  public static final int INT = (1 << 4);
+  public static final int DOUBLE = (1 << 5);
   public static final int STRING = (1 << 6);
   public static final int COMPLEX = (1 << 7);
   public static final int RAW = (1 << 8);
@@ -84,7 +85,7 @@ public class TypeSet {
     } else if(type.equals(double.class)) {
       return DOUBLE;
 
-    } else if (type.equals(boolean.class)) {
+    } else if (type.equals(boolean.class) || type.equals(Logical.class)) {
       return LOGICAL;
 
     } else if (type.equals(String.class)) {
@@ -192,7 +193,7 @@ public class TypeSet {
         return null;
     }
   }
-  
+
   public static boolean matches(Class clazz, int typeSet) {
     // compute the set of bits that we will accept
     int mask = accepts(clazz);
@@ -246,6 +247,9 @@ public class TypeSet {
         (typeSet & ~NUMERIC) == 0;
   }
 
+  public static int widestVectorType(int x, int y) {
+    return Math.max(x, y);
+  }
 
   public static int elementOf(int typeSet) {
 

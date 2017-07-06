@@ -119,8 +119,6 @@ public class ForFunction extends SpecialFunction {
       SsaTransformer ssaTransformer = new SsaTransformer(cfg, dTree);
       ssaTransformer.transform();
 
-      System.out.println(cfg);
-
 
       UseDefMap useDefMap = new UseDefMap(cfg);
       TypeSolver types = new TypeSolver(cfg, useDefMap);
@@ -130,8 +128,6 @@ public class ForFunction extends SpecialFunction {
 
       ssaTransformer.removePhiFunctions(types);
 
-
-      types.dumpBounds();
 
       ByteCodeEmitter emitter = new ByteCodeEmitter(cfg, types);
       compiledBody = emitter.compileLoopBody().newInstance();

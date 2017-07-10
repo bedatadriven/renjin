@@ -1,36 +1,30 @@
-/*
+/**
  * Renjin : JVM-based interpreter for the R language for the statistical analysis
- * Copyright © 2010-${year} BeDataDriven Groep B.V. and contributors
+ * Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, a copy is available at
- *  https://www.gnu.org/licenses/gpl-2.0.txt
- *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, a copy is available at
+ * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-
 package org.renjin.compiler.codegen;
 
-import jdk.internal.org.objectweb.asm.Opcodes;
 import org.renjin.compiler.CompiledLoopBody;
 import org.renjin.compiler.JitClassLoader;
 import org.renjin.compiler.cfg.InlinedFunction;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.primitives.vector.MemoizedComputation;
-import org.renjin.repackaged.asm.ClassVisitor;
-import org.renjin.repackaged.asm.ClassWriter;
-import org.renjin.repackaged.asm.MethodVisitor;
-import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.asm.*;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.repackaged.asm.util.TraceClassVisitor;
 import org.renjin.sexp.AttributeMap;

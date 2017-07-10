@@ -53,6 +53,10 @@ public class StudioSession {
     return new EvalResult(exp, session.isInvisible());
   }
 
+  public Session getSession() {
+    return session;
+  }
+
   public Context getTopLevelContext() {
     return session.getTopLevelContext();
   }  

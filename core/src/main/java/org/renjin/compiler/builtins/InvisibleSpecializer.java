@@ -16,30 +16,18 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.compiler.codegen;
+package org.renjin.compiler.builtins;
 
-import org.renjin.compiler.cfg.ControlFlowGraph;
-import org.renjin.repackaged.asm.Type;
-import org.renjin.repackaged.asm.commons.InstructionAdapter;
-import org.renjin.sexp.Symbol;
+import org.renjin.compiler.ir.tac.RuntimeState;
+import org.renjin.sexp.Null;
 
-public class ApplyMethodContext extends EmitContext {
+import java.util.List;
 
-  private Symbol argumentName;
-  private Type argumentType;
 
-  public ApplyMethodContext(ControlFlowGraph cfg, Symbol argumentName, Type argumentType, VariableSlots variableSlots) {
-    super(cfg, argumentType.getSize(), variableSlots);
-    this.argumentName = argumentName;
-    this.argumentType = argumentType;
-  }
-
+public class InvisibleSpecializer implements Specializer {
   @Override
-  public void loadParam(InstructionAdapter mv, Symbol param) {
-    if(param.equals(argumentName)) {
-      mv.load(0, argumentType);
-    } else {
-      throw new IllegalStateException("argument: " + param);
-    }
+  public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> arguments) {
+    // Ignore invisible flag
+    return new ConstantCall(Null.INSTANCE);
   }
 }

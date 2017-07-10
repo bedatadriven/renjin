@@ -147,7 +147,7 @@ public class Contexts {
       }
       cptr = cptr.getParent();
     }
-    if (n == 0 && cptr.isTopLevel()) {
+    if (n == 0 && !cptr.isTopLevel()) {
       return cptr.getClosure();
     }
     throw new EvalException("not that many frames on the stack");

@@ -32,6 +32,7 @@ import org.renjin.compiler.ir.tac.expressions.ReadParam;
 import org.renjin.compiler.ir.tac.statements.ReturnStatement;
 import org.renjin.compiler.ir.tac.statements.Statement;
 import org.renjin.eval.MatchedArguments;
+import org.renjin.primitives.special.ForFunction;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.MethodVisitor;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
@@ -85,10 +86,6 @@ public class InlinedFunction {
         returnStatements.add((ReturnStatement) statement);
       }
     }
-    
-    System.out.println("+++ INLINED +++ ");
-    System.out.println(cfg);
-    System.out.println("+++++++++++++++ ");
 
   }
 

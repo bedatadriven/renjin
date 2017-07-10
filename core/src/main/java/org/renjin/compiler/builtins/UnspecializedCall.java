@@ -30,9 +30,14 @@ import java.util.List;
 
 public class UnspecializedCall implements Specialization {
 
-  public static final UnspecializedCall INSTANCE = new UnspecializedCall();
-  
-  private UnspecializedCall() {
+  public static final UnspecializedCall INSTANCE = new UnspecializedCall(false);
+
+  public static final UnspecializedCall PURE = new UnspecializedCall(true);
+
+  private final boolean pure;
+
+  private UnspecializedCall(boolean pure) {
+    this.pure = pure;
   }
 
   @Override

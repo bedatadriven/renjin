@@ -200,6 +200,13 @@ public class IRBodyBuilderTest extends EvalTestCase {
   }
   
   @Test
+  public void slots() {
+    IRBody block = build("x@y <- a@b");
+    System.out.println(block);
+    
+  }
+  
+  @Test
   public void shortCircuitAnd() {
     assertThat(evalIR("FALSE && stop()"), elementsIdenticalTo(c(false)));
     assertThat(evalIR("1 && 2"), elementsIdenticalTo(c(true)));

@@ -53,6 +53,7 @@ public class BuiltinSpecializers {
     
     specializers.put("length", new GenericBuiltinGuard(new LengthSpecializer()));
     specializers.put("[<-", new GenericBuiltinGuard(new ReplaceSpecializer()));
+    specializers.put("@<-", new GenericBuiltinGuard(new ReplaceSlotSpecializer()));
     specializers.put("[", new GenericBuiltinGuard(new SubsetSpecializer()));
     specializers.put("[[", new GenericBuiltinGuard(new SingleSubsetSpecializer()));
     specializers.put("c", new GenericBuiltinGuard(new CombineSpecializer()));

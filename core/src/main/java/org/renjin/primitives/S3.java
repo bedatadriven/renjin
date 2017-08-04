@@ -867,9 +867,10 @@ public class S3 {
       classes.add(argClass[i]);
       distances.add(0);
     }
+    
     Symbol argClassObjectName = Symbol.get(".__C__" + argClass[0]);
-    Frame globalFrame = context.getGlobalEnvironment().getFrame();
-    AttributeMap map = globalFrame.getVariable(argClassObjectName).getAttributes();
+    Environment environment = context.getEnvironment();
+    AttributeMap map = environment.findVariable(context, argClassObjectName).force(context).getAttributes();
     SEXP containsSlot = map.get("contains");
     SEXP argSuperClasses = containsSlot.getNames();
 

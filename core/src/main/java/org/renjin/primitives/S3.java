@@ -36,6 +36,7 @@ import org.renjin.sexp.*;
 import org.renjin.sexp.Vector;
 
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Primitives used in the implementation of the S3 object system
@@ -545,7 +546,7 @@ public class S3 {
   private static List<Environment> findMethodTable(Context context, String opName) {
     Symbol methodSymbol = Symbol.get(".__T__" + opName + ":base");
     SEXP methodTableMethodsPkg;
-    List<Environment> methodTableList = new ArrayList<>();
+    List<Environment> methodTableList = new CopyOnWriteArrayList<>();
   
     if (SPECIAL.contains(opName)) {
       Namespace methodsNamespace = context.getNamespaceRegistry().getNamespace(context, "methods");
@@ -561,8 +562,13 @@ public class S3 {
       if (methodTableGlobalEnv != Symbol.UNBOUND_VALUE && methodTableGlobalEnv instanceof Environment) {
         methodTableList.add((Environment) methodTableGlobalEnv);
       }
+  
+      List<Symbol> loadedPackages = new ArrayList<>();
+      for(Symbol symbol : context.getNamespaceRegistry().getLoadedNamespaces()) {
+        loadedPackages.add(symbol);
+      }
       
-      for(Symbol loadedNamespace : context.getNamespaceRegistry().getLoadedNamespaces()) {
+      for(Symbol loadedNamespace : loadedPackages) {
         String packageName = loadedNamespace.getPrintName();
         Namespace packageNamespace = context.getNamespaceRegistry().getNamespace(context, packageName);
         Environment packageEnvironment = packageNamespace.getNamespaceEnvironment();

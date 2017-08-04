@@ -440,7 +440,10 @@ public class S3 {
       // select closest group method if distance is less than the distance of closest generic method
       int genericDistance = validMethods.get(0).size() == 0 ? -1 : validMethods.get(0).get(0).getDistance();
       int groupDistance = validMethods.get(1).size() == 0 ? -1 : validMethods.get(1).get(0).getDistance();
-      if(genericDistance == -1 || (groupDistance != -1 && groupDistance < genericDistance)) {
+      if(genericDistance == -1 && groupDistance == -1) {
+        return null;
+      }
+      if((genericDistance == -1 && groupDistance != -1) || (groupDistance != -1 && groupDistance < genericDistance)) {
         method = validMethods.get(1).get(0);
       } else {
         method = validMethods.get(0).get(0);

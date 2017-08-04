@@ -21,10 +21,7 @@ package org.renjin.primitives;
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.eval.*;
-import org.renjin.invoke.annotations.ArgumentList;
-import org.renjin.invoke.annotations.Builtin;
-import org.renjin.invoke.annotations.Current;
-import org.renjin.invoke.annotations.Internal;
+import org.renjin.invoke.annotations.*;
 import org.renjin.invoke.codegen.ArgumentIterator;
 import org.renjin.packaging.SerializedPromise;
 import org.renjin.primitives.packaging.Namespace;
@@ -889,6 +886,13 @@ public class S3 {
     return new ArgumentSignature(classes.toArray(new String[0]), Ints.toArray(distances));
   }
   
+  public static SEXP computeDataClassesS4(Context context, String className) {
+    Symbol argClassObjectName = Symbol.get(".__C__" + className);
+    Environment environment = context.getEnvironment();
+    AttributeMap map = environment.findVariable(context, argClassObjectName).force(context).getAttributes();
+    return map.get("contains").getNames();
+  }
+  
   public static SEXP tryDispatchFromPrimitive(Context context, Environment rho, FunctionCall call,
       String name, String[] argumentNames, SEXP[] arguments) {
 
@@ -1056,7 +1060,19 @@ public class S3 {
       resolver.context = context;
       resolver.object = object;
       resolver.group = group;
-      resolver.classes = Lists.newArrayList(computeDataClasses(context, object));
+  
+      StringVector objectClasses = computeDataClasses(context, object);
+      if(Types.isS4(object)) {
+        SEXP objectClassesS4 = computeDataClassesS4(context, objectClasses.getElementAsString(0));
+        if(objectClassesS4 != Null.INSTANCE) {
+          resolver.classes = Lists.newArrayList((StringVector)objectClassesS4);
+        } else {
+          resolver.classes = Lists.newArrayList(objectClasses);
+        }
+      } else {
+        resolver.classes = Lists.newArrayList(objectClasses);
+      }
+      
       return resolver;
     }
 
@@ -1178,6 +1194,20 @@ public class S3 {
         method = findNext(methodTable, genericMethodName, className);
         if(method != null) {
           return method;
+        }
+        if(Types.isS4(object) && isS4DispatchSupported(genericMethodName)) {
+          List<Environment> methodTables = findMethodTable(context, genericMethodName);
+          Iterator<Environment> methodTableItr = methodTables.iterator();
+          while (method == null && methodTableItr.hasNext()) {
+            Environment env = methodTableItr.next();
+            SEXP methodName = env.getFrame().getVariable(Symbol.get(className));
+            if(methodName instanceof GenericMethod) {
+              method = (GenericMethod) methodName;
+            }
+          }
+          if(method != null) {
+            return method;
+          }
         }
         if(group != null) {
           method = findNext(methodTable, group, className);

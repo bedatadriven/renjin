@@ -276,49 +276,9 @@ public abstract class DoubleVector extends AbstractAtomicVector implements Itera
     }
   }
 
-  public double asReal() {
-    if (length() == 0) {
-      return NA;
-    } else {
-      return getElementAsDouble(0);
-    }
-  }
-
 
   @Override
-  public final boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || !(o instanceof DoubleVector)) {
-      return false;
-    }
-
-    DoubleVector vector = (DoubleVector) o;
-
-    if (this.length() != vector.length()) {
-      return false;
-    }
-    for (int i = 0; i != length(); ++i) {
-      double this_i = getElementAsDouble(i);
-      double that_i = vector.getElementAsDouble(i);
-
-      if (isNA(this_i) != isNA(that_i)) {
-        return false;
-      }
-      if (isNaN(this_i) != isNaN(that_i)) {
-        return false;
-      }
-      if (!isNaN(this_i) && !isNaN(that_i) && this_i != that_i) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  @Override
-  public final int hashCode() {
+  public int hashCode() {
     int hash = 37;
     for(int i=0;i!=length();++i) {
       long value = Double.doubleToRawLongBits(getElementAsDouble(i));
@@ -326,6 +286,7 @@ public abstract class DoubleVector extends AbstractAtomicVector implements Itera
     }
     return hash;
   }
+
 
   @Override
   public DoubleArrayVector.Builder newCopyBuilder() {
@@ -381,9 +342,20 @@ public abstract class DoubleVector extends AbstractAtomicVector implements Itera
     }
     
     @Override
-    public boolean elementsEqual(Vector vector1, int index1, Vector vector2,
-        int index2) {
-      return vector1.getElementAsDouble(index1) == vector2.getElementAsDouble(index2);
+    public boolean elementsIdentical(Vector vector1, int index1, Vector vector2, int index2) {
+      double element1 = vector1.getElementAsDouble(index1);
+      double element2 = vector2.getElementAsDouble(index2);
+
+      if (isNA(element1) != isNA(element2)) {
+        return false;
+      }
+      if (isNaN(element1) != isNaN(element2)) {
+        return false;
+      }
+      if (!isNaN(element1) && !isNaN(element2) && element1 != element2) {
+        return false;
+      }
+      return true;
     }
 
     @Override

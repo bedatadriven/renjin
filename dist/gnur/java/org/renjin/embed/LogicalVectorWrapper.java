@@ -43,7 +43,7 @@ public class LogicalVectorWrapper extends LogicalVector implements WrappedREXP {
 
   private void force() {
     if(values == null) {
-      values = engine.rniGetIntArray(pointer);
+      values = engine.rniGetBoolArrayI(pointer);
     }
   }
 

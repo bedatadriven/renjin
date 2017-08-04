@@ -44,7 +44,6 @@ public class GimpleReturn extends GimpleStatement {
     return value;
   }
 
-  @Override
   public List<GimpleExpr> getOperands() {
     if(value == null) {
       return Collections.emptyList();

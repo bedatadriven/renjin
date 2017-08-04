@@ -32,6 +32,8 @@ import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleComplexType;
 import org.renjin.repackaged.asm.Type;
 
+import java.lang.reflect.Field;
+
 /**
  * Strategy for complex number types.
  * 
@@ -68,6 +70,11 @@ public class ComplexTypeStrategy implements TypeStrategy<ComplexValue> {
           allocator.reserve(decl.getName() + "$real", type.getJvmPartType()),
           allocator.reserve(decl.getName() + "$im", type.getJvmPartType()));
     }
+  }
+
+  @Override
+  public ComplexValue providedGlobalVariable(GimpleVarDecl decl, Field javaField) {
+    throw new UnsupportedOperationException("TODO");
   }
 
   @Override

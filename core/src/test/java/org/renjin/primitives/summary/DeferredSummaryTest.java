@@ -21,7 +21,6 @@ package org.renjin.primitives.summary;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 public class DeferredSummaryTest extends EvalTestCase {
@@ -35,7 +34,7 @@ public class DeferredSummaryTest extends EvalTestCase {
     eval(" print(x) ");
 
     // ensure that the result is cached and correct
-    assertThat(eval("x"), equalTo(c(5000050000d)));
+    assertThat(eval("x"), elementsIdenticalTo(c(5000050000d)));
   }
   
   @Test

@@ -46,7 +46,7 @@
 
 int plugin_is_GPL_compatible;
 
-#define MAX_RECORD_TYPES 1000
+#define MAX_RECORD_TYPES 10000
 #define MAX_LINE_NUMBER 16000
 
 

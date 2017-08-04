@@ -19,7 +19,6 @@
 
 
 
-
 fortranCall <- function() {
     data <- c(0, 1, 2)
     output <- .Fortran("fortsub", as.double(data), length(data))

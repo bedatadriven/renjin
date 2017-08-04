@@ -23,3 +23,14 @@
 # come _before_ lower case letters, among other differences.
 
 defined.first <- 42
+
+
+f <- local( {
+         x <- 1
+         function(v) {
+            if (!missing(v)) x <<- v
+            x
+         }
+     })
+
+makeActiveBinding("abc", f, environment())

@@ -238,7 +238,7 @@ public class JlineRepl {
     }
 
     // clean up last warnings from any previous run
-    clearWarnings();
+    session.clearWarnings();
 
     try {
       SEXP result = topLevelContext.evaluate(new ExpressionVector(exprList), topLevelContext.getGlobalEnvironment());
@@ -247,7 +247,7 @@ public class JlineRepl {
         topLevelContext.evaluate(FunctionCall.newCall(Symbol.get("print"), Promise.repromise(result)));
       }
 
-      printWarnings();
+      session.printWarnings();
     } catch(EvalException e) {
       printEvalException(e);
       if(stopOnError) {
@@ -284,17 +284,6 @@ public class JlineRepl {
   //  reader.killLine();
   }
 
-  private void printWarnings() {
-    SEXP warnings = topLevelContext.getBaseEnvironment().getVariable(Warning.LAST_WARNING);
-    if(warnings != Symbol.UNBOUND_VALUE) {
-      topLevelContext.evaluate( FunctionCall.newCall(Symbol.get("print.warnings"), warnings),
-          topLevelContext.getBaseEnvironment());
-    }
-  }
-
-  private void clearWarnings() {
-    topLevelContext.getBaseEnvironment().remove(Warning.LAST_WARNING);
-  }
 
   public ConsoleReader getReader() {
     return reader;

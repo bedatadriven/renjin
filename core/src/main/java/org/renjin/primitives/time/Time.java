@@ -137,7 +137,7 @@ public class Time {
   }
   
   @Internal("as.POSIXlt")
-  public static ListVector asPOSIXlt(DoubleVector x, String tz) {
+  public static ListVector asPOSIXlt(AtomicVector x, String tz) {
     SEXP timeZoneAttribute;
     if(Strings.isNullOrEmpty(tz)) {
       timeZoneAttribute = x.getAttribute(Symbols.TZONE);
@@ -236,6 +236,8 @@ public class Time {
     if(Strings.isNullOrEmpty(tz)) {
       return DateTimeZone.getDefault();
     } else if("GMT".equals(tz)) {
+      return DateTimeZone.UTC;
+    } else if("Coordinated Universal Time".equals(tz)) {
       return DateTimeZone.UTC;
     } else {
       return DateTimeZone.forID(tz);

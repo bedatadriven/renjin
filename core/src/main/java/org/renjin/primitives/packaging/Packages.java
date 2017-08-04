@@ -63,7 +63,7 @@ public class Packages {
     // Load dataset objects as promises
     for(Dataset dataset : namespace.getPackage().getDatasets()) {
       for(String objectName : dataset.getObjectNames()) {
-        packageEnv.setVariable(objectName, new DatasetObjectPromise(dataset, objectName));
+        packageEnv.setVariable(context, objectName, new DatasetObjectPromise(dataset, objectName));
       }
     }
     

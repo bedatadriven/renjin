@@ -18,17 +18,21 @@
  */
 package org.renjin.compiler.builtins;
 
+import org.renjin.compiler.codegen.ConstantBytecode;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.invoke.model.JvmMethod;
+import org.renjin.invoke.reflection.converters.BooleanArrayConverter;
+import org.renjin.invoke.reflection.converters.Converters;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.IntVector;
+import org.renjin.sexp.*;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Call to a builtin with constant arguments whose value is known at compile-time.
@@ -48,7 +52,19 @@ public class ConstantCall implements Specialization {
     } else if(constantValue instanceof Double) {
       type = Type.DOUBLE_TYPE;
       valueBounds = ValueBounds.of(DoubleVector.valueOf((Double) constantValue));
-    
+
+    } else if(constantValue instanceof Boolean) {
+      type = Type.BOOLEAN_TYPE;
+      valueBounds = ValueBounds.of(LogicalVector.valueOf((Boolean) constantValue));
+
+    } else if(constantValue instanceof String) {
+      type = Type.getType(String.class);
+      valueBounds = ValueBounds.of(StringVector.valueOf((String) constantValue));
+
+    } else if(constantValue instanceof SEXP) {
+      type = Type.getType(constantValue.getClass());
+      valueBounds = ValueBounds.of((SEXP)constantValue);
+      
     } else {
       throw new UnsupportedOperationException("constantValue: " + constantValue);
     }
@@ -59,8 +75,7 @@ public class ConstantCall implements Specialization {
     return type;
   }
 
-  @Override
-  public ValueBounds getValueBounds() {
+  public ValueBounds getResultBounds() {
     return valueBounds;
   }
 
@@ -70,25 +85,55 @@ public class ConstantCall implements Specialization {
       mv.iconst((Integer) constantValue);
     } else if(constantValue instanceof Double) {
       mv.dconst((Double) constantValue);
+    } else if(constantValue instanceof Boolean) {
+      mv.iconst(constantValue == Boolean.TRUE ? 1 : 0);
+    } else if(constantValue instanceof SEXP) {
+      ConstantBytecode.pushConstant(mv, ((SEXP) constantValue));
     } else {
-      throw new UnsupportedOperationException();
+      throw new UnsupportedOperationException("constantValue: " + constantValue.getClass());
     }
   }
 
+  @Override
+  public boolean isPure() {
+    return true;
+  }
+
   public static ConstantCall evaluate(JvmMethod method, List<ValueBounds> arguments) {
+
+
+    ListVector.Builder varArgs = null;
+    Map<String, Object> namedFlags = null;
+
+    if(method.acceptsArgumentList()) {
+      namedFlags = new HashMap<>();
+      varArgs = ListVector.newBuilder();
+      for (JvmMethod.Argument formal : method.getFormals()) {
+        if(formal.isNamedFlag()) {
+          namedFlags.put(formal.getName(), formal.getDefaultValue());
+        }
+      }
+      for (ValueBounds argument : arguments) {
+        varArgs.add(argument.getConstantValue());
+      }
+    }
+    
     List<JvmMethod.Argument> formals = method.getAllArguments();
     Object[] args = new Object[formals.size()];
-    for (int i = 0; i < formals.size(); i++) {
-      method.getAllArguments();
-    }
     Iterator<ValueBounds> it = arguments.iterator();
     int argI = 0;
     for (JvmMethod.Argument formal : formals) {
-      if(formal.isContextual() || formal.isVarArg() || formal.isNamedFlag()) {
-        throw new UnsupportedOperationException("formal: " + formal);
+      if(formal.isVarArg()) {
+        args[argI++] = varArgs.build();
+      } else if(formal.isNamedFlag()) {
+        args[argI++] = namedFlags.get(formal.getName());
+      } else if(formal.isContextual()) {
+        throw new UnsupportedOperationException("in " + method +  ", " + "formal: " + formal);
+      } else {
+        ValueBounds argument = it.next();
+        Class formalType = formal.getClazz();
+        args[argI++] = convert(argument.getConstantValue(), formalType);
       }
-      ValueBounds argument = it.next();
-      args[argI++] = argument.getConstantValue();
     }
 
     Object constantValue;
@@ -99,5 +144,15 @@ public class ConstantCall implements Specialization {
     }
 
     return new ConstantCall(constantValue);
+  }
+
+
+  public static Object convert(SEXP constantValue, Class formalType) {
+    return Converters.get(formalType).convertToJava(constantValue);
+  }
+
+  private static void evaluateVarArgs(JvmMethod method, List<ValueBounds> arguments) {
+    
+    
   }
 }

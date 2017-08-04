@@ -19,6 +19,8 @@
 package org.renjin.compiler;
 
 
+import org.renjin.eval.Context;
+import org.renjin.primitives.Deparse;
 import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.SEXP;
 
@@ -45,5 +47,24 @@ public class NotCompilableException extends RuntimeException {
   
   public NotCompilableException getCause() {
     return (NotCompilableException) super.getCause();
+  }
+
+
+  public String toString(Context context) {
+    NotCompilableException e = this;
+    StringBuilder s = new StringBuilder();
+    while(e != null) {
+      if(s.length() > 0) {
+        s.append(" > ");
+      }
+      if(e.getSexp() != null) {
+        s.append(Deparse.deparseExp(context, e.getSexp()));
+      }
+      if(e.getMessage() != null) {
+        s.append(": ").append(e.getMessage());
+      }
+      e = e.getCause();
+    }
+    return s.toString();
   }
 }

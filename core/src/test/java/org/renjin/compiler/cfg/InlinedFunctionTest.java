@@ -27,7 +27,6 @@ import org.renjin.sexp.Symbol;
 
 import java.util.Collections;
 
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -41,7 +40,7 @@ public class InlinedFunctionTest extends EvalTestCase {
     ValueBounds returnBounds = fn.computeBounds();
     
     assertTrue(returnBounds.isConstant());
-    assertThat(returnBounds.getConstantValue(), equalTo(c(42)));
+    assertThat(returnBounds.getConstantValue(), elementsIdenticalTo(c(42)));
   }
 
   @Test
@@ -53,7 +52,7 @@ public class InlinedFunctionTest extends EvalTestCase {
     ValueBounds returnBounds = fn.computeBounds();
 
     assertTrue(returnBounds.isConstant());
-    assertThat(returnBounds.getConstantValue(), equalTo(c_i(1)));
+    assertThat(returnBounds.getConstantValue(), elementsIdenticalTo(c_i(1)));
   }
   
   private InlinedFunction compileFunction(String functionDecl) {

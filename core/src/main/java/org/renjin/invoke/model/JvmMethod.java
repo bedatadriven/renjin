@@ -309,7 +309,6 @@ public class JvmMethod implements Comparable<JvmMethod> {
   public boolean isDeferrable() {
     return isAnnotatedWith(Deferrable.class) || method.getDeclaringClass().equals(Math.class);
   }
-
   public boolean isPassNA() {
     return passNA;
   }

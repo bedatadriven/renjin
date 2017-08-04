@@ -38,7 +38,7 @@ public class NullExpression implements Expression {
   private NullExpression() { }
 
   @Override
-  public boolean isDefinitelyPure() {
+  public boolean isPure() {
     return true;
   }
 

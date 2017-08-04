@@ -168,9 +168,6 @@ detach <- function(name, pos = 2, unload = FALSE, character.only = FALSE,
     } else {
         if(.isMethodsDispatchOn() && methods:::.hasS4MetaData(env))
             methods:::cacheMetaData(env, FALSE)
-        .Call("R_lazyLoadDBflush",
-              paste(libpath, "/R/", pkgname, ".rdb", sep=""),
-              PACKAGE="base")
     }
     invisible()
 }

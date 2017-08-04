@@ -36,11 +36,11 @@ public class NonlinearLeastSquaresTest extends EvalTestCase{
   @Test
   public void numericDerivative() throws IOException {
     
-    Environment rho = Environment.createChildEnvironment(context.getGlobalEnvironment());
-    rho.setVariable("x", new DoubleArrayVector(1,2,3));
-    rho.setVariable("a", new DoubleArrayVector(1));
-    rho.setVariable("b", new DoubleArrayVector(1));
-    rho.setVariable("cc", new DoubleArrayVector(1));
+    Environment rho = Environment.createChildEnvironment(context.getGlobalEnvironment()).build();
+    rho.setVariable(context, "x", new DoubleArrayVector(1,2,3));
+    rho.setVariable(context, "a", new DoubleArrayVector(1));
+    rho.setVariable(context, "b", new DoubleArrayVector(1));
+    rho.setVariable(context, "cc", new DoubleArrayVector(1));
 
     // f(x) = a*x^2 + b + cc
     ExpressionVector modelExpr = RParser.parseAllSource(new StringReader("a*x^2 + b*x + cc"));

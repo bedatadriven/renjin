@@ -25,6 +25,7 @@ import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.methods.PrimitiveMethodTable.prim_methods_t;
 import org.renjin.primitives.Contexts;
+import org.renjin.primitives.Types;
 import org.renjin.primitives.special.SubstituteFunction;
 import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.sexp.*;
@@ -103,10 +104,10 @@ public class Methods {
     return metaName.toString();
   }
 
-  public static SEXP R_getClassFromCache(SEXP className, Environment table) {
+  public static SEXP R_getClassFromCache(@Current Context context, SEXP className, Environment table) {
     if(className instanceof StringVector) {
       String packageName = className.getAttributes().getPackage();
-      SEXP cachedValue = table.getVariable(Symbol.get(((StringVector) className).getElementAsString(0)));
+      SEXP cachedValue = table.getVariable(context, Symbol.get(((StringVector) className).getElementAsString(0)));
 
       if(cachedValue == Symbol.UNBOUND_VALUE) {
         return Null.INSTANCE;
@@ -206,7 +207,7 @@ public class Methods {
 
     Environment rho = env;
     while (rho != Environment.EMPTY) {
-      vl =  rho.getVariable(symbol);
+      vl =  rho.getVariable(context, symbol);
       if (vl != Symbol.UNBOUND_VALUE) {
         vl = vl.force(context);
 
@@ -230,7 +231,7 @@ public class Methods {
     }
     /* look in base if either generic is missing */
     if(generic == Symbol.UNBOUND_VALUE) {
-      vl = context.getBaseEnvironment().getVariable(symbol);
+      vl = context.getBaseEnvironment().getVariable(context, symbol);
       if(IS_GENERIC(vl)) {
         generic = vl;
         if(vl.getAttributes().getPackage() != null) {
@@ -466,7 +467,8 @@ public class Methods {
     SEXP val = context.evaluate(FunctionCall.newCall(MethodDispatch.s_getDataPart, obj),
         context.getSession().getSingleton(MethodDispatch.class).getMethodsNamespace());
 
-    return val.setAttribute(Symbols.S4_BIT, Null.INSTANCE);
+    // Clear S4 object
+    return Types.setS4Object(val, false, false);
   }
 
 
@@ -515,9 +517,9 @@ public class Methods {
     Symbol symbol = Symbol.get(name);
     for(Environment rho = env.getParent(); rho != Environment.EMPTY;
         rho = rho.getParent()) {
-      fun = rho.getVariable(symbol);
+      fun = rho.getVariable(context, symbol);
       if(fun instanceof Closure) {
-        if(!isGenericFunction(fun)) {
+        if(!isGenericFunction(context, fun)) {
           break;
         }
       } 
@@ -548,8 +550,8 @@ public class Methods {
   }
 
 
-  private static boolean isGenericFunction(SEXP fun) {
-    SEXP value = ((Closure) fun).getEnclosingEnvironment().getVariable(MethodDispatch.DOT_GENERIC);
+  private static boolean isGenericFunction(@Current Context context, SEXP fun) {
+    SEXP value = ((Closure) fun).getEnclosingEnvironment().getVariable(context, MethodDispatch.DOT_GENERIC);
     return value != Symbol.UNBOUND_VALUE;
   }
 
@@ -566,7 +568,7 @@ public class Methods {
     /* for primitive .nextMethod's, suppress further dispatch to avoid
      * going into an infinite loop of method calls
     */
-    op =  ev.findVariable(MethodDispatch.R_dot_nextMethod);
+    op =  ev.findVariable(context, MethodDispatch.R_dot_nextMethod);
 
     if(op == Symbol.UNBOUND_VALUE) {
       throw new EvalException(

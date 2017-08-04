@@ -58,22 +58,17 @@ public final class Rdynload {
         if (def.fun == null) {
           break;
         }
-        DllSymbol symbol = new DllSymbol(library);
-        symbol.setMethodHandle(def.fun);
-        symbol.setConvention(convention);
-        symbol.setName(def.getName());
-        library.addSymbol(symbol);
+        library.register(new DllSymbol(def.getName(), def.fun, convention));
       }
     }
   }
 
   public static boolean R_useDynamicSymbols(DllInfo info, boolean value) {
-    // unclear what this function does
-    return true;
+    return info.setUseDynamicSymbols(value);
   }
 
   public static boolean R_forceSymbols(DllInfo info, boolean value) {
-    return true;
+    return info.forceSymbols(value);
   }
 
 //

@@ -155,4 +155,11 @@ public class FrameWrapper implements Frame {
     pendingWrites.put(name, Symbol.UNBOUND_VALUE);
     cache.remove(name);
   }
+
+  public void flushPendingWrites() {
+    for (Map.Entry<Symbol, SEXP> write : pendingWrites.entrySet()) {
+      long resultPointer = wrapper.unwrap(write.getValue());
+      rengine.rniAssign(write.getKey().getPrintName(), resultPointer, environmentPointer);
+    }
+  }
 }

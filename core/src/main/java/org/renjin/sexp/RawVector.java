@@ -122,15 +122,6 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Byte> {
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (!(o instanceof RawVector)) {
-      return (false);
-    }
-    RawVector rv = (RawVector)o;
-    return (rv.hashCode() == this.hashCode());
-  }
-
-  @Override
   public int hashCode() {
     return Arrays.hashCode(this.toByteArray());
   }
@@ -139,7 +130,6 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Byte> {
   public Builder newBuilderWithInitialSize(int initialSize) {
     return (new RawVector.Builder(initialSize));
   }
-  
   
 
   @Override
@@ -285,8 +275,7 @@ public class RawVector extends AbstractAtomicVector implements Iterable<Byte> {
     }
 
     @Override
-    public boolean elementsEqual(Vector vector1, int index1, Vector vector2,
-        int index2) {
+    public boolean elementsIdentical(Vector vector1, int index1, Vector vector2, int index2) {
       // raws cannot be NA
       return vector1.getElementAsByte(index1) == vector2.getElementAsByte(index2);
     }

@@ -39,6 +39,7 @@ import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.statement.*;
 import org.renjin.gcc.gimple.type.GimpleVoidType;
 import org.renjin.gcc.peephole.PeepholeOptimizer;
+import org.renjin.gcc.runtime.Stdlib;
 import org.renjin.gcc.symbols.LocalVariableTable;
 import org.renjin.gcc.symbols.UnitSymbolTable;
 import org.renjin.repackaged.asm.*;
@@ -306,7 +307,7 @@ public class FunctionGenerator implements InvocationStrategy {
         } else if (ins instanceof GimpleSwitch) {
           emitSwitch((GimpleSwitch) ins);
         } else {
-          throw new UnsupportedOperationException("ins: " + ins);
+          emitAsm(ins);
         }
       } catch (Exception e) {
         throw new InternalCompilerException("Exception compiling instruction " + ins, e);
@@ -318,9 +319,21 @@ public class FunctionGenerator implements InvocationStrategy {
     }
   }
 
+  private void emitAsm(GimpleStatement ins) {
+    mv.invokestatic(Stdlib.class, "inlineAssembly", "()V");
+  }
+
   private void emitSwitch(GimpleSwitch ins) {
-    JExpr valueGenerator = exprFactory.findPrimitiveGenerator(ins.getValue());
-    valueGenerator.load(mv);
+    JExpr switchValue = exprFactory.findPrimitiveGenerator(ins.getValue());
+    if(switchValue.getType() == Type.INT_TYPE) {
+      switchValue.load(mv);
+    } else if(switchValue.getType() == Type.LONG_TYPE) {
+      switchValue.load(mv);
+      mv.visitInsn(Opcodes.L2I);
+    } else {
+      throw new InternalCompilerException("Invalid type for switch: " + switchValue.getType());
+    }
+
     Label defaultLabel = labels.of(ins.getDefaultCase().getBasicBlockIndex());
 
     int numCases = ins.getCaseCount();

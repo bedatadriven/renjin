@@ -117,6 +117,6 @@ public class AssignLeftFunction extends SpecialFunction {
     if(target.isReservedWord() && rhs instanceof Function) {
       context.warn("Renjin does not honor redefinition of '" + target.getPrintName() + "' function");
     }
-    rho.setVariable(target, rhs);
+    rho.setVariable(context, target, rhs);
   }
 }

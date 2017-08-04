@@ -18,6 +18,6 @@ static const R_CallMethodDef callMethods[] = {
 
 R_init_nativeWithPrefix(DllInfo *dll) {
     R_registerRoutines(dll, NULL, callMethods, NULL, NULL);
-    R_useDynamicSymbols(dll, FALSE);
+    R_useDynamicSymbols(dll, TRUE);
 }
 

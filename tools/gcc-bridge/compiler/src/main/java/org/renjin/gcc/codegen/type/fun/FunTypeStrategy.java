@@ -31,6 +31,8 @@ import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleFunctionType;
 import org.renjin.repackaged.asm.Type;
 
+import java.lang.reflect.Field;
+
 /**
  * Creates {@code Generators} for values for function values.
  * 
@@ -63,6 +65,11 @@ public class FunTypeStrategy implements TypeStrategy<FunExpr> {
 
   @Override
   public FunExpr variable(GimpleVarDecl decl, VarAllocator allocator) {
+    throw newInvalidOperation();
+  }
+
+  @Override
+  public FunExpr providedGlobalVariable(GimpleVarDecl decl, Field javaField) {
     throw newInvalidOperation();
   }
 

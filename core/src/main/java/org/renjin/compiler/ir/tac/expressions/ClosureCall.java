@@ -19,12 +19,12 @@
 package org.renjin.compiler.ir.tac.expressions;
 
 import org.renjin.compiler.NotCompilableException;
+import org.renjin.compiler.builtins.ArgumentBounds;
 import org.renjin.compiler.cfg.InlinedFunction;
 import org.renjin.compiler.codegen.EmitContext;
-import org.renjin.compiler.codegen.InlineParamExpr;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
-import org.renjin.compiler.ir.tac.IRMatchedArguments;
+import org.renjin.eval.MatchedArguments;
 import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
@@ -39,29 +39,38 @@ import java.util.Map;
 
 public class ClosureCall implements Expression {
 
-  private RuntimeState runtimeState;
+  private final RuntimeState runtimeState;
   private final FunctionCall call;
   private final List<IRArgument> arguments;
-  private Closure closure;
-  private IRMatchedArguments matching;
+  private final Closure closure;
+
+  private final String debugName;
+
+  private MatchedArguments matching;
   private InlinedFunction inlinedFunction;
   
   private ValueBounds returnBounds;
   private Type type;
 
-  public ClosureCall(RuntimeState runtimeState, FunctionCall call, Closure closure, List<IRArgument> arguments) {
+  public ClosureCall(RuntimeState runtimeState, FunctionCall call, Closure closure, String closureDebugName, List<IRArgument> arguments) {
     this.runtimeState = runtimeState;
     this.call = call;
     this.closure = closure;
     this.arguments = arguments;
-    this.matching = new IRMatchedArguments(closure, arguments);
+    this.debugName = closureDebugName;
+
+    this.matching = MatchedArguments.matchIRArguments(closure, arguments);
     this.returnBounds = ValueBounds.UNBOUNDED;
     this.type = returnBounds.storageType();
   }
 
+
   @Override
-  public boolean isDefinitelyPure() {
-    return false;
+  public boolean isPure() {
+    if(inlinedFunction == null) {
+      return false;
+    }
+    return inlinedFunction.isPure();
   }
 
   @Override
@@ -83,14 +92,8 @@ public class ClosureCall implements Expression {
     if(matching.hasExtraArguments()) {
       throw new NotCompilableException(call, "Extra arguments not supported");
     }
-    
-    for (int i = 0; i < arguments.size(); i++) {
-      Expression argumentExpr = arguments.get(i).getExpression();
-      ValueBounds argumentBounds = typeMap.get(argumentExpr);
-      inlinedFunction.updateParam(i, argumentBounds);
-    }
-    
-    returnBounds = inlinedFunction.computeBounds();
+   
+    returnBounds = inlinedFunction.updateBounds(ArgumentBounds.create(arguments, typeMap));
     type = returnBounds.storageType();
     
     return returnBounds;
@@ -109,14 +112,7 @@ public class ClosureCall implements Expression {
       throw new NotCompilableException(call, "Extra arguments not supported");
     }
     
-    EmitContext inlineContext = emitContext.inlineContext(inlinedFunction.getCfg(), inlinedFunction.getTypes());
-
-    for (Map.Entry<Symbol, Integer> formal : matching.getMatchedFormals().entrySet()) {
-      inlineContext.setInlineParameter(formal.getKey(),
-          new InlineParamExpr(emitContext, arguments.get(formal.getValue()).getExpression()));
-    }
-
-    inlinedFunction.writeInline(inlineContext, mv);
+    inlinedFunction.writeInline(emitContext, mv, matching, arguments);
     
     return 0;
   }
@@ -138,16 +134,9 @@ public class ClosureCall implements Expression {
   }
 
   @Override
-  public String toString() {
-    return functionName() + "(" + Joiner.on(", ").join(arguments) + ")";
-  }
 
-  private String functionName() {
-    if(call.getFunction() instanceof Symbol) {
-      return ((Symbol) call.getFunction()).getPrintName();
-    } else {
-      return "fn";
-    }
+  public String toString() {
+    return debugName + "(" + Joiner.on(", ").join(arguments) + ")";
   }
 
 }

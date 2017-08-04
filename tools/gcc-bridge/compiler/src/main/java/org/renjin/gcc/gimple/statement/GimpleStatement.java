@@ -50,7 +50,8 @@ import java.util.Set;
     @Type(value = GimpleReturn.class, name = "return"),
     @Type(value = GimpleGoto.class, name = "goto"),
     @Type(value = GimpleSwitch.class, name = "switch"),
-    @Type(value = GimpleBlock.class, name = "block")})
+    @Type(value = GimpleBlock.class, name = "block"),
+    @Type(value = GimpleAsm.class, name = "gimple_asm")})
 public abstract class GimpleStatement {
 
   @JsonProperty("line")
@@ -61,10 +62,7 @@ public abstract class GimpleStatement {
   public boolean lhsMatches(Predicate<? super GimpleLValue> predicate) {
     return false;
   }
-  
-  public List<GimpleExpr> getOperands() {
-    return Collections.emptyList();
-  }
+
   
   /**
    * @return the set of {@code SymbolRef}s that are read by this statement

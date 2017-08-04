@@ -18,6 +18,7 @@
  */
 package org.renjin.compiler.ir.tac.statements;
 
+import org.renjin.compiler.codegen.ConstantBytecode;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.codegen.VariableStorage;
 import org.renjin.compiler.ir.ValueBounds;
@@ -123,80 +124,29 @@ public class ReturnStatement implements Statement, BasicBlockEndingStatement {
         if(variableStorage.getType().getSort() != Type.OBJECT) {
           ValueBounds bounds = environmentVariables.get(i).getValueBounds();
           if(bounds.isAttributeConstant()) {
-            if(bounds.getConstantAttributes() != AttributeMap.EMPTY) {
-              generateAttributes(mv, bounds.getConstantAttributes());
+            AttributeMap attributes = bounds.getConstantAttributes();
+            if(attributes != AttributeMap.EMPTY) {
+              ConstantBytecode.generateAttributes(mv, attributes);
             } 
           } else {
             throw new UnsupportedOperationException("Lost attributes");
           }
         }
 
-        mv.invokevirtual(Type.getInternalName(Environment.class), "setVariable",
+        mv.invokevirtual(Type.getInternalName(Environment.class), "setVariableUnsafe",
             Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(String.class), Type.getType(SEXP.class)), false);
 
       }
     }
     
-    mv.areturn(Type.VOID_TYPE);
+    returnValue.load(emitContext, mv);
+    emitContext.writeReturn(mv, returnValue.getType());
     return 0;
   }
 
-  private void generateAttributes(InstructionAdapter mv, AttributeMap constantAttributes) {
-    
-    // SEXP should be on the stack
-    // Create new AttributeMap.Builder
-
-    Type builderType = Type.getType(AttributeMap.Builder.class);
-    mv.invokestatic(Type.getInternalName(AttributeMap.class), "newBuilder", 
-        Type.getMethodDescriptor(builderType), false);
-    
-    // Now Builder is on the stack...
-    for (PairList.Node node : constantAttributes.nodes()) {
-      if(node.getTag() == Symbols.CLASS) {
-        pushConstant(mv, node.getValue());
-        mv.invokevirtual(builderType.getInternalName(), "setClass", 
-            Type.getMethodDescriptor(builderType, Type.getType(SEXP.class)), false);
-        
-      } else if(node.getTag() == Symbols.NAMES) {
-        pushConstant(mv, node.getValue());
-        mv.invokevirtual(builderType.getInternalName(), "setNames",
-            Type.getMethodDescriptor(builderType, Type.getType(SEXP.class)), false);
-        
-      } else if(node.getTag() == Symbols.DIM) {
-        pushConstant(mv, node.getValue());
-        mv.invokevirtual(builderType.getInternalName(), "setDim",
-            Type.getMethodDescriptor(builderType, Type.getType(SEXP.class)), false);
-
-      } else if(node.getTag() == Symbols.DIMNAMES) {
-        pushConstant(mv, node.getValue());
-        mv.invokevirtual(builderType.getInternalName(), "setDimNames",
-            Type.getMethodDescriptor(builderType, Type.getType(SEXP.class)), false);
-
-      } else {
-        mv.aconst(node.getTag().getPrintName());
-        pushConstant(mv, node.getValue());
-        mv.invokevirtual(builderType.getInternalName(), "set",
-            Type.getMethodDescriptor(builderType, Type.getType(String.class), Type.getType(SEXP.class)), false);
-      }
-    }
-    // Stack:
-    // SEXP AttrbuteMap.Builder
-    mv.invokeinterface(Type.getInternalName(SEXP.class), "setAttributes",
-        Type.getMethodDescriptor(Type.getType(SEXP.class), builderType));
-    
-  }
-
-  private void pushConstant(InstructionAdapter mv, SEXP value) {
-    if(value instanceof StringVector) {
-      if(value.length() == 1) {
-        mv.visitLdcInsn(((StringVector) value).getElementAsString(0));
-        mv.invokestatic(Type.getInternalName(StringVector.class), "valueOf", 
-            Type.getMethodDescriptor(Type.getType(StringVector.class), Type.getType(String.class)), false);
-        return;
-      }
-    }
-    
-    throw new UnsupportedOperationException("TODO: constant = " + value);
+  @Override
+  public boolean isPure() {
+    return true;
   }
 
 

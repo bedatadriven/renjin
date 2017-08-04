@@ -30,25 +30,25 @@ public class ArgumentTest extends EvalTestCase {
   @Test
   public void singlePosArg() {
     eval( "f <- function(x) { x } ");
-    assertThat(eval("f(42)"), equalTo(c(42)));
+    assertThat(eval("f(42)"), elementsIdenticalTo(c(42)));
   }
 
   @Test
   public void singlePosArgWithDefault() {
     eval( "f <- function(x = 99) { x } ");
-    assertThat(eval("f()"), equalTo(c(99)));
+    assertThat(eval("f()"), elementsIdenticalTo(c(99)));
   }
 
   @Test
   public void singleNamedArg() {
     eval( "f <- function(x) { x } ");
-    assertThat(eval("f(x=241)"), equalTo(c(241)));
+    assertThat(eval("f(x=241)"), elementsIdenticalTo(c(241)));
   }
 
   @Test
   public void partialMatching() {
     eval( "f <- function(reallyLongArgName) { reallyLongArgName } ");
-    assertThat(eval("f(r=11)"), equalTo(c(11)));
+    assertThat(eval("f(r=11)"), elementsIdenticalTo(c(11)));
   }
 
   @Test
@@ -59,7 +59,7 @@ public class ArgumentTest extends EvalTestCase {
     // partial matching.
 
     eval( "f <- function(fumble, fooey) { fumble ^ fooey } ");
-    assertThat( eval( "f(f = 3, fooey = 4)"), equalTo( c(81)  ) );
+    assertThat( eval( "f(f = 3, fooey = 4)"), elementsIdenticalTo( c(81)  ) );
   }
 
   @Test(expected = EvalException.class)
@@ -77,7 +77,7 @@ public class ArgumentTest extends EvalTestCase {
   @Test
   public void varArgs() {
     eval( "f <- function(...) { list(...) }");
-    assertThat( eval( "f(1,2,3) "), equalTo( list(1d,2d,3d) ));
+    assertThat( eval( "f(1,2,3) "), elementsIdenticalTo( list(1d,2d,3d) ));
   }
 
   @Test
@@ -93,20 +93,20 @@ public class ArgumentTest extends EvalTestCase {
   @Test
   public void varArgWithNamed() {
     eval( "f <- function(..., x) length(list(...))");
-    assertThat( eval(" f(x=99, 1, 2, 3) "), equalTo( c_i(3) ));
+    assertThat( eval(" f(x=99, 1, 2, 3) "), elementsIdenticalTo( c_i(3) ));
   }
 
   @Test
   public void varArgWithExtraNamed() {
     eval( "f <- function(...) { length(list(...)) } ");
-    assertThat( eval(" f(x=32, y=42, z=99) "), equalTo( c_i(3) ));
+    assertThat( eval(" f(x=32, y=42, z=99) "), elementsIdenticalTo( c_i(3) ));
   }
 
   @Test
   public void ellipsesPassedToClosure() {
     eval( "g<- function(a,b,c) { list(a,b,c) } ");
     eval( "f<- function(...) { g(...) }");
-    assertThat( eval(" f(1,2,3) "), equalTo(list(1d,2d,3d)));
+    assertThat( eval(" f(1,2,3) "), elementsIdenticalTo(list(1d,2d,3d)));
   }
 
   @Test
@@ -123,14 +123,14 @@ public class ArgumentTest extends EvalTestCase {
   public void evaluatedPromise() {
     eval( "x <- 1 " );
     eval( "f <- function(a = x) { a } ");
-    assertThat( eval(" f()" ), equalTo( c(1))) ;
+    assertThat( eval(" f()" ), elementsIdenticalTo( c(1))) ;
   }
 
   @Test
   public void argsArePromisedInCorrectEnv() {
     eval( "f <- function(x) { x } ");
     eval( "x <- 1 ");
-    assertThat( eval(" f(x) "), equalTo( c(1) ));
+    assertThat( eval(" f(x) "), elementsIdenticalTo( c(1) ));
   }
 
   @Test
@@ -138,7 +138,7 @@ public class ArgumentTest extends EvalTestCase {
     eval( "f <- function(x, y = x) { y } ");
     eval( "x <- 2 ");
     eval( "y <- 3 ");
-    assertThat( eval(" f(y) "), equalTo( c(3) ));
+    assertThat( eval(" f(y) "), elementsIdenticalTo( c(3) ));
 
   }
 
@@ -146,7 +146,7 @@ public class ArgumentTest extends EvalTestCase {
   @Test
   public void promiseEvaluatedInFunctionEnv() {
     eval( "f <- function( a = sqrt(y) ) { y<-4; a } ");
-    assertThat( eval("f()"), equalTo( c(2) ));
+    assertThat( eval("f()"), elementsIdenticalTo( c(2) ));
   }
 
   @Test
@@ -154,7 +154,7 @@ public class ArgumentTest extends EvalTestCase {
     eval( "g <- function(z) { z } ");
     eval( "f <- function() { q<-3; g(q) }");
 
-    assertThat( eval("f()"), equalTo( c(3) ));
+    assertThat( eval("f()"), elementsIdenticalTo( c(3) ));
   }
 
   @Test
@@ -162,7 +162,7 @@ public class ArgumentTest extends EvalTestCase {
 
     eval( "f <- function( a = if(FALSE) {1 } ) { a }" );
 
-    assertThat(evaluate( "f()"), equalTo( (SEXP) Null.INSTANCE )) ;
+    assertThat(evaluate( "f()"), identicalTo( (SEXP) Null.INSTANCE )) ;
     assertThat(topLevelContext.getSession().isInvisible(), equalTo(true));
 
   }
@@ -190,6 +190,6 @@ public class ArgumentTest extends EvalTestCase {
   public void dotDotDot() {
     eval(" f <- function(...) { c(...) } ");
 
-    assertThat( eval( "f(1,2,3)"), equalTo( c(1,2,3 )));
+    assertThat( eval( "f(1,2,3)"), elementsIdenticalTo( c(1,2,3 )));
   }
 }

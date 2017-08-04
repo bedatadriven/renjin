@@ -22,12 +22,23 @@ package org.renjin.primitives.io.serialization;
 import org.renjin.sexp.*;
 
 class Flags {
- 
+
+
   public final static int MAX_PACKED_INDEX = Integer.MAX_VALUE >> 8;
-  
+
+  static final Symbol OLD_S4_BIT = Symbol.get("__S4_BIT");
+
+  static final boolean WRITE_OLD_S4_ATTRIBUTE = true;
+
+
   private final static int IS_OBJECT_BIT_MASK = (1 << 8);
   private final static int HAS_ATTR_BIT_MASK = (1 << 9);
   private final static int HAS_TAG_BIT_MASK = (1 << 10);
+  private final static int S4_BIT_MASK = (1 << 16);
+
+
+  private final static int ACTIVE_BINDING_MASK = (1 << 27);
+
 
   private Flags() {
   }
@@ -48,6 +59,14 @@ class Flags {
     return (flags & HAS_TAG_BIT_MASK) == HAS_TAG_BIT_MASK;
   }
 
+  public static boolean isActiveBinding(int flags) {
+    return (flags & ACTIVE_BINDING_MASK) == ACTIVE_BINDING_MASK;
+  }
+
+  public static boolean isS4(int flags) {
+    return (flags & S4_BIT_MASK) == S4_BIT_MASK;
+  }
+
   public static boolean isUTF8Encoded(int flags) {
     return (getLevels(flags) & SerializationFormat.UTF8_MASK) == SerializationFormat.UTF8_MASK;
   }
@@ -60,13 +79,22 @@ class Flags {
     return   ((flags) >> 8);
   }
 
+  public static int computeBindingFlag(boolean activeBinding) {
+    int flags = SexpType.LISTSXP;
+    flags |= HAS_TAG_BIT_MASK;
+    if (activeBinding) {
+      flags |= ACTIVE_BINDING_MASK;
+    }
+    return flags;
+  }
+
   public static int computeFlags(SEXP exp, int type) {
     int flags = type;
 
     if(exp.getAttribute(Symbols.CLASS) != Null.INSTANCE) {
       flags |= IS_OBJECT_BIT_MASK;
     }
-    if(exp.getAttributes() != AttributeMap.EMPTY) {
+    if(hasAttributesToWrite(exp)) {
       flags |= HAS_ATTR_BIT_MASK;
     }
     if(exp instanceof PairList.Node && ((PairList.Node) exp).hasTag()) {
@@ -75,9 +103,26 @@ class Flags {
     if(exp instanceof Closure | exp instanceof Environment) {
       flags |= HAS_TAG_BIT_MASK;
     }
+    if(exp.getAttributes().isS4()) {
+      flags |= Flags.S4_BIT_MASK;
+    }
     return flags;
   }
-  
+
+  private static boolean hasAttributesToWrite(SEXP exp) {
+    // Previous versions of Renjin used an attribute __S4_BIT to indicate
+    // that an SEXP was an S4 object. We are now correcting this representation
+    // to use the same flag bit that GNU R uses, but we don't want to make it
+    // impossible to load packages using S4 in older versions of Renjin, so we will
+    // continue to write out the attribute until the next major version change.
+
+    if(WRITE_OLD_S4_ATTRIBUTE) {
+      return exp.getAttributes() != AttributeMap.EMPTY;
+    } else {
+      return exp.getAttributes().hasAnyBesidesS4Flag();
+    }
+  }
+
   public static int computePromiseFlags(Promise promise) {
     int flags = SexpType.PROMSXP;
 

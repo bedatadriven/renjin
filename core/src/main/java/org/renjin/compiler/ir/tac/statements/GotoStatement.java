@@ -90,4 +90,9 @@ public class GotoStatement implements Statement, BasicBlockEndingStatement {
     mv.visitJumpInsn(Opcodes.GOTO, emitContext.getAsmLabel(target));
     return 0;
   }
+
+  @Override
+  public boolean isPure() {
+    return true;
+  }
 }

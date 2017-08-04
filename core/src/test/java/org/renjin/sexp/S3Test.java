@@ -37,9 +37,9 @@ public class S3Test extends EvalTestCase {
   public void implicitClasses() {
 
     eval(  "x <- 10" );
-    assertThat( eval( "class(x)" ), equalTo( c( "numeric" )));
-    assertThat( eval( "oldClass(x) "), equalTo( NULL ));
-    assertThat(eval("inherits(x, \"a\") "), equalTo(c(false)));
+    assertThat( eval( "class(x)" ), elementsIdenticalTo( c( "numeric" )));
+    assertThat( eval( "oldClass(x) "), identicalTo( NULL ));
+    assertThat(eval("inherits(x, \"a\") "), elementsIdenticalTo(c(false)));
   }
 
 
@@ -48,9 +48,9 @@ public class S3Test extends EvalTestCase {
 
     eval( "x<-1 ");
     eval( "class(x) <- c(\"a\", \"b\") ");
-    assertThat( eval( "inherits(x, \"a\")"), equalTo( c(true) ));
-    assertThat( eval( "inherits(x, \"a\", TRUE)"), equalTo( c_i(1) ));
-    assertThat( eval( "inherits(x, c(\"a\", \"b\", \"c\"), TRUE) "), equalTo( c_i(1, 2, 0) ));
+    assertThat( eval( "inherits(x, \"a\")"), elementsIdenticalTo( c(true) ));
+    assertThat( eval( "inherits(x, \"a\", TRUE)"), elementsIdenticalTo( c_i(1) ));
+    assertThat( eval( "inherits(x, c(\"a\", \"b\", \"c\"), TRUE) "), elementsIdenticalTo( c_i(1, 2, 0) ));
 
   }
 
@@ -68,14 +68,14 @@ public class S3Test extends EvalTestCase {
 
     Environment env = Environment.createGlobalEnvironment(Environment.createBaseEnvironment());
     SEXP ni = new IntArrayVector(3);
-    env.setVariable("i", ni);
-    env.setVariable("x", x);
+    env.setVariable(topLevelContext, "i", ni);
+    env.setVariable(topLevelContext, "x", x);
 
-    PairList updated = S3.updateArguments(actuals, formals, env, new ListVector());
+    PairList updated = S3.updateArguments(topLevelContext, actuals, formals, env, new ListVector());
 
     assertThat(updated.length(), equalTo(2));
-    assertThat(updated.getElementAsSEXP(0), equalTo(x));
-    assertThat(updated.getElementAsSEXP(1), equalTo(ni));
+    assertThat(updated.getElementAsSEXP(0), identicalTo(x));
+    assertThat(updated.getElementAsSEXP(1), identicalTo(ni));
 
 
     System.out.println(updated);
@@ -91,7 +91,7 @@ public class S3Test extends EvalTestCase {
     eval("x <- 42");
     eval("class(x) <- c('foo') ");
 
-    assertThat(eval("f(x)"), equalTo(c(false)));
+    assertThat(eval("f(x)"), elementsIdenticalTo(c(false)));
   }
 
   @Test
@@ -104,7 +104,7 @@ public class S3Test extends EvalTestCase {
     eval("x <- 42");
     eval("class(x) <- c('foo') ");
 
-    assertThat(eval("f(x, drop = TRUE)"), equalTo(c(false)));
+    assertThat(eval("f(x, drop = TRUE)"), elementsIdenticalTo(c(false)));
   }
 
 }

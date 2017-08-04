@@ -37,13 +37,13 @@ public class SubsettingTest extends EvalTestCase {
   @Test
   public void subsetDouble() {
     eval( " x <- c(91,92,93) ");
-    assertThat( eval(" x[1] "), equalTo( c(91) ));
-    assertThat( eval(" x[2] "), equalTo( c(92) ));
-    assertThat( eval(" x[3] "), equalTo( c(93) ));
-    assertThat( eval(" x[4] "), equalTo( c(DoubleVector.NA)) );
-    assertThat( eval(" x[0] "), equalTo( (SEXP) new DoubleArrayVector() ));
-    assertThat( eval(" x[NULL] "), equalTo( (SEXP) new DoubleArrayVector() ));
-    assertThat( eval(" x[3L] "), equalTo( c(93) ));
+    assertThat( eval(" x[1] "), elementsIdenticalTo( c(91) ));
+    assertThat( eval(" x[2] "), elementsIdenticalTo( c(92) ));
+    assertThat( eval(" x[3] "), elementsIdenticalTo( c(93) ));
+    assertThat( eval(" x[4] "), elementsIdenticalTo( c(DoubleVector.NA)) );
+    assertThat( eval(" x[0] "), identicalTo( (SEXP) new DoubleArrayVector() ));
+    assertThat( eval(" x[NULL] "), identicalTo( (SEXP) new DoubleArrayVector() ));
+    assertThat( eval(" x[3L] "), elementsIdenticalTo( c(93) ));
   }
   
   @Test
@@ -51,7 +51,7 @@ public class SubsettingTest extends EvalTestCase {
     eval(" x <- c(a=91,b=92,c=93) ");
     eval(" y <- x[NULL]");
     
-    assertThat(eval("names(y)"), equalTo((SEXP)StringArrayVector.EMPTY));
+    assertThat(eval("names(y)"), identicalTo((SEXP)StringArrayVector.EMPTY));
   } 
   
   @Test
@@ -60,16 +60,16 @@ public class SubsettingTest extends EvalTestCase {
     eval(" p <- quote(foo(x)) ");
     eval(" x <- p[NA] ");
     
-    assertThat(eval("typeof(x)"), equalTo(c("language")));
-    assertThat(eval("length(x)"), equalTo(c_i(2)));
-    assertThat(eval("is.null(x[[1]])"), equalTo(c(true)));
-    assertThat(eval("is.null(x[[2]])"), equalTo(c(true)));
+    assertThat(eval("typeof(x)"), elementsIdenticalTo(c("language")));
+    assertThat(eval("length(x)"), elementsIdenticalTo(c_i(2)));
+    assertThat(eval("is.null(x[[1]])"), elementsIdenticalTo(c(true)));
+    assertThat(eval("is.null(x[[2]])"), elementsIdenticalTo(c(true)));
   }
 
   @Test
   public void subsetCallToNull() {
     eval(" x <- quote(dat()) ");
-    assertThat(eval("x[-1]"), equalTo(NULL));
+    assertThat(eval("x[-1]"), identicalTo(NULL));
   }
   
 
@@ -79,11 +79,11 @@ public class SubsettingTest extends EvalTestCase {
     eval(" p <- quote(foo(x)) ");
     eval(" x <- p[c(NA,NA,NA)] ");
 
-    assertThat(eval("typeof(x)"), equalTo(c("language")));
-    assertThat(eval("length(x)"), equalTo(c_i(3)));
-    assertThat(eval("is.null(x[[1]])"), equalTo(c(true)));
-    assertThat(eval("is.null(x[[2]])"), equalTo(c(true)));
-    assertThat(eval("is.null(x[[3]])"), equalTo(c(true)));
+    assertThat(eval("typeof(x)"), elementsIdenticalTo(c("language")));
+    assertThat(eval("length(x)"), elementsIdenticalTo(c_i(3)));
+    assertThat(eval("is.null(x[[1]])"), elementsIdenticalTo(c(true)));
+    assertThat(eval("is.null(x[[2]])"), elementsIdenticalTo(c(true)));
+    assertThat(eval("is.null(x[[3]])"), elementsIdenticalTo(c(true)));
   }
 
 
@@ -93,10 +93,10 @@ public class SubsettingTest extends EvalTestCase {
     eval(" p <- quote(foo(x)) ");
     eval(" x <- p[c(1, 10)] ");
 
-    assertThat(eval("typeof(x)"), equalTo(c("language")));
-    assertThat(eval("length(x)"), equalTo(c_i(2)));
-    assertThat(eval("x[[1]]"), equalTo(symbol("foo")));
-    assertThat(eval("is.null(x[[2]])"), equalTo(c(true)));
+    assertThat(eval("typeof(x)"), elementsIdenticalTo(c("language")));
+    assertThat(eval("length(x)"), elementsIdenticalTo(c_i(2)));
+    assertThat(eval("x[[1]]"), identicalTo(symbol("foo")));
+    assertThat(eval("is.null(x[[2]])"), elementsIdenticalTo(c(true)));
   }
 
 
@@ -105,7 +105,7 @@ public class SubsettingTest extends EvalTestCase {
     eval(" p <- quote(foo(x)) ");
     eval(" p[NA] <- list(quote(z)) ");
 
-    assertThat(eval("identical(p, quote(foo(x)))"), equalTo(c(true)));
+    assertThat(eval("identical(p, quote(foo(x)))"), elementsIdenticalTo(c(true)));
   }
 
   @Test
@@ -113,7 +113,7 @@ public class SubsettingTest extends EvalTestCase {
     eval(" p <- quote(foo(x)) ");
     eval(" p[[1]] <- quote(bar) ");
 
-    assertThat(eval("identical(p, quote(bar(x)))"), equalTo(c(true)));
+    assertThat(eval("identical(p, quote(bar(x)))"), elementsIdenticalTo(c(true)));
   }
 
   
@@ -124,13 +124,13 @@ public class SubsettingTest extends EvalTestCase {
 
     eval("print(p)");
 
-    assertThat(eval("identical(p, quote(foo(x)))"), equalTo(c(true)));
+    assertThat(eval("identical(p, quote(foo(x)))"), elementsIdenticalTo(c(true)));
   }
 
   @Test
   public void subsetWithLogicals() {
     eval( " x <- c(91,92,93) ") ;
-    assertThat( eval("x[c(TRUE,FALSE,TRUE)]"),equalTo( c(91,93)));
+    assertThat( eval("x[c(TRUE,FALSE,TRUE)]"), elementsIdenticalTo( c(91,93)));
   }
 
 
@@ -138,39 +138,39 @@ public class SubsettingTest extends EvalTestCase {
   public void listIndices() {
     eval(" x <- list('a', 3, NULL) ");
 
-    assertThat( eval("x[0] "), equalTo( list() ));
-    assertThat( eval("x[1] "), equalTo( list( c("a") )));
-    assertThat( eval("x[99] "), equalTo( list( NULL )));
-    assertThat( eval("x[1:2] "), equalTo( list( c("a"), c(3) )));
-    assertThat(eval("x[2:5] "), equalTo(list(c(3), NULL, NULL, NULL)));
-    assertThat( eval("x[-3] "), equalTo( list(c("a"), c(3))));
+    assertThat( eval("x[0] "), elementsIdenticalTo( list() ));
+    assertThat( eval("x[1] "), elementsIdenticalTo( list( c("a") )));
+    assertThat( eval("x[99] "), elementsIdenticalTo( list( NULL )));
+    assertThat( eval("x[1:2] "), elementsIdenticalTo( list( c("a"), c(3) )));
+    assertThat(eval("x[2:5] "), elementsIdenticalTo(list(c(3), NULL, NULL, NULL)));
+    assertThat( eval("x[-3] "), elementsIdenticalTo( list(c("a"), c(3))));
   }
 
   @Test
   public void emptyListNegativeIndices() {
     eval(" x <- list() ");
 
-    assertThat( eval("x[4]"), equalTo(list(Null.INSTANCE)));
-    assertThat( eval("x[-1L]"), equalTo(list()));
+    assertThat( eval("x[4]"), elementsIdenticalTo(list(Null.INSTANCE)));
+    assertThat( eval("x[-1L]"), elementsIdenticalTo(list()));
   }
 
   @Test
   public void subsetDoubleMultipleIndices() {
     eval( " x <- c(91,92,93) ");
-    assertThat( eval(" x[2:3] "), equalTo( c(92, 93) ));
-    assertThat( eval(" x[3:5] "), equalTo( c(93, DoubleVector.NA, DoubleVector.NA) ));
+    assertThat( eval(" x[2:3] "), elementsIdenticalTo( c(92, 93) ));
+    assertThat( eval(" x[3:5] "), elementsIdenticalTo( c(93, DoubleVector.NA, DoubleVector.NA) ));
   }
 
   @Test
   public void stringSubset() {
     eval(" x <- c('a','b','c') ");
 
-    assertThat( eval("x[0] "), equalTo( CHARACTER_0 ));
-    assertThat( eval("x[1] "), equalTo( c("a") ));
-    assertThat( eval("x[99] "), equalTo( c( StringVector.NA )));
-    assertThat(eval("x[1:2] "), equalTo(c("a", "b")));
-    assertThat( eval("x[2:5] "), equalTo( c("b", "c", StringVector.NA, StringVector.NA )));
-    assertThat( eval("x[-3] "), equalTo( c("a", "b")));
+    assertThat( eval("x[0] "), identicalTo( CHARACTER_0 ));
+    assertThat( eval("x[1] "), elementsIdenticalTo( c("a") ));
+    assertThat( eval("x[99] "), elementsIdenticalTo( c( StringVector.NA )));
+    assertThat(eval("x[1:2] "), elementsIdenticalTo(c("a", "b")));
+    assertThat( eval("x[2:5] "), elementsIdenticalTo( c("b", "c", StringVector.NA, StringVector.NA )));
+    assertThat( eval("x[-3] "), elementsIdenticalTo( c("a", "b")));
   }
 
   @Test
@@ -178,7 +178,7 @@ public class SubsettingTest extends EvalTestCase {
     eval(" x <- c('a', 'b', 'c') ");
     eval(" x[1] <- 'z' ");
 
-    assertThat( eval(" x "), equalTo( c("z", "b", "c")));
+    assertThat( eval(" x "), elementsIdenticalTo( c("z", "b", "c")));
   }
 
   @Test
@@ -186,7 +186,7 @@ public class SubsettingTest extends EvalTestCase {
     eval(" x <- c('a', 'b', 'c') ");
     eval(" x[4] <- 36 ");
 
-    assertThat( eval(" x "), equalTo( c("a", "b", "c", "36")));
+    assertThat( eval(" x "), elementsIdenticalTo( c("a", "b", "c", "36")));
   }
 
   @Test
@@ -194,16 +194,16 @@ public class SubsettingTest extends EvalTestCase {
     eval(" x <- c(1,2,3) ");
     eval(" x[2] <- c('foo') ");
 
-    assertThat( eval(" x "), equalTo( c("1", "foo", "3")));
+    assertThat( eval(" x "), elementsIdenticalTo( c("1", "foo", "3")));
   }
 
   @Test
   public void negativeIndices() {
     eval(" x <- c(91,92,93)  ");
-    assertThat( eval(" x[-1] "), equalTo( c(92,93)));
-    assertThat(eval(" x[-1:-2] "), equalTo(c(93)));
-    assertThat(eval(" x[c(-2,-241)] "), equalTo(c(91, 93)));
-    assertThat( eval(" x[c(-1,0,0)] "), equalTo( c(92,93)));
+    assertThat( eval(" x[-1] "), elementsIdenticalTo( c(92,93)));
+    assertThat(eval(" x[-1:-2] "), elementsIdenticalTo(c(93)));
+    assertThat(eval(" x[c(-2,-241)] "), elementsIdenticalTo(c(91, 93)));
+    assertThat( eval(" x[c(-1,0,0)] "), elementsIdenticalTo( c(92,93)));
   }
 
   @Test
@@ -211,7 +211,7 @@ public class SubsettingTest extends EvalTestCase {
     eval("x <- 1:10");
     eval("y <- c(98,99)");
     eval("x[3:6] <- y");
-    assertThat(eval("x"), equalTo(c( 1d, 2d, 98d, 99d, 98d, 99d, 7d, 8d, 9d, 10d )));
+    assertThat(eval("x"), elementsIdenticalTo(c( 1d, 2d, 98d, 99d, 98d, 99d, 7d, 8d, 9d, 10d )));
   }
   
   
@@ -220,7 +220,7 @@ public class SubsettingTest extends EvalTestCase {
     eval(" x<-1:8 ");
     eval(" dim(x) <- c(2,4)");
 
-    assertThat( eval("x[,-4]"), equalTo( c_i(1, 2, 3, 4, 5, 6)));
+    assertThat( eval("x[,-4]"), elementsIdenticalTo( c_i(1, 2, 3, 4, 5, 6)));
   }
 
   @Test(expected = EvalException.class)
@@ -234,18 +234,18 @@ public class SubsettingTest extends EvalTestCase {
     eval(" x <- c(91, 92, 93) ");
     eval(" x[1] <- 44 ");
 
-    assertThat(eval("x"), equalTo(c(44, 92, 93)));
+    assertThat(eval("x"), elementsIdenticalTo(c(44, 92, 93)));
   }
 
   @Test
   public void logicalIndices() {
     eval("x <- c(21,22,23) ");
 
-    assertThat( eval(" x[TRUE] "), equalTo( c(21,22,23)));
-    assertThat( eval(" x[FALSE] "), equalTo( DOUBLE_0 ));
-    assertThat(eval(" x[NA] "), equalTo(c(DoubleVector.NA, DoubleVector.NA, DoubleVector.NA)));
-    assertThat(eval(" x[c(TRUE,FALSE,TRUE)] "), equalTo(c(21, 23)));
-    assertThat( eval(" x[c(TRUE,FALSE)] "), equalTo( c(21, 23) ));
+    assertThat( eval(" x[TRUE] "), elementsIdenticalTo( c(21,22,23)));
+    assertThat( eval(" x[FALSE] "), identicalTo( DOUBLE_0 ));
+    assertThat(eval(" x[NA] "), elementsIdenticalTo(c(DoubleVector.NA, DoubleVector.NA, DoubleVector.NA)));
+    assertThat(eval(" x[c(TRUE,FALSE,TRUE)] "), elementsIdenticalTo(c(21, 23)));
+    assertThat( eval(" x[c(TRUE,FALSE)] "), elementsIdenticalTo( c(21, 23) ));
   }
   
   @Test(expected = EvalException.class)
@@ -259,8 +259,8 @@ public class SubsettingTest extends EvalTestCase {
   public void longLogicalSubscripts() {
     eval("x <- 1:2");
     
-    assertThat(eval("x[c(TRUE,TRUE,TRUE)]"), equalTo(c_i(1, 2, IntVector.NA)));
-    assertThat(eval("x[c(TRUE,TRUE,FALSE,TRUE)]"), equalTo(c_i(1, 2, IntVector.NA)));
+    assertThat(eval("x[c(TRUE,TRUE,TRUE)]"), elementsIdenticalTo(c_i(1, 2, IntVector.NA)));
+    assertThat(eval("x[c(TRUE,TRUE,FALSE,TRUE)]"), elementsIdenticalTo(c_i(1, 2, IntVector.NA)));
   }
 
   @Test
@@ -268,7 +268,7 @@ public class SubsettingTest extends EvalTestCase {
     eval("x <- 1:2");
     eval("x[c(TRUE,TRUE,FALSE,TRUE)]<-4L");
     
-    assertThat(eval("x"), equalTo(c_i(4, 4, IntVector.NA, 4)));
+    assertThat(eval("x"), elementsIdenticalTo(c_i(4, 4, IntVector.NA, 4)));
   }
   
   
@@ -276,7 +276,7 @@ public class SubsettingTest extends EvalTestCase {
   public void missingSubscript() {
     eval("x <- 41:43");
 
-    assertThat( eval(" x[] "), equalTo( c_i(41,42,43)));
+    assertThat( eval(" x[] "), elementsIdenticalTo( c_i(41,42,43)));
   }
   
   @Test
@@ -284,10 +284,10 @@ public class SubsettingTest extends EvalTestCase {
     eval("m <- 1:12" );
     eval("dim(m) <- c(3,4)");
     eval("m2 <- m[FALSE,,drop=FALSE]");
-    assertThat(eval("dim(m2)[2]"), equalTo(c_i(4)));
+    assertThat(eval("dim(m2)[2]"), elementsIdenticalTo(c_i(4)));
     eval("l2 <- .Internal(vector('logical',0)) ");
     eval("fin <- m2[!l2,,drop=FALSE]");
-    assertThat(eval("dim(fin)"), equalTo(c_i(0,4)));
+    assertThat(eval("dim(fin)"), elementsIdenticalTo(c_i(0,4)));
     
   }
 
@@ -295,11 +295,11 @@ public class SubsettingTest extends EvalTestCase {
   public void namedSubscripts() {
     eval("x <- c(a=3, b=4) ");
 
-    assertThat(eval(" x['a'] "), equalTo(c(3)));
-    assertThat( eval(" names(x['a']) "), equalTo( c("a")));
+    assertThat(eval(" x['a'] "), elementsIdenticalTo(c(3)));
+    assertThat( eval(" names(x['a']) "), elementsIdenticalTo( c("a")));
     
-    assertThat(eval(" x[NA_character_] "), equalTo( c(DoubleVector.NA)));
-    assertThat(eval(" names(x[NA_character_]) "), equalTo( c((String)null)));
+    assertThat(eval(" x[NA_character_] "), elementsIdenticalTo( c(DoubleVector.NA)));
+    assertThat(eval(" names(x[NA_character_]) "), elementsIdenticalTo( c((String)null)));
 
   }
   
@@ -308,18 +308,18 @@ public class SubsettingTest extends EvalTestCase {
     eval(" x <- c(1,2)");
     eval(" names(x) <- c(NA, 'foo')");
     
-    assertThat(eval("x['foo']"), equalTo(c(2)));
-    assertThat(eval("x[['foo']]"), equalTo(c(2)));
+    assertThat(eval("x['foo']"), elementsIdenticalTo(c(2)));
+    assertThat(eval("x[['foo']]"), elementsIdenticalTo(c(2)));
 
-    assertThat(eval(" x[NA_character_] "), equalTo( c(DoubleVector.NA)));
-    assertThat(eval(" names(x[NA_character_]) "), equalTo( c((String)null)));
+    assertThat(eval(" x[NA_character_] "), elementsIdenticalTo( c(DoubleVector.NA)));
+    assertThat(eval(" names(x[NA_character_]) "), elementsIdenticalTo( c((String)null)));
   }
 
   @Test
   public void namesPreservedCorrectly() {
     eval("x <- c(a=3, 99, b=4) ");
 
-    assertThat( eval(" names(x[c(1,2,NA)]) "), equalTo( c( "a", "", StringVector.NA)));
+    assertThat( eval(" names(x[c(1,2,NA)]) "), elementsIdenticalTo( c( "a", "", StringVector.NA)));
   }
 
   @Test
@@ -327,7 +327,7 @@ public class SubsettingTest extends EvalTestCase {
     eval(" x <- c(91, 92, 93) ");
     eval(" x[1:2] <- c(81,82) ");
 
-    assertThat( eval("x"), equalTo( c( 81, 82, 93 )));
+    assertThat( eval("x"), elementsIdenticalTo( c( 81, 82, 93 )));
   }
 
   @Test
@@ -335,7 +335,7 @@ public class SubsettingTest extends EvalTestCase {
     eval(" x <- 1:3 ");
     eval(" x[c(FALSE,TRUE,FALSE)] <- 99");
 
-    assertThat( eval("x"), equalTo( c(1,99,3)));
+    assertThat( eval("x"), elementsIdenticalTo( c(1,99,3)));
   }
 
 
@@ -344,7 +344,7 @@ public class SubsettingTest extends EvalTestCase {
     eval(" x <- 1:4 ");
     eval(" x[c(FALSE,TRUE)] <- c(91,92)");
 
-    assertThat( eval("x"), equalTo( c(1,91,3,92)));
+    assertThat( eval("x"), elementsIdenticalTo( c(1,91,3,92)));
   }
 
 
@@ -353,7 +353,7 @@ public class SubsettingTest extends EvalTestCase {
     eval(" x <- c(91, 92, 93) ");
     eval(" x[2:3] <- 63 ");
 
-    assertThat( eval("x"), equalTo( c( 91, 63, 63 )));
+    assertThat( eval("x"), elementsIdenticalTo( c( 91, 63, 63 )));
   }
 
   @Test
@@ -361,7 +361,7 @@ public class SubsettingTest extends EvalTestCase {
     eval(" x <- c(91, 92, 93) ");
     eval(" x[2:5] <- 63 ");
 
-    assertThat( eval("x"), equalTo( c( 91, 63, 63, 63, 63 )));
+    assertThat( eval("x"), elementsIdenticalTo( c( 91, 63, 63, 63, 63 )));
   }
 
   @Test
@@ -376,56 +376,56 @@ public class SubsettingTest extends EvalTestCase {
     eval(" x<- c(1,2,3) ");
     eval("x[FALSE]<-c()");
 
-    assertThat( eval("x") , equalTo(c(1, 2, 3)));
+    assertThat( eval("x") , elementsIdenticalTo(c(1, 2, 3)));
   }
   
   @Test
   public void emptyLogicalVectorWithNoDimsIsAlwaysNull() {
-    assertThat(eval(" c()[1]"), equalTo(NULL));
+    assertThat(eval(" c()[1]"), identicalTo(NULL));
   }
   
   @Test
   public void emptyVectorWithDimsIsNotNull() {
     eval("x<-TRUE[-1]");
     eval("dim(x) <- c(0,1)");
-    assertThat(eval(" x[1]"), equalTo(c(Logical.NA)));
+    assertThat(eval(" x[1]"), elementsIdenticalTo(c(Logical.NA)));
   }
   
   @Test
   public void emptyDoubleVectorIsNotNull() {
     eval("select <- TRUE[-1]");
     eval("x <- 1[-1]");
-    assertThat(eval(" x[select]"), equalTo((SEXP) DoubleVector.EMPTY));
+    assertThat(eval(" x[select]"), identicalTo((SEXP) DoubleVector.EMPTY));
   }
   
   @Test
   public void listElementByName() {
     eval(" p <- list(x=33, y=44) ");
 
-    assertThat( eval("p$x"), equalTo( c(33) ));
+    assertThat( eval("p$x"), elementsIdenticalTo( c(33) ));
   }
 
   @Test
   public void setListElementByName() {
     eval(" p <- list( x = 44 ) ");
-    assertThat( eval(" names(p) "), equalTo( c("x") ));
+    assertThat( eval(" names(p) "), elementsIdenticalTo( c("x") ));
 
     eval(" p$x <- 88 ");
 
-    assertThat( eval(" p$x "), equalTo( c(88) ));
+    assertThat( eval(" p$x "), elementsIdenticalTo( c(88) ));
   }
 
   @Test
   public void replaceListElementWithList() {
     eval(" restarts <- list( list(name='foo'), list(name='zig'), list(name='zag') ) ");
 
-    assertThat( eval("restarts[[2]]$name "), equalTo(c("zig")));
+    assertThat( eval("restarts[[2]]$name "), elementsIdenticalTo(c("zig")));
 
     eval(" name <- 'bar' ");
     eval(" i <- 2 ");
     eval(" restarts[[i]]$name <- name ");
 
-    assertThat( eval("restarts[[2]]$name "), equalTo(c("bar")));
+    assertThat( eval("restarts[[2]]$name "), elementsIdenticalTo(c("bar")));
   }
 
   @Test
@@ -433,11 +433,11 @@ public class SubsettingTest extends EvalTestCase {
     eval(" x <- list(1,2,3) ");
     eval(" x[] <- list(4,5,6) ");
     
-    assertThat(eval("x"), equalTo(list(4d, 5d, 6d)));
+    assertThat(eval("x"), elementsIdenticalTo(list(4d, 5d, 6d)));
     
     // GNU R emits an error but we don't
     eval(" x[] <- list(1,2)");
-    assertThat(eval("x"), equalTo(list(1d, 2d, 1d)));
+    assertThat(eval("x"), elementsIdenticalTo(list(1d, 2d, 1d)));
   }
   
   @Test
@@ -451,7 +451,7 @@ public class SubsettingTest extends EvalTestCase {
     eval("x <- c(1,2,3,4)");
     eval("x[] <- list(5,6)");
     
-    assertThat(eval("x"), equalTo(list(5d, 6d, 5d, 6d)));
+    assertThat(eval("x"), elementsIdenticalTo(list(5d, 6d, 5d, 6d)));
   }
   
   @Test
@@ -459,7 +459,7 @@ public class SubsettingTest extends EvalTestCase {
     eval("x <- c(a=1,b=2)");
     eval("x[] <- 98:99");
     
-    assertThat(eval("names(x)"), equalTo(c("a", "b")));
+    assertThat(eval("names(x)"), elementsIdenticalTo(c("a", "b")));
   }
   
   @Test(expected = EvalException.class)
@@ -483,7 +483,7 @@ public class SubsettingTest extends EvalTestCase {
     eval(" x <- list(1,2,3) ");
     eval(" x[[1]] <- NULL ");
 
-    assertThat(eval("x"), equalTo(list(2d, 3d)));
+    assertThat(eval("x"), elementsIdenticalTo(list(2d, 3d)));
   }
   
   @Test
@@ -493,8 +493,8 @@ public class SubsettingTest extends EvalTestCase {
     
     eval(" x[[2,2]] <- 99 ");
     
-    assertThat(eval("x"), equalTo(list(1d, 2d, 3d, 99d)));
-    assertThat(eval("dim(x)"), equalTo(c_i(2, 2)));
+    assertThat(eval("x"), elementsIdenticalTo(list(1d, 2d, 3d, 99d)));
+    assertThat(eval("dim(x)"), elementsIdenticalTo(c_i(2, 2)));
   }
   
   @Test
@@ -504,7 +504,7 @@ public class SubsettingTest extends EvalTestCase {
     
     eval("x[[TRUE, TRUE]] <- 91");
     
-    assertThat(eval("x"), equalTo(c(91, 2, 3, 4)));
+    assertThat(eval("x"), elementsIdenticalTo(c(91, 2, 3, 4)));
   }
   
   @Test
@@ -514,10 +514,10 @@ public class SubsettingTest extends EvalTestCase {
 
     eval(" x[['foo']] <- 99 ");
 
-    assertThat(eval("x"), equalTo(list(1d, 2d, 3d, 4d, 99d)));
+    assertThat(eval("x"), elementsIdenticalTo(list(1d, 2d, 3d, 4d, 99d)));
 
     // Dimensions should be dropped
-    assertThat(eval("dim(x)"), equalTo((SEXP) Null.INSTANCE));
+    assertThat(eval("dim(x)"), identicalTo((SEXP) Null.INSTANCE));
   }
 
 
@@ -538,8 +538,8 @@ public class SubsettingTest extends EvalTestCase {
 
     eval(" x[[1,1]] <- NULL");
     
-    assertThat(eval("x[[1,1]]"), equalTo((SEXP) Null.INSTANCE));
-    assertThat(eval("typeof(x)"), equalTo(c("pairlist")));
+    assertThat(eval("x[[1,1]]"), identicalTo((SEXP) Null.INSTANCE));
+    assertThat(eval("typeof(x)"), elementsIdenticalTo(c("pairlist")));
   }  
   
   @Test
@@ -549,10 +549,10 @@ public class SubsettingTest extends EvalTestCase {
 
     eval(" x[['foo']] <- 99 ");
 
-    assertThat(eval("x"), equalTo(c(1, 2, 3, 4, 99)));
+    assertThat(eval("x"), elementsIdenticalTo(c(1, 2, 3, 4, 99)));
 
     // Dimensions should be dropped
-    assertThat(eval("dim(x)"), equalTo((SEXP) Null.INSTANCE));
+    assertThat(eval("dim(x)"), identicalTo((SEXP) Null.INSTANCE));
   }
 
   @Test
@@ -562,14 +562,14 @@ public class SubsettingTest extends EvalTestCase {
 
     // Replacing an element should preserve dims
     eval(" x[1] <- 91 ");
-    assertThat(eval("x"), equalTo(c(91, 2, 3, 4)));
-    assertThat(eval("dim(x)"), equalTo(c_i(2, 2)));
+    assertThat(eval("x"), elementsIdenticalTo(c(91, 2, 3, 4)));
+    assertThat(eval("dim(x)"), elementsIdenticalTo(c_i(2, 2)));
 
     // Growing the vector through replacement should drop dims
     eval(" x[5] <- 99 ");
 
-    assertThat(eval("x"), equalTo(c(91, 2, 3, 4, 99)));
-    assertThat(eval("dim(x)"), equalTo((SEXP)Null.INSTANCE));
+    assertThat(eval("x"), elementsIdenticalTo(c(91, 2, 3, 4, 99)));
+    assertThat(eval("dim(x)"), identicalTo((SEXP)Null.INSTANCE));
   }
   
   @Test
@@ -577,7 +577,7 @@ public class SubsettingTest extends EvalTestCase {
     eval(" x <- NULL ");
     eval(" x[[1]] <- 1:3 ");
     
-    assertThat(eval("x"), equalTo(list(c_i(1,2,3))));
+    assertThat(eval("x"), elementsIdenticalTo(list(c_i(1,2,3))));
   }
 
 
@@ -587,7 +587,7 @@ public class SubsettingTest extends EvalTestCase {
     eval(" x <- list(1,2,3) ");
     eval(" x[1:2] <- NULL ");
 
-    assertThat( eval("x"), equalTo(list(3d)));
+    assertThat( eval("x"), elementsIdenticalTo(list(3d)));
   }
   
   @Test
@@ -601,7 +601,7 @@ public class SubsettingTest extends EvalTestCase {
     eval(" x <- list(1,2,3) ");
     eval(" x[1] <- NULL ");
 
-    assertThat( eval("x"), equalTo(list(2d, 3d)));
+    assertThat( eval("x"), elementsIdenticalTo(list(2d, 3d)));
   }
 
   @Test
@@ -609,24 +609,24 @@ public class SubsettingTest extends EvalTestCase {
     eval(" p <- list( x = 22, y = 33 ) ");
     eval(" p$z <- 44 ");
 
-    assertThat(eval(" p$x "), equalTo(c(22)));
-    assertThat(eval(" p$y "), equalTo(c(33)));
-    assertThat( eval(" p$z "), equalTo( c(44) ));
+    assertThat(eval(" p$x "), elementsIdenticalTo(c(22)));
+    assertThat(eval(" p$y "), elementsIdenticalTo(c(33)));
+    assertThat( eval(" p$z "), elementsIdenticalTo( c(44) ));
   }
 
   @Test
   public void partialListMatch() {
     eval(" x <- list(alligator=33, aardvark=44) ");
 
-    assertThat(eval("x$a"), equalTo(NULL));
-    assertThat( eval("x$all"), equalTo( c(33) ));
+    assertThat(eval("x$a"), identicalTo(NULL));
+    assertThat( eval("x$all"), elementsIdenticalTo( c(33) ));
   }
 
   @Test
   public void exactMatch() {
     eval(" x <- list(a=1, aa=2) ");
 
-    assertThat( eval(" x$a "), equalTo( c(1)));
+    assertThat( eval(" x$a "), elementsIdenticalTo( c(1)));
   }
 
   @Test
@@ -638,7 +638,7 @@ public class SubsettingTest extends EvalTestCase {
         .build();
 
     SEXP result = DollarFunction.fromPairList(list, "all");
-    assertThat(result, equalTo((SEXP) c(1)));
+    assertThat(result, identicalTo((SEXP) c(1)));
   }
 
   @Test(expected = EvalException.class)
@@ -652,8 +652,8 @@ public class SubsettingTest extends EvalTestCase {
     eval(" x<- list() ");
     eval(" x[['foo']] <- list(a=1,b=2,c=3)");
 
-    assertThat(eval(" x[['foo']] "), equalTo(list(1d, 2d, 3d)));
-    assertThat(eval(" names(x[['foo']]) "), equalTo(c("a", "b", "c")));
+    assertThat(eval(" x[['foo']] "), elementsIdenticalTo(list(1d, 2d, 3d)));
+    assertThat(eval(" names(x[['foo']]) "), elementsIdenticalTo(c("a", "b", "c")));
 
   }
 
@@ -661,7 +661,7 @@ public class SubsettingTest extends EvalTestCase {
   @Test
   public void indexOnNull() {
     eval(" x<- NULL ");
-    assertThat(eval("x[[1]]"), equalTo(NULL));
+    assertThat(eval("x[[1]]"), identicalTo(NULL));
   }
   
   @Test
@@ -671,8 +671,8 @@ public class SubsettingTest extends EvalTestCase {
     eval(" x[['b']] <- 2");
     eval(" x[['c']] <- 3");
     
-    assertThat(eval("x"), equalTo(list(1d, 2d, 3d)));
-    assertThat(eval("names(x)"), equalTo(c("a", "b", "c")));
+    assertThat(eval("x"), elementsIdenticalTo(list(1d, 2d, 3d)));
+    assertThat(eval("names(x)"), elementsIdenticalTo(c("a", "b", "c")));
     
   }
 
@@ -681,10 +681,10 @@ public class SubsettingTest extends EvalTestCase {
     eval(" x <- 1:8 ");
     eval(" dim(x) <- c(4,2) ");
 
-    assertThat(eval("x[,2]"), equalTo(c_i(5, 6, 7, 8)));
-    assertThat(eval("dim(x[,2])"), equalTo(NULL));
-    assertThat(eval("dim(x[,2,drop=TRUE])"), equalTo(NULL));
-    assertThat( eval("dim(x[,2,drop=FALSE])"), equalTo( c_i(4, 1) ));
+    assertThat(eval("x[,2]"), elementsIdenticalTo(c_i(5, 6, 7, 8)));
+    assertThat(eval("dim(x[,2])"), identicalTo(NULL));
+    assertThat(eval("dim(x[,2,drop=TRUE])"), identicalTo(NULL));
+    assertThat( eval("dim(x[,2,drop=FALSE])"), elementsIdenticalTo( c_i(4, 1) ));
   }
 
   @Test
@@ -692,8 +692,8 @@ public class SubsettingTest extends EvalTestCase {
     eval(" x <- 1:8 ");
     eval(" dim(x) <- c(4,2) ");
 
-    assertThat(eval("x[3:4,]"), equalTo(c_i(3, 4, 7, 8)));
-    assertThat( eval("dim(x[3:4,])"), equalTo( c_i(2, 2) ));
+    assertThat(eval("x[3:4,]"), elementsIdenticalTo(c_i(3, 4, 7, 8)));
+    assertThat( eval("dim(x[3:4,])"), elementsIdenticalTo( c_i(2, 2) ));
   }
 
   @Test
@@ -701,8 +701,8 @@ public class SubsettingTest extends EvalTestCase {
     eval(" x <- .Internal(rbind(1, c(a=1,b=2))) ");
     eval(" y <- .Internal(cbind(1, c=c(a=1,b=2))) ");
 
-    assertThat( eval(" x[,'b'] "), equalTo( c(2) ));
-    assertThat( eval(" y[,'c'] "), equalTo( c(1, 2) ));
+    assertThat( eval(" x[,'b'] "), elementsIdenticalTo( c(2) ));
+    assertThat( eval(" y[,'c'] "), elementsIdenticalTo( c(1, 2) ));
   }
 
   @Test
@@ -710,9 +710,9 @@ public class SubsettingTest extends EvalTestCase {
     eval(" x<- 1:8 ");
     eval(" dim(x) <- 8");
 
-    assertThat(eval(" dim(x[1:4]) "), equalTo(c_i(4)));
-    assertThat(eval(" dim(x[1])"), equalTo(NULL));
-    assertThat( eval(" dim(x[1,drop=FALSE]) "), equalTo( c_i(1) ));
+    assertThat(eval(" dim(x[1:4]) "), elementsIdenticalTo(c_i(4)));
+    assertThat(eval(" dim(x[1])"), identicalTo(NULL));
+    assertThat( eval(" dim(x[1,drop=FALSE]) "), elementsIdenticalTo( c_i(1) ));
   }
 
   @Test
@@ -721,7 +721,7 @@ public class SubsettingTest extends EvalTestCase {
     eval(" dim(x) <- c(2,2) ");
     eval(" x[1,1] <- 9");
 
-    assertThat( eval("dim(x)"), equalTo( c_i(2, 2)));
+    assertThat( eval("dim(x)"), elementsIdenticalTo( c_i(2, 2)));
   }
   
   @Test
@@ -734,7 +734,7 @@ public class SubsettingTest extends EvalTestCase {
     
     eval(" x[c(1,2), c(3,4)] <- y");
 
-    assertThat( eval("dim(x)"), equalTo( c_i(29, 29)));
+    assertThat( eval("dim(x)"), elementsIdenticalTo( c_i(29, 29)));
   }
   
   @Test
@@ -742,9 +742,9 @@ public class SubsettingTest extends EvalTestCase {
     eval(" x<-1:12");
     eval(" dim(x) <- c(3,4)");
     
-    assertThat(eval("x[2,3]"), equalTo(c_i(8)));
-    assertThat(eval("x[1,NULL]"), equalTo((SEXP) IntVector.EMPTY)); 
-    assertThat( eval("dim(x[1,NULL])"), equalTo(NULL));
+    assertThat(eval("x[2,3]"), elementsIdenticalTo(c_i(8)));
+    assertThat(eval("x[1,NULL]"), identicalTo((SEXP) IntVector.EMPTY));
+    assertThat( eval("dim(x[1,NULL])"), identicalTo(NULL));
   }
     
   @Test
@@ -752,15 +752,15 @@ public class SubsettingTest extends EvalTestCase {
     eval(" x<-1:12");
     eval(" dim(x) <- c(3,4)");
     
-    assertThat(eval("x[0,0]"), equalTo(c_i()));
-    assertThat(eval("dim(x[0,0])"), equalTo(c_i(0, 0)));
+    assertThat(eval("x[0,0]"), elementsIdenticalTo(c_i()));
+    assertThat(eval("dim(x[0,0])"), elementsIdenticalTo(c_i(0, 0)));
 
-    assertThat(eval("x[0,1]"), equalTo(c_i()));
-    assertThat(eval("dim(x[0,1])"), equalTo((SEXP) Null.INSTANCE));
+    assertThat(eval("x[0,1]"), elementsIdenticalTo(c_i()));
+    assertThat(eval("dim(x[0,1])"), identicalTo((SEXP) Null.INSTANCE));
 
 
-    assertThat(eval("x[1,0]"), equalTo(c_i()));
-    assertThat(eval("dim(x[1,0])"), equalTo((SEXP) Null.INSTANCE));
+    assertThat(eval("x[1,0]"), elementsIdenticalTo(c_i()));
+    assertThat(eval("dim(x[1,0])"), identicalTo((SEXP) Null.INSTANCE));
   }
   
   @Test(expected = EvalException.class)
@@ -784,7 +784,7 @@ public class SubsettingTest extends EvalTestCase {
   public void replacingNull() {
     eval("x <- NULL");
     eval("x[5] <- 9");
-    assertThat(eval("x"), equalTo(c(DoubleVector.NA, DoubleVector.NA, DoubleVector.NA, DoubleVector.NA, 9)));
+    assertThat(eval("x"), elementsIdenticalTo(c(DoubleVector.NA, DoubleVector.NA, DoubleVector.NA, DoubleVector.NA, 9)));
   }
   
   @Test
@@ -792,7 +792,7 @@ public class SubsettingTest extends EvalTestCase {
     eval("x <- NULL");
     eval("x[TRUE] <- 3");
     
-    assertThat(eval("x"), equalTo(c(3)));
+    assertThat(eval("x"), elementsIdenticalTo(c(3)));
   }
   
   @Test
@@ -800,7 +800,7 @@ public class SubsettingTest extends EvalTestCase {
     eval("x <- NULL");
     eval("x[] <- 1:3");
     
-    assertThat(eval("x"), equalTo(c_i()));
+    assertThat(eval("x"), elementsIdenticalTo(c_i()));
   }
   
   @Test
@@ -808,7 +808,7 @@ public class SubsettingTest extends EvalTestCase {
     eval("x <- logical(0)");
     eval("x[] <- 3");
     
-    assertThat(eval("x"), equalTo((SEXP)DoubleVector.EMPTY));
+    assertThat(eval("x"), identicalTo((SEXP)DoubleVector.EMPTY));
   }
   
   @Test
@@ -816,7 +816,7 @@ public class SubsettingTest extends EvalTestCase {
     eval("x <- logical(0)");
     eval("x[] <- list()");
     
-    assertThat(eval("typeof(x)"), equalTo(c("logical")));
+    assertThat(eval("typeof(x)"), elementsIdenticalTo(c("logical")));
   }
   
   @Test
@@ -825,30 +825,30 @@ public class SubsettingTest extends EvalTestCase {
     
     // should all have no effect
     eval("x[1] <- NULL");
-    assertThat(eval("x"), equalTo((SEXP) Null.INSTANCE));
+    assertThat(eval("x"), identicalTo((SEXP) Null.INSTANCE));
     
     eval("x[0] <- NULL");
-    assertThat(eval("x"), equalTo((SEXP) Null.INSTANCE));
+    assertThat(eval("x"), identicalTo((SEXP) Null.INSTANCE));
 
     eval("x[1:12] <- NULL");
-    assertThat(eval("x"), equalTo((SEXP) Null.INSTANCE));
+    assertThat(eval("x"), identicalTo((SEXP) Null.INSTANCE));
   }
   
   @Test
   public void subscriptsOnNull() {
     eval(" x <- NULL ");
 
-    assertThat(eval(" x[1] "), equalTo(NULL));
-    assertThat(eval(" x[c(TRUE,FALSE)] "), equalTo(NULL));
-    assertThat(eval(" x[c(1,2,3)] "), equalTo(NULL));
-    assertThat(eval(" x[-1] "), equalTo(NULL));
-    assertThat( eval(" x[] "), equalTo( NULL ));
+    assertThat(eval(" x[1] "), identicalTo(NULL));
+    assertThat(eval(" x[c(TRUE,FALSE)] "), identicalTo(NULL));
+    assertThat(eval(" x[c(1,2,3)] "), identicalTo(NULL));
+    assertThat(eval(" x[-1] "), identicalTo(NULL));
+    assertThat( eval(" x[] "), identicalTo( NULL ));
   }
 
   @Test
   public void integerIndex() {
     eval(" x<- FALSE ");
-    assertThat( eval(" x[1L] "), equalTo( c(false)));
+    assertThat( eval(" x[1L] "), elementsIdenticalTo( c(false)));
   }
 
   @Test
@@ -856,7 +856,7 @@ public class SubsettingTest extends EvalTestCase {
     eval(" x<- list(91, 'foo', NULL) ");
     eval(" x[[3]] <- 41 ");
 
-    assertThat( eval("x"), equalTo( list(91d, "foo", 41d)) );
+    assertThat( eval("x"), elementsIdenticalTo( list(91d, "foo", 41d)) );
   }
   
   @Test
@@ -872,8 +872,8 @@ public class SubsettingTest extends EvalTestCase {
     
     eval("print(A)");
 
-    assertThat(eval("A[5,1]"), equalTo(c(40)));
-    assertThat( eval("A[5,2]"), equalTo(c(8))); 
+    assertThat(eval("A[5,1]"), elementsIdenticalTo(c(40)));
+    assertThat( eval("A[5,2]"), elementsIdenticalTo(c(8)));
   }
 
   @Test
@@ -881,7 +881,7 @@ public class SubsettingTest extends EvalTestCase {
     eval(" x<- c(91,92) ");
     eval(" x[[2]] <- 'foo' ");
 
-    assertThat( eval("x"), equalTo( c("91", "foo")) );
+    assertThat( eval("x"), elementsIdenticalTo( c("91", "foo")) );
   }
 
   @Test
@@ -889,7 +889,7 @@ public class SubsettingTest extends EvalTestCase {
     eval(" x<-list() ");
     eval(" x[[1]] <- 'foo' ");
 
-    assertThat( eval("x"), equalTo( list("foo"))) ;
+    assertThat( eval("x"), elementsIdenticalTo( list("foo"))) ;
   }
   
   @Test
@@ -897,7 +897,7 @@ public class SubsettingTest extends EvalTestCase {
     eval("x <- globalenv()");
     eval("x[['foo']] <- 42");
     
-    assertThat(eval("foo"), equalTo(c(42)));
+    assertThat(eval("foo"), elementsIdenticalTo(c(42)));
   }
 
   @Test
@@ -905,8 +905,8 @@ public class SubsettingTest extends EvalTestCase {
     eval(" x<- list() ");
     eval(" x[['foo']] <- 'bar'");
 
-    assertThat(eval("x"), equalTo(list("bar")));
-    assertThat( eval("names(x)"), equalTo( c("foo")));
+    assertThat(eval("x"), elementsIdenticalTo(list("bar")));
+    assertThat( eval("names(x)"), elementsIdenticalTo( c("foo")));
   }
 
 
@@ -924,13 +924,13 @@ public class SubsettingTest extends EvalTestCase {
   @Test
   public void pairListNotConverted() {
     eval(" p <- .Internal(as.vector(list(a=1, b=2, 3, 4), 'pairlist'))");
-    assertThat( eval("p[1:2]"), equalTo(list(1d,2d)));
-    assertThat(eval("names(p[TRUE])"), equalTo(c("a", "b", "", "")));
-    assertThat(eval("p[['b']]"), equalTo(c(2)));
+    assertThat( eval("p[1:2]"), elementsIdenticalTo(list(1d,2d)));
+    assertThat(eval("names(p[TRUE])"), elementsIdenticalTo(c("a", "b", "", "")));
+    assertThat(eval("p[['b']]"), elementsIdenticalTo(c(2)));
    
     eval("p[[1]]<-99");
-    assertThat(eval(".Internal(typeof(p))"), equalTo(c("pairlist")));
-    assertThat( eval("p$a"), equalTo(c(99)));
+    assertThat(eval(".Internal(typeof(p))"), elementsIdenticalTo(c("pairlist")));
+    assertThat( eval("p$a"), elementsIdenticalTo(c(99)));
    
   }
 
@@ -938,9 +938,9 @@ public class SubsettingTest extends EvalTestCase {
   public void pairListSingleByName() {
     eval(" p <- .Internal(as.vector(list(hello=1, b=2, 3, 4), 'pairlist'))");
 
-    assertThat(eval("p[['h']]"), equalTo(NULL));
-    assertThat(eval("p[['hello']]"), equalTo(c(1)));
-    assertThat( eval("p[['h', exact=FALSE]]"), equalTo(c(1)));
+    assertThat(eval("p[['h']]"), identicalTo(NULL));
+    assertThat(eval("p[['hello']]"), elementsIdenticalTo(c(1)));
+    assertThat( eval("p[['h', exact=FALSE]]"), elementsIdenticalTo(c(1)));
   }
   
   @Test
@@ -950,9 +950,9 @@ public class SubsettingTest extends EvalTestCase {
     eval(" x$a<-4");
     eval(" x$z<-NULL");
     
-    assertThat(eval("length(x)"), equalTo(c_i(2)));
-    assertThat( eval("x$a"), equalTo(c(4)));
-    assertThat( eval("x$b"), equalTo(c(2)));
+    assertThat(eval("length(x)"), elementsIdenticalTo(c_i(2)));
+    assertThat( eval("x$a"), elementsIdenticalTo(c(4)));
+    assertThat( eval("x$b"), elementsIdenticalTo(c(2)));
   }
   
   @Test
@@ -960,26 +960,26 @@ public class SubsettingTest extends EvalTestCase {
     eval(" x <- pairlist(1,2,3)");
     eval(" x[[5]] <- 4");
     
-    assertThat(eval("x[[4]]"), equalTo((SEXP)Null.INSTANCE));
-    assertThat(eval("x[[5]]"), equalTo(c(4)));
+    assertThat(eval("x[[4]]"), identicalTo((SEXP)Null.INSTANCE));
+    assertThat(eval("x[[5]]"), elementsIdenticalTo(c(4)));
   }
   
   @Test
   public void subsettingFunctionCalls() {
     eval("x <- quote(a+b)");
-    assertThat(eval("x[]"), equalTo(eval("x")));
-    assertThat(eval("x[1]"), equalTo((SEXP) FunctionCall.newCall(Symbol.get("+"))));
-    assertThat(eval("x[1:2]"), equalTo((SEXP) FunctionCall.newCall(Symbol.get("+"), Symbol.get("a"))));
+    assertThat(eval("x[]"), identicalTo(eval("x")));
+    assertThat(eval("x[1]"), identicalTo((SEXP) FunctionCall.newCall(Symbol.get("+"))));
+    assertThat(eval("x[1:2]"), identicalTo((SEXP) FunctionCall.newCall(Symbol.get("+"), Symbol.get("a"))));
   }
   
   @Test
   public void subsettingFunctionCallsByName() {
     eval("x <- quote(c(a=1,b=2))");
-    assertThat(eval("x['a']"), equalTo((SEXP) FunctionCall.newCall(new DoubleArrayVector(1))));
-    assertThat(eval("names(x['a'])"), equalTo(c("a")));
+    assertThat(eval("x['a']"), identicalTo((SEXP) FunctionCall.newCall(new DoubleArrayVector(1))));
+    assertThat(eval("names(x['a'])"), elementsIdenticalTo(c("a")));
 
-    assertThat(eval("x['foo']"), equalTo((SEXP) FunctionCall.newCall(Null.INSTANCE)));
-    assertThat(eval("x[ NA_character_ ]"), equalTo((SEXP) FunctionCall.newCall(Null.INSTANCE)));
+    assertThat(eval("x['foo']"), identicalTo((SEXP) FunctionCall.newCall(Null.INSTANCE)));
+    assertThat(eval("x[ NA_character_ ]"), identicalTo((SEXP) FunctionCall.newCall(Null.INSTANCE)));
 
   }
   
@@ -989,8 +989,8 @@ public class SubsettingTest extends EvalTestCase {
     eval(" x <- 1:12 ");
     eval(" dim(x) <- 3:4 ");
     eval(" y <- x[ c(), , drop=FALSE] ");
-    assertThat(eval(".Internal(typeof(y))"), equalTo(c("integer")));
-    assertThat(eval("dim(y)"), equalTo(c_i(0, 4)));
+    assertThat(eval(".Internal(typeof(y))"), elementsIdenticalTo(c("integer")));
+    assertThat(eval("dim(y)"), elementsIdenticalTo(c_i(0, 4)));
     
   }
   
@@ -998,7 +998,7 @@ public class SubsettingTest extends EvalTestCase {
   public void pairListElipses() {
     eval(" x <- .Internal(as.vector(list(a=1, z=4), 'pairlist'))");
     eval(" x$... <- 4");
-    assertThat( eval("x$..."), equalTo(c(4)));
+    assertThat( eval("x$..."), elementsIdenticalTo(c(4)));
   }
 
   @Test
@@ -1025,11 +1025,11 @@ public class SubsettingTest extends EvalTestCase {
     eval("coords <- c(1,3,3,4)");
     eval("dim(coords) <- c(2,2)");
     
-    assertThat(eval("x[coords]"), equalTo(c_i(7, 12)));
+    assertThat(eval("x[coords]"), elementsIdenticalTo(c_i(7, 12)));
     
     // logical matrices should NEVER be treated as coordinate
     // matrices, regardless of their dimension
-    assertThat(eval("x[coords == 1]"), equalTo(c_i(1, 5, 9)));
+    assertThat(eval("x[coords == 1]"), elementsIdenticalTo(c_i(1, 5, 9)));
   }
   
   @Test(expected = EvalException.class)
@@ -1065,7 +1065,7 @@ public class SubsettingTest extends EvalTestCase {
   public void emptyLogical() {
     eval("x <- 1:10");
     eval("emptyLogical <- TRUE[-1]");
-    assertThat(eval("x[emptyLogical]"), equalTo((SEXP) IntVector.EMPTY));
+    assertThat(eval("x[emptyLogical]"), identicalTo((SEXP) IntVector.EMPTY));
   }
   
   @Test
@@ -1075,8 +1075,8 @@ public class SubsettingTest extends EvalTestCase {
     eval("dimnames(x) <- list(c('A','B','C'), NULL)");
     
     eval("y <- x[,1L]");
-    assertThat(eval("dim(y)"), equalTo((SEXP) Null.INSTANCE));
-    assertThat(eval("names(y)"), equalTo(c("A", "B", "C")));
+    assertThat(eval("dim(y)"), identicalTo((SEXP) Null.INSTANCE));
+    assertThat(eval("names(y)"), elementsIdenticalTo(c("A", "B", "C")));
     
   }
 
@@ -1086,14 +1086,14 @@ public class SubsettingTest extends EvalTestCase {
     eval("dim(x) <- c(1,4)");
     eval("dimnames(x) <- list(NULL, c('a','b','c','d'))");
     eval("y <- x[,c('a','b', 'x')]");
-    assertThat(eval("y"), equalTo(c(1, 2)));
+    assertThat(eval("y"), elementsIdenticalTo(c(1, 2)));
 
   }
 
   @Test
   public void subsetLang() {
     eval("formula <- y ~ x");
-    assertThat(eval("print(formula[[2]])"), equalTo(symbol("y")));
+    assertThat(eval("print(formula[[2]])"), identicalTo(symbol("y")));
   }
   
   @Test
@@ -1104,7 +1104,7 @@ public class SubsettingTest extends EvalTestCase {
     eval("dim(x) <- c(6,2)");
     eval("class(x) <- 'foo'");
     
-    assertThat(eval("x[,2]"), equalTo(c(7, 8, 9, 10, 11, 12)));
+    assertThat(eval("x[,2]"), elementsIdenticalTo(c(7, 8, 9, 10, 11, 12)));
   }
   
   @Test
@@ -1112,8 +1112,8 @@ public class SubsettingTest extends EvalTestCase {
     eval("x <- NULL");
     eval("x$a <- 41");
     
-    assertThat(eval("x"), equalTo(list(41d)));
-    assertThat(eval("names(x)"), equalTo(c("a")));
+    assertThat(eval("x"), elementsIdenticalTo(list(41d)));
+    assertThat(eval("names(x)"), elementsIdenticalTo(c("a")));
 
   }
   
@@ -1121,8 +1121,8 @@ public class SubsettingTest extends EvalTestCase {
   public void dollarAssignToAtomicIsCoercedToList() {
     eval("x <- c(a=91,b=92)");
     eval("x$a <- 99");
-    assertThat(eval("x"), equalTo(list(99d, 92d)));
-    assertThat(eval("names(x)"), equalTo(c("a", "b")));
+    assertThat(eval("x"), elementsIdenticalTo(list(99d, 92d)));
+    assertThat(eval("names(x)"), elementsIdenticalTo(c("a", "b")));
   }
 
   @Test
@@ -1136,7 +1136,7 @@ public class SubsettingTest extends EvalTestCase {
     eval("`$.foo` <- function(obj, name) name");
     eval("x <- 1");
     eval("class(x) <- 'foo'");
-    assertThat(eval("x$bar"), equalTo(c("bar")));
+    assertThat(eval("x$bar"), elementsIdenticalTo(c("bar")));
   }
   
   @Test
@@ -1176,11 +1176,11 @@ public class SubsettingTest extends EvalTestCase {
   public void expressionVector() {
     eval("x <- parse(text='a; b; c;')");
     
-    assertThat(eval("typeof(x)"), equalTo(c("expression")));
-    assertThat(eval("typeof(x[1:2])"), equalTo(c("expression")));
+    assertThat(eval("typeof(x)"), elementsIdenticalTo(c("expression")));
+    assertThat(eval("typeof(x[1:2])"), elementsIdenticalTo(c("expression")));
   
     eval("x[[1]] <- quote(x)");
-    assertThat(eval("typeof(x)"), equalTo(c("expression")));
+    assertThat(eval("typeof(x)"), elementsIdenticalTo(c("expression")));
   
   }
   
@@ -1189,7 +1189,7 @@ public class SubsettingTest extends EvalTestCase {
     eval("x <- list(1,2,3,4)");
     eval("dim(x) <- c(2,2)");
     
-    assertThat(eval("x[[1,2]]"), equalTo(c(3)));
+    assertThat(eval("x[[1,2]]"), elementsIdenticalTo(c(3)));
   }
   
   @Test
@@ -1197,7 +1197,7 @@ public class SubsettingTest extends EvalTestCase {
     eval("x <- c(1,2,3,4)");
     eval("dim(x) <- c(2,2)");
 
-    assertThat(eval("x[[1,2]]"), equalTo(c(3)));
+    assertThat(eval("x[[1,2]]"), elementsIdenticalTo(c(3)));
   }
   
   @Test(expected = EvalException.class)
@@ -1221,7 +1221,7 @@ public class SubsettingTest extends EvalTestCase {
     eval("x <- 1:12");
     eval("dim(x) <- c(3,4)");
     
-    assertThat(eval("x[c(1,NA), 4]"), equalTo(c_i(10, IntVector.NA)));
+    assertThat(eval("x[c(1,NA), 4]"), elementsIdenticalTo(c_i(10, IntVector.NA)));
   }
 
   @Test
@@ -1229,7 +1229,7 @@ public class SubsettingTest extends EvalTestCase {
     eval("x <- 1:12");
     eval("dim(x) <- c(3,4)");
 
-    assertThat(eval("x[c(NA), c(3:4)]"), equalTo(c_i(
+    assertThat(eval("x[c(NA), c(3:4)]"), elementsIdenticalTo(c_i(
         IntVector.NA, IntVector.NA,
         IntVector.NA, IntVector.NA,
         IntVector.NA, IntVector.NA)));
@@ -1241,7 +1241,7 @@ public class SubsettingTest extends EvalTestCase {
     eval("dim(x) <- 2:3");
     eval("rownames(x) <- c('a','b')");
     
-    assertThat(eval("x[['a', 3]]"), equalTo(c_i(5)));
+    assertThat(eval("x[['a', 3]]"), elementsIdenticalTo(c_i(5)));
   }
 
   @Test(expected = EvalException.class)
@@ -1259,7 +1259,7 @@ public class SubsettingTest extends EvalTestCase {
     eval("dim(x) <- c(2,3) ");
     eval("x[,1] <- 91:92");
     
-    assertThat(eval("x"), equalTo(list(91, 92, 3d, 4d, 5d, 6d)));
+    assertThat(eval("x"), elementsIdenticalTo(list(91, 92, 3d, 4d, 5d, 6d)));
   }
   
   @Test
@@ -1268,8 +1268,8 @@ public class SubsettingTest extends EvalTestCase {
     eval("dim(b) <- c(2,1,2)");
     eval("b[[2,1,1]] <- list(111)");
 
-    assertThat(eval("typeof(b)"), equalTo(c("list")));
-    assertThat(eval("typeof(b[[2]])"), equalTo(c("list")));
+    assertThat(eval("typeof(b)"), elementsIdenticalTo(c("list")));
+    assertThat(eval("typeof(b[[2]])"), elementsIdenticalTo(c("list")));
   }
   
   @Test
@@ -1277,7 +1277,7 @@ public class SubsettingTest extends EvalTestCase {
     eval("x <- list(1,2)");
     eval("x[c(TRUE, FALSE, TRUE, TRUE)] <- NULL");
     
-    assertThat(eval("x"), equalTo(list(2d)));
+    assertThat(eval("x"), elementsIdenticalTo(list(2d)));
   }
   
   @Test
@@ -1285,7 +1285,7 @@ public class SubsettingTest extends EvalTestCase {
     eval("x <- list(a=1,b=2)");
     eval("x['a'] <- NULL");
 
-    assertThat(eval("x"), equalTo(list(2d)));
+    assertThat(eval("x"), elementsIdenticalTo(list(2d)));
   }
   
   @Test
@@ -1294,7 +1294,7 @@ public class SubsettingTest extends EvalTestCase {
     eval("names(x) <- letters[1:3]");
     eval("x[1] <- 3");
     
-    assertThat(eval("dimnames(x)[[1]]"), equalTo(c("a", "b", "c")));
+    assertThat(eval("dimnames(x)[[1]]"), elementsIdenticalTo(c("a", "b", "c")));
     
   }
   
@@ -1307,8 +1307,8 @@ public class SubsettingTest extends EvalTestCase {
     eval("x[i] <- c(4, 9)");
     eval("y[j] <- c(4, 9)");
 
-    assertThat(eval("x"), equalTo(c(0, 0, 0, 4, 0, 9)));
-    assertThat(eval("y"), equalTo(c(0, 0, 4, 0, 9, 0)));
+    assertThat(eval("x"), elementsIdenticalTo(c(0, 0, 0, 4, 0, 9)));
+    assertThat(eval("y"), elementsIdenticalTo(c(0, 0, 4, 0, 9, 0)));
   }
 
   @Test(expected = EvalException.class)
@@ -1316,7 +1316,7 @@ public class SubsettingTest extends EvalTestCase {
     eval("x <- matrix(0, ncol=2, nrow=3)");
     eval("i <- rbind(c(1,2),c(3,2))");
     eval("x[i] <- numeric(0)");
-    assertThat(eval("x"), equalTo(c(0, 0, 0, 0, 0, 0)));
+    assertThat(eval("x"), elementsIdenticalTo(c(0, 0, 0, 0, 0, 0)));
   }
 
   @Test(expected = EvalException.class)
@@ -1324,7 +1324,7 @@ public class SubsettingTest extends EvalTestCase {
     eval("y <- matrix(0, ncol=2, nrow=3)");
     eval("j <- cbind(c(3,2),c(1,2))");
     eval("y[j] <- numeric(0)");
-    assertThat(eval("y"), equalTo(c(0, 0, 0, 0, 0, 0)));
+    assertThat(eval("y"), elementsIdenticalTo(c(0, 0, 0, 0, 0, 0)));
   }
   
 
@@ -1348,7 +1348,7 @@ public class SubsettingTest extends EvalTestCase {
     
     eval("a[13] <- 99");
     
-    assertThat(eval("dim(a)"), equalTo(NULL));
+    assertThat(eval("dim(a)"), identicalTo(NULL));
   }
   
   @Test
@@ -1357,24 +1357,24 @@ public class SubsettingTest extends EvalTestCase {
     eval("dim(a) <- 3");
     eval("names(a) <- letters[1:3]");
     
-    assertThat(eval("dimnames(a)[[1]]"), equalTo(c("a", "b", "c")));
-    assertThat(eval("names(a)"), equalTo(c("a", "b", "c")));
+    assertThat(eval("dimnames(a)[[1]]"), elementsIdenticalTo(c("a", "b", "c")));
+    assertThat(eval("names(a)"), elementsIdenticalTo(c("a", "b", "c")));
     
-    assertThat(eval("dim(a[1:2])"), equalTo(c_i(2)));
-    assertThat(eval("dimnames(a[1:2])[[1]]"), equalTo(c("a", "b")));
+    assertThat(eval("dim(a[1:2])"), elementsIdenticalTo(c_i(2)));
+    assertThat(eval("dimnames(a[1:2])[[1]]"), elementsIdenticalTo(c("a", "b")));
 
     // Dim attributes ARE dropped if the result is of length 1
-    assertThat(eval("dim(a[1])"), equalTo(NULL));
-    assertThat(eval("dimnames(a[1])"), equalTo(NULL));
-    assertThat(eval("names(a[1])"), equalTo(c("a")));
+    assertThat(eval("dim(a[1])"), identicalTo(NULL));
+    assertThat(eval("dimnames(a[1])"), identicalTo(NULL));
+    assertThat(eval("names(a[1])"), elementsIdenticalTo(c("a")));
 
     // AND if the length 0 
-    assertThat(eval("dim(a[0])"), equalTo(NULL));
-    assertThat(eval("dimnames(a[0])"), equalTo(NULL));
-    assertThat(eval("names(a[0])"), equalTo((SEXP)StringArrayVector.EMPTY));
+    assertThat(eval("dim(a[0])"), identicalTo(NULL));
+    assertThat(eval("dimnames(a[0])"), identicalTo(NULL));
+    assertThat(eval("names(a[0])"), identicalTo((SEXP)StringArrayVector.EMPTY));
 
-    assertThat(eval("dim(a[100:101])"), equalTo(c_i(2)));
-    assertThat(eval("dimnames(a[100:101])[[1]]"), equalTo((SEXP)new StringArrayVector(StringVector.NA, StringVector.NA)));
+    assertThat(eval("dim(a[100:101])"), elementsIdenticalTo(c_i(2)));
+    assertThat(eval("dimnames(a[100:101])[[1]]"), identicalTo((SEXP)new StringArrayVector(StringVector.NA, StringVector.NA)));
   }
 
   @Test
@@ -1383,22 +1383,22 @@ public class SubsettingTest extends EvalTestCase {
     eval("dim(a) <- 3");
     eval("names(a) <- letters[1:3]");
 
-    assertThat(eval("dim(a[c('a', 'b')])"), equalTo(c_i(2)));
-    assertThat(eval("dimnames(a[c('a', 'b')])[[1]]"), equalTo(c("a", "b")));
+    assertThat(eval("dim(a[c('a', 'b')])"), elementsIdenticalTo(c_i(2)));
+    assertThat(eval("dimnames(a[c('a', 'b')])[[1]]"), elementsIdenticalTo(c("a", "b")));
 
     // Dim attributes ARE dropped if the result is of length 1
-    assertThat(eval("dim(a['a'])"), equalTo(NULL));
-    assertThat(eval("dimnames(a['a'])"), equalTo(NULL));
-    assertThat(eval("names(a['a'])"), equalTo(c("a")));
+    assertThat(eval("dim(a['a'])"), identicalTo(NULL));
+    assertThat(eval("dimnames(a['a'])"), identicalTo(NULL));
+    assertThat(eval("names(a['a'])"), elementsIdenticalTo(c("a")));
 
     // AND if the length 0 
-    assertThat(eval("dim(a['zz'])"), equalTo(NULL));
-    assertThat(eval("dimnames(a['zz'])"), equalTo(NULL));
-    assertThat(eval("names(a['zz'])"), equalTo(c(StringVector.NA)));
+    assertThat(eval("dim(a['zz'])"), identicalTo(NULL));
+    assertThat(eval("dimnames(a['zz'])"), identicalTo(NULL));
+    assertThat(eval("names(a['zz'])"), elementsIdenticalTo(c(StringVector.NA)));
     
     // unless drop = FALSE
-    assertThat(eval("dim(a['zz', drop = FALSE])"), equalTo(c_i(1)));
-    assertThat(eval("dim(a['a', drop = FALSE])"), equalTo(c_i(1)));
+    assertThat(eval("dim(a['zz', drop = FALSE])"), elementsIdenticalTo(c_i(1)));
+    assertThat(eval("dim(a['a', drop = FALSE])"), elementsIdenticalTo(c_i(1)));
 
   }
   
@@ -1408,14 +1408,14 @@ public class SubsettingTest extends EvalTestCase {
     eval("dim(a) <- 3");
     eval("names(a) <- letters[1:3]");
     
-    assertThat(eval("dim(a[TRUE])"), equalTo(c_i(3)));
-    assertThat(eval("dimnames(a[c(TRUE, FALSE, TRUE)])[[1]]"), equalTo(c("a", "c")));
+    assertThat(eval("dim(a[TRUE])"), elementsIdenticalTo(c_i(3)));
+    assertThat(eval("dimnames(a[c(TRUE, FALSE, TRUE)])[[1]]"), elementsIdenticalTo(c("a", "c")));
 
-    assertThat(eval("dim(a[c(TRUE, FALSE, FALSE)])"), equalTo(NULL));
-    assertThat(eval("names(a[c(TRUE, FALSE, FALSE)])"), equalTo(c("a")));
+    assertThat(eval("dim(a[c(TRUE, FALSE, FALSE)])"), identicalTo(NULL));
+    assertThat(eval("names(a[c(TRUE, FALSE, FALSE)])"), elementsIdenticalTo(c("a")));
 
-    assertThat(eval("dim(a[c(TRUE, FALSE, FALSE, TRUE)])"), equalTo(c_i(2)));
-    assertThat(eval("dimnames(a[c(TRUE, FALSE, FALSE, TRUE)])[[1]]"), equalTo(c("a", StringVector.NA)));
+    assertThat(eval("dim(a[c(TRUE, FALSE, FALSE, TRUE)])"), elementsIdenticalTo(c_i(2)));
+    assertThat(eval("dimnames(a[c(TRUE, FALSE, FALSE, TRUE)])[[1]]"), elementsIdenticalTo(c("a", StringVector.NA)));
   }
   
   @Test
@@ -1426,8 +1426,8 @@ public class SubsettingTest extends EvalTestCase {
 
     eval("a[c(TRUE, FALSE, TRUE, TRUE, FALSE, NA)] <- 99");
     
-    assertThat(eval("dim(a)"), equalTo(NULL));
-    assertThat(eval("names(a)"), equalTo(c("a", "b", "c", "", "", "")));
+    assertThat(eval("dim(a)"), identicalTo(NULL));
+    assertThat(eval("names(a)"), elementsIdenticalTo(c("a", "b", "c", "", "", "")));
   }
 
   @Test(expected = EvalException.class)
@@ -1447,11 +1447,11 @@ public class SubsettingTest extends EvalTestCase {
     eval("replace <- function(a, i, x) { a[i] <- x; a; }");
     
     // If the array is not extended, then we keep the dim attributes
-    assertThat(eval("dim(replace(a, 1, 99))"), equalTo(c_i(3)));
+    assertThat(eval("dim(replace(a, 1, 99))"), elementsIdenticalTo(c_i(3)));
     
     // If the array gets extended, then drop the dim attribute,
     // but keep the dimnames if any
-    assertThat(eval("names(replace(a, 4, 98))"), equalTo(c("a", "b", "c", "")));
+    assertThat(eval("names(replace(a, 4, 98))"), elementsIdenticalTo(c("a", "b", "c", "")));
   }
   
   
@@ -1464,9 +1464,9 @@ public class SubsettingTest extends EvalTestCase {
     
     eval("a['z'] <- NULL");
     
-    assertThat(eval("dim(a)"), equalTo(NULL));
-    assertThat(eval("dimnames(a)"), equalTo(NULL));
-    assertThat(eval("names(a)"), equalTo(c("a", "b", "c")));
+    assertThat(eval("dim(a)"), identicalTo(NULL));
+    assertThat(eval("dimnames(a)"), identicalTo(NULL));
+    assertThat(eval("names(a)"), elementsIdenticalTo(c("a", "b", "c")));
   }
 
   @Test
@@ -1477,9 +1477,9 @@ public class SubsettingTest extends EvalTestCase {
 
     eval("a['z'] <- NULL");
 
-    assertThat(eval("dim(a)"), equalTo(NULL));
-    assertThat(eval("dimnames(a)"), equalTo(NULL));
-    assertThat(eval("names(a)"), equalTo(NULL));
+    assertThat(eval("dim(a)"), identicalTo(NULL));
+    assertThat(eval("dimnames(a)"), identicalTo(NULL));
+    assertThat(eval("names(a)"), identicalTo(NULL));
   }
   
   @Test

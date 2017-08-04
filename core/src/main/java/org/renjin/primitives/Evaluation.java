@@ -64,15 +64,15 @@ public class Evaluation {
 
     Symbol symbol = Symbol.get(name);
     if(!inherits) {
-      environ.setVariable(symbol, value);
+      environ.setVariable(context, symbol, value);
     } else {
       while(environ != Environment.EMPTY && !environ.hasVariable(symbol)) {
         environ = environ.getParent();
       }
       if(environ == Environment.EMPTY) {
-        context.getGlobalEnvironment().setVariable(symbol, value);
+        context.getGlobalEnvironment().setVariable(context, symbol, value);
       } else {
-        environ.setVariable(symbol, value);
+        environ.setVariable(context, symbol, value);
       }
     }
     context.setInvisibleFlag();
@@ -80,27 +80,10 @@ public class Evaluation {
   }
 
   @Internal
-  public static void delayedAssign(String x, SEXP expr, Environment evalEnv, Environment assignEnv) {
-    assignEnv.setVariable(Symbol.get(x), Promise.repromise(evalEnv, expr));
+  public static void delayedAssign(@Current Context context, String x, SEXP expr, Environment evalEnv, Environment assignEnv) {
+    assignEnv.setVariable(context, Symbol.get(x), Promise.repromise(evalEnv, expr));
   }
 
-
-  /**
-   * This is the so-called complex assignment, such as:
-   *  class(x) <- "foo" or
-   *  length(x) <- 3
-   *
-   *
-   */
-
-  @Builtin("on.exit")
-  public static void onExit( @Current Context context, @Unevaluated SEXP exp, boolean add ) {
-    if(add) {
-      context.addOnExit(exp);
-    } else {
-      context.setOnExit(exp);
-    }
-  }
 
   @Internal
   public static ListVector lapply(@Current Context context, @Current Environment rho, Vector vector,
@@ -111,7 +94,7 @@ public class Evaluation {
       // For historical reasons, the calls created by lapply are unevaluated, and code has
       // been written (e.g. bquote) that relies on this.
       FunctionCall getElementCall = FunctionCall.newCall(Symbol.get("[["), vector, new IntArrayVector(i+1));
-      FunctionCall applyFunctionCall = new FunctionCall((SEXP)function, new PairList.Node(getElementCall,
+      FunctionCall applyFunctionCall = new FunctionCall(function, new PairList.Node(getElementCall,
           new PairList.Node(Symbols.ELLIPSES, Null.INSTANCE)));
       builder.add( context.evaluate(applyFunctionCall, rho) );
     }
@@ -125,7 +108,7 @@ public class Evaluation {
     
     // Retrieve the additional arguments from the `...` value 
     // in the closure that called us
-    PairList extraArgs = (PairList)rho.getVariable(Symbols.ELLIPSES);
+    PairList extraArgs = (PairList)rho.getVariable(context, Symbols.ELLIPSES);
     
     Vector.Builder result = funValue.getVectorType().newBuilderWithInitialCapacity(vector.length());
     for(int i=0;i!=vector.length();++i) {
@@ -206,11 +189,6 @@ public class Evaluation {
     return result.build();
   }
 
-  @Builtin("return")
-  public static SEXP doReturn(@Current Environment rho, SEXP value) {
-    throw new ReturnException(rho, value);
-  }
-
   @Internal("do.call")
   public static SEXP doCall(@Current Context context, Function what, ListVector arguments, Environment environment) {
     PairList argumentPairList = new PairList.Builder().addAll(arguments).build();
@@ -264,12 +242,12 @@ public class Evaluation {
       Environment parent = enclosing == Null.INSTANCE ? context.getBaseEnvironment() :
           EvalException.<Environment>checkedCast(enclosing);
 
-      rho = Environment.createChildEnvironment(parent);
+      rho = Environment.createChildEnvironment(parent).build();
 
       if(environment instanceof ListVector) {
         for(NamedValue namedValue : ((ListVector) environment).namedValues()) {
           if(!StringVector.isNA(namedValue.getName())) {
-            rho.setVariable(Symbol.get(namedValue.getName()), namedValue.getValue());
+            rho.setVariable(context, Symbol.get(namedValue.getName()), namedValue.getValue());
           }
         }
       } else {
@@ -331,10 +309,10 @@ public class Evaluation {
                                 @Unevaluated Symbol symbol) {
     
     if(symbol.isVarArgReference()) {
-      return isVarArgMissing(rho, symbol.getVarArgReferenceIndex());
+      return isVarArgMissing(context, rho, symbol.getVarArgReferenceIndex());
     }
     
-    SEXP value = rho.findVariable(symbol);
+    SEXP value = rho.findVariable(context, symbol);
     
     if(value == Symbol.UNBOUND_VALUE) {
       throw new EvalException("'missing' can only be used for arguments");
@@ -343,12 +321,12 @@ public class Evaluation {
     } else if(isDefaultValue(value)) {
       return true;
     } else {
-      return isPromisedMissingArg(value, new ArrayDeque<Promise>());
+      return isPromisedMissingArg(context, value, new ArrayDeque<Promise>());
     } 
   }
 
-  private static boolean isVarArgMissing(Environment rho, int varArgReferenceIndex) {
-    SEXP ellipses = rho.findVariable(Symbols.ELLIPSES);
+  private static boolean isVarArgMissing(@Current Context context, Environment rho, int varArgReferenceIndex) {
+    SEXP ellipses = rho.findVariable(context, Symbols.ELLIPSES);
     if(ellipses == Symbol.UNBOUND_VALUE) {
       throw new EvalException("This function does not have a ... argument");
     }
@@ -356,7 +334,7 @@ public class Evaluation {
       return true;
     }
     SEXP value = ellipses.getElementAsSEXP(varArgReferenceIndex-1);
-    return value == Symbol.MISSING_ARG || isPromisedMissingArg(value, new ArrayDeque<Promise>());
+    return value == Symbol.MISSING_ARG || isPromisedMissingArg(context, value, new ArrayDeque<Promise>());
   }
 
   /**
@@ -376,7 +354,7 @@ public class Evaluation {
   /**
    * @return true if {@code exp} evaluates to a missing argument with no default value.
    */
-  private static boolean isPromisedMissingArg(SEXP exp, ArrayDeque<Promise> stack) {
+  private static boolean isPromisedMissingArg(@Current Context context, SEXP exp, ArrayDeque<Promise> stack) {
     if(exp instanceof Promise) {
       Promise promise = (Promise)exp;
 
@@ -393,10 +371,10 @@ public class Evaluation {
         stack.push(promise);
         try {
           Symbol argumentName = (Symbol) promise.getExpression();
-          SEXP argumentValue = promise.getEnvironment().getVariable(argumentName);
+          SEXP argumentValue = promise.getEnvironment().getVariable(context, argumentName);
           if (argumentValue == Symbol.MISSING_ARG) {
             return true;
-          } else if (isPromisedMissingArg(argumentValue, stack)) {
+          } else if (isPromisedMissingArg(context, argumentValue, stack)) {
             return true;
           }
         } finally {

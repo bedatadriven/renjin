@@ -31,9 +31,13 @@ public interface Specialization {
   
   Type getType();
 
-  ValueBounds getValueBounds();
+  ValueBounds getResultBounds();
 
   void load(EmitContext emitContext, InstructionAdapter mv, List<IRArgument> arguments);
-  
 
+  /**
+   *
+   * @return true if the specialized operation is known to be free of side effects.
+   */
+  boolean isPure();
 }

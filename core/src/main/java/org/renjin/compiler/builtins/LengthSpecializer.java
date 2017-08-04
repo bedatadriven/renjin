@@ -25,18 +25,31 @@ import org.renjin.compiler.ir.tac.RuntimeState;
 import java.util.List;
 
 
-public class LengthSpecializer implements Specializer {
+public class LengthSpecializer implements Specializer, BuiltinSpecializer {
+
+
   @Override
-  public Specialization trySpecialize(RuntimeState runtimeState, List<ValueBounds> argumentTypes) {
-    if(argumentTypes.size() != 1) {
+  public String getName() {
+    return "length";
+  }
+
+  @Override
+  public String getGroup() {
+    return null;
+  }
+
+  @Override
+  public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> arguments) {
+    if(arguments.size() != 1) {
       throw new InvalidSyntaxException("length() takes one argument.");
     }
 
-    ValueBounds argumentBounds = argumentTypes.get(0);
+    ValueBounds argumentBounds = arguments.get(0).getBounds();
     if(argumentBounds.isLengthConstant()) {
       return new ConstantCall(argumentBounds.getLength());
     }
     
     return new LengthCall();
   }
+
 }

@@ -33,13 +33,14 @@ import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Profiler;
-import org.renjin.primitives.Deparse;
 import org.renjin.sexp.*;
 
 
 public class ForFunction extends SpecialFunction {
 
   public static boolean COMPILE_LOOPS = Boolean.getBoolean("renjin.compile.loops");
+
+  public static boolean FAIL_ON_COMPILATION_ERROR = false;
   
   private static final int COMPILE_THRESHOLD = 200;
   private static final int WARMUP_ITERATIONS = 5;
@@ -84,7 +85,7 @@ public class ForFunction extends SpecialFunction {
             }
           }
 
-          rho.setVariable(symbol, elements.getElementAsSEXP(i));
+          rho.setVariable(context, symbol, elements.getElementAsSEXP(i));
           context.evaluate(statement, rho);
         } catch (BreakException e) {
           break;
@@ -118,19 +119,24 @@ public class ForFunction extends SpecialFunction {
       SsaTransformer ssaTransformer = new SsaTransformer(cfg, dTree);
       ssaTransformer.transform();
 
+
       UseDefMap useDefMap = new UseDefMap(cfg);
       TypeSolver types = new TypeSolver(cfg, useDefMap);
       types.execute();
-      
+
       types.verifyFunctionAssumptions(runtimeState);
 
       ssaTransformer.removePhiFunctions(types);
-      
+
+
       ByteCodeEmitter emitter = new ByteCodeEmitter(cfg, types);
       compiledBody = emitter.compileLoopBody().newInstance();
 
     } catch (NotCompilableException e) {
-      context.warn("Could not compile loop with %d iterations because: " + format(context, e));
+      if(FAIL_ON_COMPILATION_ERROR) {
+        throw new AssertionError("Loop compilation failed: " + e.toString(context));
+      }
+      context.warn("Could not compile loop because: " + e.toString(context));
       return false;
 
     } catch (InvalidSyntaxException e) {
@@ -145,20 +151,4 @@ public class ForFunction extends SpecialFunction {
     return true;
   }
 
-  private String format(Context context, NotCompilableException e) {
-    StringBuilder s = new StringBuilder();
-    while(e != null) {
-      if(s.length() > 0) {
-        s.append(" > ");
-      }
-      if(e.getSexp() != null) {
-        s.append(Deparse.deparseExp(context, e.getSexp()));
-      }
-      if(e.getMessage() != null) {
-        s.append(": ").append(e.getMessage());
-      }
-      e = e.getCause();
-    }
-    return s.toString();
-  }
 }

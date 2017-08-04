@@ -364,8 +364,7 @@ spline_coef(int method, int n, double *x, double *y,
 
 #include <Rinternals.h>
 #include "statsR.h"
-
-SEXP getListElement(SEXP list, const char *str)
+SEXP getListElement(SEXP list, char *str)
 {
     SEXP elmt = R_NilValue, names = getAttrib(list, R_NamesSymbol);
 

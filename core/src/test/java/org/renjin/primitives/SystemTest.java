@@ -39,12 +39,12 @@ public class SystemTest extends EvalTestCase {
         "recursive = FALSE, ignore.case = FALSE) " +
         ".Internal(list.files(path, pattern, all.files, full.names, recursive, ignore.case))");
 
-    assertThat( eval("list.files('classpath:/afolder')"), equalTo( c("file1.ext", "second.file")));
-    assertThat( eval("list.files('classpath:/afolder', all.files=TRUE)"), equalTo( c(".", "..", ".secret", "file1.ext", "second.file")));
+    assertThat( eval("list.files('classpath:/afolder')"), elementsIdenticalTo( c("file1.ext", "second.file")));
+    assertThat( eval("list.files('classpath:/afolder', all.files=TRUE)"), elementsIdenticalTo( c(".", "..", ".secret", "file1.ext", "second.file")));
     assertThat( eval("list.files('classpath:/afolder', all.files=TRUE, full.names=TRUE)"),
-        equalTo( c(fullPathPlus("."), fullPathPlus(".."), fullPath(".secret"), fullPath("file1.ext"), fullPath("second.file"))));
+        elementsIdenticalTo( c(fullPathPlus("."), fullPathPlus(".."), fullPath(".secret"), fullPath("file1.ext"), fullPath("second.file"))));
 
-    assertThat( eval("list.files('classpath:/r/library', pattern='^survey$')"), equalTo( c("survey")) );
+    assertThat( eval("list.files('classpath:/r/library', pattern='^survey$')"), elementsIdenticalTo( c("survey")) );
   }
 
   private String fullPath(String name) {
@@ -59,19 +59,19 @@ public class SystemTest extends EvalTestCase {
   @Test
   public void dirname() {
     assertThat( eval(" .Internal(dirname(c('c:\\\\anyfolder\\\\file.txt', '/bin/bash', 'myfile'))) "),
-        equalTo( c("c:\\anyfolder", "/bin", ".") ));
+        elementsIdenticalTo( c("c:\\anyfolder", "/bin", ".") ));
   }
 
   @Test
   public void basename() {
     assertThat( eval(" .Internal(basename(c('c:\\\\anyfolder\\\\file.txt', '/bin/bash', 'myfile'))) "),
-        equalTo( c("file.txt", "bash", "myfile") ));
+        elementsIdenticalTo( c("file.txt", "bash", "myfile") ));
   }
 
   @Test
   @Ignore
   public void date(){
-    assertThat( eval(" .Internal(date()) "), equalTo( c("Fri Sep 19 12:20:00 2011") ));
+    assertThat( eval(" .Internal(date()) "), elementsIdenticalTo( c("Fri Sep 19 12:20:00 2011") ));
   }
 
   @Test

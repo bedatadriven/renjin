@@ -18,7 +18,7 @@
 #
 
 library(stats4)
-library(org.renjin.test.s4test)
+library("org.renjin.test:s4test")
 library(hamcrest)
 
 

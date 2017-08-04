@@ -39,10 +39,11 @@ public class DeferredMean extends DeferredSummary {
   }
 
   protected double calculate() {
-    double sum = 0;
-    for(int i=0;i!=vector.length();++i) {
-      sum += vector.getElementAsDouble(i);
-    }
-    return sum / vector.length();
+    throw new IllegalStateException("Should not be called directly");
+//    double sum = 0;
+//    for(int i=0;i!=vector.length();++i) {
+//      sum += vector.getElementAsDouble(i);
+//    }
+//    return sum / vector.length();
   }
 }

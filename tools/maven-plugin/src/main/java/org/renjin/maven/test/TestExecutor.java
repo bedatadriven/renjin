@@ -18,7 +18,7 @@
  */
 package org.renjin.maven.test;
 
-import com.google.common.base.Throwables;
+import org.renjin.repackaged.guava.base.Throwables;
 import jline.UnsupportedTerminal;
 import jline.console.ConsoleReader;
 import org.renjin.eval.Context;
@@ -222,7 +222,7 @@ public class TestExecutor {
       testOutput.println();
       for (Symbol name : session.getGlobalEnvironment().getSymbolNames()) {
         if (name.getPrintName().startsWith("test.")) {
-          SEXP value = session.getGlobalEnvironment().getVariable(name);
+          SEXP value = session.getGlobalEnvironment().getVariable(session.getTopLevelContext(), name);
           if (isZeroArgFunction(value)) {
             executeTestFunction(session.getTopLevelContext(), name, testOutput);
           }

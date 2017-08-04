@@ -29,6 +29,8 @@ import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.repackaged.asm.Type;
 
+import java.lang.reflect.Field;
+
 /**
  *  Provides strategies for code generation for a specific {@code GimpleType}
  *  
@@ -45,13 +47,20 @@ public interface TypeStrategy<ExprT extends GExpr> {
    * @return the {@link ReturnStrategy} for this type.
    */
   ReturnStrategy getReturnStrategy();
-  
+
   ValueFunction getValueFunction();
 
   /**
    * Creates an expression generator for {@link GimpleVarDecl}s of this type
    */
   ExprT variable(GimpleVarDecl decl, VarAllocator allocator);
+
+
+  /**
+   * Provides an expression generator for a global variable of this type which is defined
+   * in an external Java field.
+   */
+  ExprT providedGlobalVariable(GimpleVarDecl decl, Field javaField);
 
   /**
    * Creates an expression generator for constructors of this type.
@@ -68,7 +77,7 @@ public interface TypeStrategy<ExprT extends GExpr> {
 
 
   FieldStrategy addressableFieldGenerator(Type className, String fieldName);
-  
+
   /**
    * @return a {@code PointerTypeStrategy} for pointers of this type
    */

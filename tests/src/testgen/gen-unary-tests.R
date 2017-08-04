@@ -128,6 +128,7 @@ inputs <- list(
   list(1L, 2L, 3L),
   list(1L, 2L, NULL),
   list(1, 2, list(3, 4)),
+  list(1, 2, numeric(0)),
   list(3, "a", list("b", z = list(TRUE, "c"))),
   structure(list(1,2,3), .Names = c(NA_character_, "", "b")),
 

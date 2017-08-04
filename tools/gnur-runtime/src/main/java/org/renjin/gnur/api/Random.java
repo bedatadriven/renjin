@@ -21,8 +21,10 @@ package org.renjin.gnur.api;
 
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
+import org.renjin.nmath.rnorm;
+import org.renjin.primitives.Native;
 
-import java.util.concurrent.ThreadLocalRandom;
+import java.lang.invoke.MethodHandle;
 
 @SuppressWarnings("unused")
 public final class Random {
@@ -40,11 +42,12 @@ public final class Random {
   }
 
   public static double unif_rand() {
-    return ThreadLocalRandom.current().nextDouble();
+    return Native.currentContext().getSession().getRNG().unif_rand();
   }
 
   public static double norm_rand() {
-    throw new UnimplementedGnuApiMethod("norm_rand");
+    MethodHandle runif = Native.currentContext().getSession().getRngMethod();
+    return rnorm.rnorm(runif, 0, 1);
   }
 
   public static double exp_rand() {

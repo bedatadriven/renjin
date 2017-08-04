@@ -48,8 +48,7 @@ public class DoubleBinaryOp implements Specialization {
     return Type.DOUBLE_TYPE;
   }
 
-  @Override
-  public ValueBounds getValueBounds() {
+  public ValueBounds getResultBounds() {
     return valueBounds;
   }
 
@@ -66,6 +65,11 @@ public class DoubleBinaryOp implements Specialization {
     emitContext.convert(mv, y.getType(), Type.DOUBLE_TYPE);
     
     mv.visitInsn(opcode);
+  }
+
+  @Override
+  public boolean isPure() {
+    return true;
   }
 
   public static DoubleBinaryOp trySpecialize(String name, JvmMethod overload, ValueBounds resultBounds) {

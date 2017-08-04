@@ -29,7 +29,11 @@
     statistical computing</description>
 
   <dependencies>
-
+    <dependency>
+      <groupId>org.renjin</groupId>
+      <artifactId>renjin-appl</artifactId>
+      <version>${project.version}</version>
+    </dependency>
     <dependency>
       <groupId>org.renjin</groupId>
       <artifactId>renjin-nmath</artifactId>

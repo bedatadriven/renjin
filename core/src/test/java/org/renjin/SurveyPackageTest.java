@@ -21,7 +21,6 @@ package org.renjin;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 
@@ -33,10 +32,10 @@ public class SurveyPackageTest extends PackageTest {
 
     eval(" library(survey, lib.loc='src/test/resources') ");
 
-    assertThat( eval(" data(hospital, verbose=TRUE) "), equalTo(c("hospital")) );
+    assertThat( eval(" data(hospital, verbose=TRUE) "), elementsIdenticalTo(c("hospital")) );
 
-    assertThat(eval("typeof(hospital)"), equalTo(c("list")));
-    assertThat(eval("sum(hospital$births)"), equalTo(c(25667)));
+    assertThat(eval("typeof(hospital)"), elementsIdenticalTo(c("list")));
+    assertThat(eval("sum(hospital$births)"), elementsIdenticalTo(c(25667)));
 
     eval("dstr <- svydesign(id = ~1, strata = ~oblevel, fpc = ~tothosp, weight = ~weighta, data = hospital)");
     eval("r <- svymean(~births, dstr)");

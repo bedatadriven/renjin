@@ -50,4 +50,7 @@ public class GimpleVisitor {
 
   }
 
+  public void visitAsm(GimpleAsm gimpleAsm) {
+
+  }
 }

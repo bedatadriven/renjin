@@ -55,13 +55,15 @@ public class Symbols {
   public static final Symbol PACKAGE = Symbol.get("package");
   public static final Symbol CLASS_NAME = Symbol.get("className");
   public static final Symbol PROTOTYPE = Symbol.get("prototype");
-  public static final Symbol S4_BIT = Symbol.get("__S4_BIT");
   public static final Symbol S4_NULL = Symbol.get("\001NULL\001");
   
   public static final Symbol GENERIC = Symbol.get("generic");
   public static final Symbol SOURCE = Symbol.get("source");
 
   public static final Symbol DOT_DATA = Symbol.get(".Data");
+
+  public static final Symbol DOT_XDATA = Symbol.get(".xData");
+
 
 
 

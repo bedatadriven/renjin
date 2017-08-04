@@ -90,6 +90,8 @@ public class Wrapper {
         return createClosureWrapper(sexp);
       case REXP.VECSXP:
         return createList(sexp);
+      case REXP.BCODESXP:
+        return wrapBytecode(sexp);
       default:
         throw new UnsupportedOperationException("type: "  + sexpType);
     }
@@ -99,7 +101,7 @@ public class Wrapper {
     Environment parent = (Environment) wrap(engine.rniParentEnv(sexp));
     FrameWrapper frame = new FrameWrapper(engine, sexp);
     frame.setWrapper(this);
-    return Environment.createChildEnvironment(parent, frame);
+    return Environment.createChildEnvironment(parent, frame).build();
   }
 
   private SEXP createList(long sexp) {
@@ -196,6 +198,23 @@ public class Wrapper {
     return new Closure(rho, formals, body);
   }
 
+  private SEXP wrapBytecode(long sexp) {
+
+    // Bytecode constant pool is stored in the CDR slot
+    long constantPoolList = engine.rniCDR(sexp);
+
+    // Constant pool is of type 2
+    int constantPoolType = engine.rniExpType(constantPoolList);
+    if(constantPoolType != SexpType.VECSXP) {
+      throw new RuntimeException("Constant pool type: " + constantPoolType);
+    }
+
+    // First entry in the constant pool is the original SEXP
+    long[] constantPoolEntries = engine.rniGetVector(constantPoolList);
+    long functionBody = constantPoolEntries[0];
+
+    return wrap(functionBody);
+  }
 
 
   private AttributeMap wrapAttributes(long sexp) {

@@ -24,6 +24,7 @@ import org.renjin.gcc.codegen.array.ArrayTypeStrategies;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.*;
+import org.renjin.gcc.codegen.fatptr.AddressableField;
 import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.*;
@@ -41,6 +42,7 @@ import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Preconditions;
 
 import java.lang.invoke.MethodHandle;
+import java.lang.reflect.Field;
 
 /**
  * Strategy for function pointer types
@@ -63,6 +65,15 @@ public class FunPtrStrategy implements PointerTypeStrategy<FunPtr>, SimpleTypeSt
   }
 
   @Override
+  public FunPtr providedGlobalVariable(GimpleVarDecl decl, Field javaField) {
+    if(javaField.getType().equals(MethodHandle.class)) {
+      return new FunPtr(Expressions.staticField(javaField));
+    }
+    throw new InternalCompilerException("Cannot map global variable " + decl + " to " + javaField + ". " +
+        "Field of type " + MethodHandle.class.getName() + " is required");
+  }
+
+  @Override
   public FieldStrategy fieldGenerator(Type className, String fieldName) {
     return new FunPtrField(className, fieldName);
   }
@@ -74,7 +85,7 @@ public class FunPtrStrategy implements PointerTypeStrategy<FunPtr>, SimpleTypeSt
 
   @Override
   public FieldStrategy addressableFieldGenerator(Type className, String fieldName) {
-    throw new UnsupportedOperationException("TODO");
+    return new AddressableField(METHOD_HANDLE_TYPE, fieldName, getValueFunction());
   }
 
   @Override

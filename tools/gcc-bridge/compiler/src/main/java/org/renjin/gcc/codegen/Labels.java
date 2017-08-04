@@ -25,7 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Maps basic blocks to asm {@link org.objectweb.asm.Label}s
+ * Maps basic blocks to asm {@link org.renjin.repackaged.asm.Label}s
  */
 public class Labels {
 

@@ -68,7 +68,7 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
   
   @Override
   public Object get(String key) {
-    return topLevelContext.getEnvironment().getVariable(Symbol.get(key));
+    return topLevelContext.getEnvironment().getVariable(topLevelContext, Symbol.get(key));
   }
 
   @Override
@@ -97,7 +97,7 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
     } else {
       convertedValue = Converters.get(value.getClass()).convertToR(value);
     }
-    topLevelContext.getEnvironment().setVariable(Symbol.get(key), convertedValue);
+    topLevelContext.getEnvironment().setVariable(topLevelContext, Symbol.get(key), convertedValue);
   }
 
   @Override
@@ -265,7 +265,7 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
    
     SEXP element;
     if(thiz instanceof Environment) {
-      element = ((Environment)thiz).getVariable(name);
+      element = ((Environment)thiz).getVariable(topLevelContext, name);
     } else if(thiz instanceof ListVector) {
       element = ((ListVector)thiz).get(name);
     } else {
@@ -295,7 +295,7 @@ public class RenjinScriptEngine implements ScriptEngine, Invocable {
   }
 
   public void printWarnings() {
-    SEXP warnings = topLevelContext.getBaseEnvironment().getVariable(Warning.LAST_WARNING);
+    SEXP warnings = topLevelContext.getBaseEnvironment().getVariable(topLevelContext, Warning.LAST_WARNING);
     if(warnings != Symbol.UNBOUND_VALUE) {
       topLevelContext.evaluate( FunctionCall.newCall(Symbol.get("print.warnings"), warnings),
           topLevelContext.getBaseEnvironment());

@@ -84,7 +84,7 @@ public class Repl implements Runnable {
         }
         
         // clean up last warnings from any previous run
-        clearWarnings();
+        session.getSession().clearWarnings();
         
         SEXP result = topLevelContext.evaluate(exp, global);
 
@@ -92,7 +92,7 @@ public class Repl implements Runnable {
           topLevelContext.evaluate(FunctionCall.newCall(Symbol.get("print"), result));  
         }
         
-        printWarnings();
+        session.getSession().printWarnings();
 
       } catch (ParseException e) {
         console.getErr().println(String.format("Error: %s", e.getMessage()));
@@ -107,19 +107,6 @@ public class Repl implements Runnable {
     }
   }
 
-  private void printWarnings() {
-    SEXP warnings = topLevelContext.getBaseEnvironment().getVariable(Warning.LAST_WARNING);
-    if(warnings != Symbol.UNBOUND_VALUE) {
-      topLevelContext.evaluate( FunctionCall.newCall(Symbol.get("print.warnings"), warnings),
-          topLevelContext.getBaseEnvironment());
-      
-      console.getOut().println();
-    }
-  }
-
-  private void clearWarnings() {
-    topLevelContext.getBaseEnvironment().remove(Warning.LAST_WARNING);
-  }
 
   private void printGreeting() {
     PrintStream out = console.getOut();

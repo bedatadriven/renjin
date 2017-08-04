@@ -70,7 +70,7 @@ public final class Constant implements SimpleExpression {
   }
 
   @Override
-  public final boolean isDefinitelyPure() {
+  public final boolean isPure() {
     return true;
   }
 
@@ -85,6 +85,12 @@ public final class Constant implements SimpleExpression {
     } else if (type.equals(Type.getType(String.class))) {
       mv.aconst(((AtomicVector) value).getElementAsString(0));
 
+    } else if (type.equals(Type.getType(SEXP.class))) {
+      if(value == Null.INSTANCE) {
+        mv.getstatic(Type.getInternalName(Null.class), "INSTANCE", Type.getDescriptor(Null.class));
+      } else {
+        throw new UnsupportedOperationException("const sexp: " + value.getClass().getName());
+      }
     } else {
       throw new UnsupportedOperationException("type: " + type);
     }

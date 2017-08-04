@@ -25,3 +25,6 @@ assertThat(mydsum(1:10), identicalTo(56))
 
 x <- try( mydpchim() )
 assertThat(inherits(x, "try-error"), identicalTo(TRUE) )
+
+
+assertThat(secret(1:3), identicalTo(3*42))

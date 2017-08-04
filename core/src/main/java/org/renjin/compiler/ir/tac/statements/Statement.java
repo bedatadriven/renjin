@@ -42,5 +42,10 @@ public interface Statement extends TreeNode {
    * @return the required increase to the stack
    */
   int emit(EmitContext emitContext, InstructionAdapter mv);
-  
+
+  /**
+   *
+   * @return true if this statement has no side effects.
+   */
+  boolean isPure();
 }

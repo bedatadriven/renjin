@@ -163,14 +163,6 @@ public abstract class IntVector extends AbstractAtomicVector implements Iterable
     return IMPLICIT_CLASS;
   }
 
-  @Override
-  public double asReal() {
-    if (length() == 0 || isElementNA(0)) {
-      return DoubleVector.NA;
-    } else {
-      return getElementAsDouble(0);
-    }
-  }
 
   public int[] toIntArray() {
     int[] array = new int[length()];
@@ -206,34 +198,12 @@ public abstract class IntVector extends AbstractAtomicVector implements Iterable
 
 
   @Override
-  public final boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || !(o instanceof IntVector)) {
-      return false;
-    }
-
-    IntVector that = (IntVector) o;
-    if(that.length() != this.length()) {
-      return false;
-    }
-
-    for(int i=0;i!=length();++i) {
-      if(getElementAsInt(i)!=that.getElementAsInt(i)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  @Override
   public final int hashCode() {
-    int hash = 37;
-    for(int i=0;i!=length();++i) {
-      hash += getElementAsInt(i);
+    int result = 1;
+    for (int i = 0; i < length(); i++) {
+      result = 31 * result + getElementAsInt(i);
     }
-    return hash;
+    return result;
   }
 
   @Override
@@ -294,12 +264,10 @@ public abstract class IntVector extends AbstractAtomicVector implements Iterable
     }
 
     @Override
-    public boolean elementsEqual(Vector vector1, int index1, Vector vector2,
-        int index2) {
-      if(vector1.isElementNA(index1) || vector2.isElementNA(index2)) {
-        return false;
-      }
-      return vector1.getElementAsInt(index1) == vector2.getElementAsInt(index2);
+    public boolean elementsIdentical(Vector vector1, int index1, Vector vector2, int index2) {
+      int element1 = vector1.getElementAsInt(index1);
+      int element2 = vector2.getElementAsInt(index2);
+      return element1 == element2;
     }
 
     @Override

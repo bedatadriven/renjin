@@ -41,6 +41,8 @@ import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
 import org.renjin.repackaged.asm.Type;
 
+import java.lang.reflect.Field;
+
 import static org.renjin.gcc.codegen.expr.Expressions.*;
 
 /**
@@ -166,6 +168,11 @@ public class RecordArrayTypeStrategy extends RecordTypeStrategy<RecordArrayExpr>
     JLValue arrayVar = allocator.reserve(decl.getName(), arrayType, newArray);
     
     return new RecordArrayExpr(valueFunction, arrayVar, arrayLength);
+  }
+
+  @Override
+  public RecordArrayExpr providedGlobalVariable(GimpleVarDecl decl, Field javaField) {
+    throw new UnsupportedOperationException("TODO");
   }
 
   @Override

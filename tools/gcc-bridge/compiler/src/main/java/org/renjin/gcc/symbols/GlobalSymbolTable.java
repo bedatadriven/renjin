@@ -135,8 +135,6 @@ public class GlobalSymbolTable implements SymbolTable {
     addFunction(BuiltinClzGenerator.NAME, new BuiltinClzGenerator());
     
     addFunction("__cxa_allocate_exception", new MallocCallGenerator(typeOracle));
-    addFunction(GuardAcquireGenerator.NAME, new GuardAcquireGenerator());
-    addFunction(GuardReleaseGenerator.NAME, new GuardReleaseGenerator());
     addFunction(EhPointerCallGenerator.NAME, new EhPointerCallGenerator());
     addFunction(ThrowCallGenerator.NAME, new ThrowCallGenerator());
     addFunction(BeginCatchCallGenerator.NAME, new BeginCatchCallGenerator());

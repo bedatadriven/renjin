@@ -43,7 +43,7 @@ public class RepIntVector extends IntVector {
   
   @Override
   protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
-    return new RepDoubleVector(source, length, each, attributes);
+    return new RepIntVector(source, length, each, attributes);
   }
 
   @Override

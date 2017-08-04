@@ -35,8 +35,7 @@ public class LengthCall implements Specialization {
     return Type.INT_TYPE;
   }
 
-  @Override
-  public ValueBounds getValueBounds() {
+  public ValueBounds getResultBounds() {
     return ValueBounds.INT_PRIMITIVE;
   }
 
@@ -48,5 +47,10 @@ public class LengthCall implements Specialization {
     
     mv.invokeinterface(Type.getInternalName(SEXP.class), "length", 
         Type.getMethodDescriptor(Type.INT_TYPE, Type.getType(SEXP.class)));
+  }
+
+  @Override
+  public boolean isPure() {
+    return true;
   }
 }

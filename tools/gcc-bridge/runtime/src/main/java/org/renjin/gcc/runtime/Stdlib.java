@@ -366,5 +366,34 @@ public class Stdlib {
 
     return closest * sign;
   }
-  
+
+  /**
+   * Effects: This function is called before initialization takes place. If this function returns 1, either
+   * __cxa_guard_release or __cxa_guard_abort must be called with the same argument.
+   *
+   * The first byte of the guard_object is not modified by this function.
+   */
+  public static int __cxa_guard_acquire(LongPtr guard_object) {
+    return 1;
+  }
+
+  /**
+   * Effects: Sets the first byte of the guard object to a non-zero value. This function is called after initialization
+   * is complete. A thread-safe implementation will release the mutex acquired by __cxa_guard_acquire after setting
+   * the first byte of the guard object.
+   */
+  public static void __cxa_guard_release(LongPtr guard_object) {
+
+  }
+
+  /**
+   * Effects: This function is called if the initialization terminates by throwing an exception.
+   */
+  public static void __cxa_guard_abort(LongPtr p) {
+
+  }
+
+  public static void inlineAssembly() {
+    throw new UnsupportedOperationException("Compilation of inline assembly not supported");
+  }
 }

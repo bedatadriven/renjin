@@ -21,7 +21,10 @@ package org.renjin.primitives;
 import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.eval.*;
-import org.renjin.invoke.annotations.*;
+import org.renjin.invoke.annotations.ArgumentList;
+import org.renjin.invoke.annotations.Builtin;
+import org.renjin.invoke.annotations.Current;
+import org.renjin.invoke.annotations.Internal;
 import org.renjin.invoke.codegen.ArgumentIterator;
 import org.renjin.packaging.SerializedPromise;
 import org.renjin.primitives.packaging.Namespace;
@@ -1197,16 +1200,18 @@ public class S3 {
         }
         if(Types.isS4(object) && isS4DispatchSupported(genericMethodName)) {
           List<Environment> methodTables = findMethodTable(context, genericMethodName);
-          Iterator<Environment> methodTableItr = methodTables.iterator();
-          while (method == null && methodTableItr.hasNext()) {
-            Environment env = methodTableItr.next();
-            SEXP methodName = env.getFrame().getVariable(Symbol.get(className));
-            if(methodName instanceof GenericMethod) {
-              method = (GenericMethod) methodName;
+          if(methodTables != null) {
+            Iterator<Environment> methodTableItr = methodTables.iterator();
+            while (method == null && methodTableItr.hasNext()) {
+              Environment env = methodTableItr.next();
+              SEXP methodName = env.getFrame().getVariable(Symbol.get(className));
+              if(methodName instanceof GenericMethod) {
+                method = (GenericMethod) methodName;
+              }
             }
-          }
-          if(method != null) {
-            return method;
+            if(method != null) {
+              return method;
+            }
           }
         }
         if(group != null) {

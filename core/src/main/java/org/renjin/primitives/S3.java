@@ -355,7 +355,7 @@ public class S3 {
     genericMethodTables = findMethodTable(context, opName);
     if("Ops".equals(group)) {
       groupMethodTables = findOpsMethodTable(context, opName);
-    } else if(!"".equals(group)) {
+    } else if(!("".equals(group) || group == null)) {
       groupMethodTables = findMethodTable(context, group);
     }
     
@@ -419,42 +419,54 @@ public class S3 {
     // The generated signatures are sorted based on their distance to input signature and looked up in originating
     // method table. All signatures are looked up and the ones present are returned.
     
-    List<List<SelectedMethod>> validMethods = findMatchingMethods(context, mapMethodTableList, possibleSignatures);
+    Map<String, List<List<SelectedMethod>>> validMethods = findMatchingMethods(context, mapMethodTableList, possibleSignatures);
     
-    if(validMethods.size() == 0) {
+    if(validMethods.keySet().size() == 0) {
       return null;
     }
     
     int maxNumberOfMethods = 0;
-    for(int i = 0; i < validMethods.size(); i++) {
-      if(validMethods.get(i).size() > maxNumberOfMethods) {
-        maxNumberOfMethods = validMethods.get(i).size();
+    Iterator<String> typeItr = validMethods.keySet().iterator();
+    for(;typeItr.hasNext();) {
+      List<List<SelectedMethod>> methods = validMethods.get(typeItr.next());
+      for (List<SelectedMethod> method : methods) {
+        int nextSize = method.size();
+        if (nextSize > maxNumberOfMethods) {
+          maxNumberOfMethods = nextSize;
+        }
       }
     }
+    
     if(maxNumberOfMethods == 0) {
       return null;
     }
   
     SelectedMethod method;
+    int genericDistance = -1;
+    int groupDistance = -1;
+    if(validMethods.containsKey("generic") && validMethods.get("generic").get(0).size() > 0) {
+      genericDistance = validMethods.get("generic").get(0).get(0).getDistance();
+    }
+    if(validMethods.containsKey("group") && validMethods.get("group").get(0).size() > 0) {
+      groupDistance = validMethods.get("group").get(0).get(0).getDistance();
+    }
     if(validMethods.size() > 1) {
       // select closest group method if distance is less than the distance of closest generic method
-      int genericDistance = validMethods.get(0).size() == 0 ? -1 : validMethods.get(0).get(0).getDistance();
-      int groupDistance = validMethods.get(1).size() == 0 ? -1 : validMethods.get(1).get(0).getDistance();
       if(genericDistance == -1 && groupDistance == -1) {
         return null;
       }
       if((genericDistance == -1 && groupDistance != -1) || (groupDistance != -1 && groupDistance < genericDistance)) {
-        method = validMethods.get(1).get(0);
+        method = validMethods.get("group").get(0).get(0);
       } else {
-        method = validMethods.get(0).get(0);
+        method = validMethods.get("generic").get(0).get(0);
       }
     } else {
-      if(validMethods.get(0).size() == 0) {
-        // select closest group method if no generic methods are found
-        method = validMethods.get(1).get(0);
-      } else {
+      if(genericDistance != -1) {
         // select closest generic method if no group methods are found
-        method = validMethods.get(0).get(0);
+        method = validMethods.get("generic").get(0).get(0);
+      } else {
+        // select closest group method if no generic methods are found
+        method = validMethods.get("group").get(0).get(0);
       }
     }
     
@@ -695,12 +707,13 @@ public class S3 {
    *
    *
    * */
-  private static List<List<SelectedMethod>> findMatchingMethods(Context context, Map<String, List<Environment>> mapMethodTableLists,
+  private static Map<String, List<List<SelectedMethod>>> findMatchingMethods(Context context, Map<String, List<Environment>> mapMethodTableLists,
                                                           Map<String, List<List<MethodRanking>>> mapSignatureList) {
     
-    List<List<SelectedMethod>> listMethods = new ArrayList<>();
+    Map<String, List<List<SelectedMethod>>> mapListMethods = new HashMap<>();
     
     for(int e = 0; e < mapSignatureList.size(); e++) {
+      List<List<SelectedMethod>> listMethods = new ArrayList<>();
       String type = mapSignatureList.keySet().toArray(new String[0])[e];
       List<List<MethodRanking>> rankings = mapSignatureList.get(type);
       List<Environment> methodTableList = mapMethodTableLists.get(type);
@@ -720,11 +733,16 @@ public class S3 {
             selectedMethods.add(new SelectedMethod((Closure) function, type, distance, signature, signatureSymbol, inputSignature));
           }
         }
-        listMethods.add(selectedMethods);
+        if(selectedMethods.size() > 0) {
+          listMethods.add(selectedMethods);
+        }
+      }
+      if(listMethods.size() > 0) {
+        mapListMethods.put(type, listMethods);
       }
     }
     
-    return listMethods;
+    return mapListMethods;
   }
   
   /**

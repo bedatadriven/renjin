@@ -50,6 +50,7 @@ public class RecordTypeDefCanonicalizerTest {
     point1.getFields().add(new GimpleField("y", DOUBLE_TYPE));
 
     GimpleCompilationUnit unit1 = new GimpleCompilationUnit();
+    unit1.setMainInputFilename("test1.c");
     unit1.getRecordTypes().add(point1);
 
     GimpleRecordTypeDef point2 = new GimpleRecordTypeDef();
@@ -58,6 +59,7 @@ public class RecordTypeDefCanonicalizerTest {
     point2.getFields().add(new GimpleField("y", DOUBLE_TYPE));
 
     GimpleCompilationUnit unit2 = new GimpleCompilationUnit();
+    unit2.setMainInputFilename("test2.c");
     unit2.getRecordTypes().add(point2);
 
     Collection<GimpleRecordTypeDef> canonicalDefs =
@@ -92,6 +94,7 @@ public class RecordTypeDefCanonicalizerTest {
       linkedList.getFields().add(new GimpleField("head", new GimplePointerType(new GimpleRecordType("N" + unitNum))));
 
       GimpleCompilationUnit unit = new GimpleCompilationUnit();
+      unit.setMainInputFilename("test" + unitNum + ".c");
       unit.getRecordTypes().add(linkedList);
       unit.getRecordTypes().add(node);
 
@@ -134,6 +137,7 @@ public class RecordTypeDefCanonicalizerTest {
       edge.getFields().add(new GimpleField("to", new GimplePointerType(new GimpleRecordType("N" + unitNum))));
 
       GimpleCompilationUnit unit = new GimpleCompilationUnit();
+      unit.setMainInputFilename("test.c");
       unit.getRecordTypes().add(edge);
       unit.getRecordTypes().add(node);
 

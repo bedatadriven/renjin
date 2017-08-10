@@ -26,6 +26,7 @@ import org.renjin.repackaged.guava.collect.UnmodifiableIterator;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.Objects;
 
 /**
  * Pairlists (LISTSXP, the name going back to the origins of R as a Scheme-like language) are
@@ -304,19 +305,10 @@ public interface PairList extends SEXP {
         return false;
       }
 
-      Node node = (Node) o;
-
-      if (nextNode != null ? !nextNode.equals(node.nextNode) : node.nextNode != null) {
-        return false;
-      }
-      if (tag != null ? !tag.equals(node.tag) : node.tag != null) {
-        return false;
-      }
-      if (value != null ? !value.equals(node.value) : node.value != null) {
-        return false;
-      }
-
-      return true;
+      Node that = (Node) o;
+      return Objects.equals(this.nextNode, that.nextNode) &&
+             Objects.equals(this.tag, that.tag) &&
+             Objects.equals(this.value, that.value);
     }
 
     @Override

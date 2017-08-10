@@ -32,6 +32,7 @@ import org.codehaus.plexus.compiler.util.scan.mapping.SourceMapping;
 import org.codehaus.plexus.compiler.util.scan.mapping.SuffixMapping;
 import org.renjin.gcc.Gcc;
 import org.renjin.gcc.GimpleCompiler;
+import org.renjin.gcc.HtmlTreeLogger;
 import org.renjin.gcc.codegen.lib.SymbolLibrary;
 import org.renjin.gcc.codegen.lib.cpp.CppSymbolLibrary;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
@@ -206,6 +207,9 @@ public class GccBridgeMojo extends AbstractMojo {
   }
 
   private void compile(List<GimpleCompilationUnit> units) throws MojoExecutionException {
+    File logDir = new File("target/gcc-bridge-logs");
+    logDir.mkdirs();
+
     GimpleCompiler compiler = new GimpleCompiler();
     compiler.addMathLibrary();
     compiler.setPackageName(packageName);
@@ -214,6 +218,7 @@ public class GccBridgeMojo extends AbstractMojo {
     compiler.addMathLibrary();
     compiler.setOutputDirectory(outputDirectory);
     compiler.setLinkClassLoader(getLinkClassLoader());
+    compiler.setLogger(new HtmlTreeLogger(logDir));
     
     ClassLoader classLoader = createClassLoader();
     

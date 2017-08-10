@@ -27,7 +27,6 @@ import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.var.GlobalVarAllocator;
-import org.renjin.gcc.codegen.var.ProvidedVarAllocator;
 import org.renjin.gcc.gimple.*;
 import org.renjin.gcc.symbols.GlobalSymbolTable;
 import org.renjin.gcc.symbols.UnitSymbolTable;
@@ -87,7 +86,7 @@ public class UnitClassGenerator {
 
         if (isProvided(providedVariables, decl)) {
           Field providedField = providedVariables.get(decl.getName());
-          varGenerator = typeStrategy.variable(decl, new ProvidedVarAllocator(providedField.getDeclaringClass()));
+          varGenerator = typeStrategy.providedGlobalVariable(decl, providedField);
 
         } else {
           try {
@@ -198,7 +197,12 @@ public class UnitClassGenerator {
       try {
         GExpr varGenerator = symbolTable.getGlobalVariable(decl);
         if(decl.getValue() != null) {
-          varGenerator.store(mv, exprFactory.findGenerator(decl.getValue()));
+          try {
+            varGenerator.store(mv, exprFactory.findGenerator(decl.getValue()));
+          } catch (Exception e) {
+            System.err.println("Warning: could not generate code for global variable " + decl.getMangledName() +
+                ": " + e.getMessage());
+          }
         }
 
       } catch (Exception e) {

@@ -36,7 +36,16 @@ public class Namespaces {
   public static SEXP getRegisteredNamespace(@Current Context context, @Current NamespaceRegistry registry, SEXP nameSexp) {
     Symbol name;
     if(nameSexp instanceof Symbol) {
-      name = (Symbol) nameSexp; 
+      name = (Symbol) nameSexp;
+      
+      // Some GNU R functions use the name in package-attribute to load the necessary namespace. However, the
+      // package-attribute is also used to store information about where a class is created which can be in
+      // global environment (.GlobalEnv). In those cases no namespace need to be loaded. GNU R, therefor, returns
+      // NULL when getNamespace is called on ".GlobalEnv".
+      if (".GlobalEnv".equals(name.getPrintName())) {
+        return Null.INSTANCE;
+      }
+      
     } else if(nameSexp instanceof StringVector) {
       name = Symbol.get(nameSexp.asString());
     } else {
@@ -52,17 +61,21 @@ public class Namespaces {
   
   @Internal
   public static Environment getNamespaceRegistry(@Current NamespaceRegistry registry) {
-    return Environment.createChildEnvironment(Environment.EMPTY, new NamespaceFrame(registry));
+    return Environment.createChildEnvironment(Environment.EMPTY, new NamespaceFrame(registry)).build();
   }
 
   @Builtin
   public static SEXP getNamespace(@Current Context context, @Current NamespaceRegistry registry, Symbol name) {
-    return registry.getNamespace(context, name).getNamespaceEnvironment();
+    Namespace namespace = registry.getNamespace(context, name);
+    Environment namespaceEnv = namespace.getNamespaceEnvironment();
+    return namespaceEnv;
   }
 
   @Builtin
   public static SEXP getNamespace(@Current Context context, @Current NamespaceRegistry registry, String name) {
-    return registry.getNamespace(context, name).getNamespaceEnvironment();
+    Namespace namespace = registry.getNamespace(context, name);
+    SEXP namespaceEnv = namespace.getNamespaceEnvironment();
+    return namespaceEnv;
   }
   
 
@@ -171,5 +184,25 @@ public class Namespaces {
       result.add(fileObject.getURL().toString());
     }
     return result.build();
+  }
+
+  @Internal("library.dynam")
+  public static SEXP libraryDynam(@Current Context context, String libraryName, String packageName) {
+    Namespace namespace = context.getNamespaceRegistry().getNamespace(context, packageName);
+    DllInfo dllInfo;
+    try {
+      dllInfo = namespace.loadDynamicLibrary(context, libraryName);
+    } catch (ClassNotFoundException e) {
+      // Allow the package to continue loading...
+      context.warn("Could not load the dynamic library: " + e.getMessage());
+      return Null.INSTANCE;
+    }
+
+    return dllInfo.buildDllInfoSexp();
+  }
+
+  @Internal("library.dynam.unload")
+  public static SEXP libraryDynamUnload(@Current Context context, String name) {
+    return Null.INSTANCE;
   }
 }

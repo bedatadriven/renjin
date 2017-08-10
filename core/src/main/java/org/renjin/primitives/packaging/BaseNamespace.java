@@ -26,6 +26,12 @@ public class BaseNamespace extends Namespace {
 
   public BaseNamespace(Environment baseNamespaceEnvironment) {
     super(new BasePackage(), baseNamespaceEnvironment);
+    try {
+      libraries.add(new DllInfo("appl", Class.forName("org.renjin.appl.Appl")));
+      libraries.add(new DllInfo("base", Class.forName("org.renjin.base.Base")));
+    } catch (ClassNotFoundException e) {
+      throw new RuntimeException("Could not load base package", e);
+    }
   }
 
   @Override

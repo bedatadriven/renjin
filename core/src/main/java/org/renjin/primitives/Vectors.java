@@ -21,6 +21,7 @@ package org.renjin.primitives;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
+import org.renjin.invoke.codegen.WrapperRuntime;
 import org.renjin.invoke.reflection.converters.*;
 import org.renjin.primitives.sequence.RepDoubleVector;
 import org.renjin.primitives.vector.ConvertingDoubleVector;
@@ -73,6 +74,9 @@ public class Vectors {
   @Generic
   @Builtin
   public static int length(SEXP exp) {
+    if(exp instanceof S4Object && exp.getAttribute(Symbols.DOT_XDATA) instanceof Environment) {
+      return exp.getAttribute(Symbols.DOT_XDATA).length();
+    }
     return exp.length();
   }
 
@@ -221,8 +225,8 @@ public class Vectors {
     if (DoubleConverter.accept(clazz)) {
       return (DoubleVector) DoubleConverter.INSTANCE.convertToR(instance);
       
-    } else if (DoubleArrayConverter.accept(clazz)) {
-      return (DoubleVector)new DoubleArrayConverter(clazz).convertToR(instance);
+    } else if (DoubleArrayConverter.DOUBLE_ARRAY.accept(clazz)) {
+      return DoubleArrayConverter.DOUBLE_ARRAY.convertToR(instance);
    
     } else {
       return new DoubleArrayVector(DoubleVector.NA);

@@ -237,7 +237,7 @@ public abstract class ComplexVector extends AbstractAtomicVector implements Iter
     }
 
     @Override
-    public boolean elementsEqual(Vector vector1, int index1, Vector vector2, int index2) {
+    public boolean elementsIdentical(Vector vector1, int index1, Vector vector2, int index2) {
       return vector1.getElementAsComplex(index1).equals(vector2.getElementAsComplex(index2));
     }
 

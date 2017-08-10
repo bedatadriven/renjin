@@ -51,6 +51,7 @@ public class GimpleParser {
     }
     for (GimpleVarDecl varDecl : unit.getGlobalVariables()) {
       varDecl.setUnit(unit);
+      varDecl.setGlobal(true);
     }
     return unit;
   }

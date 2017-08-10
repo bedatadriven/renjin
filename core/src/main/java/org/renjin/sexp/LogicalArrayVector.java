@@ -75,11 +75,16 @@ public class LogicalArrayVector extends LogicalVector {
     }
   }
 
-  public static LogicalArrayVector unsafe(int[] array) {
+  public static LogicalArrayVector unsafe(int[] array, AttributeMap attributes) {
     LogicalArrayVector vector = new LogicalArrayVector(AttributeMap.EMPTY);
     vector.values = array;
     return vector;
   }
+
+  public static LogicalArrayVector unsafe(int[] array) {
+    return unsafe(array, AttributeMap.EMPTY);
+  }
+
 
 
   /**

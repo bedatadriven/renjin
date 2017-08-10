@@ -49,6 +49,10 @@ public class BitwiseNot implements JExpr {
       mv.iconst(-1);
       mv.xor(Type.INT_TYPE);
 
+    } else if (argument.getType().equals(Type.LONG_TYPE)) {
+      mv.lconst(-1L);
+      mv.xor(Type.LONG_TYPE);
+
     } else if (argument.getType().equals(Type.BYTE_TYPE)) {
       mv.iconst(0xFF);
       mv.xor(Type.BYTE_TYPE);

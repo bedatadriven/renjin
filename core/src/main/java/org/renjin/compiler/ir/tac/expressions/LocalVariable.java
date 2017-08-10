@@ -34,7 +34,7 @@ public class LocalVariable extends Variable {
   }
 
   @Override
-  public boolean isDefinitelyPure() {
+  public boolean isPure() {
     return false;
   }
 

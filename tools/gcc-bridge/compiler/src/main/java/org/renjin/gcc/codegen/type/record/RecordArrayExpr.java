@@ -18,10 +18,16 @@
  */
 package org.renjin.gcc.codegen.type.record;
 
+import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.expr.PtrExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
+import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
+import org.renjin.gcc.runtime.Ptr;
+import org.renjin.gcc.runtime.Record;
 
 import static org.renjin.gcc.codegen.expr.Expressions.*;
 
@@ -54,8 +60,17 @@ public final class RecordArrayExpr implements GExpr {
 
   @Override
   public void store(MethodGenerator mv, GExpr rhs) {
-    RecordArrayExpr arrayRhs = (RecordArrayExpr) rhs;
-    mv.arrayCopy(arrayRhs.getArray(), arrayRhs.getOffset(), array, offset, constantInt(arrayLength));
+    // GCC Return Value Optimization sometimes omits the valueOf operator in the gimple output
+    // handle the case of a pointer being passed
+    if(rhs instanceof FatPtrPair) {
+      FatPtrPair fatPtrExpr = (FatPtrPair) rhs;
+      mv.arrayCopy(fatPtrExpr.getArray(), fatPtrExpr.getOffset(), array, offset, constantInt(arrayLength));
+    } else if (rhs instanceof RecordArrayExpr) {
+      RecordArrayExpr arrayRhs = (RecordArrayExpr) rhs;
+      mv.arrayCopy(arrayRhs.getArray(), arrayRhs.getOffset(), array, offset, constantInt(arrayLength));
+    } else {
+      throw new InternalCompilerException("Cannot assign " + rhs + " to " + this);
+    }
   }
 
   public JExpr getArray() {

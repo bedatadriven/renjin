@@ -36,6 +36,7 @@ import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.repackaged.asm.Type;
 
 import javax.annotation.Nonnull;
+import java.lang.reflect.Field;
 
 
 /**
@@ -157,11 +158,20 @@ public class VoidPtrStrategy implements PointerTypeStrategy<VoidPtr>, SimpleType
       JExpr value = Expressions.elementAt(unitArray, 0);
       
       return new VoidPtr(value, address);
-    
+
     } else {
-      
+
       return new VoidPtr(allocator.reserve(decl.getNameIfPresent(), Type.getType(Object.class)));
     }
+  }
+
+  @Override
+  public VoidPtr providedGlobalVariable(GimpleVarDecl decl, Field javaField) {
+    if(javaField.getType().isPrimitive()) {
+      throw new UnsupportedOperationException("Cannot map void* global pointer " + decl + " to primitive field " +
+          javaField + ". Must be an Object.");
+    }
+    return new VoidPtr(Expressions.staticField(javaField));
   }
 
   @Override

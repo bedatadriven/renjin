@@ -53,6 +53,9 @@ public abstract class LValue implements SimpleExpression {
   @Override
   public final int load(EmitContext emitContext, InstructionAdapter mv) {
     VariableStorage storage = emitContext.getVariableStorage(this);
+    if(storage == null) {
+      throw new IllegalStateException("No storage defined for " + this);
+    }
     mv.load(storage.getSlotIndex(), storage.getType());
     return storage.getType().getSize();
   }

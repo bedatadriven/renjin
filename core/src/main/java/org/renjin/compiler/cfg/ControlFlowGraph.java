@@ -137,8 +137,7 @@ public class ControlFlowGraph {
     // Clean up nodes and edges
     basicBlocks.retainAll(live);
     for (BasicBlock basicBlock : basicBlocks) {
-      basicBlock.flowPredecessors.retainAll(live);
-      basicBlock.flowSuccessors.retainAll(live);
+      basicBlock.removeDeadEdges(live);
     }
     
     int i=1;

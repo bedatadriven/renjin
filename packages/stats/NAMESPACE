@@ -26,7 +26,9 @@ useDynLib(stats, .registration = FALSE, .fixes="C_",
     monoFC_m,
     cov,
     cor,
-    lowess
+    lowess,
+    optim,
+    optimhess
     )
 
 # exportPattern("^[^\\.]")
@@ -63,7 +65,7 @@ export(add.scope, add1, addmargins, aggregate, aggregate.data.frame,
        model.response, model.tables, model.weights, mvfft, na.action,
        na.exclude, na.fail, na.omit, na.pass, napredict, naprint,
        naresid, nextn, nlm, nlminb, nobs, offset, optim, optimise,
-       optimize, p.adjust, p.adjust.methods, pbeta, pbinom, pcauchy,
+       optimize, optimHess, p.adjust, p.adjust.methods, pbeta, pbinom, pcauchy,
        pchisq, pexp, pf, pgamma, pgeom, phyper, plnorm, plogis,
        plot.density, plot.lm, plot.mlm, plot.ts, plot.TukeyHSD,
        pnbinom, pnorm, poisson, poly, polym, power, ppoints, ppois,

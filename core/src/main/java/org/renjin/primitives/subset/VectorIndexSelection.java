@@ -47,7 +47,7 @@ class VectorIndexSelection implements SelectionStrategy {
 
     Vector.Builder result = source.getVectorType().newBuilder();
     
-    AtomicVector sourceNames =  source.getNames();
+    AtomicVector sourceNames = source.getNames();
     
     StringArrayVector.Builder resultNames = null;
     if(sourceNames instanceof StringVector) {

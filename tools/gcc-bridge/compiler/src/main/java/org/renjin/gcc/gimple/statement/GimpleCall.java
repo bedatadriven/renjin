@@ -41,7 +41,6 @@ public class GimpleCall extends GimpleStatement {
     return function;
   }
 
-  @Override
   @JsonProperty("arguments")
   public List<GimpleExpr> getOperands() {
     return operands;
@@ -51,7 +50,12 @@ public class GimpleCall extends GimpleStatement {
   public GimpleExpr getOperand(int i) {
     return operands.get(i);
   }
-  
+
+
+  public void setOperand(int i, GimpleExpr op) {
+    operands.set(i, op);
+  }
+
   public GimpleLValue getLhs() {
     return lhs;
   }

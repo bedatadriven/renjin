@@ -1,10 +1,16 @@
 importClassesFrom(stats4, mle)
 importMethodsFrom(stats4, coef)
+
+importClassesFrom("org.renjin.test:s3test", Country)
+importMethodsFrom("org.renjin.test:s3test", setCountryTemp, setCountryName)
+
 exportClasses("seq")
 exportClasses("mle_ext")
 exportMethods(setType, getSequence, findType)
 
 exportClasses("NSBS")
+
+exportClasses("Z")
 
 
 # GNU R does not throw an error if the S4 metadata symbol

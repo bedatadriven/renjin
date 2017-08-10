@@ -110,14 +110,14 @@ public class Warning {
 
       Environment baseEnv = context.getBaseEnvironment();
       if(baseEnv.hasVariable(LAST_WARNING)) {
-        lastWarning.addAll((ListVector)baseEnv.getVariable(LAST_WARNING).force(context));
+        lastWarning.addAll((ListVector)baseEnv.getVariable(context, LAST_WARNING).force(context));
       }
       if(call != null) {
         lastWarning.add(message, call);
       } else {
         lastWarning.add(message, Null.INSTANCE);
       }
-      baseEnv.setVariable(LAST_WARNING, lastWarning.build());
+      baseEnv.setVariable(context, LAST_WARNING, lastWarning.build());
     }
   }
 

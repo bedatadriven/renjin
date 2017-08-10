@@ -38,13 +38,11 @@ class BuiltinTranslator extends FunctionCallTranslator {
 
   @Override
   public Expression translateToExpression(IRBodyBuilder builder, TranslationContext context, Function resolvedFunction, FunctionCall call) {
-    Primitives.Entry entry = Primitives.getBuiltinEntry(((PrimitiveFunction) resolvedFunction).getName());
-    if(entry == null) {
-      throw new NotCompilableException(call);
-    }
+    String functionName = ((PrimitiveFunction) resolvedFunction).getName();
+
     List<IRArgument> arguments = builder.translateArgumentList(context, call.getArguments());
     
-    return new BuiltinCall(builder.getRuntimeState(), call, entry, arguments);
+    return new BuiltinCall(builder.getRuntimeState(), call, functionName, arguments);
   }
 
   @Override
@@ -52,15 +50,12 @@ class BuiltinTranslator extends FunctionCallTranslator {
                                                 Function resolvedFunction, FunctionCall getterCall,
                                                 Expression rhs) {
 
-    Primitives.Entry entry = Primitives.getBuiltinEntry(((PrimitiveFunction) resolvedFunction).getName());
-    if(entry == null) {
-      throw new NotCompilableException(getterCall);
-    }
-    
+    String functionName = ((PrimitiveFunction) resolvedFunction).getName();
+
     List<IRArgument> arguments = builder.translateArgumentList(context, getterCall.getArguments());
     arguments.add(new IRArgument("value", rhs));
 
-    return new BuiltinCall(builder.getRuntimeState(), getterCall, entry, arguments);
+    return new BuiltinCall(builder.getRuntimeState(), getterCall, functionName, arguments);
   }
 
   @Override

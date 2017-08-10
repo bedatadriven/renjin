@@ -231,15 +231,20 @@ public class SsaTransformer {
   public void removePhiFunctions(TypeSolver types) {
     for(BasicBlock bb : cfg.getBasicBlocks()) {
       if (bb != cfg.getExit()) {
+        // Remove and collect phi statements
+        List<Assignment> phiAssignments = new ArrayList<>();
         ListIterator<Statement> it = bb.getStatements().listIterator();
         while (it.hasNext()) {
           Statement statement = it.next();
           if (statement instanceof Assignment && statement.getRHS() instanceof PhiFunction) {
-            Assignment assignment = (Assignment) statement;
-            if(types.isUsed(assignment)) {
-              insertAssignments(assignment.getLHS(), (PhiFunction) statement.getRHS());
-            }
+            phiAssignments.add((Assignment) statement);
             it.remove();
+          }
+        }
+        // Insert assignments
+        for (Assignment assignment : phiAssignments) {
+          if(types.isUsed(assignment)) {
+            insertAssignments(assignment.getLHS(), (PhiFunction) assignment.getRHS());
           }
         }
       }

@@ -53,7 +53,7 @@ public class GimpleCompilationUnit {
     }
     return filename.substring(0, firstDot);
   }
-  
+
   public String getSourceName() {
     int nameStart = mainInputFilename.lastIndexOf('/');
     return mainInputFilename.substring(nameStart+1);

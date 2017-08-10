@@ -26,7 +26,6 @@ import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
 import org.renjin.parser.RParser;
 import org.renjin.primitives.packaging.FqPackageName;
-import org.renjin.primitives.packaging.PackageLoader;
 import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.sexp.ExpressionVector;
 import org.renjin.sexp.SEXP;

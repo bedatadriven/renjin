@@ -61,12 +61,6 @@ public class NamespaceRegistry {
 
   private Map<Environment, Namespace> envirMap = Maps.newIdentityHashMap();
 
-  /**
-   * Mapping of "native" methods to the namespace in which they are declared. used to resolve
-   * .Call invocations without a PACKAGE parameter.
-   */
-  private Map<String, Class> nativeSymbolMap = Maps.newHashMap();
-  
   private final Namespace baseNamespace;
 
   public NamespaceRegistry(PackageLoader loader, Context context, Environment baseNamespaceEnv) {
@@ -106,11 +100,7 @@ public class NamespaceRegistry {
       return Optional.absent();
     }
   }
-  
-  public Optional<Class> resolveNativeMethod(String methodName) {
-    return Optional.fromNullable(nativeSymbolMap.get(methodName));
-  }
-  
+
   public Namespace getNamespace(Context context, String name) {
     return getNamespace(context, Symbol.get(name));
   }
@@ -215,24 +205,26 @@ public class NamespaceRegistry {
 
         // invoke the .onLoad hook
         // (Before we export symbols!)
-        if(namespace.getNamespaceEnvironment().hasVariable(Symbol.get(".onLoad"))) {
-          StringVector nameArgument = StringVector.valueOf(pkg.getName().getPackageName());
-          context.evaluate(FunctionCall.newCall(Symbol.get(".onLoad"), nameArgument, nameArgument),
-              namespace.getNamespaceEnvironment());
-        }
+        invokeOnLoadFunction(context, ".First.lib", pkg, namespace);  // Deprecated
+        invokeOnLoadFunction(context, ".onLoad", pkg, namespace);
 
         // finally export symbols from the namespace
         namespace.initExports(namespaceFile);
         namespace.registerS3Methods(context, namespaceFile);
-
-        // Update our method name lookup
-        nativeSymbolMap.putAll(namespace.getNativeSymbolMap());
 
         return Optional.of(namespace);
 
       } catch(Exception e) {
         throw new EvalException("IOException while loading package " + fqName + ": " + e.getMessage(), e);
       }
+    }
+  }
+
+  private void invokeOnLoadFunction(Context context, String functionName, Package pkg, Namespace namespace) {
+    if(namespace.getNamespaceEnvironment().hasVariable(Symbol.get(functionName))) {
+      StringVector nameArgument = StringVector.valueOf(pkg.getName().getPackageName());
+      context.evaluate(FunctionCall.newCall(Symbol.get(functionName), nameArgument, nameArgument),
+          namespace.getNamespaceEnvironment());
     }
   }
 
@@ -248,7 +240,7 @@ public class NamespaceRegistry {
    */
   private void populateNamespace(Context context, Package pkg, Namespace namespace) throws IOException {
     for(NamedValue value : pkg.loadSymbols(context)) {
-      namespace.getNamespaceEnvironment().setVariable(Symbol.get(value.getName()), value.getValue());
+      namespace.getNamespaceEnvironment().setVariable(context, Symbol.get(value.getName()), value.getValue());
     }
   }
 
@@ -270,9 +262,9 @@ public class NamespaceRegistry {
     // BASE-NS -> IMPORTS -> ENVIRONMENT
 
     Environment imports = Environment.createNamedEnvironment(getBaseNamespaceEnv(),
-        "imports:" + pkg.getName().toString('.'));
+        "imports:" + pkg.getName().toString('.')).build();
 
-    Environment namespaceEnv = Environment.createNamespaceEnvironment(imports, pkg.getName().getPackageName());
+    Environment namespaceEnv = Environment.createNamespaceEnvironment(imports, pkg.getName().getPackageName()).build();
     Namespace namespace = new Namespace(pkg, namespaceEnv);
     localNameMap.put(pkg.getName().getPackageSymbol(), namespace);
     namespaceMap.put(pkg.getName(), namespace);
@@ -280,7 +272,7 @@ public class NamespaceRegistry {
     envirMap.put(namespaceEnv, namespace);
 
     // save the name to the environment
-    namespaceEnv.setVariable(".packageName", StringVector.valueOf(pkg.getName().getPackageName()));
+    namespaceEnv.setVariableUnsafe(".packageName", StringVector.valueOf(pkg.getName().getPackageName()));
     return namespace;
   }
 

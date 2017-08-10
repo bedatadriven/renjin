@@ -19,6 +19,7 @@
 package org.renjin.compiler.ir;
 
 import org.apache.commons.math.complex.Complex;
+import org.renjin.repackaged.asm.Type;
 import org.renjin.sexp.*;
 
 
@@ -28,9 +29,9 @@ public class TypeSet {
   // Type Flags
   public static final int LIST = (1 << 1);
   public static final int NULL = (1 << 2);
-  public static final int INT = (1 << 3);
-  public static final int DOUBLE = (1 << 4);
-  public static final int LOGICAL = (1 << 5);
+  public static final int LOGICAL = (1 << 3);
+  public static final int INT = (1 << 4);
+  public static final int DOUBLE = (1 << 5);
   public static final int STRING = (1 << 6);
   public static final int COMPLEX = (1 << 7);
   public static final int RAW = (1 << 8);
@@ -38,10 +39,12 @@ public class TypeSet {
   public static final int FUNCTION = (1 << 10);
   public static final int ENVIRONMENT = (1 << 11);
   public static final int PAIRLIST = (1 << 12);
+  public static final int S4 = (1 << 13);
   public static final int ANY_ATOMIC_VECTOR = NULL | RAW | INT | LOGICAL | DOUBLE | COMPLEX | STRING;
   public static final int ANY_VECTOR = LIST | ANY_ATOMIC_VECTOR;
   public static final int ANY_TYPE = ANY_VECTOR | PAIRLIST | ENVIRONMENT | SYMBOL | FUNCTION;
 
+  public static final int NUMERIC = INT | DOUBLE;
 
   public static int of(SEXP constant) {
     if(constant instanceof ListVector) {
@@ -68,6 +71,8 @@ public class TypeSet {
       return PAIRLIST;
     } else if(constant instanceof Function) {
       return FUNCTION;
+    } else if(constant instanceof S4Object) {
+      return S4;
     } else {
       throw new UnsupportedOperationException("TODO: " + constant.getClass().getName());
     }
@@ -80,7 +85,7 @@ public class TypeSet {
     } else if(type.equals(double.class)) {
       return DOUBLE;
 
-    } else if (type.equals(boolean.class)) {
+    } else if (type.equals(boolean.class) || type.equals(Logical.class)) {
       return LOGICAL;
 
     } else if (type.equals(String.class)) {
@@ -89,9 +94,18 @@ public class TypeSet {
     } else if (type.equals(Complex.class)) {
       return COMPLEX;
 
+    } else if (type.equals(IntVector.class)) {
+      return INT;
+
+    } else if (type.equals(ListVector.class)) {
+      return LIST;
+
+    } else if (type.equals(AtomicVector.class)) {
+      return ANY_ATOMIC_VECTOR;
+      
     } else if (type.equals(SEXP.class)) {
       return ANY_TYPE;
-      
+
     } else {
       throw new UnsupportedOperationException("type: " + type);
     }
@@ -131,11 +145,52 @@ public class TypeSet {
     } else if(type.equals(RawVector.class)) {
       return RAW;
 
+    } else if(type.equals(Vector.class)) {
+      return ANY_VECTOR;
+
+    } else if(type.equals(AtomicVector.class)) {
+      return ANY_ATOMIC_VECTOR;
+
     } else if (type.equals(SEXP.class)) {
       return ANY_TYPE;
 
     } else {
       throw new UnsupportedOperationException("type: " + type);
+    }
+  }
+
+  /**
+   * @return the unique S3 implicit class of this typeset, or {@code null} if it is not 
+   * known to be a single class.
+   */
+  public static String implicitClass(int typeSet) {
+    switch (typeSet) {
+      case LIST:
+        return "list";
+      case NULL:
+        return "NULL";
+      case INT:
+        return "integer";
+      case DOUBLE:
+        return "double";
+      case LOGICAL:
+        return "logical";
+      case STRING:
+        return "character";
+      case COMPLEX:
+        return "complex";
+      case RAW:
+        return "raw";
+      case SYMBOL:
+        return "name";
+      case FUNCTION:
+        return "function";
+      case ENVIRONMENT:
+        return "environment";
+      case PAIRLIST:
+        return "pairlist";
+      default:
+        return null;
     }
   }
 
@@ -169,6 +224,7 @@ public class TypeSet {
     appendType(s, "function", mask, FUNCTION);
     appendType(s, "environment", mask, ENVIRONMENT);
     appendType(s, "pairlist", mask, PAIRLIST);
+    appendType(s, "S4", mask, S4);
     return s.toString();
   }
   
@@ -181,4 +237,34 @@ public class TypeSet {
     }
   }
 
+
+  public static boolean isDefinitelyNumeric(ValueBounds subscript) {
+    return isDefinitelyNumeric(subscript.getTypeSet());
+  }
+
+  public static boolean isDefinitelyNumeric(int typeSet) {
+    return (typeSet & NUMERIC) != 0 &&
+        (typeSet & ~NUMERIC) == 0;
+  }
+
+  public static int widestVectorType(int x, int y) {
+    return Math.max(x, y);
+  }
+
+  public static int elementOf(int typeSet) {
+
+    // If typeset is not limited to atomic, then could be anything
+    if((typeSet & ~ANY_ATOMIC_VECTOR) != 0) {
+      return ANY_TYPE;
+    }
+
+    // if we are limited to atomic, then the elements will be the same type
+    return typeSet;
+
+  }
+
+  public static boolean isDefinitelyAtomic(int typeSet) {
+    return (typeSet & ANY_ATOMIC_VECTOR) != 0 &&
+        (typeSet & ~ANY_ATOMIC_VECTOR) == 0;
+  }
 }

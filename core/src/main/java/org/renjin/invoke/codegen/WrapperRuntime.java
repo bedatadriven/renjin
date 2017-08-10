@@ -19,7 +19,9 @@
 package org.renjin.invoke.codegen;
 
 import org.renjin.eval.Context;
+import org.renjin.methods.S4;
 import org.renjin.primitives.Deparse;
+import org.renjin.primitives.Types;
 import org.renjin.sexp.*;
 
 
@@ -127,7 +129,7 @@ public class WrapperRuntime {
     }
     return (Vector)exp;
   }
-  
+
   public static <T> T unwrapExternal(SEXP exp) {
     try {
       ExternalPtr<T> external = (ExternalPtr<T>)exp;
@@ -189,4 +191,23 @@ public class WrapperRuntime {
     return false;
   }
 
+  public static boolean isEnvironmentOrEnvironmentSubclass(SEXP object) {
+    if(object instanceof Environment) {
+      return true;
+    }
+    if(object instanceof S4Object) {
+      return object.getAttribute(Symbols.DOT_XDATA) instanceof Environment;
+    }
+    return false;
+  }
+
+  public static Environment unwrapEnvironmentSuperClass(SEXP object) {
+    if(object instanceof Environment) {
+      return (Environment) object;
+    }
+    if(object instanceof S4Object) {
+      return (Environment) object.getAttribute(Symbols.DOT_XDATA);
+    }
+    throw new IllegalArgumentException();
+  }
 }

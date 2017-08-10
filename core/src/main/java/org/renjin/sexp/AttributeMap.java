@@ -25,9 +25,10 @@ import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.Maps;
 
-import java.util.IdentityHashMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 
 /**
@@ -40,22 +41,17 @@ import java.util.Map;
  * <p>There are many "special" attributes however, that
  * determine how the value is interpreted. The
  * The most commonly accessed attributes
- * are stored in this structure as direct pointers, others in an
- * IdentityHashMap.
+ * are stored in this structure as direct pointers, others in a HashMap.
  */
 public class AttributeMap {
   private StringVector classes = null;
   private StringVector names = null;
   private IntVector dim = null;
   private ListVector dimNames = null;
+  private boolean s4 = false;
 
-  private Map<Symbol, SEXP> map;
+  private HashMap<Symbol, SEXP> map;
 
-  public static boolean CATCH_DEFINED = false;
-
-  public static void catchDefined() {
-    CATCH_DEFINED = true;
-  }
 
   public static final AttributeMap EMPTY = new AttributeMap();
 
@@ -97,9 +93,14 @@ public class AttributeMap {
   }
 
   public PairList asPairList() {
+    PairList.Builder list = asPairListBuilder();
+    return list.build();
+  }
+
+  public PairList.Builder asPairListBuilder() {
     PairList.Builder list = new PairList.Builder();
     addTo(list);
-    return list.build();
+    return list;
   }
 
   public ListVector toVector() {
@@ -126,6 +127,26 @@ public class AttributeMap {
         list.add(entry.getKey(), entry.getValue());
       }
     }
+  }
+
+  public Map<Symbol, SEXP> toMap() {
+    Map<Symbol, SEXP> map = new HashMap<>();
+    if(classes != null) {
+      map.put(Symbols.CLASS, classes);
+    }
+    if(names != null) {
+      map.put(Symbols.NAMES, names);
+    }
+    if(dim != null) {
+      map.put(Symbols.DIM, dim);
+    }
+    if(dimNames != null) {
+      map.put(Symbols.DIMNAMES, dimNames);
+    }
+    if(this.map != null) {
+      map.putAll(this.map);
+    }
+    return map;
   }
 
   public SEXP get(String what) {
@@ -164,6 +185,10 @@ public class AttributeMap {
 
   public boolean hasAnyBesidesName() {
     return map != null || classes != null|| dim != null || dimNames != null;
+  }
+
+  public boolean hasAnyBesidesS4Flag() {
+    return map != null || classes != null|| dim != null || dimNames != null || names != null;
   }
 
   private boolean hasDim() {
@@ -209,7 +234,11 @@ public class AttributeMap {
     return names;
   }
 
-  public boolean empty() {
+  public boolean isS4() {
+    return this.s4;
+  }
+
+  public boolean isEmpty() {
     return this == EMPTY;
   }
 
@@ -258,7 +287,7 @@ public class AttributeMap {
       if(this.map != null) {
         SEXP dimnames = map.get(Symbols.DIMNAMES);
         if(dimnames != null) {
-          copy.map = Maps.newIdentityHashMap();
+          copy.map = Maps.newHashMap();
           copy.map.put(Symbols.DIMNAMES, dimnames);
         }
       }
@@ -341,7 +370,10 @@ public class AttributeMap {
     if (dimNames != null ? !dimNames.equals(that.dimNames) : that.dimNames != null) {
       return false;
     }
-    return !(map != null ? !map.equals(that.map) : that.map != null);
+    if (this.s4 != that.s4) {
+      return false;
+    }
+    return Objects.equals(map, that.map);
 
   }
 
@@ -359,13 +391,15 @@ public class AttributeMap {
     return new Builder();
   }
 
+
   public static class Builder {
+    private boolean s4 = false;
     private StringVector classes = null;
     private StringVector names = null;
     private IntVector dim = null;
     private ListVector dimNames = null;
 
-    private Map<Symbol, SEXP> map;
+    private HashMap<Symbol, SEXP> map;
 
     private boolean empty = true;
 
@@ -373,15 +407,23 @@ public class AttributeMap {
     }
 
     private Builder(AttributeMap attributes) {
+      this.s4 = attributes.s4;
       this.classes = attributes.classes;
       this.names = attributes.names;
       this.dim = attributes.dim;
       this.dimNames = attributes.dimNames;
       if(attributes.map != null) {
-        this.map = new IdentityHashMap<>(attributes.map);
+        this.map = new HashMap<>(attributes.map);
       }
       updateEmptyFlag();
     }
+
+    public Builder setS4(boolean flag) {
+      this.s4 = flag;
+      updateEmptyFlag();
+      return this;
+    }
+
 
     /**
      * Sets the {@code dim} attribute.
@@ -467,7 +509,7 @@ public class AttributeMap {
       if(value.length() == 0) {
         return remove(Symbols.CLASS);
       }
-      this.classes = toNameVector(value);
+      this.classes = toClassVector(value);
       this.empty = false;
       return this;
     }
@@ -514,9 +556,6 @@ public class AttributeMap {
     }
 
     public Builder set(Symbol name, SEXP value) {
-      if(CATCH_DEFINED && name.getPrintName().equals("defined")) {
-        throw new EvalException(value.toString());
-      }
 
       if(value == Null.INSTANCE) {
         return remove(name);
@@ -537,7 +576,7 @@ public class AttributeMap {
         } else {
           this.empty = false;
           if(map == null) {
-            map = Maps.newIdentityHashMap();
+            map = Maps.newHashMap();
           }
           if(name == Symbols.ROW_NAMES) {
             map.put(name, validateRowNames(value));
@@ -589,7 +628,7 @@ public class AttributeMap {
     }
 
     private void updateEmptyFlag() {
-      this.empty = (classes == null && dim == null && dimNames == null && names == null &&
+      this.empty = (!s4 && classes == null && dim == null && dimNames == null && names == null &&
           (map == null || map.isEmpty()));
     }
 
@@ -698,7 +737,7 @@ public class AttributeMap {
         }
         if (other.map != null) {
           if (this.map == null) {
-            this.map = new IdentityHashMap<>(other.map);
+            this.map = new HashMap<>(other.map);
           } else {
             for (Map.Entry<Symbol, SEXP> entry : other.map.entrySet()) {
               if (!this.map.containsKey(entry.getKey())) {
@@ -749,7 +788,7 @@ public class AttributeMap {
       if(attributes.map != null) {
         for(Map.Entry<Symbol, SEXP> entry : attributes.map.entrySet()) {
           if(this.map == null) {
-            this.map = Maps.newIdentityHashMap();
+            this.map = new HashMap<>();
           }
           this.map.put(entry.getKey(), entry.getValue());
           this.empty = false;
@@ -776,6 +815,7 @@ public class AttributeMap {
       attributes.classes = classes;
       attributes.dim = dim;
       attributes.dimNames = validateDimNames();
+      attributes.s4 = this.s4;
 
       if(names != null) {
         attributes.names = names;
@@ -812,6 +852,7 @@ public class AttributeMap {
       assert !reallyEmpty() : "empty flag is wrong";
 
       AttributeMap attributes = new AttributeMap();
+      attributes.s4 = s4;
       attributes.classes = classes;
       attributes.dim = validateDim(length);
       attributes.dimNames = validateDimNames();
@@ -918,6 +959,16 @@ public class AttributeMap {
     private StringVector toNameVector(SEXP sexp) {
       if(sexp instanceof StringVector) {
         return (StringVector)sexp.setAttributes(AttributeMap.EMPTY);
+      } else if(sexp instanceof Vector) {
+        return StringArrayVector.fromVector((Vector) sexp);
+      } else {
+        throw new EvalException("Cannot coerce '%s' to character", sexp.getTypeName());
+      }
+    }
+
+    private StringVector toClassVector(SEXP sexp) {
+      if(sexp instanceof StringVector) {
+        return (StringVector)sexp;
       } else if(sexp instanceof Vector) {
         return StringArrayVector.fromVector((Vector) sexp);
       } else {

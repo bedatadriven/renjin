@@ -49,10 +49,11 @@ function(formula, data = NULL,
     if(is.null(ylab)) ylab <- names(mf)[1L]
 
     ## call default interface
-    spineplot(x, y, breaks = breaks, tol.ylab = tol.ylab, off = off, ylevels = NULL,
-              col = col, main = main, xlab = xlab, ylab = ylab,
-              xaxlabels = xaxlabels, yaxlabels = yaxlabels,
-              xlim = xlim, ylim = ylim, axes = axes, ...)
+    # spineplot(x, y, breaks = breaks, tol.ylab = tol.ylab, off = off, ylevels = NULL,
+    #           col = col, main = main, xlab = xlab, ylab = ylab,
+    #           xaxlabels = xaxlabels, yaxlabels = yaxlabels,
+    #           xlim = xlim, ylim = ylim, axes = axes, ...)
+    warning("graphics are not yet implemented (spineplot.formula).")
 }
 
 spineplot.default <-
@@ -148,9 +149,9 @@ function(x, y = NULL,
     }
 
     ## setup plot
-    dev.hold(); on.exit(dev.flush())
-    plot(0, 0, xlim = xlim, ylim = ylim, type = "n", axes = FALSE,
-         xaxs = "i", yaxs = "i", main = main, xlab = xlab, ylab = ylab)
+    # dev.hold(); on.exit(dev.flush())
+    # plot(0, 0, xlim = xlim, ylim = ylim, type = "n", axes = FALSE,
+    #      xaxs = "i", yaxs = "i", main = main, xlab = xlab, ylab = ylab)
 
     ## compute coordinates
     ybottom <- as.vector(yat[-(ny + 1L),])
@@ -160,32 +161,33 @@ function(x, y = NULL,
     col <- rep(col, nx)
 
     ## plot rectangles
-    rect(xleft, ybottom, xright, ytop, col = col, ...)
+    # rect(xleft, ybottom, xright, ytop, col = col, ...)
 
     ## axes
-    if(axes) {
-        ## side --
-        ## 1: either numeric or level names
-        if(x.categorical)
-            axis(1, at = (xat[1L:nx] + xat[2L:(nx+1L)] - off)/2,
-                 labels = xaxlabels, tick = FALSE)
-        else
-            axis(1, at = xat, labels = xaxlabels)
+    # if(axes) {
+    #     ## side --
+    #     ## 1: either numeric or level names
+    #     if(x.categorical)
+    #         axis(1, at = (xat[1L:nx] + xat[2L:(nx+1L)] - off)/2,
+    #              labels = xaxlabels, tick = FALSE)
+    #     else
+    #         axis(1, at = xat, labels = xaxlabels)
 
-        ## 2: axis with level names of y
-        yat <- yat[,1L]
-        equidist <- any(diff(yat) < tol.ylab)
-        yat <- if(equidist) seq.int(1/(2*ny), 1-1/(2*ny), by = 1/ny)
-        else (yat[-1L] + yat[-length(yat)])/2
-        axis(2, at = yat, labels = yaxlabels, tick = FALSE)
+    #     ## 2: axis with level names of y
+    #     yat <- yat[,1L]
+    #     equidist <- any(diff(yat) < tol.ylab)
+    #     yat <- if(equidist) seq.int(1/(2*ny), 1-1/(2*ny), by = 1/ny)
+    #     else (yat[-1L] + yat[-length(yat)])/2
+    #     axis(2, at = yat, labels = yaxlabels, tick = FALSE)
 
-        ## 3: none
-        ## 4: simple numeric
-        axis(4)
-    }
-    if(!x.categorical) box()
+    #     ## 3: none
+    #     ## 4: simple numeric
+    #     axis(4)
+    # }
+    # if(!x.categorical) box()
 
     ## return table visualized
+    warning("graphics are not yet implemented (spineplot.default).")
     names(dimnames(tab)) <- c(xlab, ylab)
     invisible(tab)
 }

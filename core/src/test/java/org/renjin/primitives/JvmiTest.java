@@ -27,7 +27,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 
@@ -38,18 +37,18 @@ public class JvmiTest extends EvalTestCase {
     eval("import(org.renjin.primitives.MyBean)");
     eval("x <- MyBean$new()"  );
     
-    assertThat(eval("x$name"), equalTo(c("fred")));
-    assertThat(eval("x$membershipStatus"), equalTo(c("PENDING")));
-    assertThat(eval("x$children"), equalTo(list("Bob","Sue")));
+    assertThat(eval("x$name"), elementsIdenticalTo(c("fred")));
+    assertThat(eval("x$membershipStatus"), elementsIdenticalTo(c("PENDING")));
+    assertThat(eval("x$children"), elementsIdenticalTo(list("Bob","Sue")));
      
     eval("x$name <- 'tom'");
     eval("x$count <- 44");
     eval("x$membershipStatus <- 'ACTIVE'");
     
-    assertThat(eval("x$name"), equalTo(c("tom")));
-    assertThat(eval("x$count"), equalTo(c_i(44)));
-    assertThat(eval("x$membershipStatus"), equalTo(c("ACTIVE")));
-    assertThat(eval("x$compute()"), equalTo(c(1,2,3)));
+    assertThat(eval("x$name"), elementsIdenticalTo(c("tom")));
+    assertThat(eval("x$count"), elementsIdenticalTo(c_i(44)));
+    assertThat(eval("x$membershipStatus"), elementsIdenticalTo(c("ACTIVE")));
+    assertThat(eval("x$compute()"), elementsIdenticalTo(c(1,2,3)));
     //eval("x$children[[3]] <- 'Rick'");
     //assertThat(eval("x$children"), equalTo(list("Bob", "Sue", "Rick")));
   }
@@ -59,11 +58,11 @@ public class JvmiTest extends EvalTestCase {
   public void toDataFrame() {
     
     List<MyBean> beans = Arrays.asList(new MyBean("Huey"), new MyBean("Louey"), new MyBean("Dewey"));
-    topLevelContext.getGlobalEnvironment().setVariable("df", DataFrameBuilder.build(MyBean.class, beans));
+    topLevelContext.getGlobalEnvironment().setVariable(topLevelContext, "df", DataFrameBuilder.build(MyBean.class, beans));
     
     eval("print(df)");
     
-    assertThat(eval("df$name"), equalTo(c("Huey", "Louey", "Dewey")));
+    assertThat(eval("df$name"), elementsIdenticalTo(c("Huey", "Louey", "Dewey")));
   }
   
   
@@ -72,13 +71,13 @@ public class JvmiTest extends EvalTestCase {
     eval("import(java.lang.Class)");
     eval("implName <- 'java.util.HashMap'");
     eval("m <- Class$forName(implName)$new()");
-    assertThat(eval("m$size()"), equalTo(c_i(0)));
+    assertThat(eval("m$size()"), elementsIdenticalTo(c_i(0)));
   }
 
   @Test
   public void staticFields() {
     eval("import(java.lang.Integer)");
-    assertThat(eval("Integer$MAX_VALUE"), equalTo(c_i(Integer.MAX_VALUE)));
+    assertThat(eval("Integer$MAX_VALUE"), elementsIdenticalTo(c_i(Integer.MAX_VALUE)));
   }
 
   @Test
@@ -87,7 +86,7 @@ public class JvmiTest extends EvalTestCase {
     eval("map <- HashMap$new()");
     eval("map$put(1,'foo')");
     
-    assertThat(eval("map$get(1)"), equalTo(c("foo")));
+    assertThat(eval("map$get(1)"), elementsIdenticalTo(c("foo")));
   }
   
   @Test
@@ -95,7 +94,7 @@ public class JvmiTest extends EvalTestCase {
     eval("import(org.renjin.primitives.MyBean)");
     eval("x <- MyBean$new()");
     
-    assertThat(eval("x$intVarArg('hello')"), equalTo(c_i(0)));
+    assertThat(eval("x$intVarArg('hello')"), elementsIdenticalTo(c_i(0)));
   }
   
   @Test
@@ -103,20 +102,20 @@ public class JvmiTest extends EvalTestCase {
     eval("import(org.renjin.primitives.MyBean)");
     eval("x <- MyBean$new(count=92)");
     
-    assertThat( eval("x$name"), equalTo(c("fred")));
-    assertThat( eval("x$count"), equalTo(c_i(92)));
+    assertThat( eval("x$name"), elementsIdenticalTo(c("fred")));
+    assertThat( eval("x$count"), elementsIdenticalTo(c_i(92)));
 
     // Should also be able to use getters explicitly
-    assertThat( eval("x$getName()"), equalTo(c("fred")));
-    assertThat( eval("x$getCount()"), equalTo(c_i(92)));
+    assertThat( eval("x$getName()"), elementsIdenticalTo(c("fred")));
+    assertThat( eval("x$getCount()"), elementsIdenticalTo(c_i(92)));
     
     // Property notation setting...
     eval("x$name <- 'bob'");
-    assertThat( eval("x$name"), equalTo(c("bob")));
+    assertThat( eval("x$name"), elementsIdenticalTo(c("bob")));
 
     // As well as explicit setters
     eval("x$setCount(433L)");
-    assertThat( eval("x$getCount()"), equalTo(c_i(433)));
+    assertThat( eval("x$getCount()"), elementsIdenticalTo(c_i(433)));
 
   }
   
@@ -125,27 +124,41 @@ public class JvmiTest extends EvalTestCase {
     eval("import(org.renjin.primitives.MyBean)");
     eval("x <- MyBean$new()");
     
-    assertThat( eval("x$sayHello('fred')"), equalTo(c("Hello fred")));
+    assertThat( eval("x$sayHello('fred')"), elementsIdenticalTo(c("Hello fred")));
     //use strong type or week type?
-    assertThat( eval("x$sayHello(as.integer(3))"), equalTo(c("HelloHelloHello")));
+    assertThat( eval("x$sayHello(as.integer(3))"), elementsIdenticalTo(c("HelloHelloHello")));
     
   }
-  
+
   @Test
   public void callToArray() {
     eval("import(org.renjin.primitives.MyBean)");
     eval("x <- MyBean$new()");
     
     assertThat( eval("x$sayHelloToEveryone(c('Bob', 'Steve', 'Ted'))"), 
-        equalTo(c("Hello Bob, Steve, Ted")));
+        elementsIdenticalTo(c("Hello Bob, Steve, Ted")));
   }
   
   @Test
   public void vectorToVargs() {
     eval("import(org.renjin.primitives.MyBean)");
-    assertThat( eval("MyBean$sum(1:5)"), equalTo(c(15)));
+    assertThat( eval("MyBean$sum(1:5)"), elementsIdenticalTo(c(15)));
   }
-  
+
+  @Test
+  public void floatArguments() {
+    eval("import(org.renjin.primitives.MyBean)");
+    assertThat( eval("MyBean$sum32(2, 3)"), elementsIdenticalTo(c(5)));
+  }
+
+  @Test
+  public void floatArrayArguments() {
+    eval("import(org.renjin.primitives.MyBean)");
+    assertThat( eval("MyBean$sumArray32(c(2, 3, 9))"), elementsIdenticalTo(c(14)));
+    assertThat( eval("MyBean$sumArray32(c(2L, 3L, 9L))"), elementsIdenticalTo(c(14)));
+    assertThat( eval("MyBean$sumArray32(numeric(0))"), elementsIdenticalTo(c(0)));
+  }
+
   private static class MyPrivateImpl implements MyPublicInterface {
 
     @Override
@@ -155,7 +168,7 @@ public class JvmiTest extends EvalTestCase {
   
   @Test
   public void publicMethodCallOnPrivateObject() {
-    topLevelContext.getGlobalEnvironment().setVariable("obj", new ExternalPtr(new MyPrivateImpl()));
+    topLevelContext.getGlobalEnvironment().setVariable(topLevelContext, "obj", new ExternalPtr(new MyPrivateImpl()));
     eval("obj$doSomething()");
   }
   
@@ -174,7 +187,7 @@ public class JvmiTest extends EvalTestCase {
     eval("import(org.renjin.primitives.MyBean)");
     eval("x <- MyBean$new()");
     
-    assertThat(eval("sapply(x$childBeans, function(x) x$count)"), equalTo(c_i(42, 42)));
+    assertThat(eval("sapply(x$childBeans, function(x) x$count)"), elementsIdenticalTo(c_i(42, 42)));
   }
 
   @Test
@@ -191,8 +204,8 @@ public class JvmiTest extends EvalTestCase {
     eval("import(java.util.HashMap)");
     eval("ageMap <- HashMap$new()");
 
-    assertThat(eval("ageMap$class$name"), equalTo(c("java.util.HashMap")));
-    assertThat(eval("ageMap$getClass()$getName()"), equalTo(c("java.util.HashMap")));
+    assertThat(eval("ageMap$class$name"), elementsIdenticalTo(c("java.util.HashMap")));
+    assertThat(eval("ageMap$getClass()$getName()"), elementsIdenticalTo(c("java.util.HashMap")));
 
   }
 }

@@ -61,6 +61,9 @@ public class GimpleAddressOf extends GimpleExpr {
 
   @Override
   public String toString() {
+    if(value instanceof GimpleComponentRef) {
+      return "&(" + value + ")";
+    }
     return "&" + value;
   }
 }

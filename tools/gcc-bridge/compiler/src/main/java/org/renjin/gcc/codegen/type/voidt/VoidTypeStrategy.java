@@ -30,6 +30,8 @@ import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.repackaged.asm.Type;
 
+import java.lang.reflect.Field;
+
 /**
  * Creates generators for void value types. Only used for return types.
  */
@@ -52,6 +54,11 @@ public class VoidTypeStrategy implements TypeStrategy<GExpr> {
 
   @Override
   public GExpr variable(GimpleVarDecl decl, VarAllocator allocator) {
+    throw new UnsupportedOperationException("variables cannot have 'void' type");
+  }
+
+  @Override
+  public GExpr providedGlobalVariable(GimpleVarDecl decl, Field javaField) {
     throw new UnsupportedOperationException("variables cannot have 'void' type");
   }
 

@@ -21,7 +21,6 @@ package org.renjin.primitives;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 
@@ -29,8 +28,8 @@ public class NamespaceTest extends EvalTestCase {
   
   @Test
   public void isNamespace() {
-    assertThat(eval("isNamespace(baseenv())"), equalTo(c(false)));
-    assertThat(eval("isNamespace(globalenv())"), equalTo(c(false)));
+    assertThat(eval("isNamespace(baseenv())"), elementsIdenticalTo(c(false)));
+    assertThat(eval("isNamespace(globalenv())"), elementsIdenticalTo(c(false)));
        
   }
 }

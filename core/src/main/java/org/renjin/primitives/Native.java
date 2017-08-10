@@ -23,33 +23,32 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Profiler;
 import org.renjin.gcc.runtime.*;
-import org.renjin.invoke.ClassBinding;
-import org.renjin.invoke.ClassBindings;
+import org.renjin.invoke.annotations.*;
+import org.renjin.invoke.reflection.ClassBindingImpl;
+import org.renjin.gcc.runtime.BytePtr;
+import org.renjin.gcc.runtime.DoublePtr;
+import org.renjin.gcc.runtime.IntPtr;
+import org.renjin.gcc.runtime.ObjectPtr;
 import org.renjin.invoke.annotations.ArgumentList;
 import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.NamedFlag;
-import org.renjin.invoke.reflection.ClassBindingImpl;
 import org.renjin.invoke.reflection.FunctionBinding;
-import org.renjin.invoke.reflection.MemberBinding;
-import org.renjin.invoke.reflection.StaticBinding;
 import org.renjin.methods.Methods;
+import org.renjin.primitives.packaging.DllInfo;
+import org.renjin.primitives.packaging.DllSymbol;
+import org.renjin.primitives.ni.DeferredFortranCall;
 import org.renjin.primitives.packaging.FqPackageName;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.repackaged.guava.base.Strings;
-import org.renjin.repackaged.guava.collect.Iterables;
-import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.*;
 
-import java.awt.*;
 import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
-import java.util.List;
 
 public class Native {
 
@@ -66,6 +65,62 @@ public class Native {
     return context;
   }
 
+  @Internal
+  public static ListVector getLoadedDLLs(@Current Context context) {
+
+    ListVector.NamedBuilder list = new ListVector.NamedBuilder();
+    list.setAttribute(Symbols.CLASS, StringVector.valueOf("DLLInfoList"));
+
+    for (DllInfo dllInfo : context.getSession().getLoadedLibraries()) {
+      list.add(dllInfo.getLibraryName(), dllInfo.buildDllInfoSexp());
+    }
+
+    return list.build();
+  }
+
+  @Internal
+  public static ListVector getRegisteredRoutines(DllInfo dllInfo) {
+    return dllInfo.buildRegisteredRoutinesSexp();
+  }
+
+  @Internal
+  public static ListVector getSymbolInfo(@Current Context context, String name, String packageName, boolean withRegistrationInfo) {
+
+    if(packageName.isEmpty()) {
+      for (DllInfo dllInfo : context.getSession().getLoadedLibraries()) {
+        Optional<DllSymbol> symbol = dllInfo.getRegisteredSymbol(name);
+        if(symbol.isPresent()) {
+          return symbol.get().buildNativeSymbolInfoSexp();
+        }
+      }
+      throw new EvalException("No such symbol " +  name);
+
+    } else {
+
+      Optional<Namespace> namespace = context.getNamespaceRegistry().getNamespaceIfPresent(Symbol.get(packageName));
+      if(namespace.isPresent()) {
+        for (DllInfo dllInfo : namespace.get().getLibraries()) {
+          Optional<DllSymbol> symbol = dllInfo.getRegisteredSymbol(name);
+          if(symbol.isPresent()) {
+            return symbol.get().buildNativeSymbolInfoSexp();
+          }
+        }
+      }
+
+      throw new EvalException("No such symbol " + name + " in package " + packageName);
+    }
+  }
+
+  @Internal
+  public static ListVector getSymbolInfo(String name, DllInfo dllInfo, boolean withRegistrationInfo) {
+    Optional<DllSymbol> registeredSymbol = dllInfo.getRegisteredSymbol(name);
+    if(registeredSymbol.isPresent()) {
+      return registeredSymbol.get().buildNativeSymbolInfoSexp();
+    }
+
+    throw new EvalException("No such symbol " + name + " in library " + dllInfo.getLibraryName());
+  }
+
   @Builtin(".C")
   public static SEXP dotC(@Current Context context,
                           @Current Environment rho,
@@ -77,44 +132,17 @@ public class Native {
                           @NamedFlag("COPY") boolean copy,
                           @NamedFlag("ENCODING") boolean encoding) throws IllegalAccessException {
 
-    MethodHandle method;
-    String methodName;
-    
-    if(methodExp instanceof StringVector) {
-      methodName = ((StringVector) methodExp).getElementAsString(0);
 
-
-      if("base".equals(packageName)) {
-        return delegateToJavaMethod(context, Base.class, methodName, callArguments);
-      }
-
-      List<Method> methods = findMethod(getPackageClass(context, packageName, methodName), methodName);
-      if (methods.isEmpty()) {
-        throw new EvalException("Can't find method %s in package %s", methodName, packageName);
-      }
-
-      Method methodObject = Iterables.getOnlyElement(methods);
-      method = MethodHandles.publicLookup().unreflect(methodObject);
-      methodName = methodObject.getName();
-
-    } else if(methodExp instanceof ExternalPtr && ((ExternalPtr) methodExp).getInstance() instanceof Method) {
-      Method methodObject = (Method) ((ExternalPtr) methodExp).getInstance();
-      method = MethodHandles.publicLookup().unreflect(methodObject);
-      methodName = methodObject.getName();
-
-    } else if(methodExp instanceof ListVector) {
-      ListVector methodObject = (ListVector) methodExp;
-      ExternalPtr<MethodHandle> address = (ExternalPtr<MethodHandle>)  methodObject.get("address");
-      method = address.getInstance();
-      methodName = methodObject.get("name").asString();
-
-    } else {
-      throw new EvalException("Invalid method argument of type %s", methodExp.getTypeName());
+    if("base".equals(packageName)) {
+      return delegateToJavaMethod(context, methodExp, packageName, null, callArguments);
     }
 
-    Object[] nativeArguments = new Object[method.type().parameterCount()];
+    DllSymbol method = findMethod(context, methodExp, packageName, null, DllSymbol.Convention.C);
+    MethodHandle handle = method.getMethodHandle();
+
+    Object[] nativeArguments = new Object[handle.type().parameterCount()];
     for(int i=0;i!=nativeArguments.length;++i) {
-      Type type = method.type().parameterType(i);
+      Type type = handle.type().parameterType(i);
       if(type.equals(IntPtr.class)) {
         nativeArguments[i] = intPtrFromVector(callArguments.get(i));
       } else if(type.equals(DoublePtr.class)) {
@@ -123,21 +151,23 @@ public class Native {
         nativeArguments[i] = stringPtrToCharPtrPtr(callArguments.get(i));
       } else {
         throw new EvalException("Don't know how to marshall type " + callArguments.get(i).getClass().getName() +
-            " to for C argument " +  type + " in call to " + method);
+            " to for C argument " +  type + " in call to " + handle);
       }
     }
     
     if(Profiler.ENABLED) {
-      Profiler.functionStart(Symbol.get(methodName), 'C');
+      Profiler.functionStart(Symbol.get(method.getName()), 'C');
     }
-
+    Context previousContext = CURRENT_CONTEXT.get();
+    CURRENT_CONTEXT.set(context);
     try {
-      method.invokeWithArguments(nativeArguments);
+      handle.invokeWithArguments(nativeArguments);
     } catch (EvalException | Error e) {
       throw e;
     } catch (Throwable e) {
       throw new EvalException(e.getMessage(), e);
     } finally {
+      CURRENT_CONTEXT.set(previousContext);
       if(Profiler.ENABLED) {
         Profiler.functionEnd();
       }
@@ -184,7 +214,7 @@ public class Native {
     java.lang.System.out.println("PACKAGE = '" + packageName + "')");
   }
 
-  public static SEXP sexpFromPointer(Object ptr, AttributeMap attributes) {
+  private static SEXP sexpFromPointer(Object ptr, AttributeMap attributes) {
     // We are trusting the C code not to modify the arrays after the call
     // returns. 
     if(ptr instanceof DoublePtr) {
@@ -198,14 +228,14 @@ public class Native {
     }
   }
 
-  public static DoublePtr doublePtrFromVector(SEXP sexp) {
+  private static DoublePtr doublePtrFromVector(SEXP sexp) {
     if(!(sexp instanceof AtomicVector)) {
       throw new EvalException("expected atomic vector");
     }
     return new DoublePtr(((AtomicVector) sexp).toDoubleArray());
   }
 
-  public static IntPtr intPtrFromVector(SEXP sexp) {
+  private static IntPtr intPtrFromVector(SEXP sexp) {
     if(!(sexp instanceof AtomicVector)) {
       throw new EvalException("expected atomic vector");
     }
@@ -232,36 +262,9 @@ public class Native {
                                 @NamedFlag("DUP") boolean dup,
                                 @NamedFlag("ENCODING") boolean encoding) throws IllegalAccessException {
 
-    // quick spike: fortran functions in the "base" package are all
-    // defined in libappl, so point us to that class.
-    // TODO: map package names to implementation classes
+    DllSymbol method = findMethod(context, methodExp, packageName, className, DllSymbol.Convention.FORTRAN);
 
-
-    MethodHandle method;
-    String methodName;
-
-    if(methodExp instanceof ListVector) {
-      ListVector methodObject = (ListVector) methodExp;
-      ExternalPtr<MethodHandle> address = (ExternalPtr<MethodHandle>) methodObject.get("address");
-      method = address.getInstance();
-      methodName = ((StringVector) methodObject.get("name")).getElementAsString(0);
-      
-    } else if(methodExp instanceof StringVector) {
-      if("base".equals(packageName)) {
-        className = "org.renjin.appl.Appl";
-      } 
-      methodName = ((StringVector) methodExp).getElementAsString(0);
-      method = findFortranMethod(context, className, methodName);
-
-    } else if(methodExp instanceof ExternalPtr && ((ExternalPtr) methodExp).getInstance() instanceof Method) {
-      Method methodRef = (Method) ((ExternalPtr) methodExp).getInstance();
-      methodName = methodRef.getName();
-      method =  MethodHandles.publicLookup().unreflect(methodRef);
-    } else {
-      throw new EvalException("Invalid argument type for method = %s", methodExp.getTypeName());
-    }
-
-    Class<?>[] fortranTypes = method.type().parameterArray();
+    Class<?>[] fortranTypes = method.getMethodHandle().type().parameterArray();
     if(fortranTypes.length != callArguments.length()) {
       throw new EvalException("Invalid number of args");
     }
@@ -270,7 +273,7 @@ public class Native {
     ListVector.NamedBuilder returnValues = ListVector.newNamedBuilder();
 
     if(Profiler.ENABLED) {
-      Profiler.functionStart(Symbol.get(methodName), 'F');
+      Profiler.functionStart(Symbol.get(method.getName()), 'F');
     }
 
     // For .Fortran() calls, we make a copy of the arguments, pass them by
@@ -299,13 +302,16 @@ public class Native {
       }
     }
 
+    Context previousContext = CURRENT_CONTEXT.get();
+    CURRENT_CONTEXT.set(context);
     try {
-      method.invokeWithArguments(fortranArgs);
+      method.getMethodHandle().invokeWithArguments(fortranArgs);
     } catch (Error e) {
       throw e;
     } catch (Throwable e) {
-      throw new EvalException("Exception thrown while executing " + methodName, e);
+      throw new EvalException("Exception thrown while executing " + method.getName(), e);
     } finally {
+      CURRENT_CONTEXT.set(previousContext);
       if(Profiler.ENABLED) {
         Profiler.functionEnd();
       }
@@ -326,37 +332,6 @@ public class Native {
     return array;
   }
 
-
-  private static MethodHandle findFortranMethod(Context context, String className, String methodName) throws IllegalAccessException {
-
-    String mangledName = methodName.toLowerCase() + "_";
-
-    Class<?> declaringClass = null;
-    if(className == null) {
-      Optional<Class> namespaceClass = context.getNamespaceRegistry().resolveNativeMethod(mangledName);
-      if(!namespaceClass.isPresent()) {
-        throw new EvalException("Could not resolve native method '%s'", methodName);
-      }
-      declaringClass = namespaceClass.get();
-      
-    } else {
-      try {
-        declaringClass = Class.forName(className);
-      } catch (ClassNotFoundException e) {
-        throw new EvalException(String.format("Could not find class named %s", className), e);
-      }
-    }
-
-    for(Method method : declaringClass.getMethods()) {
-      if(method.getName().equals(mangledName) &&
-          Modifier.isPublic(method.getModifiers()) &&
-          Modifier.isStatic(method.getModifiers())) {
-        return MethodHandles.publicLookup().unreflect(method);
-      }
-    }
-    throw new EvalException("Could not find method %s in class %s", methodName, className);
-  }
-
   @Builtin(".Call")
   public static SEXP redotCall(@Current Context context,
                              @Current Environment rho,
@@ -367,77 +342,45 @@ public class Native {
                              @NamedFlag("CLASSES") StringVector classes,
                              @NamedFlag("CLASS") String className) throws ClassNotFoundException {
 
-    if(methodExp.inherits("NativeSymbolInfo")) {
 
-      ExternalPtr<MethodHandle> address = (ExternalPtr<MethodHandle>) ((ListVector)methodExp).get("address");
-      MethodHandle methodHandle = address.getInstance();
-      if(methodHandle.type().parameterCount() != callArguments.length()) {
-        throw new EvalException("Expected %d arguments, found %d",
-            methodHandle.type().parameterCount(),
-            callArguments.length());
-      }
-      MethodHandle transformedHandle = methodHandle.asSpreader(SEXP[].class, methodHandle.type().parameterCount());
-      SEXP[] arguments = toSexpArray(callArguments);
-      if(Profiler.ENABLED) {
-        StringVector nameExp = (StringVector)((ListVector) methodExp).get("name");
-        Profiler.functionStart(Symbol.get(nameExp.getElementAsString(0)), 'C');
-      }
-      Context previousContext = CURRENT_CONTEXT.get();
-      try {
-        CURRENT_CONTEXT.set(context);
-        if (methodHandle.type().returnType().equals(void.class)) {
-          transformedHandle.invokeExact(arguments);
-          return Null.INSTANCE;
-        } else {
-          return (SEXP) transformedHandle.invokeExact(arguments);
-        }
-      } catch (Error e) {
-        throw e;
-      } catch (Throwable e) {
-        throw new EvalException("Exception calling " + methodExp + " : " + e.getMessage(), e);
-      } finally {
-        CURRENT_CONTEXT.set(previousContext);
-        if(Profiler.ENABLED) {
-          Profiler.functionEnd();
-        }
-      }
+    if("base".equals(packageName) || "methods".equals(packageName) || className != null) {
+      return delegateToJavaMethod(context, methodExp, packageName, className, callArguments);
+    }
 
-    } else if(methodExp instanceof StringVector) {
+    DllSymbol method = findMethod(context, methodExp, packageName, className, DllSymbol.Convention.CALL);
 
-      String methodName = ((StringVector) methodExp).getElementAsString(0);
-
-      Class clazz;
-      if (packageName != null) {
-        clazz = getPackageClass(context, packageName, methodName);
-      } else if (className != null) {
-        clazz = Class.forName(className);
-      } else {
-        Optional<Class> namespaceClass = context.getNamespaceRegistry().resolveNativeMethod(methodName);
-        if(!namespaceClass.isPresent()) {
-          throw new EvalException("Could not resolve native method '%s'", methodName);
-        }
-        clazz = namespaceClass.get();
-      }
-      if(Profiler.ENABLED) {
-        Profiler.functionStart(Symbol.get(methodName), 'C');
-      }
-      Context previousContext = CURRENT_CONTEXT.get();
+    MethodHandle methodHandle = method.getMethodHandle();
+    if(methodHandle.type().parameterCount() != callArguments.length()) {
+      throw new EvalException("Expected %d arguments, found %d in call to %s",
+          methodHandle.type().parameterCount(),
+          callArguments.length(),
+          method.getName());
+    }
+    MethodHandle transformedHandle = methodHandle.asSpreader(SEXP[].class, methodHandle.type().parameterCount());
+    SEXP[] arguments = toSexpArray(callArguments);
+    if(Profiler.ENABLED) {
+      Profiler.functionStart(Symbol.get(method.getName()), 'C');
+    }
+    Context previousContext = CURRENT_CONTEXT.get();
+    try {
       CURRENT_CONTEXT.set(context);
-
-      try {
-        return delegateToJavaMethod(context, clazz, methodName, callArguments);
-      } finally {
-        CURRENT_CONTEXT.set(previousContext);
-
-        if(Profiler.ENABLED) {
-          Profiler.functionEnd();
-        }
+      if (transformedHandle.type().returnType().equals(void.class)) {
+        transformedHandle.invokeExact(arguments);
+        return Null.INSTANCE;
+      } else {
+        return (SEXP) transformedHandle.invokeExact(arguments);
       }
-    } else {
-      throw new EvalException("Invalid method argument: " + methodExp);
+    } catch (Error e) {
+      throw e;
+    } catch (Throwable e) {
+      throw new EvalException("Exception calling " +  method.getName() + " : " + e.getMessage(), e);
+    } finally {
+      CURRENT_CONTEXT.set(previousContext);
+      if(Profiler.ENABLED) {
+        Profiler.functionEnd();
+      }
     }
   }
-
 
 
   @Builtin(".External")
@@ -448,20 +391,17 @@ public class Native {
                               @NamedFlag("PACKAGE") String packageName,
                               @NamedFlag("CLASS") String className) throws ClassNotFoundException {
 
-    if(!methodExp.inherits("NativeSymbolInfo")) {
-      throw new EvalException("Expected object of class 'NativeSymbolInfo'");
-    }
 
-    ExternalPtr<MethodHandle> address = (ExternalPtr<MethodHandle>) ((ListVector)methodExp).get("address");
-    MethodHandle methodHandle = address.getInstance();
+    DllSymbol symbol = findMethod(context, methodExp, packageName, className, DllSymbol.Convention.EXTERNAL);
+
+    MethodHandle methodHandle = symbol.getMethodHandle();
     if(methodHandle.type().parameterCount() != 1) {
       throw new EvalException("Expected method with single argument, found %d",
           methodHandle.type().parameterCount(),
           callArguments.length());
     }
 
-    StringVector functionName = (StringVector) ((ListVector) methodExp).get("name");
-    SEXP argumentList = new PairList.Node(functionName, PairList.Node.fromVector(callArguments));
+    SEXP argumentList = new PairList.Node(StringVector.valueOf(symbol.getName()), PairList.Node.fromVector(callArguments));
 
     if(Profiler.ENABLED) {
       StringVector nameExp = (StringVector)((ListVector) methodExp).get("name");
@@ -475,6 +415,53 @@ public class Native {
         return Null.INSTANCE;
       } else {
         return (SEXP) methodHandle.invokeExact(argumentList);
+      }
+    } catch (Error e) {
+      throw e;
+    } catch (Throwable e) {
+      throw new EvalException("Exception calling " + methodExp + " : " + e.getMessage(), e);
+    } finally {
+      CURRENT_CONTEXT.set(previousContext);
+      if(Profiler.ENABLED) {
+        Profiler.functionEnd();
+      }
+    }
+  }
+
+  @Builtin(".External2")
+  public static SEXP external2(@Current Context context,
+                              SEXP methodExp,
+                              @ArgumentList ListVector callArguments,
+                              @NamedFlag("PACKAGE") String packageName,
+                              @NamedFlag("CLASS") String className) throws ClassNotFoundException {
+
+
+    DllSymbol symbol = findMethod(context, methodExp, packageName, className, DllSymbol.Convention.EXTERNAL);
+
+    MethodHandle methodHandle = symbol.getMethodHandle();
+    if(methodHandle.type().parameterCount() != 4) {
+      throw new EvalException("Expected method with four arguments, found %d",
+          methodHandle.type().parameterCount(),
+          callArguments.length());
+    }
+
+    SEXP call = context.getCall();
+    SEXP op = Null.INSTANCE;
+    SEXP args = new PairList.Node(StringVector.valueOf(symbol.getName()), PairList.Node.fromVector(callArguments));
+    SEXP rho = context.getEnvironment();
+
+    if(Profiler.ENABLED) {
+      StringVector nameExp = (StringVector)((ListVector) methodExp).get("name");
+      Profiler.functionStart(Symbol.get(nameExp.getElementAsString(0)), 'C');
+    }
+    Context previousContext = CURRENT_CONTEXT.get();
+    try {
+      CURRENT_CONTEXT.set(context);
+      if (methodHandle.type().returnType().equals(void.class)) {
+        methodHandle.invokeExact(call, op, args, rho);
+        return Null.INSTANCE;
+      } else {
+        return (SEXP) methodHandle.invokeExact(call, op, args, rho);
       }
     } catch (Error e) {
       throw e;
@@ -502,55 +489,111 @@ public class Native {
    *
    */
   public static SEXP delegateToJavaMethod(Context context,
-                                          Class clazz,
-                                          String methodName,
+                                          SEXP method, String packageName,
+                                          String className,
                                           ListVector arguments) {
 
-    ClassBindingImpl classBinding = ClassBindingImpl.get(clazz);
-    FunctionBinding functionBinding = classBinding.getStaticMethodBinding(methodName);
+    Class declaringClass;
+    if("base".equals(packageName)) {
+      declaringClass = Base.class;
+    } else if("methods".equals(packageName)) {
+      declaringClass = Methods.class;
+    } else {
+      try {
+        declaringClass = Class.forName(className);
+      } catch (ClassNotFoundException e) {
+        throw new EvalException("Cannot find JVM class " + className);
+      }
+    }
+
+    ClassBindingImpl classBinding = ClassBindingImpl.get(declaringClass);
+    FunctionBinding functionBinding = classBinding.getStaticMethodBinding(method.asString());
 
     return functionBinding.invoke(null, context, arguments);
   }
 
-  public static List<Method> findMethod(Class packageClass, String methodName) {
-    List<Method> overloads = Lists.newArrayList();
-    for(Method method : packageClass.getMethods()) {
-      if(method.getName().equals(methodName) &&
-          (method.getModifiers() & (Modifier.STATIC | Modifier.PUBLIC)) != 0) {
-        overloads.add(method);
-      }
+  private static DllSymbol findMethod(Context context, SEXP method, String packageName, String className, DllSymbol.Convention convention) {
+
+    if(method.inherits("NativeSymbolInfo")) {
+      return DllSymbol.fromSexp(method);
     }
-    return overloads;
+
+    if(method instanceof ExternalPtr) {
+      return findMethodFromExternalPointer((ExternalPtr<?>) method);
+    }
+
+    if(method instanceof StringVector) {
+      return findMethodByName(context, method.asString(), packageName, className, convention);
+    }
+
+    throw new EvalException("Invalid method object of type '%s'", method.getTypeName());
   }
 
-  private static Class getPackageClass(Context context, String packageName, String methodName) {
-    if("base".equals(packageName)) {
-      return Base.class;
-   
-    } else if("methods".equals(packageName)) {
-      return Methods.class;
-      
-    } else if("grDevices".equals(packageName)) {
-      return Graphics.class;
+  private static DllSymbol findMethodFromExternalPointer(ExternalPtr<?> method)  {
+    if (method.getInstance() instanceof Method) {
+      return new DllSymbol((Method) method.getInstance());
+    }
+    throw new EvalException("Invalid method external pointer of (java) class '%s'", method.getInstance().getClass().getName());
+  }
 
-    } else if(packageName == null) {
-      Optional<Class> namespaceClass = context.getNamespaceRegistry().resolveNativeMethod(methodName);
-      if(!namespaceClass.isPresent()) {
-        throw new EvalException("Could not resolve native method '%s'", methodName);
-      }
-      return namespaceClass.get();
-      
+  private static DllSymbol findMethodByName(Context context, String methodName, String packageName, String className, DllSymbol.Convention convention) {
+
+    if(className != null) {
+      return findMethodByReflection(methodName, className);
+    }
+
+    if(packageName == null) {
+      return findGlobalMethodByName(context, convention, methodName);
+
     } else {
       Namespace namespace = context.getNamespaceRegistry().getNamespace(context, packageName);
-      FqPackageName fqname = namespace.getFullyQualifiedName();
-      String packageClassName = fqname.getGroupId()+ "." +
-          Namespace.sanitizePackageNameForClassFiles(fqname.getPackageName()) + "." +
-          Namespace.sanitizePackageNameForClassFiles(fqname.getPackageName());
-      try {
-        return namespace.getPackage().loadClass(packageClassName);
-      } catch (ClassNotFoundException e) {
-        throw new EvalException("Could not load JVM class '%s' from package '%s'", packageClassName, packageClassName);
+      Optional<DllSymbol> symbol = namespace.lookupSymbol(convention, methodName);
+
+      if(!symbol.isPresent()) {
+        throw new EvalException("Could not resolve native method '%s' in package '%s'", methodName, packageName);
+      }
+
+      return symbol.get();
+    }
+  }
+
+  private static DllSymbol findMethodByReflection(String methodName, String className) {
+    Class<?> declaringClass = null;
+    try {
+      declaringClass = Class.forName(className);
+    } catch (ClassNotFoundException e) {
+      throw new EvalException("Could not find Java class " + className);
+    }
+
+    return findMethodByReflection(methodName, declaringClass);
+  }
+
+  private static DllSymbol findMethodByReflection(String methodName, Class<?> declaringClass) {
+    for(Method method : declaringClass.getMethods()) {
+      if(method.getName().equals(methodName) &&
+          Modifier.isPublic(method.getModifiers()) &&
+          Modifier.isStatic(method.getModifiers())) {
+
+
+        return new DllSymbol(method);
       }
     }
+
+    throw new EvalException("Could not find method %s in class %s", methodName, declaringClass.getName());
+  }
+
+  /**
+   * When only a method name is provided without a package, we have to look for a native symbol in
+   * the global lookup.
+   */
+  private static DllSymbol findGlobalMethodByName(Context context, DllSymbol.Convention convention, String methodName) {
+
+    for (DllInfo library : context.getSession().getLoadedLibraries()) {
+      Optional<DllSymbol> symbol = library.lookup(convention, methodName);
+      if(symbol.isPresent()) {
+        return symbol.get();
+      }
+    }
+    throw new EvalException("Could not resolve native method '%s'", methodName);
   }
 }

@@ -175,7 +175,7 @@ public class RecordUsageAnalyzer  {
         for (GimpleBasicBlock basicBlock : function.getBasicBlocks()) {
           for (GimpleStatement statement : basicBlock.getStatements()) {
             if(statement instanceof GimpleCall) {
-              for (GimpleExpr operand : statement.getOperands()) {
+              for (GimpleExpr operand : ((GimpleCall) statement).getOperands()) {
                 checkForPointerPointerType(operand.getType());
               }
             }

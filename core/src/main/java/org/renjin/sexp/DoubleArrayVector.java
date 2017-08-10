@@ -50,6 +50,10 @@ public final class DoubleArrayVector extends DoubleVector {
     this(values, AttributeMap.EMPTY);
   }
 
+  public DoubleArrayVector(double value, AttributeMap attributes) {
+    this(new double[] { value }, 1, attributes);
+  }
+
   public DoubleArrayVector(double[] values, AttributeMap attributes) {
     this(values, values.length, attributes);
   }

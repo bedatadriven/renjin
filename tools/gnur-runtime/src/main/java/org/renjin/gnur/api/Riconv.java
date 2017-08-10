@@ -19,16 +19,14 @@
 // Initial template generated from Riconv.h from R 3.2.2
 package org.renjin.gnur.api;
 
-import org.renjin.gcc.runtime.CharPtr;
+import org.renjin.gcc.runtime.BytePtr;
 
 @SuppressWarnings("unused")
 public final class Riconv {
 
   private Riconv() { }
 
-
-
-  public static Object Riconv_open(CharPtr tocode, CharPtr fromcode) {
+  public static Object Riconv_open(BytePtr tocode, BytePtr fromcode) {
     throw new UnimplementedGnuApiMethod("Riconv_open");
   }
 

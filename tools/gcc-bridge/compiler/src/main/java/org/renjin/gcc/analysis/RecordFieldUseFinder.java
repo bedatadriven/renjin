@@ -107,7 +107,7 @@ public class RecordFieldUseFinder extends GimpleExprVisitor {
     GimpleRecordTypeDef recordTypeDef = typeDefMap.get(recordType.getId());
 
     if(recordTypeDef == null) {
-      throw new IllegalStateException("No type def for id " + recordTypeDef.getId());
+      throw new IllegalStateException("No type def for id " + recordType.getId());
     }
     return recordTypeDef;
   }

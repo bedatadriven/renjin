@@ -22,6 +22,8 @@ import org.renjin.gcc.annotations.Struct;
 
 import java.lang.invoke.MethodHandle;
 import java.nio.charset.StandardCharsets;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
@@ -250,6 +252,26 @@ public class Stdlib {
     return time;
   }
 
+  private static final DateFormat CTIME_FORMAT = new SimpleDateFormat("E MMM d HH:mm:ss YYYY");
+
+  /**
+   * Interprets the value pointed by timer as a calendar time and converts it to a C-string containing a human-readable
+   * version of the corresponding time and date, in terms of local time.
+   *
+   * <p>The returned string has the following format:</p>
+   * <blockquote>Www Mmm dd hh:mm:ss yyyy</blockquote>
+   *
+   * <p>The returned value points to an internal array whose validity or value may be altered by any
+   * subsequent call to asctime or ctime.</p>
+   *
+   * @param timePtr Pointer to an object of type time_t that contains a time value.
+   * @return A C-string containing the date and time information in a human-readable format.
+   */
+  public static BytePtr ctime(IntPtr timePtr) {
+    Date date = new Date(timePtr.get() * 1000L);
+    return BytePtr.nullTerminatedString(CTIME_FORMAT.format(date) + "\n", StandardCharsets.US_ASCII);
+  }
+
   public static tm localtime(IntPtr time) {
     return new tm(time.unwrap());
   }
@@ -322,5 +344,56 @@ public class Stdlib {
   public static int __isinf(double x) {
     return Double.isInfinite(x) ? 1 : 0;
   }
-  
+
+  public static float logf(float x) {
+    return (float)Math.log(x);
+  }
+
+  public static long lroundf(float x) {
+
+    if(Float.isInfinite(x)) {
+      if(x < 0) {
+        return Long.MIN_VALUE;
+      } else {
+        return Long.MAX_VALUE;
+      }
+    }
+
+    // Math.round() rounds ties towards positive infinity,
+    // while lroundf is meant to round ties away from zero.
+    long sign = (long)Math.signum(x);
+    long closest = Math.round((double)Math.abs(x));
+
+    return closest * sign;
+  }
+
+  /**
+   * Effects: This function is called before initialization takes place. If this function returns 1, either
+   * __cxa_guard_release or __cxa_guard_abort must be called with the same argument.
+   *
+   * The first byte of the guard_object is not modified by this function.
+   */
+  public static int __cxa_guard_acquire(LongPtr guard_object) {
+    return 1;
+  }
+
+  /**
+   * Effects: Sets the first byte of the guard object to a non-zero value. This function is called after initialization
+   * is complete. A thread-safe implementation will release the mutex acquired by __cxa_guard_acquire after setting
+   * the first byte of the guard object.
+   */
+  public static void __cxa_guard_release(LongPtr guard_object) {
+
+  }
+
+  /**
+   * Effects: This function is called if the initialization terminates by throwing an exception.
+   */
+  public static void __cxa_guard_abort(LongPtr p) {
+
+  }
+
+  public static void inlineAssembly() {
+    throw new UnsupportedOperationException("Compilation of inline assembly not supported");
+  }
 }

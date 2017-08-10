@@ -23,14 +23,15 @@ import org.apache.commons.vfs2.FileObject;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 
 /**
  * Connection to
  */
 public class BzipFileConnection extends FileConnection {
 
-  public BzipFileConnection(FileObject file) throws IOException {
-    super(file);
+  public BzipFileConnection(FileObject file, Charset charset) throws IOException {
+    super(file, charset);
   }
 
 

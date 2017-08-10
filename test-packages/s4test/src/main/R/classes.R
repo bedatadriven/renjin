@@ -30,6 +30,15 @@ setClass("seq",
          )
 )
 
+setClass("Z",
+         slots = c(
+           name = "character",
+           sequence = "character",
+           type = "character"
+         )
+)
+
+
 setGeneric(name = "setType",
            def = function(object,type){
              standardGeneric("setType")

@@ -923,6 +923,12 @@ public class Formatter {
           s2 = printDFormat(s);
         }
         break;
+      case 'f':
+      case 'E':
+      case 'e':
+      case 'g':
+      case 'G':
+          return formatArgument((double)s);
       case 'x':
       case 'X':
         if (optionalh) {

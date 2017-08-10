@@ -28,8 +28,15 @@ public class GimpleArrayType extends AbstractGimpleType {
   public GimpleArrayType() {
   }
 
-  public GimpleArrayType(GimplePrimitiveType componentType) {
+  public GimpleArrayType(GimpleType componentType) {
     this.componentType = componentType;
+  }
+
+  public GimpleArrayType(GimpleType componentType, int ubound) {
+    this.componentType = componentType;
+    this.lbound = 0;
+    this.ubound = ubound;
+    setSize(componentType.getSize() * ubound);
   }
   
 

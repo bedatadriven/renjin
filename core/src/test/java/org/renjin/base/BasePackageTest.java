@@ -18,7 +18,6 @@
  */
 package org.renjin.base;
 
-import org.hamcrest.Matchers;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
@@ -52,11 +51,11 @@ public class BasePackageTest extends EvalTestCase {
     assertThat( letters.getElementAsString(25), equalTo( "z" ));
 
     eval( "assign('x', 42) ");
-    assertThat( eval( "x" ) , equalTo( c(42) ));
+    assertThat( eval( "x" ) , elementsIdenticalTo( c(42) ));
 
     // make sure that closures are enclosed by the base namspace
     Closure closure = (Closure)getValue( topLevelContext.getSession().getBaseEnvironment(), "backsolve" );
-    assertThat( closure.getEnclosingEnvironment(), equalTo(topLevelContext.getSession().getBaseNamespaceEnv() ));
+    assertThat( closure.getEnclosingEnvironment(), identicalTo(topLevelContext.getSession().getBaseNamespaceEnv() ));
 
 
     // make sure that base scripts are populated in both the base environment and the base namespace
@@ -66,7 +65,7 @@ public class BasePackageTest extends EvalTestCase {
   }
 
   private SEXP getValue(Environment env, String name) {
-    SEXP value = env.getVariable(name);
+    SEXP value = env.getVariable(topLevelContext, name);
     if(value instanceof Promise) {
       value = value.force(topLevelContext);
     }
@@ -87,7 +86,7 @@ public class BasePackageTest extends EvalTestCase {
     eval(" x <- as.numeric_version('1.2.3') ");
     eval(" y <- as.numeric_version('1.0.9') ");
 
-    assertThat(eval(" x >= y"), equalTo(c(true)));
+    assertThat(eval(" x >= y"), elementsIdenticalTo(c(true)));
   }
 
 
@@ -98,7 +97,7 @@ public class BasePackageTest extends EvalTestCase {
     eval(" x <- as.numeric_version('2.10.1') ");
     eval(" y <- as.numeric_version('2.2.0') ");
 
-    assertThat(eval(" x >= y"), equalTo(c(true)));
+    assertThat(eval(" x >= y"), elementsIdenticalTo(c(true)));
   }
 
   @Test
@@ -109,9 +108,9 @@ public class BasePackageTest extends EvalTestCase {
     eval(" attr(xi, 'row.names') <- c(NA, -5) ");
     eval(" class(xi) <- 'data.frame' ");
 
-    assertThat( eval(" identical(attr(xi, 'row.names'),  c('1','2','3','4','5') ) "), equalTo(c(true)));
-    assertThat( eval(" identical(attributes(xi)$row.names, c('1','2','3','4','5'))"), equalTo(c(true)));
-    assertThat( eval(" identical(row.names(xi), c('1','2','3','4','5')) "), equalTo(c(true)) );
+    assertThat( eval(" identical(attr(xi, 'row.names'),  c('1','2','3','4','5') ) "), elementsIdenticalTo(c(true)));
+    assertThat( eval(" identical(attributes(xi)$row.names, c('1','2','3','4','5'))"), elementsIdenticalTo(c(true)));
+    assertThat( eval(" identical(row.names(xi), c('1','2','3','4','5')) "), elementsIdenticalTo(c(true)) );
   }
 
   @Test
@@ -121,8 +120,8 @@ public class BasePackageTest extends EvalTestCase {
 
     eval("info <- file.info('" + getClass().getResource("/org/renjin/sexp/SEXP.class").getFile() + "')");
 
-    assertThat(eval("info$isdir"), equalTo(c(false)));
-    assertThat(eval("info$mode"), equalTo(c_i(Integer.parseInt("666", 8))));
+    assertThat(eval("info$isdir"), elementsIdenticalTo(c(false)));
+    assertThat(eval("info$mode"), elementsIdenticalTo(c_i(Integer.parseInt("666", 8))));
   }
 
   @Test
@@ -130,7 +129,7 @@ public class BasePackageTest extends EvalTestCase {
 
     loadBasePackage();
 
-    assertThat( eval(" dQuote('a') "), equalTo( c("\"a\"")) );
+    assertThat( eval(" dQuote('a') "), elementsIdenticalTo( c("\"a\"")) );
   }
 
 
@@ -142,13 +141,13 @@ public class BasePackageTest extends EvalTestCase {
     eval("g <- function() sys.parent() ");
     eval("f <- function() g() ");
 
-    assertThat( eval("f()"), equalTo(c_i(1)));
+    assertThat( eval("f()"), elementsIdenticalTo(c_i(1)));
 
     eval("g<-function() eval(formals(sys.function(sys.parent()))[['event']]) ");
     eval("f<-function(event=c('a','b','c')) g() ");
 
     SEXP result = eval("f(1) ");
-    assertThat(result, Matchers.equalTo(c("a", "b", "c")));
+    assertThat(result, identicalTo(c("a", "b", "c")));
   }
 
   @Test
@@ -157,7 +156,7 @@ public class BasePackageTest extends EvalTestCase {
 
     eval("g <- function() { y <- 99; x<- 42; function() { sys.function() }  };");
     eval("fn <- g()");
-    assertThat(eval("environment(fn)$x"), equalTo(c(42)));
+    assertThat(eval("environment(fn)$x"), elementsIdenticalTo(c(42)));
   }
 
   @Test
@@ -166,7 +165,7 @@ public class BasePackageTest extends EvalTestCase {
 
     eval("f<-function(a,b) a+b ");
     eval("x<-c(1)");
-    assertThat( eval("lapply(x,f,2) "), equalTo(list(3d)));
+    assertThat( eval("lapply(x,f,2) "), elementsIdenticalTo(list(3d)));
   }
 
   @Test
@@ -174,7 +173,7 @@ public class BasePackageTest extends EvalTestCase {
     assumingBasePackagesLoad();
 
     eval("  d<-as.data.frame(list(ids=1:5)) ");
-    assertThat( eval(" d[,1] "), elementsEqualTo( 1,2,3,4,5));
+    assertThat( eval(" d[,1] "), elementsIdenticalTo(c_i(1,2,3,4,5)));
 
   }
 
@@ -184,19 +183,19 @@ public class BasePackageTest extends EvalTestCase {
 
     eval(" cat <- factor(c(1:3), exclude= c(NA, NaN)) ");
     eval(" addNA(cat, ifany=TRUE) ");
-    assertThat( eval("levels(cat)"), equalTo(c("1", "2", "3")));
+    assertThat( eval("levels(cat)"), elementsIdenticalTo(c("1", "2", "3")));
 
     eval("nl <- length(ll <- levels(cat))");
 
-    assertThat( eval("nl"), equalTo(c_i(3)));
+    assertThat( eval("nl"), elementsIdenticalTo(c_i(3)));
 
     eval("exclude <- NA");
     eval("exclude <- as.vector(exclude, typeof(c(1,2,NA)))");
-    assertThat(eval("is.na(exclude)"), equalTo(c(true)));
+    assertThat(eval("is.na(exclude)"), elementsIdenticalTo(c(true)));
 
     // ensure that NA is NOT added as a level
     eval(" cat <- factor(c(1,2,NA)) ");
-    assertThat( eval("levels(cat)"), equalTo(c("1", "2")));
+    assertThat( eval("levels(cat)"), elementsIdenticalTo(c("1", "2")));
 
 
   }
@@ -211,23 +210,23 @@ public class BasePackageTest extends EvalTestCase {
 
     eval("y <- unique(x)");
 
-    assertThat( eval("y"), equalTo(c_i(1,2,3,4,5)));
+    assertThat( eval("y"), elementsIdenticalTo(c_i(1,2,3,4,5)));
 
     eval("ind <- sort.list(y)");
     eval("y <- as.character(y)");
     eval("levels <- unique(y[ind])");
 
-    assertThat( eval("levels"), equalTo(c("1","2","3","4", "5")));
+    assertThat( eval("levels"), elementsIdenticalTo(c("1","2","3","4", "5")));
 
     eval("force(ordered)");
     eval("exclude <- as.vector(exclude, typeof(x))");
 
-    assertThat( eval("exclude"), equalTo( c_i(IntVector.NA, IntVector.NA)));
+    assertThat( eval("exclude"), elementsIdenticalTo( c_i(IntVector.NA, IntVector.NA)));
 
     eval("x <- as.character(x)");
     eval("levels <- levels[is.na(match(levels, exclude))]");
 
-    assertThat( eval("levels"), equalTo(c("1","2","3","4","5")));
+    assertThat( eval("levels"), elementsIdenticalTo(c("1","2","3","4","5")));
   }
 
   @Test
@@ -237,7 +236,7 @@ public class BasePackageTest extends EvalTestCase {
     eval(" gender <- c('F','F','F','F', 'M','M','M') ");
     eval(" gender <- factor(gender) ");
 
-    assertThat( eval("class(gender) "), equalTo(c("factor")));
+    assertThat( eval("class(gender) "), elementsIdenticalTo(c("factor")));
   }
 
   @Test
@@ -261,7 +260,7 @@ public class BasePackageTest extends EvalTestCase {
     eval("g<-function(envir=parent.frame()) envir ");
     eval("env<-eval(parse(text= 'qq<-101;g() '), envir=parent.frame())");
 
-    assertThat(eval("env$qq"), equalTo(c(101)));
+    assertThat(eval("env$qq"), elementsIdenticalTo(c(101)));
   }
 
 
@@ -272,10 +271,10 @@ public class BasePackageTest extends EvalTestCase {
 
     SEXP sexp = eval(" parse(text='1', keep.source=TRUE) ");
 
-    assertThat(sexp, equalTo(expression(1d)));
+    assertThat(sexp, identicalTo(expression(1d)));
 
     SEXP srcref = sexp.getAttribute(Symbols.SRC_REF).getElementAsSEXP(0);
-    assertThat(srcref.getS3Class(), equalTo(c("srcref")));
+    assertThat(srcref.getS3Class(), elementsIdenticalTo(c("srcref")));
 
     SEXP srcfile = srcref.getAttribute(Symbols.SRC_FILE);
     assertThat(srcfile, instanceOf(Environment.class));
@@ -288,7 +287,7 @@ public class BasePackageTest extends EvalTestCase {
     assumingBasePackagesLoad();
 
     eval(" x<-list() ");
-    assertThat(eval("sapply(attr(~1,'vars'), deparse, width.cutoff = 500)[-1L]"), equalTo(list()));
+    assertThat(eval("sapply(attr(~1,'vars'), deparse, width.cutoff = 500)[-1L]"), elementsIdenticalTo(list()));
   }
 
   @Test @Ignore("not working yet")
@@ -305,7 +304,7 @@ public class BasePackageTest extends EvalTestCase {
 
     eval("g<-matrix(1:64,8)");
     eval("df<-as.data.frame(g)");
-    assertThat(eval("length(unclass(df))"), equalTo(c_i(8)));
+    assertThat(eval("length(unclass(df))"), elementsIdenticalTo(c_i(8)));
   }
 
   @Test
@@ -313,7 +312,7 @@ public class BasePackageTest extends EvalTestCase {
     assumingBasePackagesLoad();
 
     eval("y <- as.factor(c(1,0))");
-    assertThat( eval("y == c('1', '0')"), equalTo(c(true,true)));
+    assertThat( eval("y == c('1', '0')"), elementsIdenticalTo(c(true,true)));
   }
 
   @Test
@@ -324,21 +323,21 @@ public class BasePackageTest extends EvalTestCase {
     eval("y <- as.factor(c(1,0,1,0,1,0))");
     eval("h <- levels(y)");
 
-    assertThat( eval("Y <- rep(h, rep.int(length(y), length(h)))"), equalTo(c("0","0","0","0","0","0","1","1","1","1","1","1")));
+    assertThat( eval("Y <- rep(h, rep.int(length(y), length(h)))"), elementsIdenticalTo(c("0","0","0","0","0","0","1","1","1","1","1","1")));
 
     eval("X <- rep(y, times = ceiling(length(h)/length(y)))");
-    assertThat(eval("class(X)"), equalTo(c("factor")));
+    assertThat(eval("class(X)"), elementsIdenticalTo(c("factor")));
 
     eval("yp <- ifelse(outer(y,h,'=='),1,0)");
-    assertThat(eval("dim(yp)"), equalTo(c_i(6,2)));
-    assertThat(eval("c(yp)"), equalTo(c(0,1,0,1,0,1,1,0,1,0,1,0)));
+    assertThat(eval("dim(yp)"), elementsIdenticalTo(c_i(6,2)));
+    assertThat(eval("c(yp)"), elementsIdenticalTo(c(0,1,0,1,0,1,1,0,1,0,1,0)));
   }
 
   @Test
   public void issue8() throws IOException {
     assumingBasePackagesLoad();
 
-    assertThat( eval("rep(seq(1,10,1),2)"), equalTo(c( 1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10)));
+    assertThat( eval("rep(seq(1,10,1),2)"), elementsIdenticalTo(c( 1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10)));
   }
 
   @Test
@@ -347,7 +346,7 @@ public class BasePackageTest extends EvalTestCase {
     assumingBasePackagesLoad();
 
     String file = BasePackageTest.class.getResource("SourceTest.R").getFile();
-    global.setVariable(Symbol.get("fn"),
+    global.setVariable(topLevelContext, Symbol.get("fn"),
         StringVector.valueOf(new File(file).getAbsolutePath()));
     eval("source(fn)");
   }
@@ -387,12 +386,12 @@ public class BasePackageTest extends EvalTestCase {
 
     // expected : ~0 + births 
 
-    FunctionCall tildeCall = (FunctionCall) topLevelContext.getGlobalEnvironment().getVariable("x");
-    assertThat(tildeCall.getFunction(), equalTo((SEXP)symbol("~")));
+    FunctionCall tildeCall = (FunctionCall) topLevelContext.getGlobalEnvironment().getVariable(topLevelContext, "x");
+    assertThat(tildeCall.getFunction(), identicalTo(symbol("~")));
     assertThat(tildeCall.getArguments().length(), equalTo(1));
 
-    FunctionCall plusCall = (FunctionCall)tildeCall.getArgument(0);
-    assertThat(plusCall.getFunction(), equalTo((SEXP)symbol("+")));
+    FunctionCall plusCall = tildeCall.getArgument(0);
+    assertThat(plusCall.getFunction(), identicalTo(symbol("+")));
   }
 
   @Test
@@ -403,10 +402,10 @@ public class BasePackageTest extends EvalTestCase {
     eval("tt <- 1");
     eval("bq <- bquote( ~ 0 + . (tt) )");
 
-    assertThat(eval("bq[[1]]"), equalTo((SEXP)Symbol.get("~")));
-    assertThat(eval("bq[[2]][[1]]"), equalTo((SEXP)Symbol.get("+")));
-    assertThat(eval("bq[[2]][[2]]"), equalTo(c(0)));
-    assertThat(eval("bq[[2]][[3]]"), equalTo(c(1)));
+    assertThat(eval("bq[[1]]"), identicalTo(Symbol.get("~")));
+    assertThat(eval("bq[[2]][[1]]"), identicalTo(Symbol.get("+")));
+    assertThat(eval("bq[[2]][[2]]"), elementsIdenticalTo(c(0)));
+    assertThat(eval("bq[[2]][[3]]"), elementsIdenticalTo(c(1)));
     //R outputs ~0 + 1, renjin 0 + 1 ~
     // expected : ~0 + births
 
@@ -420,10 +419,10 @@ public class BasePackageTest extends EvalTestCase {
 
     eval("m <- matrix(1:12, 3)");
 
-    assertThat(eval("rowsum(m, group=c(1,1,1))"), equalTo(c_i(6,15,24,33)));
-    assertThat(eval("row.names(rowsum(m, group=c(1,1,1)))"), equalTo(c("1")));
+    assertThat(eval("rowsum(m, group=c(1,1,1))"), elementsIdenticalTo(c_i(6,15,24,33)));
+    assertThat(eval("row.names(rowsum(m, group=c(1,1,1)))"), elementsIdenticalTo(c("1")));
 
-    assertThat(eval("rowsum(m, group=c(3,3,1), reorder=TRUE)"), equalTo(c_i(3,3,6,9,9,15,12,21)));
+    assertThat(eval("rowsum(m, group=c(3,3,1), reorder=TRUE)"), elementsIdenticalTo(c_i(3,3,6,9,9,15,12,21)));
 
   }
 
@@ -434,7 +433,7 @@ public class BasePackageTest extends EvalTestCase {
     eval("x <- factor(c('Yes','No','No'))");
     eval("m <- matrix(c(1:6), 2, 3)");
     eval("rownames(m) <- unique(x)");
-    assertThat(eval("rownames(m)"), equalTo(c("Yes","No")));
+    assertThat(eval("rownames(m)"), elementsIdenticalTo(c("Yes","No")));
   }
 
   @Test
@@ -449,8 +448,8 @@ public class BasePackageTest extends EvalTestCase {
   public void inOpWithNA() throws IOException {
     assumingBasePackagesLoad();
 
-    assertThat( eval("NA %in% FALSE"), equalTo(c(false)));
-    assertThat( eval("NA %in% TRUE"), equalTo(c(false)));
+    assertThat( eval("NA %in% FALSE"), elementsIdenticalTo(c(false)));
+    assertThat( eval("NA %in% TRUE"), elementsIdenticalTo(c(false)));
   }
 
   @Test
@@ -458,7 +457,7 @@ public class BasePackageTest extends EvalTestCase {
     assumingBasePackagesLoad();
     eval(" x <-as.data.frame(list(x=1:10,y=11:20)) ");
 
-    assertThat(eval("max(x)"), equalTo(c_i(20)));
+    assertThat(eval("max(x)"), elementsIdenticalTo(c_i(20)));
   }
 
   @Test
@@ -466,10 +465,10 @@ public class BasePackageTest extends EvalTestCase {
     assumingBasePackagesLoad();
 
     eval("x <- factor() ");
-    assertThat(eval("class(x)"), equalTo(c("factor")));
-    assertThat(eval("attr(x,'levels')"), equalTo((SEXP) StringVector.EMPTY));
-    assertThat(eval("typeof(x)"), equalTo(c("integer")));
-    assertThat(eval("is.factor(x)"), equalTo(c(true)));
+    assertThat(eval("class(x)"), elementsIdenticalTo(c("factor")));
+    assertThat(eval("attr(x,'levels')"), identicalTo(StringVector.EMPTY));
+    assertThat(eval("typeof(x)"), elementsIdenticalTo(c("integer")));
+    assertThat(eval("is.factor(x)"), elementsIdenticalTo(c(true)));
   }
 
   @Test
@@ -485,8 +484,8 @@ public class BasePackageTest extends EvalTestCase {
     assumingBasePackagesLoad();
 
     eval("x <- serialize(42, connection=NULL)");
-    assertThat(eval("length(x)"), equalTo(c_i(30)));
-    assertThat(eval("x[1:6]"), equalTo(raw(0x58, 0x0a, 0x00, 0x00, 0x00, 0x02)));
+    assertThat(eval("length(x)"), elementsIdenticalTo(c_i(30)));
+    assertThat(eval("x[1:6]"), identicalTo(raw(0x58, 0x0a, 0x00, 0x00, 0x00, 0x02)));
   }
 
   private SEXP raw(int... integers) {
@@ -504,14 +503,14 @@ public class BasePackageTest extends EvalTestCase {
     eval("fib <- function(n) if(n<=2) { if(n>=0) 1 else 0 } else Recall(n-1) + Recall(n-2)");
     eval("fibonacci <- fib");
     eval("rm(fib)");
-    assertThat(eval("fibonacci(10)"), equalTo(c(55)));
+    assertThat(eval("fibonacci(10)"), elementsIdenticalTo(c(55)));
   }
 
   @Test
   public void mapply() {
     assumingBasePackagesLoad();
 
-    assertThat(eval("mapply(rep, 1:4, 4:1)"), equalTo(list(
+    assertThat(eval("mapply(rep, 1:4, 4:1)"), elementsIdenticalTo(list(
         c_i(1,1,1,1),
         c_i(2,2,2),
         c_i(3,3),
@@ -525,7 +524,7 @@ public class BasePackageTest extends EvalTestCase {
 
     eval(" f <- function() { y<-66; fieldClasses <- NULL; assign('fieldClasses', 42); fieldClasses; } ");
 
-    assertThat(eval("f()"), equalTo(c(42)));
+    assertThat(eval("f()"), elementsIdenticalTo(c(42)));
 
   }
 
@@ -542,7 +541,7 @@ public class BasePackageTest extends EvalTestCase {
     assumingBasePackagesLoad();
     eval("f <- function(x,y,z) y ");
     eval("body(f) <- quote(x) ");
-    assertThat(eval("f(42)"), equalTo(c(42)));
+    assertThat(eval("f(42)"), elementsIdenticalTo(c(42)));
   }
 
   @Test
@@ -555,23 +554,23 @@ public class BasePackageTest extends EvalTestCase {
     eval(" value <-  alist(method=,f='<unknown>', mlist=,optional=FALSE,envir=) ");
     eval(" newf <- c(value, if(is.null(bd) || is.list(bd)) list(bd) else bd) ");
     eval(" print(newf) ");
-    assertThat(eval("length(newf)"), equalTo(c_i(6)));
+    assertThat(eval("length(newf)"), elementsIdenticalTo(c_i(6)));
   }
 
   @Test
   public void isR() {
     assumingBasePackagesLoad();
-    assertThat(eval("is.R()"), equalTo(c(true)));
+    assertThat(eval("is.R()"), elementsIdenticalTo(c(true)));
   }
 
   @Test
   public void cut() {
 
-    assertThat(eval(" cut(c(1,2,3,4,5,6), breaks=c(0,2,6))"), equalTo(c_i(1,1,2,2,2,2)));
+    assertThat(eval(" cut(c(1,2,3,4,5,6), breaks=c(0,2,6))"), elementsIdenticalTo(c_i(1,1,2,2,2,2)));
     assertThat(eval(" cut(c(1,2,3,4,5,6), breaks=c(0,2,6), right=F)"),
-            equalTo(c_i(1,2,2,2,2,IntVector.NA)));
+            elementsIdenticalTo(c_i(1,2,2,2,2,IntVector.NA)));
     assertThat(eval(" cut(c(1,2,3,4,5,6), breaks=c(0,2,6), right=F, include.lowest=T)"),
-            equalTo(c_i(1,2,2,2,2,2)));
+            elementsIdenticalTo(c_i(1,2,2,2,2,2)));
   }
 
 

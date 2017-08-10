@@ -142,4 +142,17 @@ public class BytePtr implements Ptr {
     }
     return (BytePtr) voidPointer;
   }
+
+  public static int memcmp(BytePtr s1, BytePtr s2, int len) {
+    for (int i = 0; i < len; i++) {
+      byte b1 = s1.array[s1.offset+i];
+      byte b2 = s2.array[s2.offset+i];
+      if(b1 != b2) {
+        int i1 = b1 & 0xFF;
+        int i2 = b2 & 0xFF;
+        return i1 - i2;
+      }
+    }
+    return 0;
+  }
 }

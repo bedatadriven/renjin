@@ -49,7 +49,7 @@ getNamespaceInfo <- function(ns, which) {
 
 isBaseNamespace <- function(ns) identical(ns, .BaseNamespaceEnv)
 
-.getNamespace <- function(what) getNamespace(what)
+.getNamespace <- function(what) .Internal(getRegisteredNamespace(what))
 
 
 find.package <- function(package = NULL, lib.loc = NULL, quiet = FALSE, verbose = getOption("verbose")) {

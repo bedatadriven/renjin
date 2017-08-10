@@ -44,7 +44,7 @@ public class SsaVariable extends Variable {
   }
 
   @Override
-  public boolean isDefinitelyPure() {
+  public boolean isPure() {
     if(version == 0) {
       // version zero is fetched from the environment, which may force
       // a promise with side effects, so we can't trust it.

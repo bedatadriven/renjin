@@ -21,6 +21,7 @@ package org.renjin.primitives;
 import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Internal;
+import org.renjin.repackaged.guava.annotations.VisibleForTesting;
 import org.renjin.repackaged.guava.base.Objects;
 import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.sexp.*;
@@ -135,10 +136,7 @@ public class Identical {
     }
 
     for(int i=0;i!=x.length();++i) {
-      if(x.isElementNA(i) && y.isElementNA(i)) {
-        continue;
-      }
-      if(!vectorType.elementsEqual(x, i, y, i)) {
+      if(!vectorType.elementsIdentical(x, i, y, i)) {
         return false;
       }
     }
@@ -241,10 +239,11 @@ public class Identical {
    * @param bitwiseComparisonNumbers  if true, then (x != y) is used when both are not NA or NaN.
    *  If true, will differentiate between '+0.' and '-0.'.
    *
-   * @param bitwiseComparisonNaN if true, then
+   * @param bitwiseComparisonNaN if true, then NA values are compared bit
    * @return
    */
-  private static boolean equals(double x, double y, boolean bitwiseComparisonNumbers, boolean bitwiseComparisonNaN) {
+  @VisibleForTesting
+  static boolean equals(double x, double y, boolean bitwiseComparisonNumbers, boolean bitwiseComparisonNaN) {
 
     if(Double.isNaN(x) || Double.isNaN(y)) {
 
@@ -255,8 +254,11 @@ public class Identical {
         // only consider the NaN payload in the case of our special NA value
         if(DoubleVector.isNA(x)) {
           return DoubleVector.isNA(y);
+
         } else if(DoubleVector.isNA(y)) {
-          return DoubleVector.isNA(y);
+          // is.na(y) and !is.na(x)
+          return false;
+
         } else {
           return Double.isNaN(x) && Double.isNaN(y);
         }

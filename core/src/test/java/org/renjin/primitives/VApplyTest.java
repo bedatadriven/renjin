@@ -23,7 +23,6 @@ import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.eval.EvalException;
 
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 
@@ -37,17 +36,17 @@ public class VApplyTest extends EvalTestCase {
   
   @Test
   public void vapplySimple() {
-    assertThat(eval("vapply(c(4,16,64), sqrt, 1)"), equalTo(c(2,4,8)));
+    assertThat(eval("vapply(c(4,16,64), sqrt, 1)"), elementsIdenticalTo(c(2,4,8)));
   }
   
   @Test
   public void vapplyWithElipses() {
-    assertThat(eval("vapply(1:4, `-`, 1, 1)"), equalTo(c(0,1,2,3)));
+    assertThat(eval("vapply(1:4, `-`, 1, 1)"), elementsIdenticalTo(c(0,1,2,3)));
   }
   
   @Test
   public void names() {
-    assertThat(eval("names(vapply(c(a=4,b=16,c=64), sqrt, 1))"), equalTo(c("a","b","c")));
+    assertThat(eval("names(vapply(c(a=4,b=16,c=64), sqrt, 1))"), elementsIdenticalTo(c("a","b","c")));
   }
   
   @Test(expected=EvalException.class)

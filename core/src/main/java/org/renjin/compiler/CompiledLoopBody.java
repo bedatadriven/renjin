@@ -25,6 +25,6 @@ import org.renjin.sexp.SEXP;
 
 public interface CompiledLoopBody {
   
-  void run(Context context, Environment rho, SEXP sequence, int iteration);
+  SEXP run(Context context, Environment rho, SEXP sequence, int iteration);
   
 }

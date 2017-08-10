@@ -480,6 +480,8 @@ public class GimpleCompilerTest extends AbstractGccTest {
     assertThat(call(clazz, "bitwise_rshift", 16, 2), equalTo(16 >> 2));
     assertThat(call(clazz, "bitwise_xor", 16, 1024), equalTo(16 ^ 1024));
     assertThat(call(clazz, "bitwise_not", 4096), equalTo(~4096));
+    assertThat(call(clazz, "bitwise_not_long", 32342355L), equalTo(-32342356L));
+
 
     assertThat(call(clazz, "byte_lshift", (byte) 1, (byte) 1), equalTo(2));
     assertThat(call(clazz, "byte_lshift", (byte) 1, (byte) 7), equalTo(0x80));
@@ -1135,5 +1137,79 @@ public class GimpleCompilerTest extends AbstractGccTest {
   @Test
   public void addrRecordParam() throws Exception {
     compileAndTest("addr_record_param.c");
+  }
+
+  @Test
+  public void emptyBaseClassWithRecordArray() throws Exception {
+    compileAndTest("empty_base_array.cpp");
+  }
+
+  @Test
+  public void emptyBaseClassWithObjectPtr() throws Exception {
+    compileAndTest("empty_base_objectptr.cpp");
+  }
+
+  @Test
+  public void emptyBaseClassWithUnitPtr() throws Exception {
+    compileAndTest("empty_base_unitptr.cpp");
+  }
+
+  @Test
+  public void addressFatPtr() throws Exception {
+    compileAndTest("address_fatptr.c");
+  }
+
+  @Test
+  public void differentTypesOfUnionPtr() throws Exception {
+    compileAndTest("unionptr_different_types.c");
+  }
+
+  @Test
+  public void addressableParameter() throws Exception {
+    compileAndTest("addr_parameter.c");
+  }
+
+  @Test
+  public void inheritanceGlobalVars() throws Exception {
+    compileAndTest("inheritance_globalvars.cpp");
+  }
+
+  @Test
+  public void badArrayLiteral() throws Exception {
+    compileAndTest("bad_array_literal.c");
+  }
+
+  @Test
+  public void longArrayIndex() throws Exception {
+    compileAndTest("long_index.c");
+  }
+
+  @Test
+  public void downcast64() throws Exception {
+    compileAndTest("downcast64.c");
+  }
+
+  @Test
+  public void inlineAssembly() throws Exception {
+    Class<?> clazz = compile("asm.c");
+
+    Method testMethod = clazz.getMethod("test_asm");
+
+    try {
+      testMethod.invoke(null);
+      throw new AssertionError("Should not complete - there's inline assembly!");
+    } catch (InvocationTargetException e) {
+      assertThat(e.getCause().getMessage(), equalTo("Compilation of inline assembly not supported"));
+    }
+  }
+
+  @Test
+  public void arraysOfMixedLength() throws Exception {
+    compileAndTest("array_mixed_len_union.c");
+  }
+
+  @Test
+  public void unsignedDiv() throws Exception {
+    compileAndTest("unsigned_div.c");
   }
 }

@@ -36,6 +36,7 @@ import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Preconditions;
 import org.renjin.repackaged.guava.collect.Lists;
 
+import java.lang.reflect.Field;
 import java.util.List;
 
 
@@ -124,9 +125,17 @@ public class ArrayTypeStrategy implements TypeStrategy<ArrayExpr> {
     return new ArrayExpr(elementValueFunction, arrayLength, array, offset);
   }
 
+  @Override
+  public ArrayExpr providedGlobalVariable(GimpleVarDecl decl, Field javaField) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
   public GExpr elementAt(GExpr array, GExpr index) {
     ArrayExpr arrayFatPtr = (ArrayExpr) array;
-    PrimitiveValue indexValue = (PrimitiveValue) index;
+    JExpr indexValue = ((PrimitiveValue) index).unwrap();
+    if(indexValue.getType().equals(Type.LONG_TYPE)) {
+      indexValue = Expressions.castPrimitive(indexValue, Type.INT_TYPE);
+    }
 
     // New offset  = ptr.offset + (index * value.length)
     // for arrays of doubles, for example, this will be the same as ptr.offset + index
@@ -134,7 +143,7 @@ public class ArrayTypeStrategy implements TypeStrategy<ArrayExpr> {
     JExpr newOffset = Expressions.sum(
         arrayFatPtr.getOffset(),
         Expressions.product(
-            Expressions.difference(indexValue.unwrap(), arrayType.getLbound()),
+            Expressions.difference(indexValue, arrayType.getLbound()),
             elementValueFunction.getElementLength()));
 
     return elementValueFunction.dereference(arrayFatPtr.getArray(), newOffset);
@@ -181,7 +190,7 @@ public class ArrayTypeStrategy implements TypeStrategy<ArrayExpr> {
     List<JExpr> values = Lists.newArrayList();
     addElementConstructors(values, exprFactory, constructor);
 
-    JExpr array = Expressions.newArray(elementValueFunction.getValueType(), values);
+    JExpr array = Expressions.newArray(elementValueFunction.getValueType(), arrayLength, values);
     JExpr offset = Expressions.zero();
 
     return new ArrayExpr(elementValueFunction, arrayLength, array, offset);

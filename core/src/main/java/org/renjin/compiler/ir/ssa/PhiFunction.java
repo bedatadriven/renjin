@@ -31,14 +31,13 @@ import org.renjin.repackaged.guava.collect.Lists;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class PhiFunction implements Expression {
 
   private List<Variable> arguments;
   private List<FlowEdge> incomingEdges;
 
-  public PhiFunction(Variable variable, Set<FlowEdge> incomingEdges) {
+  public PhiFunction(Variable variable, List<FlowEdge> incomingEdges) {
     if(incomingEdges.size() < 2) {
       throw new IllegalArgumentException("variable=" + variable + ", count=" + incomingEdges.size() + " (count must be >= 2)");
     }
@@ -59,8 +58,8 @@ public class PhiFunction implements Expression {
   }
 
   @Override
-  public boolean isDefinitelyPure() {
-    return false; // not sure... have to think about this
+  public boolean isPure() {
+    return true;
   }
 
   @Override

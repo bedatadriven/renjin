@@ -18,6 +18,7 @@
  */
 package org.renjin.primitives;
 
+import org.renjin.base.Lapack;
 import org.renjin.base.internals.AllNamesVisitor;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
@@ -38,6 +39,7 @@ import org.renjin.primitives.io.serialization.Serialization;
 import org.renjin.primitives.match.Duplicates;
 import org.renjin.primitives.match.Match;
 import org.renjin.primitives.matrix.Matrices;
+import org.renjin.primitives.packaging.Namespace;
 import org.renjin.primitives.packaging.Namespaces;
 import org.renjin.primitives.packaging.Packages;
 import org.renjin.primitives.sequence.RepFunction;
@@ -209,10 +211,10 @@ public class Primitives {
     f("[",Subsetting.class, -1);
     f("[[", Subsetting.class, -1);
     add(new DollarFunction());
+    add(new DollarAssignFunction());
     f("@", Subsetting.class, 2);
     f("[<-", Subsetting.class, 3);
     f("[[<-", Subsetting.class, 3);
-    f("$<-", Subsetting.class, 3);
 
     add(new SwitchFunction());
 
@@ -241,11 +243,7 @@ public class Primitives {
     f("*", Ops.class,  /*TIMESOP ,*/  2);
     f("/", Ops.class,  /*DIVOP,*/  2);
     f("^", Ops.class,   /*POWOP,*/  2);
-//    add(new OpsFunction("+"));
-//    add(new OpsFunction("-"));
-//    add(new OpsFunction("*"));
-//    add(new OpsFunction("/"));
-//    add(new OpsFunction("^"));
+
 
     f("%%", Ops.class,  /* MODOP */ 2);
     f("%/%", Ops.class,  /* IDIVOP */ 2);
@@ -264,15 +262,6 @@ public class Primitives {
     f("&", Ops.class, 2);
     f("|", Ops.class, 2);
     f("!", Ops.class, 1);
-//    add(new OpsFunction("=="));
-//    add(new OpsFunction("!="));
-//    add(new OpsFunction("<"));
-//    add(new OpsFunction("<="));
-//    add(new OpsFunction(">"));
-//    add(new OpsFunction(">="));
-//    add(new OpsFunction("&"));
-//    add(new OpsFunction("|"));
-//    add(new OpsFunction("!"));
 
     f("&&", Comparison.class, "and", 0);
     f("||", Comparison.class, "or", 0);
@@ -710,7 +699,13 @@ public class Primitives {
     f(".C", Native.class, -1);
     f(".Fortran", Native.class, -1);
     f(".External",  Native.class, -1);
+    f(".External2",  Native.class, -1);
     f(".Call", Native.class, -1);
+    f("getSymbolInfo", Native.class, 11);
+    f("getLoadedDLLs", Native.class, 11);
+    f("getRegisteredSymbols", Native.class, 11);
+    f("getRegisteredRoutines", Native.class, 11);
+
     f(".External.graphics", /*Externalgr*/ null, 1);
     f(".Call.graphics", /*dotcallgr*/ null, 1);
     f("recordGraphics", /*recordGraphics*/ null, 211);
@@ -918,8 +913,6 @@ public class Primitives {
     f("fmin", Optimizations.class, 11);
     f("zeroin", /*zeroin*/ null, 11);
     f("zeroin2", Roots.class, 11);
-    f("optim", Optimizations.class, 11);
-    f("optimhess", /*optimhess*/ null, 11);
     f("terms.formula", Models.class, 11);
     f("update.formula", /*updateform*/ null, 11);
     f("model.matrix", Models.class, 11);
@@ -1000,7 +993,7 @@ public class Primitives {
     f("lockBinding", Environments.class, 111);
     f("unlockBinding", Environments.class, 111);
     f("bindingIsLocked", Environments.class, 11);
-    f("makeActiveBinding", /*mkActiveBnd*/ null, 111);
+    f("makeActiveBinding", /*mkActiveBnd*/ Environments.class, 111);
     f("bindingIsActive", Environments.class, 11);
 /* looks like mkUnbound is unused in base R */
     f("mkUnbound", /*mkUnbound*/ null, 111);
@@ -1035,6 +1028,9 @@ public class Primitives {
     f("library", Packages.class, 11);
     f("require", Packages.class, 11);
 
+    f("library.dynam", Namespaces.class, 11);
+    f("library.dynam.unload", Namespaces.class, 11);
+
     // bitwise
     f("bitwiseNot", Bitwise.class, 11);
     f("bitwiseXor", Bitwise.class, 11);
@@ -1042,6 +1038,17 @@ public class Primitives {
     f("bitwiseShiftR", Bitwise.class, 11);
     f("bitwiseAnd", Bitwise.class, 11);
     f("bitwiseOr", Bitwise.class, 11);
+
+    // Add LAPACK wrappers as internals
+    f("La_chol", Lapack.class, 11);
+    f("La_chol2inv", Lapack.class, 11);
+    f("La_dlange", Lapack.class, 11);
+    f("La_dtrcon", Lapack.class, 11);
+    f("La_dgecon", Lapack.class, 11);
+    f("La_zgecon", Lapack.class, 11);
+    f("La_ztrcon", Lapack.class, 11);
+    f("backsolve", Lapack.class, 11);
+
 
     // Build map of reserved functions
     for (Map.Entry<Symbol, PrimitiveFunction> entry : builtins.entrySet()) {
@@ -1059,15 +1066,15 @@ public class Primitives {
   }
 
   private void add(SpecialFunction fn) {
-    builtins.put(Symbol.get(fn.getName()), fn);
+    Symbol name = Symbol.get(fn.getName());
+    builtins.put(name, fn);
   }
 
-  private void add(Entry entry) {
-    Symbol symbol = Symbol.get(entry.name);
+  private void add(Entry entry) {     
     if (entry.isInternal()) {
-      internalEntries.put(symbol, entry);
+      internalEntries.put(Symbol.get(entry.name), entry);
     } else {
-      builtinEntries.put(symbol, entry);
+      builtinEntries.put(Symbol.get(entry.name), entry);
     }
   }
 
@@ -1123,17 +1130,9 @@ public class Primitives {
     public String methodName;
     public int eval;     /* evaluate args? */
 
-    public Entry group(String groupName) {
-      this.group = groupName;
-      return this;
-    }
-
     public boolean isSpecial() {
       return eval % 10 == 0;
     }
 
-    public boolean isGroupGeneric() {
-      return group != null;
-    }
   }
 }

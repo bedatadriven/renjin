@@ -18,14 +18,18 @@
  */
 package org.renjin.primitives.packaging;
 
+import org.renjin.eval.EvalException;
 import org.renjin.sexp.*;
 
 import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.reflect.Method;
 
 /**
  * A symbol registered with a dynamic library
  */
 public class DllSymbol {
+
 
   public enum Convention {
     C("CRoutine"),
@@ -45,12 +49,27 @@ public class DllSymbol {
   }
 
   private String name;
-  private DllInfo library;
   private MethodHandle methodHandle;
   private Convention convention;
 
-  public DllSymbol(DllInfo library) {
-    this.library = library;
+
+  public DllSymbol() {
+  }
+
+
+  public DllSymbol(String name, MethodHandle methodHandle, Convention convention) {
+    this.name = name;
+    this.methodHandle = methodHandle;
+    this.convention = convention;
+  }
+
+  public DllSymbol(Method method) {
+    this.name = method.getName();
+    try {
+      this.methodHandle = MethodHandles.publicLookup().unreflect(method);
+    } catch (IllegalAccessException e) {
+      throw new EvalException("Cannot access method '%s': %s", method.getName(), e.getMessage(), e);
+    }
   }
 
   public String getName() {
@@ -61,31 +80,19 @@ public class DllSymbol {
     this.name = name;
   }
 
-  public DllInfo getLibrary() {
-    return library;
-  }
-
-  public void setMethodHandle(MethodHandle methodHandle) {
-    this.methodHandle = methodHandle;
-  }
-
   public MethodHandle getMethodHandle() {
     return methodHandle;
   }
 
-  public void setLibrary(DllInfo library) {
-    this.library = library;
+  public Convention getConvention() {
+    return convention;
   }
 
-  public void setConvention(Convention convention) {
-    this.convention = convention;
-  }
-  
 
   /**
    * @return an R NativeSymbolInfo SEXP object
    */
-  public ListVector createObject() {
+  public ListVector buildNativeSymbolInfoSexp() {
 
     ListVector.NamedBuilder symbol = new ListVector.NamedBuilder();
     symbol.add("name", name);
@@ -93,8 +100,6 @@ public class DllSymbol {
         AttributeMap.builder().setClass("RegisteredNativeSymbol").build()));
 
     symbol.add("numParameters", methodHandle.type().parameterCount());
-
-
 
     if (convention!=null){
       symbol.setAttribute(Symbols.CLASS, new StringArrayVector(convention.getClassName(), "NativeSymbolInfo"));
@@ -104,4 +109,26 @@ public class DllSymbol {
     
     return symbol.build();
   }
+
+  /**
+   * "Parses" an R NativeSymbolInfo SEXP into a DllSymbol object.
+   */
+  public static DllSymbol fromSexp(SEXP method) {
+    ListVector list = (ListVector) method;
+    String name = list.getElementAsString("name");
+    ExternalPtr<MethodHandle> address = (ExternalPtr<MethodHandle>) list.get("address");
+    Convention convention = conventionFromClass(method);
+
+    return new DllSymbol(name, address.getInstance(), convention);
+  }
+
+  private static Convention conventionFromClass(SEXP method) {
+    for (Convention convention : Convention.values()) {
+      if(method.inherits(convention.getClassName())) {
+        return convention;
+      }
+    }
+    return Convention.C;
+  }
+
 }

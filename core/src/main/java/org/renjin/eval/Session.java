@@ -21,8 +21,10 @@ package org.renjin.eval;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
-import org.renjin.compiler.pipeline.VectorPipeliner;
+import org.renjin.pipeliner.VectorPipeliner;
+import org.renjin.primitives.Warning;
 import org.renjin.primitives.io.connections.ConnectionTable;
+import org.renjin.primitives.packaging.DllInfo;
 import org.renjin.primitives.packaging.NamespaceRegistry;
 import org.renjin.primitives.packaging.PackageLoader;
 import org.renjin.repackaged.guava.collect.ImmutableList;
@@ -33,12 +35,13 @@ import org.renjin.stats.internals.distributions.RNG;
 import org.renjin.util.FileSystemUtils;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.lang.invoke.MethodHandle;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 
 /**
  * Outermost context for R evaluation.
@@ -110,6 +113,12 @@ public class Session {
   private ClassLoader classLoader;
 
   /**
+   * Dynamic libraries that have been loaded for this session.
+   */
+  private List<DllInfo> loadedLibraries = new ArrayList<>();
+
+
+  /**
    * Whether the result of the evaluation should be "invisible" in a
    * REPL
    */
@@ -126,28 +135,28 @@ public class Session {
   Session(FileSystemManager fileSystemManager,
           ClassLoader classLoader,
           PackageLoader packageLoader,
-          VectorPipeliner pipeliner) {
+          ExecutorService executorService, Frame globalFrame) {
     this.fileSystemManager = fileSystemManager;
     this.classLoader = classLoader;
     this.homeDirectory = FileSystemUtils.homeDirectoryInCoreJar();
     this.workingDirectory = FileSystemUtils.workingDirectory(fileSystemManager);
     this.systemEnvironment = Maps.newHashMap(System.getenv()); //load system environment variables
     this.baseEnvironment = Environment.createBaseEnvironment();
-    this.globalEnvironment = Environment.createGlobalEnvironment(baseEnvironment);
-    this.baseNamespaceEnv = Environment.createBaseNamespaceEnvironment(globalEnvironment, baseEnvironment);
-    this.baseNamespaceEnv.setVariable(Symbol.get(".BaseNamespaceEnv"), baseNamespaceEnv);
+    this.globalEnvironment = Environment.createGlobalEnvironment(baseEnvironment, globalFrame);
+    this.baseNamespaceEnv = Environment.createBaseNamespaceEnvironment(globalEnvironment, baseEnvironment).build();
     this.topLevelContext = new Context(this);
+    this.baseNamespaceEnv.setVariableUnsafe(Symbol.get(".BaseNamespaceEnv"), baseNamespaceEnv);
 
     namespaceRegistry = new NamespaceRegistry(packageLoader, topLevelContext, baseNamespaceEnv);
     securityManager = new SecurityManager();
 
-    this.vectorPipeliner = pipeliner;
+    this.vectorPipeliner = new VectorPipeliner(executorService);
 
 
     // TODO(alex)
     // several packages rely on the presence of .Random.seed in the global
     // even though it's an implementation detail.
-    globalEnvironment.setVariable(".Random.seed", IntVector.valueOf(1));
+    globalEnvironment.setVariable(topLevelContext, ".Random.seed", IntVector.valueOf(1));
   }
 
 
@@ -196,7 +205,7 @@ public class Session {
   public RNG getRNG() {
     return rng;
   }
-  
+
   public Environment getGlobalEnvironment() {
     return globalEnvironment;
   }
@@ -353,5 +362,27 @@ public class Session {
 
   public MethodHandle getRngMethod() {
     return rng.getMethodHandle();
+  }
+
+  public void loadLibrary(DllInfo library) {
+    loadedLibraries.add(library);
+  }
+
+  public Iterable<DllInfo> getLoadedLibraries() {
+    return loadedLibraries;
+  }
+
+
+  public void printWarnings() {
+    SEXP warnings = baseEnvironment.getVariable(topLevelContext, Warning.LAST_WARNING);
+    if(warnings != Symbol.UNBOUND_VALUE) {
+      topLevelContext.evaluate( FunctionCall.newCall(Symbol.get("print.warnings"), warnings),
+          topLevelContext.getBaseEnvironment());
+
+    }
+  }
+
+  public void clearWarnings() {
+    baseEnvironment.remove(Warning.LAST_WARNING);
   }
 }

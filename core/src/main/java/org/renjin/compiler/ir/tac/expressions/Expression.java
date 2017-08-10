@@ -34,7 +34,7 @@ public interface Expression extends TreeNode {
    *
    * @return true if we are absolutely certain this expression has no side effects
    */
-  boolean isDefinitelyPure();
+  boolean isPure();
 
   /**
    * Emits the JVM byte code to push the value of this expression on the stack

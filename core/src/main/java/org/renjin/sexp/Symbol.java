@@ -66,7 +66,8 @@ public final class Symbol extends AbstractSEXP {
         "continue",
         "repeat",
         "next",
-        "{", "(", 
+        "switch",
+        "{", "(",
         "!",
         ":",
         "=", "!=", "==",
@@ -102,7 +103,6 @@ public final class Symbol extends AbstractSEXP {
         "is.complex",
         "is.double",
         "is.list",
-        "switch",
         "typeof",
         "seq_along",
         "lapply",
@@ -236,7 +236,6 @@ public final class Symbol extends AbstractSEXP {
   public final String getImplicitClass() {
     return IMPLICIT_CLASS;
   }
-  
   
 
   @Override

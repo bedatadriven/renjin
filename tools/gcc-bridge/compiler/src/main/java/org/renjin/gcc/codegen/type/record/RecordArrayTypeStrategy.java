@@ -37,8 +37,11 @@ import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
+import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
 import org.renjin.repackaged.asm.Type;
+
+import java.lang.reflect.Field;
 
 import static org.renjin.gcc.codegen.expr.Expressions.*;
 
@@ -69,7 +72,7 @@ public class RecordArrayTypeStrategy extends RecordTypeStrategy<RecordArrayExpr>
     this.fieldType = fieldType;
     arrayType = Wrappers.valueArrayType(fieldType);
     arrayLength = computeArrayLength(recordTypeDef, fieldType);
-    valueFunction = new RecordArrayValueFunction(fieldType, arrayLength);
+    valueFunction = new RecordArrayValueFunction(fieldType, arrayLength, new GimpleRecordType(recordTypeDef));
   }
 
   private static int computeArrayLength(GimpleRecordTypeDef recordTypeDef, Type fieldType) {
@@ -168,13 +171,18 @@ public class RecordArrayTypeStrategy extends RecordTypeStrategy<RecordArrayExpr>
   }
 
   @Override
+  public RecordArrayExpr providedGlobalVariable(GimpleVarDecl decl, Field javaField) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public RecordArrayExpr constructorExpr(ExprFactory exprFactory, MethodGenerator mv, GimpleConstructor value) {
     return new RecordArrayExpr(valueFunction, newArray(fieldType, arrayLength), arrayLength);
   }
 
   @Override
   public FieldStrategy fieldGenerator(Type className, final String fieldName) {
-    return new RecordArrayField(className, fieldName, arrayType.getElementType(), arrayLength);
+    return new RecordArrayField(className, fieldName, arrayType.getElementType(), arrayLength, this.recordType);
   }
 
   @Override

@@ -18,6 +18,7 @@
  */
 package org.renjin.compiler.builtins;
 
+import org.renjin.compiler.ir.TypeSet;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.sexp.Null;
@@ -30,21 +31,29 @@ import java.util.List;
  */
 public class GenericBuiltinGuard implements Specializer {
   
-  private final Specializer specializer;
+  private final BuiltinSpecializer specializer;
 
-  public GenericBuiltinGuard(Specializer specializer) {
+  public GenericBuiltinGuard(BuiltinSpecializer specializer) {
     this.specializer = specializer;
   }
 
   @Override
-  public Specialization trySpecialize(RuntimeState runtimeState, List<ValueBounds> argumentTypes) {
-    ValueBounds object = argumentTypes.get(0);
+  public Specialization trySpecialize(RuntimeState runtimeState, List<ArgumentBounds> arguments) {
+    ValueBounds object = arguments.get(0).getBounds();
     if(object.isClassAttributeConstant()) {
-      if(object.getConstantClassAttribute() == Null.INSTANCE) {
-        // The argument has no class attribute, so we can safely
-        // specialize the (builtin) default function.
-        return specializer.trySpecialize(runtimeState, argumentTypes);
+
+      if(object.getTypeSet() == TypeSet.S4) {
+        return S4Specialization.trySpecialize(specializer.getName(), runtimeState, object, arguments);
       }
+      
+      // If the class attribute is not known to be NULL, we need to try to
+      // do S3 dispatch
+      if(object.getConstantClassAttribute() != Null.INSTANCE) {
+        return S3Specialization.trySpecialize(specializer.getName(), runtimeState, object, arguments);
+      }
+
+      return specializer.trySpecialize(runtimeState, arguments);
+
     }
     // Can't make any assumptions. 
     return UnspecializedCall.INSTANCE;

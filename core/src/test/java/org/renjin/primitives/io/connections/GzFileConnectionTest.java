@@ -42,7 +42,7 @@ public class GzFileConnectionTest extends EvalTestCase {
     BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
     assertThat(reader.readLine(), equalTo("hello world"));
   }
-  
+
   @Test
   public void readXZCompressed() throws IOException {
     String expected = "For if Jack Buggit could escape from the pickle jar";

@@ -83,3 +83,73 @@ test.EmptyInputStringInTextSubstr <- function() {
   out <- substr(c(), 1, 1);
   assertThat( out, identicalTo(character(0)));
 }
+
+test.PromisesAreForcedByDollar <- function() {
+
+    .data <- 1:12
+
+    capture.promise <- function(data) {
+        environment()
+    }
+
+    x <- list(env = capture.promise(.data))
+
+    f <- function(z) {
+        z[1]
+    }
+
+    f(x$env$data)
+}
+
+test.PromisesAreForcedBySubset <- function() {
+
+    .data <- 1:12
+
+    capture.promise <- function(data) {
+        environment()
+    }
+
+    x <- list(env = capture.promise(.data))
+
+    f <- function(z) {
+        z[1]
+    }
+
+    f(x$env[['data']])
+}
+
+test.PromisesAreForcedByGet <- function() {
+
+    .data <- 1:12
+
+    capture.promise <- function(data) {
+        environment()
+    }
+
+    x <- list(env = capture.promise(.data))
+
+    f <- function(z) {
+        z[1]
+    }
+
+    f(get(envir = x$env, 'data'))
+}
+
+test.RecallInPromise <- function() {
+
+    g <- function(x, y) {
+        x + y
+    }
+
+    f <- function(n) {
+        cat(sprintf("n = %d\n", n))
+        if(n < 0) {
+            99
+        } else {
+            Recall(n - 1)
+        }
+    }
+
+    print(f(3))
+
+}

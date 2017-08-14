@@ -39,7 +39,7 @@ public abstract class PrimitiveFunction extends AbstractSEXP implements Function
   protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
     // Seems strange being able to set attributes on globally 
     // shared objects...
-    this.attributes = attributes;
+    this.unsafeSetAttributes(attributes);
     return this;
   }
  

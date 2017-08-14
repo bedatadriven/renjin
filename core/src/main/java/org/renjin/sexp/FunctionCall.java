@@ -133,7 +133,7 @@ public class FunctionCall extends PairList.Node {
   @Override
   public Builder newCopyBuilder() {
     Builder builder = new Builder();
-    builder.withAttributes(attributes);
+    builder.withAttributes(getAttributes());
     for(Node node : nodes()) {
       builder.add(node.getRawTag(), node.getValue());
     }

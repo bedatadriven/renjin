@@ -20,7 +20,6 @@ package org.renjin.sexp;
 
 import org.renjin.eval.ClosureDispatcher;
 import org.renjin.eval.Context;
-import org.renjin.primitives.special.ReturnException;
 import org.renjin.repackaged.guava.base.Objects;
 
 
@@ -118,7 +117,7 @@ public class Closure extends AbstractSEXP implements Function {
    * @return
    */
   public Closure setEnclosingEnvironment(Environment env) {
-    return new Closure(env, formals, body, attributes);
+    return new Closure(env, formals, body, getAttributes());
   }
 
   /**

@@ -21,10 +21,6 @@ package org.renjin.sexp;
 import org.renjin.base.BaseFrame;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
-import org.renjin.eval.Session;
-import org.renjin.primitives.Contexts;
-import org.renjin.primitives.Evaluation;
-import org.renjin.primitives.Native;
 import org.renjin.repackaged.guava.base.Predicate;
 import org.renjin.repackaged.guava.collect.Sets;
 import org.renjin.repackaged.guava.collect.UnmodifiableIterator;
@@ -182,7 +178,7 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
   }
 
   public String getName() {
-    SEXP nameAttribute = this.attributes.get(Symbols.NAME);
+    SEXP nameAttribute = this.getAttributes().get(Symbols.NAME);
     if(nameAttribute instanceof StringVector) {
       return ((StringVector) nameAttribute).getElementAsString(0);
     } else if(name == null) {

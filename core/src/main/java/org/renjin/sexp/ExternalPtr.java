@@ -93,7 +93,7 @@ public final class ExternalPtr<T> extends AbstractSEXP {
 
   @Override
   protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
-    this.attributes = attributes;
+    this.unsafeSetAttributes(attributes);
     return this;
   }
 

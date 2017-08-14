@@ -242,7 +242,7 @@ public final class Symbol extends AbstractSEXP {
   protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
     // it seems very strange that you can change attributes on a 
     // globally shared object, but that seems to be the case in R
-    this.attributes = attributes;
+    this.unsafeSetAttributes(attributes);
     return this;
   }
 

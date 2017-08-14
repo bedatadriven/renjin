@@ -259,5 +259,9 @@ public abstract class AbstractSEXP implements SEXP {
     this.attributes = attributes.validateAndBuildFor(this);
     
   }
+  
+  public void setObject() {
+    this.object = attributes.hasClass();
+  }
 
 }

@@ -18,17 +18,18 @@
  *
  */
 
-package org.renjin.gcc.codegen.fatptr;
+package org.renjin.gcc.codegen.vptr;
 
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.*;
+import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.expr.JLValue;
+import org.renjin.gcc.codegen.expr.PtrExpr;
+import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
-import org.renjin.gcc.runtime.PointerImpls;
-import org.renjin.gcc.runtime.Pointer;
 import org.renjin.repackaged.asm.Label;
-import org.renjin.repackaged.asm.Type;
 
 public class VPtrExpr implements PtrExpr {
 
@@ -75,16 +76,7 @@ public class VPtrExpr implements PtrExpr {
   @Override
   public GExpr valueOf(GimpleType expectedType) {
     if(expectedType instanceof GimplePrimitiveType) {
-      Type jvmType = ((GimplePrimitiveType) expectedType).jvmType();
-      switch (jvmType.getSort()) {
-        case Type.BYTE:
-          return new PrimitiveValue(
-              Expressions.methodCall(ref, Pointer.class, "getByte", Type.getMethodDescriptor(Type.BYTE_TYPE)));
-        case Type.INT:
-          return new PrimitiveValue(
-              Expressions.methodCall(ref, Pointer.class, "getInt", Type.getMethodDescriptor(Type.INT_TYPE)));
-
-      }
+      return new PrimitiveValue(new DerefExpr(ref, PointerType.valueOf((GimplePrimitiveType) expectedType)));
     }
     throw new UnsupportedOperationException("TODO: " + expectedType);
   }

@@ -18,14 +18,16 @@
  *
  */
 
-package org.renjin.gcc.codegen.fatptr;
+package org.renjin.gcc.codegen.vptr;
 
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.*;
+import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.type.voidt.VoidPtr;
+import org.renjin.gcc.codegen.type.voidt.VoidPtrReturnStrategy;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.GimpleVarDecl;
@@ -97,12 +99,12 @@ public class VPtrStrategy implements PointerTypeStrategy {
 
   @Override
   public ParamStrategy getParamStrategy() {
-    throw new UnsupportedOperationException("TODO");
+    return new VPtrParamStrategy();
   }
 
   @Override
   public ReturnStrategy getReturnStrategy() {
-    throw new UnsupportedOperationException("TODO");
+    return new VoidPtrReturnStrategy();
   }
 
   @Override
@@ -128,7 +130,7 @@ public class VPtrStrategy implements PointerTypeStrategy {
 
   @Override
   public FieldStrategy fieldGenerator(Type className, String fieldName) {
-    throw new UnsupportedOperationException("TODO");
+    return new VPtrFieldStrategy(className, fieldName);
   }
 
   @Override
@@ -149,7 +151,7 @@ public class VPtrStrategy implements PointerTypeStrategy {
   @Override
   public GExpr cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
     if(typeStrategy instanceof VPtrStrategy) {
-      return ((VPtrExpr) value);
+      return value;
     }
     throw new UnsupportedOperationException("TODO: " + typeStrategy.getClass().getSimpleName());
   }

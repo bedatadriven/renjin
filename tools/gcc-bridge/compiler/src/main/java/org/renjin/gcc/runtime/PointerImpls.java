@@ -20,6 +20,7 @@
 
 package org.renjin.gcc.runtime;
 
+import org.renjin.gcc.codegen.vptr.PointerType;
 import org.renjin.repackaged.asm.Type;
 
 import java.io.PrintWriter;
@@ -29,66 +30,24 @@ import java.io.PrintWriter;
  */
 public class PointerImpls {
 
-  private static final String PACKAGE = "org.renjin.gcc.runtime";
+  public static final String PACKAGE = "org.renjin.gcc.runtime";
 
-  public enum Signedness {
-    SIGNED,
-    UNSIGNED
-  }
-
-  public enum Kind {
-    INTEGRAL,
-    FLOAT
-  }
-
-  public enum PrimitiveType {
-    BYTE(Kind.INTEGRAL, Signedness.SIGNED, 1),
-    SHORT(Kind.INTEGRAL, Signedness.SIGNED, 2),
-    CHAR(Kind.INTEGRAL, Signedness.UNSIGNED, 2),
-    INT(Kind.INTEGRAL, Signedness.SIGNED, 4),
-    LONG(Kind.INTEGRAL, Signedness.SIGNED, 8),
-    FLOAT(Kind.FLOAT, Signedness.SIGNED, 4),
-    DOUBLE(Kind.FLOAT, Signedness.SIGNED, 8);
-
-    private Kind kind;
-    private int size;
-    private Signedness signedness;
-
-    PrimitiveType(Kind kind, Signedness signedness, int size) {
-      this.kind = kind;
-      this.size = size;
-      this.signedness = signedness;
-    }
-
-    public String titleCasedName() {
-      return name().substring(0, 1) + name().substring(1).toLowerCase();
-    }
-
-    public String arrayBackedClassImpl() {
-      return titleCasedName() + "ArrayPointer";
-    }
-
-    public Type arrayBackedImplType() {
-      return Type.getType("L" + PACKAGE.replace('.', '/') + "/" + arrayBackedClassImpl() + ";");
-    }
-  }
-
-  public static PrimitiveType ofType(Type type) {
+  public static PointerType ofType(Type type) {
     switch (type.getSort()) {
       case Type.BYTE:
-        return PrimitiveType.BYTE;
+        return PointerType.BYTE;
       case Type.SHORT:
-        return PrimitiveType.SHORT;
+        return PointerType.SHORT;
       case Type.CHAR:
-        return PrimitiveType.CHAR;
+        return PointerType.CHAR;
       case Type.INT:
-        return PrimitiveType.INT;
+        return PointerType.INT;
       case Type.LONG:
-        return PrimitiveType.LONG;
+        return PointerType.LONG;
       case Type.FLOAT:
-        return PrimitiveType.FLOAT;
+        return PointerType.FLOAT;
       case Type.DOUBLE:
-        return PrimitiveType.DOUBLE;
+        return PointerType.DOUBLE;
     }
     throw new UnsupportedOperationException("TODO: " + type);
   }
@@ -100,11 +59,11 @@ public class PointerImpls {
 //    }
 //
 
-    writeImpl(PrimitiveType.INT);
+    writeImpl(PointerType.INT);
 
   }
 
-  private static void writeImpl(PrimitiveType primitiveType) {
+  private static void writeImpl(PointerType primitiveType) {
 
     PrintWriter pw = new PrintWriter(System.out);
     String className = primitiveType.titleCasedName() + "ArrayPointer";

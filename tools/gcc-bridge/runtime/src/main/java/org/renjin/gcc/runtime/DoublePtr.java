@@ -21,6 +21,10 @@ package org.renjin.gcc.runtime;
 
 import java.util.Arrays;
 
+/**
+ * @deprecated See {@link DoubleArrayPointer}
+ */
+@Deprecated
 public class DoublePtr implements Ptr {
   
   public static final DoublePtr NULL = new DoublePtr();

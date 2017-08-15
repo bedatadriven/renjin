@@ -24,6 +24,7 @@ import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.type.primitive.ConstantValue;
 import org.renjin.gcc.codegen.type.voidt.VoidPtr;
 import org.renjin.gcc.codegen.var.LocalVarAllocator;
+import org.renjin.gcc.codegen.vptr.PointerType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.runtime.ObjectPtr;
 import org.renjin.gcc.runtime.PointerImpls;
@@ -158,7 +159,7 @@ public final class FatPtrPair implements FatPtr, PtrExpr {
   }
 
   public JExpr vpointer() {
-    final PointerImpls.PrimitiveType primitiveType = PointerImpls.ofType(getValueType());
+    final PointerType primitiveType = PointerImpls.ofType(getValueType());
 
     return new JExpr() {
       @Nonnull

@@ -21,6 +21,10 @@ package org.renjin.gcc.runtime;
 
 import java.util.Arrays;
 
+/**
+ * Deprecated. Use {@link IntArrayPointer}
+ */
+@Deprecated
 public class IntPtr implements Ptr {
   
   public static final int BYTES = Integer.SIZE / 8;

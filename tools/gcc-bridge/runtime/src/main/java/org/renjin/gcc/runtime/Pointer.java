@@ -25,25 +25,6 @@ public interface Pointer {
 
   /**
    *
-   * @return the value at the beginning of the pointer region as a boolean
-   */
-  boolean getBoolean();
-
-  /**
-   *
-   * @param offset the offset from the beginning of the pointer, in bytes.
-   * @return the boolean the given offet from the beginning of the pointer region.
-   */
-  boolean getBoolean(int offset);
-
-  /**
-   * Sets the given {@code value} at the beginning of the pointer.
-   */
-  void setBoolean(boolean value);
-
-
-  /**
-   *
    * @return the value at the beginning of the pointer region as a byte
    */
   byte getByte();
@@ -68,6 +49,13 @@ public interface Pointer {
   void setByte(int offset, byte value);
 
 
+  short getShort();
+
+  short getShort(int offset);
+
+  void setShort(short value);
+
+  void setShort(int offset, short value);
 
   /**
    *
@@ -185,7 +173,7 @@ public interface Pointer {
    * @param offset the offset from the beginning of the pointer, in bytes.
    * @return the float at the given offset from the beginning of the pointer region.
    */
-  int getLong(int offset);
+  long getLong(int offset);
 
   /**
    * Sets the given {@code value} at the beginning of the pointer.
@@ -212,7 +200,7 @@ public interface Pointer {
    * @param offset the offset from the beginning of the pointer, in bytes.
    * @return the Pointer at the given offset from the beginning of the pointer region.
    */
-  int getPointer(int offset);
+  Pointer getPointer(int offset);
 
   /**
    * Sets the given {@code value} at the beginning of the pointer.

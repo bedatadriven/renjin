@@ -261,12 +261,12 @@ public class GimpleCompilerTest extends AbstractGccTest {
 
     clazz.getMethod("runtest_").invoke(null);
 
-    Method iftest = clazz.getMethod("iftest_", IntPtr.class, IntPtr.class);
-    IntPtr x = new IntPtr(0);
+    Method iftest = clazz.getMethod("iftest_", Pointer.class, Pointer.class);
+    IntArrayPointer x = new IntArrayPointer(0);
 
-    iftest.invoke(null, new IntPtr(12), x);
+    iftest.invoke(null, new IntArrayPointer(12), x);
 
-    assertThat(x.unwrap(), equalTo(1));
+    assertThat(x.getInt(), equalTo(1));
 
   }
 
@@ -283,15 +283,15 @@ public class GimpleCompilerTest extends AbstractGccTest {
   @Test
   public void logicalOr() throws Exception {
     Class clazz = compile("or.f");
-    Method testMethod = clazz.getMethod("stlest_", IntPtr.class, IntPtr.class, DoublePtr.class);
+    Method testMethod = clazz.getMethod("stlest_", Pointer.class, Pointer.class, Pointer.class);
 
-    DoublePtr result = new DoublePtr(0);
+    DoubleArrayPointer result = new DoubleArrayPointer(0);
 
-    testMethod.invoke(null, new IntPtr(41), new IntPtr(42), result);
-    assertThat(result.unwrap(), equalTo(42.0));
+    testMethod.invoke(null, new IntArrayPointer(41), new IntArrayPointer(42), result);
+    assertThat(result.getDouble(), equalTo(42.0));
 
-    testMethod.invoke(null, new IntPtr(49), new IntPtr(42), result);
-    assertThat(result.unwrap(), equalTo(49.0));
+    testMethod.invoke(null, new IntArrayPointer(49), new IntArrayPointer(42), result);
+    assertThat(result.getDouble(), equalTo(49.0));
   }
 
   @Test

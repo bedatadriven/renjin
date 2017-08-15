@@ -26,6 +26,7 @@ import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidPtr;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
 
@@ -123,7 +124,7 @@ public class PointerUnionField extends SingleFieldStrategy {
     }
 
     @Override
-    public GExpr valueOf() {
+    public GExpr valueOf(GimpleType expectedType) {
       throw new UnsupportedOperationException("TODO");
     }
   }

@@ -22,6 +22,7 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.FatPtr;
 import org.renjin.gcc.codegen.type.record.RecordValue;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
 
@@ -67,7 +68,7 @@ public class RecordUnitPtr implements RefPtrExpr {
   }
 
   @Override
-  public GExpr valueOf() {
+  public GExpr valueOf(GimpleType expectedType) {
     return new RecordValue(ref);
   }
 }

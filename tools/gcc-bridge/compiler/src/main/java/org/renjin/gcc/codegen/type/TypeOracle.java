@@ -22,10 +22,7 @@ import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.annotations.Struct;
 import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
-import org.renjin.gcc.codegen.fatptr.FatPtrReturnStrategy;
-import org.renjin.gcc.codegen.fatptr.FatPtrValueFunction;
-import org.renjin.gcc.codegen.fatptr.WrappedFatPtrParamStrategy;
-import org.renjin.gcc.codegen.fatptr.Wrappers;
+import org.renjin.gcc.codegen.fatptr.*;
 import org.renjin.gcc.codegen.type.complex.ComplexTypeStrategy;
 import org.renjin.gcc.codegen.type.fun.FunPtrStrategy;
 import org.renjin.gcc.codegen.type.fun.FunTypeStrategy;
@@ -115,7 +112,8 @@ public class TypeOracle {
       return forRecordType(recordType);
       
     } else if(type instanceof GimpleIndirectType) {
-      return forType(type.getBaseType()).pointerTo();
+      //return forType(type.getBaseType()).pointerTo();
+      return new VPtrStrategy();
     
     } else if(type instanceof GimpleArrayType) {
       GimpleArrayType arrayType = (GimpleArrayType) type;

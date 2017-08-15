@@ -24,6 +24,7 @@ import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.fatptr.WrappedFatPtrExpr;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
 
@@ -43,6 +44,11 @@ public class ArrayValueFunction implements ValueFunction {
   @Override
   public Type getValueType() {
     return elementValueFunction.getValueType();
+  }
+
+  @Override
+  public GimpleType getGimpleValueType() {
+    return arrayType;
   }
 
   @Override

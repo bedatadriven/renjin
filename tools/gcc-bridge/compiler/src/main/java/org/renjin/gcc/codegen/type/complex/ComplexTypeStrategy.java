@@ -104,18 +104,18 @@ public class ComplexTypeStrategy implements TypeStrategy<ComplexValue> {
 
   @Override
   public ValueFunction getValueFunction() {
-    return new ComplexValueFunction(type.getJvmPartType());
+    return new ComplexValueFunction(type);
   }
 
   @Override
   public FatPtrStrategy pointerTo() {
-    return new FatPtrStrategy(new ComplexValueFunction(type.getJvmPartType()), 1)
+    return new FatPtrStrategy(new ComplexValueFunction(type), 1)
         .setParametersWrapped(false);
   }
 
   @Override
   public ArrayTypeStrategy arrayOf(GimpleArrayType arrayType) {
-    return new ArrayTypeStrategy(arrayType, new ComplexValueFunction(type.getJvmPartType()))
+    return new ArrayTypeStrategy(arrayType, new ComplexValueFunction(type))
         .setParameterWrapped(false);
   }
 

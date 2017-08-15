@@ -25,7 +25,6 @@ import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.gcc.codegen.fatptr.*;
 import org.renjin.gcc.codegen.type.ParamStrategy;
-import org.renjin.gcc.codegen.type.primitive.PrimitiveValueFunction;
 import org.renjin.gcc.codegen.type.record.RecordValue;
 import org.renjin.gcc.codegen.type.voidt.VoidPtr;
 import org.renjin.gcc.codegen.var.VarAllocator;
@@ -110,7 +109,7 @@ class RecordUnitPtrParam implements ParamStrategy {
 
       FatPtr fatPtrExpr = (FatPtr) expr;
       if (fatPtrExpr.getValueType().getSort() == Type.OBJECT) {
-        GExpr refExpr = fatPtrExpr.valueOf();
+        GExpr refExpr = fatPtrExpr.valueOf(strategy.getGimpleType());
         if(refExpr instanceof RecordValue) {
           Expressions.cast(((RecordValue) refExpr).unwrap(), strategy.getJvmType()).load(mv);
           return;

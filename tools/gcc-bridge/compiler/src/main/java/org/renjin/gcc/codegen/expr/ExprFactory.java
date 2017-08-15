@@ -449,7 +449,7 @@ public class ExprFactory {
       ptrExpr =  pointerStrategy.pointerPlus(mv, ptrExpr, offsetInBytes);
     }
 
-    return ((PtrExpr) ptrExpr).valueOf();
+    return ((PtrExpr) ptrExpr).valueOf(expectedType);
   }
   
   private GExpr dereferenceThenCast(GimpleMemRef gimpleExpr, GimpleType expectedType) {
@@ -464,7 +464,7 @@ public class ExprFactory {
       ptrExpr =  pointerStrategy.pointerPlus(mv, ptrExpr, offsetInBytes);
     }
     
-    GExpr valueExpr = ((PtrExpr) ptrExpr).valueOf();
+    GExpr valueExpr = ((PtrExpr) ptrExpr).valueOf(expectedType);
 
     return maybeCast(valueExpr, expectedType, pointerType.getBaseType());
   }

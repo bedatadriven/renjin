@@ -24,6 +24,7 @@ import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidPtr;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleParameter;
+import org.renjin.gcc.gimple.type.GimpleVoidType;
 import org.renjin.gcc.runtime.ObjectPtr;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
@@ -65,7 +66,8 @@ public class WrappedFatPtrParamStrategy implements ParamStrategy {
           wrapper.getType(), Optional.<JExpr>of(wrapper));
 
       return new DereferencedFatPtr(unitArray, Expressions.constantInt(0), 
-          new FatPtrValueFunction(valueFunction)).valueOf();
+          new FatPtrValueFunction(valueFunction))
+          .valueOf(valueFunction.getGimpleValueType());
 
     } else if(valueFunction.getValueType().getSort() == Type.OBJECT) {
       return new WrappedFatPtrExpr(valueFunction, wrapper);

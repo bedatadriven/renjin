@@ -23,6 +23,7 @@ import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.gcc.codegen.expr.NotAddressableException;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.runtime.ObjectPtr;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
@@ -93,7 +94,7 @@ public class WrappedFatPtrExpr implements FatPtr {
   }
 
   @Override
-  public GExpr valueOf() {
+  public GExpr valueOf(GimpleType expectedType) {
     return valueFunction.dereference(this);
   }
 

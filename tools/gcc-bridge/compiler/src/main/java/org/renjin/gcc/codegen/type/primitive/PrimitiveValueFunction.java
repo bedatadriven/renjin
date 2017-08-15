@@ -27,6 +27,7 @@ import org.renjin.gcc.codegen.fatptr.Memset;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.fatptr.WrappedFatPtrExpr;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
 
@@ -57,6 +58,11 @@ public class PrimitiveValueFunction implements ValueFunction {
   @Override
   public Type getValueType() {
     return type;
+  }
+
+  @Override
+  public GimpleType getGimpleValueType() {
+    return gimpleType;
   }
 
   @Override

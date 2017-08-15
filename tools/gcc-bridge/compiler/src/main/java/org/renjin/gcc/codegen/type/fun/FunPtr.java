@@ -25,6 +25,7 @@ import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.gcc.codegen.expr.RefPtrExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtr;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.Label;
 
 
@@ -68,7 +69,7 @@ public class FunPtr implements RefPtrExpr {
   }
 
   @Override
-  public GExpr valueOf() {
+  public GExpr valueOf(GimpleType expectedType) {
     return this;
   }
 }

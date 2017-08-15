@@ -28,6 +28,7 @@ import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.fatptr.WrappedFatPtrExpr;
 import org.renjin.gcc.codegen.type.primitive.ConstantValue;
 import org.renjin.gcc.codegen.var.LocalVarAllocator;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
@@ -52,6 +53,11 @@ public class RecordClassValueFunction implements ValueFunction {
   @Override
   public Type getValueType() {
     return strategy.getJvmType();
+  }
+
+  @Override
+  public GimpleType getGimpleValueType() {
+    return strategy.getGimpleType();
   }
 
   @Override

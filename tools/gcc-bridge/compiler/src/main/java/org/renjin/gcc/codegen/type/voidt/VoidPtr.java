@@ -21,8 +21,7 @@ package org.renjin.gcc.codegen.type.voidt;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.FatPtr;
-import org.renjin.gcc.codegen.fatptr.FatPtrPair;
-import org.renjin.gcc.codegen.fatptr.WrappedFatPtrExpr;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.Label;
 
 
@@ -73,7 +72,7 @@ public class VoidPtr implements RefPtrExpr {
   }
 
   @Override
-  public GExpr valueOf() {
+  public GExpr valueOf(GimpleType expectedType) {
     throw new UnsupportedOperationException("void pointers cannot be dereferenced.");
   }
 }

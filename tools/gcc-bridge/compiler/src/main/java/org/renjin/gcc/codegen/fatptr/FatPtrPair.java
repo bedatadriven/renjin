@@ -24,7 +24,9 @@ import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.type.primitive.ConstantValue;
 import org.renjin.gcc.codegen.type.voidt.VoidPtr;
 import org.renjin.gcc.codegen.var.LocalVarAllocator;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.runtime.ObjectPtr;
+import org.renjin.gcc.runtime.PointerImpls;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Preconditions;
@@ -130,7 +132,7 @@ public final class FatPtrPair implements FatPtr, PtrExpr {
   }
 
   @Override
-  public GExpr valueOf() {
+  public GExpr valueOf(GimpleType expectedType) {
     return valueFunction.dereference(array, offset);
   }
 
@@ -153,6 +155,26 @@ public final class FatPtrPair implements FatPtr, PtrExpr {
       throw new InternalCompilerException(offset + " offset is not an Lvalue");
     }
     ((JLValue) offset).store(mv, offsetRhs);
+  }
+
+  public JExpr vpointer() {
+    final PointerImpls.PrimitiveType primitiveType = PointerImpls.ofType(getValueType());
+
+    return new JExpr() {
+      @Nonnull
+      @Override
+      public Type getType() {
+        return primitiveType.arrayBackedImplType();
+      }
+
+      @Override
+      public void load(@Nonnull MethodGenerator mv) {
+        array.load(mv);
+        offset.load(mv);
+        mv.invokestatic(primitiveType.arrayBackedImplType(), "fromPair",
+            Type.getMethodDescriptor(primitiveType.arrayBackedImplType(), array.getType(), Type.INT_TYPE));
+      }
+    };
   }
 
 

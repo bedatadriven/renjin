@@ -24,6 +24,7 @@ import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.gcc.gimple.type.GimplePointerType;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
 
@@ -49,6 +50,11 @@ public class FatPtrValueFunction implements ValueFunction {
   @Override
   public Type getValueType() {
     return Wrappers.wrapperType(baseValueFunction.getValueType());
+  }
+
+  @Override
+  public GimpleType getGimpleValueType() {
+    return baseValueFunction.getGimpleValueType().pointerTo();
   }
 
   @Override

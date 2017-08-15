@@ -43,13 +43,6 @@ public interface Pointer {
 
 
   /**
-   * Sets the given {@code value} at the offset from the beginning of the pointer as a byte.
-   * @param offset  the offset from the beginning of the pointer, in bytes.
-   */
-  void getByte(int offset, boolean value);
-
-
-  /**
    *
    * @return the value at the beginning of the pointer region as a byte
    */
@@ -234,7 +227,10 @@ public interface Pointer {
   void setPointer(int offset, Pointer value);
 
 
-
+  /**
+   * Returns a new Pointer with the given byte count offset.
+   */
+  Pointer plus(int byteCount);
 
 
 }

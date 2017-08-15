@@ -582,6 +582,34 @@ public class Expressions {
         getMethodDescriptor(Type.INT_TYPE, Type.INT_TYPE), value);
   }
 
+  public static JExpr methodCall(final JExpr instance,
+                                 final Class declaringType,
+                                 final String methodName,
+                                 final String descriptor,
+                                 final JExpr... arguments) {
+
+    return new JExpr() {
+      @Nonnull
+      @Override
+      public Type getType() {
+        return Type.getReturnType(methodName);
+      }
+
+      @Override
+      public void load(@Nonnull MethodGenerator mv) {
+        instance.load(mv);
+        for (JExpr argument : arguments) {
+          argument.load(mv);
+        }
+        if(declaringType.isInterface()) {
+          mv.invokeinterface(Type.getInternalName(declaringType), methodName, descriptor);
+        } else {
+          mv.invokevirtual(Type.getType(declaringType), methodName, descriptor, false);
+        }
+      }
+    };
+  }
+
   public static JExpr staticMethodCall(final Class declaringType, final String methodName,
                                        final String descriptor, final JExpr... arguments) {
     return staticMethodCall(Type.getType(declaringType), methodName, descriptor, arguments);

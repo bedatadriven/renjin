@@ -21,6 +21,7 @@ package org.renjin.gcc.codegen.fatptr;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
 
@@ -32,6 +33,8 @@ import java.util.List;
 public interface ValueFunction {
   
   Type getValueType();
+
+  GimpleType getGimpleValueType();
 
   /**
    * Returns the number of array elements required for each value.

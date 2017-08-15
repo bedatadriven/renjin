@@ -35,6 +35,8 @@ import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
+import org.renjin.gcc.gimple.type.GimpleRecordType;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
@@ -51,7 +53,7 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>
   
   public RecordUnitPtrStrategy(RecordClassTypeStrategy strategy) {
     this.strategy = strategy;
-    this.valueFunction = new RecordUnitPtrValueFunction(strategy.getJvmType());
+    this.valueFunction = new RecordUnitPtrValueFunction(strategy.getGimpleType(), strategy.getJvmType());
   }
 
   public boolean isEmpty() {
@@ -265,5 +267,9 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>
   @Override
   public String toString() {
     return "RecordUnitPtrStrategy[" + strategy.getRecordTypeDef().getName() + "]";
+  }
+
+  public GimpleRecordType getGimpleType() {
+    return strategy.getRecordType();
   }
 }

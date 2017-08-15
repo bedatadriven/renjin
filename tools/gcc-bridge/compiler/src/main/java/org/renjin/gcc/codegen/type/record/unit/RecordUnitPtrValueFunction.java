@@ -26,6 +26,8 @@ import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.Memset;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.fatptr.WrappedFatPtrExpr;
+import org.renjin.gcc.gimple.type.GimpleRecordType;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
 
@@ -33,16 +35,23 @@ import java.util.Collections;
 import java.util.List;
 
 public class RecordUnitPtrValueFunction implements ValueFunction {
-  
+
+  private GimpleRecordType gimpleType;
   private Type recordType;
 
-  public RecordUnitPtrValueFunction(Type recordType) {
+  public RecordUnitPtrValueFunction(GimpleRecordType gimpleType, Type recordType) {
+    this.gimpleType = gimpleType;
     this.recordType = recordType;
   }
 
   @Override
   public Type getValueType() {
     return recordType;
+  }
+
+  @Override
+  public GimpleType getGimpleValueType() {
+    return gimpleType;
   }
 
   @Override

@@ -19,6 +19,7 @@
 package org.renjin.gcc.codegen.expr;
 
 import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.Label;
 
 /**
@@ -28,5 +29,5 @@ public interface PtrExpr extends GExpr {
   
   void jumpIfNull(MethodGenerator mv, Label label);
   
-  GExpr valueOf();
+  GExpr valueOf(GimpleType expectedType);
 }

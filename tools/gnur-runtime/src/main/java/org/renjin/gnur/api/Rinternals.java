@@ -25,7 +25,6 @@ import org.renjin.eval.FinalizationClosure;
 import org.renjin.eval.FinalizationHandler;
 import org.renjin.gcc.runtime.*;
 import org.renjin.methods.MethodDispatch;
-import org.renjin.methods.Methods;
 import org.renjin.primitives.*;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.primitives.subset.Subsetting;
@@ -2223,7 +2222,29 @@ public final class Rinternals {
       throw new EvalException("invalid type or length for slot name");
     }
 
-    return Methods.R_set_slot(Native.currentContext(), obj, name.asString(), value);
+    // In GNU R calls from C code to SET_SLOT will mutate the object
+    // depending on whether the 'named' flag is set. In Renjin we don't
+    // have this flag and therefor assume that all calls from C code to
+    // SET_SLOT will mutate the object. However, calls from R code
+    // should not mutate, hence we do not change Methods.R_set_slot()
+    // to use unsafesetAttributes(), but duplicate the logic here and
+    // use the unsafesetAttributes() here instead.
+    if(name.asString().equals(".Data")) {
+      // the .Data slot actually refers to the object value itself, for
+      // example the double values contained in a double vector
+      // So we copy the slots from 'object' to the new value
+      return Native.currentContext().evaluate(FunctionCall.newCall(Symbol.get("setDataPart"), obj, value),
+        Native.currentContext().getSingleton(MethodDispatch.class).getMethodsNamespace());
+    } else {
+      // When set via S4 methods, R attributes can contain
+      // invalid values, for example the 'class' attribute
+      // might contain a double vector of arbitrary length.
+      // For this reason we have to be careful to avoid attribute
+      // validation.
+      SEXP slotValue = value == Null.INSTANCE ? Symbols.S4_NULL : value;
+      ((AbstractSEXP)obj).unsafeSetAttributes(obj.getAttributes().copy().set(name.asString(), slotValue));
+      return obj;
+    }
   }
 
   public static int R_has_slot(SEXP obj, SEXP name) {

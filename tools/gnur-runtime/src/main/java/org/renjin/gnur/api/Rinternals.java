@@ -178,7 +178,7 @@ public final class Rinternals {
   /**
    * "level" Symbol
    */
-  public static final  SEXP	R_LevelsSymbol = Symbol.get("level");
+  public static final  SEXP	R_LevelsSymbol = Symbol.get("levels");
 
   /**
    * "mode" symbol

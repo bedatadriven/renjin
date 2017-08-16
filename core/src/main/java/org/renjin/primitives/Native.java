@@ -359,9 +359,6 @@ public class Native {
         return Null.INSTANCE;
       } else {
         SEXP result = (SEXP) transformedHandle.invokeExact(arguments);
-        if(result instanceof AbstractSEXP) {
-          ((AbstractSEXP) result).setObject();
-        }
         return result;
       }
     } catch (Error e) {

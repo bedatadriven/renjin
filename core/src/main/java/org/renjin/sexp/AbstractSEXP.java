@@ -258,9 +258,5 @@ public abstract class AbstractSEXP implements SEXP {
   public void unsafeSetAttributes(AttributeMap.Builder attributes) {
     unsafeSetAttributes(attributes.validateAndBuildFor(this));
   }
-  
-  public void setObject() {
-    this.object = attributes.hasClass();
-  }
 
 }

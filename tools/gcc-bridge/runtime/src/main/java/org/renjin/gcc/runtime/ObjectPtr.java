@@ -22,7 +22,7 @@ import org.renjin.gcc.annotations.GccSize;
 
 import java.util.Arrays;
 
-public class ObjectPtr<T> implements Ptr {
+public class ObjectPtr<T> extends AbstractPtr {
   
   public static final ObjectPtr NULL = new ObjectPtr();
   
@@ -73,7 +73,17 @@ public class ObjectPtr<T> implements Ptr {
   public Ptr pointerPlus(int bytes) {
     throw new UnsupportedOperationException("TODO");
   }
-  
+
+  @Override
+  public byte getByte(int offset) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public void setByte(int offset, byte value) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
   public T get() {
     return get(0);
   }

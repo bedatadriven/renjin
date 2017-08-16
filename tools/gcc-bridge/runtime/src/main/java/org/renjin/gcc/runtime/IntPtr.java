@@ -21,11 +21,7 @@ package org.renjin.gcc.runtime;
 
 import java.util.Arrays;
 
-/**
- * Deprecated. Use {@link IntArrayPointer}
- */
-@Deprecated
-public class IntPtr implements Ptr {
+public class IntPtr extends AbstractPtr implements Ptr {
   
   public static final int BYTES = Integer.SIZE / 8;
   
@@ -62,11 +58,6 @@ public class IntPtr implements Ptr {
   @Override
   public IntPtr realloc(int newSizeInBytes) {
     return new IntPtr(Realloc.realloc(array, offset, newSizeInBytes / 4));
-  }
-
-  @Override
-  public Ptr pointerPlus(int bytes) {
-    return new IntPtr(array, offset + (bytes / 4));
   }
 
   public int unwrap() {
@@ -168,4 +159,58 @@ public class IntPtr implements Ptr {
     return (IntPtr) voidPointer;
   }
 
+  @Override
+  public byte getByte(int offset) {
+    int byteIndex = this.offset * 4 + offset;
+    int index = byteIndex / 4;
+    int shift = (byteIndex % 4) * 8;
+    return (byte)(this.array[index] >>> shift);
+  }
+
+  @Override
+  public int getInt() {
+    return this.array[this.offset];
+  }
+
+  @Override
+  public int getInt(int offset) {
+    if(this.offset % 4 == 0) {
+      return this.array[this.offset + (offset / 4)];
+    } else {
+      return super.getInt(offset);
+    }
+  }
+
+  @Override
+  public void setInt(int value) {
+    this.array[offset] = value;
+  }
+
+  @Override
+  public void setInt(int byteOffset, int value) {
+    if(byteOffset % 4 == 0) {
+      this.array[this.offset + (byteOffset % 4)] = value;
+    } else {
+      super.setInt(byteOffset, value);
+    }
+  }
+
+  @Override
+  public void setByte(int offset, byte value) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public Ptr getPointer(int offset) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public Ptr pointerPlus(int byteCount) {
+    if(byteCount % 4 == 0) {
+      return new IntPtr(this.array, this.offset + (byteCount / 4));
+    } else {
+      throw new UnsupportedOperationException("TODO");
+    }
+  }
 }

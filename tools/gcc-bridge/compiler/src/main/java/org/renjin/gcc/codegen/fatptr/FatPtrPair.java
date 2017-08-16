@@ -165,15 +165,16 @@ public final class FatPtrPair implements FatPtr, PtrExpr {
       @Nonnull
       @Override
       public Type getType() {
-        return primitiveType.arrayBackedImplType();
+        return primitiveType.alignedImpl();
       }
 
       @Override
       public void load(@Nonnull MethodGenerator mv) {
+        mv.anew(primitiveType.alignedImpl());
+        mv.dup();
         array.load(mv);
         offset.load(mv);
-        mv.invokestatic(primitiveType.arrayBackedImplType(), "fromPair",
-            Type.getMethodDescriptor(primitiveType.arrayBackedImplType(), array.getType(), Type.INT_TYPE));
+        mv.invokeconstructor(primitiveType.alignedImpl(), array.getType(), Type.INT_TYPE);
       }
     };
   }

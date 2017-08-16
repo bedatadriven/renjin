@@ -21,11 +21,7 @@ package org.renjin.gcc.runtime;
 
 import java.util.Arrays;
 
-/**
- * @deprecated See {@link DoubleArrayPointer}
- */
-@Deprecated
-public class DoublePtr implements Ptr {
+public class DoublePtr extends AbstractPtr implements Ptr {
   
   public static final DoublePtr NULL = new DoublePtr();
   
@@ -62,11 +58,6 @@ public class DoublePtr implements Ptr {
   @Override
   public DoublePtr realloc(int newSizeInBytes) {
     return new DoublePtr(Realloc.realloc(array, offset, newSizeInBytes / 8));
-  }
-
-  @Override
-  public Ptr pointerPlus(int bytes) {
-    return new DoublePtr(array, offset + (bytes / 8));
   }
 
   @Override
@@ -165,5 +156,30 @@ public class DoublePtr implements Ptr {
       return NULL;
     }
     return (DoublePtr) voidPointer;
+  }
+
+  @Override
+  public byte getByte(int offset) {
+    int bytes = (this.offset * 8) + offset;
+    int index = bytes / 8;
+    double element = array[index];
+    long elementBits = Double.doubleToRawLongBits(element);
+    int shift = (bytes % 8) * 8;
+
+    return (byte)(elementBits >>> shift);
+  }
+
+  @Override
+  public void setByte(int offset, byte value) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public Ptr pointerPlus(int byteCount) {
+    if(byteCount % 8 == 0) {
+      return new DoublePtr(this.array, this.offset + (byteCount / 8));
+    } else {
+      return new DoublePtrUnaligned(this.array, (this.offset * 8) + byteCount);
+    }
   }
 }

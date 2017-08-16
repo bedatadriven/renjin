@@ -113,9 +113,8 @@ public class TypeOracle {
       return forRecordType(recordType);
       
     } else if(type instanceof GimpleIndirectType) {
-      //return forType(type.getBaseType()).pointerTo();
-      return new VPtrStrategy();
-    
+      return forType(type.getBaseType()).pointerTo();
+
     } else if(type instanceof GimpleArrayType) {
       GimpleArrayType arrayType = (GimpleArrayType) type;
       return forType(arrayType.getComponentType()).arrayOf(arrayType);

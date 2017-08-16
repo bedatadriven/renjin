@@ -21,7 +21,7 @@ package org.renjin.gcc.runtime;
 
 import java.util.Arrays;
 
-public class FloatPtr implements Ptr {
+public class FloatPtr extends AbstractPtr {
 
   public static final int BYTES = 4;
   
@@ -63,6 +63,16 @@ public class FloatPtr implements Ptr {
   @Override
   public Ptr pointerPlus(int bytes) {
     return new FloatPtr(array, offset + (bytes / 4));
+  }
+
+  @Override
+  public byte getByte(int offset) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public void setByte(int offset, byte value) {
+    throw new UnsupportedOperationException("TODO");
   }
 
   @Override

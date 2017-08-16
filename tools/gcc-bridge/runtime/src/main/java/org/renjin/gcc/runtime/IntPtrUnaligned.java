@@ -21,9 +21,10 @@
 package org.renjin.gcc.runtime;
 
 /**
- * Pointer implementation backed by an array of integers
+ * Pointer implementation backed by an array of integers, with an
+ * arbitrary offset in bytes.
  */
-public class IntArrayPointer extends AbstractPointer {
+public class IntPtrUnaligned extends AbstractPtr {
 
   private int array[];
 
@@ -32,11 +33,11 @@ public class IntArrayPointer extends AbstractPointer {
    */
   private int offset;
 
-  public IntArrayPointer(int value) {
+  public IntPtrUnaligned(int value) {
     this.array = new int[] { value };
   }
 
-  public IntArrayPointer(int[] array, int offset) {
+  public IntPtrUnaligned(int[] array, int offset) {
     this.array = array;
     this.offset = offset;
   }
@@ -46,8 +47,8 @@ public class IntArrayPointer extends AbstractPointer {
    * @param array an array of integers
    * @param offset the offset, in <strong>elements</strong>, not bytes.
    */
-  public static IntArrayPointer fromPair(int[] array, int offset) {
-    return new IntArrayPointer(array, offset * 4);
+  public static IntPtrUnaligned fromPair(int[] array, int offset) {
+    return new IntPtrUnaligned(array, offset * 4);
   }
 
 
@@ -88,23 +89,28 @@ public class IntArrayPointer extends AbstractPointer {
   }
 
   @Override
-  public Pointer getPointer() {
+  public Ptr getPointer() {
     throw new UnsupportedOperationException("TODO");
   }
 
   @Override
-  public Pointer getPointer(int offset) {
+  public Ptr getPointer(int offset) {
     throw new UnsupportedOperationException("TODO");
   }
 
   @Override
-  public void setPointer(int offset, Pointer value) {
+  public void setPointer(int offset, Ptr value) {
     throw new UnsupportedOperationException("TODO");
   }
 
   @Override
-  public Pointer plus(int byteCount) {
-    return new IntArrayPointer(this.array, offset + byteCount);
+  public Ptr realloc(int newSizeInBytes) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public Ptr pointerPlus(int byteCount) {
+    return new IntPtrUnaligned(this.array, offset + byteCount);
   }
 
 

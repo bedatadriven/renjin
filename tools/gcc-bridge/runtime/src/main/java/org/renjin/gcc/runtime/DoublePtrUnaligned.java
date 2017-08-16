@@ -23,18 +23,22 @@ package org.renjin.gcc.runtime;
 /**
  * Pointer implementation backed by a double[] array
  */
-public class DoubleArrayPointer extends AbstractPointer {
+public class DoublePtrUnaligned extends AbstractPtr {
 
   private final double[] array;
   private final int offset;
 
-  public DoubleArrayPointer(double[] array, int offset) {
+  public DoublePtrUnaligned(double[] array, int offset) {
     this.array = array;
     this.offset = offset;
   }
 
-  public DoubleArrayPointer(double value) {
+  public DoublePtrUnaligned(double value) {
     this(new double[] { value }, 0);
+  }
+
+  public static DoublePtrUnaligned fromPair(double[] array, int offset) {
+    return new DoublePtrUnaligned(array, offset / 8);
   }
 
   @Override
@@ -74,12 +78,17 @@ public class DoubleArrayPointer extends AbstractPointer {
   }
 
   @Override
-  public Pointer getPointer(int offset) {
+  public Ptr getPointer(int offset) {
     throw new UnsupportedOperationException("TODO");
   }
 
   @Override
-  public Pointer plus(int byteCount) {
+  public Ptr realloc(int newSizeInBytes) {
     throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public Ptr pointerPlus(int byteCount) {
+    return new DoublePtrUnaligned(array, this.offset + byteCount);
   }
 }

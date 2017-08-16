@@ -21,8 +21,17 @@
 package org.renjin.gcc.runtime;
 
 
-public abstract class AbstractPointer implements Pointer {
+public abstract class AbstractPtr implements Ptr {
 
+  @Override
+  public Object getArray() {
+    throw new UnsupportedOperationException("No longer supported. Please recompile.");
+  }
+
+  @Override
+  public int getOffset() {
+    throw new UnsupportedOperationException("No longer supported. Please recompile.");
+  }
 
   @Override
   public void setShort(short value) {
@@ -55,6 +64,11 @@ public abstract class AbstractPointer implements Pointer {
   }
 
   @Override
+  public double getAlignedDouble(int index) {
+    return getDouble(index * 8);
+  }
+
+  @Override
   public char getChar() {
     return getChar(0);
   }
@@ -66,16 +80,21 @@ public abstract class AbstractPointer implements Pointer {
 
   @Override
   public int getInt() {
-    return getInt(0);
+    return getIntAligned(0);
+  }
+
+  @Override
+  public int getIntAligned(int index) {
+    return getInt(index * 4);
   }
 
   @Override
   public int getInt(int offset) {
     return
-         getByte(offset) << 24 |
-        (getByte(offset + 1) & 0xFF) << 16 |
-        (getByte(offset + 2) & 0xFF) << 8 |
-        (getByte(offset + 3) & 0xFF);
+        ((getByte(offset + 3) & 0xff) << 24L) |
+        ((getByte(offset + 2) & 0xff) << 16L) |
+        ((getByte(offset + 1) & 0xff) <<  8L) |
+        ((getByte(offset    ) & 0xff)       );
   }
 
   @Override
@@ -90,14 +109,14 @@ public abstract class AbstractPointer implements Pointer {
 
   @Override
   public long getLong(int offset) {
-    return (getByte(offset) & 0xFFL) << 56
-      | (getByte(offset + 1) & 0xFFL) << 48
-      | (getByte(offset + 2) & 0xFFL) << 40
-      | (getByte(offset + 3) & 0xFFL) << 32
-      | (getByte(offset + 4) & 0xFFL) << 24
-      | (getByte(offset + 5) & 0xFFL) << 16
-      | (getByte(offset + 6) & 0xFFL) << 8
-      | (getByte(offset + 7) & 0xFFL);
+    return ((getByte(offset + 7) & 0xffL) << 56L) |
+           ((getByte(offset + 6) & 0xffL) << 48L) |
+           ((getByte(offset + 5) & 0xffL) << 40L) |
+           ((getByte(offset + 4) & 0xffL) << 32L) |
+           ((getByte(offset + 3) & 0xffL) << 24L) |
+           ((getByte(offset + 2) & 0xffL) << 16L) |
+           ((getByte(offset + 1) & 0xffL) <<  8L) |
+           ((getByte(offset    ) & 0xffL)       );
   }
 
   @Override
@@ -111,7 +130,7 @@ public abstract class AbstractPointer implements Pointer {
   }
 
   @Override
-  public Pointer getPointer() {
+  public Ptr getPointer() {
     return getPointer(0);
   }
 
@@ -146,7 +165,7 @@ public abstract class AbstractPointer implements Pointer {
   }
 
   @Override
-  public void setPointer(Pointer value) {
+  public void setPointer(Ptr value) {
     setPointer(0, value);
   }
 
@@ -182,7 +201,12 @@ public abstract class AbstractPointer implements Pointer {
   }
 
   @Override
-  public void setPointer(int offset, Pointer value) {
+  public Ptr getPointer(int offset) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public void setPointer(int offset, Ptr value) {
     throw new UnsupportedOperationException("TODO");
   }
 }

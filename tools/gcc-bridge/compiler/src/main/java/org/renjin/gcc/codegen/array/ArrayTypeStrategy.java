@@ -29,6 +29,7 @@ import org.renjin.gcc.codegen.fatptr.Wrappers;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
 import org.renjin.gcc.codegen.var.VarAllocator;
+import org.renjin.gcc.codegen.vptr.VPtrStrategy;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
@@ -85,9 +86,8 @@ public class ArrayTypeStrategy implements TypeStrategy<ArrayExpr> {
   }
   
   @Override
-  public FatPtrStrategy pointerTo() {
-    return new FatPtrStrategy(arrayValueFunction, 1)
-        .setParametersWrapped(parameterWrapped);
+  public VPtrStrategy pointerTo() {
+    return new VPtrStrategy();
   }
 
   @Override

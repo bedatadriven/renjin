@@ -21,7 +21,7 @@ package org.renjin.gcc.runtime;
 import java.util.Arrays;
 
 
-public class ShortPtr implements Ptr {
+public class ShortPtr extends AbstractPtr {
   
   public static final ShortPtr NULL = new ShortPtr();
   
@@ -61,6 +61,16 @@ public class ShortPtr implements Ptr {
   @Override
   public Ptr pointerPlus(int bytes) {
     return new ShortPtr(array, offset + (bytes / 2));
+  }
+
+  @Override
+  public byte getByte(int offset) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public void setByte(int offset, byte value) {
+    throw new UnsupportedOperationException("TODO");
   }
 
   public short unwrap() {

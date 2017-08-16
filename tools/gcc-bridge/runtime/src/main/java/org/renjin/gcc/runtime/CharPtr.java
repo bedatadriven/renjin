@@ -20,7 +20,7 @@ package org.renjin.gcc.runtime;
 
 import java.util.Arrays;
 
-public class CharPtr implements Ptr {
+public class CharPtr extends AbstractPtr {
   
   public static final CharPtr NULL = new CharPtr();
   
@@ -60,6 +60,16 @@ public class CharPtr implements Ptr {
   @Override
   public Ptr pointerPlus(int bytes) {
     return new CharPtr(array, offset + (bytes / 2));
+  }
+
+  @Override
+  public byte getByte(int offset) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public void setByte(int offset, byte value) {
+    throw new UnsupportedOperationException("TODO");
   }
 
   public static CharPtr fromString(String string) {

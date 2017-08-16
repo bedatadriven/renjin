@@ -22,7 +22,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
-public class BytePtr implements Ptr {
+public class BytePtr extends AbstractPtr {
   
   public static final BytePtr NULL = new BytePtr();
   
@@ -131,6 +131,16 @@ public class BytePtr implements Ptr {
   @Override
   public Ptr pointerPlus(int bytes) {
     return new BytePtr(array, offset + 1);
+  }
+
+  @Override
+  public byte getByte(int offset) {
+    return this.array[this.offset + offset];
+  }
+
+  @Override
+  public void setByte(int offset, byte value) {
+    this.array[this.offset + offset] = value;
   }
 
   public static BytePtr cast(Object voidPointer) {

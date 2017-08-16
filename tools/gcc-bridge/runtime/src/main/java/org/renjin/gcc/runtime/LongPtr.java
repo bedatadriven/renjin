@@ -21,7 +21,7 @@ package org.renjin.gcc.runtime;
 
 import java.util.Arrays;
 
-public class LongPtr implements Ptr {
+public class LongPtr extends AbstractPtr {
   
   public static final LongPtr NULL = new LongPtr();
   
@@ -61,6 +61,21 @@ public class LongPtr implements Ptr {
   @Override
   public Ptr pointerPlus(int bytes) {
     return new LongPtr(array, offset + (bytes / 8));
+  }
+
+  @Override
+  public byte getByte(int offset) {
+    int bytes = (this.offset * 8) + offset;
+    int index = bytes / 8;
+    double element = array[index];
+    long elementBits = Double.doubleToRawLongBits(element);
+    int shift = (bytes % 8) * 8;
+
+    return (byte)(elementBits >>> shift);  }
+
+  @Override
+  public void setByte(int offset, byte value) {
+    throw new UnsupportedOperationException("TODO");
   }
 
   public long unwrap() {

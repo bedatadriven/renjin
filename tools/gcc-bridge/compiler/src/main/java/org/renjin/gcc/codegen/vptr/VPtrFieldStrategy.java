@@ -26,18 +26,18 @@ import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.SingleFieldStrategy;
 import org.renjin.gcc.codegen.type.TypeStrategy;
-import org.renjin.gcc.runtime.Pointer;
+import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Type;
 
 public class VPtrFieldStrategy extends SingleFieldStrategy {
 
   public VPtrFieldStrategy(Type ownerClass, String fieldName) {
-    super(ownerClass, fieldName, Type.getType(Pointer.class));
+    super(ownerClass, fieldName, Type.getType(Ptr.class));
   }
 
   @Override
   public GExpr memberExpr(MethodGenerator mv, JExpr instance, int offset, int size, TypeStrategy expectedType) {
-    return new VPtrExpr(Expressions.field(instance, Type.getType(Pointer.class), fieldName));
+    return new VPtrExpr(Expressions.field(instance, Type.getType(Ptr.class), fieldName));
   }
 
   @Override

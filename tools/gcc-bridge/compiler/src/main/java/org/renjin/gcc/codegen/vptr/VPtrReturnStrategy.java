@@ -27,13 +27,13 @@ import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.ReturnStrategy;
 import org.renjin.gcc.codegen.type.TypeStrategy;
-import org.renjin.gcc.runtime.Pointer;
+import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Type;
 
 public class VPtrReturnStrategy implements ReturnStrategy {
   @Override
   public Type getType() {
-    return Type.getType(Pointer.class);
+    return Type.getType(Ptr.class);
   }
 
   @Override
@@ -48,6 +48,6 @@ public class VPtrReturnStrategy implements ReturnStrategy {
 
   @Override
   public JExpr getDefaultReturnValue() {
-    return Expressions.nullRef(Type.getType(Pointer.class));
+    return Expressions.nullRef(Type.getType(Ptr.class));
   }
 }

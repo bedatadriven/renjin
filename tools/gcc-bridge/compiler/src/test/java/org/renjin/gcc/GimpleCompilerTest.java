@@ -23,6 +23,7 @@ import org.junit.Test;
 import org.renjin.gcc.runtime.*;
 import org.renjin.repackaged.guava.base.Charsets;
 
+import java.awt.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -236,7 +237,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
   @Test
   public void logicalToInt() throws Exception {
     Class clazz = compile("bool2int.f");
-    Method method = clazz.getMethod("test_", IntPtr.class, IntPtr.class);
+    Method method = clazz.getMethod("test_", Ptr.class, Ptr.class);
 
     IntPtr x = new IntPtr(43);
     IntPtr y = new IntPtr(0);
@@ -249,7 +250,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void switchStatement() throws Exception {
     Class clazz = compile("switch.c");
 
-    Method distance = clazz.getMethod("R_distance", IntPtr.class, int.class, int.class);
+    Method distance = clazz.getMethod("R_distance", Ptr.class, int.class, int.class);
 
     assertThat((Integer) distance.invoke(null, new IntPtr(1), 13, 14), equalTo(1));
     assertThat((Integer) distance.invoke(null, new IntPtr(2), 3, 4), equalTo(-1));
@@ -261,10 +262,10 @@ public class GimpleCompilerTest extends AbstractGccTest {
 
     clazz.getMethod("runtest_").invoke(null);
 
-    Method iftest = clazz.getMethod("iftest_", Pointer.class, Pointer.class);
-    IntArrayPointer x = new IntArrayPointer(0);
+    Method iftest = clazz.getMethod("iftest_", Ptr.class, Ptr.class);
+    IntPtrUnaligned x = new IntPtrUnaligned(0);
 
-    iftest.invoke(null, new IntArrayPointer(12), x);
+    iftest.invoke(null, new IntPtrUnaligned(12), x);
 
     assertThat(x.getInt(), equalTo(1));
 
@@ -283,14 +284,14 @@ public class GimpleCompilerTest extends AbstractGccTest {
   @Test
   public void logicalOr() throws Exception {
     Class clazz = compile("or.f");
-    Method testMethod = clazz.getMethod("stlest_", Pointer.class, Pointer.class, Pointer.class);
+    Method testMethod = clazz.getMethod("stlest_", Ptr.class, Ptr.class, Ptr.class);
 
-    DoubleArrayPointer result = new DoubleArrayPointer(0);
+    DoublePtrUnaligned result = new DoublePtrUnaligned(0);
 
-    testMethod.invoke(null, new IntArrayPointer(41), new IntArrayPointer(42), result);
+    testMethod.invoke(null, new IntPtr(41), new IntPtr(42), result);
     assertThat(result.getDouble(), equalTo(42.0));
 
-    testMethod.invoke(null, new IntArrayPointer(49), new IntArrayPointer(42), result);
+    testMethod.invoke(null, new IntPtr(49), new IntPtr(42), result);
     assertThat(result.getDouble(), equalTo(49.0));
   }
 
@@ -337,7 +338,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void fortran2darrays() throws Exception {
     Class clazz = compile("two_d_array.f");
 
-    Method method = clazz.getMethod("test_", DoublePtr.class, IntPtr.class);
+    Method method = clazz.getMethod("test_", Ptr.class, Ptr.class);
 
     double[] x = new double[9];
 
@@ -350,7 +351,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
     assertThat(x[8], equalTo(9d));
 
     DoublePtr y = new DoublePtr(0);
-    method = clazz.getMethod("localarray_", DoublePtr.class);
+    method = clazz.getMethod("localarray_", Ptr.class);
     method.invoke(null, y);
 
     assertThat(y.unwrap(), equalTo(110d));
@@ -662,7 +663,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
     assertThat((Float) dcabs.invoke(null, new float[]{1, 0}, 0), equalTo(1f));
     assertThat((Float) dcabs.invoke(null, new float[]{0, 3}, 0), equalTo(3f));
 
-    Method clast = clazz.getMethod("clast_", float[].class, int.class, IntPtr.class);
+    Method clast = clazz.getMethod("clast_", float[].class, int.class, Ptr.class);
     float[] x = {1, 2, 3, 4, 5, 6};
     IntPtr n = new IntPtr(3);
     float[] last = (float[]) clast.invoke(null, x, 0, n);

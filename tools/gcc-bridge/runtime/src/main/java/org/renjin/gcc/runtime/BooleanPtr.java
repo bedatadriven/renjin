@@ -19,7 +19,7 @@
 package org.renjin.gcc.runtime;
 
 
-public class BooleanPtr implements Ptr {
+public class BooleanPtr extends AbstractPtr implements Ptr {
 
   public static final BooleanPtr NULL = new BooleanPtr();
 
@@ -63,6 +63,16 @@ public class BooleanPtr implements Ptr {
   @Override
   public Ptr pointerPlus(int bytes) {
     return new BooleanPtr(array, offset + bytes);
+  }
+
+  @Override
+  public byte getByte(int offset) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public void setByte(int offset, byte value) {
+    throw new UnsupportedOperationException("TODO");
   }
 
   public static BooleanPtr cast(Object voidPointer) {

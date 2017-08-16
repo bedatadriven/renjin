@@ -58,12 +58,8 @@ public enum PointerType {
     return name().substring(0, 1) + name().substring(1).toLowerCase();
   }
 
-  public String arrayBackedClassImpl() {
-    return titleCasedName() + "ArrayPointer";
-  }
-
-  public Type arrayBackedImplType() {
-    return Type.getType("L" + PointerImpls.PACKAGE.replace('.', '/') + "/" + arrayBackedClassImpl() + ";");
+  public Type alignedImpl() {
+    return Type.getType("L" + PointerImpls.PACKAGE.replace('.', '/') + "/" + titleCasedName() + "Ptr;");
   }
 
   public static PointerType valueOf(GimplePrimitiveType primitiveType) {

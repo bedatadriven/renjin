@@ -28,12 +28,13 @@ import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.type.voidt.VoidPtr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrReturnStrategy;
+import org.renjin.gcc.codegen.type.voidt.VoidPtrStrategy;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
-import org.renjin.gcc.runtime.Pointer;
+import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Type;
 
 import java.lang.reflect.Field;
@@ -42,6 +43,8 @@ import java.lang.reflect.Field;
  * Implements a C pointer using the {@link org.renjin.gcc.runtime.Pointer} interface.
  */
 public class VPtrStrategy implements PointerTypeStrategy {
+
+
   @Override
   public GExpr malloc(MethodGenerator mv, JExpr sizeInBytes) {
     throw new UnsupportedOperationException("TODO");
@@ -55,9 +58,9 @@ public class VPtrStrategy implements PointerTypeStrategy {
   @Override
   public GExpr pointerPlus(MethodGenerator mv, GExpr pointer, JExpr offsetInBytes) {
     VPtrExpr inputPointer = (VPtrExpr) pointer;
-    String plusMethod = Type.getMethodDescriptor(Type.getType(Pointer.class), Type.INT_TYPE);
+    String plusMethod = Type.getMethodDescriptor(Type.getType(Ptr.class), Type.INT_TYPE);
     JExpr plusExpr = Expressions.methodCall(
-        inputPointer.getRef(), Pointer.class, "plus", plusMethod, offsetInBytes);
+        inputPointer.getRef(), Ptr.class, "plus", plusMethod, offsetInBytes);
 
     return new VPtrExpr(plusExpr);
   }
@@ -114,7 +117,7 @@ public class VPtrStrategy implements PointerTypeStrategy {
 
   @Override
   public GExpr variable(GimpleVarDecl decl, VarAllocator allocator) {
-    JLValue ref = allocator.reserve(decl.getName(), Type.getType(Pointer.class));
+    JLValue ref = allocator.reserve(decl.getName(), Type.getType(Ptr.class));
     return new VPtrExpr(ref);
   }
 
@@ -140,7 +143,7 @@ public class VPtrStrategy implements PointerTypeStrategy {
 
   @Override
   public PointerTypeStrategy pointerTo() {
-    throw new UnsupportedOperationException("TODO");
+    return new VPtrStrategy();
   }
 
   @Override
@@ -152,6 +155,7 @@ public class VPtrStrategy implements PointerTypeStrategy {
   public GExpr cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
     if(typeStrategy instanceof VPtrStrategy) {
       return value;
+    } else if(typeStrategy instanceof VoidPtrStrategy) {
     }
     throw new UnsupportedOperationException("TODO: " + typeStrategy.getClass().getSimpleName());
   }

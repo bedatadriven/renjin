@@ -19,10 +19,21 @@
 package org.renjin.gcc.codegen.type.voidt;
 
 import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.array.ArrayExpr;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.FatPtr;
+import org.renjin.gcc.codegen.type.UnsupportedCastException;
+import org.renjin.gcc.codegen.type.fun.FunPtr;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
+import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
+import org.renjin.gcc.codegen.vptr.VPtrExpr;
+import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Label;
+import org.renjin.repackaged.asm.Type;
+
+import java.lang.invoke.MethodHandle;
 
 
 public class VoidPtr implements RefPtrExpr {
@@ -61,6 +72,21 @@ public class VoidPtr implements RefPtrExpr {
   }
 
   @Override
+  public FunPtr toFunPtr() {
+    return new FunPtr(Expressions.cast(objectRef, Type.getType(MethodHandle.class)));
+  }
+
+  @Override
+  public ArrayExpr toArrayExpr() throws UnsupportedCastException {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public PrimitiveValue toPrimitiveExpr(GimplePrimitiveType targetType) throws UnsupportedCastException {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public JExpr unwrap() {
     return objectRef;
   }
@@ -74,5 +100,20 @@ public class VoidPtr implements RefPtrExpr {
   @Override
   public GExpr valueOf(GimpleType expectedType) {
     throw new UnsupportedOperationException("void pointers cannot be dereferenced.");
+  }
+
+  @Override
+  public VoidPtr toVoidPtrExpr() throws UnsupportedCastException {
+    return this;
+  }
+
+  @Override
+  public RecordArrayExpr toRecordArrayExpr() throws UnsupportedCastException {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public VPtrExpr toVPtrExpr() throws UnsupportedCastException {
+    return new VPtrExpr(Expressions.cast(objectRef, Type.getType(Ptr.class)));
   }
 }

@@ -20,19 +20,32 @@ package org.renjin.gcc.codegen.type.fun;
 
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.GExpr;
-import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.expr.JLValue;
-import org.renjin.gcc.codegen.expr.RefPtrExpr;
+import org.renjin.gcc.codegen.array.ArrayExpr;
+import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.FatPtr;
+import org.renjin.gcc.codegen.type.UnsupportedCastException;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
+import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
+import org.renjin.gcc.codegen.type.voidt.VoidPtr;
+import org.renjin.gcc.codegen.vptr.VPtrExpr;
+import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.Label;
+import org.renjin.repackaged.asm.Type;
+
+import java.lang.invoke.MethodHandle;
 
 
 public class FunPtr implements RefPtrExpr {
 
+  public static final FunPtr NULL_PTR = new FunPtr();
+
   private JExpr methodHandleExpr;
   private FatPtr address;
+
+  private FunPtr() {
+    this.methodHandleExpr = Expressions.nullRef(Type.getType(MethodHandle.class));
+  }
 
   public FunPtr(JExpr methodHandleExpr) {
     this.methodHandleExpr = methodHandleExpr;
@@ -60,6 +73,36 @@ public class FunPtr implements RefPtrExpr {
       throw new InternalCompilerException("Not addressable");
     }
     return address;
+  }
+
+  @Override
+  public FunPtr toFunPtr() {
+    return this;
+  }
+
+  @Override
+  public ArrayExpr toArrayExpr() throws UnsupportedCastException {
+    throw new UnsupportedCastException();
+  }
+
+  @Override
+  public PrimitiveValue toPrimitiveExpr(GimplePrimitiveType targetType) throws UnsupportedCastException {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public VoidPtr toVoidPtrExpr() throws UnsupportedCastException {
+    return new VoidPtr(methodHandleExpr, address);
+  }
+
+  @Override
+  public RecordArrayExpr toRecordArrayExpr() throws UnsupportedCastException {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public VPtrExpr toVPtrExpr() throws UnsupportedCastException {
+    throw new UnsupportedOperationException("TODO");
   }
 
   @Override

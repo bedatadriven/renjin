@@ -238,11 +238,6 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>
   }
 
   @Override
-  public VoidPtr toVoidPointer(RecordUnitPtr ptrExpr) {
-    return new VoidPtr(ptrExpr.unwrap());
-  }
-
-  @Override
   public RecordUnitPtr unmarshallVoidPtrReturnValue(MethodGenerator mv, JExpr voidPointer) {
     return new RecordUnitPtr(Expressions.cast(voidPointer, getJvmType()));
   }

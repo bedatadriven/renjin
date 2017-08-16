@@ -25,6 +25,7 @@ import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
 import org.renjin.gcc.gimple.statement.GimpleCall;
+import org.renjin.gcc.gimple.type.GimpleIntegerType;
 import org.renjin.gcc.gimple.type.GimplePointerType;
 
 
@@ -51,7 +52,7 @@ public class MemCmpCallGenerator implements CallGenerator {
       JExpr result = typeOracle.forPointerType(type).memoryCompare(mv, p1, p2, n);
 
       GExpr lhs = exprFactory.findGenerator(call.getLhs());
-      lhs.store(mv, new PrimitiveValue(result));
+      lhs.store(mv, new PrimitiveValue(new GimpleIntegerType(32), result));
     }
 
   }

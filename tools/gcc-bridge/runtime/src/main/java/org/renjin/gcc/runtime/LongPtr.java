@@ -78,6 +78,11 @@ public class LongPtr extends AbstractPtr {
     throw new UnsupportedOperationException("TODO");
   }
 
+  @Override
+  public int toInt() {
+    return offset * 8;
+  }
+
   public long unwrap() {
     return array[offset];
   }

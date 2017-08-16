@@ -317,15 +317,19 @@ public class ExprFactory {
         return pointerPlus(operands.get(0), operands.get(1), expectedType);
 
       case BIT_NOT_EXPR:
-        return primitive(new BitwiseNot(findPrimitiveGenerator(operands.get(0))));
+        return new PrimitiveValue(
+            ((GimplePrimitiveType) operands.get(0).getType()),
+            new BitwiseNot(findPrimitiveGenerator(operands.get(0))));
 
       case LSHIFT_EXPR:
       case RSHIFT_EXPR:
-        return primitive(new BitwiseShift(
-            op,
-            operands.get(0).getType(),
-            findPrimitiveGenerator(operands.get(0)),
-            findPrimitiveGenerator(operands.get(1))));
+        return new PrimitiveValue(
+            ((GimplePrimitiveType) operands.get(0).getType()),
+            new BitwiseShift(
+              op,
+              operands.get(0).getType(),
+              findPrimitiveGenerator(operands.get(0)),
+              findPrimitiveGenerator(operands.get(1))));
 
       case MEM_REF:
         // Cast the pointer type first, then dereference
@@ -355,25 +359,35 @@ public class ExprFactory {
         return new ComplexValue(findPrimitiveGenerator(operands.get(0)));
 
       case NEGATE_EXPR:
-        return primitive(new NegativeValue(findPrimitiveGenerator(operands.get(0))));
+        return new PrimitiveValue(
+             primitiveType(operands),
+             new NegativeValue(findPrimitiveGenerator(operands.get(0))));
 
       case TRUTH_NOT_EXPR:
-        return primitive(new LogicalNot(findPrimitiveGenerator(operands.get(0))));
+        return new PrimitiveValue(
+            primitiveType(operands),
+            new LogicalNot(findPrimitiveGenerator(operands.get(0))));
 
       case TRUTH_AND_EXPR:
-        return primitive(new LogicalAnd(
-            findPrimitiveGenerator(operands.get(0)),
-            findPrimitiveGenerator(operands.get(1))));
+        return new PrimitiveValue(
+            primitiveType(operands),
+            new LogicalAnd(
+              findPrimitiveGenerator(operands.get(0)),
+              findPrimitiveGenerator(operands.get(1))));
 
       case TRUTH_OR_EXPR:
-        return primitive(new LogicalOr(
-            findPrimitiveGenerator(operands.get(0)),
-            findPrimitiveGenerator(operands.get(1))));
+        return new PrimitiveValue(
+            primitiveType(operands),
+            new LogicalOr(
+              findPrimitiveGenerator(operands.get(0)),
+              findPrimitiveGenerator(operands.get(1))));
       
       case TRUTH_XOR_EXPR:
-        return primitive(new LogicalXor(
-            findPrimitiveGenerator(operands.get(0)),
-            findPrimitiveGenerator(operands.get(1))));
+        return new PrimitiveValue(
+            primitiveType(operands),
+            new LogicalXor(
+              findPrimitiveGenerator(operands.get(0)),
+              findPrimitiveGenerator(operands.get(1))));
 
       case EQ_EXPR:
       case LT_EXPR:
@@ -388,18 +402,24 @@ public class ExprFactory {
       case UNLE_EXPR:
       case UNGT_EXPR:
       case UNGE_EXPR:
-        return primitive(new ConditionExpr(
-            findComparisonGenerator(op,operands.get(0), operands.get(1))));
+        return new PrimitiveValue(
+            primitiveType(operands),
+            new ConditionExpr(
+              findComparisonGenerator(op,operands.get(0), operands.get(1))));
 
       case MAX_EXPR:
       case MIN_EXPR:
-        return primitive(new MinMaxValue(op,
-            findPrimitiveGenerator(operands.get(0)),
-            findPrimitiveGenerator(operands.get(1))));
+        return new PrimitiveValue(
+            primitiveType(operands),
+            new MinMaxValue(op,
+              findPrimitiveGenerator(operands.get(0)),
+              findPrimitiveGenerator(operands.get(1))));
 
       case ABS_EXPR:
-        return primitive(new AbsValue(
-            findPrimitiveGenerator(operands.get(0))));
+        return new PrimitiveValue(
+            primitiveType(operands),
+            new AbsValue(
+             findPrimitiveGenerator(operands.get(0))));
 
       case CONJ_EXPR:
         return findComplexGenerator(operands.get(0)).conjugate();
@@ -410,8 +430,8 @@ public class ExprFactory {
     }
   }
 
-  private PrimitiveValue primitive(JExpr expr) {
-    return new PrimitiveValue(expr);
+  private GimplePrimitiveType primitiveType(List<GimpleExpr> operands) {
+    return ((GimplePrimitiveType) operands.get(0).getType());
   }
 
   private GExpr memRef(GimpleMemRef gimpleExpr, GimpleType expectedType) {
@@ -533,7 +553,9 @@ public class ExprFactory {
 
         switch (dividendType.getSize()) {
           case 32:
-            return primitive(new UnsignedIntDiv(findPrimitiveGenerator(x), findPrimitiveGenerator(y)));
+            return new PrimitiveValue(
+                dividendType,
+                new UnsignedIntDiv(findPrimitiveGenerator(x), findPrimitiveGenerator(y)));
           default:
             throw new UnsupportedOperationException("unsigned integer division, size = " + dividendType.getSize());
         }
@@ -541,7 +563,11 @@ public class ExprFactory {
 
       // Otherwise we can use builtin JVM operators
 
-      return primitive(new PrimitiveBinOpGenerator(op, findPrimitiveGenerator(x), findPrimitiveGenerator(y)));
+      return new PrimitiveValue(
+          primitiveType(operands),
+          new PrimitiveBinOpGenerator(op,
+              findPrimitiveGenerator(x),
+              findPrimitiveGenerator(y)));
 
     }
 
@@ -587,7 +613,9 @@ public class ExprFactory {
       return typeOracle.forPointerType(constant.getType()).nullPointer();
       
     } else if (constant instanceof GimplePrimitiveConstant) {
-      return primitive(new ConstantValue((GimplePrimitiveConstant) constant));
+      return new PrimitiveValue(
+          ((GimplePrimitiveType) constant.getType()),
+          new ConstantValue((GimplePrimitiveConstant) constant));
       
     } else if (constant instanceof GimpleComplexConstant) {
       GimpleComplexConstant complexConstant = (GimpleComplexConstant) constant;

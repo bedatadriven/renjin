@@ -48,10 +48,10 @@ public class RecordUnitPtrReturnStrategy implements ReturnStrategy {
   }
 
   @Override
-  public GExpr unmarshall(MethodGenerator mv, JExpr returnValue, TypeStrategy lhsTypeStrategy) {
+  public GExpr unmarshall(MethodGenerator mv, JExpr callExpr, TypeStrategy lhsTypeStrategy) {
     if(lhsTypeStrategy instanceof RecordUnitPtrStrategy) {
       RecordUnitPtrStrategy lhsUnitPtrStrategy = (RecordUnitPtrStrategy) lhsTypeStrategy;
-      return new RecordUnitPtr(Expressions.cast(returnValue, lhsUnitPtrStrategy.getJvmType()));
+      return new RecordUnitPtr(Expressions.cast(callExpr, lhsUnitPtrStrategy.getJvmType()));
 
     } else if(lhsTypeStrategy instanceof RecordClassTypeStrategy) {
       // In some cases, when you have a function like this:
@@ -64,10 +64,10 @@ public class RecordUnitPtrReturnStrategy implements ReturnStrategy {
       // GCC does not generate an intermediate pointer value and a mem_ref like you
       // would expect. I can't seem to reproduce this in a test case, so here is a workaround:
       RecordClassTypeStrategy lhsValueTypeStrategy = (RecordClassTypeStrategy) lhsTypeStrategy;
-      return new RecordUnitPtr(Expressions.cast(returnValue, lhsValueTypeStrategy.getJvmType()));
+      return new RecordUnitPtr(Expressions.cast(callExpr, lhsValueTypeStrategy.getJvmType()));
 
     } else if(lhsTypeStrategy instanceof VoidPtrStrategy) {
-      return new VoidPtr(returnValue);
+      return new VoidPtr(callExpr);
 
     } else {
       throw new UnsupportedOperationException(

@@ -60,7 +60,7 @@ public class VPtrStrategy implements PointerTypeStrategy {
     VPtrExpr inputPointer = (VPtrExpr) pointer;
     String plusMethod = Type.getMethodDescriptor(Type.getType(Ptr.class), Type.INT_TYPE);
     JExpr plusExpr = Expressions.methodCall(
-        inputPointer.getRef(), Ptr.class, "plus", plusMethod, offsetInBytes);
+        inputPointer.getRef(), Ptr.class, "pointerPlus", plusMethod, offsetInBytes);
 
     return new VPtrExpr(plusExpr);
   }
@@ -87,11 +87,6 @@ public class VPtrStrategy implements PointerTypeStrategy {
 
   @Override
   public void memorySet(MethodGenerator mv, GExpr pointer, JExpr byteValue, JExpr length) {
-    throw new UnsupportedOperationException("TODO");
-  }
-
-  @Override
-  public VoidPtr toVoidPointer(GExpr ptrExpr) {
     throw new UnsupportedOperationException("TODO");
   }
 
@@ -156,6 +151,7 @@ public class VPtrStrategy implements PointerTypeStrategy {
     if(typeStrategy instanceof VPtrStrategy) {
       return value;
     } else if(typeStrategy instanceof VoidPtrStrategy) {
+      return new VoidPtr(Expressions.cast(((VoidPtr) value).unwrap(), Type.getType(Ptr.class)));
     }
     throw new UnsupportedOperationException("TODO: " + typeStrategy.getClass().getSimpleName());
   }

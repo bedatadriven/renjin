@@ -120,8 +120,19 @@ public class Stdlib {
     }
   }
 
+  @Deprecated
   public static int strlen(BytePtr x) {
     return x.nullTerminatedStringLength();
+  }
+
+  public static int strlen(Ptr x) {
+    int len = 0;
+    while(true) {
+      if(x.getByte(len) == 0) {
+        return len;
+      }
+      len ++;
+    }
   }
 
   /**

@@ -69,8 +69,8 @@ public class RecordArrayReturnStrategy implements ReturnStrategy {
   }
 
   @Override
-  public GExpr unmarshall(MethodGenerator mv, JExpr returnValue, TypeStrategy lhsTypeStrategy) {
-    return new RecordArrayExpr(valueFunction, returnValue, arrayLength);
+  public GExpr unmarshall(MethodGenerator mv, JExpr callExpr, TypeStrategy lhsTypeStrategy) {
+    return new RecordArrayExpr(valueFunction, callExpr, arrayLength);
   }
 
   @Override

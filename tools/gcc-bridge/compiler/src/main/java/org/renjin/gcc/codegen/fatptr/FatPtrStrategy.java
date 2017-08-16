@@ -18,7 +18,6 @@
  */
 package org.renjin.gcc.codegen.fatptr;
 
-import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategies;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
@@ -27,19 +26,19 @@ import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.type.primitive.ConstantValue;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
-import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
-import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
-import org.renjin.gcc.codegen.type.record.RecordValue;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidPtr;
 import org.renjin.gcc.codegen.var.LocalVarAllocator;
 import org.renjin.gcc.codegen.var.VarAllocator;
+import org.renjin.gcc.codegen.vptr.VPtrParamStrategy;
+import org.renjin.gcc.codegen.vptr.VPtrReturnStrategy;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
+import org.renjin.gcc.gimple.type.GimpleIntegerType;
 import org.renjin.repackaged.asm.Type;
 
 import java.lang.reflect.Field;
@@ -158,7 +157,7 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
     JExpr offset = pair.getOffset();
     JExpr offsetInBytes = Expressions.product(offset, valueFunction.getArrayElementBytes());
 
-    return new PrimitiveValue(offsetInBytes);
+    return new PrimitiveValue(new GimpleIntegerType(32), offsetInBytes);
   }
 
   @Override
@@ -178,19 +177,12 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
 
   @Override
   public ParamStrategy getParamStrategy() {
-    if(isParametersWrapped()) {
-      if(valueFunction.getValueType().getSort() == OBJECT) {
-        
-      }
-      return new WrappedFatPtrParamStrategy(valueFunction);
-    } else {
-      return new FatPtrParamStrategy(valueFunction);
-    }
+    return new VPtrParamStrategy();
   }
 
   @Override
   public ReturnStrategy getReturnStrategy() {
-    return new FatPtrReturnStrategy(valueFunction);
+    return new VPtrReturnStrategy();
   }
 
   @Override
@@ -335,11 +327,6 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
     valueFunction.memorySet(mv, 
         pointerPair.getArray(), 
         pointerPair.getOffset(), byteValue, length);
-  }
-
-  @Override
-  public VoidPtr toVoidPointer(FatPtr ptrExpr) {
-    return new VoidPtr(ptrExpr.wrap());
   }
 
 

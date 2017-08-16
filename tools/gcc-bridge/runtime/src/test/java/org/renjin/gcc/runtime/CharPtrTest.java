@@ -18,9 +18,20 @@
  *
  */
 
-package org.renjin.gcc.codegen.vptr;
+package org.renjin.gcc.runtime;
 
-public enum PointerKind {
-  INTEGRAL,
-  POINTER, FLOAT
+import org.junit.Test;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.*;
+
+public class CharPtrTest {
+
+  @Test
+  public void test() {
+    CharPtr ptr = new CharPtr('A', (char)54792);
+    assertThat(ptr.getChar(0), equalTo('A'));
+    assertThat(ptr.getChar(2), equalTo((char)54792));
+  }
+
 }

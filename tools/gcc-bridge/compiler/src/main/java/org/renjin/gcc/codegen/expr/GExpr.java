@@ -19,7 +19,15 @@
 package org.renjin.gcc.codegen.expr;
 
 import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.array.ArrayExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
+import org.renjin.gcc.codegen.type.UnsupportedCastException;
+import org.renjin.gcc.codegen.type.fun.FunPtr;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
+import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
+import org.renjin.gcc.codegen.type.voidt.VoidPtr;
+import org.renjin.gcc.codegen.vptr.VPtrExpr;
+import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 
 /**
  * Interface for generators which can emit load/store operations for {@code GimpleExpr}s
@@ -33,5 +41,30 @@ public interface GExpr {
   void store(MethodGenerator mv, GExpr rhs);
   
   GExpr addressOf();
-  
+
+  /**
+   * Cast or transform this expression to a Function Pointer expression.
+   */
+  FunPtr toFunPtr() throws UnsupportedCastException;
+
+  /**
+   * Cast or transform this expression to an Array expression.
+   */
+  ArrayExpr toArrayExpr() throws UnsupportedCastException;
+
+
+  PrimitiveValue toPrimitiveExpr(GimplePrimitiveType targetType) throws UnsupportedCastException;
+
+  VoidPtr toVoidPtrExpr() throws UnsupportedCastException;
+
+  /**
+   * Cast or transform this expression to an Record Array expression.
+   */
+  RecordArrayExpr toRecordArrayExpr() throws UnsupportedCastException;
+
+  /**
+   * Cast or transform this expression to a Virtual Pointer expression.
+   */
+  VPtrExpr toVPtrExpr() throws UnsupportedCastException;
+
 }

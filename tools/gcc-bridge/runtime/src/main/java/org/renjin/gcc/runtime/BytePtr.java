@@ -143,6 +143,11 @@ public class BytePtr extends AbstractPtr {
     this.array[this.offset + offset] = value;
   }
 
+  @Override
+  public int toInt() {
+    return offset;
+  }
+
   public static BytePtr cast(Object voidPointer) {
     if(voidPointer instanceof MallocThunk) {
       return ((MallocThunk) voidPointer).bytePtr();

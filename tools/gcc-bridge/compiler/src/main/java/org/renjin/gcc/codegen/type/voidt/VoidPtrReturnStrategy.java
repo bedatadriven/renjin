@@ -42,8 +42,8 @@ public class VoidPtrReturnStrategy implements ReturnStrategy {
   }
 
   @Override
-  public GExpr unmarshall(MethodGenerator mv, JExpr returnValue, TypeStrategy lhsTypeStrategy) {
-    return ((PointerTypeStrategy) lhsTypeStrategy).unmarshallVoidPtrReturnValue(mv, returnValue);
+  public GExpr unmarshall(MethodGenerator mv, JExpr callExpr, TypeStrategy lhsTypeStrategy) {
+    return new VoidPtr(callExpr);
   }
 
   @Override

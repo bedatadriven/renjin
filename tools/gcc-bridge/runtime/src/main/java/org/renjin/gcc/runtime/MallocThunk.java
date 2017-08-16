@@ -262,6 +262,7 @@ public class MallocThunk extends AbstractPtr {
 
   @Override
   public Ptr pointerPlus(int bytes) {
+
     throw new UnsupportedOperationException("TODO");
   }
 
@@ -272,6 +273,11 @@ public class MallocThunk extends AbstractPtr {
 
   @Override
   public void setByte(int offset, byte value) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public int toInt() {
     throw new UnsupportedOperationException("TODO");
   }
 }

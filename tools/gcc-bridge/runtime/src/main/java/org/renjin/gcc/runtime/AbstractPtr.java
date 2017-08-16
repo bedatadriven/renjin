@@ -75,7 +75,11 @@ public abstract class AbstractPtr implements Ptr {
 
   @Override
   public char getChar(int offset) {
-    return (char) ((getByte(offset) << 8) | (getByte(offset + 1) & 0xFF));
+    //return (char) ((b1 << 8) | (b2 & 0xFF));
+    byte b1 = getByte(offset + 1);
+    byte b2 = getByte(offset + 0);
+
+    return (char) ((b1 << 8) | (b2 & 0xFF));
   }
 
   @Override
@@ -200,6 +204,8 @@ public abstract class AbstractPtr implements Ptr {
     throw new UnsupportedOperationException("TODO");
   }
 
+
+
   @Override
   public Ptr getPointer(int offset) {
     throw new UnsupportedOperationException("TODO");
@@ -209,5 +215,6 @@ public abstract class AbstractPtr implements Ptr {
   public void setPointer(int offset, Ptr value) {
     throw new UnsupportedOperationException("TODO");
   }
+
 }
 

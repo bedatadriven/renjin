@@ -20,8 +20,13 @@
 
 package org.renjin.gcc.codegen.vptr;
 
+import org.renjin.gcc.codegen.type.UnsupportedCastException;
+import org.renjin.gcc.gimple.type.GimpleIndirectType;
+import org.renjin.gcc.gimple.type.GimpleIntegerType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.runtime.PointerImpls;
+import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Type;
 
 /**
@@ -30,24 +35,23 @@ import org.renjin.repackaged.asm.Type;
 public enum PointerType {
 
 
-  BYTE(Type.BYTE_TYPE, PointerKind.INTEGRAL, Signedness.SIGNED, 1),
-  SHORT(Type.SHORT_TYPE, PointerKind.INTEGRAL, Signedness.SIGNED, 2),
-  CHAR(Type.CHAR_TYPE, PointerKind.INTEGRAL, Signedness.UNSIGNED, 2),
-  INT(Type.INT_TYPE, PointerKind.INTEGRAL, Signedness.SIGNED, 4),
-  LONG(Type.LONG_TYPE, PointerKind.INTEGRAL, Signedness.SIGNED, 8),
-  FLOAT(Type.FLOAT_TYPE, PointerKind.FLOAT, Signedness.SIGNED, 4),
-  DOUBLE(Type.DOUBLE_TYPE, PointerKind.FLOAT, Signedness.SIGNED, 8);
+  BYTE(Type.BYTE_TYPE, PointerKind.INTEGRAL, 1),
+  SHORT(Type.SHORT_TYPE, PointerKind.INTEGRAL, 2),
+  CHAR(Type.CHAR_TYPE, PointerKind.INTEGRAL, 2),
+  INT(Type.INT_TYPE, PointerKind.INTEGRAL, 4),
+  LONG(Type.LONG_TYPE, PointerKind.INTEGRAL, 8),
+  FLOAT(Type.FLOAT_TYPE, PointerKind.FLOAT, 4),
+  DOUBLE(Type.DOUBLE_TYPE, PointerKind.FLOAT, 8),
+  POINTER(Type.getType(Ptr.class), PointerKind.POINTER, 4);
 
   private Type jvmType;
   private PointerKind kind;
   private int size;
-  private Signedness signedness;
 
-  PointerType(Type jvmType, PointerKind kind, Signedness signedness, int size) {
+  PointerType(Type jvmType, PointerKind kind, int size) {
     this.jvmType = jvmType;
     this.kind = kind;
     this.size = size;
-    this.signedness = signedness;
   }
 
   public Type getJvmType() {
@@ -62,12 +66,26 @@ public enum PointerType {
     return Type.getType("L" + PointerImpls.PACKAGE.replace('.', '/') + "/" + titleCasedName() + "Ptr;");
   }
 
-  public static PointerType valueOf(GimplePrimitiveType primitiveType) {
+  public static PointerType ofPrimitiveType(GimplePrimitiveType primitiveType) {
     for (PointerType pointerType : values()) {
       if(pointerType.getJvmType().equals(primitiveType.jvmType())) {
         return pointerType;
       }
     }
     throw new IllegalArgumentException("type: " + primitiveType);
+  }
+
+  public static PointerType ofType(GimpleType type) {
+    if(type instanceof GimplePrimitiveType) {
+      return ofPrimitiveType(((GimplePrimitiveType) type));
+    } else if(type instanceof GimpleIndirectType) {
+      return PointerType.POINTER;
+    } else {
+      throw new UnsupportedOperationException("type: " + type);
+    }
+  }
+
+  public PointerKind getKind() {
+    return kind;
   }
 }

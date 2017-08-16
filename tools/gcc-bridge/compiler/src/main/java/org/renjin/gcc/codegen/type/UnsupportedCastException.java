@@ -21,5 +21,5 @@ package org.renjin.gcc.codegen.type;
 /**
  * 
  */
-public class UnsupportedCastException extends Exception {
+public class UnsupportedCastException extends RuntimeException {
 }

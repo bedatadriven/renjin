@@ -20,11 +20,19 @@ package org.renjin.gcc.codegen.fatptr;
 
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.array.ArrayExpr;
 import org.renjin.gcc.codegen.expr.*;
+import org.renjin.gcc.codegen.type.UnsupportedCastException;
+import org.renjin.gcc.codegen.type.fun.FunPtr;
 import org.renjin.gcc.codegen.type.primitive.ConstantValue;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
+import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtr;
 import org.renjin.gcc.codegen.var.LocalVarAllocator;
 import org.renjin.gcc.codegen.vptr.PointerType;
+import org.renjin.gcc.codegen.vptr.VPtrExpr;
+import org.renjin.gcc.gimple.type.GimpleIntegerType;
+import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.runtime.ObjectPtr;
 import org.renjin.gcc.runtime.PointerImpls;
@@ -158,10 +166,11 @@ public final class FatPtrPair implements FatPtr, PtrExpr {
     ((JLValue) offset).store(mv, offsetRhs);
   }
 
-  public JExpr vpointer() {
+  @Override
+  public VPtrExpr toVPtrExpr() {
     final PointerType primitiveType = PointerImpls.ofType(getValueType());
 
-    return new JExpr() {
+    return new VPtrExpr(new JExpr() {
       @Nonnull
       @Override
       public Type getType() {
@@ -176,7 +185,7 @@ public final class FatPtrPair implements FatPtr, PtrExpr {
         offset.load(mv);
         mv.invokeconstructor(primitiveType.alignedImpl(), array.getType(), Type.INT_TYPE);
       }
-    };
+    });
   }
 
 
@@ -236,6 +245,41 @@ public final class FatPtrPair implements FatPtr, PtrExpr {
     return address;
   }
 
+  @Override
+  public FunPtr toFunPtr() throws UnsupportedCastException {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public ArrayExpr toArrayExpr() throws UnsupportedCastException {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public PrimitiveValue toPrimitiveExpr(GimplePrimitiveType targetType) throws UnsupportedCastException {
+    // Converting pointers to integers and vice-versa is implementation-defined
+    // So we will define an implementation that supports at least one useful case spotted in S4Vectors:
+    // double a[] = {1,2,3,4};
+    // double *start = a;
+    // double *end = p+4;
+    // int length = (start-end)
+    JExpr offsetInBytes = Expressions.product(offset, valueFunction.getArrayElementBytes());
+
+    PrimitiveValue primitiveValue = new PrimitiveValue(new GimpleIntegerType(32), offsetInBytes);
+
+    return primitiveValue.toPrimitiveExpr(targetType);
+  }
+
+  @Override
+  public VoidPtr toVoidPtrExpr() throws UnsupportedCastException {
+    return new VoidPtr(wrap());
+  }
+
+  @Override
+  public RecordArrayExpr toRecordArrayExpr() throws UnsupportedCastException {
+    throw new UnsupportedOperationException("TODO");
+  }
+
   public JExpr at(int i) {
     return Expressions.elementAt(array, Expressions.sum(offset, i));
   }
@@ -251,4 +295,5 @@ public final class FatPtrPair implements FatPtr, PtrExpr {
     JExpr nullArray = Expressions.nullRef(arrayType);
     return new FatPtrPair(valueFunction, nullArray);
   }
+
 }

@@ -23,6 +23,9 @@ import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
+import org.renjin.gcc.codegen.type.UnsupportedCastException;
+import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
+import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.repackaged.asm.Type;
 
 public class DereferencedVoidPtr extends VoidPtr {
@@ -57,5 +60,15 @@ public class DereferencedVoidPtr extends VoidPtr {
     } else {
       super.store(mv, rhs); 
     }
+  }
+
+  @Override
+  public RecordArrayExpr toRecordArrayExpr() throws UnsupportedCastException {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public VPtrExpr toVPtrExpr() throws UnsupportedCastException {
+    throw new UnsupportedOperationException("TODO");
   }
 }

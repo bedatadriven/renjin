@@ -110,32 +110,12 @@ public class FunPtrStrategy implements PointerTypeStrategy<FunPtr>, SimpleTypeSt
 
   @Override
   public FunPtr cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
-    if(typeStrategy instanceof FunPtrStrategy) {
-      // We can liberally cast between different types of function pointers thanks
-      // to the flexibility of MethodHandles.
-      return (FunPtr) value;
-    }
-    
-    // TODO: remove this, just to get rtti running
-    if(typeStrategy instanceof RecordUnitPtrStrategy) {
-      return nullPointer();
-    }
-    
-    if(typeStrategy instanceof PrimitiveTypeStrategy) {
-      return nullPointer();
-    }
-    
-    if(typeStrategy instanceof VoidPtrStrategy) {
-      VoidPtr voidPtr = (VoidPtr) value;
-      return new FunPtr(Expressions.cast(voidPtr.unwrap(), METHOD_HANDLE_TYPE));
-    }
-    
-    throw new UnsupportedCastException();
+    return value.toFunPtr();
   }
 
   @Override
   public FunPtr nullPointer() {
-    return new FunPtr(Expressions.nullRef(METHOD_HANDLE_TYPE));
+    return FunPtr.NULL_PTR;
   }
 
   @Override
@@ -156,11 +136,6 @@ public class FunPtrStrategy implements PointerTypeStrategy<FunPtr>, SimpleTypeSt
   @Override
   public void memorySet(MethodGenerator mv, FunPtr pointer, JExpr byteValue, JExpr length) {
     throw new UnsupportedOperationException("TODO");
-  }
-
-  @Override
-  public VoidPtr toVoidPointer(FunPtr ptrExpr) {
-    return new VoidPtr(ptrExpr.unwrap());
   }
 
   @Override

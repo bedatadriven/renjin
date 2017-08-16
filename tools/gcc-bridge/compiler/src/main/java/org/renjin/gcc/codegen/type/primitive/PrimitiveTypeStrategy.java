@@ -63,7 +63,7 @@ public class PrimitiveTypeStrategy implements SimpleTypeStrategy<PrimitiveValue>
 
   @Override
   public ParamStrategy getParamStrategy() {
-    return new PrimitiveParamStrategy(type.jvmType());
+    return new PrimitiveParamStrategy(type);
   }
 
   @Override
@@ -126,30 +126,7 @@ public class PrimitiveTypeStrategy implements SimpleTypeStrategy<PrimitiveValue>
 
   @Override
   public PrimitiveValue cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
-    
-    if(value instanceof ArrayExpr) {
-      GExpr first = ((ArrayExpr) value).first();
-      if(first instanceof PrimitiveValue) {
-        return (PrimitiveValue) first;
-      }
-    }
-    
-    if(typeStrategy instanceof PrimitiveTypeStrategy) {
-      // Handle casts between primitive types and signed/unsigned
-      GimplePrimitiveType valueType = ((PrimitiveTypeStrategy) typeStrategy).getType();
-      PrimitiveValue primitiveValue = (PrimitiveValue) value;
-      return new PrimitiveValue(new CastGenerator(primitiveValue.unwrap(), valueType, this.type));
-    }
-    
-    if(typeStrategy instanceof FatPtrStrategy) {
-      return ((FatPtrStrategy) typeStrategy).toInt(mv, (FatPtr) value);
-    
-    } else if(value instanceof RefPtrExpr) {
-      RefPtrExpr ptrExpr = (RefPtrExpr) value;
-      return new PrimitiveValue(Expressions.identityHash(ptrExpr.unwrap()));
-    }
-    
-    throw new UnsupportedCastException();
+    return value.toPrimitiveExpr(type);
   }
   
   public PrimitiveValue zero() {

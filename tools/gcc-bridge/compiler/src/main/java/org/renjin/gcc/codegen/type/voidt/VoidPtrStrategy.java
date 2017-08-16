@@ -125,11 +125,6 @@ public class VoidPtrStrategy implements PointerTypeStrategy<VoidPtr>, SimpleType
   }
 
   @Override
-  public VoidPtr toVoidPointer(VoidPtr ptrExpr) {
-    return ptrExpr;
-  }
-
-  @Override
   public VoidPtr unmarshallVoidPtrReturnValue(MethodGenerator mv, JExpr voidPointer) {
     return new VoidPtr(voidPointer);
   }
@@ -201,15 +196,7 @@ public class VoidPtrStrategy implements PointerTypeStrategy<VoidPtr>, SimpleType
 
   @Override
   public VoidPtr cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
-    
-    if(value instanceof VoidPtr) {
-      return (VoidPtr) value;
-    }
-    
-    if(typeStrategy instanceof PointerTypeStrategy) {
-      return ((PointerTypeStrategy) typeStrategy).toVoidPointer(value);
-    }
-    throw new UnsupportedCastException();
+    return value.toVoidPtrExpr();
   }
 
   @Override

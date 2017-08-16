@@ -103,10 +103,7 @@ public class ArrayTypeStrategy implements TypeStrategy<ArrayExpr> {
 
   @Override
   public ArrayExpr cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
-    if(value instanceof ArrayExpr) {
-      return (ArrayExpr) value;
-    }
-    throw new UnsupportedCastException();
+    return value.toArrayExpr();
   }
 
   @Override

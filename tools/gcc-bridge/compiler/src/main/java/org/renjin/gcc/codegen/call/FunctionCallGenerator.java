@@ -78,18 +78,18 @@ public class FunctionCallGenerator implements CallGenerator, MethodHandleGenerat
       varArgArray = Optional.of(Expressions.newArray(Type.getType(Object.class), varArgValues));
     }
     
-    CallExpr returnValue = new CallExpr(argumentExpressions, varArgArray);
+    CallExpr callExpr = new CallExpr(argumentExpressions, varArgArray);
     
     // If we don't need the return value, then invoke and pop any result off the stack
     if(call.getLhs() == null) {
-      returnValue.load(mv);
-      mv.pop(returnValue.getType());
+      callExpr.load(mv);
+      mv.pop(callExpr.getType());
     
     } else {
 
       GExpr lhs = exprFactory.findGenerator(call.getLhs());
       TypeStrategy lhsTypeStrategy = exprFactory.strategyFor(call.getLhs().getType());
-      GExpr rhs = strategy.getReturnStrategy().unmarshall(mv, returnValue, lhsTypeStrategy);
+      GExpr rhs = strategy.getReturnStrategy().unmarshall(mv, callExpr, lhsTypeStrategy);
 
       lhs.store(mv, rhs);
     }

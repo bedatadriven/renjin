@@ -21,6 +21,7 @@ package org.renjin.gcc.codegen.type.record;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.type.TypeStrategy;
+import org.renjin.gcc.codegen.type.UnsupportedCastException;
 import org.renjin.gcc.gimple.type.GimpleField;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;

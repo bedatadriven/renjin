@@ -239,4 +239,10 @@ public interface Ptr {
   void setPointer(int offset, Ptr value);
 
 
+  /**
+   * Cast this "pointer" to a 32-bit integer.
+   */
+  int toInt();
+
+
 }

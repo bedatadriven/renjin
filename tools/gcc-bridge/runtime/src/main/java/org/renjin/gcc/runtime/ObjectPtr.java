@@ -84,6 +84,11 @@ public class ObjectPtr<T> extends AbstractPtr {
     throw new UnsupportedOperationException("TODO");
   }
 
+  @Override
+  public int toInt() {
+    throw new UnsupportedOperationException("TODO");
+  }
+
   public T get() {
     return get(0);
   }
@@ -205,5 +210,20 @@ public class ObjectPtr<T> extends AbstractPtr {
       return ((MallocThunk) voidPointer).recordUnitPtr(recordType);
     }
     return (T)recordType;
+  }
+
+  @Override
+  public Ptr getPointer() {
+    return (Ptr) array[this.offset];
+  }
+
+  @Override
+  public Ptr getPointer(int offset) {
+    int byteOffset = (this.offset * 4) + offset;
+    if(byteOffset % 4 == 0) {
+      return (Ptr)array[byteOffset / 4];
+    } else {
+      throw new UnsupportedOperationException("Unaligned access");
+    }
   }
 }

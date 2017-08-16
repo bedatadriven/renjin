@@ -26,7 +26,7 @@ public class IntPtr extends AbstractPtr implements Ptr {
   public static final int BYTES = Integer.SIZE / 8;
   
   public static final IntPtr NULL = new IntPtr();
-  
+
   public final int[] array;
   public final int offset;
 
@@ -57,7 +57,7 @@ public class IntPtr extends AbstractPtr implements Ptr {
 
   @Override
   public IntPtr realloc(int newSizeInBytes) {
-    return new IntPtr(Realloc.realloc(array, offset, newSizeInBytes / 4));
+    return new IntPtr(Realloc.realloc(array, offset, newSizeInBytes / BYTES));
   }
 
   public int unwrap() {
@@ -112,12 +112,12 @@ public class IntPtr extends AbstractPtr implements Ptr {
       int vx = x[xi];
       int vy = y[yi];
 
-      if(vx != vy || n < 4) {
+      if(vx != vy || n < BYTES) {
         return memcmp(vx, vy, n);
       }
       xi++;
       yi++;
-      n-= 4;
+      n-= BYTES;
     }
     return 0;
   }
@@ -161,9 +161,9 @@ public class IntPtr extends AbstractPtr implements Ptr {
 
   @Override
   public byte getByte(int offset) {
-    int byteIndex = this.offset * 4 + offset;
-    int index = byteIndex / 4;
-    int shift = (byteIndex % 4) * 8;
+    int byteIndex = this.offset * BYTES + offset;
+    int index = byteIndex / BYTES;
+    int shift = (byteIndex % BYTES) * 8;
     return (byte)(this.array[index] >>> shift);
   }
 
@@ -174,8 +174,8 @@ public class IntPtr extends AbstractPtr implements Ptr {
 
   @Override
   public int getInt(int offset) {
-    if(this.offset % 4 == 0) {
-      return this.array[this.offset + (offset / 4)];
+    if(this.offset % BYTES == 0) {
+      return this.array[this.offset + (offset / BYTES)];
     } else {
       return super.getInt(offset);
     }
@@ -188,8 +188,8 @@ public class IntPtr extends AbstractPtr implements Ptr {
 
   @Override
   public void setInt(int byteOffset, int value) {
-    if(byteOffset % 4 == 0) {
-      this.array[this.offset + (byteOffset % 4)] = value;
+    if(byteOffset % BYTES == 0) {
+      this.array[this.offset + (byteOffset % BYTES)] = value;
     } else {
       super.setInt(byteOffset, value);
     }
@@ -206,9 +206,14 @@ public class IntPtr extends AbstractPtr implements Ptr {
   }
 
   @Override
+  public int toInt() {
+    return offset * BYTES;
+  }
+
+  @Override
   public Ptr pointerPlus(int byteCount) {
-    if(byteCount % 4 == 0) {
-      return new IntPtr(this.array, this.offset + (byteCount / 4));
+    if(byteCount % BYTES == 0) {
+      return new IntPtr(this.array, this.offset + (byteCount / BYTES));
     } else {
       throw new UnsupportedOperationException("TODO");
     }

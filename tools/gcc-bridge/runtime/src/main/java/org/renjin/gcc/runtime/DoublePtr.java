@@ -175,6 +175,11 @@ public class DoublePtr extends AbstractPtr implements Ptr {
   }
 
   @Override
+  public int toInt() {
+    return offset * 8;
+  }
+
+  @Override
   public Ptr pointerPlus(int byteCount) {
     if(byteCount % 8 == 0) {
       return new DoublePtr(this.array, this.offset + (byteCount / 8));

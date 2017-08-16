@@ -44,8 +44,6 @@ public interface PointerTypeStrategy<ExprT extends GExpr> extends TypeStrategy<E
 
   void memorySet(MethodGenerator mv, ExprT pointer, JExpr byteValue, JExpr length);
 
-  VoidPtr toVoidPointer(ExprT ptrExpr);
-
   ExprT unmarshallVoidPtrReturnValue(MethodGenerator mv, JExpr voidPointer);
 
 }

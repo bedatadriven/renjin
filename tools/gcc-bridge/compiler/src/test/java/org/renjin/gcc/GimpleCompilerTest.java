@@ -801,7 +801,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
   @Test
   public void ctypes() throws Exception {
     Class clazz = compile("ctype.c");
-    Method countWhitespace = clazz.getMethod("count_whitespace", BytePtr.class);
+    Method countWhitespace = clazz.getMethod("count_whitespace", Ptr.class);
     assertThat((Integer) countWhitespace.invoke(null,
         BytePtr.nullTerminatedString("Hello World!", Charsets.US_ASCII)), equalTo(1));
   }

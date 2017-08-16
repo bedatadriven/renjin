@@ -73,6 +73,11 @@ public class ShortPtr extends AbstractPtr {
     throw new UnsupportedOperationException("TODO");
   }
 
+  @Override
+  public int toInt() {
+    return offset * 2;
+  }
+
   public short unwrap() {
     return array[offset];
   }

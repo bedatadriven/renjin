@@ -21,7 +21,9 @@ package org.renjin.gcc.runtime;
 import java.util.Arrays;
 
 public class CharPtr extends AbstractPtr {
-  
+
+  public static final int BYTES = 2;
+
   public static final CharPtr NULL = new CharPtr();
   
   public final char[] array;
@@ -59,17 +61,25 @@ public class CharPtr extends AbstractPtr {
 
   @Override
   public Ptr pointerPlus(int bytes) {
-    return new CharPtr(array, offset + (bytes / 2));
+    return new CharPtr(array, offset + (bytes / BYTES));
   }
 
   @Override
   public byte getByte(int offset) {
-    throw new UnsupportedOperationException("TODO");
+    int byteIndex = this.offset * BYTES + offset;
+    int index = byteIndex / BYTES;
+    int shift = (byteIndex % BYTES) * 8;
+    return (byte)(this.array[index] >>> shift);
   }
 
   @Override
   public void setByte(int offset, byte value) {
     throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public int toInt() {
+    return offset * 2;
   }
 
   public static CharPtr fromString(String string) {

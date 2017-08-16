@@ -37,11 +37,14 @@ import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidReturnStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidTypeStrategy;
+import org.renjin.gcc.codegen.vptr.VPtrParamStrategy;
+import org.renjin.gcc.codegen.vptr.VPtrReturnStrategy;
 import org.renjin.gcc.codegen.vptr.VPtrStrategy;
 import org.renjin.gcc.gimple.GimpleParameter;
 import org.renjin.gcc.gimple.type.*;
 import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.ObjectPtr;
+import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.repackaged.guava.collect.Lists;
@@ -173,28 +176,9 @@ public class TypeOracle {
     } else if(returnType.isPrimitive()) {
       return new SimpleReturnStrategy(new PrimitiveTypeStrategy(returnType));
 
-    } else if(WrapperType.is(returnType)) {
-      WrapperType wrapperType = Wrappers.valueOf(returnType);
-      if(wrapperType.equals(WrapperType.OBJECT_PTR)) {
-        // Signature should be in the form ObjectPtr<BaseT>
-        // Use generics to get the base type 
-        java.lang.reflect.Type genericReturnType = method.getGenericReturnType();
-        Class baseType = objectPtrBaseType(genericReturnType);
-        
-        if(baseType.equals(ObjectPtr.class)) {
-          throw new UnsupportedOperationException(genericReturnType.toString());
-        } else if(WrapperType.is(baseType)) {
-          Type valueType = Wrappers.valueType(baseType);
-          return new FatPtrReturnStrategy(new FatPtrValueFunction(new PrimitiveValueFunction(valueType)));
+    } else if(Ptr.class.isAssignableFrom(returnType)) {
+      return new VPtrReturnStrategy();
 
-        } else {
-          throw new UnsupportedOperationException("baseType: " + baseType);
-        }
-      } else {
-        // Primitive Ptr wrapper
-        Type valueType = Wrappers.valueType(Type.getType(returnType));
-        return new FatPtrReturnStrategy(new PrimitiveValueFunction(valueType));
-      }
     } else if(classTypes.containsKey(Type.getInternalName(returnType))) {
       GimpleRecordType recordType = classTypes.get(Type.getInternalName(returnType));
       return recordTypes.get(recordType.getId()).pointerTo().getReturnStrategy();
@@ -243,13 +227,12 @@ public class TypeOracle {
         strategies.add(forObjectPtrParam(method.getGenericParameterTypes()[index]));
         index++;
         
-      } else if (WrapperType.is(paramClass)) {
-        Type valueType = Wrappers.valueType(paramClass);
-        strategies.add(new WrappedFatPtrParamStrategy(new PrimitiveValueFunction(valueType)));
+      } else if (Ptr.class.isAssignableFrom(paramClass)) {
+        strategies.add(new VPtrParamStrategy());
         index++;
 
       } else if (paramClass.isPrimitive()) {
-        strategies.add(new PrimitiveParamStrategy(Type.getType(paramClass)));
+        strategies.add(new PrimitiveParamStrategy(GimplePrimitiveType.fromJvmType(Type.getType(paramClass))));
         index++;
 
       } else if (paramClass.equals(String.class)) {

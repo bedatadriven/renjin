@@ -21,16 +21,20 @@
 package org.renjin.gcc.codegen.vptr;
 
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.expr.GExpr;
-import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.expr.JLValue;
-import org.renjin.gcc.codegen.expr.PtrExpr;
-import org.renjin.gcc.codegen.fatptr.FatPtrPair;
+import org.renjin.gcc.codegen.array.ArrayExpr;
+import org.renjin.gcc.codegen.expr.*;
+import org.renjin.gcc.codegen.type.UnsupportedCastException;
+import org.renjin.gcc.codegen.type.fun.FunPtr;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
-import org.renjin.gcc.gimple.type.GimpleArrayType;
+import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
+import org.renjin.gcc.codegen.type.voidt.VoidPtr;
+import org.renjin.gcc.gimple.type.GimpleIndirectType;
+import org.renjin.gcc.gimple.type.GimpleIntegerType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Label;
+import org.renjin.repackaged.asm.Type;
 
 public class VPtrExpr implements PtrExpr {
 
@@ -42,31 +46,52 @@ public class VPtrExpr implements PtrExpr {
 
   @Override
   public void store(MethodGenerator mv, GExpr rhs) {
-    if(rhs instanceof FatPtrPair) {
-      storeFatPtr(mv, ((FatPtrPair) rhs));
-    } else if(rhs instanceof VPtrExpr) {
-      VPtrExpr pointerRhs = (VPtrExpr) rhs;
-      storeRef(mv, pointerRhs.ref);
-    } else {
-      throw new UnsupportedOperationException("TODO:" + rhs.getClass().getSimpleName());
-    }
+    ((JLValue) this.ref).store(mv, rhs.toVPtrExpr().getRef());
   }
 
   public JExpr getRef() {
     return ref;
   }
 
-  private void storeRef(MethodGenerator mv, JExpr ref) {
-    ((JLValue) this.ref).store(mv, ref);
-  }
-
-  private void storeFatPtr(MethodGenerator mv, FatPtrPair rhs) {
-    storeRef(mv, rhs.vpointer());
-  }
-
   @Override
   public GExpr addressOf() {
     throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public FunPtr toFunPtr() throws UnsupportedCastException {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public ArrayExpr toArrayExpr() throws UnsupportedCastException {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public PrimitiveValue toPrimitiveExpr(GimplePrimitiveType targetType) throws UnsupportedCastException {
+
+    GimpleIntegerType pointerType = new GimpleIntegerType(32);
+    pointerType.setUnsigned(true);
+
+    return new PrimitiveValue(pointerType,
+        Expressions.methodCall(ref, Ptr.class, "toInt", Type.getMethodDescriptor(Type.INT_TYPE)))
+        .toPrimitiveExpr(targetType);
+  }
+
+  @Override
+  public VoidPtr toVoidPtrExpr() throws UnsupportedCastException {
+    return new VoidPtr(ref);
+  }
+
+  @Override
+  public RecordArrayExpr toRecordArrayExpr() throws UnsupportedCastException {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public VPtrExpr toVPtrExpr() {
+    return this;
   }
 
   @Override
@@ -76,9 +101,16 @@ public class VPtrExpr implements PtrExpr {
 
   @Override
   public GExpr valueOf(GimpleType expectedType) {
-    if(expectedType instanceof GimplePrimitiveType) {
-      return new PrimitiveValue(new DerefExpr(ref, PointerType.valueOf((GimplePrimitiveType) expectedType)));
+    PointerType pointerType = PointerType.ofType(expectedType);
+    DerefExpr jvmExpr = new DerefExpr(ref, pointerType);
+
+    switch (pointerType.getKind()) {
+      case INTEGRAL:
+      case FLOAT:
+        return new PrimitiveValue(((GimplePrimitiveType) expectedType), jvmExpr);
+      case POINTER:
+        return new VPtrExpr(jvmExpr);
     }
-    throw new UnsupportedOperationException("TODO: " + expectedType);
+    throw new UnsupportedOperationException("kind: " + pointerType.getKind());
   }
 }

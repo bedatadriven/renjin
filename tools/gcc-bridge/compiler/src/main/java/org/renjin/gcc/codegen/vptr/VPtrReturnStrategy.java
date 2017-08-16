@@ -42,8 +42,8 @@ public class VPtrReturnStrategy implements ReturnStrategy {
   }
 
   @Override
-  public GExpr unmarshall(MethodGenerator mv, JExpr returnValue, TypeStrategy lhsTypeStrategy) {
-    throw new UnsupportedOperationException("TODO");
+  public GExpr unmarshall(MethodGenerator mv, JExpr callExpr, TypeStrategy lhsTypeStrategy) {
+    return new VPtrExpr(callExpr);
   }
 
   @Override

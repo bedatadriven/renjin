@@ -202,13 +202,7 @@ public class RecordArrayTypeStrategy extends RecordTypeStrategy<RecordArrayExpr>
 
   @Override
   public RecordArrayExpr cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
-    if(typeStrategy instanceof RecordArrayTypeStrategy) {
-      return (RecordArrayExpr) value;
-    }  else if(typeStrategy instanceof FatPtrStrategy) {
-      FatPtrPair fatPtrExpr = (FatPtrPair) value;
-      return new RecordArrayExpr(valueFunction, fatPtrExpr.getArray(), fatPtrExpr.getOffset(), arrayLength);
-    }
-    throw new UnsupportedCastException();
+    return value.toRecordArrayExpr();
   }
 
   @Override

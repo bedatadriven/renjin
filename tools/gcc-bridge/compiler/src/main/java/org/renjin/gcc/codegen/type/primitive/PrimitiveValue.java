@@ -19,22 +19,44 @@
 package org.renjin.gcc.codegen.type.primitive;
 
 import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.array.ArrayExpr;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.GSimpleExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
+import org.renjin.gcc.codegen.type.UnsupportedCastException;
+import org.renjin.gcc.codegen.type.fun.FunPtr;
+import org.renjin.gcc.codegen.type.primitive.op.CastGenerator;
+import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
+import org.renjin.gcc.codegen.type.voidt.VoidPtr;
+import org.renjin.gcc.codegen.vptr.VPtrExpr;
+import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 
 
 public class PrimitiveValue implements GSimpleExpr {
 
+  private GimplePrimitiveType primitiveType;
   private JExpr expr;
   private GExpr address;
 
   public PrimitiveValue(JExpr expr) {
     this.expr = expr;
+    this.primitiveType = GimplePrimitiveType.fromJvmType(expr.getType());
+  }
+
+  public PrimitiveValue(GimplePrimitiveType primitiveType, JExpr expr) {
+    this.primitiveType = primitiveType;
+    this.expr = expr;
   }
 
   public PrimitiveValue(JExpr expr, GExpr address) {
+    this.expr = expr;
+    this.primitiveType = GimplePrimitiveType.fromJvmType(expr.getType());
+    this.address = address;
+  }
+
+  public PrimitiveValue(GimplePrimitiveType primitiveType, JExpr expr, GExpr address) {
+    this.primitiveType = primitiveType;
     this.expr = expr;
     this.address = address;
   }
@@ -52,6 +74,11 @@ public class PrimitiveValue implements GSimpleExpr {
   }
 
   @Override
+  public FunPtr toFunPtr() {
+    return FunPtr.NULL_PTR;
+  }
+
+  @Override
   public void store(MethodGenerator mv, GExpr rhs) {
     
     PrimitiveValue primitiveRhs = (PrimitiveValue) rhs;
@@ -62,5 +89,30 @@ public class PrimitiveValue implements GSimpleExpr {
   @Override
   public JExpr unwrap() {
     return expr;
+  }
+
+  @Override
+  public ArrayExpr toArrayExpr() throws UnsupportedCastException {
+    throw new UnsupportedCastException();
+  }
+
+  @Override
+  public PrimitiveValue toPrimitiveExpr(GimplePrimitiveType targetType) throws UnsupportedCastException {
+    return new PrimitiveValue(new CastGenerator(unwrap(), primitiveType, targetType));
+  }
+
+  @Override
+  public VoidPtr toVoidPtrExpr() throws UnsupportedCastException {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public RecordArrayExpr toRecordArrayExpr() throws UnsupportedCastException {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public VPtrExpr toVPtrExpr() throws UnsupportedCastException {
+    throw new UnsupportedOperationException("TODO");
   }
 }

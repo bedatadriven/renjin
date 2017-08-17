@@ -101,18 +101,18 @@ public class RecordArrayTypeStrategy extends RecordTypeStrategy<RecordArrayExpr>
     // and it actually doesn't matter to us.
     
     if(fieldTypeStrategy instanceof PrimitiveTypeStrategy) {
-      Type expectedType = ((PrimitiveTypeStrategy) fieldTypeStrategy).getJvmType();
+      GimplePrimitiveType expectedType = ((PrimitiveTypeStrategy) fieldTypeStrategy).getType();
 
       // Return a single primitive value
-      if(expectedType.equals(fieldType)) {
+      if(expectedType.jvmType().equals(fieldType)) {
         JExpr value = elementAt(array, offset);
-        return new PrimitiveValue(value, address);
+        return new PrimitiveValue(expectedType, value, address);
       } else if (fieldType.equals(Type.BYTE_TYPE) && expectedType.equals(Type.INT_TYPE)) {
-        return new PrimitiveValue(new ByteArrayAsInt(array, offset));
+        return new PrimitiveValue(expectedType, new ByteArrayAsInt(array, offset));
         
       } else if (fieldType.equals(Type.LONG_TYPE) && expectedType.equals(Type.DOUBLE_TYPE)) {
         JLValue value = elementAt(array, offset);
-        return new PrimitiveValue(new LongAsDouble(value));
+        return new PrimitiveValue(expectedType, new LongAsDouble(value));
         
       } else {
         throw new UnsupportedOperationException("TODO: " + fieldType + " -> " + expectedType);

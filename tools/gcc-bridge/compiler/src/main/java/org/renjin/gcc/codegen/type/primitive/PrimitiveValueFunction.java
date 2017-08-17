@@ -80,12 +80,12 @@ public class PrimitiveValueFunction implements ValueFunction {
     FatPtrPair address = new FatPtrPair(this, array, offset);
     JExpr value = Expressions.elementAt(array, offset);
 
-    return new PrimitiveValue(value, address);
+    return new PrimitiveValue(gimpleType, value, address);
   }
 
   @Override
   public GExpr dereference(WrappedFatPtrExpr wrapperInstance) {
-    return new PrimitiveValue(wrapperInstance.valueExpr(), wrapperInstance);
+    return new PrimitiveValue(gimpleType, wrapperInstance.valueExpr(), wrapperInstance);
   }
 
   @Override

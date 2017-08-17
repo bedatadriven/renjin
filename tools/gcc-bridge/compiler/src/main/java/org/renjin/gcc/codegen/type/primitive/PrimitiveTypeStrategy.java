@@ -68,7 +68,7 @@ public class PrimitiveTypeStrategy implements SimpleTypeStrategy<PrimitiveValue>
 
   @Override
   public ReturnStrategy getReturnStrategy() {
-    return new SimpleReturnStrategy(this);
+    return new PrimitiveReturnStrategy(type);
   }
 
   public ValueFunction getValueFunction() {
@@ -91,10 +91,10 @@ public class PrimitiveTypeStrategy implements SimpleTypeStrategy<PrimitiveValue>
       JLValue unitArray = allocator.reserveUnitArray(decl.getNameIfPresent(), type.jvmType(), Optional.<JExpr>absent());
       FatPtrPair address = new FatPtrPair(valueFunction(), unitArray);
       JExpr value = Expressions.elementAt(address.getArray(), 0);
-      return new PrimitiveValue(value, address);
+      return new PrimitiveValue(type, value, address);
       
     } else {
-      return new PrimitiveValue(allocator.reserve(decl.getNameIfPresent(), type.jvmType()));
+      return new PrimitiveValue(type, allocator.reserve(decl.getNameIfPresent(), type.jvmType()));
     }
   }
 
@@ -106,7 +106,7 @@ public class PrimitiveTypeStrategy implements SimpleTypeStrategy<PrimitiveValue>
           "Expected static field of type " + this.type.jvmType());
     }
 
-    return new PrimitiveValue(Expressions.staticField(javaField));
+    return new PrimitiveValue(type, Expressions.staticField(javaField));
   }
 
   @Override
@@ -130,7 +130,7 @@ public class PrimitiveTypeStrategy implements SimpleTypeStrategy<PrimitiveValue>
   }
   
   public PrimitiveValue zero() {
-    return new PrimitiveValue(new ConstantValue(type.jvmType(), 0));
+    return new PrimitiveValue(type, new ConstantValue(type.jvmType(), 0));
   }
 
   private PrimitiveValueFunction valueFunction() {
@@ -151,6 +151,6 @@ public class PrimitiveTypeStrategy implements SimpleTypeStrategy<PrimitiveValue>
   public PrimitiveValue wrap(JExpr expr) {
     Preconditions.checkArgument(expr.getType().equals(getJvmType()));
     
-    return new PrimitiveValue(expr);
+    return new PrimitiveValue(type, expr);
   }
 }

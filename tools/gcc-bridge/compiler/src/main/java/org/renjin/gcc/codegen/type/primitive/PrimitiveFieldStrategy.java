@@ -57,7 +57,7 @@ public class PrimitiveFieldStrategy extends SingleFieldStrategy {
         }
         fieldExpr = new BitFieldExpr(ownerClass, instance, fieldName, offset, size);
       }
-      return new PrimitiveValue(fieldExpr);
+      return new PrimitiveValue(primitiveTypeStrategy.getType(), fieldExpr);
       
     } else {
       throw new UnsupportedOperationException("expectedType: " + expectedType);

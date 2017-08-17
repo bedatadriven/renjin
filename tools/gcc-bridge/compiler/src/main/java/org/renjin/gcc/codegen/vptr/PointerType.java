@@ -21,10 +21,7 @@
 package org.renjin.gcc.codegen.vptr;
 
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
-import org.renjin.gcc.gimple.type.GimpleIndirectType;
-import org.renjin.gcc.gimple.type.GimpleIntegerType;
-import org.renjin.gcc.gimple.type.GimplePrimitiveType;
-import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.gcc.gimple.type.*;
 import org.renjin.gcc.runtime.PointerImpls;
 import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Type;
@@ -34,7 +31,7 @@ import org.renjin.repackaged.asm.Type;
  */
 public enum PointerType {
 
-
+  BOOLEAN(Type.BOOLEAN_TYPE, PointerKind.INTEGRAL, 1),
   BYTE(Type.BYTE_TYPE, PointerKind.INTEGRAL, 1),
   SHORT(Type.SHORT_TYPE, PointerKind.INTEGRAL, 2),
   CHAR(Type.CHAR_TYPE, PointerKind.INTEGRAL, 2),
@@ -78,8 +75,12 @@ public enum PointerType {
   public static PointerType ofType(GimpleType type) {
     if(type instanceof GimplePrimitiveType) {
       return ofPrimitiveType(((GimplePrimitiveType) type));
+    } else if(type instanceof GimpleComplexType) {
+      return ofPrimitiveType(((GimpleComplexType) type).getPartType());
     } else if(type instanceof GimpleIndirectType) {
       return PointerType.POINTER;
+    } else if(type instanceof GimpleArrayType) {
+      return ofType(((GimpleArrayType) type).getComponentType());
     } else {
       throw new UnsupportedOperationException("type: " + type);
     }

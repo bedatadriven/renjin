@@ -69,11 +69,11 @@ public class PrimitiveParamStrategy implements ParamStrategy {
       JLValue unitArray = localVars.reserveUnitArray(parameter.getName(), type.jvmType(), Optional.of(paramValue));
       FatPtrPair address = new FatPtrPair(new PrimitiveValueFunction(type), unitArray);
       JExpr value = Expressions.elementAt(address.getArray(), 0);
-      return new PrimitiveValue(value, address);
+      return new PrimitiveValue(type, value, address);
     } else {
       
       // Otherwise we can just reference the value of the parameter
-      return new PrimitiveValue(paramValue);
+      return new PrimitiveValue(type, paramValue);
     }
   }
 

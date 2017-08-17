@@ -159,7 +159,7 @@ public class ExprFactory {
           new PrimitiveValueFunction(constantValue.getType()), 
           Expressions.newArray(constantValue));
       
-      return new PrimitiveValue(constantValue, address);
+      return new PrimitiveValue(((GimplePrimitiveType) expr.getType()), constantValue, address);
 
     } else if(expr instanceof GimpleComplexPartExpr) {
       GimpleExpr complexExpr = ((GimpleComplexPartExpr) expr).getComplexValue();
@@ -403,7 +403,7 @@ public class ExprFactory {
       case UNGT_EXPR:
       case UNGE_EXPR:
         return new PrimitiveValue(
-            primitiveType(operands),
+            new GimpleBooleanType(),
             new ConditionExpr(
               findComparisonGenerator(op,operands.get(0), operands.get(1))));
 

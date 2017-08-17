@@ -34,6 +34,8 @@ public class PointerImpls {
 
   public static PointerType ofType(Type type) {
     switch (type.getSort()) {
+      case Type.BOOLEAN:
+        return PointerType.BOOLEAN;
       case Type.BYTE:
         return PointerType.BYTE;
       case Type.SHORT:

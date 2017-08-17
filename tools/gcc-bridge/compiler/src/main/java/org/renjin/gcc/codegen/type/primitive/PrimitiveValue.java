@@ -39,20 +39,9 @@ public class PrimitiveValue implements GSimpleExpr {
   private JExpr expr;
   private GExpr address;
 
-  public PrimitiveValue(JExpr expr) {
-    this.expr = expr;
-    this.primitiveType = GimplePrimitiveType.fromJvmType(expr.getType());
-  }
-
   public PrimitiveValue(GimplePrimitiveType primitiveType, JExpr expr) {
     this.primitiveType = primitiveType;
     this.expr = expr;
-  }
-
-  public PrimitiveValue(JExpr expr, GExpr address) {
-    this.expr = expr;
-    this.primitiveType = GimplePrimitiveType.fromJvmType(expr.getType());
-    this.address = address;
   }
 
   public PrimitiveValue(GimplePrimitiveType primitiveType, JExpr expr, GExpr address) {
@@ -81,7 +70,7 @@ public class PrimitiveValue implements GSimpleExpr {
   @Override
   public void store(MethodGenerator mv, GExpr rhs) {
     
-    PrimitiveValue primitiveRhs = (PrimitiveValue) rhs;
+    PrimitiveValue primitiveRhs = rhs.toPrimitiveExpr(primitiveType);
     
     ((JLValue) expr).store(mv, primitiveRhs.getExpr());
   }
@@ -98,7 +87,7 @@ public class PrimitiveValue implements GSimpleExpr {
 
   @Override
   public PrimitiveValue toPrimitiveExpr(GimplePrimitiveType targetType) throws UnsupportedCastException {
-    return new PrimitiveValue(new CastGenerator(unwrap(), primitiveType, targetType));
+    return new PrimitiveValue(targetType, new CastGenerator(unwrap(), primitiveType, targetType));
   }
 
   @Override

@@ -29,6 +29,7 @@ import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
 import org.renjin.gcc.codegen.type.record.RecordValue;
 import org.renjin.gcc.codegen.type.voidt.VoidPtr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
+import org.renjin.gcc.gimple.type.GimpleIntegerType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.Label;
@@ -92,7 +93,7 @@ public class RecordUnitPtr implements RefPtrExpr {
 
   @Override
   public PrimitiveValue toPrimitiveExpr(GimplePrimitiveType targetType) throws UnsupportedCastException {
-    return new PrimitiveValue(Expressions.identityHash(ref)).toPrimitiveExpr(targetType);
+    return new PrimitiveValue(GimpleIntegerType.unsigned(32), Expressions.identityHash(ref)).toPrimitiveExpr(targetType);
   }
 
   @Override

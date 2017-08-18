@@ -22,38 +22,50 @@ package org.renjin.gcc.codegen.vptr;
 
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.FatArrayExpr;
-import org.renjin.gcc.codegen.expr.*;
+import org.renjin.gcc.codegen.expr.ArrayExpr;
+import org.renjin.gcc.codegen.expr.Expressions;
+import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
 import org.renjin.gcc.codegen.type.fun.FunPtr;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
 import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtr;
-import org.renjin.gcc.gimple.type.*;
-import org.renjin.gcc.runtime.Ptr;
-import org.renjin.repackaged.asm.Label;
-import org.renjin.repackaged.asm.Type;
+import org.renjin.gcc.gimple.type.GimpleArrayType;
+import org.renjin.gcc.gimple.type.GimplePrimitiveType;
+import org.renjin.gcc.gimple.type.GimpleType;
 
-public class VPtrExpr implements PtrExpr {
+/**
+ * An array expression backed by a Virtual Pointer.
+ *
+ * <p>Basically the only difference between this class and VPtrExpr is that
+ * an array copies values when storing.</p>
+ */
+public class VArrayExpr implements ArrayExpr {
 
+  /**
+   * Reference to the {@link org.renjin.gcc.runtime.Ptr} instance backing this array.
+   */
   private JExpr ref;
 
-  public VPtrExpr(JExpr ref) {
+  private GimpleArrayType arrayType;
+
+
+  public VArrayExpr(GimpleArrayType arrayType, JExpr ref) {
+    this.arrayType = arrayType;
     this.ref = ref;
   }
 
   @Override
   public void store(MethodGenerator mv, GExpr rhs) {
-    ((JLValue) this.ref).store(mv, rhs.toVPtrExpr().getRef());
-  }
-
-  public JExpr getRef() {
-    return ref;
+    throw new UnsupportedOperationException("TODO");
   }
 
   @Override
   public GExpr addressOf() {
     throw new UnsupportedOperationException("TODO");
   }
+
 
   @Override
   public FunPtr toFunPtr() throws UnsupportedCastException {
@@ -67,18 +79,12 @@ public class VPtrExpr implements PtrExpr {
 
   @Override
   public PrimitiveValue toPrimitiveExpr(GimplePrimitiveType targetType) throws UnsupportedCastException {
-
-    GimpleIntegerType pointerType = new GimpleIntegerType(32);
-    pointerType.setUnsigned(true);
-
-    return new PrimitiveValue(pointerType,
-        Expressions.methodCall(ref, Ptr.class, "toInt", Type.getMethodDescriptor(Type.INT_TYPE)))
-        .toPrimitiveExpr(targetType);
+    throw new UnsupportedOperationException("TODO");
   }
 
   @Override
   public VoidPtr toVoidPtrExpr() throws UnsupportedCastException {
-    return new VoidPtr(ref);
+    throw new UnsupportedOperationException("TODO");
   }
 
   @Override
@@ -87,36 +93,19 @@ public class VPtrExpr implements PtrExpr {
   }
 
   @Override
-  public VPtrExpr toVPtrExpr() {
-    return this;
-  }
-
-  @Override
-  public void jumpIfNull(MethodGenerator mv, Label label) {
+  public VPtrExpr toVPtrExpr() throws UnsupportedCastException {
     throw new UnsupportedOperationException("TODO");
   }
 
   @Override
-  public GExpr valueOf(GimpleType expectedType) {
-
-    if(expectedType instanceof GimpleArrayType) {
-      return new VArrayExpr(((GimpleArrayType) expectedType), ref);
-    }
+  public GExpr elementAt(GimpleType expectedType, JExpr index) {
+    JExpr zeroBasedIndex = Expressions.difference(index, arrayType.getLbound());
+    JExpr byteOffset = Expressions.product(zeroBasedIndex, expectedType.sizeOf());
     PointerType pointerType = PointerType.ofType(expectedType);
-    DerefExpr deref = new DerefExpr(ref, pointerType);
 
-    return wrap(expectedType, deref);
-  }
+    JExpr derefExpr = new DerefExprWithOffset(pointerType, ref, byteOffset);
 
-  static GExpr wrap(GimpleType gimpleType, JExpr derefExpr) {
-    PointerType pointerType = PointerType.ofType(gimpleType);
-    switch (pointerType.getKind()) {
-      case INTEGRAL:
-      case FLOAT:
-        return new PrimitiveValue(((GimplePrimitiveType) gimpleType), derefExpr);
-      case POINTER:
-        return new VPtrExpr(derefExpr);
-    }
-    throw new UnsupportedOperationException("kind: " + pointerType.getKind());
+    return VPtrExpr.wrap(expectedType, derefExpr);
+
   }
 }

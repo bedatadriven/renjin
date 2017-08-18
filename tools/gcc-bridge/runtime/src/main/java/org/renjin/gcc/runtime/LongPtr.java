@@ -22,7 +22,9 @@ package org.renjin.gcc.runtime;
 import java.util.Arrays;
 
 public class LongPtr extends AbstractPtr {
-  
+
+  public static final int BYTES = 8;
+
   public static final LongPtr NULL = new LongPtr();
   
   public final long[] array;
@@ -65,22 +67,37 @@ public class LongPtr extends AbstractPtr {
 
   @Override
   public byte getByte(int offset) {
-    int bytes = (this.offset * 8) + offset;
-    int index = bytes / 8;
-    double element = array[index];
-    long elementBits = Double.doubleToRawLongBits(element);
-    int shift = (bytes % 8) * 8;
+    int bytes = (this.offset * BYTES) + offset;
+    int index = bytes / BYTES;
+    long elementBits = array[index];
+    int shift = (bytes % BYTES) * 8;
 
-    return (byte)(elementBits >>> shift);  }
+    return (byte)(elementBits >>> shift);
+  }
 
   @Override
   public void setByte(int offset, byte value) {
-    throw new UnsupportedOperationException("TODO");
+    int bytes = (this.offset * BYTES) + offset;
+    int index = bytes / BYTES;
+    int shift = (bytes % BYTES) * BITS_PER_BYTE;
+
+    long element = array[index];
+
+    long updateMask = 0xFF << shift;
+
+    // Zero out the bits in the byte we are going to update
+    element = element & ~updateMask;
+
+    // Shift our byte into position
+    long update = (((long)value) << shift) & updateMask;
+
+    // Merge the original long and updated bits together
+    array[index] = element | update;
   }
 
   @Override
   public int toInt() {
-    return offset * 8;
+    return offset * BYTES;
   }
 
   public long unwrap() {

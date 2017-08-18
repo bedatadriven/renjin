@@ -20,7 +20,10 @@
 
 package org.renjin.gcc.codegen.vptr;
 
+import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
 import org.renjin.gcc.gimple.type.*;
 import org.renjin.gcc.runtime.PointerImpls;
 import org.renjin.gcc.runtime.Ptr;

@@ -694,7 +694,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
   @Test
   public void lsame() throws Exception {
     Class clazz = compile("lsame.f");
-    Method lsame = clazz.getMethod("lsame_", BytePtr.class, BytePtr.class, int.class, int.class);
+    Method lsame = clazz.getMethod("lsame_", Ptr.class, Ptr.class, int.class, int.class);
 
     lsame.invoke(null, BytePtr.asciiString("A"), BytePtr.asciiString("a"), 1, 1);
 

@@ -19,7 +19,7 @@
 package org.renjin.gcc.codegen.type.record.unit;
 
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.array.ArrayExpr;
+import org.renjin.gcc.codegen.array.FatArrayExpr;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.FatPtr;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
@@ -87,7 +87,7 @@ public class RecordUnitPtr implements RefPtrExpr {
   }
 
   @Override
-  public ArrayExpr toArrayExpr() throws UnsupportedCastException {
+  public FatArrayExpr toArrayExpr() throws UnsupportedCastException {
     throw new UnsupportedOperationException("TODO");
   }
 

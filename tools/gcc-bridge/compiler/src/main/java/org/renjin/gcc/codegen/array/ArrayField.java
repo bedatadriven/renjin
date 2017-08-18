@@ -30,6 +30,7 @@ import org.renjin.gcc.codegen.fatptr.Wrappers;
 import org.renjin.gcc.codegen.type.SingleFieldStrategy;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveTypeStrategy;
+import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.repackaged.asm.Type;
 
 import static org.renjin.gcc.codegen.expr.Expressions.constantInt;
@@ -39,12 +40,14 @@ import static org.renjin.gcc.codegen.expr.Expressions.constantInt;
  */
 public class ArrayField extends SingleFieldStrategy {
 
+  private GimpleArrayType arrayType;
   private int arrayLength;
   private final ValueFunction valueFunction;
   
-  public ArrayField(Type declaringClass, String name, int arrayLength, ValueFunction valueFunction) {
+  public ArrayField(Type declaringClass, String name, int arrayLength, GimpleArrayType arrayType, ValueFunction valueFunction) {
     super(declaringClass, name, Wrappers.valueArrayType(valueFunction.getValueType()));
     this.arrayLength = arrayLength;
+    this.arrayType = arrayType;
     this.valueFunction = valueFunction;
   }
 
@@ -72,7 +75,7 @@ public class ArrayField extends SingleFieldStrategy {
       return primitiveTypeStrategy.getValueFunction().dereference(arrayExpr, offsetExpr);
     
     } else if(expectedType instanceof ArrayTypeStrategy) {
-      return new ArrayExpr(valueFunction, arrayLength, arrayExpr, offsetExpr);
+      return new FatArrayExpr(arrayType, valueFunction, arrayLength, arrayExpr, offsetExpr);
     
     } else {
       throw new UnsupportedOperationException("expectedType: " + expectedType);

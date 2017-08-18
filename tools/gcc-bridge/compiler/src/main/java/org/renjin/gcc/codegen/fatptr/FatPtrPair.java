@@ -20,7 +20,7 @@ package org.renjin.gcc.codegen.fatptr;
 
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.array.ArrayExpr;
+import org.renjin.gcc.codegen.array.FatArrayExpr;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
 import org.renjin.gcc.codegen.type.fun.FunPtr;
@@ -251,7 +251,7 @@ public final class FatPtrPair implements FatPtr, PtrExpr {
   }
 
   @Override
-  public ArrayExpr toArrayExpr() throws UnsupportedCastException {
+  public FatArrayExpr toArrayExpr() throws UnsupportedCastException {
     throw new UnsupportedOperationException("TODO");
   }
 

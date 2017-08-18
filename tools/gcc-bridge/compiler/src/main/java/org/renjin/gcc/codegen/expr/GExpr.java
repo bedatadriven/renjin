@@ -19,7 +19,7 @@
 package org.renjin.gcc.codegen.expr;
 
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.array.ArrayExpr;
+import org.renjin.gcc.codegen.array.FatArrayExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
 import org.renjin.gcc.codegen.type.fun.FunPtr;
@@ -50,7 +50,7 @@ public interface GExpr {
   /**
    * Cast or transform this expression to an Array expression.
    */
-  ArrayExpr toArrayExpr() throws UnsupportedCastException;
+  FatArrayExpr toArrayExpr() throws UnsupportedCastException;
 
 
   PrimitiveValue toPrimitiveExpr(GimplePrimitiveType targetType) throws UnsupportedCastException;

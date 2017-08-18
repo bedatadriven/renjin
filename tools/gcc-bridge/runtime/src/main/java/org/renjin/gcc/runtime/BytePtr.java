@@ -96,6 +96,10 @@ public class BytePtr extends AbstractPtr {
   }
 
 
+  public static BytePtr malloc(int bytes) {
+    return new BytePtr(new byte[bytes]);
+  }
+
   /**
    * Copies the character c (an unsigned char) to 
    * the first n characters of the string pointed to, by the argument str.

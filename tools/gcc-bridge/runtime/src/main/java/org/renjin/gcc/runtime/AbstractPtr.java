@@ -23,6 +23,8 @@ package org.renjin.gcc.runtime;
 
 public abstract class AbstractPtr implements Ptr {
 
+  public static final int BITS_PER_BYTE = 8;
+
   @Override
   public Object getArray() {
     throw new UnsupportedOperationException("No longer supported. Please recompile.");
@@ -180,13 +182,7 @@ public abstract class AbstractPtr implements Ptr {
 
   @Override
   public void setDouble(int offset, double doubleValue) {
-
-    long longValue = Double.doubleToRawLongBits(doubleValue);
-
-    for (int i = 0; i < 8; i++) {
-      setByte(offset + i, (byte)(longValue & 0xffL));
-      longValue >>= 8;
-    }
+    setLong(offset, Double.doubleToRawLongBits(doubleValue));
   }
 
   @Override
@@ -200,11 +196,12 @@ public abstract class AbstractPtr implements Ptr {
   }
 
   @Override
-  public void setLong(int offset, long value) {
-    throw new UnsupportedOperationException("TODO");
+  public void setLong(int offset, long longValue) {
+    for (int i = 0; i < 8; i++) {
+      setByte(offset + i, (byte)(longValue & 0xffL));
+      longValue >>= 8;
+    }
   }
-
-
 
   @Override
   public Ptr getPointer(int offset) {

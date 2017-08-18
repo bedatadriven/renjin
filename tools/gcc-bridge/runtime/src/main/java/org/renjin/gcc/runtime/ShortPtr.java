@@ -22,7 +22,9 @@ import java.util.Arrays;
 
 
 public class ShortPtr extends AbstractPtr {
-  
+
+  public static final int BYTES = 2;
+
   public static final ShortPtr NULL = new ShortPtr();
   
   public final short[] array;
@@ -41,6 +43,10 @@ public class ShortPtr extends AbstractPtr {
   public ShortPtr(short... array) {
     this.array = array;
     this.offset = 0;
+  }
+
+  public static ShortPtr malloc(int bytes) {
+    return new ShortPtr(new short[Stdlib.mallocSize(bytes, BYTES)]);
   }
 
   @Override
@@ -75,7 +81,7 @@ public class ShortPtr extends AbstractPtr {
 
   @Override
   public int toInt() {
-    return offset * 2;
+    return offset * BYTES;
   }
 
   public short unwrap() {

@@ -34,6 +34,7 @@ import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Type;
 
@@ -44,10 +45,22 @@ import java.lang.reflect.Field;
  */
 public class VPtrStrategy implements PointerTypeStrategy {
 
+  private GimpleType baseType;
+  private PointerType pointerType;
+
+  public VPtrStrategy(GimpleType baseType) {
+    this.baseType = baseType;
+    this.pointerType = PointerType.ofType(baseType);
+  }
 
   @Override
   public GExpr malloc(MethodGenerator mv, JExpr sizeInBytes) {
-    throw new UnsupportedOperationException("TODO");
+
+    String mallocDescriptor = Type.getMethodDescriptor(pointerType.alignedImpl(), Type.INT_TYPE);
+    JExpr pointer = Expressions.staticMethodCall(pointerType.alignedImpl(), "malloc",
+        mallocDescriptor, sizeInBytes);
+
+    return new VPtrExpr(pointer);
   }
 
   @Override
@@ -67,7 +80,9 @@ public class VPtrStrategy implements PointerTypeStrategy {
 
   @Override
   public GExpr nullPointer() {
-    throw new UnsupportedOperationException("TODO");
+    JExpr pointer = Expressions.staticField(pointerType.alignedImpl(), "NULL", pointerType.alignedImpl());
+
+    return new VPtrExpr(pointer);
   }
 
   @Override
@@ -138,7 +153,7 @@ public class VPtrStrategy implements PointerTypeStrategy {
 
   @Override
   public PointerTypeStrategy pointerTo() {
-    return new VPtrStrategy();
+    return new VPtrStrategy(baseType.pointerTo().pointerTo());
   }
 
   @Override

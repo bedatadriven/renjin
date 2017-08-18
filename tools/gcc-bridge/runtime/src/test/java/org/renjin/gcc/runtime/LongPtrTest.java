@@ -20,6 +20,9 @@ package org.renjin.gcc.runtime;
 
 import org.junit.Test;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+
 
 public class LongPtrTest {
 
@@ -35,5 +38,22 @@ public class LongPtrTest {
       throw new AssertionError(Long.toHexString(x) + " <> " + Long.toHexString(y) + ": expected " + expectedSign +
           ", got cmp");
     }
+  }
+
+
+  @Test
+  public void setFirstByte() {
+    LongPtr ptr = new LongPtr(0L);
+    ptr.setByte(0, (byte)0xFF);
+
+    assertThat(ptr.array[0], equalTo(0xFFL));
+  }
+
+  @Test
+  public void setSecondByte() {
+    LongPtr ptr = new LongPtr(0L);
+    ptr.setByte(1, (byte)0x34);
+
+    assertThat(ptr.getByte(1), equalTo((byte)0x34));
   }
 }

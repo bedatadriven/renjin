@@ -20,21 +20,16 @@ package org.renjin.gcc.codegen.type.record;
 
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.array.ArrayExpr;
-import org.renjin.gcc.codegen.expr.Expressions;
+import org.renjin.gcc.codegen.array.FatArrayExpr;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.expr.PtrExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
 import org.renjin.gcc.codegen.type.fun.FunPtr;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
-import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
-import org.renjin.gcc.runtime.Ptr;
-import org.renjin.gcc.runtime.Record;
 
 import static org.renjin.gcc.codegen.expr.Expressions.*;
 
@@ -71,7 +66,7 @@ public final class RecordArrayExpr implements GExpr {
   }
 
   @Override
-  public ArrayExpr toArrayExpr() throws UnsupportedCastException {
+  public FatArrayExpr toArrayExpr() throws UnsupportedCastException {
     throw new UnsupportedOperationException("TODO");
   }
 

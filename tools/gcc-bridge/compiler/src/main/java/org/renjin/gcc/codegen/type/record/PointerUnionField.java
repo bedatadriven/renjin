@@ -19,7 +19,7 @@
 package org.renjin.gcc.codegen.type.record;
 
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.array.ArrayExpr;
+import org.renjin.gcc.codegen.array.FatArrayExpr;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.*;
 import org.renjin.gcc.codegen.type.SingleFieldStrategy;
@@ -130,7 +130,7 @@ public class PointerUnionField extends SingleFieldStrategy {
     }
 
     @Override
-    public ArrayExpr toArrayExpr() throws UnsupportedCastException {
+    public FatArrayExpr toArrayExpr() throws UnsupportedCastException {
       throw new UnsupportedOperationException("TODO");
     }
 

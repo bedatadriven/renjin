@@ -19,6 +19,7 @@
 package org.renjin.gcc.codegen.array;
 
 import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.expr.ArrayExpr;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
@@ -30,24 +31,31 @@ import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
 import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
+import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
+import org.renjin.gcc.gimple.type.GimpleType;
 
+/**
+ * An Gimple Array expression backed by a JVM array and an offset.
+ */
+public class FatArrayExpr implements ArrayExpr {
 
-public class ArrayExpr implements GExpr {
-  
+  private GimpleArrayType arrayType;
   private JExpr array;
   private JExpr offset;
   private ValueFunction valueFunction;
   private int length;
   
-  public ArrayExpr(ValueFunction valueFunction, int length, JExpr array) {
+  public FatArrayExpr(GimpleArrayType arrayType, ValueFunction valueFunction, int length, JExpr array) {
+    this.arrayType = arrayType;
     this.array = array;
     this.valueFunction = valueFunction;
     this.length = length;
     this.offset = Expressions.zero();
   }
 
-  public ArrayExpr(ValueFunction valueFunction, int length, JExpr array, JExpr offset) {
+  public FatArrayExpr(GimpleArrayType arrayType, ValueFunction valueFunction, int length, JExpr array, JExpr offset) {
+    this.arrayType = arrayType;
     this.valueFunction = valueFunction;
     this.array = array;
     this.offset = offset;
@@ -72,7 +80,7 @@ public class ArrayExpr implements GExpr {
 
   @Override
   public void store(MethodGenerator mv, GExpr rhs) {
-    ArrayExpr rhsExpr = (ArrayExpr) rhs;
+    FatArrayExpr rhsExpr = (FatArrayExpr) rhs;
     int copyLength = Math.min(rhsExpr.length, length);
     
     valueFunction.memoryCopy(mv, 
@@ -92,7 +100,7 @@ public class ArrayExpr implements GExpr {
   }
 
   @Override
-  public ArrayExpr toArrayExpr() throws UnsupportedCastException {
+  public FatArrayExpr toArrayExpr() throws UnsupportedCastException {
     throw new UnsupportedCastException();
   }
 
@@ -116,4 +124,17 @@ public class ArrayExpr implements GExpr {
     throw new UnsupportedOperationException("TODO");
   }
 
+  @Override
+  public GExpr elementAt(GimpleType expectedType, JExpr index) {
+    // New offset  = ptr.offset + (index * value.length)
+    // for arrays of doubles, for example, this will be the same as ptr.offset + index
+    // but for arrays of complex numbers, this will be ptr.offset + (index * 2)
+    JExpr newOffset = Expressions.sum(
+        offset,
+        Expressions.product(
+            Expressions.difference(index, arrayType.getLbound()),
+            valueFunction.getElementLength()));
+
+    return valueFunction.dereference(array, newOffset);
+  }
 }

@@ -19,13 +19,11 @@
 package org.renjin.gcc.codegen.type.primitive;
 
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.array.ArrayExpr;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategies;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.*;
 import org.renjin.gcc.codegen.type.*;
-import org.renjin.gcc.codegen.type.primitive.op.CastGenerator;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.codegen.vptr.VPtrStrategy;
 import org.renjin.gcc.gimple.GimpleVarDecl;
@@ -116,7 +114,7 @@ public class PrimitiveTypeStrategy implements SimpleTypeStrategy<PrimitiveValue>
 
   @Override
   public PointerTypeStrategy pointerTo() {
-    return new VPtrStrategy();
+    return new VPtrStrategy(type);
   }
 
   @Override

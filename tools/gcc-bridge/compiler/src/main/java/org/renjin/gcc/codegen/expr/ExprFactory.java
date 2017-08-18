@@ -20,8 +20,7 @@ package org.renjin.gcc.codegen.expr;
 
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.array.ArrayExpr;
-import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
+import org.renjin.gcc.codegen.array.FatArrayExpr;
 import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.call.FunPtrCallGenerator;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
@@ -146,12 +145,12 @@ public class ExprFactory {
 
     } else if(expr instanceof GimpleArrayRef) {
       GimpleArrayRef arrayRef = (GimpleArrayRef) expr;
-      ArrayTypeStrategy arrayStrategy = typeOracle.forArrayType(arrayRef.getArray().getType());
-      GExpr array = findGenerator(arrayRef.getArray());
+      ArrayExpr array = (ArrayExpr)findGenerator(arrayRef.getArray());
       GExpr index = findGenerator(arrayRef.getIndex());
-      
-      return arrayStrategy.elementAt(array, index);
-      
+      JExpr jvmIndex = index.toPrimitiveExpr(new GimpleIntegerType(32)).unwrap();
+
+      return array.elementAt(expr.getType(), jvmIndex);
+
     } else if(expr instanceof GimpleConstantRef) {
       GimpleConstant constant = ((GimpleConstantRef) expr).getValue();
       JExpr constantValue = findPrimitiveGenerator(constant);
@@ -625,8 +624,11 @@ public class ExprFactory {
       
     } else if (constant instanceof GimpleStringConstant) {
       StringConstant array = new StringConstant(((GimpleStringConstant) constant).getValue());
-      ArrayExpr arrayExpr = new ArrayExpr(new PrimitiveValueFunction(Type.BYTE_TYPE), array.getLength(), array);
-      return arrayExpr;
+      return new FatArrayExpr(
+          new GimpleArrayType(new GimpleIntegerType(8), array.getLength()),
+          new PrimitiveValueFunction(Type.BYTE_TYPE),
+          array.getLength(),
+          array);
       
     } else {
       throw new UnsupportedOperationException("constant: " + constant);

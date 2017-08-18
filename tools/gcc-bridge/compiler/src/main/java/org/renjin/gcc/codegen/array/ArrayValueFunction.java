@@ -63,12 +63,12 @@ public class ArrayValueFunction implements ValueFunction {
 
   @Override
   public GExpr dereference(JExpr array, JExpr offset) {
-    return new ArrayExpr(elementValueFunction, arrayType.getElementCount(), array, offset);
+    return new FatArrayExpr(arrayType, elementValueFunction, arrayType.getElementCount(), array, offset);
   }
 
   @Override
   public GExpr dereference(WrappedFatPtrExpr wrapperInstance) {
-    return new ArrayExpr(elementValueFunction, arrayType.getElementCount(), 
+    return new FatArrayExpr(arrayType, elementValueFunction, arrayType.getElementCount(),
         wrapperInstance.getArray(),
         wrapperInstance.getOffset());
   }

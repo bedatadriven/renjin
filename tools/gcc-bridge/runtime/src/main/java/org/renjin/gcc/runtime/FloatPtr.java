@@ -45,6 +45,11 @@ public class FloatPtr extends AbstractPtr {
     this.offset = 0;
   }
 
+
+  public static FloatPtr malloc(int bytes) {
+    return new FloatPtr(new float[Stdlib.mallocSize(bytes, BYTES)]);
+  }
+
   @Override
   public float[] getArray() {
     return array;

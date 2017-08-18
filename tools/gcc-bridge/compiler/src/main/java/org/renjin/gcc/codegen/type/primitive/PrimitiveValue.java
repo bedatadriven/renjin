@@ -19,7 +19,7 @@
 package org.renjin.gcc.codegen.type.primitive;
 
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.array.ArrayExpr;
+import org.renjin.gcc.codegen.array.FatArrayExpr;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.GSimpleExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
@@ -31,6 +31,7 @@ import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
+import org.renjin.gcc.gimple.type.GimpleType;
 
 
 public class PrimitiveValue implements GSimpleExpr {
@@ -81,7 +82,7 @@ public class PrimitiveValue implements GSimpleExpr {
   }
 
   @Override
-  public ArrayExpr toArrayExpr() throws UnsupportedCastException {
+  public FatArrayExpr toArrayExpr() throws UnsupportedCastException {
     throw new UnsupportedCastException();
   }
 

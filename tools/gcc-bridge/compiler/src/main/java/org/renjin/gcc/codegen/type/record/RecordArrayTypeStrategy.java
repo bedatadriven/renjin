@@ -20,7 +20,7 @@ package org.renjin.gcc.codegen.type.record;
 
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.array.ArrayExpr;
+import org.renjin.gcc.codegen.array.FatArrayExpr;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategies;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.*;
@@ -35,10 +35,7 @@ import org.renjin.gcc.codegen.type.primitive.PrimitiveValueFunction;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
-import org.renjin.gcc.gimple.type.GimpleArrayType;
-import org.renjin.gcc.gimple.type.GimplePrimitiveType;
-import org.renjin.gcc.gimple.type.GimpleRecordType;
-import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
+import org.renjin.gcc.gimple.type.*;
 import org.renjin.repackaged.asm.Type;
 
 import java.lang.reflect.Field;
@@ -107,10 +104,10 @@ public class RecordArrayTypeStrategy extends RecordTypeStrategy<RecordArrayExpr>
       if(expectedType.jvmType().equals(fieldType)) {
         JExpr value = elementAt(array, offset);
         return new PrimitiveValue(expectedType, value, address);
-      } else if (fieldType.equals(Type.BYTE_TYPE) && expectedType.equals(Type.INT_TYPE)) {
+      } else if (fieldType.equals(Type.BYTE_TYPE) && expectedType.equals(new GimpleIntegerType(32))) {
         return new PrimitiveValue(expectedType, new ByteArrayAsInt(array, offset));
         
-      } else if (fieldType.equals(Type.LONG_TYPE) && expectedType.equals(Type.DOUBLE_TYPE)) {
+      } else if (fieldType.equals(Type.LONG_TYPE) && expectedType.equals(new GimpleRealType(64))) {
         JLValue value = elementAt(array, offset);
         return new PrimitiveValue(expectedType, new LongAsDouble(value));
         
@@ -122,7 +119,8 @@ public class RecordArrayTypeStrategy extends RecordTypeStrategy<RecordArrayExpr>
       ArrayTypeStrategy arrayType = (ArrayTypeStrategy) fieldTypeStrategy;
       Type expectedType = arrayType.getElementType();
 
-      return new ArrayExpr(new PrimitiveValueFunction(expectedType), arrayType.getArrayLength(), array, offset);
+      return new FatArrayExpr(arrayType.getGimpleType(),
+          new PrimitiveValueFunction(expectedType), arrayType.getArrayLength(), array, offset);
 
 
     } else if(fieldTypeStrategy instanceof RecordArrayTypeStrategy) {

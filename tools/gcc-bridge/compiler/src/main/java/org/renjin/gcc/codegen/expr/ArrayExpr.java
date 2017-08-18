@@ -18,10 +18,16 @@
  *
  */
 
-package org.renjin.gcc.codegen.vptr;
+package org.renjin.gcc.codegen.expr;
 
-public enum PointerKind {
-  INTEGRAL,
-  FLOAT,
-  POINTER;
+import org.renjin.gcc.gimple.type.GimpleType;
+
+/**
+ * Common interface to array representations.
+ */
+public interface ArrayExpr extends GExpr {
+
+
+  GExpr elementAt(GimpleType expectedType, JExpr index);
+
 }

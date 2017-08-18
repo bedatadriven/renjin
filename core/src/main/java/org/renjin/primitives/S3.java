@@ -393,8 +393,10 @@ public class S3 {
       return null;
     }
     
+    // expand ... in arguments or remove if empty
+    PairList expandedArgs = Calls.promiseArgs(args, context, rho);
     PairList.Builder promisedArgs = new PairList.Builder();
-    Iterator<PairList.Node> it = args.nodes().iterator();
+    Iterator<PairList.Node> it = expandedArgs.nodes().iterator();
     int argIdx = 0;
     while(it.hasNext()) {
       PairList.Node node = it.next();
@@ -492,9 +494,9 @@ public class S3 {
       metadata.put(Symbol.get(".Methods"), Symbol.get(".Primitive(\"" + opName +"\")"));
       metadata.put(Symbol.get(".target"), buildDotTargetOrDefined(context, method, false));
       
-      FunctionCall call = new FunctionCall(method.getFunction(), args);
+      FunctionCall call = new FunctionCall(method.getFunction(), expandedArgs);
       Closure closure = method.getFunction();
-      return ClosureDispatcher.apply(context,rho, call, closure, promisedArgs.build(), metadata);
+      return ClosureDispatcher.apply(context, rho, call, closure, promisedArgs.build(), metadata);
     }
   }
   

@@ -70,13 +70,12 @@ public class RecordConstructor implements JExpr {
       for (Map.Entry<GimpleFieldRef, GExpr> field : fields.entrySet()) {
         // Push the value onto the stack and save to the field
         GimpleFieldRef fieldRef = field.getKey();
-        TypeStrategy fieldTypeStrategy = typeOracle.forType(fieldRef.getType());
 
-        GExpr fieldExpr = strategy.memberOf(mv,
-            new RecordValue(instanceVar),
+        GExpr fieldExpr =
+            new RecordValue(strategy.getLayout(), instanceVar).memberOf(mv,
             fieldRef.getOffset(),
             fieldRef.getSize(),
-            fieldTypeStrategy);
+            fieldRef.getType());
 
         try {
           fieldExpr.store(mv, field.getValue());

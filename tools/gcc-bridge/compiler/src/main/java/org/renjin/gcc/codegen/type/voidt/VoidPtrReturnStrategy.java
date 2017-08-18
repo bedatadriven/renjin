@@ -22,7 +22,6 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.type.PointerTypeStrategy;
 import org.renjin.gcc.codegen.type.ReturnStrategy;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.repackaged.asm.Type;
@@ -38,12 +37,12 @@ public class VoidPtrReturnStrategy implements ReturnStrategy {
 
   @Override
   public JExpr marshall(GExpr expr) {
-    return ((VoidPtr) expr).unwrap();
+    return expr.toVoidPtrExpr().unwrap();
   }
 
   @Override
   public GExpr unmarshall(MethodGenerator mv, JExpr callExpr, TypeStrategy lhsTypeStrategy) {
-    return new VoidPtr(callExpr);
+    return new VoidPtrExpr(callExpr);
   }
 
   @Override

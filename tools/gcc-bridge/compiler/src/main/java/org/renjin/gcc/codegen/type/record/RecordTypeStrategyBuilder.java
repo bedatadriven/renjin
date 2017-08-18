@@ -22,6 +22,7 @@ import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.TreeLogger;
 import org.renjin.gcc.analysis.RecordUsageAnalyzer;
 import org.renjin.gcc.codegen.type.TypeOracle;
+import org.renjin.gcc.codegen.vptr.VPtrRecordTypeStrategy;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
 import org.renjin.repackaged.asm.Type;
@@ -167,11 +168,20 @@ public class RecordTypeStrategyBuilder {
           new RecordArrayTypeStrategy(set.singleton(), set.getTypeSet().uniquePrimitiveType()));
 
     } else {
+
+      buildVirtual(set);
       // Otherwise, we need to build a JVM class for this record
-      buildClassStrategy(set);
+      //buildClassStrategy(set);
     }
   }
-  
+
+  private void buildVirtual(UnionSet set) {
+
+    typeOracle.addRecordType(set.singleton(),
+        new VPtrRecordTypeStrategy(set.singleton()));
+
+  }
+
   private void buildUnion(UnionSet set) {
     
     if(set.getTypeSet().isEmpty()) {
@@ -188,7 +198,8 @@ public class RecordTypeStrategyBuilder {
       } else {
         // Fields are heterogeneous, 
         // we need to construct a class for this union
-        buildClassStrategy(set);
+        //buildClassStrategy(set);
+        buildVirtual(set);
       }
     }
   }

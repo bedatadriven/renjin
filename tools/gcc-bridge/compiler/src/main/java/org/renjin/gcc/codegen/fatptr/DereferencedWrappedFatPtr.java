@@ -26,7 +26,9 @@ import org.renjin.gcc.codegen.type.UnsupportedCastException;
 import org.renjin.gcc.codegen.type.fun.FunPtr;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
 import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
-import org.renjin.gcc.codegen.type.voidt.VoidPtr;
+import org.renjin.gcc.codegen.type.record.RecordLayout;
+import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
+import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
@@ -45,8 +47,8 @@ public class DereferencedWrappedFatPtr implements FatPtr {
 
   @Override
   public void store(MethodGenerator mv, GExpr rhs) {
-    if(rhs instanceof VoidPtr) {
-      invokeSet(mv, ((VoidPtr) rhs).unwrap());
+    if(rhs instanceof VoidPtrExpr) {
+      invokeSet(mv, ((VoidPtrExpr) rhs).unwrap());
       
     } else if(rhs instanceof FatPtr) {
       invokeSet(mv, ((FatPtr) rhs).wrap());
@@ -88,7 +90,7 @@ public class DereferencedWrappedFatPtr implements FatPtr {
   }
 
   @Override
-  public VoidPtr toVoidPtrExpr() throws UnsupportedCastException {
+  public VoidPtrExpr toVoidPtrExpr() throws UnsupportedCastException {
     throw new UnsupportedOperationException("TODO");
   }
 
@@ -99,6 +101,16 @@ public class DereferencedWrappedFatPtr implements FatPtr {
 
   @Override
   public VPtrExpr toVPtrExpr() throws UnsupportedCastException {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public RecordUnitPtr toRecordUnitPtrExpr(RecordLayout layout) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public FatPtr toFatPtrExpr(ValueFunction valueFunction) {
     throw new UnsupportedOperationException("TODO");
   }
 

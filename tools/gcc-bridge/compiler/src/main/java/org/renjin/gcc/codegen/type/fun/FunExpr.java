@@ -22,10 +22,14 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.FatArrayExpr;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.fatptr.FatPtr;
+import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
 import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
-import org.renjin.gcc.codegen.type.voidt.VoidPtr;
+import org.renjin.gcc.codegen.type.record.RecordLayout;
+import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
+import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 
@@ -63,7 +67,7 @@ public class FunExpr implements GExpr {
   }
 
   @Override
-  public VoidPtr toVoidPtrExpr() throws UnsupportedCastException {
+  public VoidPtrExpr toVoidPtrExpr() throws UnsupportedCastException {
     throw new UnsupportedCastException();
   }
 
@@ -74,6 +78,16 @@ public class FunExpr implements GExpr {
 
   @Override
   public VPtrExpr toVPtrExpr() throws UnsupportedCastException {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public RecordUnitPtr toRecordUnitPtrExpr(RecordLayout layout) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public FatPtr toFatPtrExpr(ValueFunction valueFunction) {
     throw new UnsupportedOperationException("TODO");
   }
 }

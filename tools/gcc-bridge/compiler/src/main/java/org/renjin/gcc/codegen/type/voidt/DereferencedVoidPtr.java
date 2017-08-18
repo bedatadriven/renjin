@@ -28,7 +28,7 @@ import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.repackaged.asm.Type;
 
-public class DereferencedVoidPtr extends VoidPtr {
+public class DereferencedVoidPtr extends VoidPtrExpr {
 
   private JExpr array;
   private JExpr offset;
@@ -42,7 +42,7 @@ public class DereferencedVoidPtr extends VoidPtr {
   @Override
   public void store(MethodGenerator mv, GExpr rhs) {
 
-    if(rhs instanceof VoidPtr) {
+    if(rhs instanceof VoidPtrExpr) {
       // Need to do some runtime casting in case 
       // our array is not an Object[] but rather a DoublePtr[] for example
 
@@ -53,7 +53,7 @@ public class DereferencedVoidPtr extends VoidPtr {
       
       JExpr call = Expressions.staticMethodCall(Type.getType(org.renjin.gcc.runtime.VoidPtr.class),
           "assign", assignDescriptor,
-          array, offset, ((VoidPtr) rhs).unwrap());
+          array, offset, ((VoidPtrExpr) rhs).unwrap());
       
       call.load(mv);
 

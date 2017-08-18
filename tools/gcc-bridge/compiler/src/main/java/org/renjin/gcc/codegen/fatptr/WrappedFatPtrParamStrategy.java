@@ -21,10 +21,9 @@ package org.renjin.gcc.codegen.fatptr;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.type.ParamStrategy;
-import org.renjin.gcc.codegen.type.voidt.VoidPtr;
+import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleParameter;
-import org.renjin.gcc.gimple.type.GimpleVoidType;
 import org.renjin.gcc.runtime.ObjectPtr;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
@@ -101,8 +100,8 @@ public class WrappedFatPtrParamStrategy implements ParamStrategy {
     Type wrappedType = Wrappers.wrapperType(valueFunction.getValueType());
 
     // Check for a void*
-    if(argumentValue instanceof VoidPtr) {
-      VoidPtr voidPtr = (VoidPtr) argumentValue;
+    if(argumentValue instanceof VoidPtrExpr) {
+      VoidPtrExpr voidPtr = (VoidPtrExpr) argumentValue;
       voidPtr.unwrap().load(mv);
       if(wrappedType.equals(Type.getType(ObjectPtr.class))) {
         // Need to provide type

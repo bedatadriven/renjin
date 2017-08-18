@@ -78,13 +78,13 @@ public class IntPtrUnaligned extends AbstractPtr {
   }
 
   @Override
-  public void setInt(int offset, int value) {
+  public void setInt(int offset, int intValue) {
     int byteOffset = this.offset + offset;
     int shift = byteOffset % 4;
     if(shift == 0) {
-      this.array[byteOffset / 4] = value;
+      this.array[byteOffset / 4] = intValue;
     } else {
-      super.setInt(offset, value);
+      super.setInt(offset, intValue);
     }
   }
 

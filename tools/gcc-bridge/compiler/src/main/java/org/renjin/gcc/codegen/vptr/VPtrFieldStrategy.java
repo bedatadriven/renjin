@@ -25,7 +25,7 @@ import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.SingleFieldStrategy;
-import org.renjin.gcc.codegen.type.TypeStrategy;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Type;
 
@@ -36,12 +36,16 @@ public class VPtrFieldStrategy extends SingleFieldStrategy {
   }
 
   @Override
-  public GExpr memberExpr(MethodGenerator mv, JExpr instance, int offset, int size, TypeStrategy expectedType) {
+  public GExpr memberExpr(MethodGenerator mv, JExpr instance, int offset, int size, GimpleType expectedType) {
     return new VPtrExpr(Expressions.field(instance, Type.getType(Ptr.class), fieldName));
   }
 
   @Override
   public void memset(MethodGenerator mv, JExpr instance, JExpr byteValue, JExpr byteCount) {
-    throw new UnsupportedOperationException("TODO");
+    instance.load(mv);
+    mv.getfield(ownerClass, fieldName, Type.getType(Ptr.class));
+    byteValue.load(mv);
+    byteCount.load(mv);
+    mv.invokeinterface(Ptr.class, "memset", Type.VOID_TYPE, Type.BYTE_TYPE, Type.INT_TYPE);
   }
 }

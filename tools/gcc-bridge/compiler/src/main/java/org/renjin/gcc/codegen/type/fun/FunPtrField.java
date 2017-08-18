@@ -23,7 +23,7 @@ import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.SingleFieldStrategy;
-import org.renjin.gcc.codegen.type.TypeStrategy;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.Type;
 
 public class FunPtrField extends SingleFieldStrategy {
@@ -33,7 +33,7 @@ public class FunPtrField extends SingleFieldStrategy {
   }
 
   @Override
-  public GExpr memberExpr(MethodGenerator mv, JExpr instance, int offset, int size, TypeStrategy expectedType) {
+  public GExpr memberExpr(MethodGenerator mv, JExpr instance, int offset, int size, GimpleType expectedType) {
     if(offset != 0) {
       throw new IllegalStateException("offset = " + offset);
     }

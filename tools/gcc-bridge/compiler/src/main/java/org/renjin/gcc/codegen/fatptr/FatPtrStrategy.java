@@ -29,7 +29,7 @@ import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
 import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrStrategy;
-import org.renjin.gcc.codegen.type.voidt.VoidPtr;
+import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.codegen.var.LocalVarAllocator;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.codegen.vptr.VPtrParamStrategy;
@@ -44,7 +44,6 @@ import org.renjin.repackaged.asm.Type;
 import java.lang.reflect.Field;
 
 import static org.renjin.gcc.codegen.expr.Expressions.constantInt;
-import static org.renjin.repackaged.asm.Type.OBJECT;
 
 /**
  * Strategy for pointer types that uses a combination of an array value and an offset value
@@ -217,52 +216,7 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
 
   @Override
   public FatPtr cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
-    if(value instanceof VoidPtr) {
-      VoidPtr ptrExpr = (VoidPtr) value;
-      JExpr wrapperInstance = Wrappers.cast(valueFunction.getValueType(), ptrExpr.unwrap());
-
-      JExpr arrayField = Wrappers.arrayField(wrapperInstance);
-      JExpr offsetField = Wrappers.offsetField(wrapperInstance);
-
-      return new FatPtrPair(valueFunction, arrayField, offsetField);
-      
-    
-    } else if(value instanceof FatPtr) {
-      // allow any casts between FatPtrs. though runtime errors may occur
-      // (The JVM simply won't allow us to cast an int* to a double*)
-      FatPtrPair ptrExpr = ((FatPtr) value).toPair(mv);
-      GExpr address = null;
-      if (ptrExpr.isAddressable()) {
-        address = ptrExpr.addressOf();
-      }
-      JExpr castedArray = Expressions.uncheckedCast(ptrExpr.getArray(), arrayType);
-      JExpr offset = ptrExpr.getOffset();
-
-      return new FatPtrPair(valueFunction, address, castedArray, offset);
-
-    } else if(typeStrategy instanceof RecordUnitPtrStrategy) {
-
-      // Object -> ObjectPtr
-      // in most cases this will fail at runtime, becuase you can't cast a PersonRecord, for example,
-      // to an ObjectPtr, but this will scuceed in the case of an empty record where the java class is
-      // java.lang.Object
-
-      RecordUnitPtr ptr = (RecordUnitPtr) value;
-      JExpr castedRef = Expressions.cast(ptr.unwrap(), getWrapperType());
-
-      LocalVarAllocator.LocalVar wrapperVar = mv.getLocalVarAllocator().reserve(getWrapperType());
-      wrapperVar.store(mv, castedRef);
-
-      return new WrappedFatPtrExpr(valueFunction, wrapperVar);
-
-    } else if(typeStrategy instanceof RecordTypeStrategy) {
-
-      // We can make this cast work if the first field of the record type is a compatible pointer type
-      RecordTypeStrategy recordTypeStrategy = (RecordTypeStrategy) typeStrategy;
-      return (FatPtr) recordTypeStrategy.memberOf(mv, value, 0, 32, this);
-    }
-    
-    throw new UnsupportedCastException();
+    return value.toFatPtrExpr(this.valueFunction);
   }
 
   @Override

@@ -26,7 +26,7 @@ import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.*;
-import org.renjin.gcc.codegen.type.voidt.VoidPtr;
+import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrReturnStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrStrategy;
 import org.renjin.gcc.codegen.var.VarAllocator;
@@ -70,12 +70,7 @@ public class VPtrStrategy implements PointerTypeStrategy {
 
   @Override
   public GExpr pointerPlus(MethodGenerator mv, GExpr pointer, JExpr offsetInBytes) {
-    VPtrExpr inputPointer = (VPtrExpr) pointer;
-    String plusMethod = Type.getMethodDescriptor(Type.getType(Ptr.class), Type.INT_TYPE);
-    JExpr plusExpr = Expressions.methodCall(
-        inputPointer.getRef(), Ptr.class, "pointerPlus", plusMethod, offsetInBytes);
-
-    return new VPtrExpr(plusExpr);
+    return pointer.toVPtrExpr().plus(offsetInBytes);
   }
 
   @Override
@@ -166,7 +161,7 @@ public class VPtrStrategy implements PointerTypeStrategy {
     if(typeStrategy instanceof VPtrStrategy) {
       return value;
     } else if(typeStrategy instanceof VoidPtrStrategy) {
-      return new VoidPtr(Expressions.cast(((VoidPtr) value).unwrap(), Type.getType(Ptr.class)));
+      return new VoidPtrExpr(Expressions.cast(((VoidPtrExpr) value).unwrap(), Type.getType(Ptr.class)));
     }
     throw new UnsupportedOperationException("TODO: " + typeStrategy.getClass().getSimpleName());
   }

@@ -60,7 +60,7 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<RecordValue> imp
 
   @Override
   public RecordValue wrap(JExpr expr) {
-    return new RecordValue(expr);
+    return new RecordValue(layout, expr);
   }
   
 
@@ -94,17 +94,17 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<RecordValue> imp
 
     if(isUnitPointer()) {
       // If we are using the RecordUnitPtr strategy, then the record value is also it's address
-      return new RecordValue(instance, new RecordUnitPtr(instance));
+      return new RecordValue(layout, instance, new RecordUnitPtr(layout, instance));
 
     } else if(decl.isAddressable()) {
       JLValue unitArray = allocator.reserveUnitArray(decl.getName(), layout.getType(), Optional.of((JExpr)instance));
       FatPtrPair address = new FatPtrPair(new RecordClassValueFunction(this), unitArray);
       JExpr value = Expressions.elementAt(address.getArray(), 0);
-      return new RecordValue(value, address);
+      return new RecordValue(layout, value, address);
 
     } else {
       
-      return new RecordValue(instance);
+      return new RecordValue(layout, instance);
     }
   }
 
@@ -135,13 +135,7 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<RecordValue> imp
       GExpr fieldValue = exprFactory.findGenerator(element.getValue());
       fields.put((GimpleFieldRef) element.getField(), fieldValue);
     }
-    return new RecordValue(new RecordConstructor(typeOracle, this, fields));
-  }
-  
-
-  @Override
-  public GExpr memberOf(MethodGenerator mv, RecordValue instance, int offset, int size, TypeStrategy fieldTypeStrategy) {
-    return layout.memberOf(mv, instance, offset, size, fieldTypeStrategy);
+    return new RecordValue(layout, new RecordConstructor(typeOracle, this, fields));
   }
 
   public RecordValue clone(MethodGenerator mv, RecordValue recordValue) {
@@ -178,5 +172,9 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<RecordValue> imp
   @Override
   public String toString() {
     return "RecordClassTypeStrategy[" + recordTypeDef.getName() + "]";
+  }
+
+  public RecordLayout getLayout() {
+    return layout;
   }
 }

@@ -21,6 +21,7 @@
 package org.renjin.gcc.codegen.vptr;
 
 import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.gcc.runtime.Ptr;
@@ -31,12 +32,19 @@ import javax.annotation.Nonnull;
 class DerefExpr implements JLValue {
 
   private JExpr pointer;
+  private JExpr offsetBytes;
   private PointerType pointerType;
 
-  public DerefExpr(JExpr pointer, PointerType pointerType) {
+  public DerefExpr(JExpr pointer, JExpr offsetBytes, PointerType pointerType) {
     this.pointer = pointer;
+    this.offsetBytes = offsetBytes;
     this.pointerType = pointerType;
   }
+
+  public DerefExpr(JExpr pointer, PointerType pointerType) {
+    this(pointer, Expressions.constantInt(0), pointerType);
+  }
+
 
   @Nonnull
   @Override
@@ -47,16 +55,18 @@ class DerefExpr implements JLValue {
   @Override
   public void load(@Nonnull MethodGenerator mv) {
     pointer.load(mv);
+    offsetBytes.load(mv);
     mv.invokeinterface(Type.getInternalName(Ptr.class), "get" + pointerType.titleCasedName(),
-        Type.getMethodDescriptor(pointerType.getJvmType()));
+        Type.getMethodDescriptor(pointerType.getJvmType(), Type.INT_TYPE));
   }
 
   @Override
   public void store(MethodGenerator mv, JExpr expr) {
     pointer.load(mv);
+    offsetBytes.load(mv);
     expr.load(mv);
     mv.invokeinterface(Type.getInternalName(Ptr.class), "set" + pointerType.titleCasedName(),
-        Type.getMethodDescriptor(Type.VOID_TYPE, pointerType.getJvmType()));
+        Type.getMethodDescriptor(Type.VOID_TYPE, Type.INT_TYPE, pointerType.getJvmType()));
   }
 
 }

@@ -245,5 +245,10 @@ public interface Ptr {
   int toInt();
 
 
+  void memset(int byteValue, int n);
+
+  void memcpy(Ptr source, int numBytes);
+
+  Ptr copyOf(int numBytes);
 
 }

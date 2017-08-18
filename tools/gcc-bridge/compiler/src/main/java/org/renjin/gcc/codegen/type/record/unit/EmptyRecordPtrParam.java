@@ -62,7 +62,7 @@ public class EmptyRecordPtrParam implements ParamStrategy {
       throw new UnsupportedOperationException("TODO: Addressable parameters");
     }
 
-    return new RecordUnitPtr(paramVars.get(0));
+    return new RecordUnitPtr(strategy.getLayout(), paramVars.get(0));
   }
 
   @Override

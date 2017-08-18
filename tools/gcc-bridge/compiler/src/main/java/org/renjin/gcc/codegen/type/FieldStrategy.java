@@ -21,6 +21,7 @@ package org.renjin.gcc.codegen.type;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.ClassVisitor;
 
 /**
@@ -44,7 +45,7 @@ public abstract class FieldStrategy {
    * @param expectedType The strategy for the expected type of the field, or {@code null} if the
    * fields declared type should be returned.
    */
-  public abstract GExpr memberExpr(MethodGenerator mv, JExpr instance, int offset, int size, TypeStrategy expectedType);
+  public abstract GExpr memberExpr(MethodGenerator mv, JExpr instance, int offset, int size, GimpleType expectedType);
   
   public abstract void copy(MethodGenerator mv, JExpr source, JExpr dest);
   

@@ -19,6 +19,7 @@
 package org.renjin.gcc.codegen.var;
 
 import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.repackaged.asm.Label;
@@ -68,21 +69,10 @@ public class LocalVarAllocator extends VarAllocator {
     @Override
     public void store(MethodGenerator mv, JExpr value) {
       value.load(mv);
-      if(!value.getType().equals(type)) {
-        if(type.getSort() == Type.ARRAY || type.getSort() == Type.OBJECT) {
-          mv.checkcast(type);
-        }
+      if(Expressions.requiresCast(value.getType(), type)) {
+        mv.checkcast(type);
       }
       store(mv);
-    }
-
-    private void checkAssignmentTypes(Type targetType, Type sourceType) {
-      if (targetType.equals(Type.getType(Object.class))) {
-        return;
-      }
-      if (!sourceType.equals(targetType)) {
-        throw new IllegalStateException("Trying to assign " + sourceType + " to " + type);
-      }
     }
 
     public void store(MethodGenerator mv) {

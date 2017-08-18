@@ -21,22 +21,26 @@ package org.renjin.gcc.codegen.type.record;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.FatArrayExpr;
-import org.renjin.gcc.codegen.expr.GExpr;
-import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.expr.*;
+import org.renjin.gcc.codegen.fatptr.FatPtr;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
+import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
 import org.renjin.gcc.codegen.type.fun.FunPtr;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
-import org.renjin.gcc.codegen.type.voidt.VoidPtr;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveValueFunction;
+import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
+import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
-import org.renjin.gcc.gimple.type.GimplePrimitiveType;
+import org.renjin.gcc.gimple.type.*;
+import org.renjin.repackaged.asm.Type;
 
 import static org.renjin.gcc.codegen.expr.Expressions.*;
 
 /**
  * Record value expression, backed by a JVM primitive array 
  */
-public final class RecordArrayExpr implements GExpr {
+public final class RecordArrayExpr implements RecordExpr {
 
 
   private RecordArrayValueFunction valueFunction;
@@ -76,7 +80,7 @@ public final class RecordArrayExpr implements GExpr {
   }
 
   @Override
-  public VoidPtr toVoidPtrExpr() throws UnsupportedCastException {
+  public VoidPtrExpr toVoidPtrExpr() throws UnsupportedCastException {
     throw new UnsupportedOperationException("TODO");
   }
 
@@ -88,6 +92,19 @@ public final class RecordArrayExpr implements GExpr {
   @Override
   public VPtrExpr toVPtrExpr() throws UnsupportedCastException {
     throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public RecordUnitPtr toRecordUnitPtrExpr(RecordLayout layout) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public FatPtr toFatPtrExpr(ValueFunction valueFunction) {
+    if(valueFunction.getValueType().equals(valueFunction.getValueType())) {
+      return new FatPtrPair(valueFunction, array, offset);
+    }
+    throw new UnsupportedCastException();
   }
 
   @Override
@@ -115,5 +132,60 @@ public final class RecordArrayExpr implements GExpr {
 
   public JExpr copyArray() {
     return copyOfArrayRange(array, offset, sum(offset, arrayLength));
+  }
+
+  @Override
+  public GExpr memberOf(MethodGenerator mv, int fieldOffsetBits, int size, GimpleType memberType) {
+
+    // All the fields in this record are necessarily primitives, so we need
+    // simple to retrieve the element from within the array that corresponds to
+    // the given field name
+    JExpr fieldOffset = constantInt(fieldOffsetBits / 8 / valueFunction.getArrayElementBytes());
+    JExpr offset = sum(this.offset, fieldOffset);
+
+    // Because this value is backed by an array, we can also make it addressable.
+    FatPtrPair address = new FatPtrPair(valueFunction, array, offset);
+
+    // The members of this record may be either primitives, or arrays of primitives,
+    // and it actually doesn't matter to us.
+
+    Type fieldType = valueFunction.getValueType();
+
+    if(memberType instanceof GimplePrimitiveType) {
+      GimplePrimitiveType expectedType = (GimplePrimitiveType) memberType;
+
+      // Return a single primitive value
+      if(expectedType.jvmType().equals(fieldType)) {
+        JExpr value = elementAt(array, offset);
+        return new PrimitiveValue(expectedType, value, address);
+
+      } else if (fieldType.equals(Type.BYTE_TYPE) && expectedType.equals(new GimpleIntegerType(32))) {
+        return new PrimitiveValue(expectedType, new ByteArrayAsInt(array, offset));
+
+      } else if (fieldType.equals(Type.LONG_TYPE) && expectedType.equals(new GimpleRealType(64))) {
+        JLValue value = elementAt(array, offset);
+        return new PrimitiveValue(expectedType, new LongAsDouble(value));
+
+      } else {
+        throw new UnsupportedOperationException("TODO: " + fieldType + " -> " + expectedType);
+      }
+
+    } else if(memberType instanceof GimpleArrayType) {
+      GimpleArrayType arrayType = (GimpleArrayType) memberType;
+      GimplePrimitiveType componentType = (GimplePrimitiveType) arrayType.getComponentType();
+
+      return new FatArrayExpr(arrayType,
+          new PrimitiveValueFunction(componentType), arrayType.getElementCount(), array, offset);
+
+
+    } else if(memberType instanceof GimpleRecordType) {
+      return new RecordArrayExpr(valueFunction, array, fieldOffset,
+          memberType.sizeOf() / valueFunction.getArrayElementBytes());
+
+
+    } else {
+      // Return an array that starts at this point
+      return new FatPtrPair(valueFunction, address, array, offset);
+    }
   }
 }

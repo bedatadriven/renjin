@@ -26,6 +26,8 @@ import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.Memset;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.fatptr.WrappedFatPtrExpr;
+import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
+import org.renjin.gcc.codegen.type.record.RecordLayout;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.Type;
@@ -37,16 +39,21 @@ import java.util.List;
 public class RecordUnitPtrValueFunction implements ValueFunction {
 
   private GimpleRecordType gimpleType;
-  private Type recordType;
+  private RecordLayout layout;
 
-  public RecordUnitPtrValueFunction(GimpleRecordType gimpleType, Type recordType) {
+  public RecordUnitPtrValueFunction(GimpleRecordType gimpleType, RecordLayout layout) {
     this.gimpleType = gimpleType;
-    this.recordType = recordType;
+    this.layout = layout;
+  }
+
+  public RecordUnitPtrValueFunction(RecordClassTypeStrategy strategy) {
+    this.gimpleType = strategy.getGimpleType();
+    this.layout = strategy.getLayout();
   }
 
   @Override
   public Type getValueType() {
-    return recordType;
+    return layout.getType();
   }
 
   @Override
@@ -72,15 +79,15 @@ public class RecordUnitPtrValueFunction implements ValueFunction {
   @Override
   public GExpr dereference(JExpr array, JExpr offset) {
     JExpr pointerValue = Expressions.elementAt(array, offset);
-    JExpr castedPointerValue = Expressions.cast(pointerValue, recordType);
+    JExpr castedPointerValue = Expressions.cast(pointerValue, layout.getType());
     FatPtrPair pointerAddress = new FatPtrPair(this, array, offset);
     
-    return new RecordUnitPtr(castedPointerValue, pointerAddress);
+    return new RecordUnitPtr(layout, castedPointerValue, pointerAddress);
   }
 
   @Override
   public GExpr dereference(WrappedFatPtrExpr wrapperInstance) {
-    return new RecordUnitPtr(wrapperInstance.valueExpr(), wrapperInstance);
+    return new RecordUnitPtr(layout, wrapperInstance.valueExpr(), wrapperInstance);
   }
 
   @Override
@@ -100,6 +107,6 @@ public class RecordUnitPtrValueFunction implements ValueFunction {
 
   @Override
   public String toString() {
-    return "RecordUnitPtr[" + recordType + "]";
+    return "RecordUnitPtr[" + layout.getType() + "]";
   }
 }

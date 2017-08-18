@@ -22,10 +22,15 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.FatArrayExpr;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.FatPtr;
+import org.renjin.gcc.codegen.fatptr.FatPtrPair;
+import org.renjin.gcc.codegen.fatptr.ValueFunction;
+import org.renjin.gcc.codegen.fatptr.Wrappers;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
 import org.renjin.gcc.codegen.type.fun.FunPtr;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
 import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
+import org.renjin.gcc.codegen.type.record.RecordLayout;
+import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
@@ -36,17 +41,17 @@ import org.renjin.repackaged.asm.Type;
 import java.lang.invoke.MethodHandle;
 
 
-public class VoidPtr implements RefPtrExpr {
+public class VoidPtrExpr implements RefPtrExpr {
   
   private JExpr objectRef;
   private FatPtr address;
 
-  public VoidPtr(JExpr objectRef, FatPtr address) {
+  public VoidPtrExpr(JExpr objectRef, FatPtr address) {
     this.objectRef = objectRef;
     this.address = address;
   }
 
-  public VoidPtr(JExpr objectRef) {
+  public VoidPtrExpr(JExpr objectRef) {
     this.objectRef = objectRef;
     this.address = null;
   }
@@ -103,7 +108,7 @@ public class VoidPtr implements RefPtrExpr {
   }
 
   @Override
-  public VoidPtr toVoidPtrExpr() throws UnsupportedCastException {
+  public VoidPtrExpr toVoidPtrExpr() throws UnsupportedCastException {
     return this;
   }
 
@@ -115,5 +120,19 @@ public class VoidPtr implements RefPtrExpr {
   @Override
   public VPtrExpr toVPtrExpr() throws UnsupportedCastException {
     return new VPtrExpr(Expressions.cast(objectRef, Type.getType(Ptr.class)));
+  }
+
+  @Override
+  public RecordUnitPtr toRecordUnitPtrExpr(RecordLayout layout) {
+    return new RecordUnitPtr(layout, Expressions.cast(unwrap(), layout.getType()));
+  }
+
+  @Override
+  public FatPtr toFatPtrExpr(ValueFunction valueFunction) {
+    JExpr wrapperInstance = Wrappers.cast(valueFunction.getValueType(), objectRef);
+    JExpr arrayField = Wrappers.arrayField(wrapperInstance);
+    JExpr offsetField = Wrappers.offsetField(wrapperInstance);
+
+    return new FatPtrPair(valueFunction, arrayField, offsetField);
   }
 }

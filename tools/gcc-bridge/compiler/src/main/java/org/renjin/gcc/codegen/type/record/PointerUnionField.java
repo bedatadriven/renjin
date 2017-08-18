@@ -23,13 +23,11 @@ import org.renjin.gcc.codegen.array.FatArrayExpr;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.*;
 import org.renjin.gcc.codegen.type.SingleFieldStrategy;
-import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
 import org.renjin.gcc.codegen.type.fun.FunPtr;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
-import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrStrategy;
-import org.renjin.gcc.codegen.type.voidt.VoidPtr;
+import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
@@ -49,27 +47,13 @@ public class PointerUnionField extends SingleFieldStrategy {
   }
 
   @Override
-  public GExpr memberExpr(MethodGenerator mv, JExpr instance, int offset, int size, TypeStrategy expectedType) {
+  public GExpr memberExpr(MethodGenerator mv, JExpr instance, int offset, int size, GimpleType expectedType) {
 
     if(offset != 0) {
       throw new UnsupportedOperationException("TODO: offset = " + offset);
     }
-    
-    JLValue fieldExpr = Expressions.field(instance, Type.getType(Object.class), fieldName);
 
-    if(expectedType == null) {
-      return new VoidPtr(fieldExpr);
-    }
-
-    if(expectedType instanceof FatPtrStrategy) {
-      return new FatPtrMemberExpr(fieldExpr, expectedType.getValueFunction());
-    }
-
-    if(expectedType instanceof RecordUnitPtrStrategy) {
-      return new RecordUnitPtr(Expressions.cast(fieldExpr, ((RecordUnitPtrStrategy) expectedType).getJvmType()));
-    }
-
-    throw new UnsupportedOperationException(String.format("TODO: strategy = %s", expectedType));
+    throw new UnsupportedOperationException(String.format("TODO: type = %s", expectedType));
   }
 
   @Override
@@ -140,7 +124,7 @@ public class PointerUnionField extends SingleFieldStrategy {
     }
 
     @Override
-    public VoidPtr toVoidPtrExpr() throws UnsupportedCastException {
+    public VoidPtrExpr toVoidPtrExpr() throws UnsupportedCastException {
       throw new UnsupportedOperationException("TODO");
     }
 
@@ -152,6 +136,16 @@ public class PointerUnionField extends SingleFieldStrategy {
     @Override
     public VPtrExpr toVPtrExpr() throws UnsupportedCastException {
       throw new UnsupportedOperationException("TODO");
+    }
+
+    @Override
+    public RecordUnitPtr toRecordUnitPtrExpr(RecordLayout layout) {
+      throw new UnsupportedOperationException("TODO");
+    }
+
+    @Override
+    public FatPtr toFatPtrExpr(ValueFunction valueFunction) {
+      return this;
     }
 
     @Override

@@ -191,15 +191,18 @@ public abstract class AbstractPtr implements Ptr {
   }
 
   @Override
-  public void setInt(int offset, int value) {
-    throw new UnsupportedOperationException("TODO");
+  public void setInt(int offset, int intValue) {
+    for (int i = 0; i < IntPtr.BYTES; i++) {
+      setByte(offset + i, (byte)(intValue & 0xff));
+      intValue >>= BITS_PER_BYTE;
+    }
   }
 
   @Override
   public void setLong(int offset, long longValue) {
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < LongPtr.BYTES; i++) {
       setByte(offset + i, (byte)(longValue & 0xffL));
-      longValue >>= 8;
+      longValue >>= BITS_PER_BYTE;
     }
   }
 
@@ -213,5 +216,28 @@ public abstract class AbstractPtr implements Ptr {
     throw new UnsupportedOperationException("TODO");
   }
 
+  @Override
+  public void memset(int intValue, int n) {
+    byte byteValue = (byte)intValue;
+    for (int i = 0; i < n; i++) {
+      setByte(i, byteValue);
+    }
+  }
+
+  @Override
+  public void memcpy(Ptr source, int numBytes) {
+    for (int i = 0; i < numBytes; i++) {
+      setByte(i, source.getByte(i));
+    }
+  }
+
+  @Override
+  public Ptr copyOf(int numBytes) {
+    BytePtr copy = new BytePtr(new byte[numBytes]);
+    for (int i = 0; i < numBytes; i++) {
+      copy.array[i] = getByte(i);
+    }
+    return copy;
+  }
 }
 

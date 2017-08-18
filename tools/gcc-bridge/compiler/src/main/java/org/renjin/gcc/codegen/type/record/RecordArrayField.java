@@ -27,8 +27,8 @@ import org.renjin.gcc.codegen.fatptr.Memset;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.fatptr.Wrappers;
 import org.renjin.gcc.codegen.type.FieldStrategy;
-import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.ClassVisitor;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
@@ -83,12 +83,11 @@ public class RecordArrayField extends FieldStrategy {
   }
 
   @Override
-  public GExpr memberExpr(MethodGenerator mv, JExpr instance, int offset, int size, TypeStrategy expectedType) {
+  public GExpr memberExpr(MethodGenerator mv, JExpr instance, int offset, int size, GimpleType expectedType) {
 
-    ValueFunction valueFunction = expectedType.getValueFunction();
-    
+
     JLValue arrayField = Expressions.field(instance, arrayType, name);
-    JExpr offsetIndex = Expressions.constantInt(offset / 8 / valueFunction.getArrayElementBytes());    
+    JExpr offsetIndex = Expressions.constantInt(offset / 8 / valueFunction.getArrayElementBytes());
 
     return valueFunction.dereference(arrayField, offsetIndex);
   }

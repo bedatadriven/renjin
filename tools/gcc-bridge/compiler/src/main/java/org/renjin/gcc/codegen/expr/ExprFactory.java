@@ -37,6 +37,7 @@ import org.renjin.gcc.codegen.type.complex.ComplexValues;
 import org.renjin.gcc.codegen.type.fun.FunPtr;
 import org.renjin.gcc.codegen.type.primitive.*;
 import org.renjin.gcc.codegen.type.primitive.op.*;
+import org.renjin.gcc.codegen.type.record.RecordExpr;
 import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.expr.*;
@@ -170,23 +171,16 @@ public class ExprFactory {
       }
     } else if (expr instanceof GimpleComponentRef) {
       GimpleComponentRef ref = (GimpleComponentRef) expr;
-      GExpr instance = findGenerator(((GimpleComponentRef) expr).getValue());
-      RecordTypeStrategy typeStrategy = (RecordTypeStrategy) typeOracle.forType(ref.getValue().getType());
-      TypeStrategy fieldTypeStrategy = typeOracle.forType(ref.getType());
-      return typeStrategy.memberOf(mv, instance,
-          ref.getMember().getOffset(), 
-          ref.getMember().getSize(), 
-          fieldTypeStrategy);
+      RecordExpr record = (RecordExpr)findGenerator(((GimpleComponentRef) expr).getValue());
+
+      return record.memberOf(mv, ref.getMember().getOffset(), ref.getMember().getSize(), expr.getType());
 
     } else if (expr instanceof GimpleBitFieldRefExpr) {
       GimpleBitFieldRefExpr ref = (GimpleBitFieldRefExpr) expr;
-      GExpr instance = findGenerator(ref.getValue());
-      RecordTypeStrategy recordTypeStrategy = (RecordTypeStrategy) typeOracle.forType(ref.getValue().getType());
-      TypeStrategy memberTypeStrategy = typeOracle.forType(expr.getType());
+      RecordExpr record = (RecordExpr)findGenerator(ref.getValue());
 
-      return recordTypeStrategy.memberOf(mv, instance, ref.getOffset(), ref.getSize(), memberTypeStrategy);
-      
-      
+      return record.memberOf(mv, ref.getOffset(), ref.getSize(), expr.getType());
+
     } else if(expr instanceof GimpleCompoundLiteral) {
       return findGenerator(((GimpleCompoundLiteral) expr).getDecl());
     

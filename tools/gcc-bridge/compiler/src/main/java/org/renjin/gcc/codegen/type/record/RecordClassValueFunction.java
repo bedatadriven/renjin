@@ -75,12 +75,12 @@ public class RecordClassValueFunction implements ValueFunction {
     JExpr castedElement = elementAt(array, offset);
     FatPtrPair address = new FatPtrPair(this, array, offset);
     
-    return new RecordValue(castedElement, address);
+    return new RecordValue(strategy.getLayout(), castedElement, address);
   }
 
   @Override
   public GExpr dereference(WrappedFatPtrExpr wrapperInstance) {
-    return new RecordValue(wrapperInstance.valueExpr(), wrapperInstance);
+    return new RecordValue(strategy.getLayout(), wrapperInstance.valueExpr(), wrapperInstance);
   }
 
   private JExpr elementAt(JExpr array, JExpr offset) {

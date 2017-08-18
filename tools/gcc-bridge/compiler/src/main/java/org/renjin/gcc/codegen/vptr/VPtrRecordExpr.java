@@ -22,41 +22,51 @@ package org.renjin.gcc.codegen.vptr;
 
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.FatArrayExpr;
-import org.renjin.gcc.codegen.expr.*;
+import org.renjin.gcc.codegen.expr.Expressions;
+import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
 import org.renjin.gcc.codegen.type.fun.FunPtr;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
 import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
+import org.renjin.gcc.codegen.type.record.RecordExpr;
 import org.renjin.gcc.codegen.type.record.RecordLayout;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
-import org.renjin.gcc.gimple.type.*;
+import org.renjin.gcc.gimple.type.GimplePrimitiveType;
+import org.renjin.gcc.gimple.type.GimpleRecordType;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.runtime.Ptr;
-import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
 
-public class VPtrExpr implements PtrExpr {
+/**
+ * A record expression backed by a VPtr.
+ */
+public class VPtrRecordExpr implements RecordExpr {
 
-  private JExpr ref;
+  private GimpleRecordType recordType;
+  private VPtrExpr pointer;
 
-  public VPtrExpr(JExpr ref) {
-    this.ref = ref;
+  public VPtrRecordExpr(GimpleRecordType recordType, VPtrExpr pointer) {
+    this.recordType = recordType;
+    this.pointer = pointer;
   }
 
   @Override
   public void store(MethodGenerator mv, GExpr rhs) {
-    ((JLValue) this.ref).store(mv, rhs.toVPtrExpr().getRef());
-  }
 
-  public JExpr getRef() {
-    return ref;
+    pointer.getRef().load(mv);                  // destination
+    ((VPtrRecordExpr) rhs).getRef().load(mv);   // source
+    mv.iconst(recordType.sizeOf());             // byte count
+
+    mv.invokeinterface(Ptr.class, "memcpy", Type.VOID_TYPE, Type.getType(Ptr.class), Type.INT_TYPE);
   }
 
   @Override
   public GExpr addressOf() {
-    throw new UnsupportedOperationException("TODO");
+    return pointer;
   }
 
   @Override
@@ -71,18 +81,12 @@ public class VPtrExpr implements PtrExpr {
 
   @Override
   public PrimitiveValue toPrimitiveExpr(GimplePrimitiveType targetType) throws UnsupportedCastException {
-
-    GimpleIntegerType pointerType = new GimpleIntegerType(32);
-    pointerType.setUnsigned(true);
-
-    return new PrimitiveValue(pointerType,
-        Expressions.methodCall(ref, Ptr.class, "toInt", Type.getMethodDescriptor(Type.INT_TYPE)))
-        .toPrimitiveExpr(targetType);
+    throw new UnsupportedOperationException("TODO");
   }
 
   @Override
   public VoidPtrExpr toVoidPtrExpr() throws UnsupportedCastException {
-    return new VoidPtrExpr(ref);
+    throw new UnsupportedOperationException("TODO");
   }
 
   @Override
@@ -91,8 +95,8 @@ public class VPtrExpr implements PtrExpr {
   }
 
   @Override
-  public VPtrExpr toVPtrExpr() {
-    return this;
+  public VPtrExpr toVPtrExpr() throws UnsupportedCastException {
+    throw new UnsupportedOperationException("TODO");
   }
 
   @Override
@@ -102,48 +106,21 @@ public class VPtrExpr implements PtrExpr {
 
   @Override
   public FatPtr toFatPtrExpr(ValueFunction valueFunction) {
-    throw new UnsupportedCastException();
-  }
-
-  @Override
-  public void jumpIfNull(MethodGenerator mv, Label label) {
     throw new UnsupportedOperationException("TODO");
   }
 
   @Override
-  public GExpr valueOf(GimpleType expectedType) {
-    return valueOf(expectedType, Expressions.constantInt(0));
+  public GExpr memberOf(MethodGenerator mv, int fieldOffsetBits, int size, GimpleType type) {
+
+    if(fieldOffsetBits % 8 != 0) {
+      throw new UnsupportedOperationException("TODO");
+    }
+
+    return pointer.valueOf(type, Expressions.constantInt(fieldOffsetBits / 8));
+
   }
 
-  public GExpr valueOf(GimpleType expectedType, JExpr offset) {
-
-    if(expectedType instanceof GimpleArrayType) {
-      return new VArrayExpr(((GimpleArrayType) expectedType), this);
-    }
-
-    if(expectedType instanceof GimpleRecordType) {
-      return new VPtrRecordExpr(((GimpleRecordType) expectedType), plus(offset));
-    }
-
-    if(expectedType instanceof GimpleIndirectType) {
-      return plus(offset);
-    }
-
-    if(expectedType instanceof GimplePrimitiveType) {
-      GimplePrimitiveType primitiveType = (GimplePrimitiveType) expectedType;
-      PointerType pointerType = PointerType.ofPrimitiveType(primitiveType);
-
-      return new PrimitiveValue(primitiveType, new DerefExpr(ref, offset, pointerType));
-    }
-
-    throw new UnsupportedOperationException("type: " + expectedType);
-  }
-
-  public VPtrExpr plus(JExpr offsetInBytes) {
-    String plusMethod = Type.getMethodDescriptor(Type.getType(Ptr.class), Type.INT_TYPE);
-    JExpr plusExpr = Expressions.methodCall(
-        ref, Ptr.class, "pointerPlus", plusMethod, offsetInBytes);
-
-    return new VPtrExpr(plusExpr);
+  public JExpr getRef() {
+    return pointer.getRef();
   }
 }

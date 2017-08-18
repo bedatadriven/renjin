@@ -27,7 +27,9 @@ import org.renjin.gcc.codegen.type.fun.FunPtr;
 import org.renjin.gcc.codegen.type.primitive.ConstantValue;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
 import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
-import org.renjin.gcc.codegen.type.voidt.VoidPtr;
+import org.renjin.gcc.codegen.type.record.RecordLayout;
+import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
+import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.codegen.var.LocalVarAllocator;
 import org.renjin.gcc.codegen.vptr.PointerType;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
@@ -92,8 +94,8 @@ public final class FatPtrPair implements FatPtr, PtrExpr {
   @SuppressWarnings("unchecked")
   public void store(MethodGenerator mv, GExpr rhsExpr) {
 
-    if(rhsExpr instanceof VoidPtr) {
-      VoidPtr ptr = (VoidPtr) rhsExpr;
+    if(rhsExpr instanceof VoidPtrExpr) {
+      VoidPtrExpr ptr = (VoidPtrExpr) rhsExpr;
       Type wrapperType = Wrappers.wrapperType(getValueType());
 
       // Casting a void* to a FatPtr Wrapper like DoublePtr requires
@@ -188,6 +190,15 @@ public final class FatPtrPair implements FatPtr, PtrExpr {
     });
   }
 
+  @Override
+  public RecordUnitPtr toRecordUnitPtrExpr(RecordLayout layout) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public FatPtr toFatPtrExpr(ValueFunction valueFunction) {
+    return this;
+  }
 
   public JExpr wrap() {
     final Type wrapperType = Wrappers.wrapperType(getValueType());
@@ -271,8 +282,8 @@ public final class FatPtrPair implements FatPtr, PtrExpr {
   }
 
   @Override
-  public VoidPtr toVoidPtrExpr() throws UnsupportedCastException {
-    return new VoidPtr(wrap());
+  public VoidPtrExpr toVoidPtrExpr() throws UnsupportedCastException {
+    return new VoidPtrExpr(wrap());
   }
 
   @Override

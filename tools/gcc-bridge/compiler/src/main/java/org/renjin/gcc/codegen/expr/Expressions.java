@@ -36,6 +36,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.renjin.repackaged.asm.Type.ARRAY;
+import static org.renjin.repackaged.asm.Type.OBJECT;
 import static org.renjin.repackaged.asm.Type.getMethodDescriptor;
 
 /**
@@ -734,6 +736,46 @@ public class Expressions {
         mv.invokestatic(Math.class, "max", Type.getMethodDescriptor(type, type, type));
       }
     };
+  }
+
+  public static boolean requiresCast(Type fromType, Type toType) {
+    if (fromType.equals(toType)) {
+      return false;
+    }
+
+    if(toType.equals(Type.getType(Object.class))) {
+      if(fromType.getSort() == ARRAY || fromType.getSort() == OBJECT) {
+        return false;
+      }
+    }
+
+    if(fromType.getSort() == Type.OBJECT && toType.getSort() == Type.OBJECT) {
+      return !isDefinitelySubclass(fromType, toType);
+    }
+
+    if(fromType.getSort() == Type.ARRAY && toType.getSort() == Type.ARRAY) {
+      return true;
+    }
+
+    throw new IllegalStateException(fromType + " will never be assignable to " + toType);
+  }
+
+  private static boolean isDefinitelySubclass(Type fromType, Type toType) {
+    Class fromClass;
+    try {
+      fromClass = Class.forName(fromType.getClassName());
+    } catch (ClassNotFoundException e) {
+      return false;
+    }
+
+    Class toClass;
+    try {
+      toClass = Class.forName(toType.getClassName());
+    } catch (ClassNotFoundException e) {
+      return false;
+    }
+
+    return toClass.isAssignableFrom(fromClass);
   }
 
 

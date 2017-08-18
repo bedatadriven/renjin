@@ -26,7 +26,7 @@ import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.repackaged.asm.Type;
 
-public class DereferencedWrappedVoidPtr extends VoidPtr {
+public class DereferencedWrappedVoidPtr extends VoidPtrExpr {
 
   private WrappedFatPtrExpr wrapperInstance;
 
@@ -37,9 +37,9 @@ public class DereferencedWrappedVoidPtr extends VoidPtr {
 
   @Override
   public void store(MethodGenerator mv, GExpr rhs) {
-    if(rhs instanceof VoidPtr) {
+    if(rhs instanceof VoidPtrExpr) {
       wrapperInstance.wrap().load(mv);
-      ((VoidPtr) rhs).unwrap().load(mv);
+      ((VoidPtrExpr) rhs).unwrap().load(mv);
       mv.invokevirtual(wrapperInstance.wrap().getType(), "set",
           Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(Object.class)), false);
     

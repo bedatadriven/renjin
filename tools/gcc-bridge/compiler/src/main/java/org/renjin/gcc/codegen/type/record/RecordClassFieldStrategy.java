@@ -23,9 +23,9 @@ import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.gcc.codegen.type.SingleFieldStrategy;
-import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.type.primitive.FieldValue;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.Type;
 
 import static org.renjin.repackaged.asm.Type.getMethodDescriptor;
@@ -52,16 +52,16 @@ public class RecordClassFieldStrategy extends SingleFieldStrategy {
   }
 
   @Override
-  public RecordValue memberExpr(MethodGenerator mv, JExpr instance, int offset, int size, TypeStrategy expectedType) {
+  public RecordValue memberExpr(MethodGenerator mv, JExpr instance, int offset, int size, GimpleType expectedType) {
 
     if(offset != 0) {
       throw new IllegalStateException("offset = " + offset);
     }
 
     JLValue value = Expressions.field(instance, strategy.getJvmType(), fieldName);
-    RecordUnitPtr address = new RecordUnitPtr(value);
+    RecordUnitPtr address = new RecordUnitPtr(strategy.getLayout(), value);
     
-    return new RecordValue(value, address);
+    return new RecordValue(strategy.getLayout(), value, address);
   }
 
   @Override
@@ -80,7 +80,7 @@ public class RecordClassFieldStrategy extends SingleFieldStrategy {
   public void copy(MethodGenerator mv, JExpr source, JExpr dest) {
     FieldValue sourceExpr = new FieldValue(source, fieldName, fieldType);
     FieldValue destExpr = new FieldValue(dest, fieldName, fieldType);
-    RecordValue clonedValue = strategy.clone(mv, new RecordValue(sourceExpr));
+    RecordValue clonedValue = strategy.clone(mv, new RecordValue(strategy.getLayout(), sourceExpr));
     destExpr.store(mv, clonedValue.unwrap());
   }
 }

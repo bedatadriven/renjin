@@ -21,8 +21,8 @@ package org.renjin.gcc.codegen.type.record;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.type.TypeOracle;
-import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.var.LocalVarAllocator;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.Type;
 
 import java.io.File;
@@ -51,7 +51,7 @@ public class EmptyRecordLayout implements RecordLayout {
   }
 
   @Override
-  public GExpr memberOf(MethodGenerator mv, RecordValue instance, int offset, int size, TypeStrategy fieldTypeStrategy) {
+  public GExpr memberOf(MethodGenerator mv, RecordValue instance, int offset, int size, GimpleType type) {
     throw new UnsupportedOperationException("Empty record has no fields.");
   }
 
@@ -67,6 +67,6 @@ public class EmptyRecordLayout implements RecordLayout {
     mv.invokeconstructor(TYPE);
     copy.store(mv);
 
-    return new RecordValue(copy);
+    return new RecordValue(this, copy);
   }
 }

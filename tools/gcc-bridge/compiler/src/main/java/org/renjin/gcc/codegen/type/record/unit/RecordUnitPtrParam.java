@@ -26,7 +26,7 @@ import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.gcc.codegen.fatptr.*;
 import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.type.record.RecordValue;
-import org.renjin.gcc.codegen.type.voidt.VoidPtr;
+import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleParameter;
 import org.renjin.gcc.runtime.ObjectPtr;
@@ -67,9 +67,9 @@ class RecordUnitPtrParam implements ParamStrategy {
 
       JExpr value = Expressions.elementAt(address.getArray(), 0);
 
-      return new RecordUnitPtr(value, address);
+      return new RecordUnitPtr(strategy.getLayout(), value, address);
     }
-    return new RecordUnitPtr(unitPtr);
+    return new RecordUnitPtr(strategy.getLayout(), unitPtr);
   }
 
   @Override
@@ -88,8 +88,8 @@ class RecordUnitPtrParam implements ParamStrategy {
 
     }
 
-    if(expr instanceof VoidPtr) {
-      ((VoidPtr) expr).unwrap().load(mv);
+    if(expr instanceof VoidPtrExpr) {
+      ((VoidPtrExpr) expr).unwrap().load(mv);
       mv.visitLdcInsn(strategy.getJvmType());
       mv.invokestatic(ObjectPtr.class, "castUnit",
           Type.getMethodDescriptor(Type.getType(Object.class),

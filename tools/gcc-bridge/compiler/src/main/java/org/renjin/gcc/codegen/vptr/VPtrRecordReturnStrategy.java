@@ -21,45 +21,40 @@
 package org.renjin.gcc.codegen.vptr;
 
 import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.expr.Expressions;
+import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.expr.JLValue;
+import org.renjin.gcc.codegen.type.ReturnStrategy;
+import org.renjin.gcc.codegen.type.TypeStrategy;
+import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Type;
 
-import javax.annotation.Nonnull;
+public class VPtrRecordReturnStrategy implements ReturnStrategy {
 
-public class DerefExprWithOffset implements JLValue {
+  private GimpleRecordType recordType;
 
-  private PointerType pointerType;
-  private JExpr pointer;
-  private JExpr offsetBytes;
-
-  public DerefExprWithOffset(PointerType pointerType, JExpr pointer, JExpr offsetBytes) {
-    this.pointerType = pointerType;
-    this.pointer = pointer;
-    this.offsetBytes = offsetBytes;
+  public VPtrRecordReturnStrategy(GimpleRecordType recordType) {
+    this.recordType = recordType;
   }
 
-  @Nonnull
   @Override
   public Type getType() {
-    return pointerType.getJvmType();
+    return Type.getType(Ptr.class);
   }
 
   @Override
-  public void load(@Nonnull MethodGenerator mv) {
-    pointer.load(mv);
-    offsetBytes.load(mv);
-    mv.invokeinterface(Type.getInternalName(Ptr.class), "get" + pointerType.titleCasedName(),
-        Type.getMethodDescriptor(pointerType.getJvmType(), Type.INT_TYPE));
+  public JExpr marshall(GExpr expr) {
+    return ((VPtrRecordExpr) expr).getRef();
   }
 
   @Override
-  public void store(MethodGenerator mv, JExpr expr) {
-    pointer.load(mv);
-    expr.load(mv);
-    offsetBytes.load(mv);
-    mv.invokeinterface(Type.getInternalName(Ptr.class), "set" + pointerType.titleCasedName(),
-        Type.getMethodDescriptor(Type.VOID_TYPE, Type.INT_TYPE, pointerType.getJvmType()));
+  public GExpr unmarshall(MethodGenerator mv, JExpr callExpr, TypeStrategy lhsTypeStrategy) {
+    return new VPtrRecordExpr(recordType, new VPtrExpr(callExpr));
+  }
+
+  @Override
+  public JExpr getDefaultReturnValue() {
+    throw new UnsupportedOperationException("TODO");
   }
 }

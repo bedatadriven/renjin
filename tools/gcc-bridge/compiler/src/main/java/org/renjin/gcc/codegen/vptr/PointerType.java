@@ -80,6 +80,8 @@ public enum PointerType {
       return ofPrimitiveType(((GimplePrimitiveType) type));
     } else if(type instanceof GimpleComplexType) {
       return ofPrimitiveType(((GimpleComplexType) type).getPartType());
+    } else if(type instanceof GimpleRecordType) {
+      return PointerType.BYTE;
     } else if(type instanceof GimpleIndirectType) {
       return PointerType.POINTER;
     } else if(type instanceof GimpleArrayType) {

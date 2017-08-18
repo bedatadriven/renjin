@@ -22,12 +22,14 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.FatArrayExpr;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.FatPtr;
+import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
 import org.renjin.gcc.codegen.type.fun.FunPtr;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
 import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
+import org.renjin.gcc.codegen.type.record.RecordLayout;
 import org.renjin.gcc.codegen.type.record.RecordValue;
-import org.renjin.gcc.codegen.type.voidt.VoidPtr;
+import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.gimple.type.GimpleIntegerType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
@@ -36,15 +38,18 @@ import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
 
 public class RecordUnitPtr implements RefPtrExpr {
-  
+
+  private RecordLayout layout;
   private JExpr ref;
   private FatPtr address;
 
-  public RecordUnitPtr(JExpr ref) {
+  public RecordUnitPtr(RecordLayout layout, JExpr ref) {
+    this.layout = layout;
     this.ref = ref;
   }
 
-  public RecordUnitPtr(JExpr ref, FatPtr address) {
+  public RecordUnitPtr(RecordLayout layout, JExpr ref, FatPtr address) {
+    this.layout = layout;
     this.ref = ref;
     this.address = address;
   }
@@ -78,7 +83,7 @@ public class RecordUnitPtr implements RefPtrExpr {
 
   @Override
   public GExpr valueOf(GimpleType expectedType) {
-    return new RecordValue(ref);
+    return new RecordValue(layout, ref);
   }
 
   @Override
@@ -97,8 +102,8 @@ public class RecordUnitPtr implements RefPtrExpr {
   }
 
   @Override
-  public VoidPtr toVoidPtrExpr() throws UnsupportedCastException {
-    return new VoidPtr(ref);
+  public VoidPtrExpr toVoidPtrExpr() throws UnsupportedCastException {
+    return new VoidPtrExpr(ref);
   }
 
   @Override
@@ -109,5 +114,15 @@ public class RecordUnitPtr implements RefPtrExpr {
   @Override
   public VPtrExpr toVPtrExpr() throws UnsupportedCastException {
     throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public RecordUnitPtr toRecordUnitPtrExpr(RecordLayout layout) {
+    return new RecordUnitPtr(this.layout, Expressions.cast(unwrap(), layout.getType()));
+  }
+
+  @Override
+  public FatPtr toFatPtrExpr(ValueFunction valueFunction) {
+    throw new UnsupportedCastException();
   }
 }

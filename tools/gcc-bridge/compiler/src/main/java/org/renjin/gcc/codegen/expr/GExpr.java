@@ -20,12 +20,16 @@ package org.renjin.gcc.codegen.expr;
 
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.FatArrayExpr;
+import org.renjin.gcc.codegen.fatptr.FatPtr;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
+import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
 import org.renjin.gcc.codegen.type.fun.FunPtr;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
 import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
-import org.renjin.gcc.codegen.type.voidt.VoidPtr;
+import org.renjin.gcc.codegen.type.record.RecordLayout;
+import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
+import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 
@@ -55,7 +59,7 @@ public interface GExpr {
 
   PrimitiveValue toPrimitiveExpr(GimplePrimitiveType targetType) throws UnsupportedCastException;
 
-  VoidPtr toVoidPtrExpr() throws UnsupportedCastException;
+  VoidPtrExpr toVoidPtrExpr() throws UnsupportedCastException;
 
   /**
    * Cast or transform this expression to an Record Array expression.
@@ -67,4 +71,15 @@ public interface GExpr {
    */
   VPtrExpr toVPtrExpr() throws UnsupportedCastException;
 
+  /**
+   * Cast or transform this expression to a record unit pointer.
+   * @param layout
+   */
+  RecordUnitPtr toRecordUnitPtrExpr(RecordLayout layout);
+
+  /**
+   * Cast or transform this expression to a FatPtr
+   * @param valueFunction
+   */
+  FatPtr toFatPtrExpr(ValueFunction valueFunction);
 }

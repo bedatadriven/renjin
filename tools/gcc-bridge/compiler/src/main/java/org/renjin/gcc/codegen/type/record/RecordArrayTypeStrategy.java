@@ -81,65 +81,6 @@ public class RecordArrayTypeStrategy extends RecordTypeStrategy<RecordArrayExpr>
     return recordSize / elementSize;
   }
 
-  @Override
-  public GExpr memberOf(MethodGenerator mv, RecordArrayExpr instance, int fieldOffsetBits, int size, TypeStrategy fieldTypeStrategy) {
-    
-    // All the fields in this record are necessarily primitives, so we need
-    // simple to retrieve the element from within the array that corresponds to
-    // the given field name
-    JExpr array = instance.getArray();
-    JExpr fieldOffset = constantInt(fieldOffsetBits / 8 / elementSizeInBytes());
-    JExpr offset = sum(instance.getOffset(), fieldOffset);
-
-    // Because this value is backed by an array, we can also make it addressable. 
-    FatPtrPair address = new FatPtrPair(valueFunction, array, offset);
-    
-    // The members of this record may be either primitives, or arrays of primitives,
-    // and it actually doesn't matter to us.
-    
-    if(fieldTypeStrategy instanceof PrimitiveTypeStrategy) {
-      GimplePrimitiveType expectedType = ((PrimitiveTypeStrategy) fieldTypeStrategy).getType();
-
-      // Return a single primitive value
-      if(expectedType.jvmType().equals(fieldType)) {
-        JExpr value = elementAt(array, offset);
-        return new PrimitiveValue(expectedType, value, address);
-      } else if (fieldType.equals(Type.BYTE_TYPE) && expectedType.equals(new GimpleIntegerType(32))) {
-        return new PrimitiveValue(expectedType, new ByteArrayAsInt(array, offset));
-        
-      } else if (fieldType.equals(Type.LONG_TYPE) && expectedType.equals(new GimpleRealType(64))) {
-        JLValue value = elementAt(array, offset);
-        return new PrimitiveValue(expectedType, new LongAsDouble(value));
-        
-      } else {
-        throw new UnsupportedOperationException("TODO: " + fieldType + " -> " + expectedType);
-      }
-
-    } else if(fieldTypeStrategy instanceof ArrayTypeStrategy) {
-      ArrayTypeStrategy arrayType = (ArrayTypeStrategy) fieldTypeStrategy;
-      Type expectedType = arrayType.getElementType();
-
-      return new FatArrayExpr(arrayType.getGimpleType(),
-          new PrimitiveValueFunction(expectedType), arrayType.getArrayLength(), array, offset);
-
-
-    } else if(fieldTypeStrategy instanceof RecordArrayTypeStrategy) {
-      RecordArrayTypeStrategy recordArrayTypeStrategy = (RecordArrayTypeStrategy) fieldTypeStrategy;
-      if(!recordArrayTypeStrategy.fieldType.equals(this.fieldType)) {
-        throw new InternalCompilerException("Cannot access member of type " + fieldTypeStrategy +   
-            " from record array of type " + this);
-      }
-      
-      return new RecordArrayExpr(recordArrayTypeStrategy.valueFunction, array, fieldOffset, 
-          recordArrayTypeStrategy.arrayLength);
-      
-    } else {
-      // Return an array that starts at this point 
-      return new FatPtrPair(valueFunction, address, array, offset);
-    }
-    
-  }
-
   private int elementSizeInBytes() {
     return GimplePrimitiveType.fromJvmType(fieldType).sizeOf();
   }

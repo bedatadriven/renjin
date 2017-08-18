@@ -47,25 +47,25 @@ import java.lang.reflect.Field;
  * to a {@link java.lang.invoke.MethodHandle}, or to record type for records that use the 
  * {@link org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrStrategy}.</p>
  */
-public class VoidPtrStrategy implements PointerTypeStrategy<VoidPtr>, SimpleTypeStrategy<VoidPtr> {
+public class VoidPtrStrategy implements PointerTypeStrategy<VoidPtrExpr>, SimpleTypeStrategy<VoidPtrExpr> {
   
   public static final Type OBJECT_TYPE = Type.getType(Object.class);
   
   @Override
-  public VoidPtr malloc(MethodGenerator mv, JExpr sizeInBytes) {
-    return new org.renjin.gcc.codegen.type.voidt.VoidPtr(new NewMallocThunkExpr(sizeInBytes));
+  public VoidPtrExpr malloc(MethodGenerator mv, JExpr sizeInBytes) {
+    return new VoidPtrExpr(new NewMallocThunkExpr(sizeInBytes));
   }
 
   @Override
-  public VoidPtr realloc(MethodGenerator mv, final VoidPtr pointer, JExpr newSizeInBytes) {
-    return new VoidPtr(new VoidPtrRealloc(pointer.unwrap(), newSizeInBytes));
+  public VoidPtrExpr realloc(MethodGenerator mv, final VoidPtrExpr pointer, JExpr newSizeInBytes) {
+    return new VoidPtrExpr(new VoidPtrRealloc(pointer.unwrap(), newSizeInBytes));
   }
 
   @Override
-  public VoidPtr pointerPlus(MethodGenerator mv, final VoidPtr pointer, final JExpr offsetInBytes) {
+  public VoidPtrExpr pointerPlus(MethodGenerator mv, final VoidPtrExpr pointer, final JExpr offsetInBytes) {
     // We have to rely on run-time support for this because we don't know
     // what kind of pointer is stored here
-    return new VoidPtr(new JExpr() {
+    return new VoidPtrExpr(new JExpr() {
 
       @Nonnull
       @Override
@@ -85,22 +85,22 @@ public class VoidPtrStrategy implements PointerTypeStrategy<VoidPtr>, SimpleType
   }
 
   @Override
-  public VoidPtr nullPointer() {
-    return new VoidPtr(Expressions.nullRef(Type.getType(Object.class)));
+  public VoidPtrExpr nullPointer() {
+    return new VoidPtrExpr(Expressions.nullRef(Type.getType(Object.class)));
   }
 
   @Override
-  public ConditionGenerator comparePointers(MethodGenerator mv, GimpleOp op, VoidPtr x, VoidPtr y) {
+  public ConditionGenerator comparePointers(MethodGenerator mv, GimpleOp op, VoidPtrExpr x, VoidPtrExpr y) {
     return new VoidPtrComparison(op, x.unwrap(), y.unwrap());
   }
 
   @Override
-  public JExpr memoryCompare(MethodGenerator mv, VoidPtr p1, VoidPtr p2, JExpr n) {
+  public JExpr memoryCompare(MethodGenerator mv, VoidPtrExpr p1, VoidPtrExpr p2, JExpr n) {
     return new VoidPtrMemCmp(p1.unwrap(), p2.unwrap(), n);
   }
 
   @Override
-  public void memoryCopy(MethodGenerator mv, VoidPtr destination, VoidPtr source, JExpr length, boolean buffer) {
+  public void memoryCopy(MethodGenerator mv, VoidPtrExpr destination, VoidPtrExpr source, JExpr length, boolean buffer) {
     
     destination.unwrap().load(mv);
     source.unwrap().load(mv);
@@ -112,7 +112,7 @@ public class VoidPtrStrategy implements PointerTypeStrategy<VoidPtr>, SimpleType
   }
 
   @Override
-  public void memorySet(MethodGenerator mv, VoidPtr pointer, JExpr byteValue, JExpr length) {
+  public void memorySet(MethodGenerator mv, VoidPtrExpr pointer, JExpr byteValue, JExpr length) {
     pointer.unwrap().load(mv);
     byteValue.load(mv);
     length.load(mv);
@@ -125,8 +125,8 @@ public class VoidPtrStrategy implements PointerTypeStrategy<VoidPtr>, SimpleType
   }
 
   @Override
-  public VoidPtr unmarshallVoidPtrReturnValue(MethodGenerator mv, JExpr voidPointer) {
-    return new VoidPtr(voidPointer);
+  public VoidPtrExpr unmarshallVoidPtrReturnValue(MethodGenerator mv, JExpr voidPointer) {
+    return new VoidPtrExpr(voidPointer);
   }
 
   @Override
@@ -145,32 +145,32 @@ public class VoidPtrStrategy implements PointerTypeStrategy<VoidPtr>, SimpleType
   }
 
   @Override
-  public VoidPtr variable(GimpleVarDecl decl, VarAllocator allocator) {
+  public VoidPtrExpr variable(GimpleVarDecl decl, VarAllocator allocator) {
     if(decl.isAddressable()) {
       Type objectArrayType = Type.getType("[Ljava/lang/Object;");
       JLValue unitArray = allocator.reserve(decl.getName(), objectArrayType, Expressions.newArray(Object.class, 1));
       FatPtrPair address = new FatPtrPair(new VoidPtrValueFunction(), unitArray);
       JExpr value = Expressions.elementAt(unitArray, 0);
       
-      return new VoidPtr(value, address);
+      return new VoidPtrExpr(value, address);
 
     } else {
 
-      return new VoidPtr(allocator.reserve(decl.getNameIfPresent(), Type.getType(Object.class)));
+      return new VoidPtrExpr(allocator.reserve(decl.getNameIfPresent(), Type.getType(Object.class)));
     }
   }
 
   @Override
-  public VoidPtr providedGlobalVariable(GimpleVarDecl decl, Field javaField) {
+  public VoidPtrExpr providedGlobalVariable(GimpleVarDecl decl, Field javaField) {
     if(javaField.getType().isPrimitive()) {
       throw new UnsupportedOperationException("Cannot map void* global pointer " + decl + " to primitive field " +
           javaField + ". Must be an Object.");
     }
-    return new VoidPtr(Expressions.staticField(javaField));
+    return new VoidPtrExpr(Expressions.staticField(javaField));
   }
 
   @Override
-  public VoidPtr constructorExpr(ExprFactory exprFactory, MethodGenerator mv, GimpleConstructor value) {
+  public VoidPtrExpr constructorExpr(ExprFactory exprFactory, MethodGenerator mv, GimpleConstructor value) {
     throw new UnsupportedOperationException("TODO");
   }
 
@@ -195,7 +195,7 @@ public class VoidPtrStrategy implements PointerTypeStrategy<VoidPtr>, SimpleType
   }
 
   @Override
-  public VoidPtr cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+  public VoidPtrExpr cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
     return value.toVoidPtrExpr();
   }
 
@@ -210,7 +210,7 @@ public class VoidPtrStrategy implements PointerTypeStrategy<VoidPtr>, SimpleType
   }
 
   @Override
-  public VoidPtr wrap(JExpr expr) {
-    return new VoidPtr(expr);
+  public VoidPtrExpr wrap(JExpr expr) {
+    return new VoidPtrExpr(expr);
   }
 }

@@ -26,11 +26,15 @@ import org.renjin.gcc.codegen.expr.ArrayExpr;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.fatptr.FatPtr;
+import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
 import org.renjin.gcc.codegen.type.fun.FunPtr;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
 import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
-import org.renjin.gcc.codegen.type.voidt.VoidPtr;
+import org.renjin.gcc.codegen.type.record.RecordLayout;
+import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
+import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
@@ -46,14 +50,14 @@ public class VArrayExpr implements ArrayExpr {
   /**
    * Reference to the {@link org.renjin.gcc.runtime.Ptr} instance backing this array.
    */
-  private JExpr ref;
+  private VPtrExpr pointer;
 
   private GimpleArrayType arrayType;
 
 
-  public VArrayExpr(GimpleArrayType arrayType, JExpr ref) {
+  public VArrayExpr(GimpleArrayType arrayType, VPtrExpr pointer) {
     this.arrayType = arrayType;
-    this.ref = ref;
+    this.pointer = pointer;
   }
 
   @Override
@@ -83,7 +87,7 @@ public class VArrayExpr implements ArrayExpr {
   }
 
   @Override
-  public VoidPtr toVoidPtrExpr() throws UnsupportedCastException {
+  public VoidPtrExpr toVoidPtrExpr() throws UnsupportedCastException {
     throw new UnsupportedOperationException("TODO");
   }
 
@@ -98,14 +102,20 @@ public class VArrayExpr implements ArrayExpr {
   }
 
   @Override
+  public RecordUnitPtr toRecordUnitPtrExpr(RecordLayout layout) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public FatPtr toFatPtrExpr(ValueFunction valueFunction) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public GExpr elementAt(GimpleType expectedType, JExpr index) {
     JExpr zeroBasedIndex = Expressions.difference(index, arrayType.getLbound());
     JExpr byteOffset = Expressions.product(zeroBasedIndex, expectedType.sizeOf());
-    PointerType pointerType = PointerType.ofType(expectedType);
 
-    JExpr derefExpr = new DerefExprWithOffset(pointerType, ref, byteOffset);
-
-    return VPtrExpr.wrap(expectedType, derefExpr);
-
+    return pointer.valueOf(expectedType, byteOffset);
   }
 }

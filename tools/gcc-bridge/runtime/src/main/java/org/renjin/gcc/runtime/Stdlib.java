@@ -41,25 +41,6 @@ public class Stdlib {
   public static int timezone;
   public static int daylight;
 
-  /**
-   * Computes the number of elements to "malloc" given the bytes requested and the size
-   * of the elements in bytes.
-   *
-   * <p>We need to be sure that we allocate enough space if an odd number of bytes is requested. For example,
-   * if we allocate an array of ints with a size of 9 bytes, we have to allocate 3 ints, not 2.</p>
-   *
-   * @param bytes the number of bytes requested
-   * @param size the size of the elements, in bytes
-   * @return the number of elements to allocate
-   */
-  static int mallocSize(int bytes, int size) {
-    int count = bytes / size;
-    if(bytes % size != 0) {
-      count++;
-    }
-    return count;
-  }
-
 
   public static int strncmp(BytePtr x, BytePtr y, int n) {
     for(int i=0;i<n;++i) {
@@ -257,9 +238,9 @@ public class Stdlib {
     throw new UnsupportedOperationException();
   }
   
-  
+  @Deprecated
   public static ObjectPtr<CharPtr> __ctype_b_loc() {
-    return CharTypes.TABLE_PTR;
+    return CharTypes.TABLE_OBJECT_PTR;
   }
 
 

@@ -23,7 +23,7 @@ import org.renjin.gcc.annotations.GccSize;
 import java.util.Arrays;
 
 public class ObjectPtr<T> extends AbstractPtr {
-  
+
   public static final ObjectPtr NULL = new ObjectPtr();
   
   public final Object[] array;
@@ -87,6 +87,11 @@ public class ObjectPtr<T> extends AbstractPtr {
   @Override
   public int toInt() {
     throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public boolean isNull() {
+    return array == null && offset == 0;
   }
 
   public T get() {

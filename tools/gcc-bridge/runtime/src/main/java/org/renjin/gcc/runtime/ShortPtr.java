@@ -46,7 +46,7 @@ public class ShortPtr extends AbstractPtr {
   }
 
   public static ShortPtr malloc(int bytes) {
-    return new ShortPtr(new short[Stdlib.mallocSize(bytes, BYTES)]);
+    return new ShortPtr(new short[AbstractPtr.mallocSize(bytes, BYTES)]);
   }
 
   @Override
@@ -82,6 +82,11 @@ public class ShortPtr extends AbstractPtr {
   @Override
   public int toInt() {
     return offset * BYTES;
+  }
+
+  @Override
+  public boolean isNull() {
+    return array == null && offset != 0;
   }
 
   public short unwrap() {

@@ -594,7 +594,7 @@ public class Expressions {
       @Nonnull
       @Override
       public Type getType() {
-        return Type.getReturnType(methodName);
+        return Type.getReturnType(descriptor);
       }
 
       @Override

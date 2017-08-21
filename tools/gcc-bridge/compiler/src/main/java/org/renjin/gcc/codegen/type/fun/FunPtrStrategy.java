@@ -120,11 +120,6 @@ public class FunPtrStrategy implements PointerTypeStrategy<FunPtr>, SimpleTypeSt
   }
 
   @Override
-  public JExpr memoryCompare(MethodGenerator mv, FunPtr p1, FunPtr p2, JExpr n) {
-    throw new UnsupportedOperationException("TODO");
-  }
-
-  @Override
   public void memoryCopy(MethodGenerator mv, FunPtr destination, FunPtr source, JExpr length, boolean buffer) {
     throw new UnsupportedOperationException("TODO");
   }

@@ -25,6 +25,27 @@ public abstract class AbstractPtr implements Ptr {
 
   public static final int BITS_PER_BYTE = 8;
 
+  private static final int UNSIGNED_MASK = 0xFF;
+
+  /**
+   * Computes the number of elements to "malloc" given the bytes requested and the size
+   * of the elements in bytes.
+   *
+   * <p>We need to be sure that we allocate enough space if an odd number of bytes is requested. For example,
+   * if we allocate an array of ints with a size of 9 bytes, we have to allocate 3 ints, not 2.</p>
+   *
+   * @param bytes the number of bytes requested
+   * @param size the size of the elements, in bytes
+   * @return the number of elements to allocate
+   */
+  static int mallocSize(int bytes, int size) {
+    int count = bytes / size;
+    if(bytes % size != 0) {
+      count++;
+    }
+    return count;
+  }
+
   @Override
   public Object getArray() {
     throw new UnsupportedOperationException("No longer supported. Please recompile.");
@@ -229,6 +250,20 @@ public abstract class AbstractPtr implements Ptr {
     for (int i = 0; i < numBytes; i++) {
       setByte(i, source.getByte(i));
     }
+  }
+
+  @Override
+  public int memcmp(Ptr that, int numBytes) {
+    for (int i = 0; i < numBytes; i++) {
+      int b1 = this.getByte(i) & UNSIGNED_MASK;
+      int b2 = that.getByte(i) & UNSIGNED_MASK;
+      if(b1 < b2) {
+        return -1;
+      } else if(b1 > b2) {
+        return -1;
+      }
+    }
+    return 0;
   }
 
   @Override

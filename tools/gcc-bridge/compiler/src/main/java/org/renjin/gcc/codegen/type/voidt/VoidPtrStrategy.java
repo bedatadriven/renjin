@@ -95,11 +95,6 @@ public class VoidPtrStrategy implements PointerTypeStrategy<VoidPtrExpr>, Simple
   }
 
   @Override
-  public JExpr memoryCompare(MethodGenerator mv, VoidPtrExpr p1, VoidPtrExpr p2, JExpr n) {
-    return new VoidPtrMemCmp(p1.unwrap(), p2.unwrap(), n);
-  }
-
-  @Override
   public void memoryCopy(MethodGenerator mv, VoidPtrExpr destination, VoidPtrExpr source, JExpr length, boolean buffer) {
     
     destination.unwrap().load(mv);

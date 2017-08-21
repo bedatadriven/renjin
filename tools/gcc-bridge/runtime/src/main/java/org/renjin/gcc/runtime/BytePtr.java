@@ -152,6 +152,11 @@ public class BytePtr extends AbstractPtr {
     return offset;
   }
 
+  @Override
+  public boolean isNull() {
+    return array == null && offset == 0;
+  }
+
   public static BytePtr cast(Object voidPointer) {
     if(voidPointer instanceof MallocThunk) {
       return ((MallocThunk) voidPointer).bytePtr();

@@ -28,6 +28,8 @@ import org.renjin.repackaged.asm.Label;
 public interface PtrExpr extends GExpr {
   
   void jumpIfNull(MethodGenerator mv, Label label);
-  
+
+  JExpr memoryCompare(MethodGenerator mv, PtrExpr otherPointer, JExpr n);
+
   GExpr valueOf(GimpleType expectedType);
 }

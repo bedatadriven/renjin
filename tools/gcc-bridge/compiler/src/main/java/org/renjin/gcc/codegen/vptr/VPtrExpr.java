@@ -107,7 +107,18 @@ public class VPtrExpr implements PtrExpr {
 
   @Override
   public void jumpIfNull(MethodGenerator mv, Label label) {
-    throw new UnsupportedOperationException("TODO");
+    ref.load(mv);
+    mv.invokeinterface(Ptr.class, "isNull", Type.BOOLEAN_TYPE);
+    mv.ifne(label);
+  }
+
+  @Override
+  public JExpr memoryCompare(MethodGenerator mv, PtrExpr otherPointer, JExpr n) {
+    return Expressions.methodCall(ref, Ptr.class, "memcmp",
+        Type.getMethodDescriptor(Type.INT_TYPE, Type.getType(Ptr.class), Type.INT_TYPE),
+        ref,
+        otherPointer.toVPtrExpr().getRef(),
+        n);
   }
 
   @Override
@@ -125,15 +136,17 @@ public class VPtrExpr implements PtrExpr {
       return new VPtrRecordExpr(((GimpleRecordType) expectedType), plus(offset));
     }
 
-    if(expectedType instanceof GimpleIndirectType) {
-      return plus(offset);
-    }
+    PointerType pointerType = PointerType.ofType(expectedType);
+    DerefExpr derefExpr = new DerefExpr(ref, offset, pointerType);
 
     if(expectedType instanceof GimplePrimitiveType) {
       GimplePrimitiveType primitiveType = (GimplePrimitiveType) expectedType;
-      PointerType pointerType = PointerType.ofPrimitiveType(primitiveType);
 
-      return new PrimitiveValue(primitiveType, new DerefExpr(ref, offset, pointerType));
+      return new PrimitiveValue(primitiveType, derefExpr);
+    }
+
+    if(expectedType instanceof GimpleIndirectType) {
+      return new VPtrExpr(derefExpr);
     }
 
     throw new UnsupportedOperationException("type: " + expectedType);

@@ -103,6 +103,11 @@ public class VoidPtrExpr implements RefPtrExpr {
   }
 
   @Override
+  public JExpr memoryCompare(MethodGenerator mv, PtrExpr otherPointer, JExpr n) {
+    return new VoidPtrMemCmp(unwrap(), otherPointer.toVoidPtrExpr().unwrap(), n);
+  }
+
+  @Override
   public GExpr valueOf(GimpleType expectedType) {
     throw new UnsupportedOperationException("void pointers cannot be dereferenced.");
   }

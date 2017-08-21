@@ -125,25 +125,25 @@ public class GimpleCompilerTest extends AbstractGccTest {
   @Test
   public void returningPointersToPointers() throws Exception {
     Class clazz = compile("cmatrix.c");
-    Method cmatrix = clazz.getMethod("cmatrix", DoublePtr.class, int.class, int.class);
+    Method cmatrix = clazz.getMethod("cmatrix", Ptr.class, int.class, int.class);
     DoublePtr array = new DoublePtr(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
-    ObjectPtr matrix = (ObjectPtr) cmatrix.invoke(null, array, 2, 5);
-    DoublePtr row0 = (DoublePtr) matrix.array[matrix.offset];
-    DoublePtr row1 = (DoublePtr) matrix.array[matrix.offset + 1];
+    Ptr matrix = (Ptr) cmatrix.invoke(null, array, 2, 5);
+    Ptr row0 = matrix.getPointer(0);
+    Ptr row1 = matrix.getPointer(4);
 
-    assertThat(row0.get(0), equalTo(1d));
-    assertThat(row0.get(1), equalTo(2d));
+    assertThat(row0.getAlignedDouble(0), equalTo(1d));
+    assertThat(row0.getAlignedDouble(1), equalTo(2d));
 
-    assertThat(row1.get(0), equalTo(6d));
-    assertThat(row1.get(1), equalTo(7d));
+    assertThat(row1.getAlignedDouble(0), equalTo(6d));
+    assertThat(row1.getAlignedDouble(1), equalTo(7d));
 
-    Method get_at = clazz.getMethod("get_at", ObjectPtr.class, int.class, int.class);
+    Method get_at = clazz.getMethod("get_at", Ptr.class, int.class, int.class);
 
     DoublePtr prow0 = (DoublePtr) get_at.invoke(null, matrix, 0, 0);
     assertThat(prow0.array, is(prow0.array));
     assertThat(prow0.offset, equalTo(0));
 
-    Method sum_second_col = clazz.getMethod("sum_second_col", DoublePtr.class, int.class, int.class);
+    Method sum_second_col = clazz.getMethod("sum_second_col", Ptr.class, int.class, int.class);
     double sum = (Double) sum_second_col.invoke(null, array, 2, 5);
 
     assertThat(sum, equalTo(9d));

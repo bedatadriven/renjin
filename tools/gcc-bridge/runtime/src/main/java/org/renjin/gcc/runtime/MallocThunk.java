@@ -280,4 +280,9 @@ public class MallocThunk extends AbstractPtr {
   public int toInt() {
     throw new UnsupportedOperationException("TODO");
   }
+
+  @Override
+  public boolean isNull() {
+    return false;
+  }
 }

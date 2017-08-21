@@ -109,6 +109,11 @@ public class IntPtrUnaligned extends AbstractPtr {
   }
 
   @Override
+  public boolean isNull() {
+    return array == null && offset != 0;
+  }
+
+  @Override
   public Ptr realloc(int newSizeInBytes) {
     throw new UnsupportedOperationException("TODO");
   }

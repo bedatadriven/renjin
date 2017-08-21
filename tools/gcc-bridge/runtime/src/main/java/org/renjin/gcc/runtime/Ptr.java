@@ -21,6 +21,8 @@ package org.renjin.gcc.runtime;
 
 public interface Ptr {
 
+
+
   @Deprecated
   Object getArray();
 
@@ -249,6 +251,10 @@ public interface Ptr {
 
   void memcpy(Ptr source, int numBytes);
 
+  int memcmp(Ptr other, int numBytes);
+
   Ptr copyOf(int numBytes);
+
+  boolean isNull();
 
 }

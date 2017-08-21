@@ -198,11 +198,6 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>
   }
 
   @Override
-  public JExpr memoryCompare(MethodGenerator mv, RecordUnitPtr p1, RecordUnitPtr p2, JExpr n) {
-    throw new UnsupportedOperationException("TODO");
-  }
-
-  @Override
   public void memoryCopy(MethodGenerator mv, RecordUnitPtr destination, RecordUnitPtr source, JExpr length, boolean buffer) {
 
     Type recordType = strategy.getJvmType();

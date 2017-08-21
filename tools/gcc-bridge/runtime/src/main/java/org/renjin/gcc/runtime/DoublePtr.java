@@ -46,7 +46,7 @@ public class DoublePtr extends AbstractPtr implements Ptr {
   }
 
   public static DoublePtr malloc(int bytes) {
-    return new DoublePtr(new double[Stdlib.mallocSize(bytes, BYTES)]);
+    return new DoublePtr(new double[AbstractPtr.mallocSize(bytes, BYTES)]);
   }
 
   @Override
@@ -196,6 +196,11 @@ public class DoublePtr extends AbstractPtr implements Ptr {
   @Override
   public int toInt() {
     return offset * 8;
+  }
+
+  @Override
+  public boolean isNull() {
+    return array == null && offset == 0;
   }
 
   @Override

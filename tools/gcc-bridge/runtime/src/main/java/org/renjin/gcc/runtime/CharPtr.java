@@ -82,6 +82,11 @@ public class CharPtr extends AbstractPtr {
     return offset * 2;
   }
 
+  @Override
+  public boolean isNull() {
+    return array == null && offset == 0;
+  }
+
   public static CharPtr fromString(String string) {
     int nchars = string.length();
     char array[] = new char[nchars+1];

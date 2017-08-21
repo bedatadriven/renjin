@@ -47,7 +47,7 @@ public class FloatPtr extends AbstractPtr {
 
 
   public static FloatPtr malloc(int bytes) {
-    return new FloatPtr(new float[Stdlib.mallocSize(bytes, BYTES)]);
+    return new FloatPtr(new float[AbstractPtr.mallocSize(bytes, BYTES)]);
   }
 
   @Override
@@ -83,6 +83,11 @@ public class FloatPtr extends AbstractPtr {
   @Override
   public int toInt() {
     return offset * 4;
+  }
+
+  @Override
+  public boolean isNull() {
+    return array == null && offset == 0;
   }
 
   @Override

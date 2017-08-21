@@ -19,8 +19,6 @@
 package org.renjin.gcc.runtime;
 
 
-import com.sun.glass.ui.Size;
-
 import java.util.Arrays;
 
 public class IntPtr extends AbstractPtr implements Ptr {
@@ -48,7 +46,7 @@ public class IntPtr extends AbstractPtr implements Ptr {
   }
 
   public static IntPtr malloc(int bytes) {
-    return new IntPtr(new int[Stdlib.mallocSize(bytes, BYTES)]);
+    return new IntPtr(new int[AbstractPtr.mallocSize(bytes, BYTES)]);
   }
 
   @Override
@@ -214,6 +212,11 @@ public class IntPtr extends AbstractPtr implements Ptr {
   @Override
   public int toInt() {
     return offset * BYTES;
+  }
+
+  @Override
+  public boolean isNull() {
+    return array == null && offset == 0;
   }
 
   @Override

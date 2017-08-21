@@ -80,6 +80,11 @@ public class BooleanPtr extends AbstractPtr implements Ptr {
     throw new UnsupportedOperationException("TODO");
   }
 
+  @Override
+  public boolean isNull() {
+    return array == null && offset == 0;
+  }
+
   public static BooleanPtr cast(Object voidPointer) {
     if(voidPointer instanceof MallocThunk) {
       return ((MallocThunk) voidPointer).booleanPtr();

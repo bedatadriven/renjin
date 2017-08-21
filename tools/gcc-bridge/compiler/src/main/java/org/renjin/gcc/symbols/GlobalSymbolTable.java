@@ -33,6 +33,7 @@ import org.renjin.gcc.link.LinkSymbol;
 import org.renjin.gcc.runtime.Builtins;
 import org.renjin.gcc.runtime.Mathlib;
 import org.renjin.gcc.runtime.Stdlib;
+import org.renjin.gcc.runtime.Stdlib2;
 import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.repackaged.guava.base.Preconditions;
 import org.renjin.repackaged.guava.collect.Maps;
@@ -149,6 +150,7 @@ public class GlobalSymbolTable implements SymbolTable {
     
     addMethods(Builtins.class);
     addMethods(Stdlib.class);
+    addMethods(Stdlib2.class);
     addMethods(Mathlib.class);
   }
 

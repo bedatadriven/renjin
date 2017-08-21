@@ -233,11 +233,6 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
   }
 
   @Override
-  public JExpr memoryCompare(MethodGenerator mv, FatPtr p1, FatPtr p2, JExpr n) {
-    return new FatPtrMemCmp(p1.toPair(mv), p2.toPair(mv), n);
-  }
-
-  @Override
   public void memoryCopy(MethodGenerator mv, FatPtr destination, FatPtr source, JExpr lengthBytes, boolean buffer) {
     
     FatPtrPair destinationPair = destination.toPair(mv);

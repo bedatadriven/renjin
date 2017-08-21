@@ -301,6 +301,11 @@ public final class FatPtrPair implements FatPtr, PtrExpr {
     mv.ifnull(label);
   }
 
+  @Override
+  public JExpr memoryCompare(MethodGenerator mv, PtrExpr otherPointer, JExpr n) {
+    return new FatPtrMemCmp(this, otherPointer.toFatPtrExpr(valueFunction).toPair(mv), n);
+  }
+
   public static FatPtr nullPtr(ValueFunction valueFunction) {
     Type arrayType = Wrappers.valueArrayType(valueFunction.getValueType());
     JExpr nullArray = Expressions.nullRef(arrayType);

@@ -20,10 +20,7 @@ package org.renjin.gcc.codegen.fatptr;
 
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.FatArrayExpr;
-import org.renjin.gcc.codegen.expr.GExpr;
-import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.expr.JLValue;
-import org.renjin.gcc.codegen.expr.NotAddressableException;
+import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
 import org.renjin.gcc.codegen.type.fun.FunPtr;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
@@ -141,6 +138,11 @@ public class WrappedFatPtrExpr implements FatPtr {
   public void jumpIfNull(MethodGenerator mv, Label label) {
     getArray().load(mv);
     mv.ifnull(label);
+  }
+
+  @Override
+  public JExpr memoryCompare(MethodGenerator mv, PtrExpr otherPointer, JExpr n) {
+    throw new UnsupportedOperationException("TODO");
   }
 
   @Override

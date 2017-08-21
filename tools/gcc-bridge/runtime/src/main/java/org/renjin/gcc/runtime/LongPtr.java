@@ -100,6 +100,11 @@ public class LongPtr extends AbstractPtr {
     return offset * BYTES;
   }
 
+  @Override
+  public boolean isNull() {
+    return array == null && offset == 0;
+  }
+
   public long unwrap() {
     return array[offset];
   }

@@ -421,7 +421,7 @@ public class S3 {
     // The generated signatures are sorted based on their distance to input signature and looked up in originating
     // method table. All signatures are looked up and the ones present are returned.
     
-    Map<String, List<List<SelectedMethod>>> validMethods = findMatchingMethods(context, mapMethodTableList, possibleSignatures);
+    Map<String, List<SelectedMethod>> validMethods = findMatchingMethods(context, mapMethodTableList, possibleSignatures);
     
     if(validMethods.keySet().size() == 0) {
       return null;
@@ -430,12 +430,10 @@ public class S3 {
     int maxNumberOfMethods = 0;
     Iterator<String> typeItr = validMethods.keySet().iterator();
     for(;typeItr.hasNext();) {
-      List<List<SelectedMethod>> methods = validMethods.get(typeItr.next());
-      for (List<SelectedMethod> method : methods) {
-        int nextSize = method.size();
-        if (nextSize > maxNumberOfMethods) {
-          maxNumberOfMethods = nextSize;
-        }
+      List<SelectedMethod> methods = validMethods.get(typeItr.next());
+      int nextSize = methods.size();
+      if (nextSize > maxNumberOfMethods) {
+        maxNumberOfMethods = nextSize;
       }
     }
     
@@ -444,31 +442,31 @@ public class S3 {
     }
   
     SelectedMethod method;
-    int genericDistance = -1;
-    int groupDistance = -1;
-    if(validMethods.containsKey("generic") && validMethods.get("generic").get(0).size() > 0) {
-      genericDistance = validMethods.get("generic").get(0).get(0).getDistance();
+    double genericRank = -1;
+    double groupRank = -1;
+    if(validMethods.containsKey("generic") && validMethods.get("generic").size() > 0) {
+      genericRank = validMethods.get("generic").get(0).getRank();
     }
-    if(validMethods.containsKey("group") && validMethods.get("group").get(0).size() > 0) {
-      groupDistance = validMethods.get("group").get(0).get(0).getDistance();
+    if(validMethods.containsKey("group") && validMethods.get("group").size() > 0) {
+      groupRank = validMethods.get("group").get(0).getRank();
     }
     if(validMethods.size() > 1) {
       // select closest group method if distance is less than the distance of closest generic method
-      if(genericDistance == -1 && groupDistance == -1) {
+      if(genericRank == -1 && groupRank == -1) {
         return null;
       }
-      if((genericDistance == -1 && groupDistance != -1) || (groupDistance != -1 && groupDistance < genericDistance)) {
-        method = validMethods.get("group").get(0).get(0);
+      if((genericRank == -1 && groupRank != -1) || (groupRank != -1 && groupRank < genericRank)) {
+        method = validMethods.get("group").get(0);
       } else {
-        method = validMethods.get("generic").get(0).get(0);
+        method = validMethods.get("generic").get(0);
       }
     } else {
-      if(genericDistance != -1) {
+      if(genericRank != -1) {
         // select closest generic method if no group methods are found
-        method = validMethods.get("generic").get(0).get(0);
+        method = validMethods.get("generic").get(0);
       } else {
         // select closest group method if no generic methods are found
-        method = validMethods.get("group").get(0).get(0);
+        method = validMethods.get("group").get(0);
       }
     }
     
@@ -709,38 +707,37 @@ public class S3 {
    *
    *
    * */
-  private static Map<String, List<List<SelectedMethod>>> findMatchingMethods(Context context, Map<String, List<Environment>> mapMethodTableLists,
+  private static Map<String, List<SelectedMethod>> findMatchingMethods(Context context, Map<String, List<Environment>> mapMethodTableLists,
                                                           Map<String, List<List<MethodRanking>>> mapSignatureList) {
     
-    Map<String, List<List<SelectedMethod>>> mapListMethods = new HashMap<>();
+    Map<String, List<SelectedMethod>> mapListMethods = new HashMap<>();
     
     for(int e = 0; e < mapSignatureList.size(); e++) {
-      List<List<SelectedMethod>> listMethods = new ArrayList<>();
+      List<SelectedMethod> selectedMethods = new ArrayList<>();
       String type = mapSignatureList.keySet().toArray(new String[0])[e];
       List<List<MethodRanking>> rankings = mapSignatureList.get(type);
       List<Environment> methodTableList = mapMethodTableLists.get(type);
       
       for(int i = 0; i < rankings.size(); i++) {
         List<MethodRanking> rankedMethodsList = rankings.get(i);
-        List<SelectedMethod> selectedMethods = new ArrayList<>();
         String inputSignature = rankedMethodsList.get(0).getSignature();
     
         for (MethodRanking rankedMethod : rankedMethodsList) {
           String signature = rankedMethod.getSignature();
-          int distance = rankedMethod.getTotalDist();
+          double rank = rankedMethod.getRank();
+          int dist = rankedMethod.getTotalDist();
+          boolean has0 = rankedMethod.hasZeroDistanceArgument();
           Symbol signatureSymbol = Symbol.get(signature);
           SEXP function = methodTableList.get(i).getFrame().getVariable(signatureSymbol).force(context);
       
           if (function instanceof Closure) {
-            selectedMethods.add(new SelectedMethod((Closure) function, type, distance, signature, signatureSymbol, inputSignature));
+            selectedMethods.add(new SelectedMethod((Closure) function, type, rank, dist, signature, signatureSymbol, inputSignature, has0));
           }
         }
-        if(selectedMethods.size() > 0) {
-          listMethods.add(selectedMethods);
-        }
       }
-      if(listMethods.size() > 0) {
-        mapListMethods.put(type, listMethods);
+      if(selectedMethods.size() > 0) {
+        Collections.sort(selectedMethods);
+        mapListMethods.put(type, selectedMethods);
       }
     }
     
@@ -846,7 +843,6 @@ public class S3 {
           argumentClassIdx = 0;
           repeat = repeat * numberOfClassesCurrentArgument;
         }
-        Collections.sort(possibleSignatures);
         listSignatures.add(possibleSignatures);
       }
   
@@ -1613,7 +1609,7 @@ public class S3 {
     }
   }
   
-  public static class MethodRanking implements Comparable <MethodRanking> {
+  public static class MethodRanking {
     private String signature;
     private int[] distances;
     private boolean has0 = false;
@@ -1670,46 +1666,34 @@ public class S3 {
       return totalDist;
     }
     
-    public int isHas0() {
-      if(has0){
-        return 0;
-      }
-      return 1;
-    }
-    
     public double getRank() {
       return rank;
     }
     
-    @Override
-    public int compareTo(MethodRanking o) {
-      int i = Integer.compare(this.getTotalDist(), o.getTotalDist());
-      if (i != 0) {
-        return i;
-      }
-      i = Integer.compare(this.isHas0(), o.isHas0());
-      if (i != 0) {
-        return i;
-      }
-      return Double.compare(rank, o.getRank());
+    public boolean hasZeroDistanceArgument() {
+      return has0;
     }
   }
   
-  public static class SelectedMethod {
+  public static class SelectedMethod implements Comparable <SelectedMethod> {
     private Closure function;
     private String group;
-    private int currentDistance;
+    private double currentRank;
+    private boolean has0;
+    private int currentDist;
     private String currentSig;
     private Symbol methodName;
     private String methodInputSignature;
     
-    public SelectedMethod(Closure fun, String grp, int dist, String sig, Symbol method, String methSig) {
+    public SelectedMethod(Closure fun, String grp, double rank, int dist, String sig, Symbol method, String methSig, boolean has0) {
       this.function = fun;
       this.group = grp;
-      this.currentDistance = dist;
+      this.currentRank = rank;
+      this.currentDist = dist;
       this.currentSig = sig;
       this.methodName = method;
       this.methodInputSignature = methSig;
+      this.has0 = has0;
     }
     
     public Closure getFunction() {
@@ -1719,9 +1703,13 @@ public class S3 {
     public String getGroup() {
       return group;
     }
-    
-    public int getDistance() {
-      return currentDistance;
+  
+    public double getRank() {
+      return currentRank;
+    }
+  
+    public double getDistance() {
+      return currentDist;
     }
     
     public String getSignature() {
@@ -1732,8 +1720,29 @@ public class S3 {
       return methodName;
     }
     
-    public String getInputSignature() {
-      return methodInputSignature;
+    public int getTotalDist() {
+      return currentDist;
+    }
+    
+    public int isHas0() {
+      if(has0) {
+        return 0;
+      } else {
+        return 1;
+      }
+    }
+  
+    @Override
+    public int compareTo(SelectedMethod o) {
+      int i = Integer.compare(this.getTotalDist(), o.getTotalDist());
+      if (i != 0) {
+        return i;
+      }
+      i = Integer.compare(this.isHas0(), o.isHas0());
+      if (i != 0) {
+        return i;
+      }
+      return Double.compare(currentRank, o.getRank());
     }
   }
 }

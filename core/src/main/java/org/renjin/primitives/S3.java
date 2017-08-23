@@ -489,9 +489,27 @@ public class S3 {
       metadata.put(Symbol.get(".Method"), method.getFunction());
       metadata.put(Symbol.get(".Methods"), Symbol.get(".Primitive(\"" + opName +"\")"));
       metadata.put(Symbol.get(".target"), buildDotTargetOrDefined(context, method, false));
-      
-      FunctionCall call = new FunctionCall(method.getFunction(), expandedArgs);
+  
+      PairList formals = method.getFunction().getFormals();
+      PairList matchedList = ClosureDispatcher.matchArguments(formals, promisedArgs.build(), true);
+      Map<Symbol, SEXP> matchedMap = new HashMap<>();
+      for (PairList.Node node : matchedList.nodes()) {
+        matchedMap.put(node.getTag(), node.getValue());
+      }
+
+      for(Symbol arg : matchedMap.keySet()) {
+        if(arg != Symbols.ELLIPSES) {
+          SEXP argValue = matchedMap.get(arg);
+          if(argValue instanceof Promise && ((Promise) argValue).getValue() != null) {
+            metadata.put(arg, ((Promise) argValue).getValue());
+          } else {
+            metadata.put(arg, argValue.force(context));
+          }
+        }
+      }
+  
       Closure closure = method.getFunction();
+      FunctionCall call = new FunctionCall(closure, expandedArgs);
       return ClosureDispatcher.apply(context, rho, call, closure, promisedArgs.build(), metadata);
     }
   }

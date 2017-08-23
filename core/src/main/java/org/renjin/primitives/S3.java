@@ -53,8 +53,6 @@ public class S3 {
   
   private static final Set<String> LOGIC_GROUP = Sets.newHashSet("&", "&&", "|", "||", "xor");
   
-  private static final Set<String> SPECIAL = Sets.newHashSet("$", "$<-");
-  
   @Builtin
   public static SEXP UseMethod(@Current Context context, String genericMethodName) {
     /*
@@ -564,36 +562,26 @@ public class S3 {
     SEXP methodTableMethodsPkg;
     List<Environment> methodTableList = new CopyOnWriteArrayList<>();
   
-    if (SPECIAL.contains(opName)) {
-      Namespace methodsNamespace = context.getNamespaceRegistry().getNamespace(context, "methods");
-      Frame methodFrame = methodsNamespace.getNamespaceEnvironment().getFrame();
-      methodTableMethodsPkg = methodFrame.getVariable(methodSymbol).force(context);
-      if(methodTableMethodsPkg == Symbol.UNBOUND_VALUE || !(methodTableMethodsPkg instanceof Environment)) {
-        return null;
-      }
-      methodTableList.add((Environment) methodTableMethodsPkg);
-    } else {
-      
-      SEXP methodTableGlobalEnv = context.getGlobalEnvironment().getFrame().getVariable(methodSymbol);
-      if (methodTableGlobalEnv != Symbol.UNBOUND_VALUE && methodTableGlobalEnv instanceof Environment) {
-        methodTableList.add((Environment) methodTableGlobalEnv);
-      }
+    SEXP methodTableGlobalEnv = context.getGlobalEnvironment().getFrame().getVariable(methodSymbol);
+    if (methodTableGlobalEnv != Symbol.UNBOUND_VALUE && methodTableGlobalEnv instanceof Environment) {
+      methodTableList.add((Environment) methodTableGlobalEnv);
+    }
   
-      List<Symbol> loadedPackages = new ArrayList<>();
-      for(Symbol symbol : context.getNamespaceRegistry().getLoadedNamespaces()) {
-        loadedPackages.add(symbol);
-      }
-      
-      for(Symbol loadedNamespace : loadedPackages) {
-        String packageName = loadedNamespace.getPrintName();
-        Namespace packageNamespace = context.getNamespaceRegistry().getNamespace(context, packageName);
-        Environment packageEnvironment = packageNamespace.getNamespaceEnvironment();
-        SEXP methodTablePackage = packageEnvironment.getFrame().getVariable(methodSymbol).force(context);
-        if(methodTablePackage instanceof Environment) {
-          methodTableList.add((Environment) methodTablePackage);
-        }
+    List<Symbol> loadedPackages = new ArrayList<>();
+    for(Symbol symbol : context.getNamespaceRegistry().getLoadedNamespaces()) {
+      loadedPackages.add(symbol);
+    }
+  
+    for(Symbol loadedNamespace : loadedPackages) {
+      String packageName = loadedNamespace.getPrintName();
+      Namespace packageNamespace = context.getNamespaceRegistry().getNamespace(context, packageName);
+      Environment packageEnvironment = packageNamespace.getNamespaceEnvironment();
+      SEXP methodTablePackage = packageEnvironment.getFrame().getVariable(methodSymbol).force(context);
+      if(methodTablePackage instanceof Environment) {
+        methodTableList.add((Environment) methodTablePackage);
       }
     }
+    
     return methodTableList.size() == 0 ? null : methodTableList;
   }
   

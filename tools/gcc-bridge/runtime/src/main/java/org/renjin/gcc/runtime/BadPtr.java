@@ -44,6 +44,11 @@ public class BadPtr implements Ptr {
   }
 
   @Override
+  public int getOffsetInBytes() {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public Ptr realloc(int newSizeInBytes) {
     throw new UnsupportedOperationException("TODO");
   }
@@ -255,6 +260,11 @@ public class BadPtr implements Ptr {
 
   @Override
   public MethodHandle toMethodHandle() {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public int compareTo(Ptr o) {
     throw new UnsupportedOperationException("TODO");
   }
 }

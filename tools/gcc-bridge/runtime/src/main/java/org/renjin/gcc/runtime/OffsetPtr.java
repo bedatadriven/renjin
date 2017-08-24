@@ -22,9 +22,6 @@ package org.renjin.gcc.runtime;
 
 import java.lang.invoke.MethodHandle;
 
-/**
- * Created by alex on 24-8-17.
- */
 public class OffsetPtr implements Ptr {
   private Ptr ptr;
   private int offset;
@@ -36,12 +33,17 @@ public class OffsetPtr implements Ptr {
 
   @Override
   public Object getArray() {
-    throw new UnsupportedOperationException("TODO");
+    return ptr.getArray();
   }
 
   @Override
   public int getOffset() {
     throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public int getOffsetInBytes() {
+    return ptr.getOffsetInBytes() + offset;
   }
 
   @Override
@@ -265,4 +267,11 @@ public class OffsetPtr implements Ptr {
   public MethodHandle toMethodHandle() {
     throw new UnsupportedOperationException("TODO");
   }
+
+  @Override
+  public int compareTo(Ptr o) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+
 }

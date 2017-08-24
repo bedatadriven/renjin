@@ -42,6 +42,16 @@ public class MixedPtr extends AbstractPtr {
   }
 
   @Override
+  public Object getArray() {
+    return primitives;
+  }
+
+  @Override
+  public int getOffsetInBytes() {
+    return 0;
+  }
+
+  @Override
   public Ptr realloc(int newSizeInBytes) {
     throw new UnsupportedOperationException("TODO");
   }
@@ -88,11 +98,13 @@ public class MixedPtr extends AbstractPtr {
 
   @Override
   public int toInt() {
-    throw new UnsupportedOperationException("TODO");
+    return getOffsetInBytes();
   }
 
   @Override
   public boolean isNull() {
     return false;
   }
+
+
 }

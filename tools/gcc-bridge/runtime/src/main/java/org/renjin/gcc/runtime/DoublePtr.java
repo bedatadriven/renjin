@@ -60,6 +60,11 @@ public class DoublePtr extends AbstractPtr implements Ptr {
   }
 
   @Override
+  public int getOffsetInBytes() {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public DoublePtr realloc(int newSizeInBytes) {
     return new DoublePtr(Realloc.realloc(array, offset, newSizeInBytes / 8));
   }

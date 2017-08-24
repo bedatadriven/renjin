@@ -19,6 +19,8 @@
 package org.renjin.gcc.codegen.expr;
 
 import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.condition.ConditionGenerator;
+import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.Label;
 
@@ -34,4 +36,7 @@ public interface PtrExpr extends GExpr {
   PtrExpr realloc(MethodGenerator mv, JExpr newSizeInBytes);
 
   GExpr valueOf(GimpleType expectedType);
+
+  ConditionGenerator comparePointer(MethodGenerator mv, GimpleOp op, GExpr otherPointer);
+
 }

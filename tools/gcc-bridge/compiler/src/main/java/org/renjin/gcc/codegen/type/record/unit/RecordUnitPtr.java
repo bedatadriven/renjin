@@ -20,6 +20,7 @@ package org.renjin.gcc.codegen.type.record.unit;
 
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.FatArrayExpr;
+import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.FatPtr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
@@ -31,6 +32,7 @@ import org.renjin.gcc.codegen.type.record.RecordLayout;
 import org.renjin.gcc.codegen.type.record.RecordValue;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
+import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.type.GimpleIntegerType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
@@ -94,6 +96,11 @@ public class RecordUnitPtr implements RefPtrExpr {
   @Override
   public GExpr valueOf(GimpleType expectedType) {
     return new RecordValue(layout, ref);
+  }
+
+  @Override
+  public ConditionGenerator comparePointer(MethodGenerator mv, GimpleOp op, GExpr otherPointer) {
+    return new RefConditionGenerator(op, unwrap(), otherPointer.toRecordUnitPtrExpr(layout).unwrap());
   }
 
   @Override

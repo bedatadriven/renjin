@@ -49,14 +49,10 @@ public abstract class AbstractPtr implements Ptr {
   }
 
   @Override
-  public Object getArray() {
-    throw new UnsupportedOperationException("No longer supported. Please recompile.");
-  }
-
-  @Override
   public int getOffset() {
     throw new UnsupportedOperationException("No longer supported. Please recompile.");
   }
+
 
   @Override
   public void setShort(short value) {
@@ -281,6 +277,36 @@ public abstract class AbstractPtr implements Ptr {
   @Override
   public MethodHandle toMethodHandle() {
     throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public final int compareTo(Ptr o) {
+
+    Object m1 = getArray();
+    Object m2 = o.getArray();
+
+    if(m1 != m2) {
+      return Integer.compare(System.identityHashCode(m1), System.identityHashCode(m2));
+    }
+
+    if(isNull() && o.isNull()) {
+      return 0;
+    }
+
+    return Integer.compare(getOffsetInBytes(), o.getOffsetInBytes());
+  }
+
+  @Override
+  public final boolean equals(Object obj) {
+
+    if(!(obj instanceof Ptr)) {
+      return false;
+    }
+
+    Ptr that = ((Ptr) obj);
+
+    return this.getArray() == that.getArray() &&
+           this.getOffsetInBytes() == that.getOffsetInBytes();
   }
 }
 

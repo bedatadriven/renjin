@@ -56,6 +56,11 @@ public class LongPtr extends AbstractPtr {
   }
 
   @Override
+  public int getOffsetInBytes() {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public LongPtr realloc(int newSizeInBytes) {
     return new LongPtr(Realloc.realloc(array, offset, newSizeInBytes / 8));
   }

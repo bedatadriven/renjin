@@ -60,6 +60,11 @@ public class ShortPtr extends AbstractPtr {
   }
 
   @Override
+  public int getOffsetInBytes() {
+    return offset * BYTES;
+  }
+
+  @Override
   public Ptr realloc(int newSizeInBytes) {
     return new ShortPtr(Realloc.realloc(array, offset, newSizeInBytes / 2));
   }

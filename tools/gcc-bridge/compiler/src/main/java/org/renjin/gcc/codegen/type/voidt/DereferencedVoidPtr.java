@@ -19,6 +19,7 @@
 package org.renjin.gcc.codegen.type.voidt;
 
 import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
@@ -27,6 +28,7 @@ import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
 import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
+import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.repackaged.asm.Type;
 
 public class DereferencedVoidPtr extends VoidPtrExpr {
@@ -75,6 +77,11 @@ public class DereferencedVoidPtr extends VoidPtrExpr {
 
   @Override
   public PtrExpr realloc(MethodGenerator mv, JExpr newSizeInBytes) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public ConditionGenerator comparePointer(MethodGenerator mv, GimpleOp op, GExpr otherPointer) {
     throw new UnsupportedOperationException("TODO");
   }
 }

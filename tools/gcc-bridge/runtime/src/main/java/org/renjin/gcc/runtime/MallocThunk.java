@@ -252,6 +252,11 @@ public class MallocThunk extends AbstractPtr {
   }
 
   @Override
+  public int getOffsetInBytes() {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public Ptr realloc(int newSizeInBytes) {
     if(pointer != null) {
       return ((Ptr) pointer).realloc(newSizeInBytes);

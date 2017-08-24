@@ -65,6 +65,11 @@ public class ObjectPtr<T> extends AbstractPtr {
   }
 
   @Override
+  public int getOffsetInBytes() {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public ObjectPtr<T> realloc(int newSizeInBytes) {
     return new ObjectPtr(Realloc.realloc(array, offset, newSizeInBytes / 4));
   }

@@ -22,17 +22,21 @@ package org.renjin.gcc.codegen.vptr;
 
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.FatArrayExpr;
+import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.FatPtr;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
 import org.renjin.gcc.codegen.type.fun.FunPtr;
+import org.renjin.gcc.codegen.type.primitive.CompareToCmpGenerator;
+import org.renjin.gcc.codegen.type.primitive.ObjectEqualsCmpGenerator;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
 import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
 import org.renjin.gcc.codegen.type.record.RecordLayout;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
+import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.type.*;
 import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Label;
@@ -171,6 +175,18 @@ public class VPtrExpr implements PtrExpr {
     }
 
     throw new UnsupportedOperationException("type: " + expectedType);
+  }
+
+  @Override
+  public ConditionGenerator comparePointer(MethodGenerator mv, GimpleOp op, GExpr otherPointer) {
+    switch (op) {
+      case EQ_EXPR:
+      case NE_EXPR:
+        return new ObjectEqualsCmpGenerator(op, getRef(), otherPointer.toVPtrExpr().getRef());
+
+      default:
+        return new CompareToCmpGenerator(op, getRef(), otherPointer.toVPtrExpr().getRef());
+    }
   }
 
   public GExpr valueOf(GimpleType expectedType, JExpr offset) {

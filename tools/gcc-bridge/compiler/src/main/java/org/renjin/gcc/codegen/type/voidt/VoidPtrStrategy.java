@@ -88,11 +88,6 @@ public class VoidPtrStrategy implements PointerTypeStrategy<VoidPtrExpr>, Simple
   }
 
   @Override
-  public ConditionGenerator comparePointers(MethodGenerator mv, GimpleOp op, VoidPtrExpr x, VoidPtrExpr y) {
-    return new VoidPtrComparison(op, x.unwrap(), y.unwrap());
-  }
-
-  @Override
   public void memoryCopy(MethodGenerator mv, VoidPtrExpr destination, VoidPtrExpr source, JExpr length, boolean buffer) {
     
     destination.unwrap().load(mv);

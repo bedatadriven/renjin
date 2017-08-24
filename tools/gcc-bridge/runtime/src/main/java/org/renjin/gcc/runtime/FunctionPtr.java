@@ -34,6 +34,16 @@ public class FunctionPtr extends AbstractPtr {
   }
 
   @Override
+  public Object getArray() {
+    return array;
+  }
+
+  @Override
+  public int getOffsetInBytes() {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public Ptr realloc(int newSizeInBytes) {
     throw new UnsupportedOperationException("TODO");
   }

@@ -188,11 +188,6 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>
   }
 
   @Override
-  public ConditionGenerator comparePointers(MethodGenerator mv, GimpleOp op, RecordUnitPtr x, RecordUnitPtr y) {
-    return new RefConditionGenerator(op, x.unwrap(), y.unwrap());
-  }
-
-  @Override
   public void memoryCopy(MethodGenerator mv, RecordUnitPtr destination, RecordUnitPtr source, JExpr length, boolean buffer) {
 
     Type recordType = strategy.getJvmType();

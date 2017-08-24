@@ -58,7 +58,7 @@ public class VPtrRecordExpr implements RecordExpr {
   public void store(MethodGenerator mv, GExpr rhs) {
 
     pointer.getRef().load(mv);                  // destination
-    ((VPtrRecordExpr) rhs).getRef().load(mv);   // source
+    rhs.toVPtrExpr().getRef().load(mv);         // source
     mv.iconst(recordType.sizeOf());             // byte count
 
     mv.invokeinterface(Ptr.class, "memcpy", Type.VOID_TYPE, Type.getType(Ptr.class), Type.INT_TYPE);

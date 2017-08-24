@@ -21,6 +21,7 @@ package org.renjin.gcc.codegen.fatptr;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.FatArrayExpr;
+import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
 import org.renjin.gcc.codegen.type.fun.FunPtr;
@@ -29,10 +30,12 @@ import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
 import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
 import org.renjin.gcc.codegen.type.record.RecordLayout;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
+import org.renjin.gcc.codegen.type.record.unit.RefConditionGenerator;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.codegen.var.LocalVarAllocator;
 import org.renjin.gcc.codegen.vptr.PointerType;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
+import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.type.GimpleIntegerType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
@@ -144,6 +147,15 @@ public final class FatPtrPair implements FatPtr, PtrExpr {
   @Override
   public GExpr valueOf(GimpleType expectedType) {
     return valueFunction.dereference(array, offset);
+  }
+
+  @Override
+  public ConditionGenerator comparePointer(MethodGenerator mv, GimpleOp op, GExpr otherPointer) {
+    if(otherPointer instanceof VPtrExpr) {
+      return toVPtrExpr().comparePointer(mv, op, otherPointer);
+    }
+
+    return new FatPtrConditionGenerator(op, this, otherPointer.toFatPtrExpr(valueFunction).toPair(mv));
   }
 
   private void store(MethodGenerator mv, JExpr arrayRhs, JExpr offsetRhs) {

@@ -32,14 +32,14 @@ public class PointerPtr extends AbstractPtr {
   /**
    * An array of pointers. We consider pointers to be 32-bits.
    */
-  private Object[] array;
+  private Ptr[] array;
 
   /**
    * Offset from the beginning of the pointer in bytes.
    */
   private int offset;
 
-  public PointerPtr(Object[] array) {
+  public PointerPtr(Ptr[] array) {
     this.array = array;
   }
 
@@ -48,14 +48,24 @@ public class PointerPtr extends AbstractPtr {
    * @param array the storage array
    * @param offset the offset in bytes from the start of the array.
    */
-  public PointerPtr(Object[] array, int offset) {
+  public PointerPtr(Ptr[] array, int offset) {
     checkAligned(offset);
     this.array = array;
     this.offset = offset;
   }
 
   public static PointerPtr malloc(int bytes) {
-    return new PointerPtr(new Object[mallocSize(bytes, BYTES)], 0);
+    return new PointerPtr(new Ptr[mallocSize(bytes, BYTES)], 0);
+  }
+
+  @Override
+  public Object getArray() {
+    return array;
+  }
+
+  @Override
+  public int getOffsetInBytes() {
+    return offset * BYTES;
   }
 
   @Override

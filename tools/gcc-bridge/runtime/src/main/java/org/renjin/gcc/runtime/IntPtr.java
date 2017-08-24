@@ -60,6 +60,11 @@ public class IntPtr extends AbstractPtr implements Ptr {
   }
 
   @Override
+  public int getOffsetInBytes() {
+    return offset * BYTES;
+  }
+
+  @Override
   public IntPtr realloc(int newSizeInBytes) {
     return new IntPtr(Realloc.realloc(array, offset, newSizeInBytes / BYTES));
   }

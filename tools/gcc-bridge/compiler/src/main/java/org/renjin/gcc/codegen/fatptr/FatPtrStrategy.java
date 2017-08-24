@@ -218,11 +218,6 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
   }
 
   @Override
-  public ConditionGenerator comparePointers(MethodGenerator mv, GimpleOp op, FatPtr x, FatPtr y) {
-    return new FatPtrConditionGenerator(op, x.toPair(mv), y.toPair(mv));
-  }
-
-  @Override
   public void memoryCopy(MethodGenerator mv, FatPtr destination, FatPtr source, JExpr lengthBytes, boolean buffer) {
     
     FatPtrPair destinationPair = destination.toPair(mv);

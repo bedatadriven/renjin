@@ -33,8 +33,6 @@ public interface PointerTypeStrategy<ExprT extends GExpr> extends TypeStrategy<E
 
   ExprT nullPointer();
 
-  ConditionGenerator comparePointers(MethodGenerator mv, GimpleOp op, ExprT x, ExprT y);
-
   void memoryCopy(MethodGenerator mv, ExprT destination, ExprT source, JExpr length, boolean buffer);
 
   void memorySet(MethodGenerator mv, ExprT pointer, JExpr byteValue, JExpr length);

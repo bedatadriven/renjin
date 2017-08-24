@@ -117,11 +117,6 @@ public class FunPtrStrategy implements PointerTypeStrategy<FunPtr>, SimpleTypeSt
   }
 
   @Override
-  public ConditionGenerator comparePointers(MethodGenerator mv, GimpleOp op, FunPtr x, FunPtr y) {
-    return new RefConditionGenerator(op, x.unwrap(), y.unwrap());
-  }
-
-  @Override
   public void memoryCopy(MethodGenerator mv, FunPtr destination, FunPtr source, JExpr length, boolean buffer) {
     throw new UnsupportedOperationException("TODO");
   }

@@ -282,10 +282,10 @@ public class ExprFactory {
     }
 
     PointerTypeStrategy typeStrategy = typeOracle.forPointerType(commonType);
-    GExpr ptrX = findGenerator(x, commonType);
-    GExpr ptrY = findGenerator(y, commonType);
+    PtrExpr ptrX = (PtrExpr) findGenerator(x, commonType);
+    PtrExpr ptrY = (PtrExpr) findGenerator(y, commonType);
 
-    return typeStrategy.comparePointers(mv, op, ptrX, ptrY);
+    return ptrX.comparePointer(mv, op, ptrY);
   }
 
   private boolean isNull(GimpleExpr expr) {

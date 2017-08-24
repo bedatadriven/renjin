@@ -56,6 +56,11 @@ public class BooleanPtr extends AbstractPtr implements Ptr {
   }
 
   @Override
+  public int getOffsetInBytes() {
+    return offset;
+  }
+
+  @Override
   public BooleanPtr realloc(int newSizeInBytes) {
     return new BooleanPtr(Realloc.realloc(array, offset, newSizeInBytes));
   }

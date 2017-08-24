@@ -21,15 +21,14 @@ package org.renjin.gcc.runtime;
 
 import java.lang.invoke.MethodHandle;
 
-public interface Ptr {
+public interface Ptr extends Comparable<Ptr> {
 
-
-
-  @Deprecated
   Object getArray();
 
   @Deprecated
   int getOffset();
+
+  int getOffsetInBytes();
   
   Ptr realloc(int newSizeInBytes);
 
@@ -261,4 +260,6 @@ public interface Ptr {
 
   MethodHandle toMethodHandle();
 
+  @Override
+  int compareTo(Ptr o);
 }

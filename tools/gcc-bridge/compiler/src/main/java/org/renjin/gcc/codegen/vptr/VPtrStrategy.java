@@ -79,11 +79,6 @@ public class VPtrStrategy implements PointerTypeStrategy {
   }
 
   @Override
-  public ConditionGenerator comparePointers(MethodGenerator mv, GimpleOp op, GExpr x, GExpr y) {
-    throw new UnsupportedOperationException("TODO");
-  }
-
-  @Override
   public void memoryCopy(MethodGenerator mv, GExpr destination, GExpr source, JExpr length, boolean buffer) {
     throw new UnsupportedOperationException("TODO");
   }

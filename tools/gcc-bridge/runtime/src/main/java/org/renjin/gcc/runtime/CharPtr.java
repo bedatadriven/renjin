@@ -55,6 +55,11 @@ public class CharPtr extends AbstractPtr {
   }
 
   @Override
+  public int getOffsetInBytes() {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public CharPtr realloc(int newSizeInBytes) {
     return new CharPtr(Realloc.realloc(array, offset, newSizeInBytes / 2));
   }

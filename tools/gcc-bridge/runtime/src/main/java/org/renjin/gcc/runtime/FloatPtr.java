@@ -61,6 +61,11 @@ public class FloatPtr extends AbstractPtr {
   }
 
   @Override
+  public int getOffsetInBytes() {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public Ptr realloc(int newSizeInBytes) {
     return new FloatPtr(Realloc.realloc(array, offset, newSizeInBytes / 4));
   }

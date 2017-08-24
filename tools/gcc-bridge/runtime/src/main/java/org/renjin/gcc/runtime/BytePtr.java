@@ -128,6 +128,11 @@ public class BytePtr extends AbstractPtr {
   }
 
   @Override
+  public int getOffsetInBytes() {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public BytePtr realloc(int newSizeInBytes) {
     return new BytePtr(Realloc.realloc(array, offset, newSizeInBytes));
   }

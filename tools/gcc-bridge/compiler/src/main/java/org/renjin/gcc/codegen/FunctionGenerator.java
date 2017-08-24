@@ -218,12 +218,13 @@ public class FunctionGenerator implements InvocationStrategy {
       ParamStrategy paramStrategy = params.get(param);
       List<Type> parameterTypes = paramStrategy.getParameterTypes();
       if(parameterTypes.size() == 1) {
-        paramVars.add(mv.getLocalVarAllocator().reserve(parameterTypes.get(0)));
+        paramVars.add(mv.getLocalVarAllocator().reserve(param.getName(), parameterTypes.get(0)));
         mv.visitParameter(param.getName(), 0);
       } else {
         for (int typeIndex = 0; typeIndex < parameterTypes.size(); typeIndex++) {
-          paramVars.add(mv.getLocalVarAllocator().reserve(parameterTypes.get(typeIndex)));
-          mv.visitParameter(param.getName() + "$" + typeIndex, 0);
+          String name = param.getName() + "$" + typeIndex;
+          paramVars.add(mv.getLocalVarAllocator().reserve(name, parameterTypes.get(typeIndex)));
+          mv.visitParameter(name, 0);
         }
       }
       paramIndexes.add(paramVars);

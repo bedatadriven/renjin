@@ -20,25 +20,17 @@
 
 package org.renjin.gcc.runtime;
 
-/**
- * Pointer type that references both primitives and garbage-collected
- * references.
- */
-public class MixedPtr extends AbstractPtr {
 
-  private static final int BYTES = 4;
+import java.lang.invoke.MethodHandle;
 
-  private byte[] primitives;
-  private Object[] references;
+public class FunctionPtr extends AbstractPtr {
 
-  private MixedPtr() {
-  }
+  private MethodHandle[] array;
+  private int offset;
 
-  public static MixedPtr malloc(int bytes) {
-    MixedPtr ptr = new MixedPtr();
-    ptr.primitives = new byte[bytes];
-    ptr.references = new Object[mallocSize(bytes, BYTES)];
-    return ptr;
+  public FunctionPtr(MethodHandle[] array, int offset) {
+    this.array = array;
+    this.offset = offset;
   }
 
   @Override
@@ -48,43 +40,18 @@ public class MixedPtr extends AbstractPtr {
 
   @Override
   public Ptr pointerPlus(int bytes) {
-    if(bytes == 0) {
-      return this;
-    } else {
-      return new OffsetPtr(this, bytes);
-    }
+    return new OffsetPtr(this, bytes);
   }
 
   @Override
   public byte getByte(int offset) {
-    return primitives[offset];
+    throw new UnsupportedOperationException("TODO");
   }
 
   @Override
   public void setByte(int offset, byte value) {
-    primitives[offset] = value;
+    throw new UnsupportedOperationException("TODO");
   }
-
-
-  @Override
-  public Ptr getPointer(int offset) {
-    if(offset % 4 == 0) {
-      int index = offset / 4;
-      return (Ptr) references[index];
-    }
-    return BadPtr.INSTANCE;
-  }
-
-  @Override
-  public final void setPointer(int offset, Ptr value) {
-    if(offset % 4 != 0) {
-      throw new UnsupportedOperationException("Unaligned pointer storage");
-    }
-    int index = offset / 4;
-    references[index] = value;
-    setInt(index, value.toInt());
-  }
-
 
   @Override
   public int toInt() {
@@ -93,6 +60,20 @@ public class MixedPtr extends AbstractPtr {
 
   @Override
   public boolean isNull() {
-    return false;
+    return array == null;
+  }
+
+  @Override
+  public Ptr getPointer(int offset) {
+    if(offset % 4 == 0) {
+      return new FunctionPtr1(array[offset / 4]);
+    } else {
+      throw new UnsupportedOperationException("Unaligned pointer access");
+    }
+  }
+
+  @Override
+  public MethodHandle toMethodHandle() {
+    return array[0];
   }
 }

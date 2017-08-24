@@ -19,6 +19,8 @@
 package org.renjin.gcc.runtime;
 
 
+import java.lang.invoke.MethodHandle;
+
 public interface Ptr {
 
 
@@ -256,5 +258,7 @@ public interface Ptr {
   Ptr copyOf(int numBytes);
 
   boolean isNull();
+
+  MethodHandle toMethodHandle();
 
 }

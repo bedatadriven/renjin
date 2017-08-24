@@ -21,6 +21,8 @@
 package org.renjin.gcc.runtime;
 
 
+import java.lang.invoke.MethodHandle;
+
 public abstract class AbstractPtr implements Ptr {
 
   public static final int BITS_PER_BYTE = 8;
@@ -274,6 +276,11 @@ public abstract class AbstractPtr implements Ptr {
       copy.array[i] = getByte(i);
     }
     return copy;
+  }
+
+  @Override
+  public MethodHandle toMethodHandle() {
+    throw new UnsupportedOperationException("TODO");
   }
 }
 

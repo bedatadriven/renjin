@@ -20,6 +20,8 @@
 
 package org.renjin.gcc.runtime;
 
+import java.lang.invoke.MethodHandle;
+
 /**
  * An invalid pointer
  */
@@ -248,6 +250,11 @@ public class BadPtr implements Ptr {
 
   @Override
   public boolean isNull() {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public MethodHandle toMethodHandle() {
     throw new UnsupportedOperationException("TODO");
   }
 }

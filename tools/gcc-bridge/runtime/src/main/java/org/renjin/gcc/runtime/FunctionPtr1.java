@@ -20,25 +20,17 @@
 
 package org.renjin.gcc.runtime;
 
+import java.lang.invoke.MethodHandle;
+
 /**
- * Pointer type that references both primitives and garbage-collected
- * references.
+ * Wraps a single MethodHandle
  */
-public class MixedPtr extends AbstractPtr {
+public class FunctionPtr1 extends AbstractPtr {
 
-  private static final int BYTES = 4;
+  private MethodHandle methodHandle;
 
-  private byte[] primitives;
-  private Object[] references;
-
-  private MixedPtr() {
-  }
-
-  public static MixedPtr malloc(int bytes) {
-    MixedPtr ptr = new MixedPtr();
-    ptr.primitives = new byte[bytes];
-    ptr.references = new Object[mallocSize(bytes, BYTES)];
-    return ptr;
+  public FunctionPtr1(MethodHandle methodHandle) {
+    this.methodHandle = methodHandle;
   }
 
   @Override
@@ -48,43 +40,18 @@ public class MixedPtr extends AbstractPtr {
 
   @Override
   public Ptr pointerPlus(int bytes) {
-    if(bytes == 0) {
-      return this;
-    } else {
-      return new OffsetPtr(this, bytes);
-    }
+    return new OffsetPtr(this, bytes);
   }
 
   @Override
   public byte getByte(int offset) {
-    return primitives[offset];
+    throw new UnsupportedOperationException("TODO");
   }
 
   @Override
   public void setByte(int offset, byte value) {
-    primitives[offset] = value;
+    throw new UnsupportedOperationException("TODO");
   }
-
-
-  @Override
-  public Ptr getPointer(int offset) {
-    if(offset % 4 == 0) {
-      int index = offset / 4;
-      return (Ptr) references[index];
-    }
-    return BadPtr.INSTANCE;
-  }
-
-  @Override
-  public final void setPointer(int offset, Ptr value) {
-    if(offset % 4 != 0) {
-      throw new UnsupportedOperationException("Unaligned pointer storage");
-    }
-    int index = offset / 4;
-    references[index] = value;
-    setInt(index, value.toInt());
-  }
-
 
   @Override
   public int toInt() {
@@ -93,6 +60,11 @@ public class MixedPtr extends AbstractPtr {
 
   @Override
   public boolean isNull() {
-    return false;
+    return methodHandle == null;
+  }
+
+  @Override
+  public MethodHandle toMethodHandle() {
+    return methodHandle;
   }
 }

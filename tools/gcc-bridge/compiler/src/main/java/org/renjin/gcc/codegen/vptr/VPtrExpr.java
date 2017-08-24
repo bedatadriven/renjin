@@ -38,6 +38,8 @@ import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
 
+import java.lang.invoke.MethodHandle;
+
 public class VPtrExpr implements PtrExpr {
 
   private JExpr ref;
@@ -72,7 +74,10 @@ public class VPtrExpr implements PtrExpr {
 
   @Override
   public FunPtr toFunPtr() throws UnsupportedCastException {
-    throw new UnsupportedOperationException("TODO");
+    JExpr funPtr = Expressions.methodCall(ref, Ptr.class, "toMethodHandle",
+        Type.getMethodDescriptor(Type.getType(MethodHandle.class)));
+
+    return new FunPtr(funPtr);
   }
 
   @Override

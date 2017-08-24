@@ -438,32 +438,23 @@ public class S3 {
     }
   
     SelectedMethod method;
+    SelectedMethod genericMethod = null;
+    SelectedMethod groupMethod = null;
     double genericRank = -1;
     double groupRank = -1;
-    if(validMethods.containsKey("generic") && validMethods.get("generic").size() > 0) {
+    if(validMethods.containsKey("generic")) {
       genericRank = validMethods.get("generic").get(0).getRank();
+      genericMethod = validMethods.get("generic").get(0);
     }
-    if(validMethods.containsKey("group") && validMethods.get("group").size() > 0) {
+    if(validMethods.containsKey("group")) {
       groupRank = validMethods.get("group").get(0).getRank();
+      groupMethod = validMethods.get("group").get(0);
     }
-    if(validMethods.size() > 1) {
-      // select closest group method if distance is less than the distance of closest generic method
-      if(genericRank == -1 && groupRank == -1) {
-        return null;
-      }
-      if((genericRank == -1 && groupRank != -1) || (groupRank != -1 && groupRank < genericRank)) {
-        method = validMethods.get("group").get(0);
-      } else {
-        method = validMethods.get("generic").get(0);
-      }
+  
+    if (genericRank == -1 || (groupRank != -1 && genericRank > groupRank)) {
+      method = groupMethod;
     } else {
-      if(genericRank != -1) {
-        // select closest generic method if no group methods are found
-        method = validMethods.get("generic").get(0);
-      } else {
-        // select closest group method if no generic methods are found
-        method = validMethods.get("group").get(0);
-      }
+      method = genericMethod;
     }
     
 //     if selected method is from Group or if its from standard generic but distance is > 0

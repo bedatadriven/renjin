@@ -639,18 +639,12 @@ public class S3 {
   
     for(Symbol packageSymbol : context.getNamespaceRegistry().getLoadedNamespaces()) {
       String packageName = packageSymbol.getPrintName();
-      Collection<Symbol> exports = context.getNamespaceRegistry().getNamespace(context, packageName).getExports();
-      if(exports.contains(Symbol.get("Arith")) ||
-          exports.contains(Symbol.get("Compare")) ||
-          exports.contains(Symbol.get("Logic")) ||
-          exports.contains(Symbol.get(opName))) {
-        Namespace packageNamespace = context.getNamespaceRegistry().getNamespace(context, packageName);
-        Frame packageFrame = packageNamespace.getNamespaceEnvironment().getFrame();
-        SEXP methodTablePackage = getMethodTable(context, opName, packageFrame);
-        if(methodTablePackage instanceof Environment &&
-            ((Environment) methodTablePackage).getFrame().getSymbols().size() > 0) {
-          methodTableList.add((Environment) methodTablePackage);
-        }
+      Namespace packageNamespace = context.getNamespaceRegistry().getNamespace(context, packageName);
+      Frame packageFrame = packageNamespace.getNamespaceEnvironment().getFrame();
+      SEXP methodTablePackage = getMethodTable(context, opName, packageFrame);
+      if(methodTablePackage instanceof Environment &&
+          ((Environment) methodTablePackage).getFrame().getSymbols().size() > 0) {
+        methodTableList.add((Environment) methodTablePackage);
       }
     }
     

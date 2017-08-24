@@ -487,13 +487,11 @@ public class S3 {
       }
 
       for(Symbol arg : matchedMap.keySet()) {
-        if(arg != Symbols.ELLIPSES) {
-          SEXP argValue = matchedMap.get(arg);
-          if(argValue instanceof Promise && ((Promise) argValue).getValue() != null) {
-            metadata.put(arg, ((Promise) argValue).getValue());
-          } else {
-            metadata.put(arg, argValue.force(context));
-          }
+        SEXP argValue = matchedMap.get(arg);
+        if(argValue instanceof Promise && ((Promise) argValue).getValue() != null) {
+          metadata.put(arg, ((Promise) argValue).getValue());
+        } else {
+          metadata.put(arg, argValue.force(context));
         }
       }
   

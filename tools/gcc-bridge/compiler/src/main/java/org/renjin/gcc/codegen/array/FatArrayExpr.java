@@ -34,6 +34,7 @@ import org.renjin.gcc.codegen.type.record.RecordLayout;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
+import org.renjin.gcc.codegen.vptr.VPtrRecordExpr;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
@@ -135,6 +136,11 @@ public class FatArrayExpr implements ArrayExpr {
   @Override
   public FatPtr toFatPtrExpr(ValueFunction valueFunction) {
     return new FatPtrPair(valueFunction, array, offset);
+  }
+
+  @Override
+  public VPtrRecordExpr toVPtrRecord() {
+    throw new UnsupportedOperationException("TODO");
   }
 
   @Override

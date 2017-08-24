@@ -35,6 +35,7 @@ import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.codegen.var.LocalVarAllocator;
 import org.renjin.gcc.codegen.vptr.PointerType;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
+import org.renjin.gcc.codegen.vptr.VPtrRecordExpr;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.type.GimpleIntegerType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
@@ -211,6 +212,11 @@ public final class FatPtrPair implements FatPtr, PtrExpr {
     return this;
   }
 
+  @Override
+  public VPtrRecordExpr toVPtrRecord() {
+    throw new UnsupportedOperationException("TODO");
+  }
+
   public JExpr wrap() {
     final Type wrapperType = Wrappers.wrapperType(getValueType());
     
@@ -315,6 +321,12 @@ public final class FatPtrPair implements FatPtr, PtrExpr {
   @Override
   public JExpr memoryCompare(MethodGenerator mv, PtrExpr otherPointer, JExpr n) {
     return new FatPtrMemCmp(this, otherPointer.toFatPtrExpr(valueFunction).toPair(mv), n);
+  }
+
+  @Override
+  public void memorySet(MethodGenerator mv, JExpr byteValue, JExpr length) {
+    // Delegate to the value function.
+    valueFunction.memorySet(mv, array, offset, byteValue, length);
   }
 
   @Override

@@ -33,6 +33,7 @@ import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
 import org.renjin.gcc.codegen.type.record.RecordLayout;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
+import org.renjin.gcc.codegen.vptr.VPtrRecordExpr;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
@@ -110,6 +111,19 @@ public class VoidPtrExpr implements RefPtrExpr {
   }
 
   @Override
+  public void memorySet(MethodGenerator mv, JExpr byteValue, JExpr length) {
+    objectRef.load(mv);
+    byteValue.load(mv);
+    length.load(mv);
+
+    mv.invokestatic(org.renjin.gcc.runtime.VoidPtr.class, "memset",
+        Type.getMethodDescriptor(Type.VOID_TYPE,
+            Type.getType(Object.class),
+            Type.INT_TYPE,
+            Type.INT_TYPE));
+  }
+
+  @Override
   public PtrExpr realloc(MethodGenerator mv, JExpr newSizeInBytes) {
     return new VoidPtrExpr(new VoidPtrRealloc(unwrap(), newSizeInBytes));
   }
@@ -151,5 +165,10 @@ public class VoidPtrExpr implements RefPtrExpr {
     JExpr offsetField = Wrappers.offsetField(wrapperInstance);
 
     return new FatPtrPair(valueFunction, arrayField, offsetField);
+  }
+
+  @Override
+  public VPtrRecordExpr toVPtrRecord() {
+    throw new UnsupportedOperationException("TODO");
   }
 }

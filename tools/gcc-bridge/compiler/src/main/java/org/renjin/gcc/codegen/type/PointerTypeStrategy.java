@@ -35,8 +35,6 @@ public interface PointerTypeStrategy<ExprT extends GExpr> extends TypeStrategy<E
 
   void memoryCopy(MethodGenerator mv, ExprT destination, ExprT source, JExpr length, boolean buffer);
 
-  void memorySet(MethodGenerator mv, ExprT pointer, JExpr byteValue, JExpr length);
-
   ExprT unmarshallVoidPtrReturnValue(MethodGenerator mv, JExpr voidPointer);
 
 }

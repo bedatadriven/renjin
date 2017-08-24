@@ -20,6 +20,8 @@
 
 package org.renjin.gcc.runtime;
 
+import java.util.Arrays;
+
 /**
  * A pointer to one or more pointers.
  */
@@ -55,7 +57,10 @@ public class PointerPtr extends AbstractPtr {
   }
 
   public static PointerPtr malloc(int bytes) {
-    return new PointerPtr(new Ptr[mallocSize(bytes, BYTES)], 0);
+    Ptr[] array = new Ptr[mallocSize(bytes, BYTES)];
+    Arrays.fill(array, NULL);
+
+    return new PointerPtr(array, 0);
   }
 
   @Override
@@ -113,5 +118,23 @@ public class PointerPtr extends AbstractPtr {
   @Override
   public boolean isNull() {
     return array == null && offset == 0;
+  }
+
+  @Override
+  public void memset(int intValue, int n) {
+    if( intValue == 0 &&
+        offset % BYTES == 0 &&
+        n % BYTES == 0)
+    {
+      // Handle zeroing out specially
+      int index = offset / BYTES;
+      while(n >= BYTES) {
+        array[index] = NULL;
+        n -= BYTES;
+        index++;
+      }
+    } else {
+      super.memset(intValue, n);
+    }
   }
 }

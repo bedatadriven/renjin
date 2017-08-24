@@ -254,17 +254,6 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
   }
 
   @Override
-  public void memorySet(MethodGenerator mv, FatPtr pointer, JExpr byteValue, JExpr length) {
-
-    // Delegate to the value function.
-    FatPtrPair pointerPair = pointer.toPair(mv);
-    valueFunction.memorySet(mv, 
-        pointerPair.getArray(), 
-        pointerPair.getOffset(), byteValue, length);
-  }
-
-
-  @Override
   public FatPtr nullPointer() {
     return FatPtrPair.nullPtr(valueFunction);
   }

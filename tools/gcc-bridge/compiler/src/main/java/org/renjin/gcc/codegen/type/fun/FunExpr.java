@@ -31,6 +31,7 @@ import org.renjin.gcc.codegen.type.record.RecordLayout;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
+import org.renjin.gcc.codegen.vptr.VPtrRecordExpr;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 
 public class FunExpr implements GExpr {
@@ -88,6 +89,11 @@ public class FunExpr implements GExpr {
 
   @Override
   public FatPtr toFatPtrExpr(ValueFunction valueFunction) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public VPtrRecordExpr toVPtrRecord() {
     throw new UnsupportedOperationException("TODO");
   }
 }

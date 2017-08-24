@@ -28,6 +28,7 @@ import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
 import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
+import org.renjin.gcc.codegen.vptr.VPtrRecordExpr;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.repackaged.asm.Type;
 
@@ -72,6 +73,16 @@ public class DereferencedVoidPtr extends VoidPtrExpr {
 
   @Override
   public VPtrExpr toVPtrExpr() throws UnsupportedCastException {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public VPtrRecordExpr toVPtrRecord() {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public void memorySet(MethodGenerator mv, JExpr byteValue, JExpr length) {
     throw new UnsupportedOperationException("TODO");
   }
 

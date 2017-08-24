@@ -87,7 +87,7 @@ public interface TypeStrategy<ExprT extends GExpr> {
    * @param arrayType 
    * @return a strategy for arrays of this type
    */
-  ArrayTypeStrategy arrayOf(GimpleArrayType arrayType);
+  TypeStrategy arrayOf(GimpleArrayType arrayType);
 
   /**
    * 

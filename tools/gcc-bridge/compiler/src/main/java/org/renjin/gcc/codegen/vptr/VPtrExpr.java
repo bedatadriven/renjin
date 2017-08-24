@@ -117,12 +117,17 @@ public class VPtrExpr implements PtrExpr {
 
   @Override
   public RecordUnitPtr toRecordUnitPtrExpr(RecordLayout layout) {
-    throw new UnsupportedOperationException("TODO");
+    throw new UnsupportedOperationException("TODO: " + layout.getType());
   }
 
   @Override
   public FatPtr toFatPtrExpr(ValueFunction valueFunction) {
     throw new UnsupportedCastException();
+  }
+
+  @Override
+  public VPtrRecordExpr toVPtrRecord() {
+    throw new UnsupportedOperationException("TODO");
   }
 
   @Override
@@ -139,6 +144,16 @@ public class VPtrExpr implements PtrExpr {
         ref,
         otherPointer.toVPtrExpr().getRef(),
         n);
+  }
+
+  @Override
+  public void memorySet(MethodGenerator mv, JExpr byteValue, JExpr length) {
+
+    ref.load(mv);
+    byteValue.load(mv);
+    length.load(mv);
+
+    mv.invokeinterface(Ptr.class, "memset", Type.VOID_TYPE, Type.INT_TYPE, Type.INT_TYPE);
   }
 
   @Override

@@ -34,6 +34,7 @@ import org.renjin.gcc.codegen.type.record.RecordLayout;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
+import org.renjin.gcc.codegen.vptr.VPtrRecordExpr;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 
 
@@ -117,5 +118,10 @@ public class PrimitiveValue implements GSimpleExpr {
   @Override
   public FatPtr toFatPtrExpr(ValueFunction valueFunction) {
     throw new UnsupportedCastException();
+  }
+
+  @Override
+  public VPtrRecordExpr toVPtrRecord() {
+    throw new UnsupportedOperationException("TODO");
   }
 }

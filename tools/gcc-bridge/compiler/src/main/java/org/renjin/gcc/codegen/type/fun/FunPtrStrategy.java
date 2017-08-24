@@ -122,11 +122,6 @@ public class FunPtrStrategy implements PointerTypeStrategy<FunPtr>, SimpleTypeSt
   }
 
   @Override
-  public void memorySet(MethodGenerator mv, FunPtr pointer, JExpr byteValue, JExpr length) {
-    throw new UnsupportedOperationException("TODO");
-  }
-
-  @Override
   public FunPtr unmarshallVoidPtrReturnValue(MethodGenerator mv, JExpr voidPointer) {
     return new FunPtr(Expressions.cast(voidPointer, METHOD_HANDLE_TYPE));
   }

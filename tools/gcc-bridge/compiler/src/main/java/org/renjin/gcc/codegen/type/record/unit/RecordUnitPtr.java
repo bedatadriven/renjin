@@ -32,6 +32,7 @@ import org.renjin.gcc.codegen.type.record.RecordLayout;
 import org.renjin.gcc.codegen.type.record.RecordValue;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
+import org.renjin.gcc.codegen.vptr.VPtrRecordExpr;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.type.GimpleIntegerType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
@@ -89,6 +90,15 @@ public class RecordUnitPtr implements RefPtrExpr {
   }
 
   @Override
+  public void memorySet(MethodGenerator mv, JExpr byteValue, JExpr length) {
+    unwrap().load(mv);
+    byteValue.load(mv);
+    length.load(mv);
+    mv.invokevirtual(layout.getType(), "memset",
+        Type.getMethodDescriptor(Type.VOID_TYPE, Type.INT_TYPE, Type.INT_TYPE), false);
+  }
+
+  @Override
   public PtrExpr realloc(MethodGenerator mv, JExpr newSizeInBytes) {
     throw new UnsupportedOperationException("TODO");
   }
@@ -141,5 +151,10 @@ public class RecordUnitPtr implements RefPtrExpr {
   @Override
   public FatPtr toFatPtrExpr(ValueFunction valueFunction) {
     throw new UnsupportedCastException();
+  }
+
+  @Override
+  public VPtrRecordExpr toVPtrRecord() {
+    throw new UnsupportedOperationException("TODO");
   }
 }

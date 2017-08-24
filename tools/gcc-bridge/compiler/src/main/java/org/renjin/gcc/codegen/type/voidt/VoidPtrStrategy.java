@@ -100,19 +100,6 @@ public class VoidPtrStrategy implements PointerTypeStrategy<VoidPtrExpr>, Simple
   }
 
   @Override
-  public void memorySet(MethodGenerator mv, VoidPtrExpr pointer, JExpr byteValue, JExpr length) {
-    pointer.unwrap().load(mv);
-    byteValue.load(mv);
-    length.load(mv);
-    
-    mv.invokestatic(org.renjin.gcc.runtime.VoidPtr.class, "memset",
-        Type.getMethodDescriptor(Type.VOID_TYPE,
-            Type.getType(Object.class), 
-            Type.INT_TYPE, 
-            Type.INT_TYPE));
-  }
-
-  @Override
   public VoidPtrExpr unmarshallVoidPtrReturnValue(MethodGenerator mv, JExpr voidPointer) {
     return new VoidPtrExpr(voidPointer);
   }

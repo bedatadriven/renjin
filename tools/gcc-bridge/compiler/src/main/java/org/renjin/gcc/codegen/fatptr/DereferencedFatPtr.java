@@ -30,6 +30,7 @@ import org.renjin.gcc.codegen.type.record.RecordLayout;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
+import org.renjin.gcc.codegen.vptr.VPtrRecordExpr;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
@@ -120,6 +121,11 @@ public class DereferencedFatPtr implements RefPtrExpr, FatPtr {
   }
 
   @Override
+  public VPtrRecordExpr toVPtrRecord() {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public Type getValueType() {
     return valueFunction.getValueType();
   }
@@ -147,6 +153,11 @@ public class DereferencedFatPtr implements RefPtrExpr, FatPtr {
 
   @Override
   public JExpr memoryCompare(MethodGenerator mv, PtrExpr otherPointer, JExpr n) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public void memorySet(MethodGenerator mv, JExpr byteValue, JExpr length) {
     throw new UnsupportedOperationException("TODO");
   }
 

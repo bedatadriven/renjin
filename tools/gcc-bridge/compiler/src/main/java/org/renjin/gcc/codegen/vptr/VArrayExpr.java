@@ -111,6 +111,11 @@ public class VArrayExpr implements ArrayExpr {
   }
 
   @Override
+  public VPtrRecordExpr toVPtrRecord() {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public GExpr elementAt(GimpleType expectedType, JExpr index) {
     JExpr zeroBasedIndex = Expressions.difference(index, arrayType.getLbound());
     JExpr byteOffset = Expressions.product(zeroBasedIndex, expectedType.sizeOf());

@@ -25,36 +25,31 @@ import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.*;
-import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
-import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
-import org.renjin.gcc.runtime.MixedPtr;
 import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Type;
 
 import java.lang.reflect.Field;
 
-/**
- * Represents a record backed by a byte array.
- */
-public class VPtrRecordTypeStrategy extends RecordTypeStrategy<VPtrRecordExpr> {
+public class VArrayStrategy implements TypeStrategy<VArrayExpr> {
 
+  private GimpleArrayType arrayType;
 
-  public VPtrRecordTypeStrategy(GimpleRecordTypeDef recordTypeDef) {
-    super(recordTypeDef);
+  public VArrayStrategy(GimpleArrayType arrayType) {
+    this.arrayType = arrayType;
   }
 
   @Override
   public ParamStrategy getParamStrategy() {
-    return new VPtrRecordParamStrategy(getRecordType());
+    throw new UnsupportedOperationException("TODO");
   }
 
   @Override
   public ReturnStrategy getReturnStrategy() {
-    return new VPtrRecordReturnStrategy(getRecordType());
+    throw new UnsupportedOperationException("TODO");
   }
 
   @Override
@@ -63,25 +58,21 @@ public class VPtrRecordTypeStrategy extends RecordTypeStrategy<VPtrRecordExpr> {
   }
 
   @Override
-  public VPtrRecordExpr variable(GimpleVarDecl decl, VarAllocator allocator) {
+  public VArrayExpr variable(GimpleVarDecl decl, VarAllocator allocator) {
+    PointerType pointerType = PointerType.ofType(arrayType.getComponentType());
+    JExpr malloc = VPtrStrategy.malloc(pointerType, Expressions.constantInt(arrayType.sizeOf())).getRef();
+    JLValue var = allocator.reserve(decl.getName(), Type.getType(Ptr.class), malloc);
 
-    // Allocate an array of bytes to store here
-    JExpr malloc = Expressions.staticMethodCall(MixedPtr.class, "malloc",
-        Type.getMethodDescriptor(Type.getType(MixedPtr.class), Type.INT_TYPE),
-        Expressions.constantInt(getRecordType().sizeOf()));
-
-    JLValue pointer = allocator.reserve(decl.getName(), Type.getType(Ptr.class), malloc);
-
-    return new VPtrRecordExpr(recordType, new VPtrExpr(pointer));
+    return new VArrayExpr(arrayType, new VPtrExpr(var));
   }
 
   @Override
-  public VPtrRecordExpr providedGlobalVariable(GimpleVarDecl decl, Field javaField) {
+  public VArrayExpr providedGlobalVariable(GimpleVarDecl decl, Field javaField) {
     throw new UnsupportedOperationException("TODO");
   }
 
   @Override
-  public VPtrRecordExpr constructorExpr(ExprFactory exprFactory, MethodGenerator mv, GimpleConstructor value) {
+  public VArrayExpr constructorExpr(ExprFactory exprFactory, MethodGenerator mv, GimpleConstructor value) {
     throw new UnsupportedOperationException("TODO");
   }
 
@@ -97,7 +88,7 @@ public class VPtrRecordTypeStrategy extends RecordTypeStrategy<VPtrRecordExpr> {
 
   @Override
   public PointerTypeStrategy pointerTo() {
-    return new VPtrStrategy(getGimpleType());
+    return new VPtrStrategy(arrayType);
   }
 
   @Override
@@ -106,7 +97,7 @@ public class VPtrRecordTypeStrategy extends RecordTypeStrategy<VPtrRecordExpr> {
   }
 
   @Override
-  public VPtrRecordExpr cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+  public VArrayExpr cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
     throw new UnsupportedOperationException("TODO");
   }
 }

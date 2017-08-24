@@ -21,8 +21,6 @@
 package org.renjin.gcc.codegen.vptr;
 
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
-import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
@@ -31,7 +29,6 @@ import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrReturnStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrStrategy;
 import org.renjin.gcc.codegen.var.VarAllocator;
-import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
@@ -58,7 +55,10 @@ public class VPtrStrategy implements PointerTypeStrategy {
 
   @Override
   public GExpr malloc(MethodGenerator mv, JExpr sizeInBytes) {
+    return malloc(pointerType, sizeInBytes);
+  }
 
+  public static VPtrExpr malloc(PointerType pointerType, JExpr sizeInBytes) {
     String mallocDescriptor = Type.getMethodDescriptor(pointerType.alignedImpl(), Type.INT_TYPE);
     JExpr pointer = Expressions.staticMethodCall(pointerType.alignedImpl(), "malloc",
         mallocDescriptor, sizeInBytes);
@@ -80,11 +80,6 @@ public class VPtrStrategy implements PointerTypeStrategy {
 
   @Override
   public void memoryCopy(MethodGenerator mv, GExpr destination, GExpr source, JExpr length, boolean buffer) {
-    throw new UnsupportedOperationException("TODO");
-  }
-
-  @Override
-  public void memorySet(MethodGenerator mv, GExpr pointer, JExpr byteValue, JExpr length) {
     throw new UnsupportedOperationException("TODO");
   }
 
@@ -149,8 +144,8 @@ public class VPtrStrategy implements PointerTypeStrategy {
   }
 
   @Override
-  public ArrayTypeStrategy arrayOf(GimpleArrayType arrayType) {
-    throw new UnsupportedOperationException("TODO");
+  public VArrayStrategy arrayOf(GimpleArrayType arrayType) {
+    return new VArrayStrategy(arrayType);
   }
 
   @Override

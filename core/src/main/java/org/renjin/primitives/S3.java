@@ -381,12 +381,10 @@ public class S3 {
     // lengths the return of computeSignatureLength is an integer array with the length of signature for
     // each found method table.
     
-    int[] signatureLength = computeSignatureLength(genericMethodTables, groupMethodTables);
+    Map<String, int[]> signatureLength = computeSignatureLength(genericMethodTables, groupMethodTables);
     
-    int maxSignatureLength = 0;
-    for(int i = 0; i < signatureLength.length; i++) {
-      maxSignatureLength = signatureLength[i] < maxSignatureLength ? maxSignatureLength : signatureLength[i];
-    }
+    int maxSignatureLength = getMaxSignatureLength(signatureLength);
+    
     if(maxSignatureLength == 0) {
       return null;
     }
@@ -512,6 +510,18 @@ public class S3 {
       FunctionCall call = new FunctionCall(closure, expandedArgs);
       return ClosureDispatcher.apply(context, rho, call, closure, promisedArgs.build(), metadata);
     }
+  }
+  
+  private static int getMaxSignatureLength(Map<String, int[]> signatureLengths) {
+    int max = 0;
+    String[] types = new String[]{"generic", "group"};
+    for(String type : types) {
+      if(signatureLengths.containsKey(type)) {
+        int currentMax = Ints.max(signatureLengths.get(type));
+        max = max < currentMax ? currentMax : max;
+      }
+    }
+    return max;
   }
   
   private static SEXP buildDotGeneric(String opName) {
@@ -686,17 +696,34 @@ public class S3 {
     return methodTable;
   }
   
-  private static int[] computeSignatureLength(List<Environment> genericMethodTable, List<Environment> groupMethodTable) {
-    List<Environment> methodTable = genericMethodTable == null ? groupMethodTable : genericMethodTable;
-    int[] length = new int[methodTable.size()];
-    for(int i = 0; i < methodTable.size(); i++) {
-      if(methodTable.get(i).getFrame().getSymbols().iterator().hasNext()) {
-        length[i] = methodTable.get(i).getFrame().getSymbols().iterator().next().getPrintName().split("#").length;
-      } else {
-        length[i] = 0;
+  private static Map<String, int[]> computeSignatureLength(List<Environment> genericMethodTable, List<Environment> groupMethodTable) {
+    Map<String, int[]> signatureLengths = new HashMap<>();
+    
+    if(genericMethodTable != null) {
+      int[] length = new int[genericMethodTable.size()];
+      for(int i = 0; i < genericMethodTable.size(); i++) {
+        if(genericMethodTable.get(i).getFrame().getSymbols().iterator().hasNext()) {
+          length[i] = genericMethodTable.get(i).getFrame().getSymbols().iterator().next().getPrintName().split("#").length;
+        } else {
+          length[i] = 0;
+        }
       }
+      signatureLengths.put("generic", length);
     }
-    return length;
+    
+    if(groupMethodTable != null) {
+      int[] length = new int[groupMethodTable.size()];
+      for(int i = 0; i < groupMethodTable.size(); i++) {
+        if(groupMethodTable.get(i).getFrame().getSymbols().iterator().hasNext()) {
+          length[i] = groupMethodTable.get(i).getFrame().getSymbols().iterator().next().getPrintName().split("#").length;
+        } else {
+          length[i] = 0;
+        }
+      }
+      signatureLengths.put("group", length);
+    }
+    
+    return signatureLengths;
   }
   
   
@@ -757,7 +784,7 @@ public class S3 {
    *
    * */
   private static Map<String, List<List<MethodRanking>>> generateSignatures(Context context, Map<String, List<Environment>> mapMethodTableLists,
-                                                                           PairList inputArgs, int[] depth) {
+                                                                           PairList inputArgs, Map<String, int[]> depths) {
     
     Map<String, List<List<MethodRanking>>> mapListMethods = new HashMap<>();
     
@@ -765,11 +792,12 @@ public class S3 {
       String type = mapMethodTableLists.keySet().toArray(new String[0])[e];
       List<Environment> methodTableList = mapMethodTableLists.get(type);
       List<List<MethodRanking>> listSignatures = new ArrayList<>();
+      int[] depth = depths.get(type);
       
       for(int listIdx = 0; listIdx < methodTableList.size(); listIdx++) {
         Environment methodTable = methodTableList.get(listIdx);
         int currentDepth = depth[listIdx];
-        ArgumentSignature[] argSignatures = new ArgumentSignature[currentDepth];
+        ArgumentSignature[] argSignatures;
         Symbol methodSymbol = methodTable.getFrame().getSymbols().iterator().next();
         Closure genericClosure = (Closure) methodTable.getFrame().getVariable(methodSymbol);
         PairList formals = genericClosure.getFormals();

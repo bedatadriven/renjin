@@ -23,5 +23,6 @@ package org.renjin.gcc.codegen.vptr;
 public enum PointerKind {
   INTEGRAL,
   FLOAT,
-  POINTER;
+  POINTER,
+  FUNCTION;
 }

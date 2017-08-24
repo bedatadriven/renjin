@@ -66,8 +66,7 @@ public class FunPtr implements RefPtrExpr {
 
   @Override
   public void store(MethodGenerator mv, GExpr rhs) {
-    FunPtr rhsFunPtrExpr = (FunPtr) rhs;
-    ((JLValue) methodHandleExpr).store(mv, rhsFunPtrExpr.methodHandleExpr);
+    ((JLValue) methodHandleExpr).store(mv, rhs.toFunPtr().methodHandleExpr);
   }
 
   @Override

@@ -226,30 +226,6 @@ public abstract class AbstractPtr implements Ptr {
       longValue >>= BITS_PER_BYTE;
     }
   }
-//
-//  @Override
-//  public Ptr getPointer(int offset) {
-//    if(offset % 4 == 0) {
-//      if(pointers != null) {
-//        int index = offset / 4;
-//        return (Ptr) pointers[index];
-//      }
-//    }
-//    return BadPtr.INSTANCE;
-//  }
-//
-//  @Override
-//  public final void setPointer(int offset, Ptr value) {
-//    if(offset % 4 != 0) {
-//      throw new UnsupportedOperationException("Unaligned pointer storage");
-//    }
-//    int index = offset / 4;
-//    if(pointers == null) {
-//      pointers = new Object[mallocSize(allocatedSize(), 4)];
-//    }
-//    pointers[index] = value;
-//    setInt(index, value.toInt());
-//  }
 
 
   @Override

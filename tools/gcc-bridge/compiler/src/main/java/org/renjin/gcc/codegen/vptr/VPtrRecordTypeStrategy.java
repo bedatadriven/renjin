@@ -31,6 +31,7 @@ import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
+import org.renjin.gcc.runtime.MixedPtr;
 import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Type;
 
@@ -41,7 +42,6 @@ import java.lang.reflect.Field;
  */
 public class VPtrRecordTypeStrategy extends RecordTypeStrategy<VPtrRecordExpr> {
 
-  private final PointerType pointerType = PointerType.BYTE;
 
   public VPtrRecordTypeStrategy(GimpleRecordTypeDef recordTypeDef) {
     super(recordTypeDef);
@@ -66,8 +66,8 @@ public class VPtrRecordTypeStrategy extends RecordTypeStrategy<VPtrRecordExpr> {
   public VPtrRecordExpr variable(GimpleVarDecl decl, VarAllocator allocator) {
 
     // Allocate an array of bytes to store here
-    JExpr malloc = Expressions.staticMethodCall(pointerType.alignedImpl(), "malloc",
-        Type.getMethodDescriptor(pointerType.alignedImpl(), Type.INT_TYPE),
+    JExpr malloc = Expressions.staticMethodCall(MixedPtr.class, "malloc",
+        Type.getMethodDescriptor(Type.getType(MixedPtr.class), Type.INT_TYPE),
         Expressions.constantInt(getRecordType().sizeOf()));
 
     JLValue pointer = allocator.reserve(decl.getName(), Type.getType(Ptr.class), malloc);

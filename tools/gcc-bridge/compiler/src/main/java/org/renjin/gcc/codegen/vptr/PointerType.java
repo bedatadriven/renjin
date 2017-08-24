@@ -24,6 +24,8 @@ import org.renjin.gcc.gimple.type.*;
 import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Type;
 
+import java.lang.invoke.MethodHandle;
+
 /**
  * Defines the different kinds of types that a pointer can point to.
  */
@@ -37,7 +39,8 @@ public enum PointerType {
   LONG(Type.LONG_TYPE, PointerKind.INTEGRAL, 8),
   FLOAT(Type.FLOAT_TYPE, PointerKind.FLOAT, 4),
   DOUBLE(Type.DOUBLE_TYPE, PointerKind.FLOAT, 8),
-  POINTER(Type.getType(Ptr.class), PointerKind.POINTER, 4);
+  POINTER(Type.getType(Ptr.class), PointerKind.POINTER, 4),
+  FUNCTION(Type.getType(MethodHandle.class), PointerKind.FUNCTION, 4);
 
   public static final String PACKAGE = "org.renjin.gcc.runtime";
 
@@ -85,6 +88,8 @@ public enum PointerType {
       return PointerType.POINTER;
     } else if(type instanceof GimpleArrayType) {
       return ofType(((GimpleArrayType) type).getComponentType());
+    } else if(type instanceof GimpleFunctionType) {
+      return PointerType.FUNCTION;
     } else {
       throw new UnsupportedOperationException("type: " + type);
     }

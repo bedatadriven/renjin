@@ -165,13 +165,6 @@ public final class RecordArrayExpr implements RecordExpr {
         JExpr value = elementAt(array, offset);
         return new PrimitiveValue(expectedType, value, address);
 
-      } else if (fieldType.equals(Type.BYTE_TYPE) && expectedType.equals(new GimpleIntegerType(32))) {
-        return new PrimitiveValue(expectedType, new ByteArrayAsInt(array, offset));
-
-      } else if (fieldType.equals(Type.LONG_TYPE) && expectedType.equals(new GimpleRealType(64))) {
-        JLValue value = elementAt(array, offset);
-        return new PrimitiveValue(expectedType, new LongAsDouble(value));
-
       } else {
         throw new UnsupportedOperationException("TODO: " + fieldType + " -> " + expectedType);
       }

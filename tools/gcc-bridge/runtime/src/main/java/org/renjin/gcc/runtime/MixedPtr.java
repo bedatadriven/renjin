@@ -106,5 +106,14 @@ public class MixedPtr extends AbstractPtr {
     return false;
   }
 
-
+  @Override
+  public void memcpy(Ptr source, int numBytes) {
+    if(source instanceof MixedPtr && numBytes % BYTES == 0) {
+      MixedPtr ptr = (MixedPtr) source;
+      System.arraycopy(ptr.references, 0, references, 0, numBytes / BYTES);
+      System.arraycopy(ptr.primitives, 0, primitives, 0, numBytes);
+    } else {
+      throw new UnsupportedOperationException("TODO");
+    }
+  }
 }

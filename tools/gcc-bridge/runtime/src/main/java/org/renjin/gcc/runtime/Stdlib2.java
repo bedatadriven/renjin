@@ -30,7 +30,7 @@ package org.renjin.gcc.runtime;
 public class Stdlib2 {
 
 
-  public static PointerPtr __ctype_b_loc() {
+  public static Ptr __ctype_b_loc() {
     return CharTypes.TABLE_PTR;
   }
 

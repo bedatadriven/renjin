@@ -149,6 +149,11 @@ public class DereferencedFatPtr implements RefPtrExpr, FatPtr {
   }
 
   @Override
+  public PtrExpr realloc(MethodGenerator mv, JExpr newSizeInBytes) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public GExpr valueOf(GimpleType expectedType) {
     return valueFunction.dereference(array, offset);
   }

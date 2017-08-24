@@ -24,6 +24,7 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.FatArrayExpr;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.FatPtr;
+import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
 import org.renjin.gcc.codegen.type.fun.FunPtr;
@@ -40,9 +41,16 @@ import org.renjin.repackaged.asm.Type;
 public class VPtrExpr implements PtrExpr {
 
   private JExpr ref;
+  private final GExpr address;
 
   public VPtrExpr(JExpr ref) {
     this.ref = ref;
+    this.address = null;
+  }
+
+  public VPtrExpr(JExpr ptr, GExpr address) {
+    this.ref = ptr;
+    this.address = address;
   }
 
   @Override
@@ -56,7 +64,10 @@ public class VPtrExpr implements PtrExpr {
 
   @Override
   public GExpr addressOf() {
-    throw new UnsupportedOperationException("TODO");
+    if(address == null) {
+      throw new NotAddressableException();
+    }
+    return address;
   }
 
   @Override
@@ -122,34 +133,43 @@ public class VPtrExpr implements PtrExpr {
   }
 
   @Override
-  public GExpr valueOf(GimpleType expectedType) {
-    return valueOf(expectedType, Expressions.constantInt(0));
+  public PtrExpr realloc(MethodGenerator mv, JExpr newSizeInBytes) {
+    JExpr jExpr = Expressions.methodCall(ref, Ptr.class, "realloc",
+        Type.getMethodDescriptor(Type.getType(Ptr.class), Type.INT_TYPE),
+        newSizeInBytes);
+
+    return new VPtrExpr(jExpr);
   }
 
-  public GExpr valueOf(GimpleType expectedType, JExpr offset) {
+  @Override
+  public GExpr valueOf(GimpleType expectedType) {
 
     if(expectedType instanceof GimpleArrayType) {
       return new VArrayExpr(((GimpleArrayType) expectedType), this);
     }
 
     if(expectedType instanceof GimpleRecordType) {
-      return new VPtrRecordExpr(((GimpleRecordType) expectedType), plus(offset));
+      return new VPtrRecordExpr(((GimpleRecordType) expectedType), this);
     }
 
     PointerType pointerType = PointerType.ofType(expectedType);
-    DerefExpr derefExpr = new DerefExpr(ref, offset, pointerType);
+    DerefExpr derefExpr = new DerefExpr(ref, pointerType);
 
     if(expectedType instanceof GimplePrimitiveType) {
       GimplePrimitiveType primitiveType = (GimplePrimitiveType) expectedType;
 
-      return new PrimitiveValue(primitiveType, derefExpr);
+      return new PrimitiveValue(primitiveType, derefExpr, this);
     }
 
     if(expectedType instanceof GimpleIndirectType) {
-      return new VPtrExpr(derefExpr);
+      return new VPtrExpr(derefExpr, this);
     }
 
     throw new UnsupportedOperationException("type: " + expectedType);
+  }
+
+  public GExpr valueOf(GimpleType expectedType, JExpr offset) {
+    return plus(offset).valueOf(expectedType);
   }
 
   public VPtrExpr plus(JExpr offsetInBytes) {

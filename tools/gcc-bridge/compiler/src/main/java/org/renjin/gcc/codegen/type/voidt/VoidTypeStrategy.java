@@ -25,9 +25,11 @@ import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.var.VarAllocator;
+import org.renjin.gcc.codegen.vptr.VPtrStrategy;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
+import org.renjin.gcc.gimple.type.GimpleVoidType;
 import org.renjin.repackaged.asm.Type;
 
 import java.lang.reflect.Field;
@@ -79,7 +81,7 @@ public class VoidTypeStrategy implements TypeStrategy<GExpr> {
 
   @Override
   public PointerTypeStrategy pointerTo() {
-    return new VoidPtrStrategy();
+    return new VPtrStrategy(new GimpleVoidType());
   }
 
   @Override

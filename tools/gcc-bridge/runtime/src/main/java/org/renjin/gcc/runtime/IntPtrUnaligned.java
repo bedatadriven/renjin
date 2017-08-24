@@ -20,6 +20,8 @@
 
 package org.renjin.gcc.runtime;
 
+import static org.renjin.gcc.runtime.IntPtr.BYTES;
+
 /**
  * Pointer implementation backed by an array of integers, with an
  * arbitrary offset in bytes.
@@ -98,10 +100,6 @@ public class IntPtrUnaligned extends AbstractPtr {
     throw new UnsupportedOperationException("TODO");
   }
 
-  @Override
-  public void setPointer(int offset, Ptr value) {
-    throw new UnsupportedOperationException("TODO");
-  }
 
   @Override
   public int toInt() {

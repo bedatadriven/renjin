@@ -24,6 +24,7 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.*;
+import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
@@ -34,9 +35,11 @@ import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
+import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.guava.base.Optional;
 
 import java.lang.reflect.Field;
 
@@ -61,11 +64,6 @@ public class VPtrStrategy implements PointerTypeStrategy {
         mallocDescriptor, sizeInBytes);
 
     return new VPtrExpr(pointer);
-  }
-
-  @Override
-  public GExpr realloc(MethodGenerator mv, GExpr pointer, JExpr newSizeInBytes) {
-    throw new UnsupportedOperationException("TODO");
   }
 
   @Override
@@ -117,8 +115,17 @@ public class VPtrStrategy implements PointerTypeStrategy {
 
   @Override
   public GExpr variable(GimpleVarDecl decl, VarAllocator allocator) {
-    JLValue ref = allocator.reserve(decl.getName(), Type.getType(Ptr.class));
-    return new VPtrExpr(ref);
+    if(decl.isAddressable()) {
+      GimplePointerType pointerType = this.baseType.pointerTo();
+      JLValue unitArray = allocator.reserveUnitArray(decl.getName(), Type.getType(Ptr.class), Optional.<JExpr>absent());
+      VPtrValueFunction valueFunction = new VPtrValueFunction(pointerType);
+      FatPtrPair address = new FatPtrPair(valueFunction, unitArray, Expressions.constantInt(0));
+      return address.valueOf(pointerType);
+
+    } else {
+      JLValue ref = allocator.reserve(decl.getName(), Type.getType(Ptr.class));
+      return new VPtrExpr(ref);
+    }
   }
 
   @Override
@@ -155,6 +162,7 @@ public class VPtrStrategy implements PointerTypeStrategy {
   public GExpr cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
     if(typeStrategy instanceof VPtrStrategy) {
       return value;
+
     } else if(typeStrategy instanceof VoidPtrStrategy) {
       return new VoidPtrExpr(Expressions.cast(((VoidPtrExpr) value).unwrap(), Type.getType(Ptr.class)));
     }

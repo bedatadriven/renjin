@@ -140,11 +140,6 @@ public class FunPtrStrategy implements PointerTypeStrategy<FunPtr>, SimpleTypeSt
   }
 
   @Override
-  public FunPtr realloc(MethodGenerator mv, FunPtr pointer, JExpr newSizeInBytes) {
-    throw new InternalCompilerException("Cannot realloc function pointers");
-  }
-
-  @Override
   public FunPtr pointerPlus(MethodGenerator mv, FunPtr pointer, JExpr offsetInBytes) {
     throw new UnsupportedOperationException("TODO");
   }

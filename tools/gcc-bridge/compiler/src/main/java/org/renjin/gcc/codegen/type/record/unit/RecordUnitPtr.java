@@ -87,6 +87,11 @@ public class RecordUnitPtr implements RefPtrExpr {
   }
 
   @Override
+  public PtrExpr realloc(MethodGenerator mv, JExpr newSizeInBytes) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public GExpr valueOf(GimpleType expectedType) {
     return new RecordValue(layout, ref);
   }

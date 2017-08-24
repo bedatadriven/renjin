@@ -37,7 +37,6 @@ import org.renjin.gcc.gimple.type.GimpleIntegerType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.runtime.ObjectPtr;
-import org.renjin.gcc.runtime.PointerImpls;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Preconditions;
@@ -170,7 +169,7 @@ public final class FatPtrPair implements FatPtr, PtrExpr {
 
   @Override
   public VPtrExpr toVPtrExpr() {
-    final PointerType primitiveType = PointerImpls.ofType(getValueType());
+    final PointerType primitiveType = PointerType.ofType(valueFunction.getGimpleValueType());
 
     return new VPtrExpr(new JExpr() {
       @Nonnull
@@ -304,6 +303,15 @@ public final class FatPtrPair implements FatPtr, PtrExpr {
   @Override
   public JExpr memoryCompare(MethodGenerator mv, PtrExpr otherPointer, JExpr n) {
     return new FatPtrMemCmp(this, otherPointer.toFatPtrExpr(valueFunction).toPair(mv), n);
+  }
+
+  @Override
+  public PtrExpr realloc(MethodGenerator mv, JExpr newSizeInBytes) {
+    JExpr sizeInElements = Expressions.divide(newSizeInBytes, valueFunction.getArrayElementBytes());
+    JExpr array = new FatPtrRealloc(this, sizeInElements);
+    JExpr offset = Expressions.zero();
+
+    return new FatPtrPair(valueFunction, array, offset);
   }
 
   public static FatPtr nullPtr(ValueFunction valueFunction) {

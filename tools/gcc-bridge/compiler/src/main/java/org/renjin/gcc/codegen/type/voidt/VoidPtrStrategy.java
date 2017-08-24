@@ -50,15 +50,13 @@ import java.lang.reflect.Field;
 public class VoidPtrStrategy implements PointerTypeStrategy<VoidPtrExpr>, SimpleTypeStrategy<VoidPtrExpr> {
   
   public static final Type OBJECT_TYPE = Type.getType(Object.class);
-  
-  @Override
-  public VoidPtrExpr malloc(MethodGenerator mv, JExpr sizeInBytes) {
-    return new VoidPtrExpr(new NewMallocThunkExpr(sizeInBytes));
+
+  public VoidPtrStrategy() {
   }
 
   @Override
-  public VoidPtrExpr realloc(MethodGenerator mv, final VoidPtrExpr pointer, JExpr newSizeInBytes) {
-    return new VoidPtrExpr(new VoidPtrRealloc(pointer.unwrap(), newSizeInBytes));
+  public VoidPtrExpr malloc(MethodGenerator mv, JExpr sizeInBytes) {
+    return new VoidPtrExpr(new NewMallocThunkExpr(sizeInBytes));
   }
 
   @Override

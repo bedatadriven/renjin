@@ -20,12 +20,7 @@
 
 package org.renjin.gcc.codegen.vptr;
 
-import org.renjin.gcc.codegen.expr.GExpr;
-import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.type.UnsupportedCastException;
-import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
 import org.renjin.gcc.gimple.type.*;
-import org.renjin.gcc.runtime.PointerImpls;
 import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Type;
 
@@ -43,6 +38,8 @@ public enum PointerType {
   FLOAT(Type.FLOAT_TYPE, PointerKind.FLOAT, 4),
   DOUBLE(Type.DOUBLE_TYPE, PointerKind.FLOAT, 8),
   POINTER(Type.getType(Ptr.class), PointerKind.POINTER, 4);
+
+  public static final String PACKAGE = "org.renjin.gcc.runtime";
 
   private Type jvmType;
   private PointerKind kind;
@@ -63,7 +60,7 @@ public enum PointerType {
   }
 
   public Type alignedImpl() {
-    return Type.getType("L" + PointerImpls.PACKAGE.replace('.', '/') + "/" + titleCasedName() + "Ptr;");
+    return Type.getType("L" + PACKAGE.replace('.', '/') + "/" + titleCasedName() + "Ptr;");
   }
 
   public static PointerType ofPrimitiveType(GimplePrimitiveType primitiveType) {
@@ -76,7 +73,9 @@ public enum PointerType {
   }
 
   public static PointerType ofType(GimpleType type) {
-    if(type instanceof GimplePrimitiveType) {
+    if(type instanceof GimpleVoidType) {
+      return PointerType.BYTE;
+    } else if(type instanceof GimplePrimitiveType) {
       return ofPrimitiveType(((GimplePrimitiveType) type));
     } else if(type instanceof GimpleComplexType) {
       return ofPrimitiveType(((GimpleComplexType) type).getPartType());

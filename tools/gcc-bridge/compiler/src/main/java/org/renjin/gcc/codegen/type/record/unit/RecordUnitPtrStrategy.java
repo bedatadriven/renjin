@@ -154,11 +154,6 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>
   }
 
   @Override
-  public RecordUnitPtr realloc(MethodGenerator mv, RecordUnitPtr pointer, JExpr newSizeInBytes) {
-    throw new UnsupportedOperationException("TODO");
-  }
-
-  @Override
   public RecordUnitPtr pointerPlus(MethodGenerator mv, final RecordUnitPtr pointer, final JExpr offsetInBytes) {
     // According to our analysis conducted before-hand, there should be no pointer
     // to a sequence of records of this type with more than one record, so the result should

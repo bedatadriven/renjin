@@ -195,16 +195,6 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
   }
 
   @Override
-  public FatPtr realloc(MethodGenerator mv, FatPtr pointer, JExpr newSizeInBytes) {
-    JExpr sizeInElements = Expressions.divide(newSizeInBytes, valueFunction.getArrayElementBytes());
-    JExpr array = new FatPtrRealloc(pointer.toPair(mv), sizeInElements);
-    JExpr offset = Expressions.zero();
-    
-    return new FatPtrPair(valueFunction, array, offset);
-  }
-  
-
-  @Override
   public FatPtrStrategy pointerTo() {
     return new FatPtrStrategy(new FatPtrValueFunction(valueFunction), indirectionLevel + 1);
   }

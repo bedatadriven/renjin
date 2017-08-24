@@ -108,6 +108,11 @@ public class VoidPtrExpr implements RefPtrExpr {
   }
 
   @Override
+  public PtrExpr realloc(MethodGenerator mv, JExpr newSizeInBytes) {
+    return new VoidPtrExpr(new VoidPtrRealloc(unwrap(), newSizeInBytes));
+  }
+
+  @Override
   public GExpr valueOf(GimpleType expectedType) {
     throw new UnsupportedOperationException("void pointers cannot be dereferenced.");
   }

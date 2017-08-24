@@ -31,5 +31,7 @@ public interface PtrExpr extends GExpr {
 
   JExpr memoryCompare(MethodGenerator mv, PtrExpr otherPointer, JExpr n);
 
+  PtrExpr realloc(MethodGenerator mv, JExpr newSizeInBytes);
+
   GExpr valueOf(GimpleType expectedType);
 }

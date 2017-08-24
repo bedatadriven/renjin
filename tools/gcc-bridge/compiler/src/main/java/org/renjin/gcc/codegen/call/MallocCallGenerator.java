@@ -26,6 +26,7 @@ import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.fun.FunctionRefGenerator;
 import org.renjin.gcc.gimple.statement.GimpleCall;
 import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.MallocThunk;
 import org.renjin.repackaged.asm.Handle;
 import org.renjin.repackaged.asm.Opcodes;
@@ -63,7 +64,7 @@ public class MallocCallGenerator implements CallGenerator, MethodHandleGenerator
   @Override
   public JExpr getMethodHandle() {
     return new FunctionRefGenerator(new Handle(Opcodes.H_INVOKESTATIC,
-        Type.getInternalName(MallocThunk.class), "malloc",
-        Type.getMethodDescriptor(Type.getType(Object.class), Type.INT_TYPE)));
+        Type.getInternalName(BytePtr.class), "malloc",
+        Type.getMethodDescriptor(Type.getType(BytePtr.class), Type.INT_TYPE)));
   }
 }

@@ -176,10 +176,9 @@ public class RecordTypeStrategyBuilder {
   }
 
   private void buildVirtual(UnionSet set) {
-
-    typeOracle.addRecordType(set.singleton(),
-        new VPtrRecordTypeStrategy(set.singleton()));
-
+    for (GimpleRecordTypeDef recordTypeDef : set.getAllTypes()) {
+      typeOracle.addRecordType(recordTypeDef, new VPtrRecordTypeStrategy(recordTypeDef));
+    }
   }
 
   private void buildUnion(UnionSet set) {

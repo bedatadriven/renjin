@@ -67,9 +67,8 @@ public class VArrayExpr implements ArrayExpr {
 
   @Override
   public GExpr addressOf() {
-    throw new UnsupportedOperationException("TODO");
+    return pointer;
   }
-
 
   @Override
   public FunPtr toFunPtr() throws UnsupportedCastException {

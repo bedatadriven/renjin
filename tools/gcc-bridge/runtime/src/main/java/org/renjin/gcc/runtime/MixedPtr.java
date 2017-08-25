@@ -26,7 +26,7 @@ package org.renjin.gcc.runtime;
  */
 public class MixedPtr extends AbstractPtr {
 
-  private static final int BYTES = 4;
+  private static final int POINTER_BYTES = 4;
 
   private byte[] primitives;
   private Object[] references;
@@ -37,7 +37,7 @@ public class MixedPtr extends AbstractPtr {
   public static MixedPtr malloc(int bytes) {
     MixedPtr ptr = new MixedPtr();
     ptr.primitives = new byte[bytes];
-    ptr.references = new Object[mallocSize(bytes, BYTES)];
+    ptr.references = new Object[mallocSize(bytes, POINTER_BYTES)];
     return ptr;
   }
 
@@ -60,9 +60,9 @@ public class MixedPtr extends AbstractPtr {
   public Ptr pointerPlus(int bytes) {
     if(bytes == 0) {
       return this;
-    } else {
-      return new OffsetPtr(this, bytes);
     }
+
+    return new OffsetPtr(this, bytes);
   }
 
   @Override
@@ -78,8 +78,8 @@ public class MixedPtr extends AbstractPtr {
 
   @Override
   public Ptr getPointer(int offset) {
-    if(offset % 4 == 0) {
-      int index = offset / 4;
+    if(offset % POINTER_BYTES == 0) {
+      int index = offset / POINTER_BYTES;
       return (Ptr) references[index];
     }
     return BadPtr.INSTANCE;
@@ -87,10 +87,10 @@ public class MixedPtr extends AbstractPtr {
 
   @Override
   public final void setPointer(int offset, Ptr value) {
-    if(offset % 4 != 0) {
+    if(offset % POINTER_BYTES != 0) {
       throw new UnsupportedOperationException("Unaligned pointer storage");
     }
-    int index = offset / 4;
+    int index = offset / POINTER_BYTES;
     references[index] = value;
     setInt(index, value.toInt());
   }
@@ -108,9 +108,9 @@ public class MixedPtr extends AbstractPtr {
 
   @Override
   public void memcpy(Ptr source, int numBytes) {
-    if(source instanceof MixedPtr && numBytes % BYTES == 0) {
+    if(source instanceof MixedPtr && numBytes % POINTER_BYTES == 0) {
       MixedPtr ptr = (MixedPtr) source;
-      System.arraycopy(ptr.references, 0, references, 0, numBytes / BYTES);
+      System.arraycopy(ptr.references, 0, references, 0, numBytes / POINTER_BYTES);
       System.arraycopy(ptr.primitives, 0, primitives, 0, numBytes);
     } else {
       throw new UnsupportedOperationException("TODO");

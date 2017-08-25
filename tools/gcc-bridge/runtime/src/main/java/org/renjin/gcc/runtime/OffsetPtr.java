@@ -53,12 +53,10 @@ public class OffsetPtr implements Ptr {
 
   @Override
   public Ptr pointerPlus(int bytes) {
-    int newOffset = this.offset + bytes;
-    if(newOffset == 0) {
-      return ptr;
-    } else {
-      return new OffsetPtr(ptr, newOffset);
+    if(bytes == 0) {
+      return this;
     }
+    return ptr.pointerPlus(this.offset + bytes);
   }
 
   @Override

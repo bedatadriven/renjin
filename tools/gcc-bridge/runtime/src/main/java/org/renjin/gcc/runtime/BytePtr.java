@@ -139,6 +139,9 @@ public class BytePtr extends AbstractPtr {
 
   @Override
   public Ptr pointerPlus(int bytes) {
+    if(bytes == 0) {
+      return this;
+    }
     return new BytePtr(array, offset + bytes);
   }
 

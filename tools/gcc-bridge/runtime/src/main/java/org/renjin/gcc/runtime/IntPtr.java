@@ -229,7 +229,7 @@ public class IntPtr extends AbstractPtr implements Ptr {
     if(byteCount % BYTES == 0) {
       return new IntPtr(this.array, this.offset + (byteCount / BYTES));
     } else {
-      throw new UnsupportedOperationException("TODO");
+      return new OffsetPtr(this, byteCount);
     }
   }
 }

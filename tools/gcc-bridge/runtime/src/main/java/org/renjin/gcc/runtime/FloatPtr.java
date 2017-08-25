@@ -62,17 +62,21 @@ public class FloatPtr extends AbstractPtr {
 
   @Override
   public int getOffsetInBytes() {
-    throw new UnsupportedOperationException("TODO");
+    return offset * BYTES;
   }
 
   @Override
   public Ptr realloc(int newSizeInBytes) {
-    return new FloatPtr(Realloc.realloc(array, offset, newSizeInBytes / 4));
+    return new FloatPtr(Realloc.realloc(array, offset, mallocSize(newSizeInBytes, BYTES)));
   }
 
   @Override
   public Ptr pointerPlus(int bytes) {
-    return new FloatPtr(array, offset + (bytes / 4));
+    if(bytes % BYTES == 0) {
+      return new FloatPtr(array, offset + (bytes / BYTES));
+    } else {
+      return new OffsetPtr(this, bytes);
+    }
   }
 
   @Override

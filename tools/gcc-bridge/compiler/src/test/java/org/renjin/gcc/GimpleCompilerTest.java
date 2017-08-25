@@ -263,9 +263,9 @@ public class GimpleCompilerTest extends AbstractGccTest {
     clazz.getMethod("runtest_").invoke(null);
 
     Method iftest = clazz.getMethod("iftest_", Ptr.class, Ptr.class);
-    IntPtrUnaligned x = new IntPtrUnaligned(0);
+    IntPtr x = new IntPtr(0);
 
-    iftest.invoke(null, new IntPtrUnaligned(12), x);
+    iftest.invoke(null, new IntPtr(12), x);
 
     assertThat(x.getInt(), equalTo(1));
 
@@ -286,7 +286,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
     Class clazz = compile("or.f");
     Method testMethod = clazz.getMethod("stlest_", Ptr.class, Ptr.class, Ptr.class);
 
-    DoublePtrUnaligned result = new DoublePtrUnaligned(0);
+    DoublePtr result = new DoublePtr(0);
 
     testMethod.invoke(null, new IntPtr(41), new IntPtr(42), result);
     assertThat(result.getDouble(), equalTo(42.0));

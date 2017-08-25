@@ -53,7 +53,6 @@ public abstract class AbstractPtr implements Ptr {
     throw new UnsupportedOperationException("No longer supported. Please recompile.");
   }
 
-
   @Override
   public void setShort(short value) {
     throw new UnsupportedOperationException("TODO");
@@ -228,12 +227,7 @@ public abstract class AbstractPtr implements Ptr {
 
   @Override
   public Ptr getPointer(int offset) {
-    int intValue = getInt(offset);
-    if(intValue == 0) {
-      return BytePtr.NULL;
-    } else {
-      return new InvalidPtr(intValue);
-    }
+    return BytePtr.NULL.pointerPlus(getInt(offset));
   }
 
   @Override

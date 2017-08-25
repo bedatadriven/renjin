@@ -617,7 +617,7 @@ public class ExprFactory {
     } else if (constant instanceof GimpleStringConstant) {
       StringConstant array = new StringConstant(((GimpleStringConstant) constant).getValue());
       return new FatArrayExpr(
-          new GimpleArrayType(new GimpleIntegerType(8), array.getLength()),
+          (GimpleArrayType) constant.getType(),
           new PrimitiveValueFunction(Type.BYTE_TYPE),
           array.getLength(),
           array);

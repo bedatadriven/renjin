@@ -66,7 +66,11 @@ public class CharPtr extends AbstractPtr {
 
   @Override
   public Ptr pointerPlus(int bytes) {
-    return new CharPtr(array, offset + (bytes / BYTES));
+    if(bytes % BYTES == 0) {
+      return new CharPtr(array, offset + (bytes / BYTES));
+    } else {
+      return new OffsetPtr(this, bytes);
+    }
   }
 
   @Override

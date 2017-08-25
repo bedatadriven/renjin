@@ -210,10 +210,10 @@ public class DoublePtr extends AbstractPtr implements Ptr {
 
   @Override
   public Ptr pointerPlus(int byteCount) {
-    if(byteCount % 8 == 0) {
+    if(byteCount % BYTES == 0) {
       return new DoublePtr(this.array, this.offset + (byteCount / 8));
     } else {
-      return new DoublePtrUnaligned(this.array, (this.offset * 8) + byteCount);
+      return new OffsetPtr(this, byteCount);
     }
   }
 }

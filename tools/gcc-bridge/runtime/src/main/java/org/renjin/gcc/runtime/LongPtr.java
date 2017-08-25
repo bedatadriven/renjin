@@ -67,7 +67,14 @@ public class LongPtr extends AbstractPtr {
 
   @Override
   public Ptr pointerPlus(int bytes) {
-    return new LongPtr(array, offset + (bytes / 8));
+    if(bytes == 0) {
+      return this;
+    }
+    if(bytes % BYTES == 0) {
+      return new LongPtr(array, offset + (bytes / BYTES));
+    } else {
+      return new OffsetPtr(this, this.offset * BYTES + bytes);
+    }
   }
 
   @Override

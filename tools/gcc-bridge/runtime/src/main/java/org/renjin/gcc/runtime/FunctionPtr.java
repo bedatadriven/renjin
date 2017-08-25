@@ -52,7 +52,11 @@ public class FunctionPtr extends AbstractPtr {
 
   @Override
   public Ptr pointerPlus(int bytes) {
-    return new OffsetPtr(this, bytes);
+    if(bytes % BYTES == 0) {
+      return new FunctionPtr(array, offset + (bytes / BYTES));
+    } else {
+      return new OffsetPtr(this, bytes);
+    }
   }
 
   @Override

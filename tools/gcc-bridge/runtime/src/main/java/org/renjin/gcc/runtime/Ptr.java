@@ -254,6 +254,14 @@ public interface Ptr extends Comparable<Ptr> {
 
   int memcmp(Ptr other, int numBytes);
 
+  /**
+   * Creates a copy of the memory pointed to.
+   * @param offset the number of bytes from the start of this pointer to start copying
+   * @param numBytes the number of bytes to copy
+   * @return a pointer to the copied memory
+   */
+  Ptr copyOf(int offset, int numBytes);
+
   Ptr copyOf(int numBytes);
 
   boolean isNull();

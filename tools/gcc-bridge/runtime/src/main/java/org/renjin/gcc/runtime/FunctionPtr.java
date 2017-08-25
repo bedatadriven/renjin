@@ -82,7 +82,7 @@ public class FunctionPtr extends AbstractPtr {
   @Override
   public Ptr getPointer(int offset) {
     if(offset % BYTES == 0) {
-      return new FunctionPtr1(array[offset / BYTES]);
+      return new FunctionPtr1(array[this.offset + offset / BYTES]);
     } else {
       throw new UnsupportedOperationException("Unaligned pointer access");
     }

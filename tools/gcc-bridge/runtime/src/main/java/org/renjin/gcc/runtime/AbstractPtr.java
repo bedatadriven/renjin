@@ -48,6 +48,7 @@ public abstract class AbstractPtr implements Ptr {
     return count;
   }
 
+  @Deprecated
   @Override
   public int getOffset() {
     throw new UnsupportedOperationException("No longer supported. Please recompile.");
@@ -205,7 +206,7 @@ public abstract class AbstractPtr implements Ptr {
 
   @Override
   public void setFloat(int offset, float value) {
-    throw new UnsupportedOperationException("TODO");
+    setInt(offset, Float.floatToRawIntBits(value));
   }
 
   @Override
@@ -258,10 +259,15 @@ public abstract class AbstractPtr implements Ptr {
       if(b1 < b2) {
         return -1;
       } else if(b1 > b2) {
-        return -1;
+        return 1;
       }
     }
     return 0;
+  }
+
+  @Override
+  public Ptr copyOf(int offset, int numBytes) {
+    throw new UnsupportedOperationException("TODO");
   }
 
   @Override
@@ -272,6 +278,7 @@ public abstract class AbstractPtr implements Ptr {
     }
     return copy;
   }
+
 
   @Override
   public MethodHandle toMethodHandle() {

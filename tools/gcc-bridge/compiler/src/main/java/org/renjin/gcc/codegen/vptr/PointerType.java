@@ -32,6 +32,7 @@ import java.lang.invoke.MethodHandle;
  */
 public enum PointerType {
 
+  BOOLEAN(Type.BOOLEAN_TYPE, PointerKind.INTEGRAL, 1),
   BYTE(Type.BYTE_TYPE, PointerKind.INTEGRAL, 1),
   SHORT(Type.SHORT_TYPE, PointerKind.INTEGRAL, 2),
   CHAR(Type.CHAR_TYPE, PointerKind.INTEGRAL, 2),
@@ -67,11 +68,6 @@ public enum PointerType {
   }
 
   public static PointerType ofPrimitiveType(GimplePrimitiveType primitiveType) {
-
-    if(primitiveType instanceof GimpleBooleanType) {
-      return BYTE;
-    }
-
     for (PointerType pointerType : values()) {
       if(pointerType.getJvmType().equals(primitiveType.jvmType())) {
         return pointerType;

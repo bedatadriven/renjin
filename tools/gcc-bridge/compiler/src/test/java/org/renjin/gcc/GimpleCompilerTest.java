@@ -502,17 +502,14 @@ public class GimpleCompilerTest extends AbstractGccTest {
     compileAndTest("ptr_cast.c");
   }
 
-  @Test(expected = ClassCastException.class)
+  @Test
   public void illegalPointerCast() throws Throwable {
     Class clazz = compile("illegal_cast.c");
 
     Method method = clazz.getMethod("do_cast");
-    try {
-      method.invoke(null);
+    Ptr ptr = (Ptr) method.invoke(null);
 
-    } catch (InvocationTargetException e) {
-      throw e.getCause();
-    }
+    System.out.println(ptr);
   }
 
   @Test
@@ -521,7 +518,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
 
 //       SUBROUTINE HCLUST(R, DMIN)
 
-    Method hclust = clazz.getMethod("hclust_", DoublePtr.class, DoublePtr.class);
+    Method hclust = clazz.getMethod("hclust_", Ptr.class, Ptr.class);
 
     DoublePtr r = new DoublePtr(43.4);
     DoublePtr dmin = new DoublePtr(0);
@@ -792,7 +789,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void varArgsCalls() throws Exception {
     Class clazz = compile("varargs.c");
 
-    Method test = clazz.getMethod("test_sprintf", BytePtr.class, int.class);
+    Method test = clazz.getMethod("test_sprintf", Ptr.class, int.class);
 
     BytePtr message = (BytePtr) test.invoke(null, BytePtr.nullTerminatedString("Bob", Charsets.US_ASCII), 99);
 
@@ -895,7 +892,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void memcmpTest() throws Exception {
     Class clazz = compile("memcmp.c");
 
-    Method long_memcmp = clazz.getMethod("long_memcmp", LongPtr.class, LongPtr.class);
+    Method long_memcmp = clazz.getMethod("long_memcmp", Ptr.class, Ptr.class);
 
     assertThat((Integer) long_memcmp.invoke(null, new LongPtr(0xFFFFFFFFFFFFFFFFL), new LongPtr(0xFFFL)), greaterThan(0));
     assertThat((Integer) long_memcmp.invoke(null, new LongPtr(0xCAFEBABE), new LongPtr(0xCAFEBABE)), equalTo(0));

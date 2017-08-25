@@ -252,8 +252,13 @@ public class OffsetPtr implements Ptr {
   }
 
   @Override
+  public Ptr copyOf(int offset, int numBytes) {
+    return ptr.copyOf(this.offset + offset, numBytes);
+  }
+
+  @Override
   public Ptr copyOf(int numBytes) {
-    throw new UnsupportedOperationException("TODO");
+    return ptr.copyOf(this.offset, numBytes);
   }
 
   @Override

@@ -72,12 +72,12 @@ public class BooleanPtr extends AbstractPtr implements Ptr {
 
   @Override
   public byte getByte(int offset) {
-    throw new UnsupportedOperationException("TODO");
+    return array[offset] ? (byte)1 : (byte)0;
   }
 
   @Override
   public void setByte(int offset, byte value) {
-    throw new UnsupportedOperationException("TODO");
+
   }
 
   @Override

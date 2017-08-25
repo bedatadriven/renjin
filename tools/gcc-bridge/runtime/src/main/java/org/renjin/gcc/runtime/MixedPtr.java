@@ -20,6 +20,8 @@
 
 package org.renjin.gcc.runtime;
 
+import java.util.Arrays;
+
 /**
  * Pointer type that references both primitives and garbage-collected
  * references.
@@ -53,7 +55,14 @@ public class MixedPtr extends AbstractPtr {
 
   @Override
   public Ptr realloc(int newSizeInBytes) {
-    throw new UnsupportedOperationException("TODO");
+    MixedPtr ptr = new MixedPtr();
+    ptr.primitives = new byte[newSizeInBytes];
+    ptr.references = new Object[mallocSize(newSizeInBytes, POINTER_BYTES)];
+
+    System.arraycopy(primitives, 0, ptr.primitives, 0, primitives.length);
+    System.arraycopy(references, 0, ptr.references, 0, references.length);
+
+    return ptr;
   }
 
   @Override
@@ -82,7 +91,7 @@ public class MixedPtr extends AbstractPtr {
       int index = offset / POINTER_BYTES;
       return (Ptr) references[index];
     }
-    return BadPtr.INSTANCE;
+    return BytePtr.NULL.pointerPlus(offset);
   }
 
   @Override
@@ -114,11 +123,20 @@ public class MixedPtr extends AbstractPtr {
       System.arraycopy(ptr.primitives, 0, primitives, 0, numBytes);
     } else if(source instanceof OffsetPtr) {
       throw new UnsupportedOperationException();
-      
+
     } else {
       for (int i = 0; i < numBytes; i++) {
         setByte(i, source.getByte(i));
       }
     }
+  }
+
+  @Override
+  public Ptr copyOf(int offset, int numBytes) {
+    MixedPtr copy = new MixedPtr();
+    copy.primitives = Arrays.copyOfRange(primitives, offset, offset + numBytes);
+    copy.references = Arrays.copyOfRange(references, offset / POINTER_BYTES, (offset + numBytes) / POINTER_BYTES);
+
+    return copy;
   }
 }

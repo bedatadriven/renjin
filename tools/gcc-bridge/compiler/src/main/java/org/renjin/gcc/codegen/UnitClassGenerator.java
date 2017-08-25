@@ -202,6 +202,7 @@ public class UnitClassGenerator {
           } catch (Exception e) {
             System.err.println("Warning: could not generate code for global variable " + decl.getMangledName() +
                 ": " + e.getMessage());
+            throw e;
           }
         }
 

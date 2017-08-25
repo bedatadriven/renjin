@@ -92,7 +92,7 @@ public class Stdlib {
   public static Ptr strcpy(Ptr destination, Ptr source) {
     int length = strlen(source);
     for (int i = 0; i < length + 1; i++) {
-      destination.setByte(source.getByte(i));
+      destination.setByte(i, source.getByte(i));
     }
     return destination;
   }

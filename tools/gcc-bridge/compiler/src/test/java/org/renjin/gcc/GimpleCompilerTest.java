@@ -638,15 +638,15 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void updateComplexArrayPointer() throws Exception {
     Class clazz = compile("complex_update.f");
 
-    double[] a = new double[]{1, 4, 3, -4, 5, -9};
-    double[] b = new double[]{-14, -13};
+    DoublePtr a = new DoublePtr(1, 4, 3, -4, 5, -9);
+    DoublePtr b = new DoublePtr(-14, -13);
 
-    Method update = clazz.getMethod("update2_", double[].class, int.class, double[].class, int.class);
+    Method update = clazz.getMethod("update2_", Ptr.class, Ptr.class);
 
-    update.invoke(null, a, 0, b, 0);
+    update.invoke(null, a, b);
 
-    assertThat(a[2], equalTo(b[0]));
-    assertThat(a[3], equalTo(b[1]));
+    assertThat(a.getAlignedDouble(2), equalTo(b.getAlignedDouble(0)));
+    assertThat(a.getAlignedDouble(3), equalTo(b.getAlignedDouble(1)));
 
 
   }

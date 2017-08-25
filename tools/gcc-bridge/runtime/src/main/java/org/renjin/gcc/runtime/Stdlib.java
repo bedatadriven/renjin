@@ -32,21 +32,26 @@ import java.util.concurrent.TimeUnit;
  * C standard library functions
  */
 public class Stdlib {
-  
+
   public static final int CLOCKS_PER_SEC = 4;
-  
+
   private static long PROGRAM_START = System.currentTimeMillis();
-  
+
   public static BytePtr tzname;
   public static int timezone;
   public static int daylight;
 
 
+  @Deprecated
   public static int strncmp(BytePtr x, BytePtr y, int n) {
+    return strncmp((Ptr)x, (Ptr)y, n);
+  }
+
+  public static int strncmp(Ptr x, Ptr y, int n) {
     for(int i=0;i<n;++i) {
-      byte bx = x.array[x.offset+i];
-      byte by = y.array[y.offset+i];
-      
+      byte bx = x.getByte(i);
+      byte by = y.getByte(i);
+
       if(bx < by) {
         return -1;
       } else if(bx > by) {
@@ -58,54 +63,74 @@ public class Stdlib {
     }
     return 0;
   }
-  
+
+
+  @Deprecated
   public static int strcmp(BytePtr x, BytePtr y) {
+    return strncmp((Ptr)x, (Ptr)y, Integer.MAX_VALUE);
+  }
+
+  public static int strcmp(Ptr x, Ptr y) {
     return strncmp(x, y, Integer.MAX_VALUE);
   }
-  
+
   /**
-   * Copies the C string pointed by source into the array pointed by destination, including the terminating 
+   * Copies the C string pointed by source into the array pointed by destination, including the terminating
    * null character (and stopping at that point).
    * @return destination is returned.
    */
+  @Deprecated
   public static BytePtr strcpy(BytePtr destination, BytePtr source) {
-    int length = source.nullTerminatedStringLength();
-    System.arraycopy(source.array, source.offset, destination.array, destination.offset, length+1);
+    return (BytePtr) strcpy((Ptr)destination, (Ptr)source);
+  }
+
+  /**
+   * Copies the C string pointed by source into the array pointed by destination, including the terminating
+   * null character (and stopping at that point).
+   * @return destination is returned.
+   */
+  public static Ptr strcpy(Ptr destination, Ptr source) {
+    int length = strlen(source);
+    for (int i = 0; i < length + 1; i++) {
+      destination.setByte(source.getByte(i));
+    }
     return destination;
   }
-  
-  /**
-   * Copies the first num characters of source to destination. 
-   * If the end of the source C string (which is signaled by a null-character) is 
-   * found before num characters have been copied, destination is padded with zeros until a
-   * total of num characters have been written to it.
-   * 
-   * <p>No null-character is implicitly appended at the end of destination if source is longer than num. 
-   * Thus, in this case, destination shall not be considered a null terminated C string (reading it as 
-   * such would overflow).</p>
-   * 
-   * <p>destination and source shall not overlap</p>
-   * 
-   * @return destination pointer
-   */
+
+  @Deprecated
   public static BytePtr strncpy(BytePtr destination, BytePtr source, int num) {
-    int di = destination.offset;
-    int si = source.offset;
-    
-    while(num > 0) {
-      byte srcChar = source.array[si++];
-      destination.array[di++] = srcChar;
-      num--;
+    return (BytePtr) strncpy((Ptr)destination, (Ptr)source, num);
+  }
+
+    /**
+     * Copies the first num characters of source to destination.
+     * If the end of the source C string (which is signaled by a null-character) is
+     * found before num characters have been copied, destination is padded with zeros until a
+     * total of num characters have been written to it.
+     *
+     * <p>No null-character is implicitly appended at the end of destination if source is longer than num.
+     * Thus, in this case, destination shall not be considered a null terminated C string (reading it as
+     * such would overflow).</p>
+     *
+     * <p>destination and source shall not overlap</p>
+     *
+     * @return destination pointer
+     */
+  public static Ptr strncpy(Ptr destination, Ptr source, int num) {
+
+    for (int i = 0; i < num; i++) {
+      byte srcChar = source.getByte(i);
+      destination.setByte(i, srcChar);
       if(srcChar == 0) {
         break;
       }
     }
-    while(num > 0) {
-      destination.array[di++] = 0;
-      num--;
-    }
-   
     return destination;
+  }
+
+  @Deprecated
+  public static int atoi(BytePtr str) {
+    return atoi((Ptr)str);
   }
 
   /**
@@ -113,17 +138,30 @@ public class Stdlib {
    * @param str This is the string representation of an integral number.
    * @return the converted integral number as an int value. If no valid conversion could be performed, it returns zero.
    */
-  public static int atoi(BytePtr  str) {
+  public static int atoi(Ptr str) {
     try {
-      return Integer.parseInt(str.nullTerminatedString());
+      return Integer.parseInt(nullTerminatedString(str));
     } catch (NumberFormatException e) {
       return 0;
     }
   }
 
+  private static String nullTerminatedString(Ptr x) {
+    StringBuilder str = new StringBuilder();
+    int i = 0;
+    while(true) {
+      byte b = x.getByte(i);
+      if(b == 0) {
+        break;
+      }
+      str.append((char)b); // Implicit US ASCII encoding...
+    }
+    return str.toString();
+  }
+
   @Deprecated
   public static int strlen(BytePtr x) {
-    return x.nullTerminatedStringLength();
+    return strlen((Ptr)x);
   }
 
   public static int strlen(Ptr x) {
@@ -149,16 +187,16 @@ public class Stdlib {
     }
     // Find the length of the src string
     int srcLen = strlen(src);
-    
+
     // Copy into the dest buffer
     System.arraycopy(src.array, src.offset, dest.array, start, srcLen);
-    
+
     // Null terminate the concatenated string
     dest.array[start+srcLen] = 0;
-    
+
     return dest;
   }
-  
+
   public static int printf(BytePtr format, Object... arguments) {
     String outputString;
 
@@ -167,17 +205,17 @@ public class Stdlib {
     } catch (Exception e) {
       return -1;
     }
-    
+
     System.out.print(outputString);
-    
+
     return outputString.length();
   }
-  
+
   public static int puts(BytePtr string) {
     System.out.print(string.nullTerminatedString());
     return 0;
   }
-  
+
   public static int sprintf(BytePtr string, BytePtr format, Object... arguments) {
     return snprintf(string, Integer.MAX_VALUE, format, arguments);
   }
@@ -208,7 +246,7 @@ public class Stdlib {
     return outputBytes.length;
   }
 
-  public static int sscanf(BytePtr format, Object... arguments) { 
+  public static int sscanf(BytePtr format, Object... arguments) {
     throw new UnsupportedOperationException("TODO: implement " + Stdlib.class.getName() + ".sscanf");
   }
 
@@ -237,7 +275,7 @@ public class Stdlib {
   public static void qsort(Object base, int nitems, int size, MethodHandle comparator) {
     throw new UnsupportedOperationException();
   }
-  
+
   @Deprecated
   public static ObjectPtr<CharPtr> __ctype_b_loc() {
     return CharTypes.TABLE_OBJECT_PTR;
@@ -248,12 +286,12 @@ public class Stdlib {
   public static int[] div(int numer, int denom) {
     int quot = numer / denom;
     int rem = numer % denom;
-    
+
     return new int[] { quot, rem };
   }
 
   /**
-   * Returns the time since the Epoch (00:00:00 UTC, January 1, 1970), measured in seconds. 
+   * Returns the time since the Epoch (00:00:00 UTC, January 1, 1970), measured in seconds.
    * If seconds is not NULL, the return value is also stored in variable seconds.
    */
   public static int time(IntPtr seconds) {
@@ -290,7 +328,7 @@ public class Stdlib {
 
 
   /**
-   * The tzset function initializes the tzname variable from the value of the TZ environment variable. 
+   * The tzset function initializes the tzname variable from the value of the TZ environment variable.
    * It is not usually necessary for your program to call this function, because it is called automatically
    * when you use the other time conversion functions that depend on the time zone.
    */
@@ -300,7 +338,7 @@ public class Stdlib {
     timezone = currentTimezone.getOffset(System.currentTimeMillis());
     daylight = currentTimezone.inDaylightTime(new Date()) ? 1 : 0;
   }
-  
+
   public static void fflush(Object file) {
     // TODO: implement properly
   }
@@ -314,23 +352,23 @@ public class Stdlib {
     int secondsSinceProgramStart = (int)TimeUnit.MILLISECONDS.toSeconds(millisSinceProgramStart);
     return secondsSinceProgramStart * CLOCKS_PER_SEC;
   }
-  
+
   private static final int CLOCK_REALTIME = 0;
   private static final int CLOCK_MONOTONIC = 1;
   private static final int CLOCK_REALTIME_COARSE = 5;
-  
+
   public static int clock_gettime(int clockId, timespec tp) {
-    
+
     switch (clockId) {
       case CLOCK_REALTIME:
       case CLOCK_REALTIME_COARSE:
         // Return the current time since 1970-01-01
         tp.set(System.currentTimeMillis(), TimeUnit.MILLISECONDS);
         return 0;
-      
+
       case CLOCK_MONOTONIC:
         // Return a high precision time from some arbitrary offset
-        tp.set(System.nanoTime(), TimeUnit.NANOSECONDS);        
+        tp.set(System.nanoTime(), TimeUnit.NANOSECONDS);
         return 0;
 
       default:
@@ -338,14 +376,14 @@ public class Stdlib {
         return -1;
     }
   }
-  
+
   public static Object fopen() {
     throw new UnsupportedOperationException("fopen() not implemented");
   }
 
   /**
    * test for infinity.
-   * 
+   *
    * <p>__isinf() has the same specification as isinf() in ISO POSIX (2003), except that the
    * argument type for __isinf() is known to be double.
    *

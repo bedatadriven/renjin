@@ -129,7 +129,7 @@ public class BytePtr extends AbstractPtr {
 
   @Override
   public int getOffsetInBytes() {
-    throw new UnsupportedOperationException("TODO");
+    return offset;
   }
 
   @Override

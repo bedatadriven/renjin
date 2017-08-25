@@ -37,6 +37,7 @@ import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
+import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.gimple.type.GimpleType;
 
 /**
@@ -54,7 +55,6 @@ public class VArrayExpr implements ArrayExpr {
 
   private GimpleArrayType arrayType;
 
-
   public VArrayExpr(GimpleArrayType arrayType, VPtrExpr pointer) {
     this.arrayType = arrayType;
     this.pointer = pointer;
@@ -62,7 +62,8 @@ public class VArrayExpr implements ArrayExpr {
 
   @Override
   public void store(MethodGenerator mv, GExpr rhs) {
-    throw new UnsupportedOperationException("TODO");
+    VArrayExpr rhsArray = rhs.toVArray(arrayType);
+    pointer.memoryCopy(mv, rhsArray.pointer, Expressions.constantInt(arrayType.sizeOf()), false);
   }
 
   @Override
@@ -111,8 +112,13 @@ public class VArrayExpr implements ArrayExpr {
   }
 
   @Override
-  public VPtrRecordExpr toVPtrRecord() {
+  public VPtrRecordExpr toVPtrRecord(GimpleRecordType recordType) {
     throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public VArrayExpr toVArray(GimpleArrayType arrayType) {
+    return new VArrayExpr(arrayType, pointer);
   }
 
   @Override

@@ -128,8 +128,8 @@ public class GlobalSymbolTable implements SymbolTable {
 
     addFunction("__builtin_malloc__", new MallocCallGenerator(typeOracle));
     addFunction("__builtin_free__", new MallocCallGenerator(typeOracle));
-    addFunction("__builtin_memcpy", new MemCopyCallGenerator(typeOracle, false));
-    addFunction("__builtin_memcpy__", new MemCopyCallGenerator(typeOracle, false));
+    addFunction("__builtin_memcpy", new MemCopyCallGenerator(false));
+    addFunction("__builtin_memcpy__", new MemCopyCallGenerator(false));
     addFunction("__builtin_memset__", new MemSetGenerator(typeOracle));
 
     addFunction(BuiltinExpectGenerator.NAME, new BuiltinExpectGenerator());
@@ -143,8 +143,8 @@ public class GlobalSymbolTable implements SymbolTable {
     
     addMethod("__builtin_log10__", Math.class, "log10");
 
-    addFunction("memcpy", new MemCopyCallGenerator(typeOracle, false));
-    addFunction(MemCopyCallGenerator.MEMMOVE, new MemCopyCallGenerator(typeOracle, true));
+    addFunction("memcpy", new MemCopyCallGenerator(false));
+    addFunction(MemCopyCallGenerator.MEMMOVE, new MemCopyCallGenerator(true));
     addFunction("memcmp", new MemCmpCallGenerator(typeOracle));
     addFunction("memset", new MemSetGenerator(typeOracle));
     

@@ -31,6 +31,7 @@ import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValueFunction;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
+import org.renjin.gcc.codegen.vptr.VArrayExpr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.codegen.vptr.VPtrRecordExpr;
 import org.renjin.gcc.gimple.type.*;
@@ -109,7 +110,12 @@ public final class RecordArrayExpr implements RecordExpr {
   }
 
   @Override
-  public VPtrRecordExpr toVPtrRecord() {
+  public VPtrRecordExpr toVPtrRecord(GimpleRecordType recordType) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public VArrayExpr toVArray(GimpleArrayType arrayType) {
     throw new UnsupportedOperationException("TODO");
   }
 

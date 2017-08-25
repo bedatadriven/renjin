@@ -30,9 +30,12 @@ import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
 import org.renjin.gcc.codegen.type.record.RecordLayout;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
+import org.renjin.gcc.codegen.vptr.VArrayExpr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.codegen.vptr.VPtrRecordExpr;
+import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
+import org.renjin.gcc.gimple.type.GimpleRecordType;
 
 /**
  * Interface for generators which can emit load/store operations for {@code GimpleExpr}s
@@ -84,5 +87,7 @@ public interface GExpr {
    */
   FatPtr toFatPtrExpr(ValueFunction valueFunction);
 
-  VPtrRecordExpr toVPtrRecord();
+  VPtrRecordExpr toVPtrRecord(GimpleRecordType recordType);
+
+  VArrayExpr toVArray(GimpleArrayType arrayType);
 }

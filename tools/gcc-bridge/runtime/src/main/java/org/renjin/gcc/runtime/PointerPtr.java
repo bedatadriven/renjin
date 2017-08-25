@@ -56,6 +56,16 @@ public class PointerPtr extends AbstractPtr {
     this.offset = offset;
   }
 
+  /**
+   * Allocates a "memory block" of length 1 and initializes it to the given
+   * value.
+   *
+   * @return a pointer to the new memory block
+   */
+  public static PointerPtr malloc(Ptr value) {
+    return new PointerPtr(new Ptr[] { value }, 0);
+  }
+
   public static PointerPtr malloc(int bytes) {
     Ptr[] array = new Ptr[mallocSize(bytes, BYTES)];
     Arrays.fill(array, NULL);

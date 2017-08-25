@@ -21,12 +21,14 @@
 package org.renjin.gcc.codegen.vptr;
 
 import org.renjin.gcc.codegen.MethodGenerator;
+import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleParameter;
+import org.renjin.gcc.runtime.PointerPtr;
 import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
@@ -47,7 +49,16 @@ public class VPtrParamStrategy implements ParamStrategy {
 
   @Override
   public GExpr emitInitialization(MethodGenerator methodVisitor, GimpleParameter parameter, List<JLValue> paramVars, VarAllocator localVars) {
-    return new VPtrExpr(paramVars.get(0));
+    if(parameter.isAddressable()) {
+      JLValue pointerPtr = localVars.reserve(parameter.getName() + "$address", Type.getType(PointerPtr.class),
+          Expressions.staticMethodCall(PointerPtr.class, "malloc",
+              Type.getMethodDescriptor(Type.getType(PointerPtr.class), Type.getType(Ptr.class)), paramVars.get(0)));
+
+      VPtrExpr address = new VPtrExpr(pointerPtr);
+      return address.valueOf(parameter.getType());
+    } else {
+      return new VPtrExpr(paramVars.get(0));
+    }
   }
 
   @Override

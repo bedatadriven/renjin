@@ -25,6 +25,7 @@ import org.renjin.gcc.codegen.array.FatArrayExpr;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.expr.PtrExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
@@ -35,6 +36,7 @@ import org.renjin.gcc.codegen.type.record.RecordExpr;
 import org.renjin.gcc.codegen.type.record.RecordLayout;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
+import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.gimple.type.GimpleType;
@@ -57,9 +59,19 @@ public class VPtrRecordExpr implements RecordExpr {
   @Override
   public void store(MethodGenerator mv, GExpr rhs) {
 
-    pointer.getRef().load(mv);                  // destination
-    rhs.toVPtrRecord().getRef().load(mv);         // source
-    mv.iconst(recordType.sizeOf());             // byte count
+
+    pointer.getRef().load(mv);                              // destination
+
+    // Because of some C++ black magic related to copy constructors, we can end up
+    // with an assignment of a pointer to a value. Deal gracefully.
+
+    if(rhs instanceof PtrExpr) {
+      rhs.toVPtrExpr().getRef().load(mv);
+    } else {
+      rhs.toVPtrRecord(recordType).getRef().load(mv);
+    }
+
+    mv.iconst(recordType.sizeOf());                         // byte count
 
     mv.invokeinterface(Ptr.class, "memcpy", Type.VOID_TYPE, Type.getType(Ptr.class), Type.INT_TYPE);
   }
@@ -100,8 +112,13 @@ public class VPtrRecordExpr implements RecordExpr {
   }
 
   @Override
-  public VPtrRecordExpr toVPtrRecord() {
-    return this;
+  public VPtrRecordExpr toVPtrRecord(GimpleRecordType recordType) {
+    return new VPtrRecordExpr(recordType, pointer);
+  }
+
+  @Override
+  public VArrayExpr toVArray(GimpleArrayType arrayType) {
+    throw new UnsupportedOperationException("TODO");
   }
 
   @Override

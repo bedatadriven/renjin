@@ -22,7 +22,6 @@ import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategies;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
-import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.*;
 import org.renjin.gcc.codegen.type.*;
@@ -31,7 +30,6 @@ import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.codegen.type.record.RecordConstructor;
 import org.renjin.gcc.codegen.type.record.RecordLayout;
 import org.renjin.gcc.codegen.var.VarAllocator;
-import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
@@ -187,20 +185,6 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>
     return new RecordUnitPtr(getLayout(), Expressions.nullRef(strategy.getJvmType()));
   }
 
-  @Override
-  public void memoryCopy(MethodGenerator mv, RecordUnitPtr destination, RecordUnitPtr source, JExpr length, boolean buffer) {
-
-    Type recordType = strategy.getJvmType();
-
-    destination.unwrap().load(mv);
-    source.unwrap().load(mv);
-    mv.invokevirtual(recordType, "set", Type.getMethodDescriptor(Type.VOID_TYPE, recordType), false);
-  }
-
-  @Override
-  public RecordUnitPtr unmarshallVoidPtrReturnValue(MethodGenerator mv, JExpr voidPointer) {
-    return new RecordUnitPtr(getLayout(), Expressions.cast(voidPointer, getJvmType()));
-  }
 
   private boolean isUnitConstant(JExpr length) {
     if(!(length instanceof ConstantValue)) {

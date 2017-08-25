@@ -26,9 +26,12 @@ import org.renjin.gcc.codegen.expr.PtrExpr;
 import org.renjin.gcc.codegen.fatptr.WrappedFatPtrExpr;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
 import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
+import org.renjin.gcc.codegen.vptr.VArrayExpr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.codegen.vptr.VPtrRecordExpr;
 import org.renjin.gcc.gimple.GimpleOp;
+import org.renjin.gcc.gimple.type.GimpleArrayType;
+import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.repackaged.asm.Type;
 
 public class DereferencedWrappedVoidPtr extends VoidPtrExpr {
@@ -65,7 +68,12 @@ public class DereferencedWrappedVoidPtr extends VoidPtrExpr {
   }
 
   @Override
-  public VPtrRecordExpr toVPtrRecord() {
+  public VPtrRecordExpr toVPtrRecord(GimpleRecordType recordType) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public VArrayExpr toVArray(GimpleArrayType arrayType) {
     throw new UnsupportedOperationException("TODO");
   }
 

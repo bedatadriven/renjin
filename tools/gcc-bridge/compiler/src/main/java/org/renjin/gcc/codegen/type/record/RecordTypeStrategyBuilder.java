@@ -143,11 +143,8 @@ public class RecordTypeStrategyBuilder {
    */
   private void buildEmpty(UnionSet set) {
 
-    boolean unitPointer = isUnitPointer(set);
     for (GimpleRecordTypeDef typeDef : set.getAllTypes()) {
-      RecordClassTypeStrategy strategy = new RecordClassTypeStrategy(typeOracle, typeDef, new EmptyRecordLayout());
-      strategy.setUnitPointer(unitPointer);
-      typeOracle.addRecordType(typeDef, strategy);
+      typeOracle.addRecordType(typeDef, new VPtrRecordTypeStrategy(typeDef));
     }
   }
 

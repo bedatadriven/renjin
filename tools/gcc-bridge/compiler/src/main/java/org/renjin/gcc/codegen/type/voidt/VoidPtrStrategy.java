@@ -21,7 +21,6 @@ package org.renjin.gcc.codegen.type.voidt;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategies;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
-import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.AddressableField;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
@@ -29,7 +28,6 @@ import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.var.VarAllocator;
-import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
@@ -87,22 +85,6 @@ public class VoidPtrStrategy implements PointerTypeStrategy<VoidPtrExpr>, Simple
     return new VoidPtrExpr(Expressions.nullRef(Type.getType(Object.class)));
   }
 
-  @Override
-  public void memoryCopy(MethodGenerator mv, VoidPtrExpr destination, VoidPtrExpr source, JExpr length, boolean buffer) {
-    
-    destination.unwrap().load(mv);
-    source.unwrap().load(mv);
-    length.load(mv);
-    
-    mv.invokestatic(org.renjin.gcc.runtime.VoidPtr.class, "memcpy", 
-        Type.getMethodDescriptor(Type.VOID_TYPE, 
-            Type.getType(Object.class), Type.getType(Object.class), Type.INT_TYPE));
-  }
-
-  @Override
-  public VoidPtrExpr unmarshallVoidPtrReturnValue(MethodGenerator mv, JExpr voidPointer) {
-    return new VoidPtrExpr(voidPointer);
-  }
 
   @Override
   public ParamStrategy getParamStrategy() {

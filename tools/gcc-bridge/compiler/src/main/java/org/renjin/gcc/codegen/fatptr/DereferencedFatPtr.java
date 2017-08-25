@@ -29,10 +29,13 @@ import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
 import org.renjin.gcc.codegen.type.record.RecordLayout;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
+import org.renjin.gcc.codegen.vptr.VArrayExpr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.codegen.vptr.VPtrRecordExpr;
 import org.renjin.gcc.gimple.GimpleOp;
+import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
+import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
@@ -121,7 +124,12 @@ public class DereferencedFatPtr implements RefPtrExpr, FatPtr {
   }
 
   @Override
-  public VPtrRecordExpr toVPtrRecord() {
+  public VPtrRecordExpr toVPtrRecord(GimpleRecordType recordType) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public VArrayExpr toVArray(GimpleArrayType arrayType) {
     throw new UnsupportedOperationException("TODO");
   }
 
@@ -158,6 +166,11 @@ public class DereferencedFatPtr implements RefPtrExpr, FatPtr {
 
   @Override
   public void memorySet(MethodGenerator mv, JExpr byteValue, JExpr length) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public void memoryCopy(MethodGenerator mv, PtrExpr source, JExpr length, boolean buffer) {
     throw new UnsupportedOperationException("TODO");
   }
 

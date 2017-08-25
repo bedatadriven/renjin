@@ -21,20 +21,13 @@ package org.renjin.gcc.codegen.fatptr;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategies;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
-import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.type.primitive.ConstantValue;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
-import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
-import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
-import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrStrategy;
-import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
-import org.renjin.gcc.codegen.var.LocalVarAllocator;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.codegen.vptr.VPtrParamStrategy;
 import org.renjin.gcc.codegen.vptr.VPtrReturnStrategy;
-import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
@@ -217,69 +210,11 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
     return new FatPtrPair(valueFunction, pointerPair.getArray(), newOffset);
   }
 
-  @Override
-  public void memoryCopy(MethodGenerator mv, FatPtr destination, FatPtr source, JExpr lengthBytes, boolean buffer) {
-    
-    FatPtrPair destinationPair = destination.toPair(mv);
-    FatPtrPair sourcePair = source.toPair(mv);
-    
-    // Convert bytes -> value counts
-    JExpr valueCount = computeElementsToCopy(lengthBytes);
-    
-    valueFunction.memoryCopy(mv,
-        destinationPair.getArray(), destinationPair.getOffset(),
-        sourcePair.getArray(), sourcePair.getOffset(), valueCount);
-  }
 
-  private JExpr computeElementsToCopy(JExpr lengthBytes) {
-    if(lengthBytes instanceof ConstantValue) {
-      // It can be that the actual storage size of a record (struct)
-      // is smaller than it's declared size, for example, a struct
-      // with a 3 booleans will still have a size of 4 bytes for alignment purposes.
-      
-      // When COPYING a SINGLE element however, sometimes GCC it's infinite cleverness, 
-      // will copy ONLY the actual number of bytes stored. 
-      
-      // Dividing this number by the declared size of the struct will result 
-      // in ZERO and nothing will be copied. For this reason, we need a little
-      // hack here for this very particular case.
-      
-      int numBytes = ((ConstantValue) lengthBytes).getIntValue();
-      if(numBytes < valueFunction.getArrayElementBytes()) {
-        return Expressions.constantInt(1);
-      } 
-    }
-    
-    return Expressions.divide(lengthBytes, valueFunction.getArrayElementBytes());
-  }
 
   @Override
   public FatPtr nullPointer() {
     return FatPtrPair.nullPtr(valueFunction);
-  }
-
-  @Override
-  public FatPtr unmarshallVoidPtrReturnValue(MethodGenerator mv, JExpr voidPointer) {
-
-    // cast the result to the wrapper type, e.g. ObjectPtr or DoublePtr
-    Type wrapperType = getWrapperType();
-    JExpr wrapperPtr = Wrappers.cast(valueFunction.getValueType(), voidPointer);
-
-    // Reserve a local variable to hold the result
-    JLValue retVal = mv.getLocalVarAllocator().reserve(wrapperType);
-
-    // store the result of the call to the temp variable
-    retVal.store(mv, wrapperPtr);
-
-    // Now unpack the array and offset into seperate local variables
-    Type arrayType = Wrappers.valueArrayType(valueFunction.getValueType());
-    JLValue arrayVar = mv.getLocalVarAllocator().reserve(arrayType);
-    JLValue offsetVar = mv.getLocalVarAllocator().reserve(Type.INT_TYPE);
-    
-    arrayVar.store(mv, Wrappers.arrayField(retVal, valueFunction.getValueType()));
-    offsetVar.store(mv, Wrappers.offsetField(retVal));
-    
-    return new FatPtrPair(valueFunction, arrayVar, offsetVar);
   }
 
   private Type getWrapperType() {

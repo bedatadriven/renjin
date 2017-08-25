@@ -25,7 +25,6 @@ import org.renjin.gcc.codegen.array.FatArrayExpr;
 import org.renjin.gcc.codegen.condition.ConditionGenerator;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.FatPtr;
-import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
 import org.renjin.gcc.codegen.type.fun.FunPtr;
@@ -126,7 +125,12 @@ public class VPtrExpr implements PtrExpr {
   }
 
   @Override
-  public VPtrRecordExpr toVPtrRecord() {
+  public VPtrRecordExpr toVPtrRecord(GimpleRecordType recordType) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public VArrayExpr toVArray(GimpleArrayType arrayType) {
     throw new UnsupportedOperationException("TODO");
   }
 
@@ -154,6 +158,16 @@ public class VPtrExpr implements PtrExpr {
     length.load(mv);
 
     mv.invokeinterface(Ptr.class, "memset", Type.VOID_TYPE, Type.INT_TYPE, Type.INT_TYPE);
+  }
+
+  @Override
+  public void memoryCopy(MethodGenerator mv, PtrExpr source, JExpr length, boolean buffer) {
+
+    ref.load(mv);
+    source.toVPtrExpr().getRef().load(mv);
+    length.load(mv);
+
+    mv.invokeinterface(Ptr.class, "memcpy", Type.VOID_TYPE, Type.getType(Ptr.class), Type.INT_TYPE);
   }
 
   @Override

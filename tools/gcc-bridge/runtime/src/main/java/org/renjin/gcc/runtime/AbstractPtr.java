@@ -228,7 +228,12 @@ public abstract class AbstractPtr implements Ptr {
 
   @Override
   public Ptr getPointer(int offset) {
-    throw new UnsupportedOperationException("TODO");
+    int intValue = getInt(offset);
+    if(intValue == 0) {
+      return BytePtr.NULL;
+    } else {
+      return new InvalidPtr(intValue);
+    }
   }
 
   @Override

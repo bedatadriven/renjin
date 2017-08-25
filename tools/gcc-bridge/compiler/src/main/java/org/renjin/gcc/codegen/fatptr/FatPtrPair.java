@@ -30,16 +30,14 @@ import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
 import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
 import org.renjin.gcc.codegen.type.record.RecordLayout;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
-import org.renjin.gcc.codegen.type.record.unit.RefConditionGenerator;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.codegen.var.LocalVarAllocator;
 import org.renjin.gcc.codegen.vptr.PointerType;
+import org.renjin.gcc.codegen.vptr.VArrayExpr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.codegen.vptr.VPtrRecordExpr;
 import org.renjin.gcc.gimple.GimpleOp;
-import org.renjin.gcc.gimple.type.GimpleIntegerType;
-import org.renjin.gcc.gimple.type.GimplePrimitiveType;
-import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.gcc.gimple.type.*;
 import org.renjin.gcc.runtime.ObjectPtr;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
@@ -213,7 +211,12 @@ public final class FatPtrPair implements FatPtr, PtrExpr {
   }
 
   @Override
-  public VPtrRecordExpr toVPtrRecord() {
+  public VPtrRecordExpr toVPtrRecord(GimpleRecordType recordType) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public VArrayExpr toVArray(GimpleArrayType arrayType) {
     throw new UnsupportedOperationException("TODO");
   }
 
@@ -342,6 +345,41 @@ public final class FatPtrPair implements FatPtr, PtrExpr {
     Type arrayType = Wrappers.valueArrayType(valueFunction.getValueType());
     JExpr nullArray = Expressions.nullRef(arrayType);
     return new FatPtrPair(valueFunction, nullArray);
+  }
+
+  @Override
+  public void memoryCopy(MethodGenerator mv, PtrExpr source, JExpr lengthBytes, boolean buffer) {
+
+    FatPtrPair sourcePair = source.toFatPtrExpr(valueFunction).toPair(mv);
+
+    // Convert bytes -> value counts
+    JExpr valueCount = computeElementsToCopy(lengthBytes);
+
+    valueFunction.memoryCopy(mv,
+        array, offset,
+        sourcePair.getArray(), sourcePair.getOffset(), valueCount);
+  }
+
+  private JExpr computeElementsToCopy(JExpr lengthBytes) {
+    if(lengthBytes instanceof ConstantValue) {
+      // It can be that the actual storage size of a record (struct)
+      // is smaller than it's declared size, for example, a struct
+      // with a 3 booleans will still have a size of 4 bytes for alignment purposes.
+
+      // When COPYING a SINGLE element however, sometimes GCC it's infinite cleverness,
+      // will copy ONLY the actual number of bytes stored.
+
+      // Dividing this number by the declared size of the struct will result
+      // in ZERO and nothing will be copied. For this reason, we need a little
+      // hack here for this very particular case.
+
+      int numBytes = ((ConstantValue) lengthBytes).getIntValue();
+      if(numBytes < valueFunction.getArrayElementBytes()) {
+        return Expressions.constantInt(1);
+      }
+    }
+
+    return Expressions.divide(lengthBytes, valueFunction.getArrayElementBytes());
   }
 
 }

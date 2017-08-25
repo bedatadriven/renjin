@@ -79,16 +79,6 @@ public class VPtrStrategy implements PointerTypeStrategy {
   }
 
   @Override
-  public void memoryCopy(MethodGenerator mv, GExpr destination, GExpr source, JExpr length, boolean buffer) {
-    throw new UnsupportedOperationException("TODO");
-  }
-
-  @Override
-  public GExpr unmarshallVoidPtrReturnValue(MethodGenerator mv, JExpr voidPointer) {
-    throw new UnsupportedOperationException("TODO");
-  }
-
-  @Override
   public ParamStrategy getParamStrategy() {
     return new VPtrParamStrategy();
   }

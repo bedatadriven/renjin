@@ -31,12 +31,11 @@ import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
 import org.renjin.gcc.codegen.type.record.RecordLayout;
 import org.renjin.gcc.codegen.type.record.RecordValue;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
+import org.renjin.gcc.codegen.vptr.VArrayExpr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.codegen.vptr.VPtrRecordExpr;
 import org.renjin.gcc.gimple.GimpleOp;
-import org.renjin.gcc.gimple.type.GimpleIntegerType;
-import org.renjin.gcc.gimple.type.GimplePrimitiveType;
-import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.gcc.gimple.type.*;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
 
@@ -154,7 +153,21 @@ public class RecordUnitPtr implements RefPtrExpr {
   }
 
   @Override
-  public VPtrRecordExpr toVPtrRecord() {
+  public VPtrRecordExpr toVPtrRecord(GimpleRecordType recordType) {
+
     throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public VArrayExpr toVArray(GimpleArrayType arrayType) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public void memoryCopy(MethodGenerator mv, PtrExpr source, JExpr length, boolean buffer) {
+
+    ref.load(mv);
+    source.toRecordUnitPtrExpr(layout).unwrap().load(mv);
+    mv.invokevirtual(layout.getType(), "set", Type.getMethodDescriptor(Type.VOID_TYPE, layout.getType()), false);
   }
 }

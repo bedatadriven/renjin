@@ -32,10 +32,13 @@ import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
 import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
 import org.renjin.gcc.codegen.type.record.RecordLayout;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
+import org.renjin.gcc.codegen.vptr.VArrayExpr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.codegen.vptr.VPtrRecordExpr;
 import org.renjin.gcc.gimple.GimpleOp;
+import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
+import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Label;
@@ -124,6 +127,18 @@ public class VoidPtrExpr implements RefPtrExpr {
   }
 
   @Override
+  public void memoryCopy(MethodGenerator mv, PtrExpr source, JExpr length, boolean buffer) {
+
+    unwrap().load(mv);
+    source.toVoidPtrExpr().unwrap().load(mv);
+    length.load(mv);
+
+    mv.invokestatic(org.renjin.gcc.runtime.VoidPtr.class, "memcpy",
+          Type.getMethodDescriptor(Type.VOID_TYPE,
+              Type.getType(Object.class), Type.getType(Object.class), Type.INT_TYPE));
+  }
+
+  @Override
   public PtrExpr realloc(MethodGenerator mv, JExpr newSizeInBytes) {
     return new VoidPtrExpr(new VoidPtrRealloc(unwrap(), newSizeInBytes));
   }
@@ -168,7 +183,12 @@ public class VoidPtrExpr implements RefPtrExpr {
   }
 
   @Override
-  public VPtrRecordExpr toVPtrRecord() {
+  public VPtrRecordExpr toVPtrRecord(GimpleRecordType recordType) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public VArrayExpr toVArray(GimpleArrayType arrayType) {
     throw new UnsupportedOperationException("TODO");
   }
 }

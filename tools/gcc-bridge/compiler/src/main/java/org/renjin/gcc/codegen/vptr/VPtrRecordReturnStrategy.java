@@ -30,6 +30,8 @@ import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Type;
 
+import javax.annotation.Nonnull;
+
 public class VPtrRecordReturnStrategy implements ReturnStrategy {
 
   private GimpleRecordType recordType;
@@ -55,6 +57,18 @@ public class VPtrRecordReturnStrategy implements ReturnStrategy {
 
   @Override
   public JExpr getDefaultReturnValue() {
-    throw new UnsupportedOperationException("TODO");
+    final VPtrStrategy strategy = new VPtrStrategy(recordType);
+    return new JExpr() {
+      @Nonnull
+      @Override
+      public Type getType() {
+        return Type.getType(Ptr.class);
+      }
+
+      @Override
+      public void load(@Nonnull MethodGenerator mv) {
+        strategy.malloc(mv, Expressions.constantInt(recordType.sizeOf()));
+      }
+    };
   }
 }

@@ -180,7 +180,7 @@ public final class FatPtrPair implements FatPtr, PtrExpr {
 
   @Override
   public VPtrExpr toVPtrExpr() {
-    final PointerType primitiveType = PointerType.ofType(valueFunction.getGimpleValueType());
+    final PointerType primitiveType = PointerType.ofType(valueFunction.getValueType());
 
     return new VPtrExpr(new JExpr() {
       @Nonnull

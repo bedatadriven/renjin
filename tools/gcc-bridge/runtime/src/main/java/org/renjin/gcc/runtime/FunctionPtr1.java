@@ -69,7 +69,7 @@ public class FunctionPtr1 extends AbstractPtr {
 
   @Override
   public int toInt() {
-    throw new UnsupportedOperationException("TODO");
+    return System.identityHashCode(methodHandle);
   }
 
   @Override

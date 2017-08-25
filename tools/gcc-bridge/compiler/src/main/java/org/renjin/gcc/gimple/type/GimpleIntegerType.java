@@ -128,6 +128,9 @@ public class GimpleIntegerType extends GimplePrimitiveType {
     type.unsigned = true;
     return type;
   }
-  
-  
+
+
+  public static GimpleType signed(int bits) {
+    return new GimpleIntegerType(bits);
+  }
 }

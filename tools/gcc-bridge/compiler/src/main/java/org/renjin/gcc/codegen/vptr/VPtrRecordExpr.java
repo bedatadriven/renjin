@@ -30,16 +30,14 @@ import org.renjin.gcc.codegen.fatptr.FatPtr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
 import org.renjin.gcc.codegen.type.fun.FunPtr;
+import org.renjin.gcc.codegen.type.primitive.BitFieldExpr;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
 import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
 import org.renjin.gcc.codegen.type.record.RecordExpr;
 import org.renjin.gcc.codegen.type.record.RecordLayout;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
-import org.renjin.gcc.gimple.type.GimpleArrayType;
-import org.renjin.gcc.gimple.type.GimplePrimitiveType;
-import org.renjin.gcc.gimple.type.GimpleRecordType;
-import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.gcc.gimple.type.*;
 import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Type;
 
@@ -134,12 +132,26 @@ public class VPtrRecordExpr implements RecordExpr {
   @Override
   public GExpr memberOf(MethodGenerator mv, int fieldOffsetBits, int size, GimpleType type) {
 
-    if(fieldOffsetBits % 8 != 0) {
-      throw new UnsupportedOperationException("TODO");
+    if(fieldOffsetBits % 8 == 0) {
+      return pointer.valueOf(type, Expressions.constantInt(fieldOffsetBits / 8));
     }
 
-    return pointer.valueOf(type, Expressions.constantInt(fieldOffsetBits / 8));
+    // Handle bit fields
 
+    if( type.equals(GimpleIntegerType.signed(8)) ||
+        type.equals(GimpleIntegerType.unsigned(8))) {
+
+      DerefExpr byteValue = new DerefExpr(
+          pointer.getRef(),
+          Expressions.constantInt(fieldOffsetBits / 8),
+          PointerType.BYTE);
+
+      BitFieldExpr bitFieldExpr = new BitFieldExpr(byteValue, fieldOffsetBits % 8, size);
+
+      return new PrimitiveValue((GimplePrimitiveType) type, bitFieldExpr);
+    }
+
+    throw new UnsupportedOperationException("TODO: bitfield, expectedType = " + type);
   }
 
   public JExpr getRef() {

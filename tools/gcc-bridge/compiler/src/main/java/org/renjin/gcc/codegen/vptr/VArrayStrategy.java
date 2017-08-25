@@ -21,18 +21,27 @@
 package org.renjin.gcc.codegen.vptr;
 
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.*;
+import org.renjin.gcc.codegen.var.LocalVarAllocator;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
+import org.renjin.gcc.gimple.expr.GimpleExpr;
+import org.renjin.gcc.gimple.expr.GimpleFieldRef;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
+import org.renjin.gcc.gimple.type.GimpleField;
+import org.renjin.gcc.gimple.type.GimpleIndirectType;
+import org.renjin.gcc.gimple.type.GimpleRecordType;
+import org.renjin.gcc.runtime.MixedPtr;
+import org.renjin.gcc.runtime.PointerPtr;
 import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Type;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 
 public class VArrayStrategy implements TypeStrategy<VArrayExpr> {
 
@@ -59,8 +68,7 @@ public class VArrayStrategy implements TypeStrategy<VArrayExpr> {
 
   @Override
   public VArrayExpr variable(GimpleVarDecl decl, VarAllocator allocator) {
-    PointerType pointerType = PointerType.ofType(arrayType.getComponentType());
-    JExpr malloc = VPtrStrategy.malloc(pointerType, Expressions.constantInt(arrayType.sizeOf())).getRef();
+    JExpr malloc = VPtrStrategy.malloc(arrayType, Expressions.constantInt(arrayType.sizeOf())).getRef();
     JLValue var = allocator.reserve(decl.getName(), Type.getType(Ptr.class), malloc);
 
     return new VArrayExpr(arrayType, new VPtrExpr(var));
@@ -73,7 +81,55 @@ public class VArrayStrategy implements TypeStrategy<VArrayExpr> {
 
   @Override
   public VArrayExpr constructorExpr(ExprFactory exprFactory, MethodGenerator mv, GimpleConstructor value) {
-    throw new UnsupportedOperationException("TODO");
+
+    if(arrayType.getComponentType() instanceof GimpleIndirectType) {
+      return pointerArrayConstructorExpr(exprFactory, mv, value);
+    }
+    if(arrayType.getComponentType() instanceof GimpleRecordType) {
+      return mixedRecordArrayConstructor(exprFactory, mv, value);
+    }
+
+    throw new UnsupportedOperationException("TODO: " + arrayType);
+  }
+
+  private VArrayExpr mixedRecordArrayConstructor(ExprFactory exprFactory, MethodGenerator mv, GimpleConstructor value) {
+
+    // Create a temporary variable for this constructed record array.
+    Type pointerType = Type.getType(MixedPtr.class);
+    VPtrExpr malloc = VPtrStrategy.malloc(pointerType, Expressions.constantInt(arrayType.sizeOf()));
+    VPtrExpr tempVar = new VPtrExpr(mv.getLocalVarAllocator().reserve(pointerType));
+    tempVar.store(mv, malloc);
+
+    int offset = 0;
+    for (GimpleConstructor.Element element : value.getElements()) {
+      GimpleConstructor recordCtor = (GimpleConstructor) element.getValue();
+      for (GimpleConstructor.Element fieldCtor : recordCtor.getElements()) {
+        GimpleFieldRef field = (GimpleFieldRef) fieldCtor.getField();
+        GExpr fieldExpr = exprFactory.findGenerator(fieldCtor.getValue(), field.getType());
+
+        tempVar.valueOf(field.getType(), Expressions.constantInt(offset + field.getOffsetBytes()))
+            .store(mv, fieldExpr);
+      }
+      offset += arrayType.getComponentType().sizeOf();
+    }
+
+    return new VArrayExpr(arrayType, tempVar);
+  }
+
+  private VArrayExpr pointerArrayConstructorExpr(ExprFactory exprFactory, MethodGenerator mv, GimpleConstructor value) {
+
+    List<JExpr> pointers = new ArrayList<>();
+    for (GimpleConstructor.Element element : value.getElements()) {
+      GExpr ptrExpr = exprFactory.findGenerator(element.getValue(), arrayType.getComponentType());
+      pointers.add(ptrExpr.toVPtrExpr().getRef());
+    }
+
+    JExpr array = Expressions.newArray(Type.getType(Ptr.class), arrayType.getElementCount(), pointers);
+
+    VPtrExpr pointer = new VPtrExpr(Expressions.newObject(Type.getType(PointerPtr.class), array));
+    VArrayExpr arrayExpr = new VArrayExpr(arrayType, pointer);
+
+    return arrayExpr;
   }
 
   @Override

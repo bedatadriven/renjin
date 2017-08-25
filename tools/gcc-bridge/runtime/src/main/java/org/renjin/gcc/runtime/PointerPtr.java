@@ -95,7 +95,16 @@ public class PointerPtr extends AbstractPtr {
 
   @Override
   public byte getByte(int offset) {
-    throw new UnsupportedOperationException("TODO");
+    int byteOffset = this.offset * BYTES + offset;
+    int index = byteOffset / BYTES;
+    Ptr ptr = array[index];
+
+    if(ptr.isNull()) {
+      return 0;
+    }
+    int intValue = ptr.toInt();
+    int shift = (byteOffset % BYTES) * 8;
+    return (byte)(intValue >>> shift);
   }
 
   @Override
@@ -145,6 +154,16 @@ public class PointerPtr extends AbstractPtr {
       }
     } else {
       super.memset(intValue, n);
+    }
+  }
+
+  @Override
+  public void memcpy(Ptr source, int numBytes) {
+    for (int i = 0; i < numBytes; i+= BYTES) {
+      setPointer(i, source.getPointer(i));
+    }
+    if(numBytes % BYTES != 0) {
+      throw new UnsupportedOperationException("TODO");
     }
   }
 }

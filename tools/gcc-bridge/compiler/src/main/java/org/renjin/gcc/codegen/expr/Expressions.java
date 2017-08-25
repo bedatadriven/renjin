@@ -503,7 +503,13 @@ public class Expressions {
     };
   }
 
-  public static JExpr newObject(final Type classType) {
+  public static JExpr newObject(final Type classType, final JExpr... constructorArguments) {
+
+    final Type argumentTypes[] = new Type[constructorArguments.length];
+    for (int i = 0; i < constructorArguments.length; i++) {
+      argumentTypes[i] = constructorArguments[i].getType();
+    }
+
     return new JExpr() {
       @Nonnull
       @Override
@@ -515,11 +521,16 @@ public class Expressions {
       public void load(@Nonnull MethodGenerator mv) {
         mv.anew(classType);
         mv.dup();
-        mv.invokeconstructor(classType);
+
+        for (JExpr constructorArgument : constructorArguments) {
+          constructorArgument.load(mv);
+        }
+
+        mv.invokeconstructor(classType, argumentTypes);
       }
     };
   }
-  
+
   public static JExpr shiftRight(final JExpr x, int bits) {
     if(bits == 0) {
       return x;

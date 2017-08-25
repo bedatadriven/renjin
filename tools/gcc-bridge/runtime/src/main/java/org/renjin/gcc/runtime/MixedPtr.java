@@ -112,8 +112,13 @@ public class MixedPtr extends AbstractPtr {
       MixedPtr ptr = (MixedPtr) source;
       System.arraycopy(ptr.references, 0, references, 0, numBytes / POINTER_BYTES);
       System.arraycopy(ptr.primitives, 0, primitives, 0, numBytes);
+    } else if(source instanceof OffsetPtr) {
+      throw new UnsupportedOperationException();
+      
     } else {
-      throw new UnsupportedOperationException("TODO");
+      for (int i = 0; i < numBytes; i++) {
+        setByte(i, source.getByte(i));
+      }
     }
   }
 }

@@ -20,6 +20,7 @@
 
 package org.renjin.gcc.codegen.vptr;
 
+import org.renjin.gcc.codegen.type.record.FieldTypeSet;
 import org.renjin.gcc.gimple.type.*;
 import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Type;
@@ -31,7 +32,6 @@ import java.lang.invoke.MethodHandle;
  */
 public enum PointerType {
 
-  BOOLEAN(Type.BOOLEAN_TYPE, PointerKind.INTEGRAL, 1),
   BYTE(Type.BYTE_TYPE, PointerKind.INTEGRAL, 1),
   SHORT(Type.SHORT_TYPE, PointerKind.INTEGRAL, 2),
   CHAR(Type.CHAR_TYPE, PointerKind.INTEGRAL, 2),
@@ -67,6 +67,11 @@ public enum PointerType {
   }
 
   public static PointerType ofPrimitiveType(GimplePrimitiveType primitiveType) {
+
+    if(primitiveType instanceof GimpleBooleanType) {
+      return BYTE;
+    }
+
     for (PointerType pointerType : values()) {
       if(pointerType.getJvmType().equals(primitiveType.jvmType())) {
         return pointerType;
@@ -97,5 +102,14 @@ public enum PointerType {
 
   public PointerKind getKind() {
     return kind;
+  }
+
+  public static PointerType ofType(Type valueType) {
+    for (PointerType pointerType : values()) {
+      if (pointerType.getJvmType().equals(valueType)) {
+        return pointerType;
+      }
+    }
+    throw new UnsupportedOperationException("valueType: " + valueType);
   }
 }

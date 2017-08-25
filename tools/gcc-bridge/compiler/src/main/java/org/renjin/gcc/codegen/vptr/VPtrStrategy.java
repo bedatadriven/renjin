@@ -28,12 +28,13 @@ import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrReturnStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrStrategy;
+import org.renjin.gcc.codegen.type.voidt.VoidTypeStrategy;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
-import org.renjin.gcc.gimple.type.GimpleArrayType;
-import org.renjin.gcc.gimple.type.GimplePointerType;
-import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.gcc.gimple.type.*;
+import org.renjin.gcc.runtime.MixedPtr;
+import org.renjin.gcc.runtime.PointerPtr;
 import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
@@ -41,7 +42,7 @@ import org.renjin.repackaged.guava.base.Optional;
 import java.lang.reflect.Field;
 
 /**
- * Implements a C pointer using the {@link org.renjin.gcc.runtime.Pointer} interface.
+ * Implements a C pointer using the {@link org.renjin.gcc.runtime.Ptr} interface.
  */
 public class VPtrStrategy implements PointerTypeStrategy {
 
@@ -54,16 +55,41 @@ public class VPtrStrategy implements PointerTypeStrategy {
   }
 
   @Override
-  public GExpr malloc(MethodGenerator mv, JExpr sizeInBytes) {
-    return malloc(pointerType, sizeInBytes);
+  public VPtrExpr malloc(MethodGenerator mv, JExpr sizeInBytes) {
+    return malloc(baseType, sizeInBytes);
   }
 
-  public static VPtrExpr malloc(PointerType pointerType, JExpr sizeInBytes) {
-    String mallocDescriptor = Type.getMethodDescriptor(pointerType.alignedImpl(), Type.INT_TYPE);
-    JExpr pointer = Expressions.staticMethodCall(pointerType.alignedImpl(), "malloc",
-        mallocDescriptor, sizeInBytes);
+  public static VPtrExpr malloc(GimpleType baseType, JExpr sizeInBytes) {
+
+    Type implType = choosePtrImplType(baseType);
+
+    return malloc(implType, sizeInBytes);
+  }
+
+  static VPtrExpr malloc(Type implType, JExpr sizeInBytes) {
+    String mallocDescriptor = Type.getMethodDescriptor(implType, Type.INT_TYPE);
+    JExpr pointer = Expressions.staticMethodCall(implType, "malloc", mallocDescriptor, sizeInBytes);
 
     return new VPtrExpr(pointer);
+  }
+
+  private static Type choosePtrImplType(GimpleType baseType) {
+    if(baseType instanceof GimplePrimitiveType) {
+      return PointerType.ofPrimitiveType(((GimplePrimitiveType) baseType)).alignedImpl();
+    }
+    if(baseType instanceof GimpleArrayType) {
+      return choosePtrImplType(((GimpleArrayType) baseType).getComponentType());
+    }
+    if(baseType instanceof GimpleIndirectType) {
+      return Type.getType(PointerPtr.class);
+    }
+    if(baseType instanceof GimpleRecordType) {
+      return Type.getType(MixedPtr.class);
+    }
+    if(baseType instanceof GimpleVoidType) {
+      return Type.getType(MixedPtr.class);
+    }
+    throw new UnsupportedOperationException("TODO: " + baseType);
   }
 
   @Override

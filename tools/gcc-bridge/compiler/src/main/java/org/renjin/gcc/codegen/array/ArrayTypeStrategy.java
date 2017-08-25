@@ -109,7 +109,6 @@ public class ArrayTypeStrategy implements TypeStrategy<FatArrayExpr> {
     return fieldGenerator(className, fieldName);
   }
 
-
   @Override
   public FatArrayExpr variable(GimpleVarDecl decl, VarAllocator allocator) {
     Type arrayType = Wrappers.valueArrayType(elementValueFunction.getValueType());
@@ -124,7 +123,6 @@ public class ArrayTypeStrategy implements TypeStrategy<FatArrayExpr> {
   public FatArrayExpr providedGlobalVariable(GimpleVarDecl decl, Field javaField) {
     throw new UnsupportedOperationException("TODO");
   }
-
 
   private JExpr allocArray(int arrayLength) {
     Preconditions.checkArgument(arrayLength >= 0);

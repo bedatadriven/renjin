@@ -25,6 +25,7 @@ import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.type.fun.FunctionRefGenerator;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
+import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.gimple.statement.GimpleCall;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
@@ -106,6 +107,10 @@ public class FunctionCallGenerator implements CallGenerator, MethodHandleGenerat
 
     } else if(varArgExpr instanceof FatPtr) {
       return ((FatPtr) varArgExpr).wrap();
+
+    } else if(varArgExpr instanceof VPtrExpr) {
+      return ((VPtrExpr) varArgExpr).getRef();
+
     } else {
       throw new UnsupportedOperationException("varArgExpr: " + varArgExpr);
     }

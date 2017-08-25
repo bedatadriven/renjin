@@ -151,34 +151,6 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>
     return new RecordUnitPtr(getLayout(), new RecordConstructor(strategy));
   }
 
-  @Override
-  public RecordUnitPtr pointerPlus(MethodGenerator mv, final RecordUnitPtr pointer, final JExpr offsetInBytes) {
-    // According to our analysis conducted before-hand, there should be no pointer
-    // to a sequence of records of this type with more than one record, so the result should
-    // be undefined.
-    JExpr expr = new JExpr() {
-      @Nonnull
-      @Override
-      public Type getType() {
-        return pointer.unwrap().getType();
-      }
-
-      @Override
-      public void load(@Nonnull MethodGenerator mv) {
-        Label zero = new Label();
-        offsetInBytes.load(mv);
-        mv.ifeq(zero);
-        mv.anew(Type.getType(ArrayIndexOutOfBoundsException.class));
-        mv.dup();
-        mv.invokeconstructor(Type.getType(ArrayIndexOutOfBoundsException.class));
-        mv.athrow();
-        mv.mark(zero);
-        pointer.unwrap().load(mv);
-      }
-    };
-    
-    return new RecordUnitPtr(getLayout(), expr);
-  }
 
   @Override
   public RecordUnitPtr nullPointer() {

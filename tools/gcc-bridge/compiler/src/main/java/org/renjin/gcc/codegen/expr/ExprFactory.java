@@ -281,7 +281,6 @@ public class ExprFactory {
       commonType = x.getType();
     }
 
-    PointerTypeStrategy typeStrategy = typeOracle.forPointerType(commonType);
     PtrExpr ptrX = (PtrExpr) findGenerator(x, commonType);
     PtrExpr ptrY = (PtrExpr) findGenerator(y, commonType);
 
@@ -453,16 +452,15 @@ public class ExprFactory {
     GimpleIndirectType expectedPointerType = expectedType.pointerTo();
     
     // Cast from the void pointer type to the "expected" pointer type
-    GExpr ptrExpr = maybeCast(findGenerator(pointer), expectedPointerType, pointerType);
-    PointerTypeStrategy pointerStrategy = typeOracle.forPointerType(expectedPointerType);
+    PtrExpr ptrExpr = (PtrExpr) maybeCast(findGenerator(pointer), expectedPointerType, pointerType);
 
     if(!gimpleExpr.isOffsetZero()) {
       JExpr offsetInBytes = findPrimitiveGenerator(gimpleExpr.getOffset());
 
-      ptrExpr =  pointerStrategy.pointerPlus(mv, ptrExpr, offsetInBytes);
+      ptrExpr =  ptrExpr.pointerPlus(mv, offsetInBytes);
     }
 
-    return ((PtrExpr) ptrExpr).valueOf(expectedType);
+    return ptrExpr.valueOf(expectedType);
   }
   
   private GExpr dereferenceThenCast(GimpleMemRef gimpleExpr, GimpleType expectedType) {
@@ -470,24 +468,24 @@ public class ExprFactory {
     GimpleIndirectType pointerType = (GimpleIndirectType) pointer.getType();
     PointerTypeStrategy pointerStrategy = typeOracle.forPointerType(pointerType);
 
-    GExpr ptrExpr = findGenerator(pointer);
+    PtrExpr ptrExpr = (PtrExpr) findGenerator(pointer);
 
     if(!gimpleExpr.isOffsetZero()) {
       JExpr offsetInBytes = findPrimitiveGenerator(gimpleExpr.getOffset());
-      ptrExpr =  pointerStrategy.pointerPlus(mv, ptrExpr, offsetInBytes);
+      ptrExpr =  ptrExpr.pointerPlus(mv, offsetInBytes);
     }
     
-    GExpr valueExpr = ((PtrExpr) ptrExpr).valueOf(expectedType);
+    GExpr valueExpr = ptrExpr.valueOf(expectedType);
 
     return maybeCast(valueExpr, expectedType, pointerType.getBaseType());
   }
 
   private GExpr pointerPlus(GimpleExpr pointerExpr, GimpleExpr offsetExpr, GimpleType expectedType) {
-    GExpr pointer = findGenerator(pointerExpr);
+    PtrExpr pointer = (PtrExpr) findGenerator(pointerExpr);
     JExpr offsetInBytes = findPrimitiveGenerator(offsetExpr);
 
     GimpleType pointerType = pointerExpr.getType();
-    GExpr result = typeOracle.forPointerType(pointerType).pointerPlus(mv, pointer, offsetInBytes);
+    GExpr result = pointer.pointerPlus(mv, offsetInBytes);
     
     return maybeCast(result, expectedType, pointerType);
   }

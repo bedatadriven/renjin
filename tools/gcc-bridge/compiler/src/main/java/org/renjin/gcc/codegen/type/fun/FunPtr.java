@@ -165,6 +165,11 @@ public class FunPtr implements RefPtrExpr {
   }
 
   @Override
+  public PtrExpr pointerPlus(MethodGenerator mv, JExpr offsetInBytes) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public GExpr valueOf(GimpleType expectedType) {
     return this;
   }

@@ -181,6 +181,11 @@ public class VPtrExpr implements PtrExpr {
   }
 
   @Override
+  public PtrExpr pointerPlus(MethodGenerator mv, JExpr offsetInBytes) {
+    return plus(offsetInBytes);
+  }
+
+  @Override
   public GExpr valueOf(GimpleType expectedType) {
 
     if(expectedType instanceof GimpleArrayType) {

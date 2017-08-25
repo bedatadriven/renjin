@@ -341,6 +341,13 @@ public final class FatPtrPair implements FatPtr, PtrExpr {
     return new FatPtrPair(valueFunction, array, offset);
   }
 
+  @Override
+  public PtrExpr pointerPlus(MethodGenerator mv, JExpr offsetInBytes) {
+    JExpr offsetInArrayElements = Expressions.divide(offsetInBytes, valueFunction.getArrayElementBytes());
+    JExpr newOffset = Expressions.sum(this.offset, offsetInArrayElements);
+    return new FatPtrPair(valueFunction, this.array, newOffset);
+  }
+
   public static FatPtr nullPtr(ValueFunction valueFunction) {
     Type arrayType = Wrappers.valueArrayType(valueFunction.getValueType());
     JExpr nullArray = Expressions.nullRef(arrayType);

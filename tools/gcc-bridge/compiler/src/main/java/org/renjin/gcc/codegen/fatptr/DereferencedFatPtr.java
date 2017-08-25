@@ -180,6 +180,11 @@ public class DereferencedFatPtr implements RefPtrExpr, FatPtr {
   }
 
   @Override
+  public PtrExpr pointerPlus(MethodGenerator mv, JExpr offsetInBytes) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public GExpr valueOf(GimpleType expectedType) {
     return valueFunction.dereference(array, offset);
   }

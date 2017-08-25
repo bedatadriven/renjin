@@ -44,6 +44,7 @@ import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
 
+import javax.annotation.Nonnull;
 import java.lang.invoke.MethodHandle;
 
 
@@ -141,6 +142,29 @@ public class VoidPtrExpr implements RefPtrExpr {
   @Override
   public PtrExpr realloc(MethodGenerator mv, JExpr newSizeInBytes) {
     return new VoidPtrExpr(new VoidPtrRealloc(unwrap(), newSizeInBytes));
+  }
+
+  @Override
+  public PtrExpr pointerPlus(MethodGenerator mv, final JExpr offsetInBytes) {
+    // We have to rely on run-time support for this because we don't know
+    // what kind of pointer is stored here
+    return new VoidPtrExpr(new JExpr() {
+
+      @Nonnull
+      @Override
+      public Type getType() {
+        return Type.getType(Object.class);
+      }
+
+      @Override
+      public void load(@Nonnull MethodGenerator mv) {
+        objectRef.load(mv);
+        offsetInBytes.load(mv);
+        mv.invokestatic(org.renjin.gcc.runtime.VoidPtr.class, "pointerPlus",
+            Type.getMethodDescriptor(Type.getType(Object.class),
+                Type.getType(Object.class), Type.INT_TYPE));
+      }
+    });
   }
 
   @Override

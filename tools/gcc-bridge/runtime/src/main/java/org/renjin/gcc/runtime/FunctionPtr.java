@@ -25,6 +25,8 @@ import java.lang.invoke.MethodHandle;
 
 public class FunctionPtr extends AbstractPtr {
 
+  public static final int BYTES = 4;
+
   private MethodHandle[] array;
   private int offset;
 
@@ -65,7 +67,7 @@ public class FunctionPtr extends AbstractPtr {
 
   @Override
   public int toInt() {
-    throw new UnsupportedOperationException("TODO");
+    return offset * BYTES;
   }
 
   @Override
@@ -75,8 +77,8 @@ public class FunctionPtr extends AbstractPtr {
 
   @Override
   public Ptr getPointer(int offset) {
-    if(offset % 4 == 0) {
-      return new FunctionPtr1(array[offset / 4]);
+    if(offset % BYTES == 0) {
+      return new FunctionPtr1(array[offset / BYTES]);
     } else {
       throw new UnsupportedOperationException("Unaligned pointer access");
     }

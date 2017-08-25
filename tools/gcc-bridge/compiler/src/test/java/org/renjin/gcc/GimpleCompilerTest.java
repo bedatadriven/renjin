@@ -680,6 +680,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
       Method method = clazz.getMethod("call_xerbla_");
       method.invoke(null);
     } catch (InvocationTargetException wrapper) {
+      wrapper.printStackTrace();
       RuntimeException e = (RuntimeException) wrapper.getCause();
       assertThat(e.getMessage(), equalTo("** On entry to ZGERC parameter number 1 had an illegal value"));
     }

@@ -29,8 +29,6 @@ public interface PointerTypeStrategy<ExprT extends GExpr> extends TypeStrategy<E
   
   ExprT malloc(MethodGenerator mv, JExpr sizeInBytes);
 
-  ExprT pointerPlus(MethodGenerator mv, ExprT pointer, JExpr offsetInBytes);
-
   ExprT nullPointer();
 
 }

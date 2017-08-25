@@ -67,11 +67,6 @@ public class VPtrStrategy implements PointerTypeStrategy {
   }
 
   @Override
-  public GExpr pointerPlus(MethodGenerator mv, GExpr pointer, JExpr offsetInBytes) {
-    return pointer.toVPtrExpr().plus(offsetInBytes);
-  }
-
-  @Override
   public GExpr nullPointer() {
     JExpr pointer = Expressions.staticField(pointerType.alignedImpl(), "NULL", pointerType.alignedImpl());
 

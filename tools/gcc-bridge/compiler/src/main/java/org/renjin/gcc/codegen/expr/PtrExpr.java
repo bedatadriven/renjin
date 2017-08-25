@@ -49,6 +49,8 @@ public interface PtrExpr extends GExpr {
 
   PtrExpr realloc(MethodGenerator mv, JExpr newSizeInBytes);
 
+  PtrExpr pointerPlus(MethodGenerator mv, JExpr offsetInBytes);
+
   GExpr valueOf(GimpleType expectedType);
 
   ConditionGenerator comparePointer(MethodGenerator mv, GimpleOp op, GExpr otherPointer);

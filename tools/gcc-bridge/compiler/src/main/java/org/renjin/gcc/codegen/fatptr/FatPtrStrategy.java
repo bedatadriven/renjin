@@ -203,16 +203,6 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
   }
 
   @Override
-  public FatPtr pointerPlus(MethodGenerator mv, FatPtr pointer, JExpr offsetInBytes) {
-    FatPtrPair pointerPair = pointer.toPair(mv);
-    JExpr offsetInArrayElements = Expressions.divide(offsetInBytes, valueFunction.getArrayElementBytes());
-    JExpr newOffset = Expressions.sum(pointerPair.getOffset(), offsetInArrayElements);
-    return new FatPtrPair(valueFunction, pointerPair.getArray(), newOffset);
-  }
-
-
-
-  @Override
   public FatPtr nullPointer() {
     return FatPtrPair.nullPtr(valueFunction);
   }

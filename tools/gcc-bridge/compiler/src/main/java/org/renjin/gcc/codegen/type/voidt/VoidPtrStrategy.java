@@ -58,29 +58,6 @@ public class VoidPtrStrategy implements PointerTypeStrategy<VoidPtrExpr>, Simple
   }
 
   @Override
-  public VoidPtrExpr pointerPlus(MethodGenerator mv, final VoidPtrExpr pointer, final JExpr offsetInBytes) {
-    // We have to rely on run-time support for this because we don't know
-    // what kind of pointer is stored here
-    return new VoidPtrExpr(new JExpr() {
-
-      @Nonnull
-      @Override
-      public Type getType() {
-        return Type.getType(Object.class);
-      }
-
-      @Override
-      public void load(@Nonnull MethodGenerator mv) {
-        pointer.unwrap().load(mv);
-        offsetInBytes.load(mv);
-        mv.invokestatic(org.renjin.gcc.runtime.VoidPtr.class, "pointerPlus",
-            Type.getMethodDescriptor(Type.getType(Object.class), 
-                Type.getType(Object.class), Type.INT_TYPE));
-      }
-    });
-  }
-
-  @Override
   public VoidPtrExpr nullPointer() {
     return new VoidPtrExpr(Expressions.nullRef(Type.getType(Object.class)));
   }

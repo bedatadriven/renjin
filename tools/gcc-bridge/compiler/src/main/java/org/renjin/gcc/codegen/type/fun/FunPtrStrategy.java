@@ -118,11 +118,6 @@ public class FunPtrStrategy implements PointerTypeStrategy<FunPtr>, SimpleTypeSt
   }
 
   @Override
-  public FunPtr pointerPlus(MethodGenerator mv, FunPtr pointer, JExpr offsetInBytes) {
-    throw new UnsupportedOperationException("TODO");
-  }
-
-  @Override
   public String toString() {
     return "FunPtrStrategy";
   }

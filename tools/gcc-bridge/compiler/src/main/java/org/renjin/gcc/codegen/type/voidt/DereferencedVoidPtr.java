@@ -100,6 +100,11 @@ public class DereferencedVoidPtr extends VoidPtrExpr {
   }
 
   @Override
+  public PtrExpr pointerPlus(MethodGenerator mv, JExpr offsetInBytes) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public ConditionGenerator comparePointer(MethodGenerator mv, GimpleOp op, GExpr otherPointer) {
     throw new UnsupportedOperationException("TODO");
   }

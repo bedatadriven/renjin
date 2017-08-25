@@ -61,12 +61,12 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void pointers() throws Exception {
     Class clazz = compile("pointers.c");
 
-    Method method = clazz.getMethod("sum_array", DoublePtr.class, int.class);
+    Method method = clazz.getMethod("sum_array", Ptr.class, int.class);
     Double result = (Double) method.invoke(null, new DoublePtr(15, 20, 300), 3);
 
     assertThat(result, equalTo(335d));
 
-    Method fillMethod = clazz.getMethod("fill_array", DoublePtr.class, int.class);
+    Method fillMethod = clazz.getMethod("fill_array", Ptr.class, int.class);
     DoublePtr ptr = new DoublePtr(new double[5]);
     fillMethod.invoke(null, ptr, ptr.array.length);
 
@@ -177,7 +177,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void arraysNonZeroLowerBound() throws Exception {
     Class clazz = compile("lbound.f");
 
-    Method test = clazz.getMethod("test_", DoublePtr.class, IntPtr.class);
+    Method test = clazz.getMethod("test_", Ptr.class, Ptr.class);
     DoublePtr x = new DoublePtr(0, 0, 0, 0);
     test.invoke(null, x, new IntPtr(4));
 
@@ -594,45 +594,45 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void doubleComplex() throws Exception {
     Class clazz = compile("double_complex.f");
 
-    Method dcabs = clazz.getMethod("dcabs1_", double[].class, int.class);
-    assertThat((Double) dcabs.invoke(null, new double[]{-1, 1}, 0), equalTo(2.0));
-    assertThat((Double) dcabs.invoke(null, new double[]{1, 0}, 0), equalTo(1.0));
-    assertThat((Double) dcabs.invoke(null, new double[]{0, 3}, 0), equalTo(3.0));
+    Method dcabs = clazz.getMethod("dcabs1_", Ptr.class);
+    assertThat((Double) dcabs.invoke(null, new DoublePtr(-1, 1)), equalTo(2.0));
+    assertThat((Double) dcabs.invoke(null, new DoublePtr(1, 0)), equalTo(1.0));
+    assertThat((Double) dcabs.invoke(null, new DoublePtr(0, 3)), equalTo(3.0));
 
-    Method clast = clazz.getMethod("clast_", double[].class, int.class, IntPtr.class);
-    double[] x = {1, 2, 3, 4, 5, 6};
+    Method clast = clazz.getMethod("clast_", Ptr.class, Ptr.class);
+    DoublePtr x = new DoublePtr(1, 2, 3, 4, 5, 6);
     IntPtr n = new IntPtr(3);
-    double[] last = (double[]) clast.invoke(null, x, 0, n);
+    double[] last = (double[]) clast.invoke(null, x, n);
 
     assertThat(last[0], equalTo(5.0));
     assertThat(last[1], equalTo(6.0));
 
 
     // Check comparisons
-    double[] a = new double[]{1, 4};
-    double[] b = new double[]{5, 6};
+    DoublePtr a = new DoublePtr(1, 4);
+    DoublePtr b = new DoublePtr(5, 6);
 
-    Method ceq = clazz.getMethod("ceq_", double[].class, int.class, double[].class, int.class);
-    Method cne = clazz.getMethod("cne_", double[].class, int.class, double[].class, int.class);
+    Method ceq = clazz.getMethod("ceq_", Ptr.class, Ptr.class);
+    Method cne = clazz.getMethod("cne_", Ptr.class, Ptr.class);
 
-    assertThat((Integer) ceq.invoke(null, a, 0, b, 0), equalTo(0));
-    assertThat((Integer) ceq.invoke(null, a, 0, a, 0), equalTo(1));
-    assertThat((Integer) ceq.invoke(null, b, 0, x, 4), equalTo(1));
+    assertThat((Integer) ceq.invoke(null, a, b), equalTo(0));
+    assertThat((Integer) ceq.invoke(null, a, a), equalTo(1));
+    assertThat((Integer) ceq.invoke(null, b, x.pointerPlus(4 * DoublePtr.BYTES)), equalTo(1));
 
-    assertThat((Integer) cne.invoke(null, a, 0, b, 0), equalTo(1));
-    assertThat((Integer) cne.invoke(null, a, 0, a, 0), equalTo(0));
-    assertThat((Integer) cne.invoke(null, b, 0, x, 4), equalTo(0));
+    assertThat((Integer) cne.invoke(null, a, b), equalTo(1));
+    assertThat((Integer) cne.invoke(null, a, a), equalTo(0));
+    assertThat((Integer) cne.invoke(null, b, x.pointerPlus(4 * DoublePtr.BYTES)), equalTo(0));
 
     // Check binary operations
-    Method cmult = clazz.getMethod("cmul_", double[].class, int.class, double[].class, int.class);
+    Method cmult = clazz.getMethod("cmul_", Ptr.class, Ptr.class);
 
-    double product[] = (double[]) cmult.invoke(null, a, 0, b, 0);
+    double product[] = (double[]) cmult.invoke(null, a, b);
     assertThat(product[0], equalTo(-19d));
     assertThat(product[1], equalTo(+26d));
 
-    Method cadd = clazz.getMethod("cadd_", double[].class, int.class, double[].class, int.class);
+    Method cadd = clazz.getMethod("cadd_", Ptr.class, Ptr.class);
 
-    double sum[] = (double[]) cadd.invoke(null, a, 0, b, 0);
+    double sum[] = (double[]) cadd.invoke(null, a, b);
     assertThat(sum[0], equalTo(6d));
     assertThat(sum[1], equalTo(10d));
   }
@@ -658,15 +658,15 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void singleComplex() throws Exception {
     Class clazz = compile("complex.f");
 
-    Method dcabs = clazz.getMethod("dcabs1_", float[].class, int.class);
-    assertThat((Float) dcabs.invoke(null, new float[]{-1, 1}, 0), equalTo(2f));
-    assertThat((Float) dcabs.invoke(null, new float[]{1, 0}, 0), equalTo(1f));
-    assertThat((Float) dcabs.invoke(null, new float[]{0, 3}, 0), equalTo(3f));
+    Method dcabs = clazz.getMethod("dcabs1_", Ptr.class);
+    assertThat((Float) dcabs.invoke(null, new FloatPtr(-1, 1)), equalTo(2f));
+    assertThat((Float) dcabs.invoke(null, new FloatPtr(1, 0)), equalTo(1f));
+    assertThat((Float) dcabs.invoke(null, new FloatPtr(0, 3)), equalTo(3f));
 
-    Method clast = clazz.getMethod("clast_", float[].class, int.class, Ptr.class);
-    float[] x = {1, 2, 3, 4, 5, 6};
+    Method clast = clazz.getMethod("clast_", Ptr.class, Ptr.class);
+    FloatPtr x = new FloatPtr(1, 2, 3, 4, 5, 6);
     IntPtr n = new IntPtr(3);
-    float[] last = (float[]) clast.invoke(null, x, 0, n);
+    float[] last = (float[]) clast.invoke(null, x, n);
 
     assertThat(last[0], equalTo(5f));
     assertThat(last[1], equalTo(6f));

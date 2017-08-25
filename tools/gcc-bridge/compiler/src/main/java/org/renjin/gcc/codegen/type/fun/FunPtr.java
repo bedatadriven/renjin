@@ -30,6 +30,7 @@ import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
 import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
 import org.renjin.gcc.codegen.type.record.RecordLayout;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
+import org.renjin.gcc.codegen.type.record.unit.RefConditionGenerator;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.codegen.vptr.VArrayExpr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
@@ -39,6 +40,8 @@ import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.gcc.runtime.FunctionPtr1;
+import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
 
@@ -110,7 +113,9 @@ public class FunPtr implements RefPtrExpr {
 
   @Override
   public VPtrExpr toVPtrExpr() throws UnsupportedCastException {
-    throw new UnsupportedOperationException("TODO");
+    return new VPtrExpr(Expressions.staticMethodCall(FunctionPtr1.class, "malloc",
+        Type.getMethodDescriptor(Type.getType(Ptr.class), Type.getType(MethodHandle.class)), this.methodHandleExpr),
+          address);
   }
 
   @Override
@@ -166,6 +171,6 @@ public class FunPtr implements RefPtrExpr {
 
   @Override
   public ConditionGenerator comparePointer(MethodGenerator mv, GimpleOp op, GExpr otherPointer) {
-    throw new UnsupportedOperationException("TODO");
+    return new RefConditionGenerator(op, unwrap(), otherPointer.toFunPtr().unwrap());
   }
 }

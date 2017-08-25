@@ -43,21 +43,21 @@ public class PrimitiveFieldStrategy extends SingleFieldStrategy {
     
     JLValue fieldExpr = Expressions.field(instance, fieldType, fieldName);
     
-    if(expectedType instanceof PrimitiveTypeStrategy) {
-      PrimitiveTypeStrategy primitiveTypeStrategy = (PrimitiveTypeStrategy) expectedType;
-      if(!fieldExpr.getType().equals(primitiveTypeStrategy.getJvmType())) {
+    if(expectedType instanceof GimplePrimitiveType) {
+      GimplePrimitiveType primitiveType = (GimplePrimitiveType) expectedType;
+      if(!fieldExpr.getType().equals(primitiveType.jvmType())) {
         throw new UnsupportedOperationException("TODO: expectedType = " + expectedType);
       }
 
       if(size != 0 && (offset != 0 || size != gimpleType.getSize())) {
-        if(!primitiveTypeStrategy.getJvmType().equals(Type.BYTE_TYPE)) {
+        if(!primitiveType.jvmType().equals(Type.BYTE_TYPE)) {
           throw new UnsupportedOperationException(
               String.format("Unsupported bitfield: expected type = %s, offset = %d, size = %d", 
                   expectedType, offset, size));
         }
         fieldExpr = new BitFieldExpr(ownerClass, instance, fieldName, offset, size);
       }
-      return new PrimitiveValue(primitiveTypeStrategy.getType(), fieldExpr);
+      return new PrimitiveValue(primitiveType, fieldExpr);
       
     } else {
       throw new UnsupportedOperationException("expectedType: " + expectedType);

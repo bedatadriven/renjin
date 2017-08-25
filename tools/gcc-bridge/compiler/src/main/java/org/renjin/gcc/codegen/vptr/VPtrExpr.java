@@ -27,6 +27,7 @@ import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.FatPtr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
+import org.renjin.gcc.codegen.type.complex.ComplexValue;
 import org.renjin.gcc.codegen.type.fun.FunPtr;
 import org.renjin.gcc.codegen.type.primitive.CompareToCmpGenerator;
 import org.renjin.gcc.codegen.type.primitive.ObjectEqualsCmpGenerator;
@@ -190,16 +191,26 @@ public class VPtrExpr implements PtrExpr {
       return new VPtrRecordExpr(((GimpleRecordType) expectedType), this);
     }
 
-    PointerType pointerType = PointerType.ofType(expectedType);
-    DerefExpr derefExpr = new DerefExpr(ref, pointerType);
-
     if(expectedType instanceof GimplePrimitiveType) {
+      PointerType pointerType = PointerType.ofType(expectedType);
+      DerefExpr derefExpr = new DerefExpr(ref, pointerType);
       GimplePrimitiveType primitiveType = (GimplePrimitiveType) expectedType;
 
       return new PrimitiveValue(primitiveType, derefExpr, this);
     }
 
+    if(expectedType instanceof GimpleComplexType) {
+      GimpleComplexType complexType = (GimpleComplexType) expectedType;
+      PointerType pointerType = PointerType.ofType(complexType.getPartType());
+
+      DerefExpr realExpr = new DerefExpr(ref, pointerType);
+      DerefExpr imaginaryExpr = new DerefExpr(ref, Expressions.constantInt(complexType.getPartType().sizeOf()), pointerType);
+
+      return new ComplexValue(this, realExpr, imaginaryExpr);
+    }
+
     if(expectedType instanceof GimpleIndirectType) {
+      DerefExpr derefExpr = new DerefExpr(ref, PointerType.POINTER);
       return new VPtrExpr(derefExpr, this);
     }
 

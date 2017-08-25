@@ -20,10 +20,7 @@ package org.renjin.gcc.codegen.type.complex;
 
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.FatArrayExpr;
-import org.renjin.gcc.codegen.expr.Expressions;
-import org.renjin.gcc.codegen.expr.GExpr;
-import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.expr.JLValue;
+import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.FatPtr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
@@ -48,12 +45,12 @@ import org.renjin.repackaged.asm.Type;
  * Complex numerical value
  */
 public class ComplexValue implements GExpr {
-  private FatPtr address;
+  private PtrExpr address;
   private JExpr realValue;
   private JExpr imaginaryValue;
   private Type componentType;
   
-  public ComplexValue(FatPtr address, JExpr realValue, JExpr imaginaryValue) {
+  public ComplexValue(PtrExpr address, JExpr realValue, JExpr imaginaryValue) {
     this.address = address;
     this.realValue = realValue;
     this.imaginaryValue = imaginaryValue;
@@ -122,7 +119,7 @@ public class ComplexValue implements GExpr {
   }
 
   @Override
-  public FatPtr addressOf() {
+  public PtrExpr addressOf() {
     if(address == null) {
       throw new UnsupportedOperationException("not addressable");
     }

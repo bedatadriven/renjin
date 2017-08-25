@@ -29,6 +29,10 @@ public class FunctionPtr1 extends AbstractPtr {
 
   private MethodHandle methodHandle;
 
+  public static Ptr malloc(MethodHandle methodHandle) {
+    return new FunctionPtr1(methodHandle);
+  }
+
   public FunctionPtr1(MethodHandle methodHandle) {
     this.methodHandle = methodHandle;
   }

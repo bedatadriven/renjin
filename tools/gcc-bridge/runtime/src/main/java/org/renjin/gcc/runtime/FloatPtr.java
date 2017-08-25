@@ -23,8 +23,8 @@ import java.util.Arrays;
 
 public class FloatPtr extends AbstractPtr {
 
-  public static final int BYTES = 4;
-  
+  public static final int BYTES = Float.SIZE / BITS_PER_BYTE;
+
   public static final FloatPtr NULL = new FloatPtr();
   
   public final float[] array;
@@ -77,7 +77,13 @@ public class FloatPtr extends AbstractPtr {
 
   @Override
   public byte getByte(int offset) {
-    throw new UnsupportedOperationException("TODO");
+    int bytes = (this.offset * BYTES) + offset;
+    int index = bytes / BYTES;
+    float element = array[index];
+    long elementBits = Float.floatToRawIntBits(element);
+    int shift = (bytes % BYTES) * BITS_PER_BYTE;
+
+    return (byte)(elementBits >>> shift);
   }
 
   @Override

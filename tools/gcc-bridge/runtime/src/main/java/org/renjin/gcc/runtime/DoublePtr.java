@@ -24,9 +24,9 @@ import java.util.Arrays;
 public class DoublePtr extends AbstractPtr implements Ptr {
   
   public static final DoublePtr NULL = new DoublePtr();
-  
-  public static final int BYTES = Double.SIZE / 8;
-  
+
+  public static final int BYTES = Double.SIZE / BITS_PER_BYTE;
+
   public final double[] array;
   public final int offset;
 
@@ -169,11 +169,11 @@ public class DoublePtr extends AbstractPtr implements Ptr {
 
   @Override
   public byte getByte(int offset) {
-    int bytes = (this.offset * 8) + offset;
-    int index = bytes / 8;
+    int bytes = (this.offset * BYTES) + offset;
+    int index = bytes / BYTES;
     double element = array[index];
     long elementBits = Double.doubleToRawLongBits(element);
-    int shift = (bytes % 8) * 8;
+    int shift = (bytes % BYTES) * BITS_PER_BYTE;
 
     return (byte)(elementBits >>> shift);
   }

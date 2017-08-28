@@ -161,8 +161,10 @@ public class RecordTypeStrategyBuilder {
       buildEmpty(set);
       
     } else if(set.getTypeSet().isBestRepresentableAsArray()) {
-      typeOracle.addRecordType(set.singleton(),
-          new RecordArrayTypeStrategy(set.singleton(), set.getTypeSet().uniquePrimitiveType()));
+//      typeOracle.addRecordType(set.singleton(),
+//          new RecordArrayTypeStrategy(set.singleton(), set.getTypeSet().uniquePrimitiveType()));
+
+      typeOracle.addRecordType(set.singleton(), new VPtrRecordTypeStrategy(set.singleton()));
 
     } else {
 
@@ -189,7 +191,8 @@ public class RecordTypeStrategyBuilder {
       Optional<Type> commonType = set.getTypeSet().tryComputeCommonType();
       if (commonType.isPresent()) {
         for (GimpleRecordTypeDef typeDef : set.getAllTypes()) {
-          typeOracle.addRecordType(typeDef, new RecordArrayTypeStrategy(typeDef, commonType.get()));
+         // typeOracle.addRecordType(typeDef, new RecordArrayTypeStrategy(typeDef, commonType.get()));
+          typeOracle.addRecordType(typeDef, new VPtrRecordTypeStrategy(typeDef));
         }
       } else {
         // Fields are heterogeneous, 

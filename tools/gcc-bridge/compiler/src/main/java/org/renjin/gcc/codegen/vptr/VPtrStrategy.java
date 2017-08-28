@@ -159,13 +159,7 @@ public class VPtrStrategy implements PointerTypeStrategy {
 
   @Override
   public GExpr cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
-    if(typeStrategy instanceof VPtrStrategy) {
-      return value;
-
-    } else if(typeStrategy instanceof VoidPtrStrategy) {
-      return new VoidPtrExpr(Expressions.cast(((VoidPtrExpr) value).unwrap(), Type.getType(Ptr.class)));
-    }
-    throw new UnsupportedOperationException("TODO: " + typeStrategy.getClass().getSimpleName());
+    return value.toVPtrExpr();
   }
 
   @Override

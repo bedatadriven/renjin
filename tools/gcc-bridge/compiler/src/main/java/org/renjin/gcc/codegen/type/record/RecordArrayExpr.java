@@ -111,7 +111,8 @@ public final class RecordArrayExpr implements RecordExpr {
 
   @Override
   public VPtrRecordExpr toVPtrRecord(GimpleRecordType recordType) {
-    throw new UnsupportedOperationException("TODO");
+    VPtrExpr pointer = new FatPtrPair(valueFunction, array, offset).toVPtrExpr();
+    return new VPtrRecordExpr(recordType, pointer);
   }
 
   @Override

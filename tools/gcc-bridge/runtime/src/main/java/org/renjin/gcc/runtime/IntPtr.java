@@ -206,7 +206,22 @@ public class IntPtr extends AbstractPtr implements Ptr {
 
   @Override
   public void setByte(int offset, byte value) {
-    throw new UnsupportedOperationException("TODO");
+    int bytes = (this.offset * BYTES) + offset;
+    int index = bytes / BYTES;
+    int shift = (bytes % BYTES) * BITS_PER_BYTE;
+
+    int element = array[index];
+
+    int updateMask = 0xFF << shift;
+
+    // Zero out the bits in the byte we are going to update
+    element = element & ~updateMask;
+
+    // Shift our byte into position
+    int update = (((int)value) << shift) & updateMask;
+
+    // Merge the original long and updated bits together
+    array[index] = element | update;
   }
 
   @Override

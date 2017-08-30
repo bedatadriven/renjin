@@ -92,8 +92,30 @@ public class Wrapper {
         return createList(sexp);
       case REXP.BCODESXP:
         return wrapBytecode(sexp);
+      case REXP.PROMSXP:
+        return createPromise(sexp);
       default:
         throw new UnsupportedOperationException("type: "  + sexpType);
+    }
+  }
+
+  private SEXP createPromise(long sexp) {
+
+    // JRI doesn't expose accessor methods for closures,
+    // but promises have the same layout as pairlist nodes
+
+    SEXP value = wrap(engine.rniCAR(sexp));
+    SEXP expr =  wrap(engine.rniCDR(sexp));
+    SEXP rho =   wrap(engine.rniTAG(sexp));
+
+    if(value == Symbol.UNBOUND_VALUE) {
+      // Unevaluated promise
+      // Do we need to populate back into GNU R?
+      return Promise.repromise((Environment) rho, expr);
+
+    } else {
+      // Already evaluated
+      return new Promise(expr, value);
     }
   }
 

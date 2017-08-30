@@ -18,8 +18,11 @@
  */
 package org.renjin.gcc.peephole;
 
+import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Opcodes;
+import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.tree.AbstractInsnNode;
+import org.renjin.repackaged.asm.tree.MethodInsnNode;
 
 /**
  * Pattern-matching for byte-code instructions.
@@ -116,6 +119,7 @@ public enum Pattern {
       return node.getOpcode() == Opcodes.IADD;
     }
   },
+
   ZERO {
     @Override
     public boolean match(AbstractInsnNode node) {
@@ -155,6 +159,18 @@ public enum Pattern {
         default:
           return false;
       }
+    }
+  },
+
+  POINTER_PLUS {
+    @Override
+    public boolean match(AbstractInsnNode node) {
+      if(node instanceof MethodInsnNode) {
+        MethodInsnNode methodInsnNode = (MethodInsnNode) node;
+        return methodInsnNode.owner.equals(Type.getType(Ptr.class).getInternalName()) &&
+              methodInsnNode.name.equals("pointerPlus");
+      }
+      return false;
     }
   };
 

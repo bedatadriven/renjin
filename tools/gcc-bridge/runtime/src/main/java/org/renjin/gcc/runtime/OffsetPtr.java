@@ -58,6 +58,26 @@ public class OffsetPtr implements Ptr {
   }
 
   @Override
+  public boolean getBoolean() {
+    return ptr.getBoolean(this.offset);
+  }
+
+  @Override
+  public boolean getBoolean(int offset) {
+    return ptr.getBoolean(this.offset + offset);
+  }
+
+  @Override
+  public void setBoolean(int offset, boolean value) {
+    ptr.setBoolean(this.offset + offset, value);
+  }
+
+  @Override
+  public void setBoolean(boolean value) {
+    ptr.setBoolean(this.offset, value);
+  }
+
+  @Override
   public byte getByte() {
     return ptr.getByte(offset);
   }
@@ -241,7 +261,9 @@ public class OffsetPtr implements Ptr {
 
   @Override
   public void memcpy(Ptr source, int numBytes) {
-    throw new UnsupportedOperationException("TODO");
+    for (int i = 0; i < numBytes; i++) {
+      ptr.setByte(this.offset + i, source.getByte(i));
+    }
   }
 
   @Override
@@ -271,7 +293,7 @@ public class OffsetPtr implements Ptr {
 
   @Override
   public int compareTo(Ptr o) {
-    throw new UnsupportedOperationException("TODO");
+    return AbstractPtr.compare(this, o);
   }
 
 

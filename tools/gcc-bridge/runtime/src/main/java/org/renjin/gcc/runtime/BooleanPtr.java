@@ -77,7 +77,7 @@ public class BooleanPtr extends AbstractPtr implements Ptr {
 
   @Override
   public void setByte(int offset, byte value) {
-
+    array[offset] = (value != 0);
   }
 
   @Override

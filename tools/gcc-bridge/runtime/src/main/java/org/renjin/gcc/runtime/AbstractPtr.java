@@ -93,6 +93,26 @@ public abstract class AbstractPtr implements Ptr {
   }
 
   @Override
+  public boolean getBoolean() {
+    return getByte() != 0;
+  }
+
+  @Override
+  public boolean getBoolean(int offset) {
+    return getByte(offset) != 0;
+  }
+
+  @Override
+  public void setBoolean(int offset, boolean value) {
+    setByte(offset, (value ? (byte)1 : (byte)0));
+  }
+
+  @Override
+  public void setBoolean(boolean value) {
+    setByte((value ? (byte)1 : (byte)0));
+  }
+
+  @Override
   public char getChar(int offset) {
     //return (char) ((b1 << 8) | (b2 & 0xFF));
     byte b1 = getByte(offset + 1);
@@ -286,18 +306,22 @@ public abstract class AbstractPtr implements Ptr {
   @Override
   public final int compareTo(Ptr o) {
 
-    Object m1 = getArray();
-    Object m2 = o.getArray();
+    return compare(this, o);
+  }
+
+  public static int compare(Ptr x, Ptr y) {
+    Object m1 = x.getArray();
+    Object m2 = y.getArray();
 
     if(m1 != m2) {
       return Integer.compare(System.identityHashCode(m1), System.identityHashCode(m2));
     }
 
-    if(isNull() && o.isNull()) {
+    if(x.isNull() && y.isNull()) {
       return 0;
     }
 
-    return Integer.compare(getOffsetInBytes(), o.getOffsetInBytes());
+    return Integer.compare(x.getOffsetInBytes(), y.getOffsetInBytes());
   }
 
   @Override

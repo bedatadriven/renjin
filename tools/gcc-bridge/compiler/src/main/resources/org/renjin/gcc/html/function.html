@@ -1,0 +1,159 @@
+<!--
+  ~ Renjin : JVM-based interpreter for the R language for the statistical analysis
+  ~ Copyright © 2010-${year} BeDataDriven Groep B.V. and contributors
+  ~
+  ~ This program is free software; you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~  the Free Software Foundation; either version 2 of the License, or
+  ~  (at your option) any later version.
+  ~
+  ~  This program is distributed in the hope that it will be useful,
+  ~  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~  GNU General Public License for more details.
+  ~
+  ~  You should have received a copy of the GNU General Public License
+  ~  along with this program; if not, a copy is available at
+  ~  https://www.gnu.org/licenses/gpl-2.0.txt
+  ~
+  -->
+<html>
+<head>
+    <title>test_endpoints Function</title>
+    <style>
+
+        .source {
+            font-family: monospace;
+        }
+
+        div.source {
+            position: fixed;
+            overflow-y: auto;
+        }
+
+        #input {
+            top: 0;
+            left: 0;
+            right: 50%;
+            bottom: 0;
+        }
+
+        #input table {
+            width: 100%;
+        }
+
+        #gimple {
+            top: 0;
+            left: 50%;
+            right: 0;
+            bottom: 0;
+            padding-left: 5px;
+        }
+
+        td.lnum {
+            width: 30px;
+            text-align: end;
+            color: gray;
+        }
+
+        #input tr {
+            white-space: pre;
+            color: lightgray;
+        }
+
+        #input tr.SL {
+            color: black;
+        }
+
+        .HSL {
+            background-color: yellow;
+        }
+
+
+        .gexpr:hover {
+            background-color: bisque;
+        }
+
+        .symbol {
+            font-weight: bold;
+            color: purple;
+        }
+
+        .bblabel {
+            position: relative;
+            left: -10px;
+        }
+
+        .vardecl, .bb {
+            margin-left: 10px;
+        }
+
+        .GimpleStringConstant, .GimpleRealConstant, .GimpleIntegerConstant {
+            color: green;
+        }
+
+    </style>
+    <script>
+
+        var currentLine;
+
+        function getSourceLine(classList) {
+            for(var i=0; i<classList.length; ++i) {
+                var className = classList.item(i);
+                if(className.match(/SL\d+/)) {
+                    return className;
+                }
+            }
+        }
+
+        function clearHighlight() {
+            var highlighted = window.document.getElementsByClassName('HSL');
+            for(var i=0; i<highlighted.length; ++i) {
+                var el = highlighted.item(i);
+                el.classList.remove('HSL');
+            }
+        }
+
+        function highlightSource(sourceLine) {
+            var lines = window.document.getElementsByClassName(sourceLine);
+            for(var i=0; i<lines.length; ++i) {
+                var el = lines.item(i);
+                el.classList.add('HSL');
+            }
+        }
+
+        window.addEventListener("mouseover", function(e) {
+            var el = e.target;
+            while(el) {
+                if(el.classList.contains("SL")) {
+                    var sourceLine = getSourceLine(el.classList);
+                    console.log("Source line = " + sourceLine);
+                    if(currentLine !== sourceLine) {
+                        clearHighlight();
+                        highlightSource(sourceLine);
+                        currentLine = sourceLine;
+                    }
+                    break;
+                }
+                el = el.parentElement;
+            }
+        });
+
+    </script>
+</head>
+<body>
+
+    <div id="input" class="source">
+        __INPUT_SOURCE__
+    </div>
+
+    <div id="gimple" class="source">
+        __GIMPLE__
+    </div>
+
+    <div id="bytecode" class="source">
+
+    </div>
+
+</body>
+</html>

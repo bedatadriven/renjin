@@ -107,6 +107,8 @@ extern "C" Endpoint*  test_endpoints() {
    ep.R_print();
 
    Endpoint::set_state_array( reduce_order );
+
+   printf("about to sort\n");
    sort( ep.begin(), ep.end() );
    
    printf("sorted:\n\n");

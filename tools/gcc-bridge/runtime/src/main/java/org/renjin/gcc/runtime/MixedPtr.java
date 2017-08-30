@@ -31,7 +31,19 @@ public class MixedPtr extends AbstractPtr {
   private byte[] primitives;
   private Object[] references;
 
+  /**
+   * The offset from the beginning of the arrays in
+   * bytes.
+   */
+  private int offset = 0;
+
   private MixedPtr() {
+  }
+
+  public MixedPtr(byte[] primitives, Object[] references, int offset) {
+    this.primitives = primitives;
+    this.references = references;
+    this.offset = offset;
   }
 
   public static MixedPtr malloc(int bytes) {
@@ -48,7 +60,7 @@ public class MixedPtr extends AbstractPtr {
 
   @Override
   public int getOffsetInBytes() {
-    return 0;
+    return this.offset;
   }
 
   @Override
@@ -68,38 +80,39 @@ public class MixedPtr extends AbstractPtr {
     if(bytes == 0) {
       return this;
     }
-
-    return new OffsetPtr(this, bytes);
+    return new MixedPtr(primitives, references, this.offset + bytes);
   }
 
   @Override
   public byte getByte(int offset) {
-    return primitives[offset];
+    return primitives[this.offset + offset];
   }
 
   @Override
   public void setByte(int offset, byte value) {
-    primitives[offset] = value;
+    primitives[this.offset + offset] = value;
   }
-
 
   @Override
   public Ptr getPointer(int offset) {
-    if(offset % POINTER_BYTES == 0) {
-      int index = offset / POINTER_BYTES;
+    int byteStart = this.offset + offset;
+    if(byteStart % POINTER_BYTES == 0) {
+      int index = byteStart / POINTER_BYTES;
       return (Ptr) references[index];
+    } else {
+      return BytePtr.NULL.pointerPlus(getInt(offset));
     }
-    return BytePtr.NULL.pointerPlus(offset);
   }
 
   @Override
   public final void setPointer(int offset, Ptr value) {
-    if(offset % POINTER_BYTES != 0) {
+    int byteStart = this.offset + offset;
+    if(byteStart % POINTER_BYTES != 0) {
       throw new UnsupportedOperationException("Unaligned pointer storage");
     }
-    int index = offset / POINTER_BYTES;
+    int index = byteStart / POINTER_BYTES;
     references[index] = value;
-    setInt(index, value.toInt());
+    setInt(offset / POINTER_BYTES, value.toInt());
   }
 
 
@@ -117,10 +130,15 @@ public class MixedPtr extends AbstractPtr {
   public void memcpy(Ptr source, int numBytes) {
     if(source instanceof MixedPtr && numBytes % POINTER_BYTES == 0) {
       MixedPtr ptr = (MixedPtr) source;
-      System.arraycopy(ptr.references, 0, references, 0, numBytes / POINTER_BYTES);
-      System.arraycopy(ptr.primitives, 0, primitives, 0, numBytes);
-    } else if(source instanceof OffsetPtr) {
-      throw new UnsupportedOperationException();
+      System.arraycopy(
+          ptr.primitives, ptr.offset,
+          this.primitives, this.offset,
+          numBytes);
+
+      System.arraycopy(
+          ptr.references, ptr.offset / POINTER_BYTES,
+          this.references, this.offset / POINTER_BYTES,
+          numBytes / POINTER_BYTES);
 
     } else {
       for (int i = 0; i < numBytes; i++) {
@@ -132,8 +150,14 @@ public class MixedPtr extends AbstractPtr {
   @Override
   public Ptr copyOf(int offset, int numBytes) {
     MixedPtr copy = new MixedPtr();
-    copy.primitives = Arrays.copyOfRange(primitives, offset, offset + numBytes);
-    copy.references = Arrays.copyOfRange(references, offset / POINTER_BYTES, (offset + numBytes) / POINTER_BYTES);
+    copy.primitives = Arrays.copyOfRange(
+        primitives,
+        this.offset + offset,
+        this.offset + offset + numBytes);
+    copy.references = Arrays.copyOfRange(
+        references,
+        (this.offset + offset) / POINTER_BYTES,
+        (this.offset + offset + numBytes) / POINTER_BYTES);
 
     return copy;
   }

@@ -51,9 +51,7 @@ import org.renjin.repackaged.guava.collect.Maps;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.renjin.repackaged.asm.Opcodes.*;
 
@@ -115,9 +113,9 @@ public class FunctionGenerator implements InvocationStrategy {
 
   public void emit(TreeLogger parentLogger, ClassVisitor cw) {
 
-
-    TreeLogger logger = parentLogger.branch("Generating bytecode for " + 
+    TreeLogger logger = parentLogger.branch("Generating bytecode for " +
         function.getName() + " [" + function.getMangledName() + "]");
+    logger.debug("Sources:", findSourceFiles());
     logger.debug("Aliases: " + aliases);
     logger.debug("Gimple:", function);
 
@@ -178,7 +176,7 @@ public class FunctionGenerator implements InvocationStrategy {
     }
 
     logger.dump(function.getUnit().getSourceName(), function.getSafeMangledName(), "opt.j", toString(methodNode));
-
+    logger.dumpHtml(function, methodNode);
 
     try {
       methodNode.accept(cw);
@@ -191,6 +189,18 @@ public class FunctionGenerator implements InvocationStrategy {
           "Offending bytecode:\n" + toString(methodNode), e);
     }
 
+  }
+
+  private Object findSourceFiles() {
+    Set<String> files = new HashSet<>();
+    for (GimpleBasicBlock basicBlock : function.getBasicBlocks()) {
+      for (GimpleStatement statement : basicBlock.getStatements()) {
+        if(statement.getSourceFile() != null) {
+          files.add(statement.getSourceFile());
+        }
+      }
+    }
+    return files;
   }
 
   private String toString(MethodNode methodNode) {

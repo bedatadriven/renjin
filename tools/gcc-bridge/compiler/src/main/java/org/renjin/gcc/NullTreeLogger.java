@@ -18,6 +18,8 @@
  */
 package org.renjin.gcc;
 
+import org.renjin.gcc.gimple.GimpleFunction;
+import org.renjin.repackaged.asm.tree.MethodNode;
 import org.renjin.repackaged.guava.io.ByteStreams;
 
 import java.io.FileNotFoundException;
@@ -39,6 +41,11 @@ public class NullTreeLogger extends TreeLogger {
 
   @Override
   public void dump(String dir, String file, String ext, Object value) {
+  }
+
+  @Override
+  public void dumpHtml(GimpleFunction gimpleFunction, MethodNode methodNode) {
+
   }
 
   @Override

@@ -38,6 +38,15 @@ public interface Ptr extends Comparable<Ptr> {
   Ptr pointerPlus(int bytes);
 
 
+  boolean getBoolean();
+
+  boolean getBoolean(int offset);
+
+  void setBoolean(int offset, boolean value);
+
+  void setBoolean(boolean value);
+
+
   /**
    *
    * @return the value at the beginning of the pointer region as a byte

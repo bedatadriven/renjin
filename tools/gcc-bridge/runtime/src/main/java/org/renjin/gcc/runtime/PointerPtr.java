@@ -164,4 +164,14 @@ public class PointerPtr extends AbstractPtr {
       throw new UnsupportedOperationException("TODO");
     }
   }
+
+  @Override
+  public Ptr copyOf(int offset, int numBytes) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public Ptr copyOf(int numBytes) {
+    throw new UnsupportedOperationException("TODO");
+  }
 }

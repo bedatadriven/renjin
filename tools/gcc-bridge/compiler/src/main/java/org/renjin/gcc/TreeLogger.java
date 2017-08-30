@@ -18,6 +18,9 @@
  */
 package org.renjin.gcc;
 
+import org.renjin.gcc.gimple.GimpleFunction;
+import org.renjin.repackaged.asm.tree.MethodNode;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -46,6 +49,8 @@ public abstract class TreeLogger {
   }
 
   public abstract void dump(String dir, String file, String ext, Object value);
+
+  public abstract void dumpHtml(GimpleFunction gimpleFunction, MethodNode methodNode);
 
   public abstract void log(Level level, String message);
 

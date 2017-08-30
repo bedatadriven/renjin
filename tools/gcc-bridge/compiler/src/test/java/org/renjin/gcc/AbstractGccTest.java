@@ -151,7 +151,6 @@ public abstract class AbstractGccTest {
     gcc.setDebug(true);
     gcc.setGimpleOutputDir(new File("target/gimple"));
 
-
     List<GimpleCompilationUnit> units = Lists.newArrayList();
 
     for (String sourceName : sources) {

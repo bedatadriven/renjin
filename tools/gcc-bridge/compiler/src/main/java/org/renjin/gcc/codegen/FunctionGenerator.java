@@ -176,7 +176,7 @@ public class FunctionGenerator implements InvocationStrategy {
     }
 
     logger.dump(function.getUnit().getSourceName(), function.getSafeMangledName(), "opt.j", toString(methodNode));
-    logger.dumpHtml(function, methodNode);
+    logger.dumpHtml(symbolTable, function, methodNode);
 
     try {
       methodNode.accept(cw);
@@ -229,12 +229,12 @@ public class FunctionGenerator implements InvocationStrategy {
       List<Type> parameterTypes = paramStrategy.getParameterTypes();
       if(parameterTypes.size() == 1) {
         paramVars.add(mv.getLocalVarAllocator().reserve(param.getName(), parameterTypes.get(0)));
-        mv.visitParameter(param.getName(), 0);
+//        mv.visitParameter(param.getName(), 0);
       } else {
         for (int typeIndex = 0; typeIndex < parameterTypes.size(); typeIndex++) {
           String name = param.getName() + "$" + typeIndex;
           paramVars.add(mv.getLocalVarAllocator().reserve(name, parameterTypes.get(typeIndex)));
-          mv.visitParameter(name, 0);
+//          mv.visitParameter(name, 0);
         }
       }
       paramIndexes.add(paramVars);

@@ -100,6 +100,10 @@ public class BytePtr extends AbstractPtr {
     return new BytePtr(new byte[bytes]);
   }
 
+  public static BytePtr fromString(String string) {
+    return new BytePtr(string.getBytes(), 0);
+  }
+
   /**
    * Copies the character c (an unsigned char) to 
    * the first n characters of the string pointed to, by the argument str.

@@ -25,6 +25,7 @@ import com.sun.corba.se.spi.orbutil.fsm.Input;
 import org.renjin.gcc.gimple.GimpleBasicBlock;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.statement.GimpleStatement;
+import org.renjin.gcc.symbols.SymbolTable;
 import org.renjin.repackaged.asm.tree.MethodNode;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.base.Optional;
@@ -34,11 +35,13 @@ import java.io.File;
 import java.io.IOException;
 
 public class HtmlFunctionRenderer {
+  private SymbolTable symbolTable;
   private GimpleFunction gimpleFunction;
   private MethodNode methodNode;
 
 
-  public HtmlFunctionRenderer(GimpleFunction gimpleFunction, MethodNode methodNode) {
+  public HtmlFunctionRenderer(SymbolTable symbolTable, GimpleFunction gimpleFunction, MethodNode methodNode) {
+    this.symbolTable = symbolTable;
     this.gimpleFunction = gimpleFunction;
     this.methodNode = methodNode;
   }
@@ -61,11 +64,11 @@ public class HtmlFunctionRenderer {
 
 
   private CharSequence renderGimple() {
-    return new GimpleRenderer(gimpleFunction).render();
+    return new GimpleRenderer(symbolTable, gimpleFunction).render();
   }
 
   private CharSequence renderBytecode() {
-    return "";
+    return new BytecodeRenderer(methodNode).render();
   }
 
 }

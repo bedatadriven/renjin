@@ -20,9 +20,13 @@
 
 package org.renjin.gcc.html;
 
+import org.renjin.gcc.codegen.FunctionGenerator;
+import org.renjin.gcc.codegen.call.CallGenerator;
+import org.renjin.gcc.codegen.call.FunctionCallGenerator;
 import org.renjin.gcc.gimple.*;
 import org.renjin.gcc.gimple.expr.*;
 import org.renjin.gcc.gimple.statement.*;
+import org.renjin.gcc.symbols.SymbolTable;
 import org.renjin.repackaged.guava.escape.Escapers;
 import org.renjin.repackaged.guava.html.HtmlEscapers;
 
@@ -30,10 +34,12 @@ import java.util.List;
 
 public class GimpleRenderer {
 
+  private SymbolTable symbolTable;
   private final GimpleFunction function;
   private final StringBuilder html = new StringBuilder();
 
-  public GimpleRenderer(GimpleFunction function) {
+  public GimpleRenderer(SymbolTable symbolTable, GimpleFunction function) {
+    this.symbolTable = symbolTable;
     this.function = function;
   }
 
@@ -167,6 +173,8 @@ public class GimpleRenderer {
       case COMPONENT_REF:
       case ARRAY_REF:
       case COMPLEX_CST:
+      case  MEM_REF:
+      case ADDR_EXPR:
         assert operands.size() == 1;
         expr(operands.get(0));
         break;
@@ -238,8 +246,6 @@ public class GimpleRenderer {
       case MINUS_EXPR:
         operator("-", operands);
         break;
-      case MEM_REF:
-        break;
       case BIT_NOT_EXPR:
         operator("~", operands);
         break;
@@ -308,6 +314,16 @@ public class GimpleRenderer {
         .append("</span>");
   }
 
+  private void exprMaybeGrouped(GimpleExpr value) {
+    if(isSimple(value)) {
+      expr(value);
+    } else {
+      symbol("(");
+      expr(value);
+      symbol(")");
+    }
+  }
+
   private void expr(final GimpleExpr expr) {
     html.append(String.format("<span class=\"gexpr %s\" title=\"%s\">",
         expr.getClass().getSimpleName(),
@@ -342,13 +358,13 @@ public class GimpleRenderer {
       public void visitComplexConstant(GimpleComplexConstant constant) {
         expr(constant.getReal());
         symbol("+");
-        expr(constant.getReal());
+        expr(constant.getIm());
         symbol("i");
       }
 
       @Override
       public void visitComponentRef(GimpleComponentRef componentRef) {
-        expr(componentRef.getValue());
+        exprMaybeGrouped(componentRef.getValue());
         symbol(".");
         expr(componentRef.getMember());
       }
@@ -373,9 +389,30 @@ public class GimpleRenderer {
         html.append(HtmlEscapers.htmlEscaper().escape(fieldRef.toString()));
       }
 
+      private FunctionGenerator resolveGimpleFunction(GimpleFunctionRef ref) {
+        CallGenerator callGenerator = symbolTable.findCallGenerator(ref);
+        if(callGenerator instanceof FunctionCallGenerator) {
+          FunctionCallGenerator fcg = (FunctionCallGenerator) callGenerator;
+          if(fcg.getStrategy() instanceof FunctionGenerator) {
+            return (FunctionGenerator) fcg.getStrategy();
+          }
+        }
+        return null;
+      }
+
       @Override
       public void visitFunctionRef(GimpleFunctionRef functionRef) {
-        html.append(functionRef.getName());
+
+        FunctionGenerator gimpleFunction = resolveGimpleFunction(functionRef);
+        if(gimpleFunction != null) {
+          html.append(String.format("<a href=\"../%s/%s.html\" title=\"%s\">%s</a>",
+              gimpleFunction.getCompilationUnit().getSourceName(),
+              gimpleFunction.getMangledName(),
+              gimpleFunction.getMangledName(),
+              gimpleFunction.getFunction().getName()));
+        } else {
+          html.append(functionRef.getName());
+        }
       }
 
       @Override
@@ -387,7 +424,7 @@ public class GimpleRenderer {
       public void visitMemRef(GimpleMemRef memRef) {
         symbol("*");
         if(memRef.isOffsetZero()) {
-          expr(memRef.getPointer());
+          exprMaybeGrouped(memRef.getPointer());
         } else {
           symbol("(");
           expr(memRef.getPointer());
@@ -409,7 +446,7 @@ public class GimpleRenderer {
 
       @Override
       public void visitPointerPlus(GimplePointerPlus pointerPlus) {
-        expr(pointerPlus.getPointer());
+        exprMaybeGrouped(pointerPlus.getPointer());
         symbol("+");
         expr(pointerPlus.getOffset());
       }
@@ -426,9 +463,7 @@ public class GimpleRenderer {
 
       @Override
       public void visitStringConstant(GimpleStringConstant stringConstant) {
-        html.append("\"");
-        html.append(HtmlEscapers.htmlEscaper().escape(stringConstant.getValue()));
-        html.append("\"");
+        html.append(HtmlEscapers.htmlEscaper().escape(stringLiteral(stringConstant.getValue())));
       }
 
       @Override
@@ -440,7 +475,38 @@ public class GimpleRenderer {
     html.append("</span>");
   }
 
+
+  private boolean isSimple(GimpleExpr expr) {
+    return expr instanceof GimpleConstant ||
+        expr instanceof GimpleConstantRef ||
+        expr instanceof GimpleVariableRef ||
+        expr instanceof GimpleParamRef;
+  }
+
   private String renderTypeTitle(GimpleExpr expr) {
     return HtmlEscapers.htmlEscaper().escape(expr.getType().toString());
+  }
+
+  public static String stringLiteral(String string) {
+    StringBuilder lit = new StringBuilder();
+    lit.append("\"");
+    for (int i = 0; i < string.length(); i++) {
+      char c = string.charAt(i);
+      if(c == '\n') {
+        lit.append("\\n");
+      } else if(c == '\r') {
+        lit.append("\\r");
+      } else if(c == '\t') {
+        lit.append("\\t");
+      } else if(c == '"') {
+        lit.append("\\\"");
+      } else if(c >= ' ' && c < 127) {
+        lit.append(c);
+      } else {
+        lit.append("\\" + Integer.toHexString(c));
+      }
+    }
+    lit.append("\"");
+    return lit.toString();
   }
 }

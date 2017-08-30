@@ -34,7 +34,7 @@
         #input {
             top: 0;
             left: 0;
-            right: 50%;
+            right: 70%;
             bottom: 0;
         }
 
@@ -44,7 +44,15 @@
 
         #gimple {
             top: 0;
-            left: 50%;
+            left: 30%;
+            right: 35%;
+            bottom: 0;
+            padding-left: 5px;
+        }
+
+        #bytecode {
+            top: 0;
+            left: 65%;
             right: 0;
             bottom: 0;
             padding-left: 5px;
@@ -69,10 +77,7 @@
             background-color: yellow;
         }
 
-
-        .gexpr:hover {
-            background-color: bisque;
-        }
+        /* Gimple syntax highlighting */
 
         .symbol {
             font-weight: bold;
@@ -88,9 +93,53 @@
             margin-left: 10px;
         }
 
+        .gstatement {
+            white-space: nowrap;
+        }
+
         .GimpleStringConstant, .GimpleRealConstant, .GimpleIntegerConstant {
             color: green;
         }
+
+        .GimpleFunctionRef a {
+            text-decoration: none;
+            color: violet;
+        }
+
+        .GimpleFunctionRef a:visited {
+            text-decoration: none;
+            color: violet;
+        }
+
+        /* Bytecode syntax highlighting */
+
+        .bcins {
+            white-space: nowrap;
+            margin-left: 15px;
+        }
+
+        .bclabel {
+            margin-top: 5px;
+        }
+
+        .opcode {
+            color: mediumvioletred;
+            font-weight: bold;
+        }
+
+        .bcldc {
+            color: green;
+        }
+
+        .bctype {
+            color: deepskyblue;
+        }
+
+        .bcvar {
+            color: darkkhaki;
+            font-weight: bold;
+        }
+
 
     </style>
     <script>
@@ -106,19 +155,11 @@
             }
         }
 
-        function clearHighlight() {
-            var highlighted = window.document.getElementsByClassName('HSL');
-            for(var i=0; i<highlighted.length; ++i) {
-                var el = highlighted.item(i);
-                el.classList.remove('HSL');
-            }
-        }
-
-        function highlightSource(sourceLine) {
+        function highlightSource(sourceLine, highlight) {
             var lines = window.document.getElementsByClassName(sourceLine);
             for(var i=0; i<lines.length; ++i) {
                 var el = lines.item(i);
-                el.classList.add('HSL');
+                el.classList.toggle('HSL', highlight);
             }
         }
 
@@ -129,8 +170,8 @@
                     var sourceLine = getSourceLine(el.classList);
                     console.log("Source line = " + sourceLine);
                     if(currentLine !== sourceLine) {
-                        clearHighlight();
-                        highlightSource(sourceLine);
+                        highlightSource(currentLine, false);
+                        highlightSource(sourceLine, true);
                         currentLine = sourceLine;
                     }
                     break;
@@ -152,7 +193,7 @@
     </div>
 
     <div id="bytecode" class="source">
-
+        __BYTECODE__
     </div>
 
 </body>

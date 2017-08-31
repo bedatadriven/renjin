@@ -290,11 +290,7 @@ public abstract class AbstractPtr implements Ptr {
 
   @Override
   public Ptr copyOf(int numBytes) {
-    BytePtr copy = new BytePtr(new byte[numBytes]);
-    for (int i = 0; i < numBytes; i++) {
-      copy.array[i] = getByte(i);
-    }
-    return copy;
+    return copyOf(0, numBytes);
   }
 
 

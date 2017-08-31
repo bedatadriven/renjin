@@ -104,7 +104,7 @@ public class VPtrStrategy implements PointerTypeStrategy {
 
   @Override
   public ReturnStrategy getReturnStrategy() {
-    return new VoidPtrReturnStrategy();
+    return new VPtrReturnStrategy();
   }
 
   @Override

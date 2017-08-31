@@ -36,7 +36,7 @@ public class VPtrReturnStrategy implements ReturnStrategy {
 
   @Override
   public JExpr marshall(GExpr expr) {
-    throw new UnsupportedOperationException("TODO");
+    return expr.toVPtrExpr().getRef();
   }
 
   @Override

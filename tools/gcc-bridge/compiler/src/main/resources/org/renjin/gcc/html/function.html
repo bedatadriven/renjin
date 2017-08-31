@@ -74,6 +74,10 @@
         }
 
         .HSL {
+            background-color: lightyellow;
+        }
+
+        .SSL {
             background-color: yellow;
         }
 
@@ -144,7 +148,8 @@
     </style>
     <script>
 
-        var currentLine;
+        var hoverLine;
+        var selectedLine;
 
         function getSourceLine(classList) {
             for(var i=0; i<classList.length; ++i) {
@@ -155,11 +160,11 @@
             }
         }
 
-        function highlightSource(sourceLine, highlight) {
+        function highlightSource(sourceLine, highlightClass, highlight) {
             var lines = window.document.getElementsByClassName(sourceLine);
             for(var i=0; i<lines.length; ++i) {
                 var el = lines.item(i);
-                el.classList.toggle('HSL', highlight);
+                el.classList.toggle(highlightClass, highlight);
             }
         }
 
@@ -169,16 +174,35 @@
                 if(el.classList.contains("SL")) {
                     var sourceLine = getSourceLine(el.classList);
                     console.log("Source line = " + sourceLine);
-                    if(currentLine !== sourceLine) {
-                        highlightSource(currentLine, false);
-                        highlightSource(sourceLine, true);
-                        currentLine = sourceLine;
+                    if(hoverLine !== sourceLine) {
+                        highlightSource(hoverLine, 'HSL', false);
+                        highlightSource(sourceLine, 'HSL', true);
+                        hoverLine = sourceLine;
                     }
                     break;
                 }
                 el = el.parentElement;
             }
         });
+
+        window.addEventListener("click", function(e) {
+            var el = e.target;
+            while(el) {
+                if(el.classList.contains("SL")) {
+                    var sourceLine = getSourceLine(el.classList);
+                    console.log("Source line = " + sourceLine);
+                    if(selectedLine !== sourceLine) {
+                        highlightSource(selectedLine, 'SSL', false);
+                        highlightSource(sourceLine, 'SSL', true);
+                        selectedLine = sourceLine;
+                    }
+                    break;
+                }
+                el = el.parentElement;
+            }
+        });
+
+
 
     </script>
 </head>

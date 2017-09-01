@@ -33,6 +33,6 @@ library(bootstrap)
 x <- rnorm(10)
 theta <- function(p,x) {sum(p*x)/sum(p)}
 
-(results <- abcnon(x, theta))
-
 (results.renjin <- renjin(abcnon(x, theta)))
+
+(results <- abcnon(x, theta))

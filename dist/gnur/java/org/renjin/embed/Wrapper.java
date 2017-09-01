@@ -42,6 +42,7 @@ public class Wrapper {
   private final long globalEnv;
   private final long emptyEnv;
   private final long baseEnv;
+  private final long nilValue;
 
 
   public Wrapper(Session session) {
@@ -49,10 +50,10 @@ public class Wrapper {
     globalEnv = engine.rniSpecialObject(Rengine.SO_GlobalEnv);
     baseEnv = engine.rniSpecialObject(Rengine.SO_BaseEnv);
     emptyEnv = engine.rniSpecialObject(Rengine.SO_EmptyEnv);
+    nilValue = engine.rniSpecialObject(Rengine.SO_NilValue);
 
     globals.put(engine.rniSpecialObject(Rengine.SO_UnboundValue), Symbol.UNBOUND_VALUE);
-    globals.put(engine.rniSpecialObject(Rengine.SO_NilValue), Null.INSTANCE);
-
+    globals.put(nilValue, Null.INSTANCE);
     globals.put(globalEnv, session.getGlobalEnvironment());
     globals.put(baseEnv, session.getBaseEnvironment());
     globals.put(emptyEnv, Environment.EMPTY);
@@ -61,12 +62,16 @@ public class Wrapper {
     initNamespaceMappings(session);
   }
 
+
+  public Rengine getEngine() {
+    return engine;
+  }
+
   public boolean isEmptyEnv(long envPtr) {
     return envPtr == emptyEnv;
   }
 
   private void initPackageMappings(Session session) {
-    long emptyEnv = engine.rniSpecialObject(Rengine.SO_EmptyEnv);
     long hostEnv = engine.rniParentEnv(globalEnv);
     while(hostEnv != emptyEnv) {
       String hostEnvName = getHostEnvironmentName(hostEnv);
@@ -131,7 +136,6 @@ public class Wrapper {
     }
   }
 
-
   private long rniEval(String rCode) {
     long sexp = engine.rniParse(rCode, 1);
     if (sexp == 0) {
@@ -176,13 +180,13 @@ public class Wrapper {
     int sexpType = engine.rniExpType(sexp);
     switch (sexpType) {
       case REXP.LISTSXP:
-        return createPairList(sexp);
+        return wrapPairList(sexp);
       case REXP.NILSXP:
         return Null.INSTANCE;
       case REXP.SYMSXP:
-        return findSymbol(sexp);
+        return wrapSymbol(sexp);
       case REXP.LANGSXP:
-        return createFunctionCall(sexp);
+        return wrapFunctionCall(sexp);
       case REXP.INTSXP:
         return new IntVectorWrapper(engine, sexp, wrapAttributes(sexp));
       case REXP.REALSXP:
@@ -194,13 +198,13 @@ public class Wrapper {
       case REXP.ENVSXP:
         return wrapEnvironment(sexp);
       case REXP.CLOSXP:
-        return createClosureWrapper(sexp);
+        return wrapClosure(sexp);
       case REXP.VECSXP:
-        return createList(sexp);
+        return wrapList(sexp);
       case REXP.BCODESXP:
         return wrapBytecode(sexp);
       case REXP.PROMSXP:
-        return createPromise(sexp);
+        return wrapPromise(sexp);
       case REXP.BUILTINSXP:
       case REXP.SPECIALSXP:
         throw new UnsupportedOperationException("unmapped BUILTINSXP/SPECIALSXP");
@@ -209,22 +213,26 @@ public class Wrapper {
     }
   }
 
-  private SEXP createPromise(long sexp) {
+  private SEXP wrapPromise(long sexp) {
 
     // JRI doesn't expose accessor methods for closures,
     // but promises have the same layout as pairlist nodes
 
     SEXP value = wrap(engine.rniCAR(sexp));
-    SEXP expr =  wrap(engine.rniCDR(sexp));
-    SEXP rho =   wrap(engine.rniTAG(sexp));
 
     if(value == Symbol.UNBOUND_VALUE) {
       // Unevaluated promise
-      // Do we need to populate back into GNU R?
-      return Promise.repromise((Environment) rho, expr);
+      // These are mostly calls to lazyLoadDbFetch, so ask the host session
+      // to evaluate when needed
+
+      long expr = engine.rniCDR(sexp);
+      long rho =  engine.rniTAG(sexp);
+
+      return new HostPromise(this, expr, rho);
 
     } else {
       // Already evaluated
+      SEXP expr =  wrap(engine.rniCDR(sexp));
       return new Promise(expr, value);
     }
   }
@@ -238,7 +246,7 @@ public class Wrapper {
     return env;
   }
 
-  private SEXP createList(long sexp) {
+  private SEXP wrapList(long sexp) {
     long[] pointers = engine.rniGetVector(sexp);
     SEXP[] elements = new SEXP[pointers.length];
     for (int i = 0; i < pointers.length; i++) {
@@ -255,23 +263,43 @@ public class Wrapper {
       return ((WrappedREXP) sexp).getHandle();
     }
     if(sexp instanceof DoubleVector) {
-      return withAttributes(engine.rniPutDoubleArray(((DoubleVector) sexp).toDoubleArray()), sexp.getAttributes());
+      return withUnwrapAttributes(engine.rniPutDoubleArray(((DoubleVector) sexp).toDoubleArray()), sexp.getAttributes());
     }
     if(sexp instanceof IntVector) {
-      return withAttributes(engine.rniPutIntArray(((IntVector) sexp).toIntArray()),
+      return withUnwrapAttributes(engine.rniPutIntArray(((IntVector) sexp).toIntArray()),
             sexp.getAttributes());
     }
     if(sexp instanceof StringVector) {
-      return withAttributes(engine.rniPutStringArray(((StringVector) sexp).toArray()), sexp.getAttributes());
+      return withUnwrapAttributes(engine.rniPutStringArray(((StringVector) sexp).toArray()), sexp.getAttributes());
     }
     if(sexp instanceof Symbol) {
-      return withAttributes(engine.rniInstallSymbol(((Symbol) sexp).getPrintName()), sexp.getAttributes());
+      return withUnwrapAttributes(engine.rniInstallSymbol(((Symbol) sexp).getPrintName()), sexp.getAttributes());
     }
     if(sexp instanceof ListVector) {
-      return withAttributes(unwrapList((ListVector) sexp), sexp.getAttributes());
+      return withUnwrapAttributes(unwrapList((ListVector) sexp), sexp.getAttributes());
+    }
+    if(sexp instanceof FunctionCall) {
+      return withUnwrapAttributes(unwrapPairList((PairList) sexp, true), sexp.getAttributes());
+    }
+    if(sexp instanceof PairList) {
+      return withUnwrapAttributes(unwrapPairList((PairList) sexp, false), sexp.getAttributes());
     }
 
     throw new UnsupportedOperationException("TODO: Unwrap " + sexp.getClass().getName());
+  }
+
+  private long unwrapPairList(PairList pairList, boolean lang) {
+
+    if(pairList == Null.INSTANCE) {
+      return nilValue;
+    }
+
+    PairList.Node node = (PairList.Node) pairList;
+    long head = unwrap(node.getValue());
+    long tag = unwrap(node.getRawTag());
+    long tail = unwrapPairList(node.getNext(), lang);
+
+    return engine.rniCons(head, tag, tail, lang);
   }
 
   private long unwrapList(ListVector sexp) {
@@ -282,7 +310,7 @@ public class Wrapper {
     return engine.rniPutVector(pointers);
   }
 
-  private long withAttributes(long sexp, AttributeMap attributes) {
+  private long withUnwrapAttributes(long sexp, AttributeMap attributes) {
     if(attributes != AttributeMap.EMPTY) {
       for (Symbol symbol : attributes.names()) {
         engine.rniSetAttr(sexp, symbol.getPrintName(), unwrap(attributes.get(symbol)));
@@ -291,7 +319,7 @@ public class Wrapper {
     return sexp;
   }
 
-  private Symbol findSymbol(long sexp) {
+  private Symbol wrapSymbol(long sexp) {
     String name = engine.rniGetSymbolName(sexp);
     if(name.isEmpty()) {
       return Symbol.MISSING_ARG;
@@ -300,14 +328,14 @@ public class Wrapper {
     }
   }
 
-  private SEXP createFunctionCall(long sexp) {
+  private SEXP wrapFunctionCall(long sexp) {
     long function = engine.rniCAR(sexp);
     long arguments = engine.rniCDR(sexp);
 
-    return new FunctionCall(wrap(function), createPairList(arguments));
+    return new FunctionCall(wrap(function), wrapPairList(arguments));
   }
 
-  private PairList createPairList(long node) {
+  private PairList wrapPairList(long node) {
     if(node == 0) {
       return Null.INSTANCE;
     }
@@ -326,7 +354,7 @@ public class Wrapper {
   }
 
 
-  private SEXP createClosureWrapper(long sexp) {
+  private SEXP wrapClosure(long sexp) {
 
     // JRI doesn't expose accessor methods for closures,
     // but closures have the same layout as pairlist nodes

@@ -1,4 +1,3 @@
-#!/bin/sh
 #
 # Renjin : JVM-based interpreter for the R language for the statistical analysis
 # Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
@@ -19,6 +18,21 @@
 #
 
 
-mvn clean install -Dpackage.version=1.0
+library(renjin)
 
-R CMD INSTALL target/renjin-gnur-package-0.9.0-SNAPSHOT.tar.gz --install-tests && R -f "test/$1"
+
+foo <- 33
+fooz <- function() {
+    foo
+}
+
+stopifnot(renjin(fooz()+1) == 34)
+
+# Now load the bootstrap package
+library(bootstrap)
+x <- rnorm(10)
+theta <- function(p,x) {sum(p*x)/sum(p)}
+
+(results <- abcnon(x, theta))
+
+(results.renjin <- renjin(abcnon(x, theta)))

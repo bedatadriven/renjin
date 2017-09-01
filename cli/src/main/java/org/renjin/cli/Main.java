@@ -169,17 +169,8 @@ public class Main {
     this.session = new SessionBuilder()
         .setPackageLoader(packageLoader)
         .setExecutorService(threadPool)
+        .withDefaultPackages()
         .build();
-    
-    loadDefaultPackages();
   }
 
-
-  private void loadDefaultPackages() {
-    String defaultPackages[] = new String[] {
-        "stats", "graphics", "grDevices", "utils", "datasets", "methods" };
-    for(String packageName : defaultPackages) {
-      session.getTopLevelContext().evaluate(FunctionCall.newCall(Symbol.get("library"), Symbol.get(packageName)));
-    }
-  }
 }

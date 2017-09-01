@@ -1,4 +1,3 @@
-#!/bin/sh
 #
 # Renjin : JVM-based interpreter for the R language for the statistical analysis
 # Copyright © 2010-2016 BeDataDriven Groep B.V. and contributors
@@ -18,7 +17,8 @@
 # https://www.gnu.org/licenses/gpl-2.0.txt
 #
 
+options(java.parameters='-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005')
+library(renjin)
 
-mvn clean install -Dpackage.version=1.0
 
-R CMD INSTALL target/renjin-gnur-package-0.9.0-SNAPSHOT.tar.gz --install-tests && R -f "test/$1"
+

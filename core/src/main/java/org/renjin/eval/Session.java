@@ -53,7 +53,7 @@ import java.util.concurrent.ExecutorService;
 public class Session {
 
   public static final List<String> DEFAULT_PACKAGES = ImmutableList.of(
-      "stats", "utils", "graphics", "grDevices", "datasets", "methods");
+      "stats",  "graphics", "grDevices", "utils",  "datasets", "methods");
   
   private final Context topLevelContext;
 

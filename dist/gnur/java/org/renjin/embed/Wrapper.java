@@ -19,6 +19,7 @@
 package org.renjin.embed;
 
 import org.renjin.eval.Session;
+import org.renjin.primitives.packaging.Namespace;
 import org.renjin.sexp.*;
 import org.rosuda.JRI.REXP;
 import org.rosuda.JRI.Rengine;
@@ -34,17 +35,123 @@ public class Wrapper {
 
   private final Rengine engine = Rengine.getMainEngine();
 
+  private Map<Long, SEXP> globals = new HashMap<>();
+
   private Map<Long, SEXP> cache = new HashMap<>();
 
+  private final long globalEnv;
+  private final long emptyEnv;
+  private final long baseEnv;
+
+
   public Wrapper(Session session) {
-    cache.put(engine.rniSpecialObject(Rengine.SO_GlobalEnv),
-        session.getGlobalEnvironment());
-    cache.put(engine.rniSpecialObject(Rengine.SO_BaseEnv),
-        session.getBaseEnvironment());
-    cache.put(engine.rniSpecialObject(Rengine.SO_UnboundValue),
-        Symbol.UNBOUND_VALUE);
+
+    globalEnv = engine.rniSpecialObject(Rengine.SO_GlobalEnv);
+    baseEnv = engine.rniSpecialObject(Rengine.SO_BaseEnv);
+    emptyEnv = engine.rniSpecialObject(Rengine.SO_EmptyEnv);
+
+    globals.put(engine.rniSpecialObject(Rengine.SO_UnboundValue), Symbol.UNBOUND_VALUE);
+    globals.put(engine.rniSpecialObject(Rengine.SO_NilValue), Null.INSTANCE);
+
+    globals.put(globalEnv, session.getGlobalEnvironment());
+    globals.put(baseEnv, session.getBaseEnvironment());
+    globals.put(emptyEnv, Environment.EMPTY);
+
+    initPackageMappings(session);
+    initNamespaceMappings(session);
   }
 
+  public boolean isEmptyEnv(long envPtr) {
+    return envPtr == emptyEnv;
+  }
+
+  private void initPackageMappings(Session session) {
+    long emptyEnv = engine.rniSpecialObject(Rengine.SO_EmptyEnv);
+    long hostEnv = engine.rniParentEnv(globalEnv);
+    while(hostEnv != emptyEnv) {
+      String hostEnvName = getHostEnvironmentName(hostEnv);
+      if(hostEnvName != null && hostEnvName.startsWith("package:")) {
+        Environment guestEnv = findGuestEnvironmentByName(session, hostEnvName);
+        if(guestEnv != null) {
+          globals.put(hostEnv, guestEnv);
+        }
+      }
+      hostEnv = engine.rniParentEnv(hostEnv);
+    }
+  }
+
+  private Environment findGuestEnvironmentByName(Session session, String name) {
+    Environment env = session.getGlobalEnvironment().getParent();
+    while(env != Environment.EMPTY) {
+      if(name.equals(env.getName())) {
+        return env;
+      }
+      env = env.getParent();
+    }
+    return null;
+  }
+
+  private String getHostEnvironmentName(long hostEnv) {
+    long nameSexp = engine.rniGetAttr(hostEnv, "name");
+    if(engine.rniExpType(nameSexp) == REXP.STRSXP) {
+      return engine.rniGetString(nameSexp);
+    } else {
+      return null;
+    }
+  }
+
+  private void initNamespaceMappings(Session session) {
+    initNamespaceMapping(session, "base");
+    initNamespaceMapping(session, "stats");
+    initNamespaceMapping(session, "methods");
+  }
+
+  private void initNamespaceMapping(Session session, String packageName) {
+    long hostNamespacePtr = rniEval(String.format("getNamespace(\"%s\")", packageName));
+    Namespace guestNamespace = session.getNamespaceRegistry().getNamespace(session.getTopLevelContext(), packageName);
+
+    globals.put(hostNamespacePtr, guestNamespace.getNamespaceEnvironment());
+
+    initSymbolMappings(hostNamespacePtr, guestNamespace.getNamespaceEnvironment());
+  }
+
+  private void initSymbolMappings(long hostNamespacePtr, Environment namespaceEnvironment) {
+    long list = engine.rniListEnv(hostNamespacePtr, true);
+    if(list != 0) {
+      String[] strings = engine.rniGetStringArray(list);
+      if(strings != null) {
+        for (String symbol : strings) {
+          SEXP guestValue = namespaceEnvironment.getVariableUnsafe(symbol);
+          if(guestValue != Symbol.UNBOUND_VALUE) {
+            long hostValue = engine.rniFindVar(symbol, hostNamespacePtr);
+            globals.put(hostValue, guestValue);
+          }
+        }
+      }
+    }
+  }
+
+
+  private long rniEval(String rCode) {
+    long sexp = engine.rniParse(rCode, 1);
+    if (sexp == 0) {
+      throw new IllegalStateException("Failed to parse '" + rCode + "'");
+    }
+    long result = engine.rniEval(sexp, globalEnv);
+    if(result == 0) {
+      throw new IllegalStateException("Failed to eval '" + rCode + "'");
+    }
+    return result;
+  }
+
+  public void resetCache() {
+    cache.clear();
+    cache.putAll(globals);
+  }
+
+  public void clear() {
+    cache.clear();
+  }
 
   public SEXP wrap(REXPReference ref) {
     return wrap((Long)ref.getHandle());
@@ -94,6 +201,9 @@ public class Wrapper {
         return wrapBytecode(sexp);
       case REXP.PROMSXP:
         return createPromise(sexp);
+      case REXP.BUILTINSXP:
+      case REXP.SPECIALSXP:
+        throw new UnsupportedOperationException("unmapped BUILTINSXP/SPECIALSXP");
       default:
         throw new UnsupportedOperationException("type: "  + sexpType);
     }
@@ -123,7 +233,9 @@ public class Wrapper {
     Environment parent = (Environment) wrap(engine.rniParentEnv(sexp));
     FrameWrapper frame = new FrameWrapper(engine, sexp);
     frame.setWrapper(this);
-    return Environment.createChildEnvironment(parent, frame).build();
+    Environment env = Environment.createChildEnvironment(parent, frame).build();
+    env.setAttributes(wrapAttributes(sexp));
+    return env;
   }
 
   private SEXP createList(long sexp) {
@@ -167,7 +279,7 @@ public class Wrapper {
     for (int i = 0; i < sexp.length(); i++) {
       pointers[i] = unwrap(sexp.getElementAsSEXP(i));
     }
-    return engine.rniPutList(pointers);
+    return engine.rniPutVector(pointers);
   }
 
   private long withAttributes(long sexp, AttributeMap attributes) {
@@ -196,7 +308,13 @@ public class Wrapper {
   }
 
   private PairList createPairList(long node) {
+    if(node == 0) {
+      return Null.INSTANCE;
+    }
+
     PairList.Builder builder = new PairList.Builder();
+    builder.setAttributes(wrapAttributes(node));
+
     while(engine.rniExpType(node) != REXP.NILSXP) {
       long value = engine.rniCAR(node);
       long tag = engine.rniTAG(node);
@@ -240,6 +358,9 @@ public class Wrapper {
 
 
   private AttributeMap wrapAttributes(long sexp) {
+    if(sexp == 0) {
+      return AttributeMap.EMPTY;
+    }
     String[] attributeNames = engine.rniGetAttrNames(sexp);
     if(attributeNames == null || attributeNames.length == 0) {
       return AttributeMap.EMPTY;

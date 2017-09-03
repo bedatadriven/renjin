@@ -25,8 +25,7 @@
 
   <artifactId>renjin-core</artifactId>
   <name>Renjin Core</name>
-  <description>Java-based implementation of the R language for
-    statistical computing</description>
+  <description>Java-based implementation of the R language for statistical computing</description>
 
   <dependencies>
     <dependency>
@@ -93,14 +92,6 @@
       <artifactId>renjin-guava</artifactId>
     </dependency>
 
-    <!-- unit test framework -->
-    <dependency>
-      <groupId>org.concordion</groupId>
-      <artifactId>concordion</artifactId>
-      <version>1.4.2</version>
-      <scope>test</scope>
-    </dependency>
-
     <!-- This library is used during compile-time code generation but is
          not necessary when using renjin-->
     <dependency>
@@ -111,15 +102,6 @@
   </dependencies>
 
   <build>
-    <testResources>
-      <testResource>
-        <directory>src/test/resources</directory>
-      </testResource>
-      <testResource>
-        <directory>src/spec/resources</directory>
-      </testResource>
-    </testResources>
-
     <resources>
       <resource>
         <directory>src/main/resources</directory>
@@ -209,25 +191,6 @@
         <configuration>
           <redirectTestOutputToFile>true</redirectTestOutputToFile>
         </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>build-helper-maven-plugin</artifactId>
-        <version>1.1</version>
-        <executions>
-          <execution>
-            <id>add-test-source</id>
-            <phase>generate-sources</phase>
-            <goals>
-              <goal>add-test-source</goal>
-            </goals>
-            <configuration>
-              <sources>
-                <source>src/spec/java</source>
-              </sources>
-            </configuration>
-          </execution>
-        </executions>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

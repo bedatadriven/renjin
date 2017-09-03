@@ -592,7 +592,7 @@ public class EvaluationTest extends EvalTestCase {
   
   @Test
   public void matchCall() throws IOException {
-    assumingBasePackagesLoad();
+
     
     eval("f<-function(a,b) match.call()");
     eval("matched <- f(b=1,a=2)");
@@ -626,7 +626,7 @@ public class EvaluationTest extends EvalTestCase {
   
   @Test
   public void matchCallDotsNotExpanded() throws IOException {
-    assumingBasePackagesLoad();
+
     
     eval("f<-function(expand.dots,...) match.call(expand.dots=expand.dots)");
     

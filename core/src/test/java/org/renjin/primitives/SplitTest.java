@@ -33,7 +33,7 @@ public class SplitTest extends EvalTestCase {
 
   @Test
   public void split() throws IOException {
-    assumingBasePackagesLoad();
+
 
     eval("x <- split(c(10:1), c(1,2,1,2,1,2,1,2,3,3))");
 
@@ -44,7 +44,7 @@ public class SplitTest extends EvalTestCase {
   
   @Test
   public void splitRecycling() {
-    assumingBasePackagesLoad();
+
     eval("x <- split(rep(35,10), 1:2)");
     
     assertThat(eval("length(x)"), elementsIdenticalTo(c_i(2)));
@@ -54,7 +54,7 @@ public class SplitTest extends EvalTestCase {
   
   @Test
   public void splitLongerFactor() {
-    assumingBasePackagesLoad();
+
     eval("x <- split(1:2, 1:3)");
     
     assertThat(eval("length(x)"), elementsIdenticalTo(c_i(3)));
@@ -65,7 +65,7 @@ public class SplitTest extends EvalTestCase {
   
   @Test
   public void splitWithMissing() throws IOException {
-    assumingBasePackagesLoad();
+
     
     eval("x <- split(c(10:1), c(1,2,1,2,1,2,1,2,3,NA))");
     eval("print(x)");
@@ -76,7 +76,7 @@ public class SplitTest extends EvalTestCase {
   
   @Test
   public void splitWithNames() {
-    assumingBasePackagesLoad();
+
     
     eval("x <- split(c(a=1,b=2), c(1,2))");
     assertThat(eval("names(x)"), elementsIdenticalTo(c("1", "2")));
@@ -85,7 +85,7 @@ public class SplitTest extends EvalTestCase {
 
   @Test
   public void split1dArrayWithNames() {
-    assumingBasePackagesLoad();
+
 
     eval("a <- 1:2");
     eval("dim(a) <- 2");

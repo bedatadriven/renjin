@@ -28,14 +28,14 @@ public class ConditionsTest extends EvalTestCase {
 
   @Test
   public void catchStop() {
-    assumingBasePackagesLoad();
+
     assertThat(eval("tryCatch(stop('foo'), error = function(...) 41)"), elementsIdenticalTo(c(41)));
     assertThat(eval("tryCatch(nonExistantVar + 1, error = function(...) 42)"), elementsIdenticalTo(c(42)));
   }
   
   @Test
   public void supressWarnings() {
-    assumingBasePackagesLoad();
+
     
     eval("x <- suppressWarnings({ warning('foo'); 42 })");
    

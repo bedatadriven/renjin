@@ -1051,7 +1051,7 @@ public class SubsettingTest extends EvalTestCase {
   
   @Test
   public void environmentSymbol() throws IOException{
-    assumingBasePackagesLoad();
+
     
     eval(".testEnv<-new.env()");
     eval("assign(\"key\",1,.testEnv)");

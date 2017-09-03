@@ -167,7 +167,7 @@ public class SequenceTest extends EvalTestCase {
 
   @Test
   public void repIssue61() {
-    assumingBasePackagesLoad();
+
     eval(" f <- function () {  b <- 0; a <- rep(1.1,1000); for (i in 1:100000) " +
         "{ a <- sqrt(a+7); b <- b + sum(a); sum <- mean; }; b;  } ");
 

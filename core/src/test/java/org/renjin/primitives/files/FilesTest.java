@@ -43,7 +43,7 @@ public class FilesTest extends EvalTestCase {
 
   @Before
   public void setUpTests() throws FileSystemException {
-    assumingBasePackagesLoad();
+
 
     // For reproducible tests, we've included a hierarchy of files in src/test/resources
     // These should be on the classpath when tests are run

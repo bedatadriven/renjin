@@ -231,7 +231,7 @@ public class TextTest extends EvalTestCase {
 
   @Test
   public void format() throws IOException {
-    assumingBasePackagesLoad();
+
 
     assertThat( eval("format(c(1,10,1000))"), elementsIdenticalTo(c("   1", "  10", "1000")));
     assertThat( eval("format(c(1,10,1000),trim=T)"), elementsIdenticalTo(c("1", "10", "1000")));
@@ -240,7 +240,7 @@ public class TextTest extends EvalTestCase {
 
   @Test
   public void formatWithNAs() throws IOException {
-    assumingBasePackagesLoad();
+
 
     assertThat(eval("format(c('Hello', NA, 'world', NA))"), elementsIdenticalTo(c( "Hello", "NA   ", "world", "NA   ")));
     assertThat(eval("format(c('Hello', NA, 'world', NA), na.encode=FALSE)"), elementsIdenticalTo(c( "Hello", null, "world", null)));
@@ -269,7 +269,7 @@ public class TextTest extends EvalTestCase {
 
   @Test
   public void setSubstring(){
-    assumingBasePackagesLoad();
+
     eval("x<-\"aaaa\"");
     eval("substr(x,2,3) <- \"xx\"");
     assertThat(eval("x"), elementsIdenticalTo(c("axxa")));
@@ -277,7 +277,7 @@ public class TextTest extends EvalTestCase {
 
   @Test
   public void setSubstringAtBeginning(){
-    assumingBasePackagesLoad();
+
     eval("x<-\"aaaa\"");
     eval("substr(x,1,2) <- \"xx\"");
     assertThat(eval("x"), elementsIdenticalTo(c("xxaa")));
@@ -285,7 +285,7 @@ public class TextTest extends EvalTestCase {
 
   @Test
   public void setSubstringAtEnd(){
-    assumingBasePackagesLoad();
+
     eval("x<-\"aaaa\"");
     eval("substr(x,3,4) <- \"xx\"");
     assertThat(eval("x"), elementsIdenticalTo(c("aaxx")));
@@ -293,7 +293,7 @@ public class TextTest extends EvalTestCase {
 
   @Test
   public void setSubstringNumbersDontMatchUp(){
-    assumingBasePackagesLoad();
+
     eval("x<-\"aaaa\"");
     eval("substr(x,1,4) <- \"xx\"");
     assertThat(eval("x"), elementsIdenticalTo(c("xxaa")));
@@ -313,7 +313,7 @@ public class TextTest extends EvalTestCase {
 
   @Test
   public void regexReplace() {
-    assumingBasePackagesLoad();
+
     eval("pat <- '^R[[:space:]]*\\\\(([[<>=!]+)[[:space:]]+(.*)\\\\)[[:space:]]*' ");
     eval("x <- c('R (>= 2.10)', 'R(>= 2.4.0)', 'R (>= 2.10)')");
     eval("ops <-  sub(pat, \"\\\\1\", x)");

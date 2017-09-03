@@ -801,7 +801,7 @@ public strictfp class TypesTest extends EvalTestCase {
   
   @Test
   public void existsNoInherit() {
-    assumingBasePackagesLoad();
+
     eval("x <- 42");
     eval("f <- function() { exists('x', inherits=FALSE) } ");
     assertThat( eval("f()"), elementsIdenticalTo(c(false)));
@@ -809,7 +809,7 @@ public strictfp class TypesTest extends EvalTestCase {
   
   @Test
   public void getNoInheritThrows() {
-    assumingBasePackagesLoad();
+
     eval("x <- 42");
     eval("f <- function() { exists('x', inherits=FALSE) } ");
     eval("f()");

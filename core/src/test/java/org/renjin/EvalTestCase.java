@@ -83,20 +83,6 @@ public abstract class EvalTestCase {
     }
   }
     
-  
-  /**
-   * Fully initializes the context, loading the R-language
-   * base packages and recommended packages.
-   * If this initializes fails, an AssumptionViolatedError exception 
-   * will be thrown rather than an error.
-   */
-  protected void assumingBasePackagesLoad() {
-    try {
-      topLevelContext.init();
-    } catch(Exception e) {
-      throw new AssumptionViolatedException("Exception thrown while loading R-language packages");
-    }
-  }
 
   protected SEXP evaluate(String source)  {
     if(!source.endsWith(";") && !source.endsWith("\n")) {

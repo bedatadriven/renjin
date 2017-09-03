@@ -18,56 +18,53 @@
  */
 package org.renjin.eval;
 
-import org.renjin.compiler.builtins.ArgumentBounds;
-import org.renjin.compiler.ir.tac.IRArgument;
-import org.renjin.sexp.*;
-
-import java.util.*;
-
+import org.renjin.sexp.PromisePairList;
+import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Symbol;
+import org.renjin.sexp.Symbols;
 
 /**
  * Matching between supplied arguments to a closure call and the
  * formally declared arguments of the closure.
  */
 public class MatchedArguments {
+  private SEXP[] actualTags;
+  private final SEXP[] actualValues;
+  private final MatchedArgumentPositions matchedPositions;
 
-  private final boolean[] matchedActuals;
-  private String[] formalNames;
-  private final int[] formalMatches;
+  public MatchedArguments(MatchedArgumentPositions matchedPositions, SEXP[] actualTags, SEXP[] actualValues) {
+    this.actualTags = actualTags;
+    this.actualValues = actualValues;
+    this.matchedPositions = matchedPositions;
+  }
 
-  private int extraArgumentCount;
+  /**
+   *
+   * @return the total number of formal arguments
+   */
+  public int getFormalCount() {
+    return matchedPositions.getFormalCount();
+  }
 
-  MatchedArguments(String[] formalNames, int[] formalMatches, boolean[] matchedActuals) {
-    this.formalNames = formalNames;
-    this.formalMatches = formalMatches;
+  /**
+   * @return {@code true} if the formal at index {@code formalIndex} is the ellipses (...)
+   */
+  public boolean isFormalEllipses(int formalIndex) {
+    return matchedPositions.getFormalName(formalIndex) == Symbols.ELLIPSES;
+  }
 
-    this.matchedActuals = matchedActuals;
-    extraArgumentCount = 0;
-    for (int i = 0; i < matchedActuals.length; i++) {
-      if(!matchedActuals[i]) {
-        extraArgumentCount++;
+  public Symbol getFormalName(int formalIndex) {
+    return matchedPositions.getFormalName(formalIndex);
+  }
+
+  public PromisePairList buildExtraArgumentList() {
+    PromisePairList.Builder promises = new PromisePairList.Builder();
+    for (int actualIndex = 0; actualIndex < actualValues.length; actualIndex++) {
+      if(matchedPositions.isExtraArgument(actualIndex)) {
+        promises.add( actualTags[actualIndex],  actualValues[actualIndex] );
       }
     }
-  }
-
-  public static MatchedArguments matchIRArguments(Closure closure, List<IRArgument> arguments) {
-    String[] names  = new String[arguments.size()];
-    for (int i = 0; i < names.length; i++) {
-      names[i] = arguments.get(i).getName();
-    }
-    return new ArgumentMatcher(closure).match(names);
-  }
-
-  public static MatchedArguments matchArgumentBounds(Closure closure, List<ArgumentBounds> arguments) {
-    String[] names  = new String[arguments.size()];
-    for (int i = 0; i < names.length; i++) {
-      names[i] = arguments.get(i).getName();
-    }
-    return new ArgumentMatcher(closure).match(names);
-  }
-
-  public Set<Symbol> getSuppliedFormals() {
-    return getMatchedFormals().keySet();
+    return promises.build();
   }
 
   /**
@@ -75,38 +72,10 @@ public class MatchedArguments {
    * is no match.
    */
   public int getActualIndex(int formalIndex) {
-    return formalMatches[formalIndex];
+    return matchedPositions.getActualIndex(formalIndex);
   }
 
-  public Map<Symbol, Integer> getMatchedFormals() {
-    HashMap<Symbol, Integer> map = new HashMap<>();
-    for (int i = 0; i < formalMatches.length; i++) {
-      if(formalMatches[i] != -1) {
-        map.put(Symbol.get(formalNames[i]), formalMatches[i]);
-      }
-    }
-    return map;
-  }
-
-  public boolean hasExtraArguments() {
-    return extraArgumentCount > 0;
-  }
-
-  public int getExtraArgumentCount() {
-    return extraArgumentCount;
-  }
-
-
-  public boolean isExtraArgument(int actualIndex) {
-    return !this.matchedActuals[actualIndex];
-  }
-
-  public Symbol getFormal(int i) {
-    return Symbol.get(formalNames[i]);
-  }
-
-  public int getFormalCount() {
-    return formalNames.length;
-
+  public SEXP getActualValue(int actualIndex) {
+    return actualValues[actualIndex];
   }
 }

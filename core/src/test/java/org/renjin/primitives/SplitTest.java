@@ -20,8 +20,11 @@ package org.renjin.primitives;
 
 import org.junit.Test;
 import org.renjin.EvalTestCase;
+import org.renjin.eval.EvalException;
 
 import java.io.IOException;
+import java.lang.*;
+import java.lang.System;
 
 import static org.junit.Assert.assertThat;
 
@@ -31,9 +34,9 @@ public class SplitTest extends EvalTestCase {
   @Test
   public void split() throws IOException {
     assumingBasePackagesLoad();
-    
+
     eval("x <- split(c(10:1), c(1,2,1,2,1,2,1,2,3,3))");
-    
+
     assertThat(eval("x$`1`"), elementsIdenticalTo(c_i(10,8,6,4)));
     assertThat(eval("x$`2`"), elementsIdenticalTo(c_i(9,7,5,3)));
     assertThat(eval("x$`3`"), elementsIdenticalTo(c_i(2,1)));

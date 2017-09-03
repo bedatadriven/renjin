@@ -28,13 +28,6 @@ public class CollectionUtils {
 
   private CollectionUtils() {}
 
-  public static class TagName implements Function<PairList.Node, String> {
-    @Override
-    public String apply(PairList.Node input) {
-      return ((Symbol)input.getTag()).getPrintName();
-    }
-  }
-
   public static final Predicate<SEXP> IS_FUNCTION = new Predicate<SEXP>() {
     @Override
     public boolean apply(SEXP input) {

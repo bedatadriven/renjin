@@ -25,7 +25,7 @@ import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.exception.InvalidSyntaxException;
 import org.renjin.eval.ArgumentMatcher;
 import org.renjin.eval.Context;
-import org.renjin.eval.MatchedArguments;
+import org.renjin.eval.MatchedArgumentPositions;
 import org.renjin.packaging.SerializedPromise;
 import org.renjin.primitives.S3;
 import org.renjin.primitives.packaging.Namespace;
@@ -421,7 +421,7 @@ public class RuntimeState {
         for(int i = 0; i < arguments.size(); i++) {
           argNames[i] = arguments.get(i).getName();
         }
-        MatchedArguments matchedArguments = argumentMatcher.match(argNames);
+        MatchedArgumentPositions matchedArguments = argumentMatcher.match(argNames);
         
         //if (!matchedArguments.hasExtraArguments()) {
         argSignatures = computeArgumentSignatures(context, matchedArguments, arguments, currentDepth);
@@ -478,7 +478,7 @@ public class RuntimeState {
     return mapListMethods;
   }
   
-  private static S3.ArgumentSignature[] computeArgumentSignatures(Context context, MatchedArguments match, List<ArgumentBounds> arguments, int currentDepth) {
+  private static S3.ArgumentSignature[] computeArgumentSignatures(Context context, MatchedArgumentPositions match, List<ArgumentBounds> arguments, int currentDepth) {
     
     String argClass;
     
@@ -486,7 +486,7 @@ public class RuntimeState {
     
     int idx = 0;
     for (int i = 0; i < currentDepth; i++) {
-      Symbol formal = match.getFormal(i);
+      Symbol formal = match.getFormalName(i);
       ValueBounds value = arguments.get(match.getMatchedFormals().get(formal)).getBounds();
       if (value.getConstantClassAttribute() != Null.INSTANCE) {
         argClass = value.getConstantClassAttribute().getElementAsString(0);

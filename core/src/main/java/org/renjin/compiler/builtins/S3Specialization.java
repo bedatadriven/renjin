@@ -22,7 +22,7 @@ import org.renjin.compiler.cfg.InlinedFunction;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
-import org.renjin.eval.MatchedArguments;
+import org.renjin.eval.MatchedArgumentPositions;
 import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.compiler.ir.tac.expressions.Expression;
 import org.renjin.primitives.S3;
@@ -42,7 +42,7 @@ public class S3Specialization implements Specialization {
   private Closure closure;
 
   private InlinedFunction inlinedMethod = null;
-  private MatchedArguments matchedArguments;
+  private MatchedArgumentPositions matchedArguments;
   
   private Type type;
   private ValueBounds returnBounds;
@@ -62,7 +62,7 @@ public class S3Specialization implements Specialization {
   
     // Otherwise, try to resolve the function
     if(inlinedMethod == null || inlinedMethod.getClosure() != function) {
-      matchedArguments = MatchedArguments.matchArgumentBounds(closure, arguments);
+      matchedArguments = MatchedArgumentPositions.matchArgumentBounds(closure, arguments);
       inlinedMethod = new InlinedFunction(runtimeState, closure, matchedArguments.getSuppliedFormals());
     }
     

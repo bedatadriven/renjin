@@ -20,6 +20,7 @@ package org.renjin.primitives.sequence;
 
 import org.apache.commons.math.linear.RealVector;
 import org.renjin.eval.Calls;
+import org.renjin.eval.ClosureDispatcher;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.ArgumentList;
@@ -174,8 +175,7 @@ public class Sequences {
     formals.add("along.with", Symbol.MISSING_ARG);
 
     boolean One = (args.length() == 1);
-    PairList matched = Calls.matchArguments(formals.build(),
-        args, true);
+    PairList matched = ClosureDispatcher.matchArguments(formals.build(), args, true);
     SEXP from = matched.findByTag(Symbol.get("from"));
     SEXP to = matched.findByTag(Symbol.get("to"));
     SEXP by = matched.findByTag(Symbol.get("by"));

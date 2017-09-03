@@ -20,6 +20,7 @@
 package org.renjin.primitives.match;
 
 import org.renjin.eval.Calls;
+import org.renjin.eval.ClosureDispatcher;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Current;
@@ -337,7 +338,7 @@ public class Match {
       throw new EvalException("match.call cannot use definition of type '%s'", definition.getTypeName());
     }
     
-    PairList matched = Calls.matchArguments(closure.getFormals(), call.getArguments(), true);
+    PairList matched = ClosureDispatcher.matchArguments(closure.getFormals(), call.getArguments(), true);
     
     PairList.Builder expandedArgs = new PairList.Builder();
     for(PairList.Node node : matched.nodes()) {

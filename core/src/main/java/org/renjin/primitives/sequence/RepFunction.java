@@ -19,6 +19,7 @@
 package org.renjin.primitives.sequence;
 
 import org.renjin.eval.Calls;
+import org.renjin.eval.ClosureDispatcher;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.codegen.ArgumentIterator;
@@ -74,7 +75,7 @@ public class RepFunction extends SpecialFunction {
     formals.add("each", Symbol.MISSING_ARG);
     formals.add(Symbols.ELLIPSES, Symbol.MISSING_ARG);
 
-    PairList matched = Calls.matchArguments(formals.build(), evaled.build(), true);
+    PairList matched = ClosureDispatcher.matchArguments(formals.build(), evaled.build(), true);
 
     SEXP x = matched.findByTag(Symbol.get("x"));
     SEXP times = matched.findByTag(Symbol.get("times"));

@@ -24,14 +24,13 @@ import org.renjin.compiler.cfg.InlinedFunction;
 import org.renjin.compiler.codegen.EmitContext;
 import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
-import org.renjin.eval.MatchedArguments;
+import org.renjin.eval.MatchedArgumentPositions;
 import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.sexp.Closure;
 import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.Symbol;
 
 import java.util.List;
 import java.util.Map;
@@ -46,7 +45,7 @@ public class ClosureCall implements Expression {
 
   private final String debugName;
 
-  private MatchedArguments matching;
+  private MatchedArgumentPositions matching;
   private InlinedFunction inlinedFunction;
   
   private ValueBounds returnBounds;
@@ -59,7 +58,7 @@ public class ClosureCall implements Expression {
     this.arguments = arguments;
     this.debugName = closureDebugName;
 
-    this.matching = MatchedArguments.matchIRArguments(closure, arguments);
+    this.matching = MatchedArgumentPositions.matchIRArguments(closure, arguments);
     this.returnBounds = ValueBounds.UNBOUNDED;
     this.type = returnBounds.storageType();
   }

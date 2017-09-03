@@ -293,13 +293,17 @@ public class Context {
     SEXP value = rho.findVariable(this, symbol);
     if(value == Symbol.UNBOUND_VALUE) {
       throw new EvalException(String.format("object '%s' not found", symbol.getPrintName()));
-    } 
-    
-    if(value instanceof Promise) {
-      return evaluate(value, rho);
-    } else {
-      return value;
     }
+
+    if(value == Symbol.MISSING_ARG && rho.isMissingArgument(symbol)) {
+      throw new EvalException("Argument '%s' is missing, with no default", symbol.getPrintName());
+    }
+
+    if(value instanceof Promise) {
+      value = value.force(this);
+    }
+
+    return value;
   }
 
   /**

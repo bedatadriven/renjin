@@ -53,7 +53,9 @@ public class S3 {
   private static final Set<String> LOGIC_GROUP = Sets.newHashSet("&", "&&", "|", "||", "xor");
   
   private static final Set<String> SPECIAL = Sets.newHashSet("$", "$<-");
-  
+
+  private static final Symbol NA_RM = Symbol.get("na.rm");
+
   @Builtin
   public static SEXP UseMethod(@Current Context context, String genericMethodName) {
     /*
@@ -271,7 +273,7 @@ public class S3 {
     /* out to a closure we need to wrap them in promises so that */
     /* they get duplicated and things like missing/substitute work. */
 
-    PairList promisedArgs = Calls.promiseArgs(call.getArguments(), context, rho);
+    PairList promisedArgs = Calls.promiseArgs(args, context, rho);
     if (promisedArgs.length() != args.length()) {
       throw new EvalException("dispatch error in group dispatch");
     }
@@ -972,19 +974,30 @@ public class S3 {
   public static SEXP tryDispatchSummaryFromPrimitive(Context context, Environment rho, FunctionCall call,
       String name, ListVector evaluatedArguments, boolean naRm) {
 
-    // REpackage the evaluated arguments.
-    // this is ghastly but i don't think it will
-    // get better until Calls is refactored
+    // This call's arguments have been previously evaluated and parsed
+    // by the function wrapper (for example, R$primitive$max) in preparation for
+    // dispatching to the builtin method.
+
+    // Now we need walk that work back in order to be able to dispatch
+    // to a user-supplied closure override.
 
     PairList.Builder newArgs = new PairList.Builder();
     int varArgIndex = 0;
-    Symbol naRmName = Symbol.get("na.rm");
+    boolean naRmArgumentSupplied = false;
     for(PairList.Node node : call.getArguments().nodes()) {
-      if(node.getRawTag() == naRmName) {
+      if(node.getRawTag() == NA_RM) {
         newArgs.add(node.getTag(), new LogicalArrayVector(naRm));
+        naRmArgumentSupplied = true;
       } else {
         newArgs.add(node.getRawTag(), evaluatedArguments.get(varArgIndex++));
       }
+    }
+
+    // When dispatching to S3 summary methods, we pretend that the summary
+    // builtin has an extra na.rm argument with default value false.
+
+    if(!naRmArgumentSupplied) {
+      newArgs.add(NA_RM, LogicalArrayVector.FALSE);
     }
 
     return dispatchGroup("Summary", call, name, newArgs.build(), context, rho);

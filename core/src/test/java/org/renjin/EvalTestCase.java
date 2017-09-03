@@ -26,6 +26,9 @@ import org.hamcrest.TypeSafeMatcher;
 import org.junit.Before;
 import org.junit.internal.AssumptionViolatedException;
 import org.renjin.eval.Context;
+import org.renjin.eval.EvalException;
+import org.renjin.eval.Session;
+import org.renjin.eval.SessionBuilder;
 import org.renjin.invoke.reflection.converters.Converters;
 import org.renjin.parser.RParser;
 import org.renjin.primitives.Warning;
@@ -57,7 +60,13 @@ public abstract class EvalTestCase {
   }
 
   protected SEXP eval(String source) {
-    SEXP result = evaluate(source);
+    SEXP result;
+    try {
+      result = evaluate(source);
+    } catch (EvalException e) {
+      e.printRStackTrace(System.err);
+      throw e;
+    }
     printWarnings();
     return result;
   }

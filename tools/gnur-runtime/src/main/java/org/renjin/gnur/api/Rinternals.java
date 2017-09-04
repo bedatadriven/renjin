@@ -292,6 +292,13 @@ public final class Rinternals {
    */
   public static final SEXP	R_BlankScalarString = new GnuStringVector(GnuCharSexp.BLANK_STRING);
 
+  public static final int CE_NATIVE = 0;
+  public static final int CE_UTF8 = 1;
+  public static final int CE_LATIN1 = 2;
+  public static final int CE_BYTES = 3;
+  public static final int CE_SYMBOL = 5;
+  public static final int CE_ANY = 99;
+
 
   public static BytePtr R_CHAR(SEXP x) {
     GnuCharSexp charSexp = (GnuCharSexp) x;
@@ -1682,19 +1689,22 @@ public final class Rinternals {
     if(string.array == null) {
       return GnuCharSexp.NA_STRING;
     }
-    int length = string.nullTerminatedStringLength();
+    return Rf_mkCharLen(string, string.nullTerminatedStringLength());
+  }
+
+  public static SEXP Rf_mkCharLen(BytePtr string, int length) {
+    if(string.array == null) {
+      return GnuCharSexp.NA_STRING;
+    }
+
     if(length == 0) {
       return R_BlankString;
     }
 
     byte[] copy = new byte[length+1];
     System.arraycopy(string.array, string.offset, copy, 0, length);
-    
-    return new GnuCharSexp(copy);
-  }
 
-  public static SEXP Rf_mkCharLen(BytePtr p0, int p1) {
-    throw new UnimplementedGnuApiMethod("Rf_mkCharLen");
+    return new GnuCharSexp(copy);
   }
 
   public static boolean Rf_NonNullStringMatch(SEXP p0, SEXP p1) {
@@ -1940,8 +1950,23 @@ public final class Rinternals {
    *
    * @return Pointer to the created string.
    */
-  public static SEXP Rf_mkCharLenCE (BytePtr text, int length, Object encoding) {
-    throw new UnimplementedGnuApiMethod("Rf_mkCharLenCE");
+  public static SEXP Rf_mkCharLenCE (BytePtr text, int length, int encoding) {
+    if(text.array == null) {
+      return GnuCharSexp.NA_STRING;
+    }
+
+    if(length == 0) {
+      return R_BlankString;
+    }
+
+    if(encoding != CE_UTF8) {
+      throw new UnsupportedOperationException("encoding: " + encoding);
+    }
+
+    byte[] copy = new byte[length+1];
+    System.arraycopy(text.array, text.offset, copy, 0, length);
+
+    return new GnuCharSexp(copy);
   }
 
   // const char* Rf_reEnc (const char *x, cetype_t ce_in, cetype_t ce_out, int subst)

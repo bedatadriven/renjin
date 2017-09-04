@@ -109,3 +109,22 @@ test.ommited.arg <- function() {
     assertThat(f( , 3), identicalTo(TRUE))
     assertThat(g( , 4), identicalTo(99))
 }
+
+test.S4.default.afterEllipses = function() {
+
+    setClass("A", representation(a = "numeric")); a = new("A", a = 0)
+    setMethod("[", signature(x = "A", i = "ANY", j = "ANY", drop = "ANY"), function(x, i, j, ..., drop = TRUE) length(drop))
+
+    assertThat(a[ , drop = 1:5] , identicalTo( 5L ))
+    assertThat(a[ , ] , identicalTo( 1L ))
+}
+
+test.S4.default.beforeEllipses = function() {
+
+    setClass("B", representation(b = "numeric")); b = new("B", b = 0)
+    setMethod("[", signature(x = "B", i = "ANY", j = "ANY", drop = "ANY"), function(x, i, j = 1:5, ..., drop) length(j))
+
+    assertThat(b[ , 1:3 ] , identicalTo( 3L ) )
+#    This behavior is not replicated in Renjin, and 'j' is treated similar to 'drop' and returns 5 instead of error!
+#    assertThat(b[ , ] , throwsError() )
+}

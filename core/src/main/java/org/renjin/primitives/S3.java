@@ -406,7 +406,11 @@ public class S3 {
         promisedArgs.add(node.getRawTag(), new Promise(uneval, source));
       } else {
         // otherwise a promise is created to evaluate if necessary
-        promisedArgs.add(node.getRawTag(), Promise.repromise(rho, uneval));
+        if(uneval == Symbol.MISSING_ARG) {
+          promisedArgs.add(node.getRawTag(), uneval);
+        } else {
+          promisedArgs.add(node.getRawTag(), Promise.repromise(rho, uneval));
+        }
       }
       argIdx++;
     }
@@ -472,18 +476,19 @@ public class S3 {
 //     - e2:        arg2
 //
 //     otherwise only e1 and e2.
-    
+      Closure function = method.getFunction();
     if (("generic".equals(method.getGroup()) && method.getDistance() == 0) || hasS3Class) {
-      return context.evaluate(new FunctionCall(method.getFunction(), promisedArgs.build()));
+      SEXP call = new FunctionCall(function, promisedArgs.build());
+      return context.evaluate( call );
     } else {
       Map<Symbol, SEXP> metadata = new HashMap<>();
       metadata.put(Symbol.get(".defined"), buildDotTargetOrDefined(context, method, true));
       metadata.put(Symbol.get(".Generic"), buildDotGeneric(opName));
-      metadata.put(Symbol.get(".Method"), method.getFunction());
+      metadata.put(Symbol.get(".Method"), function);
       metadata.put(Symbol.get(".Methods"), Symbol.get(".Primitive(\"" + opName +"\")"));
       metadata.put(Symbol.get(".target"), buildDotTargetOrDefined(context, method, false));
   
-      PairList formals = method.getFunction().getFormals();
+      PairList formals = function.getFormals();
       PairList matchedList = ClosureDispatcher.matchArguments(formals, promisedArgs.build(), true);
       Map<Symbol, SEXP> matchedMap = new HashMap<>();
       for (PairList.Node node : matchedList.nodes()) {
@@ -500,8 +505,8 @@ public class S3 {
       }
   
       Closure closure = method.getFunction();
-      FunctionCall call = new FunctionCall(closure, expandedArgs);
-      return ClosureDispatcher.apply(context, rho, call, closure, promisedArgs.build(), metadata);
+      FunctionCall call = new FunctionCall(function, expandedArgs);
+      return ClosureDispatcher.apply(context, rho, call, function, promisedArgs.build(), metadata);
     }
   }
   

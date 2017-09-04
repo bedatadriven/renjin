@@ -16,7 +16,6 @@
 # along with this program; if not, a copy is available at
 # https://www.gnu.org/licenses/gpl-2.0.txt
 #
-g
 
 library(hamcrest)
 

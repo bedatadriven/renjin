@@ -312,7 +312,7 @@ public class TimeTest extends EvalTestCase {
   
   @Test
   public void timeZoneProvided() {
-    assumingBasePackagesLoad();
+
     
     eval("d <- as.Date(as.POSIXct('2000-01-01 00:00:00 GMT', tz = 'GMT'))");
     assertThat(eval("d"), elementsIdenticalTo(c(10957)));
@@ -334,7 +334,7 @@ public class TimeTest extends EvalTestCase {
 
   @Test
   public void asDate() {
-    assumingBasePackagesLoad();
+
     eval("x <- paste(2004, rep(1:4, 4:1), seq(1,20,2), sep = \"-\")");
     eval("print(x)");
     eval("y <- as.Date(x)");

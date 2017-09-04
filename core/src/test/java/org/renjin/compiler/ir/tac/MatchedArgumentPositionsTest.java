@@ -21,19 +21,21 @@ package org.renjin.compiler.ir.tac;
 import org.junit.Test;
 import org.renjin.eval.ArgumentMatcher;
 import org.renjin.eval.EvalException;
-import org.renjin.eval.MatchedArguments;
+import org.renjin.eval.MatchedArgumentPositions;
+import org.renjin.sexp.PairList;
+import org.renjin.sexp.Symbol;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 
-public class MatchedArgumentsTest {
+public class MatchedArgumentPositionsTest {
 
   private static final String UNNAMED = null;
   
   @Test
   public void positionalMatching() {
 
-    MatchedArguments match = match(args("x", "y"), args(UNNAMED, UNNAMED));
+    MatchedArgumentPositions match = match(args("x", "y"), args(UNNAMED, UNNAMED));
     assertThat(match.getActualIndex(0), equalTo(0));
     assertThat(match.getActualIndex(1), equalTo(1));
   }
@@ -42,7 +44,7 @@ public class MatchedArgumentsTest {
   @Test
   public void exactName() {
 
-    MatchedArguments match = match(args("x", "y"), args("y", "x"));
+    MatchedArgumentPositions match = match(args("x", "y"), args("y", "x"));
     assertThat(match.getActualIndex(0), equalTo(1));
     assertThat(match.getActualIndex(1), equalTo(0));
   }
@@ -51,7 +53,7 @@ public class MatchedArgumentsTest {
   @Test
   public void oneExactName() {
 
-    MatchedArguments match = match(args("x", "y"), args("y", UNNAMED));
+    MatchedArgumentPositions match = match(args("x", "y"), args("y", UNNAMED));
     assertThat(match.getActualIndex(0), equalTo(1));
     assertThat(match.getActualIndex(1), equalTo(0));
   }
@@ -59,7 +61,7 @@ public class MatchedArgumentsTest {
   @Test
   public void partialMatching() {
 
-    MatchedArguments match = match(args("foo", "bar"), args("b", "f"));
+    MatchedArgumentPositions match = match(args("foo", "bar"), args("b", "f"));
     assertThat(match.getActualIndex(0), equalTo(1));
     assertThat(match.getActualIndex(1), equalTo(0));
   }
@@ -68,7 +70,7 @@ public class MatchedArgumentsTest {
   @Test
   public void partialMatching3() {
 
-    MatchedArguments match = match(args("x", "foo", "bar"), args("b", "f"));
+    MatchedArgumentPositions match = match(args("x", "foo", "bar"), args("b", "f"));
     assertThat(match.getActualIndex(0), equalTo(-1));
     assertThat(match.getActualIndex(1), equalTo(1));
     assertThat(match.getActualIndex(2), equalTo(0));
@@ -76,7 +78,7 @@ public class MatchedArgumentsTest {
 
   @Test
   public void eval() {
-    MatchedArguments match = match(args("z", "..."), args("x"));
+    MatchedArgumentPositions match = match(args("z", "..."), args("x"));
     assertThat(match.getActualIndex(0), equalTo(-1));
     assertThat(match.getExtraArgumentCount(), equalTo(1));
 
@@ -95,7 +97,7 @@ public class MatchedArgumentsTest {
 
   @Test
   public void noPartialMatchingAfterElipses() {
-    MatchedArguments match = match(args("x", "...", "protocal"), args("x", "p", UNNAMED));
+    MatchedArgumentPositions match = match(args("x", "...", "protocal"), args("x", "p", UNNAMED));
     assertThat(match.getActualIndex(0), equalTo(0));
     assertThat(match.getActualIndex(2), equalTo(-1));
     assertThat(match.getExtraArgumentCount(), equalTo(2));
@@ -110,14 +112,20 @@ public class MatchedArgumentsTest {
 
   @Test
   public void extraArguments() {
-    MatchedArguments match = match(args("x", "..."), args(UNNAMED, UNNAMED, UNNAMED, UNNAMED));
+    MatchedArgumentPositions match = match(args("x", "..."), args(UNNAMED, UNNAMED, UNNAMED, UNNAMED));
     assertThat(match.getActualIndex(0), equalTo(0));
     assertThat(match.getExtraArgumentCount(), equalTo(3));
   }
 
 
-  private MatchedArguments match(String[] formals, String[] actuals) {
-    return new ArgumentMatcher(formals).match(actuals);
+  private MatchedArgumentPositions match(String[] formalNames, String[] actuals) {
+
+    PairList.Node.Builder formals = new PairList.Builder();
+    for (String formalName : formalNames) {
+      formals.add(formalName, Symbol.MISSING_ARG);
+    }
+
+    return new ArgumentMatcher(formals.build()).match(actuals);
   }
 
 

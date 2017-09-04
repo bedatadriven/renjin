@@ -106,7 +106,7 @@ public class NetworkConnectionTest extends EvalTestCase {
   @Test
   @Ignore
   public void read() {
-    assumingBasePackagesLoad();
+
     new Thread(new SocketReadTestDriver("hello network")).start();
     eval("con <- socketConnection(port=" + port + ", host=\"localhost\")");
     assertThat(eval("readLines(con)").toString(), equalTo("\"hello network\""));
@@ -115,7 +115,7 @@ public class NetworkConnectionTest extends EvalTestCase {
   @Test
   @Ignore
   public void write() throws InterruptedException {
-    assumingBasePackagesLoad();
+
     SocketWriteTestDriver writer = new SocketWriteTestDriver();
     new Thread(writer).start();
     synchronized (SocketWriteTestDriver.READY_FOR_CONNECTIONS) {

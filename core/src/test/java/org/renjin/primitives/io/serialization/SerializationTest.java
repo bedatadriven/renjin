@@ -101,7 +101,7 @@ public class SerializationTest extends EvalTestCase {
   
   @Test
   public void testSaveRdsBitwiseMatch() throws IOException {
-    assumingBasePackagesLoad();
+
     
     File tempFile = File.createTempFile("renjin", "rds");
     global.setVariable(topLevelContext, "tempFile", new StringArrayVector(tempFile.getAbsolutePath()));
@@ -113,7 +113,7 @@ public class SerializationTest extends EvalTestCase {
 
   @Test
   public void readRds() {
-    assumingBasePackagesLoad();
+
 
     String rdsFile = Resources.getResource("expectedSimple.rds").getFile();
     global.setVariable(topLevelContext, "file" , new StringArrayVector(rdsFile));
@@ -127,7 +127,7 @@ public class SerializationTest extends EvalTestCase {
   @Test
   @Ignore("todo: version seems to be different")
   public void testSaveBitwiseMatch() throws IOException {
-    assumingBasePackagesLoad();
+
 
     eval("x <- 'اختيارات'");
     eval("y <- 1:5");

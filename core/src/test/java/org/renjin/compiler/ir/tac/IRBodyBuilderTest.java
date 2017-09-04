@@ -242,7 +242,7 @@ public class IRBodyBuilderTest extends EvalTestCase {
   
   @Test
   public void closureBody() throws IOException {
-    assumingBasePackagesLoad();
+
     topLevelContext.evaluate(
         RParser.parseSource(new InputStreamReader(getClass().getResourceAsStream("/meanOnline.R"))));
     

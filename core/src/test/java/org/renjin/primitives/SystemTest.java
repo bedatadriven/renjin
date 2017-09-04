@@ -76,7 +76,7 @@ public class SystemTest extends EvalTestCase {
 
   @Test
   public void SysSleep() {
-    assumingBasePackagesLoad();
+
 
     long start = java.lang.System.currentTimeMillis();
     eval("Sys.sleep(1)");

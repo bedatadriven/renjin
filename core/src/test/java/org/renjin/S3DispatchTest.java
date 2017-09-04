@@ -101,7 +101,7 @@ public class S3DispatchTest extends EvalTestCase {
    
   @Test
   public void matchCallWithinGeneric() throws IOException {
-    assumingBasePackagesLoad();
+
     
     eval("g <- { f <- function(a,b,...) { UseMethod('f') } ; " +
     		        "f.default <- function(a,b,...) { match.call() }; " +

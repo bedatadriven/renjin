@@ -20,10 +20,7 @@ package org.renjin.embed;
 
 import org.renjin.eval.Context;
 import org.renjin.repackaged.guava.collect.Sets;
-import org.renjin.sexp.Frame;
-import org.renjin.sexp.Function;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbol;
+import org.renjin.sexp.*;
 import org.rosuda.JRI.Rengine;
 
 import java.util.HashMap;
@@ -56,6 +53,10 @@ public class FrameWrapper implements Frame {
     this.rengine = rengine;
     this.environmentPointer = environmentPointer;
     this.unboundValuePointer = rengine.rniSpecialObject(Rengine.SO_UnboundValue);
+  }
+
+  public long unwrap() {
+    return environmentPointer;
   }
 
   public void setWrapper(Wrapper wrapper) {
@@ -115,6 +116,9 @@ public class FrameWrapper implements Frame {
   @Override
   public Function getFunction(Context context, Symbol name) {
     SEXP value = getVariable(name);
+    if(value instanceof Promise) {
+      value = value.force(context);
+    }
     if(value instanceof Function) {
       return (Function) value;
     }

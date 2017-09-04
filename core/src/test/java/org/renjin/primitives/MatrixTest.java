@@ -35,7 +35,7 @@ public class MatrixTest extends EvalTestCase {
   @Before
   public void setup() throws IOException{
     super.setUp();
-    assumingBasePackagesLoad();
+
   }
 
   @Before

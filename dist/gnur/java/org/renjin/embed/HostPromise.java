@@ -16,19 +16,33 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin;
+package org.renjin.embed;
 
-import org.junit.Before;
+import org.renjin.eval.Context;
+import org.renjin.sexp.Environment;
+import org.renjin.sexp.Null;
+import org.renjin.sexp.Promise;
+import org.renjin.sexp.SEXP;
 
-import java.io.IOException;
+public class HostPromise extends Promise {
 
+  private Wrapper wrapper;
+  private final long expr;
+  private final long rho;
 
-public abstract class PackageTest extends EvalTestCase {
-  
-  @Before
-  public void initContext() throws IOException {
-
+  public HostPromise(Wrapper wrapper, long expr, long rho) {
+    super(Environment.EMPTY, Null.INSTANCE);
+    this.wrapper = wrapper;
+    this.expr = expr;
+    this.rho = rho;
   }
-  
 
+  @Override
+  protected SEXP doEval(Context context) {
+
+    long valuePtr = wrapper.getEngine().rniEval(expr, rho);
+    SEXP value = wrapper.wrap(valuePtr);
+
+    return value;
+  }
 }

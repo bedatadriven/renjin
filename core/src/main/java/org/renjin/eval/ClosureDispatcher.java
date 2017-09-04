@@ -18,19 +18,12 @@
  */
 package org.renjin.eval;
 
-import org.renjin.primitives.CollectionUtils;
 import org.renjin.primitives.special.ReturnException;
-import org.renjin.repackaged.guava.base.Joiner;
-import org.renjin.repackaged.guava.collect.Collections2;
-import org.renjin.repackaged.guava.collect.Iterators;
-import org.renjin.repackaged.guava.collect.Lists;
-import org.renjin.repackaged.guava.collect.PeekingIterator;
 import org.renjin.sexp.*;
 
-import java.util.*;
-
-import static org.renjin.repackaged.guava.collect.Collections2.filter;
-import static org.renjin.repackaged.guava.collect.Collections2.transform;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Map;
 
 
 public class ClosureDispatcher {
@@ -58,6 +51,17 @@ public class ClosureDispatcher {
     return apply(callingContext, callingEnvironment, call, closure, promisedArgs, Collections.<Symbol, SEXP>emptyMap());
   }
 
+  /**
+   * Evaluates a function call to an R-language closure.
+   *
+   * @param callingContext the evaluation context in which this closure is to be applied
+   * @param callingEnvironment the environment in which this takes place
+   * @param call the FunctionCall to evaluate
+   * @param closure the resolved closure
+   * @param promisedArgs a pairlist of the arguments provided to the call, each promised in the calling environment
+   * @param metadata additional bindings to be added to the new environment created for the function call.
+   * @return the result of the function call to the {@code closure}
+   */
   public static SEXP apply(Context callingContext, Environment callingEnvironment,
                      FunctionCall call, Closure closure, PairList promisedArgs, Map<Symbol, SEXP> metadata) {
 
@@ -65,7 +69,7 @@ public class ClosureDispatcher {
     Environment functionEnvironment = functionContext.getEnvironment();
 
     try {
-      matchArgumentsInto(closure.getFormals(), promisedArgs, functionContext, functionEnvironment);
+      matchArgumentsInto(closure.getFormals(), promisedArgs, functionEnvironment);
 
       if(!metadata.isEmpty()) {
         for (Map.Entry<Symbol, SEXP> entry : metadata.entrySet()) {
@@ -76,12 +80,10 @@ public class ClosureDispatcher {
       return closure.doApply(functionContext);
 
     } catch(ReturnException e) {
-
       if (e.getEnvironment() != functionEnvironment) {
         throw e;
       }
       return e.getValue();
-
 
     } catch(ConditionException e) {
       if (e.getHandlerContext() == functionContext) {
@@ -126,21 +128,75 @@ public class ClosureDispatcher {
     }
     return null;
   }
-  
-  public static void matchArgumentsInto(PairList formals, PairList actuals, 
-      Context innerContext, Environment innerEnv) {
 
-    PairList matched = matchArguments(formals, actuals);
-    for(PairList.Node node : matched.nodes()) {
-      SEXP value = node.getValue();
-      if(value == Symbol.MISSING_ARG) {
-        SEXP defaultValue = formals.findByTag(node.getTag());
-        if(defaultValue != Symbol.MISSING_ARG) {
-          value =  Promise.promiseMissing(innerEnv, defaultValue);
+
+  /**
+   * Matches the {@code actual} arguments provided to the function call to the Closure's formal argument list and
+   * populates the {@code functionEnv} with the matched symbols.
+   *
+   *
+   * @param formals the formal arguments of the closure. This should be a pairlist in the form
+ *            {@code (a = <missing>, b = <default value>, ...)}
+   * @param actuals the actual arguments provided to the function call, promised in the {@code callingEnvironment}
+   * @param functionEnv the environment of the function call.
+   */
+  public static void matchArgumentsInto(PairList formals, PairList actuals, Environment functionEnv) {
+
+    ArgumentMatcher matcher = new ArgumentMatcher(formals);
+    MatchedArguments matching = matcher.match(actuals);
+
+    for (int formalIndex = 0; formalIndex < matching.getFormalCount(); formalIndex++) {
+      if(matching.isFormalEllipses(formalIndex)) {
+        functionEnv.setVariableUnsafe(Symbols.ELLIPSES, matching.buildExtraArgumentList());
+
+      } else {
+        Symbol formalName = matching.getFormalName(formalIndex);
+        int actualIndex = matching.getActualIndex(formalIndex);
+
+        if(actualIndex == -1) {
+
+          // IF: No argument has been matched to this formal.
+          // Use the default value for the formal.
+          // For example, for the closure function(a, b = a * 2)
+          // the default value of 'b' is 'a*2'.
+
+          SEXP defaultValue = matcher.getDefaultValue(formalIndex);
+
+          functionEnv.setMissingArgument(formalName,
+              promiseDefaultValue(functionEnv, defaultValue));
+
+        } else {
+
+          // ELSE: an argument has been provided.
+
+          SEXP actualValue = matching.getActualValue(actualIndex);
+          if(actualValue == Symbol.MISSING_ARG) {
+
+            // BUT, the provided argument may STILL be missing if the argument was
+            // explicitly omitted. For example, in the function calls
+            // f( , 3, 4) and x[, 2] the first argument has been ommitted and will
+            // have the value of Symbol.MISSING_ARG
+
+            SEXP defaultValue = matcher.getDefaultValue(formalIndex);
+
+            functionEnv.setMissingArgument(formalName,
+                promiseDefaultValue(functionEnv, defaultValue));
+          } else {
+
+            functionEnv.setArgument(formalName, actualValue);
+          }
         }
       }
-      innerEnv.setVariable(innerContext, node.getTag(), value);
     }
+  }
+
+  private static SEXP promiseDefaultValue(Environment functionEnv, SEXP defaultValue) {
+    if(defaultValue != Symbol.MISSING_ARG) {
+      // If a default value is provided, wrap it a promise within the *function's* environment so
+      // that will be properly evaluated if used.
+      defaultValue = Promise.repromise(functionEnv, defaultValue);
+    }
+    return defaultValue;
   }
 
   public static PairList matchArguments(PairList formals, PairList actuals) {
@@ -156,44 +212,23 @@ public class ClosureDispatcher {
    */
   public static PairList matchArguments(PairList formals, PairList actuals, boolean populateMissing) {
 
-    int numActuals = actuals.length();
-    SEXP actualTags[] = new SEXP[numActuals];
-    String actualNames[] = new String[numActuals];
-    SEXP actualValues[] = new SEXP[numActuals];
-    {
-      int i = 0;
-      for (PairList.Node node : actuals.nodes()) {
-        actualTags[i] = node.getRawTag();
-        if (node.hasName()) {
-          actualNames[i] = node.getName();
-        }
-        actualValues[i] = node.getValue();
-        i++;
-      }
-    }
     ArgumentMatcher matcher = new ArgumentMatcher(formals);
-    MatchedArguments matching = matcher.match(actualNames);
+    MatchedArguments matching = matcher.match(actuals);
 
     PairList.Builder result = new PairList.Builder();
     for(int formalIndex = 0; formalIndex < matching.getFormalCount(); ++formalIndex) {
 
-      if(matcher.isFormalElipses(formalIndex)) {
-        PromisePairList.Builder promises = new PromisePairList.Builder();
-        for (int actualIndex = 0; actualIndex < numActuals; actualIndex++) {
-          if(matching.isExtraArgument(actualIndex)) {
-            promises.add( actualTags[actualIndex],  actualValues[actualIndex] );
-          }
-        }
-        result.add(matching.getFormal(formalIndex), promises.build());
+      if(matching.isFormalEllipses(formalIndex)) {
+        result.add(Symbols.ELLIPSES, matching.buildExtraArgumentList());
 
       } else {
         int actualIndex = matching.getActualIndex(formalIndex);
         if(actualIndex == -1) {
           if(populateMissing) {
-            result.add(matching.getFormal(formalIndex), Symbol.MISSING_ARG);
+            result.add(matching.getFormalName(formalIndex), Symbol.MISSING_ARG);
           }
         } else {
-          result.add(matching.getFormal(formalIndex), actualValues[actualIndex]);
+          result.add(matching.getFormalName(formalIndex), matching.getActualValue(actualIndex));
         }
       }
     }

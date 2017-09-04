@@ -42,7 +42,7 @@ public class GraphicsTest extends EvalTestCase {
   
   @Before
   public void setupPackages() {
-    assumingBasePackagesLoad();
+
   }
   
   @Test

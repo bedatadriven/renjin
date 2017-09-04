@@ -507,9 +507,17 @@ public interface PairList extends SEXP {
       this.tail = head;
     }
 
-    public Builder withAttributes(AttributeMap attributes) {
+    public Builder setAttributes(AttributeMap attributes) {
       this.attributesBuilder.addAllFrom(attributes);
       return this;
+    }
+
+    /**
+     * @deprecated use {@link #setAttributes(AttributeMap)}
+     */
+    @Deprecated
+    public Builder withAttributes(AttributeMap attributes) {
+      return setAttributes(attributes);
     }
 
     public Builder setAttribute(Symbol name, SEXP value) {

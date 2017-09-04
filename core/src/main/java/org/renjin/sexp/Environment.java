@@ -65,10 +65,31 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
   private Map<Symbol, Closure> activeBindings = null;
 
   /**
-   * Keeps track of the number of times setVariable() has been called on this 
-   * environment.
+   * The set of symbols that are bound to missing arguments.
+   *
+   * <p>Note that a missing argument may still have a valid value because
+   * of a function's default argument. In the case of:
+   *
+   * <pre>
+   * f <- function(x = 1) missing(x)
+   * f()
+   * </pre>
+   *
+   * Then missing(x) will be true even though x will have the value of "1".
+   *
+   * <p>Likewise, a symbol can be bound to the value {@link Symbol#MISSING_ARG} and NOT be
+   * considered a missing argument. For example:</p>
+   *
+   * <pre>
+ *   m = formals(function(x) x)[[1]]  # evaluates to the missing argument symbol
+   * f = function(x) missing(x)
+   * f(m) # FALSE
+   * </pre>
+   *
+   * So we need to track the missing argument status of values in this environment independent
+   * of the actual value itself.
    */
-  private transient int modCount = 0;
+  private Set<Symbol> missingArguments = null;
   
   /**
    * The root of the environment hierarchy.
@@ -204,7 +225,6 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
    */
   public void setParent(Environment parent) {
     this.parent = parent;
-    modCount ++;
   }
 
   @Override
@@ -269,7 +289,26 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
       throw new EvalException("cannot add bindings to a locked environment");
     }
     frame.setVariable(symbol, value);
-    modCount++;
+  }
+
+  /**
+   * Initializes this environment with the binding for an argument. Does not check whether there are active
+   * or locked bindings as this should ONLY be called when constructing a new environment for a function call.
+   */
+  public void setArgument(Symbol symbol, SEXP value) {
+    frame.setVariable(symbol, value);
+  }
+
+  /**
+   * Initializes this environment with the binding for a missing argument. Does not check whether there are active
+   * or locked bindings as this should ONLY be called when constructing a new environment for a function call.
+   */
+  public void setMissingArgument(Symbol symbol, SEXP defaultValue) {
+    frame.setVariable(symbol, defaultValue);
+    if(missingArguments == null) {
+      missingArguments = new HashSet<>();
+    }
+    missingArguments.add(symbol);
   }
 
   /**
@@ -355,7 +394,11 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     }
 
     frame.setVariable(symbol, value);
-    modCount++;
+
+    if(missingArguments != null) {
+      missingArguments.remove(symbol);
+    }
+
     return Null.INSTANCE;
   }
 
@@ -489,7 +532,6 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     return parent.findVariableUnsafe(symbol);
   }
 
-
   /**
    * returns varArg value at provided index
    *
@@ -525,47 +567,6 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
   }
 
 
-  /**
-   * return variable value or invoke associated active binding and otherwise throw error
-   *
-   * @param context
-   * @param name the {@code SYMSXP} name that should be looked up
-   * @return
-   * @throws EvalException if variable is not found
-   */
-  public SEXP findVariableOrThrow(Context context, String name) {
-    return findVariableOrThrow(context, Symbol.get(name));
-  }
-
-  /**
-   * return variable value or otherwise throw error (for backward compatibility)
-   * does not look for active bindings
-   *
-   * @param symbol the {@code SYMSXP} that should be looked up
-   * @return
-   * @throws EvalException if variable is not found
-   */
-  public SEXP findVariableOrThrowUnsafe(Symbol symbol) {
-    SEXP value = findVariableUnsafe(symbol);
-    if(value == Symbol.UNBOUND_VALUE) {
-      throw new EvalException("object '" + symbol.getPrintName() + "' not found");
-    }
-    return value;
-  }
-
-
-  /**
-   * return variable value or otherwise throw error (for backward compatibility)
-   * does not look for active bindings
-   *
-   * @param name the {@code SYMSXP} name that should be looked up
-   * @return
-   * @throws EvalException if variable is not found
-   */
-  public SEXP findVariableOrThrowUnsafe(String name) {
-    return findVariableOrThrowUnsafe(Symbol.get(name));
-  }
-
   public Function findFunction(Context context, Symbol symbol) {
     if(frame.isMissingArgument(symbol)) {
       throw new EvalException("argument '%s' is missing, with no default", symbol.toString());
@@ -576,14 +577,6 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     }
     return parent.findFunction(context, symbol);
   }
-  
-  public Function findFunctionOrThrow(Context context, Symbol symbol) {
-    Function function = findFunction(context, symbol);
-    if(function == null) {
-      throw new EvalException("could not find function \"" + symbol + "\"");
-    }
-    return function;
-  }
 
   /**
    *
@@ -593,15 +586,6 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     return locked;
   }
 
-  /**
-   * 
-   * @return the number of modifications to this environment
-   * and all of its parent environments
-   */
-  public int getCumulativeModCount() {
-    return modCount + parent.getCumulativeModCount();
-  }
-  
   public Frame getFrame() {
     return frame;
   }
@@ -784,6 +768,13 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     return this;
   }
 
+  public boolean isMissingArgument(Symbol symbol) {
+    if(missingArguments == null) {
+      return false;
+    }
+    return missingArguments.contains(symbol);
+  }
+
   private static class EnvIterator extends UnmodifiableIterator<Environment> {
     private Environment next;
 
@@ -843,11 +834,6 @@ public class Environment extends AbstractSEXP implements Recursive, HasNamedValu
     @Override
     public SEXP getVariable(Context context, Symbol symbol) {
       return Symbol.UNBOUND_VALUE;
-    }
-
-    @Override
-    public int getCumulativeModCount() {
-      return 0;
     }
 
     @Override

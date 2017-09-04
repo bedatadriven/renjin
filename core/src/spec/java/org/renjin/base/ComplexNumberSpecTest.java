@@ -31,7 +31,7 @@ public class ComplexNumberSpecTest extends EvalTestCase {
 
   @Before
   public void setup() throws IOException {
-    assumingBasePackagesLoad();
+
   }
 
   public double r(String str) {

@@ -24,7 +24,7 @@ import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.tac.IRArgument;
 import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.compiler.ir.tac.expressions.Expression;
-import org.renjin.eval.MatchedArguments;
+import org.renjin.eval.MatchedArgumentPositions;
 import org.renjin.primitives.S3;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
@@ -48,7 +48,7 @@ public class S4Specialization implements Specialization {
   
   
   private InlinedFunction inlinedMethod = null;
-  private MatchedArguments matchedArguments;
+  private MatchedArgumentPositions matchedArguments;
   
   private Type type;
   private ValueBounds returnBounds;
@@ -69,7 +69,7 @@ public class S4Specialization implements Specialization {
     
     // Otherwise, try to resolve the function
     if (inlinedMethod == null || inlinedMethod.getClosure() != function) {
-      matchedArguments = MatchedArguments.matchArgumentBounds(closure, arguments);
+      matchedArguments = MatchedArgumentPositions.matchArgumentBounds(closure, arguments);
       inlinedMethod = new InlinedFunction(runtimeState, closure, matchedArguments.getSuppliedFormals());
     }
     

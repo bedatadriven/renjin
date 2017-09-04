@@ -287,17 +287,20 @@ public class Context {
   private SEXP evaluateSymbol(Symbol symbol, Environment rho) {
     clearInvisibleFlag();
 
+    if(symbol == Symbol.MISSING_ARG) {
+      return symbol;
+    }
     SEXP value = rho.findVariable(this, symbol);
     if(value == Symbol.UNBOUND_VALUE) {
       throw new EvalException(String.format("object '%s' not found", symbol.getPrintName()));
     }
-    
-    if(value instanceof Promise) {
-      value = value.force(this);
+
+    if(value == Symbol.MISSING_ARG && rho.isMissingArgument(symbol)) {
+      throw new EvalException("Argument '%s' is missing, with no default", symbol.getPrintName());
     }
 
-    if(value == Symbol.MISSING_ARG) {
-      throw new EvalException("argument \"%s\" missing, with no default", symbol.getPrintName());
+    if(value instanceof Promise) {
+      value = value.force(this);
     }
 
     return value;

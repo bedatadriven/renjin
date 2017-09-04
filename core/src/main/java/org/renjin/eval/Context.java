@@ -93,7 +93,7 @@ public class Context {
   private Environment environment;
   private Session session; 
   private FunctionCall call;
-  private Closure closure;
+  private SEXP function;
 
   /**
    * The environment from which the closure was called
@@ -131,6 +131,7 @@ public class Context {
     this.session = session;
     this.type = Type.TOP_LEVEL;
     this.environment = session.getGlobalEnvironment();
+    this.function = Null.INSTANCE;
   }
 
   public Context beginFunction(Environment rho, FunctionCall call, Closure closure, PairList arguments) {
@@ -139,7 +140,7 @@ public class Context {
     context.type = Type.FUNCTION;
     context.parent = this;
     context.evaluationDepth = evaluationDepth+1;
-    context.closure = closure;
+    context.function = closure;
     context.environment = Environment.createChildEnvironment(closure.getEnclosingEnvironment()).build();
     context.session = session;
     context.arguments = arguments;
@@ -155,6 +156,11 @@ public class Context {
     context.evaluationDepth = evaluationDepth+1;
     context.environment = environment;
     context.session = session;
+    context.function = Primitives.getInternal(Symbol.get("eval"));
+
+    // Use the call from the call to the eval wrapper
+    context.call = this.call;
+
     return context;
   }
 
@@ -438,8 +444,8 @@ public class Context {
     return session.getGlobalEnvironment();
   }
 
-  public Closure getClosure() {
-    return closure;
+  public SEXP getFunction() {
+    return function;
   }
 
   public PairList getArguments() {

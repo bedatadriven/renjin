@@ -79,7 +79,7 @@ public class S3 {
 
     return Resolver
               .start(context, genericMethodName, object)
-              .withDefinitionEnvironment(context.getClosure().getEnclosingEnvironment())
+              .withDefinitionEnvironment(((Closure) context.getFunction()).getEnclosingEnvironment())
               .next()
               .apply(context, context.getEnvironment());
   }
@@ -1349,7 +1349,7 @@ public class S3 {
        */
 
       PairList actuals = parentContext.getArguments();
-      Closure closure = parentContext.getClosure();
+      Closure closure = (Closure)parentContext.getFunction();
       PairList formals = closure.getFormals();
       Environment previousEnv = parentContext.getEnvironment();
 

@@ -476,7 +476,9 @@ public class S3 {
 //     - e2:        arg2
 //
 //     otherwise only e1 and e2.
-      Closure function = method.getFunction();
+    
+    Closure function = method.getFunction();
+    
     if (("generic".equals(method.getGroup()) && method.getDistance() == 0) || hasS3Class) {
       SEXP call = new FunctionCall(function, promisedArgs.build());
       return context.evaluate( call );
@@ -497,14 +499,15 @@ public class S3 {
 
       for(Symbol arg : matchedMap.keySet()) {
         SEXP argValue = matchedMap.get(arg);
-        if(argValue instanceof Promise && ((Promise) argValue).getValue() != null) {
-          metadata.put(arg, ((Promise) argValue).getValue());
-        } else {
-          metadata.put(arg, argValue.force(context));
+        if(argValue != Symbol.MISSING_ARG) {
+          if(argValue instanceof Promise && ((Promise) argValue).getValue() != null) {
+            metadata.put(arg, ((Promise) argValue).getValue());
+          } else {
+            metadata.put(arg, argValue.force(context));
+          }
         }
       }
   
-      Closure closure = method.getFunction();
       FunctionCall call = new FunctionCall(function, expandedArgs);
       return ClosureDispatcher.apply(context, rho, call, function, promisedArgs.build(), metadata);
     }

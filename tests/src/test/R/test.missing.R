@@ -19,7 +19,7 @@
 
 
 library(hamcrest)
-
+library(methods)
 
 test.ellipses <- function() {
 
@@ -113,9 +113,12 @@ test.ommited.arg <- function() {
 test.S4.default.afterEllipses = function() {
 
     setClass("A", representation(a = "numeric")); a = new("A", a = 0)
+    setClass("C", contains = "A"); c = new("C", a = 3)
     setMethod("[", signature(x = "A", i = "ANY", j = "ANY", drop = "ANY"), function(x, i, j, ..., drop = TRUE) length(drop))
 
+    assertThat(c[ , drop = 1:5] , identicalTo( 5L ))
     assertThat(a[ , drop = 1:5] , identicalTo( 5L ))
+    assertThat(c[ , ] , identicalTo( 1L ))
     assertThat(a[ , ] , identicalTo( 1L ))
 }
 

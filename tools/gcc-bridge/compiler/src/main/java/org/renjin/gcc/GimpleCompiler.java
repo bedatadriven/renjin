@@ -19,6 +19,7 @@
 package org.renjin.gcc;
 
 import org.renjin.gcc.analysis.*;
+import org.renjin.gcc.annotations.GlobalVar;
 import org.renjin.gcc.codegen.FunctionGenerator;
 import org.renjin.gcc.codegen.TrampolineClassGenerator;
 import org.renjin.gcc.codegen.UnitClassGenerator;
@@ -45,6 +46,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.List;
@@ -83,7 +85,7 @@ public class GimpleCompiler  {
   private final TypeOracle typeOracle = new TypeOracle();
 
   private final Map<String, Class> providedRecordTypes = Maps.newHashMap();
-  private final Map<String, Field> providedVariables = Maps.newHashMap();
+  private final Map<String, ProvidedGlobalVar> providedVariables = Maps.newHashMap();
 
   private String trampolineClassName;
   private String recordClassPrefix = "record";
@@ -156,8 +158,19 @@ public class GimpleCompiler  {
   public void addReferenceClass(Class<?> clazz) {
     globalSymbolTable.addMethods(clazz);
 
+    for (Method method : clazz.getMethods()) {
+      if(method.getAnnotation(GlobalVar.class) != null) {
+        if(method.getParameterTypes().length != 0) {
+          throw new IllegalStateException("Method " + method + " cannot be used as a " +
+              "@" + GlobalVar.class.getSimpleName() + ", it must have zero arguments");
+        }
+        providedVariables.put(method.getName(), new ProvidedGlobalVarGetter(method));
+      }
+    }
+
     for (Field field : clazz.getFields()) {
-      if(Modifier.isStatic(field.getModifiers()) && Modifier.isStatic(field.getModifiers())) {
+      if(Modifier.isStatic(field.getModifiers()) && Modifier.isStatic(field.getModifiers()) &&
+          field.getAnnotation(Deprecated.class) == null) {
         addVariable(field.getName(), field);
       }
     }
@@ -425,7 +438,7 @@ public class GimpleCompiler  {
   }
 
   public void addVariable(String name, Field field) {
-    providedVariables.put(name, field);
+    providedVariables.put(name, new ProvidedGlobalVarField(field));
 
   }
 

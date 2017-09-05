@@ -77,6 +77,11 @@ public class RecordUnitPtrReturnStrategy implements ReturnStrategy {
   }
 
   @Override
+  public GExpr unmarshall(JExpr returnValue) {
+    return new RecordUnitPtr(Expressions.cast(returnValue, jvmType));
+  }
+
+  @Override
   public JExpr getDefaultReturnValue() {
     return Expressions.nullRef(jvmType);
   }

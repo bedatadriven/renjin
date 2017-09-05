@@ -23,12 +23,32 @@ import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
 import org.renjin.sexp.SEXP;
+import org.renjin.sexp.Symbol;
 
 /**
  * GNU R API methods defined in the "Defn.h" header file
  */
 @SuppressWarnings("unused")
 public final class Defn {
+
+  public static final  SEXP	R_CommentSymbol = Symbol.get("comment");
+  public static final  SEXP	R_DotEnvSymbol = Symbol.get(".Environment");
+  public static final  SEXP	R_ExactSymbol = Symbol.get("exact");
+  public static final  SEXP	R_RecursiveSymbol = Symbol.get("recursive");
+  public static final  SEXP	R_WholeSrcrefSymbol = Symbol.get("wholeSrcref");
+  public static final  SEXP	R_TmpvalSymbol = Symbol.get("*tmp*");
+  public static final  SEXP	R_UseNamesSymbol = Symbol.get("use.names");
+  public static final  SEXP	R_ColonSymbol = Symbol.get(":");
+  //public static final  SEXP	R_DoubleColonSymbol;   /* "::" */
+//public static final  SEXP	R_TripleColonSymbol;   /* ":::" */
+  public static final  SEXP R_ConnIdSymbol = Symbol.get("conn_id");
+  public static final  SEXP R_DevicesSymbol = Symbol.get(".Devices");
+  public static final  SEXP R_dot_Generic = Symbol.get(".Generic");
+  public static final  SEXP R_dot_Methods = Symbol.get(".Methods");
+  public static final  SEXP R_dot_Group = Symbol.get(".Group");
+  public static final  SEXP R_dot_Class = Symbol.get(".Class");
+  public static final  SEXP R_dot_GenericCallEnv = Symbol.get(".GenericCallEnv");
+  public static final  SEXP R_dot_GenericDefEnv = Symbol.get(".GenericDefEnv");
 
   private Defn() { }
 
@@ -915,5 +935,5 @@ public final class Defn {
   public static BytePtr locale2charset(BytePtr p0) {
     throw new UnimplementedGnuApiMethod("locale2charset");
   }
-  
+
 }

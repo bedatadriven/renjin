@@ -19,10 +19,7 @@
 // Initial template generated from Rinternals.h from R 3.2.2
 package org.renjin.gnur.api;
 
-import org.renjin.eval.Context;
-import org.renjin.eval.EvalException;
-import org.renjin.eval.FinalizationClosure;
-import org.renjin.eval.FinalizationHandler;
+import org.renjin.eval.*;
 import org.renjin.gcc.runtime.*;
 import org.renjin.methods.MethodDispatch;
 import org.renjin.methods.Methods;
@@ -1067,8 +1064,10 @@ public final class Rinternals {
         return Vectors.asDouble((Vector)p0).setAttributes(p0.getAttributes());
       case SexpType.CPLXSXP:
         return Vectors.asComplex((Vector)p0).setAttributes(p0.getAttributes());
+      case SexpType.STRSXP:
+        return Vectors.asCharacter(Native.currentContext(), (Vector)p0).setAttributes(p0.getAttributes());
     }
-    throw new UnimplementedGnuApiMethod("Rf_coerceVector");
+    throw new UnimplementedGnuApiMethod("Rf_coerceVector: " + type);
   }
 
   public static SEXP Rf_PairToVectorList(SEXP x) {
@@ -1588,8 +1587,11 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_GetOption");
   }
 
-  public static SEXP Rf_GetOption1(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_GetOption1");
+  public static SEXP Rf_GetOption1(SEXP optionNameSexp) {
+    Symbol optionName = (Symbol) optionNameSexp;
+
+    Options options = Native.currentContext().getSession().getSingleton(org.renjin.eval.Options.class);
+    return options.get(optionName.getPrintName());
   }
 
   public static int Rf_GetOptionDigits() {
@@ -1604,8 +1606,12 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_GetRowNames");
   }
 
-  public static void Rf_gsetVar(SEXP p0, SEXP p1, SEXP p2) {
-    throw new UnimplementedGnuApiMethod("Rf_gsetVar");
+  public static void Rf_gsetVar(SEXP symbolName, SEXP value, SEXP environment) {
+    if(environment == Null.INSTANCE) {
+      environment = Native.currentContext().getBaseEnvironment();
+    }
+
+    ((Environment) environment).setVariable(Native.currentContext(), (Symbol)symbolName, value);
   }
 
 

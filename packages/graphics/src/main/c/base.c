@@ -268,7 +268,8 @@ static SEXP baseCallback(GEevent task, pGEDevDesc dd, SEXP data)
             /* Changed from INTSXP in 2.7.0: but saved graphics lists
                are protected by an R version number */
             PROTECT(result = allocVector(RAWSXP, sizeof(GPar)));
-            copyGPar(&(bss->dpSaved), (GPar*) RAW(result));
+            //copyGPar(&(bss->dpSaved), (GPar*) RAW(result));
+            error("Unsupported: GE_SaveSnapshotState");
             PROTECT(pkgName = mkString("graphics"));
             setAttrib(result, install("pkgName"), pkgName);
             UNPROTECT(2);
@@ -310,7 +311,8 @@ static SEXP baseCallback(GEevent task, pGEDevDesc dd, SEXP data)
                     error(_("Incompatible graphics state"));
                 }
                 bss = dd->gesd[baseRegisterIndex]->systemSpecific;
-                copyGPar((GPar*) RAW(graphicsState), &(bss->dpSaved));
+                // TODO: copyGPar((GPar*) RAW(graphicsState), &(bss->dpSaved));
+                error("TODO: GE_RestoreSnapshotState");
                 /* These are probably redundant because GE_RestoreState
                  * will follow from GEplayDisplayList(), but no harm
                  * is done 

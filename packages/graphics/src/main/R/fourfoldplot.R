@@ -1,5 +1,7 @@
 #  File src/library/graphics/R/fourfoldplot.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2016 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 fourfoldplot <-
 function(x, color = c("#99CCFF", "#6699CC"), conf.level = 0.95,
@@ -158,7 +160,7 @@ function(x, color = c("#99CCFF", "#6699CC"), conf.level = 0.95,
     angle.f <- c( 90, 180,  0, 270)     # 'f' for 'from'
     angle.t <- c(180, 270, 90, 360)     # 't' for 'to'
 
-    opar <- par(mar = c(0, 0, ifelse(is.null(main), 0, 2.5), 0))
+    opar <- par(mar = c(0, 0, if(is.null(main)) 0 else 2.5, 0))
     on.exit(par(opar))
 
     byrow <- FALSE

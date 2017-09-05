@@ -1360,7 +1360,7 @@ extern const char *locale2charset(const char *);
 */
 // With a Renjin as a target, we can use alloca and malloc interchangeably
 // because the result of both are subject to garbage collection
-#define alloca malloc
+//#define alloca malloc
 
 /* Required by C99, but might be slow */
 #ifdef HAVE_LONG_DOUBLE

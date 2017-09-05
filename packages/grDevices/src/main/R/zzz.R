@@ -18,20 +18,13 @@
 
 .noGenerics <- TRUE
 
-if (.Platform$OS.type == "windows") {
-    utils::globalVariables(c("C_cairoProps", "C_makeQuartzDefault"))
-    utils::suppressForeignCheck(c("C_cairoProps", "C_makeQuartzDefault"))
-}
 
 .onLoad <- function(libname, pkgname)
 {
-    if (.Platform$OS.type != "windows" && !.Call(C_cairoProps, 2L))
-        X11.options(type = "Xlib")
-
     extras <- if(.Platform$OS.type == "windows")
         list(windowsTimeouts = c(100L,500L)) else
         list(bitmapType = if(capabilities("aqua")) "quartz"
-        else if(.Call(C_cairoProps, 2L)) "cairo" else "Xlib")
+        else if(FALSE) "cairo" else "Xlib")
     op.grDevices <- c(list(locatorBell = TRUE, device.ask.default = FALSE),
                       extras, list(device = .select_device()))
     toset <- !(names(op.grDevices) %in% names(options()))

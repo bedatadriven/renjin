@@ -21,7 +21,10 @@ package org.renjin.gnur.api;
 
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
+import org.renjin.primitives.print.IntPrinter;
 import org.renjin.sexp.SEXP;
+
+import java.lang.invoke.MethodHandle;
 
 /**
  * GNU R API methods defined in the "R_ext/GraphicsEngine.h" header file
@@ -29,9 +32,15 @@ import org.renjin.sexp.SEXP;
 @SuppressWarnings("unused")
 public final class GraphicsEngine {
 
+  public static final int LTY_BLANK	= -1;
+  public static final int LTY_SOLID	= 0;
+  public static final int LTY_DASHED = 4 + (4<<4);
+  public static final int LTY_DOTTED = 1 + (3<<4);
+  public static final int LTY_DOTDASH =	1 + (3<<4) + (4<<8) + (3<<12);
+  public static final int LTY_LONGDASH = 7 + (3<<4);
+  public static final int LTY_TWODASH =	2 + (2<<4) + (6<<8) + (2<<12);
+
   private GraphicsEngine() { }
-
-
 
   public static int R_GE_getVersion() {
     throw new UnimplementedGnuApiMethod("R_GE_getVersion");
@@ -63,7 +72,9 @@ public final class GraphicsEngine {
 
   // void GEregisterWithDevice (pGEDevDesc dd)
 
-  // void GEregisterSystem (GEcallback callback, int *systemRegisterIndex)
+  public static void GEregisterSystem (MethodHandle callback, IntPtr systemRegisterIndex) {
+    // NOOP
+  }
 
   public static void GEunregisterSystem(int registerIndex) {
     throw new UnimplementedGnuApiMethod("GEunregisterSystem");

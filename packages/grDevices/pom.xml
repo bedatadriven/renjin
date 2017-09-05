@@ -21,6 +21,11 @@
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.renjin</groupId>
+      <artifactId>renjin-gnur-runtime</artifactId>
+      <version>${project.version}</version>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
@@ -54,6 +59,21 @@
               <defaultPackages>
                 <package>grDevices</package>
               </defaultPackages>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>2.17</version>
+        <executions>
+          <execution>
+            <id>validate</id>
+            <phase>validate</phase>
+            <configuration>
+              <!-- Exclude imported sources from checkstyle for the moment -->
+              <excludes>org/renjin/grDevices/*.java</excludes>
             </configuration>
           </execution>
         </executions>

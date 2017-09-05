@@ -1,0 +1,4 @@
+type=METHOD
+class=org/renjin/grDevices/Devices
+descriptor=(Lorg/renjin/gnur/api/DevDesc;Lorg/renjin/gcc/runtime/BytePtr;DDD)Z
+member=newJavaGD_Open

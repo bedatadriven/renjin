@@ -1572,7 +1572,7 @@ void Rg_set_col_ptrs(F1 f1, F2 f2, F3 f3, F4 f4);
 
 void initPalette(void)
 {
-    Rg_set_col_ptrs(&inRGBpar3, &incol2name, &inR_GE_str2col, &savePalette);
+    //Rg_set_col_ptrs(&inRGBpar3, &incol2name, &inR_GE_str2col, &savePalette);
 
     /* Initialize the Color Database: we now pre-compute this
     for(int i = 0 ; ColorDataBase[i].name ; i++)

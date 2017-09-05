@@ -46,7 +46,7 @@ public final class GraphicsDevice {
   }
 
   public static int Rf_curDevice() {
-    throw new UnimplementedGnuApiMethod("Rf_curDevice");
+    return 0;
   }
 
   public static int Rf_nextDevice(int p0) {

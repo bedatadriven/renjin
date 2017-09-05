@@ -197,7 +197,7 @@ typedef struct _GEDevDesc GEDevDesc;
 
 typedef SEXP (* GEcallback)(GEevent, GEDevDesc *, SEXP);
 
-typedef struct {
+struct _GESystemDesc {
     /* An array of information about each graphics system that
      * has registered with the graphics engine.
      * This is used to store graphics state for each graphics
@@ -218,7 +218,9 @@ typedef struct {
      * the graphics engine will know what array index to use.
      */
     GEcallback callback;
-} GESystemDesc;
+};
+
+typedef struct _GESystemDesc GESystemDesc;
 
 struct _GEDevDesc {
     /*

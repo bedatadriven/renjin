@@ -26,8 +26,12 @@
 #include <R_ext/GraphicsEngine.h>
 
 #include "grDevices.h"
+
 #include <R_ext/Rdynload.h>
 #include <R_ext/Visibility.h>
+
+SEXP newJavaGD(SEXP name, SEXP sw, SEXP sh, SEXP sps);
+
 
 #ifndef _WIN32
 /* This really belongs with the X11 module, but it is about devices */
@@ -71,8 +75,7 @@ static const R_CallMethodDef CallEntries[] = {
     CALLDEF(colors, 0),
     CALLDEF(palette, 1),
     CALLDEF(palette2, 1),
-    CALLDEF(cairoVersion, 0),
-    CALLDEF(bmVersion, 0),
+    CALLDEF(newJavaGD, 4),
 
 #ifndef _WIN32
     CALLDEF(makeQuartzDefault, 0),
@@ -87,9 +90,6 @@ static const R_CallMethodDef CallEntries[] = {
 #define EXTDEF(name, n)  {#name, (DL_FUNC) &name, n}
 
 static const R_ExternalMethodDef ExtEntries[] = {
-    EXTDEF(PicTeX, 6),
-    EXTDEF(PostScript, 19),
-    EXTDEF(XFig, 14),
     EXTDEF(PDF, 20),
     EXTDEF(devCairo, 11),
     EXTDEF(devcap, 0),

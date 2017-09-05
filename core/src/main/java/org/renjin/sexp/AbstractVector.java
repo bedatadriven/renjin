@@ -58,6 +58,11 @@ abstract class AbstractVector extends AbstractSEXP implements Vector {
   }
 
   @Override
+  public double getElementAsComplexIm(int index) {
+    return 0d;
+  }
+
+  @Override
   public Builder newCopyBuilder(Type replacementType) {
     if(getVectorType().isWiderThanOrEqualTo(replacementType)) {
       return newCopyBuilder();

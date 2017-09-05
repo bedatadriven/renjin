@@ -379,6 +379,12 @@ public class MathGroup {
     return ComplexVector.complex(round(x.getReal(), digits), round(x.getImaginary(), digits));
   }
 
+  @Builtin
+  @Deferrable
+  @DataParallel(PreserveAttributeStyle.ALL)
+  public static Complex round(Complex x) {
+    return ComplexVector.complex(round(x.getReal()), round(x.getImaginary()));
+  }
 
   @Deferrable
   @Builtin

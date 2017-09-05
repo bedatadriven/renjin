@@ -840,7 +840,7 @@ public class Primitives {
     f("unlink", Files.class, 111);
 
 /* Complex Valued Functions */
-    f("polyroot", /*polyroot*/ null, 11);
+    f("polyroot", Polyroot.class, 11);
 
 /* Device Drivers */
 

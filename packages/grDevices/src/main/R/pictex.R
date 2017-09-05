@@ -1,5 +1,7 @@
 #  File src/library/grDevices/R/pictex.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2012 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,13 +14,13 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 pictex <-
     function(file = "Rplots.tex", width = 5, height = 4, debug = FALSE,
 	     bg = "white", fg = "black")
 {
-    .External(PicTeX, file, bg, fg, width, height, as.logical(debug))
+    .External(C_PicTeX, file, bg, fg, width, height, as.logical(debug))
 
     graphics::par(mar = c(5,4,2,4)+0.1)
 }

@@ -1,3 +1,4 @@
+library(grDevices)
 library(hamcrest)
 
 test.rgb <- function(){

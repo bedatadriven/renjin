@@ -1,5 +1,7 @@
 #  File src/library/grDevices/R/colorstuff.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2012 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,93 +14,76 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
-
-col2rgb <- function(col, alpha=FALSE) {
-  result <- .Internal(col2rgb(col))
-  if (!alpha)
-    result <- result[1L:3,, drop=FALSE]
-  result
+colours <- colors <- function(distinct = FALSE)
+{
+    c <- .Call(C_colors)
+    if(distinct) c[!duplicated(t(col2rgb(c)))] else c
 }
 
-## FIXME: gray() should also allow alpha; ditto for gray.colors() below
-gray <- function(level) .Internal(gray(level))
+col2rgb <- function(col, alpha = FALSE)
+{
+    ## R-level trap for now.
+    if(any(as.character(col) %in% "0"))
+        stop("numerical color values must be positive", domain = NA)
+    if (is.factor(col)) col <- as.character(col)
+    .Call(C_col2rgb, col, alpha)
+}
+
+gray <- function(level, alpha = NULL) .Call(C_gray, level, alpha)
 grey <- gray
 
 rgb <- function(red, green, blue, alpha, names = NULL, maxColorValue = 1)
 {
-    alphaspec <- !missing(alpha)
-    if(!alphaspec)
-	alpha <- maxColorValue
-
-    ## Only red
+    ## Only 'red' given
     if(missing(green) && missing(blue)) {
 	if(is.matrix(red) || is.data.frame(red)) {
 	    red <- data.matrix(red)
-	    if(ncol(red) < 3) stop("at least 3 columns needed")
-	    green <- red[,2]
-	    blue <- red[,3]
-	    red <- red[,1]
+	    if(ncol(red) < 3L) stop("at least 3 columns needed")
+	    green <- red[,2L]; blue <- red[,3L]; red <- red[,1L]
 	}
     }
 
-    ## in the first case, (r,g,b) are (coerced to) integer, otherwise
-    ## double :
-    if(maxColorValue == 255)
-        result <- .Internal(rgb256(red, green, blue, alpha, names))
-    else
-        result <- .Internal(rgb(red, green, blue, alpha, maxColorValue, names))
-    ## If alpha not specified only return #RRGGBB
-    if (!alphaspec)
-        structure(substr(result, 1L, 7L), names=names(result))
-    else result
+    .Call(C_rgb, red, green, blue, if (missing(alpha)) NULL else alpha,
+          maxColorValue, names)
 }
 
-hsv <- function(h=1, s=1, v=1, alpha = 1)
-{
-    alphaspec <- !missing(alpha)
-    result <- .Internal(hsv(h, s, v, alpha))
-    ## If alpha not specified only return #RRGGBB
-    if (!alphaspec)
-        structure(substr(result, 1L, 7L), names=names(result))
-    else result
-}
+hsv <- function(h = 1, s = 1, v = 1, alpha = 1)
+    .Call(C_hsv, h, s, v, if(missing(alpha)) NULL else alpha)
 
-hcl <-
-function (h = 0, c = 35, l = 85, alpha = 1, fixup = TRUE)
-{
-    alphaspec <- !missing(alpha)
-    result <- .Internal(hcl(h, c, l, alpha, fixup))
-    if (!alphaspec)
-        structure(substr(result, 1L, 7L), names=names(result))
-    else result
-}
+hcl <- function (h = 0, c = 35, l = 85, alpha = 1, fixup = TRUE)
+    .Call(C_hcl, h, c, l, if(missing(alpha)) NULL else alpha, fixup)
+
 
 rgb2hsv <- function(r, g = NULL, b = NULL, maxColorValue = 255)
 {
-    rgb <-
-        if(is.null(g) && is.null(b)) as.matrix(r)
-        else rbind(r,g,b)
+    rgb <- if(is.null(g) && is.null(b)) as.matrix(r) else rbind(r, g, b)
     if(!is.numeric(rgb)) stop("rgb matrix must be numeric")
     d <- dim(rgb)
-    if(d[1L] != 3) stop("rgb matrix must have 3 rows")
+    if(d[1L] != 3L) stop("rgb matrix must have 3 rows")
     n <- d[2L]
-    if(n == 0L)
-        return(cbind(c(h = 1, s = 1, v = 1))[, 0L])
+    if(n == 0L) return(cbind(c(h = 1, s = 1, v = 1))[, 0L])
     ## else:
     rgb <- rgb/maxColorValue
     if(any(0 > rgb) || any(rgb > 1))
         stop("rgb values must be in [0, maxColorValue]")
 
-    .Internal(rgb2hsv(rgb))
+    .Call(C_RGB2hsv, rgb)
 }
 
 palette <- function(value)
 {
-    if(missing(value)) .Internal(palette(character()))
-    else invisible(.Internal(palette(value)))
+    if(missing(value)) .Call(C_palette, character())
+    else invisible(.Call.graphics(C_palette, value))
 }
+
+## An unexported version that works with internal representation as 'rcolor'
+## We could avoid this if we knew at R level whether the display list was
+## enabled or inhibited: but we do need to record a call to C_palette2.
+recordPalette <- function()
+    .Call.graphics(C_palette2, .Call(C_palette2, NULL))
+
 
 ## A quick little ''rainbow'' function -- improved by MM
 ## doc in	../man/palettes.Rd
@@ -119,10 +104,10 @@ topo.colors <- function (n, alpha = 1)
 	j <- n %/% 3
 	k <- n %/% 3
 	i <- n - j - k
-	c(if(i > 0) hsv(h= seq.int(from= 43/60, to= 31/60, length.out = i), alpha=alpha),
-	  if(j > 0) hsv(h= seq.int(from= 23/60, to= 11/60, length.out = j), alpha=alpha),
-	  if(k > 0) hsv(h= seq.int(from= 10/60, to=  6/60, length.out = k), alpha=alpha,
-			s= seq.int(from= 1,	to= 0.3,   length.out = k), v = 1))
+	c(if(i > 0) hsv(h = seq.int(from = 43/60, to = 31/60, length.out = i), alpha = alpha),
+	  if(j > 0) hsv(h = seq.int(from = 23/60, to = 11/60, length.out = j), alpha = alpha),
+	  if(k > 0) hsv(h = seq.int(from = 10/60, to =  6/60, length.out = k), alpha = alpha,
+			s = seq.int(from = 1, to = 0.3, length.out = k), v = 1))
     } else character()
 }
 
@@ -149,7 +134,8 @@ heat.colors <- function (n, alpha = 1)
 	i <- n - j
 	c(rainbow(i, start = 0, end = 1/6, alpha = alpha),
 	  if (j > 0)
-	  hsv(h = 1/6, s = seq.int(from= 1-1/(2*j), to= 1/(2*j), length.out = j),
+	  hsv(h = 1/6,
+              s = seq.int(from = 1-1/(2*j), to = 1/(2*j), length.out = j),
 	      v = 1, alpha = alpha))
     } else character()
 }
@@ -170,7 +156,7 @@ cm.colors <- function (n, alpha = 1)
     } else character()
 }
 
-gray.colors <- ## FIXME: add 'alpha = 1'
-function(n, start = 0.3, end = 0.9, gamma = 2.2)
-    gray(seq.int(from = start^gamma, to = end^gamma, length.out = n)^(1/gamma))
+gray.colors <- function(n, start = 0.3, end = 0.9, gamma = 2.2, alpha = NULL)
+    gray(seq.int(from = start^gamma, to = end^gamma, length.out = n)^(1/gamma),
+         alpha)
 grey.colors <- gray.colors

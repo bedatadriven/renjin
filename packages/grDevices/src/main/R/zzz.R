@@ -1,5 +1,7 @@
 #  File src/library/grDevices/R/zzz.R
-#  Part of the R package, http://www.R-project.org
+#  Part of the R package, https://www.R-project.org
+#
+#  Copyright (C) 1995-2014 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,48 +14,33 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
+#  https://www.R-project.org/Licenses/
 
 .noGenerics <- TRUE
 
-.onLoad <- function(libname, pkgname)
-{
-# RENJIN disabled:
-#    op <- options()
-#    extras <- if(.Platform$OS.type == "windows")
-#        list(windowsTimeouts = c(100L,500L)) else
-#	# RENJIN Disabled:
-#    #list(bitmapType = if(capabilities("aqua")) "quartz"
-#    #else if(.Call("cairoProps", 2L, PACKAGE="grDevices")) "cairo" else "Xlib")
-#    defdev <- Sys.getenv("R_DEFAULT_DEVICE")
-#    ## Use devices rather than names to make it harder to get masked.
-#    if(!nzchar(defdev)) defdev <- pdf
-#    device <- if(interactive()) {
-#        intdev <- Sys.getenv("R_INTERACTIVE_DEVICE")
-#        if(nzchar(intdev)) intdev
-#        else {
-#            dsp <- Sys.getenv("DISPLAY")
-#            if(.Platform$OS.type == "windows") windows
-#            else if (.Platform$GUI == "AQUA" ||
-#                     ((!nzchar(dsp) || grepl("^/tmp/launch-", dsp))
-#                      && .Call("makeQuartzDefault"))) quartz
-#            else if (nzchar(dsp) && .Platform$GUI %in% c("X11", "Tk")) X11
-#	    else defdev
-#        }
-#    } else defdev
-#
-    #if (.Platform$OS.type != "windows"
-    #    && !.Call("cairoProps", 2L, PACKAGE="grDevices"))
-    #    X11.options(type = "Xlib")
-    #op.grDevices <- c(list(locatorBell = TRUE, device.ask.default = FALSE),
-    #              extras, device = device)
-    #toset <- !(names(op.grDevices) %in% names(op))
-    #if(any(toset)) options(op.grDevices[toset])
+if (.Platform$OS.type == "windows") {
+    utils::globalVariables(c("C_cairoProps", "C_makeQuartzDefault"))
+    utils::suppressForeignCheck(c("C_cairoProps", "C_makeQuartzDefault"))
 }
 
-#.onUnload <- function(libpath)
-#    library.dynam.unload("grDevices", libpath)
-.onUnload <- function(libpath) NULL
+.onLoad <- function(libname, pkgname)
+{
+    if (.Platform$OS.type != "windows" && !.Call(C_cairoProps, 2L))
+        X11.options(type = "Xlib")
+
+    extras <- if(.Platform$OS.type == "windows")
+        list(windowsTimeouts = c(100L,500L)) else
+        list(bitmapType = if(capabilities("aqua")) "quartz"
+        else if(.Call(C_cairoProps, 2L)) "cairo" else "Xlib")
+    op.grDevices <- c(list(locatorBell = TRUE, device.ask.default = FALSE),
+                      extras, list(device = .select_device()))
+    toset <- !(names(op.grDevices) %in% names(options()))
+    if(any(toset)) options(op.grDevices[toset])
+}
+
+.onUnload <- function(libpath)
+    library.dynam.unload("grDevices", libpath)
+
 
 ### Used by text, mtext, strwidth, strheight, title, axis,
 ### L_text and L_textBounds, all of which

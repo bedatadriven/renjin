@@ -200,6 +200,14 @@ public class Stdlib {
     return outputBytes.length;
   }
 
+  public static int tolower(int c) {
+    return Character.toLowerCase(c);
+  }
+
+  public static int toupper(int c) {
+    return Character.toUpperCase(c);
+  }
+
   public static int sscanf(BytePtr format, Object... arguments) { 
     throw new UnsupportedOperationException("TODO: implement " + Stdlib.class.getName() + ".sscanf");
   }

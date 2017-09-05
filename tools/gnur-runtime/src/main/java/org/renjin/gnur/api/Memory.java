@@ -30,11 +30,12 @@ public final class Memory {
 
 
   public static Object vmaxget() {
-    throw new UnimplementedGnuApiMethod("vmaxget");
+    // NOOP
+    return null;
   }
 
   public static void vmaxset(Object p0) {
-    throw new UnimplementedGnuApiMethod("vmaxset");
+    // NOOP
   }
 
   /**

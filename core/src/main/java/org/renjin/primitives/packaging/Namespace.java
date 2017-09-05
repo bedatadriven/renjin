@@ -252,6 +252,7 @@ public class Namespace {
       context.warn("Could not load compiled Fortran/C/C++ sources class for package " + pkg.getName() + ".\n" +
           "This is most likely because Renjin's compiler is not yet able to handle the sources for this\n" +
           "particular package. As a result, some functions may not work.\n");
+      e.printStackTrace();
       return;
     }
 

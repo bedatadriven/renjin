@@ -130,6 +130,7 @@ extern Rboolean useaqua;
 
 void attribute_visible R_init_grDevices(DllInfo *dll)
 {
+    Rf_InitGraphics();
     initPalette();
     R_registerRoutines(dll, NULL, CallEntries, NULL, ExtEntries);
     R_useDynamicSymbols(dll, FALSE);

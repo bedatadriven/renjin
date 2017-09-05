@@ -29,6 +29,8 @@
 #define _(String) (String)
 #endif
 
+void Rf_InitGraphics();
+
 SEXP R_CreateAtVector(SEXP axp, SEXP usr, SEXP nint, SEXP is_log);
 SEXP R_GAxisPars(SEXP usr, SEXP is_log, SEXP nintLog);
 

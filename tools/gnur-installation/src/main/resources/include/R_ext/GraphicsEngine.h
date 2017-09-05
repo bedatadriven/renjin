@@ -161,7 +161,7 @@ typedef enum {
  * Devices are not *required* to honour graphical parameters
  * (e.g., alpha transparency is going to be tough for some)
  */
-typedef struct {
+typedef struct _R_GE_gcontext {
     /*
      * Colours
      *
@@ -186,9 +186,10 @@ typedef struct {
     double lineheight;   /* Line height (multiply by font size) */
     int fontface;        /* Font face (plain, italic, bold, ...) */
     char fontfamily[201]; /* Font family */
-} R_GE_gcontext;
+};
 
-typedef R_GE_gcontext* pGEcontext;
+typedef struct _R_GE_gcontext R_GE_gcontext;
+typedef struct _R_GE_gcontext* pGEcontext;
 
 
 #include <R_ext/GraphicsDevice.h> /* needed for DevDesc */

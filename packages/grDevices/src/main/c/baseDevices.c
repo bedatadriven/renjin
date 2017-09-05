@@ -514,7 +514,7 @@ pGEDevDesc GEcreateDevDesc(pDevDesc dev)
 }
 
 
-void attribute_hidden InitGraphics(void)
+void InitGraphics()
 {
     R_Devices[0] = &nullDevice;
     active[0] = TRUE;

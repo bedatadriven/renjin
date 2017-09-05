@@ -26,7 +26,7 @@ public class GESystemDesc {
    * This is used to store graphics state for each graphics
    * system on each device.
    */
-  Object systemSpecific;
+  public Object systemSpecific;
 
   /*
    * An array of function pointers, one per graphics system that
@@ -41,5 +41,5 @@ public class GESystemDesc {
    * has to pass the systemSpecific pointer because only
    * the graphics engine will know what array index to use.
    */
-  MethodHandle callback;
+  public MethodHandle callback;
 }

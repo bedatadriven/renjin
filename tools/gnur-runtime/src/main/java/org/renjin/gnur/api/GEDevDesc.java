@@ -18,6 +18,8 @@
  */
 package org.renjin.gnur.api;
 
+import org.renjin.sexp.SEXP;
+
 /**
  * Common class for the _GEDevDesc class
  */
@@ -25,15 +27,65 @@ public class GEDevDesc {
 
   public static final int MAX_GRAPHICS_SYSTEMS = 24;
 
+  /**
+   * Stuff that the devices can see (and modify).
+   * All detailed in GraphicsDevice.h
+   */
 
   public DevDesc dev;
-  public int displayListOn;
-  public org.renjin.sexp.SEXP displayList;
-  public org.renjin.sexp.SEXP savedSnapshot;
-  public int dirty;
-  public int recordGraphics;
-  public GESystemDesc[] gesd = new GESystemDesc[MAX_GRAPHICS_SYSTEMS];
-  public int ask;
 
+  /*
+   * Stuff about the device that only the graphics engine sees
+   * (the devices don't see it).
+   */
+
+  /**
+   *  toggle for display list status
+   */
+  public int displayListOn;
+
+  /**
+   *  display list
+   */
+  public SEXP displayList;
+
+  /**
+   *  A pointer to the end of the display list to avoid tranversing pairlists
+   */
+  public SEXP DLlastElt;
+
+  /* The last element of the display list
+   * just prior to when the display list
+   * was last initialised
+   */
+  public SEXP savedSnapshot;
+
+  /**
+   *  Has the device received any output?
+   */
+  public int dirty;
+
+  /**
+   * Should a graphics call be stored
+   * on the display list?
+   * Set to FALSE by do_recordGraphics,
+   * do_dotcallgr, and do_Externalgr
+   * so that nested calls are not
+   * recorded on the display list
+   */
+  public int recordGraphics;
+
+
+  /**
+   * Stuff about the device that only graphics systems see.
+   * The graphics engine has no idea what is in here.
+   * Used by graphics systems to store system state per device.
+   */
+  public GESystemDesc[] gesd = new GESystemDesc[MAX_GRAPHICS_SYSTEMS];
+
+  /**
+   * per-device setting for 'ask' (use NewFrameConfirm)
+   */
+  public int ask;
 
 }

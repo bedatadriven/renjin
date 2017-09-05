@@ -168,9 +168,6 @@ public class GnurSourcesCompiler {
     compiler.addReferenceClass(Fileio.class);
     compiler.addReferenceClass(GetText.class);
     compiler.addReferenceClass(GetX11Image.class);
-    compiler.addReferenceClass(Graphics.class);
-    compiler.addReferenceClass(GraphicsBase.class);
-    compiler.addReferenceClass(GraphicsEngine.class);
     compiler.addReferenceClass(Internal.class);
     compiler.addReferenceClass(Memory.class);
     compiler.addReferenceClass(MethodDef.class);
@@ -199,9 +196,11 @@ public class GnurSourcesCompiler {
     compiler.addReferenceClass(Utils.class);
 
     compiler.addRecordClass("SEXPREC", SEXP.class);
+
     compiler.addRecordClass("_GESystemDesc", GESystemDesc.class);
     compiler.addRecordClass("_GEDevDesc", GEDevDesc.class);
     compiler.addRecordClass("_DevDesc", DevDesc.class);
+    compiler.addRecordClass("_R_GE_gcontext", GEContext.class);
 
     compiler.addReferenceClass(Rdynload.class);
     compiler.addRecordClass("_DllInfo", DllInfo.class);

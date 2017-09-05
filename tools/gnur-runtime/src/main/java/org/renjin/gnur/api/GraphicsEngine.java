@@ -71,14 +71,14 @@ public final class GraphicsEngine {
   // void* GEsystemState (pGEDevDesc dd, int index)
 
   // void GEregisterWithDevice (pGEDevDesc dd)
-
-  public static void GEregisterSystem (MethodHandle callback, IntPtr systemRegisterIndex) {
-    // NOOP
-  }
-
-  public static void GEunregisterSystem(int registerIndex) {
-    throw new UnimplementedGnuApiMethod("GEunregisterSystem");
-  }
+//
+//  public static void GEregisterSystem (MethodHandle callback, IntPtr systemRegisterIndex) {
+//    // NOOP
+//  }
+//
+//  public static void GEunregisterSystem(int registerIndex) {
+//    throw new UnimplementedGnuApiMethod("GEunregisterSystem");
+//  }
 
   // SEXP GEhandleEvent (GEevent event, pDevDesc dev, SEXP data)
 

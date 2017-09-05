@@ -416,6 +416,8 @@ public final class Rinternals {
       return SexpType.PROMSXP;
     } else if(s instanceof Symbol) {
       return SexpType.SYMSXP;
+    } else if(s instanceof GnuCharSexp) {
+      return SexpType.CHARSXP;
     } else {
       throw new UnsupportedOperationException("Unknown SEXP Type: " + s.getClass().getName());
     }

@@ -211,11 +211,12 @@ static SEXP baseCallback(GEevent task, pGEDevDesc dd, SEXP data)
 	GPar *ddp;
 	sd = dd->gesd[baseRegisterIndex];
 	dev = dd->dev;
-	bss = sd->systemSpecific = malloc(sizeof(baseSystemState));
+	bss = malloc(sizeof(baseSystemState));
+	sd->systemSpecific = bss;
         /* Bail out if necessary */
         if (!bss) return result;
 	/* Make sure initialized, or valgrind may complain. */
-        memset(bss, 0, sizeof(baseSystemState));
+//        memset(bss, 0, sizeof(baseSystemState));
 	ddp = &(bss->dp);
 	GInit(ddp);
 	/* For some things, the device sets the starting value at least. */
@@ -269,7 +270,7 @@ static SEXP baseCallback(GEevent task, pGEDevDesc dd, SEXP data)
                are protected by an R version number */
             PROTECT(result = allocVector(RAWSXP, sizeof(GPar)));
             //copyGPar(&(bss->dpSaved), (GPar*) RAW(result));
-            error("Unsupported: GE_SaveSnapshotState");
+            // TODO(renjin) error("Unsupported: GE_SaveSnapshotState");
             PROTECT(pkgName = mkString("graphics"));
             setAttrib(result, install("pkgName"), pkgName);
             UNPROTECT(2);

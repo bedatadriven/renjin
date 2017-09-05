@@ -574,7 +574,7 @@ public class DevDesc {
      */
 //  int (*holdflush)(pDevDesc dd, int level);
 
-  public MethodHandle holdFlush;
+  public MethodHandle holdflush;
 
   /* added in 2.14.0, for dev.capabilities.
      In all cases 0 means NA (unset).

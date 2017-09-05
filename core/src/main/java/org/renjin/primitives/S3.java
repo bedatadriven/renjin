@@ -1774,11 +1774,11 @@ public class S3 {
   
     @Override
     public int compareTo(SelectedMethod o) {
-      int i = Integer.compare(this.getTotalDist(), o.getTotalDist());
+      int i = Integer.compare(this.isHas0(), o.isHas0());
       if (i != 0) {
         return i;
       }
-      i = Integer.compare(this.isHas0(), o.isHas0());
+      i = Integer.compare(this.getTotalDist(), o.getTotalDist());
       if (i != 0) {
         return i;
       }

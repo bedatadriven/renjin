@@ -109,6 +109,13 @@ public interface Vector extends SEXP {
   Complex getElementAsComplex(int index);
 
   /**
+   *
+   * @param index zero-based index
+   * @return  the imaginary component at {@code index}
+   */
+  double getElementAsComplexIm(int index);
+
+  /**
    * Returns a builder for this type of vector, with an initial number
    * of elements with the value {@code NA}.
    * 

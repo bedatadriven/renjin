@@ -23,11 +23,16 @@ import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.*;
 import org.renjin.gcc.codegen.type.SingleFieldStrategy;
 import org.renjin.gcc.codegen.type.TypeStrategy;
+import org.renjin.gcc.codegen.type.fun.FunPtr;
+import org.renjin.gcc.codegen.type.fun.FunPtrStrategy;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidPtr;
+import org.renjin.gcc.codegen.type.voidt.VoidPtrStrategy;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
+
+import java.lang.invoke.MethodHandle;
 
 /**
  * A field that is the union of more than one pointer types.
@@ -60,6 +65,14 @@ public class PointerUnionField extends SingleFieldStrategy {
 
     if(expectedType instanceof RecordUnitPtrStrategy) {
       return new RecordUnitPtr(Expressions.cast(fieldExpr, ((RecordUnitPtrStrategy) expectedType).getJvmType()));
+    }
+
+    if(expectedType instanceof VoidPtrStrategy) {
+      return new VoidPtr(fieldExpr);
+    }
+
+    if(expectedType instanceof FunPtrStrategy) {
+      return new FunPtr(Expressions.cast(fieldExpr, Type.getType(MethodHandle.class)));
     }
 
     throw new UnsupportedOperationException(String.format("TODO: strategy = %s", expectedType));

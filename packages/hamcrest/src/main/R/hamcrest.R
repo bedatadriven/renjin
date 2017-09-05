@@ -28,7 +28,14 @@ assertThat <- function(actual, matcher) {
 	
 	call <- match.call()
 
-	if(!matcher(actual)) {
+    matches <- tryCatch( matcher(actual), error = function(e) {
+
+        stop(sprintf("\nassertThat(%s, %s) failed\nError: %s",
+    				deparse0(call$actual), deparse0(call$matcher), deparse0(e$message)))
+
+    })
+
+	if(!matches) {
 		stop(sprintf("\nassertThat(%s, %s) failed\nGot: %s", 
 				deparse0(call$actual), deparse0(call$matcher), deparse0(actual)))
 	}

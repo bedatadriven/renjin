@@ -120,6 +120,10 @@ public class Stdlib {
     }
   }
 
+  public static double atanh(double x) {
+    return 0.5 * Math.log((1d + x) / (1d - x));
+  }
+
   public static int strlen(BytePtr x) {
     return x.nullTerminatedStringLength();
   }

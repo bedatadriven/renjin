@@ -17,23 +17,16 @@
 # https://www.gnu.org/licenses/gpl-2.0.txt
 #
 
-
-
 library(hamcrest)
 
-test.negativeComplex <- function() {
-	z <- 1+1i
-	assertThat( -z, equalTo( complex(real = -1, imaginary = -1)))
-}
+assertThat(round(polyroot(c(1, 2, 1))), identicalTo( c(-1-0i, -1+0i)))
 
-test.operations <- function() {
-    assertThat(Re(eigen(matrix(c(3, 4, -2, -1),2))$vectors[1]), closeTo(0.4082483, 1e-6))
-    assertThat(Im(as.complex(1)), identicalTo(0))
-    assertThat(Re(as.complex(1)), identicalTo(1))
-    # assertThat(Im(sqrt(as.complex(-1))), identicalTo(1))
-    assertThat(Mod(1+1i), closeTo(1.4142136, 1e-6))
-    assertThat(Im(1+1i + 1+3i), identicalTo(4.0))
-    assertThat(Im((1+1i) - (1+3i)), identicalTo(-2.0))
-    assertThat(Im(1+1i * 1+3i), identicalTo(4.0))
-    assertThat(Re((1+1i) * (1+3i)), identicalTo(-2.0))
-}
+assertThat(round(polyroot(choose(8, 0:8))), identicalTo(as.complex(rep(-1, times = 8))))
+
+assertThat(polyroot(c(5,-4,3,-2,-12,12)), identicalTo(
+        c(-0.010179915420319+0.722959095782939i,
+          -8.54328191187856e-01+8e-16i,
+          -0.010179915420323-0.72295909578293i,
+          0.937344011014235-0.233064870689384i,
+          0.937344011014263+0.233064870689374i), tol = 0.01))
+

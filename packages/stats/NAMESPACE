@@ -30,7 +30,14 @@ useDynLib(stats, .registration = FALSE, .fixes="C_",
     optim,
     optimhess,
     HoltWinters,
-    acf
+    acf,
+    ARIMA_transPars,
+    ARIMA_CSS,
+    ARIMA_Invtrans,
+    ARIMA_Like,
+    ARIMA_Gradtrans,
+    ARIMA_undoPars,
+    getQ0
     )
 
 # exportPattern("^[^\\.]")

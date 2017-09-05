@@ -29,7 +29,8 @@ useDynLib(stats, .registration = FALSE, .fixes="C_",
     lowess,
     optim,
     optimhess,
-    HoltWinters
+    HoltWinters,
+    acf
     )
 
 # exportPattern("^[^\\.]")

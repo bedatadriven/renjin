@@ -53,6 +53,8 @@ public interface ReturnStrategy {
    */
   GExpr unmarshall(MethodGenerator mv, JExpr returnValue, TypeStrategy lhsTypeStrategy);
 
+  GExpr unmarshall(JExpr returnValue);
+
   /**
    * Sometimes C code doesn't return a value despite having a non-void return type. In this case, 
    * we just need to push SOMETHING onto the stack.

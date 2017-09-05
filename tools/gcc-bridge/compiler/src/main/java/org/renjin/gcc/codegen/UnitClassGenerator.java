@@ -20,6 +20,7 @@ package org.renjin.gcc.codegen;
 
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.InternalCompilerException;
+import org.renjin.gcc.ProvidedGlobalVar;
 import org.renjin.gcc.TreeLogger;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.GExpr;
@@ -42,7 +43,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.lang.reflect.Field;
 import java.util.*;
 
 import static org.renjin.repackaged.asm.Opcodes.*;
@@ -70,7 +70,8 @@ public class UnitClassGenerator {
 
   public UnitClassGenerator(TypeOracle typeOracle,
                             GlobalSymbolTable functionTable,
-                            Map<String, Field> providedVariables, GimpleCompilationUnit unit,
+                            Map<String, ProvidedGlobalVar> providedVariables,
+                            GimpleCompilationUnit unit,
                             String className) {
     this.unit = unit;
     this.className = className;
@@ -81,15 +82,15 @@ public class UnitClassGenerator {
     // Setup global variables that have global scoping
     for (GimpleVarDecl decl : unit.getGlobalVariables()) {
       if(!isIgnored(decl)) {
-        TypeStrategy typeStrategy = typeOracle.forType(decl.getType());
         GExpr varGenerator;
 
         if (isProvided(providedVariables, decl)) {
-          Field providedField = providedVariables.get(decl.getName());
-          varGenerator = typeStrategy.providedGlobalVariable(decl, providedField);
+          ProvidedGlobalVar providedField = providedVariables.get(decl.getName());
+          varGenerator = providedField.createExpr(decl, typeOracle);
 
         } else {
           try {
+            TypeStrategy typeStrategy = typeOracle.forType(decl.getType());
             varGenerator = typeStrategy.variable(decl, globalVarAllocator);
           } catch (Exception e) {
             throw new InternalCompilerException("Global variable " + decl.getName() + " in " + unit.getSourceName(), e);
@@ -123,11 +124,11 @@ public class UnitClassGenerator {
     if(decl.getMangledName() == null) {
       return false;
     }
-    return decl.getMangledName().equals("_ZTVN10__cxxabiv117__class_type_infoE") || 
+    return decl.getMangledName().equals("_ZTVN10__cxxabiv117__class_type_infoE") ||
         decl.getMangledName().equals("_ZTVN10__cxxabiv120__si_class_type_infoE");
   }
 
-  private boolean isProvided(Map<String, Field> providedVariables, GimpleVarDecl decl) {
+  private boolean isProvided(Map<String, ProvidedGlobalVar> providedVariables, GimpleVarDecl decl) {
     return decl.isExtern() && providedVariables.containsKey(decl.getName());
   }
 

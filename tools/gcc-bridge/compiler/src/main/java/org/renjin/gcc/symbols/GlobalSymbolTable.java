@@ -19,6 +19,7 @@
 package org.renjin.gcc.symbols;
 
 import org.renjin.gcc.InternalCompilerException;
+import org.renjin.gcc.annotations.GlobalVar;
 import org.renjin.gcc.codegen.call.*;
 import org.renjin.gcc.codegen.cpp.*;
 import org.renjin.gcc.codegen.expr.GExpr;
@@ -185,6 +186,11 @@ public class GlobalSymbolTable implements SymbolTable {
         
         // skip methods that have been @Deprecated
         if(method.getAnnotation(Deprecated.class) != null) {
+          continue;
+        }
+
+        // Skip methods that are to be treated as global variables
+        if(method.getAnnotation(GlobalVar.class) != null) {
           continue;
         }
         

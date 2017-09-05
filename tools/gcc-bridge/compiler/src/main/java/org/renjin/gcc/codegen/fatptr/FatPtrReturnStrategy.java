@@ -65,6 +65,11 @@ public class FatPtrReturnStrategy implements ReturnStrategy {
   }
 
   @Override
+  public GExpr unmarshall(JExpr returnValue) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public JExpr getDefaultReturnValue() {
     Type arrayType = Wrappers.valueArrayType(valueFunction.getValueType());
     return new FatPtrPair(valueFunction, Expressions.nullRef(arrayType)).wrap();

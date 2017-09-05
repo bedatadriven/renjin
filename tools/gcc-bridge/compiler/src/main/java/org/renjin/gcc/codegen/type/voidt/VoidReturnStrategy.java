@@ -56,6 +56,11 @@ public class VoidReturnStrategy implements ReturnStrategy {
   }
 
   @Override
+  public GExpr unmarshall(JExpr returnValue) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public JExpr getDefaultReturnValue() {
     return Expressions.voidValue();
   }

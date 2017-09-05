@@ -16,43 +16,34 @@
  * along with this program; if not, a copy is available at
  * https://www.gnu.org/licenses/gpl-2.0.txt
  */
-package org.renjin.gcc.codegen.type.voidt;
+package org.renjin.gcc;
 
-import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.type.PointerTypeStrategy;
 import org.renjin.gcc.codegen.type.ReturnStrategy;
-import org.renjin.gcc.codegen.type.TypeStrategy;
+import org.renjin.gcc.codegen.type.TypeOracle;
+import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.repackaged.asm.Type;
 
-/**
- * Strategy for returning and receiving void pointers.
- */
-public class VoidPtrReturnStrategy implements ReturnStrategy {
-  @Override
-  public Type getType() {
-    return Type.getType(Object.class);
+import java.lang.reflect.Method;
+
+public class ProvidedGlobalVarGetter implements ProvidedGlobalVar {
+
+  private Method getterMethod;
+
+  public ProvidedGlobalVarGetter(Method getterMethod) {
+    this.getterMethod = getterMethod;
   }
 
   @Override
-  public JExpr marshall(GExpr expr) {
-    return ((VoidPtr) expr).unwrap();
-  }
+  public GExpr createExpr(GimpleVarDecl decl, TypeOracle typeOracle) {
 
-  @Override
-  public GExpr unmarshall(MethodGenerator mv, JExpr returnValue, TypeStrategy lhsTypeStrategy) {
-    return ((PointerTypeStrategy) lhsTypeStrategy).unmarshallVoidPtrReturnValue(mv, returnValue);
-  }
+    JExpr jexpr = Expressions.staticMethodCall(getterMethod.getDeclaringClass(), getterMethod.getName(),
+        Type.getMethodDescriptor(getterMethod));
 
-  @Override
-  public GExpr unmarshall(JExpr returnValue) {
-    return new VoidPtr(returnValue);
-  }
+    ReturnStrategy returnStrategy = typeOracle.forReturnValue(getterMethod);
 
-  @Override
-  public JExpr getDefaultReturnValue() {
-    return Expressions.nullRef(Type.getType(Object.class));
+    return returnStrategy.unmarshall(jexpr);
   }
 }

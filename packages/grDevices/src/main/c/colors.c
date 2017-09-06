@@ -1401,6 +1401,10 @@ static rcolor name2col(const char *nm)
 /* Search the color name database first */
 /* If this fails, create an #RRGGBB string */
 
+const char *col2name(rcolor col) {
+    return incol2name(col);
+}
+
 const char *incol2name(rcolor col)
 {
     static char ColBuf[10]; // used for return value
@@ -1458,6 +1462,11 @@ rcolor inR_GE_str2col(const char *s)
 /* Convert a sexp element to an R color desc */
 /* We Assume that Checks Have Been Done */
 
+
+rcolor RGBpar3(SEXP x, int i, rcolor bg)
+{
+    return inRGBpar3(x, i, bg);
+}
 
 rcolor inRGBpar3(SEXP x, int i, rcolor bg)
 {

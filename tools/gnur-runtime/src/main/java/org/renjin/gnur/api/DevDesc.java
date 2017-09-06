@@ -31,16 +31,16 @@ public class DevDesc {
   /**
    * left raster coordinate
    */
-  public double left;
+  public double[] left = new double[1];
 
   /** right raster coordinate */
-  public double right;
+  public double[] right = new double[1];
 
   /** bottom raster coordinate */
-  public double bottom;
+  public double[] bottom = new double[1];
 
   /** top raster coordinate */
-  public double top;
+  public double[] top = new double[1];
 
   /* R only has the notion of a rectangular clipping region
    */
@@ -585,4 +585,35 @@ public class DevDesc {
   public int haveCapture, haveLocator;  /* 1 = no, 2 = yes */
 
 
+  public void setLeft(double left) {
+    this.left[0] = left;
+  }
+
+  public void setRight(double right) {
+    this.right[0] = right;
+  }
+
+  public void setTop(double top) {
+    this.top[0] = top;
+  }
+
+  public void setBottom(double bottom) {
+    this.bottom[0] = bottom;
+  }
+
+  public void setClipLeft(double clipLeft) {
+    this.clipLeft = clipLeft;
+  }
+
+  public void setClipRight(double clipRight) {
+    this.clipRight = clipRight;
+  }
+
+  public void setClipBottom(double clipBottom) {
+    this.clipBottom = clipBottom;
+  }
+
+  public void setClipTop(double clipTop) {
+    this.clipTop = clipTop;
+  }
 }

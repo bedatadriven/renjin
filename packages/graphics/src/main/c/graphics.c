@@ -1864,8 +1864,6 @@ pGEDevDesc GNewPlot(Rboolean recording)
 }
 #undef G_ERR_MSG
 
-#if 0
-/* in src/main/graphics.c */
 // (usr, log, n_inp) |--> (axp, n_out) :
 void GAxisPars(double *min, double *max, int *n, Rboolean log, int axis)
 {
@@ -1913,7 +1911,6 @@ void GAxisPars(double *min, double *max, int *n, Rboolean log, int axis)
 	t_ = *min; *min = *max; *max = t_;
     }
 }
-#endif
 
 void GScale(double min, double max, int axis, pGEDevDesc dd)
 {

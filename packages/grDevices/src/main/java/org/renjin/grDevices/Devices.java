@@ -22,7 +22,12 @@ package org.renjin.grDevices;
 
 import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gnur.api.DevDesc;
+import org.renjin.gnur.api.GEContext;
 import org.renjin.gnur.api.GraphicsEngine;
+
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.reflect.Method;
 
 public class Devices {
 
@@ -47,10 +52,17 @@ public class Devices {
     /* Window Dimensions in Pixels */
     /* Initialise the clipping rect too */
 
-    dd.left = dd.clipLeft = 0;			/* left */
-    dd.right = dd.clipRight = xd.getWindowWidth();	/* right */
-    dd.bottom = dd.clipBottom = xd.getWindowHeight();	/* bottom */
-    dd.top = dd.clipTop = 0;			/* top */
+    dd.setLeft(0);
+    dd.setClipLeft(0);
+
+    dd.setRight(xd.getWindowWidth());
+    dd.setClipRight(xd.getWindowWidth());
+
+    dd.setBottom(xd.getWindowHeight());
+    dd.setClipBottom(xd.getWindowHeight());
+
+    dd.setTop(0);
+    dd.setClipTop(0);
 
     /* Nominal Character Sizes in Pixels */
 
@@ -85,7 +97,26 @@ public class Devices {
 
     dd.displayListOn = 1;
 
+    dd.newPage = findMethodHandle("newPage");
+
     return true;
+  }
+
+  private static MethodHandle findMethodHandle(String name) {
+    for (Method method : Devices.class.getMethods()) {
+      if(method.getName().equals(name)) {
+        try {
+          return MethodHandles.publicLookup().unreflect(method);
+        } catch (IllegalAccessException e) {
+          throw new IllegalStateException("Could not access method " + method, e);
+        }
+      }
+    }
+    throw new IllegalStateException("No such method: " + name);
+  }
+
+  public static void newPage(GEContext context, DevDesc device) {
+    ((JGraphicsDevice) device.deviceSpecific).newPage(context, device);
   }
 
 }

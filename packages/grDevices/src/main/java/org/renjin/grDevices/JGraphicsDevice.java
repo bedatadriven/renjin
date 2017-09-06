@@ -20,6 +20,9 @@
 
 package org.renjin.grDevices;
 
+import org.renjin.gnur.api.DevDesc;
+import org.renjin.gnur.api.GEContext;
+
 /**
  * Java base class for implementing an R graphics device
  */
@@ -95,5 +98,9 @@ public class JGraphicsDevice {
 
   public int getHoldlevel() {
     return holdlevel;
+  }
+
+  public void newPage(GEContext context, DevDesc device) {
+
   }
 }

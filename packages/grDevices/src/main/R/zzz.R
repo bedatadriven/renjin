@@ -49,3 +49,7 @@
 
 as.graphicsAnnot <- function(x)
     if(is.language(x) || !is.object(x)) x else as.character(x)
+
+# TODO(renjin) support recording?
+.Call.graphics <- .Call
+.External.graphics <- .External

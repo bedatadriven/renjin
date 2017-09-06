@@ -35,7 +35,6 @@ public class AddressableField extends FieldStrategy {
 
   private final Type recordType;
   private final String arrayField;
-  private final String offsetField;
   private final Type arrayType;
   private ValueFunction valueFunction;
   
@@ -44,14 +43,12 @@ public class AddressableField extends FieldStrategy {
     this.recordType = recordType;
     this.arrayField = fieldName;
     this.arrayType = Type.getType("[" + valueFunction.getValueType().getDescriptor());
-    this.offsetField = fieldName + "$offset";
     this.valueFunction = valueFunction;
   }
 
   @Override
   public void writeFields(ClassVisitor cv) {
     cv.visitField(Opcodes.ACC_PUBLIC, arrayField, arrayType.getDescriptor(), null, null);
-    cv.visitField(Opcodes.ACC_PUBLIC, offsetField, "I", null, null);
   }
 
   @Override
@@ -83,9 +80,8 @@ public class AddressableField extends FieldStrategy {
 
   private GExpr dereference(JExpr instance) {
     JExpr arrayExpr = Expressions.field(instance, arrayType, arrayField);
-    JExpr offsetExpr = Expressions.field(instance, Type.INT_TYPE, offsetField);
 
-    return valueFunction.dereference(arrayExpr, offsetExpr);
+    return valueFunction.dereference(arrayExpr, Expressions.zero());
   }
 
   @Override

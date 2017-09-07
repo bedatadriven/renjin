@@ -1216,4 +1216,10 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void realPointerCasting() throws Exception {
     compileAndTest("pointer_casting.c");
   }
+
+  @Test
+  public void izamax() throws Exception {
+    Class<?> clazz = compile("izamax.f");
+
+  }
 }

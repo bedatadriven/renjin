@@ -107,7 +107,7 @@ public class FatArrayExpr implements ArrayExpr {
 
   @Override
   public FatArrayExpr toArrayExpr() throws UnsupportedCastException {
-    throw new UnsupportedCastException();
+    return this;
   }
 
   @Override

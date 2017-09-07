@@ -26,6 +26,7 @@ import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.var.VarAllocator;
+import org.renjin.gcc.codegen.vptr.VPtrStrategy;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
@@ -108,9 +109,8 @@ public class ComplexTypeStrategy implements TypeStrategy<ComplexValue> {
   }
 
   @Override
-  public FatPtrStrategy pointerTo() {
-    return new FatPtrStrategy(new ComplexValueFunction(type), 1)
-        .setParametersWrapped(false);
+  public PointerTypeStrategy pointerTo() {
+    return new VPtrStrategy(type);
   }
 
   @Override

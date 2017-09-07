@@ -357,14 +357,25 @@ public final class FatPtrPair implements FatPtr, PtrExpr {
   @Override
   public void memoryCopy(MethodGenerator mv, PtrExpr source, JExpr lengthBytes, boolean buffer) {
 
-    FatPtrPair sourcePair = source.toFatPtrExpr(valueFunction).toPair(mv);
 
-    // Convert bytes -> value counts
-    JExpr valueCount = computeElementsToCopy(lengthBytes);
+    // If we are copy from a VPtr source, then the easiest is probably to do...
+    // double a[];
+    // int a$offset;
+    // new DoublePtr(a, a$offset).memcpy(source, lengthBytes);
 
-    valueFunction.memoryCopy(mv,
-        array, offset,
-        sourcePair.getArray(), sourcePair.getOffset(), valueCount);
+    if(source instanceof VPtrExpr) {
+      this.toVPtrExpr().memoryCopy(mv, source, lengthBytes, buffer);
+
+    } else {
+      FatPtrPair sourcePair = source.toFatPtrExpr(valueFunction).toPair(mv);
+
+      // Convert bytes -> value counts
+      JExpr valueCount = computeElementsToCopy(lengthBytes);
+
+      valueFunction.memoryCopy(mv,
+          array, offset,
+          sourcePair.getArray(), sourcePair.getOffset(), valueCount);
+    }
   }
 
   private JExpr computeElementsToCopy(JExpr lengthBytes) {

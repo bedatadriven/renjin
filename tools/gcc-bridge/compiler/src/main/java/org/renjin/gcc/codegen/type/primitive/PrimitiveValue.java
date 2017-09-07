@@ -95,7 +95,7 @@ public class PrimitiveValue implements GSimpleExpr {
 
   @Override
   public PrimitiveValue toPrimitiveExpr(GimplePrimitiveType targetType) throws UnsupportedCastException {
-    return new PrimitiveValue(targetType, new CastGenerator(unwrap(), primitiveType, targetType));
+    return new PrimitiveValue(targetType, CastGenerator.cast(unwrap(), primitiveType, targetType));
   }
 
   @Override

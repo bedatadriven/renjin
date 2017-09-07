@@ -659,4 +659,12 @@ public class CastGenerator implements JExpr {
     // NOOP
     // May be invoked when casting from long double -> double
   }
+
+  public static JExpr cast(JExpr expr, GimplePrimitiveType sourceType, GimplePrimitiveType targetType) {
+    if(sourceType.equals(targetType)) {
+      return expr;
+    } else {
+      return new CastGenerator(expr, sourceType, targetType);
+    }
+  }
 }

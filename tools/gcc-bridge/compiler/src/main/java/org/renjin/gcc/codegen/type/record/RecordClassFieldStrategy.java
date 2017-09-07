@@ -24,7 +24,7 @@ import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.gcc.codegen.type.SingleFieldStrategy;
 import org.renjin.gcc.codegen.type.primitive.FieldValue;
-import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
+import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrExpr;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.Type;
 
@@ -59,7 +59,7 @@ public class RecordClassFieldStrategy extends SingleFieldStrategy {
     }
 
     JLValue value = Expressions.field(instance, strategy.getJvmType(), fieldName);
-    RecordUnitPtr address = new RecordUnitPtr(strategy.getLayout(), value);
+    RecordUnitPtrExpr address = new RecordUnitPtrExpr(strategy.getLayout(), value);
     
     return new RecordValue(strategy.getLayout(), value, address);
   }

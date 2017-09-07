@@ -22,27 +22,19 @@ import org.renjin.base.Base;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Profiler;
-import org.renjin.gcc.runtime.*;
-import org.renjin.invoke.annotations.*;
-import org.renjin.invoke.reflection.ClassBindingImpl;
 import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
 import org.renjin.gcc.runtime.ObjectPtr;
-import org.renjin.invoke.annotations.ArgumentList;
-import org.renjin.invoke.annotations.Builtin;
-import org.renjin.invoke.annotations.Current;
-import org.renjin.invoke.annotations.NamedFlag;
+import org.renjin.invoke.annotations.*;
+import org.renjin.invoke.reflection.ClassBindingImpl;
 import org.renjin.invoke.reflection.FunctionBinding;
 import org.renjin.methods.Methods;
 import org.renjin.primitives.packaging.DllInfo;
 import org.renjin.primitives.packaging.DllSymbol;
-import org.renjin.primitives.ni.DeferredFortranCall;
-import org.renjin.primitives.packaging.FqPackageName;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.base.Optional;
-import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.sexp.*;
 
 import java.lang.invoke.MethodHandle;
@@ -143,11 +135,12 @@ public class Native {
     Object[] nativeArguments = new Object[handle.type().parameterCount()];
     for(int i=0;i!=nativeArguments.length;++i) {
       Type type = handle.type().parameterType(i);
-      if(type.equals(IntPtr.class)) {
+      SEXP callArgument = callArguments.get(i);
+      if(callArgument instanceof IntVector || callArgument instanceof LogicalVector) {
         nativeArguments[i] = intPtrFromVector(callArguments.get(i));
-      } else if(type.equals(DoublePtr.class)) {
+      } else if(callArgument instanceof DoubleVector) {
         nativeArguments[i] = doublePtrFromVector(callArguments.get(i));
-      } else if(type.equals(ObjectPtr.class)) {
+      } else if(callArgument instanceof StringVector) {
         nativeArguments[i] = stringPtrToCharPtrPtr(callArguments.get(i));
       } else {
         throw new EvalException("Don't know how to marshall type " + callArguments.get(i).getClass().getName() +
@@ -201,17 +194,6 @@ public class Native {
       }
     }
     return new ObjectPtr(strings, 0);
-  }
-
-  private static void dumpCall(String methodName, String packageName, ListVector callArguments) {
-    java.lang.System.out.print(".C('" + methodName + "', ");
-    for(NamedValue arg : callArguments.namedValues()) {
-      if(!Strings.isNullOrEmpty(arg.getName())) {
-        java.lang.System.out.print(arg.getName() + " = ");
-      }
-      java.lang.System.out.println(Deparse.deparse(null, arg.getValue(), 80, false, 0, 0) + ", ");
-    }
-    java.lang.System.out.println("PACKAGE = '" + packageName + "')");
   }
 
   private static SEXP sexpFromPointer(Object ptr, AttributeMap attributes) {
@@ -282,23 +264,18 @@ public class Native {
 
     for(int i=0;i!=callArguments.length();++i) {
       AtomicVector vector = (AtomicVector) callArguments.get(i);
-      if(fortranTypes[i].equals(DoublePtr.class)) {
+      if(vector instanceof DoubleVector) {
         double[] array = vector.toDoubleArray();
         fortranArgs[i] = new DoublePtr(array, 0);
         returnValues.add(callArguments.getName(i), DoubleArrayVector.unsafe(array, vector.getAttributes()));
 
-      } else if(fortranTypes[i].equals(IntPtr.class)) {
+      } else if(vector instanceof IntVector || vector instanceof LogicalVector) {
         int[] array = vector.toIntArray();
         fortranArgs[i] = new IntPtr(array, 0);
         returnValues.add(callArguments.getName(i), IntArrayVector.unsafe(array, vector.getAttributes()));
 
-      } else if(fortranTypes[i].equals(BooleanPtr.class)) {
-        boolean[] array = toBooleanArray(vector);
-        fortranArgs[i] = new BooleanPtr(array);
-        returnValues.add(callArguments.getName(i), BooleanArrayVector.unsafe(array));
-
       } else {
-        throw new UnsupportedOperationException("fortran type: " + fortranTypes[i]);
+        throw new UnsupportedOperationException("fortran type: " + vector.getTypeName());
       }
     }
 

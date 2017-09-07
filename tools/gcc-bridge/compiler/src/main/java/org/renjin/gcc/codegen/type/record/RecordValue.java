@@ -31,7 +31,7 @@ import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
 import org.renjin.gcc.codegen.type.fun.FunPtr;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
-import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
+import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrExpr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.codegen.var.LocalVarAllocator;
 import org.renjin.gcc.codegen.vptr.VArrayExpr;
@@ -79,8 +79,8 @@ public class RecordValue implements GSimpleExpr, RecordExpr {
     JExpr rhsRef;
     if(rhs instanceof RecordValue) {
       rhsRef = ((RecordValue) rhs).unwrap();
-    } else if(rhs instanceof RecordUnitPtr) {
-      rhsRef = ((RecordUnitPtr) rhs).unwrap();
+    } else if(rhs instanceof RecordUnitPtrExpr) {
+      rhsRef = ((RecordUnitPtrExpr) rhs).unwrap();
     } else if(rhs instanceof FatPtrPair) {
       FatPtrPair fatPtrExpr = (FatPtrPair) rhs;
       rhsRef =  Expressions.cast(elementAt(fatPtrExpr.getArray(), fatPtrExpr.getOffset()), getJvmType());
@@ -133,7 +133,7 @@ public class RecordValue implements GSimpleExpr, RecordExpr {
   }
 
   @Override
-  public RecordUnitPtr toRecordUnitPtrExpr(RecordLayout layout) {
+  public RecordUnitPtrExpr toRecordUnitPtrExpr(RecordLayout layout) {
     throw new UnsupportedOperationException("TODO");
   }
 

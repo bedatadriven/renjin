@@ -23,12 +23,11 @@ import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.fatptr.*;
-import org.renjin.gcc.gimple.expr.GimpleLValue;
+import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.gimple.type.GimpleComplexType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
-import org.renjin.repackaged.guava.base.Preconditions;
 import org.renjin.repackaged.guava.collect.Lists;
 
 import java.util.List;
@@ -111,6 +110,12 @@ public class ComplexValueFunction implements ValueFunction {
   public Optional<JExpr> getValueConstructor() {
     return Optional.absent();
   }
+
+  @Override
+  public VPtrExpr toVPtr(JExpr array, JExpr offset) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
 
   @Override
   public String toString() {

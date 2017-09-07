@@ -32,7 +32,7 @@ import org.renjin.gcc.codegen.type.primitive.ObjectEqualsCmpGenerator;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
 import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
 import org.renjin.gcc.codegen.type.record.RecordLayout;
-import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
+import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrExpr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.type.*;
@@ -114,8 +114,14 @@ public class VPtrExpr implements PtrExpr {
   }
 
   @Override
-  public RecordUnitPtr toRecordUnitPtrExpr(RecordLayout layout) {
-    throw new UnsupportedOperationException("TODO: " + layout.getType());
+  public RecordUnitPtrExpr toRecordUnitPtrExpr(RecordLayout layout) {
+    // The only way we can cast back is if this is a RecordUnitPtr. Let's try.
+    JExpr arrayObject = Expressions.methodCall(ref, Ptr.class, "getArray",
+          Type.getMethodDescriptor(Type.getType(Object.class)));
+
+    JExpr recordUnitPtr = Expressions.cast(arrayObject, layout.getType());
+
+    return new RecordUnitPtrExpr(layout, recordUnitPtr);
   }
 
   @Override

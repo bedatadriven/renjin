@@ -23,7 +23,10 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategies;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.*;
-import org.renjin.gcc.codegen.fatptr.*;
+import org.renjin.gcc.codegen.fatptr.AddressableField;
+import org.renjin.gcc.codegen.fatptr.FatPtrPair;
+import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
+import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.type.primitive.ConstantValue;
 import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
@@ -34,16 +37,14 @@ import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
-import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
 
-import javax.annotation.Nonnull;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
 
-public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>, SimpleTypeStrategy<RecordUnitPtr> {
+public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtrExpr>, SimpleTypeStrategy<RecordUnitPtrExpr> {
   
   private RecordClassTypeStrategy strategy;
   private RecordUnitPtrValueFunction valueFunction;
@@ -72,7 +73,7 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>
   }
 
   @Override
-  public RecordUnitPtr constructorExpr(ExprFactory exprFactory, MethodGenerator mv, GimpleConstructor value) {
+  public RecordUnitPtrExpr constructorExpr(ExprFactory exprFactory, MethodGenerator mv, GimpleConstructor value) {
     throw new UnsupportedOperationException("TODO");
   }
 
@@ -92,7 +93,7 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>
   }
 
   @Override
-  public RecordUnitPtr cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+  public RecordUnitPtrExpr cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
     return value.toRecordUnitPtrExpr(strategy.getLayout());
   }
 
@@ -107,7 +108,7 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>
   }
 
   @Override
-  public RecordUnitPtr variable(GimpleVarDecl decl, VarAllocator allocator) {
+  public RecordUnitPtrExpr variable(GimpleVarDecl decl, VarAllocator allocator) {
     if(decl.isAddressable()) {
 
       // Declare this as a Unit array so that we can get a FatPtrExpr if needed
@@ -116,15 +117,15 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>
       FatPtrPair address = new FatPtrPair(valueFunction, unitArray);
       ArrayElement instance = Expressions.elementAt(unitArray, 0);
       
-      return new RecordUnitPtr(getLayout(), instance, address);
+      return new RecordUnitPtrExpr(getLayout(), instance, address);
       
     } else {
-      return new RecordUnitPtr(getLayout(), allocator.reserve(decl.getNameIfPresent(), strategy.getJvmType()));
+      return new RecordUnitPtrExpr(getLayout(), allocator.reserve(decl.getNameIfPresent(), strategy.getJvmType()));
     }
   }
 
   @Override
-  public RecordUnitPtr providedGlobalVariable(GimpleVarDecl decl, Field javaField) {
+  public RecordUnitPtrExpr providedGlobalVariable(GimpleVarDecl decl, Field javaField) {
     Type javaFieldType = Type.getType(javaField.getType());
     if(!javaFieldType.equals(this.strategy.getJvmType())) {
       throw new UnsupportedOperationException("Cannot map global variable " + decl + " to existing field " + javaField + ". " +
@@ -135,26 +136,26 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>
       // If it's final, then we can make this variable addressable by creating an array on
       // demand. Changes to the pointer's value by C code will have no effect, but that's a good thing??
       FatPtrPair fakeAddress = new FatPtrPair(valueFunction, Expressions.newArray(Expressions.staticField(javaField)));
-      return new RecordUnitPtr(getLayout(), Expressions.staticField(javaField), fakeAddress);
+      return new RecordUnitPtrExpr(getLayout(), Expressions.staticField(javaField), fakeAddress);
     }
 
-    return new RecordUnitPtr(getLayout(), Expressions.staticField(javaField));
+    return new RecordUnitPtrExpr(getLayout(), Expressions.staticField(javaField));
   }
 
   @Override
-  public RecordUnitPtr malloc(MethodGenerator mv, JExpr sizeInBytes) {
+  public RecordUnitPtrExpr malloc(MethodGenerator mv, JExpr sizeInBytes) {
 
     if (isUnitConstant(sizeInBytes)) {
       throw new InternalCompilerException(getClass().getSimpleName() + " does not support (T)malloc(size) where " +
           "size != sizeof(T). This is probably because of a mistake in the choice of strategy by the compiler.");
     }
-    return new RecordUnitPtr(getLayout(), new RecordConstructor(strategy));
+    return new RecordUnitPtrExpr(getLayout(), new RecordConstructor(strategy));
   }
 
 
   @Override
-  public RecordUnitPtr nullPointer() {
-    return new RecordUnitPtr(getLayout(), Expressions.nullRef(strategy.getJvmType()));
+  public RecordUnitPtrExpr nullPointer() {
+    return new RecordUnitPtrExpr(getLayout(), Expressions.nullRef(strategy.getJvmType()));
   }
 
 
@@ -171,8 +172,8 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtr>
   }
 
   @Override
-  public RecordUnitPtr wrap(JExpr expr) {
-    return new RecordUnitPtr(getLayout(), expr);
+  public RecordUnitPtrExpr wrap(JExpr expr) {
+    return new RecordUnitPtrExpr(getLayout(), expr);
   }
 
   @Override

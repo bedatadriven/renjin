@@ -18,12 +18,14 @@
  */
 package org.renjin.gcc;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
-import org.renjin.gcc.runtime.ObjectPtr;
+import org.renjin.gcc.runtime.Ptr;
+import org.renjin.gcc.runtime.RecordUnitPtr;
+import org.renjin.gcc.runtime.RecordUnitPtrPtr;
 
 import java.io.File;
+import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.util.Collections;
 
@@ -33,7 +35,6 @@ import static org.junit.Assert.assertThat;
 public class ProvidedRecordTest extends AbstractGccTest {
   
   @Test
-  @Ignore("todo(vptr)")
   public void test() throws Exception {
     
     GimpleCompilationUnit unit = compileToGimple("provided_records.c");
@@ -51,9 +52,9 @@ public class ProvidedRecordTest extends AbstractGccTest {
     compiler.compile(Collections.singletonList(unit));
 
     Class<?> clazz = Class.forName("org.renjin.gcc.provided_records");
-    Method test = clazz.getMethod("test", ObjectPtr.class);
+    Method test = clazz.getMethod("test", Ptr.class);
   
-    int area = (Integer)test.invoke(null, new ObjectPtr<>(new JvmRect(20, 3)));
+    int area = (Integer)test.invoke(null, new RecordUnitPtr(new JvmRect(20, 3)));
     assertThat(area, equalTo(60));
 
     Method testMultiple = clazz.getMethod("test_multiple");
@@ -67,8 +68,8 @@ public class ProvidedRecordTest extends AbstractGccTest {
     assertThat(areas, equalTo( (2*4) + (3*5) + (6*8) + (10*10)));
     
     Method allocPointerArray = clazz.getMethod("alloc_pointer_array");
-    ObjectPtr<JvmInterface> ptrArray = (ObjectPtr) allocPointerArray.invoke(null);
-    assertThat(ptrArray.array.length, equalTo(10));
+    RecordUnitPtrPtr<JvmInterface> ptrArray = (RecordUnitPtrPtr<JvmInterface>) allocPointerArray.invoke(null);
+    assertThat(Array.getLength(ptrArray.getArray()), equalTo(10));
   }
   
   

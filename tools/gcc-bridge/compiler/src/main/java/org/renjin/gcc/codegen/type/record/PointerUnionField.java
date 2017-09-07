@@ -19,19 +19,10 @@
 package org.renjin.gcc.codegen.type.record;
 
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.array.FatArrayExpr;
-import org.renjin.gcc.codegen.expr.*;
-import org.renjin.gcc.codegen.fatptr.*;
+import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.SingleFieldStrategy;
-import org.renjin.gcc.codegen.type.UnsupportedCastException;
-import org.renjin.gcc.codegen.type.fun.FunPtr;
-import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
-import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
-import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
-import org.renjin.gcc.codegen.vptr.VPtrExpr;
-import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
-import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
 
 /**

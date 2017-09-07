@@ -25,7 +25,7 @@ import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.type.ParamStrategy;
-import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
+import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrExpr;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleParameter;
 import org.renjin.repackaged.asm.Type;
@@ -59,7 +59,7 @@ public class RecordClassParamStrategy implements ParamStrategy {
       // If this type can be represented as a unit pointer, then 
       // the address expression is equivalent to the value expression.
       JLValue ref = paramVars.get(0);
-      RecordUnitPtr address = new RecordUnitPtr(strategy.getLayout(), ref);
+      RecordUnitPtrExpr address = new RecordUnitPtrExpr(strategy.getLayout(), ref);
       
       return new RecordValue(strategy.getLayout(), ref, address);
    

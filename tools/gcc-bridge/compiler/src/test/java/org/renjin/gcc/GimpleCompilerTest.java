@@ -23,7 +23,6 @@ import org.junit.Test;
 import org.renjin.gcc.runtime.*;
 import org.renjin.repackaged.guava.base.Charsets;
 
-import java.awt.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -1220,6 +1219,10 @@ public class GimpleCompilerTest extends AbstractGccTest {
   @Test
   public void izamax() throws Exception {
     Class<?> clazz = compile("izamax.f");
+  }
 
+  @Test
+  public void globalVarsAreZeroedOnInit() throws Exception {
+    compileAndTest("static_var_zero.c");
   }
 }

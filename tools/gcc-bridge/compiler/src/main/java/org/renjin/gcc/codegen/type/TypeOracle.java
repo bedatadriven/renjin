@@ -20,15 +20,13 @@ package org.renjin.gcc.codegen.type;
 
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.annotations.Struct;
-import org.renjin.gcc.codegen.WrapperType;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
-import org.renjin.gcc.codegen.fatptr.*;
+import org.renjin.gcc.codegen.fatptr.WrappedFatPtrParamStrategy;
 import org.renjin.gcc.codegen.type.complex.ComplexTypeStrategy;
 import org.renjin.gcc.codegen.type.fun.FunPtrStrategy;
 import org.renjin.gcc.codegen.type.fun.FunTypeStrategy;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveParamStrategy;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveTypeStrategy;
-import org.renjin.gcc.codegen.type.primitive.PrimitiveValueFunction;
 import org.renjin.gcc.codegen.type.primitive.StringParamStrategy;
 import org.renjin.gcc.codegen.type.record.RecordArrayReturnStrategy;
 import org.renjin.gcc.codegen.type.record.RecordArrayValueFunction;
@@ -39,7 +37,6 @@ import org.renjin.gcc.codegen.type.voidt.VoidReturnStrategy;
 import org.renjin.gcc.codegen.type.voidt.VoidTypeStrategy;
 import org.renjin.gcc.codegen.vptr.VPtrParamStrategy;
 import org.renjin.gcc.codegen.vptr.VPtrReturnStrategy;
-import org.renjin.gcc.codegen.vptr.VPtrStrategy;
 import org.renjin.gcc.gimple.GimpleParameter;
 import org.renjin.gcc.gimple.type.*;
 import org.renjin.gcc.runtime.BytePtr;
@@ -226,7 +223,7 @@ public class TypeOracle {
       if(paramClass.equals(ObjectPtr.class)) {
         strategies.add(forObjectPtrParam(method.getGenericParameterTypes()[index]));
         index++;
-        
+
       } else if (Ptr.class.isAssignableFrom(paramClass)) {
         strategies.add(new VPtrParamStrategy(Type.getType(paramClass)));
         index++;
@@ -279,7 +276,10 @@ public class TypeOracle {
       String baseTypeInternalName = Type.getInternalName((Class)baseType);
       if(classTypes.containsKey(baseTypeInternalName)) {
         GimpleRecordType mappedType = classTypes.get(baseTypeInternalName);
-        return recordTypes.get(mappedType.getId()).pointerTo().getParamStrategy();
+        RecordTypeStrategy recordTypeStrategy = recordTypes.get(mappedType.getId());
+        if(recordTypeStrategy instanceof RecordClassTypeStrategy) {
+          return new WrappedFatPtrParamStrategy(recordTypeStrategy.getValueFunction());
+        }
       }
     }
     throw new UnsupportedOperationException("TODO: baseType = " + baseType);

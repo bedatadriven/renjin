@@ -25,6 +25,8 @@ import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.fatptr.Memset;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.fatptr.WrappedFatPtrExpr;
+import org.renjin.gcc.codegen.vptr.PointerType;
+import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.gimple.type.GimpleType;
@@ -87,6 +89,15 @@ public class RecordArrayValueFunction implements ValueFunction {
     // they will default to zero.
     return Optional.absent();
   }
+
+  @Override
+  public VPtrExpr toVPtr(JExpr array, JExpr offset) {
+    PointerType pointerType = PointerType.ofType(getValueType());
+    JExpr newWrapper = Expressions.newObject(pointerType.alignedImpl(), array, offset);
+
+    return new VPtrExpr(newWrapper);
+  }
+
 
   @Override
   public GExpr dereference(final JExpr array, final JExpr offset) {

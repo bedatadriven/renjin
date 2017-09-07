@@ -28,8 +28,10 @@ import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.fatptr.WrappedFatPtrExpr;
 import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.codegen.type.record.RecordLayout;
+import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.gcc.runtime.RecordUnitPtrPtr;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
 
@@ -77,17 +79,24 @@ public class RecordUnitPtrValueFunction implements ValueFunction {
   }
 
   @Override
+  public VPtrExpr toVPtr(JExpr array, JExpr offset) {
+    return new VPtrExpr(Expressions.newObject(Type.getType(RecordUnitPtrPtr.class),
+        Expressions.cast(array, Type.getType(Object[].class)),
+        offset));
+  }
+
+  @Override
   public GExpr dereference(JExpr array, JExpr offset) {
     JExpr pointerValue = Expressions.elementAt(array, offset);
     JExpr castedPointerValue = Expressions.cast(pointerValue, layout.getType());
     FatPtrPair pointerAddress = new FatPtrPair(this, array, offset);
     
-    return new RecordUnitPtr(layout, castedPointerValue, pointerAddress);
+    return new RecordUnitPtrExpr(layout, castedPointerValue, pointerAddress);
   }
 
   @Override
   public GExpr dereference(WrappedFatPtrExpr wrapperInstance) {
-    return new RecordUnitPtr(layout, wrapperInstance.valueExpr(), wrapperInstance);
+    return new RecordUnitPtrExpr(layout, wrapperInstance.valueExpr(), wrapperInstance);
   }
 
   @Override

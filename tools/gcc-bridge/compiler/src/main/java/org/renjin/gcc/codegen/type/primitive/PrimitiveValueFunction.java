@@ -26,6 +26,8 @@ import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.Memset;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.fatptr.WrappedFatPtrExpr;
+import org.renjin.gcc.codegen.vptr.PointerType;
+import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.Type;
@@ -110,6 +112,15 @@ public class PrimitiveValueFunction implements ValueFunction {
   @Override
   public Optional<JExpr> getValueConstructor() {
     return Optional.absent();
+  }
+
+  @Override
+  public VPtrExpr toVPtr(JExpr array, JExpr offset) {
+
+    PointerType pointerType = PointerType.ofPrimitiveType(gimpleType);
+    JExpr newWrapper = Expressions.newObject(pointerType.alignedImpl(), array, offset);
+
+    return new VPtrExpr(newWrapper);
   }
 
   @Override

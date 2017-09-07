@@ -26,6 +26,7 @@ import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.fatptr.WrappedFatPtrExpr;
 import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.gcc.runtime.PointerPtr;
 import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
@@ -63,6 +64,11 @@ public class VPtrValueFunction implements ValueFunction {
   @Override
   public Optional<JExpr> getValueConstructor() {
     return Optional.absent();
+  }
+
+  @Override
+  public VPtrExpr toVPtr(JExpr array, JExpr offset) {
+    return new VPtrExpr(Expressions.newObject(PointerPtr.class, array, offset));
   }
 
   @Override

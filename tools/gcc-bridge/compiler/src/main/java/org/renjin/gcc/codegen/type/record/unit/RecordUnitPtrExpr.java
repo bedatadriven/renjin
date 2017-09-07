@@ -36,23 +36,24 @@ import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.codegen.vptr.VPtrRecordExpr;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.type.*;
+import org.renjin.gcc.runtime.RecordUnitPtr;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
 
 import javax.annotation.Nonnull;
 
-public class RecordUnitPtr implements RefPtrExpr {
+public class RecordUnitPtrExpr implements RefPtrExpr {
 
   private RecordLayout layout;
   private JExpr ref;
   private FatPtr address;
 
-  public RecordUnitPtr(RecordLayout layout, JExpr ref) {
+  public RecordUnitPtrExpr(RecordLayout layout, JExpr ref) {
     this.layout = layout;
     this.ref = ref;
   }
 
-  public RecordUnitPtr(RecordLayout layout, JExpr ref, FatPtr address) {
+  public RecordUnitPtrExpr(RecordLayout layout, JExpr ref, FatPtr address) {
     this.layout = layout;
     this.ref = ref;
     this.address = address;
@@ -64,7 +65,7 @@ public class RecordUnitPtr implements RefPtrExpr {
   
   @Override
   public void store(MethodGenerator mv, GExpr rhs) {
-    ((JLValue) ref).store(mv, ((RecordUnitPtr) rhs).ref);
+    ((JLValue) ref).store(mv, rhs.toRecordUnitPtrExpr(layout).unwrap());
   }
 
   @Override
@@ -126,11 +127,11 @@ public class RecordUnitPtr implements RefPtrExpr {
         mv.invokeconstructor(Type.getType(ArrayIndexOutOfBoundsException.class));
         mv.athrow();
         mv.mark(zero);
-        RecordUnitPtr.this.ref.load(mv);
+        RecordUnitPtrExpr.this.ref.load(mv);
       }
     };
 
-    return new RecordUnitPtr(layout, expr);
+    return new RecordUnitPtrExpr(layout, expr);
   }
 
   @Override
@@ -170,12 +171,13 @@ public class RecordUnitPtr implements RefPtrExpr {
 
   @Override
   public VPtrExpr toVPtrExpr() throws UnsupportedCastException {
-    throw new UnsupportedOperationException("TODO");
+    return new VPtrExpr(Expressions.newObject(RecordUnitPtr.class,
+        Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(Object.class)), ref));
   }
 
   @Override
-  public RecordUnitPtr toRecordUnitPtrExpr(RecordLayout layout) {
-    return new RecordUnitPtr(this.layout, Expressions.cast(unwrap(), layout.getType()));
+  public RecordUnitPtrExpr toRecordUnitPtrExpr(RecordLayout layout) {
+    return new RecordUnitPtrExpr(this.layout, Expressions.cast(unwrap(), layout.getType()));
   }
 
   @Override

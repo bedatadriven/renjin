@@ -36,9 +36,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.renjin.repackaged.asm.Type.ARRAY;
-import static org.renjin.repackaged.asm.Type.OBJECT;
-import static org.renjin.repackaged.asm.Type.getMethodDescriptor;
+import static org.renjin.repackaged.asm.Type.*;
 
 /**
  * Static utility methods pertaining to create and compose {@link GExpr}s
@@ -502,6 +500,9 @@ public class Expressions {
       }
     };
   }
+  public static JExpr newObject(final Class<?> classType, final JExpr... constructorArguments) {
+    return newObject(Type.getType(classType), constructorArguments);
+  }
 
   public static JExpr newObject(final Type classType, final JExpr... constructorArguments) {
 
@@ -527,6 +528,31 @@ public class Expressions {
         }
 
         mv.invokeconstructor(classType, argumentTypes);
+      }
+    };
+  }
+  public static JExpr newObject(final Class classType, final String constructorDescriptor, final JExpr... constructorArguments) {
+    return newObject(Type.getType(classType), constructorDescriptor, constructorArguments);
+  }
+
+  public static JExpr newObject(final Type classType, final String constructorDescriptor, final JExpr... constructorArguments) {
+    return new JExpr() {
+      @Nonnull
+      @Override
+      public Type getType() {
+        return classType;
+      }
+
+      @Override
+      public void load(@Nonnull MethodGenerator mv) {
+        mv.anew(classType);
+        mv.dup();
+
+        for (JExpr constructorArgument : constructorArguments) {
+          constructorArgument.load(mv);
+        }
+
+        mv.invokespecial(classType.getInternalName(), "<init>", constructorDescriptor, false);
       }
     };
   }

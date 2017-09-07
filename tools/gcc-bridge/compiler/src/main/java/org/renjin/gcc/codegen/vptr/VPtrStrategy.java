@@ -23,14 +23,11 @@ import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.*;
-import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
-import org.renjin.gcc.codegen.type.voidt.VoidPtrReturnStrategy;
-import org.renjin.gcc.codegen.type.voidt.VoidPtrStrategy;
-import org.renjin.gcc.codegen.type.voidt.VoidTypeStrategy;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.*;
+import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.MixedPtr;
 import org.renjin.gcc.runtime.PointerPtr;
 import org.renjin.gcc.runtime.Ptr;
@@ -122,7 +119,8 @@ public class VPtrStrategy implements PointerTypeStrategy {
       return address.valueOf(pointerType);
 
     } else {
-      JLValue ref = allocator.reserve(decl.getName(), Type.getType(Ptr.class));
+      JLValue ref = allocator.reserve(decl.getName(), Type.getType(Ptr.class),
+          Expressions.staticField(Type.getType(BytePtr.class), "NULL", Type.getType(BytePtr.class)));
       return new VPtrExpr(ref);
     }
   }

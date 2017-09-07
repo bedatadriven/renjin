@@ -23,6 +23,7 @@ import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.fatptr.WrappedFatPtrExpr;
+import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.Type;
@@ -95,6 +96,11 @@ public class ArrayValueFunction implements ValueFunction {
   @Override
   public Optional<JExpr> getValueConstructor() {
     return elementValueFunction.getValueConstructor();
+  }
+
+  @Override
+  public VPtrExpr toVPtr(JExpr array, JExpr offset) {
+    return elementValueFunction.toVPtr(array, offset);
   }
 
   @Override

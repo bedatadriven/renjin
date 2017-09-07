@@ -21,7 +21,8 @@ package org.renjin.gcc.codegen.type.record;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.FatArrayExpr;
-import org.renjin.gcc.codegen.expr.*;
+import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.fatptr.FatPtr;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
@@ -29,12 +30,15 @@ import org.renjin.gcc.codegen.type.UnsupportedCastException;
 import org.renjin.gcc.codegen.type.fun.FunPtr;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValueFunction;
-import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
+import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrExpr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.codegen.vptr.VArrayExpr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.codegen.vptr.VPtrRecordExpr;
-import org.renjin.gcc.gimple.type.*;
+import org.renjin.gcc.gimple.type.GimpleArrayType;
+import org.renjin.gcc.gimple.type.GimplePrimitiveType;
+import org.renjin.gcc.gimple.type.GimpleRecordType;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.Type;
 
 import static org.renjin.gcc.codegen.expr.Expressions.*;
@@ -97,7 +101,7 @@ public final class RecordArrayExpr implements RecordExpr {
   }
 
   @Override
-  public RecordUnitPtr toRecordUnitPtrExpr(RecordLayout layout) {
+  public RecordUnitPtrExpr toRecordUnitPtrExpr(RecordLayout layout) {
     throw new UnsupportedOperationException("TODO");
   }
 

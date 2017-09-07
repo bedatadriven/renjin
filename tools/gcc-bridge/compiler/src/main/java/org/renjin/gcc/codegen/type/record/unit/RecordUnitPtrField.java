@@ -41,7 +41,7 @@ public class RecordUnitPtrField extends SingleFieldStrategy {
     if(offset != 0) {
       throw new IllegalStateException("offset = " + offset);
     }
-    return new RecordUnitPtr(layout, Expressions.field(instance, fieldType, fieldName));
+    return new RecordUnitPtrExpr(layout, Expressions.field(instance, fieldType, fieldName));
   }
 
   @Override

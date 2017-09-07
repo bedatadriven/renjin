@@ -31,7 +31,7 @@ import org.renjin.gcc.codegen.type.fun.FunPtr;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
 import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
 import org.renjin.gcc.codegen.type.record.RecordLayout;
-import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
+import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrExpr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
@@ -100,7 +100,7 @@ public class VArrayExpr implements ArrayExpr {
   }
 
   @Override
-  public RecordUnitPtr toRecordUnitPtrExpr(RecordLayout layout) {
+  public RecordUnitPtrExpr toRecordUnitPtrExpr(RecordLayout layout) {
     throw new UnsupportedOperationException("TODO");
   }
 

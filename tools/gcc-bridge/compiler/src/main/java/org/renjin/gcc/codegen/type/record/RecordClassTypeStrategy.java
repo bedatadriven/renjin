@@ -22,9 +22,12 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategies;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.*;
-import org.renjin.gcc.codegen.fatptr.*;
+import org.renjin.gcc.codegen.fatptr.AddressableField;
+import org.renjin.gcc.codegen.fatptr.FatPtrPair;
+import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
+import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.*;
-import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
+import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrExpr;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrStrategy;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
@@ -94,7 +97,7 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<RecordValue> imp
 
     if(isUnitPointer()) {
       // If we are using the RecordUnitPtr strategy, then the record value is also it's address
-      return new RecordValue(layout, instance, new RecordUnitPtr(layout, instance));
+      return new RecordValue(layout, instance, new RecordUnitPtrExpr(layout, instance));
 
     } else if(decl.isAddressable()) {
       JLValue unitArray = allocator.reserveUnitArray(decl.getName(), layout.getType(), Optional.of((JExpr)instance));

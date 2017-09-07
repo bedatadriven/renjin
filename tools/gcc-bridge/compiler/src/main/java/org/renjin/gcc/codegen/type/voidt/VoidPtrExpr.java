@@ -31,7 +31,7 @@ import org.renjin.gcc.codegen.type.fun.FunPtr;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
 import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
 import org.renjin.gcc.codegen.type.record.RecordLayout;
-import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
+import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrExpr;
 import org.renjin.gcc.codegen.vptr.VArrayExpr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.codegen.vptr.VPtrRecordExpr;
@@ -193,8 +193,8 @@ public class VoidPtrExpr implements RefPtrExpr {
   }
 
   @Override
-  public RecordUnitPtr toRecordUnitPtrExpr(RecordLayout layout) {
-    return new RecordUnitPtr(layout, Expressions.cast(unwrap(), layout.getType()));
+  public RecordUnitPtrExpr toRecordUnitPtrExpr(RecordLayout layout) {
+    return new RecordUnitPtrExpr(layout, Expressions.cast(unwrap(), layout.getType()));
   }
 
   @Override

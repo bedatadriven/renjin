@@ -22,7 +22,7 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.FieldStrategy;
-import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
+import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrExpr;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.repackaged.asm.ClassVisitor;
 import org.renjin.repackaged.asm.Type;
@@ -68,7 +68,7 @@ public class SuperClassFieldStrategy extends FieldStrategy {
     };
 
     return new RecordValue(fieldTypeStrategy.getLayout(), superInstance,
-        new RecordUnitPtr(fieldTypeStrategy.getLayout(), superInstance));
+        new RecordUnitPtrExpr(fieldTypeStrategy.getLayout(), superInstance));
   }
 
   @Override

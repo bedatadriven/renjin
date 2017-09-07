@@ -29,10 +29,9 @@ import org.renjin.gcc.codegen.type.primitive.ConstantValue;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
 import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
 import org.renjin.gcc.codegen.type.record.RecordLayout;
-import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtr;
+import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrExpr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.codegen.var.LocalVarAllocator;
-import org.renjin.gcc.codegen.vptr.PointerType;
 import org.renjin.gcc.codegen.vptr.VArrayExpr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.codegen.vptr.VPtrRecordExpr;
@@ -180,28 +179,11 @@ public final class FatPtrPair implements FatPtr, PtrExpr {
 
   @Override
   public VPtrExpr toVPtrExpr() {
-    final PointerType primitiveType = PointerType.ofType(valueFunction.getValueType());
-
-    return new VPtrExpr(new JExpr() {
-      @Nonnull
-      @Override
-      public Type getType() {
-        return primitiveType.alignedImpl();
-      }
-
-      @Override
-      public void load(@Nonnull MethodGenerator mv) {
-        mv.anew(primitiveType.alignedImpl());
-        mv.dup();
-        array.load(mv);
-        offset.load(mv);
-        mv.invokeconstructor(primitiveType.alignedImpl(), array.getType(), Type.INT_TYPE);
-      }
-    });
+    return valueFunction.toVPtr(array, offset);
   }
 
   @Override
-  public RecordUnitPtr toRecordUnitPtrExpr(RecordLayout layout) {
+  public RecordUnitPtrExpr toRecordUnitPtrExpr(RecordLayout layout) {
     throw new UnsupportedOperationException("TODO");
   }
 

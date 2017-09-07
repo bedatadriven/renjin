@@ -25,6 +25,7 @@ import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.Memset;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.fatptr.WrappedFatPtrExpr;
+import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.gimple.type.GimpleVoidType;
 import org.renjin.repackaged.asm.Type;
@@ -58,6 +59,11 @@ public class VoidPtrValueFunction implements ValueFunction {
   @Override
   public Optional<JExpr> getValueConstructor() {
     return Optional.absent();
+  }
+
+  @Override
+  public VPtrExpr toVPtr(JExpr array, JExpr offset) {
+    throw new UnsupportedOperationException("TODO");
   }
 
   @Override

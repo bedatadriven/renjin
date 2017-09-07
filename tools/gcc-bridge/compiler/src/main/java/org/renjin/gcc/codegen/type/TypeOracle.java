@@ -228,7 +228,7 @@ public class TypeOracle {
         index++;
         
       } else if (Ptr.class.isAssignableFrom(paramClass)) {
-        strategies.add(new VPtrParamStrategy());
+        strategies.add(new VPtrParamStrategy(Type.getType(paramClass)));
         index++;
 
       } else if (paramClass.isPrimitive()) {

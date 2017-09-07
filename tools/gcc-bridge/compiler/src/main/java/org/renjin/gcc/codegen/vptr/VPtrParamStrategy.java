@@ -21,6 +21,7 @@ package org.renjin.gcc.codegen.vptr;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.type.ParamStrategy;
@@ -35,6 +36,17 @@ import java.util.Collections;
 import java.util.List;
 
 public class VPtrParamStrategy implements ParamStrategy {
+
+  private Type paramType;
+
+  public VPtrParamStrategy(Type paramType) {
+    this.paramType = paramType;
+  }
+
+  public VPtrParamStrategy() {
+    this(Type.getType(Ptr.class));
+  }
+
   @Override
   public List<Type> getParameterTypes() {
     return Collections.singletonList(Type.getType(Ptr.class));
@@ -62,7 +74,9 @@ public class VPtrParamStrategy implements ParamStrategy {
   @Override
   public void loadParameter(MethodGenerator mv, Optional<GExpr> argument) {
     if(argument.isPresent()) {
-      argument.get().toVPtrExpr().getRef().load(mv);
+      JExpr ref = argument.get().toVPtrExpr().getRef();
+      JExpr castedRef = Expressions.cast(ref, paramType);
+      castedRef.load(mv);
     } else {
       mv.aconst(null);
     }

@@ -387,7 +387,7 @@ public class GimpleRenderer {
           if(needsComma) {
             symbol(", ");
           }
-          if(element.getFieldName() != null) {
+          if(element.getField() != null) {
             html.append(element.getFieldName()).append(": ");
           }
           expr(element.getValue());

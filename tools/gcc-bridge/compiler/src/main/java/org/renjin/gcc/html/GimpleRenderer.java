@@ -27,7 +27,6 @@ import org.renjin.gcc.gimple.*;
 import org.renjin.gcc.gimple.expr.*;
 import org.renjin.gcc.gimple.statement.*;
 import org.renjin.gcc.symbols.SymbolTable;
-import org.renjin.repackaged.guava.escape.Escapers;
 import org.renjin.repackaged.guava.html.HtmlEscapers;
 
 import java.util.List;
@@ -175,6 +174,7 @@ public class GimpleRenderer {
       case COMPLEX_CST:
       case  MEM_REF:
       case ADDR_EXPR:
+      case CONSTRUCTOR:
         assert operands.size() == 1;
         expr(operands.get(0));
         break;
@@ -381,7 +381,19 @@ public class GimpleRenderer {
 
       @Override
       public void visitConstructor(GimpleConstructor constructor) {
-        super.visitConstructor(constructor);
+        symbol("{");
+        boolean needsComma = false;
+        for (GimpleConstructor.Element element : constructor.getElements()) {
+          if(needsComma) {
+            symbol(", ");
+          }
+          if(element.getFieldName() != null) {
+            html.append(element.getFieldName()).append(": ");
+          }
+          expr(element.getValue());
+          needsComma = true;
+        }
+        symbol("}");
       }
 
       @Override

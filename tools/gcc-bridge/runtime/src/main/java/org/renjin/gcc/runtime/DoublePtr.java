@@ -61,7 +61,7 @@ public class DoublePtr extends AbstractPtr implements Ptr {
 
   @Override
   public int getOffsetInBytes() {
-    throw new UnsupportedOperationException("TODO");
+    return offset * BYTES;
   }
 
   @Override

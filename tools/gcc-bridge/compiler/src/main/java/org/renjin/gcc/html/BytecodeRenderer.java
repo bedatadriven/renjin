@@ -249,7 +249,7 @@ public class BytecodeRenderer {
           opcode(opcode);
           signature(owner, name, desc);
           endIns();
-       }
+        }
 
         @Override
         public void visitMethodInsn(int opcode, String owner, String name, String desc) {

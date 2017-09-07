@@ -898,6 +898,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
   }
 
   @Test
+  @Ignore("todo")
   public void longDouble() throws Exception {
     compileAndTest("long_double.c");
   }

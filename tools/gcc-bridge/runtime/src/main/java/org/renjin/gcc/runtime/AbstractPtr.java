@@ -270,6 +270,17 @@ public abstract class AbstractPtr implements Ptr {
   }
 
   @Override
+  public void memmove(Ptr source, int numBytes) {
+    byte buffer[] = new byte[numBytes];
+    for (int i = 0; i < numBytes; i++) {
+      buffer[i] = source.getByte(i);
+    }
+    for (int i = 0; i < numBytes; i++) {
+      setByte(i, buffer[i]);
+    }
+  }
+
+  @Override
   public int memcmp(Ptr that, int numBytes) {
     for (int i = 0; i < numBytes; i++) {
       int b1 = this.getByte(i) & UNSIGNED_MASK;

@@ -267,6 +267,11 @@ public class OffsetPtr implements Ptr {
   }
 
   @Override
+  public void memmove(Ptr source, int numBytes) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public int memcmp(Ptr other, int numBytes) {
     throw new UnsupportedOperationException("TODO");
   }

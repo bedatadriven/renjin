@@ -261,6 +261,8 @@ public interface Ptr extends Comparable<Ptr> {
 
   void memcpy(Ptr source, int numBytes);
 
+  void memmove(Ptr source, int numBytes);
+
   int memcmp(Ptr other, int numBytes);
 
   /**

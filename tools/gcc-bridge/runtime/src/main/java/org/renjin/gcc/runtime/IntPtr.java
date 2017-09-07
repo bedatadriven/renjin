@@ -198,7 +198,7 @@ public class IntPtr extends AbstractPtr implements Ptr {
   @Override
   public void setInt(int byteOffset, int intValue) {
     if(byteOffset % BYTES == 0) {
-      this.array[this.offset + (byteOffset % BYTES)] = intValue;
+      this.array[this.offset + (byteOffset / BYTES)] = intValue;
     } else {
       super.setInt(byteOffset, intValue);
     }

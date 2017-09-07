@@ -166,7 +166,7 @@ public class VPtrExpr implements PtrExpr {
     source.toVPtrExpr().getRef().load(mv);
     length.load(mv);
 
-    mv.invokeinterface(Ptr.class, "memcpy", Type.VOID_TYPE, Type.getType(Ptr.class), Type.INT_TYPE);
+    mv.invokeinterface(Ptr.class, buffer ? "memmove" : "memcpy", Type.VOID_TYPE, Type.getType(Ptr.class), Type.INT_TYPE);
   }
 
   @Override

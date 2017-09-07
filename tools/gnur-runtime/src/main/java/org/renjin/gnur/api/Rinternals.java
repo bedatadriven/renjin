@@ -1502,8 +1502,33 @@ public final class Rinternals {
         elements[i] = Rf_duplicate(elements[i]);
       }
       return new ListVector(elements, sexp.getAttributes());
+
+    } else if(sexp instanceof FunctionCall) {
+      return duplicateCall(((FunctionCall) sexp));
+
+    } else if(sexp instanceof PairList) {
+      return duplicatePairList(((PairList) sexp));
+
+    } else if(sexp instanceof Symbol) {
+      return sexp;
     }
     throw new UnimplementedGnuApiMethod("Rf_duplicate: " + sexp.getTypeName());
+  }
+
+  private static SEXP duplicatePairList(PairList pairlist) {
+    PairList.Builder copy = new PairList.Builder();
+    for (PairList.Node node : pairlist.nodes()) {
+      copy.add(node.getRawTag(), Rf_duplicate(node.getValue()));
+    }
+    return copy.build();
+  }
+
+  private static SEXP duplicateCall(FunctionCall call) {
+    FunctionCall.Builder copy = new FunctionCall.Builder();
+    for (PairList.Node node : call.nodes()) {
+      copy.add(node.getRawTag(), Rf_duplicate(node.getValue()));
+    }
+    return copy.build();
   }
 
   public static SEXP Rf_shallow_duplicate(SEXP p0) {

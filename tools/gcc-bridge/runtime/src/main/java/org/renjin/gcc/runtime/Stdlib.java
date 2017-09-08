@@ -146,7 +146,7 @@ public class Stdlib {
     }
   }
 
-  private static String nullTerminatedString(Ptr x) {
+  public static String nullTerminatedString(Ptr x) {
     StringBuilder str = new StringBuilder();
     int i = 0;
     while(true) {
@@ -155,6 +155,7 @@ public class Stdlib {
         break;
       }
       str.append((char)b); // Implicit US ASCII encoding...
+      i++;
     }
     return str.toString();
   }

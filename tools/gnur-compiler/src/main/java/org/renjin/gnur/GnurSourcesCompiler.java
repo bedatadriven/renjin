@@ -173,7 +173,6 @@ public class GnurSourcesCompiler {
     compiler.addReferenceClass(GraphicsEngine.class);
     compiler.addReferenceClass(Internal.class);
     compiler.addReferenceClass(Memory.class);
-    compiler.addReferenceClass(MethodDef.class);
     compiler.addReferenceClass(Parse.class);
     compiler.addReferenceClass(Print.class);
     compiler.addReferenceClass(PrtUtil.class);
@@ -202,7 +201,7 @@ public class GnurSourcesCompiler {
 
     compiler.addReferenceClass(Rdynload.class);
     compiler.addRecordClass("_DllInfo", DllInfo.class);
-    compiler.addRecordClass("__MethodDef", MethodDef.class);
+    compiler.addRecordClass("__MethodDef", MethodDef2.class);
   }
 
   private boolean checkUpToDate() {

@@ -291,7 +291,7 @@ public class RecordPtr<T> implements Ptr {
 
   @Override
   public boolean isNull() {
-    return false;
+    return array == null;
   }
 
   @Override

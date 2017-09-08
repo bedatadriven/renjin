@@ -54,10 +54,10 @@ public final class Rdynload {
 
 
   public static int R_registerRoutines (DllInfo info,
-                                        RecordPtr<MethodDef> croutines,
-                                        RecordPtr<MethodDef> callRoutines,
-                                        RecordPtr<MethodDef> fortranRoutines,
-                                        RecordPtr<MethodDef> externalRoutines) {
+                                        RecordPtr<MethodDef2> croutines,
+                                        RecordPtr<MethodDef2> callRoutines,
+                                        RecordPtr<MethodDef2> fortranRoutines,
+                                        RecordPtr<MethodDef2> externalRoutines) {
 
     addTo(info, DllSymbol.Convention.C, croutines);
     addTo(info, DllSymbol.Convention.CALL, callRoutines);
@@ -69,6 +69,7 @@ public final class Rdynload {
 
 
 
+  @Deprecated
   private static void addTo(DllInfo library, DllSymbol.Convention convention, ObjectPtr<MethodDef> methods) {
 
     if(methods != null && methods.array != null) {
@@ -82,11 +83,11 @@ public final class Rdynload {
     }
   }
 
-  private static void addTo(DllInfo library, DllSymbol.Convention convention, RecordPtr<MethodDef> methods) {
+  private static void addTo(DllInfo library, DllSymbol.Convention convention, RecordPtr<MethodDef2> methods) {
 
     if(!methods.isNull()) {
       for(int i=0; ; i++) {
-        MethodDef def = methods.get(i);
+        MethodDef2 def = methods.get(i);
         if (def.fun == null) {
           break;
         }

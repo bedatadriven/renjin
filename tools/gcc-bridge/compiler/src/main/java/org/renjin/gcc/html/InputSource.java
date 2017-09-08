@@ -22,16 +22,12 @@ import org.renjin.gcc.gimple.GimpleBasicBlock;
 import org.renjin.gcc.gimple.GimpleFunction;
 import org.renjin.gcc.gimple.statement.GimpleStatement;
 import org.renjin.repackaged.guava.base.Charsets;
-import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.repackaged.guava.html.HtmlEscapers;
 import org.renjin.repackaged.guava.io.Files;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class InputSource {
 
@@ -79,14 +75,14 @@ public class InputSource {
   }
 
   private static List<String> loadLines(File file) {
-    if(!file.exists()) {
-      return null;
+    if(file.exists()) {
+      try {
+        return Files.readLines(file, Charsets.UTF_8);
+      } catch (IOException e) {
+        // ignore
+      }
     }
-    try {
-      return Files.readLines(file, Charsets.UTF_8);
-    } catch (IOException e) {
-      return null;
-    }
+    return Collections.emptyList();
   }
 
 

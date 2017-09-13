@@ -268,11 +268,11 @@ public class Stdlib {
     }
   }
 
-  @Deprecated
   public static void qsort(Ptr base, int nitems, int size, MethodHandle comparator) {
     throw new UnsupportedOperationException();
   }
 
+  @Deprecated
   public static void qsort(Object base, int nitems, int size, MethodHandle comparator) {
     throw new UnsupportedOperationException();
   }

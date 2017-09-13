@@ -176,6 +176,10 @@ public final class DoubleArrayVector extends DoubleVector {
     return Arrays.copyOf(this.values, this.values.length);
   }
 
+  @Override
+  public void copyTo(double[] array, int offset, int length) {
+    System.arraycopy(array, 0, array, offset, length);
+  }
 
   public static class Builder extends AbstractAtomicBuilder {
     private static final int MIN_INITIAL_CAPACITY = 50;

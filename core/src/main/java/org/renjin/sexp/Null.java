@@ -284,6 +284,10 @@ public final class Null extends AbstractSEXP implements AtomicVector, PairList, 
   }
 
   @Override
+  public void copyTo(double[] array, int offset, int length) {
+  }
+
+  @Override
   public SEXP getRawTag() {
     return Null.INSTANCE;
   }

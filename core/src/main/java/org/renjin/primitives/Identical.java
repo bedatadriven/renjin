@@ -21,6 +21,7 @@ package org.renjin.primitives;
 import org.apache.commons.math.complex.Complex;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Internal;
+import org.renjin.invoke.annotations.Materialize;
 import org.renjin.repackaged.guava.annotations.VisibleForTesting;
 import org.renjin.repackaged.guava.base.Objects;
 import org.renjin.repackaged.guava.collect.Sets;
@@ -36,6 +37,7 @@ public class Identical {
 
 
   @Internal
+  @Materialize
   public static boolean identical(SEXP x, SEXP y, boolean numericallyEqual,
       boolean singleNA, boolean attributesAsSet, boolean ignoreByteCode) {
     if (!attributesAsSet) {

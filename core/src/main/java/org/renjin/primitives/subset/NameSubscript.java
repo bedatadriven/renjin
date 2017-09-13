@@ -79,7 +79,17 @@ public class NameSubscript implements Subscript {
   public IndexPredicate computeIndexPredicate() {
     throw new UnsupportedOperationException();
   }
-  
+
+  @Override
+  public int computeCount() {
+    int count = 0;
+    IndexIterator it = computeIndexes();
+    while(it.next() != IndexIterator.EOF) {
+      count++;
+    }
+    return count;
+  }
+
   private void buildMap() {
     if(nameMap == null) {
       nameMap = new HashMap<>();

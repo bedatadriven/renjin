@@ -275,7 +275,9 @@ public class Subsetting {
       return Null.INSTANCE;
     }
 
-    SelectionStrategy selection = Selections.parseSelection(source, Lists.newArrayList(subscripts));
+    ListVector materializedSubscripts = context.materialize(subscripts);
+
+    SelectionStrategy selection = Selections.parseSelection(source, Lists.newArrayList(materializedSubscripts));
 
     if(source instanceof Vector) {
       return selection.getVectorSubset(context, (Vector) source, drop);

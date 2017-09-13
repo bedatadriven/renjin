@@ -18,32 +18,19 @@
  */
 package org.renjin.primitives.subset;
 
+import org.renjin.eval.Context;
+import org.renjin.sexp.Vector;
 
-public interface Subscript {
-
-
-  /**
-   * Computes the single index selected by this subscript.
-   * 
-   * @throws org.renjin.eval.EvalException if this subscript selects less or more than one element.
-   * @return zero-based index
-   */
-  int computeUniqueIndex();
-
+/**
+ * An interface for Vector implementations that have special support
+ * for array subsetting, e.g. m[1,,]
+ */
+public interface ArraySubsettable extends Vector {
 
   /**
-   * Computes the sequence of indices to replace. The sequence will not
-   * contain {@code NA}s
-   * 
-   * @return an iterator over the sequence.
+   * Constructs a new vector that is a subset of the
+   * this vector.
    */
-  IndexIterator computeIndexes();
-
-  
-  IndexPredicate computeIndexPredicate();
-
-  /**
-   * Computes the count of elements selected by this subscript.
-   */
-  int computeCount();
+  Vector subscript(Context context, int[] sourceDim, Subscript[] subscripts);
 }
+

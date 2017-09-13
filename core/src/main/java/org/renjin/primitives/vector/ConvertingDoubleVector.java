@@ -73,4 +73,11 @@ public class ConvertingDoubleVector extends DoubleVector implements DeferredComp
   public static double compute(double x) {
     return x;
   }
+
+  @Override
+  public double[] toDoubleArray() {
+    double[] array = new double[length()];
+    operand.copyTo(array, 0, length());
+    return array;
+  }
 }

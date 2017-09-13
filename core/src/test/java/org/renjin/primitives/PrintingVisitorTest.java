@@ -19,28 +19,27 @@
 package org.renjin.primitives;
 
 import org.junit.Test;
+import org.renjin.EvalTestCase;
 import org.renjin.sexp.*;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
-public class PrintingVisitorTest {
+public class PrintingVisitorTest extends EvalTestCase {
 
   @Test
   public void realVector() {
-    assertThat(new Print.PrintingVisitor().print(new DoubleArrayVector(1,99,3)),
-        equalTo("[1]  1 99  3\n"));                                                
+    assertThat(print(new DoubleArrayVector(1, 99, 3)), equalTo("[1]  1 99  3\n"));
   }
 
   @Test
   public void stringVector() {
-    assertThat(new Print.PrintingVisitor().print(new StringArrayVector("abcdef", "a", "b")),
-        equalTo("[1] \"abcdef\" \"a\"      \"b\"     \n"));
+    assertThat(print(new StringArrayVector("abcdef", "a", "b")), equalTo("[1] \"abcdef\" \"a\"      \"b\"     \n"));
   }
 
   @Test
   public void listOfVectors() {
-    assertThat(new Print.PrintingVisitor().print(
+    assertThat(print(
         new ListVector(new DoubleArrayVector(1), new IntArrayVector(999, 1), StringVector.valueOf("hello world"))),
         equalTo("[[1]]\n" +
                 "[1] 1\n" +
@@ -52,5 +51,11 @@ public class PrintingVisitorTest {
                 "[1] \"hello world\"\n" +
                 "\n"));
   }
+
+
+  private String print(SEXP x) {
+    return new Print.PrintingVisitor(topLevelContext).print(x);
+  }
+
 
 }

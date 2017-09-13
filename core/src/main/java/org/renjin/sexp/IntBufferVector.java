@@ -63,4 +63,16 @@ public class IntBufferVector extends IntVector {
   public IntBuffer toIntBufferUnsafe() {
     return buffer;
   }
+
+  @Override
+  public void copyTo(double[] array, int offset, int length) {
+    for (int i = 0; i < length; i++) {
+      int intValue = buffer.get(i);
+      if(intValue == IntVector.NA) {
+        array[offset + i] = DoubleVector.NA;
+      } else {
+        array[offset + i] = intValue;
+      }
+    }
+  }
 }

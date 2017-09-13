@@ -43,7 +43,11 @@ public class DeferredColSums extends DoubleVector implements MemoizedComputation
 
   @Override
   public String getComputationName() {
-    return "colSums";
+    if(naRm) {
+      return "colSumsNaRm";
+    } else {
+      return "colSums";
+    }
   }
 
   @Override

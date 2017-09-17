@@ -32,7 +32,7 @@ public final class RCharsets {
    * @throws EvalException if the encoding is unsupported.
    */
   public static Charset getByName(String name) {
-    if("UTF8".equals(name) || "unknown".equals(name)) {
+    if("UTF8".equals(name) || "unknown".equals(name) || name.isEmpty()) {
       return Charsets.UTF_8;
     } else if("native.enc".equals(name)) {
       return Charsets.UTF_8;

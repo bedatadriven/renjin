@@ -188,7 +188,7 @@ class LogicalSelection implements SelectionStrategy {
   }
 
   @Override
-  public Vector replaceSingleElement(AtomicVector source, Vector replacement) {
+  public Vector replaceSingleElement(Context context, AtomicVector source, Vector replacement) {
     throw new UnsupportedOperationException("[[ operator never uses logical subscrpts");
   }
 

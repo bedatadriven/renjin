@@ -18,7 +18,6 @@
  */
 package org.renjin.primitives.sequence;
 
-import org.renjin.eval.Calls;
 import org.renjin.eval.ClosureDispatcher;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
@@ -146,7 +145,7 @@ public class RepFunction extends SpecialFunction {
       return new RepIntVector(x, resultLength, each, repeatAttributes(x, resultLength, each));
     }
 
-    /**
+    /*
      * Go ahead and allocate and fill the memory
      */
     Vector.Builder result = x.newBuilderWithInitialCapacity(resultLength);

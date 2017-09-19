@@ -70,7 +70,8 @@ public class DeferredGraph {
     // Conduct a depth-first search of summary operators we can collapse
 
     Set<DeferredNode> visited = Sets.newIdentityHashSet();
-    for (DeferredNode rootNode : rootNodes) {
+    List<DeferredNode> toCheck = new ArrayList<>(rootNodes);
+    for (DeferredNode rootNode : toCheck) {
       fuse(loopKernelCache, visited, rootNode);
     }
   }

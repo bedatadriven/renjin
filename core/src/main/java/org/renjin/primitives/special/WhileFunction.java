@@ -36,7 +36,7 @@ public class WhileFunction extends SpecialFunction {
     int iterationCount = 0;
     boolean compilationFailed = false;
 
-    while(asLogicalNoNA(context, call, context.evaluate( condition, rho))) {
+    while(asLogicalNoNA(context, call, context.evaluate(condition, rho))) {
 
       try {
         iterationCount ++;

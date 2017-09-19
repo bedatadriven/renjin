@@ -63,7 +63,7 @@ public interface SelectionStrategy {
   
   SEXP replaceSinglePairListElement(PairList.Node list, SEXP replacement);
 
-  Vector replaceSingleElement(AtomicVector source, Vector replacement);
+  Vector replaceSingleElement(Context context, AtomicVector source, Vector replacement);
   
   
 }

@@ -123,18 +123,16 @@ class Inspector extends SexpVisitor<Vector.Type> {
   }
 
   public CombinedBuilder newBuilder() {
-    if( deferredElements ||
-        (resultType == DoubleVector.VECTOR_TYPE ||
-        resultType == IntVector.VECTOR_TYPE ||
-        resultType == StringVector.VECTOR_TYPE) &&
-        (elementCount > DEFERRED_THRESHOLD &&
-         vectorCount <= DEFERRED_ARGUMENT_LIMIT)) {
+    if (LazyBuilder.resultTypeSupported(resultType)) {
+      if( deferredElements ||
+              (elementCount > DEFERRED_THRESHOLD &&
+               vectorCount <= DEFERRED_ARGUMENT_LIMIT)) {
 
-      return new LazyBuilder(resultType, vectorCount);
-
-    } else {
-      return new MaterializedBuilder(resultType);
+        return new LazyBuilder(resultType, vectorCount);
+      }
     }
+
+    return new MaterializedBuilder(resultType);
   }
 
   @Override

@@ -371,7 +371,7 @@ public class Subsetting {
       // Given x[[i]] <- y, where is.null(x), then we create
       // a new atomic vector or list dependin on size of replacement
       if (replacement instanceof AtomicVector && replacement.length() == 1) {
-        return selection.replaceSingleElement(LogicalVector.EMPTY, (Vector) replacement);
+        return selection.replaceSingleElement(context, LogicalVector.EMPTY, (Vector) replacement);
       } else {
         return selection.replaceSingleListElement(new ListVector(), replacement);
       }
@@ -380,7 +380,7 @@ public class Subsetting {
       if(!(replacement instanceof Vector)) {
         throw new EvalException("incompatible types");
       }
-      return selection.replaceSingleElement((AtomicVector) source, (Vector) replacement);
+      return selection.replaceSingleElement(context, (AtomicVector) source, (Vector) replacement);
 
     } else {
       throw new EvalException("object of type '%s' is not subsettable", source.getTypeName());

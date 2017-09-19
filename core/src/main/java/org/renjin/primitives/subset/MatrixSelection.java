@@ -392,7 +392,7 @@ public class MatrixSelection implements SelectionStrategy {
   }
 
   @Override
-  public Vector replaceSingleElement(AtomicVector source, Vector replacement) {
+  public Vector replaceSingleElement(Context context, AtomicVector source, Vector replacement) {
    
     if(replacement instanceof ListVector) {
       // Another special case...
@@ -490,8 +490,8 @@ public class MatrixSelection implements SelectionStrategy {
     if(newRow.length() > rowLength) {
       throw new EvalException("number of items to replace is not a multiple of replacement length");
     }
-    if(newRow.length() < rowIndex) {
-      if(newRow.length() % rowLength != 0) {
+    if(newRow.length() < rowLength) {
+      if(rowLength % newRow.length() != 0) {
         throw new EvalException("number of items to replace is not a multiple of replacement length");
       }
 

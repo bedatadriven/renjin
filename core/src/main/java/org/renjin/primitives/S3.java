@@ -916,8 +916,12 @@ public class S3 {
       return new ArgumentSignature();
     }
     String[] nodeClass = computeDataClasses(context, argValue).toArray();
+    List<String> listClasses = new ArrayList<>(Arrays.asList(nodeClass));
+    if(listClasses.contains("double")) {
+      listClasses.remove("double");
+    }
 
-    return getClassAndDistance(context, nodeClass);
+    return getClassAndDistance(context, listClasses);
   }
   
   /**
@@ -931,16 +935,16 @@ public class S3 {
    *
    * */
   
-  private static ArgumentSignature getClassAndDistance(Context context, String[] argClass) {
+  private static ArgumentSignature getClassAndDistance(Context context, List<String> argClass) {
 
     List<Integer> distances = new ArrayList<>();
     List<String> classes = new ArrayList<>();
-    for(int i = 0; i < argClass.length; i++) {
-      classes.add(argClass[i]);
+    for(int i = 0; i < argClass.size(); i++) {
+      classes.add(argClass.get(i));
       distances.add(0);
     }
     
-    Symbol argClassObjectName = Symbol.get(".__C__" + argClass[0]);
+    Symbol argClassObjectName = Symbol.get(".__C__" + argClass.get(0));
     Environment environment = context.getEnvironment();
     AttributeMap map = environment.findVariable(context, argClassObjectName).force(context).getAttributes();
     SEXP containsSlot = map.get("contains");

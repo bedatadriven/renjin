@@ -159,4 +159,16 @@ public class LongPtr implements Ptr {
     return (LongPtr) voidPointer;
   }
   
+  public static void memcpy(LongPtr x, LongPtr y, int numBytes) {
+    long[] arrayS = y.getArray();
+    int offsetS = y.getOffset();
+    int restY = arrayS.length - offsetS;
+    if(restY > 0) {
+      long[] carray = new long[numBytes];
+      for(int i = 0, j = offsetS; j < arrayS.length && i < numBytes; j++, i++) {
+        carray[i] = arrayS[j];
+      }
+      x = new LongPtr(carray);
+    }
+  }
 }

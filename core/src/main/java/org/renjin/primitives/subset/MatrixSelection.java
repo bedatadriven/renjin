@@ -24,8 +24,6 @@ import org.renjin.compiler.ir.exception.InvalidSyntaxException;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.primitives.Indexes;
-import org.renjin.primitives.sequence.RepDoubleVector;
-import org.renjin.primitives.subset.lazy.ShadedRowMatrix;
 import org.renjin.sexp.*;
 
 import java.util.List;
@@ -440,20 +438,6 @@ public class MatrixSelection implements SelectionStrategy {
   private Vector replaceVectorElements(Context context, Vector source, Vector replacements) {
     Subscript[] subscripts = parseSubscripts(source);
 
-    Vector.Type replacementType = Vector.Type.widest(source, replacements);
-
-    if(replacementType == DoubleVector.VECTOR_TYPE) {
-
-      // Optimization: replace exactly one column
-      if (subscripts.length == 2 &&
-          subscripts[0].computeCount() == 1 &&
-          subscripts[1] instanceof MissingSubscript) {
-
-        return replaceOneRow(source, subscripts[0].computeUniqueIndex(), replacements);
-      }
-    }
-
-
     ArrayIndexIterator it = new ArrayIndexIterator(source.getAttributes().getDimArray(), subscripts);
     Vector.Builder result = source.newCopyBuilder(replacements.getVectorType());
 
@@ -481,31 +465,6 @@ public class MatrixSelection implements SelectionStrategy {
 
     return result.build();
   }
-
-  private Vector replaceOneRow(Vector source, int rowIndex, Vector newRow) {
-
-    Vector dim = source.getAttributes().getDim();
-    int rowLength = dim.getElementAsInt(1);
-
-    if(newRow.length() > rowLength) {
-      throw new EvalException("number of items to replace is not a multiple of replacement length");
-    }
-    if(newRow.length() < rowLength) {
-      if(rowLength % newRow.length() != 0) {
-        throw new EvalException("number of items to replace is not a multiple of replacement length");
-      }
-
-      newRow = new RepDoubleVector(newRow, rowLength, 1, AttributeMap.EMPTY);
-    }
-
-    if(source instanceof ShadedRowMatrix) {
-      return ((ShadedRowMatrix) source).withShadedRow(rowIndex, newRow);
-    } else {
-      return new ShadedRowMatrix(source).withShadedRow(rowIndex, newRow);
-    }
-
-  }
-
 
   private Subscript[] parseSubscripts(SEXP source) {
     Subscript[] array = new Subscript[this.subscripts.size()];

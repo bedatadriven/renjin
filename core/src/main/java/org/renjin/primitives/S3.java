@@ -228,13 +228,13 @@ public class S3 {
       return handleS4object(context, args.getElementAsSEXP(0), args, rho, group, opName);
     }
     
-    left = Resolver.start(context, group, opName, args.getElementAsSEXP(0))
+    left = Resolver.start(context, rho, group, opName, args.getElementAsSEXP(0))
         .withBaseDefinitionEnvironment()
         .findNext();
         
     GenericMethod right = null;
     if(nargs == 2) {
-      right = Resolver.start(context, group, opName, args.getElementAsSEXP(1))
+      right = Resolver.start(context, rho, group, opName, args.getElementAsSEXP(1))
           .withBaseDefinitionEnvironment()
           .findNext();
     }
@@ -325,7 +325,7 @@ public class S3 {
     }
 
     GenericMethod method = Resolver
-        .start(context, name, object)
+        .start(context, rho, null, name, object)
         .withBaseDefinitionEnvironment()
         .withObjectArgument(object)
         .withGenericArgument(name)
@@ -912,18 +912,21 @@ public class S3 {
   }
 
   /**
-   * Evaluate the remaining arguments to the primitive call. Despite the fact that we are passing these
-   * arguments to a user-defined closure, we _still_ evaluate arguments eagerly.
+   * Wrap the remaining arguments to the primitive call in promises.
    */
   static PairList reassembleAndEvaluateArgs(SEXP object, PairList args, Context context, Environment rho) {
     PairList.Builder newArgs = new PairList.Builder();
     PairList.Node firstArg = (PairList.Node)args;
-    newArgs.add(firstArg.getRawTag(), object);
+    newArgs.add(firstArg.getRawTag(), new Promise(firstArg.getValue(), object));
 
     ArgumentIterator argIt = new ArgumentIterator(context, rho, firstArg.getNext());
     while(argIt.hasNext()) {
       PairList.Node node = argIt.nextNode();
-      newArgs.add(node.getRawTag(), context.evaluate(node.getValue(), rho));
+      if(node.getValue() == Symbol.MISSING_ARG) {
+        newArgs.add(node.getRawTag(), Symbol.MISSING_ARG);
+      } else {
+        newArgs.add(node.getRawTag(), Promise.repromise(rho, node.getValue()));
+      }
     }
     return newArgs.build();
   }
@@ -1049,12 +1052,12 @@ public class S3 {
 
     
     private static Resolver start(Context context, String genericMethodName, SEXP object) {
-      return start(context, null, genericMethodName, object);
+      return start(context, context.getEnvironment(), null, genericMethodName, object);
     }
 
-    private static Resolver start(Context context, String group, String genericMethodName, SEXP object) {
+    private static Resolver start(Context context, Environment rho, String group, String genericMethodName, SEXP object) {
       Resolver resolver = new Resolver();
-      resolver.callingEnvironment = context.getEnvironment();
+      resolver.callingEnvironment = rho;
       resolver.genericMethodName = genericMethodName;
       resolver.context = context;
       resolver.object = object;

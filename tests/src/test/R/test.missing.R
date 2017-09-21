@@ -101,6 +101,30 @@ test.missing.with.cycles <- function() {
 
 }
 
+
+test.subset.s3.missing <- function() {
+
+
+   `[.foo` <- function(x, i, j, drop = FALSE) { 142 }
+
+   x <- structure(99, class = 'foo')
+   g <- function(x,i,j) x[i,j]
+
+   assertThat(g(x), identicalTo(142))
+   assertThat(g(x,,), identicalTo(142))
+
+}
+
+test.subset.s3.missing.args <- function() {
+
+    `[.bar` <- function(x, i, j, drop = TRUE) c(missing(i), missing(j), missing(drop))
+    x <- 1:5
+    class(x) <- 'bar'
+
+    assertThat(x[1,2], identicalTo(c(FALSE, FALSE, TRUE)))
+    assertThat(x[,2], identicalTo(c(TRUE, FALSE, TRUE)))
+}
+
 test.ommited.arg <- function() {
 
     f <- function(x, y) missing(x)
@@ -109,3 +133,4 @@ test.ommited.arg <- function() {
     assertThat(f( , 3), identicalTo(TRUE))
     assertThat(g( , 4), identicalTo(99))
 }
+

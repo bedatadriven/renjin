@@ -247,11 +247,7 @@ public final class DoubleArrayVector extends DoubleVector {
 
     @Override
     public Builder setFrom(int destinationIndex, Vector source, int sourceIndex) {
-      if(source.isElementNA(sourceIndex)) {
-        return setNA(destinationIndex);
-      } else {
-        return set(destinationIndex, source.getElementAsDouble(sourceIndex));
-      }
+      return set(destinationIndex, source.getElementAsDouble(sourceIndex));
     }
 
     public Builder set(int index, Double value) {

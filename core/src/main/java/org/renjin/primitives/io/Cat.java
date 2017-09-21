@@ -23,7 +23,6 @@ import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.invoke.annotations.Invisible;
-import org.renjin.invoke.annotations.Materialize;
 import org.renjin.primitives.io.connections.Connections;
 import org.renjin.sexp.*;
 
@@ -35,10 +34,13 @@ public class Cat extends SexpVisitor<String> {
 
   @Internal
   @Invisible
-  @Materialize
   public static void cat(@Current Context context, ListVector list, SEXP connection, String sep,
       int fill, SEXP labels, boolean append) throws IOException {
-    
+
+
+    // Materialize all the elements in parallel if neccessary
+    list = context.materialize(list);
+
     PrintWriter printWriter = Connections.getConnection(context, connection).getPrintWriter();
     Cat visitor = new Cat(printWriter, sep, 0);
     for (SEXP element : list) {

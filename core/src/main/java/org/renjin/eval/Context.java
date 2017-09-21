@@ -229,7 +229,7 @@ public class Context {
 
   private boolean anyDeferred(ListVector listVector) {
     for (int i = 0; i < listVector.length(); i++) {
-      SEXP element = listVector.getElementAsSEXP(0);
+      SEXP element = listVector.getElementAsSEXP(i);
       if(element instanceof Vector) {
         Vector vector = (Vector) element;
         if(vector.isDeferred() && !vector.isConstantAccessTime()) {

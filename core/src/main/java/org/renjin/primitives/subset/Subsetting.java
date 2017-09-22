@@ -146,7 +146,7 @@ public class Subsetting {
   @Builtin(".subset")
   public static SEXP subset(@Current Context context,
                             SEXP source,
-                            @ArgumentList ListVector arguments,
+                            @ArgumentList(allowMissing = true) ListVector arguments,
                             @NamedFlag("drop") @DefaultValue(true) boolean drop) {
     Vector vector;
     if(source instanceof Vector) {
@@ -160,7 +160,8 @@ public class Subsetting {
   }
 
   @Builtin(".subset2")
-  public static SEXP getSingleElementNonGeneric(@Current Context context, SEXP source, @ArgumentList ListVector subscripts,
+  public static SEXP getSingleElementNonGeneric(@Current Context context, SEXP source,
+                                                @ArgumentList ListVector subscripts,
                                                 @NamedFlag("exact") @DefaultValue(true) boolean exact,
                                                 @NamedFlag("drop") @DefaultValue(true) boolean drop) {
 
@@ -266,7 +267,7 @@ public class Subsetting {
   @Builtin("[")
   public static SEXP getSubset(@Current Context context,
                                SEXP source,
-                               @ArgumentList ListVector subscripts,
+                               @ArgumentList(allowMissing = true) ListVector subscripts,
                                @NamedFlag("drop") @DefaultValue(true) boolean drop) {
 
     if (source == Null.INSTANCE) {
@@ -297,7 +298,8 @@ public class Subsetting {
 
   @Generic
   @Builtin("[<-")
-  public static SEXP setSubset(@Current Context context, SEXP source, @ArgumentList ListVector argumentList) {
+  public static SEXP setSubset(@Current Context context, SEXP source,
+                               @ArgumentList(allowMissing = true) ListVector argumentList) {
 
     SEXP replacementExp = argumentList.getElementAsSEXP(argumentList.length() - 1);
     if(!(replacementExp instanceof Vector)) {

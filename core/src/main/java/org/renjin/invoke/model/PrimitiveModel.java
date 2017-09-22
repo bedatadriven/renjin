@@ -151,6 +151,17 @@ public class PrimitiveModel {
     return false;
   }
 
+  public boolean isMissingAllowedInVarArgs() {
+    for(JvmMethod overload : overloads) {
+      for(JvmMethod.Argument argument : overload.getFormals()) {
+        if(argument.isAnnotatedWith(ArgumentList.class)) {
+          return argument.getAnnotation(ArgumentList.class).allowMissing();
+        }
+      }
+    }
+    return false;
+  }
+
   public List<JvmMethod> getOverloads() {
     return overloads;
   }

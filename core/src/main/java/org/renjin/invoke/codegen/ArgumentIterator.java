@@ -19,6 +19,7 @@
 package org.renjin.invoke.codegen;
 
 import org.renjin.eval.Context;
+import org.renjin.primitives.Evaluation;
 import org.renjin.sexp.*;
 
 
@@ -50,34 +51,51 @@ public class ArgumentIterator {
     this.rho = rho;
     this.args = args;
   }
-  
-  public SEXP evalNext() {  
-    PairList.Node node;
-    if(ellipses != Null.INSTANCE) {
-      node = ((PairList.Node) ellipses);
-      ellipses = node.getNext();
-      
-    } else if(args != Null.INSTANCE){
-      node = ((PairList.Node)args);
-      args = node.getNext();
-      
-    } else {
-      // we've run out of arguments!
-      throw new ArgumentException("too few arguments");
-    }
-  
+
+  /**
+   * Returns the next argument and evaluates it, descending into forwarded arguments (...)
+   * if present.
+   */
+  public SEXP evalNext() {
+    PairList.Node node = nextNode();
     SEXP value = node.getValue();
 
-    if(Symbols.ELLIPSES.equals(value)) {
-      ellipses = (PromisePairList) context.evaluate( value, rho);
-      return evalNext();
+    // Check to see if this argument was omitted.
+    // The following conditional will ONLY be true
+    // for a call to a builtin like c(1,,3) where the
+    // second argument is completely omitted.
+    if(value == Symbol.MISSING_ARG) {
+      throw new ArgumentException("empty argument");
+    }
 
-    } else {
-      this.currentName = node.getName();
-      return context.evaluate(value, rho);
-    } 
+    return context.evaluate(value, rho);
   }
-  
+
+  /**
+   * Returns the next argument and evaluates it, descending into forwarded arguments (...)
+   * if present. If the given argument is missing, {@code Symbol.MISSING_ARG} is returned rather
+   * than throwing an error.
+   */
+  public SEXP evalNextOrMissing() {
+
+    SEXP value = nextNode().getValue();
+
+    if(value instanceof Symbol) {
+      if(value == Symbol.MISSING_ARG || Evaluation.missing(context, rho, (Symbol) value)) {
+        return Symbol.MISSING_ARG;
+      }
+    }
+    return context.evaluate(value, rho);
+  }
+
+  public String getCurrentName() {
+    return currentName;
+  }
+
+  /**
+   * Returns the next argument, unevaluated. If the next argument is the ... symbol, it is
+   * returned unexpanded.
+   */
   public SEXP next() {  
     PairList.Node node;
     if(ellipses != Null.INSTANCE) {
@@ -96,7 +114,12 @@ public class ArgumentIterator {
     this.currentName = node.getName();
     return node.getValue(); 
   }
-  
+
+  /**
+   *
+   * @return the next argument, unevaluated. If the next argument is the ... symbol, it is evaluated
+   * and the first argument in the expanded list is returned.
+   */
   public PairList.Node nextNode() {  
     PairList.Node node;
     if(ellipses != Null.INSTANCE) {
@@ -120,12 +143,11 @@ public class ArgumentIterator {
       return nextNode();
 
     } else {
-     
+      currentName = node.getName();
       return node;
     } 
   }
 
-  
   public boolean hasNext() {
     if(ellipses != Null.INSTANCE) {
       return true;
@@ -144,7 +166,6 @@ public class ArgumentIterator {
         return true;
       }
     }
-    
     return false;
   }
 }

@@ -316,7 +316,7 @@ public class Context {
       throw new EvalException(String.format("object '%s' not found", symbol.getPrintName()));
     }
 
-    if(value == Symbol.MISSING_ARG && rho.isMissingArgument(symbol)) {
+    if(value == Symbol.MISSING_ARG) {
       throw new EvalException("Argument '%s' is missing, with no default", symbol.getPrintName());
     }
 

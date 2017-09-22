@@ -22,9 +22,7 @@ import com.sun.codemodel.*;
 import org.renjin.invoke.codegen.args.ArgConverterStrategies;
 import org.renjin.invoke.model.JvmMethod;
 import org.renjin.invoke.model.PrimitiveModel;
-import org.renjin.sexp.PairList;
 import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbol;
 
 import static com.sun.codemodel.JExpr.lit;
 
@@ -78,13 +76,15 @@ public class VarArgApplyBuilder extends ApplyMethodBuilder {
   }
 
   private void matchVarArg(JVar firstArgVar, JBlock block) {
-    JVar node = block.decl(classRef(PairList.Node.class), "node", argumentIterator.invoke("nextNode"));
-    JVar value = block.decl(classRef(SEXP.class), "value", node.invoke("getValue"));
-    JVar evaluated = block.decl(classRef(SEXP.class), "evaluated");
 
-    JConditional ifMissing = block._if(value.eq(classRef(Symbol.class).staticRef("MISSING_ARG")));
-    ifMissing._then().assign(evaluated, value);
-    ifMissing._else().assign(evaluated, context.invoke("evaluate").arg(value).arg(environment).invoke("force").arg(context));
+    JExpression evaluateCall;
+    if(primitive.isMissingAllowedInVarArgs()) {
+      evaluateCall = argumentIterator.invoke("evalNextOrMissing");
+    } else {
+      evaluateCall = argumentIterator.invoke("evalNext");
+    }
+
+    JVar evaluated = block.decl(classRef(SEXP.class), "evaluated", evaluateCall);
 
     // If the function has no positional arguments, then we need to check
     // the first argument for dispatch
@@ -93,17 +93,11 @@ public class VarArgApplyBuilder extends ApplyMethodBuilder {
       genericDispatchStrategy.afterFirstArgIsEvaluated(this, call, args, firstArgBlock, evaluated);
       block.assign(firstArgVar, JExpr.FALSE);
     }
-    
-    JConditional unnamed = block._if(node.invoke("hasName").not());
 
-    // if the argument is unnamed, just add to the var arg list
-    unnamed._then().invoke(parser.getVarArgBuilder(), "add").arg(evaluated);
+    JVar name = block.decl(classRef(String.class), "name", argumentIterator.invoke("getCurrentName"));
 
     // otherwise we may need to check it against named flags
-    JBlock namedBlock = unnamed._else();
-    JVar name = namedBlock.decl(classRef(String.class), "name", node.invoke("getName"));
-
-    IfElseBuilder matchSequence = new IfElseBuilder(namedBlock);
+    IfElseBuilder matchSequence = new IfElseBuilder(block);
     for(JvmMethod.Argument namedFlag : parser.getNamedFlags().keySet()) {
       matchSequence._if(lit(namedFlag.getName()).invoke("equals").arg(name))
               .assign(parser.getNamedFlags().get(namedFlag), convert(namedFlag, evaluated));

@@ -21,6 +21,7 @@ package org.renjin.gnur.api;
 
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
+import org.renjin.nmath.*;
 import org.renjin.stats.internals.Distributions;
 
 @SuppressWarnings("unused")

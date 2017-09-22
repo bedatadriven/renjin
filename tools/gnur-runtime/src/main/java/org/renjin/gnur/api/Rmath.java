@@ -19,11 +19,8 @@
 // Initial template generated from Rmath.h from R 3.2.2
 package org.renjin.gnur.api;
 
-import org.apache.commons.math.util.FastMath;
 import org.renjin.gcc.runtime.DoublePtr;
 import org.renjin.gcc.runtime.IntPtr;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.IntVector;
 import org.renjin.stats.internals.Distributions;
 
 @SuppressWarnings("unused")
@@ -33,44 +30,13 @@ public final class Rmath {
 
 
   public static double R_pow(double x, double y) {
-    return FastMath.pow(x, y);
+    return mlutils.R_pow(x, y);
   }
 
-  public static double R_pow_di(double x, int n)
-  {
-    double xn = 1.0;
-
-    if(Double.isNaN(x)) {
-      return x;
-    }
-    if(IntVector.isNA(n)) {
-      return DoubleVector.NA;
-    }
-    if (n != 0) {
-      if (!DoubleVector.isFinite(x)) {
-        return R_pow(x, (double)n);
-      }
-      boolean isNegative = (n < 0);
-      if(isNegative) {
-        n = -n;
-      }
-      for(;;) {
-        if( (n & 01) != 0 ) {
-          xn *= x;
-        }
-        n >>= 1;
-        if( n != 0) {
-          x *= x;
-        } else {
-          break;
-        }
-      }
-      if(isNegative) {
-        xn = 1d / (double)xn;
-      }
-    }
-    return xn;
+  public static double R_pow_di(double x, int n) {
+    return mlutils.R_pow_di(x, n);
   }
+
 
   public static double norm_rand() {
     throw new UnimplementedGnuApiMethod("norm_rand");
@@ -598,53 +564,41 @@ public final class Rmath {
   }
 
   public static int Rf_imax2(int x, int y) {
-    // from src/nmath/imax2.c
-    return (x < y) ? y : x;
+    return imax2.imax2(x, y);
   }
 
   public static int Rf_imin2(int x, int y) {
-    // from src/nmath/imin2
-    return (x < y) ? x : y;
+    return imin2.imin2(x, y);
   }
 
   /**
    * @return the maximum of {@code x} and {@code y}, or Nan if either x or y is NaN.
    */
   public static double Rf_fmax2(double x, double y) {
-    if(Double.isNaN(x) || Double.isNaN(y)) {
-      return x + y;
-    }
-    return Math.max(x, y);
+    return fmax2.fmax2(x, y);
   }
 
   /**
    * @return the minimum of {@code x} and {@code y}, or Nan if either x or y is NaN.
    */
   public static double Rf_fmin2(double x, double y) {
-    if(Double.isNaN(x) || Double.isNaN(y)) {
-      return x + y;
-    }
-    return Math.min(x, y);
+    return fmin2.fmin2(x, y);
   }
 
   public static double Rf_sign(double p0) {
-    if (DoubleVector.isNaN(p0)) {
-      return p0;
-    } else {
-      return ((p0 > 0) ? 1 : ((p0 == 0)? 0 : -1));
-    }
+    return sign.sign(p0);
   }
 
   public static double Rf_fprec(double p0, double p1) {
-    throw new UnimplementedGnuApiMethod("Rf_fprec");
+    return fprec.fprec(p0, p1);
   }
 
   public static double Rf_fround(double p0, double p1) {
-    throw new UnimplementedGnuApiMethod("Rf_fround");
+    return fround.fround(p0, p1);
   }
 
-  public static double Rf_fsign(double p0, double p1) {
-    throw new UnimplementedGnuApiMethod("Rf_fsign");
+  public static double Rf_fsign(double x, double y) {
+    return fsign.fsign(x, y);
   }
 
   public static double Rf_ftrunc(double p0) {

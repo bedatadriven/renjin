@@ -352,12 +352,16 @@ public class Evaluation {
   }
 
   private static boolean isArgMissing(Context context, Environment rho, Symbol argumentName) {
+
     if(rho.isMissingArgument(argumentName)) {
       return true;
     }
     SEXP value = rho.findVariable(context, argumentName);
-    if(argumentName == Symbol.UNBOUND_VALUE) {
+    if(value == Symbol.UNBOUND_VALUE) {
       throw new EvalException("missing can only be used for arguments.");
+    }
+    if (value == Symbol.MISSING_ARG) {
+      return true;
     }
 
     if(value instanceof Promise) {
@@ -389,7 +393,7 @@ public class Evaluation {
           Symbol argumentName = (Symbol) promise.getExpression();
           Environment argumentEnv = promise.getEnvironment();
           SEXP argumentValue = argumentEnv.getVariable(context, argumentName);
-          if (argumentValue == Symbol.MISSING_ARG && argumentEnv.isMissingArgument(argumentName)) {
+          if (argumentValue == Symbol.MISSING_ARG) {
             return true;
           } else if (isPromisedMissingArg(context, argumentValue, stack)) {
             return true;

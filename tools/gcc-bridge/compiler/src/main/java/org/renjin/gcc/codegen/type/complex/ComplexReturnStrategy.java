@@ -66,6 +66,11 @@ public class ComplexReturnStrategy implements ReturnStrategy {
   }
 
   @Override
+  public GExpr unmarshall(JExpr returnValue) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public JExpr getDefaultReturnValue() {
     JExpr zero = Expressions.zero(type.getJvmPartType());
     

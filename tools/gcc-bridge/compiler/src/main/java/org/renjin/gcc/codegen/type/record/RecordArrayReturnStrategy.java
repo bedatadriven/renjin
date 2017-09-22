@@ -74,6 +74,11 @@ public class RecordArrayReturnStrategy implements ReturnStrategy {
   }
 
   @Override
+  public GExpr unmarshall(JExpr returnValue) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public JExpr getDefaultReturnValue() {
     return Expressions.newArray(getArrayComponentType(), arrayLength);
   }

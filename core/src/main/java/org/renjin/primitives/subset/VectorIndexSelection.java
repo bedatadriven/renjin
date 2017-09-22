@@ -173,7 +173,7 @@ class VectorIndexSelection implements SelectionStrategy {
 
 
   @Override
-  public Vector replaceSingleElement(AtomicVector source, Vector replacement) {
+  public Vector replaceSingleElement(Context context, AtomicVector source, Vector replacement) {
     
     if(replacement.length() == 0) {
       throw new EvalException("replacement has length zero");
@@ -185,7 +185,7 @@ class VectorIndexSelection implements SelectionStrategy {
     subscript.computeUniqueIndex();
 
     // Build the replacement
-    return buildReplacement(source, replacement, subscript);
+    return buildReplacement(context, source, replacement, subscript);
   }
 
   @Override
@@ -198,17 +198,20 @@ class VectorIndexSelection implements SelectionStrategy {
       return ListSubsetting.removeListElements(source, subscript.computeIndexPredicate());
     }
     
-    return (ListVector) buildReplacement(source, replacements, subscript);
+    return (ListVector) buildReplacement(context, source, replacements, subscript);
   }
 
   @Override
   public Vector replaceAtomicVectorElements(Context context, AtomicVector source, Vector replacements) {
-    return buildReplacement(source, replacements,  new IndexSubscript(this.subscript, source.length()));
+    return buildReplacement(context, source, replacements,  new IndexSubscript(this.subscript, source.length()));
   }
 
   
-  public static Vector buildReplacement(Vector source, Vector replacements, Subscript subscript) {
-    
+  public static Vector buildReplacement(Context context, Vector source, Vector replacements, Subscript subscript) {
+
+    source = context.materialize(source);
+    replacements = context.materialize(replacements);
+
     Vector.Builder builder = source.newCopyBuilder(replacements.getVectorType());
     AtomicVector sourceNames = source.getNames();
     StringVector.Builder resultNames = null;

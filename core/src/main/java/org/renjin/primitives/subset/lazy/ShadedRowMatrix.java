@@ -18,8 +18,8 @@
  */
 package org.renjin.primitives.subset.lazy;
 
-import org.renjin.repackaged.guava.primitives.Ints;
 import org.renjin.primitives.vector.MemoizedComputation;
+import org.renjin.repackaged.guava.primitives.Ints;
 import org.renjin.sexp.*;
 
 import java.util.ArrayList;
@@ -29,27 +29,24 @@ import java.util.Map;
 
 public class ShadedRowMatrix extends DoubleVector implements MemoizedComputation {
 
-  private DoubleVector base = null;
+  private Vector base = null;
   private int columnLength = 1;
-  private Map<Integer, DoubleVector> rowMap = new HashMap<Integer, DoubleVector>();
+  private Map<Integer, Vector> rowMap = new HashMap<>();
   
   private double[] result;
   
-  public ShadedRowMatrix(DoubleVector source)  {
+  public ShadedRowMatrix(Vector source)  {
     super(source.getAttributes());
     this.base = source;
-    SEXP dimr = base.getAttribute(Symbols.DIM);
-    if (!(dimr instanceof IntArrayVector)) {
-      throw new RuntimeException("non-integer dimensions? weird!");
-    }
-    columnLength = ((IntArrayVector)dimr).getElementAsInt(0);
+    int dimr[] = base.getAttributes().getDimArray();
+    columnLength = dimr[0];
   }
   
-  public ShadedRowMatrix withShadedRow(int row, DoubleVector elements) {
+  public ShadedRowMatrix withShadedRow(int row, Vector elements) {
     return cloneWithNewAttributes(this.getAttributes()).setShadedRow(row, elements);
   }
   
-  public ShadedRowMatrix setShadedRow(int row, DoubleVector elements) {
+  public ShadedRowMatrix setShadedRow(int row, Vector elements) {
     rowMap.put(row, elements);
     return this;
   }
@@ -62,18 +59,18 @@ public class ShadedRowMatrix extends DoubleVector implements MemoizedComputation
   @Override
   protected ShadedRowMatrix cloneWithNewAttributes(AttributeMap attributes) {    
     ShadedRowMatrix clone = new ShadedRowMatrix(this.base);
-    clone.rowMap = new HashMap<Integer, DoubleVector>(rowMap);
+    clone.rowMap = new HashMap<>(rowMap);
     return clone;
   }
 
   @Override
   public double getElementAsDouble(int index) {
     int col = index / columnLength;
-    int row = (index % columnLength)+1;
+    int row = (index % columnLength);
     if (rowMap.containsKey(row)) {
-      return rowMap.get(row).get(col);
+      return rowMap.get(row).getElementAsDouble(col);
     } else {
-      return base.get(index);
+      return base.getElementAsDouble(index);
     }
   }
 
@@ -98,12 +95,13 @@ public class ShadedRowMatrix extends DoubleVector implements MemoizedComputation
 
   @Override
   public Vector forceResult() {
+    double matrix[] = new double[length()];
+    base.copyTo(matrix, 0, length());
 
     int rowLength = length() / columnLength;
-    double matrix[] = base.toDoubleArray();
-    for (Map.Entry<Integer, DoubleVector> entry : rowMap.entrySet()) {
-      DoubleVector vector = entry.getValue();
-      int rowIndex = entry.getKey()-1;
+    for (Map.Entry<Integer, Vector> entry : rowMap.entrySet()) {
+      Vector vector = entry.getValue();
+      int rowIndex = entry.getKey();
       int index = rowIndex;
 
       for (int i = 0; i < rowLength; ++i) {
@@ -111,7 +109,7 @@ public class ShadedRowMatrix extends DoubleVector implements MemoizedComputation
         index += columnLength;
       }
     }
-    
+
     this.result = matrix;
     return DoubleArrayVector.unsafe(matrix);
   }
@@ -124,5 +122,10 @@ public class ShadedRowMatrix extends DoubleVector implements MemoizedComputation
   @Override
   public boolean isCalculated() {
     return result != null;
+  }
+
+  @Override
+  public boolean isDeferred() {
+    return !isCalculated();
   }
 }

@@ -47,6 +47,11 @@ public class VoidPtrReturnStrategy implements ReturnStrategy {
   }
 
   @Override
+  public GExpr unmarshall(JExpr returnValue) {
+    return new VoidPtr(returnValue);
+  }
+
+  @Override
   public JExpr getDefaultReturnValue() {
     return Expressions.nullRef(Type.getType(Object.class));
   }

@@ -164,22 +164,18 @@ public class Matrices {
 
   @Builtin("%*%")
   public static SEXP matrixproduct(AtomicVector x, AtomicVector y) {
-    return new MatrixProduct(MatrixProduct.PROD, x, y)
-            .matprod();
+    return new MatrixProduct(MatrixProduct.PROD, x, y).compute();
   }
 
   @Internal("crossprod")
   public static SEXP crossprod(AtomicVector x, AtomicVector y) {
-    return new MatrixProduct(MatrixProduct.CROSSPROD, x, y)
-            .crossprod();
+    return new MatrixProduct(MatrixProduct.CROSSPROD, x, y).compute();
   }
 
   @Internal("tcrossprod")
   public static SEXP tcrossprod(AtomicVector x, AtomicVector y) {
-    return new MatrixProduct(MatrixProduct.TCROSSPROD, x, y)
-            .tcrossprod();
+    return new MatrixProduct(MatrixProduct.TCROSSPROD, x, y).compute();
   }
-
 
   @Internal
   public static DoubleVector rowSums(AtomicVector x, int numRows, int rowLength, boolean naRm) {
@@ -294,7 +290,7 @@ public class Matrices {
     int permutation[] = toPermutationArray(permutationVector);
 
     if(isIdentityPermutation(permutation)) {
-      /**
+      /*
        * No actual change to the vector
        */
       return source;

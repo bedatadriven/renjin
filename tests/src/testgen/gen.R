@@ -114,8 +114,12 @@ writeln <- function(test, format, ...) {
 }
 
 writeFixture <- function(test, format, ...) {
-  expr <- sprintf(format, ...)
-  writeln(test, expr)
+  if(missing(...)) {
+    expr <- as.character(format)
+  } else{
+    expr <- sprintf(format, ...)
+  }
+  writeLines(test$fd, text = expr)
   eval(parse(text = expr), envir = .GlobalEnv)
 }
 

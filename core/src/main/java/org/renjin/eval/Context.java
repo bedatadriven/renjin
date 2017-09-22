@@ -218,16 +218,31 @@ public class Context {
     }
     return sexp;
   }
-  
-  public Vector materialize(Vector sexp) {
-    if(sexp instanceof DeferredComputation && !sexp.isConstantAccessTime()) {
-      if(sexp instanceof MemoizedComputation) {
-        MemoizedComputation memo = (MemoizedComputation) sexp;
-        if(memo.isCalculated()) {
-          return memo.forceResult();
+
+  public ListVector materialize(ListVector listVector) {
+    if(!anyDeferred(listVector)) {
+      return listVector;
+    }
+
+    return session.getVectorEngine().materialize(listVector);
+  }
+
+  private boolean anyDeferred(ListVector listVector) {
+    for (int i = 0; i < listVector.length(); i++) {
+      SEXP element = listVector.getElementAsSEXP(i);
+      if(element instanceof Vector) {
+        Vector vector = (Vector) element;
+        if(vector.isDeferred() && !vector.isConstantAccessTime()) {
+          return true;
         }
       }
-      return session.getVectorEngine().materialize((DeferredComputation)sexp);
+    }
+    return false;
+  }
+  
+  public Vector materialize(Vector sexp) {
+    if(sexp.isDeferred() && !sexp.isConstantAccessTime()) {
+      return session.getVectorEngine().materialize(sexp);
     } else {
       return sexp;
     }
@@ -301,7 +316,7 @@ public class Context {
       throw new EvalException(String.format("object '%s' not found", symbol.getPrintName()));
     }
 
-    if(value == Symbol.MISSING_ARG && rho.isMissingArgument(symbol)) {
+    if(value == Symbol.MISSING_ARG) {
       throw new EvalException("Argument '%s' is missing, with no default", symbol.getPrintName());
     }
 

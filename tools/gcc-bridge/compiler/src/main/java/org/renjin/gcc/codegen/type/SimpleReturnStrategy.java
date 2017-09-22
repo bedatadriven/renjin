@@ -60,6 +60,11 @@ public final class SimpleReturnStrategy implements ReturnStrategy {
   }
 
   @Override
+  public GExpr unmarshall(JExpr returnValue) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public JExpr getDefaultReturnValue() {
     switch (type.getSort()) {
       case Type.OBJECT:

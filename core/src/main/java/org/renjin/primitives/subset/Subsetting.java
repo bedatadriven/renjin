@@ -146,7 +146,7 @@ public class Subsetting {
   @Builtin(".subset")
   public static SEXP subset(@Current Context context,
                             SEXP source,
-                            @ArgumentList ListVector arguments,
+                            @ArgumentList(allowMissing = true) ListVector arguments,
                             @NamedFlag("drop") @DefaultValue(true) boolean drop) {
     Vector vector;
     if(source instanceof Vector) {
@@ -160,7 +160,8 @@ public class Subsetting {
   }
 
   @Builtin(".subset2")
-  public static SEXP getSingleElementNonGeneric(@Current Context context, SEXP source, @ArgumentList ListVector subscripts,
+  public static SEXP getSingleElementNonGeneric(@Current Context context, SEXP source,
+                                                @ArgumentList ListVector subscripts,
                                                 @NamedFlag("exact") @DefaultValue(true) boolean exact,
                                                 @NamedFlag("drop") @DefaultValue(true) boolean drop) {
 
@@ -266,7 +267,7 @@ public class Subsetting {
   @Builtin("[")
   public static SEXP getSubset(@Current Context context,
                                SEXP source,
-                               @ArgumentList ListVector subscripts,
+                               @ArgumentList(allowMissing = true) ListVector subscripts,
                                @NamedFlag("drop") @DefaultValue(true) boolean drop) {
 
     if (source == Null.INSTANCE) {
@@ -275,7 +276,9 @@ public class Subsetting {
       return Null.INSTANCE;
     }
 
-    SelectionStrategy selection = Selections.parseSelection(source, Lists.newArrayList(subscripts));
+    ListVector materializedSubscripts = context.materialize(subscripts);
+
+    SelectionStrategy selection = Selections.parseSelection(source, Lists.newArrayList(materializedSubscripts));
 
     if(source instanceof Vector) {
       return selection.getVectorSubset(context, (Vector) source, drop);
@@ -295,7 +298,8 @@ public class Subsetting {
 
   @Generic
   @Builtin("[<-")
-  public static SEXP setSubset(@Current Context context, SEXP source, @ArgumentList ListVector argumentList) {
+  public static SEXP setSubset(@Current Context context, SEXP source,
+                               @ArgumentList(allowMissing = true) ListVector argumentList) {
 
     SEXP replacementExp = argumentList.getElementAsSEXP(argumentList.length() - 1);
     if(!(replacementExp instanceof Vector)) {
@@ -369,7 +373,7 @@ public class Subsetting {
       // Given x[[i]] <- y, where is.null(x), then we create
       // a new atomic vector or list dependin on size of replacement
       if (replacement instanceof AtomicVector && replacement.length() == 1) {
-        return selection.replaceSingleElement(LogicalVector.EMPTY, (Vector) replacement);
+        return selection.replaceSingleElement(context, LogicalVector.EMPTY, (Vector) replacement);
       } else {
         return selection.replaceSingleListElement(new ListVector(), replacement);
       }
@@ -378,7 +382,7 @@ public class Subsetting {
       if(!(replacement instanceof Vector)) {
         throw new EvalException("incompatible types");
       }
-      return selection.replaceSingleElement((AtomicVector) source, (Vector) replacement);
+      return selection.replaceSingleElement(context, (AtomicVector) source, (Vector) replacement);
 
     } else {
       throw new EvalException("object of type '%s' is not subsettable", source.getTypeName());

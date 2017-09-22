@@ -216,6 +216,15 @@ public interface Vector extends SEXP {
 
   int getComputationDepth();
 
+  /**
+   * Copies this vectors's values into a double-valued array at the given offset.
+   *
+   * @param array the target array
+   * @param offset the offset within the target array to start copying
+   * @param length the number of elements from this vector to copy.
+   */
+  void copyTo(double[] array, int offset, int length);
+
 
   /**
    * An interface to

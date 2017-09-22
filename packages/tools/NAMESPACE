@@ -8,3 +8,5 @@ export(file_ext,
     file_test,
     list_files_with_exts,
     list_files_with_type)
+
+export(vignetteEngine)

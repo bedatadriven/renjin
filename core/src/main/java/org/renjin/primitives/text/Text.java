@@ -770,6 +770,7 @@ public class Text {
    * @return
    */
   @Internal
+  @Materialize
   public static StringVector format(DoubleVector x, boolean trim, SEXP digits, int nsmall,
       SEXP minWidth, int zz, boolean naEncode, SEXP scientific ) {
        
@@ -784,6 +785,7 @@ public class Text {
   }
 
   @Internal
+  @Materialize
   public static StringVector format(IntVector x, boolean trim, SEXP digits, int nsmall,
       SEXP minWidth, int zz, boolean naEncode, SEXP scientific ) {
        

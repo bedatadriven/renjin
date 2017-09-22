@@ -57,6 +57,9 @@ public class DeferredGraph {
     addRoot(root);
   }
 
+  public DeferredGraph() {
+  }
+
   public void optimize(LoopKernelCache loopKernelCache) {
     Optimizers optimizers = new Optimizers();
     optimizers.optimize(this);
@@ -67,7 +70,8 @@ public class DeferredGraph {
     // Conduct a depth-first search of summary operators we can collapse
 
     Set<DeferredNode> visited = Sets.newIdentityHashSet();
-    for (DeferredNode rootNode : rootNodes) {
+    List<DeferredNode> toCheck = new ArrayList<>(rootNodes);
+    for (DeferredNode rootNode : toCheck) {
       fuse(loopKernelCache, visited, rootNode);
     }
   }
@@ -94,7 +98,7 @@ public class DeferredGraph {
     return null;
   }
 
-  private void addRoot(Vector root) {
+  void addRoot(Vector root) {
     DeferredNode rootNode = addNode(root);
     rootNodes.add(rootNode);
   }
@@ -276,6 +280,10 @@ public class DeferredGraph {
 
   public List<DeferredNode> getRoots() {
     return rootNodes;
+  }
+
+  public Vector getRootResult(int rootIndex) {
+    return rootNodes.get(rootIndex).getVector();
   }
 
   public DeferredNode getRoot() {

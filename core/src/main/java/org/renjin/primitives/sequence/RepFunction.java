@@ -145,7 +145,7 @@ public class RepFunction extends SpecialFunction {
       return new RepIntVector(x, resultLength, each, repeatAttributes(x, resultLength, each));
     }
 
-    /**
+    /*
      * Go ahead and allocate and fill the memory
      */
     Vector.Builder result = x.newBuilderWithInitialCapacity(resultLength);

@@ -98,6 +98,11 @@ public class CombinedDoubleVector extends DoubleVector implements DeferredComput
 
   @Override
   public boolean isConstantAccessTime() {
+    for (int i = 0; i < vectors.length; i++) {
+      if(!vectors[i].isConstantAccessTime()) {
+        return false;
+      }
+    }
     return true;
   }
 

@@ -19,7 +19,7 @@
 
 
 library(hamcrest)
-library(methods)
+
 
 test.ellipses <- function() {
 
@@ -30,6 +30,8 @@ test.ellipses <- function() {
 
 }
 
+
+
 test.missing.arg.to.builtin <- function() {
 
     f <- function(x) length(x)
@@ -38,20 +40,53 @@ test.missing.arg.to.builtin <- function() {
     assertThat(f(), throwsError())
 }
 
-test.missing.valid.argument <- function() {
+test.missing.as.value <- function() {
 
     # The missing argument is a symbol and can
     # itself be manipulated in R code as any
     # other quoted symbol
 
+    # Function to generate the missing value symbol
+    m <- function() formals(function(x) x)[[1]]
+
+    assertThat(typeof(m()), identicalTo("symbol"))
+    assertThat(missing(m()), throwsError())
+
+    symbols <- c(m(), m(), quote(x))
+
+    assertThat(length(symbols), identicalTo(3L))
+    assertThat(deparse(symbols), identicalTo("list(, , x)"))
+}
+
+
+test.missing.as.value.assigned.to.symbol <- function() {
+
+    # while the missing argument symbol *can* be manipulated
+    # symbolically, once you assign it to a symbol, things get
+    # weirder.
+
+    # TESTED with GNU R 3.4.0
+    #             GNU R 3.0.0
+
+
     g <- function(a) a
     m <- formals(g)[[1]]  # = missing argument
 
-    f <- function(x) typeof(x)
+    f <- function(x) missing(x)
+    h <- function(x) typeof(x)
 
-    assertThat(f(m), identicalTo("symbol"))
+    assertThat(f(m), identicalTo(TRUE))
+    assertThat(h(m), throwsError())
+    assertThat(m, throwsError())
+    assertThat(typeof(m), throwsError())
+    assertThat(missing(m), identicalTo(TRUE))
 }
 
+test.missing.invalid.symbol <- function() {
+
+    assertThat(missing(symbol.does.not.exist), throwsError())
+
+}
 
 test.missing.with.default.2 <- function() {
 
@@ -100,6 +135,45 @@ test.missing.with.cycles <- function() {
     assertThat(f(3, 4),  identicalTo(c(FALSE, FALSE)))
 
 }
+
+
+test.subset.s3.missing <- function() {
+
+
+   `[.foo` <- function(x, i, j, drop = FALSE) { 142 }
+
+   x <- structure(99, class = 'foo')
+   g <- function(x,i,j) x[i,j]
+
+   assertThat(g(x), identicalTo(142))
+   assertThat(g(x,,), identicalTo(142))
+
+}
+
+test.subset.s3.missing.args <- function() {
+
+    `[.bar` <- function(x, i, j, drop = TRUE) c(missing(i), missing(j), missing(drop))
+    x <- 1:5
+    class(x) <- 'bar'
+
+    assertThat(x[1,2], identicalTo(c(FALSE, FALSE, TRUE)))
+    assertThat(x[,2], identicalTo(c(TRUE, FALSE, TRUE)))
+}
+
+test.subset.missing.builtin <- function() {
+
+    f <- function(x, i, j) x[i,j]
+    x <- matrix(1:12, nrow=3)
+    assertThat(f(x, 1), identicalTo(c(1L, 4L, 7L, 10L)))
+
+}
+
+test.combine.missing <- function() {
+
+    assertThat(c(1,,3), throwsError())
+}
+
+
 
 test.ommited.arg <- function() {
 

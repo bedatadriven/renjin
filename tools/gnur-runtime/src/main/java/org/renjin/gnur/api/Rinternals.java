@@ -19,14 +19,13 @@
 // Initial template generated from Rinternals.h from R 3.2.2
 package org.renjin.gnur.api;
 
-import org.renjin.eval.Context;
-import org.renjin.eval.EvalException;
-import org.renjin.eval.FinalizationClosure;
-import org.renjin.eval.FinalizationHandler;
+import org.renjin.eval.*;
+import org.renjin.gcc.annotations.GlobalVar;
 import org.renjin.gcc.runtime.*;
 import org.renjin.methods.MethodDispatch;
 import org.renjin.primitives.*;
 import org.renjin.primitives.packaging.Namespace;
+import org.renjin.primitives.packaging.Namespaces;
 import org.renjin.primitives.subset.Subsetting;
 import org.renjin.sexp.*;
 
@@ -52,28 +51,52 @@ public final class Rinternals {
   /**
    * The "global" environment
    */
+  @Deprecated
   public static SEXP	R_GlobalEnv;
+
+  @GlobalVar
+  public static SEXP R_GlobalEnv() {
+    return Native.currentContext().getGlobalEnvironment();
+  }
 
   /**
    * The empty environment at the root of the environment tree
    */
-  public static SEXP  R_EmptyEnv;
+  public static SEXP R_EmptyEnv = Environment.EMPTY;
 
   /**
    * The base environment; formerly R_NilEnv
    */
+  @Deprecated
   public static SEXP  R_BaseEnv;
+
+  @GlobalVar
+  public static SEXP R_BaseEnv() {
+    return Native.currentContext().getBaseEnvironment();
+  }
 
   /**
    * The (fake) namespace for base
    */
-  public static SEXP	R_BaseNamespace;
+  @Deprecated
+  public static SEXP R_BaseNamespace;
+
+  @GlobalVar
+  public static SEXP R_BaseNamespace() {
+    return Native.currentContext().getNamespaceRegistry().getBaseNamespaceEnv();
+  }
 
 
   /**
    *  Registry for registered namespaces
    */
-  public static SEXP	R_NamespaceRegistry;
+  @Deprecated
+  public static SEXP R_NamespaceRegistry;
+
+  @GlobalVar
+  public static SEXP R_NamespaceRegistry() {
+    return Namespaces.getNamespaceRegistry(Native.currentContext().getNamespaceRegistry());
+  }
 
   /**
    * Current srcref for debuggers
@@ -1066,8 +1089,10 @@ public final class Rinternals {
         return Vectors.asDouble((Vector)p0).setAttributes(p0.getAttributes());
       case SexpType.CPLXSXP:
         return Vectors.asComplex((Vector)p0).setAttributes(p0.getAttributes());
+      case SexpType.STRSXP:
+        return Vectors.asCharacter(Native.currentContext(), (Vector)p0).setAttributes(p0.getAttributes());
     }
-    throw new UnimplementedGnuApiMethod("Rf_coerceVector");
+    throw new UnimplementedGnuApiMethod("Rf_coerceVector: " + type);
   }
 
   public static SEXP Rf_PairToVectorList(SEXP x) {
@@ -1240,13 +1265,14 @@ public final class Rinternals {
    *
    * @param cr Pointer to the 'car' of the element to be created.
    *
-   * @param tl Pointer to the 'tail' of the element to be created,
+   * @param tail Pointer to the 'tail' of the element to be created,
    *          which must be a pairlist or R_NilValue.
    *
    * @return Pointer to the constructed pairlist.
    */
-  public static SEXP Rf_cons(SEXP cr, SEXP tl) {
-    throw new UnimplementedGnuApiMethod("Rf_cons");
+  public static SEXP Rf_cons(SEXP cr, SEXP tail) {
+    assert tail instanceof PairList : "tail argument must be a pairlist";
+    return new PairList.Node(cr, (PairList)tail);
   }
 
 
@@ -1475,8 +1501,33 @@ public final class Rinternals {
         elements[i] = Rf_duplicate(elements[i]);
       }
       return new ListVector(elements, sexp.getAttributes());
+
+    } else if(sexp instanceof FunctionCall) {
+      return duplicateCall(((FunctionCall) sexp));
+
+    } else if(sexp instanceof PairList) {
+      return duplicatePairList(((PairList) sexp));
+
+    } else if(sexp instanceof Symbol) {
+      return sexp;
     }
     throw new UnimplementedGnuApiMethod("Rf_duplicate: " + sexp.getTypeName());
+  }
+
+  private static SEXP duplicatePairList(PairList pairlist) {
+    PairList.Builder copy = new PairList.Builder();
+    for (PairList.Node node : pairlist.nodes()) {
+      copy.add(node.getRawTag(), Rf_duplicate(node.getValue()));
+    }
+    return copy.build();
+  }
+
+  private static SEXP duplicateCall(FunctionCall call) {
+    FunctionCall.Builder copy = new FunctionCall.Builder();
+    for (PairList.Node node : call.nodes()) {
+      copy.add(node.getRawTag(), Rf_duplicate(node.getValue()));
+    }
+    return copy.build();
   }
 
   public static SEXP Rf_shallow_duplicate(SEXP p0) {
@@ -1587,8 +1638,11 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_GetOption");
   }
 
-  public static SEXP Rf_GetOption1(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_GetOption1");
+  public static SEXP Rf_GetOption1(SEXP optionNameSexp) {
+    Symbol optionName = (Symbol) optionNameSexp;
+
+    Options options = Native.currentContext().getSession().getSingleton(org.renjin.eval.Options.class);
+    return options.get(optionName.getPrintName());
   }
 
   public static int Rf_GetOptionDigits() {
@@ -1603,8 +1657,12 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_GetRowNames");
   }
 
-  public static void Rf_gsetVar(SEXP p0, SEXP p1, SEXP p2) {
-    throw new UnimplementedGnuApiMethod("Rf_gsetVar");
+  public static void Rf_gsetVar(SEXP symbolName, SEXP value, SEXP environment) {
+    if(environment == Null.INSTANCE) {
+      environment = Native.currentContext().getBaseEnvironment();
+    }
+
+    ((Environment) environment).setVariable(Native.currentContext(), (Symbol)symbolName, value);
   }
 
 

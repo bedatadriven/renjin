@@ -68,6 +68,12 @@ public class LazyBuilder implements CombinedBuilder {
     }
   }
 
+  public static boolean resultTypeSupported(Vector.Type vectorType) {
+    return vectorType == IntVector.VECTOR_TYPE ||
+           vectorType == DoubleVector.VECTOR_TYPE ||
+           vectorType == StringVector.VECTOR_TYPE;
+  }
+
   @Override
   public Vector build() {
 

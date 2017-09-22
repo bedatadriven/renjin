@@ -81,6 +81,13 @@ abstract class AbstractVector extends AbstractSEXP implements Vector {
     return 0;
   }
 
+  @Override
+  public void copyTo(double[] array, int offset, int length) {
+    for (int i = 0; i < length; i++) {
+      array[offset + i] = getElementAsDouble(i);
+    }
+  }
+
   abstract static class AbstractBuilder<S extends SEXP> implements Builder<S> {
     private final AttributeMap.Builder attributes = AttributeMap.builder();
 

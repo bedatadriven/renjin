@@ -176,6 +176,10 @@ public final class DoubleArrayVector extends DoubleVector {
     return Arrays.copyOf(this.values, this.values.length);
   }
 
+  @Override
+  public void copyTo(double[] array, int offset, int length) {
+    System.arraycopy(array, 0, array, offset, length);
+  }
 
   public static class Builder extends AbstractAtomicBuilder {
     private static final int MIN_INITIAL_CAPACITY = 50;
@@ -243,11 +247,7 @@ public final class DoubleArrayVector extends DoubleVector {
 
     @Override
     public Builder setFrom(int destinationIndex, Vector source, int sourceIndex) {
-      if(source.isElementNA(sourceIndex)) {
-        return setNA(destinationIndex);
-      } else {
-        return set(destinationIndex, source.getElementAsDouble(sourceIndex));
-      }
+      return set(destinationIndex, source.getElementAsDouble(sourceIndex));
     }
 
     public Builder set(int index, Double value) {

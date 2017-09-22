@@ -42,7 +42,7 @@ public abstract class MemoizedDoubleVector extends DoubleVector implements Memoi
   }
 
   @Override
-  public double getElementAsDouble(int index) {
+  public final double getElementAsDouble(int index) {
     if(result == null) {
       forceResult();
     }
@@ -50,17 +50,27 @@ public abstract class MemoizedDoubleVector extends DoubleVector implements Memoi
   }
 
   @Override
-  public int length() {
+  public final Vector forceResult() {
+    if(result == null) {
+      result = computeResult();
+    }
+    return result;
+  }
+
+  public abstract Vector computeResult();
+
+  @Override
+  public final int length() {
     return length;
   }
 
   @Override
-  public void setResult(Vector result) {
+  public final void setResult(Vector result) {
     this.result = result;
   }
 
   @Override
-  public boolean isCalculated() {
+  public final boolean isCalculated() {
     return result != null;
   }
 
@@ -70,7 +80,7 @@ public abstract class MemoizedDoubleVector extends DoubleVector implements Memoi
   }
 
   @Override
-  public Vector[] getOperands() {
+  public final Vector[] getOperands() {
     return operands;
   }
 }

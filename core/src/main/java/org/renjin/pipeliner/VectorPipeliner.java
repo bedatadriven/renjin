@@ -18,16 +18,14 @@
  */
 package org.renjin.pipeliner;
 
-import org.renjin.pipeliner.fusion.LoopKernelCache;
 import org.renjin.eval.Profiler;
+import org.renjin.pipeliner.fusion.LoopKernelCache;
 import org.renjin.primitives.ni.DeferredNativeCall;
 import org.renjin.primitives.vector.DeferredComputation;
 import org.renjin.primitives.vector.MemoizedDoubleVector;
 import org.renjin.repackaged.guava.util.concurrent.ListeningExecutorService;
 import org.renjin.repackaged.guava.util.concurrent.MoreExecutors;
-import org.renjin.sexp.DoubleArrayVector;
-import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
 
 import java.util.concurrent.ExecutorService;
 
@@ -53,13 +51,55 @@ public class VectorPipeliner {
     graph.dumpGraph();
     throw new UnsupportedOperationException("TODO");
   }
-  
 
   public Vector materialize(Vector root) {
-    
-    long start = System.nanoTime();
-    
+
     DeferredGraph graph = new DeferredGraph(root);
+
+    materializeGraph(graph);
+
+    return graph.getRootResult(0);
+  }
+
+  public ListVector materialize(ListVector listVector) {
+
+    DeferredGraph graph = new DeferredGraph();
+
+    // Identify which elements of the list need to be materialized
+    Vector[] vectors = new Vector[listVector.length()];
+    for (int i = 0; i < listVector.length(); i++) {
+      SEXP element = listVector.getElementAsSEXP(i);
+      if(element instanceof Vector && ((Vector) element).isDeferred()) {
+        Vector vector = (Vector) element;
+        vectors[i] = vector;
+        graph.addRoot(vector);
+      }
+    }
+
+    materializeGraph(graph);
+
+    // Reassemble a new list
+    ListVector.Builder newList = new ListVector.Builder(0, listVector.length());
+    newList.copyAttributesFrom(listVector);
+
+    int vectorIndex = 0;
+    for (int i = 0; i < listVector.length(); i++) {
+      if(vectors[i] == null) {
+        newList.add(listVector.getElementAsSEXP(i));
+      } else {
+        newList.add(graph.getRootResult(vectorIndex));
+        vectorIndex++;
+      }
+    }
+
+    return newList.build();
+
+  }
+
+
+  private void materializeGraph(DeferredGraph graph) {
+
+    long start = System.nanoTime();
 
     if(VectorPipeliner.DEBUG) {
       System.out.print("unopt");
@@ -79,9 +119,8 @@ public class VectorPipeliner {
       long time = System.nanoTime() - start;
       Profiler.materialized(time);
     }
-    // return result
-    return root;
   }
+
 
   public Vector simplify(DeferredComputation root) {
     DeferredGraph graph = new DeferredGraph(root);

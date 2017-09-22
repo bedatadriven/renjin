@@ -526,7 +526,7 @@ public class Deparse {
           deparsed.append(BACK_TICK).append(name).append(BACK_TICK);
         }
       } else {
-        deparsed.append("<missing>");
+        deparsed.append("");
       }
     }
 

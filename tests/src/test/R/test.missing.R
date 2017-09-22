@@ -17,7 +17,7 @@
 # https://www.gnu.org/licenses/gpl-2.0.txt
 #
 
-
+library(methods)
 library(hamcrest)
 
 

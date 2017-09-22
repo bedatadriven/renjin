@@ -163,5 +163,17 @@ public class IntPtr implements Ptr {
     }
     return (IntPtr) voidPointer;
   }
-
+  
+  public static void memcpy(IntPtr x, IntPtr y, int numBytes) {
+    int[] arrayS = y.getArray();
+    int offsetS = y.getOffset();
+    int restY = arrayS.length - offsetS;
+    if(restY > 0) {
+      int[] carray = new int[numBytes];
+      for(int i = 0, j = offsetS; j < arrayS.length && i < numBytes; j++, i++) {
+        carray[i] = arrayS[j];
+      }
+      x = new IntPtr(carray);
+    }
+  }
 }

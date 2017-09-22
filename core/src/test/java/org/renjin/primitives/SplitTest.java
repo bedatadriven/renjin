@@ -20,11 +20,8 @@ package org.renjin.primitives;
 
 import org.junit.Test;
 import org.renjin.EvalTestCase;
-import org.renjin.eval.EvalException;
 
 import java.io.IOException;
-import java.lang.*;
-import java.lang.System;
 
 import static org.junit.Assert.assertThat;
 

@@ -18,11 +18,8 @@
  */
 package org.renjin.primitives;
 
-import org.renjin.repackaged.guava.base.Function;
 import org.renjin.repackaged.guava.base.Predicate;
-import org.renjin.sexp.PairList;
 import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbol;
 
 public class CollectionUtils {
 

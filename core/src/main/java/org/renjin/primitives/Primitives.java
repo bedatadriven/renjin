@@ -39,7 +39,6 @@ import org.renjin.primitives.io.serialization.Serialization;
 import org.renjin.primitives.match.Duplicates;
 import org.renjin.primitives.match.Match;
 import org.renjin.primitives.matrix.Matrices;
-import org.renjin.primitives.packaging.Namespace;
 import org.renjin.primitives.packaging.Namespaces;
 import org.renjin.primitives.packaging.Packages;
 import org.renjin.primitives.sequence.RepFunction;
@@ -690,9 +689,7 @@ public class Primitives {
     f("memory.profile", /*memoryprofile*/ null, 11);
     add(new RepFunction());
     f("rep.int", Sequences.class, 11);
-    f("seq.int", Sequences.class, 0);
     f("seq_len", Sequences.class, 1);
-    f("seq_along", Sequences.class, "seqAlong", 1);
     f("list", Vectors.class, "list", 1);
     f("split",  Split.class, 11);
     f("is.loaded", /*isloaded*/ null, -1);

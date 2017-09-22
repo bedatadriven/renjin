@@ -47,7 +47,16 @@ public final class VoidPtr {
   }
 
   public static void memcpy(Object x, Object y, int numBytes) {
-    throw new UnsupportedOperationException("TODO: Implement VoidPtr.memcpy");
+    if(x instanceof DoublePtr && y instanceof DoublePtr) {
+      DoublePtr.memcpy(((DoublePtr) x), ((DoublePtr) y), numBytes);
+    } else if(x instanceof LongPtr && y instanceof LongPtr) {
+      LongPtr.memcpy(((LongPtr) x), ((LongPtr) y), numBytes);
+    } else if(x instanceof IntPtr && y instanceof IntPtr) {
+      IntPtr.memcpy(((IntPtr) x), ((IntPtr) y), numBytes);
+    } else {
+      throw new UnsupportedOperationException("Not implemented: memcpy(" +
+        x.getClass().getName() + ", " + y.getClass().getName() + ", " + numBytes + ")");
+    }
   }
   
   public static void memset(Object p, int value, int length) {

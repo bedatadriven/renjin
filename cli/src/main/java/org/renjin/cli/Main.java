@@ -27,8 +27,6 @@ import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
 import org.renjin.primitives.special.ForFunction;
 import org.renjin.repl.JlineRepl;
-import org.renjin.sexp.FunctionCall;
-import org.renjin.sexp.Symbol;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;

@@ -26,7 +26,7 @@ import org.renjin.sexp.PairList;
 import org.renjin.sexp.Symbol;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 
 public class MatchedArgumentPositionsTest {
 

@@ -162,4 +162,17 @@ public class DoublePtr implements Ptr {
     }
     return (DoublePtr) voidPointer;
   }
+  
+  public static void memcpy(DoublePtr x, DoublePtr y, int numBytes) {
+    double[] arrayS = y.getArray();
+    int offsetS = y.getOffset();
+    int restY = arrayS.length - offsetS;
+    if(restY > 0) {
+      double[] carray = new double[numBytes];
+      for(int i = 0, j = offsetS; j < arrayS.length && i < numBytes; j++, i++) {
+        carray[i] = arrayS[j];
+      }
+      x = new DoublePtr(carray);
+    }
+  }
 }

@@ -25,20 +25,10 @@ import org.renjin.eval.Profiler;
 import org.renjin.gcc.runtime.*;
 import org.renjin.invoke.annotations.*;
 import org.renjin.invoke.reflection.ClassBindingImpl;
-import org.renjin.gcc.runtime.BytePtr;
-import org.renjin.gcc.runtime.DoublePtr;
-import org.renjin.gcc.runtime.IntPtr;
-import org.renjin.gcc.runtime.ObjectPtr;
-import org.renjin.invoke.annotations.ArgumentList;
-import org.renjin.invoke.annotations.Builtin;
-import org.renjin.invoke.annotations.Current;
-import org.renjin.invoke.annotations.NamedFlag;
 import org.renjin.invoke.reflection.FunctionBinding;
 import org.renjin.methods.Methods;
 import org.renjin.primitives.packaging.DllInfo;
 import org.renjin.primitives.packaging.DllSymbol;
-import org.renjin.primitives.ni.DeferredFortranCall;
-import org.renjin.primitives.packaging.FqPackageName;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.repackaged.guava.base.Optional;
@@ -368,7 +358,8 @@ public class Native {
         transformedHandle.invokeExact(arguments);
         return Null.INSTANCE;
       } else {
-        return (SEXP) transformedHandle.invokeExact(arguments);
+        SEXP result = (SEXP) transformedHandle.invokeExact(arguments);
+        return result;
       }
     } catch (Error e) {
       throw e;

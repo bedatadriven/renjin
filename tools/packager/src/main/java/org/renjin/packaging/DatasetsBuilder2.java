@@ -19,7 +19,6 @@
 package org.renjin.packaging;
 
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
-import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
@@ -285,13 +284,14 @@ public class DatasetsBuilder2 {
 
     Session session = new SessionBuilder()
         .setPackageLoader(buildContext.getPackageLoader())
+        .withDefaultPackages()
         .build();
     FileReader reader = new FileReader(scriptFile);
     ExpressionVector source = RParser.parseAllSource(reader);
     reader.close();
 
     // The utils package needs to be on the search path
-    // For read.table, etc
+    // For read.table, etcr
     session.getTopLevelContext().evaluate(FunctionCall.newCall(Symbol.get("library"), Symbol.get("utils")));
 
     // The working directory needs to be the data dir

@@ -26,6 +26,7 @@ import org.renjin.parser.RParser;
 import org.renjin.primitives.io.connections.GzFileConnection;
 import org.renjin.primitives.io.serialization.RDataReader;
 import org.renjin.primitives.io.serialization.RDataWriter;
+import org.renjin.primitives.packaging.FqPackageName;
 import org.renjin.repackaged.guava.annotations.VisibleForTesting;
 import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.repackaged.guava.collect.HashMultimap;
@@ -282,10 +283,17 @@ public class DatasetsBuilder2 {
 
     debug(scriptFile, "evaluating as script.");
 
-    Session session = new SessionBuilder()
-        .setPackageLoader(buildContext.getPackageLoader())
-        .withDefaultPackages()
-        .build();
+    SessionBuilder builder = new SessionBuilder()
+        .setPackageLoader(buildContext.getPackageLoader());
+
+    // Do not load default packages when building the "datasets" package,
+    // this will create circular references
+    if(!this.source.getFqName().equals(new FqPackageName("org.renjin", "datasets"))) {
+      builder = builder.withDefaultPackages();
+    }
+
+    Session session = builder.build();
+
     FileReader reader = new FileReader(scriptFile);
     ExpressionVector source = RParser.parseAllSource(reader);
     reader.close();

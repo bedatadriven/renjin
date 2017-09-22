@@ -24,10 +24,7 @@ import org.renjin.primitives.subset.IndexIterator;
 import org.renjin.primitives.subset.MissingSubscript;
 import org.renjin.primitives.subset.Subscript;
 import org.renjin.primitives.vector.DeferredComputation;
-import org.renjin.sexp.AttributeMap;
-import org.renjin.sexp.IntVector;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Vector;
+import org.renjin.sexp.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -100,7 +97,10 @@ public class CompositeIntColumnMatrix extends IntVector implements DeferredCompu
         selectedColumns.add(columns[columnIndex]);
       }
 
-      if(selectedColumns.size() == 1) {
+      if(selectedColumns.size() == 0) {
+        return IntArrayVector.EMPTY;
+
+      } else if(selectedColumns.size() == 1) {
         return selectedColumns.get(0);
 
       } else {

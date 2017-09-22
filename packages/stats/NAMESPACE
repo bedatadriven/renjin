@@ -43,7 +43,9 @@ useDynLib(stats, .registration = FALSE, .fixes="C_",
     KalmanLike,
     KalmanFore,
     eureka = eureka_,
-    Burg
+    Burg,
+    rbart = rbart_,
+    bvalus = bvalus_
     )
 
 # exportPattern("^[^\\.]")

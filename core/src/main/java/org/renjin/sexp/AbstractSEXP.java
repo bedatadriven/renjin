@@ -237,9 +237,15 @@ public abstract class AbstractSEXP implements SEXP {
       throw new IllegalArgumentException();
     }
   }
-  
+
   public SEXP force(Context context) {
     return this;
+  }
+
+
+  @Override
+  public SEXP force(Context context, boolean allowMissing) {
+    return force(context);
   }
 
   /**

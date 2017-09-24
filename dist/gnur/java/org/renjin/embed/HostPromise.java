@@ -38,7 +38,7 @@ public class HostPromise extends Promise {
   }
 
   @Override
-  protected SEXP doEval(Context context) {
+  protected SEXP doEval(Context context, boolean allowMissing) {
 
     long valuePtr = wrapper.getEngine().rniEval(expr, rho);
     SEXP value = wrapper.wrap(valuePtr);

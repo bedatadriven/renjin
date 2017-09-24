@@ -162,18 +162,38 @@ test.subset.s3.missing.args <- function() {
 
 test.subset.missing.builtin <- function() {
 
-    f <- function(x, i, j) x[i,j]
     x <- matrix(1:12, nrow=3)
+    f <- function(x, i, j) x[i,j]
     assertThat(f(x, 1), identicalTo(c(1L, 4L, 7L, 10L)))
+}
 
+test.subset.missing.builtin.2 <- function() {
+
+    x <- matrix(1:12, nrow=3)
+    f <- function(x, i, j) x[i,j]
+    g <- function(x, i, j) f(x, i, j)
+    assertThat(g(x, 1), identicalTo(c(1L, 4L, 7L, 10L)))
+}
+
+test.subset.missing.builtin.recursive <- function() {
+    x <- matrix(1:12, nrow=3)
+    f <- function(x, i = j, j = i) x[i,j]
+    g <- function(x, i, j) f(x, i, j)
+    assertThat(length(g(x)), identicalTo(12L))
+}
+
+test.subset.missing.with.default <- function() {
+
+    x <- matrix(1:12, nrow=3)
+    f <- function(i=3, j=3) x[i, j]
+
+    assertThat(f(), identicalTo(9L))
 }
 
 test.combine.missing <- function() {
 
     assertThat(c(1,,3), throwsError())
 }
-
-
 
 test.ommited.arg <- function() {
 

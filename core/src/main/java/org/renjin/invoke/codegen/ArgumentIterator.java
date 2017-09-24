@@ -19,7 +19,6 @@
 package org.renjin.invoke.codegen;
 
 import org.renjin.eval.Context;
-import org.renjin.primitives.Evaluation;
 import org.renjin.sexp.*;
 
 
@@ -80,12 +79,7 @@ public class ArgumentIterator {
 
     SEXP value = nextNode().getValue();
 
-    if(value instanceof Symbol) {
-      if(value == Symbol.MISSING_ARG || Evaluation.missing(context, rho, (Symbol) value)) {
-        return Symbol.MISSING_ARG;
-      }
-    }
-    return context.evaluate(value, rho);
+    return context.evaluate(value, rho, true);
   }
 
   public String getCurrentName() {

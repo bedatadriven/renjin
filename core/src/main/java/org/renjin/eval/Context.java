@@ -262,6 +262,10 @@ public class Context {
   }
   
   public SEXP evaluate(SEXP expression, Environment rho) {
+    if(Thread.interrupted()) { 
+      throw new EvalException("Interrupted."); 
+    }	  
+  
     if(expression instanceof Symbol) {
       return evaluateSymbol((Symbol) expression, rho);
     } else if(expression instanceof ExpressionVector) {

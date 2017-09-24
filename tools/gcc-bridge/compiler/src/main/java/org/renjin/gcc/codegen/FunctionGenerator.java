@@ -258,7 +258,13 @@ public class FunctionGenerator implements InvocationStrategy {
       if(decl.isStatic()) {
         GExpr lhs = symbolTable.getVariable(decl);
         if (decl.getValue() != null) {
-          lhs.store(mv, exprFactory.findGenerator(decl.getValue()));
+          try {
+            lhs.store(mv, exprFactory.findGenerator(decl.getValue()));
+          } catch (Exception e) {
+            throw new InternalCompilerException(String.format("static variable: %s in %s",
+                decl.getName(),
+                function.getMangledName()), e);
+          }
         }
       }
     }

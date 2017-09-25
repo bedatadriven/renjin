@@ -392,6 +392,14 @@ public class Evaluation {
         try {
           Symbol argumentName = (Symbol) promise.getExpression();
           Environment argumentEnv = promise.getEnvironment();
+
+          if(argumentName.isVarArgReference()) {
+            SEXP forwardedArguments = argumentEnv.findVariable(context, Symbols.ELLIPSES);
+            if(forwardedArguments.length() == 0) {
+              return true;
+            }
+          }
+
           SEXP argumentValue = argumentEnv.getVariable(context, argumentName);
           if (argumentValue == Symbol.MISSING_ARG) {
             return true;

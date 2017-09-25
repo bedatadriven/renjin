@@ -323,6 +323,13 @@ public class Context {
     if(symbol == Symbol.MISSING_ARG) {
       return symbol;
     }
+
+    if(allowMissing && symbol.isVarArgReference()) {
+      if(rho.findVariable(this, Symbols.ELLIPSES) == Null.INSTANCE) {
+        return Symbol.MISSING_ARG;
+      }
+    }
+
     SEXP value = rho.findVariable(this, symbol);
     if(value == Symbol.UNBOUND_VALUE) {
       throw new EvalException(String.format("object '%s' not found", symbol.getPrintName()));

@@ -30,6 +30,13 @@ test.ellipses <- function() {
 
 }
 
+test.missing.vararg1 <- function() {
+
+    f <- function(i, j) missing(i)
+    g <- function(...) f(..1, ..2)
+
+    assertThat(g(), identicalTo(TRUE))
+}
 
 
 test.missing.arg.to.builtin <- function() {
@@ -88,7 +95,7 @@ test.missing.invalid.symbol <- function() {
 
 }
 
-test.missing.with.default.2 <- function() {
+test.missing.with.default.1 <- function() {
 
    f <- function(x = 2) missing(x)
 
@@ -188,6 +195,16 @@ test.subset.missing.with.default <- function() {
     f <- function(i=3, j=3) x[i, j]
 
     assertThat(f(), identicalTo(9L))
+}
+
+
+test.subset.missing.with.varargs <- function() {
+
+    x <- matrix(1:12, nrow=3)
+    f <- function(x, ...) x[..1, ..2]
+
+    assertThat(f(x), identicalTo(x))
+    assertThat(f(x, 1, 2), identicalTo(4L))
 }
 
 test.combine.missing <- function() {

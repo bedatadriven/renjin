@@ -330,7 +330,7 @@ public class Context {
 
     if(!allowMissing) {
       if (value == Symbol.MISSING_ARG) {
-        throw new EvalException("Argument '%s' is missing, with no default", symbol.getPrintName());
+        throw new EvalException("argument '%s' is missing, with no default", symbol.getPrintName());
       }
     }
 

@@ -197,6 +197,7 @@ public class VoidPointerTypeDeducer implements FunctionBodyTransformer {
         case "malloc":
         case "calloc":
         case "alloca":
+        case "realloc":
           return true;
       }
       return false;

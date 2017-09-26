@@ -55,7 +55,7 @@ public class Text {
       if(argument instanceof StringVector) {
         argumentVectors.add((StringVector) argument);
       } else {
-        SEXP result = context.evaluate(FunctionCall.newCall(Symbol.get("as.character"), argument));
+        SEXP result = context.evaluate(FunctionCall.newCall(Symbol.get("as.character"), Promise.repromise(argument)));
         if(!(result instanceof StringVector)) {
           throw new EvalException("as.character() returned non-character");
         }

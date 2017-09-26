@@ -84,7 +84,7 @@ public class IntArrayNode extends LoopNode {
 
   @Override
   public void appendToKey(StringBuilder key) {
-    key.append("IAN");
+    key.append("IAN:" + vectorType);
   }
 
   @Override

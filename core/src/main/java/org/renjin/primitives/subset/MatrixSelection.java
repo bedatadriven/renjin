@@ -446,6 +446,10 @@ public class MatrixSelection implements SelectionStrategy {
     int replacementIndex = 0;
     int replacementLength = replacements.length();
 
+    if(replacementLength == 0) {
+      throw new EvalException("replacement has length zero");
+    }
+
     int index;
     while((index=it.next())!= IndexIterator.EOF) {
       if(!IntVector.isNA(index)) {

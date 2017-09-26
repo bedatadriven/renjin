@@ -38,7 +38,7 @@ stopifnot( abs(m$coefficients["x"]-2) < 0.0001 )
 # and their dependencies
 
 library(org.renjin.test.alpha)
-stopifnot(identical(alphaVersion(), "2.5.1"))
+stopifnot(identical(alphaName(), "Alpha"))
 
 # Verify that parsing multi-line statements works...
 v1 <- 91; v2 <- 9; v3 <- 10;

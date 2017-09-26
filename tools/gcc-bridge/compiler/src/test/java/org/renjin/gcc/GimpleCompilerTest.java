@@ -25,6 +25,7 @@ import org.renjin.repackaged.guava.base.Charsets;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
 import java.util.Arrays;
 
 import static java.lang.Double.NaN;
@@ -835,6 +836,14 @@ public class GimpleCompilerTest extends AbstractGccTest {
     assertThat((Integer) uint32_to_uint8.invoke(null, 0x100), equalTo(0));
     assertThat((Integer) uint32_to_uint8.invoke(null, 0x400), equalTo(0));
     assertThat((Integer) uint32_to_uint8.invoke(null, 0xFFFFFFFF), equalTo(255));
+
+    // from uint64 to double
+    Method uint64_to_double = clazz.getMethod("uint64_to_double", long.class);
+    assertThat((Double)uint64_to_double.invoke(null, Integer.MAX_VALUE * 20L),
+        closeTo(BigDecimal.valueOf(Integer.MAX_VALUE).multiply(BigDecimal.valueOf(20)).doubleValue(), 0d));
+    assertThat((Double)uint64_to_double.invoke(null, 0xffffffffffffffffL),
+        closeTo(BigDecimal.valueOf(2).pow(64).doubleValue(), 0d));
+
   }
 
   @Test

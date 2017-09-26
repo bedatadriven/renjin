@@ -171,4 +171,17 @@ public class LongPtr implements Ptr {
       x = new LongPtr(carray);
     }
   }
+
+  public static double unsignedInt64ToReal64(long i) {
+    if(i >= 0) {
+      return (double)i;
+    }
+    int upper = (int) (i >>> 32);
+    int lower = (int) i;
+
+    long lowerLong = ((long) lower) & 0xffffffffL;
+    long upperLong = ((long) upper) & 0xffffffffL;
+
+    return ((double)lowerLong) + ((double)upperLong) * 4294967296d;
+  }
 }

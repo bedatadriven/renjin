@@ -98,10 +98,14 @@ public class MixedPtr extends AbstractPtr {
     int byteStart = this.offset + offset;
     if(byteStart % POINTER_BYTES == 0) {
       int index = byteStart / POINTER_BYTES;
-      return (Ptr) references[index];
-    } else {
-      return BytePtr.NULL.pointerPlus(getInt(offset));
+
+      Ptr ref = (Ptr) references[index];
+      if(ref != null) {
+        return ref;
+      }
     }
+
+    return BytePtr.NULL.pointerPlus(getInt(offset));
   }
 
   @Override

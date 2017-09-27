@@ -40,8 +40,8 @@ import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.gimple.type.GimpleType;
-import org.renjin.gcc.runtime.ObjectPtr;
 import org.renjin.gcc.runtime.Ptr;
+import org.renjin.gcc.runtime.VoidPtr;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
 
@@ -190,7 +190,8 @@ public class VoidPtrExpr implements RefPtrExpr {
 
   @Override
   public VPtrExpr toVPtrExpr() throws UnsupportedCastException {
-    return new VPtrExpr(Expressions.cast(objectRef, Type.getType(Ptr.class)));
+    return new VPtrExpr(Expressions.staticMethodCall(VoidPtr.class, "toPtr",
+        Type.getMethodDescriptor(Type.getType(Ptr.class), Type.getType(Object.class)), objectRef));
   }
 
   @Override

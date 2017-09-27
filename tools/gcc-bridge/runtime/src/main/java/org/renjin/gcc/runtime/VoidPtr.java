@@ -18,6 +18,8 @@
  */
 package org.renjin.gcc.runtime;
 
+import java.lang.invoke.MethodHandle;
+
 /**
  * Runtime methods for operations on void pointers.
  */
@@ -87,6 +89,16 @@ public final class VoidPtr {
     }
 
     return Integer.compare(System.identityHashCode(x), System.identityHashCode(y));
+  }
+
+  public static Ptr toPtr(Object voidPtr) {
+    if(voidPtr instanceof Ptr) {
+      return ((Ptr) voidPtr);
+    } else if(voidPtr instanceof MethodHandle) {
+      return FunctionPtr1.malloc(((MethodHandle) voidPtr));
+    } else {
+      throw new UnsupportedOperationException("TODO: " + voidPtr.getClass().getName());
+    }
   }
 
   public static void assign(Object[] array, int offset, Object value) throws NoSuchMethodException {

@@ -1501,7 +1501,7 @@ public final class Rinternals {
     return Native.currentContext().evaluate(e, (Environment) rho);
   }
 
-  public static SEXP Rf_findFun(SEXP rho, SEXP symbol) {
+  public static SEXP Rf_findFun(SEXP symbol, SEXP rho) {
     return ((Environment) rho).findFunction(Native.currentContext(), ((Symbol) symbol));
   }
 
@@ -1915,7 +1915,7 @@ public final class Rinternals {
    * @return Pointer to a string object representing the specified
    *         text in the specified encoding.
    */
-  public static SEXP Rf_mkCharCE (BytePtr str, Object encoding) {
+  public static SEXP Rf_mkCharCE (BytePtr str, int encoding) {
     throw new UnimplementedGnuApiMethod("Rf_mkCharCE");
   }
 

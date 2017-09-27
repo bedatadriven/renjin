@@ -23,14 +23,10 @@ import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
-import org.renjin.gcc.codegen.fatptr.FatPtr;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.type.ParamStrategy;
-import org.renjin.gcc.codegen.type.record.RecordValue;
-import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleParameter;
-import org.renjin.gcc.runtime.ObjectPtr;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
@@ -81,44 +77,8 @@ class RecordUnitPtrParam implements ParamStrategy {
       return;
     }
 
+    RecordUnitPtrExpr unitPtrExpr = argument.get().toRecordUnitPtrExpr(strategy.getLayout());
 
-    GExpr expr = argument.get();
-    if(expr instanceof RecordUnitPtrExpr) {
-      Expressions.cast(((RecordUnitPtrExpr) expr).unwrap(), strategy.getJvmType()).load(mv);
-      return;
-
-    }
-
-    if(expr instanceof VoidPtrExpr) {
-      ((VoidPtrExpr) expr).unwrap().load(mv);
-      mv.visitLdcInsn(strategy.getJvmType());
-      mv.invokestatic(ObjectPtr.class, "castUnit",
-          Type.getMethodDescriptor(Type.getType(Object.class),
-              Type.getType(Object.class), Type.getType(Class.class)));
-
-      mv.checkcast(strategy.getJvmType());
-      return;
-
-    }
-
-    if(expr instanceof FatPtr) {
-      // It can be the case that we have a record which is NOT a unit pointer that has
-      // a record at offset zero which IS a record unit pointer. In this case, we want
-      // to return the address of this first member. In Gimple-land, this is exactly the same
-      // value as the address of the record itself, but in JVM land, more jigglery-puffery
-      // is required.
-
-      FatPtr fatPtrExpr = (FatPtr) expr;
-      if (fatPtrExpr.getValueType().getSort() == Type.OBJECT) {
-        GExpr refExpr = fatPtrExpr.valueOf(strategy.getGimpleType());
-        if(refExpr instanceof RecordValue) {
-          Expressions.cast(((RecordValue) refExpr).unwrap(), strategy.getJvmType()).load(mv);
-          return;
-        }
-      }
-    }
-
-    throw new UnsupportedOperationException("Cannot pass expression of type " + expr.getClass().getName() +
-          " as a record unit pointer of type " + strategy.getJvmType());
+    unitPtrExpr.unwrap().load(mv);
   }
 }

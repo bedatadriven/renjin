@@ -150,7 +150,6 @@ public class VPtrExpr implements PtrExpr {
   public JExpr memoryCompare(MethodGenerator mv, PtrExpr otherPointer, JExpr n) {
     return Expressions.methodCall(ref, Ptr.class, "memcmp",
         Type.getMethodDescriptor(Type.INT_TYPE, Type.getType(Ptr.class), Type.INT_TYPE),
-        ref,
         otherPointer.toVPtrExpr().getRef(),
         n);
   }

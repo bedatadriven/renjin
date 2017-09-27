@@ -1158,7 +1158,9 @@ public class S3 {
       if(Types.isS4(object)) {
         SEXP objectClassesS4 = computeDataClassesS4(context, objectClasses.getElementAsString(0));
         if(objectClassesS4 != Null.INSTANCE) {
-          resolver.classes = Lists.newArrayList((StringVector)objectClassesS4);
+          List<String> classes = Lists.newArrayList(objectClasses);
+          classes.addAll(Lists.newArrayList((StringVector)objectClassesS4));
+          resolver.classes = classes;
         } else {
           resolver.classes = Lists.newArrayList(objectClasses);
         }

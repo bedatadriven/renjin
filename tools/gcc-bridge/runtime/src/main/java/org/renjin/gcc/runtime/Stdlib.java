@@ -74,6 +74,13 @@ public class Stdlib {
     return strncmp(x, y, Integer.MAX_VALUE);
   }
 
+  public static Ptr strdup(Ptr s) {
+    int strlen = strlen(s);
+    BytePtr dup = BytePtr.malloc(strlen + 1);
+    strcpy(dup, s);
+    return dup;
+  }
+
   /**
    * Copies the C string pointed by source into the array pointed by destination, including the terminating
    * null character (and stopping at that point).

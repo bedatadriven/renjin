@@ -93,7 +93,7 @@ public class Context {
   private Environment environment;
   private Session session; 
   private FunctionCall call;
-  private Closure closure;
+  private SEXP function;
 
   /**
    * The environment from which the closure was called
@@ -131,6 +131,7 @@ public class Context {
     this.session = session;
     this.type = Type.TOP_LEVEL;
     this.environment = session.getGlobalEnvironment();
+    this.function = Null.INSTANCE;
   }
 
   public Context beginFunction(Environment rho, FunctionCall call, Closure closure, PairList arguments) {
@@ -139,7 +140,7 @@ public class Context {
     context.type = Type.FUNCTION;
     context.parent = this;
     context.evaluationDepth = evaluationDepth+1;
-    context.closure = closure;
+    context.function = closure;
     context.environment = Environment.createChildEnvironment(closure.getEnclosingEnvironment()).build();
     context.session = session;
     context.arguments = arguments;
@@ -155,6 +156,11 @@ public class Context {
     context.evaluationDepth = evaluationDepth+1;
     context.environment = environment;
     context.session = session;
+    context.function = Primitives.getInternal(Symbol.get("eval"));
+
+    // Use the call from the call to the eval wrapper
+    context.call = this.call;
+
     return context;
   }
 
@@ -188,7 +194,6 @@ public class Context {
       this.session.conditionStack = null;
     }
   }
-  
   public SEXP evaluate(SEXP expression) {
     SEXP result = evaluate(expression, environment);
     if(result == null) {
@@ -212,16 +217,31 @@ public class Context {
     }
     return sexp;
   }
-  
-  public Vector materialize(Vector sexp) {
-    if(sexp instanceof DeferredComputation && !sexp.isConstantAccessTime()) {
-      if(sexp instanceof MemoizedComputation) {
-        MemoizedComputation memo = (MemoizedComputation) sexp;
-        if(memo.isCalculated()) {
-          return memo.forceResult();
+
+  public ListVector materialize(ListVector listVector) {
+    if(!anyDeferred(listVector)) {
+      return listVector;
+    }
+
+    return session.getVectorEngine().materialize(listVector);
+  }
+
+  private boolean anyDeferred(ListVector listVector) {
+    for (int i = 0; i < listVector.length(); i++) {
+      SEXP element = listVector.getElementAsSEXP(i);
+      if(element instanceof Vector) {
+        Vector vector = (Vector) element;
+        if(vector.isDeferred() && !vector.isConstantAccessTime()) {
+          return true;
         }
       }
-      return session.getVectorEngine().materialize((DeferredComputation)sexp);
+    }
+    return false;
+  }
+  
+  public Vector materialize(Vector sexp) {
+    if(sexp.isDeferred() && !sexp.isConstantAccessTime()) {
+      return session.getVectorEngine().materialize(sexp);
     } else {
       return sexp;
     }
@@ -239,10 +259,23 @@ public class Context {
       return sexp;
     }
   }
-  
+
   public SEXP evaluate(SEXP expression, Environment rho) {
+    return evaluate(expression, rho, false);
+  }
+
+  /**
+   * Evaluates the given {@code expression} in the given {@code environment}.
+   *
+   * @param expression the expression to evaluate
+   * @param rho the environment in which to evaluate the expression
+   * @param allowMissing if {@code true}, missing arguments without defaults should evaluate to {@code Symbol.MISSING_ARG},
+   *                     otherwise they will result in an EvalException.
+   * @return the result of the evaluation.
+   */
+  public SEXP evaluate(SEXP expression, Environment rho, boolean allowMissing) {
     if(expression instanceof Symbol) {
-      return evaluateSymbol((Symbol) expression, rho);
+      return evaluateSymbol((Symbol) expression, rho, allowMissing);
     } else if(expression instanceof ExpressionVector) {
       return evaluateExpressionVector((ExpressionVector) expression, rho);
     } else if(expression instanceof FunctionCall) {
@@ -284,22 +317,35 @@ public class Context {
     stateMap.put(clazz, instance);
   }
 
-  private SEXP evaluateSymbol(Symbol symbol, Environment rho) {
+  private SEXP evaluateSymbol(Symbol symbol, Environment rho, boolean allowMissing) {
     clearInvisibleFlag();
 
     if(symbol == Symbol.MISSING_ARG) {
       return symbol;
     }
+
+    if(allowMissing && symbol.isVarArgReference()) {
+      if(rho.findVariable(this, Symbols.ELLIPSES) == Null.INSTANCE) {
+        return Symbol.MISSING_ARG;
+      }
+    }
+
     SEXP value = rho.findVariable(this, symbol);
     if(value == Symbol.UNBOUND_VALUE) {
       throw new EvalException(String.format("object '%s' not found", symbol.getPrintName()));
-    } 
-    
-    if(value instanceof Promise) {
-      return evaluate(value, rho);
-    } else {
-      return value;
     }
+
+    if(!allowMissing) {
+      if (value == Symbol.MISSING_ARG) {
+        throw new EvalException("argument '%s' is missing, with no default", symbol.getPrintName());
+      }
+    }
+
+    if(value instanceof Promise) {
+      value = value.force(this, allowMissing);
+    }
+
+    return value;
   }
 
   /**
@@ -434,8 +480,8 @@ public class Context {
     return session.getGlobalEnvironment();
   }
 
-  public Closure getClosure() {
-    return closure;
+  public SEXP getFunction() {
+    return function;
   }
 
   public PairList getArguments() {

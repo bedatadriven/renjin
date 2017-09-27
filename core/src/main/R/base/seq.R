@@ -14,7 +14,14 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-seq <- function(...) UseMethod("seq")
+seq.int <- seq <- function(...) UseMethod("seq")
+
+seq_along <- function(along.with)
+{
+    len <- length(along.with)
+    if(len == 0) return(integer(0))
+    seq(len)
+}
 
 seq.default <-
     function(from = 1, to = 1, by = ((to - from)/(length.out - 1)),

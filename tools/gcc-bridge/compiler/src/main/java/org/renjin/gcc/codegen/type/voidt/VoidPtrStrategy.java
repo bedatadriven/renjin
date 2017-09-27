@@ -33,9 +33,6 @@ import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.repackaged.asm.Type;
 
-import javax.annotation.Nonnull;
-import java.lang.reflect.Field;
-
 
 /**
  * Strategy for handling pointers of unknown type.
@@ -65,7 +62,7 @@ public class VoidPtrStrategy implements PointerTypeStrategy<VoidPtrExpr>, Simple
 
   @Override
   public ParamStrategy getParamStrategy() {
-    return new RefPtrParamStrategy<>(this);
+    return new VoidPtrParamStrategy();
   }
 
   @Override
@@ -95,12 +92,12 @@ public class VoidPtrStrategy implements PointerTypeStrategy<VoidPtrExpr>, Simple
   }
 
   @Override
-  public VoidPtrExpr providedGlobalVariable(GimpleVarDecl decl, Field javaField) {
-    if(javaField.getType().isPrimitive()) {
+  public VoidPtrExpr providedGlobalVariable(GimpleVarDecl decl, JExpr expr, boolean readOnly) {
+    if(expr.getType().getSort() != Type.OBJECT) {
       throw new UnsupportedOperationException("Cannot map void* global pointer " + decl + " to primitive field " +
-          javaField + ". Must be an Object.");
+          expr + ". Must be an Object.");
     }
-    return new VoidPtrExpr(Expressions.staticField(javaField));
+    return new VoidPtrExpr(expr);
   }
 
   @Override

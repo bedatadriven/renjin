@@ -18,16 +18,13 @@
  */
 package org.renjin.primitives;
 
-import org.hamcrest.CoreMatchers;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
 import org.renjin.eval.EvalException;
 import org.renjin.sexp.*;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -801,7 +798,7 @@ public strictfp class TypesTest extends EvalTestCase {
   
   @Test
   public void existsNoInherit() {
-    assumingBasePackagesLoad();
+
     eval("x <- 42");
     eval("f <- function() { exists('x', inherits=FALSE) } ");
     assertThat( eval("f()"), elementsIdenticalTo(c(false)));
@@ -809,7 +806,7 @@ public strictfp class TypesTest extends EvalTestCase {
   
   @Test
   public void getNoInheritThrows() {
-    assumingBasePackagesLoad();
+
     eval("x <- 42");
     eval("f <- function() { exists('x', inherits=FALSE) } ");
     eval("f()");

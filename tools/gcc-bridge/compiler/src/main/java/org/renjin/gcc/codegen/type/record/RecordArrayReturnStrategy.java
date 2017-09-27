@@ -73,6 +73,7 @@ public class RecordArrayReturnStrategy implements ReturnStrategy {
     return new RecordArrayExpr(valueFunction, callExpr, arrayLength);
   }
 
+
   @Override
   public JExpr getDefaultReturnValue() {
     return Expressions.newArray(getArrayComponentType(), arrayLength);

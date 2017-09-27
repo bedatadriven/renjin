@@ -77,17 +77,7 @@ public class S3DispatchTest extends EvalTestCase {
     
     assertThat( eval(" x[z] "), elementsIdenticalTo(c(true)));
   }
-  
-  
-  @Test
-  public void missingInS3Generic() {
-    eval("`[.foo` <- function(x, i, j, drop = TRUE) c(missing(i), missing(j), missing(drop)) ");
-    eval("x <- 1:5");
-    eval("class(x) <- 'foo'");
-    
-    assertThat(eval("x[1,2]"), elementsIdenticalTo(c(false,false,true)));
-    assertThat(eval("x[,2]"), elementsIdenticalTo(c(true,false,true)));
-  }
+
   
   @Test
   public void argumentsGoneMissing() {
@@ -101,7 +91,7 @@ public class S3DispatchTest extends EvalTestCase {
    
   @Test
   public void matchCallWithinGeneric() throws IOException {
-    assumingBasePackagesLoad();
+
     
     eval("g <- { f <- function(a,b,...) { UseMethod('f') } ; " +
     		        "f.default <- function(a,b,...) { match.call() }; " +

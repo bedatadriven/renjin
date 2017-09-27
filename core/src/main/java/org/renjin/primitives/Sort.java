@@ -18,8 +18,11 @@
  */
 package org.renjin.primitives;
 
+import org.renjin.appl.Appl;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
+import org.renjin.gcc.runtime.DoublePtr;
+import org.renjin.gcc.runtime.IntPtr;
 import org.renjin.invoke.annotations.*;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.*;
@@ -136,6 +139,37 @@ public class Sort {
     return false;
   }
   
+  @Internal("findInterval")
+  public static SEXP findInterval(DoubleArrayVector vec, DoubleArrayVector x, LogicalVector rightmostClosed,
+                                  LogicalVector allInside, LogicalVector leftOpen) {
+    int n = vec.length();
+    int nx = x.length();
+  
+    IntArrayVector.Builder ans = new IntArrayVector.Builder(nx);
+    DoublePtr vecPtr = new DoublePtr(vec.toDoubleArray(), 0);
+    IntPtr mfl = new IntPtr(0);
+    int ii = 1;
+    
+    for(int i = 0; i < nx; i++) {
+      if (x.get(i) != x.get(i) ) {
+        ii = IntVector.NA;
+      } else {
+        ii = Appl.findInterval2(
+          /*var0*/ vecPtr,
+          /*var1*/ n,
+          /*var2*/ x.get(i),
+          /*var3*/ rightmostClosed.asInt(),
+          /*var4*/ allInside.asInt(),
+          /*var5*/ leftOpen.asInt(),
+          /*var6*/ ii,
+          /*var7*/ mfl);
+      }
+      ans.set(i, ii);
+    }
+    
+    return ans.build();
+  }
+
   @Internal("is.unsorted")
   public static LogicalVector isUnsorted(ListVector x, boolean strictly) {
     if(x.length() <= 1) {

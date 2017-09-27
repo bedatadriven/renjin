@@ -29,17 +29,16 @@ public class RecallFunction extends SpecialFunction {
   }
 
   @Override
-  public SEXP apply(Context context, Environment rho, FunctionCall call,
-      PairList args) {
-    
+  public SEXP apply(Context context, Environment rho, FunctionCall call, PairList args) {
+
     // this is an .Internal function, so we need to go up one context.
     Context originalContext = context.getParent();
-    
-    Closure closure = originalContext.getClosure();
-    if(closure == null) {
+    if (!(originalContext.getFunction() instanceof Closure)) {
       throw new EvalException("Recall() must be called from within a closure");
     }
-    
+
+    Closure closure = (Closure)originalContext.getFunction();
+
     PairList newArguments = (PairList)rho.getVariable(context, Symbols.ELLIPSES);
     FunctionCall newCall = new FunctionCall(originalContext.getCall().getFunction(), newArguments);
     

@@ -245,7 +245,7 @@ public interface PairList extends SEXP {
     @Override
     public ListVector toVector() {
       ListVector.NamedBuilder builder = new ListVector.NamedBuilder();
-      for(PairList.Node node : attributes.nodes()) {
+      for(PairList.Node node : getAttributes().nodes()) {
         builder.setAttribute(node.getTag(), node.getValue());
       }
       for(Node node : nodes()) {
@@ -507,9 +507,17 @@ public interface PairList extends SEXP {
       this.tail = head;
     }
 
-    public Builder withAttributes(AttributeMap attributes) {
+    public Builder setAttributes(AttributeMap attributes) {
       this.attributesBuilder.addAllFrom(attributes);
       return this;
+    }
+
+    /**
+     * @deprecated use {@link #setAttributes(AttributeMap)}
+     */
+    @Deprecated
+    public Builder withAttributes(AttributeMap attributes) {
+      return setAttributes(attributes);
     }
 
     public Builder setAttribute(Symbol name, SEXP value) {

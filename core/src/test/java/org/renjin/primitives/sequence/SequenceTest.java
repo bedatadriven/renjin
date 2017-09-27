@@ -145,7 +145,7 @@ public class SequenceTest extends EvalTestCase {
   public void seqInt() {
     assertThat( eval(" seq.int(to=6, from=3)" ), elementsIdenticalTo(c_i(3, 4, 5, 6)));
     assertThat( eval(" seq.int(3,6)" ), elementsIdenticalTo(c_i(3, 4, 5, 6)));
-    assertThat( eval(" seq.int(from=10, length=4)" ), elementsIdenticalTo(c_i(10, 11, 12, 13)));
+    assertThat( eval(" seq.int(from=10, length=4)" ), elementsIdenticalTo(c(10, 11, 12, 13)));
     assertThat( eval(" seq.int(to=10, by=2)"), elementsIdenticalTo(c(1, 3, 5, 7, 9)));
     assertThat( eval(" seq.int(length=4)" ), elementsIdenticalTo(c_i(1, 2, 3, 4)));
   }
@@ -167,7 +167,7 @@ public class SequenceTest extends EvalTestCase {
 
   @Test
   public void repIssue61() {
-    assumingBasePackagesLoad();
+
     eval(" f <- function () {  b <- 0; a <- rep(1.1,1000); for (i in 1:100000) " +
         "{ a <- sqrt(a+7); b <- b + sum(a); sum <- mean; }; b;  } ");
 
@@ -184,7 +184,7 @@ public class SequenceTest extends EvalTestCase {
   @Test
   public void seqIntFrom() {
     eval(" x <- seq.int(from=1, length.out=1) ");
-    assertThat( eval("x[1]"), elementsIdenticalTo( c_i(1)));
+    assertThat( eval("x[1]"), elementsIdenticalTo( c(1)));
     
   }
 }

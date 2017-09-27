@@ -115,7 +115,7 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
   
 
   public int indexOfName(String name) {
-    SEXP names = attributes.getNamesOrNull();
+    SEXP names = getAttributes().getNamesOrNull();
     if(names instanceof StringVector) {
       for(int i=0;i!=names.length();++i) {
         if(((StringVector) names).getElementAsString(i).equals(name)) {
@@ -594,6 +594,11 @@ public class ListVector extends AbstractVector implements Iterable<SEXP>, HasNam
     @Override
     public NamedBuilder set(int index, SEXP value) {
       super.set(index, value);
+      return this;
+    }
+
+    public NamedBuilder setName(int index, String name) {
+      names.set(index, name);
       return this;
     }
 

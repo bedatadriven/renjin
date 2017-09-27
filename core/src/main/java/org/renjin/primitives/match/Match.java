@@ -19,7 +19,7 @@
 
 package org.renjin.primitives.match;
 
-import org.renjin.eval.Calls;
+import org.renjin.eval.ClosureDispatcher;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Current;
@@ -326,9 +326,9 @@ public class Match {
 
       /* Get the env that the function containing */
       /* matchcall was called from. */
-      Context parentContext = Contexts.findStartingContext(context);
-      if(parentContext.getType() == Context.Type.FUNCTION) {
-        closure = parentContext.getClosure();
+      Context parentContext = Contexts.findCallingContext(context);
+      if(parentContext.getFunction() instanceof Closure) {
+        closure = (Closure) parentContext.getFunction();
       }
       if(closure == null) {
         throw new EvalException("match.call() was called from outside a function");
@@ -337,7 +337,7 @@ public class Match {
       throw new EvalException("match.call cannot use definition of type '%s'", definition.getTypeName());
     }
     
-    PairList matched = Calls.matchArguments(closure.getFormals(), call.getArguments(), true);
+    PairList matched = ClosureDispatcher.matchArguments(closure.getFormals(), call.getArguments(), true);
     
     PairList.Builder expandedArgs = new PairList.Builder();
     for(PairList.Node node : matched.nodes()) {

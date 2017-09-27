@@ -181,9 +181,10 @@ public class SessionBuilder {
       if(loadBasePackage) {
         session.getTopLevelContext().init();
       }
-      for(String packageToLoad : packagesToLoad) {
+
+      for (int i = packagesToLoad.size()-1; i >= 0; i--) {
         session.getTopLevelContext().evaluate(FunctionCall.newCall(Symbol.get("library"),
-            Symbol.get(packageToLoad)));
+            Symbol.get(packagesToLoad.get(i))));
       }
       return session;
     } catch(Exception e) {

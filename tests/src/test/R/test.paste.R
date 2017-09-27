@@ -42,3 +42,7 @@ test.paste.null <- function() {
     assertThat(paste(NULL), identicalTo(character(0)))
     assertThat(paste(NULL, collapse=""), identicalTo(""))
 }
+
+test.paste.eval <- function() {
+    assertThat(paste(quote(a)), identicalTo("a"))
+}

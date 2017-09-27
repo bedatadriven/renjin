@@ -34,8 +34,6 @@ import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.repackaged.guava.base.Preconditions;
 
-import java.lang.reflect.Field;
-
 /**
  * Strategy for dealing with primitive types.
  * 
@@ -97,14 +95,14 @@ public class PrimitiveTypeStrategy implements SimpleTypeStrategy<PrimitiveValue>
   }
 
   @Override
-  public PrimitiveValue providedGlobalVariable(GimpleVarDecl decl, Field javaField) {
-    Type javaType = Type.getType(javaField.getType());
+  public PrimitiveValue providedGlobalVariable(GimpleVarDecl decl, JExpr expr, boolean readOnly) {
+    Type javaType = expr.getType();
     if(!javaType.equals(this.type.jvmType())) {
-      throw new UnsupportedOperationException("Cannot map global variable " + decl + " to JVM field of type " + javaField + ". " +
+      throw new UnsupportedOperationException("Cannot map global variable " + decl + " to JVM field of type " + expr + ". " +
           "Expected static field of type " + this.type.jvmType());
     }
 
-    return new PrimitiveValue(type, Expressions.staticField(javaField));
+    return new PrimitiveValue(type, expr);
   }
 
   @Override

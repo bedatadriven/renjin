@@ -39,7 +39,6 @@ public class Promise extends AbstractSEXP implements Recursive {
   protected Environment environment;
   protected SEXP expression;
   private SEXP result;
-  private boolean missingArgument;
 
   protected Promise(Environment environment, SEXP expression) {
     assert environment != null;
@@ -78,14 +77,19 @@ public class Promise extends AbstractSEXP implements Recursive {
    */
   @Override
   public SEXP force(Context context) {
+    return force(context, false);
+  }
+
+  @Override
+  public SEXP force(Context context, boolean allowMissing) {
     if (result == null) {
-      this.result = doEval(context);
+      this.result = doEval(context, allowMissing);
     }
     return result;
   }
 
-  protected SEXP doEval(Context context) {
-    return context.evaluate(expression, environment);
+  protected SEXP doEval(Context context, boolean allowMissing) {
+    return context.evaluate(expression, environment, allowMissing);
   }
   
   
@@ -120,15 +124,6 @@ public class Promise extends AbstractSEXP implements Recursive {
   }
 
 
-  /**
-   * 
-   * @return true if this {@code Promise}'s value is the default value for a missing 
-   * argument.
-   */
-  public boolean isMissingArgument() {
-    return missingArgument;
-  }
-  
   public Environment getEnvironment() {
     return environment;
   }
@@ -145,13 +140,7 @@ public class Promise extends AbstractSEXP implements Recursive {
   public boolean isEvaluated() {
     return result != null;
   }
-  
-  public static Promise promiseMissing(Environment environment, SEXP defaultValue) {
-    Promise promise = new Promise(environment, defaultValue);
-    promise.missingArgument = true;
-    return promise;
-  }
-  
+
   public static Promise repromise(Environment environment, SEXP expression) {
     if(expression instanceof Promise) {
       return (Promise)expression;

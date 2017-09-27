@@ -19,7 +19,6 @@
 package org.renjin.gcc.codegen.vptr;
 
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.*;
@@ -32,8 +31,6 @@ import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
 import org.renjin.gcc.runtime.MixedPtr;
 import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Type;
-
-import java.lang.reflect.Field;
 
 /**
  * Represents a record backed by a byte array.
@@ -74,7 +71,7 @@ public class VPtrRecordTypeStrategy extends RecordTypeStrategy<VPtrRecordExpr> {
   }
 
   @Override
-  public VPtrRecordExpr providedGlobalVariable(GimpleVarDecl decl, Field javaField) {
+  public VPtrRecordExpr providedGlobalVariable(GimpleVarDecl decl, JExpr expr, boolean readOnly) {
     throw new UnsupportedOperationException("TODO");
   }
 

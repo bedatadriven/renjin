@@ -29,7 +29,7 @@ import org.renjin.repackaged.guava.base.Preconditions;
  */
 public abstract class AbstractSEXP implements SEXP {
 
-  protected AttributeMap attributes;
+  private AttributeMap attributes;
 
   private boolean object;
 
@@ -237,9 +237,15 @@ public abstract class AbstractSEXP implements SEXP {
       throw new IllegalArgumentException();
     }
   }
-  
+
   public SEXP force(Context context) {
     return this;
+  }
+
+
+  @Override
+  public SEXP force(Context context, boolean allowMissing) {
+    return force(context);
   }
 
   /**
@@ -256,8 +262,7 @@ public abstract class AbstractSEXP implements SEXP {
   }
   
   public void unsafeSetAttributes(AttributeMap.Builder attributes) {
-    this.attributes = attributes.validateAndBuildFor(this);
-    
+    unsafeSetAttributes(attributes.validateAndBuildFor(this));
   }
 
 }

@@ -58,6 +58,11 @@ abstract class AbstractVector extends AbstractSEXP implements Vector {
   }
 
   @Override
+  public double getElementAsComplexIm(int index) {
+    return 0d;
+  }
+
+  @Override
   public Builder newCopyBuilder(Type replacementType) {
     if(getVectorType().isWiderThanOrEqualTo(replacementType)) {
       return newCopyBuilder();
@@ -74,6 +79,13 @@ abstract class AbstractVector extends AbstractSEXP implements Vector {
 
   public int getComputationDepth() {
     return 0;
+  }
+
+  @Override
+  public void copyTo(double[] array, int offset, int length) {
+    for (int i = 0; i < length; i++) {
+      array[offset + i] = getElementAsDouble(i);
+    }
   }
 
   abstract static class AbstractBuilder<S extends SEXP> implements Builder<S> {

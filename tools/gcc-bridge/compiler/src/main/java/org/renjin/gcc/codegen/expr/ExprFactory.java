@@ -215,7 +215,7 @@ public class ExprFactory {
     }
 
     // Assume this is a function pointer ptr expression  
-    FunPtr expr = (FunPtr) findGenerator(functionExpr);
+    FunPtr expr = findGenerator(functionExpr).toFunPtr();
     return new FunPtrCallGenerator(typeOracle, (GimpleFunctionType) functionExpr.getType().getBaseType(), expr.unwrap());
   }
 

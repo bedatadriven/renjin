@@ -39,7 +39,6 @@ import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.repackaged.guava.collect.Maps;
 
-import java.lang.reflect.Field;
 import java.util.Map;
 
 /**
@@ -112,7 +111,7 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<RecordValue> imp
   }
 
   @Override
-  public RecordValue providedGlobalVariable(GimpleVarDecl decl, Field javaField) {
+  public RecordValue providedGlobalVariable(GimpleVarDecl decl, JExpr expr, boolean readOnly) {
     throw new UnsupportedOperationException("TODO");
   }
 

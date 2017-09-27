@@ -34,8 +34,6 @@ import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
 
-import java.lang.reflect.Field;
-
 /**
  * Implements a C pointer using the {@link org.renjin.gcc.runtime.Ptr} interface.
  */
@@ -126,7 +124,7 @@ public class VPtrStrategy implements PointerTypeStrategy {
   }
 
   @Override
-  public GExpr providedGlobalVariable(GimpleVarDecl decl, Field javaField) {
+  public GExpr providedGlobalVariable(GimpleVarDecl decl, JExpr expr, boolean readOnly) {
     throw new UnsupportedOperationException("TODO");
   }
 

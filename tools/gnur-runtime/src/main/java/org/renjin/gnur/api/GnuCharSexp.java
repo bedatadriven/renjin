@@ -21,7 +21,6 @@ package org.renjin.gnur.api;
 import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.repackaged.guava.base.Charsets;
 import org.renjin.sexp.AbstractSEXP;
-import org.renjin.sexp.SEXP;
 import org.renjin.sexp.SexpVisitor;
 import org.renjin.sexp.StringVector;
 
@@ -31,7 +30,7 @@ import org.renjin.sexp.StringVector;
 public class GnuCharSexp extends AbstractSEXP {
 
   public static final GnuCharSexp NA_STRING = new GnuCharSexp(new byte[] { 'N', 'A', 0 });
-  public static final GnuCharSexp BLANK_STRING = new GnuCharSexp(new byte[] { '0' });
+  public static final GnuCharSexp BLANK_STRING = new GnuCharSexp(new byte[] { (int)0 });
 
   private byte[] value;
 

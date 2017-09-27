@@ -44,7 +44,7 @@ public class SerializedPromise extends Promise {
   }
 
   @Override
-  protected SEXP doEval(Context context) {
+  protected SEXP doEval(Context context, boolean allowMissing) {
     try(RDataReader reader = new RDataReader(context, resourceProvider.apply(resourceName(name)))) {
       return reader.readFile();
     } catch (IOException e) {

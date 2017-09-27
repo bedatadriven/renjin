@@ -74,6 +74,12 @@ public class ArgumentTest extends EvalTestCase {
     eval( "f(1,2,3) ");
   }
 
+  @Test(expected = EvalException.class)
+  public void incorrectEllipses() {
+    eval( "f <- function(x) { } ");
+    eval( "f(1,...) ");
+  }
+
   @Test
   public void varArgs() {
     eval( "f <- function(...) { list(...) }");

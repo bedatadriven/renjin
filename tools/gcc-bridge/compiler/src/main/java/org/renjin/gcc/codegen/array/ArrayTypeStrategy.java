@@ -35,7 +35,6 @@ import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Preconditions;
 import org.renjin.repackaged.guava.collect.Lists;
 
-import java.lang.reflect.Field;
 import java.util.List;
 
 
@@ -120,7 +119,7 @@ public class ArrayTypeStrategy implements TypeStrategy<FatArrayExpr> {
   }
 
   @Override
-  public FatArrayExpr providedGlobalVariable(GimpleVarDecl decl, Field javaField) {
+  public FatArrayExpr providedGlobalVariable(GimpleVarDecl decl, JExpr expr, boolean readOnly) {
     throw new UnsupportedOperationException("TODO");
   }
 

@@ -367,6 +367,7 @@ public class Methods {
    * argument to standardGeneric.
    */
   public static SEXP get_this_generic(Context context, String fname) {
+
     SEXP value = Null.INSTANCE;
 
     //    /* a second argument to the call, if any, is taken as the function */
@@ -377,42 +378,19 @@ public class Methods {
      * to force a second argument if possible) */
 
     Context cptr = context;
-    int n = cptr.getFrameDepth();
-    for(int i=0;i<n;++i) {
-      SEXP rval = Contexts.R_sysfunction(i, context);
-      if(rval.isObject()) {
-        SEXP generic = rval.getAttribute(MethodDispatch.GENERIC);
+    while(!cptr.isTopLevel()) {
+      SEXP function = cptr.getFunction();
+      if(function.isObject()) {
+        SEXP generic = function.getAttribute(MethodDispatch.GENERIC);
         if(generic instanceof StringVector && generic.asString().equals(fname)) {
-          value = rval;
+          value = function;
           break;
         }
       }
+      cptr = cptr.getParent();
     }
     return value;
-
-    //    cptr = R_GlobalContext;
-    //    fname = translateChar(asChar(CAR(args)));
-    //    n = framedepth(cptr);
-    //    /* check for a matching "generic" slot */
-    //    for(i=0;  i<n; i++) {
-    //      SEXP rval = R_sysfunction(i, cptr);
-    //      if(isObject(rval)) {
-    //        SEXP generic = getAttrib(rval, gen_name);
-    //        if(TYPEOF(generic) == STRSXP &&
-    //            !strcmp(translateChar(asChar(generic)), fname)) {
-    //          value = rval;
-    //          break;
-    //        }
-    //      }
-    //    }
-    //    return(value);
   }
-  //
-  //
-  //  private static SEXP R_primitive_methods(PrimitiveFunction fdef) {
-  //    // TODO Auto-generated method stub
-  //    return null;
-  //  }
 
 
   private static Symbol checkSlotName(SEXP name) {

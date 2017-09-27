@@ -145,6 +145,9 @@ public class Stdlib {
       return 0;
     }
   }
+  public static double atanh(double x) {
+    return 0.5 * Math.log((1d + x) / (1d - x));
+  }
 
   public static String nullTerminatedString(Ptr x) {
     StringBuilder str = new StringBuilder();
@@ -249,6 +252,14 @@ public class Stdlib {
 
   public static int sscanf(BytePtr format, Object... arguments) {
     throw new UnsupportedOperationException("TODO: implement " + Stdlib.class.getName() + ".sscanf");
+  }
+
+  public static int tolower(int c) {
+    return Character.toLowerCase(c);
+  }
+
+  public static int toupper(int c) {
+    return Character.toUpperCase(c);
   }
 
   private static String doFormat(BytePtr format, Object[] arguments) {

@@ -22,7 +22,7 @@ renjin <- function(expr, envir = parent.frame(), serialize = FALSE, compile = TR
   
   # Grab the unevaluated expression
   expr <- substitute(expr)
-  
+
   if(serialize) {
     bytesIn <- serialize(expr, connection = NULL)
     bytesOut <- .jcall(.renjin.session$renjin, "[B", "evalSerialized", bytesIn)

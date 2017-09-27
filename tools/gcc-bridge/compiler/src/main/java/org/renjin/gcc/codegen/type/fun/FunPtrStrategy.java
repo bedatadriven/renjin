@@ -36,7 +36,6 @@ import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Preconditions;
 
 import java.lang.invoke.MethodHandle;
-import java.lang.reflect.Field;
 
 /**
  * Strategy for function pointer types
@@ -50,7 +49,7 @@ public class FunPtrStrategy implements PointerTypeStrategy<FunPtr>, SimpleTypeSt
 
   @Override
   public ParamStrategy getParamStrategy() {
-    return new RefPtrParamStrategy<>(this);
+    return new FunPtrParamStrategy();
   }
 
   @Override
@@ -59,11 +58,11 @@ public class FunPtrStrategy implements PointerTypeStrategy<FunPtr>, SimpleTypeSt
   }
 
   @Override
-  public FunPtr providedGlobalVariable(GimpleVarDecl decl, Field javaField) {
-    if(javaField.getType().equals(MethodHandle.class)) {
-      return new FunPtr(Expressions.staticField(javaField));
+  public FunPtr providedGlobalVariable(GimpleVarDecl decl, JExpr expr, boolean readOnly) {
+    if(expr.getType().equals(METHOD_HANDLE_TYPE)) {
+      return new FunPtr(expr);
     }
-    throw new InternalCompilerException("Cannot map global variable " + decl + " to " + javaField + ". " +
+    throw new InternalCompilerException("Cannot map global variable " + decl + " to " + expr + ". " +
         "Field of type " + MethodHandle.class.getName() + " is required");
   }
 

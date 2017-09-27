@@ -19,15 +19,13 @@
 // Initial template generated from Rinternals.h from R 3.2.2
 package org.renjin.gnur.api;
 
-import org.renjin.eval.Context;
-import org.renjin.eval.EvalException;
-import org.renjin.eval.FinalizationClosure;
-import org.renjin.eval.FinalizationHandler;
+import org.renjin.eval.*;
+import org.renjin.gcc.annotations.GlobalVar;
 import org.renjin.gcc.runtime.*;
 import org.renjin.methods.MethodDispatch;
-import org.renjin.methods.Methods;
 import org.renjin.primitives.*;
 import org.renjin.primitives.packaging.Namespace;
+import org.renjin.primitives.packaging.Namespaces;
 import org.renjin.primitives.subset.Subsetting;
 import org.renjin.sexp.*;
 
@@ -53,28 +51,52 @@ public final class Rinternals {
   /**
    * The "global" environment
    */
+  @Deprecated
   public static SEXP	R_GlobalEnv;
+
+  @GlobalVar
+  public static SEXP R_GlobalEnv() {
+    return Native.currentContext().getGlobalEnvironment();
+  }
 
   /**
    * The empty environment at the root of the environment tree
    */
-  public static SEXP  R_EmptyEnv;
+  public static SEXP R_EmptyEnv = Environment.EMPTY;
 
   /**
    * The base environment; formerly R_NilEnv
    */
+  @Deprecated
   public static SEXP  R_BaseEnv;
+
+  @GlobalVar
+  public static SEXP R_BaseEnv() {
+    return Native.currentContext().getBaseEnvironment();
+  }
 
   /**
    * The (fake) namespace for base
    */
-  public static SEXP	R_BaseNamespace;
+  @Deprecated
+  public static SEXP R_BaseNamespace;
+
+  @GlobalVar
+  public static SEXP R_BaseNamespace() {
+    return Native.currentContext().getNamespaceRegistry().getBaseNamespaceEnv();
+  }
 
 
   /**
    *  Registry for registered namespaces
    */
-  public static SEXP	R_NamespaceRegistry;
+  @Deprecated
+  public static SEXP R_NamespaceRegistry;
+
+  @GlobalVar
+  public static SEXP R_NamespaceRegistry() {
+    return Namespaces.getNamespaceRegistry(Native.currentContext().getNamespaceRegistry());
+  }
 
   /**
    * Current srcref for debuggers
@@ -178,7 +200,7 @@ public final class Rinternals {
   /**
    * "level" Symbol
    */
-  public static final  SEXP	R_LevelsSymbol = Symbol.get("level");
+  public static final  SEXP	R_LevelsSymbol = Symbol.get("levels");
 
   /**
    * "mode" symbol
@@ -291,6 +313,13 @@ public final class Rinternals {
    * "" as a STRSXP
    */
   public static final SEXP	R_BlankScalarString = new GnuStringVector(GnuCharSexp.BLANK_STRING);
+
+  public static final int CE_NATIVE = 0;
+  public static final int CE_UTF8 = 1;
+  public static final int CE_LATIN1 = 2;
+  public static final int CE_BYTES = 3;
+  public static final int CE_SYMBOL = 5;
+  public static final int CE_ANY = 99;
 
 
   public static BytePtr R_CHAR(SEXP x) {
@@ -1060,8 +1089,10 @@ public final class Rinternals {
         return Vectors.asDouble((Vector)p0).setAttributes(p0.getAttributes());
       case SexpType.CPLXSXP:
         return Vectors.asComplex((Vector)p0).setAttributes(p0.getAttributes());
+      case SexpType.STRSXP:
+        return Vectors.asCharacter(Native.currentContext(), (Vector)p0).setAttributes(p0.getAttributes());
     }
-    throw new UnimplementedGnuApiMethod("Rf_coerceVector");
+    throw new UnimplementedGnuApiMethod("Rf_coerceVector: " + type);
   }
 
   public static SEXP Rf_PairToVectorList(SEXP x) {
@@ -1234,13 +1265,14 @@ public final class Rinternals {
    *
    * @param cr Pointer to the 'car' of the element to be created.
    *
-   * @param tl Pointer to the 'tail' of the element to be created,
+   * @param tail Pointer to the 'tail' of the element to be created,
    *          which must be a pairlist or R_NilValue.
    *
    * @return Pointer to the constructed pairlist.
    */
-  public static SEXP Rf_cons(SEXP cr, SEXP tl) {
-    throw new UnimplementedGnuApiMethod("Rf_cons");
+  public static SEXP Rf_cons(SEXP cr, SEXP tail) {
+    assert tail instanceof PairList : "tail argument must be a pairlist";
+    return new PairList.Node(cr, (PairList)tail);
   }
 
 
@@ -1469,8 +1501,33 @@ public final class Rinternals {
         elements[i] = Rf_duplicate(elements[i]);
       }
       return new ListVector(elements, sexp.getAttributes());
+
+    } else if(sexp instanceof FunctionCall) {
+      return duplicateCall(((FunctionCall) sexp));
+
+    } else if(sexp instanceof PairList) {
+      return duplicatePairList(((PairList) sexp));
+
+    } else if(sexp instanceof Symbol) {
+      return sexp;
     }
     throw new UnimplementedGnuApiMethod("Rf_duplicate: " + sexp.getTypeName());
+  }
+
+  private static SEXP duplicatePairList(PairList pairlist) {
+    PairList.Builder copy = new PairList.Builder();
+    for (PairList.Node node : pairlist.nodes()) {
+      copy.add(node.getRawTag(), Rf_duplicate(node.getValue()));
+    }
+    return copy.build();
+  }
+
+  private static SEXP duplicateCall(FunctionCall call) {
+    FunctionCall.Builder copy = new FunctionCall.Builder();
+    for (PairList.Node node : call.nodes()) {
+      copy.add(node.getRawTag(), Rf_duplicate(node.getValue()));
+    }
+    return copy.build();
   }
 
   public static SEXP Rf_shallow_duplicate(SEXP p0) {
@@ -1581,8 +1638,11 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_GetOption");
   }
 
-  public static SEXP Rf_GetOption1(SEXP p0) {
-    throw new UnimplementedGnuApiMethod("Rf_GetOption1");
+  public static SEXP Rf_GetOption1(SEXP optionNameSexp) {
+    Symbol optionName = (Symbol) optionNameSexp;
+
+    Options options = Native.currentContext().getSession().getSingleton(org.renjin.eval.Options.class);
+    return options.get(optionName.getPrintName());
   }
 
   public static int Rf_GetOptionDigits() {
@@ -1597,8 +1657,12 @@ public final class Rinternals {
     throw new UnimplementedGnuApiMethod("Rf_GetRowNames");
   }
 
-  public static void Rf_gsetVar(SEXP p0, SEXP p1, SEXP p2) {
-    throw new UnimplementedGnuApiMethod("Rf_gsetVar");
+  public static void Rf_gsetVar(SEXP symbolName, SEXP value, SEXP environment) {
+    if(environment == Null.INSTANCE) {
+      environment = Native.currentContext().getBaseEnvironment();
+    }
+
+    ((Environment) environment).setVariable(Native.currentContext(), (Symbol)symbolName, value);
   }
 
 
@@ -1682,19 +1746,22 @@ public final class Rinternals {
     if(string.array == null) {
       return GnuCharSexp.NA_STRING;
     }
-    int length = string.nullTerminatedStringLength();
+    return Rf_mkCharLen(string, string.nullTerminatedStringLength());
+  }
+
+  public static SEXP Rf_mkCharLen(BytePtr string, int length) {
+    if(string.array == null) {
+      return GnuCharSexp.NA_STRING;
+    }
+
     if(length == 0) {
       return R_BlankString;
     }
 
     byte[] copy = new byte[length+1];
     System.arraycopy(string.array, string.offset, copy, 0, length);
-    
-    return new GnuCharSexp(copy);
-  }
 
-  public static SEXP Rf_mkCharLen(BytePtr p0, int p1) {
-    throw new UnimplementedGnuApiMethod("Rf_mkCharLen");
+    return new GnuCharSexp(copy);
   }
 
   public static boolean Rf_NonNullStringMatch(SEXP p0, SEXP p1) {
@@ -1940,8 +2007,23 @@ public final class Rinternals {
    *
    * @return Pointer to the created string.
    */
-  public static SEXP Rf_mkCharLenCE (BytePtr text, int length, Object encoding) {
-    throw new UnimplementedGnuApiMethod("Rf_mkCharLenCE");
+  public static SEXP Rf_mkCharLenCE (BytePtr text, int length, int encoding) {
+    if(text.array == null) {
+      return GnuCharSexp.NA_STRING;
+    }
+
+    if(length == 0) {
+      return R_BlankString;
+    }
+
+    if(encoding != CE_UTF8) {
+      throw new UnsupportedOperationException("encoding: " + encoding);
+    }
+
+    byte[] copy = new byte[length+1];
+    System.arraycopy(text.array, text.offset, copy, 0, length);
+
+    return new GnuCharSexp(copy);
   }
 
   // const char* Rf_reEnc (const char *x, cetype_t ce_in, cetype_t ce_out, int subst)
@@ -2223,7 +2305,29 @@ public final class Rinternals {
       throw new EvalException("invalid type or length for slot name");
     }
 
-    return Methods.R_set_slot(Native.currentContext(), obj, name.asString(), value);
+    // In GNU R calls from C code to SET_SLOT will mutate the object
+    // depending on whether the 'named' flag is set. In Renjin we don't
+    // have this flag and therefor assume that all calls from C code to
+    // SET_SLOT will mutate the object. However, calls from R code
+    // should not mutate, hence we do not change Methods.R_set_slot()
+    // to use unsafesetAttributes(), but duplicate the logic here and
+    // use the unsafesetAttributes() here instead.
+    if(name.asString().equals(".Data")) {
+      // the .Data slot actually refers to the object value itself, for
+      // example the double values contained in a double vector
+      // So we copy the slots from 'object' to the new value
+      return Native.currentContext().evaluate(FunctionCall.newCall(Symbol.get("setDataPart"), obj, value),
+        Native.currentContext().getSingleton(MethodDispatch.class).getMethodsNamespace());
+    } else {
+      // When set via S4 methods, R attributes can contain
+      // invalid values, for example the 'class' attribute
+      // might contain a double vector of arbitrary length.
+      // For this reason we have to be careful to avoid attribute
+      // validation.
+      SEXP slotValue = value == Null.INSTANCE ? Symbols.S4_NULL : value;
+      ((AbstractSEXP)obj).unsafeSetAttributes(obj.getAttributes().copy().set(name.asString(), slotValue));
+      return obj;
+    }
   }
 
   public static int R_has_slot(SEXP obj, SEXP name) {

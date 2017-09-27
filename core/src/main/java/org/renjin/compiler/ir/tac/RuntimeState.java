@@ -25,7 +25,7 @@ import org.renjin.compiler.ir.ValueBounds;
 import org.renjin.compiler.ir.exception.InvalidSyntaxException;
 import org.renjin.eval.ArgumentMatcher;
 import org.renjin.eval.Context;
-import org.renjin.eval.MatchedArguments;
+import org.renjin.eval.MatchedArgumentPositions;
 import org.renjin.packaging.SerializedPromise;
 import org.renjin.primitives.S3;
 import org.renjin.primitives.packaging.Namespace;
@@ -421,7 +421,7 @@ public class RuntimeState {
         for(int i = 0; i < arguments.size(); i++) {
           argNames[i] = arguments.get(i).getName();
         }
-        MatchedArguments matchedArguments = argumentMatcher.match(argNames);
+        MatchedArgumentPositions matchedArguments = argumentMatcher.match(argNames);
         
         //if (!matchedArguments.hasExtraArguments()) {
         argSignatures = computeArgumentSignatures(context, matchedArguments, arguments, currentDepth);
@@ -470,7 +470,6 @@ public class RuntimeState {
           argumentClassIdx = 0;
           repeat = repeat * numberOfClassesCurrentArgument;
         }
-        Collections.sort(possibleSignatures);
         listSignatures.add(possibleSignatures);
       }
       mapListMethods.put(type, listSignatures);
@@ -478,7 +477,7 @@ public class RuntimeState {
     return mapListMethods;
   }
   
-  private static S3.ArgumentSignature[] computeArgumentSignatures(Context context, MatchedArguments match, List<ArgumentBounds> arguments, int currentDepth) {
+  private static S3.ArgumentSignature[] computeArgumentSignatures(Context context, MatchedArgumentPositions match, List<ArgumentBounds> arguments, int currentDepth) {
     
     String argClass;
     
@@ -486,7 +485,7 @@ public class RuntimeState {
     
     int idx = 0;
     for (int i = 0; i < currentDepth; i++) {
-      Symbol formal = match.getFormal(i);
+      Symbol formal = match.getFormalName(i);
       ValueBounds value = arguments.get(match.getMatchedFormals().get(formal)).getBounds();
       if (value.getConstantClassAttribute() != Null.INSTANCE) {
         argClass = value.getConstantClassAttribute().getElementAsString(0);
@@ -568,9 +567,10 @@ public class RuntimeState {
 //    return new S3.ArgumentSignature(classes.toArray(new String[0]), Ints.toArray(distances));
 //  }
   
-  public List<List<S3.SelectedMethod>> findMatchingMethods(Symbol opName, Map<String, List<List<S3.MethodRanking>>> signatures) {
+  public Map<String, List<S3.SelectedMethod>> findMatchingMethods(Symbol opName, Map<String, List<List<S3.MethodRanking>>> signatures) {
     
-    List<List<S3.SelectedMethod>> listMethods = new ArrayList<>();
+    Map<String, List<S3.SelectedMethod>> methods = new HashMap<>();
+    List<S3.SelectedMethod> selectedMethods = new ArrayList<>();
     Map<String, List<Environment>> mapMethodTableLists = new HashMap<>();
     if(s4GenericMethodTables.containsKey(opName)) {
       mapMethodTableLists.put("generic", s4GenericMethodTables.get(opName));
@@ -586,23 +586,26 @@ public class RuntimeState {
     
       for(int i = 0; i < rankings.size(); i++) {
         List<S3.MethodRanking> rankedMethodsList = rankings.get(i);
-        List<S3.SelectedMethod> selectedMethods = new ArrayList<>();
         String inputSignature = rankedMethodsList.get(0).getSignature();
       
         for (S3.MethodRanking rankedMethod : rankedMethodsList) {
           String signature = rankedMethod.getSignature();
+          double rank = rankedMethod.getRank();
           int distance = rankedMethod.getTotalDist();
+          boolean has0 = rankedMethod.hasZeroDistanceArgument();
           Symbol signatureSymbol = Symbol.get(signature);
           SEXP function = methodTableList.get(i).getFrame().getVariable(signatureSymbol).force(context);
         
           if (function instanceof Closure) {
-            selectedMethods.add(new S3.SelectedMethod((Closure) function, type, distance, signature, signatureSymbol, inputSignature));
+            selectedMethods.add(new S3.SelectedMethod((Closure) function, type, rank, distance, signature, signatureSymbol, inputSignature, has0));
           }
         }
-        listMethods.add(selectedMethods);
+      }
+      if(selectedMethods.size() > 0) {
+        Collections.sort(selectedMethods);
+        methods.put(type, selectedMethods);
       }
     }
-  
-    return listMethods;
+    return methods;
   }
 }

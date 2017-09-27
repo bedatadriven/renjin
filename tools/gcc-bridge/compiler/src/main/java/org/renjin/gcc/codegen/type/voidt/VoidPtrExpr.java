@@ -40,6 +40,7 @@ import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.gcc.runtime.ObjectPtr;
 import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;

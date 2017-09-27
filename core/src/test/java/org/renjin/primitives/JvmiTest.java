@@ -182,7 +182,7 @@ public class JvmiTest extends EvalTestCase {
   
   @Test
   public void sapplyOnLists() throws IOException {
-    assumingBasePackagesLoad();
+
     
     eval("import(org.renjin.primitives.MyBean)");
     eval("x <- MyBean$new()");

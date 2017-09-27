@@ -22,7 +22,7 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.GExpr;
-import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.var.VarAllocator;
@@ -32,8 +32,6 @@ import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleComplexType;
 import org.renjin.repackaged.asm.Type;
-
-import java.lang.reflect.Field;
 
 /**
  * Strategy for complex number types.
@@ -74,7 +72,7 @@ public class ComplexTypeStrategy implements TypeStrategy<ComplexValue> {
   }
 
   @Override
-  public ComplexValue providedGlobalVariable(GimpleVarDecl decl, Field javaField) {
+  public ComplexValue providedGlobalVariable(GimpleVarDecl decl, JExpr expr, boolean readOnly) {
     throw new UnsupportedOperationException("TODO");
   }
 

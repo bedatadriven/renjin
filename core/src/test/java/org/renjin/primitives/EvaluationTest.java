@@ -555,11 +555,6 @@ public class EvaluationTest extends EvalTestCase {
   @Test
   public void delayedAssign() {
 
-    eval("parent.frame <- function (n = 1) " +
-        ".Internal(parent.frame(n))");
-    eval(" delayedAssign <- function (x, value, eval.env = parent.frame(1), assign.env = parent.frame(1)) " +
-             ".Internal(delayedAssign(x, substitute(value), eval.env, assign.env)) ");
-
     eval(" delayedAssign('x', f(y)) ");
     eval(" y<-3");
     eval(" f<-function(x) x^2 ");
@@ -597,7 +592,7 @@ public class EvaluationTest extends EvalTestCase {
   
   @Test
   public void matchCall() throws IOException {
-    assumingBasePackagesLoad();
+
     
     eval("f<-function(a,b) match.call()");
     eval("matched <- f(b=1,a=2)");
@@ -609,8 +604,7 @@ public class EvaluationTest extends EvalTestCase {
 
   @Test
   public void matchCallWithMissingArgs() throws IOException {
-    assumingBasePackagesLoad();
-    
+
     eval("f<-function(a,b) match.call()");
     eval("matched <- f(b=1)");
     
@@ -632,7 +626,7 @@ public class EvaluationTest extends EvalTestCase {
   
   @Test
   public void matchCallDotsNotExpanded() throws IOException {
-    assumingBasePackagesLoad();
+
     
     eval("f<-function(expand.dots,...) match.call(expand.dots=expand.dots)");
     

@@ -102,7 +102,7 @@ public class BasePackageTest extends EvalTestCase {
 
   @Test
   public void oldRowNamesAreConverted() throws IOException {
-    assumingBasePackagesLoad();
+    
 
     eval(" xi <- list(c(55, 60, 30, 40, 11)) ");
     eval(" attr(xi, 'row.names') <- c(NA, -5) ");
@@ -152,7 +152,7 @@ public class BasePackageTest extends EvalTestCase {
 
   @Test
   public void sysFunction() {
-    assumingBasePackagesLoad();
+    
 
     eval("g <- function() { y <- 99; x<- 42; function() { sys.function() }  };");
     eval("fn <- g()");
@@ -170,7 +170,7 @@ public class BasePackageTest extends EvalTestCase {
 
   @Test
   public void genericSubscript() throws IOException {
-    assumingBasePackagesLoad();
+    
 
     eval("  d<-as.data.frame(list(ids=1:5)) ");
     assertThat( eval(" d[,1] "), elementsIdenticalTo(c_i(1,2,3,4,5)));
@@ -179,7 +179,7 @@ public class BasePackageTest extends EvalTestCase {
 
   @Test
   public void factor() throws IOException {
-    assumingBasePackagesLoad();
+    
 
     eval(" cat <- factor(c(1:3), exclude= c(NA, NaN)) ");
     eval(" addNA(cat, ifany=TRUE) ");
@@ -203,7 +203,7 @@ public class BasePackageTest extends EvalTestCase {
 
   @Test
   public void factorInteger() throws IOException {
-    assumingBasePackagesLoad();
+    
 
     eval("x <- 1:5");
     eval("exclude <- c(NA, NaN)");
@@ -231,7 +231,7 @@ public class BasePackageTest extends EvalTestCase {
 
   @Test
   public void factorIssue10() throws IOException {
-    assumingBasePackagesLoad();
+    
 
     eval(" gender <- c('F','F','F','F', 'M','M','M') ");
     eval(" gender <- factor(gender) ");
@@ -241,7 +241,7 @@ public class BasePackageTest extends EvalTestCase {
 
   @Test
   public void factorPrint() throws IOException {
-    assumingBasePackagesLoad();
+    
 
     StringWriter stringWriter = new StringWriter();
     topLevelContext.getSession().setStdOut(new PrintWriter(stringWriter));
@@ -254,7 +254,7 @@ public class BasePackageTest extends EvalTestCase {
 
   @Test
   public void parentFrameFromWithinEval() throws IOException {
-    assumingBasePackagesLoad();
+    
 
     eval("qq<-99");
     eval("g<-function(envir=parent.frame()) envir ");
@@ -284,7 +284,7 @@ public class BasePackageTest extends EvalTestCase {
 
   @Test
   public void sapply() throws IOException {
-    assumingBasePackagesLoad();
+    
 
     eval(" x<-list() ");
     assertThat(eval("sapply(attr(~1,'vars'), deparse, width.cutoff = 500)[-1L]"), elementsIdenticalTo(list()));
@@ -292,16 +292,12 @@ public class BasePackageTest extends EvalTestCase {
 
   @Test @Ignore("not working yet")
   public void lzmaDecompression() throws IOException {
-    assumingBasePackagesLoad();
-
     eval("data(USArrests)");
     eval("names(USArrests)");
   }
 
   @Test
   public void asDataFrameForMatrix() throws IOException {
-    assumingBasePackagesLoad();
-
     eval("g<-matrix(1:64,8)");
     eval("df<-as.data.frame(g)");
     assertThat(eval("length(unclass(df))"), elementsIdenticalTo(c_i(8)));
@@ -309,16 +305,12 @@ public class BasePackageTest extends EvalTestCase {
 
   @Test
   public void factorEquality() throws IOException {
-    assumingBasePackagesLoad();
-
     eval("y <- as.factor(c(1,0))");
     assertThat( eval("y == c('1', '0')"), elementsIdenticalTo(c(true,true)));
   }
 
   @Test
   public void outer() throws IOException {
-    assumingBasePackagesLoad();
-
     eval("x <- c(1,0,1,0,1,0)");
     eval("y <- as.factor(c(1,0,1,0,1,0))");
     eval("h <- levels(y)");
@@ -335,7 +327,7 @@ public class BasePackageTest extends EvalTestCase {
 
   @Test
   public void issue8() throws IOException {
-    assumingBasePackagesLoad();
+    
 
     assertThat( eval("rep(seq(1,10,1),2)"), elementsIdenticalTo(c( 1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10)));
   }
@@ -343,7 +335,7 @@ public class BasePackageTest extends EvalTestCase {
   @Test
   @Ignore("has dependency on utils package!")
   public void source() throws IOException {
-    assumingBasePackagesLoad();
+    
 
     String file = BasePackageTest.class.getResource("SourceTest.R").getFile();
     global.setVariable(topLevelContext, Symbol.get("fn"),
@@ -353,7 +345,7 @@ public class BasePackageTest extends EvalTestCase {
 
   @Test
   public void splitAssign() throws IOException {
-    assumingBasePackagesLoad();
+    
 
     eval("n <- 10");
     eval("nn <- 100");
@@ -367,7 +359,7 @@ public class BasePackageTest extends EvalTestCase {
 
   @Test
   public void remove() throws IOException {
-    assumingBasePackagesLoad();
+    
 
     eval("a<-1");
     eval("remove(a)");
@@ -379,7 +371,7 @@ public class BasePackageTest extends EvalTestCase {
 
   @Test
   public void bquote() throws IOException {
-    assumingBasePackagesLoad();
+    
 
     eval("x <- bquote(~0 + .(quote(births)))");
     eval("print(x)");
@@ -397,7 +389,7 @@ public class BasePackageTest extends EvalTestCase {
   @Test
   public void bquoteInternal() throws IOException {
 
-    assumingBasePackagesLoad();
+    
 
     eval("tt <- 1");
     eval("bq <- bquote( ~ 0 + . (tt) )");
@@ -415,7 +407,7 @@ public class BasePackageTest extends EvalTestCase {
 
   @Test
   public void rowSums() throws IOException {
-    assumingBasePackagesLoad();
+    
 
     eval("m <- matrix(1:12, 3)");
 
@@ -428,7 +420,7 @@ public class BasePackageTest extends EvalTestCase {
 
   @Test
   public void rowLabelsFromFactors() throws IOException {
-    assumingBasePackagesLoad();
+    
 
     eval("x <- factor(c('Yes','No','No'))");
     eval("m <- matrix(c(1:6), 2, 3)");
@@ -446,7 +438,7 @@ public class BasePackageTest extends EvalTestCase {
 
   @Test
   public void inOpWithNA() throws IOException {
-    assumingBasePackagesLoad();
+    
 
     assertThat( eval("NA %in% FALSE"), elementsIdenticalTo(c(false)));
     assertThat( eval("NA %in% TRUE"), elementsIdenticalTo(c(false)));
@@ -454,7 +446,7 @@ public class BasePackageTest extends EvalTestCase {
 
   @Test
   public void summaryForDataFrame() throws IOException {
-    assumingBasePackagesLoad();
+    
     eval(" x <-as.data.frame(list(x=1:10,y=11:20)) ");
 
     assertThat(eval("max(x)"), elementsIdenticalTo(c_i(20)));
@@ -462,7 +454,7 @@ public class BasePackageTest extends EvalTestCase {
 
   @Test
   public void emptyFactor() {
-    assumingBasePackagesLoad();
+    
 
     eval("x <- factor() ");
     assertThat(eval("class(x)"), elementsIdenticalTo(c("factor")));
@@ -473,7 +465,7 @@ public class BasePackageTest extends EvalTestCase {
 
   @Test
   public void attributeOverflow() {
-    assumingBasePackagesLoad();
+    
 
     eval(" all.equal(list(names = NULL), list(names = NULL))");
   }
@@ -481,7 +473,7 @@ public class BasePackageTest extends EvalTestCase {
   @Test
   public void serialize() {
 
-    assumingBasePackagesLoad();
+    
 
     eval("x <- serialize(42, connection=NULL)");
     assertThat(eval("length(x)"), elementsIdenticalTo(c_i(30)));
@@ -498,7 +490,7 @@ public class BasePackageTest extends EvalTestCase {
 
   @Test
   public void recall() {
-    assumingBasePackagesLoad();
+    
 
     eval("fib <- function(n) if(n<=2) { if(n>=0) 1 else 0 } else Recall(n-1) + Recall(n-2)");
     eval("fibonacci <- fib");
@@ -508,7 +500,7 @@ public class BasePackageTest extends EvalTestCase {
 
   @Test
   public void mapply() {
-    assumingBasePackagesLoad();
+    
 
     assertThat(eval("mapply(rep, 1:4, 4:1)"), elementsIdenticalTo(list(
         c_i(1,1,1,1),
@@ -520,7 +512,7 @@ public class BasePackageTest extends EvalTestCase {
 
   @Test
   public void assignInClosure() {
-    assumingBasePackagesLoad();
+    
 
     eval(" f <- function() { y<-66; fieldClasses <- NULL; assign('fieldClasses', 42); fieldClasses; } ");
 
@@ -530,7 +522,7 @@ public class BasePackageTest extends EvalTestCase {
 
   @Test
   public void ls() {
-    assumingBasePackagesLoad();
+    
     eval("x<-41");
     eval(".Foo <- 'bar'");
     eval("print(ls(all.names=TRUE))");
@@ -538,7 +530,7 @@ public class BasePackageTest extends EvalTestCase {
 
   @Test
   public void setBody() {
-    assumingBasePackagesLoad();
+    
     eval("f <- function(x,y,z) y ");
     eval("body(f) <- quote(x) ");
     assertThat(eval("f(42)"), elementsIdenticalTo(c(42)));
@@ -546,7 +538,7 @@ public class BasePackageTest extends EvalTestCase {
 
   @Test
   public void setFormals() {
-    assumingBasePackagesLoad();
+    
 
     eval(" f <- function(x) {  .findNextFromTable(method, f, optional, envir) }");
     eval(" bd <- body(f)");
@@ -559,7 +551,7 @@ public class BasePackageTest extends EvalTestCase {
 
   @Test
   public void isR() {
-    assumingBasePackagesLoad();
+    
     assertThat(eval("is.R()"), elementsIdenticalTo(c(true)));
   }
 

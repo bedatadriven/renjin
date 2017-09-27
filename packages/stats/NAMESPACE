@@ -28,7 +28,24 @@ useDynLib(stats, .registration = FALSE, .fixes="C_",
     cor,
     lowess,
     optim,
-    optimhess
+    optimhess,
+    HoltWinters,
+    acf,
+    pacf1,
+    ARIMA_transPars,
+    ARIMA_CSS,
+    ARIMA_Invtrans,
+    ARIMA_Like,
+    ARIMA_Gradtrans,
+    ARIMA_undoPars,
+    getQ0,
+    TSconv,
+    KalmanLike,
+    KalmanFore,
+    eureka = eureka_,
+    Burg,
+    rbart = rbart_,
+    bvalus = bvalus_
     )
 
 # exportPattern("^[^\\.]")

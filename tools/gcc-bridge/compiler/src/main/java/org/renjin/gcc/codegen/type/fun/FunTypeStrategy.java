@@ -22,6 +22,7 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.var.VarAllocator;
@@ -30,8 +31,6 @@ import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleFunctionType;
 import org.renjin.repackaged.asm.Type;
-
-import java.lang.reflect.Field;
 
 /**
  * Creates {@code Generators} for values for function values.
@@ -69,7 +68,7 @@ public class FunTypeStrategy implements TypeStrategy<FunExpr> {
   }
 
   @Override
-  public FunExpr providedGlobalVariable(GimpleVarDecl decl, Field javaField) {
+  public FunExpr providedGlobalVariable(GimpleVarDecl decl, JExpr expr, boolean readOnly) {
     throw newInvalidOperation();
   }
 

@@ -23,7 +23,6 @@ import org.renjin.gcc.codegen.array.ArrayTypeStrategies;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.type.*;
-import org.renjin.gcc.codegen.type.primitive.ConstantValue;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.codegen.vptr.VPtrParamStrategy;
@@ -33,8 +32,6 @@ import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleIntegerType;
 import org.renjin.repackaged.asm.Type;
-
-import java.lang.reflect.Field;
 
 import static org.renjin.gcc.codegen.expr.Expressions.constantInt;
 
@@ -134,7 +131,7 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
   }
 
   @Override
-  public FatPtr providedGlobalVariable(GimpleVarDecl decl, Field javaField) {
+  public FatPtr providedGlobalVariable(GimpleVarDecl decl, JExpr expr, boolean readOnly) {
     throw new UnsupportedOperationException("TODO");
   }
 

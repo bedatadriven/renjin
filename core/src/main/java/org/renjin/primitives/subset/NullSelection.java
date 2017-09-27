@@ -76,7 +76,7 @@ public enum NullSelection implements SelectionStrategy {
   }
 
   @Override
-  public Vector replaceSingleElement(AtomicVector source, Vector replacement) {
+  public Vector replaceSingleElement(Context context, AtomicVector source, Vector replacement) {
     throw new EvalException("attempt to select less than one element");
   }
 }

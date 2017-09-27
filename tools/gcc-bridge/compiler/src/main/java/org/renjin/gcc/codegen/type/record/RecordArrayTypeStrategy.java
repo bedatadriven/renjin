@@ -18,27 +18,19 @@
  */
 package org.renjin.gcc.codegen.type.record;
 
-import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.codegen.MethodGenerator;
-import org.renjin.gcc.codegen.array.FatArrayExpr;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategies;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.*;
-import org.renjin.gcc.codegen.fatptr.FatPtrPair;
 import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.fatptr.Wrappers;
 import org.renjin.gcc.codegen.type.*;
-import org.renjin.gcc.codegen.type.primitive.PrimitiveTypeStrategy;
-import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
-import org.renjin.gcc.codegen.type.primitive.PrimitiveValueFunction;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.*;
 import org.renjin.repackaged.asm.Type;
-
-import java.lang.reflect.Field;
 
 import static org.renjin.gcc.codegen.expr.Expressions.*;
 
@@ -110,7 +102,7 @@ public class RecordArrayTypeStrategy extends RecordTypeStrategy<RecordArrayExpr>
   }
 
   @Override
-  public RecordArrayExpr providedGlobalVariable(GimpleVarDecl decl, Field javaField) {
+  public RecordArrayExpr providedGlobalVariable(GimpleVarDecl decl, JExpr expr, boolean readOnly) {
     throw new UnsupportedOperationException("TODO");
   }
 

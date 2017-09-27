@@ -18,23 +18,22 @@
  */
 package org.renjin.compiler.cfg;
 
-import org.renjin.compiler.NotCompilableException;
 import org.renjin.compiler.TypeSolver;
 import org.renjin.compiler.builtins.ArgumentBounds;
-import org.renjin.compiler.codegen.*;
+import org.renjin.compiler.codegen.ByteCodeEmitter;
+import org.renjin.compiler.codegen.EmitContext;
+import org.renjin.compiler.codegen.InlineEmitContext;
+import org.renjin.compiler.codegen.InlineParamExpr;
 import org.renjin.compiler.ir.ValueBounds;
-import org.renjin.compiler.ir.exception.InternalCompilerException;
 import org.renjin.compiler.ir.ssa.SsaTransformer;
-import org.renjin.compiler.ir.tac.*;
-import org.renjin.compiler.ir.tac.expressions.Expression;
-import org.renjin.compiler.ir.tac.expressions.LocalVariable;
+import org.renjin.compiler.ir.tac.IRArgument;
+import org.renjin.compiler.ir.tac.IRBody;
+import org.renjin.compiler.ir.tac.IRBodyBuilder;
+import org.renjin.compiler.ir.tac.RuntimeState;
 import org.renjin.compiler.ir.tac.expressions.ReadParam;
 import org.renjin.compiler.ir.tac.statements.ReturnStatement;
 import org.renjin.compiler.ir.tac.statements.Statement;
-import org.renjin.eval.MatchedArguments;
-import org.renjin.primitives.special.ForFunction;
-import org.renjin.repackaged.asm.Label;
-import org.renjin.repackaged.asm.MethodVisitor;
+import org.renjin.eval.MatchedArgumentPositions;
 import org.renjin.repackaged.asm.commons.InstructionAdapter;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.sexp.Closure;
@@ -132,7 +131,7 @@ public class InlinedFunction {
     return types.isPure();
   }
   
-  public void writeInline(EmitContext emitContext, InstructionAdapter mv, MatchedArguments matching, List<IRArgument> arguments) {
+  public void writeInline(EmitContext emitContext, InstructionAdapter mv, MatchedArgumentPositions matching, List<IRArgument> arguments) {
  
     InlineEmitContext inlineContext = emitContext.inlineContext(cfg, types);
 

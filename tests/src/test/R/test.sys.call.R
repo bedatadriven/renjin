@@ -20,6 +20,12 @@
 
 library(hamcrest)
 
+## Top-level test case
+
+top <- sys.call()
+
+assertThat(top, identicalTo(NULL))
+
 
 ## Functions used in test cases
 
@@ -60,3 +66,10 @@ test.s3.parent <- function() {
     assertThat(call, identicalTo("foo(-1L)"))
 }
 
+test.eval <- function() {
+
+    assertThat(eval(quote(foo.default(0))), identicalTo("foo.default(0)"))
+    assertThat(eval(quote(foo.default(-1))), identicalTo("eval(quote(foo.default(-1)))"))
+    assertThat(eval(quote(foo.default(-2))), identicalTo("eval(quote(foo.default(-2)))"))
+
+}

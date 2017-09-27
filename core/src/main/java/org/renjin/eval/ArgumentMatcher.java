@@ -18,48 +18,47 @@
  */
 package org.renjin.eval;
 
-import org.renjin.sexp.Closure;
-import org.renjin.sexp.PairList;
-import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbol;
+import org.renjin.sexp.*;
 
 import java.util.Arrays;
 
 /**
- * Matches arguments
+ * Matches arguments to a function call to the formal arguments declared by an R closure.
  */
 public class ArgumentMatcher {
 
   private final String[] formalNames;
-  private int formalElipses;
+  private final SEXP[] defaultValues;
 
-  public ArgumentMatcher(String[] formalNames) {
-    this.formalNames = formalNames;
-    this.formalElipses = findElipses(this.formalNames);
-  }
+  /**
+   * The zero-based index of the ellipses argument (...) within the formal parameter list.
+   */
+  private int formalEllipses;
+
 
   public ArgumentMatcher(Closure closure) {
     this(closure.getFormals());
   }
 
   public ArgumentMatcher(PairList formals) {
-    this(toNameArray(formals));
-  }
+    int formalCount = formals.length();
+    formalNames = new String[formalCount];
+    formalEllipses = -1;
+    defaultValues = new SEXP[formalCount];
 
-  private static String[] toNameArray(PairList formals) {
-    String[] array = new String[formals.length()];
     int i = 0;
     for (PairList.Node node : formals.nodes()) {
       SEXP tag = node.getRawTag();
       if(tag instanceof Symbol) {
-        array[i++] = ((Symbol) tag).getPrintName();
+        Symbol formalName = (Symbol) tag;
+        if(formalName == Symbols.ELLIPSES) {
+          formalEllipses = i;
+        }
+        formalNames[i] = formalName.getPrintName();
       }
+      defaultValues[i] = node.getValue();
+      i++;
     }
-    return array;
-  }
-
-  public MatchedArguments match(PairList actuals) {
-    return match(toNameArray(actuals));
   }
 
   /**
@@ -84,7 +83,7 @@ public class ArgumentMatcher {
    * If any arguments remain unmatched an error is declared.
    *
    */
-  public MatchedArguments match(String[] actualNames) {
+  public MatchedArgumentPositions match(String[] actualNames) {
 
     int[] formalToActual = new int[formalNames.length];
     Arrays.fill(formalToActual, -1);
@@ -95,7 +94,7 @@ public class ArgumentMatcher {
     // do exact matching
     for (int formalIndex = 0; formalIndex < formalNames.length; formalIndex++) {
       String formalName = formalNames[formalIndex];
-      if(formalIndex != formalElipses) {
+      if(formalIndex != formalEllipses) {
         int exactMatchIndex = findExactMatch(formalName, actualNames);
         if (exactMatchIndex != -1) {
           formalToActual[formalIndex] = exactMatchIndex;
@@ -123,7 +122,7 @@ public class ArgumentMatcher {
 
     int nextActual = 0;
     for (int formalIndex = 0; formalIndex < formalNames.length; formalIndex++) {
-      if(formalIndex == formalElipses) {
+      if(formalIndex == formalEllipses) {
         break;
       }
       if(!matchedFormals[formalIndex]) {
@@ -138,14 +137,35 @@ public class ArgumentMatcher {
     }
 
     // match any remaining unmatched actuals to extra arguments, if present
-    if(formalElipses == -1) {
+    if(formalEllipses == -1) {
       if (hasUnmatched(matchedActuals)) {
         throw new EvalException("Unused arguments");
       }
     }
 
-    return new MatchedArguments(formalNames, formalToActual, matchedActuals);
+    return new MatchedArgumentPositions(formalNames, formalToActual, matchedActuals);
   }
+
+  public MatchedArguments match(PairList actuals) {
+    int numActuals = actuals.length();
+    SEXP actualTags[] = new SEXP[numActuals];
+    String actualNames[] = new String[numActuals];
+    SEXP actualValues[] = new SEXP[numActuals];
+    {
+      int i = 0;
+      for (PairList.Node node : actuals.nodes()) {
+        actualTags[i] = node.getRawTag();
+        if (node.hasName()) {
+          actualNames[i] = node.getName();
+        }
+        actualValues[i] = node.getValue();
+        i++;
+      }
+    }
+
+    return new MatchedArguments(match(actualNames), actualTags, actualValues);
+  }
+
 
   private boolean hasUnmatched(boolean[] matchedActuals) {
     for (int i = 0; i < matchedActuals.length; i++) {
@@ -154,15 +174,6 @@ public class ArgumentMatcher {
       }
     }
     return false;
-  }
-
-  private static int findElipses(String[] formalNames) {
-    for (int i = 0; i < formalNames.length; i++) {
-      if(formalNames[i].equals("...")) {
-        return i;
-      }
-    }
-    return -1;
   }
 
   private static int findNextUnnamed(String actualNames[], int start) {
@@ -176,17 +187,6 @@ public class ArgumentMatcher {
     return -1;
   }
 
-
-  private static int findNextUnmatched(boolean[] actualMatched, int start) {
-    int i = start;
-    while(i < actualMatched.length) {
-      if(!actualMatched[i]) {
-        return i;
-      }
-      i++;
-    }
-    return -1;
-  }
 
   /**
    * Find an argument name that *exactly* matches the given formal name.
@@ -237,7 +237,7 @@ public class ArgumentMatcher {
     return match;
   }
 
-  public boolean isFormalElipses(int i) {
-    return formalElipses == i;
+  public SEXP getDefaultValue(int formalIndex) {
+    return defaultValues[formalIndex];
   }
 }

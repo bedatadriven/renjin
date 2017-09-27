@@ -307,29 +307,43 @@ public class Evaluation {
   @Builtin
   public static boolean missing(@Current Context context, @Current Environment rho,
                                 @Unevaluated Symbol symbol) {
-    
+
+
     if(symbol.isVarArgReference()) {
       return isVarArgMissing(context, rho, symbol.getVarArgReferenceIndex());
-    }
-    
-    SEXP value = rho.findVariable(context, symbol);
-    
-    if(value == Symbol.UNBOUND_VALUE) {
-      throw new EvalException("'missing' can only be used for arguments");
-    } else if(value == Symbol.MISSING_ARG) {
-      return true;
-    } else if(isDefaultValue(value)) {
-      return true;
+
+    } else if(symbol == Symbols.ELLIPSES) {
+      return isEllipsesMissing(context, rho);
+
     } else {
-      return isPromisedMissingArg(context, value, new ArrayDeque<Promise>());
-    } 
+      return isArgMissing(context, rho, symbol);
+    }
   }
 
-  private static boolean isVarArgMissing(@Current Context context, Environment rho, int varArgReferenceIndex) {
+  /**
+   * The '...' argument is considered to be "missing" if is empty.
+   */
+  private static boolean isEllipsesMissing(Context context, Environment rho) {
+
     SEXP ellipses = rho.findVariable(context, Symbols.ELLIPSES);
     if(ellipses == Symbol.UNBOUND_VALUE) {
-      throw new EvalException("This function does not have a ... argument");
+      throw new EvalException("missing can only be used for arguments.");
     }
+
+    return ellipses.length() == 0;
+  }
+
+  /**
+   * The '..1' argument is considered to be "missing" IF one is not provided, OR it is a promise
+   * to a missing argument with no default value.
+   */
+  private static boolean isVarArgMissing(@Current Context context, Environment rho, int varArgReferenceIndex) {
+
+    SEXP ellipses = rho.findVariable(context, Symbols.ELLIPSES);
+    if(ellipses == Symbol.UNBOUND_VALUE) {
+      throw new EvalException("missing can only be used for arguments.");
+    }
+
     if(ellipses.length() < varArgReferenceIndex) {
       return true;
     }
@@ -337,24 +351,30 @@ public class Evaluation {
     return value == Symbol.MISSING_ARG || isPromisedMissingArg(context, value, new ArrayDeque<Promise>());
   }
 
-  /**
-   * 
-   * @return true if {@code exp} is the name of an argument that was missing but has a default value
-   */
-  private static boolean isDefaultValue(SEXP exp) {
-    if(exp instanceof Promise) {
-      Promise promise = (Promise) exp;
-      if (promise.isMissingArgument()) {
-        return true;
-      }
+  private static boolean isArgMissing(Context context, Environment rho, Symbol argumentName) {
+
+    if(rho.isMissingArgument(argumentName)) {
+      return true;
+    }
+    SEXP value = rho.findVariable(context, argumentName);
+    if(value == Symbol.UNBOUND_VALUE) {
+      throw new EvalException("missing can only be used for arguments.");
+    }
+    if (value == Symbol.MISSING_ARG) {
+      return true;
+    }
+
+    if(value instanceof Promise) {
+      return isPromisedMissingArg(context, value, new ArrayDeque<Promise>());
     }
     return false;
   }
 
+
   /**
    * @return true if {@code exp} evaluates to a missing argument with no default value.
    */
-  private static boolean isPromisedMissingArg(@Current Context context, SEXP exp, ArrayDeque<Promise> stack) {
+  private static boolean isPromisedMissingArg(Context context, SEXP exp, ArrayDeque<Promise> stack) {
     if(exp instanceof Promise) {
       Promise promise = (Promise)exp;
 
@@ -371,7 +391,16 @@ public class Evaluation {
         stack.push(promise);
         try {
           Symbol argumentName = (Symbol) promise.getExpression();
-          SEXP argumentValue = promise.getEnvironment().getVariable(context, argumentName);
+          Environment argumentEnv = promise.getEnvironment();
+
+          if(argumentName.isVarArgReference()) {
+            SEXP forwardedArguments = argumentEnv.findVariable(context, Symbols.ELLIPSES);
+            if(forwardedArguments.length() == 0) {
+              return true;
+            }
+          }
+
+          SEXP argumentValue = argumentEnv.getVariable(context, argumentName);
           if (argumentValue == Symbol.MISSING_ARG) {
             return true;
           } else if (isPromisedMissingArg(context, argumentValue, stack)) {

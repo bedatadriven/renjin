@@ -18,22 +18,12 @@
  */
 package org.renjin.primitives;
 
-import org.renjin.repackaged.guava.base.Function;
 import org.renjin.repackaged.guava.base.Predicate;
-import org.renjin.sexp.PairList;
 import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbol;
 
 public class CollectionUtils {
 
   private CollectionUtils() {}
-
-  public static class TagName implements Function<PairList.Node, String> {
-    @Override
-    public String apply(PairList.Node input) {
-      return ((Symbol)input.getTag()).getPrintName();
-    }
-  }
 
   public static final Predicate<SEXP> IS_FUNCTION = new Predicate<SEXP>() {
     @Override

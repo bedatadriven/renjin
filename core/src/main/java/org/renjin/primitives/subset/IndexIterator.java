@@ -21,7 +21,7 @@ package org.renjin.primitives.subset;
 /**
  * Iterator over a sequence of integer indices.
  */
-interface IndexIterator {
+public interface IndexIterator {
   
   int EOF = -1;
 

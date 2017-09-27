@@ -25,6 +25,7 @@ import org.renjin.gcc.gimple.type.GimpleBooleanType;
 import org.renjin.gcc.gimple.type.GimpleIntegerType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleRealType;
+import org.renjin.gcc.runtime.LongPtr;
 import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 
@@ -555,7 +556,7 @@ public class CastGenerator implements JExpr {
     throw new UnsupportedOperationException();
   }
   public static void castUnsignedInt64ToReal64(MethodGenerator mv) {
-    throw new UnsupportedOperationException();
+    mv.invokestatic(LongPtr.class, "unsignedInt64ToReal64", Type.getMethodDescriptor(Type.DOUBLE_TYPE, Type.LONG_TYPE));
   }
 
   /** FROM REAL 32 (float) */

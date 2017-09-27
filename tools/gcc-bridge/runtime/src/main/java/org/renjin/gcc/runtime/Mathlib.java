@@ -185,7 +185,10 @@ public class Mathlib {
    *  The returned value is the fraction component (part after the decimal), and sets integer to the integer component.
    */
   public static double modf(double x, DoublePtr pInteger) {
-    throw new UnsupportedOperationException("todo");
+    double intValue = rint(x);
+    double fracValue = x - intValue;
+    pInteger.set(intValue);
+    return fracValue;
   }
 
   public static double pow(double x, double y) {

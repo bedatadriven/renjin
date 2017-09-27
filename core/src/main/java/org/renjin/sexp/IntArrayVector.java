@@ -35,7 +35,7 @@ public class IntArrayVector extends IntVector {
   }
 
   public IntArrayVector(IntVector vector) {
-    super(vector.attributes);
+    super(vector.getAttributes());
     this.values = vector.toIntArray();
   }
 

@@ -22,14 +22,11 @@ package org.renjin.embed;
 import org.renjin.eval.Context;
 import org.renjin.eval.Session;
 import org.renjin.eval.SessionBuilder;
-import org.renjin.primitives.Warning;
 import org.renjin.primitives.io.serialization.RDataReader;
 import org.renjin.primitives.io.serialization.RDataWriter;
 import org.renjin.primitives.special.ForFunction;
 import org.renjin.sexp.Environment;
-import org.renjin.sexp.FunctionCall;
 import org.renjin.sexp.SEXP;
-import org.renjin.sexp.Symbol;
 import org.rosuda.JRI.RConsoleOutputStream;
 import org.rosuda.JRI.Rengine;
 import org.rosuda.REngine.REXPReference;
@@ -44,6 +41,7 @@ public class Renjin {
   private final Session session;
 
   private final Rengine rengine;
+  private final Wrapper wrapper;
   private final FrameWrapper globalFrame;
 
   public Renjin() {
@@ -54,6 +52,9 @@ public class Renjin {
           .setGlobalFrame(globalFrame)
           .withDefaultPackages()
           .build();
+
+      wrapper = new Wrapper(session);
+      globalFrame.setWrapper(wrapper);
 
       session.setStdOut(new PrintWriter(new RConsoleOutputStream(rengine, 0)));
       session.setStdErr(new PrintWriter(new RConsoleOutputStream(rengine, 1)));
@@ -85,21 +86,27 @@ public class Renjin {
 
   public void eval(REXPReference ref, REXPReference resultEnv, REXPReference environment, boolean compile) {
 
+
     ForFunction.COMPILE_LOOPS = compile;
 
     try {
       synchronized (rengine) {
 
-        Wrapper wrapper = new Wrapper(session);
-
         session.clearWarnings();
+        wrapper.resetCache();
         globalFrame.clearCache();
-        globalFrame.setWrapper(wrapper);
 
         SEXP exp = wrapper.wrap(ref);
-        Environment rho = (Environment)wrapper.wrap(environment);
 
-        SEXP result = session.getTopLevelContext().evaluate(exp, rho);
+        // Create the read-only "host" environment, which will be used to look up symbols
+        long hostEnvPtr = (Long)environment.getHandle();
+        Environment hostEnv = Environment.createChildEnvironment(session.getGlobalEnvironment(),
+            new HostFrame(rengine, wrapper, hostEnvPtr)).build();
+
+        // Now create the evaluation environment
+        Environment evalEnvironment = Environment.createChildEnvironment(hostEnv).build();
+
+        SEXP result = session.getTopLevelContext().evaluate(exp, evalEnvironment);
 
         long resultPointer = wrapper.unwrap(result);
         rengine.rniAssign("result", resultPointer, (Long) resultEnv.getHandle());
@@ -111,6 +118,8 @@ public class Renjin {
     } catch (Exception e) {
       dumpStackTrace(e);
       throw e;
+    } finally {
+      wrapper.clear();
     }
   }
 

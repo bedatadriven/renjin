@@ -258,7 +258,7 @@ public class AttributeMap {
     return names == null ? Null.INSTANCE : names;
   }
   
-  public ListVector getDimNamesOrNull() {
+  public ListVector getDimNamesOrEmpty() {
     return dimNames == null ? ListVector.EMPTY : dimNames;
   }
 

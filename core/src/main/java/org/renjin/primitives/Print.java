@@ -267,7 +267,7 @@ public class Print {
         this.elements = elements;
         this.elementAlign = elementAlign;
         this.names = (AtomicVector)attributes.getNamesOrNull();
-        this.dimnames = attributes.getDimNamesOrNull();
+        this.dimnames = attributes.getDimNamesOrEmpty();
         if(hasNames()) {
           elementAlign = Alignment.RIGHT;
         }

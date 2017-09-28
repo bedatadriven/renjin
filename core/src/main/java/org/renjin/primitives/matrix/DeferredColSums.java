@@ -18,7 +18,6 @@
  */
 package org.renjin.primitives.matrix;
 
-import org.renjin.primitives.vector.AttributeDecoratingVector;
 import org.renjin.primitives.vector.MemoizedComputation;
 import org.renjin.sexp.*;
 
@@ -52,7 +51,7 @@ public class DeferredColSums extends DoubleVector implements MemoizedComputation
 
   @Override
   protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
-    return new AttributeDecoratingVector(this, attributes);
+    return new DeferredColSums(vector, numColumns, naRm, attributes);
   }
 
   @Override

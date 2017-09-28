@@ -257,6 +257,10 @@ public class AttributeMap {
   public AtomicVector getNamesOrNull() {
     return names == null ? Null.INSTANCE : names;
   }
+  
+  public ListVector getDimNamesOrNull() {
+    return dimNames == null ? ListVector.EMPTY : dimNames;
+  }
 
   /**
    * @return  a copy of this {@code AttributeMap} containing

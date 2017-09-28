@@ -261,17 +261,22 @@ public class Print {
       private int maxIndexWidth;
       private int elementsPerLine;
       private AtomicVector names;
+      private ListVector dimnames;
 
       private VectorPrinter(List<String> elements, Alignment elementAlign, AttributeMap attributes) {
         this.elements = elements;
         this.elementAlign = elementAlign;
         this.names = (AtomicVector)attributes.getNamesOrNull();
+        this.dimnames = attributes.getDimNamesOrNull();
         if(hasNames()) {
           elementAlign = Alignment.RIGHT;
         }
         calcMaxElementWidth();
         calcMaxIndexWidth();
         calcElementsPerLine();
+        if(dimnames.length() != 0) {
+          printDimnames();
+        }
         print();
       }
       
@@ -357,6 +362,15 @@ public class Print {
             out.append(' ');
           }
           appendAligned(elements.get(startIndex+i), maxElementWidth, elementAlign);
+        }
+        out.append('\n');
+      }
+  
+      private void printDimnames() {
+        SEXP dims = dimnames.get(0);
+        for(int i = 0; i != elementsPerLine && i < dims.length(); ++i) {
+          out.append(' ');
+          appendAligned(dims.getElementAsSEXP(i).asString(), maxElementWidth, elementAlign);
         }
         out.append('\n');
       }

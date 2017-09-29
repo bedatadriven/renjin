@@ -26,7 +26,6 @@ import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.invoke.codegen.ArgumentIterator;
-import org.renjin.packaging.SerializedPromise;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.PeekingIterator;
@@ -555,8 +554,7 @@ public class S3 {
     
     if(defined) {
       for (String argumentClass : argumentClasses) {
-        String[] splitName = findClassPackage(context, argumentClass, ".__C__", "methods").split(":");
-        argumentPackages.add(splitName[1]);
+        argumentPackages.add(findClassOrMethodName(context, argumentClass, ".__C__", "methods", false));
       }
     } else {
       for (String ignored : argumentClasses) {
@@ -577,62 +575,45 @@ public class S3 {
       .setAttribute("package", StringVector.valueOf(packageName));
   }
   
-  private static String findClassPackage(Context context, String name, String what, String defaultPackage) {
-  
-    String sourcePackage = null;
-  
-    List<String> loadedPackages = getNamesLoadedPackages(context);
-  
-    for(int i = 0; i < loadedPackages.size() && sourcePackage == null; i++) {
-      String pkgName = loadedPackages.get(i);
-      String generic = what + name + ":" + pkgName;
-      Frame pkgFrame = getPackageFrame(context, pkgName);
-      SEXP methodTable = pkgFrame.getVariable(Symbol.get(generic)).force(context);
-      if(methodTable instanceof Environment) {
-        sourcePackage = generic;
-      }
-    }
-  
-    if(sourcePackage == null) {
-      sourcePackage = what + name + ":" + defaultPackage;
-    }
-    
-    return sourcePackage;
-  }
-  
-  public static List<String> getNamesLoadedPackages(Context context) {
-    List<String> loadedPackages = new CopyOnWriteArrayList<>();
-    for(Symbol symbol : context.getNamespaceRegistry().getLoadedNamespaces()) {
-      loadedPackages.add(symbol.getPrintName());
-    }
-    return loadedPackages;
-  }
-  
-  public static Frame getPackageFrame(Context context, String name) {
-    Namespace pkgNamespace = context.getNamespaceRegistry().getNamespace(context, name);
-    return pkgNamespace.getNamespaceEnvironment().getFrame();
-  }
-  
   private static List<Environment> findMethodTable(Context context, String opName) {
-    String genericName = findClassPackage(context, opName, ".__T__", "base");
-    Symbol methodSymbol = Symbol.get(genericName);
+    String genericName = findClassOrMethodName(context, opName, ".__T__", "base", true);
     List<Environment> methodTableList = new CopyOnWriteArrayList<>();
-  
-    SEXP methodTableGlobalEnv = context.getGlobalEnvironment().getFrame().getVariable(methodSymbol);
-    if (methodTableGlobalEnv != Symbol.UNBOUND_VALUE && methodTableGlobalEnv instanceof Environment) {
-      methodTableList.add((Environment) methodTableGlobalEnv);
-    }
-  
-    List<String> loadedPackages = getNamesLoadedPackages(context);
-  
-    for(String pkg : loadedPackages) {
-      SEXP methodTablePackage = getPackageFrame(context, pkg).getVariable(methodSymbol).force(context);
+    
+    List<String> pkgNames = getNamesLoadedPackages(context);
+    pkgNames.add(0, ".GlobalEnv");
+    for(String pkg : pkgNames) {
+      SEXP methodTablePackage = getFromPackage(context, pkg, genericName);
       if(methodTablePackage instanceof Environment) {
         methodTableList.add((Environment) methodTablePackage);
       }
     }
     
     return methodTableList.size() == 0 ? null : methodTableList;
+  }
+  
+  private static String findClassOrMethodName(Context context, String name, String what, String altValue, boolean method) {
+    
+    String sourcePackage = null;
+    String className = what+name;
+    
+    List<String> loadedPackages = getNamesLoadedPackages(context);
+    loadedPackages.add(0, ".GlobalEnv");
+    
+    for(int i = 0; i < loadedPackages.size() && sourcePackage == null; i++) {
+      String pkgName = loadedPackages.get(i);
+      String methodName = what+name+":"+pkgName;
+      String generic = method ? methodName : className;
+      SEXP methodTable = getFromPackage(context, pkgName, generic);
+      if(methodTable instanceof Environment || methodTable instanceof S4Object) {
+        sourcePackage = method? methodName : pkgName;
+      }
+    }
+    
+    if(sourcePackage == null) {
+      sourcePackage = method ? what+name+":"+altValue : altValue;
+    }
+    
+    return sourcePackage;
   }
   
   private static List<Environment> findOpsMethodTable(Context context, String opName) {
@@ -658,6 +639,27 @@ public class S3 {
     }
     
     return methodTableList;
+  }
+  
+  public static Frame getPackageFrame(Context context, String name) {
+    if(".GlobalEnv".equals(name)) {
+      return context.getGlobalEnvironment().getFrame();
+    }
+    Namespace pkgNamespace = context.getNamespaceRegistry().getNamespace(context, name);
+    return pkgNamespace.getNamespaceEnvironment().getFrame();
+  }
+  
+  public static SEXP getFromPackage(Context context, String pkg, String what) {
+    Frame pkgFrame = getPackageFrame(context, pkg);
+    return pkgFrame.getVariable(Symbol.get(what)).force(context);
+  }
+  
+  public static List<String> getNamesLoadedPackages(Context context) {
+    List<String> loadedPackages = new CopyOnWriteArrayList<>();
+    for(Symbol symbol : context.getNamespaceRegistry().getLoadedNamespaces()) {
+      loadedPackages.add(symbol.getPrintName());
+    }
+    return loadedPackages;
   }
   
   private static SEXP getMethodTable(Context context, String opName, Frame packageFrame) {

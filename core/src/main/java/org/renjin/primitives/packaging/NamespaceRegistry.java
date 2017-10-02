@@ -205,8 +205,11 @@ public class NamespaceRegistry {
 
         // invoke the .onLoad hook
         // (Before we export symbols!)
-        invokeOnLoadFunction(context, ".First.lib", pkg, namespace);  // Deprecated
-        invokeOnLoadFunction(context, ".onLoad", pkg, namespace);
+        if(namespace.getNamespaceEnvironment().hasVariable(Symbol.get(".onLoad"))) {
+          StringVector nameArgument = StringVector.valueOf(pkg.getName().getPackageName());
+          context.evaluate(FunctionCall.newCall(Symbol.get(".onLoad"), nameArgument, nameArgument),
+              namespace.getNamespaceEnvironment());
+        }
 
         // finally export symbols from the namespace
         namespace.initExports(namespaceFile);
@@ -217,14 +220,6 @@ public class NamespaceRegistry {
       } catch(Exception e) {
         throw new EvalException("IOException while loading package " + fqName + ": " + e.getMessage(), e);
       }
-    }
-  }
-
-  private void invokeOnLoadFunction(Context context, String functionName, Package pkg, Namespace namespace) {
-    if(namespace.getNamespaceEnvironment().hasVariable(Symbol.get(functionName))) {
-      StringVector nameArgument = StringVector.valueOf(pkg.getName().getPackageName());
-      context.evaluate(FunctionCall.newCall(Symbol.get(functionName), nameArgument, nameArgument),
-          namespace.getNamespaceEnvironment());
     }
   }
 

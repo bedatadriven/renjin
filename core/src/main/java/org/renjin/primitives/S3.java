@@ -348,6 +348,9 @@ public class S3 {
                                      Environment rho, String group, String opName) {
     
     boolean hasS3Class = source.getAttribute(Symbol.get(".S3Class")).length() != 0;
+    if("as.double".equals(opName)) {
+      opName = "as.numeric";
+    }
     
     
     List<Environment> groupMethodTables = null;

@@ -297,7 +297,7 @@ public class S3 {
         promised = promised.getNextNode();
       }
     }
-    return left.doApply(context, rho, promisedArgs);
+    return left.doApply(context, rho, call, promisedArgs);
   }
 
   /**
@@ -337,7 +337,7 @@ public class S3 {
 
     PairList newArgs = reassembleAndEvaluateArgs(object, args, context, rho);
     
-    return method.doApply(context, rho, newArgs);
+    return method.doApply(context, rho, call, newArgs);
   }
 
   private static boolean isS4DispatchSupported(String name) {
@@ -1378,7 +1378,7 @@ public class S3 {
 
     public SEXP apply(Context callContext, Environment callEnvironment) {
       PairList rePromisedArgs = Calls.promiseArgs(callContext.getArguments(), callContext, callEnvironment);
-      return doApply(callContext, callEnvironment, rePromisedArgs);
+      return doApply(callContext, callEnvironment, callContext.getCall(), rePromisedArgs);
     }
 
     public SEXP applyNext(Context context, Environment environment, ListVector extraArgs) {
@@ -1388,7 +1388,7 @@ public class S3 {
         withMethodVector(groupsMethodVector());
       }
 
-      return doApply(context, environment, arguments);
+      return doApply(context, environment, context.getCall(), arguments);
     }
 
     private String[] groupsMethodVector() {
@@ -1405,8 +1405,15 @@ public class S3 {
       return methodVector;
     }
 
-    public SEXP doApply(Context callContext, Environment callEnvironment, PairList args) {
-      FunctionCall newCall = new FunctionCall(method,args);
+    public SEXP doApply(Context callContext, Environment callEnvironment, FunctionCall call, PairList promisedArgs) {
+
+
+      // The new call that is visible to sys.call() and match.call()
+      // is identical to the call which invoked UseMethod(), but we do update the function name.
+
+      // For example, if you have a stack which looks like foo(x) -> UseMethod('foo') -> foo.default(x) then
+      // the foo.default function will have a call of foo.default(x) visible to sys.call() and match.call()
+      FunctionCall newCall = new FunctionCall(method, call.getArguments());
 
       callContext.setState(GenericMethod.class, this);
 
@@ -1423,10 +1430,10 @@ public class S3 {
             callingEnvironment = callContext.getGlobalEnvironment();
           }
           return Calls.applyClosure((Closure) function, callContext, callingEnvironment, newCall,
-              args, persistChain());
+              promisedArgs, persistChain());
         } else {
           // primitive
-          return function.apply(callContext, callEnvironment, newCall, args);
+          return function.apply(callContext, callEnvironment, newCall, promisedArgs);
         }
       } finally {
         

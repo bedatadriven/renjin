@@ -1221,4 +1221,9 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void unsignedDiv() throws Exception {
     compileAndTest("unsigned_div.c");
   }
+
+  @Test
+  public void rand() throws Exception {
+    compileAndTest("rand.c");
+  }
 }

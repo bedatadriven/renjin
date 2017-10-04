@@ -1080,6 +1080,12 @@ public class S3 {
       if(node.getRawTag() == NA_RM) {
         newArgs.add(node.getTag(), new LogicalArrayVector(naRm));
         naRmArgumentSupplied = true;
+      } else if(node.getValue() == Symbols.ELLIPSES) {
+        // Add all remaining arguments
+        while(varArgIndex < evaluatedArguments.length()) {
+          newArgs.add(evaluatedArguments.getName(varArgIndex), evaluatedArguments.get(varArgIndex));
+          varArgIndex++;
+        }
       } else {
         newArgs.add(node.getRawTag(), evaluatedArguments.get(varArgIndex++));
       }
@@ -1089,7 +1095,7 @@ public class S3 {
     // builtin has an extra na.rm argument with default value false.
 
     if(!naRmArgumentSupplied) {
-      newArgs.add(NA_RM, LogicalArrayVector.FALSE);
+      newArgs.add(NA_RM, LogicalVector.valueOf(naRm));
     }
 
     return dispatchGroup("Summary", call, name, newArgs.build(), context, rho);

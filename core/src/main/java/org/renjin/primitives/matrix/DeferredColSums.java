@@ -114,7 +114,7 @@ public class DeferredColSums extends DoubleVector implements MemoizedComputation
     if(this.sums == null) {
       computeMeans();
     }
-    return DoubleArrayVector.unsafe(this.sums);
+    return DoubleArrayVector.unsafe(this.sums, getAttributes());
   }
 
   @Override

@@ -80,7 +80,7 @@ public abstract class DeferredSummary extends DoubleVector implements MemoizedCo
       result = calculate();
       calculated = true;
     }
-    return new DoubleArrayVector(result);
+    return new DoubleArrayVector(result, getAttributes());
   }
 
   @Override

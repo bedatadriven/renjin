@@ -78,6 +78,8 @@ class MaskedDoubleReplacement extends DoubleVector implements MemoizedComputatio
     int resultLength = Math.max(mask.length(), source.length());
 
     DoubleArrayVector.Builder result = new DoubleArrayVector.Builder(resultLength, resultLength);
+    result.copyAttributesFrom(this);
+
     int maskLength = mask.length();
     int replacementLength = replacement.length();
     int replacementIndex = 0;

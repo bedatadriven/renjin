@@ -309,8 +309,8 @@ class MatrixProduct {
     return y.toDoubleArray();
   }
 
-  Vector computeResultVector() {
-    return DoubleArrayVector.unsafe(computeResult());
+  Vector computeResultVector(AttributeMap attributes) {
+    return DoubleArrayVector.unsafe(computeResult(), attributes);
   }
 
   double[] computeResult() {

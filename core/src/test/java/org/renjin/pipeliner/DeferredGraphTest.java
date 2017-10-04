@@ -53,6 +53,25 @@ public class DeferredGraphTest extends EvalTestCase {
   }
 
   @Test
+  public void fusedNodesPreserveAttributes() {
+
+    DoubleArrayVector matrix = new DoubleArrayVector(1, 2, 3, 4);
+    DeferredColSums colSums = new DeferredColSums(matrix, 2, false,
+        AttributeMap.builder().setNames(new StringArrayVector("a", "b")).build());
+
+    DeferredGraph graph = new DeferredGraph(colSums);
+    graph.optimize(new LoopKernelCache(Executors.newSingleThreadExecutor()));
+
+    DeferredGraphEval eval = new DeferredGraphEval(graph, Executors.newSingleThreadExecutor());
+    eval.execute();
+
+    Vector result = graph.getRootResult(0);
+
+
+    assertThat(result.getNames(), elementsIdenticalTo(c("a", "b")));
+  }
+
+  @Test
   public void equivalentDataNodes() {
 
 

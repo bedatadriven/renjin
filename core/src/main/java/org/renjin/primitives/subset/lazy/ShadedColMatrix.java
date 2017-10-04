@@ -18,8 +18,8 @@
  */
 package org.renjin.primitives.subset.lazy;
 
-import org.renjin.repackaged.guava.primitives.Ints;
 import org.renjin.primitives.vector.MemoizedComputation;
+import org.renjin.repackaged.guava.primitives.Ints;
 import org.renjin.sexp.*;
 
 import java.util.ArrayList;
@@ -117,7 +117,7 @@ public class ShadedColMatrix extends DoubleVector implements MemoizedComputation
     }
     this.result = matrix;
     
-    return DoubleArrayVector.unsafe(this.result);
+    return DoubleArrayVector.unsafe(this.result, getAttributes());
   }
 
   @Override

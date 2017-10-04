@@ -101,7 +101,7 @@ public class DeferredRowMeans extends DoubleVector implements MemoizedComputatio
     if(this.means == null) {
       computeMeans();
     }
-    return DoubleArrayVector.unsafe(this.means);
+    return DoubleArrayVector.unsafe(this.means, getAttributes());
   }
 
   @Override

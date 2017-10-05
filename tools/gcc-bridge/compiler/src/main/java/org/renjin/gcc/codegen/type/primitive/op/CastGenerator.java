@@ -410,7 +410,7 @@ public class CastGenerator implements JExpr {
   }
 
   public static void castInt32ToUnsignedInt64(MethodGenerator mv) {
-    throw new UnsupportedOperationException();
+    mv.visitInsn(Opcodes.I2L);
   }
   
   public static void castInt32ToReal32(MethodGenerator mv) { 

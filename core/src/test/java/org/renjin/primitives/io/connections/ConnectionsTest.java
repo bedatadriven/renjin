@@ -158,4 +158,14 @@ public class ConnectionsTest extends EvalTestCase {
     assertThat(lines.size(), equalTo(1));
     assertThat(lines.get(0), equalTo("Hello again"));
   }
+
+
+  @Test
+  public void sinkMoreThan128times() throws Exception {
+    for (int i = 0; i < 129; i++) {
+      eval("sink('toto.out',type='output')");
+      eval("1+1");
+      eval("sink(type='output')");
+    }
+  }
 }

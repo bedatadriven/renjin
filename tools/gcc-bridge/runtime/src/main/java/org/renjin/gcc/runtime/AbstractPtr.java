@@ -73,6 +73,16 @@ public abstract class AbstractPtr implements Ptr {
   }
 
   @Override
+  public short getAlignedShort(int index) {
+    return getShort(index * ShortPtr.BYTES);
+  }
+
+  @Override
+  public void setAlignedShort(int index, short shortValue) {
+    setShort(index * ShortPtr.BYTES, shortValue);
+  }
+
+  @Override
   public double getDouble() {
     return getDouble(0);
   }
@@ -88,8 +98,18 @@ public abstract class AbstractPtr implements Ptr {
   }
 
   @Override
+  public void setAlignedDouble(int index, double value) {
+    setDouble(index * DoublePtr.BYTES, value);
+  }
+
+  @Override
   public char getChar() {
     return getChar(0);
+  }
+
+  @Override
+  public void setAlignedChar(int index, char value) {
+    setChar(index * CharPtr.BYTES, value);
   }
 
   @Override
@@ -123,12 +143,12 @@ public abstract class AbstractPtr implements Ptr {
 
   @Override
   public int getInt() {
-    return getIntAligned(0);
+    return getAlignedInt(0);
   }
 
   @Override
-  public int getIntAligned(int index) {
-    return getInt(index * 4);
+  public int getAlignedInt(int index) {
+    return getInt(index * IntPtr.BYTES);
   }
 
   @Override
@@ -170,6 +190,11 @@ public abstract class AbstractPtr implements Ptr {
   @Override
   public float getFloat(int offset) {
     return Float.intBitsToFloat(getInt(offset));
+  }
+
+  @Override
+  public float getAlignedFloat(int index) {
+    return getFloat(index * FloatPtr.BYTES);
   }
 
   @Override
@@ -243,6 +268,35 @@ public abstract class AbstractPtr implements Ptr {
     }
   }
 
+  @Override
+  public char getAlignedChar(int index) {
+    return getChar(index * CharPtr.BYTES);
+  }
+
+  @Override
+  public void setAlignedFloat(int index, float value) {
+    setFloat(index * FloatPtr.BYTES, value);
+  }
+
+  @Override
+  public void setAlignedInt(int index, int value) {
+    setInt(index * IntPtr.BYTES, value);
+  }
+
+  @Override
+  public void setAlignedLong(int index, long value) {
+    setLong(index * LongPtr.BYTES, value);
+  }
+
+  @Override
+  public Ptr getAlignedPointer(int index) {
+    return getPointer(index * 4);
+  }
+
+  @Override
+  public void setAlignedPointer(int index, Ptr value) {
+    setPointer(index * 4, value);
+  }
 
   @Override
   public Ptr getPointer(int offset) {

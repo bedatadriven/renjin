@@ -204,7 +204,13 @@ public class Expressions {
   }
 
   public static JExpr product(JExpr x, JExpr y) {
-    return new PrimitiveBinOpGenerator(GimpleOp.MULT_EXPR, x, y);
+    if(x instanceof ConstantValue && y instanceof ConstantValue) {
+      return constantInt(
+            ((ConstantValue) x).getIntValue() *
+            ((ConstantValue) y).getIntValue());
+    } else {
+      return new PrimitiveBinOpGenerator(GimpleOp.MULT_EXPR, x, y);
+    }
   }
   
   public static JExpr product(JExpr x, int y) {

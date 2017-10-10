@@ -18,7 +18,6 @@
  */
 package org.renjin.gcc.codegen.vptr;
 
-import org.renjin.gcc.codegen.type.record.FieldTypeSet;
 import org.renjin.gcc.gimple.type.*;
 import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Type;
@@ -51,6 +50,10 @@ public enum PointerType {
     this.jvmType = jvmType;
     this.kind = kind;
     this.size = size;
+  }
+
+  public int getSize() {
+    return size;
   }
 
   public Type getJvmType() {

@@ -50,6 +50,18 @@ public class PrimitiveBinOpGenerator implements JExpr {
     return x.getType();
   }
 
+  public int getOpCode() {
+    return opCode;
+  }
+
+  public JExpr getX() {
+    return x;
+  }
+
+  public JExpr getY() {
+    return y;
+  }
+
   @Override
   public void load(@Nonnull MethodGenerator mv) {
     x.load(mv);

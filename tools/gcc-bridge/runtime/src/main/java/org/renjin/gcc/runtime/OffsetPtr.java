@@ -108,8 +108,18 @@ public class OffsetPtr implements Ptr {
   }
 
   @Override
+  public short getAlignedShort(int index) {
+    return ptr.getShort(this.offset + (index * ShortPtr.BYTES));
+  }
+
+  @Override
   public void setShort(short value) {
     ptr.setShort(this.offset, value);
+  }
+
+  @Override
+  public void setAlignedShort(int index, short shortValue) {
+    ptr.setShort(this.offset + (index * ShortPtr.BYTES), shortValue);
   }
 
   @Override
@@ -123,6 +133,11 @@ public class OffsetPtr implements Ptr {
   }
 
   @Override
+  public char getAlignedChar(int index) {
+    return ptr.getChar(this.offset + (index * CharPtr.BYTES));
+  }
+
+  @Override
   public char getChar(int offset) {
     return ptr.getChar(this.offset + offset);
   }
@@ -130,6 +145,11 @@ public class OffsetPtr implements Ptr {
   @Override
   public void setChar(char value) {
     ptr.setChar(this.offset, value);
+  }
+
+  @Override
+  public void setAlignedChar(int index, char value) {
+    ptr.setChar(this.offset + (index * CharPtr.BYTES), value);
   }
 
   @Override
@@ -163,6 +183,11 @@ public class OffsetPtr implements Ptr {
   }
 
   @Override
+  public void setAlignedDouble(int index, double value) {
+    ptr.setDouble(this.offset + (index * DoublePtr.BYTES), value);
+  }
+
+  @Override
   public float getFloat() {
     return ptr.getFloat(this.offset);
   }
@@ -173,8 +198,18 @@ public class OffsetPtr implements Ptr {
   }
 
   @Override
+  public float getAlignedFloat(int index) {
+    return ptr.getFloat(this.offset + (index * FloatPtr.BYTES));
+  }
+
+  @Override
   public void setFloat(float value) {
     ptr.setFloat(this.offset, value);
+  }
+
+  @Override
+  public void setAlignedFloat(int index, float value) {
+    ptr.setFloat(this.offset + (index * FloatPtr.BYTES), value);
   }
 
   @Override
@@ -193,7 +228,7 @@ public class OffsetPtr implements Ptr {
   }
 
   @Override
-  public int getIntAligned(int index) {
+  public int getAlignedInt(int index) {
     return ptr.getInt(this.offset + (index * IntPtr.BYTES));
   }
 
@@ -205,6 +240,11 @@ public class OffsetPtr implements Ptr {
   @Override
   public void setInt(int offset, int value) {
     ptr.setInt(this.offset + offset, value);
+  }
+
+  @Override
+  public void setAlignedInt(int index, int value) {
+    ptr.setInt(this.offset + (index * IntPtr.BYTES), value);
   }
 
   @Override
@@ -228,6 +268,11 @@ public class OffsetPtr implements Ptr {
   }
 
   @Override
+  public void setAlignedLong(int index, long value) {
+    ptr.setLong(this.offset + (index * LongPtr.BYTES), value);
+  }
+
+  @Override
   public Ptr getPointer() {
     return ptr.getPointer(this.offset);
   }
@@ -238,6 +283,11 @@ public class OffsetPtr implements Ptr {
   }
 
   @Override
+  public Ptr getAlignedPointer(int index) {
+    return ptr.getPointer(this.offset + (index * 4));
+  }
+
+  @Override
   public void setPointer(Ptr value) {
     ptr.setPointer(this.offset, value);
   }
@@ -245,6 +295,11 @@ public class OffsetPtr implements Ptr {
   @Override
   public void setPointer(int offset, Ptr value) {
     ptr.setPointer(this.offset + offset, value);
+  }
+
+  @Override
+  public void setAlignedPointer(int index, Ptr value) {
+    ptr.setPointer(this.offset + (index * 4), value);
   }
 
   @Override

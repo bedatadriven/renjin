@@ -108,7 +108,17 @@ public class RecordUnitPtrPtr<T> implements Ptr {
   }
 
   @Override
+  public short getAlignedShort(int index) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public void setShort(short value) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public void setAlignedShort(int index, short shortValue) {
     throw new UnsupportedOperationException("TODO");
   }
 
@@ -123,12 +133,22 @@ public class RecordUnitPtrPtr<T> implements Ptr {
   }
 
   @Override
+  public char getAlignedChar(int index) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public char getChar(int offset) {
     throw new UnsupportedOperationException("TODO");
   }
 
   @Override
   public void setChar(char value) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public void setAlignedChar(int index, char value) {
     throw new UnsupportedOperationException("TODO");
   }
 
@@ -163,6 +183,11 @@ public class RecordUnitPtrPtr<T> implements Ptr {
   }
 
   @Override
+  public void setAlignedDouble(int index, double value) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public float getFloat() {
     throw new UnsupportedOperationException("TODO");
   }
@@ -173,7 +198,17 @@ public class RecordUnitPtrPtr<T> implements Ptr {
   }
 
   @Override
+  public float getAlignedFloat(int index) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public void setFloat(float value) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public void setAlignedFloat(int index, float value) {
     throw new UnsupportedOperationException("TODO");
   }
 
@@ -193,7 +228,7 @@ public class RecordUnitPtrPtr<T> implements Ptr {
   }
 
   @Override
-  public int getIntAligned(int index) {
+  public int getAlignedInt(int index) {
     throw new UnsupportedOperationException("TODO");
   }
 
@@ -204,6 +239,11 @@ public class RecordUnitPtrPtr<T> implements Ptr {
 
   @Override
   public void setInt(int offset, int value) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public void setAlignedInt(int index, int value) {
     throw new UnsupportedOperationException("TODO");
   }
 
@@ -228,6 +268,11 @@ public class RecordUnitPtrPtr<T> implements Ptr {
   }
 
   @Override
+  public void setAlignedLong(int index, long value) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public Ptr getPointer() {
     throw new UnsupportedOperationException("TODO");
   }
@@ -238,12 +283,22 @@ public class RecordUnitPtrPtr<T> implements Ptr {
   }
 
   @Override
+  public Ptr getAlignedPointer(int index) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   public void setPointer(Ptr value) {
     throw new UnsupportedOperationException("TODO");
   }
 
   @Override
   public void setPointer(int offset, Ptr value) {
+    throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
+  public void setAlignedPointer(int index, Ptr value) {
     throw new UnsupportedOperationException("TODO");
   }
 

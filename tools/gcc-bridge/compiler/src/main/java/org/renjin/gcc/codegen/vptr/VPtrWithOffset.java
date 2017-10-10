@@ -89,11 +89,7 @@ public class VPtrWithOffset implements PtrExpr {
 
   @Override
   public GExpr valueOf(GimpleType expectedType) {
-    if(expectedType instanceof GimplePrimitiveType) {
-      return new PrimitiveValue(((GimplePrimitiveType) expectedType),
-          new DerefExpr(this.pointer.getRef(), this.offset, PointerType.ofType(expectedType)));
-    }
-    return pointer.plus(offset).valueOf(expectedType);
+    return pointer.valueOf(expectedType, offset);
   }
 
   @Override

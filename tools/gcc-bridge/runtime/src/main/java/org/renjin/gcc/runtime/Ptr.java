@@ -78,7 +78,11 @@ public interface Ptr extends Comparable<Ptr> {
 
   short getShort(int offset);
 
+  short getAlignedShort(int index);
+
   void setShort(short value);
+
+  void setAlignedShort(int index, short shortValue);
 
   void setShort(int offset, short value);
 
@@ -87,6 +91,8 @@ public interface Ptr extends Comparable<Ptr> {
    * @return the value at the beginning of the pointer region as a char
    */
   char getChar();
+
+  char getAlignedChar(int index);
 
   /**
    *
@@ -99,6 +105,8 @@ public interface Ptr extends Comparable<Ptr> {
    * Sets the given {@code value} at the beginning of the pointer.
    */
   void setChar(char value);
+
+  void setAlignedChar(int index, char value);
 
 
   /**
@@ -139,6 +147,9 @@ public interface Ptr extends Comparable<Ptr> {
   void setDouble(int offset, double value);
 
 
+  void setAlignedDouble(int index, double value);
+
+
   /**
    *
    * @return the value at the beginning of the pointer region as a float
@@ -152,11 +163,14 @@ public interface Ptr extends Comparable<Ptr> {
    */
   float getFloat(int offset);
 
+  float getAlignedFloat(int index);
+
   /**
    * Sets the given {@code value} at the beginning of the pointer.
    */
   void setFloat(float value);
 
+  void setAlignedFloat(int index, float value);
 
   /**
    * Sets the given {@code value} at the offset from the beginning of the pointer.
@@ -182,7 +196,7 @@ public interface Ptr extends Comparable<Ptr> {
    *
    * @param index the index of the 4-byte integer, from the beginning of the pointer.
    */
-  int getIntAligned(int index);
+  int getAlignedInt(int index);
 
   /**
    * Sets the given {@code value} at the beginning of the pointer.
@@ -196,6 +210,8 @@ public interface Ptr extends Comparable<Ptr> {
    */
   void setInt(int offset, int value);
 
+
+  void setAlignedInt(int index, int value);
 
 
   /**
@@ -224,6 +240,8 @@ public interface Ptr extends Comparable<Ptr> {
   void setLong(int offset, long value);
 
 
+  void setAlignedLong(int index, long value);
+
 
   /**
    *
@@ -238,6 +256,8 @@ public interface Ptr extends Comparable<Ptr> {
    */
   Ptr getPointer(int offset);
 
+  Ptr getAlignedPointer(int index);
+
   /**
    * Sets the given {@code value} at the beginning of the pointer.
    */
@@ -249,6 +269,8 @@ public interface Ptr extends Comparable<Ptr> {
    * @param offset  the offset from the beginning of the pointer, in bytes.
    */
   void setPointer(int offset, Ptr value);
+
+  void setAlignedPointer(int index, Ptr value);
 
 
   /**

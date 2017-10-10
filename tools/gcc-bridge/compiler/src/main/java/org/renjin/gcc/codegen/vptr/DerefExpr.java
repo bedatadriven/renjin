@@ -22,7 +22,10 @@ import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.expr.JLValue;
+import org.renjin.gcc.codegen.type.primitive.ConstantValue;
+import org.renjin.gcc.codegen.type.primitive.op.PrimitiveBinOpGenerator;
 import org.renjin.gcc.runtime.Ptr;
+import org.renjin.repackaged.asm.Opcodes;
 import org.renjin.repackaged.asm.Type;
 
 import javax.annotation.Nonnull;
@@ -53,18 +56,74 @@ class DerefExpr implements JLValue {
   @Override
   public void load(@Nonnull MethodGenerator mv) {
     pointer.load(mv);
-    offsetBytes.load(mv);
-    mv.invokeinterface(Type.getInternalName(Ptr.class), "get" + pointerType.titleCasedName(),
-        Type.getMethodDescriptor(pointerType.getJvmType(), Type.INT_TYPE));
+
+    if(isConstantEqualTo(offsetBytes, 0)) {
+      mv.invokeinterface(Type.getInternalName(Ptr.class), "get" + pointerType.titleCasedName(),
+          Type.getMethodDescriptor(pointerType.getJvmType()));
+    } else {
+      JExpr index = isAligned();
+      if(index != null) {
+        index.load(mv);
+        mv.invokeinterface(Type.getInternalName(Ptr.class), "getAligned" + pointerType.titleCasedName(),
+            Type.getMethodDescriptor(pointerType.getJvmType(), Type.INT_TYPE));
+      } else {
+        offsetBytes.load(mv);
+        mv.invokeinterface(Type.getInternalName(Ptr.class), "get" + pointerType.titleCasedName(),
+            Type.getMethodDescriptor(pointerType.getJvmType(), Type.INT_TYPE));
+      }
+    }
   }
 
   @Override
   public void store(MethodGenerator mv, JExpr expr) {
     pointer.load(mv);
-    offsetBytes.load(mv);
-    expr.load(mv);
-    mv.invokeinterface(Type.getInternalName(Ptr.class), "set" + pointerType.titleCasedName(),
-        Type.getMethodDescriptor(Type.VOID_TYPE, Type.INT_TYPE, pointerType.getJvmType()));
+    if(isConstantEqualTo(offsetBytes, 0)) {
+      // store at offset zero
+      expr.load(mv);
+      mv.invokeinterface(Type.getInternalName(Ptr.class), "set" + pointerType.titleCasedName(),
+          Type.getMethodDescriptor(Type.VOID_TYPE, pointerType.getJvmType()));
+
+    } else {
+      JExpr index = isAligned();
+      if (index != null) {
+        index.load(mv);
+        expr.load(mv);
+        mv.invokeinterface(Type.getInternalName(Ptr.class), "setAligned" + pointerType.titleCasedName(),
+            Type.getMethodDescriptor(Type.VOID_TYPE, Type.INT_TYPE, pointerType.getJvmType()));
+
+      } else {
+        offsetBytes.load(mv);
+        expr.load(mv);
+        mv.invokeinterface(Type.getInternalName(Ptr.class), "set" + pointerType.titleCasedName(),
+            Type.getMethodDescriptor(Type.VOID_TYPE, Type.INT_TYPE, pointerType.getJvmType()));
+      }
+    }
+  }
+
+  private JExpr isAligned() {
+    // Byte and boolean accessors/setters do not have aligned versions.
+    if(pointerType.getSize() < 2) {
+      return null;
+    }
+
+    if(offsetBytes instanceof PrimitiveBinOpGenerator) {
+      PrimitiveBinOpGenerator op = (PrimitiveBinOpGenerator) offsetBytes;
+      if(op.getOpCode() == Opcodes.IMUL) {
+
+        if(isConstantEqualTo(op.getX(), pointerType.getSize())) {
+          return op.getY();
+        }
+        if(isConstantEqualTo(op.getY(), pointerType.getSize())) {
+          return op.getX();
+        }
+      }
+    }
+    return null;
+  }
+
+
+  private boolean isConstantEqualTo(JExpr expr, int value) {
+    return expr instanceof ConstantValue && ((ConstantValue) expr).getIntValue() == value;
   }
 
 }

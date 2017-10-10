@@ -182,6 +182,11 @@ public class IntPtr extends AbstractPtr implements Ptr {
   }
 
   @Override
+  public int getAlignedInt(int index) {
+    return this.array[this.offset + index];
+  }
+
+  @Override
   public int getInt(int offset) {
     if(this.offset % BYTES == 0) {
       return this.array[this.offset + (offset / BYTES)];
@@ -189,6 +194,8 @@ public class IntPtr extends AbstractPtr implements Ptr {
       return super.getInt(offset);
     }
   }
+
+
 
   @Override
   public void setInt(int value) {
@@ -202,6 +209,11 @@ public class IntPtr extends AbstractPtr implements Ptr {
     } else {
       super.setInt(byteOffset, intValue);
     }
+  }
+
+  @Override
+  public void setAlignedInt(int index, int value) {
+    this.array[this.offset + index] = value;
   }
 
   @Override

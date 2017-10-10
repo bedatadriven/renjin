@@ -100,7 +100,7 @@ public class DoublePtr extends AbstractPtr implements Ptr {
    * @param x the first pointer
    * @param y the second pointer
    * @param numBytes the number of <strong>bytes</strong> to compare
-   * @return 0 if the two arrrays are byte-for-byte equal, or -1 if the first 
+   * @return 0 if the two arrrays are byte-for-byte equal, or -1 if the first
    * array is less than the second array, or > 0 if the second array is greater than the first array
    */
   public static int memcmp(DoublePtr x, DoublePtr y, int numBytes) {
@@ -165,6 +165,34 @@ public class DoublePtr extends AbstractPtr implements Ptr {
       return NULL;
     }
     return (DoublePtr) voidPointer;
+  }
+
+  @Override
+  public double getDouble() {
+    return array[offset];
+  }
+
+  @Override
+  public double getDouble(int offset) {
+    if(offset % 8 == 0) {
+      return this.array[this.offset + (offset / 8)];
+    }
+    return super.getDouble(offset);
+  }
+
+  @Override
+  public double getAlignedDouble(int index) {
+    return array[this.offset + index];
+  }
+
+  @Override
+  public void setDouble(double value) {
+    this.array[offset] = value;
+  }
+
+  @Override
+  public void setAlignedDouble(int index, double value) {
+    this.array[this.offset + index] = value;
   }
 
   @Override

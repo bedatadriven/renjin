@@ -45,7 +45,6 @@ import java.lang.invoke.MethodHandle;
 public class VPtrExpr implements PtrExpr {
 
   private JExpr ref;
-  private JExpr offset = Expressions.zero();
   private final GExpr address;
 
   public VPtrExpr(JExpr ref) {
@@ -239,6 +238,12 @@ public class VPtrExpr implements PtrExpr {
   }
 
   public GExpr valueOf(GimpleType expectedType, JExpr offset) {
+    if(expectedType instanceof GimplePrimitiveType) {
+      return new PrimitiveValue(((GimplePrimitiveType) expectedType),
+          new DerefExpr(ref, offset, PointerType.ofType(expectedType)),
+            new VPtrWithOffset(this, offset));
+    }
+
     return plus(offset).valueOf(expectedType);
   }
 

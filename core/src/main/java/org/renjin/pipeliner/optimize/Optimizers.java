@@ -32,7 +32,6 @@ public class Optimizers {
     if (System.getProperty("renjin.vp.disableopt") == null) {
       optimizers.add(new SquareOptimizer());
       optimizers.add(new IdentityRemover());
-      optimizers.add(new AttributeRemover());
       optimizers.add(new AggregationRecycler());
     } else {
       System.err.println("Optimizers are disabled");

@@ -25,6 +25,7 @@ import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Random;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
@@ -464,5 +465,48 @@ public class Stdlib {
 
   public static void inlineAssembly() {
     throw new UnsupportedOperationException("Compilation of inline assembly not supported");
+  }
+
+  /**
+   * The random number generator used for srand() and rand().
+   *
+   * <p>Note that we don't use ThreadLocalRandom as it does not allow
+   * re-initializing the seed, which srand() requires.</p>
+   */
+  private static final ThreadLocal<Random> RANDOM = new ThreadLocal<Random>() {
+    @Override
+    protected Random initialValue() {
+      return new Random(1L);
+    }
+  };
+
+  /**
+   * The value of RAND_MAX when compiling with GCC on Linux 32 bit system.
+   */
+  public static final int RAND_MAX = 2147483647;
+
+  /**
+   * Initialize random number generator
+   *
+   * <p>The pseudo-random number generator is initialized using the argument passed as seed.
+   *
+   * <p>For every different seed value used in a call to srand, the pseudo-random number generator can be
+   * expected to generate a different succession of results in the subsequent calls to rand.
+   *
+   * <p>Two different initializations with the same seed will generate the same succession of results in
+   * subsequent calls to rand.
+   *
+   * <p>If seed is set to 1, the generator is reinitialized to its initial value and produces the same
+   * values as before any call to rand or srand.
+   *
+   * <p>Note: Renjin's maintains a copy of the internal state on a per-thread basis.</p>
+   *
+   */
+  public static void srand(int seed) {
+    RANDOM.get().setSeed(seed);
+  }
+
+  public static int rand() {
+    return RANDOM.get().nextInt(RAND_MAX);
   }
 }

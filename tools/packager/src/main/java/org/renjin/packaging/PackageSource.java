@@ -245,9 +245,7 @@ public class PackageSource {
       List<File> list = Lists.newArrayList();
       for (String sourceFilename : sourceFileNames) {
         File sourceFile = new File(source.sourceDir, sourceFilename);
-        if(!sourceFile.exists()) {
-          throw new RuntimeException("Source file '" + sourceFile.getAbsolutePath() + "' does not exist.");
-        }
+        
         list.add(sourceFile);
       }
       return list;

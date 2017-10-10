@@ -26,7 +26,6 @@ import org.renjin.invoke.annotations.Builtin;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
 import org.renjin.invoke.codegen.ArgumentIterator;
-import org.renjin.packaging.SerializedPromise;
 import org.renjin.primitives.packaging.Namespace;
 import org.renjin.repackaged.guava.collect.Lists;
 import org.renjin.repackaged.guava.collect.PeekingIterator;
@@ -298,7 +297,7 @@ public class S3 {
         promised = promised.getNextNode();
       }
     }
-    return left.doApply(context, rho, promisedArgs);
+    return left.doApply(context, rho, call, promisedArgs);
   }
 
   /**
@@ -338,7 +337,7 @@ public class S3 {
 
     PairList newArgs = reassembleAndEvaluateArgs(object, args, context, rho);
     
-    return method.doApply(context, rho, newArgs);
+    return method.doApply(context, rho, call, newArgs);
   }
 
   private static boolean isS4DispatchSupported(String name) {
@@ -349,6 +348,9 @@ public class S3 {
                                      Environment rho, String group, String opName) {
     
     boolean hasS3Class = source.getAttribute(Symbol.get(".S3Class")).length() != 0;
+    if("as.double".equals(opName)) {
+      opName = "as.numeric";
+    }
     
     
     List<Environment> groupMethodTables = null;
@@ -555,7 +557,7 @@ public class S3 {
     
     if(defined) {
       for (String argumentClass : argumentClasses) {
-        argumentPackages.add(findClassPackage(context, argumentClass));
+        argumentPackages.add(findClassOrMethodName(context, argumentClass, ".__C__", "methods", false));
       }
     } else {
       for (String ignored : argumentClasses) {
@@ -576,36 +578,14 @@ public class S3 {
       .setAttribute("package", StringVector.valueOf(packageName));
   }
   
-  private static String findClassPackage(Context context, String className) {
-    Environment environment = context.getGlobalEnvironment();
-    SEXP classS4Object = environment.findVariable(context, Symbol.get(".__C__" + className));
-    if (classS4Object instanceof SerializedPromise || "ANY".equals(className)) {
-      return "methods";
-    }
-    return classS4Object.getAttribute(Symbol.get("package")).asString();
-  }
-  
   private static List<Environment> findMethodTable(Context context, String opName) {
-    String genericName = findStandardGenericName(context, opName);
-    Symbol methodSymbol = Symbol.get(genericName);
-    SEXP methodTableMethodsPkg;
+    String genericName = findClassOrMethodName(context, opName, ".__T__", "base", true);
     List<Environment> methodTableList = new CopyOnWriteArrayList<>();
-  
-    SEXP methodTableGlobalEnv = context.getGlobalEnvironment().getFrame().getVariable(methodSymbol);
-    if (methodTableGlobalEnv != Symbol.UNBOUND_VALUE && methodTableGlobalEnv instanceof Environment) {
-      methodTableList.add((Environment) methodTableGlobalEnv);
-    }
-  
-    List<Symbol> loadedPackages = new ArrayList<>();
-    for(Symbol symbol : context.getNamespaceRegistry().getLoadedNamespaces()) {
-      loadedPackages.add(symbol);
-    }
-  
-    for(Symbol loadedNamespace : loadedPackages) {
-      String packageName = loadedNamespace.getPrintName();
-      Namespace packageNamespace = context.getNamespaceRegistry().getNamespace(context, packageName);
-      Environment packageEnvironment = packageNamespace.getNamespaceEnvironment();
-      SEXP methodTablePackage = packageEnvironment.getFrame().getVariable(methodSymbol).force(context);
+    
+    List<String> pkgNames = getNamesLoadedPackages(context);
+    pkgNames.add(0, ".GlobalEnv");
+    for(String pkg : pkgNames) {
+      SEXP methodTablePackage = getFromPackage(context, pkg, genericName);
       if(methodTablePackage instanceof Environment) {
         methodTableList.add((Environment) methodTablePackage);
       }
@@ -614,29 +594,28 @@ public class S3 {
     return methodTableList.size() == 0 ? null : methodTableList;
   }
   
-  private static String findStandardGenericName(Context context, String opName) {
+  private static String findClassOrMethodName(Context context, String name, String what, String altValue, boolean method) {
     
     String sourcePackage = null;
+    String className = what+name;
     
-    List<Symbol> loadedPackages = new CopyOnWriteArrayList<>();
-    for(Symbol symbol : context.getNamespaceRegistry().getLoadedNamespaces()) {
-      loadedPackages.add(symbol);
-    }
-  
+    List<String> loadedPackages = getNamesLoadedPackages(context);
+    loadedPackages.add(0, ".GlobalEnv");
+    
     for(int i = 0; i < loadedPackages.size() && sourcePackage == null; i++) {
-      String packageName = loadedPackages.get(i).getPrintName();
-      String possibleGeneric = ".__T__" + opName + ":" + packageName;
-      Namespace packageNamespace = context.getNamespaceRegistry().getNamespace(context, packageName);
-      Environment packageEnvironment = packageNamespace.getNamespaceEnvironment();
-      SEXP methodTablePackage = packageEnvironment.getFrame().getVariable(Symbol.get(possibleGeneric)).force(context);
-      if(methodTablePackage instanceof Environment) {
-        sourcePackage = possibleGeneric;
+      String pkgName = loadedPackages.get(i);
+      String methodName = what+name+":"+pkgName;
+      String generic = method ? methodName : className;
+      SEXP methodTable = getFromPackage(context, pkgName, generic);
+      if(methodTable instanceof Environment || methodTable instanceof S4Object) {
+        sourcePackage = method? methodName : pkgName;
       }
     }
     
     if(sourcePackage == null) {
-      sourcePackage = ".__T__" + opName + ":base";
+      sourcePackage = method ? what+name+":"+altValue : altValue;
     }
+    
     return sourcePackage;
   }
   
@@ -649,10 +628,8 @@ public class S3 {
       methodTableList.add((Environment) methodTableGlobalEnv);
     }
   
-    for(Symbol packageSymbol : context.getNamespaceRegistry().getLoadedNamespaces()) {
-      String packageName = packageSymbol.getPrintName();
-      Namespace packageNamespace = context.getNamespaceRegistry().getNamespace(context, packageName);
-      Frame packageFrame = packageNamespace.getNamespaceEnvironment().getFrame();
+    for(String pkg : getNamesLoadedPackages(context)) {
+      Frame packageFrame = getPackageFrame(context, pkg);
       SEXP methodTablePackage = getMethodTable(context, opName, packageFrame);
       if(methodTablePackage instanceof Environment &&
           ((Environment) methodTablePackage).getFrame().getSymbols().size() > 0) {
@@ -665,6 +642,27 @@ public class S3 {
     }
     
     return methodTableList;
+  }
+  
+  public static Frame getPackageFrame(Context context, String name) {
+    if(".GlobalEnv".equals(name)) {
+      return context.getGlobalEnvironment().getFrame();
+    }
+    Namespace pkgNamespace = context.getNamespaceRegistry().getNamespace(context, name);
+    return pkgNamespace.getNamespaceEnvironment().getFrame();
+  }
+  
+  public static SEXP getFromPackage(Context context, String pkg, String what) {
+    Frame pkgFrame = getPackageFrame(context, pkg);
+    return pkgFrame.getVariable(Symbol.get(what)).force(context);
+  }
+  
+  public static List<String> getNamesLoadedPackages(Context context) {
+    List<String> loadedPackages = new CopyOnWriteArrayList<>();
+    for(Symbol symbol : context.getNamespaceRegistry().getLoadedNamespaces()) {
+      loadedPackages.add(symbol.getPrintName());
+    }
+    return loadedPackages;
   }
   
   private static SEXP getMethodTable(Context context, String opName, Frame packageFrame) {
@@ -1082,6 +1080,12 @@ public class S3 {
       if(node.getRawTag() == NA_RM) {
         newArgs.add(node.getTag(), new LogicalArrayVector(naRm));
         naRmArgumentSupplied = true;
+      } else if(node.getValue() == Symbols.ELLIPSES) {
+        // Add all remaining arguments
+        while(varArgIndex < evaluatedArguments.length()) {
+          newArgs.add(evaluatedArguments.getName(varArgIndex), evaluatedArguments.get(varArgIndex));
+          varArgIndex++;
+        }
       } else {
         newArgs.add(node.getRawTag(), evaluatedArguments.get(varArgIndex++));
       }
@@ -1091,7 +1095,7 @@ public class S3 {
     // builtin has an extra na.rm argument with default value false.
 
     if(!naRmArgumentSupplied) {
-      newArgs.add(NA_RM, LogicalArrayVector.FALSE);
+      newArgs.add(NA_RM, LogicalVector.valueOf(naRm));
     }
 
     return dispatchGroup("Summary", call, name, newArgs.build(), context, rho);
@@ -1158,7 +1162,9 @@ public class S3 {
       if(Types.isS4(object)) {
         SEXP objectClassesS4 = computeDataClassesS4(context, objectClasses.getElementAsString(0));
         if(objectClassesS4 != Null.INSTANCE) {
-          resolver.classes = Lists.newArrayList((StringVector)objectClassesS4);
+          List<String> classes = Lists.newArrayList(objectClasses);
+          classes.addAll(Lists.newArrayList((StringVector)objectClassesS4));
+          resolver.classes = classes;
         } else {
           resolver.classes = Lists.newArrayList(objectClasses);
         }
@@ -1378,7 +1384,7 @@ public class S3 {
 
     public SEXP apply(Context callContext, Environment callEnvironment) {
       PairList rePromisedArgs = Calls.promiseArgs(callContext.getArguments(), callContext, callEnvironment);
-      return doApply(callContext, callEnvironment, rePromisedArgs);
+      return doApply(callContext, callEnvironment, callContext.getCall(), rePromisedArgs);
     }
 
     public SEXP applyNext(Context context, Environment environment, ListVector extraArgs) {
@@ -1388,7 +1394,7 @@ public class S3 {
         withMethodVector(groupsMethodVector());
       }
 
-      return doApply(context, environment, arguments);
+      return doApply(context, environment, context.getCall(), arguments);
     }
 
     private String[] groupsMethodVector() {
@@ -1405,8 +1411,15 @@ public class S3 {
       return methodVector;
     }
 
-    public SEXP doApply(Context callContext, Environment callEnvironment, PairList args) {
-      FunctionCall newCall = new FunctionCall(method,args);
+    public SEXP doApply(Context callContext, Environment callEnvironment, FunctionCall call, PairList promisedArgs) {
+
+
+      // The new call that is visible to sys.call() and match.call()
+      // is identical to the call which invoked UseMethod(), but we do update the function name.
+
+      // For example, if you have a stack which looks like foo(x) -> UseMethod('foo') -> foo.default(x) then
+      // the foo.default function will have a call of foo.default(x) visible to sys.call() and match.call()
+      FunctionCall newCall = new FunctionCall(method, call.getArguments());
 
       callContext.setState(GenericMethod.class, this);
 
@@ -1423,10 +1436,10 @@ public class S3 {
             callingEnvironment = callContext.getGlobalEnvironment();
           }
           return Calls.applyClosure((Closure) function, callContext, callingEnvironment, newCall,
-              args, persistChain());
+              promisedArgs, persistChain());
         } else {
           // primitive
-          return function.apply(callContext, callEnvironment, newCall, args);
+          return function.apply(callContext, callEnvironment, newCall, promisedArgs);
         }
       } finally {
         

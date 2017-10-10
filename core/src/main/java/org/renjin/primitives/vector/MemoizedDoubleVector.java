@@ -20,7 +20,6 @@ package org.renjin.primitives.vector;
 
 import org.renjin.sexp.AttributeMap;
 import org.renjin.sexp.DoubleVector;
-import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Vector;
 
 public abstract class MemoizedDoubleVector extends DoubleVector implements MemoizedComputation {
@@ -34,11 +33,6 @@ public abstract class MemoizedDoubleVector extends DoubleVector implements Memoi
     super(attributes);
     this.operands = operands;
     this.length = length;
-  }
-
-  @Override
-  protected SEXP cloneWithNewAttributes(AttributeMap attributes) {
-    return new AttributeDecoratingVector(this, attributes);
   }
 
   @Override

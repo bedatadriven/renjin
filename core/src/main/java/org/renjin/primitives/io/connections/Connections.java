@@ -37,7 +37,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.net.URL;
-import java.net.UnknownHostException;
 
 /**
  * 
@@ -293,7 +292,10 @@ public class Connections {
     }
 
     if(Identical.identical(connection, new IntArrayVector(-1))) {
-      source.clearSink();
+      Sink sink = source.clearSink();
+      if(sink != null && sink.isCloseOnExit()) {
+        context.getSession().getConnectionTable().close(sink.getConnection());
+      }
     } else {
       Connection sinkConnection = getConnection(context , connection);
       source.sink(new Sink(sinkConnection, split, closeOnExit));

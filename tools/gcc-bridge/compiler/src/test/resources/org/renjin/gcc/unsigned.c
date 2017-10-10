@@ -41,3 +41,6 @@ double uint64_to_double(uint64_t x) {
     return (double)x;
 }
 
+uint64_t int32_to_uint64(int32_t x) {
+    return (uint64_t)x;
+}

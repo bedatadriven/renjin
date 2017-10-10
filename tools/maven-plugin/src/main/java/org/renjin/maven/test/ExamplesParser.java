@@ -31,31 +31,43 @@ import java.io.IOException;
  */
 public class ExamplesParser extends SexpVisitor<String> {
 
+  private static final Symbol RD_TAG = Symbol.get("Rd_tag");
+
   private StringBuilder code = new StringBuilder();
   
   @Override
   public void visit(ListVector list) {
-    SEXP tag = list.getAttribute(Symbol.get("Rd_tag"));
-    if(tag != Null.INSTANCE) {
-      StringVector tagName = (StringVector)tag;
-      if(tagName.getElementAsString(0).equals("\\examples")) {
-        for(SEXP exp : list) {
-          exp.accept(this);
-        }
-      }   
+    if(getTag(list).equals("\\examples")) {
+      for(SEXP element : list) {
+        element.accept(this);
+      }
     }
-    for(SEXP sexp : list) {
-      if(sexp instanceof ListVector) {
-        sexp.accept(this);
+    // Descend into nested lists
+    for(SEXP element : list) {
+      if(element instanceof ListVector) {
+        element.accept(this);
       }
     }
   }
   
   @Override
   public void visit(StringVector vector) {
-    for(String line : vector) {
-      code.append(line);
+    if(getTag(vector).equals("RCODE")) {
+      for (String line : vector) {
+        code.append(line);
+      }
     }
+  }
+
+  private static String getTag(SEXP sexp) {
+    SEXP tagObject = sexp.getAttribute(RD_TAG);
+    if(tagObject instanceof StringVector && tagObject.length() == 1) {
+      String tagName = ((StringVector) tagObject).getElementAsString(0);
+      if(!StringVector.isNA(tagName)) {
+        return tagName;
+      }
+    }
+    return "";
   }
 
   @Override

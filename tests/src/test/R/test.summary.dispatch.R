@@ -20,8 +20,23 @@
 
 library(hamcrest)
 
-Summary.foo <- function(...) list(...)
+test.implicit.na.rm.argument <- function() {
 
-x <- structure(1L, class='foo')
+    Summary.foo <- function(...) list(...)
 
-assertThat(max(x), identicalTo(list(x, na.rm = FALSE)))
+    x <- structure(1L, class='foo')
+
+    assertThat(max(x), identicalTo(list(x, na.rm = FALSE)))
+}
+
+test.forwarded.arguments <- function() {
+
+    Summary.foo <- function(...) list(...)
+    f <- function(x, ...) sum(x, ...)
+    x <- structure(1L, class='foo')
+
+    assertThat(f(x), identicalTo(list(x, na.rm = FALSE)))
+    assertThat(f(x, na.rm = TRUE), identicalTo(list(x, na.rm = TRUE)))
+    assertThat(f(x, 32, na.rm = TRUE), identicalTo(list(x, 32, na.rm = TRUE)))
+
+}

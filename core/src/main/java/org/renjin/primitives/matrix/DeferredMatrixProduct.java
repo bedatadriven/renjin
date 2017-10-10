@@ -44,7 +44,7 @@ public class DeferredMatrixProduct extends MemoizedDoubleVector {
 
   @Override
   public Vector computeResult() {
-    return product.computeResultVector();
+    return product.computeResultVector(getAttributes());
   }
 
   @Override

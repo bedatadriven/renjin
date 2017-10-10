@@ -190,7 +190,7 @@ public class FusedNode extends DeferredNode implements Runnable {
 
     double[] result = kernel.compute(vectorOperands);
 
-    resultVector = DoubleArrayVector.unsafe(result);
+    resultVector = DoubleArrayVector.unsafe(result, memoizedComputation.getAttributes());
 
     memoizedComputation.setResult(resultVector);
   }

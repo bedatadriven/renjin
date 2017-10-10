@@ -28,7 +28,6 @@ import org.renjin.invoke.annotations.Internal;
 import org.renjin.invoke.annotations.Recycle;
 import org.renjin.nmath.*;
 import org.renjin.sexp.*;
-import org.renjin.stats.internals.distributions.RNG;
 
 import java.lang.invoke.MethodHandle;
 
@@ -911,37 +910,58 @@ public class Distributions {
   }
 
   @Internal
-  public static IntVector rmultinom(@Current Context context, Vector nVector, AtomicVector size, AtomicVector prob){
-    int n = nVector.getElementAsInt(0);
-    if (n == 0) {
-      throw new EvalException("invalid first argument 'n'");
-    }
-    if (size.containsNA()) {
+  public static IntVector rmultinom(@Current Context context, int n, int size, AtomicVector probVector) {
+
+    if (IntVector.isNA(size) || size < 0) {
       throw new EvalException("invalid second argument 'size'");
     }
-    int sizeLength = size.length();
-    int probLength = prob.length();
-    if (sizeLength == 0 || probLength == 0) {
-      return (IntArrayVector.Builder.withInitialSize(n).build());
-    }
-    IntArrayVector.Builder vb = IntArrayVector.Builder.withInitialCapacity(n);
+
+    double[] prob = normalizeProbabilities(probVector);
+    DoublePtr probPtr = new DoublePtr(prob);
+
+    int k = prob.length;  // number of components or classes, = X-vector length
+
     MethodHandle runif = context.getSession().getRngMethod();
-    int k = 0;
-    int[] RN = new int[probLength];
-    for (int i = 0; i < n; i++){
-      rmultinom.rmultinom(runif, size.getElementAsInt(0), new DoublePtr(prob.toDoubleArray()), probLength, new IntPtr(RN));
-      k++;
-      if (k == sizeLength) {
-        k = 0;
+
+    int[] ans = new int[n * k];
+
+    int i;
+    int ik;
+    for(i = ik = 0; i < n; i++, ik += k) {
+      rmultinom.rmultinom(runif, size, probPtr, k, new IntPtr(ans, ik));
+    }
+
+    return IntArrayVector.unsafe(ans, AttributeMap.builder().setDim(prob.length, n).build());
+  }
+
+  private static double[] normalizeProbabilities(AtomicVector vector) {
+    double p[] = vector.toDoubleArray();
+    int n = p.length;
+    double sum = 0.0;
+    int npos = 0;
+
+    for (int i = 0; i < n; i++) {
+      if (!DoubleVector.isFinite(p[i])) {
+        throw new EvalException("NA in probability vector");
       }
-      for (int j = 0; j < probLength; j++) {
-        vb.add(RN[j]);
+      if (p[i] < 0.0) {
+        throw new EvalException("negative probability");
+      }
+      if (p[i] > 0.0) {
+        npos++;
+        sum += p[i];
       }
     }
-    vb.setAttribute(Symbols.DIM, new IntArrayVector(prob.length(), n));
-    IntVector result = vb.build();
-    return result;
+    if (npos == 0) {
+      throw new EvalException("no positive probabilities");
+    }
+    for (int i = 0; i < n; i++) {
+      p[i] /= sum;
+    }
+
+    return p;
   }
+
 
   public static int defineSize(Vector input) {
     int inputLength = (input.length() == 1) ? input.getElementAsInt(0) : input.length();

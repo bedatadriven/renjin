@@ -111,7 +111,7 @@ public class ShadedRowMatrix extends DoubleVector implements MemoizedComputation
     }
 
     this.result = matrix;
-    return DoubleArrayVector.unsafe(matrix);
+    return DoubleArrayVector.unsafe(matrix, getAttributes());
   }
 
   @Override

@@ -841,6 +841,13 @@ public class GimpleCompilerTest extends AbstractGccTest {
     assertThat((Double)uint64_to_double.invoke(null, 0xffffffffffffffffL),
         closeTo(BigDecimal.valueOf(2).pow(64).doubleValue(), 0d));
 
+
+    // int32 to uint64
+    Method int32_to_uint64 = clazz.getMethod("int32_to_uint64", int.class);
+    assertThat((Long)int32_to_uint64.invoke(null, 0), equalTo(0L));
+    assertThat((Long)int32_to_uint64.invoke(null, -1), equalTo(0xFFFFFFFFFFFFFFFFL));
+    assertThat((Long)int32_to_uint64.invoke(null, -64), equalTo(0xFFFFFFFFFFFFFFC0L));
+    assertThat((Long)int32_to_uint64.invoke(null, 3000), equalTo(0xBB8L));
   }
 
   @Test
@@ -1233,5 +1240,10 @@ public class GimpleCompilerTest extends AbstractGccTest {
   @Test
   public void globalVarsAreZeroedOnInit() throws Exception {
     compileAndTest("static_var_zero.c");
+  }
+
+  @Test
+  public void rand() throws Exception {
+    compileAndTest("rand.c");
   }
 }

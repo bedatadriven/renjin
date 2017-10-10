@@ -207,6 +207,24 @@ test.subset.missing.with.varargs <- function() {
     assertThat(f(x, 1, 2), identicalTo(4L))
 }
 
+
+test.subset.missing.with.varargs.2 <- function() {
+
+    f <- function(x, i, j) missing(i)
+    g <- function(x, ...) f(x, ..1, ..2)
+    h <- function(x, ...) g(x, ...)
+    r <- function(...) h(..1, ..2, ...3)
+    s <- function(x, i, j) h(x, i, j)
+
+    x <- 1L
+    assertThat(h(x, , 3), identicalTo(TRUE))
+    assertThat(r(), identicalTo(TRUE))
+    assertThat(s(x), identicalTo(TRUE))
+    assertThat(s(x, 1, 1), identicalTo(FALSE))
+    assertThat(s(x, , 1), identicalTo(TRUE))
+}
+
+
 test.combine.missing <- function() {
 
     assertThat(c(1,,3), throwsError())

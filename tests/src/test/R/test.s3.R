@@ -41,3 +41,65 @@ test.primitive.to.s3.first.promised <- function() {
     # the arguments, besides the first one, are lazily dispatched.
     assertThat(g(x), identicalTo(quote(x)))
 }
+
+
+test.usemethod.then.match.call <- function() {
+
+    foo.default <- function(object) {
+        call <- match.call()
+        call$object$b <- 92
+        call$object
+    }
+    foo <- function(object) UseMethod("foo")
+
+    object <- foo(list(a=1,b=2))
+
+    assertThat(object$b, equalTo(92))
+}
+
+
+test.usemethod.then.sys.call.dollar <- function() {
+
+    foo.default <- function(object) {
+        call <- sys.call()
+        call$object$b <- 92
+        call$object
+    }
+    foo <- function(object) UseMethod("foo")
+
+    object <- foo(object=list(a=1,b=2))
+
+    assertThat(object$b, equalTo(92))
+
+}
+
+
+test.usemethod.then.match.call <- function() {
+
+    foo.default <- function(object) {
+        call <- match.call()
+        call$object$b <- 92
+        call$object
+    }
+    foo <- function(object) UseMethod("foo")
+
+    object <- foo(list(a=1,b=2))
+
+    assertThat(object$b, equalTo(92))
+}
+
+
+test.usemethod.then.sys.call.dollar <- function() {
+
+    foo.default <- function(object) {
+        call <- sys.call()
+        call$object$b <- 92
+        call$object
+    }
+    foo <- function(object) UseMethod("foo")
+
+    object <- foo(object=list(a=1,b=2))
+
+    assertThat(object$b, equalTo(92))
+
+}

@@ -357,6 +357,7 @@ public class Evaluation {
       return true;
     }
     SEXP value = rho.findVariable(context, argumentName);
+
     if(value == Symbol.UNBOUND_VALUE) {
       throw new EvalException("missing can only be used for arguments.");
     }
@@ -364,10 +365,7 @@ public class Evaluation {
       return true;
     }
 
-    if(value instanceof Promise) {
-      return isPromisedMissingArg(context, value, new ArrayDeque<Promise>());
-    }
-    return false;
+    return isPromisedMissingArg(context, value, new ArrayDeque<Promise>());
   }
 
 
@@ -390,17 +388,20 @@ public class Evaluation {
 
         stack.push(promise);
         try {
+          SEXP argumentValue;
           Symbol argumentName = (Symbol) promise.getExpression();
           Environment argumentEnv = promise.getEnvironment();
 
           if(argumentName.isVarArgReference()) {
             SEXP forwardedArguments = argumentEnv.findVariable(context, Symbols.ELLIPSES);
-            if(forwardedArguments.length() == 0) {
+            if(forwardedArguments.length() < argumentName.getVarArgReferenceIndex()) {
               return true;
             }
+            argumentValue = forwardedArguments.getElementAsSEXP(argumentName.getVarArgReferenceIndex() - 1);
+          } else {
+            argumentValue = argumentEnv.findVariable(context, argumentName);
           }
 
-          SEXP argumentValue = argumentEnv.getVariable(context, argumentName);
           if (argumentValue == Symbol.MISSING_ARG) {
             return true;
           } else if (isPromisedMissingArg(context, argumentValue, stack)) {

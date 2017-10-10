@@ -151,9 +151,10 @@ public class StdOutConnection implements Connection {
     this.sinkStack.push(sink);
   }
 
-  void clearSink() throws IOException {
+  Sink clearSink() throws IOException {
     if(!this.sinkStack.isEmpty()) {
-      sinkStack.pop().disconnect();
+      return sinkStack.pop();
     }
+    return null;
   }
 }

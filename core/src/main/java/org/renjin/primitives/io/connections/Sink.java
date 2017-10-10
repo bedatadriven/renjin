@@ -18,7 +18,6 @@
  */
 package org.renjin.primitives.io.connections;
 
-import java.io.IOException;
 import java.io.PrintWriter;
 
 /**
@@ -60,13 +59,11 @@ class Sink {
     }
   }
 
+  public boolean isCloseOnExit() {
+    return closeOnExit;
+  }
 
-  /**
-   * Called when the sink is disconnected from it's source
-   */
-  void disconnect() throws IOException {
-    if(closeOnExit) {
-      connection.close();
-    }
+  public Connection getConnection() {
+    return connection;
   }
 }

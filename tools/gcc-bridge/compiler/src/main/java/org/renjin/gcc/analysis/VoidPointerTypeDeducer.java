@@ -20,6 +20,7 @@ package org.renjin.gcc.analysis;
 
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.TreeLogger;
+import org.renjin.gcc.codegen.cpp.CppStandardLibrary;
 import org.renjin.gcc.gimple.*;
 import org.renjin.gcc.gimple.expr.*;
 import org.renjin.gcc.gimple.statement.GimpleAssignment;
@@ -198,6 +199,9 @@ public class VoidPointerTypeDeducer implements FunctionBodyTransformer {
         case "calloc":
         case "alloca":
         case "realloc":
+        case "__builtin_malloc__":
+        case CppStandardLibrary.NEW_OPERATOR:
+        case CppStandardLibrary.NEW_ARRAY_OPERATOR:
           return true;
       }
       return false;

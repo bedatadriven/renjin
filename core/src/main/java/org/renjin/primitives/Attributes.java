@@ -303,90 +303,65 @@ public class Attributes {
   }
 
   @Builtin("class<-")
-  public static SEXP setClass(SEXP exp, Vector classes) {
-    return exp.setAttribute("class", classes);
+  public static SEXP setClass(SEXP sexp, Vector classes) {
 
-    // TODO:
-    // this is apparently more complicated then implemented above:
-    // int nProtect = 0;
-    // if(isNull(value)) {
-    // setAttrib(obj, R_ClassSymbol, value);
-    // if(IS_S4_OBJECT(obj)) /* NULL class is only valid for S3 objects */
-    // do_unsetS4(obj, value);
-    // return obj;
-    // }
-    // if(TYPEOF(value) != STRSXP) {
-    // /* Beware: assumes value is protected, which it is
-    // in the only use below */
-    // PROTECT(value = coerceVector(duplicate(value), STRSXP));
-    // nProtect++;
-    // }
-    // if(length(value) > 1) {
-    // setAttrib(obj, R_ClassSymbol, value);
-    // if(IS_S4_OBJECT(obj)) /* multiple strings only valid for S3 objects */
-    // do_unsetS4(obj, value);
-    // }
-    // else if(length(value) == 0) {
-    // UNPROTECT(nProtect); nProtect = 0;
-    // error(_("invalid replacement object to be a class string"));
-    // }
-    // else {
-    // const char *valueString, *classString; int whichType;
-    // SEXP cur_class; SEXPTYPE valueType;
-    // valueString = CHAR(asChar(value)); /* ASCII */
-    // whichType = class2type(valueString);
-    // valueType = (whichType == -1) ? -1 : classTable[whichType].sexp;
-    // PROTECT(cur_class = R_data_class(obj, FALSE)); nProtect++;
-    // classString = CHAR(asChar(cur_class)); /* ASCII */
-    // /* assigning type as a class deletes an explicit class attribute. */
-    // if(valueType != -1) {
-    // setAttrib(obj, R_ClassSymbol, R_NilValue);
-    // if(IS_S4_OBJECT(obj)) /* NULL class is only valid for S3 objects */
-    // do_unsetS4(obj, value);
-    // if(classTable[whichType].canChange) {
-    // PROTECT(obj = ascommon(call, obj, valueType));
-    // nProtect++;
-    // }
-    // else if(valueType != TYPEOF(obj))
-    // error(_("\"%s\" can only be set as the class if the object has this type; found \"%s\""),
-    // valueString, type2char(TYPEOF(obj)));
-    // /* else, leave alone */
-    // }
-    // else if(!strcmp("numeric", valueString)) {
-    // setAttrib(obj, R_ClassSymbol, R_NilValue);
-    // if(IS_S4_OBJECT(obj)) /* NULL class is only valid for S3 objects */
-    // do_unsetS4(obj, value);
-    // switch(TYPEOF(obj)) {
-    // case INTSXP: case REALSXP: break;
-    // default: PROTECT(obj = coerceVector(obj, REALSXP));
-    // nProtect++;
-    // }
-    // }
-    // /* the next 2 special cases mirror the special code in
-    // * R_data_class */
-    // else if(!strcmp("matrix", valueString)) {
-    // if(length(getAttrib(obj, R_DimSymbol)) != 2)
-    // error(_("invalid to set the class to matrix unless the dimension attribute is of length 2 (was %d)"),
-    // length(getAttrib(obj, R_DimSymbol)));
-    // setAttrib(obj, R_ClassSymbol, R_NilValue);
-    // if(IS_S4_OBJECT(obj))
-    // do_unsetS4(obj, value);
-    // }
-    // else if(!strcmp("array", valueString)) {
-    // if(length(getAttrib(obj, R_DimSymbol))<= 0)
-    // error(_("cannot set class to \"array\" unless the dimension attribute has length > 0"));
-    // setAttrib(obj, R_ClassSymbol, R_NilValue);
-    // if(IS_S4_OBJECT(obj)) /* NULL class is only valid for S3 objects */
-    // UNSET_S4_OBJECT(obj);
-    // }
-    // else { /* set the class but don't do the coercion; that's
-    // supposed to be done by an as() method */
-    // setAttrib(obj, R_ClassSymbol, value);
-    // }
-    // }
-    // UNPROTECT(nProtect);
-    // return obj;
+    if(classes == Null.INSTANCE ||
+        (classes instanceof StringVector && classes.length() == 0)) {
+      return sexp.setAttribute(Symbols.CLASS, Null.INSTANCE);
+    }
 
+    // Coerce to a character vector WITHOUT invoking as.character()
+    if(!(classes instanceof StringVector)) {
+      classes = (Vector) Vectors.asVector(classes, "character").setAttributes(classes.getAttributes());
+    }
+
+    if(classes.length() == 0) {
+      throw new EvalException("attempt to set invalid 'class' attribute");
+
+    } else if(classes.length() > 1) {
+
+      // Note that we "unbless" S4 objects as they cannot
+      // have multiple classes.
+
+      return sexp.setAttributes(sexp.getAttributes().copy()
+        .setClass(classes)
+        .setS4(false));
+
+
+    } else {
+
+      String className = classes.getElementAsString(0);
+
+      // The "matrix" and "array" class names are subject to special
+      // validation and have the effect of clearing any explicit class attribute
+
+      if ("matrix".equals(className)) {
+        int numDims = sexp.getAttributes().getDim().length();
+        if(numDims != 2) {
+          throw new EvalException(
+              "invalid to set the class to matrix unless the dimension attribute is of length 2 (was %d)", numDims);
+        }
+        return sexp.setAttribute(Symbols.CLASS, Null.INSTANCE);
+
+      } else if("array".equals(className)) {
+        if(sexp.getAttributes().getDim().length() == 0) {
+          throw new EvalException("cannot set class to \"array\" unless the dimension attribute has length > 0");
+        }
+        return sexp.setAttribute(Symbols.CLASS, Null.INSTANCE);
+
+      } else if (sexp.getImplicitClass().equals(className)) {
+
+        // Invoking class(x) <- y
+        // Where y is the implicit class name like "numeric" or "integer" or "character"
+        // has the effect of clearing the explicit class attribute
+
+        return sexp.setAttribute(Symbols.CLASS, Null.INSTANCE);
+
+      } else {
+
+        return sexp.setAttribute(Symbols.CLASS, classes);
+      }
+    }
   }
 
   @Builtin("oldClass<-")

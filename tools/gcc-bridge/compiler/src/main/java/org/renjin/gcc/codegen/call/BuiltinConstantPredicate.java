@@ -21,41 +21,36 @@ package org.renjin.gcc.codegen.call;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.expr.ExprFactory;
 import org.renjin.gcc.codegen.expr.GExpr;
-import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.expr.PtrExpr;
-import org.renjin.gcc.codegen.type.TypeOracle;
+import org.renjin.gcc.gimple.expr.GimpleConstant;
+import org.renjin.gcc.gimple.expr.GimpleExpr;
+import org.renjin.gcc.gimple.expr.GimpleIntegerConstant;
 import org.renjin.gcc.gimple.statement.GimpleCall;
+import org.renjin.gcc.gimple.type.GimpleIntegerType;
 
 /**
- * Generates bytecode for calls to memset()
+ * ou can use the built-in function __builtin_constant_p to determine if a value is known to be constant at compile
+ * time and hence that GCC can perform constant-folding on expressions involving that value. The argument of the
+ * function is the value to test. The function returns the integer 1 if the argument is known to be a compile-time
+ * constant and 0 if it is not known to be a compile-time constant. A return of 0 does not indicate that the value
+ * is not a constant, but merely that GCC cannot prove it is a constant with the specified value of the -O option.
  */
-public class MemSetGenerator implements CallGenerator {
+public class BuiltinConstantPredicate implements CallGenerator {
 
-  /**
-   * We use this implementation also for __memset_chk, which includes
-   * buffer overflow checking because the JVM does this anyway.
-   */
-  public static final String MEMSET_CHECK_BUILTIN = "__memset_chk";
-
-  private final TypeOracle typeOracle;
-
-  public MemSetGenerator(TypeOracle typeOracle) {
-    this.typeOracle = typeOracle;
-  }
+  public static final String NAME = "__builtin_constant_p";
 
   @Override
   public void emitCall(MethodGenerator mv, ExprFactory exprFactory, GimpleCall call) {
 
-    
-    PtrExpr pointer = (PtrExpr) exprFactory.findGenerator(call.getOperand(0));
-    JExpr byteValue = exprFactory.findPrimitiveGenerator(call.getOperand(1));
-    JExpr length = exprFactory.findPrimitiveGenerator(call.getOperand(2));
-
-    pointer.memorySet(mv, byteValue, length);
-
     if(call.getLhs() != null) {
       GExpr lhs = exprFactory.findGenerator(call.getLhs());
-      lhs.store(mv, pointer);
+      GimpleExpr argument = call.getOperand(0);
+      int resultValue;
+      if (argument instanceof GimpleConstant) {
+        resultValue = 1;
+      } else {
+        resultValue = 0;
+      }
+      lhs.store(mv, exprFactory.findGenerator(new GimpleIntegerConstant(new GimpleIntegerType(32), resultValue)));
     }
   }
 }

@@ -109,15 +109,17 @@ public class UnitClassGenerator {
     }
 
     for (GimpleFunction function : unit.getFunctions()) {
-      try {
-        symbolTable.addFunction(function,
-            new FunctionGenerator(className, function, typeOracle, globalVarAllocator, symbolTable));
-      } catch (Exception e) {
-        throw new InternalCompilerException(String.format("Exception creating %s for %s in %s: %s",
-            FunctionGenerator.class.getSimpleName(),
-            function.getName(),
-            unit.getSourceName(),
-            e.getMessage()), e);
+      if (!isExcluded(function)) {
+        try {
+          symbolTable.addFunction(function,
+              new FunctionGenerator(className, function, typeOracle, globalVarAllocator, symbolTable));
+        } catch (Exception e) {
+          throw new InternalCompilerException(String.format("Exception creating %s for %s in %s: %s",
+              FunctionGenerator.class.getSimpleName(),
+              function.getName(),
+              unit.getSourceName(),
+              e.getMessage()), e);
+        }
       }
     }
 
@@ -125,6 +127,14 @@ public class UnitClassGenerator {
       symbolTable.addAlias(alias);
     }
 
+  }
+
+  private boolean isExcluded(GimpleFunction function) {
+    if(function.getMangledName().equals("printf")) {
+      return true;
+    }
+
+    return false;
   }
 
   private boolean isIgnored(GimpleVarDecl decl) {

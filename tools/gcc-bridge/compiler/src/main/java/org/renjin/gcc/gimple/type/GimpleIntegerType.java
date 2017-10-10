@@ -18,6 +18,7 @@
  */
 package org.renjin.gcc.gimple.type;
 
+import org.renjin.gcc.gimple.expr.GimpleIntegerConstant;
 import org.renjin.repackaged.asm.Type;
 
 public class GimpleIntegerType extends GimplePrimitiveType {
@@ -122,7 +123,12 @@ public class GimpleIntegerType extends GimplePrimitiveType {
   public int sizeOf() {
     return Math.max(1, getSize() / 8);
   }
-  
+
+  @Override
+  public GimpleIntegerConstant zero() {
+    return new GimpleIntegerConstant(this, 0L);
+  }
+
   public static GimpleIntegerType unsigned(int bits) {
     GimpleIntegerType type = new GimpleIntegerType(bits);
     type.unsigned = true;

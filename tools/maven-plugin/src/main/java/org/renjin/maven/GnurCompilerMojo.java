@@ -63,6 +63,12 @@ public class GnurCompilerMojo extends AbstractMojo {
   private File gimpleDirectory;
 
   /**
+   * Directory to which the intermediate gimple files are written
+   */
+  @Parameter(defaultValue = "${project.build.directory}/gcc-bridge-logs", required = true)
+  private File loggingDirectory;
+
+  /**
    * Directories in which to look for C/Fortran sources
    */
   @Parameter
@@ -112,6 +118,8 @@ public class GnurCompilerMojo extends AbstractMojo {
     compiler.setOutputDirectory(outputDirectory);
     compiler.setGimpleDirectory(gimpleDirectory);
     compiler.setLinkClassLoader(GccBridgeHelper.getLinkClassLoader(project, getLog()));
+    compiler.setLoggingDir(loggingDirectory);
+
     
     // Unpack any headers from dependencies
     GccBridgeHelper.unpackHeaders(getLog(), unpackedIncludeDir, project.getCompileArtifacts());

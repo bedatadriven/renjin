@@ -172,6 +172,7 @@ public class PackageBuild {
     compiler.setWorkDirectory(gccWorkDir("work"));
     compiler.setGimpleDirectory(gccWorkDir("gimple"));
     compiler.setOutputDirectory(stagingDir);
+    compiler.setLoggingDir(gccWorkDir("logging"));
 
     try {
       compiler.compile();

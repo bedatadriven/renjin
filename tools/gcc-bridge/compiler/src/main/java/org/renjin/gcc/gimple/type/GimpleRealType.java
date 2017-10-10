@@ -18,6 +18,7 @@
  */
 package org.renjin.gcc.gimple.type;
 
+import org.renjin.gcc.gimple.expr.GimpleRealConstant;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Preconditions;
 
@@ -85,5 +86,11 @@ public class GimpleRealType extends GimplePrimitiveType {
   @Override
   public int sizeOf() {
     return getSize() / 8;
+  }
+
+
+  @Override
+  public GimpleRealConstant zero() {
+    return new GimpleRealConstant(this, 0);
   }
 }

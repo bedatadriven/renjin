@@ -45,6 +45,7 @@ import java.lang.invoke.MethodHandle;
 public class VPtrExpr implements PtrExpr {
 
   private JExpr ref;
+  private JExpr offset = Expressions.zero();
   private final GExpr address;
 
   public VPtrExpr(JExpr ref) {
@@ -185,7 +186,7 @@ public class VPtrExpr implements PtrExpr {
 
   @Override
   public PtrExpr pointerPlus(MethodGenerator mv, JExpr offsetInBytes) {
-    return plus(offsetInBytes);
+    return new VPtrWithOffset(this, offsetInBytes);
   }
 
   @Override

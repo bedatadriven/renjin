@@ -18,6 +18,7 @@
  */
 package org.renjin.gcc.gimple.type;
 
+import org.renjin.gcc.gimple.expr.GimpleComplexConstant;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Preconditions;
 
@@ -36,6 +37,10 @@ public class GimpleComplexType extends AbstractGimpleType {
   @Override
   public int sizeOf() {
     return getSize() / 8;
+  }
+
+  public GimpleComplexConstant zero() {
+    return new GimpleComplexConstant(getPartType().zero(), getPartType().zero());
   }
 
   @Override

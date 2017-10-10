@@ -40,7 +40,7 @@ class DerefExpr implements JLValue {
   }
 
   public DerefExpr(JExpr pointer, PointerType pointerType) {
-    this(pointer, Expressions.constantInt(0), pointerType);
+    this(pointer, Expressions.zero(), pointerType);
   }
 
 

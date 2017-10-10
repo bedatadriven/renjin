@@ -29,6 +29,11 @@ import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.var.GlobalVarAllocator;
 import org.renjin.gcc.gimple.*;
+import org.renjin.gcc.gimple.expr.GimpleExpr;
+import org.renjin.gcc.gimple.type.GimpleComplexType;
+import org.renjin.gcc.gimple.type.GimpleIndirectType;
+import org.renjin.gcc.gimple.type.GimplePrimitiveType;
+import org.renjin.gcc.gimple.type.GimpleType;
 import org.renjin.gcc.symbols.GlobalSymbolTable;
 import org.renjin.gcc.symbols.UnitSymbolTable;
 import org.renjin.repackaged.asm.ClassVisitor;
@@ -199,16 +204,19 @@ public class UnitClassGenerator {
       }
       try {
         GExpr varGenerator = symbolTable.getGlobalVariable(decl);
-        if(decl.getValue() != null) {
+        GimpleExpr initialValue = decl.getValue();
+        if(initialValue == null) {
+          initialValue = zeroValue(decl.getType());
+        }
+        if(initialValue != null) {
           try {
-            varGenerator.store(mv, exprFactory.findGenerator(decl.getValue()));
+            varGenerator.store(mv, exprFactory.findGenerator(initialValue));
           } catch (Exception e) {
             System.err.println("Warning: could not generate code for global variable " + decl.getMangledName() +
                 ": " + e.getMessage());
             throw e;
           }
         }
-
       } catch (Exception e) {
         throw new InternalCompilerException(
             String.format("Exception writing static variable initializer %s %s = %s defined in %s", 
@@ -226,6 +234,17 @@ public class UnitClassGenerator {
     mv.visitInsn(RETURN);
     mv.visitMaxs(1, 1);
     mv.visitEnd();
+  }
+
+  private GimpleExpr zeroValue(GimpleType type) {
+    if(type instanceof GimplePrimitiveType) {
+      return ((GimplePrimitiveType) type).zero();
+    } else if(type instanceof GimpleComplexType) {
+      return ((GimpleComplexType) type).zero();
+    } else if(type instanceof GimpleIndirectType) {
+      return ((GimpleIndirectType) type).nullValue();
+    }
+    return null;
   }
 
   private void emitFunctions(TreeLogger parentLogger, GimpleCompilationUnit unit) {

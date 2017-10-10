@@ -35,6 +35,7 @@ import org.renjin.gcc.codegen.var.LocalVarAllocator;
 import org.renjin.gcc.codegen.vptr.VArrayExpr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.codegen.vptr.VPtrRecordExpr;
+import org.renjin.gcc.codegen.vptr.VPtrWithOffset;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.type.*;
 import org.renjin.gcc.runtime.ObjectPtr;
@@ -149,7 +150,7 @@ public final class FatPtrPair implements FatPtr, PtrExpr {
 
   @Override
   public ConditionGenerator comparePointer(MethodGenerator mv, GimpleOp op, GExpr otherPointer) {
-    if(otherPointer instanceof VPtrExpr) {
+    if(otherPointer instanceof VPtrExpr || otherPointer instanceof VPtrWithOffset) {
       return toVPtrExpr().comparePointer(mv, op, otherPointer);
     }
 

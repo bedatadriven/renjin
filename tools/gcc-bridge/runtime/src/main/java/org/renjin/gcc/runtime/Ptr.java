@@ -281,4 +281,5 @@ public interface Ptr extends Comparable<Ptr> {
 
   @Override
   int compareTo(Ptr o);
+
 }

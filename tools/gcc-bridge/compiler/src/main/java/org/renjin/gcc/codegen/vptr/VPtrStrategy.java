@@ -27,7 +27,6 @@ import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.*;
-import org.renjin.gcc.runtime.BytePtr;
 import org.renjin.gcc.runtime.MixedPtr;
 import org.renjin.gcc.runtime.PointerPtr;
 import org.renjin.gcc.runtime.Ptr;
@@ -117,9 +116,13 @@ public class VPtrStrategy implements PointerTypeStrategy {
       return address.valueOf(pointerType);
 
     } else {
-      JLValue ref = allocator.reserve(decl.getName(), Type.getType(Ptr.class),
-          Expressions.staticField(Type.getType(BytePtr.class), "NULL", Type.getType(BytePtr.class)));
-      return new VPtrExpr(ref);
+      // For "normal" local variables, allocate an extra "offset" variable so that
+      // we don't need to create new Ptr instances for pointer arithmatic within the function body.
+
+      JLValue pointer = allocator.reserve(decl.getName(), Type.getType(Ptr.class));
+      JLValue offset = allocator.reserveOffsetInt(decl.getName());
+
+      return new VPtrWithOffset(pointer, offset);
     }
   }
 

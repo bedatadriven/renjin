@@ -21,12 +21,14 @@ package org.renjin.gcc.codegen.type;
 import org.renjin.gcc.InternalCompilerException;
 import org.renjin.gcc.annotations.Struct;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
+import org.renjin.gcc.codegen.fatptr.FatPtrValueFunction;
 import org.renjin.gcc.codegen.fatptr.WrappedFatPtrParamStrategy;
 import org.renjin.gcc.codegen.type.complex.ComplexTypeStrategy;
 import org.renjin.gcc.codegen.type.fun.FunPtrStrategy;
 import org.renjin.gcc.codegen.type.fun.FunTypeStrategy;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveParamStrategy;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveTypeStrategy;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveValueFunction;
 import org.renjin.gcc.codegen.type.primitive.StringParamStrategy;
 import org.renjin.gcc.codegen.type.record.RecordArrayReturnStrategy;
 import org.renjin.gcc.codegen.type.record.RecordArrayValueFunction;
@@ -271,7 +273,7 @@ public class TypeOracle {
   private ParamStrategy forObjectPtrParam(java.lang.reflect.Type type) {
     Class baseType = objectPtrBaseType(type);
     if(baseType.equals(BytePtr.class)) {
-      return forType(new GimpleIntegerType(8)).pointerTo().pointerTo().getParamStrategy();
+      return new WrappedFatPtrParamStrategy(new FatPtrValueFunction(new PrimitiveValueFunction(new GimpleIntegerType(8))));
     } else {
       String baseTypeInternalName = Type.getInternalName((Class)baseType);
       if(classTypes.containsKey(baseTypeInternalName)) {

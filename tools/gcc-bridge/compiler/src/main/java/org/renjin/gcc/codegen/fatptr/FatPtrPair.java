@@ -346,7 +346,7 @@ public final class FatPtrPair implements FatPtr, PtrExpr {
     // int a$offset;
     // new DoublePtr(a, a$offset).memcpy(source, lengthBytes);
 
-    if(source instanceof VPtrExpr) {
+    if(source instanceof VPtrExpr || source instanceof VPtrWithOffset) {
       this.toVPtrExpr().memoryCopy(mv, source, lengthBytes, buffer);
 
     } else {

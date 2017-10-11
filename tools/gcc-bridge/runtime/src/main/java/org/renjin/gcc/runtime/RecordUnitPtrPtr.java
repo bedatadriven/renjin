@@ -274,17 +274,17 @@ public class RecordUnitPtrPtr<T> implements Ptr {
 
   @Override
   public Ptr getPointer() {
-    throw new UnsupportedOperationException("TODO");
+    return new RecordUnitPtr<T>(array[this.offset]);
   }
 
   @Override
   public Ptr getPointer(int offset) {
-    throw new UnsupportedOperationException("TODO");
+    return new RecordUnitPtr<T>(array[this.offset + (offset / BYTES)]);
   }
 
   @Override
   public Ptr getAlignedPointer(int index) {
-    throw new UnsupportedOperationException("TODO");
+    return new RecordUnitPtr<T>(array[this.offset + index]);
   }
 
   @Override

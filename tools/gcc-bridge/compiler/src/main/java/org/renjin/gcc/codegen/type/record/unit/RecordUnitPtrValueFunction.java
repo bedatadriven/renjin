@@ -81,7 +81,8 @@ public class RecordUnitPtrValueFunction implements ValueFunction {
   @Override
   public VPtrExpr toVPtr(JExpr array, JExpr offset) {
     return new VPtrExpr(Expressions.newObject(Type.getType(RecordUnitPtrPtr.class),
-        Expressions.cast(array, Type.getType(Object[].class)),
+        Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(Object[].class), Type.INT_TYPE),
+        array,
         offset));
   }
 

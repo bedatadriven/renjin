@@ -22,6 +22,7 @@ import org.renjin.gcc.annotations.GccSize;
 
 import java.util.Arrays;
 
+@Deprecated
 public class ObjectPtr<T> extends AbstractPtr {
 
   public static final ObjectPtr NULL = new ObjectPtr();
@@ -76,7 +77,11 @@ public class ObjectPtr<T> extends AbstractPtr {
 
   @Override
   public Ptr pointerPlus(int bytes) {
-    throw new UnsupportedOperationException("TODO");
+    if(bytes % 4 == 0) {
+      return new ObjectPtr<>(this.array, this.offset + (bytes / 4));
+    } else {
+      return new OffsetPtr(this, bytes);
+    }
   }
 
   @Override

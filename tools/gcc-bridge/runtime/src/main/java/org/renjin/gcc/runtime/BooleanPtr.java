@@ -26,6 +26,11 @@ public class BooleanPtr extends AbstractPtr implements Ptr {
   public final boolean[] array;
   public final int offset;
 
+
+  public static BooleanPtr malloc(int bytes) {
+    return new BooleanPtr(new boolean[bytes]);
+  }
+
   private BooleanPtr() {
     array = null;
     offset = 0;

@@ -361,7 +361,11 @@ public abstract class AbstractPtr implements Ptr {
 
   @Override
   public MethodHandle toMethodHandle() {
-    throw new UnsupportedOperationException("TODO: " + getClass().getName());
+    if(isNull()) {
+      return null;
+    } else {
+      return FunctionPtr.getBadHandle();
+    }
   }
 
   @Override

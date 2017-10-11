@@ -71,6 +71,36 @@ public class FloatPtr extends AbstractPtr {
   }
 
   @Override
+  public float getFloat() {
+    return array[offset];
+  }
+
+  @Override
+  public float getFloat(int offset) {
+    return array[this.offset + (offset / BYTES)];
+  }
+
+  @Override
+  public float getAlignedFloat(int index) {
+    return array[this.offset + index];
+  }
+
+  @Override
+  public void setFloat(float value) {
+    array[this.offset] = value;
+  }
+
+  @Override
+  public void setFloat(int offset, float value) {
+    array[this.offset + (offset / BYTES)] = value;
+  }
+
+  @Override
+  public void setAlignedFloat(int index, float value) {
+    array[this.offset + index] = value;
+  }
+
+  @Override
   public Ptr pointerPlus(int bytes) {
     if(bytes % BYTES == 0) {
       return new FloatPtr(array, offset + (bytes / BYTES));
@@ -92,8 +122,24 @@ public class FloatPtr extends AbstractPtr {
 
   @Override
   public void setByte(int offset, byte value) {
-    throw new UnsupportedOperationException("TODO");
+    int bytes = (this.offset * BYTES) + offset;
+    int index = bytes / BYTES;
+    int shift = (bytes % BYTES) * BITS_PER_BYTE;
+
+    int element = Float.floatToRawIntBits(array[index]);
+
+    int updateMask = 0xff << shift;
+
+    // Zero out the bits in the byte we are going to update
+    element = element & ~updateMask;
+
+    // Shift our byte into position
+    int update = (((int)value) << shift) & updateMask;
+
+    // Merge the original long and updated bits together
+    array[index] = Float.intBitsToFloat(element | update);
   }
+
 
   @Override
   public int toInt() {

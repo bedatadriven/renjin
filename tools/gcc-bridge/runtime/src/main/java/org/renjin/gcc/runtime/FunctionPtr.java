@@ -20,8 +20,12 @@ package org.renjin.gcc.runtime;
 
 
 import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 
 public class FunctionPtr extends AbstractPtr {
+
+  private static MethodHandle BAD_HANDLE;
 
   public static final int BYTES = 4;
 
@@ -89,5 +93,20 @@ public class FunctionPtr extends AbstractPtr {
   @Override
   public MethodHandle toMethodHandle() {
     return array[0];
+  }
+
+  public static void invalidFunction() {
+    throw new RuntimeException("Not a function pointer. SEGFAULT.");
+  }
+
+  public static MethodHandle getBadHandle() {
+    if(BAD_HANDLE == null) {
+      try {
+        BAD_HANDLE = MethodHandles.publicLookup().findStatic(FunctionPtr.class, "invalidFunction", MethodType.methodType(void.class));
+      } catch (NoSuchMethodException | IllegalAccessException e) {
+        throw new IllegalStateException(e);
+      }
+    }
+    return BAD_HANDLE;
   }
 }

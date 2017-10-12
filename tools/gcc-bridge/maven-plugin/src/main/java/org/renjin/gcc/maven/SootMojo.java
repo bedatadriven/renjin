@@ -28,6 +28,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
+import soot.G;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
@@ -37,7 +38,6 @@ import java.util.List;
 /**
  * Runs the Soot optimizer on one or more classfiles
  */
-@ThreadSafe
 @Mojo(name = "soot",  requiresDependencyCollection = ResolutionScope.COMPILE)
 public class SootMojo extends AbstractMojo {
 
@@ -70,7 +70,9 @@ public class SootMojo extends AbstractMojo {
     // Classpath for soot analysis
     args.add("-cp");
     args.add(compileClassPath());
-    
+
+    args.add("-asm-backend");
+
     if(verbose) {
       args.add("-v");
     }
@@ -86,7 +88,9 @@ public class SootMojo extends AbstractMojo {
     // Write out to build directory and overwrite existing classfiles
     args.add("-d");
     args.add(project.getBuild().getOutputDirectory());
-    
+
+    G.reset();
+
     soot.Main.main(args.toArray(new String[args.size()]));
   }
 

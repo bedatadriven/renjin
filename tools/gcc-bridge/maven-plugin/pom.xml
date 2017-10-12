@@ -53,9 +53,9 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.bedatadriven</groupId>
-      <artifactId>soot</artifactId>
-      <version>2016-07-27</version>
+      <groupId>org.renjin</groupId>
+      <artifactId>renjin-soot</artifactId>
+      <version>2.9.197</version>
     </dependency>
   </dependencies>
 

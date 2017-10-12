@@ -39,31 +39,82 @@ import org.renjin.gcc.gimple.type.*;
 import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Label;
 import org.renjin.repackaged.asm.Type;
+import org.renjin.repackaged.guava.base.Optional;
 
 import java.lang.invoke.MethodHandle;
 
 public class VPtrExpr implements PtrExpr {
 
-  private JExpr ref;
+  /**
+   * The reference to the base instance of {@link Ptr}.
+   */
+  private JExpr baseRef;
+
+  /**
+   * This pointer's address.
+   */
   private final GExpr address;
 
+  /**
+   * An expression containing an additional offset, in bytes, relative to {@code baseRef}.
+   */
+  private final Optional<JExpr> offset;
+
   public VPtrExpr(JExpr ref) {
-    this.ref = ref;
+    this.baseRef = ref;
+    this.address = null;
+    this.offset = Optional.absent();
+  }
+
+  public VPtrExpr(JExpr baseRef, JExpr offset) {
+    this.baseRef = baseRef;
+    this.offset = Optional.of(offset);
     this.address = null;
   }
 
   public VPtrExpr(JExpr ptr, GExpr address) {
-    this.ref = ptr;
+    this.baseRef = ptr;
     this.address = address;
+    this.offset = Optional.absent();
   }
 
   @Override
   public void store(MethodGenerator mv, GExpr rhs) {
-    ((JLValue) this.ref).store(mv, rhs.toVPtrExpr().getRef());
+    VPtrExpr rhsVPtr = rhs.toVPtrExpr();
+    if(offset.isPresent()) {
+      ((JLValue) this.baseRef).store(mv, rhsVPtr.baseRef);
+      ((JLValue) offset.get()).store(mv, rhsVPtr.getOffset());
+    } else {
+      ((JLValue) this.baseRef).store(mv, rhsVPtr.getRef());
+    }
   }
 
+  public JExpr getBaseRef() {
+    return baseRef;
+  }
+
+  /**
+   *
+   * Returns a reference to a single {@code Ptr}. If this {@code VPtrExpr} has a non-zero offset,
+   * {@link Ptr#pointerPlus(int)} is invoked at runtime to create a new instance that incorporates this offset.
+   */
   public JExpr getRef() {
-    return ref;
+    if(offset.isPresent() && !offset.get().equals(Expressions.zero())) {
+      String plusMethod = Type.getMethodDescriptor(Type.getType(Ptr.class), Type.INT_TYPE);
+      return Expressions.methodCall(
+          baseRef, Ptr.class, "pointerPlus", plusMethod, getOffset());
+
+    } else {
+      return baseRef;
+    }
+  }
+
+  /**
+   *
+   * @return the offset in bytes relative to the {@code baseRef}
+   */
+  public JExpr getOffset() {
+    return offset.or(Expressions.zero());
   }
 
   @Override
@@ -76,7 +127,7 @@ public class VPtrExpr implements PtrExpr {
 
   @Override
   public FunPtr toFunPtr() throws UnsupportedCastException {
-    JExpr funPtr = Expressions.methodCall(ref, Ptr.class, "toMethodHandle",
+    JExpr funPtr = Expressions.methodCall(getRef(), Ptr.class, "toMethodHandle",
         Type.getMethodDescriptor(Type.getType(MethodHandle.class)));
 
     return new FunPtr(funPtr);
@@ -94,13 +145,13 @@ public class VPtrExpr implements PtrExpr {
     pointerType.setUnsigned(true);
 
     return new PrimitiveValue(pointerType,
-        Expressions.methodCall(ref, Ptr.class, "toInt", Type.getMethodDescriptor(Type.INT_TYPE)))
+        Expressions.methodCall(getRef(), Ptr.class, "toInt", Type.getMethodDescriptor(Type.INT_TYPE)))
         .toPrimitiveExpr(targetType);
   }
 
   @Override
   public VoidPtrExpr toVoidPtrExpr() throws UnsupportedCastException {
-    return new VoidPtrExpr(ref);
+    return new VoidPtrExpr(getRef());
   }
 
   @Override
@@ -116,7 +167,7 @@ public class VPtrExpr implements PtrExpr {
   @Override
   public RecordUnitPtrExpr toRecordUnitPtrExpr(RecordLayout layout) {
     // The only way we can cast back is if this is a RecordUnitPtr. Let's try.
-    JExpr arrayObject = Expressions.methodCall(ref, Ptr.class, "getArray",
+    JExpr arrayObject = Expressions.methodCall(getRef(), Ptr.class, "getArray",
           Type.getMethodDescriptor(Type.getType(Object.class)));
 
     JExpr recordUnitPtr = Expressions.cast(arrayObject, layout.getType());
@@ -141,14 +192,14 @@ public class VPtrExpr implements PtrExpr {
 
   @Override
   public void jumpIfNull(MethodGenerator mv, Label label) {
-    ref.load(mv);
+    getRef().load(mv);
     mv.invokeinterface(Ptr.class, "isNull", Type.BOOLEAN_TYPE);
     mv.ifne(label);
   }
 
   @Override
   public JExpr memoryCompare(MethodGenerator mv, PtrExpr otherPointer, JExpr n) {
-    return Expressions.methodCall(ref, Ptr.class, "memcmp",
+    return Expressions.methodCall(getRef(), Ptr.class, "memcmp",
         Type.getMethodDescriptor(Type.INT_TYPE, Type.getType(Ptr.class), Type.INT_TYPE),
         otherPointer.toVPtrExpr().getRef(),
         n);
@@ -157,7 +208,7 @@ public class VPtrExpr implements PtrExpr {
   @Override
   public void memorySet(MethodGenerator mv, JExpr byteValue, JExpr length) {
 
-    ref.load(mv);
+    getRef().load(mv);
     byteValue.load(mv);
     length.load(mv);
 
@@ -167,7 +218,7 @@ public class VPtrExpr implements PtrExpr {
   @Override
   public void memoryCopy(MethodGenerator mv, PtrExpr source, JExpr length, boolean buffer) {
 
-    ref.load(mv);
+    getRef().load(mv);
     source.toVPtrExpr().getRef().load(mv);
     length.load(mv);
 
@@ -176,7 +227,7 @@ public class VPtrExpr implements PtrExpr {
 
   @Override
   public PtrExpr realloc(MethodGenerator mv, JExpr newSizeInBytes) {
-    JExpr jExpr = Expressions.methodCall(ref, Ptr.class, "realloc",
+    JExpr jExpr = Expressions.methodCall(getRef(), Ptr.class, "realloc",
         Type.getMethodDescriptor(Type.getType(Ptr.class), Type.INT_TYPE),
         newSizeInBytes);
 
@@ -185,7 +236,11 @@ public class VPtrExpr implements PtrExpr {
 
   @Override
   public PtrExpr pointerPlus(MethodGenerator mv, JExpr offsetInBytes) {
-    return new VPtrWithOffset(this, offsetInBytes);
+    return pointerPlus(offsetInBytes);
+  }
+
+  private PtrExpr pointerPlus(JExpr offsetInBytes) {
+    return new VPtrExpr(this.baseRef, Expressions.sum(getOffset(), offsetInBytes));
   }
 
   @Override
@@ -201,7 +256,7 @@ public class VPtrExpr implements PtrExpr {
 
     if(expectedType instanceof GimplePrimitiveType) {
       PointerType pointerType = PointerType.ofType(expectedType);
-      DerefExpr derefExpr = new DerefExpr(ref, pointerType);
+      DerefExpr derefExpr = new DerefExpr(baseRef, getOffset(), pointerType);
       GimplePrimitiveType primitiveType = (GimplePrimitiveType) expectedType;
 
       return new PrimitiveValue(primitiveType, derefExpr, this);
@@ -211,18 +266,25 @@ public class VPtrExpr implements PtrExpr {
       GimpleComplexType complexType = (GimpleComplexType) expectedType;
       PointerType pointerType = PointerType.ofType(complexType.getPartType());
 
-      DerefExpr realExpr = new DerefExpr(ref, pointerType);
-      DerefExpr imaginaryExpr = new DerefExpr(ref, Expressions.constantInt(complexType.getPartType().sizeOf()), pointerType);
+      JExpr realOffset = getOffset();
+      JExpr complexOffset = Expressions.sum(realOffset, complexType.getPartType().sizeOf());
+
+      DerefExpr realExpr = new DerefExpr(baseRef, realOffset, pointerType);
+      DerefExpr imaginaryExpr = new DerefExpr(baseRef, complexOffset, pointerType);
 
       return new ComplexValue(this, realExpr, imaginaryExpr);
     }
 
     if(expectedType instanceof GimpleIndirectType) {
-      DerefExpr derefExpr = new DerefExpr(ref, PointerType.POINTER);
+      DerefExpr derefExpr = new DerefExpr(baseRef, getOffset(), PointerType.POINTER);
       return new VPtrExpr(derefExpr, this);
     }
 
     throw new UnsupportedOperationException("type: " + expectedType);
+  }
+
+  public GExpr valueOf(GimpleType expectedType, JExpr offset) {
+    return pointerPlus(offset).valueOf(expectedType);
   }
 
   @Override
@@ -235,23 +297,5 @@ public class VPtrExpr implements PtrExpr {
       default:
         return new CompareToCmpGenerator(op, getRef(), otherPointer.toVPtrExpr().getRef());
     }
-  }
-
-  public GExpr valueOf(GimpleType expectedType, JExpr offset) {
-    if(expectedType instanceof GimplePrimitiveType) {
-      return new PrimitiveValue(((GimplePrimitiveType) expectedType),
-          new DerefExpr(ref, offset, PointerType.ofType(expectedType)),
-            new VPtrWithOffset(this, offset));
-    }
-
-    return plus(offset).valueOf(expectedType);
-  }
-
-  public VPtrExpr plus(JExpr offsetInBytes) {
-    String plusMethod = Type.getMethodDescriptor(Type.getType(Ptr.class), Type.INT_TYPE);
-    JExpr plusExpr = Expressions.methodCall(
-        ref, Ptr.class, "pointerPlus", plusMethod, offsetInBytes);
-
-    return new VPtrExpr(plusExpr);
   }
 }

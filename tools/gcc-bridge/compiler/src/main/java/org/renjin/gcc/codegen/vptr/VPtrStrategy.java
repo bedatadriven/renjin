@@ -122,7 +122,7 @@ public class VPtrStrategy implements PointerTypeStrategy {
       JLValue pointer = allocator.reserve(decl.getName(), Type.getType(Ptr.class));
       JLValue offset = allocator.reserveOffsetInt(decl.getName());
 
-      return new VPtrWithOffset(pointer, offset);
+      return new VPtrExpr(pointer, offset);
     }
   }
 

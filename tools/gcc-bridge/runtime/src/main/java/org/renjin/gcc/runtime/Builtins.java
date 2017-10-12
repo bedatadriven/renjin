@@ -18,8 +18,6 @@
  */
 package org.renjin.gcc.runtime;
 
-import java.util.Arrays;
-
 public class Builtins {
 
   public static double __builtin_powi__(double base, int exponent) {
@@ -265,4 +263,9 @@ public class Builtins {
   public static void undefined_std() {
     throw new RuntimeException("Invocation of std:: method");
   }
+
+  public static void _gfortran_runtime_error_at(Ptr position, Ptr format, Object... arguments) {
+    throw new RuntimeException(Stdlib.doFormat(format, arguments));
+  }
+
 }

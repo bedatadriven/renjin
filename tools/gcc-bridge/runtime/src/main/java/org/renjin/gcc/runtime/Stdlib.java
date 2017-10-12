@@ -270,13 +270,13 @@ public class Stdlib {
     return Character.toUpperCase(c);
   }
 
-  private static String doFormat(BytePtr format, Object[] arguments) {
+  static String doFormat(Ptr format, Object[] arguments) {
     Object[] convertedArgs = new Object[arguments.length];
     for (int i = 0; i < arguments.length; i++) {
       convertedArgs[i] = convertFormatArg(arguments[i]);
     }
 
-    return String.format(format.nullTerminatedString(), convertedArgs);
+    return String.format(nullTerminatedString(format), convertedArgs);
   }
 
   private static Object convertFormatArg(Object argument) {

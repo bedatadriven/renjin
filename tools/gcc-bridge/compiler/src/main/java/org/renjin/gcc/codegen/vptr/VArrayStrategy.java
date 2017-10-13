@@ -63,7 +63,7 @@ public class VArrayStrategy implements TypeStrategy<VArrayExpr> {
   @Override
   public VArrayExpr variable(GimpleVarDecl decl, VarAllocator allocator) {
     JExpr malloc = VPtrStrategy.malloc(arrayType, Expressions.constantInt(arrayType.sizeOf())).getRef();
-    JLValue var = allocator.reserve(decl.getName(), Type.getType(Ptr.class), malloc);
+    JLValue var = allocator.reserve(decl.getNameIfPresent(), Type.getType(Ptr.class), malloc);
 
     return new VArrayExpr(arrayType, new VPtrExpr(var));
   }

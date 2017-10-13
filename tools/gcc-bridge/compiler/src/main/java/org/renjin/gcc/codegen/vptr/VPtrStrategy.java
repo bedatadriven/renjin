@@ -110,7 +110,7 @@ public class VPtrStrategy implements PointerTypeStrategy {
   public GExpr variable(GimpleVarDecl decl, VarAllocator allocator) {
     if(decl.isAddressable()) {
       GimplePointerType pointerType = this.baseType.pointerTo();
-      JLValue unitArray = allocator.reserveUnitArray(decl.getName(), Type.getType(Ptr.class), Optional.<JExpr>absent());
+      JLValue unitArray = allocator.reserveUnitArray(decl.getNameIfPresent(), Type.getType(Ptr.class), Optional.<JExpr>absent());
       VPtrValueFunction valueFunction = new VPtrValueFunction(pointerType);
       FatPtrPair address = new FatPtrPair(valueFunction, unitArray, Expressions.constantInt(0));
       return address.valueOf(pointerType);
@@ -119,8 +119,8 @@ public class VPtrStrategy implements PointerTypeStrategy {
       // For "normal" local variables, allocate an extra "offset" variable so that
       // we don't need to create new Ptr instances for pointer arithmatic within the function body.
 
-      JLValue pointer = allocator.reserve(decl.getName(), Type.getType(Ptr.class));
-      JLValue offset = allocator.reserveOffsetInt(decl.getName());
+      JLValue pointer = allocator.reserve(decl.getNameIfPresent(), Type.getType(Ptr.class));
+      JLValue offset = allocator.reserveOffsetInt(decl.getNameIfPresent());
 
       return new VPtrExpr(pointer, offset);
     }

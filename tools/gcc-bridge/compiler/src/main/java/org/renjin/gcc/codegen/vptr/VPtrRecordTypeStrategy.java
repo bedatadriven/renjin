@@ -65,7 +65,7 @@ public class VPtrRecordTypeStrategy extends RecordTypeStrategy<VPtrRecordExpr> {
         Type.getMethodDescriptor(Type.getType(MixedPtr.class), Type.INT_TYPE),
         Expressions.constantInt(getRecordType().sizeOf()));
 
-    JLValue pointer = allocator.reserve(decl.getName(), Type.getType(Ptr.class), malloc);
+    JLValue pointer = allocator.reserve(decl.getNameIfPresent(), Type.getType(Ptr.class), malloc);
 
     return new VPtrRecordExpr(recordType, new VPtrExpr(pointer));
   }

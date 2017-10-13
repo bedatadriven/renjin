@@ -30,6 +30,8 @@ import org.renjin.primitives.special.SubstituteFunction;
 import org.renjin.repackaged.guava.base.Strings;
 import org.renjin.sexp.*;
 
+import java.util.Map;
+
 public class Methods {
 
 
@@ -90,6 +92,15 @@ public class Methods {
 
   public static SEXP R_get_slot(@Current Context context, SEXP object, String what) {
     return R_do_slot(context, object, StringArrayVector.valueOf(what));
+  }
+
+  public static int R_has_slot(SEXP obj, SEXP name) {
+    Symbol slot = Symbol.get(name.asString());
+    Map<Symbol, SEXP> objSlots = obj.getAttributes().toMap();
+    if(objSlots.containsKey(slot)) {
+      return 1;
+    }
+    return 0;
   }
 
   public static String R_methodsPackageMetaName(String prefix, String name, String packageName) {

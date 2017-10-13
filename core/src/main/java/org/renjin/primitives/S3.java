@@ -942,11 +942,8 @@ public class S3 {
       distances.add(0);
     }
     
-    Symbol argClassObjectName = Symbol.get(".__C__" + argClass.get(0));
-    Environment environment = context.getEnvironment();
-    AttributeMap map = environment.findVariable(context, argClassObjectName).force(context).getAttributes();
-    SEXP containsSlot = map.get("contains");
-    SEXP argSuperClasses = containsSlot.getNames();
+    SEXP containsSlot = getContainsSlot(context, argClass.get(0));
+    SEXP argSuperClasses = getSuperClassesS4(containsSlot);
 
     for(int i = 0; i < argSuperClasses.length(); i++) {
       SEXP distanceSlot = ((ListVector) containsSlot).get(i).getAttributes().get("distance");
@@ -961,6 +958,22 @@ public class S3 {
     }
 
     return new ArgumentSignature(classes.toArray(new String[0]), Ints.toArray(distances));
+  }
+
+  public static SEXP getContainsSlot(Context context, String objClass) {
+    Symbol argClassObjectName = Symbol.get(".__C__" + objClass);
+    Environment environment = context.getEnvironment();
+    AttributeMap map = environment.findVariable(context, argClassObjectName).force(context).getAttributes();
+    return map.get("contains");
+  }
+
+  public static SEXP getSuperClassesS4(Context context, String objClass) {
+    SEXP containsSlot = getContainsSlot(context, objClass);
+    return containsSlot.getNames();
+  }
+
+  public static SEXP getSuperClassesS4(SEXP containsSlot) {
+    return containsSlot.getNames();
   }
   
   public static SEXP computeDataClassesS4(Context context, String className) {

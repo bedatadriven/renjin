@@ -30,7 +30,6 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import soot.G;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -72,6 +71,8 @@ public class SootMojo extends AbstractMojo {
     args.add(compileClassPath());
 
     args.add("-asm-backend");
+    args.add("-java-version");
+    args.add("1.7");
 
     if(verbose) {
       args.add("-v");

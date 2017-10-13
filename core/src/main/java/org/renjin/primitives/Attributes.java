@@ -21,8 +21,6 @@ package org.renjin.primitives;
 import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.*;
-import org.renjin.repackaged.guava.base.Predicates;
-import org.renjin.repackaged.guava.collect.Iterables;
 import org.renjin.sexp.*;
 
 /**
@@ -394,33 +392,43 @@ public class Attributes {
   }
 
   @Internal
-  public static boolean inherits(SEXP exp, StringVector what) {
+  public static SEXP inherits(@Current Context context, SEXP exp, StringVector what, boolean which) {
+
     StringVector classes = getClass(exp);
-    for (String whatClass : what) {
-      if (Iterables.contains(classes, whatClass)) {
-        return true;
+    boolean s4 = Types.isS4(exp);
+
+    int inherits[] = new int[what.length()];
+    for (int i = 0; i < what.length(); i++) {
+      String whatClass = what.getElementAsString(i);
+      inherits[i] = inherits(context, whatClass, classes, s4);
+    }
+
+    if (which) {
+      return new IntArrayVector(inherits);
+    } else {
+      LogicalArrayVector.Builder result = new LogicalArrayVector.Builder();
+      for (int i = 0; i < inherits.length; i++) {
+        result.add(inherits[i] != 0);
+      }
+      return result.build();
+    }
+  }
+
+  private static int inherits(Context context, String whatClass, StringVector classes, boolean s4) {
+    for (int i = 0; i < classes.length(); i++) {
+      String className = classes.getElementAsString(i);
+      if(whatClass.equals(className)) {
+        return i + 1;
+      } else if(s4) {
+        AtomicVector superClasses = S3.getSuperClassesS4(context, className);
+        for (int j = 0; j < superClasses.length(); j++) {
+          if(whatClass.equals(superClasses.getElementAsString(j))) {
+            return i + 1;
+          }
+        }
       }
     }
-    return false;
+    return 0;
   }
 
-  @Internal
-  public static boolean inherits(SEXP exp, String what) {
-    return Iterables.contains(getClass(exp), what);
-  }
-
-  @Internal
-  public static SEXP inherits(SEXP exp, StringVector what, boolean which) {
-    if (!which) {
-      return new LogicalArrayVector(inherits(exp, what));
-    }
-    StringVector classes = getClass(exp);
-    int result[] = new int[what.length()];
-
-    for (int i = 0; i != what.length(); ++i) {
-      result[i] = Iterables.indexOf(classes,
-          Predicates.equalTo(what.getElementAsString(i))) + 1;
-    }
-    return new IntArrayVector(result);
-  }
 }

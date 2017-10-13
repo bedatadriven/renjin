@@ -22,7 +22,6 @@ import org.renjin.eval.Context;
 import org.renjin.eval.EvalException;
 import org.renjin.invoke.annotations.Current;
 import org.renjin.invoke.annotations.Internal;
-import org.renjin.primitives.Attributes;
 import org.renjin.sexp.*;
 
 public class Models {
@@ -81,14 +80,24 @@ public class Models {
       } else {
         return ((IntVector)dim).getElementAsInt(0);
       }
-    } else if(Attributes.inherits(s, "data.frame")) {
+    } else if(isDataFrame(s)) {
       return nrows(s.getElementAsSEXP(0));
 
     } else {
       throw new EvalException("object is not a matrix");
     }
   }
-  
+
+  private static boolean isDataFrame(SEXP s) {
+    AtomicVector classVector = s.getAttributes().getClassVector();
+    for (int i = 0; i < classVector.length(); i++) {
+      if("data.frame".equals(classVector.getElementAsString(i))) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   @Internal("model.matrix")
   public static Vector modelMatrix(@Current Context context, FunctionCall terms, ListVector modelFrame) {
    

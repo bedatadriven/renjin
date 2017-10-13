@@ -312,6 +312,7 @@ test.S4.class.methods.1 = function() {
 		is(tryCatch(Gene(name=10,content="mRNA",sequence="ATCGAGT3",size=7), error = function(e)e), "error")
 		)
 
+    assertTrue(inherits(e, "Molecule"))
 
 
     setGeneric(name="setSeq",

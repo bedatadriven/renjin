@@ -967,7 +967,7 @@ public class S3 {
     return map.get("contains");
   }
 
-  public static SEXP getSuperClassesS4(Context context, String objClass) {
+  public static AtomicVector getSuperClassesS4(Context context, String objClass) {
     SEXP containsSlot = getContainsSlot(context, objClass);
     return containsSlot.getNames();
   }

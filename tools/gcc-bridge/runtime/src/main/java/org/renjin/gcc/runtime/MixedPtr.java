@@ -40,7 +40,7 @@ public class MixedPtr extends AbstractPtr {
   private MixedPtr() {
   }
 
-  public MixedPtr(byte[] primitives, Object[] references, int offset) {
+  private MixedPtr(byte[] primitives, Object[] references, int offset) {
     this.primitives = primitives;
     this.references = references;
     this.offset = offset;
@@ -116,7 +116,8 @@ public class MixedPtr extends AbstractPtr {
     }
     int index = byteStart / POINTER_BYTES;
     references[index] = value;
-    setInt(offset / POINTER_BYTES, value.toInt());
+
+    setInt(offset, value.toInt());
   }
 
 

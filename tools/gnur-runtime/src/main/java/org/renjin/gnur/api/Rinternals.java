@@ -564,7 +564,10 @@ public final class Rinternals {
   }
 
   public static BytePtr RAW(SEXP x) {
-    throw new UnimplementedGnuApiMethod("RAW");
+    if(x instanceof RawVector) {
+      return new BytePtr(((RawVector) x).toByteArrayUnsafe());
+    }
+    throw new EvalException("RAW(): Expected raw vector, found %s", x.getTypeName());
   }
 
   public static DoublePtr REAL(SEXP x) {

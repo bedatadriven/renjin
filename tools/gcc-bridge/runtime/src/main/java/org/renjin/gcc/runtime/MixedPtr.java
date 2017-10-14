@@ -65,12 +65,12 @@ public class MixedPtr extends AbstractPtr {
 
   @Override
   public Ptr realloc(int newSizeInBytes) {
+    if(newSizeInBytes == primitives.length) {
+      return this;
+    }
     MixedPtr ptr = new MixedPtr();
-    ptr.primitives = new byte[newSizeInBytes];
-    ptr.references = new Object[mallocSize(newSizeInBytes, POINTER_BYTES)];
-
-    System.arraycopy(primitives, 0, ptr.primitives, 0, primitives.length);
-    System.arraycopy(references, 0, ptr.references, 0, references.length);
+    ptr.primitives = Arrays.copyOf(this.primitives, newSizeInBytes);
+    ptr.references = Arrays.copyOf(this.references, mallocSize(newSizeInBytes, POINTER_BYTES));
 
     return ptr;
   }

@@ -106,6 +106,13 @@ class DerefExpr implements JLValue {
       return null;
     }
 
+    if(offsetBytes instanceof ConstantValue) {
+      int constantOffsetBytes = ((ConstantValue) offsetBytes).getIntValue();
+      if(constantOffsetBytes % pointerType.getSize() == 0) {
+        return Expressions.constantInt(constantOffsetBytes / pointerType.getSize());
+      }
+    }
+
     if(offsetBytes instanceof PrimitiveBinOpGenerator) {
       PrimitiveBinOpGenerator op = (PrimitiveBinOpGenerator) offsetBytes;
       if(op.getOpCode() == Opcodes.IMUL) {

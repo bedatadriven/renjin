@@ -171,7 +171,7 @@ public class FunctionGenerator implements InvocationStrategy {
     PeepholeOptimizer.INSTANCE.optimize(methodNode);
 
     int estimatedSize = BytecodeSizeEstimator.estimateSize(methodNode);
-    if(estimatedSize > 65536) {
+    if(estimatedSize > 60_000) {
       System.err.println("WARNING: Method size of " + className + "." + function.getMangledName() + " may be exceeded.");
     }
 
@@ -330,9 +330,9 @@ public class FunctionGenerator implements InvocationStrategy {
         throw new InternalCompilerException("Exception compiling instruction " + ins, e);
       }
       
-      if(ins.getLineNumber() != null) {
-        mv.visitLineNumber(ins.getLineNumber(), insLabel);
-      }
+//      if(ins.getLineNumber() != null) {
+//        mv.visitLineNumber(ins.getLineNumber(), insLabel);
+//      }
     }
   }
 

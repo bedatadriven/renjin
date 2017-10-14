@@ -1246,4 +1246,9 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void rand() throws Exception {
     compileAndTest("rand.c");
   }
+
+  @Test
+  public void vptrConstructors() throws Exception {
+    compileAndTest("record_constructor.c");
+  }
 }

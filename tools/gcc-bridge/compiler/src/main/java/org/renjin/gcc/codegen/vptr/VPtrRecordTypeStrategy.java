@@ -26,6 +26,7 @@ import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
+import org.renjin.gcc.gimple.expr.GimpleFieldRef;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
 import org.renjin.gcc.runtime.MixedPtr;
@@ -77,7 +78,22 @@ public class VPtrRecordTypeStrategy extends RecordTypeStrategy<VPtrRecordExpr> {
 
   @Override
   public VPtrRecordExpr constructorExpr(ExprFactory exprFactory, MethodGenerator mv, GimpleConstructor value) {
-    throw new UnsupportedOperationException("TODO");
+    // Create a temporary variable for this constructed record array.
+    Type pointerType = Type.getType(MixedPtr.class);
+    VPtrExpr malloc = VPtrStrategy.malloc(pointerType, Expressions.constantInt(this.getRecordType().sizeOf()));
+    VPtrExpr tempVar = new VPtrExpr(mv.getLocalVarAllocator().reserve(pointerType));
+    tempVar.store(mv, malloc);
+
+    int offset = 0;
+    for (GimpleConstructor.Element fieldCtor : value.getElements()) {
+      GimpleFieldRef field = (GimpleFieldRef) fieldCtor.getField();
+      GExpr fieldExpr = exprFactory.findGenerator(fieldCtor.getValue(), field.getType());
+
+      tempVar.valueOf(field.getType(), Expressions.constantInt(offset + field.getOffsetBytes()))
+            .store(mv, fieldExpr);
+    }
+
+    return new VPtrRecordExpr(recordType, tempVar);
   }
 
   @Override

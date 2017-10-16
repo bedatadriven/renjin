@@ -766,7 +766,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
 //    InitDataFlowAnalysis analysis = new InitDataFlowAnalysis(function, cfg);
 //    analysis.solve();
 //    analysis.dump();
-//    
+//
 //    System.out.println("Variables requiring initialization: " + analysis.getVariablesUsedWithoutInitialization());
 
     Class<?> clazz = compile("uninit.c");
@@ -958,7 +958,7 @@ public class GimpleCompilerTest extends AbstractGccTest {
 
   @Test
   public void endpointClass() throws Exception {
-    // Plugin was segfaulting 
+    // Plugin was segfaulting
     Class<?> endpoints = compile("endpoint.cpp");
 
     Method allocMethod = endpoints.getMethod("alloc_endpoints");
@@ -1027,13 +1027,13 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void unionArrayPrimitiveMixed2() throws Exception {
     compileAndTest("union_arrays2.c");
   }
-  
+
   @Test
   public void fortranCommonBlocks() throws Exception {
     Class<?> commonBlocks = compile("common.f");
 
     Method sub1 = commonBlocks.getMethod("sub1_");
-    
+
     sub1.invoke(null);
   }
 
@@ -1041,27 +1041,27 @@ public class GimpleCompilerTest extends AbstractGccTest {
   public void funptrFields() throws Exception {
     compileAndTest("funptr_fields.c");
   }
-  
+
   @Test
   public void recordArrayFields() throws Exception {
-    compileAndTest("record_array_fields.c");    
+    compileAndTest("record_array_fields.c");
   }
-  
+
   @Test
   public void voidPtrSet() throws Exception {
     compileAndTest("void_ptr_set.c");
   }
- 
+
   @Test
   public void addressableFieldMemSet() throws Exception {
     compileAndTest("addr_field_memset.c");
   }
-  
+
   @Test
   public void zeroLengthArrayFields() throws Exception {
     compileAndTest("zero_array_fields.c");
   }
-  
+
   @Test
   public void fatPtrFieldParamAssign() throws Exception {
     compileAndTest("fatptrfield_param_assign.c");
@@ -1250,5 +1250,10 @@ public class GimpleCompilerTest extends AbstractGccTest {
   @Test
   public void vptrConstructors() throws Exception {
     compileAndTest("record_constructor.c");
+  }
+
+  @Test
+  public void pointer2() throws Exception {
+    compileAndTest("pointers2.c");
   }
 }

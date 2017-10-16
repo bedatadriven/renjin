@@ -20,7 +20,6 @@ package org.renjin.gcc.analysis;
 
 import org.renjin.gcc.GimpleCompiler;
 import org.renjin.gcc.TreeLogger;
-import org.renjin.gcc.codegen.cpp.CppStandardLibrary;
 import org.renjin.gcc.gimple.*;
 import org.renjin.gcc.gimple.expr.*;
 import org.renjin.gcc.gimple.statement.GimpleAssignment;
@@ -167,9 +166,9 @@ public class VoidPointerTypeDeducer implements FunctionBodyTransformer {
     @Override
     public void visitCall(GimpleCall gimpleCall) {
 
-      String functionName = findFunctionName(gimpleCall);
+      String functionName = gimpleCall.findFunctionName();
 
-      if(!isMalloc(functionName) && isReference(gimpleCall.getLhs())) {
+      if(!Malloc.isMalloc(functionName) && isReference(gimpleCall.getLhs())) {
 
         // Assignment to our void pointer from a function call
         // e.g. pp = INTEGER(x)
@@ -193,30 +192,6 @@ public class VoidPointerTypeDeducer implements FunctionBodyTransformer {
       }
     }
 
-    private boolean isMalloc(String functionName) {
-      switch (functionName) {
-        case "malloc":
-        case "calloc":
-        case "alloca":
-        case "realloc":
-        case "__builtin_malloc__":
-        case CppStandardLibrary.NEW_OPERATOR:
-        case CppStandardLibrary.NEW_ARRAY_OPERATOR:
-          return true;
-      }
-      return false;
-    }
-
-    private String findFunctionName(GimpleCall call) {
-      if(call.getFunction() instanceof GimpleAddressOf) {
-        GimpleAddressOf functionAddress = (GimpleAddressOf) call.getFunction();
-        if(functionAddress.getValue() instanceof GimpleFunctionRef) {
-          GimpleFunctionRef function = (GimpleFunctionRef) functionAddress.getValue();
-          return function.getName();
-        }
-      }
-      return "";
-    }
 
     private void inferFromMemCmp(GimpleCall gimpleCall) {
       GimpleExpr x = gimpleCall.getOperand(0);

@@ -59,6 +59,10 @@
     </dependency>
     <dependency>
       <groupId>org.renjin</groupId>
+      <artifactId>renjin-soot</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.renjin</groupId>
       <artifactId>gcc-bridge-plugin</artifactId>
       <version>${project.version}</version>
       <classifier>${envClassifier}</classifier>

@@ -21,10 +21,7 @@ package org.renjin.gcc.gimple.statement;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.renjin.gcc.gimple.GimpleExprVisitor;
 import org.renjin.gcc.gimple.GimpleVisitor;
-import org.renjin.gcc.gimple.expr.GimpleExpr;
-import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
-import org.renjin.gcc.gimple.expr.GimpleLValue;
-import org.renjin.gcc.gimple.expr.GimpleSymbolRef;
+import org.renjin.gcc.gimple.expr.*;
 import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.repackaged.guava.base.Predicate;
 import org.renjin.repackaged.guava.collect.Lists;
@@ -51,7 +48,6 @@ public class GimpleCall extends GimpleStatement {
     return operands.get(i);
   }
 
-
   public void setOperand(int i, GimpleExpr op) {
     operands.set(i, op);
   }
@@ -68,12 +64,29 @@ public class GimpleCall extends GimpleStatement {
     this.lhs = lhs;
   }
 
-  public boolean isFunctionNamed(String name) {
-    if(function instanceof GimpleFunctionRef) {
-      GimpleFunctionRef ref = (GimpleFunctionRef) function;
-      return ref.getName().equals(name);
+  public String findFunctionName() {
+    if(function instanceof GimpleAddressOf) {
+      GimpleAddressOf functionAddress = (GimpleAddressOf) function;
+      if(functionAddress.getValue() instanceof GimpleFunctionRef) {
+        GimpleFunctionRef function = (GimpleFunctionRef) functionAddress.getValue();
+        return function.getName();
+      }
     }
-    return false;
+    return "";
+  }
+
+  public GimpleFunctionRef getFunctionRef() {
+    if(function instanceof GimpleAddressOf) {
+      GimpleAddressOf functionAddress = (GimpleAddressOf) function;
+      if(functionAddress.getValue() instanceof GimpleFunctionRef) {
+        return (GimpleFunctionRef) functionAddress.getValue();
+      }
+    }
+    throw new UnsupportedOperationException("Call is not to a function ref:" + function);
+  }
+
+  public boolean isFunctionPointerCall() {
+    return findFunctionName().isEmpty();
   }
 
   @Override

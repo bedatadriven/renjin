@@ -19,6 +19,7 @@
 package org.renjin.gcc.gimple;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.renjin.gcc.codegen.cpp.CppStandardLibrary;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleSymbolRef;
 import org.renjin.gcc.gimple.expr.GimpleVariableRef;
@@ -200,4 +201,5 @@ public class GimpleVarDecl implements GimpleDecl {
   public void setGlobal(boolean global) {
     this.global = global;
   }
+
 }

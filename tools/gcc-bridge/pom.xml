@@ -19,4 +19,14 @@
     <module>gcc-plugin</module>
     <module>maven-plugin</module>
   </modules>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.renjin</groupId>
+        <artifactId>renjin-soot</artifactId>
+        <version>2.9.198</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 </project>

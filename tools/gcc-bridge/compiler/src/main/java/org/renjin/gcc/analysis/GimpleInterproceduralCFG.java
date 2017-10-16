@@ -31,16 +31,10 @@ import org.renjin.gcc.gimple.GimpleSymbolTable;
 import org.renjin.gcc.gimple.statement.GimpleCall;
 import org.renjin.gcc.gimple.statement.GimpleReturn;
 import org.renjin.gcc.gimple.statement.GimpleStatement;
-import org.renjin.repackaged.guava.base.*;
+import org.renjin.repackaged.guava.base.Optional;
+import org.renjin.repackaged.guava.base.Predicate;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class GimpleInterproceduralCFG implements InterproceduralCFG<GimpleNode, GimpleFunction> {
 
@@ -107,6 +101,7 @@ public class GimpleInterproceduralCFG implements InterproceduralCFG<GimpleNode, 
           }
         }
         startPoints.put(function, nodes.get(0));
+        nodeMap.putAll(function, nodes);
       }
     }
   }
@@ -158,7 +153,13 @@ public class GimpleInterproceduralCFG implements InterproceduralCFG<GimpleNode, 
 
   @Override
   public Set<GimpleNode> getCallsFromWithin(GimpleFunction function) {
-    throw new UnsupportedOperationException("TODO");
+    Set<GimpleNode> sites = new HashSet<>();
+    for (GimpleNode node : nodeMap.get(function)) {
+      if(node.isCall()) {
+        sites.add(node);
+      }
+    }
+    return sites;
   }
 
   @Override
@@ -183,7 +184,7 @@ public class GimpleInterproceduralCFG implements InterproceduralCFG<GimpleNode, 
 
   @Override
   public boolean isStartPoint(GimpleNode stmt) {
-    throw new UnsupportedOperationException("TODO");
+    return stmt.isStart();
   }
 
   @Override
@@ -205,5 +206,9 @@ public class GimpleInterproceduralCFG implements InterproceduralCFG<GimpleNode, 
   @Override
   public boolean isBranchTarget(GimpleNode stmt, GimpleNode succ) {
     throw new UnsupportedOperationException("TODO");
+  }
+
+  public Collection<GimpleNode> getNodes() {
+    return nodeMap.values();
   }
 }

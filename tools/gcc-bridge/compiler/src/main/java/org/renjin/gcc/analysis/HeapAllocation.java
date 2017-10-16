@@ -20,27 +20,38 @@
 
 package org.renjin.gcc.analysis;
 
-import heros.solver.IDESolver;
-import heros.solver.IFDSSolver;
-import org.junit.Test;
-import org.renjin.gcc.AbstractGccTest;
-import org.renjin.gcc.gimple.GimpleCompilationUnit;
-import org.renjin.gcc.gimple.GimpleFunction;
+import org.renjin.gcc.gimple.statement.GimpleStatement;
 
-import java.io.IOException;
-import java.util.Arrays;
+public class HeapAllocation extends Allocation {
 
-public class AllocationUsageFinderTest extends AbstractGccTest {
+  private static int NEXT_ID = 1;
 
-  @Test
-  public void test() throws IOException {
+  private int id;
+  private GimpleStatement mallocStatement;
 
-    GimpleCompilationUnit unit = compileToGimple("ide_solve.c");
-    GimpleInterproceduralCFG cfg = new GimpleInterproceduralCFG(Arrays.asList(unit));
-    AllocationUsageFinder finder = new AllocationUsageFinder(cfg);
-    IFDSSolver<GimpleNode, AllocationFact, GimpleFunction, GimpleInterproceduralCFG> solver = new IFDSSolver<>(finder);
-
-    solver.solve();
+  public HeapAllocation(GimpleStatement mallocStatement) {
+    this.id = (NEXT_ID++);
+    this.mallocStatement = mallocStatement;
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    HeapAllocation that = (HeapAllocation) o;
+
+    return mallocStatement.equals(that.mallocStatement);
+
+  }
+
+  @Override
+  public int hashCode() {
+    return mallocStatement.hashCode();
+  }
+
+  @Override
+  public String toString() {
+    return "heap@" + id;
+  }
 }

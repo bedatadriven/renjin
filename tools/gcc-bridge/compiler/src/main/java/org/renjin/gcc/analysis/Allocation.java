@@ -21,4 +21,5 @@
 package org.renjin.gcc.analysis;
 
 public class Allocation {
+
 }

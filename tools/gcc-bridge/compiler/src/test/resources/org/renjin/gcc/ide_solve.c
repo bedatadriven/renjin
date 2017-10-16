@@ -7,7 +7,7 @@
 // deduce that px is always backed by a double[] array,
 // so we don't need to use the whole vptr artifice
 
-static double * gen_pointer() {
+double * gen_pointer() {
     double *px = malloc(sizeof(double)*10);
     px[0] = 91;
     px[1] = 92;
@@ -17,9 +17,4 @@ static double * gen_pointer() {
     py[4] = 95;
     py[5] = 96;
     return px;
-}
-
-void test_receive_pointer() {
-    double *px = gen_pointer();
-    ASSERT(px[0] == 91);
 }

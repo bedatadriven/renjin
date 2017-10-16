@@ -20,19 +20,27 @@
 
 package org.renjin.gcc.analysis;
 
-public class AllocationValue {
+import org.renjin.gcc.gimple.type.GimpleType;
 
-  public static final AllocationValue TOP = new AllocationValue();
-  public static final AllocationValue BOTTOM = new AllocationValue();
+import java.util.HashSet;
+import java.util.Set;
 
-  @Override
-  public String toString() {
-    if(this == TOP) {
-      return "TOP";
-    } else if(this == BOTTOM) {
-      return "BOTTOM";
-    } else {
-      return super.toString();
-    }
+/**
+ * Describes reads and writes to a block of allocated memory.
+ *
+ * <p>This information allows us to determine the best way to represent
+ * a m'allocated block of memory or a variable on the stack.</p>
+ */
+public class AllocationProfile {
+
+  private Allocation allocation;
+  private Set<GimpleType> reads = new HashSet<>();
+
+  AllocationProfile(Allocation allocation) {
+    this.allocation = allocation;
+  }
+
+  void addRead(GimpleType type) {
+
   }
 }

@@ -24,7 +24,6 @@ import org.renjin.gcc.gimple.GimpleVisitor;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleLValue;
 import org.renjin.gcc.gimple.expr.GimpleSymbolRef;
-import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.repackaged.guava.base.Predicate;
 import org.renjin.repackaged.guava.collect.Lists;
 
@@ -68,12 +67,12 @@ public class GimpleAssignment extends GimpleStatement {
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append(lhs).append(" = ").append(operator.format(operands));
-    if(getLineNumber() != null) {
-      sb.append("\t\t\t#").append(getLineNumber());
-      if(getSourceFile() != null) {
-        sb.append(" (").append(getSourceFile()).append(")");
-      }
-    }
+//    if(getLineNumber() != null) {
+//      sb.append("\t\t\t#").append(getLineNumber());
+//      if(getSourceFile() != null) {
+//        sb.append(" (").append(getSourceFile()).append(")");
+//      }
+//    }
 
     return sb.toString();
   }

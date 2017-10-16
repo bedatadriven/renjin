@@ -24,16 +24,22 @@ import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.expr.GimpleIntegerConstant;
 import org.renjin.gcc.gimple.expr.GimpleStringConstant;
 
-public class AllocationFact {
+public class PointsTo {
 
-  public static final AllocationFact ZERO = new AllocationFact(new GimpleStringConstant(), new Allocation());
+  public static final PointsTo ZERO = new PointsTo(new GimpleStringConstant(), new Allocation());
 
   private final GimpleExpr expr;
   private final Allocation allocation;
+  private final int offset;
 
-  public AllocationFact(GimpleExpr expr, Allocation allocation) {
+  public PointsTo(GimpleExpr expr, Allocation allocation) {
+    this(expr, allocation, 0);
+  }
+
+  public PointsTo(GimpleExpr expr, Allocation allocation, int offset) {
     this.expr = expr;
     this.allocation = allocation;
+    this.offset = offset;
   }
 
   public GimpleExpr getExpr() {
@@ -44,12 +50,36 @@ public class AllocationFact {
     return allocation;
   }
 
+  public int getOffset() {
+    return offset;
+  }
+
+  public boolean isOffsetConstant() {
+    return offset != -1;
+  }
+
+  public PointsTo withOffset(GimpleExpr lhs, GimpleExpr offset) {
+
+    if(this.isOffsetConstant() && offset instanceof GimpleIntegerConstant) {
+      int constantOffset = ((GimpleIntegerConstant) offset).getNumberValue().intValue();
+      return new PointsTo(lhs, this.allocation, this.offset + constantOffset);
+    }
+
+    return new PointsTo(lhs, this.allocation, -1);
+
+  }
+
   @Override
   public String toString() {
     if(this == ZERO) {
-      return "ZERO";
+      return "{Ø}";
+    } else if (offset == 0) {
+      return "{" + expr + "=" + allocation + "}";
+    } else if (offset == -1) {
+      return "{" + expr + "=" + allocation + "+?}";
     } else {
-      return super.toString();
+      return "{" + expr + "=" + allocation + "+" + offset + "}";
     }
   }
+
 }

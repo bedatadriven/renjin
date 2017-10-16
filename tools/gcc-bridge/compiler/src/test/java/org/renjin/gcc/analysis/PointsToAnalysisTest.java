@@ -20,34 +20,29 @@
 
 package org.renjin.gcc.analysis;
 
-import org.renjin.gcc.gimple.statement.GimpleStatement;
+import heros.solver.IFDSSolver;
+import org.junit.Test;
+import org.renjin.gcc.AbstractGccTest;
+import org.renjin.gcc.gimple.GimpleCompilationUnit;
+import org.renjin.gcc.gimple.GimpleFunction;
 
-public class MallocAllocation extends Allocation {
+import java.io.IOException;
+import java.util.Arrays;
 
-  private GimpleStatement mallocStatement;
+public class PointsToAnalysisTest extends AbstractGccTest {
 
-  public MallocAllocation(GimpleStatement mallocStatement) {
-    this.mallocStatement = mallocStatement;
+  @Test
+  public void test() throws IOException {
+
+    GimpleCompilationUnit unit = compileToGimple("ide_solve.c");
+    GimpleInterproceduralCFG cfg = new GimpleInterproceduralCFG(Arrays.asList(unit));
+    PointsToAnalysis finder = new PointsToAnalysis(cfg);
+    IFDSSolver<GimpleNode, PointsTo, GimpleFunction, GimpleInterproceduralCFG> solver = new IFDSSolver<>(finder);
+
+    solver.solve();
+
+    AllocationProfileMap profileMap = new AllocationProfileMap(cfg, solver);
+
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-
-    MallocAllocation that = (MallocAllocation) o;
-
-    return mallocStatement.equals(that.mallocStatement);
-
-  }
-
-  @Override
-  public int hashCode() {
-    return mallocStatement.hashCode();
-  }
-
-  @Override
-  public String toString() {
-    return "malloc";
-  }
 }

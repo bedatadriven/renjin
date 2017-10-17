@@ -88,9 +88,13 @@ public class GlobalSymbolTable implements SymbolTable {
         functions.put(mangledName, generator);
       }
     }
-    
+
+    // Otherwise return a generator that will throw an error at runtime
     if(generator == null) {
-      throw new UnsatisfiedLinkException(mangledName);
+      generator = new UnsatisfiedLinkCallGenerator(mangledName);
+      functions.put(mangledName, generator);
+
+      System.err.println("Warning: undefined function " + mangledName + "; may throw exception at runtime");
     }
     
     return generator;

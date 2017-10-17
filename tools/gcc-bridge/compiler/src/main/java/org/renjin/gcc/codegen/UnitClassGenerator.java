@@ -28,7 +28,9 @@ import org.renjin.gcc.codegen.type.ParamStrategy;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.TypeStrategy;
 import org.renjin.gcc.codegen.var.GlobalVarAllocator;
+import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.*;
+import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.type.GimpleComplexType;
 import org.renjin.gcc.gimple.type.GimpleIndirectType;
@@ -219,12 +221,11 @@ public class UnitClassGenerator {
           initialValue = zeroValue(decl.getType());
         }
         if(initialValue != null) {
-          try {
-            varGenerator.store(mv, exprFactory.findGenerator(initialValue));
-          } catch (Exception e) {
-            System.err.println("Warning: could not generate code for global variable " + decl.getMangledName() +
-                ": " + e.getMessage());
-            throw e;
+
+          if(initialValue instanceof GimpleConstructor) {
+            writeInitMethodCall(mv, decl, varGenerator, initialValue);
+          } else {
+            tryWriteInitCode(mv, exprFactory, decl, varGenerator, initialValue);
           }
         }
       } catch (Exception e) {
@@ -244,6 +245,47 @@ public class UnitClassGenerator {
     mv.visitInsn(RETURN);
     mv.visitMaxs(1, 1);
     mv.visitEnd();
+  }
+
+  private void writeInitMethodCall(MethodGenerator mv,
+                                   GimpleVarDecl decl,
+                                   GExpr varGenerator,
+                                   GimpleExpr initialValue) {
+
+    String initMethodName = writeInitMethod(decl, varGenerator, initialValue);
+    mv.invokestatic(className, initMethodName, "()V", false);
+  }
+
+  private String writeInitMethod(GimpleVarDecl decl,
+                                 GExpr varGenerator,
+                                 GimpleExpr initialValue) {
+
+    String initMethodName = VarAllocator.toJavaSafeName(decl.getName()) + "$$clinit";
+    MethodGenerator mv = new MethodGenerator(cv.visitMethod(ACC_STATIC, initMethodName, "()V", null, null));
+    ExprFactory exprFactory = new ExprFactory(typeOracle, symbolTable, mv);
+    mv.visitCode();
+    tryWriteInitCode(mv, exprFactory, decl, varGenerator, initialValue);
+    mv.visitInsn(RETURN);
+    mv.visitMaxs(1, 1);
+    mv.visitEnd();
+
+    return initMethodName;
+
+  }
+
+
+  private void tryWriteInitCode(MethodGenerator mv,
+                                ExprFactory exprFactory,
+                                GimpleVarDecl decl,
+                                GExpr varGenerator,
+                                GimpleExpr initialValue) {
+    try {
+      varGenerator.store(mv, exprFactory.findGenerator(initialValue));
+    } catch (Exception e) {
+      System.err.println("Warning: could not generate code for global variable " + decl.getMangledName() +
+          ": " + e.getMessage());
+      throw e;
+    }
   }
 
   private GimpleExpr zeroValue(GimpleType type) {

@@ -36,13 +36,16 @@ public class HeapAllocation extends Allocation {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     HeapAllocation that = (HeapAllocation) o;
 
-    return mallocStatement.equals(that.mallocStatement);
-
+    return mallocStatement == that.mallocStatement;
   }
 
   @Override

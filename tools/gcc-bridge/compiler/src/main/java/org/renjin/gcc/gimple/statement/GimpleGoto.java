@@ -52,7 +52,7 @@ public class GimpleGoto extends GimpleStatement {
   }
 
   @Override
-  public void accept(GimpleExprVisitor visitor) {
+  public void acceptRight(GimpleExprVisitor visitor) {
     
   }
 

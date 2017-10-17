@@ -25,24 +25,46 @@ import org.junit.Test;
 import org.renjin.gcc.AbstractGccTest;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
+import org.renjin.gcc.gimple.type.GimpleRealType;
+import org.renjin.gcc.gimple.type.GimpleType;
 
 import java.io.IOException;
 import java.util.Arrays;
 
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.assertThat;
+
 public class PointsToAnalysisTest extends AbstractGccTest {
 
   @Test
-  public void test() throws IOException {
+  public void heapAliasing() throws IOException {
 
-    GimpleCompilationUnit unit = compileToGimple("ide_solve.c");
+    AllocationProfileMap profileMap = solve("points_to1.c");
+    assertThat(profileMap.getAllocations(), hasSize(1));
+
+    AllocationProfile heap = profileMap.getAllocations().iterator().next();
+    assertThat(heap.getReads(), hasSize(0));
+    assertThat(heap.getWrites(), contains((GimpleType)new GimpleRealType(64)));
+  }
+
+
+  @Test
+  public void pointsToStack() throws IOException {
+    AllocationProfileMap profileMap = solve("points_to2.c");
+    assertThat(profileMap.getAllocations(), hasSize(2));
+  }
+
+
+  private AllocationProfileMap solve(String sourceFile) throws IOException {
+    GimpleCompilationUnit unit = compileToGimple(sourceFile);
     GimpleInterproceduralCFG cfg = new GimpleInterproceduralCFG(Arrays.asList(unit));
     PointsToAnalysis finder = new PointsToAnalysis(cfg);
     IFDSSolver<GimpleNode, PointsTo, GimpleFunction, GimpleInterproceduralCFG> solver = new IFDSSolver<>(finder);
 
     solver.solve();
 
-    AllocationProfileMap profileMap = new AllocationProfileMap(cfg, solver);
-
+    return new AllocationProfileMap(cfg, solver);
   }
 
 }

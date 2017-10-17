@@ -21,16 +21,21 @@
 package org.renjin.gcc.analysis;
 
 import heros.solver.IFDSSolver;
+import org.renjin.gcc.gimple.GimpleExprVisitor;
 import org.renjin.gcc.gimple.GimpleFunction;
+import org.renjin.gcc.gimple.expr.GimpleArrayRef;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
+import org.renjin.gcc.gimple.expr.GimpleMemRef;
 import org.renjin.gcc.gimple.type.GimpleType;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class AllocationProfileMap {
+
+  enum AccessType {
+    READ,
+    WRITE
+  }
 
   private final GimpleInterproceduralCFG cfg;
   private final IFDSSolver<GimpleNode, PointsTo, GimpleFunction, GimpleInterproceduralCFG> solver;
@@ -44,22 +49,45 @@ public class AllocationProfileMap {
     this.solver = solver;
 
     for (final GimpleNode node : cfg.getNodes()) {
+      node.getStatement().acceptRight(new GimpleExprVisitor() {
+
+        @Override
+        public void visitMemRef(GimpleMemRef memRef) {
+          addAccess(AccessType.READ, node, memRef.getPointer(), memRef.getOffset(), memRef.getType());
+        }
+
+        @Override
+        public void visitArrayRef(GimpleArrayRef arrayRef) {
+          throw new UnsupportedOperationException();
+        }
+      });
+      node.getStatement().acceptLeft(new GimpleExprVisitor() {
+        @Override
+        public void visitMemRef(GimpleMemRef memRef) {
+          addAccess(AccessType.WRITE, node, memRef.getPointer(), memRef.getOffset(), memRef.getType());
+        }
+      });
     }
   }
 
-  private void addRead(GimpleNode node, GimpleExpr pointer, GimpleExpr offset, GimpleType type) {
+  public Collection<AllocationProfile> getAllocations() {
+    return map.values();
+  }
+
+  private void addAccess(AccessType accessType, GimpleNode node, GimpleExpr pointer, GimpleExpr offset, GimpleType type) {
     Set<Allocation> allocations = findAllocation(node, pointer);
     for (Allocation allocation : allocations) {
-      addRead(allocation, offset, type);
+      addAccess(accessType, allocation, offset, type);
     }
   }
 
-  private void addRead(Allocation allocation, GimpleExpr offset, GimpleType type) {
+  private void addAccess(AccessType accessType, Allocation allocation, GimpleExpr offset, GimpleType type) {
     AllocationProfile profile = map.get(allocation);
     if(profile == null) {
       profile = new AllocationProfile(allocation);
+      map.put(allocation, profile);
     }
-    profile.addRead(type);
+    profile.addAccess(accessType, type);
   }
 
   private Set<Allocation> findAllocation(GimpleNode node, GimpleExpr pointer) {

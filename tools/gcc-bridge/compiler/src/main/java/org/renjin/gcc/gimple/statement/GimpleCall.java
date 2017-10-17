@@ -150,10 +150,14 @@ public class GimpleCall extends GimpleStatement {
   }
 
   @Override
-  public void accept(GimpleExprVisitor visitor) {
+  public void acceptLeft(GimpleExprVisitor visitor) {
     if(lhs != null) {
       lhs.accept(visitor);
     }
+  }
+
+  @Override
+  public void acceptRight(GimpleExprVisitor visitor) {
     function.accept(visitor);
     for (GimpleExpr operand : operands) {
       operand.accept(visitor);

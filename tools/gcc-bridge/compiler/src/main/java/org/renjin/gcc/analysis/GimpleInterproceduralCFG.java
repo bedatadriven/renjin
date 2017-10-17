@@ -41,14 +41,20 @@ public class GimpleInterproceduralCFG implements InterproceduralCFG<GimpleNode, 
   private final List<GimpleFunction> entryPoints;
   private final Multimap<GimpleFunction, GimpleNode> nodeMap = HashMultimap.create();
   private final Map<GimpleFunction, GimpleNode> startPoints = new HashMap<>();
+  private GimpleSymbolTable symbolTable;
 
   public GimpleInterproceduralCFG(List<GimpleCompilationUnit> units, Predicate<GimpleFunction> entryPointPredicate) {
     this.entryPoints = findEntryPoints(units, entryPointPredicate);
+    this.symbolTable = new GimpleSymbolTable(units);
+
     buildGraph(units);
   }
 
+  public GimpleSymbolTable getSymbolTable() {
+    return symbolTable;
+  }
+
   private void buildGraph(List<GimpleCompilationUnit> units) {
-    GimpleSymbolTable symbolTable = new GimpleSymbolTable(units);
 
     for (GimpleCompilationUnit unit : units) {
       for (GimpleFunction function : unit.getFunctions()) {

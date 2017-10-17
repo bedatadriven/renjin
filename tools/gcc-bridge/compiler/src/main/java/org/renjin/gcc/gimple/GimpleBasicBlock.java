@@ -18,8 +18,6 @@
  */
 package org.renjin.gcc.gimple;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
 import org.renjin.gcc.gimple.statement.*;
 import org.renjin.repackaged.guava.base.Predicate;

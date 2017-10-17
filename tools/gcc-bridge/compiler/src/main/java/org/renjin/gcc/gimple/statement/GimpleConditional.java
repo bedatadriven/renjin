@@ -22,7 +22,6 @@ import org.renjin.gcc.gimple.GimpleExprVisitor;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.GimpleVisitor;
 import org.renjin.gcc.gimple.expr.GimpleExpr;
-import org.renjin.repackaged.guava.base.Joiner;
 import org.renjin.repackaged.guava.base.Predicate;
 import org.renjin.repackaged.guava.collect.Sets;
 
@@ -109,7 +108,7 @@ public class GimpleConditional extends GimpleStatement {
   }
 
   @Override
-  public void accept(GimpleExprVisitor visitor) {
+  public void acceptRight(GimpleExprVisitor visitor) {
     for (GimpleExpr operand : operands) {
       operand.accept(visitor);
     }

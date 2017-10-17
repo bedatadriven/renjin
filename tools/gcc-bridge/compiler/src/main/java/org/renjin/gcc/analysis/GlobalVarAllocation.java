@@ -20,43 +20,28 @@
 
 package org.renjin.gcc.analysis;
 
-import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.gcc.gimple.GimpleVarDecl;
 
-import java.util.HashSet;
-import java.util.Set;
+public class GlobalVarAllocation extends Allocation {
+  private GimpleVarDecl decl;
 
-/**
- * Describes reads and writes to a block of allocated memory.
- *
- * <p>This information allows us to determine the best way to represent
- * a m'allocated block of memory or a variable on the stack.</p>
- */
-public class AllocationProfile {
-
-  private Allocation allocation;
-  private Set<GimpleType> reads = new HashSet<>();
-  private Set<GimpleType> writes = new HashSet<>();
-
-  AllocationProfile(Allocation allocation) {
-    this.allocation = allocation;
+  public GlobalVarAllocation(GimpleVarDecl decl) {
+    this.decl = decl;
   }
 
-  public Set<GimpleType> getReads() {
-    return reads;
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    GlobalVarAllocation that = (GlobalVarAllocation) o;
+
+    return decl.equals(that.decl);
+
   }
 
-  public Set<GimpleType> getWrites() {
-    return writes;
-  }
-
-  void addAccess(AllocationProfileMap.AccessType accessType, GimpleType type) {
-    switch (accessType) {
-      case READ:
-        reads.add(type);
-        break;
-      case WRITE:
-        writes.add(type);
-        break;
-    }
+  @Override
+  public int hashCode() {
+    return decl.hashCode();
   }
 }

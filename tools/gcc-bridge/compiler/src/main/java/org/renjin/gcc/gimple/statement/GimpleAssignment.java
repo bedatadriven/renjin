@@ -116,8 +116,12 @@ public class GimpleAssignment extends GimpleStatement {
   }
 
   @Override
-  public void accept(GimpleExprVisitor visitor) {
+  public void acceptLeft(GimpleExprVisitor visitor) {
     lhs.accept(visitor);
+  }
+
+  @Override
+  public void acceptRight(GimpleExprVisitor visitor) {
     for (GimpleExpr operand : operands) {
       operand.accept(visitor);
     }

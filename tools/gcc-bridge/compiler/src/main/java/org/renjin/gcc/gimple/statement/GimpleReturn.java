@@ -79,7 +79,7 @@ public class GimpleReturn extends GimpleStatement {
   }
 
   @Override
-  public void accept(GimpleExprVisitor visitor) {
+  public void acceptRight(GimpleExprVisitor visitor) {
     if(value != null) {
       value.accept(visitor);
     }

@@ -31,10 +31,7 @@ import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.gimple.expr.GimpleFunctionRef;
 import org.renjin.gcc.gimple.expr.GimpleSymbolRef;
 import org.renjin.gcc.link.LinkSymbol;
-import org.renjin.gcc.runtime.Builtins;
-import org.renjin.gcc.runtime.Mathlib;
-import org.renjin.gcc.runtime.Stdlib;
-import org.renjin.gcc.runtime.Stdlib2;
+import org.renjin.gcc.runtime.*;
 import org.renjin.repackaged.guava.base.Optional;
 import org.renjin.repackaged.guava.base.Preconditions;
 import org.renjin.repackaged.guava.collect.Maps;
@@ -92,12 +89,8 @@ public class GlobalSymbolTable implements SymbolTable {
       }
     }
     
-    // Otherwise return a generator that will throw an error at runtime
     if(generator == null) {
-      generator = new UnsatisfiedLinkCallGenerator(mangledName);
-      functions.put(mangledName, generator);
-      
-      System.err.println("Warning: undefined function " + mangledName + "; may throw exception at runtime");
+      throw new UnsatisfiedLinkException(mangledName);
     }
     
     return generator;
@@ -145,6 +138,7 @@ public class GlobalSymbolTable implements SymbolTable {
     addFunction(ThrowCallGenerator.NAME, new ThrowCallGenerator());
     addFunction(BeginCatchCallGenerator.NAME, new BeginCatchCallGenerator());
     addFunction(EndCatchGenerator.NAME, new EndCatchGenerator());
+    addFunction(RethrowGenerator.NAME, new RethrowGenerator());
     
     addMethod("__builtin_log10__", Math.class, "log10");
 
@@ -157,6 +151,7 @@ public class GlobalSymbolTable implements SymbolTable {
     addMethods(Stdlib.class);
     addMethods(Stdlib2.class);
     addMethods(Mathlib.class);
+    addMethods(Std.class);
   }
 
   public void addLibrary(SymbolLibrary lib) {

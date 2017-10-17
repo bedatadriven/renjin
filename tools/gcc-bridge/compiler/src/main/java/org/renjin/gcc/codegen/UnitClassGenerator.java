@@ -280,7 +280,11 @@ public class UnitClassGenerator {
 
   public byte[] toByteArray() {
     cv.visitEnd();
-    return cw.toByteArray();
+    try {
+      return cw.toByteArray();
+    } catch (Exception e) {
+      throw new InternalCompilerException("Failed to write class " + getClassName() + ": " + e.getMessage());
+    }
   }
 
   /**

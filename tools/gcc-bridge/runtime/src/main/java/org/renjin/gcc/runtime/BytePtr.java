@@ -42,6 +42,10 @@ public class BytePtr extends AbstractPtr {
     this.array = array;
     this.offset = offset;
   }
+
+  public static Ptr of(int value) {
+    return NULL.pointerPlus(value);
+  }
   
   public byte get() {
     return array[offset];

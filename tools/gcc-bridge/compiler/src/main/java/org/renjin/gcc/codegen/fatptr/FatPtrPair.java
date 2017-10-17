@@ -28,7 +28,9 @@ import org.renjin.gcc.codegen.type.fun.FunPtr;
 import org.renjin.gcc.codegen.type.primitive.ConstantValue;
 import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
 import org.renjin.gcc.codegen.type.record.RecordArrayExpr;
+import org.renjin.gcc.codegen.type.record.RecordClassValueFunction;
 import org.renjin.gcc.codegen.type.record.RecordLayout;
+import org.renjin.gcc.codegen.type.record.RecordValue;
 import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrExpr;
 import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
 import org.renjin.gcc.codegen.var.LocalVarAllocator;
@@ -184,7 +186,13 @@ public final class FatPtrPair implements FatPtr, PtrExpr {
 
   @Override
   public RecordUnitPtrExpr toRecordUnitPtrExpr(RecordLayout layout) {
-    throw new UnsupportedOperationException("TODO");
+    if(valueFunction instanceof RecordClassValueFunction) {
+      RecordClassValueFunction recordClassValueFunction = (RecordClassValueFunction) valueFunction;
+      RecordValue firstRecord = recordClassValueFunction.dereference(this.array, this.offset);
+      return new RecordUnitPtrExpr(layout,
+          Expressions.cast(firstRecord.getRef(), layout.getType()));
+    }
+    throw new UnsupportedOperationException("Unsupported cast");
   }
 
   @Override

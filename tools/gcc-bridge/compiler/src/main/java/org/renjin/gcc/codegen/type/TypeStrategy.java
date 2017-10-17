@@ -92,7 +92,7 @@ public interface TypeStrategy<ExprT extends GExpr> {
    * Casts the given {@code value}, compield with the given {@code typeStrategy}, 
    * to a value of this strategy.
    */
-  ExprT cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException;
+  ExprT cast(MethodGenerator mv, GExpr value) throws UnsupportedCastException;
 
 
 }

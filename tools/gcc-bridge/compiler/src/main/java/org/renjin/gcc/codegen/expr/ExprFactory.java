@@ -38,7 +38,6 @@ import org.renjin.gcc.codegen.type.fun.FunPtr;
 import org.renjin.gcc.codegen.type.primitive.*;
 import org.renjin.gcc.codegen.type.primitive.op.*;
 import org.renjin.gcc.codegen.type.record.RecordExpr;
-import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
 import org.renjin.gcc.gimple.GimpleOp;
 import org.renjin.gcc.gimple.expr.*;
 import org.renjin.gcc.gimple.type.*;
@@ -81,7 +80,7 @@ public class ExprFactory {
     }
     
     try {
-      return leftStrategy.cast(mv, rhs, rightStrategy);
+      return leftStrategy.cast(mv, rhs);
     } catch (UnsupportedCastException e) {
       throw new InternalCompilerException(String.format("Unsupported cast to %s [%s] from %s [%s]",
           lhsType, leftStrategy.getClass().getSimpleName(),

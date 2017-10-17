@@ -126,7 +126,7 @@ public class VoidPtrStrategy implements PointerTypeStrategy<VoidPtrExpr>, Simple
   }
 
   @Override
-  public VoidPtrExpr cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+  public VoidPtrExpr cast(MethodGenerator mv, GExpr value) throws UnsupportedCastException {
     return value.toVoidPtrExpr();
   }
 

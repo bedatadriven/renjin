@@ -26,6 +26,8 @@ import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.gimple.type.GimplePointerType;
 import org.renjin.gcc.gimple.type.GimpleType;
+import org.renjin.gcc.runtime.PointerPtr;
+import org.renjin.gcc.runtime.Ptr;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
 
@@ -122,7 +124,9 @@ public class FatPtrValueFunction implements ValueFunction {
 
   @Override
   public VPtrExpr toVPtr(JExpr array, JExpr offset) {
-    throw new UnsupportedOperationException("TODO");
+    return new VPtrExpr(Expressions.staticMethodCall(PointerPtr.class, "wrap",
+        Type.getMethodDescriptor(Type.getType(PointerPtr.class), Type.getType(Ptr[].class), Type.INT_TYPE),
+        array, offset));
   }
 
   @Override

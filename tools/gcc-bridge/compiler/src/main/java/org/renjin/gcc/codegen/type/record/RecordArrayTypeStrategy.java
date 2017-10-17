@@ -21,7 +21,10 @@ package org.renjin.gcc.codegen.type.record;
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategies;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
-import org.renjin.gcc.codegen.expr.*;
+import org.renjin.gcc.codegen.expr.ExprFactory;
+import org.renjin.gcc.codegen.expr.GExpr;
+import org.renjin.gcc.codegen.expr.JExpr;
+import org.renjin.gcc.codegen.expr.JLValue;
 import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.fatptr.Wrappers;
@@ -29,10 +32,13 @@ import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
-import org.renjin.gcc.gimple.type.*;
+import org.renjin.gcc.gimple.type.GimpleArrayType;
+import org.renjin.gcc.gimple.type.GimplePrimitiveType;
+import org.renjin.gcc.gimple.type.GimpleRecordType;
+import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
 import org.renjin.repackaged.asm.Type;
 
-import static org.renjin.gcc.codegen.expr.Expressions.*;
+import static org.renjin.gcc.codegen.expr.Expressions.newArray;
 
 /**
  * Represents a record with a primitive array.
@@ -132,7 +138,7 @@ public class RecordArrayTypeStrategy extends RecordTypeStrategy<RecordArrayExpr>
   }
 
   @Override
-  public RecordArrayExpr cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+  public RecordArrayExpr cast(MethodGenerator mv, GExpr value) throws UnsupportedCastException {
     return value.toRecordArrayExpr();
   }
 

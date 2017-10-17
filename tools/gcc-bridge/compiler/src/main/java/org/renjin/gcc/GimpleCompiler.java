@@ -27,11 +27,8 @@ import org.renjin.gcc.codegen.call.CallGenerator;
 import org.renjin.gcc.codegen.call.FunctionCallGenerator;
 import org.renjin.gcc.codegen.lib.SymbolLibrary;
 import org.renjin.gcc.codegen.type.TypeOracle;
-import org.renjin.gcc.codegen.type.record.RecordTypeStrategy;
-import org.renjin.gcc.codegen.type.record.RecordTypeStrategyBuilder;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.gimple.GimpleFunction;
-import org.renjin.gcc.gimple.type.GimpleRecordTypeDef;
 import org.renjin.gcc.link.LinkSymbol;
 import org.renjin.gcc.symbols.GlobalSymbolTable;
 import org.renjin.repackaged.guava.annotations.VisibleForTesting;
@@ -48,7 +45,6 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -78,8 +74,6 @@ public class GimpleCompiler  {
 
   private GlobalSymbolTable globalSymbolTable;
 
-  private Collection<GimpleRecordTypeDef> recordTypeDefs;
-
   private List<FunctionBodyTransformer> functionBodyTransformers = Lists.newArrayList();
 
   private final TypeOracle typeOracle = new TypeOracle();
@@ -89,8 +83,7 @@ public class GimpleCompiler  {
 
   private String trampolineClassName;
   private String recordClassPrefix = "record";
-  private int nextRecordIndex = 0;
-  
+
   private TreeLogger rootLogger = new NullTreeLogger();
   
   private Predicate<GimpleFunction> entryPointPredicate = new DefaultEntryPointPredicate();
@@ -201,22 +194,17 @@ public class GimpleCompiler  {
   public void compile(List<GimpleCompilationUnit> units) throws Exception {
 
     try {
+
       PmfRewriter.rewrite(units);
       GlobalVarMerger.merge(units);
-      ImplicitFieldDeclFinder.find(units);
 
       // Prune unused functions 
       SymbolPruner.prune(rootLogger, units, entryPointPredicate);
 
-      // create the mapping from the compilation unit's version of the record types
-      // to the canonical version shared by all compilation units
-      recordTypeDefs = RecordTypeDefCanonicalizer.canonicalize(rootLogger, units);
-      recordTypeDefs = RecordTypeDefCanonicalizer.prune(rootLogger, units, recordTypeDefs);
-      if (verbose) {
-        for (GimpleRecordTypeDef recordTypeDef : recordTypeDefs) {
-          System.out.println(recordTypeDef);
-        }
-      }
+
+      typeOracle.initRecords(units, providedRecordTypes);
+
+
 
       // First apply any transformations needed by the code generation process
       transform(units);
@@ -225,8 +213,6 @@ public class GimpleCompiler  {
       AddressableFinder addressableFinder = new AddressableFinder(units);
       addressableFinder.mark();
 
-      // Compile the record types so they are available to functions and variables
-      compileRecords(units);
 
       // Next, do a round of compilation units to make sure all externally visible functions and 
       // symbols are added to the global symbol table.
@@ -269,27 +255,6 @@ public class GimpleCompiler  {
         e.printStackTrace();
       }
     }
-  }
-
-
-  private void compileRecords(List<GimpleCompilationUnit> units) throws IOException {
-    RecordTypeStrategyBuilder builder = new RecordTypeStrategyBuilder(
-        typeOracle,
-        recordTypeDefs, 
-        providedRecordTypes, 
-        units);
-    
-    builder.setRecordClassPrefix(getInternalClassName(recordClassPrefix));
-    builder.build(rootLogger);
-    builder.writeClasses(outputDirectory);
-
-    if(verbose) {
-      for (RecordTypeStrategy recordTypeStrategy : typeOracle.getRecordTypes()) {
-        System.out.println("STRATEGY: " + recordTypeStrategy.getRecordTypeDef().getName() + " => " + 
-            recordTypeStrategy);
-      }
-    }
-    
   }
 
   private void writeLinkMetadata() throws IOException {

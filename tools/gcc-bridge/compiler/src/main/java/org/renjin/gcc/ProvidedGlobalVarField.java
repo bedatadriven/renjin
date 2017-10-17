@@ -22,6 +22,9 @@ import org.renjin.gcc.codegen.expr.Expressions;
 import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.type.TypeOracle;
 import org.renjin.gcc.codegen.type.TypeStrategy;
+import org.renjin.gcc.codegen.type.primitive.PrimitiveTypeStrategy;
+import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
+import org.renjin.gcc.codegen.type.record.unit.RecordUnitPtrStrategy;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 
 import java.lang.reflect.Field;
@@ -36,9 +39,19 @@ public class ProvidedGlobalVarField implements ProvidedGlobalVar  {
 
   @Override
   public GExpr createExpr(GimpleVarDecl decl, TypeOracle typeOracle) {
-    TypeStrategy typeStrategy = typeOracle.forType(decl.getType());
+
+    TypeStrategy strategy;
+    if(typeOracle.getRecordTypes().isMappedToRecordType(field.getType())) {
+      strategy = new RecordUnitPtrStrategy((RecordClassTypeStrategy)
+          typeOracle.getRecordTypes().getStrategyFor(field.getType()));
+    } else if(field.getType().isPrimitive()) {
+      strategy = new PrimitiveTypeStrategy(field.getType());
+    } else {
+      throw new UnsupportedOperationException("Strategy for " + field.getType());
+    }
+
     boolean readOnly = Modifier.isFinal(field.getModifiers());
 
-    return typeStrategy.providedGlobalVariable(decl, Expressions.staticField(field), readOnly);
+    return strategy.providedGlobalVariable(decl, Expressions.staticField(field), readOnly);
   }
 }

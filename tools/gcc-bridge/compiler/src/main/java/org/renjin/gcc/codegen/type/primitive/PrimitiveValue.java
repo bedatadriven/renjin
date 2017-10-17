@@ -20,10 +20,7 @@ package org.renjin.gcc.codegen.type.primitive;
 
 import org.renjin.gcc.codegen.MethodGenerator;
 import org.renjin.gcc.codegen.array.FatArrayExpr;
-import org.renjin.gcc.codegen.expr.GExpr;
-import org.renjin.gcc.codegen.expr.GSimpleExpr;
-import org.renjin.gcc.codegen.expr.JExpr;
-import org.renjin.gcc.codegen.expr.JLValue;
+import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.FatPtr;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.UnsupportedCastException;
@@ -37,8 +34,12 @@ import org.renjin.gcc.codegen.vptr.VArrayExpr;
 import org.renjin.gcc.codegen.vptr.VPtrExpr;
 import org.renjin.gcc.codegen.vptr.VPtrRecordExpr;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
+import org.renjin.gcc.gimple.type.GimpleIntegerType;
 import org.renjin.gcc.gimple.type.GimplePrimitiveType;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
+import org.renjin.gcc.runtime.BytePtr;
+import org.renjin.gcc.runtime.Ptr;
+import org.renjin.repackaged.asm.Type;
 
 
 public class PrimitiveValue implements GSimpleExpr {
@@ -110,7 +111,9 @@ public class PrimitiveValue implements GSimpleExpr {
 
   @Override
   public VPtrExpr toVPtrExpr() throws UnsupportedCastException {
-    throw new UnsupportedOperationException("TODO");
+    return new VPtrExpr(Expressions.staticMethodCall(BytePtr.class, "of",
+        Type.getMethodDescriptor(Type.getType(Ptr.class), Type.INT_TYPE),
+        CastGenerator.cast(expr, primitiveType, GimpleIntegerType.unsigned(32))));
   }
 
   @Override

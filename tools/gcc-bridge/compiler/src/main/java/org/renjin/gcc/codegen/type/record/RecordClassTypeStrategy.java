@@ -46,13 +46,11 @@ import java.util.Map;
  */
 public class RecordClassTypeStrategy extends RecordTypeStrategy<RecordValue> implements SimpleTypeStrategy<RecordValue> {
 
-  private TypeOracle typeOracle;
   private boolean unitPointer;
   private RecordLayout layout;
 
-  public RecordClassTypeStrategy(TypeOracle typeOracle, GimpleRecordTypeDef recordTypeDef, RecordLayout layout) {
+  public RecordClassTypeStrategy(GimpleRecordTypeDef recordTypeDef, RecordLayout layout) {
     super(recordTypeDef);
-    this.typeOracle = typeOracle;
     this.layout = layout;
   }
 
@@ -137,7 +135,7 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<RecordValue> imp
       GExpr fieldValue = exprFactory.findGenerator(element.getValue());
       fields.put((GimpleFieldRef) element.getField(), fieldValue);
     }
-    return new RecordValue(layout, new RecordConstructor(typeOracle, this, fields));
+    return new RecordValue(layout, new RecordConstructor(this, fields));
   }
 
   public RecordValue clone(MethodGenerator mv, RecordValue recordValue) {
@@ -150,8 +148,8 @@ public class RecordClassTypeStrategy extends RecordTypeStrategy<RecordValue> imp
   }
 
   @Override
-  public RecordValue cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
-    if(typeStrategy instanceof RecordClassTypeStrategy) {
+  public RecordValue cast(MethodGenerator mv, GExpr value) throws UnsupportedCastException {
+    if(value instanceof RecordValue) {
       return (RecordValue) value;
     
     } 

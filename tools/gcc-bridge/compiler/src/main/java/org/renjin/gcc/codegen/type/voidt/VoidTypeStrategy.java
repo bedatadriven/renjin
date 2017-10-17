@@ -89,7 +89,7 @@ public class VoidTypeStrategy implements TypeStrategy<GExpr> {
   }
 
   @Override
-  public GExpr cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+  public GExpr cast(MethodGenerator mv, GExpr value) throws UnsupportedCastException {
     throw new UnsupportedCastException();
   }
 

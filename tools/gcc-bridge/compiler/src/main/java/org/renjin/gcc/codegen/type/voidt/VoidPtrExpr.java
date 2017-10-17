@@ -67,13 +67,7 @@ public class VoidPtrExpr implements RefPtrExpr {
   @Override
   public void store(MethodGenerator mv, GExpr rhs) {
     JLValue lhs = (JLValue) this.objectRef;
-
-    if(rhs instanceof FatPtr) {
-      FatPtr fatPtrExpr = (FatPtr) rhs;
-      lhs.store(mv, fatPtrExpr.wrap());
-    } else {
-      lhs.store(mv, ((RefPtrExpr) rhs).unwrap());
-    }
+    lhs.store(mv, rhs.toVoidPtrExpr().unwrap());
   }
   
   @Override

@@ -99,7 +99,7 @@ public class MakeMojo extends AbstractMojo {
     for (File file : dir.listFiles()) {
       if(file.getName().endsWith(".gimple")) {
         gimpleSources.add(file);
-      } else if(file.isDirectory()) {
+      } else if(file.isDirectory() && !file.equals(loggingDir)) {
         findGimpleOutput(gimpleSources, file);
       }
     }

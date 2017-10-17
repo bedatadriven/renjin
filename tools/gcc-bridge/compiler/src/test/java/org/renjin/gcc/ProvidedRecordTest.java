@@ -22,15 +22,14 @@ import org.junit.Test;
 import org.renjin.gcc.gimple.GimpleCompilationUnit;
 import org.renjin.gcc.runtime.Ptr;
 import org.renjin.gcc.runtime.RecordUnitPtr;
-import org.renjin.gcc.runtime.RecordUnitPtrPtr;
 
 import java.io.File;
-import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.util.Collections;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 public class ProvidedRecordTest extends AbstractGccTest {
   
@@ -68,8 +67,10 @@ public class ProvidedRecordTest extends AbstractGccTest {
     assertThat(areas, equalTo( (2*4) + (3*5) + (6*8) + (10*10)));
     
     Method allocPointerArray = clazz.getMethod("alloc_pointer_array");
-    RecordUnitPtrPtr<JvmInterface> ptrArray = (RecordUnitPtrPtr<JvmInterface>) allocPointerArray.invoke(null);
-    assertThat(Array.getLength(ptrArray.getArray()), equalTo(10));
+    Ptr ptrArray = (Ptr) allocPointerArray.invoke(null);
+    for (int i = 0; i < 10; i++) {
+      assertTrue(ptrArray.getAlignedPointer(i).isNull());
+    }
   }
   
   

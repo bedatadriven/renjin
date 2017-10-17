@@ -23,14 +23,12 @@ import org.renjin.gcc.codegen.array.ArrayTypeStrategies;
 import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.type.*;
-import org.renjin.gcc.codegen.type.primitive.PrimitiveValue;
 import org.renjin.gcc.codegen.var.VarAllocator;
 import org.renjin.gcc.codegen.vptr.VPtrParamStrategy;
 import org.renjin.gcc.codegen.vptr.VPtrReturnStrategy;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
-import org.renjin.gcc.gimple.type.GimpleIntegerType;
 import org.renjin.repackaged.asm.Type;
 
 import static org.renjin.gcc.codegen.expr.Expressions.constantInt;
@@ -135,20 +133,6 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
     throw new UnsupportedOperationException("TODO");
   }
 
-  public PrimitiveValue toInt(MethodGenerator mv, FatPtr fatPtrExpr) {
-    // Converting pointers to integers and vice-versa is implementation-defined
-    // So we will define an implementation that supports at least one useful case spotted in S4Vectors:
-    // double a[] = {1,2,3,4};
-    // double *start = a;
-    // double *end = p+4;
-    // int length = (start-end)
-    FatPtrPair pair = fatPtrExpr.toPair(mv);
-    JExpr offset = pair.getOffset();
-    JExpr offsetInBytes = Expressions.product(offset, valueFunction.getArrayElementBytes());
-
-    return new PrimitiveValue(new GimpleIntegerType(32), offsetInBytes);
-  }
-
   @Override
   public FatPtr constructorExpr(ExprFactory exprFactory, MethodGenerator mv, GimpleConstructor value) {
     throw new UnsupportedOperationException("TODO");
@@ -195,7 +179,7 @@ public class FatPtrStrategy implements PointerTypeStrategy<FatPtr> {
   }
 
   @Override
-  public FatPtr cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+  public FatPtr cast(MethodGenerator mv, GExpr value) throws UnsupportedCastException {
     return value.toFatPtrExpr(this.valueFunction);
   }
 

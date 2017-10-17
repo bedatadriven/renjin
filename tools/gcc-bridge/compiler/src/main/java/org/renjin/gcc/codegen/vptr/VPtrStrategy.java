@@ -157,7 +157,7 @@ public class VPtrStrategy implements PointerTypeStrategy {
   }
 
   @Override
-  public GExpr cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+  public GExpr cast(MethodGenerator mv, GExpr value) throws UnsupportedCastException {
     return value.toVPtrExpr();
   }
 

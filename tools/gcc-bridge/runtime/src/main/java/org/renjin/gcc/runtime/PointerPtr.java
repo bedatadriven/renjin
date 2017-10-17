@@ -54,6 +54,14 @@ public class PointerPtr extends AbstractPtr {
     this.offset = offset;
   }
 
+  public static PointerPtr wrap(Ptr[] array, int offset) {
+    if(array == null) {
+      return NULL;
+    } else {
+      return new PointerPtr(array, offset);
+    }
+  }
+
   /**
    * Allocates a "memory block" of length 1 and initializes it to the given
    * value.

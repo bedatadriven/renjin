@@ -25,7 +25,6 @@ import org.renjin.gcc.codegen.array.ArrayTypeStrategy;
 import org.renjin.gcc.codegen.expr.*;
 import org.renjin.gcc.codegen.fatptr.AddressableField;
 import org.renjin.gcc.codegen.fatptr.FatPtrPair;
-import org.renjin.gcc.codegen.fatptr.FatPtrStrategy;
 import org.renjin.gcc.codegen.fatptr.ValueFunction;
 import org.renjin.gcc.codegen.type.*;
 import org.renjin.gcc.codegen.type.primitive.ConstantValue;
@@ -33,14 +32,13 @@ import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.codegen.type.record.RecordConstructor;
 import org.renjin.gcc.codegen.type.record.RecordLayout;
 import org.renjin.gcc.codegen.var.VarAllocator;
+import org.renjin.gcc.codegen.vptr.VPtrStrategy;
 import org.renjin.gcc.gimple.GimpleVarDecl;
 import org.renjin.gcc.gimple.expr.GimpleConstructor;
 import org.renjin.gcc.gimple.type.GimpleArrayType;
 import org.renjin.gcc.gimple.type.GimpleRecordType;
 import org.renjin.repackaged.asm.Type;
 import org.renjin.repackaged.guava.base.Optional;
-
-import java.lang.reflect.Modifier;
 
 
 public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtrExpr>, SimpleTypeStrategy<RecordUnitPtrExpr> {
@@ -82,8 +80,8 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtrE
   }
 
   @Override
-  public FatPtrStrategy pointerTo() {
-    return new FatPtrStrategy(valueFunction, 2);
+  public VPtrStrategy pointerTo() {
+    return new VPtrStrategy(getGimpleType());
   }
 
   @Override
@@ -92,7 +90,7 @@ public class RecordUnitPtrStrategy implements PointerTypeStrategy<RecordUnitPtrE
   }
 
   @Override
-  public RecordUnitPtrExpr cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+  public RecordUnitPtrExpr cast(MethodGenerator mv, GExpr value) throws UnsupportedCastException {
     return value.toRecordUnitPtrExpr(strategy.getLayout());
   }
 

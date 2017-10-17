@@ -53,7 +53,7 @@ public final class SimpleReturnStrategy implements ReturnStrategy {
   public GExpr unmarshall(MethodGenerator mv, JExpr callExpr, TypeStrategy lhsTypeStrategy) {
     GExpr result = strategy.wrap(Expressions.cast(callExpr, type));
     try {
-      return lhsTypeStrategy.cast(mv, result, strategy);
+      return lhsTypeStrategy.cast(mv, result);
     } catch (UnsupportedCastException e) {
       throw new InternalCompilerException("Cannot cast from " + strategy + " to " + lhsTypeStrategy, e);
     }

@@ -118,7 +118,7 @@ public class ComplexTypeStrategy implements TypeStrategy<ComplexValue> {
   }
 
   @Override
-  public ComplexValue cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
+  public ComplexValue cast(MethodGenerator mv, GExpr value) throws UnsupportedCastException {
     throw new UnsupportedCastException();
   }
 }

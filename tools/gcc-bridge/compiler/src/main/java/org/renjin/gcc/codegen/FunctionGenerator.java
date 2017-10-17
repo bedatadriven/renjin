@@ -146,7 +146,6 @@ public class FunctionGenerator implements InvocationStrategy {
     }
     
     // Verify that GCC is not letting us fall through with out a return statement
-    GimpleBasicBlock lastBlock = function.getLastBasicBlock();
     if (function.isEmpty() || function.getLastBasicBlock().fallsThrough()) {
       JExpr defaultReturnValue = returnStrategy.getDefaultReturnValue();
       defaultReturnValue.load(mv);
@@ -171,7 +170,7 @@ public class FunctionGenerator implements InvocationStrategy {
     PeepholeOptimizer.INSTANCE.optimize(methodNode);
 
     int estimatedSize = BytecodeSizeEstimator.estimateSize(methodNode);
-    if(estimatedSize > 60_000) {
+    if(estimatedSize > 40_000) {
       System.err.println("WARNING: Method size of " + className + "." + function.getMangledName() + " may be exceeded.");
     }
 

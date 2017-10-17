@@ -964,12 +964,9 @@ public class GimpleCompilerTest extends AbstractGccTest {
     Method allocMethod = endpoints.getMethod("alloc_endpoints");
     Ptr ptr = (Ptr) allocMethod.invoke(null);
 
-//    assertThat(ptr.array.length, equalTo(2));
-
 
     Method testMethod = endpoints.getMethod("test_endpoints");
     Ptr ep = (Ptr) testMethod.invoke(null);
-   // assertThat(ep.array.length, equalTo(8));
   }
 
   @Test

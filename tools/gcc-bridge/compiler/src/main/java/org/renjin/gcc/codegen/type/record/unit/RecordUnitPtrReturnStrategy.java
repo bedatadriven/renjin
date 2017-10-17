@@ -24,10 +24,7 @@ import org.renjin.gcc.codegen.expr.GExpr;
 import org.renjin.gcc.codegen.expr.JExpr;
 import org.renjin.gcc.codegen.type.ReturnStrategy;
 import org.renjin.gcc.codegen.type.TypeStrategy;
-import org.renjin.gcc.codegen.type.record.RecordClassTypeStrategy;
 import org.renjin.gcc.codegen.type.record.RecordLayout;
-import org.renjin.gcc.codegen.type.voidt.VoidPtrExpr;
-import org.renjin.gcc.codegen.type.voidt.VoidPtrStrategy;
 import org.renjin.repackaged.asm.Type;
 
 
@@ -50,31 +47,7 @@ public class RecordUnitPtrReturnStrategy implements ReturnStrategy {
 
   @Override
   public GExpr unmarshall(MethodGenerator mv, JExpr callExpr, TypeStrategy lhsTypeStrategy) {
-    if(lhsTypeStrategy instanceof RecordUnitPtrStrategy) {
-      RecordUnitPtrStrategy lhsUnitPtrStrategy = (RecordUnitPtrStrategy) lhsTypeStrategy;
-      return new RecordUnitPtrExpr(layout, Expressions.cast(callExpr, lhsUnitPtrStrategy.getJvmType()));
-
-    } else if(lhsTypeStrategy instanceof RecordClassTypeStrategy) {
-      // In some cases, when you have a function like this:
-      //    MyClass& do_something(MyClass& x);
-      //
-      // and an assignment like this:
-      //
-      //    MyClass x = do_something(y);
-      //
-      // GCC does not generate an intermediate pointer value and a mem_ref like you
-      // would expect. I can't seem to reproduce this in a test case, so here is a workaround:
-      RecordClassTypeStrategy lhsValueTypeStrategy = (RecordClassTypeStrategy) lhsTypeStrategy;
-      return new RecordUnitPtrExpr(layout, Expressions.cast(callExpr, lhsValueTypeStrategy.getJvmType()));
-
-    } else if(lhsTypeStrategy instanceof VoidPtrStrategy) {
-      return new VoidPtrExpr(callExpr);
-
-    } else {
-      throw new UnsupportedOperationException(
-          String.format("Unsupported cast from return value %s to record unit pointer [%s]", 
-              lhsTypeStrategy.getClass().getName(), layout.getType()));
-    }
+    return lhsTypeStrategy.cast(mv, new RecordUnitPtrExpr(layout, callExpr));
   }
 
   @Override

@@ -117,7 +117,7 @@ public class VPtrRecordTypeStrategy extends RecordTypeStrategy<VPtrRecordExpr> {
   }
 
   @Override
-  public VPtrRecordExpr cast(MethodGenerator mv, GExpr value, TypeStrategy typeStrategy) throws UnsupportedCastException {
-    throw new UnsupportedOperationException("TODO");
+  public VPtrRecordExpr cast(MethodGenerator mv, GExpr value) throws UnsupportedCastException {
+    return value.toVPtrRecord(this.getRecordType());
   }
 }

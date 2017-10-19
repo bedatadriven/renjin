@@ -752,7 +752,7 @@ public class S3 {
         for (MethodRanking rankedMethod : rankedMethodsList) {
           String signature = rankedMethod.getSignature();
           double rank = rankedMethod.getRank();
-          int dist = rankedMethod.getTotalDist();
+          int[] dist = rankedMethod.getDistances();
           boolean has0 = rankedMethod.hasZeroDistanceArgument();
           Symbol signatureSymbol = Symbol.get(signature);
           SEXP function = methodTableList.get(i).getFrame().getVariable(signatureSymbol).force(context);
@@ -1732,7 +1732,7 @@ public class S3 {
       return signature;
     }
     
-    public int[] getDistance() {
+    public int[] getDistances() {
       return distances;
     }
     
@@ -1754,16 +1754,22 @@ public class S3 {
     private String group;
     private double currentRank;
     private boolean has0;
+    private int[] distances;
     private int currentDist;
     private String currentSig;
     private Symbol methodName;
     private String methodInputSignature;
     
-    public SelectedMethod(Closure fun, String grp, double rank, int dist, String sig, Symbol method, String methSig, boolean has0) {
+    public SelectedMethod(Closure fun, String grp, double rank, int[] dist, String sig, Symbol method, String methSig, boolean has0) {
       this.function = fun;
       this.group = grp;
       this.currentRank = rank;
-      this.currentDist = dist;
+      this.distances = dist;
+      int sum = 0;
+      for(int i = 0; i < dist.length; i++) {
+        sum += dist[i];
+      }
+      this.currentDist = sum;
       this.currentSig = sig;
       this.methodName = method;
       this.methodInputSignature = methSig;
@@ -1782,8 +1788,16 @@ public class S3 {
       return currentRank;
     }
   
-    public double getDistance() {
-      return currentDist;
+    public int[] getDistances() {
+      return distances;
+    }
+
+    public int getDistance(int i) {
+      int sum = 0;
+      for(int j = 0; j < i; j++) {
+        sum += distances[j];
+      }
+      return sum;
     }
     
     public String getSignature() {
@@ -1812,10 +1826,20 @@ public class S3 {
       if (i != 0) {
         return i;
       }
-      i = Integer.compare(this.getTotalDist(), o.getTotalDist());
-      if (i != 0) {
-        return i;
+
+      if(this.getDistances().length == o.getDistances().length) {
+        i = Integer.compare(this.getTotalDist(), o.getTotalDist());
+        if (i != 0) {
+          return i;
+        }
+      } else {
+        int minArgs = Math.min(this.getDistances().length, o.getDistances().length);
+        i = Integer.compare(this.getDistance(minArgs), o.getDistance(minArgs));
+        if (i != 0) {
+          return i;
+        }
       }
+
       return Double.compare(currentRank, o.getRank());
     }
   }

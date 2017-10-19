@@ -346,8 +346,7 @@ public class S3 {
   
   private static SEXP handleS4object(@Current Context context, SEXP source, PairList args,
                                      Environment rho, String group, String opName) {
-    
-    boolean hasS3Class = source.getAttribute(Symbol.get(".S3Class")).length() != 0;
+
     if("as.double".equals(opName)) {
       opName = "as.numeric";
     }
@@ -480,8 +479,10 @@ public class S3 {
 //     otherwise only e1 and e2.
     
     Closure function = method.getFunction();
+    boolean hasS3Class = source.getAttribute(Symbol.get(".S3Class")).length() != 0;
+    boolean genericExact = "generic".equals(method.getGroup()) && method.getTotalDist() == 0;
     
-    if (("generic".equals(method.getGroup()) && method.getDistance() == 0) || hasS3Class) {
+    if (!opName.contains("<-") && (genericExact || hasS3Class)) {
       SEXP call = new FunctionCall(function, promisedArgs.build());
       return context.evaluate( call );
     } else {
